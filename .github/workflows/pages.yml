@@ -7,6 +7,7 @@ on:
       - 'site/**'
       - 'release-overlay/final/**'
       - 'tools/apply_final_release.py'
+      - 'tools/apply_curated_i18n.py'
       - '.github/workflows/pages.yml'
   public:
   workflow_dispatch:
@@ -32,11 +33,17 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Assemble and validate frozen public release
+      - name: Assemble frozen English release and apply curated locales
         run: |
           rm -rf publish
           cp -a site publish
           python tools/apply_final_release.py publish
+          CANONICAL_HASH=$(python - <<'PY'
+          import json
+          print(json.load(open('release-overlay/final/manifest.json', encoding='utf-8'))['index_sha256'])
+          PY
+          )
+          python tools/apply_curated_i18n.py publish "$CANONICAL_HASH"
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
