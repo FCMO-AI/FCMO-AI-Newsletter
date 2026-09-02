@@ -2,12 +2,14 @@
   'use strict';
   const node = document.getElementById('fcmo-i18n-data');
   const canonicalNode = document.getElementById('fcmo-data');
-  if (!node || !canonicalNode) return;
+  if (!node) return;
 
   const bundle = JSON.parse(node.textContent);
-  const canonical = JSON.parse(canonicalNode.textContent);
+  const hasCanonical = Boolean(canonicalNode);
+  const canonical = hasCanonical ? JSON.parse(canonicalNode.textContent) : { records: [] };
   const supported = ['en', 'es-419', 'zh-Hans'];
   const storageKey = 'fcmo-ai-newsletter-locale';
+  const canonicalFrontierStorageKey = 'fcmo-ai-newsletter-canonical-frontier';
 
   function normalize(value) {
     if (!value) return null;
@@ -28,7 +30,7 @@
   }
 
   const locale = resolveLocale();
-  const pack = locale === 'en' ? null : bundle.packs[locale];
+  const pack = locale === 'en' ? null : bundle.packs?.[locale] || null;
   document.documentElement.lang = locale;
   document.documentElement.dataset.fcmoLocale = locale;
 
@@ -61,6 +63,7 @@
   const uiExtra = {
     'es-419': {
       'Research Intelligence':'Inteligencia de investigación','public briefs':'dossiers públicos','Evidence A':'Evidencia A','open evidence gaps':'vacíos abiertos de evidencia','explicit relationships':'relaciones explícitas',
+      'Opening the canonical FCMO AI Newsletter record…':'Abriendo el registro canónico de FCMO AI Newsletter…','Continue':'Continuar',
       'Machine-readable corpus →':'Corpus legible por máquinas →','Lead signal':'Señal principal','Front page':'Portada','Desks':'Secciones','Uncertainty docket':'Expediente de incertidumbre',
       'multi-source':'múltiples fuentes','source families':'familias de fuentes','claim records':'afirmaciones registradas','open gaps':'vacíos abiertos',
       'Claims':'Afirmaciones','Mechanism':'Mecanismo','Weak edge':'Punto débil','Provenance':'Procedencia','Complete desk →':'Ver sección completa →','Open full desk →':'Abrir sección completa →',
@@ -69,6 +72,7 @@
     },
     'zh-Hans': {
       'Research Intelligence':'研究情报','public briefs':'公开档案','Evidence A':'A 级证据','open evidence gaps':'待补证据','explicit relationships':'明确关联',
+      'Opening the canonical FCMO AI Newsletter record…':'正在打开 FCMO AI Newsletter 权威记录……','Continue':'继续',
       'Machine-readable corpus →':'机器可读语料库 →','Lead signal':'主信号','Front page':'首页','Desks':'栏目','Uncertainty docket':'不确定性清单',
       'multi-source':'多来源','source families':'来源组','claim records':'论断记录','open gaps':'待补证据','Claims':'论断','Mechanism':'机制','Weak edge':'薄弱环节','Provenance':'来源与谱系',
       'Complete desk →':'完整栏目 →','Open full desk →':'打开完整栏目 →','public briefs':'公开档案','lead impact':'最高影响','development':'项进展','developments':'项进展',
@@ -85,6 +89,10 @@
   function translateDynamic(text) {
     if (!pack) return text;
     let m;
+    if ((m = text.match(/^(\d+)\s+(public briefs \/ complete corpus inside)$/))) {
+      const translated = phraseMap.get(m[2]);
+      if (translated) return `${m[1]} ${translated}`;
+    }
     if ((m = text.match(/^(\d+) public briefs$/))) return locale === 'es-419' ? `${m[1]} dossiers públicos` : `${m[1]} 份公开档案`;
     if ((m = text.match(/^(\d+) open evidence gaps$/))) return locale === 'es-419' ? `${m[1]} vacíos abiertos de evidencia` : `${m[1]} 项待补证据`;
     if ((m = text.match(/^(\d+) explicit relationships$/))) return locale === 'es-419' ? `${m[1]} relaciones explícitas` : `${m[1]} 条明确关联`;
@@ -99,6 +107,7 @@
   }
   function translateTextNode(textNode) {
     if (!pack || !textNode.nodeValue) return;
+    if (textNode.parentElement?.closest('[data-fcmo-legal="canonical"]')) return;
     const trimmed = textNode.nodeValue.trim();
     if (!trimmed) return;
     let replacement = phraseMap.get(trimmed) || translateDynamic(trimmed);
@@ -106,6 +115,7 @@
   }
   function translateAttributes(el) {
     if (!pack || el.nodeType !== 1) return;
+    if (el.closest('[data-fcmo-legal="canonical"]')) return;
     for (const attr of ['placeholder','aria-label','title','label']) {
       const value = el.getAttribute?.(attr); if (!value) continue;
       const replacement = phraseMap.get(value) || translateDynamic(value);
@@ -152,23 +162,32 @@
   }
 
   function collapseCanonicalDossier() {
-    if (!pack || !location.hash.startsWith('#/brief/')) return;
+    if (!pack || !hasCanonical || !location.hash.startsWith('#/brief/')) return;
     const main = document.querySelector('.brief-main'); if (!main || main.querySelector(':scope > details.fcmo-canonical-dossier')) return;
-    const sections = [...main.querySelectorAll(':scope > section')]; if (sections.length < 2) return;
+    const evidenceEyebrows = new Set(['Technical dossier', 'Claims ledger', 'Open evidence gaps']);
+    const sections = [...main.querySelectorAll(':scope > section')];
+    const canonicalSections = sections.filter(section => evidenceEyebrows.has(section.querySelector(':scope > .eyebrow')?.textContent.trim()));
+    if (!canonicalSections.length) return;
     const details = document.createElement('details'); details.className = 'fcmo-canonical-dossier';
     const summary = document.createElement('summary');
-    summary.textContent = locale === 'es-419' ? 'Registro técnico y probatorio canónico — English' : '权威技术与证据记录 — English';
-    const note = document.createElement('p'); note.className = 'fcmo-canonical-note';
-    note.textContent = locale === 'es-419'
-      ? 'La noticia, su resumen y su interpretación editorial están traducidos de forma curada. El registro técnico profundo se conserva en inglés para mantener intactos matices probatorios, terminología e identificadores.'
-      : '新闻正文、摘要和编辑判断均为策划式翻译。深层技术与证据记录保留英文，以避免改变证据限定、术语和稳定标识符。';
+    const label = document.createElement('span'); label.className = 'fcmo-canonical-label';
+    label.textContent = phraseMap.get('English canonical record') || 'English canonical record';
+    const note = document.createElement('span'); note.className = 'fcmo-canonical-note';
+    note.textContent = phraseMap.get('Technical evidence stays in English so its meaning is not altered.')
+      || 'Technical evidence stays in English so its meaning is not altered.';
+    summary.append(label, note);
     const body = document.createElement('div'); body.className = 'fcmo-canonical-body';
-    for (const section of sections.slice(1)) body.appendChild(section);
-    details.append(summary, note, body); main.appendChild(details);
+    main.insertBefore(details, canonicalSections[0]);
+    for (const section of canonicalSections) body.appendChild(section);
+    details.append(summary, body);
+    try { details.open = localStorage.getItem(canonicalFrontierStorageKey) === 'open'; } catch {}
+    details.addEventListener('toggle', () => {
+      try { localStorage.setItem(canonicalFrontierStorageKey, details.open ? 'open' : 'closed'); } catch {}
+    });
   }
 
   function localizedResearch() {
-    if (!pack || !location.hash.startsWith('#/research')) return;
+    if (!pack || !hasCanonical || !location.hash.startsWith('#/research')) return;
     const q = document.getElementById('rq'), list = document.getElementById('rlist'), count = document.getElementById('rcount');
     if (!q || !list || !count) return;
     const desk = document.getElementById('rdesk'), ev = document.getElementById('rev'), imp = document.getElementById('rimp'), sort = document.getElementById('rsort');
@@ -190,7 +209,7 @@
   function apply() {
     if (scheduled) return; scheduled = true;
     queueMicrotask(() => {
-      scheduled = false; selector(); walk(document.body); editorialOverrides(); collapseCanonicalDossier();
+      scheduled = false; selector(); collapseCanonicalDossier(); walk(document.body); editorialOverrides();
     });
   }
   const observer = new MutationObserver(apply);
@@ -205,7 +224,7 @@
     supportedLocales: Object.freeze([...supported]),
     locale,
     curated: locale !== 'en',
-    getTranslation(id) { return locale === 'en' ? null : (pack.records[id] || null); }
+    getTranslation(id) { return locale === 'en' ? null : (pack?.records?.[id] || null); }
   });
   apply();
   setTimeout(localizedResearch,0);

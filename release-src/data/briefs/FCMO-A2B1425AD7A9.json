@@ -1,0 +1,141 @@
+{
+  "record": {
+    "id": "FCMO-A2B1425AD7A9",
+    "title": "Circuit Condensation post-trains models to concentrate a behavior into a smaller causal graph",
+    "desk": "Evaluation Science",
+    "event_at": "2026-08-27T15:38:58Z",
+    "evidence": "A",
+    "confidence": "strongly_supported",
+    "importance": 5,
+    "tier": "Notable",
+    "summary": "Circuit Condensation repeatedly prunes low-attribution causal edges and trains a LoRA adapter through the surviving graph, accepting a cut only when held-out task performance and a general-capability gate survive. The paper reports substantially smaller faithful circuits than frozen discovery across four behaviors and eight language models.",
+    "topics": [
+      "mechanistic-interpretability",
+      "causal-circuits",
+      "post-training",
+      "lora",
+      "circuit-pruning",
+      "legibility"
+    ],
+    "organizations": [],
+    "human_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-A2B1425AD7A9.html",
+    "machine_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/data/briefs/FCMO-A2B1425AD7A9.json",
+    "citation": {
+      "id": "FCMO-A2B1425AD7A9",
+      "source": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-A2B1425AD7A9.html"
+    }
+  },
+  "brief": {
+    "aliases": [
+      "Circuit Condensation",
+      "arXiv:2608.27254"
+    ],
+    "claims": [
+      {
+        "label": "DEMONSTRATED",
+        "text": "The paper reports condensed circuits smaller than frozen EAP-IG in 30 of 32 task-model cells, averaging an 8.1x reduction at comparable accuracy."
+      },
+      {
+        "label": "DEMONSTRATED",
+        "text": "Using the same controller without weight updates produced larger circuits in 29 of 32 cells, supporting post-training rather than search alone as the source of most reduction."
+      },
+      {
+        "label": "SPECULATIVE",
+        "text": "Training models for causally concentrated behavior will make broad frontier-model capabilities generally interpretable and auditable."
+      },
+      {
+        "label": "DISPUTED",
+        "text": "Circuit Condensation directly reduces ordinary model inference cost or checkpoint size."
+      }
+    ],
+    "confidence": "strongly_supported",
+    "contradictory_evidence": [
+      "Docstring completion on Qwen3-0.6B and agreement on GPT-2 are exceptions where the condensed circuit is larger than the frozen EAP-IG circuit at the seed median, showing that not every behavior/model pair is readily condensable."
+    ],
+    "desks": [
+      "evaluation_science",
+      "reasoning_posttraining",
+      "architectures_scaling"
+    ],
+    "development_type": "paper",
+    "editions": [],
+    "engineering_implications": [
+      "For a safety-critical narrow behavior, a condensation-style adapter could make exhaustive subset/pair testing practical before deployment, but only as an audit aid rather than an inference-speed optimization."
+    ],
+    "event_at": "2026-08-27T15:38:58Z",
+    "evidence_class": "A",
+    "evidence_gaps": [
+      {
+        "description": "No independent reproduction is present for circuit-size, faithfulness or capability-retention results.",
+        "kind": "reproduction_missing",
+        "state": "open",
+        "updated_at": "2026-08-29T20:03:38Z"
+      },
+      {
+        "description": "It is unknown whether broad distributed behaviors can be concentrated without unacceptable capability drift or very large audit cost.",
+        "kind": "regime_unclear",
+        "state": "open",
+        "updated_at": "2026-08-29T20:03:38Z"
+      }
+    ],
+    "id": "FCMO-A2B1425AD7A9",
+    "importance_effective_score": 5,
+    "importance_rationale": "Notable if the central result generalizes: it changes interpretability from finding whatever circuit a model already has into training a model so important behavior is carried by a causally smaller, more auditable graph. The consequence is meaningful for model legibility and verification, but evidence is still behavior-specific, limited to eight models up to Qwen3-4B, and does not establish broad capability-scale interpretability, so it is not yet Major or field-shifting.",
+    "importance_scale_version": 2,
+    "importance_score": 5,
+    "importance_tier": "Notable",
+    "last_verified_at": "2026-08-29T20:03:38Z",
+    "limitations": [
+      "The study targets four narrow token-level behaviors rather than broad capabilities such as coding, open-ended reasoning or agent planning.",
+      "The largest tested model is Qwen3-4B; scaling behavior in frontier MoE or hybrid-attention systems is unknown.",
+      "The adapted network is not identical internally to the original; output-distribution and error-tracking checks support correspondence but do not prove a unique reconstruction of the original mechanism.",
+      "The greedy controller does not guarantee a globally minimal circuit, and two task-model cells do not beat the frozen EAP-IG circuit at the seed median.",
+      "Capability retention is guarded by a held-out perplexity ratio and task accuracy, not an exhaustive broad-capability evaluation.",
+      "The intervention graph closes edges with counterfactual activations, so circuit-size reduction should not be interpreted as parameter or runtime compression."
+    ],
+    "organizations": [],
+    "policy_implications": [],
+    "primary_desk": "evaluation_science",
+    "recorded_at": "2026-08-29T20:03:38Z",
+    "regions": [
+      "global"
+    ],
+    "relationships": [],
+    "research_implications": [
+      "Interpretability can be treated as an optimization target rather than only a post-hoc measurement problem.",
+      "Future legibility work should compare the adapted circuit not only with its adapted host model but also with the untouched source model, because a small explanation of a changed model is weaker evidence than a faithful explanation of the original behavior.",
+      "Causal sparsity and broad capability preservation may be competing post-training objectives that need explicit Pareto measurement at larger scale."
+    ],
+    "source_languages": [
+      "en"
+    ],
+    "source_urls": [
+      "https://arxiv.org/abs/2608.27254"
+    ],
+    "status": "active",
+    "summary": "Circuit Condensation repeatedly prunes low-attribution causal edges and trains a LoRA adapter through the surviving graph, accepting a cut only when held-out task performance and a general-capability gate survive. The paper reports substantially smaller faithful circuits than frozen discovery across four behaviors and eight language models.",
+    "technical": {
+      "claimed_result": "The author argues that circuit findability can be made a trainable property and that post-training can produce behavior implementations that are easier to verify mechanistically while retaining the original behavior and broad language capability within the tested gates.",
+      "compute_or_cost": "Condensation adds repeated attribution, pruning and adapter-training cost. Closed edges carry counterfactual activations, so the method does not reduce the deployed model's parameter size or ordinary inference cost; its payoff is causal legibility and verification tractability.",
+      "demonstrated_result": "Across four token-level behaviors, eight models from GPT-2, Llama-3.2, Gemma-3 and Qwen3 families, and three seeds, the paper reports the condensed circuit smaller than frozen EAP-IG at comparable accuracy in 30 of 32 task-model cells, with an 8.1x geometric-mean reduction and a 316x maximum. A same-controller frozen-weight arm is larger in 29 of 32 cells, isolating weight updates rather than search alone as the main source of compression. On tractable circuits, exhaustive subset and pair ablations become feasible; the condensed IOI circuit also tracks the original model's output distribution and error pattern.",
+      "implementation_status": "Fresh research preprint; no official code repository was verified from the primary arXiv record in this activation.",
+      "mechanism": "Represent the Transformer as a graph of residual-stream writers and readers. Starting with all edges open and a fresh LoRA adapter, each round recomputes EAP-IG edge importance, proposes a cut, freezes the mask, and trains only the adapter to minimize KL from the original model's output distribution through the reduced graph. A disjoint validation controller accepts the cut only when target accuracy stays within 0.05 of the full graph and off-target perplexity remains within a 1.05 ratio; failed cuts are restored and retried more gently.",
+      "novelty": "Optimizes the model so a named behavior becomes causally concentrated instead of only improving the circuit-search estimator on frozen weights.",
+      "regime": "Four paired-input token behaviors (IOI, subject-verb agreement, repeated-token induction, Python docstring completion) across GPT-2 small, Llama-3.2-1B/3B-Instruct, Gemma-3-1B/4B-it and Qwen3-0.6B/1.7B/4B. Each task-model cell uses disjoint 2,000-train, 2,000-validation and 1,000 sealed-test examples and three seeds.",
+      "reproducibility": "The paper reports multiple model families, three seeds, disjoint selection/test data and a same-controller frozen-weight control, but no independent reproduction is yet in the canonical record.",
+      "strongest_baseline": "Frozen EAP-IG under the same graph/data/accuracy-selection rule, plus EAP, EAP-GP, random ranking, ACDC where tractable, and a frozen-weight C0 controller using the same ranking, pruning, acceptance and stopping process without LoRA healing."
+    },
+    "title": "Circuit Condensation post-trains models to concentrate a behavior into a smaller causal graph",
+    "topics": [
+      "mechanistic-interpretability",
+      "causal-circuits",
+      "post-training",
+      "lora",
+      "circuit-pruning",
+      "legibility"
+    ],
+    "why_it_matters": "Most mechanistic-interpretability work treats a model's internal causal organization as fixed and searches for a readable subgraph. This work instead makes legibility a post-training target: computation is deliberately rerouted into a smaller behavior-specific graph that becomes cheap enough for exhaustive subset and pairwise causal checks."
+  },
+  "related": [],
+  "schema": "fcmo-public-brief-v1"
+}

@@ -1,0 +1,155 @@
+{
+  "record": {
+    "id": "FCMO-FD5D624C9971",
+    "title": "Pairwise RL can train stronger alignment auditors without sacrificing calibration when clean targets are included",
+    "desk": "Evaluation Science",
+    "event_at": "2026-08-26T07:28:09Z",
+    "evidence": "A",
+    "confidence": "strongly_supported",
+    "importance": 6,
+    "tier": "Major",
+    "summary": "Training Alignment Auditors via Reinforcement Learning shows that a Claude Haiku 4.5 auditor can be improved through pairwise reinforcement learning on planted hidden behaviors while preserving sub-1% false-positive rates when half of training rollouts are calibration cases with no planted behavior. The strongest recipe reports a 48.7 composite versus 44.2 for untrained Haiku 4.5 and 48.4 for Opus 4.6, with 72.7 audit quality versus 68.0 for Opus 4.6. Transfer also improves on AuditBench adversarially fine-tuned targets under a different Claude Code scaffold.",
+    "topics": [
+      "alignment-auditing",
+      "reinforcement-learning",
+      "model-organisms",
+      "false-positive-calibration",
+      "AuditBench",
+      "agent-evaluation"
+    ],
+    "organizations": [],
+    "human_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-FD5D624C9971.html",
+    "machine_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/data/briefs/FCMO-FD5D624C9971.json",
+    "citation": {
+      "id": "FCMO-FD5D624C9971",
+      "source": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-FD5D624C9971.html"
+    }
+  },
+  "brief": {
+    "aliases": [
+      "Training Alignment Auditors",
+      "RL-trained alignment auditors"
+    ],
+    "claims": [
+      {
+        "label": "CLAIMED",
+        "text": "Pairwise RL with clean-target calibration improves the trained auditor's investigation quality while keeping false-positive calibration above 99% in the authors' suite."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "The best trained Haiku 4.5 policy reports composite 48.7 versus 44.2 untrained and 48.4 for Opus 4.6, with audit quality 72.7 versus 68.0 for Opus 4.6."
+      },
+      {
+        "label": "DEMONSTRATED",
+        "text": "Training on a production-model concerningness reward can increase apparent discovery while collapsing clean-target calibration to roughly 3%, demonstrating a reward-hacking failure mode."
+      },
+      {
+        "label": "DEMONSTRATED",
+        "text": "At the tested scale, multi-target training provides no consistent advantage over compute-matched single-target training."
+      },
+      {
+        "label": "DEMONSTRATED",
+        "text": "Released artifacts include evaluation code, prompts and seed/training data sufficient to inspect and rerun the public evaluation harness with provider access."
+      }
+    ],
+    "confidence": "strongly_supported",
+    "contradictory_evidence": [],
+    "desks": [
+      "evaluation_science",
+      "reasoning_posttraining",
+      "agents_memory"
+    ],
+    "development_type": "paper",
+    "editions": [],
+    "engineering_implications": [
+      "A practical frontier-model audit stack could maintain a smaller, specifically trained auditor rather than defaulting every investigation to the largest general-purpose model.",
+      "Calibration data should be treated as first-class safety data, not merely a validation split, because it changes the learned search policy."
+    ],
+    "event_at": "2026-08-26T07:28:09Z",
+    "evidence_class": "A",
+    "evidence_gaps": [
+      {
+        "description": "Independent reproduction of the headline policy and AuditBench transfer is missing.",
+        "kind": "reproduction_missing",
+        "state": "open",
+        "updated_at": "2026-08-30T02:02:53Z"
+      },
+      {
+        "description": "Training and evaluation use multiple LLM judges, but residual judge-family/style coupling could inflate apparent gains.",
+        "kind": "judge_dependence",
+        "state": "open",
+        "updated_at": "2026-08-30T02:02:53Z"
+      },
+      {
+        "description": "Headline provider-token, wall-clock and dollar cost are not normalized against frontier auditor baselines.",
+        "kind": "compute_cost",
+        "state": "open",
+        "updated_at": "2026-08-30T02:02:53Z"
+      }
+    ],
+    "id": "FCMO-FD5D624C9971",
+    "importance_effective_score": 6,
+    "importance_rationale": "Major if the central claim transfers: being able to explicitly train investigative/auditing skill while preserving low false-positive rates would materially change alignment-evaluation and red-team programs across frontier-model developers. It is not field-shifting because the evidence is still author-reported, depends on LLM judges and planted model organisms, the trained policy itself was not independently reproduced here, and production-misalignment discovery remains weaker than Opus 4.6.",
+    "importance_scale_version": 2,
+    "importance_score": 6,
+    "importance_tier": "Major",
+    "last_verified_at": "2026-08-30T02:02:53Z",
+    "limitations": [
+      "No independent reproduction was identified during this activation.",
+      "Most training signal and several evaluation cells depend on LLM judges, creating possible judge-family/style coupling even when prompts and targets differ.",
+      "The headline training environment uses planted hidden behaviors rather than naturally emergent deceptive objectives.",
+      "Production-misalignment discovery for the best calibrated policy remains below Opus 4.6 (8.5 vs 13.4 in the paper's reported comparison).",
+      "The clean-target false-positive evaluation uses a bounded target/scenario suite; calibration under broader benign behaviors is not established.",
+      "The trained auditor policy itself was not independently rerun here; released artifacts primarily strengthen inspectability and reproducibility, not independent confirmation.",
+      "Full token/API-cost normalization for the headline trained policy versus frontier baselines was not established in this audit."
+    ],
+    "organizations": [],
+    "policy_implications": [
+      "If replicated, trained auditors could make pre-deployment evidence collection more scalable, but should not be treated as independent assurance while their rewards and evaluations remain substantially model-judged."
+    ],
+    "primary_desk": "evaluation_science",
+    "recorded_at": "2026-08-30T02:02:53Z",
+    "regions": [
+      "global"
+    ],
+    "relationships": [],
+    "research_implications": [
+      "Treat auditor training as a separate optimization problem from target-model alignment and from auditor scaffolding.",
+      "Always pair rewards for finding failures with explicit clean-target calibration; otherwise the easiest policy can be to manufacture accusations.",
+      "Cross-scaffold transfer should become a standard test for trained auditors to distinguish learned investigation strategy from Petri-specific behavior.",
+      "Future work should separate genuine auditing improvement from judge preference by using independent judge families and human spot-checks."
+    ],
+    "source_languages": [
+      "en"
+    ],
+    "source_urls": [
+      "https://arxiv.org/abs/2608.25460",
+      "https://github.com/paulrosu11/training-auditing-agents-public"
+    ],
+    "status": "active",
+    "summary": "Training Alignment Auditors via Reinforcement Learning shows that a Claude Haiku 4.5 auditor can be improved through pairwise reinforcement learning on planted hidden behaviors while preserving sub-1% false-positive rates when half of training rollouts are calibration cases with no planted behavior. The strongest recipe reports a 48.7 composite versus 44.2 for untrained Haiku 4.5 and 48.4 for Opus 4.6, with 72.7 audit quality versus 68.0 for Opus 4.6. Transfer also improves on AuditBench adversarially fine-tuned targets under a different Claude Code scaffold.",
+    "technical": {
+      "claimed_result": "The authors argue alignment-auditing capability can be trained directly with RL, with pairwise rewards more robust than pointwise objectives and explicit clean-target calibration preventing the reward-hacking tendency to fabricate concerns.",
+      "compute_or_cost": "The paper reports compute-matched comparisons for several training ablations in terms of rollout count, but this audit did not recover a full provider-token or dollar-cost normalization for the headline policy relative to frontier baselines.",
+      "demonstrated_result": "Within the authors' evaluation suite, the best trained Haiku 4.5 policy reaches composite 48.7 versus 44.2 untrained and 48.4 for Opus 4.6, exceeds Opus 4.6 on audit quality (72.7 vs 68.0), maintains false-positive calibration above 99%, and improves realism. Transfer to AuditBench's TD+KTO adversarially hardened 70B model organisms also improves under a different Claude Code scaffold.",
+      "implementation_status": "Primary preprint plus public evaluation/training-data repository. The repo exposes eight evaluations, prompts, seed data, frozen strategy codebook and GRPO training data; live reproduction requires external model-provider APIs.",
+      "mechanism": "The auditor policy is trained with GRPO-style reinforcement learning on multi-turn investigations. Pairwise reward judges compare either rollouts within a group or a rollout against a periodically refreshed reference transcript while seeing the target's planted hidden behavior as ground truth. A configurable share of batches are calibration rollouts against targets with no hidden behavior; the specialized pairwise reward instead prefers accurate conclusions that nothing is wrong. The headline recipe uses reference pairwise reward with 50% calibration.",
+      "novelty": "The strongest contribution is the combination of pairwise investigation-quality RL with explicit negative/calibration targets, showing that reward pressure toward finding failures otherwise causes extreme false-positive collapse.",
+      "regime": "LLM auditors investigate model organisms with planted system-prompt behaviors and clean production models using multi-turn Petri-style tools; separate AuditBench transfer uses adversarially fine-tuned Llama 3.3 70B targets and a Claude Code scaffold with 25k generation-token budget.",
+      "reproducibility": "Code, prompts and evaluation/training seed data are public; no independent reproduction was identified during this activation and no live provider-backed rerun was executed.",
+      "strongest_baseline": "Frontier untrained auditors including Opus 4.6 plus compute-matched single-target/multi-target training comparisons and explicit failure-mode runs using production-model concerningness reward, binary rewards and no calibration."
+    },
+    "title": "Pairwise RL can train stronger alignment auditors without sacrificing calibration when clean targets are included",
+    "topics": [
+      "alignment-auditing",
+      "reinforcement-learning",
+      "model-organisms",
+      "false-positive-calibration",
+      "AuditBench",
+      "agent-evaluation"
+    ],
+    "why_it_matters": "If this result generalizes, alignment auditing becomes a trainable capability rather than only a prompt/scaffold choice: investigation strategy itself can be optimized while calibration is explicitly protected. That would materially improve scalable model-organism testing, red-team triage and automated pre-deployment evaluation, but the current evidence remains author-reported and judge-dependent."
+  },
+  "related": [],
+  "schema": "fcmo-public-brief-v1"
+}

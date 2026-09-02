@@ -1,0 +1,239 @@
+{
+  "record": {
+    "id": "FCMO-183728526F81",
+    "title": "Hydra-0 uses image-plane action flow as a cross-embodiment world-model and control interface",
+    "desk": "Multimodality World Models",
+    "event_at": "2026-08-18T17:59:30Z",
+    "evidence": "A",
+    "confidence": "strongly_supported",
+    "importance": 6,
+    "tier": "Major",
+    "summary": "Hydra-0 maps robot actions into sparse camera-plane trajectories of visible robot or object points, giving heterogeneous embodiments a common visual action representation. The authors train action-flow-conditioned Cosmos 2.5 and Wan2.2 backbones on 2,201.7 hours of multi-embodiment interaction video, report up to 90.4% lower robot-motion error and 60.2% lower object-motion error than an action-conditioned Cosmos 2.5 baseline, preserve policy rankings under open-loop RoboLab replay (Pearson r=0.96, Spearman rho=0.93, 5.7-point MAE), and demonstrate a qualitative inverse-control mode on one real flexible-pipe-bending task.",
+    "topics": [
+      "robotics",
+      "world-models",
+      "action-flow",
+      "cross-embodiment",
+      "policy-evaluation",
+      "world-action-models",
+      "video-generation"
+    ],
+    "organizations": [
+      "NVIDIA",
+      "Brown University",
+      "Columbia University"
+    ],
+    "human_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-183728526F81.html",
+    "machine_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/data/briefs/FCMO-183728526F81.json",
+    "citation": {
+      "id": "FCMO-183728526F81",
+      "source": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-183728526F81.html"
+    }
+  },
+  "brief": {
+    "aliases": [],
+    "claims": [
+      {
+        "label": "DEMONSTRATED",
+        "text": "Action-flow conditioning substantially lowers robot and object motion error versus the reported native action-conditioned Cosmos 2.5 baseline in the evaluated multi-embodiment regime."
+      },
+      {
+        "label": "DEMONSTRATED",
+        "text": "Hydra-0 preserves aggregate RoboLab policy success rankings under open-loop achieved-trajectory replay across the reported five policies and six tasks."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "Desired object flow can be converted through Hydra-0 internal features into executable robot actions without task-specific expert demonstrations."
+      },
+      {
+        "label": "SPECULATIVE",
+        "text": "Image-plane action flow is a generally superior common action interface for broad multi-embodiment world modeling and control."
+      }
+    ],
+    "confidence": "strongly_supported",
+    "contradictory_evidence": [
+      "The action-flow gains do not establish that action flow is universally better than native actions: the key headline comparison is against one Cosmos 2.5 action interface in the reported regime.",
+      "Open-loop policy-ranking fidelity does not establish closed-loop simulator fidelity, because generated observations never influence subsequent policy actions.",
+      "The inverse-control result is intentionally described by the paper as a proof of concept and cannot support broad zero-shot-control claims."
+    ],
+    "desks": [
+      "multimodality_world_models",
+      "evaluation_science",
+      "inference_systems"
+    ],
+    "development_type": "paper",
+    "editions": [],
+    "engineering_implications": [
+      "For multi-robot world models, test a visual action interface alongside native joint/end-effector commands, but preserve geometry/calibration overhead in end-to-end latency accounting.",
+      "Do not treat 62 FPS generation-only as real control-loop throughput until guidance, decoding, physics rollout, projection and policy/action-head latency are included."
+    ],
+    "event_at": "2026-08-18T17:59:30Z",
+    "evidence_class": "A",
+    "evidence_gaps": [
+      {
+        "description": "The reported policy evaluation is open-loop and does not test whether generated observations support stable closed-loop policy interaction.",
+        "kind": "other",
+        "state": "open",
+        "updated_at": "2026-08-30T00:29:56Z"
+      },
+      {
+        "description": "The strongest conclusion about action flow as a shared interface lacks a broad matched comparison against neighboring optical-flow, kinematic skeleton, mask and native-action interfaces under identical data/backbone budgets.",
+        "kind": "baseline_unclear",
+        "state": "open",
+        "updated_at": "2026-08-30T00:29:56Z"
+      },
+      {
+        "description": "FCMO AI has no independent reproduction of motion-error, transfer or policy-ranking results.",
+        "kind": "reproduction_missing",
+        "state": "open",
+        "updated_at": "2026-08-30T00:29:56Z"
+      },
+      {
+        "description": "Inverse control is demonstrated qualitatively on one flexible-pipe task, leaving task breadth and reliability unknown.",
+        "kind": "other",
+        "state": "open",
+        "updated_at": "2026-08-30T00:29:56Z"
+      }
+    ],
+    "id": "FCMO-183728526F81",
+    "importance_effective_score": 6,
+    "importance_rationale": "Major if the central claim transfers: a shared visual action interface that lets world models train across robots and human interaction data while remaining grounded in executable commands would materially change embodied-AI data and model design. It is not field-shifting yet because evaluation is dominated by open-loop replay and motion metrics, closed-loop behavior is absent, inverse control is demonstrated on only one qualitative real-robot task, and independent reproduction is unavailable.",
+    "importance_scale_version": 2,
+    "importance_score": 6,
+    "importance_tier": "Major",
+    "last_verified_at": "2026-08-30T00:29:56Z",
+    "limitations": [
+      "RoboLab policy evaluation is open-loop replay; policies are never queried on generated observations, so compounding model errors and behavioral feedback are not tested.",
+      "The world action model exhibits centimeter-scale grasp imprecision and ambiguous grasp/contact state; the authors identify limited depth awareness as a likely contributor.",
+      "Systematic wrist-camera, mobile-manipulation and broader camera-motion evaluation is absent.",
+      "The real-robot inverse-control evidence is one qualitative flexible-pipe-bending task rather than a task suite.",
+      "The headline 16x inference speedup is generation-only and excludes guidance and pixel decoding.",
+      "Independent reproduction and matched comparisons against the strongest neighboring flow/skeleton/mask action interfaces are not yet canonical."
+    ],
+    "organizations": [
+      "NVIDIA",
+      "Brown University",
+      "Columbia University"
+    ],
+    "policy_implications": [],
+    "primary_desk": "multimodality_world_models",
+    "recorded_at": "2026-08-30T00:29:56Z",
+    "regions": [
+      "global"
+    ],
+    "relationships": [
+      {
+        "summary": "Both examine world-model design choices that can reduce downstream predictive/control burden, but Hydra-0 changes action representation while LpWM changes latent-state geometry.",
+        "target_id": "FCMO-47EB61AB3914",
+        "type": "related"
+      }
+    ],
+    "research_implications": [
+      "Cross-embodiment world-model studies should compare interfaces under matched information content and training data, not only compare different backbones.",
+      "Policy-evaluation world models need closed-loop tests because open-loop replay can hide feedback-sensitive errors.",
+      "Visual action representations may make human interaction video more directly useful for robot world-model training if embodiment motion and object intent can share one representation."
+    ],
+    "source_languages": [
+      "en"
+    ],
+    "source_urls": [
+      "https://arxiv.org/abs/2608.18077",
+      "https://arxiv.org/html/2608.18077v1"
+    ],
+    "status": "active",
+    "summary": "Hydra-0 maps robot actions into sparse camera-plane trajectories of visible robot or object points, giving heterogeneous embodiments a common visual action representation. The authors train action-flow-conditioned Cosmos 2.5 and Wan2.2 backbones on 2,201.7 hours of multi-embodiment interaction video, report up to 90.4% lower robot-motion error and 60.2% lower object-motion error than an action-conditioned Cosmos 2.5 baseline, preserve policy rankings under open-loop RoboLab replay (Pearson r=0.96, Spearman rho=0.93, 5.7-point MAE), and demonstrate a qualitative inverse-control mode on one real flexible-pipe-bending task.",
+    "technical": {
+      "claimed_result": "The authors argue that action flow is a portable shared control interface connecting heterogeneous data, transferable world modeling, open-loop policy evaluation and inverse robot control.",
+      "compute_or_cost": "Inference benchmark uses one 80GB H100, bfloat16, batch size 1, 81 frames at 480x832. The reported 16x gain is generation-only, excludes guidance and VAE/pixel decoding, and uses a short horizon where the 24-latent attention cap is inactive.",
+      "demonstrated_result": "On held-out multi-embodiment video data, the best action-flow configuration reports 90.40% lower robot-motion error and 60.16% lower object-motion error than the native action-conditioned Cosmos 2.5 baseline. On RoboLab open-loop replay across 5 policies, 6 tasks and 300 episodes, generated success rates correlate with reference rates at Pearson r=0.96 and Spearman rho=0.93 with 5.7 percentage-point MAE. A few-step distilled rollout reaches 61.98 FPS generation-only on one H100 versus 3.87 FPS for the bidirectional teacher, but guidance and VAE decoding are excluded. One flexible-pipe-bending real-robot inverse-control example succeeds qualitatively.",
+      "implementation_status": "Paper and project page are public; FCMO AI did not verify a released official training repository in this run.",
+      "mechanism": "Hydra-0 represents an action as sparse image-plane trajectories with visibility masks. At training time trajectories can be recovered from video using dense tracking and grounded masks; at deployment, candidate executable commands are rolled through Isaac Lab/controller physics and robot geometry plus camera calibration project visible robot-surface motion into the camera plane. These trajectory-aligned visual features condition a video diffusion backbone. The same interface is inverted by conditioning on desired object flow and reading internal DiT features with a lightweight action head.",
+      "novelty": "Uses a kinematically grounded visual motion representation as a common forward and inverse interface across embodiments rather than binding the world model to each robot's native action space.",
+      "regime": "Seven-source corpus totaling 178,187 episodes and 2,201.7 hours after filtering, spanning single-arm, bimanual, human-hand, handheld-gripper and humanoid data. Main video backbones are Cosmos 2.5, Wan2.2 I2V-A14B and Wan2.2 TI2V-5B. RoboLab policy evaluation is open-loop achieved-trajectory replay, not closed-loop interaction.",
+      "reproducibility": "Primary paper gives dataset composition, preprocessing, baseline design and inference protocol, but FCMO AI has no independent reproduction and did not verify an official code release.",
+      "strongest_baseline": "The primary matched baseline is Cosmos 2.5 using its native relative 6D end-effector action representation; action-flow variants of Cosmos 2.5 and Wan2.2 are trained on the same robot-motion trajectories and dataset mixture. Generic motion-conditioned and task-specific IWS baselines are also compared in transfer studies."
+    },
+    "title": "Hydra-0 uses image-plane action flow as a cross-embodiment world-model and control interface",
+    "topics": [
+      "robotics",
+      "world-models",
+      "action-flow",
+      "cross-embodiment",
+      "policy-evaluation",
+      "world-action-models",
+      "video-generation"
+    ],
+    "why_it_matters": "If robust in closed loop and beyond the reported tasks, action flow could decouple world-model conditioning from embodiment-specific command spaces, allowing video/world models to learn from mixed robot and human interaction data and transfer predictive structure across robots without forcing one native action vocabulary."
+  },
+  "related": [
+    {
+      "evidence_refs": [],
+      "source_id": "FCMO-183728526F81",
+      "summary": "Both examine world-model design choices that can reduce downstream predictive/control burden, but Hydra-0 changes action representation while LpWM changes latent-state geometry.",
+      "target_id": "FCMO-47EB61AB3914",
+      "type": "related",
+      "other": {
+        "id": "FCMO-47EB61AB3914",
+        "title": "LpWM uses sparse non-negative JEPA latents to reduce world-model predictor complexity",
+        "desk": "Multimodality World Models",
+        "event_at": "2026-08-24T03:37:39Z",
+        "evidence": "A",
+        "confidence": "supported",
+        "importance": 5,
+        "tier": "Notable",
+        "summary": "LpWM changes the geometry of JEPA world-model latents rather than merely scaling the predictor. It uses Rectified Distribution Matching Regularization to match encoder features to sparse non-negative Rectified Generalized Gaussian targets. The authors report that on PushT, sparse LpWM requires less predictor capacity than dense LeWM for comparable or better planning, with gains up to 57% at intermediate-capacity predictors; at the highest-capacity AdaLN predictors the gap largely closes. The learned support also tracks discrete dynamical regimes while non-zero magnitudes encode continuous within-regime state.",
+        "topics": [
+          "world-models",
+          "JEPA",
+          "sparse-representations",
+          "latent-dynamics",
+          "planning",
+          "interpretability"
+        ],
+        "organizations": [
+          "Meta FAIR"
+        ],
+        "human_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-47EB61AB3914.html",
+        "machine_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/data/briefs/FCMO-47EB61AB3914.json",
+        "citation": {
+          "id": "FCMO-47EB61AB3914",
+          "source": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-47EB61AB3914.html"
+        }
+      }
+    },
+    {
+      "evidence_refs": [],
+      "source_id": "FCMO-D932AEC66CC3",
+      "summary": "Hydra-0 and LAWA both replace raw embodiment-specific action/world interfaces with intermediate representations, but Hydra-0 uses explicit image-plane action flow while LAWA predicts compact latent transition intentions.",
+      "target_id": "FCMO-183728526F81",
+      "type": "related",
+      "other": {
+        "id": "FCMO-D932AEC66CC3",
+        "title": "LAWA retains test-time future imagination in compact latent actions instead of generated future video",
+        "desk": "Multimodality World Models",
+        "event_at": "2026-08-25T17:59:03Z",
+        "evidence": "A",
+        "confidence": "strongly_supported",
+        "importance": 6,
+        "tier": "Major",
+        "summary": "LAWA predicts a temporally structured sequence of compact latent transition tokens jointly with executable robot action chunks, retaining an explicit test-time representation of future task progress while dropping expensive future-RGB denoising. In the authors' matched implementations, LAWA reports 65.6%/80.8% average RoboCasa success in few-shot/full-data regimes, +9.6/+4.5 points over Fast-WAM, 74.4% on LIBERO-Plus, and 42.9% lower inference latency than Joint-WAM while preserving roughly Joint-WAM-level task performance.",
+        "topics": [
+          "robotics",
+          "world-action-models",
+          "latent-actions",
+          "future-imagination",
+          "inference-latency",
+          "action-free-pretraining"
+        ],
+        "organizations": [],
+        "human_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-D932AEC66CC3.html",
+        "machine_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/data/briefs/FCMO-D932AEC66CC3.json",
+        "citation": {
+          "id": "FCMO-D932AEC66CC3",
+          "source": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-D932AEC66CC3.html"
+        }
+      }
+    }
+  ],
+  "schema": "fcmo-public-brief-v1"
+}

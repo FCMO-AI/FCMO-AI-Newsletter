@@ -62,6 +62,17 @@ def sha256(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
+def canonical_corpus_count(index_text: str) -> int:
+    match = re.search(r'<script id="fcmo-data" type="application/json">(.*?)</script>', index_text, re.S)
+    if not match:
+        raise ValueError("index is missing embedded fcmo-data corpus")
+    data = json.loads(match.group(1))
+    records = data.get("records")
+    if not isinstance(records, list):
+        raise ValueError("embedded fcmo-data corpus has no records array")
+    return len(records)
+
+
 def fail(message: str) -> "NoReturn":
     raise SystemExit(f"final release refused: {message}")
 
@@ -129,13 +140,14 @@ def validate(target: Path, manifest: dict) -> None:
         "agent.json", "llms.txt", "llms-full.txt",
         "data/corrections.json", "data/site-manifest.json", "data/developments.json",
         "data/developments.jsonl", "data/search.json", "data/search.jsonl",
-        "data/relationships.json", "data/publication-memory.json", "data/topics.json",
+        "data/relationships.json", "data/relationships.jsonl", "data/publication-memory.json", "data/topics.json",
         "data/organizations.json", "data/media.json",
     }
     rels = {p.relative_to(target).as_posix() for p in target.rglob("*") if p.is_file()}
     for rel in sorted(required - rels):
         errors.append(f"missing required public file: {rel}")
 
+    live_corpus_count: int | None = None
     index = target / "index.html"
     if index.is_file():
         if sha256(index.read_bytes()) != manifest["index_sha256"]:
@@ -147,6 +159,10 @@ def validate(target: Path, manifest: dict) -> None:
         deps = remote_exec_dependencies(home)
         if deps:
             errors.append(f"index contains remote executable/style dependencies: {deps}")
+        try:
+            live_corpus_count = canonical_corpus_count(home)
+        except Exception as exc:
+            errors.append(f"canonical corpus validation failed: {exc}")
 
     briefs = sorted((target / "data/briefs").glob("FCMO-*.json")) if (target / "data/briefs").is_dir() else []
     bridges = sorted((target / "developments").glob("FCMO-*.html")) if (target / "developments").is_dir() else []
@@ -163,12 +179,35 @@ def validate(target: Path, manifest: dict) -> None:
             errors.append(f"invalid brief identifier: {p.name}")
 
     try:
+        relationships_json = json.loads((target / "data/relationships.json").read_text(encoding="utf-8"))
+        relationships_jsonl = []
+        for n, line in enumerate((target / "data/relationships.jsonl").read_text(encoding="utf-8").splitlines(), 1):
+            if not line.strip():
+                continue
+            row = json.loads(line)
+            if not isinstance(row, dict):
+                errors.append(f"relationships JSONL line {n} is not a JSON object")
+            relationships_jsonl.append(row)
+        if not isinstance(relationships_json, list) or any(not isinstance(row, dict) for row in relationships_json):
+            errors.append("relationships.json must be an array of JSON objects")
+        elif relationships_jsonl != relationships_json:
+            errors.append("relationships.json and relationships.jsonl must contain the same objects in the same order")
+    except Exception as exc:
+        errors.append(f"relationships surface validation failed: {exc}")
+
+    try:
         media = json.loads((target / "data/media.json").read_text(encoding="utf-8"))
         real = sum(1 for row in media if row.get("sourced") is True)
         fallback = sum(1 for row in media if row.get("sourced") is False)
         expected = manifest["story_media"]
-        if (len(media), real, fallback) != (22, expected["real_preferred"], expected["embedded_fallback"]):
-            errors.append(f"media policy mismatch: total/real/fallback={len(media)}/{real}/{fallback}")
+        if live_corpus_count is not None and (len(media), real, fallback) != (
+            live_corpus_count, expected["real_preferred"], expected["embedded_fallback"]
+        ):
+            errors.append(
+                f"media policy mismatch: expected total/real/fallback="
+                f"{live_corpus_count}/{expected['real_preferred']}/{expected['embedded_fallback']}, "
+                f"found {len(media)}/{real}/{fallback}"
+            )
     except Exception as exc:
         errors.append(f"media manifest validation failed: {exc}")
 
@@ -176,8 +215,8 @@ def validate(target: Path, manifest: dict) -> None:
         agent = json.loads((target / "agent.json").read_text(encoding="utf-8"))
         if agent.get("schema") != "fcmo-agent-discovery-v2" or agent.get("query_contract") != "fcmo-agent-query-v2":
             errors.append("agent discovery/query contract mismatch")
-        if agent.get("counts", {}).get("briefs") != 22:
-            errors.append("agent brief count mismatch")
+        if live_corpus_count is not None and agent.get("counts", {}).get("briefs") != live_corpus_count:
+            errors.append(f"agent brief count mismatch: expected {live_corpus_count}")
     except Exception as exc:
         errors.append(f"agent.json validation failed: {exc}")
 

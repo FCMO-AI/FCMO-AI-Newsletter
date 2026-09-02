@@ -9,6 +9,7 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+from html.parser import HTMLParser
 from pathlib import Path
 
 SUPPORTED = ("en", "es-419", "zh-Hans")
@@ -21,6 +22,94 @@ TRANSLATION_ENDPOINT_MARKERS = (
     "translate.googleapis.com", "googleapis.com/language/translate", "api.deepl.com",
     "api.cognitive.microsofttranslator.com", "api.openai.com", "api.anthropic.com",
 )
+UI_ATTRIBUTE_NAMES = {"aria-label", "placeholder", "title", "label"}
+LEGAL_ATTRIBUTE = ("data-fcmo-legal", "canonical")
+
+
+class _VisibleIndexParser(HTMLParser):
+    """Collect user-facing HTML text while ignoring executable/data blocks."""
+
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self._ignored = 0
+        self.text: list[str] = []
+        self.attributes: list[str] = []
+        self.inline_scripts: list[str] = []
+        self._script_attrs: dict[str, str] | None = None
+        self._script_buffer: list[str] = []
+        self._element_stack: list[tuple[str, bool]] = []
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        attrs_map = {key.lower(): value or "" for key, value in attrs}
+        if tag.lower() in {"script", "style"}:
+            self._ignored += 1
+            if tag.lower() == "script":
+                self._script_attrs = attrs_map
+                self._script_buffer = []
+            return
+        is_legal = attrs_map.get(LEGAL_ATTRIBUTE[0]) == LEGAL_ATTRIBUTE[1]
+        self._element_stack.append((tag.lower(), is_legal))
+        if self._ignored:
+            return
+        if any(legal for _, legal in self._element_stack):
+            return
+        for key, value in attrs:
+            if key.lower() in UI_ATTRIBUTE_NAMES and value:
+                self.attributes.append(value)
+
+    def handle_endtag(self, tag: str) -> None:
+        if tag.lower() not in {"script", "style"} or not self._ignored:
+            for index in range(len(self._element_stack) - 1, -1, -1):
+                if self._element_stack[index][0] == tag.lower():
+                    del self._element_stack[index:]
+                    break
+            return
+        if tag.lower() == "script" and self._script_attrs is not None:
+            attrs = self._script_attrs
+            if not attrs.get("src") and attrs.get("type") not in {"application/json", "application/ld+json"}:
+                self.inline_scripts.append("".join(self._script_buffer))
+            self._script_attrs = None
+            self._script_buffer = []
+        self._ignored -= 1
+
+    def handle_data(self, data: str) -> None:
+        if self._ignored:
+            if self._script_attrs is not None:
+                self._script_buffer.append(data)
+            return
+        if any(legal for _, legal in self._element_stack):
+            return
+        self.text.append(data)
+
+
+def _clean_ui_text(value: str) -> str:
+    return " ".join(value.split()).strip()
+
+
+def _visible_ui_strings(index_text: str, catalog_keys: set[str]) -> set[str]:
+    """Extract visible UI phrases from the assembled index.
+
+    The final index is an app shell: its initial HTML contains the persistent
+    chrome, while route views are templates in the inline application script.
+    Catalog keys found in that script are therefore included as UI candidates;
+    embedded JSON is deliberately excluded so a story's editorial prose is not
+    mistaken for a UI phrase.  The count-bearing issue-stamp phrase is kept in
+    its source form, without baking the live number into the catalogue key.
+    """
+    parser = _VisibleIndexParser()
+    parser.feed(index_text)
+    visible = {
+        _clean_ui_text(value)
+        for value in [*parser.text, *parser.attributes]
+        if _clean_ui_text(value) in catalog_keys
+    }
+    inline_source = "\n".join(parser.inline_scripts)
+    visible.update(key for key in catalog_keys if key and key in inline_source)
+
+    dynamic_issue_phrase = "public briefs / complete corpus inside"
+    if re.search(r"(?:\$\{[^}]+\}|<N>|\d+)\s+" + re.escape(dynamic_issue_phrase), inline_source):
+        visible.add(dynamic_issue_phrase)
+    return visible
 
 
 def sha256(data: bytes) -> str:
@@ -137,6 +226,25 @@ def validate_curated_i18n(target: Path, canonical_index_sha256: str | None = Non
         if not isinstance(pack.get("ui"), dict) or len(pack["ui"]) < 40:
             errors.append(f"{locale}: UI catalogue is unexpectedly incomplete")
 
+    if len(packs) == len(CURATED):
+        ui_catalogs = {locale: set(pack["ui"]) for locale, pack in packs.items()}
+        catalog_keys = set().union(*ui_catalogs.values())
+        visible_ui: set[str] = set()
+        for page in sorted(target.rglob("*.html")):
+            visible_ui.update(_visible_ui_strings(page.read_text(encoding="utf-8"), catalog_keys))
+        for locale, catalog in ui_catalogs.items():
+            missing = sorted(
+                phrase
+                for phrase in visible_ui
+                if phrase not in catalog
+                and not (
+                    phrase == "public briefs / complete corpus inside"
+                    and "<N> public briefs / complete corpus inside" in catalog
+                )
+            )
+            if missing:
+                errors.append(f"{locale}: visible UI strings missing from ui catalogue: {missing}")
+
     for marker in TRANSLATION_ENDPOINT_MARKERS:
         for path in [target / "assets" / "curated-i18n.js", *(target / "data" / "i18n").rglob("*.json")]:
             if path.is_file() and marker in path.read_text(encoding="utf-8").lower():
@@ -166,11 +274,47 @@ def validate_curated_i18n(target: Path, canonical_index_sha256: str | None = Non
     return {"records": canonical_count, "canonical_editorial_sha256": digest, "packs": packs}
 
 
+def _inject_runtime(page_text: str, canonical_tag: str | None, encoded_bundle: str, asset_prefix: str) -> str:
+    """Inject the shared runtime into an index or a one-level static page."""
+    style_marker = 'data-fcmo-i18n="style"'
+    runtime_marker = 'data-fcmo-i18n="runtime"'
+    if BUNDLE_MARKER in page_text:
+        if style_marker not in page_text or runtime_marker not in page_text:
+            raise ValueError("page contains a partial curated localization runtime")
+        return page_text
+
+    style_tag = (
+        f'<link rel="stylesheet" href="{asset_prefix}assets/curated-i18n.css" '
+        'data-fcmo-i18n="style">'
+    )
+    payload = (
+        f'<script id="fcmo-i18n-data" type="application/json">{encoded_bundle}</script>'
+        f'<script src="{asset_prefix}assets/curated-i18n.js" data-fcmo-i18n="runtime"></script>'
+    )
+    localized = page_text
+    if style_marker not in localized:
+        localized, count = re.subn(r"</head>", style_tag + "</head>", localized, count=1, flags=re.I)
+        if count != 1:
+            raise ValueError("unable to locate </head> for deterministic localization injection")
+
+    data_match = re.search(r'<script id="fcmo-data" type="application/json">.*?</script>', localized, re.S)
+    if data_match:
+        localized = localized[:data_match.end()] + payload + localized[data_match.end():]
+    else:
+        body_match = re.search(r"</body>", localized, re.I)
+        if not body_match:
+            raise ValueError("unable to locate </body> for deterministic localization injection")
+        prefix = canonical_tag or ""
+        localized = localized[:body_match.start()] + prefix + payload + localized[body_match.start():]
+    return localized
+
+
 def apply_curated_i18n(target: Path, canonical_index_sha256: str) -> None:
     index = target / "index.html"
     original = index.read_text(encoding="utf-8")
     if BUNDLE_MARKER in original:
-        raise ValueError("curated localization was already applied")
+        validate_curated_i18n(target, canonical_index_sha256)
+        return
     if sha256(index.read_bytes()) != canonical_index_sha256:
         raise ValueError("refusing to localize an index that is not the frozen canonical English release")
 
@@ -182,16 +326,41 @@ def apply_curated_i18n(target: Path, canonical_index_sha256: str) -> None:
         "curated_locales": list(CURATED),
         "packs": {locale: result["packs"][locale] for locale in CURATED},
     }
-    encoded = json.dumps(bundle, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
-    style_tag = '<link rel="stylesheet" href="assets/curated-i18n.css" data-fcmo-i18n="style">'
-    payload = f'<script id="fcmo-i18n-data" type="application/json">{encoded}</script><script src="assets/curated-i18n.js" data-fcmo-i18n="runtime"></script>'
-
-    localized = original.replace("</head>", style_tag + "</head>", 1)
-    match = re.search(r'(<script id="fcmo-data" type="application/json">.*?</script>)', localized, re.S)
+    match = re.search(r'(<script id="fcmo-data" type="application/json">.*?</script>)', original, re.S)
     if not match:
         raise ValueError("unable to locate canonical data block for deterministic injection")
-    localized = localized[:match.end()] + payload + localized[match.end():]
+    encoded = json.dumps(bundle, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
+    localized = _inject_runtime(original, match.group(1), encoded, "")
     index.write_text(localized, encoding="utf-8")
+
+    stub_bundle = {
+        "schema": bundle["schema"],
+        "canonical_locale": bundle["canonical_locale"],
+        "supported_locales": bundle["supported_locales"],
+        "curated_locales": bundle["curated_locales"],
+        "packs": {
+            locale: {"ui": result["packs"][locale]["ui"]}
+            for locale in CURATED
+        },
+    }
+    encoded_stub = json.dumps(stub_bundle, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
+
+    for directory in (target / "developments", target / "editions"):
+        if not directory.is_dir():
+            continue
+        for page in sorted(directory.glob("*.html")):
+            page_text = page.read_text(encoding="utf-8")
+            page_localized = _inject_runtime(page_text, None, encoded_stub, "../")
+            if page_localized != page_text:
+                page.write_text(page_localized, encoding="utf-8")
+
+    for page in sorted(target.glob("*.html")):
+        if page.name == "index.html":
+            continue
+        page_text = page.read_text(encoding="utf-8")
+        page_localized = _inject_runtime(page_text, match.group(1), encoded, "")
+        if page_localized != page_text:
+            page.write_text(page_localized, encoding="utf-8")
 
     manifest = {
         "schema": "fcmo-curated-i18n-manifest-v1",
@@ -235,6 +404,13 @@ def apply_curated_i18n(target: Path, canonical_index_sha256: str) -> None:
 if __name__ == "__main__":
     import sys
     root = Path(sys.argv[1] if len(sys.argv) > 1 else ".").resolve()
-    canonical_hash = sys.argv[2] if len(sys.argv) > 2 else sha256((root / "index.html").read_bytes())
+    if len(sys.argv) > 2:
+        canonical_hash = sys.argv[2]
+    else:
+        localized_manifest = root / "data" / "i18n" / "manifest.json"
+        if BUNDLE_MARKER in (root / "index.html").read_text(encoding="utf-8") and localized_manifest.is_file():
+            canonical_hash = json.loads(localized_manifest.read_text(encoding="utf-8"))["canonical_index_sha256"]
+        else:
+            canonical_hash = sha256((root / "index.html").read_bytes())
     apply_curated_i18n(root, canonical_hash)
     print(f"Curated FCMO localization applied: {', '.join(SUPPORTED)}")

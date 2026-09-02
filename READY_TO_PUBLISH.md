@@ -2,7 +2,9 @@
 
 Release: **Signal Field v4.1 final**
 
-Status: **release-ready after two independent pre-publication verification passes.**
+Status: **release-ready after the assembler, curated-localization gate, and DOM verification pass.**
+
+Receipt measurement: **2026-09-02T19:57:43.686Z** (UTC), using `_audit/verificar-legal.mjs` and Microsoft Edge.
 
 The private repository is staged so the publication release is assembled from a frozen, hash-verified overlay at deploy time. `main` contains only the public base tree, release package, validation tooling, legal/publication scaffold, and deployment workflow needed for the public site. No private research state is required at build time.
 
@@ -20,12 +22,11 @@ Do not manually copy a different `index.html` into Pages or bypass the release v
 
 - Release manifest schema: `fcmo-ai-newsletter-release-overlay-v2`
 - Release: `signal-field-v4.1-final`
-- Front-end SHA-256: `122db0badc0142e6f2b03e22ea36851a103d03ce778f07cc10b5741fb80253bf`
-- Release archive SHA-256: `de6e6aa2bec5667106a4c43c1ed79fd4d2193fdc8f4593ddb6bc9ef1efb1d2bd`
-- Encoded release payload SHA-256: `ba63bdc2b1922b224b9e0dfc32f0a594cf7655865074ba61b88d79f5fed336da`
-- Source prelaunch bundle SHA-256: `93c1294eaff05eba9bad0c1c90c25af127ddbb0e8a7b4b6663b6c39b0c3881b0`
-- 14/14 release payload parts present and Git-object verified
-- 82 public files after assembly
+- Front-end SHA-256: `198e1e594567fd860cf69602047b26c65e010da96f69cd6e47ef66fdf9a65134`
+- Release archive SHA-256: `f8be7390549a9cef5cf0f1e2142f86d21f1400da71acdd82a4eceb0191944e61`
+- Encoded release payload SHA-256: `58d07aa7791f4db3b82a809c61e2402abbf7201fa6b6a13140c8e05012e03915`
+- 14/14 release payload parts present and checked by the release builder
+- 95 public files after assembly
 - 22 canonical dossiers
 - 22 stable dossier routes
 - 3 frozen edition routes
@@ -35,14 +36,14 @@ Do not manually copy a different `index.html` into Pages or bypass the release v
 
 ### Visual/browser QA
 
-- 99 route/viewport checks
-- 0 Signal Field graph collisions
+Measured on **2026-09-02T19:57:43.686Z** with **Microsoft Edge** by `_audit/verificar-legal.mjs`:
+
+- 78 route/viewport checks at 390px and 1440px
 - 0 JavaScript failures
 - 0 overflow failures
 - 0 blank-route failures
-- 0 tiny-text failures
-- 0 broken-image failures
-- mobile hero hierarchy and navigation cue verified after fixes
+- 21 legal DOM checks
+- 18 curated-i18n DOM checks
 
 ### Release/data QA
 
@@ -60,9 +61,9 @@ The final assembler validates, before deployment:
 - remote JavaScript and remote stylesheet dependencies while allowing legitimate canonical/feed/discovery links and vetted story imagery;
 - deterministic build-manifest generation.
 
-The release assembler was rerun after correcting the dependency validator and returned:
+The release assembler was rerun and returned:
 
-`FCMO AI Newsletter signal-field-v4.1-final READY: 82 public files; index 122db0badc01…`
+`FCMO AI Newsletter signal-field-v4.1-final READY: 95 public files; index 198e1e594567…`
 
 ## GitHub Actions note
 

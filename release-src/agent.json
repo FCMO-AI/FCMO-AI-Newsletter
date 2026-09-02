@@ -1,0 +1,185 @@
+{
+  "schema": "fcmo-agent-discovery-v2",
+  "query_contract": "fcmo-agent-query-v2",
+  "base_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/",
+  "identity": {
+    "stable_id": "FCMO-<12 uppercase hex>",
+    "human_and_machine_share_source_state": true
+  },
+  "counts": {
+    "briefs": 22,
+    "topics": 102,
+    "organizations": 24,
+    "relationships": 4
+  },
+  "endpoints": {
+    "search": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/data/search.json",
+    "developments": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/data/developments.json",
+    "brief": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/data/briefs/<FCMO-ID>.json",
+    "relationships": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/data/relationships.json",
+    "publication_memory": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/data/publication-memory.json",
+    "edition": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/data/editions/<YYYY-MM-DD>.json",
+    "topics": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/data/topics.json",
+    "organizations": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/data/organizations.json",
+    "media": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/data/media.json",
+    "llms": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/llms.txt",
+    "llms_full": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/llms-full.txt",
+    "developments_jsonl": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/data/developments.jsonl",
+    "search_jsonl": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/data/search.jsonl",
+    "feed_json": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/feed.json",
+    "feed_xml": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/feed.xml"
+  },
+  "query_types": {
+    "manifest": {},
+    "schema": {},
+    "stats": {},
+    "search": {
+      "fields": [
+        "q",
+        "scope",
+        "desk",
+        "evidence",
+        "confidence",
+        "min_importance",
+        "max_importance",
+        "topic",
+        "organization",
+        "date_from",
+        "date_to",
+        "has_open_gaps",
+        "sort",
+        "fields",
+        "limit"
+      ],
+      "offline_source": "data/search.json"
+    },
+    "resolve": {
+      "fields": [
+        "term"
+      ],
+      "offline_source": "data/developments.json + facets"
+    },
+    "brief": {
+      "aliases": [
+        "get"
+      ],
+      "fields": [
+        "id"
+      ],
+      "endpoint": "data/briefs/<FCMO-ID>.json"
+    },
+    "sources": {
+      "fields": [
+        "id"
+      ],
+      "endpoint": "data/briefs/<FCMO-ID>.json + data/media.json"
+    },
+    "related": {
+      "aliases": [
+        "neighbors"
+      ],
+      "fields": [
+        "id"
+      ],
+      "offline_source": "data/relationships.json"
+    },
+    "claims": {
+      "fields": [
+        "id",
+        "label"
+      ],
+      "endpoint": "data/briefs/<FCMO-ID>.json"
+    },
+    "gaps": {
+      "fields": [
+        "q",
+        "kind",
+        "topic",
+        "organization",
+        "min_importance",
+        "fields",
+        "limit"
+      ],
+      "offline_source": "data/briefs/*.json"
+    },
+    "timeline": {
+      "fields": [
+        "date_from",
+        "date_to",
+        "desk",
+        "min_importance",
+        "fields",
+        "limit"
+      ],
+      "offline_source": "data/developments.json"
+    },
+    "topics": {
+      "offline_source": "data/topics.json"
+    },
+    "organizations": {
+      "offline_source": "data/organizations.json"
+    },
+    "edition": {
+      "fields": [
+        "date"
+      ],
+      "endpoint": "data/editions/<YYYY-MM-DD>.json"
+    },
+    "documents": {
+      "fields": [
+        "q",
+        "date",
+        "limit"
+      ],
+      "offline_source": "data/search.json"
+    }
+  },
+  "epistemic_contract": [
+    "claim label",
+    "evidence class",
+    "confidence",
+    "importance/consequence",
+    "limitations",
+    "contradictory evidence",
+    "open evidence gaps"
+  ],
+  "examples": [
+    {
+      "type": "search",
+      "evidence": "A",
+      "min_importance": 6,
+      "has_open_gaps": true,
+      "sort": "importance",
+      "limit": 10
+    },
+    {
+      "type": "search",
+      "organization": "NVIDIA",
+      "sort": "newest",
+      "limit": 10
+    },
+    {
+      "type": "search",
+      "topic": "persistent-memory",
+      "date_from": "2026-08-20",
+      "sort": "importance"
+    },
+    {
+      "type": "gaps",
+      "q": "reproduction",
+      "min_importance": 5
+    },
+    {
+      "type": "brief",
+      "id": "FCMO-FF958ED4CB91"
+    },
+    {
+      "type": "edition",
+      "date": "2026-09-01"
+    }
+  ],
+  "notes": [
+    "GitHub Pages is static: dynamic server-side search is not required. Agents can use the complete search index and deterministic per-object JSON endpoints without scraping HTML.",
+    "The human UI also exposes window.FCMOAgent.query(spec) for browser-local structured querying."
+  ]
+}
