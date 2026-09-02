@@ -40,27 +40,49 @@ jobs:
         run: |
           python - <<'PY'
           from pathlib import Path
-          import hashlib, json
-          root=Path('publish')
-          frozen=json.loads(Path('release-overlay/final/manifest.json').read_text())
-          i18n=json.loads((root/'data/i18n/manifest.json').read_text())
-          digest=hashlib.sha256((root/'index.html').read_bytes()).hexdigest()
+          import hashlib, json, re
+
+          root = Path('publish')
+          frozen = json.loads(Path('release-overlay/final/manifest.json').read_text())
+          i18n = json.loads((root/'data/i18n/manifest.json').read_text())
+          index_text = (root/'index.html').read_text(encoding='utf-8')
+          digest = hashlib.sha256((root/'index.html').read_bytes()).hexdigest()
+
+          match = re.search(r'<script id="fcmo-data" type="application/json">(.*?)</script>', index_text, re.S)
+          assert match, 'published index is missing canonical fcmo-data'
+          canonical = json.loads(match.group(1))
+          records = canonical.get('records') or []
+          canonical_ids = {row['id'] for row in records}
+          assert records, 'canonical corpus must contain at least one news record'
+          assert len(canonical_ids) == len(records), 'canonical corpus contains duplicate record IDs'
+          canonical_count = len(records)
+
           assert i18n['canonical_index_sha256'] == frozen['index_sha256']
           assert digest == i18n['localized_index_sha256']
           assert i18n['supported_locales'] == ['en','es-419','zh-Hans']
-          assert i18n['canonical_record_count'] == 22
+          assert i18n['canonical_record_count'] == canonical_count
+
           for locale in ('es-419','zh-Hans'):
-              records={}
+              ui = json.loads((root/'data/i18n'/locale/'ui.json').read_text())
+              assert ui['canonical_record_count'] == canonical_count, (locale, ui['canonical_record_count'], canonical_count)
+              localized_records = {}
               for part in sorted((root/'data/i18n'/locale).glob('part-*.json')):
-                  records.update(json.loads(part.read_text())['records'])
-              assert len(records) == 22, (locale, len(records))
-              for record in records.values():
-                  assert all(record.get(k, '').strip() for k in ('title','summary','why_it_matters'))
-          assert len(list((root/'data/briefs').glob('FCMO-*.json'))) == 22
-          assert len(list((root/'developments').glob('FCMO-*.html'))) == 22
+                  localized_records.update(json.loads(part.read_text())['records'])
+              assert set(localized_records) == canonical_ids, (
+                  locale,
+                  'missing', sorted(canonical_ids-set(localized_records)),
+                  'extra', sorted(set(localized_records)-canonical_ids),
+              )
+              for rid, record in localized_records.items():
+                  assert all(record.get(k, '').strip() for k in ('title','summary','why_it_matters')), (locale, rid)
+
+          brief_ids = {path.stem for path in (root/'data/briefs').glob('FCMO-*.json')}
+          development_ids = {path.stem for path in (root/'developments').glob('FCMO-*.html')}
+          assert brief_ids == canonical_ids, ('brief parity', sorted(canonical_ids-brief_ids), sorted(brief_ids-canonical_ids))
+          assert development_ids == canonical_ids, ('development parity', sorted(canonical_ids-development_ids), sorted(development_ids-canonical_ids))
           assert len(list((root/'editions').glob('*.html'))) == 3
           assert (root/'build-manifest.json').is_file()
-          print('Curated release identity OK:', digest)
+          print(f'Curated release identity OK: {canonical_count} canonical records / 3 native languages / {digest}')
           PY
 
       - name: Confirm private prelaunch boundary
