@@ -32,7 +32,9 @@ Every canonical news record must have a curated translation of its reader-facing
 - `summary`;
 - `why_it_matters`.
 
-The current release contains 22 canonical briefs, therefore each curated locale pack must contain exactly 22 matching stable FCMO IDs. Build validation rejects missing, empty, shifted, or unchanged-English editorial fields.
+Coverage is **dynamic, not hard-coded to a historical corpus size**. If the canonical edition contains `N` stable FCMO story IDs, Spanish must contain exactly those `N` IDs and Simplified Chinese must contain exactly those same `N` IDs. The locale metadata, public brief JSON set, development HTML set, localization manifest, and canonical corpus must all agree on that live set. Build validation rejects missing, extra, duplicate, empty, shifted, or unchanged-English editorial fields.
+
+The current release happens to contain 22 canonical briefs; `22` is not a publication constant and must never be used as the gate for future releases.
 
 The deep technical/evidence dossier remains the canonical English research record. When Spanish or Chinese is selected, the translated title, summary, and editorial consequence are shown natively and the deeper canonical dossier is preserved behind an explicit expandable **English canonical record** boundary. This avoids silently translating evidence-bearing technical prose in a way that could change epistemic meaning.
 
@@ -63,11 +65,13 @@ The frozen Signal Field English release is assembled and validated first. Only a
 
 A release must fail if:
 
-- either curated locale omits any canonical FCMO story ID;
+- either curated locale omits any canonical FCMO story ID or contains a stale/extra ID;
+- locale `canonical_record_count` metadata differs from the live canonical corpus size;
+- the public brief JSON set or public development HTML set differs from the live canonical FCMO ID set;
 - title, summary, or why-it-matters is absent or unchanged English;
 - the locale pack was built against a different canonical editorial source hash;
 - a runtime translation provider endpoint appears in the localization code or packs;
 - the runtime exposes any native locale outside `en`, `es-419`, `zh-Hans`;
 - the localized index cannot be traced back to the frozen canonical English index hash.
 
-When a new story is added, its Spanish and Chinese editorial translations are part of the same publication obligation. Missing translations are a release defect, not an invitation to machine-translate at runtime.
+When a new story is added, its Spanish and Chinese editorial translations are part of the same publication obligation. Missing translations are a release defect, not an invitation to machine-translate at runtime. CI also carries a fail-closed regression check so a synthetic new canonical story without matching ES/ZH records must be rejected.
