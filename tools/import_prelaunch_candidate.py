@@ -133,7 +133,8 @@ def redirect_document(title: str, target: str) -> str:
         f'<meta http-equiv="refresh" content="0;url={safe_target}">'
         f'<link rel="canonical" href="{safe_target}">'
         f'<title>{safe_title} · FCMO AI Newsletter</title></head>'
-        '<body><main><p>Opening the canonical FCMO AI Newsletter record… '</n        f'<a href="{safe_target}">Continue</a>.</p></main></body></html>'
+        '<body><main><p>Opening the canonical FCMO AI Newsletter record… '
+        f'<a href="{safe_target}">Continue</a>.</p></main></body></html>'
     )
 
 
