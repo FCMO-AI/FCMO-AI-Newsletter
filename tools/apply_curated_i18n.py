@@ -33,10 +33,20 @@ def _canonical_editorial(index_text: str) -> dict[str, dict[str, str]]:
         raise ValueError("index is missing embedded fcmo-data corpus")
     data = json.loads(match.group(1))
     records = data.get("records") or []
-    return {
-        row["id"]: {field: row[field] for field in REQUIRED_FIELDS}
-        for row in records
-    }
+    if not records:
+        raise ValueError("canonical corpus contains no news records")
+    editorial: dict[str, dict[str, str]] = {}
+    for row in records:
+        rid = row.get("id")
+        if not isinstance(rid, str) or not rid.strip():
+            raise ValueError("canonical corpus contains a record without a stable id")
+        if rid in editorial:
+            raise ValueError(f"canonical corpus contains duplicate record id: {rid}")
+        missing = [field for field in REQUIRED_FIELDS if not isinstance(row.get(field), str) or not row[field].strip()]
+        if missing:
+            raise ValueError(f"canonical record {rid} is missing required editorial fields: {', '.join(missing)}")
+        editorial[rid] = {field: row[field] for field in REQUIRED_FIELDS}
+    return editorial
 
 
 def _canonical_digest(canonical: dict[str, dict[str, str]]) -> str:
@@ -81,12 +91,10 @@ def validate_curated_i18n(target: Path, canonical_index_sha256: str | None = Non
     text = index.read_text(encoding="utf-8")
     canonical = _canonical_editorial(text)
     expected_ids = set(canonical)
+    canonical_count = len(expected_ids)
     digest = _canonical_digest(canonical)
     errors: list[str] = []
     packs: dict[str, dict] = {}
-
-    if len(expected_ids) != 22:
-        errors.append(f"expected 22 canonical news records, found {len(expected_ids)}")
 
     for locale in CURATED:
         try:
@@ -102,11 +110,23 @@ def validate_curated_i18n(target: Path, canonical_index_sha256: str | None = Non
             errors.append(f"{locale}: runtime translation must be explicitly false")
         if pack.get("curation", {}).get("human_reviewed") is not False:
             errors.append(f"{locale}: pack must not claim human review")
+        if pack.get("canonical_record_count") != canonical_count:
+            errors.append(
+                f"{locale}: canonical_record_count metadata is {pack.get('canonical_record_count')!r}, "
+                f"expected {canonical_count}"
+            )
         if pack.get("canonical_source_sha256") != digest:
             errors.append(f"{locale}: canonical editorial source hash mismatch")
         rows = pack.get("records") or {}
         if set(rows) != expected_ids:
-            errors.append(f"{locale}: record IDs do not exactly match canonical corpus")
+            missing = sorted(expected_ids - set(rows))
+            extra = sorted(set(rows) - expected_ids)
+            detail = []
+            if missing:
+                detail.append(f"missing {missing}")
+            if extra:
+                detail.append(f"extra {extra}")
+            errors.append(f"{locale}: record IDs do not exactly match canonical corpus ({'; '.join(detail)})")
         for rid in sorted(expected_ids & set(rows)):
             for field in REQUIRED_FIELDS:
                 value = rows[rid].get(field)
@@ -131,7 +151,7 @@ def validate_curated_i18n(target: Path, canonical_index_sha256: str | None = Non
             manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
             if manifest.get("supported_locales") != list(SUPPORTED):
                 errors.append("i18n manifest must expose exactly en, es-419, zh-Hans")
-            if manifest.get("canonical_record_count") != len(expected_ids):
+            if manifest.get("canonical_record_count") != canonical_count:
                 errors.append("i18n manifest canonical record count mismatch")
             if manifest.get("canonical_editorial_sha256") != digest:
                 errors.append("i18n manifest canonical editorial hash mismatch")
@@ -143,7 +163,7 @@ def validate_curated_i18n(target: Path, canonical_index_sha256: str | None = Non
 
     if errors:
         raise ValueError("curated localization validation failed:\n- " + "\n- ".join(errors))
-    return {"records": len(expected_ids), "canonical_editorial_sha256": digest, "packs": packs}
+    return {"records": canonical_count, "canonical_editorial_sha256": digest, "packs": packs}
 
 
 def apply_curated_i18n(target: Path, canonical_index_sha256: str) -> None:
