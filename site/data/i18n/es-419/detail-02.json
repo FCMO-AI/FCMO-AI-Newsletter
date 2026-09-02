@@ -1,0 +1,244 @@
+{
+  "schema": "fcmo-curated-detail-part-v1",
+  "locale": "es-419",
+  "canonical_locale": "en",
+  "records": {
+    "FCMO-47EB61AB3914": {
+      "claims": [
+        "LpWM disperso reduce la capacidad del predictor necesaria para lograr una planificación sólida en PushT respecto de LeWM denso en la escalera de predictores reportada.",
+        "El soporte latente disperso codifica regímenes dinámicos discretos, mientras que las magnitudes distintas de cero codifican estado continuo dentro de cada régimen en los análisis controlados reportados.",
+        "La geometría latente dispersa y no negativa es, en general, preferible a la geometría gaussiana densa para world models de gran escala."
+      ],
+      "contradictory_evidence": [
+        "Con los predictores Deep-/Shallow-AdaLN de mayor capacidad, las representaciones densas y dispersas se vuelven mucho más cercanas, limitando la afirmación a eficiencia en complejidad del predictor y no a superioridad universal de planificación.",
+        "En el entorno simple Wall, tanto los sistemas densos como los dispersos pueden acercarse al techo con predictores muy pequeños, mostrando que la ventaja de representación depende del régimen de la tarea."
+      ],
+      "engineering_implications": [
+        "Para world models compactos, probar geometría latente dispersa antes de aumentar ancho o profundidad del predictor; conservar un control denso emparejado y barrer capacidad del predictor para que los ahorros se midan en vez de asumirse."
+      ],
+      "evidence_gaps": [
+        "ARB no ha reproducido independientemente el barrido de capacidad de predictores.",
+        "La menor complejidad del predictor aún no se ha convertido en ahorros emparejados de FLOPs, latencia, memoria o energía de extremo a extremo.",
+        "La evidencia no establece que las ventajas de latentes dispersos sobrevivan en world models grandes de video o robótica real diversa."
+      ],
+      "importance_rationale": "Destacable si la afirmación central se generaliza: cambiar la geometría latente para que predictores más simples puedan modelar dinámica útil de control afectaría el diseño de world models y la eficiencia de IA corporizada/local. No alcanza nivel Major ni Field-shifting porque la evidencia se concentra en entornos de control pequeños, la ventaja disminuye con predictores suficientemente expresivos y ARB no cuenta con reproducción independiente ni validación real a gran escala.",
+      "limitations": [
+        "Las ganancias más fuertes aparecen con capacidad intermedia del predictor y en gran medida desaparecen con predictores AdaLN suficientemente expresivos.",
+        "Wall se satura cerca del techo incluso con predictores simples, por lo que la sparsity no ayuda en todos los entornos.",
+        "Las tareas de planificación reportadas son mucho menores que la robótica de mundo abierto o el world modeling general de video.",
+        "ARB no registra reproducción independiente pese al código publicado.",
+        "FLOPs, latencia, memoria y energía de extremo a extremo todavía no están normalizados con dimensión latente y presupuestos de planificación emparejados."
+      ],
+      "research_implications": [
+        "Las comparaciones de world models deberían barrer capacidad del predictor en vez de evaluar uno fijo, porque la calidad de representación puede manifestarse sólo como menor complejidad del modelo.",
+        "Las transiciones del soporte latente pueden ofrecer una ruta manejable hacia modos discretos interpretables dentro de world models por lo demás continuos.",
+        "Los beneficios de latentes dispersos deberían probarse a mayor escala, donde costo del encoder, ancho de banda de memoria y muestreo del planner podrían dominar los ahorros del predictor."
+      ],
+      "technical": {
+        "claimed_result": "Los autores argumentan que las representaciones dispersas reducen la complejidad del predictor requerida para una planificación exitosa y revelan estructura dinámica interpretable.",
+        "compute_or_cost": "La afirmación práctica del paper se refiere a reducir complejidad del predictor, no a reportar una ventaja completa de wall-clock o energía. ARB aún no ha normalizado FLOPs/latencia de encoder, predictor y planner con dimensiones latentes y presupuestos de planificación emparejados.",
+        "demonstrated_result": "En PushT, el paper reporta que LpWM disperso supera a LeWM denso por 24-57% en éxito de planificación con predictores MLP∘LTI, 36-45% con MLP∘LTV y 11-23% con LTI, mientras Deep-/Shallow-AdaLN cierran en gran medida la brecha. La representación dispersa también supera una variante densa VICReg en varias familias de predictores y muestra estructura factorizada por modos en entornos controlados.",
+        "implementation_status": "El repositorio oficial MIT es público e incluye configuración del entorno, comandos de entrenamiento, puntos de entrada de planificación y scripts de grids de reproducción. ARB no ha ejecutado una reproducción independiente.",
+        "mechanism": "Un encoder JEPA condicionado por acciones se regulariza con Rectified Distribution Matching Regularization (RDMReg), emparejando features por timestep con objetivos Rectified Generalized Gaussian. Con p<=1 y un enlace RepReLU, la representación se vuelve dispersa y no negativa. La teoría lo motiva mostrando que dinámica Lipschitz no lineal puede aproximarse arbitrariamente bien mediante dinámica lineal condicionada por acciones en espacios latentes one-hot de dimensión suficientemente alta; los códigos dispersos distribuidos son una relajación práctica.",
+        "novelty": "Trata la sparsity del estado latente como decisión de diseño de primera clase para simplificar dinámica condicionada por acciones, en vez de usar sparsity sólo para compresión de parámetros o activaciones.",
+        "regime": "Entornos de control visual pequeños y medianos, incluidos Wall y PushT para barridos de capacidad de predictores, además de Piecewise y OGBench-Cube para análisis de factorización por modos; el código oficial usa encoders ViT, planificación CEM/MPC y scripts de reproducción para los grids reportados.",
+        "reproducibility": "El código oficial expone train.py, plan.py, configuraciones de predictores, datasets y scripts/reproduce_pusht.sh; esto reduce materialmente el costo de reproducción, pero aún no existe una ejecución independiente canónica.",
+        "strongest_baseline": "LeWM denso usando el mismo marco RDMReg emparejado con objetivos gaussianos isotrópicos, además de una representación VICReg densa y una escalera de capacidad de predictores que abarca variantes LTI/LTV/MLP hasta Deep-/Shallow-AdaLN."
+      }
+    },
+    "FCMO-DF0FDE7BBB67": {
+      "claims": [
+        "Dar acceso persistente a la wiki al Skill Proposer eleva el promedio reportado de cuatro benchmarks con Gemini-3.5-Flash de 48.7% a 63.7% cuando el Inference Agent no tiene acceso a la wiki.",
+        "Las skills evolucionadas pueden transferirse entre escalas y familias de modelos y, en ocasiones, superar skills auto-evolucionadas.",
+        "Separar experiencia cruda, conocimiento consolidado y skills ejecutables es una arquitectura de memoria generalmente superior para agentes de larga duración."
+      ],
+      "contradictory_evidence": [
+        "La transferencia no es uniformemente positiva: skills evolucionadas por Qwen-3.5-4B reducen el desempeño de Gemini-3.5-Flash en SpreadSheet de 50.5% sin skill a 18.1%, mostrando que el conocimiento procedural puede codificar workarounds específicos del modelo fuente y perjudicar activamente objetivos más fuertes.",
+        "Dar al Inference Agent acceso directo a la wiki durante la evolución de skills reduce el promedio reportado de cuatro benchmarks de 63.7% a 60.9%, lo que sugiere que más memoria accesible no es automáticamente mejor."
+      ],
+      "engineering_implications": [
+        "Para agentes de larga duración, conservar durablemente trazas crudas y cambios rechazados, compilar lecciones recurrentes en una capa separada de conocimiento y someter actualizaciones procedurales compactas a validación held-out en vez de anexar todo el historial al prompt de ejecución."
+      ],
+      "evidence_gaps": [
+        "Las ganancias de calidad de WikiSkill aún no están normalizadas en ARB por llamadas API del optimizador, tokens de inferencia, wall time o costo frente a baselines de evolución de skills.",
+        "La inyección completa de skills evita el problema de recuperación/triggering y los benchmarks no cubren tareas de múltiples horas o cientos de acciones.",
+        "No se registra reproducción independiente."
+      ],
+      "importance_rationale": "Destacable si el resultado central se generaliza: una capa persistente y auditable de conocimiento que mejore materialmente la evolución de skills procedurales y transfiera procedimientos entre modelos afectaría el diseño práctico de agentes de larga duración sin requerir actualización de parámetros. Aún no es Major/Field-shifting porque la evaluación usa cinco benchmarks acotados, inyecta directamente las skills activas en vez de resolver recuperación, carece de tareas de horizonte muy largo y poda de wiki, y ARB no tiene reproducción independiente.",
+      "limitations": [
+        "Las skills activas se inyectan directamente en el prompt del agente de inferencia, por lo que las fallas de recuperación y triggering se excluyen en lugar de resolverse.",
+        "El gate de validación rechaza cambios neutrales que podrían permitir ganancias posteriores.",
+        "La wiki persistente no tiene mecanismo automatizado de poda, dejando sin resolver el comportamiento al escalar.",
+        "La suite de benchmarks no prueba cientos de acciones ni tareas de varias horas.",
+        "ARB todavía no ha auditado la normalización de llamadas del optimizador/tokens/costo frente a métodos competidores de evolución de skills.",
+        "No existe reproducción independiente en el registro canónico."
+      ],
+      "research_implications": [
+        "La investigación sobre memoria de agentes debería distinguir retención de evidencia, consolidación de conocimiento y procedimientos de acción en vez de medir sólo recuperación desde un almacén monolítico.",
+        "La transferencia procedural entre modelos debería evaluarse bidireccionalmente porque workarounds de modelos pequeños pueden producir transferencia negativa severa.",
+        "Los sistemas de memoria persistente necesitan olvido/poda y controles de costo emparejados antes de justificar afirmaciones de escalamiento a horizonte largo."
+      ],
+      "technical": {
+        "claimed_result": "Los autores concluyen que la acumulación persistente de conocimiento es crítica para una evolución efectiva de skills, que la evolución de skills complementa el escalamiento del modelo y que las skills procedurales pueden transferirse entre tamaños y familias de modelos.",
+        "compute_or_cost": "El framework agrega llamadas separadas de optimización del maintainer/proposer y ejecuciones de validación. ARB aún no ha normalizado ganancias por llamadas API del optimizador, tokens, latencia o costo en dólares frente a baselines.",
+        "demonstrated_result": "En la ablación Gemini-3.5-Flash sobre LiveMath, SealQA, SpreadSheet y OfficeQA, habilitar acceso persistente a la wiki para el Skill Proposer mientras se lo niega al Inference Agent eleva el desempeño promedio de 48.7% a 63.7% (+15.0 puntos). Las pruebas cross-model muestran transferencia positiva sustancial en varios escenarios, incluido el caso en que skills evolucionadas por Qwen-3.6-27B elevan a Qwen-3.5-9B en SpreadSheet de 24.3% sin skills y 33.6% auto-evolucionado a 50.5%.",
+        "implementation_status": "Preprint primario reciente; ARB aún no ha verificado una implementación oficial ni reproducción independiente.",
+        "mechanism": "Cada iteración de evolución produce trazas crudas inmutables; un Wiki Maintainer consolida éxitos recurrentes, fallas, historial de propuestas rechazadas y patrones en una wiki persistente; un Skill Proposer lee la wiki junto con las trazas actuales para crear o revisar skills ejecutables; un gate de validación acepta mejoras o las revierte. El agente de inferencia recibe las skills activas pero, en la configuración de mayor desempeño, no lee la wiki durante los rollouts.",
+        "novelty": "Hace explícitamente de tres niveles el aprendizaje acumulado del agente: experiencia inmutable, conocimiento consolidado que incluye historial negativo/rechazado y procedimiento ejecutable compacto; la capa de consolidación se usa para mejorar propuestas futuras de skills en vez de exponerse directamente a ejecución de tareas.",
+        "regime": "Cinco benchmarks (LiveMath, SealQA, SpreadSheet, OfficeQA, ALFWorld) y cinco modelos de inferencia: Qwen-3.5-4B, Qwen-3.5-9B, Qwen-3.6-27B, Gemma-4-31B y Gemini-3.5-Flash. Las skills activas se inyectan por completo en el system prompt en vez de recuperarse dinámicamente.",
+        "reproducibility": "El paper ofrece prompts detallados, descripciones de baselines y análisis de llamadas del optimizador en apéndices, pero aún no se registra reproducción independiente.",
+        "strongest_baseline": "Inferencia sin skills más baselines dedicados de evolución de skills EvoSkill, SkillOpt y Trace2Skill; ablaciones de componentes eliminan acceso del proposer a la wiki y/o exponen al agente de inferencia a la wiki."
+      }
+    },
+    "FCMO-929F34FAD7F4": {
+      "claims": [
+        "El estudio reporta sólo 74 cambios de estrategia entre 3,557 pares adyacentes de experimentos de entrenamiento (~2.1%).",
+        "El scaffolding de experiencia mejora sustancialmente la ejecución en tareas más fáciles, pero no reabre de manera confiable la estrategia de alto nivel durante la ejecución.",
+        "La reevaluación espontánea de estrategias es el principal cuello de botella general para sistemas autónomos de I+D en IA."
+      ],
+      "contradictory_evidence": [
+        "La guía estratégica humana puede redirigir el enfoque inicial del agente, mostrando que los sistemas tienen al menos cierta capacidad para ejecutar estrategias alternativas; el déficit es más estrecho que una incapacidad para entender o implementar estrategia."
+      ],
+      "engineering_implications": [
+        "Un agente práctico de investigación debería mantener hipótesis competidoras explícitas y usar checkpoints disparados por evidencia que obliguen a una comparación estratégica nueva, en lugar de permitir ajuste local indefinido."
+      ],
+      "evidence_gaps": [
+        "La tasa reportada de cambio estratégico y las conclusiones de intervención carecen de relabeling/reproducción independiente de trayectorias en ARB.",
+        "El paper diagnostica bloqueo estratégico, pero no establece si un controlador simple que obligue a reabrir estrategia lo resuelve con cómputo total emparejado."
+      ],
+      "importance_rationale": "Importante si el hallazgo central se generaliza: un bloqueo estratégico persistente cambiaría materialmente cómo se entrenan, estructuran y evalúan sistemas serios de I+D autónoma, porque escalar únicamente competencia de ejecución no cerraría el loop de investigación. Aún no es evidencia Field-shifting porque el resultado depende de benchmark/scaffold/presupuesto, las etiquetas de estrategia dependen en parte de una taxonomía y no existe reproducción independiente ni intervención explícita de reapertura estratégica que establezca generalidad o remedio.",
+      "limitations": [
+        "Las etiquetas de cambio estratégico dependen de la distinción del estudio entre cambios locales de ejecución y cambios de estrategia de alto nivel.",
+        "El lock-in observado puede depender de scaffolds, prompts, interfaces de herramientas, tareas benchmark y presupuestos finitos probados, en vez de ser una limitación intrínseca del modelo.",
+        "La guía humana se prueba como intervención externa; el estudio todavía no establece el mejor mecanismo para reapertura estratégica endógena.",
+        "Cómputo adicional de inferencia no equivale a entrenamiento meta-nivel dirigido, por lo que el fracaso de escalar tokens no demuestra que la adaptación estratégica no pueda aprenderse.",
+        "No existe reproducción independiente en el registro canónico."
+      ],
+      "research_implications": [
+        "Las evaluaciones de investigación autónoma deberían medir transiciones de estrategia de alto nivel por separado de número de experimentos, tool calls y actividad de ajuste local.",
+        "El entrenamiento de agentes puede necesitar recompensas o triggers explícitos para reabrir hipótesis cuando la evidencia se estanca o contradice el plan actual.",
+        "Más tokens de inferencia pueden densificar búsqueda local sin mejorar búsqueda global, por lo que el escalamiento de cómputo debería evaluarse en ambos niveles."
+      ],
+      "technical": {
+        "claimed_result": "Los autores argumentan que la capacidad ausente es la reevaluación espontánea de estrategia durante ejecución, no simplemente falta de experiencia, guía externa o cómputo de razonamiento.",
+        "compute_or_cost": "El framework basado en experiencia gasta materialmente más tokens de inferencia; el paper reporta hasta 7.9 veces el uso de tokens del baseline en AIME 2025 (~66.7M tokens en el escenario difícil citado) sin un avance estratégico correspondiente.",
+        "demonstrated_result": "A través de 1,338 trayectorias públicas de PostTrainBench y 3,557 pares adyacentes de entrenamiento, los autores reportan 74 cambios de estrategia (~2.1%). Un framework basado en experiencia mejora la ejecución (+12.6 puntos en GSM8K y +40.8 en HumanEval en los escenarios reportados) pero deja estática la estrategia; la guía humana puede redirigir la estrategia inicial, pero no produce pivotes espontáneos continuos; en la tarea más difícil, muchos más tokens de inferencia generan poca mejora.",
+        "implementation_status": "Preprint de investigación reciente; el análisis usa trayectorias públicas de post-training.",
+        "mechanism": "El estudio etiqueta transiciones entre experimentos sucesivos de entrenamiento como ajustes de ejecución o cambios de estrategia de alto nivel, y luego sondea tres cuellos de botella propuestos mediante un scaffold basado en experiencia, guía estratégica humana y mayor razonamiento en tiempo de inferencia.",
+        "novelty": "Trata la falla de I+D autónoma como un problema de control de dos niveles: los loops locales de ejecución pueden cerrarse con éxito mientras el loop global de estrategia permanece efectivamente abierto.",
+        "regime": "Siete benchmarks de post-training; trayectorias públicas de múltiples configuraciones de agentes, incluidos Claude Code y Codex CLI; los experimentos incluyen GSM8K, HumanEval y AIME 2025 con presupuestos finitos de entrenamiento/cómputo.",
+        "reproducibility": "Las trayectorias subyacentes se describen como públicas, pero ARB aún no registra reproducción independiente del etiquetado de cambios estratégicos ni de los hallazgos de intervención.",
+        "strongest_baseline": "Trayectorias autónomas de agentes PostTrainBench, con comparaciones de intervención que añaden experiencia/evaluación estructurada, guía estratégica humana de una sola vez o mayor gasto de tokens de razonamiento."
+      }
+    },
+    "FCMO-A2B1425AD7A9": {
+      "claims": [
+        "El paper reporta circuitos condensados más pequeños que EAP-IG congelado en 30 de 32 celdas tarea-modelo, con una reducción promedio de 8.1 veces a precisión comparable.",
+        "Usar el mismo controlador sin actualizar pesos produjo circuitos mayores en 29 de 32 celdas, apoyando que la mayor parte de la reducción proviene del post-training y no únicamente de la búsqueda.",
+        "Entrenar modelos para comportamiento causalmente concentrado hará que capacidades amplias de modelos de frontera sean generalmente interpretables y auditables.",
+        "Circuit Condensation reduce directamente el costo ordinario de inferencia o el tamaño del checkpoint."
+      ],
+      "contradictory_evidence": [
+        "La finalización de docstrings en Qwen3-0.6B y concordancia en GPT-2 son excepciones donde el circuito condensado es mayor que el circuito EAP-IG congelado en la mediana de seeds, mostrando que no cada par comportamiento/modelo es fácilmente condensable."
+      ],
+      "engineering_implications": [
+        "Para un comportamiento estrecho crítico de seguridad, un adaptador estilo condensation podría hacer práctico el test exhaustivo de subconjuntos/pares antes del despliegue, pero sólo como ayuda de auditoría y no como optimización de velocidad de inferencia."
+      ],
+      "evidence_gaps": [
+        "No existe reproducción independiente de los resultados de tamaño de circuito, fidelidad o retención de capacidad.",
+        "Se desconoce si comportamientos amplios y distribuidos pueden concentrarse sin deriva inaceptable de capacidad o costo de auditoría muy alto."
+      ],
+      "importance_rationale": "Destacable si el resultado central se generaliza: cambia interpretabilidad de encontrar el circuito que un modelo ya tiene a entrenar el modelo para que comportamiento importante sea llevado por un grafo causal más pequeño y auditable. La consecuencia es significativa para legibilidad y verificación, pero la evidencia sigue siendo específica de comportamientos, limitada a ocho modelos hasta Qwen3-4B y no establece interpretabilidad a escala de capacidades amplias, por lo que aún no es Major ni Field-shifting.",
+      "limitations": [
+        "El estudio apunta a cuatro comportamientos estrechos a nivel token en lugar de capacidades amplias como coding, razonamiento abierto o planificación de agentes.",
+        "El modelo más grande probado es Qwen3-4B; se desconoce el comportamiento al escalar a MoE de frontera o sistemas híbridos de atención.",
+        "La red adaptada no es internamente idéntica a la original; las verificaciones de distribución de salida y seguimiento de errores apoyan correspondencia, pero no prueban una reconstrucción única del mecanismo original.",
+        "El controlador greedy no garantiza un circuito globalmente mínimo y dos celdas tarea-modelo no superan al circuito EAP-IG congelado en la mediana de seeds.",
+        "La retención de capacidades se protege con una razón de perplexity held-out y precisión de tarea, no con una evaluación exhaustiva de capacidades amplias.",
+        "El grafo de intervención cierra edges usando activaciones contrafactuales, por lo que la reducción del tamaño de circuito no debe interpretarse como compresión de parámetros o runtime."
+      ],
+      "research_implications": [
+        "La interpretabilidad puede tratarse como objetivo de optimización y no sólo como problema de medición post-hoc.",
+        "El trabajo futuro de legibilidad debería comparar el circuito adaptado no sólo con su modelo host adaptado sino también con el modelo fuente intacto, porque una explicación pequeña de un modelo cambiado es evidencia más débil que una explicación fiel del comportamiento original.",
+        "La sparsity causal y la preservación de capacidad amplia pueden ser objetivos de post-training en tensión que requieren medición explícita de Pareto a mayor escala."
+      ],
+      "technical": {
+        "claimed_result": "El autor argumenta que la encontrabilidad de circuitos puede convertirse en una propiedad entrenable y que el post-training puede producir implementaciones de comportamiento más fáciles de verificar mecanísticamente mientras conservan el comportamiento original y la capacidad lingüística amplia dentro de los gates probados.",
+        "compute_or_cost": "La condensación agrega costo repetido de atribución, pruning y entrenamiento del adaptador. Los edges cerrados llevan activaciones contrafactuales, por lo que el método no reduce el tamaño de parámetros del modelo desplegado ni su costo ordinario de inferencia; su beneficio es legibilidad causal y tractabilidad de verificación.",
+        "demonstrated_result": "A través de cuatro comportamientos a nivel token, ocho modelos de familias GPT-2, Llama-3.2, Gemma-3 y Qwen3 y tres seeds, el paper reporta un circuito condensado menor que EAP-IG congelado a precisión comparable en 30 de 32 celdas tarea-modelo, con reducción media geométrica de 8.1 veces y máximo de 316 veces. Un brazo con el mismo controlador y pesos congelados es mayor en 29 de 32 celdas, aislando actualizaciones de pesos y no sólo búsqueda como fuente principal de compresión. En circuitos manejables, ablaciones exhaustivas de subconjuntos y pares se vuelven posibles; el circuito IOI condensado también sigue la distribución de salida y patrón de errores del modelo original.",
+        "implementation_status": "Preprint de investigación reciente; no se verificó repositorio oficial de código desde el registro primario de arXiv en esta activación.",
+        "mechanism": "Se representa el Transformer como grafo de writers/readers del residual stream. Comenzando con todos los edges abiertos y un adaptador LoRA nuevo, cada ronda recalcula importancia EAP-IG, propone un corte, congela la máscara y entrena sólo el adaptador para minimizar KL respecto de la distribución de salida del modelo original a través del grafo reducido. Un controlador de validación disjunto acepta el corte sólo cuando precisión objetivo permanece dentro de 0.05 del grafo completo y perplexity off-target dentro de razón 1.05; cortes fallidos se restauran y se reintentan con mayor suavidad.",
+        "novelty": "Optimiza el modelo para que un comportamiento nombrado quede causalmente concentrado, en vez de únicamente mejorar el estimador de búsqueda de circuitos sobre pesos congelados.",
+        "regime": "Cuatro comportamientos token-level de entradas pareadas (IOI, concordancia sujeto-verbo, inducción de token repetido y finalización de docstrings Python) sobre GPT-2 small, Llama-3.2-1B/3B-Instruct, Gemma-3-1B/4B-it y Qwen3-0.6B/1.7B/4B. Cada celda tarea-modelo usa conjuntos disjuntos de 2,000 train, 2,000 validation y 1,000 sealed-test y tres seeds.",
+        "reproducibility": "El paper reporta múltiples familias de modelos, tres seeds, datos de selección/test disjuntos y un control del mismo controlador con pesos congelados, pero aún no existe reproducción independiente en el registro canónico.",
+        "strongest_baseline": "EAP-IG congelado bajo la misma regla de grafo/datos/selección de precisión, más EAP, EAP-GP, ranking aleatorio, ACDC donde es manejable y un controlador C0 de pesos congelados que usa el mismo ranking, pruning, aceptación y proceso de parada sin healing LoRA."
+      }
+    },
+    "FCMO-1E28FC528202": {
+      "claims": [
+        "Tencent publicó Hy4 preview con backbone de 770B, 49B parámetros activos por token, Gated DSA con IndexCache, cuatro residual streams y una capa MTP nativa.",
+        "Tencent reporta que Hy4 preview queda ligeramente por delante de GLM-5.3 y Kimi K3 en su evaluación experta interna de 203 tareas."
+      ],
+      "engineering_implications": [
+        "La reutilización cross-layer de índices de sparse attention es una ruta concreta para reducir overhead del indexer; MTP nativo convierte speculative decoding en parte del modelo entrenado y no sólo en un accesorio externo de serving."
+      ],
+      "evidence_gaps": [
+        "Ninguna ablación con presupuesto de entrenamiento/inferencia emparejado establece las ganancias aisladas de Gated DSA, IndexCache, iHC o MTP nativo.",
+        "Los resultados de calidad y productividad del proveedor carecen de reproducción independiente."
+      ],
+      "limitations": [
+        "La comparación de calidad más fuerte divulgada en el model card es ejecutada por el proveedor y queda apenas separada de GLM-5.3/Kimi K3; no es evidencia independiente.",
+        "Ninguna ablación con cómputo emparejado aísla la contribución de sparse attention, IndexCache, iHC o MTP nativo.",
+        "49B parámetros activos siguen implicando un régimen local de serving pesado; la activación dispersa no convierte el modelo almacenado de 770B en un modelo local pequeño.",
+        "Tencent señala explícitamente razonamiento excesivamente largo y sobre-verificación en esta preview."
+      ],
+      "research_implications": [
+        "Qwen3.8-Flash-Next, GLM-5.3-Flash y Hy4 ofrecen ahora un experimento natural útil sobre sparse retrieval y residual routing más rico, pero la convergencia arquitectónica debe probarse bajo presupuestos emparejados en vez de tratarse como prueba."
+      ],
+      "technical": {
+        "claimed_result": "Tencent reporta su mayor mejora de capacidades entre generaciones y pequeñas victorias sobre GLM-5.3 y Kimi K3 en una evaluación ciega interna con 163 expertos y 203 tareas de ingeniería.",
+        "compute_or_cost": "49B parámetros del backbone están activos por token más 0.7B activos en la capa MTP nativa; la capacidad total almacenada es 770B de backbone más 10B MTP. No se encontraron FLOPs exactos de entrenamiento ni throughput de serving emparejado en el material primario revisado.",
+        "demonstrated_result": "Los artefactos BF16/FP8 y configuración publicados exponen un backbone de 770B con 49B parámetros activos por token, contexto 1M, 256 expertos ruteados, top-8 routing, Gated DSA, cuatro residual streams y MTP nativo. La licencia Apache-2.0 está presente en el artefacto publicado.",
+        "implementation_status": "Se publicaron pesos, variante FP8, configuración, guía de despliegue, guía de finetuning y herramientas de compresión.",
+        "mechanism": "Backbone MoE de 78 capas: una capa FFN densa seguida por 77 capas MoE con 256 expertos ruteados más un experto compartido; top-8 expertos ruteados activos por token. Attention usa Gated DeepSeek Sparse Attention con IndexCache para reutilizar índices dispersos entre capas. La ruta residual usa identity Hyper-Connections de cuatro streams. Una capa MTP nativa separada agrega 10B parámetros totales/0.7B activos para speculative decoding.",
+        "novelty": "Integra reutilización cross-layer de índices sparse y MTP nativo en un MoE abierto de frontera, adoptando la familia emergente de residual más rico y sparse retrieval.",
+        "regime": "Modelo open-weight de frontera con 770B total/49B activos; el serving sigue requiriendo hardware pesado pese a la activación dispersa. La evaluación interna de productividad es del proveedor y no una reproducción independiente.",
+        "reproducibility": "Arquitectura y pesos son inspeccionables; las afirmaciones de calidad del proveedor y la contribución aislada de Gated DSA, IndexCache, iHC y MTP requieren evaluación independiente con controles emparejados.",
+        "strongest_baseline": "La comparación ciega interna de Tencent frente a GLM-5.3 y Kimi K3; el release card no aporta una ablación arquitectónica con cómputo emparejado."
+      }
+    },
+    "FCMO-7530484A9F24": {
+      "claims": [
+        "SocraticPO entrega condicionalmente feedback del teacher después de un intento incorrecto del student y aplica recompensa decaída al éxito asistido por el teacher.",
+        "Los autores reportan mejoras frente a sus baselines de RL y self-distillation en tareas de razonamiento científico SciKnowEval."
+      ],
+      "engineering_implications": [
+        "Puede superponerse a backends existentes de policy gradient porque el teacher opera mediante texto y contexto del rollout, no mediante internals específicos del optimizador."
+      ],
+      "evidence_gaps": [
+        "Ningún estudio con cómputo total emparejado establece si SocraticPO supera gastar el mismo presupuesto adicional de teacher/GPU en más rollouts ordinarios de RL o supervisión sintética offline.",
+        "Falta evidencia independiente con students mayores y dominios no científicos."
+      ],
+      "limitations": [
+        "La evidencia se concentra en un student de 4B y tareas de razonamiento científico universitario; no se establece transferencia a coding, agentes, razonamiento de horizonte largo o modelos mayores.",
+        "La inferencia del teacher consume dos de seis H100 en la configuración reportada, por lo que las ganancias de calidad no se separan del presupuesto adicional de cómputo del teacher.",
+        "Un teacher más fuerte puede aportar información latente de la respuesta aun cuando se le solicite sólo orientación; la robustez frente a calidad del teacher y leakage necesita controles más amplios."
+      ],
+      "research_implications": [
+        "RL basado únicamente en resultado no tiene por qué ser la única opción práctica si señales correctivas en lenguaje natural pueden integrarse sin logits del teacher.",
+        "El reward shaping de trayectorias asistidas es una variable de control clave: sin penalización, el student puede aprender dependencia del teacher en vez de reparación independiente."
+      ],
+      "technical": {
+        "claimed_result": "Los autores reportan que SocraticPO mejora frente a sus baselines de RL y self-distillation y sostienen que corrección en lenguaje natural puede servir como supervisión de proceso sin matching de distribución del teacher.",
+        "compute_or_cost": "La inferencia del teacher agrega costo material de rollout y ocupación de hardware; el paper no establece una ventaja de Pareto con costo total de entrenamiento emparejado.",
+        "demonstrated_result": "El preprint documenta experimentos con students Qwen3-4B-Instruct en tareas de razonamiento científico universitario estilo SciKnowEval, usando baselines Reinforce++, GRPO y self-distillation, y reporta ablaciones de guidance dirigido y reward decay.",
+        "implementation_status": "El paper enlaza un repositorio público de GitHub y proporciona hiperparámetros de implementación; no se establece reproducción independiente en este registro.",
+        "mechanism": "Intervención condicional del teacher durante rollout on-policy más reward decay para correcciones asistidas por teacher; el objetivo de recompensa esperada puede permanecer sin cambios.",
+        "novelty": "Introduce guidance correctivo en lenguaje natural dentro del rollout de RL y descuenta explícitamente los éxitos asistidos, en vez de usar sólo recompensa escalar o distillation completa de la distribución del teacher.",
+        "regime": "Student de 4B; el teacher es Qwen3-4B-Instruct o Qwen3.5-27B; seis GPU H100 en total en la implementación reportada, cuatro para entrenamiento del student y dos para inferencia online del teacher.",
+        "reproducibility": "La arquitectura y receta de entrenamiento están descritas y el código está enlazado; replicación externa y validación en tareas más amplias siguen abiertas.",
+        "strongest_baseline": "Ejecuciones Qwen3-4B-Instruct con Reinforce++, GRPO y SDPO/self-distillation bajo las configuraciones reportadas en el paper."
+      }
+    }
+  }
+}
