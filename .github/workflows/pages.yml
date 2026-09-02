@@ -7,6 +7,8 @@ on:
     paths:
       - 'site/**'
       - 'tools/theme_site.py'
+      - 'tools/i18n_site.py'
+      - 'I18N.md'
       - '.github/workflows/pages.yml'
   workflow_dispatch:
 
@@ -47,8 +49,10 @@ jobs:
           rm -rf publish
           cp -a site publish
           python tools/theme_site.py publish
+          python tools/i18n_site.py publish
           test -f publish/index.html
           test -f publish/.nojekyll
+          test -f publish/data/translations.json
 
       - name: Validate public-only themed tree
         if: steps.probe.outputs.ready == 'true'
@@ -66,6 +70,7 @@ jobs:
               'feed.json', 'feed.xml', 'build-manifest.json',
               'data/search.json', 'data/corrections.json',
               'data/developments.jsonl', 'data/relationships.jsonl',
+              'data/translations.json',
           }
           public_dev = re.compile(r'^developments/FCMO-[0-9A-F]{12}\.html$')
           edition = re.compile(r'^editions/[0-9]{4}-[0-9]{2}-[0-9]{2}\.html$')
@@ -144,18 +149,24 @@ jobs:
           home = (root / 'index.html').read_text(encoding='utf-8')
           for token in (
               'id="fcmo-visual-system"', 'class="brandlock"', 'class="signal-rail"',
-              'class="hero-summary"', 'class="hero-why"', 'class="hero-cta"', 'LATEST EDITION'
+              'class="hero-summary"', 'class="hero-why"', 'class="hero-cta"', 'LATEST EDITION',
+              'id="fcmo-i18n-runtime"', 'id="fcmo-i18n-system"'
           ):
               if token not in home: errors.append(f'homepage missing visual contract token: {token}')
           # Presentation is self-contained: no design CDN, remote font, image, script or
           # stylesheet dependency may quietly enter the static publication.
           remote_asset = re.compile(r'<(?:link|script|img)\b[^>]*(?:href|src)=["\'](?:https?:)?//', re.I)
+          forbidden_translation_endpoint = re.compile(r'(?:translate\.google(?:apis)?\.com|api\.deepl\.com|microsofttranslator\.com)', re.I)
           for path in root.rglob('*.html'):
               text = path.read_text(encoding='utf-8')
               if 'fcmo-visual-system' not in text:
                   errors.append(f'{path.relative_to(root)}: visual system missing')
+              if 'fcmo-i18n-runtime' not in text:
+                  errors.append(f'{path.relative_to(root)}: curated localization runtime missing')
               if remote_asset.search(text):
                   errors.append(f'{path.relative_to(root)}: remote page asset detected')
+              if forbidden_translation_endpoint.search(text):
+                  errors.append(f'{path.relative_to(root)}: runtime translation provider forbidden')
 
           if errors:
               print('Public themed-site validation FAILED:')
