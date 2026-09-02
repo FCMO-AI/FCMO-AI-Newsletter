@@ -16,6 +16,8 @@ import re
 import sys
 import tarfile
 from pathlib import Path
+from html.parser import HTMLParser
+from urllib.parse import urlparse
 from xml.etree import ElementTree
 
 REPO = Path(__file__).resolve().parents[1]
@@ -30,7 +32,30 @@ SECRET_PATTERNS = (
     re.compile(r"-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----"),
 )
 PERSONAL_MAILBOX = re.compile(r"\b[A-Z0-9._%+-]+@(?:gmail|outlook|hotmail|protonmail)\.[A-Z]{2,}\b", re.I)
-REMOTE_EXEC = re.compile(r"<(?:link|script)\b[^>]*(?:href|src)=[\"'](?:https?:)?//", re.I)
+
+class _RemoteExecParser(HTMLParser):
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self.dependencies: list[str] = []
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        data = {k.lower(): (v or "") for k, v in attrs}
+        tag = tag.lower()
+        if tag == "script":
+            src = data.get("src", "")
+            if src.startswith(("http://", "https://", "//")):
+                self.dependencies.append(src)
+        elif tag == "link":
+            rel = {token.lower() for token in data.get("rel", "").split()}
+            href = data.get("href", "")
+            if "stylesheet" in rel and href.startswith(("http://", "https://", "//")):
+                self.dependencies.append(href)
+
+
+def remote_exec_dependencies(text: str) -> list[str]:
+    parser = _RemoteExecParser()
+    parser.feed(text)
+    return parser.dependencies
 
 
 def sha256(data: bytes) -> str:
@@ -119,8 +144,9 @@ def validate(target: Path, manifest: dict) -> None:
         for token in ("window.FCMO_AI", "window.FCMOAgent", "window.fcmo", "fcmo-agent-query-v2", "--hot:#FD5204", "Signal Field"):
             if token not in home:
                 errors.append(f"index missing release contract token: {token}")
-        if REMOTE_EXEC.search(home):
-            errors.append("index contains a remote executable/style dependency")
+        deps = remote_exec_dependencies(home)
+        if deps:
+            errors.append(f"index contains remote executable/style dependencies: {deps}")
 
     briefs = sorted((target / "data/briefs").glob("FCMO-*.json")) if (target / "data/briefs").is_dir() else []
     bridges = sorted((target / "developments").glob("FCMO-*.html")) if (target / "developments").is_dir() else []
@@ -169,8 +195,10 @@ def validate(target: Path, manifest: dict) -> None:
         for pattern in SECRET_PATTERNS:
             if pattern.search(text):
                 errors.append(f"credential-like material detected: {rel}")
-        if path.suffix == ".html" and REMOTE_EXEC.search(text):
-            errors.append(f"remote executable/style dependency detected: {rel}")
+        if path.suffix == ".html":
+            deps = remote_exec_dependencies(text)
+            if deps:
+                errors.append(f"remote executable/style dependency detected: {rel}: {deps}")
 
     files = sum(1 for p in target.rglob("*") if p.is_file())
     if files < manifest["minimum_files_after_overlay"]:
