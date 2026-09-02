@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Apply the frozen FCMO AI Newsletter release overlay to a publication tree.
 
-The release payload is split into base64 text segments because the repository
+The release payload is split into base64 text parts because the repository
 integration surface used during prelaunch cannot upload a binary archive
 atomically. This script reconstructs the exact audited tarball, verifies it,
 and extracts it over a target directory. It does not deploy anything.
@@ -32,11 +32,11 @@ def fail(message: str) -> "NoReturn":
 def main() -> int:
     target = Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else REPO / "publish"
     manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
-    segments = sorted((OVERLAY / "segments").glob("segment-*.b64"))
-    if len(segments) != manifest["segments"]:
-        fail(f"expected {manifest['segments']} payload segments, found {len(segments)}")
+    parts = sorted((OVERLAY / "parts").glob("part-*.b64"))
+    if len(parts) != manifest["parts"]:
+        fail(f"expected {manifest['parts']} payload parts, found {len(parts)}")
 
-    encoded = "".join(p.read_text(encoding="ascii").strip() for p in segments)
+    encoded = "".join(p.read_text(encoding="ascii").strip() for p in parts)
     if sha256(encoded.encode("ascii")) != manifest["base64_sha256"]:
         fail("base64 payload hash mismatch")
     payload = base64.b64decode(encoded, validate=True)
