@@ -85,6 +85,43 @@ jobs:
           print(f'Curated release identity OK: {canonical_count} canonical records / 3 native languages / {digest}')
           PY
 
+      - name: Prove a new untranslated story fails closed
+        run: |
+          rm -rf regression
+          cp -a site regression
+          python tools/apply_final_release.py regression
+          python - <<'PY'
+          from pathlib import Path
+          import json, re
+          from tools.apply_curated_i18n import validate_curated_i18n
+
+          index = Path('regression/index.html')
+          text = index.read_text(encoding='utf-8')
+          match = re.search(r'(<script id="fcmo-data" type="application/json">)(.*?)(</script>)', text, re.S)
+          assert match
+          data = json.loads(match.group(2))
+          seed = dict(data['records'][0])
+          seed.update({
+              'id': 'FCMO-FFFFFFFFFFFF',
+              'title': 'Synthetic untranslated publication-gate regression story',
+              'summary': 'This record exists only to prove CI rejects a new canonical story without curated locales.',
+              'why_it_matters': 'If validation accepts this record, the three-language publication contract is broken.',
+          })
+          data['records'].append(seed)
+          replacement = match.group(1) + json.dumps(data, ensure_ascii=False, separators=(',', ':')) + match.group(3)
+          index.write_text(text[:match.start()] + replacement + text[match.end():], encoding='utf-8')
+
+          try:
+              validate_curated_i18n(Path('regression'))
+          except ValueError as exc:
+              message = str(exc)
+              assert 'record IDs do not exactly match canonical corpus' in message, message
+              assert 'FCMO-FFFFFFFFFFFF' in message, message
+              print('Fail-closed regression OK: untranslated synthetic story was rejected')
+          else:
+              raise AssertionError('localization validator accepted an untranslated canonical story')
+          PY
+
       - name: Confirm private prelaunch boundary
         run: |
           echo 'Validation only. This workflow does not deploy or change repository visibility.'
