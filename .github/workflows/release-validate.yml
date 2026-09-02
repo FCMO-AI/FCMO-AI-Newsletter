@@ -44,6 +44,16 @@ jobs:
           print('Frozen release identity OK:', digest)
           PY
 
+      - name: Checkout prior curated locale seed
+        uses: actions/checkout@v6
+        with:
+          ref: feature/curated-i18n-en-es-zh
+          path: legacy-i18n
+          persist-credentials: false
+
+      - name: Stage locale seed beside assembled candidate
+        run: cp legacy-i18n/site/data/translations.json publish/legacy-translations.json
+
       - name: Upload assembled candidate for deterministic inspection
         uses: actions/upload-artifact@v4
         with:
