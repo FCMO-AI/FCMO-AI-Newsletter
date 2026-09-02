@@ -20,6 +20,9 @@ The release is deterministic and fail-closed:
 - A failed release or localization validation prevents deployment rather than publishing a partial, drifted, or machine-translated edition.
 - No private research workspace, private credentials, or non-public operational state is required to build the public release.
 
+`data/relationships.json` and `data/relationships.jsonl` are equivalent public surfaces: the JSON is an array and the JSONL is one identical object per line.
+They must contain the same objects in the same order; clients may choose either representation.
+
 The release identity and final publication checklist are recorded in `READY_TO_PUBLISH.md` and `release-overlay/final/manifest.json`.
 
 ## Native languages

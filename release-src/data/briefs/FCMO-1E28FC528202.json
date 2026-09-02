@@ -1,0 +1,138 @@
+{
+  "record": {
+    "id": "FCMO-1E28FC528202",
+    "title": "Tencent Hy4 preview combines 770B MoE capacity with sparse attention, IndexCache and native MTP",
+    "desk": "Architectures Scaling",
+    "event_at": "2026-08-28T00:00:00Z",
+    "evidence": "A",
+    "confidence": "confirmed",
+    "importance": 8,
+    "tier": "Field-shifting",
+    "summary": "Tencent released Hy4 preview under Apache-2.0 with a 770B-parameter MoE backbone, 49B active parameters per token, 1M context, Gated DeepSeek Sparse Attention, cross-layer IndexCache reuse, four-stream identity Hyper-Connections, and a native MTP layer intended for speculative decoding.",
+    "topics": [
+      "mixture-of-experts",
+      "sparse-attention",
+      "long-context",
+      "indexcache",
+      "hyper-connections",
+      "multi-token-prediction",
+      "speculative-decoding",
+      "open-weights"
+    ],
+    "organizations": [
+      "Tencent"
+    ],
+    "human_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-1E28FC528202.html",
+    "machine_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/data/briefs/FCMO-1E28FC528202.json",
+    "citation": {
+      "id": "FCMO-1E28FC528202",
+      "source": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-1E28FC528202.html"
+    }
+  },
+  "brief": {
+    "aliases": [
+      "Hy4 preview",
+      "Tencent Hy4 preview",
+      "Hunyuan Hy4 preview"
+    ],
+    "claims": [
+      {
+        "label": "DEMONSTRATED",
+        "text": "Tencent released Hy4 preview with a 770B backbone, 49B active parameters per token, Gated DSA with IndexCache, four residual streams, and a native MTP layer."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "Tencent reports Hy4 preview slightly ahead of GLM-5.3 and Kimi K3 on its internal 203-task expert evaluation."
+      }
+    ],
+    "confidence": "confirmed",
+    "contradictory_evidence": [],
+    "desks": [
+      "inference_systems",
+      "efficiency",
+      "open_ecosystem"
+    ],
+    "development_type": "model_or_system_release",
+    "editions": [],
+    "engineering_implications": [
+      "Cross-layer reuse of sparse-attention indices is a concrete route to reducing indexer overhead; native MTP makes speculative decoding part of the trained model rather than an external serving-only attachment."
+    ],
+    "event_at": "2026-08-28T00:00:00Z",
+    "evidence_class": "A",
+    "evidence_gaps": [
+      {
+        "description": "No matched training/inference budget ablation establishes the isolated gains from Gated DSA, IndexCache, iHC or native MTP.",
+        "kind": "baseline_unclear",
+        "state": "open",
+        "updated_at": "2026-08-29T19:08:00Z"
+      },
+      {
+        "description": "Vendor quality and productivity results lack independent reproduction.",
+        "kind": "missing_independent",
+        "state": "open",
+        "updated_at": "2026-08-29T19:08:00Z"
+      }
+    ],
+    "id": "FCMO-1E28FC528202",
+    "importance_effective_score": 8,
+    "importance_rationale": "",
+    "importance_scale_version": 1,
+    "importance_score": 5,
+    "importance_tier": "Field-shifting",
+    "last_verified_at": "2026-08-29T19:08:00Z",
+    "limitations": [
+      "The strongest quality comparison disclosed in the model card is vendor-run and narrowly separated from GLM-5.3/Kimi K3; it is not independent evidence.",
+      "No matched-compute ablation isolates the contribution of sparse attention, IndexCache, iHC or native MTP.",
+      "49B active parameters still implies a heavy local serving regime; sparse activation does not make the 770B stored model a small local model.",
+      "Tencent explicitly notes overlong reasoning and over-verification in this preview."
+    ],
+    "organizations": [
+      "Tencent"
+    ],
+    "policy_implications": [],
+    "primary_desk": "architectures_scaling",
+    "recorded_at": "2026-08-29T19:08:00Z",
+    "regions": [
+      "CN"
+    ],
+    "relationships": [],
+    "research_implications": [
+      "Qwen3.8-Flash-Next, GLM-5.3-Flash and Hy4 now provide a useful natural experiment around sparse retrieval and richer residual routing, but architectural convergence should be tested under matched budgets rather than treated as proof."
+    ],
+    "source_languages": [
+      "en"
+    ],
+    "source_urls": [
+      "https://huggingface.co/tencent/Hy4-preview",
+      "https://huggingface.co/tencent/Hy4-preview/blob/main/config.json",
+      "https://www.tencent.com/tencent-releases-and-open-sources-tencent-hy4-preview/"
+    ],
+    "status": "active",
+    "summary": "Tencent released Hy4 preview under Apache-2.0 with a 770B-parameter MoE backbone, 49B active parameters per token, 1M context, Gated DeepSeek Sparse Attention, cross-layer IndexCache reuse, four-stream identity Hyper-Connections, and a native MTP layer intended for speculative decoding.",
+    "technical": {
+      "claimed_result": "Tencent reports its largest generation-over-generation capability gain and small wins over GLM-5.3 and Kimi K3 in an internal blind evaluation of 163 experts across 203 engineering tasks.",
+      "compute_or_cost": "49B backbone parameters are active per token plus 0.7B active in the native MTP layer; total stored capacity is 770B backbone plus 10B MTP. Exact training FLOPs and matched serving throughput were not found in the primary release material reviewed.",
+      "demonstrated_result": "Released BF16/FP8 model artifacts and configuration expose a 770B backbone with 49B active parameters per token, 1M context, 256 routed experts, top-8 routing, Gated DSA, four residual streams and native MTP. Apache-2.0 licensing is present in the released artifact.",
+      "implementation_status": "Weights, FP8 variant, config, deployment guidance, finetuning guidance and compression tooling are released.",
+      "mechanism": "A 78-layer MoE backbone: one dense FFN layer followed by 77 MoE layers with 256 routed experts plus one shared expert; top-8 routed experts are active per token. Attention uses Gated DeepSeek Sparse Attention with IndexCache to reuse sparse indices across layers. The residual path uses four-stream identity Hyper-Connections. A separate native MTP layer adds 10B total/0.7B active parameters for speculative decoding.",
+      "novelty": "Integrates cross-layer sparse-index reuse and native MTP into a frontier open MoE while adopting the emerging richer-residual/sparse-retrieval design family.",
+      "regime": "Frontier-scale 770B-total/49B-active open-weight model; serving remains hardware-heavy despite sparse activation. Internal productivity evaluation is vendor-run and not an independent reproduction.",
+      "reproducibility": "Architecture and weights are inspectable; vendor quality claims and the isolated contribution of Gated DSA, IndexCache, iHC and MTP require independent matched-control evaluation.",
+      "strongest_baseline": "Tencent's internal blind comparison against GLM-5.3 and Kimi K3; no matched-compute architectural ablation is supplied in the release card."
+    },
+    "title": "Tencent Hy4 preview combines 770B MoE capacity with sparse attention, IndexCache and native MTP",
+    "topics": [
+      "mixture-of-experts",
+      "sparse-attention",
+      "long-context",
+      "indexcache",
+      "hyper-connections",
+      "multi-token-prediction",
+      "speculative-decoding",
+      "open-weights"
+    ],
+    "why_it_matters": "Hy4 is a third major open-weight frontier release in the same week emphasizing sparse long-context retrieval and richer residual routing, while also shipping native multi-token prediction. It strengthens the architectural-convergence signal but does not by itself establish that these mechanisms outperform matched dense or hybrid alternatives."
+  },
+  "related": [],
+  "schema": "fcmo-public-brief-v1"
+}

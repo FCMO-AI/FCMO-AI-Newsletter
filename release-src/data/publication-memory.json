@@ -1,0 +1,212 @@
+[
+  {
+    "date": "2026-09-01",
+    "authority": "published_edition",
+    "published": true,
+    "preamble": [
+      {
+        "type": "p",
+        "text": "Published 2026-09-01T13:04:01Z · evidence cutoff 2026-09-01T13:02:01Z"
+      },
+      {
+        "type": "div",
+        "text": "Historical snapshot: later evidence may be reflected in current research pages and corrections."
+      },
+      {
+        "type": "heading",
+        "text": "FCMO AI Newsletter Brief — 2026-09-01"
+      },
+      {
+        "type": "blockquote",
+        "text": "Evidence-first daily edition. Importance measures consequence if true, not truth; candidates below remain explicitly investigating unless stated otherwise."
+      }
+    ],
+    "sections": [
+      {
+        "title": "Front page",
+        "blocks": [
+          {
+            "type": "p",
+            "text": "No newly verified canonical development cleared the publication threshold before this edition's evidence cutoff. That is an editorial result, not an empty day: the research desk advanced several high-value investigations, but none yet had the independent or matched-control evidence required for promotion."
+          }
+        ]
+      },
+      {
+        "title": "Investigation desk — highest-signal work",
+        "blocks": [
+          {
+            "type": "h4",
+            "text": "Agentic Data Cracking — repeated document reasoning may be an amortization problem"
+          },
+          {
+            "type": "p",
+            "text": "A Harvard preprint proposes agentic data cracking : when an agent has already paid to open a large unstructured document, a parallel branch reuses that loaded context to extract compact, evidence-backed entities, attributes and relations likely to help later related queries. Future queries can consult the accumulated structured store and fall back to the raw document on a miss."
+          },
+          {
+            "type": "p",
+            "text": "On the authors' FanOutQA extension, mean prefill falls 189K → 87K tokens and mean reported API cost $0.26 → $0.12 per question . LLM-as-judge accuracy is 43.0% baseline versus 42.0% with cracking (p=0.39) ; string accuracy is 76.1% versus 74.2% . Median question cost falls from $0.246 → $0.072 . The strongest negative result is equally important: at the 90th percentile of paired cost ratios, cracking costs 1.24× the baseline because extraction overhead is paid without useful reuse. A 4K-token cracking budget adds about 12% overhead on FanOutQA. The paper's 28× ideal-store figure is an oracle upper bound from manually prestructured evidence, not the achieved automatic speedup."
+          },
+          {
+            "type": "p",
+            "text": "Interpretation: the design problem is not simply “structure memory.” It is predict whether expected future reuse exceeds extraction + validation + invalidation cost , while preserving source provenance, temporal validity and defenses against poisoned or stale documents. This remains investigating: there is no independent reproduction yet, the benchmark locality is partly constructed by adding one related precursor question, and the reported economics depend on prompt-cache/shared-prefix behavior."
+          },
+          {
+            "type": "p",
+            "text": "Primary source: https://arxiv.org/abs/2608.31082"
+          },
+          {
+            "type": "h4",
+            "text": "LayerRecall — memory needs a placement router, not only a retrieval router"
+          },
+          {
+            "type": "p",
+            "text": "LayerRecall adds matched evidence that long-horizon memory can become harmful when injected indiscriminately. In the authors' long-video setup, CHPM-trained routing improves MemoBench 0.519 → 0.548 over random-initialized routing using the same target-layer budget; assigning memory to ten profiled layers improves 0.538 → 0.570 versus ten random layers. Selective historical-KV routing also lowers reported high-frequency frame-change power 0.60 → 0.38 compared with all-layer injection under the same checkpoint/retrieval/budget protocol."
+          },
+          {
+            "type": "p",
+            "text": "Interpretation: a useful memory architecture may need two routing decisions: what to retrieve × where in computation to expose it . The transfer to decoder LLMs, sparse MoE models and agents remains unproven, and production latency/HBM/bandwidth accounting is still missing."
+          },
+          {
+            "type": "h4",
+            "text": "Sink-preserving sliding-window attention — a tougher baseline for linear-attention retrofits"
+          },
+          {
+            "type": "p",
+            "text": "A new investigating candidate reports that training-free sliding-window attention with retained attention sinks is a stronger retrofit baseline than several limited post-training conversions of pretrained softmax models. Across 11 settings from roughly 1.3B to 70B, the paper reports 99.0% average full-attention score recovery and substantially stronger MMLU and short long-context behavior than the compared retrofit-linear methods."
+          },
+          {
+            "type": "p",
+            "text": "Scope boundary: this is evidence against weak retrofit linearization , not against native hybrid/recurrent architectures trained from scratch. The decisive next comparison remains full attention versus SWA+sinks versus retrofit-linear versus native hybrid at 32K–128K with matched serving measurements and deliberately out-of-window evidence."
+          },
+          {
+            "type": "h4",
+            "text": "BDH-CQ — test-time compute without a growing textual chain of thought"
+          },
+          {
+            "type": "p",
+            "text": "A 150M recurrent model reports 29.5% pass@2 on public ARC-AGI-1 at a computed $0.0007/task , using repeated latent/recurrent computation rather than an ever-growing textual reasoning trace."
+          },
+          {
+            "type": "p",
+            "text": "Interpretation: reasoning depth may be partly separable from generated reasoning-token count. But the cost is computed rather than hardware-normalized, latent iterations still consume FLOPs, and the evidence is specialized to ARC-AGI-1. The important experiment is a matched-compute sweep of textual CoT versus latent recurrence versus a hybrid across math, code and agent tasks."
+          },
+          {
+            "type": "h4",
+            "text": "Multimodal memory — write-time translation can destroy evidence before relevance is knowable"
+          },
+          {
+            "type": "p",
+            "text": "Two lines of work converged on the same architecture warning. DMV-Bench shows that caption-first memory can discard visually incidental facts that only become important later. VERA independently reports that retaining modality-native visual observations can preserve stronger multimodal task performance while reducing cumulative non-cache text-token load by 31.5%–63.1% versus No Compression across most tested settings."
+          },
+          {
+            "type": "p",
+            "text": "Interpretation: converting perception into text is not neutral compression. A long-lived multimodal agent should explicitly model the false-discard cost of abstraction and retain native evidence when future relevance is uncertain. Token savings are not full-system savings until image encoding, visual tokens, rendering, storage, cache behavior and memory traffic are charged."
+          },
+          {
+            "type": "h4",
+            "text": "TreeWY / hybrid speculative decoding — recurrent state changes the systems accounting"
+          },
+          {
+            "type": "p",
+            "text": "TreeWY exposes a hidden cost in speculative decoding for Gated DeltaNet-style hybrids: verification may require expensive recurrent-state snapshots, so KV-only accounting is incomplete. The reported benefit is highly regime-dependent—large under HBM/admission pressure, close to parity when memory is loose—and wider speculative trees can lose throughput when execution falls off efficient CUDA-graph paths."
+          },
+          {
+            "type": "h4",
+            "text": "Covert indirect prompt injection — successful compromise can look like successful task completion"
+          },
+          {
+            "type": "p",
+            "text": "The covert-IPI work separates attack execution from user-visible disclosure . Its strongest conceptual implication is architectural: if the compromised policy both executes actions and decides what to tell the user about those actions, covert compromise can evade self-report."
+          },
+          {
+            "type": "p",
+            "text": "Interpretation: consequential-action disclosure should be generated from runtime-owned execution records , not solely from the agent policy's narrative of what it did."
+          }
+        ]
+      },
+      {
+        "title": "Fresh industry and policy watch",
+        "blocks": [
+          {
+            "type": "p",
+            "text": "The United States is reported to be presenting the Carolina Principles at a G20 AI meeting on September 1, advocating a comparatively hands-off regulatory posture and opposition to creating new AI regulatory bodies. This remains a reporting-level policy watch item in FCMO AI because the primary principles text was not located during this edition's scan; it was not promoted into a canonical policy development."
+          },
+          {
+            "type": "p",
+            "text": "Qualcomm and HUMAIN announced Horizon Ultra on August 31, built around Snapdragon X2 Elite and positioned for mixed local/cloud AI workloads, with enterprise availability planned for September 20. FCMO AI records this as hardware/industry context rather than a research breakthrough: product availability and architecture positioning do not by themselves establish a new capability frontier."
+          }
+        ]
+      },
+      {
+        "title": "Corrections / negative knowledge preserved",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              "No rumor or weak signal was upgraded because its possible importance was high.",
+              "Code World Model was inspected but deliberately deferred from candidate minting because the surfaced evidence was mainly framework/qualitative proof-of-concept material rather than strong matched quantitative artifacts.",
+              "Agentic Data Cracking's low-reuse tail is preserved alongside its headline mean savings; adaptive structuring is not intrinsically cheaper .",
+              "The sliding-window result is explicitly scoped to retrofit attention conversion and does not invalidate native recurrent/hybrid architectures.",
+              "The multimodal-memory synthesis does not equate fewer text tokens with lower end-to-end serving cost."
+            ]
+          }
+        ]
+      },
+      {
+        "title": "What to watch next",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              "Agentic Data Cracking: independent reproduction; natural workload-locality traces; break-even reuse count; versioned provenance, invalidation and poisoning tests; comparison with semantic/answer caches and up-front knowledge graphs at equal build cost.",
+              "LayerRecall: released-code audit and measured latency/HBM/cache traffic; transfer of layer-selective memory exposure into VLM/LLM/MoE architectures.",
+              "Latent reasoning: hardware-normalized compute/energy comparison versus textual CoT across broader domains.",
+              "Multimodal memory: matched total-cost comparison among captions, embeddings, raw/native evidence, visual rendering and dual-code memory with the future query hidden at write time.",
+              "Hybrid speculative decoding: draft-depth × concurrency × context-length sweeps that charge recurrent state and corruption/failure behavior.",
+              "Policy: obtain and inspect the primary Carolina Principles/G20 text before any canonical policy claim is promoted.",
+              "Coverage debt: expand original-language Chinese, Japanese, Arabic and other regional primary-source scanning; deepen robotics/embodied-agent and compute-market coverage; seek independent reproductions rather than accumulating author-only claims."
+            ]
+          }
+        ]
+      },
+      {
+        "title": "Coverage note",
+        "blocks": [
+          {
+            "type": "p",
+            "text": "Coverage is substantial, not exhaustive . Primary papers and artifacts were the dominant evidence source; official lab/hardware surfaces, independent reporting and community reproductions were spot-checked. Complete September 1 arXiv enumeration, broad original-language non-English coverage, primary policy documentation for the Carolina Principles and multiple independent reproductions remain open debt. Coverage limitations are summarized in this edition."
+          }
+        ]
+      }
+    ],
+    "related_brief_ids": []
+  },
+  {
+    "date": "2026-08-31",
+    "authority": "research_snapshot",
+    "published": false,
+    "preamble": [
+      {
+        "type": "div",
+        "text": "Archive note: No daily newsletter was published for this date (status: draft)."
+      }
+    ],
+    "sections": [],
+    "related_brief_ids": [
+      "FCMO-FF958ED4CB91"
+    ]
+  },
+  {
+    "date": "2026-08-29",
+    "authority": "research_snapshot",
+    "published": false,
+    "preamble": [
+      {
+        "type": "div",
+        "text": "Archive note: No daily newsletter was published for this date (status: draft)."
+      }
+    ],
+    "sections": [],
+    "related_brief_ids": []
+  }
+]

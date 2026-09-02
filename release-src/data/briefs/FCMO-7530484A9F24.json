@@ -1,0 +1,131 @@
+{
+  "record": {
+    "id": "FCMO-7530484A9F24",
+    "title": "SocraticPO injects targeted natural-language teacher guidance into RL rollouts",
+    "desk": "Reasoning Posttraining",
+    "event_at": "2026-08-22T00:00:00Z",
+    "evidence": "A",
+    "confidence": "confirmed",
+    "importance": 6,
+    "tier": "Major",
+    "summary": "SocraticPO changes the rollout stage of LLM reinforcement learning: a student first answers independently, a teacher supplies concise corrective guidance only after failure, and successful recovery receives a decayed reward so the policy cannot treat teacher intervention as a free shortcut.",
+    "topics": [
+      "reinforcement-learning",
+      "process-supervision",
+      "teacher-guidance",
+      "reasoning",
+      "distillation"
+    ],
+    "organizations": [
+      "University of Science and Technology of China",
+      "iFLYTEK"
+    ],
+    "human_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-7530484A9F24.html",
+    "machine_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/data/briefs/FCMO-7530484A9F24.json",
+    "citation": {
+      "id": "FCMO-7530484A9F24",
+      "source": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-7530484A9F24.html"
+    }
+  },
+  "brief": {
+    "aliases": [
+      "SocraticPO",
+      "Socratic Policy Optimization"
+    ],
+    "claims": [
+      {
+        "label": "DEMONSTRATED",
+        "text": "SocraticPO conditionally gives teacher feedback after an incorrect student attempt and applies decayed reward to teacher-assisted success."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "The authors report improvements over their RL and self-distillation baselines on SciKnowEval scientific reasoning tasks."
+      }
+    ],
+    "confidence": "confirmed",
+    "contradictory_evidence": [],
+    "desks": [
+      "training_data",
+      "open_ecosystem"
+    ],
+    "development_type": "paper",
+    "editions": [],
+    "engineering_implications": [
+      "Can be layered over existing policy-gradient backends because the teacher operates through text and rollout context rather than optimizer-specific internals."
+    ],
+    "event_at": "2026-08-22T00:00:00Z",
+    "evidence_class": "A",
+    "evidence_gaps": [
+      {
+        "description": "No matched total-compute study establishes whether SocraticPO beats spending the same extra teacher/GPU budget on more ordinary RL rollouts or offline synthetic supervision.",
+        "kind": "baseline_unclear",
+        "state": "open",
+        "updated_at": "2026-08-29T18:02:35Z"
+      },
+      {
+        "description": "Independent evidence across larger students and non-science domains is missing.",
+        "kind": "missing_independent",
+        "state": "open",
+        "updated_at": "2026-08-29T18:02:35Z"
+      }
+    ],
+    "id": "FCMO-7530484A9F24",
+    "importance_effective_score": 6,
+    "importance_rationale": "",
+    "importance_scale_version": 1,
+    "importance_score": 4,
+    "importance_tier": "Major",
+    "last_verified_at": "2026-08-29T18:02:35Z",
+    "limitations": [
+      "Evidence is concentrated on a 4B student and undergraduate scientific reasoning tasks; transfer to coding, agents, long-horizon reasoning or larger models is not established.",
+      "Teacher inference consumes two of six H100s in the reported setup, so quality gains are not separated from added teacher-compute budget.",
+      "A stronger teacher may provide latent answer information even when prompted for guidance; robustness to teacher quality and leakage needs broader controls."
+    ],
+    "organizations": [
+      "University of Science and Technology of China",
+      "iFLYTEK"
+    ],
+    "policy_implications": [],
+    "primary_desk": "reasoning_posttraining",
+    "recorded_at": "2026-08-29T18:02:35Z",
+    "regions": [
+      "CN"
+    ],
+    "relationships": [],
+    "research_implications": [
+      "Outcome-only RL need not be the only practical option if natural-language corrective signals can be integrated without teacher logits.",
+      "Reward shaping for assisted trajectories is a key control variable: without a penalty, the student may learn dependence on the teacher rather than independent repair."
+    ],
+    "source_languages": [
+      "en"
+    ],
+    "source_urls": [
+      "https://arxiv.org/html/2606.09887v2",
+      "https://github.com/Liuz-rui/SocraticPO"
+    ],
+    "status": "active",
+    "summary": "SocraticPO changes the rollout stage of LLM reinforcement learning: a student first answers independently, a teacher supplies concise corrective guidance only after failure, and successful recovery receives a decayed reward so the policy cannot treat teacher intervention as a free shortcut.",
+    "technical": {
+      "claimed_result": "Authors report that SocraticPO improves over their RL and self-distillation baselines and argue that natural-language correction can serve as process-level supervision without teacher distribution matching.",
+      "compute_or_cost": "Teacher inference adds material rollout cost and hardware occupancy; the paper does not establish a matched total-training-cost Pareto advantage.",
+      "demonstrated_result": "The preprint documents experiments with Qwen3-4B-Instruct students on SciKnowEval-style undergraduate scientific reasoning tasks, using Reinforce++, GRPO and self-distillation baselines, and reports ablations of targeted guidance and reward decay.",
+      "implementation_status": "Paper links a public GitHub repository and provides implementation hyperparameters; independent reproduction is not established in this record.",
+      "mechanism": "Conditional teacher intervention during on-policy rollout plus reward decay for teacher-assisted corrections; the expected-reward objective can remain unchanged.",
+      "novelty": "Moves corrective natural-language guidance inside RL rollout while explicitly discounting assisted successes, rather than using only scalar reward or full teacher-distribution distillation.",
+      "regime": "4B student; teacher is either Qwen3-4B-Instruct or Qwen3.5-27B; six H100 GPUs total in the reported implementation, with four for student training and two for online teacher inference.",
+      "reproducibility": "Architecture and training recipe are described and code is linked; external replication and broader-task validation remain open.",
+      "strongest_baseline": "Qwen3-4B-Instruct runs with Reinforce++, GRPO and SDPO/self-distillation under the paper's reported settings."
+    },
+    "title": "SocraticPO injects targeted natural-language teacher guidance into RL rollouts",
+    "topics": [
+      "reinforcement-learning",
+      "process-supervision",
+      "teacher-guidance",
+      "reasoning",
+      "distillation"
+    ],
+    "why_it_matters": "It is a concrete route from outcome-only RL toward process-level supervision without requiring teacher logits or distribution matching. The mechanism can use black-box teachers, making it practical for smaller open students, but its evidence is still narrow and teacher-compute intensive."
+  },
+  "related": [],
+  "schema": "fcmo-public-brief-v1"
+}
