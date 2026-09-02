@@ -13,13 +13,28 @@ The publication separates evidence quality, confidence, limitations, contradicti
 The release is deterministic and fail-closed:
 
 - `site/` is the checked-in public base tree.
-- `release-overlay/final/` is the frozen, hash-verified Signal Field v4.1 release payload.
-- `tools/apply_final_release.py` reconstructs the exact publication candidate, validates its hashes and public-data contract, scans for credential/privacy leaks and unsafe remote executable dependencies, and writes a deterministic build manifest.
+- `release-overlay/final/` is the frozen, hash-verified Signal Field v4.1 English canonical release payload.
+- `tools/apply_final_release.py` reconstructs the exact canonical publication candidate, validates its hashes and public-data contract, scans for credential/privacy leaks and unsafe remote executable dependencies, and writes a deterministic build manifest.
+- `tools/apply_curated_i18n.py` validates the committed curated locale packs and applies native Spanish and Simplified Chinese presentation only after the canonical English release passes its integrity gate.
 - `.github/workflows/pages.yml` assembles that validated candidate into `publish/` and deploys only that directory to GitHub Pages.
-- A failed validation prevents deployment rather than publishing a partial or altered edition.
+- A failed release or localization validation prevents deployment rather than publishing a partial, drifted, or machine-translated edition.
 - No private research workspace, private credentials, or non-public operational state is required to build the public release.
 
 The release identity and final publication checklist are recorded in `READY_TO_PUBLISH.md` and `release-overlay/final/manifest.json`.
+
+## Native languages
+
+FCMO AI Newsletter natively supports exactly three publication languages:
+
+- **English (`en`)** — canonical semantic source;
+- **Latin American Spanish (`es-419`)** — curated, source-controlled translation;
+- **Simplified Chinese (`zh-Hans`)** — curated, source-controlled translation.
+
+Every current public news record has a committed Spanish and Chinese translation of its reader-facing title, summary, and editorial consequence. The selector resolves an explicit `?lang=` request first, then a saved manual choice, then browser language, with English as the final fallback.
+
+The site does **not** call a translation service or generative model at page-view time. Missing translations are release defects rather than permission to silently machine-translate. English remains directly selectable as the authority-bearing source. The deeper technical/evidence record can therefore preserve its canonical wording and identifiers even when the reader is using a curated translated edition.
+
+The complete source-control, curation, provenance, and validation contract is documented in [`LOCALIZATION.md`](LOCALIZATION.md).
 
 ## Human and agent surfaces
 
