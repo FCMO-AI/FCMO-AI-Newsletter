@@ -24,12 +24,28 @@ jobs:
           python tools/apply_final_release.py publish
 
       - name: Generate source-controlled ES/ZH full-dossier candidates
+        id: generate
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           FCMO_I18N_AUTHOR_MODEL: openai/gpt-4.1
-        run: python tools/generate_full_curated_i18n.py
+        run: |
+          set -o pipefail
+          python tools/generate_full_curated_i18n.py 2>&1 | tee localization-authoring.log
 
-      - name: Validate generated JSON and commit authoring artifacts
+      - name: Commit authoring artifacts or diagnostic
+        if: always()
+        run: |
+          git config user.name "FCMO localization author"
+          git config user.email "magyarmex.github@gmail.com"
+          git add localization-authoring.log site/data/i18n/es-419 site/data/i18n/zh-Hans
+          if ! git diff --cached --quiet; then
+            git commit -m "Capture full localization authoring output"
+            git push
+          fi
+
+      - name: Validate generated JSON
+        if: steps.generate.outcome == 'success'
         run: |
           python - <<'PY'
           from pathlib import Path
@@ -49,10 +65,7 @@ jobs:
               assert extra['locale']==locale and len(extra['ui'])>=50
               print(locale, 'full dossiers', len(details), 'UI phrases', len(extra['ui']))
           PY
-          git config user.name "FCMO localization author"
-          git config user.email "magyarmex.github@gmail.com"
-          git add site/data/i18n/es-419 site/data/i18n/zh-Hans
-          if ! git diff --cached --quiet; then
-            git commit -m "Author complete curated Spanish and Chinese public copy"
-            git push
-          fi
+
+      - name: Fail if authoring failed
+        if: steps.generate.outcome != 'success'
+        run: exit 1
