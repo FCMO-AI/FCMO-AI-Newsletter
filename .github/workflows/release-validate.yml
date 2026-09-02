@@ -20,28 +20,47 @@ jobs:
           persist-credentials: false
 
       - name: Compile release tooling
-        run: python -m py_compile tools/apply_final_release.py
+        run: |
+          python -m py_compile tools/apply_final_release.py
+          python -m py_compile tools/apply_curated_i18n.py
 
       - name: Assemble exact public candidate
         run: |
           rm -rf publish
           cp -a site publish
           python tools/apply_final_release.py publish
+          CANONICAL_HASH=$(python - <<'PY'
+          import json
+          print(json.load(open('release-overlay/final/manifest.json', encoding='utf-8'))['index_sha256'])
+          PY
+          )
+          python tools/apply_curated_i18n.py publish "$CANONICAL_HASH"
 
-      - name: Verify frozen release identity
+      - name: Verify frozen source identity and curated locale completeness
         run: |
           python - <<'PY'
           from pathlib import Path
           import hashlib, json
           root=Path('publish')
-          manifest=json.loads(Path('release-overlay/final/manifest.json').read_text())
+          frozen=json.loads(Path('release-overlay/final/manifest.json').read_text())
+          i18n=json.loads((root/'data/i18n/manifest.json').read_text())
           digest=hashlib.sha256((root/'index.html').read_bytes()).hexdigest()
-          assert digest == manifest['index_sha256'], (digest, manifest['index_sha256'])
+          assert i18n['canonical_index_sha256'] == frozen['index_sha256']
+          assert digest == i18n['localized_index_sha256']
+          assert i18n['supported_locales'] == ['en','es-419','zh-Hans']
+          assert i18n['canonical_record_count'] == 22
+          for locale in ('es-419','zh-Hans'):
+              records={}
+              for part in sorted((root/'data/i18n'/locale).glob('part-*.json')):
+                  records.update(json.loads(part.read_text())['records'])
+              assert len(records) == 22, (locale, len(records))
+              for record in records.values():
+                  assert all(record.get(k, '').strip() for k in ('title','summary','why_it_matters'))
           assert len(list((root/'data/briefs').glob('FCMO-*.json'))) == 22
           assert len(list((root/'developments').glob('FCMO-*.html'))) == 22
           assert len(list((root/'editions').glob('*.html'))) == 3
           assert (root/'build-manifest.json').is_file()
-          print('Frozen release identity OK:', digest)
+          print('Curated release identity OK:', digest)
           PY
 
       - name: Confirm private prelaunch boundary
