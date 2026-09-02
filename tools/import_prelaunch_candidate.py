@@ -14,6 +14,7 @@ Usage:
 from __future__ import annotations
 
 import hashlib
+import html
 import json
 import shutil
 import sys
@@ -78,7 +79,7 @@ def validate_inputs(bundle: Path, v4: Path) -> None:
     if sha256(v4) != V4_SHA256:
         fail("Signal Field SHA-256 does not match the final QA-approved artifact")
 
-    html = v4.read_text(encoding="utf-8")
+    source = v4.read_text(encoding="utf-8")
     for marker in (
         "FCMO AI Newsletter — Signal Field Interactive",
         "--hot:#FD5204",
@@ -86,7 +87,7 @@ def validate_inputs(bundle: Path, v4: Path) -> None:
         "Signal Field",
         'referrerpolicy="no-referrer"',
     ):
-        if marker not in html:
+        if marker not in source:
             fail(f"Signal Field marker missing: {marker}")
 
 
@@ -123,6 +124,45 @@ def validate_extracted(root: Path) -> None:
     ElementTree.parse(root / "feed.xml")
 
 
+def redirect_document(title: str, target: str) -> str:
+    safe_title = html.escape(title, quote=True)
+    safe_target = html.escape(target, quote=True)
+    return (
+        '<!doctype html><html lang="en"><head><meta charset="utf-8">'
+        '<meta name="viewport" content="width=device-width,initial-scale=1">'
+        f'<meta http-equiv="refresh" content="0;url={safe_target}">'
+        f'<link rel="canonical" href="{safe_target}">'
+        f'<title>{safe_title} · FCMO AI Newsletter</title></head>'
+        '<body><main><p>Opening the canonical FCMO AI Newsletter record… '</n        f'<a href="{safe_target}">Continue</a>.</p></main></body></html>'
+    )
+
+
+def write_route_bridges(site: Path) -> tuple[int, int]:
+    """Keep stable human URLs working while Signal Field owns the dossier UI."""
+    dev_dir = site / "developments"
+    dev_dir.mkdir(parents=True, exist_ok=True)
+    rows = []
+    for line in (site / "data/developments.jsonl").read_text(encoding="utf-8").splitlines():
+        if line.strip():
+            rows.append(json.loads(line))
+    for row in rows:
+        rid = str(row["id"])
+        title = str(row.get("title") or rid)
+        target = f"../index.html#/brief/{rid}"
+        (dev_dir / f"{rid}.html").write_text(redirect_document(title, target), encoding="utf-8")
+
+    edition_dir = site / "editions"
+    edition_dir.mkdir(parents=True, exist_ok=True)
+    edition_files = sorted((site / "data/editions").glob("*.json"))
+    for source in edition_files:
+        date = source.stem
+        target = f"../index.html#/edition/{date}"
+        (edition_dir / f"{date}.html").write_text(
+            redirect_document(f"Edition {date}", target), encoding="utf-8"
+        )
+    return len(rows), len(edition_files)
+
+
 def install(bundle: Path, v4: Path, site: Path) -> None:
     with tempfile.TemporaryDirectory(prefix="fcmo-prelaunch-") as tmp:
         extracted = Path(tmp)
@@ -147,18 +187,24 @@ def install(bundle: Path, v4: Path, site: Path) -> None:
         shutil.copy2(v4, site / "index.html")
 
     # Preserve the existing static Pages marker and utility/legal pages; this tool
-    # only replaces the front-page application and adds the recovered machine data.
+    # replaces the front-page app, adds machine data, and turns stable dossier and
+    # edition paths into bridges to the canonical Signal Field routes.
     (site / ".nojekyll").touch(exist_ok=True)
+    brief_routes, edition_routes = write_route_bridges(site)
 
     installed = (site / "index.html").read_text(encoding="utf-8")
     if "window.FCMO_AI" not in installed or "--hot:#FD5204" not in installed:
         fail("installed index failed final Signal Field verification")
     if not (site / "agent.json").is_file() or not (site / "data/briefs").is_dir():
         fail("installed machine surface is incomplete")
+    if brief_routes != 22:
+        fail(f"expected 22 stable human dossier routes, wrote {brief_routes}")
 
     print(
         "FCMO prelaunch candidate imported safely: "
-        f"Signal Field v4 + {copied} machine/public files; no deployment performed"
+        f"Signal Field v4 + {copied} machine/public files + "
+        f"{brief_routes} dossier bridges + {edition_routes} edition bridges; "
+        "no deployment performed"
     )
 
 
