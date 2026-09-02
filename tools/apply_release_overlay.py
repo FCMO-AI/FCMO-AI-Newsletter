@@ -44,7 +44,7 @@ def main() -> int:
         fail("archive hash mismatch")
 
     target.mkdir(parents=True, exist_ok=True)
-    with tarfile.open(fileobj=io.BytesIO(payload), mode="r:gz") as tf:
+    with tarfile.open(fileobj=io.BytesIO(payload), mode="r:*") as tf:
         members = tf.getmembers()
         for member in members:
             name = Path(member.name)
