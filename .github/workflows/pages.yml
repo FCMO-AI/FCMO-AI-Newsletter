@@ -46,29 +46,53 @@ jobs:
         run: |
           rm -rf publish
           cp -a site publish
-          python tools/theme_site.py publish
+          if grep -Fq 'window.FCMO_AI' publish/index.html && grep -Fq -- '--hot:#FD5204' publish/index.html; then
+            echo 'Signal Field v4 detected; preserving its native QA-approved presentation.'
+          else
+            echo 'Legacy publication tree detected; applying compatibility theme.'
+            python tools/theme_site.py publish
+          fi
           test -f publish/index.html
           test -f publish/.nojekyll
 
-      - name: Validate public-only themed tree
+      - name: Validate public-only publication tree
         if: steps.probe.outputs.ready == 'true'
         shell: bash
         run: |
           python - <<'PY'
           from pathlib import Path
+          from xml.etree import ElementTree
           import json, re
 
           root = Path('publish')
-          required = {
+          home = (root / 'index.html').read_text(encoding='utf-8')
+          signal_v4 = 'window.FCMO_AI' in home and '--hot:#FD5204' in home
+
+          base_required = {
               'index.html', 'archive.html', 'search.html', 'topics.html',
               'organizations.html', 'corrections.html', 'feeds.html', 'about.html',
               'privacy.html', 'license.html', 'disclaimer.html', '.nojekyll',
               'feed.json', 'feed.xml', 'build-manifest.json',
               'data/search.json', 'data/corrections.json',
-              'data/developments.jsonl', 'data/relationships.jsonl',
+              'data/developments.jsonl',
           }
+          v4_required = {
+              'agent.json', 'llms.txt', 'llms-full.txt',
+              'data/site-manifest.json', 'data/developments.json',
+              'data/search.jsonl', 'data/relationships.json',
+              'data/publication-memory.json', 'data/topics.json',
+              'data/organizations.json', 'data/media.json',
+          }
+          required = set(base_required)
+          if signal_v4:
+              required |= v4_required
+          else:
+              required.add('data/relationships.jsonl')
+
           public_dev = re.compile(r'^developments/FCMO-[0-9A-F]{12}\.html$')
-          edition = re.compile(r'^editions/[0-9]{4}-[0-9]{2}-[0-9]{2}\.html$')
+          edition_html = re.compile(r'^editions/[0-9]{4}-[0-9]{2}-[0-9]{2}\.html$')
+          brief_json = re.compile(r'^data/briefs/FCMO-[0-9A-F]{12}\.json$')
+          edition_json = re.compile(r'^data/editions/[0-9]{4}-[0-9]{2}-[0-9]{2}\.json$')
           public_id = re.compile(r'^FCMO-[0-9A-F]{12}$')
           mailbox = re.compile(r'\b[A-Z0-9._%+-]+@(?:gmail|outlook|hotmail|protonmail)\.[A-Z]{2,}\b', re.I)
           secrets = (
@@ -78,8 +102,7 @@ jobs:
               re.compile(r'\bAIza[0-9A-Za-z_-]{20,}\b'),
               re.compile(r'-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----'),
           )
-          # Positive machine contract. New fields are not publishable until this public
-          # repository explicitly recognizes them.
+
           public_fields = {
               'id','development_type','title','summary','why_it_matters','primary_desk',
               'desks','topics','organizations','regions','source_languages','event_at',
@@ -93,6 +116,10 @@ jobs:
           claim_fields = {'text','label'}
           relationship_fields = {'type','target_id','summary'}
           gap_fields = {'kind','state','description','updated_at'}
+          compact_fields = {
+              'id','title','desk','event_at','evidence','confidence','importance','tier',
+              'summary','topics','organizations','human_url','machine_url','citation',
+          }
 
           errors = []
           files = sorted(p for p in root.rglob('*') if p.is_file() or p.is_symlink())
@@ -100,12 +127,21 @@ jobs:
           for name in sorted(required):
               if name not in rels:
                   errors.append(f'missing required public file: {name}')
+
           for path in files:
               rel = path.relative_to(root).as_posix()
+              allowed = (
+                  rel in required
+                  or rel in {'data/relationships.jsonl'}
+                  or public_dev.fullmatch(rel)
+                  or edition_html.fullmatch(rel)
+                  or (signal_v4 and brief_json.fullmatch(rel))
+                  or (signal_v4 and edition_json.fullmatch(rel))
+              )
               if path.is_symlink():
                   errors.append(f'symlink forbidden: {rel}')
                   continue
-              if rel not in required and not public_dev.fullmatch(rel) and not edition.fullmatch(rel):
+              if not allowed:
                   errors.append(f'unexpected public path: {rel}')
                   continue
               try:
@@ -113,55 +149,108 @@ jobs:
               except UnicodeDecodeError:
                   errors.append(f'non-UTF-8/binary payload forbidden: {rel}')
                   continue
-              if mailbox.search(text): errors.append(f'personal mailbox address detected: {rel}')
+              if mailbox.search(text):
+                  errors.append(f'personal mailbox address detected: {rel}')
               for pattern in secrets:
-                  if pattern.search(text): errors.append(f'credential-like material detected: {rel}')
+                  if pattern.search(text):
+                      errors.append(f'credential-like material detected: {rel}')
               if path.suffix == '.json':
-                  try: json.loads(text)
-                  except Exception as exc: errors.append(f'invalid JSON {rel}: {exc}')
+                  try:
+                      json.loads(text)
+                  except Exception as exc:
+                      errors.append(f'invalid JSON {rel}: {exc}')
               elif path.suffix == '.jsonl':
                   for n, line in enumerate(text.splitlines(), 1):
                       if line.strip():
-                          try: json.loads(line)
-                          except Exception as exc: errors.append(f'invalid JSONL {rel}:{n}: {exc}')
+                          try:
+                              json.loads(line)
+                          except Exception as exc:
+                              errors.append(f'invalid JSONL {rel}:{n}: {exc}')
 
           dev_data = root / 'data' / 'developments.jsonl'
+          rows = []
           for n, line in enumerate(dev_data.read_text(encoding='utf-8').splitlines(), 1):
-              if not line.strip(): continue
+              if not line.strip():
+                  continue
               row = json.loads(line)
-              extra = set(row) - public_fields
-              if extra: errors.append(f'developments.jsonl:{n}: unrecognized public fields {sorted(extra)}')
+              rows.append(row)
               if not public_id.fullmatch(str(row.get('id',''))):
                   errors.append(f'developments.jsonl:{n}: invalid public identifier')
-              tech = row.get('technical') or {}
-              if isinstance(tech, dict) and set(tech) - technical_fields:
-                  errors.append(f'developments.jsonl:{n}: unrecognized technical fields')
-              for key, allowed in (('claims',claim_fields),('relationships',relationship_fields),('evidence_gaps',gap_fields)):
-                  for item in row.get(key) or []:
-                      if isinstance(item, dict) and set(item) - allowed:
-                          errors.append(f'developments.jsonl:{n}: unrecognized {key} fields')
+              if signal_v4:
+                  extra = set(row) - compact_fields
+                  if extra:
+                      errors.append(f'developments.jsonl:{n}: unrecognized compact public fields {sorted(extra)}')
+                  if not {'title','summary','evidence','confidence','importance','human_url','machine_url'} <= set(row):
+                      errors.append(f'developments.jsonl:{n}: incomplete compact record')
+              else:
+                  extra = set(row) - public_fields
+                  if extra:
+                      errors.append(f'developments.jsonl:{n}: unrecognized public fields {sorted(extra)}')
+                  tech = row.get('technical') or {}
+                  if isinstance(tech, dict) and set(tech) - technical_fields:
+                      errors.append(f'developments.jsonl:{n}: unrecognized technical fields')
+                  for key, allowed_fields in (('claims',claim_fields),('relationships',relationship_fields),('evidence_gaps',gap_fields)):
+                      for item in row.get(key) or []:
+                          if isinstance(item, dict) and set(item) - allowed_fields:
+                              errors.append(f'developments.jsonl:{n}: unrecognized {key} fields')
 
-          home = (root / 'index.html').read_text(encoding='utf-8')
-          for token in (
-              'id="fcmo-visual-system"', 'class="brandlock"', 'class="signal-rail"',
-              'class="hero-summary"', 'class="hero-why"', 'class="hero-cta"', 'LATEST EDITION'
-          ):
-              if token not in home: errors.append(f'homepage missing visual contract token: {token}')
-          # Presentation is self-contained: no design CDN, remote font, image, script or
-          # stylesheet dependency may quietly enter the static publication.
-          remote_asset = re.compile(r'<(?:link|script|img)\b[^>]*(?:href|src)=["\'](?:https?:)?//', re.I)
-          for path in root.rglob('*.html'):
-              text = path.read_text(encoding='utf-8')
-              if 'fcmo-visual-system' not in text:
-                  errors.append(f'{path.relative_to(root)}: visual system missing')
-              if remote_asset.search(text):
-                  errors.append(f'{path.relative_to(root)}: remote page asset detected')
+          if signal_v4:
+              for token in (
+                  'FCMO AI Newsletter — Signal Field Interactive',
+                  '--hot:#FD5204', 'window.FCMO_AI', 'Signal Field',
+                  'referrerpolicy="no-referrer"', 'onerror="this.parentElement.remove()"',
+              ):
+                  if token not in home:
+                      errors.append(f'Signal Field homepage missing contract token: {token}')
+              if len(rows) != 22:
+                  errors.append(f'Signal Field compact corpus expected 22 records, found {len(rows)}')
+              briefs = sorted(root.glob('data/briefs/FCMO-*.json'))
+              if len(briefs) != 22:
+                  errors.append(f'Signal Field machine surface expected 22 brief dossiers, found {len(briefs)}')
+              try:
+                  agent = json.loads((root / 'agent.json').read_text(encoding='utf-8'))
+                  if not str(agent.get('schema','')).startswith('fcmo-agent-'):
+                      errors.append('agent.json schema missing or invalid')
+              except Exception as exc:
+                  errors.append(f'agent.json validation failed: {exc}')
+              if 'FCMO AI Newsletter' not in (root / 'llms.txt').read_text(encoding='utf-8'):
+                  errors.append('llms.txt identity missing')
+              if 'FCMO AI Newsletter' not in (root / 'llms-full.txt').read_text(encoding='utf-8'):
+                  errors.append('llms-full.txt identity missing')
+              try:
+                  ElementTree.parse(root / 'feed.xml')
+              except Exception as exc:
+                  errors.append(f'invalid RSS XML: {exc}')
+
+              # The final publication may load vetted story images from cited remote
+              # sources. External script/style/font dependencies remain forbidden.
+              remote_exec = re.compile(r'<(?:link|script)\b[^>]*(?:href|src)=["\'](?:https?:)?//', re.I)
+              for path in root.rglob('*.html'):
+                  text = path.read_text(encoding='utf-8')
+                  if remote_exec.search(text):
+                      errors.append(f'{path.relative_to(root)}: remote executable/style dependency detected')
+          else:
+              for token in (
+                  'id="fcmo-visual-system"', 'class="brandlock"', 'class="signal-rail"',
+                  'class="hero-summary"', 'class="hero-why"', 'class="hero-cta"', 'LATEST EDITION'
+              ):
+                  if token not in home:
+                      errors.append(f'homepage missing legacy visual contract token: {token}')
+              remote_asset = re.compile(r'<(?:link|script|img)\b[^>]*(?:href|src)=["\'](?:https?:)?//', re.I)
+              for path in root.rglob('*.html'):
+                  text = path.read_text(encoding='utf-8')
+                  if 'fcmo-visual-system' not in text:
+                      errors.append(f'{path.relative_to(root)}: visual system missing')
+                  if remote_asset.search(text):
+                      errors.append(f'{path.relative_to(root)}: remote page asset detected')
 
           if errors:
-              print('Public themed-site validation FAILED:')
-              for error in errors: print('-', error)
+              print('Public publication validation FAILED:')
+              for error in errors:
+                  print('-', error)
               raise SystemExit(1)
-          print(f'Public themed-site validation OK: {len(files)} files')
+          mode = 'Signal Field v4' if signal_v4 else 'legacy compatibility'
+          print(f'Public publication validation OK: {len(files)} files · {mode}')
           PY
 
       - name: Configure Pages
