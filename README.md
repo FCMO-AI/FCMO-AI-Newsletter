@@ -2,22 +2,32 @@
 
 **What actually matters in AI — carefully researched and curated by FCMO.**
 
-This repository hosts the public FCMO AI Newsletter: a readable, evidence-conscious view of important developments across artificial intelligence research, models, systems, hardware, robotics, policy, and the broader AI ecosystem.
+**Publication:** https://fcmo-ai.github.io/FCMO-AI-Newsletter/
 
-The publication is generated deterministically as static files. Public articles distinguish evidence quality, confidence, limitations, contradictions, and potential importance rather than treating every headline as equally established.
+FCMO AI Newsletter is an evidence-conscious publication and public research corpus covering important developments across artificial intelligence research, models, systems, hardware, robotics, policy, and the broader AI ecosystem.
+
+The publication separates evidence quality, confidence, limitations, contradictions, and potential importance rather than treating every headline as equally established. It is designed for quick human reading while preserving enough structured context for deeper research and software-agent use.
 
 ## Public publication model
 
-- `site/` contains the generated public newsletter.
-- GitHub Pages serves only the contents of `site/`.
-- Publication is fail-closed: if a generated edition does not pass its publication checks, the last known-good public site remains unchanged.
-- This repository contains public publication material only. It is not an internal research workspace.
+The release is deterministic and fail-closed:
 
-## Editorial principles
+- `site/` is the checked-in public base tree.
+- `release-overlay/final/` is the frozen, hash-verified Signal Field v4.1 release payload.
+- `tools/apply_final_release.py` reconstructs the exact publication candidate, validates its hashes and public-data contract, scans for credential/privacy leaks and unsafe remote executable dependencies, and writes a deterministic build manifest.
+- `.github/workflows/pages.yml` assembles that validated candidate into `publish/` and deploys only that directory to GitHub Pages.
+- A failed validation prevents deployment rather than publishing a partial or altered edition.
+- No private research workspace, private credentials, or non-public operational state is required to build the public release.
 
-FCMO AI Newsletter aims to be useful both to technically sophisticated readers and to curious readers who simply want to understand what is changing in AI and why it matters.
+The release identity and final publication checklist are recorded in `READY_TO_PUBLISH.md` and `release-overlay/final/manifest.json`.
 
-Potential impact and confidence are deliberately separated: a spectacular claim can be important *if true* while still being weakly supported, and an incremental result can be extremely well established without being field-changing.
+## Human and agent surfaces
+
+The Signal Field interface provides the front page, research library, desks, editions, chronology, topics, organizations, search, and deep dossiers.
+
+The same sanitized public corpus is exposed in machine-readable form through stable `FCMO-<12 uppercase hex>` identifiers, per-brief JSON dossiers, indexes, feeds, publication memory, relationship data, `agent.json`, `llms.txt`, and `llms-full.txt`.
+
+Potential impact and confidence are deliberately separate: a spectacular claim can be important *if true* while still being weakly supported, and an incremental result can be extremely well established without being field-changing.
 
 ## FCMO AI leadership and attribution
 
