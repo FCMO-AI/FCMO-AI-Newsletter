@@ -1,0 +1,226 @@
+{
+  "schema": "fcmo-curated-detail-part-v1",
+  "locale": "zh-Hans",
+  "canonical_locale": "en",
+  "records": {
+    "FCMO-47EB61AB3914": {
+      "claims": [
+        "在所报告的 predictor ladder 中，相比 dense LeWM，sparse LpWM 在 PushT 上以更小的 predictor capacity 达到强规划性能。",
+        "在所报告的受控分析中，sparse latent support 编码离散动力学 regime，而非零幅值编码 regime 内的连续状态。",
+        "对于大规模 world models，sparse、non-negative latent geometry 通常优于 dense Gaussian geometry。"
+      ],
+      "contradictory_evidence": [
+        "在最高容量的 Deep-/Shallow-AdaLN predictors 上，dense 与 sparse representation 的差距明显缩小，因此结论更准确地说是 predictor-complexity efficiency，而不是普遍规划优势。",
+        "在简单 Wall 环境中，dense 和 sparse 系统都能用很小的 predictor 接近性能上限，说明 representation 优势依赖任务 regime。"
+      ],
+      "engineering_implications": ["对于紧凑 world models，应先测试 sparse latent geometry，再增加 predictor 宽度或深度；保留匹配 dense control，并扫描 predictor capacity，让节省被实际测量而不是假定。"],
+      "evidence_gaps": [
+        "ARB 尚未独立复现 predictor-capacity sweep。",
+        "更低 predictor complexity 尚未转化为匹配的端到端 FLOPs、延迟、内存或能耗节省。",
+        "证据尚不能证明 sparse latent 的优势在大型视频 world models 或多样真实机器人环境中仍成立。"
+      ],
+      "importance_rationale": "如果核心结论泛化，则值得重视：通过改变 latent geometry，让更简单的 predictors 就能建模有效控制动力学，会影响 world-model 设计以及 embodied/local AI 效率。尚不足以达到 Major 或 Field-shifting，因为证据集中于小型控制环境，使用足够强的 predictor 后优势缩小，而且 ARB 没有独立复现或大规模现实验证。",
+      "limitations": [
+        "最强收益出现在中等 predictor capacity，并在足够强的 AdaLN predictors 下大幅消失。",
+        "Wall 即使用简单 predictor 也接近性能上限，因此 sparsity 并非在所有环境都有帮助。",
+        "所报告规划任务远小于开放世界机器人或通用视频 world modeling。",
+        "尽管代码已发布，ARB 尚未记录独立复现。",
+        "端到端 FLOPs、延迟、内存和能耗尚未在匹配 latent dimension 与规划预算下标准化。"
+      ],
+      "research_implications": [
+        "World-model 比较应扫描 predictor capacity，而不是只评测一个固定 predictor，因为 representation 质量可能只表现为所需模型复杂度下降。",
+        "Latent support 的转换可能提供一种可处理的方法，把可解释离散 mode 嵌入原本连续的 world model。",
+        "应在更大规模测试 sparse-latent 收益，因为届时 encoder cost、memory bandwidth 和 planner sampling 可能主导 predictor 的节省。"
+      ],
+      "technical": {
+        "claimed_result": "作者认为 sparse representation 能降低成功规划所需的 predictor complexity，并揭示可解释的动力学结构。",
+        "compute_or_cost": "论文的实际主张是降低 predictor complexity，而不是报告完整端到端 wall-clock 或能源优势。ARB 尚未在匹配 latent dimensions 与规划预算下标准化 encoder、predictor 和 planner 的 FLOPs/延迟。",
+        "demonstrated_result": "在 PushT 上，论文报告 sparse LpWM 相对 dense LeWM：MLP∘LTI predictors 的规划成功率提高 24-57%，MLP∘LTV 提高 36-45%，LTI 提高 11-23%；而 Deep-/Shallow-AdaLN 基本关闭差距。Sparse representation 也在多个 predictor families 上优于 dense VICReg variant，并在受控环境中呈现 mode-factored structure。",
+        "implementation_status": "官方 MIT 许可代码仓库已公开，提供环境设置、训练命令、规划入口和复现 grid scripts。ARB 尚未运行独立复现。",
+        "mechanism": "一个 action-conditioned JEPA encoder 通过 Rectified Distribution Matching Regularization（RDMReg）正则化，将每 timestep features 匹配到 Rectified Generalized Gaussian targets。p<=1 且使用 RepReLU link 时，representation 变为 sparse 且 non-negative。理论动机是：在足够高维 one-hot latent space 中，nonlinear Lipschitz dynamics 可由 action-conditioned linear dynamics 任意逼近；distributed sparse codes 是实际可用的放松。",
+        "novelty": "把 latent state sparsity 作为降低 action-conditioned dynamics 复杂度的一等设计选择，而不是只把 sparsity 用于参数或 activation compression。",
+        "regime": "小到中型视觉控制环境，包括 Wall 与 PushT 的 predictor-capacity sweeps，以及 Piecewise 与 OGBench-Cube 的 mode-factoring 分析；官方代码使用 ViT encoders、CEM/MPC planning 和复现 scripts。",
+        "reproducibility": "官方代码公开 train.py、plan.py、predictor configurations、datasets 及 scripts/reproduce_pusht.sh，显著降低复现成本，但仍没有独立规范运行。",
+        "strongest_baseline": "同一 RDMReg 框架下、匹配 isotropic Gaussian targets 的 dense LeWM，加上 dense VICReg representation，以及从 LTI/LTV/MLP variants 到 Deep-/Shallow-AdaLN 的 predictor-capacity ladder。"
+      }
+    },
+    "FCMO-DF0FDE7BBB67": {
+      "claims": [
+        "当 Inference Agent 自身没有 wiki access 时，给 Skill Proposer 持久 wiki access 可把 Gemini-3.5-Flash 在四项 benchmark 上的平均成绩从 48.7% 提升到 63.7%。",
+        "演化后的 skills 可以跨模型规模与家族迁移，并且有时优于模型自己演化出的 skills。",
+        "把原始经验、整合后的知识和可执行 skills 分开，是长期代理通常更优的记忆架构。"
+      ],
+      "contradictory_evidence": [
+        "迁移并非始终正向：Qwen-3.5-4B 演化出的 skills 会把 Gemini-3.5-Flash 的 SpreadSheet 表现从无 skill 的 50.5% 降到 18.1%，说明 procedural knowledge 会编码源模型特有 workarounds，并可能主动伤害更强目标模型。",
+        "在 skill evolution 中直接给 Inference Agent wiki access，会把四 benchmark 平均从 63.7% 降到 60.9%，说明可访问记忆更多并不自动更好。"
+      ],
+      "engineering_implications": ["对于长期代理，应持久保存原始 traces 和被拒绝的变化，将反复出现的经验编译到独立知识层，并用 held-out validation gate 管理紧凑 procedural updates，而不是把所有历史不断追加到执行 prompt。"],
+      "evidence_gaps": [
+        "ARB 尚未按 optimizer API calls、inference tokens、wall time 或成本，把 WikiSkill 的质量提升与 skill-evolution baselines 做标准化。",
+        "完整 skill injection 绕过了 retrieval/triggering，且 benchmarks 没有覆盖数百动作或多小时任务。",
+        "没有独立复现记录。"
+      ],
+      "importance_rationale": "如果中心结果泛化，则值得重视：一个持久、可审计的知识层若能显著改善 procedural skill evolution，并跨模型迁移程序，会影响长期代理的实际设计，而且无需参数更新。尚不足以称为 Major/Field-shifting，因为评测只有五个受限 benchmarks，active skills 直接注入而未解决 retrieval，缺少超长周期任务和 wiki pruning，ARB 也没有独立复现。",
+      "limitations": [
+        "Active skills 直接注入 inference-agent prompt，因此 retrieval 和 triggering failure 被排除而非解决。",
+        "Validation gating 会拒绝中性变化，即使这些变化可能为后续收益铺路。",
+        "持久 wiki 没有自动 pruning，扩展行为仍未解决。",
+        "benchmark suite 不测试数百动作或多小时任务。",
+        "ARB 尚未审计 optimizer-call/token/cost 与竞争 skill-evolution 方法的标准化。",
+        "规范记录中没有独立复现。"
+      ],
+      "research_implications": [
+        "代理记忆研究应区分 evidence retention、knowledge consolidation 和 action procedures，而不是只 benchmark 从单一存储中的检索。",
+        "跨模型 procedural transfer 应双向评估，因为小模型 workarounds 可能导致严重负迁移。",
+        "持久记忆系统需要 forgetting/pruning 与 matched-cost controls，之后才能合理提出长周期扩展结论。"
+      ],
+      "technical": {
+        "claimed_result": "作者认为，持久知识积累对有效 skill evolution 至关重要，skill evolution 与模型 scaling 互补，而且 procedural skills 可以跨模型规模和家族迁移。",
+        "compute_or_cost": "该 framework 增加独立的 maintainer/proposer 优化调用和 validation runs。ARB 尚未按 optimizer API calls、tokens、latency 或美元成本对收益与 baselines 做标准化。",
+        "demonstrated_result": "在 Gemini-3.5-Flash 对 LiveMath、SealQA、SpreadSheet、OfficeQA 的消融中，让 Skill Proposer 访问持久 wiki、同时不给 Inference Agent wiki access，使平均性能从 48.7% 提升到 63.7%（+15.0）。Cross-model 测试在若干设置中显示显著正迁移，包括 Qwen-3.6-27B 演化的 skills 把 Qwen-3.5-9B SpreadSheet 从无 skills 的 24.3%、self-evolved 的 33.6% 提升到 50.5%。",
+        "implementation_status": "最新 primary preprint；ARB 尚未验证官方实现或独立复现。",
+        "mechanism": "每次 evolution iteration 生成不可变原始 traces；Wiki Maintainer 把反复出现的成功、失败、被拒绝 proposal 历史和模式整合到持久 wiki；Skill Proposer 读取 wiki 与当前 traces 来创建或修改可执行 skills；validation gating 接受改进或回滚。Inference Agent 获得 active skills，但在最佳配置中 rollout 时不读取 wiki。",
+        "novelty": "明确把代理积累学习分成三层：不可变 experience、包含负面/拒绝历史的 consolidated knowledge，以及紧凑 executable procedure；consolidation layer 用于改进未来 skill proposals，而不是直接暴露给任务执行。",
+        "regime": "五个 benchmarks（LiveMath、SealQA、SpreadSheet、OfficeQA、ALFWorld）与五个 inference models：Qwen-3.5-4B、Qwen-3.5-9B、Qwen-3.6-27B、Gemma-4-31B、Gemini-3.5-Flash。Active skills 完整注入 system prompt，而不是动态检索。",
+        "reproducibility": "论文在附录中给出详细 prompts、baseline descriptions 与 optimizer-call analysis，但尚未记录独立复现。",
+        "strongest_baseline": "无 skill inference，加上 EvoSkill、SkillOpt、Trace2Skill 等专用 skill-evolution baselines；组件消融移除 proposer wiki access 和/或让 inference agent 读取 wiki。"
+      }
+    },
+    "FCMO-929F34FAD7F4": {
+      "claims": [
+        "研究在 3,557 个相邻训练实验对中只报告了 74 次策略变化（约 2.1%）。",
+        "Experience scaffolding 在较简单任务上显著改善执行，但执行过程中并不能可靠重新打开高层策略。",
+        "自发策略重新评估是自主 AI R&D 系统的主要通用瓶颈。"
+      ],
+      "contradictory_evidence": ["人工策略指导能够重新定向代理的初始方法，说明这些系统至少具备执行替代策略的能力；缺陷比“无法理解或执行策略”更窄。"],
+      "engineering_implications": ["实际研究代理应维护明确的竞争 hypotheses，并使用由证据触发的 checkpoints 强制重新比较策略，而不是允许无限局部调参。"],
+      "evidence_gaps": [
+        "所报告的 strategy-change rate 与 intervention 结论缺少 ARB 中独立 trajectory relabeling/reproduction。",
+        "论文诊断了 strategy lock，但尚未证明一个简单、显式的 strategy-reopening controller 是否能在 matched total compute 下解决它。"
+      ],
+      "importance_rationale": "如果中心发现泛化，意义重大：持续的 strategy lock 会实质改变严肃 autonomous-R&D 系统的训练、scaffolding 与评估方式，因为只提高执行能力无法闭合研究 loop。尚不能称为 Field-shifting，因为结果受 benchmark/scaffold/budget 限制，strategy labels 部分依赖 taxonomy，而且没有独立复现或显式 strategy-reopening intervention 来证明通用性或解决方案。",
+      "limitations": [
+        "Strategy-change labels 依赖研究对局部 execution changes 与 high-level strategy changes 的区分。",
+        "观察到的 lock-in 可能依赖所测试的 agent scaffolds、prompts、tool interfaces、benchmark tasks 和有限 budgets，而不是模型内在限制。",
+        "人工指导作为外部 intervention 被测试；研究尚未建立最佳的内生 strategy reopening 机制。",
+        "额外 inference compute 不等价于针对性的 meta-level training，因此 token scaling 失败不能说明策略适应无法学习。",
+        "规范记录中没有独立复现。"
+      ],
+      "research_implications": [
+        "Autonomous-research evaluations 应把 high-level strategy transitions 与 experiment count、tool calls 和局部 tuning activity 分开测量。",
+        "当证据停滞或与当前计划矛盾时，代理训练可能需要显式 rewards 或 triggers 来重新打开 hypotheses。",
+        "更多 inference tokens 可以加密局部搜索却不改善全局搜索，因此 compute scaling 应在两层分别评估。"
+      ],
+      "technical": {
+        "claimed_result": "作者认为缺失能力是执行过程中的自发 strategy reevaluation，而不仅是经验、外部指导或 reasoning compute 不足。",
+        "compute_or_cost": "Experience-driven framework 消耗显著更多 inference tokens；论文在 AIME 2025 的困难场景报告最高约 7.9 倍 baseline token 使用（引用设置约 66.7M tokens），但没有相应策略突破。",
+        "demonstrated_result": "在 1,338 条公开 PostTrainBench trajectories 和 3,557 个相邻训练对上，作者报告 74 次 strategy changes（约 2.1%）。Experience-driven framework 改善执行性能（所报告设置中 GSM8K +12.6、HumanEval +40.8），但策略保持静态；人工指导可改变初始策略，但不会产生持续自发 pivot；在最困难任务上，大幅增加 inference tokens 只带来很少改善。",
+        "implementation_status": "最新研究 preprint；分析使用公开 post-training trajectories。",
+        "mechanism": "研究把连续训练实验之间的 transition 标记为 execution-level adjustment 或 high-level strategy change，然后通过 experience-driven scaffold、人工策略指导以及增加 inference-time reasoning 来探测三种假设瓶颈。",
+        "novelty": "把 autonomous R&D failure 视为双层控制问题：局部 execution loops 可以成功闭合，但全局 strategy loop 仍基本开放。",
+        "regime": "七个 post-training benchmarks；来自多种 agent configurations 的公开 trajectories，包括 Claude Code 和 Codex CLI；实验包括 GSM8K、HumanEval、AIME 2025，并受有限 training/compute budgets 约束。",
+        "reproducibility": "底层 trajectories 被描述为公开，但 ARB 尚未记录对 strategy-change labeling 或 intervention findings 的独立复现。",
+        "strongest_baseline": "Autonomous PostTrainBench agent trajectories，加上分别增加 structured experience/evaluation、一次性人工策略指导或更多 reasoning-token 支出的 intervention comparisons。"
+      }
+    },
+    "FCMO-A2B1425AD7A9": {
+      "claims": [
+        "论文报告在 32 个 task-model cells 中有 30 个 condensed circuits 比 frozen EAP-IG 更小，在可比准确率下平均缩小 8.1 倍。",
+        "使用同一 controller 但不更新权重，在 32 个 cells 中有 29 个得到更大的 circuits，支持主要缩减来自 post-training 而不是 search 本身。",
+        "针对因果集中行为进行训练，将使广泛前沿模型能力普遍可解释、可审计。",
+        "Circuit Condensation 会直接降低普通模型推理成本或 checkpoint size。"
+      ],
+      "contradictory_evidence": ["Qwen3-0.6B 的 docstring completion 与 GPT-2 的 agreement 是例外：在 seed median 下 condensed circuit 比 frozen EAP-IG circuit 更大，说明并非每个 behavior/model pair 都容易 condensable。"],
+      "engineering_implications": ["对于安全关键的狭窄行为，condensation-style adapter 可使部署前 exhaustive subset/pair testing 变得可行，但它是 audit aid，而不是 inference-speed optimization。"],
+      "evidence_gaps": [
+        "没有独立复现 circuit-size、faithfulness 或 capability-retention 结果。",
+        "未知广泛分布式行为是否能在不产生不可接受 capability drift 或巨大 audit cost 的情况下集中。"
+      ],
+      "importance_rationale": "如果核心结果泛化，则值得重视：它把 interpretability 从“寻找模型已经拥有的 circuit”变成“训练模型让重要行为由更小、更可审计的 causal graph 承载”。这对 legibility 和 verification 有明显意义，但证据仍是行为特定，只有八个模型且最大到 Qwen3-4B，也没有建立 broad capability-scale interpretability，因此尚不足 Major 或 Field-shifting。",
+      "limitations": [
+        "研究针对四种狭窄 token-level 行为，而不是 coding、开放式 reasoning 或 agent planning 等广泛能力。",
+        "最大测试模型是 Qwen3-4B；在前沿 MoE 或 hybrid-attention systems 上的 scaling behavior 未知。",
+        "适配后的 network 内部并不与原模型相同；output-distribution 和 error-tracking 检查支持对应关系，但不能证明原机制的唯一重建。",
+        "Greedy controller 不保证全局最小 circuit，而且有两个 task-model cells 在 seed median 下没有超过 frozen EAP-IG circuit。",
+        "Capability retention 由 held-out perplexity ratio 和 task accuracy gate 保护，不是广泛能力的全面评测。",
+        "Intervention graph 用 counterfactual activations 关闭 edges，因此 circuit-size reduction 不应解释为 parameter 或 runtime compression。"
+      ],
+      "research_implications": [
+        "Interpretability 可以被作为优化目标，而不仅是事后测量问题。",
+        "未来 legibility 工作不仅应把 adapted circuit 与其 adapted host model 比较，还应与 untouched source model 比较，因为对一个已改变模型的小解释，比对原行为的忠实解释证据更弱。",
+        "Causal sparsity 与 broad capability preservation 可能是相互竞争的 post-training objectives，需要在更大规模显式测量 Pareto。"
+      ],
+      "technical": {
+        "claimed_result": "作者认为 circuit findability 可以成为可训练属性，而且 post-training 能产生更易于 mechanistic verification 的行为实现，同时在测试 gates 内保留原行为和广泛语言能力。",
+        "compute_or_cost": "Condensation 增加重复 attribution、pruning 和 adapter-training 成本。关闭 edges 仍携带 counterfactual activations，因此方法不降低部署模型参数量或普通推理成本；收益在 causal legibility 与 verification tractability。",
+        "demonstrated_result": "在四种 token-level behaviors、八个 GPT-2/Llama-3.2/Gemma-3/Qwen3 模型和三个 seeds 上，论文报告 32 个 task-model cells 中有 30 个 condensed circuit 在可比准确率下小于 frozen EAP-IG，geometric-mean reduction 8.1x，最大 316x。使用相同 controller 的 frozen-weight arm 在 32 个 cells 中有 29 个更大，说明 weight updates 而非 search 是主要压缩来源。在可处理 circuits 上可执行 exhaustive subset 与 pair ablations；condensed IOI circuit 还跟踪原模型 output distribution 与 error pattern。",
+        "implementation_status": "最新研究 preprint；本次激活未从 primary arXiv record 验证官方代码仓库。",
+        "mechanism": "把 Transformer 表示为 residual-stream writers/readers graph。从所有 edges 开放和一个新 LoRA adapter 开始，每轮重新计算 EAP-IG edge importance、提出 cut、冻结 mask，并只训练 adapter，使 reduced graph 输出分布与原模型之间 KL 最小。独立 validation controller 仅在 target accuracy 与 full graph 相差不超过 0.05 且 off-target perplexity ratio 不超过 1.05 时接受 cut；失败 cut 被恢复并以更温和方式重试。",
+        "novelty": "优化模型，使指定行为变得因果集中，而不仅是在 frozen weights 上改进 circuit-search estimator。",
+        "regime": "四种 paired-input token behaviors（IOI、subject-verb agreement、repeated-token induction、Python docstring completion），覆盖 GPT-2 small、Llama-3.2-1B/3B-Instruct、Gemma-3-1B/4B-it、Qwen3-0.6B/1.7B/4B。每个 task-model cell 使用互斥 2,000 train、2,000 validation、1,000 sealed-test examples 和三个 seeds。",
+        "reproducibility": "论文报告多个 model families、三个 seeds、互斥 selection/test data 和同 controller frozen-weight control，但规范记录中尚无独立复现。",
+        "strongest_baseline": "在相同 graph/data/accuracy-selection rule 下的 frozen EAP-IG，加上 EAP、EAP-GP、random ranking、可行处的 ACDC，以及使用相同 ranking、pruning、acceptance、stopping process 但没有 LoRA healing 的 frozen-weight C0 controller。"
+      }
+    },
+    "FCMO-1E28FC528202": {
+      "claims": [
+        "Tencent 发布 Hy4 preview：770B backbone、每 token 49B active parameters、带 IndexCache 的 Gated DSA、四个 residual streams，以及原生 MTP layer。",
+        "Tencent 报告在内部 203 项任务 expert evaluation 中，Hy4 preview 略领先 GLM-5.3 与 Kimi K3。"
+      ],
+      "engineering_implications": ["跨层复用 sparse-attention indices 是降低 indexer overhead 的具体路径；原生 MTP 让 speculative decoding 成为训练模型的一部分，而不只是 serving 层外接功能。"],
+      "evidence_gaps": [
+        "没有 matched training/inference budget ablation 能隔离 Gated DSA、IndexCache、iHC 或原生 MTP 各自增益。",
+        "厂商质量与 productivity 结果缺少独立复现。"
+      ],
+      "limitations": [
+        "model card 中最强质量比较由厂商运行，与 GLM-5.3/Kimi K3 差距很小；不属于独立证据。",
+        "没有 matched-compute ablation 隔离 sparse attention、IndexCache、iHC 或原生 MTP 的贡献。",
+        "49B active parameters 仍意味着很重的本地 serving regime；sparse activation 并不会把存储的 770B 模型变成小型本地模型。",
+        "Tencent 明确指出该 preview 存在 reasoning 过长与 over-verification。"
+      ],
+      "research_implications": ["Qwen3.8-Flash-Next、GLM-5.3-Flash 和 Hy4 已形成关于 sparse retrieval 与更丰富 residual routing 的有用自然实验，但架构趋同应在 matched budgets 下测试，而不是被视作证明。"],
+      "technical": {
+        "claimed_result": "Tencent 报告其代际能力提升最大，并在 163 名专家、203 项工程任务的内部盲测中略胜 GLM-5.3 与 Kimi K3。",
+        "compute_or_cost": "每 token 激活 49B backbone parameters，另有原生 MTP layer 中 0.7B active；总存储容量为 770B backbone + 10B MTP。审核的主要发布材料中没有找到精确 training FLOPs 或 matched serving throughput。",
+        "demonstrated_result": "已发布 BF16/FP8 模型制品和配置显示：770B backbone、每 token 49B active、1M context、256 routed experts、top-8 routing、Gated DSA、四个 residual streams 和原生 MTP。发布制品包含 Apache-2.0 许可。",
+        "implementation_status": "Weights、FP8 variant、config、deployment guidance、finetuning guidance 和 compression tooling 均已发布。",
+        "mechanism": "78-layer MoE backbone：1 个 dense FFN layer，随后 77 个 MoE layers，每层 256 routed experts + 1 shared expert；每 token 激活 top-8 routed experts。Attention 使用带 IndexCache 的 Gated DeepSeek Sparse Attention，在层间复用 sparse indices。Residual path 使用四流 identity Hyper-Connections。独立原生 MTP layer 增加 10B total/0.7B active parameters 用于 speculative decoding。",
+        "novelty": "在前沿 open MoE 中整合 cross-layer sparse-index reuse 与原生 MTP，同时采用新兴的 richer-residual/sparse-retrieval 设计家族。",
+        "regime": "前沿规模 770B total/49B active open-weight model；尽管 sparse activation，serving 仍需要重型硬件。内部 productivity evaluation 属于厂商运行，并非独立复现。",
+        "reproducibility": "架构与 weights 可检查；厂商质量声明以及 Gated DSA、IndexCache、iHC、MTP 的独立贡献需要独立 matched-control evaluation。",
+        "strongest_baseline": "Tencent 内部盲测对比 GLM-5.3 与 Kimi K3；release card 没有提供 matched-compute architectural ablation。"
+      }
+    },
+    "FCMO-7530484A9F24": {
+      "claims": [
+        "SocraticPO 在 student 首次回答错误后有条件地给出 teacher feedback，并对 teacher-assisted success 施加衰减 reward。",
+        "作者报告在 SciKnowEval 科学推理任务上优于其 RL 与 self-distillation baselines。"
+      ],
+      "engineering_implications": ["因为 teacher 通过文本和 rollout context 工作，而不依赖优化器内部机制，所以可叠加在现有 policy-gradient backends 上。"],
+      "evidence_gaps": [
+        "没有 matched-total-compute 研究证明 SocraticPO 优于把相同额外 teacher/GPU 预算用于更多普通 RL rollouts 或 offline synthetic supervision。",
+        "缺少更大 students 和非科学领域的独立证据。"
+      ],
+      "limitations": [
+        "证据集中在 4B student 和本科科学推理任务；向 coding、agents、长周期 reasoning 或更大模型的迁移尚未建立。",
+        "报告配置中 teacher inference 占用六张 H100 中两张，因此质量收益没有与额外 teacher compute budget 分离。",
+        "更强 teacher 即使被要求只给 guidance，也可能泄露潜在答案信息；需要更广控制来测试 teacher quality 与 leakage 的鲁棒性。"
+      ],
+      "research_implications": [
+        "如果自然语言 corrective signals 能在无需 teacher logits 的情况下整合，outcome-only RL 不必是唯一实用选择。",
+        "对 assisted trajectories 的 reward shaping 是关键控制变量：若不惩罚，student 可能学习依赖 teacher，而不是独立修复。"
+      ],
+      "technical": {
+        "claimed_result": "作者报告 SocraticPO 优于其 RL 与 self-distillation baselines，并认为自然语言 correction 可作为 process-level supervision，而无需 teacher distribution matching。",
+        "compute_or_cost": "Teacher inference 增加明显 rollout cost 与硬件占用；论文没有建立 matched total-training-cost Pareto 优势。",
+        "demonstrated_result": "Preprint 记录了 Qwen3-4B-Instruct students 在 SciKnowEval 类本科科学推理任务上的实验，使用 Reinforce++、GRPO 与 self-distillation baselines，并报告 targeted guidance 与 reward decay 的消融。",
+        "implementation_status": "论文链接公共 GitHub 仓库并提供实现超参数；该记录中尚未建立独立复现。",
+        "mechanism": "On-policy rollout 中有条件 teacher intervention，加上对 teacher-assisted corrections 的 reward decay；expected-reward objective 本身可以保持不变。",
+        "novelty": "把 corrective natural-language guidance 放进 RL rollout，并显式降低 assisted successes 的 reward，而不是只使用 scalar reward 或完整 teacher-distribution distillation。",
+        "regime": "4B student；teacher 为 Qwen3-4B-Instruct 或 Qwen3.5-27B；报告实现总计六张 H100，其中四张训练 student、两张在线 teacher inference。",
+        "reproducibility": "架构与训练 recipe 已描述，代码已链接；外部复现与更广任务验证仍开放。",
+        "strongest_baseline": "在论文所报告设置下的 Qwen3-4B-Instruct Reinforce++、GRPO 和 SDPO/self-distillation runs。"
+      }
+    }
+  }
+}
