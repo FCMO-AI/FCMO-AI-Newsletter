@@ -1,4 +1,4 @@
-name: Validate FCMO Newsletter Prelaunch
+name: Validate FCMO Newsletter Release
 
 on:
   pull_request:
@@ -14,59 +14,36 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - name: Checkout
+        uses: actions/checkout@v6
         with:
           persist-credentials: false
 
-      - name: Compile publication tooling
-        run: |
-          python -m py_compile tools/theme_site.py tools/import_prelaunch_candidate.py
+      - name: Compile release tooling
+        run: python -m py_compile tools/apply_final_release.py
 
-      - name: Check product identity cleanup
+      - name: Assemble exact public candidate
         run: |
-          ! grep -R --line-number --fixed-string '<h1>AI Research Breakthroughs</h1>' \
-            site/privacy.html site/disclaimer.html site/feeds.html site/license.html
-          grep -q 'FCMO AI Newsletter' site/privacy.html
-          grep -q 'FCMO AI Newsletter' site/disclaimer.html
-          grep -q 'FCMO AI Newsletter' site/feeds.html
-          grep -q 'FCMO AI Newsletter' site/license.html
+          rm -rf publish
+          cp -a site publish
+          python tools/apply_final_release.py publish
 
-      - name: Validate repository JSON and JSONL
+      - name: Verify frozen release identity
         run: |
           python - <<'PY'
           from pathlib import Path
-          import json
-          for path in sorted(Path('site').rglob('*.json')):
-              json.loads(path.read_text(encoding='utf-8'))
-          for path in sorted(Path('site').rglob('*.jsonl')):
-              for n, line in enumerate(path.read_text(encoding='utf-8').splitlines(), 1):
-                  if line.strip():
-                      try:
-                          json.loads(line)
-                      except Exception as exc:
-                          raise SystemExit(f'{path}:{n}: {exc}')
-          print('JSON/JSONL validation OK')
+          import hashlib, json
+          root=Path('publish')
+          manifest=json.loads(Path('release-overlay/final/manifest.json').read_text())
+          digest=hashlib.sha256((root/'index.html').read_bytes()).hexdigest()
+          assert digest == manifest['index_sha256'], (digest, manifest['index_sha256'])
+          assert len(list((root/'data/briefs').glob('FCMO-*.json'))) == 22
+          assert len(list((root/'developments').glob('FCMO-*.html'))) == 22
+          assert len(list((root/'editions').glob('*.html'))) == 3
+          assert (root/'build-manifest.json').is_file()
+          print('Frozen release identity OK:', digest)
           PY
 
-      - name: Exercise the current presentation path without deploying
+      - name: Confirm private prelaunch boundary
         run: |
-          rm -rf /tmp/fcmo-newsletter-preview
-          cp -a site /tmp/fcmo-newsletter-preview
-          if grep -Fq 'window.FCMO_AI' /tmp/fcmo-newsletter-preview/index.html && grep -Fq -- '--hot:#FD5204' /tmp/fcmo-newsletter-preview/index.html; then
-            grep -Fq 'Signal Field' /tmp/fcmo-newsletter-preview/index.html
-            grep -Fq 'referrerpolicy="no-referrer"' /tmp/fcmo-newsletter-preview/index.html
-            test -f /tmp/fcmo-newsletter-preview/agent.json
-            test -f /tmp/fcmo-newsletter-preview/llms.txt
-            test -f /tmp/fcmo-newsletter-preview/llms-full.txt
-            test "$(find /tmp/fcmo-newsletter-preview/data/briefs -maxdepth 1 -name 'FCMO-*.json' | wc -l)" -eq 22
-            echo 'Signal Field v4 prelaunch tree detected and structurally complete.'
-          else
-            python tools/theme_site.py /tmp/fcmo-newsletter-preview
-            grep -Fq 'id="fcmo-visual-system"' /tmp/fcmo-newsletter-preview/index.html
-            echo 'Legacy compatibility tree remains valid before exact artifact import.'
-          fi
-
-      - name: Confirm launch remains gated
-        run: |
-          grep -Fq 'No merge to `main`, public visibility change, or go-live step is implied' PRELAUNCH_INTEGRATION.md
-          echo 'Prelaunch validation performs no Pages deployment.'
+          echo 'Validation only. This workflow does not deploy or change repository visibility.'
