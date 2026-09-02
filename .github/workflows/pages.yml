@@ -6,7 +6,10 @@ on:
     paths:
       - 'site/**'
       - 'release-overlay/final/**'
+      - 'localization/**'
       - 'tools/apply_final_release.py'
+      - 'tools/i18n_release.py'
+      - 'I18N.md'
       - '.github/workflows/pages.yml'
   public:
   workflow_dispatch:
@@ -22,8 +25,6 @@ concurrency:
 
 jobs:
   build:
-    # Keep the private repository prelaunch-safe. The same workflow fires again
-    # automatically when GitHub emits the `public` event after visibility changes.
     if: github.event_name == 'workflow_dispatch' || github.event_name == 'public' || github.event.repository.visibility == 'public'
     runs-on: ubuntu-latest
     steps:
@@ -32,11 +33,17 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Assemble and validate frozen public release
+      - name: Assemble and validate frozen canonical release
         run: |
           rm -rf publish
           cp -a site publish
           python tools/apply_final_release.py publish
+
+      - name: Apply curated native-language publication layer
+        run: |
+          python -m py_compile tools/i18n_release.py
+          python tools/i18n_release.py publish --source .
+          python tools/i18n_release.py publish --source . --validate-only
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
