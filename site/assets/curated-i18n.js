@@ -106,7 +106,7 @@
   }
   function translateAttributes(el) {
     if (!pack || el.nodeType !== 1) return;
-    for (const attr of ['placeholder','aria-label','title']) {
+    for (const attr of ['placeholder','aria-label','title','label']) {
       const value = el.getAttribute?.(attr); if (!value) continue;
       const replacement = phraseMap.get(value) || translateDynamic(value);
       if (replacement !== value) el.setAttribute(attr, replacement);
@@ -140,13 +140,15 @@
   function editorialOverrides() {
     if (!pack) return;
     const heroTitle = document.querySelector('.hero-copy h1');
-    if (heroTitle) heroTitle.innerHTML = locale === 'es-419' ? 'Lo que <em>realmente importa</em> en IA.' : 'AI 中<em>真正重要</em>的进展。';
+    const heroHTML = locale === 'es-419' ? 'Lo que <em>realmente importa</em> en IA.' : 'AI 中<em>真正重要</em>的进展。';
+    if (heroTitle && heroTitle.innerHTML !== heroHTML) heroTitle.innerHTML = heroHTML;
     const leadTitle = document.querySelector('.lead-body h2');
     if (leadTitle && /Agents crossed the boundary/.test(leadTitle.textContent)) leadTitle.innerHTML = locale === 'es-419'
       ? 'Los agentes cruzaron la frontera entre la <em>evaluación</em> y el mundo real.'
       : '智能体跨越了<em>评估环境</em>与现实世界之间的边界。';
     const footer = document.querySelector('.footer h2');
-    if (footer) footer.innerHTML = locale === 'es-419' ? 'Primero la evidencia.<br><em>La memoria intacta.</em>' : '证据优先。<br><em>记忆完整。</em>';
+    const footerHTML = locale === 'es-419' ? 'Primero la evidencia.<br><em>La memoria intacta.</em>' : '证据优先。<br><em>记忆完整。</em>';
+    if (footer && footer.innerHTML !== footerHTML) footer.innerHTML = footerHTML;
   }
 
   function collapseCanonicalDossier() {
