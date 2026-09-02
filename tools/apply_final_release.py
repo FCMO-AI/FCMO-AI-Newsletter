@@ -17,7 +17,6 @@ import sys
 import tarfile
 from pathlib import Path
 from html.parser import HTMLParser
-from urllib.parse import urlparse
 from xml.etree import ElementTree
 
 REPO = Path(__file__).resolve().parents[1]
@@ -32,6 +31,7 @@ SECRET_PATTERNS = (
     re.compile(r"-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----"),
 )
 PERSONAL_MAILBOX = re.compile(r"\b[A-Z0-9._%+-]+@(?:gmail|outlook|hotmail|protonmail)\.[A-Z]{2,}\b", re.I)
+STALE_PUBLIC_BRAND = "AI Research Breakthroughs"
 
 class _RemoteExecParser(HTMLParser):
     def __init__(self) -> None:
@@ -196,6 +196,8 @@ def validate(target: Path, manifest: dict) -> None:
             if pattern.search(text):
                 errors.append(f"credential-like material detected: {rel}")
         if path.suffix == ".html":
+            if STALE_PUBLIC_BRAND in text:
+                errors.append(f"stale pre-newsletter branding detected: {rel}")
             deps = remote_exec_dependencies(text)
             if deps:
                 errors.append(f"remote executable/style dependency detected: {rel}: {deps}")
