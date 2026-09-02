@@ -14,9 +14,19 @@ If publication validation fails for any reason, this repository is not updated. 
 
 No failed privacy check may be bypassed merely to refresh the website.
 
+## Native-language publication rule
+
+The Newsletter has exactly three native publication languages: canonical English (`en`) plus curated Latin American Spanish (`es-419`) and Simplified Chinese (`zh-Hans`). External/browser translation is outside this contract.
+
+Every public development must carry committed Spanish and Simplified-Chinese translations of its `title`, `summary`, and `why_it_matters`. The public Pages build validates this against the complete set of development IDs and fails closed if either locale or any required field is missing. Runtime machine translation and silent generative fallback are forbidden.
+
+Curated translations are source-controlled publication material. They must preserve claim strength, uncertainty, numbers, technical identities, evidence/confidence distinctions, and material caveats. They are not represented as human reviewed unless that review actually occurred. See `I18N.md` for the complete localization contract.
+
 ## Repository structure
 
 - `site/` — generated public static site; replaced atomically by approved publication output.
+- `site/data/translations.json` — reviewable curated story translations for the two non-canonical native locales.
+- `tools/i18n_site.py` — deterministic localization validation and presentation layer; contains no translation provider.
 - `.github/workflows/pages.yml` — public GitHub Pages deployment only.
 - repository documentation — public operational/documentation material only.
 
