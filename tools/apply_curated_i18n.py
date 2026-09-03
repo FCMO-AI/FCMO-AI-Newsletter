@@ -9,6 +9,7 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+import sys
 from html.parser import HTMLParser
 from pathlib import Path
 
@@ -24,6 +25,21 @@ TRANSLATION_ENDPOINT_MARKERS = (
 )
 UI_ATTRIBUTE_NAMES = {"aria-label", "placeholder", "title", "label"}
 LEGAL_ATTRIBUTE = ("data-fcmo-legal", "canonical")
+RUNTIME_UI_KEYS = {
+    "Language", "Newsletter language", "Lead signal", "Uncertainty docket",
+    "Evidence", "Impact", "public briefs", "total public briefs",
+    "source families", "claim records", "open gaps",
+    "Front page", "Research", "Desks", "Editions", "Chronology", "Topics",
+    "Organizations", "Agent",
+}
+REQUIRED_FORMATS = {
+    "brief", "brief_total", "public_brief", "total_public_brief", "issue_brief",
+    "development", "source_family", "claim_record", "open_gap", "impact_short",
+    "visible_of_public",
+}
+PROPER_TAXONOMY_IDENTIFIERS = {
+    "A", "B", "C", "D", "AuditBench", "Groq-3-LPX", "JEPA", "LPU", "SRAM", "lora", "Mamba", "nvfp4",
+}
 
 
 class _VisibleIndexParser(HTMLParser):
@@ -172,13 +188,182 @@ def _load_pack(target: Path, locale: str) -> dict:
         "canonical_source_sha256": ui.get("canonical_source_sha256"),
         "records": records,
         "ui": ui.get("ui") or {},
+        "formats": ui.get("formats") or {},
     }
+
+
+def _canonical_records(index_text: str) -> dict[str, dict]:
+    match = re.search(r'<script id="fcmo-data" type="application/json">(.*?)</script>', index_text, re.S)
+    if not match:
+        raise ValueError("index is missing embedded fcmo-data corpus")
+    rows = json.loads(match.group(1)).get("records")
+    if not isinstance(rows, list):
+        raise ValueError("canonical corpus contains no records array")
+    result: dict[str, dict] = {}
+    for row in rows:
+        if not isinstance(row, dict) or not isinstance(row.get("id"), str):
+            raise ValueError("canonical corpus contains a malformed record")
+        result[row["id"]] = row
+    return result
+
+
+def _validate_overlay_shape(canonical: object, translated: object, path: str, errors: list[str]) -> None:
+    """A curated overlay may omit a field, but may never change its canonical shape."""
+    if isinstance(canonical, str):
+        if not isinstance(translated, str):
+            errors.append(f"{path}: expected a non-empty translated string")
+        elif canonical.strip() and not translated.strip():
+            errors.append(f"{path}: expected a non-empty translated string")
+        return
+    if isinstance(canonical, list):
+        if not isinstance(translated, list):
+            errors.append(f"{path}: expected a list matching canonical")
+            return
+        if len(translated) != len(canonical):
+            errors.append(f"{path}: expected {len(canonical)} list items, found {len(translated)}")
+            return
+        for index, (source_value, translated_value) in enumerate(zip(canonical, translated)):
+            _validate_overlay_shape(source_value, translated_value, f"{path}[{index}]", errors)
+        return
+    if isinstance(canonical, dict):
+        if not isinstance(translated, dict):
+            errors.append(f"{path}: expected an object matching canonical")
+            return
+        for key, value in translated.items():
+            if key not in canonical:
+                errors.append(f"{path}.{key}: field does not exist in canonical record")
+                continue
+            _validate_overlay_shape(canonical[key], value, f"{path}.{key}", errors)
+        return
+    if translated != canonical:
+        errors.append(f"{path}: non-text canonical value cannot be translated")
+
+
+PROSE_STRINGS = ("title", "summary", "why_it_matters", "why", "importance_rationale")
+PROSE_LISTS = (
+    "limitations", "contradictory_evidence", "engineering_implications",
+    "policy_implications", "research_implications",
+)
+PROSE_OBJECT_LISTS = {"claims": ("text",), "evidence_gaps": ("description",), "relationships": ("summary",)}
+PROSE_DICTS = ("technical",)
+_PROSE_RE = re.compile(r"[A-Za-z]{3}")
+
+
+def _is_prose(value: object) -> bool:
+    """Text a reader would actually read; an identifier or a bare number is not."""
+    return isinstance(value, str) and len(value.strip()) >= 3 and bool(_PROSE_RE.search(value))
+
+
+def _check_prose(label: str, source: object, translated: object, errors: list[str]) -> None:
+    if not _is_prose(source):
+        return
+    if translated is None:
+        errors.append(f"{label} missing")
+    elif not isinstance(translated, str) or not translated.strip():
+        errors.append(f"{label} is empty")
+    elif translated.strip() == str(source).strip():
+        errors.append(f"{label} is unchanged canonical English")
+
+
+def _validate_prose_complete(label: str, canonical: dict, translated: dict, errors: list[str]) -> None:
+    """Every prose field the dossier view renders must be localized.
+
+    Static on purpose: no browser and no child process, so the gate runs anywhere
+    the repository is checked out, CI included.
+    """
+    for key in PROSE_STRINGS:
+        _check_prose(f"{label}.{key}", canonical.get(key), translated.get(key), errors)
+
+    def _sequence(key: str) -> list | None:
+        source = canonical.get(key) or []
+        if not source:
+            return None
+        rendered = translated.get(key)
+        if not isinstance(rendered, list) or len(rendered) != len(source):
+            found = len(rendered) if isinstance(rendered, list) else "none"
+            errors.append(f"{label}.{key} expected {len(source)} entries, found {found}")
+            return None
+        return list(zip(source, rendered))
+
+    for key in PROSE_LISTS:
+        for index, (source, rendered) in enumerate(_sequence(key) or []):
+            _check_prose(f"{label}.{key}[{index}]", source, rendered, errors)
+
+    for key, fields in PROSE_OBJECT_LISTS.items():
+        for index, (source, rendered) in enumerate(_sequence(key) or []):
+            for field in fields:
+                _check_prose(
+                    f"{label}.{key}[{index}].{field}",
+                    (source or {}).get(field),
+                    (rendered or {}).get(field),
+                    errors,
+                )
+
+    for key in PROSE_DICTS:
+        source = canonical.get(key)
+        if not isinstance(source, dict):
+            continue
+        rendered = translated.get(key)
+        for field, value in source.items():
+            _check_prose(
+                f"{label}.{key}.{field}",
+                value,
+                rendered.get(field) if isinstance(rendered, dict) else None,
+                errors,
+            )
+
+
+def _taxonomy_values(records: dict[str, dict]) -> set[str]:
+    values: set[str] = set()
+    record_fields = {
+        "desk", "tier", "importance_tier", "confidence", "status", "evidence_class", "development_type",
+    }
+    for record in records.values():
+        values.update(
+            value for field in record_fields
+            if isinstance((value := record.get(field)), str) and value
+        )
+        values.update(value for value in record.get("desks") or [] if isinstance(value, str) and value)
+        values.update(
+            value for claim in record.get("claims") or []
+            if isinstance(claim, dict) and isinstance((value := claim.get("label")), str) and value
+        )
+        values.update(
+            value for gap in record.get("evidence_gaps") or []
+            if isinstance(gap, dict) and isinstance((value := gap.get("kind")), str) and value
+        )
+        values.update(
+            value for topic in record.get("topics") or []
+            if isinstance(topic, str) and topic
+        )
+    return values
+
+
+def _validate_runtime_catalog(
+    locale: str, catalog: dict[str, object], formats: dict[str, object], records: dict[str, dict], errors: list[str]
+) -> None:
+    for source in sorted(RUNTIME_UI_KEYS):
+        translated = catalog.get(source)
+        if not isinstance(translated, str) or not translated.strip():
+            errors.append(f"{locale}: runtime UI key {source!r} is missing")
+        elif translated.strip() == source:
+            errors.append(f"{locale}: runtime UI key {source!r} remains English")
+    for source in sorted(_taxonomy_values(records)):
+        translated = catalog.get(source)
+        if not isinstance(translated, str) or not translated.strip():
+            errors.append(f"{locale}: taxonomy value {source!r} is missing from ui catalogue")
+        elif source not in PROPER_TAXONOMY_IDENTIFIERS and translated.strip() == source:
+            errors.append(f"{locale}: taxonomy value {source!r} remains English")
+    missing_formats = sorted(REQUIRED_FORMATS - set(formats))
+    if missing_formats:
+        errors.append(f"{locale}: missing runtime format(s): {missing_formats}")
 
 
 def validate_curated_i18n(target: Path, canonical_index_sha256: str | None = None) -> dict:
     index = target / "index.html"
     text = index.read_text(encoding="utf-8")
     canonical = _canonical_editorial(text)
+    canonical_records = _canonical_records(text)
     expected_ids = set(canonical)
     canonical_count = len(expected_ids)
     digest = _canonical_digest(canonical)
@@ -217,14 +402,14 @@ def validate_curated_i18n(target: Path, canonical_index_sha256: str | None = Non
                 detail.append(f"extra {extra}")
             errors.append(f"{locale}: record IDs do not exactly match canonical corpus ({'; '.join(detail)})")
         for rid in sorted(expected_ids & set(rows)):
-            for field in REQUIRED_FIELDS:
-                value = rows[rid].get(field)
-                if not isinstance(value, str) or not value.strip():
-                    errors.append(f"{locale}: {rid}.{field} missing")
-                elif value.strip() == canonical[rid][field].strip():
-                    errors.append(f"{locale}: {rid}.{field} is unchanged canonical English")
+            _validate_overlay_shape(canonical_records[rid], rows[rid], f"{locale}: {rid}", errors)
+            _validate_prose_complete(f"{locale}: {rid}", canonical_records[rid], rows[rid], errors)
         if not isinstance(pack.get("ui"), dict) or len(pack["ui"]) < 40:
             errors.append(f"{locale}: UI catalogue is unexpectedly incomplete")
+        if not isinstance(pack.get("formats"), dict):
+            errors.append(f"{locale}: UI plural/format catalogue must be an object")
+        else:
+            _validate_runtime_catalog(locale, pack["ui"], pack["formats"], canonical_records, errors)
 
     if len(packs) == len(CURATED):
         ui_catalogs = {locale: set(pack["ui"]) for locale, pack in packs.items()}
@@ -402,7 +587,6 @@ def apply_curated_i18n(target: Path, canonical_index_sha256: str) -> None:
 
 
 if __name__ == "__main__":
-    import sys
     root = Path(sys.argv[1] if len(sys.argv) > 1 else ".").resolve()
     if len(sys.argv) > 2:
         canonical_hash = sys.argv[2]
