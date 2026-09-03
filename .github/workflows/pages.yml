@@ -25,13 +25,16 @@ jobs:
   build:
     # Keep the private repository prelaunch-safe. The same workflow fires again
     # automatically when GitHub emits the `public` event after visibility changes.
-    if: github.event_name == 'workflow_dispatch' || github.event_name == 'public' || github.event.repository.visibility == 'public'
+    if: github.event.repository.visibility == 'public'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v6
         with:
           persist-credentials: false
+
+      - name: Prove the frozen overlay still matches its editable source
+        run: python tools/build_final_release.py --check
 
       - name: Assemble frozen English release and apply curated locales
         run: |
@@ -45,6 +48,9 @@ jobs:
           )
           python tools/apply_curated_i18n.py publish "$CANONICAL_HASH"
 
+      - name: Prove the public receipt matches the assembled tree
+        run: python tools/build_ready_receipt.py --check
+
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
 
@@ -54,7 +60,7 @@ jobs:
           path: publish
 
   deploy:
-    if: github.event_name == 'workflow_dispatch' || github.event_name == 'public' || github.event.repository.visibility == 'public'
+    if: github.event.repository.visibility == 'public'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

@@ -191,6 +191,7 @@ def write_overlay(overlay: Path, manifest: dict, artifacts: Artifacts) -> None:
     manifest_path.write_text(
         json.dumps(expected_manifest(manifest, artifacts), indent=2) + "\n",
         encoding="utf-8",
+        newline="\n",
     )
 
 
