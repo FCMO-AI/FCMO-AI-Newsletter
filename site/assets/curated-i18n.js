@@ -34,15 +34,41 @@
   document.documentElement.lang = locale;
   document.documentElement.dataset.fcmoLocale = locale;
 
+  // Cada campo de prosa que el dossier renderiza, no solo los tres del resumen.
+  const PROSE_STRINGS = ['title', 'summary', 'why_it_matters', 'why', 'importance_rationale'];
+  const PROSE_LISTS = ['limitations', 'contradictory_evidence', 'engineering_implications',
+    'policy_implications', 'research_implications'];
+  const PROSE_OBJECT_LISTS = { claims: ['text'], evidence_gaps: ['description'], relationships: ['summary'] };
+
   const phraseMap = new Map();
+  function registerPhrase(source, translated) {
+    if (typeof source !== 'string' || typeof translated !== 'string') return;
+    const key = source.trim();
+    if (key.length < 2 || !translated.trim()) return;
+    if (!phraseMap.has(key)) phraseMap.set(key, translated.trim());
+  }
+  function registerProse(source, translated) {
+    if (!source || !translated) return;
+    for (const field of PROSE_STRINGS) registerPhrase(source[field], translated[field]);
+    for (const field of PROSE_LISTS) {
+      const from = source[field], to = translated[field];
+      if (!Array.isArray(from) || !Array.isArray(to) || from.length !== to.length) continue;
+      from.forEach((value, i) => registerPhrase(value, to[i]));
+    }
+    for (const [field, keys] of Object.entries(PROSE_OBJECT_LISTS)) {
+      const from = source[field], to = translated[field];
+      if (!Array.isArray(from) || !Array.isArray(to) || from.length !== to.length) continue;
+      from.forEach((value, i) => { for (const key of keys) registerPhrase(value?.[key], to[i]?.[key]); });
+    }
+    const from = source.technical, to = translated.technical;
+    if (from && to) for (const [key, value] of Object.entries(from)) registerPhrase(value, to[key]);
+  }
   if (pack) {
     for (const [source, translated] of Object.entries(pack.ui || {})) phraseMap.set(source, translated);
     for (const record of canonical.records || []) {
       const tr = pack.records?.[record.id];
       if (!tr) continue;
-      for (const field of ['title', 'summary', 'why_it_matters']) {
-        if (record[field] && tr[field]) phraseMap.set(record[field], tr[field]);
-      }
+      registerProse(record, tr);
     }
   }
 
@@ -86,7 +112,7 @@
     const tail = raw.match(/\s*$/)?.[0] || '';
     return lead + replacement + tail;
   }
-  function translateDynamic(text) {
+  function translatePattern(text) {
     if (!pack) return text;
     let m;
     if ((m = text.match(/^(\d+)\s+(public briefs \/ complete corpus inside)$/))) {
@@ -103,11 +129,80 @@
     if ((m = text.match(/^(\d+) source families \/ (\d+) claim records \/ (\d+) open gaps$/))) return locale === 'es-419'
       ? `${m[1]} familias de fuentes / ${m[2]} afirmaciones / ${m[3]} vacíos abiertos`
       : `${m[1]} 组来源 / ${m[2]} 条论断 / ${m[3]} 项待补证据`;
+    if ((m = text.match(/^(\d+) briefs? total$/))) return locale === 'es-419'
+      ? `${m[1]} ${m[1] === '1' ? 'dossier' : 'dossiers'} en total` : `共 ${m[1]} 份档案`;
+    if ((m = text.match(/^(\d+) total public briefs$/))) return locale === 'es-419'
+      ? `${m[1]} ${m[1] === '1' ? 'dossier público' : 'dossiers públicos'} en total` : `共 ${m[1]} 份公开档案`;
+    if ((m = text.match(/^(\d+) canonical briefs$/))) return locale === 'es-419'
+      ? `${m[1]} ${m[1] === '1' ? 'dossier canónico' : 'dossiers canónicos'}` : `${m[1]} 份规范档案`;
+    if ((m = text.match(/^(\d+) publication documents?$/))) return locale === 'es-419'
+      ? `${m[1]} ${m[1] === '1' ? 'documento de publicación' : 'documentos de publicación'}` : `${m[1]} 份出版文档`;
+    // La cabecera de una edicion llega como un solo nodo con marcas de tiempo
+    // variables: se traduce la prosa fija y se conservan las fechas.
+    if ((m = text.match(/^Published (\S+) . evidence cutoff (\S+) Historical snapshot: later evidence may be reflected in current research pages and corrections\. FCMO AI Newsletter Brief . (\S+) Evidence-first daily edition\. Importance measures consequence if true, not truth; candidates below remain explicitly investigating unless stated otherwise\.$/))) {
+      return locale === 'es-419'
+        ? `Publicado ${m[1]} · corte de evidencia ${m[2]} Instantánea histórica: la evidencia posterior puede reflejarse en las páginas de investigación actuales y en las correcciones. Dossier de FCMO AI Newsletter — ${m[3]} Edición diaria con la evidencia primero. La importancia mide la consecuencia si algo es cierto, no la verdad; los candidatos de abajo siguen explícitamente en investigación salvo que se indique lo contrario.`
+        : `发布于 ${m[1]} · 证据截止 ${m[2]} 历史快照：后续证据可能反映在当前的研究页面与更正中。FCMO AI Newsletter 档案 — ${m[3]} 证据优先的每日版本。重要性衡量的是“若为真”的后果，而非真实性；除非另有说明，下列候选项仍明确处于调查中。`;
+    }
+    if ((m = text.match(/^Impact (\d+)\/10$/))) return locale === 'es-419' ? `Impacto ${m[1]}/10` : `影响 ${m[1]}/10`;
+    if ((m = text.match(/^(\d{1,2}) (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) (\d{4})$/))) {
+      const month = MONTHS[locale]?.[m[2]];
+      if (month) return locale === 'es-419' ? `${m[1]} ${month} ${m[3]}` : `${m[3]}年${month}月${Number(m[1])}日`;
+    }
+    return text;
+  }
+  const MONTHS = {
+    'es-419': { Jan:'ene', Feb:'feb', Mar:'mar', Apr:'abr', May:'may', Jun:'jun',
+      Jul:'jul', Aug:'ago', Sep:'sep', Oct:'oct', Nov:'nov', Dec:'dic' },
+    'zh-Hans': { Jan:'1', Feb:'2', Mar:'3', Apr:'4', May:'5', Jun:'6',
+      Jul:'7', Aug:'8', Sep:'9', Oct:'10', Nov:'11', Dec:'12' }
+  };
+  let upperIndex = null;
+  function translateAtom(text) {
+    const direct = phraseMap.get(text);
+    if (direct) return direct;
+    const dynamic = translatePattern(text);
+    if (dynamic !== text) return dynamic;
+    // Un rotulo en versalitas duras: 'AGENTS MEMORY' por 'Agents Memory'.
+    if (text.length > 2 && text === text.toUpperCase() && /[A-Z]{3}/.test(text)) {
+      if (!upperIndex) {
+        upperIndex = new Map();
+        for (const [source, value] of phraseMap) upperIndex.set(source.toUpperCase(), value);
+      }
+      const found = upperIndex.get(text);
+      if (found) return locale === 'es-419' ? found.toUpperCase() : found;
+    }
+    return text;
+  }
+  // Una linea compuesta ('Agents Memory · Evidence A · Impact 8/10') nunca puede
+  // estar en el catalogo entera: se traduce por segmentos y se rearma.
+  const SEPARATORS = /( · | \/ | — )/;
+  function translateDynamic(text) {
+    if (!pack) return text;
+    const atom = translateAtom(text);
+    if (atom !== text) return atom;
+    const affix = text.match(/^(.+?)(\s*(?:→|↗))$/);
+    if (affix) {
+      const inner = translateDynamic(affix[1]);
+      if (inner !== affix[1]) return inner + affix[2];
+    }
+    if (SEPARATORS.test(text)) {
+      const parts = text.split(SEPARATORS);
+      let changed = false;
+      const out = parts.map((part, i) => {
+        if (i % 2) return part;
+        const piece = part.trim();
+        if (!piece) return part;
+        const replaced = translateAtom(piece);
+        if (replaced !== piece) { changed = true; return part.replace(piece, replaced); }
+        return part;
+      });
+      if (changed) return out.join('');
+    }
     return text;
   }
   function translateTextNode(textNode) {
     if (!pack || !textNode.nodeValue) return;
-    if (textNode.parentElement?.closest('[data-fcmo-legal="canonical"]')) return;
     const trimmed = textNode.nodeValue.trim();
     if (!trimmed) return;
     let replacement = phraseMap.get(trimmed) || translateDynamic(trimmed);
@@ -115,7 +210,6 @@
   }
   function translateAttributes(el) {
     if (!pack || el.nodeType !== 1) return;
-    if (el.closest('[data-fcmo-legal="canonical"]')) return;
     for (const attr of ['placeholder','aria-label','title','label']) {
       const value = el.getAttribute?.(attr); if (!value) continue;
       const replacement = phraseMap.get(value) || translateDynamic(value);
@@ -145,6 +239,29 @@
       try { localStorage.setItem(storageKey, next); } catch {}
       const url = new URL(location.href); url.searchParams.set('lang', next); location.href = url.toString();
     });
+  }
+
+  // El texto legal se traduce para que se pueda leer, pero el ingles sigue
+  // siendo la version que rige: cada bloque lo dice y enlaza a el.
+  function legalNotice() {
+    if (!pack) return;
+    const href = (() => { const u = new URL(location.href); u.searchParams.set('lang', 'en'); return u.toString(); })();
+    for (const block of document.querySelectorAll('[data-fcmo-legal="canonical"]')) {
+      if (block.classList.contains('fcmo-footer-attribution')) continue;
+      if (block.querySelector(':scope > .fcmo-legal-notice')) continue;
+      const note = document.createElement('p');
+      note.className = 'fcmo-legal-notice';
+      const link = document.createElement('a');
+      link.href = href;
+      link.textContent = locale === 'es-419' ? 'versión en inglés' : '英文版本';
+      if (locale === 'es-419') {
+        note.append(document.createTextNode('Traducción de cortesía. La '), link,
+          document.createTextNode(' es la que rige.'));
+      } else {
+        note.append(document.createTextNode('便利翻译，以'), link, document.createTextNode('为准。'));
+      }
+      block.insertBefore(note, block.firstChild);
+    }
   }
 
   function editorialOverrides() {
@@ -209,7 +326,7 @@
   function apply() {
     if (scheduled) return; scheduled = true;
     queueMicrotask(() => {
-      scheduled = false; selector(); collapseCanonicalDossier(); walk(document.body); editorialOverrides();
+      scheduled = false; selector(); collapseCanonicalDossier(); legalNotice(); walk(document.body); editorialOverrides();
     });
   }
   const observer = new MutationObserver(apply);
