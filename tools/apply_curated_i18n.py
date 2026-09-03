@@ -331,7 +331,7 @@ def apply_curated_i18n(target: Path, canonical_index_sha256: str) -> None:
         raise ValueError("unable to locate canonical data block for deterministic injection")
     encoded = json.dumps(bundle, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
     localized = _inject_runtime(original, match.group(1), encoded, "")
-    index.write_text(localized, encoding="utf-8")
+    index.write_text(localized, encoding="utf-8", newline="\n")
 
     stub_bundle = {
         "schema": bundle["schema"],
@@ -352,7 +352,7 @@ def apply_curated_i18n(target: Path, canonical_index_sha256: str) -> None:
             page_text = page.read_text(encoding="utf-8")
             page_localized = _inject_runtime(page_text, None, encoded_stub, "../")
             if page_localized != page_text:
-                page.write_text(page_localized, encoding="utf-8")
+                page.write_text(page_localized, encoding="utf-8", newline="\n")
 
     for page in sorted(target.glob("*.html")):
         if page.name == "index.html":
@@ -360,7 +360,7 @@ def apply_curated_i18n(target: Path, canonical_index_sha256: str) -> None:
         page_text = page.read_text(encoding="utf-8")
         page_localized = _inject_runtime(page_text, match.group(1), encoded, "")
         if page_localized != page_text:
-            page.write_text(page_localized, encoding="utf-8")
+            page.write_text(page_localized, encoding="utf-8", newline="\n")
 
     manifest = {
         "schema": "fcmo-curated-i18n-manifest-v1",
@@ -375,7 +375,7 @@ def apply_curated_i18n(target: Path, canonical_index_sha256: str) -> None:
         "human_review_claim": False,
         "locale_resolution": ["?lang=", "saved manual selection", "navigator.languages", "en fallback"],
     }
-    (target / "data" / "i18n" / "manifest.json").write_text(json.dumps(manifest, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    (target / "data" / "i18n" / "manifest.json").write_text(json.dumps(manifest, indent=2, ensure_ascii=False) + "\n", encoding="utf-8", newline="\n")
 
     # The frozen release builder writes build-manifest.json before localization. Refresh it
     # after adding the curated runtime so the published integrity ledger describes the
@@ -396,7 +396,7 @@ def apply_curated_i18n(target: Path, canonical_index_sha256: str) -> None:
             "canonical_index_sha256": manifest["canonical_index_sha256"],
             "localized_index_sha256": manifest["localized_index_sha256"],
         }
-        build_path.write_text(json.dumps(build, indent=2, sort_keys=True, ensure_ascii=False) + "\n", encoding="utf-8")
+        build_path.write_text(json.dumps(build, indent=2, sort_keys=True, ensure_ascii=False) + "\n", encoding="utf-8", newline="\n")
 
     validate_curated_i18n(target, canonical_index_sha256)
 

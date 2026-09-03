@@ -266,7 +266,7 @@ def write_build_manifest(target: Path, release: str) -> None:
         "deterministic": True,
         "files": entries,
     }
-    (target / "build-manifest.json").write_text(json.dumps(obj, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    (target / "build-manifest.json").write_text(json.dumps(obj, indent=2, sort_keys=True) + "\n", encoding="utf-8", newline="\n")
 
 
 def main() -> int:

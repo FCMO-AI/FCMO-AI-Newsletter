@@ -22,11 +22,11 @@ Do not manually copy a different `index.html` into Pages or bypass the release v
 
 - Release manifest schema: `fcmo-ai-newsletter-release-overlay-v2`
 - Release: `signal-field-v4.1-final`
-- Front-end SHA-256: `198e1e594567fd860cf69602047b26c65e010da96f69cd6e47ef66fdf9a65134`
-- Release archive SHA-256: `f8be7390549a9cef5cf0f1e2142f86d21f1400da71acdd82a4eceb0191944e61`
-- Encoded release payload SHA-256: `58d07aa7791f4db3b82a809c61e2402abbf7201fa6b6a13140c8e05012e03915`
-- 14/14 release payload parts present and checked by the release builder
-- 95 public files after assembly
+- Front-end SHA-256: `15c00c20ba1527a62880f421070ff281c1c9ec4119787d6a84618a4143ff7904`
+- Release archive SHA-256: `fd8ea9979fed572e0f004180bccf62d325c0f7de6d2781a79e19d52820cfc0ff`
+- Encoded release payload SHA-256: `dc2bca19b7bb67d65a4f2916e7d41f94f160ae884a2ca26bfc87aab1d7a83709`
+- 14/14 release payload parts present; payload and archive checked by SHA-256
+- 96 public files after assembly
 - 22 canonical dossiers
 - 22 stable dossier routes
 - 3 frozen edition routes
@@ -61,13 +61,13 @@ The final assembler validates, before deployment:
 - remote JavaScript and remote stylesheet dependencies while allowing legitimate canonical/feed/discovery links and vetted story imagery;
 - deterministic build-manifest generation.
 
-The release assembler was rerun and returned:
+The release assembler and curated-localization gate were rerun; the assembled public candidate measures:
 
-`FCMO AI Newsletter signal-field-v4.1-final READY: 95 public files; index 198e1e594567…`
+`FCMO AI Newsletter signal-field-v4.1-final READY: 96 public files; index 15c00c20ba15…`
 
 ## GitHub Actions note
 
-GitHub Actions jobs in the private repository have repeatedly failed **before a runner or workflow step was assigned** (`runner_id: 0`, empty step list). The same release logic has therefore been executed directly against the frozen artifacts as an independent pre-publication gate. This is not a recorded application/test failure.
+GitHub Actions jobs in the private repository have repeatedly failed **before a runner or workflow step was assigned** (empty runner and step metadata). The same release logic has therefore been executed directly against the frozen artifacts as an independent pre-publication gate. This is not a recorded application/test failure.
 
 Once the repository is public, public GitHub-hosted Actions should be able to run the prepared deployment workflow normally.
 
