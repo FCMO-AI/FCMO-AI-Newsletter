@@ -361,7 +361,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.check:
             check_receipt(values)
         else:
-            RECEIPT_PATH.write_text(render_receipt(values), encoding="utf-8")
+            RECEIPT_PATH.write_text(render_receipt(values), encoding="utf-8", newline="\n")
             print(
                 "ready receipt generated: "
                 f"{values['public_files']} public files; index {values['frontend_sha256'][:12]}..."
