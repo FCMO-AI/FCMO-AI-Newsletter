@@ -376,6 +376,11 @@ def redirect(path_kind: str, identifier: str, title: str) -> str:
     return (
         '<!doctype html><html lang="en"><head><meta charset="utf-8">'
         '<meta name="viewport" content="width=device-width,initial-scale=1">'
+        # El `meta refresh` no arrastra la query, y el idioma viaja ahi:
+        # entrar a una historia con `?lang=en` aterrizaba en la portada sin
+        # parametro, que entonces resuelve por el idioma del navegador. El
+        # script conserva la query; el `meta` queda de respaldo sin JS.
+        f'<script>location.replace("../index.html"+location.search+"#/{route}/{identifier}")</script>'
         f'<meta http-equiv="refresh" content="0;url={path}">'
         f'<link rel="canonical" href="{path}">'
         '<meta name="robots" content="index,follow">'
