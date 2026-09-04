@@ -2,41 +2,32 @@
 
 English is the **canonical semantic source** of the FCMO AI Newsletter. The native publication supports exactly three locales:
 
-- `en` — English, canonical source;
+- `en` — English, canonical semantic source;
 - `es-419` — Latin American Spanish, curated translation;
 - `zh-Hans` — Simplified Chinese, curated translation.
 
-Browser extensions, operating-system translation, search-engine translation, or other third-party translation layers are outside this contract. They may translate the site independently, but they are not FCMO-native translations.
+Browser extensions, operating-system translation and third-party translation layers are outside this contract.
 
 ## What “curated” means
 
-The Spanish and Chinese packs are model-curated, source-controlled publication artifacts. They are not generated at page view time, do not call Google Translate, DeepL, OpenAI, Anthropic, Microsoft Translator, or another translation endpoint, and are not silently replaced by a runtime fallback.
+Spanish and Chinese are model-curated, source-controlled publication artifacts. They are generated before publication, never at page-view time, and are deliberately **not labelled human-reviewed** unless a qualified reviewer actually performs that review.
 
-The packs are deliberately **not labelled human-reviewed**. A human-review claim may only be added after a qualified bilingual reviewer has actually reviewed that locale.
+Translate intent rather than English syntax while preserving evidence strength, uncertainty, caveats, numbers, model/version identities, benchmarks, stable FCMO IDs, URLs, and the distinction between demonstrated, claimed, inferred and editorial interpretation. A translation may improve naturalness, but may not strengthen a research claim beyond the canonical English source.
 
-Translate intent rather than English syntax. Preserve:
+## Coverage contract
 
-1. evidence strength and uncertainty;
-2. caveats and contrary evidence;
-3. numbers, model/version identities, benchmark names, stable FCMO IDs, and URLs;
-4. distinctions between demonstrated, claimed, inferred, and editorial interpretation;
-5. technical terms where translation would make the meaning less precise.
+Every canonical record must have a curated translation for the reader-facing prose that the site renders, including:
 
-A natural, shorter sentence is preferred to a literal translation that reads like translated English, but no translation may strengthen a research claim beyond the canonical source.
+- title, summary, why-it-matters and importance rationale;
+- limitations, contradictory evidence and research/engineering/policy implications;
+- claim text and evidence-gap descriptions;
+- reader-facing technical-dossier prose and relationship summaries.
 
-## Story coverage
+Coverage is **dynamic, never hard-coded to a historical corpus size**. If English contains `N` stable FCMO IDs, Spanish and Chinese must contain exactly the same `N` IDs. Locale metadata, public brief JSON, stable development routes and the localization manifest must agree with that live set.
 
-Every canonical news record must have a curated translation of its reader-facing editorial story in both non-English native locales:
+Count-bearing UI is formatted dynamically. A catalogue key must not bake in a corpus count such as `22 briefs`; growth of the corpus must not invalidate translation lookup.
 
-- `title`;
-- `summary`;
-- `why_it_matters`.
-
-Coverage is **dynamic, not hard-coded to a historical corpus size**. If the canonical edition contains `N` stable FCMO story IDs, Spanish must contain exactly those `N` IDs and Simplified Chinese must contain exactly those same `N` IDs. The locale metadata, public brief JSON set, development HTML set, localization manifest, and canonical corpus must all agree on that live set. Build validation rejects missing, extra, duplicate, empty, shifted, or unchanged-English editorial fields.
-
-The current release happens to contain 22 canonical briefs; `22` is not a publication constant and must never be used as the gate for future releases.
-
-The deep technical/evidence dossier remains the canonical English research record. When Spanish or Chinese is selected, the translated title, summary, and editorial consequence are shown natively and the deeper canonical dossier is preserved behind an explicit expandable **English canonical record** boundary. This avoids silently translating evidence-bearing technical prose in a way that could change epistemic meaning.
+English remains directly selectable and authoritative as the semantic source. Non-English dossier views are curated translations of that source, not a separate evidence record. The interface labels that relationship explicitly rather than falsely claiming translated technical prose is still English.
 
 ## Runtime behavior
 
@@ -47,31 +38,34 @@ Locale resolution is deterministic:
 3. `navigator.languages` / browser preference;
 4. English fallback.
 
-All `es-*` browser locales resolve to `es-419`. All `zh-*` browser locales resolve to `zh-Hans`, because Simplified Chinese is the single native Chinese edition currently maintained. English remains directly selectable at all times.
+All `es-*` browser locales resolve to `es-419`; all `zh-*` locales resolve to `zh-Hans`. The selected locale persists locally and is reflected in the URL.
 
-The language control presents English as the canonical source and Spanish/Chinese as curated translations. A manual change persists locally and is reflected in the URL so a language-specific view can be shared.
+The runtime performs **presentation lookup only** against committed packs. It contains no translation-provider endpoint and no generative fallback. A missing translation is a release defect.
+
+Legal/disclosure text is also translated for readability. Where English is the governing legal wording, the translated block carries an explicit notice and a route back to the English version.
 
 ## Source-control layout
 
-- `site/data/i18n/es-419/part-*.json` + `ui.json` — curated Spanish editorial translations and UI catalogue;
-- `site/data/i18n/zh-Hans/part-*.json` + `ui.json` — curated Simplified Chinese editorial translations and UI catalogue;
+- `site/data/i18n/es-419/part-*.json` + `ui.json` — curated Spanish prose and UI catalogue;
+- `site/data/i18n/zh-Hans/part-*.json` + `ui.json` — curated Simplified Chinese prose and UI catalogue;
 - `site/assets/curated-i18n.js` — deterministic presentation/runtime layer;
-- `site/assets/curated-i18n.css` — language selector and canonical-record presentation;
-- `tools/apply_curated_i18n.py` — build-time injection, coverage validation, provenance manifest, and integrity-manifest refresh.
+- `site/assets/curated-i18n.css` — language selector and translated-dossier presentation;
+- `tools/apply_curated_i18n.py` — coverage validation, bundle injection, provenance manifest and integrity refresh.
 
-The frozen Signal Field English release is assembled and validated first. Only after its canonical index hash passes is curated localization injected. The localized build records both the original canonical index SHA-256 and the final localized index SHA-256 under `data/i18n/manifest.json`.
+The canonical English release is assembled and hash-verified first. Localization is injected only after that identity passes. The localized build records both the canonical and localized index SHA-256 values in `data/i18n/manifest.json`.
 
 ## Publication gate
 
 A release must fail if:
 
-- either curated locale omits any canonical FCMO story ID or contains a stale/extra ID;
-- locale `canonical_record_count` metadata differs from the live canonical corpus size;
-- the public brief JSON set or public development HTML set differs from the live canonical FCMO ID set;
-- title, summary, or why-it-matters is absent or unchanged English;
-- the locale pack was built against a different canonical editorial source hash;
-- a runtime translation provider endpoint appears in the localization code or packs;
-- the runtime exposes any native locale outside `en`, `es-419`, `zh-Hans`;
-- the localized index cannot be traced back to the frozen canonical English index hash.
+- either curated locale omits a canonical FCMO ID or contains a stale/extra ID;
+- locale record-count metadata differs from the live canonical corpus;
+- public brief JSON or stable development routes differ from the canonical IDs;
+- required reader-facing prose is absent, empty or unchanged English;
+- a locale pack was built against a different canonical editorial digest;
+- a count-bearing historical UI key is introduced;
+- a runtime translation-provider endpoint appears;
+- any native locale outside `en`, `es-419`, `zh-Hans` is exposed;
+- the localized index cannot be traced to the frozen canonical English index hash.
 
-When a new story is added, its Spanish and Chinese editorial translations are part of the same publication obligation. Missing translations are a release defect, not an invitation to machine-translate at runtime. CI also carries a fail-closed regression check so a synthetic new canonical story without matching ES/ZH records must be rejected.
+A new story and its curated native translations are one publication obligation. The gate fails closed rather than publishing a partial language edition.

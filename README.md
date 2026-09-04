@@ -33,9 +33,9 @@ FCMO AI Newsletter natively supports exactly three publication languages:
 - **Latin American Spanish (`es-419`)** — curated, source-controlled translation;
 - **Simplified Chinese (`zh-Hans`)** — curated, source-controlled translation.
 
-Every current public news record has a committed Spanish and Chinese translation of its reader-facing title, summary, and editorial consequence. The selector resolves an explicit `?lang=` request first, then a saved manual choice, then browser language, with English as the final fallback.
+Every current public news record has committed Spanish and Chinese translations for the reader-facing prose rendered by the publication, including the deep dossier fields that materially affect interpretation. The selector resolves an explicit `?lang=` request first, then a saved manual choice, then browser language, with English as the final fallback.
 
-The site does **not** call a translation service or generative model at page-view time. Missing translations are release defects rather than permission to silently machine-translate. English remains directly selectable as the authority-bearing source. The deeper technical/evidence record can therefore preserve its canonical wording and identifiers even when the reader is using a curated translated edition.
+The site does **not** call a translation service or generative model at page-view time. Missing translations are release defects rather than permission to silently machine-translate. English remains directly selectable as the authority-bearing semantic source; Spanish and Chinese are curated views of that same record, with stable IDs, numbers, evidence status and provenance preserved.
 
 The complete source-control, curation, provenance, and validation contract is documented in [`LOCALIZATION.md`](LOCALIZATION.md).
 

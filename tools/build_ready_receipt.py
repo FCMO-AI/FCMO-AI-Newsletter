@@ -197,25 +197,26 @@ def measured_values() -> dict[str, str]:
 
 
 def render_receipt(values: dict[str, str]) -> str:
-    return f"""# FCMO AI Newsletter — ready to publish
+    # Footnote: this is a live public-release receipt, not a prelaunch checklist.
+    # Operational prose is generated together with the measured values so a
+    # repository visibility change cannot leave a technically green but false doc.
+    return f"""# FCMO AI Newsletter — public release receipt
 
 Release: **{values['release_display']}**
 
-Status: **release-ready after the assembler, curated-localization gate, and DOM verification pass.**
+Status: **public release assembled, localized, validated, and deployable through GitHub Pages.**
 
 Receipt measurement: **{values['receipt_measurement']}** (UTC), using `{values['qa_tool']}` and {values['qa_browser']}.
 
-The private repository is staged so the publication release is assembled from a frozen, hash-verified overlay at deploy time. `main` contains only the public base tree, release package, validation tooling, legal/publication scaffold, and deployment workflow needed for the public site. No private research state is required at build time.
+This repository is the public publication sink. `site/` supplies the public base, `release-src/` holds the editable canonical release source, `release-overlay/final/` freezes that source deterministically, and deployment assembles only the validated `publish/` candidate. No private research workspace is required to build or serve the site.
 
-## Final manual action
+## Publication state
 
-Change the repository visibility from **Private** to **Public**.
-
-The Pages workflow listens for GitHub's `public` repository event and will reconstruct, validate, upload, and deploy the frozen release to:
+The public site is deployed at:
 
 **https://fcmo-ai.github.io/FCMO-AI-Newsletter/**
 
-Do not manually copy a different `index.html` into Pages or bypass the release validator; the frozen release identity below is the canonical candidate.
+Ordinary releases require no repository-visibility step. A candidate that fails release integrity, privacy, or curated-localization validation is not deployed; the previous public version remains live.
 
 ## Release identity
 
@@ -264,22 +265,14 @@ The release assembler and curated-localization gate were rerun; the assembled pu
 
 `FCMO AI Newsletter {values['release']} READY: {values['public_files']} public files; index {values['frontend_sha256'][:12]}…`
 
-## GitHub Actions note
+## Daily refresh readiness
 
-GitHub Actions jobs in the private repository have repeatedly failed **before a runner or workflow step was assigned** (empty runner and step metadata). The same release logic has therefore been executed directly against the frozen artifacts as an independent pre-publication gate. This is not a recorded application/test failure.
+The code path for a daily update is fail-closed: a sanitized public corpus is ingested, missing curated locales are produced before publication, the frozen overlay and this receipt are rebuilt, and the same release gates run before a commit can deploy. Platform credentials or runner/billing availability are external prerequisites; their absence must stop an update rather than weaken the publication boundary.
 
-Once the repository is public, public GitHub-hosted Actions should be able to run the prepared deployment workflow normally.
+## GitHub Pages
 
-## GitHub Pages note
-
-GitHub currently reports Pages as not yet enabled while the repository is private. The deployment workflow is already present and listens for the visibility-change event. If GitHub requires first-time Pages activation for this organization, the only platform-side follow-up is:
-
-**Settings → Pages → Source: GitHub Actions**, then **Actions → Deploy FCMO AI Newsletter → Run workflow**.
-
-GitHub's standard workflow token cannot pre-enable first-time Pages for a private repository because that operation requires separate administration/Pages permission.
+Pages deploys only the assembled `publish/` artifact after the build job succeeds. The deployment workflow also listens to the completed daily-refresh workflow so a bot-authored refresh can reach Pages without relying on a second `push` event.
 """
-
-
 def receipt_values(text: str) -> dict[str, str]:
     patterns = {
         "release_display": r"^Release: \*\*(?P<value>.+)\*\*$",
@@ -336,7 +329,8 @@ def receipt_values(text: str) -> dict[str, str]:
 
 def check_receipt(expected: dict[str, str]) -> None:
     try:
-        actual = receipt_values(RECEIPT_PATH.read_text(encoding="utf-8"))
+        actual_text = RECEIPT_PATH.read_text(encoding="utf-8")
+        actual = receipt_values(actual_text)
     except Exception as exc:
         raise SystemExit(f"ready receipt check FAILED: {exc}") from exc
     differences = [
@@ -346,12 +340,19 @@ def check_receipt(expected: dict[str, str]) -> None:
     ]
     if differences:
         raise SystemExit("ready receipt check FAILED:\n- " + "\n- ".join(differences))
+    # Footnote: the old checker validated only parsed numbers/hashes, allowing
+    # obsolete prelaunch prose to remain green after the repository went public.
+    # Exact generated text closes that semantic hole while read_text normalizes
+    # platform line endings for us.
+    rendered = render_receipt(expected)
+    if actual_text != rendered:
+        raise SystemExit(
+            "ready receipt check FAILED: receipt narrative/structure drift; regenerate with tools/build_ready_receipt.py"
+        )
     print(
         "ready receipt check OK: "
         f"{expected['public_files']} public files; index {expected['frontend_sha256'][:12]}..."
     )
-
-
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check", action="store_true", help="compare measured receipt values without rewriting it")

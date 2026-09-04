@@ -1,30 +1,28 @@
-# FCMO AI Newsletter — ready to publish
+# FCMO AI Newsletter — public release receipt
 
 Release: **Signal Field v4.1 final**
 
-Status: **release-ready after the assembler, curated-localization gate, and DOM verification pass.**
+Status: **public release assembled, localized, validated, and deployable through GitHub Pages.**
 
 Receipt measurement: **2026-09-02T19:57:43.686Z** (UTC), using `_audit/verificar-legal.mjs` and Microsoft Edge.
 
-The private repository is staged so the publication release is assembled from a frozen, hash-verified overlay at deploy time. `main` contains only the public base tree, release package, validation tooling, legal/publication scaffold, and deployment workflow needed for the public site. No private research state is required at build time.
+This repository is the public publication sink. `site/` supplies the public base, `release-src/` holds the editable canonical release source, `release-overlay/final/` freezes that source deterministically, and deployment assembles only the validated `publish/` candidate. No private research workspace is required to build or serve the site.
 
-## Final manual action
+## Publication state
 
-Change the repository visibility from **Private** to **Public**.
-
-The Pages workflow listens for GitHub's `public` repository event and will reconstruct, validate, upload, and deploy the frozen release to:
+The public site is deployed at:
 
 **https://fcmo-ai.github.io/FCMO-AI-Newsletter/**
 
-Do not manually copy a different `index.html` into Pages or bypass the release validator; the frozen release identity below is the canonical candidate.
+Ordinary releases require no repository-visibility step. A candidate that fails release integrity, privacy, or curated-localization validation is not deployed; the previous public version remains live.
 
 ## Release identity
 
 - Release manifest schema: `fcmo-ai-newsletter-release-overlay-v2`
 - Release: `signal-field-v4.1-final`
-- Front-end SHA-256: `8383e0c1d9ff6c377e537446c0203e3dfa85903226987d90bdbdfa7d440fc11f`
-- Release archive SHA-256: `4bff395098fc93a20eb0b717c275def206d643b31268e3a0d0bcf972baa6d1e4`
-- Encoded release payload SHA-256: `89cbeb82dad5ec802633f583ee0c00b688a8e7751a0707a590dcfb87d46f2eb1`
+- Front-end SHA-256: `74e28dfd859302cec3afeb43a39b8644dd6e54171a6a5e4d716a543bcfdd372c`
+- Release archive SHA-256: `58c608011f59d07082aa17ea3916a99ab5a18029e6705c7e34498f2f6b4a6a62`
+- Encoded release payload SHA-256: `bc4b4cd1b1074bc30df87c9c1ade34615f2ee1e001dfa9efb6151ebc7f5b2d79`
 - 15/15 release payload parts present; payload and archive checked by SHA-256
 - 98 public files after assembly
 - 23 canonical dossiers
@@ -63,18 +61,12 @@ The final assembler validates, before deployment:
 
 The release assembler and curated-localization gate were rerun; the assembled public candidate measures:
 
-`FCMO AI Newsletter signal-field-v4.1-final READY: 98 public files; index 8383e0c1d9ff…`
+`FCMO AI Newsletter signal-field-v4.1-final READY: 98 public files; index 74e28dfd8593…`
 
-## GitHub Actions note
+## Daily refresh readiness
 
-GitHub Actions jobs in the private repository have repeatedly failed **before a runner or workflow step was assigned** (empty runner and step metadata). The same release logic has therefore been executed directly against the frozen artifacts as an independent pre-publication gate. This is not a recorded application/test failure.
+The code path for a daily update is fail-closed: a sanitized public corpus is ingested, missing curated locales are produced before publication, the frozen overlay and this receipt are rebuilt, and the same release gates run before a commit can deploy. Platform credentials or runner/billing availability are external prerequisites; their absence must stop an update rather than weaken the publication boundary.
 
-Once the repository is public, public GitHub-hosted Actions should be able to run the prepared deployment workflow normally.
+## GitHub Pages
 
-## GitHub Pages note
-
-GitHub currently reports Pages as not yet enabled while the repository is private. The deployment workflow is already present and listens for the visibility-change event. If GitHub requires first-time Pages activation for this organization, the only platform-side follow-up is:
-
-**Settings → Pages → Source: GitHub Actions**, then **Actions → Deploy FCMO AI Newsletter → Run workflow**.
-
-GitHub's standard workflow token cannot pre-enable first-time Pages for a private repository because that operation requires separate administration/Pages permission.
+Pages deploys only the assembled `publish/` artifact after the build job succeeds. The deployment workflow also listens to the completed daily-refresh workflow so a bot-authored refresh can reach Pages without relying on a second `push` event.
