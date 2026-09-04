@@ -130,6 +130,9 @@
     if ((m = text.match(/^lead impact (\d+)$/))) return locale === 'es-419' ? `impacto tope ${m[1]}` : `最高影响 ${m[1]}`;
     if ((m = text.match(/^(\d+) visible$/))) return locale === 'es-419'
       ? `${m[1]} ${m[1] === '1' ? 'visible' : 'visibles'}` : `显示 ${m[1]} 条`;
+    // Credito de imagen: '<nombre del trabajo> paper'. El nombre es propio y no se traduce.
+    if ((m = text.match(/^([A-Z][\w.\-]*(?: [\w.\-]+){0,4}) paper$/))) return locale === 'es-419'
+      ? `artículo ${m[1]}` : `${m[1]} 论文`;
     if ((m = text.match(/^Source (\d+)$/))) return locale === 'es-419' ? `Fuente ${m[1]}` : `来源 ${m[1]}`;
     if ((m = text.match(/^(\d+) match(?:es)? · (\d+) returned$/))) return locale === 'es-419'
       ? `${m[1]} ${m[1] === '1' ? 'coincidencia' : 'coincidencias'} · ${m[2]} ${m[2] === '1' ? 'devuelta' : 'devueltas'}`

@@ -22,7 +22,7 @@ Do not manually copy a different `index.html` into Pages or bypass the release v
 
 - Release manifest schema: `fcmo-ai-newsletter-release-overlay-v2`
 - Release: `signal-field-v4.1-final`
-- Front-end SHA-256: `68eef68d149edcc30eaa1e7d320d7855829285fcc17857aa2c47070755ed2e1c`
+- Front-end SHA-256: `e32aaa3dcb05fbdf31b6e9f1339ec92685916b6d1588ab903aeb5e1f8938f64a`
 - Release archive SHA-256: `44fc697350ea7a4de230b8ab05ead320b698258aaea1ce2749dac2793dff40c1`
 - Encoded release payload SHA-256: `ef302d778cf2db23da6ab2f03b716e11e2601f8fcea2b338723d048ce6d68726`
 - 14/14 release payload parts present; payload and archive checked by SHA-256
@@ -63,7 +63,7 @@ The final assembler validates, before deployment:
 
 The release assembler and curated-localization gate were rerun; the assembled public candidate measures:
 
-`FCMO AI Newsletter signal-field-v4.1-final READY: 96 public files; index 68eef68d149e…`
+`FCMO AI Newsletter signal-field-v4.1-final READY: 96 public files; index e32aaa3dcb05…`
 
 ## GitHub Actions note
 
