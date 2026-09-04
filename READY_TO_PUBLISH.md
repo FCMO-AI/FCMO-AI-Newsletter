@@ -22,15 +22,15 @@ Do not manually copy a different `index.html` into Pages or bypass the release v
 
 - Release manifest schema: `fcmo-ai-newsletter-release-overlay-v2`
 - Release: `signal-field-v4.1-final`
-- Front-end SHA-256: `e32aaa3dcb05fbdf31b6e9f1339ec92685916b6d1588ab903aeb5e1f8938f64a`
-- Release archive SHA-256: `44fc697350ea7a4de230b8ab05ead320b698258aaea1ce2749dac2793dff40c1`
-- Encoded release payload SHA-256: `ef302d778cf2db23da6ab2f03b716e11e2601f8fcea2b338723d048ce6d68726`
-- 14/14 release payload parts present; payload and archive checked by SHA-256
-- 96 public files after assembly
-- 22 canonical dossiers
-- 22 stable dossier routes
+- Front-end SHA-256: `8383e0c1d9ff6c377e537446c0203e3dfa85903226987d90bdbdfa7d440fc11f`
+- Release archive SHA-256: `73e0283795f6537ded0fcf37a2eb19e3e40e1b5595943e49d5bfdb00d697f5b4`
+- Encoded release payload SHA-256: `71caf5f210af6f779c8f66805897551a52a72c67b15b466ead274d2c63bdefdf`
+- 15/15 release payload parts present; payload and archive checked by SHA-256
+- 98 public files after assembly
+- 23 canonical dossiers
+- 23 stable dossier routes
 - 3 frozen edition routes
-- 14 vetted sourced story visuals + 8 embedded editorial fallbacks
+- 14 vetted sourced story visuals + 9 embedded editorial fallbacks
 
 ## Verification receipts
 
@@ -52,18 +52,18 @@ The final assembler validates, before deployment:
 - exact release archive and front-end hashes;
 - archive path/symlink safety;
 - required human and machine-readable public files;
-- 22 dossier identifiers and stable human routes;
+- 23 dossier identifiers and stable human routes;
 - 3 edition JSON/HTML routes;
 - JSON, JSONL, RSS, and sitemap parsing;
 - agent discovery/query contracts (`fcmo-agent-discovery-v2`, `fcmo-agent-query-v2`);
-- final 14/8 story-media policy;
+- final 14/9 story-media policy;
 - credential-like strings and personal-mailbox leakage;
 - remote JavaScript and remote stylesheet dependencies while allowing legitimate canonical/feed/discovery links and vetted story imagery;
 - deterministic build-manifest generation.
 
 The release assembler and curated-localization gate were rerun; the assembled public candidate measures:
 
-`FCMO AI Newsletter signal-field-v4.1-final READY: 96 public files; index e32aaa3dcb05…`
+`FCMO AI Newsletter signal-field-v4.1-final READY: 98 public files; index 8383e0c1d9ff…`
 
 ## GitHub Actions note
 

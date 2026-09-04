@@ -414,7 +414,10 @@ def _load_ui(i18n_dir: Path, locale: str) -> tuple[Path, dict[str, Any], str]:
 
 
 def _format_json(document: dict[str, Any], original: str) -> str:
-    if "\n" not in original:
+    # Los `part-*.json` son JSON compacto de una sola linea y terminan en
+    # salto, asi que buscar cualquier salto los daba por indentados y los
+    # reescribia enteros: un refresco diario producia 150 KB de reformateo.
+    if "\n" not in original.rstrip("\n"):
         return json.dumps(document, ensure_ascii=False, separators=(",", ":")) + "\n"
     indentation = re.search(r"\n([ \t]+)\S", original)
     indent = indentation.group(1) if indentation else "  "

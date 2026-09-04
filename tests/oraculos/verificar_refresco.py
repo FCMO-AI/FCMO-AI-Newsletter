@@ -19,7 +19,13 @@ from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parents[2]
 CORPUS = RAIZ / "_fixtures" / "corpus-2026-09-01"
-NUEVA = "FCMO-8AB23060CBF3"
+# La historia que tiene que atravesar la tuberia entera se sintetiza: la del
+# fixture ya esta publicada, y contra un sitio que ya la contiene este oraculo
+# solo comprobaria que nada se rompe, no que algo nuevo llega hasta el final.
+NUEVA = "FCMO-0C0DE0000001"
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from verificar_generador import con_historia_sintetica
 EXCLUIR = {".git", "publish", "regression", "__pycache__", ".pytest_cache"}
 
 PASOS = (
@@ -44,9 +50,11 @@ def main() -> int:
     with tempfile.TemporaryDirectory(prefix="fcmo-refresco-") as tmp:
         banco = Path(tmp) / "repo"
         copia_limpia(banco)
+        corpus = Path(tmp) / "corpus-mas-una"
+        con_historia_sintetica(CORPUS, corpus, NUEVA)
 
         for nombre, orden in PASOS:
-            args = [a.format(corpus=str(CORPUS)) for a in orden]
+            args = [a.format(corpus=str(corpus)) for a in orden]
             proc = subprocess.run([sys.executable, *args], cwd=banco,
                                   capture_output=True, text=True, encoding="utf-8", errors="replace")
             if proc.returncode:
