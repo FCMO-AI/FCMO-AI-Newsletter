@@ -26,6 +26,7 @@ jobs:
           python -m py_compile tools/ingest_corpus.py
           python -m py_compile tools/translate_records.py
           python -m py_compile tools/verify_release.py
+          python -m py_compile tests/oraculos/verificar_dom.py
 
       - name: Exercise the refresh tooling's own tests
         run: python -m unittest discover -s tests -v
@@ -47,6 +48,9 @@ jobs:
           PY
           )
           python tools/apply_curated_i18n.py publish "$CANONICAL_HASH"
+
+      - name: Render runtime contracts in a real browser
+        run: python tests/oraculos/verificar_dom.py publish
 
       - name: Verify frozen source identity and curated locale completeness
         run: |
