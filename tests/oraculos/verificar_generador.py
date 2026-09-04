@@ -36,14 +36,25 @@ BASE = RAIZ / "release-src"
 GENERADOR = RAIZ / "tools" / "ingest_corpus.py"
 NUEVA = "FCMO-0C0DE0000001"   # no existe en el corpus: la inyecta el oraculo
 
-# Donde tiene que asomar una historia nueva. Si alguna de estas superficies la
-# ignora, hay un lector del sitio que nunca se entera de que existe.
-SUPERFICIES = (
+# Dos tipos de superficie, y confundirlos lleva a pedir cosas incompatibles.
+#
+# ENUMERAN lista todas las historias del sitio: si una falta aqui, hay un lector
+# que nunca se entera de que existe, hoy y siempre.
+ENUMERAN = (
     "data/search.json", "data/search.jsonl", "data/developments.json",
     "data/developments.jsonl", "data/topics.json", "data/organizations.json",
-    "data/media.json", "data/site-manifest.json", "llms.txt", "llms-full.txt",
-    "agent.json", "feed.json", "feed.xml", "sitemap.xml",
+    "data/media.json", "llms.txt", "llms-full.txt",
+    "feed.json", "feed.xml", "sitemap.xml",
 )
+
+# ANUNCIAN dice que llego en esta corrida. `agent.json` es un contrato de
+# descubrimiento -endpoints, esquemas, ejemplos- y no lleva catalogo de
+# historias; `site-manifest.json` lo embebe. Su unica mencion a una historia es
+# el aviso de recien llegada, asi que aqui lo correcto es lo contrario: tiene
+# que nombrarla el dia que entra y dejar de nombrarla al siguiente.
+ANUNCIAN = ("agent.json", "data/site-manifest.json")
+
+SUPERFICIES = ENUMERAN + ANUNCIAN
 
 
 def con_historia_sintetica(origen: Path, destino: Path, ident: str) -> None:
@@ -130,8 +141,12 @@ def main() -> int:
         clon = Path(tmp) / "clon"
         shutil.copytree(RAIZ, clon, ignore=shutil.ignore_patterns(
             ".git", "publish", "regression", "__pycache__", "_audit"))
-        primera = segunda = None
-        for vuelta in ("primera", "segunda"):
+        # La primera pasada anuncia la llegada y la segunda ya no tiene nada
+        # que anunciar: el punto fijo esta entre la segunda y la tercera, no
+        # entre la primera y la segunda. Compararlas seria pedirle al generador
+        # que mintiera sobre lo que acaba de llegar.
+        pasadas: dict[str, dict[str, str]] = {}
+        for vuelta in ("primera", "segunda", "tercera"):
             proc = subprocess.run(
                 [sys.executable, "tools/ingest_corpus.py",
                  "--corpus", str(corpus_mas), "--out", "release-src"],
@@ -140,34 +155,36 @@ def main() -> int:
                 fallos.append(f"A: la {vuelta} pasada salio {proc.returncode}: "
                               + (proc.stderr or proc.stdout or "").strip()[-800:])
                 break
-            instantanea = arbol(clon / "release-src")
-            if vuelta == "primera":
-                primera = instantanea
-            else:
-                segunda = instantanea
-        if primera and segunda:
-            movidas = sorted(k for k in set(primera) | set(segunda)
-                             if primera.get(k) != segunda.get(k))
+            pasadas[vuelta] = arbol(clon / "release-src")
+        if len(pasadas) == 3:
+            segunda, tercera = pasadas["segunda"], pasadas["tercera"]
+            movidas = sorted(k for k in set(segunda) | set(tercera)
+                             if segunda.get(k) != tercera.get(k))
             if movidas:
                 extra = f" ... y {len(movidas) - 12} mas" if len(movidas) > 12 else ""
-                fallos.append(f"A: la segunda pasada sobre el mismo corpus movio "
+                fallos.append(f"A: la tercera pasada sobre el mismo corpus movio "
                               f"{len(movidas)} archivos: {', '.join(movidas[:12])}{extra}")
             # Lo que se anuncia como recien llegado se recalcula cada corrida.
             # Si el generador lo hereda de la base en vez de reescribirlo, la
             # comparacion byte a byte no lo ve -las dos pasadas traen el mismo
             # valor rancio- y el sitio anuncia manana la historia de ayer.
-            ciegas = [rel for rel in SUPERFICIES
+            ciegas = [rel for rel in ENUMERAN
                       if not (clon / "release-src" / rel).is_file()
                       or NUEVA not in (clon / "release-src" / rel).read_text(encoding="utf-8")]
             if ciegas:
-                fallos.append(f"A: tras la segunda pasada, {len(ciegas)} superficies han "
+                fallos.append(f"A: tras repetir la ingesta, {len(ciegas)} superficies han "
                               f"olvidado la historia: " + ", ".join(ciegas))
 
-            agente = json.loads((clon / "release-src/agent.json").read_text(encoding="utf-8"))
-            recien = agente.get("newly_ingested_brief_ids")
-            if recien:
-                fallos.append(f"A: agent.json sigue anunciando como recien ingeridas "
-                              f"{recien}, y en la segunda pasada no llego ninguna")
+            # Y al reves para las que anuncian: lo que se anuncia como recien
+            # llegado se recalcula cada corrida. Si el generador lo hereda de su
+            # propia salida, la comparacion byte a byte no lo ve -las dos
+            # pasadas traen el mismo valor rancio- y el sitio anuncia manana la
+            # historia de ayer.
+            rancias = [rel for rel in ANUNCIAN
+                       if NUEVA in (clon / "release-src" / rel).read_text(encoding="utf-8")]
+            if rancias:
+                fallos.append(f"A: {', '.join(rancias)} sigue anunciando la historia como "
+                              f"recien llegada, y en esta pasada no llego ninguna")
 
         # A2. Lo publicado es lo que el generador produce hoy. Es la unica
         #     comprobacion que depende del arbol del repo, y la arregla

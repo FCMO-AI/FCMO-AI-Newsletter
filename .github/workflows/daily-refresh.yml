@@ -109,14 +109,18 @@ jobs:
           git config user.name 'FCMO Newsletter Refresh'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           rm -rf publish regression
-          git add -A -- release-src release-overlay site
+          # El recibo tambien es producto del refresco: sin el, el arbol que
+          # se comitea afirma un contenido que ya no es el suyo y la compuerta
+          # `recibo contra el arbol` se pone en rojo en la siguiente corrida.
+          git add -A -- release-src release-overlay site READY_TO_PUBLISH.md
           if git diff --cached --quiet; then
             echo 'El corpus no trajo contenido nuevo; nada que comprometer.'
             exit 0
           fi
-          if ! git diff --cached --quiet -- ':!release-src' ':!release-overlay' ':!site'; then
+          fuera=":!release-src :!release-overlay :!site :!READY_TO_PUBLISH.md"
+          if ! git diff --cached --quiet -- $fuera; then
             echo 'el refresco toco algo fuera de su alcance' >&2
-            git diff --cached --name-only -- ':!release-src' ':!release-overlay' ':!site' >&2
+            git diff --cached --name-only -- $fuera >&2
             exit 1
           fi
           git commit -m 'release: refresh from the sanitized corpus'
