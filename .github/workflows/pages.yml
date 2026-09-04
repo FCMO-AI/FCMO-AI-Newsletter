@@ -9,6 +9,13 @@ on:
       - 'tools/apply_final_release.py'
       - 'tools/apply_curated_i18n.py'
       - '.github/workflows/pages.yml'
+  # Un push hecho con GITHUB_TOKEN no dispara otros workflows, asi que el commit
+  # del refresco diario nunca llegaria a Pages por la via de `push`. Este gancho
+  # es la que la documentacion de GitHub senala para ese caso.
+  workflow_run:
+    workflows: ['Refresh the newsletter from the sanitized corpus']
+    types: [completed]
+    branches: [main]
   public:
   workflow_dispatch:
 
@@ -25,7 +32,11 @@ jobs:
   build:
     # Keep the private repository prelaunch-safe. The same workflow fires again
     # automatically when GitHub emits the `public` event after visibility changes.
-    if: github.event.repository.visibility == 'public'
+    # Un refresco que fallo no se despliega: la segunda condicion solo mira el
+    # resultado cuando el disparador fue `workflow_run`.
+    if: >-
+      github.event.repository.visibility == 'public' &&
+      (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
