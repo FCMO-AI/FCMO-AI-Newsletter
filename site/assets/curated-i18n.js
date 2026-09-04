@@ -123,7 +123,24 @@
     if ((m = text.match(/^(\d+) open evidence gaps$/))) return locale === 'es-419' ? `${m[1]} vacíos abiertos de evidencia` : `${m[1]} 项待补证据`;
     if ((m = text.match(/^(\d+) explicit relationships$/))) return locale === 'es-419' ? `${m[1]} relaciones explícitas` : `${m[1]} 条明确关联`;
     if ((m = text.match(/^(\d+) of (\d+) public briefs$/))) return locale === 'es-419' ? `${m[1]} de ${m[2]} dossiers públicos` : `${m[2]} 份公开档案中显示 ${m[1]} 份`;
-    if ((m = text.match(/^(\d+) briefs$/))) return locale === 'es-419' ? `${m[1]} dossiers` : `${m[1]} 份档案`;
+    if ((m = text.match(/^(\d+) briefs?$/))) return locale === 'es-419'
+      ? `${m[1]} ${m[1] === '1' ? 'dossier' : 'dossiers'}` : `${m[1]} 份档案`;
+    if ((m = text.match(/^(\d+) BRIEFS$/))) return locale === 'es-419' ? `${m[1]} DOSSIERS` : `${m[1]} 份档案`;
+    if ((m = text.match(/^lead I(\d+)$/))) return locale === 'es-419' ? `impacto tope I${m[1]}` : `最高影响 I${m[1]}`;
+    if ((m = text.match(/^lead impact (\d+)$/))) return locale === 'es-419' ? `impacto tope ${m[1]}` : `最高影响 ${m[1]}`;
+    if ((m = text.match(/^(\d+) visible$/))) return locale === 'es-419'
+      ? `${m[1]} ${m[1] === '1' ? 'visible' : 'visibles'}` : `显示 ${m[1]} 条`;
+    if ((m = text.match(/^Source (\d+)$/))) return locale === 'es-419' ? `Fuente ${m[1]}` : `来源 ${m[1]}`;
+    if ((m = text.match(/^(\d+) match(?:es)? · (\d+) returned$/))) return locale === 'es-419'
+      ? `${m[1]} ${m[1] === '1' ? 'coincidencia' : 'coincidencias'} · ${m[2]} ${m[2] === '1' ? 'devuelta' : 'devueltas'}`
+      : `${m[1]} 条匹配 · 返回 ${m[2]} 条`;
+    if ((m = text.match(/^(\d{4}) · (\d+) developments?$/))) return locale === 'es-419'
+      ? `${m[1]} · ${m[2]} ${m[2] === '1' ? 'desarrollo' : 'desarrollos'}` : `${m[1]} · ${m[2]} 项进展`;
+    // '01 Aug' en la linea de tiempo: dia y mes abreviado, sin ano.
+    if ((m = text.match(/^(\d{1,2}) (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)$/))) {
+      const month = MONTHS[locale]?.[m[2]];
+      if (month) return locale === 'es-419' ? `${m[1]} ${month}` : `${month}月${Number(m[1])}日`;
+    }
     if ((m = text.match(/^Evidence ([A-D])$/))) return locale === 'es-419' ? `Evidencia ${m[1]}` : `${m[1]} 级证据`;
     if ((m = text.match(/^Impact (\d+) \/ 10$/))) return locale === 'es-419' ? `Impacto ${m[1]} / 10` : `影响 ${m[1]} / 10`;
     if ((m = text.match(/^(\d+) source families \/ (\d+) claim records \/ (\d+) open gaps$/))) return locale === 'es-419'
@@ -264,6 +281,12 @@
     }
   }
 
+  function documentTitle() {
+    if (!pack || !document.title) return;
+    const next = translateDynamic(document.title.trim());
+    if (next && next !== document.title) document.title = next;
+  }
+
   function editorialOverrides() {
     if (!pack) return;
     const heroTitle = document.querySelector('.hero-copy h1');
@@ -326,7 +349,7 @@
   function apply() {
     if (scheduled) return; scheduled = true;
     queueMicrotask(() => {
-      scheduled = false; selector(); collapseCanonicalDossier(); legalNotice(); walk(document.body); editorialOverrides();
+      scheduled = false; selector(); collapseCanonicalDossier(); legalNotice(); walk(document.body); editorialOverrides(); documentTitle();
     });
   }
   const observer = new MutationObserver(apply);
