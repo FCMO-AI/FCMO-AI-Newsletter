@@ -93,7 +93,7 @@
       'Machine-readable corpus →':'Corpus legible por máquinas →','Lead signal':'Señal principal','Front page':'Portada','Desks':'Secciones','Uncertainty docket':'Expediente de incertidumbre',
       'multi-source':'múltiples fuentes','source families':'familias de fuentes','claim records':'afirmaciones registradas','open gaps':'vacíos abiertos',
       'Claims':'Afirmaciones','Mechanism':'Mecanismo','Weak edge':'Punto débil','Provenance':'Procedencia','Complete desk →':'Ver sección completa →','Open full desk →':'Abrir sección completa →',
-      'public briefs':'dossiers públicos','lead impact':'impacto principal','development':'desarrollo','developments':'desarrollos','Topic':'Tema','Organization':'Organización',
+      'lead impact':'impacto principal','development':'desarrollo','developments':'desarrollos','Topic':'Tema','Organization':'Organización',
       'Library':'Biblioteca','Newsroom':'Redacción','Query the record.':'Consulta el registro.','Don’t scrape it.':'No lo extraigas con scraping.','Agent interface':'Interfaz para agentes'
     },
     'zh-Hans': {
@@ -101,7 +101,7 @@
       'Opening the canonical FCMO AI Newsletter record…':'正在打开 FCMO AI Newsletter 权威记录……','Continue':'继续',
       'Machine-readable corpus →':'机器可读语料库 →','Lead signal':'主信号','Front page':'首页','Desks':'栏目','Uncertainty docket':'不确定性清单',
       'multi-source':'多来源','source families':'来源组','claim records':'论断记录','open gaps':'待补证据','Claims':'论断','Mechanism':'机制','Weak edge':'薄弱环节','Provenance':'来源与谱系',
-      'Complete desk →':'完整栏目 →','Open full desk →':'打开完整栏目 →','public briefs':'公开档案','lead impact':'最高影响','development':'项进展','developments':'项进展',
+      'Complete desk →':'完整栏目 →','Open full desk →':'打开完整栏目 →','lead impact':'最高影响','development':'项进展','developments':'项进展',
       'Topic':'主题','Organization':'机构','Library':'资料库','Newsroom':'编辑部','Query the record.':'查询公开记录。','Don’t scrape it.':'无需抓取。','Agent interface':'智能体接口'
     }
   };
@@ -314,10 +314,10 @@
     const details = document.createElement('details'); details.className = 'fcmo-canonical-dossier';
     const summary = document.createElement('summary');
     const label = document.createElement('span'); label.className = 'fcmo-canonical-label';
-    label.textContent = phraseMap.get('English canonical record') || 'English canonical record';
+    label.textContent = phraseMap.get('Curated dossier · English canonical source') || 'Curated dossier · English canonical source';
     const note = document.createElement('span'); note.className = 'fcmo-canonical-note';
-    note.textContent = phraseMap.get('Technical evidence stays in English so its meaning is not altered.')
-      || 'Technical evidence stays in English so its meaning is not altered.';
+    note.textContent = phraseMap.get('This view translates the full dossier. Use the English version for the canonical semantic source.')
+      || 'This view translates the full dossier. Use the English version for the canonical semantic source.';
     summary.append(label, note);
     const body = document.createElement('div'); body.className = 'fcmo-canonical-body';
     main.insertBefore(details, canonicalSections[0]);

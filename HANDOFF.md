@@ -1,4 +1,7 @@
-# Handoff — estado del sitio y trabajo pendiente
+# Handoff — cierre del relevo de software
+
+> **Cierre 2026-09-04:** el relevo de software quedó completado por el siguiente pase. Los dos defectos de i18n de la sección 2 fueron corregidos y convertidos en regresiones. La auditoría adicional encontró y corrigió también métricas persistentes congeladas (22 briefs / 46 gaps), el `22 BRIEFS` de Agent, deriva del contrato de localización, el recibo prelaunch que todavía describía un repo privado y la política de publicación desactualizada. Los prerrequisitos externos de la sección 3 siguen siendo configuración de plataforma, no trabajo de código pendiente.
+
 
 Escrito 2026-09-04. El autor anterior deja de trabajar aquí. Este documento es
 todo lo que necesitas para continuar. `main` está en verde y desplegado.
@@ -40,7 +43,7 @@ Suite: `python -m unittest discover -s tests` → 10 tests, OK (~37 s local,
 
 ---
 
-## 2. Lo que queda abierto — dos defectos reales
+## 2. Defectos heredados — diagnóstico histórico, ya resuelto
 
 Los encontré con un barrido en navegador y **no alcancé a arreglarlos**. Están
 descritos con su causa raíz; no hace falta rediagnosticar.

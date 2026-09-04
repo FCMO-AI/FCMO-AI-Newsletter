@@ -28,10 +28,17 @@ LEGAL_ATTRIBUTE = ("data-fcmo-legal", "canonical")
 RUNTIME_UI_KEYS = {
     "Language", "Newsletter language", "Lead signal", "Uncertainty docket",
     "Evidence", "Impact", "public briefs", "total public briefs",
-    "source families", "claim records", "open gaps",
+    "source families", "claim records", "open gaps", "Evidence distribution",
+    "That standalone route does not exist. Use the publication navigation above.",
+    "Curated dossier · English canonical source",
+    "This view translates the full dossier. Use the English version for the canonical semantic source.",
     "Front page", "Research", "Desks", "Editions", "Chronology", "Topics",
     "Organizations", "Agent",
 }
+# Footnote: a source key containing a live corpus count is a time bomb.  Dates,
+# licenses and model names may contain digits; only count-bearing brief labels
+# are forbidden here, because those must be formatted dynamically.
+COUNT_BOUND_UI_KEY = re.compile(r"\b\d+\s+(?:public\s+)?briefs?\b", re.I)
 REQUIRED_FORMATS = {
     "brief", "brief_total", "public_brief", "total_public_brief", "issue_brief",
     "development", "source_family", "claim_record", "open_gap", "impact_short",
@@ -342,6 +349,11 @@ def _taxonomy_values(records: dict[str, dict]) -> set[str]:
 def _validate_runtime_catalog(
     locale: str, catalog: dict[str, object], formats: dict[str, object], records: dict[str, dict], errors: list[str]
 ) -> None:
+    for source in sorted(catalog):
+        if COUNT_BOUND_UI_KEY.search(source):
+            errors.append(
+                f"{locale}: count-bearing UI key {source!r} is forbidden; use a dynamic format/pattern instead"
+            )
     for source in sorted(RUNTIME_UI_KEYS):
         translated = catalog.get(source)
         if not isinstance(translated, str) or not translated.strip():
