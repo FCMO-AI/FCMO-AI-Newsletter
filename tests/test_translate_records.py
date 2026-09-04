@@ -145,5 +145,29 @@ class TranslateRecordsTests(unittest.TestCase):
                     self.assertEqual(document["canonical_source_sha256"], digest)
 
 
+class FormatoPreservado(unittest.TestCase):
+    """Un archivo compacto tiene que salir compacto.
+
+    Los `part-*.json` son JSON de una sola linea y terminan en salto, asi que
+    detectar la indentacion buscando cualquier salto los daba por indentados:
+    cada refresco reescribia los cuatro archivos enteros y producia un diff de
+    150 KB de puro reformateo, dentro del cual nadie ve el cambio real.
+    """
+
+    def test_compacto_sigue_compacto(self) -> None:
+        from tools.translate_records import _format_json
+
+        documento = {"schema": "x", "records": {"FCMO-1": {"title": "t"}}}
+        compacto = json.dumps(documento, ensure_ascii=False, separators=(",", ":")) + "\n"
+        self.assertEqual(_format_json(documento, compacto), compacto)
+
+    def test_indentado_conserva_su_sangria(self) -> None:
+        from tools.translate_records import _format_json
+
+        documento = {"schema": "x", "records": {}}
+        indentado = json.dumps(documento, ensure_ascii=False, indent=4) + "\n"
+        self.assertEqual(_format_json(documento, indentado), indentado)
+
+
 if __name__ == "__main__":
     unittest.main()

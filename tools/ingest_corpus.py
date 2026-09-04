@@ -138,13 +138,11 @@ def additions_since_base(index: str, identifiers: list[str]) -> list[str]:
     return [identifier for identifier in identifiers if identifier not in existing_ids]
 
 
-def llms_index(additions: list[str], records: dict[str, dict[str, Any]]) -> str:
-    """Render the corpus-derived additions to the otherwise hand-authored guide."""
-    if not additions:
-        return ""
-    lines = ["", "## Newly ingested briefs"]
-    for identifier in additions:
-        record = records[identifier]
+def llms_index(records: list[dict[str, Any]]) -> str:
+    """Render the corpus-derived index to the otherwise hand-authored guide."""
+    lines = ["", "## Briefs"]
+    for record in records:
+        identifier = record["id"]
         lines.append(
             f"- {identifier} — {record['title']} "
             f"({record['machine_url']})"
@@ -497,14 +495,13 @@ def build(corpus: Path, out: Path) -> None:
     release_index = (repo / "release-src" / "index.html").read_text(encoding="utf-8")
     additions = additions_since_base(release_index, ids)
     agent = read_json(repo / "release-src" / "agent.json")
+    agent["newly_ingested_brief_ids"] = additions
     agent["counts"] = {
         "briefs": len(records),
         "topics": len(facets(records, "topics", "topic")),
         "organizations": len(facets(records, "organizations", "organization")),
         "relationships": len(relationships),
     }
-    if additions:
-        agent["newly_ingested_brief_ids"] = additions
     topic_rows = facets(records, "topics", "topic")
     organization_rows = facets(records, "organizations", "organization")
     published = next((edition for edition in editions if edition["published"]), None)
@@ -609,10 +606,10 @@ def build(corpus: Path, out: Path) -> None:
         "sitemap.xml": sitemap(sorted(ids), edition_dates).encode("utf-8"),
         "robots.txt": f"User-agent: *\nAllow: /\nSitemap: {BASE_URL}sitemap.xml\n".encode("utf-8"),
         "agent.json": json_bytes(agent),
-        "llms.txt": (LLMS_SCAFFOLD + llms_index(additions, records_by_id)).encode("utf-8"),
+        "llms.txt": (LLMS_SCAFFOLD + llms_index(records)).encode("utf-8"),
         "llms-full.txt": (
             LLMS_SCAFFOLD
-            + llms_index(additions, records_by_id)
+            + llms_index(records)
             + "\n## Full query contract\n```json\n"
             + json.dumps(agent, ensure_ascii=False, indent=2)
             + "\n```\n\n## Canonical brief summaries (JSONL)\n"
@@ -651,6 +648,10 @@ def build(corpus: Path, out: Path) -> None:
             shutil.rmtree(out)
         os.replace(stage, out)
         stage = None
+        atomic_write(
+            out.parent / f".{out.name}.agent-run.json",
+            json_bytes({"newly_ingested_brief_ids": additions}),
+        )
     finally:
         if stage is not None and stage.exists():
             shutil.rmtree(stage)
