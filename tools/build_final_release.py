@@ -138,9 +138,36 @@ def read_manifest(path: Path) -> dict:
     return manifest
 
 
-def expected_manifest(manifest: dict, artifacts: Artifacts) -> dict:
+def derived_counts(source: Path) -> dict:
+    """Las cuentas que `apply_final_release.py` exige, leidas del arbol real.
+
+    Estaban escritas a mano en el manifiesto y ancladas a 22 historias, asi que
+    la primera historia nueva rompia el aplicador y no habia forma de publicarla
+    sin editar el manifiesto tambien. Derivarlas no debilita la comprobacion:
+    lo que el aplicador vigila es que el arbol desempaquetado del overlay sea el
+    que el overlay empaqueto, y eso lo sigue viendo.
+    """
+    def cuantos(rel: str, patron: str) -> int:
+        directorio = source / rel
+        return len(sorted(directorio.glob(patron))) if directorio.is_dir() else 0
+
+    media_path = source / "data" / "media.json"
+    media = json.loads(media_path.read_text(encoding="utf-8")) if media_path.is_file() else []
+    return {
+        "canonical_briefs": cuantos("data/briefs", "FCMO-*.json"),
+        "stable_brief_routes": cuantos("developments", "FCMO-*.html"),
+        "edition_routes": cuantos("data/editions", "*.json"),
+        "story_media": {
+            "real_preferred": sum(1 for row in media if row.get("sourced") is True),
+            "embedded_fallback": sum(1 for row in media if row.get("sourced") is False),
+        },
+    }
+
+
+def expected_manifest(manifest: dict, artifacts: Artifacts, source: Path) -> dict:
     result = dict(manifest)
     result.update(artifacts.hashes)
+    result.update(derived_counts(source))
     return result
 
 
@@ -154,10 +181,10 @@ def disk_encoded_parts(overlay: Path) -> tuple[list[Path], str]:
     return parts, encoded
 
 
-def check(overlay: Path, manifest: dict, artifacts: Artifacts) -> None:
+def check(overlay: Path, manifest: dict, artifacts: Artifacts, source: Path) -> None:
     mismatches: list[str] = []
-    actual = artifacts.hashes
-    for field in RECALCULATED_FIELDS:
+    actual = {**artifacts.hashes, **derived_counts(source)}
+    for field in (*RECALCULATED_FIELDS, *derived_counts(source)):
         if manifest.get(field) != actual[field]:
             mismatches.append(f"{field}: manifest={manifest.get(field)!r}, rebuilt={actual[field]!r}")
 
@@ -176,7 +203,7 @@ def check(overlay: Path, manifest: dict, artifacts: Artifacts) -> None:
     )
 
 
-def write_overlay(overlay: Path, manifest: dict, artifacts: Artifacts) -> None:
+def write_overlay(overlay: Path, manifest: dict, artifacts: Artifacts, source: Path) -> None:
     parts_dir = overlay / "parts"
     parts_dir.mkdir(parents=True, exist_ok=True)
     for path in parts_dir.glob("part-*.b64"):
@@ -189,7 +216,7 @@ def write_overlay(overlay: Path, manifest: dict, artifacts: Artifacts) -> None:
 
     manifest_path = overlay / "manifest.json"
     manifest_path.write_text(
-        json.dumps(expected_manifest(manifest, artifacts), indent=2) + "\n",
+        json.dumps(expected_manifest(manifest, artifacts, source), indent=2) + "\n",
         encoding="utf-8",
         newline="\n",
     )
@@ -227,9 +254,9 @@ def main(argv: list[str] | None = None) -> int:
         manifest = read_manifest(manifest_path)
         artifacts = build_in_memory(source, manifest["part_size_base64_chars"])
         if args.check:
-            check(overlay, manifest, artifacts)
+            check(overlay, manifest, artifacts, source)
         else:
-            write_overlay(overlay, manifest, artifacts)
+            write_overlay(overlay, manifest, artifacts, source)
             print(
                 f"built final release overlay: {artifacts.file_count} files, "
                 f"{len(artifacts.parts)} parts, archive {sha256(artifacts.archive)}"

@@ -1,0 +1,123 @@
+name: Refresh the newsletter from the sanitized corpus
+
+# La esclusa de ARB deja el corpus saneado en corpus/ y empuja con un PAT, lo
+# que si dispara este workflow. El cron es la red: si la esclusa no corrio ese
+# dia, aqui no cambia nada y no se comete nada. Ver ADR-0011.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'corpus/**'
+      - 'tools/ingest_corpus.py'
+      - 'tools/translate_records.py'
+      - '.github/workflows/daily-refresh.yml'
+  schedule:
+    - cron: '30 12 * * *'   # 06:30 America/Mexico_City, media hora despues de la esclusa
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: newsletter-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Look for a corpus to ingest
+        id: corpus
+        shell: bash
+        run: |
+          # El cron corre todos los dias; la esclusa de ARB puede no haber
+          # publicado nunca. Eso no es un fallo del refresco: es que no hay nada
+          # que refrescar. Un rojo diario aqui solo ensenaria a ignorar el rojo.
+          if [ -f corpus/index.html ] && [ -d corpus/developments ]; then
+            echo 'hay=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'hay=false' >> "$GITHUB_OUTPUT"
+            echo '::notice::corpus/ ausente; la esclusa de ARB no ha publicado todavia. Nada que refrescar.'
+          fi
+
+      - name: Regenerate the frozen source from the corpus
+        if: steps.corpus.outputs.hay == 'true'
+        run: python tools/ingest_corpus.py --corpus corpus --out release-src
+
+      - name: Prove the ingest carried every story across
+        if: steps.corpus.outputs.hay == 'true'
+        shell: python
+        run: |
+          # Un generador que copia el sitio de ayer no falla: emite lo mismo y
+          # el refresco decide que no hay nada que comprometer. Silencioso y
+          # perpetuo. Que el corpus y el corpus canonico cuadren en numero es la
+          # comprobacion mas barata que rompe ese silencio.
+          import json, re, sys
+          from pathlib import Path
+          filas = [json.loads(l) for l in
+                   Path('corpus/data/developments.jsonl').read_text(encoding='utf-8').splitlines()
+                   if l.strip()]
+          entrada = {f['id'] for f in filas}
+          html = Path('release-src/index.html').read_text(encoding='utf-8')
+          m = re.search(r'<script id="fcmo-data" type="application/json">(.*?)</script>', html, re.S)
+          if not m:
+              sys.exit('release-src/index.html quedo sin el corpus canonico fcmo-data')
+          salida = {r['id'] for r in json.loads(m.group(1))['records']}
+          if entrada != salida:
+              print(f'el corpus trae {len(entrada)} historias y el sitio {len(salida)}', file=sys.stderr)
+              for etiqueta, faltan in (('no llegaron', entrada - salida), ('sobran', salida - entrada)):
+                  if faltan:
+                      print(f'  {etiqueta}: {sorted(faltan)}', file=sys.stderr)
+              raise SystemExit(1)
+          print(f'las {len(entrada)} historias del corpus estan en el sitio')
+
+      - name: Translate the records that lack a curated entry
+        if: steps.corpus.outputs.hay == 'true'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        shell: bash
+        run: |
+          # Sale 2 sin credencial y deja el sitio intacto: el refresco se detiene
+          # aqui antes de tocar nada, en vez de publicar historias sin traducir
+          # que la compuerta de identidad rechazaria despues.
+          python tools/translate_records.py --site release-src --apply
+
+      - name: Rebuild the frozen overlay
+        if: steps.corpus.outputs.hay == 'true'
+        run: python tools/build_final_release.py
+
+      - name: Rebuild the readiness receipt
+        if: steps.corpus.outputs.hay == 'true'
+        run: python tools/build_ready_receipt.py
+
+      - name: Run the six publication gates
+        if: steps.corpus.outputs.hay == 'true'
+        run: python tools/verify_release.py
+
+      - name: Commit only what the refresh produced
+        if: steps.corpus.outputs.hay == 'true'
+        shell: bash
+        run: |
+          git config user.name 'FCMO Newsletter Refresh'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          rm -rf publish regression
+          git add -A -- release-src release-overlay site
+          if git diff --cached --quiet; then
+            echo 'El corpus no trajo contenido nuevo; nada que comprometer.'
+            exit 0
+          fi
+          if ! git diff --cached --quiet -- ':!release-src' ':!release-overlay' ':!site'; then
+            echo 'el refresco toco algo fuera de su alcance' >&2
+            git diff --cached --name-only -- ':!release-src' ':!release-overlay' ':!site' >&2
+            exit 1
+          fi
+          git commit -m 'release: refresh from the sanitized corpus'
+          git push origin HEAD:main
