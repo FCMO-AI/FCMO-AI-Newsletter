@@ -23,8 +23,8 @@ Do not manually copy a different `index.html` into Pages or bypass the release v
 - Release manifest schema: `fcmo-ai-newsletter-release-overlay-v2`
 - Release: `signal-field-v4.1-final`
 - Front-end SHA-256: `8383e0c1d9ff6c377e537446c0203e3dfa85903226987d90bdbdfa7d440fc11f`
-- Release archive SHA-256: `0387d68ed93b1f0668efc0e53191fb45606091123e041f5c914b44756edc986b`
-- Encoded release payload SHA-256: `e1eca7e0fe4c243d0cf3271a140764e1b7f34a275380e4d220c0df49c606a479`
+- Release archive SHA-256: `4bff395098fc93a20eb0b717c275def206d643b31268e3a0d0bcf972baa6d1e4`
+- Encoded release payload SHA-256: `89cbeb82dad5ec802633f583ee0c00b688a8e7751a0707a590dcfb87d46f2eb1`
 - 15/15 release payload parts present; payload and archive checked by SHA-256
 - 98 public files after assembly
 - 23 canonical dossiers

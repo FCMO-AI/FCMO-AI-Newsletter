@@ -244,6 +244,16 @@ def main() -> int:
                 if not (s23 / rel).is_file():
                     fallos.append(f"B: falta {rel}")
 
+            # La pagina de una historia es un salto a la ruta de la SPA, y el
+            # idioma viaja en la query. Un salto que no la arrastre deja al
+            # lector en la portada sin `?lang`, que entonces resuelve por el
+            # idioma del navegador: eliges ingles, pulsas una historia, y el
+            # sitio te contesta en otro idioma.
+            salto = s23 / f"developments/{NUEVA}.html"
+            if salto.is_file() and "location.search" not in salto.read_text(encoding="utf-8"):
+                fallos.append("B: la pagina de la historia salta a la SPA sin conservar la "
+                              "query, asi que pierde el idioma elegido")
+
             pag = s23 / f"developments/{NUEVA}.html"
             if pag.is_file():
                 otra = next(p for p in sorted((s23 / "developments").glob("FCMO-*.html"))
