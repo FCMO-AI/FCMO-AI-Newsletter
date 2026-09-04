@@ -130,15 +130,21 @@ def serve(root: Path):
 
 def render(browser: str, url: str) -> RenderedDOM:
     # Footnote: each navigation gets a fresh browser profile so localStorage from
-    # one locale cannot make the next case pass accidentally.  ja-JP also makes
-    # browser-language fallback useless to ES/ZH assertions.
-    with tempfile.TemporaryDirectory(prefix="fcmo-dom-profile-") as profile:
+    # one locale cannot make the next case pass accidentally. ja-JP also makes
+    # browser-language fallback useless to ES/ZH assertions. Chrome can leave a
+    # short-lived profile helper after its main process exits, so cleanup is best
+    # effort; profile leftovers must never turn a successful DOM assertion red.
+    profile = Path(tempfile.mkdtemp(prefix="fcmo-dom-profile-"))
+    try:
         command = [
             browser,
             "--headless=new",
             "--no-sandbox",
             "--disable-gpu",
             "--disable-dev-shm-usage",
+            "--disable-background-networking",
+            "--disable-component-update",
+            "--disable-sync",
             "--hide-scrollbars",
             "--lang=ja-JP",
             "--virtual-time-budget=2500",
@@ -164,6 +170,8 @@ def render(browser: str, url: str) -> RenderedDOM:
         dom = RenderedDOM()
         dom.feed(completed.stdout)
         return dom
+    finally:
+        shutil.rmtree(profile, ignore_errors=True)
 
 
 def require(condition: bool, message: str) -> None:
