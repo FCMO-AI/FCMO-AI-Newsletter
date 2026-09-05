@@ -1,18 +1,26 @@
 name: Refresh the newsletter from the sanitized corpus
 
-# La esclusa de ARB deja el corpus saneado en corpus/ y empuja con un PAT, lo
-# que si dispara este workflow. El cron es la red: si la esclusa no corrio ese
-# dia, aqui no cambia nada y no se comete nada. Ver ADR-0011.
+# ARB may legitimately have no new public story on a quiet day. The distinction that
+# matters operationally is no-public-delta vs no-delivery. Airlock v2 therefore requires
+# a fresh transport heartbeat and fails red on starvation instead of reporting a green
+# no-op that can hide a broken newspaper.
 on:
   push:
     branches: [main]
     paths:
       - 'corpus/**'
       - 'tools/ingest_corpus.py'
+      - 'tools/airlock_health.py'
+      - 'tools/prune_locale_packs.py'
       - 'tools/translate_records.py'
+      - 'tools/review_translations.py'
+      - 'tools/build_story_wire.py'
+      - 'tools/build_visual_desk.py'
+      - 'tools/validate_media_rights.py'
+      - 'tools/build_distribution_surfaces.py'
       - '.github/workflows/daily-refresh.yml'
   schedule:
-    - cron: '30 12 * * *'   # 06:30 America/Mexico_City, media hora despues de la esclusa
+    - cron: '30 12 * * *'   # 06:30 America/Mexico_City, after the daily upstream heartbeat
   workflow_dispatch:
 
 permissions:
@@ -34,32 +42,20 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Look for a corpus to ingest
-        id: corpus
-        shell: bash
-        run: |
-          # El cron corre todos los dias; la esclusa de ARB puede no haber
-          # publicado nunca. Eso no es un fallo del refresco: es que no hay nada
-          # que refrescar. Un rojo diario aqui solo ensenaria a ignorar el rojo.
-          if [ -f corpus/index.html ] && [ -d corpus/developments ]; then
-            echo 'hay=true' >> "$GITHUB_OUTPUT"
-          else
-            echo 'hay=false' >> "$GITHUB_OUTPUT"
-            echo '::notice::corpus/ ausente; la esclusa de ARB no ha publicado todavia. Nada que refrescar.'
-          fi
+      - name: Run autonomous-newsroom unit contracts
+        run: python -m unittest discover -s tests -v
 
-      - name: Regenerate the frozen source from the corpus
-        if: steps.corpus.outputs.hay == 'true'
+      - name: Prove upstream delivered a fresh airlocked release
+        run: python tools/airlock_health.py corpus --max-age-hours 30
+
+      - name: Regenerate the canonical public English source from the corpus
         run: python tools/ingest_corpus.py --corpus corpus --out release-src
 
       - name: Prove the ingest carried every story across
-        if: steps.corpus.outputs.hay == 'true'
         shell: python
         run: |
-          # Un generador que copia el sitio de ayer no falla: emite lo mismo y
-          # el refresco decide que no hay nada que comprometer. Silencioso y
-          # perpetuo. Que el corpus y el corpus canonico cuadren en numero es la
-          # comprobacion mas barata que rompe ese silencio.
+          # A generator that silently copies yesterday's site can otherwise look green
+          # forever. The canonical corpus IDs and regenerated site IDs must be identical.
           import json, re, sys
           from pathlib import Path
           filas = [json.loads(l) for l in
@@ -69,59 +65,76 @@ jobs:
           html = Path('release-src/index.html').read_text(encoding='utf-8')
           m = re.search(r'<script id="fcmo-data" type="application/json">(.*?)</script>', html, re.S)
           if not m:
-              sys.exit('release-src/index.html quedo sin el corpus canonico fcmo-data')
+              sys.exit('release-src/index.html lost the canonical fcmo-data corpus')
           salida = {r['id'] for r in json.loads(m.group(1))['records']}
           if entrada != salida:
-              print(f'el corpus trae {len(entrada)} historias y el sitio {len(salida)}', file=sys.stderr)
-              for etiqueta, faltan in (('no llegaron', entrada - salida), ('sobran', salida - entrada)):
+              print(f'corpus has {len(entrada)} stories and regenerated site has {len(salida)}', file=sys.stderr)
+              for etiqueta, faltan in (('missing', entrada - salida), ('extra', salida - entrada)):
                   if faltan:
                       print(f'  {etiqueta}: {sorted(faltan)}', file=sys.stderr)
               raise SystemExit(1)
-          print(f'las {len(entrada)} historias del corpus estan en el sitio')
+          print(f'all {len(entrada)} corpus stories reached the public English source')
 
-      - name: Translate the records that lack a curated entry
-        if: steps.corpus.outputs.hay == 'true'
+      - name: Persist public-safe newsroom health into the release
+        run: python tools/airlock_health.py corpus --max-age-hours 30 --out release-src/data/newsroom-status.json
+
+      - name: Remove translations for prose that the semantic airlock reclassified private
+        run: python tools/prune_locale_packs.py --site release-src --apply
+
+      - name: Translate records that lack a curated entry
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         shell: bash
         run: |
-          # Sale 2 sin credencial y deja el sitio intacto: el refresco se detiene
-          # aqui antes de tocar nada, en vez de publicar historias sin traducir
-          # que la compuerta de identidad rechazaria despues.
+          # Exit 2 without a credential and stop before any public commit. A story and
+          # its ES/ZH editions remain one publication obligation.
           python tools/translate_records.py --site release-src --apply
 
+      - name: Independently review changed translations
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          FCMO_TRANSLATION_REVIEW_MODEL: ${{ vars.FCMO_TRANSLATION_REVIEW_MODEL }}
+        run: python tools/review_translations.py --site release-src
+
+      - name: Build the newspaper Story wire
+        run: python tools/build_story_wire.py --site release-src
+
+      - name: Run autonomous Visual Desk and quarantine unlicensed discoveries
+        run: python tools/build_visual_desk.py --site release-src --work newsroom-work --discover
+
+      - name: Enforce image reuse rights
+        run: python tools/validate_media_rights.py --site release-src
+
+      - name: Build localized routes, NewsArticle metadata and sitemaps
+        run: python tools/build_distribution_surfaces.py --site release-src
+
       - name: Rebuild the frozen overlay
-        if: steps.corpus.outputs.hay == 'true'
         run: python tools/build_final_release.py
 
       - name: Rebuild the readiness receipt
-        if: steps.corpus.outputs.hay == 'true'
         run: python tools/build_ready_receipt.py
 
-      - name: Run the six publication gates
-        if: steps.corpus.outputs.hay == 'true'
+      - name: Run publication gates
         run: python tools/verify_release.py
 
-      - name: Commit only what the refresh produced
-        if: steps.corpus.outputs.hay == 'true'
+      - name: Commit only what the autonomous newsroom produced
         shell: bash
         run: |
-          git config user.name 'FCMO Newsletter Refresh'
+          git config user.name 'FCMO Newsletter Newsroom'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           rm -rf publish regression
-          # El recibo tambien es producto del refresco: sin el, el arbol que
-          # se comitea afirma un contenido que ya no es el suyo y la compuerta
-          # `recibo contra el arbol` se pone en rojo en la siguiente corrida.
+          # newsroom-work/ is intentionally ephemeral: discovered images without proven
+          # reuse rights must never enter public history merely because they were found.
           git add -A -- release-src release-overlay site READY_TO_PUBLISH.md
           if git diff --cached --quiet; then
-            echo 'El corpus no trajo contenido nuevo; nada que comprometer.'
+            echo 'Healthy delivery contained no release-state delta; nothing to commit.'
             exit 0
           fi
           fuera=":!release-src :!release-overlay :!site :!READY_TO_PUBLISH.md"
           if ! git diff --cached --quiet -- $fuera; then
-            echo 'el refresco toco algo fuera de su alcance' >&2
+            echo 'newsroom touched something outside its publication scope' >&2
             git diff --cached --name-only -- $fuera >&2
             exit 1
           fi
-          git commit -m 'release: refresh from the sanitized corpus'
+          git commit -m 'release: autonomous newsroom refresh'
           git push origin HEAD:main
