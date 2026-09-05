@@ -78,21 +78,37 @@ def assert_shape(source: Any, translated: Any, path: str, errors: list[str]) -> 
         errors.append(f"{path}: scalar overlay replaced canonical structure")
 
 
+def source_for_overlay(source: Any, overlay: Any) -> Any:
+    """Return the exact canonical paths represented by a sparse locale overlay."""
+    if isinstance(source, dict) and isinstance(overlay, dict):
+        return {
+            key: source_for_overlay(source[key], value)
+            for key, value in overlay.items()
+            if key in source
+        }
+    if isinstance(source, list) and isinstance(overlay, list):
+        return [source_for_overlay(s, t) for s, t in zip(source, overlay)]
+    return source
+
+
 def translated_projection(row: dict[str, Any]) -> dict[str, Any]:
     return {key: row[key] for key in sorted(PROSE_KEYS) if key in row}
 
 
 def check_invariants(source: dict[str, Any], overlay: dict[str, Any], locale: str, rid: str, errors: list[str]) -> None:
     assert_shape(source, overlay, f"{locale}:{rid}", errors)
+    matched_source = source_for_overlay(source, overlay)
+    source_text = "\n".join(strings(matched_source))
     merged_text = "\n".join(strings(overlay))
     if not merged_text.strip():
         errors.append(f"{locale}:{rid}: empty locale overlay")
         return
     for regex, label in ((NUM, "number"), (FCMO_ID, "FCMO id"), (URL, "URL")):
-        src = sorted(regex.findall("\n".join(strings(source))))
+        src = sorted(regex.findall(source_text))
         dst = sorted(regex.findall(merged_text))
-        # Footnote: exact multiset preservation catches silent benchmark/version/
-        # citation drift. It intentionally does not pretend to prove prose quality.
+        # Footnote: invariants compare only canonical paths that the sparse
+        # overlay actually translates. Timestamps/scores outside that surface
+        # cannot create false drift while numbers inside prose still fail closed.
         if src != dst:
             errors.append(f"{locale}:{rid}: {label} tokens changed: source={src} locale={dst}")
     title = str(overlay.get("title") or "").strip()
@@ -102,7 +118,7 @@ def check_invariants(source: dict[str, Any], overlay: dict[str, Any], locale: st
         errors.append(f"{locale}:{rid}: title/summary/why_it_matters must be editorially complete")
     if locale == "zh-Hans" and len(merged_text) >= 120 and len(CJK.findall(merged_text)) < 20:
         errors.append(f"{locale}:{rid}: long edition lacks expected Han-script content")
-    if stable_digest(translated_projection(source)) == stable_digest(translated_projection(overlay)):
+    if stable_digest(matched_source) == stable_digest(overlay):
         errors.append(f"{locale}:{rid}: edition is unchanged from canonical English")
 
 
