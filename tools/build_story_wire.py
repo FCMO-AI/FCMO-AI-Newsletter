@@ -23,6 +23,18 @@ def read_briefs(root: Path) -> list[dict[str, Any]]:
     return rows
 
 
+def read_public_research(root: Path) -> dict[str, dict[str, Any]]:
+    if not root.is_dir():
+        return {}
+    result: dict[str, dict[str, Any]] = {}
+    for path in sorted(root.glob("FCMO-*.json")):
+        value = json.loads(path.read_text(encoding="utf-8"))
+        if value.get("schema") != "fcmo-public-clean-room-research-v1":
+            raise ValueError(f"unsupported clean-room research schema: {path}")
+        result[value["id"]] = value
+    return result
+
+
 def disposition(brief: dict[str, Any]) -> str:
     evidence = str(brief.get("evidence_class") or "")
     confidence = str(brief.get("confidence") or "")
@@ -52,7 +64,18 @@ def story_type(brief: dict[str, Any]) -> str:
     return "ANALYSIS"
 
 
-def story(doc: dict[str, Any]) -> dict[str, Any]:
+def publication_event(brief: dict[str, Any]) -> str:
+    status = str(brief.get("status") or "")
+    if status == "retracted":
+        return "RETRACTION"
+    if status == "invalidated":
+        return "CORRECTION"
+    if status == "superseded":
+        return "SUPERSESSION"
+    return "CURRENT"
+
+
+def story(doc: dict[str, Any], research: dict[str, Any] | None = None) -> dict[str, Any]:
     record = doc["record"]
     brief = doc["brief"]
     limitations = list(brief.get("limitations") or [])
@@ -64,6 +87,17 @@ def story(doc: dict[str, Any]) -> dict[str, Any]:
     ]
     technical = brief.get("technical") or {}
     sources = list(brief.get("source_urls") or [])
+    public_analysis = list((research or {}).get("public_analysis") or [])
+    additional_sources = [
+        item["url"]
+        for item in ((research or {}).get("independent_sources") or [])
+        if isinstance(item, dict) and isinstance(item.get("url"), str)
+    ]
+    clean_room_contradictions = [
+        item["text"]
+        for item in ((research or {}).get("contradictions") or [])
+        if isinstance(item, dict) and isinstance(item.get("text"), str)
+    ]
     return {
         "schema": "fcmo-newsroom-story-v1",
         "story_id": "STORY-" + record["id"],
@@ -71,6 +105,7 @@ def story(doc: dict[str, Any]) -> dict[str, Any]:
         "headline": record["title"],
         "dek": record["summary"],
         "story_type": story_type(brief),
+        "publication_event": publication_event(brief),
         "disposition": disposition(brief),
         "published_at": brief.get("event_at") or record.get("event_at"),
         "modified_at": brief.get("last_verified_at"),
@@ -85,24 +120,33 @@ def story(doc: dict[str, Any]) -> dict[str, Any]:
         "mechanism": technical.get("mechanism", ""),
         "demonstrated_result": technical.get("demonstrated_result", ""),
         "claimed_result": technical.get("claimed_result", ""),
-        "what_is_not_proven": limitations + contradictions + gaps,
+        "what_is_not_proven": limitations + contradictions + gaps + clean_room_contradictions,
         "claims": list(brief.get("claims") or []),
-        "sources": sources,
+        "sources": list(dict.fromkeys(sources + additional_sources)),
         "human_url": record.get("human_url"),
         "machine_url": record.get("machine_url"),
-        # Footnote: there is intentionally no implicit FCMO strategic-analysis field.
-        # Public analysis must be authored from the clean-room side, not inherited from
-        # ARB's private implication blocks.
-        "public_analysis": [],
+        # Footnote: public analysis can enter only from the clean-room web research
+        # record. It is never inherited from ARB's private implication blocks. Also,
+        # the clean-room model's confidence is exposed separately and cannot silently
+        # upgrade the canonical ARB evidence/confidence used for disposition.
+        "public_analysis": public_analysis,
+        "public_context_summary": (research or {}).get("public_context_summary"),
+        "public_research_confidence": (research or {}).get("confidence_after_public_check"),
+        "independent_source_count": len(additional_sources),
+        "public_research_url": (
+            f"data/newsroom-research/{record['id']}.json" if research else None
+        ),
     }
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--site", type=Path, default=Path("release-src"))
+    parser.add_argument("--research-dir", type=Path, default=Path("site/data/newsroom-research"))
     args = parser.parse_args()
     docs = read_briefs(args.site)
-    stories = [story(doc) for doc in docs]
+    research = read_public_research(args.research_dir)
+    stories = [story(doc, research.get(doc["record"]["id"])) for doc in docs]
     stories.sort(
         key=lambda item: (
             {"LEAD": 5, "STANDARD": 4, "BRIEF": 3, "SIGNAL": 2, "DATABASE_ONLY": 1}.get(item["disposition"], 0),
@@ -115,8 +159,20 @@ def main() -> int:
     out = args.site / "data" / "stories.json"
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(stories, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    counts = {key: sum(1 for item in stories if item["disposition"] == key) for key in ("LEAD", "STANDARD", "BRIEF", "SIGNAL", "DATABASE_ONLY")}
-    print(json.dumps({"stories": len(stories), "dispositions": counts}, sort_keys=True))
+    counts = {
+        key: sum(1 for item in stories if item["disposition"] == key)
+        for key in ("LEAD", "STANDARD", "BRIEF", "SIGNAL", "DATABASE_ONLY")
+    }
+    print(
+        json.dumps(
+            {
+                "stories": len(stories),
+                "stories_with_clean_room_research": sum(1 for item in stories if item.get("public_research_url")),
+                "dispositions": counts,
+            },
+            sort_keys=True,
+        )
+    )
     return 0
 
 
