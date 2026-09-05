@@ -1,14 +1,20 @@
 #!/usr/bin/env python3
-"""Las seis compuertas de publicación, en una sola orden.
+"""Run the complete FCMO AI Newsletter publication gates in one command.
 
-`release-validate.yml` las corre paso a paso en cada PR. El refresco diario
-necesita exactamente el mismo veredicto antes de comprometer nada, y repetir
-seis bloques de YAML es la forma segura de que un día dejen de coincidir.
-
-Salida 0 solo si las seis pasan.
+The historical release had six gates. Airlock v2 adds deterministic newsroom, media
+rights and independent-translation-review gates while preserving the old checks. The
+stricter autonomous contract activates when ``data/newsroom-status.json`` first exists;
+that makes migration explicit without pretending historical assets already carried new
+receipts.
 """
 from __future__ import annotations
-import hashlib, json, re, shutil, subprocess, sys
+
+import hashlib
+import json
+import re
+import shutil
+import subprocess
+import sys
 from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parents[1]
@@ -26,15 +32,39 @@ def paso(nombre, fn):
 
 
 def corre(*args):
-    r = subprocess.run([sys.executable, *args], cwd=RAIZ, capture_output=True,
-                       text=True, encoding="utf-8", errors="replace")
+    r = subprocess.run(
+        [sys.executable, *args],
+        cwd=RAIZ,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+    )
     if r.returncode:
-        raise RuntimeError((r.stderr or r.stdout or "").strip()[-1500:])
-    return None
+        raise RuntimeError((r.stderr or r.stdout or "").strip()[-2500:])
+    return (r.stdout or "").strip().splitlines()[-1] if (r.stdout or "").strip() else None
 
 
 def compilar():
-    return corre("-m", "py_compile", "tools/apply_final_release.py", "tools/apply_curated_i18n.py")
+    paths = (
+        "tools/apply_final_release.py",
+        "tools/apply_curated_i18n.py",
+        "tools/ingest_corpus.py",
+        "tools/airlock_health.py",
+        "tools/public_research_desk.py",
+        "tools/prune_locale_packs.py",
+        "tools/translate_records.py",
+        "tools/review_translations.py",
+        "tools/validate_translation_reviews.py",
+        "tools/build_story_wire.py",
+        "tools/build_visual_desk.py",
+        "tools/validate_media_rights.py",
+        "tools/build_distribution_surfaces.py",
+        "tools/validate_newsroom_surfaces.py",
+        "tests/oraculos/verificar_dom.py",
+        "tests/oraculos/verificar_live.py",
+    )
+    return corre("-m", "py_compile", *paths)
 
 
 def overlay():
@@ -43,6 +73,12 @@ def overlay():
 
 def recibo():
     return corre("tools/build_ready_receipt.py", "--check")
+
+
+def newsroom():
+    corre("tools/validate_media_rights.py", "--site", "release-src")
+    corre("tools/validate_newsroom_surfaces.py", "--site", "release-src")
+    return corre("tools/validate_translation_reviews.py", "--site", "release-src")
 
 
 def ensamblar():
@@ -87,11 +123,23 @@ def identidad():
     assert {p.stem for p in (root / "developments").glob("FCMO-*.html")} == ids, "las paginas no cuadran"
     assert len(list((root / "editions").glob("*.html"))) >= 3, "faltan ediciones"
     assert (root / "build-manifest.json").is_file(), "falta build-manifest.json"
+
+    # Footnote: once an autonomous receipt exists, all new newspaper surfaces are a
+    # single release obligation. Partial Story/metadata/locale deployments are defects.
+    if (root / "data/newsroom-status.json").is_file():
+        stories = json.loads((root / "data/stories.json").read_text(encoding="utf-8"))
+        assert len(stories) == len(ids), "Story wire no cuadra con el corpus"
+        assert (root / "news-sitemap.xml").is_file(), "falta news-sitemap.xml"
+        assert (root / "data/news-articles.json").is_file(), "falta NewsArticle index"
+        for rid in ids:
+            for segment in ("en", "es", "zh-hans"):
+                assert (root / segment / "developments" / f"{rid}.html").is_file(), f"falta ruta {segment}/{rid}"
     return f"{len(registros)} registros / 3 idiomas / {digest[:12]}"
 
 
 def falla_cerrado():
     from tools.apply_curated_i18n import validate_curated_i18n
+
     reg = RAIZ / "regression"
     if reg.exists():
         shutil.rmtree(reg)
@@ -102,12 +150,17 @@ def falla_cerrado():
     m = re.search(r'(<script id="fcmo-data" type="application/json">)(.*?)(</script>)', texto, re.S)
     datos = json.loads(m.group(2))
     semilla = dict(datos["records"][0])
-    semilla.update({"id": "FCMO-FFFFFFFFFFFF",
-                    "title": "Synthetic untranslated publication-gate regression story",
-                    "summary": "Fixture only.", "why_it_matters": "Fixture only."})
+    semilla.update(
+        {
+            "id": "FCMO-FFFFFFFFFFFF",
+            "title": "Synthetic untranslated publication-gate regression story",
+            "summary": "Fixture only.",
+            "why_it_matters": "Fixture only.",
+        }
+    )
     datos["records"].append(semilla)
     nuevo = m.group(1) + json.dumps(datos, ensure_ascii=False, separators=(",", ":")) + m.group(3)
-    idx.write_text(texto[:m.start()] + nuevo + texto[m.end():], encoding="utf-8")
+    idx.write_text(texto[: m.start()] + nuevo + texto[m.end() :], encoding="utf-8")
     try:
         validate_curated_i18n(reg)
     except ValueError as exc:
@@ -122,9 +175,15 @@ def falla_cerrado():
 
 def main() -> int:
     sys.path.insert(0, str(RAIZ))
-    compuertas = (("compilar herramientas", compilar), ("overlay contra su fuente", overlay),
-                  ("recibo contra el arbol", recibo), ("ensamblar candidato", ensamblar),
-                  ("identidad e idiomas", identidad), ("falla cerrado", falla_cerrado))
+    compuertas = (
+        ("compilar herramientas", compilar),
+        ("overlay contra su fuente", overlay),
+        ("recibo contra el arbol", recibo),
+        ("contratos newsroom/media/revision", newsroom),
+        ("ensamblar candidato", ensamblar),
+        ("identidad e idiomas", identidad),
+        ("falla cerrado", falla_cerrado),
+    )
     ok = [paso(n, f) for n, f in compuertas]
     if all(ok):
         print(f"\nlas {len(ok)} compuertas pasan")
