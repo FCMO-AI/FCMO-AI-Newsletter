@@ -31,6 +31,7 @@ jobs:
           python -m py_compile tools/visual_desk.py
           python -m py_compile tools/build_newsroom_surfaces.py
           python -m py_compile tools/build_editorial_frontends.py
+          python -m py_compile tools/finalize_editorial_frontends.py
           python -m py_compile tools/newsroom_receipt.py
           python -m py_compile tools/bootstrap_newsroom_status.py
           python -m py_compile tools/verify_live_newsroom.py
@@ -62,23 +63,6 @@ jobs:
       - name: Prove the committed three-language corpus is complete
         run: python tools/validate_localizations.py --site release-src
 
-      - name: Build deterministic editorial discovery surfaces
-        run: python tools/build_editorial_frontends.py --site site
-
-      - name: Prove required human and machine frontends exist
-        shell: bash
-        run: |
-          for path in \
-            site/archive.html site/search.html site/topics.html site/organizations.html \
-            site/corrections.html site/feeds.html site/methodology.html site/editorial-policy.html \
-            site/automation.html site/accessibility.html site/status.html site/404.html \
-            site/news/index.html site/feed.xml site/feed.json site/sitemap.xml site/news-sitemap.xml \
-            release-src/llms.txt release-src/llms-full.txt release-src/agent.json; do
-            test -s "$path" || { echo "missing frontend: $path" >&2; exit 1; }
-          done
-          test -n "$(find site/topics -name '*.html' -print -quit)" || { echo 'topic detail routes missing' >&2; exit 1; }
-          test -n "$(find site/organizations -name '*.html' -print -quit)" || { echo 'organization detail routes missing' >&2; exit 1; }
-
       - name: Assemble exact public candidate
         run: |
           rm -rf publish
@@ -90,6 +74,28 @@ jobs:
           PY
           )
           python tools/apply_curated_i18n.py publish "$CANONICAL_HASH"
+          # Footnote: this is the same ordering as Pages. Building discovery
+          # surfaces before the frozen overlay would validate pages that never ship.
+          python tools/build_editorial_frontends.py --site publish
+          python tools/finalize_editorial_frontends.py --site publish --refresh-manifest
+
+      - name: Prove required human and machine frontends exist in the exact candidate
+        shell: bash
+        run: |
+          for path in \
+            publish/archive.html publish/search.html publish/topics.html publish/organizations.html \
+            publish/corrections.html publish/feeds.html publish/methodology.html publish/editorial-policy.html \
+            publish/automation.html publish/accessibility.html publish/status.html publish/404.html \
+            publish/news/index.html publish/feed.xml publish/feed.json publish/sitemap.xml publish/news-sitemap.xml \
+            publish/llms.txt publish/llms-full.txt publish/agent.json; do
+            test -s "$path" || { echo "missing frontend: $path" >&2; exit 1; }
+          done
+          test -n "$(find publish/topics -name '*.html' -print -quit)" || { echo 'topic detail routes missing' >&2; exit 1; }
+          test -n "$(find publish/organizations -name '*.html' -print -quit)" || { echo 'organization detail routes missing' >&2; exit 1; }
+          if grep -Rni '/news/en/STORY-' publish/archive.html publish/search.html publish/topics publish/organizations; then
+            echo 'stale Story namespace remains in discovery frontend' >&2
+            exit 1
+          fi
 
       - name: Render runtime contracts in a real browser
         run: python tests/oraculos/verificar_dom.py publish
@@ -140,6 +146,9 @@ jobs:
           assert development_ids == canonical_ids, ('development parity', sorted(canonical_ids-development_ids), sorted(development_ids-canonical_ids))
           assert len(list((root/'editions').glob('*.html'))) == 3
           assert (root/'build-manifest.json').is_file()
+          build_manifest = json.loads((root/'build-manifest.json').read_text())
+          for required in ('archive.html','search.html','topics.html','organizations.html','methodology.html','automation.html','status.html'):
+              assert required in build_manifest['files'], required
           print(f'Curated release identity OK: {canonical_count} canonical records / 3 native languages / {digest}')
           PY
 
