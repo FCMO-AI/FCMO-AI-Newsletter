@@ -2,21 +2,22 @@ name: Refresh the autonomous newsroom from the sanitized corpus
 
 # ARB deja exclusivamente material saneado en corpus/. Desde aqui Newsletter
 # funciona como redaccion publica clean-room: valida el heartbeat, ingiere,
-# reconcilia traducciones, vuelve a investigar fuentes publicas, resuelve media,
-# construye Story surfaces y no publica hasta que todas las compuertas pasan.
+# incorpora las ediciones ES/ZH ya escritas por el agente editorial de ARB,
+# vuelve a investigar fuentes publicas, resuelve media, construye Story surfaces
+# y no publica hasta que todas las compuertas pasan.
 on:
   push:
     branches: [main]
     paths:
       - 'corpus/**'
       - 'tools/ingest_corpus.py'
+      - 'tools/sync_airlocked_locales.py'
       - 'tools/reconcile_locale_overlays.py'
-      - 'tools/translation_freshness.py'
-      - 'tools/translate_records.py'
-      - 'tools/review_localizations.py'
+      - 'tools/validate_localizations.py'
       - 'tools/public_research_desk.py'
       - 'tools/visual_desk.py'
       - 'tools/build_newsroom_surfaces.py'
+      - 'tools/build_editorial_frontends.py'
       - 'tools/newsroom_receipt.py'
       - '.github/workflows/daily-refresh.yml'
   schedule:
@@ -79,29 +80,14 @@ jobs:
               raise SystemExit(1)
           print(f'las {len(entrada)} historias del corpus estan en el sitio')
 
+      - name: Import ARB-authored Spanish and Chinese editions
+        run: python tools/sync_airlocked_locales.py --corpus corpus
+
       - name: Reconcile locale overlays with the declassified public schema
         run: python tools/reconcile_locale_overlays.py --site release-src
 
-      - name: Invalidate stale translations by per-story semantic digest
-        run: python tools/translation_freshness.py --site release-src --invalidate
-
-      - name: Translate every missing or semantically stale record
-        env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        shell: bash
-        run: |
-          # Sale 2 sin credencial y deja el sitio intacto: una historia y sus
-          # tres ediciones nativas son una sola obligacion de publicacion.
-          python tools/translate_records.py --site release-src --apply
-
-      - name: Independently review Spanish and Chinese editorial quality
-        env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          FCMO_TRANSLATION_REVIEW_MODEL: ${{ vars.FCMO_TRANSLATION_REVIEW_MODEL }}
-        run: python tools/review_localizations.py --site release-src
-
-      - name: Commit the per-story translation source identity in memory
-        run: python tools/translation_freshness.py --site release-src --record
+      - name: Prove all three editorial editions are publication-safe
+        run: python tools/validate_localizations.py --site release-src
 
       - name: Re-research the stories from public evidence only
         run: python tools/public_research_desk.py --release-src release-src
@@ -111,6 +97,9 @@ jobs:
 
       - name: Build the Story layer and static EN ES ZH news surfaces
         run: python tools/build_newsroom_surfaces.py --release-src release-src --site site
+
+      - name: Build the complete editorial and machine-facing frontend suite
+        run: python tools/build_editorial_frontends.py --site site
 
       - name: Write downstream newsroom acknowledgement
         run: python tools/newsroom_receipt.py finalize
@@ -130,8 +119,10 @@ jobs:
           git config user.name 'FCMO Autonomous Newsroom'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           rm -rf publish regression
-          # El readiness receipt, Story surfaces, research receipts, media
-          # provenance and language-review receipts are publication products.
+          # The readiness receipt, Story surfaces, public research receipts, media
+          # provenance and locale-integrity receipts are publication products.
+          # Footnote: no model credential is needed here; editorial language work
+          # crossed the airlock together with the English source material.
           git add -A -- release-src release-overlay site READY_TO_PUBLISH.md
           if git diff --cached --quiet; then
             echo 'Heartbeat sano y sin delta material; el arbol ya representa esta corrida.'
