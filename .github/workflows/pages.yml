@@ -8,13 +8,16 @@ on:
       - 'release-overlay/final/**'
       - 'tools/apply_final_release.py'
       - 'tools/apply_curated_i18n.py'
+      - 'tools/verify_live_newsroom.py'
       - 'tests/oraculos/verificar_dom.py'
       - '.github/workflows/pages.yml'
-  # Un push hecho con GITHUB_TOKEN no dispara otros workflows, asi que el commit
-  # del refresco diario nunca llegaria a Pages por la via de `push`. Este gancho
-  # es la que la documentacion de GitHub senala para ese caso.
+  # Un push hecho con GITHUB_TOKEN no dispara otros workflows. Tanto la redaccion
+  # diaria como el bootstrap publico comitean asi; workflow_run es por tanto el
+  # puente deliberado hacia Pages.
   workflow_run:
-    workflows: ['Refresh the newsletter from the sanitized corpus']
+    workflows:
+      - 'Refresh the autonomous newsroom from the sanitized corpus'
+      - 'Bootstrap autonomous newsroom from existing public release'
     types: [completed]
     branches: [main]
   public:
@@ -33,7 +36,7 @@ jobs:
   build:
     # Footnote: the repository is public today, but keeping the visibility gate
     # makes a future visibility change safe by default rather than deploy-by-surprise.
-    # A failed daily refresh also cannot reach Pages through workflow_run.
+    # A failed newsroom refresh/bootstrap cannot reach Pages through workflow_run.
     if: >-
       github.event.repository.visibility == 'public' &&
       (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success')
@@ -84,3 +87,18 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+  live-oracle:
+    name: prove the deployed newspaper is actually live
+    if: github.event.repository.visibility == 'public'
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify production origin, release identity and multilingual Story routes
+        run: python tools/verify_live_newsroom.py --allow-unbootstrapped
