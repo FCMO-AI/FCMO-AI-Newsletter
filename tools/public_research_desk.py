@@ -1,11 +1,16 @@
 #!/usr/bin/env python3
-"""Run a clean-room public-web research pass for newly ingested sanitized dossiers.
+"""Run a clean-room public-web research pass for sanitized public dossiers.
 
 This process receives only Newsletter's public dossier plus public web search. It never
 has credentials for, paths to, or identifiers from the private ARB repository. Results
 are useful only if their source URLs are present in the server-side web-search evidence
 returned by the provider; unsupported URLs are rejected rather than laundered into the
 public newsroom.
+
+Fresh dossiers are always researched first. Remaining capacity can backfill a bounded
+number of older dossiers per cycle so the public archive becomes richer over time
+without allowing historical depth work to crowd out today's news or create an unbounded
+web-search bill.
 """
 from __future__ import annotations
 
@@ -48,6 +53,16 @@ def load_brief(site: Path, identifier: str) -> dict[str, Any]:
     if value.get("schema") != "fcmo-public-brief-v1":
         raise ValueError(f"{identifier}: unsupported public brief schema")
     return value
+
+
+def all_briefs(site: Path) -> dict[str, dict[str, Any]]:
+    result: dict[str, dict[str, Any]] = {}
+    for path in sorted((site / "data" / "briefs").glob("FCMO-*.json")):
+        value = json.loads(path.read_text(encoding="utf-8"))
+        if value.get("schema") != "fcmo-public-brief-v1":
+            raise ValueError(f"unsupported public brief schema: {path}")
+        result[value["record"]["id"]] = value
+    return result
 
 
 def public_seed(document: dict[str, Any]) -> dict[str, Any]:
@@ -206,26 +221,56 @@ def research(seed: dict[str, Any], model: str, api_key: str, max_uses: int) -> d
     return validate_result(parse_json_text(response_text(payload)), searched)
 
 
+def pick_targets(
+    briefs: dict[str, dict[str, Any]],
+    new_ids: list[str],
+    store: Path,
+    backfill_limit: int,
+) -> tuple[list[str], list[str]]:
+    fresh = [identifier for identifier in new_ids if identifier in briefs]
+    already = {path.stem for path in store.glob("FCMO-*.json")} if store.is_dir() else set()
+    missing = [identifier for identifier in briefs if identifier not in already and identifier not in fresh]
+    missing.sort(
+        key=lambda identifier: (
+            int(
+                briefs[identifier]["brief"].get("importance_effective_score")
+                or briefs[identifier]["brief"].get("importance_score")
+                or 0
+            ),
+            str(briefs[identifier]["brief"].get("last_verified_at") or ""),
+            identifier,
+        ),
+        reverse=True,
+    )
+    backfill = missing[: max(0, backfill_limit)]
+    return fresh + backfill, backfill
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--site", type=Path, default=Path("release-src"))
     parser.add_argument("--store", type=Path, default=Path("site/data/newsroom-research"))
     parser.add_argument("--new-ids", type=Path, default=Path(".release-src.agent-run.json"))
-    parser.add_argument("--model", default=os.environ.get("FCMO_PUBLIC_RESEARCH_MODEL", DEFAULT_MODEL))
+    parser.add_argument("--model", default=os.environ.get("FCMO_PUBLIC_RESEARCH_MODEL") or DEFAULT_MODEL)
     parser.add_argument("--max-searches", type=int, default=6)
+    parser.add_argument("--backfill-missing", type=int, default=2)
     parser.add_argument("--engine", choices=("anthropic", "stub"), default="anthropic")
     args = parser.parse_args()
-    ids = load_new_ids(args.new_ids)
+
+    briefs = all_briefs(args.site)
+    new_ids = load_new_ids(args.new_ids)
+    args.store.mkdir(parents=True, exist_ok=True)
+    ids, backfill = pick_targets(briefs, new_ids, args.store, args.backfill_missing)
     if not ids:
-        print(json.dumps({"researched": 0, "reason": "NO_NEW_PUBLIC_DOSSIERS"}, sort_keys=True))
+        print(json.dumps({"researched": 0, "reason": "NO_NEW_OR_UNRESEARCHED_PUBLIC_DOSSIERS"}, sort_keys=True))
         return 0
     api_key = os.environ.get("ANTHROPIC_API_KEY", "")
     if args.engine == "anthropic" and not api_key.strip():
         raise SystemExit("ANTHROPIC_API_KEY is required for clean-room public web research")
-    args.store.mkdir(parents=True, exist_ok=True)
+
     researched = 0
     for identifier in ids:
-        document = load_brief(args.site, identifier)
+        document = briefs[identifier]
         seed = public_seed(document)
         if args.engine == "stub":
             result = {
@@ -251,6 +296,7 @@ def main() -> int:
             encoding="utf-8",
         )
         researched += 1
+
     index = []
     for path in sorted(args.store.glob("FCMO-*.json")):
         value = json.loads(path.read_text(encoding="utf-8"))
@@ -265,7 +311,12 @@ def main() -> int:
         json.dumps(index, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
     )
-    print(json.dumps({"researched": researched, "ids": ids}, sort_keys=True))
+    print(
+        json.dumps(
+            {"researched": researched, "ids": ids, "backfill_ids": backfill},
+            sort_keys=True,
+        )
+    )
     return 0
 
 
