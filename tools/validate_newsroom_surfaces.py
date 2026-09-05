@@ -3,8 +3,8 @@
 
 The pre-Airlock release is allowed exactly as a migration state. Presence of
 ``data/newsroom-status.json`` permanently activates the stricter contract: story parity,
-clean-room research provenance, media rights, localized routes, NewsArticle metadata and
-both sitemaps must all exist together.
+publication memory, clean-room research provenance, media rights, localized routes,
+NewsArticle metadata and both sitemaps must all exist together.
 """
 from __future__ import annotations
 
@@ -12,8 +12,6 @@ import argparse
 import json
 import xml.etree.ElementTree as ET
 from pathlib import Path
-
-from tools.validate_media_rights import main as _media_cli  # imported only for compile visibility
 
 
 def load(path: Path):
@@ -44,6 +42,9 @@ def validate(site: Path) -> list[str]:
         errors.append(f"stories.json is missing/invalid: {exc}")
         stories = []
     story_ids: set[str] = set()
+    allowed_events = {
+        "CURRENT", "NEW", "MATERIAL_UPDATE", "CORRECTION", "RETRACTION", "SUPERSESSION"
+    }
     for item in stories if isinstance(stories, list) else []:
         ids = item.get("research_ids") if isinstance(item, dict) else None
         if not isinstance(ids, list) or len(ids) != 1 or ids[0] not in brief_ids:
@@ -55,8 +56,10 @@ def validate(site: Path) -> list[str]:
             errors.append(f"{identifier}: Story ID mismatch")
         if item.get("disposition") not in {"LEAD", "STANDARD", "BRIEF", "SIGNAL", "DATABASE_ONLY"}:
             errors.append(f"{identifier}: invalid Story disposition")
-        if item.get("publication_event") not in {"CURRENT", "CORRECTION", "RETRACTION", "SUPERSESSION"}:
+        if item.get("publication_event") not in allowed_events:
             errors.append(f"{identifier}: invalid publication_event")
+        if not item.get("published_at") or not item.get("modified_at"):
+            errors.append(f"{identifier}: missing newspaper publication timestamps")
         research_url = item.get("public_research_url")
         if research_url:
             research_path = site.parent / "site" / str(research_url)
@@ -69,6 +72,17 @@ def validate(site: Path) -> list[str]:
         errors.append(
             f"Story/brief parity mismatch missing={sorted(brief_ids-story_ids)} extra={sorted(story_ids-brief_ids)}"
         )
+
+    memory_path = site.parent / "site" / "data" / "newsroom-publication-memory.json"
+    try:
+        memory = load(memory_path)
+        memory_rows = memory.get("stories") if isinstance(memory, dict) else None
+        if memory.get("schema_version") != 1 or not isinstance(memory_rows, dict):
+            errors.append("newsroom publication memory has invalid schema")
+        elif set(memory_rows) != brief_ids:
+            errors.append("newsroom publication memory/brief parity mismatch")
+    except Exception as exc:
+        errors.append(f"newsroom publication memory is missing/invalid: {exc}")
 
     try:
         media = load(site / "data" / "media.json")
