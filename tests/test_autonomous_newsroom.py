@@ -92,7 +92,7 @@ def write_locale(root: Path, locale: str, row: dict) -> None:
 
 
 class AutonomousNewsroomTests(unittest.TestCase):
-    def test_upstream_native_editions_pass_provider_free_integrity_gate(self) -> None:
+    def test_historical_native_editions_pass_truthful_provider_free_integrity_gate(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             site = root / "release-src"
@@ -108,9 +108,11 @@ class AutonomousNewsroomTests(unittest.TestCase):
                 "--site", str(site), "--i18n-dir", str(i18n), "--receipt", str(receipt)
             ]), 0)
             value = json.loads(receipt.read_text(encoding="utf-8"))
-            self.assertEqual(value["editorial_owner"], "ARB publication agent")
+            self.assertIn("ARB publication agent", value["editorial_owner"])
             self.assertFalse(value["network_translation"])
             self.assertFalse(value["human_reviewed"])
+            self.assertEqual(value["historical_structural_pairs"], 2)
+            self.assertEqual(value["strict_airlock_pairs"], 0)
 
     def test_missing_upstream_native_edition_fails_closed(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -125,12 +127,15 @@ class AutonomousNewsroomTests(unittest.TestCase):
             with self.assertRaisesRegex(SystemExit, "missing canonical ids"):
                 validate_localizations.main(["--site", str(site), "--i18n-dir", str(i18n)])
 
-    def test_airlocked_locale_delta_becomes_generated_locale_part(self) -> None:
+    def test_airlocked_locale_delta_becomes_strict_generated_locale_part(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             corpus = root / "corpus"
             i18n = root / "i18n"
+            site = root / "release-src"
+            site.mkdir()
             row = record()
+            write_index(site / "index.html", row)
             for locale in ("es-419", "zh-Hans"):
                 incoming = corpus / "data" / "locales" / locale
                 incoming.mkdir(parents=True, exist_ok=True)
@@ -148,6 +153,13 @@ class AutonomousNewsroomTests(unittest.TestCase):
             for locale in ("es-419", "zh-Hans"):
                 value = json.loads((i18n / locale / "part-airlock.json").read_text(encoding="utf-8"))
                 self.assertIn(RID, value["records"])
+            receipt = root / "integrity.json"
+            self.assertEqual(validate_localizations.main([
+                "--site", str(site), "--i18n-dir", str(i18n), "--receipt", str(receipt)
+            ]), 0)
+            value = json.loads(receipt.read_text(encoding="utf-8"))
+            self.assertEqual(value["strict_airlock_pairs"], 2)
+            self.assertEqual(value["historical_structural_pairs"], 0)
 
     def test_visual_desk_offline_generates_original_safe_asset(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
