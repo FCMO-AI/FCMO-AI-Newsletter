@@ -128,6 +128,7 @@ def main() -> int:
             ("ingesta", ["tools/ingest_corpus.py", "--corpus", str(corpus), "--out", "release-src"]),
             ("locales airlocked", ["tools/sync_airlocked_locales.py", "--corpus", str(corpus)]),
             ("reconciliacion locale", ["tools/reconcile_locale_overlays.py", "--site", "release-src"]),
+            ("identidad locale", ["tools/refresh_locale_identity.py", "--site", "release-src"]),
             ("integridad tres idiomas", ["tools/validate_localizations.py", "--site", "release-src"]),
             ("visual desk offline", ["tools/visual_desk.py", "--release-src", "release-src", "--site", "site", "--offline"]),
             ("story layer", ["tools/build_newsroom_surfaces.py", "--release-src", "release-src", "--site", "site"]),
