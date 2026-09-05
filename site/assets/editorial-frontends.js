@@ -11,7 +11,10 @@
   let rows = [];
 
   const escapeHtml = value => String(value ?? '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
-  const storyHref = id => `/FCMO-AI-Newsletter/news/en/STORY-${String(id || '').replace(/^FCMO-/, '')}.html`;
+  // Footnote: build_newsroom_surfaces.py deliberately keeps the declassified
+  // stable FCMO research identity in the article filename. Discovery surfaces
+  // must point to that route rather than inventing a second Story namespace.
+  const storyHref = id => `/FCMO-AI-Newsletter/news/en/${encodeURIComponent(String(id || ''))}.html`;
   const haystack = row => [row.title,row.summary,row.why_it_matters,row.mechanism,...(row.topics||[]),...(row.organizations||[])].join(' ').toLowerCase();
   const score = row => Number(row.importance_effective_score ?? row.importance_score ?? 0);
   const render = row => `<article class="index-item"><div class="item-meta">${escapeHtml(row.primary_desk || row.development_type || 'Research')}</div><h2><a href="${storyHref(row.id)}">${escapeHtml(row.title)}</a></h2><div class="signals"><span class="signal">EVIDENCE ${escapeHtml(row.evidence_class || '—')}</span><span class="signal">${escapeHtml(row.confidence || '—')}</span><span class="signal strong">IMPACT ${score(row)}/10</span></div><p>${escapeHtml(row.summary || '')}</p></article>`;
