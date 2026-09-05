@@ -15,6 +15,7 @@ from typing import Any
 LOCALES = ("es-419", "zh-Hans")
 SCHEMA = "fcmo-airlocked-locale-delta-v1"
 PART_SCHEMA = "fcmo-curated-locale-part-v1"
+AIRLOCK_PART = "part-airlock.json"
 
 
 def read_json(path: Path) -> dict[str, Any]:
@@ -50,7 +51,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--i18n-dir", type=Path, default=Path("site/data/i18n"))
     args = parser.parse_args(argv)
 
-    changed = added = 0
+    changed = added = promoted = 0
     for locale in LOCALES:
         incoming_path = args.corpus / "data" / "locales" / locale / "records.json"
         if not incoming_path.is_file():
@@ -67,46 +68,50 @@ def main(argv: list[str] | None = None) -> int:
             raise SystemExit(f"{incoming_path}: records object missing")
 
         locale_dir = args.i18n_dir / locale
+        locale_dir.mkdir(parents=True, exist_ok=True)
         existing, owners = load_existing(locale_dir)
-        overflow: dict[str, dict[str, Any]] = {}
-        touched: dict[Path, dict[str, Any]] = {}
+        airlock_part = locale_dir / AIRLOCK_PART
+        if airlock_part.is_file():
+            airlock_doc = read_json(airlock_part)
+            airlock_rows = airlock_doc.get("records")
+            if not isinstance(airlock_rows, dict):
+                raise SystemExit(f"{airlock_part}: records object missing")
+        else:
+            airlock_doc = {
+                "schema": PART_SCHEMA,
+                "locale": locale,
+                "canonical_locale": "en",
+                "generated_from": "ARB airlock; editorial wording authored upstream",
+                "records": {},
+            }
+            airlock_rows = airlock_doc["records"]
 
+        touched: dict[Path, dict[str, Any]] = {}
         for rid, overlay in sorted(rows.items()):
             if not isinstance(rid, str) or not rid.startswith("FCMO-") or not isinstance(overlay, dict):
                 raise SystemExit(f"{incoming_path}: malformed record {rid!r}")
             owner = owners.get(rid)
             if owner is None:
-                overflow[rid] = overlay
                 added += 1
-                continue
-            if existing[rid] == overlay:
-                continue
-            doc = touched.setdefault(owner, read_json(owner))
-            doc["records"][rid] = overlay
-            changed += 1
+            elif owner != airlock_part:
+                # Footnote: once ARB republishes a historical ID, move that ID out
+                # of its grandfathered pack into part-airlock. This preserves a
+                # durable provenance bit: every future/materially changed edition
+                # receives strict modern invariants without retroactively claiming
+                # the 2026 bootstrap packs were validated under rules they predate.
+                doc = touched.setdefault(owner, read_json(owner))
+                doc["records"].pop(rid, None)
+                promoted += 1
+            elif existing.get(rid) != overlay:
+                changed += 1
+            airlock_rows[rid] = overlay
 
         for path, doc in touched.items():
             write_json(path, doc)
+        if rows or airlock_rows:
+            write_json(airlock_part, airlock_doc)
 
-        # Footnote: build_newsroom_surfaces.py intentionally consumes every
-        # `part-*.json`; a dedicated generated part lets new upstream stories land
-        # without repartitioning or rewriting the hand-curated historical packs.
-        airlock_part = locale_dir / "part-airlock.json"
-        prior: dict[str, Any] = {}
-        if airlock_part.is_file():
-            prior_doc = read_json(airlock_part)
-            prior = prior_doc.get("records") if isinstance(prior_doc.get("records"), dict) else {}
-        prior.update(overflow)
-        if prior:
-            write_json(airlock_part, {
-                "schema": PART_SCHEMA,
-                "locale": locale,
-                "canonical_locale": "en",
-                "generated_from": "ARB airlock; editorial wording authored upstream",
-                "records": prior,
-            })
-
-    print(f"airlocked locale sync OK; updated={changed}; added={added}")
+    print(f"airlocked locale sync OK; updated={changed}; added={added}; promoted_from_history={promoted}")
     return 0
 
 
