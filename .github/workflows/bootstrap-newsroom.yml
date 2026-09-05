@@ -11,6 +11,7 @@ on:
       - 'tools/visual_desk.py'
       - 'tools/build_newsroom_surfaces.py'
       - 'tools/build_editorial_frontends.py'
+      - 'tools/finalize_editorial_frontends.py'
       - 'tools/validate_localizations.py'
       - 'tools/bootstrap_newsroom_status.py'
       - '.github/workflows/bootstrap-newsroom.yml'
@@ -50,8 +51,10 @@ jobs:
       - name: Build Story layer and static multilingual news routes
         run: python tools/build_newsroom_surfaces.py --release-src release-src --site site
 
-      - name: Build the complete editorial frontend suite
-        run: python tools/build_editorial_frontends.py --site site
+      - name: Build and finalize the complete editorial frontend suite
+        run: |
+          python tools/build_editorial_frontends.py --site site
+          python tools/finalize_editorial_frontends.py --site site
 
       - name: Write explicit non-airlock bootstrap status
         run: python tools/bootstrap_newsroom_status.py
