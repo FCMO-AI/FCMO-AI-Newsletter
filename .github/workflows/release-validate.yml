@@ -24,19 +24,31 @@ jobs:
           python -m py_compile tools/apply_final_release.py
           python -m py_compile tools/apply_curated_i18n.py
           python -m py_compile tools/ingest_corpus.py
+          python -m py_compile tools/sync_airlocked_locales.py
           python -m py_compile tools/reconcile_locale_overlays.py
-          python -m py_compile tools/translation_freshness.py
-          python -m py_compile tools/translate_records.py
-          python -m py_compile tools/review_localizations.py
+          python -m py_compile tools/validate_localizations.py
           python -m py_compile tools/public_research_desk.py
           python -m py_compile tools/visual_desk.py
           python -m py_compile tools/build_newsroom_surfaces.py
+          python -m py_compile tools/build_editorial_frontends.py
           python -m py_compile tools/newsroom_receipt.py
           python -m py_compile tools/bootstrap_newsroom_status.py
           python -m py_compile tools/verify_live_newsroom.py
           python -m py_compile tools/verify_release.py
           python -m py_compile tests/oraculos/verificar_dom.py
           python -m py_compile tests/test_autonomous_newsroom.py
+
+      - name: Prove translation infrastructure has no external model dependency
+        shell: bash
+        run: |
+          # Footnote: company names can legitimately occur in reported stories.
+          # This gate targets translation/publishing infrastructure identifiers,
+          # not editorial coverage of any company.
+          forbidden='ANTHROPIC_API_KEY|api\.anthropic\.com|FCMO_TRANSLATION_REVIEW_MODEL|translate_records\.py|review_localizations\.py|FCMO_NEWSLETTER_PUBLISH_TOKEN'
+          if grep -RniE "$forbidden" .github tools LOCALIZATION.md README.md 2>/dev/null; then
+            echo 'forbidden legacy translation/publisher infrastructure remains' >&2
+            exit 1
+          fi
 
       - name: Exercise the refresh tooling's own tests
         run: python -m unittest discover -s tests -v
@@ -46,6 +58,26 @@ jobs:
 
       - name: Prove the public release receipt matches the assembled tree
         run: python tools/build_ready_receipt.py --check
+
+      - name: Prove the committed three-language corpus is complete
+        run: python tools/validate_localizations.py --site release-src
+
+      - name: Build deterministic editorial discovery surfaces
+        run: python tools/build_editorial_frontends.py --site site
+
+      - name: Prove required human and machine frontends exist
+        shell: bash
+        run: |
+          for path in \
+            site/archive.html site/search.html site/topics.html site/organizations.html \
+            site/corrections.html site/feeds.html site/methodology.html site/editorial-policy.html \
+            site/automation.html site/accessibility.html site/status.html site/404.html \
+            site/news/index.html site/feed.xml site/feed.json site/sitemap.xml site/news-sitemap.xml \
+            release-src/llms.txt release-src/llms-full.txt release-src/agent.json; do
+            test -s "$path" || { echo "missing frontend: $path" >&2; exit 1; }
+          done
+          test -n "$(find site/topics -name '*.html' -print -quit)" || { echo 'topic detail routes missing' >&2; exit 1; }
+          test -n "$(find site/organizations -name '*.html' -print -quit)" || { echo 'organization detail routes missing' >&2; exit 1; }
 
       - name: Assemble exact public candidate
         run: |
