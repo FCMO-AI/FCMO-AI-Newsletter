@@ -2,8 +2,9 @@
 """Validate the upstream airlock heartbeat and write the downstream newsroom ACK.
 
 A fresh heartbeat with an unchanged content-addressed release is a healthy quiet
-cycle (NO_PUBLIC_DELTA). Missing/stale input is an operational failure, not a
-green no-op. Finalization records what Newsletter actually ingested and built.
+cycle (NO_PUBLIC_DELTA_READY). Missing/stale input is an operational failure,
+not a green no-op. Finalization records what Newsletter actually ingested and
+built; live deployment is proved separately by the post-deploy oracle.
 """
 from __future__ import annotations
 
@@ -104,7 +105,10 @@ def finalize(args: argparse.Namespace) -> int:
     if any(count != canonical_count for count in locale_counts.values()):
         raise ValueError(f"locale count mismatch: canonical={canonical_count} locales={locale_counts}")
 
-    state = "NO_PUBLIC_DELTA" if same else "PUBLISHED"
+    # Footnote: this runs before Pages. Calling the state PUBLISHED here would
+    # turn a successful build into a false deployment claim. The live oracle is
+    # the authority for actual production visibility.
+    state = "NO_PUBLIC_DELTA_READY" if same else "PUBLIC_DELTA_READY"
     now = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
     status = {
         "schema": STATUS_SCHEMA,
@@ -120,6 +124,7 @@ def finalize(args: argparse.Namespace) -> int:
         "finalized_at": now,
         "ack": "INGESTED_VALIDATED_AND_READY_FOR_DEPLOY",
         "previous_release_id": previous.get("release_id"),
+        "deployment_proof": "post-deploy live oracle required"
     }
     args.status.parent.mkdir(parents=True, exist_ok=True)
     args.status.write_text(json.dumps(status, indent=2, sort_keys=True) + "\n", encoding="utf-8")
