@@ -13,7 +13,7 @@ The newspaper should publish useful evidence and independently reconstructable p
 
 The production chain is:
 
-`ARB research → privacy scrub → semantic declassification → allowlist airlock → content-addressed newswire receipt → Newsletter clean-room research → translation freshness + independent language review → visual desk → Story layer → release gates → Pages → live oracle`.
+`ARB research + EN/ES/ZH editorial preparation → privacy scrub → semantic declassification → native-edition airlock → allowlisted content-addressed newswire receipt → Newsletter clean-room research → provider-free locale integrity → visual desk → Story layer → editorial discovery frontends → release gates → Pages → live oracle`.
 
 ## 2. Trust zones
 
@@ -21,13 +21,17 @@ The production chain is:
 
 ARB may know private projects, hypotheses, tests, scale-transfer warnings, strategic implications and operational state. None of those become public merely because they contain no obvious codename.
 
+ARB also owns the native-language editorial work for anything it chooses to publish. The research/publication agent that already understands the evidence prepares canonical English plus `es-419` and `zh-Hans` wording as one publication obligation. Language does not create a new declassification boundary: translated prose is screened under the same privacy rules as English.
+
 ### Airlock
 
-The airlock exports only positively allowlisted public evidence. Strategic research/engineering/policy implications are default-private. A fresh `airlock.json` receipt proves an airlock run occurred and gives the public payload a stable content-addressed `release_id`.
+The airlock exports only positively allowlisted public evidence and native-edition deltas that bind to the current declassified English source. Strategic research/engineering/policy implications are default-private. A fresh `airlock.json` receipt proves an airlock run occurred and gives the public payload a stable content-addressed `release_id`.
 
 ### Public clean room
 
 Newsletter never clones or authenticates to private ARB. `tools/public_research_desk.py` receives only already-sanitized public dossiers plus public Internet access. Any additional public context is therefore reconstructable without private research state.
+
+Newsletter never asks a model provider to translate or rewrite a story. It imports ARB-authored locale deltas, reconciles them against the declassified schema, validates high-value invariants, and fails closed on incomplete three-language coverage.
 
 ## 3. A dossier is not a Story
 
@@ -59,15 +63,20 @@ Static Story pages expose recurring evidence-first sections:
 
 FCMO Lens must never be populated by copying private ARB strategic implication fields. If public analysis cannot be supported from intentionally exposed public evidence, it does not belong there.
 
-## 5. Translation is a publication obligation
+## 5. Three native editions are one publication obligation
 
 A new or materially changed story is not publishable until all three native editions are complete.
 
-`tools/translation_freshness.py` tracks a digest of reader-facing canonical prose per stable FCMO ID. If an existing English dossier changes, the corresponding Spanish and Chinese overlays are invalidated and regenerated; stable IDs no longer imply stale translations are safe.
+ARB writes the two additional native editions before the airlock. Newsletter then:
 
-`tools/review_localizations.py` is independent of the translator. It applies deterministic number/ID/URL checks and an independent machine-language editorial review using MQM-style Critical/Major/Minor severity. Any Critical or Major error blocks publication. Review is explicitly machine review, not human review.
+1. imports `corpus/data/locales/es-419/records.json` and `zh-Hans/records.json` with `tools/sync_airlocked_locales.py`;
+2. prunes any overlay path that no longer exists in the declassified schema with `tools/reconcile_locale_overlays.py`;
+3. runs `tools/validate_localizations.py` to require exact story-ID parity, required reader-facing prose, compatible structure, exact number/FCMO-ID/URL preservation, basic Simplified-Chinese script sanity, and non-identical language editions;
+4. records a provider-free integrity receipt with `editorial_owner: ARB publication agent`, `human_reviewed: false`, and `network_translation: false`.
 
-The runtime remains presentation-only: no page-view translation API exists.
+Deterministic validation does not pretend to prove literary quality. Semantic fidelity is the responsibility of the ARB publication agent and remains auditable through source control. There is no downstream translation generator, no language-model review service, and no page-view generative fallback.
+
+The runtime remains presentation-only.
 
 ## 6. Autonomous visual desk
 
@@ -91,7 +100,7 @@ For each public dossier, `tools/public_research_desk.py` reopens cited public so
 
 Receipts record exactly what was checked and explicitly avoid claiming exhaustive web coverage. Multiple derivative sources are not treated as independent confirmation merely because they are numerous.
 
-## 8. Searchable multilingual newspaper surfaces
+## 8. Human and machine publication surfaces
 
 The newspaper emits static, indexable Story routes:
 
@@ -101,7 +110,11 @@ The newspaper emits static, indexable Story routes:
 
 The editorial locale remains `es-419`; the public search-language route/hreflang uses `es`. Story pages emit canonical links, `hreflang`, `x-default`, `NewsArticle` JSON-LD, organization byline and publication/update timestamps.
 
-`news-sitemap.xml` contains the recent Google-News-style publication window rather than pretending every historical dossier is breaking news.
+`tools/build_editorial_frontends.py` additionally builds first-class public discovery surfaces for archive, search, topics, topic detail, organizations, organization detail, corrections, feeds, methodology, editorial policy, automation disclosure, accessibility, newsroom status, 404 handling and the `/news/` language gateway. `tools/finalize_editorial_frontends.py` binds those pages to real Story routes, canonical URLs, sitemap coverage and the final build manifest.
+
+Machine-facing publication surfaces include RSS, JSON Feed, public search JSON, public development JSON/JSONL, Story JSON, general sitemap, news sitemap, `llms.txt`, `llms-full.txt` and `agent.json`.
+
+Discovery frontends are generated **after** the frozen overlay is mounted on the Pages candidate. This ordering is a contract: otherwise older archive/search shells stored in the overlay could silently replace newer presentation code.
 
 ## 9. Operational truth and ACK states
 
@@ -111,7 +124,7 @@ A refresh first requires a fresh `fcmo-newswire-airlock-v2` receipt. Newsletter 
 
 - `PUBLIC_DELTA_PENDING` — fresh airlock content differs from prior accepted release;
 - `NO_PUBLIC_DELTA` — airlock ran, but content identity is unchanged;
-- `PUBLIC_DELTA_READY` — new content was ingested, researched, localized, reviewed, illustrated and gated; deployment still requires Pages;
+- `PUBLIC_DELTA_READY` — new content was ingested, native-edition parity validated, researched, illustrated, built and gated; deployment still requires Pages;
 - `NO_PUBLIC_DELTA_READY` — a healthy quiet cycle was rebuilt/gated; deployment still requires Pages;
 - `BOOTSTRAPPED_FROM_EXISTING_PUBLIC_RELEASE` — one-time public-side migration status; explicitly does **not** assert a fresh ARB delivery.
 
@@ -121,16 +134,17 @@ Missing or stale airlock input is an operational failure, not a quiet-news state
 
 ## 10. Reality-grounded deployment proof
 
-Pages continues to use the existing frozen-overlay, curated-localization, readiness-receipt and real-browser gates.
+Pages uses the frozen-overlay, native-localization, readiness-receipt and real-browser gates, then regenerates discovery frontends on the exact assembled candidate before upload.
 
-After deployment, `tools/verify_live_newsroom.py` fetches the actual production origin and requires:
+After deployment, `tools/verify_live_newsroom.py` fetches the actual production origin and requires, among other contracts:
 
 - live release identity equals repository truth;
 - Story count equals the committed Story layer;
-- `/news/en/`, `/news/es/`, `/news/zh-hans/` are reachable;
+- `/news/en/`, `/news/es/`, `/news/zh-hans/` and the three-language `/news/` gateway are reachable;
 - the latest Story exists in all three languages;
 - `NewsArticle`, `hreflang` and the FCMO AI Research Desk byline are present;
-- `news-sitemap.xml` is reachable;
+- archive/search/topics/organizations/corrections/feeds/methodology/editorial-policy/automation/accessibility/status are live as real frontends rather than shells;
+- general and news sitemaps, feeds, `llms.txt`, `llms-full.txt` and `agent.json` are reachable;
 - the main publication links into FCMO WIRE;
 - an airlock-backed release is not stale.
 
@@ -138,7 +152,9 @@ A separate scheduled production-health workflow repeats this reality check. A gr
 
 ## 11. Authentication boundary
 
-ARB publication prefers a least-privilege GitHub App scoped to `FCMO-AI-Newsletter`. The legacy publisher token remains a migration fallback. Absence of both is a visible failure.
+ARB publication uses a least-privilege GitHub App installed only on `FCMO-AI-Newsletter`, with repository `Contents: read/write` and no broader organization authority. Each run mints a short-lived installation token, checks out the public sink with that machine identity, stages only `corpus/`, and pushes only that boundary.
+
+There is no personal publisher token fallback. Missing GitHub App configuration is a visible operational failure, not permission to widen credentials or bypass the airlock.
 
 The public repository never authenticates back into ARB.
 
@@ -146,4 +162,4 @@ The public repository never authenticates back into ARB.
 
 Research dossiers remain stable evidence identities. Material new evidence should update the same dossier/Story identity where appropriate; the existing correction and edition mechanisms remain authoritative rather than manufacturing a new story solely to refresh timestamps.
 
-Future additions must preserve the trust-zone model. In particular, richer public analysis, media discovery or new model providers may improve the newsroom but may not receive private ARB state as a shortcut.
+Future additions must preserve the trust-zone model. In particular, richer public analysis or media discovery may improve the newsroom but may not receive private ARB state as a shortcut, and no downstream service may silently reintroduce a second translation pipeline.
