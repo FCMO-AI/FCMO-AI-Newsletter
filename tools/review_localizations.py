@@ -29,6 +29,7 @@ from tools.translate_records import _read_canonical, _source_overlay, _preserves
 ENDPOINT = "https://api.anthropic.com/v1/messages"
 ANTHROPIC_VERSION = "2023-06-01"
 DEFAULT_MODEL = "claude-opus-5"
+DEFAULT_BATCH_SIZE = 4
 LOCALES = ("es-419", "zh-Hans")
 FCMO_ID = re.compile(r"FCMO-[0-9A-F]{12}")
 URL_RE = re.compile(r"https?://[^\s\]\[(){}<>\"']+")
@@ -91,8 +92,9 @@ def deterministic_checks(record_id: str, source: dict[str, Any], translated: dic
     if source_urls != translated_urls:
         errors.append("URLs differ from canonical prose")
     # Footnote: unchanged source prose is allowed only when it is genuinely an
-    # identifier/proper-name-like fragment. The existing localization gate owns
-    # exhaustive prose-completeness checks; this reviewer adds cross-language QA.
+    # identifier/proper-name-like fragment. The established localization gate
+    # owns exhaustive prose-completeness checks; this reviewer adds independent
+    # meaning/quality review and cross-language invariants.
     if not isinstance(translated, dict) or not translated:
         errors.append(f"{record_id}: translated overlay is empty")
     return errors
@@ -125,7 +127,10 @@ def parse_response(text: str) -> dict[str, Any]:
         start, end = cleaned.find("{"), cleaned.rfind("}")
         if start < 0 or end <= start:
             raise ReviewError("reviewer returned invalid JSON")
-        value = json.loads(cleaned[start:end + 1])
+        try:
+            value = json.loads(cleaned[start:end + 1])
+        except json.JSONDecodeError as exc:
+            raise ReviewError("reviewer returned invalid JSON") from exc
     rows = value.get("records") if isinstance(value, dict) else None
     if not isinstance(rows, dict):
         raise ReviewError("reviewer returned no records object")
@@ -169,7 +174,7 @@ def validate_review(expected: set[str], rows: dict[str, Any]) -> None:
         if not isinstance(row, dict):
             raise ReviewError(f"{rid}: malformed review")
         for key in ("critical", "major", "minor"):
-            if not isinstance(row.get(key), int) or row[key] < 0:
+            if not isinstance(row.get(key), int) or isinstance(row.get(key), bool) or row[key] < 0:
                 raise ReviewError(f"{rid}: invalid {key} count")
         if row["critical"] or row["major"]:
             notes = "; ".join(str(x) for x in (row.get("notes") or [])[:4])
@@ -178,14 +183,22 @@ def validate_review(expected: set[str], rows: dict[str, Any]) -> None:
             )
 
 
+def batches(payload: dict[str, Any], size: int) -> list[dict[str, Any]]:
+    ids = sorted(payload)
+    return [{rid: payload[rid] for rid in ids[offset:offset + size]} for offset in range(0, len(ids), size)]
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--site", type=Path, default=Path("release-src"))
     parser.add_argument("--i18n-dir", type=Path, default=Path("site/data/i18n"))
     parser.add_argument("--manifest", type=Path, default=Path("site/data/i18n/review-manifest.json"))
-    parser.add_argument("--model", default=os.environ.get("FCMO_TRANSLATION_REVIEW_MODEL", DEFAULT_MODEL))
-    parser.add_argument("--deterministic-only", action="store_true", help="run structural cross-language checks without provider review; CI/unit-test aid only")
+    parser.add_argument("--model", default=(os.environ.get("FCMO_TRANSLATION_REVIEW_MODEL") or DEFAULT_MODEL))
+    parser.add_argument("--batch-size", type=int, default=DEFAULT_BATCH_SIZE)
+    parser.add_argument("--deterministic-only", action="store_true", help="run structural cross-language checks without provider review; bootstrap/unit-test aid only")
     args = parser.parse_args(argv)
+    if args.batch_size < 1:
+        parser.error("--batch-size must be positive")
 
     try:
         canonical, _ = _read_canonical(args.site)
@@ -214,24 +227,35 @@ def main(argv: list[str] | None = None) -> int:
                 digests[rid] = (source_digest, translation_digest)
                 key = f"{locale}:{rid}"
                 prior = previous.get(key) or {}
+                # Footnote: deterministic-only receipts prove structure, not an
+                # independent language judgment. They never satisfy the provider
+                # review cache in a production run.
                 if (
                     prior.get("source_digest") == source_digest
                     and prior.get("translation_digest") == translation_digest
                     and prior.get("result") == "PASS"
+                    and prior.get("reviewer") != "deterministic-only"
                 ):
                     reused += 1
                     continue
                 pending[rid] = {"source": _source_overlay(source), "translation": translated}
 
             if pending:
+                rows: dict[str, Any] = {}
                 if args.deterministic_only:
-                    rows = {rid: {"critical": 0, "major": 0, "minor": 0, "notes": ["deterministic-only test mode"]} for rid in pending}
+                    rows = {rid: {"critical": 0, "major": 0, "minor": 0, "notes": ["structural bootstrap only; independent model review still required for future publication"]} for rid in pending}
                     review_model = "deterministic-only"
                 else:
                     if not api_key:
                         raise ReviewError("ANTHROPIC_API_KEY is required for independent localization review")
-                    rows = anthropic_review(locale, pending, args.model, api_key)
                     review_model = args.model
+                    # Footnote: review is intentionally chunked. A single whole-
+                    # corpus request couples unrelated stories and can exceed an
+                    # otherwise healthy provider context/output budget.
+                    for batch in batches(pending, args.batch_size):
+                        batch_rows = anthropic_review(locale, batch, args.model, api_key)
+                        validate_review(set(batch), batch_rows)
+                        rows.update(batch_rows)
                 validate_review(set(pending), rows)
                 now = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
                 for rid, row in rows.items():
