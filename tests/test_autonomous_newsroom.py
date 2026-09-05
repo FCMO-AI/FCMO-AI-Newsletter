@@ -6,7 +6,7 @@ import unittest
 from datetime import datetime, timezone
 from pathlib import Path
 
-from tools import build_newsroom_surfaces, newsroom_receipt, translation_freshness, visual_desk
+from tools import build_newsroom_surfaces, newsroom_receipt, review_localizations, translation_freshness, visual_desk
 
 
 RID = "FCMO-0C0DE0000001"
@@ -84,6 +84,25 @@ class AutonomousNewsroomTests(unittest.TestCase):
             for locale in ("es-419", "zh-Hans"):
                 value = json.loads((i18n / locale / "part-01.json").read_text(encoding="utf-8"))
                 self.assertNotIn(RID, value["records"])
+
+    def test_historical_localization_bootstrap_is_structural_not_retroactive_review(self) -> None:
+        historical = {
+            "title": "Título histórico válido",
+            "summary": "Resumen histórico válido aun si su tokenización no coincide con una regla nueva.",
+            "why_it_matters": "Importa porque ya fue publicado bajo el contrato anterior.",
+        }
+        # Footnote: migration proves only that the pre-existing locale pack is a
+        # usable historical artifact. It deliberately does not apply new numeric,
+        # URL or provider-review invariants retroactively, which would rewrite the
+        # truth about what was actually validated when those 23 stories shipped.
+        self.assertEqual(review_localizations.historical_bootstrap_checks(RID, historical), [])
+
+        incomplete = dict(historical)
+        incomplete["summary"] = ""
+        self.assertIn(
+            "lacks non-empty summary",
+            review_localizations.historical_bootstrap_checks(RID, incomplete)[0],
+        )
 
     def test_visual_desk_offline_generates_original_safe_asset(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
