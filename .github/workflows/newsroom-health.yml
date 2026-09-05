@@ -1,0 +1,32 @@
+name: Autonomous newsroom production health
+
+on:
+  workflow_run:
+    workflows: ['Deploy FCMO AI Newsletter']
+    types: [completed]
+    branches: [main]
+  schedule:
+    - cron: '17 */6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: newsroom-production-health
+  cancel-in-progress: true
+
+jobs:
+  production-health:
+    # A failed Pages workflow cannot be laundered into a healthy newsroom check.
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Prove production release identity and reader routes
+        run: python tools/verify_live_newsroom.py
