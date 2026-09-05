@@ -31,7 +31,11 @@ class RefrescoDiario(unittest.TestCase):
                       + (r.stdout or "") + "\n" + (r.stderr or ""))
 
     def test_generador_deriva_y_crece(self) -> None:
-        self.afirma("verificar_generador.py")
+        # release-src is now a composed newsroom product: ingest owns the
+        # canonical substrate while public-research/media are downstream layers.
+        # The adapter preserves the original strong ingest oracle and tests the
+        # composition boundary explicitly instead of weakening either layer.
+        self.afirma("verificar_generador_newsroom.py")
 
     def test_traductor_falla_cerrado_y_completa(self) -> None:
         self.afirma("verificar_traductor.py")
