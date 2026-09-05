@@ -12,10 +12,18 @@ import argparse
 import hashlib
 import json
 import os
+import sys
 import urllib.error
 import urllib.request
 from pathlib import Path
 from typing import Any
+
+# Footnote: like the first-pass translator, this editor is invoked directly by path in
+# Actions. Add the repository root explicitly so `tools.*` imports do not depend on how
+# Python happened to populate sys.path in a test runner.
+REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
 
 from tools.translate_records import (
     ANTHROPIC_VERSION,
@@ -48,21 +56,34 @@ def instructions(locale: str) -> str:
         "A PASS requires: same factual meaning and uncertainty strength as canonical English; no stronger claim; no "
         "omission or hallucination; exact preservation of numbers, percentages, dates, model/version names, IDs and URLs; "
         "natural technical-journalistic language; and faithful distinctions among demonstrated, claimed, inferred, disputed "
-        "and speculative content. Return JSON only: {\"reviews\": {record_id: {\"decision\": \"PASS\" or \"FAIL\", "
-        "\"errors\": [short strings], \"mqm_major\": integer, \"mqm_critical\": integer}}}. Any material evidence-strength "
+        "and speculative content. Return JSON only in the exact requested review object. Any material evidence-strength "
         "shift is CRITICAL. Any factual mistranslation/omission is MAJOR."
     )
 
 
 def call_reviewer(batch: dict[str, Any], locale: str, model: str, api_key: str) -> dict[str, Any]:
+    schema_hint = {
+        "reviews": {
+            "FCMO-EXAMPLE": {
+                "decision": "PASS",
+                "errors": [],
+                "mqm_major": 0,
+                "mqm_critical": 0,
+            }
+        }
+    }
+    prompt = (
+        instructions(locale)
+        + "\nReturn JSON matching this shape (replace the example ID with every supplied record ID):\n"
+        + json.dumps(schema_hint, ensure_ascii=False)
+        + "\n\nReview batch:\n"
+        + json.dumps(batch, ensure_ascii=False, indent=2)
+    )
     body = {
         "model": model,
         "max_tokens": 12000,
         "system": instructions(locale),
-        "messages": [{
-            "role": "user",
-            "content": instructions(locale) + "\n\nReview batch:\n" + json.dumps(batch, ensure_ascii=False, indent=2),
-        }],
+        "messages": [{"role": "user", "content": prompt}],
     }
     request = urllib.request.Request(
         ENDPOINT,
