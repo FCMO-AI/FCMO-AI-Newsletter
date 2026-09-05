@@ -17,6 +17,7 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path
+from typing import Any
 
 RAIZ = Path(__file__).resolve().parents[2]
 CORPUS = RAIZ / "_fixtures" / "corpus-2026-09-01"
@@ -26,6 +27,17 @@ IGNORAR = ("publish/", "regression/", "__pycache__/", ".pytest_cache/")
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from verificar_generador import con_historia_sintetica
+
+# Keep this in sync with the actual reader-facing completeness gate. The fixture
+# predates semantic declassification and still carries implication fields; the
+# synthetic ARB editor therefore covers them too instead of weakening the gate.
+PROSE_STRINGS = ("title", "summary", "why_it_matters", "why", "importance_rationale")
+PROSE_LISTS = (
+    "limitations", "contradictory_evidence", "engineering_implications",
+    "policy_implications", "research_implications",
+)
+PROSE_OBJECT_LISTS = {"claims": ("text",), "evidence_gaps": ("description",), "relationships": ("summary",)}
+PROSE_DICTS = ("technical",)
 
 
 def fila(corpus: Path, ident: str) -> dict:
@@ -37,23 +49,63 @@ def fila(corpus: Path, ident: str) -> dict:
     raise ValueError(f"{ident} no existe en el corpus sintetico")
 
 
-def overlay_sintetico(row: dict, locale: str) -> dict:
-    """Crea texto de prueba distinto del ingles sin alterar tokens verificables.
+def texto_nativo(value: Any, locale: str) -> Any:
+    """Transform prose while preserving every source token that software audits.
 
-    No pretende evaluar calidad linguistica: esa responsabilidad es del agente ARB.
-    Conserva literalmente el texto fuente y agrega una clausula nativa larga; asi
-    cualquier numero/URL/ID del fixture permanece identico mientras el gate puede
-    demostrar que no esta aceptando una copia byte-identica del ingles.
+    This is test data, not a translation-quality benchmark. Keeping the source
+    string verbatim and appending native prose preserves numbers/URLs/model IDs
+    exactly while proving the downstream system received a distinct native edition.
     """
+    if not isinstance(value, str) or not value.strip():
+        return value
     if locale == "es-419":
-        sufijo = " — edición editorial en español para validar el flujo autónomo completo."
-    else:
-        sufijo = " — 这是用于验证自主三语发布流程的简体中文编辑说明，并确保所有数字、链接、标识和证据边界保持不变。"
-    return {
-        "title": str(row.get("title") or "") + sufijo,
-        "summary": str(row.get("summary") or "") + sufijo,
-        "why_it_matters": str(row.get("why_it_matters") or "") + sufijo,
-    }
+        return value + " — redacción editorial en español, preservando exactamente la evidencia y sus límites."
+    return value + " — 简体中文编辑说明：保持原始证据、数字、标识、链接与适用范围完全不变。"
+
+
+def overlay_sintetico(row: dict, locale: str) -> dict:
+    """Simulate the full prose payload that an ARB publication agent must author."""
+    overlay: dict[str, Any] = {}
+    for key in PROSE_STRINGS:
+        if isinstance(row.get(key), str) and row[key].strip():
+            overlay[key] = texto_nativo(row[key], locale)
+
+    for key in PROSE_LISTS:
+        source = row.get(key)
+        if isinstance(source, list) and source:
+            overlay[key] = [texto_nativo(value, locale) for value in source]
+
+    for key, fields in PROSE_OBJECT_LISTS.items():
+        source = row.get(key)
+        if not isinstance(source, list) or not source:
+            continue
+        translated = []
+        for item in source:
+            if not isinstance(item, dict):
+                translated.append(item)
+                continue
+            target: dict[str, Any] = {}
+            for field in fields:
+                if isinstance(item.get(field), str) and item[field].strip():
+                    target[field] = texto_nativo(item[field], locale)
+            # Footnote: non-prose identity/taxonomy fields deliberately remain
+            # absent from this sparse overlay; apply_curated_i18n inherits them
+            # from canonical English instead of pretending they were translated.
+            translated.append(target)
+        overlay[key] = translated
+
+    for key in PROSE_DICTS:
+        source = row.get(key)
+        if not isinstance(source, dict):
+            continue
+        target = {
+            field: texto_nativo(value, locale)
+            for field, value in source.items()
+            if isinstance(value, str) and value.strip()
+        }
+        if target:
+            overlay[key] = target
+    return overlay
 
 
 def inyecta_locales(corpus: Path) -> None:
