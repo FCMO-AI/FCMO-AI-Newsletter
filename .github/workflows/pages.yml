@@ -8,12 +8,14 @@ on:
       - 'release-overlay/final/**'
       - 'tools/apply_final_release.py'
       - 'tools/apply_curated_i18n.py'
+      - 'tools/build_editorial_frontends.py'
+      - 'tools/finalize_editorial_frontends.py'
       - 'tools/verify_live_newsroom.py'
       - 'tests/oraculos/verificar_dom.py'
       - '.github/workflows/pages.yml'
-  # Un push hecho con GITHUB_TOKEN no dispara otros workflows. Tanto la redaccion
-  # diaria como el bootstrap publico comitean asi; workflow_run es por tanto el
-  # puente deliberado hacia Pages.
+  # A push made with GITHUB_TOKEN does not trigger another push workflow. Both
+  # autonomous newsroom producers commit that way, so workflow_run is the
+  # deliberate bridge from a successful newsroom build into Pages.
   workflow_run:
     workflows:
       - 'Refresh the autonomous newsroom from the sanitized corpus'
@@ -34,9 +36,9 @@ concurrency:
 
 jobs:
   build:
-    # Footnote: the repository is public today, but keeping the visibility gate
-    # makes a future visibility change safe by default rather than deploy-by-surprise.
-    # A failed newsroom refresh/bootstrap cannot reach Pages through workflow_run.
+    # Footnote: keep the visibility gate even while public so a future visibility
+    # change fails safe instead of publishing by surprise. A failed upstream
+    # newsroom run also cannot enter Pages through workflow_run.
     if: >-
       github.event.repository.visibility == 'public' &&
       (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success')
@@ -50,7 +52,7 @@ jobs:
       - name: Prove the frozen overlay still matches its editable source
         run: python tools/build_final_release.py --check
 
-      - name: Assemble frozen English release and apply curated locales
+      - name: Assemble frozen release and apply committed native locales
         run: |
           rm -rf publish
           cp -a site publish
@@ -61,6 +63,15 @@ jobs:
           PY
           )
           python tools/apply_curated_i18n.py publish "$CANONICAL_HASH"
+
+      - name: Build discovery frontends on the exact Pages candidate
+        run: |
+          # Footnote: the frozen overlay intentionally owns the canonical release
+          # source. Discovery pages must therefore be generated *after* it is
+          # mounted; otherwise archive/search/topic pages in site/ can be silently
+          # overwritten by their older frozen counterparts during assembly.
+          python tools/build_editorial_frontends.py --site publish
+          python tools/finalize_editorial_frontends.py --site publish --refresh-manifest
 
       - name: Render runtime contracts in a real browser
         run: python tests/oraculos/verificar_dom.py publish
@@ -100,5 +111,5 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Verify production origin, release identity and multilingual Story routes
+      - name: Verify production origin, release identity and public route suite
         run: python tools/verify_live_newsroom.py --allow-unbootstrapped
