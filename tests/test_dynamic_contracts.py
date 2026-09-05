@@ -45,6 +45,16 @@ class DynamicPublicationContractTests(unittest.TestCase):
         manifest = json.loads((ROOT / "release-overlay" / "final" / "manifest.json").read_text(encoding="utf-8"))
         self.assertNotIn("Private integration", manifest.get("launch_gate", ""))
 
+    def test_fcmo_agent_orientation_is_durable(self):
+        required = (
+            "AGENTS.md",
+            "AGENT_HUB.md",
+            "FCMO_AGI_ENGINEERING_OPERATIONS_STANDARD.md",
+            "COMMUNICATION_SURFACE_INTELLIGENCE_STANDARD.md",
+        )
+        missing = [path for path in required if not (ROOT / path).is_file()]
+        self.assertEqual([], missing, f"missing adopted FCMO orientation files: {missing}")
+
 
 if __name__ == "__main__":
     unittest.main()
