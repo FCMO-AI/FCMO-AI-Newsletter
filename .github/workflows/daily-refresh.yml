@@ -11,6 +11,7 @@ on:
       - 'corpus/**'
       - 'tools/ingest_corpus.py'
       - 'tools/airlock_health.py'
+      - 'tools/public_research_desk.py'
       - 'tools/prune_locale_packs.py'
       - 'tools/translate_records.py'
       - 'tools/review_translations.py'
@@ -75,8 +76,19 @@ jobs:
               raise SystemExit(1)
           print(f'all {len(entrada)} corpus stories reached the public English source')
 
-      - name: Persist public-safe newsroom health into the release
-        run: python tools/airlock_health.py corpus --max-age-hours 30 --out release-src/data/newsroom-status.json
+      - name: Persist public-safe newsroom health and classify delta
+        run: >-
+          python tools/airlock_health.py corpus --max-age-hours 30
+          --previous site/data/newsroom-status.json
+          --out release-src/data/newsroom-status.json
+
+      - name: Run clean-room public web research for newly ingested dossiers
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          FCMO_PUBLIC_RESEARCH_MODEL: ${{ vars.FCMO_PUBLIC_RESEARCH_MODEL }}
+        run: >-
+          python tools/public_research_desk.py --site release-src
+          --store site/data/newsroom-research
 
       - name: Remove translations for prose that the semantic airlock reclassified private
         run: python tools/prune_locale_packs.py --site release-src --apply
@@ -97,7 +109,9 @@ jobs:
         run: python tools/review_translations.py --site release-src
 
       - name: Build the newspaper Story wire
-        run: python tools/build_story_wire.py --site release-src
+        run: >-
+          python tools/build_story_wire.py --site release-src
+          --research-dir site/data/newsroom-research
 
       - name: Run autonomous Visual Desk and quarantine unlicensed discoveries
         run: python tools/build_visual_desk.py --site release-src --work newsroom-work --discover
@@ -122,7 +136,7 @@ jobs:
         run: |
           git config user.name 'FCMO Newsletter Newsroom'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          rm -rf publish regression
+          rm -rf publish regression newsroom-work
           # newsroom-work/ is intentionally ephemeral: discovered images without proven
           # reuse rights must never enter public history merely because they were found.
           git add -A -- release-src release-overlay site READY_TO_PUBLISH.md
