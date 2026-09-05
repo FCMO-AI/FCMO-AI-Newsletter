@@ -17,6 +17,11 @@ from typing import Any
 from xml.etree.ElementTree import Element, SubElement, ElementTree, register_namespace
 
 BASE = "https://fcmo-ai.github.io/FCMO-AI-Newsletter"
+# Footnote: Story pages live two levels below the publication root
+# (`news/<locale>/...`). Styles are deliberately referenced locally so the
+# published newspaper remains self-contained and the release validator can
+# reject accidental remote executable/style dependencies.
+NEWSROOM_STYLESHEET = "../../assets/newsroom.css"
 LOCALES = {
     "en": {"slug": "en", "hreflang": "en", "name": "English"},
     "es-419": {"slug": "es", "hreflang": "es", "name": "Español"},
@@ -203,7 +208,7 @@ def article_html(locale: str, brief: dict[str, Any], story: dict[str, Any], all_
 <meta name="description" content="{safe(brief.get("summary"))}">
 <link rel="canonical" href="{safe(url)}">
 {alternates}
-<link rel="stylesheet" href="{BASE}/assets/newsroom.css">
+<link rel="stylesheet" href="{NEWSROOM_STYLESHEET}">
 <script type="application/ld+json">{json.dumps(ld, ensure_ascii=False).replace('</', '<\\/')}</script>
 </head>
 <body>
@@ -234,7 +239,7 @@ def index_html(locale: str, stories: list[tuple[dict[str, Any], str]]) -> str:
         f'<article><div class="kicker">{safe(story["story_type"])}</div><h2><a href="{safe(href)}">{safe(story["headline"])}</a></h2><p>{safe(story["dek"])}</p><small>{safe(story["modified_at"])}</small></article>'
         for story, href in stories
     )
-    return f'<!doctype html><html lang="{safe(locale)}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FCMO WIRE · {safe(label["latest"])}</title><link rel="stylesheet" href="{BASE}/assets/newsroom.css"></head><body><header class="wire-head"><a href="{BASE}/">FCMO AI Newsletter</a><span>FCMO WIRE</span></header><main class="story"><h1>{safe(label["latest"])}</h1><p class="method">{safe(label["method"])}</p><div class="cards">{cards}</div></main></body></html>'
+    return f'<!doctype html><html lang="{safe(locale)}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FCMO WIRE · {safe(label["latest"])}</title><link rel="stylesheet" href="{NEWSROOM_STYLESHEET}"></head><body><header class="wire-head"><a href="{BASE}/">FCMO AI Newsletter</a><span>FCMO WIRE</span></header><main class="story"><h1>{safe(label["latest"])}</h1><p class="method">{safe(label["method"])}</p><div class="cards">{cards}</div></main></body></html>'
 
 
 def write_css(site: Path) -> None:
@@ -282,6 +287,27 @@ def news_sitemap(site: Path, pages: list[dict[str, Any]]) -> None:
         SubElement(news, "{http://www.google.com/schemas/sitemap-news/0.9}publication_date").text = page["published_at"]
         SubElement(news, "{http://www.google.com/schemas/sitemap-news/0.9}title").text = page["headline"]
     ElementTree(root).write(site / "news-sitemap.xml", encoding="utf-8", xml_declaration=True)
+
+
+def standard_sitemap(site: Path, pages: list[dict[str, Any]]) -> None:
+    """Write the durable crawl surface for the publication and Story routes."""
+    register_namespace("", "http://www.sitemaps.org/schemas/sitemap/0.9")
+    root = Element("{http://www.sitemaps.org/schemas/sitemap/0.9}urlset")
+    entries: list[tuple[str, str | None]] = [(BASE + "/", None)]
+    entries.extend((f"{BASE}/news/{meta['slug']}/", None) for meta in LOCALES.values())
+    entries.extend((page["url"], page.get("modified_at")) for page in pages)
+    seen: set[str] = set()
+    for url, modified in entries:
+        if url in seen:
+            continue
+        seen.add(url)
+        node = SubElement(root, "{http://www.sitemaps.org/schemas/sitemap/0.9}url")
+        SubElement(node, "{http://www.sitemaps.org/schemas/sitemap/0.9}loc").text = url
+        if modified:
+            SubElement(node, "{http://www.sitemaps.org/schemas/sitemap/0.9}lastmod").text = str(modified)[:10]
+    # Footnote: this sitemap is generated from the same Story list as the pages;
+    # it cannot silently advertise a route the newsroom did not actually build.
+    ElementTree(root).write(site / "sitemap.xml", encoding="utf-8", xml_declaration=True)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -337,6 +363,7 @@ def main(argv: list[str] | None = None) -> int:
         encoding="utf-8",
     )
     news_sitemap(args.site, pages)
+    standard_sitemap(args.site, pages)
     print(f"newsroom surfaces OK; stories={len(stories)}; localized_pages={len(pages)}")
     return 0
 
