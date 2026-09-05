@@ -43,21 +43,19 @@ jobs:
       autonomous_release: ${{ steps.newsroom.outputs.enabled }}
       source_ref: ${{ steps.source.outputs.ref }}
     steps:
-      - name: Resolve exact source revision
-        id: source
-        shell: bash
-        run: |
-          if [ "${{ github.event_name }}" = 'workflow_run' ]; then
-            echo "ref=${{ github.event.workflow_run.head_sha }}" >> "$GITHUB_OUTPUT"
-          else
-            echo "ref=${{ github.sha }}" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Checkout
+      - name: Checkout release source
         uses: actions/checkout@v6
         with:
-          ref: ${{ steps.source.outputs.ref }}
+          # Footnote: workflow_run.head_sha is the commit that STARTED the refresh.
+          # The refresh may have committed a newer release before completing. In that
+          # event we deliberately resolve main only after the workflow finished.
+          ref: ${{ github.event_name == 'workflow_run' && 'main' || github.sha }}
           persist-credentials: false
+
+      - name: Record exact assembled revision
+        id: source
+        shell: bash
+        run: echo "ref=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
       - name: Prove the frozen overlay still matches its editable source
         run: python tools/build_final_release.py --check
