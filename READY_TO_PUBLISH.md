@@ -20,15 +20,15 @@ Ordinary releases require no repository-visibility step. A candidate that fails 
 
 - Release manifest schema: `fcmo-ai-newsletter-release-overlay-v2`
 - Release: `signal-field-v4.1-final`
-- Front-end SHA-256: `74e28dfd859302cec3afeb43a39b8644dd6e54171a6a5e4d716a543bcfdd372c`
-- Release archive SHA-256: `58c608011f59d07082aa17ea3916a99ab5a18029e6705c7e34498f2f6b4a6a62`
-- Encoded release payload SHA-256: `bc4b4cd1b1074bc30df87c9c1ade34615f2ee1e001dfa9efb6151ebc7f5b2d79`
+- Front-end SHA-256: `196ddb9f1adac9b6624533515e5f523016373d85a94527a84cecd4b1b05cff62`
+- Release archive SHA-256: `de0040a34ba14c974b0c1406da36d8f0beceaaf382425e4cb9f1e731373588ca`
+- Encoded release payload SHA-256: `ebec42cd1f5ec989b5e5b64d12d8645eb5a02548b88b822ca42bdbe03f1ac6b7`
 - 15/15 release payload parts present; payload and archive checked by SHA-256
-- 98 public files after assembly
+- 220 public files after assembly
 - 23 canonical dossiers
 - 23 stable dossier routes
 - 3 frozen edition routes
-- 14 vetted sourced story visuals + 9 embedded editorial fallbacks
+- 3 vetted sourced story visuals + 20 embedded editorial fallbacks
 
 ## Verification receipts
 
@@ -54,14 +54,14 @@ The final assembler validates, before deployment:
 - 3 edition JSON/HTML routes;
 - JSON, JSONL, RSS, and sitemap parsing;
 - agent discovery/query contracts (`fcmo-agent-discovery-v2`, `fcmo-agent-query-v2`);
-- final 14/9 story-media policy;
+- final 3/20 story-media policy;
 - credential-like strings and personal-mailbox leakage;
 - remote JavaScript and remote stylesheet dependencies while allowing legitimate canonical/feed/discovery links and vetted story imagery;
 - deterministic build-manifest generation.
 
 The release assembler and curated-localization gate were rerun; the assembled public candidate measures:
 
-`FCMO AI Newsletter signal-field-v4.1-final READY: 98 public files; index 74e28dfd8593…`
+`FCMO AI Newsletter signal-field-v4.1-final READY: 220 public files; index 196ddb9f1ada…`
 
 ## Daily refresh readiness
 
