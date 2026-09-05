@@ -2,23 +2,72 @@
 """Final consistency pass over generated editorial-discovery HTML.
 
 The discovery builder is intentionally independent of the Story builder. This pass
-binds their route contracts, writes path-accurate canonical URLs and rejects remote
-executable dependencies before Pages can see the result.
+binds their route contracts, writes path-accurate canonical URLs, folds every durable
+HTML route into the sitemap, rejects remote executable dependencies, then refreshes
+the candidate build manifest and re-runs final-release validation when operating on
+an assembled publish tree.
 """
 from __future__ import annotations
 
 import argparse
+import json
 import re
 from pathlib import Path
+from xml.etree import ElementTree
 
 BASE_URL = "https://fcmo-ai.github.io/FCMO-AI-Newsletter"
 CANONICAL = re.compile(r'<link rel="canonical" href="[^"]*">', re.I)
 REMOTE_EXEC = re.compile(r'<(?:script|link)\b[^>]+(?:src|href)="https?://', re.I)
+NS = "http://www.sitemaps.org/schemas/sitemap/0.9"
+
+
+def augment_sitemap(root: Path) -> None:
+    sitemap = root / "sitemap.xml"
+    if sitemap.is_file():
+        tree = ElementTree.parse(sitemap)
+        node = tree.getroot()
+    else:
+        ElementTree.register_namespace("", NS)
+        node = ElementTree.Element(f"{{{NS}}}urlset")
+        tree = ElementTree.ElementTree(node)
+    existing = {
+        child.findtext(f"{{{NS}}}loc")
+        for child in node.findall(f"{{{NS}}}url")
+    }
+    for path in sorted(root.rglob("*.html")):
+        rel = path.relative_to(root).as_posix()
+        if rel == "404.html":
+            continue
+        url = BASE_URL + ("/" if rel == "index.html" else f"/{rel}")
+        if url in existing:
+            continue
+        entry = ElementTree.SubElement(node, f"{{{NS}}}url")
+        ElementTree.SubElement(entry, f"{{{NS}}}loc").text = url
+        existing.add(url)
+    tree.write(sitemap, encoding="utf-8", xml_declaration=True)
+
+
+def refresh_candidate_manifest(root: Path) -> None:
+    """Make the manifest describe the post-overlay, post-frontend candidate."""
+    try:
+        from tools import apply_final_release
+    except ImportError:
+        import apply_final_release  # type: ignore
+    manifest_path = apply_final_release.MANIFEST
+    if not manifest_path.is_file():
+        return
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    # Footnote: apply_final_release writes its manifest before this presentation
+    # layer exists. Rewriting it here prevents a green deployment from carrying
+    # a stale inventory/hash map after topic/org/detail surfaces are generated.
+    apply_final_release.write_build_manifest(root, manifest["release"])
+    apply_final_release.validate(root, manifest)
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--site", type=Path, default=Path("site"))
+    parser.add_argument("--refresh-manifest", action="store_true")
     args = parser.parse_args(argv)
     root = args.site
     targets = [
@@ -56,6 +105,9 @@ def main(argv: list[str] | None = None) -> int:
 
     if errors:
         raise SystemExit("editorial frontend finalization FAILED:\n" + "\n".join(f"- {x}" for x in errors))
+    augment_sitemap(root)
+    if args.refresh_manifest:
+        refresh_candidate_manifest(root)
     print(f"editorial frontend finalization OK; pages={touched}")
     return 0
 
