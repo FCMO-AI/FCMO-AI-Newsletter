@@ -19,25 +19,34 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Compile release tooling
+      - name: Compile release and newsroom tooling
         run: |
-          python -m py_compile tools/apply_final_release.py
-          python -m py_compile tools/apply_curated_i18n.py
-          python -m py_compile tools/ingest_corpus.py
-          python -m py_compile tools/translate_records.py
-          python -m py_compile tools/verify_release.py
-          python -m py_compile tests/oraculos/verificar_dom.py
+          python -m py_compile \
+            tools/apply_final_release.py \
+            tools/apply_curated_i18n.py \
+            tools/ingest_corpus.py \
+            tools/airlock_health.py \
+            tools/public_research_desk.py \
+            tools/prune_locale_packs.py \
+            tools/translate_records.py \
+            tools/review_translations.py \
+            tools/validate_translation_reviews.py \
+            tools/build_story_wire.py \
+            tools/build_visual_desk.py \
+            tools/validate_media_rights.py \
+            tools/build_distribution_surfaces.py \
+            tools/validate_newsroom_surfaces.py \
+            tools/verify_release.py \
+            tests/oraculos/verificar_dom.py \
+            tests/oraculos/verificar_live.py
 
       - name: Exercise the refresh tooling's own tests
         run: python -m unittest discover -s tests -v
 
-      - name: Prove the frozen overlay still matches its editable source
-        run: python tools/build_final_release.py --check
+      - name: Run the unified fail-closed publication gates
+        run: python tools/verify_release.py
 
-      - name: Prove the public release receipt matches the assembled tree
-        run: python tools/build_ready_receipt.py --check
-
-      - name: Assemble exact public candidate
+      - name: Assemble exact public candidate for browser inspection
         run: |
           rm -rf publish
           cp -a site publish
@@ -96,7 +105,9 @@ jobs:
           development_ids = {path.stem for path in (root/'developments').glob('FCMO-*.html')}
           assert brief_ids == canonical_ids, ('brief parity', sorted(canonical_ids-brief_ids), sorted(brief_ids-canonical_ids))
           assert development_ids == canonical_ids, ('development parity', sorted(canonical_ids-development_ids), sorted(development_ids-canonical_ids))
-          assert len(list((root/'editions').glob('*.html'))) == 3
+          # Footnote: three editions were a launch fact, not a publication contract.
+          # A real newspaper must be allowed to accumulate a fourth day without CI edits.
+          assert len(list((root/'editions').glob('*.html'))) >= 3
           assert (root/'build-manifest.json').is_file()
           print(f'Curated release identity OK: {canonical_count} canonical records / 3 native languages / {digest}')
           PY
