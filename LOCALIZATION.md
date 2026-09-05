@@ -1,64 +1,68 @@
-# FCMO AI Newsletter curated localization contract
+# FCMO AI Newsletter native-edition contract
 
-English is the **canonical semantic source** of the FCMO AI Newsletter. The native publication supports exactly three editorial locales:
+English is the **canonical semantic source**. FCMO AI Newsletter supports exactly three native editorial locales:
 
 - `en` — English, canonical semantic source;
-- `es-419` — Latin American Spanish, curated translation;
-- `zh-Hans` — Simplified Chinese, curated translation.
+- `es-419` — Latin American Spanish;
+- `zh-Hans` — Simplified Chinese.
 
 Browser extensions, operating-system translation and third-party translation layers are outside this contract.
 
-## What “curated” means
+## Editorial ownership
 
-Spanish and Chinese are model-curated, source-controlled publication artifacts. They are generated before publication, never at page-view time, and are deliberately **not labelled human-reviewed** unless a qualified reviewer actually performs that review.
+The ARB research/publication agent that prepares a publishable development owns the complete three-language publication obligation. The same editorial task produces the English public wording plus its Spanish and Simplified Chinese editions **before the material crosses the airlock**.
 
-Translate intent rather than English syntax while preserving evidence strength, uncertainty, caveats, numbers, model/version identities, benchmarks, stable FCMO IDs, URLs, and the distinction between demonstrated, claimed, inferred and editorial interpretation. A translation may improve naturalness, but may not strengthen a research claim beyond the canonical English source.
+Newsletter does not call a translation model, translation API or language-review provider. GitHub Actions does not generate prose. The public repository is a deterministic sink: it imports the already-airlocked locale deltas, validates them, builds static routes and publishes them.
 
-Translation and review are separate operations. The model that produces a locale candidate is not treated as sufficient proof of editorial quality. `tools/review_localizations.py` independently compares the candidate with canonical English using deterministic invariants plus an MQM-style machine editorial review. Any Critical or Major finding blocks publication. Review receipts explicitly state `human_reviewed: false`.
+This keeps the agent that actually understands the source evidence responsible for carrying intent, caveats, evidence strength and terminology across languages instead of asking a second model to reconstruct that context later.
+
+## What “native editorial edition” means
+
+Translate intent rather than English syntax while preserving:
+
+- evidence strength and uncertainty;
+- demonstrated vs. claimed vs. inferred distinctions;
+- caveats and contradictory evidence;
+- numbers, versions, benchmark names and model identities;
+- stable FCMO IDs and URLs;
+- the scope and regime in which a result is true.
+
+Spanish and Chinese are source-controlled publication artifacts. They are not labelled human-reviewed unless a qualified human actually reviews them.
 
 ## Coverage contract
 
-Every canonical public record must have a curated translation for the reader-facing prose that the site renders, including:
+Every canonical public record must have Spanish and Chinese coverage for every reader-facing prose field that survives declassification, including title, summary, why-it-matters, importance rationale, limitations, contrary evidence, claim text, evidence-gap descriptions, relationship summaries and public technical prose.
 
-- title, summary, why-it-matters and importance rationale;
-- limitations and contradictory evidence;
-- claim text and evidence-gap descriptions;
-- reader-facing technical-dossier prose and relationship summaries;
-- any other prose field explicitly present in the current declassified public schema.
+Coverage is dynamic. If English contains `N` stable public story identities, both native non-English editions must contain the same `N` identities. A new story without both editions is a release failure, not permission to publish English-only.
 
-Private ARB strategic implication fields are not part of the new public translation obligation because semantic declassification removes them before the corpus crosses the airlock. `tools/reconcile_locale_overlays.py` prunes previously translated fields that no longer exist in canonical public data so an old translation cannot resurrect declassified-away content.
+Private strategic implication fields are outside the public language obligation because they do not cross the airlock.
 
-Coverage is **dynamic, never hard-coded to a historical corpus size**. If English contains `N` stable FCMO IDs, Spanish and Chinese must contain exactly the same `N` IDs. Locale metadata, public brief JSON, stable development routes and the localization manifest must agree with that live set.
+## Airlock transport
 
-Count-bearing UI is formatted dynamically. A catalogue key must not bake in a corpus count such as `22 briefs`; growth of the corpus must not invalidate translation lookup.
+ARB may emit locale deltas at:
 
-English remains directly selectable and authoritative as the semantic source. Non-English dossier views are curated translations of that source, not a separate evidence record. The interface labels that relationship explicitly rather than falsely claiming translated technical prose is still English.
+- `data/locales/es-419/records.json`
+- `data/locales/zh-Hans/records.json`
 
-## Per-story freshness
+inside the sanitized public release. `tools/sync_airlocked_locales.py` merges those deltas into Newsletter's committed locale packs. Existing historical translations remain stable when a release contains no locale delta.
 
-Stable identity does not imply stable prose. A material update to an existing FCMO ID must invalidate its old translations.
+`tools/reconcile_locale_overlays.py` then prunes fields that no longer exist in the declassified public schema, so an old translated field cannot resurrect material that the airlock removed.
 
-`tools/translation_freshness.py` computes a digest of the exact reader-facing canonical prose projection for every stable record and stores it in `site/data/i18n/source-digests.json`.
+## Deterministic integrity gate
 
-Before translation, `--invalidate` removes locale overlays whose canonical digest changed. The ordinary translator therefore sees them as missing and regenerates them. After both locales are complete and reviewed, `--record` refuses to advance the digest manifest unless both locale ID sets exactly match canonical English.
+`tools/validate_localizations.py` is deliberately **not a translator and not a semantic-language model judge**. It proves high-value invariants that software can prove honestly:
 
-This closes the prior failure mode where `translate_records.py` translated new IDs correctly but an existing ID could change in English while retaining stale Spanish/Chinese prose.
+- exact story-ID parity across English, Spanish and Chinese;
+- overlay shape compatible with the current declassified English record;
+- required title/summary/why-it-matters coverage;
+- exact preservation of numeric tokens, stable FCMO IDs and embedded URLs;
+- basic Simplified-Chinese script sanity for substantial prose;
+- rejection of an edition that is simply unchanged canonical English;
+- deterministic source and locale digests recorded in `site/data/i18n/integrity-manifest.json`.
 
-## Independent machine editorial review
+The receipt explicitly records `editorial_owner: "ARB publication agent"`, `human_reviewed: false` and `network_translation: false`.
 
-`tools/review_localizations.py` records source and translation digests for each `{locale, FCMO-ID}` pair in `site/data/i18n/review-manifest.json`.
-
-For a changed pair it checks, at minimum:
-
-- exact preservation of numeric tokens;
-- exact preservation of stable FCMO IDs;
-- exact preservation of URLs embedded in translated prose;
-- factual/semantic accuracy against canonical English;
-- evidence-strength and uncertainty preservation;
-- benchmark/model/version/identity fidelity;
-- target-language fluency, terminology and style.
-
-Provider review is chunked by story batches so unrelated stories do not create an avoidable context/output-budget coupling. A deterministic-only review mode exists only for migration/unit-test bootstrap and is explicitly not accepted as a reusable production language-review receipt.
+A deterministic checker cannot prove literary quality. Editorial equivalence remains the publication agent's responsibility and is reviewable through source control and the public evidence record.
 
 ## Runtime behavior
 
@@ -66,53 +70,47 @@ The app-shell locale resolution remains deterministic:
 
 1. explicit `?lang=` parameter;
 2. saved manual selection;
-3. `navigator.languages` / browser preference;
+3. browser language preference;
 4. English fallback.
 
-All `es-*` browser locales resolve to `es-419`; all `zh-*` locales resolve to `zh-Hans`. The selected locale persists locally and is reflected in the URL.
+All `es-*` browser locales resolve to `es-419`; all `zh-*` locales resolve to `zh-Hans`.
 
-The runtime performs **presentation lookup only** against committed packs. It contains no translation-provider endpoint and no generative fallback. A missing translation is a release defect.
-
-Legal/disclosure text is also translated for readability. Where English is the governing legal wording, the translated block carries an explicit notice and a route back to the English version.
+Runtime behavior is presentation lookup only. There is no generative fallback and no remote translation endpoint. Missing locale material is a build defect.
 
 ## Static newspaper routes
 
-The autonomous Story layer additionally emits crawlable static routes:
+The Story layer emits crawlable static routes:
 
-- `/news/en/...` for `en`;
-- `/news/es/...` for the `es-419` editorial translation, exposed to search engines with `hreflang="es"`;
-- `/news/zh-hans/...` for `zh-Hans`.
+- `/news/en/...` for English;
+- `/news/es/...` for `es-419`, exposed with `hreflang="es"`;
+- `/news/zh-hans/...` for `zh-Hans`, exposed with `hreflang="zh-Hans"`.
 
-Each Story page includes reciprocal language alternates and `x-default`. The static route is a distribution surface over the same curated locale pack, not a second translation pipeline.
+Each story has reciprocal language alternates plus `x-default`. `/news/` is a native-edition gateway, not a translation service.
 
 ## Source-control layout
 
-- `site/data/i18n/es-419/part-*.json` + `ui.json` — curated Spanish prose and UI catalogue;
-- `site/data/i18n/zh-Hans/part-*.json` + `ui.json` — curated Simplified Chinese prose and UI catalogue;
-- `site/data/i18n/source-digests.json` — per-story canonical semantic freshness identity;
-- `site/data/i18n/review-manifest.json` — independent machine-editor review receipts;
-- `site/assets/curated-i18n.js` — deterministic presentation/runtime layer;
-- `site/assets/curated-i18n.css` — language selector and translated-dossier presentation;
-- `tools/apply_curated_i18n.py` — coverage validation, bundle injection, provenance manifest and integrity refresh;
-- `tools/translation_freshness.py` — changed-existing-story invalidation and digest recording;
-- `tools/review_localizations.py` — independent machine editorial quality gate.
-
-The canonical English release is assembled and hash-verified first. Localization is injected only after that identity passes. The localized build records both the canonical and localized index SHA-256 values in `data/i18n/manifest.json`.
+- `site/data/i18n/es-419/part-*.json` + `ui.json` — Spanish editorial records and UI catalogue;
+- `site/data/i18n/zh-Hans/part-*.json` + `ui.json` — Simplified-Chinese editorial records and UI catalogue;
+- `site/data/i18n/integrity-manifest.json` — deterministic three-language integrity receipt;
+- `site/assets/curated-i18n.js` / `.css` — deterministic presentation layer;
+- `tools/sync_airlocked_locales.py` — import of ARB-authored locale deltas;
+- `tools/reconcile_locale_overlays.py` — public-schema reconciliation;
+- `tools/validate_localizations.py` — provider-free publication gate;
+- `tools/apply_curated_i18n.py` — coverage validation and bundle injection.
 
 ## Publication gate
 
-A release must fail if:
+A release fails if:
 
-- either curated locale omits a canonical FCMO ID or contains a stale/extra ID;
-- locale record-count metadata differs from the live canonical corpus;
-- public brief JSON or stable development routes differ from the canonical IDs;
-- required reader-facing prose is absent, empty or unchanged English where translation is required;
-- an existing translated record was built against an older per-story canonical digest;
-- independent review reports a Critical or Major language error;
-- a locale pack was built against a different canonical editorial digest;
-- a count-bearing historical UI key is introduced;
-- a runtime translation-provider endpoint appears;
+- either non-English edition omits a canonical FCMO ID or contains a stale/extra ID;
+- reader-facing required prose is absent or empty;
+- translated structure no longer matches the declassified public structure;
+- numbers, FCMO IDs or embedded URLs drift;
+- a substantial Chinese edition lacks expected Han-script content;
+- a purported non-English edition is unchanged canonical English;
+- public brief/stable-route identities disagree with canonical English;
+- a runtime translation endpoint or external model credential is introduced;
 - any native editorial locale outside `en`, `es-419`, `zh-Hans` is exposed;
-- the localized index cannot be traced to the frozen canonical English index hash.
+- the localized build cannot be traced to the frozen canonical English identity.
 
-A new or materially changed story and its curated native translations are one publication obligation. The gate fails closed rather than publishing a partial language edition.
+A new or materially changed story and its two additional native editions are **one publication obligation**. The system fails closed rather than manufacturing a downstream translation or publishing a partial edition.
