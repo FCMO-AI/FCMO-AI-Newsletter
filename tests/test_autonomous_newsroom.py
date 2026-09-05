@@ -118,10 +118,30 @@ class AutonomousNewsroomTests(unittest.TestCase):
             self.assertEqual(visual_desk.main(["--release-src", str(release), "--site", str(site), "--offline"]), 0)
             media = json.loads((release / "data" / "media.json").read_text(encoding="utf-8"))
             self.assertEqual(media[0]["mode"], "fcmo_explainer")
+            self.assertEqual(media[0]["rights_state"], "FCMO_OWNED")
             self.assertFalse(media[0]["evidence_image"])
             asset = site / "assets" / "story-media" / f"{RID}.svg"
             self.assertTrue(asset.is_file())
             self.assertIn("not source evidence", asset.read_text(encoding="utf-8"))
+
+    def test_visual_desk_rejects_unverifiable_licensed_media_receipt(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            site = Path(tmp)
+            bogus = [{
+                "id": RID,
+                "mode": "licensed_source",
+                "sourced": True,
+                "rights_state": "PERMISSIVE_LICENSE",
+                "image_url": "https://example.org/image.jpg",
+                "source_page": "https://example.org/story",
+                "license_url": "https://example.org/terms",
+                "reuse_basis": "someone said reuse is okay",
+                "credit": "example.org",
+            }]
+            # Footnote: a populated rights receipt is not enough. The license URL
+            # itself must match a machine-recognized permissive declaration.
+            with self.assertRaisesRegex(ValueError, "recognized permissive"):
+                visual_desk.validate_media_rows(bogus, {RID}, site)
 
     def test_story_layer_emits_three_static_locales_jsonld_and_news_sitemap(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -157,7 +177,14 @@ class AutonomousNewsroomTests(unittest.TestCase):
                 self.assertIn("NewsArticle", text)
                 self.assertIn("hreflang=", text)
                 self.assertIn("FCMO AI Research Desk", text)
+                self.assertIn('href="../../assets/newsroom.css"', text)
+                self.assertNotIn("https://fcmo-ai.github.io/FCMO-AI-Newsletter/assets/newsroom.css", text)
             self.assertTrue((site / "news-sitemap.xml").is_file())
+            self.assertTrue((site / "sitemap.xml").is_file())
+            sitemap = (site / "sitemap.xml").read_text(encoding="utf-8")
+            self.assertIn(f"/news/en/{RID}.html", sitemap)
+            self.assertIn(f"/news/es/{RID}.html", sitemap)
+            self.assertIn(f"/news/zh-hans/{RID}.html", sitemap)
             self.assertIn("FCMO WIRE", (release / "index.html").read_text(encoding="utf-8"))
 
     def test_airlock_quiet_delta_is_distinct_from_missing_input(self) -> None:

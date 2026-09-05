@@ -88,6 +88,7 @@ def discover_licensed_image(source_urls: list[str]) -> tuple[dict[str, Any] | No
         return {
             "mode": "licensed_source",
             "sourced": True,
+            "rights_state": "PERMISSIVE_LICENSE",
             "image_url": image_url,
             "source_page": final_url,
             "license": "permissive Creative Commons / public-domain declaration",
@@ -123,6 +124,51 @@ def svg_for(brief: dict[str, Any]) -> str:
 </svg>"""
 
 
+def validate_media_rows(rows: list[dict[str, Any]], expected_ids: set[str], site: Path) -> None:
+    """Prove every published visual has a current, machine-checkable reuse basis."""
+    errors: list[str] = []
+    ids = [str(row.get("id") or "") for row in rows if isinstance(row, dict)]
+    if len(ids) != len(rows) or any(not rid for rid in ids):
+        errors.append("every media row must be an object with a non-empty id")
+    if len(set(ids)) != len(ids):
+        errors.append("duplicate media ids")
+    if set(ids) != expected_ids:
+        errors.append(f"media ids do not match briefs: missing={sorted(expected_ids-set(ids))} extra={sorted(set(ids)-expected_ids)}")
+
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        rid = str(row.get("id") or "<missing-id>")
+        mode = row.get("mode")
+        if mode == "licensed_source":
+            if row.get("sourced") is not True or row.get("rights_state") != "PERMISSIVE_LICENSE":
+                errors.append(f"{rid}: licensed source lacks sourced/rights state")
+            license_url = str(row.get("license_url") or "")
+            if not PERMISSIVE_LICENSE.search(license_url):
+                errors.append(f"{rid}: license_url is not a recognized permissive reuse declaration")
+            for key in ("image_url", "source_page", "license_url", "reuse_basis", "credit"):
+                if not str(row.get(key) or "").strip():
+                    errors.append(f"{rid}: licensed source lacks {key}")
+        elif mode == "fcmo_explainer":
+            if row.get("sourced") is not False or row.get("generated") is not True:
+                errors.append(f"{rid}: FCMO explainer provenance flags are inconsistent")
+            if row.get("rights_state") != "FCMO_OWNED" or row.get("evidence_image") is not False:
+                errors.append(f"{rid}: FCMO explainer rights/evidence state is inconsistent")
+            prefix = "/FCMO-AI-Newsletter/assets/story-media/"
+            image_url = str(row.get("image_url") or "")
+            if not image_url.startswith(prefix):
+                errors.append(f"{rid}: FCMO explainer must use a local story-media asset")
+            else:
+                asset = site / "assets" / "story-media" / image_url.removeprefix(prefix)
+                if not asset.is_file():
+                    errors.append(f"{rid}: FCMO explainer asset is missing from the publication tree")
+        else:
+            errors.append(f"{rid}: unsupported media mode {mode!r}")
+
+    if errors:
+        raise ValueError("media rights gate FAILED: " + "; ".join(errors))
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--release-src", type=Path, default=Path("release-src"))
@@ -136,14 +182,22 @@ def main(argv: list[str] | None = None) -> int:
     assets = args.site / "assets" / "story-media"
     assets.mkdir(parents=True, exist_ok=True)
 
+    briefs = load_briefs(args.release_src)
     result = []
     discovered = generated = 0
-    for brief in load_briefs(args.release_src):
+    for brief in briefs:
         rid = brief["id"]
         previous = old_by_id.get(rid) or {}
-        if previous.get("sourced") is True and previous.get("license_url") and previous.get("reuse_basis"):
+        previous_license = str(previous.get("license_url") or "")
+        if (
+            previous.get("mode") == "licensed_source"
+            and previous.get("sourced") is True
+            and PERMISSIVE_LICENSE.search(previous_license)
+            and previous.get("reuse_basis")
+        ):
             row = dict(previous)
             row["id"] = rid
+            row["rights_state"] = "PERMISSIVE_LICENSE"
             result.append(row)
             continue
 
@@ -164,6 +218,7 @@ def main(argv: list[str] | None = None) -> int:
                 "mode": "fcmo_explainer",
                 "sourced": False,
                 "generated": True,
+                "rights_state": "FCMO_OWNED",
                 "image_url": f"/FCMO-AI-Newsletter/{asset_rel}",
                 "credit": "FCMO AI Research Desk",
                 "license": "FCMO original editorial graphic",
@@ -177,8 +232,11 @@ def main(argv: list[str] | None = None) -> int:
             generated += 1
         result.append(row)
 
+    # Footnote: validation happens before media.json is replaced. A bad rights
+    # receipt therefore cannot partially update the canonical publication state.
+    validate_media_rows(result, {str(brief["id"]) for brief in briefs}, args.site)
     media_path.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    print(f"visual desk OK; licensed={discovered}; generated={generated}; total={len(result)}")
+    print(f"visual desk OK; licensed={discovered}; generated={generated}; total={len(result)}; rights=PASS")
     return 0
 
 
