@@ -101,7 +101,9 @@ def main() -> int:
     parser.add_argument("--site", type=Path, default=Path("release-src"))
     parser.add_argument("--i18n-dir", type=Path, default=Path("site/data/i18n"))
     parser.add_argument("--ledger", type=Path, default=Path("site/data/i18n/review-ledger.json"))
-    parser.add_argument("--model", default=os.environ.get("FCMO_TRANSLATION_REVIEW_MODEL", DEFAULT_MODEL))
+    # Footnote: an unset Actions variable is injected as an empty environment string;
+    # ``or DEFAULT_MODEL`` preserves the actual default instead of sending model="".
+    parser.add_argument("--model", default=os.environ.get("FCMO_TRANSLATION_REVIEW_MODEL") or DEFAULT_MODEL)
     parser.add_argument("--engine", choices=("anthropic", "stub"), default="anthropic")
     parser.add_argument("--batch-size", type=int, default=4)
     args = parser.parse_args()
