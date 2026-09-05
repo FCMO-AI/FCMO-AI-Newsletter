@@ -12,13 +12,38 @@ from __future__ import annotations
 import argparse
 import json
 import re
+from html.parser import HTMLParser
 from pathlib import Path
 from xml.etree import ElementTree
 
 BASE_URL = "https://fcmo-ai.github.io/FCMO-AI-Newsletter"
 CANONICAL = re.compile(r'<link rel="canonical" href="[^"]*">', re.I)
-REMOTE_EXEC = re.compile(r'<(?:script|link)\b[^>]+(?:src|href)="https?://', re.I)
 NS = "http://www.sitemaps.org/schemas/sitemap/0.9"
+
+
+class _RemoteExecParser(HTMLParser):
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self.dependencies: list[str] = []
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        data = {key.lower(): (value or "") for key, value in attrs}
+        tag = tag.lower()
+        if tag == "script":
+            src = data.get("src", "")
+            if src.startswith(("http://", "https://", "//")):
+                self.dependencies.append(src)
+        elif tag == "link":
+            rel = {token.lower() for token in data.get("rel", "").split()}
+            href = data.get("href", "")
+            if "stylesheet" in rel and href.startswith(("http://", "https://", "//")):
+                self.dependencies.append(href)
+
+
+def remote_exec_dependencies(text: str) -> list[str]:
+    parser = _RemoteExecParser()
+    parser.feed(text)
+    return parser.dependencies
 
 
 def augment_sitemap(root: Path) -> None:
@@ -98,8 +123,9 @@ def main(argv: list[str] | None = None) -> int:
             text = CANONICAL.sub(replacement, text, count=1)
         else:
             text = text.replace("</head>", replacement + "</head>", 1)
-        if REMOTE_EXEC.search(text):
-            errors.append(f"{rel}: remote executable/style dependency detected")
+        dependencies = remote_exec_dependencies(text)
+        if dependencies:
+            errors.append(f"{rel}: remote executable/style dependency detected: {dependencies}")
         path.write_text(text, encoding="utf-8")
         touched += 1
 
