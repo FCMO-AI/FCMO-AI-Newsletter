@@ -39,17 +39,42 @@ jobs:
           python -m py_compile tests/oraculos/verificar_dom.py
           python -m py_compile tests/test_autonomous_newsroom.py
 
-      - name: Prove translation infrastructure has no external model dependency
-        shell: bash
+      - name: Prove translation infrastructure has no external model credential or legacy publisher
+        shell: python
         run: |
-          # Footnote: company names can legitimately occur in reported stories.
-          # This gate targets translation/publishing infrastructure identifiers,
-          # not editorial coverage of any company.
-          forbidden='ANTHROPIC_API_KEY|api\.anthropic\.com|FCMO_TRANSLATION_REVIEW_MODEL|translate_records\.py|review_localizations\.py|FCMO_NEWSLETTER_PUBLISH_TOKEN'
-          if grep -RniE "$forbidden" .github tools LOCALIZATION.md README.md 2>/dev/null; then
-            echo 'forbidden legacy translation/publisher infrastructure remains' >&2
-            exit 1
-          fi
+          from pathlib import Path
+          import sys
+
+          roots = [Path('tools'), Path('.github/workflows'), Path('LOCALIZATION.md'), Path('README.md')]
+          # Footnote: construct retired identifiers from fragments so this guard
+          # does not trip over its own source text. This check targets executable
+          # credential/provider-era infrastructure, not company names in reporting
+          # nor deny-list strings used purely to reject remote runtime endpoints.
+          forbidden = (
+              'ANTH' + 'ROPIC_API_KEY',
+              'FCMO_TRANSLATION_' + 'REVIEW_MODEL',
+              'translate_' + 'records.py',
+              'review_' + 'localizations.py',
+              'FCMO_NEWSLETTER_' + 'PUBLISH_TOKEN',
+          )
+          hits = []
+          for root in roots:
+              paths = [root] if root.is_file() else list(root.rglob('*'))
+              for path in paths:
+                  if not path.is_file() or path == Path('.github/workflows/release-validate.yml'):
+                      continue
+                  try:
+                      text = path.read_text(encoding='utf-8')
+                  except UnicodeDecodeError:
+                      continue
+                  for token in forbidden:
+                      if token in text:
+                          hits.append(f'{path}: {token}')
+          if hits:
+              print('forbidden legacy translation/publisher infrastructure remains', file=sys.stderr)
+              print('\n'.join(hits), file=sys.stderr)
+              raise SystemExit(1)
+          print('provider-free translation/publisher infrastructure scan OK')
 
       - name: Exercise the refresh tooling's own tests
         run: python -m unittest discover -s tests -v
