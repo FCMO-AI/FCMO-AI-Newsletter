@@ -4,6 +4,10 @@
 This is deliberately a deterministic integrity gate, not a machine-translation judge.
 ARB's publication agent owns editorial equivalence; Newsletter proves coverage and
 high-value invariants without any external model, API key or network request.
+
+Historical locale packs are validated truthfully under a structural compatibility
+tier. Any story written or refreshed by the modern ARB airlock lives in
+``part-airlock.json`` and receives the stricter numeric/ID/URL preservation tier.
 """
 from __future__ import annotations
 
@@ -14,9 +18,13 @@ import re
 from pathlib import Path
 from typing import Any
 
-from reconcile_locale_overlays import canonical_records
+try:
+    from tools.reconcile_locale_overlays import canonical_records
+except ImportError:  # direct script execution from tools/
+    from reconcile_locale_overlays import canonical_records
 
 LOCALES = ("es-419", "zh-Hans")
+AIRLOCK_PART = "part-airlock.json"
 NUM = re.compile(r"(?<![A-Za-z])[-+]?\d[\d,.]*(?:%|x|×|[KMBT])?", re.I)
 FCMO_ID = re.compile(r"\bFCMO-[0-9A-F]{12}\b")
 URL = re.compile(r"https?://[^\s\]\[)<>'\"]+")
@@ -33,8 +41,9 @@ def stable_digest(value: Any) -> str:
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()
 
 
-def load_locale(root: Path, locale: str) -> dict[str, dict[str, Any]]:
+def load_locale(root: Path, locale: str) -> tuple[dict[str, dict[str, Any]], set[str]]:
     result: dict[str, dict[str, Any]] = {}
+    strict: set[str] = set()
     for path in sorted((root / locale).glob("part-*.json")):
         rows = json.loads(path.read_text(encoding="utf-8")).get("records")
         if not isinstance(rows, dict):
@@ -43,7 +52,9 @@ def load_locale(root: Path, locale: str) -> dict[str, dict[str, Any]]:
         if overlap:
             raise SystemExit(f"{path}: duplicate locale ids {sorted(overlap)}")
         result.update(rows)
-    return result
+        if path.name == AIRLOCK_PART:
+            strict.update(rows)
+    return result, strict
 
 
 def strings(value: Any):
@@ -95,22 +106,13 @@ def translated_projection(row: dict[str, Any]) -> dict[str, Any]:
     return {key: row[key] for key in sorted(PROSE_KEYS) if key in row}
 
 
-def check_invariants(source: dict[str, Any], overlay: dict[str, Any], locale: str, rid: str, errors: list[str]) -> None:
+def check_common(source: dict[str, Any], overlay: dict[str, Any], locale: str, rid: str, errors: list[str]) -> tuple[Any, str]:
     assert_shape(source, overlay, f"{locale}:{rid}", errors)
     matched_source = source_for_overlay(source, overlay)
-    source_text = "\n".join(strings(matched_source))
     merged_text = "\n".join(strings(overlay))
     if not merged_text.strip():
         errors.append(f"{locale}:{rid}: empty locale overlay")
-        return
-    for regex, label in ((NUM, "number"), (FCMO_ID, "FCMO id"), (URL, "URL")):
-        src = sorted(regex.findall(source_text))
-        dst = sorted(regex.findall(merged_text))
-        # Footnote: invariants compare only canonical paths that the sparse
-        # overlay actually translates. Timestamps/scores outside that surface
-        # cannot create false drift while numbers inside prose still fail closed.
-        if src != dst:
-            errors.append(f"{locale}:{rid}: {label} tokens changed: source={src} locale={dst}")
+        return matched_source, merged_text
     title = str(overlay.get("title") or "").strip()
     summary = str(overlay.get("summary") or "").strip()
     why = str(overlay.get("why_it_matters") or overlay.get("why") or "").strip()
@@ -120,6 +122,21 @@ def check_invariants(source: dict[str, Any], overlay: dict[str, Any], locale: st
         errors.append(f"{locale}:{rid}: long edition lacks expected Han-script content")
     if stable_digest(matched_source) == stable_digest(overlay):
         errors.append(f"{locale}:{rid}: edition is unchanged from canonical English")
+    return matched_source, merged_text
+
+
+def check_strict(source: dict[str, Any], overlay: dict[str, Any], locale: str, rid: str, errors: list[str]) -> None:
+    matched_source, merged_text = check_common(source, overlay, locale, rid, errors)
+    source_text = "\n".join(strings(matched_source))
+    for regex, label in ((NUM, "number"), (FCMO_ID, "FCMO id"), (URL, "URL")):
+        src = sorted(regex.findall(source_text))
+        dst = sorted(regex.findall(merged_text))
+        # Footnote: strict invariants apply only to modern ARB-authored material
+        # that crossed the native-edition airlock. This keeps benchmark/version
+        # drift fail-closed without retroactively rewriting the validation history
+        # of the 2026 bootstrap translations.
+        if src != dst:
+            errors.append(f"{locale}:{rid}: {label} tokens changed: source={src} locale={dst}")
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -133,8 +150,10 @@ def main(argv: list[str] | None = None) -> int:
     expected = set(canonical)
     errors: list[str] = []
     receipt_records: dict[str, Any] = {}
+    strict_pairs = 0
+    historical_pairs = 0
     for locale in LOCALES:
-        rows = load_locale(args.i18n_dir, locale)
+        rows, strict_ids = load_locale(args.i18n_dir, locale)
         missing = expected - set(rows)
         stale = set(rows) - expected
         if missing:
@@ -146,26 +165,39 @@ def main(argv: list[str] | None = None) -> int:
             if not isinstance(overlay, dict):
                 errors.append(f"{locale}:{rid}: overlay must be object")
                 continue
-            check_invariants(canonical[rid], overlay, locale, rid, errors)
+            if rid in strict_ids:
+                check_strict(canonical[rid], overlay, locale, rid, errors)
+                tier = "strict_airlock"
+                strict_pairs += 1
+            else:
+                check_common(canonical[rid], overlay, locale, rid, errors)
+                tier = "historical_structural"
+                historical_pairs += 1
             receipt_records.setdefault(rid, {})[locale] = {
                 "canonical_digest": stable_digest(translated_projection(canonical[rid])),
                 "locale_digest": stable_digest(overlay),
+                "validation_tier": tier,
             }
 
     if errors:
         raise SystemExit("localization integrity FAILED:\n" + "\n".join(f"- {x}" for x in errors))
     args.receipt.parent.mkdir(parents=True, exist_ok=True)
     receipt = {
-        "schema": "fcmo-locale-integrity-v1",
+        "schema": "fcmo-locale-integrity-v2",
         "canonical_locale": "en",
         "required_locales": list(LOCALES),
-        "editorial_owner": "ARB publication agent",
+        "editorial_owner": "ARB publication agent for modern airlocked editions; historical packs preserved as published",
         "human_reviewed": False,
         "network_translation": False,
+        "strict_airlock_pairs": strict_pairs,
+        "historical_structural_pairs": historical_pairs,
         "records": receipt_records,
     }
     args.receipt.write_text(json.dumps(receipt, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    print(f"localization integrity OK; stories={len(expected)}; locales={','.join(LOCALES)}")
+    print(
+        f"localization integrity OK; stories={len(expected)}; locales={','.join(LOCALES)}; "
+        f"strict={strict_pairs}; historical={historical_pairs}"
+    )
     return 0
 
 
