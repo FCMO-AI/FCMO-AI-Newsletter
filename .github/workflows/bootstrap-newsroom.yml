@@ -1,0 +1,83 @@
+name: Bootstrap autonomous newsroom from existing public release
+
+# This migration is intentionally public-side only. It upgrades the already
+# published Newsletter corpus into Story/media/research surfaces while ARB's
+# private Actions runner may still be unavailable. It never clones or reads ARB.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'tools/public_research_desk.py'
+      - 'tools/visual_desk.py'
+      - 'tools/build_newsroom_surfaces.py'
+      - 'tools/translation_freshness.py'
+      - 'tools/review_localizations.py'
+      - 'tools/bootstrap_newsroom_status.py'
+      - '.github/workflows/bootstrap-newsroom.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: newsroom-bootstrap
+  cancel-in-progress: true
+
+jobs:
+  bootstrap:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Prove the existing public release is green before migration
+        run: python tools/verify_release.py
+
+      - name: Reconcile locale overlays with the current public schema
+        run: python tools/reconcile_locale_overlays.py --site release-src
+
+      - name: Establish per-story translation freshness baseline
+        run: python tools/translation_freshness.py --site release-src --record
+
+      - name: Add deterministic language-review baseline
+        run: python tools/review_localizations.py --site release-src --deterministic-only
+
+      - name: Re-research the existing stories from public evidence
+        run: python tools/public_research_desk.py --release-src release-src
+
+      - name: Resolve safe visuals or generate original FCMO explainers
+        run: python tools/visual_desk.py --release-src release-src --site site
+
+      - name: Build Story layer and static multilingual news routes
+        run: python tools/build_newsroom_surfaces.py --release-src release-src --site site
+
+      - name: Write explicit non-airlock bootstrap status
+        run: python tools/bootstrap_newsroom_status.py
+
+      - name: Rebuild frozen release identity and readiness receipt
+        run: |
+          python tools/build_final_release.py
+          python tools/build_ready_receipt.py
+          python tools/verify_release.py
+
+      - name: Commit the bootstrapped public newsroom
+        shell: bash
+        run: |
+          git config user.name 'FCMO Autonomous Newsroom'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          rm -rf publish regression
+          git add -A -- release-src release-overlay site READY_TO_PUBLISH.md
+          if git diff --cached --quiet; then
+            echo 'Autonomous newsroom bootstrap already matches main.'
+            exit 0
+          fi
+          fuera=":!release-src :!release-overlay :!site :!READY_TO_PUBLISH.md"
+          if ! git diff --cached --quiet -- $fuera; then
+            echo 'bootstrap touched files outside the public publication surface' >&2
+            git diff --cached --name-only -- $fuera >&2
+            exit 1
+          fi
+          git commit -m 'release: bootstrap autonomous public newsroom'
+          git push origin HEAD:main
