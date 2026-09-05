@@ -9,6 +9,7 @@ from a hash route.
 from __future__ import annotations
 
 import argparse
+import copy
 import datetime as dt
 import html
 import json
@@ -68,6 +69,31 @@ def json_ld(story: dict, media: dict | None) -> dict:
     return {key: item for key, item in value.items() if item not in (None, "", [])}
 
 
+def json_script(value: dict) -> str:
+    """Serialize JSON for an HTML script data block without HTML-entity corruption.
+
+    Footnote: HTML-escaping the complete JSON string turns ``&`` into ``&amp;`` inside
+    script raw-text and breaks structured-data identity. Escaping only the three HTML
+    delimiter characters as JSON unicode sequences preserves valid JSON and prevents a
+    source string from terminating the script element.
+    """
+    return (
+        json.dumps(value, ensure_ascii=False, separators=(",", ":"))
+        .replace("&", "\\u0026")
+        .replace("<", "\\u003c")
+        .replace(">", "\\u003e")
+    )
+
+
+def localized_ld(base_ld: dict, locale: str, identifier: str, title: str, description: str) -> dict:
+    value = copy.deepcopy(base_ld)
+    value["headline"] = title
+    value["description"] = description
+    value["inLanguage"] = HREFLANG[locale]
+    value["mainEntityOfPage"] = {"@type": "WebPage", "@id": story_url(locale, identifier)}
+    return value
+
+
 def shell(identifier: str, locale: str, title: str, description: str, ld: dict) -> str:
     target = f"../../index.html?lang={quote(locale)}#/brief/{identifier}"
     canonical = story_url(locale, identifier)
@@ -84,7 +110,7 @@ def shell(identifier: str, locale: str, title: str, description: str, ld: dict) 
         f"<meta property=\"og:type\" content=\"article\"><meta property=\"og:title\" content=\"{html.escape(title, quote=True)}\">"
         f"<meta property=\"og:description\" content=\"{html.escape(description, quote=True)}\">"
         f"<meta property=\"og:url\" content=\"{canonical}\">"
-        f"<script type=\"application/ld+json\">{html.escape(json.dumps(ld, ensure_ascii=False), quote=False)}</script>"
+        f"<script type=\"application/ld+json\">{json_script(ld)}</script>"
         f"<meta http-equiv=\"refresh\" content=\"0;url={html.escape(target, quote=True)}\">"
         "</head><body><main><p>Opening the FCMO AI Newsletter dossier… "
         f"<a href=\"{html.escape(target, quote=True)}\">Continue</a>.</p></main></body></html>"
@@ -141,8 +167,8 @@ def main() -> int:
     articles: dict[str, dict] = {}
     for story in stories:
         identifier = story["research_ids"][0]
-        ld = json_ld(story, media.get(identifier))
-        articles[identifier] = ld
+        base_ld = json_ld(story, media.get(identifier))
+        articles[identifier] = base_ld
         for locale in LANGS:
             if locale == "en":
                 title, description = story["headline"], story["dek"]
@@ -152,6 +178,7 @@ def main() -> int:
                 description = overlay.get("summary") or story["dek"]
             route = args.site / LANGS[locale] / "developments" / f"{identifier}.html"
             route.parent.mkdir(parents=True, exist_ok=True)
+            ld = localized_ld(base_ld, locale, identifier, title, description)
             route.write_text(shell(identifier, locale, title, description, ld), encoding="utf-8")
             all_urls.append((story_url(locale, identifier), story.get("modified_at")))
     (args.site / "data" / "news-articles.json").write_text(
@@ -161,7 +188,10 @@ def main() -> int:
     reference = parse_time(status.get("delivered_at")) or parse_time(status.get("public_evidence_cutoff"))
     if reference is None:
         candidates = [parse_time(story.get("modified_at")) for story in stories]
-        reference = max([item for item in candidates if item is not None], default=dt.datetime(1970, 1, 1, tzinfo=dt.timezone.utc))
+        reference = max(
+            [item for item in candidates if item is not None],
+            default=dt.datetime(1970, 1, 1, tzinfo=dt.timezone.utc),
+        )
     (args.site / "news-sitemap.xml").write_text(news_sitemap(stories, reference), encoding="utf-8")
     print(json.dumps({"localized_story_routes": len(stories) * len(LANGS), "news_articles": len(articles)}, sort_keys=True))
     return 0
