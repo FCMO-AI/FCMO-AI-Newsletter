@@ -24,6 +24,14 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+# Footnote: direct execution (`python tools/review_localizations.py`) puts the
+# tools/ directory, not the repository root, at the front of sys.path. Add the
+# repo root before importing sibling tools so CI, scheduled workflows and local
+# operator runs exercise exactly the same module path.
+REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
 from tools.translate_records import _read_canonical, _source_overlay, _preserves_numbers
 
 ENDPOINT = "https://api.anthropic.com/v1/messages"
