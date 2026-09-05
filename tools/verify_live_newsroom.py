@@ -103,7 +103,10 @@ def main(argv: list[str] | None = None) -> int:
         if age > timedelta(hours=args.max_airlock_age_hours):
             raise SystemExit(f"live oracle FAILED: deployed airlock heartbeat is stale ({age.total_seconds()/3600:.1f}h)")
 
-    for path in ("/news/en/", "/news/es/", "/news/zh-hans/", "/news-sitemap.xml"):
+    # Footnote: the general sitemap proves durable crawlability of all Story
+    # routes; news-sitemap.xml proves the time-bounded Google News surface. Both
+    # are production contracts, so a successful build alone is not sufficient.
+    for path in ("/news/en/", "/news/es/", "/news/zh-hans/", "/sitemap.xml", "/news-sitemap.xml"):
         fetch(base + path)
 
     latest_id = expected_stories[0].get("research_id")
@@ -121,7 +124,7 @@ def main(argv: list[str] | None = None) -> int:
 
     print(
         f"live newsroom PRODUCTION OK: release={live_status['release_id']} "
-        f"state={live_status['state']} stories={len(expected_stories)}; EN/ES/ZH + sitemap + latest Story verified"
+        f"state={live_status['state']} stories={len(expected_stories)}; EN/ES/ZH + general/news sitemaps + latest Story verified"
     )
     return 0
 
