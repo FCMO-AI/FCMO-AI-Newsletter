@@ -39,7 +39,24 @@ def recompute_release_digest(corpus: Path) -> str:
     return hashlib.sha256(material).hexdigest()
 
 
-def inspect(corpus: Path, *, now: dt.datetime, max_age_hours: float) -> dict[str, Any]:
+def previous_digest(path: Path | None) -> str | None:
+    if path is None or not path.is_file():
+        return None
+    try:
+        value = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    digest = value.get("corpus_digest_sha256") if isinstance(value, dict) else None
+    return digest if isinstance(digest, str) and digest else None
+
+
+def inspect(
+    corpus: Path,
+    *,
+    now: dt.datetime,
+    max_age_hours: float,
+    previous_corpus_digest: str | None = None,
+) -> dict[str, Any]:
     release_path = corpus / "newsroom-release.json"
     transport_path = corpus / "_transport-receipt.json"
     if not release_path.is_file() or not transport_path.is_file():
@@ -62,11 +79,18 @@ def inspect(corpus: Path, *, now: dt.datetime, max_age_hours: float) -> dict[str
         raise ValueError(
             f"airlock starvation: last delivery is {age_hours:.1f}h old (limit {max_age_hours:.1f}h)"
         )
+    delta = (
+        "NO_PUBLIC_DELTA"
+        if previous_corpus_digest and previous_corpus_digest == release["corpus_digest_sha256"]
+        else "PUBLIC_DELTA"
+    )
     return {
         "schema_version": 1,
         "state": "HEALTHY",
+        "public_delta_state": delta,
         "release_id": release["release_id"],
         "corpus_digest_sha256": release["corpus_digest_sha256"],
+        "previous_corpus_digest_sha256": previous_corpus_digest,
         "public_evidence_cutoff": release.get("public_evidence_cutoff"),
         "development_count": int(release.get("development_count") or 0),
         "delivered_at": transport["delivered_at"],
@@ -80,11 +104,21 @@ def main() -> int:
     parser.add_argument("corpus", type=Path)
     parser.add_argument("--max-age-hours", type=float, default=30.0)
     parser.add_argument("--out", type=Path)
+    parser.add_argument(
+        "--previous",
+        type=Path,
+        help="previous public-safe newsroom-status.json used only to classify delta vs heartbeat",
+    )
     parser.add_argument("--now", help="UTC ISO timestamp used by tests/reproducible checks")
     args = parser.parse_args()
     now = parse_time(args.now) if args.now else dt.datetime.now(dt.timezone.utc)
     try:
-        status = inspect(args.corpus, now=now, max_age_hours=args.max_age_hours)
+        status = inspect(
+            args.corpus,
+            now=now,
+            max_age_hours=args.max_age_hours,
+            previous_corpus_digest=previous_digest(args.previous),
+        )
     except (OSError, ValueError, json.JSONDecodeError) as exc:
         raise SystemExit(str(exc))
     if args.out:
