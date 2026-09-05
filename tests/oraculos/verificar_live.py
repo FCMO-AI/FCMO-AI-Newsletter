@@ -10,11 +10,19 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 import time
 import urllib.error
 import urllib.request
 from pathlib import Path
 from urllib.parse import urljoin
+
+# Footnote: launching this file as ``python tests/oraculos/verificar_live.py`` puts
+# only tests/oraculos on sys.path. Add the repository root explicitly so CI and local
+# execution import the sibling oracle through the same stable package path.
+REPO_ROOT = Path(__file__).resolve().parents[2]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
 
 from tests.oraculos.verificar_dom import browser_path, render, require
 
@@ -48,7 +56,11 @@ def verify_once(expected: Path, base: str) -> None:
         require(marker in fetch_text(urljoin(base, path)), f"live {path} missing expected marker")
 
     stories = json.loads((expected / "data" / "stories.json").read_text(encoding="utf-8"))
-    chosen = next((story for story in stories if story.get("disposition") in {"LEAD", "STANDARD", "BRIEF", "SIGNAL"}), stories[0])
+    require(bool(stories), "candidate contains no Story objects")
+    chosen = next(
+        (story for story in stories if story.get("disposition") in {"LEAD", "STANDARD", "BRIEF", "SIGNAL"}),
+        stories[0],
+    )
     identifier = chosen["research_ids"][0]
     browser = browser_path()
     for segment, locale in (("en", "en"), ("es", "es-419"), ("zh-hans", "zh-Hans")):
