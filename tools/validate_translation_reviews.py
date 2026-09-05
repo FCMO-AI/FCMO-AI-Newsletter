@@ -4,7 +4,15 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from pathlib import Path
+
+# Footnote: direct execution (`python tools/validate_translation_reviews.py`) places
+# `tools/` rather than the repository root on sys.path. Add the root explicitly so the
+# validator behaves the same way in CI, the refresh workflow and module-level tests.
+REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
 
 from tools.review_translations import LOCALES, digest, merged_locale
 from tools.translate_records import _read_canonical, _source_overlay
