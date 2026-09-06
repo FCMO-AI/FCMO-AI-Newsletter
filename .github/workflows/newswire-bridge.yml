@@ -1,0 +1,143 @@
+name: Pull airlocked newswire with GitHub App
+
+on:
+  schedule:
+    # 06:10 America/Mexico_City. ARB's research/publication cycle has time to
+    # settle first; this public runner does not depend on private Actions minutes.
+    - cron: '10 12 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: fcmo-newswire-bridge
+  cancel-in-progress: false
+
+jobs:
+  bridge:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the public sink
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Require only the GitHub App activation inputs
+        env:
+          APP_ID: ${{ vars.FCMO_NEWSWIRE_APP_ID }}
+          APP_PRIVATE_KEY: ${{ secrets.FCMO_NEWSWIRE_APP_PRIVATE_KEY }}
+        shell: bash
+        run: |
+          # Footnote: these are the only operator-provided launch inputs. There is
+          # no PAT, model-provider credential, private-Actions runner, or manual
+          # publication switch hidden behind this preflight.
+          test -n "$APP_ID" || { echo 'FCMO_NEWSWIRE_APP_ID is not configured' >&2; exit 1; }
+          test -n "$APP_PRIVATE_KEY" || { echo 'FCMO_NEWSWIRE_APP_PRIVATE_KEY is not configured' >&2; exit 1; }
+
+      - name: Mint a read-only token scoped only to private ARB
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          app-id: ${{ vars.FCMO_NEWSWIRE_APP_ID }}
+          private-key: ${{ secrets.FCMO_NEWSWIRE_APP_PRIVATE_KEY }}
+          owner: FCMO-AI
+          repositories: AI-Research-Breakthroughs
+          permission-contents: read
+
+      - name: Checkout the private source ephemerally
+        uses: actions/checkout@v6
+        with:
+          repository: FCMO-AI/AI-Research-Breakthroughs
+          token: ${{ steps.app-token.outputs.token }}
+          ref: main
+          path: .newswire-private-source
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Run ARB's own repository and publication tests
+        working-directory: .newswire-private-source
+        run: python -m unittest discover -s tests -v
+
+      - name: Build ARB's deterministic declassified release
+        working-directory: .newswire-private-source
+        env:
+          ARB_SITE_BASE_PATH: /FCMO-AI-Newsletter
+          ARB_PUBLIC_BASE_URL: https://fcmo-ai.github.io/FCMO-AI-Newsletter
+        run: |
+          python tools/build_publication.py --check-determinism
+          python tools/build_public_release.py
+          python tools/build_public_locales.py build
+          python tools/build_airlock_receipt.py
+          test -f _public_release/airlock.json
+          test -f _public_release/data/locales/es-419/records.json
+          test -f _public_release/data/locales/zh-Hans/records.json
+
+      - name: Extract only the already-sanitized release, then destroy private checkout
+        shell: bash
+        run: |
+          RELEASE_DIR="$RUNNER_TEMP/fcmo-newswire-airlocked-release"
+          rm -rf "$RELEASE_DIR"
+          mkdir -p "$RELEASE_DIR"
+          cp -a .newswire-private-source/_public_release/. "$RELEASE_DIR/"
+          rm -rf .newswire-private-source
+          test ! -e .newswire-private-source
+          echo "RELEASE_DIR=$RELEASE_DIR" >> "$GITHUB_ENV"
+          # Footnote: no private checkout exists when the public-side verifier or
+          # Git staging begins. Only the upstream-produced allowlisted candidate
+          # survives across this boundary.
+
+      - name: Independently verify the airlocked bytes from the public side
+        run: python tools/newswire_bridge.py verify "$RELEASE_DIR"
+
+      - name: Rebase transport onto current public main before staging
+        shell: bash
+        run: |
+          # Footnote: ARB build/test can take time. Resetting to the latest public
+          # main here prevents a newswire run from overwriting an unrelated commit
+          # that landed while the private source was being compiled.
+          git fetch origin main
+          git reset --hard origin/main
+          python tools/newswire_bridge.py verify "$RELEASE_DIR"
+
+      - name: Atomically replace only corpus/
+        run: python tools/newswire_bridge.py stage "$RELEASE_DIR" corpus
+
+      - name: Commit only the verified public handoff
+        id: commit
+        shell: bash
+        run: |
+          rm -rf "$RELEASE_DIR"
+          git config user.name 'FCMO Newswire Bridge'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A -- corpus
+          if git diff --cached --quiet -- corpus; then
+            echo 'changed=false' >> "$GITHUB_OUTPUT"
+            echo 'Verified airlock payload already matches corpus/ exactly.'
+            exit 0
+          fi
+          if ! git diff --cached --quiet -- ':!corpus'; then
+            echo 'refusing to commit anything outside corpus/' >&2
+            git diff --cached --name-only -- ':!corpus' >&2
+            exit 1
+          fi
+          git commit -m 'corpus: receive verified FCMO newswire airlock'
+          git push origin HEAD:main
+          echo 'changed=true' >> "$GITHUB_OUTPUT"
+
+      - name: Explicitly start the public autonomous newsroom
+        if: steps.commit.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          # Footnote: pushes made with GITHUB_TOKEN intentionally do not fan out
+          # into push-triggered workflows. workflow_dispatch is the explicit,
+          # auditable handoff from transport to the already-existing newsroom.
+          gh api --method POST \
+            "repos/${GITHUB_REPOSITORY}/actions/workflows/daily-refresh.yml/dispatches" \
+            -f ref=main
