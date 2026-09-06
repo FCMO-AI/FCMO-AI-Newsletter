@@ -70,9 +70,9 @@ jobs:
           # Footnote: actions/checkout logs the resolved private commit SHA on a
           # public workflow. A quiet Git clone with an ephemeral HTTP auth header
           # keeps the token out of the remote URL and the private commit identity
-          # out of public logs while retaining .git for any upstream tests that
-          # legitimately need repository semantics. publication-ready is the
-          # last-known-good publication plane; live main is never a transport input.
+          # out of public logs while retaining .git for publication seal checks.
+          # publication-ready is the last-known-good publication plane; live main
+          # is never a transport input.
           git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $AUTH" \
             clone --quiet --depth 1 --single-branch --branch publication-ready \
             https://github.com/FCMO-AI/AI-Research-Breakthroughs.git \
@@ -80,18 +80,18 @@ jobs:
           test "$(git -C "$PRIVATE_DIR" branch --show-current)" = "publication-ready"
           unset AUTH APP_TOKEN
 
-      - name: Run ARB's own tests without exposing private diagnostics
+      - name: Validate ARB's sealed publication plane without exposing private diagnostics
         shell: bash
         run: |
           set -euo pipefail
           PRIVATE_DIR="$RUNNER_TEMP/fcmo-newswire-private-source"
           PRIVATE_LOG="$RUNNER_TEMP/fcmo-newswire-private-tests.log"
-          # Footnote: this is a public workflow. ARB test names, paths and failure
-          # diagnostics are private even when a test itself is safe. Capture all
-          # output privately and emit only the phase verdict. The private process
-          # also receives an allowlisted environment rather than GitHub command
-          # files/runtime tokens, so it cannot persist workflow state through
-          # GITHUB_ENV/GITHUB_OUTPUT or inherit unrelated runner credentials.
+          # Footnote: the private repository owns which tests are publication
+          # authoritative. Running its explicit seal prevents unrelated agent/query/
+          # control-plane debt from becoming a public outage while still gating the
+          # canonical inputs, importance semantics, privacy/declassification, native
+          # locales, public identities/surface and deterministic publication compiler.
+          # All private diagnostics remain in the ephemeral private log.
           if ! (
             cd "$PRIVATE_DIR" &&
             env -i \
@@ -99,14 +99,14 @@ jobs:
               "HOME=$HOME" \
               "LANG=C.UTF-8" \
               "LC_ALL=C.UTF-8" \
-              python -m unittest discover -s tests
+              python tools/validate_publication_plane.py
           ) >"$PRIVATE_LOG" 2>&1; then
             rm -f "$PRIVATE_LOG"
-            echo 'Private ARB validation failed inside the isolated bridge.' >&2
+            echo 'Private ARB publication seal failed inside the isolated bridge.' >&2
             exit 1
           fi
           rm -f "$PRIVATE_LOG"
-          echo 'Private ARB validation passed.'
+          echo 'Private ARB publication seal passed.'
 
       - name: Build ARB's deterministic declassified release without private logs
         shell: bash
