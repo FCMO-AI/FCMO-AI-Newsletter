@@ -9,10 +9,15 @@ on:
     branches: [main]
     paths:
       - 'corpus/**'
+  workflow_run:
+    workflows:
+      - 'Pull airlocked newswire with GitHub App'
+    types: [completed]
+    branches: [main]
   # Footnote: a GITHUB_TOKEN corpus commit cannot recursively trigger another
-  # push workflow. The canonical app-only transport therefore dispatches this
-  # workflow explicitly after a verified corpus commit. The push trigger remains
-  # as compatibility for any future trusted external publisher identity.
+  # push workflow. workflow_run is therefore the canonical handoff from the
+  # app-only transport bridge. The push trigger remains as compatibility for any
+  # future independently-authenticated trusted publisher.
   workflow_dispatch:
 
 permissions:
@@ -24,6 +29,11 @@ concurrency:
 
 jobs:
   refresh:
+    # Footnote: a failed bridge must never be laundered into a downstream refresh.
+    # Manual dispatch and an independently-authenticated corpus push remain valid.
+    if: >-
+      github.event_name != 'workflow_run' ||
+      github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
