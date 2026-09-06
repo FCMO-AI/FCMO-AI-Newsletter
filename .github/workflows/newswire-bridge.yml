@@ -16,6 +16,10 @@ concurrency:
 
 jobs:
   bridge:
+    # Footnote: workflow_dispatch can target another ref. The App credential is a
+    # private-repository read capability, so only the reviewed default-branch
+    # workflow is allowed to reach the token-minting step.
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the public sink
@@ -26,17 +30,14 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Require only the GitHub App activation inputs
+      - name: Require the GitHub App ID
         env:
           APP_ID: ${{ vars.FCMO_NEWSWIRE_APP_ID }}
-          APP_PRIVATE_KEY: ${{ secrets.FCMO_NEWSWIRE_APP_PRIVATE_KEY }}
         shell: bash
         run: |
-          # Footnote: these are the only operator-provided launch inputs. There is
-          # no PAT, model-provider credential, private-Actions runner, or manual
-          # publication switch hidden behind this preflight.
+          # Footnote: the PEM is intentionally not passed to a shell merely to
+          # test whether it exists. The token action is the sole secret consumer.
           test -n "$APP_ID" || { echo 'FCMO_NEWSWIRE_APP_ID is not configured' >&2; exit 1; }
-          test -n "$APP_PRIVATE_KEY" || { echo 'FCMO_NEWSWIRE_APP_PRIVATE_KEY is not configured' >&2; exit 1; }
 
       - name: Mint a read-only token scoped only to private ARB
         id: app-token
@@ -56,6 +57,7 @@ jobs:
           set -euo pipefail
           mkdir -p .newswire-private-source
           AUTH=$(printf 'x-access-token:%s' "$APP_TOKEN" | base64 -w0)
+          echo "::add-mask::$AUTH"
           # Footnote: actions/checkout logs the resolved private commit SHA on a
           # public workflow. A quiet Git clone with an ephemeral HTTP auth header
           # keeps the token out of the remote URL and the private commit identity
@@ -65,6 +67,7 @@ jobs:
             clone --quiet --depth 1 --branch main \
             https://github.com/FCMO-AI/AI-Research-Breakthroughs.git \
             .newswire-private-source
+          unset AUTH APP_TOKEN
 
       - name: Run ARB's own tests without exposing private diagnostics
         shell: bash
