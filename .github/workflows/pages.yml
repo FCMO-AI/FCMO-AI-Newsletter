@@ -32,7 +32,12 @@ permissions:
 
 concurrency:
   group: github-pages
-  cancel-in-progress: true
+  # Footnote: a completed-but-failed upstream producer still creates a
+  # workflow_run instance. GitHub applies workflow-level concurrency before the
+  # build job's success guard, so cancel-in-progress=true let a run that would
+  # later be skipped cancel an already-valid push deployment. Queueing here is
+  # intentional: only runs whose build guard passes can ever reach deploy.
+  cancel-in-progress: false
 
 jobs:
   build:
