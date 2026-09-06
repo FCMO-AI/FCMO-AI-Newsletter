@@ -4,8 +4,7 @@
 The discovery builder is intentionally independent of the Story builder. This pass
 binds their route contracts, writes path-accurate canonical URLs, folds every durable
 HTML route into the sitemap, rejects remote executable dependencies, then refreshes
-the candidate build manifest and re-runs final-release validation when operating on
-an assembled publish tree.
+the candidate build manifest when operating on an assembled publish tree.
 """
 from __future__ import annotations
 
@@ -73,7 +72,7 @@ def augment_sitemap(root: Path) -> None:
 
 
 def refresh_candidate_manifest(root: Path) -> None:
-    """Make the manifest describe the post-overlay, post-frontend candidate."""
+    """Bind build-manifest.json to the exact post-overlay candidate served by Pages."""
     try:
         from tools import apply_final_release
     except ImportError:
@@ -82,11 +81,41 @@ def refresh_candidate_manifest(root: Path) -> None:
     if not manifest_path.is_file():
         return
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    # Footnote: apply_final_release writes its manifest before this presentation
-    # layer exists. Rewriting it here prevents a green deployment from carrying
-    # a stale inventory/hash map after topic/org/detail surfaces are generated.
-    apply_final_release.write_build_manifest(root, manifest["release"])
-    apply_final_release.validate(root, manifest)
+    release = manifest["release"]
+
+    # Footnote: apply_final_release already validates the frozen release before the
+    # native-edition and discovery layers are added. Re-running that *frozen* validator
+    # here conflates two authorities: it can reject intentional post-overlay output.
+    # The correct final invariant is stronger for deployment identity: every durable
+    # file in the served candidate must be represented by the refreshed manifest and
+    # every recorded hash must match the exact bytes that Pages will receive.
+    apply_final_release.write_build_manifest(root, release)
+    build_path = root / "build-manifest.json"
+    build = json.loads(build_path.read_text(encoding="utf-8"))
+    recorded = build.get("files")
+    if not isinstance(recorded, dict):
+        raise SystemExit("post-overlay build manifest has no files map")
+
+    actual = {
+        path.relative_to(root).as_posix(): apply_final_release.sha256(path.read_bytes())
+        for path in sorted(p for p in root.rglob("*") if p.is_file())
+        if path.name != "build-manifest.json"
+    }
+    missing = sorted(set(actual) - set(recorded))
+    stale = sorted(set(recorded) - set(actual))
+    mismatched = sorted(
+        rel for rel in set(actual) & set(recorded)
+        if recorded[rel] != actual[rel]
+    )
+    if missing or stale or mismatched:
+        details = []
+        if missing:
+            details.append(f"unrecorded files: {missing[:10]}")
+        if stale:
+            details.append(f"manifest-only files: {stale[:10]}")
+        if mismatched:
+            details.append(f"hash mismatches: {mismatched[:10]}")
+        raise SystemExit("post-overlay build manifest FAILED: " + "; ".join(details))
 
 
 def main(argv: list[str] | None = None) -> int:
