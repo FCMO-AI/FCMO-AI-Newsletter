@@ -51,6 +51,47 @@ class NewswireBridgeWorkflowContractTests(unittest.TestCase):
         self.assertIn("unset AUTH APP_TOKEN", text)
         self.assertNotIn("x-access-token:${{", text)
 
+    def test_private_tree_lives_outside_public_workspace(self) -> None:
+        text = BRIDGE.read_text(encoding="utf-8")
+        private_dir = 'PRIVATE_DIR="$RUNNER_TEMP/fcmo-newswire-private-source"'
+        self.assertGreaterEqual(text.count(private_dir), 4)
+        self.assertNotIn("mkdir -p .newswire-private-source", text)
+        self.assertNotIn("cd .newswire-private-source", text)
+        # Footnote: reset + clean makes the public checkout exactly current main
+        # before the independently verified corpus candidate is staged.
+        self.assertIn("git reset --hard origin/main", text)
+        self.assertIn("git clean -fdx", text)
+
+    def test_private_processes_receive_minimal_allowlisted_environment(self) -> None:
+        text = BRIDGE.read_text(encoding="utf-8")
+        self.assertGreaterEqual(text.count("env -i"), 2)
+        for allowed in (
+            '"PATH=$PATH"',
+            '"HOME=$HOME"',
+            '"LANG=C.UTF-8"',
+            '"LC_ALL=C.UTF-8"',
+        ):
+            self.assertGreaterEqual(text.count(allowed), 2)
+        self.assertIn('"ARB_SITE_BASE_PATH=/FCMO-AI-Newsletter"', text)
+        self.assertIn(
+            '"ARB_PUBLIC_BASE_URL=https://fcmo-ai.github.io/FCMO-AI-Newsletter"',
+            text,
+        )
+        # Footnote: GitHub command-file/runtime variables are intentionally absent
+        # from the env -i child. They may exist in the trusted wrapper shell, but
+        # the private Python processes never inherit them.
+        private_env_block = text[text.index("env -i") : text.index("Extract only the already-sanitized release")]
+        for forbidden in (
+            "GITHUB_ENV=",
+            "GITHUB_OUTPUT=",
+            "GITHUB_PATH=",
+            "GITHUB_STEP_SUMMARY=",
+            "ACTIONS_RUNTIME_TOKEN=",
+            "ACTIONS_ID_TOKEN_REQUEST_TOKEN=",
+            "GITHUB_TOKEN=",
+        ):
+            self.assertNotIn(forbidden, private_env_block)
+
     def test_private_execution_output_never_reaches_public_log(self) -> None:
         text = BRIDGE.read_text(encoding="utf-8")
         self.assertIn('PRIVATE_LOG="$RUNNER_TEMP/fcmo-newswire-private-tests.log"', text)
@@ -61,7 +102,7 @@ class NewswireBridgeWorkflowContractTests(unittest.TestCase):
 
     def test_private_checkout_is_destroyed_before_public_side_verification(self) -> None:
         text = BRIDGE.read_text(encoding="utf-8")
-        destroy = text.index("rm -rf .newswire-private-source")
+        destroy = text.index('rm -rf "$PRIVATE_DIR"')
         verify = text.index("python tools/newswire_bridge.py verify")
         stage = text.index("python tools/newswire_bridge.py stage")
         self.assertLess(destroy, verify)
@@ -73,7 +114,7 @@ class NewswireBridgeWorkflowContractTests(unittest.TestCase):
         self.assertIn("if: always()", text[cleanup:])
         tail = text[cleanup:]
         for marker in (
-            "rm -rf .newswire-private-source",
+            'rm -rf "$RUNNER_TEMP/fcmo-newswire-private-source"',
             'rm -f "$RUNNER_TEMP/fcmo-newswire-private-tests.log"',
             'rm -f "$RUNNER_TEMP/fcmo-newswire-private-build.log"',
             'rm -rf "$RUNNER_TEMP/fcmo-newswire-airlocked-release"',
