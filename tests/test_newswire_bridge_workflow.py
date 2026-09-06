@@ -45,11 +45,20 @@ class NewswireBridgeWorkflowContractTests(unittest.TestCase):
         # it with repository: private-ARB would print the resolved private SHA into
         # the public workflow log. The private source must use quiet Git transport.
         self.assertNotIn("repository: FCMO-AI/AI-Research-Breakthroughs", text)
-        self.assertIn("clone --quiet --depth 1 --branch main", text)
+        self.assertIn("clone --quiet --depth 1 --single-branch --branch publication-ready", text)
         self.assertIn('http.https://github.com/.extraheader=AUTHORIZATION: basic $AUTH', text)
         self.assertIn('echo "::add-mask::$AUTH"', text)
         self.assertIn("unset AUTH APP_TOKEN", text)
         self.assertNotIn("x-access-token:${{", text)
+
+    def test_private_transport_can_never_consume_live_main(self) -> None:
+        text = BRIDGE.read_text(encoding="utf-8")
+        # Footnote: this is the regression for the 07:00/07:10 race. The source
+        # ref must be the sealed publication plane, not whichever incremental
+        # research commit happens to be HEAD when the scheduled job starts.
+        self.assertIn("--branch publication-ready", text)
+        self.assertIn('branch --show-current)" = "publication-ready"', text)
+        self.assertNotIn("--branch main", text)
 
     def test_private_tree_lives_outside_public_workspace(self) -> None:
         text = BRIDGE.read_text(encoding="utf-8")
@@ -64,14 +73,14 @@ class NewswireBridgeWorkflowContractTests(unittest.TestCase):
 
     def test_private_processes_receive_minimal_allowlisted_environment(self) -> None:
         text = BRIDGE.read_text(encoding="utf-8")
-        self.assertGreaterEqual(text.count("env -i"), 2)
+        self.assertGreaterEqual(text.count("env -i"), 3)
         for allowed in (
             '"PATH=$PATH"',
             '"HOME=$HOME"',
             '"LANG=C.UTF-8"',
             '"LC_ALL=C.UTF-8"',
         ):
-            self.assertGreaterEqual(text.count(allowed), 2)
+            self.assertGreaterEqual(text.count(allowed), 3)
         self.assertIn('"ARB_SITE_BASE_PATH=/FCMO-AI-Newsletter"', text)
         self.assertIn(
             '"ARB_PUBLIC_BASE_URL=https://fcmo-ai.github.io/FCMO-AI-Newsletter"',
@@ -103,6 +112,13 @@ class NewswireBridgeWorkflowContractTests(unittest.TestCase):
         self.assertGreaterEqual(text.count('rm -f "$PRIVATE_LOG"'), 4)
         self.assertNotIn("unittest discover -s tests -v", text)
 
+    def test_bridge_runs_repository_doctor_before_unit_tests(self) -> None:
+        text = BRIDGE.read_text(encoding="utf-8")
+        doctor = text.index("python tools/doctor.py")
+        tests = text.index("python -m unittest discover -s tests")
+        self.assertLess(doctor, tests)
+        self.assertIn("git diff --quiet --exit-code", text)
+
     def test_private_checkout_is_destroyed_before_public_side_verification(self) -> None:
         text = BRIDGE.read_text(encoding="utf-8")
         destroy = text.index('rm -rf "$PRIVATE_DIR"')
@@ -130,10 +146,11 @@ class NewswireBridgeWorkflowContractTests(unittest.TestCase):
         self.assertIn("git diff --cached --quiet -- ':!corpus'", text)
         self.assertNotRegex(text, re.compile(r"git add (?:-A )?\.(?:\s|$)"))
 
-    def test_bridge_cadence_waits_for_settled_six_am_research(self) -> None:
+    def test_bridge_cadence_is_separate_from_live_research_state(self) -> None:
         text = BRIDGE.read_text(encoding="utf-8")
         self.assertIn("07:10 America/Mexico_City", text)
         self.assertIn("cron: '10 13 * * *'", text)
+        self.assertIn("publication-ready", text)
 
     def test_refresh_is_chained_from_successful_bridge(self) -> None:
         text = REFRESH.read_text(encoding="utf-8")
