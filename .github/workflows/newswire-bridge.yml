@@ -166,3 +166,17 @@ jobs:
           # Footnote: no explicit API dispatch is needed. The downstream newsroom
           # listens to this workflow's successful completion via workflow_run,
           # which keeps this bridge at Contents-only authority.
+
+      - name: Destroy any residual private bridge state
+        if: always()
+        shell: bash
+        run: |
+          # Footnote: successful runs delete private material before verification;
+          # this unconditional finalizer covers earlier failure paths as well. The
+          # GitHub-hosted runner is ephemeral, but explicit destruction keeps the
+          # security property true even before runner teardown.
+          rm -rf .newswire-private-source
+          rm -f "$RUNNER_TEMP/fcmo-newswire-private-tests.log"
+          rm -f "$RUNNER_TEMP/fcmo-newswire-private-build.log"
+          rm -rf "$RUNNER_TEMP/fcmo-newswire-airlocked-release"
+          test ! -e .newswire-private-source
