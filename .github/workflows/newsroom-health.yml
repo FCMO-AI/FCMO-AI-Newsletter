@@ -17,8 +17,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  production-health:
-    # A failed Pages workflow cannot be laundered into a healthy newsroom check.
+  serving-health:
+    # A failed Pages workflow cannot be laundered into a healthy serving check.
     if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     steps:
@@ -28,5 +28,21 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Prove production release identity and reader routes
+      - name: Prove the last-known-good production release and reader routes are serving
         run: python tools/verify_live_newsroom.py
+
+  publication-freshness:
+    # Footnote: availability and autonomous publication are different operational
+    # truths. The site may safely serve its last-known-good release while this job
+    # remains red, making a broken/stale Airlock impossible to hide behind uptime.
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Require a real recent Airlock-backed production release
+        run: python tools/verify_live_newsroom.py --require-airlock --max-airlock-age-hours 30

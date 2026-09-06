@@ -17,7 +17,7 @@ from pathlib import Path
 from typing import Any
 
 DEFAULT_BASE = "https://fcmo-ai.github.io/FCMO-AI-Newsletter"
-USER_AGENT = "FCMO-Newsroom-Live-Oracle/1.1"
+USER_AGENT = "FCMO-Newsroom-Live-Oracle/1.2"
 
 
 def fetch(url: str, attempts: int = 6) -> bytes:
@@ -54,6 +54,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--status", type=Path, default=Path("site/data/newsroom-status.json"))
     parser.add_argument("--stories", type=Path, default=Path("site/data/stories.json"))
     parser.add_argument("--allow-unbootstrapped", action="store_true")
+    parser.add_argument("--require-airlock", action="store_true")
     parser.add_argument("--max-airlock-age-hours", type=int, default=48)
     args = parser.parse_args(argv)
     base = args.base_url.rstrip("/")
@@ -63,7 +64,7 @@ def main(argv: list[str] | None = None) -> int:
         raise SystemExit("live oracle FAILED: production root does not identify the publication")
 
     if not args.status.is_file():
-        if args.allow_unbootstrapped:
+        if args.allow_unbootstrapped and not args.require_airlock:
             print("live oracle BASELINE OK: root is live; autonomous newsroom status not bootstrapped in this commit")
             return 0
         raise SystemExit("live oracle FAILED: repository newsroom status is absent")
@@ -96,14 +97,19 @@ def main(argv: list[str] | None = None) -> int:
         raise SystemExit(f"live oracle FAILED: unsupported newsroom state {live_status.get('state')!r}")
 
     generated = live_status.get("airlock_generated_at")
+    # Footnote: serving health and publication freshness are intentionally distinct.
+    # A last-known-good bootstrap may remain perfectly available while the autonomous
+    # transport is broken; --require-airlock makes that operational failure visible
+    # without taking the reader-facing site offline.
+    if args.require_airlock:
+        if live_status.get("state") == "BOOTSTRAPPED_FROM_EXISTING_PUBLIC_RELEASE" or not generated:
+            raise SystemExit("live oracle FRESHNESS FAILED: no real Airlock-backed production release is active")
+
     if generated:
         age = datetime.now(timezone.utc) - parse_utc(str(generated))
         if age > timedelta(hours=args.max_airlock_age_hours):
             raise SystemExit(f"live oracle FAILED: deployed airlock heartbeat is stale ({age.total_seconds()/3600:.1f}h)")
 
-    # Footnote: these are product contracts, not decorative routes. Requiring them
-    # from the production origin prevents a green build from masking a deployment
-    # that still serves the former shells or omits machine-facing discovery.
     required_routes = (
         "/archive.html", "/search.html", "/topics.html", "/organizations.html",
         "/corrections.html", "/feeds.html", "/methodology.html", "/editorial-policy.html",
@@ -138,8 +144,9 @@ def main(argv: list[str] | None = None) -> int:
     if "FCMO WIRE" not in root:
         raise SystemExit("live oracle FAILED: main publication has no route into FCMO WIRE")
 
+    mode = "FRESHNESS" if args.require_airlock else "PRODUCTION"
     print(
-        f"live newsroom PRODUCTION OK: release={live_status['release_id']} "
+        f"live newsroom {mode} OK: release={live_status['release_id']} "
         f"state={live_status['state']} stories={len(expected_stories)}; full editorial/machine route suite + EN/ES/ZH verified"
     )
     return 0

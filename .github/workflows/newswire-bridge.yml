@@ -6,11 +6,14 @@ on:
     paths:
       - '.github/workflows/newswire-bridge.yml'
   schedule:
-    # 07:10 America/Mexico_City. The transport consumes ARB's explicitly sealed
-    # publication-ready checkpoint, never the live research branch. This keeps the
-    # 07:00 research activation free to make incremental commits without racing
-    # the publication transaction or exposing a half-landed multilingual state.
+    # Footnote: GitHub scheduled events are best-effort and may be delayed. These
+    # staggered attempts are deliberately idempotent: every run freezes one exact ARB
+    # main snapshot, proves it, and publishes only if that snapshot passes the seal.
+    # Mexico City is UTC-6 year-round, so these are 07:10, 07:37, 08:11 and 08:47.
     - cron: '10 13 * * *'
+    - cron: '37 13 * * *'
+    - cron: '11 14 * * *'
+    - cron: '47 14 * * *'
   workflow_dispatch:
 
 permissions:
@@ -57,41 +60,44 @@ jobs:
           repositories: AI-Research-Breakthroughs
           permission-contents: read
 
-      - name: Materialize sealed private ARB without publishing its commit identity
+      - name: Materialize one immutable private ARB main snapshot without publishing its identity
         env:
           APP_TOKEN: ${{ steps.app-token.outputs.token }}
         shell: bash
         run: |
           set -euo pipefail
           PRIVATE_DIR="$RUNNER_TEMP/fcmo-newswire-private-source"
+          PRIVATE_SHA="$RUNNER_TEMP/fcmo-newswire-private-source.sha"
           rm -rf "$PRIVATE_DIR"
+          rm -f "$PRIVATE_SHA"
           AUTH=$(printf 'x-access-token:%s' "$APP_TOKEN" | base64 -w0)
           echo "::add-mask::$AUTH"
-          # Footnote: actions/checkout logs the resolved private commit SHA on a
-          # public workflow. A quiet Git clone with an ephemeral HTTP auth header
-          # keeps the token out of the remote URL and the private commit identity
-          # out of public logs while retaining .git for publication seal checks.
-          # publication-ready is the last-known-good publication plane; live main
-          # is never a transport input.
+          # Footnote: actions/checkout would print the resolved private SHA in this
+          # public workflow. Quiet Git transport keeps both the token and source
+          # identity out of logs. The clone captures main exactly once; detaching HEAD
+          # freezes that commit for the whole transaction, so later ARB commits cannot
+          # race or mutate the snapshot being validated.
           git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $AUTH" \
-            clone --quiet --depth 1 --single-branch --branch publication-ready \
+            clone --quiet --depth 1 --single-branch --branch main \
             https://github.com/FCMO-AI/AI-Research-Breakthroughs.git \
             "$PRIVATE_DIR"
-          test "$(git -C "$PRIVATE_DIR" branch --show-current)" = "publication-ready"
+          git -C "$PRIVATE_DIR" rev-parse HEAD >"$PRIVATE_SHA"
+          git -C "$PRIVATE_DIR" checkout --detach --quiet HEAD
+          test -s "$PRIVATE_SHA"
+          test -z "$(git -C "$PRIVATE_DIR" branch --show-current)"
           unset AUTH APP_TOKEN
 
-      - name: Validate ARB's sealed publication plane without exposing private diagnostics
+      - name: Prove the immutable snapshot through ARB's atomic publication seal
         shell: bash
         run: |
           set -euo pipefail
           PRIVATE_DIR="$RUNNER_TEMP/fcmo-newswire-private-source"
-          PRIVATE_LOG="$RUNNER_TEMP/fcmo-newswire-private-tests.log"
-          # Footnote: the private repository owns which tests are publication
-          # authoritative. Running its explicit seal prevents unrelated agent/query/
-          # control-plane debt from becoming a public outage while still gating the
-          # canonical inputs, importance semantics, privacy/declassification, native
-          # locales, public identities/surface and deterministic publication compiler.
-          # All private diagnostics remain in the ephemeral private log.
+          PRIVATE_LOG="$RUNNER_TEMP/fcmo-newswire-private-seal.log"
+          # Footnote: publication_seal.py owns the complete upstream proof: public
+          # unit contracts, real canonical publication inputs, importance semantics,
+          # deterministic declassification, native ES/ZH bindings and Airlock receipt.
+          # The child runs with an allowlisted environment. Its complete transcript
+          # stays private; only stable SEAL_FAIL:<CLASS> reason codes may escape.
           if ! (
             cd "$PRIVATE_DIR" &&
             env -i \
@@ -99,66 +105,40 @@ jobs:
               "HOME=$HOME" \
               "LANG=C.UTF-8" \
               "LC_ALL=C.UTF-8" \
-              python tools/validate_publication_plane.py
+              "ARB_SITE_BASE_PATH=/FCMO-AI-Newsletter" \
+              "ARB_PUBLIC_BASE_URL=https://fcmo-ai.github.io/FCMO-AI-Newsletter" \
+              python tools/publication_seal.py
           ) >"$PRIVATE_LOG" 2>&1; then
+            SAFE_REASON=$(grep -E '^SEAL_FAIL:[A-Z0-9_]+' "$PRIVATE_LOG" | tail -n 1 || true)
             rm -f "$PRIVATE_LOG"
-            echo 'Private ARB publication seal failed inside the isolated bridge.' >&2
+            echo "${SAFE_REASON:-SEAL_FAIL:UNCLASSIFIED}" >&2
             exit 1
           fi
-          rm -f "$PRIVATE_LOG"
-          echo 'Private ARB publication seal passed.'
-
-      - name: Build ARB's deterministic declassified release without private logs
-        shell: bash
-        run: |
-          set -euo pipefail
-          PRIVATE_DIR="$RUNNER_TEMP/fcmo-newswire-private-source"
-          PRIVATE_LOG="$RUNNER_TEMP/fcmo-newswire-private-build.log"
-          # Footnote: successful compilers can still print private source paths or
-          # canonical IDs. Keep the entire upstream build transcript off the public
-          # log. The same minimal environment boundary used for tests prevents the
-          # private build from inheriting GitHub command channels or runner tokens;
-          # only the two explicit public-build parameters are added back.
-          if ! (
-            cd "$PRIVATE_DIR" &&
-            PRIVATE_ENV=(
-              env -i
-              "PATH=$PATH"
-              "HOME=$HOME"
-              "LANG=C.UTF-8"
-              "LC_ALL=C.UTF-8"
-              "ARB_SITE_BASE_PATH=/FCMO-AI-Newsletter"
-              "ARB_PUBLIC_BASE_URL=https://fcmo-ai.github.io/FCMO-AI-Newsletter"
-            ) &&
-            "${PRIVATE_ENV[@]}" python tools/build_publication.py --check-determinism &&
-            "${PRIVATE_ENV[@]}" python tools/build_public_release.py &&
-            "${PRIVATE_ENV[@]}" python tools/build_public_locales.py build &&
-            "${PRIVATE_ENV[@]}" python tools/build_airlock_receipt.py &&
-            test -f _public_release/airlock.json &&
-            test -f _public_release/data/locales/es-419/records.json &&
-            test -f _public_release/data/locales/zh-Hans/records.json
-          ) >"$PRIVATE_LOG" 2>&1; then
+          grep -qx 'SEAL_OK' "$PRIVATE_LOG" || {
             rm -f "$PRIVATE_LOG"
-            echo 'Private ARB declassification build failed inside the isolated bridge.' >&2
+            echo 'SEAL_FAIL:UNCLASSIFIED_SUCCESS_OUTPUT' >&2
             exit 1
-          fi
+          }
           rm -f "$PRIVATE_LOG"
-          echo 'Private ARB declassification build passed.'
+          echo 'Private ARB runtime publication seal passed.'
 
       - name: Extract only the already-sanitized release, then destroy private checkout
         shell: bash
         run: |
           PRIVATE_DIR="$RUNNER_TEMP/fcmo-newswire-private-source"
+          PRIVATE_SHA="$RUNNER_TEMP/fcmo-newswire-private-source.sha"
           RELEASE_DIR="$RUNNER_TEMP/fcmo-newswire-airlocked-release"
           rm -rf "$RELEASE_DIR"
           mkdir -p "$RELEASE_DIR"
           cp -a "$PRIVATE_DIR/_public_release/." "$RELEASE_DIR/"
           rm -rf "$PRIVATE_DIR"
+          rm -f "$PRIVATE_SHA"
           test ! -e "$PRIVATE_DIR"
+          test ! -e "$PRIVATE_SHA"
           echo "RELEASE_DIR=$RELEASE_DIR" >> "$GITHUB_ENV"
-          # Footnote: no private checkout exists when the public-side verifier or
-          # Git staging begins. Only the upstream-produced allowlisted candidate
-          # survives across this boundary.
+          # Footnote: no private checkout or private source identity exists when the
+          # public-side verifier or Git staging begins. Only the upstream-produced,
+          # allowlisted Airlock candidate survives across this boundary.
 
       - name: Independently verify the airlocked bytes from the public side
         run: python tools/newswire_bridge.py verify "$RELEASE_DIR"
@@ -166,9 +146,9 @@ jobs:
       - name: Rebase transport onto current public main before staging
         shell: bash
         run: |
-          # Footnote: ARB build/test can take time. Resetting and cleaning to the
-          # latest public main here prevents a newswire run—or any unexpected
-          # earlier workspace residue—from overwriting an unrelated public commit.
+          # Footnote: the private proof can take time. Resetting and cleaning to the
+          # latest public main prevents a scheduled run—or any unexpected workspace
+          # residue—from overwriting an unrelated public commit.
           git fetch origin main
           git reset --hard origin/main
           git clean -fdx
@@ -185,7 +165,7 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add -A -- corpus
           if git diff --cached --quiet -- corpus; then
-            echo 'Verified fresh airlock heartbeat already matches corpus/ exactly.'
+            echo 'Verified Airlock already matches corpus/ exactly.'
             exit 0
           fi
           if ! git diff --cached --quiet -- ':!corpus'; then
@@ -203,12 +183,12 @@ jobs:
         if: always()
         shell: bash
         run: |
-          # Footnote: successful runs delete private material before verification;
-          # this unconditional finalizer covers earlier failure paths as well. The
-          # GitHub-hosted runner is ephemeral, but explicit destruction keeps the
-          # security property true even before runner teardown.
+          # Footnote: successful runs delete private material before public-side
+          # verification; this unconditional finalizer covers every earlier failure
+          # path as well, before the ephemeral runner itself is torn down.
           rm -rf "$RUNNER_TEMP/fcmo-newswire-private-source"
-          rm -f "$RUNNER_TEMP/fcmo-newswire-private-tests.log"
-          rm -f "$RUNNER_TEMP/fcmo-newswire-private-build.log"
+          rm -f "$RUNNER_TEMP/fcmo-newswire-private-source.sha"
+          rm -f "$RUNNER_TEMP/fcmo-newswire-private-seal.log"
           rm -rf "$RUNNER_TEMP/fcmo-newswire-airlocked-release"
           test ! -e "$RUNNER_TEMP/fcmo-newswire-private-source"
+          test ! -e "$RUNNER_TEMP/fcmo-newswire-private-source.sha"
