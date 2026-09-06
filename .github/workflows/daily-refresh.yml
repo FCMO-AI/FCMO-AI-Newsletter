@@ -1,22 +1,23 @@
 name: Refresh the autonomous newsroom from the sanitized corpus
 
-# ARB deja exclusivamente material saneado en corpus/. Desde aqui Newsletter
-# funciona como redaccion publica clean-room: valida el heartbeat, ingiere,
-# incorpora las ediciones ES/ZH ya escritas por el agente editorial de ARB,
-# vuelve a investigar fuentes publicas, resuelve media, construye Story surfaces
-# y no publica hasta que todas las compuertas pasan.
+# The newswire bridge leaves exclusively sanitized material in corpus/. From here
+# Newsletter behaves as a public clean-room newsroom: validate the heartbeat,
+# ingest, import the ARB-authored ES/ZH editions, re-research public sources,
+# resolve media, build Story surfaces and refuse publication until every gate passes.
 on:
   push:
     branches: [main]
     paths:
       - 'corpus/**'
-  # Footnote: tooling changes are validated by pull-request CI. Treating a tooling
-  # commit as if ARB had delivered a new newswire heartbeat creates a deliberate
-  # preflight red (stale/missing heartbeat) and obscures real upstream health.
-  # Production refreshes therefore start from corpus delivery, cadence, or an
-  # explicit operator dispatch; every such run still requires a fresh heartbeat.
-  schedule:
-    - cron: '30 12 * * *'   # 06:30 America/Mexico_City, media hora despues de la esclusa
+  workflow_run:
+    workflows:
+      - 'Pull airlocked newswire with GitHub App'
+    types: [completed]
+    branches: [main]
+  # Footnote: a GITHUB_TOKEN corpus commit cannot recursively trigger another
+  # push workflow. workflow_run is therefore the canonical handoff from the
+  # app-only transport bridge. The push trigger remains as compatibility for any
+  # future independently-authenticated trusted publisher.
   workflow_dispatch:
 
 permissions:
@@ -28,6 +29,11 @@ concurrency:
 
 jobs:
   refresh:
+    # Footnote: a failed bridge must never be laundered into a downstream refresh.
+    # Manual dispatch and an independently-authenticated corpus push remain valid.
+    if: >-
+      github.event_name != 'workflow_run' ||
+      github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -54,26 +60,26 @@ jobs:
       - name: Prove the ingest carried every story across
         shell: python
         run: |
-          # Un generador que copia el sitio de ayer puede salir 0 y producir lo
-          # mismo para siempre. Comparar identidades rompe ese falso verde.
+          # A generator that merely copies yesterday's site can exit 0 and stay
+          # stale forever. Comparing identities breaks that false green.
           import json, re, sys
           from pathlib import Path
-          filas = [json.loads(l) for l in
-                   Path('corpus/data/developments.jsonl').read_text(encoding='utf-8').splitlines()
-                   if l.strip()]
-          entrada = {f['id'] for f in filas}
+          rows = [json.loads(line) for line in
+                  Path('corpus/data/developments.jsonl').read_text(encoding='utf-8').splitlines()
+                  if line.strip()]
+          incoming = {row['id'] for row in rows}
           html = Path('release-src/index.html').read_text(encoding='utf-8')
-          m = re.search(r'<script id="fcmo-data" type="application/json">(.*?)</script>', html, re.S)
-          if not m:
-              sys.exit('release-src/index.html quedo sin el corpus canonico fcmo-data')
-          salida = {r['id'] for r in json.loads(m.group(1))['records']}
-          if entrada != salida:
-              print(f'el corpus trae {len(entrada)} historias y el sitio {len(salida)}', file=sys.stderr)
-              for etiqueta, faltan in (('no llegaron', entrada - salida), ('sobran', salida - entrada)):
-                  if faltan:
-                      print(f'  {etiqueta}: {sorted(faltan)}', file=sys.stderr)
+          match = re.search(r'<script id="fcmo-data" type="application/json">(.*?)</script>', html, re.S)
+          if not match:
+              sys.exit('release-src/index.html is missing canonical fcmo-data')
+          outgoing = {row['id'] for row in json.loads(match.group(1))['records']}
+          if incoming != outgoing:
+              print(f'corpus has {len(incoming)} stories and site has {len(outgoing)}', file=sys.stderr)
+              for label, missing in (('did not arrive', incoming - outgoing), ('unexpected extras', outgoing - incoming)):
+                  if missing:
+                      print(f'  {label}: {sorted(missing)}', file=sys.stderr)
               raise SystemExit(1)
-          print(f'las {len(entrada)} historias del corpus estan en el sitio')
+          print(f'all {len(incoming)} corpus stories reached the site')
 
       - name: Import ARB-authored Spanish and Chinese editions
         run: python tools/sync_airlocked_locales.py --corpus corpus
@@ -125,13 +131,13 @@ jobs:
           # crossed the airlock together with the English source material.
           git add -A -- release-src release-overlay site READY_TO_PUBLISH.md
           if git diff --cached --quiet; then
-            echo 'Heartbeat sano y sin delta material; el arbol ya representa esta corrida.'
+            echo 'Healthy heartbeat with no material release-tree delta.'
             exit 0
           fi
-          fuera=":!release-src :!release-overlay :!site :!READY_TO_PUBLISH.md"
-          if ! git diff --cached --quiet -- $fuera; then
-            echo 'la redaccion autonoma toco algo fuera de su alcance' >&2
-            git diff --cached --name-only -- $fuera >&2
+          outside=":!release-src :!release-overlay :!site :!READY_TO_PUBLISH.md"
+          if ! git diff --cached --quiet -- $outside; then
+            echo 'autonomous newsroom touched a path outside its scope' >&2
+            git diff --cached --name-only -- $outside >&2
             exit 1
           fi
           git commit -m 'release: autonomously refresh newsroom from airlocked corpus'
