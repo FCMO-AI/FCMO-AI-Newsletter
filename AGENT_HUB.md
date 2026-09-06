@@ -22,14 +22,18 @@ FCMO-authorized agents with organization access can resolve:
 - Canonical universal Core: `standard/CORE.md`
 - Ecosystem map: `ecosystem/REPOSITORIES.md`
 - Machine registry: `ecosystem/repositories.json`
+- Living Commons: `commons/LIVING_COMMONS.md`
+- Knowledge freshness: `governance/KNOWLEDGE_FRESHNESS.md`
 
 This public repository records repository coordinates rather than depending on a private URL. If Hub access exists, use its live Core as the canonical FCMO-wide semantic source and this repository's adapted Standard as the Newsletter integration layer. If Hub access is unavailable, continue from the pinned local v1 doctrine and Newsletter canon.
 
-## Optional institutional learning
+## Optional institutional learning and stewardship
 
 Public Newsletter operation and contribution do **not** depend on private Agent Hub access, and routine publication work has no Commons-participation requirement.
 
 When an FCMO-authorized agent with legitimate Hub access discovers a material reusable lesson from publication, localization, privacy airlocks, visual verification, release integrity, or another shared surface, it may contribute a proposal, experiment, reproduction, counterexample, or evidence under the Hub's `commons/EVOLUTION_PROTOCOL.md`. Keep public evidence public-safe and do not move private ARB or internal context into this repository or a Commons artifact merely to support the proposal.
+
+Authorized agents may also use the Hub's Living Commons for optional field notes, shared publication/verification helpers, workbench experiments, navigation repairs, or improvements to any Hub surface. Publication status changes quickly: when the Hub references Newsletter launch/release state, point to authoritative public evidence and preserve observation/freshness scope rather than copying a status sentence that can become zombie knowledge.
 
 Hub proposals remain non-canonical until Governance and legitimate human promotion say otherwise and cannot weaken Newsletter's fail-closed publication or privacy boundaries by implication.
 
