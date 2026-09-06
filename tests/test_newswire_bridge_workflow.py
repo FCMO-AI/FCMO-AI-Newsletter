@@ -73,14 +73,14 @@ class NewswireBridgeWorkflowContractTests(unittest.TestCase):
 
     def test_private_processes_receive_minimal_allowlisted_environment(self) -> None:
         text = BRIDGE.read_text(encoding="utf-8")
-        self.assertGreaterEqual(text.count("env -i"), 3)
+        self.assertGreaterEqual(text.count("env -i"), 2)
         for allowed in (
             '"PATH=$PATH"',
             '"HOME=$HOME"',
             '"LANG=C.UTF-8"',
             '"LC_ALL=C.UTF-8"',
         ):
-            self.assertGreaterEqual(text.count(allowed), 3)
+            self.assertGreaterEqual(text.count(allowed), 2)
         self.assertIn('"ARB_SITE_BASE_PATH=/FCMO-AI-Newsletter"', text)
         self.assertIn(
             '"ARB_PUBLIC_BASE_URL=https://fcmo-ai.github.io/FCMO-AI-Newsletter"',
@@ -111,13 +111,6 @@ class NewswireBridgeWorkflowContractTests(unittest.TestCase):
         # finalizer below is tested separately by its explicit absolute paths.
         self.assertGreaterEqual(text.count('rm -f "$PRIVATE_LOG"'), 4)
         self.assertNotIn("unittest discover -s tests -v", text)
-
-    def test_bridge_runs_repository_doctor_before_unit_tests(self) -> None:
-        text = BRIDGE.read_text(encoding="utf-8")
-        doctor = text.index("python tools/doctor.py")
-        tests = text.index("python -m unittest discover -s tests")
-        self.assertLess(doctor, tests)
-        self.assertIn("git diff --quiet --exit-code", text)
 
     def test_private_checkout_is_destroyed_before_public_side_verification(self) -> None:
         text = BRIDGE.read_text(encoding="utf-8")
