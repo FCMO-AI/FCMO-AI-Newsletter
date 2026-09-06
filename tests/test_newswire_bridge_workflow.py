@@ -53,7 +53,7 @@ class NewswireBridgeWorkflowContractTests(unittest.TestCase):
         self.assertIn('PRIVATE_LOG="$RUNNER_TEMP/fcmo-newswire-private-tests.log"', text)
         self.assertIn('PRIVATE_LOG="$RUNNER_TEMP/fcmo-newswire-private-build.log"', text)
         self.assertGreaterEqual(text.count('>"$PRIVATE_LOG" 2>&1'), 2)
-        self.assertGreaterEqual(text.count('rm -f "$PRIVATE_LOG"'), 4)
+        self.assertGreaterEqual(text.count('rm -f "$PRIVATE_LOG"'), 6)
         self.assertNotIn("unittest discover -s tests -v", text)
 
     def test_private_checkout_is_destroyed_before_public_side_verification(self) -> None:
@@ -64,11 +64,29 @@ class NewswireBridgeWorkflowContractTests(unittest.TestCase):
         self.assertLess(destroy, verify)
         self.assertLess(verify, stage)
 
+    def test_residual_private_state_is_always_destroyed(self) -> None:
+        text = BRIDGE.read_text(encoding="utf-8")
+        cleanup = text.index("- name: Destroy any residual private bridge state")
+        self.assertIn("if: always()", text[cleanup:])
+        tail = text[cleanup:]
+        for marker in (
+            "rm -rf .newswire-private-source",
+            'rm -f "$RUNNER_TEMP/fcmo-newswire-private-tests.log"',
+            'rm -f "$RUNNER_TEMP/fcmo-newswire-private-build.log"',
+            'rm -rf "$RUNNER_TEMP/fcmo-newswire-airlocked-release"',
+        ):
+            self.assertIn(marker, tail)
+
     def test_bridge_stages_and_commits_only_corpus(self) -> None:
         text = BRIDGE.read_text(encoding="utf-8")
         self.assertIn("git add -A -- corpus", text)
         self.assertIn("git diff --cached --quiet -- ':!corpus'", text)
         self.assertNotRegex(text, re.compile(r"git add (?:-A )?\.(?:\s|$)"))
+
+    def test_bridge_cadence_waits_for_settled_six_am_research(self) -> None:
+        text = BRIDGE.read_text(encoding="utf-8")
+        self.assertIn("07:10 America/Mexico_City", text)
+        self.assertIn("cron: '10 13 * * *'", text)
 
     def test_refresh_is_chained_from_successful_bridge(self) -> None:
         text = REFRESH.read_text(encoding="utf-8")
