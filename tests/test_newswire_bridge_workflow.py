@@ -97,7 +97,10 @@ class NewswireBridgeWorkflowContractTests(unittest.TestCase):
         self.assertIn('PRIVATE_LOG="$RUNNER_TEMP/fcmo-newswire-private-tests.log"', text)
         self.assertIn('PRIVATE_LOG="$RUNNER_TEMP/fcmo-newswire-private-build.log"', text)
         self.assertGreaterEqual(text.count('>"$PRIVATE_LOG" 2>&1'), 2)
-        self.assertGreaterEqual(text.count('rm -f "$PRIVATE_LOG"'), 6)
+        # Footnote: each private phase deletes its local log on both success and
+        # failure (four variable-based removals total). The independent always()
+        # finalizer below is tested separately by its explicit absolute paths.
+        self.assertGreaterEqual(text.count('rm -f "$PRIVATE_LOG"'), 4)
         self.assertNotIn("unittest discover -s tests -v", text)
 
     def test_private_checkout_is_destroyed_before_public_side_verification(self) -> None:
