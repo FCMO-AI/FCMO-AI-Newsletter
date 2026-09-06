@@ -9,6 +9,8 @@ BRIDGE = ROOT / ".github" / "workflows" / "newswire-bridge.yml"
 REFRESH = ROOT / ".github" / "workflows" / "daily-refresh.yml"
 
 
+# Footnote: this suite is intentionally executable on every publication-boundary
+# change so a source-ref regression cannot reach the scheduled production window.
 class NewswireBridgeWorkflowContractTests(unittest.TestCase):
     def test_bridge_has_only_app_activation_inputs_and_read_only_private_scope(self) -> None:
         text = BRIDGE.read_text(encoding="utf-8")
@@ -45,11 +47,20 @@ class NewswireBridgeWorkflowContractTests(unittest.TestCase):
         # it with repository: private-ARB would print the resolved private SHA into
         # the public workflow log. The private source must use quiet Git transport.
         self.assertNotIn("repository: FCMO-AI/AI-Research-Breakthroughs", text)
-        self.assertIn("clone --quiet --depth 1 --branch main", text)
+        self.assertIn("clone --quiet --depth 1 --single-branch --branch publication-ready", text)
         self.assertIn('http.https://github.com/.extraheader=AUTHORIZATION: basic $AUTH', text)
         self.assertIn('echo "::add-mask::$AUTH"', text)
         self.assertIn("unset AUTH APP_TOKEN", text)
         self.assertNotIn("x-access-token:${{", text)
+
+    def test_private_transport_can_never_consume_live_main(self) -> None:
+        text = BRIDGE.read_text(encoding="utf-8")
+        # Footnote: this is the regression for the 07:00/07:10 race. The source
+        # ref must be the sealed publication plane, not whichever incremental
+        # research commit happens to be HEAD when the scheduled job starts.
+        self.assertIn("--branch publication-ready", text)
+        self.assertIn('branch --show-current)" = "publication-ready"', text)
+        self.assertNotIn("--branch main", text)
 
     def test_private_tree_lives_outside_public_workspace(self) -> None:
         text = BRIDGE.read_text(encoding="utf-8")
@@ -130,10 +141,11 @@ class NewswireBridgeWorkflowContractTests(unittest.TestCase):
         self.assertIn("git diff --cached --quiet -- ':!corpus'", text)
         self.assertNotRegex(text, re.compile(r"git add (?:-A )?\.(?:\s|$)"))
 
-    def test_bridge_cadence_waits_for_settled_six_am_research(self) -> None:
+    def test_bridge_cadence_is_separate_from_live_research_state(self) -> None:
         text = BRIDGE.read_text(encoding="utf-8")
         self.assertIn("07:10 America/Mexico_City", text)
         self.assertIn("cron: '10 13 * * *'", text)
+        self.assertIn("publication-ready", text)
 
     def test_refresh_is_chained_from_successful_bridge(self) -> None:
         text = REFRESH.read_text(encoding="utf-8")
