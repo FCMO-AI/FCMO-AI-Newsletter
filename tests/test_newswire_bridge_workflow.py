@@ -26,6 +26,24 @@ class NewswireBridgeWorkflowContractTests(unittest.TestCase):
         ):
             self.assertNotIn(forbidden, text)
 
+    def test_private_materialization_avoids_checkout_action_sha_leak(self) -> None:
+        text = BRIDGE.read_text(encoding="utf-8")
+        # Footnote: actions/checkout is fine for this public repository, but using
+        # it with repository: private-ARB would print the resolved private SHA into
+        # the public workflow log. The private source must use quiet Git transport.
+        self.assertNotIn("repository: FCMO-AI/AI-Research-Breakthroughs", text)
+        self.assertIn("clone --quiet --depth 1 --branch main", text)
+        self.assertIn('http.https://github.com/.extraheader=AUTHORIZATION: basic $AUTH', text)
+        self.assertNotIn("x-access-token:${{", text)
+
+    def test_private_execution_output_never_reaches_public_log(self) -> None:
+        text = BRIDGE.read_text(encoding="utf-8")
+        self.assertIn('PRIVATE_LOG="$RUNNER_TEMP/fcmo-newswire-private-tests.log"', text)
+        self.assertIn('PRIVATE_LOG="$RUNNER_TEMP/fcmo-newswire-private-build.log"', text)
+        self.assertGreaterEqual(text.count('>"$PRIVATE_LOG" 2>&1'), 2)
+        self.assertGreaterEqual(text.count('rm -f "$PRIVATE_LOG"'), 4)
+        self.assertNotIn("unittest discover -s tests -v", text)
+
     def test_private_checkout_is_destroyed_before_public_side_verification(self) -> None:
         text = BRIDGE.read_text(encoding="utf-8")
         destroy = text.index("rm -rf .newswire-private-source")
