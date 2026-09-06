@@ -25,9 +25,11 @@ ARB also owns the native-language editorial work for anything it chooses to publ
 
 ### Isolated Newswire Bridge
 
-`.github/workflows/newswire-bridge.yml` is a transport/security boundary, not part of the public newsroom's editorial context. It mints a short-lived GitHub App token scoped only to private ARB with repository Contents **read-only**, checks ARB out into an ephemeral runner directory, runs ARB's own tests and deterministic publication compiler, and retains only the resulting `_public_release` candidate.
+`.github/workflows/newswire-bridge.yml` is a transport/security boundary, not part of the public newsroom's editorial context. It mints a short-lived GitHub App token scoped only to private ARB with repository Contents **read-only**, using GitHub's recommended Client-ID interface. It materializes ARB in an ephemeral runner directory without emitting the private commit identity, runs ARB's own tests and deterministic publication compiler while suppressing private diagnostics from the public workflow log, and retains only the resulting `_public_release` candidate.
 
-The private checkout is deleted **before** public-side transfer validation or Git staging. The App cannot write to ARB or Newsletter. `tools/newswire_bridge.py` then independently reconstructs the upstream content identity and rejects anything outside the public allowlist or any payload carrying private/strategic markers, secret-like material, malformed structures or inconsistent native-edition identities. Only a candidate that survives this second boundary may replace `corpus/`.
+The private checkout is deleted **before** public-side transfer validation or Git staging. An unconditional finalizer also destroys residual private checkout/log/release state on earlier failure paths. The App cannot write to ARB or Newsletter. Its PEM is consumed only by the token-minting action, the derived Git authentication header is masked and discarded, and the credential-bearing bridge job is permitted only from reviewed `main`.
+
+`tools/newswire_bridge.py` independently reconstructs the upstream content identity and rejects anything outside the public allowlist or any payload carrying private/strategic markers, secret-like material, malformed structures or inconsistent native-edition identities. Only a candidate that survives this second boundary may replace `corpus/`.
 
 This transport exception is deliberately narrow: the public repository's committed tree, newsroom process and reader-facing runtime never receive raw ARB state. Private-repository GitHub Actions are not required for the bridge because ARB's validation/build commands execute inside the ephemeral checkout on the public repository's runner.
 
@@ -130,7 +132,7 @@ Discovery frontends are generated **after** the frozen overlay is mounted on the
 
 The old behavior “corpus absent → green no-op” is forbidden.
 
-The Newswire Bridge owns the upstream daily cadence. A successful bridge completion is the canonical trigger for `daily-refresh.yml` through `workflow_run`; a failed bridge is rejected by the downstream job guard. A refresh then requires a fresh `fcmo-newswire-airlock-v2` receipt. Newsletter distinguishes:
+The Newswire Bridge owns the upstream daily cadence at **07:10 America/Mexico_City**. The offset is intentional: ARB's 06:00 activation is expected to spend roughly 50 minutes on productive research before landing, so the bridge captures that settled state instead of racing it. A successful bridge completion is the canonical trigger for `daily-refresh.yml` through `workflow_run`; a failed bridge is rejected by the downstream job guard. A refresh then requires a fresh `fcmo-newswire-airlock-v2` receipt. Newsletter distinguishes:
 
 - `PUBLIC_DELTA_PENDING` — fresh airlock content differs from prior accepted release;
 - `NO_PUBLIC_DELTA` — airlock ran, but content identity is unchanged;
@@ -162,9 +164,9 @@ A separate scheduled production-health workflow repeats this reality check. A gr
 
 ## 11. Authentication boundary
 
-The only external activation credential is a least-privilege GitHub App installed only on private `FCMO-AI/AI-Research-Breakthroughs`, with repository **Contents: Read-only**. Newsletter stores the App ID as `FCMO_NEWSWIRE_APP_ID` and the generated PEM key as encrypted Actions secret `FCMO_NEWSWIRE_APP_PRIVATE_KEY`. Each bridge run mints a short-lived installation token scoped only to that repository.
+The only external activation credential is a least-privilege GitHub App installed only on private `FCMO-AI/AI-Research-Breakthroughs`, with repository **Contents: Read-only**. Newsletter stores the App's **Client ID** as `FCMO_NEWSWIRE_APP_CLIENT_ID` and the generated PEM key as encrypted Actions secret `FCMO_NEWSWIRE_APP_PRIVATE_KEY`. Each bridge run mints a short-lived installation token scoped only to that repository using the current Client-ID interface.
 
-The App has no write authority. The isolated bridge may read ARB only to execute ARB's own validation and declassification compiler in an ephemeral checkout. That checkout is destroyed before the public transfer verifier or Git staging begins. Newsletter's own `GITHUB_TOKEN` may commit only the independently verified `corpus/` tree.
+The App has no write authority. The PEM is consumed only by `actions/create-github-app-token`, and the credential-bearing bridge job is allowed to run only from reviewed `main`. The isolated bridge may read ARB only to execute ARB's own validation and declassification compiler in an ephemeral checkout. Private test/build output stays off the public workflow log. That checkout is destroyed before the public transfer verifier or Git staging begins, and a final `if: always()` cleanup covers earlier failure paths. Newsletter's own `GITHUB_TOKEN` may commit only the independently verified `corpus/` tree.
 
 There is no personal publisher-token fallback, no downstream translation-provider credential, no private-repository runner requirement and no second publisher identity. Private Actions availability may affect ARB's own internal CI, but it is not a Newsletter launch dependency.
 
