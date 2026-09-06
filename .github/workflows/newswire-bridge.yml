@@ -9,7 +9,6 @@ on:
 
 permissions:
   contents: write
-  actions: write
 
 concurrency:
   group: fcmo-newswire-bridge
@@ -108,7 +107,6 @@ jobs:
         run: python tools/newswire_bridge.py stage "$RELEASE_DIR" corpus
 
       - name: Commit only the verified public handoff
-        id: commit
         shell: bash
         run: |
           rm -rf "$RELEASE_DIR"
@@ -116,8 +114,7 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add -A -- corpus
           if git diff --cached --quiet -- corpus; then
-            echo 'changed=false' >> "$GITHUB_OUTPUT"
-            echo 'Verified airlock payload already matches corpus/ exactly.'
+            echo 'Verified fresh airlock heartbeat already matches corpus/ exactly.'
             exit 0
           fi
           if ! git diff --cached --quiet -- ':!corpus'; then
@@ -127,17 +124,6 @@ jobs:
           fi
           git commit -m 'corpus: receive verified FCMO newswire airlock'
           git push origin HEAD:main
-          echo 'changed=true' >> "$GITHUB_OUTPUT"
-
-      - name: Explicitly start the public autonomous newsroom
-        if: steps.commit.outputs.changed == 'true'
-        env:
-          GH_TOKEN: ${{ github.token }}
-        shell: bash
-        run: |
-          # Footnote: pushes made with GITHUB_TOKEN intentionally do not fan out
-          # into push-triggered workflows. workflow_dispatch is the explicit,
-          # auditable handoff from transport to the already-existing newsroom.
-          gh api --method POST \
-            "repos/${GITHUB_REPOSITORY}/actions/workflows/daily-refresh.yml/dispatches" \
-            -f ref=main
+          # Footnote: no explicit API dispatch is needed. The downstream newsroom
+          # listens to this workflow's successful completion via workflow_run,
+          # which keeps this bridge at Contents-only authority.
