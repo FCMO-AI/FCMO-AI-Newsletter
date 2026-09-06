@@ -2,9 +2,10 @@ name: Pull airlocked newswire with GitHub App
 
 on:
   schedule:
-    # 07:10 America/Mexico_City. ARB's 06:00 research activation is expected to
-    # spend roughly 50 minutes working before landing; 07:10 captures that settled
-    # state instead of racing it, while the 07:00 research activation is still new.
+    # 07:10 America/Mexico_City. The transport consumes ARB's explicitly sealed
+    # publication-ready checkpoint, never the live research branch. This keeps the
+    # 07:00 research activation free to make incremental commits without racing
+    # the publication transaction or exposing a half-landed multilingual state.
     - cron: '10 13 * * *'
   workflow_dispatch:
 
@@ -52,7 +53,7 @@ jobs:
           repositories: AI-Research-Breakthroughs
           permission-contents: read
 
-      - name: Materialize private ARB without publishing its commit identity
+      - name: Materialize sealed private ARB without publishing its commit identity
         env:
           APP_TOKEN: ${{ steps.app-token.outputs.token }}
         shell: bash
@@ -65,17 +66,18 @@ jobs:
           # Footnote: actions/checkout logs the resolved private commit SHA on a
           # public workflow. A quiet Git clone with an ephemeral HTTP auth header
           # keeps the token out of the remote URL and the private commit identity
-          # out of public logs while retaining .git for any upstream tests that
-          # legitimately need repository semantics. The private tree lives outside
-          # GITHUB_WORKSPACE so its code cannot alter public files by ordinary
-          # relative paths.
+          # out of public logs while retaining .git for upstream integrity checks.
+          # publication-ready is a deliberate last-known-good publication plane;
+          # live main is never a transport input, so research concurrency cannot
+          # create a partial public snapshot merely by landing before this job.
           git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $AUTH" \
-            clone --quiet --depth 1 --branch main \
+            clone --quiet --depth 1 --single-branch --branch publication-ready \
             https://github.com/FCMO-AI/AI-Research-Breakthroughs.git \
             "$PRIVATE_DIR"
+          test "$(git -C "$PRIVATE_DIR" branch --show-current)" = "publication-ready"
           unset AUTH APP_TOKEN
 
-      - name: Run ARB's own tests without exposing private diagnostics
+      - name: Run ARB's seal-grade integrity checks without exposing private diagnostics
         shell: bash
         run: |
           set -euo pipefail
@@ -84,9 +86,11 @@ jobs:
           # Footnote: this is a public workflow. ARB test names, paths and failure
           # diagnostics are private even when a test itself is safe. Capture all
           # output privately and emit only the phase verdict. The private process
-          # also receives an allowlisted environment rather than GitHub command
-          # files/runtime tokens, so it cannot persist workflow state through
-          # GITHUB_ENV/GITHUB_OUTPUT or inherit unrelated runner credentials.
+          # receives an allowlisted environment rather than GitHub command files,
+          # so it cannot persist workflow state or inherit unrelated credentials.
+          # doctor is intentionally included before unit tests: a green test suite
+          # must not launder a repository whose canonical ledgers, importance law,
+          # publication receipts or generated views are internally inconsistent.
           if ! (
             cd "$PRIVATE_DIR" &&
             env -i \
@@ -94,14 +98,21 @@ jobs:
               "HOME=$HOME" \
               "LANG=C.UTF-8" \
               "LC_ALL=C.UTF-8" \
-              python -m unittest discover -s tests
+              python tools/doctor.py &&
+            env -i \
+              "PATH=$PATH" \
+              "HOME=$HOME" \
+              "LANG=C.UTF-8" \
+              "LC_ALL=C.UTF-8" \
+              python -m unittest discover -s tests &&
+            git diff --quiet --exit-code
           ) >"$PRIVATE_LOG" 2>&1; then
             rm -f "$PRIVATE_LOG"
-            echo 'Private ARB validation failed inside the isolated bridge.' >&2
+            echo 'Private ARB seal validation failed inside the isolated bridge.' >&2
             exit 1
           fi
           rm -f "$PRIVATE_LOG"
-          echo 'Private ARB validation passed.'
+          echo 'Private ARB seal validation passed.'
 
       - name: Build ARB's deterministic declassified release without private logs
         shell: bash
