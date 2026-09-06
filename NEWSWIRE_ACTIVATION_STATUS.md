@@ -35,19 +35,21 @@ The private research repository remains private. The committed public repository
 
 - `.github/workflows/newswire-bridge.yml` runs on the public repository's GitHub-hosted runner, so private-repository Actions availability is not part of the Newsletter launch path.
 - The bridge mints a short-lived GitHub App token scoped only to `FCMO-AI/AI-Research-Breakthroughs` with **Contents: Read-only**.
-- It checks out private ARB ephemerally, runs ARB's own unit tests and deterministic publication/declassification build, and creates the upstream `airlock.json` receipt.
-- It copies only `_public_release` to runner-temporary storage and destroys the private checkout before public-side verification or Git staging begins.
+- The token workflow uses GitHub's current recommended **Client ID** input rather than the legacy App-ID input.
+- It checks out private ARB ephemerally without exposing the private commit identity, runs ARB's own unit tests and deterministic publication/declassification build with private diagnostics suppressed from public logs, and creates the upstream `airlock.json` receipt.
+- It copies only `_public_release` to runner-temporary storage and destroys the private checkout before public-side verification or Git staging begins; an unconditional finalizer also removes residual private state on failure paths.
 - `tools/newswire_bridge.py` independently recomputes the content-addressed digest/release ID; enforces the exact public path allowlist; rejects symlinks, binary/non-UTF8 files, malformed JSON/JSONL, private/strategic markers, personal email, runner paths and secret-like material; validates public IDs; and requires ES/ZH delta parity.
 - `corpus/` is replaced only through a verified sibling staging tree, with rollback protection against partial replacement.
 - The GitHub App has no write authority. Newsletter's own `GITHUB_TOKEN` may commit **only `corpus/`** after independent verification.
 - A successful bridge triggers `daily-refresh.yml` via `workflow_run`; a failed bridge is explicitly rejected by the downstream job guard.
 - The newsroom then triggers Pages via the existing `workflow_run` bridge, and Pages must pass the live-origin oracle.
+- The bridge owns the daily transport cadence at **07:10 America/Mexico_City**, after the 06:00 ARB research activation has had its expected ~50-minute work window to settle.
 - There is no PAT fallback, model-provider translation credential, private Actions runner dependency, manual daily dispatch or second schedule owner.
 
 ### Regression protection
 
 - Unit regressions cover valid transfer, digest tampering, private-marker leakage, non-allowlisted files, locale divergence, receipt count drift and atomic corpus replacement.
-- Workflow-contract regressions require read-only ARB scope, destruction of the private checkout before public verification, `corpus/`-only staging, successful-bridge chaining, and absence of `actions: write` / API dispatch authority.
+- Workflow-contract regressions require read-only ARB scope, Client-ID token configuration, main-only secret use, masked auth material, destruction of the private checkout before public verification, unconditional residual cleanup, `corpus/`-only staging, settled daily cadence, successful-bridge chaining, and absence of `actions: write` / API dispatch authority.
 
 ## THE ONLY USER ACTION
 
@@ -57,10 +59,10 @@ Create/configure one GitHub App. A useful name is **FCMO Newswire Reader**.
 2. Repository permission: **Contents — Read-only**. No write permission is required. No organization permission is required. No webhook is required for this design.
 3. Install the App on **only** `FCMO-AI/AI-Research-Breakthroughs`.
 4. Generate one private key for the App.
-5. In `FCMO-AI/FCMO-AI-Newsletter` Actions configuration, set repository variable `FCMO_NEWSWIRE_APP_ID` to the App ID.
+5. In `FCMO-AI/FCMO-AI-Newsletter` Actions configuration, set repository variable `FCMO_NEWSWIRE_APP_CLIENT_ID` to the App's **Client ID**.
 6. In the same repository, set encrypted Actions secret `FCMO_NEWSWIRE_APP_PRIVATE_KEY` to the generated PEM private key.
 
-These six clicks/configuration details are one credential-activation bundle, not six independent system chores. Once they exist, the repository is designed to take over automatically.
+These six configuration details are one credential-activation bundle, not six independent system chores. Once they exist, the repository is designed to take over automatically. Do **not** paste the PEM private key into chat, source control, an issue, or a workflow log.
 
 ## AUTOMATICALLY PENDING AFTER THE APP EXISTS
 
