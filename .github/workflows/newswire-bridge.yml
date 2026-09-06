@@ -58,30 +58,44 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p .newswire-private-source
+          PRIVATE_DIR="$RUNNER_TEMP/fcmo-newswire-private-source"
+          rm -rf "$PRIVATE_DIR"
           AUTH=$(printf 'x-access-token:%s' "$APP_TOKEN" | base64 -w0)
           echo "::add-mask::$AUTH"
           # Footnote: actions/checkout logs the resolved private commit SHA on a
           # public workflow. A quiet Git clone with an ephemeral HTTP auth header
           # keeps the token out of the remote URL and the private commit identity
           # out of public logs while retaining .git for any upstream tests that
-          # legitimately need repository semantics.
+          # legitimately need repository semantics. The private tree lives outside
+          # GITHUB_WORKSPACE so its code cannot alter public files by ordinary
+          # relative paths.
           git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $AUTH" \
             clone --quiet --depth 1 --branch main \
             https://github.com/FCMO-AI/AI-Research-Breakthroughs.git \
-            .newswire-private-source
+            "$PRIVATE_DIR"
           unset AUTH APP_TOKEN
 
       - name: Run ARB's own tests without exposing private diagnostics
         shell: bash
         run: |
           set -euo pipefail
+          PRIVATE_DIR="$RUNNER_TEMP/fcmo-newswire-private-source"
           PRIVATE_LOG="$RUNNER_TEMP/fcmo-newswire-private-tests.log"
           # Footnote: this is a public workflow. ARB test names, paths and failure
           # diagnostics are private even when a test itself is safe. Capture all
-          # output privately and emit only the phase verdict. The log is deleted
-          # whether the phase passes or fails.
-          if ! (cd .newswire-private-source && python -m unittest discover -s tests) >"$PRIVATE_LOG" 2>&1; then
+          # output privately and emit only the phase verdict. The private process
+          # also receives an allowlisted environment rather than GitHub command
+          # files/runtime tokens, so it cannot persist workflow state through
+          # GITHUB_ENV/GITHUB_OUTPUT or inherit unrelated runner credentials.
+          if ! (
+            cd "$PRIVATE_DIR" &&
+            env -i \
+              "PATH=$PATH" \
+              "HOME=$HOME" \
+              "LANG=C.UTF-8" \
+              "LC_ALL=C.UTF-8" \
+              python -m unittest discover -s tests
+          ) >"$PRIVATE_LOG" 2>&1; then
             rm -f "$PRIVATE_LOG"
             echo 'Private ARB validation failed inside the isolated bridge.' >&2
             exit 1
@@ -90,22 +104,31 @@ jobs:
           echo 'Private ARB validation passed.'
 
       - name: Build ARB's deterministic declassified release without private logs
-        env:
-          ARB_SITE_BASE_PATH: /FCMO-AI-Newsletter
-          ARB_PUBLIC_BASE_URL: https://fcmo-ai.github.io/FCMO-AI-Newsletter
         shell: bash
         run: |
           set -euo pipefail
+          PRIVATE_DIR="$RUNNER_TEMP/fcmo-newswire-private-source"
           PRIVATE_LOG="$RUNNER_TEMP/fcmo-newswire-private-build.log"
           # Footnote: successful compilers can still print private source paths or
           # canonical IDs. Keep the entire upstream build transcript off the public
-          # log; only the independently verified _public_release crosses the line.
+          # log. The same minimal environment boundary used for tests prevents the
+          # private build from inheriting GitHub command channels or runner tokens;
+          # only the two explicit public-build parameters are added back.
           if ! (
-            cd .newswire-private-source &&
-            python tools/build_publication.py --check-determinism &&
-            python tools/build_public_release.py &&
-            python tools/build_public_locales.py build &&
-            python tools/build_airlock_receipt.py &&
+            cd "$PRIVATE_DIR" &&
+            PRIVATE_ENV=(
+              env -i
+              "PATH=$PATH"
+              "HOME=$HOME"
+              "LANG=C.UTF-8"
+              "LC_ALL=C.UTF-8"
+              "ARB_SITE_BASE_PATH=/FCMO-AI-Newsletter"
+              "ARB_PUBLIC_BASE_URL=https://fcmo-ai.github.io/FCMO-AI-Newsletter"
+            ) &&
+            "${PRIVATE_ENV[@]}" python tools/build_publication.py --check-determinism &&
+            "${PRIVATE_ENV[@]}" python tools/build_public_release.py &&
+            "${PRIVATE_ENV[@]}" python tools/build_public_locales.py build &&
+            "${PRIVATE_ENV[@]}" python tools/build_airlock_receipt.py &&
             test -f _public_release/airlock.json &&
             test -f _public_release/data/locales/es-419/records.json &&
             test -f _public_release/data/locales/zh-Hans/records.json
@@ -120,12 +143,13 @@ jobs:
       - name: Extract only the already-sanitized release, then destroy private checkout
         shell: bash
         run: |
+          PRIVATE_DIR="$RUNNER_TEMP/fcmo-newswire-private-source"
           RELEASE_DIR="$RUNNER_TEMP/fcmo-newswire-airlocked-release"
           rm -rf "$RELEASE_DIR"
           mkdir -p "$RELEASE_DIR"
-          cp -a .newswire-private-source/_public_release/. "$RELEASE_DIR/"
-          rm -rf .newswire-private-source
-          test ! -e .newswire-private-source
+          cp -a "$PRIVATE_DIR/_public_release/." "$RELEASE_DIR/"
+          rm -rf "$PRIVATE_DIR"
+          test ! -e "$PRIVATE_DIR"
           echo "RELEASE_DIR=$RELEASE_DIR" >> "$GITHUB_ENV"
           # Footnote: no private checkout exists when the public-side verifier or
           # Git staging begins. Only the upstream-produced allowlisted candidate
@@ -137,11 +161,12 @@ jobs:
       - name: Rebase transport onto current public main before staging
         shell: bash
         run: |
-          # Footnote: ARB build/test can take time. Resetting to the latest public
-          # main here prevents a newswire run from overwriting an unrelated commit
-          # that landed while the private source was being compiled.
+          # Footnote: ARB build/test can take time. Resetting and cleaning to the
+          # latest public main here prevents a newswire run—or any unexpected
+          # earlier workspace residue—from overwriting an unrelated public commit.
           git fetch origin main
           git reset --hard origin/main
+          git clean -fdx
           python tools/newswire_bridge.py verify "$RELEASE_DIR"
 
       - name: Atomically replace only corpus/
@@ -177,8 +202,8 @@ jobs:
           # this unconditional finalizer covers earlier failure paths as well. The
           # GitHub-hosted runner is ephemeral, but explicit destruction keeps the
           # security property true even before runner teardown.
-          rm -rf .newswire-private-source
+          rm -rf "$RUNNER_TEMP/fcmo-newswire-private-source"
           rm -f "$RUNNER_TEMP/fcmo-newswire-private-tests.log"
           rm -f "$RUNNER_TEMP/fcmo-newswire-private-build.log"
           rm -rf "$RUNNER_TEMP/fcmo-newswire-airlocked-release"
-          test ! -e .newswire-private-source
+          test ! -e "$RUNNER_TEMP/fcmo-newswire-private-source"
