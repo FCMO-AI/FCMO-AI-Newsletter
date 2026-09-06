@@ -26,6 +26,16 @@ class NewswireBridgeWorkflowContractTests(unittest.TestCase):
         ):
             self.assertNotIn(forbidden, text)
 
+    def test_app_secret_is_only_consumed_by_token_action_on_main(self) -> None:
+        text = BRIDGE.read_text(encoding="utf-8")
+        self.assertIn("if: github.ref == 'refs/heads/main'", text)
+        secret_ref = "${{ secrets.FCMO_NEWSWIRE_APP_PRIVATE_KEY }}"
+        self.assertEqual(text.count(secret_ref), 1)
+        self.assertIn(f"private-key: {secret_ref}", text)
+        # Footnote: never route the PEM through a shell env merely to test whether
+        # it exists. The token action is a smaller secret-consumption surface.
+        self.assertNotIn("APP_PRIVATE_KEY:", text)
+
     def test_private_materialization_avoids_checkout_action_sha_leak(self) -> None:
         text = BRIDGE.read_text(encoding="utf-8")
         # Footnote: actions/checkout is fine for this public repository, but using
@@ -34,6 +44,8 @@ class NewswireBridgeWorkflowContractTests(unittest.TestCase):
         self.assertNotIn("repository: FCMO-AI/AI-Research-Breakthroughs", text)
         self.assertIn("clone --quiet --depth 1 --branch main", text)
         self.assertIn('http.https://github.com/.extraheader=AUTHORIZATION: basic $AUTH', text)
+        self.assertIn('echo "::add-mask::$AUTH"', text)
+        self.assertIn("unset AUTH APP_TOKEN", text)
         self.assertNotIn("x-access-token:${{", text)
 
     def test_private_execution_output_never_reaches_public_log(self) -> None:
