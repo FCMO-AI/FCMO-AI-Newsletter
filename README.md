@@ -12,16 +12,18 @@ The publication separates evidence quality, confidence, limitations, contradicti
 
 The release is deterministic and fail-closed:
 
-- ARB prepares the public evidence record and all three native editorial editions, then exposes only the sanitized/declassified package through the publication airlock.
+- ARB prepares the public evidence record and all three native editorial editions. The isolated Newswire Bridge uses a **read-only GitHub App** to check out ARB ephemerally on a public GitHub-hosted runner, runs ARB's own tests and deterministic declassification compiler there, copies only `_public_release`, destroys the private checkout, and independently re-verifies the allowlisted artifact before `corpus/` can change.
+- `tools/newswire_bridge.py` reproduces the upstream content digest and release identity, rejects non-allowlisted paths, private/strategic markers, secret-like material, personal-email/runner-path leakage, malformed JSON/JSONL, invalid public IDs and ES/ZH delta divergence. `corpus/` is replaced through a verified staging directory rather than mixed in place.
 - `site/` is the checked-in public base tree.
 - `release-overlay/final/` is the frozen, hash-verified English canonical release payload.
 - `tools/apply_final_release.py` reconstructs the canonical publication candidate, validates its hashes and public-data contract, scans for credential/privacy leaks and unsafe remote executable dependencies, and writes a deterministic build manifest.
 - `tools/sync_airlocked_locales.py` imports ARB-authored Spanish and Simplified Chinese deltas; `tools/validate_localizations.py` requires complete provider-free three-language coverage and preserves structural/numeric/ID/URL invariants.
 - `tools/apply_curated_i18n.py` applies the committed native-language presentation only after the canonical English release passes its integrity gate.
 - `tools/build_editorial_frontends.py` and `tools/finalize_editorial_frontends.py` generate archive, local search, topics, organization indexes/details, corrections, feeds, methodology, editorial policy, automation disclosure, accessibility, status, 404 and the native-edition gateway on the **exact post-overlay Pages candidate**.
-- `.github/workflows/pages.yml` deploys only that validated `publish/` directory to GitHub Pages, then `tools/verify_live_newsroom.py` checks the production origin itself.
-- A failed release, locale-integrity, frontend, browser or live-origin validation prevents the new candidate from being considered healthy rather than publishing a partial or drifted edition.
-- No private research workspace, private operational state, translation API or runtime model provider is required to build or serve the public release.
+- `.github/workflows/newswire-bridge.yml` owns the upstream cadence. A successful bridge run triggers the autonomous newsroom through `workflow_run`; the newsroom in turn triggers Pages. This avoids recursive `GITHUB_TOKEN` push assumptions and avoids a second independent refresh schedule.
+- `.github/workflows/pages.yml` deploys only the validated `publish/` directory to GitHub Pages, then `tools/verify_live_newsroom.py` checks the production origin itself.
+- A failed bridge, release, locale-integrity, frontend, browser or live-origin validation prevents the new candidate from being considered healthy rather than publishing a partial or drifted edition.
+- No private research workspace, private operational state, translation API or runtime model provider is required to build or serve the public release. Private ARB bytes exist only inside the isolated transport runner and are deleted before public-side staging begins.
 
 `data/relationships.json` and `data/relationships.jsonl` are equivalent public surfaces: the JSON is an array and the JSONL is one identical object per line. They must contain the same objects in the same order; clients may choose either representation.
 
@@ -53,9 +55,15 @@ Potential impact and confidence are deliberately separate: a spectacular claim c
 
 ## Automation and authentication
 
-ARB writes the sanitized `corpus/` into this repository using a least-privilege **GitHub App** installed only on `FCMO-AI-Newsletter`. The App receives only repository Contents read/write authority and each workflow run mints a short-lived installation token. There is no personal publisher-token fallback.
+The only external activation credential is a least-privilege **GitHub App** installed only on private `FCMO-AI/AI-Research-Breakthroughs` with repository **Contents: Read-only**. Newsletter stores its App ID as `FCMO_NEWSWIRE_APP_ID` and generated private key as the encrypted Actions secret `FCMO_NEWSWIRE_APP_PRIVATE_KEY`; each bridge run mints a short-lived installation token scoped only to ARB.
 
-Newsletter never authenticates back into private ARB. The trust direction remains one-way: private research can publish only through the airlock; the public sink cannot reach back for hidden context.
+The App cannot write to ARB or Newsletter. After ARB's own tests and declassification compiler run in the isolated checkout, the checkout is deleted. The surviving public artifact passes `tools/newswire_bridge.py` independently, and only then may Newsletter's own `GITHUB_TOKEN` atomically update `corpus/`.
+
+This makes private-repository GitHub Actions availability **non-blocking** for Newsletter publication. There is no PAT fallback, translation-provider credential, private runner requirement, manual daily dispatch or second publisher credential in the launch contract.
+
+The public newsroom, generated site and committed repository never receive raw private ARB state. The only component allowed to read ARB is the isolated Newswire Bridge transport step, and its output boundary remains strictly one-way and public-only.
+
+See [`NEWSWIRE_ACTIVATION_STATUS.md`](NEWSWIRE_ACTIVATION_STATUS.md) for the exact activation contract and completion ledger.
 
 ## FCMO AI leadership and attribution
 
