@@ -31,20 +31,22 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Require the GitHub App ID
+      - name: Require the GitHub App Client ID
         env:
-          APP_ID: ${{ vars.FCMO_NEWSWIRE_APP_ID }}
+          APP_CLIENT_ID: ${{ vars.FCMO_NEWSWIRE_APP_CLIENT_ID }}
         shell: bash
         run: |
           # Footnote: the PEM is intentionally not passed to a shell merely to
           # test whether it exists. The token action is the sole secret consumer.
-          test -n "$APP_ID" || { echo 'FCMO_NEWSWIRE_APP_ID is not configured' >&2; exit 1; }
+          test -n "$APP_CLIENT_ID" || { echo 'FCMO_NEWSWIRE_APP_CLIENT_ID is not configured' >&2; exit 1; }
 
       - name: Mint a read-only token scoped only to private ARB
         id: app-token
         uses: actions/create-github-app-token@v3
         with:
-          app-id: ${{ vars.FCMO_NEWSWIRE_APP_ID }}
+          # Footnote: v3 still accepts legacy app-id, but GitHub recommends the
+          # Client ID input. Pin the launch contract to the current interface.
+          client-id: ${{ vars.FCMO_NEWSWIRE_APP_CLIENT_ID }}
           private-key: ${{ secrets.FCMO_NEWSWIRE_APP_PRIVATE_KEY }}
           owner: FCMO-AI
           repositories: AI-Research-Breakthroughs
