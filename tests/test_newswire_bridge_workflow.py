@@ -12,8 +12,11 @@ REFRESH = ROOT / ".github" / "workflows" / "daily-refresh.yml"
 class NewswireBridgeWorkflowContractTests(unittest.TestCase):
     def test_bridge_has_only_app_activation_inputs_and_read_only_private_scope(self) -> None:
         text = BRIDGE.read_text(encoding="utf-8")
-        self.assertIn("FCMO_NEWSWIRE_APP_ID", text)
+        self.assertIn("FCMO_NEWSWIRE_APP_CLIENT_ID", text)
+        self.assertNotIn("FCMO_NEWSWIRE_APP_ID", text)
         self.assertIn("FCMO_NEWSWIRE_APP_PRIVATE_KEY", text)
+        self.assertIn("client-id: ${{ vars.FCMO_NEWSWIRE_APP_CLIENT_ID }}", text)
+        self.assertNotIn("app-id:", text)
         self.assertIn("repositories: AI-Research-Breakthroughs", text)
         self.assertIn("permission-contents: read", text)
         self.assertNotIn("permission-contents: write", text)
