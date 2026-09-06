@@ -70,6 +70,15 @@ def overlay_sintetico(row: dict, locale: str) -> dict:
         if isinstance(row.get(key), str) and row[key].strip():
             overlay[key] = texto_nativo(row[key], locale)
 
+    # Footnote: the old fixture predates the public `why` reader field. Ingestion
+    # can derive that field from the canonical rationale, so a truthful upstream
+    # edition must carry the same prose obligation even when the raw fixture did
+    # not spell the alias out yet. This keeps the oracle stricter than the fixture.
+    if "why" not in overlay:
+        rationale = row.get("why_it_matters") or row.get("summary")
+        if isinstance(rationale, str) and rationale.strip():
+            overlay["why"] = texto_nativo(rationale, locale)
+
     for key in PROSE_LISTS:
         source = row.get(key)
         if isinstance(source, list) and source:
