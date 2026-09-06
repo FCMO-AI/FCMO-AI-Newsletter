@@ -9,6 +9,8 @@ BRIDGE = ROOT / ".github" / "workflows" / "newswire-bridge.yml"
 REFRESH = ROOT / ".github" / "workflows" / "daily-refresh.yml"
 
 
+# Footnote: this suite is intentionally executable on every publication-boundary
+# change so a source-ref regression cannot reach the scheduled production window.
 class NewswireBridgeWorkflowContractTests(unittest.TestCase):
     def test_bridge_has_only_app_activation_inputs_and_read_only_private_scope(self) -> None:
         text = BRIDGE.read_text(encoding="utf-8")
