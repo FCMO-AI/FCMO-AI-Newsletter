@@ -20,10 +20,10 @@ The release is deterministic and fail-closed:
 - `tools/sync_airlocked_locales.py` imports ARB-authored Spanish and Simplified Chinese deltas; `tools/validate_localizations.py` requires complete provider-free three-language coverage and preserves structural/numeric/ID/URL invariants.
 - `tools/apply_curated_i18n.py` applies the committed native-language presentation only after the canonical English release passes its integrity gate.
 - `tools/build_editorial_frontends.py` and `tools/finalize_editorial_frontends.py` generate archive, local search, topics, organization indexes/details, corrections, feeds, methodology, editorial policy, automation disclosure, accessibility, status, 404 and the native-edition gateway on the **exact post-overlay Pages candidate**.
-- `.github/workflows/newswire-bridge.yml` owns the upstream cadence. A successful bridge run triggers the autonomous newsroom through `workflow_run`; the newsroom in turn triggers Pages. This avoids recursive `GITHUB_TOKEN` push assumptions and avoids a second independent refresh schedule.
+- `.github/workflows/newswire-bridge.yml` owns the upstream cadence at **07:10 America/Mexico_City**, after the 06:00 ARB research activation has had its expected work window to settle. A successful bridge run triggers the autonomous newsroom through `workflow_run`; the newsroom in turn triggers Pages. This avoids recursive `GITHUB_TOKEN` push assumptions and avoids a second independent refresh schedule.
 - `.github/workflows/pages.yml` deploys only the validated `publish/` directory to GitHub Pages, then `tools/verify_live_newsroom.py` checks the production origin itself.
 - A failed bridge, release, locale-integrity, frontend, browser or live-origin validation prevents the new candidate from being considered healthy rather than publishing a partial or drifted edition.
-- No private research workspace, private operational state, translation API or runtime model provider is required to build or serve the public release. Private ARB bytes exist only inside the isolated transport runner and are deleted before public-side staging begins.
+- No private research workspace, private operational state, translation API or runtime model provider is required to build or serve the public release. Private ARB bytes exist only inside the isolated transport runner and are deleted before public-side staging begins, with an unconditional cleanup path on failures.
 
 `data/relationships.json` and `data/relationships.jsonl` are equivalent public surfaces: the JSON is an array and the JSONL is one identical object per line. They must contain the same objects in the same order; clients may choose either representation.
 
@@ -55,9 +55,11 @@ Potential impact and confidence are deliberately separate: a spectacular claim c
 
 ## Automation and authentication
 
-The only external activation credential is a least-privilege **GitHub App** installed only on private `FCMO-AI/AI-Research-Breakthroughs` with repository **Contents: Read-only**. Newsletter stores its App ID as `FCMO_NEWSWIRE_APP_ID` and generated private key as the encrypted Actions secret `FCMO_NEWSWIRE_APP_PRIVATE_KEY`; each bridge run mints a short-lived installation token scoped only to ARB.
+The only external activation credential is a least-privilege **GitHub App** installed only on private `FCMO-AI/AI-Research-Breakthroughs` with repository **Contents: Read-only**. Newsletter stores its App **Client ID** as the repository Actions variable `FCMO_NEWSWIRE_APP_CLIENT_ID` and the generated private key as the encrypted Actions secret `FCMO_NEWSWIRE_APP_PRIVATE_KEY`; each bridge run mints a short-lived installation token scoped only to ARB. The workflow uses GitHub's current recommended Client-ID input rather than the legacy App-ID input.
 
-The App cannot write to ARB or Newsletter. After ARB's own tests and declassification compiler run in the isolated checkout, the checkout is deleted. The surviving public artifact passes `tools/newswire_bridge.py` independently, and only then may Newsletter's own `GITHUB_TOKEN` atomically update `corpus/`.
+The App cannot write to ARB or Newsletter. Its PEM is consumed only by the token-minting action, not passed through shell preflight. The bridge also masks its derived Git authentication header, suppresses private ARB test/build diagnostics from the public workflow log, and only runs the credential-bearing job from reviewed `main`.
+
+After ARB's own tests and declassification compiler run in the isolated checkout, the checkout is deleted. The surviving public artifact passes `tools/newswire_bridge.py` independently, and only then may Newsletter's own `GITHUB_TOKEN` atomically update `corpus/`.
 
 This makes private-repository GitHub Actions availability **non-blocking** for Newsletter publication. There is no PAT fallback, translation-provider credential, private runner requirement, manual daily dispatch or second publisher credential in the launch contract.
 

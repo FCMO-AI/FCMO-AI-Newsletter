@@ -8,7 +8,7 @@ This repository must contain only material intended for public release. It must 
 
 Only a sanitized, semantically declassified, allowlisted public corpus may cross the upstream publication airlock. The committed repository, public newsroom and reader-facing runtime do not fetch or consume raw private research state.
 
-The sole transport exception is `.github/workflows/newswire-bridge.yml`: it may use a short-lived, **read-only** GitHub App token to check out private ARB into an ephemeral runner directory solely to execute ARB's own tests and deterministic publication/declassification compiler. The bridge copies only `_public_release` into runner-temporary storage and **deletes the private checkout before public-side verification or Git staging begins**. No raw private checkout, history or operational state may enter the public Git tree.
+The sole transport exception is `.github/workflows/newswire-bridge.yml`: it may use a short-lived, **read-only** GitHub App token to materialize private ARB in an ephemeral runner directory solely to execute ARB's own tests and deterministic publication/declassification compiler. The bridge deliberately avoids private `actions/checkout` so the private commit identity is not emitted to a public workflow log; private test/build diagnostics are captured off-log. It copies only `_public_release` into runner-temporary storage and **deletes the private checkout before public-side verification or Git staging begins**. An unconditional finalizer removes residual private checkout/log/release state even on failure paths. No raw private checkout, history or operational state may enter the public Git tree.
 
 The absence of an obvious private name is not sufficient evidence that an inference is safe to publish. Strategic ARB implications remain default-private. `tools/newswire_bridge.py` independently verifies the surviving release after the private checkout is gone: exact path allowlist, content-addressed digest/release identity, public IDs, native-edition parity, UTF-8/JSON structure, private/strategic markers, personal-email/runner-path leakage and secret-like material. Public analysis is then reconstructed inside the newsroom from the sanitized evidence package and public sources.
 
@@ -54,7 +54,7 @@ Generated FCMO explanatory graphics are editorial illustrations, never source ev
 - `tools/build_editorial_frontends.py` + `tools/finalize_editorial_frontends.py` — post-overlay discovery/frontend layer that is rebuilt on the exact Pages candidate;
 - `tools/` — ingest, public research, visual, Story, receipt and verification tooling;
 - `publish/` — ephemeral assembled deployment candidate, never the authority-bearing source;
-- `.github/workflows/newswire-bridge.yml` — read-only App transport: ephemeral ARB validation/build → destroy private checkout → independent public verification → `corpus/`;
+- `.github/workflows/newswire-bridge.yml` — read-only App transport: ephemeral ARB validation/build → destroy private checkout → independent public verification → `corpus/`; it owns the daily transport cadence at 07:10 America/Mexico_City;
 - `.github/workflows/bootstrap-newsroom.yml` — public-only migration path for the existing published corpus;
 - `.github/workflows/daily-refresh.yml` — successful bridge/verified corpus → heartbeat → ingest → locale sync/reconcile/integrity → public research → visual desk → Story/discovery build → ACK → release gates → commit cycle;
 - `.github/workflows/pages.yml` — reconstructs the frozen candidate, applies native locales, rebuilds discovery frontends on that exact tree, deploys, then proves the production origin;
@@ -64,9 +64,9 @@ The public repository's git history remains independent from any private source 
 
 ## Authentication boundary
 
-The only external activation credential is a least-privilege GitHub App installed only on private `FCMO-AI/AI-Research-Breakthroughs` with repository **Contents: Read-only**. Each bridge run mints a short-lived installation token scoped only to that repository. The App cannot write to either repository.
+The only external activation credential is a least-privilege GitHub App installed only on private `FCMO-AI/AI-Research-Breakthroughs` with repository **Contents: Read-only**. Each bridge run mints a short-lived installation token scoped only to that repository using GitHub's current recommended **Client ID** interface. The App cannot write to either repository.
 
-The public repository stores only the App ID as `FCMO_NEWSWIRE_APP_ID` and the App's generated PEM private key as encrypted Actions secret `FCMO_NEWSWIRE_APP_PRIVATE_KEY`. The private key must never enter source control or logs.
+The public repository stores only the App Client ID as Actions variable `FCMO_NEWSWIRE_APP_CLIENT_ID` and the App's generated PEM private key as encrypted Actions secret `FCMO_NEWSWIRE_APP_PRIVATE_KEY`. The private key must never enter source control or logs. The PEM is consumed only by the token-minting action, not passed through shell preflight; the derived Git authentication header is masked and discarded; and the credential-bearing bridge job is restricted to reviewed `main`.
 
 Once the independently verified public candidate survives the bridge, Newsletter's own `GITHUB_TOKEN` may commit only `corpus/`. No personal publisher token, PAT fallback, translation-provider secret, private Actions runner or second publisher credential is part of the production contract.
 

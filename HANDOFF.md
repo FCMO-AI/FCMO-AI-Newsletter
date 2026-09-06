@@ -14,16 +14,18 @@ La Newsletter pública, su newsroom autónoma, localización nativa EN/ES/ZH, fr
 
 El diseño anterior todavía hacía depender el primer round-trip de GitHub Actions dentro del repositorio privado ARB. Eso dejó de ser parte del contrato: `.github/workflows/newswire-bridge.yml` ejecuta los tests y el compilador de publicación de ARB dentro de un checkout privado **efímero** en el runner público de Newsletter usando un GitHub App read-only. La disponibilidad/facturación de Actions privadas ya no bloquea la Newsletter.
 
+El bridge corre diariamente a **07:10 America/Mexico_City**, después de que la activación ARB de las 06:00 haya tenido su ventana esperada de ~50 minutos para aterrizar. La credencial sólo puede utilizarse desde el workflow revisado en `main`; el Client ID usa la interfaz recomendada actual de GitHub, el PEM sólo entra al token-minter, los diagnósticos privados no llegan al log público y un finalizador `always()` destruye cualquier residuo privado incluso en rutas de fallo.
+
 ## 2. Única acción manual restante
 
 Configurar un GitHub App de lectura para ARB:
 
 - instalarlo únicamente en `FCMO-AI/AI-Research-Breakthroughs`;
 - permiso de repositorio **Contents: Read-only**;
-- guardar su App ID en la variable de Actions `FCMO_NEWSWIRE_APP_ID` del repo Newsletter;
+- guardar su **Client ID** en la variable de Actions `FCMO_NEWSWIRE_APP_CLIENT_ID` del repo Newsletter;
 - guardar su PEM privado en el secret de Actions `FCMO_NEWSWIRE_APP_PRIVATE_KEY` del repo Newsletter.
 
-No hace falta PAT, `ANTHROPIC_API_KEY`, token publisher, App con permiso write, habilitar Pages, arreglar Actions privadas, ejecutar un workflow a mano ni configurar otro servicio para el launch contract.
+No hace falta PAT, `ANTHROPIC_API_KEY`, token publisher, App con permiso write, habilitar Pages, arreglar Actions privadas, ejecutar un workflow a mano ni configurar otro servicio para el launch contract. El PEM no debe pegarse en chat, source control, issues ni logs.
 
 ## 3. Qué ocurre automáticamente después
 
@@ -35,7 +37,8 @@ Un fallo en cualquier paso deja la release anterior viva y debe diagnosticarse c
 
 - ARB permanece privado.
 - El GitHub App sólo puede leer ARB.
-- La copia privada vive únicamente durante el paso de transporte y se elimina antes de staging público.
+- La copia privada vive únicamente durante el paso de transporte y se elimina antes de staging público; un cleanup incondicional cubre también fallos tempranos.
+- La identidad del commit privado y los diagnósticos de tests/build no se imprimen al workflow público.
 - Sólo `_public_release` sobrevive a ese punto.
 - `tools/newswire_bridge.py` vuelve a verificar digest/release identity, allowlist, IDs, ES/ZH, JSON/JSONL, secretos y marcadores privados después de borrar el checkout.
 - Sólo `corpus/` puede ser escrito por el bridge en el Git público.
