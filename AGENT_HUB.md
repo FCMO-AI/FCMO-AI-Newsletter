@@ -25,6 +25,14 @@ FCMO-authorized agents with organization access can resolve:
 
 This public repository records repository coordinates rather than depending on a private URL. If Hub access exists, use its live Core as the canonical FCMO-wide semantic source and this repository's adapted Standard as the Newsletter integration layer. If Hub access is unavailable, continue from the pinned local v1 doctrine and Newsletter canon.
 
+## Optional institutional learning
+
+Public Newsletter operation and contribution do **not** depend on private Agent Hub access, and routine publication work has no Commons-participation requirement.
+
+When an FCMO-authorized agent with legitimate Hub access discovers a material reusable lesson from publication, localization, privacy airlocks, visual verification, release integrity, or another shared surface, it may contribute a proposal, experiment, reproduction, counterexample, or evidence under the Hub's `commons/EVOLUTION_PROTOCOL.md`. Keep public evidence public-safe and do not move private ARB or internal context into this repository or a Commons artifact merely to support the proposal.
+
+Hub proposals remain non-canonical until Governance and legitimate human promotion say otherwise and cannot weaken Newsletter's fail-closed publication or privacy boundaries by implication.
+
 ## Reciprocity
 
 Agent Hub's private ecosystem registry points back to `FCMO-AI/FCMO-AI-Newsletter`, this `AGENT_HUB.md`, `AGENTS.md`, and the local adapted Standard.
