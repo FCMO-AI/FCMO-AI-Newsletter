@@ -25,7 +25,10 @@ except ImportError:  # direct script execution from tools/
 
 LOCALES = ("es-419", "zh-Hans")
 AIRLOCK_PART = "part-airlock.json"
-NUM = re.compile(r"(?<![A-Za-z])[-+]?\d[\d,.]*(?:%|x|×|[KMBT])?", re.I)
+# Footnote: punctuation adjacent to a number is editorial, not part of its value.
+# This keeps grouped/decimal values intact (1,050,000; 99.9%; 3.66x) while allowing
+# Spanish and Chinese to move commas or sentence punctuation naturally.
+NUM = re.compile(r"(?<![A-Za-z])[-+]?\d+(?:[.,]\d+)*(?:%|x|×|[KMBT])?", re.I)
 FCMO_ID = re.compile(r"\bFCMO-[0-9A-F]{12}\b")
 URL = re.compile(r"https?://[^\s\]\[)<>'\"]+")
 CJK = re.compile(r"[\u3400-\u4dbf\u4e00-\u9fff]")
