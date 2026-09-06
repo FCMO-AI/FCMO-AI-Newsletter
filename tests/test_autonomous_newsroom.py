@@ -6,7 +6,15 @@ import unittest
 from datetime import datetime, timezone
 from pathlib import Path
 
-from tools import build_newsroom_surfaces, newsroom_receipt, review_localizations, translation_freshness, visual_desk
+from tools import (
+    build_editorial_frontends,
+    build_newsroom_surfaces,
+    finalize_editorial_frontends,
+    newsroom_receipt,
+    sync_airlocked_locales,
+    validate_localizations,
+    visual_desk,
+)
 
 
 RID = "FCMO-0C0DE0000001"
@@ -32,6 +40,8 @@ def record() -> dict:
         "contradictory_evidence": [],
         "evidence_gaps": [{"description": "Independent reproduction remains open."}],
         "source_urls": ["https://example.com/public-source"],
+        "topics": ["agent-evaluation"],
+        "organizations": ["Example Lab"],
     }
 
 
@@ -44,27 +54,45 @@ def write_index(path: Path, row: dict) -> None:
     )
 
 
+def translated_row(locale: str, row: dict) -> dict:
+    if locale == "zh-Hans":
+        return {
+            "title": "合成公共研究结果",
+            "summary": "一项公开测量结果提高了 12%。",
+            "why_it_matters": "这改变了一个公开的工程权衡。",
+            "claims": [{"text": "公开结果提高了 12%。"}],
+            "technical": {"strongest_baseline": "此前的公开基线。"},
+            "limitations": ["公开测试集较小。"],
+            "contradictory_evidence": [],
+            "evidence_gaps": [{"description": "独立复现仍待完成。"}],
+        }
+    return {
+        "title": "Resultado sintético de investigación pública",
+        "summary": "Un resultado público medido mejoró 12%.",
+        "why_it_matters": "Cambia una disyuntiva pública de ingeniería.",
+        "claims": [{"text": "El resultado público mejoró 12%."}],
+        "technical": {"strongest_baseline": "La línea base pública anterior."},
+        "limitations": ["Conjunto público de prueba pequeño."],
+        "contradictory_evidence": [],
+        "evidence_gaps": [{"description": "La reproducción independiente sigue pendiente."}],
+    }
+
+
 def write_locale(root: Path, locale: str, row: dict) -> None:
     folder = root / locale
     folder.mkdir(parents=True, exist_ok=True)
-    translated = {
-        "title": f"[{locale}] {row['title']}",
-        "summary": f"[{locale}] {row['summary']}",
-        "why_it_matters": f"[{locale}] {row['why_it_matters']}",
-        "claims": [{"text": f"[{locale}] {row['claims'][0]['text']}"}],
-        "technical": {"strongest_baseline": f"[{locale}] {row['technical']['strongest_baseline']}"},
-        "limitations": [f"[{locale}] {row['limitations'][0]}"],
-        "contradictory_evidence": [],
-        "evidence_gaps": [{"description": f"[{locale}] {row['evidence_gaps'][0]['description']}"}],
-    }
     (folder / "part-01.json").write_text(
-        json.dumps({"schema": "fcmo-curated-locale-part-v1", "locale": locale, "records": {RID: translated}}),
+        json.dumps({
+            "schema": "fcmo-curated-locale-part-v1",
+            "locale": locale,
+            "records": {RID: translated_row(locale, row)},
+        }),
         encoding="utf-8",
     )
 
 
 class AutonomousNewsroomTests(unittest.TestCase):
-    def test_changed_existing_story_invalidates_translation(self) -> None:
+    def test_historical_native_editions_pass_truthful_provider_free_integrity_gate(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             site = root / "release-src"
@@ -74,35 +102,64 @@ class AutonomousNewsroomTests(unittest.TestCase):
             i18n = root / "i18n"
             write_locale(i18n, "es-419", row)
             write_locale(i18n, "zh-Hans", row)
-            manifest = root / "source-digests.json"
-            manifest.write_text(
-                json.dumps({"schema": "fcmo-translation-source-digests-v1", "records": {RID: "old-digest"}}),
-                encoding="utf-8",
-            )
+            receipt = root / "integrity.json"
 
-            self.assertEqual(translation_freshness.invalidate(site, i18n, manifest), 0)
+            self.assertEqual(validate_localizations.main([
+                "--site", str(site), "--i18n-dir", str(i18n), "--receipt", str(receipt)
+            ]), 0)
+            value = json.loads(receipt.read_text(encoding="utf-8"))
+            self.assertIn("ARB publication agent", value["editorial_owner"])
+            self.assertFalse(value["network_translation"])
+            self.assertFalse(value["human_reviewed"])
+            self.assertEqual(value["historical_structural_pairs"], 2)
+            self.assertEqual(value["strict_airlock_pairs"], 0)
+
+    def test_missing_upstream_native_edition_fails_closed(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            site = root / "release-src"
+            site.mkdir()
+            row = record()
+            write_index(site / "index.html", row)
+            i18n = root / "i18n"
+            write_locale(i18n, "es-419", row)
+            (i18n / "zh-Hans").mkdir(parents=True)
+            with self.assertRaisesRegex(SystemExit, "missing canonical ids"):
+                validate_localizations.main(["--site", str(site), "--i18n-dir", str(i18n)])
+
+    def test_airlocked_locale_delta_becomes_strict_generated_locale_part(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            corpus = root / "corpus"
+            i18n = root / "i18n"
+            site = root / "release-src"
+            site.mkdir()
+            row = record()
+            write_index(site / "index.html", row)
             for locale in ("es-419", "zh-Hans"):
-                value = json.loads((i18n / locale / "part-01.json").read_text(encoding="utf-8"))
-                self.assertNotIn(RID, value["records"])
+                incoming = corpus / "data" / "locales" / locale
+                incoming.mkdir(parents=True, exist_ok=True)
+                (incoming / "records.json").write_text(json.dumps({
+                    "schema": "fcmo-airlocked-locale-delta-v1",
+                    "locale": locale,
+                    "canonical_locale": "en",
+                    "records": {RID: translated_row(locale, row)},
+                }), encoding="utf-8")
+                (i18n / locale).mkdir(parents=True, exist_ok=True)
 
-    def test_historical_localization_bootstrap_is_structural_not_retroactive_review(self) -> None:
-        historical = {
-            "title": "Título histórico válido",
-            "summary": "Resumen histórico válido aun si su tokenización no coincide con una regla nueva.",
-            "why_it_matters": "Importa porque ya fue publicado bajo el contrato anterior.",
-        }
-        # Footnote: migration proves only that the pre-existing locale pack is a
-        # usable historical artifact. It deliberately does not apply new numeric,
-        # URL or provider-review invariants retroactively, which would rewrite the
-        # truth about what was actually validated when those 23 stories shipped.
-        self.assertEqual(review_localizations.historical_bootstrap_checks(RID, historical), [])
-
-        incomplete = dict(historical)
-        incomplete["summary"] = ""
-        self.assertIn(
-            "lacks non-empty summary",
-            review_localizations.historical_bootstrap_checks(RID, incomplete)[0],
-        )
+            self.assertEqual(sync_airlocked_locales.main([
+                "--corpus", str(corpus), "--i18n-dir", str(i18n)
+            ]), 0)
+            for locale in ("es-419", "zh-Hans"):
+                value = json.loads((i18n / locale / "part-airlock.json").read_text(encoding="utf-8"))
+                self.assertIn(RID, value["records"])
+            receipt = root / "integrity.json"
+            self.assertEqual(validate_localizations.main([
+                "--site", str(site), "--i18n-dir", str(i18n), "--receipt", str(receipt)
+            ]), 0)
+            value = json.loads(receipt.read_text(encoding="utf-8"))
+            self.assertEqual(value["strict_airlock_pairs"], 2)
+            self.assertEqual(value["historical_structural_pairs"], 0)
 
     def test_visual_desk_offline_generates_original_safe_asset(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -171,9 +228,9 @@ class AutonomousNewsroomTests(unittest.TestCase):
 
             self.assertEqual(build_newsroom_surfaces.main(["--release-src", str(release), "--site", str(site)]), 0)
             for locale in ("en", "es", "zh-hans"):
-                page = site / "news" / locale / f"{RID}.html"
-                self.assertTrue(page.is_file())
-                text = page.read_text(encoding="utf-8")
+                article = site / "news" / locale / f"{RID}.html"
+                self.assertTrue(article.is_file())
+                text = article.read_text(encoding="utf-8")
                 self.assertIn("NewsArticle", text)
                 self.assertIn("hreflang=", text)
                 self.assertIn("FCMO AI Research Desk", text)
@@ -186,6 +243,30 @@ class AutonomousNewsroomTests(unittest.TestCase):
             self.assertIn(f"/news/es/{RID}.html", sitemap)
             self.assertIn(f"/news/zh-hans/{RID}.html", sitemap)
             self.assertIn("FCMO WIRE", (release / "index.html").read_text(encoding="utf-8"))
+
+    def test_editorial_frontends_cover_discovery_status_and_error_routes(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            site = Path(tmp) / "site"
+            (site / "data").mkdir(parents=True)
+            row = record()
+            (site / "data" / "search.json").write_text(json.dumps([row]), encoding="utf-8")
+            (site / "data" / "stories.json").write_text(json.dumps([{"research_id": RID}]), encoding="utf-8")
+            (site / "data" / "corrections.json").write_text("[]", encoding="utf-8")
+            (site / "data" / "newsroom-status.json").write_text(json.dumps({"release_id": "newswire-test"}), encoding="utf-8")
+
+            self.assertEqual(build_editorial_frontends.main(["--site", str(site)]), 0)
+            self.assertEqual(finalize_editorial_frontends.main(["--site", str(site)]), 0)
+            for name in (
+                "archive.html", "search.html", "topics.html", "organizations.html",
+                "corrections.html", "feeds.html", "methodology.html", "editorial-policy.html",
+                "automation.html", "accessibility.html", "status.html", "404.html",
+            ):
+                self.assertTrue((site / name).is_file(), name)
+            self.assertTrue(any((site / "topics").glob("*.html")))
+            self.assertTrue(any((site / "organizations").glob("*.html")))
+            archive = (site / "archive.html").read_text(encoding="utf-8")
+            self.assertIn(f"/news/en/{RID}.html", archive)
+            self.assertNotIn("/news/en/STORY-", archive)
 
     def test_airlock_quiet_delta_is_distinct_from_missing_input(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

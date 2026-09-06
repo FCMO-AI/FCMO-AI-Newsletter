@@ -3,7 +3,7 @@
 
 Build and Pages deployment status are not treated as proof of public visibility.
 This oracle fetches the production origin, compares the live newsroom receipt
-with repository truth, and opens the multilingual Story surfaces themselves.
+with repository truth, and opens the multilingual Story and discovery surfaces.
 """
 from __future__ import annotations
 
@@ -17,7 +17,7 @@ from pathlib import Path
 from typing import Any
 
 DEFAULT_BASE = "https://fcmo-ai.github.io/FCMO-AI-Newsletter"
-USER_AGENT = "FCMO-Newsroom-Live-Oracle/1.0"
+USER_AGENT = "FCMO-Newsroom-Live-Oracle/1.1"
 
 
 def fetch(url: str, attempts: int = 6) -> bytes:
@@ -95,19 +95,35 @@ def main(argv: list[str] | None = None) -> int:
     if live_status.get("state") not in allowed_states:
         raise SystemExit(f"live oracle FAILED: unsupported newsroom state {live_status.get('state')!r}")
 
-    # A real airlock-backed release carries freshness semantics; the one-time
-    # public bootstrap deliberately does not pretend a private delivery happened.
     generated = live_status.get("airlock_generated_at")
     if generated:
         age = datetime.now(timezone.utc) - parse_utc(str(generated))
         if age > timedelta(hours=args.max_airlock_age_hours):
             raise SystemExit(f"live oracle FAILED: deployed airlock heartbeat is stale ({age.total_seconds()/3600:.1f}h)")
 
-    # Footnote: the general sitemap proves durable crawlability of all Story
-    # routes; news-sitemap.xml proves the time-bounded Google News surface. Both
-    # are production contracts, so a successful build alone is not sufficient.
-    for path in ("/news/en/", "/news/es/", "/news/zh-hans/", "/sitemap.xml", "/news-sitemap.xml"):
+    # Footnote: these are product contracts, not decorative routes. Requiring them
+    # from the production origin prevents a green build from masking a deployment
+    # that still serves the former shells or omits machine-facing discovery.
+    required_routes = (
+        "/archive.html", "/search.html", "/topics.html", "/organizations.html",
+        "/corrections.html", "/feeds.html", "/methodology.html", "/editorial-policy.html",
+        "/automation.html", "/accessibility.html", "/status.html", "/news/",
+        "/news/en/", "/news/es/", "/news/zh-hans/", "/sitemap.xml", "/news-sitemap.xml",
+        "/feed.xml", "/feed.json", "/llms.txt", "/llms-full.txt", "/agent.json",
+    )
+    for path in required_routes:
         fetch(base + path)
+
+    search = fetch(base + "/search.html").decode("utf-8", errors="replace")
+    if "data-search-root" not in search or "editorial-frontends.js" not in search:
+        raise SystemExit("live oracle FAILED: search route is not the native local-search frontend")
+    topics = fetch(base + "/topics.html").decode("utf-8", errors="replace")
+    organizations = fetch(base + "/organizations.html").decode("utf-8", errors="replace")
+    if "facet-row" not in topics or "facet-row" not in organizations:
+        raise SystemExit("live oracle FAILED: topic/organization discovery routes are still shells")
+    gateway = fetch(base + "/news/").decode("utf-8", errors="replace")
+    if "Canonical semantic edition" not in gateway or "简体中文" not in gateway:
+        raise SystemExit("live oracle FAILED: /news/ is not the three-edition gateway")
 
     latest_id = expected_stories[0].get("research_id")
     if not latest_id:
@@ -124,7 +140,7 @@ def main(argv: list[str] | None = None) -> int:
 
     print(
         f"live newsroom PRODUCTION OK: release={live_status['release_id']} "
-        f"state={live_status['state']} stories={len(expected_stories)}; EN/ES/ZH + general/news sitemaps + latest Story verified"
+        f"state={live_status['state']} stories={len(expected_stories)}; full editorial/machine route suite + EN/ES/ZH verified"
     )
     return 0
 

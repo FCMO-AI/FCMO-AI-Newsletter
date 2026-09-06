@@ -10,8 +10,9 @@ on:
       - 'tools/public_research_desk.py'
       - 'tools/visual_desk.py'
       - 'tools/build_newsroom_surfaces.py'
-      - 'tools/translation_freshness.py'
-      - 'tools/review_localizations.py'
+      - 'tools/build_editorial_frontends.py'
+      - 'tools/finalize_editorial_frontends.py'
+      - 'tools/validate_localizations.py'
       - 'tools/bootstrap_newsroom_status.py'
       - '.github/workflows/bootstrap-newsroom.yml'
   workflow_dispatch:
@@ -38,11 +39,8 @@ jobs:
       - name: Reconcile locale overlays with the current public schema
         run: python tools/reconcile_locale_overlays.py --site release-src
 
-      - name: Establish per-story translation freshness baseline
-        run: python tools/translation_freshness.py --site release-src --record
-
-      - name: Add deterministic language-review baseline
-        run: python tools/review_localizations.py --site release-src --deterministic-only
+      - name: Prove the existing three-language publication is complete
+        run: python tools/validate_localizations.py --site release-src
 
       - name: Re-research the existing stories from public evidence
         run: python tools/public_research_desk.py --release-src release-src
@@ -53,11 +51,18 @@ jobs:
       - name: Build Story layer and static multilingual news routes
         run: python tools/build_newsroom_surfaces.py --release-src release-src --site site
 
+      - name: Build and finalize the complete editorial frontend suite
+        run: |
+          python tools/build_editorial_frontends.py --site site
+          python tools/finalize_editorial_frontends.py --site site
+
       - name: Write explicit non-airlock bootstrap status
         run: python tools/bootstrap_newsroom_status.py
 
       - name: Rebuild frozen release identity and readiness receipt
         run: |
+          # Footnote: bootstrap is deliberately credential-free. It validates the
+          # already-public three-language corpus; it never generates translations.
           python tools/build_final_release.py
           python tools/build_ready_receipt.py
           python tools/verify_release.py

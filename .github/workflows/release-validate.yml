@@ -24,19 +24,57 @@ jobs:
           python -m py_compile tools/apply_final_release.py
           python -m py_compile tools/apply_curated_i18n.py
           python -m py_compile tools/ingest_corpus.py
+          python -m py_compile tools/sync_airlocked_locales.py
           python -m py_compile tools/reconcile_locale_overlays.py
-          python -m py_compile tools/translation_freshness.py
-          python -m py_compile tools/translate_records.py
-          python -m py_compile tools/review_localizations.py
+          python -m py_compile tools/validate_localizations.py
           python -m py_compile tools/public_research_desk.py
           python -m py_compile tools/visual_desk.py
           python -m py_compile tools/build_newsroom_surfaces.py
+          python -m py_compile tools/build_editorial_frontends.py
+          python -m py_compile tools/finalize_editorial_frontends.py
           python -m py_compile tools/newsroom_receipt.py
           python -m py_compile tools/bootstrap_newsroom_status.py
           python -m py_compile tools/verify_live_newsroom.py
           python -m py_compile tools/verify_release.py
           python -m py_compile tests/oraculos/verificar_dom.py
           python -m py_compile tests/test_autonomous_newsroom.py
+
+      - name: Prove translation infrastructure has no external model credential or legacy publisher
+        shell: python
+        run: |
+          from pathlib import Path
+          import sys
+
+          roots = [Path('tools'), Path('.github/workflows'), Path('LOCALIZATION.md'), Path('README.md')]
+          # Footnote: construct retired identifiers from fragments so this guard
+          # does not trip over its own source text. This check targets executable
+          # credential/provider-era infrastructure, not company names in reporting
+          # nor deny-list strings used purely to reject remote runtime endpoints.
+          forbidden = (
+              'ANTH' + 'ROPIC_API_KEY',
+              'FCMO_TRANSLATION_' + 'REVIEW_MODEL',
+              'translate_' + 'records.py',
+              'review_' + 'localizations.py',
+              'FCMO_NEWSLETTER_' + 'PUBLISH_TOKEN',
+          )
+          hits = []
+          for root in roots:
+              paths = [root] if root.is_file() else list(root.rglob('*'))
+              for path in paths:
+                  if not path.is_file() or path == Path('.github/workflows/release-validate.yml'):
+                      continue
+                  try:
+                      text = path.read_text(encoding='utf-8')
+                  except UnicodeDecodeError:
+                      continue
+                  for token in forbidden:
+                      if token in text:
+                          hits.append(f'{path}: {token}')
+          if hits:
+              print('forbidden legacy translation/publisher infrastructure remains', file=sys.stderr)
+              print('\n'.join(hits), file=sys.stderr)
+              raise SystemExit(1)
+          print('provider-free translation/publisher infrastructure scan OK')
 
       - name: Exercise the refresh tooling's own tests
         run: python -m unittest discover -s tests -v
@@ -46,6 +84,9 @@ jobs:
 
       - name: Prove the public release receipt matches the assembled tree
         run: python tools/build_ready_receipt.py --check
+
+      - name: Prove the committed three-language corpus is complete
+        run: python tools/validate_localizations.py --site release-src
 
       - name: Assemble exact public candidate
         run: |
@@ -58,6 +99,28 @@ jobs:
           PY
           )
           python tools/apply_curated_i18n.py publish "$CANONICAL_HASH"
+          # Footnote: this is the same ordering as Pages. Building discovery
+          # surfaces before the frozen overlay would validate pages that never ship.
+          python tools/build_editorial_frontends.py --site publish
+          python tools/finalize_editorial_frontends.py --site publish --refresh-manifest
+
+      - name: Prove required human and machine frontends exist in the exact candidate
+        shell: bash
+        run: |
+          for path in \
+            publish/archive.html publish/search.html publish/topics.html publish/organizations.html \
+            publish/corrections.html publish/feeds.html publish/methodology.html publish/editorial-policy.html \
+            publish/automation.html publish/accessibility.html publish/status.html publish/404.html \
+            publish/news/index.html publish/feed.xml publish/feed.json publish/sitemap.xml publish/news-sitemap.xml \
+            publish/llms.txt publish/llms-full.txt publish/agent.json; do
+            test -s "$path" || { echo "missing frontend: $path" >&2; exit 1; }
+          done
+          test -n "$(find publish/topics -name '*.html' -print -quit)" || { echo 'topic detail routes missing' >&2; exit 1; }
+          test -n "$(find publish/organizations -name '*.html' -print -quit)" || { echo 'organization detail routes missing' >&2; exit 1; }
+          if grep -Rni '/news/en/STORY-' publish/archive.html publish/search.html publish/topics publish/organizations; then
+            echo 'stale Story namespace remains in discovery frontend' >&2
+            exit 1
+          fi
 
       - name: Render runtime contracts in a real browser
         run: python tests/oraculos/verificar_dom.py publish
@@ -108,6 +171,9 @@ jobs:
           assert development_ids == canonical_ids, ('development parity', sorted(canonical_ids-development_ids), sorted(development_ids-canonical_ids))
           assert len(list((root/'editions').glob('*.html'))) == 3
           assert (root/'build-manifest.json').is_file()
+          build_manifest = json.loads((root/'build-manifest.json').read_text())
+          for required in ('archive.html','search.html','topics.html','organizations.html','methodology.html','automation.html','status.html'):
+              assert required in build_manifest['files'], required
           print(f'Curated release identity OK: {canonical_count} canonical records / 3 native languages / {digest}')
           PY
 

@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """Generate or verify the measured public-release receipt.
 
-The receipt is derived from the same public tree that the release assembler
-mounts: the frozen overlay is checked, applied over ``site/``, and then
-localized.  ``--check`` compares the receipt's individual measured values, so
-platform-specific CRLF/LF line endings do not make a valid receipt fail.
+The receipt is derived from the same public tree that Pages serves: the frozen
+overlay is checked, applied over ``site/``, committed native locales are injected,
+and deterministic editorial discovery frontends are generated last. ``--check``
+compares individual measurements plus the generated narrative so a technically
+green but semantically stale receipt cannot survive an architecture change.
 """
 from __future__ import annotations
 
@@ -106,6 +107,12 @@ def mount_public_tree(manifest: dict) -> dict[str, str]:
         shutil.copytree(SITE, target)
         run("tools/apply_final_release.py", str(target))
         run("tools/apply_curated_i18n.py", str(target), canonical_index_sha256)
+        # Footnote: the frozen overlay owns canonical release content and therefore
+        # can overwrite site-level archive/search shells. Pages deliberately builds
+        # discovery *after* overlay+i18n; the receipt must use the same ordering or
+        # it would measure a different product than readers receive.
+        run("tools/build_editorial_frontends.py", "--site", str(target))
+        run("tools/finalize_editorial_frontends.py", "--site", str(target), "--refresh-manifest")
 
         index = target / "index.html"
         frontend_sha256 = sha256(index.read_bytes())
@@ -119,6 +126,14 @@ def mount_public_tree(manifest: dict) -> dict[str, str]:
                 "assembled edition route mismatch: "
                 f"HTML={edition_html_routes}, JSON={edition_json_routes}"
             )
+        required_frontends = (
+            "archive.html", "search.html", "topics.html", "organizations.html",
+            "corrections.html", "feeds.html", "methodology.html", "editorial-policy.html",
+            "automation.html", "accessibility.html", "status.html", "news/index.html",
+        )
+        missing = [rel for rel in required_frontends if not (target / rel).is_file()]
+        if missing:
+            raise ValueError(f"assembled candidate lacks editorial frontends: {missing}")
         try:
             media = json.loads((target / "data" / "media.json").read_text(encoding="utf-8"))
             agent = json.loads((target / "agent.json").read_text(encoding="utf-8"))
@@ -204,7 +219,7 @@ def render_receipt(values: dict[str, str]) -> str:
 
 Release: **{values['release_display']}**
 
-Status: **public release assembled, localized, validated, and deployable through GitHub Pages.**
+Status: **public release assembled, native-localized, validated, and deployable through GitHub Pages.**
 
 Receipt measurement: **{values['receipt_measurement']}** (UTC), using `{values['qa_tool']}` and {values['qa_browser']}.
 
@@ -216,7 +231,7 @@ The public site is deployed at:
 
 **https://fcmo-ai.github.io/FCMO-AI-Newsletter/**
 
-Ordinary releases require no repository-visibility step. A candidate that fails release integrity, privacy, or curated-localization validation is not deployed; the previous public version remains live.
+Ordinary releases require no repository-visibility step. A candidate that fails release integrity, privacy, or native-edition validation is not deployed; the previous public version remains live.
 
 ## Release identity
 
@@ -252,6 +267,7 @@ The final assembler validates, before deployment:
 - exact release archive and front-end hashes;
 - archive path/symlink safety;
 - required human and machine-readable public files;
+- the post-overlay archive/search/topic/organization/methodology/status frontend suite;
 - {values['canonical_dossiers']} dossier identifiers and stable human routes;
 - {values['edition_routes']} edition JSON/HTML routes;
 - JSON, JSONL, RSS, and sitemap parsing;
@@ -259,20 +275,22 @@ The final assembler validates, before deployment:
 - final {values['real_visuals']}/{values['fallback_visuals']} story-media policy;
 - credential-like strings and personal-mailbox leakage;
 - remote JavaScript and remote stylesheet dependencies while allowing legitimate canonical/feed/discovery links and vetted story imagery;
-- deterministic build-manifest generation.
+- deterministic post-frontend build-manifest generation.
 
-The release assembler and curated-localization gate were rerun; the assembled public candidate measures:
+The release assembler, native-locale gate, and discovery frontend builder were rerun; the assembled public candidate measures:
 
 `FCMO AI Newsletter {values['release']} READY: {values['public_files']} public files; index {values['frontend_sha256'][:12]}…`
 
 ## Daily refresh readiness
 
-The code path for a daily update is fail-closed: a sanitized public corpus is ingested, missing curated locales are produced before publication, the frozen overlay and this receipt are rebuilt, and the same release gates run before a commit can deploy. Platform credentials or runner/billing availability are external prerequisites; their absence must stop an update rather than weaken the publication boundary.
+The update path is fail-closed: ARB supplies a sanitized public corpus plus any agent-authored `es-419`/`zh-Hans` deltas, Newsletter requires exact three-language story parity, rebuilds public research/media/Story/discovery surfaces, freezes the canonical overlay, regenerates this receipt, and reruns the release gates before a commit can deploy. There is no downstream translation provider or generative fallback. Platform runner/billing availability and the GitHub App installation credential are external prerequisites; their absence must stop an update rather than weaken the publication boundary.
 
 ## GitHub Pages
 
-Pages deploys only the assembled `publish/` artifact after the build job succeeds. The deployment workflow also listens to the completed daily-refresh workflow so a bot-authored refresh can reach Pages without relying on a second `push` event.
+Pages reconstructs the frozen candidate, applies committed native locales, regenerates deterministic discovery frontends on that exact candidate, and deploys only after the build job succeeds. The deployment workflow also listens to completed autonomous-newsroom workflows so a bot-authored refresh can reach Pages without relying on a second `push` event.
 """
+
+
 def receipt_values(text: str) -> dict[str, str]:
     patterns = {
         "release_display": r"^Release: \*\*(?P<value>.+)\*\*$",
@@ -353,6 +371,8 @@ def check_receipt(expected: dict[str, str]) -> None:
         "ready receipt check OK: "
         f"{expected['public_files']} public files; index {expected['frontend_sha256'][:12]}..."
     )
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check", action="store_true", help="compare measured receipt values without rewriting it")

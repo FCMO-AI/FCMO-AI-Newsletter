@@ -37,10 +37,10 @@ class RefrescoDiario(unittest.TestCase):
         # composition boundary explicitly instead of weakening either layer.
         self.afirma("verificar_generador_newsroom.py")
 
-    def test_traductor_falla_cerrado_y_completa(self) -> None:
-        self.afirma("verificar_traductor.py")
-
-    def test_todo_lo_publicado_esta_traducido(self) -> None:
+    def test_todo_lo_publicado_tiene_ediciones_nativas(self) -> None:
+        # Footnote: this oracle is deliberately provider-free. It checks that the
+        # committed locale packs are complete and actually language-specific;
+        # prose generation belongs upstream to the ARB publication agent.
         self.afirma("verificar_traduccion.py")
 
     def test_refresco_entero_publica_la_historia_nueva(self) -> None:
