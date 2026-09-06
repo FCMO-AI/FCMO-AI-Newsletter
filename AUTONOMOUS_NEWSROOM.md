@@ -13,7 +13,7 @@ The newspaper should publish useful evidence and independently reconstructable p
 
 The production chain is:
 
-`ARB research + EN/ES/ZH editorial preparation → privacy scrub → semantic declassification → native-edition airlock → allowlisted content-addressed newswire receipt → Newsletter clean-room research → provider-free locale integrity → visual desk → Story layer → editorial discovery frontends → release gates → Pages → live oracle`.
+`ARB research + EN/ES/ZH editorial preparation → isolated read-only App bridge → ARB tests + privacy scrub + semantic declassification → native-edition airlock → destroy private checkout → independent public allowlist/content-address verification → corpus/ → Newsletter clean-room research → provider-free locale integrity → visual desk → Story layer → editorial discovery frontends → release gates → Pages → live oracle`.
 
 ## 2. Trust zones
 
@@ -23,13 +23,23 @@ ARB may know private projects, hypotheses, tests, scale-transfer warnings, strat
 
 ARB also owns the native-language editorial work for anything it chooses to publish. The research/publication agent that already understands the evidence prepares canonical English plus `es-419` and `zh-Hans` wording as one publication obligation. Language does not create a new declassification boundary: translated prose is screened under the same privacy rules as English.
 
+### Isolated Newswire Bridge
+
+`.github/workflows/newswire-bridge.yml` is a transport/security boundary, not part of the public newsroom's editorial context. It mints a short-lived GitHub App token scoped only to private ARB with repository Contents **read-only**, checks ARB out into an ephemeral runner directory, runs ARB's own tests and deterministic publication compiler, and retains only the resulting `_public_release` candidate.
+
+The private checkout is deleted **before** public-side transfer validation or Git staging. The App cannot write to ARB or Newsletter. `tools/newswire_bridge.py` then independently reconstructs the upstream content identity and rejects anything outside the public allowlist or any payload carrying private/strategic markers, secret-like material, malformed structures or inconsistent native-edition identities. Only a candidate that survives this second boundary may replace `corpus/`.
+
+This transport exception is deliberately narrow: the public repository's committed tree, newsroom process and reader-facing runtime never receive raw ARB state. Private-repository GitHub Actions are not required for the bridge because ARB's validation/build commands execute inside the ephemeral checkout on the public repository's runner.
+
 ### Airlock
 
 The airlock exports only positively allowlisted public evidence and native-edition deltas that bind to the current declassified English source. Strategic research/engineering/policy implications are default-private. A fresh `airlock.json` receipt proves an airlock run occurred and gives the public payload a stable content-addressed `release_id`.
 
+The upstream receipt is not trusted merely because it exists: the public bridge recomputes its corpus digest, release ID and record count from the transferred bytes and independently enforces the transfer path/privacy contract.
+
 ### Public clean room
 
-Newsletter never clones or authenticates to private ARB. `tools/public_research_desk.py` receives only already-sanitized public dossiers plus public Internet access. Any additional public context is therefore reconstructable without private research state.
+After the bridge has destroyed its private checkout, Newsletter's newsroom receives only the verified `corpus/`. `tools/public_research_desk.py` receives only already-sanitized public dossiers plus public Internet access. Any additional public context is therefore reconstructable without private research state.
 
 Newsletter never asks a model provider to translate or rewrite a story. It imports ARB-authored locale deltas, reconciles them against the declassified schema, validates high-value invariants, and fails closed on incomplete three-language coverage.
 
@@ -120,7 +130,7 @@ Discovery frontends are generated **after** the frozen overlay is mounted on the
 
 The old behavior “corpus absent → green no-op” is forbidden.
 
-A refresh first requires a fresh `fcmo-newswire-airlock-v2` receipt. Newsletter distinguishes:
+The Newswire Bridge owns the upstream daily cadence. A successful bridge completion is the canonical trigger for `daily-refresh.yml` through `workflow_run`; a failed bridge is rejected by the downstream job guard. A refresh then requires a fresh `fcmo-newswire-airlock-v2` receipt. Newsletter distinguishes:
 
 - `PUBLIC_DELTA_PENDING` — fresh airlock content differs from prior accepted release;
 - `NO_PUBLIC_DELTA` — airlock ran, but content identity is unchanged;
@@ -152,11 +162,15 @@ A separate scheduled production-health workflow repeats this reality check. A gr
 
 ## 11. Authentication boundary
 
-ARB publication uses a least-privilege GitHub App installed only on `FCMO-AI-Newsletter`, with repository `Contents: read/write` and no broader organization authority. Each run mints a short-lived installation token, checks out the public sink with that machine identity, stages only `corpus/`, and pushes only that boundary.
+The only external activation credential is a least-privilege GitHub App installed only on private `FCMO-AI/AI-Research-Breakthroughs`, with repository **Contents: Read-only**. Newsletter stores the App ID as `FCMO_NEWSWIRE_APP_ID` and the generated PEM key as encrypted Actions secret `FCMO_NEWSWIRE_APP_PRIVATE_KEY`. Each bridge run mints a short-lived installation token scoped only to that repository.
 
-There is no personal publisher token fallback. Missing GitHub App configuration is a visible operational failure, not permission to widen credentials or bypass the airlock.
+The App has no write authority. The isolated bridge may read ARB only to execute ARB's own validation and declassification compiler in an ephemeral checkout. That checkout is destroyed before the public transfer verifier or Git staging begins. Newsletter's own `GITHUB_TOKEN` may commit only the independently verified `corpus/` tree.
 
-The public repository never authenticates back into ARB.
+There is no personal publisher-token fallback, no downstream translation-provider credential, no private-repository runner requirement and no second publisher identity. Private Actions availability may affect ARB's own internal CI, but it is not a Newsletter launch dependency.
+
+The public newsroom/runtime never authenticates to ARB and never receives private ARB context. The bridge is a narrowly scoped transport exception whose surviving output is public-only by construction and independent re-verification.
+
+The exact operator activation and completion ledger lives in `NEWSWIRE_ACTIVATION_STATUS.md`.
 
 ## 12. Corrections and future evolution
 
