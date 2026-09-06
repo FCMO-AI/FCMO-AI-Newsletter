@@ -48,33 +48,68 @@ jobs:
           repositories: AI-Research-Breakthroughs
           permission-contents: read
 
-      - name: Checkout the private source ephemerally
-        uses: actions/checkout@v6
-        with:
-          repository: FCMO-AI/AI-Research-Breakthroughs
-          token: ${{ steps.app-token.outputs.token }}
-          ref: main
-          path: .newswire-private-source
-          fetch-depth: 1
-          persist-credentials: false
+      - name: Materialize private ARB without publishing its commit identity
+        env:
+          APP_TOKEN: ${{ steps.app-token.outputs.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .newswire-private-source
+          AUTH=$(printf 'x-access-token:%s' "$APP_TOKEN" | base64 -w0)
+          # Footnote: actions/checkout logs the resolved private commit SHA on a
+          # public workflow. A quiet Git clone with an ephemeral HTTP auth header
+          # keeps the token out of the remote URL and the private commit identity
+          # out of public logs while retaining .git for any upstream tests that
+          # legitimately need repository semantics.
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $AUTH" \
+            clone --quiet --depth 1 --branch main \
+            https://github.com/FCMO-AI/AI-Research-Breakthroughs.git \
+            .newswire-private-source
 
-      - name: Run ARB's own repository and publication tests
-        working-directory: .newswire-private-source
-        run: python -m unittest discover -s tests -v
+      - name: Run ARB's own tests without exposing private diagnostics
+        shell: bash
+        run: |
+          set -euo pipefail
+          PRIVATE_LOG="$RUNNER_TEMP/fcmo-newswire-private-tests.log"
+          # Footnote: this is a public workflow. ARB test names, paths and failure
+          # diagnostics are private even when a test itself is safe. Capture all
+          # output privately and emit only the phase verdict. The log is deleted
+          # whether the phase passes or fails.
+          if ! (cd .newswire-private-source && python -m unittest discover -s tests) >"$PRIVATE_LOG" 2>&1; then
+            rm -f "$PRIVATE_LOG"
+            echo 'Private ARB validation failed inside the isolated bridge.' >&2
+            exit 1
+          fi
+          rm -f "$PRIVATE_LOG"
+          echo 'Private ARB validation passed.'
 
-      - name: Build ARB's deterministic declassified release
-        working-directory: .newswire-private-source
+      - name: Build ARB's deterministic declassified release without private logs
         env:
           ARB_SITE_BASE_PATH: /FCMO-AI-Newsletter
           ARB_PUBLIC_BASE_URL: https://fcmo-ai.github.io/FCMO-AI-Newsletter
+        shell: bash
         run: |
-          python tools/build_publication.py --check-determinism
-          python tools/build_public_release.py
-          python tools/build_public_locales.py build
-          python tools/build_airlock_receipt.py
-          test -f _public_release/airlock.json
-          test -f _public_release/data/locales/es-419/records.json
-          test -f _public_release/data/locales/zh-Hans/records.json
+          set -euo pipefail
+          PRIVATE_LOG="$RUNNER_TEMP/fcmo-newswire-private-build.log"
+          # Footnote: successful compilers can still print private source paths or
+          # canonical IDs. Keep the entire upstream build transcript off the public
+          # log; only the independently verified _public_release crosses the line.
+          if ! (
+            cd .newswire-private-source &&
+            python tools/build_publication.py --check-determinism &&
+            python tools/build_public_release.py &&
+            python tools/build_public_locales.py build &&
+            python tools/build_airlock_receipt.py &&
+            test -f _public_release/airlock.json &&
+            test -f _public_release/data/locales/es-419/records.json &&
+            test -f _public_release/data/locales/zh-Hans/records.json
+          ) >"$PRIVATE_LOG" 2>&1; then
+            rm -f "$PRIVATE_LOG"
+            echo 'Private ARB declassification build failed inside the isolated bridge.' >&2
+            exit 1
+          fi
+          rm -f "$PRIVATE_LOG"
+          echo 'Private ARB declassification build passed.'
 
       - name: Extract only the already-sanitized release, then destroy private checkout
         shell: bash
