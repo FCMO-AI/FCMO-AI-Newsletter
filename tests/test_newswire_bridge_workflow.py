@@ -146,6 +146,17 @@ class NewswireBridgeWorkflowContractTests(unittest.TestCase):
         ):
             self.assertIn(marker, tail)
 
+    def test_public_verification_binds_airlock_delta_to_curated_baseline(self) -> None:
+        text = BRIDGE.read_text(encoding="utf-8")
+        # Footnote: the historical native editions are public source-controlled
+        # Newsletter data. All three production-side verification/staging passes must
+        # name that baseline explicitly; otherwise a sparse historical Airlock is
+        # either rejected incorrectly or, worse, accepted without proving full coverage.
+        marker = "--baseline-i18n site/data/i18n"
+        self.assertEqual(text.count(marker), 3)
+        self.assertIn('verify "$RELEASE_DIR" --baseline-i18n site/data/i18n', text)
+        self.assertIn('stage "$RELEASE_DIR" corpus --baseline-i18n site/data/i18n', text)
+
     def test_bridge_stages_and_commits_only_corpus(self) -> None:
         text = BRIDGE.read_text(encoding="utf-8")
         self.assertIn("git add -A -- corpus", text)
