@@ -177,7 +177,7 @@ jobs:
           # allowlisted Airlock candidate survives across this boundary.
 
       - name: Independently verify the airlocked bytes from the public side
-        run: python tools/newswire_bridge.py verify "$RELEASE_DIR"
+        run: python tools/newswire_bridge.py verify "$RELEASE_DIR" --baseline-i18n site/data/i18n
 
       - name: Rebase transport onto current public main before staging
         shell: bash
@@ -188,10 +188,13 @@ jobs:
           git fetch origin main
           git reset --hard origin/main
           git clean -fdx
-          python tools/newswire_bridge.py verify "$RELEASE_DIR"
+          # Footnote: the trusted historical locale baseline is public source-controlled
+          # Newsletter data. Re-verify against the post-reset baseline so a concurrent
+          # public change cannot alter the coverage proof between validation and staging.
+          python tools/newswire_bridge.py verify "$RELEASE_DIR" --baseline-i18n site/data/i18n
 
       - name: Atomically replace only corpus/
-        run: python tools/newswire_bridge.py stage "$RELEASE_DIR" corpus
+        run: python tools/newswire_bridge.py stage "$RELEASE_DIR" corpus --baseline-i18n site/data/i18n
 
       - name: Commit only the verified public handoff
         shell: bash
