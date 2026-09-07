@@ -40,6 +40,20 @@ def load_existing(locale_dir: Path) -> tuple[dict[str, dict[str, Any]], dict[str
     return records, owners
 
 
+def merge_overlay(base: Any, delta: Any) -> Any:
+    """Overlay sparse refreshed prose without deleting still-valid curated siblings."""
+    # Footnote: an Airlock delta means "these paths were freshly authored", not
+    # "delete every path omitted from this object". Dictionaries therefore merge
+    # recursively; lists/scalars replace atomically because item-wise list merging
+    # could silently mismatch claims, limitations or evidence gaps.
+    if isinstance(base, dict) and isinstance(delta, dict):
+        merged = dict(base)
+        for key, value in delta.items():
+            merged[key] = merge_overlay(base.get(key), value) if key in base else value
+        return merged
+    return delta
+
+
 def write_json(path: Path, value: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(value, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
@@ -91,20 +105,21 @@ def main(argv: list[str] | None = None) -> int:
             if not isinstance(rid, str) or not rid.startswith("FCMO-") or not isinstance(overlay, dict):
                 raise SystemExit(f"{incoming_path}: malformed record {rid!r}")
             owner = owners.get(rid)
+            prior = existing.get(rid)
+            merged = merge_overlay(prior, overlay) if isinstance(prior, dict) else overlay
             if owner is None:
                 added += 1
             elif owner != airlock_part:
                 # Footnote: once ARB republishes a historical ID, move that ID out
-                # of its grandfathered pack into part-airlock. This preserves a
-                # durable provenance bit: every future/materially changed edition
-                # receives strict modern invariants without retroactively claiming
-                # the 2026 bootstrap packs were validated under rules they predate.
+                # of its grandfathered pack into part-airlock. Its complete curated
+                # prose is preserved underneath the sparse fresh delta so provenance
+                # upgrades do not accidentally erase reader-visible translations.
                 doc = touched.setdefault(owner, read_json(owner))
                 doc["records"].pop(rid, None)
                 promoted += 1
-            elif existing.get(rid) != overlay:
+            elif prior != merged:
                 changed += 1
-            airlock_rows[rid] = overlay
+            airlock_rows[rid] = merged
 
         for path, doc in touched.items():
             write_json(path, doc)
