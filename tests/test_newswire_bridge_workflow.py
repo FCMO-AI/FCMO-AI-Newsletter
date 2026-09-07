@@ -43,19 +43,24 @@ class NewswireBridgeWorkflowContractTests(unittest.TestCase):
         self.assertIn("clone --quiet --depth 1 --single-branch --branch main", text)
         self.assertIn('http.https://github.com/.extraheader=AUTHORIZATION: basic $AUTH', text)
         self.assertIn('echo "::add-mask::$AUTH"', text)
-        self.assertIn("unset AUTH APP_TOKEN", text)
+        self.assertIn('echo "::add-mask::$READY_SHA"', text)
+        self.assertIn("unset AUTH APP_TOKEN READY_SHA", text)
         self.assertNotIn("x-access-token:${{", text)
 
-    def test_live_main_is_frozen_to_one_immutable_checkout_before_validation(self) -> None:
+    def test_main_is_only_checkpoint_discovery_and_ready_commit_is_frozen(self) -> None:
         text = BRIDGE.read_text(encoding="utf-8")
-        # Footnote: main is permitted as discovery input only because the job captures
-        # exactly one HEAD, records its identity privately, and detaches before any
-        # validation. Later research commits therefore cannot mutate this transaction.
+        # Footnote: mutable main is now only the control pointer. Publication bytes
+        # are fetched from the exact private commit recorded by PUBLICATION_READY,
+        # so a later research promotion cannot enter this transaction accidentally.
         self.assertIn("--branch main", text)
+        self.assertIn("state/PUBLICATION_READY.json", text)
+        self.assertIn('READY_SHA=$(python - <<\'PY\'', text)
+        self.assertIn('git -C "$PRIVATE_DIR" fetch --quiet --depth 1 origin "$READY_SHA"', text)
+        self.assertIn('git -C "$PRIVATE_DIR" checkout --detach --quiet "$READY_SHA"', text)
+        self.assertIn('test "$(git -C "$PRIVATE_DIR" rev-parse HEAD)" = "$READY_SHA"', text)
         self.assertIn('git -C "$PRIVATE_DIR" rev-parse HEAD >"$PRIVATE_SHA"', text)
-        self.assertIn('git -C "$PRIVATE_DIR" checkout --detach --quiet HEAD', text)
         self.assertIn('test -z "$(git -C "$PRIVATE_DIR" branch --show-current)"', text)
-        self.assertNotIn("publication-ready", text)
+        self.assertNotIn('checkout --detach --quiet HEAD', text)
 
     def test_private_tree_and_source_identity_live_outside_public_workspace(self) -> None:
         text = BRIDGE.read_text(encoding="utf-8")
