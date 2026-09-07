@@ -54,8 +54,9 @@ class NewswireBridgeWorkflowContractTests(unittest.TestCase):
         # so a later research promotion cannot enter this transaction accidentally.
         self.assertIn("--branch main", text)
         self.assertIn("state/PUBLICATION_READY.json", text)
-        self.assertIn('READY_SHA=$(python - <<\'PY\'', text)
-        self.assertIn('git -C "$PRIVATE_DIR" fetch --quiet --depth 1 origin "$READY_SHA"', text)
+        self.assertIn('READY_SHA=$(PRIVATE_DIR_ENV="$PRIVATE_DIR" python - <<\'PY\'', text)
+        self.assertIn('Path(os.environ["PRIVATE_DIR_ENV"])', text)
+        self.assertIn('fetch --quiet --depth 1 origin "$READY_SHA"', text)
         self.assertIn('git -C "$PRIVATE_DIR" checkout --detach --quiet "$READY_SHA"', text)
         self.assertIn('test "$(git -C "$PRIVATE_DIR" rev-parse HEAD)" = "$READY_SHA"', text)
         self.assertIn('git -C "$PRIVATE_DIR" rev-parse HEAD >"$PRIVATE_SHA"', text)
