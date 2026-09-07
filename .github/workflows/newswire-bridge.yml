@@ -102,11 +102,20 @@ jobs:
           PY
           )
           echo "::add-mask::$READY_SHA"
-          # Footnote: fetch the named reachable commit explicitly and detach from it.
-          # A 07:07 research promotion can therefore coexist with a 07:10 publication
-          # run without becoming public until a later fully sealed checkpoint advance.
+          # Footnote: identity is not authority. A raw SHA can be fetchable from a
+          # private side branch, so restore canonical main history and prove the ready
+          # commit is actually an ancestor of main before executing any code from it.
           git -C "$PRIVATE_DIR" -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $AUTH" \
-            fetch --quiet --depth 1 origin "$READY_SHA"
+            fetch --quiet --unshallow origin main
+          git -C "$PRIVATE_DIR" -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $AUTH" \
+            fetch --quiet origin "$READY_SHA"
+          if ! git -C "$PRIVATE_DIR" merge-base --is-ancestor "$READY_SHA" origin/main; then
+            echo 'publication-ready checkpoint is outside canonical main lineage' >&2
+            exit 1
+          fi
+          # Footnote: after lineage authorization, detach the exact immutable target.
+          # A 07:07 research promotion can coexist with a 07:10 publication run without
+          # becoming public until a later fully sealed checkpoint advance.
           git -C "$PRIVATE_DIR" checkout --detach --quiet "$READY_SHA"
           test "$(git -C "$PRIVATE_DIR" rev-parse HEAD)" = "$READY_SHA"
           git -C "$PRIVATE_DIR" rev-parse HEAD >"$PRIVATE_SHA"
