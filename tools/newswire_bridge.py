@@ -244,6 +244,15 @@ def verify_release(root: Path) -> dict[str, Any]:
             current.add(rid)
         if not current.issubset(ids):
             errors.append(f"{rel}: locale delta contains IDs outside the public corpus: {sorted(current - ids)}")
+        # Footnote: a sparse delta is a useful authoring primitive upstream, but it
+        # is not a valid release. This independent public-side equality gate prevents
+        # a historical or misconfigured upstream seal from publishing English Stories
+        # ahead of their curated Spanish and Chinese editions.
+        if current != ids:
+            errors.append(
+                f"{rel}: native-edition coverage does not exactly match public corpus "
+                f"(corpus={len(ids)}, locale={len(current)})"
+            )
         locale_ids[locale] = current
     if len(locale_ids) == len(LOCALES) and locale_ids[LOCALES[0]] != locale_ids[LOCALES[1]]:
         errors.append("native-edition delta ID sets differ between es-419 and zh-Hans")
