@@ -20,12 +20,15 @@ FCMO-authorized agents with organization access can resolve:
 
 - Hub repository: `FCMO-AI/FCMO-Agent-Hub`
 - Canonical universal Core: `standard/CORE.md`
+- Canonical task-gated moral policy: `policy/FCMO_ETHICAL_MORAL_CONSTITUTION_V1.md`
 - Ecosystem map: `ecosystem/REPOSITORIES.md`
 - Machine registry: `ecosystem/repositories.json`
 - Living Commons: `commons/LIVING_COMMONS.md`
 - Knowledge freshness: `governance/KNOWLEDGE_FRESHNESS.md`
 
-This public repository records repository coordinates rather than depending on a private URL. If Hub access exists, use its live Core as the canonical FCMO-wide semantic source and this repository's adapted Standard as the Newsletter integration layer. If Hub access is unavailable, continue from the pinned local v1 doctrine and Newsletter canon.
+This public repository records repository coordinates rather than depending on a private URL. If Hub access exists, use its live Core as the canonical FCMO-wide engineering/operational source and this repository's adapted Standard as the Newsletter integration layer. If a genuine material moral/value conflict appears, an FCMO-authorized agent with Hub access should use the promoted Ethical & Moral Constitution v1.0. Do not copy private proposal/history text into this public repository as policy. The policy promotion does **not** change the Newsletter's adopted Core v1.0 state, publication authority, or privacy boundary.
+
+If Hub access is unavailable, continue from the pinned local v1 doctrine and Newsletter canon.
 
 ## Optional institutional learning and stewardship
 
