@@ -56,11 +56,19 @@ class NewswireBridgeWorkflowContractTests(unittest.TestCase):
         self.assertIn("state/PUBLICATION_READY.json", text)
         self.assertIn('READY_SHA=$(PRIVATE_DIR_ENV="$PRIVATE_DIR" python - <<\'PY\'', text)
         self.assertIn('Path(os.environ["PRIVATE_DIR_ENV"])', text)
-        self.assertIn('fetch --quiet --depth 1 origin "$READY_SHA"', text)
+        self.assertIn("fetch --quiet --unshallow origin main", text)
+        self.assertIn('fetch --quiet origin "$READY_SHA"', text)
+        self.assertIn('merge-base --is-ancestor "$READY_SHA" origin/main', text)
         self.assertIn('git -C "$PRIVATE_DIR" checkout --detach --quiet "$READY_SHA"', text)
         self.assertIn('test "$(git -C "$PRIVATE_DIR" rev-parse HEAD)" = "$READY_SHA"', text)
         self.assertIn('git -C "$PRIVATE_DIR" rev-parse HEAD >"$PRIVATE_SHA"', text)
         self.assertIn('test -z "$(git -C "$PRIVATE_DIR" branch --show-current)"', text)
+        # Footnote: authorization must precede execution of any code from the ready
+        # commit; proving identity after checkout would still execute an untrusted ref.
+        self.assertLess(
+            text.index('merge-base --is-ancestor "$READY_SHA" origin/main'),
+            text.index('checkout --detach --quiet "$READY_SHA"'),
+        )
         self.assertNotIn('checkout --detach --quiet HEAD', text)
 
     def test_private_tree_and_source_identity_live_outside_public_workspace(self) -> None:
