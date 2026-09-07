@@ -1,0 +1,91 @@
+name: Temporary private ARB integrity lab
+
+# Footnote: branch-scoped diagnostic only. It uses the same read-only App capability
+# as production, emits only aggregate reason codes, and MUST be deleted before merge.
+on:
+  push:
+    branches: [fix/consume-immutable-publication-checkpoint]
+    paths:
+      - '.github/workflows/private-arb-validator-lab.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate-private-branch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout public harness
+        uses: actions/checkout@v6
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Mint read-only ARB token
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ vars.FCMO_NEWSWIRE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.FCMO_NEWSWIRE_APP_PRIVATE_KEY }}
+          owner: FCMO-AI
+          repositories: AI-Research-Breakthroughs
+          permission-contents: read
+      - name: Clone only the private repair branch
+        env:
+          APP_TOKEN: ${{ steps.app-token.outputs.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          PRIVATE_DIR="$RUNNER_TEMP/arb-integrity-lab"
+          AUTH=$(printf 'x-access-token:%s' "$APP_TOKEN" | base64 -w0)
+          echo "::add-mask::$AUTH"
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $AUTH" \
+            clone --quiet --depth 1 --single-branch --branch fix/publication-ready-final \
+            https://github.com/FCMO-AI/AI-Research-Breakthroughs.git "$PRIVATE_DIR"
+          echo "PRIVATE_DIR=$PRIVATE_DIR" >> "$GITHUB_ENV"
+          unset AUTH APP_TOKEN
+      - name: Run canonical validator and emit only aggregate failure classes
+        shell: bash
+        run: |
+          set +e
+          (cd "$PRIVATE_DIR" && python tools/validate_repo.py) >"$RUNNER_TEMP/repo-validator.log" 2>&1
+          RC=$?
+          set -e
+          LOG="$RUNNER_TEMP/repo-validator.log" python - <<'PY'
+          import os
+          from pathlib import Path
+          text=Path(os.environ['LOG']).read_text(encoding='utf-8',errors='replace')
+          classes={
+            'INVALID_CANDIDATE_ID':'invalid candidate_id',
+            'RUN_LEDGER_DIVERGENCE':'global/day run ledgers disagree',
+            'INVALID_CORRECTION':'invalid correction',
+            'UNKNOWN_CORRECTION_DEVELOPMENT':'unknown development_id',
+            'INVALID_DEVELOPMENT_ID':'invalid id',
+            'UNKNOWN_RELATIONSHIP':'relationship target does not exist',
+          }
+          print('ARB_VALIDATOR_RESULT=' + ('PASS' if 'ARB repository validation OK' in text else 'FAIL'))
+          for name,needle in classes.items():
+              print(f'{name}={text.count(needle)}')
+          print('TOTAL_ERROR_LINES=' + str(sum(1 for line in text.splitlines() if line.startswith('- '))))
+          PY
+          rm -f "$RUNNER_TEMP/repo-validator.log"
+          exit "$RC"
+      - name: Run mechanism regressions without exposing private transcripts
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          (cd "$PRIVATE_DIR" && python -m unittest \
+            tests.test_public_locale_coverage \
+            tests.test_publication_checkpoint \
+            tests.test_rebuild_run_ledgers -q) >"$RUNNER_TEMP/mechanism-tests.log" 2>&1
+          RC=$?
+          rm -f "$RUNNER_TEMP/mechanism-tests.log"
+          if [ "$RC" -eq 0 ]; then echo 'MECHANISM_REGRESSIONS=PASS'; else echo 'MECHANISM_REGRESSIONS=FAIL'; fi
+          exit "$RC"
+      - name: Destroy private checkout
+        if: always()
+        shell: bash
+        run: |
+          rm -rf "$RUNNER_TEMP/arb-integrity-lab"
+          rm -f "$RUNNER_TEMP/repo-validator.log" "$RUNNER_TEMP/mechanism-tests.log"
