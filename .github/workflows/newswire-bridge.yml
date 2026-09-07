@@ -7,8 +7,9 @@ on:
       - '.github/workflows/newswire-bridge.yml'
   schedule:
     # Footnote: GitHub scheduled events are best-effort and may be delayed. These
-    # staggered attempts are deliberately idempotent: every run freezes one exact ARB
-    # main snapshot, proves it, and publishes only if that snapshot passes the seal.
+    # staggered attempts are deliberately idempotent: every run reads the tiny
+    # publication checkpoint from current ARB main, freezes the exact immutable
+    # ready commit it names, proves that commit, and publishes only accepted bytes.
     # Mexico City is UTC-6 year-round, so these are 07:10, 07:37, 08:11 and 08:47.
     - cron: '10 13 * * *'
     - cron: '37 13 * * *'
@@ -60,7 +61,7 @@ jobs:
           repositories: AI-Research-Breakthroughs
           permission-contents: read
 
-      - name: Materialize one immutable private ARB main snapshot without publishing its identity
+      - name: Materialize immutable publication-ready ARB snapshot without publishing its identity
         env:
           APP_TOKEN: ${{ steps.app-token.outputs.token }}
         shell: bash
@@ -72,20 +73,45 @@ jobs:
           rm -f "$PRIVATE_SHA"
           AUTH=$(printf 'x-access-token:%s' "$APP_TOKEN" | base64 -w0)
           echo "::add-mask::$AUTH"
-          # Footnote: actions/checkout would print the resolved private SHA in this
-          # public workflow. Quiet Git transport keeps both the token and source
-          # identity out of logs. The clone captures main exactly once; detaching HEAD
-          # freezes that commit for the whole transaction, so later ARB commits cannot
-          # race or mutate the snapshot being validated.
+          # Footnote: mutable main is now a control-plane pointer only. The shallow
+          # clone lets us read state/PUBLICATION_READY.json; no research content from
+          # that HEAD is authorized merely because it happens to be newest.
           git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $AUTH" \
             clone --quiet --depth 1 --single-branch --branch main \
             https://github.com/FCMO-AI/AI-Research-Breakthroughs.git \
             "$PRIVATE_DIR"
+          READY_SHA=$(python - <<'PY'
+          import json
+          import re
+          from pathlib import Path
+          path = Path("$RUNNER_TEMP") / "fcmo-newswire-private-source" / "state" / "PUBLICATION_READY.json"
+          try:
+              doc = json.loads(path.read_text(encoding="utf-8"))
+          except Exception as exc:
+              raise SystemExit("publication-ready checkpoint is absent or invalid") from exc
+          sha = str(doc.get("source_commit") or "")
+          if (
+              doc.get("schema") != "arb-publication-ready-v1"
+              or doc.get("state") != "READY"
+              or doc.get("policy") != "immutable-sealed-snapshot"
+              or not re.fullmatch(r"[0-9a-f]{40}", sha)
+          ):
+              raise SystemExit("publication-ready checkpoint contract mismatch")
+          print(sha)
+          PY
+          )
+          echo "::add-mask::$READY_SHA"
+          # Footnote: fetch the named reachable commit explicitly and detach from it.
+          # A 07:07 research promotion can therefore coexist with a 07:10 publication
+          # run without becoming public until a later fully sealed checkpoint advance.
+          git -C "$PRIVATE_DIR" -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $AUTH" \
+            fetch --quiet --depth 1 origin "$READY_SHA"
+          git -C "$PRIVATE_DIR" checkout --detach --quiet "$READY_SHA"
+          test "$(git -C "$PRIVATE_DIR" rev-parse HEAD)" = "$READY_SHA"
           git -C "$PRIVATE_DIR" rev-parse HEAD >"$PRIVATE_SHA"
-          git -C "$PRIVATE_DIR" checkout --detach --quiet HEAD
           test -s "$PRIVATE_SHA"
           test -z "$(git -C "$PRIVATE_DIR" branch --show-current)"
-          unset AUTH APP_TOKEN
+          unset AUTH APP_TOKEN READY_SHA
 
       - name: Prove the immutable snapshot through ARB's atomic publication seal
         shell: bash
@@ -93,11 +119,11 @@ jobs:
           set -euo pipefail
           PRIVATE_DIR="$RUNNER_TEMP/fcmo-newswire-private-source"
           PRIVATE_LOG="$RUNNER_TEMP/fcmo-newswire-private-seal.log"
-          # Footnote: publication_seal.py owns the complete upstream proof: public
-          # unit contracts, real canonical publication inputs, importance semantics,
-          # deterministic declassification, native ES/ZH bindings and Airlock receipt.
-          # The child runs with an allowlisted environment. Its complete transcript
-          # stays private; only stable SEAL_FAIL:<CLASS> reason codes may escape.
+          # Footnote: publication_seal.py owns the complete upstream proof for the
+          # chosen ready snapshot: public unit contracts, canonical publication inputs,
+          # importance semantics, deterministic declassification, native ES/ZH bindings
+          # and Airlock receipt. A historical checkpoint is still independently checked
+          # again by Newsletter after private material has been destroyed.
           if ! (
             cd "$PRIVATE_DIR" &&
             env -i \
