@@ -80,11 +80,12 @@ jobs:
             clone --quiet --depth 1 --single-branch --branch main \
             https://github.com/FCMO-AI/AI-Research-Breakthroughs.git \
             "$PRIVATE_DIR"
-          READY_SHA=$(python - <<'PY'
+          READY_SHA=$(PRIVATE_DIR_ENV="$PRIVATE_DIR" python - <<'PY'
           import json
+          import os
           import re
           from pathlib import Path
-          path = Path("$RUNNER_TEMP") / "fcmo-newswire-private-source" / "state" / "PUBLICATION_READY.json"
+          path = Path(os.environ["PRIVATE_DIR_ENV"]) / "state" / "PUBLICATION_READY.json"
           try:
               doc = json.loads(path.read_text(encoding="utf-8"))
           except Exception as exc:
