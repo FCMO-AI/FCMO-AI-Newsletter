@@ -8,6 +8,7 @@ from pathlib import Path
 from tools import newswire_bridge
 
 RID = "FCMO-A1B2C3D4E5F6"
+RID2 = "FCMO-0F0E0D0C0B0A"
 
 
 class NewswireBridgeTests(unittest.TestCase):
@@ -123,6 +124,24 @@ class NewswireBridgeTests(unittest.TestCase):
         )
         self._restamp()
         with self.assertRaisesRegex(ValueError, "delta ID sets differ"):
+            newswire_bridge.verify_release(self.root)
+
+    def test_equal_but_sparse_locale_sets_fail_closed(self) -> None:
+        # Footnote: this is the production race that escaped the older verifier:
+        # both locale sets agreed with each other, but a newly promoted English
+        # Story existed outside both. Cross-locale parity alone was insufficient.
+        developments = self.root / "data/developments.jsonl"
+        developments.write_text(
+            developments.read_text(encoding="utf-8")
+            + json.dumps({"id": RID2, "title": "New English-only story"}) + "\n",
+            encoding="utf-8",
+        )
+        self._write(f"developments/{RID2}.html", "<html>new public story</html>")
+        receipt = json.loads((self.root / "airlock.json").read_text(encoding="utf-8"))
+        receipt["record_count"] = 2
+        (self.root / "airlock.json").write_text(json.dumps(receipt), encoding="utf-8")
+        self._restamp()
+        with self.assertRaisesRegex(ValueError, "native-edition coverage"):
             newswire_bridge.verify_release(self.root)
 
     def test_record_count_must_match_public_jsonl(self) -> None:
