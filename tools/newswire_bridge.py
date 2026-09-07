@@ -22,6 +22,7 @@ from typing import Any
 AIRLOCK_SCHEMA = "fcmo-newswire-airlock-v2"
 AIRLOCK_STATE = "READY_FOR_PUBLICATION"
 LOCALE_SCHEMA = "fcmo-airlocked-locale-delta-v1"
+CURATED_PART_SCHEMA = "fcmo-curated-locale-part-v1"
 LOCALES = ("es-419", "zh-Hans")
 PUBLIC_ID = re.compile(r"^FCMO-[0-9A-F]{12}$")
 
@@ -132,7 +133,48 @@ def _canonical_ids(path: Path, errors: list[str]) -> set[str]:
     return ids
 
 
-def verify_release(root: Path) -> dict[str, Any]:
+def _curated_baseline_ids(
+    i18n_root: Path | None,
+    locale: str,
+    errors: list[str],
+) -> set[str]:
+    """Read only the public, already-curated locale baseline committed in Newsletter."""
+    if i18n_root is None:
+        return set()
+    locale_dir = i18n_root.resolve() / locale
+    if not locale_dir.is_dir():
+        errors.append(f"{locale}: curated locale baseline directory missing")
+        return set()
+
+    ids: set[str] = set()
+    # Footnote: historical packs are an intentional migration baseline, not a fallback
+    # translation service. Every future/new Story still has to arrive in the Airlock
+    # unless its exact public ID is already present in these committed curated parts.
+    for path in sorted(locale_dir.glob("part-*.json")):
+        try:
+            doc = _load_json(path)
+        except (OSError, json.JSONDecodeError) as exc:
+            errors.append(f"{path}: invalid curated locale part: {exc}")
+            continue
+        if (
+            not isinstance(doc, dict)
+            or doc.get("schema") != CURATED_PART_SCHEMA
+            or doc.get("locale") != locale
+            or not isinstance(doc.get("records"), dict)
+        ):
+            errors.append(f"{path}: curated locale part contract mismatch")
+            continue
+        for rid, overlay in doc["records"].items():
+            if not isinstance(rid, str) or not PUBLIC_ID.fullmatch(rid) or not isinstance(overlay, dict):
+                errors.append(f"{path}: malformed curated locale record {rid!r}")
+                continue
+            if rid in ids:
+                errors.append(f"{locale}: duplicate curated locale record {rid}")
+            ids.add(rid)
+    return ids
+
+
+def verify_release(root: Path, baseline_i18n: Path | None = None) -> dict[str, Any]:
     """Fail closed unless *root* is exactly one valid public airlock payload."""
     root = root.resolve()
     errors: list[str] = []
@@ -244,15 +286,30 @@ def verify_release(root: Path) -> dict[str, Any]:
             current.add(rid)
         if not current.issubset(ids):
             errors.append(f"{rel}: locale delta contains IDs outside the public corpus: {sorted(current - ids)}")
-        # Footnote: a sparse delta is a useful authoring primitive upstream, but it
-        # is not a valid release. This independent public-side equality gate prevents
-        # a historical or misconfigured upstream seal from publishing English Stories
-        # ahead of their curated Spanish and Chinese editions.
-        if current != ids:
-            errors.append(
-                f"{rel}: native-edition coverage does not exactly match public corpus "
-                f"(corpus={len(ids)}, locale={len(current)})"
-            )
+
+        baseline = _curated_baseline_ids(baseline_i18n, locale, errors)
+        if baseline_i18n is None:
+            # Footnote: standalone verification remains deliberately self-contained.
+            # Only the production bridge may rely on the separately versioned public
+            # Newsletter baseline, and it must name that baseline explicitly.
+            if current != ids:
+                errors.append(
+                    f"{rel}: native-edition coverage does not exactly match public corpus "
+                    f"(corpus={len(ids)}, locale={len(current)})"
+                )
+        else:
+            # Footnote: during migration, the authoritative public edition is the
+            # union of already-curated Newsletter history and the newly airlocked
+            # delta. This closes the real race without pretending historical packs
+            # were authored by ARB: any genuinely new English ID absent from both
+            # sources is rejected before corpus/ can be mutated.
+            coverage = current | (baseline & ids)
+            missing = ids - coverage
+            if missing:
+                errors.append(
+                    f"{rel}: native-edition coverage incomplete after curated baseline + "
+                    f"airlock delta (missing={len(missing)})"
+                )
         locale_ids[locale] = current
     if len(locale_ids) == len(LOCALES) and locale_ids[LOCALES[0]] != locale_ids[LOCALES[1]]:
         errors.append("native-edition delta ID sets differ between es-419 and zh-Hans")
@@ -262,11 +319,15 @@ def verify_release(root: Path) -> dict[str, Any]:
     return receipt
 
 
-def stage_release(release: Path, corpus: Path) -> dict[str, Any]:
+def stage_release(
+    release: Path,
+    corpus: Path,
+    baseline_i18n: Path | None = None,
+) -> dict[str, Any]:
     """Replace corpus/ with a verified release without leaving a mixed old/new tree."""
     release = release.resolve()
     corpus = corpus.resolve()
-    receipt = verify_release(release)
+    receipt = verify_release(release, baseline_i18n)
     corpus.parent.mkdir(parents=True, exist_ok=True)
 
     # Footnote: copy into a sibling staging directory first, verify the copy again,
@@ -276,13 +337,13 @@ def stage_release(release: Path, corpus: Path) -> dict[str, Any]:
     try:
         shutil.rmtree(stage)
         shutil.copytree(release, stage, symlinks=False)
-        verify_release(stage)
+        verify_release(stage, baseline_i18n)
         if backup.exists():
             shutil.rmtree(backup)
         if corpus.exists():
             corpus.rename(backup)
         stage.rename(corpus)
-        verify_release(corpus)
+        verify_release(corpus, baseline_i18n)
         if backup.exists():
             shutil.rmtree(backup)
     except Exception:
@@ -299,12 +360,17 @@ def main(argv: list[str] | None = None) -> int:
     sub = parser.add_subparsers(dest="command", required=True)
     verify = sub.add_parser("verify", help="verify one sanitized airlock release")
     verify.add_argument("release", type=Path)
+    verify.add_argument("--baseline-i18n", type=Path)
     stage = sub.add_parser("stage", help="verify and atomically replace corpus/")
     stage.add_argument("release", type=Path)
     stage.add_argument("corpus", type=Path)
+    stage.add_argument("--baseline-i18n", type=Path)
     args = parser.parse_args(argv)
     try:
-        receipt = verify_release(args.release) if args.command == "verify" else stage_release(args.release, args.corpus)
+        if args.command == "verify":
+            receipt = verify_release(args.release, args.baseline_i18n)
+        else:
+            receipt = stage_release(args.release, args.corpus, args.baseline_i18n)
     except (OSError, ValueError, json.JSONDecodeError) as exc:
         print(str(exc), file=os.sys.stderr)
         return 1
