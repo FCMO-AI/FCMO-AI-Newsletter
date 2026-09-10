@@ -12,6 +12,7 @@ on:
       - 'tools/finalize_editorial_frontends.py'
       - 'tools/verify_live_newsroom.py'
       - 'tests/oraculos/verificar_dom.py'
+      - 'tests/oraculos/verificar_layout.py'
       - '.github/workflows/pages.yml'
   # A push made with GITHUB_TOKEN does not trigger another push workflow. Both
   # autonomous newsroom producers commit that way, so workflow_run is the
@@ -80,6 +81,13 @@ jobs:
 
       - name: Render runtime contracts in a real browser
         run: python tests/oraculos/verificar_dom.py publish
+
+      - name: Render responsive layout contracts across physical viewports
+        run: |
+          # Footnote: deployment is the final-form boundary. Width-only checks can
+          # miss short-laptop clipping and local thumbnail collisions, so Pages
+          # must prove the same physical viewport matrix used for this maintenance.
+          python tests/oraculos/verificar_layout.py publish
 
       - name: Prove the public receipt matches the assembled tree
         run: python tools/build_ready_receipt.py --check

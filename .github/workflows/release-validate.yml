@@ -37,6 +37,7 @@ jobs:
           python -m py_compile tools/verify_live_newsroom.py
           python -m py_compile tools/verify_release.py
           python -m py_compile tests/oraculos/verificar_dom.py
+          python -m py_compile tests/oraculos/verificar_layout.py
           python -m py_compile tests/test_autonomous_newsroom.py
 
       - name: Prove translation infrastructure has no external model credential or legacy publisher
@@ -124,6 +125,13 @@ jobs:
 
       - name: Render runtime contracts in a real browser
         run: python tests/oraculos/verificar_dom.py publish
+
+      - name: Render responsive layout contracts across physical viewports
+        run: |
+          # Footnote: source-level correctness cannot prove final-form composition.
+          # This oracle exercises both viewport width and height, including the
+          # short-laptop cases that motivated this maintenance release.
+          python tests/oraculos/verificar_layout.py publish
 
       - name: Verify frozen source identity and curated locale completeness
         run: |

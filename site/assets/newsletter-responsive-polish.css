@@ -1,0 +1,279 @@
+/*
+  FCMO AI Newsletter — responsive viewport polish v4.1.1
+  ---------------------------------------
+  Additive CSS only. The existing publication DOM, content corpus, interactions,
+  typography, palette and editorial instruments remain authoritative.
+
+  NOTES
+  [VP-01] Viewport HEIGHT remains a first-class input because the repository's
+  strongest visual defect is not lack of responsive width behavior but width-led
+  scale on physically short displays.
+  [VP-02] No story copy is hidden, clamped, removed, or replaced to make a screen fit.
+  [VP-03] The hero is not redesigned: its existing three pieces (kicker/title/deck)
+  are allowed to occupy the full height beside Signal Field, turning the former
+  empty lower-left region into intentional editorial breathing room.
+  [VP-04] Two confirmed overlap defects come from a global 130px thumbnail minimum
+  leaking into local 78px / 96px grids. Those local contexts now own their size.
+  [VP-05] FCMO Wire is intentionally absent from reader navigation in this approved maintenance release;
+  no other core publication route is removed.
+  [VP-12] This stylesheet belongs to site/assets, not release-src/assets. The daily
+  ingest atomically regenerates release-src, while site/ is the durable public base;
+  keeping the override here prevents the approved visual fix from disappearing on
+  the next newsroom refresh without weakening the generator fixed-point oracle.
+*/
+
+/* --- Navigation / approved reader-surface scope ---------------------------- */
+[data-fcmo-wire-link]{display:none!important}
+
+/* --- Confirmed thumbnail overlap defects -----------------------------------
+   [VP-06] The repository already owns <=720px thumb dimensions. These overrides
+   begin at 721px so the fix is contextual and does not accidentally redesign mobile. */
+@media(min-width:721px){
+  .headline-stack .story-visual.thumb{
+    width:78px!important;
+    min-width:0!important;
+    height:52px!important;
+  }
+  .timeline-card .story-visual.thumb{
+    width:96px!important;
+    min-width:0!important;
+    height:66px!important;
+  }
+}
+.headline-stack>a>span{min-width:0;overflow-wrap:anywhere}
+.timeline-card>div:not(.story-visual){min-width:0}
+.timeline-card h3{overflow-wrap:anywhere}
+
+/* --- Hero composition: use the left field rather than shrinking into it -----
+   [VP-07] Stretching hero-copy does not add a component. It simply makes the
+   existing copy column honor the same row height already established by Signal
+   Field. The deck is anchored to the row's lower edge; the space between title
+   and deck becomes deliberate negative space instead of accidental dead space. */
+@media(min-width:1081px){
+  .hero-copy{
+    align-self:stretch;
+    display:flex;
+    flex-direction:column;
+    min-width:0;
+  }
+  .hero-deck{
+    width:100%;
+    max-width:none;
+    margin-top:auto;
+  }
+  .signal-figure{
+    /* [VP-08] Signal Field is the hero's second column, not a floating card.
+       Stretch it to the same grid-row height as the copy so both columns share
+       one deliberate baseline on tall as well as short desktop displays. */
+    align-self:stretch;
+  }
+  .hero h1{
+    /* [VP-09] Larger than the repository default, but jointly bounded by width
+       and height so the title gains authority without causing short-screen crop. */
+    font-size:clamp(4.6rem,min(9.45vw,15.2vh),10.3rem);
+    line-height:.80;
+    max-width:980px;
+  }
+  .hero-copy::before{
+    /* Existing ghost caret remains subtle but is repositioned into the breathing
+       field so negative space carries FCMO meaning instead of feeling abandoned. */
+    right:1.5%;
+    top:46%;
+    transform:translateY(-50%);
+    font-size:clamp(7rem,13vw,13rem);
+    opacity:.045;
+  }
+}
+
+/* --- Wide desktop: use more canvas without abolishing negative space ------- */
+@media(min-width:1600px){
+  :root{
+    --max:1680px;
+    --gutter:clamp(42px,3.2vw,64px);
+  }
+}
+
+/* --- Desktop section fit: applies through common 1080/1200px-high displays - */
+@media(min-width:1081px) and (max-height:1200px){
+  .section{
+    padding-top:clamp(28px,4vh,52px);
+    padding-bottom:clamp(28px,4vh,52px);
+  }
+  .section-head{
+    margin-bottom:clamp(18px,2.5vh,30px);
+    gap:clamp(28px,3.3vw,48px);
+  }
+  .section-head h2{
+    font-size:clamp(2.65rem,min(6vw,7.8vh),6.5rem);
+  }
+  .section-head>p{line-height:1.48}
+
+  /* [VP-10] Front Page gets a little more ceremony than the generic sections.
+     The shorter, content-led heading can breathe while the board still fits a
+     laptop viewport. Negative space is concentrated above/between the heading
+     and board rather than scattered as accidental padding. */
+  .section:has(> .front-grid){
+    padding-top:clamp(46px,6.4vh,72px);
+    padding-bottom:clamp(34px,4.5vh,52px);
+  }
+  .section:has(> .front-grid) .section-head{
+    margin-bottom:clamp(28px,3.8vh,42px);
+    gap:clamp(42px,4.5vw,68px);
+  }
+  .section:has(> .front-grid) .section-head h2{
+    font-size:clamp(3.25rem,min(6.4vw,8.4vh),6.8rem);
+    max-width:920px;
+  }
+  .section:has(> .front-grid) .section-head>p{
+    max-width:470px;
+    line-height:1.62;
+  }
+
+  /* Front page: same three-column newspaper composition, same two features and
+     three side headlines; only the media/padding scale becomes height-aware. */
+  .front-story{
+    min-height:0;
+    padding:clamp(14px,2vh,22px) clamp(17px,1.65vw,25px);
+  }
+  .front-story .story-visual.card{
+    height:clamp(126px,18vh,190px);
+    aspect-ratio:auto;
+  }
+  .front-story h3{
+    margin-top:clamp(9px,1.35vh,14px);
+    font-size:clamp(1.3rem,min(2.4vw,3.8vh),2.6rem);
+  }
+  .front-story.feature h3{
+    font-size:clamp(1.8rem,min(3.5vw,5.1vh),4.2rem);
+  }
+  .front-story p{
+    margin-top:clamp(8px,1.2vh,13px);
+    line-height:1.45;
+  }
+  .front-story .foot{padding-top:clamp(12px,1.8vh,20px)}
+  .headline-stack a{padding:clamp(9px,1.35vh,15px) clamp(12px,1.15vw,18px)}
+  .headline-stack strong{margin-top:5px;line-height:1.23}
+
+  /* Read by domain: retain the 3x2 board; remove unused vertical mass, not data. */
+  .desk-col{
+    min-height:0;
+    padding:clamp(10px,1.55vh,18px) clamp(15px,1.4vw,21px);
+  }
+  .desk-col h3{margin-bottom:clamp(8px,1.2vh,13px)}
+  .desk-col h3::before{margin-bottom:clamp(6px,.9vh,10px)}
+  .desk-col a{padding:clamp(5px,.85vh,9px) 0}
+
+  /* Chronology poster becomes a concise instrument so the actual timeline starts
+     in the same viewport on ordinary desktop screens. */
+  .page-poster{
+    padding-top:clamp(38px,5.5vh,66px);
+    padding-bottom:clamp(30px,4.2vh,50px);
+  }
+  .page-poster h1{
+    font-size:clamp(3.45rem,min(8vw,9.8vh),8.8rem);
+    margin-bottom:clamp(14px,2.1vh,23px);
+  }
+  .evidence-meter{
+    min-height:clamp(205px,27vh,260px);
+    padding:clamp(17px,2.25vh,22px);
+  }
+  .timeline-shell{
+    padding-top:clamp(28px,3.7vh,42px);
+    padding-bottom:clamp(58px,7vh,96px);
+  }
+  .timeline-shell:before{
+    top:clamp(28px,3.7vh,42px);
+    bottom:clamp(58px,7vh,96px);
+  }
+  .timeline-day{margin-bottom:clamp(24px,3.3vh,38px)}
+  .timeline-card{
+    padding-bottom:clamp(13px,1.9vh,21px);
+    margin-bottom:clamp(13px,1.9vh,21px);
+  }
+}
+
+/* --- Short desktop hero: preserve the actual hero, make its existing parts fit - */
+@media(min-width:1081px) and (max-height:920px){
+  .hero{
+    /* [VP-11] 109px intentionally leaves a ~1px safety cushion beyond the
+       authored 108px chrome assumption; this avoids fractional-pixel clipping
+       from the measured utility strip without creating visible dead space. */
+    --fcmo-hero-vpad:clamp(24px,4.2vh,38px);
+    min-height:calc(100svh - 109px);
+    padding-top:var(--fcmo-hero-vpad);
+    padding-bottom:var(--fcmo-hero-vpad);
+    gap:clamp(40px,5vw,78px);
+  }
+  .hero h1{
+    font-size:clamp(4.35rem,min(9.45vw,14.9vh),8.6rem);
+  }
+  .kicker{margin-bottom:clamp(11px,1.8vh,17px)}
+  .hero-deck{
+    padding-top:clamp(14px,2.2vh,20px);
+    gap:clamp(18px,2vw,28px);
+  }
+  .hero-deck p{
+    font-size:clamp(.96rem,min(1.35vw,2.1vh),1.17rem);
+    line-height:1.48;
+  }
+  .signal-figure{
+    min-height:0;
+    height:auto;
+    align-self:stretch;
+    padding-top:clamp(44px,6vh,54px);
+    padding-bottom:clamp(32px,4.4vh,40px);
+  }
+  .plot{top:clamp(52px,6.8vh,58px);bottom:clamp(34px,4.6vh,38px)}
+  .signal-readout{bottom:clamp(9px,1.6vh,15px);padding-top:clamp(9px,1.5vh,14px)}
+
+  /* Lead signal is already compositionally strong; only width-driven whitespace
+     and type growth are bounded on physically short displays. */
+  .lead-inner{
+    padding-top:clamp(40px,5.8vh,64px);
+    padding-bottom:clamp(40px,5.8vh,64px);
+  }
+  .lead-body h2{font-size:clamp(2.75rem,min(5.5vw,8.4vh),6.6rem)}
+  .lead-summary{margin-top:clamp(20px,3vh,28px);line-height:1.58}
+  .lead-actions{margin-top:clamp(18px,2.7vh,26px)}
+  .lead-rail dl{margin-top:clamp(22px,3.4vh,34px)}
+  .lead-rail div{padding:clamp(9px,1.4vh,12px) 0}
+  .ledger-row{padding:clamp(9px,1.45vh,14px) 0}
+}
+
+/* --- Very short desktop: final density step, still without hiding content ---- */
+@media(min-width:1081px) and (max-height:740px){
+  .hero{--fcmo-hero-vpad:clamp(18px,3.2vh,24px)}
+  .hero h1{font-size:clamp(4rem,min(9vw,14.1vh),7.55rem)}
+  .hero-deck{padding-top:11px}
+  .hero-deck p{font-size:.94rem;line-height:1.43}
+
+  .section{padding-top:25px;padding-bottom:25px}
+  .section-head{margin-bottom:16px}
+  .section:has(> .front-grid){padding-top:36px;padding-bottom:28px}
+  .section:has(> .front-grid) .section-head{margin-bottom:24px}
+  .front-story .story-visual.card{height:116px}
+  .front-story p{line-height:1.4}
+  .desk-col{padding-top:9px;padding-bottom:9px}
+  .desk-col a{padding:4px 0}
+}
+
+/* --- Narrow desktop before the repo's existing <=1080px navigation switch --- */
+@media(min-width:1081px) and (max-width:1260px){
+  .nav{gap:clamp(9px,1.05vw,15px)}
+  .nav a,.nav button{font-size:.65rem}
+  .maker-credit span{display:none}
+}
+
+/* --- Existing tablet stack remains authoritative ---------------------------- */
+@media(max-width:1080px) and (min-width:721px) and (max-height:820px){
+  .hero{
+    padding-top:clamp(38px,5.5vh,52px);
+    padding-bottom:clamp(42px,6vh,58px);
+    gap:clamp(32px,4.5vh,44px);
+  }
+  .hero h1{font-size:clamp(3.8rem,min(10vw,12.6vh),7rem)}
+  .hero-deck{margin-top:22px;padding-top:17px}
+  .signal-figure{min-height:clamp(410px,55vh,500px)}
+  .section{padding-top:48px;padding-bottom:48px}
+  .lead-inner{padding-top:48px;padding-bottom:48px}
+}
