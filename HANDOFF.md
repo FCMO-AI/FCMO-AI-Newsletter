@@ -62,3 +62,9 @@ No declarar la Newsletter completamente activada hasta observar el primer round-
 6. las nuevas Story surfaces EN/ES/ZH visibles en producción.
 
 Hasta entonces, el estado correcto es `AWAITING_GITHUB_APP_ONLY`.
+
+## 7. Visual maintenance — 2026-09-10
+
+An intentional **bug fix + mild visual refinement** was approved for the public webapp. It is a forward presentation improvement, not a rollback or accidental regression: desktop composition now responds to viewport height as well as width, the cover uses its existing left field more deliberately, Front Page and Chronology thumbnail/text collisions are guarded at their actual local grid widths, and the Front Page section heading now describes the five next-ranked signals directly. Reader-facing **FCMO Wire** navigation is intentionally absent; the separate Newswire Bridge ingestion infrastructure is unaffected.
+
+No research record, evidence status, dossier semantics, publication-memory rule, privacy boundary, or release gate is changed by this visual maintenance pass. The responsive behavior is protected by a browser-rendered layout oracle across mobile, short-laptop, standard desktop, and wide-desktop viewports.

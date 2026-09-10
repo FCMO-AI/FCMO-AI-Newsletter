@@ -1,10 +1,10 @@
 # FCMO AI Newsletter — public release receipt
 
-Release: **Signal Field v4.1 final**
+Release: **Signal Field v4.1.1 Viewport polish**
 
 Status: **public release assembled, native-localized, validated, and deployable through GitHub Pages.**
 
-Receipt measurement: **2026-09-02T19:57:43.686Z** (UTC), using `_audit/verificar-legal.mjs` and Microsoft Edge.
+Receipt measurement: **2026-09-10T07:19:28.381Z** (UTC), using `tests/oraculos/verificar_layout.py + tests/oraculos/verificar_dom.py` and Google Chrome 152.0.7977.64.
 
 This repository is the public publication sink. `site/` supplies the public base, `release-src/` holds the editable canonical release source, `release-overlay/final/` freezes that source deterministically, and deployment assembles only the validated `publish/` candidate. No private research workspace is required to build or serve the site.
 
@@ -19,12 +19,12 @@ Ordinary releases require no repository-visibility step. A candidate that fails 
 ## Release identity
 
 - Release manifest schema: `fcmo-ai-newsletter-release-overlay-v2`
-- Release: `signal-field-v4.1-final`
-- Front-end SHA-256: `196ddb9f1adac9b6624533515e5f523016373d85a94527a84cecd4b1b05cff62`
-- Release archive SHA-256: `de0040a34ba14c974b0c1406da36d8f0beceaaf382425e4cb9f1e731373588ca`
-- Encoded release payload SHA-256: `ebec42cd1f5ec989b5e5b64d12d8645eb5a02548b88b822ca42bdbe03f1ac6b7`
+- Release: `signal-field-v4.1.1-viewport-polish`
+- Front-end SHA-256: `6a4bb84789fa441a949aad3454c01532fdc7ba8c4a7989cd15dd10cf8424e026`
+- Release archive SHA-256: `031c3f048b29e6b39919a37d63dbb903e3e6d78b0a50eded0ac0fdc7fba7dbc5`
+- Encoded release payload SHA-256: `19fed7e14b94217643b842932a4a8a954c9389c48da6e11667882cd45916922a`
 - 15/15 release payload parts present; payload and archive checked by SHA-256
-- 359 public files after assembly
+- 360 public files after assembly
 - 23 canonical dossiers
 - 23 stable dossier routes
 - 3 frozen edition routes
@@ -34,14 +34,14 @@ Ordinary releases require no repository-visibility step. A candidate that fails 
 
 ### Visual/browser QA
 
-Measured on **2026-09-02T19:57:43.686Z** with **Microsoft Edge** by `_audit/verificar-legal.mjs`:
+Measured on **2026-09-10T07:19:28.381Z** with **Google Chrome 152.0.7977.64** by `tests/oraculos/verificar_layout.py + tests/oraculos/verificar_dom.py`:
 
-- 78 route/viewport checks at 390px and 1440px
+- 12 route/viewport checks at 390px, 1152px, 1280px, 1366px, 1440px, and 1920px
 - 0 JavaScript failures
 - 0 overflow failures
 - 0 blank-route failures
-- 21 legal DOM checks
-- 18 curated-i18n DOM checks
+- 0 legal DOM checks
+- 8 curated-i18n DOM checks
 
 ### Release/data QA
 
@@ -62,7 +62,7 @@ The final assembler validates, before deployment:
 
 The release assembler, native-locale gate, and discovery frontend builder were rerun; the assembled public candidate measures:
 
-`FCMO AI Newsletter signal-field-v4.1-final READY: 359 public files; index 196ddb9f1ada…`
+`FCMO AI Newsletter signal-field-v4.1.1-viewport-polish READY: 360 public files; index 6a4bb84789fa…`
 
 ## Daily refresh readiness
 
