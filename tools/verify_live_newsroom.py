@@ -63,6 +63,13 @@ def main(argv: list[str] | None = None) -> int:
     if "FCMO AI Newsletter" not in root:
         raise SystemExit("live oracle FAILED: production root does not identify the publication")
 
+    # Footnote: the 2026-09-10 viewport maintenance intentionally retired the
+    # reader-facing FCMO Wire control, but not the underlying /news/ publication
+    # gateway or Newswire Bridge ingestion path. The live oracle therefore fails
+    # if the retired control returns instead of demanding that readers see it.
+    if "data-fcmo-wire-link" in root:
+        raise SystemExit("live oracle FAILED: retired reader-facing FCMO WIRE control is still exposed")
+
     if not args.status.is_file():
         if args.allow_unbootstrapped and not args.require_airlock:
             print("live oracle BASELINE OK: root is live; autonomous newsroom status not bootstrapped in this commit")
@@ -116,6 +123,7 @@ def main(argv: list[str] | None = None) -> int:
         "/automation.html", "/accessibility.html", "/status.html", "/news/",
         "/news/en/", "/news/es/", "/news/zh-hans/", "/sitemap.xml", "/news-sitemap.xml",
         "/feed.xml", "/feed.json", "/llms.txt", "/llms-full.txt", "/agent.json",
+        "/assets/newsletter-responsive-polish.css",
     )
     for path in required_routes:
         fetch(base + path)
@@ -140,9 +148,6 @@ def main(argv: list[str] | None = None) -> int:
             raise SystemExit(f"live oracle FAILED: {locale} latest Story lacks NewsArticle structured data")
         if "hreflang=" not in article or "FCMO AI Research Desk" not in article:
             raise SystemExit(f"live oracle FAILED: {locale} latest Story lacks multilingual/byline contract")
-
-    if "FCMO WIRE" not in root:
-        raise SystemExit("live oracle FAILED: main publication has no route into FCMO WIRE")
 
     mode = "FRESHNESS" if args.require_airlock else "PRODUCTION"
     print(
