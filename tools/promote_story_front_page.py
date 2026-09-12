@@ -8,10 +8,11 @@ reader page exists in two deterministic templates during the publication path:
 fails closed.
 
 The frozen Signal Field release is also a client-rendered SPA. Updating static
-HTML alone is not sufficient: its ``home()`` renderer and interactive Signal
-Field historically pinned a specific research ID and could overwrite a freshly
-promoted lead after JavaScript ran. This promoter therefore binds both the
-static candidate and the runtime homepage to the same Story identity.
+HTML alone is not sufficient: historical release evolution left more than one
+homepage/runtime implementation in the assembled document. Any one stale runtime
+can repaint a correct static page after JavaScript executes. This promoter binds
+*every* explicit homepage/Signal-Field lead selector, every legacy lead headline,
+and every issue stamp to the current Story identity before deployment.
 """
 from __future__ import annotations
 
@@ -24,6 +25,11 @@ from pathlib import Path
 
 
 PUBLIC_ID = re.compile(r"^FCMO-[0-9A-F]{12}$")
+RUNTIME_LEAD = re.compile(r"lead=record\('FCMO-[0-9A-F]{12}'\)\|\|ranked\[0\]")
+RUNTIME_PLOT_LEAD = re.compile(r"const leadId='FCMO-[0-9A-F]{12}'")
+ISSUE_STAMP = re.compile(
+    r'(<div class="issue-stamp">.*?<strong>)(.*?)(</strong>)', re.S
+)
 
 
 def esc(value: object) -> str:
@@ -105,16 +111,11 @@ def compact_hero_html(story: dict) -> str:
 
 
 def bind_runtime_home(text: str, story: dict) -> tuple[str, bool]:
-    """Bind the SPA homepage renderer to the exact promoted Story lead.
+    """Bind every SPA homepage renderer to the exact promoted Story lead.
 
-    The frozen release contains client-side ``home()`` and ``initPlot()`` code.
-    Both used to pin an old FCMO ID. The browser then replaced correct static
-    publication bytes with the stale record, so source-level deployment checks
-    could pass while readers still saw yesterday's headline.
-
-    This is intentionally a narrow post-overlay transform. If the SPA runtime is
-    present but its expected anchors drift, fail closed rather than silently
-    shipping an unverified homepage.
+    Release history can legitimately contain multiple isolated runtime blocks.
+    The rule is therefore universal rather than first-match: after this function
+    returns, no explicit homepage selector may point at any other stable FCMO ID.
     """
     rid = str(story.get("research_id") or "")
     if not PUBLIC_ID.fullmatch(rid):
@@ -124,50 +125,61 @@ def bind_runtime_home(text: str, story: dict) -> tuple[str, bool]:
     if not has_runtime:
         return text, False
 
-    # home(): the editorial lead must be the same identity as stories[0].
-    text, home_id_count = re.subn(
-        r"const lead=record\('FCMO-[0-9A-F]{12}'\)\|\|ranked\[0\];",
-        f"const lead=record('{rid}')||ranked[0];",
-        text,
-        count=1,
+    text, home_id_count = RUNTIME_LEAD.subn(
+        f"lead=record('{rid}')||ranked[0]", text
     )
 
-    # The legacy homepage encoded its old lead as prose instead of rendering the
-    # selected record title. Make headline identity data-driven so later releases
-    # cannot regress merely because the Story lead changes.
     legacy_headline = (
         '<h2>Agents crossed the boundary between <em>evaluation</em> and the real world.</h2>'
     )
     runtime_headline = '<h2>${esc(lead.title)}</h2>'
-    headline_count = 0
-    if legacy_headline in text:
-        text = text.replace(legacy_headline, runtime_headline, 1)
-        headline_count = 1
-    elif runtime_headline in text:
-        headline_count = 1
+    legacy_count = text.count(legacy_headline)
+    if legacy_count:
+        text = text.replace(legacy_headline, runtime_headline)
 
-    # initPlot(): orange lead node/readout must track the same Story identity.
-    text, plot_id_count = re.subn(
-        r"const leadId='FCMO-[0-9A-F]{12}'",
-        f"const leadId='{rid}'",
-        text,
-        count=1,
+    text, plot_id_count = RUNTIME_PLOT_LEAD.subn(
+        f"const leadId='{rid}'", text
     )
 
-    if home_id_count != 1 or headline_count != 1 or plot_id_count != 1:
+    # The date badge was another historical literal embedded in each runtime.
+    # Bind all copies to the same current Story date; leaving even one old copy is
+    # enough for a later-executing runtime to make the site look rolled back.
+    issue_date = esc(date_label(story))
+    text, issue_count = ISSUE_STAMP.subn(
+        lambda m: m.group(1) + issue_date + m.group(3), text
+    )
+
+    if home_id_count < 1 or plot_id_count < 1 or issue_count < 1:
         raise SystemExit(
-            "front-page build refused: SPA runtime anchors drifted "
-            f"(home_id={home_id_count}, headline={headline_count}, plot_id={plot_id_count})"
+            "front-page build refused: SPA runtime anchors are incomplete "
+            f"(home_ids={home_id_count}, plot_ids={plot_id_count}, issue_stamps={issue_count})"
         )
 
-    # Strong source invariant for the runtime itself. The runtime may still carry
-    # historical records elsewhere; only its explicit homepage selectors matter.
-    if f"const lead=record('{rid}')||ranked[0];" not in text:
-        raise SystemExit("front-page build refused: runtime home lead was not rebound")
-    if f"const leadId='{rid}'" not in text:
-        raise SystemExit("front-page build refused: runtime Signal Field lead was not rebound")
+    # Every explicit homepage selector must now resolve to the same Story. This
+    # catches duplicate or newly-added runtimes instead of silently patching only
+    # whichever implementation happened to appear first in the file.
+    expected_home = f"lead=record('{rid}')||ranked[0]"
+    home_values = RUNTIME_LEAD.findall(text)
+    if not home_values or any(value != expected_home for value in home_values):
+        raise SystemExit("front-page build refused: a stale runtime home lead survived binding")
+
+    expected_plot = f"const leadId='{rid}'"
+    plot_values = RUNTIME_PLOT_LEAD.findall(text)
+    if not plot_values or any(value != expected_plot for value in plot_values):
+        raise SystemExit("front-page build refused: a stale Signal Field lead survived binding")
+
+    if legacy_headline in text:
+        raise SystemExit("front-page build refused: legacy hard-coded lead headline survived binding")
     if runtime_headline not in text:
         raise SystemExit("front-page build refused: runtime headline is not data-driven")
+
+    # Preserve the counts in the build log: more than one is not itself an error,
+    # but it proves why universal binding is necessary and keeps future drift visible.
+    print(
+        "front-page runtime binding: "
+        f"home_selectors={home_id_count}; plot_selectors={plot_id_count}; "
+        f"legacy_headlines={legacy_count}; issue_stamps={issue_count}"
+    )
     return text, True
 
 
@@ -187,7 +199,6 @@ def main() -> int:
     lead = stories[0]
     text = index_path.read_text(encoding="utf-8")
 
-    # Frozen Signal Field candidate.
     text2, lead_count = re.subn(
         r'<section class="lead"(?:\s[^>]*)?>.*?</section>',
         signal_lead_html(lead), text, count=1, flags=re.S,
@@ -196,7 +207,6 @@ def main() -> int:
     if lead_count == 1:
         text = text2
     else:
-        # Autonomous newsroom source prior to overlay.
         text2, hero_count = re.subn(
             r'<section class="hero"(?:\s[^>]*)?>.*?</section>',
             compact_hero_html(lead), text, count=1, flags=re.S,
@@ -206,15 +216,7 @@ def main() -> int:
         text = text2
         template = "hero"
 
-    # Crucial: the browser runtime is another publication layer. Bind it after
-    # static promotion so JavaScript cannot put a stale Story back on screen.
     text, runtime_bound = bind_runtime_home(text, lead)
-
-    text = re.sub(
-        r'(<div class="issue-stamp">.*?<strong>)(.*?)(</strong>)',
-        lambda m: m.group(1) + esc(date_label(lead)) + m.group(3),
-        text, count=1, flags=re.S,
-    )
 
     marker = f'<!-- fcmo-story-lead:{esc(lead["research_id"])} -->'
     text = re.sub(r'<!-- fcmo-story-lead:[^>]+ -->\s*', '', text)
@@ -228,7 +230,7 @@ def main() -> int:
         raise SystemExit("front-page build refused: promoted lead identity is not present in output")
 
     index_path.write_text(text, encoding="utf-8", newline="\n")
-    runtime_note = "; SPA runtime bound" if runtime_bound else ""
+    runtime_note = "; all SPA runtimes bound" if runtime_bound else ""
     print(
         f"front page promoted ({template}{runtime_note}): "
         f"{lead['research_id']} :: {expected_headline}"
