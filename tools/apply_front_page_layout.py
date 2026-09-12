@@ -1,18 +1,19 @@
 #!/usr/bin/env python3
 """Attach the durable current-corpus front-page layout to an assembled Pages tree.
 
-The frozen release overlay owns canonical content/runtime bytes, while additive
-responsive presentation lives under ``site/assets`` so newsroom refreshes cannot
-erase it. This deterministic post-overlay step merely links that committed asset;
-it does not generate or mutate editorial content.
+The frozen release overlay owns canonical content/runtime bytes. The additive
+presentation patch is source-controlled under ``tools/`` and injected inline only
+into the assembled candidate, so newsroom refreshes cannot erase it and no orphaned
+public asset changes the release receipt's file count.
 """
 from __future__ import annotations
 
 import argparse
 from pathlib import Path
 
-ASSET = "assets/newsletter-current-corpus.css"
-MARKER = 'data-fcmo-current-corpus="v4.2.2"'
+REPO = Path(__file__).resolve().parents[1]
+SOURCE = REPO / "tools" / "newsletter-current-corpus.css"
+MARKER = 'data-fcmo-current-corpus="v4.2.3"'
 
 
 def main() -> int:
@@ -21,24 +22,24 @@ def main() -> int:
     args = parser.parse_args()
     root = args.site.resolve()
     index = root / "index.html"
-    asset = root / ASSET
     if not index.is_file():
         raise SystemExit("front-page layout refused: index.html is missing")
-    if not asset.is_file():
-        raise SystemExit(f"front-page layout refused: {ASSET} is missing")
+    if not SOURCE.is_file():
+        raise SystemExit("front-page layout refused: source CSS is missing")
 
     text = index.read_text(encoding="utf-8")
-    tag = f'<link rel="stylesheet" href="{ASSET}" {MARKER}>'
+    css = SOURCE.read_text(encoding="utf-8").strip()
+    tag = f'<style {MARKER}>\n{css}\n</style>'
     if MARKER in text:
         if tag not in text:
-            raise SystemExit("front-page layout refused: marker exists with unexpected tag")
+            raise SystemExit("front-page layout refused: marker exists with unexpected content")
         print("current-corpus front-page layout already attached")
         return 0
     if "</head>" not in text:
         raise SystemExit("front-page layout refused: index.html has no closing head")
-    text = text.replace("</head>", tag + "</head>", 1)
+    text = text.replace("</head>", tag + "\n</head>", 1)
     index.write_text(text, encoding="utf-8", newline="\n")
-    print(f"current-corpus front-page layout attached: {ASSET}")
+    print("current-corpus front-page layout attached inline: v4.2.3")
     return 0
 
 
