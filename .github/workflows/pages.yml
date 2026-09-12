@@ -10,20 +10,18 @@ on:
       - 'tools/apply_curated_i18n.py'
       - 'tools/build_editorial_frontends.py'
       - 'tools/finalize_editorial_frontends.py'
+      - 'tools/promote_story_front_page.py'
       - 'tools/verify_live_newsroom.py'
+      - 'tools/verify_live_front_page.py'
       - 'tests/oraculos/verificar_dom.py'
       - 'tests/oraculos/verificar_layout.py'
       - '.github/workflows/pages.yml'
-  # A push made with GITHUB_TOKEN does not trigger another push workflow. Both
-  # autonomous newsroom producers commit that way, so workflow_run is the
-  # deliberate bridge from a successful newsroom build into Pages.
   workflow_run:
     workflows:
       - 'Refresh the autonomous newsroom from the sanitized corpus'
       - 'Bootstrap autonomous newsroom from existing public release'
     types: [completed]
     branches: [main]
-  public:
   workflow_dispatch:
 
 permissions:
@@ -33,18 +31,10 @@ permissions:
 
 concurrency:
   group: github-pages
-  # Footnote: a completed-but-failed upstream producer still creates a
-  # workflow_run instance. GitHub applies workflow-level concurrency before the
-  # build job's success guard, so cancel-in-progress=true let a run that would
-  # later be skipped cancel an already-valid push deployment. Queueing here is
-  # intentional: only runs whose build guard passes can ever reach deploy.
   cancel-in-progress: false
 
 jobs:
   build:
-    # Footnote: keep the visibility gate even while public so a future visibility
-    # change fails safe instead of publishing by surprise. A failed upstream
-    # newsroom run also cannot enter Pages through workflow_run.
     if: >-
       github.event.repository.visibility == 'public' &&
       (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success')
@@ -69,13 +59,15 @@ jobs:
           PY
           )
           python tools/apply_curated_i18n.py publish "$CANONICAL_HASH"
+          # The frozen canonical overlay predates the autonomous Story layer.  It
+          # must never be allowed to leave the reader-facing / page on yesterday's
+          # lead.  Rebind the deployed front page to the exact Story layer that
+          # this commit is shipping, after every potentially-overwriting overlay.
+          cp site/data/stories.json publish/data/stories.json
+          python tools/promote_story_front_page.py --site publish
 
       - name: Build discovery frontends on the exact Pages candidate
         run: |
-          # Footnote: the frozen overlay intentionally owns the canonical release
-          # source. Discovery pages must therefore be generated *after* it is
-          # mounted; otherwise archive/search/topic pages in site/ can be silently
-          # overwritten by their older frozen counterparts during assembly.
           python tools/build_editorial_frontends.py --site publish
           python tools/finalize_editorial_frontends.py --site publish --refresh-manifest
 
@@ -83,11 +75,7 @@ jobs:
         run: python tests/oraculos/verificar_dom.py publish
 
       - name: Render responsive layout contracts across physical viewports
-        run: |
-          # Footnote: deployment is the final-form boundary. Width-only checks can
-          # miss short-laptop clipping and local thumbnail collisions, so Pages
-          # must prove the same physical viewport matrix used for this maintenance.
-          python tests/oraculos/verificar_layout.py publish
+        run: python tests/oraculos/verificar_layout.py publish
 
       - name: Prove the public receipt matches the assembled tree
         run: python tools/build_ready_receipt.py --check
@@ -126,3 +114,5 @@ jobs:
           python-version: '3.12'
       - name: Verify production origin, release identity and public route suite
         run: python tools/verify_live_newsroom.py --allow-unbootstrapped
+      - name: Verify the headline readers actually see
+        run: python tools/verify_live_front_page.py
