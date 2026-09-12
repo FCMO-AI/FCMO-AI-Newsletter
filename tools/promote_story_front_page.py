@@ -4,8 +4,14 @@
 The autonomous newsroom writes ``data/stories.json`` after public research. The
 reader page exists in two deterministic templates during the publication path:
 ``site/`` uses a compact ``hero`` lead while the frozen Signal Field overlay uses
-``lead``.  Both must project the exact same current Story lead or publication
+``lead``. Both must project the exact same current Story lead or publication
 fails closed.
+
+The frozen Signal Field release is also a client-rendered SPA. Updating static
+HTML alone is not sufficient: its ``home()`` renderer and interactive Signal
+Field historically pinned a specific research ID and could overwrite a freshly
+promoted lead after JavaScript ran. This promoter therefore binds both the
+static candidate and the runtime homepage to the same Story identity.
 """
 from __future__ import annotations
 
@@ -15,6 +21,9 @@ import json
 import re
 from datetime import datetime
 from pathlib import Path
+
+
+PUBLIC_ID = re.compile(r"^FCMO-[0-9A-F]{12}$")
 
 
 def esc(value: object) -> str:
@@ -95,6 +104,73 @@ def compact_hero_html(story: dict) -> str:
     )
 
 
+def bind_runtime_home(text: str, story: dict) -> tuple[str, bool]:
+    """Bind the SPA homepage renderer to the exact promoted Story lead.
+
+    The frozen release contains client-side ``home()`` and ``initPlot()`` code.
+    Both used to pin an old FCMO ID. The browser then replaced correct static
+    publication bytes with the stale record, so source-level deployment checks
+    could pass while readers still saw yesterday's headline.
+
+    This is intentionally a narrow post-overlay transform. If the SPA runtime is
+    present but its expected anchors drift, fail closed rather than silently
+    shipping an unverified homepage.
+    """
+    rid = str(story.get("research_id") or "")
+    if not PUBLIC_ID.fullmatch(rid):
+        raise SystemExit(f"front-page build refused: invalid Story research_id {rid!r}")
+
+    has_runtime = "function home()" in text or "function initPlot()" in text
+    if not has_runtime:
+        return text, False
+
+    # home(): the editorial lead must be the same identity as stories[0].
+    text, home_id_count = re.subn(
+        r"const lead=record\('FCMO-[0-9A-F]{12}'\)\|\|ranked\[0\];",
+        f"const lead=record('{rid}')||ranked[0];",
+        text,
+        count=1,
+    )
+
+    # The legacy homepage encoded its old lead as prose instead of rendering the
+    # selected record title. Make headline identity data-driven so later releases
+    # cannot regress merely because the Story lead changes.
+    legacy_headline = (
+        '<h2>Agents crossed the boundary between <em>evaluation</em> and the real world.</h2>'
+    )
+    runtime_headline = '<h2>${esc(lead.title)}</h2>'
+    headline_count = 0
+    if legacy_headline in text:
+        text = text.replace(legacy_headline, runtime_headline, 1)
+        headline_count = 1
+    elif runtime_headline in text:
+        headline_count = 1
+
+    # initPlot(): orange lead node/readout must track the same Story identity.
+    text, plot_id_count = re.subn(
+        r"const leadId='FCMO-[0-9A-F]{12}'",
+        f"const leadId='{rid}'",
+        text,
+        count=1,
+    )
+
+    if home_id_count != 1 or headline_count != 1 or plot_id_count != 1:
+        raise SystemExit(
+            "front-page build refused: SPA runtime anchors drifted "
+            f"(home_id={home_id_count}, headline={headline_count}, plot_id={plot_id_count})"
+        )
+
+    # Strong source invariant for the runtime itself. The runtime may still carry
+    # historical records elsewhere; only its explicit homepage selectors matter.
+    if f"const lead=record('{rid}')||ranked[0];" not in text:
+        raise SystemExit("front-page build refused: runtime home lead was not rebound")
+    if f"const leadId='{rid}'" not in text:
+        raise SystemExit("front-page build refused: runtime Signal Field lead was not rebound")
+    if runtime_headline not in text:
+        raise SystemExit("front-page build refused: runtime headline is not data-driven")
+    return text, True
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--site", type=Path, default=Path("site"))
@@ -130,6 +206,10 @@ def main() -> int:
         text = text2
         template = "hero"
 
+    # Crucial: the browser runtime is another publication layer. Bind it after
+    # static promotion so JavaScript cannot put a stale Story back on screen.
+    text, runtime_bound = bind_runtime_home(text, lead)
+
     text = re.sub(
         r'(<div class="issue-stamp">.*?<strong>)(.*?)(</strong>)',
         lambda m: m.group(1) + esc(date_label(lead)) + m.group(3),
@@ -148,7 +228,11 @@ def main() -> int:
         raise SystemExit("front-page build refused: promoted lead identity is not present in output")
 
     index_path.write_text(text, encoding="utf-8", newline="\n")
-    print(f"front page promoted ({template}): {lead['research_id']} :: {expected_headline}")
+    runtime_note = "; SPA runtime bound" if runtime_bound else ""
+    print(
+        f"front page promoted ({template}{runtime_note}): "
+        f"{lead['research_id']} :: {expected_headline}"
+    )
     return 0
 
 
