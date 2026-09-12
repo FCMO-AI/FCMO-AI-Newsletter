@@ -8,19 +8,26 @@ In the pinned v1 text, **Prime Directive** is shorthand for Section 0's governin
 
 This contract adapts FCMO v1 to the Newsletter without replacing the publication system that already works.
 
+## Canonical product objective
+
+Read and obey **`PRODUCT_GOAL.md`**. It defines the Newsletter-specific target for this repository and future Newsletter work: operate the real production newspaper, not a demo or one-off pipeline. Reliability, autonomous daily operation, reader-visible production truth, evidence integrity, current-day / previous-day freshness, fail-closed recovery, and repeated end-to-end proof take priority over ornamental features.
+
+A build, commit, configured schedule, or deployment response is not sufficient evidence of product success when the promised outcome is the live newspaper. The reader-visible production surface and its freshness must be verified at the appropriate boundary.
+
 ## Required orientation
 
 Read the smallest relevant set, starting with:
 
 1. `FCMO_AGI_ENGINEERING_OPERATIONS_STANDARD.md`;
-2. `COMMUNICATION_SURFACE_INTELLIGENCE_STANDARD.md` when user-facing communication or publication copy is in scope;
-3. `README.md` — product/publication identity and build model;
-4. `HANDOFF.md` — current operational truth, verified defects/fixes, test commands, and known traps;
-5. `PUBLICATION_POLICY.md` — public/private boundary;
-6. `LOCALIZATION.md` when reader-facing language or translation is in scope;
-7. `LEGAL_REQUIREMENTS.md`, `ATTRIBUTION.md`, `CONTENT_LICENSE.md`, and `COPYRIGHT.md` when legal/attribution/licensing surfaces are touched;
-8. `READY_TO_PUBLISH.md` and `release-overlay/final/manifest.json` for release identity;
-9. relevant tests, workflows, generator code, and the actual rendered publication for the work at hand.
+2. `PRODUCT_GOAL.md` — canonical production/reliability/freshness objective;
+3. `COMMUNICATION_SURFACE_INTELLIGENCE_STANDARD.md` when user-facing communication or publication copy is in scope;
+4. `README.md` — product/publication identity and build model;
+5. `HANDOFF.md` — current operational truth, verified defects/fixes, test commands, and known traps;
+6. `PUBLICATION_POLICY.md` — public/private boundary;
+7. `LOCALIZATION.md` when reader-facing language or translation is in scope;
+8. `LEGAL_REQUIREMENTS.md`, `ATTRIBUTION.md`, `CONTENT_LICENSE.md`, and `COPYRIGHT.md` when legal/attribution/licensing surfaces are touched;
+9. `READY_TO_PUBLISH.md` and `release-overlay/final/manifest.json` for release identity;
+10. relevant tests, workflows, generator code, and the actual rendered publication for the work at hand.
 
 Do not reread every document merely because it exists. Retrieve deeper context when the task actually needs it.
 
@@ -52,6 +59,8 @@ A privacy, localization, legal, or release-integrity gate must not be weakened m
 ## Completion
 
 A change is done when the promised public/software outcome is verified at the appropriate layer, repository truth is coherent, and no required release/security/localization/legal gate remains unresolved.
+
+For Newsletter product work, also apply the stronger completion standard in `PRODUCT_GOAL.md`: repeated autonomous operation, freshness, and reader-visible production correctness are first-class properties, not optional polish.
 
 If an external prerequisite such as a secret, organization billing, or platform permission is unavailable, complete every blocker-independent lane, state the exact boundary, and leave a continuation-ready handoff.
 
