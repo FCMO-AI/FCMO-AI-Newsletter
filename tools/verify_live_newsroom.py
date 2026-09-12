@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import time
 import urllib.error
 import urllib.request
@@ -17,7 +18,7 @@ from pathlib import Path
 from typing import Any
 
 DEFAULT_BASE = "https://fcmo-ai.github.io/FCMO-AI-Newsletter"
-USER_AGENT = "FCMO-Newsroom-Live-Oracle/1.2"
+USER_AGENT = "FCMO-Newsroom-Live-Oracle/1.3"
 
 
 def fetch(url: str, attempts: int = 6) -> bytes:
@@ -63,12 +64,16 @@ def main(argv: list[str] | None = None) -> int:
     if "FCMO AI Newsletter" not in root:
         raise SystemExit("live oracle FAILED: production root does not identify the publication")
 
-    # Footnote: the 2026-09-10 viewport maintenance intentionally retired the
-    # reader-facing FCMO Wire control, but not the underlying /news/ publication
-    # gateway or Newswire Bridge ingestion path. The live oracle therefore fails
-    # if the retired control returns instead of demanding that readers see it.
+    # The reader-facing FCMO Wire control is retired, while the underlying /news/
+    # gateway and Newswire Bridge transport remain valid. The DOM keeps a stable
+    # marker so one shared stylesheet can suppress the retired reader control.
+    # Source-string presence is therefore not visibility. Require the live CSS to
+    # carry the approved fail-closed hide rule whenever the marker is present.
     if "data-fcmo-wire-link" in root:
-        raise SystemExit("live oracle FAILED: retired reader-facing FCMO WIRE control is still exposed")
+        responsive_css = fetch(base + "/assets/newsletter-responsive-polish.css").decode("utf-8", errors="replace")
+        compact_css = re.sub(r"\s+", "", responsive_css)
+        if "[data-fcmo-wire-link]{display:none!important}" not in compact_css:
+            raise SystemExit("live oracle FAILED: retired reader-facing FCMO WIRE control is not suppressed")
 
     if not args.status.is_file():
         if args.allow_unbootstrapped and not args.require_airlock:
@@ -104,10 +109,6 @@ def main(argv: list[str] | None = None) -> int:
         raise SystemExit(f"live oracle FAILED: unsupported newsroom state {live_status.get('state')!r}")
 
     generated = live_status.get("airlock_generated_at")
-    # Footnote: serving health and publication freshness are intentionally distinct.
-    # A last-known-good bootstrap may remain perfectly available while the autonomous
-    # transport is broken; --require-airlock makes that operational failure visible
-    # without taking the reader-facing site offline.
     if args.require_airlock:
         if live_status.get("state") == "BOOTSTRAPPED_FROM_EXISTING_PUBLIC_RELEASE" or not generated:
             raise SystemExit("live oracle FRESHNESS FAILED: no real Airlock-backed production release is active")
