@@ -15,6 +15,7 @@ on:
       - 'tools/verify_live_front_page.py'
       - 'tests/oraculos/verificar_dom.py'
       - 'tests/oraculos/verificar_layout.py'
+      - 'tests/oraculos/verificar_home_lead.py'
       - '.github/workflows/pages.yml'
   workflow_run:
     workflows:
@@ -74,6 +75,9 @@ jobs:
       - name: Render runtime contracts in a real browser
         run: python tests/oraculos/verificar_dom.py publish
 
+      - name: Prove the current homepage lead survives runtime and localization
+        run: python tests/oraculos/verificar_home_lead.py publish
+
       - name: Render responsive layout contracts across physical viewports
         run: python tests/oraculos/verificar_layout.py publish
 
@@ -114,5 +118,7 @@ jobs:
           python-version: '3.12'
       - name: Verify production origin, release identity and public route suite
         run: python tools/verify_live_newsroom.py --allow-unbootstrapped
-      - name: Verify the headline readers actually see
+      - name: Verify the headline readers actually see in source
         run: python tools/verify_live_front_page.py
+      - name: Verify the deployed homepage in a real browser across EN/ES/ZH
+        run: python tests/oraculos/verificar_home_lead.py site --base-url https://fcmo-ai.github.io/FCMO-AI-Newsletter/
