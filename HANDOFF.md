@@ -1,70 +1,94 @@
 # Handoff — estado canónico de FCMO AI Newsletter
 
-**Actualizado:** 2026-09-05  
-**Estado de activación:** `AWAITING_GITHUB_APP_ONLY`  
+**Actualizado:** 2026-09-12  
+**Estado:** `PRODUCTION_HARDENING_AND_FRESHNESS_CONVERGENCE`  
 **Sitio:** https://fcmo-ai.github.io/FCMO-AI-Newsletter/
 
-Este documento sustituye como autoridad operativa al handoff del 2026-09-04. El texto histórico completo se preserva **sin borrar sus notas, diagnósticos ni lecciones** en [`docs/archive/HANDOFF_2026-09-04_pre_app_bridge.md`](docs/archive/HANDOFF_2026-09-04_pre_app_bridge.md).
-
-Para el detalle exhaustivo del único paso externo restante y la lista DONE / PENDING / NOT STARTED, lee [`NEWSWIRE_ACTIVATION_STATUS.md`](NEWSWIRE_ACTIVATION_STATUS.md).
+La meta normativa de producto está en [`PRODUCT_GOAL.md`](PRODUCT_GOAL.md). Toda sesión futura dedicada específicamente a Newsletter debe tratarla como el objetivo principal junto con `AGENTS.md`.
 
 ## 1. Estado real
 
-La Newsletter pública, su newsroom autónoma, localización nativa EN/ES/ZH, frontends editoriales, release congelado, Pages, live oracle y health checks están construidos. Airlock v2 y las primeras ediciones nativas nuevas también están construidos del lado ARB.
+La Newsletter ya superó la etapa `AWAITING_GITHUB_APP_ONLY`: el bridge autenticado, newsroom autónomo, release gates, Pages y live oracle han completado al menos un round-trip real hasta producción.
 
-El diseño anterior todavía hacía depender el primer round-trip de GitHub Actions dentro del repositorio privado ARB. Eso dejó de ser parte del contrato: `.github/workflows/newswire-bridge.yml` ejecuta los tests y el compilador de publicación de ARB dentro de un checkout privado **efímero** en el runner público de Newsletter usando un GitHub App read-only. La disponibilidad/facturación de Actions privadas ya no bloquea la Newsletter.
+El 2026-09-12 se verificó una release cuyo headline principal fue `FCMO-955A495823F7` (NVIDIA / OpenAI-linked infrastructure finance). El build comprobó el headline actual en navegador real para EN/ES/ZH, comprobó layout responsive en 17 combinaciones de ruta/viewport, verificó receipt, desplegó GitHub Pages y después ejecutó un oracle post-deploy contra el origen público en navegador real. Los tres jobs finales —build, deploy y live oracle— concluyeron `success`.
 
-El bridge corre diariamente a **07:10 America/Mexico_City**, después de que la activación ARB de las 06:00 haya tenido su ventana esperada de ~50 minutos para aterrizar. La credencial sólo puede utilizarse desde el workflow revisado en `main`; el Client ID usa la interfaz recomendada actual de GitHub, el PEM sólo entra al token-minter, los diagnósticos privados no llegan al log público y un finalizador `always()` destruye cualquier residuo privado incluso en rutas de fallo.
+Esto demuestra que el camino end-to-end puede funcionar. **No demuestra todavía por sí solo una racha prolongada de ciclos diarios totalmente desatendidos.** Esa diferencia es ahora parte explícita del estándar de producto.
 
-## 2. Única acción manual restante
+## 2. Arquitectura de producción
 
-Configurar un GitHub App de lectura para ARB:
+El camino deseado y operativo es:
 
-- instalarlo únicamente en `FCMO-AI/AI-Research-Breakthroughs`;
-- permiso de repositorio **Contents: Read-only**;
-- guardar su **Client ID** en la variable de Actions `FCMO_NEWSWIRE_APP_CLIENT_ID` del repo Newsletter;
-- guardar su PEM privado en el secret de Actions `FCMO_NEWSWIRE_APP_PRIVATE_KEY` del repo Newsletter.
+`ARB -> PUBLICATION_READY immutable snapshot -> read-only GitHub App -> publication seal -> sanitized _public_release -> corpus/ -> autonomous newsroom -> native EN/ES/ZH -> public-source re-research -> Story/editorial surfaces -> frozen release -> publication gates -> GitHub Pages -> post-deploy browser oracle -> production health`
 
-No hace falta PAT, `ANTHROPIC_API_KEY`, token publisher, App con permiso write, habilitar Pages, arreglar Actions privadas, ejecutar un workflow a mano ni configurar otro servicio para el launch contract. El PEM no debe pegarse en chat, source control, issues ni logs.
+El repositorio privado ARB no se hace público. El checkout privado es efímero y se destruye antes del staging público. Sólo bytes sanitizados sobreviven al Airlock.
 
-## 3. Qué ocurre automáticamente después
+## 3. Cambio de fase
 
-`Newswire Bridge → tests ARB → build/declassification determinista → _public_release → borrar checkout privado → verificador independiente → corpus/ → autonomous newsroom → locales → public research → visuals → Story/frontends → release gates → Pages → live oracle → production health`.
+La prioridad ya no es “activar por primera vez” la Newsletter. La prioridad es convertirla en el periódico real y aburridamente confiable descrito por `PRODUCT_GOAL.md`.
 
-Un fallo en cualquier paso deja la release anterior viva y debe diagnosticarse como defecto concreto; no convierte automáticamente una nueva tarea técnica en requisito manual del usuario.
+Orden de prioridad:
 
-## 4. Frontera de seguridad
+1. demostrar ciclos diarios repetidos y desatendidos;
+2. asegurar freshness real de portada;
+3. distinguir con claridad evidencia verificada de material developing/signal sin ocultar noticias recientes útiles;
+4. detectar automáticamente en qué etapa se produce cualquier stale state;
+5. mantener fail-closed, privacidad, localización y release integrity;
+6. mejorar presentación sólo cuando no compita con confiabilidad/frescura.
 
-- ARB permanece privado.
-- El GitHub App sólo puede leer ARB.
-- La copia privada vive únicamente durante el paso de transporte y se elimina antes de staging público; un cleanup incondicional cubre también fallos tempranos.
-- La identidad del commit privado y los diagnósticos de tests/build no se imprimen al workflow público.
-- Sólo `_public_release` sobrevive a ese punto.
-- `tools/newswire_bridge.py` vuelve a verificar digest/release identity, allowlist, IDs, ES/ZH, JSON/JSONL, secretos y marcadores privados después de borrar el checkout.
-- Sólo `corpus/` puede ser escrito por el bridge en el Git público.
-- El newsroom y el runtime público nunca reciben contexto privado de ARB.
+## 4. Freshness: problema actual
 
-## 5. Lo que no debe confundirse con launch work
+La cronología pública puede dar la impresión de detenerse alrededor del 3 de septiembre aunque el corpus/Story layer ya contenga material posterior. Eso no debe racionalizarse como comportamiento aceptable.
 
-ARB PR #31, la reconciliación histórica, está deliberadamente estacionada para después del primer round-trip. No es un faltante de Newsletter.
+La Newsletter es un periódico, no el espejo del último watermark histórico exhaustivamente cerrado de ARB.
 
-El problema general de runners/Actions privadas de FCMO-AI sigue siendo deuda de infraestructura útil de resolver para otros repos y para CI interno de ARB, pero **no es un prerrequisito de activación de Newsletter**.
+Meta editorial de producción:
 
-## 6. Evidencia de finalización
+- preferir noticias materiales del día actual o del día anterior;
+- mantener al menos una noticia material <=48 h cuando exista material legítimo;
+- usar lane **verified** para evidencia fuerte;
+- usar lane **developing/signal** para material reciente valioso que aún conserve gaps explícitos;
+- nunca convertir frescura o importancia en confianza falsa;
+- recurrir a material más viejo sólo cuando la ventana reciente no tenga nada suficientemente material.
 
-No declarar la Newsletter completamente activada hasta observar el primer round-trip real con:
+La edad del front-page lead y de la noticia pública más reciente deben convertirse en señales de health, no en observaciones manuales.
 
-1. Bridge verde con pasos ejecutados;
-2. `corpus/airlock.json` válido y content-addressed;
-3. ACK del newsroom para esa misma identidad;
-4. Pages verde;
-5. live oracle verde;
-6. las nuevas Story surfaces EN/ES/ZH visibles en producción.
+## 5. Definición de salud de producción
 
-Hasta entonces, el estado correcto es `AWAITING_GITHUB_APP_ONLY`.
+Un deploy verde que sirve noticias stale **no está sano**.
 
-## 7. Visual maintenance — 2026-09-10
+Production health debe poder distinguir, como mínimo:
 
-An intentional **bug fix + mild visual refinement** was approved for the public webapp. It is a forward presentation improvement, not a rollback or accidental regression: desktop composition now responds to viewport height as well as width, the cover uses its existing left field more deliberately, Front Page and Chronology thumbnail/text collisions are guarded at their actual local grid widths, and the Front Page section heading now describes the five next-ranked signals directly. Reader-facing **FCMO Wire** navigation is intentionally absent; the separate Newswire Bridge ingestion infrastructure is unaffected.
+- edad del material upstream más reciente;
+- edad del snapshot `PUBLICATION_READY`;
+- edad del material más reciente recibido en `corpus/`;
+- edad del Story más reciente;
+- edad del front-page lead;
+- último newsroom refresh exitoso;
+- último Pages deploy exitoso;
+- último live-browser oracle exitoso.
 
-No research record, evidence status, dossier semantics, publication-memory rule, privacy boundary, or release gate is changed by this visual maintenance pass. The responsive behavior is protected by a browser-rendered layout oracle across mobile, short-laptop, standard desktop, and wide-desktop viewports.
+Esto debe permitir localizar si el atraso está en ARB readiness, bridge, corpus, newsroom/editorial selection, deploy o serving.
+
+## 6. Evidencia que sí cuenta
+
+No declarar una release o reparación “realmente lista” por una sola capa.
+
+Para reader-visible outcomes, la evidencia fuerte termina en producción: build candidate -> browser/runtime checks -> deploy -> public-origin check -> real-browser post-deploy check.
+
+Un workflow configurado, un commit, un HTML correcto o un deployment API `success` por sí solos no prueban el producto final.
+
+## 7. Fallo y recuperación
+
+La Newsletter permanece fail-closed. Si una nueva candidate falla privacidad, localización, release integrity, rendering, deployment o live verification, conservar la última known-good release pública y reparar la etapa causal.
+
+No debilitar gates para “hacerlo verde”. No convertir una falla técnica ordinaria en una nueva acción manual para el usuario si puede resolverse dentro del sistema.
+
+## 8. Próximo trabajo recomendado
+
+El siguiente trabajo de mayor valor es implementar/fortalecer el **freshness SLO** y sus health checks, de modo que un periódico técnicamente desplegado pero con portada vieja falle observabilidad de producción de forma explícita.
+
+Después, observar varios ciclos programados consecutivos sin intervención y conservar receipts diarios que demuestren:
+
+`fresh snapshot -> bridge -> newsroom -> release -> Pages -> live oracle`.
+
+Sólo entonces conviene llamar al sistema no sólo funcional, sino operacionalmente confiable.
