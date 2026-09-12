@@ -14,10 +14,6 @@ on:
       - 'Pull airlocked newswire with GitHub App'
     types: [completed]
     branches: [main]
-  # Footnote: a GITHUB_TOKEN corpus commit cannot recursively trigger another
-  # push workflow. workflow_run is therefore the canonical handoff from the
-  # app-only transport bridge. The push trigger remains as compatibility for any
-  # future independently-authenticated trusted publisher.
   workflow_dispatch:
 
 permissions:
@@ -29,8 +25,6 @@ concurrency:
 
 jobs:
   refresh:
-    # Footnote: a failed bridge must never be laundered into a downstream refresh.
-    # Manual dispatch and an independently-authenticated corpus push remain valid.
     if: >-
       github.event_name != 'workflow_run' ||
       github.event.workflow_run.conclusion == 'success'
@@ -47,12 +41,7 @@ jobs:
       - name: Require a fresh authenticated airlock heartbeat
         id: airlock
         shell: bash
-        run: |
-          # Footnote: "no corpus" used to be a green no-op. That made upstream
-          # starvation indistinguishable from a healthy quiet news day. A fresh
-          # heartbeat with the same content digest is now the only valid
-          # NO_PUBLIC_DELTA state; absent or stale input is an operational red.
-          python tools/newsroom_receipt.py preflight --github-output "$GITHUB_OUTPUT"
+        run: python tools/newsroom_receipt.py preflight --github-output "$GITHUB_OUTPUT"
 
       - name: Regenerate the canonical public source from the corpus
         run: python tools/ingest_corpus.py --corpus corpus --out release-src
@@ -63,8 +52,6 @@ jobs:
       - name: Prove the ingest carried every story across
         shell: python
         run: |
-          # A generator that merely copies yesterday's site can exit 0 and stay
-          # stale forever. Comparing identities breaks that false green.
           import json, re, sys
           from pathlib import Path
           rows = [json.loads(line) for line in
@@ -105,6 +92,9 @@ jobs:
       - name: Build the Story layer and static EN ES ZH news surfaces
         run: python tools/build_newsroom_surfaces.py --release-src release-src --site site
 
+      - name: Promote the current Story lead onto the reader front page
+        run: python tools/promote_story_front_page.py --site site
+
       - name: Build and finalize the complete editorial frontend suite
         run: |
           python tools/build_editorial_frontends.py --site site
@@ -128,10 +118,6 @@ jobs:
           git config user.name 'FCMO Autonomous Newsroom'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           rm -rf publish regression
-          # The readiness receipt, Story surfaces, public research receipts, media
-          # provenance and locale-integrity receipts are publication products.
-          # Footnote: no model credential is needed here; editorial language work
-          # crossed the airlock together with the English source material.
           git add -A -- release-src release-overlay site READY_TO_PUBLISH.md
           if git diff --cached --quiet; then
             echo 'Healthy heartbeat with no material release-tree delta.'
