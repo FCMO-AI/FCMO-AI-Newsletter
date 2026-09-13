@@ -32,9 +32,9 @@ jobs:
         run: python tools/verify_live_newsroom.py
 
   publication-freshness:
-    # Footnote: availability and autonomous publication are different operational
-    # truths. The site may safely serve its last-known-good release while this job
-    # remains red, making a broken/stale Airlock impossible to hide behind uptime.
+    # Availability and autonomous publication are different operational truths.
+    # The site may safely serve its last-known-good release while this job remains
+    # red, making a broken/stale Airlock impossible to hide behind uptime.
     if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     steps:
@@ -46,3 +46,27 @@ jobs:
           python-version: '3.12'
       - name: Require a real recent Airlock-backed production release
         run: python tools/verify_live_newsroom.py --require-airlock --max-airlock-age-hours 30
+
+  editorial-freshness:
+    # Transport can be fresh while the newspaper is editorially stale. Measure
+    # the newsroom acknowledgement, newest material Story and selected lead as
+    # separate SLOs so the failed stage is visible in the job name and logs.
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Enforce front-page and Story-layer freshness SLO
+        run: >-
+          python tools/editorial_freshness.py check
+          --stories site/data/stories.json
+          --status site/data/newsroom-status.json
+          --target-hours 24
+          --acceptable-hours 48
+          --max-airlock-age-hours 30
+          --max-newsroom-age-hours 30
+          --minimum-importance 4
