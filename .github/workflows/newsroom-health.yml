@@ -6,7 +6,10 @@ on:
     types: [completed]
     branches: [main]
   schedule:
-    - cron: '17 */6 * * *'
+    # Hourly by design: this is the production heartbeat, not the publication
+    # cadence. It makes a freshness/translation regression visible well before
+    # the <=24h editorial SLO can silently expire.
+    - cron: '17 * * * *'
   workflow_dispatch:
 
 permissions:
@@ -69,4 +72,25 @@ jobs:
           --acceptable-hours 48
           --max-airlock-age-hours 30
           --max-newsroom-age-hours 30
+          --minimum-importance 4
+
+  translation-health:
+    # English publication deliberately remains available when a native edition is
+    # late, but localization itself is not allowed to look healthy. The product
+    # target is simultaneous ES/ZH publication; one hour is only a bounded
+    # reconciliation grace period, after which the health workflow goes red.
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Require recent material stories to have native ES/ZH editions
+        run: >-
+          python tools/translation_health.py
+          --grace-hours 1
+          --fresh-window-hours 30
           --minimum-importance 4
