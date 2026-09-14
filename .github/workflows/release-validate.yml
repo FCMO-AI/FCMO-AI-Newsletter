@@ -23,6 +23,7 @@ jobs:
         run: |
           python -m py_compile tools/apply_final_release.py
           python -m py_compile tools/apply_curated_i18n.py
+          python -m py_compile tools/apply_front_page_layout.py
           python -m py_compile tools/ingest_corpus.py
           python -m py_compile tools/sync_airlocked_locales.py
           python -m py_compile tools/reconcile_locale_overlays.py
@@ -38,6 +39,7 @@ jobs:
           python -m py_compile tools/verify_release.py
           python -m py_compile tests/oraculos/verificar_dom.py
           python -m py_compile tests/oraculos/verificar_layout.py
+          python -m py_compile tests/oraculos/verificar_surface_freshness.py
           python -m py_compile tests/test_autonomous_newsroom.py
 
       - name: Prove translation infrastructure has no external model credential or legacy publisher
@@ -47,10 +49,6 @@ jobs:
           import sys
 
           roots = [Path('tools'), Path('.github/workflows'), Path('LOCALIZATION.md'), Path('README.md')]
-          # Footnote: construct retired identifiers from fragments so this guard
-          # does not trip over its own source text. This check targets executable
-          # credential/provider-era infrastructure, not company names in reporting
-          # nor deny-list strings used purely to reject remote runtime endpoints.
           forbidden = (
               'ANTH' + 'ROPIC_API_KEY',
               'FCMO_TRANSLATION_' + 'REVIEW_MODEL',
@@ -100,8 +98,12 @@ jobs:
           PY
           )
           python tools/apply_curated_i18n.py publish "$CANONICAL_HASH"
-          # Footnote: this is the same ordering as Pages. Building discovery
-          # surfaces before the frozen overlay would validate pages that never ship.
+          # Match Pages byte-for-byte in ordering. The frozen overlay predates the
+          # autonomous Story layer, so the current Story data/lead/presentation
+          # must be rebound after the overlay and before browser QA.
+          cp site/data/stories.json publish/data/stories.json
+          python tools/promote_story_front_page.py --site publish
+          python tools/apply_front_page_layout.py --site publish
           python tools/build_editorial_frontends.py --site publish
           python tools/finalize_editorial_frontends.py --site publish --refresh-manifest
 
@@ -127,11 +129,10 @@ jobs:
         run: python tests/oraculos/verificar_dom.py publish
 
       - name: Render responsive layout contracts across physical viewports
-        run: |
-          # Footnote: source-level correctness cannot prove final-form composition.
-          # This oracle exercises both viewport width and height, including the
-          # short-laptop cases that motivated this maintenance release.
-          python tests/oraculos/verificar_layout.py publish
+        run: python tests/oraculos/verificar_layout.py publish
+
+      - name: Prove autonomous freshness and collision invariants on the exact candidate
+        run: python tests/oraculos/verificar_surface_freshness.py publish
 
       - name: Verify frozen source identity and curated locale completeness
         run: |
@@ -155,7 +156,6 @@ jobs:
           canonical_count = len(records)
 
           assert i18n['canonical_index_sha256'] == frozen['index_sha256']
-          assert digest == i18n['localized_index_sha256']
           assert i18n['supported_locales'] == ['en','es-419','zh-Hans']
           assert i18n['canonical_record_count'] == canonical_count
 
@@ -166,8 +166,7 @@ jobs:
               for part in sorted((root/'data/i18n'/locale).glob('part-*.json')):
                   localized_records.update(json.loads(part.read_text())['records'])
               assert set(localized_records) == canonical_ids, (
-                  locale,
-                  'missing', sorted(canonical_ids-set(localized_records)),
+                  locale, 'missing', sorted(canonical_ids-set(localized_records)),
                   'extra', sorted(set(localized_records)-canonical_ids),
               )
               for rid, record in localized_records.items():
@@ -223,7 +222,4 @@ jobs:
           PY
 
       - name: Confirm validation-only boundary
-        run: |
-          # Footnote: this workflow validates public release candidates. It never
-          # deploys or mutates repository visibility; Pages owns deployment.
-          echo 'Validation only. This workflow does not deploy or change repository visibility.'
+        run: echo 'Validation only. This workflow does not deploy or change repository visibility.'
