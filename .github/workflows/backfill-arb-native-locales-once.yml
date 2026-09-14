@@ -50,38 +50,28 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Build exact declassified projection
+      - name: Build exact declassified projection and stamp locally
         shell: bash
         run: |
           set -euo pipefail
           cd "$RUNNER_TEMP/fcmo-arb-locale-repair"
           ARB_SITE_BASE_PATH=/FCMO-AI-Newsletter ARB_PUBLIC_BASE_URL=https://fcmo-ai.github.io/FCMO-AI-Newsletter python tools/build_publication.py --check-determinism
           python tools/build_public_release.py
+          python tools/build_public_locales.py stamp es-419
+          python tools/build_public_locales.py stamp zh-Hans
+          python tools/build_public_locales.py build
+          python tools/check_native_edition_coverage.py --recent-days 7
+          mkdir -p "$RUNNER_TEMP/stamped-locales/es-419" "$RUNNER_TEMP/stamped-locales/zh-Hans"
+          cp publication/locales/es-419/debt-2026-09-14.json "$RUNNER_TEMP/stamped-locales/es-419/debt-2026-09-14.json"
+          cp publication/locales/zh-Hans/debt-2026-09-14.json "$RUNNER_TEMP/stamped-locales/zh-Hans/debt-2026-09-14.json"
 
-      - name: Emit only public IDs and their exact translation digests
-        shell: bash
-        run: |
-          set -euo pipefail
-          cd "$RUNNER_TEMP/fcmo-arb-locale-repair"
-          python - <<'PY'
-          import json
-          from tools.build_public_locales import digest, projection, read_release_rows
-          wanted = {
-            'FCMO-2E15FDD2C2B1','FCMO-DBCE0693D769','FCMO-34D01928C071',
-            'FCMO-EEF757F0D806','FCMO-5D9E5184D0F0','FCMO-BA43DA5C5770',
-            'FCMO-0462AE20C5CD','FCMO-549245C022B9','FCMO-07D3957AC2B9',
-            'FCMO-28A16703D598','FCMO-FAD9D0AFD3E4','FCMO-BFDCA63E4D53',
-            'FCMO-49180A73A8A0','FCMO-179D8B7D7D2D','FCMO-F63D7F3A70B9',
-          }
-          rows = read_release_rows()
-          missing = sorted(wanted - set(rows))
-          if missing:
-              raise SystemExit(f'public rows missing: {missing}')
-          print('PUBLIC_TRANSLATION_DIGESTS=' + json.dumps(
-              {pid: digest(projection(rows[pid])) for pid in sorted(wanted)},
-              sort_keys=True,
-          ))
-          PY
+      - name: Upload exact validated stamped fragments
+        uses: actions/upload-artifact@v4
+        with:
+          name: stamped-arb-native-locales
+          path: ${{ runner.temp }}/stamped-locales
+          if-no-files-found: error
+          retention-days: 1
 
       - name: Destroy private checkout
         if: always()
