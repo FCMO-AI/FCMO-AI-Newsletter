@@ -4,6 +4,13 @@
 This closes the gap between static HTML/route checks and what a reader actually
 sees after the app-shell and curated i18n runtime execute. It can test either a
 local assembled publication tree or the deployed GitHub Pages origin.
+
+Native locales are first-class, but a truthful, explicit translation backlog must
+not roll the canonical English newspaper backward. When the current lead has no
+native overlay yet, the localized article route must be an explicit pending shell
+that links to the canonical English story; the homepage may therefore retain the
+canonical English headline until the native overlay lands. This is degraded but
+valid publication, never a fake translation.
 """
 from __future__ import annotations
 
@@ -20,12 +27,14 @@ from contextlib import contextmanager
 from html.parser import HTMLParser
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import quote, urlencode
+from urllib.parse import urlencode
 
 BROWSER_CANDIDATES = (
     "google-chrome", "google-chrome-stable", "chromium", "chromium-browser",
     "msedge", "microsoft-edge", "microsoft-edge-stable",
 )
+
+LOCALE_SLUG = {"es-419": "es", "zh-Hans": "zh-hans"}
 
 
 class VisibleDOM(HTMLParser):
@@ -34,11 +43,13 @@ class VisibleDOM(HTMLParser):
         self.ignored = 0
         self.parts: list[str] = []
         self.lang = ""
+        self.attrs: dict[str, str] = {}
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         attrs_map = {k.lower(): v or "" for k, v in attrs}
         if tag.lower() == "html":
             self.lang = attrs_map.get("lang", "")
+            self.attrs = attrs_map
         if tag.lower() in {"script", "style", "noscript", "template"}:
             self.ignored += 1
 
@@ -117,20 +128,58 @@ def render(browser: str, url: str) -> VisibleDOM:
         shutil.rmtree(profile, ignore_errors=True)
 
 
-def translated_title(root: Path, locale: str, rid: str) -> str:
-    if locale == "en":
-        stories = json.loads((root / "data" / "stories.json").read_text(encoding="utf-8"))
-        return str(stories[0]["headline"])
+def load_native_records(root: Path, locale: str) -> dict[str, dict]:
     records: dict[str, dict] = {}
     locale_dir = root / "data" / "i18n" / locale
     for path in sorted(locale_dir.glob("part-*.json")):
         part = json.loads(path.read_text(encoding="utf-8"))
         records.update(part.get("records") or {})
-    row = records.get(rid) or {}
+    return records
+
+
+def canonical_title(root: Path) -> str:
+    stories = json.loads((root / "data" / "stories.json").read_text(encoding="utf-8"))
+    return str(stories[0]["headline"]).strip()
+
+
+def locale_expectation(root: Path, locale: str, rid: str) -> tuple[str, bool]:
+    """Return homepage title plus whether this locale is explicitly pending."""
+    if locale == "en":
+        return canonical_title(root), False
+    row = load_native_records(root, locale).get(rid) or {}
     title = row.get("title")
-    if not isinstance(title, str) or not title.strip():
-        raise AssertionError(f"{locale}: missing current lead translation for {rid}")
-    return title.strip()
+    if isinstance(title, str) and title.strip():
+        return title.strip(), False
+
+    status_path = root / "data" / "i18n" / "translation-status.json"
+    if not status_path.is_file():
+        raise AssertionError(f"{locale}: missing current lead translation for {rid} and no backlog manifest")
+    status = json.loads(status_path.read_text(encoding="utf-8"))
+    pending = set(status.get("pending_translation_ids") or [])
+    if rid not in pending:
+        raise AssertionError(f"{locale}: missing current lead translation for {rid} but it is not declared pending")
+    return canonical_title(root), True
+
+
+def prove_pending_route(root: Path, browser: str, base: str, locale: str, rid: str) -> None:
+    slug = LOCALE_SLUG[locale]
+    url = f"{base}news/{slug}/{rid}.html?fcmo_verify={time.time_ns()}"
+    dom = render(browser, url)
+    if dom.lang != locale:
+        raise AssertionError(f"pending/{locale}: html lang is {dom.lang!r}")
+    if dom.attrs.get("data-translation-status") != "pending":
+        raise AssertionError(f"pending/{locale}: route is not explicitly marked pending")
+    expected_notice = "Traducción pendiente" if locale == "es-419" else "翻译待完成"
+    if expected_notice not in dom.text:
+        raise AssertionError(f"pending/{locale}: localized pending notice is not reader-visible")
+    canonical_href = f"/news/en/{rid}.html"
+    # dump-dom preserves the absolute/relative href string; checking the raw page
+    # through visible content alone would not prove the canonical escape hatch.
+    page_path = root / "news" / slug / f"{rid}.html"
+    if page_path.is_file():
+        source = page_path.read_text(encoding="utf-8")
+        if canonical_href not in source and f"/FCMO-AI-Newsletter{canonical_href}" not in source:
+            raise AssertionError(f"pending/{locale}: no canonical-English link for {rid}")
 
 
 def run(root: Path, base_url: str | None) -> int:
@@ -144,7 +193,7 @@ def run(root: Path, base_url: str | None) -> int:
 
     browser = browser_path()
     expected = {
-        locale: translated_title(root, locale, rid)
+        locale: locale_expectation(root, locale, rid)
         for locale in ("en", "es-419", "zh-Hans")
     }
 
@@ -156,8 +205,9 @@ def run(root: Path, base_url: str | None) -> int:
             with serve(root) as local:
                 yield local
 
+    pending_locales: list[str] = []
     with origin() as base:
-        for locale, title in expected.items():
+        for locale, (title, pending) in expected.items():
             params = urlencode({
                 "lang": locale,
                 "fcmo_verify": str(time.time_ns()),
@@ -167,16 +217,25 @@ def run(root: Path, base_url: str | None) -> int:
             if dom.lang != locale:
                 raise AssertionError(f"home/{locale}: html lang is {dom.lang!r}")
             if title not in dom.text:
+                state = "pending canonical-English" if pending else "native"
                 raise AssertionError(
-                    f"home/{locale}: reader-visible lead is not current {rid}; expected {title!r}"
+                    f"home/{locale}: reader-visible lead is not current {rid} ({state}); expected {title!r}"
                 )
+            if pending:
+                prove_pending_route(root, browser, base, locale, rid)
+                pending_locales.append(locale)
 
     version = subprocess.run(
         [browser, "--version"], capture_output=True, text=True,
         encoding="utf-8", errors="replace",
     ).stdout.strip()
     where = base_url or str(root)
-    print(f"HOME LEAD BROWSER OK: {rid}; EN/ES/ZH reader render current; target={where}; browser={version}")
+    state = "DEGRADED_TRANSLATION_BACKLOG" if pending_locales else "FULLY_LOCALIZED"
+    detail = ",".join(pending_locales) if pending_locales else "none"
+    print(
+        f"HOME LEAD BROWSER OK: {rid}; EN/ES/ZH reader render current; "
+        f"localization={state}; pending={detail}; target={where}; browser={version}"
+    )
     return 0
 
 
