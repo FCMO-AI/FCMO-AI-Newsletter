@@ -1,0 +1,76 @@
+name: ARB translation source health
+
+on:
+  schedule:
+    - cron: '31 * * * *'
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/translation-source-health.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: arb-translation-source-health
+  cancel-in-progress: true
+
+jobs:
+  native-edition-source-health:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require the GitHub App Client ID
+        env:
+          APP_CLIENT_ID: ${{ vars.FCMO_NEWSWIRE_APP_CLIENT_ID }}
+        shell: bash
+        run: |
+          test -n "$APP_CLIENT_ID" || { echo 'FCMO_NEWSWIRE_APP_CLIENT_ID is not configured' >&2; exit 1; }
+
+      - name: Mint a read-only token scoped only to private ARB
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ vars.FCMO_NEWSWIRE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.FCMO_NEWSWIRE_APP_PRIVATE_KEY }}
+          owner: FCMO-AI
+          repositories: AI-Research-Breakthroughs
+          permission-contents: read
+
+      - name: Checkout current ARB main read-only
+        env:
+          APP_TOKEN: ${{ steps.app-token.outputs.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          PRIVATE_DIR="$RUNNER_TEMP/fcmo-arb-translation-health"
+          rm -rf "$PRIVATE_DIR"
+          AUTH=$(printf 'x-access-token:%s' "$APP_TOKEN" | base64 -w0)
+          echo "::add-mask::$AUTH"
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $AUTH" \
+            clone --quiet --depth 1 --single-branch --branch main \
+            https://github.com/FCMO-AI/AI-Research-Breakthroughs.git \
+            "$PRIVATE_DIR"
+          unset AUTH APP_TOKEN
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Build sanitized candidate and detect recent public locale debt
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/fcmo-arb-translation-health"
+          ARB_SITE_BASE_PATH=/FCMO-AI-Newsletter \
+          ARB_PUBLIC_BASE_URL=https://fcmo-ai.github.io/FCMO-AI-Newsletter \
+            python tools/build_publication.py --check-determinism
+          python tools/build_public_release.py
+          python tools/check_native_edition_coverage.py --recent-days 3
+
+      - name: Destroy private checkout
+        if: always()
+        shell: bash
+        run: |
+          rm -rf "$RUNNER_TEMP/fcmo-arb-translation-health"
+          test ! -e "$RUNNER_TEMP/fcmo-arb-translation-health"
