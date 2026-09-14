@@ -11,6 +11,8 @@ on:
       - 'tools/apply_front_page_layout.py'
       - 'tools/newsletter-current-corpus.css'
       - 'tools/newsletter-mobile-overflow.css'
+      - 'tools/newsletter-autonomous-surfaces.css'
+      - 'tools/newsletter-current-corpus.js'
       - 'tools/build_editorial_frontends.py'
       - 'tools/finalize_editorial_frontends.py'
       - 'tools/promote_story_front_page.py'
@@ -19,6 +21,7 @@ on:
       - 'tests/oraculos/verificar_dom.py'
       - 'tests/oraculos/verificar_layout.py'
       - 'tests/oraculos/verificar_home_lead.py'
+      - 'tests/oraculos/verificar_surface_freshness.py'
       - 'tests/oraculos/diagnose_mobile_overflow.py'
       - '.github/workflows/pages.yml'
   workflow_run:
@@ -75,9 +78,9 @@ jobs:
           # this commit is shipping, after every potentially-overwriting overlay.
           cp site/data/stories.json publish/data/stories.json
           python tools/promote_story_front_page.py --site publish
-          # Responsive presentation is durable site state rather than canonical
-          # research content. Attach its committed post-overlay correction before
-          # any real-browser oracle so QA sees exactly what Pages will serve.
+          # Responsive presentation and recency-aware public surfaces are durable
+          # downstream state rather than canonical research content. Attach the
+          # deterministic patch before browser QA so tests see exactly what Pages serves.
           python tools/apply_front_page_layout.py --site publish
 
       - name: Build discovery frontends on the exact Pages candidate
@@ -96,6 +99,9 @@ jobs:
 
       - name: Render responsive layout contracts across physical viewports
         run: python tests/oraculos/verificar_layout.py publish
+
+      - name: Prove live surfaces remain current and collision-free
+        run: python tests/oraculos/verificar_surface_freshness.py publish
 
       - name: Prove the public receipt matches the assembled tree
         run: python tools/build_ready_receipt.py --check
