@@ -31,7 +31,13 @@
     const first=signals[0],node=plot.querySelector('.signal-node');if(first&&node){const idx=document.getElementById('read-index'),rt=document.getElementById('read-title'),rm=document.getElementById('read-meta');if(idx)idx.textContent=node.dataset.n;if(rt)rt.textContent=first.title;if(rm)rm.innerHTML=`Evidence ${esc(first.evidence)}<br>Impact ${Number(first.importance||0)} / 10<br>Activity ${esc(activityDay(first))}`}
   }
   function publicationActivityMarkup(){const latestEvent=records.reduce((m,r)=>String(r.event_at||'')>m?String(r.event_at||''):m,'').slice(0,10);const recent=[...publications].filter(x=>x&&x.date&&String(x.date)>latestEvent).sort((a,b)=>String(b.date).localeCompare(String(a.date))).slice(0,8);if(!recent.length)return '';return `<section class="fcmo-activity-clock" data-fcmo-publication-activity="${esc(recent[0].date)}"><div class="fcmo-clock-head"><span class="eyebrow">Latest public activity</span><h2>Publication clock</h2><p>New verification and editorial activity is shown here without rewriting the original date of a development.</p></div>${recent.map(e=>`<a class="fcmo-clock-row" href="#/edition/${encodeURIComponent(e.date)}"><time>${esc(e.date)}</time><span><strong>${e.published?'Published edition':'Research snapshot'}</strong><small>${esc((e.preamble||[]).map(x=>x.text||'').join(' ').slice(0,180))}</small></span><b>${e.published?'ISSUED':'SNAPSHOT'} →</b></a>`).join('')}</section>`}
-  function enhanceChronology(){const grid=document.querySelector('.chronology-grid');if(!grid||document.querySelector('.fcmo-activity-clock'))return;const hero=document.querySelector('.hero-mini p');if(hero)hero.textContent='Two clocks: current publication and verification activity first; original development dates remain intact below.';const markup=publicationActivityMarkup();if(markup)grid.insertAdjacentHTML('beforebegin',markup);grid.dataset.fcmoOriginChronology='true'}
+  function enhanceChronology(){
+    const origin=document.querySelector('.timeline-shell')||document.querySelector('.chronology-grid');
+    if(!origin||document.querySelector('.fcmo-activity-clock'))return;
+    const hero=document.querySelector('.page-poster .hero-lede')||document.querySelector('.hero-mini p');
+    if(hero)hero.textContent='Two clocks: current publication and verification activity first; original development dates remain intact below.';
+    const markup=publicationActivityMarkup();if(markup)origin.insertAdjacentHTML('beforebegin',markup);origin.dataset.fcmoOriginChronology='true';
+  }
   function reorderLibrary(){
     const list=document.getElementById('rlist'),sort=document.getElementById('rsort'),count=document.getElementById('rcount');if(!list||!sort)return;
     const newest=sort.querySelector('option[value="newest"]');if(newest)newest.textContent='Latest verified';if(!sort.dataset.fcmoInitialized){sort.value='newest';sort.dataset.fcmoInitialized='1'}if(sort.value!=='newest')return;
