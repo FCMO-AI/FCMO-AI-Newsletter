@@ -17,7 +17,7 @@ import tempfile
 from pathlib import Path
 from typing import Any
 
-from tools import newswire_bridge as strict
+import newswire_bridge as strict
 
 
 def _public_ids(release: Path) -> set[str]:
