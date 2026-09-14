@@ -27,9 +27,6 @@ concurrency:
 
 jobs:
   bridge:
-    # workflow_dispatch can target another ref. The App credential is a
-    # private-repository read capability, so only the reviewed default-branch
-    # workflow may reach the token-minting step.
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
@@ -77,7 +74,6 @@ jobs:
             https://github.com/FCMO-AI/AI-Research-Breakthroughs.git \
             "$PRIVATE_DIR"
 
-          # Capture the fallback checkpoint from canonical main before changing refs.
           READY_SHA=$(PRIVATE_DIR_ENV="$PRIVATE_DIR" python - <<'PY'
           import json
           import os
@@ -101,15 +97,11 @@ jobs:
           )
           echo "::add-mask::$READY_SHA"
 
-          # Restore enough history to prove fallback lineage if it is needed.
           git -C "$PRIVATE_DIR" -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $AUTH" \
             fetch --quiet --unshallow origin main
           CURRENT_SHA=$(git -C "$PRIVATE_DIR" rev-parse origin/main)
           echo "::add-mask::$CURRENT_SHA"
 
-          # Current main is never trusted merely because it is current. Detach the
-          # exact commit and make it earn publication authority by passing the same
-          # atomic seal used for historical PUBLICATION_READY snapshots.
           git -C "$PRIVATE_DIR" checkout --detach --quiet "$CURRENT_SHA"
           if (
             cd "$PRIVATE_DIR" &&
@@ -190,7 +182,7 @@ jobs:
           echo "RELEASE_DIR=$RELEASE_DIR" >> "$GITHUB_ENV"
 
       - name: Independently verify the airlocked bytes from the public side
-        run: python tools/newswire_bridge.py verify "$RELEASE_DIR" --baseline-i18n site/data/i18n
+        run: python tools/newswire_bridge_partial_locales.py verify "$RELEASE_DIR"
 
       - name: Rebase transport onto current public main before staging
         shell: bash
@@ -198,10 +190,10 @@ jobs:
           git fetch origin main
           git reset --hard origin/main
           git clean -fdx
-          python tools/newswire_bridge.py verify "$RELEASE_DIR" --baseline-i18n site/data/i18n
+          python tools/newswire_bridge_partial_locales.py verify "$RELEASE_DIR"
 
       - name: Atomically replace only corpus/
-        run: python tools/newswire_bridge.py stage "$RELEASE_DIR" corpus --baseline-i18n site/data/i18n
+        run: python tools/newswire_bridge_partial_locales.py stage "$RELEASE_DIR" corpus
 
       - name: Commit only the verified public handoff
         shell: bash
