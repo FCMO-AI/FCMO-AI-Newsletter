@@ -20,14 +20,14 @@ Ordinary releases require no repository-visibility step. A candidate that fails 
 
 - Release manifest schema: `fcmo-ai-newsletter-release-overlay-v2`
 - Release: `signal-field-v4.1.1-viewport-polish`
-- Front-end SHA-256: `45925b9c374fd73a80a4eb97d113ddb572b8f5955a72895decdbb2bccf19e788`
-- Release archive SHA-256: `ea6eba90d142eeeeaf8a9c8c924c457f2488354de4ba4e4e6e003f8f72d39422`
-- Encoded release payload SHA-256: `bbb375c551ca6ee74962e9ce7fc7c9ef5f2e2889e2cda94fc7653c3d30dceab3`
-- 32/32 release payload parts present; payload and archive checked by SHA-256
-- 698 public files after assembly
+- Front-end SHA-256: `3207d2457aa4a845001604eb2afba7eb2e43fed7ca92b74cd1516383497c61f0`
+- Release archive SHA-256: `e8888db0e1a8065b1f6f85ef918c17e0f46be55ca9d6ed7ff140dc4894063070`
+- Encoded release payload SHA-256: `11c5a3482f287f700bb6ecab86c21a7a630953c84e9e37232d748be22c1a8073`
+- 33/33 release payload parts present; payload and archive checked by SHA-256
+- 700 public files after assembly
 - 42 canonical dossiers
 - 42 stable dossier routes
-- 15 frozen edition routes
+- 16 frozen edition routes
 - 9 vetted sourced story visuals + 33 embedded editorial fallbacks
 
 ## Verification receipts
@@ -52,7 +52,7 @@ The final assembler validates, before deployment:
 - required human and machine-readable public files;
 - the post-overlay archive/search/topic/organization/methodology/status frontend suite;
 - 42 dossier identifiers and stable human routes;
-- 15 edition JSON/HTML routes;
+- 16 edition JSON/HTML routes;
 - JSON, JSONL, RSS, and sitemap parsing;
 - agent discovery/query contracts (`fcmo-agent-discovery-v2`, `fcmo-agent-query-v2`);
 - final 9/33 story-media policy;
@@ -62,7 +62,7 @@ The final assembler validates, before deployment:
 
 The release assembler, native-locale gate, and discovery frontend builder were rerun; the assembled public candidate measures:
 
-`FCMO AI Newsletter signal-field-v4.1.1-viewport-polish READY: 698 public files; index 45925b9c374f…`
+`FCMO AI Newsletter signal-field-v4.1.1-viewport-polish READY: 700 public files; index 3207d2457aa4…`
 
 ## Daily refresh readiness
 
