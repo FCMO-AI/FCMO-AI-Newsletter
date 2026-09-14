@@ -57,7 +57,7 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Build sanitized candidate and detect recent public locale debt
+      - name: Build sanitized candidate and validate authored native editions
         shell: bash
         run: |
           set -euo pipefail
@@ -66,6 +66,9 @@ jobs:
           ARB_PUBLIC_BASE_URL=https://fcmo-ai.github.io/FCMO-AI-Newsletter \
             python tools/build_publication.py --check-determinism
           python tools/build_public_release.py
+          # Existing translations must remain structurally valid and bound to
+          # the exact canonical source + declassified public projection.
+          python tools/build_public_locales.py build
           # Seven days deliberately includes the current Navier-Stokes lead and
           # gives us enough overlap to catch late revisions without turning this
           # into a retroactive demand to translate the entire historical corpus.
