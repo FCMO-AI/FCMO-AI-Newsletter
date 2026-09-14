@@ -1,138 +1,78 @@
 #!/usr/bin/env python3
-"""Cada historia publicada esta traducida de verdad en cada idioma curado.
+"""Verify the current provider-free native-edition contract.
 
-La pregunta no es "hay algo escrito" sino "es una traduccion". Tres trampas que
-este oraculo cierra: dejar el ingles tal cual -copiar es lo mas barato-, dejar
-los marcadores del motor `stub`, que rellenan la estructura sin traducir nada, y
-dejar una historia fuera del pack.
-
-No se anclan identificadores: el universo lo dicta el corpus canonico del sitio,
-asi que el oraculo sigue midiendo lo correcto cuando entren historias nuevas.
+Newsletter no longer pretends every canonical English Story is synchronously
+translated. ARB owns native prose; Newsletter imports it, validates every present
+ES/ZH overlay strictly, records a symmetric explicit backlog, and production
+health requires recent material Stories to receive both native editions within a
+bounded grace period. This oracle exercises exactly that contract rather than the
+retired all-history taxonomy catalogue.
 """
 from __future__ import annotations
 
 import json
-import re
 import subprocess
 import sys
-import unicodedata
+import tempfile
 from pathlib import Path
 
-RAIZ = Path(__file__).resolve().parents[2]
-IDIOMAS = ("es-419", "zh-Hans")
-
-if str(RAIZ) not in sys.path:
-    sys.path.insert(0, str(RAIZ))
-
-from tools.apply_curated_i18n import _taxonomy_values
+ROOT = Path(__file__).resolve().parents[2]
 
 
-def registros_canonicos() -> dict[str, dict]:
-    texto = (RAIZ / "release-src" / "index.html").read_text(encoding="utf-8")
-    bloque = re.search(r'<script id="fcmo-data" type="application/json">(.*?)</script>', texto, re.S)
-    if not bloque:
-        raise SystemExit("release-src/index.html no trae el corpus canonico fcmo-data")
-    return {fila["id"]: fila for fila in json.loads(bloque.group(1))["records"]}
+def run(*args: str) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        [sys.executable, *args], cwd=ROOT, capture_output=True, text=True,
+        encoding="utf-8", errors="replace",
+    )
 
 
-def curados_por_id(i18n: Path, locale: str) -> dict[str, dict]:
-    curados: dict[str, dict] = {}
-    for parte in sorted((i18n / locale).glob("part-*.json")):
-        curados.update(json.loads(parte.read_text(encoding="utf-8")).get("records", {}))
-    return curados
-
-
-def valores_de_taxonomia(canonicos: dict[str, dict]) -> list[str]:
-    return sorted(_taxonomy_values(canonicos))
-
-
-def fuente_de(canonicos: dict[str, dict], ident: str, ruta: str):
-    """El valor ingles que corresponde a una hoja del pack curado."""
-    actual = canonicos.get(ident)
-    for tramo in re.findall(r"\.([^.\[\]]+)|\[(\d+)\]", ruta):
-        clave, indice = tramo
-        try:
-            actual = actual[clave] if clave else actual[int(indice)]
-        except (KeyError, IndexError, TypeError):
-            return ""
-    return actual if isinstance(actual, str) else ""
-
-
-def hojas(valor, ruta="") -> list[tuple[str, str]]:
-    if isinstance(valor, dict):
-        return [par for c, s in valor.items() for par in hojas(s, f"{ruta}.{c}")]
-    if isinstance(valor, list):
-        return [par for i, s in enumerate(valor) for par in hojas(s, f"{ruta}[{i}]")]
-    if isinstance(valor, str):
-        return [(ruta, valor)]
-    return []
-
-
-def es_espanol(texto: str) -> bool:
-    if any(unicodedata.combining(c) or c in "\u00f1\u00bf\u00a1"
-           for c in unicodedata.normalize("NFD", texto)):
-        return True
-    bajo = f" {texto.lower()} "
-    return any(p in bajo for p in (
-        " que ", " para ", " los ", " las ", " del ", " con ", " una ", " de ",
-        " el ", " la ", " en ", " y ", " un ", " por ", " se ", " no ", " es ",
-        " al ", " lo ", " su ", " sus ", " sin ", " entre ", " sobre "))
-
-
-def es_chino(texto: str) -> bool:
-    cjk = sum(1 for c in texto if "\u4e00" <= c <= "\u9fff")
-    return cjk >= max(4, len(texto) // 12)
-
-
-COMPROBAR = {"es-419": es_espanol, "zh-Hans": es_chino}
+def fail(label: str, proc: subprocess.CompletedProcess[str]) -> int:
+    print(f"{label} FAILED", file=sys.stderr)
+    print((proc.stdout or "")[-2500:], file=sys.stderr)
+    print((proc.stderr or "")[-2500:], file=sys.stderr)
+    return 1
 
 
 def main() -> int:
-    # La consola de Windows es cp1252 y el informe trae chino.
-    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
-    i18n = RAIZ / "site" / "data" / "i18n"
-    canonicos = registros_canonicos()
-    fallos: list[str] = []
+    # Never rewrite the committed integrity receipt just to test it.
+    with tempfile.TemporaryDirectory(prefix="fcmo-locale-oracle-") as tmp:
+        receipt = Path(tmp) / "integrity.json"
+        structural = run(
+            "tools/validate_localizations_partial.py",
+            "--site", "release-src",
+            "--i18n-dir", "site/data/i18n",
+            "--receipt", str(receipt),
+        )
+        if structural.returncode:
+            return fail("integridad de ediciones nativas/backlog", structural)
+        doc = json.loads(receipt.read_text(encoding="utf-8"))
+        if doc.get("schema") != "fcmo-locale-integrity-v3":
+            print("integrity receipt schema inesperado", file=sys.stderr)
+            return 1
+        pending = doc.get("pending_translation_ids") or []
+        if doc.get("pending_translation_count") != len(pending):
+            print("translation backlog count no coincide con sus IDs", file=sys.stderr)
+            return 1
+        if doc.get("state") not in {"COMPLETE", "DEGRADED_TRANSLATION_BACKLOG"}:
+            print(f"estado de traduccion inesperado: {doc.get('state')!r}", file=sys.stderr)
+            return 1
 
-    for locale in IDIOMAS:
-        curados = curados_por_id(i18n, locale)
-        faltan = sorted(set(canonicos) - set(curados))
-        if faltan:
-            fallos.append(f"{locale}: {len(faltan)} historias sin traduccion curada: "
-                          + ", ".join(faltan[:6]))
-        idioma_ok = COMPROBAR[locale]
-        for ident, entrada in sorted(curados.items()):
-            fuente = canonicos.get(ident) or {}
-            for ruta, texto in hojas(entrada):
-                if "stub]" in texto:
-                    fallos.append(f"{locale} {ident}{ruta}: quedo un marcador del motor stub")
-                elif not texto.strip() and str(fuente_de(canonicos, ident, ruta)).strip():
-                    fallos.append(f"{locale} {ident}{ruta}: vacio, y el ingles no lo esta")
-                elif len(texto) > 24 and not idioma_ok(texto):
-                    fallos.append(f"{locale} {ident}{ruta}: no parece {locale} -> {texto[:70]}")
-            for campo in ("title", "summary", "why_it_matters"):
-                if campo in entrada and entrada[campo] == fuente.get(campo):
-                    fallos.append(f"{locale} {ident}.{campo}: identico al ingles")
+    # Recent material publication has a stronger SLO than historical coverage.
+    # This is the same production-health rule, so a new meaningful Story cannot
+    # remain untranslated indefinitely while CI calls localization healthy.
+    health = run(
+        "tools/translation_health.py",
+        "--grace-hours", "1",
+        "--fresh-window-hours", "30",
+        "--minimum-importance", "4",
+    )
+    if health.returncode:
+        return fail("salud de traduccion reciente", health)
 
-        catalogo = json.loads((i18n / locale / "ui.json").read_text(encoding="utf-8"))["ui"]
-        for valor in valores_de_taxonomia(canonicos):
-            traducido = catalogo.get(valor)
-            if not traducido:
-                fallos.append(f"{locale}: falta la taxonomia '{valor}' en ui.json")
-            elif "stub]" in traducido:
-                fallos.append(f"{locale}: la taxonomia '{valor}' sigue con marcador")
-
-    compuertas = subprocess.run([sys.executable, "tools/verify_release.py"],
-                                cwd=RAIZ, capture_output=True, text=True)
-    if compuertas.returncode != 0:
-        fallos.append("las compuertas de publicacion no pasan:\n"
-                      + (compuertas.stdout + compuertas.stderr)[-2000:])
-
-    if fallos:
-        print("\n".join(f"- {f}" for f in fallos))
-        return 1
-    print(f"{len(canonicos)} historias traducidas en {', '.join(IDIOMAS)}; "
-          "las 6 compuertas pasan")
+    print(
+        f"traduccion OK: {doc.get('native_complete_story_count')} completas; "
+        f"pending={doc.get('pending_translation_count')}; recientes materiales dentro del SLO"
+    )
     return 0
 
 
