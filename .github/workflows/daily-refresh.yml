@@ -2,8 +2,9 @@ name: Refresh the autonomous newsroom from the sanitized corpus
 
 # The newswire bridge leaves exclusively sanitized material in corpus/. From here
 # Newsletter behaves as a public clean-room newsroom: validate the heartbeat,
-# ingest, import the ARB-authored ES/ZH editions, re-research public sources,
-# resolve media, build Story surfaces and refuse publication until every gate passes.
+# ingest, import ARB-authored ES/ZH editions, re-research public sources,
+# resolve media, build Story surfaces and refuse unsafe publication. Native-language
+# backlog is explicit and observable; it no longer rolls canonical English backward.
 on:
   push:
     branches: [main]
@@ -80,8 +81,8 @@ jobs:
       - name: Bind locale metadata to the current canonical editorial identity
         run: python tools/refresh_locale_identity.py --site release-src
 
-      - name: Prove all three editorial editions are publication-safe
-        run: python tools/validate_localizations.py --site release-src
+      - name: Validate every available native edition and record translation backlog
+        run: python tools/validate_localizations_partial.py --site release-src
 
       - name: Re-research the stories from public evidence only
         run: python tools/public_research_desk.py --release-src release-src
@@ -91,6 +92,9 @@ jobs:
 
       - name: Build the Story layer and static EN ES ZH news surfaces
         run: python tools/build_newsroom_surfaces.py --release-src release-src --site site
+
+      - name: Replace untranslated locale fallbacks with explicit pending pages
+        run: python tools/mark_pending_localizations.py --site site
 
       - name: Select the freshest material lead without changing evidence labels
         run: python tools/editorial_freshness.py select --stories site/data/stories.json
