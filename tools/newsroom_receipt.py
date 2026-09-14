@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
-"""Validate the upstream airlock heartbeat and write the downstream newsroom ACK.
+"""Validate the upstream Airlock heartbeat and write the downstream newsroom ACK.
 
 A fresh heartbeat with an unchanged content-addressed release is a healthy quiet
-cycle (NO_PUBLIC_DELTA_READY). Missing/stale input is an operational failure,
-not a green no-op. Finalization records what Newsletter actually ingested and
-built; live deployment is proved separately by the post-deploy oracle.
+cycle. Missing/stale input is an operational failure. Native-language backlog is
+reported explicitly but does not make a fully validated English Story layer false.
 """
 from __future__ import annotations
 
@@ -16,7 +15,7 @@ from pathlib import Path
 from typing import Any
 
 AIRLOCK_SCHEMA = "fcmo-newswire-airlock-v2"
-STATUS_SCHEMA = "fcmo-newsroom-status-v1"
+STATUS_SCHEMA = "fcmo-newsroom-status-v2"
 
 
 def utc(value: str) -> datetime:
@@ -89,25 +88,31 @@ def finalize(args: argparse.Namespace) -> int:
     if not isinstance(media, list):
         raise ValueError("release-src/data/media.json must be an array")
 
-    locale_counts = {}
+    locale_ids: dict[str, set[str]] = {}
     for locale in ("es-419", "zh-Hans"):
         ids: set[str] = set()
         for path in sorted((args.site / "data" / "i18n" / locale).glob("part-*.json")):
             rows = load(path).get("records") or {}
+            if not isinstance(rows, dict):
+                raise ValueError(f"{locale}: malformed i18n part {path.name}")
             ids.update(rows)
-        locale_counts[locale] = len(ids)
+        locale_ids[locale] = ids
 
     canonical_count = count_json_files(args.release_src / "data" / "briefs", "FCMO-*.json")
+    canonical_ids = {str(s.get("research_id") or "") for s in stories}
     if len(stories) != canonical_count:
         raise ValueError(f"story layer count mismatch: canonical={canonical_count} stories={len(stories)}")
     if len(media) != canonical_count:
         raise ValueError(f"media count mismatch: canonical={canonical_count} media={len(media)}")
-    if any(count != canonical_count for count in locale_counts.values()):
-        raise ValueError(f"locale count mismatch: canonical={canonical_count} locales={locale_counts}")
+    for locale, ids in locale_ids.items():
+        extra = ids - canonical_ids
+        if extra:
+            raise ValueError(f"{locale}: locale IDs outside canonical Story layer: {sorted(extra)}")
+    if locale_ids["es-419"] != locale_ids["zh-Hans"]:
+        raise ValueError("ES/ZH native locale ID sets differ")
 
-    # Footnote: this runs before Pages. Calling the state PUBLISHED here would
-    # turn a successful build into a false deployment claim. The live oracle is
-    # the authority for actual production visibility.
+    pending = canonical_ids - locale_ids["es-419"]
+    translation_state = "COMPLETE" if not pending else "DEGRADED_TRANSLATION_BACKLOG"
     state = "NO_PUBLIC_DELTA_READY" if same else "PUBLIC_DELTA_READY"
     now = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
     status = {
@@ -120,15 +125,21 @@ def finalize(args: argparse.Namespace) -> int:
         "canonical_story_count": canonical_count,
         "story_layer_count": len(stories),
         "media_count": len(media),
-        "translation_counts": locale_counts,
+        "translation_counts": {locale: len(ids) for locale, ids in locale_ids.items()},
+        "translation_state": translation_state,
+        "pending_translation_count": len(pending),
+        "pending_translation_ids": sorted(pending),
         "finalized_at": now,
         "ack": "INGESTED_VALIDATED_AND_READY_FOR_DEPLOY",
         "previous_release_id": previous.get("release_id"),
-        "deployment_proof": "post-deploy live oracle required"
+        "deployment_proof": "post-deploy live oracle required",
     }
     args.status.parent.mkdir(parents=True, exist_ok=True)
     args.status.write_text(json.dumps(status, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    print(f"newsroom ACK {state}: {receipt['release_id']} stories={canonical_count}")
+    print(
+        f"newsroom ACK {state}: {receipt['release_id']} stories={canonical_count} "
+        f"translations={translation_state} pending={len(pending)}"
+    )
     return 0
 
 
