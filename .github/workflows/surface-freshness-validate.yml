@@ -25,7 +25,7 @@ jobs:
         run: |
           python -m py_compile tools/apply_front_page_layout.py tests/oraculos/verificar_surface_freshness.py
           node --check tools/newsletter-current-corpus.js
-      - name: Assemble the exact Pages candidate
+      - name: Assemble the exact Pages candidate and isolate layout drift
         run: |
           python tools/build_final_release.py --check
           rm -rf publish
@@ -39,7 +39,28 @@ jobs:
           python tools/apply_curated_i18n.py publish "$CANONICAL_HASH"
           cp site/data/stories.json publish/data/stories.json
           python tools/promote_story_front_page.py --site publish
+
+          python tests/oraculos/verificar_layout.py publish --json-out /tmp/layout-before.json || true
+          python - <<'PY'
+          import json
+          d=json.load(open('/tmp/layout-before.json'))
+          print('LAYOUT_STAGE before autonomous patch')
+          for c in d['cases']:
+              if c['route']=='home' and c['locale']=='en' and c['width']>=1366:
+                  print(c['width'],c['height'],c['metrics'].get('lead_height'),c['failures'])
+          PY
+
           python tools/apply_front_page_layout.py --site publish
+          python tests/oraculos/verificar_layout.py publish --json-out /tmp/layout-after-patch.json || true
+          python - <<'PY'
+          import json
+          d=json.load(open('/tmp/layout-after-patch.json'))
+          print('LAYOUT_STAGE after autonomous patch')
+          for c in d['cases']:
+              if c['route']=='home' and c['locale']=='en' and c['width']>=1366:
+                  print(c['width'],c['height'],c['metrics'].get('lead_height'),c['failures'])
+          PY
+
           python tools/build_editorial_frontends.py --site publish
           python tools/finalize_editorial_frontends.py --site publish --refresh-manifest
       - name: Prove freshness and collision invariants
