@@ -8,6 +8,7 @@ on:
       - 'tools/newsletter-autonomous-surfaces.css'
       - 'tools/newsletter-current-corpus.js'
       - 'tests/oraculos/verificar_surface_freshness.py'
+      - 'tests/oraculos/verificar_layout.py'
       - '.github/workflows/pages.yml'
       - '.github/workflows/surface-freshness-validate.yml'
 
@@ -23,7 +24,7 @@ jobs:
           persist-credentials: false
       - name: Compile deterministic patch/oracle
         run: |
-          python -m py_compile tools/apply_front_page_layout.py tests/oraculos/verificar_surface_freshness.py
+          python -m py_compile tools/apply_front_page_layout.py tests/oraculos/verificar_surface_freshness.py tests/oraculos/verificar_layout.py
           node --check tools/newsletter-current-corpus.js
       - name: Assemble the exact Pages candidate and isolate layout drift
         run: |
@@ -47,7 +48,7 @@ jobs:
           print('LAYOUT_STAGE before autonomous patch')
           for c in d['cases']:
               if c['route']=='home' and c['locale']=='en' and c['width']>=1366:
-                  print(c['width'],c['height'],c['metrics'].get('lead_height'),c['failures'])
+                  print(c['width'],c['height'],c['metrics'],c['failures'])
           PY
 
           python tools/apply_front_page_layout.py --site publish
@@ -58,7 +59,7 @@ jobs:
           print('LAYOUT_STAGE after autonomous patch')
           for c in d['cases']:
               if c['route']=='home' and c['locale']=='en' and c['width']>=1366:
-                  print(c['width'],c['height'],c['metrics'].get('lead_height'),c['failures'])
+                  print(c['width'],c['height'],c['metrics'],c['failures'])
           PY
 
           python tools/build_editorial_frontends.py --site publish
