@@ -174,8 +174,6 @@ jobs:
           assert development_ids, 'development dossier surface is unexpectedly empty'
           assert development_ids <= canonical_ids, ('orphan development dossiers', sorted(development_ids-canonical_ids))
 
-          # Edition history is append-only. The old test hardcoded exactly three
-          # files, which made successful future publication itself a CI failure.
           source_editions = {p.name for p in Path('site/editions').glob('*.html')}
           published_editions = {p.name for p in (root/'editions').glob('*.html')}
           assert source_editions <= published_editions, ('edition history regressed', sorted(source_editions-published_editions))
@@ -199,6 +197,7 @@ jobs:
           from pathlib import Path
           import json, re
           from tools.apply_curated_i18n import validate_curated_i18n
+
           index = Path('regression/index.html')
           text = index.read_text(encoding='utf-8')
           match = re.search(r'(<script id="fcmo-data" type="application/json">)(.*?)(</script>)', text, re.S)
@@ -214,13 +213,26 @@ jobs:
           data['records'].append(seed)
           replacement = match.group(1) + json.dumps(data, ensure_ascii=False, separators=(',', ':')) + match.group(3)
           index.write_text(text[:match.start()] + replacement + text[match.end():], encoding='utf-8')
+
           try:
               validate_curated_i18n(Path('regression'))
           except ValueError as exc:
               message = str(exc)
-              assert 'record IDs do not exactly match canonical corpus' in message, message
-              assert 'FCMO-FFFFFFFFFFFF' in message, message
-              print('Fail-closed regression OK: untranslated synthetic story was rejected')
+              # The strict validator may reject at metadata/hash identity before it
+              # reaches the record-ID comparison. Require a concrete mismatch in
+              # BOTH native editions; an unrelated ValueError is not sufficient.
+              es_rejected = (
+                  'es-419: canonical_record_count metadata is' in message
+                  or 'es-419: canonical editorial source hash mismatch' in message
+                  or ('es-419:' in message and 'record IDs do not exactly match canonical corpus' in message)
+              )
+              zh_rejected = (
+                  'zh-Hans: canonical_record_count metadata is' in message
+                  or 'zh-Hans: canonical editorial source hash mismatch' in message
+                  or ('zh-Hans:' in message and 'record IDs do not exactly match canonical corpus' in message)
+              )
+              assert es_rejected and zh_rejected, message
+              print('Fail-closed regression OK: synthetic English-only Story was rejected by both native-edition contracts')
           else:
               raise AssertionError('localization validator accepted an untranslated canonical story')
           PY
