@@ -1,0 +1,52 @@
+name: Proof Spine shadow receipt
+
+on:
+  push:
+    branches:
+      - agent/proof-spine-shadow-pilot
+    paths:
+      - 'tools/proof_spine_shadow_receipt.py'
+      - 'docs/PROOF_SPINE_SHADOW_PILOT.md'
+      - '.github/workflows/proof-spine-shadow-receipt.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: proof-spine-shadow-receipt
+  cancel-in-progress: true
+
+jobs:
+  shadow-receipt:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # Footnote for future maintainers: this branch-only workflow is an evidence
+      # adapter, not a production gate. It intentionally reuses Newsletter-native
+      # checks and has read-only repository permission; no publish/deploy action is
+      # reachable from this workflow.
+      - name: Compile shadow receipt adapter
+        run: python -m py_compile tools/proof_spine_shadow_receipt.py
+
+      - name: Capture Newsletter-native production health receipt
+        run: >-
+          python tools/proof_spine_shadow_receipt.py
+          --output /tmp/newsletter-proof-spine-shadow-receipt.json
+
+      # Footnote: preserve the raw receipt as the cross-repository evidence boundary.
+      # The artifact contains observations only; Agent Hub owns any experimental proof
+      # contract that consumes it later.
+      - name: Upload shadow receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: newsletter-proof-spine-shadow-receipt
+          path: /tmp/newsletter-proof-spine-shadow-receipt.json
+          if-no-files-found: error
+          retention-days: 14
