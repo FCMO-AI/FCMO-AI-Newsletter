@@ -171,18 +171,23 @@ jobs:
           brief_ids = {path.stem for path in (root/'data/briefs').glob('FCMO-*.json')}
           development_ids = {path.stem for path in (root/'developments').glob('FCMO-*.html')}
           assert brief_ids == canonical_ids, ('brief parity', sorted(canonical_ids-brief_ids), sorted(brief_ids-canonical_ids))
-          # developments/ is the legacy/full-dossier reader surface carried by the
-          # frozen release; the autonomous Story layer is news/{en,es,zh-hans}.
-          # Require every dossier to bind to canonical research, but do not invent
-          # pages for records the dossier renderer does not own.
           assert development_ids, 'development dossier surface is unexpectedly empty'
           assert development_ids <= canonical_ids, ('orphan development dossiers', sorted(development_ids-canonical_ids))
-          assert len(list((root/'editions').glob('*.html'))) == 3, 'frozen historical editions changed unexpectedly'
+
+          # Edition history is append-only. The old test hardcoded exactly three
+          # files, which made successful future publication itself a CI failure.
+          source_editions = {p.name for p in Path('site/editions').glob('*.html')}
+          published_editions = {p.name for p in (root/'editions').glob('*.html')}
+          assert source_editions <= published_editions, ('edition history regressed', sorted(source_editions-published_editions))
+          assert published_editions, 'edition history is unexpectedly empty'
+          bad_names = sorted(name for name in published_editions if not re.fullmatch(r'20\d\d-\d\d-\d\d\.html', name))
+          assert not bad_names, ('invalid edition filenames', bad_names)
+
           assert (root/'build-manifest.json').is_file(), 'build manifest missing'
           build_manifest = json.loads((root/'build-manifest.json').read_text())
           for required in ('archive.html','search.html','topics.html','organizations.html','methodology.html','automation.html','status.html'):
               assert required in build_manifest['files'], required
-          print(f'Curated release identity OK: {canonical_count} canonical records / 3 native languages / {len(development_ids)} canonical dossiers / {digest}')
+          print(f'Curated release identity OK: {canonical_count} canonical records / 3 native languages / {len(development_ids)} canonical dossiers / {len(published_editions)} historical editions / {digest}')
           PY
 
       - name: Prove a new untranslated story fails closed
