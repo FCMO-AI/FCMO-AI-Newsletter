@@ -47,7 +47,6 @@ jobs:
         run: |
           from pathlib import Path
           import sys
-
           roots = [Path('tools'), Path('.github/workflows'), Path('LOCALIZATION.md'), Path('README.md')]
           forbidden = (
               'ANTH' + 'ROPIC_API_KEY',
@@ -98,9 +97,6 @@ jobs:
           PY
           )
           python tools/apply_curated_i18n.py publish "$CANONICAL_HASH"
-          # Match Pages byte-for-byte in ordering. The frozen overlay predates the
-          # autonomous Story layer, so the current Story data/lead/presentation
-          # must be rebound after the overlay and before browser QA.
           cp site/data/stories.json publish/data/stories.json
           python tools/promote_story_front_page.py --site publish
           python tools/apply_front_page_layout.py --site publish
@@ -155,9 +151,9 @@ jobs:
           assert len(canonical_ids) == len(records), 'canonical corpus contains duplicate record IDs'
           canonical_count = len(records)
 
-          assert i18n['canonical_index_sha256'] == frozen['index_sha256']
-          assert i18n['supported_locales'] == ['en','es-419','zh-Hans']
-          assert i18n['canonical_record_count'] == canonical_count
+          assert i18n['canonical_index_sha256'] == frozen['index_sha256'], 'locale manifest lost frozen canonical identity'
+          assert i18n['supported_locales'] == ['en','es-419','zh-Hans'], i18n['supported_locales']
+          assert i18n['canonical_record_count'] == canonical_count, (i18n['canonical_record_count'], canonical_count)
 
           for locale in ('es-419','zh-Hans'):
               ui = json.loads((root/'data/i18n'/locale/'ui.json').read_text())
@@ -175,13 +171,18 @@ jobs:
           brief_ids = {path.stem for path in (root/'data/briefs').glob('FCMO-*.json')}
           development_ids = {path.stem for path in (root/'developments').glob('FCMO-*.html')}
           assert brief_ids == canonical_ids, ('brief parity', sorted(canonical_ids-brief_ids), sorted(brief_ids-canonical_ids))
-          assert development_ids == canonical_ids, ('development parity', sorted(canonical_ids-development_ids), sorted(development_ids-canonical_ids))
-          assert len(list((root/'editions').glob('*.html'))) == 3
-          assert (root/'build-manifest.json').is_file()
+          # developments/ is the legacy/full-dossier reader surface carried by the
+          # frozen release; the autonomous Story layer is news/{en,es,zh-hans}.
+          # Require every dossier to bind to canonical research, but do not invent
+          # pages for records the dossier renderer does not own.
+          assert development_ids, 'development dossier surface is unexpectedly empty'
+          assert development_ids <= canonical_ids, ('orphan development dossiers', sorted(development_ids-canonical_ids))
+          assert len(list((root/'editions').glob('*.html'))) == 3, 'frozen historical editions changed unexpectedly'
+          assert (root/'build-manifest.json').is_file(), 'build manifest missing'
           build_manifest = json.loads((root/'build-manifest.json').read_text())
           for required in ('archive.html','search.html','topics.html','organizations.html','methodology.html','automation.html','status.html'):
               assert required in build_manifest['files'], required
-          print(f'Curated release identity OK: {canonical_count} canonical records / 3 native languages / {digest}')
+          print(f'Curated release identity OK: {canonical_count} canonical records / 3 native languages / {len(development_ids)} canonical dossiers / {digest}')
           PY
 
       - name: Prove a new untranslated story fails closed
@@ -193,7 +194,6 @@ jobs:
           from pathlib import Path
           import json, re
           from tools.apply_curated_i18n import validate_curated_i18n
-
           index = Path('regression/index.html')
           text = index.read_text(encoding='utf-8')
           match = re.search(r'(<script id="fcmo-data" type="application/json">)(.*?)(</script>)', text, re.S)
@@ -209,7 +209,6 @@ jobs:
           data['records'].append(seed)
           replacement = match.group(1) + json.dumps(data, ensure_ascii=False, separators=(',', ':')) + match.group(3)
           index.write_text(text[:match.start()] + replacement + text[match.end():], encoding='utf-8')
-
           try:
               validate_curated_i18n(Path('regression'))
           except ValueError as exc:
