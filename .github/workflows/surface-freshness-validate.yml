@@ -1,0 +1,49 @@
+name: Validate autonomous publication surfaces
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'tools/apply_front_page_layout.py'
+      - 'tools/newsletter-autonomous-surfaces.css'
+      - 'tools/newsletter-current-corpus.js'
+      - 'tests/oraculos/verificar_surface_freshness.py'
+      - 'tests/oraculos/verificar_layout.py'
+      - '.github/workflows/pages.yml'
+      - '.github/workflows/surface-freshness-validate.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  surface-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Compile deterministic surface tooling
+        run: |
+          python -m py_compile tools/apply_front_page_layout.py tests/oraculos/verificar_surface_freshness.py tests/oraculos/verificar_layout.py
+          node --check tools/newsletter-current-corpus.js
+      - name: Assemble the exact Pages candidate
+        run: |
+          python tools/build_final_release.py --check
+          rm -rf publish
+          cp -a site publish
+          python tools/apply_final_release.py publish
+          CANONICAL_HASH=$(python - <<'PY'
+          import json
+          print(json.load(open('release-overlay/final/manifest.json', encoding='utf-8'))['index_sha256'])
+          PY
+          )
+          python tools/apply_curated_i18n.py publish "$CANONICAL_HASH"
+          cp site/data/stories.json publish/data/stories.json
+          python tools/promote_story_front_page.py --site publish
+          python tools/apply_front_page_layout.py --site publish
+          python tools/build_editorial_frontends.py --site publish
+          python tools/finalize_editorial_frontends.py --site publish --refresh-manifest
+      - name: Prove autonomous freshness and collision invariants
+        run: python tests/oraculos/verificar_surface_freshness.py publish
+      - name: Preserve the complete responsive contract
+        run: python tests/oraculos/verificar_layout.py publish

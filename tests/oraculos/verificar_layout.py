@@ -41,9 +41,6 @@ VIEWPORTS = (
     (1648, 900),
     (1920, 1080),
 )
-# Footnote: English remains the semantic source, but layout is a presentation
-# contract shared by all three native editions. These extra cases specifically
-# guard the longer Spanish hero observed in production plus Simplified Chinese.
 LOCALIZED_HOME_CASES = (
     (1366, 768, "es-419"),
     (1648, 900, "es-419"),
@@ -57,7 +54,6 @@ class QuietHandler(SimpleHTTPRequestHandler):
 
 
 def browser_path() -> str:
-    """Resolve the same browser families accepted by the existing DOM oracle."""
     override = os.environ.get("FCMO_BROWSER")
     if override:
         candidate = Path(override)
@@ -89,12 +85,6 @@ def serve(root: Path):
 
 
 def harness_html() -> str:
-    """Return a same-origin iframe harness whose iframe dimensions are the viewport.
-
-    Footnote: an iframe has its own CSS viewport, so width *and height* media
-    queries execute exactly against the tested dimensions. The outer browser only
-    coordinates the tests; it does not substitute a guessed layout calculation.
-    """
     viewports = json.dumps([{"width": w, "height": h} for w, h in VIEWPORTS])
     localized = json.dumps(
         [{"width": w, "height": h, "locale": locale} for w, h, locale in LOCALIZED_HOME_CASES]
@@ -118,8 +108,6 @@ async function load(width,height,route,locale='en'){{
     const language=locale==='en'?'':'&lang='+encodeURIComponent(locale);
     frame.src='index.html?layout-oracle='+Date.now()+language+'#/'+route;
   }});
-  // Footnote: curated locale presentation is deterministic but executes after
-  // initial DOM construction; this wait observes the post-localization layout.
   await sleep(340);
   return [frame.contentWindow,frame.contentDocument];
 }}
@@ -133,21 +121,31 @@ function record(width,height,route,locale,doc,win){{
   if(route==='home'){{
     const hero=doc.querySelector('.hero');
     const heroTitle=doc.querySelector('.hero h1');
-    const lead=doc.querySelector('.lead');
-    const leadTitle=doc.querySelector('.lead-body h2');
+    // Important: Signal Field dots may also carry the semantic class "lead".
+    // Measure the editorial section, never the first arbitrary .lead element.
+    const lead=doc.querySelector('section.lead');
+    const leadTitle=lead&&lead.querySelector('.lead-body h2');
+    const leadInner=lead&&lead.querySelector('.lead-inner');
+    const leadRail=lead&&lead.querySelector('.lead-rail');
+    const leadBody=lead&&lead.querySelector('.lead-body');
+    const leadLedger=lead&&lead.querySelector('.evidence-ledger');
     const frontGrid=doc.querySelector('.front-grid');
     const frontSection=frontGrid&&frontGrid.closest('.section');
     const frontHeading=frontSection&&frontSection.querySelector('.section-head h2');
     const footer=doc.querySelector('.footer');
 
     if(!hero) local.push('missing .hero');
-    if(!lead) local.push('missing .lead');
+    if(!lead) local.push('missing section.lead');
     if(!frontGrid) local.push('missing .front-grid');
     if(!footer) local.push('missing .footer');
 
     if(hero) metrics.hero_height=Number(hero.getBoundingClientRect().height.toFixed(1));
     if(heroTitle) metrics.hero_title_px=Number(px(heroTitle,'fontSize').toFixed(1));
     if(lead) metrics.lead_height=Number(lead.getBoundingClientRect().height.toFixed(1));
+    if(leadInner) metrics.lead_inner_height=Number(leadInner.getBoundingClientRect().height.toFixed(1));
+    if(leadRail) metrics.lead_rail_height=Number(leadRail.getBoundingClientRect().height.toFixed(1));
+    if(leadBody) metrics.lead_body_height=Number(leadBody.getBoundingClientRect().height.toFixed(1));
+    if(leadLedger) metrics.lead_ledger_height=Number(leadLedger.getBoundingClientRect().height.toFixed(1));
     if(leadTitle) metrics.lead_title_px=Number(px(leadTitle,'fontSize').toFixed(1));
     if(frontSection) metrics.front_section_height=Number(frontSection.getBoundingClientRect().height.toFixed(1));
     if(footer) metrics.footer_height=Number(footer.getBoundingClientRect().height.toFixed(1));
@@ -155,18 +153,12 @@ function record(width,height,route,locale,doc,win){{
     if(width>1080 && hero && hero.getBoundingClientRect().bottom > win.innerHeight + 2)
       local.push(`desktop hero exceeds first viewport: ${{hero.getBoundingClientRect().bottom.toFixed(1)}}>${{win.innerHeight}}`);
 
-    /* [ORACLE-ER01] The 2026-09-10 follow-up explicitly restores cover authority.
-       A relative floor catches a future height rule that quietly shrinks the hero
-       back into the timid state seen in the production screenshot. */
     if(width>=1366 && heroTitle){{
       const minimum=Math.min(118,width*.078);
       if(px(heroTitle,'fontSize') < minimum)
         local.push(`hero title lost desktop authority: ${{px(heroTitle,'fontSize').toFixed(1)}}px < ${{minimum.toFixed(1)}}px`);
     }}
 
-    /* [ORACLE-ER02] Same principle for the lead headline: preserve the stronger
-       intimidating editorial scale while allowing the narrowest desktop regime
-       to remain more conservative. */
     if(width>=1366 && leadTitle){{
       const minimum=Math.min(80,width*.052);
       if(px(leadTitle,'fontSize') < minimum)
@@ -185,8 +177,6 @@ function record(width,height,route,locale,doc,win){{
       if(text && overlap(thumb.getBoundingClientRect(),text.getBoundingClientRect())) local.push('Front Page thumbnail intersects headline text');
     }}
 
-    /* [ORACLE-ER03] At wide desktop the Front Page must read as macro + secondary
-       + three quick signals, not collapse back into three equally weighted columns. */
     if(width>=1280 && frontGrid){{
       const feature=frontGrid.querySelector(':scope > .front-story.feature');
       const secondary=frontGrid.querySelector(':scope > .front-story:not(.feature)');
@@ -207,9 +197,6 @@ function record(width,height,route,locale,doc,win){{
       }}
     }}
 
-    /* [ORACLE-ER04] A desktop section should behave as one designed view. This
-       is intentionally scoped to standard >=1366px desktops; 720px-high narrow
-       screens remain supported without forcing editorial copy to disappear. */
     if(width>=1366 && height>=768){{
       if(lead && lead.getBoundingClientRect().height > win.innerHeight + 8)
         local.push(`lead section no longer fits one desktop view: ${{lead.getBoundingClientRect().height.toFixed(1)}}>${{win.innerHeight+8}}`);
@@ -217,8 +204,6 @@ function record(width,height,route,locale,doc,win){{
         local.push(`Front Page section no longer fits one desktop view: ${{frontSection.getBoundingClientRect().height.toFixed(1)}}>${{win.innerHeight+8}}`);
     }}
 
-    /* [ORACLE-ER05] Footer is deliberately a compact closing instrument. A hard
-       desktop ceiling catches regression back to the former pseudo-hero footer. */
     if(width>1080 && footer){{
       const ceiling=Math.min(320,win.innerHeight*.42);
       if(footer.getBoundingClientRect().height > ceiling)
