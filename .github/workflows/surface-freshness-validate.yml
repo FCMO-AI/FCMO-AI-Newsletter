@@ -8,8 +8,10 @@ on:
       - 'tools/newsletter-autonomous-surfaces.css'
       - 'tools/newsletter-current-corpus.js'
       - 'tests/oraculos/verificar_surface_freshness.py'
+      - 'tests/oraculos/verificar_live_surfaces.py'
       - 'tests/oraculos/verificar_layout.py'
       - '.github/workflows/pages.yml'
+      - '.github/workflows/newsroom-health.yml'
       - '.github/workflows/surface-freshness-validate.yml'
 
 permissions:
@@ -24,7 +26,7 @@ jobs:
           persist-credentials: false
       - name: Compile deterministic surface tooling
         run: |
-          python -m py_compile tools/apply_front_page_layout.py tests/oraculos/verificar_surface_freshness.py tests/oraculos/verificar_layout.py
+          python -m py_compile tools/apply_front_page_layout.py tests/oraculos/verificar_surface_freshness.py tests/oraculos/verificar_live_surfaces.py tests/oraculos/verificar_layout.py
           node --check tools/newsletter-current-corpus.js
       - name: Assemble the exact Pages candidate
         run: |
@@ -47,3 +49,5 @@ jobs:
         run: python tests/oraculos/verificar_surface_freshness.py publish
       - name: Preserve the complete responsive contract
         run: python tests/oraculos/verificar_layout.py publish
+      - name: Prove the current deployed surfaces obey the same public-freshness contract
+        run: python tests/oraculos/verificar_live_surfaces.py
