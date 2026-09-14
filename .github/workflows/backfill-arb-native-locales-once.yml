@@ -50,7 +50,7 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Build exact declassified projection and stamp locally
+      - name: Build exact projection and stamp locally
         shell: bash
         run: |
           set -euo pipefail
@@ -59,19 +59,36 @@ jobs:
           python tools/build_public_release.py
           python tools/build_public_locales.py stamp es-419
           python tools/build_public_locales.py stamp zh-Hans
-          python tools/build_public_locales.py build
-          python tools/check_native_edition_coverage.py --recent-days 7
           mkdir -p "$RUNNER_TEMP/stamped-locales/es-419" "$RUNNER_TEMP/stamped-locales/zh-Hans"
           cp publication/locales/es-419/debt-2026-09-14.json "$RUNNER_TEMP/stamped-locales/es-419/debt-2026-09-14.json"
           cp publication/locales/zh-Hans/debt-2026-09-14.json "$RUNNER_TEMP/stamped-locales/zh-Hans/debt-2026-09-14.json"
 
-      - name: Upload exact validated stamped fragments
+      - name: Validate and preserve diagnostics
+        id: validate
+        shell: bash
+        continue-on-error: true
+        run: |
+          set +e
+          cd "$RUNNER_TEMP/fcmo-arb-locale-repair"
+          python tools/build_public_locales.py build > "$RUNNER_TEMP/stamped-locales/airlock.txt" 2>&1
+          A=$?
+          python tools/check_native_edition_coverage.py --recent-days 7 > "$RUNNER_TEMP/stamped-locales/coverage.txt" 2>&1
+          C=$?
+          printf 'airlock_exit=%s\ncoverage_exit=%s\n' "$A" "$C" > "$RUNNER_TEMP/stamped-locales/status.txt"
+          test "$A" -eq 0 -a "$C" -eq 0
+
+      - name: Upload stamped fragments and diagnostics
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: stamped-arb-native-locales
           path: ${{ runner.temp }}/stamped-locales
           if-no-files-found: error
           retention-days: 1
+
+      - name: Enforce validation result
+        if: steps.validate.outcome != 'success'
+        run: exit 1
 
       - name: Destroy private checkout
         if: always()
