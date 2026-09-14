@@ -1,0 +1,403 @@
+{
+  "date": "2026-09-13",
+  "authority": "published_edition",
+  "published": true,
+  "preamble": [
+    {
+      "type": "p",
+      "text": "Published 2026-09-13T12:09:44Z · evidence cutoff 2026-09-13T12:08:00Z"
+    },
+    {
+      "type": "div",
+      "text": "Historical snapshot: later evidence may be reflected in current research pages and corrections."
+    },
+    {
+      "type": "heading",
+      "text": "FCMO AI Newsletter — 2026-09-13"
+    }
+  ],
+  "sections": [
+    {
+      "title": "Executive read",
+      "blocks": [
+        {
+          "type": "p",
+          "text": "Today’s strongest signal is that AI capability is increasingly being unlocked by engineering the computation around the model—not only by increasing model size ."
+        },
+        {
+          "type": "p",
+          "text": "OpenAI’s Navier–Stokes result is the extreme case: an unreleased frontier model, roughly 10,000 concurrent agents, massive parallel search and Lean verification were combined into a research system that reportedly completed a Millennium-problem construction on a multi-day timescale. T1 attacks a related problem from the training side: long-horizon sparse-agent RL becomes unstable when the trajectory sampled at inference is not exactly the trajectory optimized during training, so it replays exact token IDs and MoE routes and adds executable partial-credit rewards. TRACE manufactures objective causal labels inside simulators so diagnostic agents can receive RL signal where real-world labels are scarce. Looped Flows tries to turn repeated latent computation itself into a scalable inference resource without backpropagating through the entire recurrent trajectory."
+        },
+        {
+          "type": "p",
+          "text": "The same pattern appears outside reasoning. SenseNova-U1.5 unifies visual understanding, generation and editing around one native token interface and a specialize-then-distill post-training recipe. GPU-CFR gets most of its dramatic speedup by compiling fixed structure out of the hot loop before CUDA Graphs enter the picture. RetroThinker trains a streaming speech model to revise early reasoning without surrendering the latency advantage of concurrent speech processing."
+        },
+        {
+          "type": "p",
+          "text": "The practical lesson is becoming hard to ignore: the model is only one component of the capability stack . Verifiers, recurrence, routing consistency, execution graphs, simulators, parallel search and deployment structure can move outcomes by amounts comparable to—or larger than—changing the base checkpoint."
+        }
+      ]
+    },
+    {
+      "title": "1. OpenAI Navier–Stokes: the interesting result is not merely the theorem, but the research-system scaling regime",
+      "blocks": [
+        {
+          "type": "p",
+          "text": "OpenAI reports that a frontier internal model coordinated through groups totaling on the order of 10,000 concurrent agents produced a construction resolving the Navier–Stokes Millennium Prize formulation through finite-time breakdown with smooth forcing."
+        },
+        {
+          "type": "p",
+          "text": "The reported research run lasted roughly 88 hours , followed by around 17 hours of Lean formalization and verification using GPT-6 Astra . OpenAI reports about 2.7 million agent messages and 130 billion output tokens for the Navier–Stokes effort alone."
+        },
+        {
+          "type": "p",
+          "text": "This is unusually strong as an AI-research artifact because the result is not only an informal generated argument. The public openai/NavierStokesAndEuler repository contains Lean sources, a pinned toolchain and build instructions. Google DeepMind’s independent formal-conjectures repository now marks the periodic breakdown statement as research solved and points to an exact OpenAI proof commit."
+        },
+        {
+          "type": "p",
+          "text": "One common objection can already be discarded: the presence of smooth external forcing does not automatically put the construction outside the Millennium problem. Clay’s official breakdown alternatives C and D explicitly allow smooth forcing. The real questions are whether the construction satisfies those exact hypotheses and whether the analytical/formal bridge survives independent review."
+        },
+        {
+          "type": "p",
+          "text": "The capability question may be even more important than the mathematical one: did 10,000 communicating agents create a qualitatively better research process, or did enormous parallelism brute-force a space that a much smaller system could have explored nearly as well? The decisive experiment is single-agent versus independent best-of-N versus communicating swarms under the same total token/compute budget ."
+        },
+        {
+          "type": "p",
+          "text": "Primary sources:"
+        },
+        {
+          "type": "list",
+          "items": [
+            "https://openai.com/index/navier-stokes-solution/",
+            "https://github.com/openai/NavierStokesAndEuler",
+            "https://www.claymath.org/library/monographs/MPPc.pdf"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "2. T1: long-horizon agent RL is partly a train–inference identity problem",
+      "blocks": [
+        {
+          "type": "p",
+          "text": "T1 post-trains a roughly 122B-class MoE terminal agent on tasks that can exceed 300 tool-call turns ."
+        },
+        {
+          "type": "p",
+          "text": "Its most useful contribution is diagnostic. Sparse-model RL can quietly optimize a computation different from the one that generated the rollout: tokenizer reconstruction can alter token boundaries and MoE routing can choose different experts during the training forward pass. T1 therefore uses Token-In-Token-Out (TITO) to train on the exact sampled token IDs and Rollout Routing Replay to replay the sampled expert choices during optimization."
+        },
+        {
+          "type": "p",
+          "text": "The authors report that this alignment stack reduces their train-to-inference log-probability gap from 0.021 to 0.013 and eliminates token drift in the loss region. They pair that with a warm-started critic and dense rewards based on the number of executable verifier assertions passed, rather than waiting for one binary terminal reward."
+        },
+        {
+          "type": "p",
+          "text": "On Terminal-Bench 2.1, the reported progression is 43.8% base → 49.4% SFT → 64.0% RL . The public T1-122B-A10B checkpoint materially improves auditability."
+        },
+        {
+          "type": "p",
+          "text": "The important restraint is that the final score combines many changes: synthesized tasks, SFT, critic initialization, dense verifier reward, token-exact replay, route replay and large-scale infrastructure. The paper therefore does not prove that any one ingredient caused the full gain."
+        },
+        {
+          "type": "p",
+          "text": "Benchmark ordering also changes across suites. A model that trails T1 on Terminal-Bench can beat it on the authors’ longer-horizon benchmark. Treat T1 as evidence for a training recipe and systems pathology , not as a universal ranking of agent models."
+        },
+        {
+          "type": "p",
+          "text": "Primary sources:"
+        },
+        {
+          "type": "list",
+          "items": [
+            "https://arxiv.org/abs/2609.11042",
+            "https://huggingface.co/TberiusJunyao/T1-122B-A10B"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "3. TRACE: manufacture verifiable causal labels when the real task has no cheap ground truth",
+      "blocks": [
+        {
+          "type": "p",
+          "text": "TRACE attacks a recurring problem in agentic RL: many economically useful tasks—incident diagnosis, root-cause analysis, investigation—have ambiguous outcomes and expensive human labels."
+        },
+        {
+          "type": "p",
+          "text": "Its solution is simple and potentially powerful. Sample a hidden intervention first, run a simulator to generate the noisy evidence caused by that intervention, hide the intervention from the agent, and keep it as an objective reward label. The agent must use Python and SQL to infer the cause from the evidence, but the training system knows exactly what happened."
+        },
+        {
+          "type": "p",
+          "text": "On a held-out 235-episode digital-advertising diagnostic test, the authors report Qwen3.5-35B-A3B at 0.159 when prompted, 0.637 after SFT and 0.757 after RL . The strongest prompted baseline, Claude Opus 5, is reported at 0.686."
+        },
+        {
+          "type": "p",
+          "text": "The tempting headline is that a trained 35B model beats much larger prompted systems. That comparison is not clean enough to support “reward engineering beats scale” as a general law: the larger models are prompted, not given equivalent SFT+RL. The much stronger causal result is the within-35B base → SFT → RL progression ."
+        },
+        {
+          "type": "p",
+          "text": "The failure mode is equally important. A simulator can provide perfectly objective rewards for the wrong world. If it omits real causal pathways or leaks shortcut features, RL can become very good at diagnosing the simulator rather than reality."
+        },
+        {
+          "type": "p",
+          "text": "The next test should therefore include real or manually constructed failures that the simulator never generated, plus matched larger-model training."
+        },
+        {
+          "type": "p",
+          "text": "Primary source:"
+        },
+        {
+          "type": "list",
+          "items": [
+            "https://arxiv.org/abs/2609.10315"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "4. Thinking with Looped Flows: recurrent latent computation becomes a tunable test-time resource",
+      "blocks": [
+        {
+          "type": "p",
+          "text": "Looped models promise an attractive form of reasoning scale: reuse the same parameters repeatedly instead of requiring a deeper network or a longer visible chain of thought. Their training problem is that gradients usually span only a few recurrent updates, so early updates are not strongly trained to support much later computation."
+        },
+        {
+          "type": "p",
+          "text": "Looped Flows replaces long unrolled backpropagation with local denoising objectives. Successive updates are tied together through progressively decreasing noise and shared noise, encouraging recurrent states to carry computation forward. At inference, reasoning is formulated as integrating a learned probability-flow velocity coupled to the recurrent state."
+        },
+        {
+          "type": "p",
+          "text": "That creates two knobs for test-time compute: use a finer temporal integration grid or sample from multiple initial noise states."
+        },
+        {
+          "type": "p",
+          "text": "Across six reasoning benchmarks, the authors report overall improvements over prior looped models, including 58.8% on ARC-AGI-1 and 12.2% on ARC-AGI-2 ."
+        },
+        {
+          "type": "p",
+          "text": "The key unresolved comparison is economic rather than architectural: does a finer recurrent flow beat chain-of-thought, best-of-N, search or conventional recurrent transformers at the same total inference FLOPs and latency ? Without that normalization, extra loops can look like an architectural breakthrough when they are simply more compute."
+        },
+        {
+          "type": "p",
+          "text": "No independent reproduction or official code release was established in this activation, so the result remains investigating."
+        },
+        {
+          "type": "p",
+          "text": "Primary source:"
+        },
+        {
+          "type": "list",
+          "items": [
+            "https://arxiv.org/abs/2609.11801"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "5. SenseNova-U1.5: native visual unification is real as an artifact, but the “8B” label hides a larger deployment footprint",
+      "blocks": [
+        {
+          "type": "p",
+          "text": "SenseNova-U1.5 combines multimodal understanding/reasoning, image generation and editing without a conventional separate semantic vision encoder plus latent VAE pipeline."
+        },
+        {
+          "type": "p",
+          "text": "Its native Mixture-of-Transformers architecture routes language, visual context and noise-conditioned visual states through one sequence interface while allowing specialized understanding and generation parameters. Post-training follows a specialize-then-unify pattern: separate visual experts are optimized for objectives such as aesthetics, bilingual text rendering, infographics and editing, then consolidated through multi-expert on-policy distillation."
+        },
+        {
+          "type": "p",
+          "text": "The final weights and inference artifacts are public under Apache-2.0, which makes this substantially more inspectable than many unified visual claims."
+        },
+        {
+          "type": "p",
+          "text": "One accounting detail matters. The product is named 8B-MoT , but the released Hugging Face artifact reports roughly 18B stored parameters . The architecture has separately parameterized understanding and generation paths. “8B” therefore must not be interpreted as an 8B total-memory checkpoint."
+        },
+        {
+          "type": "p",
+          "text": "The model card also documents persistent failures in dense text, constrained layout/counting, small human details and complex multi-reference editing. The broad benchmark superiority remains mainly first-party and needs matched reruns with the same prompt enhancement, steps, resolution and sampling budgets."
+        },
+        {
+          "type": "p",
+          "text": "Chronology also matters: the final weights were released August 20. September 10 is the fresh technical-report disclosure , not a new model launch."
+        },
+        {
+          "type": "p",
+          "text": "Primary sources:"
+        },
+        {
+          "type": "list",
+          "items": [
+            "https://arxiv.org/abs/2609.11929",
+            "https://github.com/OpenSenseNova/SenseNova-U1",
+            "https://huggingface.co/sensenova/SenseNova-U1.5-8B-MoT"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "6. GPU-CFR: compile the invariant structure first; CUDA Graphs are the second act",
+      "blocks": [
+        {
+          "type": "p",
+          "text": "GPU-CFR notices that in a fixed extensive-form game, numerical regrets and strategies change every iteration but the tree topology, information-set membership, tensor shapes and dependency order do not ."
+        },
+        {
+          "type": "p",
+          "text": "It therefore compiles those invariants into flat indexed dataflow, batches depth-level work, precomputes static operations and then captures the stable GPU sequence with CUDA Graphs."
+        },
+        {
+          "type": "p",
+          "text": "The authors report 29.8–80.4× speedups over the previous matched-A100 GPU CFR implementation. But the decomposition is more useful than the headline: much of the gain appears before graph replay, from eliminating dynamic structure and dispatch overhead."
+        },
+        {
+          "type": "p",
+          "text": "This is a potentially broad systems pattern: if a workload repeats the same dependency graph thousands of times, treat topology discovery as compilation work rather than runtime work."
+        },
+        {
+          "type": "p",
+          "text": "The public repository also usefully limits the claim. Some NoRegret/external baseline drivers and reference timing paths are absent, one sparse-ops path has an ABI problem, and the method loses on tiny games where fixed GPU overhead dominates. Complete reproduction of the entire headline matrix is therefore not yet available from one package."
+        },
+        {
+          "type": "p",
+          "text": "Primary sources:"
+        },
+        {
+          "type": "list",
+          "items": [
+            "https://arxiv.org/abs/2609.11923",
+            "https://github.com/lbn187/GPU-CFR"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "7. RetroThinker: a streaming speech model can learn to revise early reasoning instead of waiting for the user to finish",
+      "blocks": [
+        {
+          "type": "p",
+          "text": "Direct SpeechLLMs can react quickly because they do not wait for a complete ASR transcript and then invoke a text model. The downside is that concurrent reasoning can commit too early, before later audio changes the interpretation."
+        },
+        {
+          "type": "p",
+          "text": "RetroThinker post-trains the streaming Moshi model to self-verify and forward-correct its reasoning while speech is still arriving. It combines supervised retrospective-thinking traces with length-based DPO intended to make correction happen early enough to remain useful under a latency budget."
+        },
+        {
+          "type": "p",
+          "text": "On GSM8K, the authors report an 11 percentage-point absolute accuracy gain at comparable latency over non-retrospective baselines."
+        },
+        {
+          "type": "p",
+          "text": "That is interesting but narrow. GSM8K does not capture accents, interruptions, recognition ambiguity, turn-taking or the messy semantics of real spoken interaction. “Comparable latency” also depends heavily on hardware, chunking, endpointing and generation settings."
+        },
+        {
+          "type": "p",
+          "text": "The decisive comparison is a three-way test at a fixed end-to-end latency target: ordinary concurrent SpeechLLM reasoning, retrospective SpeechLLM reasoning, and a strong streaming ASR + text-reasoning cascade."
+        },
+        {
+          "type": "p",
+          "text": "Primary source:"
+        },
+        {
+          "type": "list",
+          "items": [
+            "https://arxiv.org/abs/2609.11864"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "8. Business and compute geography: Google ties a €13B Finland buildout to multi-decade energy infrastructure",
+      "blocks": [
+        {
+          "type": "p",
+          "text": "Google announced €13 billion of investment in Finland over 2027–2028. Finnish primary sources make the infrastructure interpretation more concrete than a generic corporate-capex headline: Business Finland describes expansion of Hamina plus new construction in Kajaani, Vaala and Muhos ."
+        },
+        {
+          "type": "p",
+          "text": "Fortum separately confirms a 22-year power-purchase agreement that begins at lower capacity in 2028 and reaches up to 50% of Loviisa nuclear-plant capacity during 2030–2049, plus a 94 MW battery system associated with Kajaani."
+        },
+        {
+          "type": "p",
+          "text": "This matters because frontier compute is increasingly constrained by land, power, grid access and financing before accelerator supply becomes the only bottleneck. Hyperscalers are therefore making decisions on energy-infrastructure timescales measured in decades."
+        },
+        {
+          "type": "p",
+          "text": "Primary sources:"
+        },
+        {
+          "type": "list",
+          "items": [
+            "https://blog.google/innovation-and-ai/infrastructure-and-cloud/global-network/google-ai-commitment-to-finland/",
+            "https://www.fortum.com/en/media/2026/09/inside-information-fortum-and-google-partner-drive-sustainable-growth-finland-sign-nuclear-power-purchase-agreement",
+            "https://www.businessfinland.fi/ajankohtaista/uutiset/2026/laajentumissuunnitelma-suomessa/"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Also notable",
+      "blocks": [
+        {
+          "type": "p",
+          "text": "Three Sep-10 research leads survived freshness triage but need deeper verification before deserving a full canonical treatment in this edition."
+        },
+        {
+          "type": "p",
+          "text": "Magenta proposes a training-free loop from natural-language mathematics to Lean statements and machine-checked proofs, with a separate semantic statement judge and error attribution between mathematical re-derivation and Lean repair. The load-bearing question is whether the formalized statement faithfully preserves the original problem; a perfectly checked proof of a subtly altered theorem is not a solution."
+        },
+        {
+          "type": "p",
+          "text": "SpecGuard proposes using speculative-decoding draft-token acceptance rates as a runtime backdoor signal without adding a separate detection model. The interesting causal claim is that attempts to suppress this signal weaken the backdoor itself; this deserves artifact-level adversarial reproduction."
+        },
+        {
+          "type": "p",
+          "text": "Why Does Post-Training Quantization Work? proposes that quantization errors introduced by successive pretrained layers often partially oppose inherited errors, slowing hidden-state discrepancy growth, while LM-head geometry preserves the ordering of high-ranked tokens. If that mechanism survives broad model families, it could improve how low-bit methods are designed rather than merely tuned empirically."
+        },
+        {
+          "type": "p",
+          "text": "They remain research targets, not promoted conclusions."
+        }
+      ]
+    },
+    {
+      "title": "What to watch next",
+      "blocks": [
+        {
+          "type": "p",
+          "text": "Five experiments would change confidence most."
+        },
+        {
+          "type": "p",
+          "text": "First, independently replay the pinned OpenAI Navier–Stokes Lean artifact and compare single-agent, independent best-of-N and communicating swarms under equal total compute. That separates proof validity from swarm efficiency."
+        },
+        {
+          "type": "p",
+          "text": "Second, ablate T1’s token-exact replay, MoE routing replay, dense verifier reward and critic warm start under a fixed rollout budget. The final score currently bundles all of them."
+        },
+        {
+          "type": "p",
+          "text": "Third, stress TRACE with simulator misspecification and completely human-created failures. Objective rewards are useful only if the simulator’s causal world resembles the real one."
+        },
+        {
+          "type": "p",
+          "text": "Fourth, normalize Looped Flows by total inference FLOPs and latency against explicit reasoning/search baselines. More loops are only interesting if they buy more useful reasoning per unit compute."
+        },
+        {
+          "type": "p",
+          "text": "Fifth, apply GPU-CFR’s static-dataflow compilation pattern to a non-game repeated workload. If the same decomposition delivers large gains elsewhere, it becomes a general systems principle rather than a CFR-specific optimization."
+        },
+        {
+          "type": "p",
+          "text": "Across all five, the governing measurement rule is the same: do not ask only whether the result is impressive; ask which mechanism moved it, against what control, in what regime, and at what cost."
+        },
+        {
+          "type": "p",
+          "text": "Evidence cutoff: repository snapshot 6b81d5238b913f20850cda9b65c5ab8eafdc9193 . Investigating/monitoring items remain first-party, artifact-backed or preprint evidence unless explicitly stated otherwise. The Sep-9-to-Sep-11 global arXiv chronology remains incomplete; the source provenance marker is intentionally not advanced beyond 2026-09-08T12:49:30Z merely because selected high-value papers were recovered."
+        }
+      ]
+    }
+  ],
+  "related_brief_ids": [],
+  "human_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/editions/2026-09-13.html",
+  "machine_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/data/editions/2026-09-13.json"
+}
