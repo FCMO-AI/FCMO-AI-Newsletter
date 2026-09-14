@@ -1,24 +1,22 @@
 #!/usr/bin/env python3
 """Verify ingest ownership inside the current autonomous-newsroom pipeline.
 
-The newsroom is a composed product. ``ingest_corpus.py`` owns the canonical
-English substrate; later deterministic stages may rewrite presentation/localized
-brief material and add relationship/public-research/media products. This oracle
-therefore checks two different truths instead of comparing today's release to a
-stale September fixture:
+Two deliberately separate checks live here:
 
-1. current production ``release-src`` must contain exactly the story identities
-   produced from the *current sanitized corpus* and preserve ingest-owned bytes;
-2. the original synthetic growth/idempotence oracle still runs against its frozen
-   fixture, so a generator that merely copies today's tree cannot pass.
+1. production truth: current ``release-src`` must be explainable by the current
+   sanitized ``corpus/`` plus a small, explicit set of downstream-owned lanes;
+2. generator behavior: the older synthetic growth/idempotence oracle runs in a
+   disposable checkout whose baseline is generated from its own frozen fixture.
 
-Downstream exceptions are explicit and narrow. Adding another exception requires
-an architecture change here rather than silently weakening the comparison.
+Keeping those worlds separate matters. A historical fixture is excellent for a
+stable counterfactual growth test, but it must never be compared byte-for-byte
+with today's 100+ Story production tree.
 """
 from __future__ import annotations
 
 import hashlib
 import json
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -26,14 +24,11 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 CURRENT_CORPUS = ROOT / "corpus"
+FIXTURE_CORPUS = ROOT / "_fixtures" / "corpus-2026-09-01"
 RELEASE = ROOT / "release-src"
 GENERATOR = ROOT / "tools" / "ingest_corpus.py"
 LEGACY_ORACLE = Path("tests/oraculos/verificar_generador.py")
 
-# Deterministic downstream ownership after bare ingest.
-# Locale reconciliation/identity can rewrite reader briefs and discovery metadata;
-# relationship synchronization creates the canonical JSONL companion; research/media
-# desks own their dedicated outputs.
 DOWNSTREAM_REWRITTEN = {"data/media.json", "agent.json", "data/site-manifest.json"}
 DOWNSTREAM_REWRITTEN_PREFIXES = ("data/briefs/",)
 DOWNSTREAM_EXTRA_EXACT = {"data/relationships.jsonl"}
@@ -49,7 +44,7 @@ def digest(path: Path) -> str:
 
 
 def tree(root: Path) -> dict[str, str]:
-    return {path.relative_to(root).as_posix(): digest(path) for path in sorted(root.rglob("*")) if path.is_file()}
+    return {p.relative_to(root).as_posix(): digest(p) for p in sorted(root.rglob("*")) if p.is_file()}
 
 
 def downstream_rewritten(path: str) -> bool:
@@ -66,7 +61,7 @@ def fail(message: str) -> int:
 
 
 def canonical_ids(root: Path) -> set[str]:
-    return {path.stem for path in (root / "data" / "briefs").glob("FCMO-*.json")}
+    return {p.stem for p in (root / "data" / "briefs").glob("FCMO-*.json")}
 
 
 def verify_downstream_coverage(release: Path, ids: set[str]) -> list[str]:
@@ -88,7 +83,7 @@ def verify_downstream_coverage(release: Path, ids: set[str]) -> list[str]:
 
     research_dir = release / "data" / "public-research"
     receipt_paths = sorted(research_dir.glob("FCMO-*.json")) if research_dir.is_dir() else []
-    receipt_ids = {path.stem for path in receipt_paths}
+    receipt_ids = {p.stem for p in receipt_paths}
     if receipt_ids != ids:
         errors.append(f"data/public-research no cubre exactamente el corpus: faltan={sorted(ids-receipt_ids)[:8]} sobran={sorted(receipt_ids-ids)[:8]}")
     for path in receipt_paths:
@@ -109,12 +104,15 @@ def verify_downstream_coverage(release: Path, ids: set[str]) -> list[str]:
 
 
 def main() -> int:
-    for required in (CURRENT_CORPUS, RELEASE, GENERATOR, ROOT / LEGACY_ORACLE):
+    for required in (CURRENT_CORPUS, FIXTURE_CORPUS, RELEASE, GENERATOR, ROOT / LEGACY_ORACLE):
         if not required.exists():
             return fail(f"falta {required.relative_to(ROOT)}")
 
     with tempfile.TemporaryDirectory(prefix="fcmo-newsroom-gen-") as temp:
-        ingest = Path(temp) / "ingest"
+        tmp = Path(temp)
+
+        # A. Current production provenance/ownership.
+        ingest = tmp / "current-ingest"
         generated = run(str(GENERATOR), "--corpus", str(CURRENT_CORPUS), "--out", str(ingest))
         if generated.returncode:
             return fail("ingest_corpus.py no pudo reproducir el corpus actual: " + (generated.stderr or generated.stdout or "").strip()[-1200:])
@@ -138,12 +136,23 @@ def main() -> int:
                 print(f"  - {error}", file=sys.stderr)
             return fail(f"{len(coverage_errors)} errores en capas downstream")
 
-        legacy = run(str(LEGACY_ORACLE))
-        if legacy.returncode:
-            print(legacy.stdout, file=sys.stderr); print(legacy.stderr, file=sys.stderr)
-            return fail("el oraculo fuerte de crecimiento/idempotencia fallo")
+        # B. Stable synthetic growth/idempotence proof in its own disposable world.
+        fixture_base = tmp / "fixture-base"
+        seeded = run(str(GENERATOR), "--corpus", str(FIXTURE_CORPUS), "--out", str(fixture_base))
+        if seeded.returncode:
+            return fail("no se pudo crear baseline del fixture historico: " + (seeded.stderr or seeded.stdout or "").strip()[-1200:])
 
-    print("generador compuesto OK: corpus actual reproducible y cubierto; ownership downstream explicito; crecimiento/idempotencia sinteticos verdes")
+        sandbox = tmp / "legacy-repo"
+        shutil.copytree(ROOT, sandbox, ignore=shutil.ignore_patterns(".git", "publish", "regression", "__pycache__", "_audit", ".pytest_cache"))
+        shutil.rmtree(sandbox / "release-src", ignore_errors=True)
+        shutil.copytree(fixture_base, sandbox / "release-src")
+        legacy = run(str(LEGACY_ORACLE), cwd=sandbox)
+        if legacy.returncode:
+            print(legacy.stdout, file=sys.stderr)
+            print(legacy.stderr, file=sys.stderr)
+            return fail("el oraculo fuerte de crecimiento/idempotencia fallo en su sandbox historico")
+
+    print("generador compuesto OK: produccion ligada al corpus actual; ownership downstream explicito; crecimiento/idempotencia sinteticos aislados y verdes")
     return 0
 
 
