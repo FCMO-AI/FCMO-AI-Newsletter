@@ -1,11 +1,12 @@
 /*
-  FCMO AI Newsletter — mobile overflow containment v4.2.4
+  FCMO AI Newsletter — mobile overflow containment v4.2.5
   -------------------------------------------------------
   Post-overlay responsive correction. The frozen release contains desktop-era
-  minimum widths that can survive into the 390px reader surface after the current
-  Story lead is rebound. This patch fixes the cause rather than hiding horizontal
-  overflow: layout containers may shrink, long editorial tokens may wrap, and
-  replaced media may never impose a width larger than their containing block.
+  minimum widths and decorative positioning that can survive into the 390px
+  reader surface after the current Story lead is rebound. This patch fixes those
+  causes rather than hiding horizontal overflow: layout containers may shrink,
+  long editorial tokens may wrap, navigation may wrap, and decorative layers
+  cannot enlarge the document's scrollable width.
 */
 @media (max-width:720px){
   .wrap,
@@ -39,6 +40,15 @@
     max-width:100%!important;
   }
 
+  .wrap,
+  .utility-inner,
+  .hero-inner,
+  .lead-inner,
+  .section-inner,
+  .footer-inner{
+    width:100%!important;
+  }
+
   .hero h1,
   .hero h2,
   .hero-deck p,
@@ -51,10 +61,20 @@
   .headline-stack strong,
   .desk-col a,
   .footer h2,
-  .footer-side p{
+  .footer-side p,
+  .nav a,
+  .nav button,
+  .utility a,
+  .utility span{
     min-width:0!important;
     max-width:100%!important;
     overflow-wrap:anywhere;
+    word-break:break-word;
+  }
+
+  .nav,
+  .utility-inner{
+    flex-wrap:wrap!important;
   }
 
   .hero,
@@ -80,5 +100,19 @@
   .headline-stack .story-visual.thumb,
   .timeline-card .story-visual.thumb{
     min-width:0!important;
+  }
+
+  /* Desktop-only ghost/decorative layers can be absolutely positioned outside
+     their containing block in the frozen overlay. They carry no reader content,
+     so mobile suppresses them instead of letting decoration create scroll width. */
+  .hero-copy::before,
+  .hero-copy::after,
+  .signal-figure::before,
+  .signal-figure::after,
+  .lead::before,
+  .lead::after,
+  .section::before,
+  .section::after{
+    display:none!important;
   }
 }
