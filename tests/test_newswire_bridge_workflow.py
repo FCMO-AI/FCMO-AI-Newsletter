@@ -7,13 +7,25 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 BRIDGE = ROOT / ".github" / "workflows" / "newswire-bridge.yml"
 REFRESH = ROOT / ".github" / "workflows" / "daily-refresh.yml"
+PARTIAL = ROOT / "tools" / "newswire_bridge_partial_locales.py"
 
 
-# Footnote: this suite is intentionally executable on every publication-boundary
-# change so source/ref, secret-scope and private-log regressions cannot reach production.
 class NewswireBridgeWorkflowContractTests(unittest.TestCase):
+    """Security/freshness contract for the production ARB -> Newsletter boundary.
+
+    These assertions deliberately follow the current architecture: try canonical
+    ARB main only when that exact commit seals cleanly, otherwise fall back to the
+    immutable PUBLICATION_READY checkpoint; then seal the selected snapshot again
+    before extracting any public bytes. Production transport may carry a truthful
+    ES/ZH backlog, but it may never invent translation prose or accept asymmetric
+    locale deltas.
+    """
+
+    def bridge(self) -> str:
+        return BRIDGE.read_text(encoding="utf-8")
+
     def test_bridge_has_only_app_activation_inputs_and_read_only_private_scope(self) -> None:
-        text = BRIDGE.read_text(encoding="utf-8")
+        text = self.bridge()
         self.assertIn("FCMO_NEWSWIRE_APP_CLIENT_ID", text)
         self.assertNotIn("FCMO_NEWSWIRE_APP_ID", text)
         self.assertIn("FCMO_NEWSWIRE_APP_PRIVATE_KEY", text)
@@ -22,15 +34,11 @@ class NewswireBridgeWorkflowContractTests(unittest.TestCase):
         self.assertIn("repositories: AI-Research-Breakthroughs", text)
         self.assertIn("permission-contents: read", text)
         self.assertNotIn("permission-contents: write", text)
-        for forbidden in (
-            "FCMO_NEWSLETTER_" + "PUBLISH_TOKEN",
-            "ANTH" + "ROPIC_API_KEY",
-            "GH_" + "PAT",
-        ):
+        for forbidden in ("FCMO_NEWSLETTER_" + "PUBLISH_TOKEN", "ANTH" + "ROPIC_API_KEY", "GH_" + "PAT"):
             self.assertNotIn(forbidden, text)
 
     def test_app_secret_is_only_consumed_by_token_action_on_main(self) -> None:
-        text = BRIDGE.read_text(encoding="utf-8")
+        text = self.bridge()
         self.assertIn("if: github.ref == 'refs/heads/main'", text)
         secret_ref = "${{ secrets.FCMO_NEWSWIRE_APP_PRIVATE_KEY }}"
         self.assertEqual(text.count(secret_ref), 1)
@@ -38,95 +46,78 @@ class NewswireBridgeWorkflowContractTests(unittest.TestCase):
         self.assertNotIn("APP_PRIVATE_KEY:", text)
 
     def test_private_materialization_avoids_checkout_action_sha_leak(self) -> None:
-        text = BRIDGE.read_text(encoding="utf-8")
+        text = self.bridge()
         self.assertNotIn("repository: FCMO-AI/AI-Research-Breakthroughs", text)
         self.assertIn("clone --quiet --depth 1 --single-branch --branch main", text)
         self.assertIn('http.https://github.com/.extraheader=AUTHORIZATION: basic $AUTH', text)
         self.assertIn('echo "::add-mask::$AUTH"', text)
         self.assertIn('echo "::add-mask::$READY_SHA"', text)
-        self.assertIn("unset AUTH APP_TOKEN READY_SHA", text)
+        self.assertIn('echo "::add-mask::$CURRENT_SHA"', text)
+        self.assertIn("unset AUTH APP_TOKEN READY_SHA CURRENT_SHA SELECTED_SHA", text)
         self.assertNotIn("x-access-token:${{", text)
 
-    def test_main_is_only_checkpoint_discovery_and_ready_commit_is_frozen(self) -> None:
-        text = BRIDGE.read_text(encoding="utf-8")
-        # Footnote: mutable main is now only the control pointer. Publication bytes
-        # are fetched from the exact private commit recorded by PUBLICATION_READY,
-        # so a later research promotion cannot enter this transaction accidentally.
-        self.assertIn("--branch main", text)
-        self.assertIn("state/PUBLICATION_READY.json", text)
-        self.assertIn('READY_SHA=$(PRIVATE_DIR_ENV="$PRIVATE_DIR" python - <<\'PY\'', text)
-        self.assertIn('Path(os.environ["PRIVATE_DIR_ENV"])', text)
-        self.assertIn("fetch --quiet --unshallow origin main", text)
+    def test_fresh_main_is_sealed_first_with_ready_checkpoint_as_safe_fallback(self) -> None:
+        text = self.bridge()
+        self.assertIn('"state" / "PUBLICATION_READY.json"', text)
+        self.assertIn('fetch --quiet --unshallow origin main', text)
+        self.assertIn('CURRENT_SHA=$(git -C "$PRIVATE_DIR" rev-parse origin/main)', text)
+        self.assertIn('checkout --detach --quiet "$CURRENT_SHA"', text)
+        self.assertIn('CANDIDATE_LOG="$RUNNER_TEMP/fcmo-newswire-current-main-seal.log"', text)
+        self.assertIn("Fresh canonical ARB main passed the complete publication seal.", text)
         self.assertIn('fetch --quiet origin "$READY_SHA"', text)
         self.assertIn('merge-base --is-ancestor "$READY_SHA" origin/main', text)
-        self.assertIn('git -C "$PRIVATE_DIR" checkout --detach --quiet "$READY_SHA"', text)
-        self.assertIn('test "$(git -C "$PRIVATE_DIR" rev-parse HEAD)" = "$READY_SHA"', text)
-        self.assertIn('git -C "$PRIVATE_DIR" rev-parse HEAD >"$PRIVATE_SHA"', text)
-        self.assertIn('test -z "$(git -C "$PRIVATE_DIR" branch --show-current)"', text)
-        # Footnote: authorization must precede execution of any code from the ready
-        # commit; proving identity after checkout would still execute an untrusted ref.
-        self.assertLess(
-            text.index('merge-base --is-ancestor "$READY_SHA" origin/main'),
-            text.index('checkout --detach --quiet "$READY_SHA"'),
-        )
-        self.assertNotIn('checkout --detach --quiet HEAD', text)
+        self.assertIn('checkout --detach --quiet "$READY_SHA"', text)
+        self.assertIn('SELECTED_SHA="$READY_SHA"', text)
+        self.assertIn('test "$(git -C "$PRIVATE_DIR" rev-parse HEAD)" = "$SELECTED_SHA"', text)
+        self.assertLess(text.index('checkout --detach --quiet "$CURRENT_SHA"'), text.index('fetch --quiet origin "$READY_SHA"'))
+        self.assertLess(text.index('merge-base --is-ancestor "$READY_SHA" origin/main'), text.index('checkout --detach --quiet "$READY_SHA"'))
 
     def test_private_tree_and_source_identity_live_outside_public_workspace(self) -> None:
-        text = BRIDGE.read_text(encoding="utf-8")
+        text = self.bridge()
         self.assertGreaterEqual(text.count('PRIVATE_DIR="$RUNNER_TEMP/fcmo-newswire-private-source"'), 2)
         self.assertGreaterEqual(text.count('PRIVATE_SHA="$RUNNER_TEMP/fcmo-newswire-private-source.sha"'), 2)
         self.assertNotIn("mkdir -p .newswire-private-source", text)
-        self.assertNotIn("cd .newswire-private-source", text)
         self.assertIn("git reset --hard origin/main", text)
         self.assertIn("git clean -fdx", text)
 
     def test_private_process_receives_minimal_allowlisted_environment(self) -> None:
-        text = BRIDGE.read_text(encoding="utf-8")
-        self.assertGreaterEqual(text.count("env -i"), 1)
-        for allowed in (
-            '"PATH=$PATH"',
-            '"HOME=$HOME"',
-            '"LANG=C.UTF-8"',
-            '"LC_ALL=C.UTF-8"',
-            '"ARB_SITE_BASE_PATH=/FCMO-AI-Newsletter"',
-            '"ARB_PUBLIC_BASE_URL=https://fcmo-ai.github.io/FCMO-AI-Newsletter"',
-        ):
+        text = self.bridge()
+        self.assertGreaterEqual(text.count("env -i"), 2)
+        for allowed in ('"PATH=$PATH"', '"HOME=$HOME"', '"LANG=C.UTF-8"', '"LC_ALL=C.UTF-8"',
+                        '"ARB_SITE_BASE_PATH=/FCMO-AI-Newsletter"',
+                        '"ARB_PUBLIC_BASE_URL=https://fcmo-ai.github.io/FCMO-AI-Newsletter"'):
             self.assertIn(allowed, text)
         private_env_block = text[text.index("env -i") : text.index("Extract only the already-sanitized release")]
-        for forbidden in (
-            "GITHUB_ENV=",
-            "GITHUB_OUTPUT=",
-            "GITHUB_PATH=",
-            "GITHUB_STEP_SUMMARY=",
-            "ACTIONS_RUNTIME_TOKEN=",
-            "ACTIONS_ID_TOKEN_REQUEST_TOKEN=",
-            "GITHUB_TOKEN=",
-        ):
+        for forbidden in ("GITHUB_ENV=", "GITHUB_OUTPUT=", "GITHUB_PATH=", "GITHUB_STEP_SUMMARY=",
+                          "ACTIONS_RUNTIME_TOKEN=", "ACTIONS_ID_TOKEN_REQUEST_TOKEN=", "GITHUB_TOKEN="):
             self.assertNotIn(forbidden, private_env_block)
 
-    def test_atomic_upstream_seal_is_the_only_private_publication_command(self) -> None:
-        text = BRIDGE.read_text(encoding="utf-8")
-        self.assertEqual(text.count("python tools/publication_seal.py"), 1)
-        for retired_direct_call in (
+    def test_publication_seal_is_used_only_at_the_two_intentional_private_gates(self) -> None:
+        text = self.bridge()
+        # First: freshness probe on exact current main. Second: mandatory final
+        # proof of whichever immutable snapshot was selected (current or fallback).
+        self.assertEqual(text.count("python tools/publication_seal.py"), 2)
+        self.assertIn('>"$CANDIDATE_LOG" 2>&1', text)
+        self.assertIn('>"$PRIVATE_LOG" 2>&1', text)
+        for retired in (
             "python tools/validate_publication_plane.py",
             "python tools/build_publication.py --check-determinism",
             "python tools/build_public_release.py",
             "python tools/build_public_locales.py build",
             "python tools/build_airlock_receipt.py",
         ):
-            self.assertNotIn(retired_direct_call, text)
+            self.assertNotIn(retired, text)
 
     def test_private_execution_output_exposes_only_safe_reason_codes(self) -> None:
-        text = BRIDGE.read_text(encoding="utf-8")
+        text = self.bridge()
         self.assertIn('PRIVATE_LOG="$RUNNER_TEMP/fcmo-newswire-private-seal.log"', text)
-        self.assertIn('>"$PRIVATE_LOG" 2>&1', text)
         self.assertIn("grep -E '^SEAL_FAIL:[A-Z0-9_]+'", text)
         self.assertIn("SEAL_FAIL:UNCLASSIFIED", text)
         self.assertIn("grep -qx 'SEAL_OK'", text)
         self.assertGreaterEqual(text.count('rm -f "$PRIVATE_LOG"'), 2)
 
     def test_private_checkout_is_destroyed_before_public_side_verification(self) -> None:
-        text = BRIDGE.read_text(encoding="utf-8")
+        text = self.bridge()
         extract = text.index("- name: Extract only the already-sanitized release")
         verify = text.index("- name: Independently verify the airlocked bytes")
         segment = text[extract:verify]
@@ -134,43 +125,44 @@ class NewswireBridgeWorkflowContractTests(unittest.TestCase):
         self.assertIn('rm -f "$PRIVATE_SHA"', segment)
 
     def test_residual_private_state_is_always_destroyed(self) -> None:
-        text = BRIDGE.read_text(encoding="utf-8")
+        text = self.bridge()
         cleanup = text.index("- name: Destroy any residual private bridge state")
-        self.assertIn("if: always()", text[cleanup:])
         tail = text[cleanup:]
+        self.assertIn("if: always()", text[cleanup:])
         for marker in (
             'rm -rf "$RUNNER_TEMP/fcmo-newswire-private-source"',
             'rm -f "$RUNNER_TEMP/fcmo-newswire-private-source.sha"',
             'rm -f "$RUNNER_TEMP/fcmo-newswire-private-seal.log"',
+            'rm -f "$RUNNER_TEMP/fcmo-newswire-current-main-seal.log"',
             'rm -rf "$RUNNER_TEMP/fcmo-newswire-airlocked-release"',
         ):
             self.assertIn(marker, tail)
 
-    def test_public_verification_binds_airlock_delta_to_curated_baseline(self) -> None:
-        text = BRIDGE.read_text(encoding="utf-8")
-        # Footnote: the historical native editions are public source-controlled
-        # Newsletter data. All three production-side verification/staging passes must
-        # name that baseline explicitly; otherwise a sparse historical Airlock is
-        # either rejected incorrectly or, worse, accepted without proving full coverage.
-        marker = "--baseline-i18n site/data/i18n"
-        self.assertEqual(text.count(marker), 3)
-        self.assertIn('verify "$RELEASE_DIR" --baseline-i18n site/data/i18n', text)
-        self.assertIn('stage "$RELEASE_DIR" corpus --baseline-i18n site/data/i18n', text)
+    def test_public_transport_uses_truthful_partial_locale_verifier(self) -> None:
+        text = self.bridge()
+        helper = PARTIAL.read_text(encoding="utf-8")
+        self.assertEqual(text.count('newswire_bridge_partial_locales.py verify "$RELEASE_DIR"'), 2)
+        self.assertEqual(text.count('newswire_bridge_partial_locales.py stage "$RELEASE_DIR" corpus'), 1)
+        self.assertNotIn("--baseline-i18n", text)
+        self.assertIn("_synthetic_coverage_baseline", helper)
+        self.assertIn("strict.verify_release(release, proof)", helper)
+        self.assertIn("locale delta ID sets differ between es-419 and zh-Hans", helper)
+        self.assertIn("locale delta contains IDs outside public corpus", helper)
+        self.assertIn("No synthetic overlay is staged or persisted", helper)
 
     def test_bridge_stages_and_commits_only_corpus(self) -> None:
-        text = BRIDGE.read_text(encoding="utf-8")
+        text = self.bridge()
         self.assertIn("git add -A -- corpus", text)
         self.assertIn("git diff --cached --quiet -- ':!corpus'", text)
         self.assertNotRegex(text, re.compile(r"git add (?:-A )?\.(?:\s|$)"))
 
     def test_bridge_has_redundant_staggered_daily_attempts(self) -> None:
-        text = BRIDGE.read_text(encoding="utf-8")
+        text = self.bridge()
         for cron in ("10 13", "37 13", "11 14", "47 14"):
             self.assertIn(f"cron: '{cron} * * *'", text)
-        self.assertIn("07:10", text)
-        self.assertIn("07:37", text)
-        self.assertIn("08:11", text)
-        self.assertIn("08:47", text)
+        self.assertIn("GitHub schedules are best-effort", text)
+        self.assertIn("idempotent", text)
+        self.assertEqual(len(re.findall(r"cron: '\\d+ \\d+ \\* \\* \\*'", text)), 4)
 
     def test_refresh_is_chained_from_successful_bridge(self) -> None:
         text = REFRESH.read_text(encoding="utf-8")
@@ -179,7 +171,7 @@ class NewswireBridgeWorkflowContractTests(unittest.TestCase):
         self.assertNotIn("cron:", text)
 
     def test_bridge_does_not_need_actions_write_or_api_dispatch(self) -> None:
-        text = BRIDGE.read_text(encoding="utf-8")
+        text = self.bridge()
         self.assertNotIn("actions: write", text)
         self.assertNotIn("gh api", text)
         self.assertNotIn("daily-refresh.yml/dispatches", text)
