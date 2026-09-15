@@ -67,6 +67,18 @@ CHECKS: tuple[tuple[str, tuple[str, ...]], ...] = (
     ),
 )
 
+MATERIAL_INPUTS = (
+    ".github/workflows/newsroom-health.yml",
+    "site/data/newsroom-status.json",
+    "site/data/stories.json",
+    "site/data/i18n/es-419",
+    "site/data/i18n/zh-Hans",
+    "tools/editorial_freshness.py",
+    "tools/translation_health.py",
+    "tools/verify_live_newsroom.py",
+    "tests/oraculos/verificar_live_surfaces.py",
+)
+
 # Footnote for future maintainers: keep this adapter project-local and evidence-only.
 # It may normalize Newsletter observations, but it must never grow mission, claim, gate,
 # or promotion semantics. Those belong to the separately reviewed Proof Spine contract.
@@ -98,11 +110,10 @@ def parse_last_json(stdout: str) -> dict[str, Any] | None:
     return None
 
 
-def run_check(name: str, command: tuple[str, ...]) -> dict[str, Any]:
-    started = utc_now()
+def run_command(command: list[str]) -> subprocess.CompletedProcess[str] | None:
     try:
-        result = subprocess.run(
-            list(command),
+        return subprocess.run(
+            command,
             cwd=ROOT,
             text=True,
             capture_output=True,
@@ -110,8 +121,15 @@ def run_check(name: str, command: tuple[str, ...]) -> dict[str, Any]:
             errors="replace",
             check=False,
         )
-    except OSError as exc:
-        finished = utc_now()
+    except OSError:
+        return None
+
+
+def run_check(name: str, command: tuple[str, ...]) -> dict[str, Any]:
+    started = utc_now()
+    result = run_command(list(command))
+    finished = utc_now()
+    if result is None:
         return {
             "name": name,
             "execution_state": "UNKNOWN",
@@ -122,10 +140,9 @@ def run_check(name: str, command: tuple[str, ...]) -> dict[str, Any]:
             "command": list(command),
             "structured_output": None,
             "stdout_tail": "",
-            "stderr_tail": str(exc),
+            "stderr_tail": "process execution failed before a result was available",
         }
 
-    finished = utc_now()
     return {
         "name": name,
         "execution_state": "EXECUTED",
@@ -181,27 +198,82 @@ def source_facts() -> dict[str, Any]:
     }
 
 
+def git_output(*args: str) -> str | None:
+    result = run_command(["git", *args])
+    if result is None or result.returncode != 0:
+        return None
+    return result.stdout.strip()
+
+
 def git_head() -> str | None:
     if os.getenv("GITHUB_SHA"):
         return os.environ["GITHUB_SHA"]
-    result = subprocess.run(
-        ["git", "rev-parse", "HEAD"],
-        cwd=ROOT,
-        text=True,
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
-        check=False,
-    )
-    return result.stdout.strip() if result.returncode == 0 else None
+    return git_output("rev-parse", "HEAD")
 
 
+def alignment_snapshot() -> dict[str, Any]:
+    fetch = run_command(["git", "fetch", "--no-tags", "--depth=1", "origin", "main"])
+    if fetch is None or fetch.returncode != 0:
+        return {
+            "state": "UNKNOWN",
+            "main_sha": None,
+            "material_paths_match_main": None,
+            "drifted_paths": [],
+            "reason": "could not refresh origin/main",
+        }
+
+    main_sha = git_output("rev-parse", "origin/main")
+    diff = git_output("diff", "--name-only", "HEAD", "origin/main", "--", *MATERIAL_INPUTS)
+    if main_sha is None or diff is None:
+        return {
+            "state": "UNKNOWN",
+            "main_sha": main_sha,
+            "material_paths_match_main": None,
+            "drifted_paths": [],
+            "reason": "could not compare material inputs with origin/main",
+        }
+
+    drifted = sorted(line for line in diff.splitlines() if line.strip())
+    return {
+        "state": "MATCH" if not drifted else "DRIFTED",
+        "main_sha": main_sha,
+        "material_paths_match_main": not drifted,
+        "drifted_paths": drifted,
+        "reason": "material inputs match current origin/main" if not drifted else "material inputs differ from current origin/main",
+    }
+
+
+def source_alignment(before: dict[str, Any], after: dict[str, Any]) -> dict[str, Any]:
+    if before.get("state") == "UNKNOWN" or after.get("state") == "UNKNOWN":
+        state = "UNKNOWN"
+    elif before.get("main_sha") != after.get("main_sha"):
+        state = "CHANGED_DURING_OBSERVATION"
+    elif before.get("state") == "DRIFTED" or after.get("state") == "DRIFTED":
+        state = "DRIFTED"
+    else:
+        state = "MATCH"
+    return {
+        "state": state,
+        "before": before,
+        "after": after,
+        "material_inputs": list(MATERIAL_INPUTS),
+    }
+
+
+# Footnote for future maintainers: a green check from a stale experiment branch is
+# not current production truth. The adapter refreshes and compares origin/main both
+# before and after the observation window. Any material drift, fetch uncertainty, or
+# main movement during the run downgrades the receipt's live summary to UNKNOWN.
 def build_receipt() -> dict[str, Any]:
+    alignment_before = alignment_snapshot()
     checks = {name: run_check(name, command) for name, command in CHECKS}
+    facts = source_facts()
+    alignment_after = alignment_snapshot()
+    alignment = source_alignment(alignment_before, alignment_after)
     observed_at = utc_now()
 
     statuses = [item["status"] for item in checks.values()]
-    if "UNKNOWN" in statuses:
+    if alignment["state"] != "MATCH" or "UNKNOWN" in statuses:
         local_state = "UNKNOWN"
     elif "FAIL" in statuses:
         local_state = "UNHEALTHY"
@@ -222,16 +294,21 @@ def build_receipt() -> dict[str, Any]:
             "branch": os.getenv("GITHUB_REF_NAME"),
             "workflow_run_id": os.getenv("GITHUB_RUN_ID"),
             "workflow_run_attempt": os.getenv("GITHUB_RUN_ATTEMPT"),
+            "main_sha_at_observation": alignment_after.get("main_sha"),
         },
+        "source_alignment": alignment,
         "local_surface": {
             "state": local_state,
             "quality_state": quality_state,
-            "derivation": "HEALTHY only when every exported Newsletter-local check executed and passed; UNKNOWN outranks inferred failure when execution itself is missing",
+            "derivation": (
+                "HEALTHY only when material branch inputs match stable current main and every exported Newsletter-local check executed and passed; "
+                "source drift/execution uncertainty yields UNKNOWN rather than a stale health claim"
+            ),
         },
-        "source_facts": source_facts(),
+        "source_facts": facts,
         "checks": checks,
         "claim_boundary": (
-            "This receipt records public-safe Newsletter-local observations and checker outputs. "
+            "This receipt records public-safe Newsletter-local observations, checker outputs, and current-main source alignment. "
             "It declares no Proof Spine mission, claims, gates, publication authority, or production action."
         ),
     }
@@ -245,11 +322,21 @@ def main() -> int:
     receipt = build_receipt()
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(receipt, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    print(json.dumps({"state": receipt["local_surface"]["state"], "quality_state": receipt["local_surface"]["quality_state"], "receipt": str(args.output)}, sort_keys=True))
+    print(
+        json.dumps(
+            {
+                "state": receipt["local_surface"]["state"],
+                "quality_state": receipt["local_surface"]["quality_state"],
+                "source_alignment": receipt["source_alignment"]["state"],
+                "receipt": str(args.output),
+            },
+            sort_keys=True,
+        )
+    )
 
     # Footnote: shadow observation must not become a hidden production gate. A local
-    # checker may report FAIL inside the receipt while this exporter still exits 0;
-    # only exporter/configuration failure should stop the shadow workflow itself.
+    # checker may report FAIL/UNKNOWN inside the receipt while this exporter still
+    # exits 0; only exporter/configuration failure should stop the shadow workflow.
     return 0
 
 
