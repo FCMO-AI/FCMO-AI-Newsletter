@@ -9,6 +9,17 @@ on:
       - 'docs/PROOF_SPINE_SHADOW_PILOT.md'
       - '.github/workflows/proof-spine-shadow-receipt.yml'
   workflow_dispatch:
+  # Footnote: workflow_run events use the workflow definition on the default branch.
+  # They are intentionally dormant while this experiment remains an unmerged PR, but
+  # if the evidence adapter is later accepted they make observation event-driven after
+  # the existing production-health/transport cycles instead of introducing another
+  # blind polling cadence or silently changing either producer's behavior.
+  workflow_run:
+    workflows:
+      - Autonomous newsroom production health
+      - Pull airlocked newswire with GitHub App
+    types:
+      - completed
 
 permissions:
   contents: read
@@ -100,10 +111,9 @@ jobs:
           test ! -e "$SEAL_LOG"
           test -s "$STATE_FILE"
 
-      # Footnote for future maintainers: this branch-only workflow is an evidence
-      # adapter, not a production gate. It intentionally reuses Newsletter-native
-      # checks and has read-only repository permission; no publish/deploy action is
-      # reachable from this workflow.
+      # Footnote for future maintainers: this workflow is an evidence adapter, not a
+      # production gate. It intentionally reuses Newsletter-native checks and has
+      # read-only repository permission; no publish/deploy action is reachable here.
       - name: Compile shadow receipt adapter
         run: python -m py_compile tools/proof_spine_shadow_receipt.py
 
@@ -127,13 +137,39 @@ jobs:
           rm -rf "$PUBLIC_RELEASE"
           rm -f "$STATE_FILE"
 
+      # Footnote: make the observation visible in the Actions UI without turning it
+      # into an enforcement result. A MATERIAL_PUBLIC_DELTA_AVAILABLE verdict is still
+      # shadow evidence; this summary deliberately never exits non-zero because of it.
+      - name: Summarize shadow observation
+        shell: bash
+        run: |
+          python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json
+          from pathlib import Path
+          receipt = json.loads(Path('/tmp/newsletter-proof-spine-shadow-receipt.json').read_text(encoding='utf-8'))
+          local = receipt.get('local_surface') or {}
+          alignment = receipt.get('source_alignment') or {}
+          upstream = receipt.get('upstream_publication') or {}
+          delta = upstream.get('delta') or {}
+          print('## Proof Spine shadow observation')
+          print()
+          print(f"- Newsletter local state: `{local.get('state')}` / `{local.get('quality_state')}`")
+          print(f"- Newsletter source alignment: `{alignment.get('state')}`")
+          print(f"- ARB→Newsletter material sync witness: `{upstream.get('state')}`")
+          print(f"- Material public IDs in delta: `{len(delta.get('material_public_ids') or [])}`")
+          print(f"- Observed at: `{receipt.get('observed_at')}`")
+          print()
+          print('Shadow evidence only; no publication, deploy, rollback, or release authority is created by this workflow.')
+          PY
+
       # Footnote: preserve the raw receipt as the cross-repository evidence boundary.
-      # The artifact contains observations only; Agent Hub owns any experimental proof
-      # contract that consumes it later.
+      # Ninety days is intentional: natural sensitivity events can be rare, and a
+      # useful receipt must not disappear before humans/agents can compare it with the
+      # surrounding production history. The artifact is still observations only.
       - name: Upload shadow receipt
         uses: actions/upload-artifact@v4
         with:
           name: newsletter-proof-spine-shadow-receipt
           path: /tmp/newsletter-proof-spine-shadow-receipt.json
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 90
