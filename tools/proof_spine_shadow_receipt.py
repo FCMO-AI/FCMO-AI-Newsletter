@@ -11,6 +11,7 @@ publish, deploy, roll back, or otherwise mutate production.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import subprocess
@@ -20,6 +21,7 @@ from pathlib import Path
 from typing import Any
 
 import editorial_freshness
+import newswire_bridge_partial_locales
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -260,14 +262,137 @@ def source_alignment(before: dict[str, Any], after: dict[str, Any]) -> dict[str,
     }
 
 
+def _load_public_rows(root: Path) -> dict[str, dict[str, Any]]:
+    rows: dict[str, dict[str, Any]] = {}
+    path = root / "data" / "developments.jsonl"
+    for raw in path.read_text(encoding="utf-8").splitlines():
+        if not raw.strip():
+            continue
+        row = json.loads(raw)
+        rid = row.get("id") if isinstance(row, dict) else None
+        if not isinstance(rid, str) or not rid:
+            raise ValueError("public development row lacks a stable public id")
+        rows[rid] = row
+    return rows
+
+
+def _row_digest(row: dict[str, Any]) -> str:
+    payload = json.dumps(row, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    return hashlib.sha256(payload).hexdigest()
+
+
+def _importance(row: dict[str, Any]) -> int:
+    raw = row.get("importance_effective_score", row.get("importance_score", 0))
+    try:
+        return int(raw or 0)
+    except (TypeError, ValueError):
+        return 0
+
+
+def upstream_publication_observation(
+    upstream_release: Path | None,
+    upstream_seal_state: str,
+) -> dict[str, Any]:
+    """Compare current sealable public ARB bytes with the corpus Newsletter has ingested.
+
+    The comparison deliberately happens only after the private checkout has been reduced
+    to ARB's already-sanitized `_public_release` tree. No private path, candidate, source
+    SHA, control-plane field or raw canonical record is accepted into this receipt.
+    """
+    if upstream_seal_state != "SEALED" or upstream_release is None:
+        return {
+            "state": "UNKNOWN",
+            "seal_state": upstream_seal_state if upstream_seal_state else "UNKNOWN",
+            "semantic_material_delta": None,
+            "reason": "current ARB main did not yield a sanitized sealed public projection for this observation",
+        }
+
+    upstream_release = upstream_release.resolve()
+    if not upstream_release.is_dir():
+        return {
+            "state": "UNKNOWN",
+            "seal_state": "SEALED_BUT_MISSING_RELEASE",
+            "semantic_material_delta": None,
+            "reason": "sealed public projection directory was unavailable after private checkout destruction",
+        }
+
+    # Footnote: re-use the public-side bridge verifier rather than trusting that the
+    # private seal command merely claimed success. This gives the shadow witness the
+    # same path/privacy/content-addressing boundary as the real transport consumer.
+    upstream_receipt = newswire_bridge_partial_locales.verify_release(upstream_release)
+    downstream_receipt = newswire_bridge_partial_locales.verify_release(ROOT / "corpus")
+
+    upstream_rows = _load_public_rows(upstream_release)
+    downstream_rows = _load_public_rows(ROOT / "corpus")
+
+    added = sorted(set(upstream_rows) - set(downstream_rows))
+    removed = sorted(set(downstream_rows) - set(upstream_rows))
+    changed = sorted(
+        rid
+        for rid in set(upstream_rows) & set(downstream_rows)
+        if _row_digest(upstream_rows[rid]) != _row_digest(downstream_rows[rid])
+    )
+    material_changed = sorted(
+        rid
+        for rid in set(added + removed + changed)
+        if max(_importance(upstream_rows.get(rid, {})), _importance(downstream_rows.get(rid, {}))) >= 4
+    )
+
+    same_digest = upstream_receipt.get("corpus_digest") == downstream_receipt.get("corpus_digest")
+    if same_digest:
+        state = "MATCH"
+    elif material_changed:
+        state = "MATERIAL_PUBLIC_DELTA_AVAILABLE"
+    else:
+        state = "NON_MATERIAL_PUBLIC_DELTA"
+
+    # Footnote: public IDs and public importance are already declassified publication
+    # data. We retain only bounded identity-level delta metadata here; the full public
+    # release remains an ephemeral workflow input and is never uploaded as this shadow
+    # artifact merely to make the comparison easier to inspect.
+    return {
+        "state": state,
+        "seal_state": "SEALED",
+        "semantic_material_delta": bool(material_changed),
+        "upstream": {
+            "corpus_digest": upstream_receipt.get("corpus_digest"),
+            "release_id": upstream_receipt.get("release_id"),
+            "record_count": upstream_receipt.get("record_count"),
+        },
+        "newsletter_corpus": {
+            "corpus_digest": downstream_receipt.get("corpus_digest"),
+            "release_id": downstream_receipt.get("release_id"),
+            "record_count": downstream_receipt.get("record_count"),
+        },
+        "delta": {
+            "added_public_ids": added,
+            "changed_public_ids": changed,
+            "removed_public_ids": removed,
+            "material_public_ids": material_changed,
+        },
+        "reason": (
+            "current sealable ARB public projection exactly matches Newsletter corpus"
+            if state == "MATCH"
+            else "current sealable ARB public projection differs materially from Newsletter corpus"
+            if state == "MATERIAL_PUBLIC_DELTA_AVAILABLE"
+            else "public bytes differ but no importance>=4 development identity changed"
+        ),
+    }
+
+
 # Footnote for future maintainers: a green check from a stale experiment branch is
 # not current production truth. The adapter refreshes and compares origin/main both
 # before and after the observation window. Any material drift, fetch uncertainty, or
 # main movement during the run downgrades the receipt's live summary to UNKNOWN.
-def build_receipt() -> dict[str, Any]:
+def build_receipt(
+    *,
+    upstream_release: Path | None = None,
+    upstream_seal_state: str = "NOT_OBSERVED",
+) -> dict[str, Any]:
     alignment_before = alignment_snapshot()
     checks = {name: run_check(name, command) for name, command in CHECKS}
     facts = source_facts()
+    upstream = upstream_publication_observation(upstream_release, upstream_seal_state)
     alignment_after = alignment_snapshot()
     alignment = source_alignment(alignment_before, alignment_after)
     observed_at = utc_now()
@@ -306,9 +431,10 @@ def build_receipt() -> dict[str, Any]:
             ),
         },
         "source_facts": facts,
+        "upstream_publication": upstream,
         "checks": checks,
         "claim_boundary": (
-            "This receipt records public-safe Newsletter-local observations, checker outputs, and current-main source alignment. "
+            "This receipt records public-safe Newsletter-local observations, checker outputs, current-main source alignment, and a sanitized ARB-publication synchronization witness. "
             "It declares no Proof Spine mission, claims, gates, publication authority, or production action."
         ),
     }
@@ -317,9 +443,18 @@ def build_receipt() -> dict[str, Any]:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--upstream-release", type=Path)
+    parser.add_argument(
+        "--upstream-seal-state",
+        default="NOT_OBSERVED",
+        choices=("SEALED", "CURRENT_MAIN_UNSEALABLE", "NOT_OBSERVED", "UNKNOWN"),
+    )
     args = parser.parse_args()
 
-    receipt = build_receipt()
+    receipt = build_receipt(
+        upstream_release=args.upstream_release,
+        upstream_seal_state=args.upstream_seal_state,
+    )
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(receipt, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     print(
@@ -328,6 +463,7 @@ def main() -> int:
                 "state": receipt["local_surface"]["state"],
                 "quality_state": receipt["local_surface"]["quality_state"],
                 "source_alignment": receipt["source_alignment"]["state"],
+                "upstream_publication": receipt["upstream_publication"]["state"],
                 "receipt": str(args.output),
             },
             sort_keys=True,
