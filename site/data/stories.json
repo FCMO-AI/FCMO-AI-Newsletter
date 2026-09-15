@@ -1,5 +1,112 @@
 [
   {
+    "story_id": "STORY-7EBD0FA07C12",
+    "research_id": "FCMO-7EBD0FA07C12",
+    "headline": "SQD disaggregates subquadratic-attention inference around heterogeneous memory and compute regimes",
+    "dek": "SQD (SubQuadratic Disaggregation) argues that serving systems designed around dense-attention assumptions leave efficiency on the table for sparse, linear and sliding-window attention models. It splits decode according to which subquadratic components require full-KV indexing versus static-memory compute, then maps those components onto heterogeneous DRAM/SRAM resources. In the authors' adjusted 8xB200 system proxy, reported average tokens/J gains over their strongest GPU-only baselines are 53% on GLM 5.2, 31% on Nemotron 3 Ultra and 56% on Gemma 4 31B. An analytical Rubin+LPX fixed-power model reports 1.2x-1.5x tighter achievable latency and up to 3.6x throughput versus attention-FFN disaggregation.",
+    "story_type": "STANDARD",
+    "published_at": "2026-09-15T17:42:05.789766Z",
+    "modified_at": "2026-09-15T17:42:05.789766Z",
+    "event_at": "2026-09-11T17:55:45Z",
+    "research_verified_at": "2026-09-15T04:10:00Z",
+    "canonical_signature": "4aa1e84b411614b3a7da706c0c2124d94d8c02e252d2938a291ea8891ae3a321",
+    "news_value": {
+      "importance": 6,
+      "evidence": "A",
+      "confidence": "supported_with_limits"
+    },
+    "what_changed": "SQD (SubQuadratic Disaggregation) argues that serving systems designed around dense-attention assumptions leave efficiency on the table for sparse, linear and sliding-window attention models. It splits decode according to which subquadratic components require full-KV indexing versus static-memory compute, then maps those components onto heterogeneous DRAM/SRAM resources. In the authors' adjusted 8xB200 system proxy, reported average tokens/J gains over their strongest GPU-only baselines are 53% on GLM 5.2, 31% on Nemotron 3 Ultra and 56% on Gemma 4 31B. An analytical Rubin+LPX fixed-power model reports 1.2x-1.5x tighter achievable latency and up to 3.6x throughput versus attention-FFN disaggregation.",
+    "why_it_matters": "If these gains survive hardware-real reproduction, subquadratic model architecture changes not only FLOP complexity but the optimal serving topology: memory-heavy selection and compute-heavy attention/FFN can be provisioned separately. That could materially change inference-cluster design as hybrid and sparse attention become common.",
+    "claims": [
+      {
+        "label": "DEMONSTRATED",
+        "text": "In the authors' adjusted 8xB200 heterogeneous-system proxy, SQD improves average tokens/J by 53% on GLM 5.2, 31% on Nemotron 3 Ultra and 56% on Gemma 4 31B versus their strongest GPU-only baselines."
+      },
+      {
+        "label": "DEMONSTRATED_IN_MODEL",
+        "text": "In the authors' analytical fixed-power Rubin+LPX model, SQD yields 1.2x-1.5x tighter achievable latency and up to 3.6x throughput versus attention-FFN disaggregation."
+      },
+      {
+        "label": "INFERRED",
+        "text": "Comparable gains will persist on shipping heterogeneous production systems under real network contention and scheduler overhead."
+      }
+    ],
+    "technical": {
+      "claimed_result": "Architecture-aware heterogeneous disaggregation can outperform dense-attention-centric and operator-centric serving designs across multiple forms of subquadratic attention.",
+      "compute_or_cost": "System-level serving comparison; exact economics depend on memory technology, interconnect, utilization and hardware availability. The strongest future-hardware result is analytical rather than a measured Rubin+LPX deployment.",
+      "demonstrated_result": "The authors report 53%, 31% and 56% average tokens/J improvements for GLM 5.2, Nemotron 3 Ultra and Gemma 4 31B respectively in an adjusted 8xB200 heterogeneous-system proxy. Their analytical Rubin+LPX fixed-power model reports 1.2x-1.5x tighter achievable latency and up to 3.6x throughput over the strongest attention-FFN-disaggregation baseline.",
+      "implementation_status": "Primary arXiv paper is public. This activation did not recover an unaffiliated hardware reproduction.",
+      "mechanism": "For sparse attention, SQD separates full-KV top-k selection from top-k attention plus FFN; for linear/sliding-window models it separates dense-attention layers from subquadratic-attention layers plus FFN. The split is chosen from arithmetic intensity and memory footprint rather than the conventional attention-versus-FFN operator boundary.",
+      "novelty": "Moves the disaggregation boundary from generic attention/FFN operators to the memory-access structure created by subquadratic attention variants.",
+      "regime": "Inference/decode for sparse, linear and sliding-window/hybrid attention LLMs; adjusted 8xB200 heterogeneous proxy plus analytical Rubin+LPX fixed-power model.",
+      "reproducibility": "Model/workload identities and reported regimes are public, but headline next-generation gains require hardware-real validation and sensitivity analysis against network/memory assumptions.",
+      "strongest_baseline": "The paper describes strongest GPU-only baselines for the adjusted B200 proxy and attention-FFN disaggregation for the Rubin+LPX analytical comparison."
+    },
+    "limitations": [
+      "The adjusted 8xB200 result is a system proxy rather than a clean unaffiliated production-cluster reproduction.",
+      "The Rubin+LPX headline comparison is analytical and therefore depends on assumed memory, interconnect, power and scheduling parameters.",
+      "Reported gains can change substantially with batch size, sequence length, KV footprint, sparsity pattern, interconnect contention and accelerator utilization.",
+      "The evidence establishes a promising serving design in the studied regimes, not a universal advantage for every subquadratic model or workload.",
+      "No independent reproduction was recovered in this activation."
+    ],
+    "contradictory_evidence": [],
+    "evidence_gaps": [
+      {
+        "description": "No unaffiliated hardware-real reproduction was recovered.",
+        "kind": "reproduction_missing",
+        "state": "open",
+        "updated_at": "2026-09-15T04:10:00Z"
+      },
+      {
+        "description": "Sensitivity of the Rubin+LPX result to memory bandwidth/capacity, link bandwidth, queueing and workload mix remains a key transfer question.",
+        "kind": "measurement_missing",
+        "state": "open",
+        "updated_at": "2026-09-15T04:10:00Z"
+      }
+    ],
+    "sources": [
+      "https://arxiv.org/abs/2609.13134"
+    ],
+    "public_research": {
+      "schema": "fcmo-public-research-receipt-v1",
+      "id": "FCMO-7EBD0FA07C12",
+      "canonical_signature": "4358034a7bc11869363b7cc0b4f5c65c9d85087bf8bc8b78800233ce4fa5f25f",
+      "researched_at": "2026-09-15T17:40:58.091703Z",
+      "trust_boundary": "sanitized public brief + public Internet only",
+      "source_checks": [
+        {
+          "url": "https://arxiv.org/abs/2609.13134",
+          "final_url": "https://arxiv.org/abs/2609.13134",
+          "status": 200,
+          "content_type": "text/html; charset=utf-8",
+          "title": "[2609.13134] Rethinking Heterogeneous System Disaggregation for Subquadratic Attention",
+          "reachable": true
+        }
+      ],
+      "related_public_sources": [],
+      "coverage": {
+        "cited_public_sources_reopened": 1,
+        "reachable_sources": 1,
+        "scholarly_context_candidates": 0,
+        "exhaustive_web_search_claim": false
+      }
+    },
+    "media": {
+      "id": "FCMO-7EBD0FA07C12",
+      "mode": "licensed_source",
+      "sourced": true,
+      "rights_state": "PERMISSIVE_LICENSE",
+      "image_url": "https://arxiv.org/static/browse/0.3.4/images/arxiv-logo-fb.png",
+      "source_page": "https://arxiv.org/abs/2609.13134",
+      "license": "permissive Creative Commons / public-domain declaration",
+      "license_url": "http://creativecommons.org/licenses/by/4.0/",
+      "reuse_basis": "machine-verifiable permissive license on the source page",
+      "credit": "arxiv.org",
+      "fit": "contain",
+      "provenance_checked_at": "2026-09-15T17:41:51.695037Z"
+    }
+  },
+  {
     "story_id": "STORY-FAD9D0AFD3E4",
     "research_id": "FCMO-FAD9D0AFD3E4",
     "headline": "OpenAI publishes an AI-generated proposed Navier-Stokes Millennium resolution with a zero-sorry Lean formalization",
@@ -108,7 +215,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-FAD9D0AFD3E4",
       "canonical_signature": "eda0f4b05d00af166b9b25bcbddd9dfd1844dda6b28106f72c7307b9b2075b79",
-      "researched_at": "2026-09-14T19:37:21.809891Z",
+      "researched_at": "2026-09-15T17:41:21.619250Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -288,7 +395,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-EEF757F0D806",
       "canonical_signature": "48db22c41df936ba94734c477a6de8c6242febe1e6757efa332cdb5a6316956a",
-      "researched_at": "2026-09-14T19:37:17.417526Z",
+      "researched_at": "2026-09-15T17:41:16.743887Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -453,7 +560,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-5D9E5184D0F0",
       "canonical_signature": "d47bfcbfa8b966f616cc9ff29c4eef9b08ae3d1853e6d9002bf670ceca56c785",
-      "researched_at": "2026-09-14T19:36:55.395424Z",
+      "researched_at": "2026-09-15T17:40:54.031869Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -584,14 +691,14 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-549245C022B9",
       "canonical_signature": "57045e94ee26f5d5c9d880a81ac32dbd5a84545691f3d1088c37454c942d41b6",
-      "researched_at": "2026-09-14T19:36:54.259795Z",
+      "researched_at": "2026-09-15T17:40:52.945388Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
           "url": "https://deepmind.google/blog/alphagenome-atlas-a-predictive-map-of-every-possible-dna-letter-change-in-the-human-genome/",
           "final_url": "https://deepmind.google/blog/alphagenome-atlas-a-predictive-map-of-every-possible-dna-letter-change-in-the-human-genome/",
           "status": 200,
-          "content_type": "text/html",
+          "content_type": "text/html; charset=utf-8",
           "title": "AlphaGenome Atlas: Molecular predictions for 9 Billion human DNA variants — Google DeepMind",
           "reachable": true
         },
@@ -599,7 +706,7 @@
           "url": "https://deepmind.google/science/alphagenome/",
           "final_url": "https://deepmind.google/science/alphagenome/",
           "status": 200,
-          "content_type": "text/html",
+          "content_type": "text/html; charset=utf-8",
           "title": "AlphaGenome — Google DeepMind",
           "reachable": true
         },
@@ -781,7 +888,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-49180A73A8A0",
       "canonical_signature": "be50149285bebcb37ac3c2ee8b6578b89ebf4f14acdeabad951d717d85e6e74e",
-      "researched_at": "2026-09-14T19:36:48.997362Z",
+      "researched_at": "2026-09-15T17:40:41.629295Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -951,7 +1058,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-179D8B7D7D2D",
       "canonical_signature": "3218d6c3e8fff70c35ee7a317f27f4c385379e737fce2bb57dbbd85ada7dc7a8",
-      "researched_at": "2026-09-14T19:36:23.571001Z",
+      "researched_at": "2026-09-15T17:40:15.138839Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -1083,7 +1190,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-0462AE20C5CD",
       "canonical_signature": "ff84420923aceeabbc26d5c24a9d2c06b934c9f8106996194f7fa7bc5fae9ca8",
-      "researched_at": "2026-09-14T19:36:19.248314Z",
+      "researched_at": "2026-09-15T17:40:07.651639Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -1220,7 +1327,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-F63D7F3A70B9",
       "canonical_signature": "9ebb20ca2a605a609ce514dc4cd94a263789d45b8e3fa30b619ad7768f870304",
-      "researched_at": "2026-09-14T19:37:18.680742Z",
+      "researched_at": "2026-09-15T17:41:17.765757Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -1350,7 +1457,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-BFDCA63E4D53",
       "canonical_signature": "430d40055f496208adf2e20f170050c17da73982928fcf9922ea79b0c9c6d39a",
-      "researched_at": "2026-09-14T19:37:14.076811Z",
+      "researched_at": "2026-09-15T17:41:13.058524Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -1513,7 +1620,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-BA43DA5C5770",
       "canonical_signature": "78d087340afde2436d6b3463bd662ef9dc10451ee5d6742b073f9923393ed1d7",
-      "researched_at": "2026-09-14T19:37:11.526106Z",
+      "researched_at": "2026-09-15T17:41:11.349820Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -1634,7 +1741,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-28A16703D598",
       "canonical_signature": "bbc9573edf887f7db76a5a156a3289d0f9c6a169a3ae7d3538b07670f128fb99",
-      "researched_at": "2026-09-14T19:36:40.761135Z",
+      "researched_at": "2026-09-15T17:40:34.421582Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -1802,7 +1909,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-DBCE0693D769",
       "canonical_signature": "2bec5114f7827b59656869cd8fe42d6419eb3c1b23736ca9d735c6d6e1399af9",
-      "researched_at": "2026-09-14T19:37:15.914893Z",
+      "researched_at": "2026-09-15T17:41:15.369784Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -1935,7 +2042,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-34D01928C071",
       "canonical_signature": "2d8ff1182b54cd02435c67c6a000a09fe30340eab76297ebe57e2b088f01d6b0",
-      "researched_at": "2026-09-14T19:36:45.276419Z",
+      "researched_at": "2026-09-15T17:40:38.113158Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -2082,7 +2189,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-07D3957AC2B9",
       "canonical_signature": "e6e0e16e9e9036bb86e92138c23d06947ca36ce6353ac94faa36014213350f41",
-      "researched_at": "2026-09-14T19:36:21.225466Z",
+      "researched_at": "2026-09-15T17:40:13.019095Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -2254,7 +2361,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-2E15FDD2C2B1",
       "canonical_signature": "5a5a6d23fda683366fdffbc5b13936921d185cd78dc7e49d8a51cce00435577c",
-      "researched_at": "2026-09-14T19:36:41.232495Z",
+      "researched_at": "2026-09-15T17:40:34.890385Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -2378,7 +2485,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-955A495823F7",
       "canonical_signature": "9e59b8f62b5aa095a9a9e8e9859d1b13b96ca08a3a4466c26addc97457732d17",
-      "researched_at": "2026-09-14T19:37:09.323601Z",
+      "researched_at": "2026-09-15T17:41:09.186580Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -2517,7 +2624,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-FD20B449D1D5",
       "canonical_signature": "74d867b4891f14dbfb3e548f11bca37eb607d1447a152982cd5e57e2ee9d52cd",
-      "researched_at": "2026-09-14T19:37:24.999347Z",
+      "researched_at": "2026-09-15T17:41:25.206285Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -2682,7 +2789,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-841949AEA161",
       "canonical_signature": "040dd0b5c595dc451ef00f092c7699ff4d730a87c699ce74c4287d8c825ded60",
-      "researched_at": "2026-09-14T19:36:59.208455Z",
+      "researched_at": "2026-09-15T17:40:59.490661Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -2851,7 +2958,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-1A874373897A",
       "canonical_signature": "2d4f8b03d924d902cb2a8bc908fd77ba81da7267b86540a7ec02d4473fcbcd0f",
-      "researched_at": "2026-09-14T19:36:25.606100Z",
+      "researched_at": "2026-09-15T17:40:17.219094Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -3001,7 +3108,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-0B5314017C86",
       "canonical_signature": "61f99d8459120057d7d1c827c88a428ee655fd31dba8a1a8cca82d29a0774f81",
-      "researched_at": "2026-09-14T19:36:22.807232Z",
+      "researched_at": "2026-09-15T17:40:14.508677Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -3168,7 +3275,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-8AB23060CBF3",
       "canonical_signature": "0ec9f184ef88c09f6b59d460ba9988cbb2b226e663cf8ca5be56111816c44c27",
-      "researched_at": "2026-09-14T19:37:06.489799Z",
+      "researched_at": "2026-09-15T17:41:06.503827Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -3343,7 +3450,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-1E497EDC718A",
       "canonical_signature": "0ef78877523324a6befe75e9db5e682a7c83ddb506e04583ab795ece2349aa96",
-      "researched_at": "2026-09-14T19:36:28.868710Z",
+      "researched_at": "2026-09-15T17:40:20.729540Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -3494,7 +3601,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-FF958ED4CB91",
       "canonical_signature": "ed603cf1816dafd5b48fa143943cf6b600e4072a37464546441830e0d32e02ce",
-      "researched_at": "2026-09-14T19:37:27.752852Z",
+      "researched_at": "2026-09-15T17:41:27.760656Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -3658,7 +3765,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-855FCD3A3D24",
       "canonical_signature": "a57f74046c17f17519f7542707abb479adf1b92e1f7e852b0f94b20e1278e2bb",
-      "researched_at": "2026-09-14T19:37:03.372510Z",
+      "researched_at": "2026-09-15T17:41:04.297406Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -3848,7 +3955,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-FD5D624C9971",
       "canonical_signature": "8039b35845d4bd261246b48886f1d8c70a495090e1e0879dea3e52821ee5f313",
-      "researched_at": "2026-09-14T19:37:26.547802Z",
+      "researched_at": "2026-09-15T17:41:26.649990Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -3984,7 +4091,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-D932AEC66CC3",
       "canonical_signature": "c1d07f2733d7b144831596a7bd2aacbce796215253ad0d5228cf9372655b6073",
-      "researched_at": "2026-09-14T19:37:15.145037Z",
+      "researched_at": "2026-09-15T17:41:14.268002Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -4130,7 +4237,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-183728526F81",
       "canonical_signature": "f4996f7d67d2b314bbfd3d15fcefa9d013a7e7a82abc7e3f5292974b2c3dee61",
-      "researched_at": "2026-09-14T19:36:24.607510Z",
+      "researched_at": "2026-09-15T17:40:16.061800Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -4265,7 +4372,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-47EB61AB3914",
       "canonical_signature": "b018f738daf3857691e0e0346a437441c8bab20ce7b6364dd295a619efdc9c84",
-      "researched_at": "2026-09-14T19:36:46.531742Z",
+      "researched_at": "2026-09-15T17:40:39.454551Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -4390,7 +4497,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-DF0FDE7BBB67",
       "canonical_signature": "2096914ddc26ff78486df5b02633693b917f38358805614e908374a84e0a5947",
-      "researched_at": "2026-09-14T19:37:16.304893Z",
+      "researched_at": "2026-09-15T17:41:15.868402Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -4510,7 +4617,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-929F34FAD7F4",
       "canonical_signature": "cb4b75583af4887eb583f4c38fb5240f8f08e14fc6e7101036c351cb812e8262",
-      "researched_at": "2026-09-14T19:37:07.985107Z",
+      "researched_at": "2026-09-15T17:41:07.903945Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -4624,7 +4731,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-A2B1425AD7A9",
       "canonical_signature": "514261258a148daad1bcd35728e108cfdc4eac353ecf9b0a02ff6af06c416d73",
-      "researched_at": "2026-09-14T19:37:10.044694Z",
+      "researched_at": "2026-09-15T17:41:09.964686Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -4734,7 +4841,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-1E28FC528202",
       "canonical_signature": "a907fc6480121083ca35d05d68d1932be51460e99fe5be63762fdd10e292d2ac",
-      "researched_at": "2026-09-14T19:36:27.467016Z",
+      "researched_at": "2026-09-15T17:40:19.290139Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -4866,7 +4973,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-7530484A9F24",
       "canonical_signature": "6e4637737069f8976102f8946c3e23d25f22e53d83103a21b8c367a10183869c",
-      "researched_at": "2026-09-14T19:36:57.881741Z",
+      "researched_at": "2026-09-15T17:40:57.452022Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -4984,7 +5091,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-C74403EE205F",
       "canonical_signature": "22d3c15d37be45f1037461ed8128191a92b1b03e1b3c09b827567d7bc327c290",
-      "researched_at": "2026-09-14T19:37:14.642723Z",
+      "researched_at": "2026-09-15T17:41:13.687798Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -5078,7 +5185,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-BEE6D61DE0B1",
       "canonical_signature": "ff086ff8dfeae2f2720ed2bb91f10e174e28e1a7a1d5d38a6d30658c3f0ffb8f",
-      "researched_at": "2026-09-14T19:37:13.060820Z",
+      "researched_at": "2026-09-15T17:41:12.044812Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -5177,7 +5284,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-533C3BB403CB",
       "canonical_signature": "424690ac5dd9baa38a3dbed0c9c25fd16a0772e1da0f65fa7ba47cec49ae2a9b",
-      "researched_at": "2026-09-14T19:36:49.955323Z",
+      "researched_at": "2026-09-15T17:40:42.650533Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -5277,7 +5384,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-2E937CA7BED4",
       "canonical_signature": "779e295b8231b297b01364703a71b35d200d8a180ed7f0f355d74b8d86683b8b",
-      "researched_at": "2026-09-14T19:36:43.875888Z",
+      "researched_at": "2026-09-15T17:40:36.613532Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -5384,14 +5491,14 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-F9F5D62969AD",
       "canonical_signature": "edb48ff57b5d2b03ee43ef24b633643f09b598f1976acd8d8a19f1cbb9b14c60",
-      "researched_at": "2026-09-14T19:37:19.465943Z",
+      "researched_at": "2026-09-15T17:41:18.521786Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
           "url": "https://deepmind.google/blog/weathernext-ai-model-achieves-breakthrough-in-forecasting-cyclones/",
           "final_url": "https://deepmind.google/blog/weathernext-ai-model-achieves-breakthrough-in-forecasting-cyclones/",
           "status": 200,
-          "content_type": "text/html",
+          "content_type": "text/html; charset=utf-8",
           "title": "AI model achieves breakthrough in forecasting cyclones — Google DeepMind",
           "reachable": true
         }
@@ -5479,7 +5586,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-F48EABA3B427",
       "canonical_signature": "2009f5a5f475eb5fcc25aa0dae674ef3346896ade4bd6899e2b875a2220270da",
-      "researched_at": "2026-09-14T19:37:18.010609Z",
+      "researched_at": "2026-09-15T17:41:17.347109Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -5589,7 +5696,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-B9C579B41E8D",
       "canonical_signature": "f8ccac91c787257cb6dfe8c359e61c2dd10c64678a00bf2d8396fd0f90e3a21b",
-      "researched_at": "2026-09-14T19:37:10.791112Z",
+      "researched_at": "2026-09-15T17:41:10.646789Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -5684,14 +5791,14 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-8FABFFAEAE50",
       "canonical_signature": "d95dbe2366cbca0365c2b52eaf0b3c2644f30655bb72b36e5b9cdcdca780da87",
-      "researched_at": "2026-09-14T19:37:07.316433Z",
+      "researched_at": "2026-09-15T17:41:07.294022Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
           "url": "https://deepmind.google/blog/piloting-the-worlds-first-double-blind-ai-evaluations/",
           "final_url": "https://deepmind.google/blog/piloting-the-worlds-first-double-blind-ai-evaluations/",
           "status": 200,
-          "content_type": "text/html",
+          "content_type": "text/html; charset=utf-8",
           "title": "Piloting the world's first double-blind AI evaluations — Google DeepMind",
           "reachable": true
         }
@@ -5783,7 +5890,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-71ED36BD00B9",
       "canonical_signature": "8f69d580cde25610222915dec09c01b8f543164b3bc56982895bc434d02a024e",
-      "researched_at": "2026-09-14T19:36:56.741717Z",
+      "researched_at": "2026-09-15T17:40:56.018976Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
