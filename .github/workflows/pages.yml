@@ -63,17 +63,15 @@ jobs:
       - name: Prove the frozen overlay still matches its editable source
         run: python tools/build_final_release.py --check
 
-      # Footnote for future maintainers: production-health already treats an overdue
-      # missing native edition as unhealthy after the bounded one-hour reconciliation
-      # grace. Enforce that same project-owned oracle *before* assembling/uploading a
-      # Pages candidate so a successful deploy cannot outrun a known localization
-      # failure. Proof Spine discovered the causal gap; it does not own this gate.
-      - name: Refuse overdue native-edition backlog before building Pages candidate
-        run: >-
-          python tools/translation_health.py
-          --grace-hours 1
-          --fresh-window-hours 30
-          --minimum-importance 4
+      # Footnote for future maintainers: LOCALIZATION.md defines a new/changed Story
+      # plus EN/ES/ZH as one publication obligation. The hourly health SLO may retain a
+      # bounded grace to diagnose/reconcile candidate-source backlog while the previous
+      # known-good edition remains live, but that grace is NOT release authority. Pages
+      # therefore uses the strict mode over every Story identity before any candidate is
+      # assembled or uploaded. Proof Spine exposed the missing causal edge; Newsletter's
+      # own canonical localization contract still owns this gate.
+      - name: Require complete native Story editions before building Pages candidate
+        run: python tools/translation_health.py --require-complete
 
       - name: Assemble frozen release and apply committed native locales
         run: |
