@@ -85,10 +85,11 @@ jobs:
           --minimum-importance 4
 
   translation-health:
-    # English publication deliberately remains available when a native edition is
-    # late, but localization itself is not allowed to look healthy. The product
-    # target is simultaneous ES/ZH publication; one hour is only a bounded
-    # reconciliation grace period, after which the health workflow goes red.
+    # Footnote for future maintainers: this one-hour window is an observability and
+    # reconciliation SLO for candidate/source backlog while the previous known-good
+    # edition remains available. It is NOT release authority. LOCALIZATION.md defines
+    # complete EN/ES/ZH Story coverage as one publication obligation, and pages.yml
+    # enforces that separately through `translation_health.py --require-complete`.
     if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     steps:
