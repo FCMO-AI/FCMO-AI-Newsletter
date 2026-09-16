@@ -16,6 +16,7 @@ on:
       - 'tools/build_editorial_frontends.py'
       - 'tools/finalize_editorial_frontends.py'
       - 'tools/promote_story_front_page.py'
+      - 'tools/translation_health.py'
       - 'tools/verify_live_newsroom.py'
       - 'tools/verify_live_front_page.py'
       - 'tests/oraculos/verificar_dom.py'
@@ -61,6 +62,18 @@ jobs:
 
       - name: Prove the frozen overlay still matches its editable source
         run: python tools/build_final_release.py --check
+
+      # Footnote for future maintainers: production-health already treats an overdue
+      # missing native edition as unhealthy after the bounded one-hour reconciliation
+      # grace. Enforce that same project-owned oracle *before* assembling/uploading a
+      # Pages candidate so a successful deploy cannot outrun a known localization
+      # failure. Proof Spine discovered the causal gap; it does not own this gate.
+      - name: Refuse overdue native-edition backlog before building Pages candidate
+        run: >-
+          python tools/translation_health.py
+          --grace-hours 1
+          --fresh-window-hours 30
+          --minimum-importance 4
 
       - name: Assemble frozen release and apply committed native locales
         run: |
