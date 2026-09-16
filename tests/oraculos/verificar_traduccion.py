@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-"""Verify provider-free native-edition integrity plus the production health SLO.
+"""Verify the provider-free native-edition publication contract.
 
-ARB owns native prose; Newsletter imports it, validates every present ES/ZH overlay
-strictly, and records any candidate/source backlog explicitly. The bounded grace below
-is an observability/reconciliation rule for production health, **not** permission to
-release a partial EN-only Story. `LOCALIZATION.md` remains authoritative: Pages release
-eligibility requires complete native Story coverage through the separate strict gate.
+ARB owns native prose; Newsletter imports it, validates present ES/ZH overlays
+structurally, and may record an explicit candidate/source backlog for operations.
+Publication itself is stricter: `LOCALIZATION.md` defines each EN/ES/ZH Story set as
+one release obligation, so this oracle requires complete native Story identity coverage
+with no health-SLO grace. The separate production-health workflow owns reconciliation
+SLOs; it does not redefine release eligibility.
 """
 from __future__ import annotations
 
@@ -56,22 +57,17 @@ def main() -> int:
             print(f"estado de traduccion inesperado: {doc.get('state')!r}", file=sys.stderr)
             return 1
 
-    # Footnote: this is a health/prioritization SLO, not the release gate. A recent
-    # material backlog should become operationally loud after one hour, while the
-    # strict Pages path independently requires all Story IDs to have both native
-    # editions before a candidate may be published.
-    health = run(
-        "tools/translation_health.py",
-        "--grace-hours", "1",
-        "--fresh-window-hours", "30",
-        "--minimum-importance", "4",
-    )
-    if health.returncode:
-        return fail("salud de traduccion reciente", health)
+    # Footnote: this oracle is intentionally stricter than production-health
+    # prioritization. A source backlog can be represented truthfully for diagnosis,
+    # but the publication test itself must not convert a health grace window into
+    # permission to ship an incomplete native-edition Story set.
+    release_gate = run("tools/translation_health.py", "--require-complete")
+    if release_gate.returncode:
+        return fail("ediciones nativas incompletas para publicacion", release_gate)
 
     print(
         f"traduccion OK: {doc.get('native_complete_story_count')} completas; "
-        f"pending={doc.get('pending_translation_count')}; recientes materiales dentro del SLO"
+        f"pending={doc.get('pending_translation_count')}; release_gate=COMPLETE"
     )
     return 0
 
