@@ -107,3 +107,39 @@ Do not manufacture a production failure or trigger a deploy merely to satisfy th
 4. unknown schema becomes `UNKNOWN`.
 
 The private Hub adapter must independently prove the downstream composition and preserve live-site/candidate causal isolation.
+
+## First executed current-main observation
+
+Hosted workflow run `35140061610`, job `104942058126`, executed the complete pre-action producer path and finished `success`.
+
+Observed at `2026-09-16T19:22:02.358706Z`:
+
+- source alignment before/after: `MATCH`;
+- represented current main: `1af947d3be9f76ea963b4b293953dedb6729bb83`;
+- canonical Stories: `43`;
+- native-complete Stories: `42`;
+- pending native editions: `1`;
+- pending Story: `FCMO-7EBD0FA07C12`;
+- candidate state: `INCOMPLETE_NATIVE_EDITIONS`;
+- live translation health: `FAIL`;
+- serving, browser-surface, publication-freshness and editorial-freshness checks: `PASS`;
+- all **4/4** producer regressions: `PASS`.
+
+Artifact `10464627216` was downloaded and hashed independently:
+
+- ZIP bytes: `3112`;
+- ZIP SHA-256: `ff802fb3816c1c41ddd5ad897aa0c0b35d1180714b3bce5cf3215d2843d2507c`;
+- inner JSON bytes: `10157`;
+- inner JSON SHA-256: `61bd07a09ff31b648f566fcc6323daa193b1901394e2d1b2f12f23762be260d4`.
+
+**Footnote for future maintainers:** keep these byte identities separate from semantic claims. An artifact hash proves which bytes were inspected; it does not create publication authority or make the proof contract correct.
+
+## Timing result so far
+
+The receipt was produced after the already-completed Pages run `35138995503`. A later exact-SHA Actions query found no subsequent deploy for the unchanged `1af947d3...` main state, and `main` remained on that SHA.
+
+Therefore the supported result is narrower than prevention:
+
+> the unattended observer executed successfully and detected the currently incomplete release prerequisite before any *future* action, but no later consequential Pages action has yet occurred against which to demonstrate a natural catch-before-action event.
+
+Do not label this result `PREVENTED`, `BLOCKED IN PRODUCTION`, or `PROSPECTIVE INCIDENT CAUGHT` until a later natural action sequence actually supplies that evidence.
