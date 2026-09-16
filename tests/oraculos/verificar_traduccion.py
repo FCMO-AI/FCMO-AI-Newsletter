@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
-"""Verify the current provider-free native-edition contract.
+"""Verify provider-free native-edition integrity plus the production health SLO.
 
-Newsletter no longer pretends every canonical English Story is synchronously
-translated. ARB owns native prose; Newsletter imports it, validates every present
-ES/ZH overlay strictly, records a symmetric explicit backlog, and production
-health requires recent material Stories to receive both native editions within a
-bounded grace period. This oracle exercises exactly that contract rather than the
-retired all-history taxonomy catalogue.
+ARB owns native prose; Newsletter imports it, validates every present ES/ZH overlay
+strictly, and records any candidate/source backlog explicitly. The bounded grace below
+is an observability/reconciliation rule for production health, **not** permission to
+release a partial EN-only Story. `LOCALIZATION.md` remains authoritative: Pages release
+eligibility requires complete native Story coverage through the separate strict gate.
 """
 from __future__ import annotations
 
@@ -57,9 +56,10 @@ def main() -> int:
             print(f"estado de traduccion inesperado: {doc.get('state')!r}", file=sys.stderr)
             return 1
 
-    # Recent material publication has a stronger SLO than historical coverage.
-    # This is the same production-health rule, so a new meaningful Story cannot
-    # remain untranslated indefinitely while CI calls localization healthy.
+    # Footnote: this is a health/prioritization SLO, not the release gate. A recent
+    # material backlog should become operationally loud after one hour, while the
+    # strict Pages path independently requires all Story IDs to have both native
+    # editions before a candidate may be published.
     health = run(
         "tools/translation_health.py",
         "--grace-hours", "1",
