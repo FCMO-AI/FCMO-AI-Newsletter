@@ -109,13 +109,17 @@ jobs:
               "LC_ALL=C.UTF-8" \
               "ARB_SITE_BASE_PATH=/FCMO-AI-Newsletter" \
               "ARB_PUBLIC_BASE_URL=https://fcmo-ai.github.io/FCMO-AI-Newsletter" \
-              python tools/publication_seal.py
+              python tools/publication_seal.py &&
+              python tools/validate_integrity_ratchet.py --json
           ) >"$CANDIDATE_LOG" 2>&1 && grep -qx 'SEAL_OK' "$CANDIDATE_LOG"; then
             SELECTED_SHA="$CURRENT_SHA"
-            echo 'Fresh canonical ARB main passed the complete publication seal.'
+            echo 'Fresh canonical ARB main passed the publication seal and no-new-debt ratchet.'
           else
             SAFE_REASON=$(grep -E '^SEAL_FAIL:[A-Z0-9_]+' "$CANDIDATE_LOG" | tail -n 1 || true)
-            echo "Current ARB main is not publication-safe; using last sealed checkpoint (${SAFE_REASON:-SEAL_FAIL:UNCLASSIFIED})."
+            if test -z "$SAFE_REASON" && grep -q '"state": "REGRESSION"' "$CANDIDATE_LOG"; then
+              SAFE_REASON='INTEGRITY_DEBT_REGRESSION'
+            fi
+            echo "Current ARB main is not promotion-safe; using last sealed checkpoint (${SAFE_REASON:-UNCLASSIFIED_SAFETY_FAILURE})."
             # origin/main was already unshallowed above, so every ancestor of
             # current main is locally addressable. Avoid a redundant raw-SHA fetch:
             # GitHub may reject direct object fetches even when the commit is a
