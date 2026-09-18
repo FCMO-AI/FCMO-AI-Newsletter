@@ -271,7 +271,7 @@ class AutonomousNewsroomTests(unittest.TestCase):
             self.assertNotIn("/news/en/STORY-", archive)
             css = (site / "assets" / "editorial-frontends.css").read_text(encoding="utf-8")
             self.assertIn("FCMO-DURABLE-VISUAL-GUARDS:BEGIN", css)
-            self.assertIn("publication nav", css)
+            self.assertIn(".mast nav", css)
 
     def test_airlock_quiet_delta_is_distinct_from_missing_input(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
