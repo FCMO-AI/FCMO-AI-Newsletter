@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import json
-import re
 import subprocess
 import sys
 import tempfile
@@ -102,10 +101,29 @@ class TranslationHealthTests(unittest.TestCase):
         # Footnote: health grace and release authority are deliberately distinct.
         # Keeping --require-complete out of newsroom-health prevents a future cleanup
         # from collapsing observability/reconciliation semantics back into release law.
-        strict_run = re.search(r"run:\\s*(?:>-?\\s*)?python tools/translation_health\\.py[^\\n]*--require-complete", health)
-        health_run = re.search(r"run:\\s*(?:>-?\\s*)?python tools/translation_health\\.py", health)
-        self.assertIsNone(strict_run)
-        self.assertIsNotNone(health_run)
+        run_blocks = []
+        lines = health.splitlines()
+        for index, line in enumerate(lines):
+            stripped = line.lstrip()
+            if not stripped.startswith("run:"):
+                continue
+            indent = len(line) - len(stripped)
+            block = [stripped]
+            for following in lines[index + 1:]:
+                next_stripped = following.lstrip()
+                next_indent = len(following) - len(next_stripped)
+                if following.strip() and next_indent <= indent:
+                    break
+                block.append(following.strip())
+            run_blocks.append(" ".join(block))
+
+        # Footnote: inspect only executable YAML run blocks. Comments may legitimately
+        # mention the strict Pages command while explaining why health must not execute it.
+        self.assertTrue(any("python tools/translation_health.py" in block for block in run_blocks))
+        self.assertFalse(any(
+            "python tools/translation_health.py" in block and "--require-complete" in block
+            for block in run_blocks
+        ))
 
 
 if __name__ == "__main__":
