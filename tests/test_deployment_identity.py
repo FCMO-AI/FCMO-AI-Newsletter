@@ -52,7 +52,10 @@ class DeploymentIdentityTests(unittest.TestCase):
     def test_manifest_story_hash_mismatch_fails_closed(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             site = self.fixture(Path(tmp))
-            (site / "data" / "stories.json").write_text("[]\n", encoding="utf-8")
+            (site / "data" / "stories.json").write_text(
+                json.dumps([{"research_id": "FCMO-CHANGEDBYTES"}], sort_keys=True) + "\n",
+                encoding="utf-8",
+            )
             with self.assertRaisesRegex(ValueError, "does not bind exact"):
                 build_deployment_identity.build(site, "deadbeef")
 
