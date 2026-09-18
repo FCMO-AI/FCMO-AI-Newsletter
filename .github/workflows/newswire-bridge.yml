@@ -6,16 +6,13 @@ on:
     paths:
       - '.github/workflows/newswire-bridge.yml'
   schedule:
-    # GitHub schedules are best-effort. Multiple attempts are deliberately
-    # idempotent. Each run first tries the exact current ARB main commit and uses it
-    # only if that immutable commit passes the complete publication seal. If current
-    # research is not publication-safe yet, the bridge falls back to the last sealed
-    # PUBLICATION_READY snapshot. Current production transport accepts an explicitly
-    # measured native-locale backlog without inventing translated prose.
-    - cron: '10 13 * * *'
-    - cron: '37 13 * * *'
-    - cron: '11 14 * * *'
-    - cron: '47 14 * * *'
+    # GitHub schedules are best-effort. The bridge runs hourly so a material,
+    # publication-safe canonical change reaches the live newsroom with <=~1h
+    # transport lag instead of waiting for the next morning window. The operation
+    # is idempotent: unchanged semantic Airlocks do not create commits or rebuilds.
+    # Each run first tries exact current ARB main and falls back only to the last
+    # sealed PUBLICATION_READY ancestor when current research is not publication-safe.
+    - cron: '10 * * * *'
   workflow_dispatch:
 
 permissions:
@@ -135,6 +132,21 @@ jobs:
           test -z "$(git -C "$PRIVATE_DIR" branch --show-current)"
           rm -f "$CANDIDATE_LOG"
           unset AUTH APP_TOKEN READY_SHA CURRENT_SHA SELECTED_SHA
+
+      - name: Independently prove canonical ARB integrity on the working GitHub runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          PRIVATE_DIR="$RUNNER_TEMP/fcmo-newswire-private-source"
+          (
+            cd "$PRIVATE_DIR"
+            python tools/validate_repo.py
+            python -m unittest discover -s tests -v
+            python tools/arb.py doctor
+            python tools/arb.py orient --json >/tmp/arb-orient.json
+            python tools/arb.py next --json >/tmp/arb-next.json
+          )
+          echo 'Canonical ARB validation, tests, doctor, orient and next all passed on the selected immutable snapshot.'
 
       - name: Prove selected immutable snapshot through ARB's atomic publication seal
         shell: bash
