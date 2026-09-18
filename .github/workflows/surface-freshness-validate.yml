@@ -6,10 +6,16 @@ on:
     paths:
       - 'tools/apply_front_page_layout.py'
       - 'tools/newsletter-autonomous-surfaces.css'
+      - 'tools/newsletter-current-corpus.css'
+      - 'tools/newsletter-mobile-overflow.css'
+      - 'tools/newsletter-visual-regressions.css'
+      - 'tools/build_editorial_frontends.py'
       - 'tools/newsletter-current-corpus.js'
       - 'tests/oraculos/verificar_surface_freshness.py'
       - 'tests/oraculos/verificar_live_surfaces.py'
       - 'tests/oraculos/verificar_layout.py'
+      - 'tests/oraculos/verificar_editorial_layout.py'
+      - 'tests/oraculos/capture_visual_qa.py'
       - '.github/workflows/pages.yml'
       - '.github/workflows/newsroom-health.yml'
       - '.github/workflows/surface-freshness-validate.yml'
@@ -26,7 +32,7 @@ jobs:
           persist-credentials: false
       - name: Compile deterministic surface tooling
         run: |
-          python -m py_compile tools/apply_front_page_layout.py tests/oraculos/verificar_surface_freshness.py tests/oraculos/verificar_live_surfaces.py tests/oraculos/verificar_layout.py
+          python -m py_compile tools/apply_front_page_layout.py tools/build_editorial_frontends.py tests/oraculos/verificar_surface_freshness.py tests/oraculos/verificar_live_surfaces.py tests/oraculos/verificar_layout.py tests/oraculos/verificar_editorial_layout.py tests/oraculos/capture_visual_qa.py
           node --check tools/newsletter-current-corpus.js
       - name: Assemble the exact Pages candidate
         run: |
@@ -49,5 +55,17 @@ jobs:
         run: python tests/oraculos/verificar_surface_freshness.py publish
       - name: Preserve the complete responsive contract
         run: python tests/oraculos/verificar_layout.py publish
+      - name: Prove generated editorial routes keep durable visual contracts
+        run: python tests/oraculos/verificar_editorial_layout.py publish --json-out editorial-visual-qa.json
+      - name: Capture human-review visual references
+        run: python tests/oraculos/capture_visual_qa.py publish visual-qa
+      - name: Upload visual QA evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: fcmo-visual-qa
+          path: |
+            visual-qa/*.png
+            editorial-visual-qa.json
+          retention-days: 14
       - name: Prove the current deployed surfaces obey the same public-freshness contract
         run: python tests/oraculos/verificar_live_surfaces.py
