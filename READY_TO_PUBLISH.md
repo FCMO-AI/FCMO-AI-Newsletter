@@ -20,14 +20,14 @@ Ordinary releases require no repository-visibility step. A candidate that fails 
 
 - Release manifest schema: `fcmo-ai-newsletter-release-overlay-v2`
 - Release: `signal-field-v4.1.1-viewport-polish`
-- Front-end SHA-256: `ba7fd6fc84204bdc7ea0b0d0d3d655275a803e83e189e6bf4447f64783fee8d7`
-- Release archive SHA-256: `4bf4e511c0616d181088b4b5b2573e2bd22ca2dbb13a9f114d838290eccbe1f0`
-- Encoded release payload SHA-256: `e92f2bfcb4897f0106c963ec95b8cfeafe65543775744559b79d9e9c642f896f`
-- 35/35 release payload parts present; payload and archive checked by SHA-256
-- 715 public files after assembly
+- Front-end SHA-256: `c39f8fb087e40d4306b5b2ba968963efa9d999ba6b71ad61e9420aefe3ddb5b3`
+- Release archive SHA-256: `0a69df07afe0bb91403568137bc6cd4b858a2a422fc8d07f25205308427a06ff`
+- Encoded release payload SHA-256: `88f1a948b2041cf697ecc909d8cb6a0a2b808a938018d787c3861dbbcf18f943`
+- 36/36 release payload parts present; payload and archive checked by SHA-256
+- 717 public files after assembly
 - 43 canonical dossiers
 - 43 stable dossier routes
-- 18 frozen edition routes
+- 19 frozen edition routes
 - 10 vetted sourced story visuals + 33 embedded editorial fallbacks
 
 ## Verification receipts
@@ -52,7 +52,7 @@ The final assembler validates, before deployment:
 - required human and machine-readable public files;
 - the post-overlay archive/search/topic/organization/methodology/status frontend suite;
 - 43 dossier identifiers and stable human routes;
-- 18 edition JSON/HTML routes;
+- 19 edition JSON/HTML routes;
 - JSON, JSONL, RSS, and sitemap parsing;
 - agent discovery/query contracts (`fcmo-agent-discovery-v2`, `fcmo-agent-query-v2`);
 - final 10/33 story-media policy;
@@ -62,7 +62,7 @@ The final assembler validates, before deployment:
 
 The release assembler, native-locale gate, and discovery frontend builder were rerun; the assembled public candidate measures:
 
-`FCMO AI Newsletter signal-field-v4.1.1-viewport-polish READY: 715 public files; index ba7fd6fc8420…`
+`FCMO AI Newsletter signal-field-v4.1.1-viewport-polish READY: 717 public files; index c39f8fb087e4…`
 
 ## Daily refresh readiness
 
