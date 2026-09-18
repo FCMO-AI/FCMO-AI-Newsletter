@@ -8,6 +8,7 @@ reported explicitly but does not make a fully validated English Story layer fals
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import sys
 from datetime import datetime, timezone, timedelta
@@ -52,6 +53,10 @@ def require_airlock(corpus: Path, max_age_hours: int) -> dict[str, Any]:
 
 def count_json_files(path: Path, pattern: str) -> int:
     return sum(1 for _ in path.glob(pattern)) if path.is_dir() else 0
+
+
+def sha256_file(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
 def preflight(args: argparse.Namespace) -> int:
@@ -124,7 +129,9 @@ def finalize(args: argparse.Namespace) -> int:
         "airlock_record_count": receipt.get("record_count"),
         "canonical_story_count": canonical_count,
         "story_layer_count": len(stories),
+        "stories_sha256": sha256_file(stories_path),
         "media_count": len(media),
+        "media_sha256": sha256_file(media_path),
         "translation_counts": {locale: len(ids) for locale, ids in locale_ids.items()},
         "translation_state": translation_state,
         "pending_translation_count": len(pending),
