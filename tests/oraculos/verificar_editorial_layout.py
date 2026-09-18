@@ -120,6 +120,11 @@ function inspect(route,vp,doc,win){{
       if(rgbaAlpha(style.backgroundColor)<0.98)
         local.push('topbar background remains translucent');
     }}
+    if(vp.width<=560){{
+      const utility=doc.querySelector('.utility-strip');
+      if(utility && win.getComputedStyle(utility).display!=='none')
+        local.push('redundant mobile utility strip remains visible');
+    }}
   }} else {{
     const main=doc.querySelector('main');
     const title=doc.querySelector('.page-head h1');
