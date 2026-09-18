@@ -56,7 +56,12 @@ class NewswireBridgeWorkflowContractTests(unittest.TestCase):
 
     def test_failed_current_main_falls_back_to_ancestor_ready_snapshot(self) -> None:
         text = self.text()
-        self.assertIn('fetch --quiet origin "$READY_SHA"', text)
+        # The bridge unshallows canonical main once; a reachable READY ancestor
+        # must already exist locally. Raw-SHA fetches are unnecessary and may be
+        # rejected by GitHub even for a valid reachable commit.
+        self.assertIn('fetch --quiet --unshallow origin main', text)
+        self.assertIn('cat-file -e "$READY_SHA^{commit}"', text)
+        self.assertNotIn('fetch --quiet origin "$READY_SHA"', text)
         self.assertIn('merge-base --is-ancestor "$READY_SHA" origin/main', text)
         self.assertIn('checkout --detach --quiet "$READY_SHA"', text)
         self.assertIn('SELECTED_SHA="$READY_SHA"', text)
@@ -126,13 +131,14 @@ class NewswireBridgeWorkflowContractTests(unittest.TestCase):
         self.assertIn("git diff --cached --quiet -- ':!corpus'", text)
         self.assertNotRegex(text, re.compile(r"git add (?:-A )?\.(?:\s|$)"))
 
-    def test_bridge_has_redundant_staggered_daily_attempts(self) -> None:
+    def test_bridge_has_hourly_idempotent_recovery_heartbeat(self) -> None:
         text = self.text()
-        # UTC schedules correspond to post-06:00 America/Mexico_City recovery
-        # attempts; test executable cron truth, not comments containing local labels.
-        for cron in ("10 13", "37 13", "11 14", "47 14"):
-            self.assertIn(f"cron: '{cron} * * *'", text)
-        self.assertEqual(len(re.findall(r"- cron: '\d+ \d+ \* \* \*'", text)), 4)
+        # Material canonical truth should not wait for a morning-only window.
+        # One hourly idempotent heartbeat bounds transport lag while unchanged
+        # semantic Airlocks remain no-op.
+        self.assertIn("cron: '10 * * * *'", text)
+        self.assertEqual(len(re.findall(r"- cron: '[^']+'", text)), 1)
+        self.assertIn("unchanged semantic content", text)
         self.assertIn("cancel-in-progress: false", text)
 
     def test_refresh_is_chained_from_successful_bridge(self) -> None:
