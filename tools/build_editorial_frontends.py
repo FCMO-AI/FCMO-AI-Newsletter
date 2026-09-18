@@ -153,7 +153,7 @@ def build_archive(rows: list[dict[str, Any]]) -> str:
 def build_search(rows: list[dict[str, Any]]) -> str:
     body = f'''<header class="page-head"><h1>Search the research</h1><p>Search titles, mechanisms, organizations, topics and evidence summaries locally in your browser.</p></header>
 <section class="search-tool" data-search-root data-source="{href('data/search.json')}">
-<label for="fcmo-search">QUERY</label><input id="fcmo-search" type="search" autocomplete="off" placeholder="agent memory, speculative decoding, DeepMind…">
+<label for="fcmo-search">QUERY</label><input id="fcmo-search" type="search" autocomplete="off" placeholder="agent memory, DeepMind…">
 <div class="search-filters"><select data-filter="evidence"><option value="">All evidence</option><option>A</option><option>B</option><option>C</option><option>D</option></select>
 <select data-filter="impact"><option value="">All impact</option><option value="8">8+ field-shifting</option><option value="6">6+ major</option><option value="4">4+ notable</option></select></div>
 <p class="search-count"><span data-search-count>{len(rows)}</span> matching records</p><div data-search-results>{''.join(item(r) for r in rows[:12])}</div></section>'''
