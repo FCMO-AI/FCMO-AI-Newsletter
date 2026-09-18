@@ -17,6 +17,7 @@ on:
       - 'tools/build_editorial_frontends.py'
       - 'tools/finalize_editorial_frontends.py'
       - 'tools/promote_story_front_page.py'
+      - 'tools/translation_health.py'
       - 'tools/verify_live_newsroom.py'
       - 'tools/verify_live_front_page.py'
       - 'tests/oraculos/verificar_dom.py'
@@ -64,6 +65,14 @@ jobs:
 
       - name: Prove the frozen overlay still matches its editable source
         run: python tools/build_final_release.py --check
+
+      # Footnote for future maintainers: LOCALIZATION.md defines a new/changed Story
+      # plus EN/ES/ZH as one publication obligation. The health workflow may retain a
+      # bounded reconciliation window for diagnosis while the previous known-good edition
+      # remains live, but that grace is NOT release authority. This strict local gate runs
+      # before assembly/upload; Proof Spine discovered the missing edge but does not own it.
+      - name: Require complete native Story editions before building Pages candidate
+        run: python tools/translation_health.py --require-complete
 
       - name: Assemble frozen release and apply committed native locales
         run: |
