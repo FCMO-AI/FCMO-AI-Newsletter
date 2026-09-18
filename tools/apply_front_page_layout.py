@@ -70,7 +70,7 @@ def main() -> int:
     text = text.replace("</head>", style_tag + "\n</head>", 1)
     text = text.replace("</body>", script_tag + "\n</body>", 1)
     index.write_text(text, encoding="utf-8", newline="\n")
-    print("current-corpus presentation/freshness attached inline: v4.3.1 / surfaces-v1 / visual-guards-v1")
+    print("current-corpus presentation/freshness attached inline: v4.3.2 / surfaces-v1 / visual-guards-v1")
     return 0
 
 
