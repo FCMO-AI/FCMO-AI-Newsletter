@@ -116,8 +116,11 @@ jobs:
           else
             SAFE_REASON=$(grep -E '^SEAL_FAIL:[A-Z0-9_]+' "$CANDIDATE_LOG" | tail -n 1 || true)
             echo "Current ARB main is not publication-safe; using last sealed checkpoint (${SAFE_REASON:-SEAL_FAIL:UNCLASSIFIED})."
-            git -C "$PRIVATE_DIR" -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $AUTH" \
-              fetch --quiet origin "$READY_SHA"
+            # origin/main was already unshallowed above, so every ancestor of
+            # current main is locally addressable. Avoid a redundant raw-SHA fetch:
+            # GitHub may reject direct object fetches even when the commit is a
+            # perfectly valid reachable ancestor.
+            git -C "$PRIVATE_DIR" cat-file -e "$READY_SHA^{commit}"
             if ! git -C "$PRIVATE_DIR" merge-base --is-ancestor "$READY_SHA" origin/main; then
               echo 'publication-ready checkpoint is outside canonical main lineage' >&2
               exit 1
