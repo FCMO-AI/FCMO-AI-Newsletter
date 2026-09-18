@@ -248,6 +248,8 @@ class AutonomousNewsroomTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             site = Path(tmp) / "site"
             (site / "data").mkdir(parents=True)
+            (site / "assets").mkdir(parents=True)
+            (site / "assets" / "editorial-frontends.css").write_text("/* fixture base stylesheet */\n", encoding="utf-8")
             row = record()
             (site / "data" / "search.json").write_text(json.dumps([row]), encoding="utf-8")
             (site / "data" / "stories.json").write_text(json.dumps([{"research_id": RID}]), encoding="utf-8")
@@ -267,6 +269,9 @@ class AutonomousNewsroomTests(unittest.TestCase):
             archive = (site / "archive.html").read_text(encoding="utf-8")
             self.assertIn(f"/news/en/{RID}.html", archive)
             self.assertNotIn("/news/en/STORY-", archive)
+            css = (site / "assets" / "editorial-frontends.css").read_text(encoding="utf-8")
+            self.assertIn("FCMO-DURABLE-VISUAL-GUARDS:BEGIN", css)
+            self.assertIn("publication nav", css)
 
     def test_airlock_quiet_delta_is_distinct_from_missing_input(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
