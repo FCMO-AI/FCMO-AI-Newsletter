@@ -48,3 +48,108 @@ body{overflow-x:hidden}
 @media(max-width:560px){
   .search-tool input::placeholder{font-size:14px}
 }
+
+/* FCMO-DURABLE-VISUAL-GUARDS:BEGIN */
+/*
+  FCMO AI Newsletter — durable visual regression guards v1
+  ---------------------------------------------------------
+  Source-controlled presentation law for reader-facing regressions discovered
+  by live/browser QA. This file is consumed by BOTH the frozen front-page
+  post-overlay injector and the generated editorial frontends, so autonomous
+  newsroom refreshes cannot silently erase these corrections.
+*/
+
+/* Main reader chrome: keep editorial content from showing through the masthead.
+   Tablet/mobile uses normal document flow rather than a two-row sticky overlay. */
+.topbar{
+  background:var(--paper,#f2eee6)!important;
+  -webkit-backdrop-filter:none!important;
+  backdrop-filter:none!important;
+  border-bottom-color:rgba(17,17,17,.32)!important;
+  box-shadow:0 2px 12px rgba(17,17,17,.06);
+}
+@media(max-width:1080px){
+  .topbar{
+    position:relative!important;
+    top:auto!important;
+    box-shadow:none!important;
+  }
+  .topbar .nav{
+    background:var(--paper,#f2eee6)!important;
+    -webkit-backdrop-filter:none!important;
+    backdrop-filter:none!important;
+  }
+}
+
+/* Generated discovery/editorial frontends: intrinsic sizing must never turn
+   machine labels, long names, or search copy into horizontal overflow. */
+:root{--paper:#f2eee6;--orange:#fd5204}
+body{overflow-x:clip}
+.page-head,.page-head>*,.timeline>*,.timeline>*>*,.index-item>*{min-width:0;max-width:100%}
+.page-head h1{overflow-wrap:anywhere}
+.index-item h2,.index-item p,.index-item a,.signals,.signal,.item-meta,
+.status-grid strong,.facet-row span,.facet-row i,.feed-list code{
+  overflow-wrap:anywhere;
+  word-break:break-word;
+}
+
+/* Status/evidence pills belong to their content, not the full story-row height. */
+.signals{align-items:flex-start;align-self:start}
+.signal{align-self:flex-start;height:auto}
+
+/* Search copy must remain readable without shrinking entered queries to a toy
+   size. Placeholder typography is intentionally smaller than typed text. */
+.search-tool input{
+  min-width:0;
+  max-width:100%;
+  font-size:clamp(30px,4.3vw,50px);
+  line-height:1.05;
+}
+.search-tool input::placeholder{
+  font-size:clamp(17px,2.4vw,30px);
+  line-height:1.1;
+  color:#767168;
+  opacity:1;
+}
+.metric-line{flex-wrap:wrap}
+.bar{flex-basis:160px;min-width:0}
+
+@media(max-width:850px){
+  .page-head{gap:24px}
+  .search-filters{flex-wrap:wrap}
+  .search-filters select{max-width:100%}
+}
+
+@media(max-width:560px){
+  /* Every primary destination is visible at once: no hidden horizontal-nav
+     affordance and no label allowed to widen the viewport. */
+  .mast nav{
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:0;
+    overflow:visible;
+    white-space:normal;
+    padding:0;
+    border-top:1px solid var(--line,#c9c5bb);
+    border-left:1px solid var(--line,#c9c5bb);
+  }
+  .mast nav a{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-width:0;
+    min-height:38px;
+    padding:7px 4px;
+    text-align:center;
+    font-size:9px;
+    line-height:1.15;
+    border-right:1px solid var(--line,#c9c5bb);
+    border-bottom:1px solid var(--line,#c9c5bb);
+    overflow-wrap:anywhere;
+  }
+  .page-head h1{font-size:clamp(40px,13vw,58px)}
+  .search-tool input{font-size:32px}
+  .search-tool input::placeholder{font-size:14px}
+  .status-grid strong{font-size:clamp(20px,7vw,28px)}
+}
+/* FCMO-DURABLE-VISUAL-GUARDS:END */
