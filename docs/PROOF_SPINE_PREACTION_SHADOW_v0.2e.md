@@ -166,3 +166,10 @@ Independent release-validation on the rebased experiment branch failed at Newsle
 This observer branch was merge-forwarded onto Newsletter main `cb5d74d7df483cea5083adcdf53b6172eee55372` without changing its evidence-only semantics.
 
 > Footnote: this small documentation refresh deliberately causes the branch-scoped shadow workflow to emit a new receipt against the current production candidate. It grants no publication, merge, rollback, or deployment authority and must not be treated as a substitute for the project-local release gate.
+
+
+## Preregistered calibration observation — 2026-09-18
+
+The FCMO Agent Hub calibration plan was Git-preregistered at commit `9d13d651b4e86599c1d674539f9b7f430480e581` before this observation trigger.
+
+> Footnote: this documentation-only branch mutation exists to cause one new read-only receipt after the preregistration boundary. The receipt is enrolled because the plan pre-existed it, not because its outcome is known or desirable. This still grants no deploy, publication, rollback, merge, or release authority.
