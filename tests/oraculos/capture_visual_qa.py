@@ -26,6 +26,13 @@ class Quiet(SimpleHTTPRequestHandler):
     def log_message(self, _format: str, *_args: object) -> None:
         pass
 
+    def translate_path(self, path: str) -> str:
+        """Serve the production BASE_PATH from the local candidate root."""
+        prefix = "/FCMO-AI-Newsletter"
+        if path == prefix or path.startswith(prefix + "/"):
+            path = path[len(prefix):] or "/"
+        return super().translate_path(path)
+
 
 @contextmanager
 def serve(root: Path):
