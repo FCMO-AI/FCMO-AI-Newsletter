@@ -12,6 +12,7 @@ on:
       - 'tools/newsletter-current-corpus.css'
       - 'tools/newsletter-mobile-overflow.css'
       - 'tools/newsletter-autonomous-surfaces.css'
+      - 'tools/newsletter-visual-regressions.css'
       - 'tools/newsletter-current-corpus.js'
       - 'tools/build_editorial_frontends.py'
       - 'tools/finalize_editorial_frontends.py'
@@ -20,6 +21,8 @@ on:
       - 'tools/verify_live_front_page.py'
       - 'tests/oraculos/verificar_dom.py'
       - 'tests/oraculos/verificar_layout.py'
+      - 'tests/oraculos/verificar_editorial_layout.py'
+      - 'tests/oraculos/capture_visual_qa.py'
       - 'tests/oraculos/verificar_home_lead.py'
       - 'tests/oraculos/verificar_surface_freshness.py'
       - 'tests/oraculos/verificar_live_surfaces.py'
@@ -101,6 +104,9 @@ jobs:
       - name: Render responsive layout contracts across physical viewports
         run: python tests/oraculos/verificar_layout.py publish
 
+      - name: Prove discovery/editorial routes keep their visual contracts
+        run: python tests/oraculos/verificar_editorial_layout.py publish
+
       - name: Prove live surfaces remain current and collision-free
         run: python tests/oraculos/verificar_surface_freshness.py publish
 
@@ -147,3 +153,11 @@ jobs:
         run: python tests/oraculos/verificar_home_lead.py site --base-url https://fcmo-ai.github.io/FCMO-AI-Newsletter/
       - name: Verify deployed Signal Field, Chronology and Research Library in a real browser
         run: python tests/oraculos/verificar_live_surfaces.py --base-url https://fcmo-ai.github.io/FCMO-AI-Newsletter/
+      - name: Capture the deployed reader visually after Pages promotion
+        run: python tests/oraculos/capture_visual_qa.py site live-visual-qa --base-url https://fcmo-ai.github.io/FCMO-AI-Newsletter/
+      - name: Preserve post-deploy visual evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: fcmo-live-visual-qa
+          path: live-visual-qa/*.png
+          retention-days: 14
