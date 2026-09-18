@@ -46,6 +46,16 @@ def main() -> int:
         raise SystemExit(f"front-page layout refused: source patch is missing: {missing}")
 
     text = index.read_text(encoding="utf-8")
+
+    # The frozen overlay's D.meta.count is the Story-layer count, not the full
+    # research-index count. Keep reader copy semantically honest so the front
+    # page's ~40 curated stories does not contradict the ~200-record Library.
+    text = text.replace(" public briefs</span>", " newsroom stories</span>")
+    text = text.replace(
+        "public briefs / complete corpus inside",
+        "newsroom stories / full research library inside",
+    )
+
     css = "\n\n".join(path.read_text(encoding="utf-8").strip() for path in STYLE_SOURCES)
     js = SCRIPT_SOURCE.read_text(encoding="utf-8").strip()
     style_tag = f'<style {STYLE_MARKER}>\n{css}\n</style>'
