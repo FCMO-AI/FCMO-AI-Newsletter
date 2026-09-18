@@ -54,7 +54,7 @@ def date_label(story: dict) -> str:
 
 def latest_published_edition_date(document: str, fallback: str) -> str:
     """Return the newest edition that PUBLICATION memory marks as actually published."""
-    match = re.search(r'<script[^>]+id=["\\']fcmo-data["\\'][^>]*>(.*?)</script>', document, re.S)
+    match = re.search(r"<script[^>]+id=['\\\"]fcmo-data['\\\"][^>]*>(.*?)</script>", document, re.S)
     if not match:
         return fallback
     try:
