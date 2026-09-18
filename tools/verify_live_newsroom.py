@@ -8,6 +8,7 @@ with repository truth, and opens the multilingual Story and discovery surfaces.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 import time
@@ -35,6 +36,10 @@ def fetch(url: str, attempts: int = 6) -> bytes:
             if attempt + 1 < attempts:
                 time.sleep(5)
     raise RuntimeError(f"live fetch failed for {url}: {last}")
+
+
+def sha256_bytes(data: bytes) -> str:
+    return hashlib.sha256(data).hexdigest()
 
 
 def load_json_bytes(data: bytes, label: str) -> Any:
@@ -95,11 +100,23 @@ def main(argv: list[str] | None = None) -> int:
     if live_status.get("story_layer_count") != len(expected_stories):
         raise SystemExit("live oracle FAILED: live status story count does not match repository Story layer")
 
-    live_stories = load_json_bytes(fetch(base + "/data/stories.json"), "Story index")
+    live_stories_bytes = fetch(base + "/data/stories.json")
+    live_stories = load_json_bytes(live_stories_bytes, "Story index")
     if not isinstance(live_stories, list) or len(live_stories) != len(expected_stories):
         raise SystemExit(
             f"live oracle FAILED: Story index count repo={len(expected_stories)} live={len(live_stories) if isinstance(live_stories, list) else 'invalid'}"
         )
+    expected_stories_sha = expected.get("stories_sha256")
+    if expected_stories_sha and sha256_bytes(live_stories_bytes) != expected_stories_sha:
+        raise SystemExit("live oracle FAILED: Story index bytes do not match the validated newsroom artifact")
+    if expected.get("corpus_digest") != live_status.get("corpus_digest"):
+        raise SystemExit("live oracle FAILED: live corpus digest does not match repository newsroom truth")
+    if expected.get("airlock_record_count") != live_status.get("airlock_record_count"):
+        raise SystemExit("live oracle FAILED: live Airlock record count does not match repository newsroom truth")
+    if expected.get("translation_state") != live_status.get("translation_state"):
+        raise SystemExit("live oracle FAILED: live translation state does not match repository newsroom truth")
+    if expected.get("translation_counts") != live_status.get("translation_counts"):
+        raise SystemExit("live oracle FAILED: live translation counts do not match repository newsroom truth")
 
     allowed_states = {
         "BOOTSTRAPPED_FROM_EXISTING_PUBLIC_RELEASE",
