@@ -3,7 +3,9 @@ name: Refresh the autonomous newsroom from the sanitized corpus
 # The newswire bridge leaves exclusively sanitized material in corpus/. From here
 # Newsletter behaves as a public clean-room newsroom: validate the heartbeat,
 # ingest, import ARB-authored ES/ZH editions, re-research public sources,
-# resolve media, build Story surfaces and refuse unsafe publication. Native-language
+# resolve media, build Story surfaces and refuse unsafe publication. A semantically
+# unchanged Airlock heartbeat exits after preflight without rebuilding or committing.
+# Native-language
 # backlog is explicit and observable; it no longer rolls canonical English backward.
 on:
   push:
@@ -45,12 +47,15 @@ jobs:
         run: python tools/newsroom_receipt.py preflight --github-output "$GITHUB_OUTPUT"
 
       - name: Regenerate the canonical public source from the corpus
+        if: steps.airlock.outputs.state != 'NO_PUBLIC_DELTA'
         run: python tools/ingest_corpus.py --corpus corpus --out release-src
 
       - name: Bind relationship JSON and JSONL to one canonical sequence
+        if: steps.airlock.outputs.state != 'NO_PUBLIC_DELTA'
         run: python tools/synchronize_relationship_surfaces.py --site release-src
 
       - name: Prove the ingest carried every story across
+        if: steps.airlock.outputs.state != 'NO_PUBLIC_DELTA'
         shell: python
         run: |
           import json, re, sys
@@ -73,53 +78,69 @@ jobs:
           print(f'all {len(incoming)} corpus stories reached the site')
 
       - name: Import ARB-authored Spanish and Chinese editions
+        if: steps.airlock.outputs.state != 'NO_PUBLIC_DELTA'
         run: python tools/sync_airlocked_locales.py --corpus corpus
 
       - name: Reconcile locale overlays with the declassified public schema
+        if: steps.airlock.outputs.state != 'NO_PUBLIC_DELTA'
         run: python tools/reconcile_locale_overlays.py --site release-src
 
       - name: Bind locale metadata to the current canonical editorial identity
+        if: steps.airlock.outputs.state != 'NO_PUBLIC_DELTA'
         run: python tools/refresh_locale_identity.py --site release-src
 
       - name: Validate every available native edition and record translation backlog
+        if: steps.airlock.outputs.state != 'NO_PUBLIC_DELTA'
         run: python tools/validate_localizations_partial.py --site release-src
 
       - name: Re-research the stories from public evidence only
+        if: steps.airlock.outputs.state != 'NO_PUBLIC_DELTA'
         run: python tools/public_research_desk.py --release-src release-src
 
       - name: Resolve licensed visuals or generate original FCMO explainers
+        if: steps.airlock.outputs.state != 'NO_PUBLIC_DELTA'
         run: python tools/visual_desk.py --release-src release-src --site site
 
       - name: Build the Story layer and static EN ES ZH news surfaces
+        if: steps.airlock.outputs.state != 'NO_PUBLIC_DELTA'
         run: python tools/build_newsroom_surfaces.py --release-src release-src --site site
 
       - name: Replace untranslated locale fallbacks with explicit pending pages
+        if: steps.airlock.outputs.state != 'NO_PUBLIC_DELTA'
         run: python tools/mark_pending_localizations.py --site site
 
       - name: Select the freshest material lead without changing evidence labels
+        if: steps.airlock.outputs.state != 'NO_PUBLIC_DELTA'
         run: python tools/editorial_freshness.py select --stories site/data/stories.json
 
       - name: Promote the current Story lead onto the reader front page
+        if: steps.airlock.outputs.state != 'NO_PUBLIC_DELTA'
         run: python tools/promote_story_front_page.py --site site
 
       - name: Build and finalize the complete editorial frontend suite
+        if: steps.airlock.outputs.state != 'NO_PUBLIC_DELTA'
         run: |
           python tools/build_editorial_frontends.py --site site
           python tools/finalize_editorial_frontends.py --site site
 
       - name: Write downstream newsroom acknowledgement
+        if: steps.airlock.outputs.state != 'NO_PUBLIC_DELTA'
         run: python tools/newsroom_receipt.py finalize
 
       - name: Rebuild the frozen canonical overlay
+        if: steps.airlock.outputs.state != 'NO_PUBLIC_DELTA'
         run: python tools/build_final_release.py
 
       - name: Rebuild the readiness receipt
+        if: steps.airlock.outputs.state != 'NO_PUBLIC_DELTA'
         run: python tools/build_ready_receipt.py
 
       - name: Run the established six publication gates
+        if: steps.airlock.outputs.state != 'NO_PUBLIC_DELTA'
         run: python tools/verify_release.py
 
       - name: Commit only what the autonomous newsroom produced
+        if: steps.airlock.outputs.state != 'NO_PUBLIC_DELTA'
         shell: bash
         run: |
           git config user.name 'FCMO Autonomous Newsroom'
