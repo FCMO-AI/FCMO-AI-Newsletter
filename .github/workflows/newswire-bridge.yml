@@ -143,17 +143,21 @@ jobs:
           rm -f "$CANDIDATE_LOG"
           unset AUTH APP_TOKEN READY_SHA CURRENT_SHA SELECTED_SHA
 
-      - name: Measure canonical ARB integrity debt on the working GitHub runner
+      - name: Measure current canonical ARB integrity on the working GitHub runner
         shell: bash
         run: |
           # This is deliberately observational, not a second publication gate.
-          # publication_seal.py owns the fail-closed public boundary. Full-repo
-          # validation currently includes legacy/control-plane debt that must be
-          # measured and repaired without freezing a safe last-known-good newsroom.
+          # Always diagnose *current canonical main*, even when publication fell
+          # back to an older sealed snapshot. Historical fallback snapshots are
+          # publication artifacts, not the runtime that defines today's integrity
+          # tools/tests/orientation contracts.
           set +e
           set -u
           PRIVATE_DIR="$RUNNER_TEMP/fcmo-newswire-private-source"
+          SELECTED_SHA="$(cat "$RUNNER_TEMP/fcmo-newswire-private.sha")"
+          CURRENT_SHA="$(git -C "$PRIVATE_DIR" rev-parse origin/main)"
           cd "$PRIVATE_DIR"
+          git checkout --detach --quiet "$CURRENT_SHA"
           failures=0
           for cmd in \
             "python tools/validate_integrity_ratchet.py --json" \
@@ -167,11 +171,13 @@ jobs:
             rc=$?
             echo "::endgroup::"
             if test "$rc" -ne 0; then
-              echo "::warning::ARB integrity probe failed (rc=$rc): $cmd"
+              echo "::warning::ARB current-main integrity probe failed (rc=$rc): $cmd"
               failures=$((failures+1))
             fi
           done
-          echo "ARB integrity probe completed with $failures failing command(s); the debt ratchet forbids new canonical errors while publication safety remains governed by the independent atomic seal."
+          git checkout --detach --quiet "$SELECTED_SHA"
+          test "$(git rev-parse HEAD)" = "$SELECTED_SHA"
+          echo "ARB current-main integrity probe completed with $failures failing command(s); selected publication snapshot was restored unchanged."
           exit 0
 
       - name: Prove selected immutable snapshot through ARB's atomic publication seal
