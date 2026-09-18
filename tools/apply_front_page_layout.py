@@ -19,7 +19,7 @@ STYLE_SOURCES = (
     REPO / "tools" / "newsletter-visual-regressions.css",
 )
 SCRIPT_SOURCE = REPO / "tools" / "newsletter-current-corpus.js"
-STYLE_MARKER = 'data-fcmo-current-corpus="v4.3.1"'
+STYLE_MARKER = 'data-fcmo-current-corpus="v4.3.2"'
 SCRIPT_MARKER = 'data-fcmo-autonomous-surfaces="v1"'
 
 
