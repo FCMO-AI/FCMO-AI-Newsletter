@@ -193,7 +193,33 @@ jobs:
           python tools/newswire_bridge_partial_locales.py verify "$RELEASE_DIR"
 
       - name: Atomically replace only corpus/
-        run: python tools/newswire_bridge_partial_locales.py stage "$RELEASE_DIR" corpus
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Airlock generation time is a transport heartbeat, not content identity.
+          # Do not create a public commit (and therefore another newsroom rebuild)
+          # when the verified release ID + corpus digest are unchanged.
+          if test -f corpus/airlock.json && test -f "$RELEASE_DIR/airlock.json"; then
+            CURRENT_ID=$(python - <<'PY'
+          import json
+          from pathlib import Path
+          doc=json.loads(Path("corpus/airlock.json").read_text(encoding="utf-8"))
+          print(f"{doc.get('release_id','')}|{doc.get('corpus_digest','')}")
+          PY
+            )
+            INCOMING_ID=$(RELEASE_DIR_ENV="$RELEASE_DIR" python - <<'PY'
+          import json, os
+          from pathlib import Path
+          doc=json.loads((Path(os.environ["RELEASE_DIR_ENV"]) / "airlock.json").read_text(encoding="utf-8"))
+          print(f"{doc.get('release_id','')}|{doc.get('corpus_digest','')}")
+          PY
+            )
+            if test -n "$CURRENT_ID" && test "$CURRENT_ID" = "$INCOMING_ID"; then
+              echo "Verified Airlock heartbeat has unchanged semantic content; corpus/ remains untouched."
+              exit 0
+            fi
+          fi
+          python tools/newswire_bridge_partial_locales.py stage "$RELEASE_DIR" corpus
 
       - name: Commit only the verified public handoff
         shell: bash
