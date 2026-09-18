@@ -76,6 +76,19 @@ class NewswireBridgeWorkflowContractTests(unittest.TestCase):
         self.assertIn('test -z "$(git -C "$PRIVATE_DIR" branch --show-current)"', text)
         self.assertLess(text.index('merge-base --is-ancestor "$READY_SHA" origin/main'), text.index('checkout --detach --quiet "$READY_SHA"'))
 
+    def test_integrity_probe_targets_current_main_and_restores_selected_snapshot(self) -> None:
+        text = self.text()
+        step = text.index("- name: Measure current canonical ARB integrity on the working GitHub runner")
+        seal = text.index("- name: Prove selected immutable snapshot through ARB's atomic publication seal")
+        segment = text[step:seal]
+        self.assertIn('SELECTED_SHA="$(cat "$RUNNER_TEMP/fcmo-newswire-private.sha")"', segment)
+        self.assertIn('CURRENT_SHA="$(git -C "$PRIVATE_DIR" rev-parse origin/main)"', segment)
+        self.assertIn('git checkout --detach --quiet "$CURRENT_SHA"', segment)
+        self.assertIn('git checkout --detach --quiet "$SELECTED_SHA"', segment)
+        self.assertIn('test "$(git rev-parse HEAD)" = "$SELECTED_SHA"', segment)
+        self.assertIn("python tools/validate_integrity_ratchet.py --json", segment)
+        self.assertIn("python tools/arb.py orient --json", segment)
+
     def test_selected_snapshot_is_sealed_again_before_extraction(self) -> None:
         text = self.text()
         # First invocation is a freshness probe on current main; second is the
