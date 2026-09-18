@@ -19,8 +19,10 @@ permissions:
   contents: write
 
 concurrency:
-  group: fcmo-newswire-bridge
-  cancel-in-progress: false
+  # Newer bridge truth supersedes older transport work. The surviving run then
+  # rebases its *verified corpus only* onto the latest public main before commit.
+  group: fcmo-newswire-bridge-v2
+  cancel-in-progress: true
 
 jobs:
   bridge:
@@ -265,15 +267,30 @@ jobs:
           fi
           python tools/newswire_bridge_partial_locales.py stage "$RELEASE_DIR" corpus
 
-      - name: Commit only the verified public handoff
+      - name: Commit verified corpus on top of the newest public main
         shell: bash
         run: |
+          set -euo pipefail
           rm -rf "$RELEASE_DIR"
+          INCOMING="$RUNNER_TEMP/fcmo-newswire-incoming-corpus"
+          rm -rf "$INCOMING"
+          cp -a corpus "$INCOMING"
+
+          # Do not let a long bridge run land from a stale public checkout.
+          # Preserve only the already-verified corpus, fast-forward the workspace
+          # to current public main, then reapply and reverify that corpus.
+          git fetch --quiet origin main
+          git reset --hard origin/main
+          rm -rf corpus
+          cp -a "$INCOMING" corpus
+          rm -rf "$INCOMING"
+          python tools/newswire_bridge_partial_locales.py verify corpus
+
           git config user.name 'FCMO Newswire Bridge'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add -A -- corpus
           if git diff --cached --quiet -- corpus; then
-            echo 'Verified Airlock already matches corpus/ exactly.'
+            echo 'Verified Airlock already matches newest public corpus/ exactly.'
             exit 0
           fi
           if ! git diff --cached --quiet -- ':!corpus'; then
