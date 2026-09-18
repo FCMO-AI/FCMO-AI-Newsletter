@@ -101,8 +101,10 @@ class TranslationHealthTests(unittest.TestCase):
         # Footnote: health grace and release authority are deliberately distinct.
         # Keeping --require-complete out of newsroom-health prevents a future cleanup
         # from collapsing observability/reconciliation semantics back into release law.
-        self.assertNotIn("translation_health.py --require-complete", health)
-        self.assertIn("translation_health.py", health)
+        strict_run = re.search(r"run:\\s*(?:>-?\\s*)?python tools/translation_health\\.py[^\\n]*--require-complete", health)
+        health_run = re.search(r"run:\\s*(?:>-?\\s*)?python tools/translation_health\\.py", health)
+        self.assertIsNone(strict_run)
+        self.assertIsNotNone(health_run)
 
 
 if __name__ == "__main__":
