@@ -62,6 +62,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--allow-unbootstrapped", action="store_true")
     parser.add_argument("--require-airlock", action="store_true")
     parser.add_argument("--max-airlock-age-hours", type=int, default=48)
+    parser.add_argument("--expected-deployment-identity", type=Path)
     args = parser.parse_args(argv)
     base = args.base_url.rstrip("/")
 
@@ -91,7 +92,8 @@ def main(argv: list[str] | None = None) -> int:
     if not isinstance(expected_stories, list) or not expected_stories:
         raise SystemExit("live oracle FAILED: repository Story layer is empty")
 
-    live_status = load_json_bytes(fetch(base + "/data/newsroom-status.json"), "newsroom status")
+    live_status_bytes = fetch(base + "/data/newsroom-status.json")
+    live_status = load_json_bytes(live_status_bytes, "newsroom status")
 
     if live_status.get("release_id") != expected.get("release_id"):
         raise SystemExit(
@@ -117,6 +119,34 @@ def main(argv: list[str] | None = None) -> int:
         raise SystemExit("live oracle FAILED: live translation state does not match repository newsroom truth")
     if expected.get("translation_counts") != live_status.get("translation_counts"):
         raise SystemExit("live oracle FAILED: live translation counts do not match repository newsroom truth")
+
+    deployment_identity_verified = False
+    if args.expected_deployment_identity:
+        try:
+            identity = json.loads(args.expected_deployment_identity.read_text(encoding="utf-8"))
+        except Exception as exc:
+            raise SystemExit(f"live oracle FAILED: deployment identity artifact unreadable: {exc}") from exc
+        if identity.get("schema") != "fcmo-deployment-identity-v1":
+            raise SystemExit("live oracle FAILED: deployment identity schema mismatch")
+        live_manifest_bytes = fetch(base + "/build-manifest.json")
+        checks = (
+            ("build manifest", sha256_bytes(live_manifest_bytes), identity.get("build_manifest_sha256")),
+            ("newsroom status", sha256_bytes(live_status_bytes), identity.get("newsroom_status_sha256")),
+            ("Story index", sha256_bytes(live_stories_bytes), identity.get("stories_sha256")),
+        )
+        for label, actual_digest, expected_digest in checks:
+            if not expected_digest or actual_digest != expected_digest:
+                raise SystemExit(
+                    f"live oracle FAILED: exact deployed {label} identity mismatch "
+                    f"expected={expected_digest} live={actual_digest}"
+                )
+        if live_status.get("release_id") != identity.get("release_id"):
+            raise SystemExit("live oracle FAILED: deployment artifact release_id does not match production")
+        if live_status.get("corpus_digest") != identity.get("corpus_digest"):
+            raise SystemExit("live oracle FAILED: deployment artifact corpus digest does not match production")
+        if len(live_stories) != identity.get("story_count"):
+            raise SystemExit("live oracle FAILED: deployment artifact Story count does not match production")
+        deployment_identity_verified = True
 
     allowed_states = {
         "BOOTSTRAPPED_FROM_EXISTING_PUBLIC_RELEASE",
@@ -171,7 +201,9 @@ def main(argv: list[str] | None = None) -> int:
     mode = "FRESHNESS" if args.require_airlock else "PRODUCTION"
     print(
         f"live newsroom {mode} OK: release={live_status['release_id']} "
-        f"state={live_status['state']} stories={len(expected_stories)}; full editorial/machine route suite + EN/ES/ZH verified"
+        f"state={live_status['state']} stories={len(expected_stories)}; "
+        f"deployment_identity={'verified' if deployment_identity_verified else 'repo-bound'}; "
+        "full editorial/machine route suite + EN/ES/ZH verified"
     )
     return 0
 
