@@ -162,9 +162,10 @@ function inspect(route,vp,doc,win){{
       if(!input) local.push('missing search input');
       else{{
         const cs=win.getComputedStyle(input);
+        const ps=win.getComputedStyle(input,'::placeholder');
         const canvas=doc.createElement('canvas');
         const ctx=canvas.getContext('2d');
-        ctx.font=cs.font || (cs.fontSize+' '+cs.fontFamily);
+        ctx.font=ps.font || (ps.fontSize+' '+ps.fontFamily) || cs.font || (cs.fontSize+' '+cs.fontFamily);
         const placeholderWidth=ctx.measureText(input.getAttribute('placeholder')||'').width;
         metrics.placeholderWidth=Number(placeholderWidth.toFixed(1));
         metrics.searchInputWidth=input.clientWidth;
