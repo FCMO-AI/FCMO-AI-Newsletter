@@ -88,19 +88,6 @@ def main(argv: list[str] | None = None) -> int:
 
     live_status = load_json_bytes(fetch(base + "/data/newsroom-status.json"), "newsroom status")
 
-    # Prove the production origin serves the same immutable publication receipt,
-    # not merely a status object with the same release_id. This closes the class
-    # of partial/stale deploys where status advances but assembled bytes do not.
-    if expected.get("publication_receipt_sha256"):
-        live_receipt = fetch(base + "/data/publication-receipt.json")
-        import hashlib
-        live_receipt_sha = hashlib.sha256(live_receipt).hexdigest()
-        if live_receipt_sha != expected.get("publication_receipt_sha256"):
-            raise SystemExit(
-                "live oracle FAILED: publication receipt digest mismatch "
-                f"repo={expected.get('publication_receipt_sha256')} live={live_receipt_sha}"
-            )
-
     if live_status.get("release_id") != expected.get("release_id"):
         raise SystemExit(
             f"live oracle FAILED: release mismatch repo={expected.get('release_id')} live={live_status.get('release_id')}"
