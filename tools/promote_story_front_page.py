@@ -51,6 +51,23 @@ def date_label(story: dict) -> str:
         return raw[:10] or "current"
 
 
+
+def latest_published_edition_date(document: str, fallback: str) -> str:
+    """Return the newest edition that PUBLICATION memory marks as actually published."""
+    match = re.search(r'<script[^>]+id=["\\']fcmo-data["\\'][^>]*>(.*?)</script>', document, re.S)
+    if not match:
+        return fallback
+    try:
+        payload = json.loads(match.group(1))
+    except (TypeError, ValueError, json.JSONDecodeError):
+        return fallback
+    dates = [
+        str(item.get("date"))
+        for item in (payload.get("publication_memory") or [])
+        if isinstance(item, dict) and item.get("published") and item.get("date")
+    ]
+    return max(dates) if dates else fallback
+
 def badge_text(story: dict) -> tuple[str, str, str]:
     nv = story.get("news_value") or {}
     return (
@@ -141,10 +158,10 @@ def bind_runtime_home(text: str, story: dict) -> tuple[str, bool]:
         f"const leadId='{rid}'", text
     )
 
-    # The date badge was another historical literal embedded in each runtime.
-    # Bind all copies to the same current Story date; leaving even one old copy is
-    # enough for a later-executing runtime to make the site look rolled back.
-    issue_date = esc(date_label(story))
+    # The issue stamp labels a *published edition*, so its date must come from
+    # publication memory rather than the lead Story's modified/verified timestamp.
+    # A draft research snapshot must never masquerade as a published edition.
+    issue_date = esc(latest_published_edition_date(text, date_label(story)))
     text, issue_count = ISSUE_STAMP.subn(
         lambda m: m.group(1) + issue_date + m.group(3), text
     )

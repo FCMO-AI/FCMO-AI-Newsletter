@@ -253,9 +253,9 @@ def build_accessibility() -> str:
 
 def build_status(status: dict[str, Any], stories: list[dict[str, Any]]) -> str:
     release = status.get("release_id") or status.get("received_release_id") or "not reported"
-    verified = status.get("live_verified_at") or status.get("generated_at") or "not reported"
+    verified = status.get("live_verified_at") or status.get("finalized_at") or status.get("generated_at") or status.get("airlock_generated_at") or "not reported"
     body = f'''<header class="page-head"><h1>Newsroom status</h1><p>Operational evidence is surfaced without exposing private control-plane state.</p></header>
-<section class="status-grid"><div><span>PUBLIC STORIES</span><strong>{len(stories)}</strong></div><div><span>RELEASE</span><strong class="mono">{esc(release)}</strong></div><div><span>LAST VERIFIED</span><strong>{esc(verified)}</strong></div></section>
+<section class="status-grid"><div><span>PUBLIC STORIES</span><strong>{len(stories)}</strong></div><div><span>RELEASE</span><strong class="mono">{esc(release)}</strong></div><div><span>LAST NEWSROOM BUILD</span><strong>{esc(verified)}</strong></div></section>
 <section class="prose"><h2>Healthy means more than “the workflow was green”</h2><p>A valid publication run requires a fresh airlock heartbeat, a complete three-language story set, successful privacy and release gates, deterministic build output and a deployable static candidate. A quiet release may have no content delta; a missing or stale upstream heartbeat is not treated as quiet.</p></section>'''
     return page("Status", "OPERATIONS / EVIDENCE", body)
 

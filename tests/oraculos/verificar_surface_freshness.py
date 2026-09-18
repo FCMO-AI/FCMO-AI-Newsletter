@@ -53,6 +53,8 @@ function latestEdition(D){return [...(D.publication_memory||[])].filter(x=>x.pub
 function activity(r){return Math.max(Date.parse(r.last_verified_at||'')||0,Date.parse(r.event_at||'')||0)}
 (async()=>{try{
  await load('home');let d=f.contentDocument,w=f.contentWindow,D=data(d),latest=latestEdition(D);
+ let editionStamp=d.querySelector('.issue-stamp strong');
+ if(!editionStamp)fail.push('home missing published-edition stamp');else if(editionStamp.textContent.trim()!==latest)fail.push(`home published-edition stamp ${editionStamp.textContent.trim()||'missing'} != ${latest}`);
  let rail=d.querySelector('.lead-rail'),title=d.querySelector('.lead-body h2');
  if(!rail||!title)fail.push('home missing lead rail/title');else if(overlap(rail.getBoundingClientRect(),title.getBoundingClientRect()))fail.push('lead status rail intersects headline at 768px');
  let plot=d.querySelector('#plot');if(!plot)fail.push('missing Signal Field');else{
