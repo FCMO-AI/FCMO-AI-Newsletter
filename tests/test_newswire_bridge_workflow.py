@@ -45,14 +45,19 @@ class NewswireBridgeWorkflowContractTests(unittest.TestCase):
             self.assertIn(marker, text)
         self.assertIn("unset AUTH APP_TOKEN READY_SHA CURRENT_SHA SELECTED_SHA", text)
 
-    def test_current_main_is_preferred_only_when_atomic_seal_passes(self) -> None:
+    def test_current_main_is_preferred_only_when_seal_and_integrity_ratchet_pass(self) -> None:
         text = self.text()
         self.assertIn('path = Path(os.environ["PRIVATE_DIR_ENV"]) / "state" / "PUBLICATION_READY.json"', text)
         self.assertIn('CURRENT_SHA=$(git -C "$PRIVATE_DIR" rev-parse origin/main)', text)
         self.assertIn('checkout --detach --quiet "$CURRENT_SHA"', text)
         self.assertIn('python tools/publication_seal.py', text)
+        self.assertIn('python tools/validate_integrity_ratchet.py --json', text)
         self.assertIn('SELECTED_SHA="$CURRENT_SHA"', text)
-        self.assertIn('Fresh canonical ARB main passed the complete publication seal.', text)
+        self.assertIn(
+            'Fresh canonical ARB main passed the publication seal and no-new-debt ratchet.',
+            text,
+        )
+        self.assertIn("INTEGRITY_DEBT_REGRESSION", text)
 
     def test_failed_current_main_falls_back_to_ancestor_ready_snapshot(self) -> None:
         text = self.text()
