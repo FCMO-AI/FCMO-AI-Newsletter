@@ -159,3 +159,10 @@ Current production source truth still records:
 Independent release-validation on the rebased experiment branch failed at Newsletter's existing strict localization-integrity step with the same missing Story in both native editions. That is project-owned corroboration, not a Proof Spine-authored judgment.
 
 **Footnote:** the merge-forward itself is not a new observation receipt. This documentation update deliberately touches a watched path so the existing read-only workflow re-executes against the current main-aligned branch and earns a fresh artifact instead of inheriting the 2026-09-16 receipt by timestamp or narrative.
+
+
+## Current-main refresh — 2026-09-18
+
+This observer branch was merge-forwarded onto Newsletter main `cb5d74d7df483cea5083adcdf53b6172eee55372` without changing its evidence-only semantics.
+
+> Footnote: this small documentation refresh deliberately causes the branch-scoped shadow workflow to emit a new receipt against the current production candidate. It grants no publication, merge, rollback, or deployment authority and must not be treated as a substitute for the project-local release gate.
