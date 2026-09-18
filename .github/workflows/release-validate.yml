@@ -11,6 +11,12 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  # Validation is a proof of the current commit. Newer main truth supersedes
+  # older proof work; keep PRs isolated by ref while collapsing stale main runs.
+  group: release-validate-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   validate:
     runs-on: ubuntu-latest
