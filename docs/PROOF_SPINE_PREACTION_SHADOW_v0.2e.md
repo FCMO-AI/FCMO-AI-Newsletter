@@ -143,3 +143,19 @@ Therefore the supported result is narrower than prevention:
 > the unattended observer executed successfully and detected the currently incomplete release prerequisite before any *future* action, but no later consequential Pages action has yet occurred against which to demonstrate a natural catch-before-action event.
 
 Do not label this result `PREVENTED`, `BLOCKED IN PRODUCTION`, or `PROSPECTIVE INCIDENT CAUGHT` until a later natural action sequence actually supplies that evidence.
+
+## Current-main continuity update — 2026-09-17/18
+
+The experiment branch has been merged forward onto production main `29cf44c997db38ce1fe37b537ccdaaa9226a0911` without changing any observer semantics or production authority.
+
+Current production source truth still records:
+
+- canonical Stories: `43`;
+- native-complete `es-419`: `42`;
+- native-complete `zh-Hans`: `42`;
+- pending Story: `FCMO-7EBD0FA07C12`;
+- translation state: `DEGRADED_TRANSLATION_BACKLOG`.
+
+Independent release-validation on the rebased experiment branch failed at Newsletter's existing strict localization-integrity step with the same missing Story in both native editions. That is project-owned corroboration, not a Proof Spine-authored judgment.
+
+**Footnote:** the merge-forward itself is not a new observation receipt. This documentation update deliberately touches a watched path so the existing read-only workflow re-executes against the current main-aligned branch and earns a fresh artifact instead of inheriting the 2026-09-16 receipt by timestamp or narrative.
