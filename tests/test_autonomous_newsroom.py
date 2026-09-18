@@ -305,6 +305,8 @@ class AutonomousNewsroomTests(unittest.TestCase):
             self.assertEqual(newsroom_receipt.finalize(args), 0)
             first = json.loads(status.read_text(encoding="utf-8"))
             self.assertEqual(first["state"], "PUBLIC_DELTA_READY")
+            self.assertEqual(first["stories_sha256"], newsroom_receipt.sha256_file(site / "data" / "stories.json"))
+            self.assertEqual(first["media_sha256"], newsroom_receipt.sha256_file(release / "data" / "media.json"))
             self.assertEqual(newsroom_receipt.finalize(args), 0)
             second = json.loads(status.read_text(encoding="utf-8"))
             self.assertEqual(second["state"], "NO_PUBLIC_DELTA_READY")
