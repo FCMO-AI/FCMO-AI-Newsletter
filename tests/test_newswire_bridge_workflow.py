@@ -149,6 +149,20 @@ class NewswireBridgeWorkflowContractTests(unittest.TestCase):
         self.assertIn("git diff --cached --quiet -- ':!corpus'", text)
         self.assertNotRegex(text, re.compile(r"git add (?:-A )?\.(?:\s|$)"))
 
+    def test_bridge_rebases_verified_corpus_onto_latest_public_main_before_push(self) -> None:
+        text = self.text()
+        step = text.index("- name: Commit verified corpus on top of the newest public main")
+        cleanup = text.index("- name: Destroy any residual private bridge state")
+        segment = text[step:cleanup]
+        self.assertIn('cp -a corpus "$INCOMING"', segment)
+        self.assertIn("git fetch --quiet origin main", segment)
+        self.assertIn("git reset --hard origin/main", segment)
+        self.assertIn('cp -a "$INCOMING" corpus', segment)
+        self.assertIn("newswire_bridge_partial_locales.py verify corpus", segment)
+        self.assertIn("git add -A -- corpus", segment)
+        self.assertIn("git push origin HEAD:main", segment)
+        self.assertNotIn("--force", segment)
+
     def test_bridge_has_hourly_idempotent_recovery_heartbeat(self) -> None:
         text = self.text()
         # Material canonical truth should not wait for a morning-only window.
@@ -157,7 +171,8 @@ class NewswireBridgeWorkflowContractTests(unittest.TestCase):
         self.assertIn("cron: '10 * * * *'", text)
         self.assertEqual(len(re.findall(r"- cron: '[^']+'", text)), 1)
         self.assertIn("unchanged semantic content", text)
-        self.assertIn("cancel-in-progress: false", text)
+        self.assertIn("group: fcmo-newswire-bridge-v2", text)
+        self.assertIn("cancel-in-progress: true", text)
 
     def test_refresh_is_chained_from_successful_bridge(self) -> None:
         text = REFRESH.read_text(encoding="utf-8")
