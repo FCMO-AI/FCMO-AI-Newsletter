@@ -11,6 +11,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "tools" / "translation_health.py"
+PAGES_WORKFLOW = ROOT / ".github" / "workflows" / "pages.yml"
+HEALTH_WORKFLOW = ROOT / ".github" / "workflows" / "newsroom-health.yml"
 
 
 class TranslationHealthTests(unittest.TestCase):
@@ -82,6 +84,25 @@ class TranslationHealthTests(unittest.TestCase):
         self.assertEqual(payload["mode"], "RELEASE_GATE")
         self.assertEqual(payload["state"], "HEALTHY")
         self.assertEqual(payload["overdue_count"], 0)
+
+    def test_pages_consumes_release_gate_before_candidate_assembly_or_upload(self) -> None:
+        pages = PAGES_WORKFLOW.read_text(encoding="utf-8")
+        strict = pages.index("python tools/translation_health.py --require-complete")
+        assembly = pages.index("cp -a site publish")
+        upload = pages.index("uses: actions/upload-pages-artifact@v4")
+        # Footnote: this is a topology regression, not merely a CLI regression. A
+        # correct strict oracle placed after candidate upload would still allow the
+        # exact causal bug this repair exists to close.
+        self.assertLess(strict, assembly)
+        self.assertLess(strict, upload)
+
+    def test_health_workflow_does_not_reuse_release_gate_as_health_semantics(self) -> None:
+        health = HEALTH_WORKFLOW.read_text(encoding="utf-8")
+        # Footnote: health grace and release authority are deliberately distinct.
+        # Keeping --require-complete out of newsroom-health prevents a future cleanup
+        # from collapsing observability/reconciliation semantics back into release law.
+        self.assertNotIn("translation_health.py --require-complete", health)
+        self.assertIn("translation_health.py", health)
 
 
 if __name__ == "__main__":
