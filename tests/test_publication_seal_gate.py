@@ -13,10 +13,12 @@ class PublicationSealGateTests(unittest.TestCase):
         # owns the exact dependency closure that can change public bytes or semantics.
         self.assertIn("python tools/publication_seal.py", text)
         # Broad tests may run as an observational integrity probe, but they must
-        # never own publication safety or gate extraction. The atomic seal remains
-        # the sole authoritative publication gate.
+        # never own declassification/public-byte safety. The atomic seal remains
+        # the sole authority for public bytes; the narrow debt ratchet separately
+        # prevents structurally regressed current main from being promoted.
         self.assertIn("Measure canonical ARB integrity debt", text)
         self.assertIn("publication safety remains governed by the independent atomic seal", text)
+        self.assertIn("python tools/validate_integrity_ratchet.py --json", text)
         # The bridge must not reimplement the private seal as a loose command list;
         # one upstream authority keeps validation/build semantics from drifting.
         for direct in (
