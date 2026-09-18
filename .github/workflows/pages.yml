@@ -12,6 +12,7 @@ on:
       - 'tools/newsletter-current-corpus.css'
       - 'tools/newsletter-mobile-overflow.css'
       - 'tools/newsletter-autonomous-surfaces.css'
+      - 'tools/newsletter-visual-regressions.css'
       - 'tools/newsletter-current-corpus.js'
       - 'tools/build_editorial_frontends.py'
       - 'tools/finalize_editorial_frontends.py'
@@ -21,6 +22,8 @@ on:
       - 'tools/verify_live_front_page.py'
       - 'tests/oraculos/verificar_dom.py'
       - 'tests/oraculos/verificar_layout.py'
+      - 'tests/oraculos/verificar_editorial_layout.py'
+      - 'tests/oraculos/capture_visual_qa.py'
       - 'tests/oraculos/verificar_home_lead.py'
       - 'tests/oraculos/verificar_surface_freshness.py'
       - 'tests/oraculos/verificar_live_surfaces.py'
@@ -64,12 +67,10 @@ jobs:
         run: python tools/build_final_release.py --check
 
       # Footnote for future maintainers: LOCALIZATION.md defines a new/changed Story
-      # plus EN/ES/ZH as one publication obligation. The hourly health SLO may retain a
-      # bounded grace to diagnose/reconcile candidate-source backlog while the previous
-      # known-good edition remains live, but that grace is NOT release authority. Pages
-      # therefore uses the strict mode over every Story identity before any candidate is
-      # assembled or uploaded. Proof Spine exposed the missing causal edge; Newsletter's
-      # own canonical localization contract still owns this gate.
+      # plus EN/ES/ZH as one publication obligation. The health workflow may retain a
+      # bounded reconciliation window for diagnosis while the previous known-good edition
+      # remains live, but that grace is NOT release authority. This strict local gate runs
+      # before assembly/upload; Proof Spine discovered the missing edge but does not own it.
       - name: Require complete native Story editions before building Pages candidate
         run: python tools/translation_health.py --require-complete
 
@@ -111,6 +112,9 @@ jobs:
 
       - name: Render responsive layout contracts across physical viewports
         run: python tests/oraculos/verificar_layout.py publish
+
+      - name: Prove discovery/editorial routes keep their visual contracts
+        run: python tests/oraculos/verificar_editorial_layout.py publish
 
       - name: Prove live surfaces remain current and collision-free
         run: python tests/oraculos/verificar_surface_freshness.py publish
@@ -158,3 +162,11 @@ jobs:
         run: python tests/oraculos/verificar_home_lead.py site --base-url https://fcmo-ai.github.io/FCMO-AI-Newsletter/
       - name: Verify deployed Signal Field, Chronology and Research Library in a real browser
         run: python tests/oraculos/verificar_live_surfaces.py --base-url https://fcmo-ai.github.io/FCMO-AI-Newsletter/
+      - name: Capture the deployed reader visually after Pages promotion
+        run: python tests/oraculos/capture_visual_qa.py site live-visual-qa --base-url https://fcmo-ai.github.io/FCMO-AI-Newsletter/
+      - name: Preserve post-deploy visual evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: fcmo-live-visual-qa
+          path: live-visual-qa/*.png
+          retention-days: 14

@@ -17,12 +17,45 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+REPO = Path(__file__).resolve().parents[1]
 BASE_PATH = "/FCMO-AI-Newsletter"
 BASE_URL = "https://fcmo-ai.github.io/FCMO-AI-Newsletter"
+VISUAL_GUARD_SOURCE = REPO / "tools" / "newsletter-visual-regressions.css"
+VISUAL_GUARD_BEGIN = "/* FCMO-DURABLE-VISUAL-GUARDS:BEGIN */"
+VISUAL_GUARD_END = "/* FCMO-DURABLE-VISUAL-GUARDS:END */"
 
 
 def esc(value: Any) -> str:
     return html.escape(str(value or ""))
+
+
+def apply_visual_guards(site: Path) -> None:
+    """Re-attach source-controlled CSS after every autonomous regeneration.
+
+    ``site/assets/editorial-frontends.css`` is generated downstream state. A
+    newsroom refresh may replace it wholesale, so visual fixes are restored
+    from a stable source file instead of being hand-edited in the artifact.
+    """
+    target = site / "assets" / "editorial-frontends.css"
+    if not target.is_file():
+        raise SystemExit(f"editorial frontends: missing stylesheet {target}")
+    if not VISUAL_GUARD_SOURCE.is_file():
+        raise SystemExit(f"editorial frontends: missing durable visual guards {VISUAL_GUARD_SOURCE}")
+
+    text = target.read_text(encoding="utf-8")
+    start = text.find(VISUAL_GUARD_BEGIN)
+    if start != -1:
+        end = text.find(VISUAL_GUARD_END, start)
+        if end == -1:
+            raise SystemExit("editorial frontends: unterminated durable visual guard block")
+        text = text[:start].rstrip() + "\n"
+    guards = VISUAL_GUARD_SOURCE.read_text(encoding="utf-8").strip()
+    target.write_text(
+        text.rstrip() + "\n\n" + VISUAL_GUARD_BEGIN + "\n" + guards + "\n" + VISUAL_GUARD_END + "\n",
+        encoding="utf-8",
+        newline="\n",
+    )
+
 
 
 def href(path: str = "") -> str:
@@ -120,7 +153,7 @@ def build_archive(rows: list[dict[str, Any]]) -> str:
 def build_search(rows: list[dict[str, Any]]) -> str:
     body = f'''<header class="page-head"><h1>Search the research</h1><p>Search titles, mechanisms, organizations, topics and evidence summaries locally in your browser.</p></header>
 <section class="search-tool" data-search-root data-source="{href('data/search.json')}">
-<label for="fcmo-search">QUERY</label><input id="fcmo-search" type="search" autocomplete="off" placeholder="agent memory, speculative decoding, DeepMind…">
+<label for="fcmo-search">QUERY</label><input id="fcmo-search" type="search" autocomplete="off" placeholder="agent memory, DeepMind…">
 <div class="search-filters"><select data-filter="evidence"><option value="">All evidence</option><option>A</option><option>B</option><option>C</option><option>D</option></select>
 <select data-filter="impact"><option value="">All impact</option><option value="8">8+ field-shifting</option><option value="6">6+ major</option><option value="4">4+ notable</option></select></div>
 <p class="search-count"><span data-search-count>{len(rows)}</span> matching records</p><div data-search-results>{''.join(item(r) for r in rows[:12])}</div></section>'''
@@ -271,6 +304,7 @@ def main(argv: list[str] | None = None) -> int:
     news = site / "news"
     news.mkdir(parents=True, exist_ok=True)
     (news / "index.html").write_text(build_language_gateway(), encoding="utf-8")
+    apply_visual_guards(site)
     print(f"editorial frontends OK; records={len(rows)}; topics={len(topic_links)}; organizations={len(org_links)}; stories={len(stories)}")
     return 0
 

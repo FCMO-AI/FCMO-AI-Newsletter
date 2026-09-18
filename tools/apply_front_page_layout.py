@@ -16,9 +16,10 @@ STYLE_SOURCES = (
     REPO / "tools" / "newsletter-current-corpus.css",
     REPO / "tools" / "newsletter-mobile-overflow.css",
     REPO / "tools" / "newsletter-autonomous-surfaces.css",
+    REPO / "tools" / "newsletter-visual-regressions.css",
 )
 SCRIPT_SOURCE = REPO / "tools" / "newsletter-current-corpus.js"
-STYLE_MARKER = 'data-fcmo-current-corpus="v4.3.0"'
+STYLE_MARKER = 'data-fcmo-current-corpus="v4.3.1"'
 SCRIPT_MARKER = 'data-fcmo-autonomous-surfaces="v1"'
 
 
@@ -59,7 +60,7 @@ def main() -> int:
     text = text.replace("</head>", style_tag + "\n</head>", 1)
     text = text.replace("</body>", script_tag + "\n</body>", 1)
     index.write_text(text, encoding="utf-8", newline="\n")
-    print("current-corpus presentation/freshness attached inline: v4.3.0 / surfaces-v1")
+    print("current-corpus presentation/freshness attached inline: v4.3.1 / surfaces-v1 / visual-guards-v1")
     return 0
 
 
