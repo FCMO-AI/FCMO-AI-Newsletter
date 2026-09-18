@@ -20,15 +20,15 @@ Ordinary releases require no repository-visibility step. A candidate that fails 
 
 - Release manifest schema: `fcmo-ai-newsletter-release-overlay-v2`
 - Release: `signal-field-v4.1.1-viewport-polish`
-- Front-end SHA-256: `12d0d6855924d8b97e3fafdfbed71e34bd617d35805539e3b6ccb50fc87cf41e`
-- Release archive SHA-256: `85f3c3b85280064871270e510b4236b27c7a8f43c38a9564e1b2f99d0e2aee30`
-- Encoded release payload SHA-256: `546b886564586a8329e653eb8f7d8d27b1dc778c2f8d9dec5099d79666f560f9`
-- 37/37 release payload parts present; payload and archive checked by SHA-256
-- 732 public files after assembly
-- 44 canonical dossiers
-- 44 stable dossier routes
+- Front-end SHA-256: `768799c8dcc7a338b1107873aaeae87f4595082892cc882fa1808a904a109635`
+- Release archive SHA-256: `4904b168e49fd5257b22ff10f92991fdb1fcb99a87a0c7a6c510f0b435fa19c7`
+- Encoded release payload SHA-256: `761d62b321162e503b518a30e5510e4aabaa3c55438a2a13596db7a7e7bb9fe8`
+- 36/36 release payload parts present; payload and archive checked by SHA-256
+- 723 public files after assembly
+- 43 canonical dossiers
+- 43 stable dossier routes
 - 20 frozen edition routes
-- 10 vetted sourced story visuals + 34 embedded editorial fallbacks
+- 10 vetted sourced story visuals + 33 embedded editorial fallbacks
 
 ## Verification receipts
 
@@ -51,18 +51,18 @@ The final assembler validates, before deployment:
 - archive path/symlink safety;
 - required human and machine-readable public files;
 - the post-overlay archive/search/topic/organization/methodology/status frontend suite;
-- 44 dossier identifiers and stable human routes;
+- 43 dossier identifiers and stable human routes;
 - 20 edition JSON/HTML routes;
 - JSON, JSONL, RSS, and sitemap parsing;
 - agent discovery/query contracts (`fcmo-agent-discovery-v2`, `fcmo-agent-query-v2`);
-- final 10/34 story-media policy;
+- final 10/33 story-media policy;
 - credential-like strings and personal-mailbox leakage;
 - remote JavaScript and remote stylesheet dependencies while allowing legitimate canonical/feed/discovery links and vetted story imagery;
 - deterministic post-frontend build-manifest generation.
 
 The release assembler, native-locale gate, and discovery frontend builder were rerun; the assembled public candidate measures:
 
-`FCMO AI Newsletter signal-field-v4.1.1-viewport-polish READY: 732 public files; index 12d0d6855924…`
+`FCMO AI Newsletter signal-field-v4.1.1-viewport-polish READY: 723 public files; index 768799c8dcc7…`
 
 ## Daily refresh readiness
 
