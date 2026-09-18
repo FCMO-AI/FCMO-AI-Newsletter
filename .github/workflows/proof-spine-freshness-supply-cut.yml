@@ -1,0 +1,60 @@
+name: Proof Spine freshness supply coherence experiment
+
+on:
+  push:
+    branches:
+      - agent/proof-spine-freshness-supply-cut-v0.3g
+    paths:
+      - 'tools/freshness_supply_coherence.py'
+      - 'tests/test_freshness_supply_coherence.py'
+      - 'docs/experiments/PROOF_SPINE_FRESHNESS_SUPPLY_CUT_v0.3g.md'
+      - '.github/workflows/proof-spine-freshness-supply-cut.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  observe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Compile the observer and regression suite
+        run: python -m py_compile tools/freshness_supply_coherence.py tests/test_freshness_supply_coherence.py
+
+      - name: Run freshness supply coherence regressions
+        run: python tests/test_freshness_supply_coherence.py
+
+      - name: Observe the branch's real ARB-to-Story supply cut
+        run: >-
+          python tools/freshness_supply_coherence.py
+          --output /tmp/fcmo-freshness-supply-coherence.json
+
+      - name: Prove the field hypothesis without turning it into a release gate
+        shell: python
+        run: |
+          import json
+          from pathlib import Path
+          receipt = json.loads(Path('/tmp/fcmo-freshness-supply-coherence.json').read_text(encoding='utf-8'))
+          # Footnote: this branch freezes one naturally occurring field snapshot. The
+          # assertion proves what that snapshot means; it is not a timeless product rule.
+          assert receipt['state'] == 'UPSTREAM_PUBLICATION_NEWER_UNBOUND', receipt
+          assert receipt['upstream_publication']['numbered_signal_sections'] == 6, receipt
+          assert receipt['upstream_publication']['related_brief_ids'] == [], receipt
+          assert receipt['claim_boundary']['release_gate_implication'] == 'NONE', receipt
+          print('field cut confirmed: newer public edition exists but is not Story-bound')
+
+      - name: Preserve the public-safe evidence-only receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: proof-spine-freshness-supply-coherence
+          path: /tmp/fcmo-freshness-supply-coherence.json
+          if-no-files-found: error
+          retention-days: 90
