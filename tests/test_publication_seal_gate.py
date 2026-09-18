@@ -12,7 +12,11 @@ class PublicationSealGateTests(unittest.TestCase):
         # unrelated agent/query/control-plane tests. ARB's atomic publication seal
         # owns the exact dependency closure that can change public bytes or semantics.
         self.assertIn("python tools/publication_seal.py", text)
-        self.assertNotIn("python -m unittest discover -s tests", text)
+        # Broad tests may run as an observational integrity probe, but they must
+        # never own publication safety or gate extraction. The atomic seal remains
+        # the sole authoritative publication gate.
+        self.assertIn("Measure canonical ARB integrity debt", text)
+        self.assertIn("publication safety remains governed by the independent atomic seal", text)
         # The bridge must not reimplement the private seal as a loose command list;
         # one upstream authority keeps validation/build semantics from drifting.
         for direct in (
