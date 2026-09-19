@@ -29,7 +29,10 @@ permissions:
   contents: read
 
 concurrency:
-  group: newsroom-production-health
+  # A failed Pages workflow_run is intentionally skipped by every health job.
+  # It must not preempt an hourly/manual/push health check that can still prove
+  # the last-known-good production release.
+  group: newsroom-production-health-v2-${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion != 'success' && github.run_id || 'active' }}
   cancel-in-progress: true
 
 jobs:
