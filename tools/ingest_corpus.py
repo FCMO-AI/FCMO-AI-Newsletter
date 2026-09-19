@@ -511,6 +511,11 @@ def build(corpus: Path, out: Path) -> None:
     )
 
     agent = copy.deepcopy(read_json(scaffold / "agent.json"))
+    # Discovery metadata owns the *transition*, not the durable catalogue. The
+    # synthetic growth oracle depends on this being recomputed from the previous
+    # output every run: a newly arrived Story is announced once, then disappears
+    # from this transient list while remaining in the durable enumerating surfaces.
+    agent["newly_ingested_brief_ids"] = additions
     agent["counts"] = {
         "briefs": len(records),
         "topics": len(facets(records, "topics", "topic")),
