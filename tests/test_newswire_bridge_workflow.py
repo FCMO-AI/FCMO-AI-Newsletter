@@ -76,6 +76,13 @@ class NewswireBridgeWorkflowContractTests(unittest.TestCase):
         self.assertIn('test -z "$(git -C "$PRIVATE_DIR" branch --show-current)"', text)
         self.assertLess(text.index('merge-base --is-ancestor "$READY_SHA" origin/main'), text.index('checkout --detach --quiet "$READY_SHA"'))
 
+    def test_private_snapshot_sha_uses_one_handoff_path_everywhere(self) -> None:
+        text = self.text()
+        self.assertNotIn("fcmo-newswire-private.sha", text)
+        self.assertIn("fcmo-newswire-private-source.sha", text)
+        self.assertIn("selected private snapshot receipt is missing", text)
+        self.assertIn("selected private snapshot SHA is empty", text)
+
     def test_integrity_probe_targets_current_main_and_restores_selected_snapshot(self) -> None:
         text = self.text()
         step = text.index("- name: Measure current canonical ARB integrity on the working GitHub runner")
