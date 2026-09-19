@@ -149,18 +149,21 @@ class NewswireBridgeWorkflowContractTests(unittest.TestCase):
         self.assertIn("git diff --cached --quiet -- ':!corpus'", text)
         self.assertNotRegex(text, re.compile(r"git add (?:-A )?\.(?:\s|$)"))
 
-    def test_bridge_rebases_verified_corpus_onto_latest_public_main_before_push(self) -> None:
+    def test_bridge_retries_verified_corpus_transaction_across_public_main_races(self) -> None:
         text = self.text()
         step = text.index("- name: Commit verified corpus on top of the newest public main")
         cleanup = text.index("- name: Destroy any residual private bridge state")
         segment = text[step:cleanup]
         self.assertIn('cp -a corpus "$INCOMING"', segment)
+        self.assertIn("for attempt in 1 2 3 4 5", segment)
         self.assertIn("git fetch --quiet origin main", segment)
         self.assertIn("git reset --hard origin/main", segment)
         self.assertIn('cp -a "$INCOMING" corpus', segment)
         self.assertIn("newswire_bridge_partial_locales.py verify corpus", segment)
         self.assertIn("git add -A -- corpus", segment)
-        self.assertIn("git push origin HEAD:main", segment)
+        self.assertIn("if git push origin HEAD:main; then", segment)
+        self.assertIn("retrying from newest main", segment)
+        self.assertIn("did not converge after 5 optimistic retries", segment)
         self.assertNotIn("--force", segment)
 
     def test_bridge_has_hourly_idempotent_recovery_heartbeat(self) -> None:
