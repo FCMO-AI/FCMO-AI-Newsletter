@@ -18,6 +18,43 @@ from typing import Any
 AIRLOCK_SCHEMA = "fcmo-newswire-airlock-v2"
 STATUS_SCHEMA = "fcmo-newsroom-status-v2"
 
+# Files whose semantics can change the durable newsroom product. A content-identical
+# Airlock still requires a rebuild when this builder identity changes.
+BUILDER_INPUTS = (
+    ".github/workflows/daily-refresh.yml",
+    "tools/ingest_corpus.py",
+    "tools/synchronize_relationship_surfaces.py",
+    "tools/sync_airlocked_locales.py",
+    "tools/reconcile_locale_overlays.py",
+    "tools/refresh_locale_identity.py",
+    "tools/validate_localizations_partial.py",
+    "tools/public_research_desk.py",
+    "tools/visual_desk.py",
+    "tools/build_newsroom_surfaces.py",
+    "tools/mark_pending_localizations.py",
+    "tools/editorial_freshness.py",
+    "tools/promote_story_front_page.py",
+    "tools/build_editorial_frontends.py",
+    "tools/finalize_editorial_frontends.py",
+    "tools/newsroom_receipt.py",
+    "tools/build_final_release.py",
+    "tools/build_ready_receipt.py",
+    "tools/verify_release.py",
+)
+
+
+def builder_digest(root: Path) -> str:
+    h = hashlib.sha256()
+    for rel in BUILDER_INPUTS:
+        path = root / rel
+        if not path.is_file():
+            raise ValueError(f"builder identity input missing: {rel}")
+        h.update(rel.encode("utf-8"))
+        h.update(b"\0")
+        h.update(path.read_bytes())
+        h.update(b"\0")
+    return h.hexdigest()
+
 
 def utc(value: str) -> datetime:
     parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
@@ -62,12 +99,22 @@ def sha256_file(path: Path) -> str:
 def preflight(args: argparse.Namespace) -> int:
     receipt = require_airlock(args.corpus, args.max_age_hours)
     previous = load(args.status) if args.status.is_file() else {}
-    same = previous.get("release_id") == receipt["release_id"] and previous.get("corpus_digest") == receipt["corpus_digest"]
+    current_builder = builder_digest(Path.cwd())
+    same_content = previous.get("release_id") == receipt["release_id"] and previous.get("corpus_digest") == receipt["corpus_digest"]
+    same_builder = previous.get("builder_digest") == current_builder
+    same = same_content and same_builder
     state = "NO_PUBLIC_DELTA" if same else "PUBLIC_DELTA_PENDING"
+    reason = "UNCHANGED" if same else (
+        "CONTENT_AND_BUILDER_CHANGED" if not same_content and not same_builder
+        else "CONTENT_CHANGED" if not same_content
+        else "BUILDER_CHANGED"
+    )
     print(json.dumps({
         "state": state,
+        "reason": reason,
         "release_id": receipt["release_id"],
         "corpus_digest": receipt["corpus_digest"],
+        "builder_digest": current_builder,
         "airlock_generated_at": receipt["generated_at"],
         "record_count": receipt.get("record_count"),
     }, sort_keys=True))
@@ -76,13 +123,20 @@ def preflight(args: argparse.Namespace) -> int:
             handle.write(f"state={state}\n")
             handle.write(f"release_id={receipt['release_id']}\n")
             handle.write(f"corpus_digest={receipt['corpus_digest']}\n")
+            handle.write(f"builder_digest={current_builder}\n")
+            handle.write(f"reason={reason}\n")
     return 0
 
 
 def finalize(args: argparse.Namespace) -> int:
     receipt = require_airlock(args.corpus, args.max_age_hours)
     previous = load(args.status) if args.status.is_file() else {}
-    same = previous.get("release_id") == receipt["release_id"] and previous.get("corpus_digest") == receipt["corpus_digest"]
+    current_builder = builder_digest(Path.cwd())
+    same = (
+        previous.get("release_id") == receipt["release_id"]
+        and previous.get("corpus_digest") == receipt["corpus_digest"]
+        and previous.get("builder_digest") == current_builder
+    )
 
     stories_path = args.site / "data" / "stories.json"
     stories = json.loads(stories_path.read_text(encoding="utf-8")) if stories_path.is_file() else []
@@ -125,6 +179,7 @@ def finalize(args: argparse.Namespace) -> int:
         "state": state,
         "release_id": receipt["release_id"],
         "corpus_digest": receipt["corpus_digest"],
+        "builder_digest": current_builder,
         "airlock_generated_at": receipt["generated_at"],
         "airlock_record_count": receipt.get("record_count"),
         "canonical_story_count": canonical_count,
