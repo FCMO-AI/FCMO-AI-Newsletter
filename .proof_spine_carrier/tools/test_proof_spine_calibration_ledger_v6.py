@@ -722,6 +722,14 @@ class CalibrationV6Tests(unittest.TestCase):
             report["events"][0]["scoreability_reasons"],
         )
 
+    def test_source_snapshot_cannot_duplicate_one_decision_event(self):
+        p, root, reg = self.setup_bundle()
+        c = coverage([D1, D1])
+        # Footnote: one executed decision receipt is one source event even when an
+        # enumerator accidentally or strategically returns the same row twice.
+        with self.assertRaises(m.v5.v4.CalibrationError):
+            m.index_coverage([c], {PLAN_ID: p}, {PLAN_ID: reg})
+
     def test_source_snapshot_digest_must_rehash_exact_snapshot_bytes(self):
         p, root, reg = self.setup_bundle()
         c = coverage()

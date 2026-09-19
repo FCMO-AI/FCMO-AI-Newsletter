@@ -435,6 +435,13 @@ def validate_coverage(
         raise v5.v4.CalibrationError(
             "coverage.decision_receipt_digests must contain canonical sha256 digests"
         )
+    if len(set(receipts)) != len(receipts):
+        # Footnote: source_event_count describes unique decision events, not rows.
+        # Allowing one receipt to appear twice would let a snapshot claim a larger
+        # observed population than the denominator that coverage_audit actually uses.
+        raise v5.v4.CalibrationError(
+            "coverage decision_receipt_digests must be unique"
+        )
 
     enumeration = frame.get("enumeration")
     if not isinstance(enumeration, dict):
