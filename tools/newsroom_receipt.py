@@ -96,11 +96,11 @@ def sha256_file(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def preflight(args: argparse.Namespace) -> int:
-    receipt = require_airlock(args.corpus, args.max_age_hours)
-    previous = load(args.status) if args.status.is_file() else {}
-    current_builder = builder_digest(Path.cwd())
-    same_content = previous.get("release_id") == receipt["release_id"] and previous.get("corpus_digest") == receipt["corpus_digest"]
+def delta_state(previous: dict[str, Any], receipt: dict[str, Any], current_builder: str) -> tuple[str, str]:
+    same_content = (
+        previous.get("release_id") == receipt["release_id"]
+        and previous.get("corpus_digest") == receipt["corpus_digest"]
+    )
     same_builder = previous.get("builder_digest") == current_builder
     same = same_content and same_builder
     state = "NO_PUBLIC_DELTA" if same else "PUBLIC_DELTA_PENDING"
@@ -109,6 +109,14 @@ def preflight(args: argparse.Namespace) -> int:
         else "CONTENT_CHANGED" if not same_content
         else "BUILDER_CHANGED"
     )
+    return state, reason
+
+
+def preflight(args: argparse.Namespace) -> int:
+    receipt = require_airlock(args.corpus, args.max_age_hours)
+    previous = load(args.status) if args.status.is_file() else {}
+    current_builder = builder_digest(Path.cwd())
+    state, reason = delta_state(previous, receipt, current_builder)
     print(json.dumps({
         "state": state,
         "reason": reason,
