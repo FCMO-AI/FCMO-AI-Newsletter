@@ -30,9 +30,10 @@ permissions:
   contents: write
 
 concurrency:
-  group: newsletter-refresh-v2
-  # A newer corpus/workflow run supersedes an older generated-newsroom transaction.
-  # Cancel stale expensive work instead of letting it race a later source truth.
+  # GitHub evaluates concurrency before job-level if:. A failed upstream
+  # workflow_run is destined to be skipped, so it must never acquire the active
+  # lease and cancel a valid push/success recovery run.
+  group: newsletter-refresh-v3-${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion != 'success' && github.run_id || 'active' }}
   cancel-in-progress: true
 
 jobs:
