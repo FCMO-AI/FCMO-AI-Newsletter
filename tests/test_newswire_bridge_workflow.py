@@ -88,7 +88,10 @@ class NewswireBridgeWorkflowContractTests(unittest.TestCase):
         step = text.index("- name: Measure current canonical ARB integrity on the working GitHub runner")
         seal = text.index("- name: Prove selected immutable snapshot through ARB's atomic publication seal")
         segment = text[step:seal]
-        self.assertIn('SELECTED_SHA="$(cat "$RUNNER_TEMP/fcmo-newswire-private.sha")"', segment)
+        self.assertIn('PRIVATE_SHA="$RUNNER_TEMP/fcmo-newswire-private-source.sha"', segment)
+        self.assertIn('test -s "$PRIVATE_SHA"', segment)
+        self.assertIn('SELECTED_SHA="$(cat "$PRIVATE_SHA")"', segment)
+        self.assertIn('test -n "$SELECTED_SHA"', segment)
         self.assertIn('CURRENT_SHA="$(git -C "$PRIVATE_DIR" rev-parse origin/main)"', segment)
         self.assertIn('git checkout --detach --quiet "$CURRENT_SHA"', segment)
         self.assertIn('git checkout --detach --quiet "$SELECTED_SHA"', segment)
