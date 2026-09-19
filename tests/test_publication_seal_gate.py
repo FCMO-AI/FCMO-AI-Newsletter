@@ -16,7 +16,7 @@ class PublicationSealGateTests(unittest.TestCase):
         # never own declassification/public-byte safety. The atomic seal remains
         # the sole authority for public bytes; the narrow debt ratchet separately
         # prevents structurally regressed current main from being promoted.
-        self.assertIn("Measure canonical ARB integrity debt", text)
+        self.assertIn("Measure current canonical ARB integrity on the working GitHub runner", text)
         self.assertIn("publication safety remains governed by the independent atomic seal", text)
         self.assertIn("python tools/validate_integrity_ratchet.py --json", text)
         # The bridge must not reimplement the private seal as a loose command list;
