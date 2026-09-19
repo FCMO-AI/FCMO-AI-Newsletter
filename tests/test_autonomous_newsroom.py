@@ -91,6 +91,32 @@ def write_locale(root: Path, locale: str, row: dict) -> None:
     )
 
 
+class BuilderDeltaContractTests(unittest.TestCase):
+    def test_same_corpus_with_changed_builder_requires_rebuild(self) -> None:
+        receipt = {"release_id": "R1", "corpus_digest": "C1"}
+        previous = {"release_id": "R1", "corpus_digest": "C1", "builder_digest": "B1"}
+        self.assertEqual(
+            newsroom_receipt.delta_state(previous, receipt, "B2"),
+            ("PUBLIC_DELTA_PENDING", "BUILDER_CHANGED"),
+        )
+
+    def test_same_corpus_and_same_builder_is_true_quiet_heartbeat(self) -> None:
+        receipt = {"release_id": "R1", "corpus_digest": "C1"}
+        previous = {"release_id": "R1", "corpus_digest": "C1", "builder_digest": "B1"}
+        self.assertEqual(
+            newsroom_receipt.delta_state(previous, receipt, "B1"),
+            ("NO_PUBLIC_DELTA", "UNCHANGED"),
+        )
+
+    def test_content_delta_remains_rebuild_even_when_builder_is_stable(self) -> None:
+        receipt = {"release_id": "R2", "corpus_digest": "C2"}
+        previous = {"release_id": "R1", "corpus_digest": "C1", "builder_digest": "B1"}
+        self.assertEqual(
+            newsroom_receipt.delta_state(previous, receipt, "B1"),
+            ("PUBLIC_DELTA_PENDING", "CONTENT_CHANGED"),
+        )
+
+
 class AutonomousNewsroomTests(unittest.TestCase):
     def test_historical_native_editions_pass_truthful_provider_free_integrity_gate(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
