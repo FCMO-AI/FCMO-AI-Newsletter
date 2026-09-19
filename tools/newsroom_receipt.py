@@ -22,6 +22,8 @@ STATUS_SCHEMA = "fcmo-newsroom-status-v2"
 # Airlock still requires a rebuild when this builder identity changes.
 BUILDER_INPUTS = (
     ".github/workflows/daily-refresh.yml",
+    "scaffold/release-index.html",
+    "scaffold/agent.json",
     "tools/ingest_corpus.py",
     "tools/synchronize_relationship_surfaces.py",
     "tools/sync_airlocked_locales.py",
