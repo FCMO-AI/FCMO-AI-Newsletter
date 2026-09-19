@@ -497,14 +497,20 @@ def build(corpus: Path, out: Path) -> None:
         for identifier in ids
     ] + [search_document(document) for document in documents]
 
-    release_index = (repo / "release-src" / "index.html").read_text(encoding="utf-8")
-    additions = additions_since_base(release_index, ids)
-    agent = copy.deepcopy(read_json(repo / "release-src" / "agent.json"))
-    # newly_ingested_brief_ids is run-local transition state, not publication
-    # identity. Persist it only in .<out>.agent-run.json below; embedding it in
-    # agent.json/site-manifest/llms-full made identical corpus inputs produce
-    # different bytes depending on the previous run.
-    agent.pop("newly_ingested_brief_ids", None)
+    scaffold = repo / "scaffold"
+    release_index = (scaffold / "release-index.html").read_text(encoding="utf-8")
+
+    # Transition state is allowed to inspect the previous output, but it must never
+    # flow back into deterministic publication bytes. A fresh/disposable output
+    # simply reports every current ID as newly observed in its run sidecar.
+    previous_index = out / "index.html"
+    additions = (
+        additions_since_base(previous_index.read_text(encoding="utf-8"), ids)
+        if previous_index.is_file()
+        else list(ids)
+    )
+
+    agent = copy.deepcopy(read_json(scaffold / "agent.json"))
     agent["counts"] = {
         "briefs": len(records),
         "topics": len(facets(records, "topics", "topic")),
@@ -555,14 +561,10 @@ def build(corpus: Path, out: Path) -> None:
         "meta": meta,
     }
 
-    media_reference = read_json(repo / "release-src" / "data" / "media.json")
-    media_by_id = {item["id"]: item for item in media_reference}
-    media = [
-        copy.deepcopy(media_by_id[identifier])
-        if identifier in media_by_id
-        else fallback_media(identifier)
-        for identifier in ids
-    ]
+    # Media enrichment belongs to Visual Desk downstream. Ingest emits a pure,
+    # deterministic fallback layer so previous release media cannot change the
+    # same corpus build.
+    media = [fallback_media(identifier) for identifier in ids]
 
     manifest = {
         "schema": "fcmo-ai-newsletter-site-manifest-v1",
