@@ -161,6 +161,10 @@ def index_coverage_contracts(
                 qualification.get("required_context_keys"),
                 "coverage contract event_qualification.required_context_keys",
             )
+            _text(
+                qualification.get("producer_id"),
+                "coverage contract event_qualification.producer_id",
+            )
 
             enumeration = contract.get("enumeration")
             if not isinstance(enumeration, dict):
@@ -456,27 +460,28 @@ def _decision_receipt_reasons(
     if receipt is None:
         return ["DECISION_RECEIPT_BYTES_UNAVAILABLE"]
 
+    reasons: list[str] = []
     if coverage_contract is not None:
         qualification = coverage_contract["event_qualification"]
-        if receipt.get("kind") != qualification["decision_receipt_kind"]:
-            return ["DECISION_RECEIPT_OUTSIDE_PREREGISTERED_QUALIFICATION"]
-        if receipt.get("mode") != qualification["decision_receipt_mode"]:
-            return ["DECISION_RECEIPT_OUTSIDE_PREREGISTERED_QUALIFICATION"]
         context = receipt.get("context") if isinstance(receipt.get("context"), dict) else {}
-        missing_required = [
-            key
-            for key in qualification["required_context_keys"]
-            if key not in context
-        ]
-        if missing_required:
-            return ["DECISION_RECEIPT_OUTSIDE_PREREGISTERED_QUALIFICATION"]
+        outside_qualification = (
+            receipt.get("kind") != qualification["decision_receipt_kind"]
+            or receipt.get("mode") != qualification["decision_receipt_mode"]
+            or any(
+                key not in context
+                for key in qualification["required_context_keys"]
+            )
+        )
+        if outside_qualification:
+            reasons.append("DECISION_RECEIPT_OUTSIDE_PREREGISTERED_QUALIFICATION")
 
     # Footnote: v4/v5 required digest-shaped provenance, but a syntactically valid
     # hash is not evidence that the referenced decision bytes exist. v6 re-hashes the
     # supplied universal receipt, then cross-checks the exact contract/evidence/time/
     # gate tuple before allowing it anywhere near an accuracy denominator.
     if receipt["mode"] != "FCMO_PROOF_SPINE_PROJECT":
-        return ["DECISION_RECEIPT_NOT_PROJECT_SCOPED"]
+        reasons.append("DECISION_RECEIPT_NOT_PROJECT_SCOPED")
+        return list(dict.fromkeys(reasons))
 
     context = receipt["context"]
     project = case["project"]
@@ -495,14 +500,13 @@ def _decision_receipt_reasons(
 
     missing_subject_keys = sorted(set(case["subject"]) - set(context))
     if missing_subject_keys:
-        # Footnote: a partial overlap is not subject identity. A generic field such as
-        # gate_scope could otherwise let a real receipt for candidate A calibrate a
-        # case about candidate B. The case defines the concrete calibration subject;
-        # every one of those keys must be byte-bound into the executed receipt context.
-        return ["DECISION_SUBJECT_UNDERBOUND"]
+        # Footnote: preserve orthogonal causal diagnostics. A receipt can violate the
+        # preregistered event channel *and* still be underbound to the calibration
+        # subject; reporting both avoids making a newer guard erase an older truth.
+        reasons.append("DECISION_SUBJECT_UNDERBOUND")
     mismatched_subject_keys = [
         key for key in sorted(case["subject"])
-        if case["subject"][key] != context[key]
+        if key in context and case["subject"][key] != context[key]
     ]
     if mismatched_subject_keys:
         raise v5.v4.CalibrationError(
@@ -532,7 +536,7 @@ def _decision_receipt_reasons(
         raise v5.v4.CalibrationError("case gate_id is absent from decision receipt")
     if decision.get("state") != case["gate"]["decision"]:
         raise v5.v4.CalibrationError("case gate decision disagrees with decision receipt bytes")
-    return []
+    return list(dict.fromkeys(reasons))
 
 
 def validate_coverage(
@@ -648,6 +652,18 @@ def validate_coverage(
         raise v5.v4.CalibrationError(
             "coverage enumeration measurement roots disagree with preregistered contract"
         )
+    producer_id = _text(
+        enumeration.get("producer_id"),
+        "coverage.enumeration.producer_id",
+    )
+    if producer_id != qualification.get("producer_id"):
+        # Footnote: the enumerator defines the source index; producer_id defines which
+        # predeclared event channel is eligible to enter it. Keeping them separate
+        # prevents a post-outcome switch from "all workflow receipts" to a favorable
+        # subset produced by another job while retaining the same platform index.
+        raise v5.v4.CalibrationError(
+            "coverage enumeration producer disagrees with preregistered qualification"
+        )
     prefixes = contract_enumeration["evidence_ref_prefixes"]
     if any(not any(ref.startswith(prefix) for prefix in prefixes) for ref in evidence_refs):
         raise v5.v4.CalibrationError(
@@ -716,6 +732,10 @@ def validate_coverage(
     if snapshot.get("relation_to_spine") != enumeration.get("relation_to_spine"):
         raise v5.v4.CalibrationError(
             "coverage source snapshot relation disagrees with enumeration"
+        )
+    if snapshot.get("producer_id") != enumeration.get("producer_id"):
+        raise v5.v4.CalibrationError(
+            "coverage source snapshot producer disagrees with enumeration"
         )
     if snapshot.get("evidence_refs") != enumeration.get("evidence_refs"):
         raise v5.v4.CalibrationError(

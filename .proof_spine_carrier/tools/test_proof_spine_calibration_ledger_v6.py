@@ -65,6 +65,7 @@ def coverage_contract(
                 "source_sha",
                 "gate_scope",
             ],
+            "producer_id": "proof-spine-v6-test-field-producer",
         },
         "enumeration": {
             "origin": "SOURCE_NATIVE_PLATFORM",
@@ -247,6 +248,7 @@ def coverage(
         "relation_to_spine": m.COVERAGE_RELATION,
         "origin": "SOURCE_NATIVE_PLATFORM",
         "mechanism_id": "source-native-workflow-run-enumerator",
+        "producer_id": "proof-spine-v6-test-field-producer",
         "observed_at": "2026-09-18T06:11:00Z",
         "evidence_refs": ["source-run-index:snapshot-001"],
         "measurement_roots": ["platform:workflow-run-index"],
@@ -268,6 +270,7 @@ def coverage(
             "relation_to_spine": m.COVERAGE_RELATION,
             "origin": "SOURCE_NATIVE_PLATFORM",
             "mechanism_id": "source-native-workflow-run-enumerator",
+            "producer_id": "proof-spine-v6-test-field-producer",
             "observed_at": "2026-09-18T06:11:00Z",
             "evidence_refs": ["source-run-index:snapshot-001"],
             "measurement_roots": ["platform:workflow-run-index"],
@@ -785,6 +788,19 @@ class CalibrationV6Tests(unittest.TestCase):
         )
         # Footnote: even perfectly self-consistent snapshot bytes are inadmissible
         # when the source mechanism was not the one Git-preregistered in the plan.
+        with self.assertRaises(m.v5.v4.CalibrationError):
+            m.index_coverage([frame], {PLAN_ID: p}, {PLAN_ID: reg})
+
+    def test_coverage_frame_cannot_switch_producer_after_registration(self):
+        p, _, reg = self.setup_bundle()
+        frame = coverage()
+        frame["enumeration"]["producer_id"] = "post-hoc-favorable-producer"
+        frame["enumeration"]["source_snapshot"]["producer_id"] = (
+            "post-hoc-favorable-producer"
+        )
+        frame["enumeration"]["source_snapshot_digest"] = m.v5.canonical_digest(
+            frame["enumeration"]["source_snapshot"]
+        )
         with self.assertRaises(m.v5.v4.CalibrationError):
             m.index_coverage([frame], {PLAN_ID: p}, {PLAN_ID: reg})
 
