@@ -197,20 +197,40 @@ def coverage(
     coverage_id: str = "newsletter-predeploy-window-001",
     observed_through: str = "2026-09-18T06:10:00Z",
 ) -> dict:
+    selected = [D1] if digests is None else digests
+    gate = {
+        "project_id": "newsletter",
+        "repository": "FCMO-AI/FCMO-AI-Newsletter",
+        "gate_id": gate_id,
+    }
+    source_snapshot = {
+        "schema_version": 1,
+        "kind": m.COVERAGE_SNAPSHOT_KIND,
+        "authority": m.COVERAGE_SNAPSHOT_AUTHORITY,
+        "gate": copy.deepcopy(gate),
+        "window": {
+            "observed_from": PLAN_TIME,
+            "observed_through": observed_through,
+        },
+        "relation_to_spine": m.COVERAGE_RELATION,
+        "origin": "SOURCE_NATIVE_PLATFORM",
+        "mechanism_id": "source-native-workflow-run-enumerator",
+        "observed_at": "2026-09-18T06:11:00Z",
+        "evidence_refs": ["source-run-index:snapshot-001"],
+        "measurement_roots": ["platform:workflow-run-index"],
+        "decision_receipt_digests": list(selected),
+        "source_event_count": len(selected),
+    }
     return {
         "schema_version": 1,
         "kind": m.COVERAGE_KIND,
         "authority": m.COVERAGE_AUTHORITY,
         "coverage_id": coverage_id,
         "plan_id": PLAN_ID,
-        "gate": {
-            "project_id": "newsletter",
-            "repository": "FCMO-AI/FCMO-AI-Newsletter",
-            "gate_id": gate_id,
-        },
+        "gate": gate,
         "observed_from": PLAN_TIME,
         "observed_through": observed_through,
-        "decision_receipt_digests": [D1] if digests is None else digests,
+        "decision_receipt_digests": list(selected),
         "enumeration": {
             "state": m.COVERAGE_STATE,
             "relation_to_spine": m.COVERAGE_RELATION,
@@ -219,8 +239,9 @@ def coverage(
             "observed_at": "2026-09-18T06:11:00Z",
             "evidence_refs": ["source-run-index:snapshot-001"],
             "measurement_roots": ["platform:workflow-run-index"],
-            "source_snapshot_digest": "sha256:" + "c" * 64,
-            "source_event_count": len([D1] if digests is None else digests),
+            "source_snapshot": source_snapshot,
+            "source_snapshot_digest": m.v5.canonical_digest(source_snapshot),
+            "source_event_count": len(selected),
         },
     }
 
@@ -700,6 +721,31 @@ class CalibrationV6Tests(unittest.TestCase):
             "DECISION_SUBJECT_UNDERBOUND",
             report["events"][0]["scoreability_reasons"],
         )
+
+    def test_source_snapshot_digest_must_rehash_exact_snapshot_bytes(self):
+        p, root, reg = self.setup_bundle()
+        c = coverage()
+        c["enumeration"]["source_snapshot"]["evidence_refs"].append(
+            "tampered-after-digest"
+        )
+        # Footnote: the frame cannot retain an old digest after its claimed source
+        # snapshot changes. Hash-shaped provenance without byte verification was the
+        # precise denominator-laundering gap closed by v0.3i.
+        with self.assertRaises(m.v5.v4.CalibrationError):
+            m.index_coverage([c], {PLAN_ID: p}, {PLAN_ID: reg})
+
+    def test_source_snapshot_cannot_enumerate_different_receipts_than_frame(self):
+        p, root, reg = self.setup_bundle()
+        c = coverage([D1])
+        c["enumeration"]["source_snapshot"]["decision_receipt_digests"] = [D2]
+        c["enumeration"]["source_snapshot"]["source_event_count"] = 1
+        c["enumeration"]["source_snapshot_digest"] = m.v5.canonical_digest(
+            c["enumeration"]["source_snapshot"]
+        )
+        # Footnote: even a self-consistent rehashed snapshot cannot certify a frame
+        # containing a different denominator.
+        with self.assertRaises(m.v5.v4.CalibrationError):
+            m.index_coverage([c], {PLAN_ID: p}, {PLAN_ID: reg})
 
     def test_source_snapshot_count_must_match_enumerated_receipts(self):
         p, _, reg = self.setup_bundle()

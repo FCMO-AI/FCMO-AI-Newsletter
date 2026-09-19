@@ -40,6 +40,8 @@ SPEC.loader.exec_module(v5)
 
 COVERAGE_KIND = "FCMO_PROOF_SPINE_CALIBRATION_COVERAGE"
 COVERAGE_AUTHORITY = "NON_NORMATIVE_EVIDENCE"
+COVERAGE_SNAPSHOT_KIND = "FCMO_PROOF_SPINE_COVERAGE_SOURCE_SNAPSHOT"
+COVERAGE_SNAPSHOT_AUTHORITY = "SOURCE_ENUMERATION_EVIDENCE"
 COVERAGE_STATE = "EXECUTED_SOURCE_ENUMERATION"
 COVERAGE_RELATION = "INDEPENDENT_OF_SPINE"
 DECISION_RECEIPT_KIND = "FCMO_PROOF_SPINE_DECISION_RECEIPT"
@@ -460,6 +462,80 @@ def validate_coverage(
         raise v5.v4.CalibrationError(
             "coverage.enumeration.source_snapshot_digest must be canonical sha256"
         )
+
+    snapshot = enumeration.get("source_snapshot")
+    if not isinstance(snapshot, dict):
+        raise v5.v4.CalibrationError(
+            "coverage.enumeration.source_snapshot must expose the exact enumerator bytes"
+        )
+    if (
+        snapshot.get("schema_version") != 1
+        or snapshot.get("kind") != COVERAGE_SNAPSHOT_KIND
+        or snapshot.get("authority") != COVERAGE_SNAPSHOT_AUTHORITY
+    ):
+        raise v5.v4.CalibrationError(
+            "coverage source snapshot schema/kind/authority mismatch"
+        )
+    if v5.canonical_digest(snapshot) != snapshot_digest:
+        # Footnote: a digest without the referenced bytes is not provenance. Rehash
+        # the exact source-enumerator snapshot here so an analyst cannot type an
+        # impressive-looking sha256 string while silently changing the denominator.
+        raise v5.v4.CalibrationError(
+            "coverage source_snapshot bytes disagree with source_snapshot_digest"
+        )
+
+    snapshot_gate = snapshot.get("gate")
+    snapshot_window = snapshot.get("window")
+    if not isinstance(snapshot_gate, dict) or not isinstance(snapshot_window, dict):
+        raise v5.v4.CalibrationError(
+            "coverage source snapshot requires gate and window objects"
+        )
+    expected_gate = {
+        "project_id": project_id,
+        "repository": repository,
+        "gate_id": gate_id,
+    }
+    if snapshot_gate != expected_gate:
+        raise v5.v4.CalibrationError(
+            "coverage source snapshot gate disagrees with frame gate"
+        )
+    if snapshot_window != {
+        "observed_from": frame["observed_from"],
+        "observed_through": frame["observed_through"],
+    }:
+        raise v5.v4.CalibrationError(
+            "coverage source snapshot window disagrees with frame window"
+        )
+    if snapshot.get("mechanism_id") != enumeration.get("mechanism_id"):
+        raise v5.v4.CalibrationError(
+            "coverage source snapshot mechanism disagrees with enumeration"
+        )
+    if snapshot.get("origin") != enumeration.get("origin"):
+        raise v5.v4.CalibrationError(
+            "coverage source snapshot origin disagrees with enumeration"
+        )
+    if snapshot.get("relation_to_spine") != enumeration.get("relation_to_spine"):
+        raise v5.v4.CalibrationError(
+            "coverage source snapshot relation disagrees with enumeration"
+        )
+    if snapshot.get("evidence_refs") != enumeration.get("evidence_refs"):
+        raise v5.v4.CalibrationError(
+            "coverage source snapshot evidence_refs disagree with enumeration"
+        )
+    if snapshot.get("measurement_roots") != enumeration.get("measurement_roots"):
+        raise v5.v4.CalibrationError(
+            "coverage source snapshot measurement_roots disagree with enumeration"
+        )
+    snapshot_receipts = _strings(
+        snapshot.get("decision_receipt_digests", []),
+        "coverage.enumeration.source_snapshot.decision_receipt_digests",
+        allow_empty=True,
+    )
+    if snapshot_receipts != receipts:
+        raise v5.v4.CalibrationError(
+            "coverage source snapshot receipt enumeration disagrees with frame"
+        )
+
     source_event_count = enumeration.get("source_event_count")
     if (
         not isinstance(source_event_count, int)
@@ -470,16 +546,29 @@ def validate_coverage(
             "coverage.enumeration.source_event_count must be a non-negative integer"
         )
     if source_event_count != len(receipts):
-        # Footnote: count and digest do not magically prove an external source honest,
-        # but they make the enumerator's claimed source snapshot byte-addressed and
-        # internally self-consistent. Reviewers can now falsify the frame against one
-        # exact snapshot instead of auditing an unpinned prose assertion.
         raise v5.v4.CalibrationError(
             "coverage enumeration count must equal decision_receipt_digests length"
+        )
+    snapshot_count = snapshot.get("source_event_count")
+    if (
+        not isinstance(snapshot_count, int)
+        or isinstance(snapshot_count, bool)
+        or snapshot_count != source_event_count
+    ):
+        raise v5.v4.CalibrationError(
+            "coverage source snapshot count disagrees with frame enumeration"
         )
     enumerated_at = v5.v4.parse_time(
         enumeration.get("observed_at"), "coverage.enumeration.observed_at"
     )
+    snapshot_time = v5.v4.parse_time(
+        snapshot.get("observed_at"),
+        "coverage.enumeration.source_snapshot.observed_at",
+    )
+    if snapshot_time != enumerated_at:
+        raise v5.v4.CalibrationError(
+            "coverage source snapshot observed_at disagrees with enumeration"
+        )
     if enumerated_at < observed_through:
         raise v5.v4.CalibrationError(
             "coverage enumeration cannot predate the window it claims to enumerate"
