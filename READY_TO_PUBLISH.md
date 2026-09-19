@@ -21,8 +21,8 @@ Ordinary releases require no repository-visibility step. A candidate that fails 
 - Release manifest schema: `fcmo-ai-newsletter-release-overlay-v2`
 - Release: `signal-field-v4.1.1-viewport-polish`
 - Front-end SHA-256: `12d0d6855924d8b97e3fafdfbed71e34bd617d35805539e3b6ccb50fc87cf41e`
-- Release archive SHA-256: `24e48df689bd1a082cb3f377feab16c6e357c6e82a389a51721361869b2c80b9`
-- Encoded release payload SHA-256: `2d34d497d899d6aca999847ba9419bead59d86a69869633b84e2456d90f3f5b6`
+- Release archive SHA-256: `78c2eeed5cd5ead17b21366215e0330638ae42946d7e0783fc162ab4042660d3`
+- Encoded release payload SHA-256: `b9b1073c3c324d0e23b48689e39131d07ba93eebedade0c090c9c3342aa73744`
 - 37/37 release payload parts present; payload and archive checked by SHA-256
 - 732 public files after assembly
 - 44 canonical dossiers
