@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "date": "2026-09-14",
+  "kind": "retrospective_field_observation",
+  "repository": "FCMO-AI/FCMO-AI-Newsletter",
+  "observation": {
+    "candidate_sha": "29ab040bcfe2457735e72033670c61953221423b",
+    "candidate_pages_run": {
+      "run_id": 34799517755,
+      "run_number": 118,
+      "workflow": "Deploy FCMO AI Newsletter",
+      "conclusion": "skipped",
+      "created_at": "2026-09-14T02:31:52Z"
+    },
+    "candidate_triggered_health_run": {
+      "run_id": 34799521505,
+      "run_number": 125,
+      "workflow": "Autonomous newsroom production health",
+      "conclusion": "skipped",
+      "created_at": "2026-09-14T02:31:56Z",
+      "jobs": [
+        {"name": "editorial-freshness", "conclusion": "skipped"},
+        {"name": "publication-freshness", "conclusion": "skipped"},
+        {"name": "serving-health", "conclusion": "skipped"}
+      ]
+    },
+    "later_independent_health_run": {
+      "run_id": 34901292822,
+      "run_number": 147,
+      "workflow": "Autonomous newsroom production health",
+      "head_sha": "b17e5e63d69713e3538016ae91707ad18e477240",
+      "conclusion": "success",
+      "created_at": "2026-09-14T21:53:50Z",
+      "jobs": [
+        {"name": "editorial-freshness", "conclusion": "success"},
+        {"name": "publication-freshness", "conclusion": "success"},
+        {"name": "serving-health", "conclusion": "success"},
+        {"name": "translation-health", "conclusion": "success"}
+      ]
+    }
+  },
+  "derived_design_lessons": [
+    "A skipped candidate deploy establishes no positive candidate-deployment proof; map it to UNKNOWN for candidate advancement rather than pretending PASS or positive failure.",
+    "A health workflow skipped because its candidate deploy did not succeed is also UNKNOWN for that candidate; skip is not equivalent to live-production failure.",
+    "Candidate advancement and last-known-good live health need separate dependency trees and separate gates so a failed or skipped candidate cannot logically poison an independently healthy served release.",
+    "The later successful health run demonstrates that live production health can be established independently, but because it is later and on a different SHA it must not be misrepresented as proof of the exact live state at 02:31Z."
+  ],
+  "claim_boundary": "This is retrospective field evidence about workflow-state semantics and dependency separation. It does not prove that Proof Spine prevented an incident, that live production was healthy at the exact time of the skipped candidate, or that the v0.2b graph is complete."
+}

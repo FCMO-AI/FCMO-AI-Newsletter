@@ -1,0 +1,48 @@
+{
+  "schema_version": 2,
+  "mission": {
+    "objective": "Refuse to advance an unproven Newsletter candidate, independently represent the health of the last-known-good live production system, and separately expose whether Newsletter has ingested the latest sealable material ARB publication state.",
+    "context": {
+      "project_id": "newsletter",
+      "repository": "FCMO-AI/FCMO-AI-Newsletter",
+      "environment": "production",
+      "product": "FCMO-AI-Newsletter"
+    }
+  },
+  "claims": [
+    {"id": "candidate_upstream_fresh", "rule": {"all": ["candidate_arb_public_safe"]}},
+    {"id": "candidate_ready_to_deploy", "rule": {"all": ["candidate_upstream_fresh", "candidate_six_release_gates", "publication_authority"]}},
+    {"id": "candidate_deployed", "rule": {"all": ["candidate_ready_to_deploy", "candidate_pages_deploy"]}},
+    {"id": "candidate_live_verified", "rule": {"all": ["candidate_deployed", "candidate_post_deploy_browser", "candidate_triggered_health"]}},
+    {"id": "candidate_can_advance", "rule": {"all": ["candidate_live_verified"]}},
+
+    {"id": "live_source_aligned", "rule": {"all": ["live_source_alignment"]}},
+    {"id": "live_serving", "rule": {"all": ["live_serving_probe"]}},
+    {"id": "live_publication_fresh", "rule": {"all": ["live_airlock_freshness"]}},
+    {"id": "live_editorial_current", "rule": {"all": ["live_editorial_freshness"]}},
+    {"id": "live_localization_healthy", "rule": {"all": ["live_translation_health"]}},
+    {"id": "current_live_production_healthy", "rule": {"all": ["live_source_aligned", "live_serving", "live_publication_fresh", "live_editorial_current", "live_localization_healthy"]}},
+
+    {"id": "live_upstream_material_synced", "rule": {"all": ["live_upstream_material_sync"]}}
+  ],
+  "gates": [
+    {
+      "id": "advance_candidate_current_edition",
+      "action": "Advance the candidate edition advertised as current on the production newspaper",
+      "behavior": "block_unless_valid",
+      "rule": {"all": ["candidate_can_advance"]}
+    },
+    {
+      "id": "represent_live_production_healthy",
+      "action": "Represent the currently served last-known-good Newsletter production system as healthy",
+      "behavior": "block_unless_valid",
+      "rule": {"all": ["current_live_production_healthy"]}
+    },
+    {
+      "id": "represent_live_upstream_material_synced",
+      "action": "Represent the currently ingested Newsletter corpus as materially synchronized with the latest sealable ARB public projection",
+      "behavior": "block_unless_valid",
+      "rule": {"all": ["live_upstream_material_synced"]}
+    }
+  ]
+}

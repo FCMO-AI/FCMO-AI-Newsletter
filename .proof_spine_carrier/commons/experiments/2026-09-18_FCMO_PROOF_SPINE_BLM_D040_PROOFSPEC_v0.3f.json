@@ -1,0 +1,55 @@
+{
+  "claims": [
+    {
+      "id": "d040_primary_execution_lease_current",
+      "rule": {
+        "all": [
+          "d040_queue_execution_contract_valid",
+          "d040_primary_reconciliation_clear"
+        ]
+      }
+    }
+  ],
+  "decision_cuts": [
+    {
+      "gate_id": "shadow_admit_blm_primary_execution",
+      "id": "blm_d040_primary_execution_lease",
+      "mutable": true,
+      "required_evidence": [
+        "d040_queue_execution_contract_valid",
+        "d040_primary_reconciliation_clear"
+      ]
+    }
+  ],
+  "freshness_requirements": {
+    "d040_primary_reconciliation_clear": {
+      "max_age_hours": 1
+    },
+    "d040_queue_execution_contract_valid": {
+      "max_age_hours": 1
+    }
+  },
+  "gates": [
+    {
+      "action": "Represent the current BLM primary as admitted by BLM's coherent D040 scheduling state; this is not scientific promotion or compute-launch authority",
+      "behavior": "block_unless_valid",
+      "id": "shadow_admit_blm_primary_execution",
+      "rule": {
+        "all": [
+          "d040_primary_execution_lease_current"
+        ]
+      }
+    }
+  ],
+  "mission": {
+    "context": {
+      "project_id": "blm",
+      "queue_schema": "BLM-CONTINUOUS-SCIENCE-QUEUE-v1",
+      "repository": "Magyarmex/BLM",
+      "repository_head": "3a0f61fb9721fbf9b08f02746076eecbd489b2f4",
+      "surface": "continuous_science_queue"
+    },
+    "objective": "Represent whether BLM's project-owned D040 primary is currently admitted by a coherent scheduling decision cut; do not infer scientific correctness, promotion, resource authority, or experiment success."
+  },
+  "schema_version": 2
+}

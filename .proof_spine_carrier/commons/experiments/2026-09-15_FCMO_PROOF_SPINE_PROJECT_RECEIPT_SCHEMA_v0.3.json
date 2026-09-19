@@ -1,0 +1,152 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "fcmo://proof-spine/project-receipt/v0.3",
+  "title": "FCMO Proof Spine Project Receipt v0.3",
+  "description": "Evidence-only boundary emitted by an FCMO project for local or federated Proof Spine evaluation. Project semantics remain project-owned; this schema carries observations and provenance, never proof-contract authority.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "kind",
+    "authority",
+    "project",
+    "observed_at",
+    "evidence",
+    "claim_boundary"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "kind": {
+      "const": "FCMO_PROOF_SPINE_PROJECT_RECEIPT"
+    },
+    "authority": {
+      "const": "EVIDENCE_ONLY"
+    },
+    "project": {
+      "type": "object",
+      "required": [
+        "id",
+        "repository"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "not": {
+            "pattern": "::"
+          }
+        },
+        "repository": {
+          "type": "string",
+          "minLength": 3,
+          "pattern": "^[^/\\s]+/[^/\\s]+$",
+          "description": "GitHub owner/repository identity. Federation compares this identity case-insensitively and requires the reviewed proof contract to bind every participating project id to its repository."
+        }
+      },
+      "additionalProperties": true
+    },
+    "observed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "scope": {
+      "type": "object",
+      "propertyNames": {
+        "not": {
+          "enum": [
+            "project_id",
+            "repository"
+          ]
+        }
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "status",
+          "causal_root"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "not": {
+              "pattern": "::"
+            }
+          },
+          "status": {
+            "type": "string",
+            "minLength": 1
+          },
+          "causal_root": {
+            "type": "string",
+            "minLength": 1
+          },
+          "observed_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "max_age_hours": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "description": "Optional producer-side upper bound. A reviewed Proof Spine contract may impose a stricter maximum; this field can tighten but never widen that accepted lifetime."
+          },
+          "valid_until": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Optional producer-side expiry. Contract-owned receipt/evidence freshness may expire the evidence earlier."
+          },
+          "applies_to": {
+            "type": "object"
+          }
+        },
+        "not": {
+          "required": [
+            "shared_causal_root"
+          ]
+        },
+        "additionalProperties": true
+      }
+    },
+    "local_decisions": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "claim_boundary": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "allOf": [
+    {
+      "not": {
+        "required": [
+          "mission"
+        ]
+      }
+    },
+    {
+      "not": {
+        "required": [
+          "claims"
+        ]
+      }
+    },
+    {
+      "not": {
+        "required": [
+          "gates"
+        ]
+      }
+    }
+  ],
+  "additionalProperties": true,
+  "$comment": "Footnote: evidence producers may carry rich project-local metadata, but mission/claims/gates are forbidden so a producer cannot self-ratify the contract that evaluates it. Cross-project causal equivalence also belongs in the reviewed proofspec, never in runtime evidence, so producers cannot self-award independence or correlation. Producer max_age_hours/valid_until are only local upper bounds: reviewed contract freshness owns the maximum accepted lifetime and may tighten them. Regenerating a receipt must not be treated as refreshing an older underlying observation. Runtime validation also requires any evidence.observed_at to be no later than the enclosing receipt observed_at. Federation membership is contract-closed: receipt identity alone never self-enrolls a project."
+}

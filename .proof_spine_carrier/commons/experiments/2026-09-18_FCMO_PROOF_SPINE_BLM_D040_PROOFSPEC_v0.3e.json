@@ -1,0 +1,40 @@
+{
+  "schema_version": 2,
+  "mission": {
+    "objective": "Represent only whether BLM's project-owned D040 scheduling contract currently admits its declared primary executable; do not infer scientific correctness, promotion, resource authority, or experiment success.",
+    "context": {
+      "project_id": "blm",
+      "repository": "Magyarmex/BLM",
+      "surface": "continuous_science_queue",
+      "queue_schema": "BLM-CONTINUOUS-SCIENCE-QUEUE-v1",
+      "repository_head": "f97ebfdc5806c15ca968eb4f74a2c6a5d52db081"
+    }
+  },
+  "freshness_requirements": {
+    "d040_queue_execution_contract_valid": {
+      "max_age_hours": 6
+    }
+  },
+  "claims": [
+    {
+      "id": "d040_primary_execution_admitted",
+      "rule": {
+        "all": [
+          "d040_queue_execution_contract_valid"
+        ]
+      }
+    }
+  ],
+  "gates": [
+    {
+      "id": "shadow_admit_blm_primary_execution",
+      "action": "Represent the current BLM primary as admitted by BLM's D040 scheduling structure; this is not scientific promotion or compute-launch authority",
+      "behavior": "block_unless_valid",
+      "rule": {
+        "all": [
+          "d040_primary_execution_admitted"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,90 @@
+{
+  "schema_version": 2,
+  "mission": {
+    "objective": "Represent whether one concrete Newsletter candidate may enter production deployment without allowing post-deploy health to substitute for pre-deploy localization proof.",
+    "context": {
+      "project_id": "newsletter",
+      "repository": "FCMO-AI/FCMO-AI-Newsletter",
+      "environment": "production",
+      "product": "FCMO-AI-Newsletter"
+    }
+  },
+  "claims": [
+    {
+      "id": "candidate_upstream_fresh",
+      "rule": {
+        "all": [
+          "candidate_arb_public_safe"
+        ]
+      }
+    },
+    {
+      "id": "candidate_release_contract_valid",
+      "rule": {
+        "all": [
+          "candidate_six_release_gates",
+          "publication_authority"
+        ]
+      }
+    },
+    {
+      "id": "candidate_localization_contract_valid",
+      "rule": {
+        "all": [
+          "candidate_localization_ready"
+        ]
+      }
+    },
+    {
+      "id": "candidate_ready_to_deploy",
+      "rule": {
+        "all": [
+          "candidate_upstream_fresh",
+          "candidate_release_contract_valid",
+          "candidate_localization_contract_valid"
+        ]
+      }
+    },
+    {
+      "id": "candidate_deployed",
+      "rule": {
+        "all": [
+          "candidate_ready_to_deploy",
+          "candidate_pages_deploy"
+        ]
+      }
+    },
+    {
+      "id": "candidate_live_verified",
+      "rule": {
+        "all": [
+          "candidate_deployed",
+          "candidate_post_deploy_browser",
+          "candidate_triggered_health"
+        ]
+      }
+    }
+  ],
+  "gates": [
+    {
+      "id": "candidate_may_enter_deploy",
+      "action": "Allow the exact Newsletter candidate to enter the production Pages deployment stage",
+      "behavior": "block_unless_valid",
+      "rule": {
+        "all": [
+          "candidate_ready_to_deploy"
+        ]
+      }
+    },
+    {
+      "id": "advance_candidate_current_edition",
+      "action": "Advance the exact candidate edition advertised as current after deployment and post-deploy verification",
+      "behavior": "block_unless_valid",
+      "rule": {
+        "all": [
+          "candidate_live_verified"
+        ]
+      }
+    }
+  ]
+}

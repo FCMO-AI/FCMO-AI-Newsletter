@@ -1,0 +1,25 @@
+{
+  "schema_version": 2,
+  "mission": {
+    "objective": "Advance the FCMO AI Newsletter current edition only when the reader-visible production system is current and verified.",
+    "context": {
+      "environment": "production",
+      "product": "FCMO-AI-Newsletter"
+    }
+  },
+  "claims": [
+    {"id": "upstream_fresh", "rule": {"all": ["arb_public_safe"]}},
+    {"id": "release_candidate_valid", "rule": {"all": ["upstream_fresh", "six_release_gates"]}},
+    {"id": "live_verified", "rule": {"all": ["release_candidate_valid", "post_deploy_browser"]}},
+    {"id": "today_edition_publishable", "rule": {"all": ["live_verified", "publication_authority"]}},
+    {"id": "production_current", "rule": {"all": ["today_edition_publishable"]}}
+  ],
+  "gates": [
+    {
+      "id": "advance_current_edition",
+      "action": "Advance the edition advertised as current on the production newspaper",
+      "behavior": "block_unless_valid",
+      "rule": {"all": ["production_current"]}
+    }
+  ]
+}

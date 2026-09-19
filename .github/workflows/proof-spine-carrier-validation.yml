@@ -1,0 +1,127 @@
+name: Proof Spine isolated public carrier validation
+
+on:
+  push:
+    branches:
+      - 'agent/proof-spine-carrier-60e064a-v2'
+
+permissions:
+  contents: read
+
+jobs:
+  proof-spine-carrier:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: .proof_spine_carrier
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # Footnote: the carrier is useful only if it executes exact Hub bytes. Git blob
+      # identity is checked before Python so a transport/editing mistake cannot become
+      # counterfeit execution evidence.
+      - name: Verify carrier bytes against exact Hub blob identities
+        run: |
+          python - <<'PY'
+          import json, subprocess
+          from pathlib import Path
+          manifest=json.loads(Path("CARRIER_MANIFEST.json").read_text())
+          bad=[]
+          for source, meta in manifest["files"].items():
+              p=Path(meta["carrier_path"]).relative_to(".proof_spine_carrier")
+              actual=subprocess.check_output(["git","hash-object",str(p)], text=True).strip()
+              if actual != meta["hub_blob_sha"]:
+                  bad.append((source, meta["hub_blob_sha"], actual))
+          if bad:
+              raise SystemExit("carrier blob mismatch: "+repr(bad))
+          print(f"carrier byte identity PASS: {len(manifest['files'])} Hub blobs")
+          print("source_head_sha="+manifest["source_head_sha"])
+          PY
+
+      - name: Compile carried Proof Spine snapshot
+        run: python -m py_compile tools/proof_spine*.py tools/test_proof_spine*.py
+
+      - name: Run generic federation temporal and causal regressions
+        run: |
+          python tools/test_proof_spine_v2.py
+          python tools/test_proof_spine_federation.py
+          python tools/test_proof_spine_temporal_integrity.py
+          python tools/test_proof_spine_decision_cuts.py
+          python tools/test_proof_spine_action_witness.py
+          python tools/test_proof_spine_obligation_memory.py
+
+      - name: Run Newsletter adapter and natural-field regressions
+        run: |
+          python tools/test_proof_spine_newsletter_v02b.py
+          python tools/test_proof_spine_newsletter_shadow.py
+          python tools/test_proof_spine_newsletter_localization_field.py
+          python tools/test_proof_spine_newsletter_preaction.py
+          python tools/test_proof_spine_newsletter_temporal_field.py
+
+      - name: Run BLM adapter and falsification regressions
+        run: |
+          python tools/test_proof_spine_blm_d040_field.py
+          python tools/test_proof_spine_blm_d040_field_v03f.py
+          python tools/test_proof_spine_blm_d040_calibration.py
+
+      - name: Run calibration unit and adversarial suites
+        run: |
+          python tools/test_proof_spine_calibration_ledger.py
+          python tools/test_proof_spine_calibration_ledger_v2.py
+          python tools/test_proof_spine_calibration_ledger_v3.py
+          python tools/test_proof_spine_calibration_ledger_v4.py
+          python tools/test_proof_spine_calibration_ledger_v5.py
+          python tools/test_proof_spine_calibration_ledger_v6.py
+
+      # Footnote: v0.3g's real Git preregistration lookup is intentionally excluded.
+      # This carrier's .git belongs to Newsletter, not the private Hub. The v5 unit
+      # suite still exercises Git verification against temporary repos; claiming the
+      # real historical Hub lookup here would be evidence laundering.
+      - name: Reproduce portable historical calibration reports
+        run: |
+          python tools/proof_spine_calibration_ledger.py commons/experiments/2026-09-17_FCMO_PROOF_SPINE_CALIBRATION_CASES_v0.3b.json --output /tmp/cal-v03b.json
+          cmp /tmp/cal-v03b.json commons/experiments/2026-09-17_FCMO_PROOF_SPINE_CALIBRATION_REPORT_v0.3b.json
+          python tools/proof_spine_calibration_ledger_v2.py commons/experiments/2026-09-17_FCMO_PROOF_SPINE_CALIBRATION_CASES_v0.3c.json --output /tmp/cal-v03c.json
+          cmp /tmp/cal-v03c.json commons/experiments/2026-09-17_FCMO_PROOF_SPINE_CALIBRATION_REPORT_v0.3c.json
+          python tools/proof_spine_calibration_ledger_v3.py commons/experiments/2026-09-17_FCMO_PROOF_SPINE_CALIBRATION_CASES_v0.3d.json --output /tmp/cal-v03d.json
+          cmp /tmp/cal-v03d.json commons/experiments/2026-09-17_FCMO_PROOF_SPINE_CALIBRATION_REPORT_v0.3d.json
+          python tools/proof_spine_calibration_ledger_v4.py commons/experiments/2026-09-18_FCMO_PROOF_SPINE_CALIBRATION_CASES_v0.3e.json --output /tmp/cal-v03e.json
+          cmp /tmp/cal-v03e.json commons/experiments/2026-09-18_FCMO_PROOF_SPINE_CALIBRATION_REPORT_v0.3e.json
+          python tools/proof_spine_calibration_ledger_v4.py commons/experiments/2026-09-18_FCMO_PROOF_SPINE_CALIBRATION_CASES_v0.3f.json --output /tmp/cal-v03f.json
+          cmp /tmp/cal-v03f.json commons/experiments/2026-09-18_FCMO_PROOF_SPINE_CALIBRATION_REPORT_v0.3f.json
+
+      - name: Record carrier claim boundary
+        if: always()
+        run: |
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          m=json.loads(Path("CARRIER_MANIFEST.json").read_text())
+          out={
+            "schema_version":1,
+            "kind":"FCMO_PROOF_SPINE_PUBLIC_CARRIER_EXECUTION_RECEIPT",
+            "authority":"NON_NORMATIVE_TEST_EVIDENCE",
+            "source_head_sha":m["source_head_sha"],
+            "carrier_git_sha":os.environ.get("GITHUB_SHA"),
+            "historical_hub_git_ancestry_tested":False,
+            "private_hub_hosting_substrate_tested":False,
+            "claim_boundary":"A green carrier run proves the copied Proof Spine source/fixture snapshot executed on this public hosted runner. It does not prove private Hub Actions, the v0.3g real-Hub historical preregistration lookup, Newsletter product state, or promotion readiness."
+          }
+          Path("CARRIER_EXECUTION_RECEIPT.json").write_text(json.dumps(out,indent=2,sort_keys=True)+"\n")
+          PY
+
+      - name: Preserve carrier evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: proof-spine-public-carrier-evidence
+          path: |
+            .proof_spine_carrier/CARRIER_MANIFEST.json
+            .proof_spine_carrier/CARRIER_EXECUTION_RECEIPT.json
+          if-no-files-found: warn

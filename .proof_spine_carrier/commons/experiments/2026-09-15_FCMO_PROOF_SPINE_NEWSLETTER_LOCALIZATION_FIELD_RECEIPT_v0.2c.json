@@ -1,0 +1,153 @@
+{
+  "schema_version": 1,
+  "kind": "FCMO_PROOF_SPINE_PROJECT_RECEIPT",
+  "authority": "EVIDENCE_ONLY",
+  "project": {
+    "id": "newsletter",
+    "repository": "FCMO-AI/FCMO-AI-Newsletter"
+  },
+  "observed_at": "2026-09-16T02:09:00Z",
+  "scope": {
+    "environment": "production",
+    "product": "FCMO-AI-Newsletter",
+    "source_head_sha": "3783309c7cf5f43ac4fa8307fcb05fa2349991c4",
+    "field_case": "localization-incomplete-pages-redeploy-2026-09-16"
+  },
+  "evidence": [
+    {
+      "id": "candidate_arb_public_safe",
+      "status": "UNKNOWN",
+      "causal_root": "field-case:not-reobserved:arb-public-safe",
+      "reason": "The field observation did not independently re-prove the upstream candidate boundary."
+    },
+    {
+      "id": "candidate_six_release_gates",
+      "status": "UNKNOWN",
+      "causal_root": "field-case:not-reobserved:release-gates",
+      "reason": "The successful Pages run is not substituted for the six release gates."
+    },
+    {
+      "id": "publication_authority",
+      "status": "UNKNOWN",
+      "causal_root": "field-case:not-reobserved:publication-authority",
+      "reason": "No new publication authority is inferred from deployment success."
+    },
+    {
+      "id": "candidate_localization_ready",
+      "status": "FAIL",
+      "causal_root": "newsletter:native-edition-obligation:FCMO-7EBD0FA07C12",
+      "observed_at": "2026-09-16T02:08:23.987632Z",
+      "source": {
+        "canonical_contract": {
+          "AGENTS.md": "PRODUCT_GOAL.md is canonical; LOCALIZATION.md is required when translation is in scope; localization gates must not be weakened to make deployment green.",
+          "LOCALIZATION.md": "Every canonical public record requires es-419 and zh-Hans coverage; a new Story without both editions is a release failure, not permission to publish English-only.",
+          "HANDOFF.md": "If a new candidate fails localization, preserve the last-known-good public release."
+        },
+        "committed_status": {
+          "pending_translation_count": 1,
+          "pending_translation_ids": [
+            "FCMO-7EBD0FA07C12"
+          ],
+          "canonical_story_count": 43,
+          "translation_counts": {
+            "es-419": 42,
+            "zh-Hans": 42
+          },
+          "translation_state": "DEGRADED_TRANSLATION_BACKLOG"
+        },
+        "production_health": {
+          "workflow_run_id": 35040081111,
+          "job_id": 104617765226,
+          "check": "translation-health",
+          "state": "UNHEALTHY_TRANSLATION_BACKLOG",
+          "research_id": "FCMO-7EBD0FA07C12",
+          "importance": 6,
+          "published_at": "2026-09-15T17:42:05.789766Z",
+          "age_hours_at_check": 6.759,
+          "missing_locales": [
+            "es-419",
+            "zh-Hans"
+          ],
+          "health_grace_hours": 1.0
+        },
+        "independent_repository_validation": {
+          "workflow_run_id": 35046797664,
+          "merge_ref_sha": "5233df99d14d9d1964930750d07836c4196263ce",
+          "head_sha": "65ad4b69b69e5e00549263d57f57b5590b366d46",
+          "tests_run": 52,
+          "tests_passed": 51,
+          "tests_failed": 1,
+          "sole_failure": "test_refresco_diario.RefrescoDiario.test_todo_lo_publicado_tiene_ediciones_nativas",
+          "release_gate_mode": "RELEASE_GATE",
+          "release_gate_state": "UNHEALTHY_TRANSLATION_INCOMPLETE",
+          "release_gate_grace_hours": 0.0,
+          "release_gate_fresh_window_hours": null,
+          "research_id": "FCMO-7EBD0FA07C12",
+          "missing_locales": [
+            "es-419",
+            "zh-Hans"
+          ],
+          "age_hours_at_check": 8.438,
+          "new_release_gate_regressions_passed": 4
+        },
+        "non_localization_surface_validation": {
+          "workflow_run_id": 35046797658,
+          "conclusion": "success",
+          "surface_contract": "PASS"
+        }
+      },
+      "reason": "The exact source SHA lacked both required native editions for a canonical Story. Production health and Newsletter's strict zero-grace RELEASE_GATE independently reproduced the failure while the non-localization surface contract remained green."
+    },
+    {
+      "id": "candidate_pages_deploy",
+      "status": "PASS",
+      "causal_root": "newsletter:pages-run:35039908916",
+      "observed_at": "2026-09-16T00:27:30Z",
+      "source": {
+        "workflow_run_id": 35039908916,
+        "source_head_sha": "3783309c7cf5f43ac4fa8307fcb05fa2349991c4",
+        "build": "success",
+        "deploy": "success",
+        "live_oracle": "success"
+      },
+      "reason": "GitHub Pages build, deployment and post-deploy live oracle all completed successfully for the same source SHA."
+    },
+    {
+      "id": "candidate_post_deploy_browser",
+      "status": "PASS",
+      "causal_root": "newsletter:pages-run:35039908916:live-oracle",
+      "observed_at": "2026-09-16T00:27:30Z",
+      "reason": "The Pages live-oracle job completed successfully; this does not prove localization completeness."
+    },
+    {
+      "id": "candidate_triggered_health",
+      "status": "FAIL",
+      "causal_root": "newsletter:health-run:35040081111",
+      "observed_at": "2026-09-16T00:27:38.554716Z",
+      "reason": "Triggered production health failed because translation-health failed while serving/publication/editorial jobs passed."
+    }
+  ],
+  "local_decisions": [
+    {
+      "id": "pages_deploy_run_35039908916",
+      "state": "SUCCESS",
+      "action": "Production Pages deployment completed even though the exact source state lacked required native Story editions."
+    },
+    {
+      "id": "production_health_run_35040081111",
+      "state": "FAILURE",
+      "action": "Post-deploy health exposed the native-edition backlog after the consequential deployment action."
+    },
+    {
+      "id": "release_validation_run_35046797664",
+      "state": "FAILURE",
+      "action": "Newsletter's strict zero-grace RELEASE_GATE independently reproduced the same missing-native-edition failure while all four new strict-vs-health regressions passed."
+    },
+    {
+      "id": "surface_validation_run_35046797658",
+      "state": "SUCCESS",
+      "action": "The non-localization autonomous surface contract remained green, isolating the consequential red to localization completeness rather than broad candidate breakage."
+    }
+  ],
+  "claim_boundary": "This receipt records a naturally occurring production divergence on one exact Newsletter SHA. It proves that deployment success and canonical localization validity diverged, and that Newsletter-owned health plus strict release validation independently identified the missing native editions while unrelated surface validation remained healthy. It does not prove every other release prerequisite, does not claim Proof Spine prevented the already-completed deployment, and grants no deploy/rollback/publication authority."
+}
