@@ -20,14 +20,14 @@ Ordinary releases require no repository-visibility step. A candidate that fails 
 
 - Release manifest schema: `fcmo-ai-newsletter-release-overlay-v2`
 - Release: `signal-field-v4.1.1-viewport-polish`
-- Front-end SHA-256: `12d0d6855924d8b97e3fafdfbed71e34bd617d35805539e3b6ccb50fc87cf41e`
-- Release archive SHA-256: `78c2eeed5cd5ead17b21366215e0330638ae42946d7e0783fc162ab4042660d3`
-- Encoded release payload SHA-256: `b9b1073c3c324d0e23b48689e39131d07ba93eebedade0c090c9c3342aa73744`
+- Front-end SHA-256: `e07c5d7272f4d7fc1e9c2706c937e58dc2d5c9b5ad391eb4507e554dda785361`
+- Release archive SHA-256: `6ce2867676bfadbc61a7882a9190f125d887370e2d9f880122c825c3d73c2001`
+- Encoded release payload SHA-256: `8e7ea993549cab7fdee02552f90646bd371588bb34f061906023bcb6b98f0be9`
 - 37/37 release payload parts present; payload and archive checked by SHA-256
-- 732 public files after assembly
+- 734 public files after assembly
 - 44 canonical dossiers
 - 44 stable dossier routes
-- 20 frozen edition routes
+- 21 frozen edition routes
 - 10 vetted sourced story visuals + 34 embedded editorial fallbacks
 
 ## Verification receipts
@@ -52,7 +52,7 @@ The final assembler validates, before deployment:
 - required human and machine-readable public files;
 - the post-overlay archive/search/topic/organization/methodology/status frontend suite;
 - 44 dossier identifiers and stable human routes;
-- 20 edition JSON/HTML routes;
+- 21 edition JSON/HTML routes;
 - JSON, JSONL, RSS, and sitemap parsing;
 - agent discovery/query contracts (`fcmo-agent-discovery-v2`, `fcmo-agent-query-v2`);
 - final 10/34 story-media policy;
@@ -62,7 +62,7 @@ The final assembler validates, before deployment:
 
 The release assembler, native-locale gate, and discovery frontend builder were rerun; the assembled public candidate measures:
 
-`FCMO AI Newsletter signal-field-v4.1.1-viewport-polish READY: 732 public files; index 12d0d6855924…`
+`FCMO AI Newsletter signal-field-v4.1.1-viewport-polish READY: 734 public files; index e07c5d7272f4…`
 
 ## Daily refresh readiness
 
