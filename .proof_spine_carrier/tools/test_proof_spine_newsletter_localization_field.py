@@ -20,7 +20,11 @@ federation = importlib.util.module_from_spec(MODULE_SPEC)
 sys.modules[MODULE_SPEC.name] = federation
 MODULE_SPEC.loader.exec_module(federation)
 
-NOW = datetime(2026, 9, 16, 1, 54, 3, tzinfo=timezone.utc)
+# Footnote: evaluate at the receipt's own completed observation boundary. The older
+# 01:54 fixture clock predated the hardened field receipt (02:09) and therefore asked
+# Proof Spine to consume evidence from its future, which temporal integrity correctly
+# rejects. Equality is sufficient and does not manufacture freshness after observation.
+NOW = datetime(2026, 9, 16, 2, 9, 0, tzinfo=timezone.utc)
 
 
 def load(path: Path) -> dict:
