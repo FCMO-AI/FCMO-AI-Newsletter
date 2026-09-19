@@ -10,6 +10,7 @@ from tools import (
     build_editorial_frontends,
     build_newsroom_surfaces,
     finalize_editorial_frontends,
+    ingest_corpus,
     newsroom_receipt,
     sync_airlocked_locales,
     validate_localizations,
@@ -89,6 +90,23 @@ def write_locale(root: Path, locale: str, row: dict) -> None:
         }),
         encoding="utf-8",
     )
+
+
+class IngestTransitionBoundaryTests(unittest.TestCase):
+    def test_transient_arrivals_do_not_contaminate_durable_llms_contract(self) -> None:
+        fixture = Path(__file__).resolve().parents[1] / "_fixtures" / "corpus-2026-09-01"
+        with tempfile.TemporaryDirectory() as tmp:
+            out = Path(tmp) / "release"
+            ingest_corpus.build(fixture, out)
+            first_agent = json.loads((out / "agent.json").read_text(encoding="utf-8"))
+            first_llms = (out / "llms-full.txt").read_bytes()
+            self.assertTrue(first_agent.get("newly_ingested_brief_ids"))
+
+            ingest_corpus.build(fixture, out)
+            second_agent = json.loads((out / "agent.json").read_text(encoding="utf-8"))
+            second_llms = (out / "llms-full.txt").read_bytes()
+            self.assertEqual(second_agent.get("newly_ingested_brief_ids"), [])
+            self.assertEqual(first_llms, second_llms)
 
 
 class BuilderDeltaContractTests(unittest.TestCase):
