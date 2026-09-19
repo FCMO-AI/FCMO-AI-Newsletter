@@ -571,6 +571,12 @@ def build(corpus: Path, out: Path) -> None:
     # same corpus build.
     media = [fallback_media(identifier) for identifier in ids]
 
+    # agent.json/site-manifest intentionally expose the one-run arrival
+    # transition. llms-full.txt is a durable corpus contract and must remain a
+    # pure function of the corpus, so never embed that transient field there.
+    durable_agent = copy.deepcopy(agent)
+    durable_agent.pop("newly_ingested_brief_ids", None)
+
     manifest = {
         "schema": "fcmo-ai-newsletter-site-manifest-v1",
         "agent": agent,
@@ -627,7 +633,7 @@ def build(corpus: Path, out: Path) -> None:
             LLMS_SCAFFOLD
             + llms_index(records)
             + "\n## Full query contract\n```json\n"
-            + json.dumps(agent, ensure_ascii=False, indent=2)
+            + json.dumps(durable_agent, ensure_ascii=False, indent=2)
             + "\n```\n\n## Canonical brief summaries (JSONL)\n"
             + dev_jsonl.decode("utf-8")
         ).encode("utf-8"),
