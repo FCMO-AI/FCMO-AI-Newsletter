@@ -497,34 +497,30 @@ def _rule_evidence_dependencies(
     *,
     stack: tuple[str, ...] = (),
 ) -> set[str]:
-    """Resolve a proof rule to the primitive evidence ids it transitively consumes."""
-    if isinstance(rule, str):
-        if rule not in claims:
-            return {rule}
-        if rule in stack:
-            raise engine.ProofError(f"decision-cut dependency cycle through claim {rule!r}")
-        return _rule_evidence_dependencies(
-            claims[rule].get("rule"),
-            claims,
-            stack=stack + (rule,),
-        )
-    if isinstance(rule, list):
-        out: set[str] = set()
-        for child in rule:
-            out.update(_rule_evidence_dependencies(child, claims, stack=stack))
-        return out
-    if isinstance(rule, dict):
-        if "all" in rule:
-            return _rule_evidence_dependencies(rule["all"], claims, stack=stack)
-        if "any" in rule:
-            return _rule_evidence_dependencies(rule["any"], claims, stack=stack)
-        if "at_least" in rule:
-            block = rule["at_least"]
-            if not isinstance(block, dict) or "of" not in block:
-                raise engine.ProofError("decision-cut at_least rule requires object with 'of'")
-            return _rule_evidence_dependencies(block["of"], claims, stack=stack)
-    raise engine.ProofError(f"unsupported rule shape while resolving decision cut: {rule!r}")
+    """Resolve one engine-valid rule to the primitive evidence ids it consumes."""
 
+    # Footnote: Proof Spine has one rule grammar, not a validator-only superset.
+    # Delegate parsing to the engine itself so decision-cut dependency analysis can
+    # never bless nested/novel shapes that the evaluator would later reject.
+    _kind, refs, _count, _independent = engine.rule(rule)
+    out: set[str] = set()
+    for ref in refs:
+        claim = claims.get(ref)
+        if claim is None:
+            out.add(ref)
+            continue
+        if ref in stack:
+            raise engine.ProofError(
+                f"decision-cut dependency cycle through claim {ref!r}"
+            )
+        out.update(
+            _rule_evidence_dependencies(
+                claim.get("rule"),
+                claims,
+                stack=stack + (ref,),
+            )
+        )
+    return out
 
 def validate_decision_cuts(
     spec: dict[str, Any],

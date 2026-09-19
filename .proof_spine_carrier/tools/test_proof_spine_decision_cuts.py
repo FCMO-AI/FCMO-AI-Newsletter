@@ -138,12 +138,13 @@ class DecisionCutTests(unittest.TestCase):
         r["evidence"].append(
             {"id": "alternate_path", "status": "PASS", "causal_root": "fixture:alternate", "observed_at": "2026-09-18T05:00:00Z"}
         )
-        s["claims"][0]["rule"] = {
-            "any": [
-                {"all": ["structure_valid", "invalidation_clear"]},
-                "alternate_path",
-            ]
-        }
+        s["claims"].append(
+            {
+                "id": "action_lease_or_alternate",
+                "rule": {"any": ["action_lease_current", "alternate_path"]},
+            }
+        )
+        s["gates"][0]["rule"] = {"all": ["action_lease_or_alternate"]}
         s["freshness_requirements"]["alternate_path"] = {"max_age_hours": 1}
         # Footnote: an alternative enabling path participates in the reviewed lease
         # through freshness without becoming an always-present required surface.
