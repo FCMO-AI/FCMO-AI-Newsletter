@@ -157,10 +157,20 @@ def index_coverage_contracts(
                 raise v5.v4.CalibrationError(
                     "coverage contract must qualify project-scoped decision receipts"
                 )
-            _strings(
+            required_context_keys = _strings(
                 qualification.get("required_context_keys"),
                 "coverage contract event_qualification.required_context_keys",
             )
+            for required_key in ("project_id", "repository", "source_observed_at"):
+                if required_key not in required_context_keys:
+                    # Footnote: source_observed_at is mandatory in v6 preregistration.
+                    # Without it, a post-outcome evaluator could run today over evidence
+                    # observed before the plan and still look "prospective" by gate time.
+                    raise v5.v4.CalibrationError(
+                        "v6 coverage qualification must require "
+                        + required_key
+                        + " in decision receipt context"
+                    )
             _text(
                 qualification.get("producer_id"),
                 "coverage contract event_qualification.producer_id",
@@ -451,6 +461,7 @@ def _decision_receipt_reasons(
     case: dict[str, Any],
     receipts_by_digest: dict[str, dict[str, Any]],
     coverage_contract: dict[str, Any] | None = None,
+    registration: dict[str, Any] | None = None,
 ) -> list[str]:
     provenance = case["gate"]["provenance"]
     if provenance["state"] != "EXECUTED":
@@ -474,6 +485,21 @@ def _decision_receipt_reasons(
         )
         if outside_qualification:
             reasons.append("DECISION_RECEIPT_OUTSIDE_PREREGISTERED_QUALIFICATION")
+
+        source_observed_at = context.get("source_observed_at")
+        if isinstance(source_observed_at, str) and registration is not None:
+            source_time = v5.v4.parse_time(
+                source_observed_at,
+                "decision_receipt.context.source_observed_at",
+            )
+            registered_at = v5.v4.parse_time(
+                registration["committed_at"],
+                "registration.committed_at",
+            )
+            if source_time < registered_at:
+                # Footnote: preregistration must precede the evidence selection surface,
+                # not just the later execution of the gate over already-known evidence.
+                reasons.append("SOURCE_EVIDENCE_PREDATES_PREREGISTRATION")
 
     # Footnote: v4/v5 required digest-shaped provenance, but a syntactically valid
     # hash is not evidence that the referenced decision bytes exist. v6 re-hashes the
@@ -982,6 +1008,7 @@ def calibrate(
                     case,
                     receipts_by_digest,
                     contracts_by_key.get(_case_key(case)),
+                    registrations_by_id.get(case["enrollment"]["plan_id"]),
                 )
                 + _coverage_reasons(case, frames_by_key, audit)
             )

@@ -708,7 +708,14 @@ def evaluate_project(spec: dict[str, Any], receipt: dict[str, Any], now: datetim
         source_evidence_digest=canonical_sha256(receipt),
         report=report,
         now=now,
-        context=project_context(receipt),
+        context={
+            **project_context(receipt),
+            # Footnote: evaluation time and source-observation time are different causal
+            # facts. Calibration needs both so a post-outcome evaluator cannot turn old,
+            # already-known project evidence into a nominally prospective decision merely
+            # by running the universal gate after plan registration.
+            "source_observed_at": receipt["observed_at"],
+        },
     )
     return {
         "schema_version": 1,

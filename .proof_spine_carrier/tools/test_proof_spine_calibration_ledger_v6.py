@@ -64,6 +64,7 @@ def coverage_contract(
                 "repository",
                 "source_sha",
                 "gate_scope",
+                "source_observed_at",
             ],
             "producer_id": "proof-spine-v6-test-field-producer",
         },
@@ -146,6 +147,7 @@ def decision_receipt(*, decision: str = "OPEN") -> dict:
             "repository": "FCMO-AI/FCMO-AI-Newsletter",
             "source_sha": "abc123",
             "gate_scope": "candidate_native_editions",
+            "source_observed_at": GATE_TIME,
         },
         "proofspec_digest": "sha256:" + "a" * 64,
         "source_evidence_digest": "sha256:" + "d" * 64,
@@ -763,6 +765,37 @@ class CalibrationV6Tests(unittest.TestCase):
         self.assertEqual(report["events"][0]["classification"], "UNSCORABLE")
         self.assertIn(
             "DECISION_SUBJECT_UNDERBOUND",
+            report["events"][0]["scoreability_reasons"],
+        )
+
+    def test_v6_plan_must_require_source_observation_time(self):
+        p = plan()
+        p["coverage_contracts"][0]["event_qualification"]["required_context_keys"].remove(
+            "source_observed_at"
+        )
+        _, root, sha, committed_at = git_repo_with_plan(p)
+        reg = registration(p, sha, committed_at)
+        with self.assertRaises(m.v5.v4.CalibrationError):
+            m.index_coverage([coverage()], {PLAN_ID: p}, {PLAN_ID: reg})
+
+    def test_source_evidence_seen_before_preregistration_is_unscorable(self):
+        p, root, reg = self.setup_bundle()
+        receipt_bytes = decision_receipt()
+        receipt_bytes["context"]["source_observed_at"] = "2026-09-18T05:40:00Z"
+        digest = m.v5.canonical_digest(receipt_bytes)
+        c = case(digest=digest)
+        frame = coverage([digest])
+        report = m.calibrate(
+            [p],
+            [reg],
+            [frame],
+            [receipt_bytes],
+            [c],
+            git_root=root,
+        )
+        self.assertEqual(report["events"][0]["classification"], "UNSCORABLE")
+        self.assertIn(
+            "SOURCE_EVIDENCE_PREDATES_PREREGISTRATION",
             report["events"][0]["scoreability_reasons"],
         )
 
