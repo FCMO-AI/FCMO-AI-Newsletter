@@ -499,8 +499,12 @@ def build(corpus: Path, out: Path) -> None:
 
     release_index = (repo / "release-src" / "index.html").read_text(encoding="utf-8")
     additions = additions_since_base(release_index, ids)
-    agent = read_json(repo / "release-src" / "agent.json")
-    agent["newly_ingested_brief_ids"] = additions
+    agent = copy.deepcopy(read_json(repo / "release-src" / "agent.json"))
+    # newly_ingested_brief_ids is run-local transition state, not publication
+    # identity. Persist it only in .<out>.agent-run.json below; embedding it in
+    # agent.json/site-manifest/llms-full made identical corpus inputs produce
+    # different bytes depending on the previous run.
+    agent.pop("newly_ingested_brief_ids", None)
     agent["counts"] = {
         "briefs": len(records),
         "topics": len(facets(records, "topics", "topic")),
