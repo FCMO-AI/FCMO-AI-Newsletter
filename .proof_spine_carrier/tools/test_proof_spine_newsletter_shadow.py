@@ -99,8 +99,10 @@ def test_healthy_shadow_agrees_without_promoting_candidate():
     )
     # Footnote: the adapter must preserve at least one concrete semantic identity key
     # inside the receipt context so calibration cannot relabel a real decision onto a
-    # different Newsletter candidate/source.
-    assert report["proof_spine_live_decision_receipt"]["context"]["source_sha"] == "main-head"
+    # different Newsletter subject. This is a legacy v1 shadow receipt, so its reviewed
+    # identity is the historical branch head; v2 source-aligned candidate receipts bind
+    # to candidate_source_sha/main instead.
+    assert report["proof_spine_live_decision_receipt"]["context"]["source_sha"] == "shadow-head"
     assert report["candidate_gate_observational_only"]["state"] == "CLOSED"
     assert report["candidate_gate_observational_only"]["proof_state"] == "UNKNOWN"
     assert report["upstream_material_sync_signal"] == "UPSTREAM_MATERIAL_SYNCED"
