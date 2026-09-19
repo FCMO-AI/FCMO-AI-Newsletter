@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import tempfile
 import unittest
+from unittest import mock
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -107,6 +108,32 @@ class IngestTransitionBoundaryTests(unittest.TestCase):
             second_llms = (out / "llms-full.txt").read_bytes()
             self.assertEqual(second_agent.get("newly_ingested_brief_ids"), [])
             self.assertEqual(first_llms, second_llms)
+
+
+class BuilderDependencyGraphTests(unittest.TestCase):
+    def test_imported_local_helper_is_part_of_builder_identity(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp)
+            (root/"tools").mkdir()
+            (root/"tools"/"a.py").write_text(
+                "from tools.b import value\nprint(value)\n",encoding="utf-8"
+            )
+            (root/"tools"/"b.py").write_text("value=1\n",encoding="utf-8")
+            with mock.patch.object(newsroom_receipt,"BUILDER_INPUTS",("tools/a.py",)):
+                paths=newsroom_receipt.builder_input_paths(root)
+                self.assertEqual(paths,("tools/a.py","tools/b.py"))
+                first=newsroom_receipt.builder_digest(root)
+                (root/"tools"/"b.py").write_text("value=2\n",encoding="utf-8")
+                second=newsroom_receipt.builder_digest(root)
+                self.assertNotEqual(first,second)
+
+    def test_every_direct_refresh_tool_is_a_builder_root(self) -> None:
+        workflow=(Path(__file__).resolve().parents[1]/".github"/"workflows"/"daily-refresh.yml").read_text(encoding="utf-8")
+        import re
+        invoked=set(re.findall(r"python (tools/[A-Za-z0-9_./-]+\.py)",workflow))
+        self.assertTrue(invoked)
+        missing=sorted(invoked-set(newsroom_receipt.BUILDER_INPUTS))
+        self.assertEqual(missing,[],f"refresh tools missing from BUILDER_INPUTS: {missing}")
 
 
 class BuilderDeltaContractTests(unittest.TestCase):
