@@ -312,6 +312,30 @@ class CalibrationV6Tests(unittest.TestCase):
         )
         self.assertFalse(event["consequence_evidence"]["prevention_evidence"])
 
+    def test_equivalent_timestamp_spellings_preserve_exact_consequence_binding(self):
+        p, root, reg = self.setup_bundle()
+        c = self._occurred_case()
+        # Footnote: the witness carries the fixture's Z spelling while this case uses
+        # the semantically identical +00:00 form. Exactness applies to the decision
+        # receipt bytes and action identity, not to redundant UTC typography.
+        c["action"]["observed_at"] = "2026-09-18T06:02:00+00:00"
+        witness = self._exact_action_witness()
+        report = m.calibrate(
+            [p],
+            [reg],
+            [coverage()],
+            [decision_receipt()],
+            [c],
+            action_witnesses=[witness],
+            git_root=root,
+        )
+        event = report["events"][0]
+        self.assertEqual(
+            event["consequence_evidence"]["state"],
+            "ACTION_OBSERVED_EXACT_WITNESS",
+        )
+        self.assertEqual(event["lead_time_seconds"], 120.0)
+
     def test_no_action_observed_is_never_prevention_proof(self):
         p, root, reg = self.setup_bundle()
         report = m.calibrate(

@@ -264,7 +264,18 @@ def _consequence_evidence(
             continue
         if witness["action"]["action_kind"] != action.get("kind"):
             continue
-        if witness["action"]["selected_time"] != action.get("observed_at"):
+        witness_action_time = v5.v4.parse_time(
+            witness["action"]["selected_time"],
+            "action_witness.action.selected_time",
+        )
+        case_action_time = v5.v4.parse_time(
+            action.get("observed_at"),
+            "action.observed_at",
+        )
+        if witness_action_time != case_action_time:
+            # Footnote: timestamps are semantic instants, not serializer spellings.
+            # RFC3339 Z and ISO +00:00 represent the same UTC time and must not break
+            # exact consequence binding when every substantive identity already agrees.
             continue
         matches.append(witness)
 
@@ -347,8 +358,19 @@ def _decision_receipt_reasons(
         raise v5.v4.CalibrationError("case proofspec_digest disagrees with decision receipt bytes")
     if receipt["effective_evidence_digest"] != provenance["effective_evidence_digest"]:
         raise v5.v4.CalibrationError("case effective_evidence_digest disagrees with decision receipt bytes")
-    if receipt["evaluated_at"] != case["gate"]["observed_at"]:
-        raise v5.v4.CalibrationError("case gate time disagrees with decision receipt bytes")
+    receipt_time = v5.v4.parse_time(
+        receipt["evaluated_at"],
+        "decision_receipt.evaluated_at",
+    )
+    case_gate_time = v5.v4.parse_time(
+        case["gate"]["observed_at"],
+        "gate.observed_at",
+    )
+    if receipt_time != case_gate_time:
+        # Footnote: cryptographic identity belongs to the receipt bytes; semantic
+        # cross-object time binding compares parsed instants. Requiring identical
+        # timestamp typography would make equivalent Z/+00:00 encodings falsely diverge.
+        raise v5.v4.CalibrationError("case gate time disagrees with decision receipt instant")
     decision = receipt["gate_decisions"].get(case["gate"]["id"])
     if decision is None:
         raise v5.v4.CalibrationError("case gate_id is absent from decision receipt")
