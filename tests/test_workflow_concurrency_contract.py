@@ -28,6 +28,17 @@ class WorkflowConcurrencyContractTests(unittest.TestCase):
             "pages.yml","github-pages-v3-"
         )
 
+    def test_pages_workflow_run_does_not_depend_on_optional_visibility_payload(self) -> None:
+        text=self.text("pages.yml")
+        self.assertNotIn("github.event.repository.visibility",text)
+        self.assertIn(
+            "github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'",
+            text,
+        )
+        self.assertIn("needs: build",text)
+        self.assertIn("needs: deploy",text)
+
+
     def test_failed_deploy_event_cannot_cancel_real_health_check(self) -> None:
         self.assert_failed_workflow_run_isolated(
             "newsroom-health.yml","newsroom-production-health-v2-"
