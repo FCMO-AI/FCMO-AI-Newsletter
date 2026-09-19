@@ -55,6 +55,12 @@ def test_skipped_candidate_closes_candidate_gate_only():
     ]]
     assert live["state"] == "OPEN"
     assert live["proof_state"] == "VALID"
+    # Footnote: the upstream-sync gate was added after this legacy fixture's original
+    # scope. Its explicit UNKNOWN must fail closed only on that orthogonal gate rather
+    # than being fabricated as PASS or contaminating candidate/live semantics.
+    upstream = result["gates"]["represent_live_upstream_material_synced"]
+    assert upstream["state"] == "CLOSED"
+    assert upstream["proof_state"] == "UNKNOWN"
 
 
 # Footnote: isolation must work in both directions. A live known-good health failure
