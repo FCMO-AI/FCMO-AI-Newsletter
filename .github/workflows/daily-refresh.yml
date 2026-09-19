@@ -175,23 +175,36 @@ jobs:
             exit 1
           fi
           git commit -m 'release: autonomously refresh newsroom from airlocked corpus'
+          BUILD_BASE="$(git rev-parse HEAD^)"
 
-          # A bridge or another refresh may advance main while the expensive
-          # public-only research/media build is running. Never push a newsroom
-          # generated from an older corpus over newer corpus truth.
-          git fetch --quiet origin main
-          if test "$(git rev-parse HEAD^)" != "$(git rev-parse origin/main)"; then
-            if ! git diff --quiet HEAD^..origin/main -- corpus; then
-              echo 'Refresh was superseded by a newer airlocked corpus; discard this stale generated commit. The newer corpus push owns the next refresh.'
-              exit 0
+          # Optimistic publication transaction. The generated release is valid
+          # only for the exact product inputs it was built from. If any corpus,
+          # scaffold, tool or refresh-workflow input advances, discard this build:
+          # that newer push owns the rebuild. Orthogonal changes may be rebased,
+          # and a final push race retries from newest main. Never force-push.
+          pushed=0
+          for attempt in 1 2 3 4 5; do
+            echo "Newsroom promotion attempt $attempt/5"
+            git fetch --quiet origin main
+            REMOTE_SHA="$(git rev-parse origin/main)"
+            if test "$REMOTE_SHA" != "$(git rev-parse HEAD^)"; then
+              if ! git diff --quiet "$BUILD_BASE..$REMOTE_SHA" --                 corpus scaffold tools .github/workflows/daily-refresh.yml; then
+                echo 'Refresh was superseded by newer product inputs; discard this generated release and let the newer trigger rebuild.'
+                exit 0
+              fi
+              if ! git rebase origin/main; then
+                git rebase --abort || true
+                echo 'Refresh collided with newer generated/shared state; leaving reconciliation to the newer trigger.'
+                exit 0
+              fi
             fi
-            # Remote movement was unrelated to corpus truth. Rebase the generated
-            # release transaction; if another actor touched the same generated
-            # paths, prefer the newer shared state and let its trigger reconcile.
-            if ! git rebase origin/main; then
-              git rebase --abort || true
-              echo 'Refresh collided with newer generated/shared state; leaving it to the newer trigger instead of forcing stale output.'
-              exit 0
+            if git push origin HEAD:main; then
+              pushed=1
+              break
             fi
+            echo 'Public main advanced during newsroom promotion; retrying from newest main.' >&2
+          done
+          if test "$pushed" -ne 1; then
+            echo 'Newsroom promotion did not converge after 5 optimistic retries; refusing force-push.' >&2
+            exit 1
           fi
-          git push origin HEAD:main
