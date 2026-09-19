@@ -45,6 +45,24 @@ class ProjectionTests(unittest.TestCase):
         with self.assertRaises(m.ProjectionError):
             m.assert_projection({"value": 1}, {"value": True})
 
+    def test_exact_semantics_accept_equivalent_json_number_spellings(self) -> None:
+        m.assert_semantic_equivalence(
+            {"zero": 0.0, "one": 1.0, "nested": [2.0, 3]},
+            {"zero": 0, "one": 1, "nested": [2, 3.0]},
+        )
+
+    def test_exact_semantics_reject_extra_dictionary_key(self) -> None:
+        with self.assertRaises(m.ProjectionError):
+            m.assert_semantic_equivalence({"a": 1, "b": 2}, {"a": 1})
+
+    def test_exact_semantics_reject_numeric_change(self) -> None:
+        with self.assertRaises(m.ProjectionError):
+            m.assert_semantic_equivalence({"rate": 0.5}, {"rate": 0.6})
+
+    def test_exact_semantics_keep_bool_distinct_from_number(self) -> None:
+        with self.assertRaises(m.ProjectionError):
+            m.assert_semantic_equivalence({"value": 1}, {"value": True})
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
