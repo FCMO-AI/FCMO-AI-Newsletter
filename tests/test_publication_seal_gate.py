@@ -17,8 +17,14 @@ class PublicationSealGateTests(unittest.TestCase):
         # the sole authority for public bytes; the narrow debt ratchet separately
         # prevents structurally regressed current main from being promoted.
         self.assertIn("Measure current canonical ARB integrity on the working GitHub runner", text)
-        self.assertIn("publication safety remains governed by the independent atomic seal", text)
-        self.assertIn("python tools/validate_integrity_ratchet.py --json", text)
+        probe_start = text.index("- name: Measure current canonical ARB integrity on the working GitHub runner")
+        seal_start = text.index("- name: Prove selected immutable snapshot through ARB's atomic publication seal")
+        probe = text[probe_start:seal_start]
+        self.assertIn("python tools/validate_integrity_ratchet.py --json", probe)
+        self.assertIn("python -m unittest discover -s tests -v", probe)
+        self.assertIn("set +e", probe)
+        self.assertIn("exit 0", probe)
+        self.assertLess(probe_start, seal_start)
         # The bridge must not reimplement the private seal as a loose command list;
         # one upstream authority keeps validation/build semantics from drifting.
         for direct in (
