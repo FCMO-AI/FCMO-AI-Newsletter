@@ -63,13 +63,6 @@ jobs:
         if: steps.airlock.outputs.state != 'NO_PUBLIC_DELTA'
         run: python tools/synchronize_relationship_surfaces.py --site release-src
 
-      - name: Prove the regenerated newsroom under all stateful refresh oracles
-        if: steps.airlock.outputs.state != 'NO_PUBLIC_DELTA'
-        run: |
-          python tests/oraculos/verificar_generador_newsroom.py
-          python tests/oraculos/verificar_traduccion.py
-          python tests/oraculos/verificar_refresco.py
-
       - name: Prove the ingest carried every story across
         if: steps.airlock.outputs.state != 'NO_PUBLIC_DELTA'
         shell: python
@@ -138,6 +131,13 @@ jobs:
         run: |
           python tools/build_editorial_frontends.py --site site
           python tools/finalize_editorial_frontends.py --site site
+
+      - name: Prove the complete regenerated newsroom under all stateful refresh oracles
+        if: steps.airlock.outputs.state != 'NO_PUBLIC_DELTA'
+        run: |
+          python tests/oraculos/verificar_generador_newsroom.py
+          python tests/oraculos/verificar_traduccion.py
+          python tests/oraculos/verificar_refresco.py
 
       - name: Write downstream newsroom acknowledgement
         if: steps.airlock.outputs.state != 'NO_PUBLIC_DELTA'
