@@ -156,7 +156,10 @@ jobs:
           set +e
           set -u
           PRIVATE_DIR="$RUNNER_TEMP/fcmo-newswire-private-source"
-          SELECTED_SHA="$(cat "$RUNNER_TEMP/fcmo-newswire-private.sha")"
+          PRIVATE_SHA="$RUNNER_TEMP/fcmo-newswire-private-source.sha"
+          test -s "$PRIVATE_SHA" || { echo 'selected private snapshot receipt is missing' >&2; exit 1; }
+          SELECTED_SHA="$(cat "$PRIVATE_SHA")"
+          test -n "$SELECTED_SHA" || { echo 'selected private snapshot SHA is empty' >&2; exit 1; }
           CURRENT_SHA="$(git -C "$PRIVATE_DIR" rev-parse origin/main)"
           cd "$PRIVATE_DIR"
           git checkout --detach --quiet "$CURRENT_SHA"
