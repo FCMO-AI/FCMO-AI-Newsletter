@@ -125,7 +125,11 @@ def test_healthy_shadow_agrees_without_promoting_candidate():
     assert report["upstream_material_sync_signal"] == "UPSTREAM_MATERIAL_SYNCED", diagnostic
     assert report["upstream_material_sync_gate"]["state"] == "OPEN", diagnostic
     assert report["next_quality_transition_at"] == "2026-09-15T02:48:00.000001Z", diagnostic
-    assert report["proof_spine_next_gate_recheck_at"] == "2026-09-16T01:35:00.000001Z", diagnostic
+    # Footnote: ISO 8601 permits both Z and +00:00 for the same UTC instant. This
+    # regression protects temporal semantics rather than serializer spelling.
+    assert datetime.fromisoformat(
+        report["proof_spine_next_gate_recheck_at"].replace("Z", "+00:00")
+    ) == datetime.fromisoformat("2026-09-16T01:35:00.000001+00:00"), diagnostic
 
 
 # Footnote: the local editorial checker checks Airlock before editorial Story health.
