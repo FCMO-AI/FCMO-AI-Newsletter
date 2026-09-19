@@ -44,6 +44,8 @@ COVERAGE_SNAPSHOT_KIND = "FCMO_PROOF_SPINE_COVERAGE_SOURCE_SNAPSHOT"
 COVERAGE_SNAPSHOT_AUTHORITY = "SOURCE_ENUMERATION_EVIDENCE"
 COVERAGE_STATE = "EXECUTED_SOURCE_ENUMERATION"
 COVERAGE_RELATION = "INDEPENDENT_OF_SPINE"
+COVERAGE_SAMPLING_UNIT = "UNIQUE_EXECUTED_DECISION_RECEIPT"
+COVERAGE_QUALIFICATION_MODE = "EXACT_PROJECT_DECISION_RECEIPT"
 DECISION_RECEIPT_KIND = "FCMO_PROOF_SPINE_DECISION_RECEIPT"
 ACTION_WITNESS_KIND = "FCMO_PROOF_SPINE_ACTION_WITNESS"
 ACTION_WITNESS_AUTHORITY = "OBSERVATIONAL_ONLY"
@@ -81,6 +83,142 @@ def _registered_gate_keys(plan: dict[str, Any]) -> set[tuple[str, str, str]]:
         (g["project_id"], g["repository"].casefold(), g["gate_id"])
         for g in plan["registered_gates"]
     }
+
+
+def index_coverage_contracts(
+    plans_by_id: dict[str, dict[str, Any]],
+) -> dict[tuple[str, str, str, str], dict[str, Any]]:
+    """Validate the preregistered denominator source contract for every gate."""
+
+    out: dict[tuple[str, str, str, str], dict[str, Any]] = {}
+    for plan_id, plan in plans_by_id.items():
+        contracts = plan.get("coverage_contracts")
+        if not isinstance(contracts, list) or not contracts:
+            raise v5.v4.CalibrationError(
+                "v6 plan requires a non-empty coverage_contracts list"
+            )
+
+        registered = {
+            _gate_key(
+                plan_id,
+                gate["project_id"],
+                gate["repository"],
+                gate["gate_id"],
+            )
+            for gate in plan["registered_gates"]
+        }
+        seen: set[tuple[str, str, str, str]] = set()
+
+        for i, contract in enumerate(contracts):
+            if not isinstance(contract, dict):
+                raise v5.v4.CalibrationError(
+                    f"coverage_contracts[{i}] must be an object"
+                )
+            gate = contract.get("gate")
+            if not isinstance(gate, dict):
+                raise v5.v4.CalibrationError(
+                    f"coverage_contracts[{i}].gate must be an object"
+                )
+            key = _gate_key(
+                plan_id,
+                _text(gate.get("project_id"), f"coverage_contracts[{i}].gate.project_id"),
+                _text(gate.get("repository"), f"coverage_contracts[{i}].gate.repository"),
+                _text(gate.get("gate_id"), f"coverage_contracts[{i}].gate.gate_id"),
+            )
+            if key not in registered:
+                raise v5.v4.CalibrationError(
+                    "coverage contract references a gate not registered by the plan"
+                )
+            if key in seen:
+                raise v5.v4.CalibrationError(
+                    "duplicate coverage contract for one registered gate"
+                )
+            seen.add(key)
+
+            if contract.get("sampling_unit") != COVERAGE_SAMPLING_UNIT:
+                raise v5.v4.CalibrationError(
+                    f"coverage contract sampling_unit must equal {COVERAGE_SAMPLING_UNIT}"
+                )
+
+            qualification = contract.get("event_qualification")
+            if not isinstance(qualification, dict):
+                raise v5.v4.CalibrationError(
+                    "coverage contract event_qualification must be an object"
+                )
+            if qualification.get("mode") != COVERAGE_QUALIFICATION_MODE:
+                raise v5.v4.CalibrationError(
+                    "coverage contract event qualification mode mismatch"
+                )
+            if qualification.get("decision_receipt_kind") != DECISION_RECEIPT_KIND:
+                raise v5.v4.CalibrationError(
+                    "coverage contract must qualify universal decision receipts"
+                )
+            if qualification.get("decision_receipt_mode") != "FCMO_PROOF_SPINE_PROJECT":
+                raise v5.v4.CalibrationError(
+                    "coverage contract must qualify project-scoped decision receipts"
+                )
+            _strings(
+                qualification.get("required_context_keys"),
+                "coverage contract event_qualification.required_context_keys",
+            )
+
+            enumeration = contract.get("enumeration")
+            if not isinstance(enumeration, dict):
+                raise v5.v4.CalibrationError(
+                    "coverage contract enumeration must be an object"
+                )
+            if enumeration.get("origin") not in ALLOWED_COVERAGE_ORIGINS:
+                raise v5.v4.CalibrationError(
+                    "coverage contract enumeration origin is not allowed"
+                )
+            if enumeration.get("relation_to_spine") != COVERAGE_RELATION:
+                raise v5.v4.CalibrationError(
+                    f"coverage contract relation_to_spine must equal {COVERAGE_RELATION}"
+                )
+            _text(
+                enumeration.get("mechanism_id"),
+                "coverage contract enumeration.mechanism_id",
+            )
+            _strings(
+                enumeration.get("measurement_roots"),
+                "coverage contract enumeration.measurement_roots",
+            )
+            prefixes = _strings(
+                enumeration.get("evidence_ref_prefixes"),
+                "coverage contract enumeration.evidence_ref_prefixes",
+            )
+            if any(prefix.strip() != prefix for prefix in prefixes):
+                raise v5.v4.CalibrationError(
+                    "coverage contract evidence_ref_prefixes must not contain surrounding whitespace"
+                )
+            out[key] = contract
+
+        if seen != registered:
+            missing = sorted(registered - seen)
+            raise v5.v4.CalibrationError(
+                f"every registered gate needs exactly one coverage contract; missing={missing!r}"
+            )
+
+    return out
+
+
+def _coverage_contract_for_frame(
+    frame: dict[str, Any],
+    contracts_by_key: dict[tuple[str, str, str, str], dict[str, Any]],
+) -> dict[str, Any]:
+    gate = frame["gate"]
+    key = _gate_key(
+        frame["plan_id"],
+        gate["project_id"],
+        gate["repository"],
+        gate["gate_id"],
+    )
+    contract = contracts_by_key.get(key)
+    if contract is None:
+        raise v5.v4.CalibrationError(
+            "coverage frame has no preregistered coverage contract"
+        )
+    return contract
 
 
 def validate_decision_receipt(receipt: Any) -> dict[str, Any]:
@@ -308,6 +446,7 @@ def _consequence_evidence(
 def _decision_receipt_reasons(
     case: dict[str, Any],
     receipts_by_digest: dict[str, dict[str, Any]],
+    coverage_contract: dict[str, Any] | None = None,
 ) -> list[str]:
     provenance = case["gate"]["provenance"]
     if provenance["state"] != "EXECUTED":
@@ -316,6 +455,21 @@ def _decision_receipt_reasons(
     receipt = receipts_by_digest.get(digest)
     if receipt is None:
         return ["DECISION_RECEIPT_BYTES_UNAVAILABLE"]
+
+    if coverage_contract is not None:
+        qualification = coverage_contract["event_qualification"]
+        if receipt.get("kind") != qualification["decision_receipt_kind"]:
+            return ["DECISION_RECEIPT_OUTSIDE_PREREGISTERED_QUALIFICATION"]
+        if receipt.get("mode") != qualification["decision_receipt_mode"]:
+            return ["DECISION_RECEIPT_OUTSIDE_PREREGISTERED_QUALIFICATION"]
+        context = receipt.get("context") if isinstance(receipt.get("context"), dict) else {}
+        missing_required = [
+            key
+            for key in qualification["required_context_keys"]
+            if key not in context
+        ]
+        if missing_required:
+            return ["DECISION_RECEIPT_OUTSIDE_PREREGISTERED_QUALIFICATION"]
 
     # Footnote: v4/v5 required digest-shaped provenance, but a syntactically valid
     # hash is not evidence that the referenced decision bytes exist. v6 re-hashes the
@@ -385,6 +539,7 @@ def validate_coverage(
     frame: Any,
     plans_by_id: dict[str, dict[str, Any]],
     registrations_by_id: dict[str, dict[str, Any]],
+    contracts_by_key: dict[tuple[str, str, str, str], dict[str, Any]],
 ) -> dict[str, Any]:
     if not isinstance(frame, dict):
         raise v5.v4.CalibrationError("coverage frame must be an object")
@@ -409,6 +564,10 @@ def validate_coverage(
     gate_id = _text(gate.get("gate_id"), "coverage.gate.gate_id")
     if (project_id, repository.casefold(), gate_id) not in _registered_gate_keys(plan):
         raise v5.v4.CalibrationError("coverage.gate is not registered in the referenced plan")
+
+    contract = _coverage_contract_for_frame(frame, contracts_by_key)
+    contract_enumeration = contract["enumeration"]
+    qualification = contract["event_qualification"]
 
     observed_from = v5.v4.parse_time(frame.get("observed_from"), "coverage.observed_from")
     observed_through = v5.v4.parse_time(frame.get("observed_through"), "coverage.observed_through")
@@ -458,9 +617,42 @@ def validate_coverage(
         raise v5.v4.CalibrationError(
             "coverage.enumeration.origin must be source-native or causally independent"
         )
-    _text(enumeration.get("mechanism_id"), "coverage.enumeration.mechanism_id")
-    _strings(enumeration.get("evidence_refs"), "coverage.enumeration.evidence_refs")
-    _strings(enumeration.get("measurement_roots"), "coverage.enumeration.measurement_roots")
+    mechanism_id = _text(
+        enumeration.get("mechanism_id"), "coverage.enumeration.mechanism_id"
+    )
+    evidence_refs = _strings(
+        enumeration.get("evidence_refs"), "coverage.enumeration.evidence_refs"
+    )
+    measurement_roots = _strings(
+        enumeration.get("measurement_roots"),
+        "coverage.enumeration.measurement_roots",
+    )
+
+    # Footnote: "ALL qualifying events" is meaningless if the analyst may choose
+    # what qualifies or which source enumerates it after outcomes are visible.
+    # v6 therefore binds every coverage frame to the mechanism preregistered in the
+    # plan's exact Git-committed bytes.
+    if enumeration.get("origin") != contract_enumeration.get("origin"):
+        raise v5.v4.CalibrationError(
+            "coverage enumeration origin disagrees with preregistered contract"
+        )
+    if enumeration.get("relation_to_spine") != contract_enumeration.get("relation_to_spine"):
+        raise v5.v4.CalibrationError(
+            "coverage enumeration relation disagrees with preregistered contract"
+        )
+    if mechanism_id != contract_enumeration.get("mechanism_id"):
+        raise v5.v4.CalibrationError(
+            "coverage enumeration mechanism disagrees with preregistered contract"
+        )
+    if measurement_roots != contract_enumeration.get("measurement_roots"):
+        raise v5.v4.CalibrationError(
+            "coverage enumeration measurement roots disagree with preregistered contract"
+        )
+    prefixes = contract_enumeration["evidence_ref_prefixes"]
+    if any(not any(ref.startswith(prefix) for prefix in prefixes) for ref in evidence_refs):
+        raise v5.v4.CalibrationError(
+            "coverage enumeration evidence ref lies outside preregistered namespaces"
+        )
     snapshot_digest = _text(
         enumeration.get("source_snapshot_digest"),
         "coverage.enumeration.source_snapshot_digest",
@@ -591,10 +783,16 @@ def index_coverage(
 ) -> dict[tuple[str, str, str, str], dict[str, Any]]:
     if not isinstance(frames, list):
         raise v5.v4.CalibrationError("coverage input must be a list")
+    contracts_by_key = index_coverage_contracts(plans_by_id)
     out: dict[tuple[str, str, str, str], dict[str, Any]] = {}
     ids: set[str] = set()
     for frame in frames:
-        validate_coverage(frame, plans_by_id, registrations_by_id)
+        validate_coverage(
+            frame,
+            plans_by_id,
+            registrations_by_id,
+            contracts_by_key,
+        )
         coverage_id = frame["coverage_id"]
         if coverage_id in ids:
             raise v5.v4.CalibrationError(f"duplicate coverage_id: {coverage_id}")
@@ -730,6 +928,7 @@ def calibrate(
     if set(plans_by_id) != set(registrations_by_id):
         raise v5.v4.CalibrationError("every supplied plan must have exactly one registration")
 
+    contracts_by_key = index_coverage_contracts(plans_by_id)
     frames_by_key = index_coverage(coverage, plans_by_id, registrations_by_id)
     receipts_by_digest = index_decision_receipts(decision_receipts)
     witnesses_by_decision = index_action_witnesses(action_witnesses)
@@ -759,7 +958,11 @@ def calibrate(
         reasons = list(
             dict.fromkeys(
                 event["scoreability_reasons"]
-                + _decision_receipt_reasons(case, receipts_by_digest)
+                + _decision_receipt_reasons(
+                    case,
+                    receipts_by_digest,
+                    contracts_by_key.get(_case_key(case)),
+                )
                 + _coverage_reasons(case, frames_by_key, audit)
             )
         )

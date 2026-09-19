@@ -45,6 +45,37 @@ GATE_TIME = "2026-09-18T06:00:00Z"
 D2 = "sha256:" + "2" * 64
 
 
+def coverage_contract(
+    gate_id: str = "candidate_may_enter_deploy",
+) -> dict:
+    return {
+        "gate": {
+            "project_id": "newsletter",
+            "repository": "FCMO-AI/FCMO-AI-Newsletter",
+            "gate_id": gate_id,
+        },
+        "sampling_unit": m.COVERAGE_SAMPLING_UNIT,
+        "event_qualification": {
+            "mode": m.COVERAGE_QUALIFICATION_MODE,
+            "decision_receipt_kind": m.DECISION_RECEIPT_KIND,
+            "decision_receipt_mode": "FCMO_PROOF_SPINE_PROJECT",
+            "required_context_keys": [
+                "project_id",
+                "repository",
+                "source_sha",
+                "gate_scope",
+            ],
+        },
+        "enumeration": {
+            "origin": "SOURCE_NATIVE_PLATFORM",
+            "relation_to_spine": m.COVERAGE_RELATION,
+            "mechanism_id": "source-native-workflow-run-enumerator",
+            "measurement_roots": ["platform:workflow-run-index"],
+            "evidence_ref_prefixes": ["source-run-index:"],
+        },
+    }
+
+
 def plan() -> dict:
     return {
         "schema_version": 1,
@@ -61,6 +92,7 @@ def plan() -> dict:
                 "gate_id": "candidate_may_enter_deploy",
             }
         ],
+        "coverage_contracts": [coverage_contract()],
         "notes": ["Enroll every qualifying future gate execution."],
     }
 
@@ -502,6 +534,9 @@ class CalibrationV6Tests(unittest.TestCase):
                 "gate_id": "represent_live_production_healthy",
             }
         )
+        p["coverage_contracts"].append(
+            coverage_contract("represent_live_production_healthy")
+        )
         p, root, reg = self.setup_bundle(p)
         c = case()
         c["enrollment"]["plan_digest"] = m.v5.canonical_digest(p)
@@ -548,6 +583,9 @@ class CalibrationV6Tests(unittest.TestCase):
                 "repository": "FCMO-AI/FCMO-AI-Newsletter",
                 "gate_id": "represent_live_production_healthy",
             }
+        )
+        p["coverage_contracts"].append(
+            coverage_contract("represent_live_production_healthy")
         )
         p, root, reg = self.setup_bundle(p)
         c = case()
@@ -623,6 +661,9 @@ class CalibrationV6Tests(unittest.TestCase):
                 "repository": "FCMO-AI/FCMO-AI-Newsletter",
                 "gate_id": "represent_live_production_healthy",
             }
+        )
+        p["coverage_contracts"].append(
+            coverage_contract("represent_live_production_healthy")
         )
         p, root, reg = self.setup_bundle(p)
         c = case()
@@ -721,6 +762,44 @@ class CalibrationV6Tests(unittest.TestCase):
             "DECISION_SUBJECT_UNDERBOUND",
             report["events"][0]["scoreability_reasons"],
         )
+
+    def test_v6_plan_must_preregister_coverage_contract_for_every_gate(self):
+        p = plan()
+        p["coverage_contracts"] = []
+        _, root, sha, committed_at = git_repo_with_plan(p)
+        reg = registration(p, sha, committed_at)
+        # Footnote: an outcome-blind plan that never defined its denominator source
+        # still leaves "qualifying" open to post-outcome interpretation.
+        with self.assertRaises(m.v5.v4.CalibrationError):
+            m.index_coverage([], {PLAN_ID: p}, {PLAN_ID: reg})
+
+    def test_coverage_frame_cannot_switch_enumerator_after_outcomes_exist(self):
+        p, _, reg = self.setup_bundle()
+        frame = coverage()
+        frame["enumeration"]["mechanism_id"] = "post-hoc-favorable-enumerator"
+        frame["enumeration"]["source_snapshot"]["mechanism_id"] = (
+            "post-hoc-favorable-enumerator"
+        )
+        frame["enumeration"]["source_snapshot_digest"] = m.v5.canonical_digest(
+            frame["enumeration"]["source_snapshot"]
+        )
+        # Footnote: even perfectly self-consistent snapshot bytes are inadmissible
+        # when the source mechanism was not the one Git-preregistered in the plan.
+        with self.assertRaises(m.v5.v4.CalibrationError):
+            m.index_coverage([frame], {PLAN_ID: p}, {PLAN_ID: reg})
+
+    def test_coverage_frame_cannot_switch_measurement_root_after_registration(self):
+        p, _, reg = self.setup_bundle()
+        frame = coverage()
+        frame["enumeration"]["measurement_roots"] = ["platform:handpicked-index"]
+        frame["enumeration"]["source_snapshot"]["measurement_roots"] = [
+            "platform:handpicked-index"
+        ]
+        frame["enumeration"]["source_snapshot_digest"] = m.v5.canonical_digest(
+            frame["enumeration"]["source_snapshot"]
+        )
+        with self.assertRaises(m.v5.v4.CalibrationError):
+            m.index_coverage([frame], {PLAN_ID: p}, {PLAN_ID: reg})
 
     def test_source_snapshot_cannot_duplicate_one_decision_event(self):
         p, root, reg = self.setup_bundle()
