@@ -85,16 +85,9 @@ jobs:
       # real historical Hub lookup here would be evidence laundering.
       - name: Reproduce portable historical calibration reports
         run: |
+          python tools/test_proof_spine_report_projection.py
           python tools/proof_spine_calibration_ledger.py commons/experiments/2026-09-17_FCMO_PROOF_SPINE_CALIBRATION_CASES_v0.3b.json --output /tmp/cal-v03b.json
-          python - <<'PY'
-          import json
-          from pathlib import Path
-          generated=json.loads(Path("/tmp/cal-v03b.json").read_text())
-          historical=json.loads(Path("commons/experiments/2026-09-17_FCMO_PROOF_SPINE_CALIBRATION_REPORT_v0.3b.json").read_text())
-          if generated != historical:
-              raise SystemExit("v0.3b semantic calibration report drift")
-          print("v0.3b semantic report equivalence PASS")
-          PY
+          python tools/proof_spine_report_projection.py /tmp/cal-v03b.json commons/experiments/2026-09-17_FCMO_PROOF_SPINE_CALIBRATION_REPORT_v0.3b.json
           python tools/proof_spine_calibration_ledger_v2.py commons/experiments/2026-09-17_FCMO_PROOF_SPINE_CALIBRATION_CASES_v0.3c.json --output /tmp/cal-v03c.json
           cmp /tmp/cal-v03c.json commons/experiments/2026-09-17_FCMO_PROOF_SPINE_CALIBRATION_REPORT_v0.3c.json
           python tools/proof_spine_calibration_ledger_v3.py commons/experiments/2026-09-17_FCMO_PROOF_SPINE_CALIBRATION_CASES_v0.3d.json --output /tmp/cal-v03d.json
