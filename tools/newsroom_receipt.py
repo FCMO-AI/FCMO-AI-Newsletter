@@ -8,6 +8,7 @@ reported explicitly but does not make a fully validated English Story layer fals
 from __future__ import annotations
 
 import argparse
+import ast
 import hashlib
 import json
 import sys
@@ -45,12 +46,54 @@ BUILDER_INPUTS = (
 )
 
 
-def builder_digest(root: Path) -> str:
-    h = hashlib.sha256()
-    for rel in BUILDER_INPUTS:
+def _local_tool_imports(path: Path, root: Path) -> set[str]:
+    """Resolve direct in-repo Python tool dependencies without executing code."""
+    if path.suffix != ".py":
+        return set()
+    try:
+        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+    except (OSError, SyntaxError):
+        return set()
+    out: set[str] = set()
+    for node in ast.walk(tree):
+        modules: list[str] = []
+        if isinstance(node, ast.Import):
+            modules.extend(alias.name for alias in node.names)
+        elif isinstance(node, ast.ImportFrom):
+            if node.module:
+                modules.append(node.module)
+            if node.module == "tools":
+                modules.extend(f"tools.{alias.name}" for alias in node.names)
+        for module in modules:
+            if not module.startswith("tools."):
+                continue
+            rel = Path(*module.split(".")).with_suffix(".py")
+            candidate = root / rel
+            if candidate.is_file():
+                out.add(rel.as_posix())
+    return out
+
+
+def builder_input_paths(root: Path) -> tuple[str, ...]:
+    """Return the seed inputs plus their transitive local Python dependencies."""
+    pending = list(BUILDER_INPUTS)
+    seen: set[str] = set()
+    while pending:
+        rel = pending.pop()
+        if rel in seen:
+            continue
         path = root / rel
         if not path.is_file():
             raise ValueError(f"builder identity input missing: {rel}")
+        seen.add(rel)
+        pending.extend(sorted(_local_tool_imports(path, root) - seen))
+    return tuple(sorted(seen))
+
+
+def builder_digest(root: Path) -> str:
+    h = hashlib.sha256()
+    for rel in builder_input_paths(root):
+        path = root / rel
         h.update(rel.encode("utf-8"))
         h.update(b"\0")
         h.update(path.read_bytes())
