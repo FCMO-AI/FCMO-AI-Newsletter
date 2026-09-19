@@ -33,6 +33,18 @@ class WorkflowConcurrencyContractTests(unittest.TestCase):
             "newsroom-health.yml","newsroom-production-health-v2-"
         )
 
+    def test_refresh_promotion_retries_without_force_and_invalidates_on_product_inputs(self) -> None:
+        text=self.text("daily-refresh.yml")
+        self.assertIn("for attempt in 1 2 3 4 5",text)
+        self.assertIn("BUILD_BASE=",text)
+        self.assertIn("corpus scaffold tools .github/workflows/daily-refresh.yml",text)
+        self.assertIn("newer product inputs",text)
+        self.assertIn("retrying from newest main",text)
+        self.assertIn("did not converge after 5 optimistic retries",text)
+        self.assertNotIn("git push --force",text)
+        self.assertNotIn("git push -f",text)
+
+
 
 if __name__=="__main__":
     unittest.main()
