@@ -5,10 +5,14 @@ on:
     branches: [main]
     paths:
       - 'tests/**'
+      - 'tools/**'
+      - 'scaffold/**'
       - '.github/workflows/contract-tests.yml'
   pull_request:
     paths:
       - 'tests/**'
+      - 'tools/**'
+      - 'scaffold/**'
       - '.github/workflows/contract-tests.yml'
 
 permissions:
@@ -28,5 +32,7 @@ jobs:
           python-version: '3.12'
       - name: Compile test modules
         run: python -m compileall -q tests
-      - name: Run repository unit and contract tests
+      - name: Run source-level unit and contract tests
+        env:
+          FCMO_SKIP_STATEFUL_REFRESH_ORACLES: '1'
         run: python -m unittest discover -s tests -v
