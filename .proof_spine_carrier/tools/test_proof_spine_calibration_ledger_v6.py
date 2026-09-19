@@ -341,7 +341,10 @@ class CalibrationV6Tests(unittest.TestCase):
             "authority": federation.EVIDENCE_ONLY,
             "project": {"id": "newsletter", "repository": "FCMO-AI/FCMO-AI-Newsletter"},
             "observed_at": GATE_TIME,
-            "scope": {"gate_scope": "candidate_native_editions"},
+            "scope": {
+                "source_sha": "abc123",
+                "gate_scope": "candidate_native_editions",
+            },
             "evidence": [
                 {
                     "id": "candidate_ready",
@@ -637,6 +640,24 @@ class CalibrationV6Tests(unittest.TestCase):
         c["subject"]["gate_scope"] = "different-candidate"
         with self.assertRaises(m.v5.v4.CalibrationError):
             m.calibrate([p], [reg], [coverage()], [decision_receipt()], [c], git_root=root)
+
+    def test_partial_subject_overlap_is_still_underbound(self):
+        p, root, reg = self.setup_bundle()
+        receipt_bytes = decision_receipt()
+        del receipt_bytes["context"]["source_sha"]
+        digest = m.v5.canonical_digest(receipt_bytes)
+        c = case(digest=digest)
+        frame = coverage([digest])
+        report = m.calibrate(
+            [p], [reg], [frame], [receipt_bytes], [c], git_root=root
+        )
+        # Footnote: gate_scope still overlaps, but that generic overlap cannot stand
+        # in for the missing concrete source identity.
+        self.assertEqual(report["events"][0]["classification"], "UNSCORABLE")
+        self.assertIn(
+            "DECISION_SUBJECT_UNDERBOUND",
+            report["events"][0]["scoreability_reasons"],
+        )
 
     def test_receipt_without_any_subject_identity_overlap_is_unscorable(self):
         p, root, reg = self.setup_bundle()

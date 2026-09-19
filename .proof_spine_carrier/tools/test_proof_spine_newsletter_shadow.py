@@ -87,28 +87,45 @@ def evidence_by_id(envelope, evidence_id):
 def test_healthy_shadow_agrees_without_promoting_candidate():
     receipt = healthy_receipt()
     report = shadow.evaluate_shadow(PROOFSPEC, receipt, OBSERVED, ROOT)
-    assert report["comparison"] == "AGREE_HEALTHY"
-    assert report["proof_spine_live_gate"]["state"] == "OPEN"
-    assert report["proof_spine_live_decision_receipt"]["kind"] == "FCMO_PROOF_SPINE_DECISION_RECEIPT"
+    diagnostic = json.dumps(
+        {
+            "comparison": report.get("comparison"),
+            "live_gate": report.get("proof_spine_live_gate"),
+            "predeploy_gate": report.get("proof_spine_predeploy_gate"),
+            "candidate_observational_gate": report.get("candidate_gate_observational_only"),
+            "upstream_signal": report.get("upstream_material_sync_signal"),
+            "upstream_gate": report.get("upstream_material_sync_gate"),
+            "live_receipt_digest": report.get("proof_spine_live_decision_receipt_digest"),
+            "live_receipt_context": (report.get("proof_spine_live_decision_receipt") or {}).get("context"),
+            "predeploy_receipt_digest": report.get("proof_spine_predeploy_decision_receipt_digest"),
+            "next_quality_transition_at": report.get("next_quality_transition_at"),
+            "next_gate_recheck_at": report.get("proof_spine_next_gate_recheck_at"),
+        },
+        sort_keys=True,
+        default=str,
+    )
+    # Footnote: one compact diagnostic snapshot makes a future red causally useful.
+    # Keep the assertions separate so each invariant remains readable, but attach the
+    # same evidence-rich state rather than emitting an empty AssertionError.
+    assert report["comparison"] == "AGREE_HEALTHY", diagnostic
+    assert report["proof_spine_live_gate"]["state"] == "OPEN", diagnostic
+    assert report["proof_spine_live_decision_receipt"]["kind"] == "FCMO_PROOF_SPINE_DECISION_RECEIPT", diagnostic
     assert report["proof_spine_live_decision_receipt_digest"] == shadow.federation.canonical_sha256(
         report["proof_spine_live_decision_receipt"]
-    )
-    assert report["proof_spine_predeploy_decision_receipt"]["kind"] == "FCMO_PROOF_SPINE_DECISION_RECEIPT"
+    ), diagnostic
+    assert report["proof_spine_predeploy_decision_receipt"]["kind"] == "FCMO_PROOF_SPINE_DECISION_RECEIPT", diagnostic
     assert report["proof_spine_predeploy_decision_receipt_digest"] == shadow.federation.canonical_sha256(
         report["proof_spine_predeploy_decision_receipt"]
-    )
-    # Footnote: the adapter must preserve at least one concrete semantic identity key
-    # inside the receipt context so calibration cannot relabel a real decision onto a
-    # different Newsletter subject. This is a legacy v1 shadow receipt, so its reviewed
-    # identity is the historical branch head; v2 source-aligned candidate receipts bind
-    # to candidate_source_sha/main instead.
-    assert report["proof_spine_live_decision_receipt"]["context"]["source_sha"] == "shadow-head"
-    assert report["candidate_gate_observational_only"]["state"] == "CLOSED"
-    assert report["candidate_gate_observational_only"]["proof_state"] == "UNKNOWN"
-    assert report["upstream_material_sync_signal"] == "UPSTREAM_MATERIAL_SYNCED"
-    assert report["upstream_material_sync_gate"]["state"] == "OPEN"
-    assert report["next_quality_transition_at"] == "2026-09-15T02:48:00.000001Z"
-    assert report["proof_spine_next_gate_recheck_at"] == "2026-09-16T01:35:00.000001Z"
+    ), diagnostic
+    # Footnote: this legacy v1 receipt binds its historical branch head. v2
+    # source-aligned candidate receipts bind candidate_source_sha/main instead.
+    assert report["proof_spine_live_decision_receipt"]["context"]["source_sha"] == "shadow-head", diagnostic
+    assert report["candidate_gate_observational_only"]["state"] == "CLOSED", diagnostic
+    assert report["candidate_gate_observational_only"]["proof_state"] == "UNKNOWN", diagnostic
+    assert report["upstream_material_sync_signal"] == "UPSTREAM_MATERIAL_SYNCED", diagnostic
+    assert report["upstream_material_sync_gate"]["state"] == "OPEN", diagnostic
+    assert report["next_quality_transition_at"] == "2026-09-15T02:48:00.000001Z", diagnostic
+    assert report["proof_spine_next_gate_recheck_at"] == "2026-09-16T01:35:00.000001Z", diagnostic
 
 
 # Footnote: the local editorial checker checks Airlock before editorial Story health.

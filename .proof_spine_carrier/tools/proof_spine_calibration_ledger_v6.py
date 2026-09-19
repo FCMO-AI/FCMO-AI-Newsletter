@@ -326,15 +326,15 @@ def _decision_receipt_reasons(
             "case project.repository disagrees with decision receipt context"
         )
 
-    shared_subject_keys = sorted(set(case["subject"]) & set(context))
-    if not shared_subject_keys:
-        # Footnote: a real decision hash can still be misapplied to the wrong concrete
-        # candidate/run/entity. Requiring at least one independently named subject key
-        # prevents project+gate-name coincidence from becoming identity proof while
-        # keeping the universal layer ignorant of project-specific key names.
+    missing_subject_keys = sorted(set(case["subject"]) - set(context))
+    if missing_subject_keys:
+        # Footnote: a partial overlap is not subject identity. A generic field such as
+        # gate_scope could otherwise let a real receipt for candidate A calibrate a
+        # case about candidate B. The case defines the concrete calibration subject;
+        # every one of those keys must be byte-bound into the executed receipt context.
         return ["DECISION_SUBJECT_UNDERBOUND"]
     mismatched_subject_keys = [
-        key for key in shared_subject_keys
+        key for key in sorted(case["subject"])
         if case["subject"][key] != context[key]
     ]
     if mismatched_subject_keys:
@@ -968,8 +968,8 @@ def calibrate(
             "bind its claimed event set to an exact source-snapshot digest and matching "
             "source event count. Executed cases must additionally provide the exact "
             "universal decision-receipt bytes whose canonical digest, proofspec, effective "
-            "evidence, evaluation time, project identity, at least one concrete subject "
-            "identity key, gate id, and gate decision match case provenance. "
+            "evidence, evaluation time, project identity, every key of the concrete "
+            "calibration subject, gate id, and gate decision match case provenance. "
             "Coverage provenance is still evidence to audit, not authority or a guarantee "
             "that an external enumerator itself is infallible. Pooled sensitivity/"
             "specificity are micro-aggregates over the observed scoreable decision-event mixture "
