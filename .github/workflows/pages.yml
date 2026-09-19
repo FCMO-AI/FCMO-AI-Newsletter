@@ -56,9 +56,11 @@ concurrency:
 
 jobs:
   build:
+    # Do not gate on event.repository.visibility: workflow_run payloads do not
+    # reliably expose that field even though this canonical repository is public.
+    # Upstream conclusion is the only event-dependent admission condition.
     if: >-
-      github.event.repository.visibility == 'public' &&
-      (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success')
+      github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -140,7 +142,6 @@ jobs:
           path: publish
 
   deploy:
-    if: github.event.repository.visibility == 'public'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -153,7 +154,6 @@ jobs:
 
   live-oracle:
     name: prove the deployed newspaper is actually live
-    if: github.event.repository.visibility == 'public'
     needs: deploy
     runs-on: ubuntu-latest
     steps:
