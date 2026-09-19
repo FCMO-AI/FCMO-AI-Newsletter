@@ -48,9 +48,10 @@ permissions:
   id-token: write
 
 concurrency:
-  # Deployments are snapshots. Once main advances, finishing an older Pages
-  # candidate creates avoidable stale-production windows and can race its oracle.
-  group: github-pages-v2
+  # Failed upstream workflow_run events are skipped below. Give those no-op
+  # events a unique lease so they cannot cancel a valid build/deploy/live oracle
+  # before job-level conditions are evaluated.
+  group: github-pages-v3-${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion != 'success' && github.run_id || 'active' }}
   cancel-in-progress: true
 
 jobs:
