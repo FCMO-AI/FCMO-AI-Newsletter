@@ -44,7 +44,7 @@ COVERAGE_SNAPSHOT_KIND = "FCMO_PROOF_SPINE_COVERAGE_SOURCE_SNAPSHOT"
 COVERAGE_SNAPSHOT_AUTHORITY = "SOURCE_ENUMERATION_EVIDENCE"
 COVERAGE_STATE = "EXECUTED_SOURCE_ENUMERATION"
 COVERAGE_RELATION = "INDEPENDENT_OF_SPINE"
-COVERAGE_SAMPLING_UNIT = "UNIQUE_EXECUTED_DECISION_RECEIPT"
+COVERAGE_SAMPLING_UNIT = "UNIQUE_SOURCE_PRODUCER_EVENT"
 COVERAGE_QUALIFICATION_MODE = "EXACT_PROJECT_DECISION_RECEIPT"
 DECISION_RECEIPT_KIND = "FCMO_PROOF_SPINE_DECISION_RECEIPT"
 ACTION_WITNESS_KIND = "FCMO_PROOF_SPINE_ACTION_WITNESS"
@@ -813,6 +813,61 @@ def validate_coverage(
             "coverage source snapshot receipt enumeration disagrees with frame"
         )
 
+    source_events = snapshot.get("source_events")
+    if not isinstance(source_events, list):
+        raise v5.v4.CalibrationError(
+            "coverage source snapshot source_events must be a list"
+        )
+    source_event_ids: set[str] = set()
+    emitted_from_events: list[str] = []
+    missing_receipt_event_ids: list[str] = []
+    for i, source_event in enumerate(source_events):
+        if not isinstance(source_event, dict):
+            raise v5.v4.CalibrationError(
+                f"coverage source snapshot source_events[{i}] must be an object"
+            )
+        source_event_id = _text(
+            source_event.get("source_event_id"),
+            f"coverage source snapshot source_events[{i}].source_event_id",
+        )
+        if source_event_id in source_event_ids:
+            raise v5.v4.CalibrationError(
+                "coverage source snapshot source_event_id values must be unique"
+            )
+        source_event_ids.add(source_event_id)
+        state = source_event.get("state")
+        if state == "DECISION_RECEIPT_EMITTED":
+            digest = _text(
+                source_event.get("decision_receipt_digest"),
+                f"coverage source snapshot source_events[{i}].decision_receipt_digest",
+            )
+            if not DIGEST_RE.fullmatch(digest):
+                raise v5.v4.CalibrationError(
+                    "emitted source event decision_receipt_digest must be canonical sha256"
+                )
+            emitted_from_events.append(digest)
+        elif state == "NO_DECISION_RECEIPT":
+            if source_event.get("decision_receipt_digest") not in (None, ""):
+                raise v5.v4.CalibrationError(
+                    "NO_DECISION_RECEIPT source event must not claim a receipt digest"
+                )
+            missing_receipt_event_ids.append(source_event_id)
+        else:
+            raise v5.v4.CalibrationError(
+                "coverage source event state must be DECISION_RECEIPT_EMITTED or NO_DECISION_RECEIPT"
+            )
+    if len(emitted_from_events) != len(set(emitted_from_events)):
+        raise v5.v4.CalibrationError(
+            "coverage source events must not duplicate a decision receipt"
+        )
+    if emitted_from_events != receipts:
+        # Footnote: the producer-event ledger is the denominator source of truth.
+        # decision_receipt_digests is retained as the direct join surface for cases,
+        # but it must be exactly the emitted subset of source_events in source order.
+        raise v5.v4.CalibrationError(
+            "coverage source events disagree with decision_receipt_digests"
+        )
+
     source_event_count = enumeration.get("source_event_count")
     if (
         not isinstance(source_event_count, int)
@@ -822,9 +877,18 @@ def validate_coverage(
         raise v5.v4.CalibrationError(
             "coverage.enumeration.source_event_count must be a non-negative integer"
         )
-    if source_event_count != len(receipts):
+    if source_event_count != len(source_events):
         raise v5.v4.CalibrationError(
-            "coverage enumeration count must equal decision_receipt_digests length"
+            "coverage enumeration source_event_count must equal source_events length"
+        )
+    emitted_count = enumeration.get("emitted_decision_receipt_count")
+    if (
+        not isinstance(emitted_count, int)
+        or isinstance(emitted_count, bool)
+        or emitted_count != len(receipts)
+    ):
+        raise v5.v4.CalibrationError(
+            "coverage emitted_decision_receipt_count must equal emitted receipt count"
         )
     snapshot_count = snapshot.get("source_event_count")
     if (
@@ -834,6 +898,15 @@ def validate_coverage(
     ):
         raise v5.v4.CalibrationError(
             "coverage source snapshot count disagrees with frame enumeration"
+        )
+    snapshot_emitted_count = snapshot.get("emitted_decision_receipt_count")
+    if (
+        not isinstance(snapshot_emitted_count, int)
+        or isinstance(snapshot_emitted_count, bool)
+        or snapshot_emitted_count != emitted_count
+    ):
+        raise v5.v4.CalibrationError(
+            "coverage source snapshot emitted receipt count disagrees with enumeration"
         )
     enumerated_at = v5.v4.parse_time(
         enumeration.get("observed_at"), "coverage.enumeration.observed_at"
@@ -928,12 +1001,21 @@ def coverage_audit(
                 supplied.add(digest)
         missing = sorted(expected - supplied)
         extra = sorted(supplied - expected)
+        source_events = frame["enumeration"]["source_snapshot"]["source_events"]
+        missing_producer_receipts = [
+            event["source_event_id"]
+            for event in source_events
+            if event["state"] == "NO_DECISION_RECEIPT"
+        ]
         audit[key] = {
             "coverage_id": frame["coverage_id"],
+            "source_event_count": len(source_events),
             "expected_receipt_count": len(expected),
             "supplied_receipt_count": len(supplied),
             "missing_receipt_digests": missing,
             "unexpected_receipt_digests": extra,
+            "producer_missing_receipt_event_ids": missing_producer_receipts,
+            "producer_event_complete": not missing_producer_receipts,
             "denominator_complete": not missing and not extra,
         }
     return audit
@@ -1086,7 +1168,9 @@ def calibrate(
             )
         details["unscorable_expected_events"] = unscorable_expected
         details["scoreability_complete"] = (
-            details["denominator_complete"] and not unscorable_expected
+            details["denominator_complete"]
+            and details["producer_event_complete"]
+            and not unscorable_expected
         )
 
     seen_decision_events: set[tuple[str, str, str, str, str]] = set()
@@ -1172,6 +1256,9 @@ def calibrate(
     incomplete_enumeration_frames = sorted(
         key for key, details in audit.items() if not details["denominator_complete"]
     )
+    incomplete_producer_frames = sorted(
+        key for key, details in audit.items() if not details["producer_event_complete"]
+    )
     incomplete_scoreability_frames = sorted(
         key for key, details in audit.items() if not details["scoreability_complete"]
     )
@@ -1221,6 +1308,8 @@ def calibrate(
         aggregate_withheld_reason = "MISSING_REGISTERED_COVERAGE_FRAME"
     elif incomplete_enumeration_frames:
         aggregate_withheld_reason = "INCOMPLETE_SOURCE_ENUMERATED_DENOMINATOR"
+    elif incomplete_producer_frames:
+        aggregate_withheld_reason = "INCOMPLETE_PRODUCER_EVENT_DENOMINATOR"
     elif incomplete_scoreability_frames:
         aggregate_withheld_reason = "INCOMPLETE_SCOREABLE_SOURCE_DENOMINATOR"
     elif inconsistent_horizon_plans:
@@ -1303,6 +1392,8 @@ def calibrate(
 
     if missing_registered_coverage:
         registered_gate_coverage_state = "MISSING_REGISTERED_COVERAGE_FRAMES"
+    elif incomplete_producer_frames:
+        registered_gate_coverage_state = "INCOMPLETE_PRODUCER_EVENT_DENOMINATOR"
     elif incomplete_scoreability_frames:
         registered_gate_coverage_state = "INCOMPLETE_SCOREABLE_SOURCE_DENOMINATOR"
     elif not scoreable_events:
@@ -1358,6 +1449,19 @@ def calibrate(
         "registered_coverage_frame_count": len(set(frames_by_key) & registered_gate_keys),
         "plan_coverage_horizons": plan_coverage_horizons,
         "inconsistent_coverage_horizon_plans": inconsistent_horizon_plans,
+        "incomplete_producer_coverage_frames": [
+            {
+                "plan_id": key[0],
+                "project_id": key[1],
+                "repository": key[2],
+                "gate_id": key[3],
+                "coverage_id": audit[key]["coverage_id"],
+                "producer_missing_receipt_event_ids": audit[key][
+                    "producer_missing_receipt_event_ids"
+                ],
+            }
+            for key in incomplete_producer_frames
+        ],
         "incomplete_scoreable_coverage_frames": [
             {
                 "plan_id": key[0],
@@ -1429,8 +1533,9 @@ def calibrate(
             "registered gate must also have an explicit source-enumerated coverage frame, "
             "including an empty frame when the source genuinely observed zero events. "
             "Headline aggregate rates are withheld whenever a registered frame is missing, "
-            "any supplied frame has an incomplete enumerated denominator, or any "
-            "source-enumerated expected event is itself unscorable; a favorable scored "
+            "any supplied frame has an incomplete enumerated denominator, any preregistered "
+            "producer event fails to emit a decision receipt, or any source-enumerated "
+            "expected receipt is itself unscorable; a favorable scored "
             "subset may remain visible only in diagnostics. Gates "
             "within one calibration plan use different right-edge observation horizons, "
             "or one registered gate mixes multiple proofspec revisions; "

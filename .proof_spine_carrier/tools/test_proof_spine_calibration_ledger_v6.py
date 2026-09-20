@@ -241,6 +241,14 @@ def coverage(
     observed_through: str = "2026-09-18T06:10:00Z",
 ) -> dict:
     selected = [D1] if digests is None else digests
+    source_events = [
+        {
+            "source_event_id": f"field-event-{index + 1}",
+            "state": "DECISION_RECEIPT_EMITTED",
+            "decision_receipt_digest": digest,
+        }
+        for index, digest in enumerate(selected)
+    ]
     gate = {
         "project_id": "newsletter",
         "repository": "FCMO-AI/FCMO-AI-Newsletter",
@@ -264,7 +272,9 @@ def coverage(
         "evidence_refs": ["source-run-index:snapshot-001"],
         "measurement_roots": ["platform:workflow-run-index"],
         "decision_receipt_digests": list(selected),
-        "source_event_count": len(selected),
+        "source_events": source_events,
+        "source_event_count": len(source_events),
+        "emitted_decision_receipt_count": len(selected),
     }
     return {
         "schema_version": 1,
@@ -288,7 +298,8 @@ def coverage(
             "measurement_roots": ["platform:workflow-run-index"],
             "source_snapshot": source_snapshot,
             "source_snapshot_digest": m.v5.canonical_digest(source_snapshot),
-            "source_event_count": len(selected),
+            "source_event_count": len(source_events),
+            "emitted_decision_receipt_count": len(selected),
         },
     }
 
@@ -904,6 +915,47 @@ class CalibrationV6Tests(unittest.TestCase):
         with self.assertRaises(m.v5.v4.CalibrationError):
             m.index_coverage([frame], {PLAN_ID: p}, {PLAN_ID: reg})
 
+    def test_producer_event_without_decision_receipt_withholds_headline(self):
+        p, root, reg = self.setup_bundle()
+        frame = coverage([D1])
+        frame["enumeration"]["source_snapshot"]["source_events"].append(
+            {
+                "source_event_id": "field-event-no-receipt",
+                "state": "NO_DECISION_RECEIPT",
+                "decision_receipt_digest": None,
+            }
+        )
+        frame["enumeration"]["source_snapshot"]["source_event_count"] = 2
+        frame["enumeration"]["source_snapshot_digest"] = m.v5.canonical_digest(
+            frame["enumeration"]["source_snapshot"]
+        )
+        frame["enumeration"]["source_event_count"] = 2
+        # Footnote: the successful D1 event remains diagnostically visible, but a
+        # second preregistered producer run that emitted no decision cannot disappear
+        # from the accuracy population merely because it crashed before hashing output.
+        report = m.calibrate(
+            [p],
+            [reg],
+            [frame],
+            [decision_receipt()],
+            [case()],
+            git_root=root,
+        )
+        self.assertEqual(
+            report["observed_micro_aggregate"]["specificity"]["rate"],
+            1.0,
+        )
+        self.assertIsNone(report["specificity"]["rate"])
+        self.assertEqual(
+            report["specificity"]["withheld_reason"],
+            "INCOMPLETE_PRODUCER_EVENT_DENOMINATOR",
+        )
+        self.assertEqual(
+            report["coverage"][0]["producer_missing_receipt_event_ids"],
+            ["field-event-no-receipt"],
+        )
+        self.assertEqual(report["complete_scoreable_coverage_frame_count"], 0)
+
     def test_source_snapshot_cannot_duplicate_one_decision_event(self):
         p, root, reg = self.setup_bundle()
         c = coverage([D1, D1])
@@ -941,8 +993,8 @@ class CalibrationV6Tests(unittest.TestCase):
         p, _, reg = self.setup_bundle()
         c = coverage([D1, D2])
         c["enumeration"]["source_event_count"] = 1
-        # Footnote: a byte-addressed snapshot with a contradictory declared event
-        # count is not a trustworthy denominator frame and must fail hard.
+        # Footnote: a byte-addressed snapshot with a contradictory declared source
+        # event count is not a trustworthy denominator frame and must fail hard.
         with self.assertRaises(m.v5.v4.CalibrationError):
             m.index_coverage([c], {PLAN_ID: p}, {PLAN_ID: reg})
 
