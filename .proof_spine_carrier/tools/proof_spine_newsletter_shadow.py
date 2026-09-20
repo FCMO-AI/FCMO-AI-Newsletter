@@ -281,6 +281,7 @@ def build_project_receipt(receipt: dict[str, Any]) -> dict[str, Any]:
         for key in (
             "producer_id",
             "producer_contract_digest",
+            "source_event_id",
             "workflow_run_id",
             "workflow_run_attempt",
         )

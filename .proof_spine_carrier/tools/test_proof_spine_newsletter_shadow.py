@@ -136,6 +136,7 @@ def test_prospective_field_producer_identity_reaches_universal_receipt_context()
     receipt = healthy_receipt()
     receipt["source"]["producer_id"] = "newsletter-proof-spine-live-field-v0.3i"
     receipt["source"]["producer_contract_digest"] = "sha256:" + "f" * 64
+    receipt["source"]["source_event_id"] = "github-actions-run:34910748578"
     receipt["source"]["workflow_run_attempt"] = "2"
     report = shadow.evaluate_shadow(PROOFSPEC, receipt, OBSERVED, ROOT)
     context = report["proof_spine_live_decision_receipt"]["context"]
@@ -144,6 +145,7 @@ def test_prospective_field_producer_identity_reaches_universal_receipt_context()
     # the decision rather than accepting an analyst-reconstructed equivalent later.
     assert context["producer_id"] == "newsletter-proof-spine-live-field-v0.3i"
     assert context["producer_contract_digest"] == "sha256:" + "f" * 64
+    assert context["source_event_id"] == "github-actions-run:34910748578"
     assert context["workflow_run_id"] == "34910748578"
     assert context["workflow_run_attempt"] == "2"
     assert context["source_observed_at"] == receipt["observed_at"]
