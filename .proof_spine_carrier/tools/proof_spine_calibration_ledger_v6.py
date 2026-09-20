@@ -1062,6 +1062,33 @@ def calibrate(
         event["lead_time_seconds"] = consequence["verified_lead_time_seconds"]
         events.append(event)
 
+    # Footnote: case presence is not enough for an unbiased denominator. If the
+    # source enumerator says an event belongs to the population but that event cannot
+    # itself be scored (missing receipt bytes, non-independent adjudication, wrong
+    # preregistered proofspec/producer, stale pre-plan evidence, etc.), the remaining
+    # favorable events may stay visible diagnostically but cannot manufacture a
+    # headline accuracy rate for the frame.
+    for key, details in audit.items():
+        expected = set(frames_by_key[key]["decision_receipt_digests"])
+        unscorable_expected: list[dict[str, Any]] = []
+        for case, event in zip(cases, events):
+            if _case_key(case) != key or not _inside(frames_by_key[key], case):
+                continue
+            digest = _receipt_digest(case)
+            if digest not in expected or event["classification"] != "UNSCORABLE":
+                continue
+            unscorable_expected.append(
+                {
+                    "decision_receipt_digest": digest,
+                    "case_id": event["case_id"],
+                    "scoreability_reasons": list(event["scoreability_reasons"]),
+                }
+            )
+        details["unscorable_expected_events"] = unscorable_expected
+        details["scoreability_complete"] = (
+            details["denominator_complete"] and not unscorable_expected
+        )
+
     seen_decision_events: set[tuple[str, str, str, str, str]] = set()
     for case in cases:
         if case["gate"]["provenance"]["state"] != "EXECUTED":
@@ -1145,6 +1172,9 @@ def calibrate(
     incomplete_enumeration_frames = sorted(
         key for key, details in audit.items() if not details["denominator_complete"]
     )
+    incomplete_scoreability_frames = sorted(
+        key for key, details in audit.items() if not details["scoreability_complete"]
+    )
     plan_coverage_horizons: dict[str, dict[str, Any]] = {}
     inconsistent_horizon_plans: list[str] = []
     for plan_id, plan in sorted(plans_by_id.items()):
@@ -1191,6 +1221,8 @@ def calibrate(
         aggregate_withheld_reason = "MISSING_REGISTERED_COVERAGE_FRAME"
     elif incomplete_enumeration_frames:
         aggregate_withheld_reason = "INCOMPLETE_SOURCE_ENUMERATED_DENOMINATOR"
+    elif incomplete_scoreability_frames:
+        aggregate_withheld_reason = "INCOMPLETE_SCOREABLE_SOURCE_DENOMINATOR"
     elif inconsistent_horizon_plans:
         aggregate_withheld_reason = "INCONSISTENT_PLAN_COVERAGE_HORIZONS"
     elif mixed_contract_gates:
@@ -1271,6 +1303,8 @@ def calibrate(
 
     if missing_registered_coverage:
         registered_gate_coverage_state = "MISSING_REGISTERED_COVERAGE_FRAMES"
+    elif incomplete_scoreability_frames:
+        registered_gate_coverage_state = "INCOMPLETE_SCOREABLE_SOURCE_DENOMINATOR"
     elif not scoreable_events:
         registered_gate_coverage_state = "NO_SCORED_DECISION_EVENTS"
     elif represented_strata < len(registered_strata):
@@ -1312,6 +1346,9 @@ def calibrate(
         "complete_coverage_frame_count": sum(
             item["denominator_complete"] for item in audit.values()
         ),
+        "complete_scoreable_coverage_frame_count": sum(
+            item["scoreability_complete"] for item in audit.values()
+        ),
         "case_count": len(events),
         "scored_decision_event_count": len(scoreable_events),
         "scored_episode_count": len(episodes),
@@ -1321,6 +1358,19 @@ def calibrate(
         "registered_coverage_frame_count": len(set(frames_by_key) & registered_gate_keys),
         "plan_coverage_horizons": plan_coverage_horizons,
         "inconsistent_coverage_horizon_plans": inconsistent_horizon_plans,
+        "incomplete_scoreable_coverage_frames": [
+            {
+                "plan_id": key[0],
+                "project_id": key[1],
+                "repository": key[2],
+                "gate_id": key[3],
+                "coverage_id": audit[key]["coverage_id"],
+                "unscorable_expected_events": audit[key][
+                    "unscorable_expected_events"
+                ],
+            }
+            for key in incomplete_scoreability_frames
+        ],
         "mixed_proofspec_registered_gates": [
             {
                 "plan_id": key[0],
@@ -1378,8 +1428,10 @@ def calibrate(
             "uniform performance or compensate for an unrepresented registered gate. Every "
             "registered gate must also have an explicit source-enumerated coverage frame, "
             "including an empty frame when the source genuinely observed zero events. "
-            "Headline aggregate rates are withheld whenever a registered frame is missing "
-            "or any supplied frame has an incomplete enumerated denominator, gates "
+            "Headline aggregate rates are withheld whenever a registered frame is missing, "
+            "any supplied frame has an incomplete enumerated denominator, or any "
+            "source-enumerated expected event is itself unscorable; a favorable scored "
+            "subset may remain visible only in diagnostics. Gates "
             "within one calibration plan use different right-edge observation horizons, "
             "or one registered gate mixes multiple proofspec revisions; "
             "the raw observed micro aggregate remains visible only as a diagnostic. Headline "

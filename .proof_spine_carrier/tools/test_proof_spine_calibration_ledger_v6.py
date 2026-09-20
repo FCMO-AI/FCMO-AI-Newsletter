@@ -47,6 +47,8 @@ D2 = "sha256:" + "2" * 64
 
 def coverage_contract(
     gate_id: str = "candidate_may_enter_deploy",
+    *,
+    proofspec_digest: str = "sha256:" + "a" * 64,
 ) -> dict:
     return {
         "gate": {
@@ -70,7 +72,7 @@ def coverage_contract(
             ],
             "producer_id": "proof-spine-v6-test-field-producer",
             "producer_contract_digest": "sha256:" + "f" * 64,
-            "proofspec_digest": "sha256:" + "a" * 64,
+            "proofspec_digest": proofspec_digest,
         },
         "enumeration": {
             "origin": "SOURCE_NATIVE_PLATFORM",
@@ -82,7 +84,7 @@ def coverage_contract(
     }
 
 
-def plan() -> dict:
+def plan(*, proofspec_digest: str = "sha256:" + "a" * 64) -> dict:
     return {
         "schema_version": 1,
         "kind": m.v5.PLAN_KIND,
@@ -98,7 +100,7 @@ def plan() -> dict:
                 "gate_id": "candidate_may_enter_deploy",
             }
         ],
-        "coverage_contracts": [coverage_contract()],
+        "coverage_contracts": [coverage_contract(proofspec_digest=proofspec_digest)],
         "notes": ["Enroll every qualifying future gate execution."],
     }
 
@@ -424,7 +426,6 @@ class CalibrationV6Tests(unittest.TestCase):
         return p, root, registration(p, sha, committed_at)
 
     def test_universal_emitter_and_calibration_consumer_are_wire_compatible(self):
-        p, root, reg = self.setup_bundle()
         project_receipt = {
             "schema_version": 1,
             "kind": federation.PROJECT_RECEIPT_KIND,
@@ -467,6 +468,8 @@ class CalibrationV6Tests(unittest.TestCase):
                 }
             ],
         }
+        p = plan(proofspec_digest=federation.canonical_sha256(proofspec))
+        p, root, reg = self.setup_bundle(p)
         evaluated = federation.evaluate_project(
             proofspec,
             project_receipt,
@@ -654,18 +657,28 @@ class CalibrationV6Tests(unittest.TestCase):
             [first_case, second_case],
             git_root=root,
         )
-        # Footnote: both contract revisions happen to be true-allows in this fixture.
-        # The diagnostic mixture can say so, but a new proof contract must earn its
-        # own calibration rather than inherit the old revision's headline reputation.
+        # Footnote: the preregistered proofspec is now part of event qualification.
+        # The second true-allow remains visible as an enumerated producer event, but it
+        # is inadmissible for accuracy. Critically, the valid first event cannot then
+        # publish a flattering 1.0 headline over the surviving subset.
         self.assertEqual(report["observed_micro_aggregate"]["specificity"]["rate"], 1.0)
         self.assertIsNone(report["specificity"]["rate"])
         self.assertEqual(
             report["specificity"]["withheld_reason"],
-            "MIXED_PROOFSPEC_REVISIONS_WITHIN_REGISTERED_GATE",
+            "INCOMPLETE_SCOREABLE_SOURCE_DENOMINATOR",
         )
         self.assertEqual(
             report["gate_strata"][0]["proofspec_revision_count"],
-            2,
+            1,
+        )
+        bad = next(event for event in report["events"] if event["case_id"] == "contract-v2")
+        self.assertIn(
+            "DECISION_RECEIPT_OUTSIDE_PREREGISTERED_QUALIFICATION",
+            bad["scoreability_reasons"],
+        )
+        self.assertEqual(
+            report["complete_scoreable_coverage_frame_count"],
+            0,
         )
 
     def test_unequal_right_edge_horizons_withhold_cross_gate_headline_rate(self):
