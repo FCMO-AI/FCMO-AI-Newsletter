@@ -276,6 +276,16 @@ def build_project_receipt(receipt: dict[str, Any]) -> dict[str, Any]:
     # candidate SHA when the producer proved that exact applicability; legacy receipts
     # retain their historical branch-head identity.
     source_head_sha = candidate.get("candidate_source_sha") or source.get("head_sha")
+    producer_scope = {
+        key: source[key]
+        for key in (
+            "producer_id",
+            "producer_contract_digest",
+            "workflow_run_id",
+            "workflow_run_attempt",
+        )
+        if isinstance(source.get(key), str) and source.get(key)
+    }
     return {
         "schema_version": 1,
         "kind": "FCMO_PROOF_SPINE_PROJECT_RECEIPT",
@@ -291,6 +301,11 @@ def build_project_receipt(receipt: dict[str, Any]) -> dict[str, Any]:
             # existing consumers do not regress while exact decision receipts gain a
             # generic identity overlap with project-local adjudication subjects.
             "source_sha": source_head_sha,
+            # Footnote: prospective calibration may preregister the exact field
+            # producer implementation. Carry producer identity through only when the
+            # Newsletter receipt supplied it; historical receipts remain byte-shape
+            # compatible at the project boundary without inventing missing provenance.
+            **producer_scope,
         },
         "evidence": envelope["evidence"],
         "local_decisions": [

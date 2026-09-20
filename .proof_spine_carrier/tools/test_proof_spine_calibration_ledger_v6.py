@@ -65,8 +65,12 @@ def coverage_contract(
                 "source_sha",
                 "gate_scope",
                 "source_observed_at",
+                "producer_id",
+                "producer_contract_digest",
             ],
             "producer_id": "proof-spine-v6-test-field-producer",
+            "producer_contract_digest": "sha256:" + "f" * 64,
+            "proofspec_digest": "sha256:" + "a" * 64,
         },
         "enumeration": {
             "origin": "SOURCE_NATIVE_PLATFORM",
@@ -148,6 +152,8 @@ def decision_receipt(*, decision: str = "OPEN") -> dict:
             "source_sha": "abc123",
             "gate_scope": "candidate_native_editions",
             "source_observed_at": GATE_TIME,
+            "producer_id": "proof-spine-v6-test-field-producer",
+            "producer_contract_digest": "sha256:" + "f" * 64,
         },
         "proofspec_digest": "sha256:" + "a" * 64,
         "source_evidence_digest": "sha256:" + "d" * 64,
@@ -251,6 +257,7 @@ def coverage(
         "origin": "SOURCE_NATIVE_PLATFORM",
         "mechanism_id": "source-native-workflow-run-enumerator",
         "producer_id": "proof-spine-v6-test-field-producer",
+        "producer_contract_digest": "sha256:" + "f" * 64,
         "observed_at": "2026-09-18T06:11:00Z",
         "evidence_refs": ["source-run-index:snapshot-001"],
         "measurement_roots": ["platform:workflow-run-index"],
@@ -273,6 +280,7 @@ def coverage(
             "origin": "SOURCE_NATIVE_PLATFORM",
             "mechanism_id": "source-native-workflow-run-enumerator",
             "producer_id": "proof-spine-v6-test-field-producer",
+            "producer_contract_digest": "sha256:" + "f" * 64,
             "observed_at": "2026-09-18T06:11:00Z",
             "evidence_refs": ["source-run-index:snapshot-001"],
             "measurement_roots": ["platform:workflow-run-index"],
@@ -426,6 +434,8 @@ class CalibrationV6Tests(unittest.TestCase):
             "scope": {
                 "source_sha": "abc123",
                 "gate_scope": "candidate_native_editions",
+                "producer_id": "proof-spine-v6-test-field-producer",
+                "producer_contract_digest": "sha256:" + "f" * 64,
             },
             "evidence": [
                 {
@@ -823,6 +833,37 @@ class CalibrationV6Tests(unittest.TestCase):
         # when the source mechanism was not the one Git-preregistered in the plan.
         with self.assertRaises(m.v5.v4.CalibrationError):
             m.index_coverage([frame], {PLAN_ID: p}, {PLAN_ID: reg})
+
+    def test_decision_receipt_cannot_switch_proofspec_after_registration(self):
+        p, root, reg = self.setup_bundle()
+        receipt_bytes = decision_receipt()
+        receipt_bytes["proofspec_digest"] = "sha256:" + "9" * 64
+        digest = m.v5.canonical_digest(receipt_bytes)
+        c = case(digest=digest)
+        c["gate"]["provenance"]["proofspec_digest"] = receipt_bytes["proofspec_digest"]
+        report = m.calibrate(
+            [p], [reg], [coverage([digest])], [receipt_bytes], [c], git_root=root
+        )
+        self.assertEqual(report["events"][0]["classification"], "UNSCORABLE")
+        self.assertIn(
+            "DECISION_RECEIPT_OUTSIDE_PREREGISTERED_QUALIFICATION",
+            report["events"][0]["scoreability_reasons"],
+        )
+
+    def test_decision_receipt_cannot_switch_producer_contract_after_registration(self):
+        p, root, reg = self.setup_bundle()
+        receipt_bytes = decision_receipt()
+        receipt_bytes["context"]["producer_contract_digest"] = "sha256:" + "8" * 64
+        digest = m.v5.canonical_digest(receipt_bytes)
+        c = case(digest=digest)
+        report = m.calibrate(
+            [p], [reg], [coverage([digest])], [receipt_bytes], [c], git_root=root
+        )
+        self.assertEqual(report["events"][0]["classification"], "UNSCORABLE")
+        self.assertIn(
+            "DECISION_RECEIPT_OUTSIDE_PREREGISTERED_QUALIFICATION",
+            report["events"][0]["scoreability_reasons"],
+        )
 
     def test_coverage_frame_cannot_switch_producer_after_registration(self):
         p, _, reg = self.setup_bundle()

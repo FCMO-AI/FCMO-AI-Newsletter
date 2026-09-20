@@ -175,6 +175,22 @@ def index_coverage_contracts(
                 qualification.get("producer_id"),
                 "coverage contract event_qualification.producer_id",
             )
+            producer_contract_digest = _text(
+                qualification.get("producer_contract_digest"),
+                "coverage contract event_qualification.producer_contract_digest",
+            )
+            if not DIGEST_RE.fullmatch(producer_contract_digest):
+                raise v5.v4.CalibrationError(
+                    "coverage contract producer_contract_digest must be canonical sha256"
+                )
+            proofspec_digest = _text(
+                qualification.get("proofspec_digest"),
+                "coverage contract event_qualification.proofspec_digest",
+            )
+            if not DIGEST_RE.fullmatch(proofspec_digest):
+                raise v5.v4.CalibrationError(
+                    "coverage contract proofspec_digest must be canonical sha256"
+                )
 
             enumeration = contract.get("enumeration")
             if not isinstance(enumeration, dict):
@@ -478,6 +494,10 @@ def _decision_receipt_reasons(
         outside_qualification = (
             receipt.get("kind") != qualification["decision_receipt_kind"]
             or receipt.get("mode") != qualification["decision_receipt_mode"]
+            or receipt.get("proofspec_digest") != qualification["proofspec_digest"]
+            or context.get("producer_id") != qualification["producer_id"]
+            or context.get("producer_contract_digest")
+            != qualification["producer_contract_digest"]
             or any(
                 key not in context
                 for key in qualification["required_context_keys"]
@@ -690,6 +710,14 @@ def validate_coverage(
         raise v5.v4.CalibrationError(
             "coverage enumeration producer disagrees with preregistered qualification"
         )
+    producer_contract_digest = _text(
+        enumeration.get("producer_contract_digest"),
+        "coverage.enumeration.producer_contract_digest",
+    )
+    if producer_contract_digest != qualification.get("producer_contract_digest"):
+        raise v5.v4.CalibrationError(
+            "coverage enumeration producer contract disagrees with preregistered qualification"
+        )
     prefixes = contract_enumeration["evidence_ref_prefixes"]
     if any(not any(ref.startswith(prefix) for prefix in prefixes) for ref in evidence_refs):
         raise v5.v4.CalibrationError(
@@ -762,6 +790,10 @@ def validate_coverage(
     if snapshot.get("producer_id") != enumeration.get("producer_id"):
         raise v5.v4.CalibrationError(
             "coverage source snapshot producer disagrees with enumeration"
+        )
+    if snapshot.get("producer_contract_digest") != enumeration.get("producer_contract_digest"):
+        raise v5.v4.CalibrationError(
+            "coverage source snapshot producer contract disagrees with enumeration"
         )
     if snapshot.get("evidence_refs") != enumeration.get("evidence_refs"):
         raise v5.v4.CalibrationError(
