@@ -491,6 +491,10 @@ class CalibrationV6Tests(unittest.TestCase):
         emitted_digest = evaluated["decision_receipt_digest"]
 
         c = case(digest=emitted_digest)
+        # Footnote: this test deliberately swaps the fixture's default proofspec for
+        # one emitted by the real universal evaluator, so the case must enroll against
+        # the exact corresponding preregistered plan bytes rather than the default plan.
+        c["enrollment"]["plan_digest"] = m.v5.canonical_digest(p)
         c["gate"]["provenance"]["proofspec_digest"] = evaluated["proofspec_digest"]
         c["gate"]["provenance"]["effective_evidence_digest"] = (
             "sha256:" + evaluated["effective_evidence_digest"]
