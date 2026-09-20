@@ -1,0 +1,39 @@
+name: Proof Spine live field v0.3i
+
+on:
+  push:
+    branches:
+      - agent/proof-spine-live-field-v0.3i
+    paths:
+      - '.proof_spine_field/TRIGGER'
+
+permissions:
+  contents: read
+
+jobs:
+  field-event:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # Footnote: this is an observational producer, not a publication workflow.
+      # Every push to the dedicated trigger is a source event whether this step
+      # succeeds or fails; later coverage enumeration must retain failed runs too.
+      - name: Emit exact Newsletter live-health decision receipt
+        run: >-
+          python tools/proof_spine_live_field_producer.py
+          --output-dir /tmp/proof-spine-live-field
+
+      - name: Preserve field event evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: proof-spine-live-field-v0.3i-${{ github.run_id }}
+          path: /tmp/proof-spine-live-field
+          if-no-files-found: warn
+          retention-days: 90
