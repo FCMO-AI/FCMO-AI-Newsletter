@@ -4,6 +4,12 @@
 The private research/editorial agent owns EN/es-419/zh-Hans story wording before the
 airlock. Newsletter is a deterministic sink: it may validate, merge and publish those
 editions, but it never asks a model provider to translate or rewrite them.
+
+A delta record replaces the whole overlay for its id: translated fields written
+for an older English version must not survive next to a new English record. When
+that replacement drops prose fields the old overlay had (for example a full
+edition replaced by a headline-only delta) the pair becomes PENDING again and
+the sync reports it as ``narrowed`` so the backlog change is visible.
 """
 from __future__ import annotations
 
@@ -51,7 +57,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--i18n-dir", type=Path, default=Path("site/data/i18n"))
     args = parser.parse_args(argv)
 
-    changed = added = promoted = 0
+    changed = added = promoted = narrowed = 0
     for locale in LOCALES:
         incoming_path = args.corpus / "data" / "locales" / locale / "records.json"
         if not incoming_path.is_file():
@@ -90,6 +96,13 @@ def main(argv: list[str] | None = None) -> int:
         for rid, overlay in sorted(rows.items()):
             if not isinstance(rid, str) or not rid.startswith("FCMO-") or not isinstance(overlay, dict):
                 raise SystemExit(f"{incoming_path}: malformed record {rid!r}")
+            bad = [key for key, value in overlay.items() if not isinstance(key, str) or value is None]
+            if bad:
+                raise SystemExit(f"{incoming_path}: {rid} has null or non-string fields {bad[:5]}")
+            previous = existing.get(rid)
+            if isinstance(previous, dict) and set(previous) - set(overlay):
+                narrowed += 1
+                print(f"{locale}: {rid} narrowed; fields no longer translated: {sorted(set(previous) - set(overlay))}")
             owner = owners.get(rid)
             if owner is None:
                 added += 1
@@ -111,7 +124,10 @@ def main(argv: list[str] | None = None) -> int:
         if rows or airlock_rows:
             write_json(airlock_part, airlock_doc)
 
-    print(f"airlocked locale sync OK; updated={changed}; added={added}; promoted_from_history={promoted}")
+    print(
+        f"airlocked locale sync OK; updated={changed}; added={added}; "
+        f"promoted_from_history={promoted}; narrowed={narrowed}"
+    )
     return 0
 
 

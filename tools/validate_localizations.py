@@ -1,22 +1,43 @@
 #!/usr/bin/env python3
-"""Fail closed unless every public story has structurally sound ES and ZH editions.
+"""Decide, field by field, whether each (story, locale) pair is really translated.
 
-This is deliberately a deterministic integrity gate, not a machine-translation judge.
-ARB's publication agent owns editorial equivalence; Newsletter proves coverage and
-high-value invariants without any external model, API key or network request.
+The unit of localization is the pair (story, locale). A pair is complete only when
+every piece of reader-facing prose that exists in the canonical English record has
+a native counterpart: title, summary, why it matters, importance rationale,
+limitations, contradictory evidence, every claim, every evidence gap, every
+relationship summary and every technical field. A pair that only carries a
+headline is ``PENDING``; a pair that a deterministic gate rejects (English left in
+place, changed numbers/IDs/URLs, broken structure) is ``FAILED``. Pending and
+failed pairs are rendered as a localized notice that links to the English
+original, never as English prose under a Spanish or Chinese ``lang``.
 
-Historical locale packs are validated truthfully under a structural compatibility
-tier. Any story written or refreshed by the modern ARB airlock lives in
-``part-airlock.json`` and receives the stricter numeric/ID/URL preservation tier.
+Two modes:
+
+``--strict --corpus corpus [--locale es-419|zh-Hans|all]``
+    Field-level completeness against the canonical corpus. The first stdout line is
+    ``COMPLETE <n>`` (exit 0) or ``INCOMPLETE <n>`` (exit 1), where ``n`` is the
+    number of incomplete pairs (or of complete pairs when nothing is missing).
+    ``--write-overlays DIR`` also writes one ``contracts/locale-overlay.v2`` file
+    per locale. Exit 2 means the input could not be read.
+
+legacy (``--site release-src``)
+    The structural gate the release workflows call. It still fails closed when a
+    story id has no overlay at all, and it records the field-level state of every
+    pair in the receipt, so the receipt never calls a headline-only pair complete.
+
+This tool never translates and never calls a model: it measures.
 """
 from __future__ import annotations
 
 import argparse
 import hashlib
 import json
+import os
 import re
+import sys
+from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, Iterator
 
 try:
     from tools.reconcile_locale_overlays import canonical_records
@@ -25,18 +46,46 @@ except ImportError:  # direct script execution from tools/
 
 LOCALES = ("es-419", "zh-Hans")
 AIRLOCK_PART = "part-airlock.json"
+DELTA_SCHEMA = "fcmo-airlocked-locale-delta-v1"
+OVERLAY_SCHEMA = "fcmo-locale-overlay-v2"
 # Footnote: punctuation adjacent to a number is editorial, not part of its value.
 # This keeps grouped/decimal values intact (1,050,000; 99.9%; 3.66x) while allowing
 # Spanish and Chinese to move commas or sentence punctuation naturally.
 NUM = re.compile(r"(?<![A-Za-z])[-+]?\d+(?:[.,]\d+)*(?:%|x|×|[KMBT])?", re.I)
 FCMO_ID = re.compile(r"\bFCMO-[0-9A-F]{12}\b")
+ID_RE = re.compile(r"^FCMO-[0-9A-F]{12}$")
 URL = re.compile(r"https?://[^\s\]\[)<>'\"]+")
-CJK = re.compile(r"[\u3400-\u4dbf\u4e00-\u9fff]")
+CJK = re.compile(r"[㐀-䶿一-鿿]")
 PROSE_KEYS = {
     "title", "summary", "why_it_matters", "why", "importance_rationale",
     "limitations", "contradictory_evidence", "claims", "evidence_gaps",
     "relationships", "technical",
 }
+# Prose keys of locale-overlay.v2, in reading order. ``why`` is a legacy alias of
+# ``why_it_matters`` and is folded into it before any comparison.
+V2_PROSE_KEYS = (
+    "title", "headline", "dek", "summary", "why_it_matters", "importance_rationale",
+    "limitations", "contradictory_evidence", "claims", "evidence_gaps",
+    "relationships", "technical",
+)
+# Leaves under these keys are codes, ids or timestamps, not prose. They are shown
+# through the UI catalogs (claim labels, gap kinds) or not at all.
+NON_PROSE_LEAF_KEYS = frozenset({
+    "label", "qualifier", "kind", "state", "updated_at", "target_id", "type", "id",
+    "url", "source_url",
+})
+COMPLETE_STATES = ("NATIVE_ARB", "MACHINE_REVIEWED")
+INCOMPLETE_STATES = ("PENDING", "FAILED")
+
+# English function words that do not exist as Spanish words. A Spanish field in
+# which they make up a real share of the words is English left in place.
+EN_STOPWORDS = frozenset(
+    "the and of to is that with for this are was which from by on not it be have its "
+    "than an or as at were but their these those into".split()
+)
+LATIN_WORD = re.compile(r"[A-Za-z][A-Za-z'’-]*")
+ANY_WORD = re.compile(r"[^\W\d_]+", re.UNICODE)
+LATIN_RUN = re.compile(r"(?:[A-Za-z][A-Za-z'’-]*[\s,;:()\"“”]+){5,}[A-Za-z][A-Za-z'’-]*")
 
 
 def stable_digest(value: Any) -> str:
@@ -128,33 +177,425 @@ def check_common(source: dict[str, Any], overlay: dict[str, Any], locale: str, r
     return matched_source, merged_text
 
 
-def check_strict(source: dict[str, Any], overlay: dict[str, Any], locale: str, rid: str, errors: list[str]) -> None:
-    matched_source, merged_text = check_common(source, overlay, locale, rid, errors)
+def token_errors(source: Any, overlay: Any) -> list[str]:
+    """Numbers, FCMO ids and URLs must survive translation unchanged."""
+    matched_source = source_for_overlay(source, overlay)
     source_text = "\n".join(strings(matched_source))
+    merged_text = "\n".join(strings(overlay))
+    found: list[str] = []
     for regex, label in ((NUM, "number"), (FCMO_ID, "FCMO id"), (URL, "URL")):
         src = sorted(regex.findall(source_text))
         dst = sorted(regex.findall(merged_text))
-        # Footnote: strict invariants apply only to modern ARB-authored material
-        # that crossed the native-edition airlock. This keeps benchmark/version
-        # drift fail-closed without retroactively rewriting the validation history
-        # of the 2026 bootstrap translations.
         if src != dst:
-            errors.append(f"{locale}:{rid}: {label} tokens changed: source={src} locale={dst}")
+            found.append(f"{label} tokens changed: source={src} locale={dst}")
+    return found
 
 
-def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--site", type=Path, default=Path("release-src"))
-    parser.add_argument("--i18n-dir", type=Path, default=Path("site/data/i18n"))
-    parser.add_argument("--receipt", type=Path, default=Path("site/data/i18n/integrity-manifest.json"))
-    args = parser.parse_args(argv)
+def check_strict(source: dict[str, Any], overlay: dict[str, Any], locale: str, rid: str, errors: list[str]) -> None:
+    check_common(source, overlay, locale, rid, errors)
+    # Footnote: strict invariants apply only to modern ARB-authored material
+    # that crossed the native-edition airlock. This keeps benchmark/version
+    # drift fail-closed without retroactively rewriting the validation history
+    # of the 2026 bootstrap translations.
+    for message in token_errors(source, overlay):
+        errors.append(f"{locale}:{rid}: {message}")
 
+
+# ---------------------------------------------------------------------------
+# Field-level completeness (locale-overlay.v2 semantics)
+# ---------------------------------------------------------------------------
+
+def normalize_record(row: dict[str, Any]) -> dict[str, Any]:
+    """Fold the legacy ``why`` alias into ``why_it_matters``."""
+    if not isinstance(row, dict):
+        return row
+    if "why" in row:
+        row = dict(row)
+        why = row.pop("why")
+        if "why_it_matters" not in row:
+            row["why_it_matters"] = why
+    return row
+
+
+def prose_leaves(value: Any, path: tuple = ()) -> Iterator[tuple[tuple, str]]:
+    """Yield ``(path, text)`` for every non-empty prose string under ``value``."""
+    if isinstance(value, str):
+        if value.strip():
+            yield path, value
+    elif isinstance(value, dict):
+        for key in sorted(value):
+            if key in NON_PROSE_LEAF_KEYS:
+                continue
+            yield from prose_leaves(value[key], path + (key,))
+    elif isinstance(value, list):
+        for index, item in enumerate(value):
+            yield from prose_leaves(item, path + (index,))
+
+
+def required_keys(source: dict[str, Any]) -> list[str]:
+    """Prose keys of the English record that have something to translate."""
+    source = normalize_record(source)
+    return [key for key in V2_PROSE_KEYS if any(True for _ in prose_leaves(source.get(key)))]
+
+
+def path_text(path: tuple) -> str:
+    out = ""
+    for part in path:
+        out += f"[{part}]" if isinstance(part, int) else (f".{part}" if out else str(part))
+    return out
+
+
+def looks_english(text: str, locale: str) -> bool:
+    """True when a Spanish or Chinese field is really English prose."""
+    if locale == "zh-Hans":
+        for run in LATIN_RUN.finditer(text):
+            words = [w.lower() for w in LATIN_WORD.findall(run.group(0))]
+            if len(words) >= 6 and sum(1 for w in words if w in EN_STOPWORDS) >= 2:
+                return True
+        return False
+    words = [w.lower() for w in ANY_WORD.findall(text)]
+    stop = sum(1 for w in words if w in EN_STOPWORDS)
+    return stop >= 3 and stop / max(1, len(words)) >= 0.12
+
+
+def pair_status(source: dict[str, Any], overlay: Any, locale: str, strict: bool = False) -> dict[str, Any]:
+    """Classify one (story, locale) pair.
+
+    Returns ``{"state", "missing", "missing_paths", "failure", "complete_keys"}``.
+    ``missing`` lists top-level prose keys with at least one untranslated leaf;
+    ``complete_keys`` lists the keys whose every leaf is translated.
+    """
+    source = normalize_record(source)
+    needed = required_keys(source)
+    if not isinstance(overlay, dict) or not any(True for _ in prose_leaves(overlay)):
+        return {
+            "state": "PENDING", "missing": needed, "missing_paths": [k for k in needed],
+            "failure": None, "complete_keys": [],
+        }
+    overlay = normalize_record(overlay)
+
+    def failed(gate: str, detail: str) -> dict[str, Any]:
+        return {
+            "state": "FAILED", "missing": needed, "missing_paths": list(needed),
+            "failure": {"gate": gate, "detail": detail[:200]}, "complete_keys": [],
+        }
+
+    shape: list[str] = []
+    assert_shape(source, overlay, "overlay", shape)
+    if shape:
+        detail = shape[0].split(": ", 1)[-1]
+        where = shape[0].split(":", 1)[0].replace("overlay.", "", 1)
+        return failed("SHAPE_MISMATCH", f"{where}: {detail}")
+
+    source_leaves = dict(prose_leaves(source))
+    overlay_leaves = dict(prose_leaves(overlay))
+    for path, text in overlay_leaves.items():
+        original = source_leaves.get(path)
+        if original is not None and " ".join(original.split()) == " ".join(text.split()) \
+                and len(LATIN_WORD.findall(text)) >= 3:
+            return failed("ENGLISH_LEAK", f"{path_text(path)} is identical to the English original")
+        if looks_english(text, locale):
+            return failed("ENGLISH_LEAK", f"{path_text(path)} is English prose")
+    if locale == "zh-Hans":
+        merged = "\n".join(overlay_leaves.values())
+        if len(merged) >= 120 and len(CJK.findall(merged)) < 20:
+            return failed("SCRIPT_MISMATCH", "long Chinese edition has almost no Han characters")
+    if strict:
+        problems = token_errors(
+            {k: source.get(k) for k in V2_PROSE_KEYS if k in source},
+            {k: overlay.get(k) for k in V2_PROSE_KEYS if k in overlay},
+        )
+        if problems:
+            return failed("TOKENS_CHANGED", problems[0])
+
+    missing_paths = [path_text(p) for p in source_leaves if p not in overlay_leaves]
+    missing = [key for key in needed if any(p[0] == key and p not in overlay_leaves for p in source_leaves)]
+    complete = [key for key in needed if key not in missing and key in overlay]
+    return {
+        "state": "PENDING" if missing else "NATIVE_ARB",
+        "missing": missing,
+        "missing_paths": missing_paths,
+        "failure": None,
+        "complete_keys": complete,
+    }
+
+
+def is_complete(status: dict[str, Any]) -> bool:
+    return status.get("state") in COMPLETE_STATES
+
+
+def read_jsonl(path: Path) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    for number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+        if not line.strip():
+            continue
+        value = json.loads(line)
+        if not isinstance(value, dict):
+            raise ValueError(f"{path.name}:{number}: record must be an object")
+        rows.append(value)
+    return rows
+
+
+def load_corpus_canonical(corpus: Path) -> dict[str, dict[str, Any]]:
+    """Live English records of a corpus directory.
+
+    Live = the upstream records plus carried-forward ones, minus records the
+    upstream withdrew or superseded and minus active tombstones.
+    """
+    developments = corpus / "data" / "developments.jsonl"
+    if not developments.is_file():
+        raise ValueError("corpus has no data/developments.jsonl")
+    records: dict[str, dict[str, Any]] = {}
+    for row in read_jsonl(developments):
+        rid = row.get("id")
+        if not isinstance(rid, str) or not ID_RE.match(rid):
+            raise ValueError("corpus record without a valid public id")
+        if rid in records:
+            raise ValueError(f"duplicate corpus id {rid}")
+        records[rid] = row
+    carried = corpus / "carried.jsonl"
+    if carried.is_file():
+        for line in read_jsonl(carried):
+            record = line.get("record")
+            rid = line.get("id")
+            if isinstance(record, dict) and isinstance(rid, str) and rid not in records:
+                records[rid] = record
+    withdrawn = {
+        rid for rid, row in records.items()
+        if str(row.get("status") or "").lower() in {"withdrawn", "superseded"}
+    }
+    tombstones = corpus / "tombstones.json"
+    if tombstones.is_file():
+        doc = json.loads(tombstones.read_text(encoding="utf-8"))
+        for entry in doc.get("tombstones") or []:
+            if isinstance(entry, dict) and entry.get("reinstated_at") is None:
+                withdrawn.add(str(entry.get("id")))
+    return {rid: row for rid, row in records.items() if rid not in withdrawn}
+
+
+def load_delta(corpus: Path, locale: str) -> dict[str, dict[str, Any]]:
+    path = corpus / "data" / "locales" / locale / "records.json"
+    if not path.is_file():
+        return {}
+    doc = json.loads(path.read_text(encoding="utf-8"))
+    if doc.get("schema") != DELTA_SCHEMA or doc.get("locale") != locale:
+        raise ValueError(f"{locale}: locale delta does not follow {DELTA_SCHEMA}")
+    rows = doc.get("records")
+    if not isinstance(rows, dict):
+        raise ValueError(f"{locale}: locale delta has no records object")
+    return {rid: row for rid, row in rows.items() if isinstance(row, dict)}
+
+
+def effective_overlays(locale: str, i18n_dir: Path | None, corpus: Path | None) -> tuple[dict[str, dict[str, Any]], set[str]]:
+    """Committed locale packs with the upstream (ARB) delta laid on top.
+
+    Upstream fields win field by field; a delta never erases a field it does
+    not carry. Ids that crossed the modern airlock get the strict token gate.
+    """
+    rows: dict[str, dict[str, Any]] = {}
+    strict: set[str] = set()
+    if i18n_dir is not None and (i18n_dir / locale).is_dir():
+        packs, strict_ids = load_locale(i18n_dir, locale)
+        rows = {rid: dict(value) for rid, value in packs.items() if isinstance(value, dict)}
+        strict |= strict_ids
+    if corpus is not None:
+        for rid, delta in load_delta(corpus, locale).items():
+            merged = dict(rows.get(rid) or {})
+            merged.update(delta)
+            rows[rid] = merged
+            strict.add(rid)
+    return rows, strict
+
+
+def locale_states(
+    canonical: dict[str, dict[str, Any]],
+    rows: dict[str, dict[str, Any]],
+    strict_ids: set[str],
+    locale: str,
+) -> dict[str, dict[str, Any]]:
+    return {
+        rid: pair_status(canonical[rid], rows.get(rid), locale, strict=rid in strict_ids)
+        for rid in sorted(canonical)
+    }
+
+
+def summarize(states: dict[str, dict[str, Any]]) -> dict[str, Any]:
+    complete = sorted(rid for rid, s in states.items() if is_complete(s))
+    pending = sorted(rid for rid, s in states.items() if s["state"] == "PENDING")
+    failed = sorted(rid for rid, s in states.items() if s["state"] == "FAILED")
+    return {
+        "stories": len(states), "complete": len(complete), "pending": len(pending),
+        "failed": len(failed), "pending_ids": pending, "failed_ids": failed,
+    }
+
+
+def utc_text(value: datetime) -> str:
+    return value.astimezone(timezone.utc).replace(microsecond=0).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def resolve_now(value: str | None) -> datetime:
+    raw = value or os.environ.get("FCMO_NOW")
+    if raw:
+        parsed = datetime.fromisoformat(raw.strip().replace("Z", "+00:00"))
+        if parsed.tzinfo is None:
+            parsed = parsed.replace(tzinfo=timezone.utc)
+        return parsed.astimezone(timezone.utc)
+    return datetime.now(timezone.utc)
+
+
+def airlock_time(corpus: Path | None) -> str | None:
+    if corpus is None or not (corpus / "airlock.json").is_file():
+        return None
+    try:
+        raw = json.loads((corpus / "airlock.json").read_text(encoding="utf-8")).get("generated_at")
+        return utc_text(resolve_now(str(raw))) if raw else None
+    except (ValueError, TypeError):
+        return None
+
+
+def overlay_entry(source: dict[str, Any], overlay: Any, status: dict[str, Any], at: str) -> dict[str, Any]:
+    """One ``locale-overlay.v2`` entry. Rejected content is never carried over."""
+    source = normalize_record(source)
+    overlay = normalize_record(overlay) if isinstance(overlay, dict) else {}
+    fields: dict[str, Any] = {}
+    if status["state"] != "FAILED":
+        # Only keys whose every leaf is translated; a half-translated list stays out.
+        for key in V2_PROSE_KEYS:
+            if key in status["complete_keys"]:
+                fields[key] = overlay[key]
+    provenance = {key: {"origin": "arb", "at": at, "human_reviewed": False} for key in fields}
+    return {
+        "state": status["state"],
+        "source_sha256": stable_digest(translated_projection(source)),
+        "fields": fields,
+        "missing": list(status["missing"]),
+        "provenance": provenance,
+        "failure": status["failure"],
+    }
+
+
+def overlay_document(
+    locale: str,
+    canonical: dict[str, dict[str, Any]],
+    rows: dict[str, dict[str, Any]],
+    states: dict[str, dict[str, Any]],
+    generated_at: str,
+    at: str,
+) -> dict[str, Any]:
+    return {
+        "schema": OVERLAY_SCHEMA,
+        "locale": locale,
+        "canonical_locale": "en",
+        "generated_at": generated_at,
+        "records": {
+            rid: overlay_entry(canonical[rid], rows.get(rid), states[rid], at)
+            for rid in sorted(canonical)
+        },
+    }
+
+
+# Record prose keys -> stories.v2 l10n paths.
+STORY_PATHS = {
+    "title": "title", "headline": "headline", "dek": "dek", "summary": "summary",
+    "why_it_matters": "why_it_matters", "importance_rationale": "importance_rationale",
+    "technical": "technical", "claims": "evidence.claims", "limitations": "evidence.limitations",
+    "evidence_gaps": "evidence.gaps", "contradictory_evidence": "evidence.contradictory",
+    "relationships": "related",
+}
+
+
+def to_story_l10n(entry: dict[str, Any]) -> dict[str, Any]:
+    """Map a ``locale-overlay.v2`` entry to the ``l10n`` object of ``stories.v2``."""
+    fields = entry.get("fields") or {}
+    out: dict[str, Any] = {}
+    evidence: dict[str, Any] = {}
+    for key in ("title", "headline", "dek", "summary", "why_it_matters", "importance_rationale"):
+        if isinstance(fields.get(key), str) and fields[key].strip():
+            out[key] = fields[key]
+    if isinstance(fields.get("technical"), dict):
+        out["technical"] = {k: v for k, v in fields["technical"].items() if isinstance(v, str)}
+    if isinstance(fields.get("claims"), list):
+        evidence["claims"] = [{"text": c["text"]} for c in fields["claims"] if isinstance(c, dict) and c.get("text")]
+    if isinstance(fields.get("limitations"), list):
+        evidence["limitations"] = [x for x in fields["limitations"] if isinstance(x, str) and x.strip()]
+    if isinstance(fields.get("evidence_gaps"), list):
+        evidence["gaps"] = [{"description": g["description"]} for g in fields["evidence_gaps"]
+                            if isinstance(g, dict) and g.get("description")]
+    if isinstance(fields.get("contradictory_evidence"), list):
+        evidence["contradictory"] = [x for x in fields["contradictory_evidence"] if isinstance(x, str) and x.strip()]
+    if evidence:
+        out["evidence"] = evidence
+    provenance = {
+        STORY_PATHS[key]: value.get("origin", "arb")
+        for key, value in (entry.get("provenance") or {}).items()
+        if key in STORY_PATHS and key in fields
+    }
+    return {
+        "state": entry["state"],
+        "fields": out,
+        "missing": [STORY_PATHS[key] for key in entry.get("missing") or [] if key in STORY_PATHS],
+        "provenance": provenance,
+    }
+
+
+def strict_main(args: argparse.Namespace) -> int:
+    locales = LOCALES if args.locale == "all" else (args.locale,)
+    try:
+        canonical = load_corpus_canonical(args.corpus)
+        now = resolve_now(args.now)
+        results: dict[str, dict[str, dict[str, Any]]] = {}
+        documents: dict[str, dict[str, Any]] = {}
+        at = airlock_time(args.corpus) or utc_text(now)
+        for locale in locales:
+            rows, strict_ids = effective_overlays(locale, args.i18n_dir, args.corpus)
+            stale = sorted(set(rows) - set(canonical))
+            states = locale_states(canonical, rows, strict_ids, locale)
+            results[locale] = states
+            documents[locale] = overlay_document(locale, canonical, rows, states, utc_text(now), at)
+            documents[locale]["_stale_ids"] = stale
+    except (ValueError, OSError, json.JSONDecodeError) as exc:
+        print(f"ERROR {type(exc).__name__}", file=sys.stderr)
+        print(str(exc)[:300], file=sys.stderr)
+        return 2
+
+    summaries = {locale: summarize(states) for locale, states in results.items()}
+    incomplete = sum(s["pending"] + s["failed"] for s in summaries.values())
+    complete = sum(s["complete"] for s in summaries.values())
+    print(f"INCOMPLETE {incomplete}" if incomplete else f"COMPLETE {complete}")
+    for locale, summary in summaries.items():
+        print(
+            f"locale={locale} stories={summary['stories']} complete={summary['complete']} "
+            f"pending={summary['pending']} failed={summary['failed']}"
+        )
+    for locale, states in results.items():
+        for rid, status in states.items():
+            if status["state"] == "PENDING":
+                print(f"PENDING {locale} {rid} missing={','.join(status['missing'])}")
+            elif status["state"] == "FAILED":
+                print(f"FAILED {locale} {rid} gate={status['failure']['gate']}")
+        stale = documents[locale].pop("_stale_ids")
+        for rid in stale:
+            print(f"STALE {locale} {rid} (overlay for an id that is not live; ignored)")
+
+    if args.write_overlays:
+        args.write_overlays.mkdir(parents=True, exist_ok=True)
+        for locale, doc in documents.items():
+            (args.write_overlays / f"{locale}.json").write_text(
+                json.dumps(doc, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+            )
+    if args.json:
+        print(json.dumps({"locales": summaries}, ensure_ascii=False, sort_keys=True))
+    return 1 if incomplete else 0
+
+
+def legacy_main(args: argparse.Namespace) -> int:
     canonical = canonical_records(args.site)
     expected = set(canonical)
     errors: list[str] = []
     receipt_records: dict[str, Any] = {}
     strict_pairs = 0
     historical_pairs = 0
+    field_incomplete: dict[str, list[str]] = {}
     for locale in LOCALES:
         rows, strict_ids = load_locale(args.i18n_dir, locale)
         missing = expected - set(rows)
@@ -163,6 +604,7 @@ def main(argv: list[str] | None = None) -> int:
             errors.append(f"{locale}: missing canonical ids {sorted(missing)}")
         if stale:
             errors.append(f"{locale}: stale/non-canonical ids {sorted(stale)}")
+        field_incomplete[locale] = []
         for rid in sorted(expected & set(rows)):
             overlay = rows[rid]
             if not isinstance(overlay, dict):
@@ -176,32 +618,58 @@ def main(argv: list[str] | None = None) -> int:
                 check_common(canonical[rid], overlay, locale, rid, errors)
                 tier = "historical_structural"
                 historical_pairs += 1
+            status = pair_status(canonical[rid], overlay, locale, strict=rid in strict_ids)
+            if not is_complete(status):
+                field_incomplete[locale].append(rid)
             receipt_records.setdefault(rid, {})[locale] = {
                 "canonical_digest": stable_digest(translated_projection(canonical[rid])),
                 "locale_digest": stable_digest(overlay),
                 "validation_tier": tier,
+                "state": status["state"],
+                "missing": status["missing"],
             }
 
     if errors:
         raise SystemExit("localization integrity FAILED:\n" + "\n".join(f"- {x}" for x in errors))
     args.receipt.parent.mkdir(parents=True, exist_ok=True)
+    incomplete_ids = sorted(set().union(*field_incomplete.values()))
     receipt = {
         "schema": "fcmo-locale-integrity-v2",
         "canonical_locale": "en",
         "required_locales": list(LOCALES),
-        "editorial_owner": "ARB publication agent for modern airlocked editions; historical packs preserved as published",
+        "editorial_owner": "FCMO Publication Desk for es-419 and zh-Hans; ARB locale deltas imported when present; historical packs preserved as published",
         "human_reviewed": False,
         "network_translation": False,
         "strict_airlock_pairs": strict_pairs,
         "historical_structural_pairs": historical_pairs,
+        "field_incomplete_by_locale": field_incomplete,
+        "field_complete_story_count": len(expected) - len(incomplete_ids),
         "records": receipt_records,
     }
     args.receipt.write_text(json.dumps(receipt, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    counts = " ".join(f"{loc}={len(expected) - len(ids)}/{len(expected)}" for loc, ids in field_incomplete.items())
     print(
         f"localization integrity OK; stories={len(expected)}; locales={','.join(LOCALES)}; "
-        f"strict={strict_pairs}; historical={historical_pairs}"
+        f"strict={strict_pairs}; historical={historical_pairs}; field_complete {counts}"
     )
     return 0
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument("--strict", action="store_true", help="field-level completeness against --corpus")
+    parser.add_argument("--corpus", type=Path, default=Path("corpus"))
+    parser.add_argument("--locale", choices=("all", *LOCALES), default="all")
+    parser.add_argument("--write-overlays", type=Path, default=None, metavar="DIR")
+    parser.add_argument("--json", action="store_true", help="also print a JSON summary line")
+    parser.add_argument("--now", default=None)
+    parser.add_argument("--site", type=Path, default=Path("release-src"))
+    parser.add_argument("--i18n-dir", type=Path, default=Path("site/data/i18n"))
+    parser.add_argument("--receipt", type=Path, default=Path("site/data/i18n/integrity-manifest.json"))
+    args = parser.parse_args(argv)
+    if args.strict:
+        return strict_main(args)
+    return legacy_main(args)
 
 
 if __name__ == "__main__":

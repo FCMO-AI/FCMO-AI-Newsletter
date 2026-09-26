@@ -45,7 +45,7 @@ class RefrescoDiario(unittest.TestCase):
     def test_todo_lo_publicado_tiene_ediciones_nativas(self) -> None:
         # Footnote: this oracle is deliberately provider-free. It checks that the
         # committed locale packs are complete and actually language-specific;
-        # prose generation belongs upstream to the ARB publication agent.
+        # prose is written by the FCMO Publication Desk (LOCALIZATION.md).
         self.afirma("verificar_traduccion.py")
 
     def test_refresco_entero_publica_la_historia_nueva(self) -> None:

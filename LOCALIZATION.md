@@ -10,11 +10,11 @@ Browser extensions, operating-system translation and third-party translation lay
 
 ## Editorial ownership
 
-The ARB research/publication agent that prepares a publishable development owns the complete three-language publication obligation. The same editorial task produces the English public wording plus its Spanish and Simplified Chinese editions **before the material crosses the airlock**.
+The **FCMO Publication Desk** owns the Spanish and Simplified Chinese editions. It is a scheduled editorial task that works in this repository and nowhere else. It translates from the airlocked English public record only, never from private evidence. It carries intent, caveats, evidence strength and terminology across languages. It commits only to the locale packs listed under "Source-control layout", and it appends one line per activation to `ops/publication-desk/LEDGER.jsonl`. ARB's research tasks never translate: ARB's website separation law keeps them out of presentation work. If ARB ever emits locale deltas (see "Airlock transport"), they are still imported.
 
-Newsletter does not call a translation model, translation API or language-review provider. GitHub Actions does not generate prose. The public repository is a deterministic sink: it imports the already-airlocked locale deltas, validates them, builds static routes and publishes them.
+Newsletter's build does not call a translation model, translation API or language-review provider. GitHub Actions does not generate prose. The public repository is a deterministic sink: it validates the committed editions, builds static routes and publishes them.
 
-This keeps the agent that actually understands the source evidence responsible for carrying intent, caveats, evidence strength and terminology across languages instead of asking a second model to reconstruct that context later.
+Before committing, the desk runs `python3 tools/validate_localizations.py --strict --corpus corpus` and commits only what passes. A pair that is `PENDING` or `FAILED` is shown to readers as an explicit pending page, never as silent English.
 
 ## What “native editorial edition” means
 
@@ -60,9 +60,9 @@ inside the sanitized public release. `tools/sync_airlocked_locales.py` merges th
 - rejection of an edition that is simply unchanged canonical English;
 - deterministic source and locale digests recorded in `site/data/i18n/integrity-manifest.json`.
 
-The receipt explicitly records `editorial_owner: "ARB publication agent"`, `human_reviewed: false` and `network_translation: false`.
+The receipt explicitly records `editorial_owner: "FCMO Publication Desk"`, `human_reviewed: false` and `network_translation: false`.
 
-A deterministic checker cannot prove literary quality. Editorial equivalence remains the publication agent's responsibility and is reviewable through source control and the public evidence record.
+A deterministic checker cannot prove literary quality. Editorial equivalence remains the Publication Desk's responsibility and is reviewable through source control and the public evidence record.
 
 ## Runtime behavior
 
