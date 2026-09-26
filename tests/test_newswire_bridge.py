@@ -1,11 +1,17 @@
 from __future__ import annotations
 
+import contextlib
+import io
 import json
+import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
 
-from tools import newswire_bridge
+from tools import newswire_bridge, newswire_bridge_partial_locales
+
+REPO = Path(__file__).resolve().parents[1]
 
 RID = "FCMO-A1B2C3D4E5F6"
 RID2 = "FCMO-0F0E0D0C0B0A"
@@ -224,6 +230,114 @@ class NewswireBridgeTests(unittest.TestCase):
         receipt = newswire_bridge.stage_release(self.root, corpus, self.baseline)
         self.assertEqual(receipt["record_count"], 2)
         newswire_bridge.verify_release(corpus, self.baseline)
+
+
+    # --- G10: private markers are matched by salted digest, never kept in clear ---
+    def test_source_keeps_no_private_marker_in_clear(self) -> None:
+        source = (REPO / "tools" / "newswire_bridge.py").read_text(encoding="utf-8").casefold()
+        self.assertNotIn("gmail", source)
+        self.assertFalse(hasattr(newswire_bridge, "FORBIDDEN"))
+        self.assertNotRegex(source, r"\\barb\\b")
+
+    def test_hashed_markers_keep_word_boundaries(self) -> None:
+        for text in ("private ARB context", "ARB-2026-09-01-ABCDEF12", "Hermes\u2013Jarvis", '{"projects": []}',
+                     "source head 0123abcd", "the canonical\nrepository"):
+            self.assertTrue(newswire_bridge.private_marker(text), text)
+        for text in ("carbon arbitrage", "ARBITRARY", "a public research record", "mf20 values"):
+            self.assertFalse(newswire_bridge.private_marker(text), text)
+        self.assertTrue(newswire_bridge.personal_email("write to someone.else@Gmail.com"))
+        self.assertFalse(newswire_bridge.personal_email("press@example.org"))
+
+    def test_personal_email_fails_closed(self) -> None:
+        (self.root / "about.html").write_text("contact: someone@outlook.com", encoding="utf-8")
+        self._restamp()
+        with self.assertRaisesRegex(ValueError, "personal email"):
+            newswire_bridge.verify_release(self.root)
+
+    # --- newsroom-owned corpus files ---
+    def test_newsroom_files_are_outside_the_digest_but_still_scanned(self) -> None:
+        before = newswire_bridge.release_digest(self.root)
+        self._write("tombstones.json", json.dumps({"schema": "fcmo-tombstones-v1", "tombstones": []}))
+        self._write("first-published.json", json.dumps({"schema": "fcmo-first-published-v1", "entries": {}}))
+        self._write("carried.jsonl", json.dumps({"id": RID2}) + "\n")
+        self._write("wire-status.json", "{}")
+        self.assertEqual(newswire_bridge.release_digest(self.root), before)
+        newswire_bridge.verify_release(self.root)
+        self._write("wire-status.json", json.dumps({"note": "private ARB context"}))
+        with self.assertRaisesRegex(ValueError, "wire-status.json: private/implementation/strategic marker"):
+            newswire_bridge.verify_release(self.root)
+        self._write("wire-status.json", "{}")
+        self._write("carried.jsonl", "{not json\n")
+        with self.assertRaisesRegex(ValueError, "carried.jsonl:1: invalid JSONL"):
+            newswire_bridge.verify_release(self.root)
+
+    def test_stage_refuses_a_release_that_carries_newsroom_files(self) -> None:
+        self._write("tombstones.json", json.dumps({"schema": "fcmo-tombstones-v1", "tombstones": []}))
+        with self.assertRaisesRegex(ValueError, "newsroom-owned"):
+            newswire_bridge.stage_release(self.root, Path(self.tmp.name) / "corpus")
+
+    # --- corpus guard inside the stage ---
+    def _release_with(self, ids: list[str]) -> None:
+        self._write("data/developments.jsonl", "".join(json.dumps({"id": i, "title": f"Public story {i}"}) + "\n" for i in ids))
+        for path in (self.root / "developments").glob("*.html"):
+            path.unlink()
+        for rid in ids:
+            self._write(f"developments/{rid}.html", "<html>public story</html>")
+        for locale in newswire_bridge.LOCALES:
+            self._write(f"data/locales/{locale}/records.json", json.dumps({
+                "schema": newswire_bridge.LOCALE_SCHEMA, "locale": locale,
+                "records": {rid: {"title": f"Localized {locale}"} for rid in ids}}))
+        receipt = json.loads((self.root / "airlock.json").read_text(encoding="utf-8"))
+        receipt["record_count"] = len(ids)
+        (self.root / "airlock.json").write_text(json.dumps(receipt), encoding="utf-8")
+        self._restamp()
+
+    def _staged_corpus(self, ids: list[str]) -> Path:
+        corpus = Path(self.tmp.name) / "corpus"
+        self._release_with(ids)
+        with contextlib.redirect_stdout(io.StringIO()):
+            newswire_bridge.stage_release(self.root, corpus)
+        (corpus / "tombstones.json").write_text(json.dumps({"schema": "fcmo-tombstones-v1", "tombstones": []}))
+        (corpus / "wire-status.json").write_text("{}")
+        return corpus
+
+    IDS = [f"FCMO-00000000000{i}" for i in range(1, 6)]
+
+    def test_stage_carries_a_missing_story_forward(self) -> None:
+        corpus = self._staged_corpus(self.IDS)
+        previous_release = json.loads((corpus / "airlock.json").read_text())["release_id"]
+        self._release_with(self.IDS[1:])
+        out, err = io.StringIO(), io.StringIO()
+        with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+            newswire_bridge_partial_locales.stage_release(self.root, corpus, now="2026-09-26T20:00:00Z")
+        self.assertIn(f"CARRY_FORWARD missing={self.IDS[0]} withdrawn=- added=0 published=5 candidate=4 ratio=0.2000",
+                      out.getvalue())
+        self.assertIn(f"ALERT CORPUS_CARRY_FORWARD missing={self.IDS[0]}", err.getvalue())
+        carried = [json.loads(l) for l in (corpus / "carried.jsonl").read_text().splitlines()]
+        self.assertEqual(carried, [{"id": self.IDS[0], "carried_since": "2026-09-26T20:00:00Z",
+                                    "last_release_id": previous_release,
+                                    "record": {"id": self.IDS[0], "title": f"Public story {self.IDS[0]}"}}])
+        self.assertTrue((corpus / "tombstones.json").is_file())
+        self.assertTrue((corpus / "wire-status.json").is_file())
+        with contextlib.redirect_stdout(io.StringIO()):
+            newswire_bridge_partial_locales.verify_release(corpus)
+
+    def test_stage_refuses_a_regressing_release_and_writes_nothing(self) -> None:
+        corpus = self._staged_corpus(self.IDS)
+        before = {p.relative_to(corpus): p.read_bytes() for p in corpus.rglob("*") if p.is_file()}
+        self._release_with(self.IDS[2:])
+        with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+            with self.assertRaises(newswire_bridge.GuardRefused):
+                newswire_bridge.stage_release(self.root, corpus)
+        for tool in ("newswire_bridge.py", "newswire_bridge_partial_locales.py"):
+            proc = subprocess.run([sys.executable, str(REPO / "tools" / tool), "stage", str(self.root), str(corpus)],
+                                  capture_output=True, text=True)
+            self.assertEqual(proc.returncode, 3, proc.stderr)
+            self.assertIn("REGRESSION_REFUSED", proc.stdout)
+            self.assertIn("ALERT CORPUS_REGRESSION_REFUSED missing=2 ratio=0.4000", proc.stderr)
+        after = {p.relative_to(corpus): p.read_bytes() for p in corpus.rglob("*") if p.is_file()}
+        self.assertEqual(before, after)
+        self.assertEqual(sorted(p.name for p in corpus.parent.iterdir() if p.name.startswith(".corpus")), [])
 
 
 if __name__ == "__main__":

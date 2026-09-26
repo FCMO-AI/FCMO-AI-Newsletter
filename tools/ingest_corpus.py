@@ -16,6 +16,12 @@ from html.parser import HTMLParser
 from pathlib import Path
 from typing import Any
 
+try:
+    from tools import corpus_guard, taxonomy
+except ImportError:  # executed as tools/ingest_corpus.py
+    import corpus_guard  # type: ignore
+    import taxonomy  # type: ignore
+
 
 BASE_URL = "https://fcmo-ai.github.io/FCMO-AI-Newsletter/"
 PUBLIC_ID = re.compile(r"FCMO-[0-9A-F]{12}")
@@ -468,12 +474,82 @@ def atomic_write(path: Path, data: bytes) -> None:
             os.unlink(name)
 
 
+# Keys the release surfaces index directly; a publishable row always has them.
+LEGACY_DEFAULTS = {
+    "importance_effective_score": lambda norm: norm["importance_effective_score"],
+    "last_verified_at": lambda norm: norm["last_verified_at"],
+    "why_it_matters": lambda norm: norm["why_it_matters"],
+    "organizations": lambda norm: [],
+    "topics": lambda norm: [],
+    "evidence_gaps": lambda norm: [],
+}
+
+
+def publishable_rows(corpus: Path, rows: list[Any]) -> tuple[list[dict[str, Any]], dict[str, str], list[tuple[str, str]]]:
+    """Select, per record, the rows a release may publish.
+
+    Returns (rows, {merged id: surviving id}, [(held-back id, reason)]). Records the
+    corpus guard carries forward are included; tombstoned, upstream-withdrawn,
+    duplicated and unnormalizable records are held back one by one instead of
+    failing the whole batch. A corrupt tombstones file fails closed.
+    """
+    tombstones = corpus_guard.load_tombstones(corpus_guard.default_tombstones_path(corpus))
+    active = {e["id"]: e for e in (tombstones or {}).get("tombstones", []) if e.get("reinstated_at") is None}
+    carried = corpus_guard.read_carried(corpus)
+    present = {row.get("id") for row in rows if isinstance(row, dict)}
+    candidates = list(rows) + [c["record"] for c in carried if c["id"] not in present]
+    selected: list[dict[str, Any]] = []
+    merged: dict[str, str] = {}
+    held: list[tuple[str, str]] = []
+    seen: set[str] = set()
+    for row in candidates:
+        rid = row.get("id") if isinstance(row, dict) and isinstance(row.get("id"), str) else "-"
+        try:
+            norm = taxonomy.normalize_record(row)
+        except taxonomy.Quarantine as exc:
+            held.append((rid, "QUARANTINE:" + ",".join(exc.codes)))
+            continue
+        if rid in seen:
+            held.append((rid, "DUPLICATE_ID"))
+            continue
+        seen.add(rid)
+        entry = active.get(rid)
+        if entry is not None:
+            if entry.get("action") == "superseded" and entry.get("superseded_by"):
+                merged[rid] = entry["superseded_by"]
+            held.append((rid, f"TOMBSTONED:{entry.get('reason_code')}"))
+            continue
+        if norm["status"] in corpus_guard.WITHDRAWN_STATUSES:
+            target = norm.get("withdrawal", {}).get("superseded_by")
+            if target:
+                merged[rid] = target
+            held.append((rid, "WITHDRAWN_UPSTREAM"))
+            continue
+        row = dict(row)
+        for key, default in LEGACY_DEFAULTS.items():
+            if row.get(key) is None:
+                row[key] = default(norm)
+        selected.append(row)
+    for rid, entry in sorted(active.items()):
+        if rid not in seen:  # withdrawn before this snapshot; its legacy URL still needs a notice
+            if entry.get("action") == "superseded" and entry.get("superseded_by"):
+                merged[rid] = entry["superseded_by"]
+            held.append((rid, f"TOMBSTONED:{entry.get('reason_code')}"))
+    quarantined = sum(reason.startswith("QUARANTINE") for _, reason in held)
+    if candidates and quarantined / len(candidates) > corpus_guard.default_max_missing_ratio():
+        raise ValueError(f"refusing to publish: {quarantined} of {len(candidates)} records failed normalization")
+    selected_ids = {row["id"] for row in selected}
+    merged = {dup: target for dup, target in merged.items() if target in selected_ids}
+    return selected, merged, held
+
+
 def build(corpus: Path, out: Path) -> None:
     repo = Path(__file__).resolve().parents[1]
-    source_records = read_jsonl(corpus / "data" / "developments.jsonl")
+    raw_records = read_jsonl(corpus / "data" / "developments.jsonl")
+    source_records, _merged, held_back = publishable_rows(corpus, raw_records)
+    for identifier, reason in held_back:
+        print(f"HELD_BACK {identifier} {reason}", file=sys.stderr)
     source_by_id = {record["id"]: replace_arb(record) for record in source_records}
-    if len(source_by_id) != len(source_records):
-        raise ValueError("developments.jsonl has duplicate development IDs")
     canonical_ids = set(source_by_id)
     ids = [record["id"] for record in source_records]
     briefs = {identifier: source_by_id[identifier] for identifier in ids}
@@ -651,6 +727,14 @@ def build(corpus: Path, out: Path) -> None:
         output[f"developments/{identifier}.html"] = redirect(
             "development", identifier, records_by_id[identifier]["title"]
         ).encode("utf-8")
+    # Held-back ids get no developments/ page: the release gate (verify_release.py)
+    # requires developments/*.html to equal the published index. Their public notice
+    # lives at news/<locale>/<id>.html (build_newsroom_surfaces.py).
+    print(
+        f"ingest: publishable={len(ids)} carried={sum(1 for i in ids if i not in {r.get('id') for r in raw_records})} "
+        f"held_back={len(held_back)}",
+        file=sys.stderr,
+    )
     for edition in editions:
         date = edition["date"]
         edition_json = copy.deepcopy(edition)
