@@ -8,12 +8,24 @@ on:
   schedule:
     # GitHub schedules are best-effort. The bridge runs hourly so a material,
     # publication-safe canonical change reaches the live newsroom with <=~1h
-    # transport lag instead of waiting for the next morning window. The operation
-    # is idempotent: unchanged semantic Airlocks do not create commits or rebuilds.
+    # transport lag. Every run writes corpus/wire-status.json, the liveness
+    # heartbeat; it is committed when the state or release changes, or at least
+    # every 5h, so a quiet upstream is never mistaken for an outage. Airlocks with
+    # unchanged semantic content still create no corpus content commit and no rebuild.
     # Each run first tries exact current ARB main and falls back only to the last
     # sealed PUBLICATION_READY ancestor when current research is not publication-safe.
     - cron: '10 * * * *'
   workflow_dispatch:
+    inputs:
+      drill:
+        description: 'Safety drill (empty = normal run)'
+        required: false
+        default: ''
+        type: choice
+        options:
+          - ''
+          - force_checkpoint
+          - regressing_snapshot
 
 permissions:
   contents: write
@@ -24,6 +36,13 @@ concurrency:
   group: fcmo-newswire-bridge-v2
   cancel-in-progress: true
 
+env:
+  # Drills are honoured only on manual runs; every other event ignores them.
+  # force_checkpoint behaves as if current ARB main were red (serve the sealed
+  # checkpoint); regressing_snapshot feeds the corpus guard a copy that drops
+  # more than the refusal ratio and must never be staged.
+  FCMO_DRILL: ${{ github.event_name == 'workflow_dispatch' && inputs.drill || '' }}
+
 jobs:
   bridge:
     if: github.ref == 'refs/heads/main'
@@ -33,15 +52,20 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.12'
 
       - name: Require the GitHub App Client ID
+        id: config
         env:
           APP_CLIENT_ID: ${{ vars.FCMO_NEWSWIRE_APP_CLIENT_ID }}
         shell: bash
         run: |
+          # Public failure codes of this run ($CODES is exported to later steps).
+          CODES="$RUNNER_TEMP/fcmo-bridge-codes"
+          mkdir -p "$CODES"
+          echo "CODES=$CODES" >>"$GITHUB_ENV"
           test -n "$APP_CLIENT_ID" || { echo 'FCMO_NEWSWIRE_APP_CLIENT_ID is not configured' >&2; exit 1; }
 
       - name: Mint a read-only token scoped only to private ARB
@@ -57,7 +81,12 @@ jobs:
       # Promotion is two-dimensional: the atomic seal owns public-byte
       # safety/privacy, while the exact debt ratchet prevents structurally regressed
       # canonical main from becoming the source of a new public release.
+      # Diagnostics never reach this public log: private tool output goes to a
+      # temporary file that is deleted at once. Only public codes (SEAL_FAIL:<CLASS>,
+      # probe codes, transport error codes) are kept, in $CODES, and they end up in
+      # corpus/wire-status.json.
       - name: Select freshest sealed immutable ARB snapshot
+        id: select
         env:
           APP_TOKEN: ${{ steps.app-token.outputs.token }}
         shell: bash
@@ -66,8 +95,9 @@ jobs:
           PRIVATE_DIR="$RUNNER_TEMP/fcmo-newswire-private-source"
           PRIVATE_SHA="$RUNNER_TEMP/fcmo-newswire-private-source.sha"
           CANDIDATE_LOG="$RUNNER_TEMP/fcmo-newswire-current-main-seal.log"
-          rm -rf "$PRIVATE_DIR"
+          rm -rf "$RUNNER_TEMP/fcmo-newswire-private-source"
           rm -f "$PRIVATE_SHA" "$CANDIDATE_LOG"
+          echo 'CLONE_FAILED' >"$CODES/transport_error"
 
           AUTH=$(printf 'x-access-token:%s' "$APP_TOKEN" | base64 -w0)
           echo "::add-mask::$AUTH"
@@ -76,6 +106,7 @@ jobs:
             https://github.com/FCMO-AI/AI-Research-Breakthroughs.git \
             "$PRIVATE_DIR"
 
+          echo 'CHECKPOINT_INVALID' >"$CODES/transport_error"
           READY_SHA=$(PRIVATE_DIR_ENV="$PRIVATE_DIR" python - <<'PY'
           import json
           import os
@@ -99,13 +130,20 @@ jobs:
           )
           echo "::add-mask::$READY_SHA"
 
+          echo 'CLONE_FAILED' >"$CODES/transport_error"
           git -C "$PRIVATE_DIR" -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $AUTH" \
             fetch --quiet --unshallow origin main
           CURRENT_SHA=$(git -C "$PRIVATE_DIR" rev-parse origin/main)
           echo "::add-mask::$CURRENT_SHA"
 
+          echo 'SELECT_FAILED' >"$CODES/transport_error"
+          SELECTED_SHA=''
+          SAFE_REASON=''
           git -C "$PRIVATE_DIR" checkout --detach --quiet "$CURRENT_SHA"
-          if (
+          if test "$FCMO_DRILL" = 'force_checkpoint'; then
+            SAFE_REASON='DRILL_FORCE_CHECKPOINT'
+            echo 'Drill force_checkpoint: treating current ARB main as not promotion-safe.'
+          elif (
             cd "$PRIVATE_DIR" &&
             env -i \
               "PATH=$PATH" \
@@ -118,13 +156,19 @@ jobs:
               python tools/validate_integrity_ratchet.py --json
           ) >"$CANDIDATE_LOG" 2>&1 && grep -qx 'SEAL_OK' "$CANDIDATE_LOG"; then
             SELECTED_SHA="$CURRENT_SHA"
+            echo 'MAIN' >"$CODES/source_mode"
             echo 'Fresh canonical ARB main passed the publication seal and no-new-debt ratchet.'
           else
-            SAFE_REASON=$(grep -E '^SEAL_FAIL:[A-Z0-9_]+' "$CANDIDATE_LOG" | tail -n 1 || true)
+            SAFE_REASON=$(grep -oE '^SEAL_FAIL:[A-Z0-9_]+' "$CANDIDATE_LOG" | tail -n 1 || true)
             if test -z "$SAFE_REASON" && grep -q '"state": "REGRESSION"' "$CANDIDATE_LOG"; then
               SAFE_REASON='INTEGRITY_DEBT_REGRESSION'
             fi
-            echo "Current ARB main is not promotion-safe; using last sealed checkpoint (${SAFE_REASON:-UNCLASSIFIED_SAFETY_FAILURE})."
+          fi
+          rm -f "$CANDIDATE_LOG"
+          if test -z "$SELECTED_SHA"; then
+            SAFE_REASON="${SAFE_REASON:-UNCLASSIFIED_SAFETY_FAILURE}"
+            echo "Current ARB main is not promotion-safe; using last sealed checkpoint ($SAFE_REASON)."
+            echo "$SAFE_REASON" >>"$CODES/arb_failures"
             # origin/main was already unshallowed above, so every ancestor of
             # current main is locally addressable. Avoid a redundant raw-SHA fetch:
             # GitHub may reject direct object fetches even when the commit is a
@@ -132,29 +176,38 @@ jobs:
             git -C "$PRIVATE_DIR" cat-file -e "$READY_SHA^{commit}"
             if ! git -C "$PRIVATE_DIR" merge-base --is-ancestor "$READY_SHA" origin/main; then
               echo 'publication-ready checkpoint is outside canonical main lineage' >&2
+              echo 'CHECKPOINT_OUTSIDE_LINEAGE' >"$CODES/transport_error"
               exit 1
             fi
             git -C "$PRIVATE_DIR" checkout --detach --quiet "$READY_SHA"
             SELECTED_SHA="$READY_SHA"
+            echo 'CHECKPOINT' >"$CODES/source_mode"
+            # Commit time of the sealed checkpoint: a public timestamp, not content.
+            git -C "$PRIVATE_DIR" show -s --format=%cI "$READY_SHA" >"$CODES/checkpoint_at"
           fi
 
           test "$(git -C "$PRIVATE_DIR" rev-parse HEAD)" = "$SELECTED_SHA"
           git -C "$PRIVATE_DIR" rev-parse HEAD >"$PRIVATE_SHA"
           test -s "$PRIVATE_SHA"
           test -z "$(git -C "$PRIVATE_DIR" branch --show-current)"
-          rm -f "$CANDIDATE_LOG"
+          rm -f "$CODES/transport_error"
           unset AUTH APP_TOKEN READY_SHA CURRENT_SHA SELECTED_SHA
 
       - name: Measure current canonical ARB integrity on the working GitHub runner
+        id: probe
         shell: bash
         run: |
           # This is deliberately observational, not a second publication gate.
           # Always diagnose *current canonical main*, even when publication fell
           # back to an older sealed snapshot. Historical fallback snapshots are
           # publication artifacts, not the runtime that defines today's integrity
-          # tools/tests/orientation contracts.
+          # tools/tests/orientation contracts. The native-edition coverage probe
+          # replaces the retired translation-source-health workflow. Probe output
+          # goes to a private log that is deleted at once; a failing probe is
+          # recorded only by its code (arb_main_failures in corpus/wire-status.json).
           set +e
           set -u
+          PROBE_LOG="$RUNNER_TEMP/fcmo-newswire-probe.log"
           PRIVATE_DIR="$RUNNER_TEMP/fcmo-newswire-private-source"
           PRIVATE_SHA="$RUNNER_TEMP/fcmo-newswire-private-source.sha"
           test -s "$PRIVATE_SHA" || { echo 'selected private snapshot receipt is missing' >&2; exit 1; }
@@ -164,33 +217,36 @@ jobs:
           cd "$PRIVATE_DIR"
           git checkout --detach --quiet "$CURRENT_SHA"
           failures=0
-          for cmd in \
-            "python tools/validate_integrity_ratchet.py --json" \
-            "python -m unittest discover -s tests -v" \
-            "python tools/arb.py doctor" \
-            "python tools/arb.py orient --json" \
-            "python tools/arb.py next --json"
-          do
-            echo "::group::$cmd"
-            bash -o pipefail -c "$cmd"
+          while IFS='|' read -r code cmd; do
+            bash -o pipefail -c "$cmd" </dev/null >"$PROBE_LOG" 2>&1
             rc=$?
-            echo "::endgroup::"
+            rm -f "$RUNNER_TEMP/fcmo-newswire-probe.log"
             if test "$rc" -ne 0; then
-              echo "::warning::ARB current-main integrity probe failed (rc=$rc): $cmd"
+              echo "$code" >>"$CODES/arb_failures"
+              echo "::warning::ARB current-main probe failed: $code"
               failures=$((failures+1))
             fi
-          done
+          done <<'PROBES'
+          INTEGRITY_RATCHET|python tools/validate_integrity_ratchet.py --json
+          TEST_SUITE|python -m unittest discover -s tests -v
+          OPERATIONAL_PROBES|python tools/arb.py doctor
+          OPERATIONAL_PROBES|python tools/arb.py orient --json
+          OPERATIONAL_PROBES|python tools/arb.py next --json
+          NATIVE_EDITION_COVERAGE|python tools/check_native_edition_coverage.py --recent-days 7
+          PROBES
           git checkout --detach --quiet "$SELECTED_SHA"
           test "$(git rev-parse HEAD)" = "$SELECTED_SHA"
-          echo "ARB current-main integrity probe completed with $failures failing command(s); selected publication snapshot was restored unchanged."
+          echo "ARB current-main probes completed with $failures failing probe(s); selected publication snapshot was restored unchanged."
           exit 0
 
       - name: Prove selected immutable snapshot through ARB's atomic publication seal
+        id: seal
         shell: bash
         run: |
           set -euo pipefail
           PRIVATE_DIR="$RUNNER_TEMP/fcmo-newswire-private-source"
           PRIVATE_LOG="$RUNNER_TEMP/fcmo-newswire-private-seal.log"
+          echo 'SEAL_FAIL:UNCLASSIFIED' >"$CODES/transport_error"
           if ! (
             cd "$PRIVATE_DIR" &&
             env -i \
@@ -202,82 +258,146 @@ jobs:
               "ARB_PUBLIC_BASE_URL=https://fcmo-ai.github.io/FCMO-AI-Newsletter" \
               python tools/publication_seal.py
           ) >"$PRIVATE_LOG" 2>&1; then
-            SAFE_REASON=$(grep -E '^SEAL_FAIL:[A-Z0-9_]+' "$PRIVATE_LOG" | tail -n 1 || true)
+            SAFE_REASON=$(grep -E '^SEAL_FAIL:[A-Z0-9_]+' "$PRIVATE_LOG" | tail -n 1 | grep -oE '^SEAL_FAIL:[A-Z0-9_]+' || true)
             rm -f "$PRIVATE_LOG"
             echo "${SAFE_REASON:-SEAL_FAIL:UNCLASSIFIED}" >&2
+            echo "${SAFE_REASON:-SEAL_FAIL:UNCLASSIFIED}" >"$CODES/transport_error"
             exit 1
           fi
           grep -qx 'SEAL_OK' "$PRIVATE_LOG" || {
             rm -f "$PRIVATE_LOG"
             echo 'SEAL_FAIL:UNCLASSIFIED_SUCCESS_OUTPUT' >&2
+            echo 'SEAL_FAIL:UNCLASSIFIED_SUCCESS_OUTPUT' >"$CODES/transport_error"
             exit 1
           }
           rm -f "$PRIVATE_LOG"
+          rm -f "$CODES/transport_error"
           echo 'Selected private ARB snapshot passed the atomic publication seal.'
 
       - name: Extract only the already-sanitized release, then destroy private checkout
+        id: extract
         shell: bash
         run: |
+          set -euo pipefail
+          echo 'EXTRACT_FAILED' >"$CODES/transport_error"
           PRIVATE_DIR="$RUNNER_TEMP/fcmo-newswire-private-source"
           PRIVATE_SHA="$RUNNER_TEMP/fcmo-newswire-private-source.sha"
           RELEASE_DIR="$RUNNER_TEMP/fcmo-newswire-airlocked-release"
-          rm -rf "$RELEASE_DIR"
+          rm -rf "$RUNNER_TEMP/fcmo-newswire-airlocked-release"
           mkdir -p "$RELEASE_DIR"
           cp -a "$PRIVATE_DIR/_public_release/." "$RELEASE_DIR/"
-          rm -rf "$PRIVATE_DIR"
+          rm -rf "$RUNNER_TEMP/fcmo-newswire-private-source"
           rm -f "$PRIVATE_SHA"
           test ! -e "$PRIVATE_DIR"
           test ! -e "$PRIVATE_SHA"
-          echo "RELEASE_DIR=$RELEASE_DIR" >> "$GITHUB_ENV"
+          echo "RELEASE_DIR=$RELEASE_DIR" >>"$GITHUB_ENV"
+          rm -f "$CODES/transport_error"
 
       - name: Independently verify the airlocked bytes from the public side
-        run: python tools/newswire_bridge_partial_locales.py verify "$RELEASE_DIR"
-
-      - name: Rebase transport onto current public main before staging
+        id: verify
         shell: bash
         run: |
+          set -euo pipefail
+          echo 'VERIFY_FAILED' >"$CODES/transport_error"
+          python tools/newswire_bridge_partial_locales.py verify "$RELEASE_DIR"
+          rm -f "$CODES/transport_error"
+
+      - name: Rebase transport onto current public main before staging
+        id: rebase
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo 'VERIFY_FAILED' >"$CODES/transport_error"
           git fetch origin main
           git reset --hard origin/main
           git clean -fdx
           python tools/newswire_bridge_partial_locales.py verify "$RELEASE_DIR"
+          rm -f "$CODES/transport_error"
+
+      # tools/corpus_guard.py (CLI contract in contracts/README.md) compares the
+      # candidate with the published corpus: a missing story is carried forward
+      # and alerted, a regression beyond the refusal ratio is refused, and a
+      # tombstoned story stays withdrawn. An unchanged release_id + corpus digest
+      # is only checked, never staged (no content commit, no rebuild).
+      - name: Guard the verified candidate against the published corpus
+        id: guard
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo 'GUARD_ERROR' >"$CODES/transport_error"
+          python tools/wire_status.py guard \
+            --published corpus \
+            --candidate "$RELEASE_DIR" \
+            --out "$RUNNER_TEMP/fcmo-newswire-guarded" \
+            --report "$CODES/guard-report.json" \
+            --drill "$FCMO_DRILL" \
+            --github-output "$GITHUB_OUTPUT"
+          rm -f "$CODES/transport_error"
 
       - name: Atomically replace only corpus/
+        id: stage
+        if: steps.guard.outputs.stage == 'true'
         shell: bash
         run: |
           set -euo pipefail
-          # Airlock generation time is a transport heartbeat, not content identity.
-          # Do not create a public commit (and therefore another newsroom rebuild)
-          # when the verified release ID + corpus digest are unchanged.
-          if test -f corpus/airlock.json && test -f "$RELEASE_DIR/airlock.json"; then
-            CURRENT_ID=$(python - <<'PY'
-          import json
-          from pathlib import Path
-          doc=json.loads(Path("corpus/airlock.json").read_text(encoding="utf-8"))
-          print(f"{doc.get('release_id','')}|{doc.get('corpus_digest','')}")
-          PY
-            )
-            INCOMING_ID=$(RELEASE_DIR_ENV="$RELEASE_DIR" python - <<'PY'
-          import json, os
-          from pathlib import Path
-          doc=json.loads((Path(os.environ["RELEASE_DIR_ENV"]) / "airlock.json").read_text(encoding="utf-8"))
-          print(f"{doc.get('release_id','')}|{doc.get('corpus_digest','')}")
-          PY
-            )
-            if test -n "$CURRENT_ID" && test "$CURRENT_ID" = "$INCOMING_ID"; then
-              echo "Verified Airlock heartbeat has unchanged semantic content; corpus/ remains untouched."
-              exit 0
-            fi
-          fi
-          python tools/newswire_bridge_partial_locales.py stage "$RELEASE_DIR" corpus
+          # The verified sealed release replaces corpus/; newsroom-owned files
+          # survive the swap and carried.jsonl comes from the guard's output.
+          python tools/wire_status.py stage \
+            --release "$RELEASE_DIR" \
+            --corpus corpus \
+            --guarded "$RUNNER_TEMP/fcmo-newswire-guarded"
 
-      - name: Commit verified corpus on top of the newest public main
+      # Runs after success and after failure (not after a supersession cancel):
+      # corpus/wire-status.json is the heartbeat, so a failing transport is
+      # recorded too, by its code only.
+      - name: Record the wire status and commit on top of the newest public main
+        if: ${{ !cancelled() }}
+        env:
+          OUT_CONFIG: ${{ steps.config.outcome }}
+          OUT_TOKEN: ${{ steps.app-token.outcome }}
+          OUT_SELECT: ${{ steps.select.outcome }}
+          OUT_PROBE: ${{ steps.probe.outcome }}
+          OUT_SEAL: ${{ steps.seal.outcome }}
+          OUT_EXTRACT: ${{ steps.extract.outcome }}
+          OUT_VERIFY: ${{ steps.verify.outcome }}
+          OUT_REBASE: ${{ steps.rebase.outcome }}
+          OUT_GUARD: ${{ steps.guard.outcome }}
+          OUT_STAGE: ${{ steps.stage.outcome }}
+          EVENT_NAME: ${{ github.event_name }}
         shell: bash
         run: |
           set -euo pipefail
-          rm -rf "$RELEASE_DIR"
+          CODES="${CODES:-$RUNNER_TEMP/fcmo-bridge-codes}"
+          mkdir -p "$CODES"
           INCOMING="$RUNNER_TEMP/fcmo-newswire-incoming-corpus"
-          rm -rf "$INCOMING"
-          cp -a corpus "$INCOMING"
+          rm -rf "$RUNNER_TEMP/fcmo-newswire-airlocked-release" "$RUNNER_TEMP/fcmo-newswire-incoming-corpus"
+
+          TRANSPORT=OK
+          ERROR=''
+          if test "$OUT_CONFIG" != 'success'; then
+            ERROR='APP_NOT_CONFIGURED'
+          elif test "$OUT_TOKEN" != 'success'; then
+            ERROR='TOKEN_MINT_FAILED'
+          else
+            for outcome in "$OUT_SELECT" "$OUT_PROBE" "$OUT_SEAL" "$OUT_EXTRACT" "$OUT_VERIFY" "$OUT_REBASE" "$OUT_GUARD"; do
+              if test "$outcome" != 'success'; then
+                ERROR="$(head -n 1 "$CODES/transport_error" 2>/dev/null || true)"
+                ERROR="${ERROR:-BRIDGE_STEP_FAILED}"
+                break
+              fi
+            done
+          fi
+          if test -z "$ERROR" && test "$OUT_STAGE" = 'failure'; then ERROR='STAGE_FAILED'; fi
+          if test -n "$ERROR"; then TRANSPORT=FAIL; fi
+          STAGED=false
+          if test "$OUT_STAGE" = 'success'; then
+            STAGED=true
+            cp -a corpus "$INCOMING"
+          fi
+          case "$EVENT_NAME" in
+            schedule|workflow_dispatch|push) TRIGGER="$EVENT_NAME" ;;
+            *) TRIGGER=local ;;
+          esac
 
           git config user.name 'FCMO Newswire Bridge'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
@@ -294,14 +414,51 @@ jobs:
             git fetch --quiet origin main
             git reset --hard origin/main
             git clean -fdx
+            PREVIOUS="$CODES/previous-wire-status.json"
+            rm -f "$CODES/previous-wire-status.json"
+            if test -f corpus/wire-status.json; then cp corpus/wire-status.json "$PREVIOUS"; fi
 
-            rm -rf corpus
-            cp -a "$INCOMING" corpus
-            python tools/newswire_bridge_partial_locales.py verify corpus
+            CONTENT=false
+            if test "$STAGED" = true; then
+              rm -rf corpus
+              cp -a "$INCOMING" corpus
+              if test -f "$PREVIOUS"; then cp "$PREVIOUS" corpus/wire-status.json; fi
+              # Verify exactly the sealed bytes: newsroom-owned files are not sealed.
+              python tools/wire_status.py sealed-view --corpus corpus --out "$RUNNER_TEMP/fcmo-newswire-sealed-view"
+              python tools/newswire_bridge_partial_locales.py verify "$RUNNER_TEMP/fcmo-newswire-sealed-view"
+              rm -rf "$RUNNER_TEMP/fcmo-newswire-sealed-view"
+              if ! git diff --quiet HEAD -- corpus || test -n "$(git ls-files --others --exclude-standard -- corpus)"; then
+                CONTENT=true
+              fi
+            fi
+
+            rm -f "$CODES/decision.env"
+            python tools/wire_status.py write \
+              --previous "$PREVIOUS" \
+              --out "$CODES/wire-status.json" \
+              --trigger "$TRIGGER" \
+              --drill "$FCMO_DRILL" \
+              --transport "$TRANSPORT" \
+              --transport-error "$ERROR" \
+              --source-mode "$(cat "$CODES/source_mode" 2>/dev/null || true)" \
+              --arb-failures "$CODES/arb_failures" \
+              --checkpoint-at "$(cat "$CODES/checkpoint_at" 2>/dev/null || true)" \
+              --airlock corpus/airlock.json \
+              --records corpus/data/developments.jsonl \
+              --guard-report "$CODES/guard-report.json" \
+              --release-changed "$CONTENT" \
+              --github-output "$CODES/decision.env"
+            COMMIT=$(grep '^commit=' "$CODES/decision.env" | tail -n 1 | cut -d= -f2)
+            if test "$COMMIT" != true && test "$CONTENT" != true; then
+              echo 'Wire status unchanged within the heartbeat interval; nothing to commit.'
+              pushed=1
+              break
+            fi
+            cp "$CODES/wire-status.json" corpus/wire-status.json
 
             git add -A -- corpus
             if git diff --cached --quiet -- corpus; then
-              echo 'Verified Airlock already matches newest public corpus/ exactly.'
+              echo 'Verified Airlock and wire status already match newest public corpus/ exactly.'
               pushed=1
               break
             fi
@@ -311,16 +468,25 @@ jobs:
               exit 1
             fi
 
-            git commit -m 'corpus: receive verified FCMO newswire airlock'
+            if test "$CONTENT" = true; then
+              git commit -q -m 'corpus: receive verified FCMO newswire airlock'
+            else
+              git commit -q -m 'corpus: record newswire wire status'
+            fi
             if git push origin HEAD:main; then
               pushed=1
               break
             fi
             echo "Public main advanced during corpus promotion; retrying from newest main." >&2
           done
-          rm -rf "$INCOMING"
+          rm -rf "$RUNNER_TEMP/fcmo-newswire-incoming-corpus"
           if test "$pushed" -ne 1; then
             echo 'Corpus promotion did not converge after 5 optimistic retries; refusing force-push.' >&2
+            exit 1
+          fi
+          # A failed transport is recorded above and still fails the run.
+          if test "$TRANSPORT" != OK; then
+            echo "Bridge transport failed: $ERROR" >&2
             exit 1
           fi
 
@@ -332,8 +498,9 @@ jobs:
           rm -f "$RUNNER_TEMP/fcmo-newswire-private-source.sha"
           rm -f "$RUNNER_TEMP/fcmo-newswire-private-seal.log"
           rm -f "$RUNNER_TEMP/fcmo-newswire-current-main-seal.log"
+          rm -f "$RUNNER_TEMP/fcmo-newswire-probe.log"
           rm -rf "$RUNNER_TEMP/fcmo-newswire-airlocked-release"
+          rm -rf "$RUNNER_TEMP/fcmo-newswire-guarded"
+          rm -rf "$RUNNER_TEMP/fcmo-bridge-codes"
           test ! -e "$RUNNER_TEMP/fcmo-newswire-private-source"
           test ! -e "$RUNNER_TEMP/fcmo-newswire-private-source.sha"
-
-# Manual trigger marker for native-edition debt repair; safe to retain as no-op documentation.

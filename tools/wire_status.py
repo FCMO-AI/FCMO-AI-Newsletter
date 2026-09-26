@@ -712,6 +712,46 @@ def cmd_write(args: argparse.Namespace) -> int:
     return 0
 
 
+def sealed_view(corpus: Path, out: Path) -> Path:
+    """Copy of ``corpus`` without the newsroom-owned files (the exact sealed bytes)."""
+    if out.exists():
+        shutil.rmtree(out)
+    shutil.copytree(corpus, out, symlinks=False, ignore=lambda folder, names: [
+        n for n in names if Path(folder) == Path(corpus) and n in NEWSROOM_FILES])
+    return out
+
+
+def cmd_sealed_view(args: argparse.Namespace) -> int:
+    view = sealed_view(Path(args.corpus), Path(args.out))
+    print(f"SEALED VIEW {view} excluded={','.join(NEWSROOM_FILES)}")
+    return 0
+
+
+def stage_corpus(release: Path, corpus: Path, guarded: Path | None) -> None:
+    """Swap the sealed release into ``corpus`` and keep the newsroom-owned files.
+
+    The sealed release does not carry wire-status.json, tombstones.json or
+    first-published.json, so they survive the swap; carried.jsonl comes from the
+    corpus guard's output (absent when nothing is carried).
+    """
+    keep = {name: (corpus / name).read_bytes() for name in NEWSROOM_FILES if name != "carried.jsonl" and (corpus / name).is_file()}
+    subprocess.run([sys.executable, str(ROOT / "tools" / "newswire_bridge_partial_locales.py"), "stage", str(release), str(corpus)], check=True)
+    for name, data in keep.items():
+        (corpus / name).write_bytes(data)
+    carried = guarded / "carried.jsonl" if guarded else None
+    if carried and carried.is_file():
+        shutil.copyfile(carried, corpus / "carried.jsonl")
+    elif (corpus / "carried.jsonl").exists():
+        (corpus / "carried.jsonl").unlink()
+
+
+def cmd_stage(args: argparse.Namespace) -> int:
+    stage_corpus(Path(args.release), Path(args.corpus), Path(args.guarded) if args.guarded else None)
+    kept = [n for n in NEWSROOM_FILES if (Path(args.corpus) / n).is_file()]
+    print(f"STAGED corpus newsroom_files={','.join(kept) or '-'}")
+    return 0
+
+
 def cmd_health(args: argparse.Namespace) -> int:
     now = resolve_now(args.now)
     state, reason, wire = classify_path(args.wire_status, now)
@@ -781,6 +821,17 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--github-output", type=Path)
     p.set_defaults(func=cmd_guard)
 
+    p = sub.add_parser("stage", help="(bridge) swap the sealed release into corpus/, keeping newsroom files")
+    p.add_argument("--release", type=Path, required=True)
+    p.add_argument("--corpus", type=Path, default=Path("corpus"))
+    p.add_argument("--guarded", type=Path, help="corpus guard --out directory (carried.jsonl)")
+    p.set_defaults(func=cmd_stage)
+
+    p = sub.add_parser("sealed-view", help="(bridge) copy a corpus without the newsroom-owned files")
+    p.add_argument("--corpus", type=Path, required=True)
+    p.add_argument("--out", type=Path, required=True)
+    p.set_defaults(func=cmd_sealed_view)
+
     p = sub.add_parser("health", help="compose health-state.json")
     p.add_argument("--wire-status", type=Path, default=Path("corpus/wire-status.json"))
     p.add_argument("--signal", action="append", help="name=path of a signal JSON (serving, editorial, translation)")
@@ -793,7 +844,7 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     try:
         return int(args.func(args))
-    except (OSError, ValueError, KeyError, json.JSONDecodeError) as exc:
+    except (OSError, ValueError, KeyError, json.JSONDecodeError, subprocess.CalledProcessError) as exc:
         print(f"wire status FAILED: {type(exc).__name__}: {exc}", file=sys.stderr)
         return 2
 
