@@ -631,11 +631,11 @@ def build_health(
             sig["code"] = "UNKNOWN"
         prior = prev_signals.get(key) if isinstance(prev_signals, dict) else None
         if isinstance(prior, dict) and prior.get("status") == sig["status"] and prior.get("since"):
-            sig["since"] = prior["since"]
-        elif sig.get("since") is None and prior is not None:
-            sig["since"] = checked
-        elif sig.get("since") is None and key == "upstream" and wire and wire.get("state") == edition_state:
-            sig["since"] = wire.get("state_since")
+            sig["since"] = prior["since"]  # same status as the last check: keep its start
+        elif key == "upstream" and wire and wire.get("state") == edition_state and wire.get("state_since"):
+            sig["since"] = wire["state_since"]  # the bridge knows when this state began
+        else:
+            sig["since"] = checked  # first observation of this status
         out[key] = sig
     required = [k for k in ("serving", "transport", "upstream", "editorial")]
     red = [k for k in required if out[k]["status"] != "GREEN"]
