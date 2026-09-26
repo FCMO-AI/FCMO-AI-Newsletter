@@ -19,6 +19,8 @@ on:
       - 'tools/build_deployment_identity.py'
       - 'tools/promote_story_front_page.py'
       - 'tools/verify_live_newsroom.py'
+      - 'tools/edition_banner.py'
+      - 'tools/wire_status.py'
       - 'tools/verify_live_front_page.py'
       - 'tests/oraculos/verificar_dom.py'
       - 'tests/oraculos/verificar_layout.py'
@@ -96,6 +98,9 @@ jobs:
       - name: Build discovery frontends on the exact Pages candidate
         run: |
           python tools/build_editorial_frontends.py --site publish
+          # Reader-facing edition state (FRESH/QUIET/DELAYED/TRANSPORT_DOWN) plus the
+          # 1 KB stale-page watcher, bound by the manifest refresh below.
+          python tools/edition_banner.py --site publish
           python tools/finalize_editorial_frontends.py --site publish --refresh-manifest
 
       - name: Create immutable deployment identity for this exact Pages candidate

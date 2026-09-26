@@ -368,14 +368,20 @@ class AutonomousNewsroomTests(unittest.TestCase):
             (site / "data" / "stories.json").write_text(json.dumps([{"research_id": RID}]), encoding="utf-8")
             status = site / "data" / "newsroom-status.json"
 
+            # Liveness comes from the wire status, not from the Airlock time.
+            fixtures = Path(__file__).resolve().parents[1] / "contracts" / "fixtures"
+            wire = fixtures / "wire-status.fresh.json"
+            reference = "2026-09-26T20:00:00Z"
             args = type("Args", (), {
                 "corpus": corpus, "release_src": release, "site": site,
-                "status": status, "max_age_hours": 36, "github_output": None,
+                "status": status, "wire_status": wire, "now": reference, "github_output": None,
             })()
             self.assertEqual(newsroom_receipt.preflight(args), 0)
             self.assertEqual(newsroom_receipt.finalize(args), 0)
             first = json.loads(status.read_text(encoding="utf-8"))
             self.assertEqual(first["state"], "PUBLIC_DELTA_READY")
+            self.assertEqual(first["edition_state"], "FRESH")
+            self.assertEqual(first["wire_state"], "FRESH")
             self.assertEqual(first["stories_sha256"], newsroom_receipt.sha256_file(site / "data" / "stories.json"))
             self.assertEqual(first["media_sha256"], newsroom_receipt.sha256_file(release / "data" / "media.json"))
             self.assertEqual(newsroom_receipt.finalize(args), 0)
@@ -384,10 +390,17 @@ class AutonomousNewsroomTests(unittest.TestCase):
 
             missing_args = type("Args", (), {
                 "corpus": root / "missing", "release_src": release, "site": site,
-                "status": status, "max_age_hours": 36, "github_output": None,
+                "status": status, "wire_status": wire, "now": reference, "github_output": None,
             })()
             with self.assertRaises(ValueError):
                 newsroom_receipt.preflight(missing_args)
+
+            # An absent wire status is TRANSPORT_DOWN (exit 1), never an exception.
+            no_wire = type("Args", (), {
+                "corpus": corpus, "release_src": release, "site": site,
+                "status": status, "wire_status": root / "absent.json", "now": reference, "github_output": None,
+            })()
+            self.assertEqual(newsroom_receipt.preflight(no_wire), 1)
 
 
 if __name__ == "__main__":

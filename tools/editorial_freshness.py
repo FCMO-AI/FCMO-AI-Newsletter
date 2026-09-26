@@ -1,10 +1,15 @@
 #!/usr/bin/env python3
 """Editorial freshness policy for FCMO AI Newsletter.
 
-This module keeps availability, transport freshness and editorial freshness as
-separate truths.  It can deterministically select a current lead from the Story
-layer and can fail production health with a stage-specific diagnosis when the
-newspaper is serving stale material.
+Availability (serving), transport liveness, upstream state and editorial
+freshness are separate signals (contracts/README.md, "Health state").
+
+* ``select`` deterministically picks the current lead from the Story layer.
+* ``check`` measures the editorial signal: GREEN when the wire state is FRESH or
+  QUIET, or when the newest story event is at most ``newest_event_max_age_h``
+  (36 h) old; otherwise ``EVENT_STALE`` (or ``STORY_SUPPLY`` when no story has
+  an event time). It reads ``corpus/wire-status.json``, never
+  ``airlock.generated_at``, and exits 1 when the signal is not GREEN.
 
 Freshness never changes evidence/confidence labels.  It only changes which
 already-public-safe Story is preferred for the front page.
@@ -16,6 +21,11 @@ import json
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
+
+try:
+    from tools import wire_status
+except ImportError:  # executed as tools/editorial_freshness.py
+    import wire_status  # type: ignore[no-redef]
 
 
 CONFIDENCE_RANK = {
@@ -115,7 +125,7 @@ def age_hours(now: datetime, ts: datetime | None) -> float | None:
 
 def select(args: argparse.Namespace) -> int:
     stories = load_stories(args.stories)
-    now = datetime.now(timezone.utc)
+    now = wire_status.resolve_now(getattr(args, "now", None))
     chosen = choose_lead(
         stories,
         now,
@@ -139,68 +149,37 @@ def select(args: argparse.Namespace) -> int:
     return 0
 
 
+def editorial_signal(wire_state: str, newest_event: str | None, now: datetime, max_age_h: float) -> dict[str, Any]:
+    """The health-state ``editorial`` signal."""
+    age = round(wire_status.hours_between(newest_event, now), 1) if newest_event else None
+    metrics = {"newest_event_age_h": age}
+    if wire_state in ("FRESH", "QUIET"):
+        detail = "Edition is fresh." if wire_state == "FRESH" else "Quiet period with a green upstream."
+        return {"status": "GREEN", "code": "OK", "detail": detail, "metrics": metrics}
+    if age is not None and age <= max_age_h:
+        return {"status": "GREEN", "code": "OK", "detail": f"Newest story event is {age}h old (limit {max_age_h:g}h).", "metrics": metrics}
+    if age is None:
+        return {"status": "RED", "code": "STORY_SUPPLY", "detail": "No live story has an event time.", "metrics": metrics}
+    return {"status": "RED", "code": "EVENT_STALE", "detail": f"Newest story event is {age}h old (limit {max_age_h:g}h).", "metrics": metrics}
+
+
 def check(args: argparse.Namespace) -> int:
-    stories = load_stories(args.stories)
-    status = json.loads(args.status.read_text(encoding="utf-8"))
-    now = datetime.now(timezone.utc)
-
-    lead = stories[0]
-    lead_ts = story_time(lead)
-    material_rows = [s for s in stories if material(s, args.minimum_importance) and story_time(s) is not None]
-    newest = max(material_rows, key=lambda s: story_time(s) or datetime.min.replace(tzinfo=timezone.utc)) if material_rows else None
-    newest_ts = story_time(newest) if newest else None
-    airlock_ts = parse_time(status.get("airlock_generated_at"))
-    newsroom_ts = parse_time(status.get("finalized_at"))
-
-    metrics = {
-        "airlock_age_h": age_hours(now, airlock_ts),
-        "newsroom_age_h": age_hours(now, newsroom_ts),
-        "newest_material_age_h": age_hours(now, newest_ts),
-        "lead_age_h": age_hours(now, lead_ts),
-        "lead_id": lead.get("research_id"),
-        "newest_material_id": newest.get("research_id") if newest else None,
-    }
-
-    def fail(stage: str, message: str) -> None:
-        print(json.dumps({"state": "UNHEALTHY", "stage": stage, "metrics": metrics}, sort_keys=True))
-        raise SystemExit(f"editorial freshness FAILED [{stage}]: {message}")
-
-    if airlock_ts is None:
-        fail("AIRLOCK", "production status lacks airlock_generated_at")
-    if metrics["airlock_age_h"] is not None and metrics["airlock_age_h"] > args.max_airlock_age_hours:
-        fail("AIRLOCK", f"Airlock is {metrics['airlock_age_h']:.1f}h old")
-
-    if newsroom_ts is None:
-        fail("NEWSROOM", "production status lacks finalized_at")
-    if metrics["newsroom_age_h"] is not None and metrics["newsroom_age_h"] > args.max_newsroom_age_hours:
-        fail("NEWSROOM", f"last newsroom finalization is {metrics['newsroom_age_h']:.1f}h old")
-
-    if newest_ts is None:
-        fail("STORY_SUPPLY", "no timestamped material Story exists")
-    if metrics["newest_material_age_h"] is not None and metrics["newest_material_age_h"] > args.acceptable_hours:
-        fail("STORY_SUPPLY", f"newest material Story is {metrics['newest_material_age_h']:.1f}h old")
-
-    if lead_ts is None:
-        fail("LEAD_SELECTION", "front-page lead has no publication/modification timestamp")
-    if metrics["lead_age_h"] is not None and metrics["lead_age_h"] > args.acceptable_hours:
-        fail("LEAD_SELECTION", f"front-page lead is {metrics['lead_age_h']:.1f}h old")
-
-    # Missing the 24h target is a production failure only when an eligible Story
-    # inside the target window actually exists. Otherwise <=48h remains the
-    # product's explicitly acceptable fallback and is reported as DEGRADED.
-    target_cutoff = now - timedelta(hours=args.target_hours)
-    target_exists = any((story_time(s) or datetime.min.replace(tzinfo=timezone.utc)) >= target_cutoff for s in material_rows)
-    if target_exists and lead_ts < target_cutoff:
-        fail("LEAD_SELECTION", "an eligible <=24h material Story exists but the lead is older than the target window")
-
-    state = "HEALTHY"
-    if metrics["lead_age_h"] is not None and metrics["lead_age_h"] > args.target_hours:
-        state = "DEGRADED_ACCEPTABLE"
-    print(json.dumps({"state": state, "stage": "EDITORIAL_FRESHNESS", "metrics": metrics}, sort_keys=True))
-    return 0
+    now = wire_status.resolve_now(args.now)
+    thresholds = wire_status.load_thresholds()
+    max_age_h = float(args.max_event_age_hours or thresholds["editorial"]["newest_event_max_age_h"])
+    wire_state, _reason, wire = wire_status.classify_path(args.wire_status, now)
+    newest = wire_status.newest_event_at(args.records) or (wire or {}).get("newest_event_at")
+    sig = editorial_signal(wire_state, newest, now, max_age_h)
+    if args.signal_out:
+        args.signal_out.parent.mkdir(parents=True, exist_ok=True)
+        args.signal_out.write_text(json.dumps(sig, indent=2) + "\n", encoding="utf-8")
+    print(f"EDITORIAL {sig['code']} edition={wire_state} newest_event_at={newest or '-'} "
+          f"newest_event_age_h={sig['metrics']['newest_event_age_h']}")
+    print(sig["detail"])
+    return 0 if sig["status"] == "GREEN" else 1
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest="command", required=True)
 
@@ -210,16 +189,20 @@ def main() -> int:
     common.add_argument("--acceptable-hours", type=int, default=48)
     common.add_argument("--minimum-importance", type=int, default=4)
 
+    common.add_argument("--now", help="ISO 8601 time (else FCMO_NOW, else the real clock)")
+
     p_select = sub.add_parser("select", parents=[common])
     p_select.set_defaults(func=select)
 
-    p_check = sub.add_parser("check", parents=[common])
-    p_check.add_argument("--status", type=Path, default=Path("site/data/newsroom-status.json"))
-    p_check.add_argument("--max-airlock-age-hours", type=int, default=30)
-    p_check.add_argument("--max-newsroom-age-hours", type=int, default=30)
+    p_check = sub.add_parser("check", help="editorial freshness signal (exit 1 when not GREEN)")
+    p_check.add_argument("--wire-status", type=Path, default=Path("corpus/wire-status.json"))
+    p_check.add_argument("--records", type=Path, default=Path("corpus/data/developments.jsonl"))
+    p_check.add_argument("--max-event-age-hours", type=float, default=None)
+    p_check.add_argument("--now", help="ISO 8601 time (else FCMO_NOW, else the real clock)")
+    p_check.add_argument("--signal-out", type=Path)
     p_check.set_defaults(func=check)
 
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
     return int(args.func(args))
 
 
