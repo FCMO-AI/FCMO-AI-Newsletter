@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/contracts/newsroom-status.v2.schema.json",
+  "title": "Reader-facing newsroom status (site/data/newsroom-status.json)",
+  "description": "Written by the refresh on every cycle, including quiet and delayed ones. The static build renders the edition banner from edition_state/edition_reason in all three locales; the email dispatcher sends only when edition_state is FRESH. It extends the legacy fcmo-newsroom-status-v2 document: legacy fields stay optional so existing readers keep working.",
+  "x-contract": {"name": "newsroom-status.v2", "status": "v2-frozen", "version": 2},
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema", "status_updated_at", "edition_state", "edition_reason", "wire_state",
+    "wire_run_at", "edition_date", "last_edition_at", "quiet_since", "release_id",
+    "corpus_digest", "live_story_count", "translation", "drill"
+  ],
+  "properties": {
+    "schema": {"const": "fcmo-newsroom-status-v2"},
+    "status_updated_at": {"$ref": "#/$defs/utc", "description": "When this status was computed (the quiet path rewrites it without a rebuild)."},
+    "edition_state": {"enum": ["FRESH", "QUIET", "DELAYED", "TRANSPORT_DOWN"], "description": "Banner key; rendered as data-edition-state on the page."},
+    "edition_reason": {
+      "enum": [
+        null, "ARB_MAIN_RED", "CHECKPOINT_STALE", "STORY_SUPPLY", "TRANSPORT_FAIL",
+        "SNAPSHOT_REFUSED", "WIRE_STATUS_MISSING", "WIRE_STATUS_INVALID", "WIRE_STALE", "CLOCK_SKEW"
+      ]
+    },
+    "wire_state": {"type": "string", "pattern": "^(FRESH|QUIET|TRANSPORT_DOWN|DELAYED:(ARB_MAIN_RED|CHECKPOINT_STALE|STORY_SUPPLY|TRANSPORT_FAIL|SNAPSHOT_REFUSED))$"},
+    "wire_run_at": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/utc"}]},
+    "edition_date": {"type": "string", "format": "date", "description": "America/Mexico_City calendar date of status_updated_at."},
+    "last_edition_at": {"$ref": "#/$defs/utc", "description": "When reader-visible content last changed. Reader copy: 'Updated <date>' (FRESH) and 'Latest edition: <date>' (DELAYED, TRANSPORT_DOWN)."},
+    "quiet_since": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/utc"}], "description": "Reader copy for QUIET: 'No material changes since <date>'."},
+    "release_id": {"oneOf": [{"type": "null"}, {"type": "string", "pattern": "^newswire-[0-9a-f]{24}$"}]},
+    "corpus_digest": {"oneOf": [{"type": "null"}, {"type": "string", "pattern": "^[0-9a-f]{64}$"}]},
+    "live_story_count": {"type": "integer", "minimum": 0},
+    "translation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["es-419", "zh-Hans"],
+      "properties": {
+        "es-419": {"$ref": "#/$defs/locale_counts"},
+        "zh-Hans": {"$ref": "#/$defs/locale_counts"}
+      }
+    },
+    "drill": {"type": ["string", "null"], "pattern": "^[a-z_]+$"},
+    "alerts": {"type": "array", "uniqueItems": true, "items": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*(:[A-Z0-9_]+)?$"}},
+
+    "ack": {"type": "string"},
+    "airlock_generated_at": {"type": "string", "format": "date-time"},
+    "airlock_record_count": {"type": "integer", "minimum": 0},
+    "builder_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "canonical_story_count": {"type": "integer", "minimum": 0},
+    "deployment_proof": {"type": "string"},
+    "finalized_at": {"type": "string", "format": "date-time"},
+    "media_count": {"type": "integer", "minimum": 0},
+    "media_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "pending_translation_count": {"type": "integer", "minimum": 0},
+    "pending_translation_ids": {"type": "array", "items": {"type": "string", "pattern": "^FCMO-[0-9A-F]{12}$"}},
+    "previous_release_id": {"type": ["string", "null"]},
+    "state": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$", "description": "Legacy refresh receipt state (e.g. PUBLIC_DELTA_READY)."},
+    "stories_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "story_layer_count": {"type": "integer", "minimum": 0},
+    "translation_counts": {"type": "object", "additionalProperties": {"type": "integer", "minimum": 0}},
+    "translation_state": {"type": "string"}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"edition_state": {"enum": ["FRESH", "QUIET"]}}},
+      "then": {"properties": {"edition_reason": {"const": null}}}
+    },
+    {
+      "if": {"properties": {"edition_state": {"const": "DELAYED"}}},
+      "then": {"properties": {"edition_reason": {"enum": ["ARB_MAIN_RED", "CHECKPOINT_STALE", "STORY_SUPPLY", "TRANSPORT_FAIL", "SNAPSHOT_REFUSED"]}, "wire_state": {"pattern": "^DELAYED:"}}}
+    },
+    {
+      "if": {"properties": {"edition_state": {"const": "TRANSPORT_DOWN"}}},
+      "then": {"properties": {"edition_reason": {"enum": ["WIRE_STATUS_MISSING", "WIRE_STATUS_INVALID", "WIRE_STALE", "CLOCK_SKEW"]}, "wire_state": {"const": "TRANSPORT_DOWN"}}}
+    },
+    {
+      "if": {"properties": {"edition_state": {"const": "FRESH"}}},
+      "then": {"properties": {"wire_state": {"const": "FRESH"}}}
+    },
+    {
+      "if": {"properties": {"edition_state": {"const": "QUIET"}}},
+      "then": {"properties": {"wire_state": {"const": "QUIET"}, "quiet_since": {"$ref": "#/$defs/utc"}}},
+      "else": {"properties": {"quiet_since": {"type": "null"}}}
+    }
+  ],
+  "$defs": {
+    "utc": {"type": "string", "format": "date-time", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"},
+    "locale_counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["complete", "pending", "failed"],
+      "properties": {
+        "complete": {"type": "integer", "minimum": 0},
+        "pending": {"type": "integer", "minimum": 0},
+        "failed": {"type": "integer", "minimum": 0}
+      }
+    }
+  }
+}

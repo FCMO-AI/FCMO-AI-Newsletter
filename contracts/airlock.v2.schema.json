@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/contracts/airlock.v2.schema.json",
+  "title": "Airlock receipt as delivered today (corpus/airlock.json)",
+  "description": "Describes the upstream receipt exactly as the bridge verifies it (schema fcmo-newswire-airlock-v2). generated_at is the bridge seal time, not a liveness signal: liveness comes from wire-status.json.",
+  "x-contract": {"name": "airlock.v2", "status": "observed", "version": 2},
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract", "corpus_digest", "declassification_policy_version", "generated_at", "record_count", "release_id", "schema", "schema_version", "state"],
+  "properties": {
+    "contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["public_only", "raw_private_source_forbidden", "semantic_declassification"],
+      "properties": {
+        "public_only": {"const": true},
+        "raw_private_source_forbidden": {"const": true},
+        "semantic_declassification": {"const": true}
+      }
+    },
+    "corpus_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "declassification_policy_version": {"type": "integer", "minimum": 1},
+    "generated_at": {"type": "string", "format": "date-time", "pattern": "Z$"},
+    "record_count": {"type": "integer", "minimum": 0},
+    "release_id": {"type": "string", "pattern": "^newswire-[0-9a-f]{24}$"},
+    "schema": {"const": "fcmo-newswire-airlock-v2"},
+    "schema_version": {"const": 2},
+    "state": {"const": "READY_FOR_PUBLICATION"}
+  }
+}

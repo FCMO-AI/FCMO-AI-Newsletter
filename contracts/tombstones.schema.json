@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/contracts/tombstones.schema.json",
+  "title": "Public withdrawal ledger (corpus/tombstones.json)",
+  "description": "Append-only. A story leaves the live set only through an active entry here (or an upstream record with status withdrawn/superseded) and always with a reader-facing correction. Reinstating sets reinstated_at; entries are never deleted.",
+  "x-contract": {"name": "tombstones", "status": "v2-frozen", "version": 1},
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "tombstones"],
+  "properties": {
+    "schema": {"const": "fcmo-tombstones-v1"},
+    "tombstones": {
+      "type": "array",
+      "x-unique-by": "id",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "action", "withdrawn_at", "reason_code", "decided_by", "correction", "superseded_by", "reinstated_at"],
+        "properties": {
+          "id": {"$ref": "#/$defs/fcmo_id"},
+          "action": {"enum": ["withdrawn", "superseded"]},
+          "withdrawn_at": {"$ref": "#/$defs/utc"},
+          "reason_code": {"enum": ["UPSTREAM_RETRACTION", "UNVERIFIED_RELEASE", "DUPLICATE", "FACTUAL_ERROR", "RIGHTS", "PRIVACY", "LEGAL", "EDITORIAL"]},
+          "decided_by": {"enum": ["operator", "upstream", "editorial_policy"], "description": "A role, never a person's name."},
+          "correction": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["en"],
+            "properties": {
+              "en": {"type": "string", "minLength": 20, "maxLength": 600},
+              "es-419": {"type": "string", "minLength": 20, "maxLength": 600},
+              "zh-Hans": {"type": "string", "minLength": 8, "maxLength": 600}
+            }
+          },
+          "superseded_by": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/fcmo_id"}]},
+          "reinstated_at": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/utc"}]}
+        },
+        "if": {"properties": {"action": {"const": "superseded"}}},
+        "then": {"properties": {"superseded_by": {"$ref": "#/$defs/fcmo_id"}}},
+        "else": {"properties": {"superseded_by": {"type": "null"}}}
+      }
+    }
+  },
+  "$defs": {
+    "utc": {"type": "string", "format": "date-time", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"},
+    "fcmo_id": {"type": "string", "pattern": "^FCMO-[0-9A-F]{12}$"}
+  }
+}

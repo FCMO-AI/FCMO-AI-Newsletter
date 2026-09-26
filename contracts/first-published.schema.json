@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/contracts/first-published.schema.json",
+  "title": "First-publication ledger (corpus/first-published.json)",
+  "description": "Append-only ledger computed once per id from the earliest public appearance. It freezes the reader-visible first publication time, the URL date and the slug, so a shallow checkout or a history rewrite can never re-date a story or move its URL.",
+  "x-contract": {"name": "first-published", "status": "v2-frozen", "version": 1},
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "entries"],
+  "properties": {
+    "schema": {"const": "fcmo-first-published-v1"},
+    "entries": {
+      "type": "object",
+      "propertyNames": {"pattern": "^FCMO-[0-9A-F]{12}$"},
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["first_published_at", "url_date", "slug"],
+        "properties": {
+          "first_published_at": {"type": "string", "format": "date-time", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"},
+          "url_date": {"type": "string", "format": "date", "description": "America/Mexico_City date of first_published_at."},
+          "slug": {"type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$", "maxLength": 80},
+          "redirect_to": {"type": "string", "pattern": "^FCMO-[0-9A-F]{12}$", "description": "Set when the story was merged into another id."}
+        }
+      }
+    }
+  }
+}
