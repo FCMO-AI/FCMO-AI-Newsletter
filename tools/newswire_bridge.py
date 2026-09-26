@@ -12,12 +12,17 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-import os
 import re
 import shutil
+import sys
 import tempfile
 from pathlib import Path
 from typing import Any
+
+try:
+    from tools import corpus_guard
+except ImportError:  # executed as tools/newswire_bridge.py or imported from tools/
+    import corpus_guard  # type: ignore
 
 AIRLOCK_SCHEMA = "fcmo-newswire-airlock-v2"
 AIRLOCK_STATE = "READY_FOR_PUBLICATION"
@@ -50,6 +55,10 @@ EXACT_PATHS = {
     "search.html",
     "topics.html",
 }
+# Newsroom-owned corpus files (contracts/README.md): written by newsroom tools after a
+# release is accepted, never part of a sealed release, excluded from the content
+# digest, still privacy-scanned and JSON-validated.
+NEWSROOM_FILES = frozenset(corpus_guard.NEWSROOM_FILES)
 DYNAMIC_PATHS = (
     re.compile(r"^developments/FCMO-[0-9A-F]{12}\.html$"),
     re.compile(r"^editions/[0-9]{4}-[0-9]{2}-[0-9]{2}\.html$"),
@@ -57,21 +66,77 @@ DYNAMIC_PATHS = (
 
 # Footnote: these markers mirror the upstream independent transfer gate. They are
 # deliberately broad because a false negative is costlier than retaining yesterday's
-# public release. Innocent substring collisions are avoided for bare ARB via \b.
-FORBIDDEN = re.compile(
-    r"AI-Research-Breakthroughs|\bARB\b|\bBLM\b|Hermes[-–]Jarvis|NOVA TANKS|NOVASTAR|"
-    r"EXOMNEME|\bCMPCT\b|\bMF2\b|magyarmex\.github@gmail\.com|project_relevance|"
+# public release. The private names and internal phrases themselves must never be
+# written into this public repository, so they are kept only as salted SHA-256
+# digests of their normalized token sequences: text is casefolded, split into \w+
+# tokens, and every 1..MARKER_MAX_TOKENS-gram whose first token is a known marker
+# start is hashed and compared. Token boundaries play the role the old \b did, so a
+# bare private acronym never matches inside an ordinary word.
+MARKER_SALT = b"fcmo-airlock-marker-v1\0"
+MARKER_MAX_TOKENS = 6
+MARKER_DIGESTS = frozenset({
+    "2dde373fa209104564103cc3e1eaa443", "2e6b67d98fe5eaf3ac38159046a02ee2", "3a0986cf5a96cc6396a677a190dbf22f",
+    "3c32d2c65bb88e4a47d4ac96a096d44b", "412c17137f5ff86566e0ce05f31b9352", "43a7f69df71249caf92e7e492fc1f595",
+    "519993b78ebe48c82ad4a60469e1f1fd", "6298e51aaa3359a2ed0197d37fd9b05f", "62bdf76bd6e784d4bcb31a18f2520bdd",
+    "696c7d13c20a3fcc35072354e8688db9", "73df98bfc60f7ff1afbcb5701dd6e37e", "7c710b04348d2e7e56fbcaf8244e4084",
+    "84ca0f5d38e8d8bbcf417fd459b393c7", "8a697013f4d8c35456a647a02c9a9680", "973879fec1204a5d37c25df73ff4685b",
+    "a07d1406efaad825676024f91644ad34", "a71001b27b0f71ae06603484d467334b", "af420ac85d6104fa5ad744a42420c399",
+    "afa60b5d8c11593886351c6bd05f5689", "db4a8f4bdd2b261b639a4c425e41aac7", "e8a8ae78527487358bc852d9be8a565f",
+    "ea4d2e9d4ce7e489f29851467b514aca", "f0b5152b53f1ec919d49df2e2ab817d3", "f29c168d1e9a9ed7d1ef4b2550a20cdb",
+})
+MARKER_FIRST_TOKENS = frozenset({
+    "0139bfaedf4e6ca272b8651edcbc9482", "0321af8e343f0b6cf7ebb391c3accb09", "03cb40b03ce1a00048122c38640b4e2f",
+    "04d529ec2204b396e662af53de2c0b14", "173368b37b234c70e907fff728764c5b", "2e6b67d98fe5eaf3ac38159046a02ee2",
+    "49ad460ba9ad60c3565700c5b3e0410e", "60963adfc08319d65da28f7e9e8664af", "6298e51aaa3359a2ed0197d37fd9b05f",
+    "62bdf76bd6e784d4bcb31a18f2520bdd", "676f83f27b4056c97258ae33a80b6b1f", "73df98bfc60f7ff1afbcb5701dd6e37e",
+    "7abe098256c49852f171e64ad818eb7c", "a07d1406efaad825676024f91644ad34", "aeb67a1777d9859237d989f536c51583",
+    "dbea37f010f17838c4ba843b3d62224e", "e88c25e480474e136cf37cc9a7109065", "e8a8ae78527487358bc852d9be8a565f",
+    "ea4d2e9d4ce7e489f29851467b514aca", "f29c168d1e9a9ed7d1ef4b2550a20cdb",
+})
+# Consumer mailbox providers, hashed the same way (single token of the domain label).
+PERSONAL_MAIL_PROVIDERS = frozenset({
+    "13be2cc7180c500a440c24843c8e2161", "549053c203d0d5ca31a40b37e4d528a5",
+    "8f250a2b5d7a820de11e1a1ce17e55df", "a800f82bf690a800a3d60ab78fb0667a",
+})
+# Structural leaks that name no one: private JSON keys and source-control provenance.
+STRUCTURAL_MARKERS = re.compile(
     r'"projects"\s*:|source head [0-9a-f]{7,64}|'
-    r"\bARB-[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9A-F]{8}\b|PUBLICATION\.json|"
-    r"repository schema is the CMS|research agents create structured canonical records|"
-    r"canonical repository|repository receipt|canonical query projection|canonical research records|"
-    r"run ledger|source watermark|candidate test|possible hypothesis|scale[- ]transfer warning|"
     r'"(?:aliases|research_implications|engineering_implications|policy_implications)"\s*:',
     re.I,
 )
-PERSONAL_EMAIL = re.compile(
-    r"\b[A-Z0-9._%+-]+@(?:gmail|outlook|hotmail|protonmail)\.[A-Z]{2,}\b", re.I
-)
+TOKEN = re.compile(r"\w+")
+EMAIL = re.compile(r"\b[A-Z0-9._%+-]+@([A-Z0-9-]+)\.[A-Z]{2,}\b", re.I)
+
+
+def _marker_digest(phrase: str) -> str:
+    return hashlib.sha256(MARKER_SALT + phrase.encode("utf-8")).hexdigest()[:32]
+
+
+def private_marker(text: str) -> bool:
+    """True when *text* contains a private/implementation/strategic marker."""
+    if STRUCTURAL_MARKERS.search(text):
+        return True
+    tokens = TOKEN.findall(text.casefold())
+    seen: dict[str, bool] = {}
+    for index, token in enumerate(tokens):
+        starts = seen.get(token)
+        if starts is None:
+            starts = seen[token] = _marker_digest(token) in MARKER_FIRST_TOKENS
+        if not starts:
+            continue
+        for size in range(1, MARKER_MAX_TOKENS + 1):
+            if index + size > len(tokens):
+                break
+            if _marker_digest(" ".join(tokens[index:index + size])) in MARKER_DIGESTS:
+                return True
+    return False
+
+
+def personal_email(text: str) -> bool:
+    """True when *text* contains an address at a consumer mailbox provider."""
+    return any(_marker_digest(m.group(1).casefold()) in PERSONAL_MAIL_PROVIDERS for m in EMAIL.finditer(text))
+
+
 RUNNER_PATH = re.compile(r"/(?:home/runner/work|github/workspace|mnt/data)/", re.I)
 SECRET_PATTERNS = (
     re.compile(r"github_pat_[A-Za-z0-9_]{20,}"),
@@ -95,17 +160,19 @@ def _sha256_file(path: Path) -> str:
 
 
 def release_digest(root: Path) -> str:
-    """Reproduce ARB's content-addressed release digest, excluding airlock.json."""
+    """Reproduce ARB's content-addressed release digest, excluding airlock.json and newsroom files."""
     receipt = root / "airlock.json"
     digest = hashlib.sha256()
     for path in sorted(p for p in root.rglob("*") if p.is_file() and p != receipt):
+        if path.relative_to(root).as_posix() in NEWSROOM_FILES:
+            continue
         rel = path.relative_to(root).as_posix().encode("utf-8")
         digest.update(rel + b"\0" + _sha256_file(path).encode("ascii") + b"\n")
     return digest.hexdigest()
 
 
 def _allowed(rel: str) -> bool:
-    return rel in EXACT_PATHS or any(pattern.fullmatch(rel) for pattern in DYNAMIC_PATHS)
+    return rel in EXACT_PATHS or rel in NEWSROOM_FILES or any(pattern.fullmatch(rel) for pattern in DYNAMIC_PATHS)
 
 
 def _canonical_ids(path: Path, errors: list[str]) -> set[str]:
@@ -202,9 +269,9 @@ def verify_release(root: Path, baseline_i18n: Path | None = None) -> dict[str, A
         except UnicodeDecodeError:
             errors.append(f"{rel}: non-UTF8/binary transfer file forbidden")
             continue
-        if FORBIDDEN.search(text):
+        if private_marker(text):
             errors.append(f"{rel}: private/implementation/strategic marker")
-        if PERSONAL_EMAIL.search(text):
+        if personal_email(text):
             errors.append(f"{rel}: personal email")
         if RUNNER_PATH.search(text):
             errors.append(f"{rel}: private runner path")
@@ -319,15 +386,82 @@ def verify_release(root: Path, baseline_i18n: Path | None = None) -> dict[str, A
     return receipt
 
 
+class GuardRefused(ValueError):
+    """The corpus guard refused the candidate (REGRESSION_REFUSED, exit 3)."""
+
+
+def _update_ledger(stage: Path, repo: Path, now: str) -> None:
+    """Freeze first publication for newly published ids and record detected merges."""
+    try:
+        from tools import story_layer
+    except ImportError:  # executed from tools/
+        import story_layer  # type: ignore
+    site = repo / "site"
+    ledger, tombstones, changes = story_layer.update_ledger(stage, repo, site if site.is_dir() else None, now)
+    if changes:
+        story_layer.write_json_atomic(stage / "first-published.json", ledger)
+        story_layer.write_json_atomic(stage / "tombstones.json", tombstones)
+    for line in changes:
+        print(line)
+
+
+def guard_candidate(release: Path, corpus: Path, max_missing_ratio: float | None = None) -> dict[str, Any] | None:
+    """Run the corpus guard on a verified release before corpus/ may change.
+
+    Returns the guard result (None when there is no published corpus yet). Raises
+    GuardRefused when the candidate drops more than the allowed share of live
+    stories, and ValueError when the release carries newsroom-owned files.
+    """
+    carried_by_upstream = sorted(name for name in NEWSROOM_FILES if (release / name).exists())
+    if carried_by_upstream:
+        raise ValueError(f"release carries newsroom-owned files: {carried_by_upstream}")
+    if not (corpus / "data" / "developments.jsonl").is_file():
+        return None
+    limit = corpus_guard.default_max_missing_ratio() if max_missing_ratio is None else max_missing_ratio
+    tombstones = corpus_guard.load_tombstones(corpus_guard.default_tombstones_path(corpus))
+    result = corpus_guard.check(corpus, release, tombstones, limit)
+    print(corpus_guard.first_line(result))
+    for line in corpus_guard.alert_lines(result):
+        print(line, file=sys.stderr)
+    if result["exit_code"] == corpus_guard.EXIT_REFUSED:
+        raise GuardRefused(corpus_guard.first_line(result))
+    return result
+
+
+def carry_newsroom_files(corpus: Path, stage: Path, result: dict[str, Any] | None, now: str | None = None) -> None:
+    """Give the staged corpus the newsroom files of the published one.
+
+    Tombstones, the first-publication ledger and the wire status survive the swap;
+    carried.jsonl is rewritten from the guard result; the ledger freezes newly
+    published ids and records detected merges.
+    """
+    if result is None:
+        return
+    now = now or corpus_guard.resolve_now()
+    for name in sorted(NEWSROOM_FILES - {"carried.jsonl"}):
+        if (corpus / name).is_file():
+            shutil.copy2(corpus / name, stage / name)
+    lines = corpus_guard.carried_lines(result, corpus, now)
+    if lines:
+        (stage / "carried.jsonl").write_text(
+            "".join(json.dumps(line, ensure_ascii=False, sort_keys=True) + "\n" for line in lines),
+            encoding="utf-8",
+        )
+    if (stage / "first-published.json").is_file():
+        _update_ledger(stage, corpus.parent, now)
+
+
 def stage_release(
     release: Path,
     corpus: Path,
     baseline_i18n: Path | None = None,
+    now: str | None = None,
 ) -> dict[str, Any]:
-    """Replace corpus/ with a verified release without leaving a mixed old/new tree."""
+    """Replace corpus/ with a verified, guarded release without leaving a mixed old/new tree."""
     release = release.resolve()
     corpus = corpus.resolve()
     receipt = verify_release(release, baseline_i18n)
+    result = guard_candidate(release, corpus)
     corpus.parent.mkdir(parents=True, exist_ok=True)
 
     # Footnote: copy into a sibling staging directory first, verify the copy again,
@@ -337,6 +471,7 @@ def stage_release(
     try:
         shutil.rmtree(stage)
         shutil.copytree(release, stage, symlinks=False)
+        carry_newsroom_files(corpus, stage, result, now)
         verify_release(stage, baseline_i18n)
         if backup.exists():
             shutil.rmtree(backup)
@@ -371,8 +506,11 @@ def main(argv: list[str] | None = None) -> int:
             receipt = verify_release(args.release, args.baseline_i18n)
         else:
             receipt = stage_release(args.release, args.corpus, args.baseline_i18n)
+    except GuardRefused as exc:
+        print(f"corpus guard refused the release; corpus/ untouched: {exc}", file=sys.stderr)
+        return corpus_guard.EXIT_REFUSED
     except (OSError, ValueError, json.JSONDecodeError) as exc:
-        print(str(exc), file=os.sys.stderr)
+        print(str(exc), file=sys.stderr)
         return 1
     print(
         f"airlock transfer OK: {receipt.get('release_id')} records={receipt.get('record_count')}"

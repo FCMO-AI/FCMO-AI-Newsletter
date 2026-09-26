@@ -11,13 +11,16 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 import shutil
+import sys
 import tempfile
 from pathlib import Path
 from typing import Any
 
-import newswire_bridge as strict
+try:
+    from tools import newswire_bridge as strict
+except ImportError:  # executed as tools/newswire_bridge_partial_locales.py
+    import newswire_bridge as strict  # type: ignore
 
 
 def _public_ids(release: Path) -> set[str]:
@@ -93,16 +96,19 @@ def verify_release(release: Path) -> dict[str, Any]:
     return receipt
 
 
-def stage_release(release: Path, corpus: Path) -> dict[str, Any]:
+def stage_release(release: Path, corpus: Path, now: str | None = None) -> dict[str, Any]:
     release = release.resolve()
     corpus = corpus.resolve()
     receipt = verify_release(release)
+    # The corpus guard decides per record before anything moves (exit 3 on refusal).
+    result = strict.guard_candidate(release, corpus)
     corpus.parent.mkdir(parents=True, exist_ok=True)
     stage = Path(tempfile.mkdtemp(prefix=f".{corpus.name}.stage-", dir=corpus.parent))
     backup = corpus.parent / f".{corpus.name}.previous"
     try:
         shutil.rmtree(stage)
         shutil.copytree(release, stage, symlinks=False)
+        strict.carry_newsroom_files(corpus, stage, result, now)
         verify_release(stage)
         if backup.exists():
             shutil.rmtree(backup)
@@ -132,8 +138,11 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     try:
         receipt = verify_release(args.release) if args.command == "verify" else stage_release(args.release, args.corpus)
+    except strict.GuardRefused as exc:
+        print(f"corpus guard refused the release; corpus/ untouched: {exc}", file=sys.stderr)
+        return strict.corpus_guard.EXIT_REFUSED
     except (OSError, ValueError, json.JSONDecodeError) as exc:
-        print(str(exc), file=os.sys.stderr)
+        print(str(exc), file=sys.stderr)
         return 1
     print(f"airlock transfer OK: {receipt.get('release_id')} records={receipt.get('record_count')}")
     return 0
