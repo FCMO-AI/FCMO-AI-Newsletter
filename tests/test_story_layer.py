@@ -12,7 +12,8 @@ import unittest
 from pathlib import Path
 
 from tests.harness.validate import validator_for
-from tools import story_layer, taxonomy
+from tools import build_newsroom_surfaces as surfaces
+from tools import ingest_corpus, story_layer, taxonomy
 
 REPO = Path(__file__).resolve().parents[1]
 CONTRACTS = REPO / "contracts"
@@ -245,6 +246,141 @@ class TemporaryCorpusTests(unittest.TestCase):
         self.assertEqual(story["first_published_at"], "2026-09-27T08:00:00Z")
         self.assertEqual(story["url_date"], "2026-09-27")
         self.assertEqual(story["slug"], "a-brand-new-development-that-nobody-has-published-yet")
+
+
+class ShallowCheckoutTests(unittest.TestCase):
+    """CI checkouts have no git history: the previous stories.v2 output stands in for it."""
+
+    def build_without_history(self, previous: dict | None) -> tuple[dict, str]:
+        err = io.StringIO()
+        site = REPO / "site"
+        with contextlib.redirect_stderr(err):
+            inputs = story_layer.StoryInputs(CORPUS, None, site, site / "data" / "i18n", NOW, previous=previous or {})
+            document = story_layer.build_stories(inputs)
+        return document, err.getvalue()
+
+    def test_previous_v2_restores_what_history_would(self) -> None:
+        full, _ = build()
+        document, stderr = self.build_without_history(full)
+        self.assertEqual(document, full)
+        self.assertEqual(by_id(document)[FDBE]["status"], "withdrawn")
+        self.assertNotIn("STORY_RECORD_UNAVAILABLE", stderr)
+
+    def test_previous_story_follows_the_current_tombstones(self) -> None:
+        full, _ = build()
+        with tempfile.TemporaryDirectory() as tmp:
+            corpus = Path(tmp) / "corpus"
+            shutil.copytree(CORPUS, corpus)
+            doc = json.loads((corpus / "tombstones.json").read_text())
+            next(e for e in doc["tombstones"] if e["id"] == FDBE)["reinstated_at"] = NOW
+            (corpus / "tombstones.json").write_text(json.dumps(doc))
+            with contextlib.redirect_stderr(io.StringIO()):
+                inputs = story_layer.StoryInputs(corpus, None, REPO / "site", REPO / "site" / "data" / "i18n", NOW, previous=full)
+                story = by_id(story_layer.build_stories(inputs))[FDBE]
+        self.assertEqual(story["status"], "live")
+        self.assertEqual([c["kind"] for c in story["corrections"]], ["withdrawal", "reinstatement"])
+        self.assertEqual(story["first_published_at"], "2026-09-18T22:36:23Z")
+
+    def test_no_source_at_all_is_reported_not_invented(self) -> None:
+        document, stderr = self.build_without_history(None)
+        self.assertNotIn(FDBE, by_id(document))
+        self.assertIn(f"ALERT STORY_RECORD_UNAVAILABLE {FDBE}", stderr)
+        self.assertEqual(sum(s["status"] == "live" for s in document["stories"]), 41)
+
+
+class NewsroomOutputTests(unittest.TestCase):
+    """build_newsroom_surfaces.py writes the v2 data, corrections and notice pages."""
+
+    def setUp(self) -> None:
+        self.tmp = tempfile.TemporaryDirectory()
+        self.site = Path(self.tmp.name) / "site"
+        (self.site / "news" / "en").mkdir(parents=True)
+        (self.site / "developments").mkdir()
+        (self.site / "news" / "en" / f"{FDBE}.html").write_text("<html><h1>Old &amp; true headline</h1></html>")
+        for dup in MERGES:
+            (self.site / "developments" / f"{dup}.html").write_text("stale dossier")
+        self.document, _ = build()
+
+    def tearDown(self) -> None:
+        self.tmp.cleanup()
+
+    def read(self, rel: str) -> str:
+        return (self.site / rel).read_text(encoding="utf-8")
+
+    def test_notices_corrections_and_data(self) -> None:
+        notices = surfaces.write_story_layer_outputs(self.site, self.document, CORPUS)
+        self.assertEqual(notices, 9)
+        self.assertEqual(json.loads(self.read("data/stories.v2.json")), self.document)
+        rows = json.loads(self.read("data/corrections.json"))
+        self.assertEqual({(r["story_id"], r["kind"]) for r in rows},
+                         {(FDBE, "withdrawal"), *((dup, "merge") for dup in MERGES)})
+        for dup, survivor in MERGES.items():
+            self.assertFalse((self.site / "developments" / f"{dup}.html").exists())
+            page = self.read(f"news/es/{dup}.html")
+            self.assertIn(f'rel="canonical" href="{surfaces.BASE}/news/es/{survivor}.html"', page)
+            self.assertIn('data-fcmo-story-status="merged"', page)
+        page = self.read(f"news/zh-hans/{FDBE}.html")
+        self.assertIn('data-fcmo-story-status="withdrawn"', page)
+        self.assertIn("noindex", page)
+
+    def test_tombstone_alone_still_retires_the_page(self) -> None:
+        document = dict(self.document, stories=[s for s in self.document["stories"] if s["id"] != FDBE])
+        for _ in range(2):  # the second run reads the title back from corrections.json
+            self.assertEqual(surfaces.write_story_layer_outputs(self.site, document, CORPUS), 9)
+            page = self.read(f"news/en/{FDBE}.html")
+            self.assertIn('data-fcmo-story-status="withdrawn"', page)
+            self.assertIn("Old &amp; true headline", page)
+            row = next(r for r in json.loads(self.read("data/corrections.json")) if r["story_id"] == FDBE)
+            self.assertEqual((row["kind"], row["reason_code"], row["story_title"]),
+                             ("withdrawal", "UNVERIFIED_RELEASE", "Old & true headline"))
+        self.assertNotIn(FDBE, by_id(json.loads(self.read("data/stories.v2.json"))))
+
+
+class IngestSelectionTests(unittest.TestCase):
+    """ingest_corpus.publishable_rows decides per record, never for the whole batch."""
+
+    def setUp(self) -> None:
+        self.tmp = tempfile.TemporaryDirectory()
+        self.corpus = Path(self.tmp.name) / "corpus"
+        shutil.copytree(CORPUS, self.corpus)
+        self.rows = taxonomy.read_jsonl(self.corpus / "data" / "developments.jsonl")
+
+    def tearDown(self) -> None:
+        self.tmp.cleanup()
+
+    def select(self, rows: list) -> tuple[list, dict, list]:
+        return ingest_corpus.publishable_rows(self.corpus, rows)
+
+    def test_repository_corpus_publishes_41(self) -> None:
+        selected, merged, held = self.select(self.rows)
+        self.assertEqual(len(selected), 41)
+        self.assertEqual(merged, MERGES)
+        self.assertEqual(sorted(held), sorted([(FDBE, "TOMBSTONED:UNVERIFIED_RELEASE"),
+                                               *((dup, "TOMBSTONED:DUPLICATE") for dup in MERGES)]))
+
+    def test_one_bad_record_is_held_back_alone(self) -> None:
+        rows = [dict(r) for r in self.rows]
+        rows[3]["claims"] = []
+        rows[4]["status"] = "withdrawn"
+        selected, _, held = self.select(rows)
+        self.assertEqual(len(selected), 39)
+        self.assertIn((rows[3]["id"], "QUARANTINE:CLAIMS_MISSING"), held)
+        self.assertIn((rows[4]["id"], "WITHDRAWN_UPSTREAM"), held)
+
+    def test_mass_quarantine_refuses_the_batch(self) -> None:
+        rows = [dict(r, claims=[]) if i < 10 else r for i, r in enumerate(self.rows)]
+        with self.assertRaisesRegex(ValueError, "refusing to publish: 10 of"):
+            self.select(rows)
+
+    def test_carried_record_is_published(self) -> None:
+        doc = json.loads((self.corpus / "tombstones.json").read_text())
+        doc["tombstones"] = [e for e in doc["tombstones"] if e["id"] != FDBE]
+        (self.corpus / "tombstones.json").write_text(json.dumps(doc))
+        line = (FIXTURES / "corpus-carried.example.jsonl").read_text().splitlines()[0]
+        (self.corpus / "carried.jsonl").write_text(line + "\n")
+        selected, _, held = self.select(self.rows)
+        self.assertIn(FDBE, {r["id"] for r in selected})
+        self.assertEqual(len(selected), 42)
 
 
 class TaxonomyTests(unittest.TestCase):
