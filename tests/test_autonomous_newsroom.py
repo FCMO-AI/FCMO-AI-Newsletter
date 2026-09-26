@@ -179,7 +179,7 @@ class AutonomousNewsroomTests(unittest.TestCase):
                 "--site", str(site), "--i18n-dir", str(i18n), "--receipt", str(receipt)
             ]), 0)
             value = json.loads(receipt.read_text(encoding="utf-8"))
-            self.assertIn("ARB publication agent", value["editorial_owner"])
+            self.assertIn("FCMO Publication Desk", value["editorial_owner"])
             self.assertFalse(value["network_translation"])
             self.assertFalse(value["human_reviewed"])
             self.assertEqual(value["historical_structural_pairs"], 2)

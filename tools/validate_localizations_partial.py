@@ -104,7 +104,7 @@ def main(argv: list[str] | None = None) -> int:
         "schema": "fcmo-locale-integrity-v3",
         "canonical_locale": "en",
         "required_locales": list(LOCALES),
-        "editorial_owner": "ARB publication agent for native editions; pending translations are explicit",
+        "editorial_owner": "FCMO Publication Desk for native editions; pending translations are explicit",
         "human_reviewed": False,
         "network_translation": False,
         "strict_airlock_pairs": strict_pairs,

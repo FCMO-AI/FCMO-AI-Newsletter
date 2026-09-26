@@ -84,9 +84,9 @@ ARB writes the two additional native editions before the airlock. Newsletter the
 1. imports `corpus/data/locales/es-419/records.json` and `zh-Hans/records.json` with `tools/sync_airlocked_locales.py`;
 2. prunes any overlay path that no longer exists in the declassified schema with `tools/reconcile_locale_overlays.py`;
 3. runs `tools/validate_localizations.py` to require exact story-ID parity, required reader-facing prose, compatible structure, exact number/FCMO-ID/URL preservation, basic Simplified-Chinese script sanity, and non-identical language editions;
-4. records a provider-free integrity receipt with `editorial_owner: ARB publication agent`, `human_reviewed: false`, and `network_translation: false`.
+4. records a provider-free integrity receipt with `editorial_owner: FCMO Publication Desk`, `human_reviewed: false`, and `network_translation: false`.
 
-Deterministic validation does not pretend to prove literary quality. Semantic fidelity is the responsibility of the ARB publication agent and remains auditable through source control. There is no downstream translation generator, no language-model review service, and no page-view generative fallback.
+Deterministic validation does not pretend to prove literary quality. Semantic fidelity is the responsibility of the FCMO Publication Desk (see `LOCALIZATION.md`) and remains auditable through source control. There is no downstream translation generator, no language-model review service, and no page-view generative fallback.
 
 The runtime remains presentation-only.
 

@@ -637,7 +637,7 @@ def legacy_main(args: argparse.Namespace) -> int:
         "schema": "fcmo-locale-integrity-v2",
         "canonical_locale": "en",
         "required_locales": list(LOCALES),
-        "editorial_owner": "ARB publication agent for modern airlocked editions; historical packs preserved as published",
+        "editorial_owner": "FCMO Publication Desk for es-419 and zh-Hans; ARB locale deltas imported when present; historical packs preserved as published",
         "human_reviewed": False,
         "network_translation": False,
         "strict_airlock_pairs": strict_pairs,
