@@ -535,6 +535,8 @@ class OperatorAlertsWorkflowTests(unittest.TestCase):
         self.assertIn("tools/status_report.py", self.text)
         self.assertIn("--if-changed", self.text)
         self.assertIn("git push origin HEAD:main", self.text)
+        # The issue and the status file do not depend on each other.
+        self.assertEqual(self.text.count("steps.download.outcome == 'success'"), 2)
         # Skipped/cancelled health runs measured nothing.
         self.assertIn("github.event.workflow_run.conclusion == 'failure'", self.text)
         self.assertNotIn("conclusion == 'skipped'", self.text)

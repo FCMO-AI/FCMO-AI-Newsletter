@@ -63,6 +63,7 @@ jobs:
           python-version: '3.12'
 
       - name: Download the health-state artifact of the health run
+        id: download
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
@@ -74,7 +75,10 @@ jobs:
           gh run download "$HEALTH_RUN_ID" --repo "$GITHUB_REPOSITORY" --name health-state --dir "$RUNNER_TEMP/health" \
             || echo 'health-state artifact not found' >&2
 
+      # The issue and the status file are independent: a GitHub API failure
+      # in one must not stop the other.
       - name: Open, update or close the health incident issue
+        if: ${{ !cancelled() && steps.download.outcome == 'success' }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: >-
@@ -84,6 +88,8 @@ jobs:
           --run-id "$HEALTH_RUN_ID"
 
       - name: Regenerate PRODUCTION_STATUS.md when the state changed
+        id: status
+        if: ${{ !cancelled() && steps.download.outcome == 'success' }}
         run: >-
           python3 tools/status_report.py
           --health "$RUNNER_TEMP/health/health-state.json"
@@ -91,6 +97,7 @@ jobs:
           --if-changed --max-age-h 24
 
       - name: Commit PRODUCTION_STATUS.md
+        if: ${{ !cancelled() && steps.status.outcome == 'success' }}
         shell: bash
         run: |
           if git diff --quiet -- PRODUCTION_STATUS.md; then
