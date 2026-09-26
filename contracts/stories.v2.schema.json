@@ -1,0 +1,217 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/contracts/stories.v2.schema.json",
+  "title": "Story layer v2 (site/data/stories.json, input of the static build)",
+  "description": "One entry per public id, including withdrawn and merged ones (append-only: a story never disappears, it changes status). The reader-facing date is event_at at date_precision, with first_published_at as the second line. Every (story, locale) pair is complete or visibly pending: a PENDING or FAILED locale is rendered as a notice linking to English, never as English prose under a non-English lang.",
+  "x-contract": {"name": "stories.v2", "status": "v2-draft", "version": 2},
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "generated_at", "release_id", "canonical_locale", "locales", "stories"],
+  "properties": {
+    "schema": {"const": "fcmo-stories-v2"},
+    "generated_at": {"$ref": "#/$defs/utc"},
+    "release_id": {"type": ["string", "null"], "pattern": "^newswire-[0-9a-f]{24}$"},
+    "canonical_locale": {"const": "en"},
+    "locales": {"const": ["en", "es-419", "zh-Hans"]},
+    "stories": {"type": "array", "x-unique-by": "id", "items": {"$ref": "#/$defs/story"}}
+  },
+  "$defs": {
+    "utc": {"type": "string", "format": "date-time", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"},
+    "fcmo_id": {"type": "string", "pattern": "^FCMO-[0-9A-F]{12}$"},
+    "text": {"type": "string", "minLength": 1},
+    "story": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id", "slug", "url_date", "kind", "status", "beat", "desk", "title", "summary",
+        "why_it_matters", "event_at", "date_precision", "first_published_at", "updated_at",
+        "importance", "evidence_class", "confidence", "front_page_eligible", "carried_forward",
+        "evidence", "sources", "corrections", "related", "organizations", "topics", "regions",
+        "media", "l10n"
+      ],
+      "properties": {
+        "id": {"$ref": "#/$defs/fcmo_id"},
+        "slug": {"type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$", "maxLength": 80},
+        "url_date": {"type": "string", "format": "date", "description": "Frozen from the first-publication ledger; the story URL is /{lp}/YYYY/MM/DD/{slug}/."},
+        "kind": {"enum": ["development", "event"]},
+        "status": {"enum": ["live", "withdrawn", "merged"]},
+        "merged_into": {"$ref": "#/$defs/fcmo_id"},
+        "beat": {"enum": ["technology", "business", "policy", "society", "research"]},
+        "desk": {
+          "enum": [
+            "architectures_scaling", "reasoning_posttraining", "agents_memory",
+            "multimodality_world_models", "evaluation_science", "compute_inference",
+            "labs_industry", "policy_geopolitics"
+          ]
+        },
+        "title": {"type": "string", "minLength": 8, "maxLength": 300},
+        "headline": {"type": "string", "minLength": 8, "maxLength": 90},
+        "dek": {"type": "string", "minLength": 20, "maxLength": 240},
+        "summary": {"type": "string", "minLength": 20, "description": "Reader section 'What changed'."},
+        "why_it_matters": {"type": "string", "minLength": 20},
+        "importance_rationale": {"type": "string"},
+        "technical": {"type": "object", "additionalProperties": {"type": "string"}},
+        "event_at": {"$ref": "#/$defs/utc"},
+        "date_precision": {"enum": ["minute", "hour", "day", "month"]},
+        "scheduled_at": {"$ref": "#/$defs/utc"},
+        "first_published_at": {"$ref": "#/$defs/utc"},
+        "updated_at": {"$ref": "#/$defs/utc"},
+        "importance": {"type": "integer", "minimum": 0, "maximum": 10},
+        "evidence_class": {"enum": ["A", "B", "C", "D"]},
+        "confidence": {"enum": ["confirmed", "strongly_supported", "supported", "supported_with_limits", "claimed_unverified"]},
+        "front_page_eligible": {"type": "boolean", "description": "True only for live stories with a headline and a dek; lengths are never fixed by truncation."},
+        "carried_forward": {"type": "boolean", "description": "Kept live after the upstream stopped sending it (corpus_guard CARRY_FORWARD)."},
+        "evidence": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["claims", "limitations", "gaps", "contradictory"],
+          "properties": {
+            "claims": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["label", "text"],
+                "properties": {
+                  "label": {"enum": ["DEMONSTRATED", "CLAIMED", "INFERRED", "SPECULATIVE", "DISPUTED"], "description": "Rendered through the UI catalogs as a human label, never as the raw code."},
+                  "qualifier": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"},
+                  "text": {"$ref": "#/$defs/text"}
+                }
+              }
+            },
+            "limitations": {"type": "array", "items": {"$ref": "#/$defs/text"}},
+            "gaps": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["kind", "description"],
+                "properties": {"kind": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"}, "description": {"$ref": "#/$defs/text"}}
+              }
+            },
+            "contradictory": {"type": "array", "items": {"$ref": "#/$defs/text"}}
+          }
+        },
+        "sources": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["url", "domain", "primary"],
+            "properties": {
+              "url": {"type": "string", "format": "uri"},
+              "domain": {"type": "string", "pattern": "^[a-z0-9.-]+$"},
+              "primary": {"type": "boolean"},
+              "title": {"type": "string"}
+            }
+          }
+        },
+        "corrections": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["at", "kind", "reason_code", "text"],
+            "properties": {
+              "at": {"$ref": "#/$defs/utc"},
+              "kind": {"enum": ["correction", "withdrawal", "merge", "update", "reinstatement"]},
+              "reason_code": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"},
+              "text": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["en"],
+                "properties": {"en": {"$ref": "#/$defs/text"}, "es-419": {"$ref": "#/$defs/text"}, "zh-Hans": {"$ref": "#/$defs/text"}}
+              }
+            }
+          }
+        },
+        "related": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "type"],
+            "properties": {
+              "id": {"$ref": "#/$defs/fcmo_id"},
+              "type": {"enum": ["related", "follow_up", "duplicate_of", "supersedes"]},
+              "summary": {"type": "string"}
+            }
+          }
+        },
+        "organizations": {"type": "array", "items": {"type": "string"}},
+        "topics": {"type": "array", "items": {"type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"}},
+        "regions": {"type": "array", "items": {"type": "string", "pattern": "^([A-Z]{2}|GLOBAL|EU)$"}},
+        "media": {
+          "oneOf": [
+            {"type": "null"},
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["kind", "local_path", "credit", "license", "alt", "width", "height"],
+              "properties": {
+                "kind": {"enum": ["licensed", "explainer"]},
+                "local_path": {"type": "string", "pattern": "^(media|assets)/[A-Za-z0-9._/-]+$"},
+                "credit": {"type": "string"},
+                "license": {"type": "string"},
+                "source_url": {"type": "string", "format": "uri"},
+                "alt": {"type": "object", "required": ["en"], "additionalProperties": {"type": "string"}},
+                "width": {"type": "integer", "minimum": 1},
+                "height": {"type": "integer", "minimum": 1}
+              },
+              "if": {"properties": {"kind": {"const": "licensed"}}},
+              "then": {"properties": {"credit": {"minLength": 1}, "local_path": {"pattern": "^media/"}}, "required": ["source_url"]}
+            }
+          ]
+        },
+        "l10n": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["es-419", "zh-Hans"],
+          "properties": {"es-419": {"$ref": "#/$defs/l10n"}, "zh-Hans": {"$ref": "#/$defs/l10n"}}
+        }
+      },
+      "allOf": [
+        {"if": {"properties": {"status": {"const": "merged"}}}, "then": {"required": ["merged_into"]}},
+        {"if": {"properties": {"status": {"enum": ["withdrawn", "merged"]}}}, "then": {"properties": {"front_page_eligible": {"const": false}, "corrections": {"minItems": 1}}}},
+        {"if": {"properties": {"status": {"const": "live"}}}, "then": {"properties": {"sources": {"minItems": 1}}}},
+        {"if": {"properties": {"front_page_eligible": {"const": true}}}, "then": {"required": ["headline", "dek"]}},
+        {"if": {"properties": {"kind": {"const": "event"}}}, "then": {"required": ["scheduled_at"]}}
+      ]
+    },
+    "l10n": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "fields", "missing"],
+      "properties": {
+        "state": {"enum": ["NATIVE_ARB", "MACHINE_REVIEWED", "PENDING", "FAILED"]},
+        "fields": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "title": {"$ref": "#/$defs/text"},
+            "headline": {"type": "string", "minLength": 1, "maxLength": 90},
+            "dek": {"type": "string", "minLength": 1, "maxLength": 240},
+            "summary": {"$ref": "#/$defs/text"},
+            "why_it_matters": {"$ref": "#/$defs/text"},
+            "importance_rationale": {"$ref": "#/$defs/text"},
+            "technical": {"type": "object", "additionalProperties": {"type": "string"}},
+            "evidence": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "claims": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["text"], "properties": {"text": {"$ref": "#/$defs/text"}}}},
+                "limitations": {"type": "array", "items": {"$ref": "#/$defs/text"}},
+                "gaps": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["description"], "properties": {"description": {"$ref": "#/$defs/text"}}}},
+                "contradictory": {"type": "array", "items": {"$ref": "#/$defs/text"}}
+              }
+            }
+          }
+        },
+        "missing": {"type": "array", "uniqueItems": true, "items": {"type": "string", "pattern": "^[a-z_]+(\\.[a-z_]+)?$"}, "description": "Dotted field paths still absent, e.g. evidence.claims."},
+        "provenance": {"type": "object", "additionalProperties": {"enum": ["arb", "machine", "human"]}, "description": "Origin per field path; the page shows a 'machine translation, reviewed' label when any field is machine."}
+      },
+      "if": {"properties": {"state": {"enum": ["NATIVE_ARB", "MACHINE_REVIEWED"]}}},
+      "then": {"properties": {"missing": {"maxItems": 0}, "fields": {"required": ["title", "summary", "why_it_matters"]}}}
+    }
+  }
+}

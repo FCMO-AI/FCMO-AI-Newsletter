@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/contracts/health-state.schema.json",
+  "title": "Operator health state (health-state.json)",
+  "description": "Produced by the hourly health workflow and uploaded as an artifact. Operator alerts open or close on transitions of overall and of each required signal; PRODUCTION_STATUS.md is generated from it. Serving, transport, upstream and editorial are separate signals by design.",
+  "x-contract": {"name": "health-state", "status": "v2-frozen", "version": 1},
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "checked_at", "run_id", "overall", "edition_state", "release_id", "signals", "open_alerts"],
+  "properties": {
+    "schema": {"const": "fcmo-health-state-v1"},
+    "checked_at": {"$ref": "#/$defs/utc"},
+    "run_id": {"type": ["string", "null"], "pattern": "^[0-9]{1,20}$"},
+    "overall": {"enum": ["GREEN", "RED"], "description": "RED when any required signal is not GREEN (UNKNOWN counts as RED)."},
+    "edition_state": {"type": "string", "pattern": "^(FRESH|QUIET|TRANSPORT_DOWN|DELAYED:(ARB_MAIN_RED|CHECKPOINT_STALE|STORY_SUPPLY|TRANSPORT_FAIL|SNAPSHOT_REFUSED))$"},
+    "release_id": {"type": ["string", "null"], "pattern": "^newswire-[0-9a-f]{24}$"},
+    "signals": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["serving", "transport", "upstream", "editorial", "translation"],
+      "properties": {
+        "serving": {"$ref": "#/$defs/signal", "properties": {"required": {"const": true}, "code": {"enum": ["OK", "UNREACHABLE", "ROUTES_FAILED", "IDENTITY_MISMATCH", "UNKNOWN"]}}},
+        "transport": {"$ref": "#/$defs/signal", "properties": {"required": {"const": true}, "code": {"enum": ["OK", "TRANSPORT_DOWN", "TRANSPORT_FAIL", "UNKNOWN"]}}},
+        "upstream": {"$ref": "#/$defs/signal", "properties": {"required": {"const": true}, "code": {"enum": ["FRESH", "QUIET", "ARB_MAIN_RED", "CHECKPOINT_STALE", "STORY_SUPPLY", "SNAPSHOT_REFUSED", "UNKNOWN"]}}},
+        "editorial": {"$ref": "#/$defs/signal", "properties": {"required": {"const": true}, "code": {"enum": ["OK", "EVENT_STALE", "STORY_SUPPLY", "UNKNOWN"]}}},
+        "translation": {"$ref": "#/$defs/signal", "properties": {"required": {"const": false}, "code": {"enum": ["OK", "BACKLOG", "UNKNOWN"]}}},
+        "community": {"$ref": "#/$defs/signal", "properties": {"required": {"const": false}, "code": {"enum": ["OK", "DOWN", "NOT_CONFIGURED", "UNKNOWN"]}}},
+        "watchdog": {"$ref": "#/$defs/signal", "properties": {"required": {"const": false}, "code": {"enum": ["OK", "STALE", "NOT_CONFIGURED", "UNKNOWN"]}}}
+      }
+    },
+    "open_alerts": {
+      "type": "array",
+      "x-unique-by": "key",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["key", "code", "since"],
+        "properties": {
+          "key": {"enum": ["overall", "serving", "transport", "upstream", "editorial", "translation", "community", "watchdog"]},
+          "code": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"},
+          "since": {"$ref": "#/$defs/utc"}
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"signals": {"anyOf": [
+        {"properties": {"serving": {"properties": {"status": {"not": {"const": "GREEN"}}}}}},
+        {"properties": {"transport": {"properties": {"status": {"not": {"const": "GREEN"}}}}}},
+        {"properties": {"upstream": {"properties": {"status": {"not": {"const": "GREEN"}}}}}},
+        {"properties": {"editorial": {"properties": {"status": {"not": {"const": "GREEN"}}}}}}
+      ]}}},
+      "then": {"properties": {"overall": {"const": "RED"}}},
+      "else": {"properties": {"overall": {"const": "GREEN"}}}
+    }
+  ],
+  "$defs": {
+    "utc": {"type": "string", "format": "date-time", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"},
+    "signal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "code", "required", "since", "detail"],
+      "properties": {
+        "status": {"enum": ["GREEN", "RED", "UNKNOWN"]},
+        "code": {"type": "string"},
+        "required": {"type": "boolean"},
+        "since": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/utc"}], "description": "When status last changed."},
+        "detail": {"type": "string", "maxLength": 300, "description": "Public-safe one-liner; no logs, paths or credentials."},
+        "metrics": {"type": "object", "additionalProperties": {"type": ["number", "string", "null"]}}
+      },
+      "allOf": [
+        {"if": {"properties": {"status": {"const": "GREEN"}}}, "then": {"properties": {"code": {"enum": ["OK", "FRESH", "QUIET"]}}}},
+        {"if": {"properties": {"status": {"const": "UNKNOWN"}}}, "then": {"properties": {"code": {"enum": ["UNKNOWN", "NOT_CONFIGURED"]}}}}
+      ]
+    }
+  }
+}
