@@ -536,11 +536,72 @@ def correction(at: str, kind: str, reason: str, text: dict[str, str]) -> dict[st
 # ---------------------------------------------------------------------------------------
 # Build
 # ---------------------------------------------------------------------------------------
+def load_previous_stories(site: Path) -> dict[str, Any] | None:
+    path = site / "data" / "stories.v2.json"
+    try:
+        doc = json.loads(path.read_text(encoding="utf-8")) if path.is_file() else None
+    except ValueError:
+        return None
+    return doc if isinstance(doc, dict) and doc.get("schema") == STORIES_SCHEMA else None
+
+
+def record_from_story(story: dict[str, Any]) -> dict[str, Any]:
+    """The normalized-record view of a previously published story (no history needed)."""
+    evidence = story.get("evidence") or {}
+    record: dict[str, Any] = {
+        "id": story["id"], "kind": story.get("kind", "development"), "status": "active",
+        "title": story["title"], "summary": story["summary"], "why_it_matters": story["why_it_matters"],
+        "importance_rationale": story.get("importance_rationale") or story["why_it_matters"],
+        "beat": story["beat"], "primary_desk": story["desk"], "desks": [story["desk"]],
+        "event_at": story["event_at"], "date_precision": story["date_precision"],
+        "evidence_class": story["evidence_class"], "confidence": story["confidence"],
+        "importance_effective_score": story["importance"],
+        "claims": list(evidence.get("claims") or []),
+        "limitations": list(evidence.get("limitations") or []),
+        "evidence_gaps": [dict(g) for g in evidence.get("gaps") or []],
+        "contradictory_evidence": list(evidence.get("contradictory") or []),
+        "organizations": list(story.get("organizations") or []),
+        "topics": list(story.get("topics") or []),
+        "regions": list(story.get("regions") or []),
+        "source_urls": [s["url"] for s in story.get("sources") or []],
+        "sources": [{"url": s["url"], "primary": bool(s.get("primary"))} for s in story.get("sources") or []],
+        "relationships": [{"target_id": r["id"], "type": r["type"], **({"summary": r["summary"]} if r.get("summary") else {})}
+                          for r in story.get("related") or [] if r.get("type") in {"related", "follow_up"}],
+    }
+    for key in ("technical", "headline", "dek", "scheduled_at"):
+        if story.get(key):
+            record[key] = story[key]
+    return record
+
+
+def locale_rows_from_story(story: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    """Previous per-locale fields in the record shape build_l10n reads."""
+    rows: dict[str, dict[str, Any]] = {}
+    for locale in TARGET_LOCALES:
+        fields = ((story.get("l10n") or {}).get(locale) or {}).get("fields") or {}
+        evidence = fields.get("evidence") or {}
+        row = {k: fields[k] for k in ("title", "summary", "why_it_matters", "importance_rationale",
+                                       "technical", "headline", "dek") if k in fields}
+        if "claims" in evidence:
+            row["claims"] = [c.get("text") for c in evidence["claims"]]
+        if "limitations" in evidence:
+            row["limitations"] = list(evidence["limitations"])
+        if "gaps" in evidence:
+            row["evidence_gaps"] = [g.get("description") for g in evidence["gaps"]]
+        if "contradictory" in evidence:
+            row["contradictory_evidence"] = list(evidence["contradictory"])
+        rows[locale] = row
+    return rows
+
+
 class StoryInputs:
     """Everything the story layer reads, loaded once."""
 
-    def __init__(self, corpus: Path, repo: Path | None, site: Path | None, i18n: Path | None, now: str):
+    def __init__(self, corpus: Path, repo: Path | None, site: Path | None, i18n: Path | None, now: str,
+                 previous: dict[str, Any] | None = None):
         self.corpus, self.repo, self.site, self.now = corpus, repo, site, now
+        if previous is None and site is not None:
+            previous = load_previous_stories(site)
         rows = corpus_guard.read_records(corpus)
         self.carried_rows = corpus_guard.read_carried(corpus)
         self.tombstones = load_tombstones(corpus)
@@ -556,7 +617,12 @@ class StoryInputs:
         if repo is not None and is_full_history(repo):
             wanted |= set(history_first_published(repo)) - known
         historical = history_records(repo, wanted) if repo is not None else {}
-        self.orphans = set(historical) - set(self.active)
+        # A shallow checkout has no history: the previous stories.v2 output keeps the
+        # last published form of every id that left the corpus.
+        before = {s["id"]: s for s in (previous or {}).get("stories", []) if isinstance(s, dict) and s.get("id")}
+        frozen = {rid: before[rid] for rid in wanted - set(historical) if rid in before}
+        self.unavailable = sorted(wanted - set(historical) - set(frozen))
+        self.orphans = (set(historical) | set(frozen)) - set(self.active)
         self.records: dict[str, dict[str, Any]] = {}
         self.quarantined: list[tuple[str, list[str]]] = []
         for row in rows + carried + list(historical.values()):
@@ -566,12 +632,15 @@ class StoryInputs:
                 self.quarantined.append((row.get("id", "-"), exc.codes))
                 continue
             self.records.setdefault(record["id"], record)
+        for rid, story in frozen.items():
+            self.records.setdefault(rid, record_from_story(story))
         self.first = first_published_map(self.records, self.ledger, repo, site, now)
         deltas = load_locale_deltas(corpus)
         packs = load_site_packs(i18n)
         self.locale_rows = {
             rid: [{loc: deltas[loc].get(rid) for loc in TARGET_LOCALES},
                   {loc: packs[loc].get(rid) for loc in TARGET_LOCALES}]
+            + ([locale_rows_from_story(frozen[rid])] if rid in frozen else [])
             for rid in self.records
         }
         self.release_id = corpus_guard.read_release_id(corpus)
@@ -621,6 +690,8 @@ def build_stories(inputs: StoryInputs) -> dict[str, Any]:
         log(f"QUARANTINE {rid} {','.join(codes)}")
     for rid in sorted(inputs.orphans):
         log(f"ALERT STORY_ORPHAN {rid} (published before, absent from the corpus without a tombstone)")
+    for rid in inputs.unavailable:
+        log(f"ALERT STORY_RECORD_UNAVAILABLE {rid} (no corpus record, no git history, no previous stories.v2)")
     stories: dict[str, dict[str, Any]] = {}
     for rid, record in inputs.records.items():
         carried = rid in inputs.carried_ids or rid in inputs.orphans
