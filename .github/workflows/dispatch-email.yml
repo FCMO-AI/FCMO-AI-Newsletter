@@ -1,0 +1,43 @@
+name: Dispatch FCMO AI Diario
+
+on:
+  workflow_run:
+    workflows: ["Deploy FCMO AI Newsletter"]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fcmo-daily-email-${{ github.event.workflow_run.head_sha }}
+  cancel-in-progress: false
+
+jobs:
+  dispatch:
+    if: github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    environment: email
+    steps:
+      - name: Checkout the verified publication commit
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Re-check the public origin after Pages live verification
+        run: >-
+          python tools/verify_live_newsroom.py
+          --signal-out "$RUNNER_TEMP/live-verify.json"
+      - name: Dispatch one idempotent Diario email
+        env:
+          GHOST_URL: ${{ secrets.GHOST_URL }}
+          GHOST_ADMIN_API_KEY: ${{ secrets.GHOST_ADMIN_API_KEY }}
+          FCMO_EMAIL_POSTAL_ADDRESS: ${{ secrets.FCMO_EMAIL_POSTAL_ADDRESS }}
+        run: >-
+          python tools/email_dispatch.py
+          --stories site/data/stories.json
+          --status site/data/newsroom-status.json
+          --live-verify "$RUNNER_TEMP/live-verify.json"
