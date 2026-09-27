@@ -51,7 +51,7 @@ def document(*, locale: dict, catalog: dict, config: dict, base: str, path: str,
     if json_ld:
         structured = '<script type="application/ld+json">' + json.dumps(json_ld, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/") + "</script>"
     # A tiny progressive enhancement: stale fallback and legacy fragment mapping.
-    safeguard = """<script>(()=>{let b=document.querySelector('[data-edition-at]');if(b&&Date.now()-Date.parse(b.dataset.editionAt)>1296e5){b.hidden=false;b.dataset.editionState='DELAYED'}let m=location.hash.match(/^#\/brief\/(FCMO-[A-F0-9]{12})/);if(m)location.replace(document.documentElement.dataset.storyBase+m[1]+'.html')})()</script>"""
+    safeguard = r"""<script>(()=>{let b=document.querySelector('[data-edition-at]');if(b&&Date.now()-Date.parse(b.dataset.editionAt)>1296e5){b.hidden=false;b.dataset.editionState='DELAYED'}let m=location.hash.match(/^#\/brief\/(FCMO-[A-F0-9]{12})/);if(m)location.replace(document.documentElement.dataset.storyBase+m[1]+'.html')})()</script>"""
     return f'''<!doctype html>
 <html lang="{_e(lang)}" data-story-base="{_e(_url(base, locale_prefix + 'legacy-story/'))}">
 <head>
