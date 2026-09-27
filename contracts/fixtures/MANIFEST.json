@@ -32,6 +32,17 @@
       "expect_state": "FRESH"
     },
     {
+      "name": "publication-receipt.v1.valid",
+      "path": "contracts/fixtures/publication-receipt.v1.valid.json",
+      "schema": "contracts/publication-receipt.v1.schema.json"
+    },
+    {
+      "name": "publication-receipt.v1.path-date-mismatch",
+      "path": "contracts/fixtures/publication-receipt.v1.path-date-mismatch.json",
+      "schema": "contracts/publication-receipt.v1.schema.json",
+      "note": "Schema-valid receipt used under archive/2026/09/26 in bridge tests; path/date equality is a transport invariant."
+    },
+    {
       "name": "wire-status.quiet",
       "path": "contracts/fixtures/wire-status.quiet.json",
       "schema": "contracts/wire-status.schema.json",
@@ -191,12 +202,36 @@
       "why": "the bridge never writes TRANSPORT_DOWN; readers derive it"
     },
     {
+      "name": "publication-receipt.v1.private-content",
+      "path": "contracts/fixtures/invalid/publication-receipt.v1.private-content.json",
+      "schema": "contracts/publication-receipt.v1.schema.json",
+      "expect": "invalid",
+      "expect_error": "/: property 'private_notes' is not allowed",
+      "why": "the frozen public receipt exposes no private or operational fields"
+    },
+    {
+      "name": "publication-receipt.v1.malformed",
+      "path": "contracts/fixtures/invalid/publication-receipt.v1.malformed.json",
+      "schema": "contracts/publication-receipt.v1.schema.json",
+      "expect": "invalid",
+      "expect_error": "/: missing required property 'status'",
+      "why": "a receipt without a valid status/date/time/identity is not publication authority"
+    },
+    {
       "name": "wire-status.ok-without-verdict",
       "path": "contracts/fixtures/invalid/wire-status.ok-without-verdict.json",
       "schema": "contracts/wire-status.schema.json",
       "expect": "invalid",
       "expect_error": "/arb_main: \"UNKNOWN\"",
       "why": "a successful transport must report GREEN or RED for upstream main"
+    },
+    {
+      "name": "wire-status.unknown-with-publication",
+      "path": "contracts/fixtures/invalid/wire-status.unknown-with-publication.json",
+      "schema": "contracts/wire-status.schema.json",
+      "expect": "invalid",
+      "expect_error": "/: must not match the 'not' schema",
+      "why": "UNKNOWN publication authority cannot smuggle authoritative publication fields"
     },
     {
       "name": "wire-status.red-without-failures",

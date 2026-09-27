@@ -177,10 +177,17 @@ class CorpusGuardWrapperTests(Workspace):
 
 
 class WireWriterTests(Workspace):
-    def write(self, name: str, now: str, previous: Path | None = None, *extra: str) -> tuple[subprocess.CompletedProcess, dict, dict[str, str]]:
+    def write(
+        self,
+        name: str,
+        now: str,
+        previous: Path | None = None,
+        *extra: str,
+        corpus: Path | None = None,
+    ) -> tuple[subprocess.CompletedProcess, dict, dict[str, str]]:
         target, gh = self.tmp / f"{name}.json", self.tmp / f"{name}.env"
         gh.write_text("", encoding="utf-8")
-        corpus = FIXTURES / "corpus-43"
+        corpus = corpus or FIXTURES / "corpus-43"
         argv = ["tools/wire_status.py", "write", "--out", str(target), "--now", now, "--trigger", "schedule",
                 "--airlock", str(corpus / "airlock.json"), "--records", str(corpus / "data" / "developments.jsonl"),
                 "--github-output", str(gh)]
@@ -197,6 +204,8 @@ class WireWriterTests(Workspace):
         self.assertEqual(proc.returncode, 0, proc.stderr)
         self.assertEqual(errors("wire-status.schema.json", first), [])
         self.assertEqual((first["state"], out["commit"], out["commit_reason"]), ("QUIET", "true", "FIRST_WRITE"))
+        self.assertEqual(first["publication_authority"], "UNKNOWN")
+        self.assertNotIn("last_authoritative_publication_at", first)
         self.assertEqual(first["last_release_change_at"], "2026-09-23T11:32:15Z")
         self.assertEqual(first["newest_event_at"], wire_status.newest_event_at(FIXTURES / "corpus-43" / "data" / "developments.jsonl"))
         t0 = self.tmp / "t0.json"
@@ -251,6 +260,108 @@ class WireWriterTests(Workspace):
                                  "--source-mode", "MAIN", "--release-changed", "true", "--guard-report", str(report))
         self.assertEqual((doc["state"], doc["last_new_story_at"]), ("FRESH", clock.ahead(hours=1)))
         self.assertEqual(out["commit_reason"], "STATE_CHANGED")
+
+    def _receipt_corpus(
+        self,
+        *,
+        day: str = "2026-09-26",
+        published_at: str = "2026-09-26T13:15:00Z",
+        status: str = "PUBLISHED",
+        edition: str = "edition-2026-09-26-a1b2c3d4e5f6",
+    ) -> Path:
+        corpus = self.corpus("corpus-43", f"receipt-{len(list(self.tmp.glob('receipt-*')))}")
+        path = corpus / "archive" / day.replace("-", "/") / "PUBLICATION.json"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps({
+            "schema": "fcmo-publication-receipt-v1",
+            "publication_date": day,
+            "published_at": published_at,
+            "edition_id": edition,
+            "story_ids": ["FCMO-A1B2C3D4E5F6"] if status == "PUBLISHED" else [],
+            "status": status,
+        }), encoding="utf-8")
+        return corpus
+
+    def test_authoritative_published_receipt_drives_freshness_not_story_timestamp(self) -> None:
+        clock = FakeClock("2026-09-26T14:00:00Z")
+        corpus = self._receipt_corpus()
+        proc, doc, _ = self.write("receipt-fresh", clock.iso(), corpus=corpus)
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertEqual(errors("wire-status.schema.json", doc), [])
+        self.assertEqual(doc["state"], "FRESH")
+        self.assertEqual(doc["publication_authority"], "AUTHORITATIVE")
+        self.assertEqual(doc["last_authoritative_publication_date"], "2026-09-26")
+        self.assertEqual(doc["last_authoritative_publication_at"], "2026-09-26T13:15:00Z")
+        self.assertEqual(doc["last_authoritative_edition_id"], "edition-2026-09-26-a1b2c3d4e5f6")
+        self.assertEqual(doc["last_authoritative_publication_status"], "PUBLISHED")
+        self.assertLess(wire_status.parse_utc(doc["last_new_story_at"]), wire_status.parse_utc("2026-09-26T00:00:00Z"))
+
+    def test_authoritative_quiet_receipt_drives_quiet_even_when_release_changed(self) -> None:
+        corpus = self._receipt_corpus(status="QUIET", edition="edition-2026-09-26-quiet")
+        _, doc, _ = self.write(
+            "receipt-quiet", "2026-09-26T14:00:00Z", None,
+            "--transport", "OK", "--source-mode", "MAIN", "--release-changed", "true",
+            corpus=corpus,
+        )
+        self.assertEqual((doc["state"], doc["last_authoritative_publication_status"]), ("QUIET", "QUIET"))
+
+    def test_newest_valid_receipt_is_projected(self) -> None:
+        corpus = self._receipt_corpus()
+        newer = corpus / "archive/2026/09/27/PUBLICATION.json"
+        newer.parent.mkdir(parents=True)
+        newer.write_text(json.dumps({
+            "schema": "fcmo-publication-receipt-v1", "publication_date": "2026-09-27",
+            "published_at": "2026-09-27T13:00:00-06:00", "edition_id": "edition-2026-09-27-newest",
+            "story_ids": [], "status": "QUIET",
+        }), encoding="utf-8")
+        _, doc, _ = self.write("receipt-newest", "2026-09-27T20:00:00Z", corpus=corpus)
+        self.assertEqual(doc["last_authoritative_publication_date"], "2026-09-27")
+        self.assertEqual(doc["last_authoritative_publication_at"], "2026-09-27T19:00:00Z")
+        self.assertEqual(doc["last_authoritative_edition_id"], "edition-2026-09-27-newest")
+        self.assertEqual(doc["state"], "QUIET")
+
+    def test_no_receipt_never_infers_authority_from_generated_at_or_publication_artifacts(self) -> None:
+        corpus = self.corpus("corpus-43", "inference-traps")
+        airlock = json.loads((corpus / "airlock.json").read_text(encoding="utf-8"))
+        airlock["generated_at"] = "2026-09-26T19:59:59Z"
+        (corpus / "airlock.json").write_text(json.dumps(airlock), encoding="utf-8")
+        (corpus / "DAILY_BRIEF.md").write_text("Published today", encoding="utf-8")
+        edition = corpus / "editions/2026-09-26.html"
+        edition.parent.mkdir(exist_ok=True)
+        edition.write_text("published", encoding="utf-8")
+        _, doc, _ = self.write("no-inference", REFERENCE, corpus=corpus)
+        # Legacy classification remains compatible (and therefore may be FRESH),
+        # but no publication authority or authoritative field is manufactured.
+        self.assertEqual((doc["publication_authority"], doc["state"]), ("UNKNOWN", "FRESH"))
+        self.assertFalse(any(key.startswith("last_authoritative_") for key in doc))
+
+    def test_transport_failure_carries_only_previously_authoritative_publication(self) -> None:
+        corpus = self._receipt_corpus()
+        self.write("authority-ok", "2026-09-26T14:00:00Z", corpus=corpus)
+        _, failed, _ = self.write(
+            "authority-fail", "2026-09-26T15:00:00Z", self.tmp / "authority-ok.json",
+            "--transport", "FAIL", "--transport-error", "TOKEN_MINT_FAILED",
+            corpus=FIXTURES / "corpus-43",
+        )
+        self.assertEqual(failed["publication_authority"], "AUTHORITATIVE")
+        self.assertEqual(failed["last_authoritative_edition_id"], "edition-2026-09-26-a1b2c3d4e5f6")
+
+    def test_authority_change_commits_even_when_state_does_not_change(self) -> None:
+        corpus = self._receipt_corpus()
+        previous = json.loads((FIXTURES / "wire-status.fresh.json").read_text(encoding="utf-8"))
+        airlock = json.loads((corpus / "airlock.json").read_text(encoding="utf-8"))
+        previous.update({
+            "release_id": airlock["release_id"],
+            "corpus_digest": airlock["corpus_digest"],
+            "record_count": airlock["record_count"],
+            "release_changed": False,
+            "guard": {"verdict": "NOT_RUN", "missing": [], "withdrawn": [], "added": 0, "ratio": 0.0},
+        })
+        previous_path = self.tmp / "legacy-fresh.json"
+        previous_path.write_text(json.dumps(previous), encoding="utf-8")
+        _, doc, out = self.write("authority-change", "2026-09-26T19:20:00Z", previous_path, corpus=corpus)
+        self.assertEqual((doc["state"], out["commit"], out["commit_reason"]),
+                         ("FRESH", "true", "PUBLICATION_CHANGED"))
 
 
 class StagingTests(Workspace):

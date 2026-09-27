@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/contracts/publication-receipt.v1.schema.json",
+  "title": "Public ARB daily-publication receipt",
+  "description": "Frozen public projection of archive/YYYY/MM/DD/PUBLICATION.json. It contains publication facts only; operational, repository, run and operator metadata are forbidden.",
+  "x-contract": {"name": "publication-receipt.v1", "status": "v2-frozen", "version": 1},
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "publication_date", "published_at", "edition_id", "story_ids", "status"],
+  "properties": {
+    "schema": {"const": "fcmo-publication-receipt-v1"},
+    "publication_date": {
+      "type": "string",
+      "format": "date",
+      "description": "The edition's America/Mexico_City calendar date. The bridge also requires it to equal the date encoded by the receipt path."
+    },
+    "published_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Actual publication time with an RFC 3339 offset. Its America/Mexico_City date must equal publication_date."
+    },
+    "edition_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+      "description": "Stable opaque public identity for this edition; never a private commit, run or operator identity."
+    },
+    "story_ids": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"type": "string", "pattern": "^FCMO-[0-9A-F]{12}$"},
+      "description": "Public story identifiers included by this daily publication decision."
+    },
+    "status": {
+      "enum": ["PUBLISHED", "QUIET"],
+      "description": "PUBLISHED means an edition was issued; QUIET is an authoritative no-material-change publication decision."
+    }
+  }
+}

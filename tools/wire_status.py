@@ -19,8 +19,8 @@ Subcommands::
     health    compose health-state.json from the separate signal results
 
 Time source everywhere: ``--now`` > ``FCMO_NOW`` > the real UTC clock. Every
-field this tool writes is a code, an id, a count or a UTC timestamp; no log
-text, path or credential ever reaches a public file.
+field this tool writes is a code, a public id/date, a count or a UTC timestamp;
+no log text, path or credential ever reaches a public file.
 """
 from __future__ import annotations
 
@@ -33,9 +33,14 @@ import shutil
 import subprocess
 import sys
 import tempfile
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
+
+try:
+    from tools import newswire_bridge
+except ImportError:  # executed as tools/wire_status.py
+    import newswire_bridge  # type: ignore
 
 ROOT = Path(__file__).resolve().parents[1]
 THRESHOLDS = ROOT / "contracts" / "thresholds.json"
@@ -77,6 +82,12 @@ REQUIRED = (
     "last_new_story_at", "newest_event_at", "guard", "state", "warnings", "previous_state",
     "state_since",
 )
+PUBLICATION_FIELDS = (
+    "publication_authority", "last_authoritative_publication_date",
+    "last_authoritative_publication_at", "last_authoritative_edition_id",
+    "last_authoritative_publication_status",
+)
+ALLOWED = frozenset(REQUIRED + PUBLICATION_FIELDS)
 
 
 # ---------------------------------------------------------------------------------------
@@ -180,7 +191,7 @@ def wire_errors(doc: Any) -> list[str]:
     if not isinstance(doc, dict):
         return ["not an object"]
     errors = [f"missing {key}" for key in REQUIRED if key not in doc]
-    errors += [f"unknown {key}" for key in doc if key not in REQUIRED]
+    errors += [f"unknown {key}" for key in doc if key not in ALLOWED]
     if errors:
         return errors
 
@@ -210,6 +221,36 @@ def wire_errors(doc: Any) -> list[str]:
     check(doc["previous_state"] is None or doc["previous_state"] in BRIDGE_STATES, "previous_state")
     check(isinstance(doc["warnings"], list) and all(w in WARNINGS for w in doc["warnings"])
           and len(set(doc["warnings"])) == len(doc["warnings"]), "warnings")
+    authority = doc.get("publication_authority")
+    check(authority in (None, "AUTHORITATIVE", "UNKNOWN"), "publication_authority")
+    present_publication = [key for key in PUBLICATION_FIELDS[1:] if key in doc]
+    if authority == "AUTHORITATIVE":
+        check(len(present_publication) == len(PUBLICATION_FIELDS) - 1, "authoritative publication fields")
+        check(
+            isinstance(doc.get("last_authoritative_publication_date"), str)
+            and re.fullmatch(r"\d{4}-\d{2}-\d{2}", doc["last_authoritative_publication_date"]) is not None,
+            "last_authoritative_publication_date",
+        )
+        check(_is_utc(doc.get("last_authoritative_publication_at")), "last_authoritative_publication_at")
+        check(
+            isinstance(doc.get("last_authoritative_edition_id"), str)
+            and newswire_bridge.EDITION_ID.fullmatch(doc["last_authoritative_edition_id"]) is not None,
+            "last_authoritative_edition_id",
+        )
+        check(doc.get("last_authoritative_publication_status") in ("PUBLISHED", "QUIET"),
+              "last_authoritative_publication_status")
+    elif authority == "UNKNOWN":
+        check(not present_publication, "UNKNOWN publication authority cannot carry publication fields")
+    elif present_publication:
+        errors.append("publication fields require publication_authority")
+    if authority == "AUTHORITATIVE" and _is_utc(doc.get("last_authoritative_publication_at")):
+        try:
+            actual_date = date.fromisoformat(doc["last_authoritative_publication_date"]).isoformat()
+        except (TypeError, ValueError):
+            errors.append("last_authoritative_publication_date")
+        else:
+            check(cdmx_date(doc["last_authoritative_publication_at"]) == actual_date,
+                  "authoritative publication CDMX date mismatch")
     guard = doc["guard"]
     if not isinstance(guard, dict) or set(guard) != {"verdict", "missing", "withdrawn", "added", "ratio"}:
         errors.append("guard")
@@ -262,6 +303,26 @@ def classify(wire: Any, now: Any, thresholds: dict[str, Any] | None = None) -> t
             return "DELAYED:TRANSPORT_FAIL", "TRANSPORT_FAIL"
     new_story = wire.get("last_new_story_at")
     new_age_h = hours_between(new_story, now_dt) if new_story else float("inf")
+    # A transported daily receipt is the sole publication authority. Once one
+    # exists, do not let generated_at, a changed release, an edition HTML file or
+    # last_new_story_at promote the edition state. The existing 24 h threshold is
+    # retained as the default pending an operator decision on a daily cutoff.
+    if wire.get("publication_authority") == "AUTHORITATIVE":
+        publication_age_h = hours_between(wire["last_authoritative_publication_at"], now_dt)
+        if publication_age_h < -t["future_skew_tolerance_min"] / 60.0:
+            return "TRANSPORT_DOWN", "WIRE_STATUS_INVALID"
+        if wire["arb_main"] == "RED":
+            return "DELAYED:ARB_MAIN_RED", "ARB_MAIN_RED"
+        if wire["source_mode"] != "MAIN":
+            return "DELAYED:CHECKPOINT_STALE", "CHECKPOINT_STALE"
+        if wire["guard"]["verdict"] == "REGRESSION_REFUSED":
+            return "DELAYED:SNAPSHOT_REFUSED", "SNAPSHOT_REFUSED"
+        if publication_age_h <= t["fresh_new_story_max_h"]:
+            if wire["last_authoritative_publication_status"] == "PUBLISHED":
+                return "FRESH", None
+            return "QUIET", None
+        return "DELAYED:STORY_SUPPLY", "STORY_SUPPLY"
+    # Receipt-less releases retain the pre-R1 ordering and thresholds exactly.
     if wire["source_mode"] == "MAIN" and new_age_h <= t["fresh_new_story_max_h"]:
         return "FRESH", None
     if wire["arb_main"] == "RED":
@@ -361,6 +422,7 @@ def build_wire_status(
     newest_event: str | None,
     guard: dict[str, Any],
     release_changed: bool,
+    publication_receipt: dict[str, Any] | None = None,
     thresholds: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Compose this run's wire-status (README "What the bridge writes")."""
@@ -408,6 +470,23 @@ def build_wire_status(
             "newest_event_at": newest_event,
             "guard": guard,
         })
+        if publication_receipt is None:
+            doc["publication_authority"] = "UNKNOWN"
+        else:
+            # This is a projection, never an inference. The strict bridge parser
+            # validated path/date/time/schema/privacy before this call.
+            publication_at = fmt_utc(publication_receipt["published_at"])
+            skew_h = -hours_between(publication_at, run_at_s)
+            tolerance_h = thresholds["wire"]["future_skew_tolerance_min"] / 60.0
+            if skew_h > tolerance_h:
+                raise ValueError("authoritative publication receipt is in the future")
+            doc.update({
+                "publication_authority": "AUTHORITATIVE",
+                "last_authoritative_publication_date": publication_receipt["publication_date"],
+                "last_authoritative_publication_at": publication_at,
+                "last_authoritative_edition_id": publication_receipt["edition_id"],
+                "last_authoritative_publication_status": publication_receipt["status"],
+            })
         if doc["source_mode"] == "CHECKPOINT" and doc["checkpoint_at"] is None:
             doc["checkpoint_at"] = last_change
     else:
@@ -431,6 +510,11 @@ def build_wire_status(
             "newest_event_at": carried.get("newest_event_at"),
             "guard": carried.get("guard", guard_block(None)),
         })
+        authority = carried.get("publication_authority", "UNKNOWN")
+        doc["publication_authority"] = authority
+        if authority == "AUTHORITATIVE":
+            for key in PUBLICATION_FIELDS[1:]:
+                doc[key] = carried[key]
     warnings = []
     if doc["arb_main"] == "RED":
         warnings.append("ARB_MAIN_RED")
@@ -444,7 +528,7 @@ def build_wire_status(
     doc["state"] = "DELAYED:TRANSPORT_FAIL"  # placeholder for validation below
     doc["previous_state"] = prev.get("state") if prev else None
     doc["state_since"] = run_at_s
-    doc = {key: doc[key] for key in REQUIRED}
+    doc = {key: doc[key] for key in REQUIRED + PUBLICATION_FIELDS if key in doc}
     state, _ = classify(doc, run_at_s, thresholds)
     if state == "TRANSPORT_DOWN":  # the bridge can never observe this; only a reader can
         raise ValueError(f"wire-status would not validate: {wire_errors(doc)}")
@@ -470,6 +554,8 @@ def commit_decision(previous: Any, new: dict[str, Any], thresholds: dict[str, An
         return True, "RUN_KIND_CHANGED"
     if new["guard"]["verdict"] != previous["guard"]["verdict"] or new["arb_main_failures"] != previous["arb_main_failures"]:
         return True, "UPSTREAM_CHANGED"
+    if any(new.get(key) != previous.get(key) for key in PUBLICATION_FIELDS):
+        return True, "PUBLICATION_CHANGED"
     if hours_between(previous["run_at"], new["run_at"]) >= every:
         return True, "HEARTBEAT_DUE"
     return False, "UNCHANGED"
@@ -689,6 +775,13 @@ def cmd_write(args: argparse.Namespace) -> int:
     previous = load_wire(args.previous)
     previous = previous if isinstance(previous, dict) and not wire_errors(previous) else None
     guard = guard_block(read_json(args.guard_report)) if args.guard_report else guard_block(None)
+    publication_receipt = None
+    if args.transport == "OK":
+        publication_root = args.publication_root
+        if publication_root is None and args.airlock:
+            publication_root = args.airlock.parent
+        if publication_root is not None:
+            publication_receipt = newswire_bridge.newest_publication_receipt(publication_root)
     doc = build_wire_status(
         previous,
         run_at=now,
@@ -704,6 +797,7 @@ def cmd_write(args: argparse.Namespace) -> int:
         newest_event=newest_event_at(args.records) if args.records else None,
         guard=guard,
         release_changed=args.release_changed == "true",
+        publication_receipt=publication_receipt,
     )
     commit, why = commit_decision(previous, doc)
     write_json(args.out, doc)
@@ -805,6 +899,11 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--arb-failure", action="append", help="one failure code (repeatable)")
     p.add_argument("--checkpoint-at", default="")
     p.add_argument("--airlock", type=Path)
+    p.add_argument(
+        "--publication-root",
+        type=Path,
+        help="verified transported release root; defaults to the parent of --airlock",
+    )
     p.add_argument("--records", type=Path)
     p.add_argument("--guard-report", type=Path)
     p.add_argument("--release-changed", choices=("true", "false"), default="false")
