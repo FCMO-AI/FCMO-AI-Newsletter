@@ -1,261 +1,63 @@
-name: Validate FCMO Newsletter Release
+name: Validate static newspaper release
 
 on:
   pull_request:
     branches: [main]
-  push:
-    branches:
-      - 'prelaunch/**'
-    paths-ignore:
-      - 'tests/**'
-      - 'site/**'
-      - 'release-src/**'
-      - 'release-overlay/**'
-      - 'READY_TO_PUBLISH.md'
-      - '.github/workflows/pages.yml'
-      - '.github/workflows/newsroom-health.yml'
-      - '.github/workflows/daily-refresh.yml'
+    paths:
+      - 'site/data/stories.v2.json'
+      - 'site/data/newsroom-status.json'
+      - 'site-src/**'
+      - 'config/**'
+      - 'design/**'
+      - 'i18n/**'
+      - 'tools/paper/**'
+      - 'tools/gates/**'
+      - 'tests/oraculos/verificar_paper.py'
       - '.github/workflows/release-validate.yml'
 
 permissions:
   contents: read
 
 concurrency:
-  # Validation is a proof of the current commit. Newer main truth supersedes
-  # older proof work; keep PRs isolated by ref while collapsing stale main runs.
-  group: release-validate-${{ github.ref }}
+  group: paper-release-validate-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v6
+      - uses: actions/checkout@v6
         with:
           persist-credentials: false
-
-      - name: Compile release and autonomous-newsroom tooling
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Compile the publication implementation
+        run: python -m compileall -q tools tests
+      - name: Build today's candidate
+        run: >-
+          python tools/paper/build.py
+          --stories site/data/stories.v2.json
+          --status site/data/newsroom-status.json
+          --out publish
+          --base /FCMO-AI-Newsletter/
+      - name: Add governed glossary to candidate
         run: |
-          python -m py_compile tools/apply_final_release.py
-          python -m py_compile tools/apply_curated_i18n.py
-          python -m py_compile tools/apply_front_page_layout.py
-          python -m py_compile tools/ingest_corpus.py
-          python -m py_compile tools/sync_airlocked_locales.py
-          python -m py_compile tools/reconcile_locale_overlays.py
-          python -m py_compile tools/validate_localizations.py
-          python -m py_compile tools/public_research_desk.py
-          python -m py_compile tools/visual_desk.py
-          python -m py_compile tools/build_newsroom_surfaces.py
-          python -m py_compile tools/build_editorial_frontends.py
-          python -m py_compile tools/finalize_editorial_frontends.py
-          python -m py_compile tools/newsroom_receipt.py
-          python -m py_compile tools/bootstrap_newsroom_status.py
-          python -m py_compile tools/verify_live_newsroom.py
-          python -m py_compile tools/verify_release.py
-          python -m py_compile tests/oraculos/verificar_dom.py
-          python -m py_compile tests/oraculos/verificar_layout.py
-          python -m py_compile tests/oraculos/verificar_editorial_layout.py
-          python -m py_compile tests/oraculos/verificar_surface_freshness.py
-          python -m py_compile tests/test_autonomous_newsroom.py
-
-      - name: Prove translation infrastructure has no external model credential or legacy publisher
-        shell: python
+          mkdir -p publish/data
+          cp i18n/glossary.yml publish/data/glossary.json
+          cp site/data/stories.v2.json publish/data/stories.v2.json
+          cp site/data/newsroom-status.json publish/data/newsroom-status.json
+      - name: Run fail-closed gates
+        run: python tools/gates/run_all.py publish
+      - name: Run browser matrix
+        env:
+          PLAYWRIGHT_MODULE: /srv/fcmo/agents/work/newsletter/browser/node_modules/playwright
         run: |
-          from pathlib import Path
-          import sys
-          roots = [Path('tools'), Path('.github/workflows'), Path('LOCALIZATION.md'), Path('README.md')]
-          forbidden = (
-              'ANTH' + 'ROPIC_API_KEY',
-              'FCMO_TRANSLATION_' + 'REVIEW_MODEL',
-              'translate_' + 'records.py',
-              'review_' + 'localizations.py',
-              'FCMO_NEWSLETTER_' + 'PUBLISH_TOKEN',
-          )
-          hits = []
-          for root in roots:
-              paths = [root] if root.is_file() else list(root.rglob('*'))
-              for path in paths:
-                  if not path.is_file() or path == Path('.github/workflows/release-validate.yml'):
-                      continue
-                  try:
-                      text = path.read_text(encoding='utf-8')
-                  except UnicodeDecodeError:
-                      continue
-                  for token in forbidden:
-                      if token in text:
-                          hits.append(f'{path}: {token}')
-          if hits:
-              print('forbidden legacy translation/publisher infrastructure remains', file=sys.stderr)
-              print('\n'.join(hits), file=sys.stderr)
-              raise SystemExit(1)
-          print('provider-free translation/publisher infrastructure scan OK')
-
-      - name: Exercise the refresh tooling's own tests
-        run: python -m unittest discover -s tests -v
-
-      - name: Prove the frozen overlay still matches its editable source
-        run: python tools/build_final_release.py --check
-
-      - name: Prove the public release receipt matches the assembled tree
-        run: python tools/build_ready_receipt.py --check
-
-      - name: Prove the committed three-language corpus is complete
-        run: python tools/validate_localizations.py --site release-src
-
-      - name: Assemble exact public candidate
-        run: |
-          rm -rf publish
-          cp -a site publish
-          python tools/apply_final_release.py publish
-          CANONICAL_HASH=$(python - <<'PY'
-          import json
-          print(json.load(open('release-overlay/final/manifest.json', encoding='utf-8'))['index_sha256'])
-          PY
-          )
-          python tools/apply_curated_i18n.py publish "$CANONICAL_HASH"
-          cp site/data/stories.json publish/data/stories.json
-          python tools/promote_story_front_page.py --site publish
-          python tools/apply_front_page_layout.py --site publish
-          python tools/build_editorial_frontends.py --site publish
-          python tools/finalize_editorial_frontends.py --site publish --refresh-manifest
-
-      - name: Prove required human and machine frontends exist in the exact candidate
-        shell: bash
-        run: |
-          for path in \
-            publish/archive.html publish/search.html publish/topics.html publish/organizations.html \
-            publish/corrections.html publish/feeds.html publish/methodology.html publish/editorial-policy.html \
-            publish/automation.html publish/accessibility.html publish/status.html publish/404.html \
-            publish/news/index.html publish/feed.xml publish/feed.json publish/sitemap.xml publish/news-sitemap.xml \
-            publish/llms.txt publish/llms-full.txt publish/agent.json; do
-            test -s "$path" || { echo "missing frontend: $path" >&2; exit 1; }
-          done
-          test -n "$(find publish/topics -name '*.html' -print -quit)" || { echo 'topic detail routes missing' >&2; exit 1; }
-          test -n "$(find publish/organizations -name '*.html' -print -quit)" || { echo 'organization detail routes missing' >&2; exit 1; }
-          if grep -Rni '/news/en/STORY-' publish/archive.html publish/search.html publish/topics publish/organizations; then
-            echo 'stale Story namespace remains in discovery frontend' >&2
-            exit 1
-          fi
-
-      - name: Render runtime contracts in a real browser
-        run: python tests/oraculos/verificar_dom.py publish
-
-      - name: Render responsive layout contracts across physical viewports
-        run: python tests/oraculos/verificar_layout.py publish
-
-      - name: Render discovery/editorial visual contracts across physical viewports
-        run: python tests/oraculos/verificar_editorial_layout.py publish
-
-      - name: Prove autonomous freshness and collision invariants on the exact candidate
-        run: python tests/oraculos/verificar_surface_freshness.py publish
-
-      - name: Verify frozen source identity and curated locale completeness
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-          import hashlib, json, re
-
-          root = Path('publish')
-          frozen = json.loads(Path('release-overlay/final/manifest.json').read_text())
-          i18n = json.loads((root/'data/i18n/manifest.json').read_text())
-          index_text = (root/'index.html').read_text(encoding='utf-8')
-          digest = hashlib.sha256((root/'index.html').read_bytes()).hexdigest()
-
-          match = re.search(r'<script id="fcmo-data" type="application/json">(.*?)</script>', index_text, re.S)
-          assert match, 'published index is missing canonical fcmo-data'
-          canonical = json.loads(match.group(1))
-          records = canonical.get('records') or []
-          canonical_ids = {row['id'] for row in records}
-          assert records, 'canonical corpus must contain at least one news record'
-          assert len(canonical_ids) == len(records), 'canonical corpus contains duplicate record IDs'
-          canonical_count = len(records)
-
-          assert i18n['canonical_index_sha256'] == frozen['index_sha256'], 'locale manifest lost frozen canonical identity'
-          assert i18n['supported_locales'] == ['en','es-419','zh-Hans'], i18n['supported_locales']
-          assert i18n['canonical_record_count'] == canonical_count, (i18n['canonical_record_count'], canonical_count)
-
-          for locale in ('es-419','zh-Hans'):
-              ui = json.loads((root/'data/i18n'/locale/'ui.json').read_text())
-              assert ui['canonical_record_count'] == canonical_count, (locale, ui['canonical_record_count'], canonical_count)
-              localized_records = {}
-              for part in sorted((root/'data/i18n'/locale).glob('part-*.json')):
-                  localized_records.update(json.loads(part.read_text())['records'])
-              assert set(localized_records) == canonical_ids, (
-                  locale, 'missing', sorted(canonical_ids-set(localized_records)),
-                  'extra', sorted(set(localized_records)-canonical_ids),
-              )
-              for rid, record in localized_records.items():
-                  assert all(record.get(k, '').strip() for k in ('title','summary','why_it_matters')), (locale, rid)
-
-          brief_ids = {path.stem for path in (root/'data/briefs').glob('FCMO-*.json')}
-          development_ids = {path.stem for path in (root/'developments').glob('FCMO-*.html')}
-          assert brief_ids == canonical_ids, ('brief parity', sorted(canonical_ids-brief_ids), sorted(brief_ids-canonical_ids))
-          assert development_ids, 'development dossier surface is unexpectedly empty'
-          assert development_ids <= canonical_ids, ('orphan development dossiers', sorted(development_ids-canonical_ids))
-
-          source_editions = {p.name for p in Path('site/editions').glob('*.html')}
-          published_editions = {p.name for p in (root/'editions').glob('*.html')}
-          assert source_editions <= published_editions, ('edition history regressed', sorted(source_editions-published_editions))
-          assert published_editions, 'edition history is unexpectedly empty'
-          bad_names = sorted(name for name in published_editions if not re.fullmatch(r'20\d\d-\d\d-\d\d\.html', name))
-          assert not bad_names, ('invalid edition filenames', bad_names)
-
-          assert (root/'build-manifest.json').is_file(), 'build manifest missing'
-          build_manifest = json.loads((root/'build-manifest.json').read_text())
-          for required in ('archive.html','search.html','topics.html','organizations.html','methodology.html','automation.html','status.html'):
-              assert required in build_manifest['files'], required
-          print(f'Curated release identity OK: {canonical_count} canonical records / 3 native languages / {len(development_ids)} canonical dossiers / {len(published_editions)} historical editions / {digest}')
-          PY
-
-      - name: Prove a new untranslated story fails closed
-        run: |
-          rm -rf regression
-          cp -a site regression
-          python tools/apply_final_release.py regression
-          python - <<'PY'
-          from pathlib import Path
-          import json, re
-          from tools.apply_curated_i18n import validate_curated_i18n
-
-          index = Path('regression/index.html')
-          text = index.read_text(encoding='utf-8')
-          match = re.search(r'(<script id="fcmo-data" type="application/json">)(.*?)(</script>)', text, re.S)
-          assert match
-          data = json.loads(match.group(2))
-          seed = dict(data['records'][0])
-          seed.update({
-              'id': 'FCMO-FFFFFFFFFFFF',
-              'title': 'Synthetic untranslated publication-gate regression story',
-              'summary': 'This record exists only to prove CI rejects a new canonical story without curated locales.',
-              'why_it_matters': 'If validation accepts this record, the three-language publication contract is broken.',
-          })
-          data['records'].append(seed)
-          replacement = match.group(1) + json.dumps(data, ensure_ascii=False, separators=(',', ':')) + match.group(3)
-          index.write_text(text[:match.start()] + replacement + text[match.end():], encoding='utf-8')
-
-          try:
-              validate_curated_i18n(Path('regression'))
-          except ValueError as exc:
-              message = str(exc)
-              # The strict validator may reject at metadata/hash identity before it
-              # reaches the record-ID comparison. Require a concrete mismatch in
-              # BOTH native editions; an unrelated ValueError is not sufficient.
-              es_rejected = (
-                  'es-419: canonical_record_count metadata is' in message
-                  or 'es-419: canonical editorial source hash mismatch' in message
-                  or ('es-419:' in message and 'record IDs do not exactly match canonical corpus' in message)
-              )
-              zh_rejected = (
-                  'zh-Hans: canonical_record_count metadata is' in message
-                  or 'zh-Hans: canonical editorial source hash mismatch' in message
-                  or ('zh-Hans:' in message and 'record IDs do not exactly match canonical corpus' in message)
-              )
-              assert es_rejected and zh_rejected, message
-              print('Fail-closed regression OK: synthetic English-only Story was rejected by both native-edition contracts')
-          else:
-              raise AssertionError('localization validator accepted an untranslated canonical story')
-          PY
-
+          export CHROME_PATH="$(node -e "console.log(require(process.env.PLAYWRIGHT_MODULE).chromium.executablePath())")"
+          python tests/oraculos/verificar_paper.py publish
+      - name: Prove deployment identity can be generated
+        run: >-
+          python tools/build_deployment_identity.py --site publish
+          --output publish/deployment-identity.json --source-commit "$GITHUB_SHA"
       - name: Confirm validation-only boundary
-        run: echo 'Validation only. This workflow does not deploy or change repository visibility.'
+        run: echo 'Validation only; this workflow cannot deploy.'
