@@ -288,11 +288,11 @@ class RealCorpusBacklog(unittest.TestCase):
     def test_pd1_desk_values_and_airlock_baseline_are_preserved(self):
         for locale in LOCALES:
             airlock = ROOT / "site/data/i18n" / locale / "part-airlock.json"
-            original = subprocess.check_output(["git", "show", f"c4ad8f2:site/data/i18n/{locale}/part-airlock.json"], cwd=ROOT)
+            fixture_root = ROOT / "tests/fixtures/localization-baselines"
+            original = (fixture_root / "c4ad8f2" / f"{locale}-part-airlock.json").read_bytes()
             self.assertEqual(airlock.read_bytes(), original)
             before = json.loads(original)["records"]
-            pd1 = json.loads(subprocess.check_output(
-                ["git", "show", f"b9ebe9e:site/data/i18n/{locale}/part-airlock.json"], cwd=ROOT))["records"]
+            pd1 = json.loads((fixture_root / "b9ebe9e" / f"{locale}-part-airlock.json").read_text(encoding="utf-8"))["records"]
             desk = json.loads(airlock.with_name("part-desk.json").read_text(encoding="utf-8"))
             self.assertEqual(len(desk["records"]), 17)
             for rid, changes in desk["records"].items():
