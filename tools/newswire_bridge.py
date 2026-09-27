@@ -16,6 +16,7 @@ import re
 import shutil
 import sys
 import tempfile
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
@@ -28,8 +29,20 @@ AIRLOCK_SCHEMA = "fcmo-newswire-airlock-v2"
 AIRLOCK_STATE = "READY_FOR_PUBLICATION"
 LOCALE_SCHEMA = "fcmo-airlocked-locale-delta-v1"
 CURATED_PART_SCHEMA = "fcmo-curated-locale-part-v1"
+PUBLICATION_RECEIPT_SCHEMA = "fcmo-publication-receipt-v1"
 LOCALES = ("es-419", "zh-Hans")
 PUBLIC_ID = re.compile(r"^FCMO-[0-9A-F]{12}$")
+EDITION_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
+PUBLICATION_PATH = re.compile(
+    r"^archive/(?P<year>[0-9]{4})/(?P<month>[0-9]{2})/(?P<day>[0-9]{2})/PUBLICATION\.json$"
+)
+PUBLICATION_KEYS = frozenset({
+    "schema", "publication_date", "published_at", "edition_id", "story_ids", "status",
+})
+PUBLICATION_STATUSES = frozenset({"PUBLISHED", "QUIET"})
+RFC3339 = re.compile(
+    r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$"
+)
 
 EXACT_PATHS = {
     ".nojekyll",
@@ -62,6 +75,7 @@ NEWSROOM_FILES = frozenset(corpus_guard.NEWSROOM_FILES)
 DYNAMIC_PATHS = (
     re.compile(r"^developments/FCMO-[0-9A-F]{12}\.html$"),
     re.compile(r"^editions/[0-9]{4}-[0-9]{2}-[0-9]{2}\.html$"),
+    PUBLICATION_PATH,
 )
 
 # Footnote: these markers mirror the upstream independent transfer gate. They are
@@ -157,6 +171,111 @@ def _sha256_file(path: Path) -> str:
         for chunk in iter(lambda: handle.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def _cdmx_date(value: str) -> str:
+    """Return an RFC 3339 timestamp's America/Mexico_City calendar date."""
+    stamp = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    if stamp.tzinfo is None:
+        raise ValueError("published_at must include an RFC 3339 offset")
+    try:
+        from zoneinfo import ZoneInfo
+
+        zone: Any = ZoneInfo("America/Mexico_City")
+    except Exception:  # pragma: no cover - only on a host without tzdata
+        zone = timezone(timedelta(hours=-6))
+    return stamp.astimezone(zone).date().isoformat()
+
+
+def validate_publication_receipt(document: Any, rel: str) -> dict[str, Any]:
+    """Validate the frozen receipt plus the path/time invariants JSON Schema cannot express."""
+    match = PUBLICATION_PATH.fullmatch(rel)
+    if match is None:
+        raise ValueError(f"{rel}: publication receipt path is not allowlisted")
+    if not isinstance(document, dict):
+        raise ValueError(f"{rel}: publication receipt is not an object")
+    missing = sorted(PUBLICATION_KEYS - set(document))
+    extra = sorted(set(document) - PUBLICATION_KEYS)
+    if missing:
+        raise ValueError(f"{rel}: publication receipt missing fields: {missing}")
+    if extra:
+        raise ValueError(f"{rel}: publication receipt has undeclared fields: {extra}")
+    if document.get("schema") != PUBLICATION_RECEIPT_SCHEMA:
+        raise ValueError(f"{rel}: publication receipt schema mismatch")
+
+    publication_date = document.get("publication_date")
+    if not isinstance(publication_date, str):
+        raise ValueError(f"{rel}: publication_date must be a date")
+    try:
+        date.fromisoformat(publication_date)
+    except ValueError as exc:
+        raise ValueError(f"{rel}: invalid publication_date") from exc
+    path_date = f"{match.group('year')}-{match.group('month')}-{match.group('day')}"
+    try:
+        date.fromisoformat(path_date)
+    except ValueError as exc:
+        raise ValueError(f"{rel}: invalid publication date in path") from exc
+    if path_date != publication_date:
+        raise ValueError(
+            f"{rel}: path date {path_date} does not match receipt publication_date {publication_date}"
+        )
+
+    published_at = document.get("published_at")
+    if not isinstance(published_at, str) or RFC3339.fullmatch(published_at) is None:
+        raise ValueError(f"{rel}: published_at must be an RFC 3339 date-time")
+    try:
+        local_date = _cdmx_date(published_at)
+    except ValueError as exc:
+        raise ValueError(f"{rel}: invalid published_at") from exc
+    if local_date != publication_date:
+        raise ValueError(
+            f"{rel}: published_at has CDMX date {local_date}, expected {publication_date}"
+        )
+
+    edition_id = document.get("edition_id")
+    if not isinstance(edition_id, str) or EDITION_ID.fullmatch(edition_id) is None:
+        raise ValueError(f"{rel}: invalid public edition_id")
+    story_ids = document.get("story_ids")
+    if (
+        not isinstance(story_ids, list)
+        or any(not isinstance(item, str) or PUBLIC_ID.fullmatch(item) is None for item in story_ids)
+        or len(story_ids) != len(set(story_ids))
+    ):
+        raise ValueError(f"{rel}: story_ids must be unique public FCMO ids")
+    if document.get("status") not in PUBLICATION_STATUSES:
+        raise ValueError(f"{rel}: invalid publication status")
+    return document
+
+
+def load_publication_receipt(path: Path, root: Path) -> dict[str, Any]:
+    """Load one transported receipt as strict UTF-8 JSON and validate its public contract."""
+    rel = path.relative_to(root).as_posix()
+    try:
+        text = path.read_text(encoding="utf-8")
+    except UnicodeDecodeError as exc:
+        raise ValueError(f"{rel}: publication receipt is not UTF-8") from exc
+    try:
+        document = json.loads(text)
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"{rel}: invalid publication receipt JSON: {exc}") from exc
+    return validate_publication_receipt(document, rel)
+
+
+def publication_receipts(root: Path) -> list[dict[str, Any]]:
+    """Return every valid transported receipt, newest last; invalid receipts fail closed."""
+    root = root.resolve()
+    found = [
+        load_publication_receipt(path, root)
+        for path in sorted(root.rglob("PUBLICATION.json"))
+        if PUBLICATION_PATH.fullmatch(path.relative_to(root).as_posix())
+    ]
+    return sorted(found, key=lambda item: (item["publication_date"], item["published_at"], item["edition_id"]))
+
+
+def newest_publication_receipt(root: Path) -> dict[str, Any] | None:
+    """Newest valid authority receipt in a transported release, or None for legacy releases."""
+    receipts = publication_receipts(root)
+    return receipts[-1] if receipts else None
 
 
 def release_digest(root: Path) -> str:
@@ -293,6 +412,30 @@ def verify_release(root: Path, baseline_i18n: Path | None = None) -> dict[str, A
                     errors.append(f"{rel}:{number}: invalid JSONL: {exc}")
 
     ids = _canonical_ids(root / "data/developments.jsonl", errors) if (root / "data/developments.jsonl").is_file() else set()
+
+    public_receipts: list[dict[str, Any]] = []
+    for path in sorted(root.rglob("PUBLICATION.json")):
+        rel = path.relative_to(root).as_posix()
+        if PUBLICATION_PATH.fullmatch(rel) is None:
+            # The allowlist loop already reports the path; do not accidentally
+            # bless another PUBLICATION.json location by parsing it here.
+            continue
+        try:
+            public_receipts.append(load_publication_receipt(path, root))
+        except (OSError, ValueError) as exc:
+            errors.append(str(exc))
+    edition_ids: set[str] = set()
+    for publication in public_receipts:
+        extra_story_ids = set(publication["story_ids"]) - ids
+        if extra_story_ids:
+            errors.append(
+                "publication receipt contains story ids outside the public corpus: "
+                f"{sorted(extra_story_ids)}"
+            )
+        edition_id = publication["edition_id"]
+        if edition_id in edition_ids:
+            errors.append(f"publication receipt reuses edition_id: {edition_id}")
+        edition_ids.add(edition_id)
 
     receipt: dict[str, Any] = {}
     receipt_path = root / "airlock.json"

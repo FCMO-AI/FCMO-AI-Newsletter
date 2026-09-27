@@ -160,6 +160,28 @@ class ClockBoundaryTests(unittest.TestCase):
         self.assertEqual(wire_status.classify(wire, at(wire["run_at"], 30))[0], "QUIET")
         self.assertEqual(wire_status.classify(wire, at(wire["run_at"], 30 + 1 / 60))[0], "TRANSPORT_DOWN")
 
+    def test_receipt_and_legacy_paths_keep_separate_fake_clock_boundaries(self) -> None:
+        clock = FakeClock("2026-09-26T13:15:00Z")
+        legacy = quiet_wire(clock, 80)
+        self.assertNotIn("publication_authority", legacy)
+        self.assertEqual(wire_status.classify(legacy, clock.iso())[0], "QUIET")
+
+        authoritative = copy.deepcopy(legacy)
+        authoritative.update({
+            "publication_authority": "AUTHORITATIVE",
+            "last_authoritative_publication_date": "2026-09-26",
+            "last_authoritative_publication_at": clock.iso(),
+            "last_authoritative_edition_id": "edition-2026-09-26-a1b2c3d4e5f6",
+            "last_authoritative_publication_status": "PUBLISHED",
+        })
+        self.assertEqual(wire_status.classify(authoritative, clock.iso())[0], "FRESH")
+        self.assertEqual(wire_status.classify(authoritative, clock.ahead(hours=24))[0], "FRESH")
+        self.assertEqual(wire_status.classify(authoritative, clock.ahead(hours=24, seconds=1)),
+                         ("DELAYED:STORY_SUPPLY", "STORY_SUPPLY"))
+        authoritative["last_authoritative_publication_status"] = "QUIET"
+        authoritative["last_new_story_at"] = clock.iso()
+        self.assertEqual(wire_status.classify(authoritative, clock.iso())[0], "QUIET")
+
     # -- acceptance 1c ------------------------------------------------------------------
     def test_checkpoint_with_red_main_is_delayed_while_serving_stays_green(self) -> None:
         clock = FakeClock()

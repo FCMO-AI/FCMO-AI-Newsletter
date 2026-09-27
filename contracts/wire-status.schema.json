@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/contracts/wire-status.schema.json",
   "title": "Newswire transport and upstream status (corpus/wire-status.json)",
-  "description": "Written by the newswire bridge on every run, successful or not, outside the sealed corpus digest. It is the only liveness input for the refresh preflight, publication freshness and health. The state machine that reads it is specified in contracts/README.md (Wire status states).",
+  "description": "Written by the newswire bridge on every run, successful or not, outside the sealed corpus digest. It is the only transport-liveness input. Optional authoritative publication fields come only from a validated transported archive receipt; their absence never licenses inference from airlock time, edition HTML or prose artifacts. The state machine is specified in contracts/README.md (Wire status states).",
   "x-contract": {"name": "wire-status", "status": "v2-frozen", "version": 1},
   "type": "object",
   "additionalProperties": false,
@@ -33,11 +33,25 @@
     "last_release_change_at": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/utc"}]},
     "last_new_story_at": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/utc"}], "description": "run_at of the newest run that published at least one new live ID (guard.added > 0). Never later than last_release_change_at."},
     "newest_event_at": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/utc"}], "description": "Informational: max event_at over live records."},
+    "publication_authority": {
+      "enum": ["AUTHORITATIVE", "UNKNOWN"],
+      "description": "AUTHORITATIVE only when the fields below came from the newest validated transported publication receipt. UNKNOWN means no such receipt exists; it must not be inferred from another artifact."
+    },
+    "last_authoritative_publication_date": {"type": "string", "format": "date"},
+    "last_authoritative_publication_at": {"$ref": "#/$defs/utc"},
+    "last_authoritative_edition_id": {"$ref": "#/$defs/edition_id"},
+    "last_authoritative_publication_status": {"enum": ["PUBLISHED", "QUIET"]},
     "guard": {"$ref": "#/$defs/guard"},
     "state": {"$ref": "#/$defs/bridge_state"},
     "warnings": {"type": "array", "uniqueItems": true, "items": {"enum": ["ARB_MAIN_RED", "CORPUS_CARRY_FORWARD", "SNAPSHOT_REFUSED", "TRANSPORT_FAIL"]}},
     "previous_state": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/bridge_state"}]},
     "state_since": {"$ref": "#/$defs/utc", "description": "When state last changed value."}
+  },
+  "dependentRequired": {
+    "last_authoritative_publication_date": ["publication_authority"],
+    "last_authoritative_publication_at": ["publication_authority"],
+    "last_authoritative_edition_id": ["publication_authority"],
+    "last_authoritative_publication_status": ["publication_authority"]
   },
   "allOf": [
     {
@@ -57,6 +71,32 @@
       "if": {"properties": {"arb_main": {"const": "RED"}}},
       "then": {"properties": {"arb_main_failures": {"minItems": 1}}},
       "else": {"properties": {"arb_main_failures": {"maxItems": 0}}}
+    },
+    {
+      "if": {
+        "required": ["publication_authority"],
+        "properties": {"publication_authority": {"const": "AUTHORITATIVE"}}
+      },
+      "then": {
+        "required": [
+          "last_authoritative_publication_date", "last_authoritative_publication_at",
+          "last_authoritative_edition_id", "last_authoritative_publication_status"
+        ]
+      }
+    },
+    {
+      "if": {
+        "required": ["publication_authority"],
+        "properties": {"publication_authority": {"const": "UNKNOWN"}}
+      },
+      "then": {
+        "allOf": [
+          {"not": {"required": ["last_authoritative_publication_date"]}},
+          {"not": {"required": ["last_authoritative_publication_at"]}},
+          {"not": {"required": ["last_authoritative_edition_id"]}},
+          {"not": {"required": ["last_authoritative_publication_status"]}}
+        ]
+      }
     }
   ],
   "$defs": {
@@ -64,6 +104,7 @@
     "code": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*(:[A-Z0-9_]+)?$", "maxLength": 64},
     "fcmo_id": {"type": "string", "pattern": "^FCMO-[0-9A-F]{12}$"},
     "release_id": {"type": "string", "pattern": "^newswire-[0-9a-f]{24}$"},
+    "edition_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"},
     "bridge_state": {
       "description": "State evaluated at run_at. TRANSPORT_DOWN is never written by the bridge: it is derived by readers from the age of run_at.",
       "enum": [

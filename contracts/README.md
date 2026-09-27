@@ -82,7 +82,7 @@ Every schema carries `"x-contract": {"name", "status", "version"}`.
 
 | Owner | Files | Rules |
 |---|---|---|
-| Upstream (sealed) | `airlock.json`, `data/**` | Arrive only through the airlock; covered by the corpus digest and the sealed-file verification. Never edited here. |
+| Upstream (sealed) | `airlock.json`, `archive/YYYY/MM/DD/PUBLICATION.json`, `data/**` | Arrive only through the airlock; covered by the corpus digest and the sealed-file verification. Never edited here. |
 | Newsroom | `wire-status.json`, `tombstones.json`, `carried.jsonl`, `first-published.json` | Written by newsroom tools; **excluded** from the content digest and from sealed-file allowlists, so writing them never changes the release id or fails verification. |
 
 ## Wire status
@@ -103,12 +103,21 @@ What the bridge writes:
 - The content view: `release_id`, `corpus_digest`, `record_count`,
   `release_changed`, `last_release_change_at`, `last_new_story_at` (the last
   time a new public id entered the live set), `newest_event_at`.
+- The optional publication-authority view: `publication_authority` plus
+  `last_authoritative_publication_date`,
+  `last_authoritative_publication_at`, `last_authoritative_edition_id` and
+  `last_authoritative_publication_status`. These fields are projected only
+  from the newest valid transported
+  `archive/YYYY/MM/DD/PUBLICATION.json`. A newly written status without a
+  receipt says `publication_authority: UNKNOWN` and carries no authoritative
+  fields. `airlock.json.generated_at`, edition HTML, `DAILY_BRIEF.md`, release
+  changes and Newsletter ledgers are never publication authority.
 - The guard result (`guard`).
 - The bridge's own classification (`state`, `previous_state`, `state_since`)
   and `warnings`.
 
-On `transport: FAIL` every upstream and content field carries the values of the
-last OK run.
+On `transport: FAIL` every upstream, content and authoritative-publication
+field carries the values of the last OK run.
 
 **Commit rule.** The bridge commits `wire-status.json` when `state` changes,
 when the release changes, or when at least `commit_every_h` (5 h) have passed
@@ -131,12 +140,24 @@ Ages are `now − timestamp` in hours.
 | R1 | age of `run_at` > `transport_down_after_h` (30 h) | `TRANSPORT_DOWN` | `WIRE_STALE` |
 | R2 | `transport = FAIL` and `last_transport_ok_at` is null or older than `transport_fail_grace_h` (6 h) | `DELAYED:TRANSPORT_FAIL` | `TRANSPORT_FAIL` |
 | – | `transport = FAIL` within the grace period | continue with the carried fields | |
-| R3 | `source_mode = MAIN` and age of `last_new_story_at` ≤ `fresh_new_story_max_h` (24 h) | `FRESH` | – |
-| R4 | `arb_main = RED` | `DELAYED:ARB_MAIN_RED` | `ARB_MAIN_RED` |
-| R5 | `source_mode ≠ MAIN` | `DELAYED:CHECKPOINT_STALE` | `CHECKPOINT_STALE` |
-| R6 | `guard.verdict = REGRESSION_REFUSED` | `DELAYED:SNAPSHOT_REFUSED` | `SNAPSHOT_REFUSED` |
-| R7 | age of `last_new_story_at` ≤ `quiet_max_h` (96 h) | `QUIET` | – |
-| R8 | otherwise | `DELAYED:STORY_SUPPLY` | `STORY_SUPPLY` |
+| A1 | authoritative receipt and `arb_main = RED` | `DELAYED:ARB_MAIN_RED` | `ARB_MAIN_RED` |
+| A2 | authoritative receipt and `source_mode ≠ MAIN` | `DELAYED:CHECKPOINT_STALE` | `CHECKPOINT_STALE` |
+| A3 | authoritative receipt and `guard.verdict = REGRESSION_REFUSED` | `DELAYED:SNAPSHOT_REFUSED` | `SNAPSHOT_REFUSED` |
+| A4 | authoritative receipt status `PUBLISHED` and age of its `published_at` ≤ `fresh_new_story_max_h` (24 h) | `FRESH` | – |
+| A5 | authoritative receipt status `QUIET` and age of its `published_at` ≤ `fresh_new_story_max_h` (24 h) | `QUIET` | – |
+| A6 | an authoritative receipt exists but is older than 24 h | `DELAYED:STORY_SUPPLY` | `STORY_SUPPLY` |
+| L1 | no authoritative receipt, `source_mode = MAIN`, and age of `last_new_story_at` ≤ 24 h | `FRESH` | – |
+| L2 | no authoritative receipt and `arb_main = RED` | `DELAYED:ARB_MAIN_RED` | `ARB_MAIN_RED` |
+| L3 | no authoritative receipt and `source_mode ≠ MAIN` | `DELAYED:CHECKPOINT_STALE` | `CHECKPOINT_STALE` |
+| L4 | no authoritative receipt and `guard.verdict = REGRESSION_REFUSED` | `DELAYED:SNAPSHOT_REFUSED` | `SNAPSHOT_REFUSED` |
+| L5 | no authoritative receipt and age of `last_new_story_at` ≤ `quiet_max_h` (96 h) | `QUIET` | – |
+| L6 | no authoritative receipt and no earlier legacy rule matches | `DELAYED:STORY_SUPPLY` | `STORY_SUPPLY` |
+
+The `L*` rules are the compatibility path for already transported releases
+that predate `publication-receipt.v1`; their state behavior is unchanged. Once
+a receipt exists, only A1–A6 decide FRESH/QUIET/delay. The 24-hour
+age is the existing default, not a decision about the final daily cutoff or
+weekend cadence.
 
 Consequences:
 
