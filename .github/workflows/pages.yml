@@ -63,6 +63,12 @@ jobs:
       - name: Refuse a deploy until the existing live release is anchored as LKG
         run: git rev-parse --verify 'refs/tags/lkg^{commit}'
 
+      - name: Render locale-specific Open Graph cards
+        run: >-
+          python tools/paper/og_image.py
+          --stories site/data/stories.v2.json
+          --out "$RUNNER_TEMP/paper-og"
+
       - name: Build today's static newspaper from the Story layer
         run: >-
           python tools/paper/build.py
@@ -70,13 +76,12 @@ jobs:
           --status site/data/newsroom-status.json
           --out publish
           --base "$BASE_PATH"
+          --og-source "$RUNNER_TEMP/paper-og"
 
       - name: Put the governed glossary inside the exact candidate
         run: |
           mkdir -p publish/data
           cp i18n/glossary.yml publish/data/glossary.json
-          cp site/data/stories.v2.json publish/data/stories.v2.json
-          cp site/data/newsroom-status.json publish/data/newsroom-status.json
 
       - name: Run every deterministic publication gate before deploy
         run: python tools/gates/run_all.py publish
@@ -198,14 +203,16 @@ jobs:
           set -euo pipefail
           LKG_SHA="$(git -C lkg-source rev-parse HEAD)"
           if test -f lkg-source/tools/paper/build.py; then
+            python lkg-source/tools/paper/og_image.py \
+              --stories lkg-source/site/data/stories.v2.json \
+              --out "$RUNNER_TEMP/rollback-og"
             python lkg-source/tools/paper/build.py \
               --stories lkg-source/site/data/stories.v2.json \
               --status lkg-source/site/data/newsroom-status.json \
-              --out rollback-publish --base "$BASE_PATH"
+              --out rollback-publish --base "$BASE_PATH" \
+              --og-source "$RUNNER_TEMP/rollback-og"
             mkdir -p rollback-publish/data
             cp lkg-source/i18n/glossary.yml rollback-publish/data/glossary.json
-            cp lkg-source/site/data/stories.v2.json rollback-publish/data/stories.v2.json
-            cp lkg-source/site/data/newsroom-status.json rollback-publish/data/newsroom-status.json
             python control/tools/gates/run_all.py rollback-publish
             PLAYWRIGHT_MODULE=/srv/fcmo/agents/work/newsletter/browser/node_modules/playwright \
               CHROME_PATH="$(node -e "console.log(require('/srv/fcmo/agents/work/newsletter/browser/node_modules/playwright').chromium.executablePath())")" \

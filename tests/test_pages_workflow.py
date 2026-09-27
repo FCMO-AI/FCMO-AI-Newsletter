@@ -15,6 +15,7 @@ class PagesWorkflowTests(unittest.TestCase):
 
     def test_candidate_order_is_build_gates_browser_deploy_live_verify(self):
         positions = [
+            self.text.index("python tools/paper/og_image.py"),
             self.text.index("python tools/paper/build.py"),
             self.text.index("python tools/gates/run_all.py publish"),
             self.text.index("python tests/oraculos/verificar_paper.py publish"),
@@ -24,6 +25,13 @@ class PagesWorkflowTests(unittest.TestCase):
             self.text.index("git tag -f lkg"),
         ]
         self.assertEqual(positions, sorted(positions))
+
+    def test_og_cards_are_built_in_temp_and_passed_to_the_ssg(self):
+        build = self.text[self.text.index("  build:"):self.text.index("  deploy:")]
+        self.assertIn('--out "$RUNNER_TEMP/paper-og"', build)
+        self.assertIn('--og-source "$RUNNER_TEMP/paper-og"', build)
+        self.assertNotIn("cp site/data/stories.v2.json", build)
+        self.assertNotIn("cp site/data/newsroom-status.json", build)
 
     def test_failed_gate_cannot_reach_deploy(self):
         self.assertIn("needs: build", self.text)
@@ -46,6 +54,8 @@ class PagesWorkflowTests(unittest.TestCase):
         self.assertIn("Redeploy LKG", rollback)
         self.assertIn("Prove the public origin is serving LKG again", rollback)
         self.assertIn("if test -f lkg-source/tools/paper/build.py", rollback)
+        self.assertIn("python lkg-source/tools/paper/og_image.py", rollback)
+        self.assertIn('--og-source "$RUNNER_TEMP/rollback-og"', rollback)
         self.assertIn("python tools/apply_curated_i18n.py ../rollback-publish", rollback)
         self.assertIn("python tools/edition_banner.py --site ../rollback-publish", rollback)
         self.assertIn("python tests/oraculos/verificar_layout.py ../rollback-publish", rollback)
