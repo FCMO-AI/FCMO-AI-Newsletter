@@ -1,5 +1,10 @@
 # Integration requests from WP-B
 
+## Publication Desk / int2 follow-up
+
+- `tests/test_localization_completeness.py` assumes that a zero-backlog corpus still reports `BACKLOG` and that the strict validator prints `COMPLETE 0`; the current tools truthfully report `HEALTHY` and `COMPLETE 41` per locale. The int2/code owner should align those two expectations with the completed translation state rather than weakening the validator.
+- The current strict overlay generator labels every complete `part-airlock.json` record `NATIVE_ARB` with provenance origin `arb`; it has no source-controlled way for the Publication Desk to emit the requested machine-authored complete state while keeping `human_reviewed: false`. The code owner should provide that provenance path during integration. This desk did not hand-edit generated status.
+
 ## WP-B2 slot contract (deferred)
 
 WP-B2 may add community integration only through the slots owned by the paper
