@@ -97,7 +97,8 @@ def build(*, stories: list[dict], all_stories: list[dict], locales: list[dict], 
     old = json.loads((root / "scaffold/agent.json").read_text(encoding="utf-8"))
     # Keep the two original dossiers that the current canonical corpus has
     # retired, so the old public brief URLs remain available to existing agents.
-    for legacy_brief in (root / "release-src/agent-reference/briefs").glob("FCMO-*.json"):
+    reference = root / "release-src/data/public-research/agent-reference"
+    for legacy_brief in (reference / "briefs").glob("FCMO-*.json"):
         target = out / "data/briefs" / legacy_brief.name
         if not target.exists():
             target.parent.mkdir(parents=True, exist_ok=True)
@@ -179,10 +180,10 @@ def build(*, stories: list[dict], all_stories: list[dict], locales: list[dict], 
             target.write_text(md, encoding="utf-8")
             full.extend([md, ""])
         (base_path / "llms-full.txt").write_text("\n".join(full), encoding="utf-8")
-    legacy_llms = (root / "release-src/agent-reference/llms.txt").read_text(encoding="utf-8")
+    legacy_llms = (reference / "llms.txt").read_text(encoding="utf-8")
     llms_path = out / "llms.txt"
     llms_path.write_text(llms_path.read_text(encoding="utf-8") + "\n## Original agent index\n\nCompatibility copy of the original publication's agent index, retained so existing consumers keep its complete brief listing and query guidance.\n\n" + "\n".join(legacy_llms.splitlines()[1:]) + "\n", encoding="utf-8")
-    legacy_full = (root / "release-src/agent-reference/llms-full.txt").read_text(encoding="utf-8")
+    legacy_full = (reference / "llms-full.txt").read_text(encoding="utf-8")
     full_path = out / "llms-full.txt"
     full_path.write_text(full_path.read_text(encoding="utf-8") + "\n## Original agent corpus snapshot\n\nThe following material preserves the previous agent-layer publication as a dated compatibility reference. Current story records above come from this build's validated corpus.\n\n" + "\n".join(legacy_full.splitlines()[1:]) + "\n", encoding="utf-8")
     # Preserve legacy discovery contract and datasets while adding current routes.
@@ -190,4 +191,6 @@ def build(*, stories: list[dict], all_stories: list[dict], locales: list[dict], 
     agent.update({"publication": {"name": "FCMO AI Newsletter", "description": "Evidence-first public AI research and technical daily paper.", "brands": {"umbrella": "FCMO Group", "technical_paper": "FCMO AI", "newsletter": "FCMO Group", "newsletter_voice": "Javier Castellanos Peña"}, "zones": ["FCMO Group landing", "FCMO Group Newsletter", "FCMO AI technical paper"]}, "base_url": base_url, "language_routes": {l["code"]: absolute(base_url, l["path_prefix"]) for l in locales}, "endpoints": {**old["endpoints"], "api_index": absolute(base_url, "api/v1/index.json"), "openapi": absolute(base_url, "api/v1/openapi.json"), "stories": absolute(base_url, "api/v1/stories/{id}.json"), "editions_v1": absolute(base_url, "api/v1/editions/{date}.json"), "topics_v1": absolute(base_url, "api/v1/topics/{slug}.json"), "organizations_v1": absolute(base_url, "api/v1/organizations/{slug}.json"), "corrections_v1": absolute(base_url, "api/v1/corrections.json"), "search_index_v1": absolute(base_url, "api/v1/search-index.json"), "license": "https://creativecommons.org/licenses/by/4.0/", "provenance": absolute(base_url, "data/newsroom-status.json"), "corrections_policy": absolute(base_url, "corrections/")}, "license": {"name": "CC BY 4.0", "url": "https://creativecommons.org/licenses/by/4.0/", "scope": "Original editorial content FCMO has authority to license; excludes third-party works and trademarks."}, "provenance": {"airlock_release_id": status.get("release_id"), "airlock_record_count": status.get("airlock_record_count"), "corpus_digest": status.get("corpus_digest"), "stories_sha256": status.get("stories_sha256"), "receipt_url": absolute(base_url, "data/newsroom-status.json")}, "update_cadence": {"upstream": "Daily ARB airlock; expected activation at 06:00 America/Mexico_City and bridge at 07:10 America/Mexico_City", "publication": "After validated sanitized corpus and release gates"}, "corrections_policy": "Corrections are disclosed on the corrections page and attached to affected story records; material changes update modified dates.", "contact": {"corrections": absolute(base_url, "corrections/"), "publisher": absolute(base_url, "about/")}, "counts": {"briefs": len(stories), "topics": len(topic_values), "organizations": len(org_values), "relationships": old.get("counts", {}).get("relationships", 0)}, "newly_ingested_brief_ids": []})
     agent["llms_by_locale"] = {l["code"]: {"llms": absolute(base_url, l["path_prefix"] + "llms.txt"), "llms_full": absolute(base_url, l["path_prefix"] + "llms-full.txt")} for l in locales}
     agent["endpoints"]["schemas"] = {name: absolute(base_url, f"api/v1/schema/{name}.schema.json") for name in _schemas()}
+    agent["endpoints"]["search"] = absolute(base_url, "api/v1/search-index.json")
+    agent["query_types"]["search"]["offline_source"] = "api/v1/search-index.json"
     _dump(out / "agent.json", agent)

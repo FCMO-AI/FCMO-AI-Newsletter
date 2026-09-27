@@ -18,7 +18,6 @@ def build(stories: list[dict], *, locale: dict, catalog: dict, base: str, out: P
         if story.get("status") != "live":
             continue
         rows.append({
-            "id": story["id"],
             "h": headline(story, code, catalog),
             "d": dek(story, code, catalog),
             "u": href(base, story_path(locale, story)),
@@ -36,8 +35,7 @@ def build(stories: list[dict], *, locale: dict, catalog: dict, base: str, out: P
             "importance": story.get("importance", 0),
             "kind": story.get("kind", ""),
             "human_url": href(base, story_path(locale, story)),
-            "machine_url": href(base, f"api/v1/stories/{story['id']}.json"),
-            "citation": {"id": story["id"], "source": href(base, story_path(locale, story))},
+            "citation": {"source": href(base, story_path(locale, story))},
             "search_text": " ".join([headline(story, code, catalog), dek(story, code, catalog), story.get("desk", ""), *story.get("topics", []), *story.get("organizations", [])]),
         })
     payload = json.dumps(rows, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
