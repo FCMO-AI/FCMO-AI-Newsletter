@@ -32,6 +32,8 @@ def load_existing(locale_dir: Path) -> tuple[dict[str, dict[str, Any]], dict[str
     records: dict[str, dict[str, Any]] = {}
     owners: dict[str, Path] = {}
     for path in sorted(locale_dir.glob("part-*.json")):
+        if path.name == "part-desk.json":
+            continue  # The Publication Desk owns this pack; imports cannot read or write it.
         doc = read_json(path)
         rows = doc.get("records")
         if not isinstance(rows, dict):

@@ -2,8 +2,7 @@
 
 ## Publication Desk / int2 follow-up
 
-- `tests/test_localization_completeness.py` assumes that a zero-backlog corpus still reports `BACKLOG` and that the strict validator prints `COMPLETE 0`; the current tools truthfully report `HEALTHY` and `COMPLETE 41` per locale. The int2/code owner should align those two expectations with the completed translation state rather than weakening the validator.
-- The current strict overlay generator labels every complete `part-airlock.json` record `NATIVE_ARB` with provenance origin `arb`; it has no source-controlled way for the Publication Desk to emit the requested machine-authored complete state while keeping `human_reviewed: false`. The code owner should provide that provenance path during integration. This desk did not hand-edit generated status.
+Resolved in int3: backlog tests now follow an independent recount at any backlog size. PD1 fields moved exactly into `part-desk.json`, with desk provenance and `MACHINE_REVIEWED` state; ARB import owns only its own packs. The validator, Story layer, translation status, integrity manifest and newsroom receipt now report the selected origin. The scheduled desk prompt still needs Claude's edit described in `/srv/fcmo/agents/work/newsletter/codex/int3-desk-prompt-delta.md`.
 
 ## WP-B2 slot contract (deferred)
 

@@ -52,7 +52,11 @@ def check(root: Path) -> GateResult:
                 problems.append(f"{rid}/{locale}: missing[] absent")
                 continue
             if state in COMPLETE:
-                absent = [key for key in PROSE_KEYS if key in story and not fields.get(key)]
+                # The renderer uses the complete localized title/summary when a
+                # short headline/dek cannot be derived without truncating prose.
+                absent = [key for key in PROSE_KEYS if key in story and not fields.get(key)
+                          and not (key == "headline" and fields.get("title"))
+                          and not (key == "dek" and fields.get("summary"))]
                 if missing or absent:
                     problems.append(f"{rid}/{locale}: {state} has missing={missing!r}, absent={absent!r}")
             route = canonical_story_path(story, locale)

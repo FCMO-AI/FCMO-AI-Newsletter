@@ -126,9 +126,14 @@ class RepositoryStoryLayerTests(unittest.TestCase):
     def test_localization_states_are_honest(self) -> None:
         for story in self.document["stories"]:
             for locale, entry in story["l10n"].items():
-                if entry["state"] == "NATIVE_ARB":
+                if entry["state"] in {"NATIVE_ARB", "MACHINE_REVIEWED"}:
                     self.assertEqual(entry["missing"], [])
                     self.assertTrue({"title", "summary", "why_it_matters"} <= set(entry["fields"]))
+                    selected = set(entry["provenance"].values())
+                    if entry["state"] == "NATIVE_ARB":
+                        self.assertEqual(selected, {"arb"})
+                    else:
+                        self.assertIn("publication-desk", selected)
                 else:
                     self.assertEqual(entry["state"], "PENDING")
                     self.assertTrue(entry["missing"], f"{story['id']} {locale}")

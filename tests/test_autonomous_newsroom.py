@@ -378,9 +378,11 @@ class AutonomousNewsroomTests(unittest.TestCase):
                 "state": "DEGRADED_TRANSLATION_BACKLOG",
                 "locales": {
                     "es-419": {"complete": 0, "pending": 1, "failed": 0,
-                               "pending_ids": [RID], "failed_ids": {}},
+                               "pending_ids": [RID], "failed_ids": {},
+                               "state_counts": {"NATIVE_ARB": 0, "MACHINE_REVIEWED": 0, "PENDING": 1, "FAILED": 0}},
                     "zh-Hans": {"complete": 0, "pending": 1, "failed": 0,
-                                "pending_ids": [RID], "failed_ids": {}},
+                                "pending_ids": [RID], "failed_ids": {},
+                                "state_counts": {"NATIVE_ARB": 0, "MACHINE_REVIEWED": 0, "PENDING": 1, "FAILED": 0}},
                 },
             }), encoding="utf-8")
             (site / "data" / "stories.json").write_text(json.dumps([{"research_id": RID}]), encoding="utf-8")
@@ -401,7 +403,9 @@ class AutonomousNewsroomTests(unittest.TestCase):
             self.assertEqual(first["edition_state"], "FRESH")
             self.assertEqual(first["wire_state"], "FRESH")
             self.assertEqual(first["pending_translation_ids"], [RID])
-            self.assertEqual(first["translation"]["es-419"], {"complete": 0, "pending": 1, "failed": 0})
+            self.assertEqual(first["translation"]["es-419"], {
+                "complete": 0, "pending": 1, "failed": 0,
+                "state_counts": {"NATIVE_ARB": 0, "MACHINE_REVIEWED": 0, "PENDING": 1, "FAILED": 0}})
             self.assertEqual(first["stories_sha256"], newsroom_receipt.sha256_file(site / "data" / "stories.json"))
             self.assertEqual(first["media_sha256"], newsroom_receipt.sha256_file(release / "data" / "media.json"))
             self.assertEqual(newsroom_receipt.finalize(args), 0)

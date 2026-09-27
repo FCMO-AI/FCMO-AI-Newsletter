@@ -46,6 +46,7 @@ except ImportError:  # direct script execution from tools/
 
 LOCALES = ("es-419", "zh-Hans")
 AIRLOCK_PART = "part-airlock.json"
+DESK_PART = "part-desk.json"
 DELTA_SCHEMA = "fcmo-airlocked-locale-delta-v1"
 OVERLAY_SCHEMA = "fcmo-locale-overlay-v2"
 # Footnote: punctuation adjacent to a number is editorial, not part of its value.
@@ -93,20 +94,57 @@ def stable_digest(value: Any) -> str:
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()
 
 
-def load_locale(root: Path, locale: str) -> tuple[dict[str, dict[str, Any]], set[str]]:
+def load_locale_details(root: Path, locale: str) -> tuple[dict[str, dict[str, Any]], set[str], dict[str, dict[str, dict[str, Any]]], dict[str, dict[str, Any]]]:
+    """Merge source packs by field. ARB wins; desk fills gaps and remains an alternate."""
     result: dict[str, dict[str, Any]] = {}
     strict: set[str] = set()
+    provenance: dict[str, dict[str, dict[str, Any]]] = {}
+    alternates: dict[str, dict[str, Any]] = {}
+    desk_records: dict[str, dict[str, Any]] = {}
+    desk_meta: dict[str, dict[str, Any]] = {}
     for path in sorted((root / locale).glob("part-*.json")):
-        rows = json.loads(path.read_text(encoding="utf-8")).get("records")
+        doc = json.loads(path.read_text(encoding="utf-8"))
+        rows = doc.get("records")
         if not isinstance(rows, dict):
             raise SystemExit(f"{path}: records object missing")
-        overlap = set(result) & set(rows)
-        if overlap:
-            raise SystemExit(f"{path}: duplicate locale ids {sorted(overlap)}")
-        result.update(rows)
+        if path.name == DESK_PART:
+            desk_records = rows
+            desk_meta = doc.get("provenance") or {}
+            continue
+        origin = "arb" if path.name == AIRLOCK_PART or re.fullmatch(r"part-\d+\.json", path.name) else None
+        for rid, row in rows.items():
+            if rid in result:
+                raise SystemExit(f"{path}: duplicate ARB locale id {rid}")
+            result[rid] = row
+            provenance[rid] = {key: {"origin": origin, "at": doc.get("generated_at") or doc.get("at"),
+                                     "human_reviewed": False, "network_translation": False}
+                               for key in row}
         if path.name == AIRLOCK_PART:
             strict.update(rows)
-    return result, strict
+    for rid, row in desk_records.items():
+        if not isinstance(row, dict):
+            raise SystemExit(f"{root / locale / DESK_PART}: {rid} must be an object")
+        meta = desk_meta.get(rid) if isinstance(desk_meta, dict) else None
+        if not isinstance(meta, dict) or meta.get("origin") != "publication-desk" or \
+                not isinstance(meta.get("at"), str) or \
+                not re.fullmatch(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z", meta["at"]) or \
+                meta.get("human_reviewed") is not False or meta.get("network_translation") is not False:
+            raise ValueError(f"{root / locale / DESK_PART}: {rid} has missing or invalid desk provenance")
+        selected = result.setdefault(rid, {})
+        provenance.setdefault(rid, {})
+        for key, value in row.items():
+            if key in selected:
+                alternates.setdefault(rid, {})[key] = {"value": value, "provenance": meta}
+            else:
+                selected[key] = value
+                provenance[rid][key] = meta
+        strict.add(rid)
+    return result, strict, provenance, alternates
+
+
+def load_locale(root: Path, locale: str) -> tuple[dict[str, dict[str, Any]], set[str]]:
+    rows, strict, _, _ = load_locale_details(root, locale)
+    return rows, strict
 
 
 def strings(value: Any):
@@ -258,7 +296,8 @@ def looks_english(text: str, locale: str) -> bool:
     return stop >= 3 and stop / max(1, len(words)) >= 0.12
 
 
-def pair_status(source: dict[str, Any], overlay: Any, locale: str, strict: bool = False) -> dict[str, Any]:
+def pair_status(source: dict[str, Any], overlay: Any, locale: str, strict: bool = False,
+                provenance: dict[str, dict[str, Any]] | None = None) -> dict[str, Any]:
     """Classify one (story, locale) pair.
 
     Returns ``{"state", "missing", "missing_paths", "failure", "complete_keys"}``.
@@ -311,8 +350,11 @@ def pair_status(source: dict[str, Any], overlay: Any, locale: str, strict: bool 
     missing_paths = [path_text(p) for p in source_leaves if p not in overlay_leaves]
     missing = [key for key in needed if any(p[0] == key and p not in overlay_leaves for p in source_leaves)]
     complete = [key for key in needed if key not in missing and key in overlay]
+    origins = {((provenance or {}).get(key) or {}).get("origin") for key in complete}
+    if complete and (None in origins or origins - {"arb", "publication-desk"}):
+        return failed("UNKNOWN_ORIGIN", "selected translation field has missing or unknown origin")
     return {
-        "state": "PENDING" if missing else "NATIVE_ARB",
+        "state": "PENDING" if missing else ("MACHINE_REVIEWED" if "publication-desk" in origins else "NATIVE_ARB"),
         "missing": missing,
         "missing_paths": missing_paths,
         "failure": None,
@@ -386,7 +428,7 @@ def load_delta(corpus: Path, locale: str) -> dict[str, dict[str, Any]]:
     return {rid: row for rid, row in rows.items() if isinstance(row, dict)}
 
 
-def effective_overlays(locale: str, i18n_dir: Path | None, corpus: Path | None) -> tuple[dict[str, dict[str, Any]], set[str]]:
+def effective_overlays_details(locale: str, i18n_dir: Path | None, corpus: Path | None):
     """Committed locale packs with the upstream (ARB) delta laid on top.
 
     Upstream fields win field by field; a delta never erases a field it does
@@ -394,8 +436,10 @@ def effective_overlays(locale: str, i18n_dir: Path | None, corpus: Path | None) 
     """
     rows: dict[str, dict[str, Any]] = {}
     strict: set[str] = set()
+    provenance: dict[str, dict[str, dict[str, Any]]] = {}
+    alternates: dict[str, dict[str, Any]] = {}
     if i18n_dir is not None and (i18n_dir / locale).is_dir():
-        packs, strict_ids = load_locale(i18n_dir, locale)
+        packs, strict_ids, provenance, alternates = load_locale_details(i18n_dir, locale)
         rows = {rid: dict(value) for rid, value in packs.items() if isinstance(value, dict)}
         strict |= strict_ids
     if corpus is not None:
@@ -403,7 +447,15 @@ def effective_overlays(locale: str, i18n_dir: Path | None, corpus: Path | None) 
             merged = dict(rows.get(rid) or {})
             merged.update(delta)
             rows[rid] = merged
+            provenance.setdefault(rid, {}).update({key: {"origin": "arb", "at": airlock_time(corpus),
+                                                        "human_reviewed": False, "network_translation": False}
+                                                   for key in delta})
             strict.add(rid)
+    return rows, strict, provenance, alternates
+
+
+def effective_overlays(locale: str, i18n_dir: Path | None, corpus: Path | None) -> tuple[dict[str, dict[str, Any]], set[str]]:
+    rows, strict, _, _ = effective_overlays_details(locale, i18n_dir, corpus)
     return rows, strict
 
 
@@ -412,9 +464,11 @@ def locale_states(
     rows: dict[str, dict[str, Any]],
     strict_ids: set[str],
     locale: str,
+    provenance: dict[str, dict[str, dict[str, Any]]] | None = None,
 ) -> dict[str, dict[str, Any]]:
     return {
-        rid: pair_status(canonical[rid], rows.get(rid), locale, strict=rid in strict_ids)
+        rid: pair_status(canonical[rid], rows.get(rid), locale, strict=rid in strict_ids,
+                         provenance=(provenance or {}).get(rid))
         for rid in sorted(canonical)
     }
 
@@ -426,6 +480,8 @@ def summarize(states: dict[str, dict[str, Any]]) -> dict[str, Any]:
     return {
         "stories": len(states), "complete": len(complete), "pending": len(pending),
         "failed": len(failed), "pending_ids": pending, "failed_ids": failed,
+        "state_counts": {state: sum(s["state"] == state for s in states.values())
+                         for state in (*COMPLETE_STATES, *INCOMPLETE_STATES)},
     }
 
 
@@ -453,7 +509,9 @@ def airlock_time(corpus: Path | None) -> str | None:
         return None
 
 
-def overlay_entry(source: dict[str, Any], overlay: Any, status: dict[str, Any], at: str) -> dict[str, Any]:
+def overlay_entry(source: dict[str, Any], overlay: Any, status: dict[str, Any], at: str,
+                  provenance: dict[str, dict[str, Any]] | None = None,
+                  alternates: dict[str, Any] | None = None) -> dict[str, Any]:
     """One ``locale-overlay.v2`` entry. Rejected content is never carried over."""
     source = normalize_record(source)
     overlay = normalize_record(overlay) if isinstance(overlay, dict) else {}
@@ -463,13 +521,16 @@ def overlay_entry(source: dict[str, Any], overlay: Any, status: dict[str, Any], 
         for key in V2_PROSE_KEYS:
             if key in status["complete_keys"]:
                 fields[key] = overlay[key]
-    provenance = {key: {"origin": "arb", "at": at, "human_reviewed": False} for key in fields}
+    field_provenance = {key: {**(provenance or {}).get(key, {}),
+                              "at": (provenance or {}).get(key, {}).get("at") or at}
+                        for key in fields}
     return {
         "state": status["state"],
         "source_sha256": stable_digest(translated_projection(source)),
         "fields": fields,
         "missing": list(status["missing"]),
-        "provenance": provenance,
+        "provenance": field_provenance,
+        "alternates": alternates or {},
         "failure": status["failure"],
     }
 
@@ -481,6 +542,8 @@ def overlay_document(
     states: dict[str, dict[str, Any]],
     generated_at: str,
     at: str,
+    provenance: dict[str, dict[str, dict[str, Any]]] | None = None,
+    alternates: dict[str, dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     return {
         "schema": OVERLAY_SCHEMA,
@@ -488,7 +551,8 @@ def overlay_document(
         "canonical_locale": "en",
         "generated_at": generated_at,
         "records": {
-            rid: overlay_entry(canonical[rid], rows.get(rid), states[rid], at)
+            rid: overlay_entry(canonical[rid], rows.get(rid), states[rid], at,
+                               (provenance or {}).get(rid), (alternates or {}).get(rid))
             for rid in sorted(canonical)
         },
     }
@@ -526,7 +590,7 @@ def to_story_l10n(entry: dict[str, Any]) -> dict[str, Any]:
     if evidence:
         out["evidence"] = evidence
     provenance = {
-        STORY_PATHS[key]: value.get("origin", "arb")
+        STORY_PATHS[key]: value.get("origin")
         for key, value in (entry.get("provenance") or {}).items()
         if key in STORY_PATHS and key in fields
     }
@@ -547,11 +611,11 @@ def strict_main(args: argparse.Namespace) -> int:
         documents: dict[str, dict[str, Any]] = {}
         at = airlock_time(args.corpus) or utc_text(now)
         for locale in locales:
-            rows, strict_ids = effective_overlays(locale, args.i18n_dir, args.corpus)
+            rows, strict_ids, provenance, alternates = effective_overlays_details(locale, args.i18n_dir, args.corpus)
             stale = sorted(set(rows) - set(canonical))
-            states = locale_states(canonical, rows, strict_ids, locale)
+            states = locale_states(canonical, rows, strict_ids, locale, provenance)
             results[locale] = states
-            documents[locale] = overlay_document(locale, canonical, rows, states, utc_text(now), at)
+            documents[locale] = overlay_document(locale, canonical, rows, states, utc_text(now), at, provenance, alternates)
             documents[locale]["_stale_ids"] = stale
     except (ValueError, OSError, json.JSONDecodeError) as exc:
         print(f"ERROR {type(exc).__name__}", file=sys.stderr)
@@ -565,7 +629,7 @@ def strict_main(args: argparse.Namespace) -> int:
     for locale, summary in summaries.items():
         print(
             f"locale={locale} stories={summary['stories']} complete={summary['complete']} "
-            f"pending={summary['pending']} failed={summary['failed']}"
+            f"pending={summary['pending']} failed={summary['failed']} states={summary['state_counts']}"
         )
     for locale, states in results.items():
         for rid, status in states.items():
@@ -597,7 +661,7 @@ def legacy_main(args: argparse.Namespace) -> int:
     historical_pairs = 0
     field_incomplete: dict[str, list[str]] = {}
     for locale in LOCALES:
-        rows, strict_ids = load_locale(args.i18n_dir, locale)
+        rows, strict_ids, provenance, alternates = load_locale_details(args.i18n_dir, locale)
         missing = expected - set(rows)
         stale = set(rows) - expected
         if missing:
@@ -618,7 +682,8 @@ def legacy_main(args: argparse.Namespace) -> int:
                 check_common(canonical[rid], overlay, locale, rid, errors)
                 tier = "historical_structural"
                 historical_pairs += 1
-            status = pair_status(canonical[rid], overlay, locale, strict=rid in strict_ids)
+            status = pair_status(canonical[rid], overlay, locale, strict=rid in strict_ids,
+                                 provenance=provenance.get(rid))
             if not is_complete(status):
                 field_incomplete[locale].append(rid)
             receipt_records.setdefault(rid, {})[locale] = {
@@ -627,6 +692,8 @@ def legacy_main(args: argparse.Namespace) -> int:
                 "validation_tier": tier,
                 "state": status["state"],
                 "missing": status["missing"],
+                "provenance": provenance.get(rid, {}),
+                "alternates": alternates.get(rid, {}),
             }
 
     if errors:
@@ -645,6 +712,9 @@ def legacy_main(args: argparse.Namespace) -> int:
         "field_incomplete_by_locale": field_incomplete,
         "field_complete_story_count": len(expected) - len(incomplete_ids),
         "records": receipt_records,
+        "state_counts": {loc: {state: sum(row[loc]["state"] == state for row in receipt_records.values()
+                                           if loc in row)
+                                for state in (*COMPLETE_STATES, *INCOMPLETE_STATES)} for loc in LOCALES},
     }
     args.receipt.write_text(json.dumps(receipt, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     counts = " ".join(f"{loc}={len(expected) - len(ids)}/{len(expected)}" for loc, ids in field_incomplete.items())

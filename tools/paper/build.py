@@ -172,6 +172,11 @@ class PaperBuilder:
         event = format_date(story["event_at"], catalog, precision=story.get("date_precision", "day"))
         published = format_date(story["first_published_at"], catalog, precision="minute")
         header = f'<header class="story-header"><p class="story-kicker">{esc(label(catalog,"beat",story.get("beat")))}</p><h1>{esc(title)}</h1><p class="story-dek">{esc(description)}</p><p class="story-meta">{esc(strings["story"]["byline"])} · {esc(strings["story"]["event_date"].format(date=event))} · {esc(strings["story"]["published"].format(date=published))}</p></header>'
+        if code != "en" and story_locale(story, code).get("state") == "MACHINE_REVIEWED":
+            english = self._story_href(self.config["locales"][0], story)
+            note = (f'<p class="translation-note" role="note">{esc(strings["l10n"]["desk_note"])} '
+                    f'<a href="{esc(english)}" lang="en" hreflang="en">English original</a></p>')
+            header = header.replace("</header>", note + "</header>")
         if not complete:
             notice = strings["l10n"]["pending_partial"] if (field(story, code, "headline") or field(story, code, "title")) else strings["l10n"]["pending_notice"]
             english = self._story_href(self.config["locales"][0], story)

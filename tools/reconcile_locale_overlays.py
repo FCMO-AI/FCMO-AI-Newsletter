@@ -119,6 +119,9 @@ def main(argv: list[str] | None = None) -> int:
                 new_records[rid] = pruned
             if changed:
                 doc["records"] = new_records
+                if path.name == "part-desk.json" and isinstance(doc.get("provenance"), dict):
+                    doc["provenance"] = {rid: meta for rid, meta in doc["provenance"].items()
+                                         if rid in new_records and new_records[rid]}
                 atomic_json(path, doc, compact="\n" not in original.rstrip("\n"))
                 touched += 1
     print(

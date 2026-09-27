@@ -72,7 +72,10 @@ def independent_backlog(locale: str) -> set[str]:
                 dead.add(entry.get("id"))
     overlays: dict[str, dict] = {}
     for path in sorted(glob.glob(str(ROOT / f"site/data/i18n/{locale}/part-*.json"))):
-        overlays.update(json.loads(Path(path).read_text(encoding="utf-8"))["records"])
+        for rid, row in json.loads(Path(path).read_text(encoding="utf-8"))["records"].items():
+            chosen = overlays.setdefault(rid, {})
+            for key, value in row.items():
+                chosen.setdefault(key, value)  # ARB fields precede desk gap fills.
     delta = ROOT / f"corpus/data/locales/{locale}/records.json"
     if delta.is_file():
         for rid, row in json.loads(delta.read_text(encoding="utf-8"))["records"].items():
@@ -220,6 +223,7 @@ class RealCorpusBacklog(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.expected = {loc: independent_backlog(loc) for loc in LOCALES}
+        cls.story_count = len(vl.load_corpus_canonical(ROOT / "corpus"))
 
     def test_independent_recount_matches_committed_locale_backlog(self):
         """The committed receipt must follow live corpus membership, not a frozen count."""
@@ -235,7 +239,7 @@ class RealCorpusBacklog(unittest.TestCase):
             result = run("tools/validate_localizations.py", "--strict", "--corpus", "corpus", "--locale", locale)
             lines = result.stdout.splitlines()
             want = len(self.expected[locale])
-            self.assertEqual(lines[0], f"INCOMPLETE {want}" if want else "COMPLETE 0", result.stdout + result.stderr)
+            self.assertEqual(lines[0], f"INCOMPLETE {want}" if want else f"COMPLETE {self.story_count}", result.stdout + result.stderr)
             self.assertEqual(result.returncode, 1 if want else 0)
             listed = {line.split()[2] for line in lines if line.startswith(("PENDING ", "FAILED "))}
             self.assertEqual(listed, self.expected[locale])
@@ -243,10 +247,11 @@ class RealCorpusBacklog(unittest.TestCase):
     def test_health_reports_backlog_after_grace(self):
         result = run("tools/translation_health.py", "--all-corpus", "--grace-hours", "6", "--now", NOW)
         want = " ".join(f"{loc}={len(self.expected[loc])}" for loc in LOCALES)
-        self.assertEqual(result.stdout.splitlines()[0], f"BACKLOG {want}", result.stdout + result.stderr)
-        self.assertEqual(result.returncode, 1)
+        backlog = any(self.expected[loc] for loc in LOCALES)
+        self.assertEqual(result.stdout.splitlines()[0], f"{'BACKLOG' if backlog else 'HEALTHY'} {want}", result.stdout + result.stderr)
+        self.assertEqual(result.returncode, 1 if backlog else 0)
         payload = json.loads(result.stdout.splitlines()[1])
-        self.assertEqual(payload["signal"], "BACKLOG")
+        self.assertEqual(payload["signal"], "BACKLOG" if backlog else "GREEN")
         for locale in LOCALES:
             self.assertEqual(set(payload["locales"][locale]["backlog_ids"]), self.expected[locale])
 
@@ -274,6 +279,50 @@ class RealCorpusBacklog(unittest.TestCase):
         union = self.expected["es-419"] | self.expected["zh-Hans"]
         self.assertEqual(set(status["pending_translation_ids"]), union)
         self.assertEqual(status["pending_translation_count"], len(union))
+        for locale in LOCALES:
+            rows, strict, provenance, _ = vl.effective_overlays_details(locale, ROOT / "site/data/i18n", ROOT / "corpus")
+            canonical = vl.load_corpus_canonical(ROOT / "corpus")
+            recount = vl.summarize(vl.locale_states(canonical, rows, strict, locale, provenance))["state_counts"]
+            self.assertEqual(status["locales"][locale]["state_counts"], recount)
+
+    def test_pd1_desk_values_and_airlock_baseline_are_preserved(self):
+        for locale in LOCALES:
+            airlock = ROOT / "site/data/i18n" / locale / "part-airlock.json"
+            original = subprocess.check_output(["git", "show", f"c4ad8f2:site/data/i18n/{locale}/part-airlock.json"], cwd=ROOT)
+            self.assertEqual(airlock.read_bytes(), original)
+            before = json.loads(original)["records"]
+            pd1 = json.loads(subprocess.check_output(
+                ["git", "show", f"b9ebe9e:site/data/i18n/{locale}/part-airlock.json"], cwd=ROOT))["records"]
+            desk = json.loads(airlock.with_name("part-desk.json").read_text(encoding="utf-8"))
+            self.assertEqual(len(desk["records"]), 17)
+            for rid, changes in desk["records"].items():
+                self.assertTrue(changes)
+                self.assertEqual(desk["provenance"][rid], {
+                    "origin": "publication-desk", "at": "2026-09-27T00:54:13Z", "model": "gpt-5.6-sol",
+                    "human_reviewed": False, "network_translation": False,
+                })
+                self.assertEqual(changes, {key: value for key, value in pd1[rid].items()
+                                           if before[rid].get(key) != value})
+
+    def test_arb_import_leaves_desk_pack_byte_identical(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            i18n = root / "i18n"
+            corpus = root / "corpus"
+            for locale in LOCALES:
+                target = i18n / locale
+                target.mkdir(parents=True)
+                for name in ("part-airlock.json", "part-desk.json"):
+                    shutil.copyfile(ROOT / "site/data/i18n" / locale / name, target / name)
+                desk_id = next(iter(json.loads((target / "part-desk.json").read_text(encoding="utf-8"))["records"]))
+                delta = {"schema": "fcmo-airlocked-locale-delta-v1", "locale": locale,
+                         "records": {desk_id: SPANISH_HEADLINE_ONLY}}
+                write_json(corpus / "data/locales" / locale / "records.json", delta)
+            before = {locale: (i18n / locale / "part-desk.json").read_bytes() for locale in LOCALES}
+            result = run("tools/sync_airlocked_locales.py", "--corpus", str(corpus), "--i18n-dir", str(i18n))
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            for locale in LOCALES:
+                self.assertEqual((i18n / locale / "part-desk.json").read_bytes(), before[locale])
 
     def test_legacy_integrity_receipt_counts_field_level_backlog(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -308,30 +357,72 @@ class RealCorpusBacklog(unittest.TestCase):
 
 
 class PairStates(unittest.TestCase):
+    @staticmethod
+    def arb_provenance(overlay):
+        return {key: {"origin": "arb"} for key in overlay}
+
     def test_headline_only_overlay_is_pending(self):
-        status = vl.pair_status(english_record(RID_PARTIAL), dict(SPANISH_HEADLINE_ONLY), "es-419")
+        status = vl.pair_status(english_record(RID_PARTIAL), dict(SPANISH_HEADLINE_ONLY), "es-419",
+                                provenance=self.arb_provenance(SPANISH_HEADLINE_ONLY))
         self.assertEqual(status["state"], "PENDING")
         self.assertIn("limitations", status["missing"])
         self.assertIn("claims", status["missing"])
         self.assertEqual(set(status["complete_keys"]), {"title", "summary", "why_it_matters"})
 
     def test_full_overlay_is_complete(self):
-        status = vl.pair_status(english_record(RID_COMPLETE), dict(SPANISH_FULL), "es-419", strict=True)
+        status = vl.pair_status(english_record(RID_COMPLETE), dict(SPANISH_FULL), "es-419", strict=True,
+                                provenance=self.arb_provenance(SPANISH_FULL))
         self.assertEqual(status["state"], "NATIVE_ARB", status)
+
+    def test_complete_desk_fields_are_machine_reviewed_and_missing_origin_fails(self):
+        provenance = self.arb_provenance(SPANISH_FULL)
+        provenance["technical"] = {"origin": "publication-desk"}
+        status = vl.pair_status(english_record(RID_COMPLETE), SPANISH_FULL, "es-419", strict=True,
+                                provenance=provenance)
+        self.assertEqual(status["state"], "MACHINE_REVIEWED", status)
+        provenance["technical"] = {}
+        status = vl.pair_status(english_record(RID_COMPLETE), SPANISH_FULL, "es-419", strict=True,
+                                provenance=provenance)
+        self.assertEqual(status["failure"]["gate"], "UNKNOWN_ORIGIN")
+
+    def test_arb_fields_win_and_desk_overlap_is_retained_as_alternate(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            folder = root / "es-419"
+            folder.mkdir()
+            write_json(folder / "part-airlock.json", {"records": {RID_COMPLETE: SPANISH_FULL}})
+            other = {**SPANISH_FULL, "title": "Un título alternativo de la mesa"}
+            write_json(folder / "part-desk.json", {"records": {RID_COMPLETE: other},
+                       "provenance": {RID_COMPLETE: {"origin": "publication-desk", "at": NOW,
+                                                    "model": "gpt-5.6-sol", "human_reviewed": False,
+                                                    "network_translation": False}}})
+            rows, strict, origins, alternates = vl.load_locale_details(root, "es-419")
+            self.assertEqual(rows[RID_COMPLETE], SPANISH_FULL)
+            self.assertEqual(origins[RID_COMPLETE]["title"]["origin"], "arb")
+            self.assertEqual(alternates[RID_COMPLETE]["title"]["value"], other["title"])
+            self.assertEqual(vl.pair_status(english_record(RID_COMPLETE), rows[RID_COMPLETE], "es-419",
+                                            strict=RID_COMPLETE in strict,
+                                            provenance=origins[RID_COMPLETE])["state"], "NATIVE_ARB")
+            bad = json.loads((folder / "part-desk.json").read_text(encoding="utf-8"))
+            del bad["provenance"][RID_COMPLETE]["human_reviewed"]
+            write_json(folder / "part-desk.json", bad)
+            with self.assertRaisesRegex(ValueError, "invalid desk provenance"):
+                vl.load_locale_details(root, "es-419")
 
     def test_english_left_in_place_fails(self):
         source = english_record(RID_LEAK)
         overlay = dict(SPANISH_FULL, limitations=list(source["limitations"]))
-        status = vl.pair_status(source, overlay, "es-419")
+        status = vl.pair_status(source, overlay, "es-419", provenance=self.arb_provenance(overlay))
         self.assertEqual(status["state"], "FAILED")
         self.assertEqual(status["failure"]["gate"], "ENGLISH_LEAK")
         zh = dict(CHINESE_HEADLINE_ONLY,
                   why_it_matters="The result would show that smaller teams can train competitive reasoning models with far less compute.")
-        self.assertEqual(vl.pair_status(source, zh, "zh-Hans")["failure"]["gate"], "ENGLISH_LEAK")
+        self.assertEqual(vl.pair_status(source, zh, "zh-Hans", provenance=self.arb_provenance(zh))["failure"]["gate"], "ENGLISH_LEAK")
 
     def test_changed_numbers_fail_the_strict_tier(self):
         overlay = dict(SPANISH_FULL, summary=SPANISH_FULL["summary"].replace("40%", "45%"))
-        status = vl.pair_status(english_record(RID_COMPLETE), overlay, "es-419", strict=True)
+        status = vl.pair_status(english_record(RID_COMPLETE), overlay, "es-419", strict=True,
+                                provenance=self.arb_provenance(overlay))
         self.assertEqual(status["state"], "FAILED")
         self.assertEqual(status["failure"]["gate"], "TOKENS_CHANGED")
 
