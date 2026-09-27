@@ -214,9 +214,20 @@ jobs:
             cp -a lkg-source/site rollback-publish
             (cd lkg-source && python tools/build_final_release.py --check)
             (cd lkg-source && python tools/apply_final_release.py ../rollback-publish)
+            CANONICAL_HASH="$(python -c "import json; print(json.load(open('lkg-source/release-overlay/final/manifest.json'))['index_sha256'])")"
+            (cd lkg-source && python tools/apply_curated_i18n.py ../rollback-publish "$CANONICAL_HASH")
+            cp lkg-source/site/data/stories.json rollback-publish/data/stories.json
+            (cd lkg-source && python tools/promote_story_front_page.py --site ../rollback-publish)
+            (cd lkg-source && python tools/apply_front_page_layout.py --site ../rollback-publish)
             (cd lkg-source && python tools/build_editorial_frontends.py --site ../rollback-publish)
+            (cd lkg-source && python tools/edition_banner.py --site ../rollback-publish)
             (cd lkg-source && python tools/finalize_editorial_frontends.py --site ../rollback-publish --refresh-manifest)
             (cd lkg-source && python tools/verify_release.py)
+            (cd lkg-source && python tests/oraculos/verificar_dom.py ../rollback-publish)
+            (cd lkg-source && python tests/oraculos/verificar_home_lead.py ../rollback-publish)
+            (cd lkg-source && python tests/oraculos/verificar_layout.py ../rollback-publish)
+            (cd lkg-source && python tests/oraculos/verificar_editorial_layout.py ../rollback-publish)
+            (cd lkg-source && python tests/oraculos/verificar_surface_freshness.py ../rollback-publish)
           fi
           python control/tools/build_deployment_identity.py \
             --site rollback-publish --output rollback-publish/deployment-identity.json \

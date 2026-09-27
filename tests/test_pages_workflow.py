@@ -46,6 +46,9 @@ class PagesWorkflowTests(unittest.TestCase):
         self.assertIn("Redeploy LKG", rollback)
         self.assertIn("Prove the public origin is serving LKG again", rollback)
         self.assertIn("if test -f lkg-source/tools/paper/build.py", rollback)
+        self.assertIn("python tools/apply_curated_i18n.py ../rollback-publish", rollback)
+        self.assertIn("python tools/edition_banner.py --site ../rollback-publish", rollback)
+        self.assertIn("python tests/oraculos/verificar_layout.py ../rollback-publish", rollback)
 
     def test_manual_rollback_is_one_dispatch_input(self):
         dispatch = self.text[self.text.index("workflow_dispatch:"):self.text.index("permissions:")]
