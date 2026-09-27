@@ -135,6 +135,11 @@ class BuilderDependencyGraphTests(unittest.TestCase):
         missing=sorted(invoked-set(newsroom_receipt.BUILDER_INPUTS))
         self.assertEqual(missing,[],f"refresh tools missing from BUILDER_INPUTS: {missing}")
 
+    def test_refresh_coverage_gate_uses_the_publishable_corpus_set(self) -> None:
+        workflow=(Path(__file__).resolve().parents[1]/".github"/"workflows"/"daily-refresh.yml").read_text(encoding="utf-8")
+        self.assertIn("from tools.ingest_corpus import publishable_rows, read_jsonl", workflow)
+        self.assertIn("publishable, _merged, _held = publishable_rows", workflow)
+
 
 class BuilderDeltaContractTests(unittest.TestCase):
     def test_same_corpus_with_changed_builder_requires_rebuild(self) -> None:
@@ -365,6 +370,19 @@ class AutonomousNewsroomTests(unittest.TestCase):
             (site / "data" / "i18n").mkdir(parents=True)
             write_locale(site / "data" / "i18n", "es-419", record())
             write_locale(site / "data" / "i18n", "zh-Hans", record())
+            (site / "data" / "i18n" / "translation-status.json").write_text(json.dumps({
+                "schema": "fcmo-translation-status-v2",
+                "canonical_story_count": 1,
+                "pending_translation_count": 1,
+                "pending_translation_ids": [RID],
+                "state": "DEGRADED_TRANSLATION_BACKLOG",
+                "locales": {
+                    "es-419": {"complete": 0, "pending": 1, "failed": 0,
+                               "pending_ids": [RID], "failed_ids": {}},
+                    "zh-Hans": {"complete": 0, "pending": 1, "failed": 0,
+                                "pending_ids": [RID], "failed_ids": {}},
+                },
+            }), encoding="utf-8")
             (site / "data" / "stories.json").write_text(json.dumps([{"research_id": RID}]), encoding="utf-8")
             status = site / "data" / "newsroom-status.json"
 
@@ -382,6 +400,8 @@ class AutonomousNewsroomTests(unittest.TestCase):
             self.assertEqual(first["state"], "PUBLIC_DELTA_READY")
             self.assertEqual(first["edition_state"], "FRESH")
             self.assertEqual(first["wire_state"], "FRESH")
+            self.assertEqual(first["pending_translation_ids"], [RID])
+            self.assertEqual(first["translation"]["es-419"], {"complete": 0, "pending": 1, "failed": 0})
             self.assertEqual(first["stories_sha256"], newsroom_receipt.sha256_file(site / "data" / "stories.json"))
             self.assertEqual(first["media_sha256"], newsroom_receipt.sha256_file(release / "data" / "media.json"))
             self.assertEqual(newsroom_receipt.finalize(args), 0)

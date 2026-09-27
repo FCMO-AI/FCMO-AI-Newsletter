@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import contextlib
 import glob
-import hashlib
 import io
 import json
 import re
@@ -30,11 +29,6 @@ from tools import validate_localizations as vl  # noqa: E402
 NOW = "2026-09-26T20:00:00Z"
 LOCALES = ("es-419", "zh-Hans")
 CATALOG_LOCALES = ("en", "es-419", "zh-Hans")
-# The backlog was 18 per locale when this test was written. That exact number is
-# asserted only while the data it was measured on is unchanged; otherwise the
-# independent recount below is the oracle.
-PINNED_FINGERPRINT = "0f2af7711449e7f5542341775bc9ef5ebd5d821eb06f14487c928deb9390be28"
-PINNED_BACKLOG = 18
 RAW_ENUM = re.compile(r"\b[a-z]+(?:_[a-z]+){2,}\b|\b[A-Z]{2,}(?:_[A-Z]+)+\b")
 HAN = re.compile(r"[㐀-鿿]")
 PLACEHOLDER = re.compile(r"\{([a-z][a-z0-9_]*)\}")
@@ -96,18 +90,6 @@ def independent_backlog(locale: str) -> set[str]:
             if has_text(source) and not has_text(native):
                 backlog.add(rid)
     return backlog
-
-
-def data_fingerprint() -> str:
-    digest = hashlib.sha256()
-    files = ["corpus/data/developments.jsonl", "corpus/data/locales/es-419/records.json",
-             "corpus/data/locales/zh-Hans/records.json"]
-    files += sorted(str(Path(p).relative_to(ROOT)) for p in glob.glob(str(ROOT / "site/data/i18n/*/part-*.json")))
-    for name in files:
-        path = ROOT / name
-        if path.is_file():
-            digest.update(path.read_bytes())
-    return digest.hexdigest()
 
 
 def leaves(value, path=""):
@@ -238,13 +220,15 @@ class RealCorpusBacklog(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.expected = {loc: independent_backlog(loc) for loc in LOCALES}
-        cls.pinned = data_fingerprint() == PINNED_FINGERPRINT
 
-    def test_independent_recount_matches_pinned_backlog(self):
-        if not self.pinned:
-            self.skipTest("committed corpus changed since the backlog was pinned")
+    def test_independent_recount_matches_committed_locale_backlog(self):
+        """The committed receipt must follow live corpus membership, not a frozen count."""
+        status = json.loads((ROOT / "site/data/i18n/translation-status.json").read_text(encoding="utf-8"))
         for locale in LOCALES:
-            self.assertEqual(len(self.expected[locale]), PINNED_BACKLOG, locale)
+            reported = set(status["locales"][locale]["pending_ids"]) | set(
+                status["locales"][locale]["failed_ids"]
+            )
+            self.assertEqual(reported, self.expected[locale], locale)
 
     def test_strict_validator_reports_incomplete_pairs(self):
         for locale in LOCALES:
@@ -284,8 +268,6 @@ class RealCorpusBacklog(unittest.TestCase):
                     page = (site / "news" / mp.ROUTE_SLUG[locale] / f"{rid}.html").read_text(encoding="utf-8")
                     self.assertIn('data-translation-status="pending"', page)
                     self.assertIn(f"/news/en/{rid}.html", page)
-            if self.pinned:
-                self.assertEqual(status["locales"]["es-419"]["pending"], PINNED_BACKLOG)
 
     def test_committed_translation_status_is_truthful(self):
         status = json.loads((ROOT / "site/data/i18n/translation-status.json").read_text(encoding="utf-8"))
@@ -562,10 +544,9 @@ class UICatalogs(unittest.TestCase):
                         walk(item)
             walk(schema)
             observed.setdefault(f"contract:{name}", set()).update(enums)
-        # Contract enums and code-shaped values must always have a label. Free-form
-        # values (region names) are checked on the data this test was pinned to;
-        # label() omits an unknown value rather than printing it raw.
-        pinned = data_fingerprint() == PINNED_FINGERPRINT
+        # Every value present in the current corpus must have a label. This follows
+        # the live data instead of silently relaxing when the corpus fingerprint
+        # changes; label() omits an unknown value rather than printing it raw.
         for locale in CATALOG_LOCALES:
             labels = self.cat[locale]["labels"]
             everything = set().union(*(set(group) for group in labels.values()))
@@ -573,7 +554,7 @@ class UICatalogs(unittest.TestCase):
                 for code in sorted(c for c in codes if c):
                     if group.startswith("contract:"):
                         self.assertIn(code, everything, f"{locale}: {group} enum {code} has no label")
-                    elif pinned or RAW_ENUM.fullmatch(code) or re.fullmatch(r"[a-z]+(?:_[a-z]+)*|[A-Z]+(?:_[A-Z]+)*", code):
+                    else:
                         self.assertIn(code, labels[group], f"{locale}: labels.{group}.{code} missing")
 
     def test_no_sept_and_explicit_month_tables(self):

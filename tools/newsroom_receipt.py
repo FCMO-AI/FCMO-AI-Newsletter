@@ -166,10 +166,18 @@ def delta_state(previous: dict[str, Any], receipt: dict[str, Any], current_build
 
 def translation_counts(status: dict[str, Any], story_count: int) -> dict[str, dict[str, int]]:
     """Per-locale (story, locale) pair counts. A pair counts as complete only when
-    a native edition exists for it; everything else is pending, never English."""
+    every required prose field passes the localization gate; everything else is
+    pending or failed, never silently treated as native prose."""
+    detailed = status.get("translation") if isinstance(status.get("translation"), dict) else {}
     present = status.get("translation_counts") if isinstance(status.get("translation_counts"), dict) else {}
     out: dict[str, dict[str, int]] = {}
     for locale in ("es-419", "zh-Hans"):
+        row = detailed.get(locale)
+        if isinstance(row, dict) and all(isinstance(row.get(key), int) for key in ("complete", "pending", "failed")):
+            counts = {key: max(0, int(row[key])) for key in ("complete", "pending", "failed")}
+            if sum(counts.values()) == story_count:
+                out[locale] = counts
+                continue
         complete = max(0, min(int(present.get(locale) or 0), story_count))
         out[locale] = {"complete": complete, "pending": story_count - complete, "failed": 0}
     return out
@@ -338,8 +346,39 @@ def finalize(args: argparse.Namespace) -> int:
     if locale_ids["es-419"] != locale_ids["zh-Hans"]:
         raise ValueError("ES/ZH native locale ID sets differ")
 
-    pending = canonical_ids - locale_ids["es-419"]
-    translation_state = "COMPLETE" if not pending else "DEGRADED_TRANSLATION_BACKLOG"
+    translation_path = args.site / "data" / "i18n" / "translation-status.json"
+    if not translation_path.is_file():
+        raise ValueError("field-level translation status is absent")
+    translation_doc = load(translation_path)
+    if translation_doc.get("schema") != "fcmo-translation-status-v2":
+        raise ValueError("field-level translation status schema mismatch")
+    if translation_doc.get("canonical_story_count") != canonical_count:
+        raise ValueError("field-level translation status story count mismatch")
+    per_locale: dict[str, dict[str, int]] = {}
+    incomplete: set[str] = set()
+    for locale in ("es-419", "zh-Hans"):
+        row = (translation_doc.get("locales") or {}).get(locale)
+        if not isinstance(row, dict):
+            raise ValueError(f"{locale}: field-level translation counts are absent")
+        counts = {key: row.get(key) for key in ("complete", "pending", "failed")}
+        if not all(isinstance(value, int) and value >= 0 for value in counts.values()):
+            raise ValueError(f"{locale}: invalid field-level translation counts")
+        if sum(counts.values()) != canonical_count:
+            raise ValueError(f"{locale}: field-level translation counts do not cover the Story layer")
+        pending_ids = set(row.get("pending_ids") or [])
+        failed_ids = set((row.get("failed_ids") or {}).keys())
+        if len(pending_ids) != counts["pending"] or len(failed_ids) != counts["failed"]:
+            raise ValueError(f"{locale}: field-level translation IDs disagree with their counts")
+        if not (pending_ids | failed_ids) <= canonical_ids:
+            raise ValueError(f"{locale}: field-level translation status contains non-canonical IDs")
+        incomplete |= pending_ids | failed_ids
+        per_locale[locale] = counts
+    declared_incomplete = set(translation_doc.get("pending_translation_ids") or [])
+    if declared_incomplete != incomplete or translation_doc.get("pending_translation_count") != len(incomplete):
+        raise ValueError("field-level translation backlog summary disagrees with the locale detail")
+    translation_state = "COMPLETE" if not incomplete else "DEGRADED_TRANSLATION_BACKLOG"
+    if translation_doc.get("state") != translation_state:
+        raise ValueError("field-level translation state disagrees with its backlog")
     state = "NO_PUBLIC_DELTA_READY" if same else "PUBLIC_DELTA_READY"
     stamp = wire_status.fmt_utc(now)
     status_doc = {
@@ -355,10 +394,11 @@ def finalize(args: argparse.Namespace) -> int:
         "stories_sha256": sha256_file(stories_path),
         "media_count": len(media),
         "media_sha256": sha256_file(media_path),
-        "translation_counts": {locale: len(ids) for locale, ids in locale_ids.items()},
+        "translation": per_locale,
+        "translation_counts": {locale: counts["complete"] for locale, counts in per_locale.items()},
         "translation_state": translation_state,
-        "pending_translation_count": len(pending),
-        "pending_translation_ids": sorted(pending),
+        "pending_translation_count": len(incomplete),
+        "pending_translation_ids": sorted(incomplete),
         "finalized_at": stamp,
         "ack": "INGESTED_VALIDATED_AND_READY_FOR_DEPLOY",
         "previous_release_id": previous.get("release_id"),
@@ -369,7 +409,7 @@ def finalize(args: argparse.Namespace) -> int:
     args.status.write_text(json.dumps(status_doc, indent=2, sort_keys=True, ensure_ascii=False) + "\n", encoding="utf-8")
     print(
         f"newsroom ACK {state}: {receipt['release_id']} stories={canonical_count} "
-        f"translations={translation_state} pending={len(pending)} edition={status_doc['edition_state']}"
+        f"translations={translation_state} pending={len(incomplete)} edition={status_doc['edition_state']}"
     )
     return 0
 

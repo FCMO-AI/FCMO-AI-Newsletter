@@ -93,22 +93,22 @@ jobs:
         run: |
           import json, re, sys
           from pathlib import Path
-          rows = [json.loads(line) for line in
-                  Path('corpus/data/developments.jsonl').read_text(encoding='utf-8').splitlines()
-                  if line.strip()]
-          incoming = {row['id'] for row in rows}
+          from tools.ingest_corpus import publishable_rows, read_jsonl
+          rows = read_jsonl(Path('corpus/data/developments.jsonl'))
+          publishable, _merged, _held = publishable_rows(Path('corpus'), rows)
+          incoming = {row['id'] for row in publishable}
           html = Path('release-src/index.html').read_text(encoding='utf-8')
           match = re.search(r'<script id="fcmo-data" type="application/json">(.*?)</script>', html, re.S)
           if not match:
               sys.exit('release-src/index.html is missing canonical fcmo-data')
           outgoing = {row['id'] for row in json.loads(match.group(1))['records']}
           if incoming != outgoing:
-              print(f'corpus has {len(incoming)} stories and site has {len(outgoing)}', file=sys.stderr)
+              print(f'corpus has {len(incoming)} publishable stories and site has {len(outgoing)}', file=sys.stderr)
               for label, missing in (('did not arrive', incoming - outgoing), ('unexpected extras', outgoing - incoming)):
                   if missing:
                       print(f'  {label}: {sorted(missing)}', file=sys.stderr)
               raise SystemExit(1)
-          print(f'all {len(incoming)} corpus stories reached the site')
+          print(f'all {len(incoming)} publishable corpus stories reached the site')
 
       - name: Import ARB-authored Spanish and Chinese editions
         if: steps.preflight.outputs.path == 'rebuild'
