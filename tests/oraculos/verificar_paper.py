@@ -26,23 +26,54 @@ const base = process.argv[1], rows = JSON.parse(require('node:fs').readFileSync(
   for (const route of storyRoutes) {
     const url = new URL(route.path, base).href;
     for (const viewport of [{width:1440,height:900}, {width:390,height:844}]) {
-      await page.setViewportSize(viewport);
-      await page.goto(url, { waitUntil: 'load', timeout: 20000 });
-      await page.evaluate(() => document.fonts?.ready.then(() => true));
-      const result = await page.evaluate(() => {
-        const h = document.querySelector('.story-header h1');
-        const dek = document.querySelector('.story-header .story-dek');
-        if (!h) return { missing: true };
-        const rect = h.getBoundingClientRect(), cs = getComputedStyle(h);
-        const lineHeight = parseFloat(cs.lineHeight) || parseFloat(cs.fontSize);
-        return { height: rect.height, lines: Math.ceil(rect.height / lineHeight - .01),
-          dekTop: dek?.getBoundingClientRect().top ?? null, fontSize: parseFloat(cs.fontSize) };
-      });
-      if (result.missing) failures.push(`${route.path}: story h1 missing`);
-      else if (viewport.width === 1440 && (result.lines > 4 || result.dekTop == null || result.dekTop >= 900))
-        failures.push(`${route.path} desktop: lines=${result.lines} dekTop=${result.dekTop}`);
-      else if (viewport.width === 390 && result.height > viewport.height * .45)
-        failures.push(`${route.path} mobile: h1=${result.height.toFixed(1)}px > 45%`);
+      try {
+        await page.setViewportSize(viewport);
+        await page.goto(url, { waitUntil: 'load', timeout: 20000 });
+        await page.evaluate(() => document.fonts?.ready.then(() => true));
+        const result = await page.evaluate(() => {
+          const h = document.querySelector('.story-header h1');
+          const dek = document.querySelector('.story-header .story-dek');
+          if (!h) return { missing: true };
+          const rect = h.getBoundingClientRect(), cs = getComputedStyle(h);
+          const lineHeight = parseFloat(cs.lineHeight) || parseFloat(cs.fontSize);
+          return { height: rect.height, lines: Math.ceil(rect.height / lineHeight - .01),
+            dekTop: dek?.getBoundingClientRect().top ?? null, fontSize: parseFloat(cs.fontSize) };
+        });
+        if (result.missing) failures.push(`${route.path}: story h1 missing`);
+        else if (viewport.width === 1440 && (result.lines > 4 || result.dekTop == null || result.dekTop >= 900))
+          failures.push(`${route.path} desktop: lines=${result.lines} dekTop=${result.dekTop}`);
+        else if (viewport.width === 390 && result.height > viewport.height * .45)
+          failures.push(`${route.path} mobile: h1=${result.height.toFixed(1)}px > 45%`);
+      } catch (e) {
+        failures.push(`${route.path} ${viewport.width}px: check error: ${e.message}`);
+      }
+    }
+  }
+  const frontRoutes = rows.filter(r => r.kind === 'front');
+  for (const route of frontRoutes) {
+    const url = new URL(route.path, base).href;
+    for (const viewport of [{width:1440,height:900}, {width:390,height:844}]) {
+      try {
+        await page.setViewportSize(viewport);
+        await page.goto(url, { waitUntil: 'load', timeout: 20000 });
+        await page.evaluate(() => document.fonts?.ready.then(() => true));
+        const result = await page.evaluate(() => {
+          const h = document.querySelector('.lead h1');
+          const dek = document.querySelector('.lead-dek');
+          if (!h) return { missing: true };
+          const rect = h.getBoundingClientRect(), cs = getComputedStyle(h);
+          const lineHeight = parseFloat(cs.lineHeight) || parseFloat(cs.fontSize);
+          return { height: rect.height, lines: Math.ceil(rect.height / lineHeight - .01),
+            dekTop: dek?.getBoundingClientRect().top ?? null };
+        });
+        if (result.missing) failures.push(`${route.path || '/'}: home hero h1 missing`);
+        else if (viewport.width === 1440 && (result.lines > 4 || result.dekTop == null || result.dekTop >= 900))
+          failures.push(`${route.path || '/'} desktop home hero: lines=${result.lines} dekTop=${result.dekTop}`);
+        else if (viewport.width === 390 && result.height > viewport.height * .45)
+          failures.push(`${route.path || '/'} mobile home hero: h1=${result.height.toFixed(1)}px > 45%`);
+      } catch (e) {
+        failures.push(`${route.path || '/'} ${viewport.width}px: home hero check error: ${e.message}`);
+      }
     }
   }
   const zhRoutes = rows.filter(r => r.locale === 'zh-Hans');
@@ -50,21 +81,25 @@ const base = process.argv[1], rows = JSON.parse(require('node:fs').readFileSync(
   for (const route of zhRoutes) {
     const url = new URL(route.path, base).href;
     for (const viewport of [{width:1440,height:900}, {width:390,height:844}]) {
-      await page.setViewportSize(viewport);
-      await page.goto(url, { waitUntil: 'load', timeout: 20000 });
-      const bad = await page.evaluate(() => [...document.querySelectorAll('h1 a,h2 a,h3 a')].flatMap(a => {
-        const h = a.closest('h1,h2,h3'); if (!h) return [];
-        const cs = getComputedStyle(h), lh = parseFloat(cs.lineHeight), fs = parseFloat(cs.fontSize);
-        const rect = h.getBoundingClientRect();
-        if (rect.height <= lh * 1.1) return [];
-        return lh / fs >= 1.25 ? [] : [{text:h.innerText.slice(0,70), ratio:lh/fs}];
-      }));
-      for (const entry of bad) failures.push(`${route.path} ${viewport.width}px: CJK linked heading leading ${entry.ratio.toFixed(2)} ${entry.text}`);
+      try {
+        await page.setViewportSize(viewport);
+        await page.goto(url, { waitUntil: 'load', timeout: 20000 });
+        const bad = await page.evaluate(() => [...document.querySelectorAll('h1 a,h2 a,h3 a')].flatMap(a => {
+          const h = a.closest('h1,h2,h3'); if (!h) return [];
+          const cs = getComputedStyle(h), lh = parseFloat(cs.lineHeight), fs = parseFloat(cs.fontSize);
+          const rect = h.getBoundingClientRect();
+          if (rect.height <= lh * 1.1) return [];
+          return lh / fs >= 1.25 ? [] : [{text:h.innerText.slice(0,70), ratio:lh/fs}];
+        }));
+        for (const entry of bad) failures.push(`${route.path} ${viewport.width}px: CJK linked heading leading ${entry.ratio.toFixed(2)} ${entry.text}`);
+      } catch (e) {
+        failures.push(`${route.path} ${viewport.width}px: CJK heading check error: ${e.message}`);
+      }
     }
   }
   await browser.close();
   if (failures.length) { console.error(failures.join('\n')); process.exit(1); }
-  console.log(`PASS story-layout budgets stories=${storyRoutes.length} zh-heading-pages=${zhRoutes.length} viewports=2`);
+  console.log(`PASS story-layout budgets stories=${storyRoutes.length} home-pages=${frontRoutes.length} zh-heading-pages=${zhRoutes.length} viewports=2`);
 })().catch(e => { console.error(`BROWSER_UNAVAILABLE: ${e.message}`); process.exit(2); });'''
 
 
@@ -107,7 +142,7 @@ def main(argv: list[str] | None = None) -> int:
         if completed.returncode == 2:
             raise RuntimeError(completed.stderr.strip() or "layout budgets: browser unavailable")
         if completed.returncode != 0:
-            raise AssertionError((completed.stdout + completed.stderr)[-6000:])
+            raise AssertionError(completed.stdout + completed.stderr)
         print(completed.stdout.strip())
     except (AssertionError, OSError, RuntimeError, subprocess.TimeoutExpired) as exc:
         raise SystemExit(f"PAPER ORACLE FAIL: {exc}") from exc

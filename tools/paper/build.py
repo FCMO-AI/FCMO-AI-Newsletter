@@ -134,6 +134,11 @@ class PaperBuilder:
                 width += 0.55
             else:
                 width += 0.35
+        # The 65-unit cutoff is calibrated from the measured five-line Spanish
+        # titles (82.8–92.4 units) and the 1040px story header at 51.84px compact
+        # type. It leaves room for four lines before titles take the smaller step.
+        if width > 65:
+            return "title-extra-compact"
         if width > 58:
             return "title-compact"
         if width > 46:

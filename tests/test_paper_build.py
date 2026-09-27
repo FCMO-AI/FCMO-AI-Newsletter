@@ -141,7 +141,7 @@ class PaperBuildTests(unittest.TestCase):
         routes = json.loads((self.out / "data" / "routes.json").read_text(encoding="utf-8"))
         long_route = next(r for r in routes if r.get("kind") == "story" and len(r.get("title", "")) > 100 and r.get("locale") == "en")
         page = (self.out / long_route["path"] / "index.html").read_text(encoding="utf-8")
-        self.assertRegex(page, r'<article class="story-layout title-(?:large|compact)">')
+        self.assertRegex(page, r'<article class="story-layout title-(?:large|compact|extra-compact)">')
 
     def test_machine_prepared_story_discloses_review_status_and_english_original(self):
         with tempfile.TemporaryDirectory(prefix="desk-note-") as tmp:
@@ -353,6 +353,16 @@ class RealDataPaperBuildTests(unittest.TestCase):
         text = route.read_text(encoding="utf-8")
         self.assertIn(f"<h1>{html.escape(story['title'])}</h1>", text)
         self.assertNotIn("Translation pending", text)
+
+    def test_reported_long_spanish_titles_receive_the_extra_size_step(self):
+        paths = (
+            "es/2026/09/13/a-100-agent-formal-math-research-swarm-exhibits-contagious-verifier/",
+            "es/2026/09/06/nvidia-underwrites-up-to-105b-of-openai-linked-4-25-gw-data-center/",
+            "es/2026/09/01/gpt-6-astra-reaches-openais-critical-cyber-tier-while-external-arc-agi-3/",
+        )
+        for route in paths:
+            page = (self.out / route / "index.html").read_text(encoding="utf-8")
+            self.assertIn('<article class="story-layout title-extra-compact">', page, route)
 
 
 if __name__ == "__main__":

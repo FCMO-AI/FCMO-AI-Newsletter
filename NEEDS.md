@@ -1,15 +1,16 @@
 # Integration requests from WP-B
 
-## int4 visual acceptance
+## int4 Round 3 visual acceptance
 
-The source changes and deterministic gates are ready, but this sandbox blocks
-Chromium startup and loopback sockets. On the integration runner, regenerate OG
-cards, rebuild the real-data candidate with `--og-source`, then run
-`tools/gates/run_all.py`, `tests/oraculos/verificar_paper.py`, and the relevant
-`browser/shot.mjs` capture matrix. Review the Chinese heading leading, all-story
-headline/dek budgets, and the Spanish/Chinese local story-media variants in the
-final screenshots. The layout oracle now checks every story in all three locales
-and all Chinese generated routes at both required viewports.
+The 65-unit extra-compact title step is calibrated from the reported five-line
+Spanish headlines; the layout oracle now continues through every story, home
+page, and Chinese route and prints the full set of failures. The deterministic
+build/gates pass, but this sandbox blocks Chromium startup and loopback sockets.
+On the integration runner, regenerate OG cards, rebuild the real-data candidate
+with `--og-source`, then run `tools/gates/run_all.py`,
+`tests/oraculos/verificar_paper.py`, and the relevant `browser/shot.mjs` capture
+matrix. Review Chinese heading leading and all story/home headline/dek budgets,
+plus the Spanish/Chinese local story-media variants in the final screenshots.
 
 ## Publication Desk / int2 follow-up
 
