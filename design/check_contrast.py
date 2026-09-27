@@ -28,7 +28,8 @@ def ratio(foreground: str, background: str) -> float:
 
 
 def main() -> int:
-    colors = json.loads((ROOT / "design" / "tokens.json").read_text(encoding="utf-8"))["color"]
+    tokens = json.loads((ROOT / "design" / "tokens.json").read_text(encoding="utf-8"))
+    colors = tokens["color"]
     pairs = {
         "ink/bone": ("ink", "bone", 4.5),
         "ink-soft/bone": ("ink_soft", "bone", 4.5),
@@ -45,10 +46,21 @@ def main() -> int:
         print(f"{name} {value:.2f}:1 (min {minimum:.1f})")
         if value + 1e-9 < minimum:
             failed.append(name)
+    for brand, brand_colors in tokens["brands"].items():
+        for name, fg, bg in (("light", "ink", "bone"), ("dark", "bone", "ink")):
+            value = ratio(brand_colors[fg], brand_colors[bg])
+            print(f"{brand}/{name} {value:.2f}:1 (min 4.5)")
+            if value < 4.5:
+                failed.append(f"{brand}/{name}")
+    for name, foreground, background in (("group/body", tokens["brands"]["group"]["body"], tokens["brands"]["group"]["bone"]), ("dark-well/muted", "#D9D5CC", tokens["brands"]["ai"]["ink"])):
+        value = ratio(foreground, background)
+        print(f"{name} {value:.2f}:1 (min 4.5)")
+        if value < 4.5:
+            failed.append(name)
     if failed:
         print("CONTRAST FAIL " + ", ".join(failed))
         return 1
-    print(f"CONTRAST OK pairs={len(pairs)}")
+    print(f"CONTRAST OK pairs={len(pairs) + 6}")
     return 0
 
 
