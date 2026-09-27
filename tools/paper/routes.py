@@ -5,6 +5,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
 
+# Provisional product names: O-8 can be settled here without editing templates.
+PRODUCT_NAMES = {"newsletter": "Newsletter", "technical": "FCMO AI Diario"}
+TECHNICAL_FRONT = "diario/"
+
 
 @dataclass(frozen=True)
 class Route:

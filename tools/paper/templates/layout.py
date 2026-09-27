@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from html import escape
 import json
+from tools.paper.routes import PRODUCT_NAMES, TECHNICAL_FRONT
 
 
 MASTHEAD_SUBTITLE = {
@@ -40,6 +41,8 @@ def document(*, locale: dict, catalog: dict, config: dict, base: str, path: str,
     feeds = _url(base, locale_prefix + "feeds/")
     status = _url(base, locale_prefix + "status/")
     method = _url(base, locale_prefix + "method/")
+    technical = _url(base, locale_prefix + TECHNICAL_FRONT)
+    is_technical = path.startswith(TECHNICAL_FRONT) or body_class not in {"page-landing", "page-subscribe"}
     alternates_html = "\n".join(
         f'<link rel="alternate" hreflang="{_e(code)}" href="{_e(url)}">'
         for code, url in alternates
@@ -53,6 +56,12 @@ def document(*, locale: dict, catalog: dict, config: dict, base: str, path: str,
             for item in config["locales"]
         )
     )
+    crumb_label = {"en": "Home", "es-419": "Inicio", "zh-Hans": "首页"}[locale["code"]]
+    current_crumb = ({"en": "Organization", "es-419": "Organización", "zh-Hans": "机构"}[locale["code"]]
+                     if path.startswith("org/") else title.split(" — ")[0])
+    breadcrumb = "" if not path else (f'<nav class="breadcrumbs" aria-label="Breadcrumb"><ol><li><a href="{_e(home)}">{_e(crumb_label)}</a></li>'
+        + (f'<li><a href="{_e(technical)}">{_e(PRODUCT_NAMES["technical"])}</a></li>' if is_technical and path != TECHNICAL_FRONT else "")
+        + f'<li aria-current="page">{_e(current_crumb)}</li></ol></nav>')
     nav = strings["nav"]
     footer = strings["footer"]
     year = canonical[0:4] if canonical[:4].isdigit() else "2026"
@@ -75,10 +84,12 @@ def document(*, locale: dict, catalog: dict, config: dict, base: str, path: str,
 <link rel="stylesheet" href="{_e(css)}"><meta name="theme-color" content="#F2EFE8">
 <meta property="og:type" content="{_e(page_type)}"><meta property="og:title" content="{_e(title)}"><meta property="og:description" content="{_e(description[:160])}"><meta property="og:url" content="{_e(canonical)}">{og}
 {structured}{extra_head}
+<!-- agent-alternates -->
 </head>
 <body class="{_e(body_class)}"><a class="skip-link" href="#main">{_e(strings['a11y']['skip_to_content'])}</a>
-<header class="site-header"><div class="utility-bar"><span class="edition-line">{_e(strings['site']['tagline'])}</span><nav class="language-nav" aria-label="{_e(strings['a11y']['language_switcher'])}">{languages}</nav></div>
-<div class="masthead"><a class="brand" href="{_e(home)}"><span class="brand-mark">[^]</span> FCMO AI</a><span class="brand-sub">{_e(MASTHEAD_SUBTITLE[locale['code']])}</span></div>
-<nav class="main-nav" aria-label="{_e(nav['menu'])}"><a href="{_e(home)}">{_e(nav['home'])}</a><a href="{_e(archive)}">{_e(nav['archive'])}</a><a href="{_e(search)}">{_e(nav['search'])}</a><a href="{_e(feeds)}">{_e(nav['feeds'])}</a><a href="{_e(method)}">{_e(nav['method'])}</a><a href="{_e(status)}">{_e(nav['status'])}</a></nav></header>
-{status_banner}<main id="main" class="page-shell"{f' data-story-id="{_e(story_id)}"' if story_id else ''}>{body}</main>
-<footer class="site-footer"><div class="footer-inner"><div class="footer-brand">[^] FCMO AI</div><nav class="footer-links"><a href="{_e(_url(base, locale_prefix+'about/'))}">{_e(footer['about'])}</a><a href="{_e(method)}">{_e(footer['method'])}</a><a href="{_e(_url(base, locale_prefix+'corrections/'))}">{_e(footer['corrections'])}</a><a href="{_e(_url(base, locale_prefix+'privacy/'))}">{_e(footer['privacy'])}</a><a href="{_e(_url(base, locale_prefix+'license/'))}">{_e(footer['license'])}</a><a href="{_e(_url(base, locale_prefix+'disclaimer/'))}">{_e(footer['disclaimer'])}</a><a href="{_e(status)}">{_e(footer['status'])}</a><a href="{_e(feeds)}">{_e(footer['feeds'])}</a></nav><p class="footer-note">{_e(footer['automated_notice'])}<br>{_e(footer['copyright'].format(year=year))} · Faber Consilii, Machinator Operis</p></div></footer>{safeguard}</body></html>'''
+<header class="site-header"><div class="utility-bar"><a class="utility-brand" href="{_e(home)}">FCMO <span>GROUP</span></a><span class="edition-line">{_e(strings['site']['tagline'])}</span><nav class="language-nav" aria-label="{_e(strings['a11y']['language_switcher'])}">{languages}</nav></div>
+<div class="masthead"><a class="brand" href="{_e(home)}">FCMO</a><span class="brand-sub">{_e(PRODUCT_NAMES['newsletter'])} · FCMO Group</span></div>
+<nav class="zone-switch" aria-label="Publication sections"><a href="{_e(home)}"{' aria-current="page"' if not is_technical else ''}>{_e(PRODUCT_NAMES['newsletter'])}<small>FCMO Group</small></a><a href="{_e(technical)}"{' aria-current="page"' if is_technical else ''}>{_e(PRODUCT_NAMES['technical'])}<small>FCMO AI</small></a></nav>
+<nav class="main-nav" aria-label="{_e(nav['menu'])}"><a href="{_e(home)}">{_e(nav['home'])}</a><a href="{_e(technical)}">{_e(PRODUCT_NAMES['technical'])}</a><a href="{_e(archive)}">{_e(nav['archive'])}</a><a href="{_e(search)}">{_e(nav['search'])}</a><a href="{_e(feeds)}">{_e(nav['feeds'])}</a><a href="{_e(method)}">{_e(nav['method'])}</a><a href="{_e(status)}">{_e(nav['status'])}</a></nav></header>
+{status_banner}<main id="main" class="page-shell"{f' data-story-id="{_e(story_id)}"' if story_id else ''}>{breadcrumb}{body}</main>
+<footer class="site-footer"><div class="footer-inner"><div class="footer-brand"><a href="{_e(home)}">FCMO <span>GROUP</span></a><a href="{_e(technical)}">FCMO AI</a></div><nav class="footer-links" aria-label="Footer"><a href="{_e(_url(base, locale_prefix+'about/'))}">{_e(footer['about'])}</a><a href="{_e(method)}">{_e(footer['method'])}</a><a href="{_e(_url(base, locale_prefix+'corrections/'))}">{_e(footer['corrections'])}</a><a href="{_e(_url(base, locale_prefix+'privacy/'))}">{_e(footer['privacy'])}</a><a href="{_e(_url(base, locale_prefix+'license/'))}">{_e(footer['license'])}</a><a href="{_e(_url(base, locale_prefix+'disclaimer/'))}">{_e(footer['disclaimer'])}</a><a href="{_e(status)}">{_e(footer['status'])}</a><a href="{_e(feeds)}">{_e(footer['feeds'])}</a></nav><p class="footer-note">{_e(footer['automated_notice'])}<br>{_e(footer['copyright'].format(year=year))} · Faber Consilii, Machinator Operis</p></div></footer>{safeguard}</body></html>'''

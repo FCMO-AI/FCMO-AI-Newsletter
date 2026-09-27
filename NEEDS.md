@@ -159,3 +159,9 @@ Playwright 1.63.0 and Chromium into runner-temporary storage.
 ## Lane int6 favicon note
 
 - The existing PWA artwork is SVG. Generated pages reference `favicon.svg` and the existing 192px SVG as the Apple touch icon. No repository tool generates a 180px Apple touch PNG; producing one would require adding a rasterization dependency, so this lane keeps the existing icon artwork and formats.
+
+## v2 lane v1 handoff
+
+- **s1:** `tools/paper/templates/subscribe.py` was absent in this base, so v1 added the required temporary `subscribe_block(zone, locale)` adapter. Replace this file with the subscription lane's component. Preserve the two-argument entry point used by `tools/paper/templates/landing.py`, the honest inactive state, RSS/Atom links and the configured Spanish portal behavior covered by `tests/test_community_rail.py`.
+- **p2:** The landing's `#start-here` path gives a plain-language choice between letters, technical evidence and method. The Newsletter section still needs its owned letter, beginner-guide and community page redesign.
+- **p1:** Apply the technical page blueprints in `DESIGN_V2.md` to interior pages. The current story screenshot demonstrates the shared shell but the long-form body still has the earlier visual treatment.
