@@ -9,7 +9,7 @@ These are cross-package changes A4 requires but does not own.
 - `data/stories.v2.json`: byte-for-byte copy of `--stories`;
 - `data/newsroom-status.json`: byte-for-byte copy of `--status`.
 
-A4 currently copies both files into `publish/` in `pages.yml` as a defensive bridge. The standalone acceptance contract (`paper/build.py ...` followed by `tools/gates/run_all.py <out>`) requires A3b itself to emit them.
+A4 currently copies both files into `publish/` in `pages.yml` as a defensive bridge. The standalone gate command can validate route/locale parity from A3b's `data/routes.json`, but embedding the source files makes the candidate self-describing, enables field-provenance glossary enforcement, and is required before deployment identity is minted. A3b should therefore emit them directly; until then the workflow copy is fail-closed compatibility glue.
 
 Canonical story pages are derived from `url_date` and `slug`; A4 verifies the exact three routes `YYYY/MM/DD/slug/`, `es/YYYY/MM/DD/slug/`, and `zh/YYYY/MM/DD/slug/`. Keep those paths stable. A `data-story-id="FCMO-…"` marker on each story `<main>` is recommended for stronger orphan detection, though path equality is already enforced.
 

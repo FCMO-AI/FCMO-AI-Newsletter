@@ -76,6 +76,18 @@ class PublicationGateTests(unittest.TestCase):
         results = run_all.run(self.root)
         self.assertEqual([result.code for result in results], [gate.__module__.rsplit(".", 1)[-1].upper() for gate in run_all.GATES])
 
+    def test_generator_output_can_prove_story_parity_from_routes_manifest(self):
+        routes = []
+        for locale in ("en", "es-419", "zh-Hans"):
+            route = canonical_story_path(self.story, locale)
+            routes.append({"kind": "story", "story_id": self.story["id"], "locale": locale,
+                           "path": route.removesuffix("index.html")})
+        (self.root / "data/routes.json").write_text(json.dumps(routes), encoding="utf-8")
+        (self.root / "data/stories.v2.json").unlink()
+        results = run_all.run(self.root)
+        locale = next(result for result in results if result.code == "LOCALE_COMPLETE")
+        self.assertTrue(locale.warnings)
+
     def test_orphan_route_fails_named_gate(self):
         self.put("2026/09/25/orphan/index.html", '<html><main data-story-id="FCMO-BBBBBBBBBBBB">orphan</main></html>')
         self.assert_gate("ID_SET_EQUALITY")

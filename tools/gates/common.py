@@ -77,6 +77,17 @@ def live_stories(root: Path) -> tuple[dict, list[dict]]:
     return document, [row for row in rows if row.get("status", "live") == "live"]
 
 
+def story_routes(root: Path) -> list[dict]:
+    path = root / "data" / "routes.json"
+    try:
+        rows = read_json(path)
+    except (OSError, ValueError) as exc:
+        raise GateFailure("ID_SET_EQUALITY", [f"data/routes.json: {exc}"]) from exc
+    if not isinstance(rows, list):
+        raise GateFailure("ID_SET_EQUALITY", ["data/routes.json must be an array"])
+    return [row for row in rows if isinstance(row, dict) and row.get("kind") == "story"]
+
+
 def canonical_story_path(story: dict, locale: str) -> str | None:
     date = str(story.get("url_date") or "")
     slug = str(story.get("slug") or "")
@@ -90,4 +101,3 @@ def canonical_story_path(story: dict, locale: str) -> str | None:
         legacy_locale = {"en": "en", "es-419": "es", "zh-Hans": "zh-hans"}[locale]
         return f"news/{legacy_locale}/{rid}.html"
     return None
-

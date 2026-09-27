@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
-from .common import GateFailure, GateResult, canonical_story_path, fail, live_stories
+from .common import GateFailure, GateResult, canonical_story_path, fail, live_stories, story_routes
 
 CODE = "LOCALE_COMPLETE"
 COMPLETE = {"NATIVE_ARB", "MACHINE_REVIEWED"}
@@ -12,7 +12,25 @@ PROSE_KEYS = ("title", "headline", "dek", "summary", "why_it_matters", "importan
 
 
 def check(root: Path) -> GateResult:
-    document, stories = live_stories(root)
+    try:
+        document, stories = live_stories(root)
+    except GateFailure:
+        problems = []; rows = story_routes(root)
+        for row in rows:
+            locale = row.get("locale")
+            if locale not in {"es-419", "zh-Hans"}: continue
+            route = str(row.get("path") or "").lstrip("/")
+            route = route if route.endswith("index.html") else route.rstrip("/") + "/index.html"
+            page = root / route
+            if not page.is_file(): continue
+            text = page.read_text(encoding="utf-8", errors="replace")
+            if not re.search(rf'<html\b[^>]*\blang=["\']{re.escape(locale)}["\']', text, re.I):
+                problems.append(f"{route}: html lang is not {locale}")
+            if "pending-panel" in text and PENDING_COPY[locale] not in text:
+                problems.append(f"{route}: pending page lacks its localized notice")
+        fail(CODE, problems)
+        return GateResult(CODE, sum(row.get("locale") in {"es-419", "zh-Hans"} for row in rows),
+                          ("output-only mode: locale parity comes from data/routes.json",))
     # Legacy is accepted only for rebuilding a previously verified LKG tag.
     if document.get("schema") == "legacy-story-list":
         return GateResult(CODE, len(stories), ("legacy LKG: locale completeness was established by its original release gates",))
