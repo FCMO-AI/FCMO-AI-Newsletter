@@ -176,6 +176,9 @@ def translation_counts(status: dict[str, Any], story_count: int) -> dict[str, di
         if isinstance(row, dict) and all(isinstance(row.get(key), int) for key in ("complete", "pending", "failed")):
             counts = {key: max(0, int(row[key])) for key in ("complete", "pending", "failed")}
             if sum(counts.values()) == story_count:
+                states = row.get("state_counts")
+                if isinstance(states, dict) and set(states) == {"NATIVE_ARB", "MACHINE_REVIEWED", "PENDING", "FAILED"}:
+                    counts["state_counts"] = states
                 out[locale] = counts
                 continue
         complete = max(0, min(int(present.get(locale) or 0), story_count))
@@ -365,6 +368,13 @@ def finalize(args: argparse.Namespace) -> int:
             raise ValueError(f"{locale}: invalid field-level translation counts")
         if sum(counts.values()) != canonical_count:
             raise ValueError(f"{locale}: field-level translation counts do not cover the Story layer")
+        states = row.get("state_counts") or {}
+        if set(states) != {"NATIVE_ARB", "MACHINE_REVIEWED", "PENDING", "FAILED"} or \
+                any(not isinstance(value, int) or value < 0 for value in states.values()) or \
+                sum(states.values()) != canonical_count or \
+                states["NATIVE_ARB"] + states["MACHINE_REVIEWED"] != counts["complete"] or \
+                states["PENDING"] != counts["pending"] or states["FAILED"] != counts["failed"]:
+            raise ValueError(f"{locale}: translation state counts disagree with detail")
         pending_ids = set(row.get("pending_ids") or [])
         failed_ids = set((row.get("failed_ids") or {}).keys())
         if len(pending_ids) != counts["pending"] or len(failed_ids) != counts["failed"]:
@@ -372,7 +382,7 @@ def finalize(args: argparse.Namespace) -> int:
         if not (pending_ids | failed_ids) <= canonical_ids:
             raise ValueError(f"{locale}: field-level translation status contains non-canonical IDs")
         incomplete |= pending_ids | failed_ids
-        per_locale[locale] = counts
+        per_locale[locale] = {**counts, "state_counts": states}
     declared_incomplete = set(translation_doc.get("pending_translation_ids") or [])
     if declared_incomplete != incomplete or translation_doc.get("pending_translation_count") != len(incomplete):
         raise ValueError("field-level translation backlog summary disagrees with the locale detail")

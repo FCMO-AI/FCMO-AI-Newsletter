@@ -36,7 +36,7 @@ try:
         LOCALES as NATIVE_LOCALES,
         is_complete,
         load_corpus_canonical,
-        load_locale,
+        load_locale_details,
         pair_status,
     )
 except ImportError:  # direct script execution from tools/
@@ -44,7 +44,7 @@ except ImportError:  # direct script execution from tools/
         LOCALES as NATIVE_LOCALES,
         is_complete,
         load_corpus_canonical,
-        load_locale,
+        load_locale_details,
         pair_status,
     )
 
@@ -384,6 +384,8 @@ def translation_status(stories: list[dict[str, Any]], statuses: dict[str, dict[s
             "failed": len(failed),
             "pending_ids": pending,
             "failed_ids": dict(sorted(failed.items())),
+            "state_counts": {state: sum(statuses[locale][rid]["state"] == state for rid in ids)
+                             for state in ("NATIVE_ARB", "MACHINE_REVIEWED", "PENDING", "FAILED")},
         }
     return {
         "schema": "fcmo-translation-status-v2",
@@ -423,7 +425,7 @@ def main(argv: list[str] | None = None) -> int:
     all_statuses: dict[str, dict[str, dict[str, Any]]] = {}
     written: dict[str, int] = {}
     for locale in NATIVE_LOCALES:
-        rows, strict_ids = load_locale(i18n_dir, locale)
+        rows, strict_ids, provenance, _ = load_locale_details(i18n_dir, locale)
         statuses: dict[str, dict[str, Any]] = {}
         for story in stories:
             rid = str(story.get("research_id") or "")
@@ -433,7 +435,8 @@ def main(argv: list[str] | None = None) -> int:
                 statuses[rid] = {"state": "PENDING", "missing": ["canonical"], "missing_paths": [],
                                  "failure": None, "complete_keys": []}
             else:
-                statuses[rid] = pair_status(source, rows.get(rid), locale, strict=rid in strict_ids)
+                statuses[rid] = pair_status(source, rows.get(rid), locale, strict=rid in strict_ids,
+                                            provenance=provenance.get(rid))
         folder = site / "news" / ROUTE_SLUG[locale]
         folder.mkdir(parents=True, exist_ok=True)
         count = 0

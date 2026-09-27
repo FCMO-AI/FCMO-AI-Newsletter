@@ -44,9 +44,11 @@ from urllib.parse import urlsplit
 try:
     from tools import taxonomy
     from tools import corpus_guard
+    from tools.validate_localizations import load_locale_details
 except ImportError:  # executed as tools/story_layer.py
     import taxonomy  # type: ignore
     import corpus_guard  # type: ignore
+    from validate_localizations import load_locale_details  # type: ignore
 
 STORIES_SCHEMA = "fcmo-stories-v2"
 LEDGER_SCHEMA = "fcmo-first-published-v1"
@@ -226,21 +228,17 @@ def load_locale_deltas(corpus: Path) -> dict[str, dict[str, dict[str, Any]]]:
 
 
 def load_site_packs(i18n: Path | None) -> dict[str, dict[str, dict[str, Any]]]:
-    """ARB-authored native editions already published on the site (integrity-listed pairs)."""
+    """Published editions with field provenance, including desk gap fills."""
     out: dict[str, dict[str, dict[str, Any]]] = {loc: {} for loc in TARGET_LOCALES}
     if i18n is None or not i18n.is_dir():
         return out
     manifest = read_json(i18n / "integrity-manifest.json", {}) or {}
     listed = manifest.get("records") if isinstance(manifest, dict) else None
     for locale in TARGET_LOCALES:
-        for path in sorted((i18n / locale).glob("part-*.json")):
-            try:
-                rows = (read_json(path, {}) or {}).get("records") or {}
-            except ValueError:
-                continue
-            for rid, row in rows.items():
-                if isinstance(row, dict) and isinstance(listed, dict) and locale in (listed.get(rid) or {}):
-                    out[locale].setdefault(rid, row)
+        rows, _, origins, _ = load_locale_details(i18n, locale)
+        for rid, row in rows.items():
+            if isinstance(row, dict) and isinstance(listed, dict) and locale in (listed.get(rid) or {}):
+                out[locale][rid] = {**row, "_provenance": origins.get(rid, {})}
     return out
 
 
@@ -348,6 +346,8 @@ def locale_fields(row: dict[str, Any], story: dict[str, Any], derived_headline: 
     why = row.get("why_it_matters") or row.get("why")
     if isinstance(why, str) and why.strip():
         fields["why_it_matters"] = why.strip()
+        if "importance_rationale" not in fields:
+            fields["importance_rationale"] = why.strip()
     technical = row.get("technical")
     english_technical = story.get("technical") or {}
     if isinstance(technical, dict) and english_technical and all(
@@ -383,10 +383,8 @@ def locale_fields(row: dict[str, Any], story: dict[str, Any], derived_headline: 
 def build_l10n(story: dict[str, Any], sources: list[dict[str, Any]], derived_headline: bool,
                derived_dek: bool) -> dict[str, Any]:
     required = list(L10N_FIELDS)
-    if story.get("headline"):
-        required.append("headline")
-    if story.get("dek"):
-        required.append("dek")
+    # The paper already uses localized title/summary when a short headline/dek
+    # cannot be derived. Those optional display variants are not new prose debt.
     english_empty = {
         "technical": not story.get("technical"),
         "importance_rationale": not story.get("importance_rationale"),
@@ -396,13 +394,27 @@ def build_l10n(story: dict[str, Any], sources: list[dict[str, Any]], derived_hea
         "evidence.contradictory": not story["evidence"]["contradictory"],
     }
     flat: dict[str, Any] = {}
+    origins: dict[str, str | None] = {}
+    source_keys = {"evidence.claims": "claims", "evidence.limitations": "limitations",
+                   "evidence.gaps": "evidence_gaps", "evidence.contradictory": "contradictory_evidence",
+                   "headline": "headline", "dek": "dek"}
     for row in sources:
         for path, value in locale_fields(row, story, derived_headline, derived_dek).items():
-            flat.setdefault(path, value)
+            if path not in flat:
+                flat[path] = value
+                source_key = source_keys.get(path, path)
+                if path == "headline" and "headline" not in row:
+                    source_key = "title"
+                if path == "dek" and "dek" not in row:
+                    source_key = "summary"
+                if path == "importance_rationale" and "importance_rationale" not in row:
+                    source_key = "why_it_matters" if "why_it_matters" in row else "why"
+                meta = (row.get("_provenance") or {}).get(source_key) or {}
+                origins[path] = meta.get("origin") if isinstance(meta, dict) else meta
     missing = [p for p in required if p not in flat and not english_empty.get(p, False)]
     fields: dict[str, Any] = {}
     for path, value in flat.items():
-        if path not in required:
+        if path not in required and path not in {"headline", "dek"}:
             continue
         if path.startswith("evidence."):
             kind = path.split(".", 1)[1]
@@ -415,14 +427,17 @@ def build_l10n(story: dict[str, Any], sources: list[dict[str, Any]], derived_hea
                 box[kind] = value
         else:
             fields[path] = value
+    provided = [p for p in required if p in flat]
+    selected_origins = {origins.get(p) for p in provided}
+    bad_origin = bool(selected_origins - {"arb", "publication-desk"})
     entry: dict[str, Any] = {
-        "state": "NATIVE_ARB" if not missing else "PENDING",
+        "state": "FAILED" if bad_origin else ("PENDING" if missing else
+                 ("MACHINE_REVIEWED" if "publication-desk" in selected_origins else "NATIVE_ARB")),
         "fields": fields,
         "missing": missing,
     }
-    provided = [p for p in required if p in flat]
     if provided:
-        entry["provenance"] = {p: "arb" for p in provided}
+        entry["provenance"] = {p: origins.get(p) for p in provided if origins.get(p) is not None}
     return entry
 
 
@@ -590,6 +605,11 @@ def locale_rows_from_story(story: dict[str, Any]) -> dict[str, dict[str, Any]]:
             row["evidence_gaps"] = [g.get("description") for g in evidence["gaps"]]
         if "contradictory" in evidence:
             row["contradictory_evidence"] = list(evidence["contradictory"])
+        old_origins = ((story.get("l10n") or {}).get(locale) or {}).get("provenance") or {}
+        reverse = {"evidence.claims": "claims", "evidence.limitations": "limitations",
+                   "evidence.gaps": "evidence_gaps", "evidence.contradictory": "contradictory_evidence"}
+        row["_provenance"] = {reverse.get(path, path): {"origin": origin}
+                              for path, origin in old_origins.items()}
         rows[locale] = row
     return rows
 
@@ -638,7 +658,8 @@ class StoryInputs:
         deltas = load_locale_deltas(corpus)
         packs = load_site_packs(i18n)
         self.locale_rows = {
-            rid: [{loc: deltas[loc].get(rid) for loc in TARGET_LOCALES},
+            rid: [{loc: ({**deltas[loc][rid], "_provenance": {key: {"origin": "arb"} for key in deltas[loc][rid]}}
+                        if rid in deltas[loc] else None) for loc in TARGET_LOCALES},
                   {loc: packs[loc].get(rid) for loc in TARGET_LOCALES}]
             + ([locale_rows_from_story(frozen[rid])] if rid in frozen else [])
             for rid in self.records

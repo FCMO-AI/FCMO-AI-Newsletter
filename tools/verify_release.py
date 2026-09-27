@@ -81,7 +81,15 @@ def identidad():
         assert ui["canonical_record_count"] == len(registros), f"{loc}: cuenta canonica distinta"
         trad = {}
         for part in sorted((root / "data/i18n" / loc).glob("part-*.json")):
-            trad.update(json.loads(part.read_text(encoding="utf-8"))["records"])
+            rows = json.loads(part.read_text(encoding="utf-8"))["records"]
+            for rid, row in rows.items():
+                if part.name == "part-desk.json":
+                    chosen = trad.setdefault(rid, {})
+                    for key, value in row.items():
+                        chosen.setdefault(key, value)
+                else:
+                    assert rid not in trad, f"{loc}/{rid}: duplicate ARB locale record"
+                    trad[rid] = row
         locale_ids[loc] = set(trad)
         sobran = sorted(set(trad) - ids)
         assert not sobran, f"{loc}: traducciones fuera del corpus {sobran[:5]}"

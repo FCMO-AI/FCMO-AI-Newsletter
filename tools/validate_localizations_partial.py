@@ -26,7 +26,7 @@ try:
     from tools.validate_localizations import (
         LOCALES,
         is_complete,
-        load_locale,
+        load_locale_details,
         pair_status,
         stable_digest,
         translated_projection,
@@ -36,7 +36,7 @@ except ImportError:  # direct script execution from tools/
     from validate_localizations import (
         LOCALES,
         is_complete,
-        load_locale,
+        load_locale_details,
         pair_status,
         stable_digest,
         translated_projection,
@@ -59,18 +59,21 @@ def main(argv: list[str] | None = None) -> int:
     failed_by_locale: dict[str, dict[str, str]] = {}
     strict_pairs = 0
     historical_pairs = 0
+    state_counts: dict[str, dict[str, int]] = {}
 
     for locale in LOCALES:
-        rows, strict_ids = load_locale(args.i18n_dir, locale)
+        rows, strict_ids, provenance, _ = load_locale_details(args.i18n_dir, locale)
         stale = set(rows) - expected
         if stale:
             errors.append(f"{locale}: stale/non-canonical ids {sorted(stale)}")
         pending: list[str] = []
         failed: dict[str, str] = {}
+        state_counts[locale] = {state: 0 for state in ("NATIVE_ARB", "MACHINE_REVIEWED", "PENDING", "FAILED")}
         for rid in sorted(expected):
             overlay = rows.get(rid)
             strict = rid in strict_ids
-            status = pair_status(canonical[rid], overlay, locale, strict=strict)
+            status = pair_status(canonical[rid], overlay, locale, strict=strict, provenance=provenance.get(rid))
+            state_counts[locale][status["state"]] += 1
             if status["state"] == "FAILED":
                 failed[rid] = status["failure"]["gate"]
             elif not is_complete(status):
@@ -87,6 +90,7 @@ def main(argv: list[str] | None = None) -> int:
                     "validation_tier": tier,
                     "state": status["state"],
                     "missing": status["missing"],
+                    "provenance": provenance.get(rid, {}),
                 }
         pending_by_locale[locale] = pending
         failed_by_locale[locale] = failed
@@ -117,6 +121,7 @@ def main(argv: list[str] | None = None) -> int:
         "failed_by_locale": failed_by_locale,
         "state": "COMPLETE" if not incomplete else "DEGRADED_TRANSLATION_BACKLOG",
         "records": receipt_records,
+        "state_counts": state_counts,
     }
     args.receipt.write_text(json.dumps(receipt, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     per_locale = " ".join(

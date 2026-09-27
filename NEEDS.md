@@ -1,5 +1,9 @@
 # Integration requests from WP-B
 
+## Publication Desk / int2 follow-up
+
+Resolved in int3: backlog tests now follow an independent recount at any backlog size. PD1 fields moved exactly into `part-desk.json`, with desk provenance and `MACHINE_REVIEWED` state; ARB import owns only its own packs. The validator, Story layer, translation status, integrity manifest and newsroom receipt now report the selected origin. The scheduled desk prompt still needs Claude's edit described in `/srv/fcmo/agents/work/newsletter/codex/int3-desk-prompt-delta.md`.
+
 ## WP-B2 slot contract (deferred)
 
 WP-B2 may add community integration only through the slots owned by the paper

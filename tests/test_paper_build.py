@@ -78,6 +78,30 @@ class PaperBuildTests(unittest.TestCase):
     def test_acceptance_command_reports_routes(self):
         self.assertRegex(self.result.stdout, r"routes=\d+")
 
+    def test_machine_prepared_story_discloses_review_status_and_english_original(self):
+        with tempfile.TemporaryDirectory(prefix="desk-note-") as tmp:
+            root = Path(tmp)
+            payload = json.loads((FIXTURES / "stories.v2.json").read_text(encoding="utf-8"))
+            story = next(s for s in payload["stories"] if s["l10n"]["es-419"]["state"] == "NATIVE_ARB")
+            story["l10n"]["es-419"]["state"] = "MACHINE_REVIEWED"
+            story["l10n"]["zh-Hans"]["state"] = "MACHINE_REVIEWED"
+            source = root / "stories.json"
+            source.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+            result = subprocess.run([
+                sys.executable, str(ROOT / "tools/paper/build.py"), "--stories", str(source),
+                "--status", str(FIXTURES / "newsroom-status.fresh.json"),
+                "--out", str(root / "publish"), "--base", "/FCMO-AI-Newsletter/",
+            ], cwd=ROOT, text=True, capture_output=True)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            suffix = f'{story["url_date"].replace("-", "/")}/{story["slug"]}/index.html'
+            for prefix, note in (("es", "ninguna persona la ha revisado"), ("zh", "未经人工审校")):
+                page = (root / "publish" / prefix / suffix).read_text(encoding="utf-8")
+                self.assertIn('class="translation-note" role="note"', page)
+                self.assertIn(note, page)
+                self.assertIn('lang="en" hreflang="en">English original</a>', page)
+            english = (root / "publish" / suffix).read_text(encoding="utf-8")
+            self.assertNotIn('class="translation-note"', english)
+
     def test_front_pages_are_static_and_localized(self):
         for rel, lang in (("index.html", "en"), ("es/index.html", "es-419"), ("zh/index.html", "zh-Hans")):
             with self.subTest(rel=rel):

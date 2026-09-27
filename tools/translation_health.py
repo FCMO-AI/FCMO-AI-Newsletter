@@ -37,7 +37,7 @@ from typing import Any
 try:
     from tools.validate_localizations import (
         LOCALES,
-        effective_overlays,
+        effective_overlays_details,
         is_complete,
         load_corpus_canonical,
         pair_status,
@@ -47,7 +47,7 @@ try:
 except ImportError:  # direct script execution from tools/
     from validate_localizations import (
         LOCALES,
-        effective_overlays,
+        effective_overlays_details,
         is_complete,
         load_corpus_canonical,
         pair_status,
@@ -96,12 +96,13 @@ def corpus_health(corpus: Path, i18n_dir: Path | None, now: datetime, grace_hour
     published = first_published(corpus, canonical)
     per_locale: dict[str, Any] = {}
     for locale in LOCALES:
-        rows, strict_ids = effective_overlays(locale, i18n_dir, corpus)
+        rows, strict_ids, provenance, _ = effective_overlays_details(locale, i18n_dir, corpus)
         overdue: list[dict[str, Any]] = []
         grace: list[dict[str, Any]] = []
         complete = 0
         for rid in sorted(canonical):
-            status = pair_status(canonical[rid], rows.get(rid), locale, strict=rid in strict_ids)
+            status = pair_status(canonical[rid], rows.get(rid), locale, strict=rid in strict_ids,
+                                 provenance=provenance.get(rid))
             if is_complete(status):
                 complete += 1
                 continue
@@ -165,7 +166,7 @@ def recent_main(args: argparse.Namespace) -> int:
     corpus = root / "corpus"
     canonical = load_corpus_canonical(corpus)
     i18n_dir = root / "site" / "data" / "i18n"
-    overlays = {locale: effective_overlays(locale, i18n_dir, corpus) for locale in LOCALES}
+    overlays = {locale: effective_overlays_details(locale, i18n_dir, corpus) for locale in LOCALES}
 
     watched: list[dict[str, Any]] = []
     overdue: list[dict[str, Any]] = []
@@ -183,9 +184,11 @@ def recent_main(args: argparse.Namespace) -> int:
             continue
         missing: list[str] = []
         for locale in LOCALES:
-            rows, strict_ids = overlays[locale]
+            rows, strict_ids, provenance, _ = overlays[locale]
             source = canonical.get(rid)
-            if source is None or not is_complete(pair_status(source, rows.get(rid), locale, strict=rid in strict_ids)):
+            if source is None or not is_complete(pair_status(source, rows.get(rid), locale,
+                                                              strict=rid in strict_ids,
+                                                              provenance=provenance.get(rid))):
                 missing.append(locale)
         if not missing:
             continue

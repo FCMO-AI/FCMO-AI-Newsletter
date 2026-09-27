@@ -61,9 +61,10 @@
             "additionalProperties": false,
             "required": ["origin", "at", "human_reviewed"],
             "properties": {
-              "origin": {"enum": ["arb", "machine", "human"]},
+              "origin": {"enum": ["arb", "publication-desk"]},
               "at": {"$ref": "#/$defs/utc"},
               "human_reviewed": {"type": "boolean"},
+              "network_translation": {"type": "boolean"},
               "model": {"type": "string", "maxLength": 80},
               "prompt_sha256": {"$ref": "#/$defs/sha256"},
               "glossary_sha256": {"$ref": "#/$defs/sha256"},
@@ -74,10 +75,11 @@
                 "properties": {"verdict": {"enum": ["PASS", "FAIL"]}, "model": {"type": "string", "maxLength": 80}}
               }
             },
-            "if": {"properties": {"origin": {"const": "machine"}}},
-            "then": {"required": ["model", "prompt_sha256", "glossary_sha256", "review"], "properties": {"review": {"properties": {"verdict": {"const": "PASS"}}}}}
+            "if": {"properties": {"origin": {"const": "publication-desk"}}},
+            "then": {"required": ["model", "network_translation"], "properties": {"human_reviewed": {"const": false}, "network_translation": {"const": false}}}
           }
         },
+        "alternates": {"type": "object"},
         "failure": {
           "oneOf": [
             {"type": "null"},
