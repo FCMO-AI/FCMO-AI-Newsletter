@@ -50,7 +50,8 @@ def slugify(value: str) -> str:
 
 
 class PaperBuilder:
-    def __init__(self, *, stories_path: Path, status_path: Path, out: Path, base: str) -> None:
+    def __init__(self, *, stories_path: Path, status_path: Path, out: Path, base: str,
+                 og_source: Path | None = None) -> None:
         self.payload = json.loads(stories_path.read_text(encoding="utf-8"))
         self.status = json.loads(status_path.read_text(encoding="utf-8"))
         self.config = json.loads((ROOT / "config" / "site.json").read_text(encoding="utf-8"))
@@ -60,6 +61,7 @@ class PaperBuilder:
         self.out = out
         self.base = "/" + base.strip("/") + "/" if base.strip("/") else "/"
         self.base_url = self.config["base_url"]
+        self.og_source = og_source
         self.routes: list[dict] = []
         self.page_count = 0
 
@@ -96,7 +98,9 @@ class PaperBuilder:
     def _story_href(self, locale: dict, story: dict) -> str:
         return href(self.base, story_path(locale, story))
 
-    def _media_url(self, story: dict) -> str:
+    def _media_url(self, story: dict, locale: dict | None = None) -> str:
+        if self.og_source is not None and locale is not None:
+            return absolute(self.base_url, f'og/{locale["code"]}/{story["id"]}.png')
         media = story.get("media") or {}
         local = str(media.get("local_path") or "assets/explainers/research.svg").lstrip("/")
         return absolute(self.base_url, local)
@@ -141,7 +145,7 @@ class PaperBuilder:
         dates = sorted({s["url_date"] for s in self.live}, reverse=True)[:6]
         editions = f'<section class="beat-section"><div class="section-head"><h2>{esc(strings["front"]["editions"])}</h2><a href="{esc(href(self.base,locale["path_prefix"]+"archive/"))}">{esc(strings["nav"]["archive"])}</a></div><div class="card-row">' + "".join(f'<article class="story-card"><h3><a href="{esc(href(self.base,edition_path(locale,date)))}">{esc(strings["archive"]["edition_title"].format(date=format_date(date+"T12:00:00Z",catalog)))}</a></h3></article>' for date in dates) + "</div></section>"
         body = front_page(lead=lead, top=top, essentials=essentials, beats="".join(sections), developing=developing, subscribe=subscribe, cartas="", editions=editions)
-        self._write_page(locale=locale, suffix="", title=f'{strings["site"]["name"]} — {strings["site"]["tagline"]}', description=strings["site"]["description"], body=body, kind="front", og_image=self._media_url(first))
+        self._write_page(locale=locale, suffix="", title=f'{strings["site"]["name"]} — {strings["site"]["tagline"]}', description=strings["site"]["description"], body=body, kind="front", og_image=self._media_url(first, locale))
 
     def _localized_evidence(self, story: dict, locale: dict) -> dict:
         if locale["code"] == "en":
@@ -195,7 +199,7 @@ class PaperBuilder:
             aside = self._facts(story, locale)
         page = story_page(header=header, body=body, aside=aside)
         story_url = absolute(self.base_url, locale["path_prefix"] + suffix)
-        image = self._media_url(story)
+        image = self._media_url(story, locale)
         structured = {"@context": "https://schema.org", "@type": "NewsArticle", "headline": title, "description": description, "datePublished": story["first_published_at"], "dateModified": story["updated_at"], "mainEntityOfPage": story_url, "image": [image], "author": {"@type": "Organization", "name": "FCMO AI Research Desk"}, "publisher": {"@type": "Organization", "name": "FCMO AI"}}
         self._write_page(locale=locale, suffix=suffix, title=f"{title} — FCMO AI", description=description, body=page, kind="story", story=story, og_image=image, json_ld=structured)
 
@@ -277,6 +281,10 @@ class PaperBuilder:
             shutil.rmtree(self.out)
         self.out.mkdir(parents=True)
         shutil.copytree(ROOT / "site-src" / "assets", self.out / "assets", dirs_exist_ok=True)
+        if self.og_source is not None:
+            if not self.og_source.is_dir():
+                raise ValueError(f"--og-source is not a directory: {self.og_source}")
+            shutil.copytree(self.og_source, self.out / "og")
         (self.out / "assets" / "js").mkdir(parents=True, exist_ok=True)
         (self.out / "assets" / "js" / "search.js").write_text(SEARCH_JS, encoding="utf-8")
         (self.out / ".nojekyll").write_text("", encoding="utf-8")
@@ -324,9 +332,10 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--status", type=Path, required=True)
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--base", default="/")
+    parser.add_argument("--og-source", type=Path, help="cards produced by og_image.py; copied to publish/og")
     args = parser.parse_args(argv)
     try:
-        PaperBuilder(stories_path=args.stories, status_path=args.status, out=args.out, base=args.base).build()
+        PaperBuilder(stories_path=args.stories, status_path=args.status, out=args.out, base=args.base, og_source=args.og_source).build()
     except (OSError, ValueError, KeyError, json.JSONDecodeError) as exc:
         print(f"paper build FAILED: {exc}", file=sys.stderr)
         return 1
