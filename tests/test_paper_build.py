@@ -78,6 +78,44 @@ class PaperBuildTests(unittest.TestCase):
     def test_acceptance_command_reports_routes(self):
         self.assertRegex(self.result.stdout, r"routes=\d+")
 
+    def test_native_pages_reference_generated_localized_explainer_graphics(self):
+        payload = json.loads((FIXTURES / "stories.v2.json").read_text(encoding="utf-8"))
+        story = next(s for s in payload["stories"] if (s.get("media") or {}).get("kind") == "explainer")
+        for locale in ("es-419", "zh-Hans"):
+            variant = self.out / "assets" / "story-media" / f'{story["id"]}-{locale}.svg'
+            self.assertTrue(variant.is_file())
+            route = next(r for r in json.loads((self.out / "data" / "routes.json").read_text(encoding="utf-8"))
+                         if r.get("story_id") == story["id"] and r.get("locale") == locale)
+            page = (self.out / route["path"] / "index.html").read_text(encoding="utf-8")
+            self.assertIn(f'{story["id"]}-{locale}.svg', page)
+
+    def test_front_figure_keeps_localized_graphic_when_og_cards_are_enabled(self):
+        payload = json.loads((FIXTURES / "stories.v2.json").read_text(encoding="utf-8"))
+        lead = sorted((s for s in payload["stories"] if s.get("status") == "live"),
+                      key=lambda s: (bool(s.get("front_page_eligible")), s.get("importance", 0), s.get("event_at", ""), s["id"]),
+                      reverse=True)[0]
+        with tempfile.TemporaryDirectory(prefix="localized-og-") as tmp:
+            root = Path(tmp)
+            og = root / "og"
+            og.mkdir()
+            out = root / "publish"
+            result = subprocess.run([
+                sys.executable, str(ROOT / "tools" / "paper" / "build.py"),
+                "--stories", str(FIXTURES / "stories.v2.json"),
+                "--status", str(FIXTURES / "newsroom-status.fresh.json"),
+                "--out", str(out), "--base", "/FCMO-AI-Newsletter/", "--og-source", str(og),
+            ], cwd=ROOT, text=True, capture_output=True, check=False)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            home = (out / "zh" / "index.html").read_text(encoding="utf-8")
+            self.assertIn(f'{lead["id"]}-zh-Hans.svg', home)
+            self.assertIn(f'/og/zh-Hans/{lead["id"]}.png', home)
+
+    def test_long_story_headlines_receive_build_time_size_class(self):
+        routes = json.loads((self.out / "data" / "routes.json").read_text(encoding="utf-8"))
+        long_route = next(r for r in routes if r.get("kind") == "story" and len(r.get("title", "")) > 100 and r.get("locale") == "en")
+        page = (self.out / long_route["path"] / "index.html").read_text(encoding="utf-8")
+        self.assertRegex(page, r'<article class="story-layout title-(?:large|compact)">')
+
     def test_machine_prepared_story_discloses_review_status_and_english_original(self):
         with tempfile.TemporaryDirectory(prefix="desk-note-") as tmp:
             root = Path(tmp)

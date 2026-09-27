@@ -44,6 +44,7 @@ import os
 import re
 import struct
 import sys
+import textwrap
 import time
 import urllib.error
 import urllib.parse
@@ -1481,6 +1482,71 @@ def svg_for(brief: dict[str, Any]) -> str:
 </foreignObject>
 {fact_line}<text x="110" y="838" font-family="Arial,Helvetica,sans-serif" font-size="20" fill="#99999F">FCMO original editorial graphic · not source evidence</text>
 </svg>"""
+
+
+def localized_story_svg(story: dict[str, Any], locale: str, catalog: dict[str, Any]) -> str:
+    """Render a native-language graphic, or a text-free image for an incomplete pair."""
+    if locale not in {"es-419", "zh-Hans"}:
+        raise ValueError(f"unsupported graphic locale: {locale}")
+    translated = story.get("l10n", {}).get(locale, {})
+    fields = translated.get("fields", {}) if isinstance(translated, dict) else {}
+    complete = (translated.get("state") in {"NATIVE_ARB", "MACHINE_REVIEWED"}
+                and not translated.get("missing")
+                and isinstance(fields, dict)
+                and bool(fields.get("headline") or fields.get("title")))
+    if not complete:
+        # Reuse the desk's deterministic, language-neutral original art.
+        return render_explainer(str(story.get("beat") or "research"), 1)
+
+    from tools.paper.i18n import headline, label
+
+    title = headline(story, locale, catalog)
+    desk = story.get("primary_desk") or story.get("desk")
+    kicker = label(catalog, "desk", desk, fallback="") or label(catalog, "beat", story.get("beat"), fallback="")
+    grade = label(catalog, "evidence_class", story.get("evidence_class"), fallback=str(story.get("evidence_class") or ""))
+    evidence = catalog["strings"]["story"]["evidence_class"].format(grade=grade)
+    score = catalog["strings"]["story"]["importance"].format(score=story.get("importance", ""))
+    provenance = catalog["strings"]["story"]["explainer_credit"]
+    font = '"Noto Sans CJK SC","Microsoft YaHei",sans-serif' if locale == "zh-Hans" else 'Arial,Helvetica,sans-serif'
+    # Keep each visible phrase in SVG text nodes so the language gate can inspect it.
+    max_chars = 20 if locale == "zh-Hans" else 31
+    title_lines = ([title[i:i + max_chars] for i in range(0, len(title), max_chars)]
+                   if locale == "zh-Hans" else textwrap.wrap(title, width=max_chars, break_long_words=True, break_on_hyphens=True))
+    title_font = 64 if len(title_lines) <= 4 else 52
+    title_step = 76 if len(title_lines) <= 4 else 62
+    tspans = "".join(
+        f'<tspan x="110" dy="{0 if i == 0 else title_step}">{html.escape(line)}</tspan>'
+        for i, line in enumerate(title_lines)
+    )
+    return f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-labelledby="t d">
+<title id="t">{html.escape(title)}</title>
+<desc id="d">{html.escape(provenance)}</desc>
+<rect width="1600" height="900" fill="#0B0B0C"/>
+<circle cx="1320" cy="170" r="310" fill="#FD5204" opacity=".18"/>
+<circle cx="1450" cy="780" r="430" fill="#FFFFFF" opacity=".035"/>
+<path d="M0 710 C330 560 490 810 790 650 S1260 420 1600 600" fill="none" stroke="#FD5204" stroke-width="16"/>
+<text x="110" y="120" font-family='{font}' font-size="34" letter-spacing="4" fill="#FD5204" translate="no" data-field="organizations">FCMO AI</text>
+<text x="110" y="198" font-family='{font}' font-size="30" letter-spacing="2" fill="#B8B8BC">{html.escape(kicker)}</text>
+<text x="110" y="300" font-family='{font}' font-size="{title_font}" font-weight="700" fill="#FFFFFF">{tspans}</text>
+<text x="110" y="790" font-family='{font}' font-size="28" fill="#FFFFFF">{html.escape(evidence)} · {html.escape(score)}</text>
+<text x="110" y="838" font-family='{font}' font-size="20" fill="#99999F">{html.escape(provenance)}</text>
+</svg>'''
+
+
+def write_localized_story_graphics(stories: list[dict[str, Any]], catalogs: dict[str, dict[str, Any]], output: Path) -> None:
+    """Write Spanish and Chinese variants for local FCMO-original story artwork."""
+    output.mkdir(parents=True, exist_ok=True)
+    for story in stories:
+        media = story.get("media") or {}
+        if media.get("kind") != "explainer":
+            continue
+        story_id = str(story.get("id") or "")
+        if not ID_RE.fullmatch(story_id):
+            continue
+        for locale in ("es-419", "zh-Hans"):
+            (output / f"{story_id}-{locale}.svg").write_text(
+                localized_story_svg(story, locale, catalogs[locale]), encoding="utf-8"
+            )
 
 
 def run_legacy(args: argparse.Namespace, fetcher: Any | None) -> int:
