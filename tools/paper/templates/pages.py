@@ -25,8 +25,9 @@ def story_page(*, header: str, body: str, aside: str) -> str:
     return f'<article class="story-layout">{header}<div class="story-body">{body}</div><aside class="story-aside">{aside}</aside></article>'
 
 
-def archive_page(title: str, intro: str, items: str) -> str:
-    return f'<header><p class="section-kicker">FCMO AI · archive</p><h1 class="page-title">{e(title)}</h1><p>{e(intro)}</p></header><div class="archive-list">{items}</div>'
+def archive_page(title: str, intro: str, items: str, *, title_html: str | None = None) -> str:
+    rendered_title = title_html if title_html is not None else e(title)
+    return f'<header><p class="section-kicker">FCMO AI · archive</p><h1 class="page-title">{rendered_title}</h1><p>{e(intro)}</p></header><div class="archive-list">{items}</div>'
 
 
 def status_page(title: str, cards: str, detail: str) -> str:

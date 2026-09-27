@@ -8,15 +8,18 @@ from pathlib import Path
 if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from tools.gates import (binding_complete, english_leak, glossary_consistency,
-                         id_set_equality, locale_complete, personal_mailbox,
-                         remote_script, size_budget)
+from tools.gates import (binding_complete, broken_reference, english_leak,
+                         glossary_consistency, id_set_equality, internal_id,
+                         locale_complete, personal_mailbox, remote_script,
+                         size_budget)
 from tools.gates.common import GateFailure, GateResult
 
 GATES = (
     id_set_equality.check,
     binding_complete.check,
+    internal_id.check,
     remote_script.check,
+    broken_reference.check,
     personal_mailbox.check,
     english_leak.check,
     locale_complete.check,

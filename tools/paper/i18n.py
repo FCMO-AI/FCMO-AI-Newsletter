@@ -34,15 +34,19 @@ def is_complete(story: dict, locale_code: str) -> bool:
 
 def field(story: dict, locale_code: str, key: str, default: object = "") -> object:
     if locale_code == "en":
+        if key == "headline":
+            return story.get("headline") or story.get("title", default)
+        if key == "title":
+            return story.get("title") or story.get("headline", default)
         return story.get(key, default)
     return story_locale(story, locale_code).get("fields", {}).get(key, default)
 
 
 def headline(story: dict, locale_code: str, catalog: dict) -> str:
-    value = field(story, locale_code, "headline")
+    value = field(story, locale_code, "headline") or field(story, locale_code, "title")
     if value:
         return str(value)
-    return f"{catalog['strings']['l10n']['pending_title']} · {story['id']}"
+    return str(catalog["strings"]["l10n"]["pending_title"])
 
 
 def dek(story: dict, locale_code: str, catalog: dict) -> str:

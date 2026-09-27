@@ -18,7 +18,6 @@ def build(stories: list[dict], *, locale: dict, catalog: dict, base: str, out: P
         if story.get("status") != "live":
             continue
         rows.append({
-            "id": story["id"],
             "h": headline(story, code, catalog),
             "d": dek(story, code, catalog),
             "u": href(base, story_path(locale, story)),
