@@ -55,7 +55,8 @@ def json_feed(stories: list[dict], *, locale: dict, catalog: dict, base_url: str
         "feed_url": feed_url,
         "language": locale["html_lang"],
         "items": [{
-            "id": story["id"], "url": absolute(base_url, story_path(locale, story)),
+            "id": absolute(base_url, story_path(locale, story)),
+            "url": absolute(base_url, story_path(locale, story)),
             "title": headline(story, code, catalog), "summary": dek(story, code, catalog),
             "date_published": story["first_published_at"], "date_modified": story["updated_at"],
         } for story in values],

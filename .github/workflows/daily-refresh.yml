@@ -3,7 +3,8 @@ name: Refresh the autonomous newsroom from the sanitized corpus
 # The newswire bridge leaves exclusively sanitized material in corpus/. From here
 # Newsletter behaves as a public clean-room newsroom: read the wire status,
 # ingest, import ARB-authored ES/ZH editions, re-research public sources,
-# resolve media, build Story surfaces and refuse unsafe publication.
+# resolve media and build the Story layer consumed by the paper SSG. Pages owns
+# candidate rendering, deterministic gates, browser proof and deployment.
 # Liveness comes from corpus/wire-status.json, never from the Airlock time. The
 # preflight picks one of two paths:
 # - rebuild: the release, the corpus digest or the builder changed. A builder
@@ -134,50 +135,24 @@ jobs:
         if: steps.preflight.outputs.path == 'rebuild'
         run: python tools/visual_desk.py --release-src release-src --site site
 
-      - name: Build the Story layer and static EN ES ZH news surfaces
+      - name: Maintain legacy Story surfaces while the first paper LKG is established
         if: steps.preflight.outputs.path == 'rebuild'
         run: python tools/build_newsroom_surfaces.py --release-src release-src --site site
 
-      - name: Replace untranslated locale fallbacks with explicit pending pages
-        if: steps.preflight.outputs.path == 'rebuild'
-        run: python tools/mark_pending_localizations.py --site site
-
-      - name: Select the freshest material lead without changing evidence labels
-        if: steps.preflight.outputs.path == 'rebuild'
-        run: python tools/editorial_freshness.py select --stories site/data/stories.json
-
-      - name: Promote the current Story lead onto the reader front page
-        if: steps.preflight.outputs.path == 'rebuild'
-        run: python tools/promote_story_front_page.py --site site
-
-      - name: Build and finalize the complete editorial frontend suite
+      - name: Build the canonical A2 Story layer consumed by the paper SSG
         if: steps.preflight.outputs.path == 'rebuild'
         run: |
-          python tools/build_editorial_frontends.py --site site
-          python tools/finalize_editorial_frontends.py --site site
-
-      - name: Prove the complete regenerated newsroom under all stateful refresh oracles
-        if: steps.preflight.outputs.path == 'rebuild'
-        run: |
-          python tests/oraculos/verificar_generador_newsroom.py
-          python tests/oraculos/verificar_traduccion.py
-          python tests/oraculos/verificar_refresco.py
+          python -m tools.story_layer build \
+            --corpus corpus \
+            --history-git . \
+            --site site \
+            --i18n site/data/i18n \
+            --out site/data/stories.v2.json
+          python tests/harness/validate.py contracts/stories.v2.schema.json site/data/stories.v2.json
 
       - name: Write downstream newsroom acknowledgement
         if: steps.preflight.outputs.path == 'rebuild'
         run: python tools/newsroom_receipt.py finalize --wire-status corpus/wire-status.json
-
-      - name: Rebuild the frozen canonical overlay
-        if: steps.preflight.outputs.path == 'rebuild'
-        run: python tools/build_final_release.py
-
-      - name: Rebuild the readiness receipt
-        if: steps.preflight.outputs.path == 'rebuild'
-        run: python tools/build_ready_receipt.py
-
-      - name: Run the established six publication gates
-        if: steps.preflight.outputs.path == 'rebuild'
-        run: python tools/verify_release.py
 
       - name: Record only the edition state (no material change)
         if: steps.preflight.outputs.path == 'status'
@@ -192,6 +167,9 @@ jobs:
           git config user.name 'FCMO Autonomous Newsroom'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           rm -rf publish regression
+          # Legacy release artifacts are included in the closed boundary so the
+          # first-LKG recovery snapshot remains coherent if an operator rebuilds
+          # it during cutover. This workflow no longer generates or deploys it.
           git add -A -- release-src release-overlay site READY_TO_PUBLISH.md
           if git diff --cached --quiet; then
             echo 'Healthy heartbeat with no material release-tree delta.'
@@ -259,7 +237,7 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Render the edition banner at the shifted clock on a site copy
+      - name: Render the shifted edition state through the paper SSG
         env:
           OFFSET_H: ${{ inputs.drill_now_offset_h }}
         shell: bash
@@ -272,14 +250,14 @@ jobs:
           export FCMO_NOW
           echo "Preview clock: $FCMO_NOW (+${OFFSET_H}h)"
           PREVIEW="$RUNNER_TEMP/edition-preview"
-          mkdir -p "$PREVIEW/data"
-          cp -a site "$RUNNER_TEMP/edition-preview-site"
+          STATUS="$RUNNER_TEMP/newsroom-status.json"
           python tools/wire_status.py classify --wire-status corpus/wire-status.json || true
-          python tools/newsroom_receipt.py status --wire-status corpus/wire-status.json --status "$RUNNER_TEMP/edition-preview-site/data/newsroom-status.json"
-          python tools/edition_banner.py --site "$RUNNER_TEMP/edition-preview-site"
-          cp "$RUNNER_TEMP/edition-preview-site/index.html" "$PREVIEW/index.html"
-          cp -a "$RUNNER_TEMP/edition-preview-site/news" "$PREVIEW/news"
-          cp "$RUNNER_TEMP/edition-preview-site/data/newsroom-status.json" "$PREVIEW/data/newsroom-status.json"
+          python tools/newsroom_receipt.py status --wire-status corpus/wire-status.json --status "$STATUS"
+          python -m tools.paper.build \
+            --stories site/data/stories.v2.json \
+            --status "$STATUS" \
+            --out "$PREVIEW" \
+            --base /FCMO-AI-Newsletter/
 
       - name: Upload the banner preview
         uses: actions/upload-artifact@v6

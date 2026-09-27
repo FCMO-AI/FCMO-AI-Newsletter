@@ -102,3 +102,32 @@ Do not remove the legacy assembler/overlay paths until `lkg` points to a live-ve
 ## Release receipt
 
 `tools/build_ready_receipt.py` still describes the legacy overlay. It is not invoked by the new Pages workflow. Replace it with an SSG receipt only after A3b's final route/data manifest lands; doing that earlier would either encode a guessed interface or break the still-running refresh transaction.
+
+---
+
+# INT2 integration resolution (2026-09-26)
+
+The A3/A4 seams above are now closed on `wp/int2`:
+
+- A3 embeds byte-identical Story/status inputs, marks every story `<main>` with
+  `data-story-id`, copies referenced local story media, and emits the final
+  `data/routes.json` contract. Pages no longer performs defensive data copies.
+- Pages generates OG cards in runner-temporary storage and passes them to A3
+  with `--og-source` before the ten A4 gates and browser oracle run.
+- Daily refresh explicitly calls the A2 Story layer and commits
+  `site/data/stories.v2.json`; it no longer assembles the overlay as the Pages
+  candidate. The obsolete edition-banner ordering test now asserts the real
+  Story layer → A3 build → A4 gates → browser → deploy transaction.
+- The readiness receipt measures the A3 route manifest and its embedded Story
+  and newsroom-status artifacts; it no longer mounts or describes the legacy
+  overlay frontend.
+- Real-data regressions cover canonical English headlines, localized pending
+  pages without reader-visible internal IDs, translated-field preservation,
+  structured proper names, local media resolution, and broken-reference/internal-ID
+  gates.
+
+The **First LKG tag** operator boundary remains open. The legacy assembler and
+overlay files are intentionally retained as the first-cutover rollback path
+until a paper release is browser-verified, deployed, live-verified, and advances
+`lkg`. Chromium/loopback-dependent OG and browser evidence must be produced by
+the integration runner with those permissions.

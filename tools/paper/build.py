@@ -53,6 +53,8 @@ def slugify(value: str) -> str:
 class PaperBuilder:
     def __init__(self, *, stories_path: Path, status_path: Path, out: Path, base: str,
                  og_source: Path | None = None) -> None:
+        self.stories_path = stories_path
+        self.status_path = status_path
         self.payload = json.loads(stories_path.read_text(encoding="utf-8"))
         self.status = json.loads(status_path.read_text(encoding="utf-8"))
         self.config = json.loads((ROOT / "config" / "site.json").read_text(encoding="utf-8"))
@@ -87,6 +89,7 @@ class PaperBuilder:
             canonical=canonical, alternates=alts, og_image=og_image, page_type="article" if story else "website",
             status_banner=render_banner(self.status, self.catalogs[locale["code"]], base=self.base, locale=locale) if status else "",
             json_ld=json_ld, extra_head=extra_head, body_class=f"page-{kind}",
+            story_id=story["id"] if story else None,
         )
         target = output_path(self.out, route)
         target.parent.mkdir(parents=True, exist_ok=True)
@@ -162,17 +165,18 @@ class PaperBuilder:
         code = locale["code"]
         catalog = self.catalogs[code]
         strings = catalog["strings"]
-        title = headline(story, code, catalog)
+        complete = is_complete(story, code)
+        title = headline(story, code, catalog) if complete else strings["l10n"]["pending_title"]
         description = truncate(dek(story, code, catalog))
         suffix = story_path({**locale, "path_prefix": ""}, story)
         event = format_date(story["event_at"], catalog, precision=story.get("date_precision", "day"))
         published = format_date(story["first_published_at"], catalog, precision="minute")
         header = f'<header class="story-header"><p class="story-kicker">{esc(label(catalog,"beat",story.get("beat")))}</p><h1>{esc(title)}</h1><p class="story-dek">{esc(description)}</p><p class="story-meta">{esc(strings["story"]["byline"])} · {esc(strings["story"]["event_date"].format(date=event))} · {esc(strings["story"]["published"].format(date=published))}</p></header>'
-        complete = is_complete(story, code)
         if not complete:
-            notice = strings["l10n"]["pending_partial"] if field(story, code, "headline") else strings["l10n"]["pending_notice"]
+            notice = strings["l10n"]["pending_partial"] if (field(story, code, "headline") or field(story, code, "title")) else strings["l10n"]["pending_notice"]
             english = self._story_href(self.config["locales"][0], story)
-            body = f'<section class="pending-panel"><p class="section-kicker">{esc(strings["l10n"]["pending_title"])}</p><h2>{esc(strings["l10n"]["pending_title"])}</h2><p>{esc(notice)}</p><a class="button" href="{esc(english)}" hreflang="en">{esc(strings["l10n"]["read_original"])}</a></section>'
+            partial = self._pending_fields(story, locale)
+            body = f'<section class="pending-panel"><p class="section-kicker">{esc(strings["l10n"]["pending_title"])}</p><p>{esc(notice)}</p><a class="button" href="{esc(english)}" hreflang="en" lang="en">{esc(strings["l10n"]["read_original"])}</a></section>{partial}'
             aside = self._facts(story, locale)
         else:
             evidence = self._localized_evidence(story, locale)
@@ -198,7 +202,7 @@ class PaperBuilder:
                 sections.append(f'<section class="developing-well"><h2>{esc(strings["story"]["technical"])}</h2>{details}</section>')
             sources = story.get("sources") or []
             if sources:
-                links = "".join(f'<li><a href="{esc(src["url"])}" rel="noopener noreferrer">{esc(src.get("domain") or src["url"])}</a>{" · "+esc(strings["story"]["primary_source"]) if src.get("primary") else ""}</li>' for src in sources)
+                links = "".join(f'<li><a href="{esc(src["url"])}" rel="noopener noreferrer"><span translate="no" data-field="source-domain">{esc(src.get("domain") or src["url"])}</span></a>{" · "+esc(strings["story"]["primary_source"]) if src.get("primary") else ""}</li>' for src in sources)
                 sections.append(f'<section><h2>{esc(strings["story"]["sources"])}</h2><ol class="source-list">{links}</ol></section>')
             body = "".join(sections)
             aside = self._facts(story, locale)
@@ -208,23 +212,67 @@ class PaperBuilder:
         structured = {"@context": "https://schema.org", "@type": "NewsArticle", "headline": title, "description": description, "datePublished": story["first_published_at"], "dateModified": story["updated_at"], "mainEntityOfPage": story_url, "image": [image], "author": {"@type": "Organization", "name": "FCMO AI Research Desk"}, "publisher": {"@type": "Organization", "name": "FCMO AI"}}
         self._write_page(locale=locale, suffix=suffix, title=f"{title} — FCMO AI", description=description, body=page, kind="story", story=story, og_image=image, json_ld=structured)
 
+    def _pending_fields(self, story: dict, locale: dict) -> str:
+        """Render only prose already present in an incomplete native edition."""
+        code = locale["code"]
+        fields = story_locale(story, code).get("fields") or {}
+        if not isinstance(fields, dict):
+            return ""
+        strings = self.catalogs[code]["strings"]
+        sections: list[str] = []
+        native_title = fields.get("headline") or fields.get("title")
+        if native_title:
+            sections.append(f'<section data-field="title"><h2>{esc(native_title)}</h2></section>')
+        if fields.get("dek"):
+            sections.append(f'<section data-field="dek"><p class="story-dek">{esc(fields["dek"])}</p></section>')
+        for key, heading in (("summary", "what_changed"), ("why_it_matters", "why_it_matters"),
+                             ("importance_rationale", "importance_rationale")):
+            if fields.get(key):
+                sections.append(f'<section data-field="{key}"><h2>{esc(strings["story"][heading])}</h2><p>{esc(fields[key])}</p></section>')
+        technical = fields.get("technical")
+        if isinstance(technical, dict) and technical:
+            details = "".join(
+                f'<section><h3>{esc(strings["technical_field"].get(key, key))}</h3><p>{esc(value)}</p></section>'
+                for key, value in technical.items() if value
+            )
+            sections.append(f'<section class="developing-well" data-field="technical"><h2>{esc(strings["story"]["technical"])}</h2>{details}</section>')
+        evidence = fields.get("evidence")
+        if isinstance(evidence, dict) and evidence:
+            parts: list[str] = []
+            claims = evidence.get("claims") or []
+            if claims:
+                parts.append("<ol class=\"evidence-list\">" + "".join(
+                    f'<li>{esc(item.get("text", "") if isinstance(item, dict) else item)}</li>' for item in claims
+                ) + "</ol>")
+            for key, heading in (("limitations", "limitations"), ("gaps", "unknowns"), ("contradictory", "contradictory")):
+                values = evidence.get(key) or []
+                if values:
+                    parts.append(f'<h3>{esc(strings["story"][heading])}</h3><ul>' + "".join(
+                        f'<li>{esc(item.get("description", "") if isinstance(item, dict) else item)}</li>' for item in values
+                    ) + "</ul>")
+            if parts:
+                sections.append(f'<section data-field="evidence"><h2>{esc(strings["story"]["evidence"])}</h2>{"".join(parts)}</section>')
+        return "".join(sections)
+
     def _facts(self, story: dict, locale: dict) -> str:
         catalog = self.catalogs[locale["code"]]
         strings = catalog["strings"]["story"]
+        confidence_heading = strings["confidence"].split("{level}", 1)[0].rstrip(" :：")
         values = [
             (strings["importance_rationale"], strings["importance"].format(score=story.get("importance", ""))),
             (strings["evidence"], label(catalog, "evidence_class", story.get("evidence_class"))),
-            (strings["confidence"].split(":")[0], label(catalog, "confidence", story.get("confidence"))),
+            (confidence_heading, label(catalog, "confidence", story.get("confidence"))),
         ]
         facts = "".join(f'<div class="fact"><dt>{esc(key)}</dt><dd>{esc(value)}</dd></div>' for key, value in values if value)
         topics = ", ".join(story.get("topics") or [])
         orgs = ", ".join(story.get("organizations") or [])
-        return f'<dl>{facts}</dl>' + (f'<p><strong>{esc(strings["organizations"])}</strong><br>{esc(orgs)}</p>' if orgs else "") + (f'<p><strong>{esc(strings["topics"])}</strong><br>{esc(topics)}</p>' if topics else "")
+        return f'<dl>{facts}</dl>' + (f'<p><strong>{esc(strings["organizations"])}</strong><br><span translate="no" data-field="organizations">{esc(orgs)}</span></p>' if orgs else "") + (f'<p><strong>{esc(strings["topics"])}</strong><br>{esc(topics)}</p>' if topics else "")
 
-    def _listing(self, *, locale: dict, suffix: str, title: str, stories: list[dict], kind: str) -> None:
+    def _listing(self, *, locale: dict, suffix: str, title: str, stories: list[dict], kind: str,
+                 title_html: str | None = None) -> None:
         catalog = self.catalogs[locale["code"]]
         items = "".join(f'<article class="archive-item"><time datetime="{esc(story["event_at"])}">{esc(format_date(story["event_at"],catalog,precision=story.get("date_precision","day")))}</time><h2><a href="{esc(self._story_href(locale,story))}">{esc(headline(story,locale["code"],catalog))}</a></h2><p>{esc(truncate(dek(story,locale["code"],catalog),220))}</p></article>' for story in stories)
-        body = archive_page(title, catalog["strings"]["site"]["description"], items or f'<p>{esc(catalog["strings"]["archive"]["empty"])}</p>')
+        body = archive_page(title, catalog["strings"]["site"]["description"], items or f'<p>{esc(catalog["strings"]["archive"]["empty"])}</p>', title_html=title_html)
         self._write_page(locale=locale, suffix=suffix, title=f"{title} — FCMO AI", description=title, body=body, kind=kind)
 
     def _status(self, locale: dict) -> None:
@@ -288,6 +336,7 @@ class PaperBuilder:
             shutil.rmtree(self.out)
         self.out.mkdir(parents=True)
         shutil.copytree(ROOT / "site-src" / "assets", self.out / "assets", dirs_exist_ok=True)
+        self._copy_story_media()
         if self.og_source is not None:
             if not self.og_source.is_dir():
                 raise ValueError(f"--og-source is not a directory: {self.og_source}")
@@ -315,7 +364,16 @@ class PaperBuilder:
                 if count >= 3:
                     self._listing(locale=locale, suffix=f"topic/{slugify(topic)}/", title=catalog["strings"]["archive"]["topic_title"].format(topic=topic), stories=[s for s in ranked if topic in s.get("topics",[])], kind="topic")
             for organization in sorted(org_counts):
-                self._listing(locale=locale, suffix=f"org/{slugify(organization)}/", title=catalog["strings"]["archive"]["org_title"].format(organization=organization), stories=[s for s in ranked if organization in s.get("organizations",[])], kind="org")
+                template = catalog["strings"]["archive"]["org_title"]
+                before, marker, after = template.partition("{organization}")
+                title = template.format(organization=organization)
+                title_html = (
+                    f'{esc(before)}<span translate="no" data-field="organizations">{esc(organization)}</span>{esc(after)}'
+                    if marker else None
+                )
+                self._listing(locale=locale, suffix=f"org/{slugify(organization)}/", title=title,
+                              title_html=title_html,
+                              stories=[s for s in ranked if organization in s.get("organizations",[])], kind="org")
             self._status(locale)
             self._search(locale)
             self._simple_pages(locale)
@@ -326,11 +384,31 @@ class PaperBuilder:
         sitemaps.write(self.routes, out=self.out, generated_at=self.payload["generated_at"])
         (self.out / "data").mkdir(exist_ok=True)
         (self.out / "data" / "routes.json").write_text(json.dumps(self.routes, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        shutil.copyfile(self.stories_path, self.out / "data" / "stories.v2.json")
+        shutil.copyfile(self.status_path, self.out / "data" / "newsroom-status.json")
         js_size = sum(path.stat().st_size for path in self.out.rglob("*.js"))
         if js_size > 30 * 1024:
             raise ValueError(f"JavaScript budget exceeded: {js_size}")
         print(f"routes={self.page_count} feeds={len(feed_paths)} redirects={len(redirect_paths)} js_bytes={js_size}")
         return self.page_count
+
+    def _copy_story_media(self) -> None:
+        source_root = (ROOT / "site").resolve()
+        out_root = self.out.resolve()
+        for story in self.stories:
+            local = str((story.get("media") or {}).get("local_path") or "").strip().lstrip("/")
+            if not local:
+                continue
+            source = (source_root / local).resolve()
+            target = (out_root / local).resolve()
+            if source_root not in source.parents or out_root not in target.parents:
+                raise ValueError(f"unsafe story media path: {local}")
+            if target.is_file():
+                continue
+            if not source.is_file():
+                raise ValueError(f"referenced story media is missing: site/{local}")
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(source, target)
 
 
 def main(argv: list[str] | None = None) -> int:

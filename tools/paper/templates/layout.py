@@ -6,6 +6,13 @@ from html import escape
 import json
 
 
+MASTHEAD_SUBTITLE = {
+    "en": "Newsletter · evidence first",
+    "es-419": "Newsletter · evidencia primero",
+    "zh-Hans": "简报 · 证据优先",
+}
+
+
 def _e(value: object, *, quote: bool = True) -> str:
     return escape(str(value), quote=quote)
 
@@ -19,12 +26,13 @@ def document(*, locale: dict, catalog: dict, config: dict, base: str, path: str,
              alternates: list[tuple[str, str]], og_image: str | None = None,
              page_type: str = "website", status_banner: str = "",
              json_ld: dict | None = None, extra_head: str = "",
-             body_class: str = "") -> str:
+             body_class: str = "", story_id: str | None = None) -> str:
     strings = catalog["strings"]
     lang = locale["html_lang"]
     locale_prefix = locale["path_prefix"]
     home = _url(base, locale_prefix)
     css = _url(base, "assets/css/paper.css")
+    font_root = _url(base, "assets/fonts/")
     search = _url(base, locale_prefix + "search/")
     archive = _url(base, locale_prefix + "archive/")
     feeds = _url(base, locale_prefix + "feeds/")
@@ -58,13 +66,16 @@ def document(*, locale: dict, catalog: dict, config: dict, base: str, path: str,
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{_e(title)}</title><meta name="description" content="{_e(description[:160])}">
 <link rel="canonical" href="{_e(canonical)}">{alternates_html}
+<link rel="preload" href="{_e(font_root + 'InterTight-normal-400_900-latin.woff2')}" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="{_e(font_root + 'SourceSerif4-normal-400_700-latin.woff2')}" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="{_e(font_root + 'JetBrainsMono-normal-400-latin.woff2')}" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="{_e(css)}"><meta name="theme-color" content="#F2EFE8">
 <meta property="og:type" content="{_e(page_type)}"><meta property="og:title" content="{_e(title)}"><meta property="og:description" content="{_e(description[:160])}"><meta property="og:url" content="{_e(canonical)}">{og}
 {structured}{extra_head}
 </head>
 <body class="{_e(body_class)}"><a class="skip-link" href="#main">{_e(strings['a11y']['skip_to_content'])}</a>
 <header class="site-header"><div class="utility-bar"><span class="edition-line">{_e(strings['site']['tagline'])}</span><nav class="language-nav" aria-label="{_e(strings['a11y']['language_switcher'])}">{languages}</nav></div>
-<div class="masthead"><a class="brand" href="{_e(home)}"><span class="brand-mark">[^]</span> FCMO AI</a><span class="brand-sub">Newsletter · evidence first</span></div>
+<div class="masthead"><a class="brand" href="{_e(home)}"><span class="brand-mark">[^]</span> FCMO AI</a><span class="brand-sub">{_e(MASTHEAD_SUBTITLE[locale['code']])}</span></div>
 <nav class="main-nav" aria-label="{_e(nav['menu'])}"><a href="{_e(home)}">{_e(nav['home'])}</a><a href="{_e(archive)}">{_e(nav['archive'])}</a><a href="{_e(search)}">{_e(nav['search'])}</a><a href="{_e(feeds)}">{_e(nav['feeds'])}</a><a href="{_e(method)}">{_e(nav['method'])}</a><a href="{_e(status)}">{_e(nav['status'])}</a></nav></header>
-{status_banner}<main id="main" class="page-shell">{body}</main>
+{status_banner}<main id="main" class="page-shell"{f' data-story-id="{_e(story_id)}"' if story_id else ''}>{body}</main>
 <footer class="site-footer"><div class="footer-inner"><div class="footer-brand">[^] FCMO AI</div><nav class="footer-links"><a href="{_e(_url(base, locale_prefix+'about/'))}">{_e(footer['about'])}</a><a href="{_e(method)}">{_e(footer['method'])}</a><a href="{_e(_url(base, locale_prefix+'corrections/'))}">{_e(footer['corrections'])}</a><a href="{_e(_url(base, locale_prefix+'privacy/'))}">{_e(footer['privacy'])}</a><a href="{_e(_url(base, locale_prefix+'license/'))}">{_e(footer['license'])}</a><a href="{_e(_url(base, locale_prefix+'disclaimer/'))}">{_e(footer['disclaimer'])}</a><a href="{_e(status)}">{_e(footer['status'])}</a><a href="{_e(feeds)}">{_e(footer['feeds'])}</a></nav><p class="footer-note">{_e(footer['automated_notice'])}<br>{_e(footer['copyright'].format(year=year))} · Faber Consilii, Machinator Operis</p></div></footer>{safeguard}</body></html>'''

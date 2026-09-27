@@ -298,7 +298,8 @@ class NewswireBridgeWorkflowContractTests(unittest.TestCase):
         self.assertIn("drill_now_offset_h", doc[True]["workflow_dispatch"]["inputs"])
         preview_run = "\n".join(step.get("run", "") for step in preview["steps"])
         self.assertNotIn("git push", preview_run)
-        self.assertIn("python tools/edition_banner.py --site", preview_run)
+        self.assertIn("python -m tools.paper.build", preview_run)
+        self.assertIn('--status "$STATUS"', preview_run)
 
     def test_health_splits_serving_from_freshness_and_publishes_health_state(self) -> None:
         doc = load_workflow(self, HEALTH)
@@ -319,13 +320,26 @@ class NewswireBridgeWorkflowContractTests(unittest.TestCase):
         self.assertEqual(upload["with"]["name"], "health-state")
         self.assertEqual(upload["with"]["path"], "health/health-state.json")
 
-    def test_pages_candidate_gets_the_edition_banner_before_the_manifest_refresh(self) -> None:
-        text = PAGES.read_text(encoding="utf-8")
-        build = text.index("python tools/build_editorial_frontends.py --site publish")
-        banner = text.index("python tools/edition_banner.py --site publish")
-        refresh = text.index("python tools/finalize_editorial_frontends.py --site publish --refresh-manifest")
-        self.assertLess(build, banner)
-        self.assertLess(banner, refresh)
+    def test_story_layer_flows_through_paper_gates_browser_and_deploy(self) -> None:
+        refresh = REFRESH.read_text(encoding="utf-8")
+        pages = PAGES.read_text(encoding="utf-8")
+        pipeline = refresh + "\n" + pages
+        positions = [
+            pipeline.index("python -m tools.story_layer build"),
+            pipeline.index("python tools/paper/build.py"),
+            pipeline.index("python tools/gates/run_all.py publish"),
+            pipeline.index("python tests/oraculos/verificar_paper.py publish"),
+            pipeline.index("uses: actions/deploy-pages@v4"),
+        ]
+        self.assertEqual(positions, sorted(positions))
+        for retired in (
+            "python tools/build_final_release.py",
+            "python tools/build_ready_receipt.py",
+            "python tools/verify_release.py",
+        ):
+            self.assertNotIn(retired, refresh)
+        self.assertIn("git add -A -- release-src release-overlay site READY_TO_PUBLISH.md", refresh)
+        self.assertNotIn("python tools/build_final_release.py", refresh)
 
 
 if __name__ == "__main__":

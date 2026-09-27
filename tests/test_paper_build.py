@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from html.parser import HTMLParser
+import html
 import json
 from pathlib import Path
 import re
@@ -23,6 +24,7 @@ class AuditParser(HTMLParser):
         self.main_text = []
         self.meta = []
         self.links = []
+        self.main_attrs = []
 
     def handle_starttag(self, tag, attrs):
         values = dict(attrs)
@@ -32,6 +34,7 @@ class AuditParser(HTMLParser):
             self.articles += 1
         if tag == "main":
             self.main_depth += 1
+            self.main_attrs.append(values)
         if tag == "meta":
             self.meta.append(values)
         if tag == "link":
@@ -95,11 +98,32 @@ class PaperBuildTests(unittest.TestCase):
         expected = {(story_id, locale) for story_id in live for locale in ("en", "es-419", "zh-Hans")}
         self.assertEqual(actual, expected)
 
+    def test_story_pages_bind_their_internal_identity_only_as_metadata(self):
+        routes = json.loads((self.out / "data" / "routes.json").read_text(encoding="utf-8"))
+        for row in routes:
+            if row["kind"] != "story":
+                continue
+            _, page = self.parse(row["path"] + "index.html")
+            self.assertEqual(page.main_attrs[0].get("data-story-id"), row["story_id"])
+
+    def test_source_data_is_embedded_byte_for_byte(self):
+        self.assertEqual(
+            (self.out / "data/stories.v2.json").read_bytes(),
+            (FIXTURES / "stories.v2.json").read_bytes(),
+        )
+        self.assertEqual(
+            (self.out / "data/newsroom-status.json").read_bytes(),
+            (FIXTURES / "newsroom-status.fresh.json").read_bytes(),
+        )
+
     def test_no_binding_placeholders_or_raw_evidence_heading(self):
         for path in self.out.rglob("*.html"):
             text = path.read_text(encoding="utf-8")
             self.assertNotIn("—/10", text, path)
             self.assertNotIn("EVIDENCE —", text, path)
+            visible = re.sub(r"<(script|style)\b[^>]*>.*?</\1\s*>", "", text, flags=re.I | re.S)
+            visible = re.sub(r"<[^>]+>", " ", visible)
+            self.assertNotRegex(visible, r"\{[A-Za-z_][A-Za-z0-9_]*\}", path)
 
     def test_pending_locales_never_fall_back_to_english_prose(self):
         story = next(s for s in self.payload["stories"] if s["l10n"]["es-419"]["state"] == "PENDING")
@@ -108,6 +132,18 @@ class PaperBuildTests(unittest.TestCase):
             text = (self.out / prefix / suffix).read_text(encoding="utf-8")
             self.assertNotIn(story["summary"], text)
             self.assertIn("hreflang=\"en\"", text)
+            self.assertIn('lang="en"', text)
+
+    def test_pending_locales_render_only_the_fields_already_translated(self):
+        story = next(s for s in self.payload["stories"] if s["l10n"]["es-419"]["state"] == "PENDING")
+        suffix = f"{story['url_date'].replace('-', '/')}/{story['slug']}/index.html"
+        for locale, prefix, pending in (("es-419", "es", "Traducción pendiente"), ("zh-Hans", "zh", "翻译待完成")):
+            fields = story["l10n"][locale].get("fields") or {}
+            text = (self.out / prefix / suffix).read_text(encoding="utf-8")
+            self.assertIn(f"<h1>{pending}</h1>", text)
+            for key in ("title", "headline", "dek", "summary", "why_it_matters", "importance_rationale"):
+                if fields.get(key):
+                    self.assertIn(html.escape(str(fields[key])), text, (locale, key))
 
     def test_meta_descriptions_and_og_assets(self):
         for row in json.loads((self.out / "data" / "routes.json").read_text(encoding="utf-8")):
@@ -122,6 +158,12 @@ class PaperBuildTests(unittest.TestCase):
             rel = images[0].split("/FCMO-AI-Newsletter/", 1)[-1]
             self.assertTrue((self.out / rel).is_file(), images[0])
 
+    def test_every_referenced_story_media_file_is_copied(self):
+        for story in self.payload["stories"]:
+            local = (story.get("media") or {}).get("local_path")
+            if local:
+                self.assertTrue((self.out / local).is_file(), local)
+
     def test_rss_atom_json_and_sitemaps(self):
         for rel in ("feed.xml", "es/feed.xml", "zh/feed.xml"):
             root = ET.parse(self.out / rel).getroot()
@@ -133,6 +175,21 @@ class PaperBuildTests(unittest.TestCase):
         ET.fromstring(sitemap)
         ET.parse(self.out / "feed.atom")
         json.loads((self.out / "feed.json").read_text(encoding="utf-8"))
+
+    def test_feeds_and_search_never_use_internal_ids_as_reader_copy(self):
+        for rel in ("feed.xml", "feed.atom", "feed.json", "data/search.json",
+                    "es/feed.xml", "es/feed.atom", "es/feed.json", "es/data/search.json",
+                    "zh/feed.xml", "zh/feed.atom", "zh/feed.json", "zh/data/search.json"):
+            self.assertNotRegex((self.out / rel).read_text(encoding="utf-8"), r"FCMO-[0-9A-F]{12}", rel)
+
+    def test_fonts_are_woff2_subsetted_and_first_paint_preloads_only_latin(self):
+        font_dir = self.out / "assets/fonts"
+        self.assertFalse(list(font_dir.glob("*.ttf")))
+        self.assertTrue((font_dir / "SourceSerif4-normal-400_700-latin.woff2").is_file())
+        text = (self.out / "index.html").read_text(encoding="utf-8")
+        preloads = re.findall(r'<link rel="preload" href="([^"]+)" as="font"', text)
+        self.assertEqual(len(preloads), 3)
+        self.assertTrue(all("-latin.woff2" in value for value in preloads), preloads)
 
     def test_legacy_redirects_have_new_canonical(self):
         story = next(s for s in self.payload["stories"] if s["status"] == "live")
@@ -169,6 +226,44 @@ class PaperBuildTests(unittest.TestCase):
         self.assertTrue(scripts)
         safeguard = next(script for script in scripts if "1296e5" in script)
         self.assertLessEqual(len(safeguard.encode("utf-8")), 1024)
+
+
+class RealDataPaperBuildTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.temp = tempfile.TemporaryDirectory(prefix="paper-real-data-")
+        cls.out = Path(cls.temp.name) / "publish"
+        cls.payload = json.loads((ROOT / "site/data/stories.v2.json").read_text(encoding="utf-8"))
+        result = subprocess.run([
+            sys.executable, str(ROOT / "tools/paper/build.py"),
+            "--stories", str(ROOT / "site/data/stories.v2.json"),
+            "--status", str(ROOT / "site/data/newsroom-status.json"),
+            "--out", str(cls.out), "--base", "/FCMO-AI-Newsletter/",
+        ], cwd=ROOT, text=True, capture_output=True, check=False)
+        if result.returncode:
+            raise AssertionError(result.stdout + result.stderr)
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.temp.cleanup()
+
+    def test_every_english_story_h1_matches_its_canonical_title(self):
+        for story in self.payload["stories"]:
+            if story.get("status") != "live":
+                continue
+            route = self.out / story["url_date"].replace("-", "/") / story["slug"] / "index.html"
+            text = route.read_text(encoding="utf-8")
+            match = re.search(r'<header class="story-header">.*?<h1>(.*?)</h1>', text, re.S)
+            self.assertIsNotNone(match, story["id"])
+            actual = html.unescape(re.sub(r"<[^>]+>", "", match.group(1)))
+            self.assertEqual(actual, story.get("headline") or story["title"], story["id"])
+
+    def test_sqd_english_page_uses_the_real_canonical_title(self):
+        story = next(item for item in self.payload["stories"] if item["id"] == "FCMO-7EBD0FA07C12")
+        route = self.out / story["url_date"].replace("-", "/") / story["slug"] / "index.html"
+        text = route.read_text(encoding="utf-8")
+        self.assertIn(f"<h1>{html.escape(story['title'])}</h1>", text)
+        self.assertNotIn("Translation pending", text)
 
 
 if __name__ == "__main__":

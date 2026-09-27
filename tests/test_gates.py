@@ -51,7 +51,7 @@ class PublicationGateTests(unittest.TestCase):
         (self.root / "data" / "stories.v2.json").write_text(json.dumps(document, ensure_ascii=False), encoding="utf-8")
         (self.root / "data" / "glossary.json").write_text(Path("i18n/glossary.yml").read_text(encoding="utf-8"), encoding="utf-8")
         homes = {
-            "index.html": '<html lang="en"><main><article data-lead><h1>Safe story</h1></article></main></html>',
+            "index.html": '<html lang="en"><head><link rel="canonical" href="https://fcmo-ai.github.io/FCMO-AI-Newsletter/"></head><main><article data-lead><h1>Safe story</h1></article></main></html>',
             "es/index.html": '<html lang="es-419"><main><article data-lead><h1>Historia segura</h1></article></main></html>',
             "zh/index.html": '<html lang="zh-Hans"><main><article data-lead><h1>可靠报道</h1></article></main></html>',
         }
@@ -97,9 +97,36 @@ class PublicationGateTests(unittest.TestCase):
         self.put(route, f'<html lang="es-419"><main data-story-id="{self.story["id"]}"><p>This is an English sentence that should never appear in the Spanish edition.</p></main></html>')
         self.assert_gate("ENGLISH_LEAK")
 
+    def test_structured_organization_name_is_not_an_english_leak(self):
+        route = canonical_story_path(self.story, "es-419")
+        self.put(route, f'<html lang="es-419"><main data-story-id="{self.story["id"]}"><h1>Historia segura</h1><p>Organizaciones <span translate="no" data-field="organizations">University of Science and Technology of China</span></p></main></html>')
+        run_all.run(self.root)
+
+    def test_translate_no_does_not_hide_english_prose_outside_exact_structured_fields(self):
+        route = canonical_story_path(self.story, "es-419")
+        self.put(route, f'<html lang="es-419"><main data-story-id="{self.story["id"]}"><p><span translate="no" data-field="summary">This is English prose that remains a release defect.</span></p></main></html>')
+        self.assert_gate("ENGLISH_LEAK")
+
+    def test_visible_internal_id_fails_named_gate(self):
+        self.put("index.html", '<html><head><title>FCMO-AAAAAAAAAAAA</title></head><body><h1>FCMO-AAAAAAAAAAAA</h1></body></html>')
+        self.assert_gate("INTERNAL_ID")
+
+    def test_internal_story_id_attribute_is_not_reader_copy(self):
+        results = run_all.run(self.root)
+        self.assertIn("INTERNAL_ID", [result.code for result in results])
+
     def test_remote_script_fails_named_gate(self):
         self.put("es/index.html", '<html lang="es-419"><script src="https://example.org/app.js"></script></html>')
         self.assert_gate("REMOTE_SCRIPT")
+
+    def test_missing_base_path_asset_fails_named_gate(self):
+        self.put("index.html", '<html><head><link rel="canonical" href="https://fcmo-ai.github.io/FCMO-AI-Newsletter/"></head><body><img src="/FCMO-AI-Newsletter/assets/missing.svg" alt=""></body></html>')
+        self.assert_gate("BROKEN_REFERENCE")
+
+    def test_base_path_asset_resolves_inside_candidate(self):
+        self.put("assets/present.svg", "<svg xmlns=\"http://www.w3.org/2000/svg\"></svg>")
+        self.put("index.html", '<html><head><link rel="canonical" href="https://fcmo-ai.github.io/FCMO-AI-Newsletter/"></head><body><img src="/FCMO-AI-Newsletter/assets/present.svg" alt=""></body></html>')
+        run_all.run(self.root)
 
     def test_personal_mailbox_fails_named_gate(self):
         self.put("privacy/index.html", "<html><p>write to person@" + "g" + "mail.com</p></html>")
@@ -108,6 +135,11 @@ class PublicationGateTests(unittest.TestCase):
     def test_unresolved_binding_fails_named_gate(self):
         path = self.root / "index.html"
         path.write_text(path.read_text() + '<span data-binding="—">—</span>', encoding="utf-8")
+        self.assert_gate("BINDING_COMPLETE")
+
+    def test_unexpanded_format_field_fails_named_gate(self):
+        path = self.root / "index.html"
+        path.write_text(path.read_text() + "<dt>Confidence: {level}</dt>", encoding="utf-8")
         self.assert_gate("BINDING_COMPLETE")
 
     def test_two_megabyte_page_fails_named_gate(self):

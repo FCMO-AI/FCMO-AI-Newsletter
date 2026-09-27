@@ -24,19 +24,32 @@ def _write(out: Path, rel: str, target: str) -> None:
 
 def build(stories: list[dict], *, locales: list[dict], base: str, out: Path, legacy_root: Path | None = None) -> list[str]:
     by_id = {story["id"]: story for story in stories}
+    live = [story for story in stories if story.get("status") == "live"]
     locale_by_legacy = {"en": locales[0], "es": next(x for x in locales if x["code"] == "es-419"), "zh-hans": next(x for x in locales if x["code"] == "zh-Hans")}
     written = []
     for story in stories:
-        english_target = href(base, story_path(locales[0], story))
+        survivor = by_id.get(story.get("merged_into"))
+        english_target = (
+            href(base, story_path(locales[0], survivor)) if survivor and survivor.get("status") == "live"
+            else href(base, story_path(locales[0], story)) if story.get("status") == "live"
+            else href(base, "corrections/")
+        )
         for rel in (f"developments/{story['id']}.html", f"legacy-story/{story['id']}.html"):
             _write(out, rel, english_target); written.append(rel)
         for legacy, locale in locale_by_legacy.items():
             rel = f"news/{legacy}/{story['id']}.html"
-            _write(out, rel, href(base, story_path(locale, story))); written.append(rel)
+            target = (
+                href(base, story_path(locale, survivor)) if survivor and survivor.get("status") == "live"
+                else href(base, story_path(locale, story)) if story.get("status") == "live"
+                else href(base, locale["path_prefix"] + "corrections/")
+            )
+            _write(out, rel, target); written.append(rel)
+    live_dates = {story["url_date"] for story in live}
     dates = sorted({story["url_date"] for story in stories})
     for date in dates:
         rel = f"editions/{date}.html"
-        _write(out, rel, href(base, f"edition/{date}/")); written.append(rel)
+        target = href(base, f"edition/{date}/") if date in live_dates else href(base, "archive/")
+        _write(out, rel, target); written.append(rel)
     # Preserve every prior HTML path when its destination can be resolved without guessing.
     if legacy_root and legacy_root.is_dir():
         for source in sorted(legacy_root.rglob("*.html")):
@@ -45,7 +58,13 @@ def build(stories: list[dict], *, locales: list[dict], base: str, out: Path, leg
                 continue
             match = ID_RE.search(source.name)
             if match and match.group() in by_id:
-                target = href(base, story_path(locales[0], by_id[match.group()]))
+                story = by_id[match.group()]
+                survivor = by_id.get(story.get("merged_into"))
+                target = (
+                    href(base, story_path(locales[0], survivor)) if survivor and survivor.get("status") == "live"
+                    else href(base, story_path(locales[0], story)) if story.get("status") == "live"
+                    else href(base, "corrections/")
+                )
             elif rel.startswith("editions/"):
                 target = href(base, "archive/")
             elif rel.startswith(("topics/", "organizations/")):
