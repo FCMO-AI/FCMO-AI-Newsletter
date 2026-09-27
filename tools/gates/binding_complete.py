@@ -14,6 +14,7 @@ PATTERNS = (
     re.compile(r"\$\{\s*[A-Za-z_][^{}]*\}"),
     re.compile(r"__(?:PLACEHOLDER|TODO|TBD)__", re.I),
 )
+FORMAT_FIELD = re.compile(r"\{[A-Za-z_][A-Za-z0-9_]*\}")
 
 
 def check(root: Path) -> GateResult:
@@ -21,13 +22,19 @@ def check(root: Path) -> GateResult:
     files = public_files(root, {".html", ".json", ".jsonl", ".xml"})
     for path in files:
         text = path.read_text(encoding="utf-8", errors="replace")
+        visible_text = ""
         if path.suffix.lower() == ".html":
             text = re.sub(r"<(script|style)\b[^>]*>.*?</\1\s*>", "", text, flags=re.I | re.S)
+            visible_text = re.sub(r"<[^>]+>", " ", text)
         for pattern in PATTERNS:
             match = pattern.search(text)
             if match:
                 problems.append(f"{rel(root, path)}: unresolved binding {match.group(0)[:80]!r}")
                 break
+        else:
+            match = FORMAT_FIELD.search(visible_text)
+            if match:
+                problems.append(f"{rel(root, path)}: unresolved binding {match.group(0)!r}")
     fail(CODE, problems)
     return GateResult(CODE, len(files))
 

@@ -121,6 +121,9 @@ class PaperBuildTests(unittest.TestCase):
             text = path.read_text(encoding="utf-8")
             self.assertNotIn("—/10", text, path)
             self.assertNotIn("EVIDENCE —", text, path)
+            visible = re.sub(r"<(script|style)\b[^>]*>.*?</\1\s*>", "", text, flags=re.I | re.S)
+            visible = re.sub(r"<[^>]+>", " ", visible)
+            self.assertNotRegex(visible, r"\{[A-Za-z_][A-Za-z0-9_]*\}", path)
 
     def test_pending_locales_never_fall_back_to_english_prose(self):
         story = next(s for s in self.payload["stories"] if s["l10n"]["es-419"]["state"] == "PENDING")

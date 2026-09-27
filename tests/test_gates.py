@@ -137,6 +137,11 @@ class PublicationGateTests(unittest.TestCase):
         path.write_text(path.read_text() + '<span data-binding="—">—</span>', encoding="utf-8")
         self.assert_gate("BINDING_COMPLETE")
 
+    def test_unexpanded_format_field_fails_named_gate(self):
+        path = self.root / "index.html"
+        path.write_text(path.read_text() + "<dt>Confidence: {level}</dt>", encoding="utf-8")
+        self.assert_gate("BINDING_COMPLETE")
+
     def test_two_megabyte_page_fails_named_gate(self):
         self.put("large/index.html", "<html><p>" + "x" * 2_000_000 + "</p></html>")
         self.assert_gate("SIZE_BUDGET")

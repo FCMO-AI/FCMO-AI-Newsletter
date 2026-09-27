@@ -252,10 +252,11 @@ class PaperBuilder:
     def _facts(self, story: dict, locale: dict) -> str:
         catalog = self.catalogs[locale["code"]]
         strings = catalog["strings"]["story"]
+        confidence_heading = strings["confidence"].split("{level}", 1)[0].rstrip(" :：")
         values = [
             (strings["importance_rationale"], strings["importance"].format(score=story.get("importance", ""))),
             (strings["evidence"], label(catalog, "evidence_class", story.get("evidence_class"))),
-            (strings["confidence"].split(":")[0], label(catalog, "confidence", story.get("confidence"))),
+            (confidence_heading, label(catalog, "confidence", story.get("confidence"))),
         ]
         facts = "".join(f'<div class="fact"><dt>{esc(key)}</dt><dd>{esc(value)}</dd></div>' for key, value in values if value)
         topics = ", ".join(story.get("topics") or [])
