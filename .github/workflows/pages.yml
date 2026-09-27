@@ -62,6 +62,14 @@ jobs:
 
       - name: Refuse a deploy until the existing live release is anchored as LKG
         run: git rev-parse --verify 'refs/tags/lkg^{commit}'
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - name: Install pinned Playwright and Chromium
+        run: |
+          npm install --prefix "$RUNNER_TEMP/playwright" --no-save playwright@1.63.0
+          echo "PLAYWRIGHT_MODULE=$RUNNER_TEMP/playwright/node_modules/playwright" >> "$GITHUB_ENV"
+          "$RUNNER_TEMP/playwright/node_modules/.bin/playwright" install --with-deps chromium
 
       - name: Render locale-specific Open Graph cards
         run: >-
@@ -87,8 +95,6 @@ jobs:
         run: python tools/gates/run_all.py publish
 
       - name: Run the real-browser matrix before deploy
-        env:
-          PLAYWRIGHT_MODULE: /srv/fcmo/agents/work/newsletter/browser/node_modules/playwright
         run: |
           export CHROME_PATH="$(node -e "console.log(require(process.env.PLAYWRIGHT_MODULE).chromium.executablePath())")"
           python tests/oraculos/verificar_paper.py publish
@@ -197,6 +203,16 @@ jobs:
           fetch-depth: 0
           path: lkg-source
           persist-credentials: false
+      - uses: actions/setup-node@v6
+        if: hashFiles('lkg-source/tools/paper/build.py') != ''
+        with:
+          node-version: '22'
+      - name: Install pinned Playwright and Chromium for paper LKG
+        if: hashFiles('lkg-source/tools/paper/build.py') != ''
+        run: |
+          npm install --prefix "$RUNNER_TEMP/playwright" --no-save playwright@1.63.0
+          echo "PLAYWRIGHT_MODULE=$RUNNER_TEMP/playwright/node_modules/playwright" >> "$GITHUB_ENV"
+          "$RUNNER_TEMP/playwright/node_modules/.bin/playwright" install --with-deps chromium
       - name: Rebuild and verify LKG with its native release system
         shell: bash
         run: |
@@ -214,9 +230,8 @@ jobs:
             mkdir -p rollback-publish/data
             cp lkg-source/i18n/glossary.yml rollback-publish/data/glossary.json
             python control/tools/gates/run_all.py rollback-publish
-            PLAYWRIGHT_MODULE=/srv/fcmo/agents/work/newsletter/browser/node_modules/playwright \
-              CHROME_PATH="$(node -e "console.log(require('/srv/fcmo/agents/work/newsletter/browser/node_modules/playwright').chromium.executablePath())")" \
-              python control/tests/oraculos/verificar_paper.py rollback-publish
+            export CHROME_PATH="$(node -e "console.log(require(process.env.PLAYWRIGHT_MODULE).chromium.executablePath())")"
+            python control/tests/oraculos/verificar_paper.py rollback-publish
           else
             cp -a lkg-source/site rollback-publish
             (cd lkg-source && python tools/build_final_release.py --check)

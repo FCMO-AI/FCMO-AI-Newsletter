@@ -14,7 +14,7 @@ plus the Spanish/Chinese local story-media variants in the final screenshots.
 
 ## Publication Desk / int2 follow-up
 
-Resolved in int3: backlog tests now follow an independent recount at any backlog size. PD1 fields moved exactly into `part-desk.json`, with desk provenance and `MACHINE_REVIEWED` state; ARB import owns only its own packs. The validator, Story layer, translation status, integrity manifest and newsroom receipt now report the selected origin. The scheduled desk prompt still needs Claude's edit described in `/srv/fcmo/agents/work/newsletter/codex/int3-desk-prompt-delta.md`.
+Resolved in int3: backlog tests now follow an independent recount at any backlog size. PD1 fields moved exactly into `part-desk.json`, with desk provenance and `MACHINE_REVIEWED` state; ARB import owns only its own packs. The validator, Story layer, translation status, integrity manifest and newsroom receipt now report the selected origin. The scheduled desk prompt still needs Claude's edit described in the integration handoff `codex/int3-desk-prompt-delta.md`.
 
 ## WP-B2 slot contract (deferred)
 
@@ -147,3 +147,11 @@ overlay files are intentionally retained as the first-cutover rollback path
 until a paper release is browser-verified, deployed, live-verified, and advances
 `lkg`. Chromium/loopback-dependent OG and browser evidence must be produced by
 the integration runner with those permissions.
+
+
+## Playwright runtime configuration (int5)
+
+The browser scripts first use `PLAYWRIGHT_MODULE`, then resolve the repository's
+`playwright` Node package. This server should export `PLAYWRIGHT_MODULE` from its
+external runner configuration; do not commit a machine-specific path. CI installs
+Playwright 1.63.0 and Chromium into runner-temporary storage.
