@@ -15,9 +15,9 @@ SERVE = ROOT / "tests" / "harness" / "serve.py"
 PLAYWRIGHT = Path("/srv/fcmo/agents/work/newsletter/browser/node_modules/playwright")
 
 LAYOUT_BUDGETS = r'''const { createRequire } = require('node:module');
-const require = createRequire(process.cwd() + '/__paper_oracle__.cjs');
-const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
-const base = process.argv[1], rows = JSON.parse(process.env.PAPER_LAYOUT_ROUTES || '[]');
+const requireFromRepo = createRequire(process.cwd() + '/__paper_oracle__.cjs');
+const { chromium } = requireFromRepo(process.env.PLAYWRIGHT_MODULE || 'playwright');
+const base = process.argv[1], rows = JSON.parse(require('node:fs').readFileSync(process.argv[2], 'utf8'));
 (async () => {
   const browser = await chromium.launch();
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 });
@@ -99,10 +99,9 @@ def main(argv: list[str] | None = None) -> int:
         # Font-size/accessibility baseline without adding axe-core as a dependency.
         # The full V4 axe run remains a release-level check once axe-core is provided.
         run_check("axe.mjs", urls, ["--no-axe", "--min-font", "12"], env)
-        routes = json.loads((args.root / "data" / "routes.json").read_text(encoding="utf-8"))
-        env["PAPER_LAYOUT_ROUTES"] = json.dumps(routes, ensure_ascii=False)
+        # The route list is passed as a file: all 447 routes exceed the kernel's per-variable limit (E2BIG).
         completed = subprocess.run(
-            ["node", "--input-type=commonjs", "-e", LAYOUT_BUDGETS, base],
+            ["node", "--input-type=commonjs", "-e", LAYOUT_BUDGETS, base, str((args.root / "data" / "routes.json").resolve())],
             cwd=ROOT, env=env, text=True, capture_output=True, timeout=900,
         )
         if completed.returncode == 2:
