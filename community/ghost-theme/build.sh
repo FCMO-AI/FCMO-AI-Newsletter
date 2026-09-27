@@ -41,6 +41,17 @@ else
   test -s "$tokens_css"
 fi
 
+python3 - "$theme_dir/../config/subscriptions.json" "$theme_dir/partials/subscription-choices.hbs.in" "$theme_dir/partials/subscription-choices.hbs" <<'PY'
+import json
+import sys
+from pathlib import Path
+config = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+template = Path(sys.argv[2]).read_text(encoding="utf-8")
+from html import escape
+result = template.replace("__LETTER_NAME__", escape(config["products"]["letter"]["name"])).replace("__PAPER_NAME__", escape(config["products"]["paper"]["name"]))
+Path(sys.argv[3]).write_text(result, encoding="utf-8")
+PY
+
 if [ "${1:-}" = "--check" ]; then
   test -f "$theme_dir/package.json"
   test -f "$theme_dir/default.hbs"

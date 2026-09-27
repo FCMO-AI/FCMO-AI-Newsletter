@@ -224,9 +224,12 @@ def dispatch(
         return 1, "ERROR missing_postal_address"
     edition_date = status["edition_date"]
     slug = f"diario-{edition_date}"
-    email = render_daily_email([item["story"] for item in decision.items], edition_date, site_url=site_url, postal_address=postal_address)
     if not ghost_url or not admin_api_key:
         return 1, "ERROR missing_ghost_configuration"
+    account_url = ghost_url.rstrip("/") + "/#/portal/account"
+    email = render_daily_email([item["story"] for item in decision.items], edition_date, site_url=site_url,
+                               postal_address=postal_address, preferences_url=account_url,
+                               unsubscribe_url=account_url)
     ghost = client or GhostClient(ghost_url, admin_api_key)
     try:
         existing = ghost.find_slug(slug)
