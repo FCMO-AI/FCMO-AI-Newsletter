@@ -19,6 +19,7 @@ if __package__ in {None, ""}:
     from tools.paper.i18n import dek, field, format_date, headline, is_complete, label, load_catalogs, story_locale, truncate
     from tools.paper.routes import absolute, beat_path, edition_path, href, org_path, output_path, story_path, topic_path
     from tools.paper.status_banner import render as render_banner
+    from tools.visual_desk import write_localized_story_graphics
     from tools.paper.templates import archive_page, document, front_page, simple_page, status_page, story_page
     from tools.paper.templates.pages import story_card
 else:
@@ -26,6 +27,7 @@ else:
     from .i18n import dek, field, format_date, headline, is_complete, label, load_catalogs, story_locale, truncate
     from .routes import absolute, beat_path, edition_path, href, org_path, output_path, story_path, topic_path
     from .status_banner import render as render_banner
+    from tools.visual_desk import write_localized_story_graphics
     from .templates import archive_page, document, front_page, simple_page, status_page, story_page
     from .templates.pages import story_card
 
@@ -107,9 +109,43 @@ class PaperBuilder:
     def _media_url(self, story: dict, locale: dict | None = None) -> str:
         if self.og_source is not None and locale is not None:
             return absolute(self.base_url, f'og/{locale["code"]}/{story["id"]}.png')
+        return absolute(self.base_url, self._story_media_path(story, locale))
+
+    def _story_media_url(self, story: dict, locale: dict | None = None) -> str:
+        return href(self.base, self._story_media_path(story, locale))
+
+    @staticmethod
+    def _story_media_path(story: dict, locale: dict | None = None) -> str:
         media = story.get("media") or {}
         local = str(media.get("local_path") or "assets/explainers/research.svg").lstrip("/")
-        return absolute(self.base_url, local)
+        if locale and locale["code"] in {"es-419", "zh-Hans"} and media.get("kind") == "explainer":
+            local = f'assets/story-media/{story["id"]}-{locale["code"]}.svg'
+        return local
+
+    @staticmethod
+    def _title_class(title: str, locale_code: str) -> str:
+        """Estimate display width with wider weights for CJK glyphs."""
+        import unicodedata
+        width = 0.0
+        for char in title:
+            if locale_code == "zh-Hans" and unicodedata.east_asian_width(char) in {"W", "F"}:
+                width += 1.7
+            elif char.isalnum():
+                width += 0.55
+            else:
+                width += 0.35
+        # The 65-unit cutoff is calibrated from the measured five-line Spanish
+        # titles (82.8–92.4 units) and the 1040px story header at 51.84px compact
+        # type. It leaves room for four lines before titles take the smaller step.
+        if width > 65:
+            return "title-extra-compact"
+        if width > 58:
+            return "title-compact"
+        if width > 46:
+            return "title-large"
+        if width > 34:
+            return "title-medium"
+        return "title-short"
 
     def _card(self, story: dict, locale: dict, level: int = 2) -> str:
         catalog = self.catalogs[locale["code"]]
@@ -129,9 +165,11 @@ class PaperBuilder:
             return
         first, rest = ranked[0], ranked[1:]
         hero = first.get("media") or {}
-        hero_path = href(self.base, str(hero.get("local_path") or "assets/explainers/research.svg"))
+        hero_path = self._story_media_url(first, locale)
         hero_alt = (hero.get("alt") or {}).get(locale["code"], "")
-        lead = f'''<article class="lead"><p class="story-kicker">{esc(strings["front"]["lead"])} · {esc(label(catalog,"beat",first.get("beat")))}</p><h1><a href="{esc(self._story_href(locale,first))}">{esc(headline(first,locale["code"],catalog))}</a></h1><p class="lead-dek">{esc(dek(first,locale["code"],catalog))}</p><p class="story-meta">{esc(format_date(first["event_at"],catalog,precision=first.get("date_precision","day")))}</p><figure class="hero"><img src="{esc(hero_path)}" alt="{esc(hero_alt)}" width="1200" height="630"><figcaption>{esc(strings["story"]["image_credit"].format(credit=hero.get("credit","FCMO AI")))}</figcaption></figure></article>'''
+        lead_title = headline(first, locale["code"], catalog)
+        lead_class = self._title_class(lead_title, locale["code"])
+        lead = f'''<article class="lead"><p class="story-kicker">{esc(strings["front"]["lead"])} · {esc(label(catalog,"beat",first.get("beat")))}</p><h1 class="{lead_class}"><a href="{esc(self._story_href(locale,first))}">{esc(lead_title)}</a></h1><p class="lead-dek">{esc(dek(first,locale["code"],catalog))}</p><p class="story-meta">{esc(format_date(first["event_at"],catalog,precision=first.get("date_precision","day")))}</p><figure class="hero"><img src="{esc(hero_path)}" alt="{esc(hero_alt)}" width="1200" height="630"><figcaption>{esc(strings["story"]["image_credit"].format(credit=hero.get("credit","FCMO AI")))}</figcaption></figure></article>'''
         top_values = rest[:4]
         top = f'<h2>{esc(strings["front"]["top_stories"])}</h2>' + "".join(self._card(story, locale, 3) for story in top_values)
         essential_values = ranked[:5]
@@ -171,6 +209,7 @@ class PaperBuilder:
         suffix = story_path({**locale, "path_prefix": ""}, story)
         event = format_date(story["event_at"], catalog, precision=story.get("date_precision", "day"))
         published = format_date(story["first_published_at"], catalog, precision="minute")
+        title_class = self._title_class(title, code)
         header = f'<header class="story-header"><p class="story-kicker">{esc(label(catalog,"beat",story.get("beat")))}</p><h1>{esc(title)}</h1><p class="story-dek">{esc(description)}</p><p class="story-meta">{esc(strings["story"]["byline"])} · {esc(strings["story"]["event_date"].format(date=event))} · {esc(strings["story"]["published"].format(date=published))}</p></header>'
         if code != "en" and story_locale(story, code).get("state") == "MACHINE_REVIEWED":
             english = self._story_href(self.config["locales"][0], story)
@@ -212,6 +251,7 @@ class PaperBuilder:
             body = "".join(sections)
             aside = self._facts(story, locale)
         page = story_page(header=header, body=body, aside=aside)
+        page = page.replace('<article class="story-layout">', f'<article class="story-layout {title_class}">', 1)
         story_url = absolute(self.base_url, locale["path_prefix"] + suffix)
         image = self._media_url(story, locale)
         structured = {"@context": "https://schema.org", "@type": "NewsArticle", "headline": title, "description": description, "datePublished": story["first_published_at"], "dateModified": story["updated_at"], "mainEntityOfPage": story_url, "image": [image], "author": {"@type": "Organization", "name": "FCMO AI Research Desk"}, "publisher": {"@type": "Organization", "name": "FCMO AI"}}
@@ -342,6 +382,7 @@ class PaperBuilder:
         self.out.mkdir(parents=True)
         shutil.copytree(ROOT / "site-src" / "assets", self.out / "assets", dirs_exist_ok=True)
         self._copy_story_media()
+        write_localized_story_graphics(self.stories, self.catalogs, self.out / "assets" / "story-media")
         if self.og_source is not None:
             if not self.og_source.is_dir():
                 raise ValueError(f"--og-source is not a directory: {self.og_source}")

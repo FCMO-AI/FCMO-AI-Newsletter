@@ -97,6 +97,20 @@ class PublicationGateTests(unittest.TestCase):
         self.put(route, f'<html lang="es-419"><main data-story-id="{self.story["id"]}"><p>This is an English sentence that should never appear in the Spanish edition.</p></main></html>')
         self.assert_gate("ENGLISH_LEAK")
 
+    def test_english_text_in_graphic_referenced_by_chinese_page_fails_named_gate(self):
+        self.put("assets/story-media/FCMO-AAAAAAAAAAAA-zh-Hans.svg",
+                 '<svg xmlns="http://www.w3.org/2000/svg"><text>ARCHITECTURES SCALING</text>'
+                 '<text>This is the full English headline with a useful release today.</text></svg>')
+        self.put("zh/index.html", '<html lang="zh-Hans"><body><img src="/FCMO-AI-Newsletter/assets/story-media/FCMO-AAAAAAAAAAAA-zh-Hans.svg" alt=""></body></html>')
+        self.assert_gate("ENGLISH_LEAK")
+
+    def test_translate_no_product_name_in_local_graphic_uses_structured_name_rule(self):
+        self.put("assets/story-media/product-zh-Hans.svg",
+                 '<svg xmlns="http://www.w3.org/2000/svg"><text translate="no" data-field="products">'
+                 'University of Science and Technology of China</text></svg>')
+        self.put("zh/index.html", '<html lang="zh-Hans"><body><img src="/FCMO-AI-Newsletter/assets/story-media/product-zh-Hans.svg" alt=""></body></html>')
+        run_all.run(self.root)
+
     def test_structured_organization_name_is_not_an_english_leak(self):
         route = canonical_story_path(self.story, "es-419")
         self.put(route, f'<html lang="es-419"><main data-story-id="{self.story["id"]}"><h1>Historia segura</h1><p>Organizaciones <span translate="no" data-field="organizations">University of Science and Technology of China</span></p></main></html>')
@@ -121,6 +135,11 @@ class PublicationGateTests(unittest.TestCase):
 
     def test_missing_base_path_asset_fails_named_gate(self):
         self.put("index.html", '<html><head><link rel="canonical" href="https://fcmo-ai.github.io/FCMO-AI-Newsletter/"></head><body><img src="/FCMO-AI-Newsletter/assets/missing.svg" alt=""></body></html>')
+        self.assert_gate("BROKEN_REFERENCE")
+
+    def test_missing_absolute_same_site_asset_fails_named_gate(self):
+        self.put("index.html", '<html><head><link rel="canonical" href="https://fcmo-ai.github.io/FCMO-AI-Newsletter/"></head>'
+                 '<body><img src="https://fcmo-ai.github.io/FCMO-AI-Newsletter/assets/missing.svg" alt=""></body></html>')
         self.assert_gate("BROKEN_REFERENCE")
 
     def test_base_path_asset_resolves_inside_candidate(self):

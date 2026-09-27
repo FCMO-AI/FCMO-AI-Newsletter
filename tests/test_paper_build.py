@@ -9,6 +9,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from urllib.parse import urlsplit
 import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -49,6 +50,19 @@ class AuditParser(HTMLParser):
             self.main_text.append(data)
 
 
+class CandidateAssetParser(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.urls = []
+
+    def handle_starttag(self, tag, attrs):
+        values = dict(attrs)
+        if tag in {"img", "source"}:
+            self.urls.extend(values.get(key, "") for key in ("src", "srcset") if values.get(key))
+        if tag == "link" and "preload" in values.get("rel", "").lower().split() and values.get("href"):
+            self.urls.append(values["href"])
+
+
 class PaperBuildTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -77,6 +91,57 @@ class PaperBuildTests(unittest.TestCase):
 
     def test_acceptance_command_reports_routes(self):
         self.assertRegex(self.result.stdout, r"routes=\d+")
+
+    def test_native_pages_reference_generated_localized_explainer_graphics(self):
+        payload = json.loads((FIXTURES / "stories.v2.json").read_text(encoding="utf-8"))
+        story = next(s for s in payload["stories"] if (s.get("media") or {}).get("kind") == "explainer")
+        for locale in ("es-419", "zh-Hans"):
+            variant = self.out / "assets" / "story-media" / f'{story["id"]}-{locale}.svg'
+            self.assertTrue(variant.is_file())
+            route = next(r for r in json.loads((self.out / "data" / "routes.json").read_text(encoding="utf-8"))
+                         if r.get("story_id") == story["id"] and r.get("locale") == locale)
+            page = (self.out / route["path"] / "index.html").read_text(encoding="utf-8")
+            self.assertIn(f'{story["id"]}-{locale}.svg', page)
+
+    def test_front_figure_keeps_localized_graphic_when_og_cards_are_enabled(self):
+        payload = json.loads((FIXTURES / "stories.v2.json").read_text(encoding="utf-8"))
+        lead = sorted((s for s in payload["stories"] if s.get("status") == "live"),
+                      key=lambda s: (bool(s.get("front_page_eligible")), s.get("importance", 0), s.get("event_at", ""), s["id"]),
+                      reverse=True)[0]
+        with tempfile.TemporaryDirectory(prefix="localized-og-") as tmp:
+            root = Path(tmp)
+            og = root / "og"
+            og.mkdir()
+            out = root / "publish"
+            result = subprocess.run([
+                sys.executable, str(ROOT / "tools" / "paper" / "build.py"),
+                "--stories", str(FIXTURES / "stories.v2.json"),
+                "--status", str(FIXTURES / "newsroom-status.fresh.json"),
+                "--out", str(out), "--base", "/FCMO-AI-Newsletter/", "--og-source", str(og),
+            ], cwd=ROOT, text=True, capture_output=True, check=False)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            home = (out / "zh" / "index.html").read_text(encoding="utf-8")
+            self.assertIn(f'{lead["id"]}-zh-Hans.svg', home)
+            self.assertIn(f'/og/zh-Hans/{lead["id"]}.png', home)
+
+    def test_built_pages_use_candidate_relative_urls_for_local_page_assets(self):
+        base_url = json.loads((ROOT / "config" / "site.json").read_text(encoding="utf-8"))["base_url"]
+        own_origin = urlsplit(base_url)
+        problems = []
+        for page_path in self.out.rglob("*.html"):
+            parser = CandidateAssetParser()
+            parser.feed(page_path.read_text(encoding="utf-8"))
+            for value in parser.urls:
+                parsed = urlsplit(value)
+                if parsed.scheme in {"http", "https"} and parsed.netloc.lower() == own_origin.netloc.lower():
+                    problems.append(f"{page_path.relative_to(self.out)}: {value}")
+        self.assertEqual(problems, [])
+
+    def test_long_story_headlines_receive_build_time_size_class(self):
+        routes = json.loads((self.out / "data" / "routes.json").read_text(encoding="utf-8"))
+        long_route = next(r for r in routes if r.get("kind") == "story" and len(r.get("title", "")) > 100 and r.get("locale") == "en")
+        page = (self.out / long_route["path"] / "index.html").read_text(encoding="utf-8")
+        self.assertRegex(page, r'<article class="story-layout title-(?:large|compact|extra-compact)">')
 
     def test_machine_prepared_story_discloses_review_status_and_english_original(self):
         with tempfile.TemporaryDirectory(prefix="desk-note-") as tmp:
@@ -288,6 +353,16 @@ class RealDataPaperBuildTests(unittest.TestCase):
         text = route.read_text(encoding="utf-8")
         self.assertIn(f"<h1>{html.escape(story['title'])}</h1>", text)
         self.assertNotIn("Translation pending", text)
+
+    def test_reported_long_spanish_titles_receive_the_extra_size_step(self):
+        paths = (
+            "es/2026/09/13/a-100-agent-formal-math-research-swarm-exhibits-contagious-verifier/",
+            "es/2026/09/06/nvidia-underwrites-up-to-105b-of-openai-linked-4-25-gw-data-center/",
+            "es/2026/09/01/gpt-6-astra-reaches-openais-critical-cyber-tier-while-external-arc-agi-3/",
+        )
+        for route in paths:
+            page = (self.out / route / "index.html").read_text(encoding="utf-8")
+            self.assertIn('<article class="story-layout title-extra-compact">', page, route)
 
 
 if __name__ == "__main__":

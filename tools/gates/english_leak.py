@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+from urllib.parse import urlsplit
 from html.parser import HTMLParser
 from pathlib import Path
 
@@ -51,6 +52,43 @@ class VisibleBlocks(HTMLParser):
             for block in self.stack: block.append(data)
 
 
+class LocalGraphicRefs(HTMLParser):
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self.refs: list[str] = []
+
+    def handle_starttag(self, tag, attrs):
+        values = {str(key).lower(): value or "" for key, value in attrs}
+        if tag == "img" and values.get("src"):
+            self.refs.append(values["src"])
+        if tag == "meta" and values.get("property", "").lower() == "og:image" and values.get("content"):
+            self.refs.append(values["content"])
+
+
+class SvgText(HTMLParser):
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self.active: list[tuple[list[str], bool]] = []
+        self.blocks: list[str] = []
+
+    def handle_starttag(self, tag, attrs):
+        values = {str(key).lower(): value or "" for key, value in attrs}
+        if tag == "text":
+            marked = values.get("translate", "").lower() == "no" and values.get("data-field") in STRUCTURED_FIELDS
+            self.active.append(([], marked))
+
+    def handle_endtag(self, tag):
+        if tag == "text" and self.active:
+            content, marked = self.active.pop()
+            text = " ".join(content).strip()
+            if text and not marked:
+                self.blocks.append(text)
+
+    def handle_data(self, data):
+        for content, _ in self.active:
+            content.append(data)
+
+
 def looks_english(text: str) -> bool:
     text = re.sub(r"FCMO-[0-9A-F]{12}", "", text)
     words = [word.lower().replace("’", "'") for word in WORDS.findall(text)
@@ -81,6 +119,25 @@ def check(root: Path) -> GateResult:
             if looks_english(block):
                 problems.append(f"{rel(root, path)} [{locale}]: English prose {block[:100]!r}")
                 break
+        refs = LocalGraphicRefs(); refs.feed(text)
+        checked_graphics: set[Path] = set()
+        for ref in refs.refs:
+            url_path = urlsplit(ref).path
+            marker = "/assets/story-media/"
+            if marker not in url_path:
+                continue
+            local = url_path[url_path.index(marker) + 1:]
+            graphic = (root / local).resolve()
+            if root.resolve() not in graphic.parents or graphic.suffix.lower() != ".svg" or not graphic.is_file():
+                continue
+            if graphic in checked_graphics:
+                continue
+            checked_graphics.add(graphic)
+            svg = SvgText(); svg.feed(graphic.read_text(encoding="utf-8", errors="replace"))
+            for block in svg.blocks:
+                if looks_english(block):
+                    problems.append(f"{rel(root, path)} [{locale}]: English text in local graphic {rel(root, graphic)}: {block[:100]!r}")
+                    break
     fail(CODE, problems)
     return GateResult(CODE, len(pages))
 

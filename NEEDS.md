@@ -1,5 +1,17 @@
 # Integration requests from WP-B
 
+## int4 Round 3 visual acceptance
+
+The 65-unit extra-compact title step is calibrated from the reported five-line
+Spanish headlines; the layout oracle now continues through every story, home
+page, and Chinese route and prints the full set of failures. The deterministic
+build/gates pass, but this sandbox blocks Chromium startup and loopback sockets.
+On the integration runner, regenerate OG cards, rebuild the real-data candidate
+with `--og-source`, then run `tools/gates/run_all.py`,
+`tests/oraculos/verificar_paper.py`, and the relevant `browser/shot.mjs` capture
+matrix. Review Chinese heading leading and all story/home headline/dek budgets,
+plus the Spanish/Chinese local story-media variants in the final screenshots.
+
 ## Publication Desk / int2 follow-up
 
 Resolved in int3: backlog tests now follow an independent recount at any backlog size. PD1 fields moved exactly into `part-desk.json`, with desk provenance and `MACHINE_REVIEWED` state; ARB import owns only its own packs. The validator, Story layer, translation status, integrity manifest and newsroom receipt now report the selected origin. The scheduled desk prompt still needs Claude's edit described in `/srv/fcmo/agents/work/newsletter/codex/int3-desk-prompt-delta.md`.

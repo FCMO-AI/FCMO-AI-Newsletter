@@ -449,6 +449,39 @@ class Beats(unittest.TestCase):
         self.assertEqual(vd.resolve_beat({"development_type": "paper"}), "research")
         self.assertEqual(vd.resolve_beat({}), "technology")
 
+    def test_localized_story_graphic_uses_native_copy_and_chinese_font(self) -> None:
+        from xml.etree import ElementTree as ET
+        from tools.paper.i18n import load_catalogs
+        catalogs = load_catalogs(REPO)
+        story = {
+            "id": "FCMO-000000000010", "beat": "technology", "desk": "architectures_scaling", "evidence_class": "A", "importance": 8,
+            "media": {"kind": "explainer"}, "title": "A product headline",
+            "l10n": {
+                "es-419": {"state": "NATIVE_ARB", "missing": [], "fields": {"headline": "Titular sobre Qwen4"}},
+                "zh-Hans": {"state": "NATIVE_ARB", "missing": [], "fields": {"headline": "Qwen4 的架构路线"}},
+            },
+        }
+        es = vd.localized_story_svg(story, "es-419", catalogs["es-419"])
+        zh = vd.localized_story_svg(story, "zh-Hans", catalogs["zh-Hans"])
+        self.assertIn("Titular sobre Qwen4", es)
+        self.assertIn("Qwen4 的架构路线", zh)
+        self.assertIn(catalogs["es-419"]["labels"]["desk"]["architectures_scaling"], es)
+        self.assertIn(catalogs["zh-Hans"]["labels"]["desk"]["architectures_scaling"], zh)
+        self.assertIn("Noto Sans CJK SC", zh)
+        self.assertIn(catalogs["zh-Hans"]["strings"]["story"]["explainer_credit"], zh)
+        self.assertNotIn("A product headline", zh)
+        ET.fromstring(es)
+        ET.fromstring(zh)
+
+    def test_incomplete_localized_graphic_falls_back_to_text_free_art(self) -> None:
+        from tools.paper.i18n import load_catalogs
+        catalogs = load_catalogs(REPO)
+        story = {"id": "FCMO-000000000010", "beat": "research", "media": {"kind": "explainer"},
+                 "title": "An English headline", "l10n": {"zh-Hans": {"state": "PENDING", "missing": ["headline"], "fields": {}}}}
+        svg = vd.localized_story_svg(story, "zh-Hans", catalogs["zh-Hans"])
+        self.assertNotIn("<text", svg)
+        self.assertNotIn("An English headline", svg)
+
 
 class CorpusCommand(unittest.TestCase):
     def run_main(self, argv: list[str]) -> tuple[int, str, str]:
