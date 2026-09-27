@@ -162,6 +162,14 @@ Playwright 1.63.0 and Chromium into runner-temporary storage.
 
 ## v2 lane v1 handoff
 
-- **s1:** `tools/paper/templates/subscribe.py` was absent in this base, so v1 added the required temporary `subscribe_block(zone, locale)` adapter. Replace this file with the subscription lane's component. Preserve the two-argument entry point used by `tools/paper/templates/landing.py`, the honest inactive state, RSS/Atom links and the configured Spanish portal behavior covered by `tests/test_community_rail.py`.
+- **s1:** The temporary `subscribe_block(zone, locale)` adapter has been replaced by s1's component. Verify the integrated landing and subscribe page at both Ghost states.
 - **p2:** The landing's `#start-here` path gives a plain-language choice between letters, technical evidence and method. The Newsletter section still needs its owned letter, beginner-guide and community page redesign.
 - **p1:** Apply the technical page blueprints in `DESIGN_V2.md` to interior pages. The current story screenshot demonstrates the shared shell but the long-form body still has the earlier visual treatment.
+
+---
+
+# Integration needs from lane s1
+
+- The v1 landing calls `tools.paper.templates.subscribe.subscribe_block(zone, locale)` for the FCMO Group section. The technical section still needs its own subscription placement in p1.
+- The production Pages build needs `GHOST_URL` as a build variable only after the Ghost staging matrix and legal/domain decisions pass. The current `tools/paper/build.py` reads `GHOST_PORTAL_URL`; `community.render_subscribe` also reads `GHOST_URL`, so the build works without an out-of-lane edit. For a later cleanup, replace `self.portal_url = os.environ.get("GHOST_PORTAL_URL")` with `self.portal_url = os.environ.get("GHOST_URL") or os.environ.get("GHOST_PORTAL_URL")`.
+- Ghost's exact Portal newsletter choice controls, Mailpit magic-link markup, Admin API newsletter create/update schema and per-newsletter welcome-template support require the staging run. They are not verified in this sandbox.

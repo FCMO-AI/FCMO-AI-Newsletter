@@ -167,7 +167,8 @@ class PaperBuilder:
             body = simple_page(strings["archive"]["empty"], "")
             self._write_page(locale=locale, suffix=TECHNICAL_FRONT, title=strings["site"]["name"], description=strings["site"]["description"], body=body, kind="front")
             landing = render_landing(locale=locale, home=href(self.base, locale["path_prefix"]), technical=href(self.base, locale["path_prefix"]+TECHNICAL_FRONT), about=href(self.base, locale["path_prefix"]+"about/"), subscribe=href(self.base, locale["path_prefix"]+"suscribete/"), lead="", top="", cartas=community.render_cartas(self.cartas, locale["code"]))
-            self._write_page(locale=locale, suffix="", title="FCMO Group", description="FCMO Group Newsletter and FCMO AI technical paper", body=landing, kind="landing")
+            _, subscribe_script = community.render_subscribe(locale_code=locale["code"], path_prefix=locale["path_prefix"], base=self.base, portal_url=self.portal_url)
+            self._write_page(locale=locale, suffix="", title="FCMO Group", description="FCMO Group Newsletter and FCMO AI technical paper", body=landing, kind="landing", extra_head=subscribe_script)
             return
         first, rest = ranked[0], ranked[1:]
         hero = first.get("media") or {}
@@ -199,7 +200,7 @@ class PaperBuilder:
         body = community.without_empty_cartas_slot(body, cartas)
         self._write_page(locale=locale, suffix=TECHNICAL_FRONT, title=f'{strings["site"]["name"]} — {strings["site"]["tagline"]}', description=strings["site"]["description"], body=body, kind="front", og_image=self._media_url(first, locale), extra_head=subscribe_script)
         landing = render_landing(locale=locale, home=href(self.base, locale["path_prefix"]), technical=href(self.base, locale["path_prefix"]+TECHNICAL_FRONT), about=href(self.base, locale["path_prefix"]+"about/"), subscribe=href(self.base, locale["path_prefix"]+"suscribete/"), lead=lead, top=top, cartas=cartas)
-        self._write_page(locale=locale, suffix="", title="FCMO Group", description="FCMO Group Newsletter and FCMO AI technical paper", body=landing, kind="landing", og_image=self._media_url(first, locale))
+        self._write_page(locale=locale, suffix="", title="FCMO Group", description="FCMO Group Newsletter and FCMO AI technical paper", body=landing, kind="landing", og_image=self._media_url(first, locale), extra_head=subscribe_script)
 
     def _localized_evidence(self, story: dict, locale: dict) -> dict:
         if locale["code"] == "en":

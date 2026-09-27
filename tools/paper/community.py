@@ -17,6 +17,7 @@ from typing import Any
 from urllib.error import HTTPError, URLError
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 from urllib.request import Request, urlopen
+from .templates.subscribe import subscribe_block, ghost_signup_url, subscription_config
 
 
 DEFAULT_TIMEOUT_SECONDS = 5.0
@@ -285,28 +286,24 @@ def _feed_links(base: str, path_prefix: str, copy: dict[str, str]) -> str:
 
 
 def render_subscribe(*, locale_code: str, path_prefix: str, base: str, portal_url: str | None, page: bool = False) -> tuple[str, str]:
-    copy = _copy(locale_code)
-    signup = portal_signup_url(portal_url) if locale_code == "es-419" else None
-    title = copy["active_title"] if signup else copy["inactive_title"]
-    status = "" if signup else f'<p class="subscription-state"><strong>{_e(copy["inactive"])}</strong></p>'
-    action = ""
-    if signup:
-        action = (
-            f'<p><a class="button" href="{_e(signup)}" rel="external noopener" data-ghost-portal="signup" '
-            f'data-portal-title="{_e(copy["portal_title"])}" data-portal-close="{_e(copy["portal_close"])}" '
-            f'data-portal-fallback="{_e(copy["portal_fallback"])}">{_e(copy["portal"])}</a></p>'
-        )
-    body = (
-        f'<p>{_e(copy["promise"])}</p>{status}<p>{_e(copy["language"])}</p>{action}'
-        f'{_feed_links(base, path_prefix, copy)}<p>{_e(copy["privacy"])}</p>'
-    )
-    if page:
-        html = f'<p class="section-kicker">{_e(copy["subscribe_kicker"])}</p><h1 class="page-title">{_e(title)}</h1>{body}'
-    else:
-        html = f'<div class="subscribe-card"><p class="section-kicker">{_e(copy["subscribe_kicker"])}</p><h2>{_e(title)}</h2>{body}</div>'
-    return html, subscribe_script_tag(base, locale_code, portal_url)
+    # The old GHOST_PORTAL_URL remains an alias during the integration merge.
+    import os
+    ghost_url = os.environ.get("GHOST_URL") or portal_url
+    if ghost_url and ghost_url.endswith("#/portal/signup"):
+        ghost_url = ghost_url.split("#", 1)[0]
+    html = subscribe_block("all" if page else "paper", locale_code, base=base,
+                           path_prefix=path_prefix, ghost_url=ghost_url, page=page)
+    css = f'<link rel="stylesheet" href="{_e(base.rstrip("/") + "/assets/subscribe/subscribe.css")}">'
+    return html, css + subscribe_script_tag(base, locale_code, ghost_url)
 
 
 def subscribe_page_title(locale_code: str, portal_url: str | None) -> str:
-    copy = _copy(locale_code)
-    return copy["active_title"] if locale_code == "es-419" and portal_signup_url(portal_url) else copy["inactive_title"]
+    import os
+    config = subscription_config()
+    ghost_url = os.environ.get("GHOST_URL") or portal_url
+    if ghost_url and ghost_url.endswith("#/portal/signup"):
+        ghost_url = ghost_url.split("#", 1)[0]
+    copy = {"en": ("Choose the letters you want", "Subscriptions are coming soon"),
+            "es-419": ("Elige lo que quieres recibir", "Las suscripciones llegarán pronto"),
+            "zh-Hans": ("选择你想收到的内容", "订阅即将开放")}.get(locale_code, ("Choose the letters you want", "Subscriptions are coming soon"))
+    return copy[0] if ghost_signup_url(ghost_url) and locale_code in config["languages"]["signup_locales"] else copy[1]
