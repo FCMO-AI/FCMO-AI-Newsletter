@@ -6,7 +6,7 @@ from html import escape
 from pathlib import Path
 import re
 
-from .routes import href, story_path
+from .routes import TECHNICAL_FRONT, href, story_path
 
 ID_RE = re.compile(r"FCMO-[A-F0-9]{12}")
 
@@ -29,6 +29,12 @@ def build(stories: list[dict], *, locales: list[dict], base: str, out: Path, leg
     live = [story for story in stories if story.get("status") == "live"]
     locale_by_legacy = {"en": locales[0], "es": next(x for x in locales if x["code"] == "es-419"), "zh-hans": next(x for x in locales if x["code"] == "zh-Hans")}
     written = []
+    # Preserve the previous technical front as an explicit legacy document.
+    # Locale roots now serve the FCMO Group landing.
+    for locale in locales:
+        rel = locale["path_prefix"] + "front.html"
+        _write(out, rel, href(base, locale["path_prefix"] + TECHNICAL_FRONT), base)
+        written.append(rel)
     for story in stories:
         survivor = by_id.get(story.get("merged_into"))
         english_target = (

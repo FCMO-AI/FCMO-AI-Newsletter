@@ -22,6 +22,8 @@ if __package__ in {None, ""}:
     from tools.visual_desk import write_localized_story_graphics
     from tools.paper.templates import archive_page, document, front_page, simple_page, status_page, story_page
     from tools.paper.templates.pages import story_card
+    from tools.paper.templates.landing import render as render_landing
+    from tools.paper.routes import TECHNICAL_FRONT
 else:
     from . import community, feeds, redirects, search_index, sitemaps
     from .i18n import dek, field, format_date, headline, is_complete, label, load_catalogs, story_locale, truncate
@@ -30,6 +32,8 @@ else:
     from tools.visual_desk import write_localized_story_graphics
     from .templates import archive_page, document, front_page, simple_page, status_page, story_page
     from .templates.pages import story_card
+    from .templates.landing import render as render_landing
+    from .routes import TECHNICAL_FRONT
 
 ROOT = Path(__file__).resolve().parents[2]
 BEATS = ("technology", "business", "policy", "society", "research")
@@ -161,7 +165,9 @@ class PaperBuilder:
         ranked = sorted(self.live, key=lambda s: (bool(s.get("front_page_eligible")), s.get("importance", 0), s.get("event_at", ""), s["id"]), reverse=True)
         if not ranked:
             body = simple_page(strings["archive"]["empty"], "")
-            self._write_page(locale=locale, suffix="", title=strings["site"]["name"], description=strings["site"]["description"], body=body, kind="front")
+            self._write_page(locale=locale, suffix=TECHNICAL_FRONT, title=strings["site"]["name"], description=strings["site"]["description"], body=body, kind="front")
+            landing = render_landing(locale=locale, home=href(self.base, locale["path_prefix"]), technical=href(self.base, locale["path_prefix"]+TECHNICAL_FRONT), about=href(self.base, locale["path_prefix"]+"about/"), subscribe=href(self.base, locale["path_prefix"]+"suscribete/"), lead="", top="", cartas=community.render_cartas(self.cartas, locale["code"]))
+            self._write_page(locale=locale, suffix="", title="FCMO Group", description="FCMO Group Newsletter and FCMO AI technical paper", body=landing, kind="landing")
             return
         first, rest = ranked[0], ranked[1:]
         hero = first.get("media") or {}
@@ -191,7 +197,9 @@ class PaperBuilder:
         editions = f'<section class="beat-section"><div class="section-head"><h2>{esc(strings["front"]["editions"])}</h2><a href="{esc(href(self.base,locale["path_prefix"]+"archive/"))}">{esc(strings["nav"]["archive"])}</a></div><div class="card-row">' + "".join(f'<article class="story-card"><h3><a href="{esc(href(self.base,edition_path(locale,date)))}">{esc(strings["archive"]["edition_title"].format(date=format_date(date+"T12:00:00Z",catalog)))}</a></h3></article>' for date in dates) + "</div></section>"
         body = front_page(lead=lead, top=top, essentials=essentials, beats="".join(sections), developing=developing, subscribe=subscribe, cartas=cartas, editions=editions)
         body = community.without_empty_cartas_slot(body, cartas)
-        self._write_page(locale=locale, suffix="", title=f'{strings["site"]["name"]} — {strings["site"]["tagline"]}', description=strings["site"]["description"], body=body, kind="front", og_image=self._media_url(first, locale), extra_head=subscribe_script)
+        self._write_page(locale=locale, suffix=TECHNICAL_FRONT, title=f'{strings["site"]["name"]} — {strings["site"]["tagline"]}', description=strings["site"]["description"], body=body, kind="front", og_image=self._media_url(first, locale), extra_head=subscribe_script)
+        landing = render_landing(locale=locale, home=href(self.base, locale["path_prefix"]), technical=href(self.base, locale["path_prefix"]+TECHNICAL_FRONT), about=href(self.base, locale["path_prefix"]+"about/"), subscribe=href(self.base, locale["path_prefix"]+"suscribete/"), lead=lead, top=top, cartas=cartas)
+        self._write_page(locale=locale, suffix="", title="FCMO Group", description="FCMO Group Newsletter and FCMO AI technical paper", body=landing, kind="landing", og_image=self._media_url(first, locale))
 
     def _localized_evidence(self, story: dict, locale: dict) -> dict:
         if locale["code"] == "en":
@@ -369,8 +377,12 @@ class PaperBuilder:
         blocks = []
         for locale in self.config["locales"]:
             strings = self.catalogs[locale["code"]]["strings"]["errors"]
-            blocks.append(f'<section lang="{esc(locale["html_lang"])}"><h2>{esc(strings["not_found_title"])}</h2><p>{esc(strings["not_found_body"])}</p><a href="{esc(href(self.base,locale["path_prefix"]))}">{esc(strings["not_found_home"])}</a></section>')
-        html = '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><link rel="icon" href="' + esc(href(self.base,"assets/pwa/favicon.svg")) + '" type="image/svg+xml"><link rel="apple-touch-icon" href="' + esc(href(self.base,"assets/pwa/icons/icon-192.svg")) + '"><link rel="stylesheet" href="' + esc(href(self.base,"assets/css/paper.css")) + '"><title>404 · FCMO AI</title></head><body><main class="page-shell not-found"><p class="brand">[^] FCMO AI</p>' + "".join(blocks) + '</main><script>(()=>{let p=location.pathname,s=p.includes("/es/")?"es-419":p.includes("/zh/")?"zh-Hans":"en";document.documentElement.lang=s;document.querySelector(`[lang="${s}"]`)?.scrollIntoView()})()</script></body></html>'
+            home = href(self.base, locale["path_prefix"])
+            technical = href(self.base, locale["path_prefix"]+TECHNICAL_FRONT)
+            search = href(self.base, locale["path_prefix"]+"search/")
+            search_label = {"en": "Search", "es-419": "Buscar", "zh-Hans": "搜索"}[locale["code"]]
+            blocks.append(f'<section lang="{esc(locale["html_lang"])}"><p class="section-kicker">FCMO Group / FCMO AI</p><h2>{esc(strings["not_found_title"])}</h2><p>{esc(strings["not_found_body"])}</p><div class="landing-jump"><a href="{esc(home)}">{esc(strings["not_found_home"])}</a><a href="{esc(technical)}">FCMO AI Diario</a><a href="{esc(search)}">{esc(search_label)}</a></div></section>')
+        html = '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><script>(()=>{let p=location.pathname,l=p.includes("/es/")?"es-419":p.includes("/zh/")?"zh-Hans":"en";document.documentElement.lang=l;document.documentElement.dataset.errorLocale=l})()</script><link rel="icon" href="' + esc(href(self.base,"assets/pwa/favicon.svg")) + '" type="image/svg+xml"><link rel="apple-touch-icon" href="' + esc(href(self.base,"assets/pwa/icons/icon-192.svg")) + '"><link rel="stylesheet" href="' + esc(href(self.base,"assets/css/paper.css")) + '"><title>404 · FCMO Group</title></head><body><a class="skip-link" href="#main">Skip to content</a><header class="site-header"><div class="masthead"><a class="brand" href="' + esc(href(self.base,"")) + '">FCMO</a><span class="brand-sub">GROUP + FCMO AI</span></div></header><main id="main" class="page-shell not-found"><h1>404</h1>' + "".join(blocks) + '</main><footer class="site-footer"><div class="footer-inner"><div class="footer-brand">FCMO Group · FCMO AI</div></div></footer></body></html>'
         (self.out / "404.html").write_text(html, encoding="utf-8")
 
     def build(self) -> int:
