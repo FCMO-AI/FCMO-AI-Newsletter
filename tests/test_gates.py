@@ -1,0 +1,117 @@
+from __future__ import annotations
+
+import copy
+import json
+import tempfile
+import unittest
+from pathlib import Path
+
+from tools.gates import run_all
+from tools.gates.common import GateFailure, canonical_story_path
+
+
+class PublicationGateTests(unittest.TestCase):
+    maxDiff = None
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.root = Path(self.tmp.name) / "publish"
+        (self.root / "data").mkdir(parents=True)
+        self.story = {
+            "id": "FCMO-AAAAAAAAAAAA", "slug": "safe-story", "url_date": "2026-09-26",
+            "status": "live", "title": "A safe story", "headline": "A safe story headline",
+            "dek": "A sufficiently descriptive deck for the safe story.",
+            "summary": "A sufficiently complete summary for publication.",
+            "why_it_matters": "A sufficiently complete explanation of why it matters.",
+            "importance_rationale": "The rationale is explicit and evidence bounded.",
+            "technical": {"result": "Public artifact"},
+            "l10n": {
+                "es-419": self.locale("Una historia segura", "Un resumen completo para publicación.", "Importa por la evidencia pública."),
+                "zh-Hans": self.locale("一则可靠报道", "这是一份可发布的完整摘要。", "公开证据说明了它的重要性。"),
+            },
+        }
+        self.write_tree()
+
+    @staticmethod
+    def locale(title, summary, why):
+        return {
+            "state": "NATIVE_ARB", "missing": [],
+            "fields": {
+                "title": title, "headline": title, "dek": summary, "summary": summary,
+                "why_it_matters": why, "importance_rationale": why,
+                "technical": {"result": summary},
+                "evidence": {"claims": [{"text": summary}], "limitations": [], "gaps": [], "contradictory": []},
+            },
+            "provenance": {key: "arb" for key in ("title", "headline", "dek", "summary", "why_it_matters", "importance_rationale", "technical", "evidence")},
+        }
+
+    def write_tree(self):
+        document = {"schema": "fcmo-stories-v2", "stories": [self.story]}
+        (self.root / "data" / "stories.v2.json").write_text(json.dumps(document, ensure_ascii=False), encoding="utf-8")
+        (self.root / "data" / "glossary.json").write_text(Path("i18n/glossary.yml").read_text(encoding="utf-8"), encoding="utf-8")
+        homes = {
+            "index.html": '<html lang="en"><main><article data-lead><h1>Safe story</h1></article></main></html>',
+            "es/index.html": '<html lang="es-419"><main><article data-lead><h1>Historia segura</h1></article></main></html>',
+            "zh/index.html": '<html lang="zh-Hans"><main><article data-lead><h1>可靠报道</h1></article></main></html>',
+        }
+        for route, text in homes.items(): self.put(route, text)
+        bodies = {
+            "en": "This report explains the public evidence and its important limitations.",
+            "es-419": "Esta nota explica la evidencia pública y sus límites importantes.",
+            "zh-Hans": "本报道解释公开证据及其重要限制。",
+        }
+        for locale in bodies:
+            route = canonical_story_path(self.story, locale)
+            self.put(route, f'<html lang="{locale}"><main data-story-id="{self.story["id"]}"><h1>{self.story["l10n"].get(locale, {}).get("fields", {}).get("title", self.story["title"])}</h1><p>{bodies[locale]}</p></main></html>')
+
+    def put(self, route: str, text: str):
+        path = self.root / route; path.parent.mkdir(parents=True, exist_ok=True); path.write_text(text, encoding="utf-8")
+
+    def assert_gate(self, code: str):
+        with self.assertRaises(GateFailure) as caught: run_all.run(self.root)
+        self.assertEqual(caught.exception.code, code, caught.exception)
+
+    def test_clean_tree_passes_all_gates(self):
+        results = run_all.run(self.root)
+        self.assertEqual([result.code for result in results], [gate.__module__.rsplit(".", 1)[-1].upper() for gate in run_all.GATES])
+
+    def test_orphan_route_fails_named_gate(self):
+        self.put("2026/09/25/orphan/index.html", '<html><main data-story-id="FCMO-BBBBBBBBBBBB">orphan</main></html>')
+        self.assert_gate("ID_SET_EQUALITY")
+
+    def test_english_prose_in_spanish_fails_named_gate(self):
+        route = canonical_story_path(self.story, "es-419")
+        self.put(route, f'<html lang="es-419"><main data-story-id="{self.story["id"]}"><p>This is an English sentence that should never appear in the Spanish edition.</p></main></html>')
+        self.assert_gate("ENGLISH_LEAK")
+
+    def test_remote_script_fails_named_gate(self):
+        self.put("es/index.html", '<html lang="es-419"><script src="https://example.org/app.js"></script></html>')
+        self.assert_gate("REMOTE_SCRIPT")
+
+    def test_personal_mailbox_fails_named_gate(self):
+        self.put("privacy/index.html", "<html><p>write to person@" + "g" + "mail.com</p></html>")
+        self.assert_gate("PERSONAL_MAILBOX")
+
+    def test_unresolved_binding_fails_named_gate(self):
+        path = self.root / "index.html"
+        path.write_text(path.read_text() + '<span data-binding="—">—</span>', encoding="utf-8")
+        self.assert_gate("BINDING_COMPLETE")
+
+    def test_two_megabyte_page_fails_named_gate(self):
+        self.put("large/index.html", "<html><p>" + "x" * 2_000_000 + "</p></html>")
+        self.assert_gate("SIZE_BUDGET")
+
+    def test_glossary_conflict_in_machine_field_fails_named_gate(self):
+        self.story["l10n"]["es-419"]["fields"]["summary"] = "El post-entrenamiento aparece como término rechazado."
+        self.story["l10n"]["es-419"]["provenance"]["summary"] = "machine"
+        self.write_tree()
+        self.assert_gate("GLOSSARY_CONSISTENCY")
+
+    def test_pending_locale_requires_visible_notice(self):
+        self.story["l10n"]["es-419"] = {"state": "PENDING", "missing": ["summary"], "fields": {}, "provenance": {}}
+        self.write_tree()
+        self.assert_gate("LOCALE_COMPLETE")
+
+
+if __name__ == "__main__": unittest.main()
