@@ -1,0 +1,70 @@
+"""Shared page chrome. All dynamic text crosses html.escape here or upstream."""
+
+from __future__ import annotations
+
+from html import escape
+import json
+
+
+def _e(value: object, *, quote: bool = True) -> str:
+    return escape(str(value), quote=quote)
+
+
+def _url(base: str, path: str = "") -> str:
+    return base.rstrip("/") + "/" + path.lstrip("/")
+
+
+def document(*, locale: dict, catalog: dict, config: dict, base: str, path: str,
+             title: str, description: str, body: str, canonical: str,
+             alternates: list[tuple[str, str]], og_image: str | None = None,
+             page_type: str = "website", status_banner: str = "",
+             json_ld: dict | None = None, extra_head: str = "",
+             body_class: str = "") -> str:
+    strings = catalog["strings"]
+    lang = locale["html_lang"]
+    locale_prefix = locale["path_prefix"]
+    home = _url(base, locale_prefix)
+    css = _url(base, "assets/css/paper.css")
+    search = _url(base, locale_prefix + "search/")
+    archive = _url(base, locale_prefix + "archive/")
+    feeds = _url(base, locale_prefix + "feeds/")
+    status = _url(base, locale_prefix + "status/")
+    method = _url(base, locale_prefix + "method/")
+    alternates_html = "\n".join(
+        f'<link rel="alternate" hreflang="{_e(code)}" href="{_e(url)}">'
+        for code, url in alternates
+    )
+    languages = "".join(
+        f'<a href="{_e(url)}" hreflang="{_e(code)}" lang="{_e(code)}"'
+        + (' aria-current="page"' if code == locale["hreflang"] else "")
+        + f'>{_e(label)}</a>'
+        for code, url, label in (
+            (item["hreflang"], _url(base, item["path_prefix"] + path), item["label"])
+            for item in config["locales"]
+        )
+    )
+    nav = strings["nav"]
+    footer = strings["footer"]
+    year = canonical[0:4] if canonical[:4].isdigit() else "2026"
+    og = f'<meta property="og:image" content="{_e(og_image)}"><meta name="twitter:card" content="summary_large_image">' if og_image else ""
+    structured = ""
+    if json_ld:
+        structured = '<script type="application/ld+json">' + json.dumps(json_ld, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/") + "</script>"
+    # A tiny progressive enhancement: stale fallback and legacy fragment mapping.
+    safeguard = """<script>(()=>{let b=document.querySelector('[data-edition-at]');if(b&&Date.now()-Date.parse(b.dataset.editionAt)>1296e5){b.hidden=false;b.dataset.editionState='DELAYED'}let m=location.hash.match(/^#\/brief\/(FCMO-[A-F0-9]{12})/);if(m)location.replace(document.documentElement.dataset.storyBase+m[1]+'.html')})()</script>"""
+    return f'''<!doctype html>
+<html lang="{_e(lang)}" data-story-base="{_e(_url(base, locale_prefix + 'legacy-story/'))}">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{_e(title)}</title><meta name="description" content="{_e(description[:160])}">
+<link rel="canonical" href="{_e(canonical)}">{alternates_html}
+<link rel="stylesheet" href="{_e(css)}"><meta name="theme-color" content="#F2EFE8">
+<meta property="og:type" content="{_e(page_type)}"><meta property="og:title" content="{_e(title)}"><meta property="og:description" content="{_e(description[:160])}"><meta property="og:url" content="{_e(canonical)}">{og}
+{structured}{extra_head}
+</head>
+<body class="{_e(body_class)}"><a class="skip-link" href="#main">{_e(strings['a11y']['skip_to_content'])}</a>
+<header class="site-header"><div class="utility-bar"><span class="edition-line">{_e(strings['site']['tagline'])}</span><nav class="language-nav" aria-label="{_e(strings['a11y']['language_switcher'])}">{languages}</nav></div>
+<div class="masthead"><a class="brand" href="{_e(home)}"><span class="brand-mark">[^]</span> FCMO AI</a><span class="brand-sub">Newsletter · evidence first</span></div>
+<nav class="main-nav" aria-label="{_e(nav['menu'])}"><a href="{_e(home)}">{_e(nav['home'])}</a><a href="{_e(archive)}">{_e(nav['archive'])}</a><a href="{_e(search)}">{_e(nav['search'])}</a><a href="{_e(feeds)}">{_e(nav['feeds'])}</a><a href="{_e(method)}">{_e(nav['method'])}</a><a href="{_e(status)}">{_e(nav['status'])}</a></nav></header>
+{status_banner}<main id="main" class="page-shell">{body}</main>
+<footer class="site-footer"><div class="footer-inner"><div class="footer-brand">[^] FCMO AI</div><nav class="footer-links"><a href="{_e(_url(base, locale_prefix+'about/'))}">{_e(footer['about'])}</a><a href="{_e(method)}">{_e(footer['method'])}</a><a href="{_e(_url(base, locale_prefix+'corrections/'))}">{_e(footer['corrections'])}</a><a href="{_e(_url(base, locale_prefix+'privacy/'))}">{_e(footer['privacy'])}</a><a href="{_e(_url(base, locale_prefix+'license/'))}">{_e(footer['license'])}</a><a href="{_e(_url(base, locale_prefix+'disclaimer/'))}">{_e(footer['disclaimer'])}</a><a href="{_e(status)}">{_e(footer['status'])}</a><a href="{_e(feeds)}">{_e(footer['feeds'])}</a></nav><p class="footer-note">{_e(footer['automated_notice'])}<br>{_e(footer['copyright'].format(year=year))} · Faber Consilii, Machinator Operis</p></div></footer>{safeguard}</body></html>'''
