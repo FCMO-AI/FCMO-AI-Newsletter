@@ -97,7 +97,7 @@ def build(*, stories: list[dict], all_stories: list[dict], locales: list[dict], 
     old = json.loads((root / "scaffold/agent.json").read_text(encoding="utf-8"))
     # Keep the two original dossiers that the current canonical corpus has
     # retired, so the old public brief URLs remain available to existing agents.
-    reference = root / "release-src/data/public-research/agent-reference"
+    reference = root / "tools/agent/reference"
     for legacy_brief in (reference / "briefs").glob("FCMO-*.json"):
         target = out / "data/briefs" / legacy_brief.name
         if not target.exists():
