@@ -109,14 +109,18 @@ class PaperBuilder:
     def _media_url(self, story: dict, locale: dict | None = None) -> str:
         if self.og_source is not None and locale is not None:
             return absolute(self.base_url, f'og/{locale["code"]}/{story["id"]}.png')
-        return self._story_media_url(story, locale)
+        return absolute(self.base_url, self._story_media_path(story, locale))
 
     def _story_media_url(self, story: dict, locale: dict | None = None) -> str:
+        return href(self.base, self._story_media_path(story, locale))
+
+    @staticmethod
+    def _story_media_path(story: dict, locale: dict | None = None) -> str:
         media = story.get("media") or {}
         local = str(media.get("local_path") or "assets/explainers/research.svg").lstrip("/")
         if locale and locale["code"] in {"es-419", "zh-Hans"} and media.get("kind") == "explainer":
             local = f'assets/story-media/{story["id"]}-{locale["code"]}.svg'
-        return absolute(self.base_url, local)
+        return local
 
     @staticmethod
     def _title_class(title: str, locale_code: str) -> str:

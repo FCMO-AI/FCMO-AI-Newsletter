@@ -137,6 +137,11 @@ class PublicationGateTests(unittest.TestCase):
         self.put("index.html", '<html><head><link rel="canonical" href="https://fcmo-ai.github.io/FCMO-AI-Newsletter/"></head><body><img src="/FCMO-AI-Newsletter/assets/missing.svg" alt=""></body></html>')
         self.assert_gate("BROKEN_REFERENCE")
 
+    def test_missing_absolute_same_site_asset_fails_named_gate(self):
+        self.put("index.html", '<html><head><link rel="canonical" href="https://fcmo-ai.github.io/FCMO-AI-Newsletter/"></head>'
+                 '<body><img src="https://fcmo-ai.github.io/FCMO-AI-Newsletter/assets/missing.svg" alt=""></body></html>')
+        self.assert_gate("BROKEN_REFERENCE")
+
     def test_base_path_asset_resolves_inside_candidate(self):
         self.put("assets/present.svg", "<svg xmlns=\"http://www.w3.org/2000/svg\"></svg>")
         self.put("index.html", '<html><head><link rel="canonical" href="https://fcmo-ai.github.io/FCMO-AI-Newsletter/"></head><body><img src="/FCMO-AI-Newsletter/assets/present.svg" alt=""></body></html>')

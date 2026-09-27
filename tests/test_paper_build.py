@@ -9,6 +9,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from urllib.parse import urlsplit
 import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -47,6 +48,19 @@ class AuditParser(HTMLParser):
     def handle_data(self, data):
         if self.main_depth:
             self.main_text.append(data)
+
+
+class CandidateAssetParser(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.urls = []
+
+    def handle_starttag(self, tag, attrs):
+        values = dict(attrs)
+        if tag in {"img", "source"}:
+            self.urls.extend(values.get(key, "") for key in ("src", "srcset") if values.get(key))
+        if tag == "link" and "preload" in values.get("rel", "").lower().split() and values.get("href"):
+            self.urls.append(values["href"])
 
 
 class PaperBuildTests(unittest.TestCase):
@@ -109,6 +123,19 @@ class PaperBuildTests(unittest.TestCase):
             home = (out / "zh" / "index.html").read_text(encoding="utf-8")
             self.assertIn(f'{lead["id"]}-zh-Hans.svg', home)
             self.assertIn(f'/og/zh-Hans/{lead["id"]}.png', home)
+
+    def test_built_pages_use_candidate_relative_urls_for_local_page_assets(self):
+        base_url = json.loads((ROOT / "config" / "site.json").read_text(encoding="utf-8"))["base_url"]
+        own_origin = urlsplit(base_url)
+        problems = []
+        for page_path in self.out.rglob("*.html"):
+            parser = CandidateAssetParser()
+            parser.feed(page_path.read_text(encoding="utf-8"))
+            for value in parser.urls:
+                parsed = urlsplit(value)
+                if parsed.scheme in {"http", "https"} and parsed.netloc.lower() == own_origin.netloc.lower():
+                    problems.append(f"{page_path.relative_to(self.out)}: {value}")
+        self.assertEqual(problems, [])
 
     def test_long_story_headlines_receive_build_time_size_class(self):
         routes = json.loads((self.out / "data" / "routes.json").read_text(encoding="utf-8"))
