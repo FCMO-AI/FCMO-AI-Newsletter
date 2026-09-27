@@ -25,7 +25,7 @@ class WorkflowConcurrencyContractTests(unittest.TestCase):
 
     def test_failed_refresh_event_cannot_cancel_active_pages(self) -> None:
         self.assert_failed_workflow_run_isolated(
-            "pages.yml","github-pages-v3-"
+            "pages.yml","github-pages-v4-"
         )
 
     def test_pages_workflow_run_does_not_depend_on_optional_visibility_payload(self) -> None:
