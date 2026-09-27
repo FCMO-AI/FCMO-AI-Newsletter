@@ -16,6 +16,7 @@ import sys
 if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
     from tools.paper import community, feeds, redirects, search_index, sitemaps
+    from tools.agent import build as agent_layer
     from tools.paper.i18n import dek, field, format_date, headline, is_complete, label, load_catalogs, story_locale, truncate
     from tools.paper.routes import absolute, beat_path, edition_path, href, org_path, output_path, story_path, topic_path
     from tools.paper.status_banner import render as render_banner
@@ -24,6 +25,7 @@ if __package__ in {None, ""}:
     from tools.paper.templates.pages import story_card
 else:
     from . import community, feeds, redirects, search_index, sitemaps
+    from tools.agent import build as agent_layer
     from .i18n import dek, field, format_date, headline, is_complete, label, load_catalogs, story_locale, truncate
     from .routes import absolute, beat_path, edition_path, href, org_path, output_path, story_path, topic_path
     from .status_banner import render as render_banner
@@ -81,7 +83,8 @@ class PaperBuilder:
     def _write_page(self, *, locale: dict, suffix: str, title: str, description: str, body: str,
                     kind: str, story: dict | None = None, og_image: str | None = None,
                     json_ld: dict | None = None, extra_head: str = "", status: bool = True,
-                    index: bool = True, alternates: bool = True) -> None:
+                    index: bool = True, alternates: bool = True,
+                    machine_alternates: list[tuple[str, str]] | None = None) -> None:
         route = locale["path_prefix"] + suffix
         canonical = absolute(self.base_url, route)
         alts = self._alternates(suffix) if alternates else [(locale["hreflang"], canonical)]
@@ -91,7 +94,7 @@ class PaperBuilder:
             canonical=canonical, alternates=alts, og_image=og_image, page_type="article" if story else "website",
             status_banner=render_banner(self.status, self.catalogs[locale["code"]], base=self.base, locale=locale) if status else "",
             json_ld=json_ld, extra_head=extra_head, body_class=f"page-{kind}",
-            story_id=story["id"] if story else None,
+            story_id=story["id"] if story else None, machine_alternates=machine_alternates,
         )
         target = output_path(self.out, route)
         target.parent.mkdir(parents=True, exist_ok=True)
@@ -255,7 +258,12 @@ class PaperBuilder:
         story_url = absolute(self.base_url, locale["path_prefix"] + suffix)
         image = self._media_url(story, locale)
         structured = {"@context": "https://schema.org", "@type": "NewsArticle", "headline": title, "description": description, "datePublished": story["first_published_at"], "dateModified": story["updated_at"], "mainEntityOfPage": story_url, "image": [image], "author": {"@type": "Organization", "name": "FCMO AI Research Desk"}, "publisher": {"@type": "Organization", "name": "FCMO AI"}}
-        self._write_page(locale=locale, suffix=suffix, title=f"{title} — FCMO AI", description=description, body=page, kind="story", story=story, og_image=image, json_ld=structured)
+        if story.get("corrections"):
+            structured["correction"] = [c.get("note") or c.get("reason") or c.get("kind", "Correction") for c in story["corrections"]]
+        story_api = absolute(self.base_url, f"api/v1/stories/{story['id']}.json")
+        story_md = absolute(self.base_url, locale["path_prefix"] + suffix.rstrip("/") + ".md")
+        self._write_page(locale=locale, suffix=suffix, title=f"{title} — FCMO AI", description=description, body=page, kind="story", story=story, og_image=image, json_ld=structured,
+                         machine_alternates=[("text/markdown", story_md), ("application/json", story_api)])
 
     def _pending_fields(self, story: dict, locale: dict) -> str:
         """Render only prose already present in an incomplete native edition."""
@@ -318,7 +326,12 @@ class PaperBuilder:
         catalog = self.catalogs[locale["code"]]
         items = "".join(f'<article class="archive-item"><time datetime="{esc(story["event_at"])}">{esc(format_date(story["event_at"],catalog,precision=story.get("date_precision","day")))}</time><h2><a href="{esc(self._story_href(locale,story))}">{esc(headline(story,locale["code"],catalog))}</a></h2><p>{esc(truncate(dek(story,locale["code"],catalog),220))}</p></article>' for story in stories)
         body = archive_page(title, catalog["strings"]["site"]["description"], items or f'<p>{esc(catalog["strings"]["archive"]["empty"])}</p>', title_html=title_html)
-        self._write_page(locale=locale, suffix=suffix, title=f"{title} — FCMO AI", description=title, body=body, kind=kind)
+        resources = None
+        if kind == "edition":
+            date = suffix.strip("/").split("/")[-1]
+            resources = [("text/markdown", absolute(self.base_url, locale["path_prefix"] + f"edition/{date}.md")),
+                         ("application/json", absolute(self.base_url, f"api/v1/editions/{date}.json"))]
+        self._write_page(locale=locale, suffix=suffix, title=f"{title} — FCMO AI", description=title, body=body, kind=kind, machine_alternates=resources)
 
     def _status(self, locale: dict) -> None:
         catalog = self.catalogs[locale["code"]]
@@ -381,6 +394,8 @@ class PaperBuilder:
             shutil.rmtree(self.out)
         self.out.mkdir(parents=True)
         shutil.copytree(ROOT / "site-src" / "assets", self.out / "assets", dirs_exist_ok=True)
+        # Retain the original public agent datasets as compatibility surfaces.
+        shutil.copytree(ROOT / "release-src" / "data", self.out / "data", dirs_exist_ok=True)
         self._copy_story_media()
         write_localized_story_graphics(self.stories, self.catalogs, self.out / "assets" / "story-media")
         if self.og_source is not None:
@@ -428,6 +443,9 @@ class PaperBuilder:
         feed_paths = feeds.write_all(self.stories, locales=self.config["locales"], catalogs=self.catalogs, base_url=self.base_url, out=self.out)
         redirect_paths = redirects.build(self.stories, locales=self.config["locales"], base=self.base, out=self.out, legacy_root=ROOT / "site")
         sitemaps.write(self.routes, out=self.out, generated_at=self.payload["generated_at"])
+        agent_layer.build(stories=self.live, all_stories=self.stories, locales=self.config["locales"],
+                          catalogs=self.catalogs, status=self.status, base_url=self.base_url,
+                          base=self.base, out=self.out, root=ROOT)
         (self.out / "data").mkdir(exist_ok=True)
         (self.out / "data" / "routes.json").write_text(json.dumps(self.routes, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
         shutil.copyfile(self.stories_path, self.out / "data" / "stories.v2.json")

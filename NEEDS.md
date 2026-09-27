@@ -159,3 +159,9 @@ Playwright 1.63.0 and Chromium into runner-temporary storage.
 ## Lane int6 favicon note
 
 - The existing PWA artwork is SVG. Generated pages reference `favicon.svg` and the existing 192px SVG as the Apple touch icon. No repository tool generates a 180px Apple touch PNG; producing one would require adding a rasterization dependency, so this lane keeps the existing icon artwork and formats.
+
+# Lane a1 dependencies
+
+No out-of-ownership edits are currently required.
+
+The implementation does not emit a `/.well-known/security.txt`: the repository has no verified security contact. No other applicable well-known standard was identified for the static agent API.

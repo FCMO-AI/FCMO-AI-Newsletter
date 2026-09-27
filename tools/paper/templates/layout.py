@@ -21,12 +21,23 @@ def _url(base: str, path: str = "") -> str:
     return base.rstrip("/") + "/" + path.lstrip("/")
 
 
+def agent_alternates(resources: list[tuple[str, str]] | None) -> str:
+    """Render machine-readable representations attached to this page."""
+    if not resources:
+        return ""
+    return "\n".join(
+        f'<link rel="alternate" type="{_e(media_type)}" href="{_e(url)}">'
+        for media_type, url in resources
+    )
+
+
 def document(*, locale: dict, catalog: dict, config: dict, base: str, path: str,
              title: str, description: str, body: str, canonical: str,
              alternates: list[tuple[str, str]], og_image: str | None = None,
              page_type: str = "website", status_banner: str = "",
              json_ld: dict | None = None, extra_head: str = "",
-             body_class: str = "", story_id: str | None = None) -> str:
+             body_class: str = "", story_id: str | None = None,
+             machine_alternates: list[tuple[str, str]] | None = None) -> str:
     strings = catalog["strings"]
     lang = locale["html_lang"]
     locale_prefix = locale["path_prefix"]
@@ -74,7 +85,7 @@ def document(*, locale: dict, catalog: dict, config: dict, base: str, path: str,
 <link rel="preload" href="{_e(font_root + 'JetBrainsMono-normal-400-latin.woff2')}" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="{_e(css)}"><meta name="theme-color" content="#F2EFE8">
 <meta property="og:type" content="{_e(page_type)}"><meta property="og:title" content="{_e(title)}"><meta property="og:description" content="{_e(description[:160])}"><meta property="og:url" content="{_e(canonical)}">{og}
-{structured}{extra_head}
+{structured}{agent_alternates(machine_alternates)}{extra_head}
 </head>
 <body class="{_e(body_class)}"><a class="skip-link" href="#main">{_e(strings['a11y']['skip_to_content'])}</a>
 <header class="site-header"><div class="utility-bar"><span class="edition-line">{_e(strings['site']['tagline'])}</span><nav class="language-nav" aria-label="{_e(strings['a11y']['language_switcher'])}">{languages}</nav></div>
