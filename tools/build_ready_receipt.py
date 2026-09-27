@@ -1,20 +1,18 @@
 #!/usr/bin/env python3
-"""Generate or verify the measured public-release receipt.
+"""Generate or verify the measured static-paper release receipt.
 
-The receipt is derived from the same public tree that Pages serves: the frozen
-overlay is checked, applied over ``site/``, committed native locales are injected,
-and deterministic editorial discovery frontends are generated last. ``--check``
-compares individual measurements plus the generated narrative so a technically
-green but semantically stale receipt cannot survive an architecture change.
+The receipt is derived from the A3 static-site generator's final route manifest
+and the two source artifacts embedded in that candidate. ``--check`` preserves
+the historical CLI contract: it measures without rewriting and fails on any
+value or narrative drift.
 """
 from __future__ import annotations
 
 import argparse
-import base64
+from collections import Counter
 import hashlib
 import json
 import re
-import shutil
 import subprocess
 import sys
 import tempfile
@@ -23,8 +21,9 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
 SITE = REPO / "site"
-OVERLAY = REPO / "release-overlay" / "final"
-MANIFEST_PATH = OVERLAY / "manifest.json"
+STORIES_PATH = SITE / "data" / "stories.v2.json"
+STATUS_PATH = SITE / "data" / "newsroom-status.json"
+CONFIG_PATH = REPO / "config" / "site.json"
 RECEIPT_PATH = REPO / "READY_TO_PUBLISH.md"
 
 
@@ -39,295 +38,152 @@ def require_string(mapping: dict, key: str, source: str) -> str:
     return value
 
 
-def require_integer(mapping: dict, key: str, source: str) -> int:
-    value = mapping.get(key)
-    if not isinstance(value, int) or isinstance(value, bool) or value < 0:
-        raise ValueError(f"{source}.{key} must be a non-negative integer")
+def read_object(path: Path, label: str) -> dict:
+    try:
+        value = json.loads(path.read_text(encoding="utf-8"))
+    except Exception as exc:
+        raise ValueError(f"cannot read {label}: {exc}") from exc
+    if not isinstance(value, dict):
+        raise ValueError(f"{label} must be a JSON object")
     return value
 
 
-def read_manifest() -> dict:
+def tree_digest(root: Path) -> str:
+    digest = hashlib.sha256()
+    for path in sorted(item for item in root.rglob("*") if item.is_file()):
+        digest.update(path.relative_to(root).as_posix().encode("utf-8"))
+        digest.update(b"\0")
+        digest.update(path.read_bytes())
+        digest.update(b"\0")
+    return digest.hexdigest()
+
+
+def measure_candidate(candidate: Path, stories_source: Path, status_source: Path) -> dict[str, str]:
+    """Measure a completed A3 tree and prove its embedded inputs are exact."""
+    routes_path = candidate / "data" / "routes.json"
+    embedded_stories = candidate / "data" / "stories.v2.json"
+    embedded_status = candidate / "data" / "newsroom-status.json"
     try:
-        manifest = json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
+        routes = json.loads(routes_path.read_text(encoding="utf-8"))
     except Exception as exc:
-        raise ValueError(f"cannot read release manifest: {exc}") from exc
-    if not isinstance(manifest, dict):
-        raise ValueError("release manifest must be a JSON object")
-    return manifest
+        raise ValueError(f"cannot read candidate data/routes.json: {exc}") from exc
+    if not isinstance(routes, list) or any(not isinstance(route, dict) for route in routes):
+        raise ValueError("candidate data/routes.json must be an array of objects")
+    if not routes:
+        raise ValueError("candidate data/routes.json must not be empty")
 
+    stories_bytes = stories_source.read_bytes()
+    status_bytes = status_source.read_bytes()
+    if embedded_stories.read_bytes() != stories_bytes:
+        raise ValueError("candidate data/stories.v2.json is not a byte-for-byte source copy")
+    if embedded_status.read_bytes() != status_bytes:
+        raise ValueError("candidate data/newsroom-status.json is not a byte-for-byte source copy")
 
-def run(*arguments: str) -> None:
-    subprocess.run([sys.executable, *arguments], cwd=REPO, check=True)
+    stories = read_object(embedded_stories, "embedded stories")
+    status = read_object(embedded_status, "embedded newsroom status")
+    story_rows = stories.get("stories")
+    if not isinstance(story_rows, list) or any(not isinstance(story, dict) for story in story_rows):
+        raise ValueError("embedded stories.stories must be an array of objects")
+    live_stories = [story for story in story_rows if story.get("status") == "live"]
+    route_kinds = Counter(str(route.get("kind") or "unknown") for route in routes)
+    route_locales = Counter(str(route.get("locale") or "unknown") for route in routes)
+    public_files = sum(1 for path in candidate.rglob("*") if path.is_file())
+    media_root = candidate / "assets" / "story-media"
+    media_files = sum(1 for path in media_root.rglob("*") if path.is_file()) if media_root.is_dir() else 0
 
-
-def release_display(slug: str) -> str:
-    """Derive the receipt heading from the release slug without a second label."""
-    words = slug.split("-")
-    if not words or any(not word for word in words):
-        raise ValueError("release manifest has an invalid release slug")
-    return " ".join(
-        word if word.startswith("v") and word[1:2].isdigit() else word.capitalize()
-        for word in words[:-1]
-    ) + f" {words[-1]}"
-
-
-def viewport_label(widths: list[int]) -> str:
-    labels = [f"{width}px" for width in widths]
-    if not labels:
-        raise ValueError("manifest.qa.viewport_widths must not be empty")
-    if len(labels) == 1:
-        return labels[0]
-    if len(labels) == 2:
-        return " and ".join(labels)
-    return ", ".join(labels[:-1]) + ", and " + labels[-1]
-
-
-def payload_measurements(manifest: dict) -> tuple[int, str, str]:
-    part_paths = sorted((OVERLAY / "parts").glob("part-*.b64"))
-    part_count = len(part_paths)
-    expected_parts = require_integer(manifest, "parts", "manifest")
-    if part_count != expected_parts:
-        raise ValueError(
-            f"release payload part count mismatch: manifest={expected_parts}, disk={part_count}"
-        )
-    try:
-        encoded = "".join(path.read_text(encoding="ascii").strip() for path in part_paths)
-        archive = base64.b64decode(encoded, validate=True)
-    except Exception as exc:
-        raise ValueError(f"cannot decode release payload parts: {exc}") from exc
-    return part_count, sha256(archive), sha256(encoded.encode("ascii"))
-
-
-def mount_public_tree(manifest: dict) -> dict[str, str]:
-    """Mount and measure the exact candidate that Pages would serve."""
-    run("tools/build_final_release.py", "--check")
-    canonical_index_sha256 = require_string(manifest, "index_sha256", "manifest")
-    with tempfile.TemporaryDirectory(prefix="fcmo-ready-receipt-") as temporary:
-        target = Path(temporary) / "publish"
-        shutil.copytree(SITE, target)
-        run("tools/apply_final_release.py", str(target))
-        run("tools/apply_curated_i18n.py", str(target), canonical_index_sha256)
-        # Footnote: the frozen overlay owns canonical release content and therefore
-        # can overwrite site-level archive/search shells. Pages deliberately builds
-        # discovery *after* overlay+i18n; the receipt must use the same ordering or
-        # it would measure a different product than readers receive.
-        run("tools/build_editorial_frontends.py", "--site", str(target))
-        run("tools/finalize_editorial_frontends.py", "--site", str(target), "--refresh-manifest")
-
-        index = target / "index.html"
-        frontend_sha256 = sha256(index.read_bytes())
-        public_files = sum(1 for path in target.rglob("*") if path.is_file())
-        canonical_dossiers = len(list((target / "data" / "briefs").glob("FCMO-*.json")))
-        stable_dossier_routes = len(list((target / "developments").glob("FCMO-*.html")))
-        edition_html_routes = len(list((target / "editions").glob("*.html")))
-        edition_json_routes = len(list((target / "data" / "editions").glob("*.json")))
-        if edition_html_routes != edition_json_routes:
-            raise ValueError(
-                "assembled edition route mismatch: "
-                f"HTML={edition_html_routes}, JSON={edition_json_routes}"
-            )
-        required_frontends = (
-            "archive.html", "search.html", "topics.html", "organizations.html",
-            "corrections.html", "feeds.html", "methodology.html", "editorial-policy.html",
-            "automation.html", "accessibility.html", "status.html", "news/index.html",
-        )
-        missing = [rel for rel in required_frontends if not (target / rel).is_file()]
-        if missing:
-            raise ValueError(f"assembled candidate lacks editorial frontends: {missing}")
-        try:
-            media = json.loads((target / "data" / "media.json").read_text(encoding="utf-8"))
-            agent = json.loads((target / "agent.json").read_text(encoding="utf-8"))
-        except Exception as exc:
-            raise ValueError(f"cannot read assembled public data: {exc}") from exc
-        if not isinstance(media, list):
-            raise ValueError("assembled data/media.json must be an array")
-        if not isinstance(agent, dict):
-            raise ValueError("assembled agent.json must be an object")
-        real_visuals = sum(1 for item in media if isinstance(item, dict) and item.get("sourced") is True)
-        fallback_visuals = sum(1 for item in media if isinstance(item, dict) and item.get("sourced") is False)
-        return {
-            "frontend_sha256": frontend_sha256,
-            "public_files": str(public_files),
-            "canonical_dossiers": str(canonical_dossiers),
-            "stable_dossier_routes": str(stable_dossier_routes),
-            "edition_routes": str(edition_html_routes),
-            "real_visuals": str(real_visuals),
-            "fallback_visuals": str(fallback_visuals),
-            "agent_schema": require_string(agent, "schema", "assembled agent.json"),
-            "agent_query_contract": require_string(agent, "query_contract", "assembled agent.json"),
-        }
-
-
-def measured_values() -> dict[str, str]:
-    manifest = read_manifest()
-    qa = manifest.get("qa")
-    if not isinstance(qa, dict):
-        raise ValueError("manifest.qa must be an object")
-    viewport_widths = qa.get("viewport_widths")
-    if (
-        not isinstance(viewport_widths, list)
-        or not viewport_widths
-        or any(not isinstance(width, int) or isinstance(width, bool) or width < 0 for width in viewport_widths)
-    ):
-        raise ValueError("manifest.qa.viewport_widths must be a non-empty array of non-negative integers")
-    part_count, archive_sha256, payload_sha256 = payload_measurements(manifest)
-    mounted = mount_public_tree(manifest)
     return {
-        "release_display": release_display(require_string(manifest, "release", "manifest")),
-        "receipt_measurement": require_string(qa, "measured_at", "manifest.qa"),
-        "qa_tool": require_string(qa, "tool", "manifest.qa"),
-        "qa_browser": require_string(qa, "browser", "manifest.qa"),
-        "manifest_schema": require_string(manifest, "schema", "manifest"),
-        "release": require_string(manifest, "release", "manifest"),
-        "frontend_sha256": mounted["frontend_sha256"],
-        "archive_sha256": archive_sha256,
-        "payload_sha256": payload_sha256,
-        "part_count": str(part_count),
-        "public_files": mounted["public_files"],
-        "canonical_dossiers": mounted["canonical_dossiers"],
-        "stable_dossier_routes": mounted["stable_dossier_routes"],
-        "edition_routes": mounted["edition_routes"],
-        "real_visuals": mounted["real_visuals"],
-        "fallback_visuals": mounted["fallback_visuals"],
-        "viewport_widths": viewport_label(viewport_widths),
-        "route_viewport_checks": str(require_integer(qa, "route_viewport_checks", "manifest.qa")),
-        "javascript_failures": str(require_integer(qa, "javascript_failures", "manifest.qa")),
-        "overflow_failures": str(require_integer(qa, "overflow_failures", "manifest.qa")),
-        "blank_route_failures": str(require_integer(qa, "blank_route_failures", "manifest.qa")),
-        "legal_dom_checks": str(require_integer(qa, "legal_dom_checks", "manifest.qa")),
-        "i18n_dom_checks": str(require_integer(qa, "i18n_dom_checks", "manifest.qa")),
-        "agent_schema": mounted["agent_schema"],
-        "agent_query_contract": mounted["agent_query_contract"],
-        "visual_receipt_measurement": require_string(qa, "measured_at", "manifest.qa"),
-        "visual_qa_tool": require_string(qa, "tool", "manifest.qa"),
-        "visual_qa_browser": require_string(qa, "browser", "manifest.qa"),
-        "data_qa_canonical_dossiers": mounted["canonical_dossiers"],
-        "data_qa_edition_routes": mounted["edition_routes"],
-        "data_qa_real_visuals": mounted["real_visuals"],
-        "data_qa_fallback_visuals": mounted["fallback_visuals"],
-        "assembled_release": require_string(manifest, "release", "manifest"),
-        "assembled_public_files": mounted["public_files"],
-        "assembled_frontend_sha256_prefix": mounted["frontend_sha256"][:12],
+        "receipt_schema": "fcmo-paper-receipt-v1",
+        "stories_schema": require_string(stories, "schema", "embedded stories"),
+        "status_schema": require_string(status, "schema", "embedded newsroom status"),
+        "release": require_string(stories, "release_id", "embedded stories"),
+        "generated_at": require_string(stories, "generated_at", "embedded stories"),
+        "edition_date": require_string(status, "edition_date", "embedded newsroom status"),
+        "edition_state": require_string(status, "edition_state", "embedded newsroom status"),
+        "route_manifest_sha256": sha256(routes_path.read_bytes()),
+        "stories_sha256": sha256(stories_bytes),
+        "status_sha256": sha256(status_bytes),
+        "candidate_sha256": tree_digest(candidate),
+        "route_count": str(len(routes)),
+        "story_route_count": str(route_kinds.get("story", 0)),
+        "live_story_count": str(len(live_stories)),
+        "public_files": str(public_files),
+        "media_files": str(media_files),
+        "route_locales": ", ".join(f"{key}={route_locales[key]}" for key in sorted(route_locales)),
+        "route_kinds": ", ".join(f"{key}={route_kinds[key]}" for key in sorted(route_kinds)),
     }
 
 
+def measured_values() -> dict[str, str]:
+    config = read_object(CONFIG_PATH, "site config")
+    base = require_string(config, "base_path", "site config")
+    with tempfile.TemporaryDirectory(prefix="fcmo-paper-receipt-") as temporary:
+        candidate = Path(temporary) / "publish"
+        subprocess.run(
+            [
+                sys.executable,
+                "tools/paper/build.py",
+                "--stories", str(STORIES_PATH),
+                "--status", str(STATUS_PATH),
+                "--out", str(candidate),
+                "--base", base,
+            ],
+            cwd=REPO,
+            check=True,
+        )
+        return measure_candidate(candidate, STORIES_PATH, STATUS_PATH)
+
+
 def render_receipt(values: dict[str, str]) -> str:
-    # Footnote: this is a live public-release receipt, not a prelaunch checklist.
-    # Operational prose is generated together with the measured values so a
-    # repository visibility change cannot leave a technically green but false doc.
-    return f"""# FCMO AI Newsletter — public release receipt
+    return f"""# FCMO AI Newsletter — static-paper release receipt
 
-Release: **{values['release_display']}**
+Release: **{values['release']}**
 
-Status: **public release assembled, native-localized, validated, and deployable through GitHub Pages.**
-
-Receipt measurement: **{values['receipt_measurement']}** (UTC), using `{values['qa_tool']}` and {values['qa_browser']}.
-
-This repository is the public publication sink. `site/` supplies the public base, `release-src/` holds the editable canonical release source, `release-overlay/final/` freezes that source deterministically, and deployment assembles only the validated `publish/` candidate. No private research workspace is required to build or serve the site.
-
-## Publication state
-
-The public site is deployed at:
-
-**https://fcmo-ai.github.io/FCMO-AI-Newsletter/**
-
-Ordinary releases require no repository-visibility step. A candidate that fails release integrity, privacy, or native-edition validation is not deployed; the previous public version remains live.
+Status: **the deterministic A3 publication candidate is assembled and measurable.** Deployment still requires the A4 integrity gates, browser oracle, and post-deploy live verification.
 
 ## Release identity
 
-- Release manifest schema: `{values['manifest_schema']}`
-- Release: `{values['release']}`
-- Front-end SHA-256: `{values['frontend_sha256']}`
-- Release archive SHA-256: `{values['archive_sha256']}`
-- Encoded release payload SHA-256: `{values['payload_sha256']}`
-- {values['part_count']}/{values['part_count']} release payload parts present; payload and archive checked by SHA-256
-- {values['public_files']} public files after assembly
-- {values['canonical_dossiers']} canonical dossiers
-- {values['stable_dossier_routes']} stable dossier routes
-- {values['edition_routes']} frozen edition routes
-- {values['real_visuals']} vetted sourced story visuals + {values['fallback_visuals']} embedded editorial fallbacks
+- Receipt schema: `{values['receipt_schema']}`
+- Story schema: `{values['stories_schema']}`
+- Newsroom-status schema: `{values['status_schema']}`
+- Story layer generated at: `{values['generated_at']}`
+- Edition: `{values['edition_date']}` (`{values['edition_state']}`)
 
-## Verification receipts
+## Final route/data manifest
 
-### Visual/browser QA
+- `data/routes.json`: {values['route_count']} routes; SHA-256 `{values['route_manifest_sha256']}`
+- Route locales: {values['route_locales']}
+- Route kinds: {values['route_kinds']}
+- Story routes: {values['story_route_count']} for {values['live_story_count']} live canonical stories
+- Embedded `data/stories.v2.json`: byte-identical to the Story layer; SHA-256 `{values['stories_sha256']}`
+- Embedded `data/newsroom-status.json`: byte-identical to newsroom status; SHA-256 `{values['status_sha256']}`
+- Candidate tree: {values['public_files']} files, including {values['media_files']} local story-media files; SHA-256 `{values['candidate_sha256']}`
 
-Measured on **{values['receipt_measurement']}** with **{values['qa_browser']}** by `{values['qa_tool']}`:
+## Verification boundary
 
-- {values['route_viewport_checks']} route/viewport checks at {values['viewport_widths']}
-- {values['javascript_failures']} JavaScript failures
-- {values['overflow_failures']} overflow failures
-- {values['blank_route_failures']} blank-route failures
-- {values['legal_dom_checks']} legal DOM checks
-- {values['i18n_dom_checks']} curated-i18n DOM checks
-
-### Release/data QA
-
-The final assembler validates, before deployment:
-
-- exact release archive and front-end hashes;
-- archive path/symlink safety;
-- required human and machine-readable public files;
-- the post-overlay archive/search/topic/organization/methodology/status frontend suite;
-- {values['canonical_dossiers']} dossier identifiers and stable human routes;
-- {values['edition_routes']} edition JSON/HTML routes;
-- JSON, JSONL, RSS, and sitemap parsing;
-- agent discovery/query contracts (`{values['agent_schema']}`, `{values['agent_query_contract']}`);
-- final {values['real_visuals']}/{values['fallback_visuals']} story-media policy;
-- credential-like strings and personal-mailbox leakage;
-- remote JavaScript and remote stylesheet dependencies while allowing legitimate canonical/feed/discovery links and vetted story imagery;
-- deterministic post-frontend build-manifest generation.
-
-The release assembler, native-locale gate, and discovery frontend builder were rerun; the assembled public candidate measures:
-
-`FCMO AI Newsletter {values['release']} READY: {values['public_files']} public files; index {values['frontend_sha256'][:12]}…`
-
-## Daily refresh readiness
-
-The update path is fail-closed: ARB supplies a sanitized public corpus plus any agent-authored `es-419`/`zh-Hans` deltas, Newsletter requires exact three-language story parity, rebuilds public research/media/Story/discovery surfaces, freezes the canonical overlay, regenerates this receipt, and reruns the release gates before a commit can deploy. There is no downstream translation provider or generative fallback. Platform runner/billing availability and the GitHub App installation credential are external prerequisites; their absence must stop an update rather than weaken the publication boundary.
-
-## GitHub Pages
-
-Pages reconstructs the frozen candidate, applies committed native locales, regenerates deterministic discovery frontends on that exact candidate, and deploys only after the build job succeeds. The deployment workflow also listens to completed autonomous-newsroom workflows so a bot-authored refresh can reach Pages without relying on a second `push` event.
+This receipt is generated from `tools/paper/build.py` and measures its final `data/routes.json` plus the embedded source artifacts. It does not describe or mount the retired `release-overlay` frontend. GitHub Pages separately generates OG cards, runs all A4 gates, runs the browser oracle, deploys the candidate, verifies the live site, and only then advances the durable `lkg` tag.
 """
 
 
 def receipt_values(text: str) -> dict[str, str]:
     patterns = {
-        "release_display": r"^Release: \*\*(?P<value>.+)\*\*$",
-        "receipt_measurement": r"^Receipt measurement: \*\*(?P<value>[^*]+)\*\* \(UTC\), using `[^`]+` and .+\.$",
-        "qa_tool": r"^Receipt measurement: \*\*[^*]+\*\* \(UTC\), using `(?P<value>[^`]+)` and .+\.$",
-        "qa_browser": r"^Receipt measurement: \*\*[^*]+\*\* \(UTC\), using `[^`]+` and (?P<value>.+)\.$",
-        "manifest_schema": r"^- Release manifest schema: `(?P<value>[^`]+)`$",
-        "release": r"^- Release: `(?P<value>[^`]+)`$",
-        "frontend_sha256": r"^- Front-end SHA-256: `(?P<value>[0-9a-f]+)`$",
-        "archive_sha256": r"^- Release archive SHA-256: `(?P<value>[0-9a-f]+)`$",
-        "payload_sha256": r"^- Encoded release payload SHA-256: `(?P<value>[0-9a-f]+)`$",
-        "part_count": r"^- (?P<value>\d+)/\d+ release payload parts present; payload and archive checked by SHA-256$",
-        "public_files": r"^- (?P<value>\d+) public files after assembly$",
-        "canonical_dossiers": r"^- (?P<value>\d+) canonical dossiers$",
-        "stable_dossier_routes": r"^- (?P<value>\d+) stable dossier routes$",
-        "edition_routes": r"^- (?P<value>\d+) frozen edition routes$",
-        "real_visuals": r"^- (?P<value>\d+) vetted sourced story visuals \+ \d+ embedded editorial fallbacks$",
-        "fallback_visuals": r"^- \d+ vetted sourced story visuals \+ (?P<value>\d+) embedded editorial fallbacks$",
-        "viewport_widths": r"^- \d+ route/viewport checks at (?P<value>.+)$",
-        "route_viewport_checks": r"^- (?P<value>\d+) route/viewport checks at .+$",
-        "javascript_failures": r"^- (?P<value>\d+) JavaScript failures$",
-        "overflow_failures": r"^- (?P<value>\d+) overflow failures$",
-        "blank_route_failures": r"^- (?P<value>\d+) blank-route failures$",
-        "legal_dom_checks": r"^- (?P<value>\d+) legal DOM checks$",
-        "i18n_dom_checks": r"^- (?P<value>\d+) curated-i18n DOM checks$",
-        "agent_schema": r"^- agent discovery/query contracts \(`(?P<value>[^`]+)`, `[^`]+`\);$",
-        "agent_query_contract": r"^- agent discovery/query contracts \(`[^`]+`, `(?P<value>[^`]+)`\);$",
-        "visual_receipt_measurement": r"^Measured on \*\*(?P<value>[^*]+)\*\* with \*\*[^*]+\*\* by `[^`]+`:$",
-        "visual_qa_tool": r"^Measured on \*\*[^*]+\*\* with \*\*[^*]+\*\* by `(?P<value>[^`]+)`:$",
-        "visual_qa_browser": r"^Measured on \*\*[^*]+\*\* with \*\*(?P<value>[^*]+)\*\* by `[^`]+`:$",
-        "data_qa_canonical_dossiers": r"^- (?P<value>\d+) dossier identifiers and stable human routes;$",
-        "data_qa_edition_routes": r"^- (?P<value>\d+) edition JSON/HTML routes;$",
-        "data_qa_real_visuals": r"^- final (?P<value>\d+)/\d+ story-media policy;$",
-        "data_qa_fallback_visuals": r"^- final \d+/(?P<value>\d+) story-media policy;$",
-        "assembled_release": r"^`FCMO AI Newsletter (?P<value>[^ ]+) READY: \d+ public files; index [0-9a-f]+…`$",
-        "assembled_public_files": r"^`FCMO AI Newsletter [^ ]+ READY: (?P<value>\d+) public files; index [0-9a-f]+…`$",
-        "assembled_frontend_sha256_prefix": r"^`FCMO AI Newsletter [^ ]+ READY: \d+ public files; index (?P<value>[0-9a-f]+)…`$",
+        "release": r"^Release: \*\*(?P<value>.+)\*\*$",
+        "receipt_schema": r"^- Receipt schema: `(?P<value>[^`]+)`$",
+        "stories_schema": r"^- Story schema: `(?P<value>[^`]+)`$",
+        "status_schema": r"^- Newsroom-status schema: `(?P<value>[^`]+)`$",
+        "generated_at": r"^- Story layer generated at: `(?P<value>[^`]+)`$",
+        "edition_date": r"^- Edition: `(?P<value>[^`]+)` \(`[^`]+`\)$",
+        "edition_state": r"^- Edition: `[^`]+` \(`(?P<value>[^`]+)`\)$",
+        "route_count": r"^- `data/routes\.json`: (?P<value>\d+) routes; SHA-256 `[0-9a-f]+`$",
+        "route_manifest_sha256": r"^- `data/routes\.json`: \d+ routes; SHA-256 `(?P<value>[0-9a-f]+)`$",
+        "route_locales": r"^- Route locales: (?P<value>.+)$",
+        "route_kinds": r"^- Route kinds: (?P<value>.+)$",
+        "story_route_count": r"^- Story routes: (?P<value>\d+) for \d+ live canonical stories$",
+        "live_story_count": r"^- Story routes: \d+ for (?P<value>\d+) live canonical stories$",
+        "stories_sha256": r"^- Embedded `data/stories\.v2\.json`: byte-identical to the Story layer; SHA-256 `(?P<value>[0-9a-f]+)`$",
+        "status_sha256": r"^- Embedded `data/newsroom-status\.json`: byte-identical to newsroom status; SHA-256 `(?P<value>[0-9a-f]+)`$",
+        "public_files": r"^- Candidate tree: (?P<value>\d+) files, including \d+ local story-media files; SHA-256 `[0-9a-f]+`$",
+        "media_files": r"^- Candidate tree: \d+ files, including (?P<value>\d+) local story-media files; SHA-256 `[0-9a-f]+`$",
+        "candidate_sha256": r"^- Candidate tree: \d+ files, including \d+ local story-media files; SHA-256 `(?P<value>[0-9a-f]+)`$",
     }
     values: dict[str, str] = {}
     for field, pattern in patterns.items():
@@ -335,13 +191,6 @@ def receipt_values(text: str) -> dict[str, str]:
         if len(matches) != 1:
             raise ValueError(f"receipt has {len(matches)} readable value(s) for {field}, expected one")
         values[field] = matches[0]
-    full_part_match = re.search(
-        r"^- (?P<left>\d+)/(?P<right>\d+) release payload parts present; payload and archive checked by SHA-256$",
-        text,
-        flags=re.MULTILINE,
-    )
-    if not full_part_match or full_part_match["left"] != full_part_match["right"]:
-        raise ValueError("receipt payload-part numerator and denominator must match")
     return values
 
 
@@ -358,18 +207,13 @@ def check_receipt(expected: dict[str, str]) -> None:
     ]
     if differences:
         raise SystemExit("ready receipt check FAILED:\n- " + "\n- ".join(differences))
-    # Footnote: the old checker validated only parsed numbers/hashes, allowing
-    # obsolete prelaunch prose to remain green after the repository went public.
-    # Exact generated text closes that semantic hole while read_text normalizes
-    # platform line endings for us.
-    rendered = render_receipt(expected)
-    if actual_text != rendered:
+    if actual_text != render_receipt(expected):
         raise SystemExit(
             "ready receipt check FAILED: receipt narrative/structure drift; regenerate with tools/build_ready_receipt.py"
         )
     print(
         "ready receipt check OK: "
-        f"{expected['public_files']} public files; index {expected['frontend_sha256'][:12]}..."
+        f"{expected['route_count']} routes; candidate {expected['candidate_sha256'][:12]}..."
     )
 
 
@@ -385,7 +229,7 @@ def main(argv: list[str] | None = None) -> int:
             RECEIPT_PATH.write_text(render_receipt(values), encoding="utf-8", newline="\n")
             print(
                 "ready receipt generated: "
-                f"{values['public_files']} public files; index {values['frontend_sha256'][:12]}..."
+                f"{values['route_count']} routes; candidate {values['candidate_sha256'][:12]}..."
             )
     except (OSError, ValueError, subprocess.CalledProcessError, json.JSONDecodeError) as exc:
         raise SystemExit(f"ready receipt build FAILED: {exc}") from exc
