@@ -41,7 +41,8 @@ class DesignV2Build(unittest.TestCase):
                 self.assertIn('id="technical"', landing)
                 self.assertIn(f'/FCMO-AI-Newsletter/{prefix}diario/', landing)
                 self.assertIn(f'/FCMO-AI-Newsletter/{prefix}search/', landing)
-                self.assertIn('<!-- agent-alternates -->', landing)
+                self.assertIn('<link rel="alternate" type="text/plain" href="/FCMO-AI-Newsletter/llms.txt">', landing)
+                self.assertIn('<link rel="alternate" type="application/json" href="/FCMO-AI-Newsletter/agent.json">', landing)
                 self.assertIn(f'/FCMO-AI-Newsletter/{prefix}diario/', (self.out / prefix / "front.html").read_text(encoding="utf-8"))
 
     def test_language_switch_preserves_story_and_technical_front(self):

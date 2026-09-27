@@ -177,7 +177,7 @@ class PaperBuildTests(unittest.TestCase):
 
     def test_hreflang_triad_and_default(self):
         _, page = self.parse("index.html")
-        values = {item.get("hreflang") for item in page.links if item.get("rel") == "alternate"}
+        values = {item.get("hreflang") for item in page.links if item.get("rel") == "alternate" and item.get("hreflang") is not None}
         self.assertEqual(values, {"en", "es-419", "zh-Hans", "x-default"})
 
     def test_every_live_story_has_exactly_one_route_per_locale(self):

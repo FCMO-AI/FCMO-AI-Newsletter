@@ -24,6 +24,19 @@ def build(stories: list[dict], *, locale: dict, catalog: dict, base: str, out: P
             "b": catalog.get("labels", {}).get("beat", {}).get(story.get("beat"), ""),
             "o": story.get("organizations", []),
             "t": story.get("topics", []),
+            # Keep the compact local-search fields above while retaining the
+            # original public agent index's query and citation vocabulary.
+            "title": headline(story, code, catalog),
+            "summary": story.get("summary", dek(story, code, catalog)),
+            "desk": story.get("desk") or story.get("beat", ""),
+            "event_at": story.get("event_at", ""),
+            "evidence": story.get("evidence_class", ""),
+            "confidence": story.get("confidence", ""),
+            "importance": story.get("importance", 0),
+            "kind": story.get("kind", ""),
+            "human_url": href(base, story_path(locale, story)),
+            "citation": {"source": href(base, story_path(locale, story))},
+            "search_text": " ".join([headline(story, code, catalog), dek(story, code, catalog), story.get("desk", ""), *story.get("topics", []), *story.get("organizations", [])]),
         })
     payload = json.dumps(rows, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
     if len(payload) > LIMIT:
