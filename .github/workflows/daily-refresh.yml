@@ -142,7 +142,7 @@ jobs:
       - name: Build the canonical A2 Story layer consumed by the paper SSG
         if: steps.preflight.outputs.path == 'rebuild'
         run: |
-          python tools/story_layer.py build \
+          python -m tools.story_layer build \
             --corpus corpus \
             --history-git . \
             --site site \
@@ -167,12 +167,15 @@ jobs:
           git config user.name 'FCMO Autonomous Newsroom'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           rm -rf publish regression
-          git add -A -- release-src site
+          # Legacy release artifacts are included in the closed boundary so the
+          # first-LKG recovery snapshot remains coherent if an operator rebuilds
+          # it during cutover. This workflow no longer generates or deploys it.
+          git add -A -- release-src release-overlay site READY_TO_PUBLISH.md
           if git diff --cached --quiet; then
             echo 'Healthy heartbeat with no material release-tree delta.'
             exit 0
           fi
-          outside=":!release-src :!site"
+          outside=":!release-src :!release-overlay :!site :!READY_TO_PUBLISH.md"
           if ! git diff --cached --quiet -- $outside; then
             echo 'autonomous newsroom touched a path outside its scope' >&2
             git diff --cached --name-only -- $outside >&2
@@ -250,7 +253,7 @@ jobs:
           STATUS="$RUNNER_TEMP/newsroom-status.json"
           python tools/wire_status.py classify --wire-status corpus/wire-status.json || true
           python tools/newsroom_receipt.py status --wire-status corpus/wire-status.json --status "$STATUS"
-          python tools/paper/build.py \
+          python -m tools.paper.build \
             --stories site/data/stories.v2.json \
             --status "$STATUS" \
             --out "$PREVIEW" \

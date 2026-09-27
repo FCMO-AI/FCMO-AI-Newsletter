@@ -298,7 +298,7 @@ class NewswireBridgeWorkflowContractTests(unittest.TestCase):
         self.assertIn("drill_now_offset_h", doc[True]["workflow_dispatch"]["inputs"])
         preview_run = "\n".join(step.get("run", "") for step in preview["steps"])
         self.assertNotIn("git push", preview_run)
-        self.assertIn("python tools/paper/build.py", preview_run)
+        self.assertIn("python -m tools.paper.build", preview_run)
         self.assertIn('--status "$STATUS"', preview_run)
 
     def test_health_splits_serving_from_freshness_and_publishes_health_state(self) -> None:
@@ -325,7 +325,7 @@ class NewswireBridgeWorkflowContractTests(unittest.TestCase):
         pages = PAGES.read_text(encoding="utf-8")
         pipeline = refresh + "\n" + pages
         positions = [
-            pipeline.index("python tools/story_layer.py build"),
+            pipeline.index("python -m tools.story_layer build"),
             pipeline.index("python tools/paper/build.py"),
             pipeline.index("python tools/gates/run_all.py publish"),
             pipeline.index("python tests/oraculos/verificar_paper.py publish"),
@@ -338,8 +338,8 @@ class NewswireBridgeWorkflowContractTests(unittest.TestCase):
             "python tools/verify_release.py",
         ):
             self.assertNotIn(retired, refresh)
-        self.assertIn("git add -A -- release-src site", refresh)
-        self.assertNotIn("git add -A -- release-src release-overlay", refresh)
+        self.assertIn("git add -A -- release-src release-overlay site READY_TO_PUBLISH.md", refresh)
+        self.assertNotIn("python tools/build_final_release.py", refresh)
 
 
 if __name__ == "__main__":
