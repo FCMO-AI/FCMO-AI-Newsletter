@@ -155,3 +155,7 @@ The browser scripts first use `PLAYWRIGHT_MODULE`, then resolve the repository's
 `playwright` Node package. This server should export `PLAYWRIGHT_MODULE` from its
 external runner configuration; do not commit a machine-specific path. CI installs
 Playwright 1.63.0 and Chromium into runner-temporary storage.
+
+## Lane int6 favicon note
+
+- The existing PWA artwork is SVG. Generated pages reference `favicon.svg` and the existing 192px SVG as the Apple touch icon. No repository tool generates a 180px Apple touch PNG; producing one would require adding a rasterization dependency, so this lane keeps the existing icon artwork and formats.

@@ -15,11 +15,14 @@ class References(HTMLParser):
         super().__init__(convert_charrefs=True)
         self.values: list[tuple[str, str]] = []
         self.canonical: list[str] = []
+        self.icons: list[str] = []
 
     def handle_starttag(self, tag: str, attrs) -> None:
         values = {str(key).lower(): value or "" for key, value in attrs}
         if tag.lower() == "link" and "canonical" in values.get("rel", "").lower().split() and values.get("href"):
             self.canonical.append(values["href"])
+        if tag.lower() == "link" and "icon" in values.get("rel", "").lower().split():
+            self.icons.append(values.get("href", ""))
         for name in URL_ATTRS:
             if values.get(name):
                 self.values.append((name, values[name]))
@@ -85,6 +88,12 @@ def check(root: Path) -> GateResult:
     checked = 0
     for page in pages:
         parser = References(); parser.feed(page.read_text(encoding="utf-8", errors="replace"))
+        if not parser.icons:
+            problems.append(f"{rel(root, page)}: missing <link rel=\"icon\">")
+        for value in parser.icons:
+            target = _candidate_path(root, page, value, origin, base)
+            if target is None or not target.is_file():
+                problems.append(f"{rel(root, page)}: icon href={value!r} does not resolve inside candidate")
         for attribute, value in parser.values:
             target = _candidate_path(root, page, value, origin, base)
             if target is None:
