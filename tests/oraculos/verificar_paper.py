@@ -10,9 +10,10 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT))
+from tools.paper.playwright_module import missing_playwright_message, resolve_playwright_module
 HARNESS = ROOT / "tests" / "harness" / "browser"
 SERVE = ROOT / "tests" / "harness" / "serve.py"
-PLAYWRIGHT = Path("/srv/fcmo/agents/work/newsletter/browser/node_modules/playwright")
 
 LAYOUT_BUDGETS = r'''const { createRequire } = require('node:module');
 const requireFromRepo = createRequire(process.cwd() + '/__paper_oracle__.cjs');
@@ -117,7 +118,11 @@ def run_check(name: str, urls: list[str], extra: list[str], env: dict[str, str])
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__); parser.add_argument("root", type=Path); args = parser.parse_args(argv)
     if not args.root.is_dir(): raise SystemExit(f"PAPER ORACLE FAIL: not a directory: {args.root}")
-    env = os.environ.copy(); env.setdefault("PLAYWRIGHT_MODULE", str(PLAYWRIGHT))
+    env = os.environ.copy()
+    module = resolve_playwright_module()
+    if not module:
+        raise SystemExit(missing_playwright_message())
+    env["PLAYWRIGHT_MODULE"] = module
     server = subprocess.Popen(
         [sys.executable, str(SERVE), "--root", str(args.root.resolve()), "--base", "/FCMO-AI-Newsletter/", "--port", "0"],
         cwd=ROOT, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,

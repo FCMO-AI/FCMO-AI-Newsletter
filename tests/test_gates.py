@@ -2,11 +2,12 @@ from __future__ import annotations
 
 import copy
 import json
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
 
-from tools.gates import run_all
+from tools.gates import no_machine_paths, run_all
 from tools.gates.common import GateFailure, canonical_story_path
 
 
@@ -71,6 +72,18 @@ class PublicationGateTests(unittest.TestCase):
     def assert_gate(self, code: str):
         with self.assertRaises(GateFailure) as caught: run_all.run(self.root)
         self.assertEqual(caught.exception.code, code, caught.exception)
+
+    def test_machine_path_gate_rejects_injected_tracked_file(self):
+        repo = Path(self.tmp.name) / "repo"
+        repo.mkdir()
+        subprocess.run(["git", "init", "-q", str(repo)], check=True)
+        injected = repo / "operator-note.txt"
+        injected.write_text("path=" + "/srv/" + "fcmo/worktree", encoding="utf-8")
+        subprocess.run(["git", "-C", str(repo), "add", "operator-note.txt"], check=True)
+        with self.assertRaises(GateFailure) as caught:
+            no_machine_paths.check_repo(repo)
+        self.assertEqual(caught.exception.code, "NO_MACHINE_PATHS")
+        self.assertIn("operator-note.txt", caught.exception.problems[0])
 
     def test_clean_tree_passes_all_gates(self):
         results = run_all.run(self.root)

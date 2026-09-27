@@ -17,11 +17,12 @@ import tempfile
 if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
     from tools.paper.i18n import dek, format_date, headline, label, load_catalogs, truncate
+    from tools.paper.playwright_module import missing_playwright_message, resolve_playwright_module
 else:
     from .i18n import dek, format_date, headline, label, load_catalogs, truncate
+    from .playwright_module import missing_playwright_message, resolve_playwright_module
 
 ROOT = Path(__file__).resolve().parents[2]
-PLAYWRIGHT = Path("/srv/fcmo/agents/work/newsletter/browser/node_modules/playwright")
 CHROME_JS = """
 import { createRequire } from 'node:module';
 import { readFile } from 'node:fs/promises';
@@ -71,17 +72,21 @@ def _find_chrome() -> str | None:
     if os.environ.get("CHROME_PATH"):
         return os.environ["CHROME_PATH"]
     node = shutil.which("node")
-    if not node or not PLAYWRIGHT.is_dir():
+    module = resolve_playwright_module()
+    if not node or not module:
         return None
-    result = subprocess.run([node, "-e", f"const {{chromium}}=require({json.dumps(str(PLAYWRIGHT))});process.stdout.write(chromium.executablePath())"], text=True, capture_output=True, check=False)
+    result = subprocess.run([node, "-e", "const {chromium}=require(process.argv[1]);process.stdout.write(chromium.executablePath())", module], text=True, capture_output=True, check=False)
     return result.stdout if result.returncode == 0 and Path(result.stdout).is_file() else None
 
 
 def generate_all(payload: dict, out: Path, *, chrome_path: str | None = None) -> int:
     node = shutil.which("node")
+    module = resolve_playwright_module()
     chrome = chrome_path or _find_chrome()
-    if not node or not PLAYWRIGHT.is_dir() or not chrome:
-        raise RuntimeError("BROWSER_UNAVAILABLE: Node, Playwright, or Chromium is missing")
+    if not node or not module or not chrome:
+        if not module:
+            raise RuntimeError(missing_playwright_message())
+        raise RuntimeError("BROWSER_UNAVAILABLE: Node or Chromium is missing")
     catalogs = load_catalogs(ROOT)
     config = json.loads((ROOT / "config" / "site.json").read_text(encoding="utf-8"))
     template = (ROOT / "tools" / "paper" / "og_card.html").read_text(encoding="utf-8")
@@ -101,7 +106,7 @@ def generate_all(payload: dict, out: Path, *, chrome_path: str | None = None) ->
         script_path = temp / "render.mjs"
         manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
         script_path.write_text(CHROME_JS, encoding="utf-8")
-        env = {**os.environ, "PLAYWRIGHT_MODULE": str(PLAYWRIGHT), "CHROME_PATH": chrome}
+        env = {**os.environ, "PLAYWRIGHT_MODULE": module, "CHROME_PATH": chrome}
         result = subprocess.run([node, str(script_path), str(manifest_path)], text=True, capture_output=True, env=env, check=False)
         if result.returncode:
             detail = (result.stderr or result.stdout).strip().splitlines()

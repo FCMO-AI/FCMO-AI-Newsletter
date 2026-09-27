@@ -49,9 +49,15 @@ jobs:
           cp site/data/newsroom-status.json publish/data/newsroom-status.json
       - name: Run fail-closed gates
         run: python tools/gates/run_all.py publish
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - name: Install pinned Playwright and Chromium
+        run: |
+          npm install --prefix "$RUNNER_TEMP/playwright" --no-save playwright@1.63.0
+          echo "PLAYWRIGHT_MODULE=$RUNNER_TEMP/playwright/node_modules/playwright" >> "$GITHUB_ENV"
+          "$RUNNER_TEMP/playwright/node_modules/.bin/playwright" install --with-deps chromium
       - name: Run browser matrix
-        env:
-          PLAYWRIGHT_MODULE: /srv/fcmo/agents/work/newsletter/browser/node_modules/playwright
         run: |
           export CHROME_PATH="$(node -e "console.log(require(process.env.PLAYWRIGHT_MODULE).chromium.executablePath())")"
           python tests/oraculos/verificar_paper.py publish
