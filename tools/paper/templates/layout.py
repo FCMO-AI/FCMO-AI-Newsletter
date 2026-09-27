@@ -32,6 +32,8 @@ def document(*, locale: dict, catalog: dict, config: dict, base: str, path: str,
     locale_prefix = locale["path_prefix"]
     home = _url(base, locale_prefix)
     css = _url(base, "assets/css/paper.css")
+    favicon = _url(base, "assets/pwa/favicon.svg")
+    apple_touch_icon = _url(base, "assets/pwa/icons/icon-192.svg")
     font_root = _url(base, "assets/fonts/")
     search = _url(base, locale_prefix + "search/")
     archive = _url(base, locale_prefix + "archive/")
@@ -65,6 +67,7 @@ def document(*, locale: dict, catalog: dict, config: dict, base: str, path: str,
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{_e(title)}</title><meta name="description" content="{_e(description[:160])}">
+<link rel="icon" href="{_e(favicon)}" type="image/svg+xml"><link rel="apple-touch-icon" href="{_e(apple_touch_icon)}">
 <link rel="canonical" href="{_e(canonical)}">{alternates_html}
 <link rel="preload" href="{_e(font_root + 'InterTight-normal-400_900-latin.woff2')}" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="{_e(font_root + 'SourceSerif4-normal-400_700-latin.woff2')}" as="font" type="font/woff2" crossorigin>

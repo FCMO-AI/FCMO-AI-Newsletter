@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import copy
 import json
+import re
 import subprocess
 import tempfile
 import unittest
@@ -57,6 +58,9 @@ class PublicationGateTests(unittest.TestCase):
             "zh/index.html": '<html lang="zh-Hans"><main><article data-lead><h1>可靠报道</h1></article></main></html>',
         }
         for route, text in homes.items(): self.put(route, text)
+        icon = self.root / "assets/pwa/favicon.svg"
+        icon.parent.mkdir(parents=True, exist_ok=True)
+        icon.write_text('<svg xmlns="http://www.w3.org/2000/svg"></svg>', encoding="utf-8")
         bodies = {
             "en": "This report explains the public evidence and its important limitations.",
             "es-419": "Esta nota explica la evidencia pública y sus límites importantes.",
@@ -67,6 +71,14 @@ class PublicationGateTests(unittest.TestCase):
             self.put(route, f'<html lang="{locale}"><main data-story-id="{self.story["id"]}"><h1>{self.story["l10n"].get(locale, {}).get("fields", {}).get("title", self.story["title"])}</h1><p>{bodies[locale]}</p></main></html>')
 
     def put(self, route: str, text: str):
+        if route.lower().endswith(".html") and 'rel="icon"' not in text.lower():
+            icon = '<link rel="icon" href="/FCMO-AI-Newsletter/assets/pwa/favicon.svg" type="image/svg+xml">'
+            if re.search(r"<head\b[^>]*>", text, re.I):
+                text = re.sub(r"(<head\b[^>]*>)", r"\1" + icon, text, count=1, flags=re.I)
+            elif re.search(r"<html\b[^>]*>", text, re.I):
+                text = re.sub(r"(<html\b[^>]*>)", r"\1<head>" + icon + "</head>", text, count=1, flags=re.I)
+            else:
+                text = "<head>" + icon + "</head>" + text
         path = self.root / route; path.parent.mkdir(parents=True, exist_ok=True); path.write_text(text, encoding="utf-8")
 
     def assert_gate(self, code: str):
@@ -159,6 +171,13 @@ class PublicationGateTests(unittest.TestCase):
         self.put("assets/present.svg", "<svg xmlns=\"http://www.w3.org/2000/svg\"></svg>")
         self.put("index.html", '<html><head><link rel="canonical" href="https://fcmo-ai.github.io/FCMO-AI-Newsletter/"></head><body><img src="/FCMO-AI-Newsletter/assets/present.svg" alt=""></body></html>')
         run_all.run(self.root)
+
+    def test_missing_icon_link_fails_named_gate(self):
+        path = self.root / "index.html"
+        path.write_text(path.read_text(encoding="utf-8").replace(
+            '<link rel="icon" href="/FCMO-AI-Newsletter/assets/pwa/favicon.svg" type="image/svg+xml">',
+            ""), encoding="utf-8")
+        self.assert_gate("BROKEN_REFERENCE")
 
     def test_personal_mailbox_fails_named_gate(self):
         self.put("privacy/index.html", "<html><p>write to person@" + "g" + "mail.com</p></html>")
