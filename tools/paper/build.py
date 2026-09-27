@@ -8,20 +8,21 @@ from collections import Counter, defaultdict
 from datetime import datetime
 from html import escape
 import json
+import os
 from pathlib import Path
 import shutil
 import sys
 
 if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-    from tools.paper import feeds, redirects, search_index, sitemaps
+    from tools.paper import community, feeds, redirects, search_index, sitemaps
     from tools.paper.i18n import dek, field, format_date, headline, is_complete, label, load_catalogs, story_locale, truncate
     from tools.paper.routes import absolute, beat_path, edition_path, href, org_path, output_path, story_path, topic_path
     from tools.paper.status_banner import render as render_banner
     from tools.paper.templates import archive_page, document, front_page, simple_page, status_page, story_page
     from tools.paper.templates.pages import story_card
 else:
-    from . import feeds, redirects, search_index, sitemaps
+    from . import community, feeds, redirects, search_index, sitemaps
     from .i18n import dek, field, format_date, headline, is_complete, label, load_catalogs, story_locale, truncate
     from .routes import absolute, beat_path, edition_path, href, org_path, output_path, story_path, topic_path
     from .status_banner import render as render_banner
@@ -62,6 +63,8 @@ class PaperBuilder:
         self.base = "/" + base.strip("/") + "/" if base.strip("/") else "/"
         self.base_url = self.config["base_url"]
         self.og_source = og_source
+        self.cartas = community.fetch_cartas(os.environ.get("GHOST_CONTENT_URL"), os.environ.get("GHOST_CONTENT_API_KEY"))
+        self.portal_url = os.environ.get("GHOST_PORTAL_URL")
         self.routes: list[dict] = []
         self.page_count = 0
 
@@ -141,11 +144,13 @@ class PaperBuilder:
         developing = ""
         if developing_values:
             developing = f'<section class="developing-well"><div class="section-head"><div><p class="section-kicker">FCMO AI · signal</p><h2>{esc(strings["front"]["developing"])}</h2></div></div><div class="card-row">{"".join(self._card(s,locale,3) for s in developing_values)}</div></section>'
-        subscribe = f'<div class="subscribe-card"><p class="section-kicker">FCMO AI · Daily</p><h2>{esc(strings["subscribe"]["title"])}</h2><p>{esc(strings["subscribe"]["body"])}</p><p>{esc(strings["subscribe"]["language_notice"])}</p><a class="button" href="{esc(href(self.base,locale["path_prefix"]+"suscribete/"))}">{esc(strings["subscribe"]["button"])}</a></div>'
+        cartas = community.render_cartas(self.cartas, locale["code"])
+        subscribe, subscribe_script = community.render_subscribe(locale_code=locale["code"], path_prefix=locale["path_prefix"], base=self.base, portal_url=self.portal_url)
         dates = sorted({s["url_date"] for s in self.live}, reverse=True)[:6]
         editions = f'<section class="beat-section"><div class="section-head"><h2>{esc(strings["front"]["editions"])}</h2><a href="{esc(href(self.base,locale["path_prefix"]+"archive/"))}">{esc(strings["nav"]["archive"])}</a></div><div class="card-row">' + "".join(f'<article class="story-card"><h3><a href="{esc(href(self.base,edition_path(locale,date)))}">{esc(strings["archive"]["edition_title"].format(date=format_date(date+"T12:00:00Z",catalog)))}</a></h3></article>' for date in dates) + "</div></section>"
-        body = front_page(lead=lead, top=top, essentials=essentials, beats="".join(sections), developing=developing, subscribe=subscribe, cartas="", editions=editions)
-        self._write_page(locale=locale, suffix="", title=f'{strings["site"]["name"]} — {strings["site"]["tagline"]}', description=strings["site"]["description"], body=body, kind="front", og_image=self._media_url(first, locale))
+        body = front_page(lead=lead, top=top, essentials=essentials, beats="".join(sections), developing=developing, subscribe=subscribe, cartas=cartas, editions=editions)
+        body = community.without_empty_cartas_slot(body, cartas)
+        self._write_page(locale=locale, suffix="", title=f'{strings["site"]["name"]} — {strings["site"]["tagline"]}', description=strings["site"]["description"], body=body, kind="front", og_image=self._media_url(first, locale), extra_head=subscribe_script)
 
     def _localized_evidence(self, story: dict, locale: dict) -> dict:
         if locale["code"] == "en":
@@ -252,7 +257,6 @@ class PaperBuilder:
             ("about/", s["nav"]["about"], f'<p>{esc(s["site"]["description"])}</p><p>{esc(s["footer"]["automated_notice"])}</p>', "about"),
             ("method/", s["nav"]["method"], f'<p>{esc(s["footer"]["automated_notice"])}</p><p>{esc(s["story"]["evidence"])} · {esc(s["story"]["limitations"])} · {esc(s["story"]["unknowns"])}</p>', "method"),
             ("feeds/", s["feeds"]["title"], f'<p>{esc(s["feeds"]["intro"])}</p><ul>{feed_links}</ul>', "feeds"),
-            ("suscribete/", s["subscribe"]["title"], f'<p>{esc(s["subscribe"]["body"])}</p><p>{esc(s["subscribe"]["language_notice"])}</p><p><a href="{esc(href(self.base,locale["path_prefix"]+"feeds/"))}">{esc(s["subscribe"]["feeds_instead"])}</a></p><p>{esc(s["subscribe"]["privacy_note"])}</p>', "subscribe"),
             ("agenda/", s["nav"]["agenda"], f'<p>{esc(s["archive"]["empty"])}</p><p><a href="{esc(href(self.base,locale["path_prefix"]+"agenda.ics"))}">iCalendar</a></p>', "agenda"),
             ("autores/mesa-fcmo-ai/", s["story"]["byline"].split("·")[0].strip(), f'<p>{esc(s["story"]["byline"])}</p><p>{esc(s["footer"]["automated_notice"])}</p>', "author"),
         ]
@@ -264,6 +268,9 @@ class PaperBuilder:
             pages.append((suffix, title, f'<p>{esc(pending)}</p>', "legal"))
         for suffix, title, content, kind in pages:
             self._write_page(locale=locale, suffix=suffix, title=f"{title} — FCMO AI", description=truncate(content.replace("<p>", " ").replace("</p>", " ")), body=simple_page(title, content), kind=kind)
+        subscribe, subscribe_script = community.render_subscribe(locale_code=locale["code"], path_prefix=locale["path_prefix"], base=self.base, portal_url=self.portal_url, page=True)
+        subscribe_title = community.subscribe_page_title(locale["code"], self.portal_url)
+        self._write_page(locale=locale, suffix="suscribete/", title=f"{subscribe_title} — FCMO AI", description=community.COPY[locale["code"]]["promise"], body=f'<article class="story-body">{subscribe}</article>', kind="subscribe", extra_head=subscribe_script)
 
     def _404(self) -> None:
         blocks = []
