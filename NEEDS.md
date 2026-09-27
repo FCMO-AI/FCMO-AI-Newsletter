@@ -159,3 +159,11 @@ Playwright 1.63.0 and Chromium into runner-temporary storage.
 ## Lane int6 favicon note
 
 - The existing PWA artwork is SVG. Generated pages reference `favicon.svg` and the existing 192px SVG as the Apple touch icon. No repository tool generates a 180px Apple touch PNG; producing one would require adding a rasterization dependency, so this lane keeps the existing icon artwork and formats.
+
+---
+
+# Integration needs from lane s1
+
+- In the v1 landing and shell, call `tools.paper.templates.subscribe.subscribe_block(zone, locale)` for the FCMO Group and FCMO AI sections. This lane routes the existing `community.render_subscribe` through the same function for the current paper build. Use `zone="letter"` in the Javier section and `zone="paper"` in the technical section; do not duplicate signup copy.
+- The production Pages build needs `GHOST_URL` as a build variable only after the Ghost staging matrix and legal/domain decisions pass. The current `tools/paper/build.py` reads `GHOST_PORTAL_URL`; `community.render_subscribe` also reads `GHOST_URL`, so the build works without an out-of-lane edit. For a later cleanup, replace `self.portal_url = os.environ.get("GHOST_PORTAL_URL")` with `self.portal_url = os.environ.get("GHOST_URL") or os.environ.get("GHOST_PORTAL_URL")`.
+- Ghost's exact Portal newsletter choice controls, Mailpit magic-link markup, Admin API newsletter create/update schema and per-newsletter welcome-template support require the staging run. They are not verified in this sandbox.
