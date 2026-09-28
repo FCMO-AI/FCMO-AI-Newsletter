@@ -17,8 +17,9 @@ if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
     from tools.paper import community, feeds, redirects, search_index, sitemaps
     from tools.paper.front_order import front_order
+    from tools.paper.front_plan import front_plan
     from tools.agent import build as agent_layer
-    from tools.paper.i18n import dek, field, format_date, headline, is_complete, label, load_catalogs, story_locale, truncate
+    from tools.paper.i18n import dek, field, format_date, headline, is_complete, label, load_catalogs, plural, story_locale, truncate
     from tools.paper.routes import absolute, beat_path, edition_path, href, org_path, output_path, story_path, topic_path
     from tools.paper.status_banner import render as render_banner
     from tools.visual_desk import write_localized_story_graphics
@@ -30,8 +31,9 @@ if __package__ in {None, ""}:
 else:
     from . import community, feeds, redirects, search_index, sitemaps
     from .front_order import front_order
+    from .front_plan import front_plan
     from tools.agent import build as agent_layer
-    from .i18n import dek, field, format_date, headline, is_complete, label, load_catalogs, story_locale, truncate
+    from .i18n import dek, field, format_date, headline, is_complete, label, load_catalogs, plural, story_locale, truncate
     from .routes import absolute, beat_path, edition_path, href, org_path, output_path, story_path, topic_path
     from .status_banner import render as render_banner
     from tools.visual_desk import write_localized_story_graphics
@@ -247,6 +249,16 @@ class PaperBuilder:
                         for count, value, url in selected)
         return f'<nav class="taxonomy-neighbors"><h2>{esc(self.catalogs[locale["code"]]["strings"]["front"]["see_all"])}</h2><ul>{links}</ul></nav>' if links else ""
 
+    def _edition_card(self, date: str, locale: dict) -> str:
+        """One recent edition: its date, how many live stories it holds and the story that leads it."""
+        catalog = self.catalogs[locale["code"]]
+        stories = [story for story in self.live if story.get("url_date") == date]
+        lead = front_order(stories)[0]
+        title = catalog["strings"]["archive"]["edition_title"].format(date=format_date(date + "T12:00:00Z", catalog))
+        return (f'<article class="story-card edition-card"><h3><a href="{esc(href(self.base,edition_path(locale,date)))}">{esc(title)}</a></h3>'
+                f'<p class="edition-count">{esc(plural(catalog, "edition_story", len(stories)))}</p>'
+                f'<p class="edition-lead"><a href="{esc(self._story_href(locale,lead))}">{esc(headline(lead,locale["code"],catalog))}</a></p></article>')
+
     def _front(self, locale: dict) -> None:
         catalog = self.catalogs[locale["code"]]
         strings = catalog["strings"]
@@ -260,7 +272,8 @@ class PaperBuilder:
             _, subscribe_script = community.render_subscribe(locale_code=locale["code"], path_prefix=locale["path_prefix"], base=self.base, portal_url=self.portal_url)
             self._write_page(locale=locale, suffix="", title="FCMO", description="FCMO: Javier's fCMO letters and the FCMO AI technical daily", body=landing, kind="landing", extra_head=subscribe_script, machine_alternates=[("text/plain", href(self.base, "llms.txt")), ("application/json", href(self.base, "agent.json"))])
             return
-        first = order[0]
+        plan = front_plan(order, BEATS)
+        first = plan["lead"]
         hero = first.get("media") or {}
         hero_path = self._story_media_url(first, locale)
         hero_alt = (hero.get("alt") or {}).get(locale["code"], "")
@@ -279,26 +292,19 @@ class PaperBuilder:
             "date": format_date(first["event_at"], catalog, precision=first.get("date_precision", "day")),
         }
         lead = f'''<article class="lead"><p class="story-kicker">{esc(strings["front"]["lead"])} · {esc(label(catalog,"beat",first.get("beat")))}</p><h1 class="{lead_class}"><a href="{esc(self._story_href(locale,first))}">{esc(lead_title)}</a></h1><p class="lead-dek">{esc(dek(first,locale["code"],catalog))}</p><p class="story-meta">{esc(format_date(first["event_at"],catalog,precision=first.get("date_precision","day")))}</p>{evidence_strip(first, catalog)}<figure class="hero"><img src="{esc(hero_path)}" alt="{esc(hero_alt)}" width="1200" height="630"><figcaption>{esc(strings["story"]["image_credit"].format(credit=hero.get("credit","FCMO AI")))}</figcaption></figure></article>'''
-        top_values = order[1:5]
-        top = f'<h2>{esc(strings["front"]["top_stories"])}</h2>' + "".join(self._card(story, locale, 3) for story in top_values)
-        essential_values = order[:5]
-        essentials = f'<div><p class="section-kicker">FCMO AI · {esc(strings["front"]["essentials"])}</p><h2>{esc(strings["front"]["essentials"])}</h2></div><ol>' + "".join(f'<li><a href="{esc(self._story_href(locale,s))}">{esc(headline(s,locale["code"],catalog))}</a></li>' for s in essential_values) + "</ol>"
+        top = f'<h2>{esc(strings["front"]["top_stories"])}</h2>' + "".join(self._card(story, locale, 3) for story in plan["top"])
+        essentials = f'<div><p class="section-kicker">FCMO AI · {esc(strings["front"]["essentials"])}</p><h2>{esc(strings["front"]["essentials"])}</h2></div><ol>' + "".join(f'<li data-story-id="{esc(s["id"])}"><a href="{esc(self._story_href(locale,s))}">{esc(headline(s,locale["code"],catalog))}</a></li>' for s in plan["essentials"]) + "</ol>"
         sections = []
-        for beat in BEATS:
-            values = [s for s in order if s.get("beat") == beat][:3]
-            if not values:
-                continue
+        for beat, values in plan["beats"].items():
             beat_label = label(catalog, "beat", beat)
             sections.append(f'<section class="beat-section"><div class="section-head"><div><p class="section-kicker">{esc(beat_label)}</p><h2>{esc(beat_label)}</h2></div><a href="{esc(href(self.base,beat_path(locale,beat)))}">{esc(strings["front"]["see_all"])}</a></div><div class="card-row">{"".join(self._card(s,locale,3) for s in values)}</div></section>')
-        shown = {story["id"] for story in (first, *top_values)}
-        developing_values = [s for s in order if s["id"] not in shown and s.get("confidence") not in {"confirmed", "strongly_supported"}][:2]
         developing = ""
-        if developing_values:
-            developing = f'<section class="developing-well"><div class="section-head"><div><p class="section-kicker">FCMO AI · {esc(strings["kicker"]["signal"])}</p><h2>{esc(strings["front"]["developing"])}</h2></div></div><div class="card-row">{"".join(self._card(s,locale,3) for s in developing_values)}</div></section>'
+        if plan["developing"]:
+            developing = f'<section class="developing-well"><div class="section-head"><div><p class="section-kicker">FCMO AI · {esc(strings["kicker"]["signal"])}</p><h2>{esc(strings["front"]["developing"])}</h2></div></div><div class="card-row">{"".join(self._card(s,locale,3) for s in plan["developing"])}</div></section>'
         cartas = community.render_cartas(self.cartas, locale["code"])
         subscribe, subscribe_script = community.render_subscribe(locale_code=locale["code"], path_prefix=locale["path_prefix"], base=self.base, portal_url=self.portal_url)
         dates = sorted({s["url_date"] for s in self.live}, reverse=True)[:6]
-        editions = f'<section class="beat-section"><div class="section-head"><h2>{esc(strings["front"]["editions"])}</h2><a href="{esc(href(self.base,locale["path_prefix"]+"archive/"))}">{esc(strings["nav"]["archive"])}</a></div><div class="card-row">' + "".join(f'<article class="story-card"><h3><a href="{esc(href(self.base,edition_path(locale,date)))}">{esc(strings["archive"]["edition_title"].format(date=format_date(date+"T12:00:00Z",catalog)))}</a></h3></article>' for date in dates) + "</div></section>"
+        editions = f'<section class="beat-section"><div class="section-head"><h2>{esc(strings["front"]["editions"])}</h2><a href="{esc(href(self.base,locale["path_prefix"]+"archive/"))}">{esc(strings["nav"]["archive"])}</a></div><div class="card-row">' + "".join(self._edition_card(date, locale) for date in dates) + "</div></section>"
         nouns = {
             "en": ("live stories", "topics", "organizations"),
             "es-419": ("historias activas", "temas", "organizaciones"),

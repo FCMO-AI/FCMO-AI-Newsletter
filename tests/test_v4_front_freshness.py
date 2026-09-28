@@ -207,21 +207,33 @@ class FrontFreshnessBuildTests(unittest.TestCase):
         self.assertEqual(buckets, sorted(buckets))
 
     def test_essentials_and_beat_sections_use_the_same_order(self):
-        by_id = {story["id"]: story for story in self.live}
+        # Pass 3: every block takes the next stories of the same order that no earlier block showed.
+        used = set(ids(self.order[:5]))
+        used.update([s["id"] for s in self.order[5:]
+                     if s.get("confidence") not in {"confirmed", "strongly_supported"}][:2])
+        essentials = [s["id"] for s in self.order if s["id"] not in used][:5]
+        used.update(essentials)
+        by_beat = {}
+        for beat in BEATS:
+            values = [s["id"] for s in self.order if s.get("beat") == beat and s["id"] not in used][:3]
+            used.update(values)
+            if values:
+                by_beat[beat] = values
+        self.assertEqual(len(essentials), 5)
+        self.assertTrue(by_beat)
         for locale, prefix in LOCALES:
             with self.subTest(locale=locale):
                 page = self.page(prefix)
                 links = re.findall(r'<a href="([^"]+)"', ESSENTIALS.search(page).group(1))
-                self.assertEqual([self.resolve(link) for link in links], ids(self.order[:5]))
-                seen = set()
+                self.assertEqual([self.resolve(link) for link in links], essentials)
+                seen = []
                 for section in BEAT_SECTION.findall(page):
                     beat = re.search(r'beat/([a-z]+)/"', section)
                     if not beat:
                         continue
-                    seen.add(beat.group(1))
-                    expected = [s["id"] for s in self.order if s.get("beat") == beat.group(1)][:3]
-                    self.assertEqual(CARD_ID.findall(section), expected, beat.group(1))
-                self.assertEqual(seen, {by_id[i].get("beat") for i in by_id} & set(BEATS))
+                    seen.append(beat.group(1))
+                    self.assertEqual(CARD_ID.findall(section), by_beat.get(beat.group(1)), beat.group(1))
+                self.assertEqual(seen, list(by_beat))
 
     def test_developing_well_skips_lead_and_top_stories(self):
         shown = set(ids(self.order[:5]))

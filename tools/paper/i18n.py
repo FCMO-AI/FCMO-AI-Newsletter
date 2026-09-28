@@ -5,6 +5,7 @@ from __future__ import annotations
 from datetime import datetime
 import json
 from pathlib import Path
+import unicodedata
 from zoneinfo import ZoneInfo
 
 COMPLETE_STATES = {"NATIVE_ARB", "MACHINE_REVIEWED"}
@@ -97,9 +98,44 @@ def format_date(value: str, catalog: dict, *, precision: str = "day", include_ti
     return pattern.format(**replacements)
 
 
+def _is_wide(char: str) -> bool:
+    return unicodedata.east_asian_width(char) in {"W", "F"}
+
+
+def visual_width(text: str) -> int:
+    """Count wide and fullwidth (CJK) characters as two columns and every other character as one."""
+    return sum(2 if _is_wide(char) else 1 for char in str(text))
+
+
+def _is_word_char(char: str) -> bool:
+    return char.isascii() and char.isalnum()
+
+
 def truncate(text: str, limit: int = 160) -> str:
+    """Shorten ``text`` so the result, ellipsis included, is at most ``limit`` columns wide.
+
+    A kept prefix without wide characters is shortened exactly as before, at the last
+    space. A prefix with wide characters is cut at a character boundary, backing out of
+    a Latin word or number it would split, and loses trailing ASCII or CJK punctuation.
+    """
     text = " ".join(str(text).split())
-    if len(text) <= limit:
+    if visual_width(text) <= limit:
         return text
-    shortened = text[:limit - 1].rsplit(" ", 1)[0]
-    return (shortened or text[:limit - 1]).rstrip(".,;: ") + "…"
+    width = 0
+    end = 0
+    for char in text:
+        width += 2 if _is_wide(char) else 1
+        if width > limit - 1:
+            break
+        end += 1
+    head = text[:end]
+    if not any(_is_wide(char) for char in head):
+        shortened = head.rsplit(" ", 1)[0]
+        return (shortened or head).rstrip(".,;: ") + "…"
+    if head and _is_word_char(head[-1]) and _is_word_char(text[end]):
+        start = end
+        while start > 0 and _is_word_char(text[start - 1]):
+            start -= 1
+        if start > 0:
+            head = text[:start]
+    return head.rstrip(".,;: ，、；：。") + "…"
