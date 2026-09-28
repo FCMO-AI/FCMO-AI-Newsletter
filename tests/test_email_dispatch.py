@@ -92,6 +92,12 @@ class EmailDispatchTests(unittest.TestCase):
         older = self.stories["stories"][0]
         older["first_published_at"] = "2026-09-01T12:00:00Z"
         older["importance"] = 100
+        example = next(story for story in self.stories["stories"]
+                       if story["status"] == "live" and story["l10n"]["es-419"]["state"] == "NATIVE_ARB")
+        for suffix in ("000001", "000002"):
+            additional = copy.deepcopy(example)
+            additional["id"] = "FCMO-TEST00" + suffix
+            self.stories["stories"].append(additional)
 
         class Client:
             subject = ""
