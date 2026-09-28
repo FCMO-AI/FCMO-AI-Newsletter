@@ -22,7 +22,7 @@ if __package__ in {None, ""}:
     from tools.paper.status_banner import render as render_banner
     from tools.visual_desk import write_localized_story_graphics
     from tools.paper.templates import archive_page, document, front_page, simple_page, status_page, story_page
-    from tools.paper.templates.pages import story_card
+    from tools.paper.templates.pages import evidence_board, evidence_strip, story_card
     from tools.paper.templates.landing import render as render_landing
     from tools.paper.templates.newsletter import render as render_newsletter, subscription_tail
     from tools.paper.routes import TECHNICAL_FRONT
@@ -34,7 +34,7 @@ else:
     from .status_banner import render as render_banner
     from tools.visual_desk import write_localized_story_graphics
     from .templates import archive_page, document, front_page, simple_page, status_page, story_page
-    from .templates.pages import story_card
+    from .templates.pages import evidence_board, evidence_strip, story_card
     from .templates.landing import render as render_landing
     from .templates.newsletter import render as render_newsletter, subscription_tail
     from .routes import TECHNICAL_FRONT
@@ -47,6 +47,15 @@ SEARCH_JS = r'''(()=>{const f=document.querySelector('[data-search-form]'),q=doc
 
 def esc(value: object) -> str:
     return escape(str(value), quote=True)
+
+
+def copy_public_tree(source: Path, target: Path) -> None:
+    """Copy file bytes and directory shape only; host ACLs, xattrs and modes are not publication data."""
+    for directory, _, files in os.walk(source, followlinks=True):
+        relative = Path(directory).relative_to(source)
+        (target / relative).mkdir(parents=True, exist_ok=True)
+        for name in files:
+            shutil.copyfile(Path(directory) / name, target / relative / name)
 
 
 def slugify(value: str) -> str:
@@ -163,7 +172,7 @@ class PaperBuilder:
             story, href=self._story_href(locale, story), headline=headline(story, locale["code"], catalog),
             dek=truncate(dek(story, locale["code"], catalog), 190), beat=label(catalog, "beat", story.get("beat")),
             date=format_date(story["event_at"], catalog, precision=story.get("date_precision", "day")), level=level,
-            context=context,
+            context=context, evidence=evidence_strip(story, catalog),
         )
 
     @staticmethod
@@ -267,7 +276,7 @@ class PaperBuilder:
             "datetime": first["event_at"],
             "date": format_date(first["event_at"], catalog, precision=first.get("date_precision", "day")),
         }
-        lead = f'''<article class="lead"><p class="story-kicker">{esc(strings["front"]["lead"])} · {esc(label(catalog,"beat",first.get("beat")))}</p><h1 class="{lead_class}"><a href="{esc(self._story_href(locale,first))}">{esc(lead_title)}</a></h1><p class="lead-dek">{esc(dek(first,locale["code"],catalog))}</p><p class="story-meta">{esc(format_date(first["event_at"],catalog,precision=first.get("date_precision","day")))}</p><figure class="hero"><img src="{esc(hero_path)}" alt="{esc(hero_alt)}" width="1200" height="630"><figcaption>{esc(strings["story"]["image_credit"].format(credit=hero.get("credit","FCMO AI")))}</figcaption></figure></article>'''
+        lead = f'''<article class="lead"><p class="story-kicker">{esc(strings["front"]["lead"])} · {esc(label(catalog,"beat",first.get("beat")))}</p><h1 class="{lead_class}"><a href="{esc(self._story_href(locale,first))}">{esc(lead_title)}</a></h1><p class="lead-dek">{esc(dek(first,locale["code"],catalog))}</p><p class="story-meta">{esc(format_date(first["event_at"],catalog,precision=first.get("date_precision","day")))}</p>{evidence_strip(first, catalog)}<figure class="hero"><img src="{esc(hero_path)}" alt="{esc(hero_alt)}" width="1200" height="630"><figcaption>{esc(strings["story"]["image_credit"].format(credit=hero.get("credit","FCMO AI")))}</figcaption></figure></article>'''
         top_values = rest[:4]
         top = f'<h2>{esc(strings["front"]["top_stories"])}</h2>' + "".join(self._card(story, locale, 3) for story in top_values)
         essential_values = ranked[:5]
@@ -299,7 +308,8 @@ class PaperBuilder:
                   f'<ul><li><strong>{len(self.live)}</strong> {esc(nouns[0])}</li>'
                   f'<li><strong>{topic_count}</strong> {esc(nouns[1])}</li>'
                   f'<li><strong>{org_count}</strong> {esc(nouns[2])}</li></ul></section>')
-        body = front_page(lead=lead, top=top, essentials=essentials, beats="".join(sections), developing=developing, subscribe=subscribe, cartas=cartas, editions=editions, signal=signal)
+        board = evidence_board(self.live, catalog, method_href=href(self.base, locale["path_prefix"] + "method/"))
+        body = front_page(lead=lead, top=top, essentials=essentials, beats="".join(sections), developing=developing, subscribe=subscribe, cartas=cartas, editions=editions, signal=signal, board=board)
         body = community.without_empty_cartas_slot(body, cartas)
         self._write_page(locale=locale, suffix=TECHNICAL_FRONT, title=f'{strings["site"]["name"]} — {strings["site"]["tagline"]}', description=strings["site"]["description"], body=body, kind="front", og_image=self._media_url(first, locale), extra_head=subscribe_script)
         landing = render_landing(locale=locale, home=href(self.base, locale["path_prefix"]), technical=href(self.base, locale["path_prefix"]+TECHNICAL_FRONT), about=href(self.base, locale["path_prefix"]+"about/"), subscribe=href(self.base, locale["path_prefix"]+"suscribete/"), lead=lead, top=top, cartas=cartas, stats=stats, feature=feature)
@@ -459,7 +469,7 @@ class PaperBuilder:
     def _listing(self, *, locale: dict, suffix: str, title: str, stories: list[dict], kind: str,
                  title_html: str | None = None) -> None:
         catalog = self.catalogs[locale["code"]]
-        items = "".join(f'<article class="archive-item" data-story-id="{esc(story["id"])}"><time datetime="{esc(story["event_at"])}">{esc(format_date(story["event_at"],catalog,precision=story.get("date_precision","day")))}</time><a class="archive-art" href="{esc(self._story_href(locale,story))}" aria-hidden="true" tabindex="-1"><img src="{esc(self._story_media_url(story, locale))}" alt="" width="320" height="180" loading="lazy"></a><div class="archive-copy"><h2><a href="{esc(self._story_href(locale,story))}">{esc(headline(story,locale["code"],catalog))}</a></h2><p>{esc(truncate(dek(story,locale["code"],catalog),220))}</p><p class="archive-meta">{esc(label(catalog, "beat", story.get("beat")))} · {esc(catalog["strings"]["story"]["importance"].format(score=story.get("importance", 0)))}</p></div></article>' for story in stories)
+        items = "".join(f'<article class="archive-item" data-story-id="{esc(story["id"])}"><time datetime="{esc(story["event_at"])}">{esc(format_date(story["event_at"],catalog,precision=story.get("date_precision","day")))}</time><a class="archive-art" href="{esc(self._story_href(locale,story))}" aria-hidden="true" tabindex="-1"><img src="{esc(self._story_media_url(story, locale))}" alt="" width="320" height="180" loading="lazy"></a><div class="archive-copy"><h2><a href="{esc(self._story_href(locale,story))}">{esc(headline(story,locale["code"],catalog))}</a></h2><p>{esc(truncate(dek(story,locale["code"],catalog),220))}</p><p class="archive-meta">{esc(label(catalog, "beat", story.get("beat")))} · {esc(catalog["strings"]["story"]["importance"].format(score=story.get("importance", 0)))}</p>{evidence_strip(story, catalog)}</div></article>' for story in stories)
         topics = {value for item in stories for value in item.get("topics", [])}
         orgs = {value for item in stories for value in item.get("organizations", [])}
         labels = {"en": ("stories", "topics", "organizations"), "es-419": ("historias", "temas", "organizaciones"), "zh-Hans": ("篇报道", "个主题", "家机构")}[locale["code"]]
@@ -606,15 +616,15 @@ class PaperBuilder:
         if self.out.exists():
             shutil.rmtree(self.out)
         self.out.mkdir(parents=True)
-        shutil.copytree(ROOT / "site-src" / "assets", self.out / "assets", dirs_exist_ok=True)
+        copy_public_tree(ROOT / "site-src" / "assets", self.out / "assets")
         # Retain the original public agent datasets as compatibility surfaces.
-        shutil.copytree(ROOT / "release-src" / "data", self.out / "data", dirs_exist_ok=True)
+        copy_public_tree(ROOT / "release-src" / "data", self.out / "data")
         self._copy_story_media()
         write_localized_story_graphics(self.stories, self.catalogs, self.out / "assets" / "story-media")
         if self.og_source is not None:
             if not self.og_source.is_dir():
                 raise ValueError(f"--og-source is not a directory: {self.og_source}")
-            shutil.copytree(self.og_source, self.out / "og")
+            copy_public_tree(self.og_source, self.out / "og")
         (self.out / "assets" / "js").mkdir(parents=True, exist_ok=True)
         (self.out / "assets" / "js" / "search.js").write_text(SEARCH_JS, encoding="utf-8")
         (self.out / ".nojekyll").write_text("", encoding="utf-8")

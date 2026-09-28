@@ -41,3 +41,9 @@ complete. The current static subscription panel remains a launch notice.
 ## Agent work and evidence still required
 
 The September 26 production snapshot names `ARB_MAIN_RED`; it is not a fresh diagnosis of upstream today. Recheck the actual authorized upstream/production state before assigning a repair. Code repair, checkpoint verification, workflow verification, and repeated-cycle evidence collection are engineering work, not inherently human actions. Offline builder receipts cannot establish current upstream or production health. The integrator must use authorized repository and live-origin evidence before promotion; a local build cannot establish those outcomes.
+
+## Host environment for unattended agent runs (added 2026-09-28)
+
+| Who | One action | Why a person is required |
+|---|---|---|
+| Claudex operator | Let the `claudex-steward` service copy POSIX ACLs (or drop the default ACLs on its worktrees) so `shutil.copytree` of repository directories stops failing with `EPERM`. | This is a host/systemd permission change outside the repository. Until it is made, test suites run by the steward show about 35 environment-only errors (for example `RealCorpusBacklog`) that are unrelated to the code under test. The paper build itself no longer depends on it: it now copies only file bytes. |

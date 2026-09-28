@@ -63,6 +63,13 @@ def label(catalog: dict, group: str, code: object, *, fallback: str = "") -> str
     return str(labels.get(str(code), fallback))
 
 
+def plural(catalog: dict, key: str, count: int) -> str:
+    """Fill the catalog's plural form for ``count`` using the locale's plural rule."""
+    forms = catalog["plurals"][key]
+    category = "one" if catalog.get("plural_rule") == "one_other" and count == 1 else "other"
+    return str(forms.get(category) or forms["other"]).format(count=count)
+
+
 def _parse(value: str) -> datetime:
     return datetime.fromisoformat(value.replace("Z", "+00:00"))
 
