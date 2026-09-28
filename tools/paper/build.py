@@ -24,6 +24,7 @@ if __package__ in {None, ""}:
     from tools.paper.templates import archive_page, document, front_page, simple_page, status_page, story_page
     from tools.paper.templates.pages import story_card
     from tools.paper.templates.landing import render as render_landing
+    from tools.paper.templates.newsletter import render as render_newsletter, subscription_tail
     from tools.paper.routes import TECHNICAL_FRONT
 else:
     from . import community, feeds, redirects, search_index, sitemaps
@@ -35,6 +36,7 @@ else:
     from .templates import archive_page, document, front_page, simple_page, status_page, story_page
     from .templates.pages import story_card
     from .templates.landing import render as render_landing
+    from .templates.newsletter import render as render_newsletter, subscription_tail
     from .routes import TECHNICAL_FRONT
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -166,12 +168,14 @@ class PaperBuilder:
         catalog = self.catalogs[locale["code"]]
         strings = catalog["strings"]
         ranked = sorted(self.live, key=lambda s: (bool(s.get("front_page_eligible")), s.get("importance", 0), s.get("event_at", ""), s["id"]), reverse=True)
+        stats = (len(self.live), len({topic for story in self.live for topic in story.get("topics", [])}),
+                 len({org for story in self.live for org in story.get("organizations", [])}))
         if not ranked:
             body = simple_page(strings["archive"]["empty"], "")
             self._write_page(locale=locale, suffix=TECHNICAL_FRONT, title=strings["site"]["name"], description=strings["site"]["description"], body=body, kind="front")
-            landing = render_landing(locale=locale, home=href(self.base, locale["path_prefix"]), technical=href(self.base, locale["path_prefix"]+TECHNICAL_FRONT), about=href(self.base, locale["path_prefix"]+"about/"), subscribe=href(self.base, locale["path_prefix"]+"suscribete/"), lead="", top="", cartas=community.render_cartas(self.cartas, locale["code"]))
+            landing = render_landing(locale=locale, home=href(self.base, locale["path_prefix"]), technical=href(self.base, locale["path_prefix"]+TECHNICAL_FRONT), about=href(self.base, locale["path_prefix"]+"about/"), subscribe=href(self.base, locale["path_prefix"]+"suscribete/"), lead="", top="", cartas=community.render_cartas(self.cartas, locale["code"]), stats=stats)
             _, subscribe_script = community.render_subscribe(locale_code=locale["code"], path_prefix=locale["path_prefix"], base=self.base, portal_url=self.portal_url)
-            self._write_page(locale=locale, suffix="", title="FCMO Group", description="FCMO Group Newsletter and FCMO AI technical paper", body=landing, kind="landing", extra_head=subscribe_script, machine_alternates=[("text/plain", href(self.base, "llms.txt")), ("application/json", href(self.base, "agent.json"))])
+            self._write_page(locale=locale, suffix="", title="FCMO", description="FCMO: Javier's fCMO letters and the FCMO AI technical daily", body=landing, kind="landing", extra_head=subscribe_script, machine_alternates=[("text/plain", href(self.base, "llms.txt")), ("application/json", href(self.base, "agent.json"))])
             return
         first, rest = ranked[0], ranked[1:]
         hero = first.get("media") or {}
@@ -202,8 +206,22 @@ class PaperBuilder:
         body = front_page(lead=lead, top=top, essentials=essentials, beats="".join(sections), developing=developing, subscribe=subscribe, cartas=cartas, editions=editions)
         body = community.without_empty_cartas_slot(body, cartas)
         self._write_page(locale=locale, suffix=TECHNICAL_FRONT, title=f'{strings["site"]["name"]} — {strings["site"]["tagline"]}', description=strings["site"]["description"], body=body, kind="front", og_image=self._media_url(first, locale), extra_head=subscribe_script)
-        landing = render_landing(locale=locale, home=href(self.base, locale["path_prefix"]), technical=href(self.base, locale["path_prefix"]+TECHNICAL_FRONT), about=href(self.base, locale["path_prefix"]+"about/"), subscribe=href(self.base, locale["path_prefix"]+"suscribete/"), lead=lead, top=top, cartas=cartas)
-        self._write_page(locale=locale, suffix="", title="FCMO Group", description="FCMO Group Newsletter and FCMO AI technical paper", body=landing, kind="landing", og_image=self._media_url(first, locale), extra_head=subscribe_script, machine_alternates=[("text/plain", href(self.base, "llms.txt")), ("application/json", href(self.base, "agent.json"))])
+        landing = render_landing(locale=locale, home=href(self.base, locale["path_prefix"]), technical=href(self.base, locale["path_prefix"]+TECHNICAL_FRONT), about=href(self.base, locale["path_prefix"]+"about/"), subscribe=href(self.base, locale["path_prefix"]+"suscribete/"), lead=lead, top=top, cartas=cartas, stats=stats)
+        self._write_page(locale=locale, suffix="", title="FCMO", description="FCMO: Javier's fCMO letters and the FCMO AI technical daily", body=landing, kind="landing", og_image=self._media_url(first, locale), extra_head=subscribe_script, machine_alternates=[("text/plain", href(self.base, "llms.txt")), ("application/json", href(self.base, "agent.json"))])
+
+    def _newsletter_pages(self, locale: dict) -> None:
+        ranked = sorted(self.live, key=lambda s: (s.get("event_at", ""), s["id"]), reverse=True)
+        cards = "".join(self._card(story, locale, 3) for story in ranked[:3])
+        topic_counts = Counter(topic for story in self.live for topic in story.get("topics", []))
+        topics = [(name, count, slugify(name)) for name, count in topic_counts.most_common() if count >= 3][:8]
+        root = href(self.base, locale["path_prefix"])
+        technical = href(self.base, locale["path_prefix"] + TECHNICAL_FRONT)
+        cartas = community.render_cartas(self.cartas, locale["code"])
+        for kind, suffix in (("letters", "cartas/"), ("guide", "empieza/"), ("community", "comunidad/")):
+            title, description, body = render_newsletter(kind, locale=locale["code"], root=root,
+                                                          technical=technical, cards=cards, cartas=cartas, topics=topics)
+            self._write_page(locale=locale, suffix=suffix, title=f"{title} — fCMO", description=description,
+                             body=body, kind=kind)
 
     def _localized_evidence(self, story: dict, locale: dict) -> dict:
         if locale["code"] == "en":
@@ -385,7 +403,11 @@ class PaperBuilder:
             self._write_page(locale=locale, suffix=suffix, title=f"{title} — FCMO AI", description=truncate(content.replace("<p>", " ").replace("</p>", " ")), body=simple_page(title, content), kind=kind)
         subscribe, subscribe_script = community.render_subscribe(locale_code=locale["code"], path_prefix=locale["path_prefix"], base=self.base, portal_url=self.portal_url, page=True)
         subscribe_title = community.subscribe_page_title(locale["code"], self.portal_url)
-        self._write_page(locale=locale, suffix="suscribete/", title=f"{subscribe_title} — FCMO AI", description=community.COPY[locale["code"]]["promise"], body=f'<article class="story-body">{subscribe}</article>', kind="subscribe", extra_head=subscribe_script)
+        recent = sorted(self.live, key=lambda story: (story.get("event_at", ""), story["id"]), reverse=True)[:3]
+        cards = "".join(self._card(story, locale, 3) for story in recent)
+        tail = subscription_tail(locale=locale["code"], root=href(self.base, locale["path_prefix"]),
+                                 technical=href(self.base, locale["path_prefix"] + TECHNICAL_FRONT), cards=cards)
+        self._write_page(locale=locale, suffix="suscribete/", title=f"{subscribe_title} — fCMO + FCMO AI", description=community.COPY[locale["code"]]["promise"], body=f'<article class="story-body">{subscribe}</article>{tail}', kind="subscribe", extra_head=subscribe_script)
 
     def _404(self) -> None:
         blocks = []
@@ -395,8 +417,8 @@ class PaperBuilder:
             technical = href(self.base, locale["path_prefix"]+TECHNICAL_FRONT)
             search = href(self.base, locale["path_prefix"]+"search/")
             search_label = {"en": "Search", "es-419": "Buscar", "zh-Hans": "搜索"}[locale["code"]]
-            blocks.append(f'<section lang="{esc(locale["html_lang"])}"><p class="section-kicker">FCMO Group / FCMO AI</p><h2>{esc(strings["not_found_title"])}</h2><p>{esc(strings["not_found_body"])}</p><div class="landing-jump"><a href="{esc(home)}">{esc(strings["not_found_home"])}</a><a href="{esc(technical)}">FCMO AI Diario</a><a href="{esc(search)}">{esc(search_label)}</a></div></section>')
-        html = '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><script>(()=>{let p=location.pathname,l=p.includes("/es/")?"es-419":p.includes("/zh/")?"zh-Hans":"en";document.documentElement.lang=l;document.documentElement.dataset.errorLocale=l})()</script><link rel="icon" href="' + esc(href(self.base,"assets/pwa/favicon.svg")) + '" type="image/svg+xml"><link rel="apple-touch-icon" href="' + esc(href(self.base,"assets/pwa/icons/icon-192.svg")) + '"><link rel="stylesheet" href="' + esc(href(self.base,"assets/css/paper.css")) + '"><title>404 · FCMO Group</title></head><body><a class="skip-link" href="#main">Skip to content</a><header class="site-header"><div class="masthead"><a class="brand" href="' + esc(href(self.base,"")) + '">FCMO</a><span class="brand-sub">GROUP + FCMO AI</span></div></header><main id="main" class="page-shell not-found"><h1>404</h1>' + "".join(blocks) + '</main><footer class="site-footer"><div class="footer-inner"><div class="footer-brand">FCMO Group · FCMO AI</div></div></footer></body></html>'
+            blocks.append(f'<section lang="{esc(locale["html_lang"])}"><p class="section-kicker">FCMO / FCMO AI</p><h2>{esc(strings["not_found_title"])}</h2><p>{esc(strings["not_found_body"])}</p><div class="landing-jump"><a href="{esc(home)}">{esc(strings["not_found_home"])}</a><a href="{esc(technical)}">FCMO AI Diario</a><a href="{esc(search)}">{esc(search_label)}</a></div></section>')
+        html = '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><script>(()=>{let p=location.pathname,l=p.includes("/es/")?"es-419":p.includes("/zh/")?"zh-Hans":"en";document.documentElement.lang=l;document.documentElement.dataset.errorLocale=l})()</script><link rel="icon" href="' + esc(href(self.base,"assets/pwa/favicon.svg")) + '" type="image/svg+xml"><link rel="apple-touch-icon" href="' + esc(href(self.base,"assets/pwa/icons/icon-192.svg")) + '"><link rel="stylesheet" href="' + esc(href(self.base,"assets/css/paper.css")) + '"><title>404 · FCMO</title></head><body><a class="skip-link" href="#main">Skip to content</a><header class="site-header"><div class="masthead"><a class="brand" href="' + esc(href(self.base,"")) + '">FCMO</a><span class="brand-sub">fCMO + FCMO AI</span></div></header><main id="main" class="page-shell not-found"><h1>404</h1>' + "".join(blocks) + '</main><footer class="site-footer"><div class="footer-inner"><div class="footer-brand">FCMO · fCMO · FCMO AI</div></div></footer></body></html>'
         (self.out / "404.html").write_text(html, encoding="utf-8")
 
     def build(self) -> int:
@@ -425,6 +447,7 @@ class PaperBuilder:
         for locale in self.config["locales"]:
             catalog = self.catalogs[locale["code"]]
             self._front(locale)
+            self._newsletter_pages(locale)
             for story in self.live:
                 self._story(story, locale)
             self._listing(locale=locale, suffix="archive/", title=catalog["strings"]["archive"]["title"], stories=ranked, kind="archive")

@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import json
 from pathlib import Path, PurePosixPath
 
-# Provisional product names: O-8 can be settled here without editing templates.
-PRODUCT_NAMES = {"newsletter": "Newsletter", "technical": "FCMO AI Diario"}
+# O-8 stays open. Both public product names come from one config value each.
+_products = json.loads((Path(__file__).resolve().parents[2] / "community/config/subscriptions.json").read_text(encoding="utf-8"))["products"]
+PRODUCT_NAMES = {"newsletter": _products["letter"]["name"], "technical": _products["paper"]["name"]}
 TECHNICAL_FRONT = "diario/"
 
 

@@ -53,6 +53,22 @@ class DesignV2Build(unittest.TestCase):
             for prefix in ("es/", "zh/"):
                 self.assertIn(f'href="/FCMO-AI-Newsletter/{prefix}{path}"', page)
 
+    def test_fcmo_human_paths_are_real_pages_in_each_locale(self):
+        for prefix in ("", "es/", "zh/"):
+            for path, page_class in (("cartas/", "letters"), ("empieza/", "guide"),
+                                     ("comunidad/", "community"), ("suscribete/", "subscribe")):
+                with self.subTest(prefix=prefix, path=path):
+                    html = (self.out / prefix / path / "index.html").read_text(encoding="utf-8")
+                    self.assertIn(f'class="page-{page_class}"', html)
+                    self.assertIn(f'/FCMO-AI-Newsletter/{prefix}diario/', html)
+                    self.assertNotIn("FCMO" + " Group", html)
+                    if path == "suscribete/":
+                        self.assertIn('class="newsletter-record subscribe-reading"', html)
+            landing = (self.out / prefix / "index.html").read_text(encoding="utf-8")
+            self.assertIn(f'/FCMO-AI-Newsletter/{prefix}cartas/', landing)
+            self.assertIn(f'/FCMO-AI-Newsletter/{prefix}empieza/', landing)
+            self.assertIn("landing-record", landing)
+
     def test_404_has_all_three_locale_destinations(self):
         page = (self.out / "404.html").read_text(encoding="utf-8")
         for prefix in ("", "es/", "zh/"):
