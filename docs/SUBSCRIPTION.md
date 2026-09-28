@@ -2,7 +2,7 @@
 
 ## Qué está preparado
 
-Ghost administra **una membresía** y dos newsletters independientes. `community/config/subscriptions.json` es la fuente de nombres, slugs, autores e idiomas pendientes de O-11. La carta pertenece a FCMO Group y Javier; el resumen técnico pertenece a FCMO AI y Matías. El lector debe poder elegir una o ambas y cambiar la selección desde `/#/portal/account` en Ghost. El papel estático no recibe ni guarda correos.
+Ghost administra **una membresía** y dos newsletters independientes. `community/config/subscriptions.json` es la fuente de nombres, slugs, autores e idiomas pendientes de O-11. La carta pertenece a fCMO y Javier; el resumen técnico pertenece a FCMO AI y Matías. El lector debe poder elegir una o ambas y cambiar la selección desde `/#/portal/account` en Ghost. El papel estático no recibe ni guarda correos.
 
 `tools/paper/templates/subscribe.py` ofrece `subscribe_block(zone, locale)` para `letter`, `paper` o `all`. La portada y `/suscribete/` lo reciben hoy por `tools/paper/community.py`. Sin `GHOST_URL`, la página avisa que el alta abrirá en el lanzamiento y enlaza RSS, Atom y JSON Feed. Con una URL HTTPS válida (o loopback de staging), solo `es-419` muestra el enlace de alta. `en` y `zh-Hans` conservan los feeds hasta la decisión O-11. El enlace directo a Ghost Portal funciona sin JavaScript. La selección de newsletters y el enlace mágico son responsabilidad de Ghost Portal; la prueba local debe demostrar que ofrece controles separados antes de hacer público `GHOST_URL`.
 

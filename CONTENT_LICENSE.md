@@ -19,7 +19,7 @@ FCMO AI uses contribution-based authorship. Leadership or founder status does no
 For FCMO AI material, the canonical public attribution order is:
 
 1. **Matías Peña Szőke** — Director, FCMO AI / Head of AI & Technology.
-2. **Javier Castellanos Peña** — Founder, fCMO.
+2. **Javier Castellanos Peña** — Founder, FCMO.
 
 These are project-facing functional descriptions, not representations of formally appointed corporate offices while FCMO is not a separate legal entity.
 

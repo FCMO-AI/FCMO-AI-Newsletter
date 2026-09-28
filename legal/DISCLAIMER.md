@@ -20,12 +20,12 @@ The publication and its software are provided for informational purposes without
 
 ## Project identity and authorship
 
-FCMO Group is used as the broader project and public-facing umbrella brand. FCMO AI material uses contribution-based authorship and attribution; founder or leadership status does not automatically make a person the author or copyright holder of work they did not create or otherwise acquire rights to.
+FCMO is used as the broader project and public-facing umbrella brand. FCMO AI material uses contribution-based authorship and attribution; founder or leadership status does not automatically make a person the author or copyright holder of work they did not create or otherwise acquire rights to.
 
-The canonical FCMO AI leadership order is **Matías Peña Szőke — Director, FCMO AI / Head of AI & Technology**, followed by **Javier Castellanos Peña — Founder, FCMO Group**. These are functional public-facing descriptions rather than representations of formally appointed corporate offices while FCMO is not a separate legal entity.
+The canonical FCMO AI leadership order is **Matías Peña Szőke — Director, FCMO AI / Head of AI & Technology**, followed by **Javier Castellanos Peña — Founder, FCMO**. These are functional public-facing descriptions rather than representations of formally appointed corporate offices while FCMO is not a separate legal entity.
 
 ## Intellectual property
 
-Third-party names, trademarks, logos, quotations, figures, images, datasets, and other protected material remain subject to the rights of their respective owners. Their appearance in the newsletter does not transfer ownership to the newsletter, FCMO AI, FCMO Group, or any individual contributor.
+Third-party names, trademarks, logos, quotations, figures, images, datasets, and other protected material remain subject to the rights of their respective owners. Their appearance in the newsletter does not transfer ownership to the newsletter, FCMO AI, FCMO, or any individual contributor.
 
 For repository-specific authorship, attribution, and licensing conventions, see `ATTRIBUTION.md`, `LICENSE`, and `CONTENT_LICENSE.md`.

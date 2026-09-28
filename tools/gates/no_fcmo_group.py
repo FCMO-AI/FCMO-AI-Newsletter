@@ -13,6 +13,8 @@ SOURCE_ROOTS = (
     "tools/paper", "tools/agent", "tools/email_render.py", "community/config",
     "community/ghost-theme", "i18n/ui", "site", "site-src",
     "release-src", "scaffold", "CONTENT_LICENSE.md",
+    "README.md", "ATTRIBUTION.md", "COPYRIGHT.md", "LEGAL_REQUIREMENTS.md",
+    "DESIGN_V2.md", "legal", "docs",
 )
 SUFFIXES = {".html", ".hbs", ".in", ".json", ".js", ".md", ".py", ".txt", ".xml"}
 

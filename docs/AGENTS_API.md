@@ -4,7 +4,7 @@ FCMO AI Newsletter publishes a static, language-aware agent layer alongside its 
 
 ## Discovery
 
-- `/agent.json` keeps the original `fcmo-agent-discovery-v2` fields and `fcmo-agent-query-v2` query vocabulary. It adds the FCMO Group / FCMO AI brand zones, API endpoints, per-language LLM indexes, licensing, release provenance, cadence, corrections and contact routes.
+- `/agent.json` keeps the original `fcmo-agent-discovery-v2` fields and `fcmo-agent-query-v2` query vocabulary. It adds the FCMO / FCMO AI brand zones, API endpoints, per-language LLM indexes, licensing, release provenance, cadence, corrections and contact routes.
 - `/llms.txt` follows the llmstxt.org structure. Each published locale has its own file and matching `/llms-full.txt`.
 - Historical original datasets remain under `/data/` as a compatibility snapshot. `/data/briefs/` retains the two original dossiers retired from the current corpus, and the original agent discovery/LLM files are kept in `tools/agent/reference/` as reproducible source material. The current static API is authoritative for the current built corpus.
 - `/api/v1/index.json` indexes stories, editions, topics, organizations, corrections and search. Each resource has a corresponding JSON Schema under `/api/v1/schema/`; `/api/v1/openapi.json` describes static GET operations.

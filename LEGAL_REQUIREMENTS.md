@@ -30,15 +30,15 @@ The information must remain easy to find from the publication navigation or foot
 For FCMO AI leadership/direction sections, use this public order:
 
 1. **Matías Peña Szőke** — Director, FCMO AI / Head of AI & Technology.
-2. **Javier Castellanos Peña** — Founder, FCMO Group.
+2. **Javier Castellanos Peña** — Founder, FCMO.
 
-The site must not imply that Javier Castellanos Peña is an author of FCMO AI material solely because he founded the broader FCMO Group. Specific article or project bylines must follow actual contribution and rights rather than leadership ordering.
+The site must not imply that Javier Castellanos Peña is an author of FCMO AI material solely because he founded the broader FCMO. Specific article or project bylines must follow actual contribution and rights rather than leadership ordering.
 
 The functional titles above must not be presented as formally appointed corporate offices while FCMO is not a separate legal entity.
 
 ## Default public identity
 
-The publication should identify itself as **FCMO AI Newsletter**, brought to readers by the FCMO Group. Internal research-system names, internal source-control identifiers, and operational publication mechanics are not part of the reader-facing identity.
+The publication should identify itself as **FCMO AI Newsletter**, brought to readers by FCMO. Internal research-system names, internal source-control identifiers, and operational publication mechanics are not part of the reader-facing identity.
 
 ## License presentation
 
@@ -49,7 +49,7 @@ The public License page must distinguish at least these categories:
 - third-party material: governed by its original rights and licenses;
 - FCMO branding: not automatically licensed for reuse as a source identifier by the software or editorial-content licenses.
 
-The public site must not claim that FCMO Group owns material merely because it is published under the FCMO brand.
+The public site must not claim that FCMO owns material merely because it is published under the FCMO brand.
 
 ## About-page identity
 

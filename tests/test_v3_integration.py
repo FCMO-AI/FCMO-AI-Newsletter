@@ -108,8 +108,8 @@ class V3IntegrationTests(unittest.TestCase):
         zh = json.loads((ROOT / "site/data/i18n/zh-Hans/ui.json").read_text(encoding="utf-8"))
         self.assertEqual(es["ui"]["FCMO"], "FCMO")
         self.assertEqual(zh["ui"]["FCMO"], "FCMO")
-        self.assertIn("fCMO", es["ui"]["Founder, fCMO."])
-        self.assertIn("fCMO", zh["ui"]["Founder, fCMO."])
+        self.assertIn("FCMO", es["ui"]["Founder, FCMO."])
+        self.assertIn("FCMO", zh["ui"]["Founder, FCMO."])
         self.assertIn("does not grant rights", (ROOT / "site/license.html").read_text(encoding="utf-8"))
         self.assertIn("no determina por sí misma", es["ui"]["The FCMO brand remains the public-facing umbrella and does not, by itself, determine legal authorship or ownership of FCMO AI material."])
 
