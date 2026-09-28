@@ -73,7 +73,7 @@ class EmailDispatchTests(unittest.TestCase):
         with MockGhost() as ghost:
             result = dispatch(stories=incomplete, status=self.status, live_verified=True, ghost_url=ghost.url,
                               admin_api_key=ghost.admin_key, now=self.now, postal_address="Domicilio de prueba")
-            self.assertEqual(result, (0, "SKIP insufficient_new_es_stories"))
+            self.assertEqual(result, (0, "SKIP es_incomplete"))
             self.assertEqual(ghost.count("POST"), 0)
 
     def test_missing_native_field_never_falls_back_to_english(self) -> None:
@@ -81,12 +81,12 @@ class EmailDispatchTests(unittest.TestCase):
         for story in incomplete["stories"]:
             story["l10n"]["es-419"]["fields"].pop("summary", None)
         self.assertEqual(eligibility(incomplete, self.status, live_verified=True, now=self.now).reason,
-                         "insufficient_new_es_stories")
+                         "es_incomplete")
 
     def test_old_corpus_does_not_become_a_new_daily_email(self) -> None:
         stale = fixture("stories.v2.json")
         self.assertEqual(eligibility(stale, self.status, live_verified=True, now=self.now).reason,
-                         "insufficient_new_es_stories")
+                         "no_new_edition_stories")
 
     def test_sent_email_uses_only_new_stories(self) -> None:
         older = self.stories["stories"][0]

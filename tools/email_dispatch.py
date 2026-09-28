@@ -86,7 +86,7 @@ def _verification_passed(path: Path) -> bool:
     return (doc.get("status") == "GREEN" and doc.get("code") == "OK") or doc.get("passed") is True
 
 
-def _complete_stories(doc: Any, *, now: datetime) -> list[dict[str, Any]]:
+def _recent_stories(doc: Any, *, now: datetime) -> list[dict[str, Any]]:
     values = doc.get("stories") if isinstance(doc, dict) else doc
     if not isinstance(values, list):
         raise ValueError("stories input must be a list or a {stories: [...]} document")
@@ -107,7 +107,7 @@ def _complete_stories(doc: Any, *, now: datetime) -> list[dict[str, Any]]:
                 recent.append(story)
         except ValueError:
             continue
-    return select_stories(recent)
+    return recent
 
 
 @dataclass(frozen=True)
@@ -135,9 +135,12 @@ def eligibility(
     edition_date = status.get("edition_date")
     if edition_date != now.astimezone(CDMX).date().isoformat():
         return DispatchDecision("SKIP", "edition_not_today")
-    complete = _complete_stories(stories, now=now)
+    recent = _recent_stories(stories, now=now)
+    if len(recent) < minimum:
+        return DispatchDecision("SKIP", "no_new_edition_stories")
+    complete = select_stories(recent)
     if len(complete) < minimum:
-        return DispatchDecision("SKIP", "insufficient_new_es_stories")
+        return DispatchDecision("SKIP", "es_incomplete")
     return DispatchDecision("SEND", "eligible", tuple(complete[:maximum]))
 
 
