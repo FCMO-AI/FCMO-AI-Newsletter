@@ -47,7 +47,7 @@ def render_letter_email(title: str, message: str, *, ghost_url: str, postal_addr
     html = (f'<!doctype html><html lang="es"><head><meta charset="utf-8"><title>{escape(title)}</title></head>'
             f'<body style="margin:0;background:#f2efe8;color:#0a0a0a"><table role="presentation" width="100%" cellpadding="0" cellspacing="0">'
             f'<tr><td align="center" style="padding:24px 12px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:640px;background:#fbf9f4">'
-            f'<tr><td style="padding:28px;border-top:3px solid #f05a28"><p style="color:#a9340e;font:700 12px Arial,sans-serif;letter-spacing:.12em">FCMO Group · {escape(LETTER_NAME)}</p>'
+            f'<tr><td style="padding:28px;border-top:3px solid #f05a28"><p style="color:#a9340e;font:700 12px Arial,sans-serif;letter-spacing:.12em">fCMO · {escape(LETTER_NAME)}</p>'
             f'<h1 style="font:700 36px/1.1 Arial,sans-serif">{escape(title)}</h1>{body}<p style="font:16px Georgia,serif">— Javier</p></td></tr>'
             f'<tr><td style="padding:20px 28px;background:#f2efe8;color:#5e5a53;font:12px Arial,sans-serif">{escape(postal_address)}<br>'
             f'<a href="{escape(account, quote=True)}">Preferencias y baja</a></td></tr></table></td></tr></table></body></html>')
@@ -85,9 +85,9 @@ def localized_story(story: dict[str, Any], locale: str = "es-419") -> dict[str, 
     fields = l10n.get("fields")
     if not isinstance(fields, dict):
         return None
-    title = _clean(fields.get("headline") or fields.get("title") or story.get("headline") or story.get("title"))
-    summary = _clean(fields.get("summary") or story.get("summary"))
-    why = _clean(fields.get("why_it_matters") or story.get("why_it_matters"))
+    title = _clean(fields.get("headline") or fields.get("title"))
+    summary = _clean(fields.get("summary"))
+    why = _clean(fields.get("why_it_matters"))
     if not title or not summary or not why:
         return None
     return {"title": title, "summary": summary, "why_it_matters": why}

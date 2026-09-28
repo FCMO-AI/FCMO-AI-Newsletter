@@ -204,3 +204,45 @@ The n2 templates now emit editorial structure that needs matching rules in the s
 The final capture covered eight page types in all three locales at 390px and 1440px: 48 screenshots, zero console errors. The story hero now sits in the reading column and archive stories carry their editorial art. Screenshot review shows the existing archive grid makes its image column too wide and compresses the copy; use the column sizes above. Please finish the shared styles for the corpus strip and navigation too, and balance four status cards at desktop.
 
 The captured shared shell still shows `FCMO Group` in reader-facing navigation and the masthead. This belongs to n1: replace it everywhere with the approved FCMO / fCMO / FCMO AI architecture, then add and run the `NO_FCMO_GROUP` gate over all three built locales and reader-facing source strings. The current 12-gate result predates that gate and does not establish brand compliance.
+---
+
+# Cross-lane changes needed for Newsletter v3
+
+The n3-owned community, email, and agent surfaces now use FCMO, fCMO, and
+FCMO AI. The following reader-facing strings are in `tools/paper/**`, owned by
+n1 or n2; n3 did not edit them.
+
+1. In `tools/paper/templates/layout.py`, replace the masthead and zone-switch
+   label `FCMO Group` with `FCMO` for the umbrella and `fCMO` for Javier's door.
+2. In `tools/paper/templates/subscribe.py`, replace `FCMO Group` in EN, ES, ZH
+   descriptions and the section kicker with `fCMO` for Javier and `FCMO` for the
+   common umbrella.
+3. In `tools/paper/templates/landing.py`, replace `FCMO Group` in all three
+   locale copy maps and section kickers: use `FCMO` for the site entry and
+   `fCMO · Javier` for the letters section.
+4. In `tools/paper/build.py`, change both root page titles from `FCMO Group` to
+   `FCMO`, their descriptions to `fCMO Newsletter and FCMO AI technical paper`,
+   and the 404 title/header/footer to `FCMO` with the two named divisions.
+5. In `tools/paper/redirects.py`, update the comment describing the locale
+   roots to the FCMO landing. This is source only, but prevents future drift.
+
+The existing built site still contains the unofficial term until those changes
+are integrated. The n1 `NO_FCMO_GROUP` gate should catch any remaining copy.
+
+## Screenshot review of the current n3 checkout
+
+The 390/1440 EN/ES/ZH landing and Diario screenshots in the n3 queue have zero
+console errors. Against the Semafor mobile and Platformer desktop references,
+the paper has strong type and useful story density, but the fCMO landing still
+uses a text-only "Latest letter" empty state as its visual anchor. The
+subscription area is dominated by a coming-soon panel. Javier's artwork was
+not present in the inbox at this review, so its visual language remains
+unassessed. N1 should use the new artwork if it arrives, place real letters or
+guides in the opening fCMO area, and recheck the 390/1440 screenshots after
+replacing the old brand strings. The red delayed-edition banner is truthful to
+the current data and should stay until fresh production evidence exists.
+
+`READY_TO_PUBLISH.md` still describes the September 10 v4.1.1 release and its
+old route count. The integrator should regenerate that receipt only after the
+v3 candidate, its gates, browser matrix, Pages deployment, and public-origin
+verification are complete; a local build cannot truthfully update it.
