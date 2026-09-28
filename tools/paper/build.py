@@ -158,11 +158,83 @@ class PaperBuilder:
 
     def _card(self, story: dict, locale: dict, level: int = 2) -> str:
         catalog = self.catalogs[locale["code"]]
+        context = f'{self.catalogs[locale["code"]]["strings"]["story"]["importance"].format(score=story.get("importance", 0))}'
         return story_card(
             story, href=self._story_href(locale, story), headline=headline(story, locale["code"], catalog),
             dek=truncate(dek(story, locale["code"], catalog), 190), beat=label(catalog, "beat", story.get("beat")),
             date=format_date(story["event_at"], catalog, precision=story.get("date_precision", "day")), level=level,
+            context=context,
         )
+
+    @staticmethod
+    def _story_rank(story: dict) -> tuple:
+        return (story.get("importance", 0), story.get("event_at", ""), story.get("id", ""))
+
+    def _related_stories(self, story: dict, *, limit: int = 3) -> list[tuple[dict, str]]:
+        """Find useful adjacent reading from shared public topics, organizations and beat."""
+        topics = set(story.get("topics") or [])
+        organizations = set(story.get("organizations") or [])
+        candidates = []
+        for candidate in self.live:
+            if candidate["id"] == story["id"]:
+                continue
+            shared_topics = topics & set(candidate.get("topics") or [])
+            shared_orgs = organizations & set(candidate.get("organizations") or [])
+            same_beat = bool(story.get("beat") and story.get("beat") == candidate.get("beat"))
+            score = 3 * len(shared_topics) + 2 * len(shared_orgs) + int(same_beat)
+            if score:
+                reason = next(iter(sorted(shared_topics)), "") or next(iter(sorted(shared_orgs)), "") or "same-beat"
+                candidates.append((score, self._story_rank(candidate), candidate, reason))
+        candidates.sort(key=lambda row: (row[0], row[1]), reverse=True)
+        return [(candidate, reason) for _, _, candidate, reason in candidates[:limit]]
+
+    def _story_navigation(self, story: dict, locale: dict) -> str:
+        strings = self.catalogs[locale["code"]]["strings"]
+        sequence = sorted(self.live, key=lambda item: (item.get("url_date", ""), *self._story_rank(item)), reverse=True)
+        position = next((i for i, item in enumerate(sequence) if item["id"] == story["id"]), -1)
+        neighbors = []
+        if position >= 0:
+            if position > 0:
+                neighbors.append((strings["archive"]["newer"], sequence[position - 1], "next"))
+            if position + 1 < len(sequence):
+                neighbors.append((strings["archive"]["older"], sequence[position + 1], "previous"))
+        edition_links = "".join(
+            f'<a rel="{rel}" href="{esc(self._story_href(locale, item))}"><span class="card-meta">{esc(label(self.catalogs[locale["code"]], "beat", item.get("beat")))}</span><strong>{esc(direction)}</strong><span>{esc(headline(item, locale["code"], self.catalogs[locale["code"]]))}</span></a>'
+            for direction, item, rel in neighbors
+        )
+        related = self._related_stories(story)
+        related_cards = "".join(
+            f'<article class="story-card"><span class="card-meta" translate="no">{esc(label(self.catalogs[locale["code"]], "beat", item.get("beat")) if reason == "same-beat" else reason)}</span><h3><a href="{esc(self._story_href(locale, item))}">{esc(headline(item, locale["code"], self.catalogs[locale["code"]]))}</a></h3><p>{esc(truncate(dek(item, locale["code"], self.catalogs[locale["code"]]), 160))}</p></article>'
+            for item, reason in related
+        )
+        parts = []
+        if edition_links:
+            parts.append(f'<nav class="edition-neighbors" aria-label="{esc(strings["story"]["related"])}">{edition_links}</nav>')
+        if related_cards:
+            parts.append(f'<section class="related-reading"><h2>{esc(strings["story"]["related"])}</h2><div class="card-row">{related_cards}</div></section>')
+        return "".join(parts)
+
+    def _topic_links(self, locale: dict, *, exclude_topic: str = "", exclude_org: str = "", limit: int = 5) -> str:
+        """Link into co-occurring topics and organizations using the live corpus."""
+        anchors: list[tuple[int, str, str]] = []
+        for story in self.live:
+            topics = [value for value in story.get("topics", []) if value != exclude_topic and slugify(value) != exclude_topic]
+            orgs = [value for value in story.get("organizations", []) if value != exclude_org and slugify(value) != exclude_org]
+            for value in topics:
+                count = sum(value in (other.get("topics") or []) for other in self.live)
+                if count >= 3:
+                    anchors.append((count, value, href(self.base, locale["path_prefix"] + "topic/" + slugify(value) + "/")))
+            for value in orgs:
+                anchors.append((sum(value in (other.get("organizations") or []) for other in self.live), value,
+                                href(self.base, locale["path_prefix"] + "org/" + slugify(value) + "/")))
+        unique: dict[tuple[str, str], int] = {}
+        for count, value, url in anchors:
+            unique[(value, url)] = max(count, unique.get((value, url), 0))
+        selected = sorted(((count, value, url) for (value, url), count in unique.items()),
+                          key=lambda row: (-row[0], row[1].casefold()))[:limit]
+        links = "".join(f'<li><a href="{esc(url)}" translate="no">{esc(value)}</a><span>{count}</span></li>'
+                        for count, value, url in selected)
+        return f'<nav class="taxonomy-neighbors"><h2>{esc(self.catalogs[locale["code"]]["strings"]["front"]["see_all"])}</h2><ul>{links}</ul></nav>' if links else ""
 
     def _front(self, locale: dict) -> None:
         catalog = self.catalogs[locale["code"]]
@@ -203,7 +275,19 @@ class PaperBuilder:
         subscribe, subscribe_script = community.render_subscribe(locale_code=locale["code"], path_prefix=locale["path_prefix"], base=self.base, portal_url=self.portal_url)
         dates = sorted({s["url_date"] for s in self.live}, reverse=True)[:6]
         editions = f'<section class="beat-section"><div class="section-head"><h2>{esc(strings["front"]["editions"])}</h2><a href="{esc(href(self.base,locale["path_prefix"]+"archive/"))}">{esc(strings["nav"]["archive"])}</a></div><div class="card-row">' + "".join(f'<article class="story-card"><h3><a href="{esc(href(self.base,edition_path(locale,date)))}">{esc(strings["archive"]["edition_title"].format(date=format_date(date+"T12:00:00Z",catalog)))}</a></h3></article>' for date in dates) + "</div></section>"
-        body = front_page(lead=lead, top=top, essentials=essentials, beats="".join(sections), developing=developing, subscribe=subscribe, cartas=cartas, editions=editions)
+        nouns = {
+            "en": ("live stories", "topics", "organizations"),
+            "es-419": ("historias activas", "temas", "organizaciones"),
+            "zh-Hans": ("篇在刊报道", "个主题", "家机构"),
+        }[locale["code"]]
+        topic_count = len({topic for item in self.live for topic in item.get("topics", [])})
+        org_count = len({org for item in self.live for org in item.get("organizations", [])})
+        signal = (f'<section class="front-ledger" aria-label="{esc(strings["site"]["name"])}">'
+                  f'<p class="section-kicker">{esc(strings["site"]["tagline"])}</p>'
+                  f'<ul><li><strong>{len(self.live)}</strong> {esc(nouns[0])}</li>'
+                  f'<li><strong>{topic_count}</strong> {esc(nouns[1])}</li>'
+                  f'<li><strong>{org_count}</strong> {esc(nouns[2])}</li></ul></section>')
+        body = front_page(lead=lead, top=top, essentials=essentials, beats="".join(sections), developing=developing, subscribe=subscribe, cartas=cartas, editions=editions, signal=signal)
         body = community.without_empty_cartas_slot(body, cartas)
         self._write_page(locale=locale, suffix=TECHNICAL_FRONT, title=f'{strings["site"]["name"]} — {strings["site"]["tagline"]}', description=strings["site"]["description"], body=body, kind="front", og_image=self._media_url(first, locale), extra_head=subscribe_script)
         landing = render_landing(locale=locale, home=href(self.base, locale["path_prefix"]), technical=href(self.base, locale["path_prefix"]+TECHNICAL_FRONT), about=href(self.base, locale["path_prefix"]+"about/"), subscribe=href(self.base, locale["path_prefix"]+"suscribete/"), lead=lead, top=top, cartas=cartas, stats=stats)
@@ -280,7 +364,11 @@ class PaperBuilder:
                 sections.append(f'<section><h2>{esc(strings["story"]["sources"])}</h2><ol class="source-list">{links}</ol></section>')
             body = "".join(sections)
             aside = self._facts(story, locale)
-        page = story_page(header=header, body=body, aside=aside)
+        media = story.get("media") or {}
+        image_alt = (media.get("alt") or {}).get(code, "")
+        hero = (f'<figure class="hero story-hero"><img src="{esc(self._story_media_url(story, locale))}" alt="{esc(image_alt)}" width="1200" height="630" loading="eager">'
+                f'<figcaption>{esc(strings["story"]["image_credit"].format(credit=media.get("credit", "FCMO AI")))}</figcaption></figure>')
+        page = story_page(header=header, body=body, aside=aside, hero=hero, navigation=self._story_navigation(story, locale))
         page = page.replace('<article class="story-layout">', f'<article class="story-layout {title_class}">', 1)
         story_url = absolute(self.base_url, locale["path_prefix"] + suffix)
         image = self._media_url(story, locale)
@@ -344,15 +432,46 @@ class PaperBuilder:
             (confidence_heading, label(catalog, "confidence", story.get("confidence"))),
         ]
         facts = "".join(f'<div class="fact"><dt>{esc(key)}</dt><dd>{esc(value)}</dd></div>' for key, value in values if value)
-        topics = ", ".join(story.get("topics") or [])
-        orgs = ", ".join(story.get("organizations") or [])
-        return f'<dl>{facts}</dl>' + (f'<p><strong>{esc(strings["organizations"])}</strong><br><span translate="no" data-field="organizations">{esc(orgs)}</span></p>' if orgs else "") + (f'<p><strong>{esc(strings["topics"])}</strong><br>{esc(topics)}</p>' if topics else "")
+        topic_items = []
+        for topic in story.get("topics") or []:
+            label_html = f'<span translate="no" data-field="topics">{esc(topic)}</span>'
+            if sum(topic in (item.get("topics") or []) for item in self.live) >= 3:
+                label_html = f'<a href="{esc(href(self.base, locale["path_prefix"] + "topic/" + slugify(topic) + "/"))}" translate="no">{label_html}</a>'
+            topic_items.append(f'<li>{label_html}</li>')
+        topics = "".join(topic_items)
+        orgs = "".join(f'<li><a href="{esc(href(self.base, locale["path_prefix"] + "org/" + slugify(org) + "/"))}" translate="no"><span translate="no" data-field="organizations">{esc(org)}</span></a></li>' for org in story.get("organizations") or [])
+        return (f'<dl>{facts}</dl>'
+                + (f'<section class="story-taxonomy"><h2>{esc(strings["organizations"])}</h2><ul>{orgs}</ul></section>' if orgs else "")
+                + (f'<section class="story-taxonomy"><h2>{esc(strings["topics"])}</h2><ul>{topics}</ul></section>' if topics else ""))
 
     def _listing(self, *, locale: dict, suffix: str, title: str, stories: list[dict], kind: str,
                  title_html: str | None = None) -> None:
         catalog = self.catalogs[locale["code"]]
-        items = "".join(f'<article class="archive-item"><time datetime="{esc(story["event_at"])}">{esc(format_date(story["event_at"],catalog,precision=story.get("date_precision","day")))}</time><h2><a href="{esc(self._story_href(locale,story))}">{esc(headline(story,locale["code"],catalog))}</a></h2><p>{esc(truncate(dek(story,locale["code"],catalog),220))}</p></article>' for story in stories)
-        body = archive_page(title, catalog["strings"]["site"]["description"], items or f'<p>{esc(catalog["strings"]["archive"]["empty"])}</p>', title_html=title_html)
+        items = "".join(f'<article class="archive-item" data-story-id="{esc(story["id"])}"><time datetime="{esc(story["event_at"])}">{esc(format_date(story["event_at"],catalog,precision=story.get("date_precision","day")))}</time><a class="archive-art" href="{esc(self._story_href(locale,story))}" aria-hidden="true" tabindex="-1"><img src="{esc(self._story_media_url(story, locale))}" alt="" width="320" height="180" loading="lazy"></a><div class="archive-copy"><h2><a href="{esc(self._story_href(locale,story))}">{esc(headline(story,locale["code"],catalog))}</a></h2><p>{esc(truncate(dek(story,locale["code"],catalog),220))}</p><p class="archive-meta">{esc(label(catalog, "beat", story.get("beat")))} · {esc(catalog["strings"]["story"]["importance"].format(score=story.get("importance", 0)))}</p></div></article>' for story in stories)
+        topics = {value for item in stories for value in item.get("topics", [])}
+        orgs = {value for item in stories for value in item.get("organizations", [])}
+        labels = {"en": ("stories", "topics", "organizations"), "es-419": ("historias", "temas", "organizaciones"), "zh-Hans": ("篇报道", "个主题", "家机构")}[locale["code"]]
+        context = (f'<ul class="archive-totals"><li><strong>{len(stories)}</strong> {labels[0]}</li>'
+                   f'<li><strong>{len(topics)}</strong> {labels[1]}</li><li><strong>{len(orgs)}</strong> {labels[2]}</li></ul>')
+        navigation = ""
+        if kind == "edition":
+            dates = sorted({item["url_date"] for item in self.live}, reverse=True)
+            date = suffix.strip("/").split("/")[-1]
+            index = dates.index(date) if date in dates else -1
+            links = []
+            if index >= 0 and index + 1 < len(dates):
+                older = dates[index + 1] if index + 1 < len(dates) else None
+                if older:
+                    links.append(f'<a rel="next" href="{esc(href(self.base, locale["path_prefix"] + "edition/" + older + "/"))}">{esc(catalog["strings"]["archive"]["older"])} · {esc(older)}</a>')
+            if index > 0:
+                newer = dates[index - 1]
+                links.append(f'<a rel="prev" href="{esc(href(self.base, locale["path_prefix"] + "edition/" + newer + "/"))}">{esc(catalog["strings"]["archive"]["newer"])} · {esc(newer)}</a>')
+            navigation = f'<nav class="edition-neighbors" aria-label="{esc(catalog["strings"]["front"]["editions"])}">{"".join(links)}</nav>' if links else ""
+        elif kind == "topic":
+            navigation = self._topic_links(locale, exclude_topic=suffix.strip("/").split("/")[-1])
+        elif kind == "org":
+            navigation = self._topic_links(locale, exclude_org=suffix.strip("/").split("/")[-1])
+        body = archive_page(title, catalog["strings"]["site"]["description"], items or f'<p>{esc(catalog["strings"]["archive"]["empty"])}</p>', title_html=title_html, context=context, navigation=navigation)
         resources = None
         if kind == "edition":
             date = suffix.strip("/").split("/")[-1]
@@ -371,6 +490,16 @@ class PaperBuilder:
             cards += f'<strong>{esc(catalog["strings"]["lang"].get(code,code))}</strong><p>{esc(strings["status_page"]["translation_counts"].format(**counts))}</p>'
         reason = label(catalog, "edition_reason", self.status.get("edition_reason"), fallback=state)
         cards += f'</article><article class="status-card"><span class="eyebrow">{esc(strings["status_page"]["checked"].format(date=checked))}</span><strong>{esc(label(catalog,"source_mode","MAIN",fallback="FCMO AI"))}</strong><p>{esc(reason)}</p></article>'
+        counts = {
+            "en": ("Stories in this edition", "editions", "topics", "organizations"),
+            "es-419": ("Historias en esta edición", "ediciones", "temas", "organizaciones"),
+            "zh-Hans": ("本期报道", "期", "个主题", "家机构"),
+        }[locale["code"]]
+        live_count = int(self.status.get("live_story_count", len(self.live)))
+        topic_count = len({topic for item in self.live for topic in item.get("topics", [])})
+        org_count = len({org for item in self.live for org in item.get("organizations", [])})
+        cards += (f'<article class="status-card"><span class="eyebrow">{esc(counts[0])}</span><strong>{live_count}</strong>'
+                  f'<p>{len({item.get("url_date") for item in self.live})} {counts[1]} · {topic_count} {counts[2]} · {org_count} {counts[3]}</p></article>')
         body = status_page(strings["status_page"]["title"], cards, "")
         self._write_page(locale=locale, suffix="status/", title=f'{strings["status_page"]["title"]} — FCMO AI', description=strings["edition"]["delayed"].format(date=last), body=body, kind="status")
 
@@ -386,9 +515,46 @@ class PaperBuilder:
         catalog = self.catalogs[locale["code"]]
         s = catalog["strings"]
         feed_links = "".join(f'<li><a href="{esc(href(self.base,locale["path_prefix"]+"feed."+ext))}">{esc(name)}</a></li>' for ext, name in (("xml",s["feeds"]["rss"]),("atom",s["feeds"]["atom"]),("json",s["feeds"]["json"])))
+        live_count = len(self.live)
+        topic_count = len({value for item in self.live for value in item.get("topics", [])})
+        org_count = len({value for item in self.live for value in item.get("organizations", [])})
+        localized_method = {
+            "en": {
+                "intro": "The daily paper turns public research and reporting into a traceable account of what changed, what the evidence supports, and what remains unresolved.",
+                "steps": ("Select public developments", "Separate claims from demonstrated results", "Keep limitations and unknowns visible", "Publish only complete native editions after deterministic checks"),
+                "scope": "Coverage follows the evidence in each source. A paper announcement is not an independent replication, and a claimed result is labelled as a claim.",
+                "story_count": "published stories",
+            },
+            "es-419": {
+                "intro": "El diario convierte investigación y cobertura pública en un registro trazable de qué cambió, qué respalda la evidencia y qué sigue sin resolverse.",
+                "steps": ("Seleccionar desarrollos públicos", "Separar afirmaciones de resultados demostrados", "Mantener visibles las limitaciones y preguntas abiertas", "Publicar ediciones nativas completas tras verificaciones deterministas"),
+                "scope": "La cobertura sigue la evidencia de cada fuente. El anuncio de un artículo no equivale a una replicación independiente y los resultados declarados se identifican como afirmaciones.",
+                "story_count": "historias publicadas",
+            },
+            "zh-Hans": {
+                "intro": "每日简报将公开研究与报道整理为可追溯记录，说明发生了什么变化、证据支持什么，以及哪些问题仍未解决。",
+                "steps": ("筛选公开进展", "区分主张与已展示结果", "明确保留局限和未知问题", "通过确定性检查后发布完整的原生语言版本"),
+                "scope": "报道范围依据各来源中的证据。论文发布公告不等于独立复现，声称的结果会明确标注为主张。",
+                "story_count": "篇已发布报道",
+            },
+        }[locale["code"]]
+        ranked = sorted(self.live, key=self._story_rank, reverse=True)
+        sample = ranked[0] if ranked else None
+        method_intro = (f'<p class="method-intro">{esc(localized_method["intro"])}</p>'
+                        f'<ul class="archive-totals"><li><strong>{live_count}</strong> {esc(localized_method["story_count"])}</li>'
+                        f'<li><strong>{topic_count}</strong> {esc(s["story"]["topics"])}</li><li><strong>{org_count}</strong> {esc(s["story"]["organizations"])}</li></ul>'
+                        f'<section class="method-steps"><h2>{esc(s["story"]["evidence"])}</h2><ol>'
+                        + "".join(f'<li>{esc(step)}</li>' for step in localized_method["steps"])
+                        + f'</ol><p>{esc(localized_method["scope"])}</p></section>')
+        if sample:
+            method_intro += (f'<section class="method-example"><p class="section-kicker">{esc(label(catalog, "beat", sample.get("beat")))}</p>'
+                             f'<h2><a href="{esc(self._story_href(locale, sample))}">{esc(headline(sample, locale["code"], catalog))}</a></h2>'
+                             f'<p>{esc(truncate(dek(sample, locale["code"], catalog), 220))}</p>'
+                             f'<p>{esc(s["story"]["evidence"])} · {esc(label(catalog, "evidence_class", sample.get("evidence_class")))} · '
+                             f'{esc(s["story"]["confidence"].format(level=label(catalog, "confidence", sample.get("confidence"))))}</p></section>')
         pages = [
             ("about/", s["nav"]["about"], f'<p>{esc(s["site"]["description"])}</p><p>{esc(s["footer"]["automated_notice"])}</p>', "about"),
-            ("method/", s["nav"]["method"], f'<p>{esc(s["footer"]["automated_notice"])}</p><p>{esc(s["story"]["evidence"])} · {esc(s["story"]["limitations"])} · {esc(s["story"]["unknowns"])}</p>', "method"),
+            ("method/", s["nav"]["method"], method_intro, "method"),
             ("feeds/", s["feeds"]["title"], f'<p>{esc(s["feeds"]["intro"])}</p><ul>{feed_links}</ul>', "feeds"),
             ("agenda/", s["nav"]["agenda"], f'<p>{esc(s["archive"]["empty"])}</p><p><a href="{esc(href(self.base,locale["path_prefix"]+"agenda.ics"))}">iCalendar</a></p>', "agenda"),
             ("autores/mesa-fcmo-ai/", s["story"]["byline"].split("·")[0].strip(), f'<p>{esc(s["story"]["byline"])}</p><p>{esc(s["footer"]["automated_notice"])}</p>', "author"),

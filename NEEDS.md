@@ -187,3 +187,20 @@ The new `NO_FCMO_GROUP` gate deliberately fails until these reader-facing files 
 - **n3 / email and community:** In `tools/email_render.py`, replace the letter email masthead with `fCMO · {LETTER_NAME}`. In `community/config/subscriptions.json`, set `products.letter.brand` to `fCMO`. In `community/config/member_messages.es.json`, sign the confirmation `Javier, fCMO`. In both `community/ghost-theme/partials/subscription-choices.hbs` and `.hbs.in`, replace the internal umbrella label with `FCMO` and the Javier section label with `fCMO · Javier`. Update `tests/test_subscribe_v2.py:test_letter_preview_uses_brand_and_ghost_account` to assert `fCMO` in the rendered email: this is the authorized brand contract change, not a test relaxation.
 - **integration / legacy public sources:** Replace the internal name in `release-src/index.html`, `scaffold/release-index.html`, and `site/{about,disclaimer,license,privacy}.html`, including JSON-LD organization name, meta/header/footer, and legal notices. In `site/data/i18n/{es-419,zh-Hans}/ui.json`, replace the name in both source keys and translations, then verify translations remain semantically accurate. The legal source `CONTENT_LICENSE.md` and any derived public legal copy should describe FCMO as the umbrella without implying a legal entity or changing authorship. These files are outside n1 ownership.
 - **integration / official build:** Rerun the real-data build and `tools/gates/run_all.py`. The gate currently finds 10 built agent/llms occurrences and the source files above. Review `NO_FCMO_GROUP` together with existing legal and localization gates before release.
+# n2 integration needs
+
+## Shared page CSS from n1
+
+The n2 templates now emit editorial structure that needs matching rules in the shared `site-src/assets/css/paper.css` owned by n1. Please add scoped styles for:
+
+- `.front-ledger`: a compact, readable data strip for live stories, tracked topics and organizations.
+- `.story-hero`: keep the lead illustration inside the reading column; maintain a deliberate aspect ratio and avoid creating an empty grid row beside the story body.
+- `.archive-item`, `.archive-art`, `.archive-art img`, `.archive-copy`: use desktop columns around `8rem minmax(8rem, 12rem) minmax(0, 1fr)` for date / fixed thumbnail / readable copy, with a clear stacked layout on mobile. Keep thumbnails cropped to a consistent ratio.
+- `.archive-totals`, `.archive-meta`, `.taxonomy-neighbors`, `.taxonomy-neighbors ul`, `.taxonomy-neighbors li`: compact corpus summaries and co-occurrence links.
+- `.edition-neighbors`, `.related-reading`, `.story-taxonomy`: visible, keyboard-friendly navigation with clear separation from article evidence.
+- `.method-steps`, `.method-example`: make the process scannable and the linked live example distinct.
+- `.status-grid` with four status cards: use the available width without leaving a lone fourth card at desktop; collapse cleanly at narrow widths.
+
+The final capture covered eight page types in all three locales at 390px and 1440px: 48 screenshots, zero console errors. The story hero now sits in the reading column and archive stories carry their editorial art. Screenshot review shows the existing archive grid makes its image column too wide and compresses the copy; use the column sizes above. Please finish the shared styles for the corpus strip and navigation too, and balance four status cards at desktop.
+
+The captured shared shell still shows `FCMO Group` in reader-facing navigation and the masthead. This belongs to n1: replace it everywhere with the approved FCMO / fCMO / FCMO AI architecture, then add and run the `NO_FCMO_GROUP` gate over all three built locales and reader-facing source strings. The current 12-gate result predates that gate and does not establish brand compliance.
