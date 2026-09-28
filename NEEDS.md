@@ -178,3 +178,19 @@ Playwright 1.63.0 and Chromium into runner-temporary storage.
 No out-of-ownership edits are currently required.
 
 The implementation does not emit a `/.well-known/security.txt`: the repository has no verified security contact. No other applicable well-known standard was identified for the static agent API.
+
+# n2 integration needs
+
+## Shared page CSS from n1
+
+The n2 templates now emit editorial structure that needs matching rules in the shared `site-src/assets/css/paper.css` owned by n1. Please add scoped styles for:
+
+- `.front-ledger`: a compact, readable data strip for live stories, tracked topics and organizations.
+- `.story-hero`: keep the lead illustration inside the reading column; maintain a deliberate aspect ratio and avoid creating an empty grid row beside the story body.
+- `.archive-item`, `.archive-art`, `.archive-art img`, `.archive-copy`: use desktop columns around `8rem minmax(8rem, 12rem) minmax(0, 1fr)` for date / fixed thumbnail / readable copy, with a clear stacked layout on mobile. Keep thumbnails cropped to a consistent ratio.
+- `.archive-totals`, `.archive-meta`, `.taxonomy-neighbors`, `.taxonomy-neighbors ul`, `.taxonomy-neighbors li`: compact corpus summaries and co-occurrence links.
+- `.edition-neighbors`, `.related-reading`, `.story-taxonomy`: visible, keyboard-friendly navigation with clear separation from article evidence.
+- `.method-steps`, `.method-example`: make the process scannable and the linked live example distinct.
+- `.status-grid` with four status cards: use the available width without leaving a lone fourth card at desktop; collapse cleanly at narrow widths.
+
+The final capture covered eight page types in all three locales at 390px and 1440px: 48 screenshots, zero console errors. The story hero now sits in the reading column and archive stories carry their editorial art. Screenshot review shows the existing archive grid makes its image column too wide and compresses the copy; use the column sizes above. Please finish the shared styles for the corpus strip and navigation too, and balance four status cards at desktop.
