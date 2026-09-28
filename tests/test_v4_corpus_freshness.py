@@ -266,7 +266,7 @@ class FreshnessBannerTests(unittest.TestCase):
             "FRESH": '<p class="edition-update">Updated September 23, 2026</p><div class="status-banner" hidden data-edition-state="FRESH" data-edition-at="2026-09-23T11:32:15Z"><!-- slot:banner -->This page may be out of date: its last update was September 23, 2026. <a href="/FCMO-AI-Newsletter/status/">See the system status</a></div>',
             "QUIET": '<div class="status-banner" data-edition-state="QUIET" data-edition-at="2026-09-23T11:32:15Z"><!-- slot:banner -->No material changes since September 22, 2026; the system keeps checking sources.</div>',
             "DELAYED": '<div class="status-banner" data-edition-state="DELAYED" data-edition-at="2026-09-23T11:32:15Z"><!-- slot:banner -->Today\'s edition is delayed. Last edition: September 23, 2026. <a href="/FCMO-AI-Newsletter/status/">See the system status</a></div>',
-            "TRANSPORT_DOWN": '<div class="status-banner" data-edition-state="TRANSPORT_DOWN" data-edition-at="2026-09-23T11:32:15Z"><!-- slot:banner -->Today\'s edition is delayed. Last edition: September 23, 2026. Our news feed is not reaching us; see the system status page. <a href="/FCMO-AI-Newsletter/status/">See the system status</a></div>',
+            "TRANSPORT_DOWN": '<div class="status-banner" data-edition-state="TRANSPORT_DOWN" data-edition-at="2026-09-23T11:32:15Z"><!-- slot:banner -->Today\'s edition is delayed. Last edition: September 23, 2026. Our news feed is not reaching us. <a href="/FCMO-AI-Newsletter/status/">See the system status</a></div>',
         }
         for state, literal in expected.items():
             with self.subTest(state=state):

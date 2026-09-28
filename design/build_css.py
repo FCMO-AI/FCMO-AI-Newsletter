@@ -14,6 +14,14 @@ OUTPUT = ROOT / "site-src" / "assets" / "css" / "paper.css"
 LIMIT = 40 * 1024
 
 
+# v4 pass 5: at <=520px the header yields the first phone screen to the lead. The motto, the brand
+# subtitle and the front breadcrumbs hide; the nav keeps one row by hiding only the links whose
+# destination the logo and the double door already offer. The banner and the freshness line stay whole.
+MOBILE_FIRST_VIEWPORT_CSS = r"""/* v4 p5 mobile first viewport */
+@media(max-width:520px){.edition-line,.brand-sub,.page-front .breadcrumbs{display:none}.utility-bar{min-height:0;padding:.35rem 0}.page-front .page-shell{padding-top:.75rem}.site-header .masthead{padding:.5rem 0}.site-header .masthead .brand{font-size:2.4rem}.main-nav{flex-wrap:nowrap;justify-content:space-between;gap:0 .75rem;padding:0;white-space:nowrap;overflow-x:auto;scrollbar-width:none}.main-nav a{min-height:2.75rem}.main-nav a:first-child,.main-nav a[href$="/cartas/"],.main-nav a[href$="/diario/"]{display:none}.status-banner{margin-top:.5rem;padding:.5rem .75rem}.status-banner:not([hidden])+.corpus-freshness{margin-top:0;padding:0 .75rem .5rem;border-left:5px solid var(--metis);background:var(--warning-bg)}.status-banner[data-edition-state="TRANSPORT_DOWN"]+.corpus-freshness,.status-banner[data-edition-state="DELAYED"]+.corpus-freshness{border-color:var(--danger-text);background:var(--danger-bg)}}
+"""
+
+
 def render(tokens: dict) -> str:
     c, f, z, s, m = (tokens[key] for key in ("color", "font", "size", "space", "measure"))
     values = {
@@ -53,7 +61,7 @@ h1,h2,h3{{word-spacing:var(--display-word-space)}}
 @media(max-width:520px){{.utility-brand{{display:none}}.masthead{{padding:1.5rem 0}}.zone-switch a{{padding:.85rem .6rem;font-size:1rem}}.zone-switch small{{font-size:.62rem}}.landing-intro{{padding:2rem 0 3rem}}.landing-intro h1{{font-size:clamp(2.8rem,12vw,4.1rem)}}.landing-letters{{padding:2.3rem 0}}.landing-letter-feed{{padding:1rem}}.technical-grid .lead h3{{font-size:2.3rem}}.landing-subscribe{{padding:2.5rem 0}}}}
 html[data-error-locale] .not-found section{{display:none}}html[data-error-locale="en"] .not-found section[lang="en"],html[data-error-locale="es-419"] .not-found section[lang="es-419"],html[data-error-locale="zh-Hans"] .not-found section[lang="zh-Hans"]{{display:block}}.not-found{{max-width:50rem;min-height:30rem}}.not-found h1{{margin:1rem 0;font-size:clamp(5rem,15vw,9rem)}}.not-found section h2{{margin:0 0 1rem;font:800 clamp(2.3rem,6vw,4rem)/1 var(--display)}}.not-found .landing-jump{{justify-content:center}}
 '''
-    return css
+    return css + MOBILE_FIRST_VIEWPORT_CSS
 
 
 def main() -> int:
