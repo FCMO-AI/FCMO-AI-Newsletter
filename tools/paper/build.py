@@ -16,12 +16,13 @@ import sys
 if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
     from tools.paper import community, feeds, redirects, search_index, sitemaps
+    from tools.paper.freshness import corpus_freshness
     from tools.paper.front_order import front_order
     from tools.paper.front_plan import front_plan
     from tools.agent import build as agent_layer
     from tools.paper.i18n import dek, field, format_date, headline, is_complete, label, load_catalogs, plural, story_locale, truncate
     from tools.paper.routes import absolute, beat_path, edition_path, href, org_path, output_path, story_path, topic_path
-    from tools.paper.status_banner import render as render_banner
+    from tools.paper.status_banner import freshness_attributes, freshness_sentence, render as render_banner
     from tools.visual_desk import write_localized_story_graphics
     from tools.paper.templates import archive_page, document, front_page, simple_page, status_page, story_page
     from tools.paper.templates.pages import evidence_board, evidence_strip, story_card
@@ -30,12 +31,13 @@ if __package__ in {None, ""}:
     from tools.paper.routes import TECHNICAL_FRONT
 else:
     from . import community, feeds, redirects, search_index, sitemaps
+    from .freshness import corpus_freshness
     from .front_order import front_order
     from .front_plan import front_plan
     from tools.agent import build as agent_layer
     from .i18n import dek, field, format_date, headline, is_complete, label, load_catalogs, plural, story_locale, truncate
     from .routes import absolute, beat_path, edition_path, href, org_path, output_path, story_path, topic_path
-    from .status_banner import render as render_banner
+    from .status_banner import freshness_attributes, freshness_sentence, render as render_banner
     from tools.visual_desk import write_localized_story_graphics
     from .templates import archive_page, document, front_page, simple_page, status_page, story_page
     from .templates.pages import evidence_board, evidence_strip, story_card
@@ -84,6 +86,7 @@ class PaperBuilder:
         self.catalogs = load_catalogs(ROOT)
         self.stories = self.payload["stories"]
         self.live = [story for story in self.stories if story.get("status") == "live"]
+        self.freshness = corpus_freshness(self.live, self.status.get("status_updated_at"))
         self.out = out
         self.base = "/" + base.strip("/") + "/" if base.strip("/") else "/"
         self.base_url = self.config["base_url"]
@@ -111,7 +114,7 @@ class PaperBuilder:
             locale=locale, catalog=self.catalogs[locale["code"]], config=self.config,
             base=self.base, path=suffix, title=title, description=description, body=body,
             canonical=canonical, alternates=alts, og_image=og_image, page_type="article" if story else "website",
-            status_banner=render_banner(self.status, self.catalogs[locale["code"]], base=self.base, locale=locale) if status else "",
+            status_banner=render_banner(self.status, self.catalogs[locale["code"]], base=self.base, locale=locale, freshness=self.freshness) if status else "",
             json_ld=json_ld, extra_head=extra_head, body_class=f"page-{kind}",
             story_id=story["id"] if story else None, machine_alternates=machine_alternates,
         )
@@ -516,7 +519,14 @@ class PaperBuilder:
         state = label(catalog, "edition_state", self.status["edition_state"])
         last = format_date(self.status["last_edition_at"], catalog, precision="minute")
         checked = format_date(self.status["status_updated_at"], catalog, precision="minute")
-        cards = f'<article class="status-card"><span class="eyebrow">{esc(strings["status_page"]["edition"])}</span><strong>{esc(state)}</strong><p>{esc(strings["status_page"]["last_edition"].format(date=last))}</p></article><article class="status-card"><span class="eyebrow">{esc(strings["status_page"]["translation"])}</span>'
+        cards = f'<article class="status-card"><span class="eyebrow">{esc(strings["status_page"]["edition"])}</span><strong>{esc(state)}</strong><p>{esc(strings["status_page"]["last_edition"].format(date=last))}</p></article>'
+        fresh = self.freshness
+        fresh_label = label(catalog, "freshness_state", fresh["state"])
+        fresh_sentence = freshness_sentence(fresh, catalog)
+        lead_attributes = "".join(f' {name}="{esc(fresh[key])}"' for name, key in (("data-lead-id", "lead_id"), ("data-lead-at", "lead_at")) if fresh[key] is not None)
+        cards += (f'<article class="status-card status-freshness"{freshness_attributes(fresh)}{lead_attributes}><span class="eyebrow">{esc(strings["status_page"]["freshness"])}</span>'
+                  f'<strong>{esc(fresh_label)}</strong><p>{esc(fresh_sentence)}</p>{self._freshness_lead(locale)}</article>')
+        cards += f'<article class="status-card"><span class="eyebrow">{esc(strings["status_page"]["translation"])}</span>'
         for code, counts in self.status.get("translation", {}).items():
             cards += f'<strong>{esc(catalog["strings"]["lang"].get(code,code))}</strong><p>{esc(strings["status_page"]["translation_counts"].format(**counts))}</p>'
         reason = label(catalog, "edition_reason", self.status.get("edition_reason"), fallback=state)
@@ -532,7 +542,20 @@ class PaperBuilder:
         cards += (f'<article class="status-card"><span class="eyebrow">{esc(counts[0])}</span><strong>{live_count}</strong>'
                   f'<p>{len({item.get("url_date") for item in self.live})} {counts[1]} · {topic_count} {counts[2]} · {org_count} {counts[3]}</p></article>')
         body = status_page(strings["status_page"]["title"], cards, "", kicker=strings["kicker"]["operations"])
-        self._write_page(locale=locale, suffix="status/", title=f'{strings["status_page"]["title"]} — FCMO AI', description=strings["edition"]["delayed"].format(date=last), body=body, kind="status")
+        self._write_page(locale=locale, suffix="status/", title=f'{strings["status_page"]["title"]} — FCMO AI', description=f"{fresh_label} · {fresh_sentence}", body=body, kind="status")
+
+    def _freshness_lead(self, locale: dict) -> str:
+        """The front-page lead's age against the newest story, linked to the lead."""
+        fresh, catalog = self.freshness, self.catalogs[locale["code"]]
+        lead = front_order(self.live)[0] if self.live else None
+        if lead is None or fresh["lead_at"] is None or fresh["lead_gap_days"] is None:
+            return ""
+        strings = catalog["strings"]["freshness"]
+        template = strings["lead"] if fresh["lead_gap_days"] >= 1 else strings["lead_same_day"]
+        values = {"date": format_date(fresh["lead_at"], catalog, precision="day"),
+                  "gap": plural(catalog, "freshness_day", fresh["lead_gap_days"])}
+        link = f'<a href="{esc(self._story_href(locale, lead))}">{esc(headline(lead, locale["code"], catalog))}</a>'
+        return '<p class="freshness-lead">' + link.join(esc(part.format(**values)) for part in template.split("{headline}")) + "</p>"
 
     def _search(self, locale: dict) -> None:
         catalog = self.catalogs[locale["code"]]
