@@ -5,32 +5,43 @@ on:
     workflows: ["Deploy FCMO AI Newsletter"]
     types: [completed]
     branches: [main]
+  schedule:
+    # Mexico City is UTC-6 year round. This catches a Pages run that finished
+    # before the 07:30 send window; later verified deploys trigger workflow_run.
+    - cron: '35 13 * * *'
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: fcmo-daily-email-${{ github.event.workflow_run.head_sha }}
+  group: fcmo-daily-email
   cancel-in-progress: false
 
 jobs:
   dispatch:
-    if: github.event.workflow_run.conclusion == 'success'
+    if: >-
+      vars.FCMO_EMAIL_ENABLED == 'true' &&
+      (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success')
     runs-on: ubuntu-latest
     environment: email
     steps:
-      - name: Checkout the verified publication commit
+      - name: Checkout the publication controls and live-verified LKG tag
         uses: actions/checkout@v6
         with:
-          ref: ${{ github.event.workflow_run.head_sha }}
+          ref: main
+          fetch-depth: 0
           persist-credentials: false
       - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
-      - name: Re-check the public origin after Pages live verification
-        run: >-
-          python tools/verify_live_newsroom.py
-          --signal-out "$RUNNER_TEMP/live-verify.json"
+      - name: Bind email inputs to the verified live Pages candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          LKG_COMMIT="$(git rev-parse --verify 'refs/tags/lkg^{commit}')"
+          python tools/email_live_receipt.py \
+            --lkg-commit "$LKG_COMMIT" --out "$RUNNER_TEMP/email-edition"
       - name: Dispatch one idempotent Diario email
         env:
           GHOST_URL: ${{ secrets.GHOST_URL }}
@@ -38,6 +49,6 @@ jobs:
           FCMO_EMAIL_POSTAL_ADDRESS: ${{ secrets.FCMO_EMAIL_POSTAL_ADDRESS }}
         run: >-
           python tools/email_dispatch.py
-          --stories site/data/stories.json
-          --status site/data/newsroom-status.json
-          --live-verify "$RUNNER_TEMP/live-verify.json"
+          --stories "$RUNNER_TEMP/email-edition/stories.v2.json"
+          --status "$RUNNER_TEMP/email-edition/newsroom-status.json"
+          --live-verify "$RUNNER_TEMP/email-edition/live-verify.json"

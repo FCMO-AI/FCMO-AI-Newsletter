@@ -19,7 +19,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from dataclasses import dataclass
-from datetime import datetime, time as clock_time, timezone
+from datetime import datetime, time as clock_time, timedelta, timezone
 from pathlib import Path
 from typing import Any
 from zoneinfo import ZoneInfo
@@ -86,11 +86,28 @@ def _verification_passed(path: Path) -> bool:
     return (doc.get("status") == "GREEN" and doc.get("code") == "OK") or doc.get("passed") is True
 
 
-def _complete_stories(doc: Any) -> list[dict[str, Any]]:
+def _complete_stories(doc: Any, *, now: datetime) -> list[dict[str, Any]]:
     values = doc.get("stories") if isinstance(doc, dict) else doc
     if not isinstance(values, list):
         raise ValueError("stories input must be a list or a {stories: [...]} document")
-    return select_stories([story for story in values if isinstance(story, dict)])
+    local_today = now.astimezone(CDMX).date()
+    since = datetime.combine(local_today - timedelta(days=1), EMAIL_TIME, CDMX).astimezone(UTC)
+    recent = []
+    for story in values:
+        if not isinstance(story, dict):
+            continue
+        published = story.get("first_published_at")
+        if not isinstance(published, str):
+            continue
+        try:
+            published_at = datetime.fromisoformat(published.replace("Z", "+00:00"))
+            if published_at.tzinfo is None:
+                continue
+            if since <= published_at.astimezone(UTC) <= now.astimezone(UTC):
+                recent.append(story)
+        except ValueError:
+            continue
+    return select_stories(recent)
 
 
 @dataclass(frozen=True)
@@ -107,6 +124,7 @@ def eligibility(
     live_verified: bool,
     now: datetime,
     minimum: int = 3,
+    maximum: int = 5,
 ) -> DispatchDecision:
     if not live_verified:
         return DispatchDecision("SKIP", "not_verified")
@@ -115,12 +133,12 @@ def eligibility(
     if now.astimezone(CDMX).time().replace(tzinfo=None) < EMAIL_TIME:
         return DispatchDecision("SKIP", "before_0730_cdmx")
     edition_date = status.get("edition_date")
-    if edition_date and edition_date != now.astimezone(CDMX).date().isoformat():
+    if edition_date != now.astimezone(CDMX).date().isoformat():
         return DispatchDecision("SKIP", "edition_not_today")
-    complete = _complete_stories(stories)
+    complete = _complete_stories(stories, now=now)
     if len(complete) < minimum:
-        return DispatchDecision("SKIP", "es_incomplete")
-    return DispatchDecision("SEND", "eligible", tuple(complete))
+        return DispatchDecision("SKIP", "insufficient_new_es_stories")
+    return DispatchDecision("SEND", "eligible", tuple(complete[:maximum]))
 
 
 class GhostClient:

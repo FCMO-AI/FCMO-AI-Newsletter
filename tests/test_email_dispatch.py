@@ -13,7 +13,7 @@ for entry in (ROOT, ROOT / "tests"):
         sys.path.insert(0, str(entry))
 
 from harness.mock_ghost import MockGhost  # noqa: E402
-from tools.email_dispatch import dispatch  # noqa: E402
+from tools.email_dispatch import dispatch, eligibility  # noqa: E402
 from tools.email_render import render_daily_email, select_stories  # noqa: E402
 
 
@@ -27,6 +27,9 @@ def fixture(name: str):
 class EmailDispatchTests(unittest.TestCase):
     def setUp(self) -> None:
         self.stories = fixture("stories.v2.json")
+        # The dispatch contract requires new stories since the previous send.
+        for story in self.stories["stories"]:
+            story["first_published_at"] = "2026-09-26T11:00:00Z"
         self.status = fixture("newsroom-status.fresh.json")
         self.now = datetime(2026, 9, 26, 14, 0, tzinfo=timezone.utc)
         self.verified = True
@@ -70,8 +73,49 @@ class EmailDispatchTests(unittest.TestCase):
         with MockGhost() as ghost:
             result = dispatch(stories=incomplete, status=self.status, live_verified=True, ghost_url=ghost.url,
                               admin_api_key=ghost.admin_key, now=self.now, postal_address="Domicilio de prueba")
-            self.assertEqual(result, (0, "SKIP es_incomplete"))
+            self.assertEqual(result, (0, "SKIP insufficient_new_es_stories"))
             self.assertEqual(ghost.count("POST"), 0)
+
+    def test_missing_native_field_never_falls_back_to_english(self) -> None:
+        incomplete = copy.deepcopy(self.stories)
+        for story in incomplete["stories"]:
+            story["l10n"]["es-419"]["fields"].pop("summary", None)
+        self.assertEqual(eligibility(incomplete, self.status, live_verified=True, now=self.now).reason,
+                         "insufficient_new_es_stories")
+
+    def test_old_corpus_does_not_become_a_new_daily_email(self) -> None:
+        stale = fixture("stories.v2.json")
+        self.assertEqual(eligibility(stale, self.status, live_verified=True, now=self.now).reason,
+                         "insufficient_new_es_stories")
+
+    def test_sent_email_uses_only_new_stories(self) -> None:
+        older = self.stories["stories"][0]
+        older["first_published_at"] = "2026-09-01T12:00:00Z"
+        older["importance"] = 100
+
+        class Client:
+            subject = ""
+            def find_slug(self, slug): return None
+            def create_draft(self, slug, email):
+                self.subject = email.subject
+                return {"id": "draft-1", "updated_at": "2026-09-26T14:00:00Z",
+                        "title": email.subject, "html": email.html}
+            def publish_email(self, post, newsletter): return {"slug": "diario-2026-09-26"}
+
+        client = Client()
+        self.assertEqual(len(eligibility(self.stories, self.status, live_verified=True,
+                                         now=self.now).items), 5)
+        code, _ = dispatch(stories=self.stories, status=self.status, live_verified=True,
+                           ghost_url="https://ghost.example", admin_api_key="unused",
+                           now=self.now, postal_address="Domicilio de prueba", client=client)
+        self.assertEqual(code, 0)
+        self.assertNotIn(older["l10n"]["es-419"]["fields"]["title"], client.subject)
+
+    def test_missing_edition_date_does_not_send(self) -> None:
+        status = copy.deepcopy(self.status)
+        status.pop("edition_date")
+        self.assertEqual(eligibility(self.stories, status, live_verified=True, now=self.now).reason,
+                         "edition_not_today")
 
     def test_publish_failure_leaves_draft_and_retry_reuses_it(self) -> None:
         with MockGhost() as ghost:
