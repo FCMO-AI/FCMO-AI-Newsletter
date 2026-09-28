@@ -30,7 +30,7 @@ def build(stories: list[dict], *, locales: list[dict], base: str, out: Path, leg
     locale_by_legacy = {"en": locales[0], "es": next(x for x in locales if x["code"] == "es-419"), "zh-hans": next(x for x in locales if x["code"] == "zh-Hans")}
     written = []
     # Preserve the previous technical front as an explicit legacy document.
-    # Locale roots now serve the FCMO Group landing.
+    # Locale roots now serve the FCMO landing.
     for locale in locales:
         rel = locale["path_prefix"] + "front.html"
         _write(out, rel, href(base, locale["path_prefix"] + TECHNICAL_FRONT), base)

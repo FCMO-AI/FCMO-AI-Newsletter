@@ -18,9 +18,9 @@ _LOCALES = {
     "zh-Hans": {"soon": "订阅即将开放", "ready": "选择你想收到的内容", "intro": "两份出版物，一个会员账户。可选择其中一份或两份。", "closed": "电子邮件订阅将在发布时开放。此页面不会提交任何数据。", "language": "电子邮件以西班牙语发送。你仍可通过订阅源阅读本语言版本。", "cta": "选择邮件", "manage": "你可以随时在账户中更改偏好或退订。", "rss": "RSS", "json": "JSON 订阅源"},
 }
 _DESCRIPTIONS = {
-    "en": ("Javier’s plain-language letters, from FCMO Group.", "Matías’s technical paper digest, from FCMO AI."),
-    "es-419": ("Cartas claras y cercanas de Javier, desde FCMO Group.", "El resumen técnico de Matías, desde FCMO AI."),
-    "zh-Hans": ("Javier 的 FCMO Group 来信，清晰亲切。", "Matías 的 FCMO AI 技术摘要。"),
+    "en": ("Javier’s plain-language letters, from fCMO.", "Matías’s technical paper digest, from FCMO AI."),
+    "es-419": ("Cartas claras y cercanas de Javier, desde fCMO.", "El resumen técnico de Matías, desde FCMO AI."),
+    "zh-Hans": ("Javier 的 fCMO 来信，清晰亲切。", "Matías 的 FCMO AI 技术摘要。"),
 }
 
 
@@ -71,7 +71,7 @@ def subscribe_block(zone: str, locale: str, *, base: str = "/FCMO-AI-Newsletter/
     wrapper = "subscribe-page" if page else "subscribe-card"
     heading = f'<{tag} class="page-title">{escape(title)}</{tag}>'
     return (f'<section class="{wrapper} subscribe-v2" data-subscribe-zone="{zone}" data-subscribe-state="{"active" if active else "launch"}">'
-            f'<p class="section-kicker">FCMO Group × FCMO AI</p>{heading}<p>{escape(copy["intro"])}</p>'
+            f'<p class="section-kicker">fCMO × FCMO AI</p>{heading}<p>{escape(copy["intro"])}</p>'
             f'<ul class="subscribe-choices">{"".join(items)}</ul>{action}<p>{escape(manage)}</p>'
             f'<p>{escape(copy["language"])}</p><ul class="community-options">'
             f'<li><a href="{escape(root + "feed.xml", quote=True)}">{escape(copy["rss"])}</a></li>'
