@@ -8,10 +8,10 @@ a fresh public edition or a received email.
 
 | Who | One action | Why a person is required |
 |---|---|---|
-| Matías | Approve and merge the integrated v3 branch into `main` after Claude's acceptance report. | Publication authority and release judgment. The three lane branches are not a live release. |
-| Javier | Repair ARB `main` and advance its sealed `PUBLICATION_READY` checkpoint. | The upstream private research and its seal are outside this public repository; the current production status reports `ARB_MAIN_RED`. |
-| Javier | Install the read-only ARB GitHub App on `AI-Research-Breakthroughs`. | Repository owner authorization is required for private-source access. |
-| Matías | Set `FCMO_NEWSWIRE_APP_CLIENT_ID` and `FCMO_NEWSWIRE_APP_PRIVATE_KEY` in the repository Actions settings. | Only an authorized account can install the private key; the workflow never stores it in source. |
+| Matías | Review the verified integrated candidate and authorize its production release if that authorization has not already been given. | Release judgment; engineering integration and testing are agent work, and existing operator authorization must not be requested again. |
+
+| Javier | Install the read-only ARB GitHub App only if a fresh authorized check shows it is missing. | Repository owner authorization is required for a new installation; HANDOFF records an authenticated production round-trip on September 12, so installation is not established as outstanding. |
+| Matías | Restore the bridge App variable/key only if an authorized production check finds them missing or invalid. | The earlier authenticated round-trip is evidence they existed; do not request or rotate credentials based only on this offline checklist. |
 | Matías | Approve the publication, translation, privacy and credential policy amendments before opening paid email signup. | Legal and editorial authority cannot be inferred from passing tests. |
 | Javier | Provision the Ghost Publisher account and invite the two staff accounts. | Account creation, billing, and human identities cannot be automated here. |
 | Matías | Set `GHOST_URL`, `GHOST_ADMIN_API_KEY`, and `FCMO_EMAIL_POSTAL_ADDRESS` in the `email` environment. | Ghost credentials and the legally required postal address are private operator inputs. |
@@ -37,3 +37,7 @@ Ghost newsletter creation, theme upload, member onboarding and real delivery
 are not yet automated or proved against a live Ghost instance. Keep
 `FCMO_EMAIL_ENABLED` unset until those functions and the staging test are
 complete. The current static subscription panel remains a launch notice.
+
+## Agent work and evidence still required
+
+The September 26 production snapshot names `ARB_MAIN_RED`; it is not a fresh diagnosis of upstream today. Recheck the actual authorized upstream/production state before assigning a repair. Code repair, checkpoint verification, workflow verification, and repeated-cycle evidence collection are engineering work, not inherently human actions. This integration has no access to that private upstream or the production network, so those outcomes remain unverified here.
