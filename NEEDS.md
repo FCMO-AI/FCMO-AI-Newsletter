@@ -194,3 +194,5 @@ The n2 templates now emit editorial structure that needs matching rules in the s
 - `.status-grid` with four status cards: use the available width without leaving a lone fourth card at desktop; collapse cleanly at narrow widths.
 
 The final capture covered eight page types in all three locales at 390px and 1440px: 48 screenshots, zero console errors. The story hero now sits in the reading column and archive stories carry their editorial art. Screenshot review shows the existing archive grid makes its image column too wide and compresses the copy; use the column sizes above. Please finish the shared styles for the corpus strip and navigation too, and balance four status cards at desktop.
+
+The captured shared shell still shows `FCMO Group` in reader-facing navigation and the masthead. This belongs to n1: replace it everywhere with the approved FCMO / fCMO / FCMO AI architecture, then add and run the `NO_FCMO_GROUP` gate over all three built locales and reader-facing source strings. The current 12-gate result predates that gate and does not establish brand compliance.
