@@ -10,6 +10,7 @@ import tempfile
 import unittest
 from urllib.parse import urlsplit
 
+from tools.paper.front_order import front_order
 from tools.paper.i18n import format_date, headline, load_catalogs
 from tools.paper.templates.landing import render
 
@@ -36,12 +37,7 @@ class LandingFeatureBuildTests(unittest.TestCase):
         cls.payload = json.loads(STORIES.read_text(encoding="utf-8"))
         cls.catalogs = load_catalogs(ROOT)
         cls.routes = json.loads((cls.out / "data/routes.json").read_text(encoding="utf-8"))
-        cls.lead = sorted(
-            (story for story in cls.payload["stories"] if story.get("status") == "live"),
-            key=lambda story: (bool(story.get("front_page_eligible")), story.get("importance", 0),
-                               story.get("event_at", ""), story["id"]),
-            reverse=True,
-        )[0]
+        cls.lead = front_order([story for story in cls.payload["stories"] if story.get("status") == "live"])[0]
 
     @classmethod
     def tearDownClass(cls):

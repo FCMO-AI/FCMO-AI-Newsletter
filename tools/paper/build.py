@@ -16,6 +16,7 @@ import sys
 if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
     from tools.paper import community, feeds, redirects, search_index, sitemaps
+    from tools.paper.front_order import front_order
     from tools.agent import build as agent_layer
     from tools.paper.i18n import dek, field, format_date, headline, is_complete, label, load_catalogs, story_locale, truncate
     from tools.paper.routes import absolute, beat_path, edition_path, href, org_path, output_path, story_path, topic_path
@@ -28,6 +29,7 @@ if __package__ in {None, ""}:
     from tools.paper.routes import TECHNICAL_FRONT
 else:
     from . import community, feeds, redirects, search_index, sitemaps
+    from .front_order import front_order
     from tools.agent import build as agent_layer
     from .i18n import dek, field, format_date, headline, is_complete, label, load_catalogs, story_locale, truncate
     from .routes import absolute, beat_path, edition_path, href, org_path, output_path, story_path, topic_path
@@ -248,17 +250,17 @@ class PaperBuilder:
     def _front(self, locale: dict) -> None:
         catalog = self.catalogs[locale["code"]]
         strings = catalog["strings"]
-        ranked = sorted(self.live, key=lambda s: (bool(s.get("front_page_eligible")), s.get("importance", 0), s.get("event_at", ""), s["id"]), reverse=True)
+        order = front_order(self.live)
         stats = (len(self.live), len({topic for story in self.live for topic in story.get("topics", [])}),
                  len({org for story in self.live for org in story.get("organizations", [])}))
-        if not ranked:
+        if not order:
             body = simple_page(strings["archive"]["empty"], "")
             self._write_page(locale=locale, suffix=TECHNICAL_FRONT, title=strings["site"]["name"], description=strings["site"]["description"], body=body, kind="front")
             landing = render_landing(locale=locale, home=href(self.base, locale["path_prefix"]), technical=href(self.base, locale["path_prefix"]+TECHNICAL_FRONT), about=href(self.base, locale["path_prefix"]+"about/"), subscribe=href(self.base, locale["path_prefix"]+"suscribete/"), lead="", top="", cartas=community.render_cartas(self.cartas, locale["code"]), stats=stats)
             _, subscribe_script = community.render_subscribe(locale_code=locale["code"], path_prefix=locale["path_prefix"], base=self.base, portal_url=self.portal_url)
             self._write_page(locale=locale, suffix="", title="FCMO", description="FCMO: Javier's fCMO letters and the FCMO AI technical daily", body=landing, kind="landing", extra_head=subscribe_script, machine_alternates=[("text/plain", href(self.base, "llms.txt")), ("application/json", href(self.base, "agent.json"))])
             return
-        first, rest = ranked[0], ranked[1:]
+        first = order[0]
         hero = first.get("media") or {}
         hero_path = self._story_media_url(first, locale)
         hero_alt = (hero.get("alt") or {}).get(locale["code"], "")
@@ -277,21 +279,22 @@ class PaperBuilder:
             "date": format_date(first["event_at"], catalog, precision=first.get("date_precision", "day")),
         }
         lead = f'''<article class="lead"><p class="story-kicker">{esc(strings["front"]["lead"])} · {esc(label(catalog,"beat",first.get("beat")))}</p><h1 class="{lead_class}"><a href="{esc(self._story_href(locale,first))}">{esc(lead_title)}</a></h1><p class="lead-dek">{esc(dek(first,locale["code"],catalog))}</p><p class="story-meta">{esc(format_date(first["event_at"],catalog,precision=first.get("date_precision","day")))}</p>{evidence_strip(first, catalog)}<figure class="hero"><img src="{esc(hero_path)}" alt="{esc(hero_alt)}" width="1200" height="630"><figcaption>{esc(strings["story"]["image_credit"].format(credit=hero.get("credit","FCMO AI")))}</figcaption></figure></article>'''
-        top_values = rest[:4]
+        top_values = order[1:5]
         top = f'<h2>{esc(strings["front"]["top_stories"])}</h2>' + "".join(self._card(story, locale, 3) for story in top_values)
-        essential_values = ranked[:5]
+        essential_values = order[:5]
         essentials = f'<div><p class="section-kicker">FCMO AI · {esc(strings["front"]["essentials"])}</p><h2>{esc(strings["front"]["essentials"])}</h2></div><ol>' + "".join(f'<li><a href="{esc(self._story_href(locale,s))}">{esc(headline(s,locale["code"],catalog))}</a></li>' for s in essential_values) + "</ol>"
         sections = []
         for beat in BEATS:
-            values = [s for s in ranked if s.get("beat") == beat][:3]
+            values = [s for s in order if s.get("beat") == beat][:3]
             if not values:
                 continue
             beat_label = label(catalog, "beat", beat)
             sections.append(f'<section class="beat-section"><div class="section-head"><div><p class="section-kicker">{esc(beat_label)}</p><h2>{esc(beat_label)}</h2></div><a href="{esc(href(self.base,beat_path(locale,beat)))}">{esc(strings["front"]["see_all"])}</a></div><div class="card-row">{"".join(self._card(s,locale,3) for s in values)}</div></section>')
-        developing_values = [s for s in ranked if s.get("confidence") not in {"confirmed", "strongly_supported"}][:2]
+        shown = {story["id"] for story in (first, *top_values)}
+        developing_values = [s for s in order if s["id"] not in shown and s.get("confidence") not in {"confirmed", "strongly_supported"}][:2]
         developing = ""
         if developing_values:
-            developing = f'<section class="developing-well"><div class="section-head"><div><p class="section-kicker">FCMO AI · signal</p><h2>{esc(strings["front"]["developing"])}</h2></div></div><div class="card-row">{"".join(self._card(s,locale,3) for s in developing_values)}</div></section>'
+            developing = f'<section class="developing-well"><div class="section-head"><div><p class="section-kicker">FCMO AI · {esc(strings["kicker"]["signal"])}</p><h2>{esc(strings["front"]["developing"])}</h2></div></div><div class="card-row">{"".join(self._card(s,locale,3) for s in developing_values)}</div></section>'
         cartas = community.render_cartas(self.cartas, locale["code"])
         subscribe, subscribe_script = community.render_subscribe(locale_code=locale["code"], path_prefix=locale["path_prefix"], base=self.base, portal_url=self.portal_url)
         dates = sorted({s["url_date"] for s in self.live}, reverse=True)[:6]
@@ -493,7 +496,7 @@ class PaperBuilder:
             navigation = self._topic_links(locale, exclude_topic=suffix.strip("/").split("/")[-1])
         elif kind == "org":
             navigation = self._topic_links(locale, exclude_org=suffix.strip("/").split("/")[-1])
-        body = archive_page(title, catalog["strings"]["site"]["description"], items or f'<p>{esc(catalog["strings"]["archive"]["empty"])}</p>', title_html=title_html, context=context, navigation=navigation)
+        body = archive_page(title, catalog["strings"]["site"]["description"], items or f'<p>{esc(catalog["strings"]["archive"]["empty"])}</p>', kicker=catalog["strings"]["kicker"]["archive"], title_html=title_html, context=context, navigation=navigation)
         resources = None
         if kind == "edition":
             date = suffix.strip("/").split("/")[-1]
@@ -522,7 +525,7 @@ class PaperBuilder:
         org_count = len({org for item in self.live for org in item.get("organizations", [])})
         cards += (f'<article class="status-card"><span class="eyebrow">{esc(counts[0])}</span><strong>{live_count}</strong>'
                   f'<p>{len({item.get("url_date") for item in self.live})} {counts[1]} · {topic_count} {counts[2]} · {org_count} {counts[3]}</p></article>')
-        body = status_page(strings["status_page"]["title"], cards, "")
+        body = status_page(strings["status_page"]["title"], cards, "", kicker=strings["kicker"]["operations"])
         self._write_page(locale=locale, suffix="status/", title=f'{strings["status_page"]["title"]} — FCMO AI', description=strings["edition"]["delayed"].format(date=last), body=body, kind="status")
 
     def _search(self, locale: dict) -> None:

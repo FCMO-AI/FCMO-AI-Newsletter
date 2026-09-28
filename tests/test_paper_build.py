@@ -12,6 +12,8 @@ import unittest
 from urllib.parse import urlsplit
 import xml.etree.ElementTree as ET
 
+from tools.paper.front_order import front_order
+
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURES = ROOT / "contracts" / "fixtures"
 
@@ -105,9 +107,7 @@ class PaperBuildTests(unittest.TestCase):
 
     def test_front_figure_keeps_localized_graphic_when_og_cards_are_enabled(self):
         payload = json.loads((FIXTURES / "stories.v2.json").read_text(encoding="utf-8"))
-        lead = sorted((s for s in payload["stories"] if s.get("status") == "live"),
-                      key=lambda s: (bool(s.get("front_page_eligible")), s.get("importance", 0), s.get("event_at", ""), s["id"]),
-                      reverse=True)[0]
+        lead = front_order([s for s in payload["stories"] if s.get("status") == "live"])[0]
         with tempfile.TemporaryDirectory(prefix="localized-og-") as tmp:
             root = Path(tmp)
             og = root / "og"

@@ -13,6 +13,7 @@ if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from tools.gates.common import canonical_story_path, live_stories
+from tools.paper.front_order import front_order
 
 SCHEMA = "fcmo-deployment-identity-v2"
 IDENTITY_ROUTE = "deployment-identity.json"
@@ -60,7 +61,8 @@ def build(site: Path, source_commit: str) -> dict:
     corpus_digest = status.get("corpus_digest")
     if not release_id or not corpus_digest:
         raise ValueError("newsroom status lacks release/corpus identity")
-    lead = next((story for story in stories if story.get("front_page_eligible", True)), stories[0])
+    # Name the lead the reader actually sees: the paper front uses this same order.
+    lead = front_order(stories)[0]
     routes = critical_routes(site, lead)
     missing = [route for route in routes if not (site / route).is_file()]
     if missing:

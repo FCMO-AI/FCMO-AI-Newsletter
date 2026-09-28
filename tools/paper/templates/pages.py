@@ -120,14 +120,14 @@ def story_page(*, header: str, body: str, aside: str, hero: str = "", navigation
     return f'<article class="story-layout">{header}<div class="story-body">{hero}{body}{navigation}</div><aside class="story-aside">{aside}</aside></article>'
 
 
-def archive_page(title: str, intro: str, items: str, *, title_html: str | None = None,
+def archive_page(title: str, intro: str, items: str, *, kicker: str, title_html: str | None = None,
                  context: str = "", navigation: str = "") -> str:
     rendered_title = title_html if title_html is not None else e(title)
-    return f'<header><p class="section-kicker">FCMO AI · archive</p><h1 class="page-title">{rendered_title}</h1><p>{e(intro)}</p>{context}</header>{navigation}<div class="archive-list">{items}</div>'
+    return f'<header><p class="section-kicker">FCMO AI · {e(kicker)}</p><h1 class="page-title">{rendered_title}</h1><p>{e(intro)}</p>{context}</header>{navigation}<div class="archive-list">{items}</div>'
 
 
-def status_page(title: str, cards: str, detail: str) -> str:
-    return f'<header><p class="section-kicker">FCMO AI · operations</p><h1 class="page-title">{e(title)}</h1></header><div class="status-grid">{cards}</div>{detail}'
+def status_page(title: str, cards: str, detail: str, *, kicker: str) -> str:
+    return f'<header><p class="section-kicker">FCMO AI · {e(kicker)}</p><h1 class="page-title">{e(title)}</h1></header><div class="status-grid">{cards}</div>{detail}'
 
 
 def simple_page(title: str, body: str, *, kicker: str = "FCMO AI") -> str:
