@@ -68,6 +68,7 @@ class EmailLiveReceiptTests(unittest.TestCase):
 
     def test_workflow_has_daily_retry_and_uses_verified_v2_input(self):
         workflow = (ROOT / ".github/workflows/dispatch-email.yml").read_text(encoding="utf-8")
+        self.assertIn("cron: '35 12 * * *'", workflow)
         self.assertIn("cron: '35 13 * * *'", workflow)
         self.assertIn("refs/tags/lkg^{commit}", workflow)
         self.assertIn("tools/email_live_receipt.py", workflow)
