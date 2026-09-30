@@ -89,7 +89,13 @@ def dt(value: Any) -> datetime:
 def story_link(row: dict[str, Any], locale: str = "en") -> str:
     rid = str(row.get("id") or row.get("research_id") or "")
     if not rid.startswith("FCMO-"):
-        return href("news/en/")
+        # Search also contains publication-edition rows (PUB-*). Those rows
+        # already carry their canonical human route; synthesizing a Story URL
+        # from the publication ID creates dead /news/en/PUB-*.html links.
+        human_url = str(row.get("human_url") or "")
+        if human_url.startswith(BASE_URL + "/"):
+            return href(human_url.removeprefix(BASE_URL + "/"))
+        return href("archive.html")
     story_id = f"STORY-{rid[5:]}"
     loc = {"en": "en", "es-419": "es", "zh-Hans": "zh-hans"}.get(locale, "en")
     return href(f"news/{loc}/{story_id}.html")
