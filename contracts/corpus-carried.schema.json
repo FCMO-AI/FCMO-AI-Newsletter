@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/contracts/corpus-carried.schema.json",
+  "title": "Carried-forward record (one line of corpus/carried.jsonl)",
+  "description": "When corpus_guard returns CARRY_FORWARD, each missing id keeps its last published record verbatim here, outside the sealed digest, until the upstream sends it again or a tombstone withdraws it. The line is dropped as soon as either happens.",
+  "x-contract": {"name": "corpus-carried", "status": "v2-frozen", "version": 1},
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "carried_since", "last_release_id", "record"],
+  "properties": {
+    "id": {"type": "string", "pattern": "^FCMO-[0-9A-F]{12}$"},
+    "carried_since": {"type": "string", "format": "date-time", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"},
+    "last_release_id": {"type": "string", "pattern": "^newswire-[0-9a-f]{24}$"},
+    "record": {"type": "object", "required": ["id"], "properties": {"id": {"type": "string", "pattern": "^FCMO-[0-9A-F]{12}$"}}}
+  }
+}

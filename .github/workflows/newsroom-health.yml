@@ -7,8 +7,8 @@ on:
     branches: [main]
   schedule:
     # Hourly by design: this is the production heartbeat, not the publication
-    # cadence. It makes a freshness/translation regression visible well before
-    # the <=24h editorial SLO can silently expire.
+    # cadence. It makes a serving, transport, upstream, editorial or translation
+    # regression visible well before the <=24h editorial SLO can silently expire.
     - cron: '17 * * * *'
   push:
     branches: [main]
@@ -17,11 +17,9 @@ on:
       - 'tools/editorial_freshness.py'
       - 'tools/verify_live_newsroom.py'
       - 'tools/newsroom_receipt.py'
-      - 'tests/oraculos/verificar_surface_freshness.py'
+      - 'tools/wire_status.py'
+      - 'contracts/thresholds.json'
       - 'tests/oraculos/verificar_live_surfaces.py'
-      - 'tools/newsletter-current-corpus.js'
-      - 'tools/newsletter-visual-regressions.css'
-      - 'tools/apply_front_page_layout.py'
       - '.github/workflows/newsroom-health.yml'
   workflow_dispatch:
 
@@ -35,62 +33,89 @@ concurrency:
   group: newsroom-production-health-v2-${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion != 'success' && github.run_id || 'active' }}
   cancel-in-progress: true
 
+# Four separate truths, each its own job so the failed one is named:
+# - serving: the live site answers and serves the deployed release (availability
+#   + identity only; a quiet or delayed newsroom still serves fine);
+# - publication-freshness: the wire state (FRESH/QUIET green, DELAYED or
+#   TRANSPORT_DOWN red) from corpus/wire-status.json;
+# - editorial-freshness: the newest real event is recent enough;
+# - translation-health: native ES/ZH editions keep up (not a required signal).
+# The health-state job joins them into health-state.json (artifact
+# "health-state"; contracts/health-state.schema.json) for alerting.
 jobs:
   serving-health:
     # A failed Pages workflow cannot be laundered into a healthy serving check.
     if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
+    outputs:
+      signal: ${{ steps.serving.outputs.signal }}
     steps:
       - uses: actions/checkout@v6
         with:
           persist-credentials: false
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
-      - name: Prove the last-known-good production release and reader routes are serving
-        run: python tools/verify_live_newsroom.py
+      - name: Prove the production site is serving the deployed release
+        id: serving
+        shell: bash
+        run: |
+          set +e
+          python tools/verify_live_newsroom.py --serving-only --identity-timeout-s 300 --signal-out "$RUNNER_TEMP/serving.json"
+          rc=$?
+          set -e
+          if test -s "$RUNNER_TEMP/serving.json"; then
+            echo "signal=$(python -c 'import json,sys;print(json.dumps(json.load(open(sys.argv[1])),separators=(",",":")))' "$RUNNER_TEMP/serving.json")" >>"$GITHUB_OUTPUT"
+          fi
+          exit "$rc"
       - name: Prove live autonomous surfaces still represent current public research
         run: python tests/oraculos/verificar_live_surfaces.py
 
   publication-freshness:
     # Availability and autonomous publication are different operational truths.
     # The site may safely serve its last-known-good release while this job remains
-    # red, making a broken/stale Airlock impossible to hide behind uptime.
+    # red, making a delayed or dead transport impossible to hide behind uptime.
     if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
         with:
           persist-credentials: false
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
-      - name: Require a real recent Airlock-backed production release
-        run: python tools/verify_live_newsroom.py --require-airlock --max-airlock-age-hours 30
+      - name: Require a FRESH or QUIET wire state
+        run: python tools/wire_status.py classify --wire-status corpus/wire-status.json
 
   editorial-freshness:
-    # Transport can be fresh while the newspaper is editorially stale. Measure
-    # the newsroom acknowledgement, newest material Story and selected lead as
-    # separate SLOs so the failed stage is visible in the job name and logs.
+    # Transport can be fresh while the newspaper is editorially stale. A quiet
+    # wire is fine; otherwise the newest real event must be recent enough.
     if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
+    outputs:
+      signal: ${{ steps.editorial.outputs.signal }}
     steps:
       - uses: actions/checkout@v6
         with:
           persist-credentials: false
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
-      - name: Enforce front-page and Story-layer freshness SLO
-        run: >-
-          python tools/editorial_freshness.py check
-          --stories site/data/stories.json
-          --status site/data/newsroom-status.json
-          --target-hours 24
-          --acceptable-hours 48
-          --max-airlock-age-hours 30
-          --max-newsroom-age-hours 30
-          --minimum-importance 4
+      - name: Enforce the newest-event freshness SLO
+        id: editorial
+        shell: bash
+        run: |
+          set +e
+          python tools/editorial_freshness.py check \
+            --wire-status corpus/wire-status.json \
+            --records corpus/data/developments.jsonl \
+            --signal-out "$RUNNER_TEMP/editorial.json"
+          rc=$?
+          set -e
+          if test -s "$RUNNER_TEMP/editorial.json"; then
+            echo "signal=$(python -c 'import json,sys;print(json.dumps(json.load(open(sys.argv[1])),separators=(",",":")))' "$RUNNER_TEMP/editorial.json")" >>"$GITHUB_OUTPUT"
+          fi
+          exit "$rc"
 
   translation-health:
     # English publication deliberately remains available when a native edition is
@@ -99,16 +124,85 @@ jobs:
     # reconciliation grace period, after which the health workflow goes red.
     if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
+    outputs:
+      signal: ${{ steps.translation.outputs.signal }}
     steps:
       - uses: actions/checkout@v6
         with:
           persist-credentials: false
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
       - name: Require recent material stories to have native ES/ZH editions
-        run: >-
-          python tools/translation_health.py
-          --grace-hours 1
-          --fresh-window-hours 30
-          --minimum-importance 4
+        id: translation
+        shell: bash
+        run: |
+          set +e
+          python tools/translation_health.py \
+            --grace-hours 1 \
+            --fresh-window-hours 30 \
+            --minimum-importance 4
+          rc=$?
+          set -e
+          case "$rc" in
+            0) echo 'signal={"status":"GREEN","code":"OK","detail":"Recent material stories have native ES/ZH editions."}' >>"$GITHUB_OUTPUT" ;;
+            1) echo 'signal={"status":"RED","code":"BACKLOG","detail":"Recent material stories are missing native ES/ZH editions."}' >>"$GITHUB_OUTPUT" ;;
+          esac
+          exit "$rc"
+
+  health-state:
+    needs: [serving-health, publication-freshness, editorial-freshness, translation-health]
+    if: ${{ always() && (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success') }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Recover the previous health state (best effort, for since/alert continuity)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          RUN_ID: ${{ github.run_id }}
+        shell: bash
+        run: |
+          set +e
+          mkdir -p "$RUNNER_TEMP/previous-health"
+          for id in $(gh run list --repo "$REPO" --workflow newsroom-health.yml --branch main --status completed --limit 5 --json databaseId --jq '.[].databaseId'); do
+            test "$id" = "$RUN_ID" && continue
+            if gh run download "$id" --repo "$REPO" --name health-state --dir "$RUNNER_TEMP/previous-health" >/dev/null 2>&1; then
+              echo "Previous health state from run $id."
+              break
+            fi
+          done
+          exit 0
+      - name: Compose health-state.json from the four signals and the wire status
+        env:
+          SERVING: ${{ needs.serving-health.outputs.signal }}
+          EDITORIAL: ${{ needs.editorial-freshness.outputs.signal }}
+          TRANSLATION: ${{ needs.translation-health.outputs.signal }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/signals" health
+          printf '%s' "$SERVING" >"$RUNNER_TEMP/signals/serving.json"
+          printf '%s' "$EDITORIAL" >"$RUNNER_TEMP/signals/editorial.json"
+          printf '%s' "$TRANSLATION" >"$RUNNER_TEMP/signals/translation.json"
+          python tools/wire_status.py health \
+            --wire-status corpus/wire-status.json \
+            --signal "serving=$RUNNER_TEMP/signals/serving.json" \
+            --signal "editorial=$RUNNER_TEMP/signals/editorial.json" \
+            --signal "translation=$RUNNER_TEMP/signals/translation.json" \
+            --previous "$RUNNER_TEMP/previous-health/health-state.json" \
+            --out health/health-state.json
+      - name: Upload the health state
+        uses: actions/upload-artifact@v6
+        with:
+          name: health-state
+          path: health/health-state.json
+          retention-days: 30

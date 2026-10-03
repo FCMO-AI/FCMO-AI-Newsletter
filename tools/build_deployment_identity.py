@@ -1,80 +1,101 @@
 #!/usr/bin/env python3
-"""Create the immutable identity receipt for one exact Pages candidate.
-
-The receipt is uploaded as a workflow artifact, not served by the site itself.
-Post-deploy verification uses it to prove that production is serving the exact
-build manifest and critical bytes emitted by the build that Pages promoted.
-"""
+"""Bind one exact Pages candidate to an origin-verifiable identity receipt."""
 from __future__ import annotations
 
 import argparse
 import hashlib
 import json
 import os
+import sys
 from pathlib import Path
+
+if __package__ in {None, ""}:
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from tools.gates.common import canonical_story_path, live_stories
+
+SCHEMA = "fcmo-deployment-identity-v2"
+IDENTITY_ROUTE = "deployment-identity.json"
 
 
 def sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def tree_digest(site: Path) -> str:
+    digest = hashlib.sha256()
+    for path in sorted(site.rglob("*")):
+        if not path.is_file() or path.relative_to(site).as_posix() == IDENTITY_ROUTE:
+            continue
+        relative = path.relative_to(site).as_posix().encode("utf-8")
+        digest.update(len(relative).to_bytes(4, "big")); digest.update(relative)
+        digest.update(bytes.fromhex(sha256(path)))
+    return digest.hexdigest()
+
+
+def critical_routes(site: Path, lead: dict | None) -> list[str]:
+    routes = ["index.html", "es/index.html", "zh/index.html", "data/newsroom-status.json"]
+    story_data = "data/stories.v2.json" if (site / "data/stories.v2.json").is_file() else "data/stories.json"
+    routes.append(story_data)
+    if lead:
+        for locale in ("en", "es-419", "zh-Hans"):
+            route = canonical_story_path(lead, locale)
+            if route: routes.append(route)
+    return list(dict.fromkeys(routes))
+
+
 def build(site: Path, source_commit: str) -> dict:
-    manifest_path = site / "build-manifest.json"
-    status_path = site / "data" / "newsroom-status.json"
-    stories_path = site / "data" / "stories.json"
-    for path in (manifest_path, status_path, stories_path):
-        if not path.is_file():
-            raise ValueError(f"deployment identity missing required file: {path}")
-
-    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    if not source_commit:
+        raise ValueError("source commit is empty")
+    document, stories = live_stories(site)
+    if not stories:
+        raise ValueError("Story layer has no live stories")
+    status_path = site / "data/newsroom-status.json"
+    if not status_path.is_file():
+        raise ValueError("deployment identity missing data/newsroom-status.json")
     status = json.loads(status_path.read_text(encoding="utf-8"))
-    stories = json.loads(stories_path.read_text(encoding="utf-8"))
-    if not isinstance(manifest.get("files"), dict) or not manifest.get("files"):
-        raise ValueError("build manifest has no files map")
-    if not isinstance(status, dict) or not status.get("release_id") or not status.get("corpus_digest"):
+    if not isinstance(status, dict):
+        raise ValueError("newsroom status is not an object")
+    release_id = status.get("release_id") or document.get("release_id")
+    corpus_digest = status.get("corpus_digest")
+    if not release_id or not corpus_digest:
         raise ValueError("newsroom status lacks release/corpus identity")
-    if not isinstance(stories, list) or not stories:
-        raise ValueError("Story layer is empty")
-
-    recorded = manifest["files"]
-    for rel, path in (
-        ("data/newsroom-status.json", status_path),
-        ("data/stories.json", stories_path),
-    ):
-        digest = sha256(path)
-        if recorded.get(rel) != digest:
-            raise ValueError(f"build manifest does not bind exact {rel} bytes")
-
-    return {
-        "schema": "fcmo-deployment-identity-v1",
+    lead = next((story for story in stories if story.get("front_page_eligible", True)), stories[0])
+    routes = critical_routes(site, lead)
+    missing = [route for route in routes if not (site / route).is_file()]
+    if missing:
+        raise ValueError(f"deployment identity missing critical routes: {missing}")
+    critical = {route: sha256(site / route) for route in routes}
+    body = {
+        "schema": SCHEMA,
         "source_commit": source_commit,
-        "release_id": status["release_id"],
-        "corpus_digest": status["corpus_digest"],
+        "release_id": release_id,
+        "corpus_digest": corpus_digest,
         "story_count": len(stories),
-        "build_manifest_sha256": sha256(manifest_path),
-        "newsroom_status_sha256": sha256(status_path),
-        "stories_sha256": sha256(stories_path),
+        "lead_id": lead.get("id"),
+        "tree_sha256": tree_digest(site),
+        "critical_files": critical,
     }
+    body["candidate_id"] = hashlib.sha256(
+        json.dumps(body, ensure_ascii=False, separators=(",", ":"), sort_keys=True).encode("utf-8")
+    ).hexdigest()
+    return body
 
 
 def main(argv: list[str] | None = None) -> int:
-    p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument("--site", type=Path, default=Path("publish"))
-    p.add_argument("--output", type=Path, required=True)
-    p.add_argument("--source-commit", default=os.environ.get("GITHUB_SHA", ""))
-    args = p.parse_args(argv)
-    try:
-        receipt = build(args.site, args.source_commit)
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--site", type=Path, default=Path("publish"))
+    parser.add_argument("--output", type=Path)
+    parser.add_argument("--source-commit", default=os.environ.get("GITHUB_SHA", ""))
+    args = parser.parse_args(argv)
+    output = args.output or args.site / IDENTITY_ROUTE
+    try: receipt = build(args.site, args.source_commit)
     except (OSError, ValueError, json.JSONDecodeError) as exc:
         raise SystemExit(f"deployment identity FAILED: {exc}") from exc
-    args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(json.dumps(receipt, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    print(
-        f"deployment identity OK: release={receipt['release_id']} "
-        f"stories={receipt['story_count']} manifest={receipt['build_manifest_sha256'][:12]}..."
-    )
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_text(json.dumps(receipt, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    print(f"deployment identity OK: candidate={receipt['candidate_id'][:12]} release={receipt['release_id']} stories={receipt['story_count']}")
     return 0
 
 
-if __name__ == "__main__":
-    raise SystemExit(main())
+if __name__ == "__main__": raise SystemExit(main())

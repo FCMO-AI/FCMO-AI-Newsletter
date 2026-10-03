@@ -5,6 +5,9 @@ This is a schema/declassification migration tool, not a translator. When the
 airlock deliberately removes a canonical field, old locale packs must not keep
 publishing its translated value. The tool prunes only fields/records that no
 longer exist in canonical public data; it never invents translations.
+
+The canonical English comes from ``--corpus`` (the committed corpus, preferred)
+or, for the legacy pipeline, from the ``fcmo-data`` block of ``--site``.
 """
 from __future__ import annotations
 
@@ -32,6 +35,28 @@ def canonical_records(site: Path) -> dict[str, dict[str, Any]]:
     if not isinstance(rows, list):
         raise SystemExit("locale reconciliation: canonical records missing")
     return {row["id"]: row for row in rows if isinstance(row, dict) and isinstance(row.get("id"), str)}
+
+
+def corpus_records(corpus: Path) -> dict[str, dict[str, Any]]:
+    """Live canonical records of the corpus, with the legacy ``why`` alias.
+
+    Locale packs still carry ``why`` next to ``why_it_matters``; the alias keeps
+    that field from being pruned as if the canonical record had dropped it.
+    """
+    try:
+        from tools.validate_localizations import load_corpus_canonical
+    except ImportError:  # direct script execution from tools/
+        from validate_localizations import load_corpus_canonical  # type: ignore[no-redef]
+    rows = load_corpus_canonical(corpus)
+    if not rows:
+        raise SystemExit(f"locale reconciliation: no canonical records in {corpus}")
+    out: dict[str, dict[str, Any]] = {}
+    for rid, row in rows.items():
+        record = dict(row)
+        if "why" not in record and "why_it_matters" in record:
+            record["why"] = record["why_it_matters"]
+        out[rid] = record
+    return out
 
 
 def prune(source: Any, translated: Any) -> Any:
@@ -62,10 +87,11 @@ def atomic_json(path: Path, value: dict[str, Any], compact: bool) -> None:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--site", type=Path, default=Path("release-src"))
+    parser.add_argument("--corpus", type=Path, default=None, help="canonical corpus directory (preferred over --site)")
     parser.add_argument("--i18n-dir", type=Path, default=Path("site/data/i18n"))
     args = parser.parse_args(argv)
 
-    canonical = canonical_records(args.site)
+    canonical = corpus_records(args.corpus) if args.corpus else canonical_records(args.site)
     removed_records = removed_fields = touched = 0
     for locale in ("es-419", "zh-Hans"):
         locale_dir = args.i18n_dir / locale
@@ -93,6 +119,9 @@ def main(argv: list[str] | None = None) -> int:
                 new_records[rid] = pruned
             if changed:
                 doc["records"] = new_records
+                if path.name == "part-desk.json" and isinstance(doc.get("provenance"), dict):
+                    doc["provenance"] = {rid: meta for rid, meta in doc["provenance"].items()
+                                         if rid in new_records and new_records[rid]}
                 atomic_json(path, doc, compact="\n" not in original.rstrip("\n"))
                 touched += 1
     print(

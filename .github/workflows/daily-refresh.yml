@@ -1,18 +1,27 @@
 name: Refresh the autonomous newsroom from the sanitized corpus
 
 # The newswire bridge leaves exclusively sanitized material in corpus/. From here
-# Newsletter behaves as a public clean-room newsroom: validate the heartbeat,
+# Newsletter behaves as a public clean-room newsroom: read the wire status,
 # ingest, import ARB-authored ES/ZH editions, re-research public sources,
-# resolve media, build Story surfaces and refuse unsafe publication. A semantically
-# unchanged Airlock heartbeat exits after preflight without rebuilding or committing.
-# Workflow changes self-trigger a refresh so concurrency/supersession fixes are exercised in production.
-# Native-language
-# backlog is explicit and observable; it no longer rolls canonical English backward.
+# resolve media and build the Story layer consumed by the paper SSG. Pages owns
+# candidate rendering, deterministic gates, browser proof and deployment.
+# Liveness comes from corpus/wire-status.json, never from the Airlock time. The
+# preflight picks one of two paths:
+# - rebuild: the release, the corpus digest or the builder changed. A builder
+#   change always rebuilds, even with a delayed or down upstream (warning only).
+# - status: nothing material changed; only site/data/newsroom-status.json is
+#   refreshed (edition state for the reader banner), at most every 5h when idle.
+# Every bridge run (success or failure) chains here, so a failing transport
+# reaches the reader as a DELAYED banner. Workflow changes self-trigger a refresh.
+# Native-language backlog is explicit and observable; it no longer rolls
+# canonical English backward.
 on:
   push:
     branches: [main]
     paths:
       - 'corpus/**'
+      # The hourly heartbeat reaches this workflow through workflow_run.
+      - '!corpus/wire-status.json'
       - 'scaffold/**'
       # Trigger broadly on public tooling and let newsroom_receipt.builder_digest
       # decide whether the changed tool is product-affecting. This avoids a second
@@ -25,144 +34,142 @@ on:
     types: [completed]
     branches: [main]
   workflow_dispatch:
+    inputs:
+      drill_now_offset_h:
+        description: 'Preview only: render the edition banner as if this many hours had passed (no commit, no deploy)'
+        required: false
+        default: ''
+        type: string
 
 permissions:
   contents: write
 
 concurrency:
-  # GitHub evaluates concurrency before job-level if:. A failed upstream
-  # workflow_run is destined to be skipped, so it must never acquire the active
-  # lease and cancel a valid push/success recovery run.
-  group: newsletter-refresh-v3-${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion != 'success' && github.run_id || 'active' }}
+  # GitHub evaluates concurrency before job-level if:. A run chained from a
+  # failed bridge (it only records the edition state) and a preview drill get a
+  # unique lease, so neither can cancel a valid push/success rebuild.
+  group: newsletter-refresh-v3-${{ (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion != 'success' || github.event_name == 'workflow_dispatch' && inputs.drill_now_offset_h != '') && github.run_id || 'active' }}
   cancel-in-progress: true
 
 jobs:
   refresh:
-    if: >-
-      github.event_name != 'workflow_run' ||
-      github.event.workflow_run.conclusion == 'success'
+    if: github.event_name != 'workflow_dispatch' || inputs.drill_now_offset_h == ''
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v6
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.12'
 
-      - name: Require a fresh authenticated airlock heartbeat
-        id: airlock
+      - name: Read the wire status and choose rebuild or status-only
+        id: preflight
         shell: bash
-        run: python tools/newsroom_receipt.py preflight --github-output "$GITHUB_OUTPUT"
+        run: |
+          set +e
+          python tools/newsroom_receipt.py preflight --github-output "$GITHUB_OUTPUT"
+          rc=$?
+          set -e
+          if test "$rc" -gt 1; then exit "$rc"; fi
+          if test "$rc" -eq 1; then
+            # TRANSPORT_DOWN: still record the edition state so readers see a
+            # delayed banner. newsroom-health owns the alarm; failing here would
+            # also block the Pages deploy that carries the banner.
+            echo '::warning::Wire transport is down; recording the delayed edition state.'
+          fi
 
       - name: Regenerate the canonical public source from the corpus
-        if: steps.airlock.outputs.state != 'NO_PUBLIC_DELTA'
+        if: steps.preflight.outputs.path == 'rebuild'
         run: python tools/ingest_corpus.py --corpus corpus --out release-src
 
       - name: Bind relationship JSON and JSONL to one canonical sequence
-        if: steps.airlock.outputs.state != 'NO_PUBLIC_DELTA'
+        if: steps.preflight.outputs.path == 'rebuild'
         run: python tools/synchronize_relationship_surfaces.py --site release-src
 
       - name: Prove the ingest carried every story across
-        if: steps.airlock.outputs.state != 'NO_PUBLIC_DELTA'
+        if: steps.preflight.outputs.path == 'rebuild'
         shell: python
         run: |
           import json, re, sys
           from pathlib import Path
-          rows = [json.loads(line) for line in
-                  Path('corpus/data/developments.jsonl').read_text(encoding='utf-8').splitlines()
-                  if line.strip()]
-          incoming = {row['id'] for row in rows}
+          from tools.ingest_corpus import publishable_rows, read_jsonl
+          rows = read_jsonl(Path('corpus/data/developments.jsonl'))
+          publishable, _merged, _held = publishable_rows(Path('corpus'), rows)
+          incoming = {row['id'] for row in publishable}
           html = Path('release-src/index.html').read_text(encoding='utf-8')
           match = re.search(r'<script id="fcmo-data" type="application/json">(.*?)</script>', html, re.S)
           if not match:
               sys.exit('release-src/index.html is missing canonical fcmo-data')
           outgoing = {row['id'] for row in json.loads(match.group(1))['records']}
           if incoming != outgoing:
-              print(f'corpus has {len(incoming)} stories and site has {len(outgoing)}', file=sys.stderr)
+              print(f'corpus has {len(incoming)} publishable stories and site has {len(outgoing)}', file=sys.stderr)
               for label, missing in (('did not arrive', incoming - outgoing), ('unexpected extras', outgoing - incoming)):
                   if missing:
                       print(f'  {label}: {sorted(missing)}', file=sys.stderr)
               raise SystemExit(1)
-          print(f'all {len(incoming)} corpus stories reached the site')
+          print(f'all {len(incoming)} publishable corpus stories reached the site')
 
       - name: Import ARB-authored Spanish and Chinese editions
-        if: steps.airlock.outputs.state != 'NO_PUBLIC_DELTA'
+        if: steps.preflight.outputs.path == 'rebuild'
         run: python tools/sync_airlocked_locales.py --corpus corpus
 
       - name: Reconcile locale overlays with the declassified public schema
-        if: steps.airlock.outputs.state != 'NO_PUBLIC_DELTA'
+        if: steps.preflight.outputs.path == 'rebuild'
         run: python tools/reconcile_locale_overlays.py --site release-src
 
       - name: Bind locale metadata to the current canonical editorial identity
-        if: steps.airlock.outputs.state != 'NO_PUBLIC_DELTA'
+        if: steps.preflight.outputs.path == 'rebuild'
         run: python tools/refresh_locale_identity.py --site release-src
 
       - name: Validate every available native edition and record translation backlog
-        if: steps.airlock.outputs.state != 'NO_PUBLIC_DELTA'
+        if: steps.preflight.outputs.path == 'rebuild'
         run: python tools/validate_localizations_partial.py --site release-src
 
       - name: Re-research the stories from public evidence only
-        if: steps.airlock.outputs.state != 'NO_PUBLIC_DELTA'
+        if: steps.preflight.outputs.path == 'rebuild'
         run: python tools/public_research_desk.py --release-src release-src
 
       - name: Resolve licensed visuals or generate original FCMO explainers
-        if: steps.airlock.outputs.state != 'NO_PUBLIC_DELTA'
+        if: steps.preflight.outputs.path == 'rebuild'
         run: python tools/visual_desk.py --release-src release-src --site site
 
-      - name: Build the Story layer and static EN ES ZH news surfaces
-        if: steps.airlock.outputs.state != 'NO_PUBLIC_DELTA'
+      - name: Maintain legacy Story surfaces while the first paper LKG is established
+        if: steps.preflight.outputs.path == 'rebuild'
         run: python tools/build_newsroom_surfaces.py --release-src release-src --site site
 
-      - name: Replace untranslated locale fallbacks with explicit pending pages
-        if: steps.airlock.outputs.state != 'NO_PUBLIC_DELTA'
-        run: python tools/mark_pending_localizations.py --site site
-
-      - name: Select the freshest material lead without changing evidence labels
-        if: steps.airlock.outputs.state != 'NO_PUBLIC_DELTA'
-        run: python tools/editorial_freshness.py select --stories site/data/stories.json
-
-      - name: Promote the current Story lead onto the reader front page
-        if: steps.airlock.outputs.state != 'NO_PUBLIC_DELTA'
-        run: python tools/promote_story_front_page.py --site site
-
-      - name: Build and finalize the complete editorial frontend suite
-        if: steps.airlock.outputs.state != 'NO_PUBLIC_DELTA'
+      - name: Build the canonical A2 Story layer consumed by the paper SSG
+        if: steps.preflight.outputs.path == 'rebuild'
         run: |
-          python tools/build_editorial_frontends.py --site site
-          python tools/finalize_editorial_frontends.py --site site
-
-      - name: Prove the complete regenerated newsroom under all stateful refresh oracles
-        if: steps.airlock.outputs.state != 'NO_PUBLIC_DELTA'
-        run: |
-          python tests/oraculos/verificar_generador_newsroom.py
-          python tests/oraculos/verificar_traduccion.py
-          python tests/oraculos/verificar_refresco.py
+          python -m tools.story_layer build \
+            --corpus corpus \
+            --history-git . \
+            --site site \
+            --i18n site/data/i18n \
+            --out site/data/stories.v2.json
+          python tests/harness/validate.py contracts/stories.v2.schema.json site/data/stories.v2.json
 
       - name: Write downstream newsroom acknowledgement
-        if: steps.airlock.outputs.state != 'NO_PUBLIC_DELTA'
-        run: python tools/newsroom_receipt.py finalize
+        if: steps.preflight.outputs.path == 'rebuild'
+        run: python tools/newsroom_receipt.py finalize --wire-status corpus/wire-status.json
 
-      - name: Rebuild the frozen canonical overlay
-        if: steps.airlock.outputs.state != 'NO_PUBLIC_DELTA'
-        run: python tools/build_final_release.py
-
-      - name: Rebuild the readiness receipt
-        if: steps.airlock.outputs.state != 'NO_PUBLIC_DELTA'
-        run: python tools/build_ready_receipt.py
-
-      - name: Run the established six publication gates
-        if: steps.airlock.outputs.state != 'NO_PUBLIC_DELTA'
-        run: python tools/verify_release.py
+      - name: Record only the edition state (no material change)
+        if: steps.preflight.outputs.path == 'status'
+        run: python tools/newsroom_receipt.py status --wire-status corpus/wire-status.json
 
       - name: Commit only what the autonomous newsroom produced
-        if: steps.airlock.outputs.state != 'NO_PUBLIC_DELTA'
+        if: steps.preflight.outputs.path == 'rebuild' || steps.preflight.outputs.path == 'status'
+        env:
+          REFRESH_PATH: ${{ steps.preflight.outputs.path }}
         shell: bash
         run: |
           git config user.name 'FCMO Autonomous Newsroom'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           rm -rf publish regression
+          # Legacy release artifacts are included in the closed boundary so the
+          # first-LKG recovery snapshot remains coherent if an operator rebuilds
+          # it during cutover. This workflow no longer generates or deploys it.
           git add -A -- release-src release-overlay site READY_TO_PUBLISH.md
           if git diff --cached --quiet; then
             echo 'Healthy heartbeat with no material release-tree delta.'
@@ -174,7 +181,11 @@ jobs:
             git diff --cached --name-only -- $outside >&2
             exit 1
           fi
-          git commit -m 'release: autonomously refresh newsroom from airlocked corpus'
+          if test "$REFRESH_PATH" = status; then
+            git commit -m 'status: record the newsroom edition state'
+          else
+            git commit -m 'release: autonomously refresh newsroom from airlocked corpus'
+          fi
           BUILD_BASE="$(git rev-parse HEAD^)"
 
           # Optimistic publication transaction. The generated release is valid
@@ -188,7 +199,8 @@ jobs:
             git fetch --quiet origin main
             REMOTE_SHA="$(git rev-parse origin/main)"
             if test "$REMOTE_SHA" != "$(git rev-parse HEAD^)"; then
-              if ! git diff --quiet "$BUILD_BASE..$REMOTE_SHA" --                 corpus scaffold tools .github/workflows/daily-refresh.yml; then
+              # The wire heartbeat alone never invalidates a build.
+              if ! git diff --quiet "$BUILD_BASE..$REMOTE_SHA" -- corpus scaffold tools .github/workflows/daily-refresh.yml ':!corpus/wire-status.json'; then
                 echo 'Refresh was superseded by newer product inputs; discard this generated release and let the newer trigger rebuild.'
                 exit 0
               fi
@@ -208,3 +220,48 @@ jobs:
             echo 'Newsroom promotion did not converge after 5 optimistic retries; refusing force-push.' >&2
             exit 1
           fi
+
+  # Safefail drill S2: shows what readers would get after N more hours without a
+  # bridge run. Works on a copy of site/, never commits and never deploys.
+  preview:
+    if: github.event_name == 'workflow_dispatch' && inputs.drill_now_offset_h != ''
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Render the shifted edition state through the paper SSG
+        env:
+          OFFSET_H: ${{ inputs.drill_now_offset_h }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          case "$OFFSET_H" in
+            ''|*[!0-9]*) echo 'drill_now_offset_h must be a whole number of hours' >&2; exit 2 ;;
+          esac
+          FCMO_NOW=$(python -c 'import datetime as d,sys;print((d.datetime.now(d.timezone.utc)+d.timedelta(hours=int(sys.argv[1]))).strftime("%Y-%m-%dT%H:%M:%SZ"))' "$OFFSET_H")
+          export FCMO_NOW
+          echo "Preview clock: $FCMO_NOW (+${OFFSET_H}h)"
+          PREVIEW="$RUNNER_TEMP/edition-preview"
+          STATUS="$RUNNER_TEMP/newsroom-status.json"
+          python tools/wire_status.py classify --wire-status corpus/wire-status.json || true
+          python tools/newsroom_receipt.py status --wire-status corpus/wire-status.json --status "$STATUS"
+          python -m tools.paper.build \
+            --stories site/data/stories.v2.json \
+            --status "$STATUS" \
+            --out "$PREVIEW" \
+            --base /FCMO-AI-Newsletter/
+
+      - name: Upload the banner preview
+        uses: actions/upload-artifact@v6
+        with:
+          name: edition-preview
+          path: ${{ runner.temp }}/edition-preview/
+          retention-days: 7

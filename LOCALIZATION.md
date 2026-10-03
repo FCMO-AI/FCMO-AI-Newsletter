@@ -10,11 +10,11 @@ Browser extensions, operating-system translation and third-party translation lay
 
 ## Editorial ownership
 
-The ARB research/publication agent that prepares a publishable development owns the complete three-language publication obligation. The same editorial task produces the English public wording plus its Spanish and Simplified Chinese editions **before the material crosses the airlock**.
+The **FCMO Publication Desk** owns the Spanish and Simplified Chinese editions. It is a scheduled editorial task that works in this repository and nowhere else. It translates from the airlocked English public record only, never from private evidence. It carries intent, caveats, evidence strength and terminology across languages. It writes its translated fields only to `site/data/i18n/<locale>/part-desk.json`, and it appends one line per activation to `ops/publication-desk/LEDGER.jsonl`. ARB's research tasks never translate: ARB's website separation law keeps them out of presentation work. If ARB ever emits locale deltas (see "Airlock transport"), they are still imported.
 
-Newsletter does not call a translation model, translation API or language-review provider. GitHub Actions does not generate prose. The public repository is a deterministic sink: it imports the already-airlocked locale deltas, validates them, builds static routes and publishes them.
+Newsletter's build does not call a translation model, translation API or language-review provider. GitHub Actions does not generate prose. The public repository is a deterministic sink: it validates the committed editions, builds static routes and publishes them.
 
-This keeps the agent that actually understands the source evidence responsible for carrying intent, caveats, evidence strength and terminology across languages instead of asking a second model to reconstruct that context later.
+Before committing, the desk runs `python3 tools/validate_localizations.py --strict --corpus corpus` and commits only what passes. A pair that is `PENDING` or `FAILED` is shown to readers as an explicit pending page, never as silent English.
 
 ## What “native editorial edition” means
 
@@ -44,7 +44,13 @@ ARB may emit locale deltas at:
 - `data/locales/es-419/records.json`
 - `data/locales/zh-Hans/records.json`
 
-inside the sanitized public release. `tools/sync_airlocked_locales.py` merges those deltas into Newsletter's committed locale packs. Existing historical translations remain stable when a release contains no locale delta.
+inside the sanitized public release. `tools/sync_airlocked_locales.py` merges those deltas into Newsletter's committed ARB locale packs. It never reads or writes `part-desk.json`. Existing historical translations remain stable when a release contains no locale delta.
+
+## Provenance and precedence
+
+Each desk record has translated fields under `records.<id>` and matching metadata under `provenance.<id>` in `part-desk.json`: `origin: "publication-desk"`, UTC `at`, `model` when known, `human_reviewed: false`, and `network_translation: false`. The Publication Desk may add fields absent from the ARB pack. Where both packs contain the same field, ARB wording wins; the desk wording remains an alternate in the generated overlay receipt. A complete ARB edition is `NATIVE_ARB`. A complete pair using one or more desk fields is `MACHINE_REVIEWED`, a legacy state name meaning machine-prepared and **not** human-reviewed. Incomplete pairs are `PENDING`. Missing or unknown provenance, an English leak, token drift or invalid structure is `FAILED`. No tool assumes ARB origin for an unlabelled field.
+
+Every machine-prepared story page carries a short localized disclosure and an English-original link. The status, integrity manifest and newsroom receipt report counts for all four states per locale.
 
 `tools/reconcile_locale_overlays.py` then prunes fields that no longer exist in the declassified public schema, so an old translated field cannot resurrect material that the airlock removed.
 
@@ -60,9 +66,9 @@ inside the sanitized public release. `tools/sync_airlocked_locales.py` merges th
 - rejection of an edition that is simply unchanged canonical English;
 - deterministic source and locale digests recorded in `site/data/i18n/integrity-manifest.json`.
 
-The receipt explicitly records `editorial_owner: "ARB publication agent"`, `human_reviewed: false` and `network_translation: false`.
+The receipt explicitly records `editorial_owner: "FCMO Publication Desk"`, `human_reviewed: false` and `network_translation: false`.
 
-A deterministic checker cannot prove literary quality. Editorial equivalence remains the publication agent's responsibility and is reviewable through source control and the public evidence record.
+A deterministic checker cannot prove literary quality. Editorial equivalence remains the Publication Desk's responsibility and is reviewable through source control and the public evidence record.
 
 ## Runtime behavior
 
@@ -89,8 +95,9 @@ Each story has reciprocal language alternates plus `x-default`. `/news/` is a na
 
 ## Source-control layout
 
-- `site/data/i18n/es-419/part-*.json` + `ui.json` — Spanish editorial records and UI catalogue;
-- `site/data/i18n/zh-Hans/part-*.json` + `ui.json` — Simplified-Chinese editorial records and UI catalogue;
+- `site/data/i18n/<locale>/part-airlock.json` and historical numbered packs — ARB-authored locale fields;
+- `site/data/i18n/<locale>/part-desk.json` — Publication Desk fields and per-record provenance;
+- `i18n/ui/<locale>.json` — source-controlled UI catalogue;
 - `site/data/i18n/integrity-manifest.json` — deterministic three-language integrity receipt;
 - `site/assets/curated-i18n.js` / `.css` — deterministic presentation layer;
 - `tools/sync_airlocked_locales.py` — import of ARB-authored locale deltas;

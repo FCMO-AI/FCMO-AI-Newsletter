@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/contracts/site-config.schema.json",
+  "title": "Site configuration (config/site.json)",
+  "description": "Single source of the public base URL, locale routing and time zone. A domain change edits only this file.",
+  "x-contract": {"name": "site-config", "status": "v2-frozen", "version": 1},
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "site_name", "base_url", "base_path", "timezone", "canonical_locale", "x_default_locale", "locales", "legal_pages", "community"],
+  "properties": {
+    "schema": {"const": "fcmo-site-config-v1"},
+    "site_name": {"type": "string", "minLength": 1},
+    "base_url": {"type": "string", "format": "uri", "pattern": "^https://[^?#]+/$"},
+    "base_path": {"type": "string", "pattern": "^/([A-Za-z0-9._-]+/)*$"},
+    "timezone": {"const": "America/Mexico_City"},
+    "canonical_locale": {"const": "en"},
+    "x_default_locale": {"const": "en"},
+    "locales": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "x-unique-by": "code",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["code", "html_lang", "hreflang", "path_prefix", "label", "og_locale"],
+        "properties": {
+          "code": {"enum": ["en", "es-419", "zh-Hans"]},
+          "html_lang": {"enum": ["en", "es-419", "zh-Hans"]},
+          "hreflang": {"enum": ["en", "es-419", "zh-Hans"]},
+          "path_prefix": {"enum": ["", "es/", "zh/"]},
+          "label": {"type": "string", "minLength": 1},
+          "og_locale": {"type": "string", "pattern": "^[a-z]{2}_[A-Z]{2}$"}
+        }
+      }
+    },
+    "legal_pages": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["about", "feeds", "privacy", "license", "disclaimer", "corrections"],
+      "properties": {
+        "about": {"$ref": "#/$defs/page"},
+        "feeds": {"$ref": "#/$defs/page"},
+        "privacy": {"$ref": "#/$defs/page"},
+        "license": {"$ref": "#/$defs/page"},
+        "disclaimer": {"$ref": "#/$defs/page"},
+        "corrections": {"$ref": "#/$defs/page"},
+        "terms": {"$ref": "#/$defs/page"},
+        "status": {"$ref": "#/$defs/page"}
+      }
+    },
+    "community": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["url", "signup_path", "cartas_tag"],
+      "properties": {
+        "url": {"oneOf": [{"type": "null"}, {"type": "string", "format": "uri", "pattern": "^https://[^?#]+/$"}], "description": "Membership site; null until it exists (subscribe slot and letters rail stay empty)."},
+        "signup_path": {"const": "#/portal/signup"},
+        "cartas_tag": {"type": "string", "pattern": "^[a-z0-9-]+$"}
+      }
+    }
+  },
+  "$defs": {
+    "page": {"type": "string", "pattern": "^([a-z0-9-]+/)*$", "description": "Path relative to the locale root, with trailing slash."}
+  }
+}
