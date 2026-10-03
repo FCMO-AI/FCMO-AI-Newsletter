@@ -1,0 +1,65 @@
+name: Recover missing daily newswire edition
+
+on:
+  schedule:
+    # Footnote: these are recovery probes, not primary publication times. Mexico City
+    # is UTC-6 year-round, so they run at 09:05, 10:05, 11:05 and 12:05 local after
+    # the normal bridge window. Repeated probes are safe because the bridge is
+    # idempotent and the live-cycle oracle suppresses recovery once today's edition is live.
+    - cron: '5 15 * * *'
+    - cron: '5 16 * * *'
+    - cron: '5 17 * * *'
+    - cron: '5 18 * * *'
+  workflow_run:
+    workflows: ['Autonomous newsroom production health']
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: write
+
+concurrency:
+  group: newswire-recovery-watchdog
+  cancel-in-progress: false
+
+jobs:
+  recover-if-missing:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the public recovery oracle
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Decide from the live newspaper whether today's cycle is missing
+        id: recovery
+        shell: bash
+        run: |
+          # Footnote: repository state is not sufficient proof because Pages can fail
+          # after a successful commit. Recovery is authorized only from the live origin.
+          python tools/newswire_recovery_watchdog.py --github-output "$GITHUB_OUTPUT"
+
+      - name: Dispatch the canonical production bridge
+        if: steps.recovery.outputs.recovery_needed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Footnote: the watchdog never reads ARB, never writes content and never
+          # duplicates production logic. Its only mutation capability is Actions:write,
+          # used to invoke the already-reviewed bridge on main. workflow_dispatch is
+          # one of GitHub's explicit GITHUB_TOKEN recursion exceptions.
+          gh workflow run newswire-bridge.yml --ref main
+          echo "Recovery bridge dispatched: ${{ steps.recovery.outputs.reason }}"
+
+      - name: Record healthy no-op
+        if: steps.recovery.outputs.recovery_needed != 'true'
+        run: echo "No recovery needed: ${{ steps.recovery.outputs.reason }}"
