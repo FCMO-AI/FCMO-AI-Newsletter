@@ -1,0 +1,90 @@
+name: Proof Spine pre-action shadow receipt
+
+on:
+  push:
+    branches:
+      - agent/proof-spine-preaction-shadow-v0.2e
+    paths:
+      - 'tools/proof_spine_shadow_receipt.py'
+      - 'tools/proof_spine_preaction_shadow_receipt.py'
+      - 'tests/test_proof_spine_preaction_shadow.py'
+      - 'docs/PROOF_SPINE_PREACTION_SHADOW_v0.2e.md'
+      - '.github/workflows/proof-spine-preaction-shadow.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: proof-spine-preaction-shadow
+  cancel-in-progress: true
+
+jobs:
+  observe-current-main-candidate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # Footnote for future maintainers: this workflow is deliberately read-only and
+      # branch-only. It observes the current-main candidate through project-native
+      # files/oracles; it never invokes Pages, publication, rollback, merge, issue, or
+      # repository-write actions merely to manufacture prospective evidence.
+      - name: Compile evidence adapters
+        run: >-
+          python -m py_compile
+          tools/proof_spine_shadow_receipt.py
+          tools/proof_spine_preaction_shadow_receipt.py
+          tests/test_proof_spine_preaction_shadow.py
+
+      # Footnote: pin the producer-side semantics before trusting a field receipt. The
+      # tests explicitly keep COMPLETE/INCOMPLETE as observations rather than smuggling
+      # Proof Spine VALID/INVALID or publication authority into this public repo.
+      - name: Run pre-action shadow regressions
+        run: python tests/test_proof_spine_preaction_shadow.py
+
+      - name: Capture current-main candidate and live-health receipt
+        run: >-
+          python tools/proof_spine_preaction_shadow_receipt.py
+          --upstream-seal-state NOT_OBSERVED
+          --output /tmp/newsletter-proof-spine-preaction-shadow-receipt.json
+
+      # Footnote: an incomplete candidate must remain visible without turning this
+      # evidence-only workflow red. A separate reviewed Hub contract may conclude
+      # WOULD_CLOSE; only Newsletter-local production law may actually block deploy.
+      - name: Summarize pre-action observation
+        shell: bash
+        run: |
+          python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json
+          from pathlib import Path
+          receipt = json.loads(Path('/tmp/newsletter-proof-spine-preaction-shadow-receipt.json').read_text(encoding='utf-8'))
+          local = receipt.get('local_surface') or {}
+          alignment = receipt.get('source_alignment') or {}
+          candidate = receipt.get('candidate_release') or {}
+          native = candidate.get('native_edition_observation') or {}
+          print('## Proof Spine pre-action shadow observation')
+          print()
+          print(f"- Current-main applicability: `{alignment.get('state')}`")
+          print(f"- Candidate source SHA: `{candidate.get('candidate_source_sha')}`")
+          print(f"- Candidate native-edition state: `{native.get('state')}`")
+          print(f"- Canonical / complete Stories: `{native.get('canonical_story_count')}` / `{native.get('native_complete_story_count')}`")
+          print(f"- Pending translations: `{native.get('pending_translation_count')}`")
+          print(f"- Pending IDs: `{native.get('pending_translation_ids')}`")
+          print(f"- Live local health: `{local.get('state')}` / `{local.get('quality_state')}`")
+          print(f"- Observed at: `{receipt.get('observed_at')}`")
+          print()
+          print('Evidence only. This workflow cannot deploy, publish, roll back, merge, or authorize a release.')
+          PY
+
+      - name: Upload pre-action shadow receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: newsletter-proof-spine-preaction-shadow-receipt
+          path: /tmp/newsletter-proof-spine-preaction-shadow-receipt.json
+          if-no-files-found: error
+          retention-days: 90
