@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
-"""Measure whether recent material stories have native ES/ZH editions.
+"""Measure native ES/ZH Story coverage without weakening the release contract.
 
-Publication remains fail-open to canonical English, but localization health is a
-separate SLO: a missing native edition may exist briefly while upstream ARB lands
-its authored overlay, then becomes an explicit unhealthy production condition.
+The canonical release contract requires complete native coverage before a candidate
+may publish. Production health additionally exposes a bounded reconciliation SLO so a
+source/candidate backlog is visible while the previous known-good public edition stays
+live. `--require-complete` is the strict pre-release mode; the default mode preserves
+the existing freshness/grace health signal for diagnosis and recovery.
 """
 from __future__ import annotations
 
@@ -38,6 +40,11 @@ def main() -> int:
     parser.add_argument("--grace-hours", type=float, default=1.0)
     parser.add_argument("--fresh-window-hours", type=float, default=30.0)
     parser.add_argument("--minimum-importance", type=int, default=4)
+    parser.add_argument(
+        "--require-complete",
+        action="store_true",
+        help="Fail if any published Story lacks either native edition; ignores health grace/window filters.",
+    )
     args = parser.parse_args()
 
     now = datetime.now(timezone.utc)
@@ -57,8 +64,16 @@ def main() -> int:
         age_h = max(0.0, (now - published).total_seconds() / 3600)
         importance = int((story.get("news_value") or {}).get("importance") or 0)
         is_lead = story.get("story_type") == "LEAD"
-        if age_h > args.fresh_window_hours or (importance < args.minimum_importance and not is_lead):
-            continue
+
+        # Footnote for future maintainers: release truth and health prioritization are
+        # deliberately different questions. `--require-complete` checks every Story
+        # identity because LOCALIZATION.md defines one EN/ES/ZH publication obligation.
+        # Default health mode keeps the prior material/freshness filter so monitoring
+        # can prioritize the backlog without silently redefining release eligibility.
+        if not args.require_complete:
+            if age_h > args.fresh_window_hours or (importance < args.minimum_importance and not is_lead):
+                continue
+
         missing = [locale for locale in LOCALES if rid not in coverage[locale]]
         if not missing:
             continue
@@ -71,19 +86,23 @@ def main() -> int:
             "missing": missing,
         }
         watched.append(item)
-        (overdue if age_h > args.grace_hours else grace).append(item)
+        if args.require_complete:
+            overdue.append(item)
+        else:
+            (overdue if age_h > args.grace_hours else grace).append(item)
 
     state = "HEALTHY"
     if overdue:
-        state = "UNHEALTHY_TRANSLATION_BACKLOG"
+        state = "UNHEALTHY_TRANSLATION_INCOMPLETE" if args.require_complete else "UNHEALTHY_TRANSLATION_BACKLOG"
     elif grace:
         state = "DEGRADED_TRANSLATION_GRACE"
     payload = {
         "stage": "TRANSLATION_HEALTH",
+        "mode": "RELEASE_GATE" if args.require_complete else "HEALTH_SLO",
         "state": state,
-        "target": "native es-419 and zh-Hans at publication time",
-        "grace_hours": args.grace_hours,
-        "fresh_window_hours": args.fresh_window_hours,
+        "target": "complete native es-419 and zh-Hans Story coverage before release",
+        "grace_hours": 0.0 if args.require_complete else args.grace_hours,
+        "fresh_window_hours": None if args.require_complete else args.fresh_window_hours,
         "missing_recent": watched,
         "overdue_count": len(overdue),
         "grace_count": len(grace),

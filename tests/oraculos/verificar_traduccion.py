@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Verify the current provider-free native-edition contract.
+"""Verify the provider-free native-edition publication contract.
 
-Newsletter no longer pretends every canonical English Story is synchronously
-translated. ARB owns native prose; Newsletter imports it, validates every present
-ES/ZH overlay strictly, records a symmetric explicit backlog, and production
-health requires recent material Stories to receive both native editions within a
-bounded grace period. This oracle exercises exactly that contract rather than the
-retired all-history taxonomy catalogue.
+ARB owns native prose; Newsletter imports it, validates present ES/ZH overlays
+structurally, and may record an explicit candidate/source backlog for operations.
+Publication itself is stricter: `LOCALIZATION.md` defines each EN/ES/ZH Story set as
+one release obligation, so this oracle requires complete native Story identity coverage
+with no health-SLO grace. The separate production-health workflow owns reconciliation
+SLOs; it does not redefine release eligibility.
 """
 from __future__ import annotations
 
@@ -57,21 +57,17 @@ def main() -> int:
             print(f"estado de traduccion inesperado: {doc.get('state')!r}", file=sys.stderr)
             return 1
 
-    # Recent material publication has a stronger SLO than historical coverage.
-    # This is the same production-health rule, so a new meaningful Story cannot
-    # remain untranslated indefinitely while CI calls localization healthy.
-    health = run(
-        "tools/translation_health.py",
-        "--grace-hours", "1",
-        "--fresh-window-hours", "30",
-        "--minimum-importance", "4",
-    )
-    if health.returncode:
-        return fail("salud de traduccion reciente", health)
+    # Footnote: this oracle is intentionally stricter than production-health
+    # prioritization. A source backlog can be represented truthfully for diagnosis,
+    # but the publication test itself must not convert a health grace window into
+    # permission to ship an incomplete native-edition Story set.
+    release_gate = run("tools/translation_health.py", "--require-complete")
+    if release_gate.returncode:
+        return fail("ediciones nativas incompletas para publicacion", release_gate)
 
     print(
         f"traduccion OK: {doc.get('native_complete_story_count')} completas; "
-        f"pending={doc.get('pending_translation_count')}; recientes materiales dentro del SLO"
+        f"pending={doc.get('pending_translation_count')}; release_gate=COMPLETE"
     )
     return 0
 
