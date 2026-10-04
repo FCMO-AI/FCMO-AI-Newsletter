@@ -42,3 +42,25 @@ class Issues(unittest.TestCase):
     def test_upstream_text_cannot_be_stored_in_slot(self):
         bad = copy.deepcopy(ISSUE); bad['slots'][0]['text'] = 'Rewritten brief'
         with self.assertRaises(ValueError): issues.validate_issue(bad)
+
+    def test_pending_brief_locale_blocks_an_issue_ready_in_that_language(self):
+        import json
+        from types import SimpleNamespace
+        with tempfile.TemporaryDirectory(dir=ROOT / '_audit') as temporary:
+            store = Store(Path(temporary))
+            try:
+                issues.create(store, 'matias', copy.deepcopy(ISSUE)); value = ISSUE['id']
+                store.locale_state(value, 'en', 'matias', 'ready', True)
+                store.locale_state(value, 'es-419', 'matias', 'ready', True)
+                store.locale_state(value, 'zh-Hans', 'matias', 'later', False)
+                library = store.data / 'clone/site/data/stories.v2.json'; library.parent.mkdir(parents=True)
+                story = {'id': 'FCMO-123456789ABC', 'status': 'live', 'l10n': {'es-419': {'state': 'PENDING', 'missing': ['title']}}}
+                library.write_text(json.dumps({'stories': [story]}))
+                preview = SimpleNamespace(privacy=lambda value: True)
+                result = issues.checks(store, preview, value)
+                self.assertFalse(next(r['ok'] for r in result if r['id'].startswith('ref-')))
+                story['l10n']['es-419'] = {'state': 'MACHINE_REVIEWED', 'missing': []}
+                library.write_text(json.dumps({'stories': [story]}))
+                result = issues.checks(store, preview, value)
+                self.assertTrue(next(r['ok'] for r in result if r['id'].startswith('ref-')))
+            finally: store.close()
