@@ -131,6 +131,9 @@ class PaperBuilder:
     def _story_href(self, locale: dict, story: dict) -> str:
         return href(self.base, story_path(locale, story))
 
+    def _correction_href(self, locale: dict, story: dict) -> str:
+        return href(self.base, locale["path_prefix"] + "corrections/story/" + story["slug"] + "/")
+
     def _media_url(self, story: dict, locale: dict | None = None) -> str:
         if self.og_source is not None and locale is not None:
             return absolute(self.base_url, f'og/{locale["code"]}/{story["id"]}.png')
@@ -351,6 +354,9 @@ class PaperBuilder:
         code = locale["code"]
         catalog = self.catalogs[code]
         strings = catalog["strings"]
+        if story.get("status") in {"withdrawn", "merged"} and story.get("corrections"):
+            self._correction_notice(story, locale)
+            return
         complete = is_complete(story, code)
         title = headline(story, code, catalog) if complete else strings["l10n"]["pending_title"]
         description = truncate(dek(story, code, catalog))
@@ -413,6 +419,28 @@ class PaperBuilder:
         story_md = absolute(self.base_url, locale["path_prefix"] + suffix.rstrip("/") + ".md")
         self._write_page(locale=locale, suffix=suffix, title=f"{title} — FCMO AI", description=description, body=page, kind="story", story=story, og_image=image, json_ld=structured,
                          machine_alternates=[("text/markdown", story_md), ("application/json", story_api)])
+
+    def _correction_notice(self, story: dict, locale: dict) -> None:
+        code = locale["code"]
+        catalog = self.catalogs[code]
+        strings = catalog["strings"]
+        fix = story["corrections"][-1]
+        text = fix.get("text") or {}
+        notice = text.get(code) or text.get("en") or strings["story"].get(story["status"], "")
+        kind = label(catalog, "correction_kind", fix.get("kind"), fallback=story["status"].title())
+        title = headline(story, code, catalog)
+        body = (f'<p class="story-kicker">{esc(kind)} · '
+                f'<time datetime="{esc(fix.get("at", ""))}">{esc(format_date(fix["at"], catalog))}</time></p>'
+                f'<p class="story-dek">{esc(notice)}</p>')
+        if story.get("merged_into"):
+            survivor = next((item for item in self.stories if item["id"] == story["merged_into"]), None)
+            if survivor is not None and survivor.get("status") == "live":
+                body += (f'<p class="correction-current"><a href="{esc(self._story_href(locale, survivor))}">'
+                         f'{esc(strings["story"]["read_merged"])}: '
+                         f'{esc(headline(survivor, code, catalog))}</a></p>')
+        suffix = "corrections/story/" + story["slug"] + "/"
+        self._write_page(locale=locale, suffix=suffix, title=f"{title} — {kind}", description=notice,
+                         body=simple_page(title, body), kind="correction", index=False)
 
     def _pending_fields(self, story: dict, locale: dict) -> str:
         """Render only prose already present in an incomplete native edition."""
@@ -613,8 +641,22 @@ class PaperBuilder:
             ("agenda/", s["nav"]["agenda"], f'<p>{esc(s["archive"]["empty"])}</p><p><a href="{esc(href(self.base,locale["path_prefix"]+"agenda.ics"))}">iCalendar</a></p>', "agenda"),
             ("autores/mesa-fcmo-ai/", s["story"]["byline"].split("·")[0].strip(), f'<p>{esc(s["story"]["byline"])}</p><p>{esc(s["footer"]["automated_notice"])}</p>', "author"),
         ]
-        corrections = [correction for story in self.stories for correction in story.get("corrections", [])]
-        corr_body = f'<p>{esc(s["corrections_page"]["intro"])}</p>' + ("<ul>" + "".join(f'<li>{esc(c.get("note") or c.get("reason") or c.get("kind", ""))}</li>' for c in corrections) + "</ul>" if corrections else f'<p>{esc(s["corrections_page"]["none"])}</p>')
+        corrections = sorted(
+            ((story, correction) for story in self.stories for correction in story.get("corrections", [])),
+            key=lambda item: item[1].get("at", ""), reverse=True)
+        correction_rows = []
+        for story, correction in corrections:
+            text = correction.get("text") or {}
+            note = text.get(locale["code"]) or text.get("en") or ""
+            title = headline(story, locale["code"], catalog)
+            date = correction.get("at") or story.get("updated_at")
+            correction_rows.append(
+                f'<article class="correction">'
+                f'<time datetime="{esc(date)}">{esc(format_date(date, catalog))}</time>'
+                f'<h2><a href="{esc(self._correction_href(locale, story))}">{esc(title)}</a></h2>'
+                f'<p>{esc(note)}</p></article>')
+        corr_body = f'<p>{esc(s["corrections_page"]["intro"])}</p>' + (
+            "".join(correction_rows) if correction_rows else f'<p>{esc(s["corrections_page"]["none"])}</p>')
         pages.append(("corrections/", s["corrections_page"]["title"], corr_body, "corrections"))
         pending = {"en": "This document awaits the approved legal copy. Subscription remains inactive.", "es-419": "Este documento espera el texto legal aprobado. La suscripción permanece inactiva.", "zh-Hans": "本文件仍待核准的法律文本。订阅功能尚未启用。"}[locale["code"]]
         for suffix, title in (("privacy/",s["footer"]["privacy"]),("license/",s["footer"]["license"]),("disclaimer/",s["footer"]["disclaimer"])):
@@ -670,6 +712,9 @@ class PaperBuilder:
             self._newsletter_pages(locale)
             for story in self.live:
                 self._story(story, locale)
+            for story in self.stories:
+                if story not in self.live and story.get("status") in {"withdrawn", "merged"} and story.get("corrections"):
+                    self._story(story, locale)
             self._listing(locale=locale, suffix="archive/", title=catalog["strings"]["archive"]["title"], stories=ranked, kind="archive")
             for date in sorted({s["url_date"] for s in self.live}, reverse=True):
                 values = [s for s in ranked if s["url_date"] == date]
