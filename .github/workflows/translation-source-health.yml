@@ -1,3 +1,6 @@
+# ARB-derived diagnostics never cross the public runner output boundary.
+# Every shell step discards stdout/stderr; only numeric exit receipts escape.
+# Children cannot inherit the receipt descriptor or runner summary channels.
 name: ARB translation source health
 
 on:
@@ -18,6 +21,7 @@ concurrency:
 
 jobs:
   native-edition-source-health:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - name: Require the GitHub App Client ID
@@ -25,6 +29,9 @@ jobs:
           APP_CLIENT_ID: ${{ vars.FCMO_NEWSWIRE_APP_CLIENT_ID }}
         shell: bash
         run: |
+          set +x
+          exec 3>&1 >/dev/null 2>&1
+          trap 'rc=$?; printf "step_exit=%s\n" "$rc" >&3' EXIT
           test -n "$APP_CLIENT_ID" || { echo 'FCMO_NEWSWIRE_APP_CLIENT_ID is not configured' >&2; exit 1; }
 
       - name: Mint a read-only token scoped only to private ARB
@@ -42,11 +49,13 @@ jobs:
           APP_TOKEN: ${{ steps.app-token.outputs.token }}
         shell: bash
         run: |
+          set +x
+          exec 3>&1 >/dev/null 2>&1
+          trap 'rc=$?; printf "step_exit=%s\n" "$rc" >&3' EXIT
           set -euo pipefail
           PRIVATE_DIR="$RUNNER_TEMP/fcmo-arb-translation-health"
           rm -rf "$PRIVATE_DIR"
           AUTH=$(printf 'x-access-token:%s' "$APP_TOKEN" | base64 -w0)
-          echo "::add-mask::$AUTH"
           git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $AUTH" \
             clone --quiet --depth 1 --single-branch --branch main \
             https://github.com/FCMO-AI/AI-Research-Breakthroughs.git \
@@ -60,24 +69,32 @@ jobs:
       - name: Build sanitized candidate and validate authored native editions
         shell: bash
         run: |
+          set +x
+          exec 3>&1 >/dev/null 2>&1
+          trap 'rc=$?; printf "step_exit=%s\n" "$rc" >&3' EXIT
           set -euo pipefail
           cd "$RUNNER_TEMP/fcmo-arb-translation-health"
-          ARB_SITE_BASE_PATH=/FCMO-AI-Newsletter \
-          ARB_PUBLIC_BASE_URL=https://fcmo-ai.github.io/FCMO-AI-Newsletter \
-            python tools/build_publication.py --check-determinism
-          python tools/build_public_release.py
+          env -i "PATH=$PATH" "HOME=$HOME" "LANG=C.UTF-8" "LC_ALL=C.UTF-8" \
+            "ARB_SITE_BASE_PATH=/FCMO-AI-Newsletter" \
+            "ARB_PUBLIC_BASE_URL=https://fcmo-ai.github.io/FCMO-AI-Newsletter" \
+            python tools/build_publication.py --check-determinism 3>&-
+          env -i "PATH=$PATH" "HOME=$HOME" "LANG=C.UTF-8" "LC_ALL=C.UTF-8" python tools/build_public_release.py 3>&-
           # Existing translations must remain structurally valid and bound to
           # the exact canonical source + declassified public projection.
-          python tools/build_public_locales.py build
+          env -i "PATH=$PATH" "HOME=$HOME" "LANG=C.UTF-8" "LC_ALL=C.UTF-8" python tools/build_public_locales.py build 3>&-
           # Seven days deliberately includes the current Navier-Stokes lead and
           # gives us enough overlap to catch late revisions without turning this
           # into a retroactive demand to translate the entire historical corpus.
-          python tools/check_native_edition_coverage.py --recent-days 7
+          env -i "PATH=$PATH" "HOME=$HOME" "LANG=C.UTF-8" "LC_ALL=C.UTF-8" python tools/check_native_edition_coverage.py --recent-days 7 3>&-
 
       - name: Destroy private checkout
         if: always()
         shell: bash
         run: |
+          set +x
+          exec 3>&1 >/dev/null 2>&1
+          trap 'rc=$?; printf "step_exit=%s\n" "$rc" >&3' EXIT
+          set -euo pipefail
           rm -rf "$RUNNER_TEMP/fcmo-arb-translation-health"
           test ! -e "$RUNNER_TEMP/fcmo-arb-translation-health"
 

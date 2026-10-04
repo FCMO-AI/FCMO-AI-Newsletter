@@ -60,6 +60,10 @@ def privacy_errors(text: str) -> list[str]:
             errors.append("public persistence or private checkout action")
     refs = re.findall(r"uses:\s*(\S+)([^\n]*)", text)
     for ref, comment in refs:
+        if ref.split('@')[0] not in {
+            'actions/checkout', 'actions/setup-python', 'actions/create-github-app-token'
+        }:
+            errors.append("unreviewed action can expose the private checkout")
         if not re.fullmatch(r"[\w.-]+/[\w./-]+@[0-9a-f]{40}", ref) or not re.search(r"# v\d", comment):
             errors.append("action must have a full SHA and version comment")
     blocks = run_blocks(text)
@@ -70,6 +74,12 @@ def privacy_errors(text: str) -> list[str]:
             errors.append("shell step exposes stdout/stderr (including failure paths)")
             continue
         body = block[len(SILENCE):]
+        # Only these numeric receipts may use the saved public descriptor.
+        body = body.replace("  printf 'probe_exit=%d\\n' \"$rc\" >&3\n", "")
+        body = body.replace("printf 'probe_failures=%d\\n' \"$failures\" >&3\n", "")
+        body = body.replace("printf 'RELEASE_DIR=%s\\n' \"$RELEASE_DIR\" >> \"$GITHUB_ENV\"\n", "")
+        if re.search(r"GITHUB_(?:ENV|OUTPUT|PATH)", body):
+            errors.append("shell step exports candidate/private bytes to runner channels")
         if re.search(r"(?:[>&]\s*3\b|/dev/(?:stdout|stderr|fd)|/proc/[^\s]*/fd|\bexec\b|set\s+-[^\n]*x)", body):
             errors.append("shell step reopens a public output channel")
         # Candidate/private programs must not inherit the saved log descriptor.
@@ -86,6 +96,17 @@ class ArbWorkflowPrivacyTests(unittest.TestCase):
             with self.subTest(workflow=path.name):
                 self.assertEqual(privacy_errors(path.read_text()), [])
 
+    def test_retired_backfill_cannot_return_as_a_public_workflow(self):
+        self.assertFalse((WORKFLOWS / 'backfill-arb-native-locales-once.yml').exists())
+
+    def test_actual_shell_blocks_have_valid_bash_syntax(self):
+        for path in WORKFLOWS.glob('*.y*ml'):
+            if 'AI-Research-Breakthroughs' not in path.read_text():
+                continue
+            for block in run_blocks(path.read_text()):
+                result = subprocess.run(['bash', '-n'], input=block, capture_output=True, text=True)
+                self.assertEqual(result.returncode, 0, result.stderr)
+
     def test_guard_rejects_output_and_upload_regressions(self):
         good = "name: synthetic\n# AI-Research-Breakthroughs\nsteps:\n  - run: |\n" + "".join(
             "      " + line + "\n" for line in (SILENCE + "true\n").splitlines())
@@ -97,6 +118,9 @@ class ArbWorkflowPrivacyTests(unittest.TestCase):
             good.replace("      true", '      tee /dev/stderr < "$PRIVATE_LOG"'),
             good + "  - uses: actions/upload-artifact@v4\n    if: always()\n",
             good + "  - uses: actions/cache@v4\n", good + "# GITHUB_STEP_SUMMARY\n",
+            good + "  - uses: third-party/dump@" + 'a' * 40 + " # v1\n",
+            good.replace("      true", '      cat "$PRIVATE_LOG" >> "$GITHUB_OUTPUT"'),
+            good.replace("      true", '      echo "$PRIVATE_SHA" >> "$GITHUB_ENV"'),
             good.replace("      true", "      python tools/arb.py orient --json"),
         ):
             with self.subTest(mutation=mutation):
@@ -137,6 +161,9 @@ print('SEAL_OK')
             fake_git = binary / "git"
             fake_git.write_text("""#!/usr/bin/env python3
 import json, pathlib, sys
+if pathlib.Path(__import__('os').environ['HOME'], 'fixture-mode').read_text() == 'git-failure':
+    print('PRIVATE_FIXTURE_QUESTION_NEXT_STEP_BLOB_SHA', file=sys.stderr)
+    raise SystemExit(23)
 if 'clone' in sys.argv:
     root = pathlib.Path(sys.argv[-1])
     (root / 'state').mkdir(parents=True, exist_ok=True)
@@ -153,8 +180,9 @@ if 'rev-parse' in sys.argv:
             for key in ('GITHUB_STEP_SUMMARY', 'GITHUB_ENV', 'GITHUB_OUTPUT'):
                 env[key] = str(root / key)
                 Path(env[key]).touch()
-            for mode in ('success', 'failure', 'exception'):
+            for mode in ('success', 'failure', 'exception', 'git-failure'):
                 (root / 'fixture-mode').write_text(mode)
+                env['RELEASE_DIR'] = str(root / 'fcmo-newswire-airlocked-release')
                 for workflow in ('newswire-bridge.yml', 'translation-source-health.yml'):
                     for block in run_blocks((WORKFLOWS / workflow).read_text()):
                         # Run private selection, probes, seal, health and the first
@@ -162,7 +190,8 @@ if 'rev-parse' in sys.argv:
                         if not any(token in block for token in (
                                 'tools/publication_seal.py', 'tools/arb.py',
                                 'tools/build_publication.py',
-                                'newswire_bridge_partial_locales.py verify "$RELEASE_DIR"')):
+                                'newswire_bridge_partial_locales.py verify "$RELEASE_DIR"',
+                                'clone --quiet')):
                             continue
                         # Do not execute promotion/reset/staging blocks.
                         if 'git reset' in block or 'git push' in block:
@@ -181,7 +210,11 @@ if 'rev-parse' in sys.argv:
                                                     env=env, cwd=root, capture_output=True, text=True, timeout=15)
                             self.assertNotIn(marker, result.stdout + result.stderr)
                             self.assertEqual(result.stderr, '')
-                            self.assertRegex(result.stdout, r'^step_exit=\d+\n$')
+                            if mode == 'success':
+                                self.assertEqual(result.returncode, 0, result.stdout)
+                            if mode == 'git-failure' and 'git ' in block:
+                                self.assertNotEqual(result.returncode, 0)
+                            self.assertRegex(result.stdout, r'^(?:probe_exit=\d+\n)*(?:probe_failures=\d+\n)?step_exit=\d+\n$')
                             for key in ('GITHUB_STEP_SUMMARY', 'GITHUB_ENV', 'GITHUB_OUTPUT'):
                                 self.assertNotIn(marker, Path(env[key]).read_text())
 
