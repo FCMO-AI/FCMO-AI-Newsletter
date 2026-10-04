@@ -4,7 +4,7 @@ This document defines the canonical public attribution convention for the FCMO A
 
 ## Project status
 
-FCMO Group is currently used as the broader project and public-facing umbrella brand. It is not represented here as a separate incorporated legal entity.
+FCMO is currently used as the broader project and public-facing umbrella brand. It is not represented here as a separate incorporated legal entity.
 
 Accordingly, this repository distinguishes the FCMO brand from the human authors and contributors who create, direct, or hold rights in specific work.
 
@@ -13,7 +13,7 @@ Accordingly, this repository distinguishes the FCMO brand from the human authors
 For FCMO AI material, list the following people in this order unless a specific work has a different authorship/byline requirement:
 
 1. **Matías Peña Szőke** — Director, FCMO AI / Head of AI & Technology.
-2. **Javier Castellanos Peña** — Founder, FCMO Group.
+2. **Javier Castellanos Peña** — Founder, FCMO.
 
 These are functional public-facing descriptions. They are not intended to claim formally appointed corporate offices while FCMO is not a separate legal entity.
 
@@ -21,7 +21,7 @@ These are functional public-facing descriptions. They are not intended to claim 
 
 FCMO AI work should place **Matías Peña Szőke first** in leadership, direction, and default project attribution because he leads and directs FCMO's AI and technology work.
 
-Javier Castellanos Peña should be identified as the **Founder of FCMO Group** where broader FCMO provenance or leadership is relevant. Founder status does not automatically imply authorship or copyright ownership of FCMO AI material.
+Javier Castellanos Peña should be identified as the **Founder of FCMO** where broader FCMO provenance or leadership is relevant. Founder status does not automatically imply authorship or copyright ownership of FCMO AI material.
 
 ## Authorship and contribution rule
 
@@ -40,17 +40,17 @@ For repository software without a more specific notice:
 
 For original FCMO AI editorial material without a more specific byline, the preferred human-facing attribution is:
 
-**Matías Peña Szőke and contributors — FCMO AI Newsletter / FCMO AI. Brought to you by the FCMO Group.**
+**Matías Peña Szőke and contributors — FCMO AI Newsletter / FCMO AI. Brought to you by FCMO.**
 
 The compact publication footer may use:
 
-**© 2026 Matías Peña Szőke and contributors · FCMO AI Newsletter · Brought to you by the FCMO Group.**
+**© 2026 Matías Peña Szőke and contributors · FCMO AI Newsletter · Brought to you by FCMO.**
 
 A specific work may use a different copyright notice when its actual authorship or rights ownership differs.
 
 ## Branding versus ownership
 
-The phrases **FCMO Group**, **FCMO AI**, and **FCMO AI Newsletter** may be used as project and brand identifiers. Their use does not, by itself, establish that an informal brand is the legal author or owner of every work published under it.
+The phrases **FCMO**, **FCMO AI**, and **FCMO AI Newsletter** may be used as project and brand identifiers. Their use does not, by itself, establish that an informal brand is the legal author or owner of every work published under it.
 
 Likewise, an open-source or Creative Commons license in this repository does not grant rights to FCMO names, logos, or visual identity as source identifiers unless explicitly stated.
 

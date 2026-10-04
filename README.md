@@ -74,9 +74,9 @@ FCMO AI material uses contribution-based attribution. Organizational rank does n
 For FCMO AI projects and publications, the canonical public order is:
 
 1. **Matías Peña Szőke** — Director, FCMO AI / Head of AI & Technology.
-2. **Javier Castellanos Peña** — Founder, FCMO Group.
+2. **Javier Castellanos Peña** — Founder, FCMO.
 
-FCMO Group is the broader project and public-facing umbrella brand. Javier's founder role is recognized at that level; it does not imply authorship of FCMO AI work he did not materially create or acquire rights to.
+FCMO is the broader project and public-facing umbrella brand. Javier's founder role is recognized at that level; it does not imply authorship of FCMO AI work he did not materially create or acquire rights to.
 
 The titles above are functional public-facing descriptions rather than representations of formally appointed corporate offices while FCMO is not a separate legal entity.
 
@@ -89,7 +89,7 @@ This repository uses a mixed-license model so software and editorial material ar
 - **Software code:** MIT License — see `LICENSE`. The default repository notice is `Copyright (c) 2026 Matías Peña Szőke and contributors`.
 - **Original FCMO AI editorial content:** Creative Commons Attribution 4.0 International (CC BY 4.0) when the project has authority to license it and no more specific notice applies — see `CONTENT_LICENSE.md`.
 - **Third-party material:** remains subject to its original copyright, license, trademark, and other applicable rights.
-- **FCMO branding:** the FCMO Group, FCMO AI, and FCMO AI Newsletter names, logos, and visual identity are not licensed for reuse merely because repository code or editorial text is openly licensed.
+- **FCMO branding:** the FCMO, FCMO AI, and FCMO AI Newsletter names, logos, and visual identity are not licensed for reuse merely because repository code or editorial text is openly licensed.
 
 The website legal/disclosure scaffold is defined in `LEGAL_REQUIREMENTS.md`, with baseline public-language templates in `legal/PRIVACY.md` and `legal/DISCLAIMER.md`.
 

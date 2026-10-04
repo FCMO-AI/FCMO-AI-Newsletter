@@ -8,7 +8,7 @@ License: https://creativecommons.org/licenses/by/4.0/
 
 For material without a more specific byline or rights notice, the preferred attribution is:
 
-**Matías Peña Szőke and contributors — FCMO AI Newsletter / FCMO AI. Brought to you by the FCMO Group.**
+**Matías Peña Szőke and contributors — FCMO AI Newsletter / FCMO AI. Brought to you by FCMO.**
 
 Where an article, figure, dataset, or other item names specific authors or contributors, attribution should follow that item's actual authorship rather than organizational rank. Include a link to the original publication when practical and indicate if changes were made.
 
@@ -19,7 +19,7 @@ FCMO AI uses contribution-based authorship. Leadership or founder status does no
 For FCMO AI material, the canonical public attribution order is:
 
 1. **Matías Peña Szőke** — Director, FCMO AI / Head of AI & Technology.
-2. **Javier Castellanos Peña** — Founder, FCMO Group.
+2. **Javier Castellanos Peña** — Founder, FCMO.
 
 These are project-facing functional descriptions, not representations of formally appointed corporate offices while FCMO is not a separate legal entity.
 
@@ -29,11 +29,11 @@ CC BY 4.0 does not grant rights to material that the newsletter or its contribut
 
 - third-party articles, papers, quotations, images, figures, videos, datasets, logos, trademarks, or other referenced material;
 - material reproduced under quotation, fair-use, fair-dealing, or another third-party permission or license;
-- the FCMO Group, FCMO AI, and FCMO AI Newsletter names, logos, visual identity, or other branding as trademarks or source identifiers; or
+- the FCMO, FCMO AI, and FCMO AI Newsletter names, logos, visual identity, or other branding as trademarks or source identifiers; or
 - software code, which is governed by the repository's `LICENSE` file unless stated otherwise.
 
 Third-party material remains subject to its original rights, terms, and licenses.
 
 ## Scope
 
-This repository uses a mixed-license model: software is MIT-licensed, while licensable original newsletter/editorial content is CC BY 4.0 unless a more specific notice applies. The FCMO Group name remains the public-facing umbrella brand and does not, by itself, determine legal authorship or ownership of FCMO AI material.
+This repository uses a mixed-license model: software is MIT-licensed, while licensable original newsletter/editorial content is CC BY 4.0 unless a more specific notice applies. The FCMO name remains the public-facing umbrella brand and does not, by itself, determine legal authorship or ownership of FCMO AI material.

@@ -16,6 +16,13 @@ from pathlib import Path
 RAIZ = Path(__file__).resolve().parents[1]
 LOCALES = ("es-419", "zh-Hans")
 LOCALE_SLUG = {"es-419": "es", "zh-Hans": "zh-hans"}
+BRAND_SOURCE_ROOTS = (
+    "site", "release-src", "scaffold", "legal",
+    "README.md", "ATTRIBUTION.md", "COPYRIGHT.md", "CONTENT_LICENSE.md",
+    "LEGAL_REQUIREMENTS.md",
+)
+BRAND_SUFFIXES = {".html", ".hbs", ".json", ".js", ".md", ".txt", ".xml"}
+NO_FCMO_GROUP = re.compile(rb"fcmo\s+group", re.IGNORECASE)
 
 
 def paso(nombre, fn):
@@ -34,6 +41,43 @@ def corre(*args):
     if r.returncode:
         raise RuntimeError((r.stderr or r.stdout or "").strip()[-1500:])
     return None
+
+
+def check_no_fcmo_group(publication_root=None, source_roots=None):
+    """Reject the internal umbrella name from reader sources and built output."""
+    publication_root = Path(publication_root or RAIZ / "publish")
+    if source_roots is None:
+        source_roots = tuple(RAIZ / relative for relative in BRAND_SOURCE_ROOTS)
+    else:
+        source_roots = tuple(Path(path) for path in source_roots)
+
+    violations = []
+
+    def scan(paths, base, label):
+        for path in paths:
+            if not path.is_file() or path.suffix.lower() not in BRAND_SUFFIXES:
+                continue
+            for number, line in enumerate(path.read_bytes().splitlines(), 1):
+                if NO_FCMO_GROUP.search(line):
+                    try:
+                        relative = path.relative_to(base).as_posix()
+                    except ValueError:
+                        relative = path.as_posix()
+                    violations.append(f"{label}: {relative}:{number}")
+
+    built = publication_root.rglob("*") if publication_root.is_dir() else ()
+    scan(built, publication_root, "built")
+    source_base = publication_root.parent
+    sources = []
+    for source_root in source_roots:
+        if source_root.is_file():
+            sources.append(source_root)
+        elif source_root.is_dir():
+            sources.extend(path for path in source_root.rglob("*") if path.is_file())
+    scan(sources, source_base, "source")
+    if violations:
+        raise AssertionError("NO_FCMO_GROUP: " + "; ".join(violations[:30]))
+    return f"{len(sources)} reader source files / public candidate scanned"
 
 
 def compilar():
@@ -144,7 +188,8 @@ def main() -> int:
     sys.path.insert(0, str(RAIZ))
     compuertas = (("compilar herramientas", compilar), ("overlay contra su fuente", overlay),
                   ("recibo contra el arbol", recibo), ("ensamblar candidato", ensamblar),
-                  ("identidad e idiomas", identidad), ("falla cerrado", falla_cerrado))
+                  ("identidad e idiomas", identidad), ("falla cerrado", falla_cerrado),
+                  ("NO_FCMO_GROUP", check_no_fcmo_group))
     ok = [paso(n, f) for n, f in compuertas]
     if all(ok):
         print(f"\nlas {len(ok)} compuertas pasan"); return 0
