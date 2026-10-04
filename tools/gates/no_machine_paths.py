@@ -10,12 +10,13 @@ ROOT = Path(__file__).resolve().parents[2]
 
 # Construct the signatures in pieces so this guard does not match itself.
 SIGNATURES = (
-    (re.compile(re.escape(b"/srv/" + b"fcmo")), "server path"),
-    # A relative check label such as DOM/ho + me/layout is not a rooted
-    # machine path. Quotes, whitespace, assignments and file URIs still match.
-    (re.compile(rb"(?<![A-Za-z0-9_.-])/ho" + rb"me/"), "home path"),
-    (re.compile(re.escape(b"/tmp/" + b"claude")), "temporary Claude path"),
+    (b"/srv/" + b"fcmo", "server path"),
+    (b"/ho" + b"me/", "home path"),
+    (b"/tmp/" + b"claude", "temporary Claude path"),
 )
+# A relative check label such as DOM/ho + me/layout is not a rooted
+# machine path. Quotes, whitespace, assignments and file URIs still match.
+HOME_PATH = re.compile(rb"(?<![A-Za-z0-9_.-])/ho" + rb"me/")
 
 
 def check(_publication_root: Path | None = None) -> GateResult:
@@ -44,7 +45,8 @@ def check_repo(repo_root: Path) -> GateResult:
         except OSError as exc:
             raise GateFailure("NO_MACHINE_PATHS", [f"cannot read tracked file {relative}: {exc}"]) from exc
         for signature, label in SIGNATURES:
-            if signature.search(content):
+            # Preserve the cheap byte prefilter for large binary assets.
+            if signature in content and (label != "home path" or HOME_PATH.search(content)):
                 violations.append(f"{relative}: contains forbidden {label}")
 
     if violations:
