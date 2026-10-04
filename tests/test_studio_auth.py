@@ -48,6 +48,12 @@ class AuthHTTP(unittest.TestCase):
         self.assertEqual(self.request('POST', '/api/pieces', data, {'Origin': 'https://evil.invalid'})[0], 403)
         self.assertEqual(self.request('POST', '/api/pieces', data, {'X-CSRF-Token': ''})[0], 403)
         self.assertEqual(self.request('POST', '/api/pieces', data)[0], 200)
+    def test_errors_follow_the_person_ui_language(self):
+        self.app.auth.add_user('javier', 'fixture-passphrase-1234', ui_lang='en')
+        self.login()
+        status, body, _ = self.request('POST', '/api/pieces', {'title': 'An essay'}, {'Origin': 'https://evil.invalid'})
+        self.assertEqual(status, 403)
+        self.assertEqual(body['error_plain'], 'Reload Studio before continuing.')
     def test_five_failures_lock_user_for_fifteen_minutes(self):
         for _ in range(5): self.assertEqual(self.request('POST', '/api/login', {'user': 'javier', 'password': 'wrong-password-long'})[0], 401)
         self.assertEqual(self.request('POST', '/api/login', {'user': 'javier', 'password': 'fixture-passphrase-1234'})[0], 401)

@@ -10,6 +10,7 @@ import threading
 from urllib.error import HTTPError, URLError
 from urllib.parse import quote, urlencode
 from urllib.request import Request, build_opener, HTTPRedirectHandler
+from .messages import PROGRESS
 from .storage import atomic, encoded, git, utc
 from .validation import LOCALES
 from .preview import PREFIX
@@ -174,7 +175,7 @@ class Publisher:
     def _write_locked(self, pub, state=None, error=None):
         if state:
             pub['state'] = state
-            pub['payload'].setdefault('timeline', []).append({'state': state, 'at': utc()})
+            pub['payload'].setdefault('timeline', []).append({'state': state, 'at': utc(), 'plain_es': PROGRESS[state][0], 'plain_en': PROGRESS[state][1]})
         if error is not None: pub['error_plain'] = error
         data = pub['payload']
         self.store.db.execute('UPDATE publications SET state=?,pr_number=?,head_sha=?,merge_sha=?,pages_run=?,live_checked_at=?,error_plain=?,payload_json=? WHERE id=?',

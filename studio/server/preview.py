@@ -1,5 +1,6 @@
 """Build a private snapshot with the production builder; never approximate HTML."""
 import os
+import hashlib
 from pathlib import Path
 import shutil
 import subprocess
@@ -19,7 +20,8 @@ class Preview:
     def build(self, value):
         with self.mutex:
             with self.store.mutex:
-                rev = self.store.piece(value)['head_rev']; key = (value, rev)
+                rev = self.store.piece(value)['head_rev']; payload = self.store.payload(value)
+                key = (value, rev, hashlib.sha256(encoded(payload).encode()).hexdigest())
                 if key in self.cache: return self.cache[key]
                 root = self.store.data / 'previews'; root.mkdir(exist_ok=True, mode=0o700)
                 workspace = Path(tempfile.mkdtemp(dir=root)); editorial = workspace / 'editorial'; directory = editorial / 'pieces' / value
@@ -42,6 +44,10 @@ class Preview:
                 shutil.rmtree(workspace)
                 raise RendererUnavailable('La vista previa espera la integración del formato de ensayos con el sitio.')
             self.cache[key] = output
+            older = [k for k in self.cache if k[0] == value and k != key]
+            for old in older[:-1]:
+                previous = self.cache.pop(old)
+                shutil.rmtree(previous.parent)
             return output
     def page(self, value, loc):
         locale(loc); output = self.build(value)

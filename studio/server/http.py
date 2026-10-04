@@ -9,6 +9,7 @@ import threading
 import time
 from urllib.parse import parse_qs, unquote, urlsplit
 from . import issues, assist
+from .messages import localize
 from .auth import Auth, COOKIE, TTL
 from .checks import checks
 from .preview import Preview, RendererUnavailable
@@ -148,7 +149,7 @@ class Handler(BaseHTTPRequestHandler):
         super().setup(); self.connection.settimeout(15)
     def log_message(self, *args): pass
     def reply(self, status, body, mime='application/json; charset=utf-8', cookie=None):
-        data = body if isinstance(body, bytes) else json.dumps(body, ensure_ascii=False).encode()
+        data = body if isinstance(body, bytes) else json.dumps(localize(body, getattr(self, 'ui_lang', 'es')), ensure_ascii=False).encode()
         self.send_response(status); self.send_header('Content-Type', mime); self.send_header('Content-Length', str(len(data)))
         self.send_header('Content-Security-Policy', CSP); self.send_header('Cache-Control', 'no-store'); self.send_header('X-Content-Type-Options', 'nosniff'); self.send_header('Referrer-Policy', 'no-referrer')
         if cookie: self.send_header('Set-Cookie', cookie)
@@ -160,6 +161,7 @@ class Handler(BaseHTTPRequestHandler):
             cookies = SimpleCookie(); cookies.load(self.headers.get('Cookie', ''))
             token = cookies[COOKIE].value if COOKIE in cookies else None
             session = app.auth.session(token)
+            self.ui_lang = session['ui_lang'] if session else 'es'
             if path == '/api/login' and method == 'POST':
                 if self.headers.get('Origin') != app.origin: return self.reply(403, {'error_plain': 'Abre el inicio de sesión desde Studio.'})
             elif not session:
