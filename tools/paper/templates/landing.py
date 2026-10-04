@@ -1,6 +1,7 @@
 """FCMO entry with Javier's fCMO publication and an FCMO AI depth well."""
 
 from html import escape
+import re
 
 from tools.paper.routes import PRODUCT_NAMES
 from .subscribe import subscribe_block
@@ -109,20 +110,37 @@ def render(*, locale: dict, home: str, technical: str, about: str, subscribe: st
     letter_slot = ' data-slot="cartas"' if cartas else ""
     featured_report = ""
     if feature:
+        confidence = f' · {e(feature["confidence"])}' if feature["confidence"] else ""
         featured_report = (
-            '<article class="landing-feature story-card" style="grid-column:1/-1">'
-            f'<p class="section-kicker">FCMO AI · {e(feature["label"])}</p>'
-            '<figure class="hero">'
-            f'<a href="{e(feature["href"])}"><img src="{e(feature["image"])}" '
-            f'alt="{e(feature["alt"])}" width="1200" height="630" loading="eager"></a>'
-            f'<figcaption>{e(feature["credit"])}</figcaption></figure>'
-            f'<h2><a href="{e(feature["href"])}">{e(feature["title"])}</a></h2>'
-            f'<p class="story-meta"><time datetime="{e(feature["datetime"])}">{e(feature["date"])}</time></p>'
+            '<article class="landing-feature story-card" data-lead>'
+            '<div class="lf-main">'
+            f'<p class="section-kicker">FCMO AI · {e(feature["label"])} · {e(feature["beat"])}</p>'
+            f'<h1 class="{e(feature["title_class"])}"><a href="{e(feature["href"])}">{e(feature["title"])}</a></h1>'
+            f'<p class="lf-verdict">{e(feature["dek"])}</p>'
+            f'<div class="lf-signals">{feature["glyph"]}<span class="sig-text"><b>{e(feature["grade"])}</b>{confidence}</span>'
+            f'<time datetime="{e(feature["datetime"])}">{e(feature["date"])}</time></div>'
+            f'<div class="lf-status">{feature["status"]}<a href="{e(feature["status_href"])}">{e(feature["status_label"])}</a>{feature["badge"]}</div>'
+            f'<a class="button lf-cta" href="{e(feature["href"])}">{e(feature["cta"])} <span aria-hidden="true">↗</span></a>'
+            '</div>'
+            f'{feature["hero"]}'
+            f'<div class="lf-brief">{feature["brief"]}</div>'
             '</article>'
         )
+    lead = re.sub(r'<figure class="data-hero".*?</figure>', "", lead, flags=re.S)
     lead = lead.replace("<h1 ", "<h3 ", 1).replace("</h1>", "</h3>", 1)
+    record = (f'<div class="landing-record" aria-label="{e(c['record'])}"><span>{e(c['record'])}</span><strong>{stats[0]} <small>{e(c['stories'])}</small></strong>'
+              f'<strong>{stats[1]} <small>{e(c['topics'])}</small></strong><strong>{stats[2]} <small>{e(c['organizations'])}</small></strong></div>')
+    jump = (f'<div class="landing-jump"><a href="{e(home)}cartas/">{e(c['letter'])} <span aria-hidden="true">↗</span></a>'
+            f'<a href="{e(technical)}">FCMO AI <span aria-hidden="true">↗</span></a></div>')
+    if feature:
+        intro = (f'<section class="landing-intro" aria-label="{e(feature['label'])}">{featured_report}{record}</section>'
+                 f'<section class="landing-motto" aria-labelledby="landing-title"><p class="section-kicker">{e(c['eyebrow'])}</p>'
+                 f'<h2 id="landing-title">{e(c['title'])}</h2><p class="landing-dek">{e(c['intro'])}</p>{jump}</section>')
+    else:
+        intro = (f'<section class="landing-intro" aria-labelledby="landing-title"><p class="section-kicker">{e(c['eyebrow'])}</p>'
+                 f'<h1 id="landing-title">{e(c['title'])}</h1><p class="landing-dek">{e(c['intro'])}</p>{jump}{record}</section>')
     return f'''<div class="landing">
-<section class="landing-intro" aria-labelledby="landing-title"><p class="section-kicker">{e(c['eyebrow'])}</p><h1 id="landing-title">{e(c['title'])}</h1><p class="landing-dek">{e(c['intro'])}</p><div class="landing-jump"><a href="{e(home)}cartas/">{e(c['letter'])} <span aria-hidden="true">↗</span></a><a href="{e(technical)}">FCMO AI <span aria-hidden="true">↗</span></a></div><div class="landing-record" aria-label="{e(c['record'])}">{featured_report}<span>{e(c['record'])}</span><strong>{stats[0]} <small>{e(c['stories'])}</small></strong><strong>{stats[1]} <small>{e(c['topics'])}</small></strong><strong>{stats[2]} <small>{e(c['organizations'])}</small></strong></div></section>
+{intro}
 <section class="landing-letters" id="letters" aria-labelledby="letters-title"><div class="landing-section-head"><p class="section-kicker">01 / fCMO · Javier</p><h2 id="letters-title">{e(c['letter'])}</h2><p>{e(c['letter_dek'])}</p><div class="landing-actions"><a class="button" href="{e(home)}empieza/">{e(c['start'])} <span aria-hidden="true">↗</span></a><a href="{e(home)}comunidad/">{e(c['community_path'])} →</a></div></div><div class="landing-letter-feed"{letter_slot}>{letter}</div></section>
 <section class="landing-guide" id="start-here" aria-labelledby="guide-title"><div><p class="section-kicker">FCMO / 00</p><h2 id="guide-title">{e(c['guide_title'])}</h2><p>{e(c['guide_intro'])}</p></div><ol><li><span>01</span><h3>{e(c['step_one'])}</h3><p>{e(c['step_one_body'])}</p><a href="{e(home)}cartas/">{e(c['letter'])} →</a></li><li><span>02</span><h3>{e(c['step_two'])}</h3><p>{e(c['step_two_body'])}</p><a href="{e(technical)}">{e(c['technical'])} →</a></li><li><span>03</span><h3>{e(c['step_three'])}</h3><p>{e(c['step_three_body'])}</p><a href="{e(about)}">{e(c['method'])} →</a></li></ol></section>
 <section class="landing-technical" id="technical" aria-labelledby="technical-title"><div class="technical-intro"><p class="section-kicker">02 / FCMO AI · Matías</p><h2 id="technical-title">{e(c['technical'])}</h2><p>{e(c['technical_dek'])}</p><a class="button" href="{e(technical)}">{e(c['today'])} <span aria-hidden="true">↗</span></a></div><div class="front-grid technical-grid">{lead}<aside class="top-stories">{top}</aside></div></section>

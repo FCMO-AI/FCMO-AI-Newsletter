@@ -40,7 +40,7 @@ class PaperEditorialDepthTests(unittest.TestCase):
     def test_story_has_a_visual_anchor_and_two_reading_paths(self):
         route = next(route for route in self.routes if route["kind"] == "story" and route["locale"] == "en")
         page = self.page(route)
-        self.assertIn('class="hero story-hero"', page)
+        self.assertIn('class="data-hero"', page)
         self.assertIn('class="edition-neighbors"', page)
         self.assertIn('class="related-reading"', page)
         self.assertIn('class="story-taxonomy"', page)

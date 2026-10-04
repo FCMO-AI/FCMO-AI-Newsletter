@@ -27,6 +27,8 @@ if __package__ in {None, ""}:
     from tools.paper.templates import archive_page, document, front_page, simple_page, status_page, story_page
     from tools.paper.templates.pages import evidence_board, evidence_strip, story_card
     from tools.paper.templates.landing import render as render_landing
+    from tools.paper.templates.reader import (LAYER_SCRIPT, automation_badge, brief, claim_kind, data_hero, evidence_glyph,
+                                              first_sentence, layer, primary_source, provenance_line, reader_select, status_chip)
     from tools.paper.templates.newsletter import render as render_newsletter, subscription_tail
     from tools.paper.routes import TECHNICAL_FRONT
 else:
@@ -42,6 +44,8 @@ else:
     from .templates import archive_page, document, front_page, simple_page, status_page, story_page
     from .templates.pages import evidence_board, evidence_strip, story_card
     from .templates.landing import render as render_landing
+    from .templates.reader import (LAYER_SCRIPT, automation_badge, brief, claim_kind, data_hero, evidence_glyph,
+                                   first_sentence, layer, primary_source, provenance_line, reader_select, status_chip)
     from .templates.newsletter import render as render_newsletter, subscription_tail
     from .routes import TECHNICAL_FRONT
 
@@ -277,24 +281,32 @@ class PaperBuilder:
             return
         plan = front_plan(order, BEATS)
         first = plan["lead"]
-        hero = first.get("media") or {}
-        hero_path = self._story_media_url(first, locale)
-        hero_alt = (hero.get("alt") or {}).get(locale["code"], "")
         lead_title = headline(first, locale["code"], catalog)
         lead_class = self._title_class(lead_title, locale["code"])
+        dz = strings["design"]
+        lead_evidence = first.get("evidence") if isinstance(first.get("evidence"), dict) else {}
+        local_evidence = self._localized_evidence(first, locale)
         feature = {
-            "label": strings["front"]["lead"],
+            "label": dz["lead"],
+            "beat": label(catalog, "beat", first.get("beat")),
             "title": lead_title,
+            "title_class": lead_class,
             "href": self._story_href(locale, first),
-            "image": hero_path,
-            # Use supplied localized alt text; otherwise identify the report in
-            # that locale without inventing visual details about the graphic.
-            "alt": (hero.get("alt") or {}).get(locale["code"]) or lead_title,
-            "credit": strings["story"]["image_credit"].format(credit=hero.get("credit", "FCMO AI")),
+            "dek": truncate(dek(first, locale["code"], catalog), 170),
+            "glyph": evidence_glyph(first, catalog),
+            "grade": label(catalog, "evidence_class", first.get("evidence_class")),
+            "confidence": label(catalog, "confidence", first.get("confidence")),
+            "status": status_chip(self.status, catalog),
+            "badge": automation_badge(self.status, catalog),
+            "hero": data_hero(first, catalog, evidence=lead_evidence),
+            "brief": brief(first, catalog, summary=field(first, locale["code"], "summary"), why=field(first, locale["code"], "why_it_matters"), evidence=local_evidence),
             "datetime": first["event_at"],
             "date": format_date(first["event_at"], catalog, precision=first.get("date_precision", "day")),
+            "cta": dz["read_story"],
+            "status_href": href(self.base, locale["path_prefix"] + "status/"),
+            "status_label": dz["see_status"],
         }
-        lead = f'''<article class="lead"><p class="story-kicker">{esc(strings["front"]["lead"])} · {esc(label(catalog,"beat",first.get("beat")))}</p><h1 class="{lead_class}"><a href="{esc(self._story_href(locale,first))}">{esc(lead_title)}</a></h1><p class="lead-dek">{esc(dek(first,locale["code"],catalog))}</p><p class="story-meta">{esc(format_date(first["event_at"],catalog,precision=first.get("date_precision","day")))}</p>{evidence_strip(first, catalog)}<figure class="hero"><img src="{esc(hero_path)}" alt="{esc(hero_alt)}" width="1200" height="630"><figcaption>{esc(strings["story"]["image_credit"].format(credit=hero.get("credit","FCMO AI")))}</figcaption></figure></article>'''
+        lead = f'''<article class="lead"><p class="story-kicker">{esc(strings["front"]["lead"])} · {esc(label(catalog,"beat",first.get("beat")))}</p><h1 class="{lead_class}"><a href="{esc(self._story_href(locale,first))}">{esc(lead_title)}</a></h1><p class="lead-dek">{esc(dek(first,locale["code"],catalog))}</p><p class="story-meta">{esc(format_date(first["event_at"],catalog,precision=first.get("date_precision","day")))}</p>{evidence_strip(first, catalog)}{feature["hero"]}</article>'''
         top = f'<h2>{esc(strings["front"]["top_stories"])}</h2>' + "".join(self._card(story, locale, 3) for story in plan["top"])
         essentials = f'<div><p class="section-kicker">FCMO AI · {esc(strings["front"]["essentials"])}</p><h2>{esc(strings["front"]["essentials"])}</h2></div><ol>' + "".join(f'<li data-story-id="{esc(s["id"])}"><a href="{esc(self._story_href(locale,s))}">{esc(headline(s,locale["code"],catalog))}</a></li>' for s in plan["essentials"]) + "</ol>"
         sections = []
@@ -358,12 +370,23 @@ class PaperBuilder:
         event = format_date(story["event_at"], catalog, precision=story.get("date_precision", "day"))
         published = format_date(story["first_published_at"], catalog, precision="minute")
         title_class = self._title_class(title, code)
-        header = f'<header class="story-header"><p class="story-kicker">{esc(label(catalog,"beat",story.get("beat")))}</p><h1>{esc(title)}</h1><p class="story-dek">{esc(description)}</p><p class="story-meta">{esc(strings["story"]["byline"])} · {esc(strings["story"]["event_date"].format(date=event))} · {esc(strings["story"]["published"].format(date=published))}</p></header>'
+        note = ""
         if code != "en" and story_locale(story, code).get("state") == "MACHINE_REVIEWED":
             english = self._story_href(self.config["locales"][0], story)
             note = (f'<p class="translation-note" role="note">{esc(strings["l10n"]["desk_note"])} '
                     f'<a href="{esc(english)}" lang="en" hreflang="en">English original</a></p>')
-            header = header.replace("</header>", note + "</header>")
+        dz = strings["design"]
+        grade_text = label(catalog, "evidence_class", story.get("evidence_class"))
+        conf_text = label(catalog, "confidence", story.get("confidence"))
+        signals = (f'<div class="story-signals">{evidence_glyph(story, catalog)}<span class="sig-text"><b>{esc(grade_text)}</b>'
+                   f'{" · " + esc(conf_text) if conf_text else ""}</span>{status_chip(self.status, catalog)}</div>')
+        original = primary_source(story)
+        provenance = provenance_line(original, catalog) if original else ""
+        header = (f'<header class="story-header"><div class="sh-main"><p class="story-kicker">{esc(label(catalog,"beat",story.get("beat")))}</p><h1>{esc(title)}</h1>'
+                  f'<p class="story-dek">{esc(description)}</p>{signals}'
+                  f'<p class="story-meta">{esc(strings["story"]["byline"])} · {esc(strings["story"]["event_date"].format(date=event))} · {esc(strings["story"]["published"].format(date=published))}</p>'
+                  f'<p class="story-disclosure">{automation_badge(self.status, catalog)}</p>{provenance}{note}</div></header>')
+        hero_figure = data_hero(story, catalog, evidence=story.get("evidence") if isinstance(story.get("evidence"), dict) else {})
         if not complete:
             notice = strings["l10n"]["pending_partial"] if (field(story, code, "headline") or field(story, code, "title")) else strings["l10n"]["pending_notice"]
             english = self._story_href(self.config["locales"][0], story)
@@ -372,37 +395,40 @@ class PaperBuilder:
             aside = self._facts(story, locale)
         else:
             evidence = self._localized_evidence(story, locale)
-            sections = []
+            argument, dossier, technical_layer = [], [], []
             for heading_key, value in (("what_changed", field(story, code, "summary")), ("why_it_matters", field(story, code, "why_it_matters"))):
                 if value:
-                    sections.append(f'<section><h2>{esc(strings["story"][heading_key])}</h2><p>{esc(value)}</p></section>')
+                    argument.append(f'<section><h2>{esc(strings["story"][heading_key])}</h2><p>{esc(value)}</p></section>')
             claims = evidence.get("claims") or []
             if claims:
                 items = []
                 for claim in claims:
                     claim_label = label(catalog, "claim_label", claim.get("label"), fallback=label(catalog, "claim_label", f'{claim.get("label","")}_{claim.get("qualifier","")}', fallback=""))
-                    items.append(f'<li><span class="evidence-label">{esc(claim_label)}</span>{esc(claim.get("text",""))}</li>')
-                sections.append(f'<section><h2>{esc(strings["story"]["evidence"])}</h2><ol class="evidence-list">{"".join(items)}</ol></section>')
+                    items.append(f'<li data-kind="{esc(claim_kind(claim.get("label")))}"><span class="evidence-label">{esc(claim_label)}</span>{esc(claim.get("text",""))}</li>')
+                dossier.append(f'<section><h2>{esc(strings["story"]["evidence"])}</h2><ol class="evidence-list">{"".join(items)}</ol></section>')
             for heading_key, evidence_key in (("limitations", "limitations"), ("unknowns", "gaps"), ("contradictory", "contradictory")):
                 values = evidence.get(evidence_key) or []
                 if values:
                     lis = "".join(f'<li>{esc(v.get("description","") if isinstance(v,dict) else v)}</li>' for v in values)
-                    sections.append(f'<section><h2>{esc(strings["story"][heading_key])}</h2><ul>{lis}</ul></section>')
+                    dossier.append(f'<section><h2>{esc(strings["story"][heading_key])}</h2><ul>{lis}</ul></section>')
             technical = field(story, code, "technical", {})
             if isinstance(technical, dict) and technical:
                 details = "".join(f'<section><h3>{esc(strings["technical_field"].get(key,key))}</h3><p>{esc(value)}</p></section>' for key, value in technical.items() if value)
-                sections.append(f'<section class="developing-well"><h2>{esc(strings["story"]["technical"])}</h2>{details}</section>')
+                technical_layer.append(f'<section class="developing-well"><h2>{esc(strings["story"]["technical"])}</h2>{details}</section>')
             sources = story.get("sources") or []
             if sources:
-                links = "".join(f'<li><a href="{esc(src["url"])}" rel="noopener noreferrer"><span translate="no" data-field="source-domain">{esc(src.get("domain") or src["url"])}</span></a>{" · "+esc(strings["story"]["primary_source"]) if src.get("primary") else ""}</li>' for src in sources)
-                sections.append(f'<section><h2>{esc(strings["story"]["sources"])}</h2><ol class="source-list">{links}</ol></section>')
-            body = "".join(sections)
+                links = "".join(f'<li>{provenance_line(src, catalog)}{"<span class=\"prov-primary\">" + esc(strings["story"]["primary_source"]) + "</span>" if src.get("primary") else ""}</li>' for src in sources)
+                dossier.append(f'<section><h2>{esc(strings["story"]["sources"])}</h2><ol class="source-list">{links}</ol></section>')
+            body = (brief(story, catalog, summary=field(story, code, "summary"), why=field(story, code, "why_it_matters"), evidence=evidence)
+                    + reader_select(catalog)
+                    + '<div class="layers" data-layers data-mode="summary">'
+                    + layer("argument", dz["argument_title"], dz["layer_r2"], "".join(argument))
+                    + layer("dossier", dz["dossier_title"], dz["layer_r4"], "".join(dossier))
+                    + layer("technical", dz["technical_title"], dz["layer_r3"], "".join(technical_layer))
+                    + '</div>' + LAYER_SCRIPT)
             aside = self._facts(story, locale)
-        media = story.get("media") or {}
-        image_alt = (media.get("alt") or {}).get(code, "")
-        hero = (f'<figure class="hero story-hero"><img src="{esc(self._story_media_url(story, locale))}" alt="{esc(image_alt)}" width="1200" height="630" loading="eager">'
-                f'<figcaption>{esc(strings["story"]["image_credit"].format(credit=media.get("credit", "FCMO AI")))}</figcaption></figure>')
-        page = story_page(header=header, body=body, aside=aside, hero=hero, navigation=self._story_navigation(story, locale))
+        hero = ""
+        page = story_page(header=header, body=body, aside=hero_figure + aside, hero=hero, navigation=self._story_navigation(story, locale))
         page = page.replace('<article class="story-layout">', f'<article class="story-layout {title_class}">', 1)
         story_url = absolute(self.base_url, locale["path_prefix"] + suffix)
         image = self._media_url(story, locale)

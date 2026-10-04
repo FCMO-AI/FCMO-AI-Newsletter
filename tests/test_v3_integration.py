@@ -131,7 +131,7 @@ class V3IntegrationTests(unittest.TestCase):
         self.assertTrue(all(row[:3] == ["time", "a", "img"] or row[:2] == ["time", "a"] for row in parsed_archive.rows[:1]))
         self.assertEqual(parsed_status.classes.get("status-card"), 5)
         self.assertEqual(parsed_status.classes.get("status-freshness"), 1)
-        self.assertRegex(story, r'<div class="story-body"><figure class="hero story-hero">')
+        self.assertRegex(story, r'<div class="story-body"><div class="brief"')
         self.assertIn('class="edition-neighbors"', story)
         self.assertIn('class="related-reading"', story)
         self.assertIn('class="story-taxonomy"', story)
