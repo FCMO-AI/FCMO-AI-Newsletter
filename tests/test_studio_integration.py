@@ -4,6 +4,7 @@ from http.client import HTTPConnection
 import json
 from pathlib import Path
 import subprocess
+import shutil
 import tempfile
 import threading
 import unittest
@@ -27,9 +28,23 @@ class StudioIntegration(unittest.TestCase):
         remote = self.root / 'remote'
         subprocess.run(['git', 'clone', '--quiet', '--no-hardlinks', str(ROOT), str(remote)], check=True)
         git(remote, 'checkout', '-qb', 'main')
+        # Exercise current working source during red/green development as well as commits.
+        for relative in git(ROOT, 'ls-files').splitlines():
+            source = ROOT / relative
+            if source.is_file():
+                target = remote / relative; target.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(source, target)
+        git(remote, 'add', '.')
+        git(remote, '-c', 'user.name=Codex', '-c', 'user.email=noreply@openai.com', 'commit', '--allow-empty', '-qm', 'Integration fixture source')
         git(self.store.data / 'clone', 'remote', 'set-url', 'origin', str(remote))
         gate_script = self.root / 'candidate_check.py'
-        gate_script.write_text('from pathlib import Path\nimport subprocess\nsubprocess.run(["python3", "tools/paper/build.py", "--out", "publish", "--base", "/FCMO-AI-Newsletter/"], check=True)\nsubprocess.run(["python3", "tools/gates/run_all.py", "publish"], check=True)\n')
+        gate_script.write_text("""from pathlib import Path
+import subprocess
+for command in (["python3", "tools/paper/build.py", "--stories", "site/data/stories.v2.json", "--status", "site/data/newsroom-status.json", "--out", "publish", "--base", "/FCMO-AI-Newsletter/"], ["python3", "tools/gates/run_all.py", "publish"]):
+    run = subprocess.run(command, capture_output=True)
+    with open(""" + repr(str(ROOT / '_audit/studio-int/candidate.log')) + """, 'ab') as log: log.write(run.stdout + run.stderr)
+    if run.returncode: raise SystemExit(run.returncode)
+""")
         workspace = MockWorkspace(self.store, gh, ['python3', str(gate_script)])
         self.app = Application(self.store, 'http://studio.invalid', 'integration-session-' + 'x'*32, ROOT, live=True)
         self.app.publisher = Publisher(self.store, gh, workspace, lambda slug: __import__('studio.server.checks', fromlist=['checks']).checks(self.store, self.app.preview, slug))
@@ -86,7 +101,7 @@ class StudioIntegration(unittest.TestCase):
                 translated = copy.deepcopy(doc); translated['locale'] = loc
                 translated['title'] = 'Una prueba integrada' if loc == 'es-419' else '集成测试'
                 translated['dek'] = 'Un texto de prueba' if loc == 'es-419' else '测试文本'
-                translated['blocks'][0]['content'][0]['v'] = 'Una publicación humana comprobada.' if loc == 'es-419' else '经过验证的人类出版内容。'
+                translated['blocks'][0]['content'][0]['v'] = 'Una publicación humana comprobada con 42 ideas.' if loc == 'es-419' else '经过验证的人类出版内容与42个想法。'
                 self.assertEqual(self.request('PUT', base + '/doc/' + loc, {'base_rev': current['rev'], 'doc': translated, 'cursor': {}}, 'javier')[0], 200)
             self.assertEqual(self.request('POST', base + '/locale/' + loc + '/state', {'state': 'ready', 'reviewed': True, 'confirmation': 'Leí y entiendo el texto chino'}, 'javier')[0], 200)
         status, checks, _ = self.request('GET', base + '/checks', user='javier')
@@ -126,3 +141,17 @@ class StudioIntegration(unittest.TestCase):
         self.assertEqual(self.request('GET', '/preview/' + slug + '/en/', user='javier')[0], 200)
         self.assertEqual(self.request('POST', '/api/pieces/' + slug + '/review/request', {}, 'javier')[0], 409)
         self.assertEqual(self.mock.requests, [])
+
+    def test_stale_browser_bundle_is_refused_without_blocking_private_api(self):
+        # The host may only serve a bundle matching the current editor source.
+        source = self.root / 'ui-repo'
+        shutil.copytree(ROOT / 'studio/web', source / 'studio/web', ignore=shutil.ignore_patterns('node_modules'))
+        app = Application(self.store, 'http://studio.invalid', 'integration-session-' + 'x'*32, source, preview=self.app.preview)
+        server = Server(('127.0.0.1', 0), app)
+        thread = threading.Thread(target=server.serve_forever, daemon=True); thread.start()
+        try:
+            conn = HTTPConnection('127.0.0.1', server.server_port)
+            conn.request('GET', '/'); response = conn.getresponse(); response.read()
+            self.assertEqual(response.status, 503)
+            conn.close()
+        finally: server.shutdown(); server.server_close(); thread.join()
