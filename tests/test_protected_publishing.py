@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 from pathlib import Path
 import subprocess
 import tempfile
@@ -54,6 +53,28 @@ class ProtectedPublishingTests(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, 'REMOTE_SCRIPT'):
                 publish.dry_run(self.bare, self.sha)
         self.assertEqual(git(self.bare, 'show-ref'), self.before)
+
+    def test_actual_gate_rejects_unsafe_edition_before_browser_or_identity(self):
+        from tests.test_gates import PublicationGateTests
+        fixture = PublicationGateTests()
+        fixture.setUp()
+        self.addCleanup(fixture.doCleanups)
+        fixture.put('index.html', '<html lang="en"><script src="https://example.invalid/unsafe.js"></script></html>')
+        calls = []
+        real_step = publish.step
+        def run_step(root, *args):
+            calls.append(args[0])
+            if args[0] == 'tools/gates/run_all.py':
+                real_step(ROOT, args[0], str(fixture.root))
+        with patch.object(publish, 'step', side_effect=run_step):
+            # build_and_check creates its output through the mocked builder;
+            # use the complete independently constructed edition as that output.
+            with self.assertRaisesRegex(RuntimeError, 'publication blocked'):
+                publish.build_and_check(ROOT, fixture.root, self.sha)
+        self.assertEqual(calls, ['tools/verify_release.py', 'tools/paper/build.py', 'tools/gates/run_all.py'])
+        self.assertNotIn('tools/paper/og_image.py', calls)
+        self.assertNotIn('tests/oraculos/verificar_paper.py', calls)
+        self.assertFalse((fixture.root / 'deployment-identity.json').exists())
 
     def test_dry_run_rejects_urls_and_nonbare_repository(self):
         for repository in ('https://example.invalid/repo.git', self.source):
