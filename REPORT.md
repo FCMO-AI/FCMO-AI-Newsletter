@@ -110,3 +110,9 @@ Resumen L10: la puerta visual y sus pruebas están listas; falta ejecutarlas con
 
 Detalle, evidencia roja-primero y continuación en [REPORT-L3.md](REPORT-L3.md).
 Resumen: frescura independiente del heartbeat, estado público FRESH / QUIET / DELAYED y diagnóstico conservado. Sin push; navegador y producción pendientes de verificación independiente.
+
+## L16-mobile — primera pantalla y overflow zh-Hans
+
+Detalle, baseline, cambios y continuación para la prueba del arquitecto en [REPORT-L16-mobile.md](REPORT-L16-mobile.md). La suite completa da 583 OK y 3 omitidas. El navegador no está disponible en esta caja, así que el resultado visual posterior sigue sin confirmación.
+
+Resumen L16-mobile: navegación compacta y wrapping genérico implementados; falta medir el candidato en Chromium en el host.
