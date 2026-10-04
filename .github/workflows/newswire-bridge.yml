@@ -1,3 +1,6 @@
+# ARB-derived diagnostics never cross the public runner output boundary.
+# Every shell step discards stdout/stderr; only numeric exit receipts escape.
+# Children cannot inherit the receipt descriptor or runner summary channels.
 name: Pull airlocked newswire with GitHub App
 
 on:
@@ -30,10 +33,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the public sink
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: '3.12'
 
@@ -42,11 +45,14 @@ jobs:
           APP_CLIENT_ID: ${{ vars.FCMO_NEWSWIRE_APP_CLIENT_ID }}
         shell: bash
         run: |
+          set +x
+          exec 3>&1 >/dev/null 2>&1
+          trap 'rc=$?; printf "step_exit=%s\n" "$rc" >&3' EXIT
           test -n "$APP_CLIENT_ID" || { echo 'FCMO_NEWSWIRE_APP_CLIENT_ID is not configured' >&2; exit 1; }
 
       - name: Mint a read-only token scoped only to private ARB
         id: app-token
-        uses: actions/create-github-app-token@v3
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
         with:
           client-id: ${{ vars.FCMO_NEWSWIRE_APP_CLIENT_ID }}
           private-key: ${{ secrets.FCMO_NEWSWIRE_APP_PRIVATE_KEY }}
@@ -62,6 +68,9 @@ jobs:
           APP_TOKEN: ${{ steps.app-token.outputs.token }}
         shell: bash
         run: |
+          set +x
+          exec 3>&1 >/dev/null 2>&1
+          trap 'rc=$?; printf "step_exit=%s\n" "$rc" >&3' EXIT
           set -euo pipefail
           PRIVATE_DIR="$RUNNER_TEMP/fcmo-newswire-private-source"
           PRIVATE_SHA="$RUNNER_TEMP/fcmo-newswire-private-source.sha"
@@ -70,13 +79,12 @@ jobs:
           rm -f "$PRIVATE_SHA" "$CANDIDATE_LOG"
 
           AUTH=$(printf 'x-access-token:%s' "$APP_TOKEN" | base64 -w0)
-          echo "::add-mask::$AUTH"
           git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $AUTH" \
             clone --quiet --depth 1 --single-branch --branch main \
             https://github.com/FCMO-AI/AI-Research-Breakthroughs.git \
             "$PRIVATE_DIR"
 
-          READY_SHA=$(PRIVATE_DIR_ENV="$PRIVATE_DIR" python - <<'PY'
+          READY_SHA=$(env -i "PATH=$PATH" "HOME=$HOME" "PRIVATE_DIR_ENV=$PRIVATE_DIR" python - 3>&- <<'PY'
           import json
           import os
           import re
@@ -97,12 +105,10 @@ jobs:
           print(sha)
           PY
           )
-          echo "::add-mask::$READY_SHA"
 
           git -C "$PRIVATE_DIR" -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $AUTH" \
             fetch --quiet --unshallow origin main
           CURRENT_SHA=$(git -C "$PRIVATE_DIR" rev-parse origin/main)
-          echo "::add-mask::$CURRENT_SHA"
 
           git -C "$PRIVATE_DIR" checkout --detach --quiet "$CURRENT_SHA"
           if (
@@ -114,17 +120,13 @@ jobs:
               "LC_ALL=C.UTF-8" \
               "ARB_SITE_BASE_PATH=/FCMO-AI-Newsletter" \
               "ARB_PUBLIC_BASE_URL=https://fcmo-ai.github.io/FCMO-AI-Newsletter" \
-              python tools/publication_seal.py &&
-              python tools/validate_integrity_ratchet.py --json
+              python tools/publication_seal.py 3>&- &&
+              env -i "PATH=$PATH" "HOME=$HOME" "LANG=C.UTF-8" "LC_ALL=C.UTF-8" \
+                python tools/validate_integrity_ratchet.py --json 3>&-
           ) >"$CANDIDATE_LOG" 2>&1 && grep -qx 'SEAL_OK' "$CANDIDATE_LOG"; then
             SELECTED_SHA="$CURRENT_SHA"
             echo 'Fresh canonical ARB main passed the publication seal and no-new-debt ratchet.'
           else
-            SAFE_REASON=$(grep -E '^SEAL_FAIL:[A-Z0-9_]+' "$CANDIDATE_LOG" | tail -n 1 || true)
-            if test -z "$SAFE_REASON" && grep -q '"state": "REGRESSION"' "$CANDIDATE_LOG"; then
-              SAFE_REASON='INTEGRITY_DEBT_REGRESSION'
-            fi
-            echo "Current ARB main is not promotion-safe; using last sealed checkpoint (${SAFE_REASON:-UNCLASSIFIED_SAFETY_FAILURE})."
             # origin/main was already unshallowed above, so every ancestor of
             # current main is locally addressable. Avoid a redundant raw-SHA fetch:
             # GitHub may reject direct object fetches even when the commit is a
@@ -148,22 +150,25 @@ jobs:
       - name: Measure current canonical ARB integrity on the working GitHub runner
         shell: bash
         run: |
+          set +x
+          exec 3>&1 >/dev/null 2>&1
+          trap 'rc=$?; printf "step_exit=%s\n" "$rc" >&3' EXIT
           # This is deliberately observational, not a second publication gate.
           # Always diagnose *current canonical main*, even when publication fell
           # back to an older sealed snapshot. Historical fallback snapshots are
           # publication artifacts, not the runtime that defines today's integrity
           # tools/tests/orientation contracts.
-          set +e
-          set -u
+          set -euo pipefail
           PRIVATE_DIR="$RUNNER_TEMP/fcmo-newswire-private-source"
           PRIVATE_SHA="$RUNNER_TEMP/fcmo-newswire-private-source.sha"
           test -s "$PRIVATE_SHA" || { echo 'selected private snapshot receipt is missing' >&2; exit 1; }
-          SELECTED_SHA="$(cat "$PRIVATE_SHA")"
+          read -r SELECTED_SHA < "$PRIVATE_SHA"
           test -n "$SELECTED_SHA" || { echo 'selected private snapshot SHA is empty' >&2; exit 1; }
           CURRENT_SHA="$(git -C "$PRIVATE_DIR" rev-parse origin/main)"
           cd "$PRIVATE_DIR"
           git checkout --detach --quiet "$CURRENT_SHA"
           failures=0
+          set +e
           for cmd in \
             "python tools/validate_integrity_ratchet.py --json" \
             "python -m unittest discover -s tests -v" \
@@ -171,23 +176,26 @@ jobs:
             "python tools/arb.py orient --json" \
             "python tools/arb.py next --json"
           do
-            echo "::group::$cmd"
-            bash -o pipefail -c "$cmd"
+            env -i "PATH=$PATH" "HOME=$HOME" "LANG=C.UTF-8" "LC_ALL=C.UTF-8" \
+              bash -o pipefail -c "$cmd" 3>&-
             rc=$?
-            echo "::endgroup::"
+            printf 'probe_exit=%d\n' "$rc" >&3
             if test "$rc" -ne 0; then
-              echo "::warning::ARB current-main integrity probe failed (rc=$rc): $cmd"
               failures=$((failures+1))
             fi
           done
+          set -e
           git checkout --detach --quiet "$SELECTED_SHA"
           test "$(git rev-parse HEAD)" = "$SELECTED_SHA"
-          echo "ARB current-main integrity probe completed with $failures failing command(s); selected publication snapshot was restored unchanged."
+          printf 'probe_failures=%d\n' "$failures" >&3
           exit 0
 
       - name: Prove selected immutable snapshot through ARB's atomic publication seal
         shell: bash
         run: |
+          set +x
+          exec 3>&1 >/dev/null 2>&1
+          trap 'rc=$?; printf "step_exit=%s\n" "$rc" >&3' EXIT
           set -euo pipefail
           PRIVATE_DIR="$RUNNER_TEMP/fcmo-newswire-private-source"
           PRIVATE_LOG="$RUNNER_TEMP/fcmo-newswire-private-seal.log"
@@ -200,11 +208,9 @@ jobs:
               "LC_ALL=C.UTF-8" \
               "ARB_SITE_BASE_PATH=/FCMO-AI-Newsletter" \
               "ARB_PUBLIC_BASE_URL=https://fcmo-ai.github.io/FCMO-AI-Newsletter" \
-              python tools/publication_seal.py
+              python tools/publication_seal.py 3>&-
           ) >"$PRIVATE_LOG" 2>&1; then
-            SAFE_REASON=$(grep -E '^SEAL_FAIL:[A-Z0-9_]+' "$PRIVATE_LOG" | tail -n 1 || true)
             rm -f "$PRIVATE_LOG"
-            echo "${SAFE_REASON:-SEAL_FAIL:UNCLASSIFIED}" >&2
             exit 1
           fi
           grep -qx 'SEAL_OK' "$PRIVATE_LOG" || {
@@ -218,6 +224,10 @@ jobs:
       - name: Extract only the already-sanitized release, then destroy private checkout
         shell: bash
         run: |
+          set +x
+          exec 3>&1 >/dev/null 2>&1
+          trap 'rc=$?; printf "step_exit=%s\n" "$rc" >&3' EXIT
+          set -euo pipefail
           PRIVATE_DIR="$RUNNER_TEMP/fcmo-newswire-private-source"
           PRIVATE_SHA="$RUNNER_TEMP/fcmo-newswire-private-source.sha"
           RELEASE_DIR="$RUNNER_TEMP/fcmo-newswire-airlocked-release"
@@ -228,35 +238,46 @@ jobs:
           rm -f "$PRIVATE_SHA"
           test ! -e "$PRIVATE_DIR"
           test ! -e "$PRIVATE_SHA"
-          echo "RELEASE_DIR=$RELEASE_DIR" >> "$GITHUB_ENV"
+          printf 'RELEASE_DIR=%s\n' "$RELEASE_DIR" >> "$GITHUB_ENV"
 
       - name: Independently verify the airlocked bytes from the public side
-        run: python tools/newswire_bridge_partial_locales.py verify "$RELEASE_DIR"
+        shell: bash
+        run: |
+          set +x
+          exec 3>&1 >/dev/null 2>&1
+          trap 'rc=$?; printf "step_exit=%s\n" "$rc" >&3' EXIT
+          env -i "PATH=$PATH" "HOME=$HOME" python tools/newswire_bridge_partial_locales.py verify "$RELEASE_DIR" 3>&-
 
       - name: Rebase transport onto current public main before staging
         shell: bash
         run: |
+          set +x
+          exec 3>&1 >/dev/null 2>&1
+          trap 'rc=$?; printf "step_exit=%s\n" "$rc" >&3' EXIT
           git fetch origin main
           git reset --hard origin/main
           git clean -fdx
-          python tools/newswire_bridge_partial_locales.py verify "$RELEASE_DIR"
+          env -i "PATH=$PATH" "HOME=$HOME" python tools/newswire_bridge_partial_locales.py verify "$RELEASE_DIR" 3>&-
 
       - name: Atomically replace only corpus/
         shell: bash
         run: |
+          set +x
+          exec 3>&1 >/dev/null 2>&1
+          trap 'rc=$?; printf "step_exit=%s\n" "$rc" >&3' EXIT
           set -euo pipefail
           # Airlock generation time is a transport heartbeat, not content identity.
           # Do not create a public commit (and therefore another newsroom rebuild)
           # when the verified release ID + corpus digest are unchanged.
           if test -f corpus/airlock.json && test -f "$RELEASE_DIR/airlock.json"; then
-            CURRENT_ID=$(python - <<'PY'
+            CURRENT_ID=$(env -i "PATH=$PATH" "HOME=$HOME" python - 3>&- <<'PY'
           import json
           from pathlib import Path
           doc=json.loads(Path("corpus/airlock.json").read_text(encoding="utf-8"))
           print(f"{doc.get('release_id','')}|{doc.get('corpus_digest','')}")
           PY
             )
-            INCOMING_ID=$(RELEASE_DIR_ENV="$RELEASE_DIR" python - <<'PY'
+            INCOMING_ID=$(env -i "PATH=$PATH" "HOME=$HOME" "RELEASE_DIR_ENV=$RELEASE_DIR" python - 3>&- <<'PY'
           import json, os
           from pathlib import Path
           doc=json.loads((Path(os.environ["RELEASE_DIR_ENV"]) / "airlock.json").read_text(encoding="utf-8"))
@@ -268,11 +289,14 @@ jobs:
               exit 0
             fi
           fi
-          python tools/newswire_bridge_partial_locales.py stage "$RELEASE_DIR" corpus
+          env -i "PATH=$PATH" "HOME=$HOME" python tools/newswire_bridge_partial_locales.py stage "$RELEASE_DIR" corpus 3>&-
 
       - name: Commit verified corpus on top of the newest public main
         shell: bash
         run: |
+          set +x
+          exec 3>&1 >/dev/null 2>&1
+          trap 'rc=$?; printf "step_exit=%s\n" "$rc" >&3' EXIT
           set -euo pipefail
           rm -rf "$RELEASE_DIR"
           INCOMING="$RUNNER_TEMP/fcmo-newswire-incoming-corpus"
@@ -297,7 +321,7 @@ jobs:
 
             rm -rf corpus
             cp -a "$INCOMING" corpus
-            python tools/newswire_bridge_partial_locales.py verify corpus
+            env -i "PATH=$PATH" "HOME=$HOME" python tools/newswire_bridge_partial_locales.py verify corpus 3>&-
 
             git add -A -- corpus
             if git diff --cached --quiet -- corpus; then
@@ -328,6 +352,10 @@ jobs:
         if: always()
         shell: bash
         run: |
+          set +x
+          exec 3>&1 >/dev/null 2>&1
+          trap 'rc=$?; printf "step_exit=%s\n" "$rc" >&3' EXIT
+          set -euo pipefail
           rm -rf "$RUNNER_TEMP/fcmo-newswire-private-source"
           rm -f "$RUNNER_TEMP/fcmo-newswire-private-source.sha"
           rm -f "$RUNNER_TEMP/fcmo-newswire-private-seal.log"

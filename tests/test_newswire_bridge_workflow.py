@@ -41,8 +41,10 @@ class NewswireBridgeWorkflowContractTests(unittest.TestCase):
         self.assertNotIn("repository: FCMO-AI/AI-Research-Breakthroughs", text)
         self.assertIn("clone --quiet --depth 1 --single-branch --branch main", text)
         self.assertIn('http.https://github.com/.extraheader=AUTHORIZATION: basic $AUTH', text)
-        for marker in ('echo "::add-mask::$AUTH"', 'echo "::add-mask::$READY_SHA"', 'echo "::add-mask::$CURRENT_SHA"'):
-            self.assertIn(marker, text)
+        # Neither private identities nor authentication headers are sent even to
+        # workflow commands. Whole-step suppression protects git errors too.
+        self.assertNotIn("::add-mask::", text)
+        self.assertIn("exec 3>&1 >/dev/null 2>&1", text)
         self.assertIn("unset AUTH APP_TOKEN READY_SHA CURRENT_SHA SELECTED_SHA", text)
 
     def test_current_main_is_preferred_only_when_seal_and_integrity_ratchet_pass(self) -> None:
@@ -57,7 +59,7 @@ class NewswireBridgeWorkflowContractTests(unittest.TestCase):
             'Fresh canonical ARB main passed the publication seal and no-new-debt ratchet.',
             text,
         )
-        self.assertIn("INTEGRITY_DEBT_REGRESSION", text)
+        self.assertNotIn("SAFE_REASON", text)
 
     def test_failed_current_main_falls_back_to_ancestor_ready_snapshot(self) -> None:
         text = self.text()
@@ -90,7 +92,7 @@ class NewswireBridgeWorkflowContractTests(unittest.TestCase):
         segment = text[step:seal]
         self.assertIn('PRIVATE_SHA="$RUNNER_TEMP/fcmo-newswire-private-source.sha"', segment)
         self.assertIn('test -s "$PRIVATE_SHA"', segment)
-        self.assertIn('SELECTED_SHA="$(cat "$PRIVATE_SHA")"', segment)
+        self.assertIn('read -r SELECTED_SHA < "$PRIVATE_SHA"', segment)
         self.assertIn('test -n "$SELECTED_SHA"', segment)
         self.assertIn('CURRENT_SHA="$(git -C "$PRIVATE_DIR" rev-parse origin/main)"', segment)
         self.assertIn('git checkout --detach --quiet "$CURRENT_SHA"', segment)
@@ -128,8 +130,9 @@ class NewswireBridgeWorkflowContractTests(unittest.TestCase):
 
     def test_private_execution_logs_are_sanitized_and_destroyed(self) -> None:
         text = self.text()
-        self.assertIn("grep -E '^SEAL_FAIL:[A-Z0-9_]+'", text)
-        self.assertIn("SEAL_FAIL:UNCLASSIFIED", text)
+        self.assertNotIn("SAFE_REASON", text)
+        self.assertNotIn("grep -E '^SEAL_FAIL:", text)
+        self.assertIn("exec 3>&1 >/dev/null 2>&1", text)
         self.assertIn('rm -f "$RUNNER_TEMP/fcmo-newswire-private-seal.log"', text)
         self.assertIn('rm -f "$RUNNER_TEMP/fcmo-newswire-current-main-seal.log"', text)
 

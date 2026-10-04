@@ -39,11 +39,13 @@ class PublicationSealGateTests(unittest.TestCase):
         text = BRIDGE.read_text(encoding="utf-8")
         seal = text.index("python tools/publication_seal.py")
         redirect = text.index('>"$PRIVATE_LOG" 2>&1', seal)
-        safe_reason = text.index("grep -E '^SEAL_FAIL:[A-Z0-9_]+'", redirect)
-        cleanup = text.index('rm -f "$PRIVATE_LOG"', safe_reason)
+        cleanup = text.index('rm -f "$PRIVATE_LOG"', redirect)
         self.assertLess(seal, redirect)
-        self.assertLess(redirect, safe_reason)
-        self.assertLess(safe_reason, cleanup)
+        self.assertLess(redirect, cleanup)
+        self.assertNotIn("SAFE_REASON", text)
+        self.assertNotIn("grep -E '^SEAL_FAIL:", text)
+        self.assertIn("exec 3>&1 >/dev/null 2>&1", text)
+
 
 
 if __name__ == "__main__":
