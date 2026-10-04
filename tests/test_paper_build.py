@@ -364,6 +364,28 @@ class RealDataPaperBuildTests(unittest.TestCase):
             page = (self.out / route / "index.html").read_text(encoding="utf-8")
             self.assertIn('<article class="story-layout title-extra-compact">', page, route)
 
+    def test_corrections_are_linked_from_each_localized_ledger(self):
+        affected = {
+            story["id"]: story
+            for story in self.payload["stories"]
+            if story.get("corrections")
+        }
+        self.assertEqual(len(affected), 3)
+        locales = (("", "en"), ("es/", "es-419"), ("zh/", "zh-Hans"))
+        for locale_prefix, locale_code in locales:
+            page = (self.out / locale_prefix / "corrections" / "index.html").read_text(encoding="utf-8")
+            self.assertEqual(page.count('<article class="correction">'), 3, locale_prefix)
+            for story_id, story in affected.items():
+                route = "corrections/story/" + story["slug"] + "/"
+                self.assertIn(f'href="/FCMO-AI-Newsletter/{locale_prefix}{route}"', page, story_id)
+                detail = self.out / locale_prefix / route / "index.html"
+                self.assertTrue(detail.is_file(), story_id)
+                fix = story["corrections"][-1]
+                localized_text = fix.get("text", {}).get(locale_code)
+                self.assertTrue(localized_text, f"missing {locale_code} correction copy for {story_id}")
+                self.assertIn(localized_text, page, story_id)
+                self.assertIn(localized_text, detail.read_text(encoding="utf-8"), story_id)
+
 
 if __name__ == "__main__":
     unittest.main()
