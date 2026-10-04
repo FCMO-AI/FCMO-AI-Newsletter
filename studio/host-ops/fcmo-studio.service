@@ -1,0 +1,19 @@
+[Unit]
+Description=FCMO private writing studio
+After=network.target
+
+[Service]
+Type=simple
+EnvironmentFile=%h/.config/fcmo-studio/studio.env
+ExecStart=/bin/sh -c 'cd "$STUDIO_REPO" && exec python3 -m studio.server'
+Restart=on-failure
+RestartSec=5
+UMask=0077
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=read-only
+# Architect must add a ReadWritePaths drop-in for STUDIO_DATA.
+
+[Install]
+WantedBy=default.target
