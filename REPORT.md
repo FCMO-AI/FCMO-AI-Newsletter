@@ -95,3 +95,13 @@ Resumen: v4 integra el main local conservando las 58 líneas exactas del ledger;
 L5 completó la vista localizada del ledger y las rutas de aviso para los tres registros de corrección. La evidencia y el límite de producción están en [REPORT-L5-corr.md](REPORT-L5-corr.md). Commits de este carril: `e215994` (prueba roja) y `4e3c3fa` (arreglo y recibo medido).
 
 Resumen: las tres correcciones aparecen con texto nativo y enlace útil en EN, es-419 y zh-Hans; suite y gates pasan localmente. Falta la comprobación de Claude fuera de esta caja y la inspección del sitio en producción.
+
+## L10-ci — CI visual gate
+
+The all-routes visual CI gate and pull-request workflow are committed locally. The candidate build passed all 13 release gates, including `NO_FCMO_GROUP`; the full Python suite passed with 563 tests, 0 failures/errors, and 3 skips.
+
+The browser run could not be completed in this container because Playwright and Chromium are unavailable. The seeded overflow regression test is present and will execute on the architect's host when Chromium is installed. Detailed implementation, evidence, and host continuation commands are in [REPORT-L10-ci.md](REPORT-L10-ci.md).
+
+Commits: `a463361` (red test first), `bd016cf` (implementation and lane report), plus this report update. No push was made.
+
+Resumen L10: la puerta visual y sus pruebas están listas; falta ejecutarlas con Chromium en el host.
