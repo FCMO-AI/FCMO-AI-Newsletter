@@ -89,3 +89,9 @@ assert Counter(Path(path).read_bytes().splitlines()) == (
 Logs y prueba del ledger de esta caja quedan en `_audit/c5-l1/` (ignorados por Git). No se requieren para confiar en el informe: las órdenes anteriores son la prueba independiente. La integración externa, el push y la publicación siguen sujetos a la revisión de Claude y a D1; la aprobación visual corresponde a L6/D6.
 
 Resumen: v4 integra el main local conservando las 58 líneas exactas del ledger; accesibilidad y gates están corregidos y verificados localmente. Falta la revisión real en navegador fuera de esta caja y la decisión de publicación del operador.
+
+## L5-corr — correcciones localizadas
+
+L5 completó la vista localizada del ledger y las rutas de aviso para los tres registros de corrección. La evidencia y el límite de producción están en [REPORT-L5-corr.md](REPORT-L5-corr.md). Commits de este carril: `e215994` (prueba roja) y `4e3c3fa` (arreglo y recibo medido).
+
+Resumen: las tres correcciones aparecen con texto nativo y enlace útil en EN, es-419 y zh-Hans; suite y gates pasan localmente. Falta la comprobación de Claude fuera de esta caja y la inspección del sitio en producción.
