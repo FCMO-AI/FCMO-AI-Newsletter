@@ -1,4 +1,5 @@
 import json
+import shutil
 import tempfile
 import unittest
 from pathlib import Path
@@ -76,6 +77,28 @@ class EssayBuildTests(unittest.TestCase):
             tombstone = (out / "es/cartas/fixture-withdrawn/index.html").read_text()
             self.assertIn("Retirado", tombstone)
             self.assertIn("Aviso de retiro", tombstone)
+
+    def test_machine_prepared_language_is_disclosed_and_links_to_original(self):
+        with tempfile.TemporaryDirectory() as temp:
+            temp_root = Path(temp)
+            editorial = temp_root / "editorial"
+            shutil.copytree(FIXTURE, editorial)
+            piece_path = editorial / "pieces/fixture-essay/piece.json"
+            piece = json.loads(piece_path.read_text())
+            piece["locales"]["zh-Hans"] = "ready"
+            piece_path.write_text(json.dumps(piece))
+            provenance_path = editorial / "pieces/fixture-essay/provenance.json"
+            provenance = json.loads(provenance_path.read_text())
+            provenance["zh-Hans"] = {"origin": "agent_draft", "human_reviewed": False, "model": "fixture", "source_locale": "en"}
+            provenance_path.write_text(json.dumps(provenance))
+            out = temp_root / "out"
+            PaperBuilder(stories_path=ROOT / "site/data/stories.v2.json",
+                         status_path=ROOT / "site/data/newsroom-status.json",
+                         editorial_path=editorial, out=out, base="/FCMO-AI-Newsletter/").build()
+            page = (out / "zh/cartas/fixture-essay/index.html").read_text()
+            self.assertIn('class="mt-disclosure"', page)
+            self.assertIn("尚未经过人工审核", page)
+            self.assertIn('href="/FCMO-AI-Newsletter/cartas/fixture-essay/"', page)
 
 
 if __name__ == "__main__":

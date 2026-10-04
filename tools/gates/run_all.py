@@ -11,7 +11,7 @@ if __package__ in {None, ""}:
 from tools.gates import (binding_complete, broken_reference, english_leak,
                          glossary_consistency, id_set_equality, internal_id,
                          locale_complete, personal_mailbox, remote_script, agent_layer,
-                         size_budget, no_machine_paths, no_fcmo_group)
+                         size_budget, no_machine_paths, no_fcmo_group, piece_valid)
 from tools.gates.common import GateFailure, GateResult
 
 GATES = (
@@ -28,6 +28,7 @@ GATES = (
     no_machine_paths.check,
     agent_layer.check,
     no_fcmo_group.check,
+    piece_valid.check,
 )
 
 

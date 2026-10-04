@@ -15,13 +15,13 @@ import sys
 
 if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-    from tools.paper import community, feeds, redirects, search_index, sitemaps
+    from tools.paper import community, essays, feeds, redirects, search_index, sitemaps
     from tools.paper.freshness import corpus_freshness
     from tools.paper.front_order import front_order
     from tools.paper.front_plan import front_plan
     from tools.agent import build as agent_layer
     from tools.paper.i18n import dek, field, format_date, headline, is_complete, label, load_catalogs, plural, story_locale, truncate
-    from tools.paper.routes import absolute, beat_path, edition_path, href, org_path, output_path, story_path, topic_path
+    from tools.paper.routes import absolute, beat_path, edition_path, href, issue_path, org_path, output_path, piece_path, story_path, topic_path
     from tools.paper.status_banner import freshness_attributes, freshness_sentence, render as render_banner
     from tools.visual_desk import write_localized_story_graphics
     from tools.paper.templates import archive_page, document, front_page, simple_page, status_page, story_page
@@ -32,13 +32,13 @@ if __package__ in {None, ""}:
     from tools.paper.templates.newsletter import render as render_newsletter, subscription_tail
     from tools.paper.routes import TECHNICAL_FRONT
 else:
-    from . import community, feeds, redirects, search_index, sitemaps
+    from . import community, essays, feeds, redirects, search_index, sitemaps
     from .freshness import corpus_freshness
     from .front_order import front_order
     from .front_plan import front_plan
     from tools.agent import build as agent_layer
     from .i18n import dek, field, format_date, headline, is_complete, label, load_catalogs, plural, story_locale, truncate
-    from .routes import absolute, beat_path, edition_path, href, org_path, output_path, story_path, topic_path
+    from .routes import absolute, beat_path, edition_path, href, issue_path, org_path, output_path, piece_path, story_path, topic_path
     from .status_banner import freshness_attributes, freshness_sentence, render as render_banner
     from tools.visual_desk import write_localized_story_graphics
     from .templates import archive_page, document, front_page, simple_page, status_page, story_page
@@ -81,7 +81,7 @@ def slugify(value: str) -> str:
 
 class PaperBuilder:
     def __init__(self, *, stories_path: Path, status_path: Path, out: Path, base: str,
-                 og_source: Path | None = None) -> None:
+                 editorial_path: Path | None = None, og_source: Path | None = None) -> None:
         self.stories_path = stories_path
         self.status_path = status_path
         self.payload = json.loads(stories_path.read_text(encoding="utf-8"))
@@ -95,10 +95,36 @@ class PaperBuilder:
         self.base = "/" + base.strip("/") + "/" if base.strip("/") else "/"
         self.base_url = self.config["base_url"]
         self.og_source = og_source
+        self.editorial_path = editorial_path or ROOT / "editorial"
+        self.editorial_pieces, self.editorial_issues = essays.load_editorial(self.editorial_path)
         self.cartas = community.fetch_cartas(os.environ.get("GHOST_CONTENT_URL"), os.environ.get("GHOST_CONTENT_API_KEY"))
         self.portal_url = os.environ.get("GHOST_PORTAL_URL")
         self.routes: list[dict] = []
         self.page_count = 0
+
+    def _editorial_routes(self, locale: dict) -> None:
+        code = locale["code"]
+        prefix = locale["path_prefix"]
+        by_id = {piece["id"]: piece for piece in self.editorial_pieces}
+        stories_by_id = {story["id"]: story for story in self.live}
+        # Public source data accompanies the build so PIECE_VALID can independently
+        # re-read exactly what the renderer consumed.
+        for piece in self.editorial_pieces:
+            title, description, body = essays.render_piece(piece, code, base=self.base, locale_info=locale,
+                                                            locales=self.config["locales"], catalog=self.catalogs[code])
+            slug = piece["slug"]
+            suffix = piece_path({"path_prefix": ""}, piece)
+            self._write_page(locale=locale, suffix=suffix, title=f"{title} — fCMO", description=description,
+                             body=body, kind="essay", status=True,
+                             index=(piece["status"] == "published" and piece["locales"][code] == "ready"))
+        for issue in self.editorial_issues:
+            title, description, body = essays.render_issue(issue, code, by_id, stories_by_id,
+                                                           base=self.base, catalog=self.catalogs[code])
+            suffix = issue_path({"path_prefix": ""}, issue)
+            self._write_page(locale=locale, suffix=suffix, title=f"{title} — fCMO", description=description,
+                             body=body, kind="issue", index=True)
+        # Issue and piece links are represented in every locale's discovery index;
+        # pending translations intentionally do not leak source prose.
 
     def _alternates(self, suffix: str) -> list[tuple[str, str]]:
         values = [(loc["hreflang"], absolute(self.base_url, loc["path_prefix"] + suffix)) for loc in self.config["locales"]]
@@ -316,7 +342,7 @@ class PaperBuilder:
         developing = ""
         if plan["developing"]:
             developing = f'<section class="developing-well"><div class="section-head"><div><p class="section-kicker">FCMO AI · {esc(strings["kicker"]["signal"])}</p><h2>{esc(strings["front"]["developing"])}</h2></div></div><div class="card-row">{"".join(self._card(s,locale,3) for s in plan["developing"])}</div></section>'
-        cartas = community.render_cartas(self.cartas, locale["code"])
+        cartas = getattr(self, "_editorial_shelf", {}).get(locale["code"], community.render_cartas(self.cartas, locale["code"]))
         subscribe, subscribe_script = community.render_subscribe(locale_code=locale["code"], path_prefix=locale["path_prefix"], base=self.base, portal_url=self.portal_url)
         dates = sorted({s["url_date"] for s in self.live}, reverse=True)[:6]
         editions = f'<section class="beat-section"><div class="section-head"><h2>{esc(strings["front"]["editions"])}</h2><a href="{esc(href(self.base,locale["path_prefix"]+"archive/"))}">{esc(strings["nav"]["archive"])}</a></div><div class="card-row">' + "".join(self._edition_card(date, locale) for date in dates) + "</div></section>"
@@ -346,7 +372,7 @@ class PaperBuilder:
         topics = [(name, count, slugify(name)) for name, count in topic_counts.most_common() if count >= 3][:8]
         root = href(self.base, locale["path_prefix"])
         technical = href(self.base, locale["path_prefix"] + TECHNICAL_FRONT)
-        cartas = community.render_cartas(self.cartas, locale["code"])
+        cartas = getattr(self, "_editorial_shelf", {}).get(locale["code"], community.render_cartas(self.cartas, locale["code"]))
         for kind, suffix in (("letters", "cartas/"), ("guide", "empieza/"), ("community", "comunidad/")):
             title, description, body = render_newsletter(kind, locale=locale["code"], root=root,
                                                           technical=technical, cards=cards, cartas=cartas, topics=topics)
@@ -678,6 +704,7 @@ class PaperBuilder:
         # Retain the original public agent datasets as compatibility surfaces.
         copy_public_tree(ROOT / "release-src" / "data", self.out / "data")
         self._copy_story_media()
+        essays.write_public_source(self.editorial_path, self.out, self.editorial_pieces, self.editorial_issues)
         write_localized_story_graphics(self.stories, self.catalogs, self.out / "assets" / "story-media")
         if self.og_source is not None:
             if not self.og_source.is_dir():
@@ -692,6 +719,12 @@ class PaperBuilder:
         org_counts = Counter(org for story in self.live for org in story.get("organizations", []))
         for locale in self.config["locales"]:
             catalog = self.catalogs[locale["code"]]
+            self._editorial_routes(locale)
+            if not hasattr(self, "_editorial_shelf"): self._editorial_shelf = {}
+            self._editorial_shelf[locale["code"]] = "".join(part for part in (
+                essays.render_shelf(self.editorial_pieces, locale["code"], base=self.base),
+                essays.render_issue_shelf(self.editorial_issues, locale["code"], base=self.base),
+                community.render_cartas(self.cartas, locale["code"])) if part)
             self._front(locale)
             self._newsletter_pages(locale)
             for story in self.live:
@@ -720,14 +753,42 @@ class PaperBuilder:
             self._status(locale)
             self._search(locale)
             self._simple_pages(locale)
-            search_index.build(self.live, locale=locale, catalog=catalog, base=self.base, out=self.out / locale["path_prefix"] / "data" / "search.json")
+            search_size = search_index.build(self.live, locale=locale, catalog=catalog, base=self.base, out=self.out / locale["path_prefix"] / "data" / "search.json")
+            editorial_rows = essays.piece_search_rows(self.editorial_pieces, locale["code"], base=self.base)
+            search_path = self.out / locale["path_prefix"] / "data" / "search.json"
+            current = json.loads(search_path.read_text(encoding="utf-8"))
+            current.extend(editorial_rows)
+            encoded = json.dumps(current, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+            if len(encoded) > search_index.LIMIT: raise ValueError(f"search index exceeds {search_index.LIMIT} bytes for {locale['code']}: {len(encoded)}")
+            search_path.write_bytes(encoded)
         self._404()
         feed_paths = feeds.write_all(self.stories, locales=self.config["locales"], catalogs=self.catalogs, base_url=self.base_url, out=self.out)
+        essays.write_feeds(self.editorial_pieces, locales=self.config["locales"], base_url=self.base_url, out=self.out)
         redirect_paths = redirects.build(self.stories, locales=self.config["locales"], base=self.base, out=self.out, legacy_root=ROOT / "site")
         sitemaps.write(self.routes, out=self.out, generated_at=self.payload["generated_at"])
         agent_layer.build(stories=self.live, all_stories=self.stories, locales=self.config["locales"],
                           catalogs=self.catalogs, status=self.status, base_url=self.base_url,
                           base=self.base, out=self.out, root=ROOT)
+        for locale in self.config["locales"]:
+            code, prefix = locale["code"], locale["path_prefix"]
+            rows = essays.feed_items(self.editorial_pieces, code, base_url=self.base_url)
+            path = self.out / prefix / "llms.txt"
+            if path.exists() and rows:
+                addition = "\n## Human essays and letters\n\n" + "\n".join(f"- [{row['title']}]({row['url']}) — {row['dek']}" for row in rows) + "\n"
+                path.write_text(path.read_text(encoding="utf-8") + addition, encoding="utf-8")
+            full = self.out / prefix / "llms-full.txt"
+            if full.exists():
+                chunks = []
+                for piece in self.editorial_pieces:
+                    if piece["status"] == "published" and piece["locales"][code] == "ready" and code in piece["docs"]:
+                        doc = piece["docs"][code]
+                        chunks.extend([f"# {doc['title']}", "", doc["dek"], ""])
+                        chunks.extend(essays.essay_doc.text_of(block.get("content", [])) for block in doc["blocks"])
+                        chunks.append("")
+                if chunks: full.write_text(full.read_text(encoding="utf-8") + "\n## Human essays and letters\n\n" + "\n".join(chunks), encoding="utf-8")
+            for issue in self.editorial_issues:
+                title, description, body = essays.render_issue(issue, code, {p["id"]: p for p in self.editorial_pieces}, {s["id"]: s for s in self.live}, base=self.base, catalog=self.catalogs[code])
+                # Issue discovery is included in routes/sitemap; prose is linked from its page.
         (self.out / "data").mkdir(exist_ok=True)
         (self.out / "data" / "routes.json").write_text(json.dumps(self.routes, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
         shutil.copyfile(self.stories_path, self.out / "data" / "stories.v2.json")
@@ -763,10 +824,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--status", type=Path, required=True)
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--base", default="/")
+    parser.add_argument("--editorial", type=Path, default=ROOT / "editorial")
     parser.add_argument("--og-source", type=Path, help="cards produced by og_image.py; copied to publish/og")
     args = parser.parse_args(argv)
     try:
-        PaperBuilder(stories_path=args.stories, status_path=args.status, out=args.out, base=args.base, og_source=args.og_source).build()
+        PaperBuilder(stories_path=args.stories, status_path=args.status, editorial_path=args.editorial, out=args.out, base=args.base, og_source=args.og_source).build()
     except (OSError, ValueError, KeyError, json.JSONDecodeError) as exc:
         print(f"paper build FAILED: {exc}", file=sys.stderr)
         return 1
