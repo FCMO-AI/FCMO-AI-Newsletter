@@ -89,3 +89,9 @@ assert Counter(Path(path).read_bytes().splitlines()) == (
 Logs y prueba del ledger de esta caja quedan en `_audit/c5-l1/` (ignorados por Git). No se requieren para confiar en el informe: las órdenes anteriores son la prueba independiente. La integración externa, el push y la publicación siguen sujetos a la revisión de Claude y a D1; la aprobación visual corresponde a L6/D6.
 
 Resumen: v4 integra el main local conservando las 58 líneas exactas del ledger; accesibilidad y gates están corregidos y verificados localmente. Falta la revisión real en navegador fuera de esta caja y la decisión de publicación del operador.
+
+## L11-pub — 2026-10-04
+
+Implementation, evidence, limits and continuation: [REPORT-L11-pub.md](REPORT-L11-pub.md).
+
+Resumen: publicación protegida preparada con compuertas locales; activación remota y prueba completa de navegador pendientes. Sin push ni publicación.
