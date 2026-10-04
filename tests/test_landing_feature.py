@@ -58,23 +58,13 @@ class LandingFeatureBuildTests(unittest.TestCase):
                 route = next(row for row in self.routes
                              if row.get("story_id") == story["id"] and row.get("locale") == locale
                              and row.get("kind") == "story")
-                link = re.search(r'<a href="([^"]+)"><img', card).group(1)
+                link = re.search(r'<h1[^>]*><a href="([^"]+)"', card).group(1)
                 self.assertEqual(urlsplit(link).path, BASE + route["path"].lstrip("/"))
-                self.assertIn(f'<h2><a href="{escape(link, quote=True)}">{escape(title)}</a></h2>', card)
+                self.assertIn(f'<a href="{escape(link, quote=True)}">{escape(title)}</a></h1>', card)
                 self.assertIn(f'<time datetime="{escape(story["event_at"], quote=True)}">{escape(date)}</time>', card)
                 self.assertIn("FCMO AI", card)
 
-                image = re.search(r'<img src="([^"]+)" alt="([^"]*)"', card)
-                self.assertIsNotNone(image)
-                image_path = urlsplit(image.group(1)).path
-                self.assertTrue(image_path.startswith(BASE))
-                local_image = self.out / image_path[len(BASE):]
-                self.assertTrue(local_image.is_file(), image_path)
-                expected_alt = (story.get("media", {}).get("alt", {}).get(locale) or title)
-                self.assertEqual(image.group(2), expected_alt)
-                expected_credit = self.catalogs[locale]["strings"]["story"]["image_credit"].format(
-                    credit=story.get("media", {}).get("credit", "FCMO AI"))
-                self.assertIn(escape(expected_credit), card)
+                self.assertIn('class="data-hero"', card)
                 self.assertLess(intro.index(card), intro.index("<strong>"))
 
 
@@ -91,13 +81,13 @@ class LandingFeatureTemplateTests(unittest.TestCase):
 
     def test_feature_values_are_escaped(self):
         page = self.render({"label": "Lead", "title": 'A & <report> "title"', "href": '/story/?x="&',
-                            "image": '/assets/a.svg?x="&', "alt": 'Graphic <description> & detail',
-                            "credit": 'Desk & <credit>', "datetime": '2026-08-26T00:00:00Z',
+                            "beat": "Research", "title_class": "title-short", "dek": "Verdict & <dek>", "glyph": "", "grade": "Grade A",
+                            "confidence": "", "status": "", "badge": "", "hero": "", "brief": "", "cta": "Read",
+                            "status_href": "/status/", "status_label": "Status", "datetime": '2026-08-26T00:00:00Z',
                             "date": 'August 26 & <2026>'})
         self.assertIn(escape('A & <report> "title"'), page)
         self.assertIn('href="/story/?x=&quot;&amp;"', page)
-        self.assertIn('alt="Graphic &lt;description&gt; &amp; detail"', page)
-        self.assertIn('Desk &amp; &lt;credit&gt;', page)
+        self.assertIn('Verdict &amp; &lt;dek&gt;', page)
         self.assertIn('August 26 &amp; &lt;2026&gt;', page)
 
 

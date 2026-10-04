@@ -121,7 +121,7 @@ class PaperBuildTests(unittest.TestCase):
             ], cwd=ROOT, text=True, capture_output=True, check=False)
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
             home = (out / "zh" / "index.html").read_text(encoding="utf-8")
-            self.assertIn(f'{lead["id"]}-zh-Hans.svg', home)
+            self.assertIn('class="data-hero"', home)
             self.assertIn(f'/og/zh-Hans/{lead["id"]}.png', home)
 
     def test_built_pages_use_candidate_relative_urls_for_local_page_assets(self):
