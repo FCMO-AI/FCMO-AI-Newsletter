@@ -25,6 +25,8 @@ class SupplyIndependentFreshnessTests(unittest.TestCase):
         self.root = Path(self.tmp.name)
         self.corpus = self.root / "corpus"
         shutil.copytree(ROOT / "contracts/fixtures/corpus-43", self.corpus)
+        (self.corpus / "developments").mkdir()
+        (self.corpus / "index.html").write_text("fixture")
         self.status = self.root / "newsroom-status.json"
         self.status.write_bytes((ROOT / "site/data/newsroom-status.json").read_bytes())
         self.wire = self.root / "wire-status.json"
