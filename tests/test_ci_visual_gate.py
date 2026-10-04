@@ -11,7 +11,6 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 ORACLE = ROOT / "tests" / "oraculos" / "verificar_ci_visual.py"
-MODULE_RESOLVER = ROOT / "tools" / "paper" / "playwright_module.py"
 sys.path.insert(0, str(ROOT))
 from tools.paper.playwright_module import resolve_playwright_module  # noqa: E402
 

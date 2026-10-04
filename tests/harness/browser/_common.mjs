@@ -85,19 +85,21 @@ export async function launch () {
 }
 
 // Open url in a fresh context and collect console errors and failed requests.
-export async function openPage (browser, url, viewport, { reducedMotion = true } = {}) {
+export async function openPage (browser, url, viewport, { reducedMotion = true, waitUntil = 'networkidle', timeout = 60000, sameOriginOnly = false } = {}) {
   const context = await browser.newContext({ viewport, deviceScaleFactor: 1, reducedMotion: reducedMotion ? 'reduce' : 'no-preference' })
   const page = await context.newPage()
   const consoleErrors = []
   const failedRequests = []
+  const origin = new URL(url).origin
+  const shouldRecord = requestUrl => !sameOriginOnly || new URL(requestUrl).origin === origin
   page.on('console', m => { if (m.type() === 'error') consoleErrors.push(m.text().slice(0, 300)) })
   page.on('pageerror', e => consoleErrors.push('pageerror: ' + String(e).slice(0, 300)))
-  page.on('requestfailed', r => failedRequests.push(`${r.url().slice(0, 200)} ${r.failure()?.errorText || ''}`.trim()))
-  page.on('response', r => { if (r.status() >= 400) failedRequests.push(`${r.status()} ${r.url().slice(0, 200)}`) })
+  page.on('requestfailed', r => { if (shouldRecord(r.url())) failedRequests.push(`${r.url().slice(0, 200)} ${r.failure()?.errorText || ''}`.trim()) })
+  page.on('response', r => { if (shouldRecord(r.url()) && r.status() >= 400) failedRequests.push(`${r.status()} ${r.url().slice(0, 200)}`) })
   let status = null
   let error = null
   try {
-    const response = await page.goto(url, { waitUntil: 'networkidle', timeout: 60000 })
+    const response = await page.goto(url, { waitUntil, timeout })
     status = response ? response.status() : null
   } catch (err) {
     error = String(err.message || err).split('\n')[0]

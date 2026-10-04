@@ -1,0 +1,85 @@
+name: Newspaper visual CI
+
+on:
+  pull_request:
+    paths:
+      - 'site/**'
+      - 'site-src/**'
+      - 'config/**'
+      - 'design/**'
+      - 'i18n/**'
+      - 'tools/**'
+      - 'tests/**'
+      - '.github/workflows/visual-ci.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'site/**'
+      - 'site-src/**'
+      - 'config/**'
+      - 'design/**'
+      - 'i18n/**'
+      - 'tools/**'
+      - 'tests/**'
+      - '.github/workflows/visual-ci.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: newsletter-visual-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  BASE_PATH: /FCMO-AI-Newsletter/
+
+jobs:
+  visual:
+    name: all routes × 3 locales × 390x844 + 1440x900
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - name: Install pinned Playwright and Chromium
+        run: |
+          npm install --prefix "$RUNNER_TEMP/playwright" --no-save playwright@1.63.0
+          echo "PLAYWRIGHT_MODULE=$RUNNER_TEMP/playwright/node_modules/playwright" >> "$GITHUB_ENV"
+          "$RUNNER_TEMP/playwright/node_modules/.bin/playwright" install --with-deps chromium
+      - name: Render locale-specific Open Graph cards
+        run: >-
+          python tools/paper/og_image.py
+          --stories site/data/stories.v2.json
+          --out "$RUNNER_TEMP/paper-og"
+      - name: Build the candidate publication
+        run: >-
+          python tools/paper/build.py
+          --stories site/data/stories.v2.json
+          --status site/data/newsroom-status.json
+          --out publish
+          --base "$BASE_PATH"
+          --og-source "$RUNNER_TEMP/paper-og"
+      - name: Include the governed glossary in the candidate
+        run: |
+          mkdir -p publish/data
+          cp i18n/glossary.yml publish/data/glossary.json
+      - name: Run all deterministic release gates
+        run: python tools/gates/run_all.py publish
+      - name: Run the same full visual oracle used for local acceptance
+        shell: bash
+        run: |
+          set -o pipefail
+          python tests/oraculos/verificar_ci_visual.py publish 2>&1 | tee ci-visual-report.txt
+      - name: Preserve the visual report
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: newspaper-visual-report-${{ github.run_id }}
+          path: ci-visual-report.txt
+          if-no-files-found: ignore
+          retention-days: 14
