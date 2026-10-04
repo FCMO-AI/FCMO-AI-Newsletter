@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, datetime, timedelta, timezone
 import json
 from pathlib import Path
 import re
@@ -13,6 +13,15 @@ from tools.paper.routes import absolute, story_path
 def _dump(path: Path, value: object) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(value, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+
+def _freshness_header(generated_at: str) -> str:
+    stamp = datetime.fromisoformat(generated_at.replace("Z", "+00:00"))
+    if stamp.tzinfo is None:
+        stamp = stamp.replace(tzinfo=timezone.utc)
+    stamp = stamp.astimezone(timezone.utc)
+    stale = (stamp + timedelta(hours=48)).isoformat().replace("+00:00", "Z")
+    return f"<!-- generated_at: {stamp.isoformat().replace('+00:00', 'Z')}; stale_after: {stale} -->\n"
 
 
 def _localized(story: dict, locale: str, key: str, catalog: dict) -> str:
@@ -160,7 +169,16 @@ def build(*, stories: list[dict], all_stories: list[dict], locales: list[dict], 
         code, prefix = locale["code"], locale["path_prefix"]
         base_path = out / prefix
         llms = ["# FCMO AI Newsletter", "", "> Evidence-first AI research, reporting and practical context from FCMO AI, within FCMO. The technical daily paper is FCMO AI; Javier’s reader newsletter belongs to fCMO.", "", f"Canonical base: {base_url}", f"Language: {code}", "", "## Start here", f"- [Home]({absolute(base_url, prefix)})", f"- [Method and evidence policy]({absolute(base_url, prefix + 'method/')})", f"- [Corrections]({absolute(base_url, prefix + 'corrections/')})", f"- [Agent discovery]({absolute(base_url, 'agent.json')})", f"- [Static API index]({absolute(base_url, 'api/v1/index.json')})", f"- [Complete machine-readable edition]({absolute(base_url, prefix + 'llms-full.txt')})", "", "## Machine-readable data", f"- [Search index]({absolute(base_url, 'api/v1/search-index.json')})", f"- [OpenAPI 3.1]({absolute(base_url, 'api/v1/openapi.json')})", f"- [Stories]({absolute(base_url, 'api/v1/index.json')})", f"- [Corrections ledger]({absolute(base_url, 'api/v1/corrections.json')})", f"- [Original research dossiers, compatibility snapshot]({absolute(base_url, 'data/developments.json')})", f"- [Search corpus and publication memory, compatibility snapshot]({absolute(base_url, 'data/search.json')})", f"- [Per-brief dossiers, compatibility snapshot]({absolute(base_url, 'data/briefs/<FCMO-ID>.json')})", f"- [Relationships]({absolute(base_url, 'data/relationships.json')})", f"- [Edition memory]({absolute(base_url, 'data/publication-memory.json')})", f"- [Topics]({absolute(base_url, 'data/topics.json')})", f"- [Organizations]({absolute(base_url, 'data/organizations.json')})", f"- [Media provenance]({absolute(base_url, 'data/media.json')})", "", "## Query semantics", "Search supports query, scope, desk, evidence, confidence, importance, topic, organization, dates, open gaps, sort, projected fields and result limit. Keep claim labels, evidence class, confidence, importance, limitations, contradictions and open evidence gaps distinct.", "", "## Publication policies", "- Original editorial material is CC BY 4.0 only where FCMO has authority to license it; third-party material and marks retain their own rights.", "- Corrections are recorded against the affected story with correction notes and updated dates.", "- Evidence, confidence, limitations, contradictions and open gaps remain distinct; do not treat importance as confidence.", ""]
-        (base_path / "llms.txt").write_text("\n".join(llms), encoding="utf-8")
+        hierarchy = ["", "## Reading hierarchy (R0–R4)",
+                     "- R0 signal: headline, publication status and date.",
+                     "- R1 brief: concise summary and why it matters.",
+                     "- R2 argument: claims and evidence supporting the story.",
+                     "- R3 technical: methods, limitations, contradictions and open gaps.",
+                     "- R4 dossier: original sources and the complete machine-readable record."]
+        llms.extend(hierarchy)
+        generated_at = str(status.get("status_updated_at") or status.get("generated_at") or datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"))
+        header = _freshness_header(generated_at)
+        (base_path / "llms.txt").write_text(header + "\n".join(llms), encoding="utf-8")
         full = list(llms)
         full.extend(["## Stories", ""])
         for story in stories:
@@ -180,7 +198,7 @@ def build(*, stories: list[dict], all_stories: list[dict], locales: list[dict], 
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_text(md, encoding="utf-8")
             full.extend([md, ""])
-        (base_path / "llms-full.txt").write_text("\n".join(full), encoding="utf-8")
+        (base_path / "llms-full.txt").write_text(header + "\n".join(full), encoding="utf-8")
     legacy_llms = (reference / "llms.txt").read_text(encoding="utf-8")
     llms_path = out / "llms.txt"
     llms_path.write_text(llms_path.read_text(encoding="utf-8") + "\n## Original agent index\n\nCompatibility copy of the original publication's agent index, retained so existing consumers keep its complete brief listing and query guidance.\n\n" + "\n".join(legacy_llms.splitlines()[1:]) + "\n", encoding="utf-8")

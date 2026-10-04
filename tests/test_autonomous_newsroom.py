@@ -98,12 +98,12 @@ class IngestTransitionBoundaryTests(unittest.TestCase):
         fixture = Path(__file__).resolve().parents[1] / "_fixtures" / "corpus-2026-09-01"
         with tempfile.TemporaryDirectory() as tmp:
             out = Path(tmp) / "release"
-            ingest_corpus.build(fixture, out)
+            ingest_corpus.build(fixture, out, now="2026-09-01T00:00:00Z")
             first_agent = json.loads((out / "agent.json").read_text(encoding="utf-8"))
             first_llms = (out / "llms-full.txt").read_bytes()
             self.assertTrue(first_agent.get("newly_ingested_brief_ids"))
 
-            ingest_corpus.build(fixture, out)
+            ingest_corpus.build(fixture, out, now="2026-09-01T00:00:00Z")
             second_agent = json.loads((out / "agent.json").read_text(encoding="utf-8"))
             second_llms = (out / "llms-full.txt").read_bytes()
             self.assertEqual(second_agent.get("newly_ingested_brief_ids"), [])

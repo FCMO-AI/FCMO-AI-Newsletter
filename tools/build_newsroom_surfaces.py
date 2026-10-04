@@ -21,6 +21,7 @@ import json
 import os
 import re
 import sys
+import hashlib
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from typing import Any
@@ -179,7 +180,24 @@ def source_links(urls: list[str]) -> str:
     return "<ul>" + "".join(rows) + "</ul>" if rows else "<p>—</p>"
 
 
-def article_html(locale: str, brief: dict[str, Any], story: dict[str, Any], all_links: dict[str, str]) -> str:
+def citation_record(brief: dict[str, Any], canonical_story_url: str) -> tuple[str, dict[str, Any]]:
+    """Create an immutable citation snapshot addressed by its payload digest."""
+    sources = [url for url in brief.get("source_urls") or []
+               if isinstance(url, str) and url.startswith(("https://", "http://"))]
+    payload = {
+        "schema": "fcmo-versioned-citation-v1",
+        "id": brief["id"],
+        "canonical_story_url": canonical_story_url,
+        "headline": str(brief.get("title") or ""),
+        "summary": str(brief.get("summary") or ""),
+        "source_urls": sources,
+    }
+    version = hashlib.sha256(json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")).hexdigest()
+    citation_url = f"{BASE}/data/citations/{brief['id']}/{version}.json"
+    return citation_url, {**payload, "version": version}
+
+
+def article_html(locale: str, brief: dict[str, Any], story: dict[str, Any], all_links: dict[str, str], citation_url: str | None = None) -> str:
     label = LABELS[locale]
     media = story.get("media") or {}
     image = media.get("image_url")
@@ -198,7 +216,9 @@ def article_html(locale: str, brief: dict[str, Any], story: dict[str, Any], all_
     research = story.get("public_research") or {}
     context_urls = [str(x.get("url") or "") for x in research.get("related_public_sources") or [] if isinstance(x, dict) and x.get("url")]
     url = all_links[locale]
-    ld = {"@context":"https://schema.org","@type":"NewsArticle","headline":brief.get("title"),"description":brief.get("summary"),"datePublished":story.get("published_at"),"dateModified":story.get("modified_at"),"inLanguage":locale,"mainEntityOfPage":url,"author":{"@type":"Organization","name":"FCMO AI Research Desk"},"publisher":{"@type":"Organization","name":"FCMO AI Newsletter","url":BASE+"/"}}
+    sources = [source for source in brief.get("source_urls") or [] if isinstance(source, str) and source.startswith(("https://", "http://"))]
+    citation_url = citation_url or citation_record(brief, all_links["en"])[0]
+    ld = {"@context":"https://schema.org","@type":"NewsArticle","identifier":brief.get("id"),"headline":brief.get("title"),"description":brief.get("summary"),"datePublished":story.get("published_at"),"dateModified":story.get("modified_at"),"inLanguage":locale,"mainEntityOfPage":url,"citation":citation_url,"isBasedOn":sources,"author":{"@type":"Organization","name":"FCMO AI Research Desk"},"publisher":{"@type":"Organization","name":"FCMO AI Newsletter","url":BASE+"/"}}
     if image: ld["image"] = [image]
     alternates = "\n".join(f'<link rel="alternate" hreflang="{LOCALES[key]["hreflang"]}" href="{safe(href)}">' for key, href in all_links.items()) + f'\n<link rel="alternate" hreflang="x-default" href="{safe(all_links["en"])}">'
     return f'''<!doctype html><html lang="{safe(locale)}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{safe(brief.get("title"))} · FCMO AI Newsletter</title><meta name="description" content="{safe(brief.get("summary"))}"><link rel="canonical" href="{safe(url)}">{alternates}<link rel="stylesheet" href="{NEWSROOM_STYLESHEET}"><script type="application/ld+json">{json.dumps(ld, ensure_ascii=False).replace('</','<\\/')}</script></head><body><header class="wire-head"><a href="{BASE}/">{safe(label["back"])}</a><span>FCMO WIRE</span></header><main class="story"><div class="kicker">{safe(story["story_type"])} · {safe(brief.get("primary_desk","research")).replace("_"," ")}</div><h1>{safe(brief.get("title"))}</h1><p class="dek">{safe(brief.get("summary"))}</p><p class="byline">FCMO AI Research Desk · Published {safe(story.get("published_at"))} · Research event {safe(story.get("event_at"))}</p><p class="method">{safe(label["method"])}</p>{f'<figure><img src="{safe(image)}" alt="{safe(brief.get("title"))}"><figcaption>{safe(media.get("credit"))} · {safe(media.get("license"))}</figcaption></figure>' if image else ''}<section><h2>{safe(label["what_changed"])}</h2><p>{safe(brief.get("summary"))}</p></section><section><h2>{safe(label["evidence"])}</h2><ul>{''.join(claims)}</ul></section><section><h2>{safe(label["baseline"])}</h2><p>{safe(technical.get("strongest_baseline"))}</p></section><section><h2>{safe(label["caveat"])}</h2>{list_html([str(x) for x in caveats])}</section><section><h2>{safe(label["unknown"])}</h2>{list_html(gaps)}</section><section><h2>{safe(label["lens"])}</h2><p>{safe(brief.get("why_it_matters"))}</p></section><section><h2>{safe(label["sources"])}</h2>{source_links([str(x) for x in brief.get("source_urls") or []])}</section><section><h2>{safe(label["context"])}</h2>{source_links(context_urls)}</section></main></body></html>'''
@@ -395,11 +415,18 @@ def main(argv:list[str]|None=None)->int:
     ordered_ids=sorted(stories,key=lambda rid:(parse_dt(stories[rid]["modified_at"]),parse_dt(stories[rid]["published_at"]),int(stories[rid]["news_value"]["importance"] or 0),rid),reverse=True)
     (args.site/"data").mkdir(parents=True,exist_ok=True); (args.site/"data"/"stories.json").write_text(json.dumps([stories[r] for r in ordered_ids],ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
     write_css(args.site); inject_wire_link(args.release_src); pages=[]
+    citations: dict[str, tuple[str, dict[str, Any]]] = {
+        rid: citation_record(brief, f"{BASE}/news/en/{rid}.html") for rid, brief in briefs.items()
+    }
+    for citation_url, citation in citations.values():
+        target = args.site / "data" / "citations" / citation["id"] / f"{citation['version']}.json"
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(json.dumps(citation, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     for locale,meta in LOCALES.items():
         folder=args.site/"news"/meta["slug"]; folder.mkdir(parents=True,exist_ok=True); localized_cards=[]
         for rid in ordered_ids:
             brief=merge_overlay(briefs[rid],overlays[locale].get(rid,{})); story=copy.deepcopy(stories[rid]); story["headline"]=brief.get("title"); story["dek"]=brief.get("summary")
-            links={key:f"{BASE}/news/{value['slug']}/{rid}.html" for key,value in LOCALES.items()}; url=links[locale]; (folder/f"{rid}.html").write_text(article_html(locale,brief,story,links),encoding="utf-8"); localized_cards.append((story,url)); pages.append({"url":url,"language":meta["hreflang"],"headline":str(brief.get("title") or ""),"published_at":str(story.get("published_at") or ""),"modified_at":str(story.get("modified_at") or "")})
+            links={key:f"{BASE}/news/{value['slug']}/{rid}.html" for key,value in LOCALES.items()}; url=links[locale]; (folder/f"{rid}.html").write_text(article_html(locale,brief,story,links,citations[rid][0]),encoding="utf-8"); localized_cards.append((story,url)); pages.append({"url":url,"language":meta["hreflang"],"headline":str(brief.get("title") or ""),"published_at":str(story.get("published_at") or ""),"modified_at":str(story.get("modified_at") or "")})
         (folder/"index.html").write_text(index_html(locale,localized_cards),encoding="utf-8")
     (args.site/"news").mkdir(exist_ok=True); (args.site/"news"/"index.html").write_text('<!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="0;url=en/"><script>location.replace("en/"+location.search+location.hash)</script>',encoding="utf-8")
     notices=write_story_layer_outputs(args.site,v2,corpus) if v2 else 0

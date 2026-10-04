@@ -48,6 +48,11 @@ def atom(stories: list[dict], *, locale: dict, catalog: dict, base_url: str, sel
 def json_feed(stories: list[dict], *, locale: dict, catalog: dict, base_url: str, feed_url: str, beat: str | None = None) -> str:
     code = locale["code"]
     values = _stories(stories, beat)
+    def primary_source(story: dict) -> str:
+        sources = [source for source in story.get("sources") or [] if isinstance(source, dict)
+                   and isinstance(source.get("url"), str) and source["url"].startswith(("https://", "http://"))]
+        sources.sort(key=lambda source: (not bool(source.get("primary")), str(source.get("url"))))
+        return str(sources[0]["url"]) if sources else ""
     value = {
         "version": "https://jsonfeed.org/version/1.1",
         "title": catalog["strings"]["site"]["name"] + (f" · {catalog['labels']['beat'][beat]}" if beat else ""),
@@ -57,6 +62,7 @@ def json_feed(stories: list[dict], *, locale: dict, catalog: dict, base_url: str
         "items": [{
             "id": absolute(base_url, story_path(locale, story)),
             "url": absolute(base_url, story_path(locale, story)),
+            "external_url": primary_source(story),
             "title": headline(story, code, catalog), "summary": dek(story, code, catalog),
             "date_published": story["first_published_at"], "date_modified": story["updated_at"],
         } for story in values],

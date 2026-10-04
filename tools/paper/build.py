@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 from collections import Counter, defaultdict
 from datetime import datetime
+import hashlib
 from html import escape
 import json
 import os
@@ -78,7 +79,7 @@ def slugify(value: str) -> str:
 
 class PaperBuilder:
     def __init__(self, *, stories_path: Path, status_path: Path, out: Path, base: str,
-                 og_source: Path | None = None) -> None:
+                 og_source: Path | None = None, citation_history: Path | None = None) -> None:
         self.stories_path = stories_path
         self.status_path = status_path
         self.payload = json.loads(stories_path.read_text(encoding="utf-8"))
@@ -93,6 +94,7 @@ class PaperBuilder:
         self.base = "/" + base.strip("/") + "/" if base.strip("/") else "/"
         self.base_url = self.config["base_url"]
         self.og_source = og_source
+        self.citation_history = citation_history or (ROOT / "site" / "data" / "citations")
         self.cartas = community.fetch_cartas(os.environ.get("GHOST_CONTENT_URL"), os.environ.get("GHOST_CONTENT_API_KEY"))
         self.portal_url = os.environ.get("GHOST_PORTAL_URL")
         self.routes: list[dict] = []
@@ -234,6 +236,28 @@ class PaperBuilder:
         if related_cards:
             parts.append(f'<section class="related-reading"><h2>{esc(strings["story"]["related"])}</h2><div class="card-row">{related_cards}</div></section>')
         return "".join(parts)
+
+    def _citation_permalink(self, story: dict) -> str:
+        english = next(locale for locale in self.config["locales"] if locale["code"] == "en")
+        canonical_story_url = absolute(self.base_url, english["path_prefix"] + story_path(english, story))
+        sources = self._source_urls(story)
+        payload = {"schema": "fcmo-versioned-citation-v1", "id": story["id"],
+                   "canonical_story_url": canonical_story_url,
+                   "headline": headline(story, "en", self.catalogs["en"]),
+                   "summary": str(story.get("summary") or ""), "source_urls": sources}
+        version = hashlib.sha256(json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")).hexdigest()
+        record = {**payload, "version": version}
+        target = self.out / "data" / "citations" / story["id"] / f"{version}.json"
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(json.dumps(record, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        return absolute(self.base_url, f"data/citations/{story['id']}/{version}.json")
+
+    @staticmethod
+    def _source_urls(story: dict) -> list[str]:
+        rows = [source for source in story.get("sources") or [] if isinstance(source, dict)
+                and isinstance(source.get("url"), str) and source["url"].startswith(("https://", "http://"))]
+        rows.sort(key=lambda source: (not bool(source.get("primary")), str(source.get("url"))))
+        return [source["url"] for source in rows]
 
     def _topic_links(self, locale: dict, *, exclude_topic: str = "", exclude_org: str = "", limit: int = 5) -> str:
         """Link into co-occurring topics and organizations using the live corpus."""
@@ -414,7 +438,8 @@ class PaperBuilder:
         page = page.replace('<article class="story-layout">', f'<article class="story-layout {title_class}">', 1)
         story_url = absolute(self.base_url, locale["path_prefix"] + suffix)
         image = self._media_url(story, locale)
-        structured = {"@context": "https://schema.org", "@type": "NewsArticle", "headline": title, "description": description, "datePublished": story["first_published_at"], "dateModified": story["updated_at"], "mainEntityOfPage": story_url, "image": [image], "author": {"@type": "Organization", "name": "FCMO AI Research Desk"}, "publisher": {"@type": "Organization", "name": "FCMO AI"}}
+        sources = self._source_urls(story)
+        structured = {"@context": "https://schema.org", "@type": "NewsArticle", "identifier": story["id"], "headline": title, "description": description, "datePublished": story["first_published_at"], "dateModified": story["updated_at"], "inLanguage": locale["code"], "mainEntityOfPage": story_url, "citation": self._citation_permalink(story), "isBasedOn": sources, "image": [image], "author": {"@type": "Organization", "name": "FCMO AI Research Desk"}, "publisher": {"@type": "Organization", "name": "FCMO AI"}}
         if story.get("corrections"):
             structured["correction"] = [c.get("note") or c.get("reason") or c.get("kind", "Correction") for c in story["corrections"]]
         story_api = absolute(self.base_url, f"api/v1/stories/{story['id']}.json")
@@ -697,6 +722,9 @@ class PaperBuilder:
         copy_public_tree(ROOT / "site-src" / "assets", self.out / "assets")
         # Retain the original public agent datasets as compatibility surfaces.
         copy_public_tree(ROOT / "release-src" / "data", self.out / "data")
+        # Citation versions are content-addressed and append-only across deployments.
+        if self.citation_history.is_dir():
+            copy_public_tree(self.citation_history, self.out / "data" / "citations")
         self._copy_story_media()
         write_localized_story_graphics(self.stories, self.catalogs, self.out / "assets" / "story-media")
         if self.og_source is not None:
@@ -789,9 +817,10 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--base", default="/")
     parser.add_argument("--og-source", type=Path, help="cards produced by og_image.py; copied to publish/og")
+    parser.add_argument("--citation-history", type=Path, help="prior content-addressed citations to retain (default: site/data/citations)")
     args = parser.parse_args(argv)
     try:
-        PaperBuilder(stories_path=args.stories, status_path=args.status, out=args.out, base=args.base, og_source=args.og_source).build()
+        PaperBuilder(stories_path=args.stories, status_path=args.status, out=args.out, base=args.base, og_source=args.og_source, citation_history=args.citation_history).build()
     except (OSError, ValueError, KeyError, json.JSONDecodeError) as exc:
         print(f"paper build FAILED: {exc}", file=sys.stderr)
         return 1
