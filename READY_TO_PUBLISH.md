@@ -20,10 +20,10 @@ Ordinary releases require no repository-visibility step. A candidate that fails 
 
 - Release manifest schema: `fcmo-ai-newsletter-release-overlay-v2`
 - Release: `signal-field-v4.1.1-viewport-polish`
-- Front-end SHA-256: `b3c9f4c47073f9be587f86972565757b5ec29580769949728db279fa54a4c8a8`
-- Release archive SHA-256: `78974ac7ee48f665a5ac89b3336772a7784a7c072f14e31c0d11aeb61550bf3d`
-- Encoded release payload SHA-256: `86c01cdb69a335daf953941a07d5a37f9d16b2f35f841c83d3bb4fd0364deaf8`
-- 38/38 release payload parts present; payload and archive checked by SHA-256
+- Front-end SHA-256: `dd801d8a1a339ad0990e6dad132a0bfa6442806b37e6e20198af672fe3ac8525`
+- Release archive SHA-256: `17a78e49aeebacd228208525a3f3818b2b1f70e5f17c7a99899888d41344e911`
+- Encoded release payload SHA-256: `2d12498fc8d59710b8be2c9a15ca48147abed5fec21bc948e14a3525300007a5`
+- 39/39 release payload parts present; payload and archive checked by SHA-256
 - 762 public files after assembly
 - 46 canonical dossiers
 - 46 stable dossier routes
@@ -62,7 +62,7 @@ The final assembler validates, before deployment:
 
 The release assembler, native-locale gate, and discovery frontend builder were rerun; the assembled public candidate measures:
 
-`FCMO AI Newsletter signal-field-v4.1.1-viewport-polish READY: 762 public files; index b3c9f4c47073…`
+`FCMO AI Newsletter signal-field-v4.1.1-viewport-polish READY: 762 public files; index dd801d8a1a33…`
 
 ## Daily refresh readiness
 
