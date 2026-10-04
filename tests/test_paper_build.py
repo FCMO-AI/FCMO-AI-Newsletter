@@ -94,6 +94,12 @@ class PaperBuildTests(unittest.TestCase):
     def test_acceptance_command_reports_routes(self):
         self.assertRegex(self.result.stdout, r"routes=\d+")
 
+    def test_es_and_zh_locale_roots_resolve_to_localized_pages(self):
+        for path, locale in (("es/index.html", "es-419"), ("zh/index.html", "zh-Hans")):
+            self.assertTrue((self.out / path).is_file(), path)
+            _, page = self.parse(path)
+            self.assertEqual(page.lang, locale, path)
+
     def test_native_pages_reference_generated_localized_explainer_graphics(self):
         payload = json.loads((FIXTURES / "stories.v2.json").read_text(encoding="utf-8"))
         story = next(s for s in payload["stories"] if (s.get("media") or {}).get("kind") == "explainer")

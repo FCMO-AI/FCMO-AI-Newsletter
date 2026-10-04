@@ -208,5 +208,42 @@ class PublicationGateTests(unittest.TestCase):
         self.write_tree()
         self.assert_gate("LOCALE_COMPLETE")
 
+    def test_complete_locale_cannot_hide_missing_prose_leaves_behind_empty_missing_list(self):
+        # A pair-level receipt can be stale even when its fields are not. The
+        # release gate must compare every English prose leaf with the selected
+        # locale's corresponding leaf rather than trusting only state/missing[].
+        self.story["evidence"] = {
+            "claims": [{"label": "DEMONSTRATED", "text": "The published result is measured."}],
+            "limitations": ["The result lacks an independent reproduction."],
+            "gaps": [{"kind": "reproduction_missing", "description": "No independent reproduction exists."}],
+            "contradictory": [],
+        }
+        self.story["related"] = [{
+            "id": "FCMO-BBBBBBBBBBBB", "type": "related", "summary": "The related system uses another method."
+        }]
+        self.story["l10n"]["es-419"]["fields"]["evidence"] = {
+            "claims": [], "limitations": [], "gaps": [], "contradictory": [],
+        }
+        self.story["l10n"]["zh-Hans"]["fields"]["evidence"] = {
+            "claims": [{"text": "已测量公开结果。"}], "limitations": ["结果尚无独立复现。"],
+            "gaps": [{"description": "尚无独立复现。"}], "contradictory": [],
+        }
+        self.story["l10n"]["zh-Hans"]["fields"]["related"] = [{
+            "id": "FCMO-BBBBBBBBBBBB", "type": "related", "summary": "相关系统采用了另一种方法。"
+        }]
+        self.write_tree()
+        with self.assertRaises(GateFailure) as caught:
+            run_all.run(self.root)
+        self.assertEqual(caught.exception.code, "LOCALE_COMPLETE")
+        self.assertIn("coverage es-419: complete=0 incomplete=1 missing_prose_leaves=4", str(caught.exception))
+        self.assertIn("coverage zh-Hans: complete=1 incomplete=0 missing_prose_leaves=0", str(caught.exception))
+
+    def test_complete_locale_copy_catalog_does_not_trigger_pending_page_detection(self):
+        route = canonical_story_path(self.story, "es-419")
+        page = self.root / route
+        page.write_text(page.read_text(encoding="utf-8").replace(
+            "</main>", "<script>const pendingLabel = 'Traducción pendiente';</script></main>"), encoding="utf-8")
+        run_all.run(self.root)
+
 
 if __name__ == "__main__": unittest.main()
