@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/contracts/newsroom-status.v2.schema.json",
   "title": "Reader-facing newsroom status (site/data/newsroom-status.json)",
-  "description": "Written by the refresh on every cycle, including quiet and delayed ones. The static build renders the edition banner from edition_state/edition_reason in all three locales; the email dispatcher sends only when edition_state is FRESH. It extends the legacy fcmo-newsroom-status-v2 document: legacy fields stay optional so existing readers keep working.",
+  "description": "Written by the refresh on every cycle, including quiet and delayed ones. The static build renders the reader banner from optional publication_status when present; edition_state/edition_reason retain the legacy wire projection in all three locales; the email dispatcher sends only when edition_state is FRESH. It extends the legacy fcmo-newsroom-status-v2 document: legacy fields stay optional so existing readers keep working.",
   "x-contract": {"name": "newsroom-status.v2", "status": "v2-frozen", "version": 2},
   "type": "object",
   "additionalProperties": false,
@@ -14,7 +14,7 @@
   "properties": {
     "schema": {"const": "fcmo-newsroom-status-v2"},
     "status_updated_at": {"$ref": "#/$defs/utc", "description": "When this status was computed (the quiet path rewrites it without a rebuild)."},
-    "edition_state": {"enum": ["FRESH", "QUIET", "DELAYED", "TRANSPORT_DOWN"], "description": "Banner key; rendered as data-edition-state on the page."},
+    "edition_state": {"enum": ["FRESH", "QUIET", "DELAYED", "TRANSPORT_DOWN"], "description": "Legacy wire projection; publication_status takes precedence on reader pages when present."},
     "edition_reason": {
       "enum": [
         null, "ARB_MAIN_RED", "CHECKPOINT_STALE", "STORY_SUPPLY", "TRANSPORT_FAIL",
@@ -57,7 +57,27 @@
     "stories_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
     "story_layer_count": {"type": "integer", "minimum": 0},
     "translation_counts": {"type": "object", "additionalProperties": {"type": "integer", "minimum": 0}},
-    "translation_state": {"type": "string"}
+    "translation_state": {"type": "string"},
+    "publication_status": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema", "state", "reason", "checked_at", "newest_at", "newest_age_hours", "stale_after_hours", "last_edition_at", "wire_state", "wire_reason", "release_id", "corpus_digest"],
+      "properties": {
+        "schema": {"const": "fcmo-publication-status-v1"},
+        "state": {"enum": ["FRESH", "QUIET", "DELAYED"]},
+        "reason": {"oneOf": [{"type": "null"}, {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"}]},
+        "checked_at": {"oneOf": [{"type": "null"}, {"type": "string", "format": "date-time", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"}]},
+        "newest_at": {"oneOf": [{"type": "null"}, {"type": "string", "format": "date-time", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"}]},
+        "newest_age_hours": {"oneOf": [{"type": "null"}, {"type": "number", "minimum": 0}]},
+        "stale_after_hours": {"const": 48},
+        "last_edition_at": {"oneOf": [{"type": "null"}, {"type": "string", "format": "date-time", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"}]},
+        "wire_state": {"type": "string", "pattern": "^(FRESH|QUIET|TRANSPORT_DOWN|DELAYED:[A-Z_]+)$"},
+        "wire_reason": {"oneOf": [{"type": "null"}, {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"}]},
+        "release_id": {"oneOf": [{"type": "null"}, {"type": "string", "pattern": "^newswire-[0-9a-f]{24}$"}]},
+        "corpus_digest": {"oneOf": [{"type": "null"}, {"type": "string", "pattern": "^[0-9a-f]{64}$"}]}
+      },
+      "allOf": [{"if": {"properties": {"state": {"enum": ["FRESH", "QUIET"]}}}, "then": {"properties": {"reason": {"const": null}, "newest_age_hours": {"type": "number", "minimum": 0, "maximum": 48}, "checked_at": {"type": "string", "format": "date-time", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"}, "newest_at": {"type": "string", "format": "date-time", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"}, "wire_state": {"enum": ["FRESH", "QUIET"]}}}, "else": {"properties": {"reason": {"type": "string"}}}}]
+    }
   },
   "allOf": [
     {

@@ -419,12 +419,12 @@ class AutonomousNewsroomTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 newsroom_receipt.preflight(missing_args)
 
-            # An absent wire status is TRANSPORT_DOWN (exit 1), never an exception.
+            # An absent wire status is TRANSPORT_DOWN (warning), never an exception.
             no_wire = type("Args", (), {
                 "corpus": corpus, "release_src": release, "site": site,
                 "status": status, "wire_status": root / "absent.json", "now": reference, "github_output": None,
             })()
-            self.assertEqual(newsroom_receipt.preflight(no_wire), 1)
+            self.assertEqual(newsroom_receipt.preflight(no_wire), 0)
 
 
 if __name__ == "__main__":

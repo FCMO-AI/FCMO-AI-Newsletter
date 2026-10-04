@@ -5,9 +5,8 @@ Availability (serving), transport liveness, upstream state and editorial
 freshness are separate signals (contracts/README.md, "Health state").
 
 * ``select`` deterministically picks the current lead from the Story layer.
-* ``check`` measures the editorial signal: GREEN when the wire state is FRESH or
-  QUIET, or when the newest story event is at most ``newest_event_max_age_h``
-  (36 h) old; otherwise ``EVENT_STALE`` (or ``STORY_SUPPLY`` when no story has
+* ``check`` measures the editorial signal: GREEN only when the newest story
+  event is at most ``newest_event_max_age_h`` (36 h) old; otherwise ``EVENT_STALE`` (or ``STORY_SUPPLY`` when no story has
   an event time). It reads ``corpus/wire-status.json``, never
   ``airlock.generated_at``, and exits 1 when the signal is not GREEN.
 
@@ -153,9 +152,6 @@ def editorial_signal(wire_state: str, newest_event: str | None, now: datetime, m
     """The health-state ``editorial`` signal."""
     age = round(wire_status.hours_between(newest_event, now), 1) if newest_event else None
     metrics = {"newest_event_age_h": age}
-    if wire_state in ("FRESH", "QUIET"):
-        detail = "Edition is fresh." if wire_state == "FRESH" else "Quiet period with a green upstream."
-        return {"status": "GREEN", "code": "OK", "detail": detail, "metrics": metrics}
     if age is not None and age <= max_age_h:
         return {"status": "GREEN", "code": "OK", "detail": f"Newest story event is {age}h old (limit {max_age_h:g}h).", "metrics": metrics}
     if age is None:

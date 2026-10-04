@@ -36,6 +36,10 @@ def tree_digest(site: Path) -> str:
 
 def critical_routes(site: Path, lead: dict | None) -> list[str]:
     routes = ["index.html", "es/index.html", "zh/index.html", "data/newsroom-status.json"]
+    # L3 candidates expose public freshness separately from the legacy receipt.
+    # Keep legacy LKGs rebuildable while proving these bytes on new deployments.
+    if (site / "status.json").is_file():
+        routes.append("status.json")
     story_data = "data/stories.v2.json" if (site / "data/stories.v2.json").is_file() else "data/stories.json"
     routes.append(story_data)
     if lead:

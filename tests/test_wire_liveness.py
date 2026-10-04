@@ -615,9 +615,9 @@ class EditorialSignalTests(Workspace):
                    "--now", REFERENCE, "--signal-out", str(out))
         return proc, json.loads(out.read_text(encoding="utf-8"))
 
-    def test_quiet_wire_is_editorially_fine_but_a_delayed_one_is_not(self) -> None:
+    def test_old_events_are_editorially_stale_even_on_a_quiet_wire(self) -> None:
         proc, signal = self.check("wire-status.quiet.json")
-        self.assertEqual((proc.returncode, signal["status"], signal["code"]), (0, "GREEN", "OK"))
+        self.assertEqual((proc.returncode, signal["status"], signal["code"]), (1, "RED", "EVENT_STALE"))
         proc, signal = self.check("wire-status.delayed.json")
         self.assertEqual((proc.returncode, signal["status"], signal["code"]), (1, "RED", "EVENT_STALE"))
         self.assertTrue(proc.stdout.startswith("EDITORIAL EVENT_STALE edition=DELAYED"), proc.stdout)

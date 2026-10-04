@@ -419,13 +419,9 @@ class CorpusFreshnessBuildTests(unittest.TestCase):
                     stale = label(catalog, "freshness_state", "stale")
                     self.assertTrue(description.startswith(stale + " · "), description)
                     self.assertEqual(description, stale + " · " + html.unescape(LINE.search(page).group(3)))
-                    if state == "FRESH":
-                        delayed = catalog["strings"]["edition"]["delayed"].split("{date}")[0].strip()
-                        self.assertNotIn(delayed, description)
-                        self.assertIn('<div class="status-banner" hidden data-edition-state="FRESH"', page)
-                        line = LINE.search(page)
-                        self.assertEqual(page.index('</p>', page.index('<p class="edition-update">')) + len('</p>'), line.start())
-                        self.assertEqual(line.end(), page.index('<div class="status-banner" hidden'))
+                    # L3: a fresh wire cannot hide a stale corpus behind a hidden banner.
+                    self.assertIn('<div class="status-banner" data-edition-state="DELAYED"', page)
+                    self.assertNotIn('hidden data-edition-state="FRESH"', page)
 
     def test_publication_gates_pass_on_the_fresh_build(self):
         for out in (self.out, self.fresh_out):  # the real status and a FRESH one: both placements of the line

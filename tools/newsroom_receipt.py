@@ -10,7 +10,7 @@ heartbeat. The preflight classifies the wire at ``now`` and picks one path:
 * ``status`` otherwise: only ``site/data/newsroom-status.json`` is refreshed, so a
   quiet day or a delayed upstream is reported honestly without a rebuild.
 
-Exit codes: 0 classified (FRESH, QUIET or DELAYED), 1 TRANSPORT_DOWN, 2 unusable
+Exit codes: 0 classified (including transport outages), 2 unusable
 input. Native-language backlog is reported explicitly and never makes a fully
 validated English Story layer false.
 """
@@ -27,8 +27,13 @@ from typing import Any
 
 try:
     from tools import wire_status
+    from tools.publication_freshness import publication_status
+    from tools.paper.freshness import corpus_freshness
 except ImportError:  # executed as tools/newsroom_receipt.py
     import wire_status  # type: ignore[no-redef]
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+    from tools.publication_freshness import publication_status
+    from tools.paper.freshness import corpus_freshness
 
 AIRLOCK_SCHEMA = "fcmo-newswire-airlock-v2"
 STATUS_SCHEMA = "fcmo-newsroom-status-v2"
@@ -272,11 +277,25 @@ def preflight(args: argparse.Namespace) -> int:
         "builder_digest": current_builder,
         "warning": warning,
     })
-    return 1 if wire_state == "TRANSPORT_DOWN" else 0
+    # Construction from an accepted corpus is safe during an outage. The
+    # independent wire/editorial health checks retain their failing exit codes.
+    return 0
+
+
+def attach_publication_status(fields: dict, site: Path) -> None:
+    path = site / "data" / "stories.v2.json"
+    payload = load(path) if path.is_file() else {"stories": []}
+    live = [story for story in payload["stories"] if story.get("status") == "live"]
+    fields["publication_status"] = publication_status(
+        corpus_freshness(live, fields["status_updated_at"]), fields, stories=payload["stories"])
 
 
 def material(doc: dict[str, Any]) -> dict[str, Any]:
-    return {k: v for k, v in doc.items() if k != "status_updated_at"}
+    fields = {k: v for k, v in doc.items() if k != "status_updated_at"}
+    if isinstance(fields.get("publication_status"), dict):
+        fields["publication_status"] = {k: v for k, v in fields["publication_status"].items()
+                                        if k not in ("checked_at", "newest_age_hours")}
+    return fields
 
 
 def status(args: argparse.Namespace) -> int:
@@ -291,6 +310,7 @@ def status(args: argparse.Namespace) -> int:
     current = load(args.status)
     story_count = int(current.get("story_layer_count") or current.get("live_story_count") or receipt.get("record_count") or 0)
     fields = edition_status(args.wire_status, now, receipt, current, story_count)
+    attach_publication_status(fields, args.site)
     updated = dict(current)
     updated.update(fields)
     updated["schema"] = STATUS_SCHEMA
@@ -415,6 +435,7 @@ def finalize(args: argparse.Namespace) -> int:
         "deployment_proof": "post-deploy live oracle required",
     }
     status_doc.update(edition_status(args.wire_status, now, receipt, status_doc, len(stories)))
+    attach_publication_status(status_doc, args.site)
     args.status.parent.mkdir(parents=True, exist_ok=True)
     args.status.write_text(json.dumps(status_doc, indent=2, sort_keys=True, ensure_ascii=False) + "\n", encoding="utf-8")
     print(

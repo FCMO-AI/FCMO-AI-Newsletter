@@ -105,3 +105,8 @@ The browser run could not be completed in this container because Playwright and 
 Commits: `a463361` (red test first), `bd016cf` (implementation and lane report), plus this report update. No push was made.
 
 Resumen L10: la puerta visual y sus pruebas están listas; falta ejecutarlas con Chromium en el host.
+
+## L3-fresh — frescura independiente del heartbeat
+
+Detalle, evidencia roja-primero y continuación en [REPORT-L3.md](REPORT-L3.md).
+Resumen: frescura independiente del heartbeat, estado público FRESH / QUIET / DELAYED y diagnóstico conservado. Sin push; navegador y producción pendientes de verificación independiente.

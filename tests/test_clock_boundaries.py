@@ -138,7 +138,7 @@ class ClockBoundaryTests(unittest.TestCase):
         newsroom.write_wire(wire)
         now = at(wire["run_at"], 31)
         code, lines, detail, _ = newsroom.preflight(now)
-        self.assertEqual(code, 1)
+        self.assertEqual(code, 0)
         self.assertEqual(lines[0], "TRANSPORT_DOWN")
         self.assertEqual(detail["wire_reason"], "WIRE_STALE")
         classify = run("tools/wire_status.py", "classify", "--wire-status", str(newsroom.wire), "--now", now)
@@ -152,7 +152,7 @@ class ClockBoundaryTests(unittest.TestCase):
         # A missing wire status is also TRANSPORT_DOWN (blind means not fresh).
         newsroom.wire.unlink()
         code, lines, detail, _ = newsroom.preflight(now)
-        self.assertEqual((code, lines[0], detail["wire_reason"]), (1, "TRANSPORT_DOWN", "WIRE_STATUS_MISSING"))
+        self.assertEqual((code, lines[0], detail["wire_reason"]), (0, "TRANSPORT_DOWN", "WIRE_STATUS_MISSING"))
 
     def test_thirty_hour_boundary_is_exact(self) -> None:
         clock = FakeClock()
@@ -224,7 +224,7 @@ class ClockBoundaryTests(unittest.TestCase):
         clock = FakeClock()
         for name, want_code, want_line, warning in (
             ("wire-status.delayed.json", 0, "DELAYED:ARB_MAIN_RED", "REBUILD_WITH_DELAYED"),
-            ("wire-status.down.json", 1, "TRANSPORT_DOWN", "REBUILD_WITH_TRANSPORT_DOWN"),
+            ("wire-status.down.json", 0, "TRANSPORT_DOWN", "REBUILD_WITH_TRANSPORT_DOWN"),
         ):
             with self.subTest(wire=name):
                 newsroom = Newsroom(self.root / name, builder_digest="0" * 64)

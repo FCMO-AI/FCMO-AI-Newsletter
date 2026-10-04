@@ -23,6 +23,7 @@ change here first, with its fixture, and only then in code.
 |---|---|---|---|
 | Wire status (bridge output) | `wire-status.schema.json` | v2-frozen | `fcmo-wire-status-v1` |
 | Newsroom status (public) | `newsroom-status.v2.schema.json` | v2-frozen | `fcmo-newsroom-status-v2` |
+| Publication freshness (public) | `publication-status.v1.schema.json` | v1-frozen | `fcmo-publication-status-v1` |
 | Health state (operator) | `health-state.schema.json` | v2-frozen | `fcmo-health-state-v1` |
 | Tombstones | `tombstones.schema.json` | v2-frozen | `fcmo-tombstones-v1` |
 | Corpus guard report | `corpus-guard.report.schema.json` | v2-frozen | `fcmo-corpus-guard-report-v1` |
@@ -233,6 +234,36 @@ when `status_updated_at` is older than `reader_stale_banner_after_h` (36 h),
 whatever `edition_state` says, because an old status file means the refresh
 itself stopped.
 
+### Publication freshness (L3)
+
+`status.json` is the primary machine-readable reader status. Its closed,
+versioned contract is `publication-status.v1.schema.json`. The same object is
+an additive optional `publication_status` field on the frozen v2 newsroom
+receipt. Existing transport fields and wire health classification retain their
+meaning; reader banners and status chips use the publication projection.
+
+- `FRESH`: wire is FRESH and the newest live material is at most 48 hours old.
+- `QUIET`: wire is QUIET and the newest live material is at most 48 hours old.
+- `DELAYED`: either condition is unproven. Preserve the wire failure reason,
+  otherwise use `STORY_SUPPLY`; future dates beyond 15 minutes use `CLOCK_SKEW`.
+- News age uses the existing v4 chronology: the earlier of `event_at` and
+  `first_published_at`. Rebuilds, edits and the immutable airlock `generated_at`
+  never renew news age. `last_edition_at` in the projection is the newest stored
+  Story first-publication date, including withdrawn/merged history; this is
+  publication metadata, not proof of a live deployment.
+- `checked_at` is the reference instant; JSON consumers must inspect it before
+  trusting a static status as current. No network or model call runs on a page
+  view. The existing reader-clock safeguard remains in place.
+
+Refresh preflight exits 0 for a classified outage as well as a healthy wire,
+allowing an already accepted corpus to be rebuilt and its warning published.
+Malformed/missing corpus or an unsupported airlock schema still exits 2.
+This is construction availability, not health: `wire_status.py classify` and
+`editorial_freshness.py check` keep their failing health exit codes. The latter
+measures event age even when the wire reports FRESH or QUIET (36-hour alarm).
+Age-only changes wait for the existing five-hour status cadence; a change in
+reader state, reason or news identity is recorded immediately.
+
 ## Health state
 
 `health-state.json` (schema `health-state.schema.json`) is produced by the
@@ -244,7 +275,7 @@ generated from it.
 | `serving` | yes | every checked route answers 200 and the live release matches the deployed identity | `UNREACHABLE`, `ROUTES_FAILED`, `IDENTITY_MISMATCH` |
 | `transport` | yes | the wire state is not `TRANSPORT_DOWN` or `DELAYED:TRANSPORT_FAIL` | `TRANSPORT_DOWN`, `TRANSPORT_FAIL` |
 | `upstream` | yes | wire state `FRESH` or `QUIET` (code `FRESH` / `QUIET`) | `ARB_MAIN_RED`, `CHECKPOINT_STALE`, `STORY_SUPPLY`, `SNAPSHOT_REFUSED` |
-| `editorial` | yes | edition `FRESH` or `QUIET`, or the newest story event is at most `newest_event_max_age_h` (36 h) old | `EVENT_STALE`, `STORY_SUPPLY` |
+| `editorial` | yes | the newest story event is at most `newest_event_max_age_h` (36 h) old | `EVENT_STALE`, `STORY_SUPPLY` |
 | `translation` | no | no pair pending beyond its grace | `BACKLOG` |
 | `community` | no | the membership site answers | `DOWN` (or `NOT_CONFIGURED`) |
 | `watchdog` | no | the external watchdog reported recently | `STALE` (or `NOT_CONFIGURED`) |

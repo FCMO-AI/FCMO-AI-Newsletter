@@ -46,6 +46,7 @@ else:
     from .routes import TECHNICAL_FRONT
 
 ROOT = Path(__file__).resolve().parents[2]
+from tools.publication_freshness import publication_status, reader_status
 BEATS = ("technology", "business", "policy", "society", "research")
 
 SEARCH_JS = r'''(()=>{const f=document.querySelector('[data-search-form]'),q=document.querySelector('[data-search-input]'),o=document.querySelector('[data-search-results]');if(!f)return;let rows;const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));f.addEventListener('submit',async e=>{e.preventDefault();let term=q.value.trim().toLocaleLowerCase();if(!term)return;if(!rows){o.textContent=o.dataset.loading;rows=await fetch(f.dataset.index).then(r=>{if(!r.ok)throw Error(r.status);return r.json()}).catch(()=>[])}let hits=rows.filter(x=>[x.h,x.d,x.b,...x.o,...x.t].join(' ').toLocaleLowerCase().includes(term)).slice(0,30);o.innerHTML=hits.length?hits.map(x=>`<article class="story-card"><span class="card-meta">${esc(x.b)}</span><h2><a href="${esc(x.u)}">${esc(x.h)}</a></h2><p>${esc(x.d)}</p></article>`).join(''):`<p>${esc(o.dataset.empty.replace('{query}',term))}</p>`})})()'''
@@ -87,6 +88,7 @@ class PaperBuilder:
         self.stories = self.payload["stories"]
         self.live = [story for story in self.stories if story.get("status") == "live"]
         self.freshness = corpus_freshness(self.live, self.status.get("status_updated_at"))
+        self.status["publication_status"] = publication_status(self.freshness, self.status, stories=self.stories)
         self.out = out
         self.base = "/" + base.strip("/") + "/" if base.strip("/") else "/"
         self.base_url = self.config["base_url"]
@@ -544,8 +546,9 @@ class PaperBuilder:
     def _status(self, locale: dict) -> None:
         catalog = self.catalogs[locale["code"]]
         strings = catalog["strings"]
-        state = label(catalog, "edition_state", self.status["edition_state"])
-        last = format_date(self.status["last_edition_at"], catalog, precision="minute")
+        visible_status = reader_status(self.status)
+        state = label(catalog, "edition_state", visible_status["edition_state"])
+        last = format_date(visible_status["last_edition_at"], catalog, precision="minute")
         checked = format_date(self.status["status_updated_at"], catalog, precision="minute")
         cards = f'<article class="status-card"><span class="eyebrow">{esc(strings["status_page"]["edition"])}</span><strong>{esc(state)}</strong><p>{esc(strings["status_page"]["last_edition"].format(date=last))}</p></article>'
         fresh = self.freshness
@@ -557,7 +560,7 @@ class PaperBuilder:
         cards += f'<article class="status-card"><span class="eyebrow">{esc(strings["status_page"]["translation"])}</span>'
         for code, counts in self.status.get("translation", {}).items():
             cards += f'<strong>{esc(catalog["strings"]["lang"].get(code,code))}</strong><p>{esc(strings["status_page"]["translation_counts"].format(**counts))}</p>'
-        reason = label(catalog, "edition_reason", self.status.get("edition_reason"), fallback=state)
+        reason = label(catalog, "edition_reason", visible_status.get("edition_reason"), fallback=state)
         cards += f'</article><article class="status-card"><span class="eyebrow">{esc(strings["status_page"]["checked"].format(date=checked))}</span><strong>{esc(label(catalog,"source_mode","MAIN",fallback="FCMO AI"))}</strong><p>{esc(reason)}</p></article>'
         counts = {
             "en": ("Stories in this edition", "editions", "topics", "organizations"),
@@ -570,7 +573,8 @@ class PaperBuilder:
         cards += (f'<article class="status-card"><span class="eyebrow">{esc(counts[0])}</span><strong>{live_count}</strong>'
                   f'<p>{len({item.get("url_date") for item in self.live})} {counts[1]} · {topic_count} {counts[2]} · {org_count} {counts[3]}</p></article>')
         body = status_page(strings["status_page"]["title"], cards, "", kicker=strings["kicker"]["operations"])
-        self._write_page(locale=locale, suffix="status/", title=f'{strings["status_page"]["title"]} — FCMO AI', description=f"{fresh_label} · {fresh_sentence}", body=body, kind="status")
+        self._write_page(locale=locale, suffix="status/", title=f'{strings["status_page"]["title"]} — FCMO AI', description=f"{fresh_label} · {fresh_sentence}", body=body, kind="status",
+                         machine_alternates=[("application/json", absolute(self.base_url, "status.json"))])
 
     def _freshness_lead(self, locale: dict) -> str:
         """The front-page lead's age against the newest story, linked to the lead."""
@@ -751,6 +755,8 @@ class PaperBuilder:
         (self.out / "data" / "routes.json").write_text(json.dumps(self.routes, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
         shutil.copyfile(self.stories_path, self.out / "data" / "stories.v2.json")
         shutil.copyfile(self.status_path, self.out / "data" / "newsroom-status.json")
+        (self.out / "status.json").write_text(json.dumps(self.status["publication_status"],
+                                                      indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
         js_size = sum(path.stat().st_size for path in self.out.rglob("*.js"))
         if js_size > 30 * 1024:
             raise ValueError(f"JavaScript budget exceeded: {js_size}")
