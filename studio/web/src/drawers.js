@@ -18,13 +18,13 @@ export function sourcesPanel (sources, changed) {
     sources.forEach((s, i) => {
       const f = (label, k, type = 'text') => { const el = h('input', { type, value: s[k] || '' }); el.addEventListener('input', () => { s[k] = el.value; changed() }); return h('label', { class: 'f' }, h('span', null, label), el) }
       const cls = h('select', null, ['', 'A', 'B', 'C', 'D'].map(c => h('option', { value: c, selected: (s.evidence_class || '') === c }, c ? t('ev.' + c) : t('src.none'))))
-      cls.addEventListener('change', () => { s.evidence_class = cls.value; changed() })
+      cls.addEventListener('change', () => { if (cls.value) s.evidence_class = cls.value; else delete s.evidence_class; changed() })
       root.append(h('details', { class: 'src', open: !s.title }, h('summary', null, h('strong', null, s.title || t('src.title')), h('small', null, [s.author, (s.date || '').slice(0, 4)].filter(Boolean).join(' · '))),
-        f(t('src.title'), 'title'), f(t('src.author'), 'author'), h('div', { class: 'two' }, f(t('src.date'), 'date', 'date'), f(t('src.accessed'), 'accessed', 'date')), f(t('src.url'), 'url', 'url'), f(t('src.locator'), 'locator'),
+        f(t('src.title'), 'title'), f(t('src.author'), 'author'), f(t('src.publisher'), 'publisher'), h('div', { class: 'two' }, f(t('src.date'), 'date', 'date'), f(t('src.accessed'), 'accessed', 'date')), f(t('src.url'), 'url', 'url'), f(t('src.locator'), 'locator'),
         h('label', { class: 'f' }, h('span', null, t('src.class')), cls),
         h('button', { class: 'link-btn danger', type: 'button', onclick: () => { sources.splice(i, 1); changed(); draw() } }, t('src.del'))))
     })
-    root.append(h('button', { class: 'btn small', type: 'button', onclick: () => { sources.push({ key: 'src-' + Math.random().toString(16).slice(2, 8), title: '', author: '', date: '', url: '', accessed: new Date().toISOString().slice(0, 10), locator: '', evidence_class: '' }); changed(); draw() } }, '+ ', t('src.add')))
+    root.append(h('button', { class: 'btn small', type: 'button', onclick: () => { sources.push({ key: 'src-' + Math.random().toString(16).slice(2, 8), title: '', author: '', date: '', url: '', accessed: new Date().toISOString().slice(0, 10), publisher: '', locator: '' }); changed(); draw() } }, '+ ', t('src.add')))
   }
   draw(); return root
 }

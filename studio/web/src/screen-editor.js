@@ -18,14 +18,16 @@ export async function editorScreen (root, slug, locArg) {
   const meta = await get(`/api/pieces/${slug}`)
   const loc = locArg && LOCS.includes(locArg) ? locArg : meta.source_locale
   const [server, srcRes, figRes] = await Promise.all([get(`/api/pieces/${slug}/doc/${loc}`), get(`/api/pieces/${slug}/sources`), get(`/api/pieces/${slug}/figures`)])
-  const S = { rev: server.rev, sources: srcRes.sources || [], figures: figRes.figures || {}, dirty: false, focus: false, readOnly: false, offline: false, timer: null, bufTimer: null, saving: false, dead: false }
+  const S = { rev: server.rev, sources: srcRes, figures: figRes, dirty: false, focus: false, readOnly: !['draft', 'changes_requested', 'amending'].includes(meta.state), offline: false, timer: null, bufTimer: null, saving: false, dead: false }
   let doc = server.doc
+  let writes = Promise.resolve()
+  const write = task => { const next = writes.then(task); writes = next.catch(() => {}); return next }
   const key = bufKey(slug, loc)
   const isEmptyDoc = d => !d.title && d.blocks.length <= 1 && !(d.blocks[0] && d.blocks[0].content && d.blocks[0].content.length)
 
   // lock
   let lockUser = null
-  try { await post(`/api/pieces/${slug}/lock/${loc}`) } catch (e) { if (e instanceof ApiError && e.status === 409) { S.readOnly = true; lockUser = (e.data && e.data.lock_user) || 'Otra persona' } }
+  try { await post(`/api/pieces/${slug}/lock/${loc}`) } catch (e) { if (e instanceof ApiError && e.status === 409) { S.readOnly = true; lockUser = (e.data && e.data.by) || 'Otra persona' } }
   const heartbeat = setInterval(() => { if (!S.readOnly) post(`/api/pieces/${slug}/lock/${loc}`).catch(() => {}) }, 60000)
 
   /* ---------- page skeleton ---------- */
@@ -47,8 +49,8 @@ export async function editorScreen (root, slug, locArg) {
 
   const editor = createEditor({
     mount, notesMount: notes, doc, loc, readOnly: S.readOnly,
-    sources: () => S.sources, figures: () => S.figures, focusMode: () => S.focus,
-    updateFigure (id, patch) { S.figures[id] = { ...(S.figures[id] || {}), ...patch }; clearTimeout(S.figT); S.figT = setTimeout(() => put(`/api/pieces/${slug}/figures`, { figures: S.figures }).catch(() => {}), 900) },
+    figureUrl: id => `/figures/${slug}/${id}/image.webp`, sources: () => S.sources, figures: () => S.figures, focusMode: () => S.focus,
+    updateFigure (id, patch) { S.figures[id] = { ...(S.figures[id] || {}), ...patch }; clearTimeout(S.figT); S.figT = setTimeout(() => saveResource('figures', S.figures), 900) },
     uploadFigure: async file => {
       toast(t('fig.uploading'))
       try {
@@ -56,7 +58,7 @@ export async function editorScreen (root, slug, locArg) {
         const c = document.createElement('canvas'); c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k); c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height)
         const blob = await new Promise(res => c.toBlob(res, 'image/webp', 0.88))
         const r = await api('POST', `/api/pieces/${slug}/figures/upload`, blob, { headers: { 'x-width': c.width, 'x-height': c.height } })
-        S.figures[r.fig_id] = r.figure; return r
+        const figure = { file: r.file, width: r.width, height: r.height, credit: '', licence: '', alt: {}, caption: {} }; S.figures[r.id] = figure; await write(async () => { const saved = await put(`/api/pieces/${slug}/figures`, S.figures); S.rev = saved.rev }); return { fig_id: r.id, figure }
       } catch (e) { toast(t('fig.fail'), 'bad'); throw e }
     },
     askSource: cb => askSource(cb),
@@ -90,7 +92,7 @@ export async function editorScreen (root, slug, locArg) {
     S.saving = true; setSave('saving')
     const snapshot = current(); S.dirty = false
     try {
-      const r = await put(`/api/pieces/${slug}/doc/${loc}`, { base_rev: S.rev, doc: snapshot, cursor: editor.cursor() })
+      const r = await write(async () => { const r = await put(`/api/pieces/${slug}/doc/${loc}`, { base_rev: S.rev, doc: snapshot, cursor: editor.cursor() }); S.rev = r.rev; return r })
       S.rev = r.rev; S.offline = false
       if (!S.dirty) { dropBuf(key); setSave('saved') } else { setSave('dirty'); S.timer = setTimeout(save, 600) }
     } catch (e) {
@@ -123,11 +125,15 @@ export async function editorScreen (root, slug, locArg) {
   for (const el of [title, dek]) { el.addEventListener('input', () => { auto(el); changed() }); el.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); (el === title ? dek : { focus: () => editor.focus() }).focus() } }) }
 
   /* ---------- sources ---------- */
-  const saveSources = () => { clearTimeout(S.srcT); S.srcT = setTimeout(() => put(`/api/pieces/${slug}/sources`, { sources: S.sources }).catch(() => toast(t('err.generic'), 'bad')), 700) }
+  async function saveResource (kind, data) {
+    await save();
+    try { await write(async () => { const r = await put(`/api/pieces/${slug}/${kind}`, data); S.rev = r.rev }) } catch (e) { toast(e.data?.error_plain || t('err.generic'), 'bad') }
+  }
+  const saveSources = () => { clearTimeout(S.srcT); S.srcT = setTimeout(() => saveResource('sources', S.sources), 700) }
   function askSource (cb) {
     const loc2 = h('input', { type: 'text', placeholder: t('src.locator') })
     const list = h('div', { class: 'pick-list' }, S.sources.length ? S.sources.map(s => h('button', { type: 'button', class: 'pick', onclick: () => { close(); cb({ key: s.key, locator: loc2.value.trim() }) } }, h('strong', null, s.title || s.key), h('small', null, [s.author, s.date && s.date.slice(0, 4)].filter(Boolean).join(' · ')))) : h('p', { class: 'muted' }, t('src.empty')))
-    const close = modal({ title: t('src.pick'), body: [list, h('label', null, t('src.locator'), loc2)], actions: [{ label: t('common.cancel') }, { label: t('src.new'), onclick: c => { const k = 'src-' + Math.random().toString(16).slice(2, 8); S.sources.push({ key: k, title: '', author: '', date: '', url: '', accessed: '', locator: '', evidence_class: '' }); saveSources(); c(); showTab('sources'); cb({ key: k, locator: loc2.value.trim() }) } }] })
+    const close = modal({ title: t('src.pick'), body: [list, h('label', null, t('src.locator'), loc2)], actions: [{ label: t('common.cancel') }, { label: t('src.new'), onclick: c => { const k = 'src-' + Math.random().toString(16).slice(2, 8); S.sources.push({ key: k, title: '', author: '', date: '', url: '', accessed: '', publisher: '', locator: '' }); saveSources(); c(); showTab('sources'); cb({ key: k, locator: loc2.value.trim() }) } }] })
   }
 
   /* ---------- drawers ---------- */
@@ -163,12 +169,15 @@ export async function editorScreen (root, slug, locArg) {
   const bar = h('div', { class: 'ed-bar' },
     h('div', { class: 'ed-bar-left' }, focusBtn, wordsEl, saveState),
     langTabs,
-    h('div', { class: 'ed-bar-right' }, h('a', { class: 'btn small', href: `#/p/${slug}/${loc}/translate/${loc === meta.source_locale ? LOCS.find(l => l !== loc) : loc}` }, t('ed.translate')),
+    h('div', { class: 'ed-bar-right' }, h('button', { class: 'btn small', type: 'button', disabled: S.readOnly, onclick: async () => {
+      const mark = async () => { await writes; await save(); await writes; if (S.dirty) return; const r = await post(`/api/pieces/${slug}/locale/${loc}/state`, { state: 'ready', reviewed: true, confirmation: loc === 'zh-Hans' ? 'Leí y entiendo el texto chino' : '' }); S.rev = r.rev; toast(t('tr.reviewed', { who: me.name, when: 'ahora' })) };
+      if (loc === 'zh-Hans') { const cb = h('input', { type: 'checkbox' }); modal({ title: t('tr.review'), body: h('label', null, cb, t('tr.zh.confirm')), actions: [{ label: t('common.cancel') }, { label: t('tr.confirm'), onclick: close => { if (cb.checked) { mark(); close() } } }] }) } else await mark()
+    } }, t('tr.review')), h('a', { class: 'btn small', href: `#/p/${slug}/${loc}/translate/${loc === meta.source_locale ? LOCS.find(l => l !== loc) : loc}` }, t('ed.translate')),
       h('a', { class: 'btn small', href: `#/p/${slug}/${loc}/preview` }, t('ed.preview')), h('a', { class: 'btn primary small', href: `#/p/${slug}/publish` }, t('ed.publish'))))
   const top = h('div', { class: 'ed-top' }, h('a', { class: 'back', href: '#/' }, '← ', t('ed.back')), h('span', { class: 'ed-top-title' }, meta.title))
 
   // banners
-  if (S.readOnly) banner.append(h('div', { class: 'banner' }, h('span', null, t('ed.readonly', { who: lockUser })), h('button', { class: 'btn small', type: 'button', onclick: async () => { await post(`/api/pieces/${slug}/lock/${loc}`, { take: true }); route() } }, t('ed.take'))))
+  if (S.readOnly) banner.append(h('div', { class: 'banner' }, h('span', null, t('ed.readonly', { who: lockUser })), h('button', { class: 'btn small', type: 'button', onclick: async () => { await post(`/api/pieces/${slug}/lock/${loc}`, { takeover: true }); route() } }, t('ed.take'))))
   const buf = readBuf(key)
   if (buf && !S.readOnly && JSON.stringify(buf.doc) !== JSON.stringify(doc)) {
     const b = h('div', { class: 'banner' }, h('span', null, t('ed.restore.local')), h('button', { class: 'btn small primary', type: 'button', onclick: () => { applyDoc(buf.doc); S.dirty = true; changed(); b.remove() } }, t('ed.restore.go')), h('button', { class: 'btn small ghost', type: 'button', onclick: () => { dropBuf(key); b.remove() } }, t('ed.restore.drop')))
@@ -188,7 +197,7 @@ export async function editorScreen (root, slug, locArg) {
     S.dead = true; clearTimeout(S.timer); clearInterval(heartbeat)
     removeEventListener('online', onOnline); removeEventListener('beforeunload', beforeUnload); removeEventListener('resize', onResize)
     document.body.classList.remove('drawer-open', 'focus-mode')
-    if (S.dirty && !S.readOnly) { writeBuf(key, { at: Date.now(), base_rev: S.rev, doc: current() }); fetch(`/api/pieces/${slug}/doc/${loc}`, { method: 'PUT', keepalive: true, credentials: 'same-origin', headers: { 'content-type': 'application/json', 'x-csrf-token': session.me.csrf }, body: JSON.stringify({ base_rev: S.rev, doc: current(), cursor: editor.cursor() }) }).then(() => dropBuf(key)).catch(() => {}) }
+    if (S.dirty && !S.readOnly) { writeBuf(key, { at: Date.now(), base_rev: S.rev, doc: current() }); fetch(`/api/pieces/${slug}/doc/${loc}`, { method: 'PUT', keepalive: true, credentials: 'same-origin', headers: { 'content-type': 'application/json', 'x-csrf-token': session.me.csrf }, body: JSON.stringify({ base_rev: S.rev, doc: current(), cursor: editor.cursor() }) }).then(r => { if (r.ok) dropBuf(key) }).catch(() => {}) }
     if (!S.readOnly) del(`/api/pieces/${slug}/lock/${loc}`).catch(() => {})
     editor.destroy()
   }

@@ -53,6 +53,10 @@ const S = {
     'state.ready': 'ready', 'state.drafting': 'drafting', 'state.empty': 'empty', 'state.later': 'publish later'
   }
 }
+S.es['src.publisher'] = 'Organización o editorial'
+S.en['src.publisher'] = 'Publisher or organization'
+S.es['iss.date'] = 'Fecha de la edición'
+S.en['iss.date'] = 'Edition date'
 let lang = 'es'
 export const setLang = l => { lang = S[l] ? l : 'es'; document.documentElement.lang = lang }
 export const getLang = () => lang

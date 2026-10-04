@@ -8,7 +8,7 @@ import secrets
 import threading
 import time
 from urllib.parse import parse_qs, unquote, urlsplit
-from . import issues, assist
+from . import issues, assist, bundle
 from .messages import localize
 from .auth import Auth, COOKIE, TTL
 from .checks import checks
@@ -27,7 +27,7 @@ class Application:
         self.preview = preview or Preview(store, repo); self.live_enabled = live
         self.github = GitHub(tokens or {})
         self.publisher = publisher or Publisher(store, self.github, Workspace(store, self.github), lambda value: issues.checks(store, self.preview, value) if store.piece(value)['kind'] == 'issue' else checks(store, self.preview, value))
-        self.dist = self.repo / 'studio/web/dist'; self.preview_sessions = {}; self.stop = threading.Event()
+        self.dist = self.repo / 'studio/web/dist'; self.web_ready = bundle.ready(self.repo); self.preview_sessions = {}; self.stop = threading.Event()
     def tick(self):
         self.store.idle_checkpoints()
         if self.live_enabled:
@@ -43,7 +43,7 @@ class Application:
             except Exception: pass  # Durable state retained; never log document/token/trace.
     def api(self, method, path, query, body, session):
         user = session['user']; parts = path.strip('/').split('/')
-        if path == '/api/me' and method == 'GET': return {'user': user, 'name': session['name'], 'ui_lang': session['ui_lang'], 'csrf': session['csrf']}
+        if path == '/api/me' and method == 'GET': return {'user': user, 'name': session['name'], 'ui_lang': session['ui_lang'], 'csrf': session['csrf'], 'other': 'Matías' if user == 'javier' else 'Javier', 'allow_non_en_source': __import__('os').environ.get('STUDIO_ALLOW_NON_EN_SOURCE') == '1'}
         if path == '/api/pieces':
             if method == 'GET': return self.store.list(query.get('state', [None])[0])
             if method == 'POST': return self.store.create(user, body.get('kind', 'essay'), body.get('title', ''), body.get('source_locale', 'en'))
@@ -112,7 +112,7 @@ class Application:
         if rest == ['comments']:
             if method == 'GET': return self.store.comments(value)
             if method == 'POST': return self.store.comment(value, body.get('locale'), body.get('block_id'), user, body.get('body'))
-        if rest == ['checks'] and method == 'GET': return checks(self.store, self.preview, value)
+        if rest == ['checks'] and method == 'GET': return issues.checks(self.store, self.preview, value) if self.store.piece(value)['kind'] == 'issue' else checks(self.store, self.preview, value)
         if len(rest) == 2 and rest[0] == 'review' and method == 'POST':
             if rest[1] == 'request': return self.publisher.request(value, user)
             if rest[1] == 'approve':
@@ -170,6 +170,7 @@ class Handler(BaseHTTPRequestHandler):
                 candidate = (app.dist / path.lstrip('/')).resolve()
                 if method == 'GET' and not path.startswith(('/api/', '/preview/', app.preview.base)) and (path == '/' or candidate.is_relative_to(app.dist.resolve()) and candidate.is_file()):
                     target = app.dist / 'index.html' if path == '/' else candidate
+                    if not app.web_ready: return self.reply(503, {'error_plain': 'La interfaz necesita una reconstrucción antes de abrir Studio.'})
                     if target.is_file(): return self.reply(200, target.read_bytes(), mimetypes.guess_type(str(target))[0] or 'application/octet-stream')
                 return self.reply(401, {'error_plain': 'Inicia sesión para continuar.'})
             elif method != 'GET' and not app.auth.csrf(session, self.headers.get('X-CSRF-Token'), self.headers.get('Origin'), app.origin):
@@ -193,6 +194,13 @@ class Handler(BaseHTTPRequestHandler):
                 return self.reply(200, app.api(method, path, parse_qs(parsed.query), body, session))
             if method != 'GET': raise KeyError('La página no existe.')
             parts = path.strip('/').split('/')
+            if len(parts) == 4 and parts[0] == 'figures':
+                value = slug(parts[1]); key = parts[2]
+                figure = app.store.resource(value, 'figures').get(key)
+                if not figure or parts[3] != 'image.webp': raise KeyError('La figura no existe.')
+                root = app.store.directory(value).resolve(); target = (root / figure['file']).resolve()
+                if not target.is_relative_to(root) or not target.is_file(): raise KeyError('La figura no existe.')
+                return self.reply(200, target.read_bytes(), 'image/webp')
             if len(parts) == 3 and parts[0] == 'preview':
                 page = app.preview.page(slug(parts[1]), locale(parts[2]))
                 app.preview_sessions[session['id_hash']] = slug(parts[1])
@@ -203,6 +211,7 @@ class Handler(BaseHTTPRequestHandler):
                 if not value: raise KeyError('El recurso no existe.')
                 root = app.preview.build(value); target = (root / relative).resolve()
             else:
+                if not app.web_ready: return self.reply(503, {'error_plain': 'La interfaz necesita una reconstrucción antes de abrir Studio.'})
                 root = app.dist.resolve(); target = (root / path.lstrip('/')).resolve()
                 if path == '/' or not target.suffix: target = root / 'index.html'
             if not target.is_relative_to(root.resolve()) or not target.is_file(): raise KeyError('La página no existe.')

@@ -27,8 +27,8 @@ function where (p, me) {
 
 export function newPieceDialog (kind) {
   const title = h('input', { type: 'text', placeholder: '…', 'aria-label': t('new.name') })
-  let lang = 'es-419'
-  const radios = ['es-419', 'en', 'zh-Hans'].map(l => h('label', { class: 'chip-radio' }, h('input', { type: 'radio', name: 'lang', value: l, checked: l === lang, onchange: () => { lang = l } }), h('span', null, LOCALE_NAME[l])))
+  let lang = 'en'
+  const radios = ['es-419', 'en', 'zh-Hans'].map(l => h('label', { class: 'chip-radio' }, h('input', { type: 'radio', name: 'lang', value: l, checked: l === lang, disabled: l !== 'en' && !session.me.allow_non_en_source, onchange: () => { lang = l } }), h('span', null, LOCALE_NAME[l])))
   modal({ title: t('new.title') + ' · ' + t('kind.' + kind), body: [h('label', null, t('new.name'), title), h('p', { class: 'hint' }, t('new.hint')), h('fieldset', { class: 'chips' }, h('legend', null, t('new.lang')), radios)],
     actions: [{ label: t('common.cancel') }, { label: t('new.create'), kind: 'primary', onclick: async close => { const r = await post('/api/pieces', { kind, title: title.value.trim(), source_locale: lang }); close(); location.hash = `#/p/${r.slug}/${lang}` } }] })
 }

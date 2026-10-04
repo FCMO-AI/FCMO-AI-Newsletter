@@ -12,7 +12,7 @@ from tests.test_studio_publish import MockWorkspace
 ISSUE = {'schema': 'fcmo-issue-v1', 'id': '2026-10-04-fixture', 'date': '2026-10-04',
          'title': {'en': 'Today', 'es-419': 'Hoy', 'zh-Hans': '今天'},
          'note': {'en': 'A note', 'es-419': 'Una nota', 'zh-Hans': '编者注'},
-         'slots': [{'slot': 'lead', 'ref': 'FCMO-123456789ABC'}]}
+         'slots': [{'slot': 'principal', 'ref': 'FCMO-123456789ABC'}]}
 
 class Issues(unittest.TestCase):
     def test_issue_versions_conflicts_and_published_tree(self):

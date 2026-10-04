@@ -283,7 +283,7 @@ def render_piece(piece: dict, locale: str, *, base: str, locale_info: dict | Non
         asset_prefix=f"editorial/pieces/{piece['slug']}")
     disclosure = ""
     provenance = piece["provenance"].get(locale, {})
-    if provenance.get("human_reviewed") is not True:
+    if provenance.get("human_reviewed") is not True and provenance.get("origin", "").startswith("agent_"):
         original = href(base, piece_path({"path_prefix": PREFIXES[piece["source_locale"]]}, piece))
         disclosure = (f'<aside class="mt-disclosure"><p>{_esc(MACHINE_DISCLOSURE[locale])}</p>'
                       f'<a href="{_esc(original)}">{_origin_label(locale)}</a></aside>')

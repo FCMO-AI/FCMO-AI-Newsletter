@@ -4,7 +4,7 @@ from .storage import encoded, utc
 from .validation import LOCALES, closed, text
 from tools.paper.i18n import is_complete
 
-SLOTS = ('lead', 'essays', 'briefs', 'notes')
+SLOTS = ('principal', 'essays', 'day-in-ai', 'notes')
 
 def validate_issue(issue):
     closed(issue, ('schema', 'id', 'date', 'title', 'note', 'slots'))
@@ -69,7 +69,7 @@ def checks(store, preview, value):
     try: validate_issue(issue)
     except ValueError: valid = False
     add('issue', valid, 'Completa la fecha, los títulos y los espacios de la edición.', 'Complete the date, titles and edition slots.')
-    add('lead', sum(x['slot'] == 'lead' for x in issue['slots']) == 1, 'Elige una sola publicación principal.', 'Choose exactly one lead publication.')
+    add('lead', sum(x['slot'] == 'principal' for x in issue['slots']) == 1, 'Elige una sola publicación principal.', 'Choose exactly one lead publication.')
     states = store.piece(value)['locale_states']
     for loc in LOCALES:
         add('locale-' + loc, states[loc]['state'] in ('ready', 'later') and (states[loc]['state'] == 'later' or issue['title'][loc].strip()),

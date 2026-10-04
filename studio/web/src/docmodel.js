@@ -106,7 +106,7 @@ export function pmToDoc (root, { locale, title, dek }) {
     } else if (type === 'ul' || type === 'ol') {
       const items = []
       node.forEach(li => items.push(inlineFromPM(li)))
-      blocks.push({ id, type, content: [], items })
+      blocks.push({ id, type, items })
     } else if (type === 'hr') blocks.push({ id, type, content: [] })
     else if (type === 'figure') blocks.push({ id, type, content: [], attrs: { fig: node.attrs.fig } })
     else if (type === 'evidence') blocks.push({ id, type, content: [], attrs: { class: node.attrs.class, confidence: node.attrs.confidence, limits: inlineFromPM(node) } })

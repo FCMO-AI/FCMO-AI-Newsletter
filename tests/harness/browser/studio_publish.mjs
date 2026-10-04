@@ -6,7 +6,8 @@ const base = process.argv[2]; const slug = process.argv[3] || 'el-trabajo-silenc
 if (!base) { console.error('usage: node studio_publish.mjs <url> [slug]'); process.exit(2) }
 const s = await session(base); const { page } = s
 
-await go(s, `#/p/${slug}/es-419`)
+const meta = await page.evaluate(async slug => (await fetch(`/api/pieces/${slug}`)).json(), slug)
+await go(s, `#/p/${slug}/${meta.source_locale}`)
 await page.waitForSelector('.ed-figure textarea')
 const alt = page.locator('.ed-figure .fig-field textarea').first()
 await alt.fill(''); await page.waitForTimeout(1200)

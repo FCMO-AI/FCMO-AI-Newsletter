@@ -30,7 +30,10 @@ await page.waitForSelector('.modal')
 await page.click('.modal >> text=Nueva fuente…')
 await page.waitForSelector('.ed-body cite.src-ref')
 check('citation inserted', await page.locator('.ed-body cite.src-ref').count() === 1)
-await page.click('.drawer .rail-btn >> nth=0').catch(() => {})
+await page.locator('.drawer input[type=url]').fill('https://example.org/source')
+const fields = page.locator('.drawer details label.f input')
+await fields.nth(0).fill('Una fuente pública'); await fields.nth(1).fill('Editorial de prueba'); await fields.nth(2).fill('FCMO')
+await page.waitForTimeout(1800)
 await page.evaluate(() => window.__studioEditor.focusEnd()); await page.keyboard.press('Enter')
 
 // figure through the file chooser (re-encoded to WebP in the browser)
@@ -50,6 +53,8 @@ const after = await page.evaluate(() => ({ text: document.querySelector('.ed-bod
 check('reload keeps the text identical', before.text === after.text && before.title === after.title)
 check('reload keeps the cursor', before.cursor === after.cursor, `${before.cursor} vs ${after.cursor}`)
 check('300 words survived', after.text.includes(words))
+const persistedSources = await page.evaluate(async () => { const slug = location.hash.split('/')[2]; return (await fetch(`/api/pieces/${slug}/sources`)).json() })
+check('source survives reload through the real API', persistedSources.length === 1 && persistedSources[0].url === 'https://example.org/source')
 
 // offline mid-typing
 await page.evaluate(() => window.__studioEditor.focusEnd())

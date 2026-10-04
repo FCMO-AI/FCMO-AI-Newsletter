@@ -140,6 +140,10 @@ class Store:
         with self.mutex:
             row = dict(self._row(value)); payload = json.loads(row.pop('payload_json'))
             row['locale_states'] = json.loads(row.pop('locale_states_json')); row['cursor'] = json.loads(row.pop('cursor_json'))
+            row['source_locale'] = payload['piece']['source_locale']
+            row['locales'] = {loc: {**state, 'reviewed': state['human_reviewed'], 'origin': payload['provenance'].get(loc, {}).get('origin'), 'words': len(plain_text(payload['docs'].get(loc, {'blocks': []})).split())} for loc, state in row['locale_states'].items()}
+            row['words'] = row['locales'][row['source_locale']]['words']
+            row['updated_at'] = datetime.fromtimestamp(row['saved_at'], timezone.utc).isoformat()
             row['meta'] = payload['piece']; row['title'] = payload.get('issue', {}).get('title', {}).get('en') or payload['docs'][payload['piece']['source_locale']]['title']
             row['lock'] = {r['locale']: {'user': r['user'], 'at': r['at']} for r in self.db.execute('SELECT * FROM locks WHERE slug=?', (value,))}
             row['comments_count'] = self.db.execute('SELECT count(*) FROM comments WHERE slug=? AND resolved_at IS NULL', (value,)).fetchone()[0]
@@ -275,9 +279,15 @@ class Store:
     def diff(self, value, left, right, loc):
         locale(loc)
         def words(rev):
+            if rev == 'current': return (self.payload(value)['docs'][loc]['title'] + ' ' + self.payload(value)['docs'][loc]['dek'] + ' ' + plain_text(self.payload(value)['docs'][loc])).split()
+            if rev == 'published':
+                versions = self.db.execute("SELECT payload_json FROM publications WHERE slug=? AND state='published' ORDER BY rowid DESC LIMIT 1", (value,)).fetchone()
+                if not versions: raise KeyError('No hay una versión publicada.')
+                rev = json.loads(versions[0])['approved_rev']
             row = self.db.execute('SELECT payload_json FROM checkpoints WHERE slug=? AND rev=?', (value, int(rev))).fetchone()
             if not row: raise KeyError('La versión no existe.')
-            return plain_text(json.loads(row[0])['docs'][loc]).split()
+            document = json.loads(row[0])['docs'][loc]
+            return (document['title'] + ' ' + document['dek'] + ' ' + plain_text(document)).split()
         with self.mutex: return list(difflib.ndiff(words(left), words(right)))
     def comment(self, value, loc, block_id, user, body):
         locale(loc)

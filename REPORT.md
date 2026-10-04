@@ -1,6 +1,7 @@
-# Studio A2 report
+# Studio integration report
 
-The campaign-wide report for this worktree is [REPORT-STUDIO-A2.md](REPORT-STUDIO-A2.md).
-The inherited L1 report is preserved in branch history; it described another lane.
+See [REPORT-STUDIO-INT.md](REPORT-STUDIO-INT.md) for the merged identities, red-first evidence, verified HTTP publication flow, frontend rebuild blocker and exact host continuation commands.
 
-Resumen: el informe vigente es el de A2; la verificación real está delimitada allí.
+The loopback API, production preview and fourteen-gate mock publication path are verified. The editor source is wired to the real server, but the browser artifact could not be rebuilt without unavailable locked npm dependencies. Studio chrome therefore fails closed until the host rebuilds and verifies it. No production publication, push, visual acceptance or complete Studio UI acceptance is claimed.
+
+Resumen: integración HTTP comprobada; interfaz pendiente de reconstrucción y navegador. Sin push ni publicación real.

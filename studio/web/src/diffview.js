@@ -1,7 +1,7 @@
 import { h } from './ui.js'
 const LABEL = { added: 'nuevo', removed: 'quitado', changed: 'cambiado' }
 export function diffView (diff, { showSame = false } = {}) {
-  const blocks = diff.blocks || []
+  const blocks = Array.isArray(diff) ? [{ status: diff.some(x => x.startsWith('+ ') || x.startsWith('- ')) ? 'changed' : 'same', ops: diff.filter(x => !x.startsWith('? ')).map(x => ({ op: x.startsWith('+ ') ? 'add' : x.startsWith('- ') ? 'del' : 'eq', text: x.slice(2) + ' ' })) }] : diff.blocks || []
   const changed = blocks.filter(b => b.status !== 'same')
   const root = h('div', { class: 'diff' })
   if (diff.title && diff.title.some(o => o.op !== 'eq')) root.append(h('p', { class: 'diff-block title' }, opsEl(diff.title)))

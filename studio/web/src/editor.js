@@ -33,7 +33,7 @@ export function createEditor (ctx) {
       clear(dom)
       const id = n.attrs.fig
       const f = ctx.figures()[id] || {}
-      dom.append(f.file ? h('img', { src: '/assets/' + f.file, alt: (f.alt || {})[ctx.loc] || '', width: f.width, height: f.height }) : h('div', { class: 'fig-missing' }, t('fig.missing')))
+      dom.append(f.file ? h('img', { src: ctx.figureUrl(id), alt: (f.alt || {})[ctx.loc] || '', width: f.width, height: f.height }) : h('div', { class: 'fig-missing' }, t('fig.missing')))
       const field = (label, value, patch, hint, multiline) => {
         const el = multiline ? h('textarea', { rows: 2 }) : h('input', { type: 'text' })
         el.value = value || ''

@@ -11,9 +11,6 @@ const crumbs = (slug, title, here) => h('div', { class: 'crumbs' }, h('a', { hre
 const other = () => session.me.other
 
 /* ---------------- translate (S3) ---------------- */
-function hash53 (s) { let h1 = 0xdeadbeef; let h2 = 0x41c6ce57; for (let i = 0; i < s.length; i++) { const ch = s.charCodeAt(i); h1 = Math.imul(h1 ^ ch, 2654435761); h2 = Math.imul(h2 ^ ch, 1597334677) } h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909); h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909); return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(16).padStart(14, '0') }
-const srcHash = b => hash53(JSON.stringify([b.type, b.content, b.items, b.attrs && { ...b.attrs, src_hash: undefined, origin: undefined }]))
-
 function chip (n, notesOrder) {
   if (n.t === 'fn') return h('span', { class: 'chip fn', contenteditable: 'false', 'data-node': JSON.stringify(n), title: t('tr.chip') }, '¹ ' + (notesOrder.indexOf(n.id) + 1))
   return h('span', { class: 'chip cite', contenteditable: 'false', 'data-node': JSON.stringify(n), title: t('tr.chip') }, '[' + n.key.replace(/^src-/, '') + (n.locator ? ', ' + n.locator : '') + ']')
@@ -21,11 +18,11 @@ function chip (n, notesOrder) {
 function inlineToDom (nodes, order, { tokens = false } = {}) {
   const frag = document.createDocumentFragment()
   for (const n of nodes || []) {
-    if (n.t === 'text' || n.t === 'link' || n.t === 'lang') {
-      const text = n.t === 'text' ? n.v : plainText(n.c)
-      if (tokens) text.split(/(https?:\/\/\S+|\d[\d.,%]*)/).forEach((p, i) => frag.append(i % 2 ? h('span', { class: 'tok' }, p) : document.createTextNode(p)))
+    if (n.t === 'text') {
+      const text = n.v
+      if (tokens) text.split(/(https?:\/\/\S+|\d[\d.,%]*)/).forEach((p, i) => frag.append(i % 2 ? h('span', { class: 'tok', contenteditable: 'false' }, p) : document.createTextNode(p)))
       else frag.append(document.createTextNode(text))
-    } else frag.append(chip(n, order))
+    } else if (n.t === 'link' || n.t === 'lang') frag.append(h('span', { class: 'chip', contenteditable: 'false', 'data-node': JSON.stringify(n) }, plainText(n.c))); else frag.append(chip(n, order))
   }
   return frag
 }
@@ -41,11 +38,17 @@ export async function translateScreen (root, slug, fromLoc, targetArg) {
   const srcLoc = meta.source_locale
   const target = targetArg && targetArg !== srcLoc ? targetArg : LOCS.find(l => l !== srcLoc)
   const [src, tgtRes, figRes] = await Promise.all([get(`/api/pieces/${slug}/doc/${srcLoc}`), get(`/api/pieces/${slug}/doc/${target}`), get(`/api/pieces/${slug}/figures`)])
-  let rev = tgtRes.rev; const tdoc = tgtRes.doc; const figures = figRes.figures || {}
-  let readOnly = false; let dirty = false; let timer = null; let figT = null; let dead = false
+  let rev = tgtRes.rev; const tdoc = tgtRes.doc; const figures = figRes
+  let readOnly = !['draft', 'changes_requested', 'amending'].includes(meta.state); let dirty = false; let timer = null; let figT = null; let dead = false
   try { await post(`/api/pieces/${slug}/lock/${target}`) } catch (e) { if (e instanceof ApiError && e.status === 409) readOnly = true }
   const hb = setInterval(() => { if (!readOnly) post(`/api/pieces/${slug}/lock/${target}`).catch(() => {}) }, 60000)
   const byId = new Map(tdoc.blocks.map(b => [b.id, b]))
+  if (!tdoc.blocks.length) {
+    const fixed = nodes => nodes.map(n => n.t === 'text' ? { ...n, v: (n.v.match(/\d+(?:[.,]\d+)*/g) || []).join(' ') } : structuredClone(n))
+    tdoc.blocks = src.doc.blocks.map(b => { const next = structuredClone(b); if (next.content) next.content = fixed(next.content); if (next.items) next.items = next.items.map(fixed); if (next.attrs?.limits) next.attrs.limits = fixed(next.attrs.limits); return next })
+    for (const b of tdoc.blocks) byId.set(b.id, b)
+    tdoc.footnotes = Object.fromEntries(Object.entries(src.doc.footnotes).map(([id, nodes]) => [id, fixed(nodes)]))
+  }
   const order = d => { const ids = []; const w = n => { if (Array.isArray(n)) n.forEach(w); else if (n && typeof n === 'object') { if (n.t === 'fn') ids.push(n.id); Object.values(n).forEach(w) } }; w(d.blocks); return ids }
   const ord = order(src.doc)
   const langState = meta.locales[target] || { state: 'empty' }
@@ -58,26 +61,26 @@ export async function translateScreen (root, slug, fromLoc, targetArg) {
     const blocks = src.doc.blocks.map(b => byId.get(b.id)).filter(Boolean)
     const extra = tdoc.blocks.filter(b => !src.doc.blocks.some(s => s.id === b.id))
     const next = { ...tdoc, blocks: [...blocks, ...extra] }
-    try { const r = await put(`/api/pieces/${slug}/doc/${target}`, { base_rev: rev, doc: next, cursor: null }); rev = r.rev; setState(dirty ? 'dirty' : 'saved') } catch (e) { dirty = true; if (e instanceof ApiError && e.status === 409) { toast(t('conf.title'), 'bad'); rev = e.data.rev } else setState('offline'); timer = setTimeout(save, 6000) }
+    try { const r = await put(`/api/pieces/${slug}/doc/${target}`, { base_rev: rev, doc: next, cursor: {} }); rev = r.rev; setState(dirty ? 'dirty' : 'saved'); try { if (!dirty) localStorage.removeItem(`studio:buf:${slug}:${target}`) } catch {} } catch (e) { dirty = true; if (e instanceof ApiError && e.status === 409) { modal({ title: t('conf.title'), body: t('conf.body', { who: e.data.by, at: '' }), actions: [{ label: t('conf.server'), onclick: () => location.reload() }, { label: t('conf.mine'), kind: 'primary', onclick: close => { rev = e.data.rev; close(); save() } }] }); return } else setState('offline'); timer = setTimeout(save, 6000) }
   }
-  const changed = () => { if (readOnly) return; dirty = true; setState('dirty'); clearTimeout(timer); timer = setTimeout(save, 1200) }
+  const changed = () => { if (readOnly) return; try { localStorage.setItem(`studio:buf:${slug}:${target}`, JSON.stringify({ doc: tdoc, base_rev: rev, at: Date.now() })) } catch {} dirty = true; setState('dirty'); clearTimeout(timer); timer = setTimeout(save, 1200) }
 
   const origin = langState.origin
-  const badgeFor = b => (b && b.attrs && b.attrs.origin === 'human') ? ['human', t('tr.human')] : origin === 'agent_draft' ? ['agent', t('tr.agent')] : origin === 'agent_draft_human_edited' ? ['edited', t('tr.agent.edited')] : ['human', t('tr.human')]
+  const badgeFor = b => (tgtRes.block_provenance[b?.id] || origin) === 'agent_draft' ? ['agent', t('tr.agent')] : (tgtRes.block_provenance[b?.id] || origin) === 'agent_draft_human_edited' ? ['edited', t('tr.agent.edited')] : ['human', t('tr.human')]
   const rows = h('div', { class: 'tr-rows' })
+  for (const field of ['title', 'dek']) { const input = h('textarea', { rows: 2, readonly: readOnly, 'aria-label': t('ed.' + field) }); input.value = tdoc[field]; input.addEventListener('input', () => { tdoc[field] = input.value; changed() }); rows.append(h('div', { class: 'tr-cols tr-row' }, h('div', { class: 'tr-src', lang: srcLoc }, src.doc[field]), h('div', { class: 'tr-tgt', lang: target }, input))) }
   const head = h('div', { class: 'tr-cols tr-colhead' }, h('div', null, h('strong', null, t('tr.source')), ' · ', LOCALE_NAME[srcLoc]), h('div', null, h('strong', null, t('tr.target')), ' · ', LOCALE_NAME[target]))
   let n = 0
   for (const sb of src.doc.blocks) {
     n++
     const tb = byId.get(sb.id)
-    const cur = srcHash(sb)
-    const stale = tb && tb.attrs && tb.attrs.src_hash && tb.attrs.src_hash !== cur
+    const stale = tgtRes.source_changed.includes(sb.id)
     const left = h('div', { class: 'tr-src', lang: srcLoc, 'data-type': sb.type })
     const right = h('div', { class: 'tr-tgt' + (stale ? ' stale' : ''), lang: target, 'data-type': sb.type })
     if (sb.type === 'figure') {
       const f = figures[sb.attrs.fig] || {}
-      left.append(h('div', { class: 'tr-fig' }, f.file ? h('img', { src: '/assets/' + f.file, alt: '' }) : null, h('p', { class: 'muted small' }, (f.alt || {})[srcLoc] || '', ' · ', (f.caption || {})[srcLoc] || '')))
-      const fld = (k, label) => { const el = h('textarea', { rows: 2, 'aria-label': label, placeholder: label, readonly: readOnly }); el.value = ((f[k] || {})[target]) || ''; el.addEventListener('input', () => { figures[sb.attrs.fig] = { ...f, [k]: { ...(f[k] || {}), [target]: el.value } }; clearTimeout(figT); figT = setTimeout(() => put(`/api/pieces/${slug}/figures`, { figures }).catch(() => {}), 800) }); return el }
+      left.append(h('div', { class: 'tr-fig' }, f.file ? h('img', { src: `/figures/${slug}/${sb.attrs.fig}/image.webp`, alt: '' }) : null, h('p', { class: 'muted small' }, (f.alt || {})[srcLoc] || '', ' · ', (f.caption || {})[srcLoc] || '')))
+      const fld = (k, label) => { const el = h('textarea', { rows: 2, 'aria-label': label, placeholder: label, readonly: readOnly }); el.value = ((f[k] || {})[target]) || ''; el.addEventListener('input', () => { figures[sb.attrs.fig] = { ...f, [k]: { ...(f[k] || {}), [target]: el.value } }; clearTimeout(figT); figT = setTimeout(() => put(`/api/pieces/${slug}/figures`, figures).catch(() => {}), 800) }); return el }
       right.append(fld('alt', t('fig.alt', { lang: target })), fld('caption', t('fig.cap', { lang: target })))
     } else if (sb.type === 'hr') { left.append(h('hr')); right.append(h('hr')) } else {
       const isList = sb.type === 'ul' || sb.type === 'ol'
@@ -86,14 +89,14 @@ export async function translateScreen (root, slug, fromLoc, targetArg) {
       left.append(inlineToDom(srcInline, ord, { tokens: true }))
       const ed = h('div', { class: 'tr-edit', contenteditable: readOnly ? 'false' : 'true', spellcheck: 'true', 'data-ph': t('tr.paragraph', { n }), 'aria-label': t('tr.paragraph', { n }) })
       const tInline = tb ? (isList ? (tb.items || []).flat() : isEv ? (tb.attrs && tb.attrs.limits) : tb.content) : []
-      ed.append(inlineToDom(tInline, ord))
+      if (isList) { const items = tb?.items || sb.items.map(() => []); for (const item of items) ed.append(h('div', { class: 'tr-list-item' }, inlineToDom(item, ord, { tokens: true }))) } else ed.append(inlineToDom(tInline, ord, { tokens: true }))
       ed.addEventListener('input', () => {
         const inl = domToInline(ed)
         let blk = byId.get(sb.id)
-        if (!blk) { blk = { id: sb.id, type: sb.type, content: [], attrs: sb.type === 'evidence' ? { ...sb.attrs } : {} }; if (isList) blk.items = []; byId.set(sb.id, blk); tdoc.blocks.push(blk) }
-        if (isList) blk.items = [inl]; else if (isEv) blk.attrs = { ...blk.attrs, class: sb.attrs.class, confidence: blk.attrs.confidence || sb.attrs.confidence, limits: inl }; else blk.content = inl
-        blk.attrs = { ...(blk.attrs || {}), src_hash: cur, origin: 'human' }
-        right.classList.remove('stale'); const badge = right.querySelector('.tr-badge'); if (badge) { badge.className = 'tr-badge human'; badge.textContent = t('tr.human') }
+        if (!blk) { blk = { id: sb.id, type: sb.type, ...(isList ? { items: [] } : { content: [] }), attrs: sb.type === 'evidence' ? { ...sb.attrs } : {} }; byId.set(sb.id, blk); tdoc.blocks.push(blk) }
+        if (isList) blk.items = [...ed.children].map(domToInline); else if (isEv) blk.attrs = { ...blk.attrs, class: sb.attrs.class, confidence: blk.attrs.confidence || sb.attrs.confidence, limits: inl }; else blk.content = inl
+        // Source hashes and authorship come from the server, outside the document.
+        right.classList.remove('stale'); const badge = right.querySelector('.tr-badge'); if (badge) { const assisted = (tgtRes.block_provenance[sb.id] || origin || '').startsWith('agent_'); badge.className = 'tr-badge ' + (assisted ? 'edited' : 'human'); badge.textContent = t(assisted ? 'tr.agent.edited' : 'tr.human') }
         changed()
       })
       right.append(ed)
@@ -104,7 +107,10 @@ export async function translateScreen (root, slug, fromLoc, targetArg) {
     rows.append(h('div', { class: 'tr-cols tr-row' }, left, right))
   }
 
-  async function mark (st, reviewed) { const r = await post(`/api/pieces/${slug}/locale/${target}/state`, { state: st, reviewed }); toast('✓'); return r }
+  for (const [id, body] of Object.entries(src.doc.footnotes)) {
+    const input = h('div', { class: 'tr-edit', contenteditable: readOnly ? 'false' : 'true', 'aria-label': t('fn.heading') }); input.append(inlineToDom(tdoc.footnotes[id] || [], ord, { tokens: true })); input.addEventListener('input', () => { tdoc.footnotes[id] = domToInline(input); changed() }); rows.append(h('div', { class: 'tr-cols tr-row' }, h('div', { class: 'tr-src' }, inlineToDom(body, ord, { tokens: true })), h('div', { class: 'tr-tgt' }, input)))
+  }
+  async function mark (st, reviewed) { await save(); if (dirty) throw new Error('Save pending'); const r = await post(`/api/pieces/${slug}/locale/${target}/state`, { state: st, reviewed, confirmation: target === 'zh-Hans' && reviewed ? 'Leí y entiendo el texto chino' : '' }); toast('✓'); return r }
   const reviewBtn = h('button', { class: 'btn primary small', type: 'button', onclick: () => {
     const doIt = async close => { await save(); await mark('ready', true); close && close(); route2() }
     if (target === 'zh-Hans') { const cb = h('input', { type: 'checkbox' }); modal({ title: t('tr.review'), body: [h('p', null, t('tr.zh.ask')), h('label', { class: 'check' }, cb, ' ', t('tr.zh.confirm'))], actions: [{ label: t('tr.cancel') }, { label: t('tr.confirm'), kind: 'primary', onclick: close => { if (cb.checked) doIt(close) } }] }) } else doIt()
@@ -117,13 +123,14 @@ export async function translateScreen (root, slug, fromLoc, targetArg) {
     h('div', { class: 'flow-head' }, h('h1', null, t('tr.title')), tabs, state),
     h('div', { class: 'tr-actions' }, status, h('div', { class: 'btn-row' }, reviewBtn, h('button', { class: 'btn small', type: 'button', onclick: async () => { await mark('later', false); route2() } }, '⏸ ', t('tr.later')), langState.state === 'ready' ? h('button', { class: 'btn small ghost', type: 'button', onclick: async () => { await mark('drafting', false); route2() } }, t('tr.draft')) : null, assist, h('a', { class: 'btn small ghost', href: `#/p/${slug}/${target}` }, t('tr.edit')))),
     head, rows), { active: 'home', wide: true }))
-  return () => { dead = true; clearTimeout(timer); clearInterval(hb); if (dirty && !readOnly) { const blocks = src.doc.blocks.map(b => byId.get(b.id)).filter(Boolean); fetch(`/api/pieces/${slug}/doc/${target}`, { method: 'PUT', keepalive: true, credentials: 'same-origin', headers: { 'content-type': 'application/json', 'x-csrf-token': session.me.csrf }, body: JSON.stringify({ base_rev: rev, doc: { ...tdoc, blocks }, cursor: null }) }).catch(() => {}) } if (!readOnly) del(`/api/pieces/${slug}/lock/${target}`).catch(() => {}) }
+  return () => { dead = true; clearTimeout(timer); clearInterval(hb); if (dirty && !readOnly) { const blocks = src.doc.blocks.map(b => byId.get(b.id)).filter(Boolean); fetch(`/api/pieces/${slug}/doc/${target}`, { method: 'PUT', keepalive: true, credentials: 'same-origin', headers: { 'content-type': 'application/json', 'x-csrf-token': session.me.csrf }, body: JSON.stringify({ base_rev: rev, doc: { ...tdoc, blocks }, cursor: {} }) }).catch(() => {}) } if (!readOnly) del(`/api/pieces/${slug}/lock/${target}`).catch(() => {}) }
 }
 
 /* ---------------- preview (S4) ---------------- */
 function previewFrame ({ slug, loc, size, theme }) {
   const wrap = h('div', { class: 'pv-stage', 'data-size': size })
   const frame = h('iframe', { class: 'pv-frame', title: t('pv.title'), src: `/preview/${slug}/${loc}/?w=${size}&theme=${theme}`, sandbox: 'allow-same-origin allow-scripts' })
+  frame.addEventListener('load', () => { try { frame.contentDocument.documentElement.dataset.theme = theme } catch {} })
   const fit = () => {
     const avail = wrap.clientWidth || 800; const w = Number(size)
     const k = Math.min(1, (avail - 2) / w)
@@ -147,7 +154,7 @@ export async function previewScreen (root, slug, loc0) {
   const meta = await get(`/api/pieces/${slug}`)
   const st = { loc: loc0, size: innerWidth < 700 ? '390' : '1440', theme: matchMedia('(prefers-color-scheme:dark)').matches ? 'dark' : 'light' }
   const stage = h('div', { class: 'pv-main' }); const side = h('div', { class: 'pv-side' }); let frame
-  const have = Object.fromEntries(LOCS.map(l => [l, (meta.locales[l] || {}).words > 0]))
+  const have = Object.fromEntries(LOCS.map(l => [l, (meta.locales[l] || {}).words > 0 || (meta.locales[l] || {}).state === 'later']))
   async function draw () {
     frame && frame.destroy(); clear(stage)
     stage.append(h('div', { class: 'pv-banner' }, '✓ ', t('pv.banner')), controls(st, p => { Object.assign(st, p); draw() }, have))
@@ -187,13 +194,13 @@ export async function reviewScreen (root, slug) {
   const st = { loc: meta.source_locale, size: innerWidth < 700 ? '390' : '1440', theme: 'light' }
   const stage = h('div', { class: 'rv-read' }); const diffBox = h('div', { class: 'rv-diff' }); const cmtBox = h('div', { class: 'rv-cmt' })
   let frame
-  const have = Object.fromEntries(LOCS.map(l => [l, (meta.locales[l] || {}).words > 0]))
+  const have = Object.fromEntries(LOCS.map(l => [l, (meta.locales[l] || {}).words > 0 || (meta.locales[l] || {}).state === 'later']))
   function drawRead () { frame && frame.destroy(); clear(stage); stage.append(h('div', { class: 'pv-banner' }, '✓ ', t('pv.banner')), controls(st, p => { Object.assign(st, p); drawRead(); drawDiff() }, have)); frame = previewFrame({ slug, ...st }); stage.append(frame.el) }
   async function drawDiff () {
     clear(diffBox)
     try { const d = await get(`/api/pieces/${slug}/diff?from=published&to=current&loc=${st.loc}`); diffBox.append(diffView(d)) } catch { diffBox.append(h('p', { class: 'muted' }, t('rev.none'))) }
   }
-  async function drawCmt () { const { commentsPanel } = await import('./drawers.js'); clear(cmtBox); cmtBox.append(await commentsPanel(slug, st.loc, { block: () => null, goto: () => {} })) }
+  async function drawCmt () { const { commentsPanel } = await import('./drawers.js'); clear(cmtBox); cmtBox.append(await commentsPanel(slug, st.loc, { block: () => { try { return stage.querySelector('iframe')?.contentDocument.querySelector('.essay-body [id^="b-"]')?.id || null } catch { return null } }, goto: id => { try { stage.querySelector('iframe')?.contentDocument.getElementById(id)?.scrollIntoView() } catch {} } })) }
   const tabs = ['read', 'diff', 'cmt']; let tab = 'read'
   const panes = { read: stage, diff: diffBox, cmt: cmtBox }
   const tabBar = h('div', { class: 'seg rv-tabs', role: 'tablist' })
@@ -215,8 +222,8 @@ export async function progressScreen (root, slug) {
     if (!alive) return
     let p; try { p = await get(`/api/pieces/${slug}/publication`) } catch { tm = setTimeout(poll, 3000); return }
     clear(box)
-    box.append(h('ol', { class: 'steps' }, (p.steps || []).map(s => h('li', { class: s.state }, h('span', { class: 'dot', 'aria-hidden': 'true' }, s.state === 'done' ? '✓' : s.state === 'failed' ? '!' : ''), h('span', null, s.plain_es)))))
-    if (p.state === 'published') box.append(h('div', { class: 'result ok' }, h('h2', null, t('prog.done')), h('p', null, t('prog.live')), h('ul', null, (p.live_urls || []).map(u => h('li', null, h('a', { href: u.url, target: '_blank', rel: 'noopener' }, u.url)))), h('a', { class: 'btn', href: '#/' }, t('prog.home'))))
+    box.append(h('ol', { class: 'steps' }, (p.timeline || []).map(s => h('li', { class: s.state === 'failed' ? 'failed' : 'done' }, h('span', { class: 'dot', 'aria-hidden': 'true' }, s.state === 'failed' ? '!' : '✓'), h('span', null, s.plain_es)))))
+    if (p.state === 'published') box.append(h('div', { class: 'result ok' }, h('h2', null, t('prog.done')), h('p', null, t('prog.live')), h('ul', null, (p.urls || []).map(u => h('li', null, h('a', { href: u.url, target: '_blank', rel: 'noopener' }, u.url)))), h('a', { class: 'btn', href: '#/' }, t('prog.home'))))
     else if (p.state === 'failed') box.append(h('div', { class: 'result bad' }, h('h2', null, t('prog.failed')), h('p', null, p.error_plain), h('a', { class: 'btn', href: `#/p/${slug}/${meta.source_locale}` }, t('attn.open'))))
     else tm = setTimeout(poll, 1500)
   }
