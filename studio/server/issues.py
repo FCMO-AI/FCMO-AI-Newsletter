@@ -2,6 +2,7 @@
 import re
 from .storage import encoded, utc
 from .validation import LOCALES, closed, text
+from tools.paper.i18n import is_complete
 
 SLOTS = ('lead', 'essays', 'briefs', 'notes')
 
@@ -81,7 +82,7 @@ def checks(store, preview, value):
         if item['ref'].startswith('FCMO-P-'):
             ref = published.get(item['ref'])
             ok = ref and all(ref['locales'][loc] == 'ready' for loc in LOCALES if states[loc]['state'] == 'ready')
-        else: ok = any(s['id'] == item['ref'] and s.get('status') == 'live' for s in stories)
+        else: ok = any(s['id'] == item['ref'] and s.get('status') == 'live' and all(is_complete(s, loc) for loc in LOCALES if states[loc]['state'] == 'ready') for s in stories)
         add('ref-' + item['ref'], ok, 'Elige una publicación publicada y disponible en los idiomas de la edición.', 'Choose a published item available in the edition languages.')
     ok = True
     try: preview.privacy(value)

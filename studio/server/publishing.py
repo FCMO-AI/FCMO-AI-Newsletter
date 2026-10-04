@@ -212,9 +212,13 @@ class Publisher:
                     self.github.close_pr(user, old['pr_number'])
                     observed = self.github.pr(user, old['pr_number'])
                     if not observed or observed.get('state') != 'closed': raise UnknownEffect('No se confirmó el cierre de la revisión anterior.')
-            ident = __import__('secrets').token_hex(12)
-            self.store.db.execute('INSERT INTO reviews VALUES(?,?,?,?,?,?,?,?)', (ident, value, piece['head_rev'], user, reviewer, 'requested', utc(), ''))
-            self.store.db.execute('UPDATE pieces SET state=? WHERE slug=?', ('in_review', value)); self.store.audit(user, 'request_review', value); self.store.db.commit()
+            with self.store.mutex:
+                current = self.store.piece(value)
+                if current['head_rev'] != initial_rev or current['state'] != piece['state']:
+                    raise Refused('El artículo cambió durante las comprobaciones; vuelve a pedir revisión.')
+                ident = __import__('secrets').token_hex(12)
+                self.store.db.execute('INSERT INTO reviews VALUES(?,?,?,?,?,?,?,?)', (ident, value, piece['head_rev'], user, reviewer, 'requested', utc(), ''))
+                self.store.db.execute('UPDATE pieces SET state=? WHERE slug=?', ('in_review', value)); self.store.audit(user, 'request_review', value); self.store.db.commit()
             return {'state': 'in_review', 'reviewer': reviewer}
     def approve(self, value, user, note=''):
         with self.mutex, self.store.mutex:
