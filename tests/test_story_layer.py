@@ -49,6 +49,18 @@ class RepositoryStoryLayerTests(unittest.TestCase):
         validator = validator_for(CONTRACTS / "stories.v2.schema.json")
         self.assertEqual(validator.errors(self.document), [])
 
+    def test_localized_relationship_summaries_reach_the_story_layer(self):
+        target = "FCMO-BBBBBBBBBBBB"
+        story = {
+            "evidence": {"claims": [], "limitations": [], "gaps": [], "contradictory": []},
+            "related": [{"id": target, "type": "related", "summary": "English relationship summary."}],
+        }
+        overlay = {"relationships": [{"target_id": target, "type": "related", "summary": "Resumen de la relación."}]}
+        fields = story_layer.locale_fields(overlay, story, derived_headline=False, derived_dek=False)
+        self.assertEqual(fields["related"], [{
+            "id": target, "type": "related", "summary": "Resumen de la relación."
+        }])
+
     def test_cli_build_writes_a_valid_document(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             out = Path(tmp) / "stories.json"
