@@ -57,7 +57,7 @@ git clone --bare --no-hardlinks . ensayo.git
 python3 ops/publish.py --dry-run --local-bare ensayo.git --ref HEAD --receipt ensayo-receipt.json
 ```
 
-El script resuelve el commit una sola vez, clona esos bytes a un temporal y ejecuta las seis comprobaciones históricas, construye el periódico, ejecuta todos los gates, genera tarjetas OG, reconstruye el candidato final, repite los gates, comprueba el navegador y vincula la identidad. No mueve referencias del clon bare, no hace push ni usa credenciales. Un recibo PASS identifica ese commit, y explícitamente dice que no hubo despliegue. Evitar reutilizar un recibo antiguo tras un fallo.
+El script resuelve el commit una sola vez, clona esos bytes a un temporal y ejecuta las seis comprobaciones históricas, construye el periódico, ejecuta todos los gates, genera tarjetas OG, reconstruye el candidato final, repite los gates, comprueba el navegador y vincula la identidad. No mueve referencias del clon bare ni hace push. Los pasos locales descartan las variables de Ghost para no consultar contenido remoto ni usar esa credencial. Un recibo PASS identifica ese commit, y explícitamente dice que no hubo despliegue. Evitar reutilizar un recibo antiguo tras un fallo.
 
 Para repetir el control negativo y el aislamiento del ledger:
 

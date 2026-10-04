@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 from pathlib import Path
 import shutil
 import subprocess
@@ -27,7 +28,11 @@ def local_bare(repository: str | Path) -> Path:
 
 
 def step(root: Path, *args: str) -> None:
-    result = subprocess.run([sys.executable, *map(str, args)], cwd=root, check=False)
+    env = os.environ.copy()
+    # Local evidence must not depend on live Ghost content or a publisher key.
+    for key in ('GHOST_CONTENT_URL', 'GHOST_CONTENT_API_KEY', 'GHOST_PORTAL_URL'):
+        env.pop(key, None)
+    result = subprocess.run([sys.executable, *map(str, args)], cwd=root, env=env, check=False)
     if result.returncode:
         raise RuntimeError(f'publication blocked: {args[0]} (exit {result.returncode})')
 
