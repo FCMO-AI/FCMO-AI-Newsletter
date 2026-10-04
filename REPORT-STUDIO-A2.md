@@ -1,58 +1,49 @@
-# STUDIO-A2 — missing binding specification
+# Studio A2 — implementation and verification
 
-Date: 2026-10-04 UTC  
-Branch: `c5/studio-a2`  
-Starting commit: `a6275de`
+2026-10-04 UTC · branch `c5/studio-a2` · base `f0223ab` (`a6275de` product base).
 
-## Outcome
+The missing-specification report is superseded. The binding specification is
+present locally and was read in full; it is intentionally not committed.
 
-Implementation is blocked before the red-test step. The required binding document
-`/srv/fcmo/agents/work/newsletter/c5/STUDIO-SPEC.md` does not exist. Consequently,
-the file ownership list in §13, principles in §2, acceptance commands, and mock
-publish contract cannot be established. No product code, tests, host operations,
-or publication state were changed. This report is the only change.
+Implemented within A2 ownership: stdlib server, per-person scrypt auth, sessions,
+CSRF/Origin checks, private durable autosave journal and atomic file mirrors,
+locale locks, checkpoints, restoration, comments, localization review states,
+figure/container validation, private preview through the production builder,
+two-person review, candidate isolation, GitHub/Pages state machine, curated
+issues, corrections and withdrawals, optional jobs, private backups and restore.
+Host operations are staged under `studio/host-ops` for architect installation.
 
-## Evidence and completed preparation
+Red-first evidence: `e525dc5` commits the initial durability/closed-document
+regressions before implementation. Running that test failed with missing Studio
+package. Subsequent mechanism tests challenged HTTP authentication, lost
+acknowledgements, tree isolation and restoration against real local git and
+loopback HTTP mocks. No external network, push, live publication, host service
+installation or changes to other lanes were performed.
 
-- Read the FCMO Agent Hub runtime and Software Engineering, High Consequence,
-  and Worthy Work disciplines.
-- Read the repository parent doctrine, product goal, communication standard,
-  README, HANDOFF, publication policy, and AGENTS contract.
-- Read all of campaign `STATE-AND-PLAN.md` and campaign `MISSION.md`; consulted
-  the previous PLAN, OPERADOR, and Newsletter vault notes for existing platform,
-  publication, and brand decisions.
-- Confirmed the worktree starts clean on `c5/studio-a2`.
-- Repeated direct reads/stat of the required specification failed with
-  `No such file or directory`.
-- Searched file paths under the campaign, Newsletter work directory, and
-  Newsletter vault notes; no replacement `STUDIO-SPEC.md` was found.
-- Existing offline Ghost mock: `tests/harness/mock_ghost.py`. Existing Ghost
-  staging script: `ops/staging/ghost-staging.sh`. Neither establishes A2's
-  missing contract and neither was changed or started.
-- Requested the current specification path or restoration of the specified
-  file. No response was available at the time this report was written.
+Verification is in progress; final commands/counts will replace this paragraph.
+The initial full suite exposed a forbidden machine path in the superseded report
+and a recursive temporary-directory placement in an existing refresh oracle.
+Neither publication gates nor unrelated tests are weakened to address them.
 
-No tests were executed and no red/green evidence is claimed. Inventing a failing
-test without the assigned behavior would not satisfy the red-first requirement.
-There was no network access, push, merge, live publish, credential access, or
-mutation outside this worktree.
+Material integration boundary: A1's editorial renderer/contracts and B's essay
+page/template/bundle are absent from this lane base. Preview fails closed instead
+of substituting HTML. The byte-identity test explicitly skips until those files
+are integrated. This lane cannot claim M1, rendered UI acceptance, or production
+success. Live publishing remains disabled by default and depends on L11 and
+operator Q1/Q5; Q2 remains unadopted, so English originals are the default.
 
-## Continuation
+The mock replaces only candidate gate execution and remote transport. It proves
+a real locally assembled git tree includes only the selected editorial scope,
+uses the author's credential for the PR and the other's for approval, refuses
+red checks and missing/refused protection, and reconciles acknowledged-but-lost
+push/PR/review/merge responses without repeating them. It does not prove live
+GitHub permissions, the integrated gate command, browser layout, or human use.
 
-1. Make the binding specification available at its designated path (or supply
-   its authoritative replacement).
-2. Read it completely; derive A2's exact file ownership and acceptance commands.
-3. Write and execute the relevant failing test, then commit that red test with
-   author `Codex <noreply@openai.com>` before implementing the assigned behavior.
-4. Implement and verify only A2's assigned files. Place the host operations
-   artifacts under `studio/host-ops/**` in this worktree and adjust the backup
-   drill acceptance path as instructed.
-5. Exercise publication against the mock. Live publication remains outside
-   this lane, pending L11 and operator Q1/Q5. Commit locally without pushing;
-   update this report with reproducible results for Claude's independent rerun.
+Continuation: integrate A1/B and L11; rerun focused and full tests, require the
+preview-identity test to execute without a skip, inspect final browser/UI frames,
+install the staged ops and complete access/protection/operator decisions. Do not
+enable publication or represent the newspaper as live on the basis of mocks.
 
-## Resumen
-
-A2 queda bloqueado por la ausencia de `STUDIO-SPEC.md`. La orientación y la
-búsqueda local están completas; no se inventó alcance, no se modificó el
-producto y no se publicó nada. Para continuar hace falta el documento vinculante.
+Resumen: A2 implementa y prueba el servidor privado y el flujo contra el mock.
+Falta la verificación integrada del renderer/UI y la habilitación autorizada de
+producción; no se hizo push ni publicación real.

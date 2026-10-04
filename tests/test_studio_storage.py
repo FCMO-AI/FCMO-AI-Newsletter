@@ -55,7 +55,14 @@ class Storage(unittest.TestCase):
         self.store.save(self.slug, 'es-419', 'javier', 1, es, {})
         self.store.locale_state(self.slug, 'es-419', 'javier', 'ready', True)
         changed = copy.deepcopy(DOC); changed['blocks'][0]['content'][0]['v'] = 'New 42'
-        self.store.save(self.slug, 'en', 'javier', 2, changed, {})
+        self.store.save(self.slug, 'en', 'javier', self.store.doc(self.slug, 'en')['rev'], changed, {})
         state = self.store.piece(self.slug)['locale_states']['es-419']
         self.assertEqual(state['state'], 'drafting')
         self.assertFalse(state['human_reviewed'])
+
+    def test_restart_recovers_damaged_mirror_from_durable_journal(self):
+        self.store.save(self.slug, 'en', 'javier', 0, DOC, {})
+        (self.store.directory(self.slug) / 'doc.en.json').write_bytes(b'broken')
+        self.store.close(); self.store = Store(Path(self.tmp.name))
+        import json
+        self.assertEqual(json.loads((self.store.directory(self.slug) / 'doc.en.json').read_text()), DOC)
