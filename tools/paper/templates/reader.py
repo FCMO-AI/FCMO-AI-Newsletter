@@ -11,6 +11,7 @@ from html import escape
 import re
 
 from ..i18n import label, plural, truncate
+from tools.publication_freshness import reader_status
 
 # Confidence levels ordered by how much the record supports the claim: tick count.
 CONFIDENCE_TICKS = {"confirmed": 5, "strongly_supported": 4, "supported": 3,
@@ -86,7 +87,7 @@ def evidence_glyph(story: dict, catalog: dict, *, size: str = "md") -> str:
 def status_chip(status: dict, catalog: dict) -> str:
     """The edition state as a designed element: a shape, a word, and the date of the last edition."""
     d = design(catalog)
-    state = str(status.get("edition_state") or "DELAYED")
+    state = str(reader_status(status).get("edition_state") or "DELAYED")
     text = d.get(f"state_{state}") or label(catalog, "edition_state", state) or state
     return f'<span class="status-chip" data-state="{e(state)}"><i aria-hidden="true"></i>{e(text)}</span>'
 
