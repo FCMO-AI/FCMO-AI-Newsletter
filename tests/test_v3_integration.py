@@ -136,6 +136,20 @@ class V3IntegrationTests(unittest.TestCase):
         self.assertIn('class="related-reading"', story)
         self.assertIn('class="story-taxonomy"', story)
 
+    def test_rendered_navigation_names_follow_the_page_language(self):
+        # Reader-facing expectations are independent of the catalog/template.
+        expected = {
+            "en": ("Publication sections", "You are here", "Footer navigation"),
+            "es-419": ("Secciones de la publicación", "Estás aquí", "Navegación del pie de página"),
+            "zh-Hans": ("刊物栏目", "当前位置", "页脚导航"),
+        }
+        for locale, labels in expected.items():
+            for kind in ("front", "archive", "story", "status"):
+                page = self.page(kind, locale)
+                for css_class, label in zip(("zone-switch", "breadcrumbs", "footer-links"), labels):
+                    with self.subTest(locale=locale, kind=kind, landmark=css_class):
+                        self.assertIn(f'<nav class="{css_class}" aria-label="{label}">', page)
+
     def test_css_keeps_editorial_columns_and_balanced_responsive_cards(self):
         editorial_rules = self.css[self.css.rfind("/* n2 editorial structures"):]
         desktop_rules = editorial_rules[:editorial_rules.index("@media(max-width:850px)")]
