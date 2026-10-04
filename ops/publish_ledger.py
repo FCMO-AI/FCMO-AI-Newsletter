@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+from datetime import datetime, timezone
 import hashlib
 import json
 from pathlib import Path
@@ -22,15 +23,30 @@ def raw(repo: Path, *args: str, data: bytes | None = None) -> bytes:
                           check=True, capture_output=True).stdout
 
 
+
+def validate_ledger(data: bytes) -> list[dict]:
+    rows = [json.loads(line) for line in data.splitlines() if line.strip()]
+    if not rows or any(not isinstance(row, dict) for row in rows):
+        raise ValueError('ledger must contain object records')
+    ids = [row.get('run_id') for row in rows]
+    if any(not isinstance(value, str) or not value for value in ids) or len(ids) != len(set(ids)):
+        raise ValueError('ledger must contain unique nonempty run_id values')
+    times = []
+    for row in rows:
+        timestamp = datetime.fromisoformat(row['T0'].replace('Z', '+00:00'))
+        if timestamp.tzinfo is None:
+            raise ValueError('ledger activation timestamp must include timezone')
+        times.append(timestamp.astimezone(timezone.utc))
+    if times != sorted(times):
+        raise ValueError('ledger activations must be chronological in UTC')
+    return rows
+
 def migrate(source: Path, source_ref: str, destination: str | Path, *, apply: bool = False) -> dict:
     source = Path(source).resolve()
     destination = local_bare(destination)
     sha = git(source, 'rev-parse', '--verify', '--end-of-options', f'{source_ref}^{{commit}}')
     data = raw(source, 'show', f'{sha}:{LEDGER}')
-    rows = [json.loads(line) for line in data.splitlines() if line.strip()]
-    ids = [row['run_id'] for row in rows]
-    if not rows or len(ids) != len(set(ids)):
-        raise ValueError('ledger must contain records with unique run_id values')
+    rows = validate_ledger(data)
     existing = subprocess.run(['git', '-C', str(destination), 'rev-parse', '--verify', REF],
                               capture_output=True, text=True)
     if existing.returncode == 0:

@@ -28,7 +28,7 @@ class ProtectedPublishingTests(unittest.TestCase):
         git(self.source, 'config', 'user.email', 'noreply@openai.com')
         ledger = self.source / publish_ledger.LEDGER
         ledger.parent.mkdir(parents=True)
-        ledger.write_text('{"run_id":"existing"}\n')
+        ledger.write_text('{"run_id":"existing","T0":"2026-10-04T00:00:00Z"}\n')
         (self.source / 'edition.txt').write_text('known-good')
         git(self.source, 'add', '.')
         git(self.source, 'commit', '-qm', 'fixture')
@@ -90,14 +90,14 @@ class ProtectedPublishingTests(unittest.TestCase):
         result = publish_ledger.migrate(self.source, self.sha, self.bare, apply=True)
         tree = git(self.bare, 'ls-tree', '-r', '--name-only', 'refs/heads/ops-ledger').splitlines()
         self.assertEqual(tree, [publish_ledger.LEDGER])
-        self.assertEqual(git(self.bare, 'show', f'refs/heads/ops-ledger:{publish_ledger.LEDGER}'), '{"run_id":"existing"}')
+        self.assertEqual(git(self.bare, 'show', f'refs/heads/ops-ledger:{publish_ledger.LEDGER}'), '{"run_id":"existing","T0":"2026-10-04T00:00:00Z"}')
         self.assertEqual(git(self.bare, 'rev-parse', self.sha), self.sha)
         repeat = publish_ledger.migrate(self.source, self.sha, self.bare, apply=True)
         self.assertEqual(result['ledger_commit'], repeat['ledger_commit'])
 
     def test_migration_refuses_existing_divergent_ledger(self):
         publish_ledger.migrate(self.source, self.sha, self.bare, apply=True)
-        (self.source / publish_ledger.LEDGER).write_text('{"run_id":"changed"}\n')
+        (self.source / publish_ledger.LEDGER).write_text('{"run_id":"changed","T0":"2026-10-04T00:00:00Z"}\n')
         git(self.source, 'add', '.')
         git(self.source, 'commit', '-qm', 'changed')
         with self.assertRaisesRegex(ValueError, 'existing'):
