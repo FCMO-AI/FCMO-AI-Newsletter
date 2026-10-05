@@ -30,6 +30,7 @@ class Issues(unittest.TestCase):
                 git(remote, '-c', 'user.name=Codex', '-c', 'user.email=noreply@openai.com', 'commit', '--allow-empty', '-qm', 'Base')
                 git(store.data / 'clone', 'remote', 'set-url', 'origin', str(remote))
                 github = GitHub({'javier': 'fixture-javier', 'matias': 'fixture-matias'}, mock.url, live_base=mock.url + '/live/')
+                mock.refs['main'] = git(remote, 'rev-parse', 'HEAD')
                 workspace = MockWorkspace(store, github, ['python3', '-c', 'raise SystemExit(0)'])
                 publisher = Publisher(store, github, workspace, lambda value: [{'ok': True}])
                 publisher.request(value, 'matias'); publisher.approve(value, 'javier'); mock.live_id = value

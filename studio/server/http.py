@@ -21,20 +21,30 @@ PREVIEW_CSP = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 
 CSP = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' blob: data:; font-src 'self'; connect-src 'self'; frame-ancestors 'self'; form-action 'self'; base-uri 'none'"
 
 class Application:
-    def __init__(self, store, origin, session_key, repo, publisher=None, preview=None, live=False, tokens=None):
+    def __init__(self, store, origin, session_key, repo, publisher=None, preview=None, live=False, tokens=None, github=None):
         parsed = urlsplit(origin)
         if parsed.scheme not in ('http', 'https') or not parsed.netloc or parsed.path or parsed.query or parsed.fragment: raise ValueError('El origen de Studio no es válido.')
         self.store = store; self.origin = origin; self.repo = Path(repo); self.auth = Auth(store, session_key)
         self.preview = preview or Preview(store, repo); self.live_enabled = live
-        self.github = GitHub(tokens or {})
+        import os
+        self.dry_run = os.environ.get('STUDIO_DRY_RUN') == '1'
+        if github is None and tokens is None:
+            from .credentials import GitHubCLI
+            import os
+            github = GitHubCLI({u: os.environ.get('STUDIO_GH_CONFIG_' + u.upper()) for u in ('javier', 'matias')})
+        self.github = github or GitHub(tokens or {})
         self.publisher = publisher or Publisher(store, self.github, Workspace(store, self.github), lambda value: issues.checks(store, self.preview, value) if store.piece(value)['kind'] == 'issue' else checks(store, self.preview, value))
         self.dist = self.repo / 'studio/web/dist'; self.web_ready = bundle.ready(self.repo); self.preview_sessions = {}; self.stop = threading.Event()
     def tick(self):
         self.store.idle_checkpoints()
-        if self.live_enabled:
+        if self.live_enabled and not self.dry_run:
             with self.store.mutex:
                 queued = self.store.db.execute("SELECT slug FROM publications WHERE state NOT IN ('published','failed')").fetchall()
-            for row in queued: self.publisher.advance(row['slug'])
+            for row in queued:
+                pub = self.publisher.advance(row['slug'])
+                if pub['state'] == 'published' and hasattr(self.store, 'public_root'):
+                    from .snapshot import refresh
+                    refresh(self.store, self.github)
         cutoff = self.store.clock() - 86400
         for path in (self.store.data / 'uploads-tmp').iterdir():
             if path.is_file() and path.stat().st_mtime < cutoff: path.unlink()
@@ -78,7 +88,7 @@ class Application:
             if parts[3:] == ['checks'] and method == 'GET': return issues.checks(self.store, self.preview, value)
             return self.api(method, '/api/pieces/' + '/'.join(parts[2:]), query, body, session)
         if path == '/api/library/briefs' and method == 'GET':
-            library = self.store.data / 'clone/site/data/stories.v2.json'
+            library = getattr(self.store, 'public_root', self.store.data / 'clone') / 'site/data/stories.v2.json'
             if not library.exists(): return []
             data = json.loads(library.read_text())['stories']
             date = query.get('date', [''])[0]; term = query.get('q', [''])[0].casefold(); cls = query.get('class', [''])[0]
@@ -117,7 +127,7 @@ class Application:
         if len(rest) == 2 and rest[0] == 'review' and method == 'POST':
             if rest[1] == 'request': return self.publisher.request(value, user)
             if rest[1] == 'approve':
-                if not self.live_enabled: raise Refused('La publicación en vivo aún no está habilitada.')
+                if not (self.live_enabled or self.dry_run): raise Refused('La publicación en vivo aún no está habilitada.')
                 return self.publisher.approve(value, user, body.get('note', '')) and self.publisher.public_status(value)
             if rest[1] == 'changes': return self.publisher.changes(value, user, body.get('note', ''))
         if rest == ['publication'] and method == 'GET': return self.publisher.public_status(value)

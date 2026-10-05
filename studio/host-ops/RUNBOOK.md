@@ -9,12 +9,14 @@ this lane does not enable a host service or a public publication.
    file (root-owned, Studio group-readable, mode 0640). Set all empty values;
    generate the session key locally. Do not put passwords or tokens in commands,
    reports, public files or agent jobs.
-2. Create the private Newsletter clone at `$STUDIO_DATA/clone` before first use.
-   The public repository is the origin; only `studio/*` push refs are allowed.
-   If Studio has already created a blank local clone, set its origin and fetch
-   the public main, then seed it before production use. Never push `draft/*`.
+2. The launcher initializes the private Newsletter clone's public origin if
+   needed, fetches public main, and pins the library to a detached immutable
+   worktree under `$STUDIO_DATA/snapshots/<commit>`. It refreshes that library
+   after a verified Studio publication and on startup. Existing configured
+   origins must be the canonical HTTPS public Newsletter repository. Only
+   `studio/*` candidate refs can be sent; `draft/*` ancestry stays private.
 3. Provision each of the two accounts interactively using
-   `python3 -m studio.server --add-user javier` and the corresponding command
+   `sh studio/host-ops/start.sh --add-user javier` and the corresponding command
    for `matias`, with the private environment already loaded. Passwords are
    prompted; scrypt hashes and sessions live only in the private database.
 4. Install the user units. Supply an `EnvironmentFile` drop-in pointing to the
@@ -22,7 +24,8 @@ this lane does not enable a host service or a public publication.
    the Studio data location. The supplied `%h/.config/fcmo-studio/studio.env`
    location is a portable installation placeholder. Backups use the same
    environment and a separate private backup location. Set modes to 0700/0600.
-5. Start Studio with `STUDIO_LIVE_ENABLED=0`. It binds only to loopback. The
+5. Start `sh studio/host-ops/start.sh` with `STUDIO_LIVE_ENABLED=0` and
+   `STUDIO_DRY_RUN=1`. It binds only to loopback. The
    architect configures tailnet-only HTTPS on port 8447, targeting
    `http://127.0.0.1:8447`; never enable Funnel. Verify the tailnet-only status,
    localhost listener, Javier's access and the two distinct personal logins.
@@ -34,10 +37,28 @@ this lane does not enable a host service or a public publication.
    and checks health. Run before Javier's first use, then monthly. Enable the
    hourly backup timer only after that proof. Retention is the newest 48
    snapshots plus one per day for the newest 30 days; no remote backup upload.
-7. Complete A1/B preview identity and browser acceptance, plus L11 protected
-   main and CODEOWNERS acceptance. Resolve Q1/Q5. Only the operator may then
-   set `STUDIO_LIVE_ENABLED=1`. Non-English originals stay disabled until Q2
-   is adopted in policy; the configuration flag alone is not that decision.
+7. Re-run the local bare-remote proof and the full suite, inspect v4 essay/issue
+   routes in a real browser, and verify protected main, named code owners and
+   the required `publish-gate` with strict up-to-date checks. The PR gate retains
+   the browser matrix; Pages alone deploys and promotes LKG after exact public
+   identity verification. Provision separate gh configuration directories with
+   `STUDIO_GH_CONFIG_JAVIER` and `STUDIO_GH_CONFIG_MATIAS`, or supply the named
+   fine-grained tokens. Two identical GitHub logins refuse publication. Missing
+   credentials never trigger a fallback. No token is extracted from gh.
+8. Create, edit and preview in the private Studio, mark each language ready or
+   explicitly pending, and obtain the other person's approval. Dry-run mode
+   records approval but never advances the publication worker. Stop the server
+   before running `python3 -m studio.server.publish --slug "$STUDIO_SLUG" --dry-run`
+   with the private environment loaded. It refuses an unreviewed draft, missing
+   credentials/protection/LKG, failed gates or changed main. The local candidate
+   uses `python3 ops/publish.py --check`; the PR still must pass the real browser
+   matrix. Follow `REPORT-STUDIO-LIVE.md` for exact operation/reversal commands.
+9. Only after architect acceptance, start with `STUDIO_DRY_RUN=0` and
+   `STUDIO_LIVE_ENABLED=1`. This resumes approved publications: fresh main →
+   allowlisted candidate → personal branch/PR → other-person review → green
+   protected gate → pinned merge → merge-specific Pages → live locale routes.
+   A stale base refuses and requires a new review. Non-English originals remain
+   disabled until the editorial policy authorizes them.
 
 Restore outside the active data location:
 

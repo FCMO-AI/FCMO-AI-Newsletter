@@ -52,13 +52,31 @@ class GitHub:
     def pr(self, user, number): return self.request(user, 'GET', '/pulls/' + str(number))
     def open_pr(self, user, branch, title, body):
         return self.request(user, 'POST', '/pulls', {'head': branch, 'base': 'main', 'title': title, 'body': body})
+    def identity(self, user):
+        token = self.tokens.get(user)
+        if not token: raise Refused('Falta la credencial personal para publicar.')
+        req = Request(self.api + '/user', headers={'Authorization': 'Bearer ' + token, 'Accept': 'application/vnd.github+json'})
+        try:
+            with self.opener.open(req, timeout=15) as res: return json.load(res)['login']
+        except (OSError, ValueError, KeyError): raise Refused('No se pudo confirmar la credencial de publicación.') from None
+    def preflight(self, user, reviewer):
+        if not all(self.tokens.get(u) for u in (user, reviewer)):
+            raise Refused('Falta la credencial personal para publicar.')
+        if self.identity(user) == self.identity(reviewer):
+            raise Refused('La revisión requiere dos cuentas de GitHub distintas.')
+    def validate_remote(self, clone):
+        expected = {'https://github.com/' + self.repo, 'https://github.com/' + self.repo + '.git'}
+        if len(fetch_urls := git(clone, 'remote', 'get-url', '--all', 'origin').splitlines()) != 1 or len(push_urls := git(clone, 'remote', 'get-url', '--push', '--all', 'origin').splitlines()) != 1 or fetch_urls[0] not in expected or push_urls[0] not in expected:
+            raise Refused('El destino de publicación no es el repositorio público autorizado.')
+    def push_environment(self, user, helper):
+        token = self.tokens.get(user)
+        if not token: raise Refused('Falta la credencial personal para publicar.')
+        atomic(helper, b'#!/usr/bin/env python3\nimport os,sys\nprint("x-access-token" if "Username" in sys.argv[1] else os.environ["STUDIO_PUSH_TOKEN"])\n')
+        os.chmod(helper, 0o700)
+        return dict(os.environ, GIT_ASKPASS=str(helper), GIT_TERMINAL_PROMPT='0', STUDIO_PUSH_TOKEN=token), ['-c', 'credential.helper=']
     def reviewed(self, user, number, head):
         rows = self.request(user, 'GET', '/pulls/' + str(number) + '/reviews?per_page=100') or []
-        # The user's GitHub login is verified with the credential itself.
-        req = Request(self.api + '/user', headers={'Authorization': 'Bearer ' + self.tokens[user], 'Accept': 'application/vnd.github+json'})
-        try:
-            with self.opener.open(req, timeout=15) as res: login = json.load(res)['login']
-        except (OSError, ValueError): raise UnknownEffect('No se pudo confirmar la identidad de revisión.') from None
+        login = self.identity(user)
         return any(r.get('state') == 'APPROVED' and r.get('commit_id') == head and r.get('user', {}).get('login') == login for r in rows)
     def review(self, user, number, head):
         return self.request(user, 'POST', '/pulls/' + str(number) + '/reviews', {'event': 'APPROVE', 'commit_id': head, 'body': 'Leí y aprobé esta publicación en FCMO Studio.'})
@@ -116,12 +134,20 @@ class PieceHTML(HTMLParser):
 
 class Workspace:
     def __init__(self, store, github, check_command=None):
-        self.store = store; self.github = github; self.check_command = check_command or ['python3', 'ops/publish.py', '--check']
+        self.store = store; self.github = github; self.check_command = check_command or ['python3', 'ops/publish.py', '--check']; self.production_check = check_command is None
     def prepare(self, pub):
         data = pub['payload']; clone = self.store.data / 'clone'; branch = data['branch']
         if not branch.startswith('studio/'): raise Refused('La rama de publicación no es válida.')
         # Fresh remote base, never a local draft ancestor.
+        if self.production_check:
+            self.github.validate_remote(clone)
         git(clone, 'fetch', 'origin', 'refs/heads/main:refs/remotes/origin/main')
+        base_sha = git(clone, 'rev-parse', 'refs/remotes/origin/main')
+        if self.production_check:
+            try:
+                git(clone, 'fetch', 'origin', '+refs/tags/lkg:refs/tags/lkg')
+                git(clone, 'rev-parse', '--verify', 'refs/tags/lkg^{commit}')
+            except RuntimeError: raise Refused('Falta la versión LKG comprobada; no se puede publicar.') from None
         target = self.store.data / 'candidates' / pub['id']; target.parent.mkdir(exist_ok=True, mode=0o700)
         if target.exists():
             git(clone, 'worktree', 'remove', '--force', str(target)); git(clone, 'branch', '-D', branch)
@@ -147,20 +173,27 @@ class Workspace:
         if not changed or any(path != str(rel) if is_issue else not path.startswith(str(rel) + '/') for path in changed): raise Refused('La publicación contiene cambios fuera del artículo.')
         # Do not follow a draft symlink into private state.
         if any(p.is_symlink() for p in destination.rglob('*')): raise Refused('La publicación contiene un archivo no permitido.')
-        env = {k: v for k, v in os.environ.items() if not k.startswith(('GH_TOKEN_', 'STUDIO_SESSION_', 'GHOST_'))}
+        env = {k: v for k, v in os.environ.items() if not k.startswith(('GH_TOKEN', 'GITHUB_TOKEN', 'STUDIO_', 'GHOST_'))}
         run = subprocess.run(self.check_command, cwd=target, env=env, capture_output=True, timeout=1800)
         if run.returncode: raise Refused('Las comprobaciones locales fallaron. Revisa el artículo; nada se hizo público.')
         head = git(target, 'rev-parse', 'HEAD')
-        return {'head_sha': head, 'candidate': str(target)}
+        return {'head_sha': head, 'base_sha': base_sha, 'candidate': str(target)}
+    def verify_base(self, pub):
+        data = pub['payload']
+        current = git(Path(data['candidate']), 'ls-remote', 'origin', 'refs/heads/main').split()
+        if not current or current[0] != data.get('base_sha'):
+            raise Refused('La base de publicación cambió. Pide una nueva revisión antes de publicar.')
     def push(self, pub):
-        data = pub['payload']; branch = data['branch']; token = self.github.tokens[data['author']]
+        data = pub['payload']; branch = data['branch']
+        self.github.validate_remote(self.store.data / 'clone')
+        self.github.preflight(data['author'], data['reviewer'])
         if not branch.startswith('studio/') or data['head_sha'] != git(Path(data['candidate']), 'rev-parse', 'HEAD'):
             raise Refused('La versión aprobada cambió antes de publicar.')
-        helper = self.store.data / 'askpass.py'
-        atomic(helper, b'#!/usr/bin/env python3\nimport os,sys\nprint("x-access-token" if "Username" in sys.argv[1] else os.environ["STUDIO_PUSH_TOKEN"])\n')
-        os.chmod(helper, 0o700)
-        env = dict(os.environ, GIT_ASKPASS=str(helper), GIT_TERMINAL_PROMPT='0', STUDIO_PUSH_TOKEN=token)
-        run = subprocess.run(['git', '-C', data['candidate'], '-c', 'credential.helper=', 'push', 'origin', data['head_sha'] + ':refs/heads/' + branch], env=env, capture_output=True, timeout=120)
+        self.verify_base(pub)
+        env, options = self.github.push_environment(data['author'], self.store.data / 'askpass.py')
+        # Refuse to overwrite a concurrently created branch, even in dry-run.
+        ref = 'refs/heads/' + branch
+        run = subprocess.run(['git', '-C', data['candidate'], *options, 'push', '--force-with-lease=' + ref + ':', 'origin', data['head_sha'] + ':' + ref], env=env, capture_output=True, timeout=120)
         if run.returncode: raise UnknownEffect('No se pudo confirmar el envío. Se comprobará antes de repetirlo.')
 
 STATES = ('approved', 'candidate', 'pushed', 'pr_open', 'reviewed', 'checks_green', 'merged', 'deployed', 'deployed_unverified', 'published')
@@ -291,6 +324,7 @@ class Publisher:
                     pr = gh.pr(user, data['pr_number'])
                     if not pr or pr['head']['sha'] != data['head_sha']: raise Refused('La versión pública cambió; pide una nueva revisión.')
                     if not pr.get('merged'):
+                        if gh.branch(user, 'main') != data['base_sha']: raise Refused('La base de publicación cambió. Pide una nueva revisión antes de publicar.')
                         if gh.checks(user, data['head_sha']) != 'green': raise Refused('Las comprobaciones públicas cambiaron; revisa el artículo.')
                         if not gh.protected(user): raise Refused('Publicación protegida aún no activa.')
                     self._effect(pub, 'merged', lambda: (p if (p := gh.pr(user, data['pr_number'])) and p.get('merged') else None), lambda: gh.merge(user, data['pr_number'], data['head_sha']), lambda r: data.update(merge_sha=r['merge_commit_sha']))

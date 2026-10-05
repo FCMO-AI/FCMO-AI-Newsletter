@@ -27,6 +27,7 @@ class Publish(unittest.TestCase):
         git(self.remote, 'add', '.'); git(self.remote, '-c', 'user.name=Codex', '-c', 'user.email=noreply@openai.com', 'commit', '-qm', 'Base')
         git(self.store.data / 'clone', 'remote', 'set-url', 'origin', str(self.remote))
         self.mock = MockGitHub().__enter__(); self.github = GitHub({'javier': 'fixture-javier', 'matias': 'fixture-matias'}, self.mock.url, live_base=self.mock.url + '/live/')
+        self.mock.refs['main'] = git(self.remote, 'rev-parse', 'HEAD')
         self.workspace = MockWorkspace(self.store, self.github, ['python3', '-c', 'raise SystemExit(0)'])
         self.publisher = Publisher(self.store, self.github, self.workspace, lambda value: [{'ok': True}])
         self.mock.live_id = self.store.payload(self.slug)['piece']['id']

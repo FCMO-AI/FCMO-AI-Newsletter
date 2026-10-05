@@ -74,7 +74,7 @@ def checks(store, preview, value):
     for loc in LOCALES:
         add('locale-' + loc, states[loc]['state'] in ('ready', 'later') and (states[loc]['state'] == 'later' or issue['title'][loc].strip()),
             'Completa cada idioma o elige publicar después.', 'Complete each language or choose publish later.')
-    library = store.data / 'clone/site/data/stories.v2.json'
+    library = getattr(store, 'public_root', store.data / 'clone') / 'site/data/stories.v2.json'
     import json
     stories = json.loads(library.read_text())['stories'] if library.is_file() else []
     published = {p['meta']['id']: p['meta'] for p in store.list() if p['state'] == 'published' and p['kind'] != 'issue'}

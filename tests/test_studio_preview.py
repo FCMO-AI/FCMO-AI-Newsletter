@@ -14,6 +14,7 @@ class PreviewIdentity(unittest.TestCase):
         from tools.paper.build import PaperBuilder
         if 'editorial' not in inspect.signature(PaperBuilder.__init__).parameters and not (ROOT / 'tools/paper/essays.py').is_file():
             self.skipTest('A1 production editorial renderer and B essay template are absent on this lane base; identity is not yet provable.')
+        (ROOT / '_audit').mkdir(exist_ok=True)
         with tempfile.TemporaryDirectory(dir=ROOT / '_audit') as temporary:
             root = Path(temporary); store = Store(root / 'data')
             try:
@@ -44,6 +45,7 @@ class PreviewIdentity(unittest.TestCase):
             finally: store.close()
     def test_absent_renderer_fails_closed(self):
         if (ROOT / 'tools/paper/essays.py').is_file(): self.skipTest('Renderer integration is present; exercised by byte-identity test.')
+        (ROOT / '_audit').mkdir(exist_ok=True)
         with tempfile.TemporaryDirectory(dir=ROOT / '_audit') as temporary:
             store = Store(Path(temporary))
             try:

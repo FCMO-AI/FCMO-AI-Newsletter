@@ -64,11 +64,13 @@ The public repository's git history remains independent from any private source 
 
 ## Authentication boundary
 
-The only external activation credential is a least-privilege GitHub App installed only on private `FCMO-AI/AI-Research-Breakthroughs` with repository **Contents: Read-only**. Each bridge run mints a short-lived installation token scoped only to that repository using GitHub's current recommended **Client ID** interface. The App cannot write to either repository.
+The autonomous Newswire Bridge activation credential is a least-privilege GitHub App installed only on private `FCMO-AI/AI-Research-Breakthroughs` with repository **Contents: Read-only**. Each bridge run mints a short-lived installation token scoped only to that repository using GitHub's current recommended **Client ID** interface. The App cannot write to either repository.
 
 The public repository stores only the App Client ID as Actions variable `FCMO_NEWSWIRE_APP_CLIENT_ID` and the App's generated PEM private key as encrypted Actions secret `FCMO_NEWSWIRE_APP_PRIVATE_KEY`. The private key must never enter source control or logs. The PEM is consumed only by the token-minting action, not passed through shell preflight; the derived Git authentication header is masked and discarded; and the credential-bearing bridge job is restricted to reviewed `main`.
 
-Once the independently verified public candidate survives the bridge, Newsletter's own `GITHUB_TOKEN` may commit only `corpus/`. No personal publisher token, PAT fallback, translation-provider secret, private Actions runner or second publisher credential is part of the production contract.
+Once the independently verified public candidate survives the bridge, Newsletter's own `GITHUB_TOKEN` may commit only `corpus/`. No personal publisher token, PAT fallback, translation-provider secret, private Actions runner or second publisher credential is part of the autonomous Newswire Bridge contract.
+
+FCMO Studio is a separate, human-authored publication entry. On the private host, the author and the other reviewer use their own GitHub CLI accounts, or named fine-grained credentials (`GH_TOKEN_JAVIER`, `GH_TOKEN_MATIAS`) scoped only to this public repository. Studio transports only the reviewed, allowlisted `editorial/` record from a fresh public main commit. It does not transport draft ancestry, change `corpus/`, retrieve private ARB, or deploy directly. Protected review and `publish-gate` precede merge; the existing Pages workflow owns browser checks, exact deployment identity, public-origin verification, LKG promotion and rollback. Missing credentials, changed main or failed checks refuse publication. Host credentials never enter this repository, the candidate tree, model jobs or public Actions.
 
 Private-repository Actions availability is separate infrastructure debt, not a Newsletter activation dependency. The exact single remaining operator action bundle and completion evidence are recorded in `NEWSWIRE_ACTIVATION_STATUS.md`.
 

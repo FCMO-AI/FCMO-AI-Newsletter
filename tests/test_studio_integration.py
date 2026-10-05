@@ -18,7 +18,7 @@ from tests.test_studio_storage import ROOT, DOC
 
 class StudioIntegration(unittest.TestCase):
     def setUp(self):
-        (ROOT / '_audit').mkdir(exist_ok=True)
+        (ROOT / '_audit/studio-int').mkdir(parents=True, exist_ok=True)
         self.tmp = tempfile.TemporaryDirectory(dir=ROOT / '_audit')
         self.root = Path(self.tmp.name)
         self.store = Store(self.root / 'data')
@@ -45,6 +45,7 @@ for command in (["python3", "tools/paper/build.py", "--stories", "site/data/stor
     with open(""" + repr(str(ROOT / '_audit/studio-int/candidate.log')) + """, 'ab') as log: log.write(run.stdout + run.stderr)
     if run.returncode: raise SystemExit(run.returncode)
 """)
+        self.mock.refs['main'] = git(remote, 'rev-parse', 'HEAD')
         workspace = MockWorkspace(self.store, gh, ['python3', str(gate_script)])
         self.app = Application(self.store, 'http://studio.invalid', 'integration-session-' + 'x'*32, ROOT, live=True)
         self.app.publisher = Publisher(self.store, gh, workspace, lambda slug: __import__('studio.server.checks', fromlist=['checks']).checks(self.store, self.app.preview, slug))

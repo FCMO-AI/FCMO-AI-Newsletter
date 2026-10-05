@@ -7,6 +7,8 @@ on:
       - 'site/data/stories.v2.json'
       - 'site/data/newsroom-status.json'
       - 'site-src/**'
+      - 'editorial/**'
+      - 'ops/publish.py'
       - 'config/**'
       - 'design/**'
       - 'i18n/**'
@@ -23,32 +25,20 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  validate:
+  publish-gate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
         with:
+          fetch-depth: 0
           persist-credentials: false
       - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
       - name: Compile the publication implementation
         run: python -m compileall -q tools tests
-      - name: Build today's candidate
-        run: >-
-          python tools/paper/build.py
-          --stories site/data/stories.v2.json
-          --status site/data/newsroom-status.json
-          --out publish
-          --base /FCMO-AI-Newsletter/
-      - name: Add governed glossary to candidate
-        run: |
-          mkdir -p publish/data
-          cp i18n/glossary.yml publish/data/glossary.json
-          cp site/data/stories.v2.json publish/data/stories.v2.json
-          cp site/data/newsroom-status.json publish/data/newsroom-status.json
-      - name: Run fail-closed gates
-        run: python tools/gates/run_all.py publish
+      - name: Reconstruct and gate the immutable editorial candidate
+        run: python ops/publish.py --check
       - uses: actions/setup-node@v6
         with:
           node-version: '22'

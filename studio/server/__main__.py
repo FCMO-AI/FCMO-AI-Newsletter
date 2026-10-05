@@ -9,6 +9,7 @@ import threading
 from .auth import Auth
 from .http import Application, Server
 from .storage import Store
+from .publishing import Refused
 
 def main():
     parser = argparse.ArgumentParser(description='FCMO Studio')
@@ -27,16 +28,20 @@ def main():
             Auth(store, key).add_user(args.add_user, password); return 0
         repo = Path(os.environ.get('STUDIO_REPO', Path(__file__).resolve().parents[2]))
         app = Application(store, origin, key, repo, live=os.environ.get('STUDIO_LIVE_ENABLED') == '1',
-                          tokens={u: os.environ.get('GH_TOKEN_' + u.upper(), '') for u in ('javier', 'matias')})
+                          tokens=({u: os.environ.get('GH_TOKEN_' + u.upper(), '') for u in ('javier', 'matias')} if any(os.environ.get('GH_TOKEN_' + u.upper()) for u in ('javier', 'matias')) else None))
         lockfile = open(store.data / '.server-lock', 'a')
         fcntl.flock(lockfile.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+        from .snapshot import refresh
+        refresh(store, app.github)
         server = Server(('127.0.0.1', int(os.environ.get('STUDIO_PORT', '8447'))), app)
         threading.Thread(target=app.worker, daemon=True).start()
         try: server.serve_forever()
         except KeyboardInterrupt: pass
         finally: server.server_close()
         return 0
-    except (ValueError, OSError):
+    except Refused as exc:
+        print(str(exc), file=sys.stderr); return 2
+    except (ValueError, OSError, RuntimeError):
         print('No se pudo iniciar Studio. Revisa la configuración local.', file=sys.stderr); return 2
     finally: store.close()
 
