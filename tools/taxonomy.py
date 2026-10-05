@@ -155,6 +155,9 @@ CONFIDENCE_MAP = {
     "supported": "supported",
     "supported_with_limits": "supported_with_limits",
     "claimed_unverified": "claimed_unverified",
+    # Canonical ARB confidence: credible evidence is still unconfirmed. Keep it
+    # in the unverified lane rather than quarantining it or promoting certainty.
+    "credible_unconfirmed": "claimed_unverified",
     "strong_primary_formal_artifact_pending_independent_mathematical_review": "supported_with_limits",
     "supported_government_attribution_with_open_causal_gaps": "supported_with_limits",
     "primary_roadmap_commitment_not_delivered": "claimed_unverified",

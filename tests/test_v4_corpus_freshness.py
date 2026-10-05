@@ -290,15 +290,23 @@ class CorpusFreshnessBuildTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.temp = tempfile.TemporaryDirectory(prefix="newsletter-v4-corpus-freshness-")
-        cls.out = cls.build(STATUS, "publish")
-        fresh_status = dict(json.loads(STATUS.read_text(encoding="utf-8")), edition_state="FRESH", alerts=[])
-        fresh_path = Path(cls.temp.name) / "fresh-status.json"
-        fresh_path.write_text(json.dumps(fresh_status), encoding="utf-8")
-        cls.fresh_out = cls.build(fresh_path, "fresh")
         payload = json.loads(STORIES.read_text(encoding="utf-8"))
         cls.live = [story for story in payload["stories"] if story.get("status") == "live"]
         cls.by_id = {story["id"]: story for story in cls.live}
-        cls.status = json.loads(STATUS.read_text(encoding="utf-8"))
+        cls.current_status = json.loads(STATUS.read_text(encoding="utf-8"))
+        cls.current_out = cls.build(STATUS, "current")
+        # Keep the stale-newspaper counterfactual even when production recovers.
+        # Move only this test's check clock, never a production event date.
+        newest = max(datetime.datetime.fromisoformat(s["event_at"].replace("Z", "+00:00")) for s in cls.live)
+        stale_check = (newest + datetime.timedelta(days=10)).strftime("%Y-%m-%dT%H:%M:%SZ")
+        cls.status = dict(cls.current_status, status_updated_at=stale_check, publication_status=None)
+        stale_path = Path(cls.temp.name) / "stale-status.json"
+        stale_path.write_text(json.dumps(cls.status), encoding="utf-8")
+        cls.out = cls.build(stale_path, "publish")
+        fresh_status = dict(cls.status, edition_state="FRESH", alerts=[])
+        fresh_path = Path(cls.temp.name) / "fresh-status.json"
+        fresh_path.write_text(json.dumps(fresh_status), encoding="utf-8")
+        cls.fresh_out = cls.build(fresh_path, "fresh")
         cls.catalogs = load_catalogs(ROOT)
         cls.oracle = cls.expected(cls.live, cls.status["status_updated_at"])
 
@@ -352,14 +360,22 @@ class CorpusFreshnessBuildTests(unittest.TestCase):
         return {name: self.read(self.out, route) for name, route in (
             ("root", prefix), ("diario", prefix + "diario/"), ("story", story_path(locale, story)), ("status", prefix + "status/"))}
 
-    def test_the_real_corpus_is_not_fresh_and_its_state_follows_its_lag(self):
-        # The dated stories end on 2026-09-30, so the corpus is behind by more
-        # than 48 h; whether it reads "lagging" or "stale" depends on the
-        # status receipt's time, so derive the state instead of pinning one.
+    def test_stale_check_clock_reports_stale_despite_a_fresh_wire(self):
         self.assertGreater(self.oracle["lag_hours"], 48)
         expected = "lagging" if self.oracle["lag_hours"] * 3600 <= STALE_AFTER.total_seconds() else "stale"
         self.assertEqual(self.oracle["state"], expected)
         self.assertEqual(corpus_freshness(self.live, self.status["status_updated_at"])["state"], expected)
+
+    def test_current_corpus_output_matches_independent_event_age(self):
+        expected = self.expected(self.live, self.current_status["status_updated_at"])
+        for code, prefix in LOCALES:
+            with self.subTest(locale=code):
+                line = LINE.search(self.read(self.current_out, prefix + "diario/"))
+                self.assertIsNotNone(line)
+                self.assertEqual(attributes(line.group(1)), {
+                    "data-freshness": expected["state"], "data-newest-at": expected["newest_at"],
+                    "data-lag-hours": str(expected["lag_hours"]),
+                })
 
     def test_every_page_carries_one_line_matching_the_oracle(self):
         for code, prefix in LOCALES:

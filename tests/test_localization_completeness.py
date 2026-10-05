@@ -300,9 +300,14 @@ class RealCorpusBacklog(unittest.TestCase):
             before = baseline["records"]
             after = airlock_doc["records"]
             self.assertTrue(all(after.get(rid) == row for rid, row in before.items()))
-            self.assertEqual(set(after) - set(before), {"FCMO-045BB8282222", "FCMO-5B5B447325A8"})
+            delta = json.loads((ROOT / f"corpus/data/locales/{locale}/records.json").read_text())["records"]
+            canonical = vl.load_corpus_canonical(ROOT / "corpus")
+            additions = (set(delta) & set(canonical)) - set(before)
+            self.assertEqual(set(after) - set(before), additions)
+            for rid in additions:
+                self.assertEqual(after[rid], delta[rid])
             ui = json.loads((ROOT / "site/data/i18n" / locale / "ui.json").read_text(encoding="utf-8"))
-            self.assertEqual(ui["canonical_record_count"], 43)
+            self.assertEqual(ui["canonical_record_count"], len(canonical))
             self.assertEqual(airlock_doc["canonical_source_sha256"], ui["canonical_source_sha256"])
             pd1 = json.loads((fixture_root / "b9ebe9e" / f"{locale}-part-airlock.json").read_text(encoding="utf-8"))["records"]
             desk = json.loads(airlock.with_name("part-desk.json").read_text(encoding="utf-8"))

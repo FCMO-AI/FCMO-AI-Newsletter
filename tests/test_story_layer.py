@@ -40,6 +40,15 @@ def by_id(document: dict) -> dict[str, dict]:
     return {s["id"]: s for s in document["stories"]}
 
 
+def expected_live_ids(corpus: Path = CORPUS) -> set[str]:
+    """Independent admission census; daily supply must not freeze a test count."""
+    rows = taxonomy.read_jsonl(corpus / "data/developments.jsonl")
+    dead = {r["id"] for r in rows if r.get("status") in {"withdrawn", "superseded"}}
+    dead.update(e["id"] for e in json.loads((corpus / "tombstones.json").read_text())["tombstones"]
+                if e.get("reinstated_at") is None)
+    return {r["id"] for r in rows} - dead
+
+
 class RepositoryStoryLayerTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
@@ -78,7 +87,9 @@ class RepositoryStoryLayerTests(unittest.TestCase):
             proc = subprocess.run([sys.executable, str(TOOL), "build", "--corpus", str(CORPUS), "--history-git", str(REPO),
                                    "--out", str(out), "--now", NOW], capture_output=True, text=True, cwd=REPO)
             self.assertEqual(proc.returncode, 0, proc.stderr)
-            self.assertEqual(proc.stdout.strip(), "stories OK live=43 withdrawn=1 merged=2 front_page=9")
+            self.assertEqual(proc.stdout.strip(),
+                             f"stories OK live={len(expected_live_ids())} withdrawn=1 merged=2 "
+                             f"front_page={sum(s['front_page_eligible'] for s in self.document['stories'])}")
             validate = subprocess.run([sys.executable, str(REPO / "tests" / "harness" / "validate.py"),
                                        str(CONTRACTS / "stories.v2.schema.json"), str(out)], capture_output=True, text=True)
             self.assertEqual(validate.returncode, 0, validate.stdout + validate.stderr)
@@ -91,11 +102,11 @@ class RepositoryStoryLayerTests(unittest.TestCase):
             self.assertEqual(story["url_date"], ledger[rid]["url_date"], rid)
             self.assertEqual(story["slug"], ledger[rid]["slug"], rid)
 
-    def test_one_story_per_public_id_and_43_live(self) -> None:
+    def test_one_story_per_public_id_and_live_admission_census(self) -> None:
         corpus_ids = {json.loads(l)["id"] for l in (CORPUS / "data" / "developments.jsonl").read_text().splitlines() if l.strip()}
         self.assertEqual(set(self.stories), corpus_ids | {FDBE})
         live = [s for s in self.document["stories"] if s["status"] == "live"]
-        self.assertEqual(len(live), 43)
+        self.assertEqual({s["id"] for s in live}, expected_live_ids())
         self.assertLessEqual({s["beat"] for s in live}, BEATS)
         self.assertEqual(self.stderr, "")
 
@@ -168,7 +179,8 @@ class RepositoryStoryLayerTests(unittest.TestCase):
         proc = subprocess.run([sys.executable, str(TOOL), "ledger", "--corpus", str(CORPUS), "--history-git", str(REPO),
                                "--check", "--now", NOW], capture_output=True, text=True, cwd=REPO)
         self.assertEqual(proc.returncode, 0, proc.stderr)
-        self.assertEqual(proc.stdout.strip(), "ledger OK entries=46 changes=0")
+        entries = json.loads((CORPUS / "first-published.json").read_text())["entries"]
+        self.assertEqual(proc.stdout.strip(), f"ledger OK entries={len(entries)} changes=0")
         validator = validator_for(CONTRACTS / "first-published.schema.json")
         self.assertEqual(validator.errors(json.loads((CORPUS / "first-published.json").read_text())), [])
 
@@ -229,6 +241,7 @@ class TemporaryCorpusTests(unittest.TestCase):
         self.assertEqual(validator_for(CONTRACTS / "stories.v2.schema.json").errors(document), [])
 
     def test_bad_record_is_quarantined_not_fatal(self) -> None:
+        before, _ = build(self.corpus)
         rows = self.rows()
         victim = rows[5]["id"]
         rows[5]["claims"] = []
@@ -239,7 +252,7 @@ class TemporaryCorpusTests(unittest.TestCase):
         self.assertIn(f"QUARANTINE {victim} CLAIMS_MISSING", stderr)
         self.assertIn(f"QUARANTINE {rows[6]['id']} DESK_UNKNOWN", stderr)
         self.assertNotIn(victim, by_id(document))
-        self.assertEqual(len(document["stories"]), 46 - 2)
+        self.assertEqual(len(document["stories"]), len(before["stories"]) - 2)
 
     def test_carried_record_stays_live(self) -> None:
         self._corpus = self.fixture_corpus()
@@ -270,7 +283,7 @@ class TemporaryCorpusTests(unittest.TestCase):
         for dup, survivor in MERGES.items():
             self.assertIn(f"MERGE_UNRECORDED {dup} -> {survivor}", stderr)
             self.assertEqual(by_id(document)[dup]["merged_into"], survivor)
-        self.assertEqual(sum(s["status"] == "live" for s in document["stories"]), 43)
+        self.assertEqual({s["id"] for s in document["stories"] if s["status"] == "live"}, expected_live_ids())
 
     @unittest.skipUnless(FULL_HISTORY, "needs the full git history")
     def test_ledger_from_history_equals_the_contract_fixture(self) -> None:
@@ -279,7 +292,10 @@ class TemporaryCorpusTests(unittest.TestCase):
         doc["tombstones"] = [e for e in doc["tombstones"] if e["id"] == FDBE]
         (self.corpus / "tombstones.json").write_text(json.dumps(doc))
         ledger, tombstones, changes = story_layer.update_ledger(self.corpus, REPO, REPO / "site", NOW)
-        self.assertEqual(ledger, json.loads((FIXTURES / "first-published.json").read_text()))
+        historical = json.loads((FIXTURES / "first-published.json").read_text())
+        self.assertEqual({rid: ledger["entries"][rid] for rid in historical["entries"]}, historical["entries"])
+        # New supply extends the ledger, while every frozen historical entry stays exact.
+        self.assertEqual(ledger, json.loads((CORPUS / "first-published.json").read_text()))
         added = [e for e in tombstones["tombstones"] if e["id"] != FDBE]
         self.assertEqual({e["id"]: e["superseded_by"] for e in added}, MERGES)
         self.assertEqual({e["action"] for e in added}, {"superseded"})
@@ -343,7 +359,7 @@ class ShallowCheckoutTests(unittest.TestCase):
             stderr = error.getvalue()
         self.assertNotIn(FDBE, by_id(document))
         self.assertIn(f"ALERT STORY_RECORD_UNAVAILABLE {FDBE}", stderr)
-        self.assertEqual(sum(s["status"] == "live" for s in document["stories"]), 43)
+        self.assertEqual({s["id"] for s in document["stories"] if s["status"] == "live"}, expected_live_ids())
 
 
 class NewsroomOutputTests(unittest.TestCase):
@@ -415,9 +431,9 @@ class IngestSelectionTests(unittest.TestCase):
                                              {row["id"] for row in selected})
         self.assertEqual(edition["related_brief_ids"], ["FCMO-5B5B447325A8", "FCMO-045BB8282222"])
 
-    def test_repository_corpus_publishes_43(self) -> None:
+    def test_repository_corpus_publishes_every_admitted_id(self) -> None:
         selected, merged, held = self.select(self.rows)
-        self.assertEqual(len(selected), 43)
+        self.assertEqual({r["id"] for r in selected}, expected_live_ids())
         self.assertEqual(merged, MERGES)
         self.assertEqual(sorted(held), sorted([(FDBE, "TOMBSTONED:UNVERIFIED_RELEASE"),
                                                *((dup, "TOMBSTONED:DUPLICATE") for dup in MERGES)]))
@@ -427,7 +443,7 @@ class IngestSelectionTests(unittest.TestCase):
         rows[3]["claims"] = []
         rows[4]["status"] = "withdrawn"
         selected, _, held = self.select(rows)
-        self.assertEqual(len(selected), 41)
+        self.assertEqual({r["id"] for r in selected}, expected_live_ids() - {rows[3]["id"], rows[4]["id"]})
         self.assertIn((rows[3]["id"], "QUARANTINE:CLAIMS_MISSING"), held)
         self.assertIn((rows[4]["id"], "WITHDRAWN_UPSTREAM"), held)
 
@@ -444,7 +460,7 @@ class IngestSelectionTests(unittest.TestCase):
         (self.corpus / "carried.jsonl").write_text(line + "\n")
         selected, _, held = self.select(self.rows)
         self.assertIn(FDBE, {r["id"] for r in selected})
-        self.assertEqual(len(selected), 44)
+        self.assertEqual({r["id"] for r in selected}, expected_live_ids() | {FDBE})
 
 
 class TaxonomyTests(unittest.TestCase):

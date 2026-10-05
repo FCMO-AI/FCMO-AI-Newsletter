@@ -34,13 +34,16 @@ class SupplyIndependentFreshnessTests(unittest.TestCase):
         (self.corpus / "index.html").write_text("fixture")
         self.status = self.root / "newsroom-status.json"
         self.status.write_bytes((ROOT / "site/data/newsroom-status.json").read_bytes())
+        self.site = self.root / "site"
+        (self.site / "data").mkdir(parents=True)
+        (self.site / "data/stories.v2.json").write_bytes((ROOT / "contracts/fixtures/stories.v2.json").read_bytes())
         self.wire = self.root / "wire-status.json"
         self.wire.write_bytes((ROOT / "contracts/fixtures/wire-status.down.json").read_bytes())
 
     def receipt(self, mode):
         return subprocess.run([sys.executable, "tools/newsroom_receipt.py", mode,
                                "--corpus", str(self.corpus), "--status", str(self.status),
-                               "--wire-status", str(self.wire), "--site", str(ROOT / "site"),
+                               "--wire-status", str(self.wire), "--site", str(self.site),
                                "--now", NOW], cwd=ROOT, text=True, capture_output=True)
 
     def test_frozen_heartbeat_does_not_hard_fail_refresh_but_health_stays_red(self):
@@ -76,7 +79,8 @@ class SupplyIndependentFreshnessTests(unittest.TestCase):
                       wire_state="FRESH", alerts=[])
         self.status.write_text(json.dumps(source))
         output = self.root / "publish"
-        PaperBuilder(stories_path=ROOT / "site/data/stories.v2.json", status_path=self.status,
+        # This outage counterfactual needs stale supply even after production recovers.
+        PaperBuilder(stories_path=ROOT / "contracts/fixtures/stories.v2.json", status_path=self.status,
                      out=output, base="/FCMO-AI-Newsletter/").build()
         public_path = output / "status.json"
         self.assertTrue(public_path.is_file(), "public freshness endpoint is missing")

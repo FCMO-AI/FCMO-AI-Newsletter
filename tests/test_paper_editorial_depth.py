@@ -65,12 +65,11 @@ class PaperEditorialDepthTests(unittest.TestCase):
                     self.assertIn('class="taxonomy-neighbors"', page)
 
     def test_front_method_and_status_expose_live_publication_facts_in_all_locales(self):
-        # The accepted corpus shape is 43 live Stories; each has one route in
-        # each of the three published locales (43 × 3 = 129 routes).
-        self.assertEqual(len(self.story_routes), 129)
-        self.assertEqual({locale: sum(route["locale"] == locale for route in self.story_routes)
-                          for locale in ("en", "es-419", "zh-Hans")},
-                         {"en": 43, "es-419": 43, "zh-Hans": 43})
+        live_ids = {s["id"] for s in json.loads((ROOT / "site/data/stories.v2.json").read_text())["stories"]
+                    if s["status"] == "live"}
+        self.assertEqual(len(self.story_routes), len(live_ids) * 3)
+        for locale in ("en", "es-419", "zh-Hans"):
+            self.assertEqual({route["story_id"] for route in self.story_routes if route["locale"] == locale}, live_ids)
         for locale, prefix in (("en", ""), ("es-419", "es/"), ("zh-Hans", "zh/")):
             front = (self.out / prefix / "diario/index.html").read_text(encoding="utf-8")
             method = (self.out / prefix / "method/index.html").read_text(encoding="utf-8")
@@ -80,8 +79,8 @@ class PaperEditorialDepthTests(unittest.TestCase):
                 self.assertIn('class="method-steps"', method)
                 self.assertIn('class="method-example"', method)
                 self.assertIn('class="status-grid"', status)
-                self.assertIn("43", front)
-                self.assertIn("43", method)
+                self.assertIn(str(len(live_ids)), front)
+                self.assertIn(str(len(live_ids)), method)
                 # Status comes from the current newsroom receipt; route totals
                 # are asserted above from this exact build.
                 self.assertIn(f'data-edition-state="{self.status["edition_state"]}"', status)
