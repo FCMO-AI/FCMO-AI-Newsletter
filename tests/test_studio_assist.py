@@ -9,7 +9,9 @@ from tests.test_studio_storage import ROOT, DOC
 
 class AssistProvenance(unittest.TestCase):
     def test_accept_and_edit_never_marks_assistant_as_human_reviewed(self):
-        with tempfile.TemporaryDirectory(dir=ROOT / '_audit') as temporary:
+        # A clean candidate/CI checkout has no ignored _audit directory yet.
+        # This private fixture must be runnable without another test creating it.
+        with tempfile.TemporaryDirectory(prefix='studio-assist-') as temporary:
             store = Store(Path(temporary))
             try:
                 value = store.create('javier', 'essay', 'Optional assistant', 'en')['slug']

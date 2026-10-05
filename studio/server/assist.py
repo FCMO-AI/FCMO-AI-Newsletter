@@ -13,7 +13,7 @@ def envelope(store, ident, user):
     if job['author'] != user: raise ValueError('Solo el autor puede ver sus sugerencias.')
     return job
 
-def accept(store, ident, user, block_ids, base_rev):
+def accept(store, ident, user, block_ids, base_rev, edits=None):
     job = envelope(store, ident, user); value = job['slug']; loc = locale(job['locale'])
     path = store.data / 'jobs/done' / (ident + '.json')
     if not path.is_file() or path.stat().st_size > 2*1024*1024: raise ValueError('La sugerencia aún no está lista.')
@@ -25,18 +25,26 @@ def accept(store, ident, user, block_ids, base_rev):
         if store.piece(value)['head_rev'] != base_rev or job['rev'] != base_rev: raise Conflict(store.doc(value, loc))
         payload = store.payload(value); source = payload['piece']['source_locale']
         doc = copy.deepcopy(payload['docs'].get(loc, payload['docs'][source])); doc['locale'] = loc
+        if not doc['blocks']: doc = copy.deepcopy(payload['docs'][source]); doc['locale'] = loc
+        if edits is not None and (not isinstance(edits, dict) or any(k not in block_ids or not isinstance(v, str) for k, v in edits.items())): raise ValueError('La edición de la sugerencia no es válida.')
         suggestions = {s['block_id']: s['text'] for s in done['suggestions'] if isinstance(s, dict) and isinstance(s.get('text'), str) and isinstance(s.get('block_id'), str)}
         changed = set()
+        if job.get('kind') == 'dek':
+            for field in block_ids:
+                if field not in ('title', 'dek') or field not in suggestions: raise ValueError('Elige un título o una introducción.')
+                doc[field] = (edits or {}).get(field, suggestions[field]); changed.add(field)
         for block in doc['blocks']:
             if block['id'] not in block_ids: continue
             if block['id'] not in suggestions or block['type'] not in ('p', 'h2', 'h3', 'blockquote', 'pullquote') or any(n.get('t') != 'text' for n in block.get('content', [])):
                 raise ValueError('Este párrafo necesita edición manual para conservar sus referencias.')
-            block['content'] = [{'t': 'text', 'v': suggestions[block['id']]}]; changed.add(block['id'])
+            block['content'] = [{'t': 'text', 'v': (edits or {}).get(block['id'], suggestions[block['id']])}]; changed.add(block['id'])
         if changed != set(block_ids): raise ValueError('El párrafo de la sugerencia ya no existe.')
         result = store.save(value, loc, user, base_rev, doc, store.piece(value)['cursor'].get(loc, {}))
         payload = store.payload(value)
-        payload['provenance'][loc] = {'origin': 'agent_draft', 'human_reviewed': False, 'reviewer': '', 'at': utc(), 'source_locale': source, 'model': done['model']}
+        payload['provenance'][loc] = {'origin': 'agent_draft_human_edited' if edits else 'agent_draft', 'human_reviewed': False, 'reviewer': '', 'at': utc(), 'source_locale': source, 'model': done['model']}
         blocks = payload.setdefault('block_provenance', {}).setdefault(loc, {})
-        for key in changed: blocks[key] = 'agent_draft'
+        for key in changed: blocks[key] = 'agent_draft_human_edited' if key in (edits or {}) else 'agent_draft'
         store._put(value, payload, user, bump=False)
+        job['rev'] = result['rev']
+        atomic(store.data / 'jobs/queued' / (ident + '.json'), encoded(job).encode())
         return result

@@ -1,7 +1,8 @@
 # FCMO Studio: installation and recovery
 
-These artifacts are staged in the lane worktree. The architect installs them;
-this lane does not enable a host service or a public publication.
+The architect installs these artifacts; this lane does not enable a host service
+or a public publication. Follow [ACTIVATION.md](ACTIVATION.md) for the exact L23b
+account, CODEOWNERS, ruleset, browser and live acceptance sequence.
 
 1. Choose private data, backup, checkout and environment-file locations. The
    checkout must contain the integrated A1, A2 and B code. Keep data and backups
@@ -39,8 +40,8 @@ this lane does not enable a host service or a public publication.
    snapshots plus one per day for the newest 30 days; no remote backup upload.
 7. Re-run the local bare-remote proof and the full suite, inspect v4 essay/issue
    routes in a real browser, and verify protected main, named code owners and
-   the required `publish-gate` with strict up-to-date checks. The PR gate retains
-   the browser matrix; Pages alone deploys and promotes LKG after exact public
+   the required `publish-gate` with strict up-to-date checks. The local candidate and required PR gate both run the full suite, release
+   integrity checks and browser matrix; Pages alone deploys and promotes LKG after exact public
    identity verification. Provision separate gh configuration directories with
    `STUDIO_GH_CONFIG_JAVIER` and `STUDIO_GH_CONFIG_MATIAS`, or supply the named
    fine-grained tokens. Two identical GitHub logins refuse publication. Missing

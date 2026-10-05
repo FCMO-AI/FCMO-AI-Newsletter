@@ -1,5 +1,6 @@
 """Pin the newsroom library to an immutable commit in the private Studio clone."""
 from pathlib import Path
+import subprocess
 from .storage import git
 from .publishing import Refused
 
@@ -9,6 +10,11 @@ def refresh(store, github):
     clone = store.data / 'clone'
     remotes = git(clone, 'remote').splitlines()
     if 'origin' not in remotes: git(clone, 'remote', 'add', 'origin', PUBLIC_REMOTE)
+    # Store installs a restricted push refspec before the first fetch. That creates
+    # the remote name without a URL; initialize only this genuinely missing URL.
+    configured = subprocess.run(['git', '-C', str(clone), 'config', '--get-all', 'remote.origin.url'], capture_output=True)
+    if configured.returncode == 1: git(clone, 'config', 'remote.origin.url', PUBLIC_REMOTE)
+    elif configured.returncode != 0: raise Refused('No se pudo comprobar el destino de publicación.')
     github.validate_remote(clone)
     git(clone, 'fetch', 'origin', 'refs/heads/main:refs/remotes/origin/main')
     sha = git(clone, 'rev-parse', 'refs/remotes/origin/main')

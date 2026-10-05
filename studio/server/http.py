@@ -66,7 +66,7 @@ class Application:
         if len(parts) == 4 and parts[:2] == ['api', 'comments'] and parts[3] == 'resolve' and method == 'POST':
             self.store.resolve(parts[2], user); return {'ok': True}
         if len(parts) == 4 and parts[:2] == ['api', 'jobs'] and parts[3] == 'accept' and method == 'POST':
-            return assist.accept(self.store, parts[2], user, body.get('block_ids'), body.get('base_rev'))
+            return assist.accept(self.store, parts[2], user, body.get('block_ids'), body.get('base_rev'), body.get('edits'))
         if len(parts) == 3 and parts[:2] == ['api', 'jobs'] and method == 'GET':
             key = parts[2]
             if not __import__('re').fullmatch('[0-9a-f]{24}', key): raise KeyError('La sugerencia no existe.')
@@ -76,7 +76,7 @@ class Application:
             queued = json.loads(envelope.read_text())
             if queued['author'] != user: raise Refused('Solo el autor puede ver sus sugerencias.')
             done = self.store.data / 'jobs/done' / (key + '.json')
-            return json.loads(done.read_text()) if done.exists() else {'status': 'queued'}
+            return json.loads(done.read_text()) if done.exists() and done.stat().st_size <= 2*1024*1024 else {'status': 'queued'}
         if path == '/api/issues':
             if method == 'GET': return [issues.get(self.store, p['slug']) for p in self.store.list() if p['kind'] == 'issue']
             if method == 'POST': return issues.create(self.store, user, body.get('issue', body))
@@ -138,11 +138,12 @@ class Application:
             if body.get('kind') not in ('translate', 'cite_check', 'layout_qa', 'dek'): raise ValueError('La sugerencia no es válida.')
             loc = locale(body.get('loc'))
             if body['kind'] == 'layout_qa':
-                return {'status': 'unavailable', 'plain_es': 'La revisión visual necesita el navegador y el editor integrados.', 'plain_en': 'Visual review requires the browser and integrated editor.'}
+                from .layout_qa import run
+                return run(self, value, user)
             heartbeat = self.store.data / 'jobs/worker-heartbeat'
             if not heartbeat.is_file() or self.store.clock() - heartbeat.stat().st_mtime > 10: return {'status': 'no_worker'}
             ident = secrets.token_hex(12)
-            envelope = {'id': ident, 'author': user, 'kind': body['kind'], 'slug': value, 'locale': loc, 'rev': self.store.piece(value)['head_rev'], 'doc': self.store.doc(value, loc)['doc']}
+            envelope = {'id': ident, 'author': user, 'kind': body['kind'], 'slug': value, 'locale': loc, 'rev': self.store.piece(value)['head_rev'], 'doc': self.store.doc(value, self.store.payload(value)['piece']['source_locale'] if body['kind'] == 'translate' else loc)['doc']}
             atomic(self.store.data / 'jobs/queued' / (ident + '.json'), json.dumps(envelope, ensure_ascii=False).encode())
             return {'job_id': ident}
         raise KeyError('La página no existe.')

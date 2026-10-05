@@ -98,7 +98,9 @@ class GitHub:
         if not source_ids or None in source_ids: return False
         for ident in source_ids:
             detail = self.request(user, 'GET', '/rulesets/' + str(ident)) or {}
-            if detail.get('enforcement') != 'active' or detail.get('bypass_actors'): return False
+            # GitHub hides bypass_actors without ruleset write visibility.
+            # Missing metadata is not evidence of an empty exception list.
+            if detail.get('enforcement') != 'active' or detail.get('bypass_actors') != []: return False
         return True
     def merge(self, user, number, head):
         result = self.request(user, 'PUT', '/pulls/' + str(number) + '/merge', {'sha': head, 'merge_method': 'merge'})
@@ -173,9 +175,21 @@ class Workspace:
         if not changed or any(path != str(rel) if is_issue else not path.startswith(str(rel) + '/') for path in changed): raise Refused('La publicación contiene cambios fuera del artículo.')
         # Do not follow a draft symlink into private state.
         if any(p.is_symlink() for p in destination.rglob('*')): raise Refused('La publicación contiene un archivo no permitido.')
-        env = {k: v for k, v in os.environ.items() if not k.startswith(('GH_TOKEN', 'GITHUB_TOKEN', 'STUDIO_', 'GHOST_'))}
+        env = {k: v for k, v in os.environ.items() if not k.startswith(('GH_TOKEN', 'GITHUB_TOKEN', 'STUDIO_', 'GHOST_', 'DOGFOOD_'))}
         run = subprocess.run(self.check_command, cwd=target, env=env, capture_output=True, timeout=1800)
-        if run.returncode: raise Refused('Las comprobaciones locales fallaron. Revisa el artículo; nada se hizo público.')
+        if run.returncode:
+            # Keep bounded identifiers for operator diagnosis, never document
+            # excerpts, tokens, raw test traces or host paths in the audit/UI.
+            import re
+            output = (run.stdout + run.stderr).decode('utf-8', errors='replace')
+            failures = re.findall(r'^(?:FAIL|ERROR): ([a-zA-Z0-9_]+) \(([a-zA-Z0-9_.]+)\)', output, re.M)[:100]
+            gates = re.findall(r'^([A-Z_]+) FAIL', output, re.M)[:30]
+            diagnostics = self.store.data / 'check-results'
+            diagnostics.mkdir(exist_ok=True, mode=0o700)
+            atomic(diagnostics / (pub['id'] + '.json'), encoded({'exit_code': run.returncode, 'failed_tests': failures, 'failed_gates': gates}).encode())
+            raise Refused('Las comprobaciones locales fallaron. Revisa el artículo; nada se hizo público.')
+        if git(target, 'status', '--porcelain', '--untracked-files=no'):
+            raise Refused('Las comprobaciones modificaron la versión aprobada. Pide una nueva revisión.')
         head = git(target, 'rev-parse', 'HEAD')
         return {'head_sha': head, 'base_sha': base_sha, 'candidate': str(target)}
     def verify_base(self, pub):
@@ -221,7 +235,10 @@ class Publisher:
             self.store.db.execute('UPDATE pieces SET state=? WHERE slug=?', ('changes_requested', pub['slug']))
         self.store.db.commit()
     def get(self, value):
-        with self.mutex, self.store.mutex:
+        # A committed snapshot needs only the database lock. The transition
+        # lock may be held by minutes of git/build/CI work; readers must still
+        # be able to observe the last committed progress while that runs.
+        with self.store.mutex:
             self.store._row(value)
             row = self.store.db.execute('SELECT * FROM publications WHERE slug=? ORDER BY rowid DESC LIMIT 1', (value,)).fetchone()
             if not row: return {'state': self.store.piece(value)['state'], 'timeline': []}

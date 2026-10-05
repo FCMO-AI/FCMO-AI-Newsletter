@@ -4,6 +4,8 @@ import { h, clear, modal, toast, ago } from './ui.js'
 import { shell, session } from './main.js'
 import { plainText } from './docmodel.js'
 import { diffView } from './diffview.js'
+import { suggestions } from './assistant.js'
+import { amendDialog } from './publication-actions.js'
 import { checksList, versionsPanel } from './drawers.js'
 
 const LOCS = ['en', 'es-419', 'zh-Hans']
@@ -38,6 +40,14 @@ export async function translateScreen (root, slug, fromLoc, targetArg) {
   const srcLoc = meta.source_locale
   const target = targetArg && targetArg !== srcLoc ? targetArg : LOCS.find(l => l !== srcLoc)
   const [src, tgtRes, figRes] = await Promise.all([get(`/api/pieces/${slug}/doc/${srcLoc}`), get(`/api/pieces/${slug}/doc/${target}`), get(`/api/pieces/${slug}/figures`)])
+  let localCopy
+  try { localCopy = JSON.parse(localStorage.getItem(`studio:buf:${slug}:${target}`) || 'null') } catch {}
+  if (localCopy && JSON.stringify(localCopy.doc) !== JSON.stringify(tgtRes.doc)) {
+    modal({ title: t('ed.restore.local'), body: t('ed.restore.local'), actions: [
+      { label: t('ed.restore.drop'), onclick: close => { localStorage.removeItem(`studio:buf:${slug}:${target}`); close() } },
+      { label: t('ed.restore.go'), kind: 'primary', onclick: async close => { try { await put(`/api/pieces/${slug}/doc/${target}`, { base_rev: tgtRes.rev, doc: localCopy.doc, cursor: {} }); localStorage.removeItem(`studio:buf:${slug}:${target}`); close(); location.reload() } catch (e) { toast(e.data?.error_plain || t('err.generic'), 'bad') } } }
+    ] })
+  }
   let rev = tgtRes.rev; const tdoc = tgtRes.doc; const figures = figRes
   let readOnly = !['draft', 'changes_requested', 'amending'].includes(meta.state); let dirty = false; let timer = null; let figT = null; let dead = false
   try { await post(`/api/pieces/${slug}/lock/${target}`) } catch (e) { if (e instanceof ApiError && e.status === 409) readOnly = true }
@@ -116,8 +126,8 @@ export async function translateScreen (root, slug, fromLoc, targetArg) {
     if (target === 'zh-Hans') { const cb = h('input', { type: 'checkbox' }); modal({ title: t('tr.review'), body: [h('p', null, t('tr.zh.ask')), h('label', { class: 'check' }, cb, ' ', t('tr.zh.confirm'))], actions: [{ label: t('tr.cancel') }, { label: t('tr.confirm'), kind: 'primary', onclick: close => { if (cb.checked) doIt(close) } }] }) } else doIt()
   } }, t('tr.review'))
   const route2 = () => { location.hash = `#/p/${slug}/${fromLoc}/translate/${target}`; location.reload() }
-  const status = langState.state === 'ready' && langState.reviewed ? h('p', { class: 'tr-status ok' }, t('tr.reviewed', { who: langState.by || '', when: langState.at ? ago(langState.at, t) : '' })) : h('p', { class: 'tr-status' }, t('state.' + (langState.state || 'empty')), langState.origin === 'agent_draft' ? ' · ' + t('tr.agent') : '')
-  const assist = h('button', { class: 'btn small ghost', type: 'button', onclick: async () => { const r = await post(`/api/pieces/${slug}/assist`, { kind: 'translate', loc: target }); if (r.status === 'no_worker') toast(t('tr.nowork')) } }, t('tr.assist'))
+  const status = langState.state === 'ready' && langState.reviewed ? h('p', { class: 'tr-status ok' }, t('tr.reviewed', { who: langState.by || '', when: langState.at ? ago(langState.at, t) : '' })) : h('p', { class: 'tr-status' }, t('state.' + (langState.state || 'empty')), (langState.origin || '').startsWith('agent_') ? ' · ' + t('tr.agent') : '')
+  const assist = h('button', { class: 'btn small ghost', type: 'button', onclick: async () => { await save(); await suggestions(slug, target, 'translate', assist) } }, t('tr.assist'))
   const tabs = h('nav', { class: 'lang-tabs', 'aria-label': t('tr.pick') }, LOCS.filter(l => l !== srcLoc).map(l => h('a', { href: `#/p/${slug}/${fromLoc}/translate/${l}`, class: 'lt ' + ((meta.locales[l] || {}).state || 'empty'), 'aria-current': l === target ? 'page' : null }, LOCALE_SHORT[l], ' ', h('span', { class: 'lt-dot' }, { ready: '●', drafting: '◐', later: '⏸', empty: '○' }[(meta.locales[l] || {}).state || 'empty']))))
   root.append(shell(h('div', { class: 'flow tr' }, crumbs(slug, meta.title, t('tr.title')),
     h('div', { class: 'flow-head' }, h('h1', null, t('tr.title')), tabs, state),
@@ -154,7 +164,7 @@ export async function previewScreen (root, slug, loc0) {
   const meta = await get(`/api/pieces/${slug}`)
   const st = { loc: loc0, size: innerWidth < 700 ? '390' : '1440', theme: matchMedia('(prefers-color-scheme:dark)').matches ? 'dark' : 'light' }
   const stage = h('div', { class: 'pv-main' }); const side = h('div', { class: 'pv-side' }); let frame
-  const have = Object.fromEntries(LOCS.map(l => [l, (meta.locales[l] || {}).words > 0 || (meta.locales[l] || {}).state === 'later']))
+  const have = Object.fromEntries(LOCS.map(l => [l, meta.kind === 'issue' || (meta.locales[l] || {}).words > 0 || (meta.locales[l] || {}).state === 'later']))
   async function draw () {
     frame && frame.destroy(); clear(stage)
     stage.append(h('div', { class: 'pv-banner' }, '✓ ', t('pv.banner')), controls(st, p => { Object.assign(st, p); draw() }, have))
@@ -165,6 +175,10 @@ export async function previewScreen (root, slug, loc0) {
   }
   root.append(shell(h('div', { class: 'flow pv' }, crumbs(slug, meta.title, t('pv.title')), h('div', { class: 'pv-grid' }, stage, side), h('div', { class: 'btn-row' }, h('a', { class: 'btn', href: `#/p/${slug}/${st.loc}` }, '← ', t('pv.back')), meta.author === session.me.user ? h('a', { class: 'btn primary', href: `#/p/${slug}/publish` }, t('ed.publish')) : null)), { active: 'home', wide: true }))
   await draw()
+  if (meta.author === session.me.user) { root.querySelector('.btn-row').append(h('button', { class: 'btn', onclick: async () => { const r = await post(`/api/pieces/${slug}/assist`, { kind: 'layout_qa', loc: st.loc }); toast(r.status === 'done' ? t('assist.qa.done') + (r.ok ? ' ✓' : ' !') : r.plain_es || t('err.generic')) } }, t('assist.qa'))) }
+  if (meta.kind !== 'issue' && meta.author === session.me.user && ['published', 'withdrawn'].includes(meta.state)) {
+    root.querySelector('.btn-row').append(h('button', { class: 'btn', onclick: () => amendDialog(meta) }, t('amend.correct')), h('button', { class: 'btn', onclick: () => amendDialog(meta, true) }, t('amend.withdraw')))
+  }
   return () => frame && frame.destroy()
 }
 
@@ -175,16 +189,16 @@ export async function publishScreen (root, slug) {
   const act = h('div', { class: 'btn-row' })
   async function draw () {
     clear(box); clear(act); box.append(h('p', { class: 'muted', role: 'status' }, t('chk.running')))
-    const list = await checksList(slug, c => { location.hash = `#/p/${slug}/${c.loc || meta.source_locale}${c.block_id ? '' : ''}`; if (c.block_id) setTimeout(() => window.__studioGoto && window.__studioGoto(c.block_id), 800) })
+    const list = await checksList(slug, c => { location.hash = meta.kind === 'issue' ? `#/issues/${slug}` : `#/p/${slug}/${c.loc || meta.source_locale}`; if (c.block_id) setTimeout(() => window.__studioGoto && window.__studioGoto(c.block_id), 800) })
     clear(box); box.append(list)
     const bad = list.list.filter(c => !c.ok)
-    const mt = LOCS.filter(l => (meta.locales[l] || {}).state === 'ready' && (meta.locales[l] || {}).origin === 'agent_draft' && !(meta.locales[l] || {}).reviewed)
+    const mt = LOCS.filter(l => (meta.locales[l] || {}).state === 'ready' && ((meta.locales[l] || {}).origin || '').startsWith('agent_') && !(meta.locales[l] || {}).reviewed)
     if (mt.length) box.append(h('p', { class: 'notice soft' }, t('pub.mt', { langs: mt.map(l => LOCALE_NAME[l]).join(', ') })))
     const ask = h('button', { class: 'btn primary big', type: 'button', disabled: bad.length > 0 || meta.author !== session.me.user, onclick: async () => { try { await post(`/api/pieces/${slug}/review/request`); toast(t('pub.sent', { who: other() })); location.hash = '#/' } catch { toast(t('err.generic'), 'bad') } } }, t('pub.ask'))
     act.append(ask, h('button', { class: 'btn', type: 'button', onclick: draw }, t('pub.rerun'))); if (bad.length) act.append(h('span', { class: 'muted' }, t('pub.blocked', { n: bad.length })))
   }
   const mount = () => root.append(shell(h('div', { class: 'flow pub' }, crumbs(slug, meta.title, t('ed.publish')), h('h1', null, t('pub.title', { title: meta.title })), h('p', { class: 'lede' }, t('pub.lead', { who: other() })),
-    h('div', { class: 'sheet' }, box, h('p', { class: 'reviewer' }, h('span', { class: 'avatar' }, other()[0]), t('pub.reviewer', { who: other() })), act)), { active: 'home' }))
+    h('div', { class: 'sheet' }, h('p', { class: 'notice soft' }, t('pub.public')), box, h('p', { class: 'reviewer' }, h('span', { class: 'avatar' }, other()[0]), t('pub.reviewer', { who: other() })), act)), { active: 'home' }))
   mount()
   await draw()
   return null
@@ -196,14 +210,38 @@ export async function reviewScreen (root, slug) {
   const mine = meta.author === session.me.user
   const st = { loc: meta.source_locale, size: innerWidth < 700 ? '390' : '1440', theme: 'light' }
   const stage = h('div', { class: 'rv-read' }); const diffBox = h('div', { class: 'rv-diff' }); const cmtBox = h('div', { class: 'rv-cmt' })
-  let frame
-  const have = Object.fromEntries(LOCS.map(l => [l, (meta.locales[l] || {}).words > 0 || (meta.locales[l] || {}).state === 'later']))
-  function drawRead () { frame && frame.destroy(); clear(stage); stage.append(h('div', { class: 'pv-banner' }, '✓ ', t('pv.banner')), controls(st, p => { Object.assign(st, p); drawRead(); drawDiff() }, have)); frame = previewFrame({ slug, ...st }); stage.append(frame.el) }
+  let frame; let selectedBlock = null; let selectedText = ''
+  const selectionHint = h('p', { class: 'hint', role: 'status' }, t('rev.pick'))
+  const have = Object.fromEntries(LOCS.map(l => [l, meta.kind === 'issue' || (meta.locales[l] || {}).words > 0 || (meta.locales[l] || {}).state === 'later']))
+  function drawRead () {
+    frame && frame.destroy(); clear(stage)
+    stage.append(h('div', { class: 'pv-banner' }, '✓ ', t('pv.banner')), controls(st, p => {
+      if (p.loc && p.loc !== st.loc) { selectedBlock = null; selectedText = ''; selectionHint.textContent = t('rev.pick') }
+      Object.assign(st, p); drawRead(); drawDiff(); drawCmt()
+    }, have), selectionHint)
+    frame = previewFrame({ slug, ...st }); stage.append(frame.el)
+    frame.el.querySelector('iframe').addEventListener('load', e => {
+      try { e.target.contentDocument.addEventListener('click', event => {
+        const block = event.target.closest('.essay-body [id^="b-"]')
+        if (!block) return
+        selectedBlock = block.id; selectedText = block.textContent.trim().slice(0, 160)
+        selectionHint.textContent = t('rev.selected', { text: selectedText }); drawCmt()
+      }) } catch {}
+    })
+  }
   async function drawDiff () {
     clear(diffBox)
+    if (!meta.published_rev) { diffBox.append(h('p', { class: 'muted' }, t('rev.none'))); return }
     try { const d = await get(`/api/pieces/${slug}/diff?from=published&to=current&loc=${st.loc}`); diffBox.append(diffView(d)) } catch { diffBox.append(h('p', { class: 'muted' }, t('rev.none'))) }
   }
-  async function drawCmt () { const { commentsPanel } = await import('./drawers.js'); clear(cmtBox); cmtBox.append(await commentsPanel(slug, st.loc, { block: () => { try { return stage.querySelector('iframe')?.contentDocument.querySelector('.essay-body [id^="b-"]')?.id || null } catch { return null } }, goto: id => { try { stage.querySelector('iframe')?.contentDocument.getElementById(id)?.scrollIntoView() } catch {} } })) }
+  async function drawCmt () {
+    const loc = st.loc; const { commentsPanel } = await import('./drawers.js')
+    const panel = await commentsPanel(slug, loc, { block: () => selectedBlock, goto: id => {
+      showTab('read'); try { stage.querySelector('iframe')?.contentDocument.getElementById(id)?.scrollIntoView() } catch {}
+    } })
+    if (st.loc !== loc) return
+    clear(cmtBox); cmtBox.append(h('p', { class: 'hint' }, selectedBlock ? t('rev.selected', { text: selectedText }) : t('rev.pick')), panel)
+  }
   const tabs = ['read', 'diff', 'cmt']; let tab = 'read'
   const panes = { read: stage, diff: diffBox, cmt: cmtBox }
   const tabBar = h('div', { class: 'seg rv-tabs', role: 'tablist' })

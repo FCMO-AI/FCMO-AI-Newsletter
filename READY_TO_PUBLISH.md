@@ -20,8 +20,10 @@ Status: **the deterministic A3 publication candidate is assembled and measurable
 - Story routes: 129 for 43 live canonical stories
 - Embedded `data/stories.v2.json`: byte-identical to the Story layer; SHA-256 `d654f5b30cf585022a5df37ea558b0a45f8a659ff65b911e06430d1aea0ec10a`
 - Embedded `data/newsroom-status.json`: byte-identical to newsroom status; SHA-256 `72aff2da850f5cb5be57359470d55725d2142f7c0357f70905069437c926a3ac`
-- Candidate tree: 1962 files, including 135 local story-media files; SHA-256 `98df326dd2c87c1ec510126adfc94fdb4494ece52b1c32ec53904d68fd6f657a`
+- Candidate tree: 1963 files, including 135 local story-media files; SHA-256 `dd823653fc655375d66ef141442f1bd8039a3ab2ba92ede7ed9f609a64bbe546`
 
 ## Verification boundary
+
+This receipt freezes the automated Story/status edition. Human pieces and curated issues are independently committed through review; the combined publication must pass `PIECE_VALID`, all fourteen gates and the browser oracle.
 
 This receipt is generated from `tools/paper/build.py` and measures its final `data/routes.json` plus the embedded source artifacts. It does not describe or mount the retired `release-overlay` frontend. GitHub Pages separately generates OG cards, runs all A4 gates, runs the browser oracle, deploys the candidate, verifies the live site, and only then advances the durable `lkg` tag.

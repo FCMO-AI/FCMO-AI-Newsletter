@@ -57,6 +57,11 @@ export async function versionsPanel (slug, loc, { save, onRestored, ready }) {
   const name = h('input', { type: 'text', placeholder: t('ver.name') })
   root.append(h('div', { class: 'ver-new' }, name, h('button', { class: 'btn small', type: 'button', onclick: async () => { await save(); await post(`/api/pieces/${slug}/versions`, { name: name.value.trim() }); name.value = ''; toast(t('common.save') + ' ✓'); const fresh = await versionsPanel(slug, loc, { save, onRestored, ready }); root.replaceWith(fresh) } }, t('ver.save'))))
   if (!list.length) root.append(h('p', { class: 'muted' }, t('ver.empty')))
+  if (list.length > 1) {
+    const choose = label => h('select', { 'aria-label': label }, list.map(v => h('option', { value: v.rev }, v.name || ago(v.at, t))))
+    const left = choose(t('ver.first')); const right = choose(t('ver.second')); right.selectedIndex = 1
+    root.append(h('div', { class: 'btn-row' }, left, right, h('button', { class: 'btn small', onclick: async () => { const d = await get(`/api/pieces/${slug}/diff?from=${left.value}&to=${right.value}&loc=${loc}`); modal({ title: t('ver.compare.two'), wide: true, body: diffView(d), actions: [{ label: t('common.close') }] }) } }, t('ver.compare.two'))))
+  }
   root.append(h('ol', { class: 'ver-list' }, list.map(v => h('li', null,
     h('div', { class: 'ver-main' }, h('strong', null, v.name || t('ver.auto')), h('small', null, ago(v.at, t), ' · ', t('ver.by', { who: v.user }))),
     h('div', { class: 'ver-act' },
@@ -70,7 +75,7 @@ export async function commentsPanel (slug, loc, { block, goto }) {
   const all = await get(`/api/pieces/${slug}/comments`)
   const open = all.filter(c => !c.resolved_at)
   const ta = h('textarea', { rows: 3, placeholder: t('cmt.ph'), 'aria-label': t('cmt.add') })
-  root.append(h('p', { class: 'hint' }, t('cmt.never')), h('div', { class: 'cmt-new' }, ta, h('button', { class: 'btn small', type: 'button', onclick: async () => { if (!ta.value.trim()) return; await post(`/api/pieces/${slug}/comments`, { locale: loc, block_id: block(), body: ta.value.trim() }); const fresh = await commentsPanel(slug, loc, { block, goto }); root.replaceWith(fresh) } }, t('cmt.send'))))
+  root.append(h('p', { class: 'hint' }, t('cmt.never')), h('div', { class: 'cmt-new' }, ta, h('button', { class: 'btn small', type: 'button', disabled: !block(), onclick: async () => { if (!ta.value.trim() || !block()) return; await post(`/api/pieces/${slug}/comments`, { locale: loc, block_id: block(), body: ta.value.trim() }); const fresh = await commentsPanel(slug, loc, { block, goto }); root.replaceWith(fresh) } }, t('cmt.send'))))
   if (!open.length) root.append(h('p', { class: 'muted' }, t('cmt.empty')))
   open.forEach(c => root.append(h('div', { class: 'cmt' }, h('p', { class: 'cmt-meta' }, h('strong', null, c.user), ' · ', ago(c.at, t)), h('p', null, c.body),
     h('div', { class: 'ver-act' }, c.block_id ? h('button', { class: 'link-btn', type: 'button', onclick: () => goto(c.block_id) }, t('cmt.go')) : null,

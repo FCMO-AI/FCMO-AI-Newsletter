@@ -1,6 +1,6 @@
 import { get, post, setCsrf } from './api.js'
 import { setLang, t } from './i18n.js'
-import { h, clear, toast } from './ui.js'
+import { h, clear, toast, closeModals } from './ui.js'
 import { login, home } from './screens-home.js'
 import { editorScreen } from './screen-editor.js'
 import { translateScreen, previewScreen, publishScreen, reviewScreen, progressScreen, versionsScreen } from './screens-flow.js'
@@ -63,6 +63,7 @@ const routes = [
 export async function route () {
   const mine = ++rendering
   if (dispose) { try { dispose() } catch { /* leaving */ } dispose = null }
+  closeModals()
   const hash = location.hash || '#/'
   if (!(await ensureMe())) { clear(app); dispose = login(app, () => { location.hash = '#/'; route() }); return }
   if (hash === '#/login') { location.hash = '#/'; return }

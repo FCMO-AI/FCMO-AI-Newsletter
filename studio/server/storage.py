@@ -146,6 +146,8 @@ class Store:
             row['updated_at'] = datetime.fromtimestamp(row['saved_at'], timezone.utc).isoformat()
             row['meta'] = payload['piece']; row['title'] = payload.get('issue', {}).get('title', {}).get('en') or payload['docs'][payload['piece']['source_locale']]['title']
             row['lock'] = {r['locale']: {'user': r['user'], 'at': r['at']} for r in self.db.execute('SELECT * FROM locks WHERE slug=?', (value,))}
+            published = self.db.execute("SELECT payload_json FROM publications WHERE slug=? AND state='published' ORDER BY rowid DESC LIMIT 1", (value,)).fetchone()
+            row['published_rev'] = json.loads(published[0])['approved_rev'] if published else None
             row['comments_count'] = self.db.execute('SELECT count(*) FROM comments WHERE slug=? AND resolved_at IS NULL', (value,)).fetchone()[0]
             return row
     def list(self, state=None):

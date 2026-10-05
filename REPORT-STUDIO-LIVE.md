@@ -1,291 +1,168 @@
-# Studio live publication — local implementation and proof
+# L23b — Studio, de construido a publicable
 
-2026-10-05 UTC · branch `c5/studio-live` · implementation `031c8d6`; recovery fix `a9744a4`.
+2026-10-05 UTC · `c5/studio-live` · Codex · entrega local, sin push.
 
-Studio now has a real, protected GitHub publishing path and a user-level launcher.
-The offline end-to-end test writes an essay and a curated edition to a bare git
-remote, then rebuilds the remote's actual main commit and verifies the edition's
-three locale routes. GitHub review/check/Pages responses in that test remain
-explicit control-plane doubles. No external push, merge, deployment, service
-installation or production-visibility claim is made.
+## Resultado y frontera
 
-## Integration and release boundary
+La especificación vinculante y la integración montadas fueron leídas y contrastadas
+con la implementación. La matriz completa está en
+`reports/STUDIO-CONFORMITY-L23b.md`: **111 filas; 95 met, 16 partly met, 0 missing**.
+`met` representa implementación y prueba local; las filas parciales conservan la
+aceptación humana, acceso tailnet, cuentas/protecciones y publicación real pendientes.
+El worker de modelos es la lane C, explícitamente posterior y no bloqueante de v1;
+no se afirma que esté instalado ni que sus traducciones tengan aprobación humana.
 
-- Merged the available `origin/main` (`3bdf00e`) into this branch at `f5ab187`.
-  No fetch or mutation of the real main/origin was performed. v4's public chrome,
-  CSS, mobile fixes, freshness rules, citation history and published data win.
-  Builder conflicts preserve Studio editorial input **and** v4 citation retention
-  and historical-edition redirects. The fixture manifest is an additive union.
-- `ops/publish.py --check` reconstructs the committed Story/status/editorial input,
-  requires an existing LKG commit, runs agent hygiene and all fourteen publication
-  gates. It cannot push or deploy. Local checks do not replace the PR browser gate.
-- The existing validation workflow now supplies the actual `publish-gate` check.
-  It builds editorial changes, preserves browser validation and identity generation,
-  and has read-only permissions. Pages triggers for `editorial/**`, includes editorial
-  input, and preserves its existing browser, exact public-origin, LKG-promotion and
-  rollback jobs. LKG recovery includes editorial records from the LKG checkout
-  when its renderer supports them; pre-Studio LKG remains recoverable. A separate
-  shell regression runs both renderer contracts (red commit `b64c8d9`).
-- Studio reads the newsroom library through a detached public-commit snapshot in
-  its private store. Startup and successful publication refresh it. Changed snapshot
-  bytes refuse reuse. Publication always starts from freshly fetched public main;
-  only the selected allowlisted piece or issue is copied. Draft ancestry and all
-  other files stay private. The sanitized ARB/corpus contract is preserved.
-- The real server uses the host's `gh` credential without extracting its token, or
-  the existing named fine-grained token variables. Author/reviewer identities must
-  differ. Missing credentials, changed main, failed local/public checks and absent
-  active protections refuse publication. Writes retain intent/reconciliation; an
-  ambiguous response does not cause a blind resend. Candidate branches cannot
-  overwrite an existing ref. Fetch and push destinations are restricted to the
-  public Newsletter repository.
-- `studio/host-ops/start.sh` forces `127.0.0.1:8447`. The optional user unit calls
-  that launcher. Nothing was installed. `STUDIO_DRY_RUN=1` allows private approval
-  but suppresses the publication worker even if live is otherwise enabled.
+Se integraron los 19 commits de `origin/main` `a8cfcbb` mediante **`7c202f5`**,
+incluido PR #56. Se conservó `REPORT.md` de main en el único conflicto. El chrome,
+datos y reglas de freshness v4 ganan; el builder mantiene la entrada editorial de
+Studio. No se hizo fetch, push, merge remoto, deploy ni instalación de producción.
 
-## Credential and specification boundary
+**No activar todavía las nuevas protecciones en producción:** los workflows
+`newswire-bridge.yml:506` y `daily-refresh.yml:215` hacen push directo a main. PR,
+otra aprobación y cero bypass rechazarían esas escrituras. Se pidió decisión al
+operador sobre ese circuito; no se cambió el desk ni se inventó una credencial,
+aprobación o bypass. El arquitecto debe resolverlo preservando publicación legítima,
+autonomía y frescura, antes de aplicar el script. Un Studio local correcto no prueba
+la operación diaria ni la freshness del periódico live.
 
-`gh` is installed, but `gh auth status --hostname github.com` reported no logged-in
-GitHub host in this execution environment. No token or credential file was read
-or printed. The alternative credential names are `GH_TOKEN_JAVIER` and
-`GH_TOKEN_MATIAS`; their availability and permissions were not inspected. The
-preferred host configuration uses `STUDIO_GH_CONFIG_JAVIER` and
-`STUDIO_GH_CONFIG_MATIAS` with two distinct GitHub identities. A single host account
-cannot substitute for the other person's approval.
+## Trabajo incorporado
 
-The requested `../../STUDIO-SPEC.md`, `../../STUDIO-INT.md` and `../../reports` are
-absent from this environment. A text question requesting the accessible spec path
-was issued. The checked-in A1/A2/B/integration reports and implemented contracts
-were read instead; this does **not** establish conformity to the missing binding
-specification. The architect must supply and compare it before accepting this lane.
+- `ops/publish.py --check` ejecuta la suite completa, los siete controles de release
+  existentes, exige LKG, reconstruye Story/status/editorial, higiene, **14 gates** y
+  el navegador real. `--fixture-build` es explícito y exclusivo de fixtures; no es
+  una validación de publicación. El workflow `publish-gate` corre en todo PR a main,
+  instala Chromium/Playwright/axe antes del chequeo y conserva permisos read-only.
+- El recibo immutable del newsroom se calcula sobre su entrada Story/status y
+  editorial vacío explícito. Las piezas humanas se versionan por separado y el
+  build combinado sigue sujeto a PIECE_VALID, privacidad, 14 gates y navegador.
+  Esto permite una segunda publicación humana sin invalidar el recibo del desk.
+- El arranque repara únicamente un origin sin URL; no sustituye una URL incorrecta.
+  El launcher obliga loopback y acepta `STUDIO_PORT` alternativo. El estado HTTP de
+  publicación se puede leer durante una comprobación larga; ya no espera su mutex.
+- Asistencia por párrafo: aceptar, editar y descartar; original presente en el job;
+  título/dek, revisión de citas y QA visual determinista sin worker. La aceptación
+  mantiene `agent_draft`/`agent_draft_human_edited` y nunca inventa human-reviewed.
+- UI de correcciones fechadas, retiro con motivo y notas trilingües, recuperación
+  explícita, biblioteca por fecha/tema/clase, edición de issues y comparación de
+  dos checkpoints. El atajo `[[` abre la fuente. Se puede soltar una foto en la página y reordenar tarjetas.
+- La imagen de canvas se normaliza a WebP sin ICC/EXIF/XMP antes de subir; el servidor
+  conserva el rechazo estricto de metadata. La serialización conserva la forma del
+  documento, evitando invalidar traducciones al editar sólo metadata de una figura.
+- Revisión móvil: elegir un párrafo en el preview, comentar ese bloque y su idioma,
+  volver desde el comentario. El renderer compartido conserva ids en todos los
+  bloques, no sólo encabezados. Una pieza nueva no pide un diff publicado inexistente.
+- `.github/CODEOWNERS` contiene placeholders señalados para ambos handles reales.
+  `ops/studio/protect-main.sh` imprime JSON con `--dry-run`, aplica/lee el ruleset,
+  guarda intención antes del efecto y permite `--rollback` del estado anterior.
+  No sobrescribe reglas modificadas después. Exige una aprobación, code owner,
+  last-push, stale dismissal, publish-gate estricto y cero bypass. Studio rehúsa
+  también un campo bypass oculto: ausencia no demuestra lista vacía.
+- Un fallo de checker conserva sólo identificadores de tests/gates y exit code en
+  un diagnóstico privado 0600; nunca trazas, texto de borrador, secretos o rutas.
 
-The repository does not yet supply `.github/CODEOWNERS`. The architect must use the
-actual GitHub handles to configure editorial owners and active main rules requiring
-one other-person approval, code-owner review, dismissal of stale reviews,
-last-push approval and strict `publish-gate`, with no bypass actors. Studio refuses
-missing protections; this lane does not configure them remotely.
+## Fallos encontrados antes del operador
 
-## Evidence and replay
+El dogfood real encontró el bloqueo del GET de progreso durante checks largos,
+una URL origin ausente al primer arranque, fixtures que heredaban piezas humanas
+y tests que asumían un `_audit` preexistente en un checkout nuevo. Se corrigieron
+sus causas y se conservaron las aserciones y gates. El navegador encontró pérdida
+de letras en notas, metadata ICC de canvas y desalineación entre forma del documento
+y traducciones; tienen pruebas de regresión. La revisión encontró comentarios
+siempre al primer bloque y un diff 404 normal tratado como error de consola. La inspección de frames
+descubrió que un diálogo de recuperación sobrevivía al cambio de pantalla y tapaba
+la revisión. Se cierra al salir y conserva el buffer privado; una regresión de
+navegador lo prueba y los 68 frames se repitieron sobre la interfaz corregida.
 
-Red-first commit `b89b1a4` failed on missing publish/check and launcher entrypoints,
-missing editorial workflow wiring and missing credential preflight. Its initial
-reused-test method name was corrected to the actual existing adversarial test.
-Implementation is committed at `031c8d6`.
+El selector nativo tuvo fallos intermitentes bajo automatización. El harness ahora
+registra la interceptación antes de escribir, conservándola hasta terminar; cinco
+recorridos consecutivos pasaron. La aplicación mantiene un único input nativo,
+lo limpia tras seleccionar y lo destruye al cerrar el editor. No se sustituyó el
+chooser por una inserción artificial ni se silenciaron errores del navegador.
 
-Executed evidence:
+## Evidencia final
 
-- Final full suite on the completed worktree: **670 tests, no failures/errors,
-  four skips, 235.113 s**. The skips are three existing browser-dependent
-  cases and the inapplicable absent-renderer negative. All stateful refresh
-  oracles ran; no skip environment was added.
-- Bare-remote essay **and** issue journey: passed. Actual git transport and merge
-  land on the local remote; a clean clone rebuilds both exact committed records,
-  verifies essay content and all three issue routes with fourteen gates.
-- Six credential/base/dry-run/snapshot negative controls: passed.
-- Focused preview/publication/integration tests: 24 tests, no failures/errors, one inapplicable
-  absent-renderer negative skipped. Positive authenticated preview byte identity ran.
-- Issue version/conflict/published-tree tests: 3 passed.
-- Contract fixture validation: 57 passed.
-- Site build: 510 routes; agent hygiene passed; publication gates 14/14.
-- Browser oracle: refused with `BROWSER_UNAVAILABLE` (Playwright not installed).
-  No final-form visual acceptance, zero-overflow claim or live-site proof is made.
-- Browser bundle source/artifact integrity: passed; no frontend source was changed.
-- Python compilation, launcher shell syntax/real `--help` entry, and
-  `git diff --check`: passed.
+Resultados completados, con logs privados en `_audit/studio-l23b/`:
 
-Ignored evidence lives under `_audit/studio-live/`. The first full-suite run failed
-on an older mock's absent main ref and the in-progress edition fixture. The mock
-was updated to represent real main, the bare test uses the actual issue checker,
-and clean-checkout test log directories are now created explicitly. No publication
-gate was weakened.
+- **Dogfood 23/23, completed=true**, guardado sin rutas ni datos privados en
+  `reports/STUDIO-DOGFOOD-L23b.json`. Dos autores publican por HTTP y el build de
+  main sirve las tres URLs; los tres rechazos pedidos y rollback real local pasan.
+- **Suite completa: 693 tests, 303.202 s, OK; un skip inapplicable** del negativo
+  para un renderer ausente. Ningún oracle de refresh/navegador fue omitido.
+- Siete controles de release existentes, higiene y **14/14 gates** verdes; **531
+  rutas** del input actual. Browser del periódico: 129 stories, tres portadas,
+  177 páginas con headings chinos y dos viewports. Cada uno de los cuatro candidatos
+  del dogfood ejecutó también la suite/checker estrictos antes del transporte;
+  ambos candidatos publicados pasaron PIECE_VALID y navegador con la pieza incluida.
+- Web **9/9**; editor final **12/12** (incluye `[[`, foto, offline, drop/reorder y
+  diálogo de recuperación); comentarios móviles **4/4**; cierre de diálogo y buffer
+  **3/3**; interfaz final axe/overflow **36/36**. La corrección tardía del atajo y del
+  diálogo se verificó sobre el launcher real en un segundo store aislado, después
+  del bloque de navegador del recorrido principal; no altera su transporte HTTP.
+- Ensayo publicado: axe **6/6** y overflow **6/6**, tres idiomas por dos viewports.
+  **68 frames** del recorrido, repetidos como **68 frames corregidos** tras el fix
+  de diálogo. Inspeccionados traducción móvil, edición, revisión móvil oscura y
+  lectura china. No reemplazan a los jueces Sonnet/Opus ni a los dos usuarios reales.
+- Regresiones finales de publicación/storage **22 tests** y snapshot/asistencia/
+  integración/preview **16 tests** verdes (el mismo skip inapplicable); workflow
+  verificado tras fijar la misma versión ejecutada: Playwright 1.63.0 / axe 4.14.0.
+- JSON de reglas, apply/restauración previa y create/delete rollback con drift refusal
+  pasan sin GitHub real. Bundle íntegro, shell syntax, compilación y diff whitespace
+  pasan. No se ha instalado el servicio ni activado protecciones remotamente.
 
-Re-run from this checkout with a normal temporary directory outside the checkout:
+La prueba reproducible está en `studio/dogfood/run.sh` y requiere navegador instalado.
 
 ```sh
-python3 -m unittest discover -s tests
-python3 -m unittest tests.test_studio_live tests.test_studio_integration tests.test_studio_preview -v
-python3 tests/harness/validate.py --all-fixtures
+sh studio/dogfood/run.sh --browser --keep "$STUDIO_DOGFOOD_EVIDENCE"
 python3 ops/publish.py --check
-python3 tests/oraculos/verificar_paper.py publish
-python3 -c 'from pathlib import Path; from studio.server.bundle import ready; assert ready(Path.cwd())'
-git diff --check
+npm test --prefix studio/web
+sh ops/studio/protect-main.sh --dry-run
 ```
 
-The browser command requires the host's installed `PLAYWRIGHT_MODULE` and Chromium.
-Inspect essay and edition routes in EN/es-419/zh-Hans at 390 and 1440 as well as the
-Studio itself before making a visual claim. The public site remains unverified.
+El dogfood usa el launcher real, dos sesiones HTTP distintas, un Git bare como
+origin y fake gh. El transporte/merge, las comprobaciones de candidatos, la
+reconstrucción de main y los HTML servidos son reales locales; GitHub, CI y Pages
+son control-plane doubles. El fake check también reconstruye un checkout limpio;
+no es una respuesta verde sin build. La prueba cubre ambos autores, autorrevisión,
+protecciones ausentes, main cambiado, rollback de LKG sin mover main y ausencia de
+ramas draft o piezas no aprobadas. El LKG del fixture se fija al commit inicial;
+no modela la promoción de LKG que hace Pages después de un deploy bueno. La
+recuperación de producción usa el LKG vigente, que puede incluir la pieza nueva.
+Con `--browser` añade editor/offline, drop/reorder,
+comentarios móviles, traducción, checklist, accesibilidad, frames, acciones y QA.
+El resumen tiene denominador fijo **23**, cuenta ejecutada y `completed`; una
+interrupción nunca puede producir un 4/4 que parezca una prueba completa.
 
-## Exact host activation commands
+## Continuación operativa exacta
 
-These are architect/operator commands, **not executed by this lane**. Start in the
-accepted Newsletter checkout. All data, backups, sessions and gh configuration stay
-outside the public checkout. Set `STUDIO_HTTPS_ORIGIN` to the architect's private
-HTTPS origin first; tailnet routing/HTTPS remains the architect's responsibility.
+`studio/host-ops/ACTIVATION.md` contiene los pasos y comandos de principio a fin:
 
-Create a new private environment file without printing a session key:
+1. Sustituir ambos placeholders por Javier/Matías reales con permiso write e
+   integrar CODEOWNERS; mantener `publish-gate` en todos los PR a main.
+2. Preparar entorno privado 0600 y directorios 0700; credenciales separadas para
+   cada persona, sin mostrarlas al agente. Contents RW, Pull requests RW y Actions
+   read; Actions write para rollback. Administrador separado para configurar reglas.
+3. Resolver compatibilidad del desk autónomo; inspeccionar dry-run, aplicar reglas
+   con recibo privado y comprobar la visibilidad de cero bypass desde ambas cuentas.
+4. Instalar navegador/runtime, usuarios, HTTPS tailnet sin Funnel y ACL; arrancar
+   en `STUDIO_DRY_RUN=1`, `STUDIO_LIVE_ENABLED=0`. Ensayar backup/restore y timer.
+5. Hacer aceptación real de Javier/Matías: 1500 palabras, teléfono sin pérdida,
+   revisión trilingüe, restore ≤3 clics, ciclo ≤10 minutos y jueces visuales nombrados.
+   Parar Studio y ejecutar `python3 -m studio.server.publish --slug "$STUDIO_SLUG"
+   --dry-run`; resolver cualquier rechazo sin sustituir credenciales.
+6. Sólo tras aceptar esas fronteras, habilitar live en el archivo privado, reiniciar
+   y comprobar PR/review/check/merge/Pages del mismo SHA y las tres URLs. Verificar
+   también portada y freshness actual/anterior; `published` exige lectura real.
 
 ```sh
-export STUDIO_REPO="$PWD"
-export STUDIO_ENV_FILE="${XDG_CONFIG_HOME:-$HOME/.config}/fcmo-studio/studio.env"
-# Supply the real private HTTPS origin, e.g. via an existing host environment.
-: "${STUDIO_HTTPS_ORIGIN:?Set the private HTTPS origin}"
-python3 - <<'PY'
-import os, secrets, shlex
-from pathlib import Path
-repo = Path(os.environ['STUDIO_REPO']).resolve()
-envfile = Path(os.environ['STUDIO_ENV_FILE'])
-envfile.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
-private = Path(os.environ.get('XDG_DATA_HOME', str(Path.home() / '.local/share'))) / 'fcmo-studio'
-config = envfile.parent
-values = {
-    'STUDIO_REPO': str(repo), 'STUDIO_DATA': str(private / 'data'),
-    'STUDIO_BACKUPS': str(private / 'backups'),
-    'STUDIO_ORIGIN': os.environ['STUDIO_HTTPS_ORIGIN'],
-    'STUDIO_SESSION_KEY': secrets.token_urlsafe(48),
-    'STUDIO_BIND': '127.0.0.1', 'STUDIO_PORT': '8447',
-    'STUDIO_LIVE_ENABLED': '0', 'STUDIO_DRY_RUN': '1',
-    'STUDIO_ALLOW_NON_EN_SOURCE': '0',
-    'STUDIO_GH_CONFIG_JAVIER': str(config / 'gh-javier'),
-    'STUDIO_GH_CONFIG_MATIAS': str(config / 'gh-matias'),
-}
-fd = os.open(envfile, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
-with os.fdopen(fd, 'w') as f:
-    f.write(''.join(k + '=' + shlex.quote(v) + '\n' for k, v in values.items()))
-private.mkdir(parents=True, exist_ok=True, mode=0o700)
-PY
-set -a
-. "$STUDIO_ENV_FILE"
-set +a
-GH_CONFIG_DIR="$STUDIO_GH_CONFIG_JAVIER" gh auth login --hostname github.com --git-protocol https --web
-GH_CONFIG_DIR="$STUDIO_GH_CONFIG_MATIAS" gh auth login --hostname github.com --git-protocol https --web
-GH_CONFIG_DIR="$STUDIO_GH_CONFIG_JAVIER" gh api user --jq .login
-GH_CONFIG_DIR="$STUDIO_GH_CONFIG_MATIAS" gh api user --jq .login
+sh ops/studio/protect-main.sh --dry-run
+GH_CONFIG_DIR="$STUDIO_ADMIN_GH_CONFIG" sh ops/studio/protect-main.sh --state "$STUDIO_RULESET_STATE"
+GH_CONFIG_DIR="$STUDIO_ADMIN_GH_CONFIG" sh ops/studio/protect-main.sh --rollback --dry-run --state "$STUDIO_RULESET_STATE"
+GH_CONFIG_DIR="$STUDIO_ADMIN_GH_CONFIG" sh ops/studio/protect-main.sh --rollback --state "$STUDIO_RULESET_STATE"
 sh studio/host-ops/start.sh --add-user javier
 sh studio/host-ops/start.sh --add-user matias
 sh studio/host-ops/start.sh
 ```
 
-The two login commands require the corresponding people to sign in to distinct
-accounts. They print no token. Fine-grained tokens are an alternative supplied
-privately by the host environment under the named variables; do not provide their
-values to an agent, command line, report or repository. Do not select another
-credential after a refusal. Direct loopback probes use HTTP; browser access uses
-the private HTTPS origin and the existing Secure session cookie.
-
-In another terminal, prove the launcher boundary:
-
-```sh
-ss -ltn | rg '127\.0\.0\.1:8447'
-curl --fail --silent http://127.0.0.1:8447/healthz
-curl --silent --output /dev/null --write-out '%{http_code}\n' http://127.0.0.1:8447/api/pieces
-```
-
-Expected: one loopback listener, health OK, unauthenticated API 401. In Studio,
-create a draft, edit and preview it, mark language readiness deliberately, request
-review as the author and approve as the other person. Dry-run mode holds it at
-`approved`. Stop the foreground server with Ctrl-C before running the dry-run:
-
-```sh
-export STUDIO_SLUG='the-actual-approved-slug'
-set -a
-. "$STUDIO_ENV_FILE"
-set +a
-python3 -m studio.server.publish --slug "$STUDIO_SLUG" --dry-run
-```
-
-This checks the reviewed revision, two GitHub identities, protections, LKG,
-fresh public base, build and gates. It creates only a local candidate. Any refusal
-must be fixed before continuing. The server lock also refuses a dry-run while the
-server is running. Verify that the selected slug is the only approved queue entry:
-
-```sh
-python3 - <<'PY'
-import os, sqlite3
-from pathlib import Path
-with sqlite3.connect(Path(os.environ['STUDIO_DATA']) / 'studio.sqlite') as db:
-    queued = db.execute("SELECT slug FROM publications WHERE state NOT IN ('published','failed')").fetchall()
-assert queued == [(os.environ['STUDIO_SLUG'],)], 'Resolve the other queued publications first'
-PY
-STUDIO_ENV_FILE= STUDIO_DRY_RUN=0 STUDIO_LIVE_ENABLED=1 sh studio/host-ops/start.sh
-```
-
-The empty `STUDIO_ENV_FILE` prevents reloading the dry-run defaults over these
-explicit overrides; the previously loaded private variables remain exported.
-This command resumes the approved publication. Watch the Studio receipt, its PR
-and the merge-specific Pages run. Success is `published` with all three verified
-URLs, and a successful Pages identity/LKG result. A stale base requires a new
-review; an ambiguous write requires reconciliation before another attempt.
-
-## Reverse each step
-
-- Stop a foreground Studio with Ctrl-C. Restart with the private environment's
-  defaults (`sh studio/host-ops/start.sh`) to return to held dry-run publication.
-  Private drafts, revisions and receipts remain intact. No installed service needs
-  removal because this lane installed none.
-- A dry-run creates no remote effect. With Studio stopped, remove its candidate
-  worktree/branch, preserving the review and draft. The IDs below come from the
-  private journal; no draft text or credential is printed:
-
-```sh
-python3 - <<'PY'
-import json, os, sqlite3, subprocess
-from pathlib import Path
-root = Path(os.environ['STUDIO_DATA'])
-with sqlite3.connect(root / 'studio.sqlite') as db:
-    row = db.execute('SELECT id,payload_json,state FROM publications WHERE slug=? ORDER BY rowid DESC LIMIT 1', (os.environ['STUDIO_SLUG'],)).fetchone()
-assert row and row[2] == 'approved', 'Cleanup is only for an untransported dry-run'
-branch = json.loads(row[1])['branch']
-candidate = root / 'candidates' / row[0]
-if candidate.exists():
-    subprocess.run(['git', '-C', str(root / 'clone'), 'worktree', 'remove', '--force', str(candidate)], check=True)
-    subprocess.run(['git', '-C', str(root / 'clone'), 'branch', '-D', branch], check=True)
-PY
-```
-
-- Before a merge, close the observed public PR as its author; retain the publication
-  receipt and inspect any unresolved effect rather than clearing intent. Use the
-  real PR number and the author's gh configuration:
-
-```sh
-GH_CONFIG_DIR="$STUDIO_GH_CONFIG_JAVIER" gh pr close "$STUDIO_PR_NUMBER" --repo FCMO-AI/FCMO-AI-Newsletter
-```
-
-  Use the Matías configuration when he is the author. Do not delete draft history,
-  force main or force a replacement publication. If main already merged, a PR close
-  does not reverse the public commit: submit a reviewed correction/withdrawal or
-  reviewed revert through the same required check.
-- For a failed or wrong deployment, request the existing Pages recovery operation:
-
-```sh
-GH_CONFIG_DIR="$STUDIO_GH_CONFIG_MATIAS" gh workflow run pages.yml --repo FCMO-AI/FCMO-AI-Newsletter --ref main -f operation=rollback
-GH_CONFIG_DIR="$STUDIO_GH_CONFIG_MATIAS" gh run list --repo FCMO-AI/FCMO-AI-Newsletter --workflow pages.yml --limit 5
-GH_CONFIG_DIR="$STUDIO_GH_CONFIG_MATIAS" gh run watch "$STUDIO_ROLLBACK_RUN_ID" --repo FCMO-AI/FCMO-AI-Newsletter --exit-status
-```
-
-  This requests recovery to the **current** live-verified LKG; after a successful
-  publication LKG may already include the new piece. Use a reviewed source revert
-  or withdrawal for such a publication. The workflow's public identity check proves
-  serving; a dispatch alone does not. Recovery cannot erase what readers saw.
-- Reverse local gh account provisioning with the matching configuration:
-
-```sh
-GH_CONFIG_DIR="$STUDIO_GH_CONFIG_JAVIER" gh auth logout --hostname github.com
-GH_CONFIG_DIR="$STUDIO_GH_CONFIG_MATIAS" gh auth logout --hostname github.com
-```
-
-  Logout removes local authentication; token revocation is a separate account action.
-  Keep the private environment/data until the backup/restore drill passes. To remove
-  the environment from the active location without destroying recovery data:
-
-```sh
-mv "$STUDIO_ENV_FILE" "$STUDIO_ENV_FILE.disabled"
-unset STUDIO_SESSION_KEY GH_TOKEN_JAVIER GH_TOKEN_MATIAS
-```
-
-If the architect chooses the optional service later, its reversal is
-`systemctl --user disable --now fcmo-studio.service`; installation and its private
-path permissions remain architect work.
-
-Resumen: publicación real implementada y probada contra Git bare, con edición
-trilingüe y controles de rechazo. Sin push externo ni instalación; faltan la
-especificación accesible, aceptación en navegador y credenciales/protecciones reales
-antes de afirmar que Studio publica correctamente en producción.
+Los dos logins gh interactivos, variables exactas y preflights están en ACTIVATION.
+Una dispatch de rollback pide restaurar LKG; no demuestra serving, no mueve main
+y no borra lo visto por lectores. Corrección/retiro permanente conserva dos personas.

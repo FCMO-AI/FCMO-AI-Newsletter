@@ -42,6 +42,7 @@ class Publish(unittest.TestCase):
             self.publisher.advance(self.slug)
         self.fail(str(self.publisher.public_status(self.slug)))
     def test_private_until_other_person_approves(self):
+        self.assertIsNone(self.store.piece(self.slug)['published_rev'])
         self.requested()
         self.assertEqual(self.mock.requests, [])
         with self.assertRaises(Refused): self.publisher.approve(self.slug, 'javier')
@@ -52,6 +53,7 @@ class Publish(unittest.TestCase):
         git(work, 'add', 'private.txt'); git(work, '-c', 'user.name=Codex', '-c', 'user.email=noreply@openai.com', 'commit', '-qm', 'Private sentinel')
         self.approved(); pub = self.run_to('published')
         self.assertEqual(len(pub['payload']['urls']), 3)
+        self.assertEqual(self.store.piece(self.slug)['published_rev'], pub['payload']['approved_rev'])
         pushes = self.mock.pushes; self.assertEqual(len(pushes), 1)
         self.assertEqual(pushes[0]['actor'], 'javier')
         self.assertTrue(all(p.startswith('editorial/pieces/' + self.slug + '/') for p in pushes[0]['paths']))
@@ -67,14 +69,31 @@ class Publish(unittest.TestCase):
     def test_ruleset_precondition_refuses_merge(self):
         self.mock.protection = False; self.approved(); pub = self.run_to('failed')
         self.assertIn('protegida', pub['error_plain']); self.assertEqual(self.mock.count('PUT', '/merge'), 0)
+    def test_hidden_bypass_metadata_refuses_merge(self):
+        original = self.github.request
+        def request(user, method, path, body=None):
+            result = original(user, method, path, body)
+            if method == 'GET' and path.startswith('/rulesets/'):
+                result.pop('bypass_actors', None)
+            return result
+        self.github.request = request
+        self.approved(); pub = self.run_to('failed')
+        self.assertIn('protegida', pub['error_plain'])
+        self.assertEqual(self.mock.count('PUT', '/merge'), 0)
     def test_ruleset_refusal_never_uses_another_token(self):
         self.mock.merge_refused = True; self.approved(); pub = self.run_to('failed')
         self.assertIn('GitHub no permitió', pub['error_plain'])
         attempts = [r for r in self.mock.requests if r['method'] == 'PUT' and r['path'].endswith('/merge')]
         self.assertEqual([r['actor'] for r in attempts], ['javier'])
     def test_local_failure_does_not_make_text_public(self):
-        self.workspace.check_command = ['python3', '-c', 'raise SystemExit(1)']; self.approved(); self.run_to('failed')
+        self.workspace.check_command = ['python3', '-c', 'import sys; print("FAIL: test_check (fixture.Check.test_check)", file=sys.stderr); print("Private draft text and fixture-secret"); raise SystemExit(1)']
+        self.approved(); pub = self.run_to('failed')
         self.assertEqual(self.mock.pushes, []); self.assertEqual(self.mock.prs, {})
+        receipt = self.store.data / 'check-results' / (pub['id'] + '.json')
+        self.assertEqual(json.loads(receipt.read_text()), {'exit_code': 1, 'failed_tests': [['test_check', 'fixture.Check.test_check']], 'failed_gates': []})
+        self.assertNotIn('Private draft', receipt.read_text())
+        self.assertNotIn('fixture-secret', receipt.read_text())
+        self.assertEqual(receipt.stat().st_mode & 0o777, 0o600)
     def test_live_mismatch_is_deployed_unverified(self):
         self.mock.live_id = 'different'; self.approved(); pub = self.run_to('deployed_unverified')
         self.assertNotEqual(self.store.piece(self.slug)['state'], 'published')

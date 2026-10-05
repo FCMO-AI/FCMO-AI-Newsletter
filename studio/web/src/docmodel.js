@@ -3,7 +3,8 @@ import { Schema } from 'prosemirror-model'
 
 const hex = n => [...crypto.getRandomValues(new Uint8Array(n / 2))].map(b => b.toString(16).padStart(2, '0')).join('')
 export const newId = prefix => `${prefix}-${hex(8)}`
-const idAttr = { id: { default: '' } }
+const idAttr = { id: { default: '' }, wire_attrs: { default: false } }
+const contentAttr = { wire_content: { default: false } }
 const safeHref = h => typeof h === 'string' && (/^https:\/\//i.test(h) || (h.startsWith('/') && !h.startsWith('//')))
 
 export const schema = new Schema({
@@ -18,9 +19,9 @@ export const schema = new Schema({
     ul: { group: 'block', content: 'li+', attrs: idAttr, parseDOM: [{ tag: 'ul' }], toDOM: n => ['ul', { 'data-id': n.attrs.id }, 0] },
     ol: { group: 'block', content: 'li+', attrs: idAttr, parseDOM: [{ tag: 'ol' }], toDOM: n => ['ol', { 'data-id': n.attrs.id }, 0] },
     li: { content: 'inline*', defining: true, parseDOM: [{ tag: 'li' }], toDOM: () => ['li', 0] },
-    hr: { group: 'block', attrs: idAttr, parseDOM: [{ tag: 'hr' }], toDOM: n => ['hr', { 'data-id': n.attrs.id }] },
-    figure: { group: 'block', atom: true, selectable: true, draggable: true, attrs: { ...idAttr, fig: { default: '' } }, toDOM: n => ['figure', { 'data-fig': n.attrs.fig, 'data-id': n.attrs.id }] },
-    evidence: { group: 'block', content: 'inline*', defining: true, attrs: { ...idAttr, class: { default: 'B' }, confidence: { default: '' } }, toDOM: n => ['aside', { class: 'evidence-box', 'data-class': n.attrs.class, 'data-id': n.attrs.id }, 0] },
+    hr: { group: 'block', attrs: { ...idAttr, ...contentAttr }, parseDOM: [{ tag: 'hr' }], toDOM: n => ['hr', { 'data-id': n.attrs.id }] },
+    figure: { group: 'block', atom: true, selectable: true, draggable: true, attrs: { ...idAttr, ...contentAttr, fig: { default: '' } }, toDOM: n => ['figure', { 'data-fig': n.attrs.fig, 'data-id': n.attrs.id }] },
+    evidence: { group: 'block', content: 'inline*', defining: true, attrs: { ...idAttr, ...contentAttr, class: { default: 'B' }, confidence: { default: '' } }, toDOM: n => ['aside', { class: 'evidence-box', 'data-class': n.attrs.class, 'data-id': n.attrs.id }, 0] },
     fn: { group: 'inline', inline: true, atom: true, selectable: true, attrs: { id: { default: '' }, body: { default: [] } }, toDOM: n => ['sup', { class: 'fn-ref', 'data-fn': n.attrs.id }, '•'] },
     cite: { group: 'inline', inline: true, atom: true, selectable: true, attrs: { key: { default: '' }, locator: { default: '' } }, toDOM: n => ['cite', { class: 'src-ref', 'data-key': n.attrs.key }, `[${n.attrs.key}]`] }
   },
@@ -55,14 +56,14 @@ export function docToPM (doc) {
   const blocks = doc.blocks.map(b => {
     const id = b.id || newId('b')
     if (TEXT_BLOCKS.has(b.type)) {
-      const attrs = { id }
+      const attrs = { id, wire_attrs: Object.hasOwn(b, 'attrs') }
       if (b.type === 'blockquote') attrs.cite = (b.attrs && b.attrs.cite) || ''
       return schema.nodes[b.type].create(attrs, inlineToPM(b.content))
     }
     if (b.type === 'ul' || b.type === 'ol') return schema.nodes[b.type].create({ id }, (b.items || []).map(it => schema.nodes.li.create(null, inlineToPM(it))))
-    if (b.type === 'hr') return schema.nodes.hr.create({ id })
-    if (b.type === 'figure') return schema.nodes.figure.create({ id, fig: (b.attrs || {}).fig || '' })
-    if (b.type === 'evidence') return schema.nodes.evidence.create({ id, class: (b.attrs || {}).class || 'B', confidence: (b.attrs || {}).confidence || '' }, inlineToPM((b.attrs || {}).limits))
+    if (b.type === 'hr') return schema.nodes.hr.create({ id, wire_content: Object.hasOwn(b, 'content'), wire_attrs: Object.hasOwn(b, 'attrs') })
+    if (b.type === 'figure') return schema.nodes.figure.create({ id, wire_content: Object.hasOwn(b, 'content'), fig: (b.attrs || {}).fig || '' })
+    if (b.type === 'evidence') return schema.nodes.evidence.create({ id, wire_content: Object.hasOwn(b, 'content'), class: (b.attrs || {}).class || 'B', confidence: (b.attrs || {}).confidence || '' }, inlineToPM((b.attrs || {}).limits))
     throw new Error(`unknown block type ${b.type}`)
   })
   const root = schema.nodes.doc.create(null, blocks.length ? blocks : [schema.nodes.p.create({ id: newId('b') })])
@@ -101,15 +102,16 @@ export function pmToDoc (root, { locale, title, dek }) {
     node.descendants(n => { if (n.type.name === 'fn') footnotes[n.attrs.id] = n.attrs.body || [] })
     if (TEXT_BLOCKS.has(type)) {
       const b = { id, type, content: inlineFromPM(node) }
+      if (node.attrs.wire_attrs) b.attrs = {}
       if (type === 'blockquote' && node.attrs.cite) b.attrs = { cite: node.attrs.cite }
       blocks.push(b)
     } else if (type === 'ul' || type === 'ol') {
       const items = []
       node.forEach(li => items.push(inlineFromPM(li)))
       blocks.push({ id, type, items })
-    } else if (type === 'hr') blocks.push({ id, type, content: [] })
-    else if (type === 'figure') blocks.push({ id, type, content: [], attrs: { fig: node.attrs.fig } })
-    else if (type === 'evidence') blocks.push({ id, type, content: [], attrs: { class: node.attrs.class, confidence: node.attrs.confidence, limits: inlineFromPM(node) } })
+    } else if (type === 'hr') blocks.push({ id, type, ...(node.attrs.wire_content ? { content: [] } : {}), ...(node.attrs.wire_attrs ? { attrs: {} } : {}) })
+    else if (type === 'figure') blocks.push({ id, type, ...(node.attrs.wire_content ? { content: [] } : {}), attrs: { fig: node.attrs.fig } })
+    else if (type === 'evidence') blocks.push({ id, type, ...(node.attrs.wire_content ? { content: [] } : {}), attrs: { class: node.attrs.class, confidence: node.attrs.confidence, limits: inlineFromPM(node) } })
   })
   return { schema: 'fcmo-essay-doc-v1', locale, title, dek, blocks, footnotes }
 }

@@ -9,9 +9,9 @@ export function check (name, ok, detail = '') {
   results.push({ name, ok: !!ok, detail })
   console.log(`${ok ? 'PASS' : 'FAIL'} ${name}${detail ? ' :: ' + detail : ''}`)
 }
-export async function session (base, { viewport = { width: 1440, height: 900 }, user = USER, pass = PASS, scheme = 'light' } = {}) {
+export async function session (base, { viewport = { width: 1440, height: 900 }, user = USER, pass = PASS, scheme = 'light', bypassCSP = false } = {}) {
   const browser = await launch()
-  const context = await browser.newContext({ viewport, colorScheme: scheme, reducedMotion: 'reduce', acceptDownloads: false })
+  const context = await browser.newContext({ viewport, bypassCSP, colorScheme: scheme, reducedMotion: 'reduce', acceptDownloads: false })
   const page = await context.newPage()
   const errors = []
   page.on('pageerror', e => errors.push('pageerror: ' + String(e).slice(0, 300)))
@@ -24,8 +24,8 @@ export async function session (base, { viewport = { width: 1440, height: 900 }, 
 }
 export const go = async (s, hash) => { await s.page.goto(s.base + hash); await s.page.waitForTimeout(250) }
 export function finish (s) {
-  const failed = results.filter(r => !r.ok)
   if (s.errors && s.errors.length) { check('no console errors', false, s.errors.join(' | ')) }
+  const failed = results.filter(r => !r.ok)
   console.log(`\n${results.length - failed.length}/${results.length} checks passed`)
   return s.browser.close().then(() => process.exit(failed.length ? EXIT_FAIL : EXIT_OK))
 }

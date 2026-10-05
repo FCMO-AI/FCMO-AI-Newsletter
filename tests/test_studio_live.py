@@ -17,7 +17,7 @@ class LiveContract(unittest.TestCase):
         self.assertIn('--editorial lkg-source/editorial', pages)
         workflow = (ROOT / '.github/workflows/release-validate.yml').read_text()
         self.assertIn('publish-gate:', workflow)
-        self.assertIn("'editorial/**'", workflow)
+        self.assertNotIn('    paths:', workflow, 'Required check must run for every protected-main PR')
         self.assertIn('fetch-depth: 0', workflow)
         self.assertIn('ops/publish.py --check', workflow)
     def test_recovery_runs_both_pre_studio_and_editorial_lkg_renderers(self):
@@ -90,7 +90,8 @@ class BareRemote(integration.StudioIntegration):
         self.app.publisher.github = gh
         from studio.server.snapshot import refresh
         refresh(self.store, gh)
-        self.app.publisher.workspace = Workspace(self.store, gh)
+        self.app.publisher.workspace = Workspace(self.store, gh, ['python3', 'ops/publish.py', '--check', '--fixture-build'])
+        self.app.publisher.workspace.production_check = True
         from studio.server import issues
         from studio.server.checks import checks
         self.app.publisher.checker = lambda slug: issues.checks(self.store, self.app.preview, slug) if self.store.piece(slug)['kind'] == 'issue' else checks(self.store, self.app.preview, slug)
@@ -122,7 +123,7 @@ class BareRemote(integration.StudioIntegration):
         self.assertIn(slug, git(self.bare, 'show', 'main:editorial/pieces/' + slug + '/piece.json'))
         checkout = self.root / 'published-checkout'
         subprocess.run(['git', 'clone', '--quiet', str(self.bare), str(checkout)], check=True)
-        run = subprocess.run(['python3', 'ops/publish.py', '--check'], cwd=checkout, capture_output=True, text=True)
+        run = subprocess.run(['python3', 'ops/publish.py', '--check', '--fixture-build'], cwd=checkout, capture_output=True, text=True)
         self.assertEqual(run.returncode, 0, run.stdout + run.stderr)
         self.assertIn(b'42', (checkout / 'publish/cartas' / slug / 'index.html').read_bytes())
 
@@ -152,7 +153,7 @@ class BareRemote(integration.StudioIntegration):
             if publication['state'] in ('published', 'failed'): break
         self.assertEqual(publication['state'], 'published', publication)
         git(checkout, 'fetch', 'origin', 'main'); git(checkout, 'checkout', '--detach', 'FETCH_HEAD')
-        run = subprocess.run(['python3', 'ops/publish.py', '--check'], cwd=checkout, capture_output=True, text=True)
+        run = subprocess.run(['python3', 'ops/publish.py', '--check', '--fixture-build'], cwd=checkout, capture_output=True, text=True)
         self.assertEqual(run.returncode, 0, run.stdout + run.stderr)
         self.assertEqual(json.loads(git(self.bare, 'show', 'main:editorial/issues/' + issue['id'] + '.json')), issue)
         for prefix in ('', 'es/', 'zh/'):

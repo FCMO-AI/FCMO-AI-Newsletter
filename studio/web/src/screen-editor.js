@@ -4,6 +4,8 @@ import { h, clear, modal, toast, ago } from './ui.js'
 import { shell, session } from './main.js'
 import { createEditor } from './editor.js'
 import { wordCount } from './docmodel.js'
+import { stripWebpMetadata } from './webp.js'
+import { suggestions } from './assistant.js'
 import { diffView } from './diffview.js'
 import { sourcesPanel, checksList, versionsPanel, commentsPanel, tocPanel } from './drawers.js'
 
@@ -56,7 +58,7 @@ export async function editorScreen (root, slug, locArg) {
       try {
         const bmp = await createImageBitmap(file); const max = 2400; const k = Math.min(1, max / Math.max(bmp.width, bmp.height))
         const c = document.createElement('canvas'); c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k); c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height)
-        const blob = await new Promise(res => c.toBlob(res, 'image/webp', 0.88))
+        const blob = await stripWebpMetadata(await new Promise(res => c.toBlob(res, 'image/webp', 0.88)))
         const r = await api('POST', `/api/pieces/${slug}/figures/upload`, blob, { headers: { 'x-width': c.width, 'x-height': c.height } })
         const figure = { file: r.file, width: r.width, height: r.height, credit: '', licence: '', alt: {}, caption: {} }; S.figures[r.id] = figure; await write(async () => { const saved = await put(`/api/pieces/${slug}/figures`, S.figures); S.rev = saved.rev }); return { fig_id: r.id, figure }
       } catch (e) { toast(t('fig.fail'), 'bad'); throw e }
@@ -183,6 +185,7 @@ export async function editorScreen (root, slug, locArg) {
     langTabs,
     h('div', { class: 'ed-bar-right' }, h('button', { class: 'btn small wide-only', type: 'button', disabled: S.readOnly, onclick: markReviewed }, t('tr.review')), h('a', { class: 'btn small wide-only', href: hrefTr }, t('ed.translate')),
       h('a', { class: 'btn small wide-only', href: hrefPv }, t('ed.preview')), moreMenu, h('a', { class: 'btn primary small', href: `#/p/${slug}/publish` }, t('ed.publish'))))
+  const assistButtons = h('div', { class: 'btn-row' }, ['dek', 'cite_check'].map(kind => h('button', { class: 'btn small', disabled: S.readOnly, onclick: async () => { await save(); await suggestions(slug, loc, kind) } }, t(kind === 'dek' ? 'assist.dek' : 'assist.cites'))))
   const top = h('div', { class: 'ed-top' }, h('a', { class: 'back', href: '#/' }, '← ', t('ed.back')), h('span', { class: 'ed-top-title' }, meta.title))
 
   // banners
@@ -197,7 +200,7 @@ export async function editorScreen (root, slug, locArg) {
     banner.append(b)
   }
 
-  root.append(shell(h('div', { class: 'ed-layout' }, top, banner, h('div', { class: 'ed-main' }, page, h('div', { class: 'drawer-col' }, rail, drawer)), bar), { active: 'home', wide: true }))
+  root.append(shell(h('div', { class: 'ed-layout' }, top, banner, assistButtons, h('div', { class: 'ed-main' }, page, h('div', { class: 'drawer-col' }, rail, drawer)), bar), { active: 'home', wide: true }))
   setTimeout(() => { if (S.dead) return; auto(title); auto(dek); refreshStats(); setSave('saved'); editor.restoreCursor(meta.cursor && meta.cursor[loc]); if (isEmptyDoc(doc)) title.focus() }, 0)
   const onResize = () => { auto(title); auto(dek) }
   addEventListener('resize', onResize)

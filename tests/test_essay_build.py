@@ -33,8 +33,12 @@ class EssayBuildTests(unittest.TestCase):
         body, notes, source_html, toc = render_document(document, sources, figures, locale="es-419", base="/site", asset_prefix="editorial/pieces/demo")
         self.assertIn("&lt;script&gt;alert(1)&lt;/script&gt;", body)
         self.assertNotIn("<script>", body)
-        for token in ('<h2 id=', '<h3 id=', '<blockquote>', 'class="pullquote"', '<ul>', '<ol>', '<hr', 'class="essay-figure"', 'class="evidence-box"', 'data-field="quotation"'):
+        for token in ('<h2 id=', '<h3 id=', '<blockquote id=', 'class="pullquote"', '<ul id=', '<ol id=', '<hr', 'class="essay-figure"', 'class="evidence-box"', 'data-field="quotation"'):
             self.assertIn(token, body)
+        # Every document block must remain addressable for review comments,
+        # not just the headings used by the table of contents.
+        for block in document['blocks']:
+            self.assertEqual(body.count('id="' + block['id'] + '"'), 1)
         self.assertIn('class="essay-notes"', notes)
         self.assertIn('class="essay-sources"', source_html)
         self.assertIn('class="essay-toc"', toc)

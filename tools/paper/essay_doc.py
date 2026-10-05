@@ -69,7 +69,7 @@ def render_document(doc: dict, sources: list[dict], figures: dict[str, dict], *,
     toc = []
     body = []
     for block in doc["blocks"]:
-        kind, bid = block["type"], block["id"]
+        kind, bid = block["type"], escape(block["id"], quote=True)
         content = block.get("content", [])
         rendered = _inline(content, source_keys, locale)
         if kind in {"p", "h2", "h3"}:
@@ -78,19 +78,19 @@ def render_document(doc: dict, sources: list[dict], figures: dict[str, dict], *,
                 toc.append(f'<li class="toc-{kind}"><a href="#{bid}">{rendered}</a></li>')
                 body.append(f'<{tag} id="{bid}">{rendered}</{tag}>')
             else:
-                body.append(f'<p>{rendered}</p>')
+                body.append(f'<p id="{bid}">{rendered}</p>')
         elif kind in {"blockquote", "pullquote"}:
             tag = "blockquote" if kind == "blockquote" else "aside"
             cls = ' class="pullquote"' if kind == "pullquote" else ""
             cite = block.get("attrs", {}).get("cite")
             if cite and cite in source_keys:
                 rendered += f'<cite><a href="#src-{escape(cite, quote=True)}">{escape(cite)}</a></cite>'
-            body.append(f"<{tag}{cls}>{rendered}</{tag}>")
+            body.append(f'<{tag} id="{bid}"{cls}>{rendered}</{tag}>')
         elif kind in {"ul", "ol"}:
             items = "".join(f"<li>{_inline(item, source_keys, locale)}</li>" for item in block["items"])
-            body.append(f"<{kind}>{items}</{kind}>")
+            body.append(f'<{kind} id="{bid}">{items}</{kind}>')
         elif kind == "hr":
-            body.append('<hr aria-hidden="true">')
+            body.append(f'<hr id="{bid}" aria-hidden="true">')
         elif kind == "figure":
             fig_id = block["attrs"]["fig"]
             fig = figures.get(fig_id)
@@ -99,11 +99,11 @@ def render_document(doc: dict, sources: list[dict], figures: dict[str, dict], *,
             caption = escape(fig.get("caption", {}).get(locale, ""), quote=False)
             credit = escape(fig.get("credit", ""), quote=False)
             src = escape(base.rstrip("/") + "/" + asset_prefix.strip("/") + "/" + fig["file"].lstrip("/"), quote=True)
-            body.append(f'<figure class="essay-figure"><img src="{src}" width="{int(fig["width"])}" height="{int(fig["height"])}" alt="{alt}" loading="lazy"><figcaption>{caption} <span class="credit">{credit}</span></figcaption></figure>')
+            body.append(f'<figure id="{bid}" class="essay-figure"><img src="{src}" width="{int(fig["width"])}" height="{int(fig["height"])}" alt="{alt}" loading="lazy"><figcaption>{caption} <span class="credit">{credit}</span></figcaption></figure>')
         elif kind == "evidence":
             attrs = block["attrs"]
             limits = _inline(attrs["limits"], source_keys, locale)
-            body.append(f'<aside class="evidence-box" data-class="{escape(attrs["class"], quote=True)}"><p><strong>{escape(attrs["class"])}</strong> · {escape(attrs["confidence"], quote=False)}</p><p>{limits}</p></aside>')
+            body.append(f'<aside id="{bid}" class="evidence-box" data-class="{escape(attrs["class"], quote=True)}"><p><strong>{escape(attrs["class"])}</strong> · {escape(attrs["confidence"], quote=False)}</p><p>{limits}</p></aside>')
         else:
             raise ValueError(f"unsupported block node {kind!r}")
     notes = []

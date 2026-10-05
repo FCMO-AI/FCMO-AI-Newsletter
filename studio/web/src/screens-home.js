@@ -1,6 +1,7 @@
 import { get, post, ApiError } from './api.js'
 import { t, LOCALE_NAME } from './i18n.js'
 import { h, ago, dots, modal, clear } from './ui.js'
+import { rollbackDialog } from './publication-actions.js'
 import { shell, session } from './main.js'
 
 export function login (root, done) {
@@ -19,7 +20,8 @@ export function login (root, done) {
 
 function where (p, me) {
   const mine = p.author === me.user
-  if (p.state === 'draft' || p.state === 'changes_requested') return mine ? `#/p/${p.slug}/${p.source_locale}` : `#/p/${p.slug}/${p.source_locale}`
+  if (p.kind === 'issue' && ['draft', 'changes_requested', 'amending'].includes(p.state)) return `#/issues/${p.slug}`
+  if (p.state === 'draft' || p.state === 'changes_requested' || p.state === 'amending') return mine ? `#/p/${p.slug}/${p.source_locale}` : `#/p/${p.slug}/${p.source_locale}`
   if (p.state === 'in_review') return mine ? `#/p/${p.slug}/${p.source_locale}/preview` : `#/p/${p.slug}/review`
   if (p.state === 'publishing' || p.state === 'approved') return `#/p/${p.slug}/progress`
   return `#/p/${p.slug}/${p.source_locale}/preview`
@@ -52,13 +54,13 @@ export async function home (root) {
       if (p.state === 'changes_requested' && p.author === me.user) attn.push({ p, text: t('attn.changes', { who: me.other, title: p.title }), go: `#/p/${p.slug}/${p.source_locale}`, cta: t('attn.open') })
       if (p.state === 'failed' && p.author === me.user) attn.push({ p, text: t('attn.failed', { title: p.title }), go: `#/p/${p.slug}/progress`, cta: t('attn.open') })
     }
-    const last = pieces.filter(p => p.author === me.user && (p.state === 'draft' || p.state === 'changes_requested'))[0]
+    const last = pieces.filter(p => p.author === me.user && (p.state === 'draft' || p.state === 'changes_requested' || p.state === 'amending'))[0]
     clear(body)
     body.append(
       h('section', { class: 'block attention' }, h('h2', null, t('home.attention')),
         attn.length ? h('ul', { class: 'attn' }, attn.map(a => h('li', null, h('span', null, a.text), h('a', { class: 'btn small', href: a.go }, a.cta)))) : h('p', { class: 'muted' }, t('home.empty'))),
       last && !q ? h('section', { class: 'block' }, h('h2', null, t('home.continue')), h('a', { class: 'continue', href: where(last, me) }, h('span', { class: 'continue-title' }, last.title), h('span', { class: 'row-meta' }, t('row.edited', { when: ago(last.updated_at, t) }), ' · ', t('row.words', { n: last.words })), dots(last.locales, t))) : null,
-      section(t('home.drafts'), list.filter(p => p.state === 'draft' || p.state === 'changes_requested')),
+      section(t('home.drafts'), list.filter(p => p.state === 'draft' || p.state === 'changes_requested' || p.state === 'amending')),
       section(t('home.review'), list.filter(p => ['in_review', 'approved', 'publishing'].includes(p.state))),
       section(t('home.published'), list.filter(p => p.state === 'published' || p.state === 'withdrawn')),
       h('section', { class: 'block' }, h('h2', null, t('home.editions')), h('a', { class: 'row', href: '#/issues' }, h('span', { class: 'row-main' }, h('strong', { class: 'row-title' }, t('iss.title')), h('span', { class: 'row-meta' }, t('iss.soon'))))))
@@ -68,6 +70,6 @@ export async function home (root) {
     h('div', { class: 'home-head' }, h('div', null, h('p', { class: 'eyebrow' }, 'fCMO / Studio'), h('h1', null, t('home.hello', { name: me.name }))),
       h('div', { class: 'home-actions' }, h('button', { class: 'btn primary big', type: 'button', onclick: () => newPieceDialog('essay') }, '+ ', t('home.new')),
         h('button', { class: 'btn', type: 'button', onclick: () => newPieceDialog('letter') }, t('home.letter')), h('button', { class: 'btn', type: 'button', onclick: () => newPieceDialog('note') }, t('home.note')))),
-    search, body), { active: 'home' }))
+    search, body, h('button', { class: 'btn small', onclick: rollbackDialog }, t('amend.rollback'))), { active: 'home' }))
   return null
 }

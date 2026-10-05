@@ -33,3 +33,9 @@ test('new ids have the b-xxxxxxxx shape', () => {
 test('schema has no raw html node', () => {
   assert.equal(Object.keys(schema.nodes).some(n => /html|script|raw/i.test(n)), false)
 })
+
+import { readFileSync } from 'node:fs'
+test('editing figure metadata leaves the source document unchanged', () => {
+  const doc = JSON.parse(readFileSync(new URL('../../../tests/fixtures/editorial/pieces/fixture-essay/doc.en.json', import.meta.url)))
+  assert.deepEqual(pmToDoc(docToPM(doc), doc), doc)
+})

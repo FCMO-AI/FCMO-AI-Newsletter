@@ -13,7 +13,7 @@ const alt = page.locator('.ed-figure .fig-field textarea').first()
 await alt.fill(''); await page.waitForTimeout(1200)
 
 await go(s, `#/p/${slug}/publish`)
-await page.waitForSelector('.check-list')
+await page.waitForSelector('.check-list', { state: 'attached' })
 const todo = page.locator('.check-list li.todo', { hasText: 'texto alternativo' }).first()
 check('missing alt text is listed as a plain sentence', await todo.count() === 1, await todo.textContent().catch(() => ''))
 check('the request button is blocked', await page.locator('button:has-text("Pedir revisión")').isDisabled())
@@ -28,6 +28,6 @@ check('and brings it into view', vis)
 
 // repair it and the sheet unblocks
 await page.locator('.ed-figure .fig-field textarea').first().fill('Una página de registro'); await page.waitForTimeout(1500)
-await go(s, `#/p/${slug}/publish`); await page.waitForSelector('.check-list')
+await go(s, `#/p/${slug}/publish`); await page.waitForSelector('.check-list', { state: 'attached' })
 check('after fixing, no alt-text item remains open', await page.locator('.check-list li.todo', { hasText: 'texto alternativo' }).count() === 0)
 await finish(s)

@@ -16,6 +16,7 @@ for (const width of [1440, 390]) for (const theme of ['light', 'dark']) {
   const shot = async (page, name, full = false) => { await page.screenshot({ path: `${out}/${name}-${tag}.png`, fullPage: full }); count++ }
   let s = await session(studio, { viewport, scheme: theme })
   const { page } = s
+  const recover = async () => { const button = page.getByRole('button', { name: 'Restaurar tu copia local', exact: true }); if (await button.isVisible()) { await button.click(); await page.waitForTimeout(900) } }
   await shot(page, '01-escritorio')
   await go(s, `#/p/${slug}/es-419`); await page.waitForSelector('.ed-body'); await page.waitForTimeout(900)
   await shot(page, '02-editor-inicio')
@@ -25,10 +26,10 @@ for (const width of [1440, 390]) for (const theme of ['light', 'dark']) {
   await page.evaluate(() => window.__studioEditor.focusStart())
   await page.click('.rail-btn >> text=Comprobaciones'); await page.waitForTimeout(900); await shot(page, '05-editor-comprobaciones')
   await page.click('.rail-btn >> text=Fuentes'); await page.waitForTimeout(500); await shot(page, '06-editor-fuentes')
-  await go(s, `#/p/${slug}/en/translate/es-419`); await page.waitForSelector('.tr-row'); await page.waitForTimeout(500); await shot(page, '07-idiomas')
-  await go(s, `#/p/${slug}/es-419/translate/zh-Hans`); await page.waitForSelector('.tr-row'); await page.waitForTimeout(500); await shot(page, '08-idiomas-zh')
+  await go(s, `#/p/${slug}/en/translate/es-419`); await page.waitForSelector('.tr-row'); await page.waitForTimeout(500); await recover(); await shot(page, '07-idiomas')
+  await go(s, `#/p/${slug}/es-419/translate/zh-Hans`); await page.waitForSelector('.tr-row'); await page.waitForTimeout(500); await recover(); await shot(page, '08-idiomas-zh')
   await go(s, `#/p/${slug}/es-419/preview`); await page.waitForSelector('.pv-frame'); await page.waitForTimeout(1800); await shot(page, '09-vista-previa')
-  await go(s, `#/p/${slug}/publish`); await page.waitForSelector('.check-list'); await page.waitForTimeout(500); await shot(page, '10-publicar')
+  await go(s, `#/p/${slug}/publish`); await page.waitForSelector('.check-list', { state: 'attached' }); await page.waitForTimeout(500); await shot(page, '10-publicar')
   await go(s, `#/p/${slug}/versions`); await page.waitForSelector('.ver-list'); await shot(page, '11-versiones')
   await go(s, '#/issues'); await page.waitForTimeout(500); await shot(page, '12-ediciones')
   await go(s, `#/p/${reviewSlug}/review`); await page.waitForSelector('.rv-panes'); await page.waitForTimeout(1800); await shot(page, '13-revision')

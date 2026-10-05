@@ -61,9 +61,12 @@ export function createEditor (ctx) {
     return { dom, contentDOM, stopEvent: e => head.contains(e.target), ignoreMutation: m => head.contains(m.target), update: n => { if (n.type !== node.type) return false; dom.dataset.class = n.attrs.class; if (select.value !== n.attrs.class) select.value = n.attrs.class; return true } }
   }
   const fnView = node => { const dom = h('sup', { class: 'fn-ref', 'data-fn': node.attrs.id, title: t('slash.fn') }); return { dom, update: n => n.type === node.type } }
+  const citationViews = new Set()
   const citeView = node => {
     const dom = h('cite', { class: 'src-ref', 'data-key': node.attrs.key }); const set = n => { dom.textContent = `[${sourceLabel(n.attrs.key)}${n.attrs.locator ? ', ' + n.attrs.locator : ''}]` }
-    set(node); return { dom, update: n => n.type === node.type && (set(n), true) }
+    let current = node
+    const refresh = () => set(current); citationViews.add(refresh)
+    set(node); return { dom, update: n => n.type === node.type && (current = n, set(n), true), destroy: () => citationViews.delete(refresh) }
   }
 
   /* ---------- notes (margin or end) ---------- */
@@ -144,7 +147,7 @@ export function createEditor (ctx) {
   function insertFootnote () {
     const id = newId('fn'); const { from, to } = view.state.selection
     const tr = view.state.tr.replaceWith(from, to, schema.nodes.fn.create({ id, body: [] }))
-    view.dispatch(tr); setTimeout(() => focusNote(id), 30); return true
+    view.dispatch(tr); focusNote(id); return true
   }
   function insertSource () {
     ctx.askSource(({ key, locator }) => {
@@ -153,21 +156,24 @@ export function createEditor (ctx) {
     })
     return true
   }
-  async function pickFigure () {
-    const input = h('input', { type: 'file', accept: 'image/*', hidden: true }); document.body.append(input)
-    input.addEventListener('change', async () => {
-      const file = input.files[0]; input.remove(); if (!file) return
-      try {
-        const { fig_id: figId } = await ctx.uploadFigure(file)
-        const state = view.state
-        const block = schema.nodes.figure.create({ id: newId('b'), fig: figId })
-        const { $from } = state.selection
-        const tr = $from.parent.type.name === 'p' && $from.parent.content.size === 0 ? state.tr.replaceWith($from.before(), $from.after(), [block, para()]) : state.tr.insert($from.after(), [block, para()])
-        view.dispatch(tr.scrollIntoView())
-      } catch (e) { ctx.onFigureError && ctx.onFigureError(e) }
-    })
-    input.click()
+  async function uploadFigure (file) {
+    try {
+      const { fig_id: figId } = await ctx.uploadFigure(file)
+      const state = view.state
+      const block = schema.nodes.figure.create({ id: newId('b'), fig: figId })
+      const { $from } = state.selection
+      const tr = $from.depth === 0 ? state.tr.insert(state.selection.to, [block, para()]) : $from.parent.type.name === 'p' && $from.parent.content.size === 0 ? state.tr.replaceWith($from.before(), $from.after(), [block, para()]) : state.tr.insert($from.after(), [block, para()])
+      view.dispatch(tr.scrollIntoView())
+    } catch (e) { ctx.onFigureError && ctx.onFigureError(e) }
   }
+  // Keep one initialized native picker; a cancelled dialog leaves no detached input.
+  const figureInput = h('input', { type: 'file', accept: 'image/*', hidden: true })
+  document.body.append(figureInput)
+  figureInput.addEventListener('change', () => {
+    const file = figureInput.files[0]; figureInput.value = ''
+    if (file) uploadFigure(file)
+  })
+  function pickFigure () { figureInput.click() }
 
   /* ---------- slash menu ---------- */
   let slashIdx = 0; let slashList = []
@@ -221,7 +227,7 @@ export function createEditor (ctx) {
     if (!/^https:\/\/\S+$/i.test(href)) { alert(t('link.bad')); return }
     toggleMark(schema.marks.link, { href })(view.state, view.dispatch)
   }
-  const btn = (label, title, fn, mark) => h('button', { type: 'button', title, 'aria-label': title, 'data-mark': mark, onmousedown: e => { e.preventDefault(); fn(); view.focus() } }, label)
+  const btn = (label, title, fn, mark) => h('button', { type: 'button', title, 'aria-label': title, 'data-mark': mark, onmousedown: e => { e.preventDefault(); fn(); if (document.activeElement?.classList.contains('note-text') !== true) view.focus() } }, label)
   bubbleEl.append(btn('B', t('bub.b'), () => toggleMark(schema.marks.strong)(view.state, view.dispatch), 'strong'), btn('I', t('bub.i'), () => toggleMark(schema.marks.em)(view.state, view.dispatch), 'em'),
     btn(t('bub.link'), t('bub.link'), link, 'link'), btn(t('bub.fn'), t('bub.fn'), insertFootnote), btn(t('bub.src'), t('bub.src'), insertSource))
 
@@ -243,6 +249,12 @@ export function createEditor (ctx) {
     key: slashKey,
     view: () => ({ update: v => { const st = slashState(v.state); if (st) { if (menuEl.hidden || true) showSlash(v, st) } else closeSlash() } }),
     props: {
+      handleTextInput (v, from, to, text) {
+        if (ctx.readOnly || !v.state.selection.empty) return false
+        const start = text === '[[' ? from : text === '[' && v.state.doc.textBetween(Math.max(0, from - 1), from) === '[' ? from - 1 : null
+        if (start == null) return false
+        v.dispatch(v.state.tr.delete(start, to)); insertSource(); return true
+      },
       handleKeyDown (v, e) {
         if (menuEl.hidden || !slashList.length) { if (e.key === 'Escape') closeSlash(); return false }
         if (e.key === 'ArrowDown') { slashIdx = (slashIdx + 1) % slashList.length; showSlash(v, slashState(v.state)); return true }
@@ -279,6 +291,19 @@ export function createEditor (ctx) {
     state, editable: () => !ctx.readOnly,
     nodeViews: { figure: figureView, evidence: evidenceView, fn: fnView, cite: citeView },
     handleClickOn (v, pos, node) { if (node.type.name === 'fn') { focusNote(node.attrs.id); return true } return false },
+    handleDOMEvents: {
+      dragover (v, e) { if ([...(e.dataTransfer?.items || [])].some(i => i.kind === 'file')) { e.preventDefault(); return true } return false },
+      drop (v, e) {
+        const files = [...(e.dataTransfer?.files || [])].filter(f => f.type.startsWith('image/'))
+        if (!files.length) return false
+        e.preventDefault()
+        if (ctx.readOnly) return true
+        const at = v.posAtCoords({ left: e.clientX, top: e.clientY })
+        if (at) v.dispatch(v.state.tr.setSelection(TextSelection.near(v.state.doc.resolve(at.pos))))
+        ;(async () => { for (const file of files) await uploadFigure(file) })()
+        return true
+      }
+    },
     attributes: { 'aria-label': t('ed.title'), 'aria-multiline': 'true', role: 'textbox', class: 'essay-body ed-body' },
     dispatchTransaction: tr => { const next = view.state.apply(tr); view.updateState(next); updateBubble(view); renderNotes(); syncEmpty(); if (tr.docChanged && !tr.getMeta('remote')) ctx.onChange() }
   })
@@ -299,11 +324,11 @@ export function createEditor (ctx) {
     currentBlockId () { const { $from } = view.state.selection; return $from.depth ? $from.node(1).attrs.id : null },
     gotoBlock (id) { let pos = null; view.state.doc.forEach((n, off) => { if (n.attrs.id === id) pos = off }); if (pos == null) return false; const dom = view.nodeDOM(pos); dom && dom.scrollIntoView({ block: 'center', behavior: 'smooth' }); const node = view.state.doc.nodeAt(pos); view.dispatch(view.state.tr.setSelection(node.type.name === 'figure' ? NodeSelection.create(view.state.doc, pos) : TextSelection.near(view.state.doc.resolve(pos + 1)))); return true },
     headings () { const out = []; view.state.doc.forEach((n, off) => { if (n.type.name === 'h2' || n.type.name === 'h3') out.push({ id: n.attrs.id, level: n.type.name, text: n.textContent }) }); return out },
-    refresh () { renderNotes() },
-    refreshSources () { view.updateState(view.state) ; view.dispatch(view.state.tr.setMeta('refresh', true)) },
+    refresh () { renderNotes(); for (const refresh of citationViews) refresh() },
+    refreshSources () { for (const refresh of citationViews) refresh() },
     insertSource, insertFootnote, focus: () => view.focus(),
     focusEnd () { view.focus(); view.dispatch(view.state.tr.setSelection(TextSelection.atEnd(view.state.doc)).scrollIntoView()) },
     focusStart () { view.focus(); view.dispatch(view.state.tr.setSelection(TextSelection.atStart(view.state.doc))) },
-    destroy () { dead = true; view.destroy(); menuEl.remove(); bubbleEl.remove() }
+    destroy () { dead = true; view.destroy(); menuEl.remove(); bubbleEl.remove(); figureInput.remove() }
   }
 }

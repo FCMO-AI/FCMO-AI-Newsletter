@@ -13,12 +13,12 @@ if (!viewports.length) viewports.push('1440x900', '390x844')
 const require = createRequire(import.meta.url)
 const axePath = process.env.AXE_CORE_PATH || require.resolve('axe-core/axe.min.js')
 const slug = process.env.STUDIO_SLUG || 'el-trabajo-silencioso'
-const screens = [['home', '#/'], ['editor', `#/p/${slug}/es-419`], ['translate', `#/p/${slug}/es-419/translate/en`], ['preview', `#/p/${slug}/es-419/preview`], ['publish', `#/p/${slug}/publish`], ['versions', `#/p/${slug}/versions`], ['issues', '#/issues']]
+const screens = [['home', '#/'], ['editor', `#/p/${slug}/es-419`], ['translate', `#/p/${slug}/es-419/translate/en`], ['preview', `#/p/${slug}/es-419/preview`], ['publish', `#/p/${slug}/publish`], ['versions', `#/p/${slug}/versions`], ['issues', '#/issues'], ['review', `#/p/${process.env.STUDIO_REVIEW_SLUG || slug}/review`], ['progress', `#/p/${process.env.STUDIO_REVIEW_SLUG || slug}/progress`]]
 const report = []
 let s
 for (const vp of viewports) {
   const [width, height] = vp.split('x').map(Number)
-  s = await session(base, { viewport: { width, height } })
+  s = await session(base, { viewport: { width, height }, bypassCSP: true })
   for (const [name, hash] of screens) {
     await go(s, hash); await s.page.waitForTimeout(900)
     await s.page.addScriptTag({ path: axePath })

@@ -36,14 +36,17 @@ export function toast (msg, kind = '') {
   const el = h('div', { class: 'toast ' + kind }, msg)
   box.append(el); setTimeout(() => el.remove(), 4200)
 }
+const openModals = new Set()
+export function closeModals () { for (const close of [...openModals]) close('route') }
 export function modal ({ title, body, actions = [], wide = false, onClose }) {
   const back = h('div', { class: 'modal-back' })
-  const close = () => { back.remove(); document.removeEventListener('keydown', onKey); onClose && onClose() }
+  let closed = false
+  const close = reason => { if (closed) return; closed = true; openModals.delete(close); back.remove(); document.removeEventListener('keydown', onKey); onClose && onClose(reason) }
   const onKey = e => { if (e.key === 'Escape') close() }
   const dlg = h('div', { class: 'modal' + (wide ? ' wide' : ''), role: 'dialog', 'aria-modal': 'true', 'aria-label': title },
     h('h2', null, title), h('div', { class: 'modal-body' }, body),
     h('div', { class: 'modal-actions' }, actions.map(a => h('button', { class: 'btn ' + (a.kind || ''), type: 'button', onclick: () => { if (a.onclick) a.onclick(close); else close() } }, a.label))))
-  back.append(dlg); document.body.append(back); document.addEventListener('keydown', onKey)
+  openModals.add(close); back.append(dlg); document.body.append(back); document.addEventListener('keydown', onKey)
   const first = dlg.querySelector('input,textarea,button.primary,button'); first && first.focus()
   return close
 }

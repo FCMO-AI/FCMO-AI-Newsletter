@@ -189,6 +189,11 @@ class CommunityBuildTests(unittest.TestCase):
     def build(self, env: dict[str, str] | None = None) -> tuple[tempfile.TemporaryDirectory, Path, subprocess.CompletedProcess[str]]:
         temp = tempfile.TemporaryDirectory(prefix="wpB2-")
         out = Path(temp.name) / "publish"
+        # These are Ghost/portal fixtures, including explicit empty-rail cases.
+        # Never inherit whichever human essays happen to be in the checkout
+        # (in production this suite also runs on a Studio publication candidate).
+        editorial = Path(temp.name) / "editorial"
+        editorial.mkdir()
         clean_env = os.environ.copy()
         for name in ("GHOST_CONTENT_URL", "GHOST_CONTENT_API_KEY", "GHOST_PORTAL_URL"):
             clean_env.pop(name, None)
@@ -199,6 +204,7 @@ class CommunityBuildTests(unittest.TestCase):
                 str(ROOT / "tools" / "paper" / "build.py"),
                 "--stories", str(FIXTURES / "stories.v2.json"),
                 "--status", str(FIXTURES / "newsroom-status.fresh.json"),
+                "--editorial", str(editorial),
                 "--out", str(out),
                 "--base", "/FCMO-AI-Newsletter/",
             ],

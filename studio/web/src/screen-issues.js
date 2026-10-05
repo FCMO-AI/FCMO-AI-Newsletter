@@ -1,6 +1,6 @@
 import { get, put, post } from './api.js'
 import { t, LOCALE_NAME, LOCALE_SHORT } from './i18n.js'
-import { h, clear, dots, toast } from './ui.js'
+import { h, clear, dots, toast, modal } from './ui.js'
 import { shell, session } from './main.js'
 
 const SLOTS = ['principal', 'essays', 'day-in-ai', 'notes']
@@ -21,19 +21,27 @@ export async function issuesScreen (root, slug) {
     catch (e) { dirty = true; saveState.textContent = e.data?.error_plain || t('err.generic') }
     finally { saving = false; if (dirty) saveT = setTimeout(save, 5000) }
   }
+  const markLocale = async () => {
+    await save(); if (!currentSlug || dirty) return
+    const mark = async () => { const r = await post(`/api/issues/${currentSlug}/locale/${noteLoc}/state`, { state: 'ready', reviewed: true, confirmation: noteLoc === 'zh-Hans' ? 'Leí y entiendo el texto chino' : '' }); rev = r.rev; toast('✓') }
+    if (noteLoc === 'zh-Hans') { const cb = h('input', { type: 'checkbox' }); modal({ title: t('tr.review'), body: h('label', null, cb, t('tr.zh.confirm')), actions: [{ label: t('common.cancel') }, { label: t('tr.confirm'), onclick: close => { if (cb.checked) { mark(); close() } } }] }) } else await mark()
+  }
   const saveState = h('span', { class: 'save-state', role: 'status' }, t('ed.saved'))
   const persist = () => { dirty = true; saveState.textContent = t('ed.dirty'); clearTimeout(saveT); saveT = setTimeout(save, 800) }
   const lib = h('div', { class: 'lib' }); const canvas = h('div', { class: 'canvas' })
   const find = ref => !ref.startsWith('FCMO-P-') ? { kind: 'brief', b: briefs.find(b => b.id === ref) } : { kind: 'piece', p: pieces.find(p => p.meta.id === ref) }
   function add (slot, ref) { if (SLOTS.some(s => issue.slots[s].includes(ref))) return toast(t('iss.dup')); issue.slots[slot].push(ref); persist(); drawCanvas() }
   function card (it) {
+    const draggable = (el, ref) => { el.addEventListener('dragstart', e => e.dataTransfer.setData('text/plain', ref)); return el }
     if (it.kind === 'brief') {
       const b = it.b; if (!b) return h('div', { class: 'card gone' }, '?')
-      return h('div', { class: 'card brief', draggable: 'true', 'data-ref': b.id }, h('p', { class: 'card-meta' }, b.date, ' · ', b.beat, ' · ', h('span', { class: 'cls c' + b.class }, t('iss.class'), ' ', b.class)), h('p', { class: 'card-title' }, b.headline), h('p', { class: 'muted small' }, t('iss.readonly')))
+      const states = Object.fromEntries(['en', 'es-419', 'zh-Hans'].map(l => [l, { state: l === 'en' || (['NATIVE_ARB', 'MACHINE_REVIEWED'].includes(b.l10n?.[l]?.state) && !(b.l10n[l].missing || []).length) ? 'ready' : 'later' }]))
+      const bad = Object.values(states).some(v => v.state !== 'ready')
+      return draggable(h('div', { class: 'card brief', draggable: 'true', 'data-ref': b.id }, h('p', { class: 'card-meta' }, b.date, ' · ', b.beat, ' · ', h('span', { class: 'cls c' + b.class }, t('iss.class'), ' ', b.class)), h('p', { class: 'card-title' }, b.headline), h('p', { class: 'muted small' }, t('iss.confidence') + ': ' + t('confidence.' + b.confidence) + ' · ' + t('iss.importance') + ': ' + b.importance), h('p', { class: 'muted small' }, t('iss.readonly')), dots(states, t), bad ? h('p', { class: 'flag' }, '! ', t('iss.badlang')) : null), b.id)
     }
     const p = it.p; if (!p) return h('div', { class: 'card gone' }, '?')
-    const bad = !['en', 'es-419', 'zh-Hans'].every(l => ['ready', 'later'].includes((p.locales[l] || {}).state))
-    return h('div', { class: 'card piece', draggable: 'true', 'data-ref': p.meta.id }, h('p', { class: 'card-meta' }, t('kind.' + p.kind), ' · ', p.author === 'javier' ? 'Javier' : 'Matías'), h('p', { class: 'card-title' }, p.title), dots(p.locales, t), bad ? h('p', { class: 'flag' }, '! ', t('iss.badlang')) : null)
+    const bad = !['en', 'es-419', 'zh-Hans'].every(l => (p.locales[l] || {}).state === 'ready')
+    return draggable(h('div', { class: 'card piece', draggable: 'true', 'data-ref': p.meta.id }, h('p', { class: 'card-meta' }, t('kind.' + p.kind), ' · ', p.author === 'javier' ? 'Javier' : 'Matías'), h('p', { class: 'card-title' }, p.title), dots(p.locales, t), bad ? h('p', { class: 'flag' }, '! ', t('iss.badlang')) : null), p.meta.id)
   }
   function drawLib () {
     clear(lib)
@@ -44,7 +52,7 @@ export async function issuesScreen (root, slug) {
     lib.append(h('div', { class: 'lib-filter' }, f, tab === 'briefs' ? h('select', { 'aria-label': t('iss.class'), onchange: e => { cls = e.target.value; drawList() } }, ['', 'A', 'B', 'C', 'D'].map(c => h('option', { value: c, selected: c === cls }, c ? t('iss.class') + ' ' + c : t('iss.class')))) : null), body)
     function drawList () {
       clear(body)
-      const items = tab === 'briefs' ? briefs.filter(b => (!q || (b.headline + b.date + b.beat).toLowerCase().includes(q.toLowerCase())) && (!cls || b.class === cls)).map(b => ({ kind: 'brief', b, ref: b.id }))
+      const items = tab === 'briefs' ? briefs.filter(b => (!q || (b.headline + b.date + b.beat + (b.topics || []).join(' ')).toLowerCase().includes(q.toLowerCase())) && (!cls || b.class === cls)).map(b => ({ kind: 'brief', b, ref: b.id }))
         : pieces.filter(tabs.find(x => x[0] === tab)[2]).filter(p => !q || p.title.toLowerCase().includes(q.toLowerCase())).map(p => ({ kind: 'piece', p, ref: p.meta.id }))
       if (!items.length) body.append(h('p', { class: 'muted' }, t('iss.empty')))
       for (const it of items) {
@@ -63,10 +71,10 @@ export async function issuesScreen (root, slug) {
     for (const s of SLOTS) {
       const zone = h('section', { class: 'slot', 'data-slot': s }, h('h3', null, labels[s]), issue.slots[s].length ? null : h('p', { class: 'drop-hint' }, t('iss.drop')))
       zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('over') }); zone.addEventListener('dragleave', () => zone.classList.remove('over'))
-      zone.addEventListener('drop', e => { e.preventDefault(); zone.classList.remove('over'); const ref = e.dataTransfer.getData('text/plain'); if (ref) { for (const x of SLOTS) issue.slots[x] = issue.slots[x].filter(r => r !== ref); issue.slots[s].push(ref); persist(); drawCanvas() } })
+      zone.addEventListener('drop', e => { e.preventDefault(); zone.classList.remove('over'); const ref = e.dataTransfer.getData('text/plain'); const before = e.target.closest('.slot-item')?.dataset.ref; if (ref && ref !== before) { for (const x of SLOTS) issue.slots[x] = issue.slots[x].filter(r => r !== ref); const at = issue.slots[s].indexOf(before); issue.slots[s].splice(at < 0 ? issue.slots[s].length : at, 0, ref); persist(); drawCanvas() } })
       issue.slots[s].forEach((ref, i) => {
         const list = issue.slots[s]
-        zone.append(h('div', { class: 'slot-item' }, card(find(ref)), h('div', { class: 'slot-act' },
+        zone.append(h('div', { class: 'slot-item', 'data-ref': ref }, card(find(ref)), h('div', { class: 'slot-act' },
           h('button', { class: 'icon-btn', type: 'button', disabled: i === 0, 'aria-label': t('iss.up'), onclick: () => { [list[i - 1], list[i]] = [list[i], list[i - 1]]; persist(); drawCanvas() } }, '↑'),
           h('button', { class: 'icon-btn', type: 'button', disabled: i === list.length - 1, 'aria-label': t('iss.down'), onclick: () => { [list[i + 1], list[i]] = [list[i], list[i + 1]]; persist(); drawCanvas() } }, '↓'),
           h('button', { class: 'icon-btn', type: 'button', 'aria-label': t('iss.remove'), onclick: () => { list.splice(i, 1); persist(); drawCanvas() } }, '×'))))
@@ -74,9 +82,9 @@ export async function issuesScreen (root, slug) {
       canvas.append(zone)
     }
     const ta = h('textarea', { rows: 4, lang: noteLoc, 'aria-label': t('iss.note') }); ta.value = issue.note[noteLoc] || ''; ta.addEventListener('input', () => { issue.note[noteLoc] = ta.value; persist() })
-    canvas.append(h('section', { class: 'slot editor-note' }, h('h3', null, t('iss.note')), h('div', { class: 'seg' }, ['en', 'es-419', 'zh-Hans'].map(l => h('button', { type: 'button', class: l === noteLoc ? 'on' : '', 'aria-pressed': String(l === noteLoc), onclick: () => { noteLoc = l; drawCanvas() } }, LOCALE_SHORT[l]))), ta))
+    canvas.append(h('section', { class: 'slot editor-note' }, h('h3', null, t('iss.note')), h('div', { class: 'seg' }, ['en', 'es-419', 'zh-Hans'].map(l => h('button', { type: 'button', class: l === noteLoc ? 'on' : '', 'aria-pressed': String(l === noteLoc), onclick: () => { noteLoc = l; drawCanvas() } }, LOCALE_SHORT[l]))), ta, h('button', { class: 'btn small', disabled: session.me.user !== 'matias', onclick: markLocale }, t('tr.review'))))
   }
   drawLib(); drawCanvas()
-  root.append(shell(h('div', { class: 'flow iss' }, h('h1', null, t('iss.title')), h('div', { class: 'btn-row' }, saveState, h('button', { class: 'btn', type: 'button', disabled: session.me.user !== 'matias', onclick: async () => { await save(); if (currentSlug && !dirty) location.hash = `#/p/${currentSlug}/publish` } }, t('ed.publish'))), h('div', { class: 'rows' }, editions.length ? h('h2', { class: 'rows-h' }, t('iss.saved')) : null, editions.map(e => h('a', { class: 'row', href: '#/issues/' + e.issue.id, 'aria-current': e.issue.id === currentSlug ? 'page' : null }, h('strong', { class: 'row-title' }, e.issue.title['es-419'] || e.issue.title.en || e.issue.id), h('span', { class: 'row-meta' }, e.issue.date))), editions.length ? h('a', { class: 'btn small', href: '#/issues' }, '+ ', t('iss.new')) : null), h('div', { class: 'iss-grid' }, h('section', { class: 'iss-lib' }, h('h2', null, t('iss.lib')), lib), h('section', { class: 'iss-canvas' }, h('h2', null, t('iss.canvas')), canvas))), { active: 'issues', wide: true }))
+  root.append(shell(h('div', { class: 'flow iss' }, h('h1', null, t('iss.title')), h('div', { class: 'btn-row' }, saveState, h('button', { class: 'btn', onclick: async () => { await save(); if (currentSlug && !dirty) location.hash = `#/p/${currentSlug}/${noteLoc}/preview` } }, t('ed.preview')), h('button', { class: 'btn', type: 'button', disabled: session.me.user !== 'matias', onclick: async () => { await save(); if (currentSlug && !dirty) location.hash = `#/p/${currentSlug}/publish` } }, t('ed.publish'))), h('div', { class: 'rows' }, editions.length ? h('h2', { class: 'rows-h' }, t('iss.saved')) : null, editions.map(e => h('a', { class: 'row', href: '#/issues/' + e.issue.id, 'aria-current': e.issue.id === currentSlug ? 'page' : null }, h('strong', { class: 'row-title' }, e.issue.title['es-419'] || e.issue.title.en || e.issue.id), h('span', { class: 'row-meta' }, e.issue.date))), editions.length ? h('a', { class: 'btn small', href: '#/issues' }, '+ ', t('iss.new')) : null), h('div', { class: 'iss-grid' }, h('section', { class: 'iss-lib' }, h('h2', null, t('iss.lib')), lib), h('section', { class: 'iss-canvas' }, h('h2', null, t('iss.canvas')), canvas))), { active: 'issues', wide: true }))
   return () => { clearTimeout(saveT); if (dirty) save() }
 }
