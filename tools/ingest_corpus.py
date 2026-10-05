@@ -256,7 +256,9 @@ def parse_edition(path: Path, canonical_ids: set[str]) -> dict[str, Any]:
     events = parser.events
     related: list[str] = []
     for match in PUBLIC_ID.finditer(source):
-        if match.group() in canonical_ids and match.group() not in related:
+        # A published edition is immutable history. A later withdrawal or
+        # quarantine cannot erase which public identities it referred to.
+        if (published or match.group() in canonical_ids) and match.group() not in related:
             related.append(match.group())
 
     if published:

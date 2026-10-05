@@ -282,6 +282,9 @@ class RealCorpusBacklog(unittest.TestCase):
         for locale in LOCALES:
             rows, strict, provenance, _ = vl.effective_overlays_details(locale, ROOT / "site/data/i18n", ROOT / "corpus")
             canonical = vl.load_corpus_canonical(ROOT / "corpus")
+            # This receipt measures published stories; invalid source rows stay quarantined.
+            published = {row["research_id"] for row in json.loads((ROOT / "site/data/stories.json").read_text())}
+            canonical = {rid: row for rid, row in canonical.items() if rid in published}
             recount = vl.summarize(vl.locale_states(canonical, rows, strict, locale, provenance))["state_counts"]
             self.assertEqual(status["locales"][locale]["state_counts"], recount)
 
@@ -693,7 +696,7 @@ class UICatalogs(unittest.TestCase):
             self.assertNotEqual(errors["not_found_title"], english)
 
     def test_spanish_catalog_is_spanish(self):
-        allowed_same = {"Agenda", "Atom", "Blog", "China", "FCMO AI", "Global", "India", "JSON Feed",
+        allowed_same = {"Argentina", "Agenda", "Atom", "Blog", "China", "FCMO AI", "Global", "India", "JSON Feed",
                         "Notable", "RSS", "{date}, {time} ({tz})", "© {year} FCMO AI", "English", "Español", "简体中文"}
         english = dict(self.reader_leaves("en"))
         for path, value in self.reader_leaves("es-419"):

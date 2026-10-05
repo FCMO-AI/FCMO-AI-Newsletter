@@ -36,7 +36,7 @@ CARD_ID = re.compile(r'<article class="story-card" data-story-id="([^"]+)"')
 ESSENTIAL_ITEM = re.compile(r'<li( [^>]*)>(.*?)</li>', re.S)
 EDITION_CARD = re.compile(
     r'<article class="story-card edition-card"><h3><a href="([^"]+)">([^<]+)</a></h3>'
-    r'<p class="edition-count">([^<]+)</p><p class="edition-lead"><a href="([^"]+)">([^<]+)</a></p></article>')
+    r'<p class="edition-count">([^<]+)</p><p class="edition-lead">(?:<a href="([^"]+)">([^<]+)</a>|([^<]+))</p></article>')
 
 
 def S(rid: str, beat: str = "technology", confidence: str = "confirmed") -> dict:
@@ -205,7 +205,8 @@ class FrontPlanBuildTests(unittest.TestCase):
                                      headline(self.by_id[story_id], locale, self.catalogs[locale]))
 
     def test_edition_cards_show_count_and_lead_headline(self):
-        dates = sorted({story["url_date"] for story in self.live}, reverse=True)[:6]
+        payload = json.loads(STORIES.read_text())
+        dates = sorted(set(payload.get("published_edition_dates", [])) | {story["url_date"] for story in self.live}, reverse=True)[:6]
         self.assertEqual(len(dates), 6)
         for locale, prefix in LOCALES:
             with self.subTest(locale=locale):
@@ -214,11 +215,15 @@ class FrontPlanBuildTests(unittest.TestCase):
                 cards = EDITION_CARD.findall(page)
                 self.assertEqual(len(cards), 6)
                 self.assertEqual(page.count('class="story-card edition-card"'), 6)
-                for date, (edition_link, _, count, lead_link, lead_text) in zip(dates, cards):
+                for date, (edition_link, _, count, lead_link, lead_text, empty_text) in zip(dates, cards):
                     edition = [story for story in self.live if story["url_date"] == date]
                     self.assertTrue(edition_link.endswith(f"edition/{date}/"), edition_link)
                     self.target(edition_link)
                     self.assertEqual(html.unescape(count), plural(catalog, "edition_story", len(edition)))
+                    if not edition:
+                        self.assertEqual(html.unescape(empty_text), catalog["strings"]["archive"]["empty"])
+                        self.assertEqual(lead_link, "")
+                        continue
                     lead = front_order(edition)[0]
                     self.assertEqual(self.resolve(lead_link), lead["id"])
                     self.assertEqual(html.unescape(lead_text), headline(lead, locale, catalog))

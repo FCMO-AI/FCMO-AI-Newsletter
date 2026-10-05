@@ -1,3 +1,19 @@
+# L1b-sync — resultado actual (2026-10-05)
+
+Integración local de `origin/main` (`78197c4`) en `c5/v4` desde `a89c952`, con prueba roja previa `146bc93`. Se conserva WFSEC, se regeneran los artefactos con las herramientas del repositorio y se mantienen exactamente los datos y ediciones de main y la unión del ledger (63 líneas).
+
+La suite final pasó: **595 pruebas, 0 fallos, 0 errores, 3 omisiones por navegador ausente**. `verify_release`: **7/7** (las seis originales y el gate de marca de main). Publicación: **13/13**, incluido `NO_FCMO_GROUP`. Se comprobaron **510 rutas y 27 817 enlaces locales**, con **0 roturas**, y las seis páginas EN/es-419/zh-Hans de las ediciones del 03 y 04 de octubre.
+
+El detalle de conflictos, regeneración, conteos y reejecución está en [reports/L1b-sync.md](reports/L1b-sync.md). La prueba de conservación y rutas está en [reports/L1b-check.py](reports/L1b-check.py).
+
+Dos registros nuevos se mantienen en cuarentena por `event_at: null`; los tombstones siguen vigentes. Falta el heartbeat real del bridge v4 (`WIRE_STATUS_MISSING`), así que el estado conserva `TRANSPORT_DOWN` / `DELAYED`. Las ediciones tienen rutas estáticas, sin inventar noticias aceptadas ni traducciones de su cuerpo histórico.
+
+**Límite:** el arquitecto debe comprobar Playwright a 390 y 1440, volver a ejecutar las pruebas fuera de esta caja y realizar el push. No se verificó producción ni se usó red o secretos.
+
+Resumen: merge local y gates verificados; faltan navegador en el host y el próximo ciclo real de publicación. Los informes que siguen son históricos.
+
+---
+
 # Campaign 5 — L1: integración y revalidación de v4
 
 Fecha: 2026-10-04 UTC. Rama de trabajo: `c5/v4`.
@@ -116,3 +132,28 @@ Resumen: frescura independiente del heartbeat, estado público FRESH / QUIET / D
 Detalle, baseline, cambios y continuación para la prueba del arquitecto en [REPORT-L16-mobile.md](REPORT-L16-mobile.md). La suite completa da 583 OK y 3 omitidas. El navegador no está disponible en esta caja, así que el resultado visual posterior sigue sin confirmación.
 
 Resumen L16-mobile: navegación compacta y wrapping genérico implementados; falta medir el candidato en Chromium en el host.
+
+
+## Imported main workflow security report (historical)
+
+# Campaña 5 — WFSEC
+
+La contención local de las salidas privadas está implementada y probada. El
+backfill público está retirado. Los workflows restantes emiten únicamente códigos
+de salida y conteos desde sus bloques shell.
+
+**Aceptación pendiente:** `python3 -m unittest discover -s tests` ejecutó 72 tests:
+70 pasan y 2 fallan por las referencias de Actions aún sin SHA cotejado. Se pidió
+la excepción de red necesaria para consultar código y metadatos de GitHub; no hubo
+respuesta ni acceso de red. No hubo push ni cambios en GitHub.
+
+El commit rojo es `4e90763`, con autor `Codex <noreply@openai.com>`. La prueba final
+también falla contra los tres workflows originales de `origin/main`: 28 fallos de
+subcasos, 0 errores. Los cuatro tests independientes de los pins pasan con fixtures
+de éxito, fallo, excepción y error de Git.
+
+Detalles, límites, continuación y rangos conservadores de logs a retirar:
+[REPORT-WFSEC.md](REPORT-WFSEC.md). Claude debe reejecutar antes de integrar.
+
+Resumen: contención probada; faltan los SHA verificados. No integrar ni reactivar
+hasta completar ese paso y obtener el suite entero en verde.

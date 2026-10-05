@@ -92,6 +92,7 @@ class PaperBuilder:
         self.catalogs = load_catalogs(ROOT)
         self.stories = self.payload["stories"]
         self.live = [story for story in self.stories if story.get("status") == "live"]
+        self.edition_dates = sorted(set(self.payload.get("published_edition_dates", [])) | {story["url_date"] for story in self.live}, reverse=True)
         self.freshness = corpus_freshness(self.live, self.status.get("status_updated_at"))
         self.status["publication_status"] = publication_status(self.freshness, self.status, stories=self.stories)
         self.out = out
@@ -289,11 +290,13 @@ class PaperBuilder:
         """One recent edition: its date, how many live stories it holds and the story that leads it."""
         catalog = self.catalogs[locale["code"]]
         stories = [story for story in self.live if story.get("url_date") == date]
-        lead = front_order(stories)[0]
+        lead = front_order(stories)[0] if stories else None
         title = catalog["strings"]["archive"]["edition_title"].format(date=format_date(date + "T12:00:00Z", catalog))
+        lead_copy = (f'<a href="{esc(self._story_href(locale,lead))}">{esc(headline(lead,locale["code"],catalog))}</a>'
+                     if lead else esc(catalog["strings"]["archive"]["empty"]))
         return (f'<article class="story-card edition-card"><h3><a href="{esc(href(self.base,edition_path(locale,date)))}">{esc(title)}</a></h3>'
                 f'<p class="edition-count">{esc(plural(catalog, "edition_story", len(stories)))}</p>'
-                f'<p class="edition-lead"><a href="{esc(self._story_href(locale,lead))}">{esc(headline(lead,locale["code"],catalog))}</a></p></article>')
+                f'<p class="edition-lead">{lead_copy}</p></article>')
 
     def _front(self, locale: dict) -> None:
         catalog = self.catalogs[locale["code"]]
@@ -347,7 +350,7 @@ class PaperBuilder:
             developing = f'<section class="developing-well"><div class="section-head"><div><p class="section-kicker">FCMO AI · {esc(strings["kicker"]["signal"])}</p><h2>{esc(strings["front"]["developing"])}</h2></div></div><div class="card-row">{"".join(self._card(s,locale,3) for s in plan["developing"])}</div></section>'
         cartas = community.render_cartas(self.cartas, locale["code"])
         subscribe, subscribe_script = community.render_subscribe(locale_code=locale["code"], path_prefix=locale["path_prefix"], base=self.base, portal_url=self.portal_url)
-        dates = sorted({s["url_date"] for s in self.live}, reverse=True)[:6]
+        dates = self.edition_dates[:6]
         editions = f'<section class="beat-section"><div class="section-head"><h2>{esc(strings["front"]["editions"])}</h2><a href="{esc(href(self.base,locale["path_prefix"]+"archive/"))}">{esc(strings["nav"]["archive"])}</a></div><div class="card-row">' + "".join(self._edition_card(date, locale) for date in dates) + "</div></section>"
         nouns = {
             "en": ("live stories", "topics", "organizations"),
@@ -570,7 +573,7 @@ class PaperBuilder:
                    f'<li><strong>{len(topics)}</strong> {labels[1]}</li><li><strong>{len(orgs)}</strong> {labels[2]}</li></ul>')
         navigation = ""
         if kind == "edition":
-            dates = sorted({item["url_date"] for item in self.live}, reverse=True)
+            dates = self.edition_dates
             date = suffix.strip("/").split("/")[-1]
             index = dates.index(date) if date in dates else -1
             links = []
@@ -774,7 +777,7 @@ class PaperBuilder:
                 if story not in self.live and story.get("status") in {"withdrawn", "merged"} and story.get("corrections"):
                     self._story(story, locale)
             self._listing(locale=locale, suffix="archive/", title=catalog["strings"]["archive"]["title"], stories=ranked, kind="archive")
-            for date in sorted({s["url_date"] for s in self.live}, reverse=True):
+            for date in self.edition_dates:
                 values = [s for s in ranked if s["url_date"] == date]
                 title = catalog["strings"]["archive"]["edition_title"].format(date=format_date(date+"T12:00:00Z",catalog))
                 self._listing(locale=locale, suffix=f"edition/{date}/", title=title, stories=values, kind="edition")
@@ -800,9 +803,9 @@ class PaperBuilder:
             search_index.build(self.live, locale=locale, catalog=catalog, base=self.base, out=self.out / locale["path_prefix"] / "data" / "search.json")
         self._404()
         feed_paths = feeds.write_all(self.stories, locales=self.config["locales"], catalogs=self.catalogs, base_url=self.base_url, out=self.out)
-        redirect_paths = redirects.build(self.stories, locales=self.config["locales"], base=self.base, out=self.out, legacy_root=ROOT / "site")
+        redirect_paths = redirects.build(self.stories, published_edition_dates=self.edition_dates, locales=self.config["locales"], base=self.base, out=self.out, legacy_root=ROOT / "site")
         sitemaps.write(self.routes, out=self.out, generated_at=self.payload["generated_at"])
-        agent_layer.build(stories=self.live, all_stories=self.stories, locales=self.config["locales"],
+        agent_layer.build(published_edition_dates=self.edition_dates, stories=self.live, all_stories=self.stories, locales=self.config["locales"],
                           catalogs=self.catalogs, status=self.status, base_url=self.base_url,
                           base=self.base, out=self.out, root=ROOT)
         (self.out / "data").mkdir(exist_ok=True)

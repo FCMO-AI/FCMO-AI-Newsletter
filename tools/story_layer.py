@@ -42,10 +42,12 @@ from typing import Any, Iterable
 from urllib.parse import urlsplit
 
 try:
+    from tools.ingest_corpus import parse_edition
     from tools import taxonomy
     from tools import corpus_guard
     from tools.validate_localizations import load_locale_details
 except ImportError:  # executed as tools/story_layer.py
+    from ingest_corpus import parse_edition  # type: ignore
     import taxonomy  # type: ignore
     import corpus_guard  # type: ignore
     from validate_localizations import load_locale_details  # type: ignore
@@ -810,6 +812,11 @@ def build_stories(inputs: StoryInputs) -> dict[str, Any]:
         "release_id": inputs.release_id,
         "canonical_locale": "en",
         "locales": list(LOCALES),
+        "published_edition_dates": sorted(
+            path.stem for path in (inputs.corpus / "editions").glob("????-??-??.html")
+            if re.fullmatch(r"\d{4}-\d{2}-\d{2}", path.stem)
+            and parse_edition(path, set())["published"]
+        ),
         "stories": ordered,
     }
 

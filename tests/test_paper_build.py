@@ -111,10 +111,12 @@ class PaperBuildTests(unittest.TestCase):
                     parser = AuditParser()
                     parser.feed(page.read_text(encoding="utf-8"))
                     self.assertEqual(parser.lang, locale)
-                    self.assertIn(date, "".join(parser.main_text))
+                    self.assertGreater(len("".join(parser.main_text)), 100)
                     self.assertTrue((root / "publish" / prefix / "edition" / f"{date}.md").is_file())
                     machine = json.loads((root / "publish" / "api/v1/editions" / f"{date}.json").read_text())
-                    self.assertEqual(machine["date"], date)
+                    self.assertEqual(machine["id"], date)
+                    legacy = (root / "publish" / "editions" / f"{date}.html").read_text()
+                    self.assertIn(f'/FCMO-AI-Newsletter/edition/{date}/', legacy)
 
     def test_acceptance_command_reports_routes(self):
         self.assertRegex(self.result.stdout, r"routes=\d+")

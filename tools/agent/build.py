@@ -101,7 +101,8 @@ def _markdown_story(story: dict, locale: dict, catalog: dict, base_url: str, sta
 
 
 def build(*, stories: list[dict], all_stories: list[dict], locales: list[dict], catalogs: dict,
-          status: dict, base_url: str, base: str, out: Path, root: Path) -> None:
+          status: dict, base_url: str, base: str, out: Path, root: Path,
+          published_edition_dates: list[str] | None = None) -> None:
     api = out / "api/v1"
     old = json.loads((root / "scaffold/agent.json").read_text(encoding="utf-8"))
     # Keep the two original dossiers that the current canonical corpus has
@@ -115,14 +116,14 @@ def build(*, stories: list[dict], all_stories: list[dict], locales: list[dict], 
             shutil.copyfile(legacy_brief, target)
     canonical = base_url
     records = {s["id"]: _story_record(s, catalogs, base_url, status) for s in stories}
-    dates = sorted({s["url_date"] for s in stories}, reverse=True)
+    dates = sorted(set(published_edition_dates or []) | {s["url_date"] for s in stories}, reverse=True)
     topic_values = sorted({t for s in stories for t in s.get("topics", [])})
     org_values = sorted({o for s in stories for o in s.get("organizations", [])})
     records_by_date = {d: [s for s in stories if s["url_date"] == d] for d in dates}
     for sid, record in records.items():
         _dump(api / "stories" / f"{sid}.json", record)
     for day, values in records_by_date.items():
-        _dump(api / "editions" / f"{day}.json", {"id": day, "canonical_url": absolute(base_url, f"edition/{day}/"), "language": "en", "event_date": day, "published_at": min(s["first_published_at"] for s in values), "updated_at": max(s["updated_at"] for s in values), "stories": [s["id"] for s in values], "provenance": {"release_id": status.get("release_id", ""), "corpus_digest": status.get("corpus_digest", ""), "stories_sha256": status.get("stories_sha256", "")}})
+        _dump(api / "editions" / f"{day}.json", {"id": day, "canonical_url": absolute(base_url, f"edition/{day}/"), "language": "en", "event_date": day, "published_at": min((s["first_published_at"] for s in values), default=day), "updated_at": max((s["updated_at"] for s in values), default=day), "stories": [s["id"] for s in values], "provenance": {"release_id": status.get("release_id", ""), "corpus_digest": status.get("corpus_digest", ""), "stories_sha256": status.get("stories_sha256", "")}})
     def slug(text: str) -> str:
         return re.sub(r"-+", "-", re.sub(r"[^a-z0-9]+", "-", text.casefold())).strip("-") or "item"
     for kind, values in (("topics", topic_values), ("organizations", org_values)):
