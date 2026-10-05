@@ -293,8 +293,17 @@ class RealCorpusBacklog(unittest.TestCase):
             airlock = ROOT / "site/data/i18n" / locale / "part-airlock.json"
             fixture_root = ROOT / "tests/fixtures/localization-baselines"
             original = (fixture_root / "c4ad8f2" / f"{locale}-part-airlock.json").read_bytes()
-            self.assertEqual(airlock.read_bytes(), original)
-            before = json.loads(original)["records"]
+            baseline = json.loads(original)
+            airlock_doc = json.loads(airlock.read_text(encoding="utf-8"))
+            # Canonical identity metadata advances with the corpus; ARB-authored
+            # airlock prose and values remain byte-for-byte equivalent as JSON.
+            before = baseline["records"]
+            after = airlock_doc["records"]
+            self.assertTrue(all(after.get(rid) == row for rid, row in before.items()))
+            self.assertEqual(set(after) - set(before), {"FCMO-045BB8282222", "FCMO-5B5B447325A8"})
+            ui = json.loads((ROOT / "site/data/i18n" / locale / "ui.json").read_text(encoding="utf-8"))
+            self.assertEqual(ui["canonical_record_count"], 43)
+            self.assertEqual(airlock_doc["canonical_source_sha256"], ui["canonical_source_sha256"])
             pd1 = json.loads((fixture_root / "b9ebe9e" / f"{locale}-part-airlock.json").read_text(encoding="utf-8"))["records"]
             desk = json.loads(airlock.with_name("part-desk.json").read_text(encoding="utf-8"))
             self.assertEqual(len(desk["records"]), 17)
