@@ -51,7 +51,10 @@ class RepositoryStoryLayerTests(unittest.TestCase):
         self.assertIn("2026-10-04", self.document["published_edition_dates"])
         # Research snapshots carry no publication authority by their date alone.
         self.assertNotIn("2026-09-24", self.document["published_edition_dates"])
-        self.assertFalse(any(story["url_date"] == "2026-10-04" for story in self.document["stories"]))
+        # The October 4 dates come from these records' actual first-publication history.
+        self.assertEqual({story["id"] for story in self.document["stories"]
+                          if story["url_date"] == "2026-10-04"},
+                         {"FCMO-045BB8282222", "FCMO-5B5B447325A8"})
 
     def test_validates_against_stories_v2_schema(self) -> None:
         validator = validator_for(CONTRACTS / "stories.v2.schema.json")
@@ -75,7 +78,7 @@ class RepositoryStoryLayerTests(unittest.TestCase):
             proc = subprocess.run([sys.executable, str(TOOL), "build", "--corpus", str(CORPUS), "--history-git", str(REPO),
                                    "--out", str(out), "--now", NOW], capture_output=True, text=True, cwd=REPO)
             self.assertEqual(proc.returncode, 0, proc.stderr)
-            self.assertEqual(proc.stdout.strip(), "stories OK live=41 withdrawn=1 merged=2 front_page=7")
+            self.assertEqual(proc.stdout.strip(), "stories OK live=43 withdrawn=1 merged=2 front_page=9")
             validate = subprocess.run([sys.executable, str(REPO / "tests" / "harness" / "validate.py"),
                                        str(CONTRACTS / "stories.v2.schema.json"), str(out)], capture_output=True, text=True)
             self.assertEqual(validate.returncode, 0, validate.stdout + validate.stderr)
@@ -88,17 +91,13 @@ class RepositoryStoryLayerTests(unittest.TestCase):
             self.assertEqual(story["url_date"], ledger[rid]["url_date"], rid)
             self.assertEqual(story["slug"], ledger[rid]["slug"], rid)
 
-    def test_one_story_per_public_id_and_41_live(self) -> None:
+    def test_one_story_per_public_id_and_43_live(self) -> None:
         corpus_ids = {json.loads(l)["id"] for l in (CORPUS / "data" / "developments.jsonl").read_text().splitlines() if l.strip()}
-        quarantined = {"FCMO-045BB8282222", "FCMO-5B5B447325A8"}
-        self.assertEqual(set(self.stories), (corpus_ids - quarantined) | {FDBE})
+        self.assertEqual(set(self.stories), corpus_ids | {FDBE})
         live = [s for s in self.document["stories"] if s["status"] == "live"]
-        self.assertEqual(len(live), 41)
+        self.assertEqual(len(live), 43)
         self.assertLessEqual({s["beat"] for s in live}, BEATS)
-        self.assertEqual(set(self.stderr.splitlines()), {
-            "QUARANTINE FCMO-045BB8282222 EVENT_AT_INVALID",
-            "QUARANTINE FCMO-5B5B447325A8 EVENT_AT_INVALID",
-        })
+        self.assertEqual(self.stderr, "")
 
     def test_merges(self) -> None:
         for dup, survivor in MERGES.items():
@@ -169,7 +168,7 @@ class RepositoryStoryLayerTests(unittest.TestCase):
         proc = subprocess.run([sys.executable, str(TOOL), "ledger", "--corpus", str(CORPUS), "--history-git", str(REPO),
                                "--check", "--now", NOW], capture_output=True, text=True, cwd=REPO)
         self.assertEqual(proc.returncode, 0, proc.stderr)
-        self.assertEqual(proc.stdout.strip(), "ledger OK entries=44 changes=0")
+        self.assertEqual(proc.stdout.strip(), "ledger OK entries=46 changes=0")
         validator = validator_for(CONTRACTS / "first-published.schema.json")
         self.assertEqual(validator.errors(json.loads((CORPUS / "first-published.json").read_text())), [])
 
@@ -240,7 +239,7 @@ class TemporaryCorpusTests(unittest.TestCase):
         self.assertIn(f"QUARANTINE {victim} CLAIMS_MISSING", stderr)
         self.assertIn(f"QUARANTINE {rows[6]['id']} DESK_UNKNOWN", stderr)
         self.assertNotIn(victim, by_id(document))
-        self.assertEqual(len(document["stories"]), 44 - 2)
+        self.assertEqual(len(document["stories"]), 46 - 2)
 
     def test_carried_record_stays_live(self) -> None:
         self._corpus = self.fixture_corpus()
@@ -271,7 +270,7 @@ class TemporaryCorpusTests(unittest.TestCase):
         for dup, survivor in MERGES.items():
             self.assertIn(f"MERGE_UNRECORDED {dup} -> {survivor}", stderr)
             self.assertEqual(by_id(document)[dup]["merged_into"], survivor)
-        self.assertEqual(sum(s["status"] == "live" for s in document["stories"]), 41)
+        self.assertEqual(sum(s["status"] == "live" for s in document["stories"]), 43)
 
     @unittest.skipUnless(FULL_HISTORY, "needs the full git history")
     def test_ledger_from_history_equals_the_contract_fixture(self) -> None:
@@ -344,7 +343,7 @@ class ShallowCheckoutTests(unittest.TestCase):
             stderr = error.getvalue()
         self.assertNotIn(FDBE, by_id(document))
         self.assertIn(f"ALERT STORY_RECORD_UNAVAILABLE {FDBE}", stderr)
-        self.assertEqual(sum(s["status"] == "live" for s in document["stories"]), 41)
+        self.assertEqual(sum(s["status"] == "live" for s in document["stories"]), 43)
 
 
 class NewsroomOutputTests(unittest.TestCase):
@@ -416,13 +415,11 @@ class IngestSelectionTests(unittest.TestCase):
                                              {row["id"] for row in selected})
         self.assertEqual(edition["related_brief_ids"], ["FCMO-5B5B447325A8", "FCMO-045BB8282222"])
 
-    def test_repository_corpus_publishes_41(self) -> None:
+    def test_repository_corpus_publishes_43(self) -> None:
         selected, merged, held = self.select(self.rows)
-        self.assertEqual(len(selected), 41)
+        self.assertEqual(len(selected), 43)
         self.assertEqual(merged, MERGES)
         self.assertEqual(sorted(held), sorted([(FDBE, "TOMBSTONED:UNVERIFIED_RELEASE"),
-                                               ("FCMO-045BB8282222", "QUARANTINE:EVENT_AT_INVALID"),
-                                               ("FCMO-5B5B447325A8", "QUARANTINE:EVENT_AT_INVALID"),
                                                *((dup, "TOMBSTONED:DUPLICATE") for dup in MERGES)]))
 
     def test_one_bad_record_is_held_back_alone(self) -> None:
@@ -430,7 +427,7 @@ class IngestSelectionTests(unittest.TestCase):
         rows[3]["claims"] = []
         rows[4]["status"] = "withdrawn"
         selected, _, held = self.select(rows)
-        self.assertEqual(len(selected), 39)
+        self.assertEqual(len(selected), 41)
         self.assertIn((rows[3]["id"], "QUARANTINE:CLAIMS_MISSING"), held)
         self.assertIn((rows[4]["id"], "WITHDRAWN_UPSTREAM"), held)
 
@@ -447,7 +444,7 @@ class IngestSelectionTests(unittest.TestCase):
         (self.corpus / "carried.jsonl").write_text(line + "\n")
         selected, _, held = self.select(self.rows)
         self.assertIn(FDBE, {r["id"] for r in selected})
-        self.assertEqual(len(selected), 42)
+        self.assertEqual(len(selected), 44)
 
 
 class TaxonomyTests(unittest.TestCase):
@@ -455,11 +452,16 @@ class TaxonomyTests(unittest.TestCase):
         validator = validator_for(CONTRACTS / "record.v3.schema.json")
         for source in (CORPUS / "data" / "developments.jsonl", FIXTURES / "corpus-44" / "data" / "developments.jsonl"):
             records, quarantined = taxonomy.normalize_rows(taxonomy.read_jsonl(source))
-            expected_quarantine = [("FCMO-045BB8282222", ["EVENT_AT_INVALID"]),
-                                   ("FCMO-5B5B447325A8", ["EVENT_AT_INVALID"])] if source == CORPUS / "data/developments.jsonl" else []
-            self.assertEqual(quarantined, expected_quarantine)
+            self.assertEqual(quarantined, [])
             for record in records:
                 self.assertEqual(validator.errors(record), [], record["id"])
+
+    def test_invalid_event_at_is_quarantined_on_a_fixture_record(self) -> None:
+        source = taxonomy.read_jsonl(FIXTURES / "corpus-44" / "data" / "developments.jsonl")[0]
+        bad = dict(source, id="FCMO-00000000BAD1", event_at="not-a-date")
+        records, quarantined = taxonomy.normalize_rows([source, bad])
+        self.assertEqual([record["id"] for record in records], [source["id"]])
+        self.assertEqual(quarantined, [("FCMO-00000000BAD1", ["EVENT_AT_INVALID"])])
 
     def test_vocabulary_maps(self) -> None:
         self.assertEqual(taxonomy.normalize_desk("efficiency_quantization_sparsity_compression"), "compute_inference")
