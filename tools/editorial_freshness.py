@@ -9,6 +9,8 @@ freshness are separate signals (contracts/README.md, "Health state").
   event is at most ``newest_event_max_age_h`` (36 h) old; otherwise ``EVENT_STALE`` (or ``STORY_SUPPLY`` when no story has
   an event time). It reads ``corpus/wire-status.json``, never
   ``airlock.generated_at``, and exits 1 when the signal is not GREEN.
+  Production supplies ``--stories`` to measure live v2 Stories only; held,
+  quarantined, merged, withdrawn or future records cannot make it green.
 
 Freshness never changes evidence/confidence labels.  It only changes which
 already-public-safe Story is preferred for the front page.
@@ -164,8 +166,18 @@ def check(args: argparse.Namespace) -> int:
     thresholds = wire_status.load_thresholds()
     max_age_h = float(args.max_event_age_hours or thresholds["editorial"]["newest_event_max_age_h"])
     wire_state, _reason, wire = wire_status.classify_path(args.wire_status, now)
-    newest = wire_status.newest_event_at(args.records) or (wire or {}).get("newest_event_at")
+    if args.stories is not None:
+        document = json.loads(args.stories.read_text(encoding="utf-8"))
+        if not isinstance(document, dict) or document.get("schema") != "fcmo-stories-v2":
+            raise SystemExit("editorial freshness FAILED: expected the v2 Story layer")
+        timestamps = [parse_time(s.get("event_at")) for s in document["stories"] if s.get("status") == "live"]
+        # A future scheduled event cannot make an old newspaper fresh today.
+        timestamps = [ts for ts in timestamps if ts is not None and ts <= now]
+        newest = max(timestamps).strftime("%Y-%m-%dT%H:%M:%SZ") if timestamps else None
+    else:
+        newest = wire_status.newest_event_at(args.records) or (wire or {}).get("newest_event_at")
     sig = editorial_signal(wire_state, newest, now, max_age_h)
+    sig["metrics"]["newest_event_at"] = newest
     if args.signal_out:
         args.signal_out.parent.mkdir(parents=True, exist_ok=True)
         args.signal_out.write_text(json.dumps(sig, indent=2) + "\n", encoding="utf-8")
@@ -193,6 +205,7 @@ def main(argv: list[str] | None = None) -> int:
     p_check = sub.add_parser("check", help="editorial freshness signal (exit 1 when not GREEN)")
     p_check.add_argument("--wire-status", type=Path, default=Path("corpus/wire-status.json"))
     p_check.add_argument("--records", type=Path, default=Path("corpus/data/developments.jsonl"))
+    p_check.add_argument("--stories", type=Path, help="measure only live v2 stories; do not fall back to upstream dates")
     p_check.add_argument("--max-event-age-hours", type=float, default=None)
     p_check.add_argument("--now", help="ISO 8601 time (else FCMO_NOW, else the real clock)")
     p_check.add_argument("--signal-out", type=Path)

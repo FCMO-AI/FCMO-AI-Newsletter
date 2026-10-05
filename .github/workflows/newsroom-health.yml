@@ -16,6 +16,7 @@ on:
       - 'tools/translation_health.py'
       - 'tools/editorial_freshness.py'
       - 'tools/verify_live_newsroom.py'
+      - 'tools/verify_live_front_page.py'
       - 'tools/newsroom_receipt.py'
       - 'tools/wire_status.py'
       - 'contracts/thresholds.json'
@@ -61,15 +62,15 @@ jobs:
         shell: bash
         run: |
           set +e
-          python tools/verify_live_newsroom.py --serving-only --identity-timeout-s 300 --signal-out "$RUNNER_TEMP/serving.json"
+          python tools/verify_live_newsroom.py --serving-only --paper --identity-timeout-s 300 --signal-out "$RUNNER_TEMP/serving.json"
           rc=$?
           set -e
           if test -s "$RUNNER_TEMP/serving.json"; then
             echo "signal=$(python -c 'import json,sys;print(json.dumps(json.load(open(sys.argv[1])),separators=(",",":")))' "$RUNNER_TEMP/serving.json")" >>"$GITHUB_OUTPUT"
           fi
           exit "$rc"
-      - name: Prove live autonomous surfaces still represent current public research
-        run: python tests/oraculos/verificar_live_surfaces.py
+      - name: Prove the current paper surfaces in a real browser
+        run: python tests/oraculos/verificar_live_surfaces.py --paper
 
   publication-freshness:
     # Availability and autonomous publication are different operational truths.
@@ -88,8 +89,8 @@ jobs:
         run: python tools/wire_status.py classify --wire-status corpus/wire-status.json
 
   editorial-freshness:
-    # Transport can be fresh while the newspaper is editorially stale. A quiet
-    # wire is fine; otherwise the newest real event must be recent enough.
+    # Transport can be fresh while the newspaper is editorially stale. Measure
+    # live Story output, excluding quarantined, merged and withdrawn records.
     if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     outputs:
@@ -109,6 +110,7 @@ jobs:
           python tools/editorial_freshness.py check \
             --wire-status corpus/wire-status.json \
             --records corpus/data/developments.jsonl \
+            --stories site/data/stories.v2.json \
             --signal-out "$RUNNER_TEMP/editorial.json"
           rc=$?
           set -e
