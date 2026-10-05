@@ -1,5 +1,5 @@
 import { get, post, put } from './api.js'
-import { t } from './i18n.js'
+import { t, LOCALE_SHORT } from './i18n.js'
 import { h, clear, ago, modal, toast } from './ui.js'
 import { diffView } from './diffview.js'
 
@@ -35,7 +35,7 @@ export async function checksList (slug, onGo, { lang = 'es' } = {}) {
   const root = h('div', { class: 'checks' }, h('p', { class: 'checks-sum ' + (bad.length ? 'todo' : 'ok') }, bad.length ? t('chk.todo', { n: bad.length }) : t('chk.ok')))
   const ul = h('ul', { class: 'check-list' }, list.map(c => h('li', { class: c.ok ? 'ok' : 'todo' },
     h('span', { class: 'mark', 'aria-hidden': 'true' }, c.ok ? '✓' : '○'), h('span', { class: 'sr-only' }, c.ok ? 'Listo: ' : 'Pendiente: '),
-    h('span', { class: 'ctext' }, lang === 'en' ? c.plain_en : c.plain_es),
+    h('span', { class: 'ctext' }, c.goto && c.goto.loc ? h('b', { class: 'chk-loc' }, LOCALE_SHORT[c.goto.loc] || c.goto.loc, ' · ') : null, lang === 'en' ? c.plain_en : c.plain_es),
     !c.ok && c.goto ? h('button', { class: 'link-btn', type: 'button', onclick: () => onGo(c.goto) }, t('chk.go'), ' →') : null)))
   root.append(ul); root.list = list; return root
 }

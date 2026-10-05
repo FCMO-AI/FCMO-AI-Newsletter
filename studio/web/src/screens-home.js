@@ -5,7 +5,7 @@ import { shell, session } from './main.js'
 
 export function login (root, done) {
   const err = h('p', { class: 'form-error', role: 'alert', hidden: true }, t('login.bad'))
-  const user = h('input', { id: 'u', name: 'user', autocomplete: 'username', required: true, autofocus: true })
+  const user = h('input', { id: 'u', type: 'text', name: 'user', autocomplete: 'username', required: true, autofocus: true })
   const pass = h('input', { id: 'p', name: 'password', type: 'password', autocomplete: 'current-password', required: true })
   const form = h('form', { class: 'login-card', onsubmit: async e => {
     e.preventDefault(); err.hidden = true

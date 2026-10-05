@@ -299,6 +299,7 @@ def render_piece(piece: dict, locale: str, *, base: str, locale_info: dict | Non
             "other_languages": {row["code"]: href(base, piece_path(row, piece)) for row in locale_rows},
             "shelf": href(base, PREFIXES[locale] + "cartas/"),
             "catalog": catalog or {},
+            "base": base,
         }
         return essay_template.render(piece, locale_info, body_html, notes_html, sources_html, ctx)
     author_names = ", ".join(author["name"] for author in piece["authors"])

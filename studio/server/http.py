@@ -17,6 +17,7 @@ from .publishing import GitHub, Workspace, Publisher, Refused, UnknownEffect
 from .storage import Store, Conflict, Locked, atomic
 from .validation import locale, slug, validate_webp
 
+PREVIEW_CSP = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; font-src 'self'; connect-src 'none'; frame-ancestors 'self'; form-action 'none'; base-uri 'none'"
 CSP = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' blob: data:; font-src 'self'; connect-src 'self'; frame-ancestors 'self'; form-action 'self'; base-uri 'none'"
 
 class Application:
@@ -148,10 +149,10 @@ class Handler(BaseHTTPRequestHandler):
     def setup(self):
         super().setup(); self.connection.settimeout(15)
     def log_message(self, *args): pass
-    def reply(self, status, body, mime='application/json; charset=utf-8', cookie=None):
+    def reply(self, status, body, mime='application/json; charset=utf-8', cookie=None, csp=CSP):
         data = body if isinstance(body, bytes) else json.dumps(localize(body, getattr(self, 'ui_lang', 'es')), ensure_ascii=False).encode()
         self.send_response(status); self.send_header('Content-Type', mime); self.send_header('Content-Length', str(len(data)))
-        self.send_header('Content-Security-Policy', CSP); self.send_header('Cache-Control', 'no-store'); self.send_header('X-Content-Type-Options', 'nosniff'); self.send_header('Referrer-Policy', 'no-referrer')
+        self.send_header('Content-Security-Policy', csp); self.send_header('Cache-Control', 'no-store'); self.send_header('X-Content-Type-Options', 'nosniff'); self.send_header('Referrer-Policy', 'no-referrer')
         if cookie: self.send_header('Set-Cookie', cookie)
         self.end_headers(); self.wfile.write(data)
     def handle_api(self):
@@ -204,7 +205,7 @@ class Handler(BaseHTTPRequestHandler):
             if len(parts) == 3 and parts[0] == 'preview':
                 page = app.preview.page(slug(parts[1]), locale(parts[2]))
                 app.preview_sessions[session['id_hash']] = slug(parts[1])
-                return self.reply(200, page, 'text/html; charset=utf-8')
+                return self.reply(200, page, 'text/html; charset=utf-8', csp=PREVIEW_CSP)
             if path.startswith(app.preview.base):
                 relative = path[len(app.preview.base):]
                 value = app.preview_sessions.get(session['id_hash'])

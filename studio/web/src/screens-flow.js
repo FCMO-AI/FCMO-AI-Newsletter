@@ -159,10 +159,12 @@ export async function previewScreen (root, slug, loc0) {
     frame && frame.destroy(); clear(stage)
     stage.append(h('div', { class: 'pv-banner' }, '✓ ', t('pv.banner')), controls(st, p => { Object.assign(st, p); draw() }, have))
     if (!have[st.loc]) stage.append(h('p', { class: 'notice' }, t('pv.noloc'))); else { frame = previewFrame({ slug, ...st }); stage.append(frame.el) }
-    clear(side); side.append(h('h2', null, t('dr.checks')), await checksList(slug, c => { location.hash = `#/p/${slug}/${c.loc || st.loc}` }))
+    clear(side); side.append(h('h2', null, t('dr.checks')), h('p', { class: 'muted', role: 'status' }, t('chk.running')))
+    const cl = await checksList(slug, c => { location.hash = `#/p/${slug}/${c.loc || st.loc}` })
+    clear(side); side.append(h('h2', null, t('dr.checks')), cl)
   }
-  await draw()
   root.append(shell(h('div', { class: 'flow pv' }, crumbs(slug, meta.title, t('pv.title')), h('div', { class: 'pv-grid' }, stage, side), h('div', { class: 'btn-row' }, h('a', { class: 'btn', href: `#/p/${slug}/${st.loc}` }, '← ', t('pv.back')), meta.author === session.me.user ? h('a', { class: 'btn primary', href: `#/p/${slug}/publish` }, t('ed.publish')) : null)), { active: 'home', wide: true }))
+  await draw()
   return () => frame && frame.destroy()
 }
 
@@ -172,18 +174,19 @@ export async function publishScreen (root, slug) {
   const box = h('div', { class: 'pub-checks' })
   const act = h('div', { class: 'btn-row' })
   async function draw () {
-    clear(box); clear(act)
+    clear(box); clear(act); box.append(h('p', { class: 'muted', role: 'status' }, t('chk.running')))
     const list = await checksList(slug, c => { location.hash = `#/p/${slug}/${c.loc || meta.source_locale}${c.block_id ? '' : ''}`; if (c.block_id) setTimeout(() => window.__studioGoto && window.__studioGoto(c.block_id), 800) })
-    box.append(list)
+    clear(box); box.append(list)
     const bad = list.list.filter(c => !c.ok)
     const mt = LOCS.filter(l => (meta.locales[l] || {}).state === 'ready' && (meta.locales[l] || {}).origin === 'agent_draft' && !(meta.locales[l] || {}).reviewed)
     if (mt.length) box.append(h('p', { class: 'notice soft' }, t('pub.mt', { langs: mt.map(l => LOCALE_NAME[l]).join(', ') })))
     const ask = h('button', { class: 'btn primary big', type: 'button', disabled: bad.length > 0 || meta.author !== session.me.user, onclick: async () => { try { await post(`/api/pieces/${slug}/review/request`); toast(t('pub.sent', { who: other() })); location.hash = '#/' } catch { toast(t('err.generic'), 'bad') } } }, t('pub.ask'))
-    act.append(ask, h('button', { class: 'btn', type: 'button', onclick: draw }, t('pub.rerun')), bad.length ? h('span', { class: 'muted' }, t('pub.blocked', { n: bad.length })) : null)
+    act.append(ask, h('button', { class: 'btn', type: 'button', onclick: draw }, t('pub.rerun'))); if (bad.length) act.append(h('span', { class: 'muted' }, t('pub.blocked', { n: bad.length })))
   }
-  await draw()
-  root.append(shell(h('div', { class: 'flow pub' }, crumbs(slug, meta.title, t('ed.publish')), h('h1', null, t('pub.title', { title: meta.title })), h('p', { class: 'lede' }, t('pub.lead', { who: other() })),
+  const mount = () => root.append(shell(h('div', { class: 'flow pub' }, crumbs(slug, meta.title, t('ed.publish')), h('h1', null, t('pub.title', { title: meta.title })), h('p', { class: 'lede' }, t('pub.lead', { who: other() })),
     h('div', { class: 'sheet' }, box, h('p', { class: 'reviewer' }, h('span', { class: 'avatar' }, other()[0]), t('pub.reviewer', { who: other() })), act)), { active: 'home' }))
+  mount()
+  await draw()
   return null
 }
 

@@ -37,7 +37,7 @@ const S = {
     'pub.title': 'Publicar «{title}»', 'pub.lead': 'Cada línea se comprueba sola. Cuando todo esté en orden, pide la revisión de {who}.', 'pub.reviewer': 'Revisa {who}', 'pub.ask': 'Pedir revisión', 'pub.blocked': 'Aún hay {n} por resolver.', 'pub.sent': 'Revisión pedida. {who} la verá en su escritorio.', 'pub.mt': 'Se publicará con aviso de traducción automática: {langs}.', 'pub.rerun': 'Volver a comprobar',
     'rev.title': 'Revisión de «{title}»', 'rev.approve': 'Aprobar y publicar', 'rev.changes': 'Pedir cambios', 'rev.note': 'Nota para {who} (opcional)', 'rev.diff': 'Cambios desde la última versión publicada', 'rev.none': 'Es un texto nuevo: no hay versión anterior.', 'rev.confirm': 'Al aprobar, el texto se publicará en el sitio público. Eso no se deshace con un clic.', 'rev.own': 'No puedes revisar tu propio texto.', 'rev.waiting': 'Esperando a {who}.', 'rev.sent': 'Listo. {who} verá tu respuesta.', 'rev.preview': 'Lectura', 'rev.changes.tab': 'Cambios', 'rev.comments': 'Comentarios',
     'prog.title': 'Progreso de publicación', 'prog.done': 'Publicado', 'prog.failed': 'No se publicó', 'prog.working': 'Publicando…', 'prog.live': 'Ya está en el sitio', 'prog.home': 'Volver al escritorio',
-    'iss.title': 'Ediciones', 'iss.lib': 'Biblioteca', 'iss.essays': 'Ensayos', 'iss.letters': 'Cartas y notas', 'iss.briefs': 'Briefs del día', 'iss.canvas': 'Edición', 'iss.main': 'Principal', 'iss.essay.slot': 'Ensayos', 'iss.day': 'El día en IA', 'iss.notes': 'Notas', 'iss.note': 'Nota del editor', 'iss.drop': 'Arrastra aquí', 'iss.add': 'Añadir', 'iss.remove': 'Quitar', 'iss.filter': 'Filtrar por fecha o tema', 'iss.class': 'Clase', 'iss.readonly': 'Solo lectura', 'iss.empty': 'Nada que mostrar con ese filtro.', 'iss.up': 'Subir', 'iss.down': 'Bajar', 'iss.soon': 'Guardar la edición estará disponible cuando el servidor lo ofrezca.', 'iss.badlang': 'Falta un idioma listo',
+    'iss.title': 'Ediciones', 'iss.lib': 'Biblioteca', 'iss.essays': 'Ensayos', 'iss.letters': 'Cartas y notas', 'iss.briefs': 'Briefs del día', 'iss.canvas': 'Edición', 'iss.main': 'Principal', 'iss.essay.slot': 'Ensayos', 'iss.day': 'El día en IA', 'iss.notes': 'Notas', 'iss.note': 'Nota del editor', 'iss.drop': 'Arrastra aquí', 'iss.add': 'Añadir', 'iss.remove': 'Quitar', 'iss.filter': 'Filtrar por fecha o tema', 'iss.class': 'Clase', 'iss.readonly': 'Solo lectura', 'iss.empty': 'Nada que mostrar con ese filtro.', 'iss.up': 'Subir', 'iss.down': 'Bajar', 'iss.soon': 'Arma una edición con ensayos y briefs.', 'chk.running': 'Comprobando todo… puede tardar unos segundos.', 'iss.badlang': 'Falta un idioma listo',
     'err.net': 'No se pudo conectar. Inténtalo de nuevo en un momento.', 'err.generic': 'Algo no salió. Tu texto sigue a salvo.', 'err.notfound': 'No encontramos esto.', 'common.cancel': 'Cancelar', 'common.save': 'Guardar', 'common.close': 'Cerrar', 'common.open': 'Abrir', 'common.loading': 'Cargando…', 'common.you': 'ti', 'common.theme.auto': 'Automático',
     'zones.local': 'Esta aplicación funciona dentro de tu red privada.'
   },
@@ -57,6 +57,8 @@ S.es['src.publisher'] = 'Organización o editorial'
 S.en['src.publisher'] = 'Publisher or organization'
 S.es['iss.date'] = 'Fecha de la edición'
 S.en['iss.date'] = 'Edition date'
+S.en['iss.soon'] = 'Put together an issue from essays and briefs.'
+S.en['chk.running'] = 'Checking everything… this can take a few seconds.'
 let lang = 'es'
 export const setLang = l => { lang = S[l] ? l : 'es'; document.documentElement.lang = lang }
 export const getLang = () => lang

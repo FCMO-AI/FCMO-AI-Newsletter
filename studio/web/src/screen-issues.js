@@ -74,7 +74,7 @@ export async function issuesScreen (root, slug) {
       canvas.append(zone)
     }
     const ta = h('textarea', { rows: 4, lang: noteLoc, 'aria-label': t('iss.note') }); ta.value = issue.note[noteLoc] || ''; ta.addEventListener('input', () => { issue.note[noteLoc] = ta.value; persist() })
-    canvas.append(h('section', { class: 'slot note' }, h('h3', null, t('iss.note')), h('div', { class: 'seg' }, ['en', 'es-419', 'zh-Hans'].map(l => h('button', { type: 'button', class: l === noteLoc ? 'on' : '', 'aria-pressed': String(l === noteLoc), onclick: () => { noteLoc = l; drawCanvas() } }, LOCALE_SHORT[l]))), ta))
+    canvas.append(h('section', { class: 'slot editor-note' }, h('h3', null, t('iss.note')), h('div', { class: 'seg' }, ['en', 'es-419', 'zh-Hans'].map(l => h('button', { type: 'button', class: l === noteLoc ? 'on' : '', 'aria-pressed': String(l === noteLoc), onclick: () => { noteLoc = l; drawCanvas() } }, LOCALE_SHORT[l]))), ta))
   }
   drawLib(); drawCanvas()
   root.append(shell(h('div', { class: 'flow iss' }, h('h1', null, t('iss.title')), h('div', { class: 'btn-row' }, saveState, h('button', { class: 'btn', type: 'button', disabled: session.me.user !== 'matias', onclick: async () => { await save(); if (currentSlug && !dirty) location.hash = `#/p/${currentSlug}/publish` } }, t('ed.publish'))), h('div', { class: 'rows' }, editions.map(e => h('a', { class: 'row', href: '#/issues/' + e.issue.id }, e.issue.title.en || e.issue.id))), h('div', { class: 'iss-grid' }, h('section', { class: 'iss-lib' }, h('h2', null, t('iss.lib')), lib), h('section', { class: 'iss-canvas' }, h('h2', null, t('iss.canvas')), canvas))), { active: 'issues', wide: true }))
