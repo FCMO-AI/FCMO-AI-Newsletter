@@ -27,10 +27,11 @@ BEATS = {"technology", "business", "policy", "society", "research"}
 FULL_HISTORY = story_layer.is_full_history(REPO)
 
 
-def build(corpus: Path = CORPUS, site: Path | None = REPO / "site", now: str = NOW) -> tuple[dict, str]:
+def build(corpus: Path = CORPUS, site: Path | None = REPO / "site", now: str = NOW,
+          history_repo: Path | None = REPO) -> tuple[dict, str]:
     err = io.StringIO()
     with contextlib.redirect_stderr(err):
-        inputs = story_layer.StoryInputs(corpus, REPO, site, site / "data" / "i18n" if site else None, now)
+        inputs = story_layer.StoryInputs(corpus, history_repo, site, site / "data" / "i18n" if site else None, now)
         document = story_layer.build_stories(inputs)
     return document, err.getvalue()
 
@@ -176,12 +177,31 @@ class RepositoryStoryLayerTests(unittest.TestCase):
 class TemporaryCorpusTests(unittest.TestCase):
     def setUp(self) -> None:
         self.tmp = tempfile.TemporaryDirectory()
-        self.corpus = Path(self.tmp.name) / "corpus"
-        shutil.copytree(CORPUS, self.corpus)
-        rows = taxonomy.read_jsonl(self.corpus / "data/developments.jsonl")
-        valid = [row for row in rows if row["id"] != FDBE and not taxonomy.normalize_rows([row])[1]]
-        (self.corpus / "data/developments.jsonl").write_text(
-            "".join(json.dumps(row) + "\n" for row in valid))
+        self._corpus: Path | None = None
+
+    @property
+    def corpus(self) -> Path:
+        if self._corpus is None:
+            self._corpus = Path(self.tmp.name) / "corpus"
+            shutil.copytree(CORPUS, self._corpus)
+            rows = taxonomy.read_jsonl(self._corpus / "data/developments.jsonl")
+            valid = [row for row in rows if row["id"] != FDBE and not taxonomy.normalize_rows([row])[1]]
+            (self._corpus / "data/developments.jsonl").write_text(
+                "".join(json.dumps(row) + "\n" for row in valid))
+        return self._corpus
+
+    def fixture_corpus(self) -> Path:
+        """Build the carried-record case only from source-controlled fixtures."""
+        corpus = Path(self.tmp.name) / "fixture-corpus"
+        (corpus / "data").mkdir(parents=True)
+        (corpus / "editions").mkdir()
+        (corpus / "data" / "developments.jsonl").write_text("")
+        shutil.copyfile(FIXTURES / "corpus-carried.example.jsonl", corpus / "carried.jsonl")
+        ledger = json.loads((FIXTURES / "first-published.json").read_text())
+        ledger["entries"] = {FDBE: ledger["entries"][FDBE]}
+        (corpus / "first-published.json").write_text(json.dumps(ledger))
+        shutil.copyfile(FIXTURES / "tombstones.json", corpus / "tombstones.json")
+        return corpus
 
     def tearDown(self) -> None:
         self.tmp.cleanup()
@@ -223,11 +243,10 @@ class TemporaryCorpusTests(unittest.TestCase):
         self.assertEqual(len(document["stories"]), 44 - 2)
 
     def test_carried_record_stays_live(self) -> None:
+        self._corpus = self.fixture_corpus()
         doc = self.tombstones()
         doc["tombstones"] = [e for e in doc["tombstones"] if e["id"] != FDBE]
         (self.corpus / "tombstones.json").write_text(json.dumps(doc))
-        record = json.loads((FIXTURES / "corpus-carried.example.jsonl").read_text().splitlines()[0])
-        (self.corpus / "carried.jsonl").write_text(json.dumps(record) + "\n")
         document, stderr = build(self.corpus)
         story = by_id(document)[FDBE]
         self.assertEqual((story["status"], story["carried_forward"]), ("live", True))
