@@ -42,7 +42,8 @@ class PublicationSealGateTests(unittest.TestCase):
         cleanup = text.index('rm -f "$PRIVATE_LOG"', redirect)
         self.assertLess(seal, redirect)
         self.assertLess(redirect, cleanup)
-        self.assertNotIn("SAFE_REASON", text)
+        # Failure classes may be constants; private diagnostics may never supply them.
+        self.assertNotRegex(text, r"SAFE_REASON=\$\(")
         self.assertNotIn("grep -E '^SEAL_FAIL:", text)
         self.assertIn("exec 3>&1 >/dev/null 2>&1", text)
 

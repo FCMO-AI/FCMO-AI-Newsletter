@@ -1,0 +1,128 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/contracts/wire-status.schema.json",
+  "title": "Newswire transport and upstream status (corpus/wire-status.json)",
+  "description": "Written by the newswire bridge on every run, successful or not, outside the sealed corpus digest. It is the only transport-liveness input. Optional authoritative publication fields come only from a validated transported archive receipt; their absence never licenses inference from airlock time, edition HTML or prose artifacts. The state machine is specified in contracts/README.md (Wire status states).",
+  "x-contract": {"name": "wire-status", "status": "v2-frozen", "version": 1},
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema", "run_at", "run_id", "trigger", "drill", "transport", "transport_error",
+    "last_transport_ok_at", "source_mode", "arb_main", "arb_main_failures", "checkpoint_at",
+    "release_id", "corpus_digest", "record_count", "release_changed", "last_release_change_at",
+    "last_new_story_at", "newest_event_at", "guard", "state", "warnings", "previous_state",
+    "state_since"
+  ],
+  "properties": {
+    "schema": {"const": "fcmo-wire-status-v1"},
+    "run_at": {"$ref": "#/$defs/utc", "description": "When this bridge run wrote the file. Transport liveness is measured from here."},
+    "run_id": {"type": ["string", "null"], "pattern": "^[0-9]{1,20}$", "description": "GitHub Actions run id; null for local runs."},
+    "trigger": {"enum": ["schedule", "workflow_dispatch", "workflow_run", "push", "watchdog", "local"]},
+    "drill": {"enum": [null, "force_checkpoint", "regressing_snapshot"]},
+    "transport": {"enum": ["OK", "FAIL"], "description": "OK when this run fetched, sealed-checked and independently verified a snapshot."},
+    "transport_error": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/code"}], "description": "Public-safe code only, e.g. TOKEN_MINT_FAILED, CLONE_FAILED, VERIFY_FAILED, SEAL_FAIL:<CLASS>. Never log text."},
+    "last_transport_ok_at": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/utc"}], "description": "run_at of the newest run with transport=OK (equal to run_at when transport=OK)."},
+    "source_mode": {"enum": ["MAIN", "CHECKPOINT", "NONE"], "description": "Which upstream snapshot was selected. On transport=FAIL this and every upstream field below carry the values of the last OK run."},
+    "arb_main": {"enum": ["GREEN", "RED", "UNKNOWN"], "description": "GREEN only when the current upstream main passed the seal, the integrity ratchet and every probe. UNKNOWN is allowed only when no run has ever succeeded."},
+    "arb_main_failures": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/code"}, "description": "Public-safe probe codes, e.g. INTEGRITY_RATCHET, TEST_SUITE, SEAL_FAIL:<CLASS>."},
+    "checkpoint_at": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/utc"}], "description": "When the fallback checkpoint was sealed; required when source_mode=CHECKPOINT."},
+    "release_id": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/release_id"}]},
+    "corpus_digest": {"oneOf": [{"type": "null"}, {"type": "string", "pattern": "^[0-9a-f]{64}$"}]},
+    "record_count": {"oneOf": [{"type": "null"}, {"type": "integer", "minimum": 0}]},
+    "release_changed": {"type": "boolean", "description": "True when this run committed a release_id different from the previously published one."},
+    "last_release_change_at": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/utc"}]},
+    "last_new_story_at": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/utc"}], "description": "run_at of the newest run that published at least one new live ID (guard.added > 0). Never later than last_release_change_at."},
+    "newest_event_at": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/utc"}], "description": "Informational: max event_at over live records."},
+    "publication_authority": {
+      "enum": ["AUTHORITATIVE", "UNKNOWN"],
+      "description": "AUTHORITATIVE only when the fields below came from the newest validated transported publication receipt. UNKNOWN means no such receipt exists; it must not be inferred from another artifact."
+    },
+    "last_authoritative_publication_date": {"type": "string", "format": "date"},
+    "last_authoritative_publication_at": {"$ref": "#/$defs/utc"},
+    "last_authoritative_edition_id": {"$ref": "#/$defs/edition_id"},
+    "last_authoritative_publication_status": {"enum": ["PUBLISHED", "QUIET"]},
+    "guard": {"$ref": "#/$defs/guard"},
+    "state": {"$ref": "#/$defs/bridge_state"},
+    "warnings": {"type": "array", "uniqueItems": true, "items": {"enum": ["ARB_MAIN_RED", "CORPUS_CARRY_FORWARD", "SNAPSHOT_REFUSED", "TRANSPORT_FAIL"]}},
+    "previous_state": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/bridge_state"}]},
+    "state_since": {"$ref": "#/$defs/utc", "description": "When state last changed value."}
+  },
+  "dependentRequired": {
+    "last_authoritative_publication_date": ["publication_authority"],
+    "last_authoritative_publication_at": ["publication_authority"],
+    "last_authoritative_edition_id": ["publication_authority"],
+    "last_authoritative_publication_status": ["publication_authority"]
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"transport": {"const": "OK"}}},
+      "then": {"properties": {"transport_error": {"type": "null"}, "arb_main": {"enum": ["GREEN", "RED"]}, "last_transport_ok_at": {"$ref": "#/$defs/utc"}}},
+      "else": {"properties": {"transport_error": {"$ref": "#/$defs/code"}}}
+    },
+    {
+      "if": {"properties": {"source_mode": {"enum": ["MAIN", "CHECKPOINT"]}}},
+      "then": {"properties": {"release_id": {"$ref": "#/$defs/release_id"}, "corpus_digest": {"type": "string"}, "record_count": {"type": "integer"}}}
+    },
+    {
+      "if": {"properties": {"source_mode": {"const": "CHECKPOINT"}}},
+      "then": {"properties": {"checkpoint_at": {"$ref": "#/$defs/utc"}}}
+    },
+    {
+      "if": {"properties": {"arb_main": {"const": "RED"}}},
+      "then": {"properties": {"arb_main_failures": {"minItems": 1}}},
+      "else": {"properties": {"arb_main_failures": {"maxItems": 0}}}
+    },
+    {
+      "if": {
+        "required": ["publication_authority"],
+        "properties": {"publication_authority": {"const": "AUTHORITATIVE"}}
+      },
+      "then": {
+        "required": [
+          "last_authoritative_publication_date", "last_authoritative_publication_at",
+          "last_authoritative_edition_id", "last_authoritative_publication_status"
+        ]
+      }
+    },
+    {
+      "if": {
+        "required": ["publication_authority"],
+        "properties": {"publication_authority": {"const": "UNKNOWN"}}
+      },
+      "then": {
+        "allOf": [
+          {"not": {"required": ["last_authoritative_publication_date"]}},
+          {"not": {"required": ["last_authoritative_publication_at"]}},
+          {"not": {"required": ["last_authoritative_edition_id"]}},
+          {"not": {"required": ["last_authoritative_publication_status"]}}
+        ]
+      }
+    }
+  ],
+  "$defs": {
+    "utc": {"type": "string", "format": "date-time", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"},
+    "code": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*(:[A-Z0-9_]+)?$", "maxLength": 64},
+    "fcmo_id": {"type": "string", "pattern": "^FCMO-[0-9A-F]{12}$"},
+    "release_id": {"type": "string", "pattern": "^newswire-[0-9a-f]{24}$"},
+    "edition_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"},
+    "bridge_state": {
+      "description": "State evaluated at run_at. TRANSPORT_DOWN is never written by the bridge: it is derived by readers from the age of run_at.",
+      "enum": [
+        "FRESH", "QUIET", "DELAYED:ARB_MAIN_RED", "DELAYED:CHECKPOINT_STALE",
+        "DELAYED:STORY_SUPPLY", "DELAYED:TRANSPORT_FAIL", "DELAYED:SNAPSHOT_REFUSED"
+      ]
+    },
+    "guard": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["verdict", "missing", "withdrawn", "added", "ratio"],
+      "properties": {
+        "verdict": {"enum": ["OK", "CARRY_FORWARD", "REGRESSION_REFUSED", "NOT_RUN"]},
+        "missing": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/fcmo_id"}},
+        "withdrawn": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/fcmo_id"}},
+        "added": {"type": "integer", "minimum": 0},
+        "ratio": {"type": "number", "minimum": 0, "maximum": 1}
+      }
+    }
+  }
+}

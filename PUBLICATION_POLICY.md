@@ -18,7 +18,7 @@ Native Spanish and Simplified Chinese wording crosses the same public boundary a
 
 If upstream tests, semantic declassification, independent transfer verification, privacy, integrity, native-edition parity, media provenance, release validation, frontend validation or live-production validation fails, the public release is not advanced. The previous deployed version remains live. No failed gate may be bypassed merely to refresh the website.
 
-A missing or stale upstream corpus heartbeat is an operational failure. It must not be represented as a healthy quiet-news day. A quiet day is valid only when a fresh airlock receipt proves that the upstream airlock ran and its content-addressed `release_id` is unchanged.
+A missing or stale upstream corpus heartbeat is an operational failure. It must not be represented as a healthy quiet-news day. A quiet day requires a fresh validated bridge run, recorded in `wire-status.json`, confirming the unchanged content-addressed release. The immutable airlock `generated_at` is seal metadata, not a heartbeat. Reader freshness additionally measures actual news age through `status.json`; rebuilding an accepted corpus during an outage never makes its old news fresh.
 
 ## Autonomous editorial boundary
 

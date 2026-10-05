@@ -18,10 +18,19 @@ import copy
 import hashlib
 import html
 import json
+import os
+import re
+import sys
+import hashlib
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from typing import Any
 from xml.etree.ElementTree import Element, SubElement, ElementTree, register_namespace
+
+try:
+    from tools import story_layer
+except ImportError:  # executed as tools/build_newsroom_surfaces.py
+    import story_layer  # type: ignore
 
 BASE = "https://fcmo-ai.github.io/FCMO-AI-Newsletter"
 NEWSROOM_STYLESHEET = "../../assets/newsroom.css"
@@ -112,7 +121,7 @@ def canonical_signature(brief: dict[str, Any]) -> str:
 
 
 def story_object(brief: dict[str, Any], research: dict[str, Any] | None, media: dict[str, Any] | None,
-                 previous: dict[str, Any] | None, now: str) -> dict[str, Any]:
+                 previous: dict[str, Any] | None, now: str, first_published: str | None = None) -> dict[str, Any]:
     signature = canonical_signature(brief)
     research_verified = str(brief.get("last_verified_at") or brief.get("recorded_at") or brief.get("event_at") or "")
     if previous:
@@ -127,6 +136,12 @@ def story_object(brief: dict[str, Any], research: dict[str, Any] | None, media: 
         modified = str(previous.get("modified_at") or published) if unchanged else now
     else:
         published = modified = now
+    if first_published:
+        # The first-publication ledger is the only source of publication time: a
+        # story that left the previous stories.json and came back keeps its date.
+        published = first_published
+        if parse_dt(modified) < parse_dt(published):
+            modified = published
     return {
         "story_id": f"STORY-{brief['id'][5:]}",
         "research_id": brief["id"],
@@ -165,7 +180,24 @@ def source_links(urls: list[str]) -> str:
     return "<ul>" + "".join(rows) + "</ul>" if rows else "<p>—</p>"
 
 
-def article_html(locale: str, brief: dict[str, Any], story: dict[str, Any], all_links: dict[str, str]) -> str:
+def citation_record(brief: dict[str, Any], canonical_story_url: str) -> tuple[str, dict[str, Any]]:
+    """Create an immutable citation snapshot addressed by its payload digest."""
+    sources = [url for url in brief.get("source_urls") or []
+               if isinstance(url, str) and url.startswith(("https://", "http://"))]
+    payload = {
+        "schema": "fcmo-versioned-citation-v1",
+        "id": brief["id"],
+        "canonical_story_url": canonical_story_url,
+        "headline": str(brief.get("title") or ""),
+        "summary": str(brief.get("summary") or ""),
+        "source_urls": sources,
+    }
+    version = hashlib.sha256(json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")).hexdigest()
+    citation_url = f"{BASE}/data/citations/{brief['id']}/{version}.json"
+    return citation_url, {**payload, "version": version}
+
+
+def article_html(locale: str, brief: dict[str, Any], story: dict[str, Any], all_links: dict[str, str], citation_url: str | None = None) -> str:
     label = LABELS[locale]
     media = story.get("media") or {}
     image = media.get("image_url")
@@ -184,7 +216,9 @@ def article_html(locale: str, brief: dict[str, Any], story: dict[str, Any], all_
     research = story.get("public_research") or {}
     context_urls = [str(x.get("url") or "") for x in research.get("related_public_sources") or [] if isinstance(x, dict) and x.get("url")]
     url = all_links[locale]
-    ld = {"@context":"https://schema.org","@type":"NewsArticle","headline":brief.get("title"),"description":brief.get("summary"),"datePublished":story.get("published_at"),"dateModified":story.get("modified_at"),"inLanguage":locale,"mainEntityOfPage":url,"author":{"@type":"Organization","name":"FCMO AI Research Desk"},"publisher":{"@type":"Organization","name":"FCMO AI Newsletter","url":BASE+"/"}}
+    sources = [source for source in brief.get("source_urls") or [] if isinstance(source, str) and source.startswith(("https://", "http://"))]
+    citation_url = citation_url or citation_record(brief, all_links["en"])[0]
+    ld = {"@context":"https://schema.org","@type":"NewsArticle","identifier":brief.get("id"),"headline":brief.get("title"),"description":brief.get("summary"),"datePublished":story.get("published_at"),"dateModified":story.get("modified_at"),"inLanguage":locale,"mainEntityOfPage":url,"citation":citation_url,"isBasedOn":sources,"author":{"@type":"Organization","name":"FCMO AI Research Desk"},"publisher":{"@type":"Organization","name":"FCMO AI Newsletter","url":BASE+"/"}}
     if image: ld["image"] = [image]
     alternates = "\n".join(f'<link rel="alternate" hreflang="{LOCALES[key]["hreflang"]}" href="{safe(href)}">' for key, href in all_links.items()) + f'\n<link rel="alternate" hreflang="x-default" href="{safe(all_links["en"])}">'
     return f'''<!doctype html><html lang="{safe(locale)}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{safe(brief.get("title"))} · FCMO AI Newsletter</title><meta name="description" content="{safe(brief.get("summary"))}"><link rel="canonical" href="{safe(url)}">{alternates}<link rel="stylesheet" href="{NEWSROOM_STYLESHEET}"><script type="application/ld+json">{json.dumps(ld, ensure_ascii=False).replace('</','<\\/')}</script></head><body><header class="wire-head"><a href="{BASE}/">{safe(label["back"])}</a><span>FCMO WIRE</span></header><main class="story"><div class="kicker">{safe(story["story_type"])} · {safe(brief.get("primary_desk","research")).replace("_"," ")}</div><h1>{safe(brief.get("title"))}</h1><p class="dek">{safe(brief.get("summary"))}</p><p class="byline">FCMO AI Research Desk · Published {safe(story.get("published_at"))} · Research event {safe(story.get("event_at"))}</p><p class="method">{safe(label["method"])}</p>{f'<figure><img src="{safe(image)}" alt="{safe(brief.get("title"))}"><figcaption>{safe(media.get("credit"))} · {safe(media.get("license"))}</figcaption></figure>' if image else ''}<section><h2>{safe(label["what_changed"])}</h2><p>{safe(brief.get("summary"))}</p></section><section><h2>{safe(label["evidence"])}</h2><ul>{''.join(claims)}</ul></section><section><h2>{safe(label["baseline"])}</h2><p>{safe(technical.get("strongest_baseline"))}</p></section><section><h2>{safe(label["caveat"])}</h2>{list_html([str(x) for x in caveats])}</section><section><h2>{safe(label["unknown"])}</h2>{list_html(gaps)}</section><section><h2>{safe(label["lens"])}</h2><p>{safe(brief.get("why_it_matters"))}</p></section><section><h2>{safe(label["sources"])}</h2>{source_links([str(x) for x in brief.get("source_urls") or []])}</section><section><h2>{safe(label["context"])}</h2>{source_links(context_urls)}</section></main></body></html>'''
@@ -230,8 +264,140 @@ def standard_sitemap(site:Path,pages:list[dict[str,Any]]) -> None:
     ElementTree(root).write(site/"sitemap.xml",encoding="utf-8",xml_declaration=True)
 
 
+NOTICE_LABELS = {
+    "en": {"withdrawn": "This story was withdrawn", "merged": "This story was merged into another report",
+           "original": "Original headline", "current": "Read the current story", "correction": "Correction",
+           "ledger": "Corrections ledger"},
+    "es-419": {"withdrawn": "Esta historia fue retirada", "merged": "Esta historia se integró en otra nota",
+               "original": "Titular original", "current": "Leer la historia vigente", "correction": "Corrección",
+               "ledger": "Registro de correcciones"},
+    "zh-Hans": {"withdrawn": "本文已撤回", "merged": "本文已并入另一篇报道", "original": "原标题",
+                "current": "阅读现行报道", "correction": "更正", "ledger": "更正记录"},
+}
+
+
+def build_story_layer(corpus: Path, site: Path, repo: Path | None, now: str) -> dict[str, Any] | None:
+    """stories.v2 for the corpus, or None when it cannot be built (legacy pages still ship)."""
+    if not (corpus / "data" / "developments.jsonl").is_file():
+        return None
+    try:
+        inputs = story_layer.StoryInputs(corpus, repo, site, site / "data" / "i18n", now)
+        return story_layer.build_stories(inputs)
+    except Exception as exc:  # the v2 layer is additive in Paso 1; never take the news down
+        print(f"ALERT STORY_LAYER_FAILED {type(exc).__name__}: {exc}", file=sys.stderr)
+        return None
+
+
+def notice_html(locale: str, story: dict[str, Any], links: dict[str, str], survivor: str | None) -> str:
+    """Public notice that replaces the page of a withdrawn or merged story."""
+    label = NOTICE_LABELS[locale]
+    fix = story["corrections"][-1] if story["corrections"] else {"text": {}, "at": story["updated_at"]}
+    text = fix["text"].get(locale)
+    text_lang = locale if text else "en"
+    text = text or fix["text"].get("en", "")
+    heading = label["merged"] if story["status"] == "merged" else label["withdrawn"]
+    canonical = survivor or links[locale]
+    alternates = "".join(f'<link rel="alternate" hreflang="{safe(LOCALES[k]["hreflang"])}" href="{safe(v)}">' for k, v in links.items())
+    current = f'<p><a href="{safe(survivor)}">{safe(label["current"])}</a></p>' if survivor else ""
+    return (f'<!doctype html><html lang="{safe(locale)}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
+            f'<title>{safe(heading)} · FCMO AI Newsletter</title><meta name="robots" content="noindex,follow"><link rel="canonical" href="{safe(canonical)}">{alternates}'
+            f'<link rel="stylesheet" href="{NEWSROOM_STYLESHEET}"></head><body><header class="wire-head"><a href="{BASE}/">{safe(LABELS[locale]["back"])}</a><span>FCMO WIRE</span></header>'
+            f'<main class="story" data-fcmo-story-status="{safe(story["status"])}"><div class="kicker">{safe(label["correction"])} · <time datetime="{safe(fix["at"])}">{safe(fix["at"][:10])}</time></div>'
+            f'<h1>{safe(heading)}</h1><p class="dek" lang="{safe(text_lang)}">{safe(text)}</p>{current}'
+            + (f'<p class="byline">{safe(label["original"])}: <span lang="en">{safe(story["title"])}</span></p>' if story["title"] else "")
+            + f'<p class="method"><a href="{BASE}/corrections.html">{safe(label["ledger"])}</a></p></main></body></html>')
+
+
+def corrections_ledger(document: dict[str, Any]) -> list[dict[str, Any]]:
+    """site/data/corrections.json rows (read by build_editorial_frontends.py), newest first."""
+    rows = []
+    kinds = {"withdrawal": "Withdrawn", "merge": "Merged", "reinstatement": "Reinstated", "correction": "Corrected", "update": "Updated"}
+    for story in document["stories"]:
+        for fix in story["corrections"]:
+            rows.append({
+                "date": fix["at"][:10],
+                "modified_at": fix["at"],
+                "story_id": story["id"],
+                "kind": fix["kind"],
+                "reason_code": fix["reason_code"],
+                "title": f'{kinds.get(fix["kind"], "Corrected")}: {story["title"] or story["id"]}',
+                "story_title": story["title"],
+                "summary": fix["text"].get("en", ""),
+                "text": fix["text"],
+                "merged_into": story.get("merged_into"),
+                "url": f"{BASE}/news/en/{story['id']}.html",
+            })
+    return sorted(rows, key=lambda r: (r["modified_at"], r["story_id"]), reverse=True)
+
+
+def _original_title(site: Path, rid: str, previous: list[Any]) -> str:
+    """Last known headline of an id: corrections ledger, else its English article page."""
+    for row in previous:
+        if isinstance(row, dict) and row.get("story_id") == rid and isinstance(row.get("story_title"), str):
+            return row["story_title"]
+    page = site / "news" / "en" / f"{rid}.html"
+    text = page.read_text(encoding="utf-8", errors="replace") if page.is_file() else ""
+    match = re.search(r"<h1[^>]*>(.*?)</h1>", text, re.S)
+    if match and "data-fcmo-story-status" not in text:
+        return html.unescape(re.sub(r"<[^>]+>", "", match.group(1))).strip()
+    return ""
+
+
+def tombstone_stories(corpus: Path, site: Path, document: dict[str, Any]) -> list[dict[str, Any]]:
+    """Notice-only stories for active tombstones the v2 layer could not rebuild (no record,
+    no git history, no previous stories.v2): the withdrawal still reaches readers."""
+    known = {s["id"] for s in document["stories"]}
+    ledger = story_layer.load_ledger(corpus)["entries"]
+    active, _ = story_layer.tombstone_index(story_layer.load_tombstones(corpus))
+    previous = read_json(site / "data" / "corrections.json") if (site / "data" / "corrections.json").is_file() else []
+    out = []
+    for rid, tomb in sorted(active.items()):
+        published = rid in ledger or any((site / "news" / m["slug"] / f"{rid}.html").is_file() for m in LOCALES.values())
+        if rid in known or not published:
+            continue
+        merged = tomb.get("action") == "superseded" and tomb.get("superseded_by") in known
+        fix = story_layer.correction(tomb["withdrawn_at"], "merge" if merged else "withdrawal", tomb["reason_code"], tomb["correction"])
+        story = {"id": rid, "status": "merged" if merged else "withdrawn", "title": _original_title(site, rid, previous if isinstance(previous, list) else []),
+                 "corrections": [fix], "updated_at": fix["at"]}
+        if merged:
+            story["merged_into"] = tomb["superseded_by"]
+        out.append(story)
+    return out
+
+
+def write_story_layer_outputs(site: Path, document: dict[str, Any], corpus: Path | None = None) -> int:
+    """stories.v2.json, corrections.json and the notice pages of withdrawn and merged ids."""
+    try:
+        extra = tombstone_stories(corpus, site, document) if corpus is not None else []
+    except Exception as exc:  # additive in Paso 1: notices from the v2 document still ship
+        print(f"ALERT TOMBSTONE_NOTICES_FAILED {type(exc).__name__}: {exc}", file=sys.stderr)
+        extra = []
+    (site / "data").mkdir(parents=True, exist_ok=True)
+    story_layer.write_json_atomic(site / "data" / "stories.v2.json", document)
+    story_layer.write_json_atomic(site / "data" / "corrections.json",
+                                  corrections_ledger({"stories": document["stories"] + extra}))
+    notices = 0
+    for story in document["stories"] + extra:
+        if story["status"] == "live":
+            continue
+        rid = story["id"]
+        # The release gates allow no developments/ dossier outside the published index
+        # (apply_final_release.py, verify_release.py, release-validate.yml).
+        (site / "developments" / f"{rid}.html").unlink(missing_ok=True)
+        links = {key: f"{BASE}/news/{value['slug']}/{rid}.html" for key, value in LOCALES.items()}
+        for locale, meta in LOCALES.items():
+            target = story.get("merged_into")
+            survivor = f"{BASE}/news/{meta['slug']}/{target}.html" if target else None
+            folder = site / "news" / meta["slug"]
+            folder.mkdir(parents=True, exist_ok=True)
+            (folder / f"{rid}.html").write_text(notice_html(locale, story, links, survivor), encoding="utf-8")
+            notices += 1
+    return notices
+
+
 def main(argv:list[str]|None=None)->int:
-    parser=argparse.ArgumentParser(description=__doc__); parser.add_argument("--release-src",type=Path,default=Path("release-src")); parser.add_argument("--site",type=Path,default=Path("site")); args=parser.parse_args(argv)
+    parser=argparse.ArgumentParser(description=__doc__); parser.add_argument("--release-src",type=Path,default=Path("release-src")); parser.add_argument("--site",type=Path,default=Path("site"))
+    parser.add_argument("--corpus",type=Path,help="corpus for the v2 story layer (default: <release-src>/../corpus)"); parser.add_argument("--now",help="ISO 8601 clock override (else FCMO_NOW, else the real clock)"); args=parser.parse_args(argv)
     briefs=load_briefs(args.release_src); media_rows=read_json(args.release_src/"data"/"media.json"); media={r.get("id"):r for r in media_rows if isinstance(r,dict)}
     research_dir=args.release_src/"data"/"public-research"; research={p.stem:read_json(p) for p in research_dir.glob("FCMO-*.json")} if research_dir.exists() else {}
     overlays={locale:load_locale_records(args.site/"data"/"i18n",locale) for locale in LOCALES}
@@ -241,19 +407,30 @@ def main(argv:list[str]|None=None)->int:
         try: previous_rows=read_json(previous_path)
         except Exception: previous_rows=[]
     previous={str(r.get("research_id") or ""):r for r in previous_rows if isinstance(r,dict)} if isinstance(previous_rows,list) else {}
-    now=datetime.now(timezone.utc).isoformat().replace("+00:00","Z")
-    stories={rid:story_object(brief,research.get(rid),media.get(rid),previous.get(rid),now) for rid,brief in briefs.items()}
+    now=story_layer.resolve_now(args.now) if (args.now or os.environ.get("FCMO_NOW")) else datetime.now(timezone.utc).isoformat().replace("+00:00","Z")
+    repo=args.release_src.resolve().parent; corpus=args.corpus if args.corpus is not None else repo/"corpus"
+    v2=build_story_layer(corpus,args.site,repo if (repo/".git").exists() else None,story_layer.resolve_now(args.now))
+    first_published={s["id"]:s["first_published_at"] for s in v2["stories"]} if v2 else {}
+    stories={rid:story_object(brief,research.get(rid),media.get(rid),previous.get(rid),now,first_published.get(rid)) for rid,brief in briefs.items()}
     ordered_ids=sorted(stories,key=lambda rid:(parse_dt(stories[rid]["modified_at"]),parse_dt(stories[rid]["published_at"]),int(stories[rid]["news_value"]["importance"] or 0),rid),reverse=True)
     (args.site/"data").mkdir(parents=True,exist_ok=True); (args.site/"data"/"stories.json").write_text(json.dumps([stories[r] for r in ordered_ids],ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
     write_css(args.site); inject_wire_link(args.release_src); pages=[]
+    citations: dict[str, tuple[str, dict[str, Any]]] = {
+        rid: citation_record(brief, f"{BASE}/news/en/{rid}.html") for rid, brief in briefs.items()
+    }
+    for citation_url, citation in citations.values():
+        target = args.site / "data" / "citations" / citation["id"] / f"{citation['version']}.json"
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(json.dumps(citation, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     for locale,meta in LOCALES.items():
         folder=args.site/"news"/meta["slug"]; folder.mkdir(parents=True,exist_ok=True); localized_cards=[]
         for rid in ordered_ids:
             brief=merge_overlay(briefs[rid],overlays[locale].get(rid,{})); story=copy.deepcopy(stories[rid]); story["headline"]=brief.get("title"); story["dek"]=brief.get("summary")
-            links={key:f"{BASE}/news/{value['slug']}/{rid}.html" for key,value in LOCALES.items()}; url=links[locale]; (folder/f"{rid}.html").write_text(article_html(locale,brief,story,links),encoding="utf-8"); localized_cards.append((story,url)); pages.append({"url":url,"language":meta["hreflang"],"headline":str(brief.get("title") or ""),"published_at":str(story.get("published_at") or ""),"modified_at":str(story.get("modified_at") or "")})
+            links={key:f"{BASE}/news/{value['slug']}/{rid}.html" for key,value in LOCALES.items()}; url=links[locale]; (folder/f"{rid}.html").write_text(article_html(locale,brief,story,links,citations[rid][0]),encoding="utf-8"); localized_cards.append((story,url)); pages.append({"url":url,"language":meta["hreflang"],"headline":str(brief.get("title") or ""),"published_at":str(story.get("published_at") or ""),"modified_at":str(story.get("modified_at") or "")})
         (folder/"index.html").write_text(index_html(locale,localized_cards),encoding="utf-8")
     (args.site/"news").mkdir(exist_ok=True); (args.site/"news"/"index.html").write_text('<!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="0;url=en/"><script>location.replace("en/"+location.search+location.hash)</script>',encoding="utf-8")
-    news_sitemap(args.site,pages); standard_sitemap(args.site,pages); print(f"newsroom surfaces OK; stories={len(stories)}; localized_pages={len(pages)}; newly_published={sum(1 for rid in stories if rid not in previous)}"); return 0
+    notices=write_story_layer_outputs(args.site,v2,corpus) if v2 else 0
+    news_sitemap(args.site,pages); standard_sitemap(args.site,pages); print(f"newsroom surfaces OK; stories={len(stories)}; localized_pages={len(pages)}; newly_published={sum(1 for rid in stories if rid not in previous)}; notices={notices}; story_layer={'v2' if v2 else 'unavailable'}"); return 0
 
 
 if __name__=="__main__": raise SystemExit(main())

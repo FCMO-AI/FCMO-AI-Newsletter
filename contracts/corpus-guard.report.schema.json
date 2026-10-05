@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/contracts/corpus-guard.report.schema.json",
+  "title": "corpus_guard check report (--report FILE)",
+  "description": "Machine-readable result of tools/corpus_guard.py check. Contains release ids and public record ids only: no filesystem paths, runner paths or log text.",
+  "x-contract": {"name": "corpus-guard.report", "status": "v2-frozen", "version": 1},
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema", "verdict", "exit_code", "checked_at", "max_missing_ratio", "ratio", "published",
+    "candidate", "missing", "carried", "withdrawn", "added", "suppressed", "alerts"
+  ],
+  "properties": {
+    "schema": {"const": "fcmo-corpus-guard-report-v1"},
+    "verdict": {"enum": ["OK", "CARRY_FORWARD", "REGRESSION_REFUSED"]},
+    "exit_code": {"enum": [0, 3]},
+    "checked_at": {"$ref": "#/$defs/utc"},
+    "max_missing_ratio": {"type": "number", "minimum": 0, "maximum": 1},
+    "ratio": {"type": "number", "minimum": 0, "maximum": 1, "description": "len(missing) / published.count, rounded to 4 decimals; 0 when published.count is 0."},
+    "published": {"$ref": "#/$defs/side"},
+    "candidate": {"$ref": "#/$defs/side"},
+    "missing": {"$ref": "#/$defs/ids", "description": "Published live ids absent from the candidate and not withdrawn."},
+    "carried": {"$ref": "#/$defs/ids", "description": "Ids kept live from the published corpus; equals missing when verdict is CARRY_FORWARD, else empty."},
+    "withdrawn": {
+      "type": "array",
+      "x-unique-by": "id",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "source"],
+        "properties": {
+          "id": {"$ref": "#/$defs/fcmo_id"},
+          "source": {"enum": ["tombstone", "upstream"]}
+        }
+      }
+    },
+    "added": {"$ref": "#/$defs/ids"},
+    "suppressed": {"$ref": "#/$defs/ids", "description": "Candidate ids blocked by an active tombstone; they stay withdrawn."},
+    "alerts": {"type": "array", "uniqueItems": true, "items": {"enum": ["CORPUS_CARRY_FORWARD", "CORPUS_REGRESSION_REFUSED"]}}
+  },
+  "allOf": [
+    {"if": {"properties": {"verdict": {"const": "OK"}}}, "then": {"properties": {"exit_code": {"const": 0}, "missing": {"maxItems": 0}, "carried": {"maxItems": 0}, "alerts": {"maxItems": 0}}}},
+    {"if": {"properties": {"verdict": {"const": "CARRY_FORWARD"}}}, "then": {"properties": {"exit_code": {"const": 0}, "missing": {"minItems": 1}, "carried": {"minItems": 1}, "alerts": {"const": ["CORPUS_CARRY_FORWARD"]}}}},
+    {"if": {"properties": {"verdict": {"const": "REGRESSION_REFUSED"}}}, "then": {"properties": {"exit_code": {"const": 3}, "missing": {"minItems": 1}, "carried": {"maxItems": 0}, "alerts": {"const": ["CORPUS_REGRESSION_REFUSED"]}}}}
+  ],
+  "$defs": {
+    "utc": {"type": "string", "format": "date-time", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"},
+    "fcmo_id": {"type": "string", "pattern": "^FCMO-[0-9A-F]{12}$"},
+    "ids": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/fcmo_id"}},
+    "side": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["release_id", "count"],
+      "properties": {
+        "release_id": {"type": ["string", "null"], "pattern": "^newswire-[0-9a-f]{24}$"},
+        "count": {"type": "integer", "minimum": 0, "description": "published: live ids (the ratio denominator); candidate: ids in the snapshot."}
+      }
+    }
+  }
+}

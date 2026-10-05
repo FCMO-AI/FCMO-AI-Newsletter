@@ -1,5 +1,13 @@
 # FCMO AI attribution policy
 
+## Current brand use
+
+The shell distinguishes the FCMO umbrella, Javier’s fCMO publication and FCMO AI and the existing local publication fonts and favicon. The Hub identity package supplies the canonical color, type and exposure rules (`identity/readable/01_FCMO_Group_Identity_System_v4.1.txt`, `identity/readable/03_FCMO_AI_Identity_System_v0.2.txt`, and `identity/FCMO_TECHNICAL_EXPOSURE_GRADIENT_v0.1.md`). The approved v3 footer mark and its checksum are recorded in `site-src/assets/brand/PROVENANCE.txt`; the gradient WebP is a design reference, not reader artwork.
+
+| Local asset | Hub source path | SHA-256 | Use |
+| --- | --- | --- | --- |
+| `site-src/assets/brand/technical-exposure-reference.webp` | `identity/assets/FCMO_TECHNICAL_EXPOSURE_GRADIENT_v2_REFERENCE.webp` | `c3919d4194b331ff64597a8c0505c457facba34265ce3a8b9c8be9785e38c643` | Internal visual reference for the v2 design contract; never embedded in reader pages. |
+
 This document defines the canonical public attribution convention for the FCMO AI Newsletter and related material published through this repository.
 
 ## Project status

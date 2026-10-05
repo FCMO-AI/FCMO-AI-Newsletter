@@ -29,11 +29,11 @@ CC BY 4.0 does not grant rights to material that the newsletter or its contribut
 
 - third-party articles, papers, quotations, images, figures, videos, datasets, logos, trademarks, or other referenced material;
 - material reproduced under quotation, fair-use, fair-dealing, or another third-party permission or license;
-- the FCMO, FCMO AI, and FCMO AI Newsletter names, logos, visual identity, or other branding as trademarks or source identifiers; or
+- FCMO, fCMO, FCMO AI, and FCMO AI Newsletter names, logos, visual identity, or other branding as trademarks or source identifiers; or
 - software code, which is governed by the repository's `LICENSE` file unless stated otherwise.
 
 Third-party material remains subject to its original rights, terms, and licenses.
 
 ## Scope
 
-This repository uses a mixed-license model: software is MIT-licensed, while licensable original newsletter/editorial content is CC BY 4.0 unless a more specific notice applies. The FCMO name remains the public-facing umbrella brand and does not, by itself, determine legal authorship or ownership of FCMO AI material.
+This repository uses a mixed-license model: software is MIT-licensed, while licensable original newsletter/editorial content is CC BY 4.0 unless a more specific notice applies. The FCMO brand remains the public-facing umbrella brand and does not, by itself, determine legal authorship or ownership of FCMO AI material.

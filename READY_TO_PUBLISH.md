@@ -1,73 +1,27 @@
-# FCMO AI Newsletter — public release receipt
+# FCMO AI Newsletter — static-paper release receipt
 
-Release: **Signal Field v4.1.1 Viewport polish**
+Release: **newswire-a8ab11584169f896e64e2c0c**
 
-Status: **public release assembled, native-localized, validated, and deployable through GitHub Pages.**
-
-Receipt measurement: **2026-09-10T07:19:28.381Z** (UTC), using `tests/oraculos/verificar_layout.py + tests/oraculos/verificar_dom.py` and Google Chrome 152.0.7977.64.
-
-This repository is the public publication sink. `site/` supplies the public base, `release-src/` holds the editable canonical release source, `release-overlay/final/` freezes that source deterministically, and deployment assembles only the validated `publish/` candidate. No private research workspace is required to build or serve the site.
-
-## Publication state
-
-The public site is deployed at:
-
-**https://fcmo-ai.github.io/FCMO-AI-Newsletter/**
-
-Ordinary releases require no repository-visibility step. A candidate that fails release integrity, privacy, or native-edition validation is not deployed; the previous public version remains live.
+Status: **the deterministic A3 publication candidate is assembled and measurable.** Deployment still requires the A4 integrity gates, browser oracle, and post-deploy live verification.
 
 ## Release identity
 
-- Release manifest schema: `fcmo-ai-newsletter-release-overlay-v2`
-- Release: `signal-field-v4.1.1-viewport-polish`
-- Front-end SHA-256: `dd801d8a1a339ad0990e6dad132a0bfa6442806b37e6e20198af672fe3ac8525`
-- Release archive SHA-256: `17a78e49aeebacd228208525a3f3818b2b1f70e5f17c7a99899888d41344e911`
-- Encoded release payload SHA-256: `2d12498fc8d59710b8be2c9a15ca48147abed5fec21bc948e14a3525300007a5`
-- 39/39 release payload parts present; payload and archive checked by SHA-256
-- 762 public files after assembly
-- 46 canonical dossiers
-- 46 stable dossier routes
-- 25 frozen edition routes
-- 11 vetted sourced story visuals + 35 embedded editorial fallbacks
+- Receipt schema: `fcmo-paper-receipt-v1`
+- Story schema: `fcmo-stories-v2`
+- Newsroom-status schema: `fcmo-newsroom-status-v2`
+- Story layer generated at: `2026-10-05T01:39:17Z`
+- Edition: `2026-10-04` (`TRANSPORT_DOWN`)
 
-## Verification receipts
+## Final route/data manifest
 
-### Visual/browser QA
+- `data/routes.json`: 510 routes; SHA-256 `6e4f69f4ff375ed134c9dca537a8d4cd320bdbd757518b8fb94066eff6cb4bf8`
+- Route locales: en=170, es-419=170, zh-Hans=170
+- Route kinds: about=3, agenda=3, archive=3, author=3, beat=15, community=3, correction=9, corrections=3, edition=69, feeds=3, front=3, guide=3, landing=3, legal=9, letters=3, method=3, org=204, search=3, status=3, story=123, subscribe=3, topic=36
+- Story routes: 123 for 41 live canonical stories
+- Embedded `data/stories.v2.json`: byte-identical to the Story layer; SHA-256 `a8a5ecb07e396e075d725c2b71d80f6aa19751bc5a00fe405032cc799a9939d3`
+- Embedded `data/newsroom-status.json`: byte-identical to newsroom status; SHA-256 `07ff9b69b810878710a271786cbf7a8c2d54087775e34fab9c19903ebf5e6f27`
+- Candidate tree: 1904 files, including 132 local story-media files; SHA-256 `b0e6045a32c518b2153d51b37f93c4846b4220b429d9753e18040088f5d6ac21`
 
-Measured on **2026-09-10T07:19:28.381Z** with **Google Chrome 152.0.7977.64** by `tests/oraculos/verificar_layout.py + tests/oraculos/verificar_dom.py`:
+## Verification boundary
 
-- 12 route/viewport checks at 390px, 1152px, 1280px, 1366px, 1440px, and 1920px
-- 0 JavaScript failures
-- 0 overflow failures
-- 0 blank-route failures
-- 0 legal DOM checks
-- 8 curated-i18n DOM checks
-
-### Release/data QA
-
-The final assembler validates, before deployment:
-
-- exact release archive and front-end hashes;
-- archive path/symlink safety;
-- required human and machine-readable public files;
-- the post-overlay archive/search/topic/organization/methodology/status frontend suite;
-- 46 dossier identifiers and stable human routes;
-- 25 edition JSON/HTML routes;
-- JSON, JSONL, RSS, and sitemap parsing;
-- agent discovery/query contracts (`fcmo-agent-discovery-v2`, `fcmo-agent-query-v2`);
-- final 11/35 story-media policy;
-- credential-like strings and personal-mailbox leakage;
-- remote JavaScript and remote stylesheet dependencies while allowing legitimate canonical/feed/discovery links and vetted story imagery;
-- deterministic post-frontend build-manifest generation.
-
-The release assembler, native-locale gate, and discovery frontend builder were rerun; the assembled public candidate measures:
-
-`FCMO AI Newsletter signal-field-v4.1.1-viewport-polish READY: 762 public files; index dd801d8a1a33…`
-
-## Daily refresh readiness
-
-The update path is fail-closed: ARB supplies a sanitized public corpus plus any agent-authored `es-419`/`zh-Hans` deltas, Newsletter requires exact three-language story parity, rebuilds public research/media/Story/discovery surfaces, freezes the canonical overlay, regenerates this receipt, and reruns the release gates before a commit can deploy. There is no downstream translation provider or generative fallback. Platform runner/billing availability and the GitHub App installation credential are external prerequisites; their absence must stop an update rather than weaken the publication boundary.
-
-## GitHub Pages
-
-Pages reconstructs the frozen candidate, applies committed native locales, regenerates deterministic discovery frontends on that exact candidate, and deploys only after the build job succeeds. The deployment workflow also listens to completed autonomous-newsroom workflows so a bot-authored refresh can reach Pages without relying on a second `push` event.
+This receipt is generated from `tools/paper/build.py` and measures its final `data/routes.json` plus the embedded source artifacts. It does not describe or mount the retired `release-overlay` frontend. GitHub Pages separately generates OG cards, runs all A4 gates, runs the browser oracle, deploys the candidate, verifies the live site, and only then advances the durable `lkg` tag.

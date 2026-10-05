@@ -1,0 +1,56 @@
+name: Dispatch FCMO AI Diario
+
+on:
+  workflow_run:
+    workflows: ["Deploy FCMO AI Newsletter"]
+    types: [completed]
+    branches: [main]
+  schedule:
+    # Two UTC windows cover either Mexico City offset. The Python eligibility
+    # check owns the 07:30 local cutoff; Ghost slug idempotency owns repeats.
+    # Later verified deploys also trigger workflow_run.
+    - cron: '35 12 * * *'
+    - cron: '35 13 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fcmo-daily-email
+  cancel-in-progress: false
+
+jobs:
+  dispatch:
+    if: >-
+      vars.FCMO_EMAIL_ENABLED == 'true' &&
+      (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success')
+    runs-on: ubuntu-latest
+    environment: email
+    steps:
+      - name: Checkout the publication controls and live-verified LKG tag
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Bind email inputs to the verified live Pages candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          LKG_COMMIT="$(git rev-parse --verify 'refs/tags/lkg^{commit}')"
+          python tools/email_live_receipt.py \
+            --lkg-commit "$LKG_COMMIT" --out "$RUNNER_TEMP/email-edition"
+      - name: Dispatch one idempotent Diario email
+        env:
+          GHOST_URL: ${{ secrets.GHOST_URL }}
+          GHOST_ADMIN_API_KEY: ${{ secrets.GHOST_ADMIN_API_KEY }}
+          FCMO_EMAIL_POSTAL_ADDRESS: ${{ secrets.FCMO_EMAIL_POSTAL_ADDRESS }}
+        run: >-
+          python tools/email_dispatch.py
+          --stories "$RUNNER_TEMP/email-edition/stories.v2.json"
+          --status "$RUNNER_TEMP/email-edition/newsroom-status.json"
+          --live-verify "$RUNNER_TEMP/email-edition/live-verify.json"

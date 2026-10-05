@@ -1,25 +1,58 @@
 #!/usr/bin/env python3
-"""Reality-grounded post-deploy oracle for the live FCMO AI Newsletter.
+"""Serving oracle for the live FCMO AI Newsletter: availability and identity.
 
-Build and Pages deployment status are not treated as proof of public visibility.
-This oracle fetches the production origin, compares the live newsroom receipt
-with repository truth, and opens the multilingual Story and discovery surfaces.
+Serving is one of three separate truths (contracts/README.md, "Health state").
+This oracle answers only "is the site up, and does it serve the release it
+claims?". It never looks at freshness: a DELAYED newsroom that serves its last
+known good release is up. Freshness lives in ``tools/wire_status.py classify``
+and ``tools/editorial_freshness.py check``.
+
+* Availability: the root and the reader route suite answer 200.
+* Identity: the live ``data/newsroom-status.json`` and ``data/stories.json``
+  match the repository (release id, corpus digest, Story bytes), or, with
+  ``--expected-deployment-identity``, the exact bytes of the deployed candidate.
+
+GitHub Pages sits behind a CDN that caches for up to 10 minutes, so a new
+deployment is not visible at once. Identity is therefore polled with a
+``?v=<sha>-<n>`` cache-buster for up to ``--identity-timeout-s`` (15 minutes)
+before it is declared a mismatch.
+
+The first stdout line is ``SERVING OK ...`` (exit 0) or
+``SERVING FAILED <CODE> ...`` (exit 1) with CODE one of UNREACHABLE,
+ROUTES_FAILED, IDENTITY_MISMATCH.
 """
 from __future__ import annotations
 
 import argparse
 import hashlib
 import json
+import os
 import re
+import sys
 import time
 import urllib.error
 import urllib.request
-from datetime import datetime, timezone, timedelta
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 DEFAULT_BASE = "https://fcmo-ai.github.io/FCMO-AI-Newsletter"
-USER_AGENT = "FCMO-Newsroom-Live-Oracle/1.3"
+USER_AGENT = "FCMO-Newsroom-Live-Oracle/2.0"
+FETCH_PAUSE_S = float(os.environ.get("FCMO_LIVE_FETCH_PAUSE_S", "5"))
+AVAILABILITY_ROUTES = (
+    "/archive.html", "/search.html", "/topics.html", "/organizations.html",
+    "/corrections.html", "/feeds.html", "/methodology.html", "/editorial-policy.html",
+    "/automation.html", "/accessibility.html", "/status.html", "/news/",
+    "/news/en/", "/news/es/", "/news/zh-hans/", "/sitemap.xml", "/news-sitemap.xml",
+    "/feed.xml", "/feed.json", "/llms.txt", "/llms-full.txt", "/agent.json",
+    "/assets/newsletter-responsive-polish.css",
+)
+LEGACY_STATES = {"BOOTSTRAPPED_FROM_EXISTING_PUBLIC_RELEASE", "PUBLIC_DELTA_READY", "NO_PUBLIC_DELTA_READY"}
+
+
+class ServingFailure(Exception):
+    def __init__(self, code: str, message: str) -> None:
+        super().__init__(message)
+        self.code = code
 
 
 def fetch(url: str, attempts: int = 6) -> bytes:
@@ -34,7 +67,7 @@ def fetch(url: str, attempts: int = 6) -> bytes:
         except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError, OSError, RuntimeError) as exc:
             last = exc
             if attempt + 1 < attempts:
-                time.sleep(5)
+                time.sleep(FETCH_PAUSE_S)
     raise RuntimeError(f"live fetch failed for {url}: {last}")
 
 
@@ -49,162 +82,207 @@ def load_json_bytes(data: bytes, label: str) -> Any:
         raise RuntimeError(f"live {label} is not valid JSON: {exc}") from exc
 
 
-def parse_utc(value: str) -> datetime:
-    result = datetime.fromisoformat(value.replace("Z", "+00:00"))
-    return result if result.tzinfo else result.replace(tzinfo=timezone.utc)
+def busted(url: str, token: str) -> str:
+    return f"{url}{'&' if '?' in url else '?'}v={token}"
 
 
-def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--base-url", default=DEFAULT_BASE)
-    parser.add_argument("--status", type=Path, default=Path("site/data/newsroom-status.json"))
-    parser.add_argument("--stories", type=Path, default=Path("site/data/stories.json"))
-    parser.add_argument("--allow-unbootstrapped", action="store_true")
-    parser.add_argument("--require-airlock", action="store_true")
-    parser.add_argument("--max-airlock-age-hours", type=int, default=48)
-    parser.add_argument("--expected-deployment-identity", type=Path)
-    args = parser.parse_args(argv)
-    base = args.base_url.rstrip("/")
+def identity_problem(
+    base: str,
+    token: str,
+    expected: dict[str, Any],
+    expected_stories: list[Any],
+    identity: dict[str, Any] | None,
+    get: Callable[[str], bytes],
+) -> tuple[str | None, dict[str, Any]]:
+    """None when the live site serves the expected identity, else a reason."""
+    status_bytes = get(busted(base + "/data/newsroom-status.json", token))
+    try:
+        live_status = json.loads(status_bytes.decode("utf-8"))
+    except Exception:
+        return "live newsroom status is not valid JSON", {}
+    stories_bytes = get(busted(base + "/data/stories.json", token))
+    try:
+        live_stories = json.loads(stories_bytes.decode("utf-8"))
+    except Exception:
+        return "live Story index is not valid JSON", live_status
+    if not isinstance(live_stories, list):
+        return "live Story index is not a list", live_status
+    if identity is not None:
+        manifest_bytes = get(busted(base + "/build-manifest.json", token))
+        for label, actual, wanted in (
+            ("build manifest", sha256_bytes(manifest_bytes), identity.get("build_manifest_sha256")),
+            ("newsroom status", sha256_bytes(status_bytes), identity.get("newsroom_status_sha256")),
+            ("Story index", sha256_bytes(stories_bytes), identity.get("stories_sha256")),
+        ):
+            if not wanted or actual != wanted:
+                return f"deployed {label} bytes differ (expected {str(wanted)[:12]} live {actual[:12]})", live_status
+        if live_status.get("release_id") != identity.get("release_id"):
+            return "deployed release_id differs", live_status
+        if live_status.get("corpus_digest") != identity.get("corpus_digest"):
+            return "deployed corpus digest differs", live_status
+        if len(live_stories) != identity.get("story_count"):
+            return "deployed Story count differs", live_status
+        return None, live_status
+    if live_status.get("release_id") != expected.get("release_id"):
+        return f"release repo={expected.get('release_id')} live={live_status.get('release_id')}", live_status
+    if live_status.get("corpus_digest") != expected.get("corpus_digest"):
+        return "corpus digest differs from the repository", live_status
+    if len(live_stories) != len(expected_stories):
+        return f"Story count repo={len(expected_stories)} live={len(live_stories)}", live_status
+    wanted_sha = expected.get("stories_sha256")
+    if wanted_sha and sha256_bytes(stories_bytes) != wanted_sha:
+        return "Story index bytes differ from the repository", live_status
+    return None, live_status
 
-    root = fetch(base + "/").decode("utf-8", errors="replace")
-    if "FCMO AI Newsletter" not in root:
-        raise SystemExit("live oracle FAILED: production root does not identify the publication")
 
-    # The reader-facing FCMO Wire control is retired, while the underlying /news/
-    # gateway and Newswire Bridge transport remain valid. The DOM keeps a stable
-    # marker so one shared stylesheet can suppress the retired reader control.
-    # Source-string presence is therefore not visibility. Require the live CSS to
-    # carry the approved fail-closed hide rule whenever the marker is present.
+def poll_identity(
+    base: str,
+    token: str,
+    expected: dict[str, Any],
+    expected_stories: list[Any],
+    identity: dict[str, Any] | None,
+    timeout_s: float,
+    interval_s: float,
+    get: Callable[[str], bytes] = fetch,
+    clock: Callable[[], float] = time.monotonic,
+    sleep: Callable[[float], None] = time.sleep,
+) -> tuple[int, dict[str, Any]]:
+    """Poll until the CDN serves the expected identity; return attempts used."""
+    deadline = clock() + max(0.0, timeout_s)
+    attempt = 0
+    while True:
+        attempt += 1
+        try:
+            problem, live_status = identity_problem(base, f"{token}-{attempt}", expected, expected_stories, identity, get)
+        except RuntimeError as exc:
+            problem, live_status = str(exc), {}
+        if problem is None:
+            return attempt, live_status
+        if clock() + interval_s > deadline:
+            raise ServingFailure("IDENTITY_MISMATCH", f"{problem} after {attempt} polls")
+        print(f"identity not served yet (poll {attempt}): {problem}", file=sys.stderr)
+        sleep(interval_s)
+
+
+def route_contracts(base: str, root: str, expected_stories: list[Any]) -> None:
+    """Reader route markers of the current site (full post-deploy mode only)."""
     if "data-fcmo-wire-link" in root:
         responsive_css = fetch(base + "/assets/newsletter-responsive-polish.css").decode("utf-8", errors="replace")
         compact_css = re.sub(r"\s+", "", responsive_css)
         if "[data-fcmo-wire-link]{display:none!important}" not in compact_css:
-            raise SystemExit("live oracle FAILED: retired reader-facing FCMO WIRE control is not suppressed")
+            raise ServingFailure("ROUTES_FAILED", "retired reader-facing FCMO WIRE control is not suppressed")
+    search = fetch(base + "/search.html").decode("utf-8", errors="replace")
+    if "data-search-root" not in search or "editorial-frontends.js" not in search:
+        raise ServingFailure("ROUTES_FAILED", "search route is not the native local-search frontend")
+    topics = fetch(base + "/topics.html").decode("utf-8", errors="replace")
+    organizations = fetch(base + "/organizations.html").decode("utf-8", errors="replace")
+    if "facet-row" not in topics or "facet-row" not in organizations:
+        raise ServingFailure("ROUTES_FAILED", "topic/organization discovery routes are still shells")
+    gateway = fetch(base + "/news/").decode("utf-8", errors="replace")
+    if "Canonical semantic edition" not in gateway or "简体中文" not in gateway:
+        raise ServingFailure("ROUTES_FAILED", "/news/ is not the three-edition gateway")
+    latest_id = expected_stories[0].get("research_id") if isinstance(expected_stories[0], dict) else None
+    if not latest_id:
+        raise ServingFailure("ROUTES_FAILED", "latest Story lacks research_id")
+    for locale in ("en", "es", "zh-hans"):
+        article = fetch(f"{base}/news/{locale}/{latest_id}.html").decode("utf-8", errors="replace")
+        if '"@type": "NewsArticle"' not in article and '"@type":"NewsArticle"' not in article:
+            raise ServingFailure("ROUTES_FAILED", f"{locale} latest Story lacks NewsArticle structured data")
+        if "hreflang=" not in article or "FCMO AI Research Desk" not in article:
+            raise ServingFailure("ROUTES_FAILED", f"{locale} latest Story lacks multilingual/byline contract")
+
+
+def write_signal(path: Path | None, status: str, code: str, detail: str, metrics: dict[str, Any]) -> None:
+    if not path:
+        return
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps({"status": status, "code": code, "detail": detail[:300], "metrics": metrics}, indent=2) + "\n", encoding="utf-8")
+
+
+def serve(args: argparse.Namespace) -> tuple[str, dict[str, Any]]:
+    base = args.base_url.rstrip("/")
+    try:
+        root = fetch(base + "/").decode("utf-8", errors="replace")
+    except RuntimeError as exc:
+        raise ServingFailure("UNREACHABLE", str(exc)) from exc
+    if "FCMO AI Newsletter" not in root:
+        raise ServingFailure("UNREACHABLE", "production root does not identify the publication")
+
+    for path in AVAILABILITY_ROUTES:
+        try:
+            fetch(base + path)
+        except RuntimeError as exc:
+            raise ServingFailure("ROUTES_FAILED", str(exc)) from exc
+    metrics: dict[str, Any] = {"routes_checked": len(AVAILABILITY_ROUTES) + 1}
 
     if not args.status.is_file():
-        if args.allow_unbootstrapped and not args.require_airlock:
-            print("live oracle BASELINE OK: root is live; autonomous newsroom status not bootstrapped in this commit")
-            return 0
-        raise SystemExit("live oracle FAILED: repository newsroom status is absent")
-
+        if args.allow_unbootstrapped:
+            return "BASELINE root is live; newsroom status not bootstrapped in this commit", metrics
+        raise ServingFailure("IDENTITY_MISMATCH", "repository newsroom status is absent")
     expected = json.loads(args.status.read_text(encoding="utf-8"))
     expected_stories = json.loads(args.stories.read_text(encoding="utf-8"))
     if not isinstance(expected_stories, list) or not expected_stories:
-        raise SystemExit("live oracle FAILED: repository Story layer is empty")
+        raise ServingFailure("IDENTITY_MISMATCH", "repository Story layer is empty")
 
-    live_status_bytes = fetch(base + "/data/newsroom-status.json")
-    live_status = load_json_bytes(live_status_bytes, "newsroom status")
-
-    if live_status.get("release_id") != expected.get("release_id"):
-        raise SystemExit(
-            f"live oracle FAILED: release mismatch repo={expected.get('release_id')} live={live_status.get('release_id')}"
-        )
-    if live_status.get("story_layer_count") != len(expected_stories):
-        raise SystemExit("live oracle FAILED: live status story count does not match repository Story layer")
-
-    live_stories_bytes = fetch(base + "/data/stories.json")
-    live_stories = load_json_bytes(live_stories_bytes, "Story index")
-    if not isinstance(live_stories, list) or len(live_stories) != len(expected_stories):
-        raise SystemExit(
-            f"live oracle FAILED: Story index count repo={len(expected_stories)} live={len(live_stories) if isinstance(live_stories, list) else 'invalid'}"
-        )
-    expected_stories_sha = expected.get("stories_sha256")
-    if expected_stories_sha and sha256_bytes(live_stories_bytes) != expected_stories_sha:
-        raise SystemExit("live oracle FAILED: Story index bytes do not match the validated newsroom artifact")
-    if expected.get("corpus_digest") != live_status.get("corpus_digest"):
-        raise SystemExit("live oracle FAILED: live corpus digest does not match repository newsroom truth")
-    if expected.get("airlock_record_count") != live_status.get("airlock_record_count"):
-        raise SystemExit("live oracle FAILED: live Airlock record count does not match repository newsroom truth")
-    if expected.get("translation_state") != live_status.get("translation_state"):
-        raise SystemExit("live oracle FAILED: live translation state does not match repository newsroom truth")
-    if expected.get("translation_counts") != live_status.get("translation_counts"):
-        raise SystemExit("live oracle FAILED: live translation counts do not match repository newsroom truth")
-
-    deployment_identity_verified = False
+    identity = None
     if args.expected_deployment_identity:
         try:
             identity = json.loads(args.expected_deployment_identity.read_text(encoding="utf-8"))
         except Exception as exc:
-            raise SystemExit(f"live oracle FAILED: deployment identity artifact unreadable: {exc}") from exc
+            raise ServingFailure("IDENTITY_MISMATCH", f"deployment identity artifact unreadable: {exc}") from exc
         if identity.get("schema") != "fcmo-deployment-identity-v1":
-            raise SystemExit("live oracle FAILED: deployment identity schema mismatch")
-        live_manifest_bytes = fetch(base + "/build-manifest.json")
-        checks = (
-            ("build manifest", sha256_bytes(live_manifest_bytes), identity.get("build_manifest_sha256")),
-            ("newsroom status", sha256_bytes(live_status_bytes), identity.get("newsroom_status_sha256")),
-            ("Story index", sha256_bytes(live_stories_bytes), identity.get("stories_sha256")),
-        )
-        for label, actual_digest, expected_digest in checks:
-            if not expected_digest or actual_digest != expected_digest:
-                raise SystemExit(
-                    f"live oracle FAILED: exact deployed {label} identity mismatch "
-                    f"expected={expected_digest} live={actual_digest}"
-                )
-        if live_status.get("release_id") != identity.get("release_id"):
-            raise SystemExit("live oracle FAILED: deployment artifact release_id does not match production")
-        if live_status.get("corpus_digest") != identity.get("corpus_digest"):
-            raise SystemExit("live oracle FAILED: deployment artifact corpus digest does not match production")
-        if len(live_stories) != identity.get("story_count"):
-            raise SystemExit("live oracle FAILED: deployment artifact Story count does not match production")
-        deployment_identity_verified = True
-
-    allowed_states = {
-        "BOOTSTRAPPED_FROM_EXISTING_PUBLIC_RELEASE",
-        "PUBLIC_DELTA_READY",
-        "NO_PUBLIC_DELTA_READY",
-    }
-    if live_status.get("state") not in allowed_states:
-        raise SystemExit(f"live oracle FAILED: unsupported newsroom state {live_status.get('state')!r}")
-
-    generated = live_status.get("airlock_generated_at")
-    if args.require_airlock:
-        if live_status.get("state") == "BOOTSTRAPPED_FROM_EXISTING_PUBLIC_RELEASE" or not generated:
-            raise SystemExit("live oracle FRESHNESS FAILED: no real Airlock-backed production release is active")
-
-    if generated:
-        age = datetime.now(timezone.utc) - parse_utc(str(generated))
-        if age > timedelta(hours=args.max_airlock_age_hours):
-            raise SystemExit(f"live oracle FAILED: deployed airlock heartbeat is stale ({age.total_seconds()/3600:.1f}h)")
-
-    required_routes = (
-        "/archive.html", "/search.html", "/topics.html", "/organizations.html",
-        "/corrections.html", "/feeds.html", "/methodology.html", "/editorial-policy.html",
-        "/automation.html", "/accessibility.html", "/status.html", "/news/",
-        "/news/en/", "/news/es/", "/news/zh-hans/", "/sitemap.xml", "/news-sitemap.xml",
-        "/feed.xml", "/feed.json", "/llms.txt", "/llms-full.txt", "/agent.json",
-        "/assets/newsletter-responsive-polish.css",
+            raise ServingFailure("IDENTITY_MISMATCH", "deployment identity schema mismatch")
+    token = re.sub(r"[^0-9A-Za-z]", "", str(
+        (identity or {}).get("source_commit") or os.environ.get("GITHUB_SHA") or expected.get("release_id") or "live"
+    ))[:40] or "live"
+    polls, live_status = poll_identity(
+        base, token, expected, expected_stories, identity,
+        args.identity_timeout_s, args.poll_interval_s,
     )
-    for path in required_routes:
-        fetch(base + path)
+    metrics["identity_polls"] = polls
+    if not args.serving_only:
+        if live_status.get("state") not in LEGACY_STATES:
+            raise ServingFailure("IDENTITY_MISMATCH", f"unsupported newsroom state {live_status.get('state')!r}")
+        route_contracts(base, root, expected_stories)
+    kind = "exact" if identity is not None else "release"
+    return (
+        f"release={live_status.get('release_id')} stories={len(expected_stories)} "
+        f"routes={metrics['routes_checked']} identity={kind} polls={polls}"
+    ), metrics
 
-    search = fetch(base + "/search.html").decode("utf-8", errors="replace")
-    if "data-search-root" not in search or "editorial-frontends.js" not in search:
-        raise SystemExit("live oracle FAILED: search route is not the native local-search frontend")
-    topics = fetch(base + "/topics.html").decode("utf-8", errors="replace")
-    organizations = fetch(base + "/organizations.html").decode("utf-8", errors="replace")
-    if "facet-row" not in topics or "facet-row" not in organizations:
-        raise SystemExit("live oracle FAILED: topic/organization discovery routes are still shells")
-    gateway = fetch(base + "/news/").decode("utf-8", errors="replace")
-    if "Canonical semantic edition" not in gateway or "简体中文" not in gateway:
-        raise SystemExit("live oracle FAILED: /news/ is not the three-edition gateway")
 
-    latest_id = expected_stories[0].get("research_id")
-    if not latest_id:
-        raise SystemExit("live oracle FAILED: latest Story lacks research_id")
-    for locale in ("en", "es", "zh-hans"):
-        article = fetch(f"{base}/news/{locale}/{latest_id}.html").decode("utf-8", errors="replace")
-        if '"@type": "NewsArticle"' not in article and '"@type":"NewsArticle"' not in article:
-            raise SystemExit(f"live oracle FAILED: {locale} latest Story lacks NewsArticle structured data")
-        if "hreflang=" not in article or "FCMO AI Research Desk" not in article:
-            raise SystemExit(f"live oracle FAILED: {locale} latest Story lacks multilingual/byline contract")
-
-    mode = "FRESHNESS" if args.require_airlock else "PRODUCTION"
-    print(
-        f"live newsroom {mode} OK: release={live_status['release_id']} "
-        f"state={live_status['state']} stories={len(expected_stories)}; "
-        f"deployment_identity={'verified' if deployment_identity_verified else 'repo-bound'}; "
-        "full editorial/machine route suite + EN/ES/ZH verified"
-    )
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument("--base-url", default=DEFAULT_BASE)
+    parser.add_argument("--status", type=Path, default=Path("site/data/newsroom-status.json"))
+    parser.add_argument("--stories", type=Path, default=Path("site/data/stories.json"))
+    parser.add_argument("--serving-only", action="store_true",
+                        help="availability + identity only (the health serving signal)")
+    parser.add_argument("--allow-unbootstrapped", action="store_true")
+    parser.add_argument("--expected-deployment-identity", type=Path)
+    parser.add_argument("--identity-timeout-s", type=float, default=900.0,
+                        help="how long to wait for the CDN to serve the expected identity (default 15 min)")
+    parser.add_argument("--poll-interval-s", type=float, default=30.0)
+    parser.add_argument("--signal-out", type=Path, help="write the health-state serving signal here")
+    # Retired: freshness is not a serving property. Accepted so old callers keep working.
+    parser.add_argument("--require-airlock", action="store_true", help=argparse.SUPPRESS)
+    parser.add_argument("--max-airlock-age-hours", type=int, default=None, help=argparse.SUPPRESS)
+    args = parser.parse_args(argv)
+    if args.require_airlock or args.max_airlock_age_hours is not None:
+        print("note: airlock-age flags are ignored; freshness is measured by the wire status, not by serving", file=sys.stderr)
+    try:
+        summary, metrics = serve(args)
+    except ServingFailure as exc:
+        print(f"SERVING FAILED {exc.code} {exc}")
+        write_signal(args.signal_out, "RED", exc.code, str(exc), {})
+        return 1
+    except (OSError, ValueError) as exc:
+        print(f"SERVING FAILED UNREACHABLE {exc}")
+        write_signal(args.signal_out, "RED", "UNREACHABLE", str(exc), {})
+        return 1
+    print(f"SERVING OK {summary}")
+    write_signal(args.signal_out, "GREEN", "OK", "All routes 200 and live identity matches the " +
+                 ("deployed candidate." if args.expected_deployment_identity else "repository release."), metrics)
     return 0
 
 

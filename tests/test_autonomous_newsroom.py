@@ -98,12 +98,12 @@ class IngestTransitionBoundaryTests(unittest.TestCase):
         fixture = Path(__file__).resolve().parents[1] / "_fixtures" / "corpus-2026-09-01"
         with tempfile.TemporaryDirectory() as tmp:
             out = Path(tmp) / "release"
-            ingest_corpus.build(fixture, out)
+            ingest_corpus.build(fixture, out, now="2026-09-01T00:00:00Z")
             first_agent = json.loads((out / "agent.json").read_text(encoding="utf-8"))
             first_llms = (out / "llms-full.txt").read_bytes()
             self.assertTrue(first_agent.get("newly_ingested_brief_ids"))
 
-            ingest_corpus.build(fixture, out)
+            ingest_corpus.build(fixture, out, now="2026-09-01T00:00:00Z")
             second_agent = json.loads((out / "agent.json").read_text(encoding="utf-8"))
             second_llms = (out / "llms-full.txt").read_bytes()
             self.assertEqual(second_agent.get("newly_ingested_brief_ids"), [])
@@ -134,6 +134,11 @@ class BuilderDependencyGraphTests(unittest.TestCase):
         self.assertTrue(invoked)
         missing=sorted(invoked-set(newsroom_receipt.BUILDER_INPUTS))
         self.assertEqual(missing,[],f"refresh tools missing from BUILDER_INPUTS: {missing}")
+
+    def test_refresh_coverage_gate_uses_the_publishable_corpus_set(self) -> None:
+        workflow=(Path(__file__).resolve().parents[1]/".github"/"workflows"/"daily-refresh.yml").read_text(encoding="utf-8")
+        self.assertIn("from tools.ingest_corpus import publishable_rows, read_jsonl", workflow)
+        self.assertIn("publishable, _merged, _held = publishable_rows", workflow)
 
 
 class BuilderDeltaContractTests(unittest.TestCase):
@@ -179,7 +184,7 @@ class AutonomousNewsroomTests(unittest.TestCase):
                 "--site", str(site), "--i18n-dir", str(i18n), "--receipt", str(receipt)
             ]), 0)
             value = json.loads(receipt.read_text(encoding="utf-8"))
-            self.assertIn("ARB publication agent", value["editorial_owner"])
+            self.assertIn("FCMO Publication Desk", value["editorial_owner"])
             self.assertFalse(value["network_translation"])
             self.assertFalse(value["human_reviewed"])
             self.assertEqual(value["historical_structural_pairs"], 2)
@@ -365,17 +370,42 @@ class AutonomousNewsroomTests(unittest.TestCase):
             (site / "data" / "i18n").mkdir(parents=True)
             write_locale(site / "data" / "i18n", "es-419", record())
             write_locale(site / "data" / "i18n", "zh-Hans", record())
+            (site / "data" / "i18n" / "translation-status.json").write_text(json.dumps({
+                "schema": "fcmo-translation-status-v2",
+                "canonical_story_count": 1,
+                "pending_translation_count": 1,
+                "pending_translation_ids": [RID],
+                "state": "DEGRADED_TRANSLATION_BACKLOG",
+                "locales": {
+                    "es-419": {"complete": 0, "pending": 1, "failed": 0,
+                               "pending_ids": [RID], "failed_ids": {},
+                               "state_counts": {"NATIVE_ARB": 0, "MACHINE_REVIEWED": 0, "PENDING": 1, "FAILED": 0}},
+                    "zh-Hans": {"complete": 0, "pending": 1, "failed": 0,
+                                "pending_ids": [RID], "failed_ids": {},
+                                "state_counts": {"NATIVE_ARB": 0, "MACHINE_REVIEWED": 0, "PENDING": 1, "FAILED": 0}},
+                },
+            }), encoding="utf-8")
             (site / "data" / "stories.json").write_text(json.dumps([{"research_id": RID}]), encoding="utf-8")
             status = site / "data" / "newsroom-status.json"
 
+            # Liveness comes from the wire status, not from the Airlock time.
+            fixtures = Path(__file__).resolve().parents[1] / "contracts" / "fixtures"
+            wire = fixtures / "wire-status.fresh.json"
+            reference = "2026-09-26T20:00:00Z"
             args = type("Args", (), {
                 "corpus": corpus, "release_src": release, "site": site,
-                "status": status, "max_age_hours": 36, "github_output": None,
+                "status": status, "wire_status": wire, "now": reference, "github_output": None,
             })()
             self.assertEqual(newsroom_receipt.preflight(args), 0)
             self.assertEqual(newsroom_receipt.finalize(args), 0)
             first = json.loads(status.read_text(encoding="utf-8"))
             self.assertEqual(first["state"], "PUBLIC_DELTA_READY")
+            self.assertEqual(first["edition_state"], "FRESH")
+            self.assertEqual(first["wire_state"], "FRESH")
+            self.assertEqual(first["pending_translation_ids"], [RID])
+            self.assertEqual(first["translation"]["es-419"], {
+                "complete": 0, "pending": 1, "failed": 0,
+                "state_counts": {"NATIVE_ARB": 0, "MACHINE_REVIEWED": 0, "PENDING": 1, "FAILED": 0}})
             self.assertEqual(first["stories_sha256"], newsroom_receipt.sha256_file(site / "data" / "stories.json"))
             self.assertEqual(first["media_sha256"], newsroom_receipt.sha256_file(release / "data" / "media.json"))
             self.assertEqual(newsroom_receipt.finalize(args), 0)
@@ -384,10 +414,17 @@ class AutonomousNewsroomTests(unittest.TestCase):
 
             missing_args = type("Args", (), {
                 "corpus": root / "missing", "release_src": release, "site": site,
-                "status": status, "max_age_hours": 36, "github_output": None,
+                "status": status, "wire_status": wire, "now": reference, "github_output": None,
             })()
             with self.assertRaises(ValueError):
                 newsroom_receipt.preflight(missing_args)
+
+            # An absent wire status is TRANSPORT_DOWN (warning), never an exception.
+            no_wire = type("Args", (), {
+                "corpus": corpus, "release_src": release, "site": site,
+                "status": status, "wire_status": root / "absent.json", "now": reference, "github_output": None,
+            })()
+            self.assertEqual(newsroom_receipt.preflight(no_wire), 0)
 
 
 if __name__ == "__main__":

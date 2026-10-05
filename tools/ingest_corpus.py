@@ -13,8 +13,15 @@ import sys
 import tempfile
 from html import unescape
 from html.parser import HTMLParser
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
+
+try:
+    from tools import corpus_guard, taxonomy
+except ImportError:  # executed as tools/ingest_corpus.py
+    import corpus_guard  # type: ignore
+    import taxonomy  # type: ignore
 
 
 BASE_URL = "https://fcmo-ai.github.io/FCMO-AI-Newsletter/"
@@ -45,6 +52,13 @@ Stable IDs: FCMO-<12 uppercase hex>
 
 ## Query semantics
 Search may be filtered by desk, evidence class, minimum impact, topic, organization, confidence and scope. Claims, confidence and importance are separate fields. Open evidence gaps, contradictory evidence and limitations must not be collapsed into headline confidence.
+
+## Reading hierarchy (R0–R4)
+- R0 signal: headline, publication status and date.
+- R1 brief: the concise summary and why it matters.
+- R2 argument: the claims and evidence supporting the story.
+- R3 technical: methods, limits, contradictions and open gaps.
+- R4 dossier: original sources and the complete machine-readable record.
 
 The human site exposes the equivalent browser-local API as window.FCMOAgent.query(spec).
 """
@@ -242,7 +256,9 @@ def parse_edition(path: Path, canonical_ids: set[str]) -> dict[str, Any]:
     events = parser.events
     related: list[str] = []
     for match in PUBLIC_ID.finditer(source):
-        if match.group() in canonical_ids and match.group() not in related:
+        # A published edition is immutable history. A later withdrawal or
+        # quarantine cannot erase which public identities it referred to.
+        if (published or match.group() in canonical_ids) and match.group() not in related:
             related.append(match.group())
 
     if published:
@@ -391,7 +407,7 @@ def redirect(path_kind: str, identifier: str, title: str) -> str:
 
 
 def feed_item(record: dict[str, Any], brief: dict[str, Any]) -> dict[str, Any]:
-    return {
+    item = {
         "id": record["id"],
         "url": record["human_url"],
         "title": record["title"],
@@ -403,6 +419,10 @@ def feed_item(record: dict[str, Any], brief: dict[str, Any]) -> dict[str, Any]:
         "_fcmo_confidence": record["confidence"],
         "_fcmo_importance": record["importance"],
     }
+    primary_sources = brief.get("source_urls") or []
+    if primary_sources and isinstance(primary_sources[0], str) and primary_sources[0].startswith(("https://", "http://")):
+        item["external_url"] = primary_sources[0]
+    return item
 
 
 def feed_xml(items: list[dict[str, Any]]) -> str:
@@ -468,12 +488,93 @@ def atomic_write(path: Path, data: bytes) -> None:
             os.unlink(name)
 
 
-def build(corpus: Path, out: Path) -> None:
+# Keys the release surfaces index directly; a publishable row always has them.
+LEGACY_DEFAULTS = {
+    "importance_effective_score": lambda norm: norm["importance_effective_score"],
+    "last_verified_at": lambda norm: norm["last_verified_at"],
+    "why_it_matters": lambda norm: norm["why_it_matters"],
+    "organizations": lambda norm: [],
+    "topics": lambda norm: [],
+    "evidence_gaps": lambda norm: [],
+}
+
+
+def publishable_rows(corpus: Path, rows: list[Any]) -> tuple[list[dict[str, Any]], dict[str, str], list[tuple[str, str]]]:
+    """Select, per record, the rows a release may publish.
+
+    Returns (rows, {merged id: surviving id}, [(held-back id, reason)]). Records the
+    corpus guard carries forward are included; tombstoned, upstream-withdrawn,
+    duplicated and unnormalizable records are held back one by one instead of
+    failing the whole batch. A corrupt tombstones file fails closed.
+    """
+    tombstones = corpus_guard.load_tombstones(corpus_guard.default_tombstones_path(corpus))
+    active = {e["id"]: e for e in (tombstones or {}).get("tombstones", []) if e.get("reinstated_at") is None}
+    carried = corpus_guard.read_carried(corpus)
+    present = {row.get("id") for row in rows if isinstance(row, dict)}
+    candidates = list(rows) + [c["record"] for c in carried if c["id"] not in present]
+    selected: list[dict[str, Any]] = []
+    merged: dict[str, str] = {}
+    held: list[tuple[str, str]] = []
+    seen: set[str] = set()
+    for row in candidates:
+        rid = row.get("id") if isinstance(row, dict) and isinstance(row.get("id"), str) else "-"
+        try:
+            norm = taxonomy.normalize_record(row)
+        except taxonomy.Quarantine as exc:
+            held.append((rid, "QUARANTINE:" + ",".join(exc.codes)))
+            continue
+        if rid in seen:
+            held.append((rid, "DUPLICATE_ID"))
+            continue
+        seen.add(rid)
+        entry = active.get(rid)
+        if entry is not None:
+            if entry.get("action") == "superseded" and entry.get("superseded_by"):
+                merged[rid] = entry["superseded_by"]
+            held.append((rid, f"TOMBSTONED:{entry.get('reason_code')}"))
+            continue
+        if norm["status"] in corpus_guard.WITHDRAWN_STATUSES:
+            target = norm.get("withdrawal", {}).get("superseded_by")
+            if target:
+                merged[rid] = target
+            held.append((rid, "WITHDRAWN_UPSTREAM"))
+            continue
+        row = dict(row)
+        for key, default in LEGACY_DEFAULTS.items():
+            if row.get(key) is None:
+                row[key] = default(norm)
+        selected.append(row)
+    for rid, entry in sorted(active.items()):
+        if rid not in seen:  # withdrawn before this snapshot; its legacy URL still needs a notice
+            if entry.get("action") == "superseded" and entry.get("superseded_by"):
+                merged[rid] = entry["superseded_by"]
+            held.append((rid, f"TOMBSTONED:{entry.get('reason_code')}"))
+    quarantined = sum(reason.startswith("QUARANTINE") for _, reason in held)
+    if candidates and quarantined / len(candidates) > corpus_guard.default_max_missing_ratio():
+        raise ValueError(f"refusing to publish: {quarantined} of {len(candidates)} records failed normalization")
+    selected_ids = {row["id"] for row in selected}
+    merged = {dup: target for dup, target in merged.items() if target in selected_ids}
+    return selected, merged, held
+
+
+def freshness_header(generated_at: str) -> str:
+    stamp = datetime.fromisoformat(generated_at.replace("Z", "+00:00"))
+    if stamp.tzinfo is None:
+        stamp = stamp.replace(tzinfo=timezone.utc)
+    stale_after = (stamp.astimezone(timezone.utc) + timedelta(hours=48)).isoformat().replace("+00:00", "Z")
+    return f"<!-- generated_at: {stamp.astimezone(timezone.utc).isoformat().replace('+00:00', 'Z')}; stale_after: {stale_after} -->\n"
+
+
+def build(corpus: Path, out: Path, now: str | None = None) -> None:
     repo = Path(__file__).resolve().parents[1]
-    source_records = read_jsonl(corpus / "data" / "developments.jsonl")
+    raw_records = read_jsonl(corpus / "data" / "developments.jsonl")
+    airlock = read_json(corpus / "airlock.json") if (corpus / "airlock.json").is_file() else {}
+    source_stamps = [str(row.get("last_verified_at") or row.get("event_at") or "") for row in raw_records]
+    generated_at = now or str(airlock.get("generated_at") or max(source_stamps, default="2026-01-01T00:00:00Z"))
+    source_records, _merged, held_back = publishable_rows(corpus, raw_records)
+    for identifier, reason in held_back:
+        print(f"HELD_BACK {identifier} {reason}", file=sys.stderr)
     source_by_id = {record["id"]: replace_arb(record) for record in source_records}
-    if len(source_by_id) != len(source_records):
-        raise ValueError("developments.jsonl has duplicate development IDs")
     canonical_ids = set(source_by_id)
     ids = [record["id"] for record in source_records]
     briefs = {identifier: source_by_id[identifier] for identifier in ids}
@@ -628,9 +729,10 @@ def build(corpus: Path, out: Path) -> None:
         "sitemap.xml": sitemap(sorted(ids), edition_dates).encode("utf-8"),
         "robots.txt": f"User-agent: *\nAllow: /\nSitemap: {BASE_URL}sitemap.xml\n".encode("utf-8"),
         "agent.json": json_bytes(agent),
-        "llms.txt": (LLMS_SCAFFOLD + llms_index(records)).encode("utf-8"),
+        "llms.txt": (freshness_header(generated_at) + LLMS_SCAFFOLD + llms_index(records)).encode("utf-8"),
         "llms-full.txt": (
-            LLMS_SCAFFOLD
+            freshness_header(generated_at)
+            + LLMS_SCAFFOLD
             + llms_index(records)
             + "\n## Full query contract\n```json\n"
             + json.dumps(durable_agent, ensure_ascii=False, indent=2)
@@ -651,6 +753,14 @@ def build(corpus: Path, out: Path) -> None:
         output[f"developments/{identifier}.html"] = redirect(
             "development", identifier, records_by_id[identifier]["title"]
         ).encode("utf-8")
+    # Held-back ids get no developments/ page: the release gate (verify_release.py)
+    # requires developments/*.html to equal the published index. Their public notice
+    # lives at news/<locale>/<id>.html (build_newsroom_surfaces.py).
+    print(
+        f"ingest: publishable={len(ids)} carried={sum(1 for i in ids if i not in {r.get('id') for r in raw_records})} "
+        f"held_back={len(held_back)}",
+        file=sys.stderr,
+    )
     for edition in editions:
         date = edition["date"]
         edition_json = copy.deepcopy(edition)
@@ -683,6 +793,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--corpus", required=True, type=Path)
     parser.add_argument("--out", required=True, type=Path)
+    parser.add_argument("--now", help="ISO 8601 build clock override")
     return parser.parse_args(argv)
 
 
@@ -693,7 +804,7 @@ def main(argv: list[str] | None = None) -> int:
     if not corpus.is_dir():
         raise SystemExit(f"corpus does not exist or is not a directory: {corpus}")
     try:
-        build(corpus, out)
+        build(corpus, out, args.now)
     except (OSError, ValueError, json.JSONDecodeError) as exc:
         raise SystemExit(f"corpus ingestion failed: {exc}") from exc
     return 0

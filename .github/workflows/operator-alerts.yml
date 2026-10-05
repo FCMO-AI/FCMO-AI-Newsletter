@@ -1,0 +1,155 @@
+name: Operator alerts
+
+# Alerts are GitHub issues that open and close only on transitions; the open
+# issues are the alert state (tools/alert_transition.py). GitHub emails the
+# repository watchers on each new issue and comment. A host watchdog outside
+# GitHub covers the case where Actions itself stops (it reads only public data).
+#
+# - Health runs: one incident issue while overall health is RED, updated when
+#   the failing signals change, closed when GREEN. PRODUCTION_STATUS.md is
+#   regenerated from the same health state when the state changes.
+# - Bridge, refresh, Pages and email-dispatch runs: an issue after two
+#   consecutive failures, closed by the next success.
+on:
+  workflow_run:
+    workflows:
+      - 'Autonomous newsroom production health'
+      - 'Pull airlocked newswire with GitHub App'
+      - 'Refresh the autonomous newsroom from the sanitized corpus'
+      - 'Deploy FCMO AI Newsletter'
+      - 'Dispatch FCMO AI Diario'
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      health_run_id:
+        description: 'Run id of the health workflow whose health-state artifact is evaluated'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  # One queue per source workflow: transitions of one source are evaluated in
+  # order and never cancel each other. Different sources use different keys.
+  group: operator-alerts-${{ github.event.workflow_run.path || 'dispatch' }}
+  cancel-in-progress: false
+
+jobs:
+  health-transition:
+    # Skipped or cancelled health runs measured nothing and carry no artifact.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.path == '.github/workflows/newsroom-health.yml' &&
+       (github.event.workflow_run.conclusion == 'success' ||
+        github.event.workflow_run.conclusion == 'failure' ||
+        github.event.workflow_run.conclusion == 'timed_out'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      actions: read
+      contents: write
+      issues: write
+    env:
+      HEALTH_RUN_ID: ${{ github.event.workflow_run.id || inputs.health_run_id }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Download the health-state artifact of the health run
+        id: download
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          case "$HEALTH_RUN_ID" in (''|*[!0-9]*) echo 'health run id must be numeric' >&2; exit 2;; esac
+          mkdir -p "$RUNNER_TEMP/health"
+          # A missing artifact is not fatal here: the alert tool reads the
+          # missing file as HEALTH_STATE_MISSING and keeps the incident open.
+          gh run download "$HEALTH_RUN_ID" --repo "$GITHUB_REPOSITORY" --name health-state --dir "$RUNNER_TEMP/health" \
+            || echo 'health-state artifact not found' >&2
+
+      # The issue and the status file are independent: a GitHub API failure
+      # in one must not stop the other.
+      - name: Open, update or close the health incident issue
+        if: ${{ !cancelled() && steps.download.outcome == 'success' }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: >-
+          python3 tools/alert_transition.py health
+          --health "$RUNNER_TEMP/health/health-state.json"
+          --repo "$GITHUB_REPOSITORY"
+          --run-id "$HEALTH_RUN_ID"
+
+      - name: Regenerate PRODUCTION_STATUS.md when the state changed
+        id: status
+        if: ${{ !cancelled() && steps.download.outcome == 'success' }}
+        run: >-
+          python3 tools/status_report.py
+          --health "$RUNNER_TEMP/health/health-state.json"
+          --out PRODUCTION_STATUS.md
+          --if-changed --max-age-h 24
+
+      - name: Commit PRODUCTION_STATUS.md
+        if: ${{ !cancelled() && steps.status.outcome == 'success' }}
+        shell: bash
+        run: |
+          if git diff --quiet -- PRODUCTION_STATUS.md; then
+            echo 'PRODUCTION_STATUS.md unchanged'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add PRODUCTION_STATUS.md
+          git commit -m "status: regenerate PRODUCTION_STATUS.md from health run $HEALTH_RUN_ID"
+          # Only this workflow writes PRODUCTION_STATUS.md, so a rebase onto
+          # concurrent corpus or site commits cannot conflict.
+          for attempt in 1 2 3; do
+            if git pull --rebase origin main && git push origin HEAD:main; then
+              exit 0
+            fi
+            sleep $((attempt * 15))
+          done
+          echo 'could not push PRODUCTION_STATUS.md after 3 attempts' >&2
+          exit 1
+
+  workflow-failure:
+    if: >-
+      github.event_name == 'workflow_run' &&
+      github.event.workflow_run.path != '.github/workflows/newsroom-health.yml'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: read
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+          persist-credentials: false
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Open or close the alert after consecutive failures
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          WORKFLOW_ID: ${{ github.event.workflow_run.workflow_id }}
+          WORKFLOW_PATH: ${{ github.event.workflow_run.path }}
+          WORKFLOW_NAME: ${{ github.event.workflow_run.name }}
+        run: >-
+          python3 tools/alert_transition.py workflow
+          --repo "$GITHUB_REPOSITORY"
+          --workflow-id "$WORKFLOW_ID"
+          --workflow-path "$WORKFLOW_PATH"
+          --workflow-name "$WORKFLOW_NAME"
+          --branch main
+          --threshold 2

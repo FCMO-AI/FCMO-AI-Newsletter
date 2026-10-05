@@ -171,9 +171,17 @@ def _load_pack(target: Path, locale: str) -> dict:
         if part.get("canonical_source_sha256") != ui.get("canonical_source_sha256"):
             raise ValueError(f"{path.relative_to(target)}: canonical source hash drift")
         overlap = set(records) & set(part.get("records") or {})
-        if overlap:
+        if overlap and path.name != "part-desk.json":
             raise ValueError(f"{path.relative_to(target)}: duplicate record IDs {sorted(overlap)}")
-        records.update(part.get("records") or {})
+        for rid, row in (part.get("records") or {}).items():
+            if path.name == "part-desk.json":
+                if not isinstance(row, dict):
+                    raise ValueError(f"{path.relative_to(target)}: {rid} must be an object")
+                selected = records.setdefault(rid, {})
+                for field, value in row.items():
+                    selected.setdefault(field, value)  # ARB source wins; desk fills gaps.
+            else:
+                records[rid] = row
     return {
         "schema": "fcmo-curated-locale-v1",
         "locale": locale,

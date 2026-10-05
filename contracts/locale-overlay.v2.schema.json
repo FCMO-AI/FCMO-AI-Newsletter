@@ -1,0 +1,105 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/contracts/locale-overlay.v2.schema.json",
+  "title": "Locale overlay v2 (one file per locale)",
+  "description": "Normalized per-locale overlay keyed by public id, merged from upstream-authored deltas and, when enabled, the post-airlock translation desk. Upstream fields take precedence; the desk only fills gaps. The unit of completeness is the (story, locale) pair: every prose key present in the English record must be present here, otherwise the pair is PENDING (or FAILED when a gate rejected it). Field keys follow the upstream record.",
+  "x-contract": {"name": "locale-overlay.v2", "status": "v2-draft", "version": 2},
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "locale", "canonical_locale", "generated_at", "records"],
+  "properties": {
+    "schema": {"const": "fcmo-locale-overlay-v2"},
+    "locale": {"enum": ["es-419", "zh-Hans"]},
+    "canonical_locale": {"const": "en"},
+    "generated_at": {"$ref": "#/$defs/utc"},
+    "records": {
+      "type": "object",
+      "propertyNames": {"pattern": "^FCMO-[0-9A-F]{12}$"},
+      "additionalProperties": {"$ref": "#/$defs/entry"}
+    }
+  },
+  "$defs": {
+    "utc": {"type": "string", "format": "date-time", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"},
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "prose_key": {
+      "enum": [
+        "title", "headline", "dek", "summary", "why_it_matters", "importance_rationale",
+        "limitations", "contradictory_evidence", "claims", "evidence_gaps", "relationships", "technical"
+      ]
+    },
+    "entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "source_sha256", "fields", "missing", "provenance", "failure"],
+      "properties": {
+        "state": {"enum": ["NATIVE_ARB", "MACHINE_REVIEWED", "PENDING", "FAILED"]},
+        "source_sha256": {"$ref": "#/$defs/sha256", "description": "sha256 of the canonical JSON of the English prose fields this overlay translates; a mismatch makes the pair PENDING again."},
+        "fields": {
+          "type": "object",
+          "propertyNames": {"$ref": "#/$defs/prose_key"},
+          "properties": {
+            "title": {"type": "string", "minLength": 1},
+            "headline": {"type": "string", "minLength": 1, "maxLength": 90},
+            "dek": {"type": "string", "minLength": 1, "maxLength": 240},
+            "summary": {"type": "string", "minLength": 1},
+            "why_it_matters": {"type": "string", "minLength": 1},
+            "importance_rationale": {"type": "string", "minLength": 1},
+            "limitations": {"type": "array", "items": {"type": "string"}},
+            "contradictory_evidence": {"type": "array", "items": {"type": "string"}},
+            "claims": {"type": "array", "items": {"type": "object", "required": ["text"], "properties": {"text": {"type": "string"}, "label": {"type": "string"}}}},
+            "evidence_gaps": {"type": "array", "items": {"type": "object", "required": ["description"], "properties": {"description": {"type": "string"}}}},
+            "relationships": {"type": "array", "items": {"type": "object"}},
+            "technical": {"type": "object", "additionalProperties": {"type": "string"}}
+          }
+        },
+        "missing": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/prose_key"}},
+        "provenance": {
+          "type": "object",
+          "propertyNames": {"$ref": "#/$defs/prose_key"},
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["origin", "at", "human_reviewed"],
+            "properties": {
+              "origin": {"enum": ["arb", "publication-desk"]},
+              "at": {"$ref": "#/$defs/utc"},
+              "human_reviewed": {"type": "boolean"},
+              "network_translation": {"type": "boolean"},
+              "model": {"type": "string", "maxLength": 80},
+              "prompt_sha256": {"$ref": "#/$defs/sha256"},
+              "glossary_sha256": {"$ref": "#/$defs/sha256"},
+              "review": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["verdict"],
+                "properties": {"verdict": {"enum": ["PASS", "FAIL"]}, "model": {"type": "string", "maxLength": 80}}
+              }
+            },
+            "if": {"properties": {"origin": {"const": "publication-desk"}}},
+            "then": {"required": ["model", "network_translation"], "properties": {"human_reviewed": {"const": false}, "network_translation": {"const": false}}}
+          }
+        },
+        "alternates": {"type": "object"},
+        "failure": {
+          "oneOf": [
+            {"type": "null"},
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["gate", "detail"],
+              "properties": {
+                "gate": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"},
+                "detail": {"type": "string", "maxLength": 200}
+              }
+            }
+          ]
+        }
+      },
+      "allOf": [
+        {"if": {"properties": {"state": {"enum": ["NATIVE_ARB", "MACHINE_REVIEWED"]}}}, "then": {"properties": {"missing": {"maxItems": 0}, "failure": {"type": "null"}}}},
+        {"if": {"properties": {"state": {"const": "FAILED"}}}, "then": {"properties": {"failure": {"type": "object"}}}},
+        {"if": {"properties": {"state": {"const": "NATIVE_ARB"}}}, "then": {"properties": {"provenance": {"additionalProperties": {"properties": {"origin": {"const": "arb"}}}}}}}
+      ]
+    }
+  }
+}

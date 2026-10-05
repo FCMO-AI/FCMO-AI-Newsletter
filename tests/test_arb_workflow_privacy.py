@@ -78,6 +78,11 @@ def privacy_errors(text: str) -> list[str]:
         body = body.replace("  printf 'probe_exit=%d\\n' \"$rc\" >&3\n", "")
         body = body.replace("printf 'probe_failures=%d\\n' \"$failures\" >&3\n", "")
         body = body.replace("printf 'RELEASE_DIR=%s\\n' \"$RELEASE_DIR\" >> \"$GITHUB_ENV\"\n", "")
+        # Only fixed runner-temporary paths and a validated stage boolean may escape.
+        body = body.replace('printf \'CODES=%s\\n\' "$CODES" >> "$GITHUB_ENV"\n', "")
+        body = body.replace('case "$GUARD_STAGE" in true|false) printf \'stage=%s\\n\' "$GUARD_STAGE" >> "$GITHUB_OUTPUT" ;; *) exit 1 ;; esac\n', "")
+        # Probe heredoc rows are data for the isolated bash child, not executed here.
+        body = re.sub(r"(?m)^(?:INTEGRITY_RATCHET|TEST_SUITE|OPERATIONAL_PROBES|NATIVE_EDITION_COVERAGE)\|python [^\n]+\n", "", body)
         if re.search(r"GITHUB_(?:ENV|OUTPUT|PATH)", body):
             errors.append("shell step exports candidate/private bytes to runner channels")
         if re.search(r"(?:[>&]\s*3\b|/dev/(?:stdout|stderr|fd)|/proc/[^\s]*/fd|\bexec\b|set\s+-[^\n]*x)", body):
@@ -106,6 +111,51 @@ class ArbWorkflowPrivacyTests(unittest.TestCase):
             for block in run_blocks(path.read_text()):
                 result = subprocess.run(['bash', '-n'], input=block, capture_output=True, text=True)
                 self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_guard_exports_only_a_boolean_after_isolating_candidate_output(self):
+        block = next(block for block in run_blocks((WORKFLOWS / 'newswire-bridge.yml').read_text())
+                     if 'GUARD_STAGE=' in block)
+        marker = 'PRIVATE_FIXTURE_QUESTION_NEXT_STEP_BLOB_SHA'
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            (root / 'codes').mkdir()
+            (root / 'bin').mkdir()
+            fake = root / 'bin/python'
+            fake.write_text(r"""#!/usr/bin/python3
+import os, pathlib, sys
+marker = 'PRIVATE_FIXTURE_QUESTION_NEXT_STEP_BLOB_SHA'
+print(marker)
+print(marker, file=sys.stderr)
+try:
+    os.write(3, marker.encode())
+except OSError:
+    pass
+for key in ('GITHUB_ENV', 'GITHUB_OUTPUT', 'GITHUB_STEP_SUMMARY'):
+    if key in os.environ:
+        pathlib.Path(os.environ[key]).write_text(marker)
+path = pathlib.Path(sys.argv[sys.argv.index('--github-output') + 1])
+path.write_text('stage=' + pathlib.Path(os.environ['HOME'], 'stage').read_text() + '\n')
+""")
+            fake.chmod(0o755)
+            env = dict(os.environ, PATH=str(root / 'bin') + os.pathsep + os.environ['PATH'],
+                       HOME=str(root), RUNNER_TEMP=str(root), CODES=str(root / 'codes'),
+                       RELEASE_DIR=str(root / 'candidate'), FCMO_DRILL='')
+            for key in ('GITHUB_ENV', 'GITHUB_OUTPUT', 'GITHUB_STEP_SUMMARY'):
+                env[key] = str(root / key)
+            for value in ('true', 'false', marker, 'true\nstage=false'):
+                (root / 'stage').write_text(value)
+                for key in ('GITHUB_ENV', 'GITHUB_OUTPUT', 'GITHUB_STEP_SUMMARY'):
+                    Path(env[key]).write_text('')
+                result = subprocess.run(['bash', '-e', '-o', 'pipefail', '-c', block],
+                                        cwd=root, env=env, text=True, capture_output=True)
+                valid = value in ('true', 'false')
+                with self.subTest(value=value):
+                    self.assertEqual(result.returncode, 0 if valid else 1)
+                    self.assertEqual(result.stdout, f'step_exit={result.returncode}\n')
+                    self.assertEqual(result.stderr, '')
+                    self.assertEqual(Path(env['GITHUB_OUTPUT']).read_text(), f'stage={value}\n' if valid else '')
+                    for key in ('GITHUB_ENV', 'GITHUB_STEP_SUMMARY'):
+                        self.assertEqual(Path(env[key]).read_text(), '')
 
     def test_guard_rejects_output_and_upload_regressions(self):
         good = "name: synthetic\n# AI-Research-Breakthroughs\nsteps:\n  - run: |\n" + "".join(
@@ -176,7 +226,8 @@ if 'rev-parse' in sys.argv:
 """)
             fake_git.chmod(0o755)
             env = dict(os.environ, PATH=str(binary) + os.pathsep + os.environ['PATH'],
-                       RUNNER_TEMP=str(root), HOME=str(root), APP_TOKEN='synthetic-test-token')
+                       RUNNER_TEMP=str(root), HOME=str(root), APP_TOKEN='synthetic-test-token', FCMO_DRILL='', CODES=str(root / 'codes'))
+            (root / 'codes').mkdir()
             for key in ('GITHUB_STEP_SUMMARY', 'GITHUB_ENV', 'GITHUB_OUTPUT'):
                 env[key] = str(root / key)
                 Path(env[key]).touch()
@@ -217,6 +268,9 @@ if 'rev-parse' in sys.argv:
                             self.assertRegex(result.stdout, r'^(?:probe_exit=\d+\n)*(?:probe_failures=\d+\n)?step_exit=\d+\n$')
                             for key in ('GITHUB_STEP_SUMMARY', 'GITHUB_ENV', 'GITHUB_OUTPUT'):
                                 self.assertNotIn(marker, Path(env[key]).read_text())
+                            for receipt in (root / 'codes').glob('*'):
+                                if receipt.is_file():
+                                    self.assertNotIn(marker, receipt.read_text())
 
 
 if __name__ == '__main__':
