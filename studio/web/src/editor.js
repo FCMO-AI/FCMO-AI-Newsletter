@@ -70,7 +70,9 @@ export function createEditor (ctx) {
   const notesEl = ctx.notesMount
   const noteEls = new Map()
   let view
+  let dead = false
   function renderNotes () {
+    if (dead) return
     const fns = []
     view.state.doc.descendants((n, pos) => { if (n.type.name === 'fn') fns.push({ n, pos }) })
     const seen = new Set()
@@ -302,6 +304,6 @@ export function createEditor (ctx) {
     insertSource, insertFootnote, focus: () => view.focus(),
     focusEnd () { view.focus(); view.dispatch(view.state.tr.setSelection(TextSelection.atEnd(view.state.doc)).scrollIntoView()) },
     focusStart () { view.focus(); view.dispatch(view.state.tr.setSelection(TextSelection.atStart(view.state.doc))) },
-    destroy () { view.destroy(); menuEl.remove(); bubbleEl.remove() }
+    destroy () { dead = true; view.destroy(); menuEl.remove(); bubbleEl.remove() }
   }
 }

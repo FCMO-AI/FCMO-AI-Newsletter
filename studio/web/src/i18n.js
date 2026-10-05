@@ -1,5 +1,5 @@
 // Studio chrome strings. Spanish first, English second. Never code words: no git, branch, JSON, hash, gate.
-const S = {
+export const S = {
   es: {
     'app.name': 'FCMO Studio', 'nav.home': 'Escritorio', 'nav.issues': 'Ediciones', 'nav.logout': 'Salir', 'nav.theme': 'Tema', 'nav.skip': 'Ir al contenido',
     'login.title': 'Entrar al estudio', 'login.user': 'Persona', 'login.pass': 'Contraseña', 'login.go': 'Entrar', 'login.bad': 'Esa combinación no es correcta. Revisa e inténtalo de nuevo.', 'login.lede': 'Un solo lugar para escribir, traducir y publicar.',
@@ -69,3 +69,56 @@ export function t (key, vars) {
 }
 export const LOCALE_NAME = { en: 'English', 'es-419': 'Español', 'zh-Hans': '中文' }
 export const LOCALE_SHORT = { en: 'EN', 'es-419': 'ES', 'zh-Hans': '中文' }
+
+/* second pass: new keys (es) and the complete English catalogue */
+Object.assign(S.es, {
+  'iss.dup': 'Ya está en la edición', 'iss.saved': 'Ediciones guardadas', 'iss.new': 'Nueva edición',
+  'ed.more': 'Más acciones', 'chk.general': 'General', 'chk.done': '{n} en orden', 'chk.sr.ok': 'Listo: ', 'chk.sr.todo': 'Pendiente: ',
+  'prog.empty.title': 'Todavía no se ha pedido publicar', 'prog.empty.lead': 'Cuando pidas la revisión, aquí verás cada paso hasta que el texto esté en el sitio.',
+  'prog.empty.s1': 'Pides la revisión a {who}.', 'prog.empty.s2': '{who} lee el texto tal como lo verán los lectores y lo aprueba o pide cambios.',
+  'prog.empty.s3': 'Se hacen las comprobaciones finales del sitio.', 'prog.empty.s4': 'El texto se publica y aquí aparecen los enlaces en vivo.', 'prog.empty.go': 'Preparar la publicación'
+})
+Object.assign(S.en, {
+  'iss.dup': 'Already in the issue', 'iss.saved': 'Saved issues', 'iss.new': 'New issue',
+  'ed.more': 'More actions', 'chk.general': 'General', 'chk.done': '{n} in order', 'chk.sr.ok': 'Done: ', 'chk.sr.todo': 'Pending: ',
+  'prog.empty.title': 'Publication has not been requested yet', 'prog.empty.lead': 'Once you ask for review, you will see every step here until the text is on the site.',
+  'prog.empty.s1': 'You ask {who} for a review.', 'prog.empty.s2': '{who} reads the text as readers will see it, then approves it or asks for changes.',
+  'prog.empty.s3': 'The final site checks run.', 'prog.empty.s4': 'The text goes live and the live links appear here.', 'prog.empty.go': 'Prepare publication',
+  'new.title': 'New text', 'new.name': 'Working title', 'new.lang': 'Language you write it in', 'new.create': 'Start writing', 'new.hint': 'You can change the title any time.',
+  'ed.title': 'Write the title', 'ed.dek': 'One sentence that invites reading', 'ed.byline': 'By {who}', 'ed.min': '{n} min read', 'ed.start': 'Start writing. Type “/” to choose a block.',
+  'ed.words': '{n} words', 'ed.saved': 'Saved', 'ed.saving': 'Saving…', 'ed.offline': 'Offline. Your copy is safe in this browser.', 'ed.dirty': 'Unsaved changes',
+  'ed.lang': 'Language', 'ed.focus': 'Focus', 'ed.preview': 'Preview', 'ed.publish': 'Publish…', 'ed.back': 'Desk', 'ed.translate': 'Languages',
+  'ed.readonly': '{who} is editing. You can read and comment.', 'ed.take': 'Take over', 'ed.restore.local': 'A local copy is newer than the saved one.', 'ed.restore.go': 'Restore your local copy', 'ed.restore.drop': 'Discard it',
+  'ed.empty.lang': 'This language is still empty.', 'ed.empty.start': 'Start from the original', 'ed.empty.blank': 'Write from scratch',
+  'conf.title': 'There is a newer version', 'conf.body': 'There is a newer version (by {who}, {at}). Nothing has been lost.', 'conf.diff': 'See differences', 'conf.mine': 'Use mine', 'conf.server': 'Use the server’s',
+  'slash.h2': 'Section heading', 'slash.h2.d': 'Splits the text into numbered parts', 'slash.h3': 'Subsection', 'slash.h3.d': 'A smaller heading inside a section', 'slash.quote': 'Quote', 'slash.quote.d': 'A passage in another voice',
+  'slash.pull': 'Pull quote', 'slash.pull.d': 'A large sentence, to make readers pause', 'slash.ul': 'List', 'slash.ul.d': 'Bulleted items', 'slash.ol': 'Numbered list', 'slash.ol.d': 'Steps or order', 'slash.hr': 'Divider', 'slash.hr.d': 'A pause between ideas',
+  'slash.fig': 'Figure', 'slash.fig.d': 'Image with caption, credit and licence', 'slash.fn': 'Footnote', 'slash.fn.d': 'Appears in the margin without breaking the reading', 'slash.src': 'Source', 'slash.src.d': 'Cite a source from your list',
+  'slash.ev': 'Evidence box', 'slash.ev.d': 'Class, confidence and what is not established', 'slash.p': 'Paragraph', 'slash.p.d': 'Plain text', 'slash.none': 'Nothing matches',
+  'bub.b': 'Bold', 'bub.i': 'Italic', 'bub.link': 'Link', 'bub.fn': 'Note', 'bub.src': 'Source', 'link.ask': 'Link address (https://…)', 'link.bad': 'Use an address that starts with https://',
+  'fn.placeholder': 'Write the note…', 'fn.heading': 'Notes', 'fig.alt': 'Alt text ({lang})', 'fig.alt.h': 'Describe the image for someone who cannot see it', 'fig.cap': 'Caption ({lang})', 'fig.credit': 'Credit', 'fig.licence': 'Licence',
+  'fig.pick': 'Choose image', 'fig.uploading': 'Uploading image…', 'fig.fail': 'The image could not be uploaded.', 'fig.missing': 'Image missing',
+  'ev.class': 'Class', 'ev.conf': 'Confidence', 'ev.limits': 'What is not established', 'ev.title': 'Evidence box', 'ev.A': 'A · verified', 'ev.B': 'B · solid', 'ev.C': 'C · provisional', 'ev.D': 'D · weak',
+  'dr.toc': 'Contents', 'dr.versions': 'Versions', 'dr.sources': 'Sources', 'dr.comments': 'Comments', 'dr.checks': 'Checks', 'dr.close': 'Close', 'dr.toc.empty': 'No section headings yet.',
+  'src.add': 'Add source', 'src.title': 'Title', 'src.author': 'Author or organization', 'src.date': 'Date', 'src.url': 'Address (https://…)', 'src.accessed': 'Accessed on', 'src.locator': 'Location (p. 4)', 'src.class': 'Evidence class',
+  'src.none': 'No class', 'src.empty': 'No sources yet. Add the first one.', 'src.del': 'Remove', 'src.pick': 'Choose a source', 'src.new': 'New source…', 'src.hint': 'The evidence class is optional.',
+  'ver.empty': 'No versions yet.', 'ver.name': 'Version name', 'ver.save': 'Save version', 'ver.restore': 'Restore', 'ver.compare': 'Compare with the current text', 'ver.auto': 'Autosave',
+  'ver.restored': 'Version restored. The previous text was kept.', 'ver.confirm': 'The current text will be saved, then this version restored. Nothing is lost.', 'ver.title': 'Versions of “{title}”', 'ver.by': 'by {who}',
+  'cmt.add': 'Comment on this paragraph', 'cmt.ph': 'Write a comment', 'cmt.send': 'Send', 'cmt.resolve': 'Resolve', 'cmt.go': 'Go to paragraph', 'cmt.empty': 'No comments to resolve.', 'cmt.never': 'Comments are never published.',
+  'chk.go': 'Take me there', 'chk.ok': 'All in order', 'chk.todo': '{n} to resolve', 'chk.title': 'Before publishing',
+  'tr.title': 'Languages', 'tr.source': 'Original', 'tr.target': 'Translation', 'tr.changed': 'The original changed', 'tr.human': 'written by a person', 'tr.agent': 'assistant draft', 'tr.agent.edited': 'assistant, edited by a person',
+  'tr.chip': 'Fixed: same as the original', 'tr.review': 'Mark as reviewed by me', 'tr.later': 'Publish later', 'tr.reviewed': 'Reviewed by {who}, {when}', 'tr.zh.confirm': 'I have read and understand the Chinese text',
+  'tr.zh.ask': 'To mark the Chinese as reviewed, confirm:', 'tr.confirm': 'Confirm', 'tr.cancel': 'Cancel', 'tr.draft': 'Back to draft', 'tr.empty': 'This language has no text yet.', 'tr.edit': 'Edit on the page',
+  'tr.pick': 'Target language', 'tr.paragraph': 'Paragraph {n}', 'tr.copy': 'Copy from the original', 'tr.assist': 'Ask the assistant for a draft', 'tr.nowork': 'The assistant is not available now. You can translate yourself.',
+  'pv.title': 'Preview', 'pv.banner': 'Built with the same code as the public site.', 'pv.light': 'Light', 'pv.dark': 'Dark', 'pv.phone': 'Phone', 'pv.desktop': 'Desktop', 'pv.theme': 'Theme', 'pv.size': 'Size', 'pv.lang': 'Language', 'pv.back': 'Back to the text', 'pv.noloc': 'This language has no text yet.',
+  'pub.title': 'Publish “{title}”', 'pub.lead': 'Every line checks itself. When everything is in order, ask {who} for a review.', 'pub.reviewer': '{who} reviews', 'pub.ask': 'Ask for review', 'pub.blocked': '{n} still to resolve.',
+  'pub.sent': 'Review requested. {who} will see it on their desk.', 'pub.mt': 'It will be published with a machine-translation notice: {langs}.', 'pub.rerun': 'Check again',
+  'rev.title': 'Review of “{title}”', 'rev.approve': 'Approve and publish', 'rev.changes': 'Ask for changes', 'rev.note': 'Note for {who} (optional)', 'rev.diff': 'Changes since the last published version', 'rev.none': 'This is a new text: there is no earlier version.',
+  'rev.confirm': 'By approving, the text will be published on the public site. That cannot be undone with one click.', 'rev.own': 'You cannot review your own text.', 'rev.waiting': 'Waiting for {who}.', 'rev.sent': 'Done. {who} will see your answer.',
+  'rev.preview': 'Reading', 'rev.changes.tab': 'Changes', 'rev.comments': 'Comments',
+  'prog.title': 'Publication progress', 'prog.done': 'Published', 'prog.failed': 'Not published', 'prog.working': 'Publishing…', 'prog.live': 'It is now on the site', 'prog.home': 'Back to the desk',
+  'iss.title': 'Issues', 'iss.lib': 'Library', 'iss.essays': 'Essays', 'iss.letters': 'Letters and notes', 'iss.briefs': 'Daily briefs', 'iss.canvas': 'Issue', 'iss.main': 'Main', 'iss.essay.slot': 'Essays', 'iss.day': 'AI of the day', 'iss.notes': 'Notes',
+  'iss.note': 'Editor’s note', 'iss.drop': 'Drop here', 'iss.add': 'Add', 'iss.remove': 'Remove', 'iss.filter': 'Filter by date or topic', 'iss.class': 'Class', 'iss.readonly': 'Read-only', 'iss.empty': 'Nothing matches that filter.', 'iss.up': 'Move up', 'iss.down': 'Move down', 'iss.badlang': 'A language is not ready',
+  'err.net': 'Could not connect. Try again in a moment.', 'err.generic': 'Something went wrong. Your text is safe.', 'err.notfound': 'We could not find this.',
+  'common.cancel': 'Cancel', 'common.save': 'Save', 'common.close': 'Close', 'common.open': 'Open', 'common.loading': 'Loading…', 'common.you': 'you', 'common.theme.auto': 'Automatic', 'zones.local': 'This app works inside your private network.'
+})

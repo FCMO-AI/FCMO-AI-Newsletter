@@ -166,14 +166,23 @@ export async function editorScreen (root, slug, locArg) {
     return h('a', { href: `#/p/${slug}/${l}`, class: 'lt ' + st, 'aria-current': l === loc ? 'page' : null }, LOCALE_SHORT[l], h('span', { class: 'lt-dot', 'aria-hidden': 'true' }, { ready: '●', drafting: '◐', later: '⏸', empty: '○' }[st]))
   }))
   const focusBtn = h('button', { class: 'btn ghost small', type: 'button', 'aria-pressed': 'false', onclick: () => { S.focus = !S.focus; focusBtn.setAttribute('aria-pressed', S.focus); document.body.classList.toggle('focus-mode', S.focus); editor.refresh(); editor.view.dispatch(editor.view.state.tr) } }, h('span', { class: 'half', 'aria-hidden': 'true' }), ' ', t('ed.focus'))
+  const markReviewed = async () => {
+    const mark = async () => { await writes; await save(); await writes; if (S.dirty) return; const r = await post(`/api/pieces/${slug}/locale/${loc}/state`, { state: 'ready', reviewed: true, confirmation: loc === 'zh-Hans' ? 'Leí y entiendo el texto chino' : '' }); S.rev = r.rev; toast(t('tr.reviewed', { who: me.name, when: 'ahora' })) }
+    if (loc === 'zh-Hans') { const cb = h('input', { type: 'checkbox' }); modal({ title: t('tr.review'), body: h('label', null, cb, t('tr.zh.confirm')), actions: [{ label: t('common.cancel') }, { label: t('tr.confirm'), onclick: close => { if (cb.checked) { mark(); close() } } }] }) } else await mark()
+  }
+  const hrefTr = `#/p/${slug}/${loc}/translate/${loc === meta.source_locale ? LOCS.find(l => l !== loc) : loc}`
+  const hrefPv = `#/p/${slug}/${loc}/preview`
+  const toggleFocus = () => focusBtn.click()
+  const moreMenu = h('details', { class: 'more narrow-only' }, h('summary', { class: 'btn small', 'aria-label': t('ed.more') }, '⋯'),
+    h('div', { class: 'more-pop' },
+      h('button', { type: 'button', disabled: S.readOnly, onclick: () => { moreMenu.open = false; markReviewed() } }, t('tr.review')),
+      h('a', { href: hrefTr }, t('ed.translate')), h('a', { href: hrefPv }, t('ed.preview')),
+      h('button', { type: 'button', onclick: () => { moreMenu.open = false; toggleFocus() } }, t('ed.focus'))))
   const bar = h('div', { class: 'ed-bar' },
     h('div', { class: 'ed-bar-left' }, focusBtn, wordsEl, saveState),
     langTabs,
-    h('div', { class: 'ed-bar-right' }, h('button', { class: 'btn small', type: 'button', disabled: S.readOnly, onclick: async () => {
-      const mark = async () => { await writes; await save(); await writes; if (S.dirty) return; const r = await post(`/api/pieces/${slug}/locale/${loc}/state`, { state: 'ready', reviewed: true, confirmation: loc === 'zh-Hans' ? 'Leí y entiendo el texto chino' : '' }); S.rev = r.rev; toast(t('tr.reviewed', { who: me.name, when: 'ahora' })) };
-      if (loc === 'zh-Hans') { const cb = h('input', { type: 'checkbox' }); modal({ title: t('tr.review'), body: h('label', null, cb, t('tr.zh.confirm')), actions: [{ label: t('common.cancel') }, { label: t('tr.confirm'), onclick: close => { if (cb.checked) { mark(); close() } } }] }) } else await mark()
-    } }, t('tr.review')), h('a', { class: 'btn small', href: `#/p/${slug}/${loc}/translate/${loc === meta.source_locale ? LOCS.find(l => l !== loc) : loc}` }, t('ed.translate')),
-      h('a', { class: 'btn small', href: `#/p/${slug}/${loc}/preview` }, t('ed.preview')), h('a', { class: 'btn primary small', href: `#/p/${slug}/publish` }, t('ed.publish'))))
+    h('div', { class: 'ed-bar-right' }, h('button', { class: 'btn small wide-only', type: 'button', disabled: S.readOnly, onclick: markReviewed }, t('tr.review')), h('a', { class: 'btn small wide-only', href: hrefTr }, t('ed.translate')),
+      h('a', { class: 'btn small wide-only', href: hrefPv }, t('ed.preview')), moreMenu, h('a', { class: 'btn primary small', href: `#/p/${slug}/publish` }, t('ed.publish'))))
   const top = h('div', { class: 'ed-top' }, h('a', { class: 'back', href: '#/' }, '← ', t('ed.back')), h('span', { class: 'ed-top-title' }, meta.title))
 
   // banners
@@ -189,12 +198,12 @@ export async function editorScreen (root, slug, locArg) {
   }
 
   root.append(shell(h('div', { class: 'ed-layout' }, top, banner, h('div', { class: 'ed-main' }, page, h('div', { class: 'drawer-col' }, rail, drawer)), bar), { active: 'home', wide: true }))
-  setTimeout(() => { auto(title); auto(dek); refreshStats(); setSave('saved'); editor.restoreCursor(meta.cursor && meta.cursor[loc]); if (isEmptyDoc(doc)) title.focus() }, 0)
+  setTimeout(() => { if (S.dead) return; auto(title); auto(dek); refreshStats(); setSave('saved'); editor.restoreCursor(meta.cursor && meta.cursor[loc]); if (isEmptyDoc(doc)) title.focus() }, 0)
   const onResize = () => { auto(title); auto(dek) }
   addEventListener('resize', onResize)
 
   return () => {
-    S.dead = true; clearTimeout(S.timer); clearInterval(heartbeat)
+    S.dead = true; for (const k of ['timer', 'bufTimer', 'chkT', 'figT', 'srcT']) clearTimeout(S[k]); clearInterval(heartbeat)
     removeEventListener('online', onOnline); removeEventListener('beforeunload', beforeUnload); removeEventListener('resize', onResize)
     document.body.classList.remove('drawer-open', 'focus-mode')
     if (S.dirty && !S.readOnly) { writeBuf(key, { at: Date.now(), base_rev: S.rev, doc: current() }); fetch(`/api/pieces/${slug}/doc/${loc}`, { method: 'PUT', keepalive: true, credentials: 'same-origin', headers: { 'content-type': 'application/json', 'x-csrf-token': session.me.csrf }, body: JSON.stringify({ base_rev: S.rev, doc: current(), cursor: editor.cursor() }) }).then(r => { if (r.ok) dropBuf(key) }).catch(() => {}) }

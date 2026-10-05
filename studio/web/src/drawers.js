@@ -1,5 +1,5 @@
 import { get, post, put } from './api.js'
-import { t, LOCALE_SHORT } from './i18n.js'
+import { t, LOCALE_NAME, getLang } from './i18n.js'
 import { h, clear, ago, modal, toast } from './ui.js'
 import { diffView } from './diffview.js'
 
@@ -29,15 +29,26 @@ export function sourcesPanel (sources, changed) {
   draw(); return root
 }
 
-export async function checksList (slug, onGo, { lang = 'es' } = {}) {
+export async function checksList (slug, onGo, { lang = getLang() } = {}) {
   const list = await get(`/api/pieces/${slug}/checks`)
   const bad = list.filter(c => !c.ok)
   const root = h('div', { class: 'checks' }, h('p', { class: 'checks-sum ' + (bad.length ? 'todo' : 'ok') }, bad.length ? t('chk.todo', { n: bad.length }) : t('chk.ok')))
-  const ul = h('ul', { class: 'check-list' }, list.map(c => h('li', { class: c.ok ? 'ok' : 'todo' },
-    h('span', { class: 'mark', 'aria-hidden': 'true' }, c.ok ? '✓' : '○'), h('span', { class: 'sr-only' }, c.ok ? 'Listo: ' : 'Pendiente: '),
-    h('span', { class: 'ctext' }, c.goto && c.goto.loc ? h('b', { class: 'chk-loc' }, LOCALE_SHORT[c.goto.loc] || c.goto.loc, ' · ') : null, lang === 'en' ? c.plain_en : c.plain_es),
-    !c.ok && c.goto ? h('button', { class: 'link-btn', type: 'button', onclick: () => onGo(c.goto) }, t('chk.go'), ' →') : null)))
-  root.append(ul); root.list = list; return root
+  const item = c => h('li', { class: c.ok ? 'ok' : 'todo' },
+    h('span', { class: 'mark', 'aria-hidden': 'true' }, c.ok ? '✓' : '○'), h('span', { class: 'sr-only' }, c.ok ? t('chk.sr.ok') : t('chk.sr.todo')),
+    h('span', { class: 'ctext' }, lang === 'en' ? c.plain_en : c.plain_es),
+    !c.ok && c.goto ? h('button', { class: 'link-btn', type: 'button', onclick: () => onGo(c.goto) }, t('chk.go'), ' →') : null)
+  const keys = ['', 'en', 'es-419', 'zh-Hans']
+  for (const k of keys) {
+    const rows = list.filter(c => ((c.goto && c.goto.loc) || '') === k)
+    if (!rows.length) continue
+    const todo = rows.filter(c => !c.ok); const done = rows.filter(c => c.ok)
+    const g = h('details', { class: 'chk-group', open: todo.length > 0 },
+      h('summary', null, h('span', { class: 'chk-name' }, k ? LOCALE_NAME[k] : t('chk.general')), h('span', { class: 'chk-stat ' + (todo.length ? 'todo' : 'ok') }, todo.length ? t('chk.todo', { n: todo.length }) : '✓ ' + t('chk.ok'))))
+    if (todo.length) g.append(h('ul', { class: 'check-list' }, todo.map(item)))
+    if (done.length) g.append(h('details', { class: 'chk-done' }, h('summary', null, t('chk.done', { n: done.length })), h('ul', { class: 'check-list' }, done.map(item))))
+    root.append(g)
+  }
+  root.list = list; return root
 }
 
 export async function versionsPanel (slug, loc, { save, onRestored, ready }) {

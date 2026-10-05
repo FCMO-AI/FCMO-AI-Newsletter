@@ -300,6 +300,14 @@ def render_piece(piece: dict, locale: str, *, base: str, locale_info: dict | Non
             "shelf": href(base, PREFIXES[locale] + "cartas/"),
             "catalog": catalog or {},
             "base": base,
+            "hrefs": {
+                "original": href(base, piece_path({"path_prefix": PREFIXES[piece["source_locale"]]}, piece)),
+                "shelf": href(base, PREFIXES[locale] + "cartas/"),
+                "others": [{"code": row["code"], "label": {"en": "English", "es-419": "Español", "zh-Hans": "简体中文"}[row["code"]],
+                            "href": href(base, piece_path(row, piece))} for row in locale_rows if row["code"] != locale],
+            },
+            "title": title,
+            "dek": description,
         }
         return essay_template.render(piece, locale_info, body_html, notes_html, sources_html, ctx)
     author_names = ", ".join(author["name"] for author in piece["authors"])

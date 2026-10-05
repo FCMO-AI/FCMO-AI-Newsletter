@@ -8,7 +8,7 @@ const SLOT_LABEL = () => ({ principal: t('iss.main'), essays: t('iss.essay.slot'
 export async function issuesScreen (root, slug) {
   const [allPieces, rawBriefs, editions] = await Promise.all([get('/api/pieces'), get('/api/library/briefs'), get('/api/issues')])
   const pieces = allPieces.filter(p => p.kind !== 'issue' && p.state === 'published')
-  const briefs = rawBriefs.filter(b => b.status === 'live').map(b => ({ ...b, headline: b.headline?.['es-419'] || b.headline?.en || b.headline || b.slug, date: b.event_at || b.first_published_at, class: b.evidence_class, beat: b.beat }))
+  const briefs = rawBriefs.filter(b => b.status === 'live').map(b => ({ ...b, headline: b.l10n?.['es-419']?.fields?.title || (typeof b.title === 'string' ? b.title : b.title?.en) || b.headline?.['es-419'] || b.headline?.en || b.slug, date: String(b.event_at || b.first_published_at || '').slice(0, 10), class: b.evidence_class, beat: b.beat }))
   const initial = slug ? editions.find(e => e.issue.id === slug) : null
   let rev = initial?.rev; let currentSlug = initial?.issue.id; let saving = false; let dirty = false
   const persisted = initial?.issue
@@ -25,7 +25,7 @@ export async function issuesScreen (root, slug) {
   const persist = () => { dirty = true; saveState.textContent = t('ed.dirty'); clearTimeout(saveT); saveT = setTimeout(save, 800) }
   const lib = h('div', { class: 'lib' }); const canvas = h('div', { class: 'canvas' })
   const find = ref => !ref.startsWith('FCMO-P-') ? { kind: 'brief', b: briefs.find(b => b.id === ref) } : { kind: 'piece', p: pieces.find(p => p.meta.id === ref) }
-  function add (slot, ref) { if (SLOTS.some(s => issue.slots[s].includes(ref))) return toast('Ya está en la edición'); issue.slots[slot].push(ref); persist(); drawCanvas() }
+  function add (slot, ref) { if (SLOTS.some(s => issue.slots[s].includes(ref))) return toast(t('iss.dup')); issue.slots[slot].push(ref); persist(); drawCanvas() }
   function card (it) {
     if (it.kind === 'brief') {
       const b = it.b; if (!b) return h('div', { class: 'card gone' }, '?')
@@ -77,6 +77,6 @@ export async function issuesScreen (root, slug) {
     canvas.append(h('section', { class: 'slot editor-note' }, h('h3', null, t('iss.note')), h('div', { class: 'seg' }, ['en', 'es-419', 'zh-Hans'].map(l => h('button', { type: 'button', class: l === noteLoc ? 'on' : '', 'aria-pressed': String(l === noteLoc), onclick: () => { noteLoc = l; drawCanvas() } }, LOCALE_SHORT[l]))), ta))
   }
   drawLib(); drawCanvas()
-  root.append(shell(h('div', { class: 'flow iss' }, h('h1', null, t('iss.title')), h('div', { class: 'btn-row' }, saveState, h('button', { class: 'btn', type: 'button', disabled: session.me.user !== 'matias', onclick: async () => { await save(); if (currentSlug && !dirty) location.hash = `#/p/${currentSlug}/publish` } }, t('ed.publish'))), h('div', { class: 'rows' }, editions.map(e => h('a', { class: 'row', href: '#/issues/' + e.issue.id }, e.issue.title.en || e.issue.id))), h('div', { class: 'iss-grid' }, h('section', { class: 'iss-lib' }, h('h2', null, t('iss.lib')), lib), h('section', { class: 'iss-canvas' }, h('h2', null, t('iss.canvas')), canvas))), { active: 'issues', wide: true }))
+  root.append(shell(h('div', { class: 'flow iss' }, h('h1', null, t('iss.title')), h('div', { class: 'btn-row' }, saveState, h('button', { class: 'btn', type: 'button', disabled: session.me.user !== 'matias', onclick: async () => { await save(); if (currentSlug && !dirty) location.hash = `#/p/${currentSlug}/publish` } }, t('ed.publish'))), h('div', { class: 'rows' }, editions.length ? h('h2', { class: 'rows-h' }, t('iss.saved')) : null, editions.map(e => h('a', { class: 'row', href: '#/issues/' + e.issue.id, 'aria-current': e.issue.id === currentSlug ? 'page' : null }, h('strong', { class: 'row-title' }, e.issue.title['es-419'] || e.issue.title.en || e.issue.id), h('span', { class: 'row-meta' }, e.issue.date))), editions.length ? h('a', { class: 'btn small', href: '#/issues' }, '+ ', t('iss.new')) : null), h('div', { class: 'iss-grid' }, h('section', { class: 'iss-lib' }, h('h2', null, t('iss.lib')), lib), h('section', { class: 'iss-canvas' }, h('h2', null, t('iss.canvas')), canvas))), { active: 'issues', wide: true }))
   return () => { clearTimeout(saveT); if (dirty) save() }
 }

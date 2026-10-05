@@ -225,6 +225,12 @@ export async function progressScreen (root, slug) {
     if (!alive) return
     let p; try { p = await get(`/api/pieces/${slug}/publication`) } catch { tm = setTimeout(poll, 3000); return }
     clear(box)
+    if (p.state === 'draft' && !(p.timeline || []).length) {
+      box.append(h('div', { class: 'empty-state' }, h('h2', null, t('prog.empty.title')), h('p', null, t('prog.empty.lead', { who: meta.author === session.me.user ? other() : meta.author === 'javier' ? 'Javier' : 'Matías' })),
+        h('ol', null, ['prog.empty.s1', 'prog.empty.s2', 'prog.empty.s3', 'prog.empty.s4'].map(k => h('li', null, t(k, { who: other() })))),
+        meta.author === session.me.user ? h('a', { class: 'btn primary', href: `#/p/${slug}/publish` }, t('prog.empty.go')) : null))
+      return
+    }
     box.append(h('ol', { class: 'steps' }, (p.timeline || []).map(s => h('li', { class: s.state === 'failed' ? 'failed' : 'done' }, h('span', { class: 'dot', 'aria-hidden': 'true' }, s.state === 'failed' ? '!' : '✓'), h('span', null, s.plain_es)))))
     if (p.state === 'published') box.append(h('div', { class: 'result ok' }, h('h2', null, t('prog.done')), h('p', null, t('prog.live')), h('ul', null, (p.urls || []).map(u => h('li', null, h('a', { href: u.url, target: '_blank', rel: 'noopener' }, u.url)))), h('a', { class: 'btn', href: '#/' }, t('prog.home'))))
     else if (p.state === 'failed') box.append(h('div', { class: 'result bad' }, h('h2', null, t('prog.failed')), h('p', null, p.error_plain), h('a', { class: 'btn', href: `#/p/${slug}/${meta.source_locale}` }, t('attn.open'))))
