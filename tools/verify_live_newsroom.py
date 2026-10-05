@@ -11,6 +11,9 @@ and ``tools/editorial_freshness.py check``.
 * Identity: the live ``data/newsroom-status.json`` and ``data/stories.json``
   match the repository (release id, corpus digest, Story bytes), or, with
   ``--expected-deployment-identity``, the exact bytes of the deployed candidate.
+  ``--paper`` uses the current v2 deployment receipt and SSG routes. Hourly
+  health proves the served receipt's critical bytes independently of newer,
+  unpublished checkout state; Pages supplies an expected artifact to pin a deploy.
 
 GitHub Pages sits behind a CDN that caches for up to 10 minutes, so a new
 deployment is not visible at once. Identity is therefore polled with a
@@ -35,6 +38,11 @@ import urllib.request
 from pathlib import Path
 from typing import Any, Callable
 
+try:
+    from tools import verify_live_front_page
+except ImportError:
+    import verify_live_front_page  # type: ignore
+
 DEFAULT_BASE = "https://fcmo-ai.github.io/FCMO-AI-Newsletter"
 USER_AGENT = "FCMO-Newsroom-Live-Oracle/2.0"
 FETCH_PAUSE_S = float(os.environ.get("FCMO_LIVE_FETCH_PAUSE_S", "5"))
@@ -47,6 +55,12 @@ AVAILABILITY_ROUTES = (
     "/assets/newsletter-responsive-polish.css",
 )
 LEGACY_STATES = {"BOOTSTRAPPED_FROM_EXISTING_PUBLIC_RELEASE", "PUBLIC_DELTA_READY", "NO_PUBLIC_DELTA_READY"}
+PAPER_ROUTES = (
+    "/", "/es/", "/zh/", "/diario/", "/es/diario/", "/zh/diario/",
+    "/archive/", "/search/", "/corrections/", "/feeds/", "/method/",
+    "/status/", "/es/status/", "/zh/status/", "/status.json", "/sitemap.xml",
+    "/feed.xml", "/feed.json", "/llms.txt", "/agent.json", "/assets/css/paper.css",
+)
 
 
 class ServingFailure(Exception):
@@ -199,7 +213,39 @@ def write_signal(path: Path | None, status: str, code: str, detail: str, metrics
     path.write_text(json.dumps({"status": status, "code": code, "detail": detail[:300], "metrics": metrics}, indent=2) + "\n", encoding="utf-8")
 
 
+def serve_paper(args: argparse.Namespace) -> tuple[str, dict[str, Any]]:
+    """Prove the served LKG; Pages can additionally pin a candidate artifact.
+
+    Checkout corpus/receipt changes may be newer than the deployed edition.
+    Critical hashes bind all three fronts, lead routes and Story bytes without
+    treating unpublished checkout changes as a serving failure.
+    """
+    base = args.base_url.rstrip("/")
+    try:
+        if args.expected_deployment_identity:
+            identity = json.loads(args.expected_deployment_identity.read_text(encoding="utf-8"))
+        else:
+            identity = load_json_bytes(fetch(busted(base + "/deployment-identity.json", str(time.time_ns()))), "deployment identity")
+        verify_live_front_page.validate_identity(identity)
+        verify_live_front_page.wait_for_candidate(
+            base, identity, args.identity_timeout_s, args.poll_interval_s,
+            get=lambda url, nonce: fetch(busted(url, nonce)),
+        )
+    except (OSError, ValueError, RuntimeError) as exc:
+        raise ServingFailure("IDENTITY_MISMATCH", str(exc)) from exc
+    for route in PAPER_ROUTES:
+        try:
+            fetch(busted(base + route, str(time.time_ns())))
+        except RuntimeError as exc:
+            raise ServingFailure("ROUTES_FAILED", str(exc)) from exc
+    metrics = {"routes_checked": len(PAPER_ROUTES), "critical_files_checked": len(identity["critical_files"]),
+               "candidate_id": identity["candidate_id"], "source_commit": identity["source_commit"]}
+    return f"release={identity['release_id']} stories={identity['story_count']} identity=exact candidate={identity['candidate_id']}", metrics
+
+
 def serve(args: argparse.Namespace) -> tuple[str, dict[str, Any]]:
+    if args.paper:
+        return serve_paper(args)
     base = args.base_url.rstrip("/")
     try:
         root = fetch(base + "/").decode("utf-8", errors="replace")
@@ -258,6 +304,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--stories", type=Path, default=Path("site/data/stories.json"))
     parser.add_argument("--serving-only", action="store_true",
                         help="availability + identity only (the health serving signal)")
+    parser.add_argument("--paper", action="store_true", help="verify the deployed paper SSG and its v2 identity receipt")
     parser.add_argument("--allow-unbootstrapped", action="store_true")
     parser.add_argument("--expected-deployment-identity", type=Path)
     parser.add_argument("--identity-timeout-s", type=float, default=900.0,
@@ -281,8 +328,9 @@ def main(argv: list[str] | None = None) -> int:
         write_signal(args.signal_out, "RED", "UNREACHABLE", str(exc), {})
         return 1
     print(f"SERVING OK {summary}")
-    write_signal(args.signal_out, "GREEN", "OK", "All routes 200 and live identity matches the " +
-                 ("deployed candidate." if args.expected_deployment_identity else "repository release."), metrics)
+    boundary = "deployed candidate." if args.expected_deployment_identity else (
+        "served deployment receipt." if args.paper else "repository release.")
+    write_signal(args.signal_out, "GREEN", "OK", "All routes 200 and live identity matches the " + boundary, metrics)
     return 0
 
 
