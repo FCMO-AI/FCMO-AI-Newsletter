@@ -20,6 +20,25 @@ class LiveContract(unittest.TestCase):
         self.assertIn("'editorial/**'", workflow)
         self.assertIn('fetch-depth: 0', workflow)
         self.assertIn('ops/publish.py --check', workflow)
+    def test_recovery_runs_both_pre_studio_and_editorial_lkg_renderers(self):
+        import tempfile, os, sys
+        workflow = (ROOT / '.github/workflows/pages.yml').read_text()
+        start = workflow.index('          if test -f lkg-source/tools/paper/build.py; then')
+        stop = workflow.index('            mkdir -p rollback-publish/data', start)
+        shell = workflow[start:stop] + '\nfi\n'
+        for editorial in (False, True):
+            with self.subTest(editorial=editorial), tempfile.TemporaryDirectory(dir=ROOT / '_audit') as tmp:
+                root = Path(tmp); builder = root / 'lkg-source/tools/paper'
+                builder.mkdir(parents=True); (builder / 'build.py').touch()
+                if editorial: (builder / 'essays.py').touch()
+                binary = root / 'bin'; binary.mkdir()
+                python = binary / 'python'
+                python.write_text('#!' + sys.executable + '\n' + "import sys,pathlib\nif '--editorial' in sys.argv and not pathlib.Path('lkg-source/tools/paper/essays.py').exists(): raise SystemExit(2)\nwith open('calls', 'a') as f: f.write(' '.join(sys.argv[1:])+'\\n')\n")
+                python.chmod(0o700)
+                env = dict(os.environ, PATH=str(binary) + os.pathsep + os.environ['PATH'], RUNNER_TEMP=str(root), BASE_PATH='/FCMO-AI-Newsletter/')
+                result = subprocess.run(['bash', '-e', '-c', shell], cwd=root, env=env, capture_output=True, text=True)
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual('--editorial' in (root / 'calls').read_text(), editorial)
     def test_real_entry_and_launcher_exist(self):
         self.assertTrue((ROOT / 'ops/publish.py').is_file())
         self.assertTrue((ROOT / 'studio/host-ops/start.sh').is_file())
