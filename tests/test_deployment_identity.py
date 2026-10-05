@@ -44,6 +44,26 @@ class DeploymentIdentityTests(unittest.TestCase):
             self.assertNotEqual(before["tree_sha256"], after["tree_sha256"])
             self.assertNotEqual(before["candidate_id"], after["candidate_id"])
 
+    def test_live_oracle_rejects_stale_public_freshness_json(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            site = self.fixture(Path(tmp))
+            (site / "status.json").write_text('{"state":"DELAYED"}', encoding="utf-8")
+            expected = build_deployment_identity.build(site, "deadbeef")
+            self.assertIn("status.json", expected["critical_files"])
+
+            def fetch(url, nonce):
+                route = url.rsplit("/FCMO-AI-Newsletter/", 1)[-1]
+                if route == "deployment-identity.json": return json.dumps(expected).encode()
+                return (site / route).read_bytes()
+
+            with mock.patch.object(verify_live_front_page, "fetch", side_effect=fetch):
+                self.assertEqual(verify_live_front_page.verify_once("https://example/FCMO-AI-Newsletter/", expected, "1")[:2], (True, True))
+                (site / "status.json").write_text('{"state":"FRESH"}', encoding="utf-8")
+                seen, valid, detail = verify_live_front_page.verify_once("https://example/FCMO-AI-Newsletter/", expected, "2")
+                self.assertTrue(seen)
+                self.assertFalse(valid)
+                self.assertIn("status.json", detail)
+
     def test_live_oracle_requires_expected_identity_and_exact_bytes(self):
         with tempfile.TemporaryDirectory() as tmp:
             site = self.fixture(Path(tmp)); expected = build_deployment_identity.build(site, "deadbeef")

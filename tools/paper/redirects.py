@@ -24,7 +24,7 @@ def _write(out: Path, rel: str, target: str, base: str) -> None:
     path.write_text(stub(target, base), encoding="utf-8")
 
 
-def build(stories: list[dict], *, locales: list[dict], base: str, out: Path, legacy_root: Path | None = None) -> list[str]:
+def build(stories: list[dict], *, locales: list[dict], base: str, out: Path, legacy_root: Path | None = None, published_edition_dates: list[str] | None = None) -> list[str]:
     by_id = {story["id"]: story for story in stories}
     live = [story for story in stories if story.get("status") == "live"]
     locale_by_legacy = {"en": locales[0], "es": next(x for x in locales if x["code"] == "es-419"), "zh-hans": next(x for x in locales if x["code"] == "zh-Hans")}
@@ -52,8 +52,8 @@ def build(stories: list[dict], *, locales: list[dict], base: str, out: Path, leg
                 else href(base, locale["path_prefix"] + "corrections/")
             )
             _write(out, rel, target, base); written.append(rel)
-    live_dates = {story["url_date"] for story in live}
-    dates = sorted({story["url_date"] for story in stories})
+    live_dates = set(published_edition_dates or []) | {story["url_date"] for story in live}
+    dates = sorted(set(published_edition_dates or []) | {story["url_date"] for story in stories})
     for date in dates:
         rel = f"editions/{date}.html"
         target = href(base, f"edition/{date}/") if date in live_dates else href(base, "archive/")

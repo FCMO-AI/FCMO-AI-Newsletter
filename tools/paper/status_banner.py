@@ -6,6 +6,7 @@ from html import escape
 
 from .i18n import format_date, label, plural
 from .routes import href
+from tools.publication_freshness import reader_status
 
 
 def freshness_sentence(freshness: dict, catalog: dict) -> str:
@@ -38,6 +39,7 @@ def freshness_line(freshness: dict, catalog: dict) -> str:
 
 
 def render(status: dict, catalog: dict, *, base: str, locale: dict, freshness: dict | None = None) -> str:
+    status = reader_status(status)
     strings = catalog["strings"]["edition"]
     state = status["edition_state"]
     value = status.get("last_edition_at") or status.get("status_updated_at")
@@ -45,11 +47,13 @@ def render(status: dict, catalog: dict, *, base: str, locale: dict, freshness: d
     status_url = href(base, locale["path_prefix"] + "status/")
     link = f' <a href="{escape(status_url, quote=True)}">{escape(strings["status_link"])}</a>'
     edition_at = escape(value, quote=True)
+    clock = status.get("publication_status", {}).get("checked_at")
+    clock_attr = f' data-status-updated-at="{escape(clock, quote=True)}"' if clock else ""
     corpus = freshness_line(freshness, catalog) if freshness is not None else ""
     if state == "FRESH":
         update = escape(strings["fresh"].format(date=date))
         stale = escape(strings["stale_page"].format(date=date)) + link
-        return f'<p class="edition-update">{update}</p>{corpus}<div class="status-banner" hidden data-edition-state="FRESH" data-edition-at="{edition_at}"><!-- slot:banner -->{stale}</div>'
+        return f'<p class="edition-update">{update}</p>{corpus}<div class="status-banner" hidden data-edition-state="FRESH" data-edition-at="{edition_at}"{clock_attr}><!-- slot:banner -->{stale}</div>'
     if state == "QUIET":
         quiet_value = status.get("quiet_since") or value
         text = strings["quiet"].format(date=format_date(quiet_value, catalog, precision="minute"))
@@ -57,4 +61,4 @@ def render(status: dict, catalog: dict, *, base: str, locale: dict, freshness: d
         text = strings["transport_down"].format(date=date) + link
     else:
         text = strings["delayed"].format(date=date) + link
-    return f'<div class="status-banner" data-edition-state="{escape(state)}" data-edition-at="{edition_at}"><!-- slot:banner -->{text}</div>{corpus}'
+    return f'<div class="status-banner" data-edition-state="{escape(state)}" data-edition-at="{edition_at}"{clock_attr}><!-- slot:banner -->{text}</div>{corpus}'

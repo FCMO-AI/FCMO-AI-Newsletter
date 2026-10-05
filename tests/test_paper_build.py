@@ -91,8 +91,41 @@ class PaperBuildTests(unittest.TestCase):
         parser.feed(text)
         return text, parser
 
+    def test_published_editions_without_new_stories_keep_all_locale_routes(self):
+        payload = dict(self.payload)
+        payload["published_edition_dates"] = ["2026-10-03", "2026-10-04"]
+        with tempfile.TemporaryDirectory(prefix="quiet-edition-") as temporary:
+            root = Path(temporary)
+            source = root / "stories.json"
+            source.write_text(json.dumps(payload), encoding="utf-8")
+            result = subprocess.run([
+                sys.executable, str(ROOT / "tools/paper/build.py"),
+                "--stories", str(source), "--status", str(FIXTURES / "newsroom-status.fresh.json"),
+                "--out", str(root / "publish"), "--base", "/FCMO-AI-Newsletter/",
+            ], cwd=ROOT, text=True, capture_output=True)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            for prefix, locale in (("", "en"), ("es/", "es-419"), ("zh/", "zh-Hans")):
+                for date in payload["published_edition_dates"]:
+                    page = root / "publish" / prefix / "edition" / date / "index.html"
+                    self.assertTrue(page.is_file(), str(page))
+                    parser = AuditParser()
+                    parser.feed(page.read_text(encoding="utf-8"))
+                    self.assertEqual(parser.lang, locale)
+                    self.assertGreater(len("".join(parser.main_text)), 100)
+                    self.assertTrue((root / "publish" / prefix / "edition" / f"{date}.md").is_file())
+                    machine = json.loads((root / "publish" / "api/v1/editions" / f"{date}.json").read_text())
+                    self.assertEqual(machine["id"], date)
+                    legacy = (root / "publish" / "editions" / f"{date}.html").read_text()
+                    self.assertIn(f'/FCMO-AI-Newsletter/edition/{date}/', legacy)
+
     def test_acceptance_command_reports_routes(self):
         self.assertRegex(self.result.stdout, r"routes=\d+")
+
+    def test_es_and_zh_locale_roots_resolve_to_localized_pages(self):
+        for path, locale in (("es/index.html", "es-419"), ("zh/index.html", "zh-Hans")):
+            self.assertTrue((self.out / path).is_file(), path)
+            _, page = self.parse(path)
+            self.assertEqual(page.lang, locale, path)
 
     def test_native_pages_reference_generated_localized_explainer_graphics(self):
         payload = json.loads((FIXTURES / "stories.v2.json").read_text(encoding="utf-8"))
@@ -363,6 +396,28 @@ class RealDataPaperBuildTests(unittest.TestCase):
         for route in paths:
             page = (self.out / route / "index.html").read_text(encoding="utf-8")
             self.assertIn('<article class="story-layout title-extra-compact">', page, route)
+
+    def test_corrections_are_linked_from_each_localized_ledger(self):
+        affected = {
+            story["id"]: story
+            for story in self.payload["stories"]
+            if story.get("corrections")
+        }
+        self.assertEqual(len(affected), 3)
+        locales = (("", "en"), ("es/", "es-419"), ("zh/", "zh-Hans"))
+        for locale_prefix, locale_code in locales:
+            page = (self.out / locale_prefix / "corrections" / "index.html").read_text(encoding="utf-8")
+            self.assertEqual(page.count('<article class="correction">'), 3, locale_prefix)
+            for story_id, story in affected.items():
+                route = "corrections/story/" + story["slug"] + "/"
+                self.assertIn(f'href="/FCMO-AI-Newsletter/{locale_prefix}{route}"', page, story_id)
+                detail = self.out / locale_prefix / route / "index.html"
+                self.assertTrue(detail.is_file(), story_id)
+                fix = story["corrections"][-1]
+                localized_text = fix.get("text", {}).get(locale_code)
+                self.assertTrue(localized_text, f"missing {locale_code} correction copy for {story_id}")
+                self.assertIn(localized_text, page, story_id)
+                self.assertIn(localized_text, detail.read_text(encoding="utf-8"), story_id)
 
 
 if __name__ == "__main__":

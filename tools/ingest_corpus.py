@@ -13,6 +13,7 @@ import sys
 import tempfile
 from html import unescape
 from html.parser import HTMLParser
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
@@ -51,6 +52,13 @@ Stable IDs: FCMO-<12 uppercase hex>
 
 ## Query semantics
 Search may be filtered by desk, evidence class, minimum impact, topic, organization, confidence and scope. Claims, confidence and importance are separate fields. Open evidence gaps, contradictory evidence and limitations must not be collapsed into headline confidence.
+
+## Reading hierarchy (R0–R4)
+- R0 signal: headline, publication status and date.
+- R1 brief: the concise summary and why it matters.
+- R2 argument: the claims and evidence supporting the story.
+- R3 technical: methods, limits, contradictions and open gaps.
+- R4 dossier: original sources and the complete machine-readable record.
 
 The human site exposes the equivalent browser-local API as window.FCMOAgent.query(spec).
 """
@@ -248,7 +256,9 @@ def parse_edition(path: Path, canonical_ids: set[str]) -> dict[str, Any]:
     events = parser.events
     related: list[str] = []
     for match in PUBLIC_ID.finditer(source):
-        if match.group() in canonical_ids and match.group() not in related:
+        # A published edition is immutable history. A later withdrawal or
+        # quarantine cannot erase which public identities it referred to.
+        if (published or match.group() in canonical_ids) and match.group() not in related:
             related.append(match.group())
 
     if published:
@@ -397,7 +407,7 @@ def redirect(path_kind: str, identifier: str, title: str) -> str:
 
 
 def feed_item(record: dict[str, Any], brief: dict[str, Any]) -> dict[str, Any]:
-    return {
+    item = {
         "id": record["id"],
         "url": record["human_url"],
         "title": record["title"],
@@ -409,6 +419,10 @@ def feed_item(record: dict[str, Any], brief: dict[str, Any]) -> dict[str, Any]:
         "_fcmo_confidence": record["confidence"],
         "_fcmo_importance": record["importance"],
     }
+    primary_sources = brief.get("source_urls") or []
+    if primary_sources and isinstance(primary_sources[0], str) and primary_sources[0].startswith(("https://", "http://")):
+        item["external_url"] = primary_sources[0]
+    return item
 
 
 def feed_xml(items: list[dict[str, Any]]) -> str:
@@ -543,9 +557,20 @@ def publishable_rows(corpus: Path, rows: list[Any]) -> tuple[list[dict[str, Any]
     return selected, merged, held
 
 
-def build(corpus: Path, out: Path) -> None:
+def freshness_header(generated_at: str) -> str:
+    stamp = datetime.fromisoformat(generated_at.replace("Z", "+00:00"))
+    if stamp.tzinfo is None:
+        stamp = stamp.replace(tzinfo=timezone.utc)
+    stale_after = (stamp.astimezone(timezone.utc) + timedelta(hours=48)).isoformat().replace("+00:00", "Z")
+    return f"<!-- generated_at: {stamp.astimezone(timezone.utc).isoformat().replace('+00:00', 'Z')}; stale_after: {stale_after} -->\n"
+
+
+def build(corpus: Path, out: Path, now: str | None = None) -> None:
     repo = Path(__file__).resolve().parents[1]
     raw_records = read_jsonl(corpus / "data" / "developments.jsonl")
+    airlock = read_json(corpus / "airlock.json") if (corpus / "airlock.json").is_file() else {}
+    source_stamps = [str(row.get("last_verified_at") or row.get("event_at") or "") for row in raw_records]
+    generated_at = now or str(airlock.get("generated_at") or max(source_stamps, default="2026-01-01T00:00:00Z"))
     source_records, _merged, held_back = publishable_rows(corpus, raw_records)
     for identifier, reason in held_back:
         print(f"HELD_BACK {identifier} {reason}", file=sys.stderr)
@@ -704,9 +729,10 @@ def build(corpus: Path, out: Path) -> None:
         "sitemap.xml": sitemap(sorted(ids), edition_dates).encode("utf-8"),
         "robots.txt": f"User-agent: *\nAllow: /\nSitemap: {BASE_URL}sitemap.xml\n".encode("utf-8"),
         "agent.json": json_bytes(agent),
-        "llms.txt": (LLMS_SCAFFOLD + llms_index(records)).encode("utf-8"),
+        "llms.txt": (freshness_header(generated_at) + LLMS_SCAFFOLD + llms_index(records)).encode("utf-8"),
         "llms-full.txt": (
-            LLMS_SCAFFOLD
+            freshness_header(generated_at)
+            + LLMS_SCAFFOLD
             + llms_index(records)
             + "\n## Full query contract\n```json\n"
             + json.dumps(durable_agent, ensure_ascii=False, indent=2)
@@ -767,6 +793,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--corpus", required=True, type=Path)
     parser.add_argument("--out", required=True, type=Path)
+    parser.add_argument("--now", help="ISO 8601 build clock override")
     return parser.parse_args(argv)
 
 
@@ -777,7 +804,7 @@ def main(argv: list[str] | None = None) -> int:
     if not corpus.is_dir():
         raise SystemExit(f"corpus does not exist or is not a directory: {corpus}")
     try:
-        build(corpus, out)
+        build(corpus, out, args.now)
     except (OSError, ValueError, json.JSONDecodeError) as exc:
         raise SystemExit(f"corpus ingestion failed: {exc}") from exc
     return 0

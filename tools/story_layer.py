@@ -42,10 +42,12 @@ from typing import Any, Iterable
 from urllib.parse import urlsplit
 
 try:
+    from tools.ingest_corpus import parse_edition
     from tools import taxonomy
     from tools import corpus_guard
     from tools.validate_localizations import load_locale_details
 except ImportError:  # executed as tools/story_layer.py
+    from ingest_corpus import parse_edition  # type: ignore
     import taxonomy  # type: ignore
     import corpus_guard  # type: ignore
     from validate_localizations import load_locale_details  # type: ignore
@@ -60,7 +62,7 @@ STORIES_PATH = "site/data/stories.json"
 CORPUS_RECORDS_PATH = "corpus/data/developments.jsonl"
 L10N_FIELDS = (
     "title", "summary", "why_it_matters", "importance_rationale", "technical",
-    "evidence.claims", "evidence.limitations", "evidence.gaps", "evidence.contradictory",
+    "evidence.claims", "evidence.limitations", "evidence.gaps", "evidence.contradictory", "related",
 )
 MERGE_CORRECTION = {
     "en": "This story covered the same development as another report and was merged into it.",
@@ -363,6 +365,20 @@ def locale_fields(row: dict[str, Any], story: dict[str, Any], derived_headline: 
         values = reader(row.get(source))
         if values is not None and len(values) == len(english) and values:
             fields[path] = values
+    if any(item.get("summary") for item in story.get("related", [])):
+        localized_relationships = {
+            (item.get("target_id"), item.get("type")): item
+            for item in row.get("relationships", []) if isinstance(item, dict)
+        }
+        related = []
+        for item in story["related"]:
+            localized = localized_relationships.get((item.get("id"), item.get("type")), {})
+            value = {key: item[key] for key in ("id", "type") if key in item}
+            if item.get("summary") and isinstance(localized.get("summary"), str) and localized["summary"].strip():
+                value["summary"] = localized["summary"].strip()
+            related.append(value)
+        if related:
+            fields["related"] = related
     headline = row.get("headline")
     if isinstance(headline, str) and 1 <= len(headline.strip()) <= taxonomy.HEADLINE_MAX:
         fields["headline"] = headline.strip()
@@ -392,12 +408,13 @@ def build_l10n(story: dict[str, Any], sources: list[dict[str, Any]], derived_hea
         "evidence.limitations": not story["evidence"]["limitations"],
         "evidence.gaps": not story["evidence"]["gaps"],
         "evidence.contradictory": not story["evidence"]["contradictory"],
+        "related": not any(item.get("summary") for item in story.get("related", [])),
     }
     flat: dict[str, Any] = {}
     origins: dict[str, str | None] = {}
     source_keys = {"evidence.claims": "claims", "evidence.limitations": "limitations",
                    "evidence.gaps": "evidence_gaps", "evidence.contradictory": "contradictory_evidence",
-                   "headline": "headline", "dek": "dek"}
+                   "headline": "headline", "dek": "dek", "related": "relationships"}
     for row in sources:
         for path, value in locale_fields(row, story, derived_headline, derived_dek).items():
             if path not in flat:
@@ -412,6 +429,20 @@ def build_l10n(story: dict[str, Any], sources: list[dict[str, Any]], derived_hea
                 meta = (row.get("_provenance") or {}).get(source_key) or {}
                 origins[path] = meta.get("origin") if isinstance(meta, dict) else meta
     missing = [p for p in required if p not in flat and not english_empty.get(p, False)]
+    if "related" not in missing:
+        translated = {
+            (item.get("target_id"), item.get("type")): item
+            for row in sources for item in row.get("relationships", []) if isinstance(item, dict)
+        }
+        relationship_summaries_missing = any(
+            item.get("summary") and not (
+                isinstance(translated.get((item.get("id"), item.get("type")), {}).get("summary"), str)
+                and translated[(item.get("id"), item.get("type"))]["summary"].strip()
+            )
+            for item in story.get("related", [])
+        )
+        if relationship_summaries_missing:
+            missing.append("related")
     fields: dict[str, Any] = {}
     for path, value in flat.items():
         if path not in required and path not in {"headline", "dek"}:
@@ -764,6 +795,16 @@ def build_stories(inputs: StoryInputs) -> dict[str, Any]:
                     item["summary"] = rel["summary"]
                 story["related"].append(item)
                 known.add(target)
+    # Relationships are resolved after initial story objects are formed. Rebuild
+    # locale state now so any reader-facing relationship summaries are covered
+    # and carried in the v2 story object just like evidence prose.
+    for rid, story in stories.items():
+        record = inputs.records[rid]
+        rows = inputs.locale_rows[rid]
+        story["l10n"] = {
+            locale: build_l10n(story, locale_rows_for(locale, rows), not record.get("headline"), not record.get("dek"))
+            for locale in TARGET_LOCALES
+        }
     ordered = sorted(stories.values(), key=lambda s: (s["first_published_at"], s["id"]), reverse=True)
     return {
         "schema": STORIES_SCHEMA,
@@ -771,6 +812,11 @@ def build_stories(inputs: StoryInputs) -> dict[str, Any]:
         "release_id": inputs.release_id,
         "canonical_locale": "en",
         "locales": list(LOCALES),
+        "published_edition_dates": sorted(
+            path.stem for path in (inputs.corpus / "editions").glob("????-??-??.html")
+            if re.fullmatch(r"\d{4}-\d{2}-\d{2}", path.stem)
+            and parse_edition(path, set())["published"]
+        ),
         "stories": ordered,
     }
 

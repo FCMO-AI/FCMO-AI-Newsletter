@@ -50,6 +50,7 @@ class SchemaStatusTests(unittest.TestCase):
             "locale-overlay.v2.schema.json": "v2-draft",
             "airlock.v2.schema.json": "observed",
             "record.v2.schema.json": "observed",
+            "publication-status.v1.schema.json": "v1-frozen",
         }
         schemas = sorted(CONTRACTS.glob("*.schema.json"))
         self.assertGreaterEqual(len(schemas), 13)

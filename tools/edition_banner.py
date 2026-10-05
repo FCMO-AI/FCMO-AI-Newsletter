@@ -41,6 +41,9 @@ except ImportError:  # executed as tools/edition_banner.py
     import wire_status  # type: ignore[no-redef]
 
 ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+from tools.publication_freshness import reader_status
 START = "<!-- fcmo-edition:start -->"
 END = "<!-- fcmo-edition:end -->"
 BLOCK = re.compile(re.escape(START) + r".*?" + re.escape(END), re.S)
@@ -112,6 +115,8 @@ def local_date(value: Any, lang: str) -> str:
 
 def status_fields(status: dict[str, Any]) -> dict[str, Any]:
     """Banner inputs; legacy status files (before the v2 fields) get no state line."""
+    # Keep legacy fixtures readable while honoring L3's public freshness state.
+    status = reader_status(status)
     state = status.get("edition_state") if status.get("edition_state") in STATES else None
     stamp = status.get("status_updated_at") or status.get("finalized_at")
     edition = status.get("last_edition_at") or status.get("airlock_generated_at") or stamp

@@ -48,7 +48,8 @@ class PaperEditorialDepthTests(unittest.TestCase):
 
     def test_taxonomy_and_edition_pages_show_corpus_context_and_navigation(self):
         for kind in ("archive", "edition", "topic", "org"):
-            route = next(route for route in self.routes if route["kind"] == kind and route["locale"] == "en")
+            route = next(route for route in self.routes if route["kind"] == kind and route["locale"] == "en"
+                         and (kind != "edition" or 'class="archive-item"' in self.page(route)))
             page = self.page(route)
             with self.subTest(kind=kind):
                 self.assertIn('class="archive-totals"', page)

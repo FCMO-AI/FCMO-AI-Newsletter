@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 from collections import Counter, defaultdict
 from datetime import datetime
+import hashlib
 from html import escape
 import json
 import os
@@ -50,6 +51,7 @@ else:
     from .routes import TECHNICAL_FRONT
 
 ROOT = Path(__file__).resolve().parents[2]
+from tools.publication_freshness import publication_status, reader_status
 BEATS = ("technology", "business", "policy", "society", "research")
 
 SEARCH_JS = r'''(()=>{const f=document.querySelector('[data-search-form]'),q=document.querySelector('[data-search-input]'),o=document.querySelector('[data-search-results]');if(!f)return;let rows;const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));f.addEventListener('submit',async e=>{e.preventDefault();let term=q.value.trim().toLocaleLowerCase();if(!term)return;if(!rows){o.textContent=o.dataset.loading;rows=await fetch(f.dataset.index).then(r=>{if(!r.ok)throw Error(r.status);return r.json()}).catch(()=>[])}let hits=rows.filter(x=>[x.h,x.d,x.b,...x.o,...x.t].join(' ').toLocaleLowerCase().includes(term)).slice(0,30);o.innerHTML=hits.length?hits.map(x=>`<article class="story-card"><span class="card-meta">${esc(x.b)}</span><h2><a href="${esc(x.u)}">${esc(x.h)}</a></h2><p>${esc(x.d)}</p></article>`).join(''):`<p>${esc(o.dataset.empty.replace('{query}',term))}</p>`})})()'''
@@ -81,7 +83,8 @@ def slugify(value: str) -> str:
 
 class PaperBuilder:
     def __init__(self, *, stories_path: Path, status_path: Path, out: Path, base: str,
-                 editorial_path: Path | None = None, og_source: Path | None = None) -> None:
+                 editorial_path: Path | None = None, og_source: Path | None = None,
+                 citation_history: Path | None = None) -> None:
         self.stories_path = stories_path
         self.status_path = status_path
         self.payload = json.loads(stories_path.read_text(encoding="utf-8"))
@@ -90,13 +93,16 @@ class PaperBuilder:
         self.catalogs = load_catalogs(ROOT)
         self.stories = self.payload["stories"]
         self.live = [story for story in self.stories if story.get("status") == "live"]
+        self.edition_dates = sorted(set(self.payload.get("published_edition_dates", [])) | {story["url_date"] for story in self.live}, reverse=True)
         self.freshness = corpus_freshness(self.live, self.status.get("status_updated_at"))
+        self.status["publication_status"] = publication_status(self.freshness, self.status, stories=self.stories)
         self.out = out
         self.base = "/" + base.strip("/") + "/" if base.strip("/") else "/"
         self.base_url = self.config["base_url"]
         self.og_source = og_source
         self.editorial_path = editorial_path or ROOT / "editorial"
         self.editorial_pieces, self.editorial_issues = essays.load_editorial(self.editorial_path)
+        self.citation_history = citation_history or (ROOT / "site" / "data" / "citations")
         self.cartas = community.fetch_cartas(os.environ.get("GHOST_CONTENT_URL"), os.environ.get("GHOST_CONTENT_API_KEY"))
         self.portal_url = os.environ.get("GHOST_PORTAL_URL")
         self.routes: list[dict] = []
@@ -160,6 +166,9 @@ class PaperBuilder:
 
     def _story_href(self, locale: dict, story: dict) -> str:
         return href(self.base, story_path(locale, story))
+
+    def _correction_href(self, locale: dict, story: dict) -> str:
+        return href(self.base, locale["path_prefix"] + "corrections/story/" + story["slug"] + "/")
 
     def _media_url(self, story: dict, locale: dict | None = None) -> str:
         if self.og_source is not None and locale is not None:
@@ -260,6 +269,28 @@ class PaperBuilder:
             parts.append(f'<section class="related-reading"><h2>{esc(strings["story"]["related"])}</h2><div class="card-row">{related_cards}</div></section>')
         return "".join(parts)
 
+    def _citation_permalink(self, story: dict) -> str:
+        english = next(locale for locale in self.config["locales"] if locale["code"] == "en")
+        canonical_story_url = absolute(self.base_url, english["path_prefix"] + story_path(english, story))
+        sources = self._source_urls(story)
+        payload = {"schema": "fcmo-versioned-citation-v1", "id": story["id"],
+                   "canonical_story_url": canonical_story_url,
+                   "headline": headline(story, "en", self.catalogs["en"]),
+                   "summary": str(story.get("summary") or ""), "source_urls": sources}
+        version = hashlib.sha256(json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")).hexdigest()
+        record = {**payload, "version": version}
+        target = self.out / "data" / "citations" / story["id"] / f"{version}.json"
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(json.dumps(record, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        return absolute(self.base_url, f"data/citations/{story['id']}/{version}.json")
+
+    @staticmethod
+    def _source_urls(story: dict) -> list[str]:
+        rows = [source for source in story.get("sources") or [] if isinstance(source, dict)
+                and isinstance(source.get("url"), str) and source["url"].startswith(("https://", "http://"))]
+        rows.sort(key=lambda source: (not bool(source.get("primary")), str(source.get("url"))))
+        return [source["url"] for source in rows]
+
     def _topic_links(self, locale: dict, *, exclude_topic: str = "", exclude_org: str = "", limit: int = 5) -> str:
         """Link into co-occurring topics and organizations using the live corpus."""
         anchors: list[tuple[int, str, str]] = []
@@ -286,11 +317,13 @@ class PaperBuilder:
         """One recent edition: its date, how many live stories it holds and the story that leads it."""
         catalog = self.catalogs[locale["code"]]
         stories = [story for story in self.live if story.get("url_date") == date]
-        lead = front_order(stories)[0]
+        lead = front_order(stories)[0] if stories else None
         title = catalog["strings"]["archive"]["edition_title"].format(date=format_date(date + "T12:00:00Z", catalog))
+        lead_copy = (f'<a href="{esc(self._story_href(locale,lead))}">{esc(headline(lead,locale["code"],catalog))}</a>'
+                     if lead else esc(catalog["strings"]["archive"]["empty"]))
         return (f'<article class="story-card edition-card"><h3><a href="{esc(href(self.base,edition_path(locale,date)))}">{esc(title)}</a></h3>'
                 f'<p class="edition-count">{esc(plural(catalog, "edition_story", len(stories)))}</p>'
-                f'<p class="edition-lead"><a href="{esc(self._story_href(locale,lead))}">{esc(headline(lead,locale["code"],catalog))}</a></p></article>')
+                f'<p class="edition-lead">{lead_copy}</p></article>')
 
     def _front(self, locale: dict) -> None:
         catalog = self.catalogs[locale["code"]]
@@ -344,7 +377,7 @@ class PaperBuilder:
             developing = f'<section class="developing-well"><div class="section-head"><div><p class="section-kicker">FCMO AI · {esc(strings["kicker"]["signal"])}</p><h2>{esc(strings["front"]["developing"])}</h2></div></div><div class="card-row">{"".join(self._card(s,locale,3) for s in plan["developing"])}</div></section>'
         cartas = getattr(self, "_editorial_shelf", {}).get(locale["code"], community.render_cartas(self.cartas, locale["code"]))
         subscribe, subscribe_script = community.render_subscribe(locale_code=locale["code"], path_prefix=locale["path_prefix"], base=self.base, portal_url=self.portal_url)
-        dates = sorted({s["url_date"] for s in self.live}, reverse=True)[:6]
+        dates = self.edition_dates[:6]
         editions = f'<section class="beat-section"><div class="section-head"><h2>{esc(strings["front"]["editions"])}</h2><a href="{esc(href(self.base,locale["path_prefix"]+"archive/"))}">{esc(strings["nav"]["archive"])}</a></div><div class="card-row">' + "".join(self._edition_card(date, locale) for date in dates) + "</div></section>"
         nouns = {
             "en": ("live stories", "topics", "organizations"),
@@ -389,6 +422,9 @@ class PaperBuilder:
         code = locale["code"]
         catalog = self.catalogs[code]
         strings = catalog["strings"]
+        if story.get("status") in {"withdrawn", "merged"} and story.get("corrections"):
+            self._correction_notice(story, locale)
+            return
         complete = is_complete(story, code)
         title = headline(story, code, catalog) if complete else strings["l10n"]["pending_title"]
         description = truncate(dek(story, code, catalog))
@@ -458,13 +494,36 @@ class PaperBuilder:
         page = page.replace('<article class="story-layout">', f'<article class="story-layout {title_class}">', 1)
         story_url = absolute(self.base_url, locale["path_prefix"] + suffix)
         image = self._media_url(story, locale)
-        structured = {"@context": "https://schema.org", "@type": "NewsArticle", "headline": title, "description": description, "datePublished": story["first_published_at"], "dateModified": story["updated_at"], "mainEntityOfPage": story_url, "image": [image], "author": {"@type": "Organization", "name": "FCMO AI Research Desk"}, "publisher": {"@type": "Organization", "name": "FCMO AI"}}
+        sources = self._source_urls(story)
+        structured = {"@context": "https://schema.org", "@type": "NewsArticle", "identifier": story["id"], "headline": title, "description": description, "datePublished": story["first_published_at"], "dateModified": story["updated_at"], "inLanguage": locale["code"], "mainEntityOfPage": story_url, "citation": self._citation_permalink(story), "isBasedOn": sources, "image": [image], "author": {"@type": "Organization", "name": "FCMO AI Research Desk"}, "publisher": {"@type": "Organization", "name": "FCMO AI"}}
         if story.get("corrections"):
             structured["correction"] = [c.get("note") or c.get("reason") or c.get("kind", "Correction") for c in story["corrections"]]
         story_api = absolute(self.base_url, f"api/v1/stories/{story['id']}.json")
         story_md = absolute(self.base_url, locale["path_prefix"] + suffix.rstrip("/") + ".md")
         self._write_page(locale=locale, suffix=suffix, title=f"{title} — FCMO AI", description=description, body=page, kind="story", story=story, og_image=image, json_ld=structured,
                          machine_alternates=[("text/markdown", story_md), ("application/json", story_api)])
+
+    def _correction_notice(self, story: dict, locale: dict) -> None:
+        code = locale["code"]
+        catalog = self.catalogs[code]
+        strings = catalog["strings"]
+        fix = story["corrections"][-1]
+        text = fix.get("text") or {}
+        notice = text.get(code) or text.get("en") or strings["story"].get(story["status"], "")
+        kind = label(catalog, "correction_kind", fix.get("kind"), fallback=story["status"].title())
+        title = headline(story, code, catalog)
+        body = (f'<p class="story-kicker">{esc(kind)} · '
+                f'<time datetime="{esc(fix.get("at", ""))}">{esc(format_date(fix["at"], catalog))}</time></p>'
+                f'<p class="story-dek">{esc(notice)}</p>')
+        if story.get("merged_into"):
+            survivor = next((item for item in self.stories if item["id"] == story["merged_into"]), None)
+            if survivor is not None and survivor.get("status") == "live":
+                body += (f'<p class="correction-current"><a href="{esc(self._story_href(locale, survivor))}">'
+                         f'{esc(strings["story"]["read_merged"])}: '
+                         f'{esc(headline(survivor, code, catalog))}</a></p>')
+        suffix = "corrections/story/" + story["slug"] + "/"
+        self._write_page(locale=locale, suffix=suffix, title=f"{title} — {kind}", description=notice,
+                         body=simple_page(title, body), kind="correction", index=False)
 
     def _pending_fields(self, story: dict, locale: dict) -> str:
         """Render only prose already present in an incomplete native edition."""
@@ -541,7 +600,7 @@ class PaperBuilder:
                    f'<li><strong>{len(topics)}</strong> {labels[1]}</li><li><strong>{len(orgs)}</strong> {labels[2]}</li></ul>')
         navigation = ""
         if kind == "edition":
-            dates = sorted({item["url_date"] for item in self.live}, reverse=True)
+            dates = self.edition_dates
             date = suffix.strip("/").split("/")[-1]
             index = dates.index(date) if date in dates else -1
             links = []
@@ -568,8 +627,9 @@ class PaperBuilder:
     def _status(self, locale: dict) -> None:
         catalog = self.catalogs[locale["code"]]
         strings = catalog["strings"]
-        state = label(catalog, "edition_state", self.status["edition_state"])
-        last = format_date(self.status["last_edition_at"], catalog, precision="minute")
+        visible_status = reader_status(self.status)
+        state = label(catalog, "edition_state", visible_status["edition_state"])
+        last = format_date(visible_status["last_edition_at"], catalog, precision="minute")
         checked = format_date(self.status["status_updated_at"], catalog, precision="minute")
         cards = f'<article class="status-card"><span class="eyebrow">{esc(strings["status_page"]["edition"])}</span><strong>{esc(state)}</strong><p>{esc(strings["status_page"]["last_edition"].format(date=last))}</p></article>'
         fresh = self.freshness
@@ -581,7 +641,7 @@ class PaperBuilder:
         cards += f'<article class="status-card"><span class="eyebrow">{esc(strings["status_page"]["translation"])}</span>'
         for code, counts in self.status.get("translation", {}).items():
             cards += f'<strong>{esc(catalog["strings"]["lang"].get(code,code))}</strong><p>{esc(strings["status_page"]["translation_counts"].format(**counts))}</p>'
-        reason = label(catalog, "edition_reason", self.status.get("edition_reason"), fallback=state)
+        reason = label(catalog, "edition_reason", visible_status.get("edition_reason"), fallback=state)
         cards += f'</article><article class="status-card"><span class="eyebrow">{esc(strings["status_page"]["checked"].format(date=checked))}</span><strong>{esc(label(catalog,"source_mode","MAIN",fallback="FCMO AI"))}</strong><p>{esc(reason)}</p></article>'
         counts = {
             "en": ("Stories in this edition", "editions", "topics", "organizations"),
@@ -594,7 +654,8 @@ class PaperBuilder:
         cards += (f'<article class="status-card"><span class="eyebrow">{esc(counts[0])}</span><strong>{live_count}</strong>'
                   f'<p>{len({item.get("url_date") for item in self.live})} {counts[1]} · {topic_count} {counts[2]} · {org_count} {counts[3]}</p></article>')
         body = status_page(strings["status_page"]["title"], cards, "", kicker=strings["kicker"]["operations"])
-        self._write_page(locale=locale, suffix="status/", title=f'{strings["status_page"]["title"]} — FCMO AI', description=f"{fresh_label} · {fresh_sentence}", body=body, kind="status")
+        self._write_page(locale=locale, suffix="status/", title=f'{strings["status_page"]["title"]} — FCMO AI', description=f"{fresh_label} · {fresh_sentence}", body=body, kind="status",
+                         machine_alternates=[("application/json", absolute(self.base_url, "status.json"))])
 
     def _freshness_lead(self, locale: dict) -> str:
         """The front-page lead's age against the newest story, linked to the lead."""
@@ -665,8 +726,22 @@ class PaperBuilder:
             ("agenda/", s["nav"]["agenda"], f'<p>{esc(s["archive"]["empty"])}</p><p><a href="{esc(href(self.base,locale["path_prefix"]+"agenda.ics"))}">iCalendar</a></p>', "agenda"),
             ("autores/mesa-fcmo-ai/", s["story"]["byline"].split("·")[0].strip(), f'<p>{esc(s["story"]["byline"])}</p><p>{esc(s["footer"]["automated_notice"])}</p>', "author"),
         ]
-        corrections = [correction for story in self.stories for correction in story.get("corrections", [])]
-        corr_body = f'<p>{esc(s["corrections_page"]["intro"])}</p>' + ("<ul>" + "".join(f'<li>{esc(c.get("note") or c.get("reason") or c.get("kind", ""))}</li>' for c in corrections) + "</ul>" if corrections else f'<p>{esc(s["corrections_page"]["none"])}</p>')
+        corrections = sorted(
+            ((story, correction) for story in self.stories for correction in story.get("corrections", [])),
+            key=lambda item: item[1].get("at", ""), reverse=True)
+        correction_rows = []
+        for story, correction in corrections:
+            text = correction.get("text") or {}
+            note = text.get(locale["code"]) or text.get("en") or ""
+            title = headline(story, locale["code"], catalog)
+            date = correction.get("at") or story.get("updated_at")
+            correction_rows.append(
+                f'<article class="correction">'
+                f'<time datetime="{esc(date)}">{esc(format_date(date, catalog))}</time>'
+                f'<h2><a href="{esc(self._correction_href(locale, story))}">{esc(title)}</a></h2>'
+                f'<p>{esc(note)}</p></article>')
+        corr_body = f'<p>{esc(s["corrections_page"]["intro"])}</p>' + (
+            "".join(correction_rows) if correction_rows else f'<p>{esc(s["corrections_page"]["none"])}</p>')
         pages.append(("corrections/", s["corrections_page"]["title"], corr_body, "corrections"))
         pending = {"en": "This document awaits the approved legal copy. Subscription remains inactive.", "es-419": "Este documento espera el texto legal aprobado. La suscripción permanece inactiva.", "zh-Hans": "本文件仍待核准的法律文本。订阅功能尚未启用。"}[locale["code"]]
         for suffix, title in (("privacy/",s["footer"]["privacy"]),("license/",s["footer"]["license"]),("disclaimer/",s["footer"]["disclaimer"])):
@@ -703,6 +778,9 @@ class PaperBuilder:
         copy_public_tree(ROOT / "site-src" / "assets", self.out / "assets")
         # Retain the original public agent datasets as compatibility surfaces.
         copy_public_tree(ROOT / "release-src" / "data", self.out / "data")
+        # Citation versions are content-addressed and append-only across deployments.
+        if self.citation_history.is_dir():
+            copy_public_tree(self.citation_history, self.out / "data" / "citations")
         self._copy_story_media()
         essays.write_public_source(self.editorial_path, self.out, self.editorial_pieces, self.editorial_issues)
         write_localized_story_graphics(self.stories, self.catalogs, self.out / "assets" / "story-media")
@@ -729,8 +807,11 @@ class PaperBuilder:
             self._newsletter_pages(locale)
             for story in self.live:
                 self._story(story, locale)
+            for story in self.stories:
+                if story not in self.live and story.get("status") in {"withdrawn", "merged"} and story.get("corrections"):
+                    self._story(story, locale)
             self._listing(locale=locale, suffix="archive/", title=catalog["strings"]["archive"]["title"], stories=ranked, kind="archive")
-            for date in sorted({s["url_date"] for s in self.live}, reverse=True):
+            for date in self.edition_dates:
                 values = [s for s in ranked if s["url_date"] == date]
                 title = catalog["strings"]["archive"]["edition_title"].format(date=format_date(date+"T12:00:00Z",catalog))
                 self._listing(locale=locale, suffix=f"edition/{date}/", title=title, stories=values, kind="edition")
@@ -764,9 +845,9 @@ class PaperBuilder:
         self._404()
         feed_paths = feeds.write_all(self.stories, locales=self.config["locales"], catalogs=self.catalogs, base_url=self.base_url, out=self.out)
         essays.write_feeds(self.editorial_pieces, locales=self.config["locales"], base_url=self.base_url, out=self.out)
-        redirect_paths = redirects.build(self.stories, locales=self.config["locales"], base=self.base, out=self.out, legacy_root=ROOT / "site")
+        redirect_paths = redirects.build(self.stories, published_edition_dates=self.edition_dates, locales=self.config["locales"], base=self.base, out=self.out, legacy_root=ROOT / "site")
         sitemaps.write(self.routes, out=self.out, generated_at=self.payload["generated_at"])
-        agent_layer.build(stories=self.live, all_stories=self.stories, locales=self.config["locales"],
+        agent_layer.build(published_edition_dates=self.edition_dates, stories=self.live, all_stories=self.stories, locales=self.config["locales"],
                           catalogs=self.catalogs, status=self.status, base_url=self.base_url,
                           base=self.base, out=self.out, root=ROOT)
         for locale in self.config["locales"]:
@@ -793,6 +874,8 @@ class PaperBuilder:
         (self.out / "data" / "routes.json").write_text(json.dumps(self.routes, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
         shutil.copyfile(self.stories_path, self.out / "data" / "stories.v2.json")
         shutil.copyfile(self.status_path, self.out / "data" / "newsroom-status.json")
+        (self.out / "status.json").write_text(json.dumps(self.status["publication_status"],
+                                                      indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
         js_size = sum(path.stat().st_size for path in self.out.rglob("*.js"))
         if js_size > 30 * 1024:
             raise ValueError(f"JavaScript budget exceeded: {js_size}")
@@ -826,9 +909,10 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--base", default="/")
     parser.add_argument("--editorial", type=Path, default=ROOT / "editorial")
     parser.add_argument("--og-source", type=Path, help="cards produced by og_image.py; copied to publish/og")
+    parser.add_argument("--citation-history", type=Path, help="prior content-addressed citations to retain (default: site/data/citations)")
     args = parser.parse_args(argv)
     try:
-        PaperBuilder(stories_path=args.stories, status_path=args.status, editorial_path=args.editorial, out=args.out, base=args.base, og_source=args.og_source).build()
+        PaperBuilder(stories_path=args.stories, status_path=args.status, editorial_path=args.editorial, out=args.out, base=args.base, og_source=args.og_source, citation_history=args.citation_history).build()
     except (OSError, ValueError, KeyError, json.JSONDecodeError) as exc:
         print(f"paper build FAILED: {exc}", file=sys.stderr)
         return 1

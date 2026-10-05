@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/contracts/publication-status.v1.schema.json",
+  "title": "Public freshness status (status.json)",
+  "x-contract": {"name": "publication-status.v1", "status": "v1-frozen", "version": 1},
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "state", "reason", "checked_at", "newest_at", "newest_age_hours", "stale_after_hours", "last_edition_at", "wire_state", "wire_reason", "release_id", "corpus_digest"],
+  "properties": {
+    "schema": {"const": "fcmo-publication-status-v1"},
+    "state": {"enum": ["FRESH", "QUIET", "DELAYED"]},
+    "reason": {"oneOf": [{"type": "null"}, {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"}]},
+    "checked_at": {"oneOf": [{"type": "null"}, {"type": "string", "format": "date-time", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"}]},
+    "newest_at": {"oneOf": [{"type": "null"}, {"type": "string", "format": "date-time", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"}]},
+    "newest_age_hours": {"oneOf": [{"type": "null"}, {"type": "number", "minimum": 0}]},
+    "stale_after_hours": {"const": 48},
+    "last_edition_at": {"oneOf": [{"type": "null"}, {"type": "string", "format": "date-time", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"}]},
+    "wire_state": {"type": "string", "pattern": "^(FRESH|QUIET|TRANSPORT_DOWN|DELAYED:[A-Z_]+)$"},
+    "wire_reason": {"oneOf": [{"type": "null"}, {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"}]},
+    "release_id": {"oneOf": [{"type": "null"}, {"type": "string", "pattern": "^newswire-[0-9a-f]{24}$"}]},
+    "corpus_digest": {"oneOf": [{"type": "null"}, {"type": "string", "pattern": "^[0-9a-f]{64}$"}]}
+  },
+  "allOf": [{"if": {"properties": {"state": {"enum": ["FRESH", "QUIET"]}}}, "then": {"properties": {"reason": {"const": null}, "newest_age_hours": {"type": "number", "minimum": 0, "maximum": 48}, "checked_at": {"type": "string", "format": "date-time", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"}, "newest_at": {"type": "string", "format": "date-time", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"}, "wire_state": {"enum": ["FRESH", "QUIET"]}}}, "else": {"properties": {"reason": {"type": "string"}}}}]
+}

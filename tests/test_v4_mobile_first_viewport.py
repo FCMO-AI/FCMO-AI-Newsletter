@@ -127,12 +127,13 @@ class CompactChromeCssTests(unittest.TestCase):
         self.assertEqual(self.block.count("@media"), 1)
         at = self.paper.index(self.block)
         self.assertGreater(at, self.paper.rindex("@media(max-width:520px){", 0, at))
-        # Every class the block styles: no phone block after it may style them again.
+        # Later targeted fixes may override the subtitle and nav, while the remaining
+        # first-screen truth signals stay governed by this compact-chrome block.
         styled = set(re.findall(r"\.([a-z][a-z-]*)", self.block.split("{", 1)[1]))
         self.assertGreaterEqual(styled, {"edition-line", "brand-sub", "breadcrumbs", "masthead", "brand", "main-nav",
                                          "status-banner", "corpus-freshness"})
         for later in re.findall(r"@media\(max-width:520px\)\{(?:[^{}]*\{[^{}]*\})*[^{}]*\}", self.paper[at + len(self.block):]):
-            self.assertEqual(styled & set(re.findall(r"\.([a-z][a-z-]*)", later)), set(), later[:120])
+            self.assertLessEqual(styled & set(re.findall(r"\.([a-z][a-z-]*)", later)), {"main-nav", "brand-sub"}, later[:120])
         for rule in (".edition-line,.brand-sub,.page-front .breadcrumbs{display:none}",
                      ".site-header .masthead{padding:.5rem 0}", ".site-header .masthead .brand{font-size:2.4rem}",
                      ".main-nav{flex-wrap:nowrap;"):
@@ -148,6 +149,18 @@ class CompactChromeCssTests(unittest.TestCase):
         for selector, body in re.findall(r"([^{}]+)\{([^{}]*)\}", self.block.split("{", 1)[1]):
             if "status-banner" in selector.split(",")[-1].split("+")[-1] or "corpus-freshness" in selector:
                 self.assertNotRegex(body, r"display:none|visibility:hidden|overflow:hidden|max-height|clip|line-clamp")
+
+    def test_final_mobile_chrome_keeps_nav_on_one_row_and_restores_desktop_subtitle(self):
+        self.assertRegex(self.paper, r"body\s+\.brand-sub\s*\{\s*display:block\s*\}")
+        compact_nav = re.findall(r"@media\(max-width:520px\)\s*\{\s*body\s+\.brand-sub\s*\{\s*display:none\s*\}\s*body\s+\.main-nav\s*\{([^}]*)\}", self.paper)
+        self.assertTrue(compact_nav, "final mobile rules must override the earlier tablet wrapping rule")
+        self.assertIn("flex-wrap:nowrap", compact_nav[-1])
+        self.assertIn("overflow:visible", compact_nav[-1])
+
+    def test_story_prose_wraps_long_unbroken_text_without_story_specific_rules(self):
+        rendered = self.module.render(json.loads(TOKENS.read_text(encoding="utf-8")))
+        for css in (self.paper, rendered):
+            self.assertRegex(css, r"\.story-body\{[^}]*overflow-wrap:anywhere")
 
 
 class BuiltDiarioChromeTests(unittest.TestCase):

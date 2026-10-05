@@ -27,10 +27,11 @@ BEATS = {"technology", "business", "policy", "society", "research"}
 FULL_HISTORY = story_layer.is_full_history(REPO)
 
 
-def build(corpus: Path = CORPUS, site: Path | None = REPO / "site", now: str = NOW) -> tuple[dict, str]:
+def build(corpus: Path = CORPUS, site: Path | None = REPO / "site", now: str = NOW,
+          history_repo: Path | None = REPO) -> tuple[dict, str]:
     err = io.StringIO()
     with contextlib.redirect_stderr(err):
-        inputs = story_layer.StoryInputs(corpus, REPO, site, site / "data" / "i18n" if site else None, now)
+        inputs = story_layer.StoryInputs(corpus, history_repo, site, site / "data" / "i18n" if site else None, now)
         document = story_layer.build_stories(inputs)
     return document, err.getvalue()
 
@@ -45,9 +46,28 @@ class RepositoryStoryLayerTests(unittest.TestCase):
         cls.document, cls.stderr = build()
         cls.stories = by_id(cls.document)
 
+    def test_published_edition_dates_survive_without_a_new_story(self):
+        self.assertIn("2026-10-03", self.document["published_edition_dates"])
+        self.assertIn("2026-10-04", self.document["published_edition_dates"])
+        # Research snapshots carry no publication authority by their date alone.
+        self.assertNotIn("2026-09-24", self.document["published_edition_dates"])
+        self.assertFalse(any(story["url_date"] == "2026-10-04" for story in self.document["stories"]))
+
     def test_validates_against_stories_v2_schema(self) -> None:
         validator = validator_for(CONTRACTS / "stories.v2.schema.json")
         self.assertEqual(validator.errors(self.document), [])
+
+    def test_localized_relationship_summaries_reach_the_story_layer(self):
+        target = "FCMO-BBBBBBBBBBBB"
+        story = {
+            "evidence": {"claims": [], "limitations": [], "gaps": [], "contradictory": []},
+            "related": [{"id": target, "type": "related", "summary": "English relationship summary."}],
+        }
+        overlay = {"relationships": [{"target_id": target, "type": "related", "summary": "Resumen de la relación."}]}
+        fields = story_layer.locale_fields(overlay, story, derived_headline=False, derived_dek=False)
+        self.assertEqual(fields["related"], [{
+            "id": target, "type": "related", "summary": "Resumen de la relación."
+        }])
 
     def test_cli_build_writes_a_valid_document(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -70,11 +90,15 @@ class RepositoryStoryLayerTests(unittest.TestCase):
 
     def test_one_story_per_public_id_and_41_live(self) -> None:
         corpus_ids = {json.loads(l)["id"] for l in (CORPUS / "data" / "developments.jsonl").read_text().splitlines() if l.strip()}
-        self.assertEqual(set(self.stories), corpus_ids | {FDBE})
+        quarantined = {"FCMO-045BB8282222", "FCMO-5B5B447325A8"}
+        self.assertEqual(set(self.stories), (corpus_ids - quarantined) | {FDBE})
         live = [s for s in self.document["stories"] if s["status"] == "live"]
         self.assertEqual(len(live), 41)
         self.assertLessEqual({s["beat"] for s in live}, BEATS)
-        self.assertEqual(self.stderr, "", "the repository corpus needs no quarantine, orphan or unrecorded merge")
+        self.assertEqual(set(self.stderr.splitlines()), {
+            "QUARANTINE FCMO-045BB8282222 EVENT_AT_INVALID",
+            "QUARANTINE FCMO-5B5B447325A8 EVENT_AT_INVALID",
+        })
 
     def test_merges(self) -> None:
         for dup, survivor in MERGES.items():
@@ -153,8 +177,31 @@ class RepositoryStoryLayerTests(unittest.TestCase):
 class TemporaryCorpusTests(unittest.TestCase):
     def setUp(self) -> None:
         self.tmp = tempfile.TemporaryDirectory()
-        self.corpus = Path(self.tmp.name) / "corpus"
-        shutil.copytree(CORPUS, self.corpus)
+        self._corpus: Path | None = None
+
+    @property
+    def corpus(self) -> Path:
+        if self._corpus is None:
+            self._corpus = Path(self.tmp.name) / "corpus"
+            shutil.copytree(CORPUS, self._corpus)
+            rows = taxonomy.read_jsonl(self._corpus / "data/developments.jsonl")
+            valid = [row for row in rows if row["id"] != FDBE and not taxonomy.normalize_rows([row])[1]]
+            (self._corpus / "data/developments.jsonl").write_text(
+                "".join(json.dumps(row) + "\n" for row in valid))
+        return self._corpus
+
+    def fixture_corpus(self) -> Path:
+        """Build the carried-record case only from source-controlled fixtures."""
+        corpus = Path(self.tmp.name) / "fixture-corpus"
+        (corpus / "data").mkdir(parents=True)
+        (corpus / "editions").mkdir()
+        (corpus / "data" / "developments.jsonl").write_text("")
+        shutil.copyfile(FIXTURES / "corpus-carried.example.jsonl", corpus / "carried.jsonl")
+        ledger = json.loads((FIXTURES / "first-published.json").read_text())
+        ledger["entries"] = {FDBE: ledger["entries"][FDBE]}
+        (corpus / "first-published.json").write_text(json.dumps(ledger))
+        shutil.copyfile(FIXTURES / "tombstones.json", corpus / "tombstones.json")
+        return corpus
 
     def tearDown(self) -> None:
         self.tmp.cleanup()
@@ -196,12 +243,11 @@ class TemporaryCorpusTests(unittest.TestCase):
         self.assertEqual(len(document["stories"]), 44 - 2)
 
     def test_carried_record_stays_live(self) -> None:
+        self._corpus = self.fixture_corpus()
         doc = self.tombstones()
         doc["tombstones"] = [e for e in doc["tombstones"] if e["id"] != FDBE]
         (self.corpus / "tombstones.json").write_text(json.dumps(doc))
-        record = json.loads((FIXTURES / "corpus-carried.example.jsonl").read_text().splitlines()[0])
-        (self.corpus / "carried.jsonl").write_text(json.dumps(record) + "\n")
-        document, stderr = build(self.corpus)
+        document, stderr = build(self.corpus, site=None, history_repo=None)
         story = by_id(document)[FDBE]
         self.assertEqual((story["status"], story["carried_forward"]), ("live", True))
         self.assertEqual(story["first_published_at"], "2026-09-18T22:36:23Z")
@@ -287,7 +333,15 @@ class ShallowCheckoutTests(unittest.TestCase):
         self.assertEqual(story["first_published_at"], "2026-09-18T22:36:23Z")
 
     def test_no_source_at_all_is_reported_not_invented(self) -> None:
-        document, stderr = self.build_without_history(None)
+        with tempfile.TemporaryDirectory() as temporary:
+            corpus = Path(temporary) / "corpus"
+            shutil.copytree(CORPUS, corpus)
+            rows = [row for row in taxonomy.read_jsonl(corpus / "data/developments.jsonl") if row["id"] != FDBE]
+            (corpus / "data/developments.jsonl").write_text("".join(json.dumps(row) + "\n" for row in rows))
+            error = io.StringIO()
+            with contextlib.redirect_stderr(error):
+                document = story_layer.build_stories(story_layer.StoryInputs(corpus, None, REPO / "site", REPO / "site/data/i18n", NOW, previous={}))
+            stderr = error.getvalue()
         self.assertNotIn(FDBE, by_id(document))
         self.assertIn(f"ALERT STORY_RECORD_UNAVAILABLE {FDBE}", stderr)
         self.assertEqual(sum(s["status"] == "live" for s in document["stories"]), 41)
@@ -356,11 +410,19 @@ class IngestSelectionTests(unittest.TestCase):
     def select(self, rows: list) -> tuple[list, dict, list]:
         return ingest_corpus.publishable_rows(self.corpus, rows)
 
+    def test_historical_edition_keeps_references_to_quarantined_records(self):
+        selected, _, _ = self.select(self.rows)
+        edition = ingest_corpus.parse_edition(self.corpus / "editions/2026-10-03.html",
+                                             {row["id"] for row in selected})
+        self.assertEqual(edition["related_brief_ids"], ["FCMO-5B5B447325A8", "FCMO-045BB8282222"])
+
     def test_repository_corpus_publishes_41(self) -> None:
         selected, merged, held = self.select(self.rows)
         self.assertEqual(len(selected), 41)
         self.assertEqual(merged, MERGES)
         self.assertEqual(sorted(held), sorted([(FDBE, "TOMBSTONED:UNVERIFIED_RELEASE"),
+                                               ("FCMO-045BB8282222", "QUARANTINE:EVENT_AT_INVALID"),
+                                               ("FCMO-5B5B447325A8", "QUARANTINE:EVENT_AT_INVALID"),
                                                *((dup, "TOMBSTONED:DUPLICATE") for dup in MERGES)]))
 
     def test_one_bad_record_is_held_back_alone(self) -> None:
@@ -393,7 +455,9 @@ class TaxonomyTests(unittest.TestCase):
         validator = validator_for(CONTRACTS / "record.v3.schema.json")
         for source in (CORPUS / "data" / "developments.jsonl", FIXTURES / "corpus-44" / "data" / "developments.jsonl"):
             records, quarantined = taxonomy.normalize_rows(taxonomy.read_jsonl(source))
-            self.assertEqual(quarantined, [])
+            expected_quarantine = [("FCMO-045BB8282222", ["EVENT_AT_INVALID"]),
+                                   ("FCMO-5B5B447325A8", ["EVENT_AT_INVALID"])] if source == CORPUS / "data/developments.jsonl" else []
+            self.assertEqual(quarantined, expected_quarantine)
             for record in records:
                 self.assertEqual(validator.errors(record), [], record["id"])
 
@@ -435,7 +499,8 @@ class TaxonomyTests(unittest.TestCase):
         self.assertIsNone(taxonomy.derive_dek(("A very long first sentence " * 12) + "ends here. Second."))
 
     def test_one_bad_row_does_not_stop_the_batch(self) -> None:
-        good = taxonomy.read_jsonl(CORPUS / "data" / "developments.jsonl")[:3]
+        good = [row for row in taxonomy.read_jsonl(CORPUS / "data" / "developments.jsonl")
+                if not taxonomy.normalize_rows([row])[1]][:3]
         bad = [dict(good[0], id="FCMO-000000000BAD", confidence="vibes"), "not a row",
                {"id": "nope"}]
         records, quarantined = taxonomy.normalize_rows(good + bad + [good[0]])

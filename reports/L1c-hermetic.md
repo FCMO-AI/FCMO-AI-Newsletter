@@ -1,0 +1,1 @@
+ARB: please confirm whether FCMO-5B5B447325A8's primary Synopsys URL date (2026-09-30) is its event date and provide source-backed event_at/provenance for FCMO-045BB8282222; until explicit in a sealed release, both remain quarantined.

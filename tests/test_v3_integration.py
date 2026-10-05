@@ -161,7 +161,7 @@ class V3IntegrationTests(unittest.TestCase):
         hero = self.rule(desktop_rules, ".story-body>.story-hero")
         self.assertIn("max-width:var(--read)", hero)
         self.assertIn("repeat(4,minmax(0,1fr))", self.rule(desktop_rules, ".status-grid"))
-        self.assertIn("grid-template-columns:minmax(0,1fr)", self.css[self.css.rfind("@media(max-width:520px)"):])
+        self.assertIn(".edition-neighbors,.related-reading .card-row,.method-steps ol,.status-grid{grid-template-columns:minmax(0,1fr)}", self.css)
         self.assertIn("--metis", self.rule(desktop_rules, ".method-steps li::before"))
         self.assertIn("outline:3px solid var(--metis)", self.css)
         for selector in (".front-ledger ul", ".archive-totals", ".taxonomy-neighbors ul",
