@@ -9,8 +9,9 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from tests.test_deployment_identity import DeploymentIdentityTests
+from tests import test_deployment_identity
 from tools import build_deployment_identity, verify_live_newsroom
+from tests.oraculos import verificar_live_surfaces
 
 
 class PaperServingHealthTests(unittest.TestCase):
@@ -18,7 +19,7 @@ class PaperServingHealthTests(unittest.TestCase):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
-        self.site = DeploymentIdentityTests().fixture(self.root)
+        self.site = test_deployment_identity.DeploymentIdentityTests().fixture(self.root)
         # The public umbrella brand is FCMO; no retired publication-name marker.
         (self.site / "index.html").write_text('<title>FCMO</title><h1>Current lead</h1>')
         self.identity = build_deployment_identity.build(self.site, "deployed-lkg")
@@ -67,7 +68,15 @@ class PaperServingHealthTests(unittest.TestCase):
     def test_current_health_workflow_checks_paper_instead_of_signal_field(self):
         text = (Path(__file__).resolve().parents[1] / ".github/workflows/newsroom-health.yml").read_text()
         self.assertIn("verify_live_newsroom.py --serving-only --paper", text)
-        self.assertNotIn("run: python tests/oraculos/verificar_live_surfaces.py", text)
+        self.assertIn("run: python tests/oraculos/verificar_live_surfaces.py --paper", text)
+
+    def test_paper_browser_oracle_rejects_a_wrong_rendered_language(self):
+        story = {"id": "FCMO-AAAAAAAAAAAA", "url_date": "2026-09-26", "slug": "identity-story"}
+        failures = []
+        with mock.patch.object(verificar_live_surfaces, "render", return_value='<html lang="en"><h1>Lead</h1></html>'):
+            verificar_live_surfaces.check_paper_surfaces("browser", "https://example/", self.identity,
+                                                        [story], {"state": "DELAYED"}, failures)
+        self.assertTrue(any("es-419" in failure for failure in failures))
 
 
 if __name__ == "__main__":
