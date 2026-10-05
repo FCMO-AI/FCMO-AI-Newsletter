@@ -91,6 +91,31 @@ class PaperBuildTests(unittest.TestCase):
         parser.feed(text)
         return text, parser
 
+    def test_published_editions_without_new_stories_keep_all_locale_routes(self):
+        payload = dict(self.payload)
+        payload["published_edition_dates"] = ["2026-10-03", "2026-10-04"]
+        with tempfile.TemporaryDirectory(prefix="quiet-edition-") as temporary:
+            root = Path(temporary)
+            source = root / "stories.json"
+            source.write_text(json.dumps(payload), encoding="utf-8")
+            result = subprocess.run([
+                sys.executable, str(ROOT / "tools/paper/build.py"),
+                "--stories", str(source), "--status", str(FIXTURES / "newsroom-status.fresh.json"),
+                "--out", str(root / "publish"), "--base", "/FCMO-AI-Newsletter/",
+            ], cwd=ROOT, text=True, capture_output=True)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            for prefix, locale in (("", "en"), ("es/", "es-419"), ("zh/", "zh-Hans")):
+                for date in payload["published_edition_dates"]:
+                    page = root / "publish" / prefix / "edition" / date / "index.html"
+                    self.assertTrue(page.is_file(), str(page))
+                    parser = AuditParser()
+                    parser.feed(page.read_text(encoding="utf-8"))
+                    self.assertEqual(parser.lang, locale)
+                    self.assertIn(date, "".join(parser.main_text))
+                    self.assertTrue((root / "publish" / prefix / "edition" / f"{date}.md").is_file())
+                    machine = json.loads((root / "publish" / "api/v1/editions" / f"{date}.json").read_text())
+                    self.assertEqual(machine["date"], date)
+
     def test_acceptance_command_reports_routes(self):
         self.assertRegex(self.result.stdout, r"routes=\d+")
 
