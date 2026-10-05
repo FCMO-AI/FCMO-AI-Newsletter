@@ -6,6 +6,6 @@ The Story and ingest tests now reflect the upstream CR L21 acceptance: 46 Story 
 
 Regenerated the canonical release source, newsroom surfaces/status, frozen overlay and paper receipt through repository tools. Added labels for the corpus's `fcmo_fallback` media enum in all three UI catalogs. All seven release gates pass.
 
-Verification: `python3 -m unittest discover -s tests` — 603 passed, 3 skipped; paper build — 531 total routes / 129 Story routes; `tools/verify_release.py` — 7/7 gates passed. These are local build/release checks; no deployment or live-origin verification was performed.
+Verification: `python3 -m unittest discover -s tests` — 603 passed, 3 skipped; paper build — 531 total routes / 129 Story routes; `tools/verify_release.py` — 7/7 gates passed. The two new downstream public-research receipts were generated offline and record zero source URLs reopened; no new source re-research is claimed. These are local build/release checks; no deployment or live-origin verification was performed.
 
 **Resumen:** El ledger y las pruebas ya reflejan 43 historias activas; se conservó la cuarentena sintética para fechas inválidas. La compilación produjo 129 rutas localizadas y las siete compuertas pasaron. No se desplegó.
