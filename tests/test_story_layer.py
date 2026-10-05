@@ -247,7 +247,7 @@ class TemporaryCorpusTests(unittest.TestCase):
         doc = self.tombstones()
         doc["tombstones"] = [e for e in doc["tombstones"] if e["id"] != FDBE]
         (self.corpus / "tombstones.json").write_text(json.dumps(doc))
-        document, stderr = build(self.corpus)
+        document, stderr = build(self.corpus, site=None, history_repo=None)
         story = by_id(document)[FDBE]
         self.assertEqual((story["status"], story["carried_forward"]), ("live", True))
         self.assertEqual(story["first_published_at"], "2026-09-18T22:36:23Z")

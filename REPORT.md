@@ -157,3 +157,13 @@ Detalles, límites, continuación y rangos conservadores de logs a retirar:
 
 Resumen: contención probada; faltan los SHA verificados. No integrar ni reactivar
 hasta completar ese paso y obtener el suite entero en verde.
+
+## L1c-hermetic — test de registro arrastrado
+
+`TemporaryCorpusTests.test_carried_record_stays_live` now constructs its temporary corpus from fixtures only and calls the story layer without the live site or repository history. It continues to verify live/carry-forward status, preserved first-publication time, and empty stderr. The pre-change focused test failed on the two current null-date records and history alerts; after the change it passes.
+
+Both `FCMO-045BB8282222` and `FCMO-5B5B447325A8` have `event_at: null`, no `published_at`, and only intake/verification timestamps plus first-edition date `2026-10-03`. Those fields do not establish the underlying event dates. They remain quarantined, and the one-line source-backed date/provenance request for ARB is in [reports/L1c-hermetic.md](reports/L1c-hermetic.md).
+
+Verification on this worktree: `python3 -m unittest discover -s tests` — 595 tests OK, 3 skipped; `python3 tools/verify_release.py` — 7/7; fresh `tools/paper/build.py` candidate followed by `python3 tools/gates/run_all.py publish` — 13/13. The first gate attempt targeted a stale pre-existing `publish/` and failed on old routes; rebuilding the candidate cleared those mismatches. Browser rendering remains unverified because `PLAYWRIGHT_MODULE` is unavailable in this shell. Full lane evidence and continuation boundary: [L1c-hermetic report](reports/L1c-hermetic.md).
+
+Resumen: el caso de arrastre quedó aislado con fixtures; suite y compuertas pasan. Ambas noticias esperan fechas de evento verificables de ARB.
