@@ -352,10 +352,11 @@ class CorpusFreshnessBuildTests(unittest.TestCase):
         return {name: self.read(self.out, route) for name, route in (
             ("root", prefix), ("diario", prefix + "diario/"), ("story", story_path(locale, story)), ("status", prefix + "status/"))}
 
-    def test_the_real_corpus_is_stale(self):
-        self.assertEqual(self.oracle["state"], "stale")
-        self.assertGreater(self.oracle["lag_days"], 7)
-        self.assertEqual(corpus_freshness(self.live, self.status["status_updated_at"])["state"], "stale")
+    def test_the_real_corpus_is_lagging_after_the_two_dated_stories_arrive(self):
+        self.assertEqual(self.oracle["state"], "lagging")
+        self.assertGreater(self.oracle["lag_hours"], 48)
+        self.assertLessEqual(self.oracle["lag_hours"], 7 * 24)
+        self.assertEqual(corpus_freshness(self.live, self.status["status_updated_at"])["state"], "lagging")
 
     def test_every_page_carries_one_line_matching_the_oracle(self):
         for code, prefix in LOCALES:
@@ -368,7 +369,7 @@ class CorpusFreshnessBuildTests(unittest.TestCase):
                     self.assertEqual(attributes(line.group(1)), {
                         "data-freshness": self.oracle["state"], "data-newest-at": self.oracle["newest_at"],
                         "data-lag-hours": str(self.oracle["lag_hours"])})
-                    self.assertEqual(html.unescape(line.group(2)), label(catalog, "freshness_state", "stale"))
+                    self.assertEqual(html.unescape(line.group(2)), label(catalog, "freshness_state", self.oracle["state"]))
                     sentence = html.unescape(line.group(3))
                     self.assertIn(plural(catalog, "freshness_day", self.oracle["lag_days"]), sentence)
                     self.assertIn(format_date(self.oracle["newest_at"], catalog, precision="day"), sentence)
@@ -387,11 +388,11 @@ class CorpusFreshnessBuildTests(unittest.TestCase):
                 card = CARD.search(page)
                 self.assertIsNotNone(card)
                 self.assertEqual(attributes(card.group(1)), {
-                    "data-freshness": "stale", "data-newest-at": self.oracle["newest_at"],
+                    "data-freshness": self.oracle["state"], "data-newest-at": self.oracle["newest_at"],
                     "data-lag-hours": str(self.oracle["lag_hours"]), "data-lead-id": lead["id"],
                     "data-lead-at": self.oracle["lead_at"]})
                 self.assertEqual(html.unescape(card.group(2)), catalog["strings"]["status_page"]["freshness"])
-                self.assertEqual(html.unescape(card.group(3)), label(catalog, "freshness_state", "stale"))
+                self.assertEqual(html.unescape(card.group(3)), label(catalog, "freshness_state", self.oracle["state"]))
                 self.assertEqual(card.group(4), LINE.search(page).group(3))
                 edition_card = page.index(f'<span class="eyebrow">{html.escape(catalog["strings"]["status_page"]["edition"])}</span>')
                 self.assertLess(edition_card, card.start())
@@ -416,10 +417,10 @@ class CorpusFreshnessBuildTests(unittest.TestCase):
                     catalog = self.catalogs[code]
                     page = self.read(out, prefix + "status/")
                     description = html.unescape(re.search(r'<meta name="description" content="([^"]*)">', page).group(1))
-                    stale = label(catalog, "freshness_state", "stale")
-                    self.assertTrue(description.startswith(stale + " · "), description)
-                    self.assertEqual(description, stale + " · " + html.unescape(LINE.search(page).group(3)))
-                    # L3: a fresh wire cannot hide a stale corpus behind a hidden banner.
+                    state_label = label(catalog, "freshness_state", self.oracle["state"])
+                    self.assertTrue(description.startswith(state_label + " · "), description)
+                    self.assertEqual(description, state_label + " · " + html.unescape(LINE.search(page).group(3)))
+                    # L3: a fresh wire cannot hide a lagging corpus behind a hidden banner.
                     self.assertIn('<div class="status-banner" data-edition-state="DELAYED"', page)
                     self.assertNotIn('hidden data-edition-state="FRESH"', page)
 

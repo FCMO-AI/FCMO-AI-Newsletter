@@ -325,7 +325,7 @@ class CorpusGuardTests(unittest.TestCase):
 class StoryLayerFixtureTests(unittest.TestCase):
     def test_first_publication_ledger(self):
         ledger = load("first-published.json")["entries"]
-        self.assertEqual(len(ledger), 44)
+        self.assertEqual(len(ledger), 46)
         fad9 = ledger["FCMO-FAD9D0AFD3E4"]
         self.assertEqual(fad9["first_published_at"], "2026-09-14T02:48:13Z")
         self.assertEqual(fad9["url_date"], "2026-09-13")
