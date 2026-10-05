@@ -1,3 +1,9 @@
+# L21 — seguimiento de frescura (2026-10-05)
+
+Informe de este carril: [reports/REPORT-L21.md](reports/REPORT-L21.md). Cambio requerido en ARB: [reports/CR-L21-upstream.md](reports/CR-L21-upstream.md).
+
+Resumen: dos fechas se pierden en ARB antes del puente; serving y frescura de Newsletter están corregidos. Serving real, 601 pruebas y compuertas pasan; tres pruebas de navegador omitidas por falta de instalación. Falta corrección upstream y noticias actuales. Sin push. Se conserva debajo el informe previo de integración.
+
 # L1b-sync — resultado actual (2026-10-05)
 
 Integración local de `origin/main` (`78197c4`) en `c5/v4` desde `a89c952`, con prueba roja previa `146bc93`. Se conserva WFSEC, se regeneran los artefactos con las herramientas del repositorio y se mantienen exactamente los datos y ediciones de main y la unión del ledger (63 líneas).
