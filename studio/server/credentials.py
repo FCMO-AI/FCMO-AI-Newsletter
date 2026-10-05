@@ -5,15 +5,33 @@ from pathlib import Path
 import subprocess
 from .publishing import GitHub, Refused, UnknownEffect
 
+NAMES = {'javier': 'Javier', 'matias': 'Matías'}
+CREDENTIAL_ROOT = Path('/srv') / 'fcmo' / 'secrets' / 'studio'
+
 class GitHubCLI(GitHub):
     def __init__(self, configs=None):
         super().__init__({})
-        self.configs = configs or {}
+        self.configs = {u: (configs or {}).get(u) or str(CREDENTIAL_ROOT / u) for u in NAMES}
     def environment(self, user):
         env = {k: v for k, v in os.environ.items() if not k.startswith(('GH_TOKEN', 'GITHUB_TOKEN', 'STUDIO_PUSH_TOKEN'))}
-        if self.configs.get(user): env['GH_CONFIG_DIR'] = str(Path(self.configs[user]).expanduser())
+        env['GH_CONFIG_DIR'] = str(Path(self.configs[user]).expanduser())
         env['GH_PROMPT_DISABLED'] = '1'; env['GIT_TERMINAL_PROMPT'] = '0'
         return env
+    def credential_status(self):
+        statuses = []
+        for user, name in NAMES.items():
+            configured = (Path(self.configs[user]).expanduser() / 'hosts.yml').is_file()
+            ok = False
+            if configured:
+                try:
+                    run = subprocess.run(['gh', 'auth', 'status', '--hostname', 'github.com'],
+                                         env=self.environment(user), capture_output=True, timeout=5)
+                    ok = run.returncode == 0
+                except (OSError, subprocess.SubprocessError): pass
+            statuses.append({'user': user, 'ready': ok,
+                             'plain_es': '' if ok else 'Falta iniciar sesión de ' + name + '.',
+                             'plain_en': '' if ok else name + ' needs to sign in to GitHub.'})
+        return statuses
     def call(self, user, method, endpoint, body=None):
         command = ['gh', 'api', '--hostname', 'github.com', '--method', method, endpoint]
         if body is not None: command.extend(['--input', '-'])
@@ -34,6 +52,8 @@ class GitHubCLI(GitHub):
     def request(self, user, method, suffix, body=None):
         return self.call(user, method, 'repos/' + self.repo + suffix, body)
     def identity(self, user):
+        if not (Path(self.configs[user]).expanduser() / 'hosts.yml').is_file():
+            raise Refused('Falta iniciar sesión de ' + NAMES[user] + '.')
         result = self.call(user, 'GET', 'user')
         if not result or not result.get('login'): raise Refused('No se pudo comprobar la credencial gh.')
         return result['login']

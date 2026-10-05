@@ -115,6 +115,9 @@ class Journey:
             sock.bind(('127.0.0.1', 0)); self.port = sock.getsockname()[1]
         self.origin = 'http://127.0.0.1:' + str(self.port)
         binary = self.root / 'bin'; binary.mkdir()
+        for user in ('javier', 'matias'):
+            config = self.root / user
+            config.mkdir(mode=0o700)
         shutil.copy2(ROOT / 'studio/dogfood/fake_gh.py', binary / 'gh')
         env = {k: v for k, v in os.environ.items() if not k.startswith(('GH_', 'GITHUB_', 'STUDIO_', 'DOGFOOD_'))}
         env.update(STUDIO_DATA=str(self.data), STUDIO_ORIGIN=self.origin, STUDIO_SESSION_KEY='dogfood-session-key-' + 'x' * 40,
@@ -140,6 +143,14 @@ class Journey:
             assert status == 200, login
             self.sessions[user] = headers['Set-Cookie'].split(';')[0], login['csrf']
         self.score('two distinct authenticated sessions', self.sessions['javier'] != self.sessions['matias'])
+        readiness = self.call('GET', '/api/publication-readiness')
+        self.score('missing gh accounts: Studio starts and names both logins',
+                   [c['plain_es'] for c in readiness['credentials']] == ['Falta iniciar sesión de Javier.', 'Falta iniciar sesión de Matías.'])
+        piece = self.call('POST', '/api/pieces', {'kind': 'essay', 'title': 'Private before GitHub login', 'source_locale': 'en'})
+        self.score('private editor remains usable without GitHub credentials',
+                   self.call('GET', '/api/pieces/' + piece['slug'])['slug'] == piece['slug'])
+        for user in ('javier', 'matias'):
+            (self.root / user / 'hosts.yml').write_text('github.com: {}\n')
     def run(self):
         self.setup()
         published = []
@@ -214,7 +225,7 @@ class Journey:
                 os.killpg(self.process.pid, signal.SIGKILL); self.process.wait()
             self.log.close()
         if hasattr(self, 'pages'): self.pages.shutdown(); self.pages.server_close()
-        expected = 23 if self.browser else 15
+        expected = 25 if self.browser else 17
         passed = sum(s['ok'] for s in self.scores)
         summary = {'passed': passed, 'total': expected, 'executed': len(self.scores), 'completed': passed == expected and len(self.scores) == expected, 'checks': self.scores}
         (self.root / 'summary.json').write_text(json.dumps(summary, indent=2))

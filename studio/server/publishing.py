@@ -100,7 +100,8 @@ class GitHub:
             detail = self.request(user, 'GET', '/rulesets/' + str(ident)) or {}
             # GitHub hides bypass_actors without ruleset write visibility.
             # Missing metadata is not evidence of an empty exception list.
-            if detail.get('enforcement') != 'active' or detail.get('bypass_actors') != []: return False
+            from .protection import safe_bypass
+            if detail.get('enforcement') != 'active' or not safe_bypass(detail.get('bypass_actors')): return False
         return True
     def merge(self, user, number, head):
         result = self.request(user, 'PUT', '/pulls/' + str(number) + '/merge', {'sha': head, 'merge_method': 'merge'})

@@ -54,6 +54,13 @@ class Application:
             except Exception: pass  # Durable state retained; never log document/token/trace.
     def api(self, method, path, query, body, session):
         user = session['user']; parts = path.strip('/').split('/')
+        if path == '/api/publication-readiness' and method == 'GET':
+            statuses = self.github.credential_status() if hasattr(self.github, 'credential_status') else [
+                {'user': u, 'ready': bool(self.github.tokens.get(u)),
+                 'plain_es': 'Falta iniciar sesión de ' + ('Javier' if u == 'javier' else 'Matías') + '.',
+                 'plain_en': ('Javier' if u == 'javier' else 'Matías') + ' needs to sign in to GitHub.'}
+                for u in ('javier', 'matias')]
+            return {'credentials': statuses, 'live_enabled': self.live_enabled, 'dry_run': self.dry_run}
         if path == '/api/me' and method == 'GET': return {'user': user, 'name': session['name'], 'ui_lang': session['ui_lang'], 'csrf': session['csrf'], 'other': 'Matías' if user == 'javier' else 'Javier', 'allow_non_en_source': __import__('os').environ.get('STUDIO_ALLOW_NON_EN_SOURCE') == '1'}
         if path == '/api/pieces':
             if method == 'GET': return self.store.list(query.get('state', [None])[0])

@@ -1,13 +1,13 @@
 # FCMO Studio: installation and recovery
 
-The architect installs these artifacts; this lane does not enable a host service
-or a public publication. Follow [ACTIVATION.md](ACTIVATION.md) for the exact L23b
+The architect installs these artifacts. Follow [ACTIVATION.md](ACTIVATION.md) and
+[REPORT-L25.md](../../REPORT-L25.md) for the exact L25
 account, CODEOWNERS, ruleset, browser and live acceptance sequence.
 
 1. Choose private data, backup, checkout and environment-file locations. The
    checkout must contain the integrated A1, A2 and B code. Keep data and backups
    outside the public checkout. Copy `studio.env.example` to a private environment
-   file (root-owned, Studio group-readable, mode 0640). Set all empty values;
+   file (owned by fcmo-agent, mode 0600). Set all empty values;
    generate the session key locally. Do not put passwords or tokens in commands,
    reports, public files or agent jobs.
 2. The launcher initializes the private Newsletter clone's public origin if
@@ -20,15 +20,15 @@ account, CODEOWNERS, ruleset, browser and live acceptance sequence.
    `sh studio/host-ops/start.sh --add-user javier` and the corresponding command
    for `matias`, with the private environment already loaded. Passwords are
    prompted; scrypt hashes and sessions live only in the private database.
-4. Install the user units. Supply an `EnvironmentFile` drop-in pointing to the
-   operator's private environment file, and a `ReadWritePaths` drop-in allowing
-   the Studio data location. The supplied `%h/.config/fcmo-studio/studio.env`
-   location is a portable installation placeholder. Backups use the same
+4. Run `sh studio/host-ops/install.sh` as fcmo-agent. It installs the unit in
+   `~/.config/systemd/user/`, reloads and enables/starts it, using the private
+   `~/.config/fcmo-studio/studio.env`. `rollback.sh` restores the prior unit and
+   activation without deleting drafts or logins. Backups use the same
    environment and a separate private backup location. Set modes to 0700/0600.
 5. Start `sh studio/host-ops/start.sh` with `STUDIO_LIVE_ENABLED=0` and
    `STUDIO_DRY_RUN=1`. It binds only to loopback. The
-   architect configures tailnet-only HTTPS on port 8447, targeting
-   `http://127.0.0.1:8447`; never enable Funnel. Verify the tailnet-only status,
+   architect configures tailnet-only HTTPS targeting the selected loopback
+   port in 8490-8499 (L25: 8490); never enable Funnel. Verify the tailnet-only status,
    localhost listener, Javier's access and the two distinct personal logins.
    Direct HTTP is for loopback probes; browsers need HTTPS for the secure cookie.
 6. Run `bash studio/host-ops/backup.sh --drill "$STUDIO_DRILL_DEST"`, where the

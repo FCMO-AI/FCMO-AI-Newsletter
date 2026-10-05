@@ -8,13 +8,17 @@ import json
 import os
 from pathlib import Path
 import subprocess
+import sys
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from studio.server.protection import ACTIONS_BYPASS
 
 NAME = 'FCMO Studio protected main'
 REPO = 'FCMO-AI/FCMO-AI-Newsletter'
 
 def desired():
     return {'name': NAME, 'target': 'branch', 'enforcement': 'active',
-            'bypass_actors': [], 'conditions': {'ref_name': {'include': ['refs/heads/main'], 'exclude': []}},
+            'bypass_actors': [dict(ACTIONS_BYPASS)], 'conditions': {'ref_name': {'include': ['refs/heads/main'], 'exclude': []}},
             'rules': [{'type': 'deletion'}, {'type': 'non_fast_forward'},
                       {'type': 'pull_request', 'parameters': {
                           'required_approving_review_count': 1, 'require_code_owner_review': True,
@@ -24,12 +28,14 @@ def desired():
                           'strict_required_status_checks_policy': True,
                           'required_status_checks': [{'context': 'publish-gate'}]}}]}
 
-def api(method, suffix, body=None):
+def api(method, suffix, body=None, allow_missing=False):
     args = ['gh', 'api', '--hostname', 'github.com', '--method', method, 'repos/' + REPO + suffix]
     if body is not None: args += ['--input', '-']
     run = subprocess.run(args, input=json.dumps(body) if body is not None else None,
                          capture_output=True, text=True, timeout=60)
-    if run.returncode: raise RuntimeError('GitHub refused the ruleset operation; inspect permissions/state before retrying.')
+    if run.returncode:
+        if allow_missing and method == 'GET' and 'HTTP 404' in run.stderr: return None
+        raise RuntimeError('GitHub refused the ruleset operation; inspect permissions/state before retrying.')
     return json.loads(run.stdout) if run.stdout.strip() else None
 
 def writable(value):
@@ -45,6 +51,24 @@ def save_receipt(path, receipt):
     fd = os.open(temp, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
     with os.fdopen(fd, 'w') as f: json.dump(receipt, f); f.flush(); os.fsync(f.fileno())
     os.replace(temp, path)
+
+def assert_autonomous_compatible(own_id):
+    # Rulesets accumulate: our exception cannot bypass a different ruleset.
+    # Check inherited rules before changing anything; never delete them for green CI.
+    rules = []
+    page = 1
+    while True:
+        batch = api('GET', '/rules/branches/main?per_page=100&page=' + str(page))
+        rules.extend(batch)
+        if len(batch) < 100: break
+        page += 1
+    for ident in {r['ruleset_id'] for r in rules if r['type'] not in ('deletion', 'non_fast_forward')} - {own_id}:
+        detail = api('GET', '/rulesets/' + str(ident))
+        if ACTIONS_BYPASS not in (detail.get('bypass_actors') or []):
+            raise ValueError('Another effective ruleset blocks autonomous Actions pushes; reconcile it before activation: ' + str(ident))
+    legacy = api('GET', '/branches/main/protection', allow_missing=True)
+    if legacy and any(legacy.get(k) for k in ('required_pull_request_reviews', 'required_status_checks', 'restrictions')):
+        raise ValueError('Classic branch protection may block autonomous Actions pushes; reconcile it before activation.')
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
@@ -78,6 +102,7 @@ def main():
     matches = [r for r in rows if r['name'] == NAME]
     if len(matches) > 1: raise ValueError('Multiple matching rulesets; reconcile first.')
     previous = writable(api('GET', '/rulesets/' + str(matches[0]['id']))) if matches else None
+    assert_autonomous_compatible(matches[0]['id'] if matches else None)
     # Persist intent BEFORE the external effect. A lost response is not a retry license.
     args.state.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
     receipt = {'repo': REPO, 'previous': previous, 'desired': desired(), 'id': matches[0]['id'] if matches else None}

@@ -1,6 +1,6 @@
 import { get, post, ApiError } from './api.js'
 import { t, LOCALE_NAME } from './i18n.js'
-import { h, ago, dots, modal, clear } from './ui.js'
+import { h, append, ago, dots, modal, clear } from './ui.js'
 import { rollbackDialog } from './publication-actions.js'
 import { shell, session } from './main.js'
 
@@ -56,14 +56,14 @@ export async function home (root) {
     }
     const last = pieces.filter(p => p.author === me.user && (p.state === 'draft' || p.state === 'changes_requested' || p.state === 'amending'))[0]
     clear(body)
-    body.append(
+    append(body, [
       h('section', { class: 'block attention' }, h('h2', null, t('home.attention')),
         attn.length ? h('ul', { class: 'attn' }, attn.map(a => h('li', null, h('span', null, a.text), h('a', { class: 'btn small', href: a.go }, a.cta)))) : h('p', { class: 'muted' }, t('home.empty'))),
       last && !q ? h('section', { class: 'block' }, h('h2', null, t('home.continue')), h('a', { class: 'continue', href: where(last, me) }, h('span', { class: 'continue-title' }, last.title), h('span', { class: 'row-meta' }, t('row.edited', { when: ago(last.updated_at, t) }), ' · ', t('row.words', { n: last.words })), dots(last.locales, t))) : null,
       section(t('home.drafts'), list.filter(p => p.state === 'draft' || p.state === 'changes_requested' || p.state === 'amending')),
       section(t('home.review'), list.filter(p => ['in_review', 'approved', 'publishing'].includes(p.state))),
       section(t('home.published'), list.filter(p => p.state === 'published' || p.state === 'withdrawn')),
-      h('section', { class: 'block' }, h('h2', null, t('home.editions')), h('a', { class: 'row', href: '#/issues' }, h('span', { class: 'row-main' }, h('strong', { class: 'row-title' }, t('iss.title')), h('span', { class: 'row-meta' }, t('iss.soon'))))))
+      h('section', { class: 'block' }, h('h2', null, t('home.editions')), h('a', { class: 'row', href: '#/issues' }, h('span', { class: 'row-main' }, h('strong', { class: 'row-title' }, t('iss.title')), h('span', { class: 'row-meta' }, t('iss.soon')))))])
   }
   search.addEventListener('input', draw); draw()
   root.append(shell(h('div', { class: 'home-wrap' },

@@ -71,6 +71,8 @@ def execute(s, method, path, body, login):
     raise ValueError('Unsupported fake API ' + method + ' ' + path)
 
 args = sys.argv[1:]
+if args == ['auth', 'status', '--hostname', 'github.com']:
+    raise SystemExit(0)
 assert args and args[0] == 'api', 'Only API calls supported'
 method = args[args.index('--method') + 1]
 endpoint = next(a for a in args if a == 'user' or a.startswith('repos/'))

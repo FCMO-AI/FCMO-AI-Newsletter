@@ -26,8 +26,24 @@ export function cycleTheme () {
 }
 applyTheme()
 
+async function updateReadiness (banner) {
+  try {
+    const state = await get('/api/publication-readiness')
+    if (!banner.isConnected) return
+    banner.replaceChildren(...state.credentials.filter(c => !c.ready).map(c =>
+      h('p', null, document.documentElement.lang === 'en' ? c.plain_en : c.plain_es)))
+    banner.hidden = !banner.childElementCount
+  } catch { /* Authentication errors are handled by the shared API. */ }
+}
+setInterval(() => {
+  const banner = document.getElementById('publication-readiness')
+  if (session.me && banner) updateReadiness(banner)
+}, 30000)
+
 export function shell (content, { active = '', wide = false } = {}) {
   const me = session.me
+  const readiness = me ? h('aside', { id: 'publication-readiness', class: 'publication-readiness', role: 'status', hidden: true }) : null
+  if (readiness) setTimeout(() => updateReadiness(readiness), 0)
   const themeBtn = h('button', { class: 'icon-btn', type: 'button', title: t('nav.theme'), 'aria-label': t('nav.theme'), onclick: () => { cycleTheme() } }, h('span', { class: 'half', 'aria-hidden': 'true' }))
   return h('div', { class: 'shell' },
     h('a', { class: 'skip', href: '#main' }, t('nav.skip')),
@@ -39,7 +55,7 @@ export function shell (content, { active = '', wide = false } = {}) {
       h('div', { class: 'topbar-right' }, themeBtn,
         me ? h('span', { class: 'who' }, me.name) : null,
         me ? h('button', { class: 'link-btn', type: 'button', onclick: async () => { try { await post('/api/logout') } catch { /* already out */ } session.me = null; location.hash = '#/login'; route() } }, t('nav.logout')) : null)),
-    h('main', { id: 'main', class: wide ? 'wide' : '' }, content))
+    h('main', { id: 'main', class: wide ? 'wide' : '' }, readiness, content))
 }
 
 async function ensureMe () {

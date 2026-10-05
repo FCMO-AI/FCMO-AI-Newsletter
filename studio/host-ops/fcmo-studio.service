@@ -1,19 +1,20 @@
 [Unit]
 Description=FCMO private writing studio
 After=network.target
+StartLimitIntervalSec=60
+StartLimitBurst=5
 
 [Service]
 Type=simple
 EnvironmentFile=%h/.config/fcmo-studio/studio.env
+Environment=PATH=%h/.local/bin:/usr/local/bin:/usr/bin:/bin
 ExecStart=/bin/sh -c 'cd "$STUDIO_REPO" && exec sh studio/host-ops/start.sh'
 Restart=on-failure
 RestartSec=5
 UMask=0077
 NoNewPrivileges=yes
-PrivateTmp=yes
-ProtectSystem=strict
-ProtectHome=read-only
-# Architect must add a ReadWritePaths drop-in for STUDIO_DATA.
+KillMode=control-group
+TimeoutStopSec=30
 
 [Install]
 WantedBy=default.target

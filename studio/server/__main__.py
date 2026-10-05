@@ -33,7 +33,7 @@ def main():
         fcntl.flock(lockfile.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
         from .snapshot import refresh
         refresh(store, app.github)
-        server = Server(('127.0.0.1', int(os.environ.get('STUDIO_PORT', '8447'))), app)
+        server = Server(('127.0.0.1', int(os.environ.get('STUDIO_PORT', '8490'))), app)
         threading.Thread(target=app.worker, daemon=True).start()
         try: server.serve_forever()
         except KeyboardInterrupt: pass

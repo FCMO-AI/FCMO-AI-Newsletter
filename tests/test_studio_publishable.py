@@ -101,8 +101,10 @@ class Publishable(unittest.TestCase):
         receipt = Path(self.tmp.name) / 'rules.json'
         previous = copy.deepcopy(protect_main.desired()); previous['enforcement'] = 'disabled'
         state = {'value': previous, 'calls': []}
-        def api(method, path, body=None):
+        def api(method, path, body=None, **kwargs):
             state['calls'].append((method, path))
+            if path.startswith('/rules/branches/main'): return []
+            if path == '/branches/main/protection': return None
             if path.startswith('/rulesets?'): return [{'id': 7, 'name': protect_main.NAME}]
             if method == 'PUT': state['value'] = copy.deepcopy(body); return {'id': 7, **body}
             return {'id': 7, **state['value']}
