@@ -1,1 +1,1 @@
-ARB: please republish FCMO-045BB8282222 and FCMO-5B5B447325A8 with source-backed event_at and date provenance; neither recorded_at nor first edition date establishes when either development happened, so both remain quarantined.
+ARB: please confirm whether FCMO-5B5B447325A8's primary Synopsys URL date (2026-09-30) is its event date and provide source-backed event_at/provenance for FCMO-045BB8282222; until explicit in a sealed release, both remain quarantined.
