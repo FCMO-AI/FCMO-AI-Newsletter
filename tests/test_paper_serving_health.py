@@ -11,6 +11,7 @@ from unittest import mock
 
 from tests import test_deployment_identity
 from tools import build_deployment_identity, verify_live_newsroom
+from tools import editorial_freshness
 from tests.oraculos import verificar_live_surfaces
 
 
@@ -77,6 +78,19 @@ class PaperServingHealthTests(unittest.TestCase):
             verificar_live_surfaces.check_paper_surfaces("browser", "https://example/", self.identity,
                                                         [story], {"state": "DELAYED"}, failures)
         self.assertTrue(any("es-419" in failure for failure in failures))
+
+    def test_editorial_health_cannot_use_a_recent_withdrawn_story(self):
+        stories = self.site / "data/stories.v2.json"
+        stories.write_text(json.dumps({"schema": "fcmo-stories-v2", "stories": [
+            {"id": "FCMO-AAAAAAAAAAAA", "status": "live", "event_at": "2026-09-11T00:00:00Z"},
+            {"id": "FCMO-BBBBBBBBBBBB", "status": "withdrawn", "event_at": "2026-10-05T00:00:00Z"},
+        ]}))
+        signal = self.root / "editorial.json"
+        with contextlib.redirect_stdout(io.StringIO()):
+            rc = editorial_freshness.main(["check", "--stories", str(stories),
+                "--now", "2026-10-05T05:00:00Z", "--signal-out", str(signal)])
+        self.assertEqual(rc, 1)
+        self.assertEqual(json.loads(signal.read_text())["metrics"]["newest_event_at"], "2026-09-11T00:00:00Z")
 
 
 if __name__ == "__main__":
