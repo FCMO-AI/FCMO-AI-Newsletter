@@ -14,6 +14,7 @@ class MockKit:
         self.subscriber_tags = {}
         self.form_members = {}
         self.tag_listing_lags = True
+        self.hidden_tag_names = set()
         self.subscribers = [{'id': 1, 'email_address': 'reader@example.org', 'state': 'active',
                              'fields': {}, 'created_at': '2026-10-05T12:00:00Z'}]
         owner = self
@@ -49,6 +50,8 @@ class MockKit:
                         return self.respond(503, {'errors': ['lost acknowledgement']})
                     return self.respond(201, {'broadcast': doc})
                 if path == '/v4/tags' and self.command == 'POST':
+                    existing = next((v for v in owner.tags if v['name'] == payload['name']), None)
+                    if existing: return self.respond(200, {'tag':existing})
                     tag = {'id':max([v['id'] for v in owner.tags]+[10])+1, 'name':payload['name']}
                     owner.tags.append(tag)
                     return self.respond(201, {'tag':tag})
@@ -71,7 +74,7 @@ class MockKit:
                     tag = int(path.split('/')[3])
                     values = [] if owner.tag_listing_lags else [v for v in owner.subscribers if tag in owner.subscriber_tags.get(v['id'],set())]
                     field = 'subscribers'
-                elif path == '/v4/tags': values, field = owner.tags, 'tags'
+                elif path == '/v4/tags': values, field = [v for v in owner.tags if v['name'] not in owner.hidden_tag_names], 'tags'
                 elif path == '/v4/forms':
                     values, field = [{'id': n} for n in (101,102,103,10007761,10007787,10007798)], 'forms'
                 else: return self.respond(404, {})

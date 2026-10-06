@@ -108,6 +108,35 @@ class ProviderTests(unittest.TestCase):
             self.assertEqual(len(server.tags),3)
             self.assertGreater(sum(c[0]=='POST' and '/subscribers/' in c[1] for c in server.calls),sync_count)
 
+    def test_tag_post_id_survives_lagging_listing_201_and_200(self):
+        env = {k:v for k,v in ENV.items() if not k.startswith('KIT_TAG_')}
+        for existing in (False, True):
+            with self.subTest(existing=existing), MockKit() as server:
+                server.hidden_tag_names = {'newsletter-en', 'newsletter-es-419', 'newsletter-zh-Hans'}
+                if not existing: server.tags = []
+                provider = KitProvider(env, base_url=server.url, intent=self.intent, sleep=lambda _:None)
+                provider.ensure_tags()
+                self.assertEqual(provider.memberships, {locale:tag['id'] for locale,tag in zip(('en','es-419','zh-Hans'),server.tags)})
+                self.assertEqual(sum(c[0]=='GET' and c[1]=='/v4/tags' for c in server.calls), 1)
+                self.assertEqual(sum(c[0]=='POST' and c[1]=='/v4/tags' for c in server.calls), 3)
+                provider.ensure_tags()
+                self.assertEqual(len(server.calls), 4)
+
+    def test_invalid_or_lost_tag_post_fails_without_relisting(self):
+        env = {k:v for k,v in ENV.items() if not k.startswith('KIT_TAG_')}
+        for response in ({}, {'tag': {'id': True}}, {'tag': {'id': 0}}, {'tag': {'id': '11'}}, {'tag': []}):
+            with self.subTest(response=response):
+                provider = KitProvider(env, intent=self.intent)
+                with patch.object(provider, 'pages', return_value=iter([])) as listing, patch.object(provider, 'request', return_value=response) as post:
+                    with self.assertRaises(DeliveryError): provider.ensure_tags()
+                    self.assertEqual(listing.call_count, 1)
+                    self.assertEqual(post.call_count, 1)
+                    self.assertEqual(provider.memberships, {})
+        with MockKit() as server:
+            server.tags = []; server.failures = [('POST',503,'/v4/tags')]
+            with self.assertRaises(DeliveryError): KitProvider(env,base_url=server.url).ensure_tags()
+            self.assertEqual([(c[0],c[1]) for c in server.calls], [('GET','/v4/tags'),('POST','/v4/tags')])
+
     def test_sync_keeps_locale_audiences_separate_and_precedes_broadcast(self):
         with MockKit() as server:
             server.subscribers.extend(dict(server.subscribers[0],id=n) for n in (2,3))
