@@ -35,7 +35,7 @@ def configure(client, env, *, offline=False):
         client.request('POST','templates',{'name':TEMPLATE_NAME,'type':'campaign','body':TEMPLATE_BODY})
     client.campaign_template()
     settings.update({
-        'app.site_name':'FCMO AI Diario', 'app.root_url':cfg.public_url,
+        'app.site_name':'FCMO AI Newsletter', 'app.root_url':cfg.public_url,
         'app.from_email':cfg.from_email, 'app.lang':'es',
         'app.enable_public_subscription_page':True, 'app.enable_public_archive':False,
         'app.show_optin_page':True, 'app.send_optin_confirmation':True,
@@ -59,7 +59,7 @@ def configure(client, env, *, offline=False):
         name = 'diario-'+locale
         matches = [v for v in lists if v['name']==name]
         if not matches:
-            client.request('POST','lists',{'name':name,'type':'public','optin':'double','tags':['fcmo-diario',locale],'description':'FCMO AI Diario · '+locale})
+            client.request('POST','lists',{'name':name,'type':'public','optin':'double','tags':['fcmo-diario',locale],'description':'FCMO AI Newsletter · '+locale})
         elif len(matches)!=1 or matches[0]['type']!='public' or matches[0]['optin']!='double':
             raise ValueError('existing list requires manual reconciliation')
     running = client.request('GET','campaigns?status=running&per_page=all')['results']

@@ -300,7 +300,7 @@ def render_subscribe(*, locale_code: str, path_prefix: str, base: str, portal_ur
 def subscribe_page_title(locale_code: str, portal_url: str | None) -> str:
     import os
     if ghost_signup_url(os.environ.get('FCMO_EMAIL_PUBLIC_URL')):
-        return {'en':'Get the Diario by email','es-419':'Recibe el Diario por correo','zh-Hans':'通过邮件阅读日报'}[locale_code]
+        return {'en':'Get the FCMO AI Newsletter by email','es-419':'Recibe la Newsletter de FCMO AI por correo','zh-Hans':'通过邮件订阅 FCMO AI Newsletter'}[locale_code]
     config = subscription_config()
     ghost_url = os.environ.get("GHOST_URL") or portal_url
     if ghost_url and ghost_url.endswith("#/portal/signup"):

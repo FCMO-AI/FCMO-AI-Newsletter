@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Dispatch the verified, fresh Diario through a configured provider adapter.
+"""Dispatch the verified, fresh FCMO AI Newsletter through a configured provider adapter.
 
 The legacy Ghost implementation remains available for compatibility. Kit and
 Listmonk are exercised through offline fixtures; delivery runs only on invocation.
@@ -216,7 +216,7 @@ class GhostClient:
             "updated_at": updated_at,
             "status": "published",
             "email_only": True,
-            "title": post.get("title", "FCMO AI Diario"),
+            "title": post.get("title", "FCMO AI Newsletter"),
             "html": post.get("html", ""),
             "custom_excerpt": post.get("custom_excerpt", ""),
         }]}
@@ -268,7 +268,7 @@ def dispatch(
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Dispatch a live-verified FCMO AI Diario through the selected adapter.")
+    parser = argparse.ArgumentParser(description="Dispatch a live-verified FCMO AI Newsletter through the selected adapter.")
     parser.add_argument("--stories", type=Path, required=True)
     parser.add_argument("--status", type=Path, required=True)
     parser.add_argument("--live-verify", type=Path, required=True)

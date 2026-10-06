@@ -1,4 +1,8 @@
-# L27 round 2 — Kit forms + Brevo v3
+# L27 — Kit forms + Brevo v3 and product naming
+
+## Round 3 — product naming
+
+The email product, sender, and subscription are named **FCMO AI Newsletter** in EN, es-419, and zh-Hans signup copy, email headers and subjects, opt-in, privacy notices, community configuration, and workflow display names. The Spanish signup title is “Recibe la Newsletter de FCMO AI por correo.” Existing `diario` web routes and `fcmo-diario` technical idempotency markers remain unchanged. The reader-facing string regression is `tests/test_email_brand.py`.
 
 **Local implementation for review on `c5/email-kit`; no push, external network, provider account changes or real email.** The four adapters `kit`, `brevo`, `listmonk`, `fake` share the unchanged provider contract. L26's gateway, consent journal, SES, installation and host backup remain in place. Production activation, live API shapes/free-plan access and repeated autonomous delivery remain unproved.
 

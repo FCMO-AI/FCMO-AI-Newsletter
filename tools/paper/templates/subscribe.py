@@ -90,9 +90,9 @@ def subscribe_block(zone: str, locale: str, *, base: str = "/FCMO-AI-Newsletter/
 
 def diario_form(locale, base, form, page=False):
     copy = {
-        'en': ('Get the Diario by email', 'Read the daily AI digest in English, Spanish or Simplified Chinese.', 'Email', 'Email language', 'I want to receive FCMO AI Diario and have read the privacy notice.', 'Subscribe', 'Confirm your email to begin. Every edition includes an unsubscribe link.', 'Privacy notice', 'Complete privacy notice'),
-        'es-419': ('Recibe el Diario por correo', 'Lee el resumen diario de IA en inglés, español o chino simplificado.', 'Correo', 'Idioma del correo', 'Quiero recibir FCMO AI Diario y he leído el aviso de privacidad.', 'Suscribirme', 'Confirma tu correo para empezar. Cada edición incluye un enlace de baja.', 'Aviso de privacidad', 'Aviso integral'),
-        'zh-Hans': ('通过邮件阅读日报', '选择英语、西班牙语或简体中文的每日人工智能摘要。', '邮箱', '邮件语言', '我希望收到 FCMO AI Diario，并已阅读隐私声明。', '订阅', '确认邮箱后开始发送。每期邮件均提供退订链接。', '隐私声明', '完整隐私声明'),
+        'en': ('Get the FCMO AI Newsletter by email', 'Read the daily AI digest in English, Spanish or Simplified Chinese.', 'Email', 'Email language', 'I want to receive the FCMO AI Newsletter and have read the privacy notice.', 'Subscribe', 'Confirm your email to begin. Every edition includes an unsubscribe link.', 'Privacy notice', 'Complete privacy notice'),
+        'es-419': ('Recibe la Newsletter de FCMO AI por correo', 'Lee el resumen diario de IA en inglés, español o chino simplificado.', 'Correo', 'Idioma del correo', 'Quiero recibir la Newsletter de FCMO AI y he leído el aviso de privacidad.', 'Suscribirme', 'Confirma tu correo para empezar. Cada edición incluye un enlace de baja.', 'Aviso de privacidad', 'Aviso integral'),
+        'zh-Hans': ('通过邮件订阅 FCMO AI Newsletter', '阅读英语、西班牙语或简体中文的每日人工智能摘要。', '邮箱', '邮件语言', '我希望收到 FCMO AI Newsletter，并已阅读隐私声明。', '订阅', '确认邮箱后开始发送。每期邮件均提供退订链接。', '隐私声明', '完整隐私声明'),
     }[locale]
     prefix = {'en':'', 'es-419':'es/', 'zh-Hans':'zh/'}[locale]
     root = base.rstrip('/')+'/'+prefix

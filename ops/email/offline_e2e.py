@@ -106,7 +106,7 @@ def main():
             subprocess.run([str(args.pg_bin/'psql'),'-h','127.0.0.1','-p',str(pgport),'-U','listmonk','-d','listmonk','-c',"UPDATE settings SET value='false'::jsonb WHERE key='app.check_updates'"],stdout=subprocess.DEVNULL,check=True)
             app=subprocess.Popen([str(args.listmonk),'--config',str(config),'--static-dir',str(ROOT/'ops/email/static')],stdout=(temp/'app.log').open('w'),stderr=subprocess.STDOUT)
             cfg=MailConfig(f'http://127.0.0.1:{appport}','offline-api',key,f'http://127.0.0.1:{appport}',
-                           'FCMO AI Diario <daily@example.org>','Offline preview — postal address required before activation',
+                           'FCMO AI Newsletter <daily@example.org>','Offline preview — postal address required before activation',
                            'https://fcmo-ai.github.io/FCMO-AI-Newsletter','offline-consent-key-'+('x'*32))
             client=ListmonkClient(cfg)
             wait_for(lambda:client.request('GET','settings'))

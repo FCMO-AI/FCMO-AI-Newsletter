@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Render the FCMO AI Diario as a small, readable, Spanish email.
+"""Render the FCMO AI Newsletter as a small, readable multilingual email.
 
 The renderer is deliberately data-only: it accepts already published Story
 records, escapes every reader-facing value, and emits both HTML and plain text.

@@ -1,4 +1,4 @@
-"""Provider boundary for the Diario; no build path instantiates authenticated clients."""
+"""Provider boundary for FCMO AI Newsletter; builds never instantiate authenticated clients."""
 from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime

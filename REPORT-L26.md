@@ -1,4 +1,4 @@
-# L26 — FCMO AI Diario email
+# L26 — FCMO AI Newsletter email
 
 **Implemented and proved offline; production email is not activated and no reader was emailed. No push was performed.** The chosen route is Listmonk 6.2.0 + Amazon SES, with the evidence and alternative costs in [EMAIL-ROUTE.md](reports/EMAIL-ROUTE.md).
 

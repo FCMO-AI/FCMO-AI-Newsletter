@@ -163,7 +163,7 @@ class BrevoProvider:
             state.setdefault('attempted', []).append(idempotency_key)
             journal.seek(0); json.dump(state, journal); journal.truncate(); journal.flush(); os.fsync(journal.fileno())
             payload = {'name': idempotency_key, 'tag': idempotency_key, 'type': 'classic',
-                'sender': {'email': self.env['FCMO_EMAIL_FROM'], 'name': 'FCMO AI Diario'},
+                'sender': {'email': self.env['FCMO_EMAIL_FROM'], 'name': 'FCMO AI Newsletter'},
                 'subject': mail.subject, 'htmlContent': mail.html,
                 'recipients': {'listIds': [self.lists[locale]]}, 'inlineImageActivation': False}
             try:

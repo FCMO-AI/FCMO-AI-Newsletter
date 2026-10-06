@@ -1,11 +1,9 @@
-# 2026-10-05 Diario preview
+# FCMO AI Newsletter previews — 2026-10-06
 
-These are **actual HTML and plain-text bodies produced by Listmonk 6.2.0 and captured by a local SMTP sink**, using the committed public edition. No provider or reader was contacted. The postal address is a visible preview placeholder; recipient URLs use `mail.example.org` and a synthetic token.
+The 2026-10-06 English, Spanish, and Simplified Chinese previews are generated from the current public story snapshot by `tools/email_render.py`. They use an explicit offline postal-address placeholder and synthetic `mail.example.org` preference/unsubscribe URLs; no provider or reader was contacted. The 2026-10-05 HTML and plain-text files remain the captured Listmonk 6.2.0 SMTP-sink output, with the subscription-config product name refreshed in the shell and footer.
 
-Open [English](2026-10-05-en.html), [Español](2026-10-05-es-419.html), or [简体中文](2026-10-05-zh-Hans.html). PNGs show each email and the generated site signup at 390 and 1440 pixels. The HTML keeps the real public article links; these resolve to the newspaper’s dated routes.
+Open [English](2026-10-06-en.html), [Español](2026-10-06-es-419.html), or [简体中文](2026-10-06-zh-Hans.html). Existing PNGs show the dated 2026-10-05 capture and signup forms at 390 and 1440 pixels; they are historical screenshots, not today's render.
 
-[offline-proof.json](offline-proof.json) records confirmation, confirmed/unconfirmed audience behavior, repeat safety, unsubscribe, bounce/complaint suppression and unsigned-feedback rejection. [browser-proof.json](browser-proof.json) records twelve final email/signup checks. [backup-proof.json](backup-proof.json) records real encrypted-backup/decryption checks and the substituted container boundary. [acceptance.json](acceptance.json) summarizes final suite and gate results. [red-first.txt](red-first.txt) is the failing pre-implementation test record, with the local checkout path redacted.
+The 2026-10-05 offline proof records confirmation, confirmed/unconfirmed audience behavior, repeat safety, unsubscribe, bounce/complaint suppression and unsigned-feedback rejection. Browser and backup proof files apply to that captured run. The canonical IDs in the current three emails are taken from the existing public story snapshot; this task does not independently re-research editorial claims.
 
-The canonical IDs in all three emails are `FCMO-9E06CC5FA8A5`, `FCMO-A2E27CF321FE` and `FCMO-853344D6403E`: Brazil data-center incentives, the exact selected-allele frequency spectrum, and the GPT-Rosalind posted billing schedule. Prose is taken from the existing native editions; this task does not independently re-research their editorial claims.
-
-To regenerate, use `ops/email/offline_e2e.py`, then `ops/email/review_preview.cjs` with a real generated newspaper candidate. Production mailbox rendering, inbox placement and autonomous daily delivery still require the activation proof in [REPORT-L26.md](../../REPORT-L26.md).
+Production mailbox rendering, inbox placement and autonomous daily delivery still require the activation proof in [REPORT-L26.md](../../REPORT-L26.md).
