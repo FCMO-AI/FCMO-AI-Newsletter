@@ -33,3 +33,14 @@ local, sin push ni correo real; la prueba de producción queda pendiente.
 ## L11 — publicación protegida
 
 Ver REPORT-L11-pub.md (evidencia histórica).
+
+## L29 — integración local de campaña 5
+
+Informe completo: [REPORT-L29.md](REPORT-L29.md), con las primeras ocho líneas
+para Matías. Studio/translate y email-kit integrados, seam de aprobación →
+intención → dispatcher → estado de Studio verificado y L27e corregido red-first.
+Ramas antiguas auditadas; se integró sólo el trabajo único querido de publicación.
+
+**Resumen:** 813 tests OK (4 omitidos), 14/14 gates por proveedor y release 7/7.
+Sin push remoto, envío real ni Kit live. Chromium ausente: aceptación visual y
+dogfood completo pendientes, sin omitir el navegador ni declarar producción.
