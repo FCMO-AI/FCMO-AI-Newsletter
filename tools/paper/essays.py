@@ -119,8 +119,8 @@ def load_piece(directory: Path) -> dict:
             raise ValueError(f"{directory}: invalid provenance in {locale}")
         if piece["locales"][locale] == "ready" and row["origin"] != "agent_draft" and row["human_reviewed"] is not True:
             raise ValueError(f"{directory}: ready {locale} has not been human-reviewed")
-        if row["origin"] == "agent_draft" and row["human_reviewed"] is not False:
-            raise ValueError(f"{directory}: agent draft falsely claims human review")
+        if row["human_reviewed"] is True and not str(row.get("reviewer", "")).strip():
+            raise ValueError(f"{directory}: human review needs a named reviewer")
         fn_ids = set(doc.get("footnotes", {}))
         if fn_ids != source_fn_ids:
             raise ValueError(f"{directory}: footnote id mismatch in {locale}")

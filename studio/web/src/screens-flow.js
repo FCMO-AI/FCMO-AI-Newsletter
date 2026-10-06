@@ -121,17 +121,27 @@ export async function translateScreen (root, slug, fromLoc, targetArg) {
     const input = h('div', { class: 'tr-edit', contenteditable: readOnly ? 'false' : 'true', 'aria-label': t('fn.heading') }); input.append(inlineToDom(tdoc.footnotes[id] || [], ord, { tokens: true })); input.addEventListener('input', () => { tdoc.footnotes[id] = domToInline(input); changed() }); rows.append(h('div', { class: 'tr-cols tr-row' }, h('div', { class: 'tr-src' }, inlineToDom(body, ord, { tokens: true })), h('div', { class: 'tr-tgt' }, input)))
   }
   async function mark (st, reviewed) { await save(); if (dirty) throw new Error('Save pending'); const r = await post(`/api/pieces/${slug}/locale/${target}/state`, { state: st, reviewed, confirmation: target === 'zh-Hans' && reviewed ? 'Leí y entiendo el texto chino' : '' }); toast('✓'); return r }
-  const reviewBtn = h('button', { class: 'btn primary small', type: 'button', onclick: () => {
+  const reviewBtn = h('button', { class: 'btn primary small', type: 'button', disabled: readOnly || meta.author !== session.me.user, onclick: () => {
     const doIt = async close => { await save(); await mark('ready', true); close && close(); route2() }
     if (target === 'zh-Hans') { const cb = h('input', { type: 'checkbox' }); modal({ title: t('tr.review'), body: [h('p', null, t('tr.zh.ask')), h('label', { class: 'check' }, cb, ' ', t('tr.zh.confirm'))], actions: [{ label: t('tr.cancel') }, { label: t('tr.confirm'), kind: 'primary', onclick: close => { if (cb.checked) doIt(close) } }] }) } else doIt()
   } }, t('tr.review'))
   const route2 = () => { location.hash = `#/p/${slug}/${fromLoc}/translate/${target}`; location.reload() }
   const status = langState.state === 'ready' && langState.reviewed ? h('p', { class: 'tr-status ok' }, t('tr.reviewed', { who: langState.by || '', when: langState.at ? ago(langState.at, t) : '' })) : h('p', { class: 'tr-status' }, t('state.' + (langState.state || 'empty')), (langState.origin || '').startsWith('agent_') ? ' · ' + t('tr.agent') : '')
-  const assist = h('button', { class: 'btn small ghost', type: 'button', onclick: async () => { await save(); await suggestions(slug, target, 'translate', assist) } }, t('tr.assist'))
+  const assist = h('button', { class: 'btn small ghost', type: 'button', disabled: readOnly || meta.author !== session.me.user, onclick: async () => {
+    await save(); if (dirty) return
+    if (srcLoc !== 'es-419') { await suggestions(slug, target, 'translate', assist); return }
+    const run = async close => {
+      close && close(); assist.disabled = true; assist.textContent = t('tr.busy')
+      try { await post(`/api/pieces/${slug}/translate`, { base_rev: rev, replace: true }); toast(t('tr.done')); route2() }
+      catch (e) { const current = await get(`/api/pieces/${slug}`).catch(() => null); if (current) rev = current.head_rev; toast(e.data?.error_plain || t('err.generic'), 'bad'); assist.disabled = false; assist.textContent = t('tr.both') }
+    }
+    if (LOCS.filter(l => l !== srcLoc).some(l => meta.locales[l]?.state !== 'empty')) modal({ title: t('tr.replace'), body: t('tr.replace.body'), actions: [{ label: t('common.cancel') }, { label: t('tr.both'), kind: 'primary', onclick: run }] })
+    else run()
+  } }, t(srcLoc === 'es-419' ? 'tr.both' : 'tr.assist'))
   const tabs = h('nav', { class: 'lang-tabs', 'aria-label': t('tr.pick') }, LOCS.filter(l => l !== srcLoc).map(l => h('a', { href: `#/p/${slug}/${fromLoc}/translate/${l}`, class: 'lt ' + ((meta.locales[l] || {}).state || 'empty'), 'aria-current': l === target ? 'page' : null }, LOCALE_SHORT[l], ' ', h('span', { class: 'lt-dot' }, { ready: '●', drafting: '◐', later: '⏸', empty: '○' }[(meta.locales[l] || {}).state || 'empty']))))
   root.append(shell(h('div', { class: 'flow tr' }, crumbs(slug, meta.title, t('tr.title')),
     h('div', { class: 'flow-head' }, h('h1', null, t('tr.title')), tabs, state),
-    h('div', { class: 'tr-actions' }, status, h('div', { class: 'btn-row' }, reviewBtn, h('button', { class: 'btn small', type: 'button', onclick: async () => { await mark('later', false); route2() } }, '⏸ ', t('tr.later')), langState.state === 'ready' ? h('button', { class: 'btn small ghost', type: 'button', onclick: async () => { await mark('drafting', false); route2() } }, t('tr.draft')) : null, assist, h('a', { class: 'btn small ghost', href: `#/p/${slug}/${target}` }, t('tr.edit')))),
+    h('div', { class: 'tr-actions' }, status, meta.translation_error ? h('p', { class: 'notice', role: 'alert' }, meta.translation_error) : null, h('div', { class: 'btn-row' }, reviewBtn, h('button', { class: 'btn small', type: 'button', onclick: async () => { await mark('later', false); route2() } }, '⏸ ', t('tr.later')), langState.state === 'ready' ? h('button', { class: 'btn small ghost', type: 'button', onclick: async () => { await mark('drafting', false); route2() } }, t('tr.draft')) : null, assist, h('a', { class: 'btn small ghost', href: `#/p/${slug}/${target}` }, t('tr.edit')))),
     head, rows), { active: 'home', wide: true }))
   return () => { dead = true; clearTimeout(timer); clearInterval(hb); if (dirty && !readOnly) { const blocks = src.doc.blocks.map(b => byId.get(b.id)).filter(Boolean); fetch(`/api/pieces/${slug}/doc/${target}`, { method: 'PUT', keepalive: true, credentials: 'same-origin', headers: { 'content-type': 'application/json', 'x-csrf-token': session.me.csrf }, body: JSON.stringify({ base_rev: rev, doc: { ...tdoc, blocks }, cursor: {} }) }).catch(() => {}) } if (!readOnly) del(`/api/pieces/${slug}/lock/${target}`).catch(() => {}) }
 }
@@ -191,14 +201,23 @@ export async function publishScreen (root, slug) {
     clear(box); clear(act); box.append(h('p', { class: 'muted', role: 'status' }, t('chk.running')))
     const list = await checksList(slug, c => { location.hash = meta.kind === 'issue' ? `#/issues/${slug}` : `#/p/${slug}/${c.loc || meta.source_locale}`; if (c.block_id) setTimeout(() => window.__studioGoto && window.__studioGoto(c.block_id), 800) })
     clear(box); box.append(list)
-    const bad = list.list.filter(c => !c.ok)
+    const bad = list.list.filter(c => !c.ok && !c.approval_satisfiable)
     const mt = LOCS.filter(l => (meta.locales[l] || {}).state === 'ready' && ((meta.locales[l] || {}).origin || '').startsWith('agent_') && !(meta.locales[l] || {}).reviewed)
-    if (mt.length) box.append(h('p', { class: 'notice soft' }, t('pub.mt', { langs: mt.map(l => LOCALE_NAME[l]).join(', ') })))
+    if (mt.length) box.append(h('p', { class: 'notice soft' }, t('pub.mt', { langs: mt.map(l => LOCALE_NAME[l]).join(', '), who: other() })))
     const ask = h('button', { class: 'btn primary big', type: 'button', disabled: bad.length > 0 || meta.author !== session.me.user, onclick: async () => { try { await post(`/api/pieces/${slug}/review/request`); toast(t('pub.sent', { who: other() })); location.hash = '#/' } catch { toast(t('err.generic'), 'bad') } } }, t('pub.ask'))
     act.append(ask, h('button', { class: 'btn', type: 'button', onclick: draw }, t('pub.rerun'))); if (bad.length) act.append(h('span', { class: 'muted' }, t('pub.blocked', { n: bad.length })))
   }
   const mount = () => root.append(shell(h('div', { class: 'flow pub' }, crumbs(slug, meta.title, t('ed.publish')), h('h1', null, t('pub.title', { title: meta.title })), h('p', { class: 'lede' }, t('pub.lead', { who: other() })),
-    h('div', { class: 'sheet' }, h('p', { class: 'notice soft' }, t('pub.public')), box, h('p', { class: 'reviewer' }, h('span', { class: 'avatar' }, other()[0]), t('pub.reviewer', { who: other() })), act)), { active: 'home' }))
+    h('div', { class: 'sheet' }, h('p', { class: 'notice soft' }, t('pub.public')),
+      meta.kind !== 'issue' ? h('section', { class: 'distribution' }, h('h2', null, t('pub.destinations')),
+        h('p', null, t('pub.site')), h('p', null, t('pub.feeds')),
+        h('label', { class: 'check' }, h('input', { type: 'checkbox', checked: meta.meta?.distribution?.email === true, disabled: meta.author !== session.me.user || !['draft', 'changes_requested', 'amending'].includes(meta.state), onchange: async e => {
+          e.target.disabled = true
+          try { const result = await put(`/api/pieces/${slug}/distribution`, { base_rev: meta.head_rev, email: e.target.checked }); meta.head_rev = result.rev; meta.meta.distribution = result.distribution; await draw() }
+          catch (err) { e.target.checked = !e.target.checked; toast(err.data?.error_plain || t('err.generic'), 'bad') }
+          finally { e.target.disabled = false }
+        } }), ' ', t('pub.email')), h('p', { class: 'hint' }, t('pub.email.after'))) : null,
+      h('h2', null, t('pub.threshold')), h('p', null, t('pub.approval', { who: other() })), box, h('p', { class: 'reviewer' }, h('span', { class: 'avatar' }, other()[0]), t('pub.reviewer', { who: other() })), act)), { active: 'home' }))
   mount()
   await draw()
   return null
@@ -270,9 +289,12 @@ export async function progressScreen (root, slug) {
       return
     }
     box.append(h('ol', { class: 'steps' }, (p.timeline || []).map(s => h('li', { class: s.state === 'failed' ? 'failed' : 'done' }, h('span', { class: 'dot', 'aria-hidden': 'true' }, s.state === 'failed' ? '!' : '✓'), h('span', null, s.plain_es)))))
+    if (p.email?.state === 'sent') box.append(h('p', { class: 'result ok' }, t('prog.email.sent')))
+    else if (p.email?.state === 'pending') box.append(h('p', { class: 'muted' }, t('prog.email.pending')))
     if (p.state === 'published') box.append(h('div', { class: 'result ok' }, h('h2', null, t('prog.done')), h('p', null, t('prog.live')), h('ul', null, (p.urls || []).map(u => h('li', null, h('a', { href: u.url, target: '_blank', rel: 'noopener' }, u.url)))), h('a', { class: 'btn', href: '#/' }, t('prog.home'))))
     else if (p.state === 'failed') box.append(h('div', { class: 'result bad' }, h('h2', null, t('prog.failed')), h('p', null, p.error_plain), h('a', { class: 'btn', href: `#/p/${slug}/${meta.source_locale}` }, t('attn.open'))))
     else tm = setTimeout(poll, 1500)
+    if (p.state === 'published' && p.email?.state === 'pending') tm = setTimeout(poll, 30000)
   }
   poll()
   root.append(shell(h('div', { class: 'flow prog' }, crumbs(slug, meta.title, t('prog.title')), head, h('p', { class: 'lede' }, meta.title), box), { active: 'home' }))

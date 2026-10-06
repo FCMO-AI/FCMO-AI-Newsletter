@@ -9,9 +9,10 @@ def checks(store, preview, value):
     source = payload['piece']['source_locale']; docs = payload['docs']; source_doc = docs[source]
     source_ids = [b['id'] for b in source_doc['blocks']]
     source_notes = set(source_doc['footnotes'])
+    add('translation-result', not payload.get('translation_error'), payload.get('translation_error') or 'No hay errores de traducción pendientes.', 'No unresolved translation errors.', source)
     for loc in LOCALES:
         state = piece['locale_states'][loc]['state']; doc = docs.get(loc)
-        add('language-' + loc, state in ('ready', 'later'), 'Completa este idioma o elige publicar después.', 'Complete this language or choose publish later.', loc)
+        add('language-' + loc, state == 'ready' if piece['author'] == 'javier' and source == 'es-419' else state in ('ready', 'later'), 'Completa inglés, español y chino antes de publicar.' if piece['author'] == 'javier' and source == 'es-419' else 'Completa este idioma o elige publicar después.', 'Complete this language or choose publish later.', loc)
         if state != 'ready': continue
         add('heading-' + loc, doc and doc['title'].strip() and doc['dek'].strip() and doc['blocks'], 'Completa el título, la introducción y el texto.', 'Complete the title, introduction and body.', loc)
         valid = True
@@ -19,6 +20,15 @@ def checks(store, preview, value):
         except (ValueError, TypeError): valid = False
         add('document-' + loc, valid, 'Revisa la estructura y las notas al pie.', 'Check the document structure and footnotes.', loc)
         if not doc: continue
+        from studio.translation import validate_translation, TranslationError
+        fidelity = ''
+        try: validate_translation(source_doc, doc, loc)
+        except TranslationError as exc: fidelity = str(exc)
+        add('fidelity-' + loc, not fidelity, fidelity or 'Párrafos, notas, citas, enlaces, cifras y fechas completos.', 'Paragraphs, notes, quotations, links, numbers and dates preserved.', loc)
+        row = payload['provenance'].get(loc, {})
+        reviewed = row.get('human_reviewed') is True and bool(row.get('reviewer'))
+        add('review-' + loc, reviewed, 'Revisión humana: marca este idioma revisado o pide la aprobación de ' + ('Matías.' if piece['author'] == 'javier' else 'Javier.'), 'Human review: mark this language reviewed or request the other person’s approval.', loc)
+        results[-1]['approval_satisfiable'] = True
         add('alignment-' + loc, [b['id'] for b in doc['blocks']] == source_ids and set(doc['footnotes']) == source_notes,
             'Conserva los mismos párrafos y notas en cada idioma.', 'Keep the same paragraphs and notes in each language.', loc)
         def tokens(document):

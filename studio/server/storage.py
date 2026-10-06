@@ -119,16 +119,17 @@ class Store:
     def create(self, user, kind, title, source_locale):
         if user not in NAMES or kind not in ('essay', 'letter', 'note') or not isinstance(title, str): raise ValueError('Completa los datos de la publicación.')
         locale(source_locale)
-        # English stays canonical until the operator adopts Q2.
-        if source_locale != 'en' and os.environ.get('STUDIO_ALLOW_NON_EN_SOURCE') != '1':
-            raise ValueError('El idioma original aún debe ser inglés; falta la decisión editorial.')
+        # Operator decision 2026-10-05: Javier writes in Spanish.
+        if source_locale not in ('en', 'es-419') and os.environ.get('STUDIO_ALLOW_NON_EN_SOURCE') != '1':
+            raise ValueError('Puedes escribir en español o inglés; el original chino aún no está habilitado.')
         with self.mutex:
             value = (re.sub('[^a-z0-9]+', '-', title.lower()).strip('-')[:60] or 'ensayo') + '-' + secrets.token_hex(4)
             stamp = utc()
             piece = {'schema': 'fcmo-piece-v1', 'id': 'FCMO-P-' + secrets.token_hex(6), 'kind': kind, 'slug': value,
                      'authors': [{'key': user, 'name': NAMES[user]}], 'brand': 'fcmo' if user == 'javier' else 'fcmo-ai',
                      'source_locale': source_locale, 'status': 'published', 'first_published_at': stamp, 'updated_at': stamp,
-                     'locales': {loc: 'pending' for loc in LOCALES}, 'hero': None, 'tags': [], 'corrections': [], 'withdrawal': None}
+                     'locales': {loc: 'pending' for loc in LOCALES}, 'hero': None, 'tags': [], 'corrections': [], 'withdrawal': None,
+                     'distribution': {'email': kind in ('essay', 'letter')}}
             doc = {'schema': 'fcmo-essay-doc-v1', 'locale': source_locale, 'title': title, 'dek': '', 'blocks': [], 'footnotes': {}}
             payload = {'piece': piece, 'docs': {source_locale: doc}, 'sources': [], 'figures': {}, 'provenance': {}, 'block_provenance': {}, 'source_hashes': {}}
             states = {loc: {'state': 'drafting' if loc == source_locale else 'empty', 'human_reviewed': False} for loc in LOCALES}
@@ -141,6 +142,7 @@ class Store:
             row = dict(self._row(value)); payload = json.loads(row.pop('payload_json'))
             row['locale_states'] = json.loads(row.pop('locale_states_json')); row['cursor'] = json.loads(row.pop('cursor_json'))
             row['source_locale'] = payload['piece']['source_locale']
+            row['translation_error'] = payload.get('translation_error', '')
             row['locales'] = {loc: {**state, 'reviewed': state['human_reviewed'], 'origin': payload['provenance'].get(loc, {}).get('origin'), 'words': len(plain_text(payload['docs'].get(loc, {'blocks': []})).split())} for loc, state in row['locale_states'].items()}
             row['words'] = row['locales'][row['source_locale']]['words']
             row['updated_at'] = datetime.fromtimestamp(row['saved_at'], timezone.utc).isoformat()
@@ -181,6 +183,7 @@ class Store:
             source = payload['piece']['source_locale']; old = payload['docs'].get(loc)
             payload['docs'][loc] = copy.deepcopy(doc); cursors[loc] = cursor
             if old != doc:
+                payload.pop('translation_error', None)
                 states[loc] = {'state': 'drafting', 'human_reviewed': False}
                 payload['piece']['locales'][loc] = 'pending'
                 prior = payload['provenance'].get(loc, {})
@@ -226,6 +229,7 @@ class Store:
         if loc == 'zh-Hans' and reviewed and confirmation != 'Leí y entiendo el texto chino': raise ValueError('Confirma que leíste y entiendes el texto chino.')
         with self.mutex:
             self._editable(value); self._lock_guard(value, loc, user)
+            if reviewed and self.piece(value)['author'] != user: raise ValueError('El autor marca los idiomas; la otra persona los revisa al aprobar la publicación.')
             payload = self.payload(value); states = self.piece(value)['locale_states']
             if state == 'ready' and not (payload['issue']['title'][loc].strip() if 'issue' in payload else (loc in payload['docs'] and payload['docs'][loc]['title'].strip())): raise ValueError('Completa el idioma antes de marcarlo listo.')
             stamp = utc(); states[loc] = {'state': state, 'human_reviewed': reviewed if state == 'ready' else False, 'by': user, 'at': stamp}
@@ -238,6 +242,15 @@ class Store:
             payload['piece']['locales'][loc] = 'ready' if state == 'ready' else 'pending'
             self._put(value, payload, user, states=states)
             return states[loc]
+    def distribution(self, value, user, base_rev, email):
+        if type(email) is not bool: raise ValueError('Elige si quieres enviar por correo.')
+        with self.mutex:
+            self._editable(value); piece = self.piece(value)
+            if piece['author'] != user: raise ValueError('Solo el autor puede elegir el envío por correo.')
+            if type(base_rev) is not int or piece['head_rev'] != base_rev: raise Conflict(self.doc(value, piece['source_locale']))
+            payload = self.payload(value)
+            payload['piece']['distribution'] = {'email': email}
+            return {'rev': self._put(value, payload, user), 'distribution': payload['piece']['distribution']}
     def checkpoint(self, value, user, name=None):
         with self.mutex:
             row = self._row(value); rev = row['head_rev']

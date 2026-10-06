@@ -9,3 +9,14 @@ Regenerated the canonical release source, newsroom surfaces/status, frozen overl
 Verification: `python3 -m unittest discover -s tests` — 603 passed, 3 skipped; paper build — 531 total routes / 129 Story routes; `tools/verify_release.py` — 7/7 gates passed. The two new downstream public-research receipts were generated offline and record zero source URLs reopened; no new source re-research is claimed. These are local build/release checks; no deployment or live-origin verification was performed.
 
 **Resumen:** El ledger y las pruebas ya reflejan 43 historias activas; se conservó la cuarentena sintética para fechas inválidas. La compilación produjo 129 rutas localizadas y las siete compuertas pasaron. No se desplegó.
+
+## L28a — Studio: español, traducciones y correo
+
+Entrega de esta lane: [REPORT-L28a.md](REPORT-L28a.md). Se implementaron el botón
+ES→EN/ZH, controles de estructura y procedencia, revisión humana obligatoria y
+la intención de correo con hook para L28b. Los tests específicos e integración,
+los 14 gates y la integridad de release pasan. La aceptación visual y el dogfood
+completo siguen pendientes de Playwright, Chromium y axe-core. Sin push.
+
+**Resumen L28a:** código probado localmente; no se publicó ni se envió correo.
+La verificación completa en navegador permanece abierta.

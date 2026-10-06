@@ -15,6 +15,7 @@ from .checks import checks
 from .preview import Preview, RendererUnavailable
 from .publishing import GitHub, Workspace, Publisher, Refused, UnknownEffect
 from .storage import Store, Conflict, Locked, atomic
+from studio.translation import translate, TranslationError
 from .validation import locale, slug, validate_webp
 
 PREVIEW_CSP = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; font-src 'self'; connect-src 'none'; frame-ancestors 'self'; form-action 'none'; base-uri 'none'"
@@ -61,10 +62,10 @@ class Application:
                  'plain_en': ('Javier' if u == 'javier' else 'Matías') + ' needs to sign in to GitHub.'}
                 for u in ('javier', 'matias')]
             return {'credentials': statuses, 'live_enabled': self.live_enabled, 'dry_run': self.dry_run}
-        if path == '/api/me' and method == 'GET': return {'user': user, 'name': session['name'], 'ui_lang': session['ui_lang'], 'csrf': session['csrf'], 'other': 'Matías' if user == 'javier' else 'Javier', 'allow_non_en_source': __import__('os').environ.get('STUDIO_ALLOW_NON_EN_SOURCE') == '1'}
+        if path == '/api/me' and method == 'GET': return {'user': user, 'name': session['name'], 'ui_lang': session['ui_lang'], 'csrf': session['csrf'], 'other': 'Matías' if user == 'javier' else 'Javier', 'allow_non_en_source': __import__('os').environ.get('STUDIO_ALLOW_NON_EN_SOURCE') == '1', 'allow_es_source': True}
         if path == '/api/pieces':
             if method == 'GET': return self.store.list(query.get('state', [None])[0])
-            if method == 'POST': return self.store.create(user, body.get('kind', 'essay'), body.get('title', ''), body.get('source_locale', 'en'))
+            if method == 'POST': return self.store.create(user, body.get('kind', 'essay'), body.get('title', ''), body.get('source_locale', 'es-419' if user == 'javier' else 'en'))
         if path == '/api/site/rollback' and method == 'POST':
             if body.get('confirmation') != 'Volver a la última versión comprobada': raise ValueError('Confirma que quieres volver a la última versión comprobada.')
             if not self.live_enabled: raise Refused('La publicación en vivo aún no está habilitada.')
@@ -122,6 +123,10 @@ class Application:
         if len(rest) == 3 and rest[0] == 'locale' and rest[2] == 'state' and method == 'POST':
             state = self.store.locale_state(value, locale(rest[1]), user, body.get('state'), body.get('reviewed', False), body.get('confirmation', ''))
             return {**state, 'rev': self.store.piece(value)['head_rev']}
+        if rest == ['translate'] and method == 'POST':
+            return translate(self.store, value, user, body.get('base_rev'), replace=body.get('replace') is True)
+        if rest == ['distribution'] and method == 'PUT':
+            return self.store.distribution(value, user, body.get('base_rev'), body.get('email'))
         if rest == ['versions']:
             if method == 'GET': return self.store.versions(value)
             if method == 'POST': return self.store.checkpoint(value, user, body.get('name'))
@@ -240,6 +245,7 @@ class Handler(BaseHTTPRequestHandler):
         except Locked as exc: self.reply(409, {'error_plain': ('Javier' if exc.owner == 'javier' else 'Matías') + ' está editando.', 'by': exc.owner})
         except (Refused, UnknownEffect) as exc: self.reply(409, {'error_plain': str(exc)})
         except RendererUnavailable as exc: self.reply(503, {'error_plain': str(exc)})
+        except TranslationError as exc: self.reply(400, {'error_plain': str(exc)})
         except (ValueError, TypeError, AttributeError, OverflowError): self.reply(400, {'error_plain': 'Revisa los datos enviados.'})
         except KeyError: self.reply(404, {'error_plain': 'La página no existe.'})
         except Exception: self.reply(503, {'error_plain': 'No se pudo completar la operación. Tu última versión guardada sigue disponible.'})

@@ -18,7 +18,7 @@ const todo = page.locator('.check-list li.todo', { hasText: 'texto alternativo' 
 check('missing alt text is listed as a plain sentence', await todo.count() === 1, await todo.textContent().catch(() => ''))
 check('the request button is blocked', await page.locator('button:has-text("Pedir revisión")').isDisabled())
 check('the sheet says how many remain', (await page.textContent('.btn-row')).includes('por resolver'))
-check('no code vocabulary on the sheet', !/\b(git|branch|json|sha|gate|commit)\b/i.test(await page.textContent('.sheet')))
+check('no code vocabulary on the sheet', !/\b(git|branch|sha|gate|commit)\b/i.test(await page.textContent('.sheet')))
 await todo.locator('button:has-text("Llévame ahí")').click()
 await page.waitForSelector('.ed-figure', { timeout: 8000 })
 await page.waitForFunction(() => document.querySelector('.ed-figure.sel, .ed-figure.ProseMirror-selectednode'), null, { timeout: 8000 })

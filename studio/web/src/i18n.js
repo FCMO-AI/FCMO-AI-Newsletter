@@ -1,6 +1,11 @@
 // Studio chrome strings. Spanish first, English second. Never code words: no git, branch, JSON, hash, gate.
 export const S = {
   es: {
+    'tr.both': 'Traducir a inglés y chino', 'tr.busy': 'Traduciendo…', 'tr.done': 'Borradores listos para revisión.',
+    'tr.replace': 'Reemplazar traducciones', 'tr.replace.body': 'Se guardará una versión antes de reemplazar los borradores de inglés y chino.',
+    'pub.destinations': 'Publicar en todos los medios', 'pub.site': 'Sitio: páginas en inglés, español y chino.', 'pub.feeds': 'Feeds: RSS, Atom y JSON.',
+    'pub.email': 'Enviar por correo a los suscriptores', 'pub.email.after': 'Se enviará después de comprobar el despliegue.', 'pub.threshold': 'Umbral FCMO', 'pub.approval': '{who} debe aprobar el texto y sus traducciones antes de publicar.',
+    'prog.email.sent': 'Enviado por correo ✓', 'prog.email.pending': 'Correo pendiente del despliegue verificado.',
     'app.name': 'FCMO Studio', 'nav.home': 'Escritorio', 'nav.issues': 'Ediciones', 'nav.logout': 'Salir', 'nav.theme': 'Tema', 'nav.skip': 'Ir al contenido',
     'login.title': 'Entrar al estudio', 'login.user': 'Persona', 'login.pass': 'Contraseña', 'login.go': 'Entrar', 'login.bad': 'Esa combinación no es correcta. Revisa e inténtalo de nuevo.', 'login.lede': 'Un solo lugar para escribir, traducir y publicar.',
     'home.hello': 'Hola, {name}', 'home.new': 'Nuevo ensayo', 'home.letter': 'Carta', 'home.note': 'Nota', 'home.search': 'Buscar en tus textos',
@@ -34,7 +39,7 @@ export const S = {
     'tr.title': 'Idiomas', 'tr.source': 'Original', 'tr.target': 'Traducción', 'tr.changed': 'El original cambió', 'tr.human': 'escrito por persona', 'tr.agent': 'borrador del asistente', 'tr.agent.edited': 'asistente, editado por persona', 'tr.chip': 'Fijo: igual que en el original',
     'tr.review': 'Marcar como revisado por mí', 'tr.later': 'Publicar después', 'tr.reviewed': 'Revisado por {who}, {when}', 'tr.zh.confirm': 'Leí y entiendo el texto chino', 'tr.zh.ask': 'Para marcar el chino como revisado, confirma:', 'tr.confirm': 'Confirmar', 'tr.cancel': 'Cancelar', 'tr.draft': 'Volver a borrador', 'tr.empty': 'Este idioma aún no tiene texto.', 'tr.edit': 'Editar en la página', 'tr.pick': 'Idioma de destino', 'tr.paragraph': 'Párrafo {n}', 'tr.copy': 'Copiar del original', 'tr.assist': 'Pedir borrador al asistente', 'tr.nowork': 'El asistente no está disponible ahora. Puedes traducir tú.',
     'pv.title': 'Vista previa', 'pv.banner': 'Construida con el mismo código que el sitio público.', 'pv.light': 'Claro', 'pv.dark': 'Oscuro', 'pv.phone': 'Teléfono', 'pv.desktop': 'Escritorio', 'pv.theme': 'Tema', 'pv.size': 'Tamaño', 'pv.lang': 'Idioma', 'pv.back': 'Volver al texto', 'pv.noloc': 'Este idioma aún no tiene texto.',
-    'pub.title': 'Publicar «{title}»', 'pub.lead': 'Cada línea se comprueba sola. Cuando todo esté en orden, pide la revisión de {who}.', 'pub.reviewer': 'Revisa {who}', 'pub.ask': 'Pedir revisión', 'pub.blocked': 'Aún hay {n} por resolver.', 'pub.sent': 'Revisión pedida. {who} la verá en su escritorio.', 'pub.mt': 'Se publicará con aviso de traducción automática: {langs}.', 'pub.rerun': 'Volver a comprobar',
+    'pub.title': 'Publicar «{title}»', 'pub.lead': 'Cada línea se comprueba sola. Cuando todo esté en orden, pide la revisión de {who}.', 'pub.reviewer': 'Revisa {who}', 'pub.ask': 'Pedir revisión', 'pub.blocked': 'Aún hay {n} por resolver.', 'pub.sent': 'Revisión pedida. {who} la verá en su escritorio.', 'pub.mt': 'Falta revisar {langs}. La aprobación de {who} cuenta como revisión.', 'pub.rerun': 'Volver a comprobar',
     'rev.title': 'Revisión de «{title}»', 'rev.approve': 'Aprobar y publicar', 'rev.changes': 'Pedir cambios', 'rev.note': 'Nota para {who} (opcional)', 'rev.diff': 'Cambios desde la última versión publicada', 'rev.none': 'Es un texto nuevo: no hay versión anterior.', 'rev.confirm': 'Al aprobar, el texto se publicará en el sitio público. Eso no se deshace con un clic.', 'rev.own': 'No puedes revisar tu propio texto.', 'rev.waiting': 'Esperando a {who}.', 'rev.sent': 'Listo. {who} verá tu respuesta.', 'rev.preview': 'Lectura', 'rev.changes.tab': 'Cambios', 'rev.comments': 'Comentarios',
     'prog.title': 'Progreso de publicación', 'prog.done': 'Publicado', 'prog.failed': 'No se publicó', 'prog.working': 'Publicando…', 'prog.live': 'Ya está en el sitio', 'prog.home': 'Volver al escritorio',
     'iss.title': 'Ediciones', 'iss.lib': 'Biblioteca', 'iss.essays': 'Ensayos', 'iss.letters': 'Cartas y notas', 'iss.briefs': 'Briefs del día', 'iss.canvas': 'Edición', 'iss.main': 'Principal', 'iss.essay.slot': 'Ensayos', 'iss.day': 'El día en IA', 'iss.notes': 'Notas', 'iss.note': 'Nota del editor', 'iss.drop': 'Arrastra aquí', 'iss.add': 'Añadir', 'iss.remove': 'Quitar', 'iss.filter': 'Filtrar por fecha o tema', 'iss.class': 'Clase', 'iss.readonly': 'Solo lectura', 'iss.empty': 'Nada que mostrar con ese filtro.', 'iss.up': 'Subir', 'iss.down': 'Bajar', 'iss.soon': 'Arma una edición con ensayos y briefs.', 'chk.running': 'Comprobando todo… puede tardar unos segundos.', 'iss.badlang': 'Falta un idioma listo',
@@ -42,6 +47,11 @@ export const S = {
     'zones.local': 'Esta aplicación funciona dentro de tu red privada.'
   },
   en: {
+    'tr.both': 'Translate into English and Chinese', 'tr.busy': 'Translating…', 'tr.done': 'Drafts ready for review.',
+    'tr.replace': 'Replace translations', 'tr.replace.body': 'A version will be saved before replacing the English and Chinese drafts.',
+    'pub.destinations': 'Publish across all channels', 'pub.site': 'Site: English, Spanish and Chinese pages.', 'pub.feeds': 'Feeds: RSS, Atom and JSON.',
+    'pub.email': 'Email subscribers', 'pub.email.after': 'Email follows the verified deployment.', 'pub.threshold': 'FCMO publication standard', 'pub.approval': '{who} must approve the piece and its translations before publication.',
+    'prog.email.sent': 'Sent by email ✓', 'prog.email.pending': 'Email awaits the verified deployment.',
     'app.name': 'FCMO Studio', 'nav.home': 'Desk', 'nav.issues': 'Issues', 'nav.logout': 'Sign out', 'nav.theme': 'Theme', 'nav.skip': 'Skip to content',
     'login.title': 'Enter the studio', 'login.user': 'Person', 'login.pass': 'Password', 'login.go': 'Enter', 'login.bad': 'That combination is not right. Check it and try again.', 'login.lede': 'One place to write, translate and publish.',
     'home.hello': 'Hello, {name}', 'home.new': 'New essay', 'home.letter': 'Letter', 'home.note': 'Note', 'home.search': 'Search your pieces',
@@ -112,7 +122,7 @@ Object.assign(S.en, {
   'tr.pick': 'Target language', 'tr.paragraph': 'Paragraph {n}', 'tr.copy': 'Copy from the original', 'tr.assist': 'Ask the assistant for a draft', 'tr.nowork': 'The assistant is not available now. You can translate yourself.',
   'pv.title': 'Preview', 'pv.banner': 'Built with the same code as the public site.', 'pv.light': 'Light', 'pv.dark': 'Dark', 'pv.phone': 'Phone', 'pv.desktop': 'Desktop', 'pv.theme': 'Theme', 'pv.size': 'Size', 'pv.lang': 'Language', 'pv.back': 'Back to the text', 'pv.noloc': 'This language has no text yet.',
   'pub.title': 'Publish “{title}”', 'pub.lead': 'Every line checks itself. When everything is in order, ask {who} for a review.', 'pub.reviewer': '{who} reviews', 'pub.ask': 'Ask for review', 'pub.blocked': '{n} still to resolve.',
-  'pub.sent': 'Review requested. {who} will see it on their desk.', 'pub.mt': 'It will be published with a machine-translation notice: {langs}.', 'pub.rerun': 'Check again',
+  'pub.sent': 'Review requested. {who} will see it on their desk.', 'pub.mt': 'Human review is required for {langs}. The other reviewer’s approval also reviews the translations.', 'pub.rerun': 'Check again',
   'rev.title': 'Review of “{title}”', 'rev.approve': 'Approve and publish', 'rev.changes': 'Ask for changes', 'rev.note': 'Note for {who} (optional)', 'rev.diff': 'Changes since the last published version', 'rev.none': 'This is a new text: there is no earlier version.',
   'rev.confirm': 'By approving, the text will be published on the public site. That cannot be undone with one click.', 'rev.own': 'You cannot review your own text.', 'rev.waiting': 'Waiting for {who}.', 'rev.sent': 'Done. {who} will see your answer.',
   'rev.preview': 'Reading', 'rev.changes.tab': 'Changes', 'rev.comments': 'Comments',

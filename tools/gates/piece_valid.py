@@ -28,6 +28,18 @@ def check(root: Path) -> GateResult:
         except (OSError, ValueError, TypeError, KeyError): pass
     for piece in pieces:
         directory = piece["directory"]
+        # Optional for historical v1 records; when present this is a closed intent.
+        distribution = piece.get("distribution")
+        if distribution is not None and (not isinstance(distribution, dict) or set(distribution) != {"email"} or type(distribution.get("email")) is not bool):
+            problems.append(f"{directory.name}: invalid email distribution intent")
+        # The provider-free gate repeats structural checks after human edits.
+        from studio.translation import validate_translation, TranslationError
+        source = piece["docs"].get(piece["source_locale"])
+        if source and piece["status"] != "withdrawn":
+            for loc, doc in piece["docs"].items():
+                if piece["locales"][loc] == "ready":
+                    try: validate_translation(source, doc, loc)
+                    except TranslationError as exc: problems.append(f"{directory.name}: {loc}: {exc}")
         provenance_path = directory / "provenance.json"
         try:
             provenance = json.loads(provenance_path.read_text(encoding="utf-8"))
@@ -44,9 +56,9 @@ def check(root: Path) -> GateResult:
                 problems.append(f"{directory.name}: {locale} is missing an explicit review state")
             if row.get("human_reviewed") is True and not row.get("reviewer", "").strip():
                 problems.append(f"{directory.name}: {locale} has no named human reviewer")
-            if row.get("origin") == "agent_draft" and row.get("human_reviewed") is not False:
-                problems.append(f"{directory.name}: agent-drafted {locale} has dishonest review provenance")
-            if row.get("human_reviewed") is not True and row.get("origin") not in {"agent_draft"}:
+            if row.get("origin", "").startswith("agent_") and not row.get("model"):
+                problems.append(f"{directory.name}: {locale} is missing the translation model")
+            if row.get("human_reviewed") is not True:
                 problems.append(f"{directory.name}: ready {locale} is not marked human-reviewed")
             route = root / PREFIXES[locale] / "cartas" / piece["slug"] / "index.html"
             if not route.is_file():

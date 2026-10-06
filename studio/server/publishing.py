@@ -11,7 +11,7 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import quote, urlencode
 from urllib.request import Request, build_opener, HTTPRedirectHandler
 from .messages import PROGRESS
-from .storage import atomic, encoded, git, utc
+from .storage import NAMES, atomic, encoded, git, utc
 from .validation import LOCALES
 from .preview import PREFIX
 
@@ -251,7 +251,7 @@ class Publisher:
             piece = self.store.piece(value)
             if piece['author'] != user or piece['state'] not in ('draft', 'changes_requested', 'amending'): raise Refused('Solo el autor puede pedir revisión del borrador.')
             if piece['head_rev'] != initial_rev: raise Refused('El artículo cambió durante las comprobaciones; vuelve a pedir revisión.')
-            if not checks or any(not x['ok'] for x in checks): raise Refused('Completa las comprobaciones antes de pedir revisión.')
+            if not checks or any(not x['ok'] and not x.get('approval_satisfiable') for x in checks): raise Refused('Completa las comprobaciones antes de pedir revisión.')
             self.store.checkpoint(value, user, 'Para revisión')
             reviewer = 'matias' if user == 'javier' else 'javier'
             old = self.get(value)
@@ -280,13 +280,29 @@ class Publisher:
             if piece['head_rev'] != review['rev']: raise Refused('El artículo cambió; pide una nueva revisión.')
             ident = __import__('secrets').token_hex(12); payload = self.store.payload(value)
             stamp = utc(); payload['piece']['updated_at'] = stamp
+            if 'issue' not in payload and payload['piece']['status'] != 'withdrawn':
+                from studio.translation import validate_translation, TranslationError
+                source = payload['piece']['source_locale']
+                if payload.get('translation_error'): raise Refused(payload['translation_error'])
+                states = self.store.piece(value)['locale_states']
+                for loc in LOCALES:
+                    if payload['piece']['locales'][loc] != 'ready':
+                        if piece['author'] == 'javier' and source == 'es-419': raise Refused('Completa inglés, español y chino antes de publicar.')
+                        continue
+                    try: validate_translation(payload['docs'][source], payload['docs'][loc], loc)
+                    except TranslationError as exc: raise Refused(str(exc)) from None
+                    prior = payload['provenance'].get(loc, {})
+                    payload['provenance'][loc] = {**prior, 'origin': prior.get('origin', 'human_authored' if loc == source else 'human_translated'),
+                        'human_reviewed': True, 'reviewer': NAMES[user], 'at': stamp, 'source_locale': source}
+                    states[loc] = {**states[loc], 'human_reviewed': True, 'by': user, 'at': stamp}
+                self.store._put(value, payload, user, bump=False, states=states)
             if not self.store.db.execute('SELECT 1 FROM publications WHERE slug=? AND state=?', (value, 'published')).fetchone(): payload['piece']['first_published_at'] = stamp
             # Freeze timestamps before candidate check and public push.
             self.store._put(value, payload, piece['author'], bump=False)
             data = {'author': piece['author'], 'author_name': payload['piece']['authors'][0]['name'], 'reviewer': user,
                     'approved_rev': piece['head_rev'], 'branch': 'studio/' + value + '-' + ident[:8], 'piece_id': payload['piece']['id'],
                     'title': piece['title'], 'created': self.store.clock(), 'timeline': [], 'urls': [],
-                    'languages': payload['piece']['locales'], 'provenance': payload['provenance']}
+                    'languages': payload['piece']['locales'], 'provenance': payload['provenance'], 'distribution': payload['piece'].get('distribution', {'email': False})}
             self.store.db.execute('INSERT INTO publications(id,slug,kind,state,error_plain,payload_json) VALUES(?,?,?,?,?,?)', (ident, value, piece['kind'], 'approved', '', encoded(data)))
             self.store.db.execute('UPDATE reviews SET state=?,at=?,note=? WHERE id=?', ('approved', utc(), str(note)[:10000], review['id']))
             self.store.db.execute('UPDATE pieces SET state=? WHERE slug=?', ('publishing', value)); self.store.audit(user, 'approve', value); self.store.db.commit()
@@ -368,4 +384,6 @@ class Publisher:
             return self.get(value)
     def public_status(self, value):
         pub = self.get(value); data = pub.get('payload', {})
-        return {'state': pub['state'], 'timeline': data.get('timeline', []), 'error_plain': pub.get('error_plain', ''), 'uncertain': bool(data.get('unknown')), 'urls': data.get('urls', [])}
+        from .distribution import email_status
+        email = email_status(getattr(self.store, 'public_root', self.store.data / 'clone'), data.get('piece_id'), data.get('merge_sha'), data.get('distribution', {}).get('email') is True)
+        return {'email': email, 'state': pub['state'], 'timeline': data.get('timeline', []), 'error_plain': pub.get('error_plain', ''), 'uncertain': bool(data.get('unknown')), 'urls': data.get('urls', [])}
