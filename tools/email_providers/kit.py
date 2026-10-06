@@ -42,12 +42,20 @@ class KitProvider:
         sender = env.get('FCMO_EMAIL_FROM','')
         if sender and not re.fullmatch(r'[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+',sender): raise ValueError('invalid_kit_sender_address')
         self.intent = Path(intent or env.get('FCMO_EMAIL_INTENT','email-intent.json'))
-        self.tags = {}
+        self.filter_mode = env.get('KIT_FILTER_MODE') or 'form'
+        if self.filter_mode not in ('form', 'tag'): raise ValueError('invalid_kit_filter_mode')
+        self.memberships = {}
         for locale in LOCALES:
-            tag = env.get('KIT_TAG_'+SUFFIX[locale],'')
-            if not re.fullmatch(r'[1-9][0-9]*',tag): raise ValueError('invalid_kit_locale_tag')
-            self.tags[locale] = int(tag)
-        if len(set(self.tags.values())) != 3: raise ValueError('kit_locale_tags_must_differ')
+            identity = env.get('KIT_'+self.filter_mode.upper()+'_'+SUFFIX[locale],'')
+            if not re.fullmatch(r'[1-9][0-9]*',identity): raise ValueError('invalid_kit_locale_'+self.filter_mode)
+            self.memberships[locale] = int(identity)
+        if len(set(self.memberships.values())) != 3: raise ValueError('kit_locale_memberships_must_differ')
+
+    def subscriber_filter(self, locale):
+        return {'all':[{'type':self.filter_mode,'ids':[self.memberships[locale]]}]}
+
+    def membership_path(self, identity):
+        return self.filter_mode+'s/'+str(identity)+'/subscribers'
 
     def subscribe_form(self, locale): return public_form(self.env,locale)
 
@@ -97,7 +105,7 @@ class KitProvider:
 
     def observed(self, broadcast, locale, key):
         if (not isinstance(broadcast.get('id'),int) or not broadcast.get('send_at') or broadcast.get('public') is not False
-            or broadcast.get('description')!=key or broadcast.get('subscriber_filter')!={'all':[{'type':'tag','ids':[self.tags[locale]]}]}):
+            or broadcast.get('description')!=key or broadcast.get('subscriber_filter')!=self.subscriber_filter(locale)):
             raise DeliveryError('kit_broadcast_requires_reconcile')
         return {'action':'SKIP','reason':'broadcast_already_scheduled','id':broadcast['id']}
 
@@ -124,7 +132,7 @@ class KitProvider:
             journal.seek(0); json.dump(state,journal); journal.truncate(); journal.flush(); os.fsync(journal.fileno())
             payload = {'subject':mail.subject,'content':mail.html,'description':idempotency_key,
                 'public':False, 'email_address':self.env['FCMO_EMAIL_FROM'],
-                'subscriber_filter':{'all':[{'type':'tag','ids':[self.tags[locale]]}]},
+                'subscriber_filter':self.subscriber_filter(locale),
                 'send_at':edition.now.isoformat().replace('+00:00','Z')}
             try:
                 result = self.request('POST','broadcasts',payload)
@@ -147,15 +155,16 @@ class KitProvider:
         if edition.namespace != 'fcmo-diario-test': return
         expected = self.env.get('KIT_TEST_SUBSCRIBER_ID','')
         if not re.fullmatch(r'[1-9][0-9]*',expected): raise ValueError('test_subscriber_id_required')
-        for tag in self.tags.values():
-            rows = list(self.pages(f'tags/{tag}/subscribers?status=active','subscribers'))
+        for identity in self.memberships.values():
+            rows = list(self.pages(self.membership_path(identity)+'?status=active','subscribers'))
             if len(rows)!=1 or rows[0].get('id')!=int(expected) or rows[0].get('state')!='active':
-                raise DeliveryError('seed_tags_must_contain_only_the_confirmed_test_subscriber')
+                raise DeliveryError('seed_memberships_must_contain_only_the_confirmed_test_subscriber')
 
     def health(self):
         self.validate_send()
-        tags = {v['id'] for v in self.pages('tags','tags')}
-        if not set(self.tags.values()).issubset(tags): raise DeliveryError('missing_kit_locale_tag')
+        field = self.filter_mode+'s'
+        identities = {v['id'] for v in self.pages(field,field)}
+        if not set(self.memberships.values()).issubset(identities): raise DeliveryError('missing_kit_locale_'+self.filter_mode)
         return {'status':'ok','provider':self.name}
 
     def list_subscribers(self):
@@ -166,9 +175,9 @@ class KitProvider:
                 if not isinstance(subscriber.get('id'),int) or 'email_address' not in subscriber or 'state' not in subscriber:
                     raise DeliveryError('invalid_kit_subscriber')
                 rows[subscriber['id']] = dict(subscriber,locales=[])
-        for locale, tag in self.tags.items():
-            # This fixture assumes the tag endpoint lists subscribers, all states.
-            for subscriber in self.pages(f'tags/{tag}/subscribers','subscribers'):
+        for locale, identity in self.memberships.items():
+            # Both membership endpoints must preserve pending/suppressed states.
+            for subscriber in self.pages(self.membership_path(identity),'subscribers'):
                 if subscriber.get('id') in rows: rows[subscriber['id']]['locales'].append(locale)
         yield from rows.values()
 

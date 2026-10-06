@@ -1,7 +1,7 @@
-# L27 — Diario por correo
+# L27 round 2 — Diario por correo
 
-Kit primero, con adaptadores intercambiables, envío después del LKG verificado, protección contra duplicados entre ejecuciones y backup diario cifrado con age. Se conserva la ruta Listmonk + SES de L26.
+Kit filtra por formulario por defecto, sin tres reglas de automatización; tags opcionales. Brevo añade campañas v3, listas por idioma, formularios DOI alojados, reconciliación de intent y backup cifrado. Los cuatro adaptadores conservan el contrato y L26 permanece disponible.
 
-El informe operativo completo, configuración de Kit/GitHub, pruebas y límites están en [REPORT-L27.md](REPORT-L27.md). Evidencia local en [reports/email-kit/](reports/email-kit/).
+Configuración, migración cifrada Kit↔Brevo, shapes que requieren confirmación live y evidencia: [REPORT-L27.md](REPORT-L27.md) y [EMAIL-PROVIDERS.md](docs/EMAIL-PROVIDERS.md).
 
-Resumen: implementación lista para revisión local, sin push ni correo real. Claude debe repetir navegador y prueba nativa de L26, confirmar que Kit gratuito admite envío por API v4 y probar la entrega real antes de activar lectores.
+Resumen: implementación local lista para revisión, sin push ni correo real. La activación exige API/plan/formulario real comprobados, navegador y varios ciclos desatendidos de entrega y backup.

@@ -12,6 +12,7 @@ import hashlib
 import hmac
 import json
 import os
+import re
 import sys
 import time
 import urllib.error
@@ -294,7 +295,11 @@ def main(argv: list[str] | None = None) -> int:
                 from tools.email_listmonk import DeliveryError
                 Edition(stories,status,_json_file(args.live_verify),now).selected()
                 provider = create_provider(dict(os.environ,FCMO_EMAIL_PROVIDER=args.provider))
-                try: provider.health()
+                try:
+                    health = provider.health()
+                    for warning in health.get('warnings', []):
+                        if isinstance(warning, str) and re.fullmatch(r'[a-z][a-z0-9_]*', warning):
+                            print('WARNING '+warning)
                 except DeliveryError:
                     print('ERROR email_provider_preflight_failed')
                     return 1

@@ -4,13 +4,14 @@ import os
 import unittest
 from unittest.mock import patch
 from harness.mock_brevo import MockBrevo
-from test_email_providers import ProviderTests, BREVO_ENV
+import test_email_providers as contract
+from test_email_providers import BREVO_ENV
 from tools.email_providers import create_provider, dispatch_edition, signup_form
 from tools.email_listmonk import DeliveryError
 
 
 class BrevoTests(unittest.TestCase):
-    setUp = ProviderTests.setUp
+    setUp = contract.ProviderTests.setUp
     def provider(self, server):
         return create_provider(BREVO_ENV,base_url=server.url,intent=self.intent,sleep=lambda _:None)
     def test_locale_campaigns_restart_idempotency_and_detail(self):
@@ -89,6 +90,41 @@ class BrevoTests(unittest.TestCase):
             self.assertEqual(records[1]['locales'],['es-419'])
             self.assertTrue(records[1]['emailBlacklisted'])
             self.assertEqual(records[1]['attributes'],{'DOI':True})
+    def test_preflight_surfaces_health_warnings_without_provider_coupling(self):
+        import contextlib
+        import io
+        from tools.email_dispatch import main
+        paths = []
+        for name, document in [('stories',self.stories),('status',self.status),('receipt',{'passed':True})]:
+            path = self.root/(name+'.json'); path.write_text(json.dumps(document)); paths.append(str(path))
+        class FutureProvider:
+            requires_intent = True
+            def health(self): return {'status':'warning','provider':'future',
+                                      'warnings':['daily_cap_exceeded'],'private':'secret@example.org'}
+        output = io.StringIO()
+        with patch.dict(os.environ,{'FCMO_EMAIL_ENABLED':'true'},clear=True), \
+             patch('tools.email_providers.create_provider',return_value=FutureProvider()), \
+             contextlib.redirect_stdout(output):
+            self.assertEqual(main(['--check','--stories',paths[0],'--status',paths[1],
+                                   '--live-verify',paths[2],'--now','2026-10-05T14:00:00Z']),0)
+        self.assertIn('WARNING daily_cap_exceeded',output.getvalue())
+        self.assertNotIn('secret@example.org',output.getvalue())
+    def test_encrypted_export_roundtrip_keeps_suppression(self):
+        import subprocess
+        from tools.email_backup import encrypted_backup
+        identity = self.root/'identity.txt'
+        keys = subprocess.run(['age-keygen','-o',str(identity)],capture_output=True,check=True)
+        recipient = keys.stderr.decode().split('Public key: ')[1].strip()
+        with MockBrevo() as server:
+            server.contacts[0]['emailBlacklisted'] = True
+            out = self.root/'backup.age'
+            encrypted_backup(self.provider(server),recipient,out)
+            self.assertNotIn(b'reader@example.org',out.read_bytes())
+            raw = subprocess.run(['age','-d','-i',str(identity),str(out)],capture_output=True,check=True)
+            doc = json.loads(raw.stdout)
+            self.assertEqual(doc['provider'],'brevo')
+            self.assertTrue(doc['subscribers'][0]['emailBlacklisted'])
+            self.assertEqual(doc['subscribers'][0]['locales'],['en','es-419','zh-Hans'])
     def test_reads_retry_bounded_and_export_pagination_fails_closed(self):
         with MockBrevo() as server:
             server.failures = [('GET',429),('GET',503)]

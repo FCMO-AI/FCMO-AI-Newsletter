@@ -60,6 +60,9 @@ const server = http.createServer((req, res) => {
       });
       const kit = process.env.FCMO_EMAIL_PROVIDER === 'kit';
       const expectedForm = kit ? `https://app.kit.com/forms/${process.env[{en:'KIT_FORM_EN','es-419':'KIT_FORM_ES','zh-Hans':'KIT_FORM_ZH'}[locale]]}/subscriptions` : null;
+      const brevo = process.env.FCMO_EMAIL_PROVIDER === 'brevo';
+      const brevoForm = brevo ? JSON.parse(process.env.FCMO_EMAIL_PUBLIC_CONFIG || '{}').forms?.[locale] : null;
+      if (brevo && (result.action !== brevoForm || result.emailField !== 'EMAIL')) throw Error(JSON.stringify({locale,width,result}));
       if (kit && (result.action !== expectedForm || result.emailField !== 'email_address')) throw Error(JSON.stringify({locale,width,result}));
       if (result.width > width || result.method !== 'post' || !result.consentRequired || result.consentChecked || result.locale !== locale || !result.privacy) throw Error(JSON.stringify({locale,width,result}));
       await page.screenshot({path:path.join(preview,`signup-${locale}-${width}.png`),fullPage:true});

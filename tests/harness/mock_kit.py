@@ -41,13 +41,15 @@ class MockKit:
                 cursor = parse_qs(urlsplit(self.path).query).get('after', [''])[0]
                 if path == '/v4/broadcasts':
                     values, field = owner.broadcasts, 'broadcasts'
-                elif path == '/v4/subscribers' or path.startswith('/v4/tags/'):
+                elif path == '/v4/subscribers' or path.startswith(('/v4/tags/', '/v4/forms/')):
                     values, field = owner.subscribers, 'subscribers'
                 elif path == '/v4/tags':
                     values, field = [{'id': n} for n in (11, 12, 13)], 'tags'
+                elif path == '/v4/forms':
+                    values, field = [{'id': n} for n in (101, 102, 103)], 'forms'
                 else: return self.respond(404, {})
                 # One record per page forces real cursor traversal.
-                if field == 'tags':
+                if field in ('tags','forms'):
                     return self.respond(200,{field:values,'pagination':{'has_next_page':False,'end_cursor':None}})
                 start = int(cursor or 0)
                 more = start+1 < len(values)

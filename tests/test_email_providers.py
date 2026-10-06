@@ -56,7 +56,9 @@ class ProviderTests(unittest.TestCase):
                 return original_request(method,path,payload,**kwargs)
             client.request = request
             service = DiarioService(config,self.root/'listmonk.sqlite',client=client)
-            adapters = [self.kit(server), create_provider(BREVO_ENV, base_url=brevo.url, intent=self.intent, sleep=lambda _:None), create_provider(dict(ENV,FCMO_EMAIL_PROVIDER='fake')),
+            brevo_intent = self.root/'brevo-intent.json'
+            brevo_intent.write_bytes(self.intent.read_bytes())
+            adapters = [self.kit(server), create_provider(BREVO_ENV, base_url=brevo.url, intent=brevo_intent, sleep=lambda _:None), create_provider(dict(ENV,FCMO_EMAIL_PROVIDER='fake')),
                         create_provider({'FCMO_EMAIL_PROVIDER':'listmonk','FCMO_EMAIL_PUBLIC_URL':'https://mail.example.org'}, service=service)]
             for provider in adapters:
                 with self.subTest(provider=provider.name):
@@ -220,7 +222,7 @@ class SeedTests(unittest.TestCase):
         seed = Edition(self.stories,self.status,{},self.now,'fcmo-diario-test')
         self.intent.write_text(json.dumps({'previous':[], 'keys':[seed.key(l) for l in ('en','es-419','zh-Hans')]}))
         with MockKit() as server:
-            provider = KitProvider(dict(ENV,KIT_TEST_SUBSCRIBER_ID='1'),base_url=server.url,intent=self.intent,sleep=lambda _:None)
+            provider = KitProvider(dict(ENV,KIT_FILTER_MODE='tag',KIT_TEST_SUBSCRIBER_ID='1'),base_url=server.url,intent=self.intent,sleep=lambda _:None)
             provider.send_edition(seed,'en',seed.key('en'))
             self.assertNotEqual(server.broadcasts[0]['description'],self.edition.key('en'))
             server.subscribers.append(dict(server.subscribers[0],id=2))

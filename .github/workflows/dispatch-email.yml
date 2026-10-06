@@ -32,6 +32,10 @@ env:
   FCMO_EMAIL_PUBLIC_URL: ${{ vars.FCMO_EMAIL_PUBLIC_URL }}
   FCMO_EMAIL_COMPLIANCE_READY: ${{ vars.FCMO_EMAIL_COMPLIANCE_READY }}
   FCMO_EMAIL_FROM: ${{ vars.FCMO_EMAIL_FROM }}
+  KIT_FILTER_MODE: ${{ inputs.test_mode && 'tag' || vars.KIT_FILTER_MODE || 'form' }}
+  KIT_FORM_EN: ${{ vars.KIT_FORM_EN }}
+  KIT_FORM_ES: ${{ vars.KIT_FORM_ES }}
+  KIT_FORM_ZH: ${{ vars.KIT_FORM_ZH }}
   KIT_TEST_SUBSCRIBER_ID: ${{ vars.KIT_TEST_SUBSCRIBER_ID }}
   FCMO_EMAIL_NAMESPACE: ${{ inputs.test_mode && 'fcmo-diario-test' || 'fcmo-diario' }}
   KIT_TAG_EN: ${{ inputs.test_mode && vars.KIT_TEST_TAG_EN || (!inputs.test_mode && vars.KIT_TAG_EN || '') }}
@@ -77,7 +81,7 @@ jobs:
           --stories "$RUNNER_TEMP/email-edition/stories.v2.json"
           --status "$RUNNER_TEMP/email-edition/newsroom-status.json"
           --live-verify "$RUNNER_TEMP/email-edition/live-verify.json"
-      - name: Restore previous Kit attempts and prepare today's write-ahead intent
+      - name: Restore previous provider attempts and prepare today's write-ahead intent
         id: intent
         if: steps.eligibility.outputs.eligible == 'true' && steps.eligibility.outputs.requires_intent == 'true'
         env:
