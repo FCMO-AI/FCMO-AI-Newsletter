@@ -42,7 +42,7 @@ class EmailDispatchTests(unittest.TestCase):
         self.assertIn("Por qué importa", email.html)
         self.assertIn("Domicilio de prueba", email.text)
         self.assertNotIn("<script", email.html.lower())
-        self.assertIn("FCMO AI Diario:", email.subject)
+        self.assertIn("FCMO AI Newsletter:", email.subject)
 
     def test_second_run_is_idempotent(self) -> None:
         with MockGhost() as ghost:

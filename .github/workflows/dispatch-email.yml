@@ -1,4 +1,4 @@
-name: Dispatch FCMO AI Diario
+name: Dispatch FCMO AI Newsletter
 
 on:
   workflow_run:
@@ -7,18 +7,39 @@ on:
     branches: [main]
   schedule:
     # Two UTC windows cover either Mexico City offset. The Python eligibility
-    # check owns the 07:30 local cutoff; Ghost slug idempotency owns repeats.
+    # check owns the 07:30 local cutoff; the provider journal owns repeat safety.
     # Later verified deploys also trigger workflow_run.
     - cron: '35 12 * * *'
     - cron: '35 13 * * *'
   workflow_dispatch:
+    inputs:
+      test_mode:
+        description: 'Kit only: use three private seed tags and a separate edition key'
+        type: boolean
+        default: false
 
 permissions:
   contents: read
+  actions: read
 
 concurrency:
   group: fcmo-daily-email
   cancel-in-progress: false
+
+env:
+  FCMO_EMAIL_PROVIDER: ${{ vars.FCMO_EMAIL_PROVIDER || 'kit' }}
+  FCMO_EMAIL_ENABLED: ${{ vars.FCMO_EMAIL_ENABLED }}
+  FCMO_EMAIL_PUBLIC_URL: ${{ vars.FCMO_EMAIL_PUBLIC_URL }}
+  FCMO_EMAIL_COMPLIANCE_READY: ${{ vars.FCMO_EMAIL_COMPLIANCE_READY }}
+  FCMO_EMAIL_FROM: ${{ vars.FCMO_EMAIL_FROM }}
+  KIT_FORM_EN: ${{ vars.KIT_FORM_EN }}
+  KIT_FORM_ES: ${{ vars.KIT_FORM_ES }}
+  KIT_FORM_ZH: ${{ vars.KIT_FORM_ZH }}
+  KIT_TEST_SUBSCRIBER_ID: ${{ vars.KIT_TEST_SUBSCRIBER_ID }}
+  FCMO_EMAIL_NAMESPACE: ${{ inputs.test_mode && 'fcmo-diario-test' || 'fcmo-diario' }}
+  KIT_TAG_EN: ${{ inputs.test_mode && vars.KIT_TEST_TAG_EN || (!inputs.test_mode && vars.KIT_TAG_EN || '') }}
+  KIT_TAG_ES: ${{ inputs.test_mode && vars.KIT_TEST_TAG_ES || (!inputs.test_mode && vars.KIT_TAG_ES || '') }}
+  KIT_TAG_ZH: ${{ inputs.test_mode && vars.KIT_TEST_TAG_ZH || (!inputs.test_mode && vars.KIT_TAG_ZH || '') }}
 
 jobs:
   dispatch:
@@ -26,7 +47,6 @@ jobs:
       vars.FCMO_EMAIL_ENABLED == 'true' &&
       (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success')
     runs-on: ubuntu-latest
-    environment: email
     steps:
       - name: Checkout the publication controls and live-verified LKG tag
         uses: actions/checkout@v6
@@ -37,6 +57,9 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
+      - name: Refuse test mode for a provider without a seed configuration
+        if: inputs.test_mode && env.FCMO_EMAIL_PROVIDER != 'kit'
+        run: exit 1
       - name: Bind email inputs to the verified live Pages candidate
         shell: bash
         run: |
@@ -44,11 +67,46 @@ jobs:
           LKG_COMMIT="$(git rev-parse --verify 'refs/tags/lkg^{commit}')"
           python tools/email_live_receipt.py \
             --lkg-commit "$LKG_COMMIT" --out "$RUNNER_TEMP/email-edition"
-      - name: Dispatch one idempotent Diario email
+      - name: Check freshness and every native edition before preparing an intent
+        id: eligibility
         env:
-          GHOST_URL: ${{ secrets.GHOST_URL }}
-          GHOST_ADMIN_API_KEY: ${{ secrets.GHOST_ADMIN_API_KEY }}
+          FCMO_EMAIL_PROVIDER_CONFIG: ${{ secrets.FCMO_EMAIL_PROVIDER_CONFIG }}
+          KIT_API_KEY: ${{ secrets.KIT_API_KEY }}
+          FCMO_EMAIL_DISPATCH_TOKEN: ${{ secrets.FCMO_EMAIL_DISPATCH_TOKEN }}
           FCMO_EMAIL_POSTAL_ADDRESS: ${{ secrets.FCMO_EMAIL_POSTAL_ADDRESS }}
+        run: >-
+          python tools/email_dispatch.py --check
+          --stories "$RUNNER_TEMP/email-edition/stories.v2.json"
+          --status "$RUNNER_TEMP/email-edition/newsroom-status.json"
+          --live-verify "$RUNNER_TEMP/email-edition/live-verify.json"
+      - name: Restore previous provider attempts and prepare today's write-ahead intent
+        id: intent
+        if: steps.eligibility.outputs.eligible == 'true' && steps.eligibility.outputs.requires_intent == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          EDITION_DATE="$(python tools/email_intent.py \
+            --status "$RUNNER_TEMP/email-edition/newsroom-status.json" \
+            --out "$RUNNER_TEMP/email-intent.json")"
+          echo "edition_date=$EDITION_DATE" >> "$GITHUB_OUTPUT"
+      - name: Persist the intent before any broadcast creation
+        if: steps.eligibility.outputs.eligible == 'true' && steps.eligibility.outputs.requires_intent == 'true'
+        uses: actions/upload-artifact@v6
+        with:
+          name: ${{ inputs.test_mode && 'email-test-intent' || 'email-intent' }}-${{ steps.intent.outputs.edition_date }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/email-intent.json
+          if-no-files-found: error
+          retention-days: 7
+      - name: Dispatch one idempotent FCMO AI Newsletter email through the selected adapter
+        if: steps.eligibility.outputs.eligible == 'true'
+        env:
+          FCMO_EMAIL_DISPATCH_TOKEN: ${{ secrets.FCMO_EMAIL_DISPATCH_TOKEN }}
+          FCMO_EMAIL_PROVIDER_CONFIG: ${{ secrets.FCMO_EMAIL_PROVIDER_CONFIG }}
+          KIT_API_KEY: ${{ secrets.KIT_API_KEY }}
+          FCMO_EMAIL_POSTAL_ADDRESS: ${{ secrets.FCMO_EMAIL_POSTAL_ADDRESS }}
+          FCMO_EMAIL_INTENT: ${{ runner.temp }}/email-intent.json
         run: >-
           python tools/email_dispatch.py
           --stories "$RUNNER_TEMP/email-edition/stories.v2.json"

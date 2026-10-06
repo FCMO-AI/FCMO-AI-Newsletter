@@ -1,3 +1,9 @@
+# Suscripciones: decisión vigente para el Diario
+
+La decisión del operador del 2026-10-05 usa Kit para el Diario automático y mantiene Listmonk + SES de L26 como ruta reemplazable. La selección es `FCMO_EMAIL_PROVIDER`. Ver [REPORT-L27.md](../REPORT-L27.md) para la configuración exacta y [EMAIL-PROVIDERS.md](EMAIL-PROVIDERS.md) para el contrato, copias y migración. Las Cartas de Javier son un producto separado. El Diario tiene formularios y ediciones EN/es-419/zh-Hans bajo esta autorización.
+
+El texto siguiente conserva la propuesta histórica de comunidad/Ghost; no es una instrucción vigente para contratar Ghost ni una restricción del idioma del Diario.
+
 # Suscripciones de FCMO
 
 ## Qué está preparado

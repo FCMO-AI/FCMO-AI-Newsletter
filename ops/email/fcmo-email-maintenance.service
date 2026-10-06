@@ -1,0 +1,11 @@
+[Unit]
+Description=FCMO encrypted email backup and unconfirmed-subscription expiry
+Requires=fcmo-email-db.service
+After=fcmo-email-db.service
+[Service]
+Type=oneshot
+EnvironmentFile=/etc/fcmo/secrets/email.env
+WorkingDirectory=%h/.local/share/fcmo-email/current
+ExecStart=/usr/bin/python3 %h/.local/share/fcmo-email/current/ops/email/maintenance.py
+UMask=0077
+NoNewPrivileges=true
