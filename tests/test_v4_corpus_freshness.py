@@ -448,7 +448,7 @@ class CorpusFreshnessBuildTests(unittest.TestCase):
             with self.subTest(build=out.name):
                 results = run_all.run(out)
                 codes = [result.code for result in results]
-                self.assertEqual(len(results), 13)
+                self.assertEqual(len(results), 14)
                 self.assertEqual(codes, [gate.__module__.rsplit(".", 1)[-1].upper() for gate in run_all.GATES])
                 for code in ("NO_FCMO_GROUP", "ENGLISH_LEAK", "LOCALE_COMPLETE", "SIZE_BUDGET", "NO_MACHINE_PATHS"):
                     self.assertIn(code, codes)

@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "fcmo-essay-doc-v1",
+  "x-contract": {"status": "v2-frozen"},
+  "title": "FCMO essay document v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "locale", "title", "dek", "blocks", "footnotes"],
+  "properties": {
+    "schema": {"const": "fcmo-essay-doc-v1"},
+    "locale": {"enum": ["en", "es-419", "zh-Hans"]},
+    "title": {"type": "string", "minLength": 1, "maxLength": 240},
+    "dek": {"type": "string", "maxLength": 600},
+    "blocks": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/block"}},
+    "footnotes": {"type": "object", "patternProperties": {"^fn-[0-9a-f]{8}$": {"$ref": "#/$defs/inlineList"}}, "additionalProperties": false}
+  },
+  "$defs": {
+    "inline": {"oneOf": [
+      {"type": "object", "additionalProperties": false, "required": ["t", "v"], "properties": {"t": {"const": "text"}, "v": {"type": "string"}, "marks": {"type": "array", "items": {"enum": ["em", "strong"]}, "uniqueItems": true}}},
+      {"type": "object", "additionalProperties": false, "required": ["t", "href", "c"], "properties": {"t": {"const": "link"}, "href": {"type": "string", "pattern": "^(https://[^\\s]+|/(?!/)[^\\s]*)$"}, "c": {"$ref": "#/$defs/inlineList"}}},
+      {"type": "object", "additionalProperties": false, "required": ["t", "id"], "properties": {"t": {"const": "fn"}, "id": {"type": "string", "pattern": "^fn-[0-9a-f]{8}$"}}},
+      {"type": "object", "additionalProperties": false, "required": ["t", "key"], "properties": {"t": {"const": "cite"}, "key": {"type": "string", "pattern": "^[a-z][a-z0-9-]*$"}, "locator": {"type": "string"}}},
+      {"type": "object", "additionalProperties": false, "required": ["t", "lang", "c"], "properties": {"t": {"const": "lang"}, "lang": {"enum": ["en", "es-419", "zh-Hans"]}, "c": {"$ref": "#/$defs/inlineList"}}}
+    ]},
+    "inlineList": {"type": "array", "items": {"$ref": "#/$defs/inline"}},
+    "block": {"type": "object", "additionalProperties": false, "required": ["id", "type"], "properties": {
+      "id": {"type": "string", "pattern": "^b-[0-9a-f]{8}$"},
+      "type": {"enum": ["p", "h2", "h3", "blockquote", "pullquote", "ul", "ol", "hr", "figure", "evidence"]},
+      "content": {"$ref": "#/$defs/inlineList"},
+      "items": {"type": "array", "items": {"$ref": "#/$defs/inlineList"}},
+      "attrs": {"type": "object", "additionalProperties": false, "properties": {
+        "fig": {"type": "string", "pattern": "^[a-zA-Z0-9-]+$"},
+        "cite": {"type": "string", "pattern": "^[a-z][a-z0-9-]*$"},
+        "class": {"enum": ["A", "B", "C", "D"]},
+        "confidence": {"type": "string"},
+        "limits": {"$ref": "#/$defs/inlineList"}
+      }}
+    }, "allOf": [
+      {"if": {"properties": {"type": {"enum": ["p", "h2", "h3", "blockquote", "pullquote"]}}}, "then": {"required": ["content"]}},
+      {"if": {"properties": {"type": {"enum": ["ul", "ol"]}}}, "then": {"required": ["items"]}},
+      {"if": {"properties": {"type": {"const": "figure"}}}, "then": {"required": ["attrs"], "properties": {"attrs": {"required": ["fig"]}}}},
+      {"if": {"properties": {"type": {"const": "evidence"}}}, "then": {"required": ["attrs"], "properties": {"attrs": {"required": ["class", "confidence", "limits"]}}}}
+    ]}
+  }
+}

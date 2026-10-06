@@ -42,6 +42,18 @@ def edition_path(locale: dict, date: str) -> str:
     return join(prefix(locale), "edition", date)
 
 
+def piece_path(locale: dict, piece: dict | str) -> str:
+    """Stable public route for a human essay, letter or note."""
+    slug = piece["slug"] if isinstance(piece, dict) else piece
+    return join(prefix(locale), "cartas", slug)
+
+
+def issue_path(locale: dict, issue: dict | str) -> str:
+    """Stable public route for a curated issue."""
+    issue_id = issue["id"] if isinstance(issue, dict) else issue
+    return join(prefix(locale), "cartas", "ediciones", issue_id)
+
+
 def beat_path(locale: dict, beat: str) -> str:
     return join(prefix(locale), "beat", beat)
 

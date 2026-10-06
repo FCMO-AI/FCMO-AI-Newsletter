@@ -118,12 +118,19 @@ def measured_values() -> dict[str, str]:
     base = require_string(config, "base_path", "site config")
     with tempfile.TemporaryDirectory(prefix="fcmo-paper-receipt-") as temporary:
         candidate = Path(temporary) / "publish"
+        # This receipt freezes the automated Story/status edition. Human editorial
+        # input is independently frozen in its reviewed git tree and validated by
+        # PIECE_VALID + the fourteen gates on the combined candidate. Never let
+        # an unrelated essay invalidate the immutable newsroom input receipt.
+        newsroom_editorial = Path(temporary) / "empty-editorial"
+        newsroom_editorial.mkdir()
         subprocess.run(
             [
                 sys.executable,
                 "tools/paper/build.py",
                 "--stories", str(STORIES_PATH),
                 "--status", str(STATUS_PATH),
+                "--editorial", str(newsroom_editorial),
                 "--out", str(candidate),
                 "--base", base,
             ],
@@ -159,6 +166,8 @@ Status: **the deterministic A3 publication candidate is assembled and measurable
 - Candidate tree: {values['public_files']} files, including {values['media_files']} local story-media files; SHA-256 `{values['candidate_sha256']}`
 
 ## Verification boundary
+
+This receipt freezes the automated Story/status edition. Human pieces and curated issues are independently committed through review; the combined publication must pass `PIECE_VALID`, all fourteen gates and the browser oracle.
 
 This receipt is generated from `tools/paper/build.py` and measures its final `data/routes.json` plus the embedded source artifacts. It does not describe or mount the retired `release-overlay` frontend. GitHub Pages separately generates OG cards, runs all A4 gates, runs the browser oracle, deploys the candidate, verifies the live site, and only then advances the durable `lkg` tag.
 """

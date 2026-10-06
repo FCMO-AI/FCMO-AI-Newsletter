@@ -3,17 +3,8 @@ name: Validate static newspaper release
 on:
   pull_request:
     branches: [main]
-    paths:
-      - 'site/data/stories.v2.json'
-      - 'site/data/newsroom-status.json'
-      - 'site-src/**'
-      - 'config/**'
-      - 'design/**'
-      - 'i18n/**'
-      - 'tools/paper/**'
-      - 'tools/gates/**'
-      - 'tests/oraculos/verificar_paper.py'
-      - '.github/workflows/release-validate.yml'
+    # Required by protected main for every PR, including CODEOWNERS/Studio.
+    # A path-filtered required check would leave those PRs pending forever.
 
 permissions:
   contents: read
@@ -23,44 +14,30 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  validate:
+  publish-gate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
         with:
+          fetch-depth: 0
           persist-credentials: false
       - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
       - name: Compile the publication implementation
         run: python -m compileall -q tools tests
-      - name: Build today's candidate
-        run: >-
-          python tools/paper/build.py
-          --stories site/data/stories.v2.json
-          --status site/data/newsroom-status.json
-          --out publish
-          --base /FCMO-AI-Newsletter/
-      - name: Add governed glossary to candidate
-        run: |
-          mkdir -p publish/data
-          cp i18n/glossary.yml publish/data/glossary.json
-          cp site/data/stories.v2.json publish/data/stories.v2.json
-          cp site/data/newsroom-status.json publish/data/newsroom-status.json
-      - name: Run fail-closed gates
-        run: python tools/gates/run_all.py publish
       - uses: actions/setup-node@v6
         with:
           node-version: '22'
       - name: Install pinned Playwright and Chromium
         run: |
-          npm install --prefix "$RUNNER_TEMP/playwright" --no-save playwright@1.63.0
+          npm install --prefix "$RUNNER_TEMP/playwright" --no-save playwright@1.63.0 axe-core@4.14.0
           echo "PLAYWRIGHT_MODULE=$RUNNER_TEMP/playwright/node_modules/playwright" >> "$GITHUB_ENV"
+          echo "NODE_PATH=$RUNNER_TEMP/playwright/node_modules" >> "$GITHUB_ENV"
+          echo "AXE_CORE_PATH=$RUNNER_TEMP/playwright/node_modules/axe-core/axe.min.js" >> "$GITHUB_ENV"
           "$RUNNER_TEMP/playwright/node_modules/.bin/playwright" install --with-deps chromium
-      - name: Run browser matrix
-        run: |
-          export CHROME_PATH="$(node -e "console.log(require(process.env.PLAYWRIGHT_MODULE).chromium.executablePath())")"
-          python tests/oraculos/verificar_paper.py publish
+      - name: Reconstruct and gate the immutable editorial candidate
+        run: python ops/publish.py --check
       - name: Prove deployment identity can be generated
         run: >-
           python tools/build_deployment_identity.py --site publish

@@ -349,7 +349,7 @@ class OracleBrowserGateTests(unittest.TestCase):
 
     def test_main_passes_only_when_the_rules_and_the_gates_pass(self):
         healthy = EvaluateRulesTests("test_a_healthy_first_viewport_has_no_violation").healthy()
-        code, out, _ = self.run_main(healthy, (True, "GATES PASS (13/13)"))
+        code, out, _ = self.run_main(healthy, (True, "GATES PASS (14/14)"))
         self.assertEqual(code, 0)
         self.assertIn("MOBILE FIRST VIEWPORT OK h1-top en=400px es-419=400px zh-Hans=400px", out)
         code, out, err = self.run_main(healthy, (False, "GATE FAIL [NO_FCMO_GROUP]"))
@@ -357,7 +357,7 @@ class OracleBrowserGateTests(unittest.TestCase):
         self.assertIn("- gates: GATE FAIL [NO_FCMO_GROUP]", err)
         late = copy.deepcopy(healthy)
         late["mobile"]["es-419"]["h1"]["top"] = 461
-        code, out, err = self.run_main(late, (True, "GATES PASS (13/13)"))
+        code, out, err = self.run_main(late, (True, "GATES PASS (14/14)"))
         self.assertEqual((code, out), (1, ""))
         self.assertIn("MOBILE FIRST VIEWPORT FAIL h1-top en=400px es-419=461px zh-Hans=400px", err)
 

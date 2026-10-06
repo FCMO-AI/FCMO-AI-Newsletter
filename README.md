@@ -55,7 +55,7 @@ Potential impact and confidence are deliberately separate: a spectacular claim c
 
 ## Automation and authentication
 
-The only external activation credential is a least-privilege **GitHub App** installed only on private `FCMO-AI/AI-Research-Breakthroughs` with repository **Contents: Read-only**. Newsletter stores its App **Client ID** as the repository Actions variable `FCMO_NEWSWIRE_APP_CLIENT_ID` and the generated private key as the encrypted Actions secret `FCMO_NEWSWIRE_APP_PRIVATE_KEY`; each bridge run mints a short-lived installation token scoped only to ARB. The workflow uses GitHub's current recommended Client-ID input rather than the legacy App-ID input.
+The autonomous Newswire Bridge activation credential is a least-privilege **GitHub App** installed only on private `FCMO-AI/AI-Research-Breakthroughs` with repository **Contents: Read-only**. Newsletter stores its App **Client ID** as the repository Actions variable `FCMO_NEWSWIRE_APP_CLIENT_ID` and the generated private key as the encrypted Actions secret `FCMO_NEWSWIRE_APP_PRIVATE_KEY`; each bridge run mints a short-lived installation token scoped only to ARB. The workflow uses GitHub's current recommended Client-ID input rather than the legacy App-ID input.
 
 The App cannot write to ARB or Newsletter. Its PEM is consumed only by the token-minting action, not passed through shell preflight. The bridge also masks its derived Git authentication header, suppresses private ARB test/build diagnostics from the public workflow log, and only runs the credential-bearing job from reviewed `main`.
 
@@ -66,6 +66,8 @@ This makes private-repository GitHub Actions availability **non-blocking** for N
 The public newsroom, generated site and committed repository never receive raw private ARB state. The only component allowed to read ARB is the isolated Newswire Bridge transport step, and its output boundary remains strictly one-way and public-only.
 
 See [`NEWSWIRE_ACTIVATION_STATUS.md`](NEWSWIRE_ACTIVATION_STATUS.md) for the exact activation contract and completion ledger.
+
+Human essays and curated issues enter through the private FCMO Studio server. The architect runs `sh studio/host-ops/start.sh`, initially with `STUDIO_DRY_RUN=1`, after configuring the private environment. Studio uses two distinct personal GitHub identities on the host, transports only approved `editorial/` content, and requires the same protected PR, Pages, public-origin and LKG boundaries. See [`studio/host-ops/RUNBOOK.md`](studio/host-ops/RUNBOOK.md) and [`REPORT-STUDIO-LIVE.md`](REPORT-STUDIO-LIVE.md) for activation and reversal commands.
 
 ## FCMO AI leadership and attribution
 

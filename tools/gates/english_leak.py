@@ -16,7 +16,7 @@ ENGLISH_WORDS = {
 }
 WORDS = re.compile(r"[^\W\d_]+(?:['’-][^\W\d_]+)?", re.UNICODE)
 BLOCKS = {"h1", "h2", "h3", "h4", "li", "p", "figcaption", "blockquote"}
-STRUCTURED_FIELDS = {"organizations", "models", "products", "source-domain"}
+STRUCTURED_FIELDS = {"organizations", "models", "products", "source-domain", "quotation"}
 
 
 class VisibleBlocks(HTMLParser):
@@ -28,7 +28,12 @@ class VisibleBlocks(HTMLParser):
         tag = tag.lower()
         values = {str(key).lower(): value or "" for key, value in attrs}
         if tag in {"script", "style", "template", "code", "pre"}: self.skip += 1
-        if values.get("translate", "").lower() == "no" and values.get("data-field") in STRUCTURED_FIELDS:
+        structured = values.get("translate", "").lower() == "no" and values.get("data-field") in STRUCTURED_FIELDS
+        if values.get("data-field") == "quotation":
+            classes = set(values.get("class", "").split())
+            structured = (tag == "span" and "quote-orig" in classes and values.get("translate", "").lower() == "no"
+                          and values.get("lang") in {"en", "es-419", "zh-Hans"})
+        if structured:
             self.structured += 1
             self.structured_tags.append(tag)
         if not self.skip and tag in BLOCKS: self.stack.append([])

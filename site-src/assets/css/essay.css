@@ -1,0 +1,125 @@
+/* FCMO essay page. Quiet column, display serif title, numbered sections, margin notes.
+   Variables come from paper.css; the page switches to dark by the reader's system theme
+   or by html[data-theme="dark"]. Footnotes work without script (end notes + anchors). */
+:root{--essay-measure:41rem;--essay-lead:1.72;--essay-size:clamp(1.1875rem,1.08rem + .35vw,1.3125rem);--essay-cjk:'Noto Serif CJK SC','Source Han Serif SC','Songti SC',serif;--essay-rule:var(--line)}
+@media(prefers-color-scheme:dark){html:not([data-theme="light"]):has(article.essay){color-scheme:dark;--bone:#141311;--paper:#1B1A17;--ink:#F1EEE6;--ink-soft:#D5D1C6;--muted:#A8A294;--line:#3A3832;--line-strong:#6D685D;--metis-text:#F28A63;--warning-bg:#3A2E12;--warning-text:#F3D894}}
+html[data-theme="dark"]:has(article.essay){color-scheme:dark;--bone:#141311;--paper:#1B1A17;--ink:#F1EEE6;--ink-soft:#D5D1C6;--muted:#A8A294;--line:#3A3832;--line-strong:#6D685D;--metis-text:#F28A63;--warning-bg:#3A2E12;--warning-text:#F3D894}
+html:has(article.essay) .footer-lockup img{filter:none}
+@media(prefers-color-scheme:dark){html:not([data-theme="light"]):has(article.essay) .footer-lockup img{filter:invert(1) hue-rotate(180deg)}}
+html[data-theme="dark"]:has(article.essay) .footer-lockup img{filter:invert(1) hue-rotate(180deg)}
+
+.essay{--col:var(--essay-measure);position:relative;padding:clamp(2.25rem,6vw,5.5rem) 0 clamp(3rem,6vw,5rem);font-family:var(--reading);font-size:var(--essay-size);line-height:var(--essay-lead);color:var(--ink);font-kerning:normal;font-feature-settings:"onum" 1,"liga" 1;hanging-punctuation:first;-webkit-font-smoothing:antialiased}
+.essay>*{max-width:var(--col)}
+.essay-head,.essay-toc,.essay-body,.essay-notes,.essay-sources,.correction-box,.mt-disclosure,.essay-langs,.essay-back,.essay-state{margin-left:auto;margin-right:auto}
+
+/* head */
+.essay-head{margin-bottom:clamp(2rem,4vw,3.25rem)}
+.essay-kicker{margin:0 0 1.5rem;font:500 .75rem/1.4 var(--technical);letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.essay-title{margin:0;font:600 clamp(2.5rem,1.4rem + 4.6vw,5rem)/1.04 var(--reading);letter-spacing:-.022em;word-spacing:normal;text-wrap:balance;font-optical-sizing:auto;overflow-wrap:break-word;hyphens:manual}
+.essay-dek{margin:1.35rem 0 0;font:italic 400 clamp(1.25rem,1.1rem + .6vw,1.5rem)/1.45 var(--reading);color:var(--ink-soft);text-wrap:pretty}
+.essay-byline{display:flex;flex-wrap:wrap;gap:.25rem 1.1rem;margin:1.75rem 0 0;padding-top:1.1rem;border-top:1px solid var(--essay-rule);font:400 .8125rem/1.4 var(--technical);color:var(--muted);letter-spacing:.02em}
+.essay-by{color:var(--ink)}
+.essay-byline time::before,.essay-read::before{content:"·";margin-right:1.1rem;color:var(--line-strong)}
+
+/* contents */
+.essay-toc{margin-bottom:clamp(2rem,4vw,3rem);padding:1.1rem 0 1.2rem;border-block:1px solid var(--essay-rule);font:400 .9375rem/1.45 var(--display)}
+.essay-toc-title{margin:0 0 .6rem;font:500 .6875rem/1.4 var(--technical);letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.essay-toc ol{margin:0;padding:0;list-style:none;counter-reset:toc}
+.essay-toc>ol>li{counter-increment:toc;display:grid;grid-template-columns:2.2rem 1fr;align-items:baseline;padding:.18rem 0}
+.essay-toc>ol>li::before{content:counter(toc,decimal-leading-zero);font:400 .75rem var(--technical);color:var(--muted)}
+.essay-toc>ol>li>a{grid-column:2}.essay-toc li>ol{grid-column:2;margin:.1rem 0 .25rem;padding-left:.9rem;border-left:1px solid var(--essay-rule)}
+.essay-toc a{color:var(--ink);text-decoration:none}.essay-toc a:hover,.essay-toc a:focus-visible{text-decoration:underline;text-underline-offset:.2em}
+.essay-toc li li a{color:var(--ink-soft);font-size:.875rem}
+
+/* body */
+.essay-body{counter-reset:sec;position:relative}
+.essay-body p{margin:0 0 1.15em;text-wrap:pretty;hyphens:auto;overflow-wrap:break-word}
+.essay-body>p:first-child::first-letter{font-weight:600}
+.essay-body a{color:var(--ink);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:.2em;text-decoration-color:var(--line-strong)}
+.essay-body a:hover{text-decoration-color:var(--ink)}
+.essay-body h2{counter-increment:sec;margin:2.6em 0 .7em;font:600 clamp(1.6rem,1.3rem + 1.1vw,2.1rem)/1.2 var(--reading);letter-spacing:-.012em;text-wrap:balance;scroll-margin-top:1.5rem}
+.essay-body h2::before{content:counter(sec,decimal-leading-zero);display:block;margin-bottom:.55rem;font:500 .75rem/1 var(--technical);letter-spacing:.1em;color:var(--muted)}
+.essay-body h3{margin:2em 0 .5em;font:600 1.1875rem/1.3 var(--reading);font-style:italic;scroll-margin-top:1.5rem}
+.essay-body em{font-style:italic}.essay-body strong{font-weight:700}
+.essay-body ul,.essay-body ol{margin:0 0 1.15em;padding-left:1.4em}.essay-body li{margin:.3em 0;padding-left:.2em}.essay-body li::marker{color:var(--muted)}
+.essay-body hr{border:0;margin:3rem 0;text-align:center;height:1rem;overflow:visible}.essay-body hr::after{content:"· · ·";letter-spacing:.9em;padding-left:.9em;color:var(--muted)}
+.essay-body blockquote{margin:1.8em 0;padding:0 0 0 1.25rem;border-left:2px solid var(--line-strong);color:var(--ink-soft);font-style:italic}
+.essay-body blockquote p:last-child{margin-bottom:0}
+.essay-body aside.pullquote{margin:2.4em 0;padding:1.2rem 0;border-block:1px solid var(--ink);font:italic 400 clamp(1.4rem,1.15rem + 1vw,1.85rem)/1.35 var(--reading);letter-spacing:-.01em;text-wrap:balance}
+.essay-body aside.pullquote p{margin:0}
+.quote-orig{font-style:normal}
+.essay-body cite.src-ref{font-style:normal;font:500 .72em/1 var(--technical);vertical-align:.18em}
+.essay-body cite.src-ref a{text-decoration:none;color:var(--muted);padding:0 .1em}.essay-body cite.src-ref a::before{content:"["}.essay-body cite.src-ref a::after{content:"]"}
+.essay-body sup.fn-ref{font:500 .7em/0 var(--technical);vertical-align:baseline;position:relative;top:-.5em;margin-left:.05em}
+.essay-body sup.fn-ref a{display:inline-block;min-width:1.1rem;padding:0 .1rem;text-align:center;text-decoration:none;color:var(--metis-text);border-radius:2px}
+.essay-body sup.fn-ref a:hover,.essay-body sup.fn-ref a:focus-visible,.essay-body sup.fn-ref a[aria-expanded="true"]{background:var(--paper);outline:1px solid var(--line-strong)}
+.fn-inline{margin:-.35em 0 1.2em!important;padding:.7rem .9rem;border-left:2px solid var(--metis-text);background:var(--paper);font:400 .9375rem/1.55 var(--display);color:var(--ink-soft)}
+
+/* figures */
+.essay-figure{margin:2.4em 0;max-width:none}
+.essay-figure img{display:block;width:100%;height:auto;background:var(--paper)}
+.essay-figure figcaption{margin-top:.7rem;max-width:var(--col);font:400 .875rem/1.5 var(--display);color:var(--ink-soft)}
+.essay-figure .credit{display:block;margin-top:.2rem;font:400 .6875rem/1.4 var(--technical);letter-spacing:.03em;color:var(--muted)}
+.essay-figure .credit::before{content:"© "}
+
+/* evidence box: FCMO grammar (class, confidence, what is not established) */
+.essay-body aside.evidence-box{margin:2.2em 0;padding:1.1rem 1.25rem 1.2rem;background:var(--paper);border:1px solid var(--line);border-left:3px solid var(--ink);font:400 .9375rem/1.55 var(--display)}
+.essay-body aside.evidence-box::before{content:"Evidence · class " attr(data-class);display:block;margin-bottom:.6rem;font:600 .6875rem/1 var(--technical);letter-spacing:.1em;text-transform:uppercase;color:var(--ink)}
+.essay[lang^="es"] aside.evidence-box::before{content:"Evidencia · clase " attr(data-class)}
+.essay[lang^="zh"] aside.evidence-box::before{content:"证据 · " attr(data-class) " 级"}
+.essay-body aside.evidence-box p{margin:0 0 .5em}.essay-body aside.evidence-box>:last-child{margin-bottom:0}
+.essay-body aside.evidence-box[data-class="A"]{border-left-color:var(--living)}
+.essay-body aside.evidence-box[data-class="B"]{border-left-color:var(--intelligence)}
+.essay-body aside.evidence-box[data-class="C"]{border-left-color:var(--foundry)}
+.essay-body aside.evidence-box[data-class="D"]{border-left-color:var(--line-strong)}
+
+/* notes and sources */
+.essay-notes,.essay-sources{margin-top:3.25rem;padding-top:1.4rem;border-top:1px solid var(--essay-rule);font:400 .9375rem/1.55 var(--display);color:var(--ink-soft)}
+.essay-notes::before,.essay-sources::before{display:block;margin-bottom:.9rem;font:500 .6875rem/1 var(--technical);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.essay-notes::before{content:"Notes"}.essay-sources::before{content:"Sources"}
+.essay[lang^="es"] .essay-notes::before{content:"Notas"}.essay[lang^="es"] .essay-sources::before{content:"Fuentes"}
+.essay[lang^="zh"] .essay-notes::before{content:"注释"}.essay[lang^="zh"] .essay-sources::before{content:"来源"}
+.essay-notes ol,.essay-sources ol{margin:0;padding-left:1.6rem}.essay-notes li,.essay-sources li{margin:.5rem 0;padding-left:.3rem;scroll-margin-top:2rem}
+.essay-notes li::marker,.essay-sources li::marker{font:400 .8125rem var(--technical);color:var(--muted)}
+.essay-notes li:target,.essay-sources li:target{background:var(--paper);outline:1px solid var(--line)}
+.essay-notes a,.essay-sources a{color:var(--ink);text-underline-offset:.2em}
+.essay-notes li a[href^="#fnref"]{text-decoration:none;color:var(--muted);margin-left:.35em}
+
+/* margin notes (script adds .sidenote at >=1100px; without it the end notes remain) */
+.sidenote{display:none}
+@media(min-width:1100px){
+ .essay{--note:14rem;--gap:2.75rem}
+ .essay-head,.essay-toc,.essay-body,.essay-notes,.essay-sources,.correction-box,.mt-disclosure,.essay-langs,.essay-back,.essay-state{margin-left:max(0px,calc((100% - var(--col) - var(--note) - var(--gap))/2));margin-right:0}
+ .essay.has-sidenotes .essay-notes{display:none}
+ .sidenote{display:block;position:absolute;left:calc(var(--col) + var(--gap));width:var(--note);font:400 .8125rem/1.5 var(--display);color:var(--ink-soft);padding-top:.15rem;border-top:1px solid var(--essay-rule)}
+ .sidenote-n{font:500 .7rem var(--technical);color:var(--metis-text);margin-right:.25rem}
+ .essay-figure{width:calc(var(--col) + var(--gap) + var(--note));max-width:100%}
+ .essay-figure figcaption{max-width:var(--col)}
+}
+
+/* corrections, disclosure, state pages, language links */
+.correction-box,.mt-disclosure{margin-top:2.5rem;padding:1rem 1.2rem;border:1px solid var(--line);border-left:3px solid var(--warning-text);background:var(--warning-bg);color:var(--warning-text);font:400 .9375rem/1.55 var(--display)}
+.mt-disclosure{margin-top:0;margin-bottom:2rem}.correction-box p,.mt-disclosure p{margin:0 0 .35em}.correction-box p:last-child,.mt-disclosure p:last-child{margin:0}
+.mt-disclosure a,.correction-box a{color:inherit}
+.essay-langs{display:flex;flex-wrap:wrap;gap:.4rem 1.2rem;margin-top:3rem;font:500 .75rem/1.4 var(--technical);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.essay-langs a{color:var(--ink);text-underline-offset:.25em}
+.essay-back{margin-top:1.5rem;margin-bottom:0;font:500 .8125rem var(--technical)}.essay-back a{color:var(--ink)}
+.essay-state{margin-top:1rem;padding:1.5rem 0;border-block:1px solid var(--essay-rule);font-family:var(--display)}
+.essay-state-line{margin:0 0 .6rem;font:600 clamp(1.3rem,1.1rem + .8vw,1.7rem)/1.3 var(--reading)}
+.essay-original{color:var(--ink);font-weight:600}
+
+/* Chinese: its own stack, taller leading, looser measure, emphasis dots rather than italics */
+.essay[lang^="zh"]{--col:38rem;--essay-lead:1.95;font-family:var(--essay-cjk);letter-spacing:.015em;font-feature-settings:normal;hanging-punctuation:none}
+.essay[lang^="zh"] :is(.essay-title,.essay-dek,.essay-body h2,.essay-body h3,.essay-body aside.pullquote,.essay-state-line){font-family:var(--essay-cjk)}
+.essay[lang^="zh"] .essay-title{font-weight:700;letter-spacing:.01em;line-height:1.25}
+.essay[lang^="zh"] .essay-dek{font-style:normal;line-height:1.7}
+.essay[lang^="zh"] .essay-body h2{line-height:1.4;font-weight:700}
+.essay[lang^="zh"] .essay-body h3,.essay[lang^="zh"] .essay-body blockquote,.essay[lang^="zh"] .essay-body aside.pullquote{font-style:normal}
+.essay[lang^="zh"] .essay-body em{font-style:normal;text-emphasis:filled dot;text-emphasis-position:under right}
+.essay[lang^="zh"] .essay-body p{hyphens:manual;line-break:strict;text-align:justify;text-justify:inter-character}
+.essay[lang^="zh"] .essay-body p:first-child::first-letter{font-weight:inherit}
+.essay[lang^="zh"] :is(.essay-toc,.essay-notes,.essay-sources,.sidenote,.fn-inline){font-family:var(--display),var(--essay-cjk);line-height:1.75}
+
+@media(max-width:520px){.essay{padding-top:1.75rem}.essay-body p{hyphens:auto}.essay-body aside.evidence-box{margin-inline:-.25rem}}
+@media print{.essay{font-size:11pt}.essay-toc,.essay-langs,.essay-back{display:none}.sidenote{display:none!important}.essay.has-sidenotes .essay-notes{display:block!important}}
+@media(prefers-reduced-motion:no-preference){.essay-toc a{transition:text-decoration-color .15s}}

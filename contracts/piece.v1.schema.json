@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "fcmo-piece-v1",
+  "x-contract": {"status": "v2-frozen"},
+  "title": "FCMO editorial piece v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "id", "kind", "slug", "authors", "brand", "source_locale", "status", "first_published_at", "updated_at", "locales", "hero", "tags", "corrections", "withdrawal"],
+  "properties": {
+    "schema": {"const": "fcmo-piece-v1"},
+    "id": {"type": "string", "pattern": "^FCMO-P-[0-9a-f]{12}$"},
+    "kind": {"enum": ["essay", "letter", "note"]},
+    "slug": {"type": "string", "pattern": "^[a-z0-9-]{3,80}$"},
+    "authors": {"type": "array", "minItems": 1, "items": {"type": "object", "additionalProperties": false, "required": ["key", "name"], "properties": {"key": {"enum": ["javier", "matias"]}, "name": {"type": "string", "minLength": 1}}}},
+    "brand": {"enum": ["fcmo", "fcmo-ai"]},
+    "source_locale": {"enum": ["en", "es-419", "zh-Hans"]},
+    "status": {"enum": ["published", "withdrawn"]},
+    "first_published_at": {"type": "string", "format": "date-time"},
+    "updated_at": {"type": "string", "format": "date-time"},
+    "locales": {"type": "object", "additionalProperties": false, "required": ["en", "es-419", "zh-Hans"], "properties": {"en": {"enum": ["ready", "pending"]}, "es-419": {"enum": ["ready", "pending"]}, "zh-Hans": {"enum": ["ready", "pending"]}}},
+    "distribution": {"type": "object", "additionalProperties": false, "required": ["email"], "properties": {"email": {"type": "boolean"}}},
+    "hero": {"type": ["string", "null"], "pattern": "^[a-zA-Z0-9-]+$"},
+    "tags": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+    "corrections": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["at", "type", "note"], "properties": {"at": {"type": "string", "format": "date-time"}, "type": {"enum": ["clarification", "substantive"]}, "note": {"type": "object", "additionalProperties": {"type": "string", "minLength": 1}}}}},
+    "withdrawal": {"type": ["object", "null"], "additionalProperties": false, "required": ["at", "reason_code", "note"], "properties": {"at": {"type": "string", "format": "date-time"}, "reason_code": {"type": "string", "minLength": 1}, "note": {"type": "object", "additionalProperties": {"type": "string", "minLength": 1}}}}
+  },
+  "allOf": [
+    {"if": {"properties": {"status": {"const": "withdrawn"}}}, "then": {"properties": {"withdrawal": {"type": "object"}}}, "else": {"properties": {"withdrawal": {"type": "null"}}}}
+  ]
+}

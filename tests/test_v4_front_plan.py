@@ -230,7 +230,7 @@ class FrontPlanBuildTests(unittest.TestCase):
 
     def test_publication_gates_pass_on_the_fresh_build(self):
         results = run_all.run(self.out)
-        self.assertEqual(len(results), 13)
+        self.assertEqual(len(results), 14)
         self.assertEqual([result.code for result in results],
                          [gate.__module__.rsplit(".", 1)[-1].upper() for gate in run_all.GATES])
         self.assertIn("NO_FCMO_GROUP", [result.code for result in results])
