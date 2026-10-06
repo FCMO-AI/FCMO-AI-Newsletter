@@ -94,7 +94,7 @@ def handler(service, dispatch_token, *, collector=collect, lkg_reader=live_lkg, 
                     identity, stories, status = collector(service.config.site_url,commit)
                     if identity.get('candidate_id') != doc.get('candidate_id'):
                         return self.reply(409, '{"error":"candidate_changed"}')
-                    outcome = service.dispatch(json.loads(stories),json.loads(status),live_verified=True,now=datetime.now(timezone.utc))
+                    outcome = service.dispatch(json.loads(stories),json.loads(status),live_verified=True,now=datetime.now(timezone.utc),locale=doc.get('locale'))
                     return self.reply(200,json.dumps(outcome))
                 if path != '/subscribe': return self.reply(404,'{}')
                 if self.headers.get_content_type() != 'application/x-www-form-urlencoded': return self.reply(415,'{}')

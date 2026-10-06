@@ -54,9 +54,13 @@ const server = http.createServer((req, res) => {
         const consent = form?.querySelector('[name=consent]');
         return {width:document.documentElement.scrollWidth, viewport:innerWidth,
           action:form?.action, method:form?.method, consentRequired:consent?.required,
-          consentChecked:consent?.checked, locale:form?.querySelector('[name=locale]')?.value,
+          consentChecked:consent?.checked, locale:form?.querySelector('[name=locale]')?.value || form?.dataset.emailLocale,
+          emailField:form?.querySelector('input[type=email]')?.name,
           privacy:!!document.querySelector('a[href*="/privacy/"]')};
       });
+      const kit = process.env.FCMO_EMAIL_PROVIDER === 'kit';
+      const expectedForm = kit ? `https://app.kit.com/forms/${process.env[{en:'KIT_FORM_EN','es-419':'KIT_FORM_ES','zh-Hans':'KIT_FORM_ZH'}[locale]]}/subscriptions` : null;
+      if (kit && (result.action !== expectedForm || result.emailField !== 'email_address')) throw Error(JSON.stringify({locale,width,result}));
       if (result.width > width || result.method !== 'post' || !result.consentRequired || result.consentChecked || result.locale !== locale || !result.privacy) throw Error(JSON.stringify({locale,width,result}));
       await page.screenshot({path:path.join(preview,`signup-${locale}-${width}.png`),fullPage:true});
       rows.push({surface:'signup',locale,width,...result});

@@ -142,7 +142,8 @@ class DiarioService:
             db.execute('CREATE TABLE IF NOT EXISTS consent (email_hash TEXT, ip_hash TEXT, locale TEXT, at INTEGER, version TEXT, accepted INTEGER)')
         state.chmod(0o600)
 
-    def dispatch(self, stories, status, *, live_verified: bool, now: datetime):
+    def dispatch(self, stories, status, *, live_verified: bool, now: datetime, locale=None):
+        requested_locale = locale
         decision = eligibility(stories, status, live_verified=live_verified, now=now)
         if decision.action == 'SKIP': return {'action':'SKIP', 'reason':decision.reason}
         chosen = [v['story'] for v in decision.items]
@@ -157,6 +158,9 @@ class DiarioService:
                     site_url=self.config.site_url, postal_address=self.config.postal_address,
                     preferences_url='{{ UnsubscribeURL }}?manage=true',
                     unsubscribe_url='{{ UnsubscribeURL }}') for locale in LOCALES}
+        if requested_locale is not None:
+            if requested_locale not in LOCALES: raise ValueError('unsupported_email_locale')
+            rendered = {requested_locale: rendered[requested_locale]}
         queued = []
         with self.thread_lock, self.state.with_suffix('.lock').open('a') as lock:
             fcntl.flock(lock, fcntl.LOCK_EX)

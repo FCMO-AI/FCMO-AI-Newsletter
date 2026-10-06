@@ -1,11 +1,7 @@
-# L25 — refreshed Story corpus expectations
+# L27 — Diario por correo
 
-Updated the first-publication ledger only through `tools/story_layer.py ledger`. It added `FCMO-045BB8282222` and `FCMO-5B5B447325A8`, each at the first publication time recovered from repository history (`2026-10-04T06:29:30Z`); the ledger now has 46 entries and a subsequent `--check` reports zero changes. The contract fixture was synchronized from that generated ledger.
+Kit primero, con adaptadores intercambiables, envío después del LKG verificado, protección contra duplicados entre ejecuciones y backup diario cifrado con age. Se conserva la ruta Listmonk + SES de L26.
 
-The Story and ingest tests now reflect the upstream CR L21 acceptance: 46 Story objects, 43 live, 1 withdrawn and 2 merged. Both repaired records normalize and publish; no live-corpus quarantine is expected. `EVENT_AT_INVALID` coverage remains through a fixture-derived record with a malformed `event_at`. The freshness oracle now uses the repaired September 30 event date, so corpus state is lagging rather than stale. The static paper build produced 129 Story routes: 43 each for EN, es-419 and zh-Hans. Airlocked locale sync and validation report all 43 complete in both locales.
+El informe operativo completo, configuración de Kit/GitHub, pruebas y límites están en [REPORT-L27.md](REPORT-L27.md). Evidencia local en [reports/email-kit/](reports/email-kit/).
 
-Regenerated the canonical release source, newsroom surfaces/status, frozen overlay and paper receipt through repository tools. Added labels for the corpus's `fcmo_fallback` media enum in all three UI catalogs. All seven release gates pass.
-
-Verification: `python3 -m unittest discover -s tests` — 603 passed, 3 skipped; paper build — 531 total routes / 129 Story routes; `tools/verify_release.py` — 7/7 gates passed. The two new downstream public-research receipts were generated offline and record zero source URLs reopened; no new source re-research is claimed. These are local build/release checks; no deployment or live-origin verification was performed.
-
-**Resumen:** El ledger y las pruebas ya reflejan 43 historias activas; se conservó la cuarentena sintética para fechas inválidas. La compilación produjo 129 rutas localizadas y las siete compuertas pasaron. No se desplegó.
+Resumen: implementación lista para revisión local, sin push ni correo real. Claude debe repetir navegador y prueba nativa de L26, confirmar que Kit gratuito admite envío por API v4 y probar la entrega real antes de activar lectores.

@@ -1,0 +1,55 @@
+name: Encrypted Diario audience backup
+
+on:
+  schedule:
+    - cron: '15 15 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fcmo-email-backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    if: vars.FCMO_EMAIL_PROVIDER != ''
+    runs-on: ubuntu-latest
+    environment: email
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Install the encryption tool
+        run: sudo apt-get update && sudo apt-get install -y age
+      - name: Stream subscriber records directly into age encryption
+        env:
+          FCMO_EMAIL_PROVIDER: ${{ vars.FCMO_EMAIL_PROVIDER }}
+          FCMO_EMAIL_BACKUP_AGE_RECIPIENT: ${{ vars.FCMO_EMAIL_BACKUP_AGE_RECIPIENT }}
+          FCMO_EMAIL_PROVIDER_CONFIG: ${{ secrets.FCMO_EMAIL_PROVIDER_CONFIG }}
+          KIT_API_KEY: ${{ secrets.KIT_API_KEY }}
+          KIT_TAG_EN: ${{ vars.KIT_TAG_EN }}
+          KIT_TAG_ES: ${{ vars.KIT_TAG_ES }}
+          KIT_TAG_ZH: ${{ vars.KIT_TAG_ZH }}
+          # Listmonk export credentials belong to this separate backup job.
+          # The L26 host maintenance backup remains available without them.
+          LISTMONK_URL: ${{ vars.LISTMONK_URL }}
+          LISTMONK_API_USER: ${{ secrets.LISTMONK_API_USER }}
+          LISTMONK_API_KEY: ${{ secrets.LISTMONK_API_KEY }}
+          FCMO_EMAIL_PUBLIC_URL: ${{ vars.FCMO_EMAIL_PUBLIC_URL }}
+          FCMO_EMAIL_FROM: ${{ vars.FCMO_EMAIL_FROM }}
+          FCMO_EMAIL_POSTAL_ADDRESS: ${{ secrets.FCMO_EMAIL_POSTAL_ADDRESS }}
+          FCMO_EMAIL_CONSENT_KEY: ${{ secrets.FCMO_EMAIL_CONSENT_KEY }}
+        run: python tools/email_backup.py --out "$RUNNER_TEMP/email-backup/audience.json.age"
+      - name: Store ciphertext only
+        uses: actions/upload-artifact@v6
+        with:
+          name: email-audience-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/email-backup/audience.json.age
+          if-no-files-found: error
+          retention-days: 30

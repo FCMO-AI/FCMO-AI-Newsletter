@@ -1,8 +1,14 @@
 # Privacy
 
-FCMO AI Newsletter is a static public publication with optional FCMO AI Diario email subscriptions. Reading the newspaper does not require an account. Signup is enabled only when the separate email service is configured. The form sends the email address, chosen language and explicit consent to that service; the static newspaper stores no subscriber database.
+FCMO AI Newsletter is a static public publication with optional FCMO AI Diario email subscriptions. Reading the newspaper does not require an account. Signup is enabled only when the selected email provider is configured. The form sends the email address, chosen language and explicit consent to that service; the static newspaper stores no subscriber database.
 
 ## Optional Diario email
+
+The operator selected Kit for the initial hosted Diario route on 2026-10-05. `FCMO_EMAIL_PROVIDER` selects the form and delivery adapter. Kit signup posts directly to Kit’s public form, with a separate form/tag for EN/es-419/zh-Hans, an unchecked required consent checkbox and email confirmation configured in Kit. The checkbox is enforced by the browser; our service does not receive or enforce Kit form submissions. The Kit notice in `legal/email-privacy-kit.json` is rendered in all three languages when Kit is selected. It describes Kit processing, GitHub Actions encrypted backups, configured retention and the complete public controller notice supplied by `FCMO_EMAIL_PRIVACY_URL`. A real postal address/contact, provider terms, transfer arrangements and disabled tracking must be in place before activation. Kit’s consent/retention features must be confirmed with the real account; L26’s gateway retention guarantees do not automatically apply to Kit.
+
+Daily adapter exports contain language memberships and all available subscription states, including suppression. Plaintext exists only in runner memory and the pipe to age; only ciphertext is written and uploaded, with 30-day artifact retention. The decryption key is held separately and never placed in GitHub. An export is private audience data even when the newspaper repository is public. Kit export completeness, language assignments and suppression must be checked live before treating the backup as migration-ready.
+
+The following operational guarantees describe the retained Listmonk + SES route:
 
 Matías Peña Szőke is responsible for subscription data. The complete notice at the configured email service’s `/privacy` includes the actual postal address and monitored rights contact; it must be complete before activation. The source-controlled EN/es-419/zh-Hans notice is `legal/email-privacy.json` and the paper generator renders it on all three privacy routes.
 

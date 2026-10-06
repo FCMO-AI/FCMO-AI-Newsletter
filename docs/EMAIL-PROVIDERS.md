@@ -1,0 +1,34 @@
+# Diario: interfaz de proveedores y migración
+
+El Diario usa `FCMO_EMAIL_PROVIDER=kit` inicialmente. `listmonk` conserva la ruta de L26 con gateway, journal SQLite y SES; `fake` sirve únicamente para pruebas locales. Las Cartas de Javier mantienen su ruta editorial independiente.
+
+Un adaptador vive en `tools/email_providers/<nombre>.py`. El selector importa ese módulo por configuración: no hay que cambiar el despachador, el generador ni el exportador. El módulo expone `Adapter`, `public_form(env, locale)` y `PRIVACY_NOTICE` (nombre de un aviso curado en `legal/`). La clase implementa `subscribe_form`, `send_edition(edition, locale, idempotency_key)`, `list_subscribers` y `health`. `public_form` no instancia clientes autenticados. El sitio recibe solo configuración pública; `FCMO_EMAIL_PUBLIC_CONFIG` permite configuración pública adicional de futuros adaptadores. `FCMO_EMAIL_PROVIDER_CONFIG`, secret exclusivo de los jobs de correo, permite pasar configuración privada adicional sin editar los workflows; el adaptador define y valida su formato. Kit y Listmonk usan las variables/secrets explícitos descritos en REPORT-L27.md.
+
+`send_edition` devuelve `QUEUED` cuando se observa la campaña programada y `SKIP` si ya existe. No promete entrega ni llegada a la bandeja. Debe rechazar una clave ajena a la edición/idioma y conservar idempotencia entre procesos y ejecuciones. Un proveedor que necesita el journal de Actions declara `requires_intent = True`; el workflow restaura los intents de ese día y sube el nuevo snapshot antes de enviar. El snapshot contiene solamente claves de edición, nunca direcciones. Si un POST puede haber ocurrido y no se encuentra su campaña, se bloquea la recreación. La concurrencia del workflow y el bloqueo local serializan el envío. No borrar intents/campañas ni cambiar claves para forzar un reintento.
+
+`FCMO_EMAIL_ENABLED=false` desactiva los envíos y los formularios publicados. El build de Pages pasa este valor explícitamente. Las copias siguen funcionando aunque el envío esté apagado. El despachador exige además la edición del día, el horario de L26, material nuevo, los mismos IDs con contenido nativo completo en EN/es-419/zh-Hans y el receipt del candidato LKG verificado en producción. No genera traducciones. Kit usa la descripción `fcmo-diario:<fecha>:<locale>` y etiquetas distintas por idioma; el modo de prueba usa `fcmo-diario-test` y artefactos separados.
+
+## Copia y recuperación
+
+`backup-email.yml` exporta cada día a las 15:15 UTC. `tools/email_backup.py` escribe JSON directamente a stdin de age. Solo el ciphertext `.age` llega al disco o al artefacto, con retención de 30 días. Los errores de exportación/cifrado eliminan el parcial e impiden subir un backup incompleto. No se imprime ni se guarda el JSON claro. Solo la clave pública age va a GitHub; la identidad de descifrado queda fuera, bajo custodia del operador.
+
+El JSON descifrado usa `schema=fcmo-email-export-v1`, `provider`, `exported_at` y `subscribers`. Cada registro conserva la respuesta del proveedor y agrega `locales`. Kit conserva `id`, `email_address`, `state`, `fields`, `created_at` y cualquier otro campo disponible. Consulta explícitamente los estados active/inactive/bounced/complained/cancelled y las membresías de las tres etiquetas. Listmonk conserva `status`, `lists`, sus estados de suscripción y atributos; `locales` enumera las listas confirmadas. No equiparar los estados de un proveedor a los de otro sin comprobar sus significados.
+
+Para verificar una copia en una estación privada, sin archivo claro:
+
+```sh
+age --decrypt --identity /private/age-identity.txt audience.json.age | \
+  python3 -c 'import json,sys; d=json.load(sys.stdin); assert d["schema"]=="fcmo-email-export-v1"; print("Backup íntegro:", len(d["subscribers"]), "registros")'
+```
+
+No ejecutar ese comando con `set -x`, ni imprimir registros/direcciones. Un backup de audiencia no reemplaza el backup de base de datos/journal de L26, la configuración de formularios/automatizaciones ni las pruebas de consentimiento disponibles en la cuenta.
+
+## Migrar a Listmonk + SES u otro proveedor
+
+1. Poner `FCMO_EMAIL_ENABLED=false` y publicar los formularios desactivados. Esperar a que termine cualquier envío en curso. Descargar el último artefacto cifrado; comprobar fecha, integridad, conteos por estado/idioma y la disponibilidad de evidencia de consentimiento. Conservar la cuenta anterior durante la comprobación.
+2. Preparar el nuevo servicio por REPORT-L26.md, o crear un adaptador nuevo bajo el contrato anterior. Configurar confirmación, bajas, supresión, remitente, privacidad y transporte antes de importar.
+3. Descifrar por pipe exclusivamente en la estación privada hacia el importador del nuevo proveedor, inicialmente en modo de validación. Mapear `email_address` de Kit a `email` de Listmonk y `locales` a `diario-en`, `diario-es-419`, `diario-zh-Hans`. Conservar los campos del registro original como evidencia privada. Las etiquetas de locale deben estar verificadas, no inferidas del idioma del correo.
+4. Importar como confirmados únicamente los lectores activos cuyo consentimiento/confirmación se pueda demostrar. Mantener bajas, rebotes y quejas bloqueados y fuera de listas enviables; no reactivar cancelled/bounced/complained/blocklisted/unsubscribed. Los pendientes no se convierten en confirmados. Si falta evidencia de consentimiento, resolverla o pedir nueva confirmación por una vía autorizada. Las APIs de importación y formatos CSV son específicos del destino; no hay un importador genérico que prometa conservar estados incompatibles.
+5. Comparar conteos y muestras privadas por idioma/estado y probar una baja, una cuenta pendiente, una cuenta suprimida y un seed confirmado. Configurar `FCMO_EMAIL_PROVIDER=listmonk` y los secretos de L26; cambiar también el aviso integral y las variables de formulario. El backup de Actions de Listmonk necesita acceso HTTPS privado/autorizado a su API y credenciales de exportación propias; no exponer `/api` ni ampliar el token del gateway para ello. Si el runner no tiene esa ruta, conservar el backup cifrado del host de L26 o usar un runner con conectividad privada.
+6. Cambiar de proveedor entre días de edición, después de reconciliar las campañas del anterior. Los journals de dos proveedores no comparten las campañas: cambiar durante una edición puede reenviarla. Desactivar permanentemente la programación del proveedor anterior, comprobar el nuevo formulario generado y su alta/baja, y reactivar. La siguiente edición nueva debe pasar las mismas comprobaciones LKG y de frescura.
+7. Verificar varios ciclos diarios sin intervención, entrega a seeds, bajas y recuperación del backup. Revocar la API key anterior cuando ya no sea necesaria. El ciphertext histórico puede mantenerse hasta su caducidad; nunca subir una lista clara al repositorio, ramas públicas, logs o artefactos.

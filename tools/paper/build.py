@@ -719,13 +719,20 @@ class PaperBuilder:
         pending = {"en": "This document awaits the approved legal copy. Subscription remains inactive.", "es-419": "Este documento espera el texto legal aprobado. La suscripción permanece inactiva.", "zh-Hans": "本文件仍待核准的法律文本。订阅功能尚未启用。"}[locale["code"]]
         for suffix, title in (("privacy/",s["footer"]["privacy"]),("license/",s["footer"]["license"]),("disclaimer/",s["footer"]["disclaimer"])):
             if suffix == 'privacy/':
-                notice = json.loads((ROOT/'legal/email-privacy.json').read_text(encoding='utf-8'))[locale['code']]
+                from tools.email_providers import privacy_notice_file
+                notice_file = privacy_notice_file(os.environ)
+                notice = json.loads((ROOT/'legal'/notice_file).read_text(encoding='utf-8'))[locale['code']]
                 content = ''.join('<p>'+esc(part)+'</p>' for part in notice)
-                from tools.paper.templates.subscribe import ghost_signup_url
-                email_url = os.environ.get('FCMO_EMAIL_PUBLIC_URL', '')
-                if ghost_signup_url(email_url):
+                from tools.email_providers import signup_form
+                form = None
+                if os.environ.get('FCMO_EMAIL_ENABLED') != 'false':
+                    try:
+                        form = signup_form(os.environ,locale['code'])
+                    except ValueError:
+                        pass
+                if form:
                     privacy_label = {'en':'Complete email privacy notice','es-419':'Aviso integral del correo','zh-Hans':'完整邮件隐私声明'}[locale['code']]
-                    content += f'<p><a href="{esc(email_url.rstrip("/")+"/privacy?locale="+locale["code"])}">{privacy_label}</a></p>'
+                    content += f'<p><a href="{esc(form.privacy_url)}">{privacy_label}</a></p>'
                 else:
                     content += '<p>'+esc({'en':'Email signup is currently inactive.','es-419':'La suscripción por correo está inactiva.','zh-Hans':'邮件订阅当前尚未启用。'}[locale['code']])+'</p>'
             else:

@@ -94,3 +94,7 @@ This repository uses a mixed-license model so software and editorial material ar
 The website legal/disclosure scaffold is defined in `LEGAL_REQUIREMENTS.md`, with baseline public-language templates in `legal/PRIVACY.md` and `legal/DISCLAIMER.md`.
 
 Generated editions expose compact links for About, Feeds & data, Privacy, License, and Disclaimer. Primary and authoritative source links are provided from the relevant research pages and editions.
+
+## Diario by email
+
+The Diario supports provider adapters selected by `FCMO_EMAIL_PROVIDER`: Kit initially, the retained Listmonk + SES route, and an offline fake. Sending runs after the live-verified LKG gate and remains controlled by `FCMO_EMAIL_ENABLED`; all three native editions must be complete. Static signup posts to the provider's public form, and daily audience exports are age-encrypted before artifact storage. Production activation and repeated autonomous delivery are not yet proved. See [REPORT-L27.md](REPORT-L27.md) for the operator setup and [provider/backup/migration contract](docs/EMAIL-PROVIDERS.md).

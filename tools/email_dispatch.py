@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
-"""Idempotent, mockable Ghost dispatch for the daily FCMO AI edition.
+"""Dispatch the verified, fresh Diario through a configured provider adapter.
 
-This module only talks to the Ghost Admin API when explicitly invoked by the
-email workflow. Tests use ``tests.harness.mock_ghost.MockGhost``; no delivery
-provider or mailbox is contacted here.
+The legacy Ghost implementation remains available for compatibility. Kit and
+Listmonk are exercised through offline fixtures; delivery runs only on invocation.
 """
 from __future__ import annotations
 
@@ -268,7 +267,7 @@ def dispatch(
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Dispatch one FCMO AI Diario through Ghost (mock in tests).")
+    parser = argparse.ArgumentParser(description="Dispatch a live-verified FCMO AI Diario through the selected adapter.")
     parser.add_argument("--stories", type=Path, required=True)
     parser.add_argument("--status", type=Path, required=True)
     parser.add_argument("--live-verify", type=Path, required=True)
@@ -278,37 +277,54 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--site-url", default=os.environ.get("FCMO_SITE_URL", "https://fcmo-ai.github.io/FCMO-AI-Newsletter"))
     parser.add_argument("--newsletter", default="diario")
     parser.add_argument("--now", help="UTC timestamp for deterministic local checks")
-    parser.add_argument('--provider', choices=('listmonk','ghost'), default='listmonk')
+    parser.add_argument('--provider', default=os.environ.get('FCMO_EMAIL_PROVIDER','listmonk'))
     parser.add_argument('--email-url', default=os.environ.get('FCMO_EMAIL_PUBLIC_URL',''))
+    parser.add_argument('--check', action='store_true', help='Validate all locales and provider health without sending')
     args = parser.parse_args(argv)
     try:
         status = _json_file(args.status)
         stories = _json_file(args.stories)
         now = parse_timestamp(args.now)
-        if args.provider == 'listmonk':
-            # The host independently fetches and verifies the live LKG again.
-            # The workflow never receives SMTP keys or subscriber data.
-            from tools.email_listmonk import clean_origin, NoRedirect
+        if args.check:
+            from tools.email_providers import Edition
+            decision = eligibility(stories,status,live_verified=_verification_passed(args.live_verify),now=now)
+            eligible = os.environ.get('FCMO_EMAIL_ENABLED') == 'true' and decision.action == 'SEND'
+            if eligible:
+                from tools.email_providers import create_provider
+                from tools.email_listmonk import DeliveryError
+                Edition(stories,status,_json_file(args.live_verify),now).selected()
+                provider = create_provider(dict(os.environ,FCMO_EMAIL_PROVIDER=args.provider))
+                try: provider.health()
+                except DeliveryError:
+                    print('ERROR email_provider_preflight_failed')
+                    return 1
+            if os.environ.get('GITHUB_OUTPUT'):
+                with open(os.environ['GITHUB_OUTPUT'],'a') as output:
+                    output.write('eligible='+str(eligible).lower()+'\n')
+                    output.write('requires_intent='+str(eligible and getattr(provider,'requires_intent',False)).lower()+'\n')
+            print('ELIGIBLE' if eligible else 'SKIP '+decision.reason)
+            return 0
+        if os.environ.get('FCMO_EMAIL_ENABLED') != 'true':
+            print('SKIP disabled')
+            return 0
+        if args.provider != 'ghost':
+            from tools.email_providers import create_provider, Edition, dispatch_edition
+            from tools.email_listmonk import DeliveryError
             decision = eligibility(stories,status,live_verified=_verification_passed(args.live_verify),now=now)
             if decision.action == 'SKIP':
                 print('SKIP '+decision.reason)
                 return 0
             receipt = _json_file(args.live_verify)
-            token = os.environ.get('FCMO_EMAIL_DISPATCH_TOKEN','')
-            if len(token) < 32 or not receipt.get('source_commit') or not receipt.get('candidate_id'):
+            if not receipt.get('source_commit') or not receipt.get('candidate_id'):
                 raise ValueError('missing_authenticated_live_receipt')
-            url = clean_origin(args.email_url)+'/dispatch'
-            payload = json.dumps({k:receipt[k] for k in ('source_commit','candidate_id')}).encode()
-            request = urllib.request.Request(url,data=payload,method='POST',headers={
-                'Content-Type':'application/json','Authorization':'Bearer '+token})
+            env = dict(os.environ,FCMO_EMAIL_PROVIDER=args.provider,FCMO_EMAIL_PUBLIC_URL=args.email_url)
+            edition = Edition(stories,status,receipt,now,os.environ.get('FCMO_EMAIL_NAMESPACE','fcmo-diario'))
             try:
-                with urllib.request.build_opener(NoRedirect).open(request,timeout=120) as response:
-                    result = json.loads(response.read(8192))
-                if result.get('action') not in ('QUEUED','SKIP'): raise ValueError('unexpected_dispatch_response')
-            except (urllib.error.URLError, TimeoutError, OSError, ValueError):
-                print('ERROR email_gateway_outcome_unconfirmed; retry reconciles durable state')
+                outcome = dispatch_edition(create_provider(env),edition,enabled=True,live_verified=True)
+            except DeliveryError:
+                print('ERROR email_provider_outcome_unconfirmed; reconcile before retry')
                 return 1
-            print(json.dumps(result,sort_keys=True))
+            print(json.dumps(outcome,sort_keys=True))
             return 0
         code, message = dispatch(stories=stories, status=status, live_verified=_verification_passed(args.live_verify),
                                  ghost_url=args.ghost_url, admin_api_key=args.admin_api_key, now=now,
