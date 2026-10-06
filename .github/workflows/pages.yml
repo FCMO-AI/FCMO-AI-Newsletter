@@ -43,7 +43,7 @@ concurrency:
   # Failed upstream notifications are no-ops and must not cancel a real run.
   # Manual rollback intentionally shares the active lease so it supersedes any
   # candidate still in flight and is the final Pages writer.
-  group: github-pages-v4-${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion != 'success' && github.run_id || 'active' }}
+  group: github-pages-v4-${{ (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion != 'success' || github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/main') && github.run_id || 'active' }}
   cancel-in-progress: true
 
 env:
@@ -66,7 +66,7 @@ jobs:
   build:
     if: >-
       (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success') &&
-      (github.event_name != 'workflow_dispatch' || inputs.operation == 'deploy')
+      (github.event_name != 'workflow_dispatch' || (inputs.operation == 'deploy' && github.ref == 'refs/heads/main'))
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the exact current publication input with LKG history
@@ -85,6 +85,12 @@ jobs:
           npm install --prefix "$RUNNER_TEMP/playwright" --no-save playwright@1.63.0
           echo "PLAYWRIGHT_MODULE=$RUNNER_TEMP/playwright/node_modules/playwright" >> "$GITHUB_ENV"
           "$RUNNER_TEMP/playwright/node_modules/.bin/playwright" install --with-deps chromium
+
+      - name: Run the full regression suite before publication
+        run: python3 -m unittest discover -s tests
+
+      - name: Preserve the established six-gate release boundary
+        run: python3 tools/verify_release.py
 
       - name: Render locale-specific Open Graph cards
         run: >-
@@ -205,7 +211,7 @@ jobs:
     needs: [deploy, live-verify]
     if: >-
       always() &&
-      ((github.event_name == 'workflow_dispatch' && inputs.operation == 'rollback') ||
+      ((github.event_name == 'workflow_dispatch' && inputs.operation == 'rollback' && github.ref == 'refs/heads/main') ||
        (needs.deploy.result == 'success' &&
         (needs.live-verify.result == 'failure' || needs.live-verify.result == 'cancelled')))
     runs-on: ubuntu-latest

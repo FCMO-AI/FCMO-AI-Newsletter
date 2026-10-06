@@ -1,0 +1,40 @@
+name: Protected publication validation
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  publish-gate:
+    name: publish-gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - name: Install pinned browser dependencies
+        run: |
+          npm install --prefix "$RUNNER_TEMP/playwright" --no-save playwright@1.63.0
+          echo "PLAYWRIGHT_MODULE=$RUNNER_TEMP/playwright/node_modules/playwright" >> "$GITHUB_ENV"
+          "$RUNNER_TEMP/playwright/node_modules/.bin/playwright" install --with-deps chromium
+      - name: Run the full regression suite
+        run: python3 -m unittest discover -s tests
+      - name: Validate immutable candidate through every release and browser gate
+        run: python3 ops/publish.py --check
