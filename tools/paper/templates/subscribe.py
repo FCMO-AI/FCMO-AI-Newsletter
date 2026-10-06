@@ -50,6 +50,9 @@ def subscribe_block(zone: str, locale: str, *, base: str = "/FCMO-AI-Newsletter/
     """Render the landing/page CTA. ``zone`` is ``letter``, ``paper``, or ``all``."""
     if zone not in {"letter", "paper", "all"}:
         raise ValueError("unknown subscription zone")
+    email_origin = os.environ.get('FCMO_EMAIL_PUBLIC_URL', '')
+    if email_origin and ghost_signup_url(email_origin):
+        return diario_form(locale, base, email_origin.rstrip('/'), page)
     config = subscription_config()
     copy = _LOCALES.get(locale, _LOCALES["en"])
     descriptions = _DESCRIPTIONS.get(locale, _DESCRIPTIONS["en"])
@@ -77,3 +80,25 @@ def subscribe_block(zone: str, locale: str, *, base: str = "/FCMO-AI-Newsletter/
             f'<li><a href="{escape(root + "feed.xml", quote=True)}">{escape(copy["rss"])}</a></li>'
             f'<li><a href="{escape(root + "feed.atom", quote=True)}">Atom</a></li>'
             f'<li><a href="{escape(root + "feed.json", quote=True)}">{escape(copy["json"])}</a></li></ul></section>')
+
+
+def diario_form(locale, base, origin, page=False):
+    copy = {
+        'en': ('Get the Diario by email', 'Read the daily AI digest in English, Spanish or Simplified Chinese.', 'Email', 'Email language', 'I want to receive FCMO AI Diario and have read the privacy notice.', 'Subscribe', 'Confirm your email to begin. Every edition includes an unsubscribe link.', 'Privacy notice', 'Complete privacy notice'),
+        'es-419': ('Recibe el Diario por correo', 'Lee el resumen diario de IA en inglés, español o chino simplificado.', 'Correo', 'Idioma del correo', 'Quiero recibir FCMO AI Diario y he leído el aviso de privacidad.', 'Suscribirme', 'Confirma tu correo para empezar. Cada edición incluye un enlace de baja.', 'Aviso de privacidad', 'Aviso integral'),
+        'zh-Hans': ('通过邮件阅读日报', '选择英语、西班牙语或简体中文的每日人工智能摘要。', '邮箱', '邮件语言', '我希望收到 FCMO AI Diario，并已阅读隐私声明。', '订阅', '确认邮箱后开始发送。每期邮件均提供退订链接。', '隐私声明', '完整隐私声明'),
+    }[locale]
+    prefix = {'en':'', 'es-419':'es/', 'zh-Hans':'zh/'}[locale]
+    root = base.rstrip('/')+'/'+prefix
+    options = ''.join('<option value="'+v+'"'+(' selected' if v==locale else '')+'>'+label+'</option>' for v,label in (('en','English'),('es-419','Español'),('zh-Hans','简体中文')))
+    tag = 'h1' if page else 'h2'
+    return (f'<section class="subscribe-v2 subscribe-page" data-subscribe-state="active">'
+            f'<{tag} class="page-title">{copy[0]}</{tag}><p>{copy[1]}</p>'
+            f'<form method="post" action="{escape(origin,quote=True)}/subscribe">'
+            f'<p><label>{copy[2]} <input type="email" name="email" autocomplete="email" maxlength="254" required style="max-width:100%;box-sizing:border-box"></label></p>'
+            f'<p><label>{copy[3]} <select name="locale">{options}</select></label></p>'
+            f'<p><label><input type="checkbox" name="consent" value="yes" required> {copy[4]}</label></p>'
+            '<input type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" hidden>'
+            f'<p><button class="button" type="submit">{copy[5]}</button></p></form><p>{copy[6]}</p>'
+            f'<p><a href="{escape(root+"privacy/",quote=True)}">{copy[7]}</a> · '
+            f'<a href="{escape(origin,quote=True)}/privacy?locale={locale}">{copy[8]}</a></p></section>')

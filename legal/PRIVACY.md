@@ -1,6 +1,16 @@
 # Privacy
 
-FCMO AI Newsletter is designed as a static public publication. The website does not require reader accounts and, by default, does not intentionally collect personal information through forms, subscriptions, comments, or first-party tracking.
+FCMO AI Newsletter is a static public publication with optional FCMO AI Diario email subscriptions. Reading the newspaper does not require an account. Signup is enabled only when the separate email service is configured. The form sends the email address, chosen language and explicit consent to that service; the static newspaper stores no subscriber database.
+
+## Optional Diario email
+
+Matías Peña Szőke is responsible for subscription data. The complete notice at the configured email service’s `/privacy` includes the actual postal address and monitored rights contact; it must be complete before activation. The source-controlled EN/es-419/zh-Hans notice is `legal/email-privacy.json` and the paper generator renders it on all three privacy routes.
+
+Listmonk holds subscriber addresses, list membership, confirmation metadata and delivery/bounce state on the private host. Amazon Web Services SES processes delivery. Processor terms and applicable international-transfer safeguards must be arranged before the operator sets `FCMO_EMAIL_COMPLIANCE_READY=true`. No addresses are sold; individual/open/click tracking is disabled. Membership in Diario does not subscribe readers to Javier’s Letters.
+
+Signup requires an unchecked consent box and double opt-in. Every Diario has a recipient-specific unsubscribe link and RFC 8058 one-click headers, without a fee or login. Access, rectification, cancellation/deletion, objection, withdrawal, portability and limits on processing can be requested through the complete notice’s rights contact. Listmonk also provides profile export and deletion.
+
+The daily maintenance unit expires unconfirmed memberships after 30 days and deletes orphaned subscriber profiles. Consent and rate-limit records use keyed hashes rather than clear email/IP data and expire after 30 days. Confirmation records remain while subscribed. Minimal unsubscribe/bounce suppression may remain to prevent further sends; readers can request deletion. Encrypted rolling backups expire after 30 days. A working backup timer and separately held decryption key are activation prerequisites.
 
 ## Hosting and technical data
 
@@ -20,4 +30,4 @@ Articles may link to third-party websites. Those sites control their own data pr
 
 This notice may be updated as the publication gains new features. Material changes to reader data collection should be reflected here before or at the same time the relevant feature is published.
 
-Last updated: September 1, 2026.
+Last updated: October 5, 2026.

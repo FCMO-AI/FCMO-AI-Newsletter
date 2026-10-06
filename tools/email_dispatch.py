@@ -24,6 +24,9 @@ from pathlib import Path
 from typing import Any
 from zoneinfo import ZoneInfo
 
+if __package__ in (None, ''):
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 try:
     from tools.email_render import RenderedEmail, render_daily_email, select_stories
 except ModuleNotFoundError:  # direct invocation from tools/
@@ -275,11 +278,38 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--site-url", default=os.environ.get("FCMO_SITE_URL", "https://fcmo-ai.github.io/FCMO-AI-Newsletter"))
     parser.add_argument("--newsletter", default="diario")
     parser.add_argument("--now", help="UTC timestamp for deterministic local checks")
+    parser.add_argument('--provider', choices=('listmonk','ghost'), default='listmonk')
+    parser.add_argument('--email-url', default=os.environ.get('FCMO_EMAIL_PUBLIC_URL',''))
     args = parser.parse_args(argv)
     try:
         status = _json_file(args.status)
         stories = _json_file(args.stories)
         now = parse_timestamp(args.now)
+        if args.provider == 'listmonk':
+            # The host independently fetches and verifies the live LKG again.
+            # The workflow never receives SMTP keys or subscriber data.
+            from tools.email_listmonk import clean_origin, NoRedirect
+            decision = eligibility(stories,status,live_verified=_verification_passed(args.live_verify),now=now)
+            if decision.action == 'SKIP':
+                print('SKIP '+decision.reason)
+                return 0
+            receipt = _json_file(args.live_verify)
+            token = os.environ.get('FCMO_EMAIL_DISPATCH_TOKEN','')
+            if len(token) < 32 or not receipt.get('source_commit') or not receipt.get('candidate_id'):
+                raise ValueError('missing_authenticated_live_receipt')
+            url = clean_origin(args.email_url)+'/dispatch'
+            payload = json.dumps({k:receipt[k] for k in ('source_commit','candidate_id')}).encode()
+            request = urllib.request.Request(url,data=payload,method='POST',headers={
+                'Content-Type':'application/json','Authorization':'Bearer '+token})
+            try:
+                with urllib.request.build_opener(NoRedirect).open(request,timeout=120) as response:
+                    result = json.loads(response.read(8192))
+                if result.get('action') not in ('QUEUED','SKIP'): raise ValueError('unexpected_dispatch_response')
+            except (urllib.error.URLError, TimeoutError, OSError, ValueError):
+                print('ERROR email_gateway_outcome_unconfirmed; retry reconciles durable state')
+                return 1
+            print(json.dumps(result,sort_keys=True))
+            return 0
         code, message = dispatch(stories=stories, status=status, live_verified=_verification_passed(args.live_verify),
                                  ghost_url=args.ghost_url, admin_api_key=args.admin_api_key, now=now,
                                  postal_address=args.postal_address, site_url=args.site_url, newsletter=args.newsletter)

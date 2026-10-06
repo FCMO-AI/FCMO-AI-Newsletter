@@ -1,0 +1,32 @@
+# Import into an existing public HTTPS Caddy site after replacing the hostname.
+# No admin API, public signup API, archives, or tracking endpoints are exposed.
+mail.REPLACE_WITH_DOMAIN {
+	request_body {
+		max_size 256KB
+	}
+	@gateway path /subscribe /dispatch /privacy
+	handle @gateway {
+		reverse_proxy 127.0.0.1:9010 {
+			header_up X-Real-IP {remote_host}
+		}
+	}
+	@signupBypass path /subscription/form
+	handle @signupBypass {
+		respond 404
+	}
+	@member path /subscription/* /public/static/*
+	handle @member {
+		header Referrer-Policy no-referrer
+		reverse_proxy 127.0.0.1:9000
+	}
+	@ses {
+		path /webhooks/service/ses
+		method POST
+	}
+	handle @ses {
+		reverse_proxy 127.0.0.1:9010
+	}
+	handle {
+		respond 404
+	}
+}

@@ -7,7 +7,7 @@ on:
     branches: [main]
   schedule:
     # Two UTC windows cover either Mexico City offset. The Python eligibility
-    # check owns the 07:30 local cutoff; Ghost slug idempotency owns repeats.
+    # check owns the 07:30 local cutoff; the host journal owns repeat safety.
     # Later verified deploys also trigger workflow_run.
     - cron: '35 12 * * *'
     - cron: '35 13 * * *'
@@ -46,11 +46,11 @@ jobs:
             --lkg-commit "$LKG_COMMIT" --out "$RUNNER_TEMP/email-edition"
       - name: Dispatch one idempotent Diario email
         env:
-          GHOST_URL: ${{ secrets.GHOST_URL }}
-          GHOST_ADMIN_API_KEY: ${{ secrets.GHOST_ADMIN_API_KEY }}
-          FCMO_EMAIL_POSTAL_ADDRESS: ${{ secrets.FCMO_EMAIL_POSTAL_ADDRESS }}
+          FCMO_EMAIL_PUBLIC_URL: ${{ vars.FCMO_EMAIL_PUBLIC_URL }}
+          FCMO_EMAIL_DISPATCH_TOKEN: ${{ secrets.FCMO_EMAIL_DISPATCH_TOKEN }}
         run: >-
           python tools/email_dispatch.py
+          --provider listmonk
           --stories "$RUNNER_TEMP/email-edition/stories.v2.json"
           --status "$RUNNER_TEMP/email-edition/newsroom-status.json"
           --live-verify "$RUNNER_TEMP/email-edition/live-verify.json"
