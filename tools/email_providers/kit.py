@@ -76,13 +76,10 @@ class KitProvider:
             matches = [tag for tag in tags if tag.get('name')==name]
             if len(matches)>1: raise DeliveryError('duplicate_kit_locale_tag')
             if not matches:
-                try:
-                    self.request('POST','tags',{'name':name})
-                except DeliveryError:
-                    # Creation may have succeeded. Reconcile by exact name once.
-                    pass
-                tags = list(self.pages('tags','tags'))
-                matches = [tag for tag in tags if tag.get('name')==name]
+                result = self.request('POST', 'tags', {'name': name})
+                tag = result.get('tag')
+                if not isinstance(tag, dict): raise DeliveryError('unconfirmed_kit_locale_tag')
+                matches = [tag]
             if len(matches)!=1 or type(matches[0].get('id')) is not int or matches[0]['id']<=0:
                 raise DeliveryError('unconfirmed_kit_locale_tag')
             self.memberships[locale] = matches[0]['id']
