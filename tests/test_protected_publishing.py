@@ -141,6 +141,13 @@ class ProtectedPublishingTests(unittest.TestCase):
         self.assertIn('python3 -m unittest discover -s tests', text)
         self.assertIn('python3 ops/publish.py --check', text)
 
+    def test_required_check_name_has_a_single_owner(self):
+        import yaml
+        owners = [(path.name, key) for path in (ROOT / '.github/workflows').glob('*.yml')
+                  for key, job in yaml.safe_load(path.read_text()).get('jobs', {}).items()
+                  if job.get('name', key) == 'publish-gate']
+        self.assertEqual(owners, [('publish-gate.yml', 'publish-gate')])
+
     def test_pages_manual_publish_cannot_run_from_unreviewed_branch(self):
         text = (ROOT / '.github/workflows/pages.yml').read_text()
         self.assertIn("github.ref == 'refs/heads/main'", text)
