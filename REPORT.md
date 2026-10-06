@@ -1,17 +1,8 @@
-# L27 round 4 — Kit live account boundaries
+# Lane L28b
 
-Implemented on `c5/email-kit`; no push, external network calls, account changes or real email in this session. The operator's 2026-10-05 probe is the source of the live account facts; these are reproduced offline, not claimed as a new live probe.
+The complete implementation, evidence, public record contract and continuation
+are in [REPORT-L28b.md](REPORT-L28b.md).
 
-- Kit accepts only tag broadcast filters, with list shape `[{"all":[{"type":"tag","ids":[N]}]}]`. The fixture rejects form filters with the exact live 422 error. Legacy form mode fails closed; other providers retain their own selection contracts.
-- Before the first broadcast of a dispatch, all three locale forms are paginated with `status=active`, tagged by subscriber ID, and verified using each subscriber's tags. Missing production tags are created/resolved by exact locale name. Direct single-locale sends sync their locale. The daily encrypted backup syncs all three forms, preserves all five subscription states and obtains locale memberships from forms and per-subscriber tags. No Kit Rules or lagging tag-subscriber listings are used.
-- Seed mode uses explicit private seed tags and never syncs public forms into them. Its conservative isolation oracle requires the whole active account to contain only the configured seed and verifies that seed's three tags. Accounts with other active readers fail closed in seed mode.
-- `community/config/kit.json` contains the three real hosted-form IDs/uids and tag names. Empty or absent GitHub variables use these defaults; ID/uid variables remain overrides. Static forms POST `email_address` to app.kit.com and expose the matching hosted URL through `<noscript>`. The unused embed form is excluded.
-- Dispatch/backup read repository `KIT_API_KEY` without an `email` environment. Backup defaults to Kit like dispatch/Pages; it still works with sending disabled.
-
-Evidence: red-first commit `14b2221` records 23 tests with 3 failures/5 errors before implementation; an additional red ordering check proves all three forms must sync before the first broadcast. The focused email suite passes 75 tests. Kit, Brevo and retained L26/Listmonk publication candidates each pass 13/13 gates and agent hygiene. Retained release verification passes 7/7. Generated Kit signup structure passes for all three locales, using real default IDs/uids, unchecked required consent and hosted no-JS links. Workflow YAML, preview Node syntax and `git diff --check` pass.
-
-Final full suite: **667 tests, OK, 3 existing skips**, on the implementation including sync-before-all-broadcasts. Focused email suite: **75 tests, OK**. Publication gates: **Kit 13/13, Brevo 13/13, retained L26 13/13**; agent hygiene passes for all three. Retained release verification: **7/7**. Evidence is in `reports/email-kit/round4-*`.
-
-The browser oracle returns `BROWSER_UNAVAILABLE`; no fresh screenshots or visual approval are claimed. Claude's continuation is to rerun these checks with an installed browser, inspect the real posted forms/DOI and received MIME privately, confirm the remaining API/export state shapes, and prove unattended dispatch/backup cycles after integration. Keep the release, consent, locale, suppression and persisted-intent gates. Rollback is `FCMO_EMAIL_ENABLED=false` plus regenerating Pages; preserve existing audiences and intents. No deployment or push is authorized here.
-
-Resumen: Kit usa tags con sync API y verificación por suscriptor; formularios reales y secret del repositorio quedan configurados. Las pruebas locales y las compuertas pasan. No se envió correo ni se hizo push; faltan navegador y ciclos autónomos reales.
+Resumen: cartas, ensayos y notas EN/ES/ZH por el dispatcher de proveedores, con
+revisión humana, intents permanentes y registro público para Studio. Trabajo
+local, sin push ni correo real; la prueba de producción queda pendiente.

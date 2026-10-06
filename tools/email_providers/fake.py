@@ -12,10 +12,10 @@ class FakeProvider:
     def subscribe_form(self,locale): return public_form(self.env,locale)
     def send_edition(self,edition,locale,idempotency_key):
         if idempotency_key!=edition.key(locale): raise ValueError('invalid_edition_key')
-        edition.selected()
-        if idempotency_key in self.sent: return {'action':'SKIP'}
+        edition.validate_locale(locale)
+        if idempotency_key in self.sent: return {'action':'SKIP', 'id':list(self.sent).index(idempotency_key)+1}
         self.sent[idempotency_key] = locale
-        return {'action':'QUEUED'}
+        return {'action':'QUEUED', 'id':len(self.sent)}
     def list_subscribers(self): return iter(())
     def health(self): return {'status':'ok','provider':self.name}
 

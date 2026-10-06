@@ -42,6 +42,14 @@ class Edition:
                 raise ValueError('selected edition lacks complete native '+locale)
         return chosen
 
+    def validate_locale(self, locale):
+        if locale not in LOCALES: raise ValueError('unsupported_email_locale')
+        self.selected()
+
+    def render(self, locale, **kwargs):
+        from tools.email_render import render_daily_email
+        return render_daily_email(self.selected(), self.status['edition_date'], locale=locale, **kwargs)
+
 class Provider(Protocol):
     name: str
     def subscribe_form(self, locale: str) -> SubscribeForm: ...

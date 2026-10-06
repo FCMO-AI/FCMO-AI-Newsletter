@@ -73,10 +73,20 @@ def prepare(edition_date, previous, out, namespace='fcmo-diario'):
     date.fromisoformat(edition_date)
     if namespace not in ('fcmo-diario','fcmo-diario-test'): raise ValueError('invalid_email_namespace')
     keys = [namespace+':'+edition_date+':'+locale for locale in LOCALES]
-    prior = set()
     for document in previous:
         if document.get('keys')!=keys: raise ValueError('invalid_prior_intent')
-        prior.update(document['keys'])
+    prepare_keys(keys, previous, out)
+
+
+def prepare_keys(keys, previous, out):
+    """L27 write-ahead intent for explicit daily or lifetime piece/locale keys."""
+    if len(keys) != len(set(keys)) or any(not isinstance(k, str) or not re.fullmatch(
+        r'(?:fcmo-diario(?:-test)?:\d{4}-\d{2}-\d{2}|fcmo-piece(?:-test)?:FCMO-P-[0-9a-f]{12}):(en|es-419|zh-Hans)', k) for k in keys):
+        raise ValueError('invalid_email_intent_keys')
+    prior = set()
+    for document in previous:
+        if not isinstance(document.get('keys'), list): raise ValueError('invalid_prior_intent')
+        prior.update(set(document['keys']) & set(keys))
     out = Path(out)
     out.parent.mkdir(parents=True,exist_ok=True,mode=0o700)
     out.write_text(json.dumps({'schema':'fcmo-email-intent-v1','keys':keys,'previous':sorted(prior)},sort_keys=True)+'\n')

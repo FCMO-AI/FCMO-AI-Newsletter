@@ -44,26 +44,38 @@ class RenderedEmail:
     text: str
 
 
-def render_letter_email(title: str, message: str, *, ghost_url: str, postal_address: str) -> RenderedEmail:
-    """Preview-safe Spanish letter shell for Javier's Ghost editorial workflow.
+def render_piece_email(piece: dict, *, locale: str = "es-419",
+                       site_url: str = "https://fcmo-ai.github.io/FCMO-AI-Newsletter",
+                       postal_address: str, preferences_url: str | None = None,
+                       unsubscribe_url: str | None = None) -> RenderedEmail:
+    from tools.email_piece_render import render
+    return render(piece, locale=locale, site_url=site_url, postal_address=postal_address,
+                  preferences_url=preferences_url, unsubscribe_url=unsubscribe_url)
 
-    Ghost still owns the actual post editor, send action, and member footer.
-    ``message`` is plain text so caller content cannot inject email markup.
+
+def render_letter_email(title: str, message: str, *, postal_address: str,
+                        site_url: str | None = None, ghost_url: str | None = None,
+                        locale: str = "es-419", preferences_url: str | None = None,
+                        unsubscribe_url: str | None = None) -> RenderedEmail:
+    """Data-only compatibility wrapper; no editor, membership or delivery service.
+
+    ``ghost_url`` is a deprecated URL alias for old preview callers only.
+    Published pieces use render_piece_email and provider-managed unsubscribe.
     """
-    if not title.strip() or not message.strip() or not ghost_url.strip() or not postal_address.strip():
-        raise ValueError("letter title, message, Ghost URL and postal address are required")
-    account = ghost_url.rstrip("/") + "/#/portal/account"
-    paragraphs = [part.strip() for part in message.split("\n\n") if part.strip()]
-    body = "".join(f'<p style="margin:0 0 18px;font:18px/1.6 Georgia,serif">{escape(part).replace(chr(10), "<br>")}</p>' for part in paragraphs)
-    html = (f'<!doctype html><html lang="es"><head><meta charset="utf-8"><title>{escape(title)}</title></head>'
-            f'<body style="margin:0;background:#f2efe8;color:#0a0a0a"><table role="presentation" width="100%" cellpadding="0" cellspacing="0">'
-            f'<tr><td align="center" style="padding:24px 12px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:640px;background:#fbf9f4">'
-            f'<tr><td style="padding:28px;border-top:3px solid #f05a28"><p style="color:#a9340e;font:700 12px Arial,sans-serif;letter-spacing:.12em">fCMO · {escape(LETTER_NAME)}</p>'
-            f'<h1 style="font:700 36px/1.1 Arial,sans-serif">{escape(title)}</h1>{body}<p style="font:16px Georgia,serif">— Javier</p></td></tr>'
-            f'<tr><td style="padding:20px 28px;background:#f2efe8;color:#5e5a53;font:12px Arial,sans-serif">{escape(postal_address)}<br>'
-            f'<a href="{escape(account, quote=True)}">Preferencias y baja</a></td></tr></table></td></tr></table></body></html>')
-    text = f'{LETTER_NAME}\n{title}\n\n{message}\n\n— Javier\n\n{postal_address}\nPreferencias y baja: {account}\n'
-    return RenderedEmail(subject=f'{LETTER_NAME}: {title}', preheader=paragraphs[0][:140], html=html, text=text)
+    if not title.strip() or not message.strip(): raise ValueError("letter_content_required")
+    site_url = site_url or ghost_url or "https://fcmo-ai.github.io/FCMO-AI-Newsletter"
+    if ghost_url and not preferences_url:
+        preferences_url = ghost_url.rstrip('/') + '/#/portal/account'
+    piece = {'schema': 'fcmo-piece-v1', 'kind': 'letter', 'slug': 'letter',
+             'status': 'published', 'authors': [{'name': SUBSCRIPTIONS['products']['letter']['author']}],
+             'docs': {locale: {'schema': 'fcmo-essay-doc-v1', 'locale': locale,
+                       'title': title, 'dek': '', 'footnotes': {}, 'blocks': [
+                           {'id': f'b-{n:08x}', 'type': 'p', 'content': [{'t': 'text', 'v': part.strip()}]}
+                           for n, part in enumerate(message.split('\n\n'), 1) if part.strip()]}}}
+    mail = render_piece_email(piece, locale=locale, postal_address=postal_address,
+                             site_url=site_url, preferences_url=preferences_url,
+                             unsubscribe_url=unsubscribe_url or preferences_url)
+    return RenderedEmail(LETTER_NAME + ': ' + title, mail.preheader, mail.html, mail.text)
 
 
 def _edition_date(value: str | date) -> date:

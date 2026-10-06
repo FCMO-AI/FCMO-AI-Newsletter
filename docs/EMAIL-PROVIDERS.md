@@ -69,3 +69,123 @@ Aplicar primero los pasos de pausa, reconciliación, custodia y verificación de
 Brevo exporta **todos** los contactos paginados con campos originales: `emailBlacklisted`, `smsBlacklisted` si disponible, `listIds`, `attributes`, `createdAt`, `modifiedAt` y cualquier otro campo retornado. Agrega `locales` sin eliminar el blacklist ni convertir la presencia en una lista en prueba de consentimiento. Kit exporta los cinco estados y membresías de formularios y tags por suscriptor, incluidos pendientes/suprimidos. Si el API real no expone una membresía o estado necesario, el backup no es suficiente para esa migración hasta resolverlo; mantener la copia privada del proveedor original.
 
 En ambos sentidos, comparar conteos por locale/estado, conservar la unión de suppressions del origen y destino, probar baja/pendiente/suprimido/seed y confirmar que ningún pendiente o suprimido recibe una campaña. Cuando el destino no pueda representar una supresión, dejarla fuera de su audiencia y conservar un registro privado de exclusión con enforcement verificado; no activar mientras pueda reingresar automáticamente. No reenviar confirmaciones masivas sin autorización ni asumir que importación equivale a consentimiento. Cambiar el selector y config entre días, regenerar Pages, desactivar permanentemente el envío anterior y reactivar solamente después de verificar remitente, notice, alta DOI, filtros y bajas reales. Si se vuelve a Kit, confirmar que importar una membresía de formulario no reactive ni envíe incentive indebidamente; si el plan/API no soporta esa importación de forma segura, usar tags únicamente si su mapping está disponible o mantener la pausa. Comprobar varios ciclos y descifrado del backup nuevo antes de revocar las credenciales anteriores.
+
+## L28b: cartas, ensayos y notas por correo
+
+`dispatch-pieces.yml` se ejecuta después del workflow de Pages exitoso, con un
+reintento programado diario y una entrada manual de prueba. Comparte la
+serialización `fcmo-daily-email` con el diario. Con `FCMO_EMAIL_ENABLED` apagado
+no lee piezas ni crea el adaptador. No traduce: consume `fcmo-piece-v1`,
+`doc.<locale>.json` (`fcmo-essay-doc-v1`), `provenance.json`, `sources.json` y
+`figures.json` publicados por el build de Studio.
+
+La selección exige `status=published`, fecha de publicación no futura y
+`distribution.email=true` **booleano**. La ausencia del flag significa false.
+Por idioma exige `locales.<locale>=ready`, documento presente y
+`provenance.<locale>.human_reviewed=true` **booleano**. Un idioma pendiente o
+sin revisión se omite con `locale_not_ready` o `human_review_required`; los demás
+idiomas revisados pueden salir. Una revisión posterior incorpora únicamente la
+clave del idioma que faltaba. Una pieza retirada, un borrador y una distribución
+no solicitada no se envían. No existe un corte temporal diario para piezas: una
+pieza publicada, solicitada y todavía sin correo es el trabajo pendiente.
+
+Los insumos se descubren con `git ls-tree` del commit inmutable de `lkg`, no del
+checkout de main. El recibo live de L27 comprueba la identidad LKG y las rutas
+críticas; luego se comparan byte por byte los JSON y figuras públicos contra
+ese commit y se comprueban las páginas revisadas en `/cartas/<slug>/`,
+`/es/cartas/<slug>/` y `/zh/cartas/<slug>/`. La identidad se relee al terminar y
+el conjunto se vuelve a verificar inmediatamente antes de enviar. Si el sitio
+cambió o no publica los documentos, falla cerrado. Esta rama no contiene todavía
+el build de piezas: requiere integrar el build de Studio antes de despachar
+piezas reales. Un LKG sin piezas solicitadas produce una selección vacía.
+
+El renderer conserva párrafos, títulos, listas, citas, lenguaje original de
+las citas, evidencia y límites, figuras con crédito/licencia y firma de los
+autores. Las notas se numeran por primera referencia y pasan a notas finales
+con enlaces y retorno. La composición usa los colores, tabla de 640 px y
+tipografía del email diario. `render_piece_email` no requiere Ghost.
+`render_letter_email` es un wrapper de datos para previews anteriores;
+`ghost_url` queda únicamente como alias de URL obsoleto, sin API ni editor.
+
+Kit y Brevo reutilizan sus mismos adaptadores de creación/reconciliación con
+`description=fcmo-piece:<id>:<locale>` en Kit y `name`/`tag` iguales a esa clave
+en Brevo. Kit conserva los filtros de **tags**, el sync previo y el rechazo de
+filtros de form (422 en el fixture del probe del operador). Los destinos son
+los mismos tags/listas de cada idioma que el diario. Un ID confirmado significa
+campaña programada/encolada; no acredita entrega ni ubicación en inbox. Se
+conservan remitente, dirección postal, baja y gates de compliance de L27.
+
+El modo `test_mode` de Kit usa los mismos `KIT_TEST_TAG_*`, sin fallback de
+producción, y exige el único activo de la cuenta con los tres tags revisados
+por suscriptor. No hace sync de formularios públicos. Las claves son
+`fcmo-piece-test:<id>:<locale>` y los registros van a `dispatch-test.json`,
+separados de los de producción. Brevo y Listmonk rechazan ese modo de Kit.
+
+Listmonk admite piezas mediante su API **privada**, con listas públicas de
+doble confirmación y el template raw HTML de L26. El gateway público de L26
+sigue con su capacidad de diario. Para piezas, usar un runner con ruta privada
+autorizada a Listmonk y un secret `FCMO_EMAIL_PROVIDER_CONFIG` con
+`LISTMONK_URL`, `LISTMONK_API_USER`, `LISTMONK_API_KEY`,
+`FCMO_EMAIL_CONSENT_KEY` (los nombres de L26); remitente, dirección postal y
+`FCMO_EMAIL_PUBLIC_URL` vienen de las mismas variables/secrets del workflow.
+La clave y el journal protegen create/start inciertos. El adaptador falla
+cerrado si sólo dispone de la capacidad del gateway; no expone `/api` ni
+amplía su token. No se afirma acceso privado desde un runner hosted.
+
+### Registro público que puede leer Studio
+
+La rama dedicada **`email-dispatch-state`**, archivo **`dispatch.json`**, es la
+fuente del estado de producción. No se escribe main ni se necesita otro deploy
+para observar el correo. Studio puede leerlo mediante
+`GET /repos/<owner>/<repo>/contents/dispatch.json?ref=email-dispatch-state`
+(Contents API; decodificar base64), o mediante la URL raw de esa rama.
+`dispatch-test.json` es sólo prueba y nunca debe activar el indicador de
+producción. El workflow crea la rama desde el commit público LKG cuando no
+existe; necesita `contents:write` en su `GITHUB_TOKEN`.
+
+```json
+{
+  "schema": "fcmo-piece-email-state-v1",
+  "provider": "kit",
+  "keys": ["fcmo-piece:FCMO-P-123456789abc:es-419"],
+  "records": [{
+    "piece_id": "FCMO-P-123456789abc",
+    "locale": "es-419",
+    "state": "QUEUED",
+    "broadcast_id": 123,
+    "timestamp": "2026-10-06T14:00:00Z"
+  }]
+}
+```
+
+Cada registro contiene exactamente esos cinco campos, sin título, cuerpo,
+direcciones, listas de suscriptores, destinatarios ni secretos. Estados:
+`PENDING` (reserva duradera), `QUEUED` (ID y programación confirmados),
+`SKIPPED_UNREVIEWED`, `SKIPPED_NOT_READY`, `BLOCKED_RECONCILE`. El hook para
+«Enviado por correo ✓» es `records` con el mismo `piece_id`, `locale` y
+`state=QUEUED`; el detalle debe decir «programado/encolado» y no «entregado».
+Un estado previo QUEUED se conserva cuando una revisión posterior omite ese
+idioma. Mostrar éxito por pieza completa exige QUEUED en los tres idiomas.
+
+`keys` es el intent permanente sin contenido de L27: se lee antes de reservar
+el lote, se guarda **antes de cualquier broadcast**, se confirma por readback
+y se sube además un `email-intent.json` con `keys` y `previous`. El intento
+local se bloquea y hace fsync antes de cada POST. El estado remoto usa la SHA
+del Contents API como precondición y confirma cada escritura; un conflicto o
+respuesta incierta bloquea el envío. La rama conserva intents después de
+caducar artefactos; no depende de los 90 días del artefacto auxiliar. Nunca
+eliminar claves, registros, campañas ni cambiar namespaces para forzar envío.
+
+Una reserva sin campaña observada bloquea recreación, incluso si el workflow
+falló entre reserva y upload o antes de la primera llamada. Reconciliar el
+proveedor y el intent antes de una recuperación autorizada. Una campaña
+existente con el mismo marker y destino confirmado produce SKIP con su ID;
+una respuesta de create perdida no provoca otro POST. Cada idioma se intenta
+por separado ante un resultado de proveedor incierto, y cada pieza conserva
+sus observaciones antes de continuar. Un draft incierto no se vuelve a iniciar.
+
+Cambiar de proveedor requiere reconciliar todas las piezas pendientes además
+del diario; el estado detecta y rechaza un cambio de proveedor para impedir
+reenviar piezas históricas. Mantener los registros y hacer una migración
+explícita después de esa reconciliación. Apagar `FCMO_EMAIL_ENABLED` detiene
+nuevos envíos; no revoca campañas ya programadas ni recupera correo entregado.

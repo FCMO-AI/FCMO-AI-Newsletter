@@ -15,7 +15,6 @@ import urllib.request
 from pathlib import Path
 
 from tools.email_listmonk import DeliveryError, NoRedirect
-from tools.email_render import render_daily_email
 from . import LOCALES, SUFFIX, SubscribeForm, public_notice
 
 PRIVACY_NOTICE = 'email-privacy-kit.json'
@@ -182,7 +181,7 @@ class KitProvider:
 
     def send_edition(self, edition, locale, idempotency_key):
         if idempotency_key != edition.key(locale): raise ValueError('invalid_edition_key')
-        chosen = edition.selected()
+        edition.validate_locale(locale)
         self.validate_send()
         self.validate_seed(edition)
         # Locks protect direct/local callers; Actions also serializes the workflow.
@@ -198,7 +197,7 @@ class KitProvider:
             if idempotency_key in state.get('previous',[]) or idempotency_key in state.get('attempted',[]):
                 raise DeliveryError('unknown_kit_create_requires_reconcile')
             if edition.namespace != 'fcmo-diario-test' and not prepared: self.sync_subscribers(locale)
-            mail = render_daily_email(chosen,edition.status['edition_date'],locale=locale,
+            mail = edition.render(locale,
                 postal_address=self.env['FCMO_EMAIL_POSTAL_ADDRESS'],
                 site_url=self.env.get('FCMO_SITE_URL','https://fcmo-ai.github.io/FCMO-AI-Newsletter'),
                 preferences_url='{{ unsubscribe_url }}',unsubscribe_url='{{ unsubscribe_url }}')

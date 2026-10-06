@@ -15,7 +15,6 @@ import urllib.request
 from pathlib import Path
 
 from tools.email_listmonk import DeliveryError, NoRedirect
-from tools.email_render import render_daily_email
 from . import LOCALES, SubscribeForm, public_notice
 
 PRIVACY_NOTICE = 'email-privacy-brevo.json'
@@ -143,7 +142,7 @@ class BrevoProvider:
 
     def send_edition(self, edition, locale, idempotency_key):
         if idempotency_key != edition.key(locale): raise ValueError('invalid_edition_key')
-        chosen = edition.selected()
+        edition.validate_locale(locale)
         self.validate_send()
         # No implicit production-list fallback for the existing Kit seed mode.
         if edition.namespace != 'fcmo-diario': raise ValueError('brevo_seed_mode_not_configured')
@@ -156,7 +155,7 @@ class BrevoProvider:
             if existing: return self.observed(existing, locale, idempotency_key)
             if idempotency_key in state.get('previous', []) or idempotency_key in state.get('attempted', []):
                 raise DeliveryError('unknown_brevo_create_requires_reconcile')
-            mail = render_daily_email(chosen, edition.status['edition_date'], locale=locale,
+            mail = edition.render(locale,
                 postal_address=self.env['FCMO_EMAIL_POSTAL_ADDRESS'],
                 site_url=self.env.get('FCMO_SITE_URL', 'https://fcmo-ai.github.io/FCMO-AI-Newsletter'),
                 preferences_url='{{ unsubscribe }}', unsubscribe_url='{{ unsubscribe }}')
