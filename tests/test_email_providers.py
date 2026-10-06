@@ -1,4 +1,4 @@
-"""Red-first L27 acceptance: real HTTP boundary, three adapter contract, age roundtrip."""
+"""Red-first L27 acceptance: real HTTP boundary, four adapter contract, age roundtrip."""
 import copy
 import json
 import os
@@ -10,6 +10,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from harness.mock_kit import MockKit
+from harness.mock_brevo import MockBrevo
 from test_email_listmonk import FakeListmonk
 from tools.email_listmonk import ListmonkClient, MailConfig, DiarioService, DeliveryError
 from tools.email_providers import Edition, create_provider, dispatch_edition, signup_form
@@ -23,6 +24,11 @@ ENV = {'FCMO_EMAIL_ENABLED':'true', 'FCMO_EMAIL_PROVIDER': 'kit', 'KIT_API_KEY':
        'FCMO_EMAIL_POSTAL_ADDRESS': 'Synthetic postal address',
        'FCMO_EMAIL_PRIVACY_URL': 'https://example.org/complete-notice',
        'FCMO_EMAIL_COMPLIANCE_READY': 'true', 'FCMO_EMAIL_FROM': 'daily@example.org'}
+
+BREVO_ENV = dict(ENV, FCMO_EMAIL_PROVIDER='brevo', FCMO_EMAIL_PROVIDER_CONFIG=json.dumps({
+    'api_key': 'synthetic-key', 'list_ids': {'en': 21, 'es-419': 22, 'zh-Hans': 23}}),
+    FCMO_EMAIL_PUBLIC_CONFIG=json.dumps({'forms': {l: 'https://example.sibforms.com/serve/'+l
+                                                 for l in ('en', 'es-419', 'zh-Hans')}}))
 
 class ProviderTests(unittest.TestCase):
     def setUp(self):
@@ -40,8 +46,8 @@ class ProviderTests(unittest.TestCase):
         self.intent.write_text(json.dumps({'previous':[], 'keys':[self.edition.key(l) for l in ('en','es-419','zh-Hans')]}))
     def kit(self, server):
         return KitProvider(ENV, base_url=server.url, intent=self.intent, sleep=lambda _: None)
-    def test_contract_all_three_adapters(self):
-        with MockKit() as server:
+    def test_contract_all_four_adapters(self):
+        with MockKit() as server, MockBrevo() as brevo:
             config = MailConfig('http://127.0.0.1:9000','test','key','https://mail.example.org',
                                 'daily@example.org','Synthetic postal address','https://example.org','x'*40)
             client = ListmonkClient(config); remote = FakeListmonk(); original_request = remote.request
@@ -50,7 +56,7 @@ class ProviderTests(unittest.TestCase):
                 return original_request(method,path,payload,**kwargs)
             client.request = request
             service = DiarioService(config,self.root/'listmonk.sqlite',client=client)
-            adapters = [self.kit(server), create_provider(dict(ENV,FCMO_EMAIL_PROVIDER='fake')),
+            adapters = [self.kit(server), create_provider(BREVO_ENV, base_url=brevo.url, intent=self.intent, sleep=lambda _:None), create_provider(dict(ENV,FCMO_EMAIL_PROVIDER='fake')),
                         create_provider({'FCMO_EMAIL_PROVIDER':'listmonk','FCMO_EMAIL_PUBLIC_URL':'https://mail.example.org'}, service=service)]
             for provider in adapters:
                 with self.subTest(provider=provider.name):
@@ -65,16 +71,32 @@ class ProviderTests(unittest.TestCase):
     def test_kit_restart_paginates_and_does_not_create_again(self):
         with MockKit() as server:
             provider = self.kit(server)
-            for locale, tag in [('en',11),('es-419',12),('zh-Hans',13)]:
+            for locale, form in [('en',101),('es-419',102),('zh-Hans',103)]:
                 self.assertEqual(provider.send_edition(self.edition,locale,self.edition.key(locale))['action'],'QUEUED')
                 broadcast = server.broadcasts[-1]
-                self.assertEqual(broadcast['subscriber_filter'], {'all':[{'type':'tag','ids':[tag]}]})
+                self.assertEqual(broadcast['subscriber_filter'], {'all':[{'type':'form','ids':[form]}]})
                 self.assertFalse(broadcast['public']); self.assertTrue(broadcast['send_at'])
                 self.assertIn('unsubscribe_url', broadcast['content'])
             provider = self.kit(server)
             for locale in ('en','es-419','zh-Hans'):
                 self.assertEqual(provider.send_edition(self.edition,locale,self.edition.key(locale))['action'],'SKIP')
             self.assertEqual(len(server.broadcasts),3)
+    def test_kit_defaults_to_forms_without_tags_or_automation(self):
+        env = {k:v for k,v in ENV.items() if not k.startswith('KIT_TAG_')}
+        with MockKit() as server:
+            provider = KitProvider(env,base_url=server.url,intent=self.intent,sleep=lambda _:None)
+            self.assertEqual(provider.health()['status'],'ok')
+            provider.send_edition(self.edition,'en',self.edition.key('en'))
+            self.assertEqual(server.broadcasts[0]['subscriber_filter'],{'all':[{'type':'form','ids':[101]}]})
+            self.assertEqual(list(provider.list_subscribers())[0]['locales'],['en','es-419','zh-Hans'])
+            self.assertFalse(any('/tags' in c[1] for c in server.calls))
+    def test_kit_optional_tags_and_invalid_filter_are_fail_closed(self):
+        with MockKit() as server:
+            provider = KitProvider(dict(ENV,KIT_FILTER_MODE='tag'),base_url=server.url,intent=self.intent,sleep=lambda _:None)
+            provider.health(); provider.send_edition(self.edition,'en',self.edition.key('en'))
+            self.assertEqual(server.broadcasts[0]['subscriber_filter'],{'all':[{'type':'tag','ids':[11]}]})
+        with self.assertRaises(ValueError): KitProvider(dict(ENV,KIT_FILTER_MODE='all'))
+        with self.assertRaises(ValueError): KitProvider(dict(ENV,KIT_FORM_ES='101'))
     def test_master_switch_and_verification_send_nothing(self):
         with MockKit() as server:
             provider = self.kit(server)
