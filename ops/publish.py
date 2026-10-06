@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-"""Validation only: reconstruct the immutable public input; never deploy or push.
+"""Validate locally or request the reviewed main Pages workflow.
 
-Pages remains the sole deployment writer, with browser and public-origin proof.
+Checks and dry runs never deploy or push. Pages remains the sole deployment
+writer, with browser and public-origin proof.
 """
 import argparse
 import os
