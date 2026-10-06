@@ -62,7 +62,7 @@ jobs:
         run: |
           set -euo pipefail
           LKG_COMMIT="$(git rev-parse --verify 'refs/tags/lkg^{commit}')"
-          python tools/email_piece_dispatch.py --collect --lkg-commit "$LKG_COMMIT" \
+          python tools/email_dispatch.py --pieces --collect --lkg-commit "$LKG_COMMIT" \
             --bundle "$RUNNER_TEMP/email-pieces.json"
       - name: Restore lifetime intents and reserve keys before sending
         env:
@@ -72,7 +72,7 @@ jobs:
           FCMO_EMAIL_DISPATCH_TOKEN: ${{ secrets.FCMO_EMAIL_DISPATCH_TOKEN }}
           FCMO_EMAIL_POSTAL_ADDRESS: ${{ secrets.FCMO_EMAIL_POSTAL_ADDRESS }}
         run: >-
-          python tools/email_piece_dispatch.py --claim
+          python tools/email_dispatch.py --pieces --claim
           --bundle "$RUNNER_TEMP/email-pieces.json"
           --intent "$RUNNER_TEMP/email-intent.json"
           --state "$RUNNER_TEMP/email-piece-state.json"
@@ -91,7 +91,7 @@ jobs:
           FCMO_EMAIL_DISPATCH_TOKEN: ${{ secrets.FCMO_EMAIL_DISPATCH_TOKEN }}
           FCMO_EMAIL_POSTAL_ADDRESS: ${{ secrets.FCMO_EMAIL_POSTAL_ADDRESS }}
         run: >-
-          python tools/email_piece_dispatch.py --send
+          python tools/email_dispatch.py --pieces --send
           --bundle "$RUNNER_TEMP/email-pieces.json"
           --intent "$RUNNER_TEMP/email-intent.json"
           --state "$RUNNER_TEMP/email-piece-state.json"

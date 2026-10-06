@@ -4,8 +4,6 @@ Only local git and synthetic provider/Contents boundaries are used.
 """
 import base64
 import copy
-from datetime import datetime, timezone, timedelta
-from html import escape
 import json
 import os
 from pathlib import Path
@@ -24,6 +22,7 @@ from tools.email_piece_state import StateStore
 from tools.email_providers import create_provider
 from tools.email_dispatch import main
 from tests.test_studio_translation import SOURCE
+from tests.harness.mock_github import MockGitHub
 
 ROOT = Path(__file__).resolve().parents[1]
 LOCALES = ('en', 'es-419', 'zh-Hans')
@@ -96,11 +95,26 @@ class StudioEmailSeamTests(unittest.TestCase):
             self.assertTrue(all(r['state']=='QUEUED' for r in state['records']))
             approved['payload']['merge_sha'] = commit
             publisher._write(approved,'published')
-            with patch.object(gh,'request',return_value=state_file) as request:
+            with MockGitHub() as mock:
+                publisher.github = GitHub({'javier':'fixture-javier'},mock.url)
+                original = mock.dispatch
+                def api(actor,method,path,query,body):
+                    if path.endswith('/contents/dispatch.json'):
+                        self.assertEqual(method,'GET'); self.assertEqual(query,{'ref':['email-dispatch-state']})
+                        return 200, state_file
+                    return original(actor,method,path,query,body)
+                mock.dispatch = api
                 status = publisher.public_status(slug)
-            self.assertEqual(status['email']['state'],'queued')
-            self.assertEqual(status['email']['plain_es'],'Correo programado ✓')
-            self.assertEqual(request.call_args.args,('javier','GET','/contents/dispatch.json?ref=email-dispatch-state'))
+                self.assertEqual(status['email']['state'],'queued')
+                self.assertEqual(status['email']['plain_es'],'Correo programado ✓')
+                self.assertEqual(len(mock.requests),1)
+                self.assertEqual(mock.requests[0]['method'],'GET')
+                mock.dispatch = original  # Missing branch/read failure remains pending.
+                self.assertEqual(publisher.public_status(slug)['email']['state'],'pending')
+                publisher._write(approved,'deployed_unverified')
+                before = len(mock.requests)
+                self.assertEqual(publisher.public_status(slug)['email']['state'],'pending')
+                self.assertEqual(len(mock.requests),before)
             self.assertTrue(all('main' not in path for _,path in calls))
 
     def test_partial_seed_malformed_and_unknown_records_cannot_show_success(self):

@@ -49,28 +49,18 @@ defecto en cartas y ensayos nuevos. El autor puede cambiarlo antes de pedir
 revisión; el cambio incrementa la revisión y queda en la misma pieza aprobada.
 Studio no envía correo. L28b consume esa intención después del deploy verificado.
 
-Hook de lectura: `studio.server.distribution.email_status(repo_root, piece_id,
-merge_sha, requested)`. Recibo en el snapshot público local:
-`ops/email-dispatch/pieces/<piece_id>.json`:
+Hook integrado L29: `Publisher.public_status` lee por Contents API
+`email-dispatch-state:dispatch.json` sólo tras comprobar la publicación web.
+`studio.server.distribution.email_status(state, piece_id, requested)` valida la
+proyección `fcmo-piece-email-state-v1` de L28b y exige reservas de producción e
+ID/programación confirmados en los tres idiomas para mostrar «Correo programado ✓».
+Una programación confirmada no demuestra entrega. Registros ausentes, parciales,
+inválidos, de prueba o inciertos permanecen pendientes. No se actualiza main, no
+se contamina el snapshot de publicación y no hace falta otro deploy. Las claves
+son de por vida por pieza/idioma; una enmienda no reenvía la pieza.
 
-```json
-{
-  "schema": "fcmo-piece-email-dispatch-v1",
-  "piece_id": "FCMO-P-0123456789ab",
-  "merge_sha": "<40 hex del merge desplegado y verificado>",
-  "state": "sent",
-  "sent_at": "<UTC RFC3339>",
-  "dispatch_id": "<identidad confirmada por el proveedor>"
-}
-```
-
-L28b debe escribir ese recibo sólo después de confirmar el envío; nunca incluye
-suscriptores, direcciones ni credenciales. Studio exige coincidencia de pieza y
-merge, además de identidad y fecha no vacías, antes de mostrar «Enviado por
-correo ✓». Un recibo ausente, inválido, antiguo o incierto sigue pendiente.
-`Publisher.public_status` lee del `store.public_root` (snapshot público del
-repositorio). Al integrar L28b, actualizar ese snapshot mediante el mecanismo
-existente `studio.server.snapshot.refresh` después de incorporar el recibo;
-la función de lectura no hace fetch ni efectos externos. El estado de correo
-permanece independiente de «Publicado». Esta lane deja el hook exacto; la
-producción del recibo y su refresco posterior pertenecen a L28b.
+La intención aprobada vive en `piece.json` y llega intacta al build público.
+`tools/email_dispatch.py --pieces` conecta el CLI común con el dispatcher L28b;
+`--collect`, `--claim` y `--send` mantienen prueba LKG, reservas duraderas y
+revalidación inmediatamente antes de programar. Studio sólo lee el estado;
+el workflow de correo es quien programa y persiste las observaciones.

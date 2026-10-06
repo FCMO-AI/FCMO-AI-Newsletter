@@ -268,6 +268,10 @@ def dispatch(
 
 
 def main(argv: list[str] | None = None) -> int:
+    argv = list(sys.argv[1:] if argv is None else argv)
+    if argv and argv[0] == '--pieces':
+        from tools.email_piece_dispatch import main as piece_main
+        return piece_main(argv[1:])
     parser = argparse.ArgumentParser(description="Dispatch a live-verified FCMO AI Newsletter through the selected adapter.")
     parser.add_argument("--stories", type=Path, required=True)
     parser.add_argument("--status", type=Path, required=True)

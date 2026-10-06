@@ -289,7 +289,7 @@ export async function progressScreen (root, slug) {
       return
     }
     box.append(h('ol', { class: 'steps' }, (p.timeline || []).map(s => h('li', { class: s.state === 'failed' ? 'failed' : 'done' }, h('span', { class: 'dot', 'aria-hidden': 'true' }, s.state === 'failed' ? '!' : '✓'), h('span', null, s.plain_es)))))
-    if (p.email?.state === 'sent') box.append(h('p', { class: 'result ok' }, t('prog.email.sent')))
+    if (p.email?.state === 'queued') box.append(h('p', { class: 'result ok' }, t('prog.email.queued')))
     else if (p.email?.state === 'pending') box.append(h('p', { class: 'muted' }, t('prog.email.pending')))
     if (p.state === 'published') box.append(h('div', { class: 'result ok' }, h('h2', null, t('prog.done')), h('p', null, t('prog.live')), h('ul', null, (p.urls || []).map(u => h('li', null, h('a', { href: u.url, target: '_blank', rel: 'noopener' }, u.url)))), h('a', { class: 'btn', href: '#/' }, t('prog.home'))))
     else if (p.state === 'failed') box.append(h('div', { class: 'result bad' }, h('h2', null, t('prog.failed')), h('p', null, p.error_plain), h('a', { class: 'btn', href: `#/p/${slug}/${meta.source_locale}` }, t('attn.open'))))

@@ -45,7 +45,7 @@ Los cuatro módulos son `kit`, `brevo`, `listmonk` y `fake`. El contrato `Provid
 
 Todos usan `FCMO_EMAIL_ENABLED`, `FCMO_EMAIL_COMPLIANCE_READY`, remitente verificado `FCMO_EMAIL_FROM`, secret `FCMO_EMAIL_POSTAL_ADDRESS` y clave **pública** `FCMO_EMAIL_BACKUP_AGE_RECIPIENT`. El aviso integral debe identificar al encargado seleccionado y los plazos efectivos antes de activar. Nunca poner `api_key` en `FCMO_EMAIL_PUBLIC_CONFIG`.
 
-Kit filtra por `subscriber_filter=[{"all":[{"type":"tag","ids":[<id-locale>]}]}]`. El probe real del operador (2026-10-05) recibió 422 para filtros de formulario y aceptación/entrega con tags en plan gratuito. Antes del primer envío de cada dispatch y durante el backup diario, se recorren los activos de cada formulario (`GET /forms/<id>/subscribers?status=active`, paginado), se asignan por ID (`POST /tags/<tag>/subscribers/<id>`, 201 inicial/200 repetido) y se verifican en `GET /subscribers/<id>/tags`. Nunca se usa el listado de suscriptores del tag: en la cuenta real tardó minutos en reflejar la asignación. No se usan Rules de Kit. Los tags se resuelven/crean por nombre `newsletter-en`, `newsletter-es-419`, `newsletter-zh-Hans` si no se configuran IDs. Un filtro de formulario queda en el contrato solo para proveedores que lo admitan; Kit rechaza `KIT_FILTER_MODE=form`.
+Kit filtra por `subscriber_filter=[{"all":[{"type":"tag","ids":[<id-locale>]}]}]`. El probe real del operador (2026-10-05) recibió 422 para filtros de formulario y aceptación/entrega con tags en plan gratuito. Antes del primer envío de cada dispatch y durante el backup diario, se recorren los activos de cada formulario (`GET /forms/<id>/subscribers?status=active`, paginado), se asignan por ID (`POST /tags/<tag>/subscribers/<id>`, 201 inicial/200 repetido) y se verifican en `GET /subscribers/<id>/tags`. Nunca se usa el listado de suscriptores del tag: en la cuenta real tardó minutos en reflejar la asignación. No se usan Rules de Kit. Los tags se resuelven/crean por nombre `newsletter-en`, `newsletter-es-419`, `newsletter-zh-Hans` si no se configuran IDs. Al crear/resolver un tag ausente del listado, se usa el ID positivo entero de `POST /v4/tags` tanto con 201 como con 200 idempotente. No se vuelve a listar; una respuesta perdida o inválida bloquea sin reintento ciego. Un filtro de formulario queda en el contrato solo para proveedores que lo admitan; Kit rechaza `KIT_FILTER_MODE=form`.
 
 Los defaults no secretos son EN 10007761 / 243b33b9e6, ES 10007787 / 65d33b22fa, ZH 10007798 / 2785dc2091. El embed 10007671 queda sin usar. El formulario POST usa `https://app.kit.com/forms/<id>/subscriptions` con `email_address`; el enlace sin JavaScript usa `https://fcmo-ai.kit.com/<uid>`. Los overrides de ID/uid deben cambiar juntos. `KIT_API_KEY` es secret del repositorio: dispatch y backup no dependen de un environment `email`.
 
@@ -162,7 +162,7 @@ Cada registro contiene exactamente esos cinco campos, sin título, cuerpo,
 direcciones, listas de suscriptores, destinatarios ni secretos. Estados:
 `PENDING` (reserva duradera), `QUEUED` (ID y programación confirmados),
 `SKIPPED_UNREVIEWED`, `SKIPPED_NOT_READY`, `BLOCKED_RECONCILE`. El hook para
-«Enviado por correo ✓» es `records` con el mismo `piece_id`, `locale` y
+«Correo programado ✓» es `records` con el mismo `piece_id`, `locale` y
 `state=QUEUED`; el detalle debe decir «programado/encolado» y no «entregado».
 Un estado previo QUEUED se conserva cuando una revisión posterior omite ese
 idioma. Mostrar éxito por pieza completa exige QUEUED en los tres idiomas.
@@ -189,3 +189,5 @@ del diario; el estado detecta y rechaza un cambio de proveedor para impedir
 reenviar piezas históricas. Mantener los registros y hacer una migración
 explícita después de esa reconciliación. Apagar `FCMO_EMAIL_ENABLED` detiene
 nuevos envíos; no revoca campañas ya programadas ni recupera correo entregado.
+
+Integración L29: Studio lee `dispatch.json` mediante Contents API al consultar el estado de una pieza cuya publicación web ya verificó. El CLI común es `python3 tools/email_dispatch.py --pieces` seguido de `--collect`, `--claim` o `--send`; conserva todos los controles de L28b. No necesita refrescar main ni redesplegar para leer correo.

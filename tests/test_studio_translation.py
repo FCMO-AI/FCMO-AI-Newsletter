@@ -164,21 +164,6 @@ class TranslationTests(unittest.TestCase):
         provenance_path.write_text(json.dumps(provenance)); piece_valid.check(root)
 
 
-class DistributionReceiptTests(unittest.TestCase):
-    def test_only_exact_confirmed_dispatch_is_shown_as_sent(self):
-        from studio.server.distribution import email_status
-        with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp); ident = 'FCMO-P-0123456789ab'; sha = 'a'*40
-            self.assertEqual(email_status(root, ident, sha, True)['state'], 'pending')
-            path = root / 'ops/email-dispatch/pieces' / (ident + '.json'); path.parent.mkdir(parents=True)
-            row = {'schema': 'fcmo-piece-email-dispatch-v1', 'piece_id': ident, 'merge_sha': sha, 'state': 'sent', 'sent_at': '2026-10-06T00:00:00Z', 'dispatch_id': 'confirmed-1'}
-            for changes in ({'merge_sha': 'b'*40}, {'piece_id': 'FCMO-P-abcdef012345'}, {'state': 'unknown'}, {'dispatch_id': ''}):
-                path.write_text(json.dumps({**row, **changes}))
-                self.assertEqual(email_status(root, ident, sha, True)['state'], 'pending')
-            path.write_text(json.dumps(row))
-            self.assertEqual(email_status(root, ident, sha, True)['plain_es'], 'Enviado por correo ✓')
-            self.assertEqual(email_status(root, ident, sha, False)['state'], 'disabled')
-
 class TranslationHTTPTests(unittest.TestCase):
     def test_real_authenticated_http_translate_preview_and_distribution(self):
         from http.client import HTTPConnection

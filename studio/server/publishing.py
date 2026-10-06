@@ -1,5 +1,6 @@
 """Durable two-person publication with intent-before-effect reconciliation."""
 from html.parser import HTMLParser
+import base64
 import json
 import os
 from pathlib import Path
@@ -126,6 +127,19 @@ class GitHub:
             except (OSError, ValueError): return None
             urls.append({'locale': loc, 'url': target})
         return urls
+    def email_state(self, user):
+        # Independent read-only branch: no main snapshot refresh or redeploy.
+        from tools.email_intent import LIMIT
+        try:
+            doc = self.request(user, 'GET', '/contents/dispatch.json?ref=email-dispatch-state')
+            if not isinstance(doc, dict) or doc.get('encoding') != 'base64': return None
+            encoded_state = doc.get('content')
+            if not isinstance(encoded_state, str) or len(encoded_state) > 2 * LIMIT: return None
+            raw = base64.b64decode(encoded_state)
+            if len(raw) > LIMIT: return None
+            return json.loads(raw)
+        except (Refused, UnknownEffect, OSError, TypeError, ValueError): return None
+
     def close_pr(self, user, number): return self.request(user, 'PATCH', '/pulls/' + str(number), {'state': 'closed'})
     def rollback(self, user):
         return self.request(user, 'POST', '/actions/workflows/pages.yml/dispatches', {'ref': 'main', 'inputs': {'operation': 'rollback'}})
@@ -385,5 +399,10 @@ class Publisher:
     def public_status(self, value):
         pub = self.get(value); data = pub.get('payload', {})
         from .distribution import email_status
-        email = email_status(getattr(self.store, 'public_root', self.store.data / 'clone'), data.get('piece_id'), data.get('merge_sha'), data.get('distribution', {}).get('email') is True)
+        requested = data.get('distribution', {}).get('email') is True
+        state = None
+        # Approval alone cannot show email success. Wait for Studio's web proof.
+        if requested and pub['state'] == 'published' and self.github is not None:
+            state = self.github.email_state(data['author'])
+        email = email_status(state, data.get('piece_id'), requested)
         return {'email': email, 'state': pub['state'], 'timeline': data.get('timeline', []), 'error_plain': pub.get('error_plain', ''), 'uncertain': bool(data.get('unknown')), 'urls': data.get('urls', [])}
