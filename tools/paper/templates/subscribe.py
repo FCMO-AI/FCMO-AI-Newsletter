@@ -101,6 +101,8 @@ def diario_form(locale, base, form, page=False):
     if form.fixed_locale:
         label = {'en':'English','es-419':'Español','zh-Hans':'简体中文'}[locale]
         language = f'<p>{copy[3]}: {label}</p>'
+    fallback_label = {'en':'Open the signup page', 'es-419':'Abrir la página de suscripción', 'zh-Hans':'打开订阅页面'}[locale]
+    fallback = (f'<noscript><p><a href="{escape(form.fallback_url,quote=True)}" rel="external noopener">{fallback_label}</a></p></noscript>' if form.fallback_url else '')
     tag = 'h1' if page else 'h2'
     return (f'<section class="subscribe-v2 subscribe-page" data-subscribe-state="active">'
             f'<{tag} class="page-title">{copy[0]}</{tag}><p>{copy[1]}</p>'
@@ -110,5 +112,5 @@ def diario_form(locale, base, form, page=False):
             f'<p><label><input type="checkbox" name="consent" value="yes" required> {copy[4]}</label></p>'
             '<input type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" hidden>'
             f'<p><button class="button" type="submit">{copy[5]}</button></p></form><p>{copy[6]}</p>'
-            f'<p><a href="{escape(root+"privacy/",quote=True)}">{copy[7]}</a> · '
+            f'{fallback}<p><a href="{escape(root+"privacy/",quote=True)}">{copy[7]}</a> · '
             f'<a href="{escape(form.privacy_url,quote=True)}">{copy[8]}</a></p></section>')

@@ -1,4 +1,4 @@
-"""Kit v4 adapter against explicitly assumed, offline-tested public API shapes.
+"""Kit v4 adapter using the operator's live-probed tag broadcast boundary.
 
 Only GETs are retried. A create schedules a broadcast and may have succeeded
 when its response is lost: reconcile by marker, then block if still unknown.
@@ -19,14 +19,22 @@ from tools.email_render import render_daily_email
 from . import LOCALES, SUFFIX, SubscribeForm, public_notice
 
 PRIVACY_NOTICE = 'email-privacy-kit.json'
+CONFIG = json.loads((Path(__file__).resolve().parents[2]/'community/config/kit.json').read_text())
+
+def form_id(env, locale):
+    value = env.get('KIT_FORM_'+SUFFIX[locale]) or CONFIG['locales'][locale]['form_id']
+    if not re.fullmatch(r'[1-9][0-9]*',value): raise ValueError('missing_or_invalid_kit_form')
+    return value
 
 def public_form(env,locale):
     if env.get('FCMO_EMAIL_ENABLED') != 'true' or env.get('FCMO_EMAIL_COMPLIANCE_READY') != 'true':
         raise ValueError('email_signup_inactive')
-    form = env.get('KIT_FORM_'+SUFFIX[locale],'')
-    if not re.fullmatch(r'[1-9][0-9]*',form): raise ValueError('missing_or_invalid_kit_form')
+    form = form_id(env,locale)
+    uid = env.get('KIT_FORM_UID_'+SUFFIX[locale]) or CONFIG['locales'][locale]['uid']
+    if not re.fullmatch(r'[a-z0-9]+',uid): raise ValueError('invalid_kit_form_uid')
     return SubscribeForm('https://app.kit.com/forms/'+form+'/subscriptions', 'email_address', True,
-                         public_notice(env.get('FCMO_EMAIL_PRIVACY_URL','')))
+                         public_notice(env.get('FCMO_EMAIL_PRIVACY_URL','')),
+                         CONFIG['hosted_origin']+'/'+uid)
 
 
 class KitProvider:
@@ -42,20 +50,83 @@ class KitProvider:
         sender = env.get('FCMO_EMAIL_FROM','')
         if sender and not re.fullmatch(r'[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+',sender): raise ValueError('invalid_kit_sender_address')
         self.intent = Path(intent or env.get('FCMO_EMAIL_INTENT','email-intent.json'))
-        self.filter_mode = env.get('KIT_FILTER_MODE') or 'form'
-        if self.filter_mode not in ('form', 'tag'): raise ValueError('invalid_kit_filter_mode')
+        if (env.get('KIT_FILTER_MODE') or 'tag') != 'tag':
+            raise ValueError('kit_supports_only_tag_filters')
+        self.forms = {locale:int(form_id(env,locale)) for locale in LOCALES}
+        if len(set(self.forms.values())) != 3: raise ValueError('kit_locale_forms_must_differ')
         self.memberships = {}
+        self._prepared_keys = set()
         for locale in LOCALES:
-            identity = env.get('KIT_'+self.filter_mode.upper()+'_'+SUFFIX[locale],'')
-            if not re.fullmatch(r'[1-9][0-9]*',identity): raise ValueError('invalid_kit_locale_'+self.filter_mode)
-            self.memberships[locale] = int(identity)
-        if len(set(self.memberships.values())) != 3: raise ValueError('kit_locale_memberships_must_differ')
+            identity = env.get('KIT_TAG_'+SUFFIX[locale])
+            if identity:
+                if not re.fullmatch(r'[1-9][0-9]*',identity): raise ValueError('invalid_kit_locale_tag')
+                self.memberships[locale] = int(identity)
+        if len(set(self.memberships.values())) != len(self.memberships):
+            raise ValueError('kit_locale_memberships_must_differ')
+        if env.get('FCMO_EMAIL_NAMESPACE') == 'fcmo-diario-test' and len(self.memberships)!=3:
+            raise ValueError('explicit_seed_tags_required')
+
+    def ensure_tags(self):
+        if len(self.memberships)==3:
+            if len(set(self.memberships.values()))!=3: raise DeliveryError('kit_locale_memberships_must_differ')
+            return
+        tags = list(self.pages('tags','tags'))
+        for locale in LOCALES:
+            if locale in self.memberships: continue
+            name = CONFIG['locales'][locale]['tag_name']
+            matches = [tag for tag in tags if tag.get('name')==name]
+            if len(matches)>1: raise DeliveryError('duplicate_kit_locale_tag')
+            if not matches:
+                try:
+                    self.request('POST','tags',{'name':name})
+                except DeliveryError:
+                    # Creation may have succeeded. Reconcile by exact name once.
+                    pass
+                tags = list(self.pages('tags','tags'))
+                matches = [tag for tag in tags if tag.get('name')==name]
+            if len(matches)!=1 or type(matches[0].get('id')) is not int or matches[0]['id']<=0:
+                raise DeliveryError('unconfirmed_kit_locale_tag')
+            self.memberships[locale] = matches[0]['id']
+        if len(set(self.memberships.values()))!=3: raise DeliveryError('kit_locale_memberships_must_differ')
 
     def subscriber_filter(self, locale):
-        return {'all':[{'type':self.filter_mode,'ids':[self.memberships[locale]]}]}
+        self.ensure_tags()
+        return [{'all':[{'type':'tag','ids':[self.memberships[locale]]}]}]
 
-    def membership_path(self, identity):
-        return self.filter_mode+'s/'+str(identity)+'/subscribers'
+    def subscriber_tags(self, identity):
+        tags = list(self.pages('subscribers/'+str(identity)+'/tags','tags'))
+        if any(type(tag.get('id')) is not int for tag in tags): raise DeliveryError('invalid_kit_subscriber_tags')
+        return {tag['id'] for tag in tags}
+
+    def sync_subscribers(self, locale=None):
+        """Idempotently mirror active form members; never read the lagging tag list."""
+        self.ensure_tags()
+        for language in ((locale,) if locale else LOCALES):
+            tag = self.memberships[language]
+            seen = set()
+            for subscriber in self.pages('forms/'+str(self.forms[language])+'/subscribers?status=active','subscribers'):
+                identity = subscriber.get('id')
+                if type(identity) is not int or identity<=0 or subscriber.get('state')!='active':
+                    raise DeliveryError('invalid_kit_active_form_subscriber')
+                if identity in seen: continue
+                seen.add(identity)
+                try:
+                    self.request('POST','tags/'+str(tag)+'/subscribers/'+str(identity),{})
+                except DeliveryError:
+                    # This membership POST is idempotent; confirm the effect even
+                    # when its acknowledgement was lost, without a blind retry.
+                    pass
+                if tag not in self.subscriber_tags(identity):
+                    raise DeliveryError('unconfirmed_kit_subscriber_tag')
+
+    def prepare_edition(self, edition):
+        # Sync every locale before the first broadcast in a dispatch batch.
+        self._prepared_keys.clear()
+        self.validate_send()
+        self.validate_seed(edition)
+        if edition.namespace != 'fcmo-diario-test':
+            self.sync_subscribers()
+            self._prepared_keys.update(edition.key(locale) for locale in LOCALES)
 
     def subscribe_form(self, locale): return public_form(self.env,locale)
 
@@ -120,10 +191,13 @@ class KitProvider:
             fcntl.flock(journal,fcntl.LOCK_EX)
             state = json.load(journal)
             if idempotency_key not in state.get('keys',[]): raise DeliveryError('missing_persisted_email_intent')
+            prepared = idempotency_key in self._prepared_keys
+            self._prepared_keys.discard(idempotency_key)
             existing = self.find(idempotency_key)
             if existing: return self.observed(existing,locale,idempotency_key)
             if idempotency_key in state.get('previous',[]) or idempotency_key in state.get('attempted',[]):
                 raise DeliveryError('unknown_kit_create_requires_reconcile')
+            if edition.namespace != 'fcmo-diario-test' and not prepared: self.sync_subscribers(locale)
             mail = render_daily_email(chosen,edition.status['edition_date'],locale=locale,
                 postal_address=self.env['FCMO_EMAIL_POSTAL_ADDRESS'],
                 site_url=self.env.get('FCMO_SITE_URL','https://fcmo-ai.github.io/FCMO-AI-Newsletter'),
@@ -155,19 +229,28 @@ class KitProvider:
         if edition.namespace != 'fcmo-diario-test': return
         expected = self.env.get('KIT_TEST_SUBSCRIBER_ID','')
         if not re.fullmatch(r'[1-9][0-9]*',expected): raise ValueError('test_subscriber_id_required')
-        for identity in self.memberships.values():
-            rows = list(self.pages(self.membership_path(identity)+'?status=active','subscribers'))
-            if len(rows)!=1 or rows[0].get('id')!=int(expected) or rows[0].get('state')!='active':
-                raise DeliveryError('seed_memberships_must_contain_only_the_confirmed_test_subscriber')
+        # The account-wide active audience is a conservative isolation oracle.
+        # A lagging GET /tags/<id>/subscribers cannot prove an exclusive seed.
+        if any(not self.env.get('KIT_TAG_'+SUFFIX[locale]) for locale in LOCALES):
+            raise ValueError('explicit_seed_tags_required')
+        self.ensure_tags()
+        rows = list(self.pages('subscribers?status=active','subscribers'))
+        if len(rows)!=1 or rows[0].get('id')!=int(expected) or rows[0].get('state')!='active':
+            raise DeliveryError('seed_account_must_contain_only_the_confirmed_test_subscriber')
+        if not set(self.memberships.values()).issubset(self.subscriber_tags(int(expected))):
+            raise DeliveryError('seed_subscriber_missing_locale_tags')
 
     def health(self):
         self.validate_send()
-        field = self.filter_mode+'s'
-        identities = {v['id'] for v in self.pages(field,field)}
-        if not set(self.memberships.values()).issubset(identities): raise DeliveryError('missing_kit_locale_'+self.filter_mode)
+        identities = {v['id'] for v in self.pages('forms','forms')}
+        if not set(self.forms.values()).issubset(identities): raise DeliveryError('missing_kit_locale_form')
+        if self.memberships:
+            tags = {v['id'] for v in self.pages('tags','tags')}
+            if not set(self.memberships.values()).issubset(tags): raise DeliveryError('missing_kit_locale_tag')
         return {'status':'ok','provider':self.name}
 
     def list_subscribers(self):
+        self.sync_subscribers()  # Daily encrypted backup also repairs form→tag drift.
         # Query every state explicitly; default active-only exports lose suppressions.
         rows = {}
         for state in ('active','inactive','bounced','complained','cancelled'):
@@ -175,10 +258,16 @@ class KitProvider:
                 if not isinstance(subscriber.get('id'),int) or 'email_address' not in subscriber or 'state' not in subscriber:
                     raise DeliveryError('invalid_kit_subscriber')
                 rows[subscriber['id']] = dict(subscriber,locales=[])
-        for locale, identity in self.memberships.items():
-            # Both membership endpoints must preserve pending/suppressed states.
-            for subscriber in self.pages(self.membership_path(identity),'subscribers'):
-                if subscriber.get('id') in rows: rows[subscriber['id']]['locales'].append(locale)
-        yield from rows.values()
+        # Preserve locale intent even for pending/suppressed form members.
+        for locale, identity in self.forms.items():
+            for state in ('active','inactive','bounced','complained','cancelled'):
+                for subscriber in self.pages('forms/'+str(identity)+'/subscribers?status='+state,'subscribers'):
+                    if subscriber.get('id') in rows and locale not in rows[subscriber['id']]['locales']:
+                        rows[subscriber['id']]['locales'].append(locale)
+        for identity, subscriber in rows.items():
+            tags = self.subscriber_tags(identity)
+            for locale, tag in self.memberships.items():
+                if tag in tags and locale not in subscriber['locales']: subscriber['locales'].append(locale)
+            yield subscriber
 
 Adapter = KitProvider

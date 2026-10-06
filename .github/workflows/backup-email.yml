@@ -14,9 +14,7 @@ concurrency:
 
 jobs:
   backup:
-    if: vars.FCMO_EMAIL_PROVIDER != ''
     runs-on: ubuntu-latest
-    environment: email
     steps:
       - uses: actions/checkout@v6
         with:
@@ -27,13 +25,12 @@ jobs:
           python-version: '3.12'
       - name: Install the encryption tool
         run: sudo apt-get update && sudo apt-get install -y age
-      - name: Stream subscriber records directly into age encryption
+      - name: Sync active Kit form subscribers and stream records into age encryption
         env:
-          FCMO_EMAIL_PROVIDER: ${{ vars.FCMO_EMAIL_PROVIDER }}
+          FCMO_EMAIL_PROVIDER: ${{ vars.FCMO_EMAIL_PROVIDER || 'kit' }}
           FCMO_EMAIL_BACKUP_AGE_RECIPIENT: ${{ vars.FCMO_EMAIL_BACKUP_AGE_RECIPIENT }}
           FCMO_EMAIL_PROVIDER_CONFIG: ${{ secrets.FCMO_EMAIL_PROVIDER_CONFIG }}
           KIT_API_KEY: ${{ secrets.KIT_API_KEY }}
-          KIT_FILTER_MODE: ${{ vars.KIT_FILTER_MODE }}
           KIT_FORM_EN: ${{ vars.KIT_FORM_EN }}
           KIT_FORM_ES: ${{ vars.KIT_FORM_ES }}
           KIT_FORM_ZH: ${{ vars.KIT_FORM_ZH }}

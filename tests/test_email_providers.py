@@ -108,6 +108,36 @@ class ProviderTests(unittest.TestCase):
             self.assertEqual(len(server.tags),3)
             self.assertGreater(sum(c[0]=='POST' and '/subscribers/' in c[1] for c in server.calls),sync_count)
 
+    def test_sync_keeps_locale_audiences_separate_and_precedes_broadcast(self):
+        with MockKit() as server:
+            server.subscribers.extend(dict(server.subscribers[0],id=n) for n in (2,3))
+            server.form_members = {form:[server.subscribers[n]] for n,form in enumerate((101,102,103))}
+            provider = self.kit(server)
+            dispatch_edition(provider,self.edition,enabled=True,live_verified=True)
+            self.assertEqual(server.subscriber_tags,{1:{11},2:{12},3:{13}})
+            first_broadcast = next(i for i,c in enumerate(server.calls) if c[0]=='POST' and c[1]=='/v4/broadcasts')
+            assignments = [i for i,c in enumerate(server.calls) if c[0]=='POST' and '/subscribers/' in c[1]]
+            self.assertLess(max(assignments),first_broadcast)
+            for subscriber,tag in ((1,11),(2,12),(3,13)):
+                sync = next(i for i,c in enumerate(server.calls) if c[1]==f'/v4/tags/{tag}/subscribers/{subscriber}')
+                send = next(i for i,c in enumerate(server.calls) if c[0]=='POST' and c[1]=='/v4/broadcasts' and c[2]['subscriber_filter']==[{'all':[{'type':'tag','ids':[tag]}]}])
+                self.assertLess(sync,send)
+
+    def test_unconfirmed_sync_blocks_broadcast_without_consuming_intent(self):
+        with MockKit() as server:
+            server.failures = [('POST',503,'/v4/tags/11/subscribers/1')]
+            with self.assertRaises(DeliveryError): self.kit(server).send_edition(self.edition,'en',self.edition.key('en'))
+            self.assertEqual(server.broadcasts,[])
+            self.assertEqual(json.loads(self.intent.read_text()).get('attempted',[]),[])
+
+    def test_default_forms_accept_empty_github_overrides(self):
+        env = dict(ENV,KIT_FORM_EN='',KIT_FORM_ES='',KIT_FORM_ZH='',KIT_FORM_UID_EN='')
+        self.assertEqual(signup_form(env,'en').action,'https://app.kit.com/forms/10007761/subscriptions')
+        self.assertEqual(signup_form(env,'en').fallback_url,'https://fcmo-ai.kit.com/243b33b9e6')
+        override = signup_form(dict(env,KIT_FORM_EN='999',KIT_FORM_UID_EN='abcdef1234'),'en')
+        self.assertEqual(override.action,'https://app.kit.com/forms/999/subscriptions')
+        self.assertEqual(override.fallback_url,'https://fcmo-ai.kit.com/abcdef1234')
+
     def test_kit_rejects_form_mode_and_duplicate_memberships(self):
         for mode in ('form','all'):
             with self.assertRaises(ValueError): KitProvider(dict(ENV,KIT_FILTER_MODE=mode))
@@ -191,6 +221,8 @@ class ProviderTests(unittest.TestCase):
             provider = self.kit(server)
             out = self.root/'backup.json.age'
             encrypted_backup(provider,recipient,out)
+            self.assertEqual(server.subscriber_tags,{1:{11,12,13}})
+            self.assertFalse(any('/tags/' in c[1] and c[1].endswith('/subscribers') for c in server.calls))
             ciphertext = out.read_bytes()
             self.assertTrue(ciphertext.startswith(b'age-encryption.org/v1'))
             self.assertNotIn(b'reader@example.org',ciphertext)
@@ -271,6 +303,8 @@ class SeedTests(unittest.TestCase):
             provider = KitProvider(dict(ENV,KIT_FILTER_MODE='tag',KIT_TEST_SUBSCRIBER_ID='1'),base_url=server.url,intent=self.intent,sleep=lambda _:None)
             provider.send_edition(seed,'en',seed.key('en'))
             self.assertNotEqual(server.broadcasts[0]['description'],self.edition.key('en'))
+            self.assertFalse(any(c[0]=='POST' and c[1]!='/v4/broadcasts' for c in server.calls))
+            self.assertFalse(any('/tags/' in c[1] and c[1].endswith('/subscribers') for c in server.calls))
             server.subscribers.append(dict(server.subscribers[0],id=2))
             with self.assertRaises(DeliveryError): provider.send_edition(seed,'es-419',seed.key('es-419'))
             self.assertEqual(len(server.broadcasts),1)

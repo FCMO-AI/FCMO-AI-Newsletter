@@ -59,7 +59,9 @@ const server = http.createServer((req, res) => {
           privacy:!!document.querySelector('a[href*="/privacy/"]')};
       });
       const kit = process.env.FCMO_EMAIL_PROVIDER === 'kit';
-      const expectedForm = kit ? `https://app.kit.com/forms/${process.env[{en:'KIT_FORM_EN','es-419':'KIT_FORM_ES','zh-Hans':'KIT_FORM_ZH'}[locale]]}/subscriptions` : null;
+      const kitDefaults = JSON.parse(fs.readFileSync(path.join(__dirname,'../../community/config/kit.json'),'utf8'));
+      const kitForm = process.env[{en:'KIT_FORM_EN','es-419':'KIT_FORM_ES','zh-Hans':'KIT_FORM_ZH'}[locale]] || kitDefaults.locales[locale].form_id;
+      const expectedForm = kit ? `https://app.kit.com/forms/${kitForm}/subscriptions` : null;
       const brevo = process.env.FCMO_EMAIL_PROVIDER === 'brevo';
       const brevoForm = brevo ? JSON.parse(process.env.FCMO_EMAIL_PUBLIC_CONFIG || '{}').forms?.[locale] : null;
       if (brevo && (result.action !== brevoForm || result.emailField !== 'EMAIL')) throw Error(JSON.stringify({locale,width,result}));

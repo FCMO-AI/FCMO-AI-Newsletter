@@ -16,6 +16,7 @@ class SubscribeForm:
     email_field: str = 'email'
     fixed_locale: bool = False
     privacy_url: str = ''
+    fallback_url: str = ''
 
 @dataclass(frozen=True)
 class Edition:
@@ -83,6 +84,8 @@ def dispatch_edition(provider, edition, *, enabled, live_verified):
     decision = eligibility(edition.stories,edition.status,live_verified=live_verified,now=edition.now)
     if decision.action == 'SKIP': return {'action':'SKIP','reason':decision.reason}
     edition.selected()  # All languages must be complete before the first call.
+    prepare = getattr(provider,'prepare_edition',None)
+    if prepare is not None: prepare(edition)
     outcomes, failed = {}, []
     from tools.email_listmonk import DeliveryError
     for locale in LOCALES:
