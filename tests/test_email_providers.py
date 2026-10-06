@@ -73,32 +73,77 @@ class ProviderTests(unittest.TestCase):
     def test_kit_restart_paginates_and_does_not_create_again(self):
         with MockKit() as server:
             provider = self.kit(server)
-            for locale, form in [('en',101),('es-419',102),('zh-Hans',103)]:
+            for locale, form in [('en',11),('es-419',12),('zh-Hans',13)]:
                 self.assertEqual(provider.send_edition(self.edition,locale,self.edition.key(locale))['action'],'QUEUED')
                 broadcast = server.broadcasts[-1]
-                self.assertEqual(broadcast['subscriber_filter'], {'all':[{'type':'form','ids':[form]}]})
+                self.assertEqual(broadcast['subscriber_filter'], [{'all':[{'type':'tag','ids':[form]}]}])
                 self.assertFalse(broadcast['public']); self.assertTrue(broadcast['send_at'])
                 self.assertIn('unsubscribe_url', broadcast['content'])
             provider = self.kit(server)
             for locale in ('en','es-419','zh-Hans'):
                 self.assertEqual(provider.send_edition(self.edition,locale,self.edition.key(locale))['action'],'SKIP')
             self.assertEqual(len(server.broadcasts),3)
-    def test_kit_defaults_to_forms_without_tags_or_automation(self):
+    def test_kit_creates_named_tags_and_syncs_active_forms_before_send(self):
         env = {k:v for k,v in ENV.items() if not k.startswith('KIT_TAG_')}
         with MockKit() as server:
+            server.tags = []
+            server.subscribers.extend(dict(server.subscribers[0],id=n,state=state)
+                                      for n,state in ((2,'active'),(3,'inactive'),(4,'cancelled')))
             provider = KitProvider(env,base_url=server.url,intent=self.intent,sleep=lambda _:None)
-            self.assertEqual(provider.health()['status'],'ok')
-            provider.send_edition(self.edition,'en',self.edition.key('en'))
-            self.assertEqual(server.broadcasts[0]['subscriber_filter'],{'all':[{'type':'form','ids':[101]}]})
-            self.assertEqual(list(provider.list_subscribers())[0]['locales'],['en','es-419','zh-Hans'])
-            self.assertFalse(any('/tags' in c[1] for c in server.calls))
-    def test_kit_optional_tags_and_invalid_filter_are_fail_closed(self):
-        with MockKit() as server:
-            provider = KitProvider(dict(ENV,KIT_FILTER_MODE='tag'),base_url=server.url,intent=self.intent,sleep=lambda _:None)
-            provider.health(); provider.send_edition(self.edition,'en',self.edition.key('en'))
-            self.assertEqual(server.broadcasts[0]['subscriber_filter'],{'all':[{'type':'tag','ids':[11]}]})
-        with self.assertRaises(ValueError): KitProvider(dict(ENV,KIT_FILTER_MODE='all'))
+            provider.health()
+            dispatch_edition(provider,self.edition,enabled=True,live_verified=True)
+            self.assertEqual([v['name'] for v in server.tags],['newsletter-en','newsletter-es-419','newsletter-zh-Hans'])
+            for locale,tag in zip(('en','es-419','zh-Hans'),server.tags):
+                broadcast = next(v for v in server.broadcasts if v['description']==self.edition.key(locale))
+                self.assertEqual(broadcast['subscriber_filter'],[{'all':[{'type':'tag','ids':[tag['id']]}]}])
+                self.assertIn(tag['id'],server.subscriber_tags[1])
+                self.assertIn(tag['id'],server.subscriber_tags[2])
+            self.assertNotIn(3,server.subscriber_tags); self.assertNotIn(4,server.subscriber_tags)
+            self.assertFalse(any(c[1].endswith('/subscribers') and '/tags/' in c[1] for c in server.calls))
+            for call,query in zip(server.calls,server.queries):
+                if call[1].startswith('/v4/forms/'):
+                    self.assertEqual(query.get('status'),['active'])
+            sync_count = sum(c[0]=='POST' and '/subscribers/' in c[1] for c in server.calls)
+            provider.sync_subscribers()
+            self.assertEqual(len(server.tags),3)
+            self.assertGreater(sum(c[0]=='POST' and '/subscribers/' in c[1] for c in server.calls),sync_count)
+
+    def test_kit_rejects_form_mode_and_duplicate_memberships(self):
+        for mode in ('form','all'):
+            with self.assertRaises(ValueError): KitProvider(dict(ENV,KIT_FILTER_MODE=mode))
         with self.assertRaises(ValueError): KitProvider(dict(ENV,KIT_FORM_ES='101'))
+        with self.assertRaises(ValueError): KitProvider(dict(ENV,KIT_TAG_ES='11'))
+
+    def test_live_fixture_rejects_form_filter_with_422(self):
+        import urllib.request
+        import urllib.error
+        with MockKit() as server:
+            request = urllib.request.Request(server.url+'/broadcasts',method='POST',
+                headers={'X-Kit-Api-Key':'synthetic-key','Content-Type':'application/json'},
+                data=json.dumps({'subscriber_filter':[{'all':[{'type':'form','ids':[101]}]}]}).encode())
+            with self.assertRaises(urllib.error.HTTPError) as error: urllib.request.urlopen(request)
+            self.assertEqual(error.exception.code,422)
+            self.assertEqual(json.load(error.exception),{'errors':['Only `segment` or `tag` filters allowed']})
+            self.assertEqual(server.broadcasts,[])
+
+    def test_real_public_defaults_and_hosted_fallback(self):
+        from tools.paper.templates.subscribe import subscribe_block
+        env = {k:v for k,v in ENV.items() if not k.startswith('KIT_FORM_')}
+        with patch.dict(os.environ,env,clear=True):
+            for locale,form,uid in [('en',10007761,'243b33b9e6'),('es-419',10007787,'65d33b22fa'),('zh-Hans',10007798,'2785dc2091')]:
+                html = subscribe_block('paper',locale,page=True)
+                self.assertIn(f'action="https://app.kit.com/forms/{form}/subscriptions"',html)
+                self.assertIn('name="email_address"',html)
+                self.assertIn(f'href="https://fcmo-ai.kit.com/{uid}"',html)
+                self.assertNotIn('10007671',html)
+
+    def test_repository_secret_needs_no_email_environment(self):
+        import yaml
+        for name,job in [('dispatch-email','dispatch'),('backup-email','backup')]:
+            workflow = yaml.safe_load((ROOT/f'.github/workflows/{name}.yml').read_text())
+            self.assertNotIn('environment',workflow['jobs'][job])
+            self.assertIn('${{ secrets.KIT_API_KEY }}',json.dumps(workflow))
+
     def test_master_switch_and_verification_send_nothing(self):
         with MockKit() as server:
             provider = self.kit(server)
@@ -114,17 +159,17 @@ class ProviderTests(unittest.TestCase):
         with MockKit() as server:
             server.failures = [('GET',429),('GET',503)]
             self.assertEqual(self.kit(server).health()['status'],'ok')
-            self.assertEqual(len(server.calls),3)
+            self.assertGreaterEqual(len(server.calls),3)
             server.calls.clear(); server.failures = [('GET',503)]*5
             with self.assertRaises(DeliveryError): self.kit(server).health()
             self.assertEqual(len(server.calls),3)
     def test_mutation_unknown_is_never_blindly_retried(self):
         with MockKit() as server:
-            server.failures = [('POST',503)]
+            server.failures = [('POST',503,'/v4/broadcasts')]
             provider = self.kit(server)
             with self.assertRaises(DeliveryError): provider.send_edition(self.edition,'en',self.edition.key('en'))
             with self.assertRaises(DeliveryError): self.kit(server).send_edition(self.edition,'en',self.edition.key('en'))
-            self.assertEqual(sum(call[0]=='POST' for call in server.calls),1)
+            self.assertEqual(sum(call[0]=='POST' and call[1]=='/v4/broadcasts' for call in server.calls),1)
     def test_lost_create_ack_reconciles_without_resend(self):
         with MockKit() as server:
             server.lose_create = True
@@ -222,6 +267,7 @@ class SeedTests(unittest.TestCase):
         seed = Edition(self.stories,self.status,{},self.now,'fcmo-diario-test')
         self.intent.write_text(json.dumps({'previous':[], 'keys':[seed.key(l) for l in ('en','es-419','zh-Hans')]}))
         with MockKit() as server:
+            server.subscriber_tags[1] = {11,12,13}
             provider = KitProvider(dict(ENV,KIT_FILTER_MODE='tag',KIT_TEST_SUBSCRIBER_ID='1'),base_url=server.url,intent=self.intent,sleep=lambda _:None)
             provider.send_edition(seed,'en',seed.key('en'))
             self.assertNotEqual(server.broadcasts[0]['description'],self.edition.key('en'))
