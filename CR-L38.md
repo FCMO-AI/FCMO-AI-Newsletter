@@ -62,7 +62,9 @@ por locale. La fixture de extremo a extremo modifica una copia del corpus,
 conserva su delta anterior, sustituye un recibo de conteo cero, ejecuta Story →
 ACK → paper y comprueba las rutas pendientes y el inglés corregido.
 
-La evidencia final y el resultado del push se registran en `REPORT.md`.
+Aceptación final: **826 pruebas OK**, **7/7** controles de integridad, **14/14**
+compuertas y navegador **3 idiomas × 2 viewports PASS**, con 150 rutas de noticias.
+La evidencia reproducible y el resultado del push se registran en `REPORT.md`.
 Claude debe repetir la aceptación antes de merge. El push de la rama no confirma
 CI, merge, despliegue ni continuidad autónoma en el origen público.
 

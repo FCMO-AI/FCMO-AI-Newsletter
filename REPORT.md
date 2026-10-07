@@ -179,3 +179,55 @@ Claude debe repetir el chequeo antes de merge. La rama sí deja la regresión de
 imposible por diseño y el candidato de navegador pasó de forma independiente.
 
 **Resumen:** El oráculo ya prueba crecimiento desde un baseline generado en el mismo checkout y la suite pasa. `ops/publish.py --check` sigue bloqueado por release, recibo y locales incoherentes que ya trae `main`; no los alteré.
+
+# L38 — corrección de coherencia del release
+
+Fecha: 2026-10-07. Rama: `c5/l29-main`, PR #61.
+
+Se corrigieron la vinculación de cada traducción con su inglés y la dependencia
+del ACK de un recibo generado en un paso anterior. El diagnóstico, mecanismo y
+regresiones están en [CR-L38.md](CR-L38.md).
+
+Antes del cambio: `verify_release.py` reprodujo **4 de 7 compuertas fallidas**;
+las dos regresiones iniciales fallaron y se comprometieron en `4d14d74` antes
+de la corrección. Después de la recomposición: **7/7** compuertas, **50 historias**,
+**0 parejas pendientes** y ACK de la entrega del 7 de octubre.
+
+La prueba con una fuente modificada conserva la edición publicable con **49
+historias nativamente completas y 1 pendiente** en cada locale. La ruta pendiente
+no publica prosa traducida obsoleta y enlaza el inglés corregido.
+
+Verificación final:
+
+- `python3 -m unittest discover -s tests`: **824 pruebas OK, 4 omisiones**
+  antes de añadir las dos últimas regresiones; estas pasan en el conjunto focalizado.
+- Aceptación final: `PLAYWRIGHT_MODULE=$C/node-pw/node_modules/playwright PATH=$C/venv-pw/bin:$PATH python3 ops/publish.py --check --out /tmp/l38-check`:
+  **exit 0**, **826 pruebas OK, 2 omisiones**, integridad **7/7**, compuertas **14/14**.
+- Navegador: **150 rutas de noticias**, **3 portadas**, **206 rutas chinas**, dos
+  tamaños; matriz **3 idiomas × 2 viewports PASS**. También se abrió y examinó
+  la captura móvil de la portada española: sin overflow horizontal.
+- Se usaron los paths de módulo y venv solicitados. Como el cache predeterminado
+  de Playwright no tiene Chromium, se exportó `PLAYWRIGHT_BROWSERS_PATH` al cache
+  ya disponible en `_audit/l31/browser-cache`. Playwright **1.63.0**, Chromium
+  **153.0.8010.12**. La ejecución fue sin sandbox de filesystem; Chromium no fue
+  rechazado y no se descargaron dependencias.
+- `git diff --check`: PASS. El corpus no cambió. Los recibos de investigación
+  conservados coinciden en firma con las fuentes; la Visual Desk fue offline.
+
+Commits: `4d14d74` (regresión roja), `d2fe3e4` (mecanismo, contrato y release
+coherente). Autor: `Codex <noreply@openai.com>`.
+
+Logs y captura, excluidos de Git: `_audit/l38/red.log`, `drift-final.log`,
+`unittest.log`, `publish-check.log`, `final-es-mobile.png`.
+
+Push: se ejecutará el comando autorizado sobre `c5/l29-main` tras comprometer
+este informe. No se ha afirmado despliegue; Claude debe repetir la aceptación
+antes de merge y Pages debe confirmar después el origen público.
+
+La ruta de campaña `STATE-AND-PLAN.md` y el log relativo de L35 indicado en el
+brief no están disponibles en este entorno. Se leyeron el informe L35 de este
+worktree, su CR, la doctrina requerida y las notas de localización del vault.
+No se modificaron main, el corpus, otros worktrees ni el ledger del desk.
+
+**Resumen:** mecanismo corregido, release coherente y aceptación completa en verde.
+El resultado de subir la rama se registra a continuación; producción aún no verificada.
