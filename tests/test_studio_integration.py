@@ -27,7 +27,7 @@ class StudioIntegration(unittest.TestCase):
         # The candidate uses the actual production build + fourteen gates, never a green stub.
         remote = self.root / 'remote'
         subprocess.run(['git', 'clone', '--quiet', '--no-hardlinks', str(ROOT), str(remote)], check=True)
-        git(remote, 'checkout', '-qb', 'main')
+        git(remote, 'checkout', '-qB', 'main')
         # Exercise current working source during red/green development as well as commits.
         for relative in git(ROOT, 'ls-files').splitlines():
             source = ROOT / relative
