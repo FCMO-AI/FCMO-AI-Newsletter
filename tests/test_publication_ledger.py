@@ -1,4 +1,4 @@
-"""The branch migration preserves the chronological desk activation contract."""
+"""The active desk history and future migration preserve the activation contract."""
 
 import json
 from pathlib import Path
@@ -29,11 +29,14 @@ class PublicationLedgerTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'unique'):
             validate_ledger(row + row)
 
-    def test_product_branch_does_not_track_the_active_ledger(self):
+    def test_product_branch_preserves_active_desk_history_until_writers_migrate(self):
         tracked = subprocess.check_output(['git', 'ls-files', 'ops/publication-desk/LEDGER.jsonl'],
                                           cwd=ROOT, text=True)
-        self.assertEqual(tracked, '')
-        self.assertFalse((ROOT / 'ops/publication-desk/LEDGER.jsonl').exists())
+        self.assertEqual(tracked.strip(), 'ops/publication-desk/LEDGER.jsonl')
+        # Missing history is an error, never an empty ledger. Validate the actual
+        # writer's persisted records, including ordering and unique run IDs.
+        rows = validate_ledger((ROOT / tracked.strip()).read_bytes())
+        self.assertGreater(len(rows), 0)
 
 
 if __name__ == '__main__':
