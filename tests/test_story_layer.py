@@ -97,10 +97,19 @@ class RepositoryStoryLayerTests(unittest.TestCase):
     def test_first_publication_comes_from_the_ledger(self) -> None:
         self.assertEqual(self.stories["FCMO-FAD9D0AFD3E4"]["first_published_at"], "2026-09-14T02:48:13Z")
         ledger = json.loads((CORPUS / "first-published.json").read_text())["entries"]
-        for rid, story in self.stories.items():
-            self.assertEqual(story["first_published_at"], ledger[rid]["first_published_at"], rid)
-            self.assertEqual(story["url_date"], ledger[rid]["url_date"], rid)
-            self.assertEqual(story["slug"], ledger[rid]["slug"], rid)
+        for rid, frozen in ledger.items():
+            story = self.stories[rid]
+            for key in ("first_published_at", "url_date", "slug"):
+                self.assertEqual(story[key], frozen[key], f"{rid} {key}")
+        # The bridge can deliver records before first-published.json is advanced.
+        # Published fallback values come from the committed Story surface; a
+        # never-published record uses the explicit candidate clock, not the seal.
+        published = {row["research_id"]: row["published_at"] for row in
+                     json.loads((REPO / "site/data/stories.json").read_text())}
+        for rid in set(self.stories) - set(ledger):
+            stamp = published.get(rid, NOW)
+            self.assertEqual(self.stories[rid]["first_published_at"], stamp, rid)
+            self.assertEqual(self.stories[rid]["url_date"], story_layer.mx_date(stamp), rid)
 
     def test_one_story_per_public_id_and_live_admission_census(self) -> None:
         corpus_ids = {json.loads(l)["id"] for l in (CORPUS / "data" / "developments.jsonl").read_text().splitlines() if l.strip()}
@@ -448,8 +457,10 @@ class IngestSelectionTests(unittest.TestCase):
         self.assertIn((rows[4]["id"], "WITHDRAWN_UPSTREAM"), held)
 
     def test_mass_quarantine_refuses_the_batch(self) -> None:
-        rows = [dict(r, claims=[]) if i < 10 else r for i, r in enumerate(self.rows)]
-        with self.assertRaisesRegex(ValueError, "refusing to publish: 10 of"):
+        # Exceed the actual 20% limit as the autonomous corpus grows.
+        count = len(self.rows) // 5 + 1
+        rows = [dict(r, claims=[]) if i < count else r for i, r in enumerate(self.rows)]
+        with self.assertRaisesRegex(ValueError, f"refusing to publish: {count} of"):
             self.select(rows)
 
     def test_carried_record_is_published(self) -> None:
