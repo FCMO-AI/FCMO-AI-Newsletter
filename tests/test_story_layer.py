@@ -479,6 +479,16 @@ class TaxonomyTests(unittest.TestCase):
         self.assertEqual([record["id"] for record in records], [source["id"]])
         self.assertEqual(quarantined, [("FCMO-00000000BAD1", ["EVENT_AT_INVALID"])])
 
+    def test_not_established_claim_stays_explicit_and_unknown_claims_fail_closed(self) -> None:
+        source = taxonomy.read_jsonl(FIXTURES / "corpus-44" / "data" / "developments.jsonl")[0]
+        row = dict(source, claims=[{"label": "NOT_ESTABLISHED", "text": "Independent validity has not been established."}])
+        record = taxonomy.normalize_record(row)
+        self.assertEqual(record["claims"][0]["label"], "NOT_ESTABLISHED")
+        self.assertEqual(validator_for(CONTRACTS / "record.v3.schema.json").errors(record), [])
+        row["claims"] = [{"label": "UNRECOGNIZED_EVIDENCE_STATE", "text": "Unsupported label."}]
+        with self.assertRaisesRegex(taxonomy.Quarantine, "CLAIM_LABEL_UNKNOWN"):
+            taxonomy.normalize_record(row)
+
     def test_vocabulary_maps(self) -> None:
         self.assertEqual(taxonomy.normalize_desk("efficiency_quantization_sparsity_compression"), "compute_inference")
         self.assertEqual(taxonomy.normalize_desk("Evaluation / Science"), "evaluation_science")
