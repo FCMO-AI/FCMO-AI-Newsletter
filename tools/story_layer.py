@@ -45,12 +45,12 @@ try:
     from tools.ingest_corpus import parse_edition
     from tools import taxonomy
     from tools import corpus_guard
-    from tools.validate_localizations import load_locale_details
+    from tools.validate_localizations import load_locale_details, effective_overlays_details, pair_status, load_corpus_canonical
 except ImportError:  # executed as tools/story_layer.py
     from ingest_corpus import parse_edition  # type: ignore
     import taxonomy  # type: ignore
     import corpus_guard  # type: ignore
-    from validate_localizations import load_locale_details  # type: ignore
+    from validate_localizations import load_locale_details, effective_overlays_details, pair_status, load_corpus_canonical  # type: ignore
 
 STORIES_SCHEMA = "fcmo-stories-v2"
 LEDGER_SCHEMA = "fcmo-first-published-v1"
@@ -686,12 +686,21 @@ class StoryInputs:
         for rid, story in frozen.items():
             self.records.setdefault(rid, record_from_story(story))
         self.first = first_published_map(self.records, self.ledger, repo, site, now)
-        deltas = load_locale_deltas(corpus)
-        packs = load_site_packs(i18n)
+        # The Story layer consumes the same source-bound field decision as ACK
+        # and native routes. A stale pack/delta cannot bypass it by cardinality.
+        canonical = load_corpus_canonical(corpus)
+        packs = {loc: {} for loc in TARGET_LOCALES}
+        for loc in TARGET_LOCALES:
+            rows, strict, origins, _ = effective_overlays_details(loc, i18n, corpus)
+            for rid, row in rows.items():
+                if rid not in canonical:
+                    continue
+                state = pair_status(canonical[rid], row, loc, strict=rid in strict, provenance=origins.get(rid))
+                keys = state["complete_keys"]
+                packs[loc][rid] = {**{key: row[key] for key in keys if key in row},
+                                   "_provenance": origins.get(rid, {})}
         self.locale_rows = {
-            rid: [{loc: ({**deltas[loc][rid], "_provenance": {key: {"origin": "arb"} for key in deltas[loc][rid]}}
-                        if rid in deltas[loc] else None) for loc in TARGET_LOCALES},
-                  {loc: packs[loc].get(rid) for loc in TARGET_LOCALES}]
+            rid: [{loc: packs[loc].get(rid) for loc in TARGET_LOCALES}]
             + ([locale_rows_from_story(frozen[rid])] if rid in frozen else [])
             for rid in self.records
         }

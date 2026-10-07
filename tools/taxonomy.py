@@ -35,7 +35,7 @@ DESKS = (
     "labs_industry", "policy_geopolitics",
 )
 CONFIDENCE = ("confirmed", "strongly_supported", "supported", "supported_with_limits", "claimed_unverified")
-CLAIM_LABELS = ("DEMONSTRATED", "CLAIMED", "INFERRED", "SPECULATIVE", "DISPUTED")
+CLAIM_LABELS = ("DEMONSTRATED", "CLAIMED", "INFERRED", "SPECULATIVE", "DISPUTED", "NOT_ESTABLISHED")
 DEVELOPMENT_TYPES = (
     "paper", "technical_report", "model_release", "product_release", "repository_release",
     "dataset_benchmark", "hardware_infrastructure", "industry_transaction", "policy_action",

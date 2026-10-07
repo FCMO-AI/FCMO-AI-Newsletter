@@ -70,6 +70,17 @@ class StaticPaperReceiptTests(unittest.TestCase):
         self.assertNotIn("release archive SHA-256", text)
         self.assertNotIn("frozen edition routes", text)
 
+    def test_newsroom_receipt_explicitly_excludes_independent_human_editorial_input(self):
+        observed = []
+        def build(command, **kwargs):
+            editorial = Path(command[command.index('--editorial') + 1])
+            self.assertTrue(editorial.is_dir())
+            self.assertEqual(list(editorial.iterdir()), [])
+            observed.append(command)
+        with mock.patch.object(receipt, 'read_object', return_value={'base_path': '/paper/'}), mock.patch.object(receipt.subprocess, 'run', side_effect=build), mock.patch.object(receipt, 'measure_candidate', return_value={'newsroom': 'unchanged'}):
+            self.assertEqual(receipt.measured_values(), {'newsroom': 'unchanged'})
+        self.assertEqual(len(observed), 1)
+
     def test_cli_write_and_check_keep_existing_exit_semantics(self) -> None:
         values = receipt.measure_candidate(self.candidate, self.stories, self.status)
         output = self.root / "READY_TO_PUBLISH.md"

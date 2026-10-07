@@ -1,0 +1,13 @@
+[Unit]
+Description=FCMO Listmonk loopback service
+Requires=fcmo-email-db.service
+After=fcmo-email-db.service
+[Service]
+ExecStartPre=%h/.local/share/fcmo-email/current/ops/email/wait-db.sh
+ExecStart=%h/.local/share/fcmo-email/current/ops/email/run-container.sh listmonk
+ExecStop=/usr/bin/podman stop -t 30 fcmo-email-listmonk
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=45
+[Install]
+WantedBy=default.target

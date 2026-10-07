@@ -28,6 +28,7 @@ diario refresca.
 """
 from __future__ import annotations
 import hashlib, json, re, shutil, subprocess, sys, tempfile
+from datetime import date, timedelta
 from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parents[2]
@@ -284,7 +285,8 @@ def main() -> int:
         corpus_ed = Path(tmp) / "corpus-edicion"
         shutil.copytree(CORPUS_23, corpus_ed)
         base_ed = sorted((corpus_ed / "editions").glob("*.html"))[-1]
-        nueva_ed = base_ed.with_name("2026-09-04.html")
+        nueva_fecha = date.fromisoformat(base_ed.stem) + timedelta(days=1)
+        nueva_ed = base_ed.with_name(f"{nueva_fecha.isoformat()}.html")
         nueva_ed.write_text(base_ed.read_text(encoding="utf-8").replace(base_ed.stem, nueva_ed.stem),
                             encoding="utf-8", newline=chr(10))
         sed = Path(tmp) / "salida-edicion"

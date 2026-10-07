@@ -10,7 +10,7 @@ Browser extensions, operating-system translation and third-party translation lay
 
 ## Editorial ownership
 
-The **FCMO Publication Desk** owns the Spanish and Simplified Chinese editions. It is a scheduled editorial task that works in this repository and nowhere else. It translates from the airlocked English public record only, never from private evidence. It carries intent, caveats, evidence strength and terminology across languages. It writes its translated fields only to `site/data/i18n/<locale>/part-desk.json`, and it appends one line per activation to `ops/publication-desk/LEDGER.jsonl`. ARB's research tasks never translate: ARB's website separation law keeps them out of presentation work. If ARB ever emits locale deltas (see "Airlock transport"), they are still imported.
+The **FCMO Publication Desk** owns the Spanish and Simplified Chinese editions. It is a scheduled editorial task that works in this repository and nowhere else. It translates from the airlocked English public record only, never from private evidence. It carries intent, caveats, evidence strength and terminology across languages. It writes its translated fields only to `site/data/i18n/<locale>/part-desk.json`, and it appends one line per activation to the tracked `ops/publication-desk/LEDGER.jsonl` on main. Preserve existing records and reconcile concurrent main updates before every append; never treat a missing ledger as empty history. The isolated `ops-ledger` migration is deferred until the scheduled writer and all readers are switched and verified together, as described in `docs/PUBLISHING-SETUP.md`. ARB's research tasks never translate: ARB's website separation law keeps them out of presentation work. If ARB ever emits locale deltas (see "Airlock transport"), they are still imported.
 
 Newsletter's build does not call a translation model, translation API or language-review provider. GitHub Actions does not generate prose. The public repository is a deterministic sink: it validates the committed editions, builds static routes and publishes them.
 
@@ -33,7 +33,7 @@ Spanish and Chinese are source-controlled publication artifacts. They are not la
 
 Every canonical public record must have Spanish and Chinese coverage for every reader-facing prose field that survives declassification, including title, summary, why-it-matters, importance rationale, limitations, contrary evidence, claim text, evidence-gap descriptions, relationship summaries and public technical prose.
 
-Coverage is dynamic. If English contains `N` stable public story identities, both native non-English editions must contain the same `N` identities. A new story without both editions is a release failure, not permission to publish English-only.
+Coverage is dynamic. If English contains `N` stable public story identities, each locale status must account for those same `N` identities. A missing or stale translation is `PENDING` for that story and locale. The daily edition may publish while its stable native route shows a localized pending notice and a labelled link to the canonical English original. It must never present stale prose as a current native edition.
 
 Private strategic implication fields are outside the public language obligation because they do not cross the airlock.
 
@@ -53,6 +53,10 @@ Each desk record has translated fields under `records.<id>` and matching metadat
 Every machine-prepared story page carries a short localized disclosure and an English-original link. The status, integrity manifest and newsroom receipt report counts for all four states per locale.
 
 `tools/reconcile_locale_overlays.py` then prunes fields that no longer exist in the declassified public schema, so an old translated field cannot resurrect material that the airlock removed.
+
+Each source pack carries `source_bindings.<id>.<field>` with hashes of the translated English prose and the locale field. `refresh_locale_identity.py` advances edition metadata without renewing unchanged wording's bindings. A source edit, including a semantic edit with unchanged numbers and list lengths, invalidates that pair until the Publication Desk or an airlocked delta supplies updated wording. List shortening cannot associate an old translation with a different English item by position. No build step generates replacement prose.
+
+`newsroom_receipt.py finalize` regenerates field-level status and pending routes from the rebuilt Story identities and canonical source before issuing its ACK. A cached receipt from the prior edition cannot decide the new edition's story count.
 
 ## Deterministic integrity gate
 
@@ -81,7 +85,7 @@ The app-shell locale resolution remains deterministic:
 
 All `es-*` browser locales resolve to `es-419`; all `zh-*` locales resolve to `zh-Hans`.
 
-Runtime behavior is presentation lookup only. There is no generative fallback and no remote translation endpoint. Missing locale material is a build defect.
+Runtime behavior is presentation lookup only. There is no generative fallback and no remote translation endpoint. Missing or stale locale material produces an explicit pending route and observable backlog.
 
 ## Static newspaper routes
 
@@ -109,9 +113,9 @@ Each story has reciprocal language alternates plus `x-default`. `/news/` is a na
 
 A release fails if:
 
-- either non-English edition omits a canonical FCMO ID or contains a stale/extra ID;
-- reader-facing required prose is absent or empty;
-- translated structure no longer matches the declassified public structure;
+- locale status or routes fail to account for a canonical FCMO ID, or an overlay contains an extra non-canonical ID;
+- incomplete or stale prose is presented as a completed native edition;
+- translated structure is published despite disagreeing with the declassified public structure;
 - numbers, FCMO IDs or embedded URLs drift;
 - a substantial Chinese edition lacks expected Han-script content;
 - a purported non-English edition is unchanged canonical English;
@@ -120,4 +124,4 @@ A release fails if:
 - any native editorial locale outside `en`, `es-419`, `zh-Hans` is exposed;
 - the localized build cannot be traced to the frozen canonical English identity.
 
-A new or materially changed story and its two additional native editions are **one publication obligation**. The system fails closed rather than manufacturing a downstream translation or publishing a partial edition.
+A new or materially changed story and its two additional native editions are **one publication obligation**. The system fails closed for the affected locale, preserves the English edition, and records the translation backlog. Privacy, provenance, release hashes and counterfeit-translation gates remain binding.

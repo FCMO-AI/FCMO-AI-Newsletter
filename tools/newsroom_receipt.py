@@ -29,11 +29,15 @@ try:
     from tools import wire_status
     from tools.publication_freshness import publication_status
     from tools.paper.freshness import corpus_freshness
+    from tools.mark_pending_localizations import render_pending
+    from tools.validate_localizations import load_corpus_canonical
 except ImportError:  # executed as tools/newsroom_receipt.py
     import wire_status  # type: ignore[no-redef]
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
     from tools.publication_freshness import publication_status
     from tools.paper.freshness import corpus_freshness
+    from tools.mark_pending_localizations import render_pending
+    from tools.validate_localizations import load_corpus_canonical
 
 AIRLOCK_SCHEMA = "fcmo-newswire-airlock-v2"
 STATUS_SCHEMA = "fcmo-newsroom-status-v2"
@@ -371,8 +375,15 @@ def finalize(args: argparse.Namespace) -> int:
         extra = ids - canonical_ids
         if extra:
             raise ValueError(f"{locale}: locale IDs outside canonical Story layer: {sorted(extra)}")
-    if locale_ids["es-419"] != locale_ids["zh-Hans"]:
-        raise ValueError("ES/ZH native locale ID sets differ")
+
+    # ACK owns freshness of this derived receipt, rather than trusting a file
+    # left by the last edition or relying on workflow step ordering.
+    if (args.corpus / "data/developments.jsonl").is_file():
+        canonical = load_corpus_canonical(args.corpus)
+    else:
+        canonical = {path.stem: load(path)["brief"] for path in
+                     (args.release_src / "data/briefs").glob("FCMO-*.json")}
+    render_pending(args.site, canonical)
 
     translation_path = args.site / "data" / "i18n" / "translation-status.json"
     if not translation_path.is_file():

@@ -1,0 +1,14 @@
+[Unit]
+Description=FCMO verified Diario dispatch and opt-in gateway
+Requires=fcmo-email-listmonk.service
+After=fcmo-email-listmonk.service
+[Service]
+EnvironmentFile=/etc/fcmo/secrets/email.env
+WorkingDirectory=%h/.local/share/fcmo-email/current
+ExecStart=/usr/bin/python3 %h/.local/share/fcmo-email/current/tools/email_gateway.py --state %h/.local/share/fcmo-email/state.sqlite
+Restart=on-failure
+RestartSec=5
+UMask=0077
+NoNewPrivileges=true
+[Install]
+WantedBy=default.target

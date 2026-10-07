@@ -7,10 +7,13 @@ on:
       - 'site/data/stories.v2.json'
       - 'site/data/newsroom-status.json'
       - 'site-src/**'
+      - 'editorial/**'
       - 'config/site.json'
       - 'design/**'
       - 'i18n/**'
       - 'tools/paper/**'
+      - 'tools/email_providers/**'
+      - 'legal/email-privacy*.json'
       - 'tools/gates/**'
       - 'tools/build_deployment_identity.py'
       - 'tools/verify_live_front_page.py'
@@ -40,18 +43,30 @@ concurrency:
   # Failed upstream notifications are no-ops and must not cancel a real run.
   # Manual rollback intentionally shares the active lease so it supersedes any
   # candidate still in flight and is the final Pages writer.
-  group: github-pages-v4-${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion != 'success' && github.run_id || 'active' }}
+  group: github-pages-v4-${{ (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion != 'success' || github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/main') && github.run_id || 'active' }}
   cancel-in-progress: true
 
 env:
   BASE_PATH: /FCMO-AI-Newsletter/
   PUBLIC_ORIGIN: https://fcmo-ai.github.io/FCMO-AI-Newsletter/
+  FCMO_EMAIL_ENABLED: ${{ vars.FCMO_EMAIL_ENABLED == 'true' && 'true' || 'false' }}
+  FCMO_EMAIL_PROVIDER: ${{ vars.FCMO_EMAIL_PROVIDER || 'kit' }}
+  FCMO_EMAIL_PUBLIC_URL: ${{ vars.FCMO_EMAIL_PUBLIC_URL }}
+  FCMO_EMAIL_PUBLIC_CONFIG: ${{ vars.FCMO_EMAIL_PUBLIC_CONFIG }}
+  FCMO_EMAIL_COMPLIANCE_READY: ${{ vars.FCMO_EMAIL_COMPLIANCE_READY }}
+  FCMO_EMAIL_PRIVACY_URL: ${{ vars.FCMO_EMAIL_PRIVACY_URL }}
+  KIT_FORM_EN: ${{ vars.KIT_FORM_EN }}
+  KIT_FORM_ES: ${{ vars.KIT_FORM_ES }}
+  KIT_FORM_ZH: ${{ vars.KIT_FORM_ZH }}
+  KIT_FORM_UID_EN: ${{ vars.KIT_FORM_UID_EN }}
+  KIT_FORM_UID_ES: ${{ vars.KIT_FORM_UID_ES }}
+  KIT_FORM_UID_ZH: ${{ vars.KIT_FORM_UID_ZH }}
 
 jobs:
   build:
     if: >-
       (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success') &&
-      (github.event_name != 'workflow_dispatch' || inputs.operation == 'deploy')
+      (github.event_name != 'workflow_dispatch' || (inputs.operation == 'deploy' && github.ref == 'refs/heads/main'))
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the exact current publication input with LKG history
@@ -67,9 +82,23 @@ jobs:
           node-version: '22'
       - name: Install pinned Playwright and Chromium
         run: |
-          npm install --prefix "$RUNNER_TEMP/playwright" --no-save playwright@1.63.0
+          npm install --prefix "$RUNNER_TEMP/playwright" --no-save playwright@1.63.0 axe-core@4.14.0
           echo "PLAYWRIGHT_MODULE=$RUNNER_TEMP/playwright/node_modules/playwright" >> "$GITHUB_ENV"
+          echo "NODE_PATH=$RUNNER_TEMP/playwright/node_modules" >> "$GITHUB_ENV"
+          echo "AXE_CORE_PATH=$RUNNER_TEMP/playwright/node_modules/axe-core/axe.min.js" >> "$GITHUB_ENV"
           "$RUNNER_TEMP/playwright/node_modules/.bin/playwright" install --with-deps chromium
+
+      - name: Install regression dependencies
+        run: |
+          python -m pip install PyYAML==6.0.2
+          sudo apt-get update
+          sudo apt-get install -y age
+
+      - name: Run the full regression suite before publication
+        run: python3 -m unittest discover -s tests
+
+      - name: Preserve the established six-gate release boundary
+        run: python3 tools/verify_release.py
 
       - name: Render locale-specific Open Graph cards
         run: >-
@@ -82,6 +111,7 @@ jobs:
           python tools/paper/build.py
           --stories site/data/stories.v2.json
           --status site/data/newsroom-status.json
+          --editorial editorial
           --out publish
           --base "$BASE_PATH"
           --og-source "$RUNNER_TEMP/paper-og"
@@ -189,7 +219,7 @@ jobs:
     needs: [deploy, live-verify]
     if: >-
       always() &&
-      ((github.event_name == 'workflow_dispatch' && inputs.operation == 'rollback') ||
+      ((github.event_name == 'workflow_dispatch' && inputs.operation == 'rollback' && github.ref == 'refs/heads/main') ||
        (needs.deploy.result == 'success' &&
         (needs.live-verify.result == 'failure' || needs.live-verify.result == 'cancelled')))
     runs-on: ubuntu-latest
@@ -213,8 +243,10 @@ jobs:
       - name: Install pinned Playwright and Chromium for paper LKG
         if: hashFiles('lkg-source/tools/paper/build.py') != ''
         run: |
-          npm install --prefix "$RUNNER_TEMP/playwright" --no-save playwright@1.63.0
+          npm install --prefix "$RUNNER_TEMP/playwright" --no-save playwright@1.63.0 axe-core@4.14.0
           echo "PLAYWRIGHT_MODULE=$RUNNER_TEMP/playwright/node_modules/playwright" >> "$GITHUB_ENV"
+          echo "NODE_PATH=$RUNNER_TEMP/playwright/node_modules" >> "$GITHUB_ENV"
+          echo "AXE_CORE_PATH=$RUNNER_TEMP/playwright/node_modules/axe-core/axe.min.js" >> "$GITHUB_ENV"
           "$RUNNER_TEMP/playwright/node_modules/.bin/playwright" install --with-deps chromium
       - name: Rebuild and verify LKG with its native release system
         shell: bash
@@ -222,12 +254,17 @@ jobs:
           set -euo pipefail
           LKG_SHA="$(git -C lkg-source rev-parse HEAD)"
           if test -f lkg-source/tools/paper/build.py; then
+            EDITORIAL_ARGS=()
+            if test -f lkg-source/tools/paper/essays.py; then
+              EDITORIAL_ARGS=(--editorial lkg-source/editorial)
+            fi
             python lkg-source/tools/paper/og_image.py \
               --stories lkg-source/site/data/stories.v2.json \
               --out "$RUNNER_TEMP/rollback-og"
             python lkg-source/tools/paper/build.py \
               --stories lkg-source/site/data/stories.v2.json \
               --status lkg-source/site/data/newsroom-status.json \
+              "${EDITORIAL_ARGS[@]}" \
               --out rollback-publish --base "$BASE_PATH" \
               --og-source "$RUNNER_TEMP/rollback-og"
             mkdir -p rollback-publish/data

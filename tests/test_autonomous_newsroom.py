@@ -402,10 +402,12 @@ class AutonomousNewsroomTests(unittest.TestCase):
             self.assertEqual(first["state"], "PUBLIC_DELTA_READY")
             self.assertEqual(first["edition_state"], "FRESH")
             self.assertEqual(first["wire_state"], "FRESH")
-            self.assertEqual(first["pending_translation_ids"], [RID])
+            # ACK measures the fixture's actual complete translations, replacing
+            # the deliberately stale pending receipt above.
+            self.assertEqual(first["pending_translation_ids"], [])
             self.assertEqual(first["translation"]["es-419"], {
-                "complete": 0, "pending": 1, "failed": 0,
-                "state_counts": {"NATIVE_ARB": 0, "MACHINE_REVIEWED": 0, "PENDING": 1, "FAILED": 0}})
+                "complete": 1, "pending": 0, "failed": 0,
+                "state_counts": {"NATIVE_ARB": 1, "MACHINE_REVIEWED": 0, "PENDING": 0, "FAILED": 0}})
             self.assertEqual(first["stories_sha256"], newsroom_receipt.sha256_file(site / "data" / "stories.json"))
             self.assertEqual(first["media_sha256"], newsroom_receipt.sha256_file(release / "data" / "media.json"))
             self.assertEqual(newsroom_receipt.finalize(args), 0)
