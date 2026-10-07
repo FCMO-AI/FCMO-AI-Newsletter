@@ -73,3 +73,32 @@ Para continuar, con la configuración gh autorizada:
 5. El correo requiere terminar la configuración autorizada del proveedor y sus requisitos existentes antes de activar `FCMO_EMAIL_ENABLED`; no basta con poner la variable en true.
 
 **Resumen:** CI y refresco diario corregidos y probados localmente. La edición nueva todavía no está en producción, el correo no se ejecuta y la PR necesita push autenticado, CI verde y revisión.
+
+# L33 — Drift del generador en el corte diario
+Fecha: 2026-10-07. Rama: `c5/l29-main`.
+
+## Causa
+
+El check no depende del reloj. `verificar_generador_newsroom.py` genera desde `corpus/` y compara contra `release-src/`, además de conservar las pruebas sintéticas de crecimiento e idempotencia. La rama de la PR terminaba en el corpus del 6 de octubre; el `origin/main` local usado por el merge de CI ya había recibido en `ce24511` el airlock público del 7 de octubre. Al reproducir la unión, el oráculo falló en rojo: faltaban `data/editions/2026-10-07.json` y `editions/2026-10-07.html`, y divergían superficies derivadas. En la rama sin ese corpus actualizado, el mismo test pasaba, como lo había hecho antes en el host.
+
+Por tanto, el release comprometido debe seguir al corpus vigente. El fallo señalaba drift real en el árbol combinado de la PR, no una fecha del runner que debiera fijarse o ignorarse.
+
+## Corrección
+
+Se incorporó a esta rama la actualización pública y sanitizada del corpus de `ce24511` (sello, índices y edición 2026-10-07); no se movió ni modificó la ref `origin/main`. Se reconstruyó `release-src` con `ingest_corpus.py` y `synchronize_relationship_surfaces.py`, más las etapas locales de sincronización/validación de locales y construcción de newsroom. `verificar_generador_newsroom.py` ahora pasa sin cambiar ni reducir sus invariantes de derivación, cobertura, crecimiento o punto fijo.
+
+La investigación pública y la visual desk se ejecutaron en modo offline durante la reproducción; sus resultados derivados temporales y el `site/` temporal se descartaron, pues no podían sustituir una corrida de producción con acceso a fuentes. Luego se generaron con los constructores propios el overlay congelado y `READY_TO_PUBLISH.md`, que también estaban obsoletos frente a la nueva edición. No se afirmó publicación ni despliegue.
+
+## Verificación
+
+- Antes del arreglo, el oráculo específico falló sobre una copia desechable con el corpus de `origin/main`; después, `python3 -m unittest tests.test_refresco_diario.RefrescoDiario.test_generador_deriva_y_crece` pasó.
+- `python3 tools/build_final_release.py`, `python3 tools/build_ready_receipt.py` y `python3 tools/verify_release.py`: PASS, 7/7 gates.
+- `ops/publish.py --check`: PASS; suite completa, integridad, 14/14 gates y browser oracle PASS. La suite reportó 818 tests OK y 2 skips. El browser comprobó las superficies Story/portada chinas en 2 viewports y la matriz en 3 idiomas × 2 viewports.
+- Los paths Playwright y `venv-pw` exactos dados en el brief no existen en este host. Primero se intentó el comando con esos valores. Para completar la aceptación de navegador se usó el módulo y Chromium ya instalados en `_audit/l31`; el PATH solicitado quedó antepuesto, aunque su directorio no está presente. Esta sustitución está documentada para la repetición de Claude.
+- `git diff --check`: PASS. No se ejecutó `--publish`, no se hizo push y no se verificó producción en vivo.
+
+## Límite
+
+La verificación completa demuestra consistencia del árbol local y su candidato estático, no un deploy ni frescura del origen público. Claude debe repetir la suite desde un entorno con los paths de navegador acordados antes de merge; el arquitecto conserva la decisión de push.
+
+**Resumen:** La CI fallaba porque `main` ya había avanzado el corpus al 7 de octubre y el release de la PR seguía en el 6. Se regeneraron el release, el overlay y el recibo; la aceptación local completa pasó con el navegador disponible en el worktree.
