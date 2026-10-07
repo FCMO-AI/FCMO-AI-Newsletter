@@ -30,6 +30,13 @@ indexes, publication memory, sitemap, `llms*.txt`, or release-overlay parts.
 This keeps the generator behavior check independent from publication cadence
 while retaining real current-corpus input and the growth/idempotence contract.
 
+The real-corpus localization preservation test now measures the locale pack
+against the canonical stories in the composed publication. It checks that every
+imported airlock addition is present in that published set and matches its
+source delta. This allows the corpus writer to land a new delta before the
+scheduled newsroom sync composes and translates it; it does not invent or
+approve missing prose.
+
 ## Verification boundary
 
 The separate repository publication and release checks continue to validate
