@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 """Refresh locale-pack metadata after the canonical public corpus changes.
 
-This tool never writes translated prose. It updates only the canonical record count
-and canonical editorial digest carried by locale metadata/parts so the existing
-hash-verified localization assembler can distinguish a current pack from stale input.
-ARB remains the sole author of new or materially changed ES/ZH story wording.
+This tool never writes translated prose. Pack identity describes the assembled
+edition; per-field source bindings describe the English actually translated.
+Refreshing the former must never renew the latter for unchanged locale prose.
 
 The digest is sha256 of ``{id: {title, summary, why_it_matters}}`` serialized with
 sorted keys (the identity the curated-i18n assembler used), taken from
@@ -75,6 +74,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--site", type=Path, default=Path("release-src"))
     parser.add_argument("--corpus", type=Path, default=None, help="canonical corpus directory (preferred over --site)")
     parser.add_argument("--i18n-dir", type=Path, default=Path("site/data/i18n"))
+    parser.add_argument("--bind-updated-fields", action="store_true",
+                        help="editorial use only: bind newly written locale fields to this English source")
     args = parser.parse_args(argv)
 
     try:
@@ -88,6 +89,17 @@ def main(argv: list[str] | None = None) -> int:
     except ValueError as exc:
         raise SystemExit(f"locale identity: {exc}") from exc
     digest = _canonical_digest(canonical)
+    try:
+        from tools.validate_localizations import (load_corpus_canonical, source_binding,
+                                                  stable_digest, translated_projection, load_locale_details)
+        from tools.reconcile_locale_overlays import canonical_records
+    except ImportError:
+        from validate_localizations import (load_corpus_canonical, source_binding,
+                                            stable_digest, translated_projection, load_locale_details)
+        from reconcile_locale_overlays import canonical_records
+    sources = load_corpus_canonical(args.corpus) if args.corpus else canonical_records(args.site)
+    receipt_path = args.i18n_dir / "integrity-manifest.json"
+    receipt = read_json(receipt_path).get("records", {}) if receipt_path.is_file() else {}
     count = len(canonical)
     touched = 0
 
@@ -97,6 +109,7 @@ def main(argv: list[str] | None = None) -> int:
         if not ui_path.is_file():
             raise SystemExit(f"locale identity: missing UI catalogue {ui_path}")
         ui = read_json(ui_path)
+        selected_rows, _, _, _ = load_locale_details(args.i18n_dir, locale)
         ui["canonical_record_count"] = count
         ui["canonical_source_sha256"] = digest
         curation = ui.setdefault("curation", {})
@@ -116,6 +129,30 @@ def main(argv: list[str] | None = None) -> int:
             doc = read_json(path)
             if doc.get("schema") != "fcmo-curated-locale-part-v1" or doc.get("locale") != locale:
                 raise SystemExit(f"locale identity: invalid locale part metadata: {path}")
+            bindings = doc.setdefault("source_bindings", {})
+            for rid, overlay in doc["records"].items():
+                source = sources.get(rid)
+                if source is None:
+                    continue
+                proof = (receipt.get(rid) or {}).get(locale) or {}
+                # One-time migration requires the measured full source/locale
+                # pair. A global title/summary/why hash cannot prove that the
+                # English claims or caveats have remained unchanged.
+                known = (proof.get("canonical_digest") == stable_digest(translated_projection(source))
+                         and proof.get("locale_digest") == stable_digest(selected_rows.get(rid)))
+                current = source_binding(source, overlay)
+                previous = bindings.get(rid)
+                if previous is None:
+                    bindings[rid] = current if known else {
+                        key: {**value, "source_sha256": None} for key, value in current.items()}
+                else:
+                    # Automated pruning/metadata refresh cannot approve prose.
+                    # The editorial writer opts in only after translating changed
+                    # fields; identical wording never renews a stale binding.
+                    bindings[rid] = {key: value if args.bind_updated_fields and
+                        (key not in previous or previous[key].get("locale_sha256") != value["locale_sha256"])
+                        else previous.get(key, {**value, "source_sha256": None})
+                        for key, value in current.items()}
             doc["canonical_source_sha256"] = digest
             write_json(path, doc)
             touched += 1

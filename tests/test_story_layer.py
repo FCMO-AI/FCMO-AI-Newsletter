@@ -185,11 +185,23 @@ class RepositoryStoryLayerTests(unittest.TestCase):
                         self.assertNotEqual(entry["fields"][field], story[field], "no English fallback")
 
     def test_ledger_is_frozen_and_idempotent(self) -> None:
-        proc = subprocess.run([sys.executable, str(TOOL), "ledger", "--corpus", str(CORPUS), "--history-git", str(REPO),
-                               "--check", "--now", NOW], capture_output=True, text=True, cwd=REPO)
-        self.assertEqual(proc.returncode, 0, proc.stderr)
         entries = json.loads((CORPUS / "first-published.json").read_text())["entries"]
-        self.assertEqual(proc.stdout.strip(), f"ledger OK entries={len(entries)} changes=0")
+        ledger, tombstones, _ = story_layer.update_ledger(CORPUS, REPO, REPO / "site", NOW)
+        self.assertEqual({rid: ledger["entries"][rid] for rid in entries}, entries)
+        published = {s["research_id"]: s["published_at"] for s in
+                     json.loads((REPO / "site/data/stories.json").read_text())}
+        for rid in set(ledger["entries"]) - set(entries):
+            self.assertEqual(ledger["entries"][rid]["first_published_at"], published[rid])
+        # A newly composed edition can precede the corpus-owned ledger. Prove
+        # idempotence on its completed ledger without modifying the real corpus.
+        with tempfile.TemporaryDirectory() as tmp:
+            corpus = Path(tmp) / "corpus"
+            shutil.copytree(CORPUS, corpus)
+            (corpus / "first-published.json").write_text(json.dumps(ledger))
+            (corpus / "tombstones.json").write_text(json.dumps(tombstones))
+            again, _, changes = story_layer.update_ledger(corpus, REPO, REPO / "site", NOW)
+            self.assertEqual(again, ledger)
+            self.assertEqual(changes, [])
         validator = validator_for(CONTRACTS / "first-published.schema.json")
         self.assertEqual(validator.errors(json.loads((CORPUS / "first-published.json").read_text())), [])
 
@@ -304,7 +316,12 @@ class TemporaryCorpusTests(unittest.TestCase):
         historical = json.loads((FIXTURES / "first-published.json").read_text())
         self.assertEqual({rid: ledger["entries"][rid] for rid in historical["entries"]}, historical["entries"])
         # New supply extends the ledger, while every frozen historical entry stays exact.
-        self.assertEqual(ledger, json.loads((CORPUS / "first-published.json").read_text()))
+        committed = json.loads((CORPUS / "first-published.json").read_text())
+        self.assertEqual({rid: ledger["entries"][rid] for rid in committed["entries"]}, committed["entries"])
+        published = {s["research_id"]: s["published_at"] for s in
+                     json.loads((REPO / "site/data/stories.json").read_text())}
+        for rid in set(ledger["entries"]) - set(committed["entries"]):
+            self.assertEqual(ledger["entries"][rid]["first_published_at"], published[rid])
         added = [e for e in tombstones["tombstones"] if e["id"] != FDBE]
         self.assertEqual({e["id"]: e["superseded_by"] for e in added}, MERGES)
         self.assertEqual({e["action"] for e in added}, {"superseded"})

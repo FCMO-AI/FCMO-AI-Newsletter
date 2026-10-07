@@ -50,8 +50,9 @@ class DailyTranslationReceipt(unittest.TestCase):
                 'status': site / 'data/newsroom-status.json',
                 'wire_status': root / 'missing-wire.json', 'now': '2026-10-07T12:00:00Z',
             })()
-            with self.assertRaisesRegex(ValueError, 'story count mismatch'):
-                newsroom_receipt.finalize(args)
+            # finalize repairs stale derived status even if an earlier renderer
+            # was skipped; it cannot ACK the previous edition's counts.
+            self.assertEqual(newsroom_receipt.finalize(args), 0)
 
             command = shlex.split(step['run'])
             command[0] = sys.executable

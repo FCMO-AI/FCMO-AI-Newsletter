@@ -60,6 +60,11 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     changed = added = promoted = narrowed = 0
+    try:
+        from tools.validate_localizations import load_corpus_canonical, source_binding
+    except ImportError:
+        from validate_localizations import load_corpus_canonical, source_binding
+    canonical = load_corpus_canonical(args.corpus) if (args.corpus / "data/developments.jsonl").is_file() else {}
     for locale in LOCALES:
         incoming_path = args.corpus / "data" / "locales" / locale / "records.json"
         if not incoming_path.is_file():
@@ -95,6 +100,7 @@ def main(argv: list[str] | None = None) -> int:
             airlock_rows = airlock_doc["records"]
 
         touched: dict[Path, dict[str, Any]] = {}
+        bindings = airlock_doc.setdefault("source_bindings", {})
         for rid, overlay in sorted(rows.items()):
             if not isinstance(rid, str) or not rid.startswith("FCMO-") or not isinstance(overlay, dict):
                 raise SystemExit(f"{incoming_path}: malformed record {rid!r}")
@@ -102,6 +108,12 @@ def main(argv: list[str] | None = None) -> int:
             if bad:
                 raise SystemExit(f"{incoming_path}: {rid} has null or non-string fields {bad[:5]}")
             previous = existing.get(rid)
+            if rid in canonical:
+                current = source_binding(canonical[rid], overlay)
+                previous_binding = bindings.get(rid, {})
+                bindings[rid] = {key: previous_binding[key] if key in previous_binding and
+                    previous_binding[key].get("locale_sha256") == value["locale_sha256"] else value
+                    for key, value in current.items()}
             if isinstance(previous, dict) and set(previous) - set(overlay):
                 narrowed += 1
                 print(f"{locale}: {rid} narrowed; fields no longer translated: {sorted(set(previous) - set(overlay))}")

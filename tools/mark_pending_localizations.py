@@ -402,25 +402,16 @@ def translation_status(stories: list[dict[str, Any]], statuses: dict[str, dict[s
     }
 
 
-def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--site", type=Path, default=Path("site"))
-    parser.add_argument("--corpus", type=Path, default=Path("corpus"), help="canonical English records")
-    parser.add_argument("--i18n-dir", type=Path, default=None, help="default: <site>/data/i18n")
-    parser.add_argument("--config", type=Path, default=Path("config/site.json"))
-    parser.add_argument("--catalog-dir", type=Path, default=None, help="default: i18n/ui of this repository")
-    args = parser.parse_args(argv)
-    site = args.site
-    i18n_dir = args.i18n_dir or site / "data" / "i18n"
+def render_pending(site: Path, canonical: dict[str, dict[str, Any]], i18n_dir: Path | None = None,
+                   config: Path | None = Path("config/site.json"), catalog_dir: Path | None = None) -> int:
+    """Render pending routes and measure the exact rebuilt Story set in one pass."""
+    i18n_dir = i18n_dir or site / "data" / "i18n"
     stories = json.loads((site / "data" / "stories.json").read_text(encoding="utf-8"))
     if not isinstance(stories, list):
         raise SystemExit("pending localization renderer: stories.json must be a list")
-    if not (args.corpus / "data" / "developments.jsonl").is_file():
-        raise SystemExit(f"pending localization renderer: no canonical corpus at {args.corpus}")
-    canonical = load_corpus_canonical(args.corpus)
-    base = site_base(args.config)
+    base = site_base(config)
     for locale in ("en", *NATIVE_LOCALES):
-        load_ui_catalog(locale, args.catalog_dir)  # fail before writing anything
+        load_ui_catalog(locale, catalog_dir)  # fail before writing anything
 
     all_statuses: dict[str, dict[str, dict[str, Any]]] = {}
     written: dict[str, int] = {}
@@ -443,11 +434,11 @@ def main(argv: list[str] | None = None) -> int:
         for story in stories:
             rid = str(story.get("research_id") or "")
             if not is_complete(statuses[rid]):
-                page = pending_page(locale, story, statuses[rid], rows.get(rid), canonical.get(rid), base, args.catalog_dir)
+                page = pending_page(locale, story, statuses[rid], rows.get(rid), canonical.get(rid), base, catalog_dir)
                 (folder / f"{rid}.html").write_text(page, encoding="utf-8")
                 count += 1
         (folder / "index.html").write_text(
-            index_page(locale, stories, rows, statuses, canonical, base, args.catalog_dir), encoding="utf-8"
+            index_page(locale, stories, rows, statuses, canonical, base, catalog_dir), encoding="utf-8"
         )
         all_statuses[locale] = statuses
         written[locale] = count
@@ -465,6 +456,18 @@ def main(argv: list[str] | None = None) -> int:
         f"native_complete={status_doc['native_complete_story_count']}; {per_locale}; state={status_doc['state']}"
     )
     return 0
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument("--site", type=Path, default=Path("site"))
+    parser.add_argument("--corpus", type=Path, default=Path("corpus"), help="canonical English records")
+    parser.add_argument("--i18n-dir", type=Path, default=None, help="default: <site>/data/i18n")
+    parser.add_argument("--config", type=Path, default=Path("config/site.json"))
+    parser.add_argument("--catalog-dir", type=Path, default=None, help="default: i18n/ui of this repository")
+    args = parser.parse_args(argv)
+    return render_pending(args.site, load_corpus_canonical(args.corpus),
+                          args.i18n_dir, args.config, args.catalog_dir)
 
 
 if __name__ == "__main__":

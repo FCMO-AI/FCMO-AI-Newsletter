@@ -102,6 +102,7 @@ def load_locale_details(root: Path, locale: str) -> tuple[dict[str, dict[str, An
     alternates: dict[str, dict[str, Any]] = {}
     desk_records: dict[str, dict[str, Any]] = {}
     desk_meta: dict[str, dict[str, Any]] = {}
+    desk_bindings: dict[str, Any] = {}
     for path in sorted((root / locale).glob("part-*.json")):
         doc = json.loads(path.read_text(encoding="utf-8"))
         rows = doc.get("records")
@@ -110,6 +111,7 @@ def load_locale_details(root: Path, locale: str) -> tuple[dict[str, dict[str, An
         if path.name == DESK_PART:
             desk_records = rows
             desk_meta = doc.get("provenance") or {}
+            desk_bindings = doc.get("source_bindings") or {}
             continue
         origin = "arb" if path.name == AIRLOCK_PART or re.fullmatch(r"part-\d+\.json", path.name) else None
         for rid, row in rows.items():
@@ -119,6 +121,9 @@ def load_locale_details(root: Path, locale: str) -> tuple[dict[str, dict[str, An
             provenance[rid] = {key: {"origin": origin, "at": doc.get("generated_at") or doc.get("at"),
                                      "human_reviewed": False, "network_translation": False}
                                for key in row}
+            for key, binding in (doc.get("source_bindings", {}).get(rid) or {}).items():
+                if key in provenance[rid]:
+                    provenance[rid][key].update(binding)
         if path.name == AIRLOCK_PART:
             strict.update(rows)
     for rid, row in desk_records.items():
@@ -138,6 +143,10 @@ def load_locale_details(root: Path, locale: str) -> tuple[dict[str, dict[str, An
             else:
                 selected[key] = value
                 provenance[rid][key] = meta
+                # Desk metadata belongs to the selected field, just like ARB metadata.
+                binding = (desk_bindings.get(rid) or {}).get(key)
+                if binding is not None:
+                    provenance[rid][key] = {**meta, **binding}
         strict.add(rid)
     return result, strict, provenance, alternates
 
@@ -283,6 +292,17 @@ def path_text(path: tuple) -> str:
     return out
 
 
+def field_digest(value: Any) -> str:
+    """Identity of prose and its positions; enum/timestamp changes are not prose."""
+    return stable_digest(list(prose_leaves(value)))
+
+
+def source_binding(source: dict[str, Any], overlay: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    source = normalize_record(source)
+    return {key: {"source_sha256": field_digest(source.get("why_it_matters" if key == "why" else key)),
+                  "locale_sha256": stable_digest(value)} for key, value in overlay.items()}
+
+
 def looks_english(text: str, locale: str) -> bool:
     """True when a Spanish or Chinese field is really English prose."""
     if locale == "zh-Hans":
@@ -311,7 +331,23 @@ def pair_status(source: dict[str, Any], overlay: Any, locale: str, strict: bool 
             "state": "PENDING", "missing": needed, "missing_paths": [k for k in needed],
             "failure": None, "complete_keys": [],
         }
+    raw_overlay = overlay
     overlay = normalize_record(overlay)
+
+    # A metadata refresh is not a translation. Reject the old wording before
+    # comparing shapes/tokens: even a same-shape semantic edit invalidates it.
+    stale = []
+    for key, meta in (provenance or {}).items():
+        canonical_key = "why_it_matters" if key == "why" else key
+        if "source_sha256" in meta and canonical_key in overlay and (
+            meta["source_sha256"] != field_digest(source.get(canonical_key))
+            or meta.get("locale_sha256") != stable_digest(raw_overlay.get(key))
+        ):
+            stale.append(canonical_key)
+    if stale:
+        # Keep the original artifact for editorial repair; publish no stale prose.
+        return {"state": "PENDING", "missing": needed, "missing_paths": list(needed),
+                "failure": None, "complete_keys": [], "stale_fields": sorted(set(stale))}
 
     def failed(gate: str, detail: str) -> dict[str, Any]:
         return {
@@ -443,13 +479,21 @@ def effective_overlays_details(locale: str, i18n_dir: Path | None, corpus: Path 
         rows = {rid: dict(value) for rid, value in packs.items() if isinstance(value, dict)}
         strict |= strict_ids
     if corpus is not None:
+        canonical = load_corpus_canonical(corpus) if (corpus / "data/developments.jsonl").is_file() else {}
         for rid, delta in load_delta(corpus, locale).items():
-            merged = dict(rows.get(rid) or {})
-            merged.update(delta)
-            rows[rid] = merged
-            provenance.setdefault(rid, {}).update({key: {"origin": "arb", "at": airlock_time(corpus),
-                                                        "human_reviewed": False, "network_translation": False}
-                                                   for key in delta})
+            previous = rows.get(rid) or {}
+            bindings = source_binding(canonical.get(rid, {}), delta)
+            selected = provenance.setdefault(rid, {})
+            for key, value in delta.items():
+                if key in previous and previous[key] == value and "source_sha256" in selected.get(key, {}):
+                    continue
+                selected[key] = {"origin": "arb", "at": airlock_time(corpus),
+                                 "human_reviewed": False, "network_translation": False, **bindings[key]}
+            # Match the importer's whole-record ARB replacement, with independent
+            # desk gap fills retained under their own source bindings.
+            rows[rid] = {**{key: value for key, value in previous.items()
+                            if selected.get(key, {}).get("origin") == "publication-desk"}, **delta}
+            provenance[rid] = {key: selected[key] for key in rows[rid]}
             strict.add(rid)
     return rows, strict, provenance, alternates
 

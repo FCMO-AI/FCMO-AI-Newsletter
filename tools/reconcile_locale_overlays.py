@@ -65,6 +65,11 @@ def prune(source: Any, translated: Any) -> Any:
     if isinstance(source, dict) and isinstance(translated, dict):
         return {key: prune(source[key], value) for key, value in translated.items() if key in source}
     if isinstance(source, list) and isinstance(translated, list):
+        if len(source) != len(translated):
+            # Dropping the first English item must not associate its translation
+            # with the next item, nor retain prose removed at declassification.
+            # An empty field stays pending until the editorial writer replaces it.
+            return []
         return [prune(s, t) for s, t in zip(source, translated)]
     return translated
 

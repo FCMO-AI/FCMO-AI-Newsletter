@@ -19,6 +19,11 @@ import sys
 from html.parser import HTMLParser
 from pathlib import Path
 
+try:
+    from tools.validate_localizations import load_locale_details, field_digest, normalize_record
+except ImportError:
+    from validate_localizations import load_locale_details, field_digest, normalize_record
+
 SUPPORTED = ("en", "es-419", "zh-Hans")
 CURATED = ("es-419", "zh-Hans")
 REQUIRED_FIELDS = ("title", "summary", "why_it_matters")
@@ -273,17 +278,26 @@ def validate_curated_i18n(target: Path, canonical_index_sha256: str | None = Non
         if pack.get("curation", {}).get("human_reviewed") is not False: errors.append(f"{locale}: pack must not claim human review")
         if pack.get("canonical_record_count") != canonical_count: errors.append(f"{locale}: canonical_record_count metadata is {pack.get('canonical_record_count')!r}, expected {canonical_count}")
         if pack.get("canonical_source_sha256") != digest: errors.append(f"{locale}: canonical editorial source hash mismatch")
-        rows = pack.get("records") or {}; row_ids = set(rows); locale_ids[locale] = row_ids
+        rows = pack.get("records") or {}; row_ids = set(rows)
+        _, _, provenance, _ = load_locale_details(target / "data/i18n", locale)
         extra = sorted(row_ids - expected_ids)
         if extra: errors.append(f"{locale}: record IDs outside canonical corpus: {extra}")
+        pending_ids = set()
         for rid in sorted(expected_ids & row_ids):
-            _validate_overlay_shape(canonical_records[rid], rows[rid], f"{locale}: {rid}", errors)
+            source = normalize_record(canonical_records[rid])
+            if any("source_sha256" in meta and meta["source_sha256"] !=
+                   field_digest(source.get("why_it_matters" if key == "why" else key))
+                   for key, meta in provenance.get(rid, {}).items()):
+                pending_ids.add(rid)
+                continue
             _check_required_translation(f"{locale}: {rid}", canonical_records[rid], rows[rid], errors)
+            _validate_overlay_shape(canonical_records[rid], rows[rid], f"{locale}: {rid}", errors)
+        # The injected browser bundle must never contain stale locale wording.
+        pack["records"] = {rid: row for rid, row in rows.items() if rid not in pending_ids}
+        locale_ids[locale] = row_ids - pending_ids
         if not isinstance(pack.get("ui"), dict) or len(pack["ui"]) < 40: errors.append(f"{locale}: UI catalogue is unexpectedly incomplete")
         if not isinstance(pack.get("formats"), dict): errors.append(f"{locale}: UI plural/format catalogue must be an object")
         else: _validate_runtime_catalog(locale, pack["ui"], pack["formats"], canonical_records, errors)
-    if len(locale_ids) == len(CURATED) and locale_ids[CURATED[0]] != locale_ids[CURATED[1]]:
-        errors.append("es-419 and zh-Hans translated record ID sets differ")
     if len(packs) == len(CURATED):
         ui_catalogs = {locale: set(pack["ui"]) for locale, pack in packs.items()}; catalog_keys = set().union(*ui_catalogs.values()); visible_ui: set[str] = set()
         for page in sorted(target.rglob("*.html")): visible_ui.update(_visible_ui_strings(page.read_text(encoding="utf-8"), catalog_keys))
@@ -306,7 +320,7 @@ def validate_curated_i18n(target: Path, canonical_index_sha256: str | None = Non
             current_index_hash = sha256(index.read_bytes())
             if manifest.get("localized_index_sha256") != current_index_hash: errors.append("i18n manifest localized index hash mismatch")
     if errors: raise ValueError("curated localization validation failed:\n- " + "\n- ".join(errors))
-    translated_ids = locale_ids.get(CURATED[0], set()) if locale_ids else set()
+    translated_ids = set.intersection(*locale_ids.values()) if len(locale_ids) == len(CURATED) else set()
     return {"records": canonical_count, "translated_records": len(translated_ids), "pending_records": canonical_count-len(translated_ids), "canonical_editorial_sha256": digest, "packs": packs}
 
 

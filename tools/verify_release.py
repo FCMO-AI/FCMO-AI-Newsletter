@@ -4,7 +4,7 @@
 `release-validate.yml` las corre paso a paso en cada PR. El refresco diario
 necesita exactamente el mismo veredicto antes de comprometer nada. English
 freshness and native-language completeness are separate operational truths:
-missing ES/ZH translations are allowed only when both locale sets agree and the
+missing ES/ZH translations are measured independently per locale and the
 stable native Story routes explicitly declare translation pending.
 
 Salida 0 solo si las seis pasan.
@@ -120,6 +120,8 @@ def identidad():
     assert i18n["canonical_record_count"] == len(registros), "el pack cuenta otros registros"
 
     locale_ids = {}
+    from tools.apply_curated_i18n import validate_curated_i18n
+    measured = validate_curated_i18n(root, frozen["index_sha256"])
     for loc in LOCALES:
         ui = json.loads((root / "data/i18n" / loc / "ui.json").read_text(encoding="utf-8"))
         assert ui["canonical_record_count"] == len(registros), f"{loc}: cuenta canonica distinta"
@@ -134,20 +136,21 @@ def identidad():
                 else:
                     assert rid not in trad, f"{loc}/{rid}: duplicate ARB locale record"
                     trad[rid] = row
-        locale_ids[loc] = set(trad)
+        locale_ids[loc] = set(measured["packs"][loc]["records"])
         sobran = sorted(set(trad) - ids)
         assert not sobran, f"{loc}: traducciones fuera del corpus {sobran[:5]}"
-        for rid, rec in trad.items():
+        for rid, rec in measured["packs"][loc]["records"].items():
             vacios = [k for k in ("title", "summary", "why_it_matters") if not rec.get(k, "").strip()]
             assert not vacios, f"{loc}/{rid}: {vacios} sin traducir"
-    assert locale_ids[LOCALES[0]] == locale_ids[LOCALES[1]], "ES/ZH tienen backlog distinto"
-    pending = ids - locale_ids[LOCALES[0]]
+    pending = ids - set.intersection(*locale_ids.values())
     assert i18n.get("translated_record_count") == len(ids) - len(pending), "manifest traduce otra cantidad"
     assert i18n.get("pending_translation_count") == len(pending), "manifest reporta otro backlog"
     expected_state = "COMPLETE" if not pending else "DEGRADED_TRANSLATION_BACKLOG"
     assert i18n.get("translation_state") == expected_state, "manifest reporta otro estado de traduccion"
     for rid in sorted(pending):
         for loc in LOCALES:
+            if rid in locale_ids[loc]:
+                continue
             page = root / "news" / LOCALE_SLUG[loc] / f"{rid}.html"
             assert page.is_file(), f"{loc}/{rid}: falta ruta estable pending"
             pending_html = page.read_text(encoding="utf-8")
