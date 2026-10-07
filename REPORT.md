@@ -102,3 +102,80 @@ La investigación pública y la visual desk se ejecutaron en modo offline durant
 La verificación completa demuestra consistencia del árbol local y su candidato estático, no un deploy ni frescura del origen público. Claude debe repetir la suite desde un entorno con los paths de navegador acordados antes de merge; el arquitecto conserva la decisión de push.
 
 **Resumen:** La CI fallaba porque `main` ya había avanzado el corpus al 7 de octubre y el release de la PR seguía en el 6. Se regeneraron el release, el overlay y el recibo; la aceptación local completa pasó con el navegador disponible en el worktree.
+
+# L35 — PR #61 source-only merge against moving main
+Fecha: 2026-10-07. Rama: `c5/l29-main`.
+
+## Actualización frente al informe L33
+
+L33 describe el estado anterior de esta rama y su regeneración de `release-src/`.
+Para L35 integré el `origin/main` vigente (`d923f86`) y dejé los artefactos de
+publicación exactamente como llegan de ese `main`. No regeneré corpus, release,
+overlay, recibos, índices, paquetes de idioma ni ledger para perseguir el siguiente
+refresh. El test de generador ya no usa ninguno de esos archivos como baseline.
+
+## Cambio causal
+
+En el merge de `main` con el corpus del 7 de octubre, el oráculo anterior falló en
+rojo al comparar el corpus actual con `release-src/` todavía no compuesto: faltaban
+cuatro dossiers y la edición del 7 de octubre, y diferían los índices derivados.
+La regresión nueva también falló en rojo al ejecutar el oráculo sin `release-src/`
+(`falta release-src`).
+
+Ahora el adaptador crea una copia temporal del checkout, sustituye el corpus de
+fixture por el `corpus/` actual y genera un `release-src/` de baseline dentro de esa
+copia en cada ejecución. El oráculo heredado conserva las pruebas de punto fijo,
+crecimiento de historia en todas las superficies, preservación de historias
+anteriores y crecimiento de la siguiente edición; la fecha de esa edición se deriva
+de la edición más nueva del corpus. La prueba de localización mide el paquete contra
+la edición compuesta y verifica que todo delta ya importado es canonical y coincide
+con su fuente, sin exigir que la salida generada preceda al escritor de corpus.
+La justificación está en [CR-2026-10-07-generator-oracle-merge-drift.md](CR-2026-10-07-generator-oracle-merge-drift.md).
+
+## Evidencia
+
+- Suite completa en el árbol de código final antes del último heartbeat de `main`:
+  **819 tests, 0 fallos, 2 omitidos**. El último commit de `main` incorporado (`d923f86`)
+  solo cambió `corpus/wire-status.json`; tras integrarlo, los 34 tests de wire-liveness,
+  refresco diario, aislamiento del generador y preservación de locales pasaron.
+- `ops/publish.py --check` se ejecutó con Playwright 1.63.0 y Chromium 1243. Su suite
+  interna pasó (**819 tests, 0 fallos, 2 omitidos**), pero el comando terminó rechazado
+  antes del navegador. `verify_release.py` encontró artefactos heredados incoherentes
+  en `origin/main`: overlay/manifest y recibo no coinciden con sus fuentes, y la
+  localización congelada tiene campos sobrantes respecto del release. No los regeneré
+  porque el encargo exige conservar esos artefactos de `main` sin cambios.
+- Para separar esa falla del navegador, construí el candidato estático de `site/`
+  fuera de los paths versionados, ejecuté las 14 compuertas (14/14), agent hygiene y
+  `tests/oraculos/verificar_paper.py`: **PASS**, layout de 138 rutas de historia y
+  3 portadas en dos tamaños, más la matriz de 3 idiomas × 2 tamaños.
+- `corpus/`, `release-src/`, `release-overlay/final/`, `site/data/`, `site/assets/story-media/`,
+  `READY_TO_PUBLISH.md`, `PRODUCTION_STATUS.md` y `ops/publication-desk/LEDGER.jsonl`
+  son byte-a-byte iguales a `origin/main` en el diff final.
+- Commits de esta ejecución: `0063c58` (merge de main), `a907002` (regresión roja),
+  `c29a9ca` (oráculo dinámico), `f223f0c` (artefactos de locale desde main),
+  `9c76b09` (locale contra release compuesto), `cedc68a` (retirar media no compuesta),
+  `c4bc5ee` (heartbeat más reciente de main). Autor: `Codex <noreply@openai.com>`.
+
+## Diff final y límite
+
+Base: `origin/main` `d923f86`; HEAD antes de este reporte: `c4bc5ee`. El diff conserva
+las fuentes de L29/L31 en `.github/`, `community/`, `contracts/`, `docs/`, `editorial/`,
+`i18n/`, `legal/`, `ops/`, `site-src/`, `studio/`, `tests/` y `tools/`, además de los
+reportes y documentos de seguimiento de esas lanes. En esta ejecución, los archivos
+causales añadidos o modificados son:
+
+- `tests/oraculos/verificar_generador_newsroom.py`
+- `tests/oraculos/verificar_generador.py`
+- `tests/test_generator_oracle_isolation.py`
+- `tests/test_localization_completeness.py`
+- `CR-2026-10-07-generator-oracle-merge-drift.md`
+- `REPORT.md`
+
+No hice push ni toqué la rama `main`. El objetivo `ops/publish.py --check` no queda
+completado: la fuente de bloqueo son artefactos ya incoherentes en `origin/main`, y
+resolverlo requiere regenerar la publicación o reparar su sincronización nativa;
+ambas acciones quedarían fuera de la regla de conservar los artefactos de `main`.
+Claude debe repetir el chequeo antes de merge. La rama sí deja la regresión de deriva
+imposible por diseño y el candidato de navegador pasó de forma independiente.
+
+**Resumen:** El oráculo ya prueba crecimiento desde un baseline generado en el mismo checkout y la suite pasa. `ops/publish.py --check` sigue bloqueado por release, recibo y locales incoherentes que ya trae `main`; no los alteré.
