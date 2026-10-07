@@ -220,9 +220,21 @@ coherente). Autor: `Codex <noreply@openai.com>`.
 Logs y captura, excluidos de Git: `_audit/l38/red.log`, `drift-final.log`,
 `unittest.log`, `publish-check.log`, `final-es-mobile.png`.
 
-Push: se ejecutará el comando autorizado sobre `c5/l29-main` tras comprometer
-este informe. No se ha afirmado despliegue; Claude debe repetir la aceptación
-antes de merge y Pages debe confirmar después el origen público.
+Push: **bloqueado por autenticación Git**. Se ejecutó exactamente
+`GIT_TERMINAL_PROMPT=0 git push --force-with-lease origin c5/l29-main`
+tras el commit `08bd3c9`. Git devolvió:
+
+> fatal: could not read Username for 'https://github.com': terminal prompts disabled
+
+No se transfirieron estos commits ni se confirmó un head remoto nuevo. La subida
+requiere una credencial Git autorizada configurada fuera del repositorio; no se
+leyeron secretos ni se solicitó permiso adicional. La rama local queda lista para
+repetir el comando. La interfaz GitHub disponible no permite transportar estos
+commits exactos con su autor y fechas, por lo que no se fabricó una publicación
+alternativa con otro historial.
+
+Claude debe repetir la aceptación antes de merge y Pages debe confirmar después
+el origen público. No se verificaron CI remoto, deploy ni ciclos autónomos de producción.
 
 La ruta de campaña `STATE-AND-PLAN.md` y el log relativo de L35 indicado en el
 brief no están disponibles en este entorno. Se leyeron el informe L35 de este
@@ -230,4 +242,4 @@ worktree, su CR, la doctrina requerida y las notas de localización del vault.
 No se modificaron main, el corpus, otros worktrees ni el ledger del desk.
 
 **Resumen:** mecanismo corregido, release coherente y aceptación completa en verde.
-El resultado de subir la rama se registra a continuación; producción aún no verificada.
+El push quedó bloqueado por autenticación; la edición pública todavía no está verificada.

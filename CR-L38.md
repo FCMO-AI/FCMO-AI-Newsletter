@@ -68,5 +68,5 @@ La evidencia reproducible y el resultado del push se registran en `REPORT.md`.
 Claude debe repetir la aceptación antes de merge. El push de la rama no confirma
 CI, merge, despliegue ni continuidad autónoma en el origen público.
 
-**Resumen:** la traducción obsoleta queda pendiente por locale; el recibo se
-recalcula desde la edición actual y el release local vuelve a ser coherente.
+**Resumen:** la traducción obsoleta queda pendiente por locale; el recibo y el
+release pasan la aceptación completa. El push falló por falta de autenticación Git.
