@@ -44,3 +44,15 @@ Ramas antiguas auditadas; se integró sólo el trabajo único querido de publica
 **Resumen:** 813 tests OK (4 omitidos), 14/14 gates por proveedor y release 7/7.
 Sin push remoto, envío real ni Kit live. Chromium ausente: aceptación visual y
 dogfood completo pendientes, sin omitir el navegador ni declarar producción.
+
+
+## L30 — integración con escritores vivos (2026-10-07)
+
+Entrega y comandos del arquitecto en [REPORT-L30.md](REPORT-L30.md).
+Se integraron los 17 commits observados de main, conservando el ledger activo
+allí: 71 registros, bytes idénticos al remoto. La migración aislada se difiere
+hasta cambiar escritores y lectores juntos. Se adaptó NOT_ESTABLISHED sin
+subir fuerza de evidencia y se reconstruyó el release derivado offline.
+Corpus y estados remotos se conservan. Suite final: 814 tests OK (4 skipped);
+release 7/7. Sin push ni escritura remota; navegador y producción quedan al
+arquitecto.
