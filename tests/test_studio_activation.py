@@ -5,6 +5,7 @@ import os
 from pathlib import Path
 import subprocess
 import tempfile
+from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
@@ -95,6 +96,21 @@ class HostService(unittest.TestCase):
     def setUp(self):
         spec = importlib.util.spec_from_file_location('service_install', ROOT / 'studio/host-ops/service_install.py')
         self.module = importlib.util.module_from_spec(spec); spec.loader.exec_module(self.module)
+        # Unit tests simulate the host account; they never install on the runner.
+        user = patch.object(self.module.pwd, 'getpwuid', return_value=SimpleNamespace(pw_name='fcmo-agent'))
+        user.start()
+        self.addCleanup(user.stop)
+
+    def test_other_accounts_are_refused_before_commands_or_filesystem_changes(self):
+        for name in ('runner', 'root'):
+            with self.subTest(user=name), tempfile.TemporaryDirectory() as tmp, \
+                    patch.object(self.module.pwd, 'getpwuid', return_value=SimpleNamespace(pw_name=name)), \
+                    patch.object(Path, 'home', return_value=Path(tmp)), \
+                    patch('sys.argv', ['install']), patch.object(self.module, 'command') as command:
+                with self.assertRaisesRegex(ValueError, 'Run as fcmo-agent, without sudo'):
+                    self.module.main()
+                command.assert_not_called()
+                self.assertEqual(list(Path(tmp).iterdir()), [])
 
     def test_install_and_rollback_restore_unit_and_activation(self):
         with tempfile.TemporaryDirectory() as tmp:

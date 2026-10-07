@@ -141,6 +141,10 @@ jobs:
         if: steps.preflight.outputs.path == 'rebuild'
         run: python tools/build_newsroom_surfaces.py --release-src release-src --site site
 
+      - name: Refresh field-level translation status for the rebuilt Story set
+        if: steps.preflight.outputs.path == 'rebuild'
+        run: python tools/mark_pending_localizations.py --site site --corpus corpus
+
       - name: Build the canonical A2 Story layer consumed by the paper SSG
         if: steps.preflight.outputs.path == 'rebuild'
         run: |

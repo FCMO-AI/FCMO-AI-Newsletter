@@ -33,6 +33,8 @@ class DailyTranslationReceipt(unittest.TestCase):
             root = Path(tmp)
             row = english_record('FCMO-0C0DE0000001')
             corpus, site = build_fixture(root, [row], {})
+            (corpus / 'developments').mkdir()
+            (corpus / 'index.html').write_text('Synthetic public corpus')
             write_json(corpus / 'airlock.json', {
                 'schema': 'fcmo-newswire-airlock-v2', 'state': 'READY_FOR_PUBLICATION',
                 'release_id': 'newswire-test', 'corpus_digest': 'abc', 'record_count': 1,
