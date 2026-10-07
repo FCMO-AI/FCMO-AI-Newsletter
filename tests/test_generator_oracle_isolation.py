@@ -15,7 +15,7 @@ class GeneratorOracleIsolation(unittest.TestCase):
     def test_current_corpus_oracle_runs_without_committed_release_src(self) -> None:
         with tempfile.TemporaryDirectory(prefix="fcmo-generator-oracle-") as temporary:
             sandbox = Path(temporary)
-            for name in ("tools", "corpus", "_fixtures"):
+            for name in ("tools", "corpus", "_fixtures", "scaffold"):
                 shutil.copytree(ROOT / name, sandbox / name)
             shutil.copytree(ROOT / "tests" / "oraculos", sandbox / "tests" / "oraculos")
             self.assertFalse((sandbox / "release-src").exists())
