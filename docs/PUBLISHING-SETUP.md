@@ -22,9 +22,11 @@ El script únicamente imprime JSON y la orden del administrador; no contiene un 
 
 El botón de Pages sólo acepta deploy/rollback manual desde main. La configuración del entorno `github-pages` también debe limitar el despliegue a main para que otros workflows/runs no obtengan permiso de despliegue. Restringir permisos de edición de reglas y workflows; los administradores con facultad de modificar reglas siguen siendo autoridades reales.
 
-## Separar el ledger de la mesa
+## Ledger activo y migración diferida (L30)
 
-Este cambio deja de seguir `ops/publication-desk/LEDGER.jsonl` en la rama de producto. El histórico permanece en git. **Antes de integrar la eliminación**, guardar el SHA más reciente de main que todavía contenga el ledger; no usar una copia atrasada si la mesa agregó registros. Pausar sus escrituras durante la migración.
+L30 conserva `ops/publication-desk/LEDGER.jsonl` seguido en main, con los bytes más recientes del remoto. La tarea programada de la mesa sigue agregando registros allí; no se ha cambiado su prompt ni sus lectores. La ausencia del archivo es un error operativo, nunca un historial vacío. No crear ni activar `ops-ledger` para integrar L29.
+
+La separación queda para un carril posterior que cambie escritores y lectores juntos. Los comandos siguientes son un ensayo local y un contrato futuro, no instrucciones de activación para L30. **Antes de integrar una futura eliminación**, pausar escrituras y guardar el SHA más reciente de main que todavía contenga el ledger; no usar una copia atrasada si la mesa agregó registros.
 
 En un clon bare local independiente, preparar primero la migración sin escribir:
 
@@ -69,4 +71,4 @@ La prueba negativa inyecta un script remoto en una edición y exige que el gate 
 
 ## Integración L29
 
-Se conserva `ops/publish.py --check`, el checker actual de Studio, junto al ensayo aislado y la migración de L11. Ambos builds incluyen `editorial/` y agent hygiene. Los comandos `--publish` y `--rollback` sólo solicitan el workflow de Pages en main; no se ejecutaron. El ledger más reciente retirado se recupera íntegro de `832ddcd:ops/publication-desk/LEDGER.jsonl` (65 registros); no se creó esa rama en el repositorio de producto ni en el remoto. El ensayo en un bare aislado local conservó los 65 registros byte por byte y fue idempotente; su recibo está en `_audit/l29/ledger-migration.json`. Completar su migración y adaptar los lectores antes de reactivar escrituras. Los reports L11 son evidencia histórica, no prueba de activación remota.
+Se conserva `ops/publish.py --check`, el checker actual de Studio, junto al ensayo aislado y la migración de L11. Ambos builds incluyen `editorial/` y agent hygiene. Los comandos `--publish` y `--rollback` sólo solicitan el workflow de Pages en main; no se ejecutaron. El ensayo histórico L29 usó el ledger de `832ddcd:ops/publication-desk/LEDGER.jsonl` (65 registros); no se creó esa rama en el repositorio de producto ni en el remoto. El ensayo en un bare aislado local conservó los 65 registros byte por byte y fue idempotente; su recibo está en `_audit/l29/ledger-migration.json`. L30 revierte la eliminación y conserva el historial activo más reciente en main; la mesa puede seguir con su contrato vigente. La migración futura exige adaptar escritores y lectores antes de eliminar el archivo. Los reports L11 son evidencia histórica, no prueba de activación remota.
