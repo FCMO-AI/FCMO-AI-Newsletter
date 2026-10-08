@@ -53,11 +53,14 @@ class LocaleSourceDrift(unittest.TestCase):
             source = next(row for row in rows if row['id'] == rid)
             source['summary'] += ' These outcomes remain unverified after the latest correction.'
             path.write_text(''.join(json.dumps(row, ensure_ascii=False) + '\n' for row in rows))
-            from tools import ingest_corpus
+            from tools import ingest_corpus, sync_airlocked_locales, reconcile_locale_overlays
             ingest_corpus.build(corpus, release, i18n_dir=site / 'data/i18n')
             admission = json.loads((release / 'data/publication-admission.json').read_text())
             self.assertIn(rid, admission['carried_ids'])
-            identity.main(['--corpus', str(corpus), '--i18n-dir', str(site / 'data/i18n')])
+            sync_airlocked_locales.main(['--corpus', str(corpus), '--i18n-dir', str(site / 'data/i18n'),
+                                        '--publication-src', str(release)])
+            reconcile_locale_overlays.main(['--site', str(release), '--i18n-dir', str(site / 'data/i18n')])
+            identity.main(['--site', str(release), '--i18n-dir', str(site / 'data/i18n')])
             inputs = story_layer.StoryInputs(corpus, None, site, site / 'data/i18n', '2026-10-07T20:00:00Z')
             doc = story_layer.build_stories(inputs)
             story = next(row for row in doc['stories'] if row['id'] == rid)

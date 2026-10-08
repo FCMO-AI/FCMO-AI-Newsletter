@@ -695,13 +695,15 @@ class StoryInputs:
         notice_ids = set(recorded_merges) | set(detected_merges)
         self.held_back: dict[str, str] = {}
         native_carried: set[str] = set()
+        prior_sources: dict[str, dict] = {}
         if i18n is not None:
             # Withdrawal/merge notices are history, not new live publication.
             live_sources = [row for row in rows + carried if row.get('id') in self.records
                             and row['id'] not in self.active and row['id'] not in notice_ids
                             and self.records[row['id']]['status'] not in corpus_guard.WITHDRAWN_STATUSES]
-            publication = site.parent / 'release-src' if site is not None else Path('__no_publication__')
-            prior_sources = published_sources(publication) if (publication / 'data/publication-admission.json').is_file() else {}
+            publication = site.parent / 'release-src' if site is not None else None
+            if publication is not None and (publication / 'data/publication-admission.json').is_file():
+                prior_sources = published_sources(publication)
             admitted, self.held_back, native_carried = select_native(corpus, live_sources, i18n, prior_sources)
             for row in admitted:
                 if row['id'] in native_carried:

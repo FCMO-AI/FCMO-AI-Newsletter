@@ -28,6 +28,11 @@ class NativeAdmission(unittest.TestCase):
         normalized = taxonomy.normalize_record(row)
         self.assertEqual(normalized['importance_tier'], 'Useful')
         self.assertEqual(normalized['development_type'], 'reproduction_or_audit')
+        # Importance score never manufactures a tier label.
+        for tier in ('Background', 'Minor', 'Useful', 'Meaningful', 'Notable', 'Major',
+                     'Very major', 'Field-shifting', 'Paradigm-level', 'Alien evidence'):
+            self.assertEqual(taxonomy.normalize_record(dict(row, importance_tier=tier,
+                importance_score=6, importance_effective_score=6))['importance_tier'], tier)
         from tools.paper.build import PaperBuilder
         story = story_layer.story_object(normalized, {'first_published_at': '2026-10-08T12:00:00Z',
             'url_date': '2026-10-08', 'slug': 'useful-audit'}, False, None, [])
