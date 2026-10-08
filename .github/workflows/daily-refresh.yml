@@ -164,6 +164,10 @@ jobs:
         if: steps.preflight.outputs.path == 'status'
         run: python tools/newsroom_receipt.py status --wire-status corpus/wire-status.json
 
+      - name: Freeze the recovery overlay from the admitted canonical source
+        if: steps.preflight.outputs.path == 'rebuild'
+        run: python tools/build_final_release.py
+
       - name: Regenerate and independently check the current automated newspaper receipt
         if: steps.preflight.outputs.path == 'rebuild' || steps.preflight.outputs.path == 'status'
         run: |
@@ -172,7 +176,9 @@ jobs:
 
       - name: Prove the same native-edition contract as Deploy before committing
         if: steps.preflight.outputs.path == 'rebuild' || steps.preflight.outputs.path == 'status'
-        run: python tests/oraculos/verificar_traduccion.py
+        run: |
+          python tests/oraculos/verificar_traduccion.py
+          python tools/verify_release.py
 
       - name: Commit only what the autonomous newsroom produced
         if: steps.preflight.outputs.path == 'rebuild' || steps.preflight.outputs.path == 'status'
@@ -183,9 +189,8 @@ jobs:
           git config user.name 'FCMO Autonomous Newsroom'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           rm -rf publish regression
-          # Legacy release artifacts are included in the closed boundary so the
-          # first-LKG recovery snapshot remains coherent if an operator rebuilds
-          # it during cutover. This workflow no longer generates or deploys it.
+          # Freeze the recovery overlay from the same admitted source; Pages
+          # still owns rendering and deployment of the current newspaper.
           git add -A -- release-src release-overlay site READY_TO_PUBLISH.md
           if git diff --cached --quiet; then
             echo 'Healthy heartbeat with no material release-tree delta.'

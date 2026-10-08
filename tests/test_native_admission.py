@@ -108,6 +108,9 @@ class NativeAdmission(unittest.TestCase):
         workflow = (ROOT / '.github/workflows/daily-refresh.yml').read_text()
         self.assertLess(workflow.index('python tests/oraculos/verificar_traduccion.py'),
                         workflow.index('git commit'))
+        self.assertLess(workflow.index('python tools/build_final_release.py'),
+                        workflow.index('python tools/verify_release.py'))
+        self.assertLess(workflow.index('python tools/verify_release.py'), workflow.index('git commit'))
 
 
 if __name__ == '__main__':
