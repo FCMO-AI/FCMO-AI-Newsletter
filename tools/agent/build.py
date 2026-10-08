@@ -7,7 +7,7 @@ import re
 import shutil
 
 from tools.paper.i18n import dek, field, headline
-from tools.paper.routes import absolute, story_path
+from tools.paper.routes import absolute, story_path, slugify
 
 
 def _dump(path: Path, value: object) -> None:
@@ -124,8 +124,7 @@ def build(*, stories: list[dict], all_stories: list[dict], locales: list[dict], 
         _dump(api / "stories" / f"{sid}.json", record)
     for day, values in records_by_date.items():
         _dump(api / "editions" / f"{day}.json", {"id": day, "canonical_url": absolute(base_url, f"edition/{day}/"), "language": "en", "event_date": day, "published_at": min((s["first_published_at"] for s in values), default=day), "updated_at": max((s["updated_at"] for s in values), default=day), "stories": [s["id"] for s in values], "provenance": {"release_id": status.get("release_id", ""), "corpus_digest": status.get("corpus_digest", ""), "stories_sha256": status.get("stories_sha256", "")}})
-    def slug(text: str) -> str:
-        return re.sub(r"-+", "-", re.sub(r"[^a-z0-9]+", "-", text.casefold())).strip("-") or "item"
+    slug = slugify
     for kind, values in (("topics", topic_values), ("organizations", org_values)):
         for title in values:
             ids = [s["id"] for s in stories if title in s.get(kind, [])]

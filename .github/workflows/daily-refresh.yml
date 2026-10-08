@@ -13,8 +13,7 @@ name: Refresh the autonomous newsroom from the sanitized corpus
 #   refreshed (edition state for the reader banner), at most every 5h when idle.
 # Every bridge run (success or failure) chains here, so a failing transport
 # reaches the reader as a DELAYED banner. Workflow changes self-trigger a refresh.
-# Native-language backlog is explicit and observable; it no longer rolls
-# canonical English backward.
+# Incomplete native editions are held per story; valid incoming stories continue.
 on:
   push:
     branches: [main]
@@ -82,7 +81,7 @@ jobs:
 
       - name: Regenerate the canonical public source from the corpus
         if: steps.preflight.outputs.path == 'rebuild'
-        run: python tools/ingest_corpus.py --corpus corpus --out release-src
+        run: python tools/ingest_corpus.py --corpus corpus --out release-src --i18n-dir site/data/i18n
 
       - name: Bind relationship JSON and JSONL to one canonical sequence
         if: steps.preflight.outputs.path == 'rebuild'
@@ -97,8 +96,9 @@ jobs:
           import json, re, sys
           from pathlib import Path
           from tools.ingest_corpus import publishable_rows, read_jsonl
+          from tools.native_admission import published_sources
           rows = read_jsonl(Path('corpus/data/developments.jsonl'))
-          publishable, _merged, _held = publishable_rows(Path('corpus'), rows)
+          publishable, _merged, _held = publishable_rows(Path('corpus'), rows, i18n_dir=Path('site/data/i18n'), previous=published_sources(Path('release-src')))
           incoming = {row['id'] for row in publishable}
           html = Path('release-src/index.html').read_text(encoding='utf-8')
           match = re.search(r'<script id="fcmo-data" type="application/json">(.*?)</script>', html, re.S)
@@ -115,7 +115,7 @@ jobs:
 
       - name: Import ARB-authored Spanish and Chinese editions
         if: steps.preflight.outputs.path == 'rebuild'
-        run: python tools/sync_airlocked_locales.py --corpus corpus
+        run: python tools/sync_airlocked_locales.py --corpus corpus --publication-src release-src
 
       - name: Reconcile locale overlays with the declassified public schema
         if: steps.preflight.outputs.path == 'rebuild'
@@ -164,6 +164,22 @@ jobs:
         if: steps.preflight.outputs.path == 'status'
         run: python tools/newsroom_receipt.py status --wire-status corpus/wire-status.json
 
+      - name: Freeze the recovery overlay from the admitted canonical source
+        if: steps.preflight.outputs.path == 'rebuild'
+        run: python tools/build_final_release.py
+
+      - name: Regenerate and independently check the current automated newspaper receipt
+        if: steps.preflight.outputs.path == 'rebuild' || steps.preflight.outputs.path == 'status'
+        run: |
+          python tools/build_ready_receipt.py
+          python tools/build_ready_receipt.py --check
+
+      - name: Prove the same native-edition contract as Deploy before committing
+        if: steps.preflight.outputs.path == 'rebuild' || steps.preflight.outputs.path == 'status'
+        run: |
+          python tests/oraculos/verificar_traduccion.py
+          python tools/verify_release.py
+
       - name: Commit only what the autonomous newsroom produced
         if: steps.preflight.outputs.path == 'rebuild' || steps.preflight.outputs.path == 'status'
         env:
@@ -173,9 +189,8 @@ jobs:
           git config user.name 'FCMO Autonomous Newsroom'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           rm -rf publish regression
-          # Legacy release artifacts are included in the closed boundary so the
-          # first-LKG recovery snapshot remains coherent if an operator rebuilds
-          # it during cutover. This workflow no longer generates or deploys it.
+          # Freeze the recovery overlay from the same admitted source; Pages
+          # still owns rendering and deployment of the current newspaper.
           git add -A -- release-src release-overlay site READY_TO_PUBLISH.md
           if git diff --cached --quiet; then
             echo 'Healthy heartbeat with no material release-tree delta.'

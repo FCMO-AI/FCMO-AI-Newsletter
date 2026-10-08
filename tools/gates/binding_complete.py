@@ -8,7 +8,9 @@ from .common import GateFailure, GateResult, fail, public_files, rel
 CODE = "BINDING_COMPLETE"
 PATTERNS = (
     re.compile(r'\bdata-(?:bind(?:ing)?|field|value)=["\']\s*[—–-]\s*["\']', re.I),
-    re.compile(r"(?:EVIDENCE|EVIDENCIA|证据)\s*[—–-](?:\s|<)", re.I),
+    # A title ending in "evidence — FCMO AI" is valid prose. An evidence
+    # label is unresolved only when its value is empty up to the closing tag.
+    re.compile(r"(?:EVIDENCE|EVIDENCIA|证据)(?:\s|</?[^>]+>)*[—–-](?:\s|</?(?:span|b|strong)\b[^>]*>)*</(?:p|dd|dt|div|li|td|span)>", re.I),
     re.compile(r"[—–-]\s*/\s*10\b"),
     re.compile(r"\{\{\s*[A-Za-z_][^{}]*\}\}"),
     re.compile(r"\$\{\s*[A-Za-z_][^{}]*\}"),
