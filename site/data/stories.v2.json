@@ -1,7 +1,7 @@
 {
   "schema": "fcmo-stories-v2",
-  "generated_at": "2026-10-08T21:49:42Z",
-  "release_id": "newswire-063bc171436eec4b6f46abae",
+  "generated_at": "2026-10-08T22:50:34Z",
+  "release_id": "newswire-1477674681ead4f9816a56a9",
   "canonical_locale": "en",
   "locales": [
     "en",
@@ -35,6 +35,924 @@
     "2026-10-08"
   ],
   "stories": [
+    {
+      "id": "FCMO-EC25B52CAF32",
+      "slug": "paper-reports-attacker-controlled-binary-narratives-shifting-llm-malware",
+      "url_date": "2026-10-08",
+      "kind": "development",
+      "status": "live",
+      "beat": "research",
+      "desk": "evaluation_science",
+      "title": "Paper reports attacker-controlled binary narratives shifting LLM malware-triage verdicts",
+      "headline": "Paper reports attacker-controlled binary narratives shifting LLM malware-triage verdicts",
+      "dek": "The arXiv v1 paper studies whether static LLM malware triage can be misled by attacker-controlled narrative content in a binary’s extracted evidence.",
+      "summary": "The arXiv v1 paper studies whether static LLM malware triage can be misled by attacker-controlled narrative content in a binary’s extracted evidence. On a fixed PE set, Gemini 2.5 Pro labeled 35/50 samples malicious at baseline; the paper reports that 30/35 became benign under its primary ALIBI condition (85.7%). On 40 ELF samples, Gemini’s reported Strict ASR was 40.0%. GPT-5.5 Pro and Claude Opus 4.7 had zero reported benign flips on the locked PE subset but still showed non-benign severity downgrades. A separate prompt-hardening test reduced Gemini Strict ASR from 82.9% to 42.9%, leaving 15/35 benign outcomes; its undefended arm differs by one sample from the primary result. The authors argue for separating parser-verified facts from binary-supplied claims. These are fixed-sample, single-query paper results; no independent reproduction or complete provenance-defense evaluation was performed.",
+      "why_it_matters": "AI-assisted malware triage may influence which alerts analysts investigate first. If the reported behavior generalizes, strings and metadata supplied by a file under analysis can shift model judgments even when the suspicious code remains unchanged. The study points toward evidence pipelines that keep verified attributes separate from claims embedded in artifacts; the fixed sample and model conditions leave real-world prevalence unknown.",
+      "importance_rationale": "If the reported failures generalize, attacker-controlled binary content could lower or soften AI-assisted malware triage alerts even when the code’s execution behavior is unchanged, affecting analyst prioritization and response. Evidence is a single fixed-sample preprint evaluation; current deployment prevalence and the effectiveness of a complete provenance-aware pipeline remain unmeasured.",
+      "technical": {
+        "claimed_result": "Authors report that a coherent semantic narrative carried in static binary evidence can shift LLM malware-triage verdicts without changing executable behavior. On their fixed PE subset, Gemini’s primary Strict ASR was 30/35 (85.7%); the prompt-hardening test reports 29/35 (82.9%) in its separate undefended arm, an unresolved one-sample discrepancy.",
+        "demonstrated_result": "The inspected arXiv v1 describes the threat model, fixed-sample evaluation, cross-model results and proposed defenses. The measured effects and binary-behavior-preservation claim remain author-reported; this review did not inspect code or binaries or reproduce the tests.",
+        "mechanism": "The paper’s attack changes what the static evidence representation says about suspicious artifacts: the model receives attacker-controlled strings/metadata as explanatory context and may accept a benign operational interpretation. Proposed defense: maintain separate fields for verified attributes and unverified binary claims, with provenance checks.",
+        "regime": "Fixed MalwareBazaar sample sets: 50 PE samples (35 malicious under Gemini baseline) and 40 ELF samples; one static-analysis query per sample; Gemini 2.5 Pro, GPT-5.5 Pro and Claude Opus 4.7. No adaptive queries or dynamic analysis.",
+        "strongest_baseline": "Within the study, original unmodified binaries provide the baseline and a direct token-level override variant is compared on Gemini. The prompt-hardening study is paired on the same locked 35-sample PE subset, but its undefended Gemini arm differs by one result from the primary comparison."
+      },
+      "importance_tier": "Major",
+      "development_type": "paper",
+      "event_at": "2026-09-17T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-08T22:50:32Z",
+      "updated_at": "2026-10-08T22:50:32Z",
+      "importance": 6,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": true,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "CLAIMED",
+            "text": "The authors present ALIBI as a semantic reframing attack in static malware triage: a post-compilation, non-executed binary narrative is interpreted alongside suspicious static evidence, while the paper reports that executable behavior and imports were left unchanged. The review did not independently validate those preservation claims."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "On a frozen 50-sample PE set, 35 samples were malicious under Gemini 2.5 Pro at baseline. The paper reports that ALIBI changed 30/35 (85.7%) of those Gemini verdicts to benign in its primary comparison. On a 40-sample ELF set, it reports a 40.0% Strict ASR for Gemini. These are author-run, single-query static evaluations on fixed samples."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "On the same locked PE subset, the paper reports zero benign flips for GPT-5.5 Pro and Claude Opus 4.7, but non-benign downgrades (Soft ASR) of 71.4% and 42.9%, respectively. It also reports confidence reduction in some unchanged-verdict groups; confidence is model self-report, not an internal uncertainty measure."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "In a separate paired prompt-hardening evaluation on 35 malicious-baseline PE samples, the authors report Strict ASR falling from 82.9% (29/35) to 42.9% (15/35), while benign outcomes remain for 15/35 samples. The undefended result differs by one sample from the paper’s primary comparison (85.7%), as the authors note. The prompt reduces but does not eliminate the measured attack."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "The paper recommends that malware evidence builders distinguish parser-verified attributes from attacker-controlled strings and metadata; it proposes provenance checks as a stronger defense than prompt hardening alone. A complete provenance-checking pipeline was not evaluated."
+          }
+        ],
+        "limitations": [
+          "Single arXiv v1 study with author-run, fixed-sample tests; no independent reproduction or sample-level audit was performed.",
+          "The main PE evaluation uses 50 MalwareBazaar samples, with 35 Gemini baseline-malicious samples as the denominator; the ELF set contains 40 samples. These do not establish prevalence across malware families or deployed systems.",
+          "Each sample received one model call; no multi-sampling, majority voting or adaptive query budget was tested.",
+          "The most resistant models had zero reported Strict ASR but still showed nonzero Soft ASR and, for some unchanged-verdict groups, self-reported confidence reductions. Self-reported confidence is not internal uncertainty.",
+          "The prompt-hardening evaluation reports a different undefended Gemini result (29/35; 82.9%) than the primary comparison (30/35; 85.7%); this one-sample discrepancy is noted but unexplained.",
+          "The verification-guided prompt reduced but did not remove benign flips, and the proposed provenance-aware evidence-builder defense was not implemented or tested as a complete system.",
+          "The study concerns static PE/ELF triage and does not evaluate dynamic execution, sandboxing, signature validation, analyst behavior or production outcomes."
+        ],
+        "gaps": [
+          {
+            "kind": "missing_independent",
+            "description": "No independent reproduction, sample-level output audit or artifact/code audit was conducted."
+          },
+          {
+            "kind": "baseline_unclear",
+            "description": "The evaluation uses fixed samples, one query per sample and model snapshots that may not represent current analyzer deployments; prevalence across malware families and production pipelines is unknown."
+          },
+          {
+            "kind": "other",
+            "description": "The primary Gemini result (30/35 flips; 85.7%) differs by one sample from the separate prompt-hardening evaluation’s undefended arm (29/35; 82.9%); the paper reports the discrepancy but does not resolve its cause. The proposed provenance-check defense was not implemented and evaluated end to end."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://arxiv.org/abs/2609.19722",
+          "domain": "arxiv.org",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "78ResearchLab"
+      ],
+      "topics": [
+        "ai-security",
+        "malware-triage",
+        "prompt-injection",
+        "evidence-provenance",
+        "security-evaluation"
+      ],
+      "regions": [
+        "KR",
+        "GLOBAL"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-EC25B52CAF32.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: Paper reports attacker-controlled binary narratives shifting LLM malware-triage verdicts"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "Artículo informa que relatos narrativos incluidos en binarios pueden cambiar los veredictos de modelos de triaje de malware",
+            "summary": "El artículo v1 de arXiv estudia si el triaje estático de malware con LLM puede ser engañado por contenido narrativo controlado por un atacante dentro de la evidencia extraída de un binario. En un conjunto PE fijo, Gemini 2.5 Pro clasificó como maliciosas 35/50 muestras en la línea base; el artículo informa que, en la comparación principal con ALIBI, 30/35 pasaron a benignas (85.7%). En 40 muestras ELF, el ASR Estricto informado para Gemini fue 40.0%. GPT-5.5 Pro y Claude Opus 4.7 no tuvieron cambios a benigno informados en el subconjunto PE bloqueado, aunque sí presentaron degradaciones de gravedad a veredictos no maliciosos. Una prueba separada de endurecimiento del prompt redujo el ASR Estricto de Gemini de 82.9% a 42.9%, con 15/35 resultados benignos; el brazo sin defensa difiere por una muestra del resultado principal. Los autores proponen distinguir los hechos verificados por el analizador de las afirmaciones que aporta el binario. Son resultados estáticos de una sola consulta con muestras fijas; no hubo reproducción independiente ni evaluación integral de una defensa de procedencia.",
+            "importance_rationale": "Si los fallos informados se generalizan, el contenido de un binario controlado por un atacante podría reducir o suavizar alertas de triaje de malware con IA aunque el comportamiento de ejecución del código no cambie, lo que afectaría la priorización y respuesta de analistas. La evidencia proviene de una evaluación de muestras fijas en un solo preprint; no se midieron la prevalencia en despliegues actuales ni la eficacia de un sistema integral de procedencia.",
+            "why_it_matters": "El triaje de malware asistido por IA puede influir en qué alertas investigan primero los analistas. Si el comportamiento informado se generaliza, las cadenas y metadatos que aporta un archivo bajo análisis pueden cambiar la evaluación del modelo aunque el código sospechoso no cambie. El estudio apunta a sistemas de evidencia que mantengan separados los atributos verificados y las afirmaciones incrustadas en artefactos; se desconoce la prevalencia en condiciones reales.",
+            "technical": {
+              "claimed_result": "Los autores informan que un relato semántico coherente en la evidencia estática del binario puede cambiar los veredictos de triaje de malware con LLM sin modificar el comportamiento ejecutable. En el subconjunto PE fijo, el ASR Estricto principal de Gemini fue 30/35 (85.7%); el brazo sin defensa del estudio de prompt informa 29/35 (82.9%), una discrepancia no resuelta de una muestra.",
+              "demonstrated_result": "El artículo v1 de arXiv inspeccionado describe el modelo de amenaza, la evaluación con muestras fijas, los resultados entre modelos y las defensas propuestas. Los efectos medidos y la afirmación de que se conserva el comportamiento del binario siguen siendo afirmaciones de los autores; esta revisión no inspeccionó código o binarios ni reprodujo las pruebas.",
+              "mechanism": "El ataque del artículo cambia lo que expresa la representación estática: el modelo recibe cadenas y metadatos controlados por el atacante como contexto explicativo y puede aceptar una interpretación operativa benigna. Defensa propuesta: mantener campos separados para atributos verificados y afirmaciones no verificadas del binario, junto con verificaciones de procedencia.",
+              "regime": "Conjuntos MalwareBazaar fijos: 50 muestras PE (35 maliciosas en la línea base de Gemini) y 40 muestras ELF; una consulta de análisis estático por muestra; Gemini 2.5 Pro, GPT-5.5 Pro y Claude Opus 4.7. No se probaron consultas adaptativas ni análisis dinámico.",
+              "strongest_baseline": "Dentro del estudio, los binarios originales sin modificar son la línea base y en Gemini se compara una variante de inyección directa a nivel de tokens. El estudio de endurecimiento del prompt está pareado en el mismo subconjunto PE bloqueado de 35 muestras, pero su brazo Gemini sin defensa difiere por un resultado de la comparación principal."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "Los autores presentan ALIBI como un ataque de reformulación semántica para el triaje estático de malware: un relato narrativo no ejecutado, agregado al binario después de compilarlo, se interpreta junto con evidencia estática sospechosa; el artículo informa que dejó sin cambios el comportamiento ejecutable y las importaciones. Esta revisión no validó de forma independiente esas afirmaciones de conservación."
+                },
+                {
+                  "text": "En un conjunto PE fijo de 50 muestras, 35 fueron maliciosas para Gemini 2.5 Pro en la línea base. En su comparación principal, el artículo informa que ALIBI cambió a benignos 30/35 de esos veredictos de Gemini (85.7%). En un conjunto ELF de 40 muestras, informa un ASR Estricto de 40.0% para Gemini. Son evaluaciones estáticas de una sola consulta realizadas por los autores sobre muestras fijas."
+                },
+                {
+                  "text": "En el mismo subconjunto PE bloqueado, el artículo informa cero cambios a benigno para GPT-5.5 Pro y Claude Opus 4.7, pero degradaciones a veredictos no maliciosos (ASR Suave) de 71.4% y 42.9%, respectivamente. También informa reducciones de confianza en algunos grupos con veredicto sin cambios; la confianza es autoinformada por el modelo y no es una medida de incertidumbre interna."
+                },
+                {
+                  "text": "En una evaluación pareada separada de endurecimiento del prompt con 35 muestras PE maliciosas en la línea base, los autores informan que el ASR Estricto baja de 82.9% (29/35) a 42.9% (15/35), y que aún quedan 15/35 resultados benignos. El resultado sin defensa difiere por una muestra de la comparación principal del artículo (85.7%), como señalan los autores. El prompt reduce, pero no elimina, el ataque medido."
+                },
+                {
+                  "text": "El artículo recomienda que los sistemas de evidencia de malware distingan los atributos verificados por el analizador de las cadenas y metadatos controlados por el atacante; propone verificaciones de procedencia como defensa más sólida que el endurecimiento del prompt por sí solo. No evaluó un sistema completo de verificación de procedencia."
+                }
+              ],
+              "limitations": [
+                "Un solo estudio v1 de arXiv, con pruebas sobre muestras fijas realizadas por los autores; no hubo reproducción independiente ni auditoría de resultados por muestra.",
+                "La evaluación principal usa 50 muestras MalwareBazaar, con 35 consideradas maliciosas en la línea base de Gemini como denominador; el conjunto ELF contiene 40 muestras. Esto no establece prevalencia entre familias de malware ni en sistemas desplegados.",
+                "Cada muestra recibió una sola llamada al modelo; no se probaron muestreo múltiple, votación mayoritaria ni un presupuesto de consultas adaptativo.",
+                "Los modelos más resistentes no tuvieron ASR Estricto informado, pero sí valores ASR Suave distintos de cero y, en algunos grupos con veredicto sin cambios, reducciones de confianza autoinformada. La confianza autoinformada no es incertidumbre interna.",
+                "La evaluación de endurecimiento del prompt informa un resultado Gemini sin defensa diferente (29/35; 82.9%) al de la comparación principal (30/35; 85.7%); la discrepancia de una muestra se menciona, pero no se explica.",
+                "El prompt de verificación redujo los cambios a benigno, pero no los eliminó; la defensa propuesta para un sistema de evidencia con procedencia no se implementó ni probó de forma integral.",
+                "El estudio trata del triaje estático PE/ELF y no evalúa ejecución dinámica, sandboxing, validación de firmas, conducta de analistas ni resultados en producción."
+              ],
+              "gaps": [
+                {
+                  "description": "No se hizo reproducción independiente, auditoría de resultados por muestra ni auditoría de código o artefactos."
+                },
+                {
+                  "description": "La evaluación usa muestras fijas, una consulta por muestra y versiones de modelos que podrían no representar despliegues actuales; se desconoce la prevalencia entre familias de malware y sistemas de producción."
+                },
+                {
+                  "description": "El resultado principal de Gemini en PE (30/35 cambios; 85.7%) difiere por una muestra del resultado sin defensa del estudio de prompt (29/35; 82.9%); el artículo señala la discrepancia, pero no resuelve su causa. La defensa propuesta con verificación de procedencia no se implementó ni evaluó de extremo a extremo."
+                }
+              ]
+            },
+            "dek": "El artículo v1 de arXiv estudia si el triaje estático de malware con LLM puede ser engañado por contenido narrativo controlado por un atacante dentro de la evidencia extraída de un binario."
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "论文报告称，二进制文件中由攻击者控制的叙事可改变LLM恶意软件分诊结论",
+            "summary": "arXiv v1论文研究静态LLM恶意软件分诊是否会被二进制提取证据中的攻击者控制叙事误导。在固定PE样本集中，Gemini 2.5 Pro基线将50个样本中的35个判为恶意；论文报告称，在主要ALIBI对照中，其中30/35个被改判为良性（85.7%）。在40个ELF样本上，Gemini报告的严格ASR为40.0%。GPT-5.5 Pro和Claude Opus 4.7在锁定的PE子集中没有报告良性翻转，但仍出现降至非恶意结论的严重性降级。另一项提示词强化测试将Gemini严格ASR从82.9%降至42.9%，仍有15/35个样本得到良性结论；该测试的无防护组比主要对照多一个样本的差异没有得到解释。作者建议将分析器验证的事实与二进制自身提供的说法区分开来。这些是固定样本、单次查询的静态测试结果；没有进行独立复现或完整的来源验证防御评估。",
+            "importance_rationale": "如果所报告的失败可以泛化，攻击者控制的二进制内容可能在代码执行行为不变时降低或弱化AI恶意软件分诊警报，从而影响分析人员的优先级安排与响应。证据来自单篇预印本中的固定样本评估；当前部署中的发生率以及完整来源验证流水线的效果尚未测量。",
+            "why_it_matters": "AI辅助恶意软件分诊可能影响分析人员首先调查哪些警报。如果所报告的行为可以泛化，那么被分析文件提供的字符串和元数据可能改变模型判断，即使可疑代码本身没有变化。该研究提出让证据流水线将已验证属性与工件中嵌入的说法分开；现实部署中的发生率仍未知。",
+            "technical": {
+              "claimed_result": "作者报告称，二进制静态证据中的连贯语义叙事可改变LLM恶意软件分诊结论，而不改变可执行行为。在固定PE子集中，Gemini主要严格ASR为30/35（85.7%）；提示词研究无防护组为29/35（82.9%），这一项样本差异尚未解决。",
+              "demonstrated_result": "所检查的arXiv v1论文描述了威胁模型、固定样本评估、跨模型结果及所提防御。测得的效果和二进制行为保持不变的主张仍由作者报告；本次审查未检查代码或二进制，也未复现测试。",
+              "mechanism": "该论文的攻击改变静态证据所表达的含义：模型将攻击者控制的字符串和元数据作为解释性上下文接收，可能因此接受良性的操作解释。作者提出的防御是将已验证属性与未经验证的二进制说法存入不同字段，并执行来源验证。",
+              "regime": "固定的MalwareBazaar样本集：50个PE样本（其中35个在Gemini基线中判为恶意）和40个ELF样本；每个样本只进行一次静态分析查询；模型包括Gemini 2.5 Pro、GPT-5.5 Pro和Claude Opus 4.7。未测试自适应查询或动态分析。",
+              "strongest_baseline": "研究以未修改的原始二进制作为基线，并在Gemini上比较直接的token级覆盖变体。提示词强化研究在同一锁定的35个PE样本子集上进行配对测试，但其Gemini无防护组与主要对照相差一个结果。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "作者将ALIBI描述为静态恶意软件分诊中的语义重构攻击：在编译后加入二进制文件、不会执行的叙事内容，并让其与可疑静态证据一同被解读；论文称可执行行为和导入表保持不变。本次审查未独立验证这些保持不变的主张。"
+                },
+                {
+                  "text": "在固定的50个PE样本集中，Gemini 2.5 Pro基线将35个判为恶意。论文主要对照报告称，ALIBI将其中30/35个Gemini结论改为良性（85.7%）。在40个ELF样本集中，论文报告Gemini严格ASR为40.0%。这些是作者对固定样本进行的单次查询静态评估。"
+                },
+                {
+                  "text": "在同一锁定PE子集中，论文报告GPT-5.5 Pro和Claude Opus 4.7没有良性翻转，但降至非恶意结论的比例（软ASR）分别为71.4%和42.9%。论文还报告，部分结论不变的分组出现置信度下降；该置信度由模型自报，并非内部不确定性指标。"
+                },
+                {
+                  "text": "在另一项针对35个基线判为恶意的PE样本进行的配对提示词强化评估中，作者报告严格ASR从82.9%（29/35）降至42.9%（15/35），但仍有15/35个样本得到良性结论。作者指出，该评估无防护组与论文主要对照（85.7%）相差一个样本。提示词降低了测得的攻击效果，但并未消除它。"
+                },
+                {
+                  "text": "论文建议恶意软件证据构建器区分分析器验证的属性与攻击者控制的字符串和元数据；作者提出来源验证是比单独强化提示词更强的防御。本次未评估完整的来源验证流水线。"
+                }
+              ],
+              "limitations": [
+                "仅有一项arXiv v1研究，使用作者进行的固定样本测试；没有独立复现或逐样本审计。",
+                "主要PE评估使用50个MalwareBazaar样本，以Gemini基线中判为恶意的35个样本为分母；ELF集包含40个样本。这不足以证明其在恶意软件家族或已部署系统中的发生率。",
+                "每个样本只调用一次模型；未测试多次采样、多数投票或自适应查询预算。",
+                "报告中最具抵抗力的模型没有严格ASR，但软ASR仍不为零；部分结论不变分组的自报置信度也有所下降。自报置信度并非内部不确定性。",
+                "提示词强化评估报告的Gemini无防护结果（29/35；82.9%）不同于主要对照（30/35；85.7%）；论文提到这一项差异，但未解释。",
+                "验证引导提示词减少了良性翻转，但没有消除；所提来源验证证据构建器防御未作为完整系统实现或测试。",
+                "该研究关注PE/ELF静态分诊，未评估动态执行、沙箱、签名验证、分析人员行为或生产结果。"
+              ],
+              "gaps": [
+                {
+                  "description": "没有进行独立复现、逐样本输出审计或代码/工件审计。"
+                },
+                {
+                  "description": "评估使用固定样本、每个样本仅查询一次，所用模型快照可能无法代表当前部署；该攻击在不同恶意软件家族和生产流水线中的普遍程度未知。"
+                },
+                {
+                  "description": "Gemini主要PE结果（30/35次翻转；85.7%）与提示词研究无防护组结果（29/35；82.9%）相差一个样本；论文指出了这一差异，但未解释原因。所提来源验证防御未实现或进行端到端评估。"
+                }
+              ]
+            },
+            "headline": "论文报告称，二进制文件中由攻击者控制的叙事可改变LLM恶意软件分诊结论"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
+    {
+      "id": "FCMO-ACA5C082071A",
+      "slug": "paper-reports-cpu-tee-verification-for-differentially-private-training",
+      "url_date": "2026-10-08",
+      "kind": "development",
+      "status": "live",
+      "beat": "society",
+      "desk": "compute_inference",
+      "title": "Paper reports CPU-TEE verification for differentially private training on untrusted GPUs",
+      "headline": "Paper reports CPU-TEE verification for differentially private training on untrusted GPUs",
+      "summary": "The arXiv v1 paper proposes verifiable DP-SGD using a CPU-side TEE with untrusted GPUs: the GPU computes per-example gradients and clipping/aggregation, while the TEE holds privacy-critical randomness and training state and probabilistically recomputes sampled steps. Checks run asynchronously, but training is accepted only after all verification jobs complete and a certificate is issued. In reported GPT-2 and RoBERTa workloads on WebNLG, E2E, QQP and MNLI, the authors measure 4.4%–14.9% overhead at audit probability p=0.10 versus GPU DP-SGD, compared with estimated 8.0×–9.2× overhead for full CPU-TEE training. Their security accounting is calibrated to particular GPU–TEE/software pairs; reported sparse-attack privacy results apply only to the strategies tested. No independent reproduction or audit was conducted.",
+      "why_it_matters": "If independently validated, the design could let organizations produce evidence that a differentially private training protocol was followed while using GPUs without native TEE support. The reported overhead and attacker-resistance bounds remain specific to small model workloads, one paper’s protocol and calibrated hardware/software conditions.",
+      "importance_rationale": "If independently validated, the design could add checkable evidence that DP-SGD ran as declared while retaining legacy GPU acceleration, affecting privacy-sensitive model-training choices. Current measurements use small GPT-2/RoBERTa workloads and author-calibrated GPU–TEE pairs, so large-scale practical and security impact remains uncertain.",
+      "technical": {
+        "claimed_result": "Authors report a split CPU-TEE/untrusted-GPU design with 4.4%–14.9% overhead at p=0.10 across the stated GPT-2/RoBERTa workloads, and probabilistic detection/tolerance accounting scoped to their evaluated protocol and calibrated environments.",
+        "demonstrated_result": "The inspected arXiv v1 paper describes the protocol and reports experiments; the empirical performance and security conclusions remain author-reported and unverified independently.",
+        "mechanism": "GPU computes and submits clipped aggregate gradients; CPU TEE retains the DP random seed, model/optimizer state and verifier. After commitment it reveals the noise seed; probabilistic checks recompute selected updates, with queued checks completed before an accepted certificate is issued.",
+        "regime": "Author-run single-epoch experiments on GPT-2 Small/Medium and RoBERTa Base/Large with WebNLG, E2E, QQP and MNLI, at p=0.10/0.15; security calibration is specific to model-family and GPU–TEE/software trajectories.",
+        "strongest_baseline": "Ordinary unverified GPU DP-SGD is the direct timing baseline; full CPU-TEE training is an estimated efficiency comparison. No external or cryptographic verifiable-DP implementation was matched in this review."
+      },
+      "importance_tier": "Notable",
+      "development_type": "paper",
+      "event_at": "2026-09-17T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-08T22:50:32Z",
+      "updated_at": "2026-10-08T22:50:32Z",
+      "importance": 5,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": false,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "CLAIMED",
+            "text": "The authors propose a split DP-SGD design in which untrusted GPUs compute, clip and aggregate per-example gradients, while a CPU-side TEE retains trusted randomness, model and optimizer state, DP-noise generation and probabilistic recomputation; after the GPU commits a gradient, the TEE reveals the noise seed."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "For the reported GPT-2 Small/Medium and RoBERTa Base/Large experiments on WebNLG, E2E, QQP and MNLI, the paper reports 4.4%–14.9% end-to-end overhead at verification probability p=0.10 relative to unverified GPU DP training; full CPU-TEE training is estimated at 8.0×–9.2× on those LLM-oriented tasks. These are author-reported single-epoch measurements, not independent results or large-model deployment measurements."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "At p=0.10, the paper’s analysis gives a 99.5% detection probability for 50 predictable full deviations, while separately bounding cumulative tolerated numerical deviations for its calibrated model-family settings; the paper reports no measurable extra membership leakage for the utility-oriented sparse attack strategies it evaluates. These results do not establish security against arbitrary attack objectives or untested GPU–TEE/software pairs."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "The implementation uses deferred verification: a sampled step may enter provisional training before checking completes, but the run is accepted only after all verification jobs complete successfully and a certificate is issued; any failed deferred check aborts the run."
+          }
+        ],
+        "limitations": [
+          "Single arXiv v1 paper; all measurements and security analyses are author-reported and were not independently reproduced.",
+          "The evaluated language models are GPT-2 Small/Medium and RoBERTa Base/Large on WebNLG, E2E, QQP and MNLI; this is not evidence of production-scale contemporary LLM training.",
+          "At p=0.10, reported LLM-task overhead is 4.4%–14.9%; at p=0.15 it rises as high as 30.2% for the reported RoBERTa Large/MNLI case, and verifier throughput can bottleneck.",
+          "Detection probability for full deviations and bounds on tolerated numerical deviations depend on the stated Bernoulli audit process, calibrated thresholds and GPU–TEE/software family; the tested sparse attacks do not cover arbitrary privacy attacks.",
+          "Deferred verification means training progress is provisional until all queued checks succeed and certificate issuance completes.",
+          "No independent formal security audit, implementation audit, or matched comparison with cryptographic verifiable-DP systems was performed in this review."
+        ],
+        "gaps": [
+          {
+            "kind": "missing_independent",
+            "description": "All protocol measurements and attack evaluations are from the author-run paper; no independent implementation or reproduction was conducted."
+          },
+          {
+            "kind": "other",
+            "description": "The evaluated language models are GPT-2 and RoBERTa; this does not establish scalability or overhead for contemporary large language models or production training."
+          },
+          {
+            "kind": "other",
+            "description": "Numerical tolerance budgets are calibrated for particular GPU–TEE/software trajectory families, and the sparse-attack membership-inference results cover only the paper’s utility-oriented attack strategies."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://arxiv.org/abs/2609.20532",
+          "domain": "arxiv.org",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "Nanyang Technological University",
+        "National University of Singapore"
+      ],
+      "topics": [
+        "differential-privacy",
+        "trusted-execution-environments",
+        "gpu-training-integrity",
+        "privacy-auditing",
+        "llm-fine-tuning"
+      ],
+      "regions": [
+        "GLOBAL"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-ACA5C082071A.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: Paper reports CPU-TEE verification for differentially private training on untrusted GPUs"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "Artículo informa verificación de entrenamiento diferencialmente privado con una CPU-TEE y GPU no confiables",
+            "summary": "El artículo v1 de arXiv propone DP-SGD verificable mediante una TEE en CPU junto con GPU no confiables: la GPU calcula gradientes por ejemplo y realiza el recorte y la agregación, mientras que la TEE conserva la aleatoriedad crítica para la privacidad y el estado de entrenamiento, y vuelve a calcular pasos seleccionados de forma probabilística. Las verificaciones se ejecutan de manera asíncrona, pero el entrenamiento solo se acepta después de que todas las tareas de verificación concluyen correctamente y se emite un certificado. En experimentos informados con GPT-2 y RoBERTa en WebNLG, E2E, QQP y MNLI, los autores miden una sobrecarga de 4.4%–14.9% con probabilidad de auditoría p=0.10 frente a DP-SGD en GPU, en comparación con una sobrecarga estimada de 8.0×–9.2× al entrenar por completo en una CPU-TEE. La contabilidad de seguridad está calibrada para familias específicas de GPU–TEE y software; los resultados informados sobre ataques dispersos solo corresponden a las estrategias evaluadas. No se hizo una reproducción ni auditoría independiente.",
+            "importance_rationale": "Si se valida de manera independiente, el diseño podría aportar evidencia verificable de que DP-SGD se ejecutó según lo declarado y, al mismo tiempo, conservar la aceleración de GPU heredada, lo que influiría en las decisiones de entrenamiento de modelos con datos sensibles. Las mediciones actuales usan tareas con GPT-2/RoBERTa pequeños y pares GPU–TEE calibrados por los autores; el efecto práctico y la seguridad a gran escala siguen siendo inciertos.",
+            "why_it_matters": "Si se valida de manera independiente, el diseño podría permitir que las organizaciones produzcan evidencia de que se siguió un protocolo de entrenamiento diferencialmente privado mientras usan GPU sin soporte TEE nativo. La sobrecarga y los límites de resistencia a ataques informados se restringen a modelos pequeños, el protocolo de un artículo y condiciones calibradas de hardware y software.",
+            "technical": {
+              "claimed_result": "Los autores reportan un diseño dividido de CPU-TEE y GPU no confiables con una sobrecarga de 4.4%–14.9% a p=0.10 en las tareas GPT-2/RoBERTa indicadas, junto con contabilidad de detección probabilística y tolerancias limitada a los entornos calibrados y evaluados.",
+              "demonstrated_result": "La versión v1 inspeccionada en arXiv describe el protocolo y presenta experimentos. Los resultados empíricos y las conclusiones de seguridad siguen siendo afirmaciones de los autores, sin verificación independiente.",
+              "mechanism": "La GPU calcula y envía gradientes agregados recortados; la CPU-TEE conserva la semilla aleatoria de DP, el estado del modelo y del optimizador, además del verificador. Después de confirmar el gradiente, revela la semilla de ruido; se vuelven a calcular pasos seleccionados de forma probabilística y todas las verificaciones en cola deben terminar antes de emitir un certificado aceptado.",
+              "regime": "Experimentos de una época informados por los autores con GPT-2 Small/Medium y RoBERTa Base/Large en WebNLG, E2E, QQP y MNLI, con p=0.10/0.15; la calibración de seguridad se limita a trayectorias específicas por familia de modelo y por GPU–TEE/software.",
+              "strongest_baseline": "DP-SGD común en GPU sin verificación es la referencia directa de tiempo; el entrenamiento completo en CPU-TEE es una comparación de eficiencia estimada. En esta revisión no se comparó con una implementación externa ni con una solución criptográfica de DP verificable."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "Los autores proponen un diseño DP-SGD dividido: GPU no confiables calculan, recortan y agregan gradientes por ejemplo, mientras que una TEE en CPU conserva la aleatoriedad confiable, el estado del modelo y del optimizador, la generación de ruido DP y el recálculo probabilístico; después de que la GPU confirma un gradiente, la TEE revela la semilla de ruido."
+                },
+                {
+                  "text": "En los experimentos informados con GPT-2 Small/Medium y RoBERTa Base/Large en WebNLG, E2E, QQP y MNLI, el artículo reporta una sobrecarga integral de 4.4%–14.9% con probabilidad de verificación p=0.10 frente al entrenamiento DP en GPU sin verificación; se estima que el entrenamiento completo en CPU-TEE tiene una sobrecarga de 8.0×–9.2× en esas tareas orientadas a LLM. Son mediciones de una época informadas por los autores; no son resultados independientes ni mediciones de despliegues con modelos grandes."
+                },
+                {
+                  "text": "Con p=0.10, el análisis del artículo calcula una probabilidad de detección de 99.5% para 50 desviaciones completas predecibles y, por separado, limita la desviación numérica acumulada tolerada para sus configuraciones calibradas por familia de modelo. El artículo informa que no midió fuga adicional de pertenencia para las estrategias de ataque disperso orientadas a utilidad que evaluó. Estos resultados no establecen seguridad frente a objetivos de ataque arbitrarios ni frente a pares GPU–TEE/software no probados."
+                },
+                {
+                  "text": "La implementación usa verificación diferida: un paso seleccionado puede entrar en el entrenamiento provisional antes de terminar la verificación, pero el proceso solo se acepta después de que todas las tareas de verificación concluyen correctamente y se emite un certificado; cualquier verificación diferida fallida aborta el proceso."
+                }
+              ],
+              "limitations": [
+                "Un solo artículo v1 de arXiv; los autores informan todas las mediciones y análisis de seguridad, que no se reprodujeron de forma independiente.",
+                "Los modelos evaluados son GPT-2 Small/Medium y RoBERTa Base/Large en WebNLG, E2E, QQP y MNLI; no es evidencia de entrenamiento de LLM contemporáneos a escala de producción.",
+                "Con p=0.10, la sobrecarga informada para tareas LLM es de 4.4%–14.9%; con p=0.15 llega hasta 30.2% en el caso informado de RoBERTa Large/MNLI, y el rendimiento del conjunto de verificadores puede convertirse en cuello de botella.",
+                "La probabilidad de detectar desviaciones completas y los límites de desviaciones numéricas toleradas dependen del proceso de auditoría Bernoulli indicado, de los umbrales calibrados y de la familia GPU–TEE/software; los ataques dispersos evaluados no cubren ataques de privacidad arbitrarios.",
+                "Con verificación diferida, el progreso del entrenamiento es provisional hasta que todas las verificaciones en cola concluyen correctamente y se emite el certificado.",
+                "En esta revisión no se hizo auditoría formal de seguridad, auditoría de implementación ni comparación emparejada con sistemas criptográficos de DP verificable."
+              ],
+              "gaps": [
+                {
+                  "description": "Todas las mediciones del protocolo y evaluaciones de ataques proceden del artículo de los autores; no se hizo una implementación ni reproducción independiente."
+                },
+                {
+                  "description": "Los modelos de lenguaje evaluados son GPT-2 y RoBERTa; los resultados no establecen la escalabilidad ni la sobrecarga para LLM contemporáneos o entrenamiento de producción."
+                },
+                {
+                  "description": "Los presupuestos de tolerancia numérica se calibran para familias específicas de trayectorias GPU–TEE/software, y los resultados de inferencia de pertenencia para ataques dispersos solo abarcan las estrategias de utilidad evaluadas."
+                }
+              ]
+            }
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "论文报告了使用CPU-TEE验证不可信GPU上的差分隐私训练",
+            "summary": "arXiv v1论文提出将CPU侧TEE与不可信GPU结合来实现可验证DP-SGD：GPU计算逐样本梯度并执行裁剪和聚合，TEE则保留隐私关键随机性和训练状态，并以概率方式重算抽样步骤。检查异步运行，但只有所有验证任务均成功完成并签发证书后，训练过程才会被接受。在作者报告的GPT-2和RoBERTa实验中，任务包括WebNLG、E2E、QQP和MNLI；当验证概率p=0.10时，相比未验证的GPU DP-SGD，作者测得端到端开销为4.4%–14.9%；完全在CPU-TEE中训练的估计开销为8.0×–9.2×。其安全核算针对特定GPU–TEE/软件轨迹族进行了校准；所报告的稀疏攻击隐私结果仅适用于论文测试的策略。本次未进行独立复现或审计。",
+            "importance_rationale": "如果得到独立验证，该设计可在保留旧有GPU加速能力的同时，为DP-SGD是否按声明执行提供可检查的证据，从而影响隐私敏感模型训练的选择。当前测量使用较小的GPT-2/RoBERTa任务和作者校准的GPU–TEE配置；大规模实用性和安全影响仍不确定。",
+            "why_it_matters": "如果得到独立验证，这种设计可能让组织在使用不具备原生TEE支持的GPU时，仍能提供差分隐私训练协议确实得到执行的证据。当前报告的开销和攻击抵抗界限仅适用于小模型任务、单篇论文提出的协议以及经过校准的软硬件条件。",
+            "technical": {
+              "claimed_result": "作者报告了一种CPU-TEE/不可信GPU分离式设计：在所列GPT-2/RoBERTa任务和p=0.10时开销为4.4%–14.9%，并报告了针对其评估协议和校准环境的概率检测与容差核算。",
+              "demonstrated_result": "所检查的arXiv v1论文描述了该协议并报告了实验。实证性能和安全结论仍为作者报告，尚未独立验证。",
+              "mechanism": "GPU计算并提交裁剪后的聚合梯度；CPU-TEE保留DP随机种子、模型/优化器状态和验证器。梯度提交后TEE才公开噪声种子；抽样步骤会被概率性重算，所有排队检查均须完成后才会签发通过的证书。",
+              "regime": "作者报告的单轮实验使用GPT-2 Small/Medium和RoBERTa Base/Large，任务为WebNLG、E2E、QQP和MNLI，p=0.10/0.15；安全校准针对特定模型族及GPU–TEE/软件轨迹。",
+              "strongest_baseline": "未验证的普通GPU DP-SGD是直接计时基线；完全CPU-TEE训练是估算的效率对比。本次审查未匹配外部实现或密码学可验证DP方案。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "作者提出一种分离式DP-SGD设计：不可信GPU计算、裁剪并聚合逐样本梯度，CPU侧TEE则保留可信随机性、模型与优化器状态、DP噪声生成及概率重算；GPU提交梯度后，TEE才公开噪声种子。"
+                },
+                {
+                  "text": "在作者报告的GPT-2 Small/Medium和RoBERTa Base/Large实验中，任务包括WebNLG、E2E、QQP和MNLI；当验证概率p=0.10时，相比未验证的GPU DP训练，论文报告端到端开销为4.4%–14.9%；这些面向LLM的任务若完全在CPU-TEE中训练，估计开销为8.0×–9.2×。这些是作者报告的单轮测量，并非独立结果或大型模型部署测量。"
+                },
+                {
+                  "text": "在p=0.10时，论文分析给出对50次可预测完整偏离的检测概率为99.5%，并分别为其按模型族校准的配置限定累计容忍数值偏差；论文报告称，在所评估的、以效用为目标的稀疏攻击策略中，未测得额外成员推断泄漏。这些结果并未证明能够抵御任意攻击目标或未经测试的GPU–TEE/软件组合。"
+                },
+                {
+                  "text": "实现采用延迟验证：被抽中的步骤可在检查完成前进入暂定训练状态，但只有所有验证任务均成功完成并签发证书后，训练过程才会被接受；任何延迟检查失败都会使整个过程终止。"
+                }
+              ],
+              "limitations": [
+                "仅有一篇arXiv v1论文；所有测量和安全分析均由作者报告，尚未独立复现。",
+                "评估模型为GPT-2 Small/Medium和RoBERTa Base/Large，数据集包括WebNLG、E2E、QQP和MNLI；这并不能证明其适用于生产规模的当代大型语言模型训练。",
+                "p=0.10时，报告的LLM任务开销为4.4%–14.9%；p=0.15时，RoBERTa Large/MNLI案例的报告值最高达到30.2%，且验证吞吐量可能成为瓶颈。",
+                "完整偏离的检测概率和容忍数值偏差界限依赖所述Bernoulli抽查过程、校准阈值及GPU–TEE/软件族；已测试的稀疏攻击并未覆盖任意隐私攻击。",
+                "采用延迟验证意味着训练进展在所有排队检查成功完成并签发证书之前都只是暂定状态。",
+                "本次未进行独立形式化安全审计、实现审计，也未与密码学可验证差分隐私系统进行匹配比较。"
+              ],
+              "gaps": [
+                {
+                  "description": "协议测量和攻击评估均来自作者论文；没有进行独立实现或复现。"
+                },
+                {
+                  "description": "评估的语言模型是GPT-2和RoBERTa；这些结果不能证明其可扩展至当代大型语言模型或生产训练。"
+                },
+                {
+                  "description": "数值容差预算针对特定GPU–TEE/软件轨迹族进行了校准；稀疏攻击的成员推断结果也仅覆盖论文评估的效用导向策略。"
+                }
+              ]
+            },
+            "headline": "论文报告了使用CPU-TEE验证不可信GPU上的差分隐私训练"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
+    {
+      "id": "FCMO-5A02D68A8ACB",
+      "slug": "california-advances-independent-ai-oversight-and-commissions",
+      "url_date": "2026-10-08",
+      "kind": "development",
+      "status": "live",
+      "beat": "policy",
+      "desk": "policy_geopolitics",
+      "title": "California advances independent AI oversight and commissions recommendations on frontier-model shutoff requirements",
+      "dek": "California’s signed Executive Order N-9-26 advances state implementation deadlines for SB 813 independent-verification-organization criteria and AB 1405 registry actions.",
+      "summary": "California’s signed Executive Order N-9-26 advances state implementation deadlines for SB 813 independent-verification-organization criteria and AB 1405 registry actions. It also directs recommendations by November 16, 2026 on possible onsite frontier-AI audits, independent verification of filed safety materials, a model shutoff with ongoing efficacy verification, and broader critical-incident definitions. The latter are recommendations for possible legal amendments, not requirements enacted by this order; implementation and future proposals remain open.",
+      "why_it_matters": "The order makes California’s independent-verification and auditor-registration framework more operationally time-bound and commissions recommendations on stronger frontier-model oversight. Its concrete effect is administrative acceleration and a future policy process; it does not yet mandate onsite audits or a model shutoff.",
+      "importance_rationale": "If carried through, accelerated independent-verification infrastructure and possible frontier-model oversight requirements could affect state assurance practice and compliance planning for major AI developers. The strongest new measures are recommendations only, while the binding order advances administrative implementation of existing laws.",
+      "technical": {
+        "claimed_result": "The order directs accelerated administrative milestones and a report on possible further frontier-AI safeguards.",
+        "demonstrated_result": "The signed order establishes those directives and dates; implementation and technical efficacy of the proposed measures have not been demonstrated.",
+        "mechanism": "Government Operations Agency is directed to complete specified SB 813 and AB 1405 actions by May 1 and December 1, 2027, and with Cal OES to submit expert-developed recommendations by November 16, 2026.",
+        "regime": "California state executive direction implementing existing California statutes and commissioning possible future amendments.",
+        "strongest_baseline": "The prior statutory timelines in SB 813 and AB 1405; the order moves specified administrative milestones earlier and separately calls for recommendations."
+      },
+      "importance_tier": "Notable",
+      "development_type": "technical_report",
+      "event_at": "2026-09-18T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-08T22:50:32Z",
+      "updated_at": "2026-10-08T22:50:32Z",
+      "importance": 5,
+      "evidence_class": "A",
+      "confidence": "confirmed",
+      "front_page_eligible": false,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "DEMONSTRATED",
+            "text": "California Executive Order N-9-26, signed September 18, 2026, directs the Government Operations Agency to complete SB 813 independent-verification-organization criteria by May 1, 2027 and to complete specified AB 1405 registry actions by December 1, 2027."
+          },
+          {
+            "label": "DEMONSTRATED",
+            "text": "The order directs the Government Operations Agency, in consultation with Cal OES, to submit by November 16, 2026 recommendations developed with national experts on possible changes including onsite independent verification for frontier developers, verification of filed safety materials, a model shutoff with ongoing efficacy verification, and an expanded definition of reportable critical incidents. These are recommendations about possible amendments, not current requirements."
+          }
+        ],
+        "limitations": [
+          "This record describes the signed executive order and its directives; it does not establish completion, enforcement, the content of future recommendations, or enactment of proposed onsite-audit or shutoff requirements.",
+          "The order’s deadlines concern California state implementation and do not by themselves create a general federal or cross-jurisdiction regime."
+        ],
+        "gaps": [
+          {
+            "kind": "other",
+            "description": "The November 16, 2026 recommendations and any resulting statutory changes are future events; no proposed shutoff or onsite audit requirement is currently enacted by this order."
+          },
+          {
+            "kind": "other",
+            "description": "The order sets future administrative milestones for implementing existing SB 813 and AB 1405; completion and practical operation of the IVO criteria and auditor registry have not been observed."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://www.gov.ca.gov/wp-content/uploads/2026/09/FINAL-N-9-26-AI-EO-9.18.26-SIGNED.pdf",
+          "domain": "gov.ca.gov",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "State of California",
+        "California Government Operations Agency",
+        "Governor’s Office of Emergency Services"
+      ],
+      "topics": [
+        "ai-governance",
+        "independent-verification",
+        "ai-auditing",
+        "frontier-ai-policy",
+        "california-regulation"
+      ],
+      "regions": [
+        "US"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-5A02D68A8ACB.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: California advances independent AI oversight and commissions recommendations on frontier-model shutoff requirements"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "California adelanta la supervisión independiente de IA y encarga recomendaciones sobre el apagado de modelos de frontera",
+            "summary": "La Orden Ejecutiva N-9-26, firmada por California, adelanta los plazos estatales de implementación de los criterios de organizaciones independientes de verificación de SB 813 y las acciones de registro de AB 1405. También ordena presentar recomendaciones antes del 16 de noviembre de 2026 sobre posibles auditorías presenciales de IA de frontera, verificación independiente de materiales de seguridad presentados, un mecanismo de apagado de modelos con verificación continua de eficacia y definiciones más amplias de incidentes críticos. Estos últimos son recomendaciones para posibles cambios legales, no requisitos promulgados por esta orden; la implementación y las propuestas futuras siguen pendientes.",
+            "importance_rationale": "Si se llevan a cabo, la infraestructura acelerada de verificación independiente y la posible supervisión de modelos de frontera podrían influir en las prácticas estatales de aseguramiento y en la planificación de cumplimiento de grandes desarrolladores de IA. Las medidas nuevas más estrictas aún son recomendaciones; la orden vinculante acelera la implementación de leyes existentes.",
+            "why_it_matters": "La orden hace más concretos los plazos del marco californiano de verificación independiente y registro de auditores, y encarga recomendaciones sobre una supervisión más estricta de la IA de frontera. Su efecto concreto es acelerar la gestión administrativa y abrir un proceso futuro de política pública; todavía no exige auditorías presenciales ni apagar modelos.",
+            "technical": {
+              "claimed_result": "La orden dirige hitos administrativos acelerados y un informe sobre posibles salvaguardas adicionales para la IA de frontera.",
+              "demonstrated_result": "La orden firmada establece esas instrucciones y fechas; aún no se han demostrado la implementación ni la eficacia técnica de las medidas propuestas.",
+              "mechanism": "Se instruye a la Agencia de Operaciones Gubernamentales a completar acciones específicas de SB 813 y AB 1405 antes del 1 de mayo y el 1 de diciembre de 2027, y, con Cal OES, a presentar recomendaciones de expertos antes del 16 de noviembre de 2026.",
+              "regime": "Instrucción ejecutiva estatal de California para implementar leyes estatales existentes y encargar posibles enmiendas futuras.",
+              "strongest_baseline": "Los plazos legales previos de SB 813 y AB 1405; la orden adelanta ciertos hitos administrativos y, por separado, solicita recomendaciones."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "La Orden Ejecutiva N-9-26 de California, firmada el 18 de septiembre de 2026, ordena a la Agencia de Operaciones Gubernamentales completar los criterios de organizaciones independientes de verificación de SB 813 antes del 1 de mayo de 2027 y completar las acciones especificadas de registro de AB 1405 antes del 1 de diciembre de 2027."
+                },
+                {
+                  "text": "La orden instruye a la Agencia de Operaciones Gubernamentales, en consulta con Cal OES, a presentar antes del 16 de noviembre de 2026 recomendaciones elaboradas con expertos nacionales sobre posibles cambios: verificación independiente presencial para desarrolladores de frontera, verificación de materiales de seguridad presentados, un mecanismo de apagado de modelos con verificación continua de eficacia y una definición más amplia de incidentes críticos notificables. Son recomendaciones sobre posibles enmiendas, no requisitos vigentes."
+                }
+              ],
+              "limitations": [
+                "Este registro describe la orden ejecutiva firmada y sus instrucciones; no demuestra su cumplimiento, aplicación, el contenido de futuras recomendaciones ni la promulgación de auditorías presenciales o requisitos de apagado propuestos.",
+                "Los plazos de la orden corresponden a la implementación estatal de California y no crean por sí mismos un régimen federal o aplicable en otras jurisdicciones."
+              ],
+              "gaps": [
+                {
+                  "description": "Las recomendaciones del 16 de noviembre de 2026 y cualquier cambio legal posterior son hechos futuros; esta orden no promulga un mecanismo de apagado ni obligaciones de auditoría presencial."
+                },
+                {
+                  "description": "La orden fija hitos administrativos futuros para implementar SB 813 y AB 1405; aún no se ha observado la finalización ni el funcionamiento práctico de los criterios IVO y el registro de auditores."
+                }
+              ]
+            },
+            "dek": "La Orden Ejecutiva N-9-26, firmada por California, adelanta los plazos estatales de implementación de los criterios de organizaciones independientes de verificación de SB 813 y las acciones de registro de AB 1405."
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "加州加快AI独立监督，并委托研究前沿模型关闭要求",
+            "summary": "加利福尼亚州签署的N-9-26号行政令提前了SB 813独立验证组织标准和AB 1405登记工作的州级实施期限。该行政令还要求在November 16, 2026前提交建议，讨论可能对前沿AI开展现场审计、独立验证已提交的安全材料、设置并持续验证模型关闭机制的有效性，以及扩大重大事件定义。这些事项是未来可能修法的建议，并非该行政令颁布的要求；后续实施和提案仍待观察。",
+            "importance_rationale": "如果得到落实，加速建立独立验证基础设施并可能加强前沿模型监督，或将影响州级保障实践及大型AI开发者的合规规划。最严格的新措施目前仍是建议；行政令的约束性内容是加快实施既有法律。",
+            "why_it_matters": "该行政令使加州独立验证和审计员登记框架的实施期限更加明确，并委托研究更严格的前沿AI监督措施。其现实作用是加快行政实施并启动未来政策流程；目前尚未要求开展现场审计或关闭模型。",
+            "technical": {
+              "claimed_result": "该行政令指示加快行政实施里程碑，并就可能增加的前沿AI保障措施提交报告。",
+              "demonstrated_result": "已签署行政令确立了这些指令和日期；提案的实施情况及技术有效性尚未得到证明。",
+              "mechanism": "政府运营局须完成SB 813和AB 1405的特定工作，期限分别为May 1和December 1, 2027，并与Cal OES协作于November 16, 2026前提交专家制定的建议。",
+              "regime": "加利福尼亚州行政指令，旨在实施现行州法并委托研究未来可能的法律修订。",
+              "strongest_baseline": "SB 813和AB 1405原有的法定期限；该行政令提前了部分行政里程碑，并另行要求提出建议。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "加利福尼亚州的N-9-26号行政令于September 18, 2026签署，要求政府运营局在完成SB 813独立验证组织标准方面不迟于1 May 2027，并在完成AB 1405规定的特定登记工作方面不迟于1 December 2027。"
+                },
+                {
+                  "text": "该行政令要求政府运营局与Cal OES协商，并于November 16, 2026前提交由全国专家参与制定的建议，讨论可能的修改，包括对前沿开发者开展现场独立验证、独立验证已提交的安全材料、对模型设置并持续验证有效性的关闭机制，以及扩大可报告重大事件的定义。这些是关于可能修法的建议，并非现行要求。"
+                }
+              ],
+              "limitations": [
+                "本记录描述已签署行政令及其指令；它不能证明指令已完成或得到执行、未来建议的内容，或现场审计和模型关闭提案已成为法律要求。",
+                "该行政令的期限适用于加利福尼亚州的州级实施，本身并未建立联邦或跨司法辖区制度。"
+              ],
+              "gaps": [
+                {
+                  "description": "November 16, 2026的建议及其后的任何法律变更都属于未来事项；该行政令并未制定模型关闭机制或现场审计义务。"
+                },
+                {
+                  "description": "该行政令为实施SB 813和AB 1405设定了未来的行政里程碑；IVO标准和审计员登记机制是否完成并实际运行尚未观察到。"
+                }
+              ]
+            },
+            "headline": "加州加快AI独立监督，并委托研究前沿模型关闭要求",
+            "dek": "加利福尼亚州签署的N-9-26号行政令提前了SB 813独立验证组织标准和AB 1405登记工作的州级实施期限。该行政令还要求在November 16, 2026前提交建议，讨论可能对前沿AI开展现场审计、独立验证已提交的安全材料、设置并持续验证模型关闭机制的有效性，以及扩大重大事件定义。这些事项是未来可能修法的建议，并非该行政令颁布的要求；后续实施和提案仍待观察。"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
+    {
+      "id": "FCMO-5128CE5947B9",
+      "slug": "financial-llm-trading-agent-review-reports-disclosed-gaps-in-shock",
+      "url_date": "2026-10-08",
+      "kind": "development",
+      "status": "live",
+      "beat": "research",
+      "desk": "evaluation_science",
+      "title": "Financial LLM trading-agent review reports disclosed gaps in shock resilience and security controls",
+      "dek": "The arXiv v1 paper introduces FARSIGHT, a codebook-based method for reviewing published financial LLM trading-agent schemes across market-shock robustness and security controls.",
+      "summary": "The arXiv v1 paper introduces FARSIGHT, a codebook-based method for reviewing published financial LLM trading-agent schemes across market-shock robustness and security controls. It is a scheme-level expert-review framework, not an automated benchmark suite or a live test of deployed agents. Applying it to 15 selected academic schemes, the authors report that 80% lacked evidence for at least one core robustness metric and 100% had at least one security weakness under their codebook. In a five-agent comparison, the LLM-based evaluator disagreed with human ratings on 24/45 metric cells (53.3%) and performed poorly on some newly defined threats. The ratings reflect what papers document, not confirmed absence from implementations; no proprietary production agents or live market behavior were evaluated.",
+      "why_it_matters": "Financial agents can combine external data ingestion, model reasoning and trade execution, so failures in input provenance or deterministic risk controls may affect real capital and interact through markets. The paper offers a structured way to inspect those risks, while its results apply to disclosed academic schemes and do not establish conditions in proprietary deployments.",
+      "importance_rationale": "If the findings generalize, financial-agent research and procurement would need to treat source integrity, deterministic risk controls and compromised-agent containment as core design requirements; however, the study scores disclosed academic schemes rather than deployed systems, so the prevalence and market consequences are unmeasured.",
+      "technical": {
+        "claimed_result": "Authors report that a literature-grounded FARSIGHT codebook identifies disclosed robustness and security-control gaps across 15 selected academic financial-agent schemes: 80% lack evidence for at least one core robustness metric and 100% have at least one security weakness under that rubric. The method scores evidence in papers, not running systems.",
+        "demonstrated_result": "The inspected arXiv v1 paper defines the codebook, selection process, ratings and author-reported LLM-vs-human comparison. No independent recoding or live test of a financial agent was performed.",
+        "mechanism": "FARSIGHT applies evidence-anchored checklist indicators to published scheme descriptions across four robustness dimensions and three security threat groups: information-source attacks, agent logic/tool/memory attacks, and compromised agents acting as attackers.",
+        "regime": "Literature search and screening yielded 15 distinct academic financial LLM trading-agent schemes from papers available through March 2026; no inaccessible proprietary systems or live market agents were evaluated. LLM-vs-human scoring used five schemes and 45 metric cells.",
+        "strongest_baseline": "The paper compares human expert codebook ratings with a ChatGPT Deep Research evaluation on a five-agent subsample. Human paper review is the reference for that comparison, but independent inter-team recoding was not conducted."
+      },
+      "importance_tier": "Major",
+      "development_type": "paper",
+      "event_at": "2026-09-17T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-08T22:50:32Z",
+      "updated_at": "2026-10-08T22:50:32Z",
+      "importance": 6,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": false,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "CLAIMED",
+            "text": "The authors introduce FARSIGHT, a codebook-based scheme-level method—not an automated benchmark suite—to review published financial LLM trading-agent designs for four market-shock robustness dimensions and three groups of security threats."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "Applying the rubric to 15 selected academic trading-agent schemes, the authors report that 80% lacked evidence for at least one core robustness metric and 100% had at least one security weakness under their codebook. Ratings describe controls evidenced in the papers, not confirmed absence from code or running systems."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "In a five-agent, 45-metric-cell comparison, the authors report that an LLM-based assessment disagreed with human expert ratings on 24/45 cells (53.3%). The LLM performed worse on newly introduced threat types, with errors up to 100% in some cases."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "The paper’s limitations state that the review covers academic schemes rather than inaccessible proprietary systems, uses literature-grounded threat analysis rather than live adversarial tests, and cannot establish whether controls omitted from papers exist in code or later releases."
+          }
+        ],
+        "limitations": [
+          "Single arXiv v1 systematization paper; ratings are author-applied and were not independently recoded.",
+          "The final set contains 15 selected academic schemes identified from a literature search ending March 2026; it does not represent proprietary financial agents or establish deployment prevalence.",
+          "FARSIGHT is a paper-evidence codebook and expert-review method, not a fixed benchmark suite or live penetration test. A low score indicates that a paper did not evidence a control; the control may exist in code or later versions.",
+          "An LLM-based evaluator disagreed with human ratings on 24/45 cells (53.3%) in a five-agent subsample and had errors up to 100% on some new threat types; automated rubric scoring is not a substitute for human review.",
+          "Attack scenarios and systemic-risk implications are literature-grounded or simulated; no live market incident, actual financial loss or adversarial broker-in-the-loop exploit was demonstrated."
+        ],
+        "gaps": [
+          {
+            "kind": "missing_independent",
+            "description": "No independent recoding of the 15 papers or reproduction of the rubric ratings was conducted."
+          },
+          {
+            "kind": "baseline_unclear",
+            "description": "The sample consists of 15 selected academic schemes, not proprietary production agents; a low rating means the paper did not evidence a control and does not prove code-level absence."
+          },
+          {
+            "kind": "other",
+            "description": "The LLM evaluator disagreed with human ratings on 24/45 cells in the five-agent sample and performed poorly on newly defined threats, limiting automation of fine-grained review."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://arxiv.org/abs/2609.19705",
+          "domain": "arxiv.org",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "Texas A&M University"
+      ],
+      "topics": [
+        "financial-agents",
+        "ai-security",
+        "market-stability",
+        "agent-evaluation",
+        "risk-controls"
+      ],
+      "regions": [
+        "US",
+        "GLOBAL"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-5128CE5947B9.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: Financial LLM trading-agent review reports disclosed gaps in shock resilience and security controls"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "Revisión de agentes financieros con LLM informa brechas documentadas en resiliencia ante crisis y controles de seguridad",
+            "summary": "El artículo v1 de arXiv presenta FARSIGHT, un método basado en un código de evaluación para revisar diseños publicados de agentes financieros de trading con LLM en cuanto a resiliencia ante shocks de mercado y controles de seguridad. Es un marco de revisión experta a nivel de esquema, no una suite de benchmarks automatizada ni una prueba de agentes desplegados. Al aplicarlo a 15 esquemas académicos seleccionados, los autores informan que 80% no documentó al menos una métrica central de resiliencia y que 100% tenía al menos una debilidad de seguridad según el código. En una comparación de cinco agentes, el evaluador basado en LLM discrepó con las evaluaciones humanas en 24/45 celdas métricas (53.3%) y tuvo un desempeño bajo en algunos tipos de amenazas nuevos. Las puntuaciones reflejan lo que documentan los artículos, no la ausencia confirmada en implementaciones; no se evaluaron agentes propietarios ni comportamiento real del mercado.",
+            "importance_rationale": "Si los hallazgos se generalizan, la investigación y contratación de agentes financieros tendría que tratar la integridad de fuentes, los controles deterministas de riesgo y la contención de agentes comprometidos como requisitos centrales de diseño; sin embargo, el estudio evalúa esquemas académicos documentados y no sistemas desplegados, por lo que se desconocen la prevalencia y las consecuencias para el mercado.",
+            "why_it_matters": "Los agentes financieros pueden combinar ingestión de datos externos, razonamiento de modelos y ejecución de operaciones; por ello, fallas en la procedencia de entradas o en controles de riesgo deterministas podrían afectar capital real y propagarse por los mercados. El artículo ofrece una forma estructurada de revisar esos riesgos, aunque sus resultados se limitan a esquemas académicos documentados y no establecen las condiciones de despliegues propietarios.",
+            "technical": {
+              "claimed_result": "Los autores informan que el código FARSIGHT, basado en literatura, identifica brechas documentales de resiliencia y controles de seguridad en 15 esquemas académicos seleccionados de agentes financieros: 80% no documentó al menos una métrica central de resiliencia y 100% tuvo al menos una debilidad de seguridad según la rúbrica. El método evalúa evidencia en artículos, no sistemas en ejecución.",
+              "demonstrated_result": "El artículo v1 de arXiv inspeccionado define el código de evaluación, el proceso de selección, las puntuaciones y la comparación entre evaluaciones humanas y un LLM informada por los autores. No se hizo recodificación independiente ni prueba en vivo de un agente financiero.",
+              "mechanism": "FARSIGHT aplica listas de verificación basadas en evidencia a las descripciones publicadas de cada esquema, en cuatro dimensiones de resiliencia y tres grupos de amenazas: ataques a fuentes de información, ataques a la lógica/herramientas/memoria del agente y agentes comprometidos que actúan como atacantes.",
+              "regime": "Búsqueda bibliográfica y selección de 15 esquemas académicos distintos de agentes financieros con LLM, en artículos disponibles hasta marzo de 2026; no se evaluaron sistemas propietarios inaccesibles ni agentes de mercado en vivo. La comparación de puntuación entre LLM y humanos abarcó cinco esquemas y 45 celdas métricas.",
+              "strongest_baseline": "El artículo compara las puntuaciones humanas basadas en el código con una evaluación de ChatGPT Deep Research en una submuestra de cinco agentes. La revisión humana de los artículos es la referencia para esa comparación, pero no se hizo una recodificación independiente por otro equipo."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "Los autores presentan FARSIGHT como un método basado en un código de evaluación para revisar esquemas publicados de agentes de trading financieros con LLM en cuatro dimensiones de resiliencia ante shocks y tres grupos de amenazas de seguridad. Evalúa los esquemas descritos en artículos; no es una suite de benchmarks automatizada."
+                },
+                {
+                  "text": "Al aplicar la rúbrica a 15 esquemas académicos seleccionados de agentes de trading, los autores informan que 80% no documentó al menos una métrica central de resiliencia y que 100% tenía al menos una debilidad de seguridad según el código. Las puntuaciones describen los controles documentados en los artículos, no su ausencia confirmada en código o sistemas en ejecución."
+                },
+                {
+                  "text": "En una comparación de cinco agentes y 45 celdas métricas, los autores informan que una evaluación basada en LLM discrepó con las puntuaciones humanas en 24/45 celdas (53.3%). El artículo reporta peor desempeño del LLM en tipos de amenazas nuevos, con errores de hasta 100% en algunos casos."
+                },
+                {
+                  "text": "Las limitaciones del artículo indican que la revisión cubre esquemas académicos, no sistemas propietarios inaccesibles; utiliza análisis de amenazas basado en literatura y no pruebas adversariales en vivo; y no puede establecer si los controles omitidos en los artículos existen en el código o en versiones posteriores."
+                }
+              ],
+              "limitations": [
+                "Un solo artículo v1 de arXiv; los autores aplicaron las puntuaciones y no hubo recodificación independiente.",
+                "El conjunto final contiene 15 esquemas académicos seleccionados mediante una búsqueda bibliográfica que llegó hasta marzo de 2026; no representa agentes financieros propietarios ni establece prevalencia en producción.",
+                "FARSIGHT es un código de revisión basado en evidencia de artículos, no una suite de benchmarks fija ni una prueba de penetración en vivo. Una puntuación baja indica que el artículo no documentó un control; este podría existir en el código o en versiones posteriores.",
+                "En una submuestra de cinco agentes, el evaluador LLM discrepó con las evaluaciones humanas en 24/45 celdas (53.3%) y tuvo errores de hasta 100% en algunos tipos de amenazas nuevos; puntuar automáticamente no sustituye la revisión experta.",
+                "Los escenarios de ataque y las implicaciones de riesgo sistémico se basan en literatura o simulaciones; no se demostró un incidente en un mercado en vivo, una pérdida financiera real ni un exploit adversarial con intermediario financiero."
+              ],
+              "gaps": [
+                {
+                  "description": "No se hizo una recodificación independiente de los 15 artículos ni una reproducción de las puntuaciones de la rúbrica."
+                },
+                {
+                  "description": "La muestra consta de 15 esquemas académicos seleccionados, no agentes financieros de producción; una puntuación baja significa que el artículo no documentó un control, no que se haya demostrado su ausencia en el código."
+                },
+                {
+                  "description": "El evaluador LLM discrepó con las puntuaciones humanas en 24/45 celdas en la muestra de cinco agentes y tuvo bajo desempeño con amenazas nuevas, lo que limita la automatización de la revisión detallada."
+                }
+              ]
+            },
+            "dek": "El artículo v1 de arXiv presenta FARSIGHT, un método basado en un código de evaluación para revisar diseños publicados de agentes financieros de trading con LLM en cuanto a resiliencia ante shocks de mercado y controles de seguridad."
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "金融LLM交易代理综述报告了已披露的市场冲击韧性与安全控制缺口",
+            "summary": "arXiv v1论文提出FARSIGHT，这是一种基于编码手册的方法，用于审查已发表的金融LLM交易代理方案在市场冲击韧性和安全控制方面的设计。它是方案级专家审查框架，并非自动化基准套件或对已部署代理的实测。对15个选定的学术方案进行评估后，作者报告称，80%没有证据显示其满足至少一项核心韧性指标，100%按该编码手册至少存在一项安全弱点。在五个代理的比较中，LLM评估器与人工评分在24/45个指标单元格上不一致（53.3%），并且对某些新提出的威胁类型表现较差。评分反映论文中披露的控制措施，不代表代码或运行系统中已确认不存在这些控制；研究未评估专有代理或真实市场行为。",
+            "importance_rationale": "如果这些发现可以泛化，金融代理研究和采购就需要将信息源完整性、确定性风险停止机制以及受损代理隔离视为核心设计要求。不过，该研究评估的是论文披露的学术方案，而非已部署系统，因此其普遍程度和市场后果尚未测量。",
+            "why_it_matters": "金融代理可将外部数据摄取、模型推理和交易执行结合起来，因此输入来源验证或确定性风险控制的失效可能影响真实资本，并通过市场相互作用传播。该论文提供了一种结构化审视风险的方法，但结果仅适用于学术论文披露的方案，不能证明专有部署的实际状况。",
+            "technical": {
+              "claimed_result": "作者报告称，基于文献的FARSIGHT编码手册在15个选定的学术金融代理方案中发现了已披露的韧性与安全控制缺口：80%没有证据显示其满足至少一项核心韧性指标，100%按该量表至少存在一项安全弱点。该方法评估论文证据，而非运行系统。",
+              "demonstrated_result": "所检查的arXiv v1论文定义了编码手册、筛选流程、评分结果以及作者报告的LLM与人工评分比较。本次未进行独立重新编码，也未对金融代理进行实时测试。",
+              "mechanism": "FARSIGHT根据已发表方案说明应用证据锚定的检查表，覆盖四项韧性维度和三类安全威胁：信息源攻击、代理逻辑/工具/记忆攻击，以及受损代理作为攻击者。",
+              "regime": "文献检索和筛选得到15个不同的学术金融LLM交易代理方案，文献截至2026年三月；未评估无法访问的专有系统或真实市场代理。LLM与人工评分比较包括五个方案和45个指标单元格。",
+              "strongest_baseline": "论文在五代理子样本中，将人工专家依据编码手册给出的评分与ChatGPT Deep Research评估进行比较。该比较以人工论文审查为参照，但没有另一个团队进行独立重新编码。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "作者提出FARSIGHT，这是一种基于编码手册的方法，用于审查已发表的金融LLM交易代理方案在四项市场冲击韧性指标和三类安全威胁下的设计。它针对论文中描述的方案评分，并非自动化基准套件。"
+                },
+                {
+                  "text": "对15个选定的学术交易代理方案应用该量表后，作者报告称，80%没有证据显示其满足至少一项核心韧性指标，100%按该编码手册至少存在一项安全弱点。评分描述的是论文中披露的控制措施，并不代表已确认这些措施在代码或运行系统中不存在。"
+                },
+                {
+                  "text": "在五个代理和45个指标单元格的比较中，作者报告称，LLM评估与人工评分在24/45个单元格上不一致（53.3%）。论文称，LLM对新提出的威胁类型表现更差，某些情况下错误率高达100%。"
+                },
+                {
+                  "text": "论文局限性指出，该综述覆盖的是学术方案，而非无法访问的专有系统；威胁分析基于文献，而非实时对抗测试；并且无法确定论文未提及的控制是否存在于代码或后续版本中。"
+                }
+              ],
+              "limitations": [
+                "仅有一篇arXiv v1论文；评分由作者完成，未进行独立重新编码。",
+                "最终样本包括截至2026年三月文献检索选出的15个学术方案；它不代表专有金融代理，也无法证明生产部署中的普遍程度。",
+                "FARSIGHT是基于论文证据的编码手册，不是固定基准套件或实时渗透测试。低分表示论文没有披露某项控制；该控制可能存在于代码或后续版本中。",
+                "在五代理子样本中，LLM评估器与人工评分在24/45个单元格上不一致（53.3%），对某些新型威胁的错误率高达100%；自动量表评分不能替代专家审查。",
+                "攻击场景和系统性风险影响基于文献或模拟；研究没有证明真实市场事件、实际财务损失或经纪商参与的实时对抗攻击。"
+              ],
+              "gaps": [
+                {
+                  "description": "没有对15篇论文进行独立重新编码或复现该评分量表的结果。"
+                },
+                {
+                  "description": "样本是15个选定的学术方案，而非生产金融代理；低分意味着论文没有提供该控制的证据，并不能证明代码中确实缺少控制。"
+                },
+                {
+                  "description": "在五代理样本中，LLM评估器与人工评分在24/45个单元格上不一致，且对新型威胁表现较差，因此细粒度审查不适合全自动化。"
+                }
+              ]
+            },
+            "headline": "金融LLM交易代理综述报告了已披露的市场冲击韧性与安全控制缺口"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
     {
       "id": "FCMO-F5623092EA8C",
       "slug": "never-stop-thinking-reports-continuous-time-language-agents-and-tests",

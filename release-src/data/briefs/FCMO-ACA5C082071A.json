@@ -1,0 +1,134 @@
+{
+  "record": {
+    "id": "FCMO-ACA5C082071A",
+    "title": "Paper reports CPU-TEE verification for differentially private training on untrusted GPUs",
+    "desk": "Inference Systems",
+    "event_at": "2026-09-17T00:00:00Z",
+    "evidence": "A",
+    "confidence": "credible_unconfirmed",
+    "importance": 5,
+    "tier": "Notable",
+    "summary": "The arXiv v1 paper proposes verifiable DP-SGD using a CPU-side TEE with untrusted GPUs: the GPU computes per-example gradients and clipping/aggregation, while the TEE holds privacy-critical randomness and training state and probabilistically recomputes sampled steps. Checks run asynchronously, but training is accepted only after all verification jobs complete and a certificate is issued. In reported GPT-2 and RoBERTa workloads on WebNLG, E2E, QQP and MNLI, the authors measure 4.4%–14.9% overhead at audit probability p=0.10 versus GPU DP-SGD, compared with estimated 8.0×–9.2× overhead for full CPU-TEE training. Their security accounting is calibrated to particular GPU–TEE/software pairs; reported sparse-attack privacy results apply only to the strategies tested. No independent reproduction or audit was conducted.",
+    "topics": [
+      "differential privacy",
+      "trusted execution environments",
+      "GPU training integrity",
+      "privacy auditing",
+      "LLM fine-tuning"
+    ],
+    "organizations": [
+      "Nanyang Technological University",
+      "National University of Singapore"
+    ],
+    "human_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-ACA5C082071A.html",
+    "machine_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/data/briefs/FCMO-ACA5C082071A.json",
+    "citation": {
+      "id": "FCMO-ACA5C082071A",
+      "source": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-ACA5C082071A.html"
+    }
+  },
+  "brief": {
+    "claims": [
+      {
+        "label": "CLAIMED",
+        "text": "The authors propose a split DP-SGD design in which untrusted GPUs compute, clip and aggregate per-example gradients, while a CPU-side TEE retains trusted randomness, model and optimizer state, DP-noise generation and probabilistic recomputation; after the GPU commits a gradient, the TEE reveals the noise seed."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "For the reported GPT-2 Small/Medium and RoBERTa Base/Large experiments on WebNLG, E2E, QQP and MNLI, the paper reports 4.4%–14.9% end-to-end overhead at verification probability p=0.10 relative to unverified GPU DP training; full CPU-TEE training is estimated at 8.0×–9.2× on those LLM-oriented tasks. These are author-reported single-epoch measurements, not independent results or large-model deployment measurements."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "At p=0.10, the paper’s analysis gives a 99.5% detection probability for 50 predictable full deviations, while separately bounding cumulative tolerated numerical deviations for its calibrated model-family settings; the paper reports no measurable extra membership leakage for the utility-oriented sparse attack strategies it evaluates. These results do not establish security against arbitrary attack objectives or untested GPU–TEE/software pairs."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "The implementation uses deferred verification: a sampled step may enter provisional training before checking completes, but the run is accepted only after all verification jobs complete successfully and a certificate is issued; any failed deferred check aborts the run."
+      }
+    ],
+    "confidence": "credible_unconfirmed",
+    "contradictory_evidence": [],
+    "desks": [
+      "inference_systems",
+      "evaluation_science",
+      "efficiency"
+    ],
+    "development_type": "paper",
+    "editions": [
+      "2026-10-08"
+    ],
+    "event_at": "2026-09-17T00:00:00Z",
+    "evidence_class": "A",
+    "evidence_gaps": [
+      {
+        "description": "All protocol measurements and attack evaluations are from the author-run paper; no independent implementation or reproduction was conducted.",
+        "kind": "missing_independent",
+        "state": "open",
+        "updated_at": "2026-10-08T22:08:48.435941Z"
+      },
+      {
+        "description": "The evaluated language models are GPT-2 and RoBERTa; this does not establish scalability or overhead for contemporary large language models or production training.",
+        "kind": "other",
+        "state": "open",
+        "updated_at": "2026-10-08T22:08:48.435941Z"
+      },
+      {
+        "description": "Numerical tolerance budgets are calibrated for particular GPU–TEE/software trajectory families, and the sparse-attack membership-inference results cover only the paper’s utility-oriented attack strategies.",
+        "kind": "other",
+        "state": "open",
+        "updated_at": "2026-10-08T22:08:48.435941Z"
+      }
+    ],
+    "id": "FCMO-ACA5C082071A",
+    "importance_effective_score": 5,
+    "importance_rationale": "If independently validated, the design could add checkable evidence that DP-SGD ran as declared while retaining legacy GPU acceleration, affecting privacy-sensitive model-training choices. Current measurements use small GPT-2/RoBERTa workloads and author-calibrated GPU–TEE pairs, so large-scale practical and security impact remains uncertain.",
+    "importance_scale_version": 2,
+    "importance_score": 5,
+    "importance_tier": "Notable",
+    "last_verified_at": "2026-10-08T22:08:48.435941Z",
+    "limitations": [
+      "Single arXiv v1 paper; all measurements and security analyses are author-reported and were not independently reproduced.",
+      "The evaluated language models are GPT-2 Small/Medium and RoBERTa Base/Large on WebNLG, E2E, QQP and MNLI; this is not evidence of production-scale contemporary LLM training.",
+      "At p=0.10, reported LLM-task overhead is 4.4%–14.9%; at p=0.15 it rises as high as 30.2% for the reported RoBERTa Large/MNLI case, and verifier throughput can bottleneck.",
+      "Detection probability for full deviations and bounds on tolerated numerical deviations depend on the stated Bernoulli audit process, calibrated thresholds and GPU–TEE/software family; the tested sparse attacks do not cover arbitrary privacy attacks.",
+      "Deferred verification means training progress is provisional until all queued checks succeed and certificate issuance completes.",
+      "No independent formal security audit, implementation audit, or matched comparison with cryptographic verifiable-DP systems was performed in this review."
+    ],
+    "organizations": [
+      "Nanyang Technological University",
+      "National University of Singapore"
+    ],
+    "primary_desk": "inference_systems",
+    "recorded_at": "2026-10-08T22:08:48.435941Z",
+    "regions": [
+      "global"
+    ],
+    "relationships": [],
+    "source_languages": [
+      "en"
+    ],
+    "source_urls": [
+      "https://arxiv.org/abs/2609.20532"
+    ],
+    "status": "active",
+    "summary": "The arXiv v1 paper proposes verifiable DP-SGD using a CPU-side TEE with untrusted GPUs: the GPU computes per-example gradients and clipping/aggregation, while the TEE holds privacy-critical randomness and training state and probabilistically recomputes sampled steps. Checks run asynchronously, but training is accepted only after all verification jobs complete and a certificate is issued. In reported GPT-2 and RoBERTa workloads on WebNLG, E2E, QQP and MNLI, the authors measure 4.4%–14.9% overhead at audit probability p=0.10 versus GPU DP-SGD, compared with estimated 8.0×–9.2× overhead for full CPU-TEE training. Their security accounting is calibrated to particular GPU–TEE/software pairs; reported sparse-attack privacy results apply only to the strategies tested. No independent reproduction or audit was conducted.",
+    "technical": {
+      "claimed_result": "Authors report a split CPU-TEE/untrusted-GPU design with 4.4%–14.9% overhead at p=0.10 across the stated GPT-2/RoBERTa workloads, and probabilistic detection/tolerance accounting scoped to their evaluated protocol and calibrated environments.",
+      "demonstrated_result": "The inspected arXiv v1 paper describes the protocol and reports experiments; the empirical performance and security conclusions remain author-reported and unverified independently.",
+      "mechanism": "GPU computes and submits clipped aggregate gradients; CPU TEE retains the DP random seed, model/optimizer state and verifier. After commitment it reveals the noise seed; probabilistic checks recompute selected updates, with queued checks completed before an accepted certificate is issued.",
+      "regime": "Author-run single-epoch experiments on GPT-2 Small/Medium and RoBERTa Base/Large with WebNLG, E2E, QQP and MNLI, at p=0.10/0.15; security calibration is specific to model-family and GPU–TEE/software trajectories.",
+      "strongest_baseline": "Ordinary unverified GPU DP-SGD is the direct timing baseline; full CPU-TEE training is an estimated efficiency comparison. No external or cryptographic verifiable-DP implementation was matched in this review."
+    },
+    "title": "Paper reports CPU-TEE verification for differentially private training on untrusted GPUs",
+    "topics": [
+      "differential privacy",
+      "trusted execution environments",
+      "GPU training integrity",
+      "privacy auditing",
+      "LLM fine-tuning"
+    ],
+    "why_it_matters": "If independently validated, the design could let organizations produce evidence that a differentially private training protocol was followed while using GPUs without native TEE support. The reported overhead and attacker-resistance bounds remain specific to small model workloads, one paper’s protocol and calibrated hardware/software conditions."
+  },
+  "related": [],
+  "schema": "fcmo-public-brief-v1"
+}

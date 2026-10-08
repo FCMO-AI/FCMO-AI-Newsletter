@@ -1,5 +1,498 @@
 [
   {
+    "story_id": "STORY-EC25B52CAF32",
+    "research_id": "FCMO-EC25B52CAF32",
+    "headline": "Paper reports attacker-controlled binary narratives shifting LLM malware-triage verdicts",
+    "dek": "The arXiv v1 paper studies whether static LLM malware triage can be misled by attacker-controlled narrative content in a binary’s extracted evidence. On a fixed PE set, Gemini 2.5 Pro labeled 35/50 samples malicious at baseline; the paper reports that 30/35 became benign under its primary ALIBI condition (85.7%). On 40 ELF samples, Gemini’s reported Strict ASR was 40.0%. GPT-5.5 Pro and Claude Opus 4.7 had zero reported benign flips on the locked PE subset but still showed non-benign severity downgrades. A separate prompt-hardening test reduced Gemini Strict ASR from 82.9% to 42.9%, leaving 15/35 benign outcomes; its undefended arm differs by one sample from the primary result. The authors argue for separating parser-verified facts from binary-supplied claims. These are fixed-sample, single-query paper results; no independent reproduction or complete provenance-defense evaluation was performed.",
+    "story_type": "STANDARD",
+    "published_at": "2026-10-08T22:50:32Z",
+    "modified_at": "2026-10-08T22:50:32.864914Z",
+    "event_at": "2026-09-17T00:00:00Z",
+    "research_verified_at": "2026-10-08T22:11:34.592829Z",
+    "canonical_signature": "5262bbee37c77733c087e36fcf541249b2d6f937d0bc06fe7e87d527256e71be",
+    "news_value": {
+      "importance": 6,
+      "evidence": "A",
+      "confidence": "credible_unconfirmed"
+    },
+    "what_changed": "The arXiv v1 paper studies whether static LLM malware triage can be misled by attacker-controlled narrative content in a binary’s extracted evidence. On a fixed PE set, Gemini 2.5 Pro labeled 35/50 samples malicious at baseline; the paper reports that 30/35 became benign under its primary ALIBI condition (85.7%). On 40 ELF samples, Gemini’s reported Strict ASR was 40.0%. GPT-5.5 Pro and Claude Opus 4.7 had zero reported benign flips on the locked PE subset but still showed non-benign severity downgrades. A separate prompt-hardening test reduced Gemini Strict ASR from 82.9% to 42.9%, leaving 15/35 benign outcomes; its undefended arm differs by one sample from the primary result. The authors argue for separating parser-verified facts from binary-supplied claims. These are fixed-sample, single-query paper results; no independent reproduction or complete provenance-defense evaluation was performed.",
+    "why_it_matters": "AI-assisted malware triage may influence which alerts analysts investigate first. If the reported behavior generalizes, strings and metadata supplied by a file under analysis can shift model judgments even when the suspicious code remains unchanged. The study points toward evidence pipelines that keep verified attributes separate from claims embedded in artifacts; the fixed sample and model conditions leave real-world prevalence unknown.",
+    "claims": [
+      {
+        "label": "CLAIMED",
+        "text": "The authors present ALIBI as a semantic reframing attack in static malware triage: a post-compilation, non-executed binary narrative is interpreted alongside suspicious static evidence, while the paper reports that executable behavior and imports were left unchanged. The review did not independently validate those preservation claims."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "On a frozen 50-sample PE set, 35 samples were malicious under Gemini 2.5 Pro at baseline. The paper reports that ALIBI changed 30/35 (85.7%) of those Gemini verdicts to benign in its primary comparison. On a 40-sample ELF set, it reports a 40.0% Strict ASR for Gemini. These are author-run, single-query static evaluations on fixed samples."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "On the same locked PE subset, the paper reports zero benign flips for GPT-5.5 Pro and Claude Opus 4.7, but non-benign downgrades (Soft ASR) of 71.4% and 42.9%, respectively. It also reports confidence reduction in some unchanged-verdict groups; confidence is model self-report, not an internal uncertainty measure."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "In a separate paired prompt-hardening evaluation on 35 malicious-baseline PE samples, the authors report Strict ASR falling from 82.9% (29/35) to 42.9% (15/35), while benign outcomes remain for 15/35 samples. The undefended result differs by one sample from the paper’s primary comparison (85.7%), as the authors note. The prompt reduces but does not eliminate the measured attack."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "The paper recommends that malware evidence builders distinguish parser-verified attributes from attacker-controlled strings and metadata; it proposes provenance checks as a stronger defense than prompt hardening alone. A complete provenance-checking pipeline was not evaluated."
+      }
+    ],
+    "technical": {
+      "claimed_result": "Authors report that a coherent semantic narrative carried in static binary evidence can shift LLM malware-triage verdicts without changing executable behavior. On their fixed PE subset, Gemini’s primary Strict ASR was 30/35 (85.7%); the prompt-hardening test reports 29/35 (82.9%) in its separate undefended arm, an unresolved one-sample discrepancy.",
+      "demonstrated_result": "The inspected arXiv v1 describes the threat model, fixed-sample evaluation, cross-model results and proposed defenses. The measured effects and binary-behavior-preservation claim remain author-reported; this review did not inspect code or binaries or reproduce the tests.",
+      "mechanism": "The paper’s attack changes what the static evidence representation says about suspicious artifacts: the model receives attacker-controlled strings/metadata as explanatory context and may accept a benign operational interpretation. Proposed defense: maintain separate fields for verified attributes and unverified binary claims, with provenance checks.",
+      "regime": "Fixed MalwareBazaar sample sets: 50 PE samples (35 malicious under Gemini baseline) and 40 ELF samples; one static-analysis query per sample; Gemini 2.5 Pro, GPT-5.5 Pro and Claude Opus 4.7. No adaptive queries or dynamic analysis.",
+      "strongest_baseline": "Within the study, original unmodified binaries provide the baseline and a direct token-level override variant is compared on Gemini. The prompt-hardening study is paired on the same locked 35-sample PE subset, but its undefended Gemini arm differs by one result from the primary comparison."
+    },
+    "limitations": [
+      "Single arXiv v1 study with author-run, fixed-sample tests; no independent reproduction or sample-level audit was performed.",
+      "The main PE evaluation uses 50 MalwareBazaar samples, with 35 Gemini baseline-malicious samples as the denominator; the ELF set contains 40 samples. These do not establish prevalence across malware families or deployed systems.",
+      "Each sample received one model call; no multi-sampling, majority voting or adaptive query budget was tested.",
+      "The most resistant models had zero reported Strict ASR but still showed nonzero Soft ASR and, for some unchanged-verdict groups, self-reported confidence reductions. Self-reported confidence is not internal uncertainty.",
+      "The prompt-hardening evaluation reports a different undefended Gemini result (29/35; 82.9%) than the primary comparison (30/35; 85.7%); this one-sample discrepancy is noted but unexplained.",
+      "The verification-guided prompt reduced but did not remove benign flips, and the proposed provenance-aware evidence-builder defense was not implemented or tested as a complete system.",
+      "The study concerns static PE/ELF triage and does not evaluate dynamic execution, sandboxing, signature validation, analyst behavior or production outcomes."
+    ],
+    "contradictory_evidence": [],
+    "evidence_gaps": [
+      {
+        "description": "No independent reproduction, sample-level output audit or artifact/code audit was conducted.",
+        "kind": "missing_independent",
+        "state": "open",
+        "updated_at": "2026-10-08T22:11:34.592829Z"
+      },
+      {
+        "description": "The evaluation uses fixed samples, one query per sample and model snapshots that may not represent current analyzer deployments; prevalence across malware families and production pipelines is unknown.",
+        "kind": "baseline_unclear",
+        "state": "open",
+        "updated_at": "2026-10-08T22:11:34.592829Z"
+      },
+      {
+        "description": "The primary Gemini result (30/35 flips; 85.7%) differs by one sample from the separate prompt-hardening evaluation’s undefended arm (29/35; 82.9%); the paper reports the discrepancy but does not resolve its cause. The proposed provenance-check defense was not implemented and evaluated end to end.",
+        "kind": "other",
+        "state": "open",
+        "updated_at": "2026-10-08T22:11:34.592829Z"
+      }
+    ],
+    "sources": [
+      "https://arxiv.org/abs/2609.19722"
+    ],
+    "public_research": {
+      "schema": "fcmo-public-research-receipt-v1",
+      "id": "FCMO-EC25B52CAF32",
+      "canonical_signature": "f6219dba32e307fa7cd0f9f9cd0a6ca829b036431c78482e3ccc5b0b10f91e2f",
+      "researched_at": "2026-10-08T22:46:44.860389Z",
+      "trust_boundary": "sanitized public brief + public Internet only",
+      "source_checks": [
+        {
+          "url": "https://arxiv.org/abs/2609.19722",
+          "final_url": "https://arxiv.org/abs/2609.19722",
+          "status": 200,
+          "content_type": "text/html; charset=utf-8",
+          "title": "[2609.19722] ALIBI: Adversarial Legitimacy Injection in Binary Input against LLM Malware Analyzers",
+          "reachable": true
+        }
+      ],
+      "related_public_sources": [],
+      "coverage": {
+        "cited_public_sources_reopened": 1,
+        "reachable_sources": 1,
+        "scholarly_context_candidates": 0,
+        "exhaustive_web_search_claim": false
+      }
+    },
+    "media": {
+      "id": "FCMO-EC25B52CAF32",
+      "mode": "fcmo_explainer",
+      "sourced": false,
+      "generated": true,
+      "rights_state": "FCMO_OWNED",
+      "image_url": "/FCMO-AI-Newsletter/assets/story-media/FCMO-EC25B52CAF32.svg",
+      "credit": "FCMO AI Research Desk",
+      "license": "FCMO original editorial graphic",
+      "reuse_basis": "original publication-owned artwork",
+      "fit": "cover",
+      "evidence_image": false,
+      "beat": "research",
+      "reason": "NO_RIGHTS_PROVEN_SOURCE_IMAGE",
+      "rejected_candidates": [
+        {
+          "source": "https://arxiv.org/abs/2609.19722",
+          "reason": "SITE_CHROME:LOGO_PATH"
+        },
+        {
+          "source": "https://arxiv.org/abs/2609.19722",
+          "reason": "SITE_CHROME:GENERATED_CARD"
+        }
+      ]
+    }
+  },
+  {
+    "story_id": "STORY-5128CE5947B9",
+    "research_id": "FCMO-5128CE5947B9",
+    "headline": "Financial LLM trading-agent review reports disclosed gaps in shock resilience and security controls",
+    "dek": "The arXiv v1 paper introduces FARSIGHT, a codebook-based method for reviewing published financial LLM trading-agent schemes across market-shock robustness and security controls. It is a scheme-level expert-review framework, not an automated benchmark suite or a live test of deployed agents. Applying it to 15 selected academic schemes, the authors report that 80% lacked evidence for at least one core robustness metric and 100% had at least one security weakness under their codebook. In a five-agent comparison, the LLM-based evaluator disagreed with human ratings on 24/45 metric cells (53.3%) and performed poorly on some newly defined threats. The ratings reflect what papers document, not confirmed absence from implementations; no proprietary production agents or live market behavior were evaluated.",
+    "story_type": "STANDARD",
+    "published_at": "2026-10-08T22:50:32Z",
+    "modified_at": "2026-10-08T22:50:32.864914Z",
+    "event_at": "2026-09-17T00:00:00Z",
+    "research_verified_at": "2026-10-08T22:13:46.395331Z",
+    "canonical_signature": "e0bd6a15904666ff68a7a8e1c7b2e121e0ee400d7054b204d87df3ecf4737ec3",
+    "news_value": {
+      "importance": 6,
+      "evidence": "A",
+      "confidence": "credible_unconfirmed"
+    },
+    "what_changed": "The arXiv v1 paper introduces FARSIGHT, a codebook-based method for reviewing published financial LLM trading-agent schemes across market-shock robustness and security controls. It is a scheme-level expert-review framework, not an automated benchmark suite or a live test of deployed agents. Applying it to 15 selected academic schemes, the authors report that 80% lacked evidence for at least one core robustness metric and 100% had at least one security weakness under their codebook. In a five-agent comparison, the LLM-based evaluator disagreed with human ratings on 24/45 metric cells (53.3%) and performed poorly on some newly defined threats. The ratings reflect what papers document, not confirmed absence from implementations; no proprietary production agents or live market behavior were evaluated.",
+    "why_it_matters": "Financial agents can combine external data ingestion, model reasoning and trade execution, so failures in input provenance or deterministic risk controls may affect real capital and interact through markets. The paper offers a structured way to inspect those risks, while its results apply to disclosed academic schemes and do not establish conditions in proprietary deployments.",
+    "claims": [
+      {
+        "label": "CLAIMED",
+        "text": "The authors introduce FARSIGHT, a codebook-based scheme-level method—not an automated benchmark suite—to review published financial LLM trading-agent designs for four market-shock robustness dimensions and three groups of security threats."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "Applying the rubric to 15 selected academic trading-agent schemes, the authors report that 80% lacked evidence for at least one core robustness metric and 100% had at least one security weakness under their codebook. Ratings describe controls evidenced in the papers, not confirmed absence from code or running systems."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "In a five-agent, 45-metric-cell comparison, the authors report that an LLM-based assessment disagreed with human expert ratings on 24/45 cells (53.3%). The LLM performed worse on newly introduced threat types, with errors up to 100% in some cases."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "The paper’s limitations state that the review covers academic schemes rather than inaccessible proprietary systems, uses literature-grounded threat analysis rather than live adversarial tests, and cannot establish whether controls omitted from papers exist in code or later releases."
+      }
+    ],
+    "technical": {
+      "claimed_result": "Authors report that a literature-grounded FARSIGHT codebook identifies disclosed robustness and security-control gaps across 15 selected academic financial-agent schemes: 80% lack evidence for at least one core robustness metric and 100% have at least one security weakness under that rubric. The method scores evidence in papers, not running systems.",
+      "demonstrated_result": "The inspected arXiv v1 paper defines the codebook, selection process, ratings and author-reported LLM-vs-human comparison. No independent recoding or live test of a financial agent was performed.",
+      "mechanism": "FARSIGHT applies evidence-anchored checklist indicators to published scheme descriptions across four robustness dimensions and three security threat groups: information-source attacks, agent logic/tool/memory attacks, and compromised agents acting as attackers.",
+      "regime": "Literature search and screening yielded 15 distinct academic financial LLM trading-agent schemes from papers available through March 2026; no inaccessible proprietary systems or live market agents were evaluated. LLM-vs-human scoring used five schemes and 45 metric cells.",
+      "strongest_baseline": "The paper compares human expert codebook ratings with a ChatGPT Deep Research evaluation on a five-agent subsample. Human paper review is the reference for that comparison, but independent inter-team recoding was not conducted."
+    },
+    "limitations": [
+      "Single arXiv v1 systematization paper; ratings are author-applied and were not independently recoded.",
+      "The final set contains 15 selected academic schemes identified from a literature search ending March 2026; it does not represent proprietary financial agents or establish deployment prevalence.",
+      "FARSIGHT is a paper-evidence codebook and expert-review method, not a fixed benchmark suite or live penetration test. A low score indicates that a paper did not evidence a control; the control may exist in code or later versions.",
+      "An LLM-based evaluator disagreed with human ratings on 24/45 cells (53.3%) in a five-agent subsample and had errors up to 100% on some new threat types; automated rubric scoring is not a substitute for human review.",
+      "Attack scenarios and systemic-risk implications are literature-grounded or simulated; no live market incident, actual financial loss or adversarial broker-in-the-loop exploit was demonstrated."
+    ],
+    "contradictory_evidence": [],
+    "evidence_gaps": [
+      {
+        "description": "No independent recoding of the 15 papers or reproduction of the rubric ratings was conducted.",
+        "kind": "missing_independent",
+        "state": "open",
+        "updated_at": "2026-10-08T22:13:46.395331Z"
+      },
+      {
+        "description": "The sample consists of 15 selected academic schemes, not proprietary production agents; a low rating means the paper did not evidence a control and does not prove code-level absence.",
+        "kind": "baseline_unclear",
+        "state": "open",
+        "updated_at": "2026-10-08T22:13:46.395331Z"
+      },
+      {
+        "description": "The LLM evaluator disagreed with human ratings on 24/45 cells in the five-agent sample and performed poorly on newly defined threats, limiting automation of fine-grained review.",
+        "kind": "other",
+        "state": "open",
+        "updated_at": "2026-10-08T22:13:46.395331Z"
+      }
+    ],
+    "sources": [
+      "https://arxiv.org/abs/2609.19705"
+    ],
+    "public_research": {
+      "schema": "fcmo-public-research-receipt-v1",
+      "id": "FCMO-5128CE5947B9",
+      "canonical_signature": "1ca7dfdb87d8fb3f9a4e634e8ec428cad6d2f684db1546cfc86c9604b5da06e7",
+      "researched_at": "2026-10-08T22:45:34.601602Z",
+      "trust_boundary": "sanitized public brief + public Internet only",
+      "source_checks": [
+        {
+          "url": "https://arxiv.org/abs/2609.19705",
+          "final_url": "https://arxiv.org/abs/2609.19705",
+          "status": 200,
+          "content_type": "text/html; charset=utf-8",
+          "title": "[2609.19705] SoK: Trading Agents or Market Crashers? Dissecting Robustness and Security Failures in Academic Financial LLM Trading Schemes",
+          "reachable": true
+        }
+      ],
+      "related_public_sources": [],
+      "coverage": {
+        "cited_public_sources_reopened": 1,
+        "reachable_sources": 1,
+        "scholarly_context_candidates": 0,
+        "exhaustive_web_search_claim": false
+      }
+    },
+    "media": {
+      "id": "FCMO-5128CE5947B9",
+      "mode": "fcmo_explainer",
+      "sourced": false,
+      "generated": true,
+      "rights_state": "FCMO_OWNED",
+      "image_url": "/FCMO-AI-Newsletter/assets/story-media/FCMO-5128CE5947B9.svg",
+      "credit": "FCMO AI Research Desk",
+      "license": "FCMO original editorial graphic",
+      "reuse_basis": "original publication-owned artwork",
+      "fit": "cover",
+      "evidence_image": false,
+      "beat": "research",
+      "reason": "NO_RIGHTS_PROVEN_SOURCE_IMAGE",
+      "rejected_candidates": [
+        {
+          "source": "https://arxiv.org/abs/2609.19705",
+          "reason": "SITE_CHROME:LOGO_PATH"
+        },
+        {
+          "source": "https://arxiv.org/abs/2609.19705",
+          "reason": "SITE_CHROME:GENERATED_CARD"
+        }
+      ]
+    }
+  },
+  {
+    "story_id": "STORY-ACA5C082071A",
+    "research_id": "FCMO-ACA5C082071A",
+    "headline": "Paper reports CPU-TEE verification for differentially private training on untrusted GPUs",
+    "dek": "The arXiv v1 paper proposes verifiable DP-SGD using a CPU-side TEE with untrusted GPUs: the GPU computes per-example gradients and clipping/aggregation, while the TEE holds privacy-critical randomness and training state and probabilistically recomputes sampled steps. Checks run asynchronously, but training is accepted only after all verification jobs complete and a certificate is issued. In reported GPT-2 and RoBERTa workloads on WebNLG, E2E, QQP and MNLI, the authors measure 4.4%–14.9% overhead at audit probability p=0.10 versus GPU DP-SGD, compared with estimated 8.0×–9.2× overhead for full CPU-TEE training. Their security accounting is calibrated to particular GPU–TEE/software pairs; reported sparse-attack privacy results apply only to the strategies tested. No independent reproduction or audit was conducted.",
+    "story_type": "BRIEF",
+    "published_at": "2026-10-08T22:50:32Z",
+    "modified_at": "2026-10-08T22:50:32.864914Z",
+    "event_at": "2026-09-17T00:00:00Z",
+    "research_verified_at": "2026-10-08T22:08:48.435941Z",
+    "canonical_signature": "904f8c974dbfdd7b02d96458097becc3c0b0e7092ea13a35579ed68eeeb87c19",
+    "news_value": {
+      "importance": 5,
+      "evidence": "A",
+      "confidence": "credible_unconfirmed"
+    },
+    "what_changed": "The arXiv v1 paper proposes verifiable DP-SGD using a CPU-side TEE with untrusted GPUs: the GPU computes per-example gradients and clipping/aggregation, while the TEE holds privacy-critical randomness and training state and probabilistically recomputes sampled steps. Checks run asynchronously, but training is accepted only after all verification jobs complete and a certificate is issued. In reported GPT-2 and RoBERTa workloads on WebNLG, E2E, QQP and MNLI, the authors measure 4.4%–14.9% overhead at audit probability p=0.10 versus GPU DP-SGD, compared with estimated 8.0×–9.2× overhead for full CPU-TEE training. Their security accounting is calibrated to particular GPU–TEE/software pairs; reported sparse-attack privacy results apply only to the strategies tested. No independent reproduction or audit was conducted.",
+    "why_it_matters": "If independently validated, the design could let organizations produce evidence that a differentially private training protocol was followed while using GPUs without native TEE support. The reported overhead and attacker-resistance bounds remain specific to small model workloads, one paper’s protocol and calibrated hardware/software conditions.",
+    "claims": [
+      {
+        "label": "CLAIMED",
+        "text": "The authors propose a split DP-SGD design in which untrusted GPUs compute, clip and aggregate per-example gradients, while a CPU-side TEE retains trusted randomness, model and optimizer state, DP-noise generation and probabilistic recomputation; after the GPU commits a gradient, the TEE reveals the noise seed."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "For the reported GPT-2 Small/Medium and RoBERTa Base/Large experiments on WebNLG, E2E, QQP and MNLI, the paper reports 4.4%–14.9% end-to-end overhead at verification probability p=0.10 relative to unverified GPU DP training; full CPU-TEE training is estimated at 8.0×–9.2× on those LLM-oriented tasks. These are author-reported single-epoch measurements, not independent results or large-model deployment measurements."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "At p=0.10, the paper’s analysis gives a 99.5% detection probability for 50 predictable full deviations, while separately bounding cumulative tolerated numerical deviations for its calibrated model-family settings; the paper reports no measurable extra membership leakage for the utility-oriented sparse attack strategies it evaluates. These results do not establish security against arbitrary attack objectives or untested GPU–TEE/software pairs."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "The implementation uses deferred verification: a sampled step may enter provisional training before checking completes, but the run is accepted only after all verification jobs complete successfully and a certificate is issued; any failed deferred check aborts the run."
+      }
+    ],
+    "technical": {
+      "claimed_result": "Authors report a split CPU-TEE/untrusted-GPU design with 4.4%–14.9% overhead at p=0.10 across the stated GPT-2/RoBERTa workloads, and probabilistic detection/tolerance accounting scoped to their evaluated protocol and calibrated environments.",
+      "demonstrated_result": "The inspected arXiv v1 paper describes the protocol and reports experiments; the empirical performance and security conclusions remain author-reported and unverified independently.",
+      "mechanism": "GPU computes and submits clipped aggregate gradients; CPU TEE retains the DP random seed, model/optimizer state and verifier. After commitment it reveals the noise seed; probabilistic checks recompute selected updates, with queued checks completed before an accepted certificate is issued.",
+      "regime": "Author-run single-epoch experiments on GPT-2 Small/Medium and RoBERTa Base/Large with WebNLG, E2E, QQP and MNLI, at p=0.10/0.15; security calibration is specific to model-family and GPU–TEE/software trajectories.",
+      "strongest_baseline": "Ordinary unverified GPU DP-SGD is the direct timing baseline; full CPU-TEE training is an estimated efficiency comparison. No external or cryptographic verifiable-DP implementation was matched in this review."
+    },
+    "limitations": [
+      "Single arXiv v1 paper; all measurements and security analyses are author-reported and were not independently reproduced.",
+      "The evaluated language models are GPT-2 Small/Medium and RoBERTa Base/Large on WebNLG, E2E, QQP and MNLI; this is not evidence of production-scale contemporary LLM training.",
+      "At p=0.10, reported LLM-task overhead is 4.4%–14.9%; at p=0.15 it rises as high as 30.2% for the reported RoBERTa Large/MNLI case, and verifier throughput can bottleneck.",
+      "Detection probability for full deviations and bounds on tolerated numerical deviations depend on the stated Bernoulli audit process, calibrated thresholds and GPU–TEE/software family; the tested sparse attacks do not cover arbitrary privacy attacks.",
+      "Deferred verification means training progress is provisional until all queued checks succeed and certificate issuance completes.",
+      "No independent formal security audit, implementation audit, or matched comparison with cryptographic verifiable-DP systems was performed in this review."
+    ],
+    "contradictory_evidence": [],
+    "evidence_gaps": [
+      {
+        "description": "All protocol measurements and attack evaluations are from the author-run paper; no independent implementation or reproduction was conducted.",
+        "kind": "missing_independent",
+        "state": "open",
+        "updated_at": "2026-10-08T22:08:48.435941Z"
+      },
+      {
+        "description": "The evaluated language models are GPT-2 and RoBERTa; this does not establish scalability or overhead for contemporary large language models or production training.",
+        "kind": "other",
+        "state": "open",
+        "updated_at": "2026-10-08T22:08:48.435941Z"
+      },
+      {
+        "description": "Numerical tolerance budgets are calibrated for particular GPU–TEE/software trajectory families, and the sparse-attack membership-inference results cover only the paper’s utility-oriented attack strategies.",
+        "kind": "other",
+        "state": "open",
+        "updated_at": "2026-10-08T22:08:48.435941Z"
+      }
+    ],
+    "sources": [
+      "https://arxiv.org/abs/2609.20532"
+    ],
+    "public_research": {
+      "schema": "fcmo-public-research-receipt-v1",
+      "id": "FCMO-ACA5C082071A",
+      "canonical_signature": "b5ca5883195ac4868fd46dc7b19a82518a15c8650101b2905594b9099b50fc0f",
+      "researched_at": "2026-10-08T22:46:27.559945Z",
+      "trust_boundary": "sanitized public brief + public Internet only",
+      "source_checks": [
+        {
+          "url": "https://arxiv.org/abs/2609.20532",
+          "final_url": "https://arxiv.org/abs/2609.20532",
+          "status": 200,
+          "content_type": "text/html; charset=utf-8",
+          "title": "[2609.20532] Towards TEE-Certified DP: Verifiable Differentially Private Training on Legacy GPUs",
+          "reachable": true
+        }
+      ],
+      "related_public_sources": [
+        {
+          "openalex_id": "https://openalex.org/W7213675626",
+          "title": "Towards TEE-Certified DP: Verifiable Differentially Private Training on Legacy GPUs",
+          "publication_year": 2026,
+          "doi": null,
+          "url": "https://arxiv.org/abs/2609.20532",
+          "source": "arXiv (Cornell University)",
+          "cited_by_count": 0,
+          "relationship": "title-similar public scholarly context; not treated as corroboration by count alone"
+        }
+      ],
+      "coverage": {
+        "cited_public_sources_reopened": 1,
+        "reachable_sources": 1,
+        "scholarly_context_candidates": 1,
+        "exhaustive_web_search_claim": false
+      }
+    },
+    "media": {
+      "id": "FCMO-ACA5C082071A",
+      "mode": "fcmo_explainer",
+      "sourced": false,
+      "generated": true,
+      "rights_state": "FCMO_OWNED",
+      "image_url": "/FCMO-AI-Newsletter/assets/story-media/FCMO-ACA5C082071A.svg",
+      "credit": "FCMO AI Research Desk",
+      "license": "FCMO original editorial graphic",
+      "reuse_basis": "original publication-owned artwork",
+      "fit": "cover",
+      "evidence_image": false,
+      "beat": "research",
+      "reason": "NO_RIGHTS_PROVEN_SOURCE_IMAGE",
+      "rejected_candidates": [
+        {
+          "source": "https://arxiv.org/abs/2609.20532",
+          "reason": "SITE_CHROME:LOGO_PATH"
+        },
+        {
+          "source": "https://arxiv.org/abs/2609.20532",
+          "reason": "SITE_CHROME:GENERATED_CARD"
+        }
+      ]
+    }
+  },
+  {
+    "story_id": "STORY-5A02D68A8ACB",
+    "research_id": "FCMO-5A02D68A8ACB",
+    "headline": "California advances independent AI oversight and commissions recommendations on frontier-model shutoff requirements",
+    "dek": "California’s signed Executive Order N-9-26 advances state implementation deadlines for SB 813 independent-verification-organization criteria and AB 1405 registry actions. It also directs recommendations by November 16, 2026 on possible onsite frontier-AI audits, independent verification of filed safety materials, a model shutoff with ongoing efficacy verification, and broader critical-incident definitions. The latter are recommendations for possible legal amendments, not requirements enacted by this order; implementation and future proposals remain open.",
+    "story_type": "BRIEF",
+    "published_at": "2026-10-08T22:50:32Z",
+    "modified_at": "2026-10-08T22:50:32.864914Z",
+    "event_at": "2026-09-18T00:00:00Z",
+    "research_verified_at": "2026-10-08T22:17:00Z",
+    "canonical_signature": "ea4d6abc8f25e9ec5b0c0123303b400c8faf7847fd03b30ee38424cf0cdf78f3",
+    "news_value": {
+      "importance": 5,
+      "evidence": "A",
+      "confidence": "confirmed"
+    },
+    "what_changed": "California’s signed Executive Order N-9-26 advances state implementation deadlines for SB 813 independent-verification-organization criteria and AB 1405 registry actions. It also directs recommendations by November 16, 2026 on possible onsite frontier-AI audits, independent verification of filed safety materials, a model shutoff with ongoing efficacy verification, and broader critical-incident definitions. The latter are recommendations for possible legal amendments, not requirements enacted by this order; implementation and future proposals remain open.",
+    "why_it_matters": "The order makes California’s independent-verification and auditor-registration framework more operationally time-bound and commissions recommendations on stronger frontier-model oversight. Its concrete effect is administrative acceleration and a future policy process; it does not yet mandate onsite audits or a model shutoff.",
+    "claims": [
+      {
+        "label": "DEMONSTRATED",
+        "text": "California Executive Order N-9-26, signed September 18, 2026, directs the Government Operations Agency to complete SB 813 independent-verification-organization criteria by May 1, 2027 and to complete specified AB 1405 registry actions by December 1, 2027."
+      },
+      {
+        "label": "DEMONSTRATED",
+        "text": "The order directs the Government Operations Agency, in consultation with Cal OES, to submit by November 16, 2026 recommendations developed with national experts on possible changes including onsite independent verification for frontier developers, verification of filed safety materials, a model shutoff with ongoing efficacy verification, and an expanded definition of reportable critical incidents. These are recommendations about possible amendments, not current requirements."
+      }
+    ],
+    "technical": {
+      "claimed_result": "The order directs accelerated administrative milestones and a report on possible further frontier-AI safeguards.",
+      "demonstrated_result": "The signed order establishes those directives and dates; implementation and technical efficacy of the proposed measures have not been demonstrated.",
+      "mechanism": "Government Operations Agency is directed to complete specified SB 813 and AB 1405 actions by May 1 and December 1, 2027, and with Cal OES to submit expert-developed recommendations by November 16, 2026.",
+      "regime": "California state executive direction implementing existing California statutes and commissioning possible future amendments.",
+      "strongest_baseline": "The prior statutory timelines in SB 813 and AB 1405; the order moves specified administrative milestones earlier and separately calls for recommendations."
+    },
+    "limitations": [
+      "This record describes the signed executive order and its directives; it does not establish completion, enforcement, the content of future recommendations, or enactment of proposed onsite-audit or shutoff requirements.",
+      "The order’s deadlines concern California state implementation and do not by themselves create a general federal or cross-jurisdiction regime."
+    ],
+    "contradictory_evidence": [],
+    "evidence_gaps": [
+      {
+        "description": "The November 16, 2026 recommendations and any resulting statutory changes are future events; no proposed shutoff or onsite audit requirement is currently enacted by this order.",
+        "kind": "other",
+        "state": "open",
+        "updated_at": "2026-10-08T22:17:00Z"
+      },
+      {
+        "description": "The order sets future administrative milestones for implementing existing SB 813 and AB 1405; completion and practical operation of the IVO criteria and auditor registry have not been observed.",
+        "kind": "other",
+        "state": "open",
+        "updated_at": "2026-10-08T22:17:00Z"
+      }
+    ],
+    "sources": [
+      "https://www.gov.ca.gov/wp-content/uploads/2026/09/FINAL-N-9-26-AI-EO-9.18.26-SIGNED.pdf"
+    ],
+    "public_research": {
+      "schema": "fcmo-public-research-receipt-v1",
+      "id": "FCMO-5A02D68A8ACB",
+      "canonical_signature": "faca950695b18e33284adcf26c387a72cd07626ce71dae66d16e13882a47487d",
+      "researched_at": "2026-10-08T22:45:43.171159Z",
+      "trust_boundary": "sanitized public brief + public Internet only",
+      "source_checks": [
+        {
+          "url": "https://www.gov.ca.gov/wp-content/uploads/2026/09/FINAL-N-9-26-AI-EO-9.18.26-SIGNED.pdf",
+          "final_url": "https://www.gov.ca.gov/wp-content/uploads/2026/09/FINAL-N-9-26-AI-EO-9.18.26-SIGNED.pdf",
+          "status": 200,
+          "content_type": "application/pdf",
+          "title": "",
+          "reachable": true
+        }
+      ],
+      "related_public_sources": [],
+      "coverage": {
+        "cited_public_sources_reopened": 1,
+        "reachable_sources": 1,
+        "scholarly_context_candidates": 0,
+        "exhaustive_web_search_claim": false
+      }
+    },
+    "media": {
+      "id": "FCMO-5A02D68A8ACB",
+      "mode": "fcmo_explainer",
+      "sourced": false,
+      "generated": true,
+      "rights_state": "FCMO_OWNED",
+      "image_url": "/FCMO-AI-Newsletter/assets/story-media/FCMO-5A02D68A8ACB.svg",
+      "credit": "FCMO AI Research Desk",
+      "license": "FCMO original editorial graphic",
+      "reuse_basis": "original publication-owned artwork",
+      "fit": "cover",
+      "evidence_image": false,
+      "beat": "research",
+      "reason": "NO_RIGHTS_PROVEN_SOURCE_IMAGE",
+      "rejected_candidates": [
+        {
+          "source": "https://www.gov.ca.gov/wp-content/uploads/2026/09/FINAL-N-9-26-AI-EO-9.18.26-SIGNED.pdf",
+          "reason": "NOT_HTML"
+        }
+      ]
+    }
+  },
+  {
     "story_id": "STORY-F5623092EA8C",
     "research_id": "FCMO-F5623092EA8C",
     "headline": "Never Stop Thinking reports continuous-time language agents and tests verifiable training signals",
@@ -83,7 +576,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-F5623092EA8C",
       "canonical_signature": "33ac5b0faed8c766409c4d2e6fa2bff10fd0877e1ee55a805a01689d2b8e0174",
-      "researched_at": "2026-10-08T21:46:02.781423Z",
+      "researched_at": "2026-10-08T22:46:50.378165Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -207,7 +700,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-92E86166BABF",
       "canonical_signature": "f552a2f7d51bf9408dac1e6502c04aef93e0ef572a1ab10a991ec89fcdb5748d",
-      "researched_at": "2026-10-08T21:45:18.568723Z",
+      "researched_at": "2026-10-08T22:46:12.178215Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -344,7 +837,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-149C68CB5420",
       "canonical_signature": "355b85df7fb4a9d0dcac2617fea6fb4ee011bf6e7643c1a77ef6b5cfff5aaf04",
-      "researched_at": "2026-10-08T21:43:07.188074Z",
+      "researched_at": "2026-10-08T22:43:55.144741Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -470,7 +963,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-DBA16672D5E3",
       "canonical_signature": "4e6e604d9594c59be9dc17b68b93cb6d443754889341feb0bc794ce81d7550db",
-      "researched_at": "2026-10-08T21:45:56.364844Z",
+      "researched_at": "2026-10-08T22:46:42.601028Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -608,7 +1101,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-B1240903E5C0",
       "canonical_signature": "c93b71543ce373318c10bca1e500331e3d3459e085cf98fd74e78f58e7954456",
-      "researched_at": "2026-10-08T21:45:39.822609Z",
+      "researched_at": "2026-10-08T22:46:29.342377Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -746,7 +1239,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-0061FD99B70F",
       "canonical_signature": "19cdb75144b377023b1f57c24ed39227ef1d5366567d5772ff5756feec871fb7",
-      "researched_at": "2026-10-08T21:42:54.962089Z",
+      "researched_at": "2026-10-08T22:43:38.883530Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -867,7 +1360,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-917420640A76",
       "canonical_signature": "30ae125088be562b5f009669a9b71262fa94d153f06ccd77cfc75ebb232d19bb",
-      "researched_at": "2026-10-08T21:45:17.081394Z",
+      "researched_at": "2026-10-08T22:46:11.315606Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -1006,7 +1499,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-939C8F533A6F",
       "canonical_signature": "066a7feb6a0d519f440112a5fc8cf1c8a51275067ab74dbbc35f29ae497d724f",
-      "researched_at": "2026-10-08T21:45:20.553594Z",
+      "researched_at": "2026-10-08T22:46:13.132616Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -1139,7 +1632,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-85B87AA11EC5",
       "canonical_signature": "374481b1afd376bb9fbe84bcc5a347de1c27907e52887dbf495b1827b0ec90f9",
-      "researched_at": "2026-10-08T21:45:13.001343Z",
+      "researched_at": "2026-10-08T22:46:08.075994Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -1284,7 +1777,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-F308F06D01E2",
       "canonical_signature": "41a6886addcc96156854a1ee58c4d41db42fec61a981687b465541fb94b045bb",
-      "researched_at": "2026-10-08T21:45:59.885499Z",
+      "researched_at": "2026-10-08T22:46:47.640750Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -1423,7 +1916,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-C21732B84739",
       "canonical_signature": "649cb7934f9b23f27964d483f373426d78d52ba0d5395a427fe52babe220b3d3",
-      "researched_at": "2026-10-08T21:45:52.017297Z",
+      "researched_at": "2026-10-08T22:46:38.572504Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -1551,7 +2044,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-822E46CBF9B0",
       "canonical_signature": "0101b66b28e61bedef3bc4bbd7ccc2de817aa4edb05c9a7792e578e44a21e661",
-      "researched_at": "2026-10-08T21:45:04.646225Z",
+      "researched_at": "2026-10-08T22:45:59.822855Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -1673,7 +2166,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-056CBA44461E",
       "canonical_signature": "a0bc2a1a296818c7499be289ba3380f8bc736870d541af2d1657881c23ab6859",
-      "researched_at": "2026-10-08T21:43:01.340765Z",
+      "researched_at": "2026-10-08T22:43:49.343733Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -1813,7 +2306,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-48F431661A6B",
       "canonical_signature": "bb9061cc0d9ad07a006c7e3110a41b6c999e2872beb3748975d57b7e3486b012",
-      "researched_at": "2026-10-08T21:43:55.790744Z",
+      "researched_at": "2026-10-08T22:44:53.971350Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -1952,7 +2445,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-454AA3F20046",
       "canonical_signature": "09f937b22930371721c9ef408673d7395bc0a7f13814db710bb5343333eb89ec",
-      "researched_at": "2026-10-08T21:43:52.861460Z",
+      "researched_at": "2026-10-08T22:44:51.876606Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -2083,7 +2576,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-051D07A444D1",
       "canonical_signature": "8346af5974bfbcedb4bf08818e54d6567301f3d0235e982eb9b5989b3313f01b",
-      "researched_at": "2026-10-08T21:42:59.258063Z",
+      "researched_at": "2026-10-08T22:43:47.716342Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -2239,7 +2732,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-6E69DA229F6F",
       "canonical_signature": "4d636b7ce150287f70ee7c23302304e2ea7b55f12685f7935ea1587c0f04caf1",
-      "researched_at": "2026-10-08T21:44:57.958608Z",
+      "researched_at": "2026-10-08T22:45:54.667685Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -2384,7 +2877,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-64719F2F0902",
       "canonical_signature": "a0652ac73d1ea3b5272adadfc4562866ef24ff2c1abfa6331f1aed606b861932",
-      "researched_at": "2026-10-08T21:44:54.759822Z",
+      "researched_at": "2026-10-08T22:45:52.087319Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -2520,7 +3013,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-4FB236532012",
       "canonical_signature": "7ebc444e41d70fd4d032fb4c14897469109e4f2af4cbda69a1ea6eb47418e2e2",
-      "researched_at": "2026-10-08T21:44:31.739473Z",
+      "researched_at": "2026-10-08T22:45:30.528015Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -2672,7 +3165,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-697CC69F3A11",
       "canonical_signature": "d65593ed49be589e2dd44fa0aeb4d378b51da1447624ca3f70a9227584b8b727",
-      "researched_at": "2026-10-08T21:44:56.413750Z",
+      "researched_at": "2026-10-08T22:45:53.616070Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -2809,7 +3302,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-3AB0123A135A",
       "canonical_signature": "3788269f9d826809013c3942b81671f29b58d8b9effc76a720c67bf9dc4a2260",
-      "researched_at": "2026-10-08T21:43:45.790711Z",
+      "researched_at": "2026-10-08T22:44:46.399392Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -2963,7 +3456,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-D50A7F20FD35",
       "canonical_signature": "fe4cc8ed1bcbc4c7ce811532d05cd77dc8beb5d87f2799848849875529ebbebf",
-      "researched_at": "2026-10-08T21:45:54.017013Z",
+      "researched_at": "2026-10-08T22:46:40.712683Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -3073,7 +3566,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-B526C545993A",
       "canonical_signature": "57794b3aa94b95602f8513eb2b040e0ec7bb4055d78eec791a9cb673589345a7",
-      "researched_at": "2026-10-08T21:45:40.286687Z",
+      "researched_at": "2026-10-08T22:46:29.639801Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -3199,7 +3692,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-52D7A4CBC3EA",
       "canonical_signature": "012c1cc09334d8858750ce65ac75318a94635a66091be2bf33a13982aff4052a",
-      "researched_at": "2026-10-08T21:44:35.746235Z",
+      "researched_at": "2026-10-08T22:45:35.383737Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -3328,7 +3821,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-1B73F04C0D77",
       "canonical_signature": "11ee5e52fd3521962bba5ab74cec659b4462eaeb06f85ec85af2470ed3a6a39a",
-      "researched_at": "2026-10-08T21:43:14.994506Z",
+      "researched_at": "2026-10-08T22:44:01.578288Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -3477,7 +3970,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-F22DAAF83F20",
       "canonical_signature": "3a35db280a6abe5e131346920914a5806bddf2cc524072ba6b178b82d4b4dcb0",
-      "researched_at": "2026-10-08T21:45:59.628203Z",
+      "researched_at": "2026-10-08T22:46:47.354821Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -3597,7 +4090,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-E8C5547DE91A",
       "canonical_signature": "979746bf3bcdc9177ecb894dabc56d94d626a753a98baca0e0406154e102035e",
-      "researched_at": "2026-10-08T21:45:57.623773Z",
+      "researched_at": "2026-10-08T22:46:44.476748Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -3724,7 +4217,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-BD55EEA36CED",
       "canonical_signature": "a44847b4e55049842187c6debf188c70768fa6f9936b150c4f1785c3eb941d2b",
-      "researched_at": "2026-10-08T21:45:44.387792Z",
+      "researched_at": "2026-10-08T22:46:32.718369Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -3834,7 +4327,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-AE823403DFD7",
       "canonical_signature": "d63cc8c1cc4800397ad87f62efd81ff0b19863c733ca0237b90b798fcb07d481",
-      "researched_at": "2026-10-08T21:45:38.230541Z",
+      "researched_at": "2026-10-08T22:46:28.044314Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -3965,7 +4458,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-7754CC237CCD",
       "canonical_signature": "c7375e130f60c70798b23a8c1ec38526a9e9f4dfd923863988d9c1345559350f",
-      "researched_at": "2026-10-08T21:45:01.554164Z",
+      "researched_at": "2026-10-08T22:45:57.372826Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -4125,7 +4618,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-692EA1D7410D",
       "canonical_signature": "b13220dd615553a3e18bd0273cee0f2dadc536a073772278e6b433c6c82f1a90",
-      "researched_at": "2026-10-08T21:44:55.285490Z",
+      "researched_at": "2026-10-08T22:45:52.486475Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -4257,7 +4750,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-52CF2BED2DE0",
       "canonical_signature": "46893d41607cc66481d0b88b0441b47efb64ed79f64ac9c27c11a756c8a19a9c",
-      "researched_at": "2026-10-08T21:44:35.326882Z",
+      "researched_at": "2026-10-08T22:45:34.976474Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -4377,7 +4870,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-5120E4284250",
       "canonical_signature": "bfad7db642c36e3d339691f3dca95c1e743fcd9217f6dee64478fed5a3e89b23",
-      "researched_at": "2026-10-08T21:44:35.007135Z",
+      "researched_at": "2026-10-08T22:45:34.225861Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -4506,7 +4999,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-4E1FCFCCA9BB",
       "canonical_signature": "55b817381368220343a2c0cfef46c1dfb3ebfb5c66da6c0b89b0a94b50db4dd7",
-      "researched_at": "2026-10-08T21:44:00.218057Z",
+      "researched_at": "2026-10-08T22:44:57.522670Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -4604,7 +5097,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-45F5B47CECCF",
       "canonical_signature": "0f781bc1431a91ff75a6e4ac603650885dedde440bf53ea805ed251a41389767",
-      "researched_at": "2026-10-08T21:43:53.587490Z",
+      "researched_at": "2026-10-08T22:44:52.389490Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -4728,7 +5221,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-4226674AF5EA",
       "canonical_signature": "4caaffebba233e7ab0f17542f48c9db5ce926cca9824c03c04efbcc8860d90ee",
-      "researched_at": "2026-10-08T21:43:47.565407Z",
+      "researched_at": "2026-10-08T22:44:47.759478Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -4843,7 +5336,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-2BAAC79C11E5",
       "canonical_signature": "6e6a47ad7b8a7eccabf5488922c37897a5b3c3b6c5e3ef7c01fc313012ff10aa",
-      "researched_at": "2026-10-08T21:43:27.959676Z",
+      "researched_at": "2026-10-08T22:44:29.398693Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -4977,7 +5470,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-17CD538E592C",
       "canonical_signature": "e1e40f7a2da34b493c83f97b9c6a18cc0ff1024026bcce3ada5bc55c90e4d757",
-      "researched_at": "2026-10-08T21:43:10.138227Z",
+      "researched_at": "2026-10-08T22:43:57.514754Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -5140,7 +5633,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-167F98F07DC3",
       "canonical_signature": "461a99525f5e8573c399a5cec93017a82823e2181ff50302694e1d1743de972d",
-      "researched_at": "2026-10-08T21:43:07.933225Z",
+      "researched_at": "2026-10-08T22:43:55.685693Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -5277,7 +5770,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-0D4993E1E29E",
       "canonical_signature": "97398a47fed34b78720a17b033ed33b57299c658ad32b47138aa41ddf0a6774f",
-      "researched_at": "2026-10-08T21:43:06.636982Z",
+      "researched_at": "2026-10-08T22:43:54.683260Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -5408,7 +5901,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-C3FD6413E9C3",
       "canonical_signature": "9511d0d640676fb578bfa94592e623683cc7095d1560d2e491e3a83511d9e434",
-      "researched_at": "2026-10-08T21:45:52.417613Z",
+      "researched_at": "2026-10-08T22:46:39.093834Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -5506,7 +5999,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-A5685EE72258",
       "canonical_signature": "596f37620c999295b79770615667145fee810903a58498661b111e050ec7d21f",
-      "researched_at": "2026-10-08T21:45:34.572828Z",
+      "researched_at": "2026-10-08T22:46:25.051946Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -5633,7 +6126,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-43F4CDA9C083",
       "canonical_signature": "98787c5108d70419441c321cf5a34d41b864ff007bf5e914535b49ca72674c80",
-      "researched_at": "2026-10-08T21:43:52.326438Z",
+      "researched_at": "2026-10-08T22:44:51.335497Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -5772,7 +6265,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-BEABCA756C40",
       "canonical_signature": "485a7d63be682ca1b3edc420d20bed502c36eddb08cf13923ee3fdaa09474e6c",
-      "researched_at": "2026-10-08T21:45:50.753026Z",
+      "researched_at": "2026-10-08T22:46:37.371845Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -5890,7 +6383,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-B7F473626925",
       "canonical_signature": "0aa498110a8a3a447cdd81e68fa830b4046afb48fa858c97023eb06f8c4bba2f",
-      "researched_at": "2026-10-08T21:45:42.508670Z",
+      "researched_at": "2026-10-08T22:46:31.443503Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -6027,7 +6520,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-2FD75289C054",
       "canonical_signature": "51038b3bfc94ab4b7399bb2a83cb4e05ea915c5253a30658e94c54e1afaf86d5",
-      "researched_at": "2026-10-08T21:43:35.001318Z",
+      "researched_at": "2026-10-08T22:44:36.428809Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -6210,7 +6703,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-4FC3A1AD6A6C",
       "canonical_signature": "f1965cbec0ab4a142aa8b790a9104a2cb273e2cc027d29d624de6dd67ee6605d",
-      "researched_at": "2026-10-08T21:44:34.659836Z",
+      "researched_at": "2026-10-08T22:45:33.792390Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -6324,7 +6817,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-D7791BB60DED",
       "canonical_signature": "6fae9e1d1825e3d527625ecf61f3f6b9e1c15f3047dc02ac7ed8483f047038e1",
-      "researched_at": "2026-10-08T21:45:54.104585Z",
+      "researched_at": "2026-10-08T22:46:40.874701Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -6431,7 +6924,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-C4EF37285216",
       "canonical_signature": "4e6fff77f6d24a82e630edc409bffed50b88d5b4128318e8671b0c1309036e68",
-      "researched_at": "2026-10-08T21:45:52.593283Z",
+      "researched_at": "2026-10-08T22:46:39.291960Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -6541,7 +7034,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-C3B7F0C32A82",
       "canonical_signature": "c97db90a3e621e746945e7463a9afc261dba9d6d07855731931a6be53fe7a046",
-      "researched_at": "2026-10-08T21:45:52.291587Z",
+      "researched_at": "2026-10-08T22:46:38.923261Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -6652,7 +7145,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-9A8EA0EA1290",
       "canonical_signature": "5b2ae65ef5b077781e0adfc192b70e1554a7490c81cc575b9c53d13c3cf41b34",
-      "researched_at": "2026-10-08T21:45:22.363367Z",
+      "researched_at": "2026-10-08T22:46:14.561404Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -6782,7 +7275,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-8173F1E96690",
       "canonical_signature": "ad3062443271890faf38dc5417262d455efc0e58de4657f549af5245dfd95af8",
-      "researched_at": "2026-10-08T21:45:04.127148Z",
+      "researched_at": "2026-10-08T22:45:59.408079Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -6895,7 +7388,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-5ACB67642992",
       "canonical_signature": "b293f70565318a6e8b1e5ad4f289ce94bd572893caa04b8f0643aeca19e54d21",
-      "researched_at": "2026-10-08T21:44:45.143279Z",
+      "researched_at": "2026-10-08T22:45:43.898996Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -6993,7 +7486,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-EFC5F5FC6FBE",
       "canonical_signature": "8cee13d48dcf3d94dedd1b4f8372fa50297b47c82ae056f0ed13beb1ef773882",
-      "researched_at": "2026-10-08T21:45:59.346685Z",
+      "researched_at": "2026-10-08T22:46:46.921451Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -7093,7 +7586,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-C5D9453930C5",
       "canonical_signature": "abea8c1006501c3aa81727c009a8baa3b4f27dcef7add57f1410da03a529e4d0",
-      "researched_at": "2026-10-08T21:45:52.866786Z",
+      "researched_at": "2026-10-08T22:46:39.579770Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -7202,7 +7695,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-C2857739C953",
       "canonical_signature": "01593eb8282b7629e8ff3c1b08d4a38a5b7423bbd244504a8909b823abd1f588",
-      "researched_at": "2026-10-08T21:45:52.218693Z",
+      "researched_at": "2026-10-08T22:46:38.803749Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -7331,7 +7824,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-A1C76302F316",
       "canonical_signature": "196255fbf9ff577c6204d1469311abfedcec31bfaad02ad4722b0490eae836db",
-      "researched_at": "2026-10-08T21:45:29.266018Z",
+      "researched_at": "2026-10-08T22:46:20.076463Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -7460,7 +7953,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-802761256479",
       "canonical_signature": "aff2efbfd9a9f7ec7be0563ee8128a1931ff03cd636fb8087f356942e44cc1ff",
-      "researched_at": "2026-10-08T21:45:03.619838Z",
+      "researched_at": "2026-10-08T22:45:59.001752Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -7566,7 +8059,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-6070F0C18181",
       "canonical_signature": "df25abbc7cd66ce4c3dde4b8e658763fee6abf26c271eeff4b0da7a812ce5b51",
-      "researched_at": "2026-10-08T21:44:53.367020Z",
+      "researched_at": "2026-10-08T22:45:51.078585Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -7688,7 +8181,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-4CAA5B739F22",
       "canonical_signature": "1bce5d72476f62f348a4569426b8c7ba02c07860cb0fd717f2ec310b954b6458",
-      "researched_at": "2026-10-08T21:43:59.421376Z",
+      "researched_at": "2026-10-08T22:44:57.072412Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -7826,7 +8319,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-3D0F4E862C26",
       "canonical_signature": "bbb30e5b219e4cf35e62ad9ae2d9a31d72369287453155a790f53a3e5f840f2c",
-      "researched_at": "2026-10-08T21:43:46.939015Z",
+      "researched_at": "2026-10-08T22:44:47.326699Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -7965,7 +8458,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-2A1642348A48",
       "canonical_signature": "a6a1271b4d10cfd50edca7f443fdc1a34e71e4856f3f5ec2baf050440b6fa0cf",
-      "researched_at": "2026-10-08T21:43:27.188600Z",
+      "researched_at": "2026-10-08T22:44:29.010380Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -8129,7 +8622,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-4C89C21BA9BE",
       "canonical_signature": "f57e6602291bfea0ee5631bcd4705b096a9b6f1c19095e4b36258c0157c0e4db",
-      "researched_at": "2026-10-08T21:43:58.951923Z",
+      "researched_at": "2026-10-08T22:44:56.721346Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -8250,7 +8743,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-089B6803D06A",
       "canonical_signature": "4405abc7cdc4297cff193474c092a3f20bb1f3a0e811b54d0661e678670342cf",
-      "researched_at": "2026-10-08T21:43:04.488932Z",
+      "researched_at": "2026-10-08T22:43:53.015465Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -8353,7 +8846,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-EA2138F0C7F5",
       "canonical_signature": "8354499f75f88faee0c3a82916a3f4f0cdc908e4e2a0e71d9e7ae7bef7471281",
-      "researched_at": "2026-10-08T21:45:57.780263Z",
+      "researched_at": "2026-10-08T22:46:44.687629Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -8473,7 +8966,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-B5C992D9FBE0",
       "canonical_signature": "250ad1e6690db74decc503aaf11b359f7ab4ece13db0b27e4733fb1c136b9c79",
-      "researched_at": "2026-10-08T21:45:41.054026Z",
+      "researched_at": "2026-10-08T22:46:30.196954Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -8604,7 +9097,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-7C1AD5760A48",
       "canonical_signature": "6942933135e4983f192021bdfd93f51829db442d57681739d1b7e270a955d617",
-      "researched_at": "2026-10-08T21:45:02.133236Z",
+      "researched_at": "2026-10-08T22:45:57.917464Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -8718,7 +9211,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-2DD7299410CB",
       "canonical_signature": "e97f407add7f0f11693792afad97f107eb2e14ec863e3cd37777beac79a39ee3",
-      "researched_at": "2026-10-08T21:43:28.615180Z",
+      "researched_at": "2026-10-08T22:44:29.844323Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -8830,7 +9323,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-23D68E02E4EC",
       "canonical_signature": "baed15934a8c4972769007f420940d8184859cfeb0099fe4a45d09643b4ea9a8",
-      "researched_at": "2026-10-08T21:43:20.700212Z",
+      "researched_at": "2026-10-08T22:44:04.707606Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -8960,7 +9453,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-1C97FA8F0262",
       "canonical_signature": "f05ff25aad493da187ae34117130c72133cea7ef920385d27fc9566d8a21becb",
-      "researched_at": "2026-10-08T21:43:16.450239Z",
+      "researched_at": "2026-10-08T22:44:02.639196Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -9079,7 +9572,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-1B88D8349FDB",
       "canonical_signature": "d187516b5d0a0c3cb1f882402af7e2f525b11a0099df98f6b7a780c669a950ab",
-      "researched_at": "2026-10-08T21:43:15.775548Z",
+      "researched_at": "2026-10-08T22:44:02.083793Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -9210,7 +9703,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-07937B0DCED2",
       "canonical_signature": "852db2568c10e98f28564a8962fef261a695dad621ee35f4245a4b2762a00fdd",
-      "researched_at": "2026-10-08T21:43:02.534326Z",
+      "researched_at": "2026-10-08T22:43:50.501281Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -9316,7 +9809,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-555CF037A249",
       "canonical_signature": "bbb1416d51dca8e2302416a79b75a03188a3329dd2277e1d7e9244b26fc07c48",
-      "researched_at": "2026-10-08T21:44:44.138026Z",
+      "researched_at": "2026-10-08T22:45:42.672301Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -9440,7 +9933,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-425BD7B2FFA0",
       "canonical_signature": "458ad37271bb39cf73c225015739b75e3bcbb3e0ef4cccc05456b2592b275fbb",
-      "researched_at": "2026-10-08T21:43:50.807827Z",
+      "researched_at": "2026-10-08T22:44:50.241832Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -9575,7 +10068,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-29EA91477388",
       "canonical_signature": "9907d5ce44ddd39911ca3a231d5fb1848fb8581a59bba80c795df130cc128ced",
-      "researched_at": "2026-10-08T21:43:24.682002Z",
+      "researched_at": "2026-10-08T22:44:27.593686Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -9679,7 +10172,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-0639B4E883F9",
       "canonical_signature": "73bf3f16d0cb3b1423cffa5a7d49ef54f625b124a9400ac362936f43732853ff",
-      "researched_at": "2026-10-08T21:43:01.915244Z",
+      "researched_at": "2026-10-08T22:43:49.914553Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -9795,7 +10288,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-F3EA8AB98738",
       "canonical_signature": "d33b3e4bea5e1af56f5bbb41e7d93116fe184231675984614bf57863ec978fa7",
-      "researched_at": "2026-10-08T21:46:02.474682Z",
+      "researched_at": "2026-10-08T22:46:49.868919Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -9914,7 +10407,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-F010E67C8A35",
       "canonical_signature": "e1f304ca90eecb0aca286522e5a82875ab607b2e28773273a36f518c46f7aaa3",
-      "researched_at": "2026-10-08T21:45:59.490208Z",
+      "researched_at": "2026-10-08T22:46:47.145840Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -10031,7 +10524,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-6F06DE2DF28B",
       "canonical_signature": "9b1b15844caf1ee560cc72b2d678286dda344d548ee03937bb13408bef5e710d",
-      "researched_at": "2026-10-08T21:44:58.947692Z",
+      "researched_at": "2026-10-08T22:45:55.373727Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -10168,7 +10661,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-24994352D9CB",
       "canonical_signature": "49f23ec50bbae5a2dafbe77c0b25b2d2e00256e2aa765df6741ce6f68295da80",
-      "researched_at": "2026-10-08T21:43:21.288976Z",
+      "researched_at": "2026-10-08T22:44:05.217958Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -10306,7 +10799,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-AA18A117DBA1",
       "canonical_signature": "acaee8c68341a89e169230fea30433a90c0eefb22338e50c8842cdb37b39bcb7",
-      "researched_at": "2026-10-08T21:45:37.488915Z",
+      "researched_at": "2026-10-08T22:46:27.111047Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -10456,7 +10949,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-5E18C2D535E8",
       "canonical_signature": "976ea9349bcd4ab0a83dadc21d30f57697635c9316b7269f9b717cde8bf28b82",
-      "researched_at": "2026-10-08T21:44:51.294324Z",
+      "researched_at": "2026-10-08T22:45:48.779472Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -10611,7 +11104,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-BE9CC7F0704F",
       "canonical_signature": "a2e42e55e4c4d39b43ed6b385e7ab43ebd2ac7466e7ba51f4b3c0d4c98666175",
-      "researched_at": "2026-10-08T21:45:47.989059Z",
+      "researched_at": "2026-10-08T22:46:35.015248Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -10769,7 +11262,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-3467CC8C317D",
       "canonical_signature": "7887551c30e957145aa35ff512a117cb88778ccf8c57bd3fbaa561c33859c24f",
-      "researched_at": "2026-10-08T21:43:43.224025Z",
+      "researched_at": "2026-10-08T22:44:44.197674Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -10928,7 +11421,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-9E06CC5FA8A5",
       "canonical_signature": "2fc554a50438a4b8bf5e1c2d2aad930b5b655d32efa0077290af70794c6b81f3",
-      "researched_at": "2026-10-08T21:45:28.670541Z",
+      "researched_at": "2026-10-08T22:46:19.608732Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -11102,7 +11595,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-A2E27CF321FE",
       "canonical_signature": "fc179248e18c8b07487bce143cb834c7335763d4b10c804416cd98d6c6a81caa",
-      "researched_at": "2026-10-08T21:45:32.083729Z",
+      "researched_at": "2026-10-08T22:46:22.513683Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -11254,7 +11747,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-853344D6403E",
       "canonical_signature": "58acf8ab59df5b1cdf5bf3141fc2e2bc2440281b348920fe925a1a6daaeb00a6",
-      "researched_at": "2026-10-08T21:45:06.538093Z",
+      "researched_at": "2026-10-08T22:46:01.724143Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -11392,7 +11885,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-045BB8282222",
       "canonical_signature": "620027d1d3d4097a0c94532d5a9a63ab158bf34ac314b0b4f251d7aaeaf00e6d",
-      "researched_at": "2026-10-08T21:42:55.951581Z",
+      "researched_at": "2026-10-08T22:43:44.783427Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -11524,7 +12017,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-5B5B447325A8",
       "canonical_signature": "4ed37d04df36e29248b889c636a2afc0003405a99ce33c10c3315afd4b589146",
-      "researched_at": "2026-10-08T21:44:46.576222Z",
+      "researched_at": "2026-10-08T22:45:45.096561Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -11690,7 +12183,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-855FCD3A3D24",
       "canonical_signature": "a57f74046c17f17519f7542707abb479adf1b92e1f7e852b0f94b20e1278e2bb",
-      "researched_at": "2026-10-08T21:45:11.075707Z",
+      "researched_at": "2026-10-08T22:46:06.837348Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -11856,7 +12349,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-7EBD0FA07C12",
       "canonical_signature": "4358034a7bc11869363b7cc0b4f5c65c9d85087bf8bc8b78800233ce4fa5f25f",
-      "researched_at": "2026-10-08T21:45:02.662991Z",
+      "researched_at": "2026-10-08T22:45:58.408571Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -12011,7 +12504,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-FAD9D0AFD3E4",
       "canonical_signature": "eda0f4b05d00af166b9b25bcbddd9dfd1844dda6b28106f72c7307b9b2075b79",
-      "researched_at": "2026-10-08T21:46:05.761294Z",
+      "researched_at": "2026-10-08T22:46:53.517031Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -12197,7 +12690,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-5D9E5184D0F0",
       "canonical_signature": "d47bfcbfa8b966f616cc9ff29c4eef9b08ae3d1853e6d9002bf670ceca56c785",
-      "researched_at": "2026-10-08T21:44:47.666199Z",
+      "researched_at": "2026-10-08T22:45:46.121593Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -12343,7 +12836,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-549245C022B9",
       "canonical_signature": "57045e94ee26f5d5c9d880a81ac32dbd5a84545691f3d1088c37454c942d41b6",
-      "researched_at": "2026-10-08T21:44:40.977728Z",
+      "researched_at": "2026-10-08T22:45:40.486869Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -12351,7 +12844,7 @@
           "final_url": "https://deepmind.google/blog/alphagenome-atlas-a-predictive-map-of-every-possible-dna-letter-change-in-the-human-genome/",
           "status": 200,
           "content_type": "text/html",
-          "title": "",
+          "title": "AlphaGenome Atlas: Molecular predictions for 9 Billion human DNA variants — Google DeepMind",
           "reachable": true
         },
         {
@@ -12404,11 +12897,11 @@
       "rejected_candidates": [
         {
           "source": "https://deepmind.google/blog/alphagenome-atlas-a-predictive-map-of-every-possible-dna-letter-change-in-the-human-genome/",
-          "reason": "NO_IMAGE"
+          "reason": "LICENSE:NONE"
         },
         {
           "source": "https://deepmind.google/science/alphagenome/",
-          "reason": "NO_IMAGE"
+          "reason": "LICENSE:NONE"
         },
         {
           "source": "https://www.nature.com/articles/s41586-025-10014-0",
@@ -12541,7 +13034,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-49180A73A8A0",
       "canonical_signature": "be50149285bebcb37ac3c2ee8b6578b89ebf4f14acdeabad951d717d85e6e74e",
-      "researched_at": "2026-10-08T21:43:58.457369Z",
+      "researched_at": "2026-10-08T22:44:56.134806Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -12708,7 +13201,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-179D8B7D7D2D",
       "canonical_signature": "3218d6c3e8fff70c35ee7a317f27f4c385379e737fce2bb57dbbd85ada7dc7a8",
-      "researched_at": "2026-10-08T21:43:08.531373Z",
+      "researched_at": "2026-10-08T22:43:56.093048Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -12851,7 +13344,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-0462AE20C5CD",
       "canonical_signature": "ff84420923aceeabbc26d5c24a9d2c06b934c9f8106996194f7fa7bc5fae9ca8",
-      "researched_at": "2026-10-08T21:42:57.481813Z",
+      "researched_at": "2026-10-08T22:43:46.200214Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -12989,7 +13482,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-F63D7F3A70B9",
       "canonical_signature": "9ebb20ca2a605a609ce514dc4cd94a263789d45b8e3fa30b619ad7768f870304",
-      "researched_at": "2026-10-08T21:46:02.845833Z",
+      "researched_at": "2026-10-08T22:46:50.633599Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -13113,7 +13606,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-BFDCA63E4D53",
       "canonical_signature": "430d40055f496208adf2e20f170050c17da73982928fcf9922ea79b0c9c6d39a",
-      "researched_at": "2026-10-08T21:45:51.900904Z",
+      "researched_at": "2026-10-08T22:46:38.400064Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -13277,7 +13770,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-BA43DA5C5770",
       "canonical_signature": "78d087340afde2436d6b3463bd662ef9dc10451ee5d6742b073f9923393ed1d7",
-      "researched_at": "2026-10-08T21:45:43.851032Z",
+      "researched_at": "2026-10-08T22:46:32.519578Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -13409,14 +13902,13 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-28A16703D598",
       "canonical_signature": "bbc9573edf887f7db76a5a156a3289d0f9c6a169a3ae7d3538b07670f128fb99",
-      "researched_at": "2026-10-08T21:43:23.848925Z",
+      "researched_at": "2026-10-08T22:44:27.133744Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
           "url": "https://www.globenewswire.com/news-release/2026/09/08/3357321/0/en/asml-and-tsmc-announce-initiative-to-pioneer-industry-transition-to-large-format-photomasks-for-high-na-euv.html",
-          "status": 403,
           "reachable": false,
-          "error": "HTTPError"
+          "error": "TimeoutError"
         },
         {
           "url": "https://news.samsung.com/global/samsung-electronics-and-asml-expand-strategic-collaboration-for-next-generation-semiconductor-manufacturing",
@@ -13434,9 +13926,8 @@
         },
         {
           "url": "https://www.asml.com/en/news/press-releases/2026/high-na-euv-reaches-new-readiness-milestone",
-          "status": 403,
           "reachable": false,
-          "error": "HTTPError"
+          "error": "TimeoutError"
         }
       ],
       "related_public_sources": [],
@@ -13464,7 +13955,7 @@
       "rejected_candidates": [
         {
           "source": "https://www.globenewswire.com/news-release/2026/09/08/3357321/0/en/asml-and-tsmc-announce-initiative-to-pioneer-industry-transition-to-large-format-photomasks-for-high-na-euv.html",
-          "reason": "FETCH_FAILED:HTTP_403"
+          "reason": "LICENSE:NONE"
         },
         {
           "source": "https://news.samsung.com/global/samsung-electronics-and-asml-expand-strategic-collaboration-for-next-generation-semiconductor-manufacturing",
@@ -13476,7 +13967,7 @@
         },
         {
           "source": "https://www.asml.com/en/news/press-releases/2026/high-na-euv-reaches-new-readiness-milestone",
-          "reason": "FETCH_FAILED:HTTP_403"
+          "reason": "LICENSE:NONE"
         }
       ]
     }
@@ -13577,7 +14068,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-DBCE0693D769",
       "canonical_signature": "2bec5114f7827b59656869cd8fe42d6419eb3c1b23736ca9d735c6d6e1399af9",
-      "researched_at": "2026-10-08T21:45:56.630725Z",
+      "researched_at": "2026-10-08T22:46:42.955478Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -13715,7 +14206,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-34D01928C071",
       "canonical_signature": "2d8ff1182b54cd02435c67c6a000a09fe30340eab76297ebe57e2b088f01d6b0",
-      "researched_at": "2026-10-08T21:43:44.173238Z",
+      "researched_at": "2026-10-08T22:44:45.246743Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -13863,7 +14354,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-07D3957AC2B9",
       "canonical_signature": "e6e0e16e9e9036bb86e92138c23d06947ca36ce6353ac94faa36014213350f41",
-      "researched_at": "2026-10-08T21:43:04.066635Z",
+      "researched_at": "2026-10-08T22:43:52.632794Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -14036,7 +14527,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-2E15FDD2C2B1",
       "canonical_signature": "5a5a6d23fda683366fdffbc5b13936921d185cd78dc7e49d8a51cce00435577c",
-      "researched_at": "2026-10-08T21:43:29.103134Z",
+      "researched_at": "2026-10-08T22:44:30.128327Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -14171,7 +14662,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-955A495823F7",
       "canonical_signature": "9e59b8f62b5aa095a9a9e8e9859d1b13b96ca08a3a4466c26addc97457732d17",
-      "researched_at": "2026-10-08T21:45:21.793264Z",
+      "researched_at": "2026-10-08T22:46:14.205444Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -14315,7 +14806,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-FD20B449D1D5",
       "canonical_signature": "74d867b4891f14dbfb3e548f11bca37eb607d1447a152982cd5e57e2ee9d52cd",
-      "researched_at": "2026-10-08T21:46:08.580798Z",
+      "researched_at": "2026-10-08T22:46:55.637544Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -14481,7 +14972,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-841949AEA161",
       "canonical_signature": "040dd0b5c595dc451ef00f092c7699ff4d730a87c699ce74c4287d8c825ded60",
-      "researched_at": "2026-10-08T21:45:05.755834Z",
+      "researched_at": "2026-10-08T22:46:00.938414Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -14647,7 +15138,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-1A874373897A",
       "canonical_signature": "2d4f8b03d924d902cb2a8bc908fd77ba81da7267b86540a7ec02d4473fcbcd0f",
-      "researched_at": "2026-10-08T21:43:11.578581Z",
+      "researched_at": "2026-10-08T22:43:58.952593Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -14798,7 +15289,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-0B5314017C86",
       "canonical_signature": "61f99d8459120057d7d1c827c88a428ee655fd31dba8a1a8cca82d29a0774f81",
-      "researched_at": "2026-10-08T21:43:06.005573Z",
+      "researched_at": "2026-10-08T22:43:54.235915Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -14978,7 +15469,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-8AB23060CBF3",
       "canonical_signature": "0ec9f184ef88c09f6b59d460ba9988cbb2b226e663cf8ca5be56111816c44c27",
-      "researched_at": "2026-10-08T21:45:15.741475Z",
+      "researched_at": "2026-10-08T22:46:10.248891Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -15144,7 +15635,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-FF958ED4CB91",
       "canonical_signature": "ed603cf1816dafd5b48fa143943cf6b600e4072a37464546441830e0d32e02ce",
-      "researched_at": "2026-10-08T21:46:10.456017Z",
+      "researched_at": "2026-10-08T22:46:57.340219Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -15291,7 +15782,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-FD5D624C9971",
       "canonical_signature": "8039b35845d4bd261246b48886f1d8c70a495090e1e0879dea3e52821ee5f313",
-      "researched_at": "2026-10-08T21:46:09.571818Z",
+      "researched_at": "2026-10-08T22:46:56.470873Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -15432,7 +15923,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-D932AEC66CC3",
       "canonical_signature": "c1d07f2733d7b144831596a7bd2aacbce796215253ad0d5228cf9372655b6073",
-      "researched_at": "2026-10-08T21:45:54.214021Z",
+      "researched_at": "2026-10-08T22:46:41.031221Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -15572,7 +16063,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-183728526F81",
       "canonical_signature": "f4996f7d67d2b314bbfd3d15fcefa9d013a7e7a82abc7e3f5292974b2c3dee61",
-      "researched_at": "2026-10-08T21:43:10.889184Z",
+      "researched_at": "2026-10-08T22:43:58.088658Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -15712,7 +16203,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-47EB61AB3914",
       "canonical_signature": "b018f738daf3857691e0e0346a437441c8bab20ce7b6364dd295a619efdc9c84",
-      "researched_at": "2026-10-08T21:43:55.121294Z",
+      "researched_at": "2026-10-08T22:44:53.517520Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -15852,7 +16343,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-DF0FDE7BBB67",
       "canonical_signature": "2096914ddc26ff78486df5b02633693b917f38358805614e908374a84e0a5947",
-      "researched_at": "2026-10-08T21:45:56.704307Z",
+      "researched_at": "2026-10-08T22:46:43.145830Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -15972,7 +16463,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-929F34FAD7F4",
       "canonical_signature": "cb4b75583af4887eb583f4c38fb5240f8f08e14fc6e7101036c351cb812e8262",
-      "researched_at": "2026-10-08T21:45:17.765812Z",
+      "researched_at": "2026-10-08T22:46:11.734367Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -16097,7 +16588,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-A2B1425AD7A9",
       "canonical_signature": "514261258a148daad1bcd35728e108cfdc4eac353ecf9b0a02ff6af06c416d73",
-      "researched_at": "2026-10-08T21:45:29.830121Z",
+      "researched_at": "2026-10-08T22:46:20.519692Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -16223,7 +16714,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-1E28FC528202",
       "canonical_signature": "a907fc6480121083ca35d05d68d1932be51460e99fe5be63762fdd10e292d2ac",
-      "researched_at": "2026-10-08T21:43:19.996083Z",
+      "researched_at": "2026-10-08T22:44:04.217039Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -16360,7 +16851,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-7530484A9F24",
       "canonical_signature": "6e4637737069f8976102f8946c3e23d25f22e53d83103a21b8c367a10183869c",
-      "researched_at": "2026-10-08T21:45:00.901296Z",
+      "researched_at": "2026-10-08T22:45:56.852356Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -16477,7 +16968,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-C74403EE205F",
       "canonical_signature": "22d3c15d37be45f1037461ed8128191a92b1b03e1b3c09b827567d7bc327c290",
-      "researched_at": "2026-10-08T21:45:53.006190Z",
+      "researched_at": "2026-10-08T22:46:39.728954Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -16572,7 +17063,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-BEE6D61DE0B1",
       "canonical_signature": "ff086ff8dfeae2f2720ed2bb91f10e174e28e1a7a1d5d38a6d30658c3f0ffb8f",
-      "researched_at": "2026-10-08T21:45:50.990510Z",
+      "researched_at": "2026-10-08T22:46:37.632937Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -16672,7 +17163,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-533C3BB403CB",
       "canonical_signature": "424690ac5dd9baa38a3dbed0c9c25fd16a0772e1da0f65fa7ba47cec49ae2a9b",
-      "researched_at": "2026-10-08T21:44:36.704658Z",
+      "researched_at": "2026-10-08T22:45:36.132409Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -16773,7 +17264,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-2E937CA7BED4",
       "canonical_signature": "779e295b8231b297b01364703a71b35d200d8a180ed7f0f355d74b8d86683b8b",
-      "researched_at": "2026-10-08T21:43:31.316214Z",
+      "researched_at": "2026-10-08T22:44:33.584762Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -16885,7 +17376,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-F9F5D62969AD",
       "canonical_signature": "edb48ff57b5d2b03ee43ef24b633643f09b598f1976acd8d8a19f1cbb9b14c60",
-      "researched_at": "2026-10-08T21:46:03.079954Z",
+      "researched_at": "2026-10-08T22:46:51.095270Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -16893,7 +17384,7 @@
           "final_url": "https://deepmind.google/blog/weathernext-ai-model-achieves-breakthrough-in-forecasting-cyclones/",
           "status": 200,
           "content_type": "text/html",
-          "title": "",
+          "title": "AI model achieves breakthrough in forecasting cyclones — Google DeepMind",
           "reachable": true
         }
       ],
@@ -16981,7 +17472,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-F48EABA3B427",
       "canonical_signature": "2009f5a5f475eb5fcc25aa0dae674ef3346896ade4bd6899e2b875a2220270da",
-      "researched_at": "2026-10-08T21:46:02.657455Z",
+      "researched_at": "2026-10-08T22:46:50.175175Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -17081,7 +17572,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-B9C579B41E8D",
       "canonical_signature": "f8ccac91c787257cb6dfe8c359e61c2dd10c64678a00bf2d8396fd0f90e3a21b",
-      "researched_at": "2026-10-08T21:45:43.362930Z",
+      "researched_at": "2026-10-08T22:46:32.105456Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -17177,7 +17668,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-8FABFFAEAE50",
       "canonical_signature": "d95dbe2366cbca0365c2b52eaf0b3c2644f30655bb72b36e5b9cdcdca780da87",
-      "researched_at": "2026-10-08T21:45:16.443589Z",
+      "researched_at": "2026-10-08T22:46:10.888222Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
@@ -17214,7 +17705,7 @@
       "rejected_candidates": [
         {
           "source": "https://deepmind.google/blog/piloting-the-worlds-first-double-blind-ai-evaluations/",
-          "reason": "LICENSE:NONE"
+          "reason": "NO_IMAGE"
         }
       ]
     }
@@ -17277,7 +17768,7 @@
       "schema": "fcmo-public-research-receipt-v1",
       "id": "FCMO-71ED36BD00B9",
       "canonical_signature": "8f69d580cde25610222915dec09c01b8f543164b3bc56982895bc434d02a024e",
-      "researched_at": "2026-10-08T21:45:00.115766Z",
+      "researched_at": "2026-10-08T22:45:56.244048Z",
       "trust_boundary": "sanitized public brief + public Internet only",
       "source_checks": [
         {
