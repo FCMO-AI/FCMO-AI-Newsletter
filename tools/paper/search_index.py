@@ -1,4 +1,4 @@
-"""Compact, lazy-loaded search indexes with a hard per-locale budget."""
+"""Compact, lazy-loaded search shards with a hard per-file byte budget."""
 
 from __future__ import annotations
 
@@ -11,10 +11,11 @@ from .routes import href, story_path
 LIMIT = 150 * 1024
 
 
-def build(stories: list[dict], *, locale: dict, catalog: dict, base: str, out: Path) -> int:
+def build(stories: list[dict], *, locale: dict, catalog: dict, base: str, out: Path,
+          extra_rows: list[dict] | None = None) -> list[Path]:
     rows = []
     code = locale["code"]
-    for story in stories:
+    for story in sorted(stories, key=lambda s: (s.get("event_at", ""), s["id"]), reverse=True):
         if story.get("status") != "live":
             continue
         rows.append({
@@ -24,23 +25,38 @@ def build(stories: list[dict], *, locale: dict, catalog: dict, base: str, out: P
             "b": catalog.get("labels", {}).get("beat", {}).get(story.get("beat"), ""),
             "o": story.get("organizations", []),
             "t": story.get("topics", []),
-            # Keep the compact local-search fields above while retaining the
-            # original public agent index's query and citation vocabulary.
-            "title": headline(story, code, catalog),
-            "summary": story.get("summary", dek(story, code, catalog)),
-            "desk": story.get("desk") or story.get("beat", ""),
-            "event_at": story.get("event_at", ""),
-            "evidence": story.get("evidence_class", ""),
-            "confidence": story.get("confidence", ""),
-            "importance": story.get("importance", 0),
-            "kind": story.get("kind", ""),
-            "human_url": href(base, story_path(locale, story)),
-            "citation": {"source": href(base, story_path(locale, story))},
-            "search_text": " ".join([headline(story, code, catalog), dek(story, code, catalog), story.get("desk", ""), *story.get("topics", []), *story.get("organizations", [])]),
         })
-    payload = json.dumps(rows, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
-    if len(payload) > LIMIT:
-        raise ValueError(f"search index exceeds {LIMIT} bytes for {code}: {len(payload)}")
+    return write_shards(rows + (extra_rows or []), out=out)
+
+
+def write_shards(rows: list[dict], *, out: Path) -> list[Path]:
+    """Pack complete UTF-8 rows, including commas/brackets, without dropping text.
+
+    The first shard stays a JSON array at search.json for existing readers.
+    Corpus cardinality is unbounded; a single row must still fit the budget.
+    Validate all rows before replacing any previously generated shards.
+    """
+    shards: list[list[bytes]] = [[]]
+    size = 2  # JSON array brackets, including the empty-corpus case.
+    for row in rows:
+        encoded = json.dumps(row, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+        if len(encoded) + 2 > LIMIT:
+            raise ValueError(f"search row exceeds {LIMIT} bytes for {row.get('u', '')}: {len(encoded) + 2}")
+        added = len(encoded) + bool(shards[-1])
+        if size + added > LIMIT:
+            shards.append([])
+            size = 2
+            added = len(encoded)
+        shards[-1].append(encoded)
+        size += added
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_bytes(payload)
-    return len(payload)
+    # Rebuilding a smaller corpus must not leave obsolete served fragments.
+    for path in out.parent.glob(f"{out.stem}-*{out.suffix}"):
+        if path.stem.removeprefix(out.stem + "-").isdigit():
+            path.unlink()
+    paths = []
+    for number, shard in enumerate(shards, 1):
+        path = out if number == 1 else out.with_name(f"{out.stem}-{number}{out.suffix}")
+        path.write_bytes(b"[" + b",".join(shard) + b"]")
+        paths.append(path)
+    return paths
