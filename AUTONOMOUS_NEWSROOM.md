@@ -45,6 +45,8 @@ After the bridge has destroyed its private checkout, Newsletter's newsroom recei
 
 Newsletter never asks a model provider to translate or rewrite a story. It imports ARB-authored locale deltas, reconciles them against the declassified schema, validates high-value invariants, and fails closed on incomplete three-language coverage.
 
+The refresh holds an incoming story whose native pair is pending or failed. A complete prior version may be carried with its original source-bound locale packs. The received corpus retains repair debt; `release-src/data/publication-admission.json` records the per-story decision. A later valid delivery is admitted automatically. Refresh and Deploy run the same translation oracle before publication.
+
 ## 3. A dossier is not a Story
 
 `release-src/data/briefs/<FCMO-ID>.json` remains the evidence-oriented public dossier.
