@@ -1,7 +1,7 @@
 {
   "schema": "fcmo-stories-v2",
-  "generated_at": "2026-10-08T17:48:57Z",
-  "release_id": "newswire-13d88f73050169432f61d24a",
+  "generated_at": "2026-10-08T18:49:59Z",
+  "release_id": "newswire-028a6d7a4f9c906b116ced27",
   "canonical_locale": "en",
   "locales": [
     "en",
@@ -35,6 +35,802 @@
     "2026-10-08"
   ],
   "stories": [
+    {
+      "id": "FCMO-6E69DA229F6F",
+      "slug": "video-deltanet-combines-local-softmax-and-linear-memory-for-faster-long",
+      "url_date": "2026-10-08",
+      "kind": "development",
+      "status": "live",
+      "beat": "technology",
+      "desk": "compute_inference",
+      "title": "Video DeltaNet combines local softmax and linear memory for faster long-video diffusion",
+      "headline": "Video DeltaNet combines local softmax and linear memory for faster long-video diffusion",
+      "dek": "Xi et al. present Video DeltaNet (VDN), a hybrid attention design instantiated on MiniMax H3 for video diffusion.",
+      "summary": "Xi et al. present Video DeltaNet (VDN), a hybrid attention design instantiated on MiniMax H3 for video diffusion. It keeps exact softmax attention within a local temporal window and at first/last-frame anchors, while bidirectional linear memory handles distant video context; a frame-wise joint delta update couples correlated spatial writes. The authors report that, at 50 denoising evaluations on one B200, VDN-H3 reduces backbone latency from 799.6 to 307.9 seconds (2.6×) while remaining close to the dense baseline on their automatic quality metrics. Their optimized eight-step, eight-B200 path reports 6.7 seconds of denoising for a 14.3-second 768p clip. These are author-reported measurements, not independent reproductions; the final speed combines architecture, distillation and multi-GPU inference.",
+      "why_it_matters": "If the reported quality and latency hold beyond the authors’ fixed prompt set, combining local exact attention with compressed long-range memory could lower the inference cost of long video generation without relying on a full dense attention map. The evidence is one MiniMax H3 implementation using high-end accelerators and substantial optimization; transfer to other models, hardware and production workloads is unmeasured.",
+      "importance_rationale": "If the reported speed and quality hold across longer clips and independent workloads, the hybrid attention design could change the cost/latency frontier for video diffusion and make some long-video workloads more practical. Current evidence is one author-run MiniMax H3 implementation, with top-line latency depending on eight B200 GPUs, few-step distillation and a tuned inference stack; broader transfer and independent validation are open.",
+      "technical": {
+        "claimed_result": "The authors report 2.6× lower 50-evaluation backbone latency on one B200 versus dense MiniMax H3 (307.9 s versus 799.6 s) and 3.2× on one H200. They report 6.7 s denoising for a 14.3-second, 768p clip on eight B200 GPUs after eight-step distillation; their table’s 119.3× cumulative comparison is against single-GPU, 50-step dense H3 and combines architecture, step reduction and distributed inference. Automatic quality metrics remain author-reported.",
+        "compute_or_cost": "The fastest reported path uses eight B200 GPUs for denoising. The public checkpoint bundle is about 82 GB; no end-to-end energy or dollar cost per accepted video was measured.",
+        "demonstrated_result": "The paper and public OpenVDN repository expose a concrete VDN-H3 architecture, training/inference code and separately licensed weights. The paper’s experiment setup states 103 fixed third-party prompts, H200/B200 environments and automatic video-quality metrics. These artifact and protocol facts do not independently validate output quality or timing.",
+        "mechanism": "VDN preserves exact softmax attention inside a tokenizer-aligned temporal window and at the first/last latent-frame anchors, while bidirectional frame-wise linear memory handles more distant video context. Video Delta Attention solves one joint regularized update per frame so correlated spatial key/value writes interact; separate gates and output projections calibrate the two branches. A staged adaptation and eight-step distillation adapt the pathway to pretrained MiniMax H3.",
+        "novelty": "The reported contribution is a video-specific hybrid that allocates local/boundary interactions to exact softmax while using bidirectional linear memory for distant context, with a frame-level joint delta update and a complete optimized MiniMax H3 serving path.",
+        "regime": "One MiniMax H3-derived video-to-video/video-generation implementation; 103 fixed third-party prompts at 1344×768 resolution and 14.375-second duration. Performance results use NVIDIA H200 and B200 systems, optimized kernels/SGLang, fp8 and/or eight-GPU head sharding. Reported 6.7-second denoising excludes model load, warm-up, VAE decoding and MP4 encoding.",
+        "reproducibility": "Paper HTML, training/inference code and weights are public. No code or weights were run in this review. Independent reproduction, quality audit and transfer to other models remain open.",
+        "strongest_baseline": "Dense MiniMax H3 at matched 50 denoising evaluations for the architecture-only single-GPU timing comparison; the paper also compares Radial Attention at matched latency and FastH3 v2 for eight-evaluation quality. Its headline cumulative speedup uses a different one-GPU/50-step baseline than the eight-GPU/eight-step VDN endpoint."
+      },
+      "importance_tier": "Notable",
+      "development_type": "model_release",
+      "event_at": "2026-09-17T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-08T18:49:58Z",
+      "updated_at": "2026-10-08T18:49:58Z",
+      "importance": 5,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": true,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "DEMONSTRATED",
+            "text": "The paper presents Video DeltaNet as a hybrid that retains local-window and first/last-frame softmax attention while using bidirectional linear memory for distant video context; its Video Delta Attention update jointly solves frame-level spatial writes."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "For fixed prepared features and gates under the paper’s stated nonnegative write-gate and bounded decay assumptions, the authors derive a non-expansive inherited-state transition for the frame update."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "The authors report that VDN-H3 reduces 50-evaluation single-B200 backbone latency from 799.6 seconds to 307.9 seconds (2.6×) relative to dense H3, while remaining close on the paper’s automatic quality metrics."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "The authors report 6.7 seconds of denoising for a 14.3-second, 768p video on eight B200 GPUs after eight-step distillation; the paper’s 119.3× cumulative speedup is against single-GPU, 50-step dense H3 and combines architecture, fewer steps and distributed inference."
+          },
+          {
+            "label": "DEMONSTRATED",
+            "text": "The authors released training and inference code under Apache-2.0 and distribute the derivative model weights separately under the MiniMax H3 Community License Agreement; the repository says its full checkpoint bundle is about 82 GB."
+          }
+        ],
+        "limitations": [
+          "All reported runtime and quality results are author-reported; no independent reproduction or external video-quality panel was completed.",
+          "The 103-prompt automatic evaluation set, model, resolution, clip length and hardware define a narrow regime; transfer to other video models, tasks, lengths and production traffic is unknown.",
+          "The 6.7-second denoising figure excludes model load, warm-up, VAE decoding and MP4 encoding. The reported eight-GPU result does not establish lower total compute, energy or cost than a dense baseline.",
+          "The 119.3× cumulative figure compares an eight-step/eight-B200 VDN configuration with single-GPU/50-step dense H3; it combines architectural acceleration, sampler-step reduction and multi-GPU inference. The matched single-GPU, 50-step architectural speedup is 2.6× on B200 and 3.2× on H200.",
+          "GitHub README reports a 6.9-second denoising and approximately 9-second end-to-end setup, while arXiv v3 reports 6.7-second denoising in its table; the configurations differ and were not independently reconciled beyond their stated timing scopes.",
+          "The model weights are derivative of MiniMax H3 and use its Community License Agreement; Apache-2.0 applies to the repository code, not the weights.",
+          "The paper’s non-expansive-state result is conditional on fixed prepared features and gates and does not bound the full input-dependent network."
+        ],
+        "gaps": [
+          {
+            "kind": "missing_independent",
+            "description": "No independent run confirmed the paper’s B200/H200 latency or automatic video-quality results; public weights and code were not executed in this review."
+          },
+          {
+            "kind": "other",
+            "description": "The paper reports latency but not full accelerator-hours, energy or cost per accepted video; its cumulative headline compares different GPU counts and denoising steps."
+          },
+          {
+            "kind": "other",
+            "description": "Transfer beyond the MiniMax H3 checkpoint and fixed 103-prompt, 14.375-second evaluation regime is unmeasured."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://arxiv.org/abs/2609.20744",
+          "domain": "arxiv.org",
+          "primary": true
+        },
+        {
+          "url": "https://github.com/OpenVDN/vdn-minimax-h3",
+          "domain": "github.com",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "OpenVDN",
+        "MiniMax",
+        "SGLang"
+      ],
+      "topics": [
+        "video-generation",
+        "diffusion-transformers",
+        "linear-attention",
+        "hybrid-attention",
+        "inference-optimization"
+      ],
+      "regions": [
+        "GLOBAL"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-6E69DA229F6F.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: Video DeltaNet combines local softmax and linear memory for faster long-video diffusion"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "Video DeltaNet combina softmax local y memoria lineal para acelerar la difusión de video largo",
+            "summary": "Xi et al. presentan Video DeltaNet (VDN), un diseño híbrido de atención implementado sobre MiniMax H3 para difusión de video. Mantiene atención softmax exacta dentro de una ventana temporal local y en los fotogramas de los extremos, mientras que una memoria lineal bidireccional maneja el contexto de video distante; una actualización delta conjunta por fotograma acopla las escrituras espaciales correlacionadas. Los autores reportan que, con 50 evaluaciones de denoising en un B200, VDN-H3 reduce la latencia del modelo de 799.6 a 307.9 segundos (2.6×) y queda cerca del modelo denso en sus métricas automáticas de calidad. Su ruta optimizada de ocho pasos y ocho B200 reporta 6.7 segundos de denoising para un clip de 14.3 segundos a 768p. Son mediciones reportadas por los autores, no reproducciones independientes; la velocidad final combina arquitectura, destilación e inferencia con varias GPU.",
+            "importance_rationale": "Si la velocidad y la calidad reportadas se mantienen en clips más largos y cargas de trabajo independientes, la combinación de atención exacta local con memoria comprimida de largo alcance podría cambiar la frontera de costo y latencia de la difusión de video y hacer más prácticos algunos usos de video largo. La evidencia actual es una implementación de MiniMax H3 realizada por los autores; la latencia más alta depende de ocho GPU B200, destilación a pocos pasos y una pila de inferencia optimizada. La transferencia y la validación independiente siguen pendientes.",
+            "why_it_matters": "Si la calidad y la latencia reportadas se mantienen más allá del conjunto fijo de indicaciones de los autores, combinar atención exacta local con memoria comprimida de largo alcance podría reducir el costo de inferencia de video largo sin depender de un mapa de atención denso completo. La evidencia corresponde a una implementación de MiniMax H3 con aceleradores de gama alta y bastante optimización; no se ha medido la transferencia a otros modelos, hardware o cargas de producción.",
+            "technical": {
+              "claimed_result": "Los autores reportan una latencia 2.6× menor para 50 evaluaciones del modelo en un B200 frente a MiniMax H3 denso (307.9 s frente a 799.6 s), y 3.2× en un H200. Reportan 6.7 s de denoising para un clip de 14.3 segundos a 768p en ocho B200 después de destilar a ocho pasos; la comparación acumulada de 119.3× de la tabla usa H3 denso con 50 pasos y una GPU como línea base e incluye arquitectura, menos pasos e inferencia distribuida. Las métricas automáticas de calidad también son reportadas por los autores.",
+              "compute_or_cost": "La ruta más rápida reportada usa ocho GPU B200 para denoising. El paquete público de puntos de control pesa unos 82 GB; no se midieron energía ni costo monetario por video aceptado para la canalización completa.",
+              "demonstrated_result": "El artículo y el repositorio público OpenVDN ofrecen una arquitectura VDN-H3 concreta, código de entrenamiento e inferencia y pesos con una licencia aparte. La configuración experimental del artículo indica 103 indicaciones fijas de terceros, entornos H200/B200 y métricas automáticas de calidad de video. Estos datos de los artefactos y del protocolo no validan de forma independiente la calidad ni los tiempos.",
+              "mechanism": "VDN conserva atención softmax exacta dentro de una ventana temporal alineada con el tokenizador y en los fotogramas latentes inicial y final, mientras usa memoria lineal bidireccional por fotograma para el contexto de video distante. Video Delta Attention resuelve una actualización regularizada conjunta por fotograma para que interactúen las escrituras correlacionadas de claves y valores espaciales; compuertas y proyecciones de salida separadas calibran ambas ramas. Una adaptación por etapas y una destilación a ocho pasos adaptan el diseño a MiniMax H3 preentrenado.",
+              "novelty": "La contribución reportada es un diseño híbrido específico para video que asigna las interacciones locales y de los extremos a softmax exacto y usa memoria lineal bidireccional para el contexto distante, junto con una actualización delta conjunta por fotograma y una ruta optimizada de servicio de MiniMax H3.",
+              "regime": "Una implementación derivada de MiniMax H3 para video-a-video y generación de video; 103 indicaciones fijas de terceros a 1344×768 y una duración de 14.375 segundos. Las mediciones usan sistemas NVIDIA H200 y B200, kernels optimizados/SGLang, fp8 y/o partición en ocho GPU. Los 6.7 segundos de denoising excluyen carga, calentamiento, decodificación VAE y codificación MP4.",
+              "reproducibility": "El HTML del artículo, el código de entrenamiento e inferencia y los pesos son públicos. En esta revisión no se ejecutó el código ni se usaron los pesos. La reproducción independiente, la auditoría de calidad y la transferencia a otros modelos siguen pendientes.",
+              "strongest_baseline": "MiniMax H3 denso con las mismas 50 evaluaciones de denoising para la comparación arquitectónica de latencia en una GPU; el artículo también compara Radial Attention con latencia similar y FastH3 v2 para calidad a ocho evaluaciones. La aceleración acumulada de portada usa una línea base distinta, de una GPU y 50 pasos, frente al resultado VDN de ocho GPU y ocho pasos."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "El artículo presenta Video DeltaNet como un diseño híbrido que conserva atención softmax en ventanas locales y en los fotogramas inicial y final, mientras usa memoria lineal bidireccional para el contexto de video distante; su actualización Video Delta Attention resuelve conjuntamente las escrituras espaciales de cada fotograma."
+                },
+                {
+                  "text": "Para características preparadas y compuertas fijas, bajo los supuestos indicados de compuertas de escritura no negativas y decaimiento acotado, los autores derivan una transición no expansiva de la memoria heredada."
+                },
+                {
+                  "text": "Los autores reportan que VDN-H3 reduce la latencia del modelo con 50 evaluaciones de 799.6 segundos a 307.9 segundos (2.6×) en un solo B200 frente a H3 denso, y que queda cerca de la línea base en sus métricas automáticas de calidad."
+                },
+                {
+                  "text": "Los autores reportan 6.7 segundos de denoising para un video de 14.3 segundos a 768p en ocho GPU B200 después de destilar a ocho pasos; la aceleración acumulada de 119.3× de la tabla compara contra H3 denso con 50 pasos en una GPU y combina arquitectura, reducción de pasos e inferencia distribuida."
+                },
+                {
+                  "text": "Los autores publicaron código de entrenamiento e inferencia bajo Apache-2.0 y distribuyen por separado los pesos derivados bajo el MiniMax H3 Community License Agreement; el repositorio indica que el paquete completo de puntos de control ocupa unos 82 GB."
+                }
+              ],
+              "limitations": [
+                "Todas las cifras de tiempo y calidad las reportan los autores; no hubo reproducción independiente ni panel externo de calidad de video.",
+                "La evaluación automática de 103 indicaciones, el modelo, la resolución, la duración del clip y el hardware delimitan un régimen estrecho; se desconoce la transferencia a otros modelos de video, tareas, duraciones y tráfico de producción.",
+                "La cifra de 6.7 segundos cubre solo el denoising y excluye carga del modelo, calentamiento, decodificación VAE y codificación MP4. El resultado con ocho GPU no demuestra menor cómputo total, energía o costo frente a una línea base densa.",
+                "La cifra acumulada de 119.3× compara VDN de ocho pasos y ocho B200 con H3 denso de 50 pasos en una GPU; combina aceleración arquitectónica, reducción de pasos y más GPU. La mejora arquitectónica comparable en una GPU y 50 pasos es 2.6× en B200 y 3.2× en H200.",
+                "El README de GitHub reporta 6.9 segundos de denoising y unos 9 segundos de extremo a extremo, mientras que arXiv v3 reporta 6.7 segundos de denoising en su tabla; las configuraciones difieren y no se reconciliaron de forma independiente fuera del alcance temporal indicado.",
+                "Los pesos del modelo derivan de MiniMax H3 y usan su Community License Agreement; Apache-2.0 corresponde al código del repositorio, no a los pesos.",
+                "El resultado de transición no expansiva del artículo depende de características y compuertas fijas y no acota la red completa, que depende de sus entradas."
+              ],
+              "gaps": [
+                {
+                  "description": "Ninguna ejecución independiente confirmó las mediciones de latencia en B200/H200 ni los resultados automáticos de calidad de video; en esta revisión no se ejecutaron los pesos ni el código públicos."
+                },
+                {
+                  "description": "El artículo informa latencia, pero no horas totales de acelerador, energía ni costo por video aceptado; la comparación acumulada de portada usa distintos números de GPU y pasos de denoising."
+                },
+                {
+                  "description": "No se ha medido la transferencia más allá del punto de control MiniMax H3 ni del régimen fijo de 103 indicaciones y 14.375 segundos."
+                }
+              ]
+            },
+            "dek": "Xi et al. presentan Video DeltaNet (VDN), un diseño híbrido de atención implementado sobre MiniMax H3 para difusión de video."
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "Video DeltaNet 结合局部 softmax 与线性记忆，加速长视频扩散",
+            "summary": "Xi 等人提出 Video DeltaNet（VDN），一种应用于 MiniMax H3 视频扩散的混合注意力设计。它在局部时间窗口和首尾帧上保留精确 softmax 注意力，同时用双向线性记忆处理远距离视频上下文；逐帧联合 delta 更新会耦合相关的空间写入。作者报告，在单张 B200 上以 50 次去噪评估运行时，VDN-H3 将骨干延迟从 799.6 秒降至 307.9 秒（2.6×），且在其自动质量指标上接近稠密基线。其优化后的八步、八张 B200 路径报告，为一段 14.3 秒、768p 视频去噪需要 6.7 秒。这些是作者报告的测量结果，尚未独立复现；最终速度同时依赖架构、蒸馏和多 GPU 推理。",
+            "importance_rationale": "如果报告的速度与质量能在更长视频和独立工作负载中成立，将局部精确注意力与压缩的长程记忆结合，可能改变视频扩散的成本与延迟边界，让部分长视频任务更实用。现有证据来自作者在 MiniMax H3 上的一次实现；最高延迟结果依赖八张 B200 GPU、少步蒸馏和优化过的推理栈。跨模型迁移和独立验证仍未完成。",
+            "why_it_matters": "如果报告的质量与延迟在作者固定提示集之外仍能成立，将局部精确注意力与压缩的长程记忆结合，可能在不依赖完整稠密注意力图的情况下降低长视频生成的推理成本。现有证据仅来自一个使用高端加速器和大量优化的 MiniMax H3 实现；尚未测量向其他模型、硬件和生产工作负载的迁移。",
+            "technical": {
+              "claimed_result": "作者报告，VDN 在单张 B200 上以 50 次评估运行时，相较稠密 MiniMax H3 的骨干延迟降低 2.6×（307.9 秒对比 799.6 秒），在单张 H200 上降低 3.2×。经八步蒸馏后，在八张 B200 上为一段 14.3 秒、768p 视频去噪报告为 6.7 秒；表格中的 119.3×累计比较以单 GPU、50 步稠密 H3 为基线，并合并了架构、步数减少和分布式推理的效果。自动质量指标也由作者报告。",
+              "compute_or_cost": "报告的最快路径使用八张 B200 GPU 进行去噪。公开检查点包约 82 GB；未测量完整流程的能耗或每个可接受视频的货币成本。",
+              "demonstrated_result": "论文和 OpenVDN 公共仓库提供了具体的 VDN-H3 架构、训练与推理代码，以及单独授权的权重。论文实验设置称使用 103 条固定第三方提示、H200/B200 环境和自动视频质量指标。这些工件和测试方案信息不能独立验证输出质量或运行时间。",
+              "mechanism": "VDN 在与分词器对齐的局部时间窗口以及首尾潜在帧上保留精确 softmax 注意力，同时以逐帧双向线性记忆处理更远的视频上下文。Video Delta Attention 针对每帧求解一个联合正则化更新，使相关的空间键值写入相互作用；两条分支使用各自的门控与输出投影进行校准。分阶段适配和八步蒸馏将该设计适配到预训练 MiniMax H3。",
+              "novelty": "作者所述贡献是一种面向视频的混合设计：局部与边界交互使用精确 softmax，远距离上下文使用双向线性记忆，并加入逐帧联合 delta 更新和完整优化的 MiniMax H3 服务路径。",
+              "regime": "一种基于 MiniMax H3 的视频到视频/视频生成实现；在 1344×768 分辨率和 14.375 秒时长下使用 103 条固定第三方提示。性能测试使用 NVIDIA H200 和 B200、优化内核/SGLang、fp8 和/或八 GPU 分头切分。报告的 6.7 秒去噪时间不包括模型加载、预热、VAE 解码和 MP4 编码。",
+              "reproducibility": "论文 HTML、训练和推理代码以及权重均已公开。本次审查未运行代码或权重。独立复现、质量审计和向其他模型迁移的测试仍待完成。",
+              "strongest_baseline": "对于固定 50 次去噪评估的单 GPU 架构延迟比较，最强基线是稠密 MiniMax H3；论文还以相似延迟比较 Radial Attention，并在八次评估的质量比较中纳入 FastH3 v2。论文标题中的累计加速使用不同基线，即单 GPU、50 步稠密 H3，对比八 GPU、八步 VDN。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "论文提出 Video DeltaNet：在局部窗口以及首尾帧保留 softmax 注意力，并用双向线性记忆处理远距离视频上下文；其 Video Delta Attention 更新会联合求解每帧的空间写入。"
+                },
+                {
+                  "text": "在固定的预处理特征和门控、且满足论文所述的非负写入门控与有界衰减条件时，作者推导出继承状态的非扩张转移。"
+                },
+                {
+                  "text": "作者报告，在单张 B200 上，VDN-H3 将 50 次评估的骨干延迟从 799.6 秒降至 307.9 秒（2.6×），相较稠密 H3 在其自动质量指标上仍接近基线。"
+                },
+                {
+                  "text": "作者报告，经过八步蒸馏后，在八张 B200 GPU 上为一段 14.3 秒、768p 视频去噪需 6.7 秒；表格中的 119.3×累计加速以单 GPU、50 步稠密 H3 为基线，合并了架构改进、减少步数和多 GPU 推理的效果。"
+                },
+                {
+                  "text": "作者以 Apache-2.0 发布了训练和推理代码，并依据 MiniMax H3 Community License Agreement 单独分发衍生模型权重；仓库称完整检查点约为 82 GB。"
+                }
+              ],
+              "limitations": [
+                "所有运行时间和质量结果均由作者报告；没有独立复现或外部视频质量评审小组。",
+                "自动质量评估仅使用 103 条固定提示，且限定了模型、分辨率、视频时长和硬件；迁移到其他视频模型、任务、时长和生产流量的效果未知。",
+                "6.7 秒只包括去噪，不包括模型加载、预热、VAE 解码和 MP4 编码。八 GPU 结果不能证明相对于稠密基线减少了总计算量、能耗或成本。",
+                "119.3×累计数字将八步、八张 B200 的 VDN 与单 GPU、50 步稠密 H3 比较；它结合了架构加速、采样步数减少和多 GPU 推理。固定单 GPU、50 步的可比架构加速在 B200 上为 2.6×，在 H200 上为 3.2×。",
+                "GitHub README 报告去噪需 6.9 秒、端到端约 9 秒，而 arXiv v3 表格报告去噪需 6.7 秒；配置有所不同，本次未在各自报告的计时范围以外进行独立协调。",
+                "模型权重源自 MiniMax H3，受其 Community License Agreement 约束；Apache-2.0 适用于仓库代码，不适用于权重。",
+                "论文中的状态非扩张结论以预处理特征和门控固定为条件，并未约束完整的输入相关网络。"
+              ],
+              "gaps": [
+                {
+                  "description": "没有独立运行确认论文报告的 B200/H200 延迟或自动视频质量结果；本次审查没有运行公开代码或权重。"
+                },
+                {
+                  "description": "论文报告延迟，但没有给出总加速器时数、能耗或每个可接受视频的成本；其累计加速比较使用了不同 GPU 数量和去噪步数。"
+                },
+                {
+                  "description": "尚未在 MiniMax H3 检查点以外的模型，或固定的 103 条提示和 14.375 秒时长范围之外，测量方法的迁移效果。"
+                }
+              ]
+            },
+            "headline": "Video DeltaNet 结合局部 softmax 与线性记忆，加速长视频扩散"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
+    {
+      "id": "FCMO-64719F2F0902",
+      "slug": "frontier-language-models-rank-small-molecule-conformers-above-uff-but",
+      "url_date": "2026-10-08",
+      "kind": "development",
+      "status": "live",
+      "beat": "research",
+      "desk": "evaluation_science",
+      "title": "Frontier language models rank small-molecule conformers above UFF but below MMFF94",
+      "headline": "Frontier language models rank small-molecule conformers above UFF but below MMFF94",
+      "dek": "Semakin et al. test whether language models can rank molecular conformers from 3D coordinates using relative-energy labels.",
+      "summary": "Semakin et al. test whether language models can rank molecular conformers from 3D coordinates using relative-energy labels. Their benchmark covers 810 geometries from 27 small molecules. Table 1 reports GPT-6 Astra at mean reliable-pair Kendall τ 0.67 and Claude Opus 5 at 0.61, above UFF (0.23) but below MMFF94 (0.93) and GFN-FF (0.72). The result is a bounded author-run preprint benchmark, not evidence that language models replace molecular mechanics or generalize across chemical space.",
+      "why_it_matters": "A language model’s ability to rank some small-molecule conformers from coordinates could inform hybrid AI chemistry workflows. The comparison also places the capability in context: in this benchmark, the best tested models trail established force-field baselines, and the 27-molecule regime does not test broad chemical generalization.",
+      "importance_rationale": "If replicated beyond the small-molecule benchmark, coordinate-only conformer ranking by language models could affect how AI chemistry systems combine learned models and force fields. In the reported regime the strongest LLMs remain below MMFF94, so the result is notable evidence of a narrow capability rather than a replacement for computational chemistry.",
+      "technical": {
+        "claimed_result": "Across 27 molecules, 810 geometries and three prompt-order shuffles, the paper reports mean reliable-pair Kendall τ of 0.67 for GPT-6 Astra, 0.61 for Claude Opus 5, 0.23 for UFF, 0.72 for GFN-FF and 0.93 for MMFF94. These are paper-reported benchmark scores; no independent run was conducted here.",
+        "compute_or_cost": "The paper reports API experiment costs and an association between cost and score, but this review did not audit invoices or recompute cost. The cross-model comparisons are descriptive and model-family observations are not independent.",
+        "demonstrated_result": "The paper documents its molecule set, reference-energy protocol, coordinate presentation, pair filtering and reported rankings. Its repository exposes data and precomputed responses. This supports the existence of a reproducible benchmark artifact, not independent confirmation of the model results.",
+        "mechanism": "The benchmark presents rotated Cartesian coordinates and asks language models to rank conformers by relative stability. Reference labels use r2SCAN-3c calculations; ten molecules receive higher-level checks against DLPNO-CCSD(T). The analysis scores reliable conformer pairs and compares model rankings with classical force fields.",
+        "regime": "27 small organic molecules: 25 GEOM-QM9 molecules with up to 9 heavy atoms plus two out-of-distribution controls; 30 conformers per molecule (810 geometries). Scoring uses reliable pairs with |ΔE| ≥ 2 kcal/mol and at least 15 such pairs per molecule. Three independently shuffled prompt orders are used.",
+        "reproducibility": "Authors provide data, raw inputs, precomputed responses and plotting code. No independent reproduction was found in a bounded exact-title/arXiv-ID search; no model calls or code were run in this review. API availability and model snapshot changes may affect reruns.",
+        "strongest_baseline": "MMFF94 (mean reliable-pair Kendall τ 0.93), with GFN-FF at 0.72; strongest reported language-model scores are GPT-6 Astra 0.67 and Claude Opus 5 0.61."
+      },
+      "importance_tier": "Notable",
+      "development_type": "paper",
+      "event_at": "2026-09-17T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-08T18:49:58Z",
+      "updated_at": "2026-10-08T18:49:58Z",
+      "importance": 5,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": true,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "CLAIMED",
+            "text": "The authors evaluate frontier language models on 810 conformer geometries from 27 small organic molecules, using DFT-derived relative energies and three shuffled prompt orders; the scoring set retains reliable conformer pairs with energy separation of at least 2 kcal/mol."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "In Table 1, mean reliable-pair Kendall τ is 0.67 for GPT-6 Astra and 0.61 for Claude Opus 5, above UFF at 0.23 but below MMFF94 at 0.93; GFN-FF scores 0.72. These are author-reported results from the stated benchmark."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "The authors report stronger model performance on structures with well-defined hydrogen-bond interactions and persistent difficulty on many ring-strain and torsion-dominated cases; the result does not establish general 3D physical understanding or experimentally useful molecular design."
+          },
+          {
+            "label": "DEMONSTRATED",
+            "text": "The authors publicly provide benchmark data, raw inputs, precomputed responses and plotting/reproduction code; reproducing model calls requires the documented dependencies and access to relevant model APIs."
+          }
+        ],
+        "limitations": [
+          "This is an author-run preprint benchmark; no independent reproduction was found or performed in this review.",
+          "The sample contains only 27 molecules, mostly small QM9 structures, with a restricted conformer-ranking task; broader chemical-space generalization is unmeasured.",
+          "Only three prompt-order shuffles and one response per model per molecule are reported; API sampling settings vary by provider.",
+          "Kendall τ ranking agreement is not an energy-error measure and does not establish molecular design or experimental utility.",
+          "Cross-model correlations with release date and API cost are descriptive; model families and benchmark observations are not independent samples."
+        ],
+        "gaps": [
+          {
+            "kind": "missing_independent",
+            "description": "No independent reproduction of the reported conformer rankings was located or run."
+          },
+          {
+            "kind": "other",
+            "description": "The benchmark is limited to 27 mostly small molecules and does not establish transfer to larger or chemically diverse scaffolds."
+          },
+          {
+            "kind": "other",
+            "description": "The single-response-per-model-per-molecule design and API/model-specific sampling settings limit uncertainty estimates and strict cross-model comparability."
+          },
+          {
+            "kind": "other",
+            "description": "The ranking task does not establish accurate energies, experimentally validated structures or utility in molecular design."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://arxiv.org/abs/2609.20666",
+          "domain": "arxiv.org",
+          "primary": true
+        },
+        {
+          "url": "https://github.com/TheorChemGroup/LLMConfBench",
+          "domain": "github.com",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "TheorChemGroup"
+      ],
+      "topics": [
+        "ai-for-science",
+        "computational-chemistry",
+        "molecular-geometry",
+        "evaluation-methodology"
+      ],
+      "regions": [
+        "GLOBAL"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-64719F2F0902.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: Frontier language models rank small-molecule conformers above UFF but below MMFF94"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "Modelos de lenguaje de frontera ordenan conformeros de moléculas pequeñas por encima de UFF, pero por debajo de MMFF94",
+            "summary": "Semakin et al. evalúan si los modelos de lenguaje pueden ordenar conformeros moleculares a partir de coordenadas 3D y etiquetas de energía relativa. Su benchmark abarca 810 geometrías de 27 moléculas pequeñas. La Tabla 1 reporta para GPT-6 Astra un Kendall τ medio de pares confiables de 0.67 y para Claude Opus 5 de 0.61, por encima de UFF (0.23), pero por debajo de MMFF94 (0.93) y GFN-FF (0.72). Es un benchmark acotado realizado por los autores en un preprint, no evidencia de que los modelos de lenguaje sustituyan la mecánica molecular ni generalicen a todo el espacio químico.",
+            "importance_rationale": "Si se replica más allá del benchmark de moléculas pequeñas, ordenar conformeros a partir de coordenadas podría influir en cómo los sistemas de química con IA combinan modelos aprendidos y campos de fuerza. En el régimen reportado, los LLM más fuertes siguen por debajo de MMFF94; por ello, el resultado es evidencia destacable de una capacidad acotada, no un reemplazo de la química computacional.",
+            "why_it_matters": "La capacidad de un modelo de lenguaje para ordenar algunos conformeros de moléculas pequeñas a partir de coordenadas podría orientar flujos de química con IA híbridos. La comparación también pone la capacidad en contexto: en este benchmark, los mejores modelos evaluados quedan por debajo de métodos de campo de fuerza establecidos, y el régimen de 27 moléculas no prueba una generalización química amplia.",
+            "technical": {
+              "claimed_result": "El benchmark presenta coordenadas cartesianas rotadas y pide a los modelos de lenguaje que ordenen conformeros por estabilidad relativa. Las etiquetas de referencia usan cálculos r2SCAN-3c; diez moléculas reciben verificaciones de mayor nivel frente a DLPNO-CCSD(T). El análisis puntúa pares confiables y compara las clasificaciones de los modelos con campos de fuerza clásicos.",
+              "compute_or_cost": "En 27 moléculas, 810 geometrías y tres mezclas del orden de prompts, el artículo reporta Kendall τ medio de pares confiables de 0.67 para GPT-6 Astra, 0.61 para Claude Opus 5, 0.23 para UFF, 0.72 para GFN-FF y 0.93 para MMFF94. Son puntuaciones reportadas en el artículo; aquí no se realizó una ejecución independiente.",
+              "demonstrated_result": "El artículo documenta el conjunto de moléculas, el protocolo de energías de referencia, la presentación de coordenadas, el filtrado de pares y las clasificaciones reportadas. El repositorio expone datos y respuestas precalculadas. Esto respalda la existencia de un artefacto de benchmark reproducible, no la confirmación independiente de los resultados de los modelos.",
+              "mechanism": "27 moléculas orgánicas pequeñas: 25 moléculas GEOM-QM9 de hasta 9 átomos pesados más dos controles fuera de distribución; 30 conformeros por molécula (810 geometrías). La puntuación usa pares confiables con |ΔE| ≥ 2 kcal/mol y al menos 15 pares de ese tipo por molécula. Se usan tres órdenes de prompt mezclados de forma independiente.",
+              "regime": "MMFF94 (Kendall τ medio de pares confiables de 0.93), seguido de GFN-FF con 0.72; las puntuaciones más altas reportadas para modelos de lenguaje son GPT-6 Astra con 0.67 y Claude Opus 5 con 0.61.",
+              "reproducibility": "Los autores proporcionan datos, entradas sin procesar, respuestas precalculadas y código de gráficas. Una búsqueda acotada por título exacto e ID de arXiv no encontró reproducción independiente; en esta revisión no se ejecutaron consultas a modelos ni código. La disponibilidad de API y los cambios en las versiones de los modelos pueden afectar las repeticiones.",
+              "strongest_baseline": "El artículo reporta costos de experimentos con API y una asociación entre costo y puntuación, pero esta revisión no auditó facturas ni recalculó costos. Las comparaciones entre modelos son descriptivas, y las observaciones de familias de modelos no son independientes."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "Los autores evalúan modelos de lenguaje de frontera con 810 geometrías de conformeros de 27 moléculas orgánicas pequeñas, usando energías relativas derivadas de DFT y tres órdenes de prompt mezclados; el conjunto de puntuación conserva pares confiables con una separación de energía de al menos 2 kcal/mol."
+                },
+                {
+                  "text": "En la Tabla 1, el Kendall τ medio de pares confiables es 0.67 para GPT-6 Astra y 0.61 para Claude Opus 5, por encima de UFF (0.23) pero por debajo de MMFF94 (0.93); GFN-FF obtiene 0.72. Son resultados reportados por los autores para el benchmark descrito."
+                },
+                {
+                  "text": "Los autores reportan mejor desempeño de los modelos en estructuras con interacciones de puente de hidrógeno bien definidas y dificultades persistentes en muchos casos dominados por tensión de anillo y torsión; el resultado no demuestra comprensión física 3D general ni utilidad experimental para diseñar moléculas."
+                },
+                {
+                  "text": "Los autores proporcionan públicamente datos del benchmark, entradas sin procesar, respuestas precalculadas y código para reproducir las gráficas; repetir las consultas a modelos requiere las dependencias documentadas y acceso a las API pertinentes."
+                }
+              ],
+              "limitations": [
+                "Este es un benchmark de un preprint realizado por sus autores; en esta revisión no se encontró ni se realizó una reproducción independiente.",
+                "La muestra contiene solo 27 moléculas, en su mayoría estructuras pequeñas de QM9, y una tarea acotada de ordenamiento de conformeros; no se midió la generalización a un espacio químico más amplio.",
+                "Se reportan solo tres mezclas del orden de los prompts y una respuesta por modelo y molécula; los ajustes de muestreo de API varían entre proveedores.",
+                "La concordancia de ordenamiento mediante Kendall τ no mide error de energía ni demuestra utilidad para diseño molecular o experimentación.",
+                "Las correlaciones entre modelos con fecha de lanzamiento y costo de API son descriptivas; las familias de modelos y observaciones del benchmark no son muestras independientes."
+              ],
+              "gaps": [
+                {
+                  "description": "No se localizó ni realizó una reproducción independiente de las clasificaciones de conformeros reportadas."
+                },
+                {
+                  "description": "El benchmark se limita a 27 moléculas, en su mayoría pequeñas, y no establece transferencia a estructuras más grandes o químicamente diversas."
+                },
+                {
+                  "description": "El diseño de una sola respuesta por modelo y molécula, junto con ajustes de muestreo específicos de cada API o modelo, limita la estimación de incertidumbre y la comparación estricta entre modelos."
+                },
+                {
+                  "description": "La tarea de ordenar no demuestra energías precisas, estructuras validadas experimentalmente ni utilidad en diseño molecular."
+                }
+              ]
+            },
+            "dek": "Semakin et al. evalúan si los modelos de lenguaje pueden ordenar conformeros moleculares a partir de coordenadas 3D y etiquetas de energía relativa."
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "前沿语言模型对小分子构象的排序优于 UFF，但低于 MMFF94",
+            "summary": "Semakin 等人评估语言模型能否根据 3D 坐标和相对能量标签对分子构象排序。基准测试涵盖 27 个小分子的 810 个几何构型。表 1 报告，GPT-6 Astra 的可靠构象对平均 Kendall τ 为 0.67，Claude Opus 5 为 0.61，高于 UFF（0.23），但低于 MMFF94（0.93）和 GFN-FF（0.72）。这是作者在预印本中开展的有限基准测试，并不能证明语言模型可以取代分子力学或泛化到整个化学空间。",
+            "importance_rationale": "如果这一结果能在小分子基准测试以外得到复现，基于坐标的构象排序可能影响 AI 化学系统如何结合学习模型与力场。在报告的测试范围内，最强的 LLM 仍低于 MMFF94，因此这是值得关注的有限能力证据，而不是取代计算化学的结果。",
+            "why_it_matters": "语言模型根据坐标对部分小分子构象排序的能力，可能为混合式 AI 化学工作流提供参考。该比较也界定了能力范围：在此基准测试中，表现最好的受测模型仍低于成熟的力场基线，而 27 个分子的测试范围无法检验广泛的化学泛化能力。",
+            "technical": {
+              "claimed_result": "基准测试向语言模型提供旋转后的笛卡尔坐标，并要求其按相对稳定性对构象排序。参考标签使用 r2SCAN-3c 计算；其中十个分子还通过 DLPNO-CCSD(T) 进行更高层级的检查。分析仅为可靠构象对评分，并将模型排序与经典力场比较。",
+              "compute_or_cost": "在 27 个分子、810 个几何构型和三种提示顺序下，论文报告可靠构象对的平均 Kendall τ：GPT-6 Astra 为 0.67，Claude Opus 5 为 0.61，UFF 为 0.23，GFN-FF 为 0.72，MMFF94 为 0.93。这些是论文报告的基准分数；本次未进行独立运行。",
+              "demonstrated_result": "论文记录了分子集、参考能量方案、坐标呈现方式、构象对筛选和报告的排序结果。其仓库提供数据和预计算响应。这证明存在可复现的基准测试材料，但不能独立确认模型结果。",
+              "mechanism": "27 个小型有机分子：25 个 GEOM-QM9 分子（最多 9 个重原子）以及两个分布外控制分子；每个分子 30 个构象（共 810 个几何构型）。评分使用 |ΔE| ≥ 2 kcal/mol 的可靠构象对，且每个分子至少有 15 个此类构象对。采用三种彼此独立打乱的提示顺序。",
+              "regime": "MMFF94（可靠构象对平均 Kendall τ 为 0.93），其次是 0.72 的 GFN-FF；报告得分最高的语言模型是 GPT-6 Astra（0.67）和 Claude Opus 5（0.61）。",
+              "reproducibility": "作者提供数据、原始输入、预计算响应和绘图代码。按精确标题和 arXiv 编号进行的有限搜索未发现独立复现；本次审查未运行模型调用或代码。API 可用性和模型快照变化可能影响复现结果。",
+              "strongest_baseline": "论文报告了 API 实验成本及其与分数的相关性，但本次审查未审计账单或重新计算成本。跨模型比较属于描述性分析，模型家族的观测并不独立。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "作者使用 27 个小型有机分子的 810 个构象几何，评估前沿语言模型；相对能量标签来自 DFT 计算，并采用三种打乱后的提示顺序。评分集保留能量差至少为 2 kcal/mol 的可靠构象对。"
+                },
+                {
+                  "text": "表 1 中，可靠构象对的平均 Kendall τ 为：GPT-6 Astra 0.67、Claude Opus 5 0.61，高于 UFF 的 0.23，但低于 MMFF94 的 0.93；GFN-FF 为 0.72。这些是作者在所述基准测试中报告的结果。"
+                },
+                {
+                  "text": "作者报告，模型在具有明确氢键相互作用的结构上表现较好，在许多由环张力和扭转主导的案例上仍有困难；该结果不能证明模型具备通用的 3D 物理理解能力，也不能证明其对实验分子设计有用。"
+                },
+                {
+                  "text": "作者公开提供基准数据、原始输入、预计算响应以及绘图和复现代码；重新调用模型需要文档所述依赖项和相关模型 API 的访问权限。"
+                }
+              ],
+              "limitations": [
+                "这是作者开展的预印本基准测试；本次审查未找到或执行独立复现。",
+                "样本仅含 27 个分子，多数为小型 QM9 结构，任务也仅限构象排序；尚未测量其在更广泛化学空间中的泛化能力。",
+                "报告仅使用三种提示顺序和每个模型每个分子一次响应；不同供应商的 API 采样设置并不相同。",
+                "Kendall τ 排序一致性并非能量误差指标，也不能证明其对分子设计或实验有用。",
+                "模型表现与发布日期、API 成本之间的相关性仅具描述性；模型家族及基准观测并非独立样本。"
+              ],
+              "gaps": [
+                {
+                  "description": "本次未找到或执行对所报告构象排序结果的独立复现。"
+                },
+                {
+                  "description": "基准测试仅包含 27 个分子，且大多较小，尚未证明可迁移到更大或化学多样性更高的结构。"
+                },
+                {
+                  "description": "每个模型与分子仅使用一次响应，且 API 和模型的采样设置各异，因此不确定性估计和严格的跨模型比较受到限制。"
+                },
+                {
+                  "description": "排序任务不能证明能量准确、结构经实验验证或分子设计具有实际效用。"
+                }
+              ]
+            },
+            "headline": "前沿语言模型对小分子构象的排序优于 UFF，但低于 MMFF94",
+            "dek": "Semakin 等人评估语言模型能否根据 3D 坐标和相对能量标签对分子构象排序。基准测试涵盖 27 个小分子的 810 个几何构型。表 1 报告，GPT-6 Astra 的可靠构象对平均 Kendall τ 为 0.67，Claude Opus 5 为 0.61，高于 UFF（0.23），但低于 MMFF94（0.93）和 GFN-FF（0.72）。这是作者在预印本中开展的有限基准测试，并不能证明语言模型可以取代分子力学或泛化到整个化学空间。"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
+    {
+      "id": "FCMO-051D07A444D1",
+      "slug": "openai-reports-iran-and-russia-linked-false-front-influence-campaigns",
+      "url_date": "2026-10-08",
+      "kind": "development",
+      "status": "live",
+      "beat": "policy",
+      "desk": "policy_geopolitics",
+      "title": "OpenAI reports Iran- and Russia-linked false-front influence campaigns using its models",
+      "headline": "OpenAI reports Iran- and Russia-linked false-front influence campaigns using its models",
+      "dek": "OpenAI reports that it banned two account clusters it attributes to separate Russian- and Iranian-origin influence operations.",
+      "summary": "OpenAI reports that it banned two account clusters it attributes to separate Russian- and Iranian-origin influence operations. The company says one operated a purported Latin American research center and used unwitting local staff, fabricated documents and synthetic media; the other used seven journalist bylines to pitch articles and generated batches of social-media comments. OpenAI says some content appeared in real media outlets, and estimates the Russian-linked operation at category 5 and the Iranian-linked operation at category 4 on the Brookings Breakout Scale. These are company assessments based partly on its account data and open-source checks, not an independent audit of attribution or reach. Spanish-language reporting confirms that related false content circulated in the region, but the reviewed examples do not establish linkage to these account clusters; one superficially similar Ecuador recruitment fake was reported as circulating in 2025.",
+      "why_it_matters": "If the attribution and operational account are accurate, the cases show AI being used as one part of influence workflows that also rely on fake organizations, human intermediaries, fabricated documents and placement in real outlets. The source says model use was often internal reporting or editing rather than generating the full campaign, and reports exaggerated self-measured impact; that distinction matters when assessing what AI contributed and how much reach the operations achieved.",
+      "importance_rationale": "If the account-cluster attribution and described workflows are accurate, AI-supported false identities, article placement and synthetic assets across multiple countries could affect political information channels and create practical burdens for media, platforms and regulators. The score reflects the potential consequence of the bounded operational claim, not its certainty: core attribution and reach measures come from OpenAI, and public corroboration of similar content does not establish a link to these actors.",
+      "technical": {
+        "claimed_result": "OpenAI attributes one operation to Russia and one to Iran, says the Iranian-linked operation placed nearly 100 articles across about a dozen outlets, and assesses the Russian-linked operation at category 5 and the Iranian-linked one at category 4 on the Brookings Breakout Scale. The company also says operators exaggerated some internal impact measures and that part of the detected model use was reporting rather than producing campaign content.",
+        "demonstrated_result": "OpenAI published an Oct 8 report describing two account clusters, its account-enforcement action and the evidence/limitations it used to assess campaign reach. The report is direct evidence of the company's account and assessment, not independent confirmation of actor attribution or every claimed operation outcome.",
+        "mechanism": "OpenAI says operators used its models for internal campaign reporting and content editing, including drafting or refining articles, pitches, comments, translations and synthetic-media scripts. The campaigns also relied on non-model mechanisms: fabricated outlet/think-tank identities, human intermediaries, false documents, account networks and placement through real publications.",
+        "regime": "Two account clusters using ChatGPT, associated by OpenAI with Russian- and Iranian-origin operations. Public examples and claimed targeting focus on Latin America, the US-Iran conflict and outlets publishing international-affairs content. No independent full case file was inspected.",
+        "reproducibility": "The public report and several cited regional fact checks are accessible. Underlying account data, enforcement records and attribution analysis are not public, so the full operational claim is not independently reproducible from the inspected sources.",
+        "strongest_baseline": "OpenAI compares the cases with pre-AI influence operations and its prior reporting on 30 covert operations; no matched comparison isolates how much AI changed cost, output volume, success rate or audience reach."
+      },
+      "importance_tier": "Major",
+      "development_type": "organizational",
+      "event_at": "2026-10-08T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-08T18:49:58Z",
+      "updated_at": "2026-10-08T18:49:58Z",
+      "importance": 6,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": true,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "DEMONSTRATED",
+            "text": "OpenAI publicly reported on 2026-10-08 that it banned two account clusters it associates with separate Iran- and Russia-origin influence operations and shared information with relevant authorities."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "OpenAI says the Russian-linked operation used a purported Latin American research center and unwitting staff, while the Iranian-linked operation used seven journalist bylines to pitch articles and generated batches of social-media comments."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "OpenAI estimates that the Russian-linked operation reached category 5 and the Iranian-linked operation category 4 on the Brookings Breakout Scale; it reports nearly 100 Iranian-linked articles across about a dozen outlets."
+          },
+          {
+            "label": "DEMONSTRATED",
+            "text": "A Spanish-language Ecuador fact-check describes a similar fake recruitment video circulating since 2025-03-24 and published its fact-check on 2026-04-03; this establishes prior circulation of similar content, not a link to OpenAI’s reported account clusters."
+          },
+          {
+            "label": "DEMONSTRATED",
+            "text": "Ecuadorian reporting in June 2026 describes a separate forged email directing schools to stage a political event and says the education ministry filed a complaint; that report does not attribute the incident to the account clusters OpenAI describes."
+          }
+        ],
+        "limitations": [
+          "Attribution of the account clusters to state-linked operators and the operation descriptions rely on OpenAI’s account telemetry and investigation; the underlying case files are not public.",
+          "The Brookings Breakout Scale categories in the source are OpenAI's assessments; no independent evaluation of the score or comparative audience reach was conducted.",
+          "Nearly 100 articles are reported as published or syndicated under bylines linked to the Iranian operation; the precise outlet list, audience totals, and causal effect on readers are not fully established here.",
+          "OpenAI says internal operator reports used deceptive impact calculations and that some claimed fakes were not found in open sources; counts and claimed reach should not be treated as verified output totals.",
+          "Spanish-language fact checks and reporting document related or superficially similar false content, but the inspected sources do not link these specific incidents to the two account clusters.",
+          "Lupa Media's page is dated 2026-04-03 while its text says the video circulated from 2025-03-24; the precise timeline and whether the campaign reused or reintroduced the material remain unresolved."
+        ],
+        "gaps": [
+          {
+            "kind": "missing_independent",
+            "description": "No independent investigator reviewed the underlying account records or confirmed actor/state attribution for the two clusters."
+          },
+          {
+            "kind": "other",
+            "description": "The relationship between OpenAI’s reported campaign examples and similar Latin American false content documented by regional fact-checkers is unresolved; some source dates predate the account-cluster period."
+          },
+          {
+            "kind": "other",
+            "description": "The report does not isolate how AI use changed total campaign cost, throughput, publication success or audience impact compared with non-AI influence operations."
+          }
+        ],
+        "contradictory": [
+          "Lupa Media reports that a superficially similar Ecuador recruitment fake circulated from 2025-03-24, before the 2026 campaign period described by OpenAI. This does not disprove a later reuse or the cluster attribution, but it means the reviewed public match cannot establish that OpenAI’s reported actors originated that content.",
+          "OpenAI itself says operators sometimes claimed credit for public events or content they had not caused, and says it could not corroborate some of the reported fakes."
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://openai.com/index/disrupting-ai-enabled-false-front-operations/",
+          "domain": "openai.com",
+          "primary": true
+        },
+        {
+          "url": "https://lupa.com.ec/verificaciones/noboa-mercenarios-ucrania-ecuador/",
+          "domain": "lupa.com.ec",
+          "primary": true
+        },
+        {
+          "url": "https://www.expreso.ec/politica/desmienten-video-ninos-haciendo-juramento-daniel-noboa-erik-prince-286024.html",
+          "domain": "expreso.ec",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "OpenAI"
+      ],
+      "topics": [
+        "influence-operations",
+        "disinformation",
+        "ai-misuse",
+        "latin-america",
+        "iran",
+        "russia"
+      ],
+      "regions": [
+        "RU",
+        "GLOBAL"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-051D07A444D1.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: OpenAI reports Iran- and Russia-linked false-front influence campaigns using its models"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "OpenAI informa sobre campañas de falsa fachada vinculadas a Irán y Rusia que usaron sus modelos",
+            "summary": "OpenAI informa que suspendió dos grupos de cuentas que atribuye a operaciones de influencia distintas, una de origen ruso y otra iraní. La empresa dice que una operaba un supuesto centro de investigación latinoamericano y usaba personal local que desconocía el vínculo, documentos fabricados y medios sintéticos; la otra usaba siete seudónimos periodísticos para ofrecer artículos y generaba tandas de comentarios en redes sociales. OpenAI afirma que parte del contenido apareció en medios reales y estima que la operación vinculada a Rusia alcanzó la categoría 5 y la de Irán la categoría 4 de la Brookings Breakout Scale. Son evaluaciones de la empresa basadas en parte en los datos de sus cuentas y búsquedas abiertas, no una auditoría independiente de atribución o alcance. Fuentes en español confirman que circularon contenidos falsos relacionados en la región, pero los ejemplos revisados no establecen un vínculo con esos grupos; un engaño ecuatoriano superficialmente similar aparece reportado desde 2025.",
+            "importance_rationale": "Si la atribución de los grupos de cuentas y la descripción operativa son correctas, identidades falsas, colocación de artículos y materiales sintéticos apoyados por IA en varios países podrían afectar los canales de información política y aumentar la carga práctica de medios, plataformas y reguladores. El puntaje refleja la consecuencia potencial de la afirmación acotada, no su certeza: la atribución central y las mediciones de alcance provienen de OpenAI, y la corroboración pública de contenido similar no demuestra un vínculo con estos actores.",
+            "why_it_matters": "Si la atribución y el relato operativo son correctos, los casos muestran la IA como una pieza dentro de flujos de influencia que también recurren a organizaciones falsas, intermediarios humanos, documentos fabricados y publicaciones en medios reales. La fuente dice que el uso del modelo a menudo consistía en informes internos o edición y no en generar toda la campaña; también reporta métricas de impacto exageradas por los operadores. Esta distinción importa para evaluar qué aportó la IA y cuánto alcance lograron las operaciones.",
+            "technical": {
+              "claimed_result": "OpenAI atribuye una operación a Rusia y otra a Irán; afirma que la iraní distribuyó casi 100 artículos en alrededor de una docena de medios y evalúa la rusa en categoría 5 y la iraní en categoría 4 de la Brookings Breakout Scale. La empresa también dice que los operadores inflaron algunas mediciones internas de impacto y que parte del uso observado del modelo consistía en redactar informes, no producir contenido de campaña.",
+              "demonstrated_result": "OpenAI publicó el 8 de octubre un informe que describe dos grupos de cuentas, la suspensión que realizó y la evidencia y limitaciones usadas para evaluar el alcance de las campañas. El informe demuestra lo que la empresa declaró y evaluó, no confirma de forma independiente la atribución de los actores ni todos los resultados alegados.",
+              "mechanism": "OpenAI afirma que los operadores usaron sus modelos para informes internos y edición de contenido, incluida la redacción o revisión de artículos, propuestas editoriales, comentarios, traducciones y guiones para medios sintéticos. Las campañas también dependieron de mecanismos ajenos al modelo: identidades falsas de medios y centros de investigación, intermediarios humanos, documentos falsos, redes de cuentas y publicaciones en medios reales.",
+              "regime": "Dos grupos de cuentas que usaban ChatGPT y que OpenAI asocia con operaciones de origen ruso e iraní. Los ejemplos públicos y los objetivos reportados se centran en América Latina, el conflicto entre Estados Unidos e Irán y medios de asuntos internacionales. No se inspeccionó un expediente completo independiente.",
+              "reproducibility": "Se puede consultar el informe público y varias verificaciones regionales citadas. Los datos subyacentes de cuentas, registros de cumplimiento y análisis de atribución no son públicos, de modo que la afirmación operativa completa no se puede reproducir de forma independiente con las fuentes revisadas.",
+              "strongest_baseline": "OpenAI compara los casos con operaciones de influencia anteriores a la IA y con sus informes previos sobre 30 operaciones encubiertas; no hay una comparación equivalente que aísle cuánto cambió la IA el costo, el volumen, la tasa de éxito o el alcance de audiencia."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "OpenAI informó públicamente el 2026-10-08 que suspendió dos grupos de cuentas que asocia con operaciones de influencia distintas, una de origen iraní y otra rusa, y que compartió información con las autoridades pertinentes."
+                },
+                {
+                  "text": "OpenAI afirma que la operación vinculada a Rusia usó un supuesto centro de investigación latinoamericano y personal local que desconocía el vínculo, mientras que la operación vinculada a Irán usó siete seudónimos periodísticos para ofrecer artículos y generó tandas de comentarios en redes sociales."
+                },
+                {
+                  "text": "OpenAI estima que la operación vinculada a Rusia alcanzó la categoría 5 y la vinculada a Irán la categoría 4 de la Brookings Breakout Scale; además reporta casi 100 artículos iraníes distribuidos en alrededor de una docena de medios."
+                },
+                {
+                  "text": "Una verificación ecuatoriana en español describe un video falso similar sobre reclutamiento que circulaba desde 2025-03-24 y publicó su verificación el 2026-04-03; esto establece circulación previa de contenido similar, no un vínculo con los grupos de cuentas descritos por OpenAI."
+                },
+                {
+                  "text": "Un medio ecuatoriano informó en junio de 2026 sobre un correo falsificado que ordenaba a escuelas realizar un acto político y dijo que el Ministerio de Educación presentó una denuncia; el informe no atribuye el incidente a los grupos de cuentas descritos por OpenAI."
+                }
+              ],
+              "limitations": [
+                "La atribución de los grupos de cuentas a operadores vinculados a Estados y las descripciones operativas dependen de la telemetría y la investigación de OpenAI; los expedientes subyacentes no son públicos.",
+                "Las categorías de Brookings Breakout Scale son evaluaciones de OpenAI; no se realizó una evaluación independiente de las puntuaciones ni del alcance comparativo de audiencia.",
+                "OpenAI reporta casi 100 artículos publicados o distribuidos bajo seudónimos vinculados con la operación iraní; aquí no se establecen por completo la lista de medios, las audiencias totales ni el efecto causal en lectores.",
+                "OpenAI dice que los informes internos de los operadores usaban cálculos de impacto engañosos y que algunos engaños reportados no aparecieron en búsquedas abiertas; las cifras de publicaciones y alcance no deben tratarse como producción verificada.",
+                "Las verificaciones y notas en español documentan contenido falso relacionado o superficialmente similar, pero las fuentes revisadas no lo vinculan con estos grupos de cuentas.",
+                "La página de Lupa Media tiene fecha 2026-04-03, mientras el texto dice que el video circulaba desde 2025-03-24; siguen sin resolverse la cronología precisa y una posible reutilización o reaparición del material."
+              ],
+              "gaps": [
+                {
+                  "description": "Ningún investigador independiente revisó los registros subyacentes de las cuentas ni confirmó la atribución de los dos grupos a actores estatales."
+                },
+                {
+                  "description": "No está resuelta la relación entre los ejemplos de campaña de OpenAI y otros contenidos falsos similares de América Latina; algunas fechas de las fuentes son anteriores al período de los grupos de cuentas."
+                },
+                {
+                  "description": "El informe no aísla cómo cambió la IA el costo total, el volumen de trabajo, el éxito de publicación o el impacto de audiencia frente a operaciones sin IA."
+                }
+              ],
+              "contradictory": [
+                "Lupa Media informa que un engaño de reclutamiento ecuatoriano superficialmente similar circulaba desde 2025-03-24, antes del período de campaña de 2026 que describe OpenAI. Esto no refuta una reutilización posterior ni la atribución de los grupos, pero significa que la coincidencia pública revisada no demuestra que los actores descritos por OpenAI originaran ese contenido.",
+                "La propia OpenAI señala que los operadores a veces se atribuían sucesos o contenidos públicos que no habían causado y que no pudo corroborar algunas de las falsificaciones que reportaron."
+              ]
+            },
+            "dek": "OpenAI informa que suspendió dos grupos de cuentas que atribuye a operaciones de influencia distintas, una de origen ruso y otra iraní."
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb",
+            "evidence.contradictory": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "OpenAI 报告称伊朗和俄罗斯相关的虚假门面影响行动使用了其模型",
+            "summary": "OpenAI 称其封禁了两个账户群组，并将其归因于分别与俄罗斯和伊朗有关的影响行动。该公司称，其中一方运营了一个自称拉美研究机构的组织，使用不知情的当地工作人员、伪造文件和合成媒体；另一方使用七个记者笔名投稿，并批量生成社交媒体评论。OpenAI 表示，部分内容曾出现在真实媒体上，并按 Brookings 突破规模表将俄罗斯相关行动评为第 5 类、伊朗相关行动评为第 4 类。这些是公司基于其账户数据和公开信息核查作出的评估，不是对归因或传播范围的独立审计。西班牙语来源证实拉美地区曾传播相关虚假内容，但所查示例不能证明其与这些账户群组有关；一项表面相似的厄瓜多尔招募骗局据报道早在 2025 年就已流传。",
+            "importance_rationale": "如果账户群组归因和行动过程属实，多国利用 AI 辅助的虚假身份、文章投放和合成内容，可能影响政治信息渠道，并给媒体、平台和监管机构带来实际负担。该重要性分数衡量这一有限主张若为真时的潜在后果，而非其确定性：核心归因与触达规模由 OpenAI 提供，公开查到相似内容也不能证明其与这些行动者有关。",
+            "why_it_matters": "如果归因和行动过程属实，这些案例表明 AI 是影响行动工作流中的一环，而这些工作流还依赖虚假组织、人类中间人、伪造文件以及向真实媒体投放内容。来源称，模型使用经常用于内部报告或编辑，而不是生成整场行动的内容；报告还指出行动者夸大了自报影响。这一区分有助于评估 AI 实际发挥了什么作用，以及这些行动获得了多大传播范围。",
+            "technical": {
+              "claimed_result": "OpenAI 将一起行动归因于俄罗斯，另一起归因于伊朗；该公司称，伊朗相关行动在约十多家媒体刊发了近 100 篇文章，并按 Brookings 突破规模表将俄罗斯相关行动评为第 5 类、伊朗相关行动评为第 4 类。OpenAI 还称，行动者夸大了部分内部影响指标，而且模型使用中有一部分是编写内部报告，并非制作行动内容。",
+              "demonstrated_result": "OpenAI 于十月 8 日发布报告，描述了两个账户群组、公司的封禁行动以及评估行动触达范围所依据的证据与限制。该报告能证明公司作出了这些说明和评估，但不能独立确认行动者归因或所有所述行动结果。",
+              "mechanism": "OpenAI 称，行动者使用其模型撰写内部行动报告和编辑内容，包括起草或修改文章、投稿信、评论、翻译和合成媒体脚本。这些行动还依赖模型以外的手段：伪装的媒体或智库身份、人类中间人、伪造文件、账户网络，以及向真实媒体投稿。",
+              "regime": "两个使用 ChatGPT 的账户群组，OpenAI 将其分别与俄罗斯和伊朗相关行动联系起来。公开案例和所述目标涉及拉美、美国与伊朗冲突，以及报道国际事务的媒体。本次未审阅完整的独立案件档案。",
+              "reproducibility": "公开报告和若干引用的区域事实核查可以查阅。底层账户数据、执法记录和归因分析未公开，因此无法仅凭本次审阅的来源独立复现完整行动主张。",
+              "strongest_baseline": "OpenAI 将这些案例与 AI 出现前的影响行动及其此前报告的 30 起秘密影响行动进行比较；没有匹配对照来单独量化 AI 对成本、产出量、成功率或受众触达的影响。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "OpenAI 于 2026-10-08 发布报告称，已封禁其认定与伊朗和俄罗斯两起不同影响行动有关的两个账户群组，并已向有关部门共享信息。"
+                },
+                {
+                  "text": "OpenAI 称，与俄罗斯有关的行动使用了一个自称拉美研究机构的组织和不知情的当地工作人员；与伊朗有关的行动则使用七个记者笔名投稿，并批量生成社交媒体评论。"
+                },
+                {
+                  "text": "OpenAI 估计，与俄罗斯有关的行动在 Brookings 突破规模表上达到第 5 类，与伊朗有关的行动达到第 4 类；该公司还报告称，伊朗行动相关的文章接近 100 篇，刊发于约十多家媒体。"
+                },
+                {
+                  "text": "一项西班牙语厄瓜多尔事实核查称，一段内容相似的招募假视频自 2025-03-24 起传播，并于 2026-04-03 发布核查结果；这只能证明类似内容曾较早流传，不能证明其与 OpenAI 报告中的账户群组有关。"
+                },
+                {
+                  "text": "厄瓜多尔媒体在 2026 年六月报道称，有伪造邮件指示学校举行政治活动，教育部已提出申诉；该报道没有把事件归因于 OpenAI 所述的账户群组。"
+                }
+              ],
+              "limitations": [
+                "账户群组与国家相关行动者之间的归因，以及对行动的描述，依赖 OpenAI 的账户遥测和调查；底层案件材料未公开。",
+                "Brookings 突破规模表类别是 OpenAI 的评估；本次未独立评估评分或比较受众触达范围。",
+                "OpenAI 报告称，与伊朗行动有关的笔名刊发或转载了近 100 篇文章；本次未完全确认媒体清单、总受众规模或对读者的因果影响。",
+                "OpenAI 称，行动者的内部报告使用了误导性的影响计算，且部分所报假内容未在公开信息中找到；不应把发布数量和触达规模当作已核实的产出。",
+                "西班牙语事实核查和报道记录了相关或表面相似的虚假内容，但所查来源没有将这些事件与这两个账户群组联系起来。",
+                "Lupa Media 页面日期为 2026-04-03，但正文称视频自 2025-03-24 起传播；确切时间线以及相关材料是否被再次使用或重新传播仍不清楚。"
+              ],
+              "gaps": [
+                {
+                  "description": "没有独立调查人员审查账户底层记录，或确认这两个群组与国家行为者之间的归因关系。"
+                },
+                {
+                  "description": "OpenAI 报告中的行动示例与拉美事实核查机构记录的类似虚假内容之间的关系仍不清楚；部分来源日期早于相关账户群组的行动期。"
+                },
+                {
+                  "description": "报告没有单独量化 AI 相较于非 AI 影响行动对总成本、工作量、发布成功率或受众影响的改变。"
+                }
+              ],
+              "contradictory": [
+                "Lupa Media 称，一种表面相似的厄瓜多尔招募骗局自 2025-03-24 起流传，早于 OpenAI 所述的 2026 年行动期。这并不能否定后续再利用或账户群组归因，但意味着本次查到的公开相似内容不能证明 OpenAI 所述行动者最初制造了该内容。",
+                "OpenAI 自己也称，行动者有时会把并非由其造成的公开事件或内容算作自己的成果，并表示有些所报告的假内容未能通过公开信息核实。"
+              ]
+            },
+            "headline": "OpenAI 报告称伊朗和俄罗斯相关的虚假门面影响行动使用了其模型"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb",
+            "evidence.contradictory": "arb"
+          }
+        }
+      }
+    },
     {
       "id": "FCMO-697CC69F3A11",
       "slug": "uk-ico-reports-developer-privacy-commitments-and-opens-an-agentic-ai",
