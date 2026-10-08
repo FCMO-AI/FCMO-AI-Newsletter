@@ -54,7 +54,7 @@ ROOT = Path(__file__).resolve().parents[2]
 from tools.publication_freshness import publication_status, reader_status
 BEATS = ("technology", "business", "policy", "society", "research")
 
-SEARCH_JS = r'''(()=>{const f=document.querySelector('[data-search-form]'),q=document.querySelector('[data-search-input]'),o=document.querySelector('[data-search-results]');if(!f)return;let rows;const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));f.addEventListener('submit',async e=>{e.preventDefault();let term=q.value.trim().toLocaleLowerCase();if(!term)return;if(!rows){o.textContent=o.dataset.loading;rows=await fetch(f.dataset.index).then(r=>{if(!r.ok)throw Error(r.status);return r.json()}).catch(()=>[])}let hits=rows.filter(x=>[x.h,x.d,x.b,...x.o,...x.t].join(' ').toLocaleLowerCase().includes(term)).slice(0,30);o.innerHTML=hits.length?hits.map(x=>`<article class="story-card"><span class="card-meta">${esc(x.b)}</span><h2><a href="${esc(x.u)}">${esc(x.h)}</a></h2><p>${esc(x.d)}</p></article>`).join(''):`<p>${esc(o.dataset.empty.replace('{query}',term))}</p>`})})()'''
+SEARCH_JS = r'''(()=>{const f=document.querySelector('[data-search-form]'),q=document.querySelector('[data-search-input]'),o=document.querySelector('[data-search-results]');if(!f)return;let rows,pending,serial=0;const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));f.addEventListener('submit',async e=>{e.preventDefault();const run=++serial,term=q.value.trim().toLocaleLowerCase();if(!term)return;if(!rows){o.textContent=o.dataset.loading;try{pending??=Promise.all((f.dataset.shards?JSON.parse(f.dataset.shards):[f.dataset.index]).map(url=>fetch(url).then(r=>{if(!r.ok)throw Error(r.status);return r.json()}))).then(parts=>parts.flat());rows=await pending}catch{pending=undefined;if(run===serial)o.textContent=o.dataset.error;return}}if(run!==serial)return;let hits=rows.filter(x=>[x.h,x.d,x.b,...x.o,...x.t,x.search_text||''].join(' ').toLocaleLowerCase().includes(term)).slice(0,30);o.innerHTML=hits.length?hits.map(x=>`<article class="story-card"><span class="card-meta">${esc(x.b)}</span><h2><a href="${esc(x.u)}">${esc(x.h)}</a></h2><p>${esc(x.d)}</p></article>`).join(''):`<p>${esc(o.dataset.empty.replace('{query}',term))}</p>`})})()'''
 
 
 def esc(value: object) -> str:
@@ -670,11 +670,12 @@ class PaperBuilder:
         link = f'<a href="{esc(self._story_href(locale, lead))}">{esc(headline(lead, locale["code"], catalog))}</a>'
         return '<p class="freshness-lead">' + link.join(esc(part.format(**values)) for part in template.split("{headline}")) + "</p>"
 
-    def _search(self, locale: dict) -> None:
+    def _search(self, locale: dict, shards: list[Path]) -> None:
         catalog = self.catalogs[locale["code"]]
         strings = catalog["strings"]
         index_url = href(self.base, locale["path_prefix"] + "data/search.json")
-        body = simple_page(strings["search"]["title"], f'<form class="search-box" data-search-form data-index="{esc(index_url)}"><label class="visually-hidden" for="q">{esc(strings["a11y"]["search_label"])}</label><input id="q" type="search" data-search-input placeholder="{esc(strings["search"]["placeholder"])}"><button class="button" type="submit">{esc(strings["nav"]["search"])}</button></form><div class="search-results" data-search-results data-loading="{esc(strings["search"]["loading"])}" data-empty="{esc(strings["search"]["no_results"])}" aria-live="polite"></div><noscript><p>{esc(strings["search"]["needs_js"])}</p></noscript>')
+        shard_urls = [href(self.base, path.relative_to(self.out).as_posix()) for path in shards]
+        body = simple_page(strings["search"]["title"], f'<form class="search-box" data-search-form data-index="{esc(index_url)}" data-shards="{esc(json.dumps(shard_urls))}"><label class="visually-hidden" for="q">{esc(strings["a11y"]["search_label"])}</label><input id="q" type="search" data-search-input placeholder="{esc(strings["search"]["placeholder"])}"><button class="button" type="submit">{esc(strings["nav"]["search"])}</button></form><div class="search-results" data-search-results data-loading="{esc(strings["search"]["loading"])}" data-error="{esc(strings["search"]["error"])}" data-empty="{esc(strings["search"]["no_results"])}" aria-live="polite"></div><noscript><p>{esc(strings["search"]["needs_js"])}</p></noscript>')
         script = f'<script defer src="{esc(href(self.base,"assets/js/search.js"))}"></script>'
         self._write_page(locale=locale, suffix="search/", title=f'{strings["search"]["title"]} — FCMO AI', description=strings["search"]["placeholder"], body=body, kind="search", extra_head=script)
 
@@ -851,16 +852,12 @@ class PaperBuilder:
                               title_html=title_html,
                               stories=[s for s in ranked if organization in s.get("organizations",[])], kind="org")
             self._status(locale)
-            self._search(locale)
             self._simple_pages(locale)
-            search_size = search_index.build(self.live, locale=locale, catalog=catalog, base=self.base, out=self.out / locale["path_prefix"] / "data" / "search.json")
             editorial_rows = essays.piece_search_rows(self.editorial_pieces, locale["code"], base=self.base)
-            search_path = self.out / locale["path_prefix"] / "data" / "search.json"
-            current = json.loads(search_path.read_text(encoding="utf-8"))
-            current.extend(editorial_rows)
-            encoded = json.dumps(current, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
-            if len(encoded) > search_index.LIMIT: raise ValueError(f"search index exceeds {search_index.LIMIT} bytes for {locale['code']}: {len(encoded)}")
-            search_path.write_bytes(encoded)
+            shards = search_index.build(self.live, locale=locale, catalog=catalog, base=self.base,
+                                        out=self.out / locale["path_prefix"] / "data" / "search.json",
+                                        extra_rows=editorial_rows)
+            self._search(locale, shards)
         self._404()
         feed_paths = feeds.write_all(self.stories, locales=self.config["locales"], catalogs=self.catalogs, base_url=self.base_url, out=self.out)
         essays.write_feeds(self.editorial_pieces, locales=self.config["locales"], base_url=self.base_url, out=self.out)
