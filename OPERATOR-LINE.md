@@ -3,23 +3,25 @@
 URL para compartir: **https://fcmo-hub.tail8cbe0b.ts.net:8447/**.
 Backend exclusivo: **127.0.0.1:8490**. No se instala el servicio desde esta lane.
 
-La revalidación actual de [CR-L40.md](CR-L40.md) encontró el renderer bloqueado
-por el tamaño del índice de búsqueda. Reparar el generador y repetir la suite
-Studio y el recorrido con navegador antes de ejecutar la activación; health y
-los assets por sí solos no prueban que una vista previa funcione.
+Estado 2026-10-08 06:30 CDMX (verificación en el host, fuera del sandbox): el índice de
+búsqueda quedó reparado en main (#66, `79055f8`). Con Chromium del host, el recorrido
+`tests.harness.studio_host_journey` pasa: 51 comprobaciones y 46 capturas. Studio arrancó
+como unidad `--user` transitoria en 127.0.0.1:8490: health 200, HTML y assets 200, APIs y
+vista previa 401 sin sesión. Falta que main vuelva a verde (L41): mientras `ops/publish.py
+--check` falle en main, Studio rehúsa publicar, y así debe ser.
 
 Una vez preparado el entorno y las dos cuentas locales, ejecutar esta única línea
 desde la raíz de este checkout, en la sesión de host de `fcmo-agent` que tenga
 el permiso de operador de Tailscale:
 
 ```sh
-python3 ops/studio/host.py --install && tailscale serve --bg --https=8447 http://127.0.0.1:8490
+python3 ops/studio/host.py --install && sudo tailscale serve --bg --https=8447 http://127.0.0.1:8490
 ```
 
 La línea instala [la unidad de usuario](ops/studio/fcmo-studio.service), la arranca
 y comprueba health, HTML, JS/CSS actuales y API privada antes de añadir el mapping.
-No modifica los mappings 8443–8446. Si esa sesión no es el operador de Tailscale,
-el operador debe ejecutar el último comando; no hay bypass de ese permiso.
+No modifica los mappings 8443–8446. El operador de Tailscale del host es `magya`, no `fcmo-agent`: por eso el
+mapping lleva `sudo`. No hay otro bypass de ese permiso.
 
 ## Preparación previa
 
