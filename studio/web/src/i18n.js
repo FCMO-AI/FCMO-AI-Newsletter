@@ -154,3 +154,16 @@ Object.assign(S.en, { 'iss.confidence': 'Confidence', 'iss.importance': 'Importa
 
 Object.assign(S.es, { 'confidence.confirmed': 'Confirmado', 'confidence.supported': 'Respaldado', 'confidence.supported_with_limits': 'Respaldado con límites', 'confidence.claimed_unverified': 'Declarado, sin verificar' })
 Object.assign(S.en, { 'confidence.confirmed': 'Confirmed', 'confidence.supported': 'Supported', 'confidence.supported_with_limits': 'Supported with limits', 'confidence.claimed_unverified': 'Claimed, unverified' })
+
+Object.assign(S.es, {
+  'pub.private.mode': 'Puedes escribir y revisar. La publicación pública está desactivada.',
+  'pub.mode.unread': 'No se pudo comprobar si la publicación está habilitada. Vuelve a comprobar antes de aprobar.',
+  'rev.private.approve': 'Aprobar revisión privada',
+  'rev.private.confirm': 'La aprobación se guarda en Studio. La publicación pública está desactivada.'
+})
+Object.assign(S.en, {
+  'pub.private.mode': 'You can write and review. Public publication is disabled.',
+  'pub.mode.unread': 'Publication availability could not be checked. Check again before approving.',
+  'rev.private.approve': 'Approve private review',
+  'rev.private.confirm': 'The approval is saved in Studio. Public publication is disabled.'
+})
