@@ -147,10 +147,19 @@ export async function translateScreen (root, slug, fromLoc, targetArg) {
 }
 
 /* ---------------- preview (S4) ---------------- */
-function previewFrame ({ slug, loc, size, theme }) {
+function previewFrame ({ slug, loc, size, theme, onState = () => {} }) {
   const wrap = h('div', { class: 'pv-stage', 'data-size': size })
   const frame = h('iframe', { class: 'pv-frame', title: t('pv.title'), src: `/preview/${slug}/${loc}/?w=${size}&theme=${theme}`, sandbox: 'allow-same-origin allow-scripts' })
-  frame.addEventListener('load', () => { try { frame.contentDocument.documentElement.dataset.theme = theme } catch {} })
+  frame.addEventListener('load', () => {
+    let doc = null; try { doc = frame.contentDocument } catch {}
+    // A failed build answers with JSON; never show raw JSON or claim success.
+    if (doc && doc.contentType && doc.contentType !== 'text/html') {
+      let plain = ''; try { plain = JSON.parse(doc.body ? doc.body.textContent : '').error_plain || '' } catch {}
+      onState('failed', plain); return
+    }
+    try { doc.documentElement.dataset.theme = theme } catch {}
+    onState('ready')
+  })
   const fit = () => {
     const avail = wrap.clientWidth || 800; const w = Number(size)
     const k = Math.min(1, (avail - 2) / w)
@@ -177,8 +186,16 @@ export async function previewScreen (root, slug, loc0) {
   const have = Object.fromEntries(LOCS.map(l => [l, meta.kind === 'issue' || (meta.locales[l] || {}).words > 0 || (meta.locales[l] || {}).state === 'later']))
   async function draw () {
     frame && frame.destroy(); clear(stage)
-    stage.append(h('div', { class: 'pv-banner' }, '✓ ', t('pv.banner')), controls(st, p => { Object.assign(st, p); draw() }, have))
-    if (!have[st.loc]) stage.append(h('p', { class: 'notice' }, t('pv.noloc'))); else { frame = previewFrame({ slug, ...st }); stage.append(frame.el) }
+    const banner = h('div', { class: 'pv-banner', role: 'status', 'data-state': 'building' }, t('pv.building'))
+    const onState = (state, plain) => {
+      clear(banner); banner.dataset.state = state
+      if (state === 'ready') { banner.append('✓ ', t('pv.banner')); return }
+      banner.append(t('pv.failed'))
+      const note = h('p', { class: 'notice soft', role: 'alert' }, plain || t('err.generic'))
+      if (frame) frame.el.replaceWith(note)
+    }
+    stage.append(banner, controls(st, p => { Object.assign(st, p); draw() }, have))
+    if (!have[st.loc]) { banner.remove(); stage.append(h('p', { class: 'notice' }, t('pv.noloc'))) } else { frame = previewFrame({ slug, ...st, onState }); stage.append(frame.el) }
     clear(side); side.append(h('h2', null, t('dr.checks')), h('p', { class: 'muted', role: 'status' }, t('chk.running')))
     const cl = await checksList(slug, c => { location.hash = `#/p/${slug}/${c.loc || st.loc}` })
     clear(side); side.append(h('h2', null, t('dr.checks')), cl)
