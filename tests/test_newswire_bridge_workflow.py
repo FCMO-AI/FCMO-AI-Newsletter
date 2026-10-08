@@ -337,7 +337,6 @@ class NewswireBridgeWorkflowContractTests(unittest.TestCase):
         self.assertEqual(positions, sorted(positions))
         for retired in (
             "python tools/build_final_release.py",
-            "python tools/build_ready_receipt.py",
             "python tools/verify_release.py",
         ):
             self.assertNotIn(retired, refresh)

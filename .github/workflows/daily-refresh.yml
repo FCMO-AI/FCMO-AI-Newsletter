@@ -164,6 +164,12 @@ jobs:
         if: steps.preflight.outputs.path == 'status'
         run: python tools/newsroom_receipt.py status --wire-status corpus/wire-status.json
 
+      - name: Regenerate and independently check the current automated newspaper receipt
+        if: steps.preflight.outputs.path == 'rebuild' || steps.preflight.outputs.path == 'status'
+        run: |
+          python tools/build_ready_receipt.py
+          python tools/build_ready_receipt.py --check
+
       - name: Commit only what the autonomous newsroom produced
         if: steps.preflight.outputs.path == 'rebuild' || steps.preflight.outputs.path == 'status'
         env:
