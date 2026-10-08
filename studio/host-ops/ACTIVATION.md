@@ -38,7 +38,7 @@ está expresado por la API de branch rulesets; CODEOWNERS solo no bloquea pushes
   Ejecutar como `fcmo-agent`, sin sudo. La unidad usa UMask 0077 y
   NoNewPrivileges; el launcher fuerza exclusivamente `127.0.0.1`.
 - Studio abre aun sin los logins gh. Después del login local, la interfaz indica
-  «Falta iniciar sesión de Javier» y/o «Falta iniciar sesión de Matías». Se puede
+  «Javier debe iniciar sesión en GitHub» y/o «Matías debe iniciar sesión en GitHub». Se puede
   escribir; publicar requiere las dos cuentas. El estado se comprueba cada 30 s.
   Health no divulga datos y la API exige sesión.
 - El arquitecto expone después el listener por HTTPS privado en el tailnet,

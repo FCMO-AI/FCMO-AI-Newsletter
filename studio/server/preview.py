@@ -2,6 +2,7 @@
 import os
 import hashlib
 from pathlib import Path
+import re
 import shutil
 import subprocess
 import tempfile
@@ -47,7 +48,15 @@ class Preview:
             run = subprocess.run(command, cwd=self.repo, env=env, capture_output=True, timeout=180)
             if run.returncode or any(not (output / PREFIX[loc] / ('cartas/ediciones' if 'issue' in payload else 'cartas') / value / 'index.html').is_file() for loc in LOCALES):
                 shutil.rmtree(workspace)
-                raise RendererUnavailable('La vista previa espera la integración del formato de ensayos con el sitio.')
+                # Only this known numeric bound may cross the private diagnostic
+                # boundary. Never return the builder's traceback or arbitrary text.
+                budget = re.search(r'(?m)^ValueError: search index exceeds ([0-9]{1,10}) bytes for (en|es-419|zh-Hans): ([0-9]{1,10})\r?$', run.stderr.decode('utf-8', errors='replace'))
+                if run.returncode and budget:
+                    limit, loc, actual = budget.groups()
+                    raise RendererUnavailable('La vista previa está bloqueada: el índice de búsqueda de ' + loc +
+                                              ' ocupa ' + actual + ' bytes y supera el límite de ' + limit +
+                                              ' bytes. Repara el generador de publicación antes de continuar.')
+                raise RendererUnavailable('No se pudo construir la vista previa con el renderer de producción. Revisa el generador de publicación antes de continuar.')
             self.cache[key] = output
             older = [k for k in self.cache if k[0] == value and k != key]
             for old in older[:-1]:

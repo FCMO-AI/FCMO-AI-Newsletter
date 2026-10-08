@@ -8,7 +8,7 @@ for (const width of [390, 1440]) {
   await s.page.setViewportSize({ width, height: 900 })
   await s.page.waitForSelector('#publication-readiness:not([hidden])')
   const banner = await s.page.locator('#publication-readiness').innerText()
-  check(`both missing logins visible at ${width}`, banner.includes('Falta iniciar sesión de Javier.') && banner.includes('Falta iniciar sesión de Matías.'))
+  check(`both missing logins visible at ${width}`, banner.includes('Javier debe iniciar sesión en GitHub.') && banner.includes('Matías debe iniciar sesión en GitHub.'))
   check(`no horizontal overflow at ${width}`, await s.page.evaluate(() => document.documentElement.scrollWidth <= innerWidth))
   check(`empty home has no null text at ${width}`, !/^null$/m.test(await s.page.locator('.home').innerText()))
   if (frames) {

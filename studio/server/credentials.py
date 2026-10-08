@@ -29,7 +29,7 @@ class GitHubCLI(GitHub):
                     ok = run.returncode == 0
                 except (OSError, subprocess.SubprocessError): pass
             statuses.append({'user': user, 'ready': ok,
-                             'plain_es': '' if ok else 'Falta iniciar sesión de ' + name + '.',
+                             'plain_es': '' if ok else name + ' debe iniciar sesión en GitHub.',
                              'plain_en': '' if ok else name + ' needs to sign in to GitHub.'})
         return statuses
     def call(self, user, method, endpoint, body=None):
@@ -53,7 +53,7 @@ class GitHubCLI(GitHub):
         return self.call(user, method, 'repos/' + self.repo + suffix, body)
     def identity(self, user):
         if not (Path(self.configs[user]).expanduser() / 'hosts.yml').is_file():
-            raise Refused('Falta iniciar sesión de ' + NAMES[user] + '.')
+            raise Refused(NAMES[user] + ' debe iniciar sesión en GitHub.')
         result = self.call(user, 'GET', 'user')
         if not result or not result.get('login'): raise Refused('No se pudo comprobar la credencial gh.')
         return result['login']

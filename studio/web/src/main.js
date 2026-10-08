@@ -32,6 +32,7 @@ async function updateReadiness (banner) {
     if (!banner.isConnected) return
     banner.replaceChildren(...state.credentials.filter(c => !c.ready).map(c =>
       h('p', null, document.documentElement.lang === 'en' ? c.plain_en : c.plain_es)))
+    if (state.dry_run || !state.live_enabled) banner.prepend(h('p', null, t('pub.private.mode')))
     banner.hidden = !banner.childElementCount
   } catch { /* Authentication errors are handled by the shared API. */ }
 }
