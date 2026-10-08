@@ -14,7 +14,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from studio.server.credentials import CREDENTIAL_ROOT
 
 UNIT = 'fcmo-studio.service'
-SOURCE = Path(__file__).with_name(UNIT)
+SOURCE = Path(__file__).resolve().parents[2] / 'ops/studio' / UNIT
 
 
 def read_environment(path):

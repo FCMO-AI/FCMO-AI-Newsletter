@@ -246,3 +246,21 @@ the current data and should stay until fresh production evidence exists.
 old route count. The integrator should regenerate that receipt only after the
 v3 candidate, its gates, browser matrix, Pages deployment, and public-origin
 verification are complete; a local build cannot truthfully update it.
+
+## L40 — activación de Studio en el host
+
+- **Dónde:** `OPERATOR-LINE.md`, unidad `ops/studio/fcmo-studio.service` y el
+  entorno privado del usuario `fcmo-agent`.
+- **Qué falta y por qué:** esta sesión devuelve `offline` para el gestor systemd
+  de usuario y no tiene el socket local de Tailscale. El mandato reserva la
+  instalación y el mapping al operador; no se instalaron desde esta lane.
+- **Cambio exacto:** preparar el entorno 0600 con el origen
+  `https://fcmo-hub.tail8cbe0b.ts.net:8447`, listener `127.0.0.1:8490`, datos privados
+  fuera del checkout y ambas cuentas locales. Ejecutar desde la raíz del checkout:
+  `python3 ops/studio/host.py --install && tailscale serve --bg --https=8447 http://127.0.0.1:8490`.
+- **Prueba pendiente:** login y guardar/recargar un ensayo por ese HTTPS en
+  escritorio y teléfono; confirmar TLS/ACL, acceso de Javier y persistencia de
+  la unidad. La prueba de loopback usa cuentas temporales y no reemplaza ese paso.
+- **Publicación pública:** conservar dry-run hasta demostrar las dos identidades
+  personales de GitHub, protecciones, backup y el recorrido PR/Pages/origen live
+  descrito en la activación existente. No añadir bypass humano ni cambiar gates.
