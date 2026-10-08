@@ -38,6 +38,7 @@ try:
     from tools.validate_localizations import (
         LOCALES,
         effective_overlays_details,
+        load_locale_details,
         is_complete,
         load_corpus_canonical,
         pair_status,
@@ -48,6 +49,7 @@ except ImportError:  # direct script execution from tools/
     from validate_localizations import (
         LOCALES,
         effective_overlays_details,
+        load_locale_details,
         is_complete,
         load_corpus_canonical,
         pair_status,
@@ -167,6 +169,26 @@ def recent_main(args: argparse.Namespace) -> int:
     canonical = load_corpus_canonical(corpus)
     i18n_dir = root / "site" / "data" / "i18n"
     overlays = {locale: effective_overlays_details(locale, i18n_dir, corpus) for locale in LOCALES}
+    admission_path = root / 'release-src/data/publication-admission.json'
+    if admission_path.is_file():
+        # A held update is assessed against its still-published English version;
+        # --all-corpus continues to report the incoming version's repair backlog.
+        try:
+            from tools.native_admission import published_sources
+        except ImportError:
+            from native_admission import published_sources
+        carried = set(json.loads(admission_path.read_text())['carried_ids'])
+        selected = published_sources(root / 'release-src')
+        for rid in carried:
+            canonical[rid] = selected[rid]
+        for loc in LOCALES:
+            packs, strict_packs, origins, _ = load_locale_details(i18n_dir, loc)
+            rows, strict, provenance, _ = overlays[loc]
+            for rid in carried:
+                rows[rid] = packs.get(rid)
+                provenance[rid] = origins.get(rid)
+                if rid not in strict_packs:
+                    strict.discard(rid)
 
     watched: list[dict[str, Any]] = []
     overdue: list[dict[str, Any]] = []

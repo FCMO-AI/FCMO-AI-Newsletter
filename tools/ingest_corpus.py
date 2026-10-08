@@ -499,7 +499,8 @@ LEGACY_DEFAULTS = {
 }
 
 
-def publishable_rows(corpus: Path, rows: list[Any]) -> tuple[list[dict[str, Any]], dict[str, str], list[tuple[str, str]]]:
+def publishable_rows(corpus: Path, rows: list[Any], *, i18n_dir: Path | None = None,
+                     previous: dict[str, dict] | None = None) -> tuple[list[dict[str, Any]], dict[str, str], list[tuple[str, str]]]:
     """Select, per record, the rows a release may publish.
 
     Returns (rows, {merged id: surviving id}, [(held-back id, reason)]). Records the
@@ -552,6 +553,13 @@ def publishable_rows(corpus: Path, rows: list[Any]) -> tuple[list[dict[str, Any]
     quarantined = sum(reason.startswith("QUARANTINE") for _, reason in held)
     if candidates and quarantined / len(candidates) > corpus_guard.default_max_missing_ratio():
         raise ValueError(f"refusing to publish: {quarantined} of {len(candidates)} records failed normalization")
+    if i18n_dir is not None:
+        try:
+            from tools.native_admission import select_native
+        except ImportError:
+            from native_admission import select_native
+        selected, holds, _carried = select_native(corpus, selected, i18n_dir, previous)
+        held.extend(sorted(holds.items()))
     selected_ids = {row["id"] for row in selected}
     merged = {dup: target for dup, target in merged.items() if target in selected_ids}
     return selected, merged, held
@@ -565,13 +573,22 @@ def freshness_header(generated_at: str) -> str:
     return f"<!-- generated_at: {stamp.astimezone(timezone.utc).isoformat().replace('+00:00', 'Z')}; stale_after: {stale_after} -->\n"
 
 
-def build(corpus: Path, out: Path, now: str | None = None) -> None:
+def build(corpus: Path, out: Path, now: str | None = None, *, i18n_dir: Path | None = None) -> None:
     repo = Path(__file__).resolve().parents[1]
     raw_records = read_jsonl(corpus / "data" / "developments.jsonl")
     airlock = read_json(corpus / "airlock.json") if (corpus / "airlock.json").is_file() else {}
     source_stamps = [str(row.get("last_verified_at") or row.get("event_at") or "") for row in raw_records]
     generated_at = now or str(airlock.get("generated_at") or max(source_stamps, default="2026-01-01T00:00:00Z"))
-    source_records, _merged, held_back = publishable_rows(corpus, raw_records)
+    previous = {}
+    if i18n_dir is not None:
+        try:
+            from tools.native_admission import published_sources
+        except ImportError:
+            from native_admission import published_sources
+        previous = published_sources(out)
+    source_records, _merged, held_back = publishable_rows(corpus, raw_records, i18n_dir=i18n_dir, previous=previous)
+    native_carried = sorted({rid for rid, reason in held_back if reason.startswith('NATIVE_EDITION:')}
+                           & {row['id'] for row in source_records})
     for identifier, reason in held_back:
         print(f"HELD_BACK {identifier} {reason}", file=sys.stderr)
     source_by_id = {record["id"]: replace_arb(record) for record in source_records}
@@ -581,7 +598,8 @@ def build(corpus: Path, out: Path, now: str | None = None) -> None:
     records = [public_record(briefs[identifier]) for identifier in ids]
     records_by_id = dict(zip(ids, records))
 
-    relationships = replace_arb(read_jsonl(corpus / "data" / "relationships.jsonl"))
+    relationships = [r for r in replace_arb(read_jsonl(corpus / "data" / "relationships.jsonl"))
+                     if r.get('source_id') in canonical_ids and r.get('target_id') in canonical_ids]
     editions = [
         parse_edition(path, canonical_ids)
         for path in sorted((corpus / "editions").glob("*.html"))
@@ -769,6 +787,14 @@ def build(corpus: Path, out: Path, now: str | None = None) -> None:
         output[f"data/editions/{date}.json"] = json_bytes(edition_json)
         output[f"editions/{date}.html"] = redirect("edition", date, date).encode("utf-8")
 
+    if i18n_dir is not None:
+        output['data/publication-admission.json'] = json_bytes({
+            'schema': 'fcmo-native-admission-v1',
+            'admitted_ids': sorted(ids),
+            'held_back': {rid: reason for rid, reason in held_back},
+            'carried_ids': native_carried,
+        })
+
     out.parent.mkdir(parents=True, exist_ok=True)
     stage: Path | None = Path(tempfile.mkdtemp(prefix=f"{out.name}-", dir=out.parent))
     try:
@@ -794,6 +820,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--corpus", required=True, type=Path)
     parser.add_argument("--out", required=True, type=Path)
     parser.add_argument("--now", help="ISO 8601 build clock override")
+    parser.add_argument("--i18n-dir", type=Path, help="Require strict complete ES/ZH editions before publication")
     return parser.parse_args(argv)
 
 
@@ -804,7 +831,7 @@ def main(argv: list[str] | None = None) -> int:
     if not corpus.is_dir():
         raise SystemExit(f"corpus does not exist or is not a directory: {corpus}")
     try:
-        build(corpus, out, args.now)
+        build(corpus, out, args.now, i18n_dir=args.i18n_dir)
     except (OSError, ValueError, json.JSONDecodeError) as exc:
         raise SystemExit(f"corpus ingestion failed: {exc}") from exc
     return 0

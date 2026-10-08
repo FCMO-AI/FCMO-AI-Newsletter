@@ -40,12 +40,15 @@ def by_id(document: dict) -> dict[str, dict]:
     return {s["id"]: s for s in document["stories"]}
 
 
-def expected_live_ids(corpus: Path = CORPUS) -> set[str]:
+def expected_live_ids(corpus: Path = CORPUS, native: bool = True) -> set[str]:
     """Independent admission census; daily supply must not freeze a test count."""
     rows = taxonomy.read_jsonl(corpus / "data/developments.jsonl")
     dead = {r["id"] for r in rows if r.get("status") in {"withdrawn", "superseded"}}
     dead.update(e["id"] for e in json.loads((corpus / "tombstones.json").read_text())["tombstones"]
                 if e.get("reinstated_at") is None)
+    if native:
+        from tests.test_localization_completeness import independent_backlog
+        dead |= independent_backlog("es-419") | independent_backlog("zh-Hans")
     return {r["id"] for r in rows} - dead
 
 
@@ -113,11 +116,16 @@ class RepositoryStoryLayerTests(unittest.TestCase):
 
     def test_one_story_per_public_id_and_live_admission_census(self) -> None:
         corpus_ids = {json.loads(l)["id"] for l in (CORPUS / "data" / "developments.jsonl").read_text().splitlines() if l.strip()}
-        self.assertEqual(set(self.stories), corpus_ids | {FDBE})
+        from tests.test_localization_completeness import independent_backlog
+        held = independent_backlog("es-419") | independent_backlog("zh-Hans")
+        self.assertEqual(set(self.stories), (corpus_ids - held) | {FDBE})
+        for rid in held:
+            self.assertIn(f"HELD_BACK {rid} NATIVE_EDITION:", self.stderr)
         live = [s for s in self.document["stories"] if s["status"] == "live"]
         self.assertEqual({s["id"] for s in live}, expected_live_ids())
         self.assertLessEqual({s["beat"] for s in live}, BEATS)
-        self.assertEqual(self.stderr, "")
+        self.assertEqual({line.split()[1] for line in self.stderr.splitlines()}, held)
+        self.assertTrue(all(line.startswith("HELD_BACK ") for line in self.stderr.splitlines()))
 
     def test_merges(self) -> None:
         for dup, survivor in MERGES.items():
@@ -334,7 +342,7 @@ class TemporaryCorpusTests(unittest.TestCase):
         self.write_rows(rows + [new])
         ledger, _, changes = story_layer.update_ledger(self.corpus, REPO, REPO / "site", NOW)
         self.assertNotIn("FCMO-00000000ABCD", ledger["entries"])
-        story = by_id(build(self.corpus, now="2026-09-27T08:00:00Z")[0])["FCMO-00000000ABCD"]
+        story = by_id(build(self.corpus, site=None, now="2026-09-27T08:00:00Z")[0])["FCMO-00000000ABCD"]
         self.assertEqual(story["first_published_at"], "2026-09-27T08:00:00Z")
         self.assertEqual(story["url_date"], "2026-09-27")
         self.assertEqual(story["slug"], "a-brand-new-development-that-nobody-has-published-yet")
@@ -367,7 +375,7 @@ class ShallowCheckoutTests(unittest.TestCase):
             next(e for e in doc["tombstones"] if e["id"] == FDBE)["reinstated_at"] = NOW
             (corpus / "tombstones.json").write_text(json.dumps(doc))
             with contextlib.redirect_stderr(io.StringIO()):
-                inputs = story_layer.StoryInputs(corpus, None, REPO / "site", REPO / "site" / "data" / "i18n", NOW, previous=full)
+                inputs = story_layer.StoryInputs(corpus, None, REPO / "site", None, NOW, previous=full)
                 story = by_id(story_layer.build_stories(inputs))[FDBE]
         self.assertEqual(story["status"], "live")
         self.assertEqual([c["kind"] for c in story["corrections"]], ["withdrawal", "reinstatement"])
@@ -459,7 +467,7 @@ class IngestSelectionTests(unittest.TestCase):
 
     def test_repository_corpus_publishes_every_admitted_id(self) -> None:
         selected, merged, held = self.select(self.rows)
-        self.assertEqual({r["id"] for r in selected}, expected_live_ids())
+        self.assertEqual({r["id"] for r in selected}, expected_live_ids(native=False))
         self.assertEqual(merged, MERGES)
         self.assertEqual(sorted(held), sorted([(FDBE, "TOMBSTONED:UNVERIFIED_RELEASE"),
                                                *((dup, "TOMBSTONED:DUPLICATE") for dup in MERGES)]))
@@ -469,7 +477,7 @@ class IngestSelectionTests(unittest.TestCase):
         rows[3]["claims"] = []
         rows[4]["status"] = "withdrawn"
         selected, _, held = self.select(rows)
-        self.assertEqual({r["id"] for r in selected}, expected_live_ids() - {rows[3]["id"], rows[4]["id"]})
+        self.assertEqual({r["id"] for r in selected}, expected_live_ids(native=False) - {rows[3]["id"], rows[4]["id"]})
         self.assertIn((rows[3]["id"], "QUARANTINE:CLAIMS_MISSING"), held)
         self.assertIn((rows[4]["id"], "WITHDRAWN_UPSTREAM"), held)
 
@@ -488,7 +496,7 @@ class IngestSelectionTests(unittest.TestCase):
         (self.corpus / "carried.jsonl").write_text(line + "\n")
         selected, _, held = self.select(self.rows)
         self.assertIn(FDBE, {r["id"] for r in selected})
-        self.assertEqual({r["id"] for r in selected}, expected_live_ids() | {FDBE})
+        self.assertEqual({r["id"] for r in selected}, expected_live_ids(native=False) | {FDBE})
 
 
 class TaxonomyTests(unittest.TestCase):

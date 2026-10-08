@@ -18,6 +18,7 @@ import sys
 import tempfile
 import unittest
 from html.parser import HTMLParser
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -51,8 +52,8 @@ def has_text(value) -> bool:
     return False
 
 
-def independent_backlog(locale: str) -> set[str]:
-    """Top-level recount from the raw files, sharing no code with the tools."""
+def independent_backlog(locale: str, published_only: bool = False) -> set[str]:
+    """Leaf-level recount from raw files, sharing no code with the tools."""
     canonical = {}
     for line in (ROOT / "corpus/data/developments.jsonl").read_text(encoding="utf-8").splitlines():
         if line.strip():
@@ -80,19 +81,56 @@ def independent_backlog(locale: str) -> set[str]:
     if delta.is_file():
         for rid, row in json.loads(delta.read_text(encoding="utf-8"))["records"].items():
             overlays[rid] = {**overlays.get(rid, {}), **row}
-    backlog = set()
-    for rid, row in canonical.items():
-        if rid in dead:
-            continue
-        overlay = overlays.get(rid) or {}
-        for key in TOP_PROSE:
-            native = overlay.get(key)
-            if key == "why_it_matters" and not has_text(native):
-                native = overlay.get("why")
-            source = row.get(key) if key != "why_it_matters" else (row.get(key) or row.get("why"))
-            if has_text(source) and not has_text(native):
-                backlog.add(rid)
-    return backlog
+    published = {r["research_id"] for r in json.loads((ROOT / "site/data/stories.json").read_text())}
+    return {rid for rid, row in canonical.items() if rid not in dead
+            and (not published_only or rid in published)
+            and independent_pair_incomplete(row, overlays.get(rid) or {}, locale)}
+
+
+def independent_pair_incomplete(source: dict, overlay: dict, locale: str) -> bool:
+    # This census deliberately has no import from the validator. Compare every
+    # prose position, ignoring only codes, dates, IDs and source URLs.
+    def prose(value, path=()):
+        if isinstance(value, dict):
+            for key, child in value.items():
+                if key not in NON_PROSE:
+                    yield from prose(child, path + (key,))
+        elif isinstance(value, list):
+            for index, child in enumerate(value):
+                yield from prose(child, path + (index,))
+        elif isinstance(value, str) and value.strip():
+            yield path, value
+
+    source = dict(source)
+    if not source.get("why_it_matters") and source.get("why"):
+        source["why_it_matters"] = source["why"]
+    source = {k: source[k] for k in TOP_PROSE if k in source}
+    overlay = {k: v for k, v in overlay.items() if k in TOP_PROSE or k == "why"}
+    if not source.get("why_it_matters") and source.get("why"):
+        source["why_it_matters"] = source.pop("why")
+    if not overlay.get("why_it_matters") and overlay.get("why"):
+        overlay["why_it_matters"] = overlay["why"]
+    overlay.pop("why", None)
+    original = dict(prose(source))
+    native = dict(prose(overlay))
+    if original.keys() - native.keys():
+        return True
+    function_words = set("the and of to is that with for this are was which from by on not it be have its than an or as at were but their these those into".split())
+    for path, text in native.items():
+        words = re.findall(r"[A-Za-z][A-Za-z'’-]*", text)
+        if len(words) >= 3 and " ".join(text.split()) == " ".join(original.get(path, "").split()):
+            return True
+        if locale == "zh-Hans":
+            # Inspect each uninterrupted Latin phrase, including nested fields.
+            runs = re.findall(r"(?:[A-Za-z][A-Za-z'’-]*[\s,;:()\"“”]+){5,}[A-Za-z][A-Za-z'’-]*", text)
+            if any(sum(w.lower() in function_words for w in re.findall(r"[A-Za-z]+", run)) >= 2 for run in runs):
+                return True
+        else:
+            all_words = re.findall(r"[^\W\d_]+", text, re.UNICODE)
+            count = sum(w.lower() in function_words for w in all_words)
+            if count >= 3 and count / max(1, len(all_words)) >= 0.12:
+                return True
+    return False
 
 
 def leaves(value, path=""):
@@ -223,6 +261,7 @@ class RealCorpusBacklog(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.expected = {loc: independent_backlog(loc) for loc in LOCALES}
+        cls.published_expected = {loc: independent_backlog(loc, published_only=True) for loc in LOCALES}
         cls.story_count = len(vl.load_corpus_canonical(ROOT / "corpus"))
 
     def test_independent_recount_matches_committed_locale_backlog(self):
@@ -232,7 +271,7 @@ class RealCorpusBacklog(unittest.TestCase):
             reported = set(status["locales"][locale]["pending_ids"]) | set(
                 status["locales"][locale]["failed_ids"]
             )
-            self.assertEqual(reported, self.expected[locale], locale)
+            self.assertEqual(reported, self.published_expected[locale], locale)
 
     def test_strict_validator_reports_incomplete_pairs(self):
         for locale in LOCALES:
@@ -244,8 +283,19 @@ class RealCorpusBacklog(unittest.TestCase):
             listed = {line.split()[2] for line in lines if line.startswith(("PENDING ", "FAILED "))}
             self.assertEqual(listed, self.expected[locale])
 
+    @staticmethod
+    def after_grace():
+        # Read publication times independently; a future incoming record cannot
+        # make an overdue fixture accidentally exercise GRACE instead of BACKLOG.
+        entries = json.loads((ROOT / "corpus/first-published.json").read_text())["entries"]
+        records = [json.loads(line) for line in (ROOT / "corpus/data/developments.jsonl").read_text().splitlines() if line]
+        stamps = [entries.get(row["id"], {}).get("first_published_at") or row.get("recorded_at")
+                  for row in records]
+        now = max(datetime.fromisoformat(stamp.replace("Z", "+00:00")) for stamp in stamps if stamp) + timedelta(hours=7)
+        return now.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
+
     def test_health_reports_backlog_after_grace(self):
-        result = run("tools/translation_health.py", "--all-corpus", "--grace-hours", "6", "--now", NOW)
+        result = run("tools/translation_health.py", "--all-corpus", "--grace-hours", "6", "--now", self.after_grace())
         want = " ".join(f"{loc}={len(self.expected[loc])}" for loc in LOCALES)
         backlog = any(self.expected[loc] for loc in LOCALES)
         self.assertEqual(result.stdout.splitlines()[0], f"{'BACKLOG' if backlog else 'HEALTHY'} {want}", result.stdout + result.stderr)
@@ -262,21 +312,21 @@ class RealCorpusBacklog(unittest.TestCase):
             result = run("tools/mark_pending_localizations.py", "--site", str(site), "--corpus", "corpus")
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
             status = json.loads((site / "data/i18n/translation-status.json").read_text(encoding="utf-8"))
-            union = self.expected["es-419"] | self.expected["zh-Hans"]
+            union = self.published_expected["es-419"] | self.published_expected["zh-Hans"]
             self.assertEqual(set(status["pending_translation_ids"]), union)
             self.assertEqual(status["pending_translation_count"], len(union))
             self.assertEqual(status["state"], "DEGRADED_TRANSLATION_BACKLOG" if union else "COMPLETE")
             for locale in LOCALES:
                 self.assertEqual(status["locales"][locale]["pending"] + status["locales"][locale]["failed"],
-                                 len(self.expected[locale]))
-                for rid in self.expected[locale]:
+                                 len(self.published_expected[locale]))
+                for rid in self.published_expected[locale]:
                     page = (site / "news" / mp.ROUTE_SLUG[locale] / f"{rid}.html").read_text(encoding="utf-8")
                     self.assertIn('data-translation-status="pending"', page)
                     self.assertIn(f"/news/en/{rid}.html", page)
 
     def test_committed_translation_status_is_truthful(self):
         status = json.loads((ROOT / "site/data/i18n/translation-status.json").read_text(encoding="utf-8"))
-        union = self.expected["es-419"] | self.expected["zh-Hans"]
+        union = self.published_expected["es-419"] | self.published_expected["zh-Hans"]
         self.assertEqual(set(status["pending_translation_ids"]), union)
         self.assertEqual(status["pending_translation_count"], len(union))
         for locale in LOCALES:
@@ -358,7 +408,7 @@ class RealCorpusBacklog(unittest.TestCase):
             self.assertEqual(doc["schema"], "fcmo-locale-integrity-v3")
             self.assertEqual(doc["pending_translation_count"], len(doc["pending_translation_ids"]))
             self.assertEqual(set(doc["pending_by_locale"]["es-419"]) | set(doc["failed_by_locale"]["es-419"]),
-                             self.expected["es-419"])
+                             self.published_expected["es-419"])
 
     def test_v2_overlays_follow_the_contract(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -717,7 +767,7 @@ class UICatalogs(unittest.TestCase):
             self.assertNotEqual(errors["not_found_title"], english)
 
     def test_spanish_catalog_is_spanish(self):
-        allowed_same = {"Argentina", "Agenda", "Atom", "Blog", "China", "FCMO AI", "Global", "India", "JSON Feed",
+        allowed_same = {"Hubei", "Australia", "Argentina", "Agenda", "Atom", "Blog", "China", "FCMO AI", "Global", "India", "JSON Feed",
                         "Notable", "RSS", "{date}, {time} ({tz})", "© {year} FCMO AI", "English", "Español", "简体中文"}
         english = dict(self.reader_leaves("en"))
         for path, value in self.reader_leaves("es-419"):

@@ -35,7 +35,7 @@ class LocaleSourceDrift(unittest.TestCase):
             rows, _, origins, _ = vl.load_locale_details(root / 'data/i18n', 'es-419')
             self.assertEqual(vl.pair_status(source, rows[RID], 'es-419', provenance=origins[RID])['state'], 'PENDING')
 
-    def test_changed_corpus_with_unchanged_delta_publishes_pending_page_and_fresh_ack(self):
+    def test_changed_corpus_with_unchanged_delta_carries_last_native_publication_and_fresh_ack(self):
         """Fixture runs the real source -> Story -> ACK -> static paper path."""
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -53,13 +53,19 @@ class LocaleSourceDrift(unittest.TestCase):
             source = next(row for row in rows if row['id'] == rid)
             source['summary'] += ' These outcomes remain unverified after the latest correction.'
             path.write_text(''.join(json.dumps(row, ensure_ascii=False) + '\n' for row in rows))
+            from tools import ingest_corpus
+            ingest_corpus.build(corpus, release, i18n_dir=site / 'data/i18n')
+            admission = json.loads((release / 'data/publication-admission.json').read_text())
+            self.assertIn(rid, admission['carried_ids'])
             identity.main(['--corpus', str(corpus), '--i18n-dir', str(site / 'data/i18n')])
             inputs = story_layer.StoryInputs(corpus, None, site, site / 'data/i18n', '2026-10-07T20:00:00Z')
             doc = story_layer.build_stories(inputs)
             story = next(row for row in doc['stories'] if row['id'] == rid)
             for locale in vl.LOCALES:
-                self.assertEqual(story['l10n'][locale]['state'], 'PENDING')
-                self.assertEqual(story['l10n'][locale]['fields'], {})
+                self.assertIn(story['l10n'][locale]['state'], vl.COMPLETE_STATES)
+                self.assertEqual(story['l10n'][locale]['fields']['summary'], old_native[locale])
+            self.assertTrue(story['carried_forward'])
+            self.assertIn(rid, inputs.held_back)
             write_json(site / 'data/stories.v2.json', doc)
             write_json(site / 'data/i18n/translation-status.json', {
                 'schema': 'fcmo-translation-status-v2', 'canonical_story_count': 0})
@@ -68,7 +74,7 @@ class LocaleSourceDrift(unittest.TestCase):
                 'now': '2026-10-07T20:00:00Z'})()
             self.assertEqual(newsroom_receipt.finalize(args), 0)
             ack = json.loads(args.status.read_text())
-            self.assertIn(rid, ack['pending_translation_ids'])
+            self.assertNotIn(rid, ack['pending_translation_ids'])
             for locale in vl.LOCALES:
                 counts = ack['translation'][locale]
                 self.assertEqual(sum(counts[k] for k in ('complete', 'pending', 'failed')),
@@ -80,11 +86,11 @@ class LocaleSourceDrift(unittest.TestCase):
                 locale = next(loc for loc in json.loads((ROOT / 'config/site.json').read_text())['locales']
                               if loc['code'] == code)
                 rendered = output_path(candidate, story_path(locale, story)).read_text()
-                self.assertIn('pending-panel', rendered)
-                self.assertIn('hreflang="en" lang="en"', rendered)
-                self.assertNotIn(old_native[code], rendered)
+                self.assertNotIn('pending-panel', rendered)
+                self.assertIn(old_native[code], rendered)
             english = output_path(candidate, story_path({'path_prefix': ''}, story)).read_text()
-            self.assertIn('These outcomes remain unverified', english)
+            self.assertNotIn('These outcomes remain unverified', english)
+            self.assertIn('These outcomes remain unverified', source['summary'])
 
     def fixture(self, root):
         source = english_record(RID)

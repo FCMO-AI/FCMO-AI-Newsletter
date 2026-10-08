@@ -378,7 +378,10 @@ def finalize(args: argparse.Namespace) -> int:
 
     # ACK owns freshness of this derived receipt, rather than trusting a file
     # left by the last edition or relying on workflow step ordering.
-    if (args.corpus / "data/developments.jsonl").is_file():
+    if (args.release_src / 'data/publication-admission.json').is_file():
+        from tools.native_admission import published_sources
+        canonical = published_sources(args.release_src)
+    elif (args.corpus / "data/developments.jsonl").is_file():
         canonical = load_corpus_canonical(args.corpus)
     else:
         canonical = {path.stem: load(path)["brief"] for path in
