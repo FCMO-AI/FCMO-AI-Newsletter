@@ -246,3 +246,54 @@ the current data and should stay until fresh production evidence exists.
 old route count. The integrator should regenerate that receipt only after the
 v3 candidate, its gates, browser matrix, Pages deployment, and public-origin
 verification are complete; a local build cannot truthfully update it.
+
+## L40 — activación de Studio en el host
+
+- **Dónde:** `OPERATOR-LINE.md`, unidad `ops/studio/fcmo-studio.service` y el
+  entorno privado del usuario `fcmo-agent`.
+- **Qué falta y por qué:** esta sesión devuelve `offline` para el gestor systemd
+  de usuario y no tiene el socket local de Tailscale. El mandato reserva la
+  instalación y el mapping al operador; no se instalaron desde esta lane.
+- **Cambio exacto:** preparar el entorno 0600 con el origen
+  `https://fcmo-hub.tail8cbe0b.ts.net:8447`, listener `127.0.0.1:8490`, datos privados
+  fuera del checkout y ambas cuentas locales. Ejecutar desde la raíz del checkout:
+  `python3 ops/studio/host.py --install && tailscale serve --bg --https=8447 http://127.0.0.1:8490`.
+- **Prueba pendiente:** login y guardar/recargar un ensayo por ese HTTPS en
+  escritorio y teléfono; confirmar TLS/ACL, acceso de Javier y persistencia de
+  la unidad. La prueba de loopback usa cuentas temporales y no reemplaza ese paso.
+- **Publicación pública:** conservar dry-run hasta demostrar las dos identidades
+  personales de GitHub, protecciones, backup y el recorrido PR/Pages/origen live
+  descrito en la activación existente. No añadir bypass humano ni cambiar gates.
+
+## L40 — renderer bloqueado por el corpus actual tras integrar main
+
+- **Dónde:** `tools/paper/search_index.py:43`, llamado por
+  `tools/paper/build.py:856`. El código es idéntico a `origin/main` en `f683aa2`;
+  estos archivos del generador no se modificaron en la lane de Studio.
+- **Qué y evidencia:** los 68 stories live del corpus actual producen índices
+  de EN=166155, ES=187049 y ZH=205362 bytes; los tres exceden 153600 bytes.
+  El build aborta y las vistas previas reales responden 503. La suite Studio
+  tiene seis casos afectados, incluyendo publicación bare e identidad byte
+  por byte. La prueba anterior con el corpus de `9468c9e` no acredita este estado.
+- **Cambio requerido del dueño del generador:** compactar la serialización del
+  índice para el corpus real y su crecimiento, resolviendo la duplicación de
+  campos de búsqueda humana y compatibilidad de agentes. Conservar los 150 KiB,
+  cobertura de todos los stories, locales y contratos de consumidores. No subir
+  el límite, quitar stories ni cambiar las aserciones para hacer pasar la suite.
+  El diseño concreto de compatibilidad debe resolverlo la lane del generador.
+- **Reproducción y aceptación:** ejecutar
+  `python3 -m unittest tests.test_studio_preview tests.test_studio_integration tests.test_studio_live tests.test_studio_translation tests.test_studio_email_seam`
+  y el build real de `tools/paper/build.py` con Story/status actuales. Después
+  repetir toda la suite Studio y el recorrido del launcher con navegador.
+
+## L40 — Chromium disponible para repetir la batería actual
+
+- **Dónde:** configuración externa del runner de Playwright. El módulo de Node
+  acordado existe; su Chromium headless build 1243 no está montado en esta sesión.
+- **Cambio exacto:** montar el ejecutable existente y configurar `CHROME_PATH`
+  con su ruta, o montar el cache completo y configurar
+  `PLAYWRIGHT_BROWSERS_PATH`. No instalar dependencias desde esta lane.
+- **Aceptación pendiente:** repetir `tests.harness.studio_host_journey` después
+  de reparar el renderer; las 46 imágenes existentes son de la ejecución previa.
+  Los recibos actuales registran `completed: false` y no acreditan esas imágenes
+  para el corpus nuevo.

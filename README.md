@@ -69,6 +69,8 @@ See [`NEWSWIRE_ACTIVATION_STATUS.md`](NEWSWIRE_ACTIVATION_STATUS.md) for the exa
 
 Human essays and curated issues enter through the private FCMO Studio server. The architect runs `sh studio/host-ops/start.sh`, initially with `STUDIO_DRY_RUN=1`, after configuring the private environment. Studio uses two distinct personal GitHub identities on the host, transports only approved `editorial/` content, and requires the same protected PR, Pages, public-origin and LKG boundaries. See [`studio/host-ops/RUNBOOK.md`](studio/host-ops/RUNBOOK.md) and [`REPORT-STUDIO-LIVE.md`](REPORT-STUDIO-LIVE.md) for activation and reversal commands.
 
+The single-URL private host activation is prepared in [`OPERATOR-LINE.md`](OPERATOR-LINE.md), with a user unit under `ops/studio/` and a loopback readiness check before Tailscale exposure. [`CR-L40.md`](CR-L40.md) records the verified private writing/review path and the remaining host activation boundary.
+
 ## FCMO AI leadership and attribution
 
 FCMO AI material uses contribution-based attribution. Organizational rank does not substitute for authorship.

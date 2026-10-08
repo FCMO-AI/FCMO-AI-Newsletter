@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 import pwd
 import re
+import shlex
 import subprocess
 import sys
 
@@ -13,7 +14,23 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from studio.server.credentials import CREDENTIAL_ROOT
 
 UNIT = 'fcmo-studio.service'
-SOURCE = Path(__file__).with_name(UNIT)
+SOURCE = Path(__file__).resolve().parents[2] / 'ops/studio' / UNIT
+
+
+def read_environment(path):
+    """Read prepare_host's literal assignments without running shell content."""
+    values = {}
+    for line in path.read_text().splitlines():
+        if not line.strip() or line.lstrip().startswith('#'):
+            continue
+        key, separator, raw = line.partition('=')
+        if not separator or not re.fullmatch(r'[A-Z][A-Z0-9_]*', key) or key in values:
+            raise ValueError('El entorno de Studio contiene una asignación inválida o repetida.')
+        parts = shlex.split(raw, comments=True)
+        if len(parts) > 1:
+            raise ValueError('Las rutas con espacios deben ir entre comillas en el entorno de Studio.')
+        values[key] = parts[0] if parts else ''
+    return values
 
 
 def command(*args, check=True):
@@ -68,7 +85,7 @@ def main():
     environment = home / '.config/fcmo-studio/studio.env'
     if environment.stat().st_uid != os.getuid() or environment.stat().st_mode & 0o077:
         raise ValueError('studio.env must be owned by fcmo-agent with mode 0600.')
-    values = dict(re.findall(r'^([A-Z_]+)=(.*)$', environment.read_text(), re.M))
+    values = read_environment(environment)
     if values.get('STUDIO_BIND') != '127.0.0.1': raise ValueError('Only loopback is allowed.')
     port = int(values.get('STUDIO_PORT', '8490'))
     if not 8490 <= port <= 8499: raise ValueError('Use a port in 8490-8499.')

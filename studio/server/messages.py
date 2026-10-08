@@ -1,7 +1,7 @@
 """Server errors and persisted publication progress in both Studio UI languages."""
 ERRORS = {
-    'Falta iniciar sesión de Javier.': 'Javier needs to sign in to GitHub.',
-    'Falta iniciar sesión de Matías.': 'Matías needs to sign in to GitHub.',
+    'Javier debe iniciar sesión en GitHub.': 'Javier needs to sign in to GitHub.',
+    'Matías debe iniciar sesión en GitHub.': 'Matías needs to sign in to GitHub.',
     'Inicia sesión para continuar.': 'Sign in to continue.',
     'Abre el inicio de sesión desde Studio.': 'Open the sign-in page from Studio.',
     'Recarga Studio antes de continuar.': 'Reload Studio before continuing.',

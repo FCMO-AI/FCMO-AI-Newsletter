@@ -58,7 +58,7 @@ class Application:
         if path == '/api/publication-readiness' and method == 'GET':
             statuses = self.github.credential_status() if hasattr(self.github, 'credential_status') else [
                 {'user': u, 'ready': bool(self.github.tokens.get(u)),
-                 'plain_es': 'Falta iniciar sesión de ' + ('Javier' if u == 'javier' else 'Matías') + '.',
+                 'plain_es': ('Javier' if u == 'javier' else 'Matías') + ' debe iniciar sesión en GitHub.',
                  'plain_en': ('Javier' if u == 'javier' else 'Matías') + ' needs to sign in to GitHub.'}
                 for u in ('javier', 'matias')]
             return {'credentials': statuses, 'live_enabled': self.live_enabled, 'dry_run': self.dry_run}

@@ -145,7 +145,7 @@ class Journey:
         self.score('two distinct authenticated sessions', self.sessions['javier'] != self.sessions['matias'])
         readiness = self.call('GET', '/api/publication-readiness')
         self.score('missing gh accounts: Studio starts and names both logins',
-                   [c['plain_es'] for c in readiness['credentials']] == ['Falta iniciar sesión de Javier.', 'Falta iniciar sesión de Matías.'])
+                   [c['plain_es'] for c in readiness['credentials']] == ['Javier debe iniciar sesión en GitHub.', 'Matías debe iniciar sesión en GitHub.'])
         piece = self.call('POST', '/api/pieces', {'kind': 'essay', 'title': 'Private before GitHub login', 'source_locale': 'en'})
         self.score('private editor remains usable without GitHub credentials',
                    self.call('GET', '/api/pieces/' + piece['slug'])['slug'] == piece['slug'])

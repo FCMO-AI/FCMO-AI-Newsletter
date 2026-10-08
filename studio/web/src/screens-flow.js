@@ -1,7 +1,7 @@
 import { get, post, put, del, ApiError } from './api.js'
 import { t, LOCALE_NAME, LOCALE_SHORT } from './i18n.js'
 import { h, clear, modal, toast, ago } from './ui.js'
-import { shell, session } from './main.js'
+import { shell, session, route } from './main.js'
 import { plainText } from './docmodel.js'
 import { diffView } from './diffview.js'
 import { suggestions } from './assistant.js'
@@ -147,10 +147,19 @@ export async function translateScreen (root, slug, fromLoc, targetArg) {
 }
 
 /* ---------------- preview (S4) ---------------- */
-function previewFrame ({ slug, loc, size, theme }) {
+function previewFrame ({ slug, loc, size, theme, onState = () => {} }) {
   const wrap = h('div', { class: 'pv-stage', 'data-size': size })
   const frame = h('iframe', { class: 'pv-frame', title: t('pv.title'), src: `/preview/${slug}/${loc}/?w=${size}&theme=${theme}`, sandbox: 'allow-same-origin allow-scripts' })
-  frame.addEventListener('load', () => { try { frame.contentDocument.documentElement.dataset.theme = theme } catch {} })
+  frame.addEventListener('load', () => {
+    let doc = null; try { doc = frame.contentDocument } catch {}
+    // A failed build answers with JSON; never show raw JSON or claim success.
+    if (doc && doc.contentType && doc.contentType !== 'text/html') {
+      let plain = ''; try { plain = JSON.parse(doc.body ? doc.body.textContent : '').error_plain || '' } catch {}
+      onState('failed', plain); return
+    }
+    try { doc.documentElement.dataset.theme = theme } catch {}
+    onState('ready')
+  })
   const fit = () => {
     const avail = wrap.clientWidth || 800; const w = Number(size)
     const k = Math.min(1, (avail - 2) / w)
@@ -177,8 +186,16 @@ export async function previewScreen (root, slug, loc0) {
   const have = Object.fromEntries(LOCS.map(l => [l, meta.kind === 'issue' || (meta.locales[l] || {}).words > 0 || (meta.locales[l] || {}).state === 'later']))
   async function draw () {
     frame && frame.destroy(); clear(stage)
-    stage.append(h('div', { class: 'pv-banner' }, '✓ ', t('pv.banner')), controls(st, p => { Object.assign(st, p); draw() }, have))
-    if (!have[st.loc]) stage.append(h('p', { class: 'notice' }, t('pv.noloc'))); else { frame = previewFrame({ slug, ...st }); stage.append(frame.el) }
+    const banner = h('div', { class: 'pv-banner', role: 'status', 'data-state': 'building' }, t('pv.building'))
+    const onState = (state, plain) => {
+      clear(banner); banner.dataset.state = state
+      if (state === 'ready') { banner.append('✓ ', t('pv.banner')); return }
+      banner.append(t('pv.failed'))
+      const note = h('p', { class: 'notice soft', role: 'alert' }, plain || t('err.generic'))
+      if (frame) frame.el.replaceWith(note)
+    }
+    stage.append(banner, controls(st, p => { Object.assign(st, p); draw() }, have))
+    if (!have[st.loc]) { banner.remove(); stage.append(h('p', { class: 'notice' }, t('pv.noloc'))) } else { frame = previewFrame({ slug, ...st, onState }); stage.append(frame.el) }
     clear(side); side.append(h('h2', null, t('dr.checks')), h('p', { class: 'muted', role: 'status' }, t('chk.running')))
     const cl = await checksList(slug, c => { location.hash = `#/p/${slug}/${c.loc || st.loc}` })
     clear(side); side.append(h('h2', null, t('dr.checks')), cl)
@@ -195,6 +212,8 @@ export async function previewScreen (root, slug, loc0) {
 /* ---------------- publish sheet (S5) ---------------- */
 export async function publishScreen (root, slug) {
   const meta = await get(`/api/pieces/${slug}`)
+  const readiness = await get('/api/publication-readiness').catch(() => null)
+  const privateReview = !readiness || readiness.dry_run || !readiness.live_enabled
   const box = h('div', { class: 'pub-checks' })
   const act = h('div', { class: 'btn-row' })
   async function draw () {
@@ -208,7 +227,7 @@ export async function publishScreen (root, slug) {
     act.append(ask, h('button', { class: 'btn', type: 'button', onclick: draw }, t('pub.rerun'))); if (bad.length) act.append(h('span', { class: 'muted' }, t('pub.blocked', { n: bad.length })))
   }
   const mount = () => root.append(shell(h('div', { class: 'flow pub' }, crumbs(slug, meta.title, t('ed.publish')), h('h1', null, t('pub.title', { title: meta.title })), h('p', { class: 'lede' }, t('pub.lead', { who: other() })),
-    h('div', { class: 'sheet' }, h('p', { class: 'notice soft' }, t('pub.public')),
+    h('div', { class: 'sheet' }, h('p', { class: 'notice soft' }, t(privateReview ? 'rev.private.confirm' : 'pub.public')),
       meta.kind !== 'issue' ? h('section', { class: 'distribution' }, h('h2', null, t('pub.destinations')),
         h('p', null, t('pub.site')), h('p', null, t('pub.feeds')),
         h('label', { class: 'check' }, h('input', { type: 'checkbox', checked: meta.meta?.distribution?.email === true, disabled: meta.author !== session.me.user || !['draft', 'changes_requested', 'amending'].includes(meta.state), onchange: async e => {
@@ -226,6 +245,9 @@ export async function publishScreen (root, slug) {
 /* ---------------- review (S6) ---------------- */
 export async function reviewScreen (root, slug) {
   const meta = await get(`/api/pieces/${slug}`)
+  const readiness = await get('/api/publication-readiness').catch(() => null)
+  const privateReview = !readiness || readiness.dry_run || !readiness.live_enabled
+  const approveText = t(privateReview ? 'rev.private.approve' : 'rev.approve')
   const mine = meta.author === session.me.user
   const st = { loc: meta.source_locale, size: innerWidth < 700 ? '390' : '1440', theme: 'light' }
   const stage = h('div', { class: 'rv-read' }); const diffBox = h('div', { class: 'rv-diff' }); const cmtBox = h('div', { class: 'rv-cmt' })
@@ -267,10 +289,10 @@ export async function reviewScreen (root, slug) {
   function showTab (k) { tab = k; clear(tabBar); [['read', t('rev.preview')], ['diff', t('rev.changes.tab')], ['cmt', t('rev.comments')]].forEach(([id, l]) => tabBar.append(h('button', { type: 'button', role: 'tab', class: id === tab ? 'on' : '', 'aria-selected': String(id === tab), onclick: () => showTab(id) }, l))); for (const id of tabs) panes[id].hidden = id !== tab }
   const note = h('textarea', { rows: 2, placeholder: t('rev.note', { who: meta.author === 'javier' ? 'Javier' : 'Matías' }), 'aria-label': t('rev.note', { who: meta.author }) })
   const act = mine ? h('p', { class: 'notice soft' }, t('rev.own'), ' ', t('rev.waiting', { who: other() })) : h('div', { class: 'rv-act' }, note, h('div', { class: 'btn-row' },
-    h('button', { class: 'btn primary big', type: 'button', onclick: () => modal({ title: t('rev.approve'), body: h('p', null, t('rev.confirm')), actions: [{ label: t('common.cancel') }, { label: t('rev.approve'), kind: 'primary', onclick: async close => { await post(`/api/pieces/${slug}/review/approve`, { note: note.value }); close(); location.hash = `#/p/${slug}/progress` } }] }) }, t('rev.approve')),
+    h('button', { class: 'btn primary big', type: 'button', disabled: !readiness || !(readiness.dry_run || readiness.live_enabled), onclick: () => modal({ title: approveText, body: h('p', null, t(privateReview ? 'rev.private.confirm' : 'rev.confirm')), actions: [{ label: t('common.cancel') }, { label: approveText, kind: 'primary', onclick: async close => { await post(`/api/pieces/${slug}/review/approve`, { note: note.value }); close(); location.hash = `#/p/${slug}/progress` } }] }) }, approveText),
     h('button', { class: 'btn big', type: 'button', onclick: async () => { await post(`/api/pieces/${slug}/review/changes`, { note: note.value }); toast(t('rev.sent', { who: meta.author === 'javier' ? 'Javier' : 'Matías' })); location.hash = '#/' } }, t('rev.changes'))))
   drawRead(); drawDiff(); drawCmt(); showTab('read')
-  root.append(shell(h('div', { class: 'flow rv' }, crumbs(slug, meta.title, t('rev.preview')), h('h1', null, t('rev.title', { title: meta.title })), tabBar, h('div', { class: 'rv-panes' }, stage, diffBox, cmtBox), act), { active: 'home', wide: true }))
+  root.append(shell(h('div', { class: 'flow rv' }, crumbs(slug, meta.title, t('rev.preview')), h('h1', null, t('rev.title', { title: meta.title })), tabBar, h('div', { class: 'rv-panes' }, stage, diffBox, cmtBox), !readiness ? h('div', { class: 'notice soft', role: 'status' }, h('p', null, t('pub.mode.unread')), h('button', { class: 'btn', type: 'button', onclick: () => route() }, t('pub.rerun'))) : null, act), { active: 'home', wide: true }))
   return () => frame && frame.destroy()
 }
 
