@@ -61,13 +61,18 @@ const base = process.argv[1], rows = JSON.parse(require('node:fs').readFileSync(
         const result = await page.evaluate(() => {
           const h = document.querySelector('.lead h1');
           const dek = document.querySelector('.lead-dek');
+          // An author-level display rule must never override the hidden attribute (stale banner on a FRESH edition).
+          const shownHidden = [...document.querySelectorAll('[hidden]')].filter(e => getComputedStyle(e).display !== 'none')
+            .map(e => e.className || e.tagName);
+          if (shownHidden.length) return { shownHidden };
           if (!h) return { missing: true };
           const rect = h.getBoundingClientRect(), cs = getComputedStyle(h);
           const lineHeight = parseFloat(cs.lineHeight) || parseFloat(cs.fontSize);
           return { height: rect.height, lines: Math.ceil(rect.height / lineHeight - .01),
             dekTop: dek?.getBoundingClientRect().top ?? null };
         });
-        if (result.missing) failures.push(`${route.path || '/'}: home hero h1 missing`);
+        if (result.shownHidden) failures.push(`${route.path || '/'} ${viewport.width}px: hidden elements rendered: ${result.shownHidden.join(', ')}`);
+        else if (result.missing) failures.push(`${route.path || '/'}: home hero h1 missing`);
         else if (viewport.width === 1440 && (result.lines > 4 || result.dekTop == null || result.dekTop >= 900))
           failures.push(`${route.path || '/'} desktop home hero: lines=${result.lines} dekTop=${result.dekTop}`);
         else if (viewport.width === 390 && result.height > viewport.height * .45)
