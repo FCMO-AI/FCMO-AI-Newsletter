@@ -1,7 +1,7 @@
 {
   "schema": "fcmo-stories-v2",
-  "generated_at": "2026-10-08T20:48:43Z",
-  "release_id": "newswire-faacf517af0f353a4938b956",
+  "generated_at": "2026-10-08T21:49:42Z",
+  "release_id": "newswire-063bc171436eec4b6f46abae",
   "canonical_locale": "en",
   "locales": [
     "en",
@@ -35,6 +35,988 @@
     "2026-10-08"
   ],
   "stories": [
+    {
+      "id": "FCMO-F5623092EA8C",
+      "slug": "never-stop-thinking-reports-continuous-time-language-agents-and-tests",
+      "url_date": "2026-10-08",
+      "kind": "development",
+      "status": "live",
+      "beat": "research",
+      "desk": "agents_memory",
+      "title": "Never Stop Thinking reports continuous-time language agents and tests verifiable training signals",
+      "dek": "The paper introduces a text-first voice-agent design that keeps one reasoning stream active while speech, tool results and interruptions arrive, using an interrupt-and-resume orchestrator without changing model weights.",
+      "summary": "The paper introduces a text-first voice-agent design that keeps one reasoning stream active while speech, tool results and interruptions arrive, using an interrupt-and-resume orchestrator without changing model weights. It reports a 19% mean latency reduction on a small composed live pipeline and introduces ReactiveBench, where LLM-judge quality rankings reverse under an independent judge and objective checklists expose task-completion losses from some judge-trained variants. The authors report better streaming correctness from type-shaped verifiable rewards optimized on-policy, including a three-seed 73±5% result and a second-model replication. Results are author-reported; the paper also finds mixed effects across models and conditions, and its live latency set is small and composition-based.",
+      "why_it_matters": "The paper connects voice interaction latency to a simple orchestration mechanism and shows why apparent agent quality gains can depend on what an evaluator sees and rewards. If its reported findings transfer, objective task requirements and task-shaped verifiable rewards may be more reliable than a single LLM judge for interactive agents. Its own cross-model results show that continuous streaming can also reduce correctness when systems act before enough context arrives.",
+      "importance_rationale": "If replicated in practical voice-agent systems, the paper’s evidence that judge-based rewards can favor visible reasoning while reducing objectively checked task completion, and that verifiable, task-shaped on-policy training can reverse that outcome, would materially affect agent evaluation and post-training design. The technical and methodological stakes are broad, while current results remain a single paper’s benchmarks and training studies.",
+      "technical": {
+        "claimed_result": "On a 20-episode live pipeline built from real ASR, Qwen3-8B and streaming TTS component timings, authors report a 19% pooled mean latency reduction (95% bootstrap CI 16–25%) from end of user speech to first audible token, with a 49% reduction on early-entity tasks (39–66%). ReactiveBench has 120 interactive scenarios and 688 pre-authored checklist items plus 200 exact-correctness streaming tasks. A type-shaped verifiable-reward on-policy GRPO result is 73±5% across three seeds; Qwen3-4B improves from 50% to 59% in a second-model run.",
+        "demonstrated_result": "The accessible preprint specifies an interrupt-and-resume mechanism, benchmark protocol, result tables and limitations. The reported latency, judge-reversal, benchmark and training outcomes are claims from the paper and were not independently reproduced.",
+        "mechanism": "An orchestrator closes the active thinking block when partial transcripts, playback deadlines, tools or barge-ins arrive, injects the observation into the same conversation stream and resumes decoding. The training study compares LLM-judge reward, coverage-preserving signals, trajectory-level rejection fine-tuning, preference optimization and on-policy RL with task-shaped verifiable rewards.",
+        "regime": "Text-only reasoning over streaming ASR transcripts and text-to-speech output. The live latency sample contains 20 episodes using Whisper ASR, Qwen3-8B and streaming TTS. The main interactive benchmark uses scripted counterparts and transcript-level interrupts. Training runs use Qwen3-8B LoRA-scale experiments with modest rollout budgets; results vary across task types and model families.",
+        "reproducibility": "The paper links a GitHub repository and says benchmark, training and evaluation artifacts are released, but this activation did not inspect or execute them, verify checkpoints, or reproduce any reported outcome.",
+        "strongest_baseline": "For objective scenarios, the paper uses within-model and within-scenario turn-based versus continuous comparisons, two independent checklist verifiers (κ=0.75) and exact-match scoring on streaming tasks. The live voice latency comparison is within the same ASR/model/TTS system; it is composed from per-episode component timings rather than two independent closed-loop runs. No native full-duplex cross-system comparison is made."
+      },
+      "importance_tier": "Major",
+      "development_type": "paper",
+      "event_at": "2026-07-11T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-08T21:49:40Z",
+      "updated_at": "2026-10-08T21:49:40Z",
+      "importance": 6,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": false,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "CLAIMED",
+            "text": "The authors report that a lightweight interrupt-and-resume orchestrator applied to an unmodified text model reduced end-of-user-speech to first-audible-token mean latency by 19% (bootstrap 95% CI 16–25%) across 20 composed live-pipeline episodes, and by 49% (39–66%) on early-entity tool tasks. This is a within-system result and not a comparison with native full-duplex models."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "On ReactiveBench, the authors report that continuous-time systems’ apparent quality advantage under the primary LLM judge reversed under an independent judge and mostly disappeared when reasoning was hidden; the primary outcome instead uses 688 pre-authored checklist requirements over 120 scripted interactive scenarios, with two-verifier agreement κ=0.75."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "The paper reports that some judge-trained models completed fewer objective requirements when thinking, while a type-shaped verifiable reward optimized with on-policy GRPO raised streaming exact correctness to 73±5% across three seeds from a 48% starting result; its appendix reports a 78% score at n=448 and a Qwen3-4B replication from 50% to 59%."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "In an expanded zero-shot Track B evaluation across 13 model families, the authors report that streaming helped some under-speaking models and hurt models that already spoke more completely; no single mode dominated, supporting a regime- and model-dependent account rather than a universal benefit."
+          }
+        ],
+        "limitations": [
+          "The live latency study has n=20 and composes conditions from per-episode component timings instead of running two independent closed-loop conditions; it measures latency, not full interactive quality.",
+          "Track A interruptions are simulated at transcript level, not under real-time load. Objective checklists and exact correctness do not capture all qualities of interaction.",
+          "Judge-based rankings vary with judge identity and reasoning visibility. The authors themselves say they rest no claims on trained-model judged-quality rankings because results overlap in confidence intervals.",
+          "Training is at LoRA scale on one GPU with modest rollout budgets; reward weights are hand-set and seed spread is nontrivial for some task types.",
+          "Expanded zero-shot results across 13 model families are heterogeneous: streaming helps some models and harms others, so the mechanism does not uniformly improve correctness.",
+          "The arXiv identifier 2609.17416 is in tension with the arXiv page and version text showing submission on 2026-07-11; chronology is unresolved."
+        ],
+        "gaps": [
+          {
+            "kind": "missing_independent",
+            "description": "The paper’s latency, benchmark and training results have not been independently reproduced; linked code/checkpoints were not inspected."
+          },
+          {
+            "kind": "other",
+            "description": "Live voice latency evidence uses 20 episodes and composed per-episode component timings rather than paired independent closed-loop runs; real interactive quality at scale remains unknown."
+          },
+          {
+            "kind": "other",
+            "description": "The paper’s chronology is internally unclear because the arXiv ID indicates a September 2026 identifier while the abstract/version state 2026-07-11."
+          }
+        ],
+        "contradictory": [
+          "The paper reports latency benefits, but also reports that think-while-listening can increase latency at CPU speeds below about 85 tokens/s and can reduce accuracy through partial-input confusion; effects are conditional on model, inference speed and task.",
+          "Across 13 model families, streaming improves some systems and significantly harms others (including reported −20 and −22 percentage-point changes for Mistral-7B and Llama-3.1-8B on the evaluated track); no universal zero-shot quality gain is supported.",
+          "The paper’s own judge-swap analysis reverses the apparent continuous-time quality advantage, so the headline judgment-based preference is not robust to evaluator choice."
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://arxiv.org/abs/2609.17416",
+          "domain": "arxiv.org",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "Pine AI",
+        "University of Washington"
+      ],
+      "topics": [
+        "continuous-time-language-agents",
+        "voice-latency",
+        "agent-evaluation",
+        "verifiable-rewards",
+        "llm-as-judge"
+      ],
+      "regions": [
+        "GLOBAL"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-F5623092EA8C.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: Never Stop Thinking reports continuous-time language agents and tests verifiable training signals"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "Never Stop Thinking informa sobre agentes de lenguaje en tiempo continuo y señales de entrenamiento verificables",
+            "summary": "El artículo presenta un diseño de agente de voz basado en texto que mantiene activo un flujo de razonamiento mientras llegan voz, resultados de herramientas e interrupciones, mediante un orquestador de interrupción y reanudación sin cambiar los pesos del modelo. Reporta una reducción media de latencia del 19% en una pequeña canalización en vivo compuesta y presenta ReactiveBench, donde las clasificaciones de calidad de un juez LLM se invierten con un juez independiente y las listas objetivas revelan pérdidas de finalización de tareas en algunas variantes entrenadas con jueces. Los autores reportan mayor corrección en tareas de streaming con recompensas verificables, específicas por tipo y optimizadas con RL on-policy, incluido un resultado de 73±5% con tres semillas y una réplica en otro modelo. Los resultados son reportados por los autores; el artículo también encuentra efectos mixtos entre modelos y condiciones, y su muestra de latencia en vivo es pequeña y compuesta.",
+            "importance_rationale": "Si se replican en sistemas prácticos de agentes de voz, las pruebas del artículo de que las recompensas basadas en jueces pueden favorecer el razonamiento visible mientras reducen la finalización de tareas evaluada objetivamente, y de que el entrenamiento on-policy verificable y adaptado a la tarea puede revertir ese resultado, afectarían de forma sustancial la evaluación y el postentrenamiento de agentes. Las implicaciones técnicas y metodológicas son amplias, pero los resultados actuales proceden de benchmarks y estudios de entrenamiento de un solo artículo.",
+            "why_it_matters": "El artículo conecta la latencia de interacción por voz con un mecanismo de orquestación sencillo y muestra que las aparentes mejoras de calidad de agentes pueden depender de lo que un evaluador observa y recompensa. Si los resultados se transfieren, los requisitos objetivos de tareas y las recompensas verificables específicas por tarea podrían ser más fiables que un solo juez LLM para agentes interactivos. Sus propios resultados entre modelos muestran que el streaming también puede reducir la corrección cuando los sistemas actúan antes de recibir suficiente contexto.",
+            "technical": {
+              "claimed_result": "En una canalización en vivo de 20 episodios construida con tiempos de componentes reales de ASR, Qwen3-8B y TTS en streaming, los autores reportan una reducción media de latencia agrupada del 19% (IC bootstrap del 95%: 16–25%) desde el fin del habla del usuario hasta la primera respuesta audible, y una reducción de 49% en tareas de entidad temprana (39–66%). ReactiveBench tiene 120 escenarios interactivos y 688 elementos de lista de verificación preescritos, además de 200 tareas de streaming puntuadas por corrección exacta. Un resultado de GRPO on-policy con recompensa verificable específica por tipo es 73±5% en tres semillas; Qwen3-4B mejora de 50% a 59% en una segunda ejecución de modelo.",
+              "demonstrated_result": "El preprint accesible especifica un mecanismo de interrupción y reanudación, un protocolo de benchmark, tablas de resultados y limitaciones. Los resultados reportados de latencia, inversión entre jueces, benchmark y entrenamiento son afirmaciones del artículo y no se reprodujeron de forma independiente.",
+              "mechanism": "Un orquestador cierra el bloque de razonamiento activo cuando llegan transcripciones parciales, plazos de reproducción, resultados de herramientas o interrupciones del usuario; inyecta la observación en el mismo flujo de conversación y reanuda la decodificación. El estudio de entrenamiento compara recompensas de jueces LLM, señales que preservan cobertura, ajuste fino por rechazo a nivel de trayectoria, optimización de preferencias y RL on-policy con recompensas verificables estructuradas por tarea.",
+              "regime": "Razonamiento de texto sobre transcripciones ASR en streaming y voz sintetizada a partir de texto. La muestra de latencia en vivo contiene 20 episodios con Whisper ASR, Qwen3-8B y TTS en streaming. El benchmark interactivo principal usa interlocutores guionados e interrupciones a nivel de transcripción. Las ejecuciones de entrenamiento usan experimentos LoRA de Qwen3-8B con presupuestos de rollout modestos; los resultados varían según el tipo de tarea y la familia de modelos.",
+              "reproducibility": "El artículo enlaza un repositorio de GitHub y afirma que publica los artefactos del benchmark, el entrenamiento y la evaluación, pero esta activación no inspeccionó ni ejecutó el repositorio, no verificó checkpoints ni reprodujo resultados.",
+              "strongest_baseline": "Para escenarios objetivos, el artículo compara modo por turnos y continuo dentro del mismo modelo y escenario, usa dos verificadores independientes de listas de verificación (κ=0.75) y puntuación exacta en tareas de streaming. La comparación de latencia en vivo ocurre dentro del mismo sistema ASR/modelo/TTS; se compone de tiempos de componentes por episodio en lugar de ejecutar dos condiciones independientes de extremo a extremo. No compara con sistemas nativos full-duplex."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "Los autores informan que un orquestador ligero de interrupción y reanudación aplicado a un modelo de texto sin modificar redujo la latencia media entre el fin del habla del usuario y el primer token audible en 19% (IC bootstrap del 95%: 16–25%) en 20 episodios compuestos de canalización en vivo, y en 49% (39–66%) en tareas con entidades tempranas. Es un resultado dentro del mismo sistema, no una comparación con modelos nativos full-duplex."
+                },
+                {
+                  "text": "En ReactiveBench, los autores reportan que la aparente ventaja de calidad de los sistemas en tiempo continuo bajo el juez LLM principal se invirtió con un juez independiente y casi desapareció al ocultar el razonamiento. El resultado principal usa listas de verificación preescritas con 688 requisitos en 120 escenarios interactivos guionados y dos verificadores cuya concordancia fue κ=0.75."
+                },
+                {
+                  "text": "El artículo informa que algunos modelos entrenados con recompensas de jueces completaron menos requisitos objetivos al razonar, mientras que una recompensa verificable y estructurada por tipo, optimizada con GRPO on-policy, elevó la corrección exacta en streaming a 73±5% en tres semillas desde un resultado inicial de 48%. El apéndice informa una puntuación de 78% con n=448 y una réplica en Qwen3-4B de 50% a 59%."
+                },
+                {
+                  "text": "En una evaluación ampliada de Track B sin entrenamiento y con 13 familias de modelos, los autores reportan que el streaming ayudó a algunos modelos que hablaban poco y perjudicó a otros que ya hablaban de forma más completa. Ningún modo dominó, lo que respalda una interpretación dependiente del régimen y del modelo, no un beneficio universal."
+                }
+              ],
+              "limitations": [
+                "El estudio de latencia en vivo tiene n=20 y compone las condiciones a partir de tiempos de componentes por episodio en vez de ejecutar dos condiciones independientes de extremo a extremo; mide latencia, no calidad interactiva completa.",
+                "Las interrupciones de Track A se simulan a nivel de transcripción, no bajo carga en tiempo real. Las listas objetivas y la corrección exacta no capturan todas las cualidades de la interacción.",
+                "Las clasificaciones basadas en jueces varían según la identidad del juez y la visibilidad del razonamiento. Los propios autores no sostienen sus conclusiones en las clasificaciones de calidad de modelos entrenados, pues los resultados se solapan en sus intervalos de confianza.",
+                "El entrenamiento se realiza a escala LoRA en una GPU y con presupuestos modestos de rollout; los pesos de recompensa se fijan manualmente y la variabilidad entre semillas no es trivial en algunos tipos de tarea.",
+                "Los resultados ampliados sin entrenamiento para 13 familias de modelos son heterogéneos: el streaming ayuda a algunos modelos y perjudica a otros, por lo que el mecanismo no mejora uniformemente la corrección.",
+                "El identificador arXiv 2609.17416 no concuerda claramente con la página de arXiv y el texto de versión, que indican envío el 2026-07-11; la cronología sigue sin resolverse."
+              ],
+              "gaps": [
+                {
+                  "description": "Los resultados de latencia, benchmark y entrenamiento del artículo no se han reproducido de forma independiente; no se inspeccionaron el código ni los checkpoints enlazados."
+                },
+                {
+                  "description": "La evidencia de latencia en vivo usa 20 episodios y tiempos de componentes compuestos, no ejecuciones independientes emparejadas de extremo a extremo; se desconoce la calidad interactiva real a escala."
+                },
+                {
+                  "description": "La cronología del artículo no está clara porque el identificador arXiv señala un registro de septiembre de 2026, mientras que el resumen y la versión indican 2026-07-11."
+                }
+              ],
+              "contradictory": [
+                "El artículo reporta beneficios de latencia, pero también informa que pensar mientras se escucha puede aumentar la latencia a velocidades de inferencia en CPU inferiores a unos 85 tokens/s y reducir la precisión por confusión con entradas parciales; los efectos dependen del modelo, la velocidad de inferencia y la tarea.",
+                "En 13 familias de modelos, el streaming mejora algunos sistemas y perjudica significativamente a otros (incluidos cambios reportados de −20 y −22 puntos porcentuales para Mistral-7B y Llama-3.1-8B en la pista evaluada); no se demuestra una mejora universal de calidad sin entrenamiento.",
+                "El propio análisis de cambio de juez del artículo invierte la aparente ventaja de calidad en tiempo continuo, por lo que la preferencia basada en la evaluación principal no es robusta a la elección del evaluador."
+              ]
+            }
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb",
+            "evidence.contradictory": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "Never Stop Thinking 报告连续时间语言智能体及可验证训练信号",
+            "summary": "论文介绍了一种文本优先的语音智能体设计：在语音、工具结果和中断到达时，系统通过中断与恢复编排器保持同一推理流持续运行，无需修改模型权重。论文报告称，在一个由小样本实时流水线组成的测量中，平均延迟降低了 19%；并提出 ReactiveBench，其中 LLM 评审给出的质量排名在更换为独立评审后反转，客观清单也显示某些评审训练变体的任务完成度下降。作者报告称，采用类型化可验证奖励进行 on-policy 训练能提高流式任务正确率，包括三种随机种子的 73±5% 结果以及另一模型上的复现。结果均为作者报告；论文也发现不同模型和条件的效果不一，实时延迟样本较小且由组件数据合成。",
+            "importance_rationale": "如果这些发现能在实用语音智能体系统中复现，论文关于评审奖励可能偏向可见推理、同时降低客观任务完成率的证据，以及任务化的可验证 on-policy 训练可以逆转该结果的证据，将对智能体评测和后训练设计产生实质影响。其技术和方法学意义较广，但当前结果仅来自一篇论文的基准测试和训练研究。",
+            "why_it_matters": "论文将语音交互延迟与一种简单的编排机制联系起来，并展示表面上的智能体质量提升可能取决于评测者能看到和奖励什么。如果这些结果能够迁移，客观任务要求和任务特定的可验证奖励可能比单一 LLM 评审更适合评估交互式智能体。论文自身的跨模型结果也表明，如果系统在获得足够上下文前就采取行动，流式处理会降低正确率。",
+            "technical": {
+              "claimed_result": "在一个由真实 ASR、Qwen3-8B 和流式 TTS 组件时间组成的 20 轮实时流水线测量中，作者报告从用户停止说话到首个可听响应的平均汇总延迟降低 19%（bootstrap 95% 置信区间：16–25%），早期实体任务降低 49%（39–66%）。ReactiveBench 包含 120 个交互场景、688 项预先编写清单要求，以及 200 项按精确正确率计分的流式任务。类型化可验证奖励的 on-policy GRPO 结果在三个随机种子下为 73±5%；第二个模型 Qwen3-4B 从 50% 提升至 59%。",
+              "demonstrated_result": "可访问的预印本详细说明了中断与恢复机制、基准协议、结果表和局限性。延迟、评审反转、基准和训练结果均为论文报告，尚未独立复现。",
+              "mechanism": "当部分转录、播放期限、工具结果或用户插话到达时，编排器关闭当前推理块，将观察内容注入同一对话流并恢复解码。训练研究比较了 LLM 评审奖励、覆盖率保持信号、轨迹级拒绝微调、偏好优化，以及采用类型化任务可验证奖励的 on-policy RL。",
+              "regime": "基于流式 ASR 转录文本和文本转语音输出的文本推理。实时延迟样本含 20 个使用 Whisper ASR、Qwen3-8B 和流式 TTS 的片段。主要交互基准采用脚本化对话对象，并在转录文本层面模拟中断。训练使用 Qwen3-8B 的 LoRA 规模实验和有限 rollout 预算；结果因任务类型和模型系列而异。",
+              "reproducibility": "论文链接了 GitHub 仓库，并称发布了基准、训练流程和评测产物，但本次 activation 未检查或运行仓库，未验证检查点，也未复现结果。",
+              "strongest_baseline": "对于客观场景，论文在相同模型和场景内比较流式与轮次模式，使用两名独立清单评审（κ=0.75），并对流式任务进行精确匹配计分。实时语音延迟比较在同一 ASR/模型/TTS 系统内完成；它由每个片段的组件时间组成，并非分别运行两种独立闭环条件。论文未与原生全双工系统对比。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "作者报告称，将轻量级中断与恢复编排器应用于未修改的文本模型后，在 20 个组件合成的实时流水线片段中，从用户停止说话到首个可听 token 的平均延迟降低了 19%（bootstrap 95% 置信区间：16–25%）；在早期实体任务中降低了 49%（39–66%）。这是同一系统内的结果，并非与原生全双工模型的比较。"
+                },
+                {
+                  "text": "在 ReactiveBench 上，作者报告称，连续时间系统在主要 LLM 评审下看似有质量优势，但换用独立评审后结果反转，隐藏推理内容后优势也大多消失。主要结果采用 120 个脚本化交互场景中的 688 项预先编写清单要求，并由两名评审验证，评审一致性 κ=0.75。"
+                },
+                {
+                  "text": "论文报告称，某些采用评审奖励训练的模型在推理时完成的客观要求更少；采用类型化可验证奖励并以 on-policy GRPO 优化后，流式精确正确率从基线 48% 提升至三个随机种子下的 73±5%。附录报告 n=448 时为 78%，并报告 Qwen3-4B 上从 50% 提升至 59% 的复现结果。"
+                },
+                {
+                  "text": "在扩展的 13 个模型系列零样本 Track B 评估中，作者报告称，流式模式有助于部分原本较少发言的模型，却损害了已经能较完整作答的模型。没有一种模式占优，因此结果支持依赖模型和使用情境的解释，而非普遍收益。"
+                }
+              ],
+              "limitations": [
+                "实时延迟研究的样本量为 n=20，且由每个片段的组件时间合成条件，而非分别执行两种独立闭环条件；该研究测量延迟，不是完整交互质量。",
+                "Track A 的中断在转录文本层面模拟，并非在实时负载下执行。客观清单和精确正确率无法涵盖交互的全部质量。",
+                "基于评审的排名会随评审身份和推理可见性而变。作者自己表示，训练模型的评审质量排名区间重叠，因此不以这些排名作为结论依据。",
+                "训练实验是在单张 GPU 上以 LoRA 规模运行，rollout 预算有限；奖励权重由人工设定，某些任务类型的种子间差异不小。",
+                "覆盖 13 个模型系列的扩展零样本结果存在异质性：流式模式有助于一些模型，也会损害另一些模型，因此该机制并不会统一提升正确率。",
+                "arXiv 标识符 2609.17416 与 arXiv 页面及版本文本显示的提交日期 2026-07-11 存在张力；时间顺序尚未解决。"
+              ],
+              "gaps": [
+                {
+                  "description": "论文的延迟、基准和训练结果尚无独立复现；关联代码和检查点也未检查。"
+                },
+                {
+                  "description": "实时延迟证据使用 20 个片段，并由组件时间合成，而非配对的独立端到端运行；真实交互质量的大规模表现未知。"
+                },
+                {
+                  "description": "论文时间顺序不清楚：arXiv 标识符表示 2026 年九月记录，而摘要和版本标示 2026-07-11。"
+                }
+              ],
+              "contradictory": [
+                "论文报告了延迟收益，但也报告称，在 CPU 推理速度低于约 85 tokens/s 时，边听边想可能增加延迟；依据部分输入行动也可能降低准确率。效果取决于模型、推理速度和任务。",
+                "在 13 个模型系列中，流式模式改善部分系统，却显著损害其他系统（论文在所测轨道上报告 Mistral-7B 和 Llama-3.1-8B 分别变化 −20 和 −22 个百分点）；结果不支持未经训练时存在普遍的质量收益。",
+                "论文自己的评审替换分析反转了表面上的连续时间质量优势，因此主要评审给出的偏好并不稳健，依赖评审选择。"
+              ]
+            },
+            "headline": "Never Stop Thinking 报告连续时间语言智能体及可验证训练信号"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb",
+            "evidence.contradictory": "arb"
+          }
+        }
+      }
+    },
+    {
+      "id": "FCMO-DBA16672D5E3",
+      "slug": "flashvector-reports-agentic-optimization-across-unity-vectors-model",
+      "url_date": "2026-10-08",
+      "kind": "development",
+      "status": "live",
+      "beat": "research",
+      "desk": "compute_inference",
+      "title": "FlashVector reports agentic optimization across Unity Vector’s model-serving stack",
+      "headline": "FlashVector reports agentic optimization across Unity Vector’s model-serving stack",
+      "dek": "A September 2026 arXiv paper from Unity Vector AI Team and Stanford authors describes FlashVector, a closed-loop agent system that profiles, diagnoses, modifies and verifies changes across model-serving layers rather than only GPU kernels.",
+      "summary": "A September 2026 arXiv paper from Unity Vector AI Team and Stanford authors describes FlashVector, a closed-loop agent system that profiles, diagnoses, modifies and verifies changes across model-serving layers rather than only GPU kernels. The authors report deployment on Unity Vector production models, including up to 2.00× throughput and 1.98× latency speedup on model-server cases and a 1.6× feature-processing throughput increase at fixed latency SLO. The paper describes same-environment comparisons, a ±6% end-to-end baseline noise floor, correctness gates and full-stack load checks. These are author-reported results from one production setting; no independent reproduction, full-system code release or transfer study was verified.",
+      "why_it_matters": "Production inference bottlenecks can sit in data preparation, model-server code and runtime configuration as well as GPU kernels. If this reported approach generalizes, an agentic loop that can test changes across those boundaries could expand where automated optimization helps teams improve throughput and latency. The evidence currently establishes a paper-reported deployment case, not broad transfer or net economic savings.",
+      "importance_rationale": "If the reported results hold in this deployment, one closed-loop agent system can find and validate performance improvements across GPU kernels, model graphs, a Triton model server, feature processing and serving configuration. That would broaden practical agentic optimization beyond isolated kernel tasks and matter to production inference cost and throughput. The score reflects a single author-reported deployment, not confidence or proven transfer to other fleets.",
+      "technical": {
+        "claimed_result": "For six production models, the paper’s table reports latency speedups of 1.30×–1.98× and throughput increases of 1.10×–2.00×. A separate on-demand feature-processing pod is reported to rise from 940 to about 1,500 requests/s across sequential changes at fixed latency SLO. The authors also report >2× throughput spread across configurations of one code-optimized model.",
+        "demonstrated_result": "The accessible arXiv preprint contains the system design, case-study tables and stated verification protocol. A linked Triton Python-backend C++ string-deserialization contribution was merged upstream in 2025. The production performance and agent attribution remain author-reported and have not been independently reproduced.",
+        "mechanism": "Layer-specific agents profile and diagnose a serving component, propose a code or configuration change, verify correctness and local performance, reject gains below an empirically estimated noise floor, and run full-stack load checks before accepting the change. Accepted and rejected changes are added to a knowledge base for future runs.",
+        "regime": "Author-reported Unity Vector advertising recommendation platform serving hundreds of DNN models and hundreds of thousands of inference requests per second. Reported tests use production models and production-representative traffic/SLO checks; a feature-preprocessor case specifies one pod with 14 vCPUs and 12 Python backend instances. One GPU inference case specifies an RTX PRO 6000 Blackwell GPU and batch size 2,000.",
+        "reproducibility": "The arXiv HTML paper and one linked upstream Triton PR are accessible. No complete FlashVector code, workload traces, deployment configuration or independent reproduction was found in this review.",
+        "strongest_baseline": "The paper says baseline and optimized measurements used the same environment; it estimates ±6% end-to-end baseline noise from repeated no-op runs and reruns gains in the 2–6% band at larger sample size. It does not provide a matched human/manual optimization comparison or a fleet-wide cost analysis."
+      },
+      "importance_tier": "Notable",
+      "development_type": "paper",
+      "event_at": "2026-09-15T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-08T21:49:40Z",
+      "updated_at": "2026-10-08T21:49:40Z",
+      "importance": 5,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": true,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "CLAIMED",
+            "text": "The authors report deploying FlashVector on Unity Vector and improving six production models, with tabled model-server results up to 1.98× latency speedup and 2.00× throughput, and a feature-processing pod increasing from 940 to about 1,500 requests per second (1.6×) at a fixed latency SLO."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "The paper describes a profile–diagnose–optimize–verify loop spanning GPU kernels, computation graphs, Triton server code, on-demand feature processing and runtime configuration; it reports that changes must pass correctness/business gates, clear a measured noise floor and survive full-stack load checks."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "For one code-optimized model, the authors report more than 2× throughput variation across runtime configurations at the same latency SLO; four model-server parameter choices were selected through the described sweep and production shadow-traffic canary."
+          },
+          {
+            "label": "DEMONSTRATED",
+            "text": "A linked NVIDIA Triton Python-backend pull request for C++ string-tensor deserialization was merged in October 2025. This confirms that a related optimization was accepted upstream; it does not independently validate the FlashVector system or its other reported measurements."
+          }
+        ],
+        "limitations": [
+          "All performance figures and descriptions of agent contribution are reported by the paper authors; raw traces and the full deployment artifact were not inspected.",
+          "The evidence covers one company platform and does not establish transfer to other models, hardware, serving stacks or organizations.",
+          "No matched comparison with human engineers, conventional autotuners or non-agent optimization estimates labor, compute, review effort or total economic savings.",
+          "The linked Triton PR concerns one string-deserialization optimization and predates the paper by about a year; it does not verify the broader system or the attribution of other optimizations to the agent.",
+          "The stated noise floor and full-stack verification are paper-described procedures, not an independent audit of every case or deployment outcome."
+        ],
+        "gaps": [
+          {
+            "kind": "missing_independent",
+            "description": "No independent reproduction of FlashVector’s reported production-model or feature-processing gains was located."
+          },
+          {
+            "kind": "other",
+            "description": "The system’s contribution relative to expert engineers and conventional search, and its total compute/review/maintenance cost, are not quantified."
+          },
+          {
+            "kind": "other",
+            "description": "Cross-organization and cross-stack generality is not established by a single Unity Vector deployment."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://arxiv.org/abs/2609.17391",
+          "domain": "arxiv.org",
+          "primary": true
+        },
+        {
+          "url": "https://github.com/triton-inference-server/python_backend/pull/416",
+          "domain": "github.com",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "Unity",
+        "Unity Vector",
+        "Stanford University"
+      ],
+      "topics": [
+        "agentic-optimization",
+        "model-serving",
+        "inference-efficiency",
+        "production-systems"
+      ],
+      "regions": [
+        "GLOBAL"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-DBA16672D5E3.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: FlashVector reports agentic optimization across Unity Vector’s model-serving stack"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "FlashVector informa optimización agéntica de la pila de servicio de modelos de Unity Vector",
+            "summary": "Un artículo de arXiv de septiembre de 2026, de autores del equipo Unity Vector AI y Stanford, describe FlashVector, un sistema agéntico de ciclo cerrado que perfila, diagnostica, modifica y verifica cambios en varias capas del servicio de modelos, no solo en los kernels de GPU. Los autores informan su despliegue en modelos de producción de Unity Vector, con resultados de hasta 2.00× de rendimiento y 1.98× de velocidad de latencia en casos del servidor de modelos, y un aumento de 1.6× en el rendimiento del procesamiento de características a un SLO de latencia fijo. El artículo describe comparaciones en el mismo entorno, un umbral de ruido de referencia de ±6% de extremo a extremo, controles de corrección y verificaciones de carga de toda la pila. Son resultados reportados por los autores en un solo entorno de producción; en esta revisión no se verificó una reproducción independiente, la publicación del código del sistema completo ni su transferencia a otros entornos.",
+            "importance_rationale": "Si los resultados reportados se sostienen en este despliegue, un sistema de ciclo cerrado podría encontrar y validar mejoras de rendimiento en kernels de GPU, grafos de modelos, un servidor Triton, procesamiento de características y configuración de servicio. Esto ampliaría la optimización agéntica práctica más allá de tareas aisladas de kernels y podría afectar el costo y el rendimiento de la inferencia en producción. La puntuación refleja un solo despliegue reportado por autores, no la confianza ni una transferencia demostrada a otras flotas.",
+            "why_it_matters": "Los cuellos de botella de inferencia en producción pueden estar en la preparación de datos, el código del servidor de modelos y la configuración de ejecución, además de los kernels de GPU. Si el enfoque reportado se generaliza, un ciclo agéntico que prueba cambios a través de esas capas podría ampliar las oportunidades para mejorar el rendimiento y la latencia. La evidencia actual respalda un caso de despliegue reportado en un artículo, no la transferencia amplia ni ahorros económicos netos.",
+            "technical": {
+              "claimed_result": "Para seis modelos de producción, la tabla del artículo reporta aceleraciones de latencia de 1.30×–1.98× y aumentos de rendimiento de 1.10×–2.00×. Se informa que una instancia de procesamiento de características bajo demanda aumentó de 940 a aproximadamente 1,500 solicitudes por segundo tras cambios secuenciales, con un SLO de latencia fijo. Los autores también reportan una variación de rendimiento superior a 2× entre configuraciones de un modelo optimizado en código.",
+              "demonstrated_result": "El preprint de arXiv accesible contiene el diseño del sistema, tablas de casos y el protocolo de verificación declarado. Una contribución vinculada para la deserialización de tensores de cadenas en NVIDIA Triton Python Backend se fusionó upstream en 2025. El rendimiento en producción y la atribución al agente siguen siendo resultados reportados por los autores, sin reproducción independiente.",
+              "mechanism": "Agentes específicos por capa perfilan y diagnostican un componente de servicio, proponen un cambio de código o configuración, verifican la corrección y el rendimiento local, descartan ganancias inferiores al umbral de ruido medido y ejecutan pruebas de carga de toda la pila antes de aceptar el cambio. Los cambios aceptados y rechazados se incorporan a una base de conocimiento para ejecuciones posteriores.",
+              "regime": "Plataforma publicitaria de recomendaciones Unity Vector, según los autores, con cientos de modelos DNN y cientos de miles de solicitudes de inferencia por segundo. Las pruebas reportadas usan modelos de producción y comprobaciones SLO/tráfico representativas de producción; un caso de preprocesamiento especifica una instancia con 14 vCPU y 12 instancias del backend de Python. Un caso de inferencia en GPU especifica una NVIDIA RTX PRO 6000 Blackwell y un tamaño de lote de 2,000.",
+              "reproducibility": "El artículo HTML de arXiv y una solicitud upstream de Triton están accesibles. En esta revisión no se encontró código completo de FlashVector, trazas de carga de trabajo, configuración de despliegue ni reproducción independiente.",
+              "strongest_baseline": "El artículo indica que las mediciones base y optimizadas usaron el mismo entorno; estima un ruido de referencia de ±6% de extremo a extremo a partir de ejecuciones base repetidas sin cambios y vuelve a medir las ganancias del rango de 2–6% con una muestra mayor. No aporta una comparación equivalente con optimización manual por especialistas ni un análisis de costos de toda la flota."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "Los autores informan que desplegaron FlashVector en Unity Vector y mejoraron seis modelos de producción. La tabla reporta resultados del servidor de modelos de hasta 1.98× de aceleración de latencia y 2.00× de aumento del rendimiento; una instancia de procesamiento de características pasó de 940 a aproximadamente 1,500 solicitudes por segundo (1.6×) a un SLO de latencia fijo. Estos resultados provienen de los autores y no se reprodujeron de forma independiente."
+                },
+                {
+                  "text": "El artículo describe un ciclo de perfilado, diagnóstico, optimización y verificación que abarca kernels de GPU, grafos de cómputo, código de servidor Triton, procesamiento de características bajo demanda y configuración de ejecución. Según los autores, los cambios deben superar controles de corrección y de negocio, rebasar un umbral de ruido medido y pasar verificaciones de carga de toda la pila."
+                },
+                {
+                  "text": "Para un modelo ya optimizado en código, los autores reportan una variación de rendimiento superior a 2× entre configuraciones de ejecución bajo el mismo SLO de latencia. Cuatro configuraciones del servidor de modelos se eligieron mediante el barrido descrito y una prueba canaria con tráfico sombra en producción."
+                },
+                {
+                  "text": "Una solicitud vinculada de NVIDIA Triton Python Backend para deserialización de tensores de cadenas mediante C++ se fusionó en octubre de 2025. Esto confirma que una optimización relacionada se aceptó en el proyecto upstream; no valida de forma independiente el sistema FlashVector ni las demás mediciones reportadas."
+                }
+              ],
+              "limitations": [
+                "Todas las cifras de rendimiento y la atribución del trabajo al agente provienen de los autores; no se inspeccionaron las trazas sin procesar ni el artefacto completo del despliegue.",
+                "La evidencia cubre la plataforma de una empresa y no demuestra transferencia a otros modelos, hardware, pilas de servicio u organizaciones.",
+                "No hay una comparación equivalente con especialistas humanos, autotuners convencionales u optimización sin agentes que mida trabajo, cómputo, revisión y mantenimiento, o ahorros económicos totales.",
+                "La solicitud vinculada de Triton trata una optimización de deserialización de cadenas y antecede al artículo aproximadamente un año; no verifica el sistema general ni la atribución de otras optimizaciones al agente.",
+                "El umbral de ruido y las verificaciones de carga de toda la pila son procedimientos descritos por el artículo; no hubo una auditoría independiente de cada caso ni del resultado del despliegue."
+              ],
+              "gaps": [
+                {
+                  "description": "No se ha localizado una reproducción independiente de las ganancias de FlashVector en modelos de producción o procesamiento de características reportadas por el artículo."
+                },
+                {
+                  "description": "No se cuantifica la contribución del sistema frente a especialistas ni a búsquedas convencionales, ni su costo total de cómputo, revisión y mantenimiento."
+                },
+                {
+                  "description": "Un solo despliegue en Unity Vector no establece la generalidad entre organizaciones y pilas de servicio."
+                }
+              ]
+            }
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "FlashVector 报告了 Unity Vector 模型服务栈中的智能体优化",
+            "summary": "一篇发表于 2026 年九月的 arXiv 论文由 Unity Vector AI 团队和斯坦福大学的作者撰写，介绍了 FlashVector：一种闭环智能体系统，可在多个模型服务层进行分析、诊断、修改和验证，而不仅限于 GPU 内核。作者报告称，该系统已部署于 Unity Vector 的生产模型，在模型服务器案例中最高达到 2.00× 吞吐量和 1.98× 延迟加速；在固定延迟 SLO 下，特征处理吞吐量提升了 1.6×。论文描述了同环境对比、端到端 ±6% 的基线噪声阈值、正确性门槛和全栈负载检查。这些是单一生产环境中的作者报告结果；本次审查未验证独立复现、完整系统代码发布或跨环境迁移。",
+            "importance_rationale": "如果这些报告结果在该部署中成立，一个闭环智能体系统就能在 GPU 内核、模型计算图、Triton 服务器、特征处理和服务配置中发现并验证性能改进。这将把实用智能体优化从独立内核任务扩展到更广的推理服务栈，并可能影响生产推理成本与吞吐量。该分数反映单一作者报告的部署，不代表可信度，也不表示已证明可迁移到其他集群。",
+            "why_it_matters": "生产推理的瓶颈可能位于数据准备、模型服务器代码和运行配置中，也可能在 GPU 内核中。如果报告的方法能够推广，跨这些层测试变更的智能体闭环将扩大自动化优化帮助团队改善吞吐量和延迟的范围。现有证据只支持单一部署案例的论文报告，尚不证明广泛迁移或净经济节省。",
+            "technical": {
+              "claimed_result": "对于六个生产模型，论文表格报告延迟加速为 1.30×–1.98×，吞吐量提升为 1.10×–2.00×。作者报告称，在固定延迟 SLO 下，按需特征处理 Pod 经过连续变更后从每秒 940 个请求提升至约 1,500 个。作者还报告称，一个代码优化模型在不同运行配置下的吞吐量相差超过 2×。",
+              "demonstrated_result": "可访问的 arXiv 预印本包含系统设计、案例研究表格和所述验证协议。关联的 NVIDIA Triton Python Backend C++ 字符串张量反序列化贡献于 2025 年被上游合并。生产性能及其与智能体的归因仍是作者报告，未经独立复现。",
+              "mechanism": "各层专用智能体对服务组件进行分析和诊断，提出代码或配置变更，验证正确性及局部性能，舍弃低于实测噪声阈值的改进，并在接受变更前进行全栈负载检查。接受和拒绝的变更都会写入知识库，供后续运行使用。",
+              "regime": "据作者称，该系统用于 Unity Vector 广告推荐平台，平台服务数百个 DNN 模型，每秒处理数十万次推理请求。报告测试使用生产模型和生产代表性流量/SLO 检查；一个特征预处理案例指定 14 vCPU、包含 12 个 Python 后端实例的 Pod。一个 GPU 推理案例指定 NVIDIA RTX PRO 6000 Blackwell GPU 和 2,000 的批大小。",
+              "reproducibility": "arXiv HTML 论文和一项关联的 Triton 上游拉取请求可访问。本次审查未找到完整的 FlashVector 代码、工作负载轨迹、部署配置或独立复现。",
+              "strongest_baseline": "论文称基线与优化后测量在同一环境完成；它通过重复的未修改基线运行估计端到端 ±6% 的噪声，并对 2–6% 范围内的改进增加样本后重新测量。论文未提供与专家人工优化或非智能体自动调优的匹配比较，也没有全集群成本分析。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "作者报告称，FlashVector 已部署于 Unity Vector，并改进了六个生产模型。表格报告模型服务器案例最高达到 1.98× 延迟加速和 2.00× 吞吐量提升；在固定延迟 SLO 下，一个特征处理 Pod 的吞吐量从每秒 940 个请求升至约 1,500 个（1.6×）。这些结果由作者报告，未经独立复现。"
+                },
+                {
+                  "text": "论文描述了一个分析、诊断、优化和验证闭环，覆盖 GPU 内核、计算图、Triton 服务器代码、按需特征处理和运行配置。据作者称，变更必须通过正确性与业务门槛、超过实测噪声阈值，并通过全栈负载检查。"
+                },
+                {
+                  "text": "对于一个已完成代码优化的模型，作者报告称，在相同延迟 SLO 下，不同运行配置之间的吞吐量相差超过 2×。论文描述的扫描选择了四种模型服务器配置，并通过生产影子流量金丝雀测试。"
+                },
+                {
+                  "text": "一项关联的 NVIDIA Triton Python Backend C++ 字符串张量反序列化拉取请求于 2025 年十月合并。这证实了一项相关优化被上游项目接纳；它并未独立验证 FlashVector 系统或其报告的其他测量结果。"
+                }
+              ],
+              "limitations": [
+                "所有性能数字及智能体贡献的描述均由论文作者报告；本次未检查原始轨迹或完整部署产物。",
+                "证据仅覆盖一家公司的平台，未证明可迁移到其他模型、硬件、服务栈或组织。",
+                "论文没有与人工专家、传统自动调优器或非智能体优化进行匹配比较，因此没有量化人工时间、计算、审查和维护成本，也没有计算总经济节省。",
+                "关联的 Triton 拉取请求涉及一项字符串反序列化优化，且比论文早约一年；它不能验证整个系统，也不能确认其他优化归因于智能体。",
+                "论文描述了噪声阈值和全栈验证流程，但未对每个案例或部署结果进行独立审计。"
+              ],
+              "gaps": [
+                {
+                  "description": "论文报告的 FlashVector 生产模型和特征处理增益尚无独立复现。"
+                },
+                {
+                  "description": "论文未量化该系统相对于专家或常规搜索的贡献，也未量化计算、审查和维护的总成本。"
+                },
+                {
+                  "description": "单一 Unity Vector 部署无法证明该方法在不同组织和服务栈中的普适性。"
+                }
+              ]
+            },
+            "headline": "FlashVector 报告了 Unity Vector 模型服务栈中的智能体优化"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
+    {
+      "id": "FCMO-92E86166BABF",
+      "slug": "inference-engine-fingerprinting-paper-reports-behavioral-signals-and-a",
+      "url_date": "2026-10-08",
+      "kind": "development",
+      "status": "live",
+      "beat": "society",
+      "desk": "compute_inference",
+      "title": "Inference-engine fingerprinting paper reports behavioral signals and a bounded agent security chain",
+      "summary": "The authors report that a model can infer which of five inference engines handled its requests from behavioral differences in formatting, tokenization and sampling, including tests framed as self-refinement or hierarchical-agent interaction. They also describe a proof-of-concept chain in a specially configured lab stack. The last firmware stage was not actually exercised against vulnerable firmware, and the paper reports that results are still in progress; these are author claims, not an independently reproduced exploit or evidence of real-world compromise.",
+      "why_it_matters": "If these behavioral signals are robust, agent orchestration can expose deployment details that help defenders understand model-facing attack surfaces and may help an attacker choose a runtime-specific path. The paper’s lab chain highlights how serving, container and hardware-management boundaries interact, but its deliberate misconfiguration and unverified final stage sharply limit claims about practical compromise. The defensive implication is to minimize model privileges and isolate serving infrastructure, not to infer that ordinary deployments are vulnerable.",
+      "importance_rationale": "If the paper’s bounded findings hold, output-visible agent loops can reveal which inference runtime processes their requests, creating a security-relevant bridge from behavioral probing to runtime-specific attack surfaces. The paper reports signals across five engines and a lab chain under unusually permissive, misconfigured conditions; it does not establish an end-to-end compromise of the final firmware or prevalence in deployed systems.",
+      "technical": {
+        "claimed_result": "Across five tested engines, the paper reports that selected behavioral signals were generally observable in more than 80% of runs, while model extraction depended on signal type, engine and temperature. The end-to-end proof of concept is described as a lab demonstration under deliberately permissive configuration; its final firmware stage was inferred from attempted traffic because the test hardware did not have the affected firmware.",
+        "demonstrated_result": "The accessible arXiv HTML contains the experiment design, cross-engine setup, reported fingerprint outcomes and a described chain. No independent reproduction or artifact execution was performed in this review. The paper itself says the work is in progress; the endpoint firmware compromise was not performed.",
+        "mechanism": "The paper probes engine-specific differences in how model-controlled prompts are normalized and sampled, then has the model infer the serving runtime from the resulting behavior. It evaluates signals in self-refinement and parent/sub-agent settings. Its separate lab demonstration combines a runtime-specific tool-parser weakness with permissive containment and a simulated endpoint stage.",
+        "regime": "Five named inference runtimes, pinned but mixed software versions, and a Qwen model in a controlled cluster; three selected signals were evaluated with 20 repeated runs, including temperature variation. The proof-of-concept chain depends on an intentionally misconfigured tool schema, elevated container capability and permissive internal network path. These conditions are not shown to be representative of normal production deployments.",
+        "reproducibility": "The arXiv HTML and its reported methods were inspected. Linked source/artifacts and independent reproductions were not inspected or run. The authors characterize the work as still in progress.",
+        "strongest_baseline": "The study compares fingerprints across five engine configurations and reports repeated-run consistency and extraction results. It does not provide a blinded external replication, deployment prevalence estimate, or a control showing these signals survive normal prompt wrappers and production hardening."
+      },
+      "importance_tier": "Major",
+      "development_type": "paper",
+      "event_at": "2026-09-17T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-08T21:49:40Z",
+      "updated_at": "2026-10-08T21:49:40Z",
+      "importance": 6,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": false,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "CLAIMED",
+            "text": "The paper reports behavioral fingerprints for five inference engines using differences in prompt templating, tokenization, sampling and output handling. In its self-refinement and hierarchical-agent evaluations, three selected fingerprint signals were tested over 20 runs; signal visibility and extraction varied with engine and temperature, with weaker results on TensorRT-LLM for some signals."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "The authors describe a proof-of-concept chain in a lab configuration linking runtime-specific behavior to a guest/container and hardware-management attack path. The demonstration used a deliberately misconfigured environment; the test machine did not run the affected firmware, and the final step was counted from attempted traffic rather than verified firmware compromise."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "The paper identifies unsafe tool-schema/parser behavior and overly broad container or hypervisor permissions as enabling conditions in its example. It argues that input/output processing paths may expose other runtime-specific vulnerabilities, but does not establish general exploitability across inference engines or deployments."
+          }
+        ],
+        "limitations": [
+          "All fingerprint rates and attack-chain descriptions are paper-reported and were not independently reproduced in this activation.",
+          "The evaluation uses a small set of selected behavioral signals, pinned software/model configurations and controlled prompts; stability under engine updates, wrapper changes and production noise is unknown.",
+          "The lab chain requires multiple severe configuration weaknesses and does not establish that a typical inference deployment has them.",
+          "The target machine did not contain the firmware affected by the final-stage vulnerability; the final stage was counted from attempted traffic, so the paper did not demonstrate actual firmware compromise.",
+          "The paper labels the work in progress and does not establish prevalence, attacker success rates, or risk across commercial serving systems."
+        ],
+        "gaps": [
+          {
+            "kind": "missing_independent",
+            "description": "No independent reproduction of the fingerprint rates or multi-stage lab chain was located; linked code and experimental artifacts were not inspected."
+          },
+          {
+            "kind": "other",
+            "description": "Transfer to hardened, commonly deployed agent-serving environments is unknown, including the effect of wrappers, least-privilege containers and network isolation."
+          },
+          {
+            "kind": "other",
+            "description": "The paper’s final firmware stage was not demonstrated on affected firmware, so end-to-end compromise remains unverified."
+          }
+        ],
+        "contradictory": [
+          "The paper reports fingerprint reliability above 80% for several measured conditions but also documents temperature sensitivity, output degeneration and weaker extraction for some engine/signal combinations.",
+          "The paper’s end-to-end demonstration did not run against the affected final-stage firmware; the last step was inferred from attempted traffic in the lab."
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://arxiv.org/abs/2609.20614",
+          "domain": "arxiv.org",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "University of Cambridge",
+        "University of Oxford"
+      ],
+      "topics": [
+        "inference-security",
+        "agent-security",
+        "model-serving",
+        "runtime-fingerprinting",
+        "sandboxing"
+      ],
+      "regions": [
+        "GLOBAL"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-92E86166BABF.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: Inference-engine fingerprinting paper reports behavioral signals and a bounded agent security chain"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "Un artículo sobre huellas de motores de inferencia informa señales de comportamiento y una cadena de seguridad acotada",
+            "summary": "Los autores informan que un modelo puede inferir cuál de cinco motores de inferencia atendió sus solicitudes mediante diferencias de formato, tokenización, muestreo y manejo de salidas, incluso en pruebas de autorrefinamiento o interacción jerárquica entre agentes. También describen una prueba de concepto en una pila de laboratorio configurada especialmente. La última etapa de firmware no se ejecutó contra firmware vulnerable y el artículo dice que el trabajo sigue en curso; son afirmaciones de los autores, no un exploit reproducido de forma independiente ni evidencia de una intrusión real.",
+            "importance_rationale": "Si los hallazgos acotados del artículo se sostienen, los ciclos de agentes que exponen sus propias salidas pueden revelar qué entorno de inferencia procesa las solicitudes, conectando el sondeo de comportamiento con superficies de ataque específicas del entorno. El artículo informa señales en cinco motores y una cadena de laboratorio con condiciones inusualmente permisivas y mal configuradas; no demuestra un compromiso final del firmware ni prevalencia en sistemas desplegados.",
+            "why_it_matters": "Si estas señales de comportamiento son robustas, la orquestación de agentes puede exponer detalles del despliegue que ayuden a los defensores a entender las superficies de ataque y a los atacantes a elegir rutas específicas del entorno de ejecución. La cadena de laboratorio muestra cómo interactúan los límites del servicio, contenedor y gestión de hardware, pero su configuración deliberadamente permisiva y su etapa final no verificada limitan las afirmaciones de compromiso práctico. La implicación defensiva es limitar privilegios del modelo y aislar la infraestructura; esto no demuestra que despliegues comunes sean vulnerables.",
+            "technical": {
+              "claimed_result": "En cinco motores, varias señales aparecieron en más del 80% de las ejecuciones, según el artículo; la extracción por el modelo dependió del tipo de señal, motor y temperatura. La prueba de concepto fue en laboratorio con configuración deliberadamente permisiva; la etapa final de firmware se infirió de un intento de tráfico porque el equipo no tenía el firmware afectado.",
+              "demonstrated_result": "El HTML de arXiv accesible contiene diseño, configuración entre motores, resultados de huellas y descripción de la cadena. No se hizo reproducción independiente ni se ejecutaron artefactos. El propio artículo dice que el trabajo sigue en curso; no se realizó el compromiso del firmware final.",
+              "mechanism": "El artículo sondea diferencias entre motores en normalización y muestreo de prompts controlados por el modelo, y luego hace que el modelo infiera el entorno de servicio a partir del comportamiento resultante. Evalúa señales en autorrefinamiento y escenarios de agente principal/subagente. La demostración separada combina una debilidad del analizador de herramientas con contención permisiva y una etapa final simulada.",
+              "regime": "Cinco motores con versiones fijadas pero distintas y un modelo Qwen en un clúster controlado; tres señales se evaluaron en 20 ejecuciones con variaciones de temperatura. La cadena depende de un esquema de herramienta mal configurado, capacidad elevada del contenedor y red interna permisiva. No se demuestra que esto represente despliegues de producción habituales.",
+              "reproducibility": "Se inspeccionaron el HTML de arXiv y los métodos reportados. No se inspeccionaron ni ejecutaron el código o artefactos vinculados, ni se hizo una reproducción independiente. Los autores dicen que el trabajo sigue en curso.",
+              "strongest_baseline": "El estudio compara huellas en cinco configuraciones e informa consistencia y extracción en ejecuciones repetidas. No ofrece réplica externa ciega, estimación de prevalencia en despliegues ni control que demuestre que las señales sobreviven a envoltorios de prompts y endurecimiento normales."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "El artículo informa huellas para cinco motores mediante diferencias en plantillas, tokenización, muestreo y manejo de salidas. En pruebas de autorrefinamiento y agentes jerárquicos, tres señales seleccionadas se probaron durante 20 ejecuciones; visibilidad y extracción variaron por motor y temperatura, con resultados más débiles en TensorRT-LLM para algunas señales."
+                },
+                {
+                  "text": "Los autores describen una cadena de prueba de concepto en laboratorio que enlaza el comportamiento del entorno con una ruta de ataque al contenedor y a la gestión de hardware. La demostración usó una configuración deliberadamente incorrecta; la máquina no tenía el firmware afectado y la etapa final se contó por el intento de tráfico, no por un compromiso verificado."
+                },
+                {
+                  "text": "El artículo identifica como condiciones habilitantes el comportamiento inseguro de un analizador de herramientas condicionado por el esquema y permisos excesivos de contenedor o hipervisor. Sostiene que el manejo de entradas y salidas puede exponer otras vulnerabilidades específicas, pero no demuestra explotabilidad general entre motores o despliegues."
+                }
+              ],
+              "limitations": [
+                "Todas las tasas de huellas y descripciones de la cadena de ataque son reportadas por los autores y no se reprodujeron de forma independiente en esta activación.",
+                "La evaluación usa pocas señales seleccionadas, configuraciones fijas y prompts controlados; se desconoce su estabilidad tras actualizaciones, cambios de envoltorio y ruido de producción.",
+                "La cadena de laboratorio requiere varias debilidades graves de configuración y no demuestra que un despliegue típico las tenga.",
+                "La máquina no tenía el firmware afectado por la vulnerabilidad final; esa etapa se contó por un intento de tráfico, así que no se demostró un compromiso real del firmware.",
+                "El artículo califica el trabajo como en curso y no establece prevalencia, tasas de éxito de atacantes ni riesgo en sistemas comerciales."
+              ],
+              "gaps": [
+                {
+                  "description": "No se localizó una reproducción independiente de las tasas de huellas ni de la cadena de laboratorio; no se inspeccionaron el código ni los artefactos vinculados."
+                },
+                {
+                  "description": "Se desconoce la transferencia a servicios endurecidos, incluidos los efectos de envoltorios, contenedores de mínimo privilegio y aislamiento de red."
+                },
+                {
+                  "description": "La etapa final no se demostró en firmware afectado, por lo que el compromiso de extremo a extremo sigue sin verificarse."
+                }
+              ],
+              "contradictory": [
+                "El artículo reporta fiabilidad superior al 80% en varias condiciones, pero también documenta sensibilidad a temperatura, degeneración de salidas y menor extracción en algunas combinaciones de motor/señal.",
+                "La demostración no se ejecutó contra el firmware afectado de la etapa final; el último paso se infirió de un intento de tráfico en el laboratorio."
+              ]
+            }
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb",
+            "evidence.contradictory": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "推理引擎指纹论文报告行为信号及有限范围的智能体安全链条",
+            "summary": "作者报告称，模型可以根据格式处理、分词、采样和输出处理差异，推断哪个推理引擎处理了请求；测试包括自我改进和分层智能体交互。论文还描述了特殊配置实验环境中的概念验证链条。最终固件阶段没有在易受影响的固件上实际执行，论文称研究仍在进行中；这些是作者报告，并非独立复现的漏洞利用，也不是实际入侵证据。",
+            "importance_rationale": "如果论文的有限范围发现成立，暴露自身输出的智能体循环可能揭示请求由哪个推理运行时处理，从行为探测连到运行时特定攻击面。论文报告了五种引擎的信号和异常宽松、错误配置环境下的实验室链条；它没有证明最终固件遭到入侵，也没有证明此类情况在已部署系统中普遍存在。",
+            "why_it_matters": "如果这些行为信号稳健，智能体编排可能暴露部署细节，帮助防御者理解攻击面，也可能帮助攻击者选择特定运行时路径。实验室链条说明服务、容器和硬件管理边界如何相互作用，但刻意宽松的配置和未经验证的最终阶段显著限制了对实际入侵的推断。防御启示是限制模型权限并隔离服务基础设施；这不能证明普通部署存在漏洞。",
+            "technical": {
+              "claimed_result": "在测试的五种引擎中，论文报告若干行为信号在超过 80% 的运行中出现；模型提取效果取决于信号类型、引擎和温度。端到端概念验证是在刻意宽松配置的实验室环境完成；由于设备没有受影响固件，最终阶段仅根据尝试发送流量推断。",
+              "demonstrated_result": "可访问的 arXiv HTML 包含实验设计、跨引擎配置、指纹结果和链条描述。本次未独立复现或执行相关产物。论文称研究仍在进行；最终固件入侵并未实际执行。",
+              "mechanism": "论文探测不同引擎规范化和采样模型控制提示的差异，再让模型根据行为推断服务运行时。研究在自我改进及父/子智能体场景中评测信号。另一实验室演示将运行时特定工具解析弱点与宽松隔离配置及模拟的最终阶段组合起来。",
+              "regime": "在受控集群中测试五种软件版本各异但固定的推理引擎及一个 Qwen 模型；三种选定信号进行 20 次重复测试，并改变温度。概念验证链条依赖错误配置的工具模式、提升的容器能力和宽松的内部网络路径。论文没有证明这些条件代表常见生产部署。",
+              "reproducibility": "本次检查了 arXiv HTML 和论文报告的方法。未检查或运行关联代码和实验产物，也未独立复现。作者称研究仍在进行。",
+              "strongest_baseline": "研究比较了五种引擎配置下的指纹并报告重复运行结果。论文没有提供盲法外部复现、部署普及率估计，也没有验证这些信号在常见提示封装和生产加固后仍然存在。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "论文报告五种推理引擎可通过提示模板、分词、采样和输出处理差异进行行为指纹识别。在自我改进和分层智能体评测中，三种选定信号经过 20 次运行测试；可见性和提取效果随引擎与温度变化，部分 TensorRT-LLM 信号结果较弱。"
+                },
+                {
+                  "text": "作者描述了一条实验室概念验证链条，将运行时特定行为与容器及硬件管理攻击路径相连。演示使用刻意错误配置的环境；测试机器没有受影响固件，最终阶段按尝试发送流量计为成功，而非经验证的固件入侵。"
+                },
+                {
+                  "text": "论文指出，受工具模式影响的不安全解析器行为和过宽的容器或虚拟机管理程序权限，是示例中的促成条件。作者认为输入/输出路径可能存在其他运行时特定漏洞，但没有证明这些漏洞可在各种引擎或部署中普遍利用。"
+                }
+              ],
+              "limitations": [
+                "所有指纹率和攻击链描述均为作者报告，本次激活未进行独立复现。",
+                "评测只用少量选定信号、固定配置和受控提示；引擎更新、封装变化和生产噪声下的稳定性未知。",
+                "实验室链条需要多个严重配置弱点；论文未证明典型推理部署具备这些条件。",
+                "目标机器没有最终阶段漏洞影响的固件；该阶段依据尝试发送流量计为成功，因此论文没有展示真实固件入侵。",
+                "论文称研究仍在进行，未证明风险普及程度、攻击者成功率或商业服务系统中的风险。"
+              ],
+              "gaps": [
+                {
+                  "description": "尚未找到对指纹率或多阶段实验室链条的独立复现；未检查关联代码和实验产物。"
+                },
+                {
+                  "description": "尚不清楚该结果能否迁移到常见且经过加固的智能体服务，包括提示封装、最小权限容器和网络隔离的影响。"
+                },
+                {
+                  "description": "论文未在受影响固件上演示最终阶段，因此端到端固件入侵仍未验证。"
+                }
+              ],
+              "contradictory": [
+                "论文报告若干测量条件下的指纹可靠率超过 80%，同时也记录了温度敏感性、输出退化以及某些引擎/信号组合中较弱的提取效果。",
+                "端到端演示未在受影响的最终阶段固件上运行；实验室最后一步根据尝试发送流量推断。"
+              ]
+            },
+            "headline": "推理引擎指纹论文报告行为信号及有限范围的智能体安全链条",
+            "dek": "作者报告称，模型可以根据格式处理、分词、采样和输出处理差异，推断哪个推理引擎处理了请求；测试包括自我改进和分层智能体交互。论文还描述了特殊配置实验环境中的概念验证链条。最终固件阶段没有在易受影响的固件上实际执行，论文称研究仍在进行中；这些是作者报告，并非独立复现的漏洞利用，也不是实际入侵证据。"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb",
+            "evidence.contradictory": "arb"
+          }
+        }
+      }
+    },
+    {
+      "id": "FCMO-149C68CB5420",
+      "slug": "paper-finds-that-lossy-agent-handoffs-can-erase-authorization-status-and",
+      "url_date": "2026-10-08",
+      "kind": "development",
+      "status": "live",
+      "beat": "society",
+      "desk": "agents_memory",
+      "title": "Paper finds that lossy agent handoffs can erase authorization status and raise monitor approvals",
+      "dek": "The paper studies “verification-status laundering”: a handoff keeps an authorization claim but loses the fact that it was unverified.",
+      "summary": "The paper studies “verification-status laundering”: a handoff keeps an authorization claim but loses the fact that it was unverified. In controlled tests across nine open-weight monitors and two hosted models, removing that status marker raised approval on some risky actions; for example, reported approval rose from 5% to 60% on Llama-3.1-8B and from 9% to 98% on Qwen2.5-14B. A composed summarizer–memory–monitor pipeline raised risky approval to 57–81% across three monitors, while its safe-action rejection fell to zero in the tested panel. These are author-reported model-probe results, not measured rates of real-world incidents.",
+      "why_it_matters": "Agent systems often pass claims through summaries, memory stores and monitors. If the claim survives but its verification state does not, a downstream component may treat an assertion as confirmed. The paper makes that failure measurable in controlled prompts and suggests carrying provenance as structured state bound to the claim. Its results motivate testing these handoffs; they do not establish deployment prevalence or that structured state alone solves the problem.",
+      "importance_rationale": "If the reported results generalize, a mundane summarization or memory step can turn an unverified authorization assertion into an apparently settled one and substantially increase downstream approval of risky actions. This is consequential for multi-agent systems that delegate safety decisions across lossy handoffs. The score reflects demonstrated relevance within the paper’s tested prompts/models, while prevalence in deployed systems and generalization beyond the evaluation remain unknown.",
+      "technical": {
+        "claimed_result": "The paper evaluates nine open-weight monitors and two hosted models. In its 56-item hand-authored borderline probe, the risky-action status-loss effect is positive with a 95% paired-bootstrap interval excluding zero for seven of nine open-weight monitors. On external harmful/unsafe subsets, unsupported authorization increases average approval from 0.156 to 0.298 on WildGuard (n=754) and 0.530 to 0.735 on ATBench (n=250). In one composed pipeline, risky approval is 0.57–0.81 across three monitors, while safe rejection falls to 0.00. These are model outputs under the paper’s evaluation prompts and scoring procedure.",
+        "demonstrated_result": "The accessible preprint gives detailed controlled and pipeline results, including paired bootstrap intervals and status-preservation audits. No code/data artifact was retrieved or executed and no independent replication was performed; the measured outcomes are therefore CLAIMED paper results, not independently demonstrated here.",
+        "mechanism": "A planner or upstream component passes an action with a claim of authorization to a summarizer or memory compressor. The safety monitor sees the rewritten handoff rather than the source evidence or edit history. If the authorization claim remains while its unverified status is removed, weakened or detached, the monitor may approve more often. The study measures status-loss effects and audits both individual components and a composed pipeline.",
+        "regime": "Nine open-weight monitors and two hosted models with fixed decision prompts; the main hand-authored probe contains 40 authorization-sensitive risky actions and 16 safe controls. External checks use harmful WildGuard and unsafe ATBench items. The model pipeline combines a proposer, one of two summarizers, memory compression and a downstream monitor. Open-weight primary decisions use token log-probabilities under a fixed forced-choice verbalizer and single-seed greedy scoring; the hosted arm uses five samples.",
+        "reproducibility": "The paper links code and data. The repository and dataset were not independently retrieved, inspected or run during this activation. The full preprint includes model prompts, item templates, estimands, per-model results and appendix robustness checks.",
+        "strongest_baseline": "The controlled contrast preserves the requested action and authorization proposition while varying whether the authorization is marked unverified; it also includes no-claim and explicitly-verified conditions. Paired bootstrap intervals are reported. This isolates the effect of status framing in the constructed probes but is not a field baseline or a test of real agent deployments."
+      },
+      "importance_tier": "Major",
+      "development_type": "paper",
+      "event_at": "2026-07-25T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-08T21:49:40Z",
+      "updated_at": "2026-10-08T21:49:40Z",
+      "importance": 6,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": false,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "CLAIMED",
+            "text": "Holding the action and authorization proposition fixed, the authors report that removing an explicit unverified-status cue raises risky-action approval for several monitors. Reported examples rise from 5% to 60% for Llama-3.1-8B and 9% to 98% for Qwen2.5-14B; seven of nine open-weight monitors have a positive status-loss effect whose paired-bootstrap interval excludes zero."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "The authors report that ordinary summarization and memory compression sometimes weaken or remove verification status, and that a composed proposer–summarizer–memory–monitor pipeline yields 57–81% risky approval across three tested monitors. In that selected panel, safe-action rejection falls to zero after the pipeline."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "On WildGuard and ATBench harmful/unsafe subsets, adding an unsupported authorization assertion raises average approval across the tested open-weight monitors. The paper also finds that a generic instruction to require verified authorization does not reliably fix the problem across models and can increase over-refusal."
+          }
+        ],
+        "limitations": [
+          "The headline hand-authored probe contains 56 selected items, including 40 authorization-sensitive and 16 safe controls; it does not estimate how often this failure occurs in deployed agent systems.",
+          "The primary open-weight score is log-probability under a fixed forced-choice verbalizer and single-seed greedy decoding; hosted-model directional checks use five samples. These choices may not capture free-form monitor decisions or deployment variability.",
+          "The composed pipeline changes wording, length and assertiveness along with status. The higher-fidelity summarizer control suggests lexical survival alone is insufficient, but it does not isolate all semantic changes.",
+          "Some monitors already approve many risky requests even when the unverified marker is present; removing the marker is not the sole cause of unsafe approval across the full panel.",
+          "The explicit policy instruction produces uneven effects and can lower approval of safe actions, so the paper does not establish a generally effective mitigation.",
+          "Code and data are linked by the paper but were not retrieved or independently run in this activation; the author-reported results have no independent replication here."
+        ],
+        "gaps": [
+          {
+            "kind": "missing_independent",
+            "description": "The code/data release and model outputs were not independently retrieved or reproduced in this activation."
+          },
+          {
+            "kind": "other",
+            "description": "Transfer from fixed prompts and constructed handoffs to deployed agent pipelines, broader tool actions and naturally occurring summaries is unknown."
+          },
+          {
+            "kind": "other",
+            "description": "The paper’s proposed structured provenance state is a design implication, not a tested end-to-end mitigation."
+          }
+        ],
+        "contradictory": [
+          "Some tested monitors already approve many risky actions in the marker-visible condition, so the status-loss marker does not prevent unsafe approval for every model.",
+          "The higher-fidelity summarizer preserves status wording in most outputs but risky approval remains elevated; this implies marker removal alone does not explain the full composed-pipeline effect.",
+          "A policy instruction reduces status-loss effects for some models but worsens them for another and causes over-refusal on safe items, so it is not a consistent corrective intervention."
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://arxiv.org/abs/2609.20211",
+          "domain": "arxiv.org",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "Illinois Institute of Technology"
+      ],
+      "topics": [
+        "agent-safety",
+        "authorization-provenance",
+        "memory-compression",
+        "safety-monitors",
+        "multi-agent-systems"
+      ],
+      "regions": [
+        "GLOBAL"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-149C68CB5420.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: Paper finds that lossy agent handoffs can erase authorization status and raise monitor approvals"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "Un artículo encuentra que los traspasos con pérdida de contexto pueden borrar el estado de autorización y elevar las aprobaciones del monitor",
+            "summary": "El artículo estudia el “lavado del estado de verificación”: un traspaso conserva una afirmación de autorización, pero pierde que no se había verificado. En pruebas controladas con nueve monitores de pesos abiertos y dos modelos alojados, eliminar esa indicación elevó la aprobación de algunas acciones riesgosas; por ejemplo, la aprobación reportada pasó de 5% a 60% en Llama-3.1-8B y de 9% a 98% en Qwen2.5-14B. Un flujo compuesto de resumen, memoria y monitor elevó la aprobación riesgosa a 57–81% entre tres monitores, mientras el rechazo de acciones seguras cayó a cero en el panel evaluado. Son resultados de pruebas con modelos reportados por los autores, no tasas de incidentes reales.",
+            "importance_rationale": "Si se generalizan, los resultados indican que un paso rutinario de resumen o memoria puede convertir una afirmación de autorización no verificada en una aparentemente confirmada y elevar sustancialmente la aprobación posterior de acciones riesgosas. Esto importa para sistemas multiagente que distribuyen decisiones de seguridad mediante traspasos con pérdida de información. La puntuación refleja relevancia en los prompts y modelos evaluados, pero se desconocen la prevalencia y la generalización fuera de esa evaluación.",
+            "why_it_matters": "Los sistemas de agentes suelen pasar afirmaciones por resúmenes, memoria y monitores. Si la afirmación sobrevive pero su estado de verificación no, un componente posterior puede tratarla como confirmada. El artículo cuantifica ese fallo con prompts controlados y propone mantener la procedencia como estado estructurado vinculado a la afirmación. Los resultados justifican probar estos traspasos; no establecen prevalencia en despliegues ni que el estado estructurado por sí solo resuelva el problema.",
+            "technical": {
+              "claimed_result": "La evaluación incluye nueve monitores abiertos y dos modelos alojados. En la prueba manual de 56 elementos, siete de nueve monitores abiertos muestran un efecto positivo de pérdida de estado con intervalo bootstrap pareado del 95% que excluye cero. En subconjuntos externos, la autorización sin respaldo eleva la aprobación media de 0.156 a 0.298 en WildGuard (n=754) y de 0.530 a 0.735 en ATBench (n=250). En un flujo compuesto, la aprobación riesgosa es 0.57–0.81 entre tres monitores y el rechazo seguro cae a 0.00. Son salidas bajo los prompts y la puntuación del artículo.",
+              "demonstrated_result": "El preprint accesible detalla pruebas controladas y resultados del flujo, incluidos intervalos bootstrap pareados y auditorías de preservación de estado. No se obtuvo ni ejecutó el código/datos y no hubo réplica independiente; son resultados reportados, no demostrados independientemente aquí.",
+              "mechanism": "Un planificador o componente anterior pasa una acción y una afirmación de autorización a un resumidor o compresor de memoria. El monitor ve el traspaso reescrito, no la evidencia fuente ni el historial de edición. Si la afirmación permanece pero su estado no verificado se elimina, debilita o separa, el monitor puede aprobar con mayor frecuencia. El estudio mide esa pérdida y audita componentes y un flujo compuesto.",
+              "regime": "Nueve monitores abiertos y dos modelos alojados con prompts fijos; la prueba manual contiene 40 acciones riesgosas sensibles a autorización y 16 controles seguros. Las pruebas externas usan elementos dañinos de WildGuard e inseguros de ATBench. El flujo combina proponente, uno de dos resumidores, memoria y monitor. Las decisiones principales abiertas usan log-probabilidades bajo elección forzada y decodificación codiciosa de semilla única; el brazo alojado usa cinco muestras.",
+              "reproducibility": "El artículo enlaza código y datos, pero no se recuperaron, inspeccionaron ni ejecutaron en esta activación. El preprint describe prompts, plantillas, estimandos, resultados por modelo y comprobaciones de robustez.",
+              "strongest_baseline": "El contraste mantiene fija la acción y la autorización, pero cambia si esta se marca como no verificada; también incluye condiciones sin afirmación y verificada. Se informan intervalos bootstrap pareados. Aísla el efecto del estado en pruebas construidas, pero no constituye una línea de base de campo ni una prueba de despliegues reales."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "Manteniendo fija la acción y la autorización, los autores informan que eliminar la indicación de “no verificado” eleva la aprobación de acciones riesgosas para varios monitores. Los ejemplos pasan de 5% a 60% en Llama-3.1-8B y de 9% a 98% en Qwen2.5-14B; siete de nueve monitores abiertos tienen un efecto positivo cuyo intervalo bootstrap pareado excluye cero."
+                },
+                {
+                  "text": "Los autores informan que resúmenes y compresión de memoria a veces debilitan o eliminan el estado de verificación. Un flujo de proponente, resumen, memoria y monitor produce 57–81% de aprobación riesgosa entre tres monitores. En el panel seleccionado, el rechazo de acciones seguras cae a cero tras el flujo."
+                },
+                {
+                  "text": "En subconjuntos dañinos/inseguros de WildGuard y ATBench, una afirmación de autorización sin respaldo eleva la aprobación media de los monitores abiertos evaluados. Una instrucción genérica para exigir autorización verificada no corrige el problema de forma fiable entre modelos y puede aumentar el rechazo excesivo."
+                }
+              ],
+              "limitations": [
+                "La prueba manual principal contiene 56 elementos seleccionados, 40 sensibles a autorización y 16 controles seguros; no estima la frecuencia en agentes desplegados.",
+                "La puntuación principal usa log-probabilidades bajo elección forzada y decodificación codiciosa de semilla única; las comprobaciones de modelos alojados usan cinco muestras. Esto puede no reflejar decisiones libres ni variabilidad de despliegue.",
+                "El flujo compuesto cambia redacción, longitud y firmeza además del estado. El control con resumidor de mayor fidelidad sugiere que conservar palabras no basta, pero no aísla todos los cambios semánticos.",
+                "Algunos monitores ya aprueban muchas acciones riesgosas con el marcador visible; eliminarlo no es la única causa de aprobación insegura en el panel.",
+                "La instrucción explícita de política tiene efectos dispares y puede reducir la aprobación de acciones seguras; el artículo no establece una mitigación universal.",
+                "El artículo enlaza código y datos, pero no se recuperaron ni ejecutaron; no hay réplica independiente en esta activación."
+              ],
+              "gaps": [
+                {
+                  "description": "El código/datos y las salidas no se recuperaron ni reprodujeron de forma independiente en esta activación."
+                },
+                {
+                  "description": "Se desconoce la transferencia de prompts fijos y traspasos construidos a flujos desplegados, resúmenes naturales y más herramientas."
+                },
+                {
+                  "description": "La procedencia estructurada vinculada a afirmaciones es una implicación de diseño, no una mitigación integral evaluada."
+                }
+              ],
+              "contradictory": [
+                "Algunos monitores ya aprueban muchas acciones riesgosas con el marcador visible, por lo que este no evita la aprobación insegura en todos los modelos.",
+                "Un resumidor de mayor fidelidad conserva el estado en la mayoría de salidas, pero la aprobación riesgosa sigue elevada; eliminar el marcador no explica todo el efecto del flujo.",
+                "La instrucción de política reduce el efecto para algunos modelos, lo aumenta para otro y causa rechazo excesivo de acciones seguras; no es una corrección consistente."
+              ]
+            },
+            "dek": "El artículo estudia el “lavado del estado de verificación”: un traspaso conserva una afirmación de autorización, pero pierde que no se había verificado."
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb",
+            "evidence.contradictory": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "论文发现有损智能体交接可能抹去授权状态并提高监控器批准率",
+            "summary": "论文研究“验证状态洗白”：交接内容保留授权说法，却丢失该说法未经核实这一事实。在对九个开放权重监控器和两个托管模型的受控测试中，删除该状态标记会提高某些风险操作的批准率；例如，Llama-3.1-8B 的报告批准率从 5% 升至 60%，Qwen2.5-14B 从 9% 升至 98%。摘要、记忆和监控器组成的流程使三个监控器的风险批准率升至 57–81%；在测试面板中，安全操作拒绝率降至零。这些是作者报告的模型测试结果，并非现实事故发生率。",
+            "importance_rationale": "如果结果能够泛化，普通摘要或记忆步骤就可能把未经核实的授权说法转为看似已确认的结论，并显著提高下游对风险操作的批准率。这对通过有损交接分散安全判断的多智能体系统很重要。评分反映论文测试提示和模型中的相关性；实际普及程度及评测外的泛化仍未知。",
+            "why_it_matters": "智能体系统常通过摘要、记忆和监控器传递说法。如果授权说法保留但验证状态丢失，下游组件可能把未经核实的说法当作已确认事实。论文用受控提示量化这一故障，并建议将来源状态作为与说法绑定的结构化数据传递。结果说明有必要测试交接环节；它没有证明部署系统中的普遍程度，也没有证明结构化状态本身足以解决问题。",
+            "technical": {
+              "claimed_result": "论文评测九个开放权重监控器和两个托管模型。在含 56 项人工编写内容的测试中，九个开放权重监控器中有七个对风险操作的状态丢失效应为正，且配对 95% 自助法区间不含零。在外部子集中，未经证实的授权说法使 WildGuard 平均批准率从 0.156 升至 0.298（n=754），使 ATBench 从 0.530 升至 0.735（n=250）。组合流程中，三个监控器的风险批准率为 0.57–0.81，安全操作拒绝率降至 0.00。这些是论文提示和评分方法下的模型输出。",
+              "demonstrated_result": "可访问的预印本详细列出受控测试与流程结果，包括配对自助法区间和状态保留审计。本次未获取或运行代码/数据，也未独立复现；这些是论文报告结果，并非本次独立验证。",
+              "mechanism": "规划器或上游组件将操作和授权说法传给摘要器或记忆压缩器。安全监控器读取改写后的交接，而非源证据或编辑历史。如果授权说法保留，但未经核实状态被删除、弱化或拆开，监控器可能更频繁批准。研究测量状态丢失效应，并审查单个组件及组合流程。",
+              "regime": "九个开放权重监控器和两个托管模型使用固定提示；主要人工编写测试含 40 项授权敏感风险操作和 16 项安全控制。外部测试使用 WildGuard 有害项目及 ATBench 不安全项目。流程组合提议器、两种摘要器之一、记忆压缩器和监控器。开放权重主要决策使用固定强制选择词下的 token 对数概率及单种子贪婪解码；托管模型实验使用五次采样。",
+              "reproducibility": "论文链接代码和数据，但本次激活未独立获取、检查或运行。完整预印本描述提示、项目模板、估计量、逐模型结果和附录稳健性检查。",
+              "strongest_baseline": "受控对照保持操作和授权命题不变，只改变授权是否标为未经核实；另有无说法和明确已核实条件。论文报告配对自助法区间。该设计可隔离构造测试中的状态提示效应，但不是现场基线或真实部署测试。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "保持操作和授权命题不变时，作者报告删除明确的“未经核实”提示会提高多个监控器对风险操作的批准率。Llama-3.1-8B 从 5% 升至 60%，Qwen2.5-14B 从 9% 升至 98%；九个开放权重监控器中有七个效应为正，且配对自助法区间不含零。"
+                },
+                {
+                  "text": "作者报告，普通摘要和记忆压缩有时会弱化或删除验证状态；提议、摘要、记忆和监控器组成的流程，在三个测试监控器上产生 57–81% 的风险批准率。在选定面板中，流程后的安全操作拒绝率降至零。"
+                },
+                {
+                  "text": "在 WildGuard 和 ATBench 的有害/不安全子集中，未经证实的授权说法会提高开放权重监控器的平均批准率。笼统要求核实授权的指令无法可靠地修复不同模型的问题，并可能导致过度拒绝。"
+                }
+              ],
+              "limitations": [
+                "主要人工编写测试包含 56 个选定项目，其中 40 项对授权敏感、16 项为安全控制；不能据此估计已部署智能体中的发生频率。",
+                "开放权重主要评分使用固定强制选择词的 token 对数概率和单种子贪婪解码；托管模型方向检查使用五次采样。这些设定可能不能反映自由文本决策或部署变化。",
+                "组合流程除了状态还会改变措辞、长度和语气。高保真摘要器对照显示保留词语并不足够，但没有隔离所有语义变化。",
+                "即使未经核实标记仍然存在，部分监控器也会批准许多风险请求；在整个面板中，删除标记不是不安全批准的唯一原因。",
+                "明确政策指令的效果不一，还可能降低安全操作批准率；论文没有证明它是普遍有效的缓解方法。",
+                "论文链接代码和数据，但本次未获取或运行；本次没有独立复现其报告结果。"
+              ],
+              "gaps": [
+                {
+                  "description": "本次激活未独立获取或复现已发布代码/数据及模型输出。"
+                },
+                {
+                  "description": "固定提示和构造交接能否迁移到已部署智能体、自然摘要和更广泛工具操作尚不清楚。"
+                },
+                {
+                  "description": "论文提出将结构化来源状态与说法绑定，但这只是设计启示，未作为端到端缓解措施测试。"
+                }
+              ],
+              "contradictory": [
+                "一些受测监控器在标记可见时已经批准许多风险操作，因此该标记不能阻止所有模型的不安全批准。",
+                "高保真摘要器在多数输出中保留状态措辞，但风险批准率仍然偏高；仅删除标记无法解释组合流程的全部效果。",
+                "政策指令降低部分模型的状态丢失效应，却使另一模型效应增大，并导致安全操作过度拒绝；它不是一致有效的修复。"
+              ]
+            },
+            "headline": "论文发现有损智能体交接可能抹去授权状态并提高监控器批准率",
+            "dek": "论文研究“验证状态洗白”：交接内容保留授权说法，却丢失该说法未经核实这一事实。在对九个开放权重监控器和两个托管模型的受控测试中，删除该状态标记会提高某些风险操作的批准率；例如，Llama-3.1-8B 的报告批准率从 5% 升至 60%，Qwen2.5-14B 从 9% 升至 98%。摘要、记忆和监控器组成的流程使三个监控器的风险批准率升至 57–81%；在测试面板中，安全操作拒绝率降至零。这些是作者报告的模型测试结果，并非现实事故发生率。"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb",
+            "evidence.contradictory": "arb"
+          }
+        }
+      }
+    },
     {
       "id": "FCMO-F308F06D01E2",
       "slug": "mechsparse-finds-causal-sparse-adapter-selection-loses-to-activation",

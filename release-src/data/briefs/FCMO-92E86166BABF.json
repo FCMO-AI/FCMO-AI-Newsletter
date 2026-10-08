@@ -1,0 +1,132 @@
+{
+  "record": {
+    "id": "FCMO-92E86166BABF",
+    "title": "Inference-engine fingerprinting paper reports behavioral signals and a bounded agent security chain",
+    "desk": "Inference Systems",
+    "event_at": "2026-09-17T00:00:00Z",
+    "evidence": "A",
+    "confidence": "credible_unconfirmed",
+    "importance": 6,
+    "tier": "Major",
+    "summary": "The authors report that a model can infer which of five inference engines handled its requests from behavioral differences in formatting, tokenization and sampling, including tests framed as self-refinement or hierarchical-agent interaction. They also describe a proof-of-concept chain in a specially configured lab stack. The last firmware stage was not actually exercised against vulnerable firmware, and the paper reports that results are still in progress; these are author claims, not an independently reproduced exploit or evidence of real-world compromise.",
+    "topics": [
+      "inference security",
+      "agent security",
+      "model serving",
+      "runtime fingerprinting",
+      "sandboxing"
+    ],
+    "organizations": [
+      "University of Cambridge",
+      "University of Oxford"
+    ],
+    "human_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-92E86166BABF.html",
+    "machine_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/data/briefs/FCMO-92E86166BABF.json",
+    "citation": {
+      "id": "FCMO-92E86166BABF",
+      "source": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-92E86166BABF.html"
+    }
+  },
+  "brief": {
+    "claims": [
+      {
+        "label": "CLAIMED",
+        "text": "The paper reports behavioral fingerprints for five inference engines using differences in prompt templating, tokenization, sampling and output handling. In its self-refinement and hierarchical-agent evaluations, three selected fingerprint signals were tested over 20 runs; signal visibility and extraction varied with engine and temperature, with weaker results on TensorRT-LLM for some signals."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "The authors describe a proof-of-concept chain in a lab configuration linking runtime-specific behavior to a guest/container and hardware-management attack path. The demonstration used a deliberately misconfigured environment; the test machine did not run the affected firmware, and the final step was counted from attempted traffic rather than verified firmware compromise."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "The paper identifies unsafe tool-schema/parser behavior and overly broad container or hypervisor permissions as enabling conditions in its example. It argues that input/output processing paths may expose other runtime-specific vulnerabilities, but does not establish general exploitability across inference engines or deployments."
+      }
+    ],
+    "confidence": "credible_unconfirmed",
+    "contradictory_evidence": [
+      "The paper reports fingerprint reliability above 80% for several measured conditions but also documents temperature sensitivity, output degeneration and weaker extraction for some engine/signal combinations.",
+      "The paper’s end-to-end demonstration did not run against the affected final-stage firmware; the last step was inferred from attempted traffic in the lab."
+    ],
+    "desks": [
+      "inference_systems",
+      "agents_memory"
+    ],
+    "development_type": "paper",
+    "editions": [
+      "2026-10-08"
+    ],
+    "event_at": "2026-09-17T00:00:00Z",
+    "evidence_class": "A",
+    "evidence_gaps": [
+      {
+        "description": "No independent reproduction of the fingerprint rates or multi-stage lab chain was located; linked code and experimental artifacts were not inspected.",
+        "kind": "missing_independent",
+        "state": "open",
+        "updated_at": "2026-10-08T21:14:30.778751Z"
+      },
+      {
+        "description": "Transfer to hardened, commonly deployed agent-serving environments is unknown, including the effect of wrappers, least-privilege containers and network isolation.",
+        "kind": "other",
+        "state": "open",
+        "updated_at": "2026-10-08T21:14:30.778751Z"
+      },
+      {
+        "description": "The paper’s final firmware stage was not demonstrated on affected firmware, so end-to-end compromise remains unverified.",
+        "kind": "other",
+        "state": "open",
+        "updated_at": "2026-10-08T21:14:30.778751Z"
+      }
+    ],
+    "id": "FCMO-92E86166BABF",
+    "importance_effective_score": 6,
+    "importance_rationale": "If the paper’s bounded findings hold, output-visible agent loops can reveal which inference runtime processes their requests, creating a security-relevant bridge from behavioral probing to runtime-specific attack surfaces. The paper reports signals across five engines and a lab chain under unusually permissive, misconfigured conditions; it does not establish an end-to-end compromise of the final firmware or prevalence in deployed systems.",
+    "importance_scale_version": 2,
+    "importance_score": 6,
+    "importance_tier": "Major",
+    "last_verified_at": "2026-10-08T21:14:30.778751Z",
+    "limitations": [
+      "All fingerprint rates and attack-chain descriptions are paper-reported and were not independently reproduced in this activation.",
+      "The evaluation uses a small set of selected behavioral signals, pinned software/model configurations and controlled prompts; stability under engine updates, wrapper changes and production noise is unknown.",
+      "The lab chain requires multiple severe configuration weaknesses and does not establish that a typical inference deployment has them.",
+      "The target machine did not contain the firmware affected by the final-stage vulnerability; the final stage was counted from attempted traffic, so the paper did not demonstrate actual firmware compromise.",
+      "The paper labels the work in progress and does not establish prevalence, attacker success rates, or risk across commercial serving systems."
+    ],
+    "organizations": [
+      "University of Cambridge",
+      "University of Oxford"
+    ],
+    "primary_desk": "inference_systems",
+    "recorded_at": "2026-10-08T21:14:30.778751Z",
+    "regions": [
+      "global"
+    ],
+    "relationships": [],
+    "source_languages": [
+      "en"
+    ],
+    "source_urls": [
+      "https://arxiv.org/abs/2609.20614"
+    ],
+    "status": "active",
+    "summary": "The authors report that a model can infer which of five inference engines handled its requests from behavioral differences in formatting, tokenization and sampling, including tests framed as self-refinement or hierarchical-agent interaction. They also describe a proof-of-concept chain in a specially configured lab stack. The last firmware stage was not actually exercised against vulnerable firmware, and the paper reports that results are still in progress; these are author claims, not an independently reproduced exploit or evidence of real-world compromise.",
+    "technical": {
+      "claimed_result": "Across five tested engines, the paper reports that selected behavioral signals were generally observable in more than 80% of runs, while model extraction depended on signal type, engine and temperature. The end-to-end proof of concept is described as a lab demonstration under deliberately permissive configuration; its final firmware stage was inferred from attempted traffic because the test hardware did not have the affected firmware.",
+      "demonstrated_result": "The accessible arXiv HTML contains the experiment design, cross-engine setup, reported fingerprint outcomes and a described chain. No independent reproduction or artifact execution was performed in this review. The paper itself says the work is in progress; the endpoint firmware compromise was not performed.",
+      "mechanism": "The paper probes engine-specific differences in how model-controlled prompts are normalized and sampled, then has the model infer the serving runtime from the resulting behavior. It evaluates signals in self-refinement and parent/sub-agent settings. Its separate lab demonstration combines a runtime-specific tool-parser weakness with permissive containment and a simulated endpoint stage.",
+      "regime": "Five named inference runtimes, pinned but mixed software versions, and a Qwen model in a controlled cluster; three selected signals were evaluated with 20 repeated runs, including temperature variation. The proof-of-concept chain depends on an intentionally misconfigured tool schema, elevated container capability and permissive internal network path. These conditions are not shown to be representative of normal production deployments.",
+      "reproducibility": "The arXiv HTML and its reported methods were inspected. Linked source/artifacts and independent reproductions were not inspected or run. The authors characterize the work as still in progress.",
+      "strongest_baseline": "The study compares fingerprints across five engine configurations and reports repeated-run consistency and extraction results. It does not provide a blinded external replication, deployment prevalence estimate, or a control showing these signals survive normal prompt wrappers and production hardening."
+    },
+    "title": "Inference-engine fingerprinting paper reports behavioral signals and a bounded agent security chain",
+    "topics": [
+      "inference security",
+      "agent security",
+      "model serving",
+      "runtime fingerprinting",
+      "sandboxing"
+    ],
+    "why_it_matters": "If these behavioral signals are robust, agent orchestration can expose deployment details that help defenders understand model-facing attack surfaces and may help an attacker choose a runtime-specific path. The paper’s lab chain highlights how serving, container and hardware-management boundaries interact, but its deliberate misconfiguration and unverified final stage sharply limit claims about practical compromise. The defensive implication is to minimize model privileges and isolate serving infrastructure, not to infer that ordinary deployments are vulnerable."
+  },
+  "related": [],
+  "schema": "fcmo-public-brief-v1"
+}

@@ -1,6 +1,6 @@
 {
   "canonical_locale": "en",
-  "canonical_source_sha256": "0c2a9bb588f95745bdc087b8185478f4daa326718e29326c980f5da322fa2c6e",
+  "canonical_source_sha256": "1335323349bdbf0c1f2b8d8ba6d698a524dff53025609013c7bfe85730ec1c9a",
   "generated_from": "ARB airlock; editorial wording authored upstream",
   "locale": "es-419",
   "records": {
@@ -563,6 +563,68 @@
       },
       "title": "Deep Noir reporta steering automatizado de activaciones y riesgos de inyección dependientes de la tarea",
       "why_it_matters": "El steering de activaciones basado en interpretabilidad mecanística puede automatizar intervenciones que normalmente requieren elegir capas y magnitudes a mano. La misma intervención puede cambiar cómo responde un clasificador a inyecciones de prompts, por lo que las mejoras de exactitud y la conducta frente a ataques deben medirse juntas. El preprint reporta ambos efectos, pero sus regímenes de clasificación con modelos pequeños y resultados mixtos entre tareas no demuestran transferencia a agentes desplegados."
+    },
+    "FCMO-149C68CB5420": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Manteniendo fija la acción y la autorización, los autores informan que eliminar la indicación de “no verificado” eleva la aprobación de acciones riesgosas para varios monitores. Los ejemplos pasan de 5% a 60% en Llama-3.1-8B y de 9% a 98% en Qwen2.5-14B; siete de nueve monitores abiertos tienen un efecto positivo cuyo intervalo bootstrap pareado excluye cero."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan que resúmenes y compresión de memoria a veces debilitan o eliminan el estado de verificación. Un flujo de proponente, resumen, memoria y monitor produce 57–81% de aprobación riesgosa entre tres monitores. En el panel seleccionado, el rechazo de acciones seguras cae a cero tras el flujo."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En subconjuntos dañinos/inseguros de WildGuard y ATBench, una afirmación de autorización sin respaldo eleva la aprobación media de los monitores abiertos evaluados. Una instrucción genérica para exigir autorización verificada no corrige el problema de forma fiable entre modelos y puede aumentar el rechazo excesivo."
+        }
+      ],
+      "contradictory_evidence": [
+        "Algunos monitores ya aprueban muchas acciones riesgosas con el marcador visible, por lo que este no evita la aprobación insegura en todos los modelos.",
+        "Un resumidor de mayor fidelidad conserva el estado en la mayoría de salidas, pero la aprobación riesgosa sigue elevada; eliminar el marcador no explica todo el efecto del flujo.",
+        "La instrucción de política reduce el efecto para algunos modelos, lo aumenta para otro y causa rechazo excesivo de acciones seguras; no es una corrección consistente."
+      ],
+      "evidence_gaps": [
+        {
+          "description": "El código/datos y las salidas no se recuperaron ni reprodujeron de forma independiente en esta activación.",
+          "kind": "missing_independent",
+          "state": "open",
+          "updated_at": "2026-10-08T21:16:13.456133Z"
+        },
+        {
+          "description": "Se desconoce la transferencia de prompts fijos y traspasos construidos a flujos desplegados, resúmenes naturales y más herramientas.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-08T21:16:13.456133Z"
+        },
+        {
+          "description": "La procedencia estructurada vinculada a afirmaciones es una implicación de diseño, no una mitigación integral evaluada.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-08T21:16:13.456133Z"
+        }
+      ],
+      "importance_rationale": "Si se generalizan, los resultados indican que un paso rutinario de resumen o memoria puede convertir una afirmación de autorización no verificada en una aparentemente confirmada y elevar sustancialmente la aprobación posterior de acciones riesgosas. Esto importa para sistemas multiagente que distribuyen decisiones de seguridad mediante traspasos con pérdida de información. La puntuación refleja relevancia en los prompts y modelos evaluados, pero se desconocen la prevalencia y la generalización fuera de esa evaluación.",
+      "limitations": [
+        "La prueba manual principal contiene 56 elementos seleccionados, 40 sensibles a autorización y 16 controles seguros; no estima la frecuencia en agentes desplegados.",
+        "La puntuación principal usa log-probabilidades bajo elección forzada y decodificación codiciosa de semilla única; las comprobaciones de modelos alojados usan cinco muestras. Esto puede no reflejar decisiones libres ni variabilidad de despliegue.",
+        "El flujo compuesto cambia redacción, longitud y firmeza además del estado. El control con resumidor de mayor fidelidad sugiere que conservar palabras no basta, pero no aísla todos los cambios semánticos.",
+        "Algunos monitores ya aprueban muchas acciones riesgosas con el marcador visible; eliminarlo no es la única causa de aprobación insegura en el panel.",
+        "La instrucción explícita de política tiene efectos dispares y puede reducir la aprobación de acciones seguras; el artículo no establece una mitigación universal.",
+        "El artículo enlaza código y datos, pero no se recuperaron ni ejecutaron; no hay réplica independiente en esta activación."
+      ],
+      "relationships": [],
+      "summary": "El artículo estudia el “lavado del estado de verificación”: un traspaso conserva una afirmación de autorización, pero pierde que no se había verificado. En pruebas controladas con nueve monitores de pesos abiertos y dos modelos alojados, eliminar esa indicación elevó la aprobación de algunas acciones riesgosas; por ejemplo, la aprobación reportada pasó de 5% a 60% en Llama-3.1-8B y de 9% a 98% en Qwen2.5-14B. Un flujo compuesto de resumen, memoria y monitor elevó la aprobación riesgosa a 57–81% entre tres monitores, mientras el rechazo de acciones seguras cayó a cero en el panel evaluado. Son resultados de pruebas con modelos reportados por los autores, no tasas de incidentes reales.",
+      "technical": {
+        "claimed_result": "La evaluación incluye nueve monitores abiertos y dos modelos alojados. En la prueba manual de 56 elementos, siete de nueve monitores abiertos muestran un efecto positivo de pérdida de estado con intervalo bootstrap pareado del 95% que excluye cero. En subconjuntos externos, la autorización sin respaldo eleva la aprobación media de 0.156 a 0.298 en WildGuard (n=754) y de 0.530 a 0.735 en ATBench (n=250). En un flujo compuesto, la aprobación riesgosa es 0.57–0.81 entre tres monitores y el rechazo seguro cae a 0.00. Son salidas bajo los prompts y la puntuación del artículo.",
+        "demonstrated_result": "El preprint accesible detalla pruebas controladas y resultados del flujo, incluidos intervalos bootstrap pareados y auditorías de preservación de estado. No se obtuvo ni ejecutó el código/datos y no hubo réplica independiente; son resultados reportados, no demostrados independientemente aquí.",
+        "mechanism": "Un planificador o componente anterior pasa una acción y una afirmación de autorización a un resumidor o compresor de memoria. El monitor ve el traspaso reescrito, no la evidencia fuente ni el historial de edición. Si la afirmación permanece pero su estado no verificado se elimina, debilita o separa, el monitor puede aprobar con mayor frecuencia. El estudio mide esa pérdida y audita componentes y un flujo compuesto.",
+        "regime": "Nueve monitores abiertos y dos modelos alojados con prompts fijos; la prueba manual contiene 40 acciones riesgosas sensibles a autorización y 16 controles seguros. Las pruebas externas usan elementos dañinos de WildGuard e inseguros de ATBench. El flujo combina proponente, uno de dos resumidores, memoria y monitor. Las decisiones principales abiertas usan log-probabilidades bajo elección forzada y decodificación codiciosa de semilla única; el brazo alojado usa cinco muestras.",
+        "reproducibility": "El artículo enlaza código y datos, pero no se recuperaron, inspeccionaron ni ejecutaron en esta activación. El preprint describe prompts, plantillas, estimandos, resultados por modelo y comprobaciones de robustez.",
+        "strongest_baseline": "El contraste mantiene fija la acción y la autorización, pero cambia si esta se marca como no verificada; también incluye condiciones sin afirmación y verificada. Se informan intervalos bootstrap pareados. Aísla el efecto del estado en pruebas construidas, pero no constituye una línea de base de campo ni una prueba de despliegues reales."
+      },
+      "title": "Un artículo encuentra que los traspasos con pérdida de contexto pueden borrar el estado de autorización y elevar las aprobaciones del monitor",
+      "why_it_matters": "Los sistemas de agentes suelen pasar afirmaciones por resúmenes, memoria y monitores. Si la afirmación sobrevive pero su estado de verificación no, un componente posterior puede tratarla como confirmada. El artículo cuantifica ese fallo con prompts controlados y propone mantener la procedencia como estado estructurado vinculado a la afirmación. Los resultados justifican probar estos traspasos; no establecen prevalencia en despliegues ni que el estado estructurado por sí solo resuelva el problema."
     },
     "FCMO-167F98F07DC3": {
       "claims": [
@@ -3650,6 +3712,66 @@
       "title": "EmbodiedRSI reporta evolución de un sistema robótico con selección de hipótesis y transferencia a cinco tareas reales",
       "why_it_matters": "Si los resultados reportados se mantienen en ensayos independientes más amplios, elegir experimentos físicos informativos y actualizar conjuntamente habilidades ejecutables y código podría hacer más eficiente en datos la adaptación robótica sin volver a entrenar el modelo fundacional. La evidencia física reportada es prometedora pero acotada, y no demuestra auto-mejora recursiva general ni transferencia amplia."
     },
+    "FCMO-92E86166BABF": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "El artículo informa huellas para cinco motores mediante diferencias en plantillas, tokenización, muestreo y manejo de salidas. En pruebas de autorrefinamiento y agentes jerárquicos, tres señales seleccionadas se probaron durante 20 ejecuciones; visibilidad y extracción variaron por motor y temperatura, con resultados más débiles en TensorRT-LLM para algunas señales."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores describen una cadena de prueba de concepto en laboratorio que enlaza el comportamiento del entorno con una ruta de ataque al contenedor y a la gestión de hardware. La demostración usó una configuración deliberadamente incorrecta; la máquina no tenía el firmware afectado y la etapa final se contó por el intento de tráfico, no por un compromiso verificado."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El artículo identifica como condiciones habilitantes el comportamiento inseguro de un analizador de herramientas condicionado por el esquema y permisos excesivos de contenedor o hipervisor. Sostiene que el manejo de entradas y salidas puede exponer otras vulnerabilidades específicas, pero no demuestra explotabilidad general entre motores o despliegues."
+        }
+      ],
+      "contradictory_evidence": [
+        "El artículo reporta fiabilidad superior al 80% en varias condiciones, pero también documenta sensibilidad a temperatura, degeneración de salidas y menor extracción en algunas combinaciones de motor/señal.",
+        "La demostración no se ejecutó contra el firmware afectado de la etapa final; el último paso se infirió de un intento de tráfico en el laboratorio."
+      ],
+      "evidence_gaps": [
+        {
+          "description": "No se localizó una reproducción independiente de las tasas de huellas ni de la cadena de laboratorio; no se inspeccionaron el código ni los artefactos vinculados.",
+          "kind": "missing_independent",
+          "state": "open",
+          "updated_at": "2026-10-08T21:14:30.778751Z"
+        },
+        {
+          "description": "Se desconoce la transferencia a servicios endurecidos, incluidos los efectos de envoltorios, contenedores de mínimo privilegio y aislamiento de red.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-08T21:14:30.778751Z"
+        },
+        {
+          "description": "La etapa final no se demostró en firmware afectado, por lo que el compromiso de extremo a extremo sigue sin verificarse.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-08T21:14:30.778751Z"
+        }
+      ],
+      "importance_rationale": "Si los hallazgos acotados del artículo se sostienen, los ciclos de agentes que exponen sus propias salidas pueden revelar qué entorno de inferencia procesa las solicitudes, conectando el sondeo de comportamiento con superficies de ataque específicas del entorno. El artículo informa señales en cinco motores y una cadena de laboratorio con condiciones inusualmente permisivas y mal configuradas; no demuestra un compromiso final del firmware ni prevalencia en sistemas desplegados.",
+      "limitations": [
+        "Todas las tasas de huellas y descripciones de la cadena de ataque son reportadas por los autores y no se reprodujeron de forma independiente en esta activación.",
+        "La evaluación usa pocas señales seleccionadas, configuraciones fijas y prompts controlados; se desconoce su estabilidad tras actualizaciones, cambios de envoltorio y ruido de producción.",
+        "La cadena de laboratorio requiere varias debilidades graves de configuración y no demuestra que un despliegue típico las tenga.",
+        "La máquina no tenía el firmware afectado por la vulnerabilidad final; esa etapa se contó por un intento de tráfico, así que no se demostró un compromiso real del firmware.",
+        "El artículo califica el trabajo como en curso y no establece prevalencia, tasas de éxito de atacantes ni riesgo en sistemas comerciales."
+      ],
+      "relationships": [],
+      "summary": "Los autores informan que un modelo puede inferir cuál de cinco motores de inferencia atendió sus solicitudes mediante diferencias de formato, tokenización, muestreo y manejo de salidas, incluso en pruebas de autorrefinamiento o interacción jerárquica entre agentes. También describen una prueba de concepto en una pila de laboratorio configurada especialmente. La última etapa de firmware no se ejecutó contra firmware vulnerable y el artículo dice que el trabajo sigue en curso; son afirmaciones de los autores, no un exploit reproducido de forma independiente ni evidencia de una intrusión real.",
+      "technical": {
+        "claimed_result": "En cinco motores, varias señales aparecieron en más del 80% de las ejecuciones, según el artículo; la extracción por el modelo dependió del tipo de señal, motor y temperatura. La prueba de concepto fue en laboratorio con configuración deliberadamente permisiva; la etapa final de firmware se infirió de un intento de tráfico porque el equipo no tenía el firmware afectado.",
+        "demonstrated_result": "El HTML de arXiv accesible contiene diseño, configuración entre motores, resultados de huellas y descripción de la cadena. No se hizo reproducción independiente ni se ejecutaron artefactos. El propio artículo dice que el trabajo sigue en curso; no se realizó el compromiso del firmware final.",
+        "mechanism": "El artículo sondea diferencias entre motores en normalización y muestreo de prompts controlados por el modelo, y luego hace que el modelo infiera el entorno de servicio a partir del comportamiento resultante. Evalúa señales en autorrefinamiento y escenarios de agente principal/subagente. La demostración separada combina una debilidad del analizador de herramientas con contención permisiva y una etapa final simulada.",
+        "regime": "Cinco motores con versiones fijadas pero distintas y un modelo Qwen en un clúster controlado; tres señales se evaluaron en 20 ejecuciones con variaciones de temperatura. La cadena depende de un esquema de herramienta mal configurado, capacidad elevada del contenedor y red interna permisiva. No se demuestra que esto represente despliegues de producción habituales.",
+        "reproducibility": "Se inspeccionaron el HTML de arXiv y los métodos reportados. No se inspeccionaron ni ejecutaron el código o artefactos vinculados, ni se hizo una reproducción independiente. Los autores dicen que el trabajo sigue en curso.",
+        "strongest_baseline": "El estudio compara huellas en cinco configuraciones e informa consistencia y extracción en ejecuciones repetidas. No ofrece réplica externa ciega, estimación de prevalencia en despliegues ni control que demuestre que las señales sobreviven a envoltorios de prompts y endurecimiento normales."
+      },
+      "title": "Un artículo sobre huellas de motores de inferencia informa señales de comportamiento y una cadena de seguridad acotada",
+      "why_it_matters": "Si estas señales de comportamiento son robustas, la orquestación de agentes puede exponer detalles del despliegue que ayuden a los defensores a entender las superficies de ataque y a los atacantes a elegir rutas específicas del entorno de ejecución. La cadena de laboratorio muestra cómo interactúan los límites del servicio, contenedor y gestión de hardware, pero su configuración deliberadamente permisiva y su etapa final no verificada limitan las afirmaciones de compromiso práctico. La implicación defensiva es limitar privilegios del modelo y aislar la infraestructura; esto no demuestra que despliegues comunes sean vulnerables."
+    },
     "FCMO-939C8F533A6F": {
       "claims": [
         {
@@ -4955,6 +5077,67 @@
       "title": "Un preprint informa una campaña de agentes autónomos de diez días que mantuvo el estado de la tarea durante 47 reinicios de contexto",
       "why_it_matters": "El trabajo con agentes de larga duración depende de qué estado sobrevive entre sesiones, cómo se verifican las acciones y cuándo se usan modelos más capaces. El artículo ofrece un diseño concreto de harness y una campaña informada de diez días, pero la evidencia se limita a una tarea ejecutada por sus autores; siguen sin resolverse la fiabilidad comparativa, la transferencia y el costo de atención humana."
     },
+    "FCMO-DBA16672D5E3": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan que desplegaron FlashVector en Unity Vector y mejoraron seis modelos de producción. La tabla reporta resultados del servidor de modelos de hasta 1.98× de aceleración de latencia y 2.00× de aumento del rendimiento; una instancia de procesamiento de características pasó de 940 a aproximadamente 1,500 solicitudes por segundo (1.6×) a un SLO de latencia fijo. Estos resultados provienen de los autores y no se reprodujeron de forma independiente."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El artículo describe un ciclo de perfilado, diagnóstico, optimización y verificación que abarca kernels de GPU, grafos de cómputo, código de servidor Triton, procesamiento de características bajo demanda y configuración de ejecución. Según los autores, los cambios deben superar controles de corrección y de negocio, rebasar un umbral de ruido medido y pasar verificaciones de carga de toda la pila."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Para un modelo ya optimizado en código, los autores reportan una variación de rendimiento superior a 2× entre configuraciones de ejecución bajo el mismo SLO de latencia. Cuatro configuraciones del servidor de modelos se eligieron mediante el barrido descrito y una prueba canaria con tráfico sombra en producción."
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "Una solicitud vinculada de NVIDIA Triton Python Backend para deserialización de tensores de cadenas mediante C++ se fusionó en octubre de 2025. Esto confirma que una optimización relacionada se aceptó en el proyecto upstream; no valida de forma independiente el sistema FlashVector ni las demás mediciones reportadas."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se ha localizado una reproducción independiente de las ganancias de FlashVector en modelos de producción o procesamiento de características reportadas por el artículo.",
+          "kind": "missing_independent",
+          "state": "open",
+          "updated_at": "2026-10-08T21:08:56.775874Z"
+        },
+        {
+          "description": "No se cuantifica la contribución del sistema frente a especialistas ni a búsquedas convencionales, ni su costo total de cómputo, revisión y mantenimiento.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-08T21:08:56.775874Z"
+        },
+        {
+          "description": "Un solo despliegue en Unity Vector no establece la generalidad entre organizaciones y pilas de servicio.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-08T21:08:56.775874Z"
+        }
+      ],
+      "importance_rationale": "Si los resultados reportados se sostienen en este despliegue, un sistema de ciclo cerrado podría encontrar y validar mejoras de rendimiento en kernels de GPU, grafos de modelos, un servidor Triton, procesamiento de características y configuración de servicio. Esto ampliaría la optimización agéntica práctica más allá de tareas aisladas de kernels y podría afectar el costo y el rendimiento de la inferencia en producción. La puntuación refleja un solo despliegue reportado por autores, no la confianza ni una transferencia demostrada a otras flotas.",
+      "limitations": [
+        "Todas las cifras de rendimiento y la atribución del trabajo al agente provienen de los autores; no se inspeccionaron las trazas sin procesar ni el artefacto completo del despliegue.",
+        "La evidencia cubre la plataforma de una empresa y no demuestra transferencia a otros modelos, hardware, pilas de servicio u organizaciones.",
+        "No hay una comparación equivalente con especialistas humanos, autotuners convencionales u optimización sin agentes que mida trabajo, cómputo, revisión y mantenimiento, o ahorros económicos totales.",
+        "La solicitud vinculada de Triton trata una optimización de deserialización de cadenas y antecede al artículo aproximadamente un año; no verifica el sistema general ni la atribución de otras optimizaciones al agente.",
+        "El umbral de ruido y las verificaciones de carga de toda la pila son procedimientos descritos por el artículo; no hubo una auditoría independiente de cada caso ni del resultado del despliegue."
+      ],
+      "relationships": [],
+      "summary": "Un artículo de arXiv de septiembre de 2026, de autores del equipo Unity Vector AI y Stanford, describe FlashVector, un sistema agéntico de ciclo cerrado que perfila, diagnostica, modifica y verifica cambios en varias capas del servicio de modelos, no solo en los kernels de GPU. Los autores informan su despliegue en modelos de producción de Unity Vector, con resultados de hasta 2.00× de rendimiento y 1.98× de velocidad de latencia en casos del servidor de modelos, y un aumento de 1.6× en el rendimiento del procesamiento de características a un SLO de latencia fijo. El artículo describe comparaciones en el mismo entorno, un umbral de ruido de referencia de ±6% de extremo a extremo, controles de corrección y verificaciones de carga de toda la pila. Son resultados reportados por los autores en un solo entorno de producción; en esta revisión no se verificó una reproducción independiente, la publicación del código del sistema completo ni su transferencia a otros entornos.",
+      "technical": {
+        "claimed_result": "Para seis modelos de producción, la tabla del artículo reporta aceleraciones de latencia de 1.30×–1.98× y aumentos de rendimiento de 1.10×–2.00×. Se informa que una instancia de procesamiento de características bajo demanda aumentó de 940 a aproximadamente 1,500 solicitudes por segundo tras cambios secuenciales, con un SLO de latencia fijo. Los autores también reportan una variación de rendimiento superior a 2× entre configuraciones de un modelo optimizado en código.",
+        "demonstrated_result": "El preprint de arXiv accesible contiene el diseño del sistema, tablas de casos y el protocolo de verificación declarado. Una contribución vinculada para la deserialización de tensores de cadenas en NVIDIA Triton Python Backend se fusionó upstream en 2025. El rendimiento en producción y la atribución al agente siguen siendo resultados reportados por los autores, sin reproducción independiente.",
+        "mechanism": "Agentes específicos por capa perfilan y diagnostican un componente de servicio, proponen un cambio de código o configuración, verifican la corrección y el rendimiento local, descartan ganancias inferiores al umbral de ruido medido y ejecutan pruebas de carga de toda la pila antes de aceptar el cambio. Los cambios aceptados y rechazados se incorporan a una base de conocimiento para ejecuciones posteriores.",
+        "regime": "Plataforma publicitaria de recomendaciones Unity Vector, según los autores, con cientos de modelos DNN y cientos de miles de solicitudes de inferencia por segundo. Las pruebas reportadas usan modelos de producción y comprobaciones SLO/tráfico representativas de producción; un caso de preprocesamiento especifica una instancia con 14 vCPU y 12 instancias del backend de Python. Un caso de inferencia en GPU especifica una NVIDIA RTX PRO 6000 Blackwell y un tamaño de lote de 2,000.",
+        "reproducibility": "El artículo HTML de arXiv y una solicitud upstream de Triton están accesibles. En esta revisión no se encontró código completo de FlashVector, trazas de carga de trabajo, configuración de despliegue ni reproducción independiente.",
+        "strongest_baseline": "El artículo indica que las mediciones base y optimizadas usaron el mismo entorno; estima un ruido de referencia de ±6% de extremo a extremo a partir de ejecuciones base repetidas sin cambios y vuelve a medir las ganancias del rango de 2–6% con una muestra mayor. No aporta una comparación equivalente con optimización manual por especialistas ni un análisis de costos de toda la flota."
+      },
+      "title": "FlashVector informa optimización agéntica de la pila de servicio de modelos de Unity Vector",
+      "why_it_matters": "Los cuellos de botella de inferencia en producción pueden estar en la preparación de datos, el código del servidor de modelos y la configuración de ejecución, además de los kernels de GPU. Si el enfoque reportado se generaliza, un ciclo agéntico que prueba cambios a través de esas capas podría ampliar las oportunidades para mejorar el rendimiento y la latencia. La evidencia actual respalda un caso de despliegue reportado en un artículo, no la transferencia amplia ni ahorros económicos netos."
+    },
     "FCMO-DBCE0693D769": {
       "summary": "ASPIRE evalúa si un agente puede autoevolucionar cuando sólo recibe un objetivo amplio de capacidad en lenguaje natural, en vez de una tarea y métrica especificadas por humanos. El agente debe operacionalizar el objetivo, crear datos y señales locales de validación, elegir actualizaciones de pesos o del harness y decidir cuándo evaluar mientras el evaluador a nivel de tarea permanece oculto. El benchmark usa 520 elementos ocultos escritos por expertos a lo largo de seis objetivos y admite evolución tanto de pesos del modelo como del harness. Los autores encuentran que los sistemas actuales completan rutinariamente bucles de entrenamiento y edición, pero las ganancias ocultas de pesos relativas al modelo base son escasas e inestables; las autoevaluaciones locales a menudo no se transfieren, el entrenamiento posterior puede borrar mejoras anteriores y el harness evolucionado más fuerte permanece por debajo de una referencia Qwen-Agent diseñada por ingeniería. El resultado más importante es, por tanto, negativo: ejecutar un bucle de optimización es materialmente más fácil que definir, medir y retener la mejora de capacidad pretendida.",
       "title": "ASPIRE expone la brecha entre bucles autónomos de actualización y ganancias de capacidad retenidas a partir de objetivos vagos",
@@ -5329,6 +5512,72 @@
       },
       "title": "Hubei amplía la canasta de subsidios al consumidor de 2026 para incluir robots incorporados, de cocina, exoesqueletos y de compañía",
       "why_it_matters": "La revisión incorpora explícitamente varios tipos de robots a las categorías de consumo elegibles para un subsidio provincial, lo que crea un canal concreto de política que podría influir en los precios de compra y la demanda. Su alcance real depende de las definiciones de productos elegibles, los reembolsos a consumidores y el financiamiento del programa; el aviso por sí solo no demuestra adopción ni impacto económico."
+    },
+    "FCMO-F5623092EA8C": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan que un orquestador ligero de interrupción y reanudación aplicado a un modelo de texto sin modificar redujo la latencia media entre el fin del habla del usuario y el primer token audible en 19% (IC bootstrap del 95%: 16–25%) en 20 episodios compuestos de canalización en vivo, y en 49% (39–66%) en tareas con entidades tempranas. Es un resultado dentro del mismo sistema, no una comparación con modelos nativos full-duplex."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En ReactiveBench, los autores reportan que la aparente ventaja de calidad de los sistemas en tiempo continuo bajo el juez LLM principal se invirtió con un juez independiente y casi desapareció al ocultar el razonamiento. El resultado principal usa listas de verificación preescritas con 688 requisitos en 120 escenarios interactivos guionados y dos verificadores cuya concordancia fue κ=0.75."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El artículo informa que algunos modelos entrenados con recompensas de jueces completaron menos requisitos objetivos al razonar, mientras que una recompensa verificable y estructurada por tipo, optimizada con GRPO on-policy, elevó la corrección exacta en streaming a 73±5% en tres semillas desde un resultado inicial de 48%. El apéndice informa una puntuación de 78% con n=448 y una réplica en Qwen3-4B de 50% a 59%."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En una evaluación ampliada de Track B sin entrenamiento y con 13 familias de modelos, los autores reportan que el streaming ayudó a algunos modelos que hablaban poco y perjudicó a otros que ya hablaban de forma más completa. Ningún modo dominó, lo que respalda una interpretación dependiente del régimen y del modelo, no un beneficio universal."
+        }
+      ],
+      "contradictory_evidence": [
+        "El artículo reporta beneficios de latencia, pero también informa que pensar mientras se escucha puede aumentar la latencia a velocidades de inferencia en CPU inferiores a unos 85 tokens/s y reducir la precisión por confusión con entradas parciales; los efectos dependen del modelo, la velocidad de inferencia y la tarea.",
+        "En 13 familias de modelos, el streaming mejora algunos sistemas y perjudica significativamente a otros (incluidos cambios reportados de −20 y −22 puntos porcentuales para Mistral-7B y Llama-3.1-8B en la pista evaluada); no se demuestra una mejora universal de calidad sin entrenamiento.",
+        "El propio análisis de cambio de juez del artículo invierte la aparente ventaja de calidad en tiempo continuo, por lo que la preferencia basada en la evaluación principal no es robusta a la elección del evaluador."
+      ],
+      "evidence_gaps": [
+        {
+          "description": "Los resultados de latencia, benchmark y entrenamiento del artículo no se han reproducido de forma independiente; no se inspeccionaron el código ni los checkpoints enlazados.",
+          "kind": "missing_independent",
+          "state": "open",
+          "updated_at": "2026-10-08T21:09:58.264275Z"
+        },
+        {
+          "description": "La evidencia de latencia en vivo usa 20 episodios y tiempos de componentes compuestos, no ejecuciones independientes emparejadas de extremo a extremo; se desconoce la calidad interactiva real a escala.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-08T21:09:58.264275Z"
+        },
+        {
+          "description": "La cronología del artículo no está clara porque el identificador arXiv señala un registro de septiembre de 2026, mientras que el resumen y la versión indican 2026-07-11.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-08T21:09:58.264275Z"
+        }
+      ],
+      "importance_rationale": "Si se replican en sistemas prácticos de agentes de voz, las pruebas del artículo de que las recompensas basadas en jueces pueden favorecer el razonamiento visible mientras reducen la finalización de tareas evaluada objetivamente, y de que el entrenamiento on-policy verificable y adaptado a la tarea puede revertir ese resultado, afectarían de forma sustancial la evaluación y el postentrenamiento de agentes. Las implicaciones técnicas y metodológicas son amplias, pero los resultados actuales proceden de benchmarks y estudios de entrenamiento de un solo artículo.",
+      "limitations": [
+        "El estudio de latencia en vivo tiene n=20 y compone las condiciones a partir de tiempos de componentes por episodio en vez de ejecutar dos condiciones independientes de extremo a extremo; mide latencia, no calidad interactiva completa.",
+        "Las interrupciones de Track A se simulan a nivel de transcripción, no bajo carga en tiempo real. Las listas objetivas y la corrección exacta no capturan todas las cualidades de la interacción.",
+        "Las clasificaciones basadas en jueces varían según la identidad del juez y la visibilidad del razonamiento. Los propios autores no sostienen sus conclusiones en las clasificaciones de calidad de modelos entrenados, pues los resultados se solapan en sus intervalos de confianza.",
+        "El entrenamiento se realiza a escala LoRA en una GPU y con presupuestos modestos de rollout; los pesos de recompensa se fijan manualmente y la variabilidad entre semillas no es trivial en algunos tipos de tarea.",
+        "Los resultados ampliados sin entrenamiento para 13 familias de modelos son heterogéneos: el streaming ayuda a algunos modelos y perjudica a otros, por lo que el mecanismo no mejora uniformemente la corrección.",
+        "El identificador arXiv 2609.17416 no concuerda claramente con la página de arXiv y el texto de versión, que indican envío el 2026-07-11; la cronología sigue sin resolverse."
+      ],
+      "relationships": [],
+      "summary": "El artículo presenta un diseño de agente de voz basado en texto que mantiene activo un flujo de razonamiento mientras llegan voz, resultados de herramientas e interrupciones, mediante un orquestador de interrupción y reanudación sin cambiar los pesos del modelo. Reporta una reducción media de latencia del 19% en una pequeña canalización en vivo compuesta y presenta ReactiveBench, donde las clasificaciones de calidad de un juez LLM se invierten con un juez independiente y las listas objetivas revelan pérdidas de finalización de tareas en algunas variantes entrenadas con jueces. Los autores reportan mayor corrección en tareas de streaming con recompensas verificables, específicas por tipo y optimizadas con RL on-policy, incluido un resultado de 73±5% con tres semillas y una réplica en otro modelo. Los resultados son reportados por los autores; el artículo también encuentra efectos mixtos entre modelos y condiciones, y su muestra de latencia en vivo es pequeña y compuesta.",
+      "technical": {
+        "claimed_result": "En una canalización en vivo de 20 episodios construida con tiempos de componentes reales de ASR, Qwen3-8B y TTS en streaming, los autores reportan una reducción media de latencia agrupada del 19% (IC bootstrap del 95%: 16–25%) desde el fin del habla del usuario hasta la primera respuesta audible, y una reducción de 49% en tareas de entidad temprana (39–66%). ReactiveBench tiene 120 escenarios interactivos y 688 elementos de lista de verificación preescritos, además de 200 tareas de streaming puntuadas por corrección exacta. Un resultado de GRPO on-policy con recompensa verificable específica por tipo es 73±5% en tres semillas; Qwen3-4B mejora de 50% a 59% en una segunda ejecución de modelo.",
+        "demonstrated_result": "El preprint accesible especifica un mecanismo de interrupción y reanudación, un protocolo de benchmark, tablas de resultados y limitaciones. Los resultados reportados de latencia, inversión entre jueces, benchmark y entrenamiento son afirmaciones del artículo y no se reprodujeron de forma independiente.",
+        "mechanism": "Un orquestador cierra el bloque de razonamiento activo cuando llegan transcripciones parciales, plazos de reproducción, resultados de herramientas o interrupciones del usuario; inyecta la observación en el mismo flujo de conversación y reanuda la decodificación. El estudio de entrenamiento compara recompensas de jueces LLM, señales que preservan cobertura, ajuste fino por rechazo a nivel de trayectoria, optimización de preferencias y RL on-policy con recompensas verificables estructuradas por tarea.",
+        "regime": "Razonamiento de texto sobre transcripciones ASR en streaming y voz sintetizada a partir de texto. La muestra de latencia en vivo contiene 20 episodios con Whisper ASR, Qwen3-8B y TTS en streaming. El benchmark interactivo principal usa interlocutores guionados e interrupciones a nivel de transcripción. Las ejecuciones de entrenamiento usan experimentos LoRA de Qwen3-8B con presupuestos de rollout modestos; los resultados varían según el tipo de tarea y la familia de modelos.",
+        "reproducibility": "El artículo enlaza un repositorio de GitHub y afirma que publica los artefactos del benchmark, el entrenamiento y la evaluación, pero esta activación no inspeccionó ni ejecutó el repositorio, no verificó checkpoints ni reprodujo resultados.",
+        "strongest_baseline": "Para escenarios objetivos, el artículo compara modo por turnos y continuo dentro del mismo modelo y escenario, usa dos verificadores independientes de listas de verificación (κ=0.75) y puntuación exacta en tareas de streaming. La comparación de latencia en vivo ocurre dentro del mismo sistema ASR/modelo/TTS; se compone de tiempos de componentes por episodio en lugar de ejecutar dos condiciones independientes de extremo a extremo. No compara con sistemas nativos full-duplex."
+      },
+      "title": "Never Stop Thinking informa sobre agentes de lenguaje en tiempo continuo y señales de entrenamiento verificables",
+      "why_it_matters": "El artículo conecta la latencia de interacción por voz con un mecanismo de orquestación sencillo y muestra que las aparentes mejoras de calidad de agentes pueden depender de lo que un evaluador observa y recompensa. Si los resultados se transfieren, los requisitos objetivos de tareas y las recompensas verificables específicas por tarea podrían ser más fiables que un solo juez LLM para agentes interactivos. Sus propios resultados entre modelos muestran que el streaming también puede reducir la corrección cuando los sistemas actúan antes de recibir suficiente contexto."
     },
     "FCMO-F63D7F3A70B9": {
       "summary": "LayerRoute amplía políticas visión-lenguaje-acción con una mezcla condicionada por acciones sobre estados intermedios VLM cacheados, más Action-State Reread. En las evaluaciones comparables de los autores mejora dos arquitecturas VLA en LIBERO, SimplerEnv, RoboCasa-GR1, cuatro backbones VLM y 150 pruebas con robots físicos, con un crecimiento modesto de parámetros pero una penalización medible de latencia de inferencia.",
@@ -5752,6 +6001,48 @@
       "why_it_matters": {
         "locale_sha256": "ad7c40e943ae95a50e386406b34e1742dfb4a885695b5500155b263c1513afb8",
         "source_sha256": "66461095bf95454859bf6c6e899d961e36abc0b8d993e9330a5530d652016993"
+      }
+    },
+    "FCMO-149C68CB5420": {
+      "claims": {
+        "locale_sha256": "cba9113a2d4b79b689fbd07206fff25c8caf444612fbf8442183bf2a5a865724",
+        "source_sha256": "8cca79d0836673466b438c71f9b15321d0eb883861f9567c4fbb7541ebf6af9f"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "27e8f1cdc0391d6ae1197e75d34d17de7b4e21a1fdf7b80775ba4d4f0e65245e",
+        "source_sha256": "c9d2158c9dfe2d975e36f87931fa4e4edde7f4b258703c261c704593bcce3f4d"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "c6427b7a1296e58e44cc75c859abfd7d387a165472abd1b5f5d98ce49b4dc8ed",
+        "source_sha256": "976da70a6deef11befdd89a058146a489328addbbdcf193c4df316cc2b271671"
+      },
+      "importance_rationale": {
+        "locale_sha256": "2b84044ac7ddf9f25664d1c35d02dc3fb6d5853eef246e33870f7e49a7f66b2b",
+        "source_sha256": "9ef05f3ebe58da64a3a73614d3255ce87284a9047d1ccb17e74dd57b0642e732"
+      },
+      "limitations": {
+        "locale_sha256": "37b546c7e787fadc2b9df29642eeb69809039250987577ab86aedff74fd2669c",
+        "source_sha256": "5a4e4c5d798f82c3b0b3ae61842355f9179d75568af5560afdca32bb07a74f1a"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "15ab46efd8d4e9219f89c9530b71b106e269f5a01b25ff9e7ce1a2c8d1eeeac4",
+        "source_sha256": "b5e6d3dc37b20ac206695c89aed73863f490a3f8c868714863bb60bed4889fde"
+      },
+      "technical": {
+        "locale_sha256": "4e65c01ead24a633c113251ad9757766e7b63f967a0410070e29a1fedc238144",
+        "source_sha256": "7c4cbad09cd080a5d834ebab3947d363bac62b4bd090d72f93eec9a4d7c9c634"
+      },
+      "title": {
+        "locale_sha256": "dd9276405c0a41e80a03bf6714d0085e55bacd5da648c1162ce448a00e36a945",
+        "source_sha256": "f5ec89d710123ee10d9794cc7eaa16e70dec25e3651803803b559b558f2605fb"
+      },
+      "why_it_matters": {
+        "locale_sha256": "2098dc0af973ba3e9d18d0195eb8753e8187be209fc9fb9f3599f3a2154f9ced",
+        "source_sha256": "3c46752d7a6a2f69dde5e6fbfe0f90fcca3c37b8da9e60da055dfa266f6250c1"
       }
     },
     "FCMO-167F98F07DC3": {
@@ -7574,6 +7865,48 @@
         "source_sha256": "3ef4c92ce55c78b3be2c6db008211f5bf1f38cfc7ebeb9f58e658c47cf434294"
       }
     },
+    "FCMO-69D03F831B03": {
+      "claims": {
+        "locale_sha256": "13ca7381eb3ccdd3ae097bfe2aa2b2729fae4a0aac9478eeef85cc2a575208fe",
+        "source_sha256": "970a77176ce35a01cf1b22f963f1043a70381f48f957a970322bc976351392c8"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "8100b26b5203a9c891c00ef97992a4853da9133dcad261c91fa36c536a65491a",
+        "source_sha256": "1552e7a979ee2742b9117a3278d3847f7e02346acc094688f2a6ae0fa6449d03"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "8af2fb6a2b4ae88ab9d4d632e0a9b1ca5b2f3fe35dfeac61cdb7eee008177329",
+        "source_sha256": "bf182fd90431561add98d82caa42498aa0fefc66b31f6303f6d4a23e21a5a33a"
+      },
+      "importance_rationale": {
+        "locale_sha256": "7a60f5c252bdbe9eaa4ca468f16dab6a9b645cb178fd65d4af9dc43b19b8cdf6",
+        "source_sha256": "8d3b1d708707c2de4629de047203cab9d3dfc874732ccd4a18885bd044d79a5c"
+      },
+      "limitations": {
+        "locale_sha256": "e65dc9d930624d104063ba1b744407b350c3ebb221cb321220517fe3e9f9615e",
+        "source_sha256": "f06d92e4dbdddec1f840558b5152236162f9f3ea43775538edf8be7461b0ef9e"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "1a156af7fb6de14f277caa4cd64d34676eac7a137015b9f007b23941976eb729",
+        "source_sha256": "15e13315dc78ad4761b6320ef856bd4ac878997b0d69e90e0e7150085cee9ad7"
+      },
+      "technical": {
+        "locale_sha256": "ba4003281bc7893da462e55fece404c2b403f82a4f24890e4132731dd0b9c506",
+        "source_sha256": "ebf0829de4865dc9db107f8b8485210d7fb06a68dd50fe4146e5d758e5492d82"
+      },
+      "title": {
+        "locale_sha256": "c05f0b5aa86d06dc13fe2c1f99abcb1df50c6bc98b82dbe8a578235c707b8a42",
+        "source_sha256": "f195a58221b5c6b6a2d8ee06162fcc2587d581d44ad8d3cc1f2aff2045ed229b"
+      },
+      "why_it_matters": {
+        "locale_sha256": "f94be56272bf74dd2192e0a8719b6ae2555d70b048f8fe221012acc98883edae",
+        "source_sha256": "9c9ba0645b1d0dbaec07d7daf33f69f6cb47b45331622293ce471b36403383fc"
+      }
+    },
     "FCMO-6E69DA229F6F": {
       "claims": {
         "locale_sha256": "58479656c1a2beb5a62dc8696f05ddb7ba1dfeb1d59744c19d51b45cc8a69701",
@@ -8174,6 +8507,48 @@
       "why_it_matters": {
         "locale_sha256": "1eeb556ca81c0ba2efe98df5f06a81f680dc3639ae99083923935d36652555cb",
         "source_sha256": "f01c788073015f0ea8b6b9e51471406d1573ff4124ed4e1e4ef30d7d19e5acd7"
+      }
+    },
+    "FCMO-92E86166BABF": {
+      "claims": {
+        "locale_sha256": "b12ef036c04832bd7d52eb225712ce140eb4988bb7e27d9a49cc957c1c7be8d9",
+        "source_sha256": "3d2570dbd885c34f2863464d24c36b1ffc8e834587c86364d474911511d90a6f"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "2bb30de5ea2908120ed8c943c802e918dce52f3ccf5d4161cb40f98311622eb6",
+        "source_sha256": "3e3eca2dc3daf53cdb5ea3a63d392207dc322085839a4c15cc178aacb261626c"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "bfd54358044f9b7086788e9558d4e74e91381ed712017baa006ae7d05b14405b",
+        "source_sha256": "87fe1c15dbc935b7f0a0fac2642ef45f2a37d3070582957ab360b5bdef351419"
+      },
+      "importance_rationale": {
+        "locale_sha256": "33720cb8020030860bc29dea020ae40e3c8c8a6b9ea4b5fc6f2896ae5cbe38a5",
+        "source_sha256": "52840d7fbc53f3efbd175c5e11440007b9d616e85795aa62e99a0121a245543c"
+      },
+      "limitations": {
+        "locale_sha256": "54e0af2904d7fec68387f23d3e9664b9f93aa8d056f63a9521e606dae9c49056",
+        "source_sha256": "1157ddaea0b4e254c23956e17b066ef413aa0ea3d272e1bd7f3e60d18bfa46d2"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "4a0adbf2e2d27c57ff6712774cb0c96497c6abffd69add20659d2201874b4f75",
+        "source_sha256": "13d556290f22242c09fe0f22a0b4fef91135092d646e5b8c3e95d5805bf10061"
+      },
+      "technical": {
+        "locale_sha256": "fb4f18ab978ba346fb933ce4d33db974c555e407792b8bfa521b893b3ae25883",
+        "source_sha256": "37fe4dff1e32940f8fa76f5f109d8b912bacae1e95dda54d48f1f17ebb52b115"
+      },
+      "title": {
+        "locale_sha256": "a955e17c92fd6e22356ac7075f3099716151fecec854af964afb313f43925b0b",
+        "source_sha256": "c872dc3bc1ca52f186ca363dab36a10d804f99e0b7e13c9f48c085e8456c26d4"
+      },
+      "why_it_matters": {
+        "locale_sha256": "e0ab52c75cb2730594b9ac530ed15f489686566c9df6b48d2898c6b47fe95311",
+        "source_sha256": "27d96d45c118305efd6e629ada32f379c8ca9e18dfd95861e43bbddc00c87d28"
       }
     },
     "FCMO-939C8F533A6F": {
@@ -9184,6 +9559,48 @@
         "source_sha256": "b83dbf10bc736ac50800f485a126664eb751857f1b9b38dc276746a1461433c2"
       }
     },
+    "FCMO-DBA16672D5E3": {
+      "claims": {
+        "locale_sha256": "bc4f41ff43058f7c1e41ca7a79b3d58d264f24ce6959b74eb8bc0c656f3b19db",
+        "source_sha256": "4d475474da6a220f7bb38e5f9284326d06ce360fd6f6b24a241e67011c21890d"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "a5fbf944bf6a4184d37e40c5b661a18d70eaea6dcce339b05a455152645b6fc6",
+        "source_sha256": "69c757f350895f41428a97a5fa4b3956ebc7c9c1066004a0575c7e7c291c6da8"
+      },
+      "importance_rationale": {
+        "locale_sha256": "7fce5d6bc308845bddbfd3b40c2ad7a1f381a76c19b2b0534d4659ef35710973",
+        "source_sha256": "4d74a454e988523e2650bc6ce68db9f6ff34bec7182812f55f2bdd93dad8c07c"
+      },
+      "limitations": {
+        "locale_sha256": "1ab38b0f7078d0580959840e412e09e2281e6e7d8a90e5ead1110c94569d3b03",
+        "source_sha256": "627d4230771bcd98a806ddf0ee56b16425252d534599c7f1b9129b1de3690ee5"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "03e1dc9d9def1d36412309bba719a65909fd1dd18f7baad9aa3b7eb4c0426629",
+        "source_sha256": "e7c80db8bc53af37700b7bbe8a57b78b84a210cd80b085a3779921e859b7ebd8"
+      },
+      "technical": {
+        "locale_sha256": "05f9c0edc84d339234f6fa578d963dcc8b4bef20e3dece773f159bf26ad8b251",
+        "source_sha256": "8a2a65f1022eeabb9c3b5b665d88e0c59c8913d78f3bedd7c64e8102093f4c30"
+      },
+      "title": {
+        "locale_sha256": "bc568f85c3d51bf8141550e59fb70494ca80890c28c75a8d6fbf7dd18c34a987",
+        "source_sha256": "b77fdfc628e7c8664189ffa90b323f3b0b2c09ee5703207172dc5cb21ab5c1cf"
+      },
+      "why_it_matters": {
+        "locale_sha256": "619406a6e4c60c18a307bdc945ef24f9dc58d1932eee0a706ffaf92c0484bedf",
+        "source_sha256": "fc4d1a5564c5cd4654fe50fc7a628f3362aa2e3aeaa7988da26a57ec169d2a48"
+      }
+    },
     "FCMO-DBCE0693D769": {
       "summary": {
         "locale_sha256": "74ad83aeeab4ebcbd22df74585bf4f2c695d48cbedc0b66c5a744680198cfa09",
@@ -9490,6 +9907,48 @@
       "why_it_matters": {
         "locale_sha256": "929fd4cc178254d559260f4439180f753d3a87b226f0d054c40d69b17909e7a6",
         "source_sha256": "fe25fa392814d255791dcc23d087aec7525bd87f53ef479249a247967509fb6e"
+      }
+    },
+    "FCMO-F5623092EA8C": {
+      "claims": {
+        "locale_sha256": "31db10e8b49f039bc38d99084449da38395369fa4124f11dd5167d0a49ca9de2",
+        "source_sha256": "b0cc938e09d544c21c3db8fdb5f4035e6e7ae28a9e14655bb2ebf9e51d0061d9"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "87c741638e3bd00317895581c15d8e68feb1bb3932706b96de2f8a8b55661091",
+        "source_sha256": "092c2a3518faec8bdd183d89a789c359e40e7c946b72c994b7608dee1699a4f5"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "8f005dfd8443de5a1814818e3ff4cad5d7b6e456c64837152e8c0f5ee84de589",
+        "source_sha256": "861018b2b00eba32f79df33e14697397547a8ae642fbb62318159ad0ac1af421"
+      },
+      "importance_rationale": {
+        "locale_sha256": "678a97eafd335c10890d10302f8bbfc57bc85b729f9718a37113528b862c503f",
+        "source_sha256": "2c37ee8d691cca5eb437cef09e407024989112c595c84bc84dcf751ed7724d98"
+      },
+      "limitations": {
+        "locale_sha256": "7f761456637a9185b8a84e2153c9e8c68a0b8a2e1917e89192b0144f87135011",
+        "source_sha256": "5db5598e35475e3a4751ebb027ccb04979d24fca4eac957ec9645b688f67e5d4"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "c542b92a1a159a55f5c867f710300585b9c9abb9548379743fa2c6eb6276bb76",
+        "source_sha256": "5f938ab246683c8cdfa0b1b576fa3b2fa160c902dd4431026411272d09984d1b"
+      },
+      "technical": {
+        "locale_sha256": "c174f22610368c57ec8999e8e5f017bd11f0e5507c03a41d8bee3cfb56bf32b0",
+        "source_sha256": "1619574d1752a60da8b1a9d05a6b1724f2a9f5957ca7b090376896c75f5ce562"
+      },
+      "title": {
+        "locale_sha256": "95684805d68f3546d83cc47950410847f2fc24baec63ecd30bf6d22d8fa49859",
+        "source_sha256": "8cb8b82ef527c80fdf6d683511c07bb324bfb8f216cb910a041c6808219b3864"
+      },
+      "why_it_matters": {
+        "locale_sha256": "8659f47720153d9f85acfff21628cac441a0b4a6db0a48e4657a65f5bd5772ae",
+        "source_sha256": "33e18d4d5b366edf66d8d6c2dcbb8e405dd260b684a1e54d053ba8227f5b6eed"
       }
     },
     "FCMO-F63D7F3A70B9": {
