@@ -1,0 +1,143 @@
+{
+  "record": {
+    "id": "FCMO-F308F06D01E2",
+    "title": "MechSparse finds causal sparse-adapter selection loses to activation norms on schema-heavy extraction",
+    "desk": "Training Data",
+    "event_at": "2026-07-16T00:00:00Z",
+    "evidence": "A",
+    "confidence": "credible_unconfirmed",
+    "importance": 4,
+    "tier": "Meaningful",
+    "summary": "Xuan et al. test whether activation-patching scores can select LoRA/QLoRA sites better than random, magnitude, activation-norm and gradient/Fisher heuristics. Across three Ministral-8B/NF4 task cells, their causal selectors do not win the primary metric. On the headline three-seed Swahili span-JSON extraction cell, MechSparse-C trails activation-norm by 0.028 span+type F1 (95% pooled-prediction bootstrap CI [-0.048,-0.007]), is statistically unresolved against magnitude, and beats random and gradient/Fisher. The single-seed English-to-Swahili translation cell shows no reliable pairwise separation within 0.30 BLEU. The authors interpret selector quality as task-shaped, but the recommendation to use causal selection on content-dominated tasks remains unproven: no tested cell provides a positive multi-seed result. The study is one model and three narrow cells; probe-based selection costs about 1.7 L40S GPU-hours per cell before reuse.",
+    "topics": [
+      "sparse PEFT",
+      "mechanistic interpretability",
+      "activation patching",
+      "LoRA",
+      "QLoRA",
+      "Swahili",
+      "evaluation",
+      "negative result"
+    ],
+    "organizations": [
+      "RMIT University",
+      "Ho Chi Minh City University of Technology",
+      "Vietnam National University Ho Chi Minh City"
+    ],
+    "human_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-F308F06D01E2.html",
+    "machine_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/data/briefs/FCMO-F308F06D01E2.json",
+    "citation": {
+      "id": "FCMO-F308F06D01E2",
+      "source": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-F308F06D01E2.html"
+    }
+  },
+  "brief": {
+    "claims": [
+      {
+        "label": "DEMONSTRATED",
+        "text": "Xuan et al. describe a sparse PEFT selector that ranks attention heads and MLP blocks by normalized clean/corrupt activation-patching recovery and trains adapters only at selected sites; MechSparse-C adds bounded within-layer joint-subset credit."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "On the three-seed Swahili span-JSON IE headline cell, authors report MechSparse-C trails activation-norm by 0.028 span+type F1 with pooled-prediction paired-bootstrap 95% CI [-0.048,-0.007], remains statistically unresolved against magnitude, and exceeds random and gradient/Fisher by 0.079 and 0.174, respectively."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "In the single-seed English-to-Swahili MT cell, authors report all four selectors within 0.30 BLEU and every pairwise bootstrap CI includes zero."
+      },
+      {
+        "label": "SPECULATIVE",
+        "text": "Causal or probe-delta selectors improve sparse adaptation whenever content sensitivity rather than output format is the bottleneck."
+      }
+    ],
+    "confidence": "credible_unconfirmed",
+    "contradictory_evidence": [
+      "The paper's headline result favors activation-norm over MechSparse-C on the primary span+type F1 metric; this contradicts a general claim that causal localization improves sparse PEFT selection.",
+      "No tested task cell gives the proposed causal selector a primary-metric win, and the authors explicitly characterize the content-dominated branch as unconfirmed."
+    ],
+    "desks": [
+      "training_data",
+      "evaluation_science",
+      "reasoning_posttraining"
+    ],
+    "development_type": "paper",
+    "editions": [
+      "2026-10-08"
+    ],
+    "event_at": "2026-07-16T00:00:00Z",
+    "evidence_class": "A",
+    "evidence_gaps": [
+      {
+        "description": "The paper reports masks, scores, predictions and per-seed files as released, but the linked anonymous artifact endpoint could not be inspected through the available web tool; no independent replay was performed.",
+        "kind": "missing_artifact",
+        "state": "blocked",
+        "updated_at": "2026-10-08T20:11:35Z"
+      },
+      {
+        "description": "The recommendation to use causal/probe-delta selectors for content-dominated tasks has no positive multi-seed primary-metric result in the paper's three cells.",
+        "kind": "other",
+        "state": "open",
+        "updated_at": "2026-10-08T20:11:35Z"
+      }
+    ],
+    "id": "FCMO-F308F06D01E2",
+    "importance_effective_score": 4,
+    "importance_rationale": "If the task-shaped selector pattern holds, mechanism-guided adapter placement can be a poor default when output-schema routines dominate and adds substantial probe cost; this can change a local PEFT design choice. A 4 reflects meaningful but narrow evidence from one model, three task cells and a single three-seed headline cell.",
+    "importance_scale_version": 2,
+    "importance_score": 4,
+    "importance_tier": "Meaningful",
+    "last_verified_at": "2026-10-08T20:11:35Z",
+    "limitations": [
+      "All experimental outcomes are author-reported. The linked anonymous artifact endpoint was not accessible in this review and the research desk did not reproduce results.",
+      "Only one base model and three narrow task cells are measured. The paper itself says its content-dominated causal-selector branch has no positive primary-metric witness.",
+      "The headline paired bootstrap pools 600 examples across three seeds and resamples examples; the authors state that a seed-level test is not powered and example-level intervals can understate between-seed uncertainty.",
+      "Supplementary Swahili IE and English-to-Swahili MT cells are single-seed; the MT result at BLEU around 11 may reflect a floor effect, and every pairwise interval crosses zero.",
+      "Patching costs about 1.7 L40S GPU-hours per cell before mask reuse, compared with seconds for activation-norm and magnitude selectors.",
+      "The authors report selector-asymmetric task exposure: activation-norm and causal selectors see 64 task prompts, while random sees none. AdaLoRA and Taylor-importance comparisons remain future work.",
+      "The study does not establish broad multilingual transfer, superiority over rank-allocation methods, or a universal causal-selector decision rule."
+    ],
+    "organizations": [
+      "RMIT University",
+      "Ho Chi Minh City University of Technology",
+      "Vietnam National University Ho Chi Minh City"
+    ],
+    "primary_desk": "training_data",
+    "recorded_at": "2026-10-08T20:11:35Z",
+    "regions": [
+      "global"
+    ],
+    "relationships": [],
+    "source_languages": [
+      "en"
+    ],
+    "source_urls": [
+      "https://arxiv.org/html/2609.18961v1"
+    ],
+    "status": "active",
+    "summary": "Xuan et al. test whether activation-patching scores can select LoRA/QLoRA sites better than random, magnitude, activation-norm and gradient/Fisher heuristics. Across three Ministral-8B/NF4 task cells, their causal selectors do not win the primary metric. On the headline three-seed Swahili span-JSON extraction cell, MechSparse-C trails activation-norm by 0.028 span+type F1 (95% pooled-prediction bootstrap CI [-0.048,-0.007]), is statistically unresolved against magnitude, and beats random and gradient/Fisher. The single-seed English-to-Swahili translation cell shows no reliable pairwise separation within 0.30 BLEU. The authors interpret selector quality as task-shaped, but the recommendation to use causal selection on content-dominated tasks remains unproven: no tested cell provides a positive multi-seed result. The study is one model and three narrow cells; probe-based selection costs about 1.7 L40S GPU-hours per cell before reuse.",
+    "technical": {
+      "claimed_result": "On the three-seed headline Swahili span-JSON IE cell at 0.25% adapter budget, the authors report activation-norm span+type F1 0.539±0.004, MechSparse-C 0.511±0.003 and magnitude 0.496±0.057. MechSparse-C trails activation-norm by 0.028, with pooled-prediction paired-bootstrap CI [-0.048,-0.007], and is unresolved against magnitude. It beats random by 0.079 and gradient/Fisher by 0.174 under the same pooled bootstrap. In the single-seed English-to-Swahili MT cell at 1.0% budget, all selectors lie within 0.30 BLEU and every pairwise CI crosses zero.",
+      "compute_or_cost": "On an L40S, authors report about 1.7 GPU-hours per cell for single-component plus joint-subset patch scoring, versus about 19 seconds for activation-norm over 64 forward passes and about 11 seconds for magnitude. Training and evaluation are reported at about 10–15 minutes per selector. Probe scoring can be amortized when masks are reused.",
+      "demonstrated_result": "The inspected arXiv v1 describes the experiment and reports its methods, task cells and result tables. the research desk did not access or independently execute the paper-linked artifacts.",
+      "implementation_status": "The paper reports releasing masks, scores, predictions and per-seed evaluation files through an anonymous artifact endpoint. The endpoint could not be inspected through the available web tool; artifact access and replay remain unverified.",
+      "mechanism": "MechSparse ranks attention heads and MLP blocks by normalized activation-patching recovery on clean/corrupted task probes, then places QLoRA only at selected sites under a matched adapter budget. MechSparse-C adds a bounded within-layer joint-subset credit. Comparators are random, weight magnitude, activation norm, and gradient/Fisher. The same quantized base model is used during probing and training.",
+      "regime": "Ministral-8B Instruct quantized with NF4; Swahili span-JSON information extraction at 0.25% (three seeds) and 1.0% (single seed), plus English-to-Swahili MT at 1.0% (single seed). The headline IE cell uses 1,024 training, 200 validation and 200 test examples; three end-to-end seeds and pooled paired-bootstrap CIs over 600 predictions. Supplementary cells have one seed and predate GQA K/V mask deduplication.",
+      "reproducibility": "The headline result uses three training seeds, but its paired bootstrap resamples pooled examples rather than seeds; the authors state that between-seed uncertainty is not powered. Supplementary IE and MT results and the probe-delta result are single-seed. the research desk performed no independent reproduction.",
+      "strongest_baseline": "Activation-norm leads on the headline span+type F1 metric (0.539 versus MechSparse-C at 0.511). Magnitude is statistically unresolved against MechSparse-C in the reported pooled-prediction comparison. The single-seed MT comparisons do not establish a winner."
+    },
+    "title": "MechSparse finds causal sparse-adapter selection loses to activation norms on schema-heavy extraction",
+    "topics": [
+      "sparse PEFT",
+      "mechanistic interpretability",
+      "activation patching",
+      "LoRA",
+      "QLoRA",
+      "Swahili",
+      "evaluation",
+      "negative result"
+    ],
+    "why_it_matters": "The negative result cautions against assuming that mechanistic localization improves sparse fine-tuning: a cheap activation-norm heuristic wins the paper's schema-heavy headline metric, while the expensive causal method does not win any primary metric. If the result generalizes, it changes a local adapter-placement choice and the cost accounting for interpretability-guided PEFT. The proposed task-shaped selector rule remains preliminary."
+  },
+  "related": [],
+  "schema": "fcmo-public-brief-v1"
+}

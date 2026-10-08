@@ -1,0 +1,139 @@
+{
+  "record": {
+    "id": "FCMO-0061FD99B70F",
+    "title": "LLAnalyzer finds local inference does not guarantee prompt confidentiality across serving boundaries",
+    "desk": "Inference Systems",
+    "event_at": "2026-09-16T00:00:00Z",
+    "evidence": "A",
+    "confidence": "credible_unconfirmed",
+    "importance": 7,
+    "tier": "Very major",
+    "summary": "Ibrahim et al. test four prompt-confidentiality boundaries in local LLM serving: model admission, runtime memory, wrapper persistence and client isolation. In the tested configurations, prompts remained recoverable from process memory after inference; sanitisation reduced recovered copies and bytes but prompts from 11 of 12 prior tenants remained recoverable. A tested llama.cpp interface allowed a separately authenticated client to restore another tenant’s saved conversation state in 200/200 controlled trials; model continuation reproduced the canary secret in 126/200. Shared-prefix caching also separated cached from uncached requests in the measured timing samples (AUC 1.000). These are author-reported findings for four model families and specific tested configurations, not a claim about every local LLM stack.",
+    "topics": [
+      "local LLM",
+      "privacy",
+      "prompt confidentiality",
+      "tenant isolation",
+      "memory forensics",
+      "side channels"
+    ],
+    "organizations": [
+      "Macquarie University"
+    ],
+    "human_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-0061FD99B70F.html",
+    "machine_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/data/briefs/FCMO-0061FD99B70F.json",
+    "citation": {
+      "id": "FCMO-0061FD99B70F",
+      "source": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-0061FD99B70F.html"
+    }
+  },
+  "brief": {
+    "claims": [
+      {
+        "label": "DEMONSTRATED",
+        "text": "The paper defines four prompt-confidentiality boundaries for consumer local-LLM serving: model integrity, runtime data lifetime, wrapper persistence and client isolation, and describes LLAnalyzer experiments designed to measure them separately."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "Across tested configurations, authors report prompt plaintext remained recoverable after inference; a twelve-tenant sequence left data from 11 tenants recoverable. Runtime sanitisation reduced recovered copies from 110 to 78 and plaintext volume from about 10.8 MB to 3.35 MB, but did not change the 11/12 tenant-level exposure result."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "In 200 controlled trials across four evaluated model families, a separately authenticated client restored another tenant’s saved llama.cpp conversation state in 200/200 trials. Continuing the restored conversation reproduced the canary secret in 126/200 trials."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "In the tested shared-prefix-cache setup, cached and uncached request timing was fully separable in measured samples for each of four models (AUC 1.000); authors caution that this does not establish the same classification performance across arbitrary networks, loads or configurations."
+      },
+      {
+        "label": "DEMONSTRATED",
+        "text": "The authors report no parser bypass, malformed model load or sanitizer violation in their tested structured malformed artifacts and 24-hour fuzzing campaign of more than 1.2×10^7 executions; this negative result is bounded to the explored input space and versions."
+      }
+    ],
+    "confidence": "credible_unconfirmed",
+    "contradictory_evidence": [
+      "The paper reports no parser bypass or memory-safety violation in its scoped model-admission tests; this limits claims that failures were present at every serving boundary.",
+      "Sanitisation reduced recovered memory residue and measured latency cost remained below about 0.5%, although prompts from 11 of 12 tenants remained recoverable.",
+      "Model-mediated secret reproduction occurred in 126/200 continuations, lower than the 200/200 underlying state restorations; the generation rate does not weaken the authorization failure itself.",
+      "The findings are from tested configurations and do not establish prevalence across all consumer serving systems or current releases."
+    ],
+    "desks": [
+      "inference_systems",
+      "evaluation_science",
+      "agents_memory"
+    ],
+    "development_type": "paper",
+    "editions": [
+      "2026-10-08"
+    ],
+    "event_at": "2026-09-16T00:00:00Z",
+    "evidence_class": "A",
+    "evidence_gaps": [
+      {
+        "description": "The study’s results were not independently reproduced in this review, and current serving-version behavior or remediation status was not checked.",
+        "kind": "missing_independent",
+        "state": "open",
+        "updated_at": "2026-10-08T20:22:04Z"
+      },
+      {
+        "description": "Testing spans four open-weight model families and two consumer deployment platforms under specified configurations; behavior across other stacks, hardware, authentication designs and network conditions remains unknown.",
+        "kind": "other",
+        "state": "open",
+        "updated_at": "2026-10-08T20:22:04Z"
+      }
+    ],
+    "id": "FCMO-0061FD99B70F",
+    "importance_effective_score": 7,
+    "importance_rationale": "If common local-serving stacks retain prompts or permit cross-tenant restoration, users may expose sensitive data despite keeping inference on-device. A 7 reflects serious confidentiality consequences and concrete controlled interface failures, while evidence is from one paper, four model families and tested configurations without independent reproduction or a current-version status check.",
+    "importance_scale_version": 2,
+    "importance_score": 7,
+    "importance_tier": "Very major",
+    "last_verified_at": "2026-10-08T20:22:04Z",
+    "limitations": [
+      "All performance and security measurements are author-reported; this review did not execute LLAnalyzer or independently reproduce them.",
+      "Findings apply to the four open-weight model families, two consumer platforms and specific versions/configurations studied, not every local LLM deployment.",
+      "The 200/200 restoration result concerns access to saved slot state in the tested llama.cpp configuration; the separate 126/200 figure measures model-generated disclosure after restoration.",
+      "AUC 1.000 describes the measured cached/uncached timing samples and does not establish equivalent leakage under arbitrary networks, loads or deployments.",
+      "The negative parser result is limited to explored malformed inputs and a finite 24-hour fuzz campaign; it does not prove universal parser security.",
+      "The cited paper reports responsible disclosure and released artifacts, but current fix status was not checked."
+    ],
+    "organizations": [
+      "Macquarie University"
+    ],
+    "primary_desk": "inference_systems",
+    "recorded_at": "2026-10-08T20:22:04Z",
+    "regions": [
+      "global"
+    ],
+    "relationships": [],
+    "source_languages": [
+      "en"
+    ],
+    "source_urls": [
+      "https://arxiv.org/html/2609.18526v1"
+    ],
+    "status": "active",
+    "summary": "Ibrahim et al. test four prompt-confidentiality boundaries in local LLM serving: model admission, runtime memory, wrapper persistence and client isolation. In the tested configurations, prompts remained recoverable from process memory after inference; sanitisation reduced recovered copies and bytes but prompts from 11 of 12 prior tenants remained recoverable. A tested llama.cpp interface allowed a separately authenticated client to restore another tenant’s saved conversation state in 200/200 controlled trials; model continuation reproduced the canary secret in 126/200. Shared-prefix caching also separated cached from uncached requests in the measured timing samples (AUC 1.000). These are author-reported findings for four model families and specific tested configurations, not a claim about every local LLM stack.",
+    "technical": {
+      "claimed_result": "Authors report prompt material from 11/12 sequential tenants remained recoverable after inference. Sanitisation reduced recovered copies 110→78 and data about 10.8 MB→3.35 MB but did not eliminate tenant-level exposure. Another authenticated tenant restored saved state in 200/200 trials; the canary secret appeared in model continuations in 126/200. Shared-prefix timing achieved AUC 1.000 in the measured samples for each of four models.",
+      "demonstrated_result": "The inspected paper describes UUID-canary controlled experiments across four open-weight model families and reports the measured outcomes. the research desk did not independently execute the artifacts.",
+      "implementation_status": "Authors report releasing LLAnalyzer, harnesses, configurations, analysis scripts, patches and supporting artifacts; this review did not independently run them or check current maintainer remediation.",
+      "mechanism": "LLAnalyzer uses UUID canaries and boundary-specific evidence to examine model loading, process memory, wrapper artifacts and serving protocols. The authors trace runtime prompt copies through request processing and allocator retention, test sanitisation, attempt cross-tenant restoration of saved llama.cpp slots using distinct API keys, and compare timing for cached versus uncached prompt prefixes.",
+      "regime": "Four GGUF Q4_K_M open-weight model families and two consumer deployment platforms in controlled Linux configurations. Cross-tenant trials use two separately authenticated clients sharing a tested llama.cpp serving instance; timing experiments use 50 cached and 50 uncached measurements per model.",
+      "reproducibility": "The paper describes UUID canaries, fixed software/model artifacts and controlled conditions and reports releasing artifacts. No independent replay or current-version check was conducted in this review.",
+      "strongest_baseline": "For runtime mitigation, the study compares patched sanitisation against an unmodified baseline: copies fall from 110 to 78 and recovered bytes from about 10.8 MB to 3.35 MB, but exposure remains for 11/12 tenants. For slot authorization, the tested boundary failed in 200/200 cross-tenant restoration trials."
+    },
+    "title": "LLAnalyzer finds local inference does not guarantee prompt confidentiality across serving boundaries",
+    "topics": [
+      "local LLM",
+      "privacy",
+      "prompt confidentiality",
+      "tenant isolation",
+      "memory forensics",
+      "side channels"
+    ],
+    "why_it_matters": "Local computation removes a cloud inference relationship but does not itself control prompt copies, saved conversation state or shared serving optimizations. The tested cross-tenant restoration shows why API authentication must be paired with resource-level authorization; the separate timing result shows shared cache state can reveal information without returning prompt plaintext. The scope is limited to the authors’ evaluated configurations and requires current-version reproduction."
+  },
+  "related": [],
+  "schema": "fcmo-public-brief-v1"
+}
