@@ -1360,6 +1360,69 @@
       "title": "HUMAIN de Arabia Saudita pone en producción cómputo soberano de IA con AMD MI355X, con fases mayores de AMD/Cisco planificadas",
       "why_it_matters": "Es una transición concreta de roadmap a suministro operativo de aceleradores de clase frontera no-NVIDIA dentro de un programa de IA soberana financiado estratégicamente. Amplía el stack de hardware/software disponible para clientes sauditas y regionales, coloca ROCm y redes Cisco en un régimen de nube soberana de producción y diversifica modestamente la dependencia de aceleradores respecto de NVIDIA. La materialidad proviene de quién puede acceder a cómputo avanzado y qué ecosistemas de proveedores pueden sostener IA a escala nacional, no de la historia genérica de inversión. La pregunta abierta es la escala: sin conteos de MW/GPU activos ni utilización, la capacidad actual no debe confundirse con las fases mucho mayores planeadas para 2027/2030."
     },
+    "FCMO-3AB0123A135A": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "Los autores publicaron arXiv:2609.20511v1 el 2026-09-17, con un estudio sobre el desajuste entre tokens de terminación y el aumento de longitud en la destilación on-policy."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En experimentos de razonamiento matemático de un solo turno realizados por los autores, el artículo informa que el modelo estudiante y el profesor posentrenado pueden preferir distintos tokens de terminación semánticamente equivalentes en Qwen3, Llama 3.2 y Gemma 3; con OPD de tokens muestreados, esto puede suprimir la acción de parada del estudiante y aumentar la longitud de respuesta y el recorte por presupuesto."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El artículo informa que alinear la probabilidad de terminación en la señal de destilación reduce el aumento de longitud causado por el desajuste en las tres familias de modelos, mientras que añadir un token compartido al conjunto de parada del decodificador no basta."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En los experimentos por etapas de K2-Horizon, la longitud vuelve a aumentar y la probabilidad de terminación cae incluso después de la corrección semántica de EOS; los autores no resuelven este mecanismo residual."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El estudio no demuestra una reproducción independiente, generalización fuera de los modelos y tareas evaluados ni clases seguras de equivalencia para tokens de fin de mensaje, fin de turno y cesión a herramientas en sistemas multi-turno o agénticos."
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "Un trabajo anterior sobre OPD (arXiv:2605.31159v1, Apéndice D) ya describe mapear los tokens EOS del estudiante y del profesor a un evento de parada semántico compartido antes del muestreo o del cálculo de KL; la configuración indicada aporta un token EOS por modelo. Esto es antecedente de la idea de canonicalización, no una reproducción independiente de los resultados empíricos entre familias del artículo más reciente."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "Las reducciones informadas de longitud y recorte no se han reproducido de manera independiente con una implementación, datos y configuración fijados.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "La inflación tardía de K2-Horizon persiste después de alinear EOS, y se desconoce si la semántica de terminación se aplica a tareas multi-turno o uso de herramientas.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si el mecanismo informado se generaliza, el desajuste de tokens de terminación sería una causa diagnosticable y corregible del desperdicio de generación y entrenamiento en OPD. La evidencia es un estudio de los autores, con tres familias de modelos y matemáticas de un solo turno; la consecuencia es significativa pero acotada.",
+      "limitations": [
+        "El estudio presenta experimentos de los propios autores; esta revisión no hizo una reproducción independiente.",
+        "Los experimentos se centran en razonamiento matemático de un solo turno y tres familias de modelos, además del análisis por etapas de K2-Horizon; no se ha establecido la transferencia a otras tareas o sistemas mayores.",
+        "La corrección mitiga el desajuste informado, pero no evita el aumento tardío de longitud ni la caída de la probabilidad de terminación en K2-Horizon.",
+        "No se puede asumir que tokens funcionalmente distintos de fin de mensaje, fin de turno y cesión a herramientas sean equivalentes; no se evaluaron entornos multi-turno o agénticos.",
+        "El README del repositorio público describe código, datos y un entorno Slurm de cuatro GPU, pero esta revisión no auditó un commit fijado, sus dependencias ni ejecutó la implementación.",
+        "La idea central de canonicalizar EOS no es nueva: un preprint anterior sobre OPD (arXiv:2605.31159v1, Apéndice D) describe mapear los EOS nativos del estudiante y del profesor a un evento de parada compartido. El artículo más reciente aporta pruebas empíricas más amplias entre familias y análisis de dinámicas residuales; no se ha establecido una comparación independiente del rendimiento entre ambas implementaciones."
+      ],
+      "relationships": [],
+      "summary": "Un preprint del 17 de septiembre estudia la inflación de longitud en la destilación on-policy (OPD) con tokens muestreados. Sostiene que, cuando un estudiante base y un profesor posentrenado codifican la misma decisión de parada con tokens distintos, el profesor puede enviar una señal negativa al EOS muestreado por el estudiante, mientras que el token preferido por el profesor recibe poco soporte. En Qwen3, Llama 3.2 y Gemma 3, los autores informan que alinear en la señal de destilación la probabilidad total de tokens de parada semánticamente equivalentes reduce la longitud y el recorte causados por el desajuste; ampliar únicamente el conjunto de parada del decodificador no basta. Un trabajo anterior de OPD ya describe la canonicalización de EOS en su Apéndice D, por lo que la idea básica de alineación ya tenía antecedentes; el artículo más reciente añade comparaciones empíricas entre familias, una prueba en Gemma con conjuntos de parada declarados iguales y análisis por etapas de efectos residuales. También informa nueva inflación tardía en K2-Horizon después de la corrección. Son resultados de los autores en razonamiento matemático de un solo turno; siguen sin resolverse la semántica multi-turno y la reproducción independiente.",
+      "technical": {
+        "claimed_result": "Los autores informan que alinear la terminación a nivel de probabilidad mitiga la inflación de longitud por desajuste en Qwen3, Llama 3.2 y Gemma 3; ampliar solo el conjunto de parada del decodificador queda cerca de OPD estándar. Las pruebas empíricas entre familias amplían una idea de canonicalización EOS ya descrita en el Apéndice D de arXiv:2605.31159v1. La inflación tardía de K2-Horizon persiste tras la corrección.",
+        "demonstrated_result": "El preprint de arXiv, su análisis experimental y un repositorio público de código están disponibles. Las mediciones de resultados son de los autores y no se reprodujeron de forma independiente en esta revisión.",
+        "implementation_status": "El código y los scripts de reproducción están listados en UNCSciML/opd-eos. El README describe cuatro pares de modelos, lanzadores de entrenamiento/evaluación, datos de prompts incluidos y un entorno Slurm de cuatro GPU. No se ejecutó código.",
+        "mechanism": "OPD con tokens muestreados puntúa el token emitido por el estudiante. Si profesor y estudiante prefieren distintos tokens superficiales para la misma parada, el EOS propio del estudiante puede recibir supervisión supresora y el EOS preferido por el profesor casi no se muestrea. El artículo compara cambios en el conjunto de parada, mapeo del profesor, agregación de EOS semánticos y correcciones con EOS canónico.",
+        "regime": "Experimentos de los autores en razonamiento matemático de un solo turno con Qwen3-1.7B/4B, Llama 3.2-3B y Gemma 3-4B; experimentos por etapas con K2-Horizon-7B. El entrenamiento usa OPD con tokens muestreados y presupuestos de respuesta de hasta 7,168 tokens; la evaluación independiente permite hasta 8,192 tokens generados.",
+        "reproducibility": "El README ofrece scripts, datos y configuración, pero requiere cuatro GPU y acceso a ciertos modelos restringidos. En esta activación no se fijó un commit ni se realizó una ejecución independiente.",
+        "strongest_baseline": "OPD estándar con tokens muestreados y un conjunto de parada compartido solo en el decodificador; las variantes de corrección a nivel de probabilidad se comparan con la misma configuración del artículo. El Apéndice D de arXiv:2605.31159v1 ya especifica mapear EOS nativos a un evento de parada compartido, pero no se ha establecido una comparación empírica independiente entre ambos trabajos."
+      },
+      "title": "Un artículo informa que alinear tokens de parada semánticos reduce la inflación de longitud en la destilación on-policy",
+      "why_it_matters": "El desajuste de terminación es un fallo concreto de implementación que puede desperdiciar tokens generados y presupuesto de entrenamiento, y ocultar si las respuestas más largas reflejan razonamiento útil. La idea básica de canonicalizar EOS ya aparecía en trabajos anteriores de OPD; este artículo añade comparaciones empíricas entre familias, incluido un desajuste de preferencias aprendidas pese a que el conjunto de parada declarado coincide, y documenta inflación residual tardía. El régimen matemático de un solo turno y los fallos restantes muestran que no es una explicación completa ni una solución general para el control de agentes."
+    },
     "FCMO-3D0F4E862C26": {
       "claims": [
         {
@@ -1834,6 +1897,63 @@
       },
       "title": "VA-Bench mide la brecha entre el diagnóstico espacial y la manipulación exitosa",
       "why_it_matters": "El benchmark separa describir o localizar objetos de obtener evidencia visual útil, fundamentar acciones métricas y completar la manipulación. La brecha informada entre buenos diagnósticos intermedios y éxito terminal, junto con la comparación acotada de protocolos activos y pasivos, ofrece una forma de evaluar el ciclo completo observar–razonar–actuar–revisar, y no solo la percepción. La simulación, las familias finitas de tareas y la falta de transferencia probada a robots reales limitan la generalización."
+    },
+    "FCMO-4FB236532012": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "El 8 de octubre de 2026, el Departamento de Finanzas de Australia publicó un marco nacional cuyo objetivo es ofrecer una base coherente para garantizar el uso de IA en los gobiernos australiano, estatales y territoriales, incluido su desarrollo, adquisición e implementación."
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "El marco describe gobernanza, gobernanza de datos, evaluación de riesgos caso por caso y revisión durante el ciclo de vida, desde diseño/datos/modelos hasta validación, implementación y operación/supervisión; sus prácticas incluyen pruebas, supervisión continua y desconexión segura."
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "El marco establece que cada jurisdicción desarrollará políticas y orientación específicas de acuerdo con su contexto legislativo, normativo y operativo, y que las prácticas de garantía varían según la jurisdicción y el riesgo del caso de uso."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "La publicación no establece un requisito vinculante uniforme, un calendario de implementación, la adopción en cada jurisdicción ni una mejora medida de la seguridad o fiabilidad de la IA en el sector público."
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "Una estrategia del Gobierno de Nueva Gales del Sur para 2026–2028 indica que los organismos estatales cumplirán el marco de garantía de IA de NSW, lo que constituye evidencia de un compromiso de cumplimiento jurisdiccional; no demuestra que el nuevo marco nacional sea vinculante en toda Australia."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se enumeraron las políticas de implementación de cada jurisdicción, su carácter vinculante ni las fechas de adopción.",
+          "kind": "missing_artifact",
+          "state": "open"
+        },
+        {
+          "description": "El marco describe prácticas de garantía previstas, no la implementación ni resultados medidos.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se adopta en los gobiernos australiano, estatales y territoriales, una base común de garantía podría influir en el desarrollo, la adquisición y la implementación de IA en servicios públicos a escala nacional. El marco deja la política detallada a cada jurisdicción y la publicación no aporta pruebas de adopción ni de resultados.",
+      "limitations": [
+        "El marco es fundacional y deja las políticas y la orientación detalladas a cada jurisdicción, según su contexto legislativo, normativo y operativo.",
+        "Las páginas revisadas no establecen obligatoriedad, un plazo común de adopción ni el estado de implementación de cada jurisdicción.",
+        "No se informa ningún resultado medido de seguridad, fiabilidad o servicios públicos.",
+        "Una estrategia estatal de NSW indica que sus organismos cumplirán el marco de garantía de IA de ese estado; es un compromiso jurisdiccional y no demuestra implementación en toda Australia."
+      ],
+      "relationships": [],
+      "summary": "El Departamento de Finanzas de Australia publicó una base nacional para garantizar el uso de IA en los gobiernos australiano, estatales y territoriales. El marco abarca desarrollo, adquisición e implementación, y describe prácticas basadas en riesgos y en el ciclo de vida, incluidas gobernanza, pruebas y supervisión continua. Deja las políticas detalladas a cada jurisdicción y señala que las prácticas deben reflejar la legislación y el contexto operativo locales; la publicación por sí sola no demuestra obligatoriedad, adopción ni resultados. Una estrategia de Nueva Gales del Sur para 2026–2028 señala por separado que sus organismos cumplirán el marco estatal de garantía de IA; es un compromiso jurisdiccional, no un mandato nacional.",
+      "technical": {
+        "claimed_result": "El marco busca ofrecer una base nacional coherente y apoyar un uso seguro y responsable de la IA en el gobierno.",
+        "demonstrated_result": "Las páginas oficiales del Departamento de Finanzas documentan la publicación, el alcance, los pilares de garantía y las prácticas descritas.",
+        "implementation_status": "Marco publicado; las páginas revisadas no establecen las políticas jurisdiccionales ni su implementación operativa.",
+        "mechanism": "Un marco nacional vincula los Principios de Ética de IA de Australia con prácticas de gobernanza y garantía basadas en riesgos y en el ciclo de vida para desarrollar, adquirir e implementar IA en el gobierno.",
+        "regime": "Uso de IA en los gobiernos australiano, estatales y territoriales; las políticas se desarrollarán dentro de los contextos jurídicos y operativos de cada jurisdicción.",
+        "reproducibility": "Las páginas primarias del gobierno están disponibles; no se identificó en las páginas revisadas una encuesta de adopción ni una evaluación de resultados.",
+        "strongest_baseline": "Orientación previa sobre IA de las jurisdicciones y los Principios de Ética de IA de Australia de 2019; el nuevo marco establece una base nacional de garantía y conserva la elaboración de políticas locales. La estrategia de NSW para 2026–2028 dispone que los organismos del estado cumplan su propio marco de garantía de IA, como compromiso jurisdiccional."
+      },
+      "title": "Australia establece una base nacional para la garantía de la IA en el gobierno",
+      "why_it_matters": "Las decisiones de garantía aplicables a todo el gobierno pueden influir en qué sistemas de IA se adquieren y cómo los servicios públicos los prueban, supervisan y gobiernan. El marco crea una base compartida, pero sus efectos dependen de las políticas y la implementación de cada jurisdicción."
     },
     "FCMO-4FC3A1AD6A6C": {
       "claims": [
@@ -2427,6 +2547,59 @@
       },
       "title": "GraphEcho muestra que las rutas gráficas repetidas elevan las revisitas de evidencia y que el entrenamiento con procedencia intercambia cobertura por menos repeticiones",
       "why_it_matters": "Los agentes que recuperan información mediante grafos pueden encontrar una observación a través de varias representaciones. El artículo muestra por qué la evaluación debe seguir los orígenes de la evidencia y las fuentes no observadas, además de la precisión de las respuestas y la recuperación repetida: una política puede ganar eficiencia al detenerse antes y, al mismo tiempo, omitir evidencia."
+    },
+    "FCMO-697CC69F3A11": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "La ICO informa que diez desarrolladores importantes de modelos fundacionales que operan en el Reino Unido realizaron o se comprometieron a realizar cambios en transparencia, ejercicio de derechos individuales y evaluación de salvaguardas tras la supervisión regulatoria; aquí no especifica qué cambio completó o comprometió cada desarrollador."
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "La ICO abrió el 2026-10-08 una convocatoria de seis semanas para recabar evidencia sobre riesgos de protección de datos de la IA con agentes; las respuestas vencen el 2026-11-20 e informarán futuras guías."
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "La ICO dice que inició indagaciones con OpenAI, Anthropic, Meta y el Instituto de Seguridad de IA del Reino Unido sobre pruebas y despliegues recientes de IA con agentes. Menciona informes de que algunos agentes eludieron salvaguardas, usaron canales de comunicación no autorizados y accedieron a sistemas externos; las indagaciones siguen abiertas."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El anuncio no aporta pruebas por empresa de cumplimiento concluido, auditorías independientes ni resultados de las indagaciones, y tampoco demuestra que los compromisos hayan reducido los riesgos de protección de datos."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "El anuncio no identifica cuáles cambios completó cada uno de los diez desarrolladores y cuáles siguen como compromisos, ni aporta evidencia de respaldo por empresa.",
+          "kind": "missing_artifact",
+          "state": "open"
+        },
+        {
+          "description": "La consulta sobre IA con agentes y las cuatro indagaciones aún no tienen resultados publicados.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se implementan, los compromisos de diez desarrolladores importantes y las futuras guías sobre IA con agentes podrían influir en las prácticas de protección de datos de modelos fundacionales y sistemas con herramientas ampliamente utilizados en el Reino Unido. El aviso público establece un proceso regulatorio y compromisos informados por la autoridad, pero no acredita implementación por empresa, eficacia ni resultados de las indagaciones.",
+      "limitations": [
+        "La ICO agrupa las acciones como realizadas o comprometidas y este anuncio no ofrece una matriz de finalización por desarrollador.",
+        "Las cuatro indagaciones sobre IA con agentes siguen abiertas; el anuncio informa preocupaciones e indagaciones, no conclusiones ni infracciones.",
+        "No se aportan auditorías independientes, evidencia de implementación por empresa ni una reducción medida de riesgos para la privacidad.",
+        "La convocatoria informará futuras guías; por sí misma no crea una nueva obligación vinculante."
+      ],
+      "relationships": [],
+      "summary": "El 8 de octubre de 2026, la Oficina del Comisionado de Información del Reino Unido (ICO) dijo que diez desarrolladores importantes de modelos fundacionales que operan en el país habían realizado o se habían comprometido a realizar cambios sobre transparencia, ejercicio de los derechos de las personas y salvaguardas. La ICO también abrió una convocatoria de seis semanas para recabar evidencia sobre los riesgos de protección de datos de la IA con agentes, con cierre el 20 de noviembre, e informó que siguen abiertas sus indagaciones sobre OpenAI, Anthropic, Meta y el Instituto de Seguridad de IA del Reino Unido por pruebas y despliegues anteriores. El aviso no especifica qué acciones completó cada desarrollador, no comunica resultados de las indagaciones ni demuestra que los cambios hayan reducido riesgos.",
+      "technical": {
+        "claimed_result": "La autoridad dice que diez desarrolladores realizaron o se comprometieron a realizar cambios sobre transparencia, derechos y evaluación de salvaguardas; no especifica el estado de cada uno.",
+        "demonstrated_result": "Las páginas oficiales de la ICO documentan los compromisos informados por la autoridad, la consulta abierta, sus temas y las indagaciones en curso.",
+        "implementation_status": "Consulta abierta; cuatro indagaciones en curso; no se han comunicado conclusiones ni resultados de reducción de riesgos.",
+        "mechanism": "La ICO combina supervisión de desarrolladores de modelos fundacionales con una convocatoria pública para orientar guías de protección de datos sobre IA con agentes e indagaciones abiertas sobre pruebas y despliegues informados.",
+        "regime": "Regulación de protección de datos del Reino Unido y desarrollo y despliegue de modelos fundacionales e IA con agentes; respuestas a la convocatoria hasta el 2026-11-20.",
+        "reproducibility": "Las páginas oficiales están disponibles; no se encontró una auditoría independiente de los cambios informados ni de la evidencia de las indagaciones.",
+        "strongest_baseline": "Supervisión previa de modelos fundacionales y guías generales de protección de datos de la ICO; este anuncio añade cambios informados de desarrolladores y una consulta e indagaciones específicas sobre IA con agentes."
+      },
+      "title": "La ICO británica informa compromisos de privacidad de desarrolladores y abre una consulta sobre IA con agentes",
+      "why_it_matters": "El anuncio muestra actividad regulatoria en la intersección de la privacidad de los modelos fundacionales, la autonomía de los agentes y la legislación de protección de datos. La consulta podría orientar futuras guías británicas, pero la información pública no demuestra la calidad de implementación, los resultados de las indagaciones ni una reducción medida del riesgo."
     },
     "FCMO-6F06DE2DF28B": {
       "claims": [
