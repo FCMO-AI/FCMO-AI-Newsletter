@@ -67,7 +67,7 @@ class Credentials(unittest.TestCase):
             github = GitHubCLI({u: str(Path(tmp) / u) for u in ('javier', 'matias')})
             with patch('studio.server.credentials.subprocess.run') as run:
                 statuses = github.credential_status()
-                self.assertEqual([s['plain_es'] for s in statuses], ['Falta iniciar sesión de Javier.', 'Falta iniciar sesión de Matías.'])
+                self.assertEqual([s['plain_es'] for s in statuses], ['Javier debe iniciar sesión en GitHub.', 'Matías debe iniciar sesión en GitHub.'])
                 with self.assertRaisesRegex(Refused, 'Javier'): github.identity('javier')
                 run.assert_not_called()
             for u in ('javier', 'matias'):
