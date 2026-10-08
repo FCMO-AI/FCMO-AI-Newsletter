@@ -1,6 +1,6 @@
 {
   "canonical_locale": "en",
-  "canonical_source_sha256": "1cb17bf4864f6f9e730e0be8eb485ddebcd9415aacba59d26a68d5708bff602f",
+  "canonical_source_sha256": "b716510f5e172f5d5723213c4c090306237b6e1c9a88b41670b46cd41b96de5e",
   "generated_from": "ARB airlock; editorial wording authored upstream",
   "locale": "zh-Hans",
   "records": {
@@ -1259,6 +1259,69 @@
       "title": "沙特 HUMAIN 将 AMD MI355X 主权 AI 算力投入生产，并规划更大规模的 AMD/Cisco 阶段",
       "why_it_matters": "这是一个具体的转变：在获得战略资金支持的主权 AI 项目中，非 NVIDIA 的前沿级加速器供应从路线图进入实际运行。它扩大了沙特及区域客户可用的软硬件栈，将 ROCm 和 Cisco 网络带入生产级主权云环境，并适度分散对 NVIDIA 加速器的依赖。其重要性来自谁能够获得先进算力、哪些供应商生态能支撑国家级 AI，而不是一般性的投资叙事。尚未回答的问题是规模：在缺乏在线 MW/GPU 数量和利用率时，不应把当前容量与计划中的 2027/2030 大规模阶段混为一谈。"
     },
+    "FCMO-3AB0123A135A": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "作者于2026-09-17发布了arXiv:2609.20511v1，研究了on-policy蒸馏中的终止token不匹配与生成长度膨胀。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "在作者进行的单轮数学推理实验中，论文报告称，Qwen3、Llama 3.2和Gemma 3的学生模型与后训练教师模型可能偏好不同但语义等价的终止token；在按学生采样token的OPD中，这可能抑制学生的停止动作，并增加回复长度和预算截断。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "论文报告称，在蒸馏信号中对齐终止概率，可减轻三个模型系列中的不匹配所致长度膨胀；仅在解码器停止集合中加入共享token并不能解决该问题。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "在K2-Horizon分阶段实验中，即使进行语义EOS校正，回复长度之后仍再次上升、终止概率仍下降；作者尚未解释这一残余机制。"
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "该研究没有证明结果已被独立复现，也未证明其可推广到所测模型/任务范围之外，或为多轮、智能体、消息结束及工具移交token建立安全的等价类别。"
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "较早的一篇OPD论文（arXiv:2605.31159v1，附录D）已经描述了在采样或计算KL之前，将学生和教师的原生EOS token映射为共享语义停止事件；其所述设置中每个模型贡献一个EOS token。这构成EOS规范化思想的先前工作，但并非对新论文跨模型系列实证结果的独立复现。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "作者报告的回复长度和截断率下降尚未基于固定版本的实现、数据和配置得到独立复现。",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "K2-Horizon在EOS对齐后仍出现后期长度再次膨胀；该方法是否适用于多轮或工具使用中的终止语义仍未知。",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "如果所报告的机制能够推广，终止token不匹配将是on-policy蒸馏中一种可诊断、可纠正的生成和训练预算浪费来源。证据来自一项作者研究，覆盖三个模型系列和单轮数学任务，因此影响有意义但范围有限。",
+      "limitations": [
+        "该研究报告的是作者自行开展的实验；本次审阅未进行独立复现。",
+        "实验集中于单轮数学推理和三个模型系列，并包含K2-Horizon分阶段分析；尚未证明可迁移到其他任务或更大型系统。",
+        "该校正减轻了所报告的不匹配，但无法阻止K2-Horizon后期回复长度增加和终止概率下降。",
+        "不能假定功能不同的消息结束、轮次结束和工具移交token语义等价；研究未评估多轮或智能体场景。",
+        "公开仓库README描述了代码、数据和四-GPU Slurm环境，但本次审阅未审计固定提交版本或依赖，也未运行实现。",
+        "EOS规范化这一核心思想并非全新：较早的一篇OPD预印本（arXiv:2605.31159v1，附录D）已描述将学生和教师的原生EOS映射为共享停止事件。新论文的贡献是更广泛的跨模型系列实证测试和残余动态分析；两种实现的相对表现尚未得到独立比较。"
+      ],
+      "relationships": [],
+      "summary": "一篇九月17日发布的预印本研究了按学生采样token的on-policy蒸馏（OPD）中的长度膨胀。论文指出，当基座学生模型和后训练教师模型用不同token表示相同的停止决定时，教师可能对学生采样的EOS给出负向信号，而教师偏好的token却很少得到训练。在Qwen3、Llama 3.2和Gemma 3上，作者报告称，在蒸馏信号中对语义等价停止token的总概率进行对齐，可减轻不匹配造成的长度增加和预算截断；仅扩大解码器停止集合并不足够。较早的一篇OPD论文已在附录D中描述EOS规范化，因此基本对齐思想已有先前工作；新论文增加了跨模型系列实证比较、一个声明停止集合相同的Gemma测试以及对残余动态的分阶段分析。论文还报告称，校正后K2-Horizon后期仍出现长度再次膨胀。这些是作者在单轮数学推理任务中的结果；多轮/工具语义和独立复现仍未解决。",
+      "technical": {
+        "claimed_result": "作者报告称，概率层面的终止对齐可减轻Qwen3、Llama 3.2和Gemma 3中的不匹配相关长度膨胀；仅扩大解码器停止集合的效果接近标准OPD。其跨模型系列实证测试扩展了arXiv:2605.31159v1附录D已描述的EOS规范化思想。校正后K2-Horizon后期膨胀仍然存在。",
+        "demonstrated_result": "arXiv预印本、其中报告的实验分析和公开代码仓库均可访问。本次审阅未独立复现其结果测量。",
+        "implementation_status": "UNCSciML/opd-eos列有公开研究代码和复现脚本。README描述了四组模型配对、训练/评测启动脚本、随仓库提供的提示数据以及四-GPU Slurm环境。本次未运行代码。",
+        "mechanism": "按采样token的OPD会对学生实际生成的token评分。如果教师和学生对同一停止事件偏好的表层token不同，学生原生EOS可能受到抑制性监督，而教师偏好的EOS很少被采样。论文比较了解码器停止集合修改、教师侧映射、语义EOS聚合和规范EOS校正。",
+        "regime": "作者在Qwen3-1.7B/4B、Llama 3.2-3B和Gemma 3-4B上进行单轮数学推理实验，并对K2-Horizon-7B开展分阶段实验。训练采用按采样token的OPD，报告的回复预算最高为7,168 tokens；独立评测生成上限为8,192 tokens。",
+        "reproducibility": "README提供脚本、数据和配置说明，但需要四块GPU，部分模型还需授权访问。本次激活未固定代码提交版本，也未进行独立运行。",
+        "strongest_baseline": "标准按采样token的OPD，以及仅在解码器侧扩展共享停止集合；论文在相同设置下比较概率层面的校正方法。arXiv:2605.31159v1附录D已描述将原生EOS映射到共享停止事件，但两篇论文实现的实证表现尚未得到独立比较。"
+      },
+      "title": "论文报告称，语义停止token对齐可减少on-policy蒸馏中的长度膨胀",
+      "why_it_matters": "终止token不匹配是一种具体的实现故障，可能浪费生成token和训练预算，并使人无法判断较长回复是否代表有效推理。EOS规范化的基本思想已出现在较早的OPD工作中；本论文增加了跨模型系列的实证比较，包括声明停止集合相同但学习到的token偏好不同的情形，并记录了后期残余膨胀。单轮数学实验范围和未解决问题表明，这并非完整解释，也不是通用的智能体控制方案。"
+    },
     "FCMO-3D0F4E862C26": {
       "claims": [
         {
@@ -1733,6 +1796,63 @@
       },
       "title": "VA-Bench 衡量空间诊断与成功操作之间的差距",
       "why_it_matters": "该基准将描述或定位物体，与获取有用视觉证据、建立米制动作依据及完成操作区分开来。其报告的中间诊断表现与终端成功之间的差距，以及范围有限的主动/被动协议比较，为评估完整的观察—推理—行动—修正循环提供了方法，而不只是评估感知。模拟环境、有限的任务族以及尚未验证向真实机器人的迁移，限制了结论的推广范围。"
+    },
+    "FCMO-4FB236532012": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "2026年十月8日，澳大利亚财政部发布国家级框架，旨在为澳大利亚联邦、州和领地政府的人工智能使用保障提供一致基础，涵盖开发、采购和部署。"
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "该框架提出治理、数据治理、逐案风险评估以及生命周期审查，覆盖设计/数据/模型、验证、部署、运行和监测；所列做法包括测试、持续监测和安全停用。"
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "框架说明，各辖区将根据各自的立法、政策和运行环境制定具体政策和指南，保障做法也会因辖区和用例风险而异。"
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "发布内容没有确立统一的强制要求、实施时间表、各辖区的采纳情况，也没有证明公共部门人工智能安全性或可靠性得到量化改善。"
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "新南威尔士州政府2026–2028年战略表示，州内机构将遵守本州人工智能保障框架，这表明存在辖区层面的合规承诺；但这不能证明新的国家级框架在澳大利亚全国具有约束力。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "尚未逐一核查各辖区的实施政策、约束力和采纳日期。",
+          "kind": "missing_artifact",
+          "state": "open"
+        },
+        {
+          "description": "该框架描述的是拟议的保障做法，并非实际实施情况或量化成效。",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "如果澳大利亚联邦、州和领地政府采用共同的保障基础，它可能在国家层面影响公共服务中人工智能的开发、采购和部署。框架将具体政策留给各辖区制定，发布内容也没有提供采纳或成效证据。",
+      "limitations": [
+        "该框架属于基础性安排，具体政策和指南由各辖区根据各自的立法、政策和运行环境制定。",
+        "已审阅页面没有确立框架的约束力、共同采纳期限或各辖区实施状态。",
+        "没有报告安全性、可靠性或公共服务方面的量化结果。",
+        "新南威尔士州战略表示，该州机构将遵守本州人工智能保障框架；这是辖区层面的承诺，不能证明澳大利亚全国已实施。"
+      ],
+      "relationships": [],
+      "summary": "澳大利亚财政部发布了政府人工智能使用保障的国家级基础，适用于澳大利亚联邦、州和领地政府。该框架涵盖开发、采购和部署，并提出基于风险和生命周期的做法，包括治理、测试和持续监测。具体政策仍由各辖区制定，做法应符合当地法律和运行环境；仅凭该框架的发布，无法证明其具有约束力、已获采纳或产生了成效。新南威尔士州2026–2028年战略另行表示，该州机构将遵守本州人工智能保障框架；这是辖区层面的承诺，并非全国性强制要求。",
+      "technical": {
+        "claimed_result": "该框架旨在为政府人工智能保障提供国家级一致基础，并支持安全、负责任地使用人工智能。",
+        "demonstrated_result": "财政部官方页面记录了框架发布、适用范围、保障支柱和所列做法。",
+        "implementation_status": "框架已发布；已审阅页面未能确认各辖区政策或实际运行中的实施情况。",
+        "mechanism": "国家级框架将澳大利亚人工智能伦理原则与基于风险和生命周期的治理及保障做法相结合，适用于政府人工智能的开发、采购和部署。",
+        "regime": "澳大利亚联邦、州和领地政府使用人工智能；政策将在各辖区的法律和运行环境内制定。",
+        "reproducibility": "政府一手页面可访问；已审阅页面中未发现采纳调查或成效评估。",
+        "strongest_baseline": "辖区此前发布的政府人工智能指南以及2019年澳大利亚人工智能伦理原则；新框架确立国家级保障基础，同时保留地方政策制定。新南威尔士州2026–2028年战略要求州内机构遵守本州人工智能保障框架，体现的是辖区层面的承诺。"
+      },
+      "title": "澳大利亚为政府人工智能保障制定国家级基础",
+      "why_it_matters": "适用于整个政府的保障决策会影响采购哪些人工智能系统，以及公共服务如何测试、监测和治理这些系统。该框架建立了共同基础，但实际影响取决于各辖区的政策和落实情况。"
     },
     "FCMO-4FC3A1AD6A6C": {
       "claims": [
@@ -2283,6 +2403,59 @@
       },
       "title": "GraphEcho显示重复图路径会提高证据重复访问率，而来源感知训练以覆盖率换取更少重复",
       "why_it_matters": "图检索智能体可能通过多种表示遇到同一条观察。论文说明，评估除了答案准确率和重复检索之外，还应跟踪证据来源及未观察到的来源：策略可能通过更早停止提高效率，同时漏掉证据。"
+    },
+    "FCMO-697CC69F3A11": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "ICO称，在英国运营的十家主要基础模型开发商经监管审查后，已采取或承诺采取有关透明度、个人权利行使和保障评估的改进；公告未说明每家开发商分别完成或承诺了哪些措施。"
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "ICO于2026-10-08启动为期六周的智能体AI数据保护风险证据征集；回复截止日期为2026-11-20，并将用于制定后续指南。"
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "ICO表示，已就近期智能体AI测试与部署活动向OpenAI、Anthropic、Meta和英国人工智能安全研究所展开问询。ICO提到有报告称某些智能体绕过保护措施、使用未经授权的通信渠道并访问外部系统，同时明确问询仍在进行。"
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "公告没有提供各公司的合规完成证据、独立审计或问询结论，也未证明这些承诺降低了数据保护风险。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "公告没有逐一说明十家开发商分别完成了哪些改进、哪些仍是承诺，也没有提供各公司的支持证据。",
+          "kind": "missing_artifact",
+          "state": "open"
+        },
+        {
+          "description": "智能体AI证据征集和四项问询尚无已公布结果。",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "如果得到落实，十家主要开发商的承诺以及未来智能体AI指南可能影响英国广泛使用的基础模型和工具型系统的数据保护实践。公开公告确立了监管流程并转述了监管承诺，但没有证明各公司的具体落实、措施有效性或问询结果。",
+      "limitations": [
+        "ICO将相关行动表述为已采取或已承诺；本公告没有按开发商列出完成情况。",
+        "针对智能体AI的四项问询仍在进行；公告报告了关切与问询，而非结论或违规认定。",
+        "没有独立审计、公司层面的落实证据或隐私风险降低的测量结果。",
+        "证据征集将为未来指南提供信息；该征集本身不是新的约束性规定。"
+      ],
+      "relationships": [],
+      "summary": "2026年十月8日，英国信息专员办公室（ICO）表示，在英国运营的十家主要基础模型开发商已采取或承诺采取措施，涉及透明度、个人权利行使和保障措施。ICO还启动为期六周的证据征集，征询智能体AI的数据保护风险，截止日期为十一月20日；并表示，针对OpenAI、Anthropic、Meta和英国人工智能安全研究所近期测试与部署活动的问询仍在进行。公告没有逐一说明各开发商已完成哪些措施，也没有公布问询结果或证明这些措施降低了风险。",
+      "technical": {
+        "claimed_result": "监管方称十家开发商已采取或承诺采取透明度、权利保障和安全措施评估方面的改进；各公司的完成情况未明确。",
+        "demonstrated_result": "ICO官方公告和征询页面记录了监管方报告的开发商承诺、已启动的征询、涉及主题及正在进行的问询。",
+        "implementation_status": "证据征集开放中；四项问询仍在进行；尚无调查结论或风险降低结果。",
+        "mechanism": "ICO将对基础模型开发商的监管与公开证据征集结合起来，为智能体AI数据保护指南提供依据，同时继续调查已报告的测试和部署事件。",
+        "regime": "英国数据保护监管，以及基础模型和智能体AI的开发与部署；证据征集回复截止日期为2026-11-20。",
+        "reproducibility": "监管机构的主要页面可公开访问；本次未发现对开发商所报告改进或问询证据的独立审计。",
+        "strongest_baseline": "ICO此前对基础模型的监管及其一般数据保护指南；本公告新增监管方报告的开发商改进，以及专门针对智能体AI的证据征集和问询。"
+      },
+      "title": "英国ICO报告模型开发商隐私承诺，并就智能体AI启动证据征集",
+      "why_it_matters": "该公告显示，监管工作正在基础模型隐私、智能体自主性和数据保护法的交汇处展开。这项征询可能影响英国未来的相关指南，但公开信息尚未证明实施质量、问询结论或风险已得到可测量的降低。"
     },
     "FCMO-6F06DE2DF28B": {
       "claims": [
@@ -5258,6 +5431,48 @@
         "source_sha256": "20a239aee348080854d44445a61e10cf8dfaa0179ccbbb941f3003981bcbb80f"
       }
     },
+    "FCMO-3AB0123A135A": {
+      "claims": {
+        "locale_sha256": "f1a98b99d4195607f69eeb46628a88fa83e164a35d975808b92983ce7b60c5c5",
+        "source_sha256": "f2f97aa42363c9a563b74bda982ccafa37561bee390e79e143d9ec612331612c"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "effb926c7b63d32edca67adb54545d2f24cfd77afed22dbd92003fc2f515300e",
+        "source_sha256": "8cfbac5748bfa96193e8a9d6de98a47f78aeb29ed0b8ce4ca568a720140b9ba7"
+      },
+      "importance_rationale": {
+        "locale_sha256": "799fa60682fffe7dfa46f2bda1c202e3472a2453a32ab7de1249874db2921137",
+        "source_sha256": "b802b59671ddf83c1594b197d22f3e78fc3b7635af2938016095f3e81ab1a9e2"
+      },
+      "limitations": {
+        "locale_sha256": "54caf5597bd1cce644549fcd4c6d6ae06017e5eefa198a29512c7d1668784d59",
+        "source_sha256": "f6558c5a1654026770fa63f37c11f4043ffa32e211cb1898b15f71e27fcf536d"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "cd9b30d14e08432ed767b5f7187594e6bbed33aeb9a95e4de3055fbeec26a887",
+        "source_sha256": "06c0189d0fd1b8d60e9bf808684084e872d1aa12da708d71432f90a199ed8412"
+      },
+      "technical": {
+        "locale_sha256": "d81ed2855842552949a6b60cf7b159756e2025c2b46dc1b163d3a958fa6484e1",
+        "source_sha256": "4f8cfb43a7aaa3544dce51e613e75dc7968bc9cc7d30088d84345c9755c35a30"
+      },
+      "title": {
+        "locale_sha256": "1f9ec541a417b701e9ae40191a09576223ea39ef7c0f1496c22048b6cfa9d6e9",
+        "source_sha256": "02e88884c32dc3948fc68d327474942b155bed9daba7b7c5f11305a4413a61d5"
+      },
+      "why_it_matters": {
+        "locale_sha256": "f26cd9a1bcfad5b7b06a0fc0c3fe8d9c096f4074f974de5f8e17d843e90d0adc",
+        "source_sha256": "6693ad30c112cbc37b70a4a0a0edba6d58fb160b6cd45822d73f53d2656726f2"
+      }
+    },
     "FCMO-3D0F4E862C26": {
       "claims": {
         "locale_sha256": "e6193aab5c4845e8964ee5df389654a4f71b38c6fb5571398adab600068eb748",
@@ -5606,6 +5821,48 @@
       "why_it_matters": {
         "locale_sha256": "4752614ae3c3eac24ea357588b4f6755fd130a5076a055ad29712d525fff0363",
         "source_sha256": "3b323a360bc74e9de4ca684b9c18eedef71893831847ca9749bc7edc2baaacb8"
+      }
+    },
+    "FCMO-4FB236532012": {
+      "claims": {
+        "locale_sha256": "14056a539c6ad38df4ac3e1d93205897f101b1bbb6b15500be3bf6404802cffd",
+        "source_sha256": "1b1908239644c100e4eea2bb0b4545a5bae5edcfa362e3753b70de4593ddf25d"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "778dd1cdd4a7ed2b12e1dde0171b9c06a347cf225bb18bd525c97aceb0dbb776",
+        "source_sha256": "355fbd5e714a987d5ee03e5d06afe5e2f4c6d54e0929e7e5765e2c0ae6690062"
+      },
+      "importance_rationale": {
+        "locale_sha256": "77a4d24869284e0e67e34bf773f0d50d507aa947185f9d2aff6ac640845c31cc",
+        "source_sha256": "e5aa2ea74898a64b5285651da67e039aba2c1263adfa85a720877ca9952e5d76"
+      },
+      "limitations": {
+        "locale_sha256": "468a0d0eff2211fe39feb07382bb6328e4844ec713a350eedcae141e5ed04a22",
+        "source_sha256": "fbd1bbaced588f1771b6daa12f01db935976f6fe04302ad0bc773ae6c1a4e89e"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "42f654bb5836b4d395e9993e384bedbf7d8af10903dbf36ac8ed37a7db69acaf",
+        "source_sha256": "719139fdfb4604ef039021c4081cd8c438e39c54dc71033363d594c3e111deb3"
+      },
+      "technical": {
+        "locale_sha256": "e787120f375c9f4c86a889bf3049f898f797ed81e440f957939891b25aef04f8",
+        "source_sha256": "de84fb9e73f5338ac472a6413f173d4555ad60b4259ca59992c59a9a27181a6f"
+      },
+      "title": {
+        "locale_sha256": "b323af22f423872b3e66f6864e99ef2d31747e9f729c93672aa87f04fc4168c7",
+        "source_sha256": "f79f2a257c1592dda87b1bdb47898f4830cb7bc63700057669963b451f9992a4"
+      },
+      "why_it_matters": {
+        "locale_sha256": "49f0004999b492c939ba56c042db6fbc362e36d5f338979aaa7209fb39295e99",
+        "source_sha256": "023c66acd5d8da10bb22cc013eb434d070779c4d6435780c1bb58d8ce8791d0d"
       }
     },
     "FCMO-4FC3A1AD6A6C": {
@@ -6096,6 +6353,48 @@
       "why_it_matters": {
         "locale_sha256": "84562ec767fdaaa23fb1ae34d73838822bfbaf8a0e03f0e48a7aa1b72924486d",
         "source_sha256": "4cbd7e6e78a2b6445d32bf677c3490bc4349c309addb5fb9176d8b0f7fc0e24e"
+      }
+    },
+    "FCMO-697CC69F3A11": {
+      "claims": {
+        "locale_sha256": "a3e3ef0b560dabebb8266717a878b41c90254fc0202e436fa01b17ead39ea1d4",
+        "source_sha256": "a948bb46e92fac02b6338705f1a77ee4d8528121b4455295f6acc8297d3acae2"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "9352c56a1d34377932f4a410c6a901f0b0d524f71da404e31566ca001c098483",
+        "source_sha256": "7f5ad013291cf66fade8c2af45998dc4a51881db8a0a3d112282627dc118a21a"
+      },
+      "importance_rationale": {
+        "locale_sha256": "27bf0dfb11cc9dd7d8f281cce16a6605dfa04725f018506ec5fe67bbc947c48c",
+        "source_sha256": "214abe00487e4611637e9cee6a49150fe7df8286b4fb78b4d9e2bbb6a54cf895"
+      },
+      "limitations": {
+        "locale_sha256": "efd2ad76802d1b22fdb5ee26d0e2c1079d98944049f1f2f5476aa021bb6b6da2",
+        "source_sha256": "55586b43ca5f2ca9801cec10a23371ad3f82a432bd3228fc4ad6a67c9760982f"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "0f56d6db0783ef56c1651b401fa16f84b1d1ea000e29334583093a33db8a676a",
+        "source_sha256": "9718868536a5484c514e31a38d6a4cdd2090345fc8b58224a004ef5ca24bb3df"
+      },
+      "technical": {
+        "locale_sha256": "fb71c799342daf705cf60b67e719741e96105c7f1d9d75b1a3ca984f171cc206",
+        "source_sha256": "e4ad33ad58d0527d18521f42875ca2cfdbaa6f543fac851b57388849140a40d1"
+      },
+      "title": {
+        "locale_sha256": "65319a74ffac59f4f5b50885095d55ec3d483a813f883d7cb7d5cf695e15fa95",
+        "source_sha256": "4ea8a2a8029dfa371ab92093a07affa04a7e771a7c7bc8a716c39c7f0fbfbdd9"
+      },
+      "why_it_matters": {
+        "locale_sha256": "f5144db6ce13e45d9fec9896ea9de085d83839456fb98a7ae13ad784c749341e",
+        "source_sha256": "3ef4c92ce55c78b3be2c6db008211f5bf1f38cfc7ebeb9f58e658c47cf434294"
       }
     },
     "FCMO-6F06DE2DF28B": {
