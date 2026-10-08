@@ -73,7 +73,7 @@ repetida conserva exactamente sus bytes. Las 46 pruebas focalizadas pasan.
 Comando reproducible utilizado en esta caja, con la caché de Chromium local:
 
 ```sh
-C=/srv/fcmo/agents/work/newsletter/c5
+C="${NEWSLETTER_CAMPAIGN_DIR:?ruta de la campaña c5}"
 PLAYWRIGHT_BROWSERS_PATH="$PWD/__pycache__/l39-browser" \
 PLAYWRIGHT_MODULE="$C/node-pw/node_modules/playwright" \
 PATH="$C/venv-pw/bin:$PATH" \
