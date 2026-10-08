@@ -1,6 +1,844 @@
 [
   {
     "confidence": "credible_unconfirmed",
+    "demonstrated_result": "The paper reports measured LongBench task scores and effective KV compression for Llama-3.1-8B and Qwen-2.5-7B. The reported system-level latency and energy savings are analytical model outputs for Llama-3.1-8B, not results measured on physical Compute-in-Flash hardware; the research desk did not reproduce either result.",
+    "desks": [
+      "inference_systems",
+      "efficiency",
+      "compute_hardware"
+    ],
+    "development_type": "paper",
+    "event_at": "2026-09-14T18:04:30Z",
+    "evidence_class": "A",
+    "id": "FCMO-AE823403DFD7",
+    "importance_effective_score": 5,
+    "importance_tier": "Notable",
+    "last_verified_at": "2026-10-08T14:18:06Z",
+    "mechanism": "Combines integer-only compute-in-flash operations with a flash-resident static dictionary. KV vectors are encoded as sparse codes over the dictionary; attention operates on codes while keeping a recent window in full precision. The design models SSD-CIM compute and memory movement for decode.",
+    "organizations": [],
+    "primary_desk": "inference_systems",
+    "regions": [
+      "global"
+    ],
+    "status": "active",
+    "strongest_baseline": "LongBench compares the combined method to FP16 with full KV cache. System model configuration S2 is compared to B1, an NPU+DDR5 DRAM FP16 baseline with full KV cache moved each decode step; B2 and S1 are additional modeled ablations.",
+    "summary": "The paper combines integer-only compute-in-flash inference with a static flash-resident dictionary that stores compressed KV-cache codes. On LongBench, the authors report that the combined pipeline retains 99% of the FP16 full-KV baseline score across Llama-3.1-8B and Qwen-2.5-7B, with less than one average score-point degradation and nearly 15× dynamic KV traffic compression. Separately, an analytical model for Llama-3.1-8B at batch size 1 projects 3.1× lower decode latency and 2.7× lower energy at 1K context, and 4.4×/6.8× at 256K, against an NPU+DDR5 full-KV baseline. These system-level numbers are modeled, not measurements on physical Compute-in-Flash hardware; prefill is outside the study.",
+    "title": "LLM Inference in a Flash reports compressed KV caching and modeled Compute-in-Flash gains",
+    "topics": [
+      "compute-in-memory",
+      "compute-in-flash",
+      "kv-cache",
+      "integer-inference",
+      "long-context"
+    ],
+    "why_it_matters": "Long-context decoding can be limited by moving KV state between memory and compute. The paper reports a large reduction in dynamic KV traffic with small LongBench score changes, then models potential decode benefits on a Compute-in-Flash design. The modeled gains depend on assumptions about device bandwidth, dictionary placement and duplicate dictionary storage, and do not establish physical-device performance or prefill efficiency."
+  },
+  {
+    "confidence": "credible_unconfirmed",
+    "demonstrated_result": "The paper reports the stated hardware setup, Kimi-K3 rates and baseline comparisons. the research desk inspected the paper's current v1 HTML and fetched the PDF but did not independently reproduce the measurements, inspect runnable code or verify the cited model checkpoints.",
+    "desks": [
+      "inference_systems",
+      "efficiency",
+      "compute_hardware"
+    ],
+    "development_type": "paper",
+    "event_at": "2026-09-16T04:28:47Z",
+    "evidence_class": "A",
+    "id": "FCMO-5120E4284250",
+    "importance_effective_score": 5,
+    "importance_tier": "Notable",
+    "last_verified_at": "2026-10-08T14:16:18Z",
+    "mechanism": "Stores the full expert pool on NVMe and stages selected experts through host RAM into VRAM. The paper combines fixed-offset expert packs, asynchronous SSD reads and transfers, a three-tier cache, lossless block compression, and CPU/GPU placement selected using end-to-end token latency.",
+    "organizations": [],
+    "primary_desk": "inference_systems",
+    "regions": [
+      "global"
+    ],
+    "status": "active",
+    "strongest_baseline": "Section 5.4 compares against llama.cpp and KTransformers across the three stated model families, and Colibri only on GLM-5.2. The paper reports baseline-specific gains but its abstract/conclusion aggregate ranges do not reconcile with those section values.",
+    "summary": "The SSD-LLaMA preprint describes an SSD-to-RAM-to-VRAM expert-delivery system with a three-tier cache and CPU–GPU execution placement for MoE inference. On a stated consumer testbed with one RTX 5090, 16 GB host DRAM and a 4 TB NVMe SSD, the authors report running a 2.8T-parameter Kimi-K3 at 1.217 prefill tokens/s and 0.465 decode tokens/s. Section 5.4 reports baseline-specific throughput gains, while the abstract and conclusion give different aggregate ranges; the exact mapping is unresolved. These are paper-reported measurements, not an independent reproduction.",
+    "title": "SSD-LLaMA reports trillion-parameter MoE inference on a single RTX 5090",
+    "topics": [
+      "mixture-of-experts",
+      "ssd-inference",
+      "expert-offloading",
+      "consumer-hardware",
+      "inference-efficiency"
+    ],
+    "why_it_matters": "SSD-backed expert delivery may lower the hardware capacity needed to load large MoE models locally, which could change where inference is feasible. The reported Kimi-K3 decode rate is below one token per second, and the paper's speedup ranges conflict across sections, so it does not establish a general consumer-PC performance or cost frontier."
+  },
+  {
+    "confidence": "credible_unconfirmed",
+    "demonstrated_result": "The preprint reports +16.7 percentage points on spam at 1B (±4.7 across 39 runs), +21–42 points on spam across four 7–9B architectures, and +13.1 points on SST-2 sentiment in the stated setup. It also reports OLMo/Gemma injection increases with steering magnitude in tested settings, alongside a reduction from 97.5% to 61.1% for 7B Mistral. All results are author-reported; the research desk did not reproduce them.",
+    "desks": [
+      "evaluation_science",
+      "agents_memory"
+    ],
+    "development_type": "paper",
+    "event_at": "2026-09-17T17:16:31Z",
+    "evidence_class": "A",
+    "id": "FCMO-0D4993E1E29E",
+    "importance_effective_score": 5,
+    "importance_tier": "Notable",
+    "last_verified_at": "2026-10-08T14:14:02Z",
+    "mechanism": "The paper uses Logit Lens convergence to locate where concepts resolve through model layers, then causal head-level attribution to rank intervention points and search steering magnitude. It applies selected activation directions to spam and sentiment classifiers and evaluates both task accuracy and prompt-injection behavior.",
+    "organizations": [],
+    "primary_desk": "evaluation_science",
+    "regions": [
+      "global"
+    ],
+    "status": "active",
+    "strongest_baseline": "The paper compares Deep Noir with baseline classifiers, random search and RepE steering without head masking. The authors report RepE matching baseline on SST-2 in the stated folds while Deep Noir improves; the research desk did not verify the statistical analysis or rerun the comparisons.",
+    "summary": "The Deep Noir preprint combines Logit Lens timing with causal head attribution to search for activation-steering parameters. The authors report gains on spam and sentiment classification across selected 1B–9B research models, including +16.7 percentage points on spam at 1B and +13.1 points on SST-2 sentiment in the stated setup. They also report that steering magnitude and injection success move together in some model/task settings. The paper's own results are architecture- and task-dependent: steering reduces injection vulnerability in one 7B result and reverses direction for two of three models on a sentiment-adapted attack. These are author-reported findings, not an independent reproduction or evidence of an attack on deployed agents.",
+    "title": "Deep Noir reports automated activation steering and task-dependent injection risks",
+    "topics": [
+      "activation-steering",
+      "mechanistic-interpretability",
+      "prompt-injection",
+      "classifier-security",
+      "evaluation"
+    ],
+    "why_it_matters": "Mechanistic activation steering may automate interventions that otherwise require manual layer and magnitude selection. The same intervention can alter how a classifier responds to prompt injections, so accuracy gains and attack behavior need to be measured together. The preprint reports both effects, but its small-model classification regimes and mixed cross-task results do not establish generalization to deployed agent systems."
+  },
+  {
+    "confidence": "credible_unconfirmed",
+    "demonstrated_result": "The paper reports closed-form checks and trained-model measurements on ScanAndAdd. The 29x sampling-noise-floor total-variation figure and perfect sample-level metrics are author-reported for this synthetic task; the research desk did not rerun the experiment or independently audit the proofs.",
+    "desks": [
+      "inference_systems",
+      "evaluation_science"
+    ],
+    "development_type": "paper",
+    "event_at": "2026-09-17T15:36:53Z",
+    "evidence_class": "A",
+    "id": "FCMO-7754CC237CCD",
+    "importance_effective_score": 5,
+    "importance_tier": "Notable",
+    "last_verified_at": "2026-10-08T14:10:58Z",
+    "mechanism": "Define an independent-update sampler as selecting a write set from per-position distributions and drawing each written token independently. The paper's core argument is that such a product can match a target joint conditional only where the selected coordinates are conditionally independent; marginal distributions do not identify all dependencies in the joint distribution.",
+    "organizations": [],
+    "primary_desk": "inference_systems",
+    "regions": [
+      "global"
+    ],
+    "status": "active",
+    "strongest_baseline": "On ScanAndAdd, confidence-ranked remasking is contrasted with hand-specified write orders designed around task structure. The latter are an achievable task-specific frontier, not a general decoding baseline; the paper also cites PUNT's approximate conditional-independence testing as related work.",
+    "summary": "The authors analyze independent-update samplers that choose parallel token writes using per-position distributions and sample each selected position independently. They claim that matching the training joint distribution at a step requires the written positions to be conditionally independent given fixed tokens, and that per-position marginals alone cannot certify this condition. On their synthetic ScanAndAdd task, they report confidence-ranked writes with perfect sample-level validity metrics but a generated token distribution about 29 times the sampling-noise-floor total variation. The theorem is conditional on the sampler class; the measured distortion is from one synthetic task and is not evidence that deployed diffusion models exhibit the same magnitude of error.",
+    "title": "A conditional-independence limit for confidence-ranked parallel diffusion sampling",
+    "topics": [
+      "discrete-diffusion",
+      "parallel-decoding",
+      "conditional-independence",
+      "sampling-distribution",
+      "confidence-ranking"
+    ],
+    "why_it_matters": "Parallel decoding can reduce generation steps, but good token-level confidence or sample validity does not by itself show that the joint output distribution matches the training distribution. The paper gives a precise condition for one class of independent-update samplers and a synthetic example where correctness and distributional fidelity diverge. This can inform sampler design and evaluation while leaving practical scale and transfer open."
+  },
+  {
+    "confidence": "credible_unconfirmed",
+    "demonstrated_result": "The authors report overall R@10 0.856, multi-gold MRR 0.653 and accepted-set precision/recall 0.393/0.879 over 1,752 questions, plus approximately $0.02 per question for their hosted DeepSeek-V4-Flash configuration. These are paper-reported results and costs, not independently reproduced.",
+    "desks": [
+      "agents_memory",
+      "evaluation_science"
+    ],
+    "development_type": "paper",
+    "event_at": "2026-09-17T08:44:36Z",
+    "evidence_class": "A",
+    "id": "FCMO-43F4CDA9C083",
+    "importance_effective_score": 4,
+    "importance_tier": "Meaningful",
+    "last_verified_at": "2026-10-08T13:17:17Z",
+    "mechanism": "TRACE decomposes a query into corpus-targeted subquestions; fuses sparse BM25, dense, temporal and exact-string retrieval; alternates search and explicit accept/reject/hold review; carries compact memory and replans between subquestions; then merges and reranks documents by cross-subquestion confirmation and recorded rationales.",
+    "organizations": [
+      "École nationale des chartes – PSL",
+      "EPITA Research Laboratory",
+      "Geneva Graduate Institute",
+      "Bibliothèque nationale de France"
+    ],
+    "primary_desk": "agents_memory",
+    "regions": [
+      "global"
+    ],
+    "status": "active",
+    "strongest_baseline": "Dense retrieval is the strongest simple overall baseline in the reported table (R@10 0.734, MRR 0.535); graph and agentic systems use the paper’s specified adaptations and ranking protocol.",
+    "summary": "Bian et al. introduce TRACE, a training-free agentic retrieval system designed for OCR-degraded, heterogeneous historical archives. On HistoriQA-ThirdRepublic, 1,752 French-language questions over BnF-derived parliamentary debates and newspapers from 1887, the authors report overall R@10 0.856 and multi-gold MRR 0.653, above tested BM25, dense, graph-based and agentic RAG baselines. Its components include corpus-targeted query decomposition, fused sparse/dense/temporal retrieval, explicit accept/reject/hold verdicts with deferred re-evaluation, and cross-sub-question reranking. The paper reports roughly $0.02 per question under its hosted-inference configuration and an internal project prototype accessible to 24 researchers across six institutions. These are author-reported results on one corpus; code was not run, and adoption, expert workload, trust and transfer beyond the 1887 French setting remain unmeasured.",
+    "title": "TRACE reports accountable retrieval gains on one OCR-degraded French historical archive benchmark",
+    "topics": [
+      "agentic-retrieval",
+      "digital-archives",
+      "retrieval-augmented-generation",
+      "source-traceability",
+      "historical-corpora"
+    ],
+    "why_it_matters": "Historical and institutional retrieval needs relevant documents with inspectable paths back to evidence, especially when OCR errors and mixed sources defeat simple search. TRACE reports that orchestration and corpus-aware retrieval can improve document discovery on one French historical benchmark without training a new model. The benchmark does not show that TRACE reduces historian workload or transfers to other archives."
+  },
+  {
+    "confidence": "credible_unconfirmed",
+    "demonstrated_result": "The authors report that the symplectic model remained finite in all 192 episodes through 2000 steps, although its physical energy drift reached 7.1 at that horizon. Under unseen repulsive coupling, the factored model reported regime match 1 with nMSE 0.03–0.18 for tested G values, while a non-factored symplectic control had regime match 0. These are author-reported simulator measurements, not independently reproduced results.",
+    "desks": [
+      "multimodality_world_models",
+      "evaluation_science"
+    ],
+    "development_type": "paper",
+    "event_at": "2026-09-17T04:16:51Z",
+    "evidence_class": "A",
+    "id": "FCMO-167F98F07DC3",
+    "importance_effective_score": 5,
+    "importance_tier": "Notable",
+    "last_verified_at": "2026-10-08T13:12:03Z",
+    "mechanism": "A symplectic update evolves a learned Hamiltonian and constrains long-run geometry; a separately factorized potential makes force linear in the intervened coupling, so flipping its sign reverses the interaction by construction. Neither mechanism supplies the other behavior.",
+    "organizations": [
+      "Stony Brook University",
+      "Georgia Institute of Technology",
+      "Westlake University"
+    ],
+    "primary_desk": "multimodality_world_models",
+    "regions": [
+      "global"
+    ],
+    "status": "active",
+    "strongest_baseline": "Matched unstructured predictor, physical-energy-penalty predictor, tuned neural ODE, and non-factored symplectic model; the paper also tests stronger relational architectures and domain randomization.",
+    "summary": "Wang et al. report a double dissociation in learned physical simulators: evolving a learned energy with a symplectic update keeps rollouts bounded for up to 100× the training horizon in tested conservative systems, while an explicit linear factorization of a physical coupling enables transfer to a never-trained sign of that coupling. Each structure alone fails the other target. Matched controls, including tuned neural ODEs, energy penalties, stronger architectures and domain randomization, probe alternative explanations. The paper also maps boundaries: conservation is the wrong prior under genuine dissipation, and an incorrect assumed coupling form can fit the training regime yet fail under intervention. All evidence is from synthetic simulators and rendered observations; independent reproduction and real-video or physical deployment remain open.",
+    "title": "A preprint separates long-horizon stability from changed-law transfer in physical world models",
+    "topics": [
+      "physical-world-models",
+      "structured-dynamics",
+      "symplectic-integration",
+      "counterfactual-generalization",
+      "simulation"
+    ],
+    "why_it_matters": "Physical world models face different failure modes: prediction errors can destabilize long rollouts, while interventions can expose a model that simply continues the training law. The paper argues those targets require distinct structural commitments and shows how each can fail outside its assumptions. This sharpens evaluation and modeling choices, while synthetic evidence and the risk of prior misspecification limit deployment claims."
+  },
+  {
+    "confidence": "credible_unconfirmed",
+    "demonstrated_result": "The primary paper reports a 6.99–8.98 point IoU advantage over rule lookup across three backbones on its held-out benchmark, alongside universal failure to retire one removed rule. These are reported observations in the paper-defined ServiceNow regime, not independently demonstrated by the research desk.",
+    "desks": [
+      "multimodality_world_models",
+      "evaluation_science"
+    ],
+    "development_type": "dataset_or_benchmark",
+    "event_at": "2026-09-17T01:23:43Z",
+    "evidence_class": "A",
+    "id": "FCMO-C3FD6413E9C3",
+    "importance_effective_score": 4,
+    "importance_tier": "Meaningful",
+    "last_verified_at": "2026-10-08T13:09:40Z",
+    "mechanism": "CDA discovers rules by editing records and observing resulting effects, stores each rule as a trigger/effect pair, and carries that model across worlds. Revision and addition are driven by unpredicted observed effects; the paper identifies a missing comparison between expected and absent effects as the retirement failure.",
+    "organizations": [
+      "ServiceNow Research",
+      "Mila - Quebec AI Institute",
+      "ÉTS Montréal",
+      "University of British Columbia"
+    ],
+    "primary_desk": "multimodality_world_models",
+    "regions": [
+      "global"
+    ],
+    "status": "active",
+    "strongest_baseline": "The Discovery Agent reads relevant rules from the live system for every question and retains no model between questions.",
+    "summary": "Mishra et al. introduce EnterpriseWorldShift, a ServiceNow-based benchmark with nine tables, 25 baseline hidden business rules and four successive versions that modify, add or remove one rule at a time. In author-reported tests across three model backbones, a Continual Discovery Agent (CDA) that carries and revises an explicit rule model beat a rule-lookup baseline by 6.99–8.98 intersection-over-union points across 600 held-out actions per backbone. Yet none of the three backbones retired a removed rule, despite observing its effects disappear and reading a rule list without it. The result is bounded to one constructed environment with readable rules; it is not an independent reproduction or evidence of production enterprise performance.",
+    "title": "EnterpriseWorldShift tests whether agents can keep business-rule world models current as systems change",
+    "topics": [
+      "enterprise-agents",
+      "world-models",
+      "business-rules",
+      "continual-adaptation",
+      "benchmarking"
+    ],
+    "why_it_matters": "Enterprise agents depend on organization-specific rules that can change. This benchmark makes silent rule retirement a distinct failure mode: memory helps with some changes but can preserve false expectations when effects stop occurring. It motivates explicit tests for absent expected effects and rule retirement, while the single-platform, readable-rule setup limits transfer."
+  },
+  {
+    "confidence": "credible_unconfirmed",
+    "demonstrated_result": "The paper evaluates Gemma 4 31B IT and Qwen3-32B across eight code and reasoning benchmarks, using identical frozen initial pools for Single, fixed-pool LAV and VRR. It reports that VRR improves over LAV in 9 of 16 model-benchmark settings. Table 1 includes negative results (for example -0.61 and -0.27 percentage points), null results (0.00) and positive cells (up to +4.04 points in the shown table). LiveCodeBench analysis reports some recovered correct answers even when every initial candidate was incorrect. These are author-reported results.",
+    "desks": [
+      "reasoning_posttraining",
+      "evaluation_science",
+      "agents_memory"
+    ],
+    "development_type": "paper",
+    "event_at": "2026-09-17T00:00:00Z",
+    "evidence_class": "A",
+    "id": "FCMO-2BAAC79C11E5",
+    "importance_effective_score": 5,
+    "importance_tier": "Notable",
+    "last_verified_at": "2026-10-08T12:18:06Z",
+    "mechanism": "VRR builds explicit evaluation criteria, verifies and ranks a frozen initial candidate set, and triggers repair when scores are low or judgments remain unresolved. It retains the initial winner, generates a local repair, a runner-up repair and a new-approach solution, screens malformed or duplicate candidates, then re-verifies and reselects under the original criteria.",
+    "organizations": [
+      "Fujitsu Limited",
+      "The University of Tokyo",
+      "RIKEN Center for AIP"
+    ],
+    "primary_desk": "reasoning_posttraining",
+    "regions": [
+      "global"
+    ],
+    "status": "active",
+    "strongest_baseline": "Fixed-pool LAV selection over the same frozen initial candidates, plus a Single first-candidate baseline. The paper does not establish a matched total-token/latency comparison with best-of-N independent sampling.",
+    "summary": "Tomihari and Ichikawa introduce Verify–Repair–Reselect (VRR), which feeds verifier diagnostics back into generation: after ranking an initial pool, it retains the winner, conditionally creates repairs of the winner and runner-up plus a new-approach candidate, filters invalid/duplicate outputs and reselects under the original criteria. Across two models and eight code/reasoning benchmarks, the authors report VRR beats fixed-pool LAV selection in 9 of 16 settings. Table 1 includes improvements as well as null and negative cells. On LiveCodeBench, the authors report recovery on some problems where all initial candidates were incorrect. These are paper-reported results using the same model for generation, verification and repair; matched total-inference-budget comparison with best-of-N and independent reproduction remain open.",
+    "title": "VRR uses verification feedback to expand candidate search, with mixed reported benchmark results",
+    "topics": [
+      "test-time inference",
+      "verifier feedback",
+      "candidate repair",
+      "code generation",
+      "reasoning benchmarks",
+      "search"
+    ],
+    "why_it_matters": "Verifier feedback can describe why candidates fail, not just which candidate ranks highest. Reusing that diagnostic information to generate alternatives could improve test-time search when every initial candidate is wrong. The paper’s mixed results, same-model verifier/generator and missing compute-normalized best-of-N comparison mean the gain should be treated as a bounded method result rather than general evidence that repair beats more sampling."
+  },
+  {
+    "confidence": "credible_unconfirmed",
+    "demonstrated_result": "The paper reports 86 successful executions among 107 accepted-paper research specifications (80.4%). Its generated manuscripts received higher average scores than accepted ICLR 2026 and NeurIPS 2025 comparison papers under ScholarPeer and Stanford Agentic Reviewer. These are author-reported results assessed by automated reviewers, not human venue acceptance.",
+    "desks": [
+      "agents_memory",
+      "evaluation_science",
+      "reasoning_posttraining"
+    ],
+    "development_type": "paper",
+    "event_at": "2026-09-17T03:37:42Z",
+    "evidence_class": "A",
+    "id": "FCMO-52D7A4CBC3EA",
+    "importance_effective_score": 6,
+    "importance_tier": "Major",
+    "last_verified_at": "2026-10-08T12:16:32Z",
+    "mechanism": "ScientistTwo coordinates agents for literature/problem analysis, seed-idea generation, small-subset and full-benchmark experiments, iterative refinement, ablations, manuscript drafting and simulated review. Code changes are executed and candidate methods are compared with accepted baselines before selection.",
+    "organizations": [
+      "University of Michigan"
+    ],
+    "primary_desk": "agents_memory",
+    "regions": [
+      "global"
+    ],
+    "status": "active",
+    "strongest_baseline": "For task completion, accepted papers’ problem specifications and codebases serve as benchmark tasks. The paper also reports AutoSOTA comparisons, but explicitly says the systems use different hardware and metrics and the delta columns are not a head-to-head common-metric comparison.",
+    "summary": "Nam et al. describe ScientistTwo, a multi-agent workflow that takes research questions and accepted-paper baselines through idea generation, experiments, ablations and manuscript drafting. On 107 benchmark specifications derived from accepted ICLR 2026, NeurIPS 2025 and ICML 2026 papers, the authors report 86 successful executions (80.4%). They report that generated manuscripts scored above accepted-paper averages on ScholarPeer and Stanford Agentic Reviewer for ICLR 2026 and NeurIPS 2025. These ratings come from two automated reviewers, not an independent human expert panel; they do not establish novelty, expert-level discovery or real conference acceptance. The paper also states that its AutoSOTA comparison is not head-to-head because hardware and metrics differ.",
+    "title": "ScientistTwo reports an end-to-end automated research workflow, with quality claims resting on AI review",
+    "topics": [
+      "AI for science",
+      "autonomous research agents",
+      "multi-agent systems",
+      "scientific evaluation",
+      "automated peer review"
+    ],
+    "why_it_matters": "If independently validated, an autonomous workflow that can formulate and test modifications to accepted research baselines could change the cost and throughput of computational research. The current evidence establishes that the authors report a substantial benchmark run and automated-review scores; evaluator dependence, novelty adjudication, baseline fidelity and independent reproduction remain decisive gaps."
+  },
+  {
+    "confidence": "credible_unconfirmed",
+    "demonstrated_result": "The v2 paper describes 106 episodes up to 48.23 hours/120 in-game days and 1,439 questions, organized into 381 tasks per hint level. It reports that most vision-plus-language models remain near chance on average accuracy; under full hints, Gemma-4-31B-it reaches 36.2% all-correct and 74.6% question accuracy with noiseless text-only evidence (L-N). Authors report frequent reliance on simple frequency heuristics and difficulty adapting when behavioral patterns change. These results are author-reported benchmark measurements.",
+    "desks": [
+      "agents_memory",
+      "evaluation_science",
+      "multimodality_world_models"
+    ],
+    "development_type": "dataset_or_benchmark",
+    "event_at": "2026-09-30T16:58:33Z",
+    "evidence_class": "A",
+    "id": "FCMO-BD55EEA36CED",
+    "importance_effective_score": 5,
+    "importance_tier": "Notable",
+    "last_verified_at": "2026-10-08T12:14:09Z",
+    "mechanism": "SimLife simulates multi-character household activity in The Sims 4 with visual observations, game-action logs and generated dialogue. SimLife-BP builds long video chains from days whose actions satisfy explicit temporal or event-based if-then rules, then asks four binary question types—direct prediction, counterfactual, noisy counterfactual and inverse reasoning—at three rule-hint levels. The visual baseline first summarizes video windows into diaries and then answers from concatenated text; text-only baselines receive cleaner structured inputs.",
+    "organizations": [
+      "University of Michigan",
+      "Osaka University",
+      "Amazon",
+      "University of Pennsylvania"
+    ],
+    "primary_desk": "agents_memory",
+    "regions": [
+      "global"
+    ],
+    "status": "active",
+    "strongest_baseline": "Within the paper, modality and evidence-pipeline comparisons include vision-plus-language diary summaries, language-only responses over noisier action-log text (L), and language-only responses over noiseless structured text (L-N), with full, partial and no-hint conditions. The comparison reveals input/evidence effects but does not isolate a general reasoning mechanism independent of those pipelines.",
+    "summary": "Peng et al. present SimLife-BP, a benchmark for inferring symbolic behavioral patterns from long synthetic household timelines. The current v2 paper describes 106 episodes, up to 48.23 hours and 120 in-game days, with 1,439 question-answer pairs; tasks test direct, counterfactual, noisy-counterfactual and inverse reasoning under three hint levels. Across reported model evaluations, performance depends strongly on the evidence pipeline: most vision-plus-language models remain near chance on average question accuracy, while Gemma-4-31B-it reaches 36.2% all-correct and 74.6% question accuracy with full hints over noiseless text-only evidence. The authors also report shortcutting by frequency heuristics and difficulty adapting when patterns change. These are paper-reported results in scripted Sims 4 simulations with deterministic symbolic rules and generated dialogue, not evidence of real human understanding or deployed household-agent performance.",
+    "title": "SimLife-BP tests long-horizon behavioral-rule inference in synthetic household simulations",
+    "topics": [
+      "long-context agents",
+      "behavioral pattern inference",
+      "multimodal memory",
+      "synthetic benchmark",
+      "human-agent interaction"
+    ],
+    "why_it_matters": "The benchmark separates long-context storage from the harder task of inferring and revising a behavioral rule when evidence is distributed across time and modalities. Its large reported gap between raw video-plus-language and structured noiseless text shows that evaluation can be dominated by evidence extraction and organization before rule reasoning is measured. The synthetic deterministic rules and staged diary-summary pipeline make the result useful for evaluation design but limit claims about people or real-world assistants."
+  },
+  {
+    "confidence": "credible_unconfirmed",
+    "demonstrated_result": "The paper reports 14 base task families (11 single-arm, three dual-arm), seven held-out geometry/layout variants and one five-object long-horizon composition track. Twelve primary model conditions were evaluated in three runs over the same 20 physically verified seeds per base task. The strongest reported condition averaged 53.93±3.17% terminal success; in its annotated run it scored 100.0% on target localization and 78.9% on spatial relations. No model completed a strict long-horizon episode. These are author-reported simulator results.",
+    "desks": [
+      "multimodality_world_models",
+      "evaluation_science",
+      "agents_memory"
+    ],
+    "development_type": "dataset_or_benchmark",
+    "event_at": "2026-09-17T01:24:51Z",
+    "evidence_class": "A",
+    "id": "FCMO-4E1FCFCCA9BB",
+    "importance_effective_score": 5,
+    "importance_tier": "Notable",
+    "last_verified_at": "2026-10-08T12:11:09Z",
+    "mechanism": "VA-Bench requires the model to learn task procedure from RGB-only demonstrations, choose camera viewpoints, estimate metric robot–object geometry, issue Cartesian targets through a fixed model-agnostic controller, then revise from execution outcomes. It withholds privileged object poses, oracle trajectories and learned action heads.",
+    "organizations": [
+      "Dalian University of Technology"
+    ],
+    "primary_desk": "multimodality_world_models",
+    "regions": [
+      "global"
+    ],
+    "status": "active",
+    "strongest_baseline": "For active evidence acquisition, the paper compares camera control with passive observation that supplies five predefined views at each observation while preserving the same seeds, demonstrations, robot execution and terminal-success accounting. It also reports held-out geometry/layout transfer against the base-task regime.",
+    "summary": "Zhang et al. introduce VA-Bench, a simulator benchmark requiring general-purpose multimodal models to use RGB-only demonstrations, actively choose camera views, issue metric Cartesian robot commands and revise actions from execution feedback. Across 14 base task families and 12 primary model conditions, the authors report three runs over the same 20 physically verified seeds per task. The strongest tested condition has a three-run macro-average terminal task success of 53.93±3.17%, despite 100.0% target localization and 78.9% spatial-relation scores in its annotated run. In one matched active-camera versus passive five-view comparison, success rises from 27.86% to 57.50%; this comparison covers four model conditions and does not identify whether view relevance, cross-view integration or longer visual context explains the gain. No tested model completes the strict five-object long-horizon episode. These are author-reported benchmark results, not an independent reproduction.",
+    "title": "VA-Bench measures the gap between spatial diagnosis and successful robot action",
+    "topics": [
+      "embodied AI",
+      "robotics",
+      "active perception",
+      "spatial reasoning",
+      "multimodal agents",
+      "benchmark"
+    ],
+    "why_it_matters": "The benchmark separates describing or locating objects from acquiring useful visual evidence, grounding metric actions and completing manipulation. Its reported gap between strong intermediate diagnostics and terminal success, plus the bounded active/passive comparison, gives embodied-agent evaluation a way to test the full observe–reason–act–revise loop rather than perception alone. The simulator, finite task families and untested real-robot transfer limit generalization."
+  },
+  {
+    "confidence": "credible_unconfirmed",
+    "demonstrated_result": "The paper reports that its repository review coded 157 eligible projects and found inconsistent control across overlapping action paths in 152 (96.8%). It also reports frequent repository-visible concerns around outbound network/API effects, credential exposure and filesystem boundaries. The counts describe the study’s coding, not runtime failures or measured exploit prevalence.",
+    "desks": [
+      "evaluation_science",
+      "agents_memory"
+    ],
+    "development_type": "paper",
+    "event_at": "2026-09-15T18:10:57Z",
+    "evidence_class": "A",
+    "id": "FCMO-F22DAAF83F20",
+    "importance_effective_score": 5,
+    "importance_tier": "Notable",
+    "last_verified_at": "2026-10-08T12:09:00Z",
+    "mechanism": "The authors apply a four-layer coding rubric to repository-visible execution surfaces, safeguards, testing artifacts and risk scenarios, then aggregate the coded records to describe cross-project QA practices and undercovered problems.",
+    "organizations": [
+      "York University",
+      "Polytechnique Montréal"
+    ],
+    "primary_desk": "evaluation_science",
+    "regions": [
+      "global"
+    ],
+    "status": "active",
+    "strongest_baseline": "The paper is a descriptive cross-repository audit rather than a benchmark comparison. Relevant comparison would be an independent, preregistered recoding of a stratified sample using the published rubric and current repository commits.",
+    "summary": "Dai et al. report a repository-level audit of 157 popular open-source LLM-agent projects, selected from public GitHub projects with at least 100 stars as of May 2026. They coded documentation, source, configuration, tests and structured evidence across execution surfaces, safeguards, testing artifacts and risk scenarios. Their coding identifies recurring gaps, including inconsistent controls across overlapping action paths (152/157 projects, 96.8%) and sparse boundary, adversarial and multi-step tool-use testing. These are author-reported descriptions of inspectable repository artifacts; the study does not measure deployed failure rates, establish that a listed risk is an exploitable vulnerability, or show that safeguards are effective at runtime.",
+    "title": "A 157-project audit reports fragmented QA coverage across open-source AI agents",
+    "topics": [
+      "AI agents",
+      "software quality assurance",
+      "agent security",
+      "tool use",
+      "repository audit",
+      "evaluation"
+    ],
+    "why_it_matters": "If the audit’s coding generalizes, checking an agent’s individual tools is insufficient: assurance also needs to trace whether authorization, containment and tests cover equivalent paths through tools, plugins, browsers, filesystems and external APIs. The study gives evaluators a concrete repository-level framework, while its popularity-filtered sample and descriptive method limit prevalence claims."
+  },
+  {
+    "confidence": "credible_unconfirmed",
+    "demonstrated_result": "Authors report 20.4 tokens/s decode, 2.9 GiB peak active memory and 113/140 tokens/s cold/warm prefill for the 35B tier on the Mac mini M4 Pro. For K=4 on the 16 GB MacBook M2, paired three-round medians are 6.4 tokens/s prerouter versus 3.5 on-demand. They report 79.2 average versus 83.2 for fp16 across five benchmarks, with AIME 86.6 vs 92.7. Author-reported; no independent verification.",
+    "desks": [
+      "inference_systems",
+      "efficiency",
+      "architectures_scaling"
+    ],
+    "development_type": "paper",
+    "event_at": "2026-09-17T00:00:00Z",
+    "evidence_class": "A",
+    "id": "FCMO-1B73F04C0D77",
+    "importance_effective_score": 6,
+    "importance_tier": "Major",
+    "last_verified_at": "2026-10-08T11:24:51Z",
+    "mechanism": "Move static expert weights to SSD, stage predicted next-token expert sets during current-token compute, and train the routing replacement and recovery LoRA together.",
+    "organizations": [
+      "AutoArk"
+    ],
+    "primary_desk": "inference_systems",
+    "regions": [
+      "global"
+    ],
+    "status": "active",
+    "strongest_baseline": "Same-session on-demand streaming at matched cache budget for prerouter speed comparisons; original fp16 base under identical OpenCompass settings for quality. The fully resident baseline is also reported on the same Mac mini but is memory constrained.",
+    "summary": "AutoArk’s Edge0 paper reports serving its int4 Qwen3.6-35B-A3B MoE on a Mac mini M4 Pro with 24 GB unified memory at 20.4 tokens/s decode and 2.9 GiB peak active memory, using SSD-streamed experts and a trained prerouter that predicts one token ahead. In a same-session MacBook M2 16 GB comparison where the 18.4 GiB checkpoint does not fit, the paper reports 6.4 versus 3.5 tokens/s at routing width K=4 against on-demand streaming. These are author-reported measurements from one implementation and hardware family. The paper reports a 3.9-point mean gap to the fp16 base across five benchmarks, with a 6.1-point AIME gap; concurrency, other storage tiers, independent reproduction and broader deployment are unestablished.",
+    "title": "Edge0 reports SSD-streamed MoE inference with trained one-token-ahead routing",
+    "topics": [
+      "mixture-of-experts",
+      "inference",
+      "memory",
+      "ssd-offload",
+      "routing",
+      "quantization"
+    ],
+    "why_it_matters": "The work combines static-weight SSD placement with predicted expert routing to target the weight-memory limit of local sparse-MoE inference. If reproduced, its measured memory and decode profile could expand the models that fit on consumer hardware. Its value depends on storage latency, cache residency, model quality, and single-request workloads; the paper does not establish general cross-platform performance."
+  },
+  {
+    "confidence": "credible_unconfirmed",
+    "demonstrated_result": "The authors report 1.18–1.45× throughput for BDLM supervised fine-tuning and 1.27–1.33× for autoregressive-to-BDLM conversion at 256K on 16 H200 GPUs, with peak HBM generally matched or lower; full-model DiffusionGemma reaches 1.61× at 512K. On eight H100 GPUs, DFlash2 drafter speedups are 2.48× at 512K and 7.59× at 1M. At 1M for Qwen3.8-27B, the CSBP configuration reports 67.1 GiB peak HBM versus 53.7 GiB for CP8 while increasing throughput 7.59×; resource tradeoffs therefore vary by topology/workload. In matched 12-hour DiffusionGemma SFT runs, the authors report one-percentage-point higher final pass rates on both SWE-bench Verified and Terminal-Bench Lite. These findings are author-reported.",
+    "desks": [
+      "inference_systems",
+      "architectures_scaling",
+      "efficiency",
+      "training_data"
+    ],
+    "development_type": "paper",
+    "event_at": "2026-09-16T17:35:09Z",
+    "evidence_class": "A",
+    "id": "FCMO-D50A7F20FD35",
+    "importance_effective_score": 6,
+    "importance_tier": "Major",
+    "last_verified_at": "2026-10-08T11:14:00Z",
+    "mechanism": "Block parallelism assigns each complete corrupted-target-block forward/loss/backward computation to one rank so corrupted K/V and gradients stay local. Context-sharded block parallelism combines this with context parallelism over the shared clean sequence, avoiding replicated clean prefixes while communicating only reusable clean K/V and their gradients. The paper’s appendix derives equivalence to the reference loss/gradient up to floating-point reduction order.",
+    "organizations": [
+      "Stanford University",
+      "Scaling Intelligence Lab"
+    ],
+    "primary_desk": "inference_systems",
+    "regions": [
+      "global"
+    ],
+    "status": "active",
+    "strongest_baseline": "Profile-optimized non-BP distributed training using the highest-throughput feasible tested combination of data, tensor, expert, context and sequence parallelism plus global batch size. For matched-budget downstream tests, baseline and CSBP use the same model, training corpus, optimizer settings, checkpoint schedule and evaluation configuration; only the distributed training method changes.",
+    "summary": "Suresh et al. introduce block parallelism (BP) and context-sharded block parallelism (CSBP), which assign each block-diffusion target computation to a rank while sharding reusable clean context. They report 1.18–1.45× throughput for supervised fine-tuning at 256K context on 16 H200 GPUs, and 1.27–1.33× for autoregressive-to-block-diffusion conversion, generally matching or reducing peak HBM. For DFlash2 drafter training on eight H100 GPUs, reported speedups range from 2.48× at 512K to 7.59× at 1M; the 1M Qwen3.8-27B comparison uses more peak HBM than its CP8 baseline. In matched 12-hour DiffusionGemma 26B-A4B runs, CSBP ends one percentage point ahead on SWE-bench Verified and Terminal-Bench Lite. These are author-reported results; code is public, but no independent execution was performed.",
+    "title": "Context-sharded block parallelism reports faster long-context training for diffusion language models",
+    "topics": [
+      "diffusion-language-models",
+      "distributed-training",
+      "long-context",
+      "parallelism",
+      "block-diffusion",
+      "speculative-decoding"
+    ],
+    "why_it_matters": "Long-context diffusion-model training can incur communication for block-local activations that do not need to cross devices. CSBP changes the parallelization unit to match the separable training objective, potentially improving throughput and enabling more training progress within a fixed budget. Gains depend on workload, context length and topology, and training acceleration does not itself establish better inference or general agent capability."
+  },
+  {
+    "confidence": "credible_unconfirmed",
+    "demonstrated_result": "The authors report that across 28 held-out Cosmos Policy and UVA configurations, the rule issued 21 decisions (75% coverage), all matching observed acceptable/degraded labels; seven were deferred, comprising three acceptable, one degraded and three unresolved outcomes. In a separate Franka Research 3 study, deviation groups were fixed before 450 trials across two independently fine-tuned Cosmos policies; all tested high-deviation configurations had significant degradation, while low-deviation comparisons did not reach significance and do not establish equivalence. On the RTX 5080 setup, W4A4 reduced median action-query latency from 2030 to 1485 ms (1.37×) and peak allocated memory from 5.19 to 2.93 GB (about 44%). These are paper-reported results.",
+    "desks": [
+      "inference_systems",
+      "efficiency",
+      "multimodality_world_models",
+      "evaluation_science"
+    ],
+    "development_type": "dataset_or_benchmark",
+    "event_at": "2026-09-16T21:25:37Z",
+    "evidence_class": "A",
+    "id": "FCMO-E8C5547DE91A",
+    "importance_effective_score": 5,
+    "importance_tier": "Notable",
+    "last_verified_at": "2026-10-08T11:10:19Z",
+    "mechanism": "PreDE replays a fixed log of observations through a reference and quantized policy and measures action deviation. It calibrates two thresholds using quantized configurations with known closed-loop labels for a fixed policy, task distribution, control protocol and outcome rule. New configurations below the acceptance threshold are accepted, above the rejection threshold are rejected, and those between are deferred to closed-loop testing. The interpretation depends on a within-setting single-crossing label-ordering hypothesis.",
+    "organizations": [
+      "Colorado School of Mines",
+      "University of Florida",
+      "University of Southern California"
+    ],
+    "primary_desk": "inference_systems",
+    "regions": [
+      "global"
+    ],
+    "status": "active",
+    "strongest_baseline": "For prediction, the paper compares PreDE with post hoc fixed deviation and bit-width rules at 100% coverage; those rules falsely rejected six and five acceptable held-out candidates, respectively. Quantization outcomes are compared with matched bf16 references and task-specific closed-loop success.",
+    "summary": "Xu et al. introduce PreDE, which calibrates policy-specific thresholds from a small set of quantized configurations with known closed-loop outcomes, then uses action deviation on a fixed observation log to accept, reject or defer new candidates. In the paper, 21 of 28 held-out configurations across Cosmos Policy and UVA received decisions, all matching their observed labels; seven were deferred, including both acceptable and degraded outcomes. A separate 450-trial Franka Research 3 study reports significant degradation for configurations assigned to high-deviation groups before trials, while low-deviation results were not statistically significant. W4A4 reduced median action-query latency 1.37× and peak memory about 44% on the tested setup. These are author-reported results, conditional on each policy and evaluation setting.",
+    "title": "PreDE reports a policy-specific gate for screening robot-policy quantization before closed-loop tests",
+    "topics": [
+      "robotics",
+      "world-action-models",
+      "quantization",
+      "closed-loop-evaluation",
+      "selective-prediction"
+    ],
+    "why_it_matters": "Robot-policy quantization can save memory and latency, but nominal bit width does not predict task loss consistently. A calibrated offline screen could help prioritize expensive closed-loop evaluations, provided its abstentions, policy-specific scope and finite-trial uncertainty remain visible."
+  },
+  {
+    "confidence": "credible_unconfirmed",
+    "demonstrated_result": "The authors report that redundant supporting paths raise echo-walk rates for all four evaluated frozen agents by 5.80–38.84 percentage points across 200 synthetic claims and five presentation seeds. In a Qwen3-4B agentic setup, PAPT raises synthetic accuracy by 41.47 points versus provenance metadata alone while lowering source recall by 8.32 points; on 188 SciFact claims it lowers accuracy by 3.55 points while lowering echo rate by 36.00 points. These are paper-reported results, not independently reproduced findings.",
+    "desks": [
+      "evaluation_science",
+      "agents_memory",
+      "reasoning_posttraining"
+    ],
+    "development_type": "dataset_or_benchmark",
+    "event_at": "2026-09-15T18:07:09Z",
+    "evidence_class": "A",
+    "id": "FCMO-692EA1D7410D",
+    "importance_effective_score": 5,
+    "importance_tier": "Notable",
+    "last_verified_at": "2026-10-08T11:07:51Z",
+    "mechanism": "GraphEcho constructs graph paths that can refer either to the same evidence origin or to distinct origins, varying path multiplicity and source multiplicity separately. It measures model judgments and active exploration. Its provenance-aware post-training (PAPT) rewards verdict quality, source counting and distinct evidence acquisition while penalizing repeated acquisition and walk cost.",
+    "organizations": [
+      "Tokyo University of Science",
+      "Hong Kong Baptist University",
+      "University of Michigan",
+      "The University of Tokyo"
+    ],
+    "primary_desk": "evaluation_science",
+    "regions": [
+      "global"
+    ],
+    "status": "active",
+    "strongest_baseline": "The paper compares four frozen agents with controlled redundant-path conditions, inference-time provenance and instruction controls, graph preprocessing that collapses equivalent paths, and PAPT. Its reported frozen-agent tests include Qwen3-1.7B, Qwen3-4B, Qwen3-8B and GPT-5-mini; the principal trained policy is Qwen3-4B.",
+    "summary": "Wang et al. introduce GraphEcho, a controlled benchmark separating graph-path count from evidence-source count. In the paper’s reported tests, adding redundant supporting paths increased repeated evidence walks for all four frozen agents; a provenance-aware Qwen3-4B policy reduced revisits and raised accuracy on synthetic claims, but reached fewer distinct sources and scored lower on the SciFact transfer set. Static judgment effects varied by model.",
+    "title": "GraphEcho finds that repeated graph paths raise evidence-revisit rates, while provenance-aware training trades coverage for fewer repeats",
+    "topics": [
+      "llm-agents",
+      "graph-retrieval",
+      "evidence-provenance",
+      "evaluation-methodology",
+      "retrieval-augmented-generation"
+    ],
+    "why_it_matters": "Graph retrieval agents can encounter one observation through several representations. The paper shows why evaluation should track evidence origins and unobserved sources alongside answer accuracy and repeated retrieval: a policy can become more efficient by stopping earlier while missing evidence."
+  },
+  {
+    "confidence": "credible_unconfirmed",
+    "demonstrated_result": "The preprint and linked author repository demonstrate the benchmark design, reported analyses, and availability of saved experiment outputs/code. They do not independently establish the behavioral results or latent motivations.",
+    "desks": [
+      "evaluation_science",
+      "reasoning_posttraining"
+    ],
+    "development_type": "paper",
+    "event_at": "2026-09-15T21:45:43Z",
+    "evidence_class": "A",
+    "id": "FCMO-17CD538E592C",
+    "importance_effective_score": 5,
+    "importance_tier": "Notable",
+    "last_verified_at": "2026-10-08T10:18:02Z",
+    "mechanism": "SAFE presents a two-stage prompted decision. The model may inspect optional evidence or skip and deploy; inspected cases then receive a finding and choose to halt, proceed or partially mitigate. A factorial scenario matrix varies probability, severity, retrieval cost and evidence channel; targeted cost–obligation and counterfactual edits test which variables change observed choices.",
+    "organizations": [
+      "University of Michigan",
+      "OpenAI",
+      "Anthropic"
+    ],
+    "primary_desk": "evaluation_science",
+    "regions": [
+      "United States"
+    ],
+    "status": "developing",
+    "strongest_baseline": "No competing benchmark baseline is central to the paper; its main comparison is within-model behavior across controlled scenario conditions. The article compares channel formats and counterfactual variants rather than external evaluation methods.",
+    "summary": "Omer Tafveez introduces SAFE, a two-stage benchmark in which models can inspect optional safety evidence before making deployment decisions and then respond to findings. The paper evaluates GPT-5.5, o3, Claude Opus 4.8 and Claude Sonnet 4.6 on 900 controlled environments with five rollouts per scenario. The authors report inspection responds more to severity and retrieval cost than to stated risk probability: raising probability from 10% to 70% changes inspection by at most 21 percentage points. A linked repository provides scenarios, saved outputs and analysis notebooks. This is a prompted, stylized benchmark, not a measure of latent motivation or autonomous open-ended evidence search; no independent rerun was found.",
+    "title": "SAFE paper measures whether four frontier models seek safety evidence before deployment decisions",
+    "topics": [
+      "ai-safety",
+      "safety-evaluation",
+      "information-acquisition",
+      "agent-evaluation",
+      "behavioral-economics"
+    ],
+    "why_it_matters": "Safety evaluations often provide risk information up front. SAFE tests an earlier decision: whether a model chooses to gather optional evidence before acting, separately from what it does after seeing a finding. If validated in broader settings, this distinction could improve evaluation design. Current results are bounded to a controlled single-turn task and four models."
+  },
+  {
+    "confidence": "credible_unconfirmed",
+    "demonstrated_result": "The inspected page directly establishes that a government-hosted Hebei Daily article published these figures on 2025-08-10. It does not independently establish the transaction or service use.",
+    "desks": [
+      "policy_geopolitics",
+      "compute_hardware"
+    ],
+    "development_type": "policy_or_regulation",
+    "event_at": "2025-08-10T00:00:00Z",
+    "evidence_class": "B",
+    "id": "FCMO-BEABCA756C40",
+    "importance_effective_score": 3,
+    "importance_tier": "Useful",
+    "last_verified_at": "2026-10-08T10:14:19Z",
+    "mechanism": "Langfang’s reported policy offers compute vouchers to AI companies and research institutions. The article describes vouchers as a subsidy for compute-center service; the claimed transaction is one recipient’s reported redemption, not evidence of causal economic effects.",
+    "organizations": [
+      "Langfang ShumaoTong Technology Services",
+      "Langfang Municipal Government",
+      "Hebei Daily"
+    ],
+    "primary_desk": "policy_geopolitics",
+    "regions": [
+      "China"
+    ],
+    "status": "developing",
+    "strongest_baseline": "No matched comparison or counterfactual is provided; this is a single reported use case rather than an impact evaluation.",
+    "summary": "A Hebei Daily article hosted by the Langfang Municipal Government reports that Langfang ShumaoTong Technology Services redeemed RMB 500,000 in compute vouchers, described as equivalent to 42 PFLOPS of annual compute service. The same article says Langfang allocated RMB 10 million annually to vouchers and that the program had attracted nine firms. This is an attributed local press report, not a transaction ledger: no redemption record, invoice or usage log was found, and the compute unit/period basis is not independently defined.",
+    "title": "Hebei Daily reports one Langfang firm redeemed RMB 500,000 in compute vouchers for 42 PFLOPS of annual service",
+    "topics": [
+      "compute-economics",
+      "public-subsidy",
+      "compute-voucher",
+      "China-policy"
+    ],
+    "why_it_matters": "A reported firm-level redemption provides a concrete implementation signal for a municipal compute subsidy and can guide follow-up on realized access versus announced budgets. The account does not show program-wide redemption, additionality, productivity, or economic impact."
+  },
+  {
+    "confidence": "credible_unconfirmed",
+    "demonstrated_result": "The inspected primary source demonstrates what the paper specifies and reports, not independent experimental confirmation. It describes the method, datasets, baselines, controls and numerical results in arXiv:2609.20089v1.",
+    "desks": [
+      "training_data",
+      "evaluation_science"
+    ],
+    "development_type": "paper",
+    "event_at": "2026-09-17T11:49:31Z",
+    "evidence_class": "A",
+    "id": "FCMO-52CF2BED2DE0",
+    "importance_effective_score": 5,
+    "importance_tier": "Notable",
+    "last_verified_at": "2026-10-08T10:11:13Z",
+    "mechanism": "Three distinct Planning, Execution and Evaluation policies exchange task/trajectory/verifier data. A fixed perturbation engine creates five adversarial variants; a Python sandbox executes generated verifiers. Role-specific rewards come from a shared verdict matrix, with alternating GRPO update blocks and fresh checkpoints passed between roles within each outer iteration.",
+    "organizations": [
+      "Waseda University",
+      "Adelaide University"
+    ],
+    "primary_desk": "training_data",
+    "regions": [
+      "Japan",
+      "Australia"
+    ],
+    "status": "developing",
+    "strongest_baseline": "The paper reports reimplementations of Agent0, Socratic-Zero, R-Zero and Absolute Zero under shared prompts/decoding/sandbox settings. Independent baseline parity is not established.",
+    "summary": "The authors of arXiv:2609.20089 report UnifiedPlayers, a GRPO framework that alternately trains planning, tool-execution and executable-verifier policies using shared sandbox verdicts. On Qwen3-4B-Base and MiMo-7B-Base they report higher averages than their reimplementations of prior methods across seven math and five general reasoning/code benchmarks. A three-seed Qwen3 factorial study attributes gains to training the Planning and Evaluation players; a compute-matched stale-feedback control reports smaller scores than the full fresh-feedback method. These are paper-reported results: code and independent reproduction were not found in this review.",
+    "title": "UnifiedPlayers paper reports benchmark gains from jointly training planning, execution and executable evaluation policies",
+    "topics": [
+      "agentic-reinforcement-learning",
+      "tool-use",
+      "executable-verification",
+      "post-training",
+      "evaluation-science"
+    ],
+    "why_it_matters": "The work tests a design in which the evaluator changes alongside task generation and execution, potentially reducing fixed-verifier blind spots in self-generated training loops. If reproduced, the method could inform post-training architecture and evaluation design. It does not establish general agent capability or transfer beyond the tested models, tasks and budgets."
+  },
+  {
+    "confidence": "strongly_supported",
+    "demonstrated_result": "The official page contains these plan directions and an issuance date; it does not demonstrate appropriation, deployment, performance or economic impact.",
+    "desks": [
+      "policy_geopolitics",
+      "compute_hardware",
+      "labs_industry"
+    ],
+    "development_type": "policy_or_regulation",
+    "event_at": "2026-09-07T00:00:00Z",
+    "evidence_class": "A",
+    "id": "FCMO-A5685EE72258",
+    "importance_effective_score": 4,
+    "importance_tier": "Meaningful",
+    "last_verified_at": "2026-10-08T09:15:21Z",
+    "mechanism": "The plan articulates central policy directions for agricultural AI and digital infrastructure: AI innovation and applications, data infrastructure and standards, domestic software/hardware, computing capacity and integrated agricultural observation.",
+    "organizations": [
+      "State Council of the People’s Republic of China",
+      "Ministry of Agriculture and Rural Affairs"
+    ],
+    "primary_desk": "policy_geopolitics",
+    "regions": [
+      "China"
+    ],
+    "status": "active",
+    "strongest_baseline": "Not applicable; this is a policy document, not a comparative technical evaluation.",
+    "summary": "China’s State Council 2026–2030 agricultural and rural modernization plan directs faster agricultural AI innovation and application, expansion of application scenarios, agricultural/rural data infrastructure and large, multimodal, high-quality datasets with data standards. It also calls for domestic-software and hardware development, improved computing capacity and an integrated sky–air–ground agricultural observation network. The Ministry of Agriculture’s page is dated 2026-09-07 and says the online text is abridged; the notice itself states that the State Council issued the plan on 2026-05-26. These are central policy directions, not funded commitments, local deployments or measured effects.",
+    "title": "China’s 2026–2030 agriculture plan sets policy directions for AI, datasets and compute",
+    "topics": [
+      "China policy",
+      "agricultural AI",
+      "smart agriculture",
+      "data infrastructure",
+      "compute capacity"
+    ],
+    "why_it_matters": "A national five-year plan can shape sector priorities for agricultural AI, data infrastructure and compute. The document establishes policy direction; it does not show dedicated funding, executed deployments or increased productivity."
+  },
+  {
+    "confidence": "credible_unconfirmed",
+    "demonstrated_result": "The accessible preprint specifies the method and reports experiments; the research desk verified the claims in the paper but did not independently reproduce them.",
+    "desks": [
+      "agents_memory",
+      "evaluation_science"
+    ],
+    "development_type": "paper",
+    "event_at": "2026-09-15T00:00:00Z",
+    "evidence_class": "A",
+    "id": "FCMO-B526C545993A",
+    "importance_effective_score": 6,
+    "importance_tier": "Major",
+    "last_verified_at": "2026-10-08T09:11:40Z",
+    "mechanism": "The paper proposes and evaluates state-grounded scoring that checks post-run ERP database values and decomposes task progress into navigation, interaction, commit and database stages.",
+    "organizations": [],
+    "primary_desk": "agents_memory",
+    "regions": [
+      "global"
+    ],
+    "status": "active",
+    "strongest_baseline": "The paper compares against existing enterprise computer-use agents and human reference runs using a shared database grader.",
+    "summary": "Bhagtani et al. report ERPBench, a benchmark that grades screenshot-only computer-use agents against ground-truth ERPNext database state and separately tracks navigation, interaction, commit and database correctness. In the paper’s tested tasks, screen/form progress does not reliably imply a correct stored record; its abstract reports that some agents save in up to 85% of runs but write the correct value in as few as 3%. The authors report five independent runs per task under each configuration. This is a paper-reported benchmark result, not an independent reproduction or a claim about all enterprise agents.",
+    "title": "ERPBench: A State-Grounded Evaluation Paradigm for Computer-Use Agents in Enterprise Software",
+    "topics": [
+      "long-horizon agents",
+      "agent memory",
+      "harness architecture",
+      "continual operation"
+    ],
+    "why_it_matters": "If the measured gap holds, evaluating persistent application state rather than screen-level completion can change how enterprise computer-use agents are tested and deployed. The claim is limited to this benchmark and its tested models/tasks."
+  },
+  {
+    "confidence": "credible_unconfirmed",
+    "demonstrated_result": "The accessible preprint specifies the method and reports experiments; the research desk verified the claims in the paper but did not independently reproduce them.",
+    "desks": [
+      "agents_memory",
+      "evaluation_science"
+    ],
+    "development_type": "paper",
+    "event_at": "2026-09-16T00:00:00Z",
+    "evidence_class": "A",
+    "id": "FCMO-45F5B47CECCF",
+    "importance_effective_score": 5,
+    "importance_tier": "Notable",
+    "last_verified_at": "2026-10-08T09:11:40Z",
+    "mechanism": "The paper proposes and evaluates a benchmark-compression method that jointly uses agent final-score relations and trajectory-process relations to choose an exact-size miniset and predict full-benchmark scores.",
+    "organizations": [],
+    "primary_desk": "evaluation_science",
+    "regions": [
+      "global"
+    ],
+    "status": "active",
+    "strongest_baseline": "Five representative benchmark-compression methods are compared; the reported gains are against the strongest tested competitor.",
+    "summary": "Guo et al. propose DualViewEval, which selects benchmark minisets using both final outcomes and trajectory-process relations. The authors report that, with 20 tasks, the method achieves 24×–40× compression on APEX-Agents and BFCL, reduces MAE by 14.5%–28.2% over the strongest competitors, and improves Kendall tau by up to 7.2% over EssenceBench on SWE-bench Verified. These are paper-reported results across five agent benchmarks, not an independent reproduction or evidence that the selected minisets preserve every capability distinction.",
+    "title": "Beyond Outcomes: Dual-View Relational Learning for Efficient Agent Benchmarking",
+    "topics": [
+      "long-horizon agents",
+      "agent memory",
+      "harness architecture",
+      "continual operation"
+    ],
+    "why_it_matters": "If the reported predictive accuracy holds, smaller trajectory-aware minisets could reduce the cost of evaluating agent systems while preserving more ranking and score information than the tested baselines."
+  },
+  {
+    "confidence": "credible_unconfirmed",
+    "demonstrated_result": "The preprint describes the proposed method and reported evaluation; the research desk did not reproduce it.",
+    "desks": [
+      "inference_systems",
+      "agents_memory",
+      "evaluation_science"
+    ],
+    "development_type": "paper",
+    "event_at": "2026-09-16T00:00:00Z",
+    "evidence_class": "A",
+    "id": "FCMO-4226674AF5EA",
+    "importance_effective_score": 5,
+    "importance_tier": "Notable",
+    "last_verified_at": "2026-10-08T09:08:20Z",
+    "mechanism": "A harness surfaces tool progress from output/execution state through a separate event path; a serving controller uses estimated remaining time for KV-cache retention, eviction and prefetch.",
+    "organizations": [
+      "Tsinghua University",
+      "Alibaba Cloud Computing",
+      "Zhejiang University"
+    ],
+    "primary_desk": "inference_systems",
+    "regions": [
+      "global"
+    ],
+    "status": "active",
+    "strongest_baseline": "LRU for end-to-end p90 post-tool TTFT; four published predictors for prediction accuracy.",
+    "summary": "Liu et al. propose exposing execution progress from running agent tools to the serving system for KV-cache decisions. Their preprint reports a harness reading progress from tool output and environment state without changing the agent-visible result path, and an end-to-end experiment in a production engine. The authors report 20.7% lower p90 time to first token after tool calls with HBM only and 20.8% with HBM plus DRAM compared with LRU. These are paper-reported results, not an independent reproduction or evidence of general serving-system gains.",
+    "title": "A preprint reports that live tool-progress signals improved post-tool latency in one serving-engine experiment",
+    "topics": [
+      "agent inference",
+      "KV-cache scheduling",
+      "tool use",
+      "LLM serving",
+      "inference systems"
+    ],
+    "why_it_matters": "Tool execution can leave an agent request’s KV cache occupying scarce GPU memory while the agent waits. If the reported gains transfer, live tool progress could improve post-tool responsiveness and cache scheduling. Current evidence supports a specific paper-reported result, not a general performance guarantee."
+  },
+  {
+    "confidence": "credible_unconfirmed",
     "demonstrated_result": "The preprint reports the MLE-Bench Lite and NatureBench Lite scores stated in the claims. the research desk inspected the paper but did not run code, weights or benchmark artifacts; results remain CLAIMED.",
     "desks": [
       "evaluation_science",
