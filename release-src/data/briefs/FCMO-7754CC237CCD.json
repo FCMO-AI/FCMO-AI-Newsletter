@@ -1,0 +1,122 @@
+{
+  "record": {
+    "id": "FCMO-7754CC237CCD",
+    "title": "A conditional-independence limit for confidence-ranked parallel diffusion sampling",
+    "desk": "Inference Systems",
+    "event_at": "2026-09-17T15:36:53Z",
+    "evidence": "A",
+    "confidence": "credible_unconfirmed",
+    "importance": 5,
+    "tier": "Notable",
+    "summary": "The authors analyze independent-update samplers that choose parallel token writes using per-position distributions and sample each selected position independently. They claim that matching the training joint distribution at a step requires the written positions to be conditionally independent given fixed tokens, and that per-position marginals alone cannot certify this condition. On their synthetic ScanAndAdd task, they report confidence-ranked writes with perfect sample-level validity metrics but a generated token distribution about 29 times the sampling-noise-floor total variation. The theorem is conditional on the sampler class; the measured distortion is from one synthetic task and is not evidence that deployed diffusion models exhibit the same magnitude of error.",
+    "topics": [
+      "discrete-diffusion",
+      "parallel-decoding",
+      "conditional-independence",
+      "sampling-distribution",
+      "confidence-ranking"
+    ],
+    "organizations": [],
+    "human_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-7754CC237CCD.html",
+    "machine_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/data/briefs/FCMO-7754CC237CCD.json",
+    "citation": {
+      "id": "FCMO-7754CC237CCD",
+      "source": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-7754CC237CCD.html"
+    }
+  },
+  "brief": {
+    "claims": [
+      {
+        "label": "CLAIMED",
+        "text": "For an independent-update sampler whose parallel write set is selected using only per-position distributions (or randomness independent of the target joint distribution), the paper states that a product update matches the target one-step conditional only when the selected positions are conditionally independent given the fixed tokens. A dependent group cannot be represented exactly by that product."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "On the authors' synthetic ScanAndAdd task with a closed-form joint distribution, they report that confidence-ranked parallel writes yield perfect well-formedness, correctness and uniqueness metrics while the generated token distribution remains about 29 times the sampling-noise-floor total variation from the training distribution."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "The paper reports that a hand-specified write order on ScanAndAdd can produce a token distribution not distinguishable from training samples at the measured sample size, while maintaining 0.987–0.996 correctness; this is an achievable task-specific ordering, not a general sampler rule."
+      }
+    ],
+    "confidence": "credible_unconfirmed",
+    "contradictory_evidence": [],
+    "desks": [
+      "inference_systems",
+      "evaluation_science"
+    ],
+    "development_type": "paper",
+    "editions": [
+      "2026-10-08"
+    ],
+    "event_at": "2026-09-17T15:36:53Z",
+    "evidence_class": "A",
+    "evidence_gaps": [
+      {
+        "description": "The ScanAndAdd experiment and theorem-to-implementation correspondence have not been independently reproduced or audited.",
+        "kind": "missing_independent",
+        "state": "open",
+        "updated_at": "2026-10-08T14:10:58Z"
+      },
+      {
+        "description": "The distributional-fidelity effect outside ScanAndAdd, including natural text or image tasks and newer learned schedulers, is unknown.",
+        "kind": "other",
+        "state": "open",
+        "updated_at": "2026-10-08T14:10:58Z"
+      }
+    ],
+    "id": "FCMO-7754CC237CCD",
+    "importance_effective_score": 5,
+    "importance_rationale": "If the paper's bounded result holds, it changes how confidence-based parallel samplers should be analyzed: marginal token probabilities alone cannot certify joint independence, while the empirical 29x distortion result is limited to one synthetic task. This is notable for sampler design and evaluation, but does not establish failures on deployed models.",
+    "importance_scale_version": 2,
+    "importance_score": 5,
+    "importance_tier": "Notable",
+    "last_verified_at": "2026-10-08T14:10:58Z",
+    "limitations": [
+      "The 29x total-variation result is measured on one synthetic task with a known closed-form distribution; the paper says its experiments do not duplicate product-model architectures, decoding strategies or deployments.",
+      "The theorem applies to the paper's defined independent-update sampler class. A scheduler with learned domain information beyond current per-position distributions is outside Theorem 4's assumption; the result is not a blanket impossibility for all parallel decoding.",
+      "Perfect sample-level well-formedness, correctness and uniqueness do not imply distributional match, but this gap was measured here only on ScanAndAdd.",
+      "The authors report mathematical results and experiments; the research desk did not independently audit the proof, run the code or reproduce the reported measurements.",
+      "The current paper cites PUNT, which already reports approximate conditional-independence testing for parallel sampling. The contribution should not be described as the first method to consider dependencies; the precise novelty boundary remains the paper's impossibility result under per-position-only information.",
+      "The arXiv HTML endpoint for PUNT returned 404; only its official abstract and API metadata were reviewed."
+    ],
+    "organizations": [],
+    "primary_desk": "inference_systems",
+    "recorded_at": "2026-10-08T14:10:58Z",
+    "regions": [
+      "global"
+    ],
+    "relationships": [],
+    "source_languages": [
+      "en"
+    ],
+    "source_urls": [
+      "https://arxiv.org/abs/2609.20581v2",
+      "https://arxiv.org/abs/2510.21961"
+    ],
+    "status": "active",
+    "summary": "The authors analyze independent-update samplers that choose parallel token writes using per-position distributions and sample each selected position independently. They claim that matching the training joint distribution at a step requires the written positions to be conditionally independent given fixed tokens, and that per-position marginals alone cannot certify this condition. On their synthetic ScanAndAdd task, they report confidence-ranked writes with perfect sample-level validity metrics but a generated token distribution about 29 times the sampling-noise-floor total variation. The theorem is conditional on the sampler class; the measured distortion is from one synthetic task and is not evidence that deployed diffusion models exhibit the same magnitude of error.",
+    "technical": {
+      "claimed_result": "The authors claim a general per-step restriction for the defined sampler class and illustrate its effect on ScanAndAdd, where confidence-ranked multi-position writes select dependent groups. The paper says a domain-trained scheduler carrying information beyond current per-position distributions is outside Theorem 4's premise, although it must still avoid dependent product updates to match the joint distribution.",
+      "compute_or_cost": "No compute or economic cost comparison is established in the inspected claims. The paper reports a synthetic task and research-model training/decoding measurements, not deployment cost.",
+      "demonstrated_result": "The paper reports closed-form checks and trained-model measurements on ScanAndAdd. The 29x sampling-noise-floor total-variation figure and perfect sample-level metrics are author-reported for this synthetic task; the research desk did not rerun the experiment or independently audit the proofs.",
+      "implementation_status": "Research paper and task-specific experiments only; no deployed system or independently reproduced implementation was verified.",
+      "mechanism": "Define an independent-update sampler as selecting a write set from per-position distributions and drawing each written token independently. The paper's core argument is that such a product can match a target joint conditional only where the selected coordinates are conditionally independent; marginal distributions do not identify all dependencies in the joint distribution.",
+      "novelty": "States a conditional-independence requirement and a marginal-information impossibility boundary for a defined class of per-position independent parallel updates, then connects sample correctness to a separate distribution-level metric on a synthetic task.",
+      "regime": "Independent-update samplers over masked discrete sequences, with write-set decisions based only on per-position distributions or independent randomness. Empirical illustration: one synthetic 25-position ScanAndAdd task with closed-form distribution and research models; not a product-model deployment evaluation.",
+      "reproducibility": "Current arXiv v2 HTML and API metadata were inspected. No code artifact or independent proof review was located or performed. The paper provides task/training details in Appendix A but results remain author-reported.",
+      "strongest_baseline": "On ScanAndAdd, confidence-ranked remasking is contrasted with hand-specified write orders designed around task structure. The latter are an achievable task-specific frontier, not a general decoding baseline; the paper also cites PUNT's approximate conditional-independence testing as related work."
+    },
+    "title": "A conditional-independence limit for confidence-ranked parallel diffusion sampling",
+    "topics": [
+      "discrete-diffusion",
+      "parallel-decoding",
+      "conditional-independence",
+      "sampling-distribution",
+      "confidence-ranking"
+    ],
+    "why_it_matters": "Parallel decoding can reduce generation steps, but good token-level confidence or sample validity does not by itself show that the joint output distribution matches the training distribution. The paper gives a precise condition for one class of independent-update samplers and a synthetic example where correctness and distributional fidelity diverge. This can inform sampler design and evaluation while leaving practical scale and transfer open."
+  },
+  "related": [],
+  "schema": "fcmo-public-brief-v1"
+}

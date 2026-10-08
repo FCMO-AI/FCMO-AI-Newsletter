@@ -1,0 +1,117 @@
+{
+  "record": {
+    "id": "FCMO-AE823403DFD7",
+    "title": "LLM Inference in a Flash reports compressed KV caching and modeled Compute-in-Flash gains",
+    "desk": "Inference Systems",
+    "event_at": "2026-09-14T18:04:30Z",
+    "evidence": "A",
+    "confidence": "credible_unconfirmed",
+    "importance": 5,
+    "tier": "Notable",
+    "summary": "The paper combines integer-only compute-in-flash inference with a static flash-resident dictionary that stores compressed KV-cache codes. On LongBench, the authors report that the combined pipeline retains 99% of the FP16 full-KV baseline score across Llama-3.1-8B and Qwen-2.5-7B, with less than one average score-point degradation and nearly 15× dynamic KV traffic compression. Separately, an analytical model for Llama-3.1-8B at batch size 1 projects 3.1× lower decode latency and 2.7× lower energy at 1K context, and 4.4×/6.8× at 256K, against an NPU+DDR5 full-KV baseline. These system-level numbers are modeled, not measurements on physical Compute-in-Flash hardware; prefill is outside the study.",
+    "topics": [
+      "compute-in-memory",
+      "compute-in-flash",
+      "kv-cache",
+      "integer-inference",
+      "long-context"
+    ],
+    "organizations": [],
+    "human_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-AE823403DFD7.html",
+    "machine_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/data/briefs/FCMO-AE823403DFD7.json",
+    "citation": {
+      "id": "FCMO-AE823403DFD7",
+      "source": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-AE823403DFD7.html"
+    }
+  },
+  "brief": {
+    "claims": [
+      {
+        "label": "CLAIMED",
+        "text": "On LongBench, the authors report that their combined integer-only quantization and dictionary KV compression retains 99% of the FP16 full-KV baseline score for Llama-3.1-8B and Qwen-2.5-7B, with less than one average score-point degradation and nearly 15× dynamic KV-cache compression."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "For Llama-3.1-8B at batch size 1, the paper's analytical system model projects 3.1× lower decode latency and 2.7× lower energy at 1K context, and 4.4× lower latency and 6.8× lower energy at 256K, for configuration S2 relative to an NPU+DDR5 full-KV baseline. These are modeled values, not physical-hardware measurements."
+      }
+    ],
+    "confidence": "credible_unconfirmed",
+    "contradictory_evidence": [],
+    "desks": [
+      "inference_systems",
+      "efficiency",
+      "compute_hardware"
+    ],
+    "development_type": "paper",
+    "editions": [
+      "2026-10-08"
+    ],
+    "event_at": "2026-09-14T18:04:30Z",
+    "evidence_class": "A",
+    "evidence_gaps": [
+      {
+        "description": "LongBench accuracy and KV traffic compression have not been independently reproduced.",
+        "kind": "missing_independent",
+        "state": "open",
+        "updated_at": "2026-10-08T14:18:06Z"
+      },
+      {
+        "description": "The projected latency/energy savings have not been validated on physical Compute-in-Flash hardware, and prefill is not modeled.",
+        "kind": "missing_artifact",
+        "state": "open",
+        "updated_at": "2026-10-08T14:18:06Z"
+      }
+    ],
+    "id": "FCMO-AE823403DFD7",
+    "importance_effective_score": 5,
+    "importance_rationale": "If reproduced on suitable memory-compute hardware, integer-only operations and dictionary-coded KV state could reduce memory traffic for long-context decode. The reported 15x KV compression is evaluated on two model families, while latency/energy improvements are analytic projections for one modeled configuration; this is notable systems research, not demonstrated hardware deployment.",
+    "importance_scale_version": 2,
+    "importance_score": 5,
+    "importance_tier": "Notable",
+    "last_verified_at": "2026-10-08T14:18:06Z",
+    "limitations": [
+      "LongBench and KV compression results are author-reported and were not independently reproduced.",
+      "Latency and energy improvements are analytical projections, not measurements on physical Compute-in-Flash hardware.",
+      "The system-level model covers decode only; mapping prefill efficiently is explicitly left as future work.",
+      "The model assumes two copies of the value dictionary, one transposed and one non-transposed, to support pursuit and attention.",
+      "System-level projections focus on Llama-3.1-8B, batch size 1 and modeled 1K/64K/256K context lengths; transfer to other models, hardware, concurrency and service loads is unknown."
+    ],
+    "organizations": [],
+    "primary_desk": "inference_systems",
+    "recorded_at": "2026-10-08T14:18:06Z",
+    "regions": [
+      "global"
+    ],
+    "relationships": [],
+    "source_languages": [
+      "en"
+    ],
+    "source_urls": [
+      "https://arxiv.org/abs/2609.16161v1"
+    ],
+    "status": "active",
+    "summary": "The paper combines integer-only compute-in-flash inference with a static flash-resident dictionary that stores compressed KV-cache codes. On LongBench, the authors report that the combined pipeline retains 99% of the FP16 full-KV baseline score across Llama-3.1-8B and Qwen-2.5-7B, with less than one average score-point degradation and nearly 15× dynamic KV traffic compression. Separately, an analytical model for Llama-3.1-8B at batch size 1 projects 3.1× lower decode latency and 2.7× lower energy at 1K context, and 4.4×/6.8× at 256K, against an NPU+DDR5 full-KV baseline. These system-level numbers are modeled, not measurements on physical Compute-in-Flash hardware; prefill is outside the study.",
+    "technical": {
+      "claimed_result": "The authors report near-FP16 LongBench scores with almost 15× dynamic KV-cache traffic compression for two model families, and analytically project lower decode latency and energy for one modeled Llama-3.1-8B configuration.",
+      "compute_or_cost": "The analytical model projects latency and energy reductions for one Llama-3.1-8B batch-size-1 decode configuration. It does not measure realized energy, device cost, throughput on a fabricated/available CIM-SSD device or end-to-end service economics.",
+      "demonstrated_result": "The paper reports measured LongBench task scores and effective KV compression for Llama-3.1-8B and Qwen-2.5-7B. The reported system-level latency and energy savings are analytical model outputs for Llama-3.1-8B, not results measured on physical Compute-in-Flash hardware; the research desk did not reproduce either result.",
+      "implementation_status": "Research paper with LongBench evaluations and analytical system modeling; no physical Compute-in-Flash system result was verified.",
+      "mechanism": "Combines integer-only compute-in-flash operations with a flash-resident static dictionary. KV vectors are encoded as sparse codes over the dictionary; attention operates on codes while keeping a recent window in full precision. The design models SSD-CIM compute and memory movement for decode.",
+      "novelty": "Pairs sparse dictionary coding of the KV cache with integer-only compute tailored to compute-in-flash constraints, and evaluates both task score/traffic compression and modeled system-level decode costs.",
+      "regime": "LongBench combined-pipeline evaluation on Llama-3.1-8B and Qwen-2.5-7B. System model: Llama-3.1-8B, batch size 1, decode at 1K/64K/256K contexts, comparing NPU+DDR5 FP16 full-KV against modeled SSD-CIM INT8 variants. Prefill is not evaluated.",
+      "reproducibility": "Current arXiv v1 HTML and API metadata were inspected. No independent reproduction or physical-device execution was performed. System results depend on modeled bandwidth/compute assumptions and storing two copies of the value dictionary; prefill is explicitly left for future work.",
+      "strongest_baseline": "LongBench compares the combined method to FP16 with full KV cache. System model configuration S2 is compared to B1, an NPU+DDR5 DRAM FP16 baseline with full KV cache moved each decode step; B2 and S1 are additional modeled ablations."
+    },
+    "title": "LLM Inference in a Flash reports compressed KV caching and modeled Compute-in-Flash gains",
+    "topics": [
+      "compute-in-memory",
+      "compute-in-flash",
+      "kv-cache",
+      "integer-inference",
+      "long-context"
+    ],
+    "why_it_matters": "Long-context decoding can be limited by moving KV state between memory and compute. The paper reports a large reduction in dynamic KV traffic with small LongBench score changes, then models potential decode benefits on a Compute-in-Flash design. The modeled gains depend on assumptions about device bandwidth, dictionary placement and duplicate dictionary storage, and do not establish physical-device performance or prefill efficiency."
+  },
+  "related": [],
+  "schema": "fcmo-public-brief-v1"
+}

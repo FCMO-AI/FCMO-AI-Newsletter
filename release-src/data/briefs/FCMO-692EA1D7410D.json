@@ -1,0 +1,136 @@
+{
+  "record": {
+    "id": "FCMO-692EA1D7410D",
+    "title": "GraphEcho finds that repeated graph paths raise evidence-revisit rates, while provenance-aware training trades coverage for fewer repeats",
+    "desk": "Evaluation Science",
+    "event_at": "2026-09-15T18:07:09Z",
+    "evidence": "A",
+    "confidence": "credible_unconfirmed",
+    "importance": 5,
+    "tier": "Notable",
+    "summary": "Wang et al. introduce GraphEcho, a controlled benchmark separating graph-path count from evidence-source count. In the paper’s reported tests, adding redundant supporting paths increased repeated evidence walks for all four frozen agents; a provenance-aware Qwen3-4B policy reduced revisits and raised accuracy on synthetic claims, but reached fewer distinct sources and scored lower on the SciFact transfer set. Static judgment effects varied by model.",
+    "topics": [
+      "llm-agents",
+      "graph-retrieval",
+      "evidence-provenance",
+      "evaluation-methodology",
+      "retrieval-augmented-generation"
+    ],
+    "organizations": [
+      "Tokyo University of Science",
+      "Hong Kong Baptist University",
+      "University of Michigan",
+      "The University of Tokyo"
+    ],
+    "human_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-692EA1D7410D.html",
+    "machine_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/data/briefs/FCMO-692EA1D7410D.json",
+    "citation": {
+      "id": "FCMO-692EA1D7410D",
+      "source": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-692EA1D7410D.html"
+    }
+  },
+  "brief": {
+    "claims": [
+      {
+        "label": "CLAIMED",
+        "text": "In GraphEcho’s controlled synthetic tests, redundant supporting paths raised repeated evidence-walk rates for all four frozen agents, while the effect on accuracy varied by model."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "For the trained Qwen3-4B policy, the authors report a 41.47 percentage-point synthetic-accuracy increase over provenance metadata alone, accompanied by an 8.32-point decrease in source recall."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "On the paper’s SciFact transfer setup, PAPT reduced repeated walks but had lower accuracy than the frozen Qwen3-4B baseline; the three compared conditions each exposed only one document origin."
+      },
+      {
+        "label": "INFERRED",
+        "text": "Reducing repeated retrieval does not by itself establish better evidence use, because a policy may stop earlier and leave distinct reachable sources unobserved."
+      }
+    ],
+    "confidence": "credible_unconfirmed",
+    "contradictory_evidence": [],
+    "desks": [
+      "evaluation_science",
+      "agents_memory",
+      "reasoning_posttraining"
+    ],
+    "development_type": "dataset_or_benchmark",
+    "editions": [
+      "2026-10-08"
+    ],
+    "event_at": "2026-09-15T18:07:09Z",
+    "evidence_class": "A",
+    "evidence_gaps": [
+      {
+        "description": "The reported graph-agent and PAPT results have not been independently reproduced, and no public code artifact was located during this review.",
+        "kind": "reproduction_missing",
+        "state": "open",
+        "updated_at": "2026-10-08T11:07:51Z"
+      },
+      {
+        "description": "SciFact transfer does not test multi-source active acquisition, and its static document-provenance analysis includes only ten eligible multi-document claims.",
+        "kind": "other",
+        "state": "open",
+        "updated_at": "2026-10-08T11:07:51Z"
+      }
+    ],
+    "id": "FCMO-692EA1D7410D",
+    "importance_effective_score": 5,
+    "importance_rationale": "If the reported behavior generalizes to deployed graph-retrieval agents, provenance-aware evaluation could change agent architecture and benchmark choices across retrieval and research systems. The controlled preprint makes this meaningful field evidence, but the result is one author-run study with synthetic evidence assumptions and no independent reproduction.",
+    "importance_scale_version": 2,
+    "importance_score": 5,
+    "importance_tier": "Notable",
+    "last_verified_at": "2026-10-08T11:07:51Z",
+    "limitations": [
+      "All empirical findings are reported by the preprint authors and have not been independently reproduced in this review.",
+      "Synthetic source independence and equal-strength evidence are controlled benchmark assumptions; real studies can share datasets, methods and biases.",
+      "The SciFact transfer experiment uses a one-document setting for the compared agent conditions and does not test multi-source acquisition; its static multi-document analysis includes only ten eligible claims.",
+      "PAPT training uses one random seed, so bootstrap intervals do not capture variation across separately trained policies.",
+      "The authors report model-dependent judgment responses; repeated-path exposure did not uniformly lower answer accuracy.",
+      "No public code or independent implementation was located in the inspected arXiv record."
+    ],
+    "organizations": [
+      "Tokyo University of Science",
+      "Hong Kong Baptist University",
+      "University of Michigan",
+      "The University of Tokyo"
+    ],
+    "primary_desk": "evaluation_science",
+    "recorded_at": "2026-10-08T11:07:51Z",
+    "regions": [
+      "global"
+    ],
+    "relationships": [],
+    "source_languages": [
+      "en"
+    ],
+    "source_urls": [
+      "https://arxiv.org/html/2609.17695"
+    ],
+    "status": "active",
+    "summary": "Wang et al. introduce GraphEcho, a controlled benchmark separating graph-path count from evidence-source count. In the paper’s reported tests, adding redundant supporting paths increased repeated evidence walks for all four frozen agents; a provenance-aware Qwen3-4B policy reduced revisits and raised accuracy on synthetic claims, but reached fewer distinct sources and scored lower on the SciFact transfer set. Static judgment effects varied by model.",
+    "technical": {
+      "claimed_result": "The authors conclude that efficient exploration and effective evidence use can diverge: policies that reduce repeated retrieval may stop before reaching distinct sources. Their synthetic benchmark and SciFact transfer results suggest that provenance-aware training can change this tradeoff, but its quality depends on domain and stopping behavior.",
+      "compute_or_cost": "Training uses Qwen3-4B with GRPO and LoRA (rank 16, alpha 32) for one epoch over 500 training examples, with one training seed. Full compute, inference and annotation costs are not reported in the inspected sections.",
+      "demonstrated_result": "The authors report that redundant supporting paths raise echo-walk rates for all four evaluated frozen agents by 5.80–38.84 percentage points across 200 synthetic claims and five presentation seeds. In a Qwen3-4B agentic setup, PAPT raises synthetic accuracy by 41.47 points versus provenance metadata alone while lowering source recall by 8.32 points; on 188 SciFact claims it lowers accuracy by 3.55 points while lowering echo rate by 36.00 points. These are paper-reported results, not independently reproduced findings.",
+      "implementation_status": "A research benchmark and training method described in arXiv v1. The inspected arXiv page exposes the paper and TeX/PDF links but no code repository link; implementation artifacts and independent reproduction were not located in this targeted check.",
+      "mechanism": "GraphEcho constructs graph paths that can refer either to the same evidence origin or to distinct origins, varying path multiplicity and source multiplicity separately. It measures model judgments and active exploration. Its provenance-aware post-training (PAPT) rewards verdict quality, source counting and distinct evidence acquisition while penalizing repeated acquisition and walk cost.",
+      "novelty": "Separates graph representation multiplicity from evidence-origin multiplicity and evaluates both conclusions and whether active exploration reaches distinct sources; evaluates acquisition metrics alongside answer quality.",
+      "regime": "One 800-claim synthetic benchmark (500 train, 100 development, 200 test) with controlled equal-weight evidence origins, plus SciFact development-set transfer. The agentic primary budget is six walk actions. Static judgments and active evidence acquisition are measured separately.",
+      "reproducibility": "The paper describes datasets, controlled conditions, prompts/action environment and bootstrap procedures, but no public code was found in the inspected record. Training uses one random seed; no independent reproduction was found.",
+      "strongest_baseline": "The paper compares four frozen agents with controlled redundant-path conditions, inference-time provenance and instruction controls, graph preprocessing that collapses equivalent paths, and PAPT. Its reported frozen-agent tests include Qwen3-1.7B, Qwen3-4B, Qwen3-8B and GPT-5-mini; the principal trained policy is Qwen3-4B."
+    },
+    "title": "GraphEcho finds that repeated graph paths raise evidence-revisit rates, while provenance-aware training trades coverage for fewer repeats",
+    "topics": [
+      "llm-agents",
+      "graph-retrieval",
+      "evidence-provenance",
+      "evaluation-methodology",
+      "retrieval-augmented-generation"
+    ],
+    "why_it_matters": "Graph retrieval agents can encounter one observation through several representations. The paper shows why evaluation should track evidence origins and unobserved sources alongside answer accuracy and repeated retrieval: a policy can become more efficient by stopping earlier while missing evidence."
+  },
+  "related": [],
+  "schema": "fcmo-public-brief-v1"
+}

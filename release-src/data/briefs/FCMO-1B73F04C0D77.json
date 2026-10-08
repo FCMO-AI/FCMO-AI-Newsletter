@@ -1,0 +1,142 @@
+{
+  "record": {
+    "id": "FCMO-1B73F04C0D77",
+    "title": "Edge0 reports SSD-streamed MoE inference with trained one-token-ahead routing",
+    "desk": "Inference Systems",
+    "event_at": "2026-09-17T00:00:00Z",
+    "evidence": "A",
+    "confidence": "credible_unconfirmed",
+    "importance": 6,
+    "tier": "Major",
+    "summary": "AutoArk’s Edge0 paper reports serving its int4 Qwen3.6-35B-A3B MoE on a Mac mini M4 Pro with 24 GB unified memory at 20.4 tokens/s decode and 2.9 GiB peak active memory, using SSD-streamed experts and a trained prerouter that predicts one token ahead. In a same-session MacBook M2 16 GB comparison where the 18.4 GiB checkpoint does not fit, the paper reports 6.4 versus 3.5 tokens/s at routing width K=4 against on-demand streaming. These are author-reported measurements from one implementation and hardware family. The paper reports a 3.9-point mean gap to the fp16 base across five benchmarks, with a 6.1-point AIME gap; concurrency, other storage tiers, independent reproduction and broader deployment are unestablished.",
+    "topics": [
+      "mixture-of-experts",
+      "inference",
+      "memory",
+      "ssd-offload",
+      "routing",
+      "quantization"
+    ],
+    "organizations": [
+      "AutoArk"
+    ],
+    "human_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-1B73F04C0D77.html",
+    "machine_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/data/briefs/FCMO-1B73F04C0D77.json",
+    "citation": {
+      "id": "FCMO-1B73F04C0D77",
+      "source": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-1B73F04C0D77.html"
+    }
+  },
+  "brief": {
+    "claims": [
+      {
+        "label": "CLAIMED",
+        "text": "On a Mac mini M4 Pro with 24 GB unified memory, the authors report 20.4 tokens/s decode and 2.9 GiB peak active memory for the 35B tier."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "In a same-session, three-round median comparison on a 16 GB MacBook M2 with an 18.4 GiB checkpoint, the authors report K=4 prerouter decode at 6.4 tokens/s versus 3.5 for on-demand streaming."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "Across five OpenCompass benchmarks, the authors report a 3.9-point mean score gap between the 35B int4 Edge0 pipeline and its fp16 base, including a 6.1-point AIME gap."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "The public repository README lists engines for macOS, iOS, Android and Windows, while its Python MLX framework is currently limited to Apple Silicon; the paper’s measured implementation is MLX."
+      }
+    ],
+    "confidence": "credible_unconfirmed",
+    "contradictory_evidence": [
+      "Quality is not uniform: the paper reports the 35B Edge0 score at 86.6 versus 92.7 for fp16 on AIME 2026, a 6.1-point deficit. It also reports page-cache displacement and increased unreclaimable residency with prerouting; on fast storage or hot caches the gains shrink.",
+      "The repository README’s two-run benchmark lists 14.9–17.7 tokens/s for the 35B model, while the paper’s paired short-context table reports 20.4 tokens/s; these are different benchmark protocols and should not be conflated.",
+      "A user report in Edge0 issue #8 describes incoherent output from both model tiers on a MacBook Neo with Apple A18 Pro using the README-pinned MLX versions; the report also says later MLX versions crashed. The issue page is closed but shows no maintainer diagnosis or resolution. This single unverified report concerns a different device and does not test the paper’s Mac mini M4 Pro measurements.",
+      "A second user report in Edge0 issue #17 reports 0.66–0.81 tokens/s for edge0-8b on an 8 GB Apple M1 MacBook Pro, versus about 23–25 tokens/s in the model card; it gives repeat timings, environment details and an 11.38 tokens/s same-session dense-model control, and hypothesizes small mmap-read/page-fault costs on the M1. The issue page is closed with no visible maintainer response. This is one unverified report on a different device; the causal explanation is the user’s hypothesis."
+    ],
+    "desks": [
+      "inference_systems",
+      "efficiency",
+      "architectures_scaling"
+    ],
+    "development_type": "paper",
+    "editions": [
+      "2026-10-08"
+    ],
+    "event_at": "2026-09-17T00:00:00Z",
+    "evidence_class": "A",
+    "evidence_gaps": [
+      {
+        "description": "No independent execution or reproduction of the paper’s speed, active-memory or quality measurements was conducted. The paper reports single-device Apple Silicon results; a 16 GB comparison has high cross-session variability. Two separate user issues report garbled output on Apple A18 Pro and much lower speed on an 8 GB M1; neither has visible maintainer resolution.",
+        "kind": "missing_independent",
+        "state": "open",
+        "updated_at": "2026-10-08T11:24:51Z"
+      },
+      {
+        "description": "The paper evaluates one request at a time and identifies concurrency, storage-tier transfer and larger batch working sets as untested; non-MLX code paths are not evaluated in its paper benchmarks.",
+        "kind": "other",
+        "state": "open",
+        "updated_at": "2026-10-08T11:17:32Z"
+      }
+    ],
+    "id": "FCMO-1B73F04C0D77",
+    "importance_effective_score": 6,
+    "importance_rationale": "If reproduced across hardware and workloads, serving a 35B-class sparse model from SSD within 2.9 GiB of reported active memory could materially broaden local inference access and alter the cost/memory tradeoff for consumer deployments. The consequence is significant but bounded to an author-reported Apple Silicon implementation; generalization, concurrent serving and independent performance are unverified.",
+    "importance_scale_version": 2,
+    "importance_score": 6,
+    "importance_tier": "Major",
+    "last_verified_at": "2026-10-08T11:24:51Z",
+    "limitations": [
+      "All performance and benchmark comparisons are author-reported; no independent execution was conducted.",
+      "The main reported device is a Mac mini M4 Pro; the prerouter comparison is a MacBook M2 with 16 GB unified memory and an 18.4 GiB checkpoint that does not fit. Results are hardware, cache and protocol specific.",
+      "The paper reports single-request FIFO serving; batching and concurrency are untested.",
+      "The paper identifies graph-building/CPU work as a decode floor and says benefits shrink on hot caches or fast storage.",
+      "The 35B tier trails its fp16 base by 6.1 points on AIME 2026; the 8B tier trails by 10 points.",
+      "The repository lists platform engines beyond macOS, but the paper’s measured implementation is MLX on Apple Silicon; cross-platform performance is not demonstrated.",
+      "An individual GitHub issue reports garbled outputs on Apple A18 Pro / MacBook Neo with pinned MLX versions and crashes after an MLX upgrade. The issue is closed without a visible maintainer resolution; it is an unverified compatibility report, not an independent benchmark reproduction.",
+      "A separate closed user issue reports 0.66–0.81 tokens/s for the 8B model on an 8 GB Apple M1, far below the README’s M4 Pro range; it includes same-session controls but has no visible maintainer response. It is an unverified single-device report and does not contradict the M4 Pro result directly."
+    ],
+    "organizations": [
+      "AutoArk"
+    ],
+    "primary_desk": "inference_systems",
+    "recorded_at": "2026-10-08T11:24:51Z",
+    "regions": [
+      "global"
+    ],
+    "relationships": [],
+    "source_languages": [
+      "en"
+    ],
+    "source_urls": [
+      "https://arxiv.org/html/2609.18063",
+      "https://github.com/Edge0-AI/Edge0",
+      "https://github.com/Edge0-AI/Edge0/issues/8",
+      "https://github.com/Edge0-AI/Edge0/issues/17"
+    ],
+    "status": "active",
+    "summary": "AutoArk’s Edge0 paper reports serving its int4 Qwen3.6-35B-A3B MoE on a Mac mini M4 Pro with 24 GB unified memory at 20.4 tokens/s decode and 2.9 GiB peak active memory, using SSD-streamed experts and a trained prerouter that predicts one token ahead. In a same-session MacBook M2 16 GB comparison where the 18.4 GiB checkpoint does not fit, the paper reports 6.4 versus 3.5 tokens/s at routing width K=4 against on-demand streaming. These are author-reported measurements from one implementation and hardware family. The paper reports a 3.9-point mean gap to the fp16 base across five benchmarks, with a 6.1-point AIME gap; concurrency, other storage tiers, independent reproduction and broader deployment are unestablished.",
+    "technical": {
+      "claimed_result": "The authors claim SSD streaming plus one-token-ahead predicted routing hides expert-load latency while keeping peak active memory near the working set; their reported 35B Apple Silicon profile is 20.4 tokens/s at 2.9 GiB.",
+      "compute_or_cost": "The paper reports a 24 GB Mac mini M4 Pro for its release profile and a 16 GB MacBook M2 for paired prerouter A/B. It provides no cloud-price, energy or total-cost comparison.",
+      "demonstrated_result": "Authors report 20.4 tokens/s decode, 2.9 GiB peak active memory and 113/140 tokens/s cold/warm prefill for the 35B tier on the Mac mini M4 Pro. For K=4 on the 16 GB MacBook M2, paired three-round medians are 6.4 tokens/s prerouter versus 3.5 on-demand. They report 79.2 average versus 83.2 for fp16 across five benchmarks, with AIME 86.6 vs 92.7. Author-reported; no independent verification.",
+      "implementation_status": "The linked public repository contains a Python/MLX implementation and separate platform-native engines; repository support statements do not establish their measured performance. the research desk inspected README only and did not install or run the code.",
+      "mechanism": "Move static expert weights to SSD, stage predicted next-token expert sets during current-token compute, and train the routing replacement and recovery LoRA together.",
+      "novelty": "Combines SSD expert offload with a trained cross-token prerouter whose selected experts define the actual route, and an unmerged recovery adapter trained on the deployed student path.",
+      "regime": "Paper measurements use a Mac mini M4 Pro with 24 GB for the release profile and a MacBook M2 with 16 GB for same-session paired A/B prerouter tests. The measured 35B tier is Qwen3.6-35B-A3B at int4, K=4, 40 layers and 256 experts. Quality comparison is against the fp16 base over five OpenCompass benchmarks. One request at a time.",
+      "reproducibility": "The paper supplies detailed paired protocols, tables, implementation claims and a public repository; the research desk did not independently run the implementation. The repository README gives a distinct two-run speed range that should remain separate from the paper’s paired 20.4 tokens/s result. A separate user issue reports garbled output on Apple A18 Pro / MacBook Neo; the closed issue has no visible maintainer diagnosis or resolution. A second closed user issue reports 0.66–0.81 tokens/s on an 8 GB M1 and hypothesizes a small-mmap-read/page-fault bottleneck; that causal account is unverified, with no visible maintainer response.",
+      "strongest_baseline": "Same-session on-demand streaming at matched cache budget for prerouter speed comparisons; original fp16 base under identical OpenCompass settings for quality. The fully resident baseline is also reported on the same Mac mini but is memory constrained."
+    },
+    "title": "Edge0 reports SSD-streamed MoE inference with trained one-token-ahead routing",
+    "topics": [
+      "mixture-of-experts",
+      "inference",
+      "memory",
+      "ssd-offload",
+      "routing",
+      "quantization"
+    ],
+    "why_it_matters": "The work combines static-weight SSD placement with predicted expert routing to target the weight-memory limit of local sparse-MoE inference. If reproduced, its measured memory and decode profile could expand the models that fit on consumer hardware. Its value depends on storage latency, cache residency, model quality, and single-request workloads; the paper does not establish general cross-platform performance."
+  },
+  "related": [],
+  "schema": "fcmo-public-brief-v1"
+}
