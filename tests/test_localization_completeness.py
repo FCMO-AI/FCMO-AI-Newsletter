@@ -71,6 +71,11 @@ def independent_backlog(locale: str, published_only: bool = False) -> set[str]:
         for entry in json.loads(tombstones.read_text(encoding="utf-8")).get("tombstones") or []:
             if entry.get("reinstated_at") is None:
                 dead.add(entry.get("id"))
+    if published_only and (ROOT / 'release-src/data/publication-admission.json').is_file():
+        # Receipts describe the committed English version, which can be a
+        # carried version while an incoming update waits for native repair.
+        canonical = {path.stem: json.loads(path.read_text())['brief']
+                     for path in (ROOT / 'release-src/data/briefs').glob('FCMO-*.json')}
     overlays: dict[str, dict] = {}
     for path in sorted(glob.glob(str(ROOT / f"site/data/i18n/{locale}/part-*.json"))):
         for rid, row in json.loads(Path(path).read_text(encoding="utf-8"))["records"].items():
@@ -78,7 +83,7 @@ def independent_backlog(locale: str, published_only: bool = False) -> set[str]:
             for key, value in row.items():
                 chosen.setdefault(key, value)  # ARB fields precede desk gap fills.
     delta = ROOT / f"corpus/data/locales/{locale}/records.json"
-    if delta.is_file():
+    if delta.is_file() and not published_only:
         for rid, row in json.loads(delta.read_text(encoding="utf-8"))["records"].items():
             overlays[rid] = {**overlays.get(rid, {}), **row}
     published = {r["research_id"] for r in json.loads((ROOT / "site/data/stories.json").read_text())}
@@ -335,6 +340,10 @@ class RealCorpusBacklog(unittest.TestCase):
             # This receipt measures published stories; invalid source rows stay quarantined.
             published = {row["research_id"] for row in json.loads((ROOT / "site/data/stories.json").read_text())}
             canonical = {rid: row for rid, row in canonical.items() if rid in published}
+            admission = ROOT / 'release-src/data/publication-admission.json'
+            if admission.is_file():
+                canonical = {rid: json.loads((ROOT / f'release-src/data/briefs/{rid}.json').read_text())['brief']
+                             for rid in published}
             recount = vl.summarize(vl.locale_states(canonical, rows, strict, locale, provenance))["state_counts"]
             self.assertEqual(status["locales"][locale]["state_counts"], recount)
 
