@@ -1546,6 +1546,59 @@
       "title": "Un manuscrito de OpenAI afirma que el exponente de irracionalidad de π es exactamente 2",
       "why_it_matters": "Una verificación independiente de que el exponente de π es 2 resolvería una pregunta de larga data en aproximación diofántica y afectaría resultados relacionados de teoría de números. La consecuencia potencial es excepcionalmente grande, pero la evidencia actual sigue siendo un manuscrito de primera parte sin revisión y una afirmación de formalización."
     },
+    "FCMO-33A3760E29A8": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Los autores presentan WorldContact, un modelo dinámico aprendido y centrado en el contacto para manipular objetos deformables. Usa un paso temporal 20× mayor que el paso de integración del simulador de origen y se entrena con trayectorias de simulación calibradas en 16 tareas de manipulación y colisión con bolsas de compras."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En una NVIDIA H100, el artículo informa que WorldContact simula 0.4 segundos de dinámica por segundo de tiempo real, frente a 0.04 segundos del simulador de origen: una aceleración de 10× que excluye el renderizado y la E/S de disco."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En una prueba de levantamiento de bolsa con un robot real, la misma política ajustada logró 13/20 intentos individuales (65%) con 25 trayectorias de simulación de origen y 19/20 (95%) con un conjunto de 150 trayectorias ampliado mediante WorldContact. La tarea exigía levantar la bolsa, mantenerla sobre la mesa durante 2 segundos y no recibir intervención humana."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se realizó una reproducción independiente de la velocidad de las simulaciones ni de la comparación de levantamiento con el robot real.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "La evidencia robótica cubre una sola tarea de levantamiento de bolsa, un brazo y 20 intentos por condición de datos; se desconoce la transferencia a otros objetos, materiales, tareas y robots.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "La medición de 10× excluye renderizado y E/S de disco, y no se ha conciliado el cómputo total para crear datos de origen, entrenar el modelo y generar el conjunto ampliado para la política.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se reproduce, un simulador aprendido de objetos deformables que amplía datos de interacción limitados y mejora una política para un robot real podría reducir materialmente el costo de adaptación robótica en algunas tareas. La medición de 10× excluye renderizado y E/S de disco, y el resultado robótico informado corresponde a una tarea de levantamiento de bolsa con 20 intentos individuales por condición, por lo que la consecuencia operativa más amplia sigue siendo incierta.",
+      "limitations": [
+        "Todas las mediciones proceden de un artículo arXiv v1; el equipo de investigación no reprodujo el entrenamiento, la velocidad de simulación ni las pruebas robóticas.",
+        "La medición de 10× solo cubre simulación de estados en una NVIDIA H100 y excluye renderizado y E/S de disco; no establece el rendimiento integral ni el costo económico de generar datos.",
+        "El resultado con el robot real es una sola tarea de levantamiento de bolsa con 20 intentos individuales por condición; la muestra pequeña no establece superioridad fiable ni transferencia a otros objetos, materiales, tareas o robots.",
+        "El proceso evaluado parte de simulación con activos y parámetros calibrados; el artículo identifica como retos los errores de predicción ante cambios de distribución y las diferencias entre observaciones renderizadas y reales.",
+        "Se usa la misma política VLA preentrenada y la misma tarea en ambas condiciones, pero el conjunto cambia de 25 a 150 trayectorias; las ganancias no separan los efectos del volumen de datos, la diversidad de trayectorias y la calidad del modelo WorldContact."
+      ],
+      "relationships": [],
+      "summary": "Wang y sus coautores presentan WorldContact, un simulador aprendido y centrado en el contacto para manipular objetos deformables, entrenado con trayectorias de simulación. El artículo informa que las simulaciones de estados son 10× más rápidas que las del simulador de origen en una NVIDIA H100, sin incluir renderizado ni E/S de disco. Para levantar una bolsa con un robot real, la misma política de visión-lenguaje-acción logró 13/20 intentos individuales (65%) después de ajustarse con 25 trayectorias de origen, frente a 19/20 (95%) al usar un conjunto ampliado a 150 trayectorias con WorldContact. Son resultados informados por los autores para una sola tarea y una muestra pequeña; no son evidencia independiente de una transferencia amplia de simulación a realidad.",
+      "technical": {
+        "claimed_result": "Los autores informan una velocidad 10× mayor para las simulaciones de estados en una H100, sin renderizado ni E/S de disco, y un aumento de 65% a 95% en los éxitos de levantamiento con robot real (13/20 frente a 19/20) tras ajustar la política con datos ampliados por WorldContact.",
+        "demonstrated_result": "El artículo arXiv v1 inspeccionado describe el modelo, la configuración del benchmark, la velocidad informada y las pruebas con el robot. El equipo de investigación no ejecutó el código ni reprodujo de forma independiente ninguno de los resultados.",
+        "mechanism": "WorldContact codifica los contactos espaciales, topológicos, controlables por el robot y ambientales alrededor de los vértices de un objeto deformable; comunica información de largo alcance con compresión jerárquica de tokens y predice cambios de estado bajo acciones robóticas prescritas. Usa un intervalo de integración mayor que el del simulador de origen calibrado para generar trayectorias adicionales para el ajuste fino de políticas VLA.",
+        "regime": "Manipulación de bolsas de compras con semillas de simulación: 16 tareas, 25 trayectorias de entrenamiento por tarea, activos y simulador calibrados; medición de simulaciones de estados en una NVIDIA H100 sin renderizado ni E/S de disco. La evidencia robótica real cubre una tarea de levantamiento con el brazo derecho, una política Pi05 preentrenada y 20 intentos individuales por condición de datos.",
+        "strongest_baseline": "El artículo compara la predicción de estados con RoboCraft, RoboCook y AdaptiGraph usando la misma división de datos; informa para WorldContact MSE de posición 0.0002, MSE de velocidad 0.0002 y tasa de penetración 0.35%, frente a los mejores valores de referencia: MSE de posición 0.0323, MSE de velocidad 0.0098 y tasa de penetración 10.28%. Para el levantamiento robótico, la referencia es la misma política ajustada con 25 trayectorias de origen: 13/20 éxitos frente a 19/20 después de entrenar con 150 trayectorias ampliadas. Son comparaciones informadas por los autores, no reproducciones independientes."
+      },
+      "title": "Artículo informa que un simulador aprendido de contacto elevó el éxito de levantar una bolsa con robot real a 19/20 intentos",
+      "why_it_matters": "Si el resultado se mantiene fuera de este entorno, un modelo aprendido de contacto podría convertir un conjunto pequeño de trayectorias calibradas en más datos de entrenamiento y reducir el tiempo de simulación. La comparación robótica informada es prometedora pero acotada: una tarea de levantamiento de bolsa, 20 intentos por condición y un proceso calibrado con datos de simulación. La medición excluye renderizado y E/S de disco, por lo que no demuestra una reducción de 10× en el tiempo o costo integral de generación de datos o entrenamiento."
+    },
     "FCMO-3467CC8C317D": {
       "claims": [
         {
@@ -1931,6 +1984,64 @@
       },
       "title": "TRACE informa mejoras de recuperación documental responsable en un benchmark de archivos históricos franceses",
       "why_it_matters": "La recuperación en archivos históricos e institucionales requiere documentos relevantes con una ruta inspeccionable hasta la evidencia, especialmente cuando los errores de OCR y las fuentes mixtas dificultan la búsqueda simple. TRACE informa que la orquestación y la recuperación adaptada al corpus mejoran el hallazgo de documentos en un benchmark histórico francés, sin entrenar un modelo nuevo. El benchmark no demuestra que reduzca el trabajo de historiadores ni que se transfiera a otros archivos."
+    },
+    "FCMO-4430D34C1B67": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "El DeepMind Institute publicó el 16 de septiembre un ensayo de Rohin Shah y Anca Dragan, responsables de seguridad de Google DeepMind. Sostienen que una cadena de pensamiento legible puede ayudar a comprender y supervisar modelos, aunque la transparencia puede debilitarse por el razonamiento latente, los incentivos de entrenamiento o el ocultamiento deliberado. El Instituto indica que sus ensayos reflejan las opiniones de sus autores y no la posición oficial de Google."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores proponen tres líneas de acción: medir la transparencia de la cadena de pensamiento, conservar arquitecturas transparentes y auditar recompensas de entrenamiento que podrían volver menos informativos los rastros. Son recomendaciones, no intervenciones demostradas."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El ensayo define la profundidad serial opaca como el cálculo paso a paso que se realiza sin un mecanismo legible para las personas, como la cadena de pensamiento. Especula que limitar esa profundidad a 10x el tamaño de los modelos actuales podría permitir ampliar el cómputo más de 10,000x bajo el paradigma Transformer actual; no presenta experimentos ni un análisis de escalado validado para este ejemplo."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No existe una métrica validada que determine cuánta información sobre el razonamiento del modelo se conserva en la cadena de pensamiento visible entre modelos o tareas.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "El ejemplo de escalado de profundidad serial opaca y el límite propuesto no se apoyan en una arquitectura probada ni en un análisis de escalado independiente en este ensayo.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "Siguen sin resolverse los efectos relativos de los incentivos de entrenamiento, las decisiones de arquitectura y el ocultamiento deliberado sobre la transparencia de los rastros.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si las preocupaciones y propuestas de los autores se confirman, perder rastros de razonamiento legibles podría debilitar un método existente para estudiar y supervisar modelos de frontera. Sus ideas sobre medición, arquitectura y auditoría de entrenamiento son relevantes para programas de seguridad, pero el ensayo no es una demostración empírica, no define una métrica o límite validado y no representa la posición oficial de Google.",
+      "limitations": [
+        "Es un ensayo y una propuesta, no un estudio empírico, estándar técnico, regulación ni política oficial de Google; el aviso del DeepMind Institute dice que los textos reflejan las ideas de sus autores.",
+        "El ensayo propone pruebas de transparencia, pero no aporta una métrica compuesta validada, resultados de benchmark ni una estimación de monitorabilidad entre modelos.",
+        "El ejemplo de más de 10,000× de escala de cómputo con un límite de profundidad serial opaca de 10x es especulativo y el ensayo no lo respalda con un nuevo experimento de escalado.",
+        "La cadena de pensamiento legible puede ser incompleta, engañosa u ocultarse estratégicamente; los propios autores no afirman que preservarla garantice seguridad o alineación.",
+        "La evidencia externa de GPT-6 Astra y UK AISI que cita el ensayo no se volvió a evaluar de manera independiente en esta revisión."
+      ],
+      "relationships": [
+        {
+          "target_id": "FCMO-841949AEA161",
+          "type": "related"
+        }
+      ],
+      "summary": "En un ensayo del 16 de septiembre publicado por el DeepMind Institute, los responsables de seguridad de Google DeepMind Rohin Shah y Anca Dragan sostienen que la cadena de pensamiento legible puede ayudar a los investigadores a inspeccionar el comportamiento de los modelos y que su transparencia debería medirse y preservarse deliberadamente. Proponen investigar métricas de transparencia, arquitecturas transparentes y auditorías de incentivos de entrenamiento, y analizan limitar la “profundidad serial opaca” como posible herramienta de diseño. El ensayo especula que un límite de 10x el tamaño de los modelos actuales aún permitiría ampliar el cómputo más de 10,000x bajo el paradigma actual; no presenta mediciones que validen ese cálculo o prueben tal límite. El Instituto aclara que sus ensayos expresan las ideas e investigación de los autores y no deben leerse como la posición oficial de Google.",
+      "technical": {
+        "claimed_result": "El ensayo propone evaluar la transparencia de la cadena de pensamiento y conservar arquitecturas que expongan razonamientos legibles por personas; plantea la profundidad serial opaca como posible límite y ofrece un ejemplo especulativo de escalado de cómputo.",
+        "demonstrated_result": "La página del Instituto establece que el ensayo se publicó, quiénes son sus autores y qué sostiene. También aclara que los ensayos reflejan las opiniones de sus autores y no la posición oficial de Google. Esta fuente no demuestra empíricamente las propuestas ni el ejemplo cuantitativo de escalado.",
+        "mechanism": "Los autores proponen evaluar si la cadena de pensamiento ayuda a un monitor a recuperar el razonamiento del modelo, probar intentos de evasión, comprobar sensibilidad a paráfrasis, conservar arquitecturas que expongan rastros legibles y auditar incentivos de entrenamiento. La profundidad serial opaca se propone como límite a cuánto cálculo oculto paso a paso puede ocurrir sin un mecanismo legible.",
+        "regime": "Ensayo de opinión atribuido y fechado el 16 de septiembre de 2026, sobre modelos de razonamiento de frontera y posibles decisiones de diseño e investigación de seguridad. No informa un experimento nuevo, una métrica de transparencia validada, un límite arquitectónico probado ni una política oficial de Google.",
+        "strongest_baseline": "El ensayo cita la tarjeta de sistema de GPT-6 Astra de OpenAI y una evaluación de UK AI Security Institute como ejemplos de menor monitorabilidad de la cadena de pensamiento o mayor control sobre sus rastros. Son divulgaciones externas citadas; esta revisión no las reprodujo de forma independiente."
+      },
+      "title": "Ensayo del DeepMind Institute propone medir y preservar la transparencia del razonamiento",
+      "why_it_matters": "El ensayo convierte la transparencia del razonamiento en un asunto explícito de diseño y evaluación, cuando OpenAI ha informado por separado de una menor monitorabilidad de la cadena de pensamiento de GPT-6 Astra bajo presión adversarial. Medir si los rastros visibles siguen siendo informativos podría ayudar a distinguir el razonamiento supervisable de una falsa sensación de supervisión. Las propuestas y el ejemplo de escalado de cómputo son argumentos, no resultados de ingeniería validados ni política corporativa oficial."
     },
     "FCMO-454AA3F20046": {
       "claims": [
@@ -4385,6 +4496,64 @@
       "title": "Brasil vincula los incentivos fiscales para centros de datos a energía limpia, capacidad local e I+D",
       "why_it_matters": "El régimen intercambia alivio fiscal condicionado para equipos por disponibilidad de cómputo nacional, energía limpia, eficiencia hídrica e inversión local en innovación. Estos términos pueden incidir en la ubicación y economía de los centros de datos, pero aún no se midieron el gasto tributario efectivo, las autorizaciones, la construcción ni el cumplimiento. LC 237/2026 define el tratamiento de Redata bajo determinadas reglas de beneficios tributarios de 2026 y establece una obligación legal de seguimiento y evaluación, sujeta a las condiciones presupuestarias y de resultado primario; ninguna de esas disposiciones demuestra el gasto tributario ni el impacto reales."
     },
+    "FCMO-9FE0192F7A65": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan que Astronex-World-5B, un modelo de 5.351B de parámetros basado en Wan2.2-TI2V-5B, admite generación de texto/imagen a video con parámetros intrínsecos y extrínsecos de cámara, acciones continuas de 64-D e identificadores de encarnación; su versión causal usa atención causal por bloques y almacenamiento KV en caché."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El artículo informa una salida de 832×480 a 24 fps y transmisión causal en tiempo real en una sola GPU NVIDIA L20 48 GB; la receta de posentrenamiento de cinco etapas se ejecutó en dos GPU NVIDIA L20 48 GB."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En WBench Full 289, los autores informan un promedio de 70.0 (Calidad 78.3, Entorno 73.8, Interacción 47.6, Consistencia 82.4, Física 68.1). Su tabla da 68.9 para YUME 1.5 de 5B, 69.7 para Helios de 14B y 70.9 para LTX-2.3 de 22B; la comparación depende del benchmark y del protocolo."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El artículo informa resultados parciales de VBench que cubren 240/6,220 videos de texto a video y 118/5,590 de imagen a video, e identifica como limitaciones la deriva de color/estructura a largo plazo, la interacción compleja débil y la supresión de movimiento tras la destilación."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se realizó una reproducción independiente de la velocidad, las puntuaciones WBench ni el resultado del posentrenamiento en cinco etapas.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "La comparación WBench usa una evaluación de los autores frente a una instantánea de una tabla de clasificación en vivo, con distinta procedencia de hardware y modelos; no es una comparación plenamente emparejada.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "Los resultados VBench del artículo abarcan solo una pequeña fracción de ambos conjuntos oficiales de instrucciones; tampoco se mide la utilidad del control posterior.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se sostienen el rendimiento y la comparación de benchmarks informados en el artículo, un modelo de video controlable de 5B entrenado con dos GPU L20 de 48 GB y transmisión en tiempo real podría reducir las barreras para investigar modelos interactivos del mundo. Es un resultado notable en el campo, pero el protocolo, la cobertura parcial de VBench y la falta de reproducción independiente limitan las conclusiones generales.",
+      "limitations": [
+        "Todos los resultados de rendimiento y benchmarks proceden de un único informe técnico arXiv v1; en esta revisión no se reprodujeron ni se ejecutó el repositorio público.",
+        "Los resultados WBench Full usan el adaptador del artículo y un juez VLM de Volcengine Doubao; las puntuaciones de referencia provienen de una instantánea de la tabla de clasificación del 13 de septiembre de 2026, y la procedencia de hardware y entrenamiento varía entre modelos.",
+        "La cobertura de VBench es parcial: al redactarse el artículo se habían generado y puntuado 240 de 6,220 videos T2V y 118 de 5,590 videos I2V.",
+        "La puntuación de Interacción del conjunto Full es 47.6; el artículo identifica el control limitado de eventos por cambio de texto, la deriva a largo plazo, la supresión de movimiento y la fidelidad física limitada.",
+        "La ruta de salida de secuencias de acción queda reservada para posentrenamiento posterior; el artículo no demuestra éxito en tareas de conducción autónoma ni robótica, y la coherencia visual no prueba precisión física.",
+        "El proyecto usa el modelo previo Wan2.2-TI2V-5B; el número de GPU informado para el posentrenamiento no incluye todo el cómputo usado para crear el modelo base."
+      ],
+      "relationships": [],
+      "summary": "Un informe técnico de arXiv describe Astronex-World 1.0, un modelo de 5.35B parámetros basado en el modelo previo Wan2.2-TI2V-5B, con condicionamiento de cámara y acciones de 64 dimensiones. Los autores informan que su versión causal genera video 832×480 a 24 fps en tiempo real con una GPU NVIDIA L20 48 GB, después de una receta de posentrenamiento de cinco etapas ejecutada en dos GPU iguales. En la evaluación WBench Full 289 de los autores obtiene 70.0, frente a 68.9 de YUME 1.5 (también posentrenado desde el mismo modelo previo de 5B) y 69.7 de Helios de 14B; el artículo también informa una puntuación de interacción más baja y deriva a largo plazo. Son resultados informados en el artículo, no hallazgos reproducidos de forma independiente.",
+      "technical": {
+        "claimed_result": "Los autores informan un modelo de video de 5.351B con condicionamiento de cámara/acción y transmisión causal en tiempo real a 832×480, 24 fps en una GPU L20 48 GB, además de un promedio de 70.0 en WBench Full 289 tras posentrenamiento con dos GPU L20 48 GB.",
+        "demonstrated_result": "El informe arXiv v1 inspeccionado documenta la arquitectura, el protocolo, los resultados de benchmarks informados por los autores y las limitaciones declaradas. El equipo de investigación no ejecutó la implementación ni verificó de forma independiente la velocidad o las puntuaciones.",
+        "mechanism": "El sistema adapta el modelo previo de video Wan2.2-TI2V-5B con geometría de cámara PRoPE, modulación por capa a partir de una secuencia de acción 64-D e identificador de encarnación, y convierte un modelo bidireccional en otro causal por bloques con almacenamiento KV entre bloques y muestreo UniPC de pocos pasos. Un proceso de cinco etapas añade adaptación al control, conversión causal, destilación de trayectorias, ajuste fino causal con dominios mixtos y DMD asimétrico.",
+        "regime": "Astronex-World-5B (5.351B parámetros), modelo previo Wan2.2-TI2V-5B; inferencia causal a 832×480/24 fps en una NVIDIA L20 48 GB; posentrenamiento de cinco etapas en dos GPU L20 48 GB; WBench Full 289 y ejecuciones parciales de VBench.",
+        "strongest_baseline": "En la comparación WBench Full 289 del artículo (instantánea de la tabla de clasificación del 2026-09-13), Astronex-World obtiene 70.0 frente a 68.9 de YUME 1.5, 69.9 de LongCat-Video, 69.7 de Helios de 14B y 70.9 de LTX-2.3 de 22B. El artículo indica que YUME se posentrenó desde el mismo modelo previo Wan2.2 de 5B; la procedencia de evaluación y hardware difiere, así que no es una comparación controlada y emparejada."
+      },
+      "title": "Artículo informa que un modelo controlable de video de 5B transmite a 24 fps en una L20",
+      "why_it_matters": "Si se reproduce, la generación de video con control de cámara/acción, transmisión causal y el rendimiento WBench informado para un modelo de 5B posentrenado en dos GPU L20 podría hacer más accesibles los experimentos con modelos interactivos del mundo. Las comparaciones dependen del protocolo: WBench Full usa evaluación de los autores y un juez VLM, mientras la cobertura de VBench solo abarca 240 de 6,220 instrucciones de texto a video y 118 de 5,590 de imagen a video. El artículo no demuestra simulación física fiable ni control robótico o de conducción."
+    },
     "FCMO-A1C76302F316": {
       "claims": [
         {
@@ -5469,6 +5638,63 @@
       },
       "title": "Anthropic lanza Haiku 5.5 con mejoras reportadas en uso de computadoras y menores precios por token",
       "why_it_matters": "Un modelo pequeño con mejoras reportadas en uso de computadoras y otros benchmarks de agentes, a precios por token mucho menores, podría ampliar los flujos de agentes de alto volumen. Que reduzca el costo por tarea completada depende de comparar de forma equivalente el rendimiento, el esfuerzo, la latencia, el uso de tokens y las herramientas; aún se necesitan evaluaciones independientes."
+    },
+    "FCMO-D32D8204EF09": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "OpenAI indica que GPT-6 con Intelligent UI comenzó su despliegue global en los planes ChatGPT Plus, Pro, Business y Enterprise el 7 de octubre, y que Free y Go comenzarían el 8 de octubre; el acceso Enterprise depende de la configuración administrativa. El anuncio dice que Codex y ChatGPT Work mantienen las versiones anteriores."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "OpenAI describe Intelligent UI como una función que permite a GPT-6 combinar texto, elementos visuales e interactivos, incluidos gráficos, botones, formularios y experiencias específicas para tareas, que se muestran progresivamente mientras se genera la respuesta."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "La tarjeta de sistema de octubre de OpenAI informa regresiones estadísticamente significativas para GPT-6 Sol en evaluaciones estándar de autolesión y para GPT-6 Luna en autolesión, gore y contenido sexual frente a sus versiones GPT-5.6 correspondientes. También informa regresiones en evaluaciones seleccionadas para menores de 18 años; la empresa dice que las puntuaciones no reflejan bloqueos adicionales mediante clasificadores."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "La tarjeta de sistema clasifica GPT-6 Sol y Luna de octubre como de capacidad Alta, pero inferior a Crítica, en ciberseguridad y dominios biológico/químicos, y por debajo del umbral Alto en automejora de IA según el Marco de Preparación de OpenAI. Son evaluaciones y umbrales internos de OpenAI."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se realizó una evaluación independiente de las interfaces generadas, la finalización de tareas, la corrección, la accesibilidad ni los resultados comparativos para usuarios.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "Las evaluaciones de seguridad y capacidad de la tarjeta de sistema son de OpenAI; esta revisión no establece su validez externa ni las tasas de uso en el despliegue.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "Se anuncia el calendario del despliegue global, pero no se comprobó de forma independiente su alcance, disponibilidad ni denominador de adopción.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si el despliegue y el comportamiento de interfaz descritos funcionan como se anunció, las interfaces interactivas compuestas por un modelo en un asistente de distribución global podrían cambiar de forma material cómo la gente accede a software para tareas específicas. La tarjeta de seguridad del mismo lanzamiento revela regresiones en evaluaciones seleccionadas, lo que vuelve relevante el despliegue y su supervisión; las afirmaciones siguen siendo del proveedor.",
+      "limitations": [
+        "El despliegue, las funciones de interfaz, las comparaciones de tiempo y los resultados de seguridad fueron divulgados por OpenAI; esta revisión no los probó de forma independiente ni midió la adopción.",
+        "Las evaluaciones difíciles tipo producción de la tarjeta de sistema se seleccionaron intencionalmente y no estiman el comportamiento medio en producción; la mayoría de los resultados del modelo sin salvaguardas del sistema excluyen esas protecciones.",
+        "La tarjeta informa regresiones estadísticamente significativas en algunas evaluaciones de autolesión, gore, contenido sexual y menores de 18 años, junto con mejoras en otros aspectos. Indica que las salvaguardas adicionales por clasificador para adolescentes no aparecen en las puntuaciones.",
+        "Los modelos GPT-6 de octubre en ChatGPT son distintos de las versiones GPT-6 Sol/Luna de septiembre que aún se usan en Codex y ChatGPT Work; no se deben trasladar entre versiones las afirmaciones de evaluación o disponibilidad.",
+        "El anuncio describe la generación de componentes y el renderizado progresivo, pero no ofrece una evaluación independiente de la corrección, accesibilidad, fiabilidad o resultados comparativos para usuarios."
+      ],
+      "relationships": [],
+      "summary": "OpenAI anunció que GPT-6 con Intelligent UI se está desplegando globalmente en ChatGPT: primero en los planes de pago el 7 de octubre y luego en Free y Go el 8 de octubre. La empresa dice que GPT-6 puede componer respuestas con texto, elementos visuales y componentes interactivos como gráficos, botones y formularios, y transmitir estas interfaces progresivamente. Esta actualización de ChatGPT no cambia los modelos usados en Codex ni ChatGPT Work. La tarjeta de sistema de octubre de OpenAI informa mejoras en algunas evaluaciones y regresiones estadísticamente significativas en pruebas seleccionadas de autolesión y seguridad de adolescentes; son resultados del proveedor, no evaluaciones independientes.",
+      "technical": {
+        "claimed_result": "OpenAI informa un despliegue global en ChatGPT de GPT-6 con interfaces interactivas generadas, renderizado progresivo y respuestas transmitidas, junto con una tarjeta de sistema de octubre que documenta mejoras, regresiones y clasificaciones de capacidad en evaluaciones.",
+        "demonstrated_result": "Las páginas oficiales establecen el anuncio de OpenAI, el calendario declarado del despliegue, la descripción del producto y las divulgaciones de la tarjeta de sistema. El equipo de investigación no probó de forma independiente la interfaz, el alcance del despliegue, las evaluaciones de seguridad ni las valoraciones de capacidad.",
+        "mechanism": "OpenAI dice que GPT-6 compone respuestas con texto, elementos visuales y componentes interactivos de una biblioteca nativa, mientras un compilador muestra progresivamente la interfaz a medida que se genera. El anuncio también describe el razonamiento intercalado con respuestas parciales.",
+        "regime": "Despliegue del producto ChatGPT anunciado por OpenAI el 7 de octubre de 2026 y tarjeta de sistema GPT-6 Sol/Luna de octubre. El lanzamiento declarado se aplica a ChatGPT; Codex y ChatGPT Work mantienen versiones anteriores. Las puntuaciones de seguridad usan evaluaciones internas difíciles, normalmente sin salvaguardas del sistema; la tarjeta advierte que las tasas de error no representan el tráfico medio en producción.",
+        "strongest_baseline": "OpenAI compara GPT-6 de octubre con GPT-5.6 en evaluaciones internas de tiempo, tareas y seguridad. El anuncio informa que GPT-6 Instant comienza las respuestas con búsqueda web 44% antes, en promedio, que GPT-5.6 Instant; la tarjeta de sistema incluye regresiones y mejoras de seguridad seleccionadas. Son comparaciones del proveedor con evaluaciones cambiantes, no resultados independientes y emparejados."
+      },
+      "title": "OpenAI amplía GPT-6 globalmente en ChatGPT con interfaces interactivas generadas por modelos",
+      "why_it_matters": "Un asistente desplegado globalmente que genera interfaces específicas para cada tarea podría cambiar cómo las personas trabajan con software, mientras que la tarjeta de sistema muestra que una actualización puede mejorar algunas medidas de seguridad y empeorar otras. El anuncio establece lo que OpenAI dice haber desplegado y el calendario declarado; no demuestra de forma independiente la calidad de las interfaces, el beneficio para usuarios, la adopción ni las tasas de seguridad en el mundo real."
     },
     "FCMO-D50A7F20FD35": {
       "claims": [
