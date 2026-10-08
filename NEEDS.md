@@ -264,3 +264,36 @@ verification are complete; a local build cannot truthfully update it.
 - **Publicación pública:** conservar dry-run hasta demostrar las dos identidades
   personales de GitHub, protecciones, backup y el recorrido PR/Pages/origen live
   descrito en la activación existente. No añadir bypass humano ni cambiar gates.
+
+## L40 — renderer bloqueado por el corpus actual tras integrar main
+
+- **Dónde:** `tools/paper/search_index.py:43`, llamado por
+  `tools/paper/build.py:856`. El código es idéntico a `origin/main` en `f683aa2`;
+  estos archivos del generador no se modificaron en la lane de Studio.
+- **Qué y evidencia:** los 68 stories live del corpus actual producen índices
+  de EN=166155, ES=187049 y ZH=205362 bytes; los tres exceden 153600 bytes.
+  El build aborta y las vistas previas reales responden 503. La suite Studio
+  tiene seis casos afectados, incluyendo publicación bare e identidad byte
+  por byte. La prueba anterior con el corpus de `9468c9e` no acredita este estado.
+- **Cambio requerido del dueño del generador:** compactar la serialización del
+  índice para el corpus real y su crecimiento, resolviendo la duplicación de
+  campos de búsqueda humana y compatibilidad de agentes. Conservar los 150 KiB,
+  cobertura de todos los stories, locales y contratos de consumidores. No subir
+  el límite, quitar stories ni cambiar las aserciones para hacer pasar la suite.
+  El diseño concreto de compatibilidad debe resolverlo la lane del generador.
+- **Reproducción y aceptación:** ejecutar
+  `python3 -m unittest tests.test_studio_preview tests.test_studio_integration tests.test_studio_live tests.test_studio_translation tests.test_studio_email_seam`
+  y el build real de `tools/paper/build.py` con Story/status actuales. Después
+  repetir toda la suite Studio y el recorrido del launcher con navegador.
+
+## L40 — Chromium disponible para repetir la batería actual
+
+- **Dónde:** configuración externa del runner de Playwright. El módulo de Node
+  acordado existe; su Chromium headless build 1243 no está montado en esta sesión.
+- **Cambio exacto:** montar el ejecutable existente y configurar `CHROME_PATH`
+  con su ruta, o montar el cache completo y configurar
+  `PLAYWRIGHT_BROWSERS_PATH`. No instalar dependencias desde esta lane.
+- **Aceptación pendiente:** repetir `tests.harness.studio_host_journey` después
+  de reparar el renderer; las 46 imágenes existentes son de la ejecución previa.
+  Los recibos actuales registran `completed: false` y no acreditan esas imágenes
+  para el corpus nuevo.

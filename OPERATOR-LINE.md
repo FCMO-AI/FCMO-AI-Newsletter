@@ -3,6 +3,11 @@
 URL para compartir: **https://fcmo-hub.tail8cbe0b.ts.net:8447/**.
 Backend exclusivo: **127.0.0.1:8490**. No se instala el servicio desde esta lane.
 
+La revalidación actual de [CR-L40.md](CR-L40.md) encontró el renderer bloqueado
+por el tamaño del índice de búsqueda. Reparar el generador y repetir la suite
+Studio y el recorrido con navegador antes de ejecutar la activación; health y
+los assets por sí solos no prueban que una vista previa funcione.
+
 Una vez preparado el entorno y las dos cuentas locales, ejecutar esta única línea
 desde la raíz de este checkout, en la sesión de host de `fcmo-agent` que tenga
 el permiso de operador de Tailscale:
