@@ -12,6 +12,15 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class NativeAdmission(unittest.TestCase):
+    def test_independent_oracle_detects_nested_and_nonidentical_english(self):
+        from tests.test_localization_completeness import independent_pair_incomplete
+        source = {'technical': {'claimed_result': 'An independent evaluation has not been published.'}}
+        for locale in ('es-419', 'zh-Hans'):
+            self.assertTrue(independent_pair_incomplete(source, source, locale))
+            self.assertTrue(independent_pair_incomplete(source, {
+                'technical': {'claimed_result': 'The model is a system that has not been evaluated by the team.'}
+            }, locale))
+            self.assertTrue(independent_pair_incomplete(source, {'technical': {}}, locale))
     def test_useful_audit_is_normalized_and_labelled_in_three_languages(self):
         row = json.loads((ROOT / 'contracts/fixtures/corpus-44/data/developments.jsonl').read_text().splitlines()[0])
         row.update(importance_tier='Useful', importance_score=3, importance_effective_score=3,
