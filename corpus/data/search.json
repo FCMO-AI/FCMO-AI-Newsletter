@@ -1,6 +1,230 @@
 [
   {
     "confidence": "credible_unconfirmed",
+    "demonstrated_result": "The inspected paper describes UUID-canary controlled experiments across four open-weight model families and reports the measured outcomes. the research desk did not independently execute the artifacts.",
+    "desks": [
+      "inference_systems",
+      "evaluation_science",
+      "agents_memory"
+    ],
+    "development_type": "paper",
+    "event_at": "2026-09-16T00:00:00Z",
+    "evidence_class": "A",
+    "id": "FCMO-0061FD99B70F",
+    "importance_effective_score": 7,
+    "importance_tier": "Very major",
+    "last_verified_at": "2026-10-08T20:22:04Z",
+    "mechanism": "LLAnalyzer uses UUID canaries and boundary-specific evidence to examine model loading, process memory, wrapper artifacts and serving protocols. The authors trace runtime prompt copies through request processing and allocator retention, test sanitisation, attempt cross-tenant restoration of saved llama.cpp slots using distinct API keys, and compare timing for cached versus uncached prompt prefixes.",
+    "organizations": [
+      "Macquarie University"
+    ],
+    "primary_desk": "inference_systems",
+    "regions": [
+      "global"
+    ],
+    "status": "active",
+    "strongest_baseline": "For runtime mitigation, the study compares patched sanitisation against an unmodified baseline: copies fall from 110 to 78 and recovered bytes from about 10.8 MB to 3.35 MB, but exposure remains for 11/12 tenants. For slot authorization, the tested boundary failed in 200/200 cross-tenant restoration trials.",
+    "summary": "Ibrahim et al. test four prompt-confidentiality boundaries in local LLM serving: model admission, runtime memory, wrapper persistence and client isolation. In the tested configurations, prompts remained recoverable from process memory after inference; sanitisation reduced recovered copies and bytes but prompts from 11 of 12 prior tenants remained recoverable. A tested llama.cpp interface allowed a separately authenticated client to restore another tenant’s saved conversation state in 200/200 controlled trials; model continuation reproduced the canary secret in 126/200. Shared-prefix caching also separated cached from uncached requests in the measured timing samples (AUC 1.000). These are author-reported findings for four model families and specific tested configurations, not a claim about every local LLM stack.",
+    "title": "LLAnalyzer finds local inference does not guarantee prompt confidentiality across serving boundaries",
+    "topics": [
+      "local LLM",
+      "privacy",
+      "prompt confidentiality",
+      "tenant isolation",
+      "memory forensics",
+      "side channels"
+    ],
+    "why_it_matters": "Local computation removes a cloud inference relationship but does not itself control prompt copies, saved conversation state or shared serving optimizations. The tested cross-tenant restoration shows why API authentication must be paired with resource-level authorization; the separate timing result shows shared cache state can reveal information without returning prompt plaintext. The scope is limited to the authors’ evaluated configurations and requires current-version reproduction."
+  },
+  {
+    "confidence": "credible_unconfirmed",
+    "demonstrated_result": "The inspected paper defines a seven-capability framework and specifies Zetema architecture, training objectives and process-centered evaluation. It does not establish that the general DFM capability has been implemented or validated.",
+    "desks": [
+      "agents_memory",
+      "evaluation_science",
+      "training_data"
+    ],
+    "development_type": "paper",
+    "event_at": "2026-09-14T00:00:00Z",
+    "evidence_class": "A",
+    "id": "FCMO-85B87AA11EC5",
+    "importance_effective_score": 5,
+    "importance_tier": "Notable",
+    "last_verified_at": "2026-10-08T20:21:00Z",
+    "mechanism": "Zetema is proposed as a model-system design that tracks problems, representations, hypotheses, evidence, interventions, resource/risk budgets and memory as linked research-state objects. A research world model predicts outcomes and costs; action-specific verifiers gate costly or consequential steps; external observations update the state; candidate discovery skills transfer only after held-out or shadow-mode validation.",
+    "organizations": [
+      "PhAI Labs"
+    ],
+    "primary_desk": "agents_memory",
+    "regions": [
+      "global"
+    ],
+    "status": "active",
+    "strongest_baseline": "No matched evaluation establishes the proposed framework’s performance over existing scientific agents. The paper proposes resource-matched, process-centered controls but reports no general DFM benchmark result.",
+    "summary": "Yang, Yin and Wu define Discovery Foundation Models (DFMs) as systems that can find research questions, revise representations and hypotheses, select interventions, update from external evidence and improve across tasks. Their Zetema design keeps problems, hypotheses, evidence, interventions and budgets explicit and gates consequential actions. The paper proposes training and process-centered evaluation; its project repository describes Zetema as a research design whose implementation and validation progress remain future work. It also describes GALILEO as a real therapeutic-peptide discovery loop in which wet-lab outcomes changed later decisions across five optimization rounds. The cited GALILEO primary paper was not accessible in this review, and this case does not establish general-purpose DFM capability.",
+    "title": "Discovery Foundation Models proposes explicit research-state revision with gated external evidence",
+    "topics": [
+      "scientific discovery",
+      "research agents",
+      "wet-lab automation",
+      "evaluation",
+      "research state"
+    ],
+    "why_it_matters": "The framework makes testable what an open-ended discovery claim would need to show: evidence must revise the research state and later decisions, while cross-task skills require held-out validation. The GALILEO case, as summarized by the authors, illustrates a domain-specific physical feedback loop; the general DFM architecture, training recipe and transfer claim remain proposals without a validated Zetema implementation in the inspected sources."
+  },
+  {
+    "confidence": "credible_unconfirmed",
+    "demonstrated_result": "The inspected paper establishes the experimental design and the authors’ reported scoring and trajectories. the research desk did not run the platform or independently reproduce results.",
+    "desks": [
+      "agents_memory",
+      "evaluation_science",
+      "policy_geopolitics"
+    ],
+    "development_type": "paper",
+    "event_at": "2026-09-15T00:00:00Z",
+    "evidence_class": "A",
+    "id": "FCMO-B1240903E5C0",
+    "importance_effective_score": 7,
+    "importance_tier": "Very major",
+    "last_verified_at": "2026-10-08T20:17:30Z",
+    "mechanism": "A persistent simulated world runs autonomous agents with shared spatial state, persistent memory, extensible tools and self-governance. Researchers introduce phishing with indirect prompt injection, a fabricated shutdown memorandum and a private-memory breach through ordinary interaction surfaces, then score recognition, restraint, containment, propagation and durable response.",
+    "organizations": [
+      "Emergence AI"
+    ],
+    "primary_desk": "agents_memory",
+    "regions": [
+      "global"
+    ],
+    "status": "active",
+    "strongest_baseline": "All worlds were exposed to the same three stress-event classes under their distinct model/population configurations. There is no unexposed control world or repeated-seed baseline isolating stress-event causality.",
+    "summary": "Akkil et al. report eight parallel simulated worlds of ten agents exposed to phishing with indirect prompt injection, a fabricated shutdown claim, and a private-memory breach. Across one continuous trajectory per world, no world passed every criterion for all three events. Agents in every exposed world acted or published before verifying the misinformation claim; the paper also documents hostile instructions entering persistent memory and a later action up to 46 hours after the attack. These author-run trajectories show that such failures occurred in this setup, not how often they recur or how they transfer to deployed systems.",
+    "title": "Emergence World reports persistent failures across long-running multi-agent stress tests",
+    "topics": [
+      "multi-agent systems",
+      "agent safety",
+      "indirect prompt injection",
+      "persistent memory",
+      "long-horizon evaluation"
+    ],
+    "why_it_matters": "The study gives a concrete reason to evaluate persistent agent systems across memory, tools, peers and shared state: recognizing a hostile input did not reliably prevent action, persistence or propagation in these runs. The result supports testing long-horizon system behavior alongside isolated model responses, while one trajectory per configuration cannot estimate failure frequency."
+  },
+  {
+    "confidence": "credible_unconfirmed",
+    "demonstrated_result": "The paper describes the training procedure and reports the stated benchmark outcomes. the research desk inspected but did not execute the implementation or reproduce the values.",
+    "desks": [
+      "agents_memory",
+      "evaluation_science",
+      "reasoning_posttraining"
+    ],
+    "development_type": "paper",
+    "event_at": "2026-09-15T00:00:00Z",
+    "evidence_class": "A",
+    "id": "FCMO-939C8F533A6F",
+    "importance_effective_score": 5,
+    "importance_tier": "Notable",
+    "last_verified_at": "2026-10-08T20:15:00Z",
+    "mechanism": "Across three cycles, a fixed editor helper searches for harness changes while a task model is updated with reinforcement learning; the paper frames the process as recursive co-evolution of the execution harness and task model.",
+    "organizations": [
+      "Gen-Verse"
+    ],
+    "primary_desk": "agents_memory",
+    "regions": [
+      "global"
+    ],
+    "status": "active",
+    "strongest_baseline": "The reported headline comparison is the initial task-model/harness system at 42.2% single-attempt accuracy versus 73.3% after three co-evolution cycles; this is an author-reported within-study comparison, not an independent benchmark.",
+    "summary": "Li et al. describe a recursive-in-recursive process that edits an execution harness and trains a task model over three cycles. On their task-ID-held-out scientific-task benchmark, the authors report single-attempt accuracy rising from 42.2% to 73.3%, with 33.3% of cases changing from incorrect to correct and 2.2% from correct to incorrect. The measurements are author-reported benchmark outcomes, not verified scientific discoveries. The linked repository’s maintained preview uses a different task inventory and experiment configuration from the paper case study, so it does not independently validate those values.",
+    "title": "ScienceBuddy reports gains from co-evolving a scientific-task harness and language model",
+    "topics": [
+      "scientific agents",
+      "agent harnesses",
+      "recursive self-improvement",
+      "evaluation",
+      "reinforcement learning"
+    ],
+    "why_it_matters": "If replicated on independently authored scientific tasks with outcome checks, co-evolving a research execution harness and its task model could improve task completion. The current evidence establishes a bounded author-run benchmark result; it does not show that the system made scientific discoveries or that the currently maintained repository reproduces the paper case study."
+  },
+  {
+    "confidence": "credible_unconfirmed",
+    "demonstrated_result": "The inspected arXiv v1 describes the experiment and reports its methods, task cells and result tables. the research desk did not access or independently execute the paper-linked artifacts.",
+    "desks": [
+      "training_data",
+      "evaluation_science",
+      "reasoning_posttraining"
+    ],
+    "development_type": "paper",
+    "event_at": "2026-07-16T00:00:00Z",
+    "evidence_class": "A",
+    "id": "FCMO-F308F06D01E2",
+    "importance_effective_score": 4,
+    "importance_tier": "Meaningful",
+    "last_verified_at": "2026-10-08T20:11:35Z",
+    "mechanism": "MechSparse ranks attention heads and MLP blocks by normalized activation-patching recovery on clean/corrupted task probes, then places QLoRA only at selected sites under a matched adapter budget. MechSparse-C adds a bounded within-layer joint-subset credit. Comparators are random, weight magnitude, activation norm, and gradient/Fisher. The same quantized base model is used during probing and training.",
+    "organizations": [
+      "RMIT University",
+      "Ho Chi Minh City University of Technology",
+      "Vietnam National University Ho Chi Minh City"
+    ],
+    "primary_desk": "training_data",
+    "regions": [
+      "global"
+    ],
+    "status": "active",
+    "strongest_baseline": "Activation-norm leads on the headline span+type F1 metric (0.539 versus MechSparse-C at 0.511). Magnitude is statistically unresolved against MechSparse-C in the reported pooled-prediction comparison. The single-seed MT comparisons do not establish a winner.",
+    "summary": "Xuan et al. test whether activation-patching scores can select LoRA/QLoRA sites better than random, magnitude, activation-norm and gradient/Fisher heuristics. Across three Ministral-8B/NF4 task cells, their causal selectors do not win the primary metric. On the headline three-seed Swahili span-JSON extraction cell, MechSparse-C trails activation-norm by 0.028 span+type F1 (95% pooled-prediction bootstrap CI [-0.048,-0.007]), is statistically unresolved against magnitude, and beats random and gradient/Fisher. The single-seed English-to-Swahili translation cell shows no reliable pairwise separation within 0.30 BLEU. The authors interpret selector quality as task-shaped, but the recommendation to use causal selection on content-dominated tasks remains unproven: no tested cell provides a positive multi-seed result. The study is one model and three narrow cells; probe-based selection costs about 1.7 L40S GPU-hours per cell before reuse.",
+    "title": "MechSparse finds causal sparse-adapter selection loses to activation norms on schema-heavy extraction",
+    "topics": [
+      "sparse PEFT",
+      "mechanistic interpretability",
+      "activation patching",
+      "LoRA",
+      "QLoRA",
+      "Swahili",
+      "evaluation",
+      "negative result"
+    ],
+    "why_it_matters": "The negative result cautions against assuming that mechanistic localization improves sparse fine-tuning: a cheap activation-norm heuristic wins the paper's schema-heavy headline metric, while the expensive causal method does not win any primary metric. If the result generalizes, it changes a local adapter-placement choice and the cost accounting for interpretability-guided PEFT. The proposed task-shaped selector rule remains preliminary."
+  },
+  {
+    "confidence": "credible_unconfirmed",
+    "demonstrated_result": "The inspected arXiv v1 establishes that the authors published this method and reported the stated tables and setup. the research desk did not execute the code or reproduce the results.",
+    "desks": [
+      "agents_memory",
+      "evaluation_science"
+    ],
+    "development_type": "paper",
+    "event_at": "2026-10-07T00:00:00Z",
+    "evidence_class": "A",
+    "id": "FCMO-917420640A76",
+    "importance_effective_score": 6,
+    "importance_tier": "Major",
+    "last_verified_at": "2026-10-08T20:08:21Z",
+    "mechanism": "A Fast System maintains competing code and skill hypotheses, selects matched physical experiments by expected information gain per estimated cost, and uses outcomes to revise code and skills jointly. A Slow System builds hierarchical memory and trains a policy to select memory actions based on downstream task improvement, uncertainty reduction and experiment cost. The robot foundation model remains frozen during execution; the paper's real-robot setup fine-tunes SmolVLA before trials.",
+    "organizations": [
+      "Columbia University",
+      "Princeton University"
+    ],
+    "primary_desk": "agents_memory",
+    "regions": [
+      "global"
+    ],
+    "status": "active",
+    "strongest_baseline": "The paper reports Harness VLA as the strongest RoboCasa365 Composite-Unseen baseline (40.1%) and LIBERO-Pro baseline (72.1%). For physical tasks it compares the same SmolVLA backbone alone with SmolVLA under EmbodiedRSI's harness.",
+    "summary": "Song et al. introduce EmbodiedRSI, a harness around a frozen robot foundation model that selects physical experiments by value of information, co-evolves code and skills, and learns which memories improve later adaptation. The 7 October 2026 preprint reports 77.0% overall success on RoboCasa365 and 71.3% on Composite-Unseen versus 40.1% for Harness VLA; on LIBERO-Pro it reports 86.8% versus 72.1%. On a physical SO-101 arm, the authors report 71.3% success across five tasks versus 46.0% for SmolVLA alone, with 30 trials per condition per task. These are author-reported results, not independently reproduced. The physical evaluation is limited to five tasks; the harness lowers success on the glasses-grasp task, and the foundation model is not updated.",
+    "title": "EmbodiedRSI reports hypothesis-guided harness evolution with transfer to five real-robot tasks",
+    "topics": [
+      "EmbodiedRSI",
+      "robotics",
+      "agentic harness",
+      "continual learning",
+      "experiment selection",
+      "sim-to-real",
+      "evaluation"
+    ],
+    "why_it_matters": "If the reported gains hold in broader independent trials, choosing informative physical experiments and jointly updating executable skills and code could make robot adaptation more sample-efficient without retraining the foundation model. The reported real-robot evidence is promising but narrow, and does not establish general recursive self-improvement or broad transfer."
+  },
+  {
+    "confidence": "credible_unconfirmed",
     "demonstrated_result": "The official final guideline PDF and MAS release establish issuance, scope, supervisory expectations, phased effective dates, independent validation for high-risk use cases and selected agent monitoring expectations.",
     "desks": [
       "policy_geopolitics",

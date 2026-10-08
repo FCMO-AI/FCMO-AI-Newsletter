@@ -2,6 +2,72 @@
   "canonical_locale": "en",
   "locale": "es-419",
   "records": {
+    "FCMO-0061FD99B70F": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "El artículo define cuatro límites de confidencialidad para servicios locales de LLM: integridad del modelo, vida de datos en memoria, persistencia de aplicaciones y aislamiento entre clientes, y describe experimentos LLAnalyzer para medirlos por separado."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En las configuraciones probadas, los autores reportan que los prompts seguían recuperables de la memoria tras la inferencia; una secuencia de doce usuarios dejó recuperables datos de 11. La sanitización redujo las copias de 110 a 78 y el volumen de unos 10.8 MB a 3.35 MB, pero no cambió la exposición de 11/12 usuarios."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En 200 ensayos controlados con cuatro familias de modelos, un cliente con una clave API válida y distinta restauró el estado de conversación guardado de otro usuario en llama.cpp en 200/200 ensayos. La continuación reprodujo el secreto canario en 126/200 ensayos."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En la configuración probada de caché compartido de prefijos, las solicitudes almacenadas y no almacenadas se separaron por completo en las muestras temporales medidas para cada uno de cuatro modelos (AUC 1.000); los autores advierten que eso no establece el mismo resultado en cualquier red, carga o configuración."
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "Los autores no reportan bypass del analizador, carga malformada ni violaciones de sanitizadores en los artefactos y la campaña de fuzzing de 24 horas con más de 1.2×10^7 ejecuciones; este resultado negativo se limita al espacio de entrada y versiones explorados."
+        }
+      ],
+      "contradictory_evidence": [
+        "El artículo no reporta bypass del analizador ni violaciones de seguridad de memoria en las pruebas acotadas de admisión de modelos; esto limita la afirmación de que hubiera fallas en todos los límites.",
+        "La sanitización redujo el residuo de memoria y el costo temporal medido quedó por debajo de aproximadamente 0.5%, aunque siguieron recuperables prompts de 11 de 12 usuarios.",
+        "El secreto se reprodujo en 126/200 continuaciones, menos que las 200/200 restauraciones del estado subyacente; la tasa de generación no debilita la falla de autorización misma.",
+        "Los hallazgos corresponden a las configuraciones evaluadas y no establecen prevalencia en todos los servicios locales ni en versiones actuales."
+      ],
+      "evidence_gaps": [
+        {
+          "description": "Esta revisión no reprodujo los resultados ni comprobó el comportamiento de versiones actuales o el estado de corrección.",
+          "kind": "missing_independent",
+          "state": "open",
+          "updated_at": "2026-10-08T20:22:04Z"
+        },
+        {
+          "description": "Las pruebas cubren cuatro familias de modelos abiertos y dos plataformas de consumo bajo configuraciones definidas; se desconoce el comportamiento en otras pilas, hardware, esquemas de autenticación y redes.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-08T20:22:04Z"
+        }
+      ],
+      "importance_rationale": "Si servicios locales comunes retienen prompts o permiten restauración entre usuarios, se pueden exponer datos sensibles aunque la inferencia ocurra en el dispositivo. La calificación 7 refleja consecuencias importantes de confidencialidad y fallas concretas en pruebas controladas; la evidencia procede de un artículo, cuatro familias de modelos y configuraciones probadas, sin reproducción independiente ni estado actual de corrección verificado.",
+      "limitations": [
+        "Las mediciones son reportadas por los autores; esta revisión no ejecutó LLAnalyzer ni las reprodujo de manera independiente.",
+        "Los hallazgos se aplican a las cuatro familias abiertas, dos plataformas y versiones/configuraciones específicas estudiadas, no a todo despliegue local de LLM.",
+        "El resultado 200/200 se refiere al acceso al estado guardado en la configuración llama.cpp probada; 126/200 mide divulgación generada por el modelo tras la restauración.",
+        "AUC 1.000 describe las muestras temporales medidas y no demuestra la misma filtración bajo cualquier red, carga o despliegue.",
+        "El resultado negativo del analizador se limita a entradas malformadas exploradas y a una campaña finita de fuzzing de 24 horas; no demuestra seguridad universal.",
+        "El artículo informa divulgación responsable y artefactos publicados, pero no se verificó el estado actual de las correcciones."
+      ],
+      "relationships": [],
+      "summary": "Ibrahim et al. prueban cuatro límites de confidencialidad en servicios locales de LLM: admisión de modelos, memoria de ejecución, persistencia de aplicaciones y aislamiento de clientes. En las configuraciones estudiadas, los prompts siguieron recuperables de la memoria tras la inferencia; la sanitización redujo copias y bytes, pero permanecieron recuperables prompts de 11 de 12 usuarios previos. Una interfaz de llama.cpp probada permitió que un cliente autenticado por separado restaurara la conversación guardada de otro usuario en 200/200 ensayos controlados; la continuación del modelo reprodujo el secreto canario en 126/200. El caché compartido de prefijos también separó las solicitudes almacenadas de las no almacenadas en las muestras temporales medidas (AUC 1.000). Son hallazgos de los autores para cuatro familias de modelos y configuraciones específicas, no una afirmación sobre todos los sistemas locales.",
+      "technical": {
+        "claimed_result": "Los autores reportan que tras atender a doce usuarios sucesivos seguían recuperables prompts de 11/12. La sanitización redujo copias de 110 a 78 y datos de unos 10.8 MB a 3.35 MB, pero no eliminó la exposición por usuario. Otro usuario autenticado restauró el estado en 200/200 ensayos; el secreto canario apareció en 126/200 respuestas. La medición de prefijos compartidos obtuvo AUC 1.000 en las muestras para cuatro modelos.",
+        "demonstrated_result": "El artículo inspeccionado describe experimentos controlados con UUID canarios en cuatro familias de modelos abiertos y reporta estos resultados. No se ejecutaron los artefactos de forma independiente.",
+        "implementation_status": "Los autores dicen haber publicado LLAnalyzer, arneses, configuraciones, scripts de análisis, parches y artefactos. Esta revisión no los ejecutó ni comprobó correcciones actuales.",
+        "mechanism": "LLAnalyzer usa canarios UUID y evidencia específica de cada límite para estudiar carga del modelo, memoria del proceso, artefactos de aplicaciones y protocolos de servicio. Los autores rastrean copias del prompt y retención del asignador, prueban sanitización, intentan restaurar espacios llama.cpp entre clientes con claves distintas y comparan tiempos de prefijos almacenados y no almacenados.",
+        "regime": "Cuatro familias de modelos GGUF Q4_K_M abiertos y dos plataformas locales de consumo en configuraciones Linux controladas. Las pruebas entre usuarios usan dos clientes autenticados por separado en una instancia llama.cpp; el análisis temporal usa 50 mediciones almacenadas y 50 no almacenadas por modelo.",
+        "reproducibility": "El artículo describe canarios UUID, artefactos de software/modelo fijos y controles; también informa que publicó artefactos. Esta revisión no hizo reproducción independiente ni comprobación de versiones actuales.",
+        "strongest_baseline": "Para la mitigación de memoria, se compara sanitización parcheada con una línea base sin parche: copias bajan de 110 a 78 y bytes de unos 10.8 MB a 3.35 MB, pero persiste exposición para 11/12 usuarios. La autorización de espacios falló en 200/200 restauraciones entre clientes."
+      },
+      "title": "LLAnalyzer muestra que la inferencia local no garantiza confidencialidad de prompts entre límites del servicio",
+      "why_it_matters": "La ejecución local elimina una relación con un proveedor de nube, pero no controla las copias del prompt, el estado de conversación guardado ni las optimizaciones compartidas del servicio. La restauración entre usuarios probada muestra por qué la autenticación de API requiere autorización por recurso; el resultado temporal separado indica que el estado compartido de caché puede revelar información sin devolver el texto del prompt. El alcance se limita a las configuraciones evaluadas y requiere reproducción en versiones actuales."
+    },
     "FCMO-045BB8282222": {
       "claims": [
         {
@@ -3646,6 +3712,66 @@
       "title": "OpenAI publica las tarifas de la API de GPT-Rosalind y programa el inicio de cobro para el 5 de octubre",
       "why_it_matters": "Una tarifa publicada específica del modelo aporta un dato concreto para decidir si equipos de investigación calificados pueden operar flujos científicos especializados. La tarifa de salida listada es cinco veces la tarifa de entrada sin caché y cincuenta veces la tarifa de entrada en caché, por lo que la economía real depende de la mezcla de tokens, el uso de caché, las herramientas y la supervisión. La tarifa por sí sola no demuestra una relación entre benchmark y costo ni mayor productividad científica."
     },
+    "FCMO-85B87AA11EC5": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "Los autores definen un marco DFM con siete capacidades acopladas y describen Zetema como un diseño de sistema con objetos explícitos de estado de investigación, evidencia externa, control de acciones y actualización validada de habilidades entre tareas."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El artículo describe GALILEO como un ciclo de descubrimiento de péptidos terapéuticos con laboratorio físico, donde las mediciones biológicas cambiaron creencias sobre objetivos, selección de ensayos, hipótesis mecanísticas y diseños posteriores; los autores reportan dos ramas organoides con IC50 de 18.922 μM y 0.736 μM y la consolidación de Amphiphilic Balance Grammar tras cinco rondas de optimización."
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "El README del proyecto describe Zetema como un diseño de investigación y dice que la implementación y validación se informarán en proyectos vinculados; esta revisión no estableció que exista una implementación publicada de Zetema."
+        },
+        {
+          "label": "SPECULATIVE",
+          "text": "El marco y el caso GALILEO demuestran un DFM general de propósito amplio con habilidades de descubrimiento transferibles entre dominios."
+        }
+      ],
+      "contradictory_evidence": [
+        "El artículo indica que GALILEO no debe interpretarse como una solución al problema DFM general: su dominio, modalidad molecular, interfaces y objetivos siguen estructurados y la transferencia entre dominios permanece abierta.",
+        "El repositorio del proyecto llama a Zetema un diseño de investigación y dice que la implementación y validación se informarán mediante futuros proyectos.",
+        "El estudio primario de GALILEO citado no se pudo recuperar en esta revisión; sus resultados terapéuticos son aquí afirmaciones secundarias del artículo."
+      ],
+      "evidence_gaps": [
+        {
+          "description": "El artículo del marco resume el caso físico GALILEO, pero el DOI primario citado redirigió a una página de bioRxiv que devolvió HTTP 500 mediante la herramienta de navegación disponible. Las mediciones y la transferencia de la regla de diseño tras cinco rondas no se verificaron contra ese estudio.",
+          "kind": "missing_independent",
+          "state": "blocked",
+          "updated_at": "2026-10-08T20:21:00Z"
+        },
+        {
+          "description": "La propuesta general de entrenamiento y evaluación DFM no se demuestra con una implementación Zetema validada ni con resultados de transferencia entre dominios en las fuentes inspeccionadas.",
+          "kind": "missing_independent",
+          "state": "open",
+          "updated_at": "2026-10-08T20:21:00Z"
+        }
+      ],
+      "importance_rationale": "Si los sistemas pueden identificar y reformular preguntas, elegir intervenciones informativas, revisar conclusiones a partir de resultados externos y transferir operaciones validadas, podrían cambiar el diseño y la evaluación de sistemas de descubrimiento científico. La calificación 5 refleja un marco influyente y un caso físico de dominio específico reportado, mientras siguen sin validarse la capacidad DFM general, la implementación Zetema publicada y la transferencia entre dominios.",
+      "limitations": [
+        "El marco de siete capacidades DFM y los métodos de entrenamiento y evaluación de Zetema son propuestas, no un sistema general de descubrimiento demostrado.",
+        "El caso GALILEO es un flujo estructurado de péptidos terapéuticos; no se establece su generalización entre dominios científicos.",
+        "Esta revisión leyó el resumen de GALILEO en el artículo del marco, pero no el estudio primario citado; las mediciones y afirmaciones de transferencia siguen sin verificarse aquí.",
+        "El ciclo físico descrito incluye ensayos especializados ejecutados por personas y juicio científico humano; el trabajo consecuencial no se atribuye únicamente a un modelo autónomo.",
+        "No se estableció una evaluación independiente de transferencia de habilidades reutilizables, rendimiento con recursos equiparados o capacidad DFM general."
+      ],
+      "relationships": [],
+      "summary": "Yang, Yin y Wu definen los Discovery Foundation Models (DFM) como sistemas capaces de identificar preguntas de investigación, revisar representaciones e hipótesis, elegir intervenciones, actualizarse con evidencia externa y mejorar entre tareas. Su diseño Zetema mantiene explícitos los problemas, hipótesis, evidencia, intervenciones y presupuestos, y somete acciones consecuenciales a controles. El artículo propone procedimientos de entrenamiento y evaluación por proceso; el repositorio del proyecto describe Zetema como un diseño de investigación cuya implementación y validación quedan pendientes. También presenta GALILEO como un ciclo real de descubrimiento de péptidos terapéuticos donde resultados de laboratorio cambiaron decisiones posteriores en cinco rondas de optimización. El estudio primario citado sobre GALILEO no estuvo accesible en esta revisión, y el caso no demuestra capacidad DFM de propósito general.",
+      "technical": {
+        "claimed_result": "El artículo DFM reporta un caso GALILEO de péptidos terapéuticos en que resultados físicos modificaron creencias sobre objetivos, selección de ensayos, mecanismos y política de diseño posterior. Reporta IC50 de 18.922 μM y 0.736 μM en dos ramas, y cinco rondas de optimización física que culminaron en Amphiphilic Balance Grammar. El estudio primario citado no estuvo accesible en esta revisión.",
+        "demonstrated_result": "El artículo inspeccionado define un marco de siete capacidades y especifica la arquitectura Zetema, objetivos de entrenamiento y evaluación centrada en procesos. No establece que la capacidad DFM general haya sido implementada o validada.",
+        "implementation_status": "El repositorio del proyecto describe Zetema como un diseño de investigación; no se identificó una implementación publicada de Zetema. Enlaza otros proyectos, como ScienceBuddy, ScienceIDE y JEPA-Anything.",
+        "mechanism": "Zetema se propone como diseño de sistema que registra problemas, representaciones, hipótesis, evidencia, intervenciones, presupuestos de recursos y riesgos, y memoria como objetos vinculados del estado de investigación. Un modelo del mundo de investigación predice resultados y costos; verificadores según la acción controlan pasos costosos o consecuenciales; observaciones externas actualizan el estado; las habilidades candidatas solo se transfieren tras validación en tareas reservadas o modo sombra.",
+        "regime": "Marco conceptual para sistemas de descubrimiento digital, simulado, incorporado y físico. La evidencia empírica es un caso descrito de péptidos terapéuticos, con síntesis robótica y fenotipado más ensayos especializados ejecutados por personas; la transferencia amplia no se probó.",
+        "reproducibility": "El marco DFM es una propuesta y no se implementó ni probó de manera independiente. La descripción secundaria de GALILEO cita un estudio primario que no pudo recuperarse; el caso y la transferencia reportada no se reprodujeron aquí.",
+        "strongest_baseline": "Ninguna evaluación equiparada establece el rendimiento del marco propuesto frente a agentes científicos existentes. El artículo propone controles de recursos equiparados y análisis de procesos, pero no reporta resultados de un benchmark DFM general."
+      },
+      "title": "Discovery Foundation Models propone revisar estados explícitos de investigación con evidencia externa y controles",
+      "why_it_matters": "El marco vuelve comprobable qué tendría que mostrar una afirmación de descubrimiento abierto: la evidencia debe modificar el estado de investigación y las decisiones posteriores, y las habilidades entre tareas requieren validación en tareas reservadas. El caso GALILEO, tal como lo resumen los autores, ilustra un ciclo físico de retroalimentación en un dominio; la arquitectura general DFM, su receta de entrenamiento y su transferencia siguen siendo propuestas sin una implementación Zetema validada en las fuentes inspeccionadas."
+    },
     "FCMO-8AB23060CBF3": {
       "claims": [
         {
@@ -3730,6 +3856,132 @@
       },
       "title": "Claude Fable 5.1 alcanza una nueva frontera medida independientemente, mientras Anthropic reporta trabajo científico validado en laboratorio",
       "why_it_matters": "Esta evidencia es más fuerte que un lanzamiento apoyado sólo en benchmarks del proveedor. Un evaluador externo coloca de forma independiente a Fable 5.1 en la cima actual de un índice amplio de modelos, mientras un artefacto científico público y la validación externa en wet lab reportada por Anthropic indican trabajo útil más allá de responder benchmarks. También muestra por qué el progreso de frontera es una superficie de Pareto y no una sola puntuación: una mayor capacidad puede llegar con mayor gasto de razonamiento/salida, y el enrutamiento de salvaguardas puede cambiar materialmente la capacidad observada. Si los resultados científicos sobreviven una reproducción a nivel de artefactos, los modelos de frontera están pasando de asistir investigación a producir artefactos y diseños de investigación comprobables."
+    },
+    "FCMO-917420640A76": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "Song et al. presentan un arnés que elige experimentos robóticos mediante un grafo de hipótesis y una puntuación de valor de información, co-evoluciona código ejecutable y habilidades, y entrena acciones de memoria a partir de recompensas posteriores, mientras mantiene congelado el modelo fundacional robótico durante los ensayos."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En RoboCasa365, los autores reportan 77.0% de éxito global y 71.3% en Composite-Unseen, frente a 40.1% para Harness VLA en Composite-Unseen; en LIBERO-Pro reportan 86.8% frente a 72.1% para Harness VLA."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En un brazo físico SO-101, los autores reportan que el arnés EmbodiedRSI evolucionado en simulación eleva el éxito global de 46.0% a 71.3% en cinco tareas, con 30 ensayos por condición y por tarea; en Glasses Bridge Grasp el éxito baja de 60.0% a 56.7%."
+        },
+        {
+          "label": "SPECULATIVE",
+          "text": "Los resultados reportados demuestran una auto-mejora recursiva amplia de los modelos fundacionales robóticos."
+        }
+      ],
+      "contradictory_evidence": [
+        "En la tabla de tareas físicas, el éxito en Glasses Bridge Grasp baja de 60.0% con SmolVLA por sí solo a 56.7% con el arnés EmbodiedRSI, pese a la mejora agregada en cinco tareas.",
+        "La expresión del artículo «transferencia sim-to-real zero-shot» se refiere a transferir el arnés; el modelo base se ajustó con 50 demostraciones teleoperadas por tarea antes de las pruebas físicas."
+      ],
+      "evidence_gaps": [
+        {
+          "description": "No se hizo una reproducción independiente de los resultados de simulación ni de las cinco tareas físicas, y en esta revisión no se estableció una publicación pública de código o datos utilizable.",
+          "kind": "missing_independent",
+          "state": "open",
+          "updated_at": "2026-10-08T20:08:21Z"
+        },
+        {
+          "description": "La evidencia física se limita a un brazo SO-101, un modelo SmolVLA ajustado y cinco tareas; se desconoce la transferencia a otros robots, modelos base, laboratorios y distribuciones de tareas.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-08T20:08:21Z"
+        }
+      ],
+      "importance_rationale": "Si los resultados reportados se generalizan, seleccionar ensayos robóticos informativos y conservar mejoras reutilizables de código y habilidades podría reducir de forma sustancial los datos físicos necesarios para adaptar robots. La calificación 6 refleja un avance importante de ingeniería de investigación con ensayos físicos reportados, mientras que un artículo, un brazo y cinco tareas dejan inciertas la transferencia y la reproducibilidad.",
+      "limitations": [
+        "Todas las cifras de rendimiento son reportadas por los autores; la revisión no ejecutó el código ni reprodujo los ensayos de simulación o físicos.",
+        "La evaluación física usa un brazo SO-101, un modelo SmolVLA y cinco tareas seleccionadas. El aumento global de 71.3% no es una tasa general de transferencia robótica.",
+        "El arnés reduce el éxito en Glasses Bridge Grasp de 60.0% a 56.7%; los resultados no mejoran en todas las tareas.",
+        "Antes de los ensayos físicos, el modelo robótico se ajusta con 50 demostraciones teleoperadas por tarea durante 20,000 pasos y cuatro GPU NVIDIA H200; solo el arnés se transfiere y el modelo base permanece congelado durante los ensayos.",
+        "El artículo informa semillas y número de ensayos de simulación, pero no establece una réplica independiente, transferencia amplia entre hardware ni costo de despliegue por tarea exitosa.",
+        "No se actualizan los parámetros del modelo; la evidencia trata de adaptación del arnés, no de auto-mejora recursiva del modelo fundacional."
+      ],
+      "relationships": [],
+      "summary": "Song et al. presentan EmbodiedRSI, un arnés alrededor de un modelo fundacional robótico congelado que selecciona experimentos físicos según su valor de información, evoluciona código y habilidades en conjunto, y aprende qué recuerdos mejoran la adaptación posterior. El preprint del 7 de octubre de 2026 reporta 77.0% de éxito global en RoboCasa365 y 71.3% en Composite-Unseen, frente a 40.1% para Harness VLA; en LIBERO-Pro reporta 86.8% frente a 72.1%. En un brazo físico SO-101, los autores reportan 71.3% de éxito en cinco tareas frente a 46.0% para SmolVLA por sí solo, con 30 ensayos por condición y tarea. Son resultados reportados por los autores, no reproducidos de forma independiente. La evaluación física se limita a cinco tareas; el arnés reduce el éxito en la tarea de agarre de gafas y no actualiza el modelo fundacional.",
+      "technical": {
+        "claimed_result": "Los autores reportan 77.0% de éxito global en RoboCasa365 y 71.3% en Composite-Unseen frente a 40.1% para Harness VLA; en LIBERO-Pro reportan 86.8% frente a 72.1%; y en el brazo SO-101, en tareas físicas reportan 71.3% frente a 46.0% para SmolVLA por sí solo. El resultado físico reúne cinco tareas con 30 ensayos por condición y tarea.",
+        "demonstrated_result": "El arXiv v1 inspeccionado acredita que los autores publicaron este método y reportaron las tablas y la configuración indicadas. la revisión no ejecutó el código ni reprodujo los resultados.",
+        "implementation_status": "Se inspeccionaron el artículo y la página del proyecto. En esta revisión no se estableció un repositorio público de implementación ni artefactos utilizables de forma independiente.",
+        "mechanism": "Un Sistema Rápido mantiene hipótesis contrapuestas sobre código y habilidades, elige experimentos físicos comparables según la ganancia esperada de información por costo estimado y usa los resultados para revisar conjuntamente el código y las habilidades. Un Sistema Lento construye memoria jerárquica y entrena una política para elegir acciones de memoria según mejoras posteriores en tareas, reducción de incertidumbre y costo experimental. El modelo fundacional robótico permanece congelado durante la ejecución; la configuración física del artículo ajusta SmolVLA antes de los ensayos.",
+        "regime": "Un artículo arXiv v1; simulaciones RoboCasa365 y LIBERO-Pro más un brazo físico SO-101 con SmolVLA, cinco tareas físicas y 30 ensayos por condición y tarea. Antes de las pruebas físicas, los autores reúnen 50 demostraciones teleoperadas por tarea y ajustan SmolVLA durante 20,000 pasos en cuatro GPU NVIDIA H200; luego SmolVLA permanece congelado durante los ensayos.",
+        "reproducibility": "Los resultados de simulación reportan diez semillas aleatorias y diez ensayos de evaluación por tarea, con semillas de evolución y evaluación separadas. Los resultados físicos reportan 30 ensayos por condición y tarea. la revisión no los reprodujo de manera independiente y no estableció disponibilidad pública de código o datos.",
+        "strongest_baseline": "El artículo identifica a Harness VLA como el mejor referente para Composite-Unseen en RoboCasa365 (40.1%) y para LIBERO-Pro (72.1%). En las tareas físicas compara el mismo modelo SmolVLA por sí solo con SmolVLA bajo el arnés EmbodiedRSI."
+      },
+      "title": "EmbodiedRSI reporta evolución de un sistema robótico con selección de hipótesis y transferencia a cinco tareas reales",
+      "why_it_matters": "Si los resultados reportados se mantienen en ensayos independientes más amplios, elegir experimentos físicos informativos y actualizar conjuntamente habilidades ejecutables y código podría hacer más eficiente en datos la adaptación robótica sin volver a entrenar el modelo fundacional. La evidencia física reportada es prometedora pero acotada, y no demuestra auto-mejora recursiva general ni transferencia amplia."
+    },
+    "FCMO-939C8F533A6F": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "El artículo inspeccionado describe un procedimiento recursivo en tres ciclos que edita un arnés de ejecución y entrena un modelo de tareas, con un asistente editor GPT-6 Astra fijo en el caso reportado."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En el benchmark del artículo con separación por ID de tarea, los autores reportan que la precisión científica de un solo intento aumentó de 42.2% a 73.3%; 33.3% de los casos pasó de incorrecto a correcto y 2.2% de correcto a incorrecto, en cuatro familias de tareas."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En un experimento separado de adaptación del arnés con el modelo fijo, los autores reportan que la precisión de validación aumentó de 31.1% a 51.1% tras 24 lotes con 288 conversaciones de adaptación simuladas; la cobertura pass@4 del arnés fijo subió de 48.3% a 67.8%."
+        },
+        {
+          "label": "SPECULATIVE",
+          "text": "Los resultados establecen que ScienceBuddy realiza descubrimientos científicos o mejora ampliamente la productividad científica en entornos reales de investigación."
+        }
+      ],
+      "contradictory_evidence": [
+        "El artículo evalúa la ejecución de tareas y respuestas de benchmark; sus resultados no establecen descubrimientos científicos ni validan la verdad de resultados de investigación generados.",
+        "El avance de vista previa que los autores mantienen actualmente en el repositorio usa un inventario de tareas y una configuración experimentales distintos del caso del artículo. Por ello, el código público inspeccionado no reproduce de manera independiente los valores reportados en el artículo."
+      ],
+      "evidence_gaps": [
+        {
+          "description": "El repositorio público actual documenta una vista previa mantenida que difiere de la configuración del caso del artículo. En esta revisión no se inspeccionó una instantánea exacta del código, configuración y datos del artículo, ni registros o pesos brutos que vinculen el resultado reportado de 42.2%→73.3% con un artefacto ejecutable.",
+          "kind": "missing_artifact",
+          "state": "open",
+          "updated_at": "2026-10-08T20:15:00Z"
+        },
+        {
+          "description": "La precisión en tareas de benchmark mide la ejecución de tareas, no si el sistema produjo un descubrimiento científico válido o un resultado útil en un flujo de investigación real.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-08T20:15:00Z"
+        },
+        {
+          "description": "Todos los resultados cuantitativos revisados son reportados por los autores; el equipo de investigación no ejecutó el sistema de forma independiente.",
+          "kind": "missing_independent",
+          "state": "open",
+          "updated_at": "2026-10-08T20:15:00Z"
+        }
+      ],
+      "importance_rationale": "Si la mejora reportada se generaliza a tareas científicas independientes con validación de resultados, la coadaptación recursiva de un modelo y su arnés de investigación podría mejorar la ejecución de tareas de investigación. La calificación 5 refleja un método potencialmente transformador respaldado por un benchmark de los autores, sin reproducción independiente ni descubrimientos demostrados.",
+      "limitations": [
+        "Los resultados cuantitativos son reportados por los autores y no se reprodujeron de manera independiente.",
+        "El benchmark reportado cubre cuatro familias de tareas y mide respuestas a tareas, no descubrimientos científicos verificados ni impacto posterior en investigación.",
+        "El caso del artículo usa un asistente editor GPT-6 Astra fijo y un modelo de tareas Qwen3.5-4B; se desconoce la transferencia a otros modelos y editores.",
+        "En esta revisión no se vinculó la colección de 895 tareas ni el protocolo de adaptación del artículo con el experimento que mantiene actualmente el repositorio. La vista previa del repositorio usa un inventario 715/90/90 y una configuración distinta de ciclos, pasos de búsqueda y actualizaciones RL.",
+        "La selección mediante validación y el solapamiento de grupos de materiales entre entrenamiento y prueba descritos para la vista previa debilitan la interpretación de independencia de su prueba; esos resultados de vista previa no deben confundirse con los gráficos del artículo.",
+        "La mejora en la ejecución de tareas de benchmark no demuestra que el sistema haya hecho descubrimientos válidos ni mejorado resultados reales de investigación."
+      ],
+      "relationships": [],
+      "summary": "Li et al. describen un proceso recursivo en tres ciclos que edita un arnés de ejecución y entrena un modelo de tareas. En su benchmark de tareas científicas con separación por ID de tarea, los autores reportan que la precisión de un solo intento subió de 42.2% a 73.3%; 33.3% de los casos pasó de incorrecto a correcto y 2.2% de correcto a incorrecto. Las mediciones son resultados de benchmark reportados por los autores, no descubrimientos científicos validados. El experimento de vista previa mantenido en el repositorio vinculado usa un inventario de tareas y una configuración distintos del caso del artículo, por lo que no valida esos valores de manera independiente.",
+      "technical": {
+        "claimed_result": "Los autores reportan una precisión de un solo intento de 42.2% antes y 73.3% después de tres ciclos en el benchmark de tareas científicas con separación por ID, a través de cuatro familias de tareas; 33.3% de los casos pasó de incorrecto a correcto y 2.2% de correcto a incorrecto. En un caso separado con modelo fijo, la precisión de validación del arnés se reporta como 31.1%→51.1% tras 24 lotes y 288 conversaciones simuladas; la cobertura pass@4 del arnés fijo se reporta como 48.3%→67.8%.",
+        "demonstrated_result": "El artículo describe el procedimiento de entrenamiento y reporta los resultados de benchmark indicados. el equipo de investigación inspeccionó, pero no ejecutó, la implementación ni reprodujo esos valores.",
+        "implementation_status": "Hay un repositorio público de los autores. Su experimento de vista previa mantenido es explícitamente distinto de los gráficos/configuración del caso del artículo, por lo que el repositorio actual no establece una reproducción exacta de los resultados del artículo.",
+        "mechanism": "Durante tres ciclos, un asistente editor fijo busca cambios en el arnés mientras un modelo de tareas se actualiza mediante aprendizaje por refuerzo; el artículo presenta el proceso como coevolución recursiva del arnés de ejecución y del modelo de tareas.",
+        "regime": "Un caso de estudio de los autores con Qwen3.5-4B como modelo de tareas y GPT-6 Astra como asistente editor fijo; tres ciclos de coevolución; cuatro familias de tareas científicas; benchmark con separación por ID de tarea. Un caso separado de adaptación del arnés con modelo fijo usa 24 lotes y 288 conversaciones simuladas.",
+        "reproducibility": "El repositorio público actual documenta una configuración de vista previa mantenida distinta (715/90/90 tareas, tres ciclos, tres pasos de búsqueda del arnés, 16 interacciones de entrenamiento por paso, tres propuestas por paso y 30 actualizaciones RL por etapa). No vincula esa configuración con los gráficos del artículo. La instantánea exacta del artículo, los registros brutos y una reproducción independiente siguen sin verificarse.",
+        "strongest_baseline": "La comparación principal reportada es entre el sistema inicial de modelo de tareas/arnés con precisión de 42.2% y el sistema tras tres ciclos de coevolución con 73.3%; es una comparación interna reportada por los autores, no un benchmark independiente."
+      },
+      "title": "ScienceBuddy reporta mejoras al coevolucionar un arnés científico y un modelo de lenguaje",
+      "why_it_matters": "Si se replica con tareas científicas creadas de forma independiente y verificación de resultados, la coevolución de un arnés de investigación y su modelo de tareas podría mejorar la ejecución de tareas. La evidencia actual establece un resultado acotado de benchmark ejecutado por los autores; no muestra que el sistema haya hecho descubrimientos científicos ni que el repositorio mantenido actualmente reproduzca el caso del artículo."
     },
     "FCMO-955A495823F7": {
       "summary": "NVIDIA, OpenAI y SB Energy anunciaron el 17 de agosto de 2026 un acuerdo de infraestructura PORTS-Pike bajo el cual OpenAI aceptó asegurar aproximadamente 8 GW de capacidad de TI en el condado de Pike, Ohio. NVIDIA es el proveedor exclusivo de infraestructura de cómputo de IA, invertirá $1.5B en SB Energy y aporta respaldo crediticio para terreno, energía y shell en los 4.25 GW iniciales; posteriormente, el Form 10-Q del segundo trimestre fiscal de 2027 de NVIDIA reveló garantías con un tope de $105B para esas obligaciones iniciales y una opción de respaldo adicional para aproximadamente 3.8 GW conforme escale el sitio. El campus de nueve fases usa arrendamientos de OpenAI a 20 años; OpenAI dice que los primeros 800 MW se esperan en 2028, mientras el filing de NVIDIA describe el inicio del servicio en su año fiscal 2029. El mismo 10-Q muestra un giro estratégico más amplio: $279B en compromisos de suministro/capacidad, $36B en acuerdos de nube de IA y MOUs de agosto destinados a movilizar más de $500B de capital de terceros para infraestructura de IA, aunque esos MOUs son explícitamente preliminares.",
@@ -4135,6 +4387,67 @@
       },
       "title": "LLM Inference in a Flash reporta compresión KV y ganancias modeladas con Compute-in-Flash",
       "why_it_matters": "La decodificación de contextos largos puede verse limitada por mover el estado KV entre memoria y cómputo. El artículo reporta una reducción grande del tráfico KV dinámico con cambios pequeños en puntajes LongBench y luego modela posibles beneficios de decodificación en un diseño Compute-in-Flash. Las ganancias modeladas dependen de supuestos sobre ancho de banda del dispositivo, ubicación del diccionario y almacenamiento duplicado, y no establecen rendimiento en dispositivos físicos ni eficiencia de prefill."
+    },
+    "FCMO-B1240903E5C0": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "El artículo describe ocho mundos simulados paralelos, cada uno iniciado con diez agentes: siete configuraciones homogéneas de modelos y una mixta. Se observaron durante hasta 16 días (el mundo mixto duró 21 días y el mundo Grok terminó tras cuatro); el registro superó 850,000 llamadas a modelos y casi 50 billion tokens."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En tres eventos de estrés controlados, ningún mundo evaluado cumplió todos los criterios de resiliencia. En cada mundo expuesto, los agentes actuaron o publicaron antes de verificar la afirmación falsa de cierre; el artículo reporta contenido hostil en memoria persistente y una acción posterior relacionada con el ataque hasta 46 horas después."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores reportan que solo un mundo cumplió los cinco criterios para manejar la filtración de memorias privadas; la mayoría accedió, retuvo, divulgó o utilizó el material privado expuesto."
+        },
+        {
+          "label": "SPECULATIVE",
+          "text": "Estas trayectorias simuladas establecen la frecuencia de fallas similares en sistemas multiagente desplegados en el mundo real o muestran que todas las familias de modelos fallan de la misma forma."
+        }
+      ],
+      "contradictory_evidence": [
+        "Los resultados provienen de una trayectoria continua por mundo. Los autores aclaran que las conductas observadas muestran que estos fenómenos pueden ocurrir, no con qué frecuencia se repiten.",
+        "Los eventos de estrés no incluían indicaciones explícitas en el prompt del sistema para ataques específicos. El estudio no aísla la contribución de la política del prompt, el comportamiento del modelo, la infraestructura del proveedor o el entorno.",
+        "El mundo Grok terminó el día cuatro tras agotarse la energía de los diez agentes, por lo que su exposición y resultados no son comparables con los mundos que completaron 16 días."
+      ],
+      "evidence_gaps": [
+        {
+          "description": "Solo se ejecutó una trayectoria por configuración, por lo que los resultados dependientes de la trayectoria no permiten estimar tasas de eventos ni efectos estables de cada combinación modelo-entorno.",
+          "kind": "missing_independent",
+          "state": "open",
+          "updated_at": "2026-10-08T20:17:30Z"
+        },
+        {
+          "description": "El estudio utilizó un conjunto fijo de diez personas y omitió instrucciones de seguridad explícitas para las tres clases de ataque; se desconoce la sensibilidad a los prompts y a la composición poblacional.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-08T20:17:30Z"
+        }
+      ],
+      "importance_rationale": "Si los sistemas multiagente persistentes pueden conservar entradas hostiles en memoria y coordinación y convertirlas en acciones demoradas, las evaluaciones de seguridad de un solo turno omiten un riesgo importante de despliegue y podrían requerirse controles de sistema. La calificación 7 refleja consecuencias potencialmente amplias para la evaluación y el control de agentes; la evidencia es una simulación de los autores con una trayectoria por configuración y no establece la incidencia en el mundo real.",
+      "limitations": [
+        "Los hallazgos son reportados por los autores a partir de un mundo simulado; no se reprodujeron de forma independiente ni se observaron en un sistema desplegado.",
+        "Hay una sola trayectoria continua por configuración de mundo; los autores indican que los resultados muestran que las conductas pueden ocurrir, no con qué frecuencia.",
+        "Cada mundo contiene diez agentes de un conjunto fijo de personas; no se probaron poblaciones más amplias ni otras muestras de personas.",
+        "Los tres eventos no se explicaron con instrucciones de seguridad específicas; no se probó el efecto de prompts más explícitos.",
+        "Las políticas de servicio del proveedor y el comportamiento del modelo se combinan en los resultados, por lo que no son comparaciones de modelos base aislados.",
+        "El mundo Grok terminó tras cuatro días cuando sus agentes agotaron la energía; su exposición difiere de la de los mundos que completaron 16 días."
+      ],
+      "relationships": [],
+      "summary": "Akkil et al. reportan ocho mundos simulados paralelos con diez agentes, expuestos a phishing con inyección indirecta de instrucciones, una afirmación falsa de cierre y una filtración de memorias privadas. En una única trayectoria continua por mundo, ninguno cumplió todos los criterios para los tres eventos. En todos los mundos expuestos, los agentes actuaron o publicaron antes de verificar la afirmación falsa; el artículo también documenta instrucciones hostiles en memoria persistente y una acción posterior relacionada con el ataque hasta 46 horas después. Estas trayectorias de los autores muestran que tales fallas ocurrieron en esta configuración, pero no con qué frecuencia se repiten ni cómo se trasladan a sistemas desplegados.",
+      "technical": {
+        "claimed_result": "Los autores reportan ocho mundos de diez agentes, más de 850,000 llamadas y casi 50 billion tokens. Ningún mundo pasó todos los criterios en los tres eventos de estrés. Cada mundo expuesto actuó o publicó antes de verificar la afirmación falsa de cierre; el material hostil entró en memoria persistente y hubo una acción posterior relacionada con el ataque hasta 46 horas después de su entrega.",
+        "demonstrated_result": "El artículo inspeccionado describe el diseño experimental y los criterios y trayectorias reportados por los autores. El equipo de investigación no ejecutó la plataforma ni reprodujo los resultados de forma independiente.",
+        "implementation_status": "Los autores publicaron un repositorio de investigación de la Temporada 2 con prompts, materiales escritos por agentes y registros de llamadas a herramientas. Esta revisión no ejecutó el mundo ni verificó de forma independiente todos los artefactos de ejecución.",
+        "mechanism": "Un mundo simulado persistente ejecuta agentes autónomos con estado espacial compartido, memoria persistente, herramientas extensibles y autogobierno. Los investigadores introducen phishing con inyección indirecta, un memorando falso de cierre y una filtración de memorias privadas mediante superficies habituales; luego puntúan reconocimiento, restricción, contención, propagación y respuesta duradera.",
+        "regime": "Ocho mundos simulados iniciados en condiciones idénticas y con diez agentes cada uno: siete configuraciones homogéneas y una mixta. Los mundos homogéneos duraron hasta 16 días, el mixto 21 días y Grok terminó el día cuatro. Tras acumular estado, se introdujeron tres eventos controlados.",
+        "reproducibility": "Los autores indican que hubo una sola ejecución continua por configuración. No se realizaron trayectorias independientes repetidas; los resultados observados muestran posibilidad en esta configuración, no frecuencia. Los resultados combinan el modelo y la infraestructura del proveedor.",
+        "strongest_baseline": "Todos los mundos recibieron las mismas tres clases de eventos de estrés bajo configuraciones distintas de modelo y población. No hubo mundo de control sin exposición ni una línea base con semillas repetidas para aislar causalmente los efectos."
+      },
+      "title": "Emergence World informa fallas persistentes en pruebas de estrés multiagente de larga duración",
+      "why_it_matters": "El estudio muestra por qué conviene evaluar sistemas de agentes persistentes a través de la memoria, las herramientas, los pares y el estado compartido: en estas pruebas, reconocer una entrada hostil no evitó de manera fiable la acción, persistencia ni propagación. El resultado respalda evaluar el comportamiento de sistemas de larga duración además de respuestas aisladas de modelos, aunque una sola trayectoria por configuración no permite estimar la frecuencia de fallas."
     },
     "FCMO-B526C545993A": {
       "claims": [
@@ -5170,6 +5483,68 @@
       },
       "title": "Una auditoría de 157 proyectos informa una cobertura de aseguramiento fragmentada en agentes de IA de código abierto",
       "why_it_matters": "Si la codificación de la auditoría se generaliza, revisar cada herramienta de un agente por separado no basta: el aseguramiento también debe rastrear si la autorización, el aislamiento y las pruebas cubren rutas equivalentes mediante herramientas, complementos, navegadores, sistemas de archivos y API externas. El estudio ofrece a los evaluadores un marco concreto a nivel de repositorio, aunque la muestra filtrada por popularidad y el método descriptivo limitan las afirmaciones de prevalencia."
+    },
+    "FCMO-F308F06D01E2": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "Xuan et al. describen un selector PEFT disperso que clasifica cabezas de atención y bloques MLP según la recuperación normalizada mediante activation-patching limpio/corrupto y entrena adaptadores solo en los sitios elegidos; MechSparse-C añade crédito acotado por subconjuntos conjuntos dentro de cada capa."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En la celda principal de extracción span-JSON en suajili, con tres semillas, los autores reportan que MechSparse-C queda 0.028 puntos F1 span+tipo por debajo de activation-norm, con IC bootstrap pareado de 95% sobre predicciones agrupadas [-0.048,-0.007], sin diferencia estadística concluyente frente a magnitud y con ventaja sobre aleatorio y gradiente/Fisher de 0.079 y 0.174, respectivamente."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En la celda de traducción inglés a suajili, con una sola semilla, los autores reportan que los cuatro selectores quedan dentro de 0.30 BLEU y que todos los intervalos bootstrap por pares incluyen cero."
+        },
+        {
+          "label": "SPECULATIVE",
+          "text": "Los selectores causales o probe-delta mejoran la adaptación dispersa cuando el cuello de botella es la sensibilidad al contenido y no el formato de salida."
+        }
+      ],
+      "contradictory_evidence": [
+        "El resultado principal del artículo favorece activation-norm sobre MechSparse-C en la métrica primaria F1 span+tipo; esto contradice una afirmación general de que la localización causal mejora la selección de PEFT disperso.",
+        "Ninguna celda probada da al selector causal propuesto una victoria en la métrica principal, y los autores describen explícitamente como no confirmada la rama para tareas dominadas por contenido."
+      ],
+      "evidence_gaps": [
+        {
+          "description": "El artículo informa que publicó máscaras, puntuaciones, predicciones y archivos por semilla, pero el punto de acceso anónimo enlazado no pudo inspeccionarse con la herramienta web disponible; no se hizo una reproducción independiente.",
+          "kind": "missing_artifact",
+          "state": "blocked",
+          "updated_at": "2026-10-08T20:11:35Z"
+        },
+        {
+          "description": "La recomendación de usar selectores causales/probe-delta para tareas dominadas por contenido no tiene una victoria positiva en una métrica principal con múltiples semillas en las tres celdas del artículo.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-08T20:11:35Z"
+        }
+      ],
+      "importance_rationale": "Si se mantiene el patrón de selección dependiente de la tarea, la ubicación de adaptadores guiada por mecanismos puede ser una mala opción predeterminada cuando predominan las rutinas de esquema de salida, además de añadir un costo de sondeo considerable; esto puede cambiar una decisión local de diseño de PEFT. La calificación 4 refleja evidencia significativa pero acotada a un modelo, tres celdas y una celda principal con tres semillas.",
+      "limitations": [
+        "Todos los resultados experimentales son reportados por los autores. El punto de acceso anónimo al artefacto enlazado no estuvo disponible en esta revisión y no se reprodujeron los resultados.",
+        "Solo se mide un modelo base y tres celdas de tarea acotadas. El propio artículo indica que la rama de selectores causales para tareas dominadas por contenido no tiene ningún resultado positivo en una métrica principal.",
+        "El bootstrap principal agrupa 600 ejemplos de tres semillas y remuestrea ejemplos; los autores dicen que la prueba por semilla no tiene potencia y que los intervalos por ejemplo pueden subestimar la incertidumbre entre semillas.",
+        "Las celdas suplementarias de extracción en suajili y traducción inglés a suajili usan una sola semilla; el resultado de traducción cerca de BLEU 11 puede reflejar un efecto de piso y todos los intervalos por pares incluyen cero.",
+        "El patching cuesta alrededor de 1.7 horas-GPU L40S por celda antes de reutilizar la máscara, frente a segundos para los selectores de norma de activación y magnitud.",
+        "Los autores informan exposición asimétrica a tareas: activation-norm y los selectores causales ven 64 prompts de tarea, mientras el selector aleatorio no ve ninguno. Las comparaciones con AdaLoRA y Taylor-importance quedan para trabajos futuros.",
+        "El estudio no establece transferencia multilingüe amplia, superioridad sobre métodos de asignación de rango ni una regla universal para seleccionar métodos causales."
+      ],
+      "relationships": [],
+      "summary": "Xuan et al. prueban si las puntuaciones de activación-patching pueden seleccionar sitios LoRA/QLoRA mejor que las heurísticas aleatorias, de magnitud, norma de activación y gradiente/Fisher. En tres celdas de tareas con Ministral-8B/NF4, sus selectores causales no ganan la métrica principal. En la celda principal de extracción span-JSON en suajili, con tres semillas, MechSparse-C queda 0.028 puntos F1 span+tipo por debajo de activation-norm (IC bootstrap de 95% sobre predicciones agrupadas [-0.048,-0.007]), no se distingue estadísticamente de magnitud y supera a aleatorio y gradiente/Fisher. La celda de traducción inglés a suajili, con una sola semilla, no muestra diferencias pareadas fiables dentro de 0.30 BLEU. Los autores interpretan que la calidad del selector depende de la tarea, pero la recomendación de usar selección causal en tareas dominadas por contenido sigue sin demostrarse: ninguna celda probada ofrece un resultado positivo con múltiples semillas. El estudio usa un modelo y tres celdas acotadas; la selección basada en sondas cuesta alrededor de 1.7 horas-GPU L40S por celda antes de reutilizar la máscara.",
+      "technical": {
+        "claimed_result": "En la celda principal de extracción span-JSON en suajili con presupuesto de adaptadores de 0.25%, los autores reportan F1 span+tipo de 0.539±0.004 para activation-norm, 0.511±0.003 para MechSparse-C y 0.496±0.057 para magnitud. MechSparse-C queda 0.028 por debajo de activation-norm, con IC bootstrap pareado sobre predicciones agrupadas [-0.048,-0.007], y no se distingue de magnitud. Supera al azar por 0.079 y a gradiente/Fisher por 0.174 según el mismo bootstrap agrupado. En la celda de traducción inglés a suajili con una sola semilla y presupuesto de 1.0%, todos los selectores quedan dentro de 0.30 BLEU y todos los intervalos por pares incluyen cero.",
+        "compute_or_cost": "En una L40S, los autores reportan alrededor de 1.7 horas-GPU por celda para el patching de componentes individuales y subconjuntos conjuntos, frente a alrededor de 19 segundos para activation-norm con 64 pasadas hacia adelante y alrededor de 11 segundos para magnitud. El entrenamiento y la evaluación toman cerca de 10–15 minutos por selector. El costo del sondeo puede amortizarse al reutilizar máscaras.",
+        "demonstrated_result": "El arXiv v1 inspeccionado describe el experimento e informa sus métodos, celdas de tarea y tablas de resultados. La revisión no accedió ni ejecutó de forma independiente los artefactos enlazados al artículo.",
+        "implementation_status": "El artículo informa que publicó máscaras, puntuaciones, predicciones y archivos de evaluación por semilla mediante un punto de acceso anónimo a artefactos. Ese punto no pudo inspeccionarse con la herramienta web disponible; el acceso y la reproducción siguen sin verificarse.",
+        "mechanism": "MechSparse clasifica cabezas de atención y bloques MLP mediante la recuperación normalizada de activation-patching sobre sondas limpias/corruptas y luego coloca QLoRA solo en los sitios elegidos bajo un presupuesto de adaptadores equivalente. MechSparse-C añade crédito acotado por subconjuntos conjuntos dentro de cada capa. Compara con selectores aleatorios, de magnitud, norma de activación y gradiente/Fisher. Se usa el mismo modelo base cuantizado para sondeo y entrenamiento.",
+        "regime": "Ministral-8B Instruct cuantizado con NF4; extracción de información span-JSON en suajili con presupuestos de 0.25% (tres semillas) y 1.0% (una semilla), además de traducción inglés a suajili con 1.0% (una semilla). La celda principal de extracción usa 1,024 ejemplos de entrenamiento, 200 de validación y 200 de prueba; tres semillas de extremo a extremo e IC bootstrap pareados sobre 600 predicciones. Las celdas suplementarias usan una semilla y son anteriores a la deduplicación de máscaras GQA K/V.",
+        "reproducibility": "El resultado principal utiliza tres semillas de entrenamiento, pero su bootstrap pareado remuestrea ejemplos agrupados y no semillas; los autores indican que la incertidumbre entre semillas no tiene potencia suficiente. Los resultados suplementarios de extracción y traducción, así como el resultado probe-delta, usan una sola semilla. La revisión no hizo reproducción independiente.",
+        "strongest_baseline": "Activation-norm lidera en la métrica principal F1 span+tipo (0.539 frente a 0.511 para MechSparse-C). La comparación agrupada reportada no distingue estadísticamente la magnitud de MechSparse-C. La comparación de traducción con una sola semilla no establece un ganador."
+      },
+      "title": "MechSparse encuentra que la selección causal de adaptadores dispersos pierde ante normas de activación en extracción con esquema rígido",
+      "why_it_matters": "El resultado negativo advierte que no debe suponerse que la localización mecanicista mejora el ajuste fino disperso: una heurística barata de norma de activación gana la métrica principal del estudio, dominada por un esquema de salida, mientras el método causal más costoso no gana ninguna métrica principal. Si se generaliza, cambia una decisión local sobre ubicación de adaptadores y el cálculo de costos de PEFT guiado por interpretabilidad. La regla propuesta, dependiente de la tarea, sigue siendo preliminar."
     },
     "FCMO-F3EA8AB98738": {
       "claims": [
