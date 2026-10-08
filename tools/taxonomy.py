@@ -39,9 +39,10 @@ CLAIM_LABELS = ("DEMONSTRATED", "CLAIMED", "INFERRED", "SPECULATIVE", "DISPUTED"
 DEVELOPMENT_TYPES = (
     "paper", "technical_report", "model_release", "product_release", "repository_release",
     "dataset_benchmark", "hardware_infrastructure", "industry_transaction", "policy_action",
-    "organizational",
+    "organizational", "reproduction_or_audit", "signal_or_leak", "other",
 )
-TIERS = ("Notable", "Meaningful", "Major", "Very major", "Field-shifting", "Paradigm-level")
+TIERS = ("Background", "Minor", "Useful", "Meaningful", "Notable", "Major",
+         "Very major", "Field-shifting", "Paradigm-level", "Alien evidence")
 RECORD_STATUS = ("active", "developing", "withdrawn", "superseded")
 WITHDRAWAL_REASONS = ("UPSTREAM_RETRACTION", "DUPLICATE", "FACTUAL_ERROR", "RIGHTS", "PRIVACY", "LEGAL", "EDITORIAL")
 RELATION_TYPES = ("related", "follow_up", "duplicate_of", "supersedes")
@@ -134,6 +135,9 @@ DEVELOPMENT_TYPE_MAP = {
     "regulation": "policy_action",
     "legislation": "policy_action",
     "organizational": "organizational",
+    "reproduction_or_audit": "reproduction_or_audit",
+    "signal_or_leak": "signal_or_leak",
+    "other": "other",
 }
 DEVELOPMENT_TYPE_TOKENS = (
     ("policy", "policy_action"), ("regulat", "policy_action"), ("legislat", "policy_action"),

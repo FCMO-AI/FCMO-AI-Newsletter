@@ -33,7 +33,7 @@ Spanish and Chinese are source-controlled publication artifacts. They are not la
 
 Every canonical public record must have Spanish and Chinese coverage for every reader-facing prose field that survives declassification, including title, summary, why-it-matters, importance rationale, limitations, contrary evidence, claim text, evidence-gap descriptions, relationship summaries and public technical prose.
 
-Coverage is dynamic. If English contains `N` stable public story identities, each locale status must account for those same `N` identities. A missing or stale translation is `PENDING` for that story and locale. The daily edition may publish while its stable native route shows a localized pending notice and a labelled link to the canonical English original. It must never present stale prose as a current native edition.
+Coverage is dynamic. If English contains `N` stable public story identities, each locale status must account for those same `N` identities. A missing or stale translation is `PENDING` for that story and locale. The autonomous refresh admits a new or changed English story only with complete native `es-419` and `zh-Hans` editions under the same field-level validator used by Deploy. An incomplete incoming version is held in the sanitized corpus. If a previous English version and its source-bound native editions still validate, that complete version is carried forward; otherwise the identity stays out of the live edition. A later valid airlock clears the hold automatically. Historical pending routes remain explicit notices and never present English or stale prose as a current native edition.
 
 Private strategic implication fields are outside the public language obligation because they do not cross the airlock.
 
@@ -125,3 +125,5 @@ A release fails if:
 - the localized build cannot be traced to the frozen canonical English identity.
 
 A new or materially changed story and its two additional native editions are **one publication obligation**. The system fails closed for the affected locale, preserves the English edition, and records the translation backlog. Privacy, provenance, release hashes and counterfeit-translation gates remain binding.
+
+Refresh records admitted, held and carried identities in `release-src/data/publication-admission.json`, preserves the prior locale packs for carried versions, and runs `tests/oraculos/verificar_traduccion.py` before its commit. `translation_health.py --all-corpus` measures repair debt in received material; the publication receipts measure the exact admitted English versions. A complete publication receipt does not claim that every received record is ready.

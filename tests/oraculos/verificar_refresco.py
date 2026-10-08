@@ -16,82 +16,35 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path
-from typing import Any
 
 ROOT = Path(__file__).resolve().parents[2]
 CORPUS = ROOT / "corpus"
 NEW_ID = "FCMO-0C0DE0000001"
-EXCLUDE = {".git", "publish", "regression", "__pycache__", ".pytest_cache"}
+EXCLUDE = {".git", "publish", "regression", "__pycache__", ".pytest_cache", "_audit"}
 IGNORE = ("publish/", "regression/", "__pycache__/", ".pytest_cache/")
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-from verificar_generador import con_historia_sintetica
-
-PROSE_STRINGS = ("title", "summary", "why_it_matters", "why", "importance_rationale")
-PROSE_LISTS = ("limitations", "contradictory_evidence", "engineering_implications", "policy_implications", "research_implications")
-PROSE_OBJECT_LISTS = {"claims": ("text",), "evidence_gaps": ("description",), "relationships": ("summary",)}
-PROSE_DICTS = ("technical",)
-
-
-def row_for(corpus: Path, ident: str) -> dict:
-    for line in (corpus / "data/developments.jsonl").read_text(encoding="utf-8").splitlines():
-        if line.strip():
-            row = json.loads(line)
-            if row.get("id") == ident:
-                return row
-    raise ValueError(f"{ident} missing from synthetic corpus")
-
-
-def native(value: Any, locale: str) -> Any:
-    if not isinstance(value, str) or not value.strip():
-        return value
-    if locale == "es-419":
-        return value + " — redacción editorial en español, preservando exactamente la evidencia y sus límites."
-    return value + " — 简体中文编辑说明：保持原始证据、数字、标识、链接与适用范围完全不变。"
-
-
-def overlay(row: dict, locale: str) -> dict:
-    result: dict[str, Any] = {}
-    for key in PROSE_STRINGS:
-        if isinstance(row.get(key), str) and row[key].strip():
-            result[key] = native(row[key], locale)
-    if "why" not in result:
-        rationale = row.get("why_it_matters") or row.get("summary")
-        if isinstance(rationale, str) and rationale.strip():
-            result["why"] = native(rationale, locale)
-    for key in PROSE_LISTS:
-        source = row.get(key)
-        if isinstance(source, list) and source:
-            result[key] = [native(value, locale) for value in source]
-    for key, fields in PROSE_OBJECT_LISTS.items():
-        source = row.get(key)
-        if isinstance(source, list) and source:
-            translated = []
-            for item in source:
-                if not isinstance(item, dict):
-                    translated.append(item); continue
-                target = {field: native(item[field], locale) for field in fields if isinstance(item.get(field), str) and item[field].strip()}
-                translated.append(target)
-            result[key] = translated
-    for key in PROSE_DICTS:
-        source = row.get(key)
-        if isinstance(source, dict):
-            target = {field: native(value, locale) for field, value in source.items() if isinstance(value, str) and value.strip()}
-            if target:
-                result[key] = target
-    return result
-
-
 def inject_locales(corpus: Path) -> None:
-    row = row_for(corpus, NEW_ID)
+    # Reuse a complete source-controlled EN/ES/ZH artifact. Appending a language
+    # suffix to English prose is counterfeit translation and fails ENGLISH_LEAK.
+    existing_id = "FCMO-FAD9D0AFD3E4"
+    source_path = corpus / "data/developments.jsonl"
+    records = [json.loads(line) for line in source_path.read_text().splitlines() if line.strip()]
+    source = next(row for row in records if row["id"] == existing_id)
+    new = json.loads(json.dumps(source).replace(existing_id, NEW_ID))
+    # Distinct fixture evidence prevents the Story duplicate rule merging it.
+    new["source_urls"] = ["https://example.invalid/refresh-fixture"]
+    new.pop("sources", None)
+    records = [row for row in records if row["id"] != NEW_ID] + [new]
+    source_path.write_text("".join(json.dumps(row, ensure_ascii=False) + "\n" for row in records))
     for locale in ("es-419", "zh-Hans"):
+        native = {}
+        for pack in sorted((ROOT / "site/data/i18n" / locale).glob("part-*.json")):
+            for key, value in json.loads(pack.read_text())["records"].get(existing_id, {}).items():
+                native.setdefault(key, value)
         path = corpus / "data/locales" / locale / "records.json"
-        path.parent.mkdir(parents=True, exist_ok=True)
-        existing = {}
-        if path.is_file():
-            existing = json.loads(path.read_text(encoding="utf-8")).get("records") or {}
-        existing[NEW_ID] = overlay(row, locale)
-        path.write_text(json.dumps({"schema":"fcmo-airlocked-locale-delta-v1","locale":locale,"canonical_locale":"en","records":existing}, ensure_ascii=False, indent=2)+"\n", encoding="utf-8")
+        doc = json.loads(path.read_text())
+        doc["records"][NEW_ID] = json.loads(json.dumps(native).replace(existing_id, NEW_ID))
+        path.write_text(json.dumps(doc, ensure_ascii=False, indent=2) + "\n")
 
 
 def run(cwd: Path, label: str, args: list[str]) -> bool:
@@ -136,14 +89,13 @@ def main() -> int:
     with tempfile.TemporaryDirectory(prefix="fcmo-refresh-") as tmp:
         repo=Path(tmp)/"repo"
         shutil.copytree(ROOT, repo, ignore=lambda _d,names:[n for n in names if n in EXCLUDE])
-        corpus=Path(tmp)/"corpus-plus-one"
-        con_historia_sintetica(CORPUS, corpus, NEW_ID)
+        corpus=repo/"corpus"
         inject_locales(corpus)
         before=mtimes(repo)
         steps=(
-            ("ingest", ["tools/ingest_corpus.py","--corpus",str(corpus),"--out","release-src"]),
+            ("ingest", ["tools/ingest_corpus.py","--corpus",str(corpus),"--out","release-src","--i18n-dir","site/data/i18n"]),
             ("relationships", ["tools/synchronize_relationship_surfaces.py","--site","release-src"]),
-            ("airlocked locales", ["tools/sync_airlocked_locales.py","--corpus",str(corpus)]),
+            ("airlocked locales", ["tools/sync_airlocked_locales.py","--corpus",str(corpus),"--publication-src","release-src"]),
             ("locale reconciliation", ["tools/reconcile_locale_overlays.py","--site","release-src"]),
             ("locale identity", ["tools/refresh_locale_identity.py","--site","release-src"]),
             ("native integrity/backlog", ["tools/validate_localizations_partial.py","--site","release-src"]),
@@ -155,6 +107,7 @@ def main() -> int:
             ("frontends", ["tools/build_editorial_frontends.py","--site","site"]),
             ("frontends final", ["tools/finalize_editorial_frontends.py","--site","site"]),
             ("overlay", ["tools/build_final_release.py"]),
+            ("native admission oracle", ["tests/oraculos/verificar_traduccion.py"]),
             ("ready receipt", ["tools/build_ready_receipt.py"]),
             ("publication gates", ["tools/verify_release.py"]),
         )

@@ -1,245 +1,138 @@
-# L31 — CI de PR #61 y edición diaria
-Fecha: 2026-10-07. Rama: `c5/l29-main`.
-
-**Resultado: reparación local probada; PR todavía NO lista para merge.** El push no pudo autenticarse. GitHub sigue evaluando el commit anterior, con tres checks rojos y uno verde. La edición pública sigue siendo la del 2026-10-05; el correo diario está desactivado por su condición de ejecución.
-
-## 1. CI observado en GitHub
-
-PR: https://github.com/FCMO-AI/FCMO-AI-Newsletter/pull/61
-
-| Check | Última corrida observada | Resultado |
-| --- | --- | --- |
-| test | https://github.com/FCMO-AI/FCMO-AI-Newsletter/actions/runs/37559891772 | failure |
-| publish-gate | https://github.com/FCMO-AI/FCMO-AI-Newsletter/actions/runs/37559891837 | failure |
-| release-integrity | https://github.com/FCMO-AI/FCMO-AI-Newsletter/actions/runs/37559891858 | failure |
-| visual | https://github.com/FCMO-AI/FCMO-AI-Newsletter/actions/runs/37559891798 | success |
-
-Los tres comandos requeridos `gh run view <id> --log-failed` se intentaron, pero la CLI carece de sesión autenticada. Los logs completos de los jobs se obtuvieron por el conector GitHub disponible.
-
-- `publish-gate` y `release-integrity`: 817 pruebas; dos errores en los contratos de instalación/rollback de Studio. Simulaban systemd y el directorio personal, pero consultaban el usuario real del runner. El instalador rechazaba correctamente una cuenta distinta de `fcmo-agent`.
-- `test`: 814 pruebas; diez errores y un fallo. Además de los dos errores del instalador, faltaban `age-keygen` y PyYAML. La prueba de Studio con remoto bare no podía obtener `origin/main` desde la fuente superficial; la integración HTTP también terminaba con el candidato rechazado. Este workflow no instalaba las dependencias de regresión ni traía el historial completo, a diferencia de los otros dos.
-
-Corrección: las pruebas del instalador simulan también la cuenta del host. Una prueba adicional demuestra que `runner` y `root` siguen siendo rechazados antes de comandos o escrituras. El instalador de producción no cambió. El job `test` obtiene historial completo, desactiva la persistencia de credenciales e instala PyYAML 6.0.2 y age. No se omitió ningún check ni se debilitó una compuerta.
-
-## 2. ¿Sale la edición diaria?
-
-Al cierre de la consulta había **8 corridas**, no las 5 del brief: todas `skipped`; 6 por `workflow_run` y 2 programadas. Las dos programadas también omiten el único job sin ejecutar pasos:
-
-- https://github.com/FCMO-AI/FCMO-AI-Newsletter/actions/runs/37671591246 — 2026-10-07 19:03:31 UTC.
-- https://github.com/FCMO-AI/FCMO-AI-Newsletter/actions/runs/37674892371 — 2026-10-07 19:29:39 UTC.
-
-En main, `dispatch-email.yml` exige `vars.FCMO_EMAIL_ENABLED == 'true'`. Para el evento programado, la otra parte de la condición se cumple automáticamente. Por tanto, **esa variable no vale literalmente `true` en las corridas observadas**. No se leyó su valor exacto ni se consultaron secretos o suscriptores. Se observaron 0 jobs de envío ejecutados. No existe otra ruta automática de Diario en los workflows examinados; una eventual actividad externa del proveedor no está verificada. No se activaron envíos.
-
-La publicación web es otra ruta. Hubo despliegues exitosos el 2026-10-07, incluido:
-https://github.com/FCMO-AI/FCMO-AI-Newsletter/actions/runs/37659087375
-
-Sin embargo, la edición servida sigue siendo **2026-10-05**, con **46 historias vivas** y última finalización **2026-10-06 03:00:49 UTC**. Las rutas de edición del 2026-10-06 y del 2026-10-07 devuelven 404. Chromium renderizó la portada real con `DELAYED`; `status.json` conserva `FRESH`. Se verificó un viewport de 1440×900 sin overflow horizontal; esto no certifica ausencia de todos los defectos visuales.
-
-El refresco del 2026-10-07 construye **48 historias**, pero el ACK rechaza el estado de traducciones porque todavía cuenta **46**:
-https://github.com/FCMO-AI/FCMO-AI-Newsletter/actions/runs/37652020883
-
-El ledger público tiene **80 registros**; sus tres entradas más recientes del 2026-10-07 reportan el mismo bloqueo 48/46. Esto coincide con los logs y el sitio.
-
-**Causa y reparación:** se había eliminado del refresco la ejecución de `tools/mark_pending_localizations.py`, que genera `translation-status.json` desde las historias recién construidas. Se restauró ese paso después de construir las superficies y antes del ACK. Se conserva el rechazo de recibos incoherentes y la clasificación real de traducciones completas, pendientes o fallidas.
-
-## 3. Evidencia local
-
-Commits, con autor Codex:
-- `13634b0`: regresiones rojas; 3 fallos reproducidos antes de corregir.
-- `dd1c5d1`: corrección de CI y regeneración del recibo diario.
-
-Verificación:
-- `python3 -m compileall -q tools tests` y `git diff --check`: OK.
-- Pruebas focalizadas: **11 OK**.
-- `python3 ops/publish.py --check`: **821 pruebas OK, 1 omisión preexistente**, integridad **7/7**, compuertas **14/14**, navegador **3 idiomas × 2 viewports**, **138 rutas de noticias**.
-- Repetición aislada con **106 archivos del corpus público reciente**, comprobados contra los hashes Git de la instantánea pública. Antes del paso restaurado, el ACK falla por el conteo viejo. Después: **50 historias**, **0 traducciones pendientes**, edición **2026-10-07**, ACK exitoso y **14/14** compuertas. El conteo 50 frente al 48 de main responde a la adaptación de etiquetas ya incluida en L30; L31 no cambió esa taxonomía.
-- Navegador del candidato actualizado: **150 rutas de noticias**, **3 portadas**, **206 rutas chinas**, **2 viewports**; matrix **3×2 PASS**.
-
-La repetición aislada usa investigación y visuales en modo offline; prueba la construcción y el ACK con bytes públicos reales, no un envío, deploy o ciclo autónomo de producción. Los archivos de publicación y el ledger del worktree no se actualizaron con esa instantánea.
-
-Evidencia conservada, excluida de Git: `_audit/l31/red.log`, `focused.log`, `publish-check.log`, `replay-refresh.log`, `refreshed-browser.log`, `live-playwright.log`, `live-desktop.png`. Repetición: `_audit/l31/replay-refresh.py`. El oráculo de producción basado en Chrome CLI agotó su timeout; la observación DOM y captura indicadas se obtuvieron con Playwright.
-
-## 4. Límite y continuación
-
-El intento de push fast-forward a `c5/l29-main` falló: Git no pudo obtener usuario/credencial con los prompts desactivados. No se modificaron main, origin/main, otros worktrees, variables ni secretos. El head remoto sigue en `7f591ca`; la PR continúa en borrador y con CI inestable.
-
-La carpeta de informes de campaña solicitada no está disponible para escritura en este entorno: crear `c5/reports` devuelve `Permission denied`. Se deja el mismo informe en `REPORT.md` y `reports/L31.md` dentro del worktree. El operador puede copiarlo al destino de campaña al recuperar esa ruta.
-
-Para continuar, con la configuración gh autorizada:
-1. Revalidar el head remoto y subir esta rama mediante push normal, sin force.
-2. Confirmar los cuatro checks verdes para el nuevo head; una suite local verde no reemplaza ese resultado.
-3. Claude debe repetir la aceptación fuera de este entorno antes de merge. El merge sigue siendo decisión del operador.
-4. Tras merge, comprobar refresco → Pages → origen público y la edición recién servida. Observar ciclos posteriores para probar continuidad.
-5. El correo requiere terminar la configuración autorizada del proveedor y sus requisitos existentes antes de activar `FCMO_EMAIL_ENABLED`; no basta con poner la variable en true.
-
-**Resumen:** CI y refresco diario corregidos y probados localmente. La edición nueva todavía no está en producción, el correo no se ejecuta y la PR necesita push autenticado, CI verde y revisión.
-
-# L33 — Drift del generador en el corte diario
-Fecha: 2026-10-07. Rama: `c5/l29-main`.
-
-## Causa
-
-El check no depende del reloj. `verificar_generador_newsroom.py` genera desde `corpus/` y compara contra `release-src/`, además de conservar las pruebas sintéticas de crecimiento e idempotencia. La rama de la PR terminaba en el corpus del 6 de octubre; el `origin/main` local usado por el merge de CI ya había recibido en `ce24511` el airlock público del 7 de octubre. Al reproducir la unión, el oráculo falló en rojo: faltaban `data/editions/2026-10-07.json` y `editions/2026-10-07.html`, y divergían superficies derivadas. En la rama sin ese corpus actualizado, el mismo test pasaba, como lo había hecho antes en el host.
-
-Por tanto, el release comprometido debe seguir al corpus vigente. El fallo señalaba drift real en el árbol combinado de la PR, no una fecha del runner que debiera fijarse o ignorarse.
-
-## Corrección
-
-Se incorporó a esta rama la actualización pública y sanitizada del corpus de `ce24511` (sello, índices y edición 2026-10-07); no se movió ni modificó la ref `origin/main`. Se reconstruyó `release-src` con `ingest_corpus.py` y `synchronize_relationship_surfaces.py`, más las etapas locales de sincronización/validación de locales y construcción de newsroom. `verificar_generador_newsroom.py` ahora pasa sin cambiar ni reducir sus invariantes de derivación, cobertura, crecimiento o punto fijo.
-
-La investigación pública y la visual desk se ejecutaron en modo offline durante la reproducción; sus resultados derivados temporales y el `site/` temporal se descartaron, pues no podían sustituir una corrida de producción con acceso a fuentes. Luego se generaron con los constructores propios el overlay congelado y `READY_TO_PUBLISH.md`, que también estaban obsoletos frente a la nueva edición. No se afirmó publicación ni despliegue.
-
-## Verificación
-
-- Antes del arreglo, el oráculo específico falló sobre una copia desechable con el corpus de `origin/main`; después, `python3 -m unittest tests.test_refresco_diario.RefrescoDiario.test_generador_deriva_y_crece` pasó.
-- `python3 tools/build_final_release.py`, `python3 tools/build_ready_receipt.py` y `python3 tools/verify_release.py`: PASS, 7/7 gates.
-- `ops/publish.py --check`: PASS; suite completa, integridad, 14/14 gates y browser oracle PASS. La suite reportó 818 tests OK y 2 skips. El browser comprobó las superficies Story/portada chinas en 2 viewports y la matriz en 3 idiomas × 2 viewports.
-- Los paths Playwright y `venv-pw` exactos dados en el brief no existen en este host. Primero se intentó el comando con esos valores. Para completar la aceptación de navegador se usó el módulo y Chromium ya instalados en `_audit/l31`; el PATH solicitado quedó antepuesto, aunque su directorio no está presente. Esta sustitución está documentada para la repetición de Claude.
-- `git diff --check`: PASS. No se ejecutó `--publish`, no se hizo push y no se verificó producción en vivo.
-
-## Límite
-
-La verificación completa demuestra consistencia del árbol local y su candidato estático, no un deploy ni frescura del origen público. Claude debe repetir la suite desde un entorno con los paths de navegador acordados antes de merge; el arquitecto conserva la decisión de push.
-
-**Resumen:** La CI fallaba porque `main` ya había avanzado el corpus al 7 de octubre y el release de la PR seguía en el 6. Se regeneraron el release, el overlay y el recibo; la aceptación local completa pasó con el navegador disponible en el worktree.
-
-# L35 — PR #61 source-only merge against moving main
-Fecha: 2026-10-07. Rama: `c5/l29-main`.
-
-## Actualización frente al informe L33
-
-L33 describe el estado anterior de esta rama y su regeneración de `release-src/`.
-Para L35 integré el `origin/main` vigente (`d923f86`) y dejé los artefactos de
-publicación exactamente como llegan de ese `main`. No regeneré corpus, release,
-overlay, recibos, índices, paquetes de idioma ni ledger para perseguir el siguiente
-refresh. El test de generador ya no usa ninguno de esos archivos como baseline.
-
-## Cambio causal
-
-En el merge de `main` con el corpus del 7 de octubre, el oráculo anterior falló en
-rojo al comparar el corpus actual con `release-src/` todavía no compuesto: faltaban
-cuatro dossiers y la edición del 7 de octubre, y diferían los índices derivados.
-La regresión nueva también falló en rojo al ejecutar el oráculo sin `release-src/`
-(`falta release-src`).
-
-Ahora el adaptador crea una copia temporal del checkout, sustituye el corpus de
-fixture por el `corpus/` actual y genera un `release-src/` de baseline dentro de esa
-copia en cada ejecución. El oráculo heredado conserva las pruebas de punto fijo,
-crecimiento de historia en todas las superficies, preservación de historias
-anteriores y crecimiento de la siguiente edición; la fecha de esa edición se deriva
-de la edición más nueva del corpus. La prueba de localización mide el paquete contra
-la edición compuesta y verifica que todo delta ya importado es canonical y coincide
-con su fuente, sin exigir que la salida generada preceda al escritor de corpus.
-La justificación está en [CR-2026-10-07-generator-oracle-merge-drift.md](CR-2026-10-07-generator-oracle-merge-drift.md).
-
-## Evidencia
-
-- Suite completa en el árbol de código final antes del último heartbeat de `main`:
-  **819 tests, 0 fallos, 2 omitidos**. El último commit de `main` incorporado (`d923f86`)
-  solo cambió `corpus/wire-status.json`; tras integrarlo, los 34 tests de wire-liveness,
-  refresco diario, aislamiento del generador y preservación de locales pasaron.
-- `ops/publish.py --check` se ejecutó con Playwright 1.63.0 y Chromium 1243. Su suite
-  interna pasó (**819 tests, 0 fallos, 2 omitidos**), pero el comando terminó rechazado
-  antes del navegador. `verify_release.py` encontró artefactos heredados incoherentes
-  en `origin/main`: overlay/manifest y recibo no coinciden con sus fuentes, y la
-  localización congelada tiene campos sobrantes respecto del release. No los regeneré
-  porque el encargo exige conservar esos artefactos de `main` sin cambios.
-- Para separar esa falla del navegador, construí el candidato estático de `site/`
-  fuera de los paths versionados, ejecuté las 14 compuertas (14/14), agent hygiene y
-  `tests/oraculos/verificar_paper.py`: **PASS**, layout de 138 rutas de historia y
-  3 portadas en dos tamaños, más la matriz de 3 idiomas × 2 tamaños.
-- `corpus/`, `release-src/`, `release-overlay/final/`, `site/data/`, `site/assets/story-media/`,
-  `READY_TO_PUBLISH.md`, `PRODUCTION_STATUS.md` y `ops/publication-desk/LEDGER.jsonl`
-  son byte-a-byte iguales a `origin/main` en el diff final.
-- Commits de esta ejecución: `0063c58` (merge de main), `a907002` (regresión roja),
-  `c29a9ca` (oráculo dinámico), `f223f0c` (artefactos de locale desde main),
-  `9c76b09` (locale contra release compuesto), `cedc68a` (retirar media no compuesta),
-  `c4bc5ee` (heartbeat más reciente de main). Autor: `Codex <noreply@openai.com>`.
-
-## Diff final y límite
-
-Base: `origin/main` `d923f86`; HEAD antes de este reporte: `c4bc5ee`. El diff conserva
-las fuentes de L29/L31 en `.github/`, `community/`, `contracts/`, `docs/`, `editorial/`,
-`i18n/`, `legal/`, `ops/`, `site-src/`, `studio/`, `tests/` y `tools/`, además de los
-reportes y documentos de seguimiento de esas lanes. En esta ejecución, los archivos
-causales añadidos o modificados son:
-
-- `tests/oraculos/verificar_generador_newsroom.py`
-- `tests/oraculos/verificar_generador.py`
-- `tests/test_generator_oracle_isolation.py`
-- `tests/test_localization_completeness.py`
-- `CR-2026-10-07-generator-oracle-merge-drift.md`
-- `REPORT.md`
-
-No hice push ni toqué la rama `main`. El objetivo `ops/publish.py --check` no queda
-completado: la fuente de bloqueo son artefactos ya incoherentes en `origin/main`, y
-resolverlo requiere regenerar la publicación o reparar su sincronización nativa;
-ambas acciones quedarían fuera de la regla de conservar los artefactos de `main`.
-Claude debe repetir el chequeo antes de merge. La rama sí deja la regresión de deriva
-imposible por diseño y el candidato de navegador pasó de forma independiente.
-
-**Resumen:** El oráculo ya prueba crecimiento desde un baseline generado en el mismo checkout y la suite pasa. `ops/publish.py --check` sigue bloqueado por release, recibo y locales incoherentes que ya trae `main`; no los alteré.
-
-# L38 — corrección de coherencia del release
-
-Fecha: 2026-10-07. Rama: `c5/l29-main`, PR #61.
-
-Se corrigieron la vinculación de cada traducción con su inglés y la dependencia
-del ACK de un recibo generado en un paso anterior. El diagnóstico, mecanismo y
-regresiones están en [CR-L38.md](CR-L38.md).
-
-Antes del cambio: `verify_release.py` reprodujo **4 de 7 compuertas fallidas**;
-las dos regresiones iniciales fallaron y se comprometieron en `4d14d74` antes
-de la corrección. Después de la recomposición: **7/7** compuertas, **50 historias**,
-**0 parejas pendientes** y ACK de la entrega del 7 de octubre.
-
-La prueba con una fuente modificada conserva la edición publicable con **49
-historias nativamente completas y 1 pendiente** en cada locale. La ruta pendiente
-no publica prosa traducida obsoleta y enlaza el inglés corregido.
-
-Verificación final:
-
-- `python3 -m unittest discover -s tests`: **824 pruebas OK, 4 omisiones**
-  antes de añadir las dos últimas regresiones; estas pasan en el conjunto focalizado.
-- Aceptación final: `PLAYWRIGHT_MODULE=$C/node-pw/node_modules/playwright PATH=$C/venv-pw/bin:$PATH python3 ops/publish.py --check --out /tmp/l38-check`:
-  **exit 0**, **826 pruebas OK, 2 omisiones**, integridad **7/7**, compuertas **14/14**.
-- Navegador: **150 rutas de noticias**, **3 portadas**, **206 rutas chinas**, dos
-  tamaños; matriz **3 idiomas × 2 viewports PASS**. También se abrió y examinó
-  la captura móvil de la portada española: sin overflow horizontal.
-- Se usaron los paths de módulo y venv solicitados. Como el cache predeterminado
-  de Playwright no tiene Chromium, se exportó `PLAYWRIGHT_BROWSERS_PATH` al cache
-  ya disponible en `_audit/l31/browser-cache`. Playwright **1.63.0**, Chromium
-  **153.0.8010.12**. La ejecución fue sin sandbox de filesystem; Chromium no fue
-  rechazado y no se descargaron dependencias.
-- `git diff --check`: PASS. El corpus no cambió. Los recibos de investigación
-  conservados coinciden en firma con las fuentes; la Visual Desk fue offline.
-
-Commits: `4d14d74` (regresión roja), `d2fe3e4` (mecanismo, contrato y release
-coherente). Autor: `Codex <noreply@openai.com>`.
-
-Logs y captura, excluidos de Git: `_audit/l38/red.log`, `drift-final.log`,
-`unittest.log`, `publish-check.log`, `final-es-mobile.png`.
-
-Push: **bloqueado por autenticación Git**. Se ejecutó exactamente
-`GIT_TERMINAL_PROMPT=0 git push --force-with-lease origin c5/l29-main`
-tras el commit `08bd3c9`. Git devolvió:
-
-> fatal: could not read Username for 'https://github.com': terminal prompts disabled
-
-No se transfirieron estos commits ni se confirmó un head remoto nuevo. La subida
-requiere una credencial Git autorizada configurada fuera del repositorio; no se
-leyeron secretos ni se solicitó permiso adicional. La rama local queda lista para
-repetir el comando. La interfaz GitHub disponible no permite transportar estos
-commits exactos con su autor y fechas, por lo que no se fabricó una publicación
-alternativa con otro historial.
-
-Claude debe repetir la aceptación antes de merge y Pages debe confirmar después
-el origen público. No se verificaron CI remoto, deploy ni ciclos autónomos de producción.
-
-La ruta de campaña `STATE-AND-PLAN.md` y el log relativo de L35 indicado en el
-brief no están disponibles en este entorno. Se leyeron el informe L35 de este
-worktree, su CR, la doctrina requerida y las notas de localización del vault.
-No se modificaron main, el corpus, otros worktrees ni el ledger del desk.
-
-**Resumen:** mecanismo corregido, release coherente y aceptación completa en verde.
-El push quedó bloqueado por autenticación; la edición pública todavía no está verificada.
+# L41 — admisión nativa y desbloqueo de publicación
+
+## Resultado
+
+Reparación local en `c5/l41-publish`, sin push. El árbol compuesto contiene
+86 historias live con sus tres ediciones completas; Story v2 conserva además
+1 retirada y 2 merges. Las cinco identidades con inglés residual quedan retenidas
+con motivos explícitos en `release-src/data/publication-admission.json`.
+El corpus recibido conserva el material para reparación y reintento automático:
+backlog recibido es-419=4, zh-Hans=3, unión=5; backlog publicado=0.
+
+La aceptación completa **no está demostrada**: falta Playwright/Chromium.
+`ops/publish.py --check` termina con código 2 exactamente en el oracle de navegador,
+después de suite, integridad, construcción, agent hygiene y los 14 gates verdes.
+No se consultó ni modificó producción. El seguimiento autónomo real requiere
+merge autorizado, deploy y ciclos posteriores observados por el verificador.
+
+## Base y commits
+
+El worktree ya existía sobre `79055f8` (L42) y el refresh público `2f7de90`.
+`12168eb` ya había integrado L39, incluidos sus tres fixes; se conservó ese merge.
+
+| Commit | Trabajo |
+|---|---|
+| `d540933` | Red first: vocabulario, hold/recovery y oracle antes del commit; 3 tests, 3 errores antes del fix. |
+| `64d91be` | Red first: titular con evidence, binding vacío y rutas acentuadas; 3 tests, 1 fallo y 2 errores. |
+| `01f8217` | Admisión, vocabulario, oracle independiente, etiquetas y corrección de gates; primera composición. |
+| `5c977f0` | Refresh con ediciones reales de fixture; conservación de investigación pública en la composición. |
+| `252892c` | Carry probado a través de ingest/sync/reconcile/ACK; tier preservado incluso con otro score. |
+| `02c1531` | Overlay de recuperación sincronizado y su regeneración/check antes del commit automático. |
+| `01440c4` | Oracle de publicación contra la versión inglesa comprometida; no confunde un update recibido con su carry. |
+
+Todos los commits de L41: Codex <noreply@openai.com>. Ningún push, fetch ni cambio
+a main/origin del repositorio de trabajo. Los remotes de pruebas fueron locales.
+
+## Clases cerradas y decisiones
+
+- **2 — tiers:** diez valores upstream, sus labels EN/ES/ZH y enums en los contratos.
+  El tier procede del registro; una prueba recorre los diez con score=6 y conserva
+  cada etiqueta. Useful vuelve a normalizarse y publicarse.
+- **3 — tipos y labels:** `reproduction_or_audit`, `signal_or_leak` y `other`
+  permanecen como tipos canónicos distintos: una auditoría y una señal no tienen
+  la misma función informativa que un paper o un lanzamiento. Se renderizan labels
+  naturales; se completaron también claim labels, regiones e idiomas observados.
+  Tier y tipo se conservan como metadata opcional de Story y se muestran en sus facts.
+- **4 — admisión:** ingest y Story usan la misma decisión por pares fuente/overlay.
+  FAILED/PENDING retiene la versión recibida. Una versión previa se lleva adelante
+  sólo si sus dos ediciones y bindings aún validan; sync conserva esos packs.
+  ACK y salud de publicación juzgan el inglés efectivamente publicado;
+  `--all-corpus` sigue midiendo la deuda de reparación recibida.
+  Se ejecuta `verificar_traduccion.py` antes del commit. No se modificó ese oracle,
+  el gate ENGLISH_LEAK ni se generaron traducciones de producción.
+- **5 — oracle:** recuento independiente de hojas internas, comparación con inglés
+  y detección de prosa inglesa; NOW deriva del corpus más grace+1h. Las assertions
+  de receipts distinguen material recibido de historias realmente publicadas.
+- **6 — gates/Studio:** BINDING_COMPLETE confundía un titular terminado en
+  “evidence — FCMO AI” con un binding vacío. Se corrige la interpretación y se
+  conservan negativos para labels vacíos, incluso separados por tags.
+  API y lector ahora comparten slug Unicode para las organizaciones acentuadas;
+  AGENT_LAYER valida los destinos. Los dos recorridos completos de Studio pasan.
+- **Coherencia adicional:** apareció el overlay de recuperación de 50 historias
+  frente a la fuente nueva de 86: tres compuertas de release fallaban. Se regeneró
+  sin relajar hashes y se añadió su freeze/check al refresh. Pages sigue siendo
+  el único renderer de producción y el único writer de despliegue.
+
+Se conservaron los receipts públicos reutilizables para 85 historias admitidas;
+la nueva historia recibió el pase offline. No hubo acceso externo a fuentes,
+traducción, ARB privado ni secretos. L42 permanece: no cambios a search_index.py,
+SEARCH_JS, presupuesto de búsqueda ni implementación de documentos llms.
+La nota al origen está en [c5/CR-L41-upstream.md](c5/CR-L41-upstream.md): siete hojas
+con fuga en cinco identidades. El snapshot examinado muestra claims[0].text y
+technical.strongest_baseline también en zh-Hans; difiere de los summaries indicados
+para esas dos identidades en el brief inicial. La nota refleja los bytes observados.
+
+## Evidencia de aceptación
+
+Logs locales ignorados en `_audit/l41/`; el verificador debe repetirlos en el host.
+
+| Comprobación | Resultado |
+|---|---|
+| `python3 -m unittest discover -s tests` (ejecutado por ops --check) | 842 tests, 0 failures, 0 errors, 4 skipped; 769.433 s. |
+| Desde tests: localization_completeness + story_layer + refresco_diario | 76 tests, OK; 59.041 s. |
+| Native admission + gate corpus regressions | 7 tests, OK. |
+| Tier/hold/recovery dirigidos finales | 4 tests, OK. |
+| Carry con sync/reconcile/ACK | 7 tests, OK. |
+| Workflow de recovery + admisión tras el cambio final | 29 tests, OK. |
+| Oracle de localización publicado + admisión, cierre | 41 tests, OK; 2.870 s. |
+| StudioIntegration + BareRemote, recorridos completos | 2 tests, OK; 201.413 s. |
+| `verificar_refresco.py` | 87 historias; la sintética llega a EN/ES/ZH y discovery; oracle de traducción pasa antes del freeze. |
+| `verificar_traduccion.py` sobre el árbol refrescado | 86 completas, pending=0; recientes materiales dentro del SLO. |
+| `tools/verify_release.py` | 7/7, incluido NO_FCMO_GROUP; 86 registros y 0 traducciones pendientes. |
+| `tools/gates/run_all.py` sobre candidato actual | 14/14; AGENT_LAYER y BINDING_COMPLETE pasan. |
+| Paper | 906 rutas, 57 feeds, 596 redirects; JS 3172 B. |
+| `ops/publish.py --check --out …` | Exit 2: BROWSER_UNAVAILABLE después de las comprobaciones anteriores. |
+| HTML final de Useful y reproduction_or_audit | Seis páginas EN/ES/ZH contienen sus etiquetas en el texto del DOM; evidencia `dom-proof.json`. |
+| Ready receipt, comprobación de cierre | OK, 906 rutas; candidato 8660fcb2638c. |
+| `git diff --check` | Limpio. |
+
+La suite general comenzó antes del último ajuste del workflow de recovery;
+los 29 tests dirigidos posteriores cubren ese cambio, y las siete compuertas
+verifican el nuevo overlay. No se presenta la ausencia de navegador como aceptación
+visual. Las cuatro omisiones incluyen las pruebas que dependen de navegador/axe
+no disponibles y el caso del renderer retirado cubierto por la integración real.
+
+## Clase 6: alcance del diagnóstico visual y de Studio
+
+No se cambió CSS ni el presupuesto móvil. El brief del host midió h1-top
+EN/ES=296 px, ZH=299 px, dentro de max=460 y target=420. El oracle evalúa gates
+además del viewport: el candidato inicial falla BINDING_COMPLETE por el titular
+válido. Es un falso positivo del gate, no evidencia de un h1 demasiado bajo.
+Las mediciones son del brief, no tomadas aquí. No hay screenshot local ni prueba
+visual final: Playwright no resuelve. Debe ejecutarse el oracle móvil con
+`--print-measurements` y conservar frames EN/ES/ZH en el host.
+
+En un checkout coherente del commit inicial `12168eb`, Studio superó review/request
+pero se detuvo al publicar por BINDING_COMPLETE. Aquí no se reprodujo el 409
+pre-review del host bajo esas mismas condiciones. Los recorridos finales sí
+alcanzan publicación local, incluidos revisión por la otra persona y repositorio
+bare; no se afirma haber publicado en GitHub ni en el sitio público.
+
+## Entorno y continuación
+
+COMMON.md y los directorios de herramientas/temporal indicados en el brief no
+existen en este entorno. No hubo permiso de filesystem para crear el temporal
+solicitado. Se aplicaron las reglas comunes del mensaje. El primer discover
+recibió ese TMPDIR inexistente y Python hizo fallback al temporal del sistema;
+se corrigió después a `_audit/l41/tmp` dentro del worktree para las pruebas
+restantes. Ese primer discover no es la prueba final de aceptación.
+
+Continuación: con las herramientas del host, repetir el comando de aceptación
+de ops del brief, comprobar los cuatro tests omitidos aplicables y el oracle
+móvil/frames. Verificar el upstream note y ejecutar las suites sin flags que
+omitan los oracles de refresh. Sólo el operador decide merge/push. Después:
+Deploy, origen público y ciclos automáticos repetidos siguen pendientes.
+
+**Resumen en español:** se reparó el vocabulario y la admisión por historia;
+86 historias completas se construyen y cinco esperan reparación upstream.
+Suite y gates pasan. Falta demostrar navegador y producción; no se hizo push.

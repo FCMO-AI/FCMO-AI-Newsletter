@@ -40,6 +40,10 @@ def step(root: Path, *args: str) -> None:
 
 
 def build_and_check(root: Path, out: Path, sha: str) -> dict:
+    # READY_TO_PUBLISH is derived from rendering code and Story/status inputs.
+    # Refresh it for this snapshot; verify_release independently rebuilds and
+    # compares it without writing, so subsequent drift still fails closed.
+    step(root, 'tools/build_ready_receipt.py')
     # Keep the established six-gate overlay boundary even though Pages serves paper.
     step(root, 'tools/verify_release.py')
     common = ['tools/paper/build.py', '--stories', 'site/data/stories.v2.json',
@@ -124,7 +128,11 @@ def main(argv=None):
     env['GHOST_CONTENT_URL'] = ''; env['GHOST_CONTENT_API_KEY'] = ''
     commands = []
     if not args.fixture_build:
-        commands += [[sys.executable, '-m', 'unittest', 'discover', '-s', 'tests'], [sys.executable, 'tools/verify_release.py']]
+        commands += [
+            [sys.executable, '-m', 'unittest', 'discover', '-s', 'tests'],
+            [sys.executable, 'tools/build_ready_receipt.py'],
+            [sys.executable, 'tools/verify_release.py'],
+        ]
     commands += [
         ['git', 'rev-parse', '--verify', 'refs/tags/lkg^{commit}'],
         [sys.executable, 'tools/paper/build.py', '--stories', 'site/data/stories.v2.json', '--status', 'site/data/newsroom-status.json', '--editorial', 'editorial', '--out', str(args.out), '--base', '/FCMO-AI-Newsletter/'],

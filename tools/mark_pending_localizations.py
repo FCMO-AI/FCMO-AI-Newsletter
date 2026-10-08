@@ -406,6 +406,16 @@ def render_pending(site: Path, canonical: dict[str, dict[str, Any]], i18n_dir: P
                    config: Path | None = Path("config/site.json"), catalog_dir: Path | None = None) -> int:
     """Render pending routes and measure the exact rebuilt Story set in one pass."""
     i18n_dir = i18n_dir or site / "data" / "i18n"
+    admission_path = site.parent / 'release-src/data/publication-admission.json'
+    if admission_path.is_file():
+        try:
+            from tools.native_admission import published_sources
+        except ImportError:
+            from native_admission import published_sources
+        carried = set(json.loads(admission_path.read_text())['carried_ids'])
+        canonical = dict(canonical)
+        selected = published_sources(site.parent / 'release-src')
+        canonical.update({rid: selected[rid] for rid in carried})
     stories = json.loads((site / "data" / "stories.json").read_text(encoding="utf-8"))
     if not isinstance(stories, list):
         raise SystemExit("pending localization renderer: stories.json must be a list")

@@ -45,11 +45,13 @@ try:
     from tools.ingest_corpus import parse_edition
     from tools import taxonomy
     from tools import corpus_guard
+    from tools.native_admission import select_native, published_sources
     from tools.validate_localizations import load_locale_details, effective_overlays_details, pair_status, load_corpus_canonical
 except ImportError:  # executed as tools/story_layer.py
     from ingest_corpus import parse_edition  # type: ignore
     import taxonomy  # type: ignore
     import corpus_guard  # type: ignore
+    from native_admission import select_native, published_sources
     from validate_localizations import load_locale_details, effective_overlays_details, pair_status, load_corpus_canonical  # type: ignore
 
 STORIES_SCHEMA = "fcmo-stories-v2"
@@ -537,6 +539,9 @@ def story_object(record: dict[str, Any], ledger_entry: dict[str, Any], carried: 
     })
     if record.get("technical"):
         story["technical"] = record["technical"]
+    for key in ('importance_tier', 'development_type'):
+        if record.get(key):
+            story[key] = record[key]
     story.update({
         "event_at": record["event_at"],
         "date_precision": record["date_precision"],
@@ -614,7 +619,7 @@ def record_from_story(story: dict[str, Any]) -> dict[str, Any]:
         "relationships": [{"target_id": r["id"], "type": r["type"], **({"summary": r["summary"]} if r.get("summary") else {})}
                           for r in story.get("related") or [] if r.get("type") in {"related", "follow_up"}],
     }
-    for key in ("technical", "headline", "dek", "scheduled_at"):
+    for key in ("technical", "headline", "dek", "scheduled_at", "importance_tier", "development_type"):
         if story.get(key):
             record[key] = story[key]
     return record
@@ -686,12 +691,42 @@ class StoryInputs:
         for rid, story in frozen.items():
             self.records.setdefault(rid, record_from_story(story))
         self.first = first_published_map(self.records, self.ledger, repo, site, now)
+        recorded_merges, detected_merges = self.merges()
+        notice_ids = set(recorded_merges) | set(detected_merges)
+        self.held_back: dict[str, str] = {}
+        native_carried: set[str] = set()
+        prior_sources: dict[str, dict] = {}
+        if i18n is not None:
+            # Withdrawal/merge notices are history, not new live publication.
+            live_sources = [row for row in rows + carried if row.get('id') in self.records
+                            and row['id'] not in self.active and row['id'] not in notice_ids
+                            and self.records[row['id']]['status'] not in corpus_guard.WITHDRAWN_STATUSES]
+            publication = site.parent / 'release-src' if site is not None else None
+            if publication is not None and (publication / 'data/publication-admission.json').is_file():
+                prior_sources = published_sources(publication)
+            admitted, self.held_back, native_carried = select_native(corpus, live_sources, i18n, prior_sources)
+            for row in admitted:
+                if row['id'] in native_carried:
+                    self.records[row['id']] = taxonomy.normalize_record(row)
+            self.carried_ids |= native_carried
+            for rid in set(self.held_back) - native_carried:
+                self.records.pop(rid, None)
+                frozen.pop(rid, None)
+        self.first = first_published_map(self.records, self.ledger, repo, site, now)
         # The Story layer consumes the same source-bound field decision as ACK
         # and native routes. A stale pack/delta cannot bypass it by cardinality.
         canonical = load_corpus_canonical(corpus)
+        canonical.update({rid: prior_sources[rid] for rid in native_carried})
         packs = {loc: {} for loc in TARGET_LOCALES}
         for loc in TARGET_LOCALES:
             rows, strict, origins, _ = effective_overlays_details(loc, i18n, corpus)
+            if native_carried:
+                committed, committed_strict, committed_origins, _ = load_locale_details(i18n, loc)
+                for rid in native_carried:
+                    rows[rid] = committed[rid]
+                    origins[rid] = committed_origins[rid]
+                    if rid not in committed_strict:
+                        strict.discard(rid)
             for rid, row in rows.items():
                 if rid not in canonical:
                     continue
@@ -749,6 +784,8 @@ def build_stories(inputs: StoryInputs) -> dict[str, Any]:
         log(f"MERGE_UNRECORDED {dup} -> {survivor}")
     for rid, codes in inputs.quarantined:
         log(f"QUARANTINE {rid} {','.join(codes)}")
+    for rid, reason in sorted(inputs.held_back.items()):
+        log(f"HELD_BACK {rid} {reason}")
     for rid in sorted(inputs.orphans):
         log(f"ALERT STORY_ORPHAN {rid} (published before, absent from the corpus without a tombstone)")
     for rid in inputs.unavailable:
@@ -840,7 +877,7 @@ def update_ledger(corpus: Path, repo: Path | None, site: Path | None, now: str) 
     published (in the git history or in the live stories.json) are frozen; an id
     never published stays unfrozen until it is.
     """
-    inputs = StoryInputs(corpus, repo, site, None, now)
+    inputs = StoryInputs(corpus, repo, site, site / 'data/i18n' if site is not None else None, now)
     ledger = {"schema": LEDGER_SCHEMA, "entries": dict(inputs.ledger["entries"])}
     tombstones = {"schema": corpus_guard.TOMBSTONES_SCHEMA, "tombstones": list(inputs.tombstones["tombstones"])}
     history = history_first_published(repo) if is_full_history(repo) else {}

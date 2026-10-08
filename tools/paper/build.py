@@ -22,7 +22,7 @@ if __package__ in {None, ""}:
     from tools.paper.front_plan import front_plan
     from tools.agent import build as agent_layer
     from tools.paper.i18n import dek, field, format_date, headline, is_complete, label, load_catalogs, plural, story_locale, truncate
-    from tools.paper.routes import absolute, beat_path, edition_path, href, issue_path, org_path, output_path, piece_path, story_path, topic_path
+    from tools.paper.routes import slugify, absolute, beat_path, edition_path, href, issue_path, org_path, output_path, piece_path, story_path, topic_path
     from tools.paper.status_banner import freshness_attributes, freshness_sentence, render as render_banner
     from tools.visual_desk import write_localized_story_graphics
     from tools.paper.templates import archive_page, document, front_page, simple_page, status_page, story_page
@@ -39,7 +39,7 @@ else:
     from .front_plan import front_plan
     from tools.agent import build as agent_layer
     from .i18n import dek, field, format_date, headline, is_complete, label, load_catalogs, plural, story_locale, truncate
-    from .routes import absolute, beat_path, edition_path, href, issue_path, org_path, output_path, piece_path, story_path, topic_path
+    from .routes import slugify, absolute, beat_path, edition_path, href, issue_path, org_path, output_path, piece_path, story_path, topic_path
     from .status_banner import freshness_attributes, freshness_sentence, render as render_banner
     from tools.visual_desk import write_localized_story_graphics
     from .templates import archive_page, document, front_page, simple_page, status_page, story_page
@@ -70,15 +70,6 @@ def copy_public_tree(source: Path, target: Path) -> None:
             shutil.copyfile(Path(directory) / name, target / relative / name)
 
 
-def slugify(value: str) -> str:
-    value = value.casefold().strip()
-    chars = []
-    for char in value:
-        if char.isalnum():
-            chars.append(char)
-        elif chars and chars[-1] != "-":
-            chars.append("-")
-    return "".join(chars).strip("-") or "item"
 
 
 class PaperBuilder:
@@ -573,6 +564,8 @@ class PaperBuilder:
         confidence_heading = strings["confidence"].split("{level}", 1)[0].rstrip(" :：")
         values = [
             (strings["importance_rationale"], strings["importance"].format(score=story.get("importance", ""))),
+            (strings["importance_tier"], label(catalog, "importance_tier", story.get("importance_tier"))),
+            (strings["development_type"], label(catalog, "development_type", story.get("development_type"))),
             (strings["evidence"], label(catalog, "evidence_class", story.get("evidence_class"))),
             (confidence_heading, label(catalog, "confidence", story.get("confidence"))),
         ]

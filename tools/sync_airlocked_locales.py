@@ -57,7 +57,13 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--corpus", type=Path, default=Path("corpus"))
     parser.add_argument("--i18n-dir", type=Path, default=Path("site/data/i18n"))
+    parser.add_argument("--publication-src", type=Path, help="Preserve the prior native packs of carried versions")
     args = parser.parse_args(argv)
+
+    carried = set()
+    if args.publication_src is not None:
+        decision = read_json(args.publication_src / 'data/publication-admission.json')
+        carried = set(decision['carried_ids'])
 
     changed = added = promoted = narrowed = 0
     try:
@@ -102,6 +108,9 @@ def main(argv: list[str] | None = None) -> int:
         touched: dict[Path, dict[str, Any]] = {}
         bindings = airlock_doc.setdefault("source_bindings", {})
         for rid, overlay in sorted(rows.items()):
+            if rid in carried:
+                print(f'{locale}: {rid} carried; incoming edition held for native repair')
+                continue
             if not isinstance(rid, str) or not rid.startswith("FCMO-") or not isinstance(overlay, dict):
                 raise SystemExit(f"{incoming_path}: malformed record {rid!r}")
             bad = [key for key, value in overlay.items() if not isinstance(key, str) or value is None]

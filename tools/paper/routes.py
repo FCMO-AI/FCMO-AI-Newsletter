@@ -79,3 +79,15 @@ def href(base: str, route: str) -> str:
 
 def absolute(base_url: str, route: str) -> str:
     return base_url.rstrip("/") + "/" + route.lstrip("/")
+
+
+def slugify(value: str) -> str:
+    value = value.casefold().strip()
+    chars = []
+    for char in value:
+        if char.isalnum():
+            chars.append(char)
+        elif chars and chars[-1] != "-":
+            chars.append("-")
+    return "".join(chars).strip("-") or "item"
+

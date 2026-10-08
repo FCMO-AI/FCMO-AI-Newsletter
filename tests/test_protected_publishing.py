@@ -71,7 +71,8 @@ class ProtectedPublishingTests(unittest.TestCase):
             # use the complete independently constructed edition as that output.
             with self.assertRaisesRegex(RuntimeError, 'publication blocked'):
                 publish.build_and_check(ROOT, fixture.root, self.sha)
-        self.assertEqual(calls, ['tools/verify_release.py', 'tools/paper/build.py', 'tools/gates/run_all.py'])
+        self.assertEqual(calls, ['tools/build_ready_receipt.py', 'tools/verify_release.py',
+                                 'tools/paper/build.py', 'tools/gates/run_all.py'])
         self.assertNotIn('tools/paper/og_image.py', calls)
         self.assertNotIn('tests/oraculos/verificar_paper.py', calls)
         self.assertFalse((fixture.root / 'deployment-identity.json').exists())

@@ -335,14 +335,14 @@ class NewswireBridgeWorkflowContractTests(unittest.TestCase):
             pipeline.index("uses: actions/deploy-pages@v4"),
         ]
         self.assertEqual(positions, sorted(positions))
-        for retired in (
-            "python tools/build_final_release.py",
-            "python tools/build_ready_receipt.py",
-            "python tools/verify_release.py",
-        ):
-            self.assertNotIn(retired, refresh)
+        # The recovery overlay must remain coherent with release-src because
+        # the independent release gates still enforce that boundary. Serving,
+        # browser proof and deployment continue through Paper in Pages.
+        self.assertIn('name: Freeze the recovery overlay from the admitted canonical source', refresh)
+        self.assertLess(refresh.index('python tools/build_final_release.py'),
+                        refresh.index('python tools/verify_release.py'))
         self.assertIn("git add -A -- release-src release-overlay site READY_TO_PUBLISH.md", refresh)
-        self.assertNotIn("python tools/build_final_release.py", refresh)
+        self.assertNotIn('uses: actions/deploy-pages', refresh)
 
 
 if __name__ == "__main__":
