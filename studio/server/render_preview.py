@@ -4,24 +4,74 @@ Readiness and provenance are preserved in storage. Only this private, authentica
 rendering view makes existing draft documents visible, with no review claim.
 """
 import argparse
+from collections import Counter
+import importlib
 import json
 from pathlib import Path
-from tools.paper.build import PaperBuilder
+from tools.paper.build import PaperBuilder, esc
+from tools.paper.routes import href, slugify
 from .validation import validate_doc, LOCALES
+
+def warm():
+    # Templates are Python modules, not a separate Jinja compiler. Importing
+    # them warms Python's compiled bytecode cache for subsequent renderer runs.
+    importlib.import_module('tools.paper.templates.essay')
+
+
+class StudioPaperBuilder(PaperBuilder):
+    """Same full production build, with corpus membership indexed once.
+
+    Counts are per story (duplicates in one story still count once), and first
+    encounter order is retained for the production sort's equal-key ties.
+    The index belongs to this immutable build, never to another snapshot.
+    """
+    def _topic_links(self, locale, *, exclude_topic='', exclude_org='', limit=5):
+        if not hasattr(self, '_studio_neighbors'):
+            counts = {field: Counter(value for story in self.live for value in set(story.get(field) or []))
+                      for field in ('topics', 'organizations')}
+            rows = {}
+            for story in self.live:
+                for field, route in (('topics', 'topic'), ('organizations', 'org')):
+                    for value in story.get(field, []):
+                        count = counts[field][value]
+                        if field == 'topics' and count < 3: continue
+                        rows.setdefault((value, route), (count, value, slugify(value), route))
+            self._studio_neighbors = tuple(rows.values())
+            self._studio_neighbor_html = {}
+        key = (locale['code'], locale['path_prefix'], exclude_topic, exclude_org, limit)
+        if key not in self._studio_neighbor_html:
+            selected = []
+            for count, value, slug, route in self._studio_neighbors:
+                exclude = exclude_topic if route == 'topic' else exclude_org
+                if value == exclude or slug == exclude: continue
+                selected.append((count, value, href(self.base, locale['path_prefix'] + route + '/' + slug + '/')))
+            selected.sort(key=lambda row: (-row[0], row[1].casefold()))
+            links = ''.join(f'<li><a href="{esc(url)}" translate="no">{esc(value)}</a><span>{count}</span></li>'
+                            for count, value, url in selected[:limit])
+            title = esc(self.catalogs[locale['code']]['strings']['front']['see_all'])
+            self._studio_neighbor_html[key] = f'<nav class="taxonomy-neighbors"><h2>{title}</h2><ul>{links}</ul></nav>' if links else ''
+        return self._studio_neighbor_html[key]
 
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--snapshot', type=Path, required=True)
-    parser.add_argument('--editorial', type=Path, required=True)
-    parser.add_argument('--stories', type=Path, required=True)
-    parser.add_argument('--status', type=Path, required=True)
-    parser.add_argument('--out', type=Path, required=True)
-    parser.add_argument('--base', required=True)
+    parser.add_argument('--warm', action='store_true')
+    parser.add_argument('--snapshot', type=Path)
+    for name in ('editorial', 'stories', 'status', 'out'):
+        parser.add_argument('--' + name, type=Path)
+    parser.add_argument('--base')
     args = parser.parse_args()
+    warm()
+    if args.warm: return
+    if any(getattr(args, name) is None for name in ('editorial', 'stories', 'status', 'out', 'base')):
+        parser.error('Configura editorial, stories, status, out y base para construir la vista previa.')
+    if not args.snapshot:
+        StudioPaperBuilder(stories_path=args.stories, status_path=args.status, editorial_path=args.editorial,
+                           out=args.out, base=args.base).build()
+        return
     payload = json.loads(args.snapshot.read_text())
     empty = args.snapshot.parent / 'empty-editorial'; empty.mkdir(exist_ok=True)
-    builder = PaperBuilder(stories_path=args.stories, status_path=args.status, editorial_path=empty, out=args.out, base=args.base)
+    builder = StudioPaperBuilder(stories_path=args.stories, status_path=args.status, editorial_path=empty, out=args.out, base=args.base)
     piece = payload['piece']
     for loc, doc in payload['docs'].items():
         validate_doc(doc, loc)

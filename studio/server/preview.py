@@ -18,6 +18,16 @@ class Preview:
     def __init__(self, store, repo, base='/FCMO-AI-Newsletter/'):
         self.store = store; self.repo = Path(repo).resolve(); self.base = '/' + base.strip('/') + '/'
         self.mutex = threading.RLock(); self.cache = {}
+    def warm(self):
+        run = subprocess.run(['python3', '-m', 'studio.server.render_preview', '--warm'], cwd=self.repo,
+                             env=self.renderer_environment(), capture_output=True, timeout=10)
+        if run.returncode:
+            raise RendererUnavailable('No se pudo preparar el renderer de producción. Revisa el generador antes de iniciar Studio.')
+    @staticmethod
+    def renderer_environment():
+        env = {k: v for k, v in os.environ.items() if not k.startswith(('GH_TOKEN', 'GITHUB_TOKEN', 'GHOST_', 'STUDIO_'))}
+        env['GHOST_CONTENT_URL'] = ''; env['GHOST_CONTENT_API_KEY'] = ''
+        return env
     def build(self, value, strict=False):
         with self.mutex:
             with self.store.mutex:
@@ -39,12 +49,11 @@ class Preview:
             output = workspace / 'publish'
             private = not strict and 'issue' not in payload and any(self.store.piece(value)['locale_states'][loc]['state'] in ('empty', 'drafting') for loc in LOCALES)
             if private: atomic(workspace / 'snapshot.json', encoded(payload).encode())
-            env = {k: v for k, v in os.environ.items() if not k.startswith(('GH_TOKEN', 'GITHUB_TOKEN', 'GHOST_', 'STUDIO_'))}
-            env['GHOST_CONTENT_URL'] = ''; env['GHOST_CONTENT_API_KEY'] = ''
-            command = ['python3', str(self.repo / 'tools/paper/build.py'), '--stories', str(source_repo / 'site/data/stories.v2.json'),
+            env = self.renderer_environment()
+            command = ['python3', '-m', 'studio.server.render_preview', '--stories', str(source_repo / 'site/data/stories.v2.json'),
                        '--status', str(source_repo / 'site/data/newsroom-status.json'), '--editorial', str(editorial), '--out', str(output), '--base', self.base]
             if private:
-                command = ['python3', '-m', 'studio.server.render_preview', '--snapshot', str(workspace / 'snapshot.json'), *command[2:]]
+                command.extend(['--snapshot', str(workspace / 'snapshot.json')])
             run = subprocess.run(command, cwd=self.repo, env=env, capture_output=True, timeout=180)
             if run.returncode or any(not (output / PREFIX[loc] / ('cartas/ediciones' if 'issue' in payload else 'cartas') / value / 'index.html').is_file() for loc in LOCALES):
                 shutil.rmtree(workspace)
