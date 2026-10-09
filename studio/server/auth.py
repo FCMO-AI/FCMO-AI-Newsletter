@@ -2,10 +2,16 @@
 import hashlib
 import hmac
 import secrets
+import unicodedata
 from .storage import NAMES
 
 COOKIE = '__Host-studio'
 TTL = 30 * 24 * 3600
+
+def normalize_username(user):
+    if not isinstance(user, str): return ''
+    return ''.join(c for c in unicodedata.normalize('NFD', user.strip())
+                   if not unicodedata.category(c).startswith('M')).lower()
 
 def password_hash(password, salt=None):
     if not isinstance(password, str) or not 12 <= len(password) <= 1024: raise ValueError('La contraseña necesita al menos 12 caracteres.')
@@ -27,11 +33,13 @@ class Auth:
         self.dummy = password_hash('invalid-password-placeholder')
     def digest(self, token): return hmac.new(self.key, token.encode(), hashlib.sha256).hexdigest()
     def add_user(self, user, password, gh_login='', ui_lang='es'):
+        user = normalize_username(user)
         if user not in NAMES or ui_lang not in ('es', 'en'): raise ValueError('La cuenta no es válida.')
         with self.store.mutex:
             self.store.db.execute('INSERT OR REPLACE INTO users VALUES(?,?,?,?,?,0,0)', (user, NAMES[user], password_hash(password), gh_login, ui_lang))
             self.store.db.execute('DELETE FROM sessions WHERE user=?', (user,)); self.store.db.commit()
     def login(self, user, password, ua='', tailnet=''):
+        user = normalize_username(user)
         with self.store.mutex:
             db = self.store.db; now = self.store.clock()
             row = db.execute('SELECT * FROM users WHERE key=?', (user,)).fetchone()

@@ -9,7 +9,8 @@ def ready(repo):
     web = Path(repo) / 'studio/web'
     try:
         manifest = json.loads((web / 'dist/build-manifest.json').read_text())
-        sources = [web / name for name in ('build.mjs', 'package.json', 'package-lock.json')]
+        sources = [web / name for name in ('build.mjs', 'offline-build.mjs', 'package.json', 'package-lock.json')]
+        sources.extend(p for p in (web / 'offline').rglob('*') if p.is_file())
         sources.extend(p for p in (web / 'src').rglob('*') if p.is_file())
         sources.append(Path(repo) / 'site-src/assets/css/essay.css')
         sources.extend((Path(repo) / 'site-src/assets/fonts').glob('*.woff2'))
