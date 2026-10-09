@@ -1,5 +1,5 @@
 // Matías comments on the chosen paragraph at phone width, including a locale change.
-import { session, go, check, finish } from './studio_common.mjs'
+import { session, go, check, finish, previewTimeout } from './studio_common.mjs'
 const slug=process.argv[3] || process.env.STUDIO_SLUG
 if(!slug)throw new Error('A seeded, multi-paragraph fixture is required')
 const s=await session(process.argv[2],{user:'matias',viewport:{width:390,height:844}}), p=s.page
@@ -8,7 +8,7 @@ for(const [locale,index] of [['en',1],['es-419',3]]){
   await p.getByRole('tab',{name:'Lectura',exact:true}).click()
   if(locale==='es-419')await p.locator('.pv-controls button').filter({hasText:/^ES$/}).click()
   const body=p.frameLocator('.pv-frame').locator('.essay-body [id^="b-"]')
-  await body.nth(index).waitFor()
+  await body.nth(index).waitFor({ timeout: previewTimeout })
   const id=await body.nth(index).getAttribute('id')
   await body.nth(index).click()
   await p.getByRole('tab',{name:'Comentarios',exact:true}).click()

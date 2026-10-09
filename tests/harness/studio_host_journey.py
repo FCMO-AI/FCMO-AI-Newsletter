@@ -7,6 +7,8 @@ import argparse
 import importlib.util
 import hashlib
 import json
+import math
+from http.client import HTTPConnection
 import os
 from pathlib import Path
 import secrets
@@ -14,11 +16,45 @@ import signal
 import subprocess
 import tempfile
 import time
+from urllib.parse import urlsplit
 
 from studio.server.auth import Auth
 from studio.server.storage import Store, git
 
 ROOT = Path(__file__).resolve().parents[2]
+
+def preview_timeout_ms(cold_seconds):
+    if not isinstance(cold_seconds, (int, float)) or not math.isfinite(cold_seconds) or cold_seconds <= 0:
+        raise ValueError('No se pudo leer el tiempo de la primera vista previa.')
+    # Twice the measured render, plus five seconds for browser/frame scheduling.
+    return math.ceil(cold_seconds * 2000 + 5000)
+
+
+def measure_preview(origin, slug, user, password):
+    address = urlsplit(origin)
+    if address.scheme != 'http' or address.hostname != '127.0.0.1':
+        raise ValueError('La medición de prueba solo admite el listener local aislado.')
+    conn = HTTPConnection(address.hostname, address.port, timeout=195)
+    cookie = csrf = None
+    try:
+        conn.request('POST', '/api/login', json.dumps({'user': user, 'password': password}),
+                     {'Origin': origin, 'Content-Type': 'application/json'})
+        response = conn.getresponse(); login = json.loads(response.read())
+        if response.status != 200: raise RuntimeError('No se pudo abrir la sesión aislada para medir la vista previa.')
+        cookie = response.getheader('Set-Cookie').split(';')[0]; csrf = login['csrf']
+        start = time.perf_counter()
+        conn.request('GET', '/preview/' + slug + '/en/', headers={'Cookie': cookie})
+        response = conn.getresponse(); body = response.read()
+        seconds = time.perf_counter() - start
+        if response.status != 200 or b'essay-body' not in body:
+            raise RuntimeError('El renderer no entregó el ensayo; no se puede fijar un timeout con una vista previa fallida.')
+        return {'cold_preview_seconds': seconds, 'preview_timeout_ms': preview_timeout_ms(seconds)}
+    finally:
+        if cookie and csrf:
+            conn.request('POST', '/api/logout', '{}', {'Cookie': cookie, 'X-CSRF-Token': csrf,
+                                                    'Origin': origin, 'Content-Type': 'application/json'})
+            conn.getresponse().read()
+        conn.close()
 
 
 def main():
@@ -73,15 +109,19 @@ def main():
                     except OSError: time.sleep(.1)
                 else: raise RuntimeError('Studio no respondió en loopback.')
                 report['loopback'] = True
+                report.update(measure_preview(env['STUDIO_ORIGIN'], seeded, 'javier', password))
+                env['STUDIO_PREVIEW_TIMEOUT_MS'] = str(report['preview_timeout_ms'])
+                env['STUDIO_COLD_PREVIEW_SECONDS'] = str(report['cold_preview_seconds'])
+                browser_timeout = max(180, math.ceil(report['preview_timeout_ms'] / 1000) * 6 + 120)
                 receipt()
-                subprocess.run(['node', str(ROOT / 'tests/harness/browser/studio_host_task.mjs'), env['STUDIO_ORIGIN'] + '/', str(args.out)], env=dict(env, STUDIO_SLUG=review_seed), check=True, timeout=600)
+                subprocess.run(['node', str(ROOT / 'tests/harness/browser/studio_host_task.mjs'), env['STUDIO_ORIGIN'] + '/', str(args.out)], env=dict(env, STUDIO_SLUG=review_seed), check=True, timeout=max(600, browser_timeout))
                 # Preserve the established, stronger browser regression journeys.
                 for script, argv in (('studio_editor', []), ('studio_review', [seeded]), ('studio_translate', [seeded]), ('studio_publish', [seeded]), ('studio_credentials', [])):
                     if script == 'studio_publish':
                         fresh = subprocess.check_output(['python3', '-m', 'tests.harness.seed_studio'], cwd=ROOT, env=env, text=True).strip()
                         argv = [fresh]
                     with (args.out / (script + '.log')).open('w') as evidence:
-                        subprocess.run(['node', str(ROOT / ('tests/harness/browser/' + script + '.mjs')), env['STUDIO_ORIGIN'] + '/', *argv], env=env, stdout=evidence, stderr=evidence, check=True, timeout=180)
+                        subprocess.run(['node', str(ROOT / ('tests/harness/browser/' + script + '.mjs')), env['STUDIO_ORIGIN'] + '/', *argv], env=env, stdout=evidence, stderr=evidence, check=True, timeout=browser_timeout)
                     report['browser_regressions'].append(script)
                     receipt()
                 report['completed'] = True
