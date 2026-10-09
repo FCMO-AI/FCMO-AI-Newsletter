@@ -37,6 +37,7 @@ COPY = {
         "step_three": "Follow the thread",
         "step_three_body": "Read the publication method and choose how to keep up.",
         "method": "How we work",
+        "share_link": "Share the Newsletter",
     },
     "es-419": {
         "eyebrow": "FCMO · Personas, sistemas, software",
@@ -67,6 +68,7 @@ COPY = {
         "step_three": "Sigue el hilo",
         "step_three_body": "Conoce el método editorial y elige cómo mantenerte al día.",
         "method": "Cómo trabajamos",
+        "share_link": "Comparte la Newsletter",
     },
     "zh-Hans": {
         "eyebrow": "FCMO · 人员、系统、软件",
@@ -97,6 +99,7 @@ COPY = {
         "step_three": "沿线索继续",
         "step_three_body": "了解编辑方法，并选择关注方式。",
         "method": "工作方法",
+        "share_link": "分享 Newsletter",
     },
 }
 
@@ -144,4 +147,4 @@ def render(*, locale: dict, home: str, technical: str, about: str, subscribe: st
 <section class="landing-letters" id="letters" aria-labelledby="letters-title"><div class="landing-section-head"><p class="section-kicker">01 / fCMO · Javier</p><h2 id="letters-title">{e(c['letter'])}</h2><p>{e(c['letter_dek'])}</p><div class="landing-actions"><a class="button" href="{e(home)}empieza/">{e(c['start'])} <span aria-hidden="true">↗</span></a><a href="{e(home)}comunidad/">{e(c['community_path'])} →</a></div></div><div class="landing-letter-feed"{letter_slot}>{letter}</div></section>
 <section class="landing-guide" id="start-here" aria-labelledby="guide-title"><div><p class="section-kicker">FCMO / 00</p><h2 id="guide-title">{e(c['guide_title'])}</h2><p>{e(c['guide_intro'])}</p></div><ol><li><span>01</span><h3>{e(c['step_one'])}</h3><p>{e(c['step_one_body'])}</p><a href="{e(home)}cartas/">{e(c['letter'])} →</a></li><li><span>02</span><h3>{e(c['step_two'])}</h3><p>{e(c['step_two_body'])}</p><a href="{e(technical)}">{e(c['technical'])} →</a></li><li><span>03</span><h3>{e(c['step_three'])}</h3><p>{e(c['step_three_body'])}</p><a href="{e(about)}">{e(c['method'])} →</a></li></ol></section>
 <section class="landing-technical" id="technical" aria-labelledby="technical-title"><div class="technical-intro"><p class="section-kicker">02 / FCMO AI · Matías</p><h2 id="technical-title">{e(c['technical'])}</h2><p>{e(c['technical_dek'])}</p><a class="button" href="{e(technical)}">{e(c['today'])} <span aria-hidden="true">↗</span></a></div><div class="front-grid technical-grid">{lead}<aside class="top-stories">{top}</aside></div></section>
-<section class="landing-subscribe" aria-labelledby="follow-title"><div><p class="section-kicker">fCMO + FCMO AI</p><h2 id="follow-title">{e(c['subscribe'])}</h2><a href="{e(subscribe)}">{e(c['subscribe_link'])} →</a></div>{subscribe_block('letter', locale['code'])}</section></div>'''
+<section class="landing-subscribe" aria-labelledby="follow-title"><div><p class="section-kicker">fCMO + FCMO AI</p><h2 id="follow-title">{e(c['subscribe'])}</h2><a href="{e(subscribe)}">{e(c['subscribe_link'])} →</a><a href="{e(subscribe.replace('suscribete/', 'comparte/'))}">{e(c['share_link'])} →</a></div>{subscribe_block('letter', locale['code'])}</section></div>'''

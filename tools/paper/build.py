@@ -31,6 +31,7 @@ if __package__ in {None, ""}:
     from tools.paper.templates.reader import (LAYER_SCRIPT, automation_badge, brief, claim_kind, data_hero, evidence_glyph,
                                               first_sentence, layer, primary_source, provenance_line, reader_select, status_chip)
     from tools.paper.templates.newsletter import render as render_newsletter, subscription_tail
+    from tools.paper.templates.share import COPY as SHARE_COPY, render as render_share
     from tools.paper.routes import TECHNICAL_FRONT
 else:
     from . import community, essays, feeds, redirects, search_index, sitemaps
@@ -48,6 +49,7 @@ else:
     from .templates.reader import (LAYER_SCRIPT, automation_badge, brief, claim_kind, data_hero, evidence_glyph,
                                    first_sentence, layer, primary_source, provenance_line, reader_select, status_chip)
     from .templates.newsletter import render as render_newsletter, subscription_tail
+    from .templates.share import COPY as SHARE_COPY, render as render_share
     from .routes import TECHNICAL_FRONT
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -615,7 +617,39 @@ class PaperBuilder:
             date = suffix.strip("/").split("/")[-1]
             resources = [("text/markdown", absolute(self.base_url, locale["path_prefix"] + f"edition/{date}.md")),
                          ("application/json", absolute(self.base_url, f"api/v1/editions/{date}.json"))]
-        self._write_page(locale=locale, suffix=suffix, title=f"{title} — FCMO AI", description=title, body=body, kind=kind, machine_alternates=resources)
+        og = None
+        if kind == "edition" and self.og_source is not None:
+            card = f'edition-{suffix.strip("/").split("/")[-1]}.png'
+            if (self.og_source / locale["code"] / card).is_file():
+                og = absolute(self.base_url, f'og/{locale["code"]}/{card}')
+        self._write_page(locale=locale, suffix=suffix, title=f"{title} — FCMO AI", description=title, body=body, kind=kind, machine_alternates=resources, og_image=og)
+
+    def _share(self, locale: dict) -> None:
+        """The share kit: reasons to read, cards, ready texts (all three locales)."""
+        code = locale["code"]
+        catalog = self.catalogs[code]
+        lead = front_order(self.live)[0]
+        title = headline(lead, code, catalog) if is_complete(lead, code) else headline(lead, "en", self.catalogs["en"])
+        prefix = locale["path_prefix"]
+        date = self.edition_dates[0]
+        if self.og_source is not None:
+            brand = href(self.base, f"og/{code}/brand.png")
+            edition = href(self.base, f"og/{code}/edition-{date}.png")
+            brand_og = absolute(self.base_url, f"og/{code}/brand.png")
+        else:
+            brand = edition = self._story_media_url(lead, locale)
+            brand_og = self._media_url(lead, locale)
+        stats = (len(self.live), len({t for s in self.live for t in s.get("topics", [])}),
+                 len({o for s in self.live for o in s.get("organizations", [])}), len(self.edition_dates))
+        body = render_share(locale=code, headline=title, edition_url=absolute(self.base_url, f"{prefix}edition/{date}/"),
+                            edition_date=date, brand_card=brand, edition_card=edition, stats=stats,
+                            feeds_href=href(self.base, prefix + "feeds/"), subscribe_href=href(self.base, prefix + "suscribete/"),
+                            method_href=href(self.base, prefix + "method/"))
+        script = f'<script defer src="{esc(href(self.base, "assets/js/share.js"))}"></script>'
+        label = {"en": "Share the FCMO AI Newsletter", "es-419": "Comparte la FCMO AI Newsletter", "zh-Hans": "分享 FCMO AI Newsletter"}[code]
+        self._write_page(locale=locale, suffix="comparte/", title=f"{label} — FCMO AI",
+                         description=SHARE_COPY[code]["dek"],
+                         body=body, kind="share", og_image=brand_og, extra_head=script)
 
     def _status(self, locale: dict) -> None:
         catalog = self.catalogs[locale["code"]]
@@ -818,6 +852,7 @@ class PaperBuilder:
                 community.render_cartas(self.cartas, locale["code"])) if part)
             self._front(locale)
             self._newsletter_pages(locale)
+            self._share(locale)
             for story in self.live:
                 self._story(story, locale)
             for story in self.stories:
