@@ -1,3 +1,115 @@
+# Studio ready — acceso, bundle y vista previa
+
+Cambios locales en `fix/studio-ready`, sin push ni cambios al servicio o a producción.
+El acceso normaliza NFD, elimina marcas Unicode y convierte a minúsculas en la
+pantalla, el servidor y el alta por CLI. Los alias comparten cuenta, sesiones,
+bloqueo por intentos y auditoría; las contraseñas conservan sus bytes.
+
+## Bundle reproducible sin descargas
+
+`node studio/web/build.mjs` reconstruye `dist` y su manifiesto. Este entorno no
+contiene esbuild ni ProseMirror en node_modules. El fallback reutiliza el bundle
+compilado que ya estaba en el repositorio, comprueba su SHA-256 y los hashes de
+las dependencias/fuentes, e inserta la función de acceso actual sin minificar.
+Concatena el CSS actual y copia fuentes locales. No incorpora dependencias nuevas.
+
+El fallback está deliberadamente acotado al acceso y al CSS: rechaza cambios en
+otros módulos o dependencias para no acreditar código viejo con hashes nuevos.
+La ruta normal con esbuild sigue disponible. `bundle_ready=True`; dos builds
+consecutivos producen los mismos bytes. El negativo de drift del editor sigue
+cerrado. Falta la inspección visual real del bundle en escritorio y teléfono.
+
+## Perfil y tiempos
+
+Comando reproducible con stores temporales, sin servicios ni transporte remoto:
+
+```sh
+python3 -m tests.harness.studio_preview_profile --baseline-ref 25c64214
+```
+
+| Renderer | Primera vista previa | Preparación | Repetición desde caché |
+| --- | ---: | ---: | ---: |
+| Referencia 25c64214 | 33,410 s | — | 0,000445 s |
+| Studio, sin preparación explícita | 2,687 s | — | 0,000480 s |
+| Studio, preparado | 2,501 s | 0,151 s | 0,000831 s |
+
+La primera medición de un borrador también pasó de 32,535 s a 2,067 s. El objetivo
+local de menos de 10 s se cumple. Estos son tiempos del entorno de esta lane;
+no constituyen una medición del servicio instalado ni una promesa bajo toda carga.
+
+cProfile atribuyó 168,942 de 175,375 s instrumentados a `_topic_links`, dentro de
+un build de 1896 rutas. Recalculaba la pertenencia al corpus para cada vecino de
+cada página. Studio indexa esa pertenencia una vez por build y cachea el HTML de
+vecinos. Cuenta cada valor una vez por historia aunque se repita; conserva exclusiones
+por nombre/slug, orden en empates y límites. El build completo, assets y gates se mantienen. La regresión
+compara todos los archivos del árbol con el PaperBuilder original, byte por byte.
+
+Las plantillas son módulos Python; no existe un compilador Jinja separado.
+Al iniciar Studio se importan para preparar el caché de bytecode de Python.
+El trabajo dominante eliminado es el recálculo de taxonomías. La preparación
+rechaza un timeout de 10 s con un mensaje acotado, sin publicar diagnósticos.
+
+## Batería y pruebas
+
+La batería abre una sesión local aislada y mide un GET autenticado de una pieza
+recién creada antes de arrancar Playwright. Sólo una respuesta 200 con el ensayo
+puede fijar el presupuesto: `ceil(2 × segundos × 1000 + 5000)` ms. Por ejemplo,
+50 s producen 105000 ms. El timeout llega a los frames de vista previa y revisión,
+a las regresiones y al recibo de aceptación. La medición no conserva credenciales.
+
+Se observaron fallos antes de corregir cada defecto: alias HTTP rechazados,
+bloqueo evadido con alias, alta con acento inválida, build sin esbuild rechazado,
+renderer sin índice y ruta estricta sin caché, y funciones de medición inexistentes.
+El test de login web también falla contra la fuente de referencia (`matías` en
+vez de `matias`) y pasa con la fuente final. No se debilitaron aserciones existentes;
+la identidad de publicación se amplió al árbol completo.
+
+Comandos de aceptación:
+
+```sh
+python3 -m unittest discover -s tests -p 'test_studio*' -v
+python3 -m unittest tests.test_studio_bundle tests.test_studio_auth tests.test_studio_renderer_cache tests.test_studio_journey_timing
+node --test studio/web/test/login.test.mjs studio/web/test/webp.test.mjs
+node studio/web/build.mjs
+python3 -c 'from studio.server.bundle import ready; print("bundle_ready=" + str(ready(".")))'
+python3 -m studio.server.render_preview --warm
+node --check studio/web/dist/app.js
+python3 -m py_compile studio/server/auth.py studio/server/preview.py studio/server/render_preview.py studio/server/__main__.py tests/harness/studio_host_journey.py tests/harness/studio_preview_profile.py
+git diff --check
+```
+
+Aceptación final: **101 tests en 534,555 s, OK (skipped=1)**. Se ejecutó la
+suite pedida con `-v` para identificar los casos en la evidencia. La primera
+pasada completa ejecutó 100 tests en 537,700 s y tuvo un único error: el fixture
+nuevo de medición declaraba un Origin distinto al listener local. Se corrigió el
+Origin del fixture, conservando CSRF/origen y las aserciones. Sus dos tests pasan
+individualmente y en la repetición completa final. El skip preexistente está
+acotado al negativo de renderer ausente, cuya integración ya está presente.
+Pruebas específicas: 18/18; login y WebP en Node: 2/2. Construcción offline,
+bundle_ready, preparación, sintaxis JS/Python y whitespace pasan.
+`npm test --prefix studio/web` no queda verde: docmodel requiere el paquete
+ProseMirror ausente; login y WebP sí pasan. El probe de navegador termina con
+`BROWSER_UNAVAILABLE`, código 2: no está disponible el módulo Playwright.
+
+## Commits de implementación
+
+- `5ac4b8bc` — Normalize Studio login and rebuild the offline browser bundle
+- `37f16a75` — Cache Studio renderer taxonomy work and warm compiled templates
+- `c29e23cd` — Derive Studio browser preview budgets from measured rendering
+
+Los commits llevan el crédito Codex requerido. El cierre documental también
+incluye el rechazo acotado cuando la preparación supera 10 segundos.
+
+## Fronteras pendientes
+
+No se ejecutó la batería visual completa ni se inspeccionaron sus frames nuevos.
+No se instaló ni reinició el servicio y no se comprobó el host de Javier ni el
+origen público. El documento STUDIO-LIVE.md solicitado no está disponible en esta
+sesión; se leyó REPORT-STUDIO-LIVE.md del repositorio. La mejora común del renderer
+canónico y la repetición visual están registradas en NEEDS.md.
+
+---
+
 # L41 — admisión nativa y desbloqueo de publicación
 
 ## Resultado

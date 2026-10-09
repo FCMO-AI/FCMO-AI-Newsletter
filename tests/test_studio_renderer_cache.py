@@ -22,6 +22,9 @@ class RendererCache(unittest.TestCase):
         self.assertNotIn('GH_TOKEN_JAVIER', env)
         self.assertNotIn('GITHUB_TOKEN', env)
         self.assertEqual(env['GHOST_CONTENT_API_KEY'], '')
+        with patch('studio.server.preview.subprocess.run', side_effect=subprocess.TimeoutExpired([], 10)):
+            from studio.server.preview import RendererUnavailable
+            with self.assertRaisesRegex(RendererUnavailable, '10 segundos'): preview.warm()
     def test_neighbor_index_preserves_production_links_and_membership_counts(self):
         from studio.server.render_preview import StudioPaperBuilder
         from tools.paper.build import PaperBuilder
