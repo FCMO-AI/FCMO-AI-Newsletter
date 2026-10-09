@@ -1,12 +1,14 @@
 // A writing/review task on the real listener; no dev API or model responses.
 import assert from 'node:assert/strict'
 import { writeFileSync } from 'node:fs'
-import { session, go, PASS } from './studio_common.mjs'
+import { session, go, PASS, previewTimeout } from './studio_common.mjs'
 import { launch } from './_common.mjs'
 
 const [base, out] = process.argv.slice(2)
 const slug = process.env.STUDIO_SLUG
-const summary = { completed: false, loopback: true, publicPublication: false, checks: [], frames: [] }
+const summary = { completed: false, loopback: true, publicPublication: false,
+  coldPreviewSeconds: process.env.STUDIO_COLD_PREVIEW_SECONDS ? Number(process.env.STUDIO_COLD_PREVIEW_SECONDS) : null,
+  previewTimeoutMs: previewTimeout, checks: [], frames: [] }
 const check = (name, ok) => { assert.ok(ok, name); summary.checks.push(name) }
 const shot = async (page, name, tag) => {
   const file = `${name}-${tag}.png`
@@ -32,7 +34,7 @@ try {
   await s.page.reload(); await s.page.waitForSelector('.ed-body')
   check('el ensayo escrito se conserva al recargar', (await s.page.locator('.ed-body').innerText()).includes(prose))
   await go(s, `#/p/${taskSlug}/en/preview`)
-  await s.page.frameLocator('.pv-frame').locator('.essay-body').first().waitFor()
+  await s.page.frameLocator('.pv-frame').locator('.essay-body').first().waitFor({ timeout: previewTimeout })
   check('el renderer de producción muestra el texto escrito', (await s.page.frameLocator('.pv-frame').locator('.essay-body').allTextContents()).join(' ').includes(prose))
   await shot(s.page, 'tarea-ensayo', '1440-light')
   await go(s, `#/p/${slug}/publish`)
@@ -80,7 +82,7 @@ try {
     ]
     for (const [name, hash, selector] of screens) {
       await go(s, hash); await s.page.waitForSelector(selector, { state: 'attached' })
-      if (hash.endsWith('/preview') || hash.endsWith('/review')) await s.page.frameLocator('.pv-frame').locator('.essay-body').first().waitFor()
+      if (hash.endsWith('/preview') || hash.endsWith('/review')) await s.page.frameLocator('.pv-frame').locator('.essay-body').first().waitFor({ timeout: previewTimeout })
       await s.page.waitForTimeout(250)
       check(`${name} cabe a ${width} en ${scheme}`, await s.page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1))
       await shot(s.page, name, tag)
