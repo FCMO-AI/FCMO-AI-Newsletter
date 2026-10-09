@@ -297,3 +297,31 @@ verification are complete; a local build cannot truthfully update it.
   de reparar el renderer; las 46 imágenes existentes son de la ejecución previa.
   Los recibos actuales registran `completed: false` y no acreditan esas imágenes
   para el corpus nuevo.
+
+
+## Studio ready — continuación fuera de esta lane
+
+- **Renderer canónico:** `tools/paper/build.py`, `PaperBuilder._topic_links`.
+  Trasladar el índice de membresía por historia y el caché de vecinos de
+  `studio/server/render_preview.py:StudioPaperBuilder` al builder común;
+  conservar duplicados por historia, exclusiones nombre/slug, orden de empates,
+  límites y todos los bytes de salida. Actualmente Studio lo acelera, pero las
+  compilaciones de publicación generales todavía recalculan ese índice. Esta
+  edición está fuera del alcance studio/ de la lane. Verificar con el test de
+  identidad completa y los gates del renderer; luego retirar sólo el override
+  redundante de Studio. No se ha cambiado el renderer canónico en esta lane.
+- **Aceptación visual:** montar las dependencias existentes de Playwright y
+  Chromium del runner, sin descargas en esta lane. Ejecutar
+  `python3 -m tests.harness.studio_host_journey --out "$STUDIO_EVIDENCE"`
+  con salida privada; exigir completed=true, frames actuales de escritorio y
+  teléfono, y tiempos cold_preview_seconds/preview_timeout_ms en journey.json.
+  En esta sesión el probe devuelve BROWSER_UNAVAILABLE: Playwright ausente.
+  Los frames históricos no prueban este bundle. Repetir después el arranque en
+  el host autorizado de Javier y medir allí la primera vista previa; esta lane
+  no inicia ni reinicia servicios reales.
+- **Pruebas web completas:** montar una instalación que respete
+  `studio/web/package-lock.json` en `studio/web/node_modules` y repetir
+  `npm test --prefix studio/web`. docmodel no se pudo ejecutar porque falta
+  prosemirror-model; login y WebP pasan sin esas dependencias. Con esbuild
+  disponible, repetir también `node studio/web/build.mjs` y bundle_ready.
+  La lane conserva el lockfile y no instala paquetes ni descarga dependencias.

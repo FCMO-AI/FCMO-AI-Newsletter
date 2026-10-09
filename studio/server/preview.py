@@ -19,8 +19,11 @@ class Preview:
         self.store = store; self.repo = Path(repo).resolve(); self.base = '/' + base.strip('/') + '/'
         self.mutex = threading.RLock(); self.cache = {}
     def warm(self):
-        run = subprocess.run(['python3', '-m', 'studio.server.render_preview', '--warm'], cwd=self.repo,
-                             env=self.renderer_environment(), capture_output=True, timeout=10)
+        try:
+            run = subprocess.run(['python3', '-m', 'studio.server.render_preview', '--warm'], cwd=self.repo,
+                                 env=self.renderer_environment(), capture_output=True, timeout=10)
+        except subprocess.TimeoutExpired:
+            raise RendererUnavailable('El renderer superó el límite de preparación de 10 segundos. Revisa la carga del host antes de iniciar Studio.') from None
         if run.returncode:
             raise RendererUnavailable('No se pudo preparar el renderer de producción. Revisa el generador antes de iniciar Studio.')
     @staticmethod
