@@ -57,6 +57,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+        with:
+          # The Story layer freezes first publication from the git history of
+          # site/data/stories.json (--history-git .). A shallow clone has none,
+          # so a story held back and later re-admitted was re-dated to "now"
+          # (2026-10-09: five ENGLISH_LEAK stories), breaking the ledger tests
+          # that gate Deploy.
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v6

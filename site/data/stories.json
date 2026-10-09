@@ -821,12 +821,152 @@
     }
   },
   {
+    "story_id": "STORY-69D03F831B03",
+    "research_id": "FCMO-69D03F831B03",
+    "headline": "Fuse reports a benchmark for user-mediated social reasoning in LLM assistants",
+    "dek": "The paper introduces Fuse, a multi-agent simulation benchmark for testing how assistants infer another person’s motive from a user’s partial or biased account rather than direct access to the underlying interaction. The authors report 30 scenario templates and 21,600 generated user messages, with 24,000 human annotations used to validate simulated behavior and estimate task solvability. Their study reports a gap between direct-observer and user-mediated performance, sensitivity to user framing, and cases where additional turns do not help and can reinforce the framing. These findings are author-reported results in a synthetic, forced-choice setting; code/data access, independent replication and real-world transfer were not verified.",
+    "story_type": "BRIEF",
+    "published_at": "2026-10-09T00:49:52Z",
+    "modified_at": "2026-10-09T00:49:52.295927Z",
+    "event_at": "2026-09-15T00:00:00Z",
+    "research_verified_at": "2026-10-08T21:13:45.802404Z",
+    "canonical_signature": "1614e298011438794c0d825caae6892ea543678111081abd58f6870e8336eddd",
+    "news_value": {
+      "importance": 5,
+      "evidence": "A",
+      "confidence": "credible_unconfirmed"
+    },
+    "what_changed": "The paper introduces Fuse, a multi-agent simulation benchmark for testing how assistants infer another person’s motive from a user’s partial or biased account rather than direct access to the underlying interaction. The authors report 30 scenario templates and 21,600 generated user messages, with 24,000 human annotations used to validate simulated behavior and estimate task solvability. Their study reports a gap between direct-observer and user-mediated performance, sensitivity to user framing, and cases where additional turns do not help and can reinforce the framing. These findings are author-reported results in a synthetic, forced-choice setting; code/data access, independent replication and real-world transfer were not verified.",
+    "why_it_matters": "Many social-advice assistants hear only a user’s account, which can omit or reinterpret events. A benchmark that varies user framing while holding simulated events fixed can help test whether models distinguish observable evidence from a user’s interpretation. The paper’s results suggest this may be a distinct evaluation dimension, but the synthetic setting does not establish how often the failure occurs in real use or its effects on people.",
+    "claims": [
+      {
+        "label": "CLAIMED",
+        "text": "The authors report that Fuse uses multi-agent simulations with a target agent’s hidden motive as ground truth, then has a simulated user recount the situation to an evaluated assistant. Their study uses 30 scenario templates, two contrasting motives, 20 realizations per template/motive and 21,600 user messages; code and dataset release were claimed in the paper but not independently inspected here."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "In the paper’s user-mediated first-message setting, a 10-rater human majority baseline reaches 88% correct and MSR 89.8 over 2,100 examples; the authors report no evaluated model exceeds 81% correctness on first messages and the strongest model reaches 83.7 MSR. MSR credits abstention and is not the same as accuracy."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "The authors report that adding opposing user framing lowers performance for all evaluated models; across the eight models used as the main reference, the average MSR gap is 7.7 points, compared with a 3.6-point decrease for the human majority baseline. The result is from generated scenarios, not real user prevalence."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "A controlled multi-turn case study shows one model changing from a correct to an incorrect motive judgment after the user reframes the same supportive behaviors as suspicious, without adding new factual evidence. The paper presents this as an example, not an estimated population rate."
+      }
+    ],
+    "technical": {
+      "claimed_result": "The paper reports 21,600 generated user messages from 30 templates, two motives per template, 20 realizations per template/motive, two user-bias conditions and three narrative-detail levels. A human majority baseline over 2,100 messages reaches 88% correctness and MSR 89.8. No evaluated model exceeds 81% first-message correctness; the strongest reported MSR is 83.7. Across eight primary-reference models, opposing user framing produces an average 7.7-point MSR gap versus a 3.6-point decline for the human baseline.",
+      "demonstrated_result": "The accessible arXiv preprint describes the simulation, dataset construction, human validation protocol, model comparisons and reported analyses. Reported benchmark findings are claims from the paper; the code and dataset release and the numerical results were not independently reproduced.",
+      "mechanism": "A simulated target with a controlled latent motive participates in multi-scene interactions. A separate simulated user then recounts those events under controlled bias and detail settings. The evaluated assistant sees only the user’s account and predicts the target’s motive; a judge compares the prediction with the latent ground truth. Human raters validate whether generated behavior expresses the assigned motive and estimate whether the first message contains enough evidence.",
+      "regime": "Synthetic, text-only social scenarios derived from five ATOMS mental-state categories. The main dataset has 30 scenario templates and 21,600 one-message debriefs. Scenarios use two contrasting motives and controlled user-framing/detail conditions; models are prompted to make forced-choice predictions. The paper also includes a limited multi-turn analysis.",
+      "reproducibility": "The arXiv paper links a Google Research repository and states that Fuse and the dataset are open-source. The linked repository directory returned a browser access error in this activation; code, data, model prompts and reproduction instructions were not inspected or executed.",
+      "strongest_baseline": "The paper compares each model’s user-mediated assistant condition with an observer condition that exposes the raw simulated events, and compares model outcomes with a 10-rater human-majority baseline on 2,100 initial messages. The aggregate Mediated Social Reasoning score assigns 0.75 credit to abstention; it is distinct from accuracy and embeds a value choice about abstention."
+    },
+    "limitations": [
+      "The benchmark uses LLM-generated social interactions and simulated users; results may reflect simulator-specific artifacts or assumptions and do not establish real-world prevalence or harm.",
+      "The study focuses mainly on a forced-choice first response rather than open-ended social advice. The MSR metric gives 0.75 credit to abstention, a normative choice that affects rankings.",
+      "The human validation checks whether simulated behavior is recognizable and estimates task solvability; it does not establish that each synthetic motive is uniquely recoverable in real social settings.",
+      "The user simulator, scenario templates and judge rely on Gemini 3.1 Flash-Lite; the same model family’s role in simulation and scoring may shape the benchmark, although it is not one of the evaluated assistants.",
+      "The paper’s multi-turn framing-reversal evidence includes illustrative cases; population rates and real conversational transfer were not established.",
+      "The linked code and dataset release were not independently retrieved, inspected or run in this activation."
+    ],
+    "contradictory_evidence": [
+      "The paper reports high human solvability and strong simulated-motive validation, but explicitly notes that verifiable ground truth by construction does not guarantee a valid reasoning task; validity depends on whether motive is legibly expressed in generated behavior.",
+      "The observer-to-assistant performance gap may partly reflect the intrinsic information loss of subjective user retellings, not only a model reasoning defect; the authors say they do not empirically separate these effects from simulator-specific effects."
+    ],
+    "evidence_gaps": [
+      {
+        "description": "The reported core tables and claims have not been independently reproduced; the linked Google Research repository and dataset could not be inspected.",
+        "kind": "missing_independent",
+        "state": "open",
+        "updated_at": "2026-10-08T21:13:45.802404Z"
+      },
+      {
+        "description": "Generalization from generated scenarios and simulated users to real social-advice conversations is unknown.",
+        "kind": "other",
+        "state": "open",
+        "updated_at": "2026-10-08T21:13:45.802404Z"
+      },
+      {
+        "description": "The evaluator and simulation pipeline use Gemini 3.1 Flash-Lite; robustness to independent simulation/judging models and human scoring is not established.",
+        "kind": "other",
+        "state": "open",
+        "updated_at": "2026-10-08T21:13:45.802404Z"
+      }
+    ],
+    "sources": [
+      "https://arxiv.org/abs/2609.17496"
+    ],
+    "public_research": {
+      "schema": "fcmo-public-research-receipt-v1",
+      "id": "FCMO-69D03F831B03",
+      "canonical_signature": "78bf1e4a2cf9c353a626de7155fd17fa95a6722ac6ec1927e7861366e7ffcd4c",
+      "researched_at": "2026-10-09T02:46:01.161478Z",
+      "trust_boundary": "sanitized public brief + public Internet only",
+      "source_checks": [
+        {
+          "url": "https://arxiv.org/abs/2609.17496",
+          "final_url": "https://arxiv.org/abs/2609.17496",
+          "status": 200,
+          "content_type": "text/html; charset=utf-8",
+          "title": "[2609.17496] Verifiable Social Reasoning for LLM Assistants",
+          "reachable": true
+        }
+      ],
+      "related_public_sources": [
+        {
+          "openalex_id": "https://openalex.org/W7213424706",
+          "title": "Verifiable Social Reasoning for LLM Assistants",
+          "publication_year": 2026,
+          "doi": "https://doi.org/10.48550/arxiv.2609.17496",
+          "url": "https://arxiv.org/abs/2609.17496",
+          "source": "arXiv (Cornell University)",
+          "cited_by_count": 0,
+          "relationship": "title-similar public scholarly context; not treated as corroboration by count alone"
+        }
+      ],
+      "coverage": {
+        "cited_public_sources_reopened": 1,
+        "reachable_sources": 1,
+        "scholarly_context_candidates": 1,
+        "exhaustive_web_search_claim": false
+      }
+    },
+    "media": {
+      "id": "FCMO-69D03F831B03",
+      "mode": "fcmo_explainer",
+      "sourced": false,
+      "generated": true,
+      "rights_state": "FCMO_OWNED",
+      "image_url": "/FCMO-AI-Newsletter/assets/story-media/FCMO-69D03F831B03.svg",
+      "credit": "FCMO AI Research Desk",
+      "license": "FCMO original editorial graphic",
+      "reuse_basis": "original publication-owned artwork",
+      "fit": "cover",
+      "evidence_image": false,
+      "beat": "research",
+      "reason": "NO_RIGHTS_PROVEN_SOURCE_IMAGE",
+      "rejected_candidates": [
+        {
+          "source": "https://arxiv.org/abs/2609.17496",
+          "reason": "SITE_CHROME:LOGO_PATH"
+        },
+        {
+          "source": "https://arxiv.org/abs/2609.17496",
+          "reason": "SITE_CHROME:GENERATED_CARD"
+        }
+      ]
+    }
+  },
+  {
     "story_id": "STORY-710E8BDAF4B5",
     "research_id": "FCMO-710E8BDAF4B5",
     "headline": "GraphSkillAA uses addressable skill graphs and two-stage gates for targeted agent-skill updates",
     "dek": "The September 2026 v2 arXiv paper introduces GraphSkillAA, which represents external skills as a graph of addressable applicability, execution and exclusion fields plus typed relations. A teacher compares successful and failed executions to propose local edits; an affected-case Local Gate and a whole-update-pool Big Gate accept or roll back changes. The authors report three-seed held-out mean hard accuracies of 81.5% on SearchQA, 66.7% on LiveMath and 91.2% on DocVQA with GPT-5.6-sol, and highest reported means across nine model–benchmark comparisons in a separate SkillOpt-protocol table. These are paper-reported results, not independently reproduced evidence; the paper limits its conclusions to the tested splits, moderate graphs and primarily single-turn tasks.",
     "story_type": "BRIEF",
-    "published_at": "2026-10-09T00:49:52Z",
+    "published_at": "2026-10-08T09:00:48Z",
     "modified_at": "2026-10-09T00:49:52.295927Z",
     "event_at": "2026-09-17T14:20:45Z",
     "research_verified_at": "2026-10-08T05:14:52Z",
@@ -985,255 +1125,12 @@
     }
   },
   {
-    "story_id": "STORY-69D03F831B03",
-    "research_id": "FCMO-69D03F831B03",
-    "headline": "Fuse reports a benchmark for user-mediated social reasoning in LLM assistants",
-    "dek": "The paper introduces Fuse, a multi-agent simulation benchmark for testing how assistants infer another person’s motive from a user’s partial or biased account rather than direct access to the underlying interaction. The authors report 30 scenario templates and 21,600 generated user messages, with 24,000 human annotations used to validate simulated behavior and estimate task solvability. Their study reports a gap between direct-observer and user-mediated performance, sensitivity to user framing, and cases where additional turns do not help and can reinforce the framing. These findings are author-reported results in a synthetic, forced-choice setting; code/data access, independent replication and real-world transfer were not verified.",
-    "story_type": "BRIEF",
-    "published_at": "2026-10-09T00:49:52Z",
-    "modified_at": "2026-10-09T00:49:52.295927Z",
-    "event_at": "2026-09-15T00:00:00Z",
-    "research_verified_at": "2026-10-08T21:13:45.802404Z",
-    "canonical_signature": "1614e298011438794c0d825caae6892ea543678111081abd58f6870e8336eddd",
-    "news_value": {
-      "importance": 5,
-      "evidence": "A",
-      "confidence": "credible_unconfirmed"
-    },
-    "what_changed": "The paper introduces Fuse, a multi-agent simulation benchmark for testing how assistants infer another person’s motive from a user’s partial or biased account rather than direct access to the underlying interaction. The authors report 30 scenario templates and 21,600 generated user messages, with 24,000 human annotations used to validate simulated behavior and estimate task solvability. Their study reports a gap between direct-observer and user-mediated performance, sensitivity to user framing, and cases where additional turns do not help and can reinforce the framing. These findings are author-reported results in a synthetic, forced-choice setting; code/data access, independent replication and real-world transfer were not verified.",
-    "why_it_matters": "Many social-advice assistants hear only a user’s account, which can omit or reinterpret events. A benchmark that varies user framing while holding simulated events fixed can help test whether models distinguish observable evidence from a user’s interpretation. The paper’s results suggest this may be a distinct evaluation dimension, but the synthetic setting does not establish how often the failure occurs in real use or its effects on people.",
-    "claims": [
-      {
-        "label": "CLAIMED",
-        "text": "The authors report that Fuse uses multi-agent simulations with a target agent’s hidden motive as ground truth, then has a simulated user recount the situation to an evaluated assistant. Their study uses 30 scenario templates, two contrasting motives, 20 realizations per template/motive and 21,600 user messages; code and dataset release were claimed in the paper but not independently inspected here."
-      },
-      {
-        "label": "CLAIMED",
-        "text": "In the paper’s user-mediated first-message setting, a 10-rater human majority baseline reaches 88% correct and MSR 89.8 over 2,100 examples; the authors report no evaluated model exceeds 81% correctness on first messages and the strongest model reaches 83.7 MSR. MSR credits abstention and is not the same as accuracy."
-      },
-      {
-        "label": "CLAIMED",
-        "text": "The authors report that adding opposing user framing lowers performance for all evaluated models; across the eight models used as the main reference, the average MSR gap is 7.7 points, compared with a 3.6-point decrease for the human majority baseline. The result is from generated scenarios, not real user prevalence."
-      },
-      {
-        "label": "CLAIMED",
-        "text": "A controlled multi-turn case study shows one model changing from a correct to an incorrect motive judgment after the user reframes the same supportive behaviors as suspicious, without adding new factual evidence. The paper presents this as an example, not an estimated population rate."
-      }
-    ],
-    "technical": {
-      "claimed_result": "The paper reports 21,600 generated user messages from 30 templates, two motives per template, 20 realizations per template/motive, two user-bias conditions and three narrative-detail levels. A human majority baseline over 2,100 messages reaches 88% correctness and MSR 89.8. No evaluated model exceeds 81% first-message correctness; the strongest reported MSR is 83.7. Across eight primary-reference models, opposing user framing produces an average 7.7-point MSR gap versus a 3.6-point decline for the human baseline.",
-      "demonstrated_result": "The accessible arXiv preprint describes the simulation, dataset construction, human validation protocol, model comparisons and reported analyses. Reported benchmark findings are claims from the paper; the code and dataset release and the numerical results were not independently reproduced.",
-      "mechanism": "A simulated target with a controlled latent motive participates in multi-scene interactions. A separate simulated user then recounts those events under controlled bias and detail settings. The evaluated assistant sees only the user’s account and predicts the target’s motive; a judge compares the prediction with the latent ground truth. Human raters validate whether generated behavior expresses the assigned motive and estimate whether the first message contains enough evidence.",
-      "regime": "Synthetic, text-only social scenarios derived from five ATOMS mental-state categories. The main dataset has 30 scenario templates and 21,600 one-message debriefs. Scenarios use two contrasting motives and controlled user-framing/detail conditions; models are prompted to make forced-choice predictions. The paper also includes a limited multi-turn analysis.",
-      "reproducibility": "The arXiv paper links a Google Research repository and states that Fuse and the dataset are open-source. The linked repository directory returned a browser access error in this activation; code, data, model prompts and reproduction instructions were not inspected or executed.",
-      "strongest_baseline": "The paper compares each model’s user-mediated assistant condition with an observer condition that exposes the raw simulated events, and compares model outcomes with a 10-rater human-majority baseline on 2,100 initial messages. The aggregate Mediated Social Reasoning score assigns 0.75 credit to abstention; it is distinct from accuracy and embeds a value choice about abstention."
-    },
-    "limitations": [
-      "The benchmark uses LLM-generated social interactions and simulated users; results may reflect simulator-specific artifacts or assumptions and do not establish real-world prevalence or harm.",
-      "The study focuses mainly on a forced-choice first response rather than open-ended social advice. The MSR metric gives 0.75 credit to abstention, a normative choice that affects rankings.",
-      "The human validation checks whether simulated behavior is recognizable and estimates task solvability; it does not establish that each synthetic motive is uniquely recoverable in real social settings.",
-      "The user simulator, scenario templates and judge rely on Gemini 3.1 Flash-Lite; the same model family’s role in simulation and scoring may shape the benchmark, although it is not one of the evaluated assistants.",
-      "The paper’s multi-turn framing-reversal evidence includes illustrative cases; population rates and real conversational transfer were not established.",
-      "The linked code and dataset release were not independently retrieved, inspected or run in this activation."
-    ],
-    "contradictory_evidence": [
-      "The paper reports high human solvability and strong simulated-motive validation, but explicitly notes that verifiable ground truth by construction does not guarantee a valid reasoning task; validity depends on whether motive is legibly expressed in generated behavior.",
-      "The observer-to-assistant performance gap may partly reflect the intrinsic information loss of subjective user retellings, not only a model reasoning defect; the authors say they do not empirically separate these effects from simulator-specific effects."
-    ],
-    "evidence_gaps": [
-      {
-        "description": "The reported core tables and claims have not been independently reproduced; the linked Google Research repository and dataset could not be inspected.",
-        "kind": "missing_independent",
-        "state": "open",
-        "updated_at": "2026-10-08T21:13:45.802404Z"
-      },
-      {
-        "description": "Generalization from generated scenarios and simulated users to real social-advice conversations is unknown.",
-        "kind": "other",
-        "state": "open",
-        "updated_at": "2026-10-08T21:13:45.802404Z"
-      },
-      {
-        "description": "The evaluator and simulation pipeline use Gemini 3.1 Flash-Lite; robustness to independent simulation/judging models and human scoring is not established.",
-        "kind": "other",
-        "state": "open",
-        "updated_at": "2026-10-08T21:13:45.802404Z"
-      }
-    ],
-    "sources": [
-      "https://arxiv.org/abs/2609.17496"
-    ],
-    "public_research": {
-      "schema": "fcmo-public-research-receipt-v1",
-      "id": "FCMO-69D03F831B03",
-      "canonical_signature": "78bf1e4a2cf9c353a626de7155fd17fa95a6722ac6ec1927e7861366e7ffcd4c",
-      "researched_at": "2026-10-09T02:46:01.161478Z",
-      "trust_boundary": "sanitized public brief + public Internet only",
-      "source_checks": [
-        {
-          "url": "https://arxiv.org/abs/2609.17496",
-          "final_url": "https://arxiv.org/abs/2609.17496",
-          "status": 200,
-          "content_type": "text/html; charset=utf-8",
-          "title": "[2609.17496] Verifiable Social Reasoning for LLM Assistants",
-          "reachable": true
-        }
-      ],
-      "related_public_sources": [
-        {
-          "openalex_id": "https://openalex.org/W7213424706",
-          "title": "Verifiable Social Reasoning for LLM Assistants",
-          "publication_year": 2026,
-          "doi": "https://doi.org/10.48550/arxiv.2609.17496",
-          "url": "https://arxiv.org/abs/2609.17496",
-          "source": "arXiv (Cornell University)",
-          "cited_by_count": 0,
-          "relationship": "title-similar public scholarly context; not treated as corroboration by count alone"
-        }
-      ],
-      "coverage": {
-        "cited_public_sources_reopened": 1,
-        "reachable_sources": 1,
-        "scholarly_context_candidates": 1,
-        "exhaustive_web_search_claim": false
-      }
-    },
-    "media": {
-      "id": "FCMO-69D03F831B03",
-      "mode": "fcmo_explainer",
-      "sourced": false,
-      "generated": true,
-      "rights_state": "FCMO_OWNED",
-      "image_url": "/FCMO-AI-Newsletter/assets/story-media/FCMO-69D03F831B03.svg",
-      "credit": "FCMO AI Research Desk",
-      "license": "FCMO original editorial graphic",
-      "reuse_basis": "original publication-owned artwork",
-      "fit": "cover",
-      "evidence_image": false,
-      "beat": "research",
-      "reason": "NO_RIGHTS_PROVEN_SOURCE_IMAGE",
-      "rejected_candidates": [
-        {
-          "source": "https://arxiv.org/abs/2609.17496",
-          "reason": "SITE_CHROME:LOGO_PATH"
-        },
-        {
-          "source": "https://arxiv.org/abs/2609.17496",
-          "reason": "SITE_CHROME:GENERATED_CARD"
-        }
-      ]
-    }
-  },
-  {
-    "story_id": "STORY-503C5DEC490A",
-    "research_id": "FCMO-503C5DEC490A",
-    "headline": "A paper proposes carbon reporting and a smallest-model selection rule for AI research",
-    "dek": "The authors introduce carbonbenchmark, which combines CodeCarbon measurements with fitted training curves, and propose a “Smallest Model that Achieves the Job” (SMAJ) selection approach. They report illustrative fits on Fashion-MNIST, GLUE SST-2 and UCI Adult, and an automated review of 5,285 NeurIPS 2025 papers using LLM classification. Their proprietary-inference emissions examples use assumed active parameter counts and generic hardware/grid factors; these are estimates, not measured model-specific emissions. The paper argues for reporting research emissions and treating environmental cost alongside accuracy.",
-    "story_type": "BRIEF",
-    "published_at": "2026-10-09T00:49:52Z",
-    "modified_at": "2026-10-09T00:49:52.295927Z",
-    "event_at": "2026-10-01T00:00:00Z",
-    "research_verified_at": "2026-10-08T01:09:00Z",
-    "canonical_signature": "2682beec0cbc150351b00f13876907658e6dd26715e95e819f58b871971dcfa0",
-    "news_value": {
-      "importance": 5,
-      "evidence": "A",
-      "confidence": "credible_unconfirmed"
-    },
-    "what_changed": "The authors introduce carbonbenchmark, which combines CodeCarbon measurements with fitted training curves, and propose a “Smallest Model that Achieves the Job” (SMAJ) selection approach. They report illustrative fits on Fashion-MNIST, GLUE SST-2 and UCI Adult, and an automated review of 5,285 NeurIPS 2025 papers using LLM classification. Their proprietary-inference emissions examples use assumed active parameter counts and generic hardware/grid factors; these are estimates, not measured model-specific emissions. The paper argues for reporting research emissions and treating environmental cost alongside accuracy.",
-    "why_it_matters": "Environmental measurement choices can affect comparisons of model quality and compute cost. This paper offers methods and a reporting proposal, but its small training examples and assumed frontier-inference inputs do not establish reliable footprint estimates or a validated model-selection standard.",
-    "claims": [
-      {
-        "label": "CLAIMED",
-        "text": "The authors provide carbonbenchmark, combining CodeCarbon measurements with fitted training curves, and demonstrate it on three small tasks using an RTX 4060 Ti over a one-hour training period."
-      },
-      {
-        "label": "CLAIMED",
-        "text": "The authors propose SMAJ as a cost-aware model-selection concept and recommend reporting research emissions; the paper does not establish a generally validated equivalence or noninferiority procedure for selecting the smallest adequate model."
-      },
-      {
-        "label": "CLAIMED",
-        "text": "The reported review of 5,285 NeurIPS 2025 papers classifies papers with LLMs after a 200-paper model-agreement study; its corpus estimates are automated classifications, not a human-adjudicated census."
-      }
-    ],
-    "technical": {
-      "claimed_result": "Authors recommend reporting study emissions and propose training-curve and smallest-adequate-model metrics.",
-      "demonstrated_result": "The primary paper describes its tool, methods and illustrative experiments; the research desk did not independently run the code or validate emissions estimates.",
-      "mechanism": "Measures local training emissions and fits exponential, delayed-exponential and power-law learning curves; proposes a single-parameter training-efficiency measure and SMAJ selection framing.",
-      "regime": "Illustrations on Fashion-MNIST, GLUE SST-2 and UCI Adult, local RTX 4060 Ti training, plus an automated review of 5,285 NeurIPS 2025 papers.",
-      "strongest_baseline": "The paper discusses accuracy-focused state-of-the-art selection and common learning-curve forms; no validated environmental benchmark baseline is established."
-    },
-    "limitations": [
-      "Training examples cover only three small tasks and one local GPU; they do not establish frontier-scale measurement accuracy.",
-      "The NeurIPS paper-use estimates rely on automated classification rather than human adjudication.",
-      "Proprietary inference emissions use assumed active parameter counts and generic hardware/grid factors, not measured per-model energy.",
-      "SMAJ’s uncertainty threshold is not a demonstrated equivalence design and may require selection-bias control."
-    ],
-    "contradictory_evidence": [],
-    "evidence_gaps": [
-      {
-        "description": "No independent validation on frontier-scale training or inference workloads.",
-        "kind": "missing_independent",
-        "state": "open",
-        "updated_at": "2026-10-08T01:09:00Z"
-      }
-    ],
-    "sources": [
-      "https://arxiv.org/html/2610.01116v1"
-    ],
-    "public_research": {
-      "schema": "fcmo-public-research-receipt-v1",
-      "id": "FCMO-503C5DEC490A",
-      "canonical_signature": "e25cec75946320d5cc7a879e58c1a35e0543c9c67504aaa31e74c92145ecaaa0",
-      "researched_at": "2026-10-09T02:45:37.138219Z",
-      "trust_boundary": "sanitized public brief + public Internet only",
-      "source_checks": [
-        {
-          "url": "https://arxiv.org/html/2610.01116v1",
-          "final_url": "https://arxiv.org/html/2610.01116v1",
-          "status": 200,
-          "content_type": "text/html; charset=utf-8",
-          "title": "Beyond State-of-the-Art: Standardising Environmental Impact Metrics for AI Research",
-          "reachable": true
-        }
-      ],
-      "related_public_sources": [],
-      "coverage": {
-        "cited_public_sources_reopened": 1,
-        "reachable_sources": 1,
-        "scholarly_context_candidates": 0,
-        "exhaustive_web_search_claim": false
-      }
-    },
-    "media": {
-      "id": "FCMO-503C5DEC490A",
-      "mode": "fcmo_explainer",
-      "sourced": false,
-      "generated": true,
-      "rights_state": "FCMO_OWNED",
-      "image_url": "/FCMO-AI-Newsletter/assets/story-media/FCMO-503C5DEC490A.svg",
-      "credit": "FCMO AI Research Desk",
-      "license": "FCMO original editorial graphic",
-      "reuse_basis": "original publication-owned artwork",
-      "fit": "cover",
-      "evidence_image": false,
-      "beat": "research",
-      "reason": "NO_RIGHTS_PROVEN_SOURCE_IMAGE",
-      "rejected_candidates": [
-        {
-          "source": "https://arxiv.org/html/2610.01116v1",
-          "reason": "NO_IMAGE"
-        }
-      ]
-    }
-  },
-  {
     "story_id": "STORY-2B000C93D92A",
     "research_id": "FCMO-2B000C93D92A",
     "headline": "EU Commission adopts a proposed PUE/WUE rating scheme for data centres and opens a separate minimum-standards consultation",
     "dek": "On 21 September 2026, the European Commission adopted delegated-regulation text C(2026)3472 final establishing a common data-centre sustainability rating scheme using reported energy and water indicators, including PUE and WUE classes. The text provides for electronic labels generated from operator-reported data, with an annual schedule beginning 15 August 2027. The Commission also opened a separate 12-week consultation on possible minimum performance standards, due 14 December 2026, with a legislative proposal planned for Q2 2027. The inspected regulation PDF still has blank final EU number and Official Journal date fields; scrutiny, entry into force, deployed labels and effects are not established.",
     "story_type": "BRIEF",
-    "published_at": "2026-10-09T00:49:52Z",
+    "published_at": "2026-10-08T09:00:48Z",
     "modified_at": "2026-10-09T00:49:52.295927Z",
     "event_at": "2026-09-21T00:00:00Z",
     "research_verified_at": "2026-10-08T06:11:00Z",
@@ -1347,7 +1244,7 @@
     "headline": "Mexico’s Chamber of Deputies docket lists a federal AI governance and technology-transfer bill pending in committee",
     "dek": "Mexico’s official SIL docket index lists a Chamber of Deputies initiative presented by José Alejandro Aguilar López (PT) on 15 September 2026 and pending in the originating committee as of that date. Its official summary describes a proposed federal risk-based governance framework for AI development, commercialization and use, and a technology-linkage program to transfer university knowledge to micro, small and medium enterprises. This is a proposal, not enacted law. The full bill text and a later committee status were not directly inspectable in this activation.",
     "story_type": "BRIEF",
-    "published_at": "2026-10-09T00:49:52Z",
+    "published_at": "2026-10-08T09:00:48Z",
     "modified_at": "2026-10-09T00:49:52.295927Z",
     "event_at": "2026-09-15T00:00:00Z",
     "research_verified_at": "2026-10-08T06:13:27Z",
@@ -1452,7 +1349,7 @@
     "headline": "Parameterized economic-data web skills improve matched transfer, while approximate retrieval erases gains on uncovered tasks",
     "dek": "In arXiv:2609.19523v1, the authors evaluate 50 reusable procedures for retrieving live economic data from authoritative websites. In a controlled study using gpt-5-mini with BrowserGym, they report that a known matched skill raised success from 41.0% to 49.3% across 100 held-out variants repeated with three seeds. In a separate 360-task library-scale study, retrieving five skills was statistically tied with no-skill prompting overall (28.3% versus 28.1%): it scored 48.0% versus 44.0% on directly covered tasks, but 14.3% versus 16.7% on tasks without a direct match. The preprint therefore reports procedural transfer under a known match while exposing coverage-aware selection as the unresolved deployment problem. These are author-reported results from one benchmark/model/harness configuration, not an independent reproduction or evidence of general web-agent improvement.",
     "story_type": "BRIEF",
-    "published_at": "2026-10-09T00:49:52Z",
+    "published_at": "2026-10-08T09:00:48Z",
     "modified_at": "2026-10-09T00:49:52.295927Z",
     "event_at": "2026-09-17T00:29:46Z",
     "research_verified_at": "2026-10-08T07:06:34Z",
@@ -1566,6 +1463,109 @@
         {
           "source": "https://arxiv.org/abs/2609.19523",
           "reason": "SITE_CHROME:GENERATED_CARD"
+        }
+      ]
+    }
+  },
+  {
+    "story_id": "STORY-503C5DEC490A",
+    "research_id": "FCMO-503C5DEC490A",
+    "headline": "A paper proposes carbon reporting and a smallest-model selection rule for AI research",
+    "dek": "The authors introduce carbonbenchmark, which combines CodeCarbon measurements with fitted training curves, and propose a “Smallest Model that Achieves the Job” (SMAJ) selection approach. They report illustrative fits on Fashion-MNIST, GLUE SST-2 and UCI Adult, and an automated review of 5,285 NeurIPS 2025 papers using LLM classification. Their proprietary-inference emissions examples use assumed active parameter counts and generic hardware/grid factors; these are estimates, not measured model-specific emissions. The paper argues for reporting research emissions and treating environmental cost alongside accuracy.",
+    "story_type": "BRIEF",
+    "published_at": "2026-10-08T02:00:03Z",
+    "modified_at": "2026-10-09T00:49:52.295927Z",
+    "event_at": "2026-10-01T00:00:00Z",
+    "research_verified_at": "2026-10-08T01:09:00Z",
+    "canonical_signature": "2682beec0cbc150351b00f13876907658e6dd26715e95e819f58b871971dcfa0",
+    "news_value": {
+      "importance": 5,
+      "evidence": "A",
+      "confidence": "credible_unconfirmed"
+    },
+    "what_changed": "The authors introduce carbonbenchmark, which combines CodeCarbon measurements with fitted training curves, and propose a “Smallest Model that Achieves the Job” (SMAJ) selection approach. They report illustrative fits on Fashion-MNIST, GLUE SST-2 and UCI Adult, and an automated review of 5,285 NeurIPS 2025 papers using LLM classification. Their proprietary-inference emissions examples use assumed active parameter counts and generic hardware/grid factors; these are estimates, not measured model-specific emissions. The paper argues for reporting research emissions and treating environmental cost alongside accuracy.",
+    "why_it_matters": "Environmental measurement choices can affect comparisons of model quality and compute cost. This paper offers methods and a reporting proposal, but its small training examples and assumed frontier-inference inputs do not establish reliable footprint estimates or a validated model-selection standard.",
+    "claims": [
+      {
+        "label": "CLAIMED",
+        "text": "The authors provide carbonbenchmark, combining CodeCarbon measurements with fitted training curves, and demonstrate it on three small tasks using an RTX 4060 Ti over a one-hour training period."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "The authors propose SMAJ as a cost-aware model-selection concept and recommend reporting research emissions; the paper does not establish a generally validated equivalence or noninferiority procedure for selecting the smallest adequate model."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "The reported review of 5,285 NeurIPS 2025 papers classifies papers with LLMs after a 200-paper model-agreement study; its corpus estimates are automated classifications, not a human-adjudicated census."
+      }
+    ],
+    "technical": {
+      "claimed_result": "Authors recommend reporting study emissions and propose training-curve and smallest-adequate-model metrics.",
+      "demonstrated_result": "The primary paper describes its tool, methods and illustrative experiments; the research desk did not independently run the code or validate emissions estimates.",
+      "mechanism": "Measures local training emissions and fits exponential, delayed-exponential and power-law learning curves; proposes a single-parameter training-efficiency measure and SMAJ selection framing.",
+      "regime": "Illustrations on Fashion-MNIST, GLUE SST-2 and UCI Adult, local RTX 4060 Ti training, plus an automated review of 5,285 NeurIPS 2025 papers.",
+      "strongest_baseline": "The paper discusses accuracy-focused state-of-the-art selection and common learning-curve forms; no validated environmental benchmark baseline is established."
+    },
+    "limitations": [
+      "Training examples cover only three small tasks and one local GPU; they do not establish frontier-scale measurement accuracy.",
+      "The NeurIPS paper-use estimates rely on automated classification rather than human adjudication.",
+      "Proprietary inference emissions use assumed active parameter counts and generic hardware/grid factors, not measured per-model energy.",
+      "SMAJ’s uncertainty threshold is not a demonstrated equivalence design and may require selection-bias control."
+    ],
+    "contradictory_evidence": [],
+    "evidence_gaps": [
+      {
+        "description": "No independent validation on frontier-scale training or inference workloads.",
+        "kind": "missing_independent",
+        "state": "open",
+        "updated_at": "2026-10-08T01:09:00Z"
+      }
+    ],
+    "sources": [
+      "https://arxiv.org/html/2610.01116v1"
+    ],
+    "public_research": {
+      "schema": "fcmo-public-research-receipt-v1",
+      "id": "FCMO-503C5DEC490A",
+      "canonical_signature": "e25cec75946320d5cc7a879e58c1a35e0543c9c67504aaa31e74c92145ecaaa0",
+      "researched_at": "2026-10-09T02:45:37.138219Z",
+      "trust_boundary": "sanitized public brief + public Internet only",
+      "source_checks": [
+        {
+          "url": "https://arxiv.org/html/2610.01116v1",
+          "final_url": "https://arxiv.org/html/2610.01116v1",
+          "status": 200,
+          "content_type": "text/html; charset=utf-8",
+          "title": "Beyond State-of-the-Art: Standardising Environmental Impact Metrics for AI Research",
+          "reachable": true
+        }
+      ],
+      "related_public_sources": [],
+      "coverage": {
+        "cited_public_sources_reopened": 1,
+        "reachable_sources": 1,
+        "scholarly_context_candidates": 0,
+        "exhaustive_web_search_claim": false
+      }
+    },
+    "media": {
+      "id": "FCMO-503C5DEC490A",
+      "mode": "fcmo_explainer",
+      "sourced": false,
+      "generated": true,
+      "rights_state": "FCMO_OWNED",
+      "image_url": "/FCMO-AI-Newsletter/assets/story-media/FCMO-503C5DEC490A.svg",
+      "credit": "FCMO AI Research Desk",
+      "license": "FCMO original editorial graphic",
+      "reuse_basis": "original publication-owned artwork",
+      "fit": "cover",
+      "evidence_image": false,
+      "beat": "research",
+      "reason": "NO_RIGHTS_PROVEN_SOURCE_IMAGE",
+      "rejected_candidates": [
+        {
+          "source": "https://arxiv.org/html/2610.01116v1",
+          "reason": "NO_IMAGE"
         }
       ]
     }
