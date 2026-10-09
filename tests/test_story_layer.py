@@ -272,14 +272,19 @@ class TemporaryCorpusTests(unittest.TestCase):
     def test_bad_record_is_quarantined_not_fatal(self) -> None:
         before, _ = build(self.corpus)
         rows = self.rows()
-        victim = rows[5]["id"]
-        rows[5]["claims"] = []
-        rows[6].pop("primary_desk")
-        rows[6]["desks"] = []
+        # Corrupt two rows that are actually published. A row held back by the
+        # native-edition gate (e.g. ENGLISH_LEAK) is already absent from the
+        # build, so corrupting it would not change the story count.
+        published = {story["id"] for story in before["stories"]}
+        a, b = [i for i, row in enumerate(rows) if row["id"] in published][5:7]
+        victim = rows[a]["id"]
+        rows[a]["claims"] = []
+        rows[b].pop("primary_desk")
+        rows[b]["desks"] = []
         self.write_rows(rows)
         document, stderr = build(self.corpus)
         self.assertIn(f"QUARANTINE {victim} CLAIMS_MISSING", stderr)
-        self.assertIn(f"QUARANTINE {rows[6]['id']} DESK_UNKNOWN", stderr)
+        self.assertIn(f"QUARANTINE {rows[b]['id']} DESK_UNKNOWN", stderr)
         self.assertNotIn(victim, by_id(document))
         self.assertEqual(len(document["stories"]), len(before["stories"]) - 2)
 
