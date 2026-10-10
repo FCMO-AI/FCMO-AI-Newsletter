@@ -325,3 +325,27 @@ verification are complete; a local build cannot truthfully update it.
   prosemirror-model; login y WebP pasan sin esas dependencias. Con esbuild
   disponible, repetir también `node studio/web/build.mjs` y bundle_ready.
   La lane conserva el lockfile y no instala paquetes ni descarga dependencias.
+
+# Studio: reconstrucción e inspección pendientes
+
+- Dependencias existentes de `studio/web/package-lock.json` no disponibles en
+  este entorno. `npm ci --offline --ignore-scripts --no-audit --no-fund` falla
+  con `ENOTCACHED`; `npm run build` falla por ausencia de `esbuild`.
+- Cambio necesario en un entorno con esas dependencias: ejecutar en el checkout
+  limpio `cd studio/web && npm ci && npm run test && npm run build`; comprobar
+  desde la raíz `python3 -c 'from studio.server.bundle import ready; assert ready(".")'`
+  y conservar los artefactos y manifiesto generados. El bundle comprometido sigue
+  siendo el anterior; la comprobación de integridad rechaza las fuentes nuevas
+  hasta reconstruirlo. No reiniciar Studio sobre el checkout nuevo antes de ese paso.
+- Chromium tampoco está disponible. Inspeccionar el flujo de autor y las
+  superficies de suscripción en los tres idiomas a 390 y 1440 px, teclado,
+  estados ocupado/error/pendiente y textos largos. Los templates y pruebas DOM
+  no acreditan esa inspección visual.
+- La política de esta ejecución prohíbe red, llamadas reales a modelos, correos
+  reales y reinicios de servicios. Comprobar en el host la sesión Codex por
+  suscripción, doble opt-in y baja de Kit, preferencia de idioma, recepción real
+  y persistencia tras reinicio. El procedimiento público está en
+  `docs/STUDIO-SINGLE-SOURCE-DEPLOY.md`.
+- El centro de preferencias para cambiar a un solo idioma y separar diario,
+  piezas, resumen semanal y alertas no existe todavía. El estado actual conserva
+  las membresías explícitas por formulario; puede haber más de un idioma por persona.

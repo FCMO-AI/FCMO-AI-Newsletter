@@ -70,6 +70,22 @@ export async function home (root) {
     h('div', { class: 'home-head' }, h('div', null, h('p', { class: 'eyebrow' }, 'fCMO / Studio'), h('h1', null, t('home.hello', { name: me.name }))),
       h('div', { class: 'home-actions' }, h('button', { class: 'btn primary big', type: 'button', onclick: () => newPieceDialog('essay') }, '+ ', t('home.new')),
         h('button', { class: 'btn', type: 'button', onclick: () => newPieceDialog('letter') }, t('home.letter')), h('button', { class: 'btn', type: 'button', onclick: () => newPieceDialog('note') }, t('home.note')))),
-    search, body, h('button', { class: 'btn small', onclick: rollbackDialog }, t('amend.rollback'))), { active: 'home' }))
+    search, body, subscriptionPanel(), h('button', { class: 'btn small', onclick: rollbackDialog }, t('amend.rollback'))), { active: 'home' }))
   return null
+}
+
+function subscriptionPanel () {
+  const summary = h('div', { role: 'status' }, t('sub.unread'))
+  const button = h('button', { class: 'btn small', type: 'button', onclick: async () => {
+    button.disabled = true
+    try {
+      const result = await get('/api/subscriptions/status')
+      clear(summary)
+      if (result.state !== 'read') summary.append(t('sub.unread'))
+      else summary.append(h('ul', null, Object.entries(result.locales).map(([loc, counts]) => h('li', null,
+        LOCALE_NAME[loc], ': ', t('sub.counts', counts)))))
+    } catch { summary.textContent = t('sub.unread') }
+    finally { button.disabled = false }
+  } }, t('sub.read'))
+  return h('section', { class: 'block' }, h('h2', null, t('sub.title')), h('p', null, t('sub.boundary')), button, summary)
 }

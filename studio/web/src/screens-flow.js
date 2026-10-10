@@ -4,7 +4,6 @@ import { h, clear, modal, toast, ago } from './ui.js'
 import { shell, session, route } from './main.js'
 import { plainText } from './docmodel.js'
 import { diffView } from './diffview.js'
-import { suggestions } from './assistant.js'
 import { amendDialog } from './publication-actions.js'
 import { checksList, versionsPanel } from './drawers.js'
 
@@ -126,10 +125,9 @@ export async function translateScreen (root, slug, fromLoc, targetArg) {
     if (target === 'zh-Hans') { const cb = h('input', { type: 'checkbox' }); modal({ title: t('tr.review'), body: [h('p', null, t('tr.zh.ask')), h('label', { class: 'check' }, cb, ' ', t('tr.zh.confirm'))], actions: [{ label: t('tr.cancel') }, { label: t('tr.confirm'), kind: 'primary', onclick: close => { if (cb.checked) doIt(close) } }] }) } else doIt()
   } }, t('tr.review'))
   const route2 = () => { location.hash = `#/p/${slug}/${fromLoc}/translate/${target}`; location.reload() }
-  const status = langState.state === 'ready' && langState.reviewed ? h('p', { class: 'tr-status ok' }, t('tr.reviewed', { who: langState.by || '', when: langState.at ? ago(langState.at, t) : '' })) : h('p', { class: 'tr-status' }, t('state.' + (langState.state || 'empty')), (langState.origin || '').startsWith('agent_') ? ' · ' + t('tr.agent') : '')
+  const status = h('p', { class: 'tr-status', role: 'status' }, t('state.' + (langState.state || 'empty')), ' · ', t('tr.state.' + (langState.review_state || 'DRAFT')), langState.source_changed ? ' · ' + t('tr.changed') : '')
   const assist = h('button', { class: 'btn small ghost', type: 'button', disabled: readOnly || meta.author !== session.me.user, onclick: async () => {
     await save(); if (dirty) return
-    if (srcLoc !== 'es-419') { await suggestions(slug, target, 'translate', assist); return }
     const run = async close => {
       close && close(); assist.disabled = true; assist.textContent = t('tr.busy')
       try { await post(`/api/pieces/${slug}/translate`, { base_rev: rev, replace: true }); toast(t('tr.done')); route2() }
@@ -137,7 +135,7 @@ export async function translateScreen (root, slug, fromLoc, targetArg) {
     }
     if (LOCS.filter(l => l !== srcLoc).some(l => meta.locales[l]?.state !== 'empty')) modal({ title: t('tr.replace'), body: t('tr.replace.body'), actions: [{ label: t('common.cancel') }, { label: t('tr.both'), kind: 'primary', onclick: run }] })
     else run()
-  } }, t(srcLoc === 'es-419' ? 'tr.both' : 'tr.assist'))
+  } }, t('tr.both'))
   const tabs = h('nav', { class: 'lang-tabs', 'aria-label': t('tr.pick') }, LOCS.filter(l => l !== srcLoc).map(l => h('a', { href: `#/p/${slug}/${fromLoc}/translate/${l}`, class: 'lt ' + ((meta.locales[l] || {}).state || 'empty'), 'aria-current': l === target ? 'page' : null }, LOCALE_SHORT[l], ' ', h('span', { class: 'lt-dot' }, { ready: '●', drafting: '◐', later: '⏸', empty: '○' }[(meta.locales[l] || {}).state || 'empty']))))
   root.append(shell(h('div', { class: 'flow tr' }, crumbs(slug, meta.title, t('tr.title')),
     h('div', { class: 'flow-head' }, h('h1', null, t('tr.title')), tabs, state),
@@ -218,11 +216,21 @@ export async function publishScreen (root, slug) {
   const act = h('div', { class: 'btn-row' })
   async function draw () {
     clear(box); clear(act); box.append(h('p', { class: 'muted', role: 'status' }, t('chk.running')))
+    if (meta.kind !== 'issue' && meta.author === session.me.user && ['draft', 'changes_requested', 'amending'].includes(meta.state) && meta.meta.status !== 'withdrawn') {
+      box.firstChild.textContent = t('tr.busy')
+      try {
+        await post(`/api/pieces/${slug}/prepare-translations`, { base_rev: meta.head_rev })
+        Object.assign(meta, await get(`/api/pieces/${slug}`))
+      } catch (e) {
+        Object.assign(meta, await get(`/api/pieces/${slug}`))
+        box.append(h('p', { class: 'notice', role: 'alert' }, e.data?.error_plain || t('err.generic')))
+      }
+    }
     const list = await checksList(slug, c => { location.hash = meta.kind === 'issue' ? `#/issues/${slug}` : `#/p/${slug}/${c.loc || meta.source_locale}`; if (c.block_id) setTimeout(() => window.__studioGoto && window.__studioGoto(c.block_id), 800) })
     clear(box); box.append(list)
     const bad = list.list.filter(c => !c.ok && !c.approval_satisfiable)
     const mt = LOCS.filter(l => (meta.locales[l] || {}).state === 'ready' && ((meta.locales[l] || {}).origin || '').startsWith('agent_') && !(meta.locales[l] || {}).reviewed)
-    if (mt.length) box.append(h('p', { class: 'notice soft' }, t('pub.mt', { langs: mt.map(l => LOCALE_NAME[l]).join(', '), who: other() })))
+    if (mt.length) box.append(h('p', { class: 'notice soft' }, t('pub.machine', { langs: mt.map(l => LOCALE_NAME[l]).join(', ') })))
     const ask = h('button', { class: 'btn primary big', type: 'button', disabled: bad.length > 0 || meta.author !== session.me.user, onclick: async () => { try { await post(`/api/pieces/${slug}/review/request`); toast(t('pub.sent', { who: other() })); location.hash = '#/' } catch { toast(t('err.generic'), 'bad') } } }, t('pub.ask'))
     act.append(ask, h('button', { class: 'btn', type: 'button', onclick: draw }, t('pub.rerun'))); if (bad.length) act.append(h('span', { class: 'muted' }, t('pub.blocked', { n: bad.length })))
   }
