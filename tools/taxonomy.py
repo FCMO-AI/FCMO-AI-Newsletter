@@ -364,6 +364,10 @@ def normalize_claim_label(value: Any) -> tuple[str, str | None] | None:
     raw = re.sub(r"[^A-Z0-9]+", "_", str(value or "").upper()).strip("_")
     if not raw:
         return None
+    if raw == "RETRACTED_OR_INVALIDATED":
+        # record.v3 has no separate retraction label. Preserve this sourced
+        # status as a qualifier on the demonstrated correction event.
+        return "DEMONSTRATED", raw
     for base in CLAIM_LABELS:
         if raw == base:
             return base, None

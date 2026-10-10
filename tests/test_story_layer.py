@@ -503,6 +503,10 @@ class IngestSelectionTests(unittest.TestCase):
 
 
 class TaxonomyTests(unittest.TestCase):
+    def test_retracted_claim_label_normalizes_as_a_demonstrated_correction(self) -> None:
+        normalized = taxonomy.normalize_claim_label("RETRACTED_OR_INVALIDATED")
+        self.assertEqual(normalized, ("DEMONSTRATED", "RETRACTED_OR_INVALIDATED"))
+
     def test_every_corpus_record_normalizes_to_record_v3(self) -> None:
         validator = validator_for(CONTRACTS / "record.v3.schema.json")
         for source in (CORPUS / "data" / "developments.jsonl", FIXTURES / "corpus-44" / "data" / "developments.jsonl"):

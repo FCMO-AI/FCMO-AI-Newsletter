@@ -12,6 +12,16 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class NativeAdmission(unittest.TestCase):
+    def test_softbank_source_claims_are_classified_and_admitted(self):
+        rows = [json.loads(line) for line in (ROOT / 'corpus/data/developments.jsonl').read_text().splitlines() if line]
+        record = next(row for row in rows if row['id'] == 'FCMO-66E542A93F36')
+        self.assertTrue(record['claims'])
+        self.assertTrue(all(claim.get('label') for claim in record['claims']))
+        admitted, _, held = ingest_corpus.publishable_rows(
+            ROOT / 'corpus', rows, i18n_dir=ROOT / 'site/data/i18n')
+        self.assertIn(record['id'], {row['id'] for row in admitted})
+        self.assertNotIn(record['id'], held)
+
     def test_independent_oracle_detects_nested_and_nonidentical_english(self):
         from tests.test_localization_completeness import independent_pair_incomplete
         source = {'technical': {'claimed_result': 'An independent evaluation has not been published.'}}
