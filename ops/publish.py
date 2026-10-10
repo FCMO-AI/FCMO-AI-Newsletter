@@ -16,6 +16,7 @@ import tempfile
 REPOSITORY = 'FCMO-AI/FCMO-AI-Newsletter'
 
 ROOT = Path(__file__).resolve().parents[1]
+CHECK_COMMAND_TIMEOUT_SECONDS = 3600
 
 def git(repository: Path, *args: str) -> str:
     return subprocess.run(['git', '-C', str(repository), *args], check=True,
@@ -142,7 +143,7 @@ def main(argv=None):
     if not args.fixture_build:
         commands += [[sys.executable, 'tests/oraculos/verificar_paper.py', str(args.out)]]
     for command in commands:
-        result = subprocess.run(command, cwd=ROOT, env=env, timeout=1800)
+        result = subprocess.run(command, cwd=ROOT, env=env, timeout=CHECK_COMMAND_TIMEOUT_SECONDS)
         if result.returncode:
             print('Publicación rechazada: LKG, construcción o comprobaciones incompletas.', file=sys.stderr)
             return 2

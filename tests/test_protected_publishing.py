@@ -17,6 +17,18 @@ def git(root, *args, data=None):
 
 
 class ProtectedPublishingTests(unittest.TestCase):
+    def test_local_check_timeout_allows_the_full_regression_suite_to_finish(self):
+        calls = []
+
+        def successful_command(command, **kwargs):
+            calls.append(kwargs.get('timeout'))
+            return subprocess.CompletedProcess(command, 0)
+
+        with patch.object(publish.subprocess, 'run', side_effect=successful_command):
+            self.assertEqual(publish.main(['--check']), 0)
+        self.assertEqual(calls, [publish.CHECK_COMMAND_TIMEOUT_SECONDS] * 8)
+        self.assertEqual(publish.CHECK_COMMAND_TIMEOUT_SECONDS, 3600)
+
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.addCleanup(self.tmp.cleanup)
