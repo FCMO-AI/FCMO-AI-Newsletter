@@ -10,7 +10,7 @@ export function login (root, done) {
   const pass = h('input', { id: 'p', name: 'password', type: 'password', autocomplete: 'current-password', required: true })
   const form = h('form', { class: 'login-card', onsubmit: async e => {
     e.preventDefault(); err.hidden = true
-    try { await post('/api/login', { user: user.value.trim().normalize('NFD').replace(/\p{M}/gu, '').toLowerCase(), password: pass.value }); done() } catch (x) { err.hidden = false; err.textContent = x instanceof ApiError && x.status === 0 ? t('err.net') : t('login.bad'); pass.select() }
+    try { await post('/api/login', { user: user.value.trim().toLowerCase(), password: pass.value }); done() } catch (x) { err.hidden = false; err.textContent = x instanceof ApiError && x.status === 0 ? t('err.net') : t('login.bad'); pass.select() }
   } },
   h('div', { class: 'login-mark' }, 'fCMO', h('span', null, 'Studio')), h('h1', null, t('login.title')), h('p', { class: 'lede' }, t('login.lede')),
   h('label', { for: 'u' }, t('login.user')), user, h('label', { for: 'p' }, t('login.pass')), pass, err, h('button', { class: 'btn primary big', type: 'submit' }, t('login.go')))

@@ -4,6 +4,10 @@ import { launch, EXIT_OK, EXIT_FAIL } from './_common.mjs'
 
 export const USER = process.env.STUDIO_USER || 'javier'
 export const PASS = process.env.STUDIO_PASS || 'estudio'
+// The host journey supplies its measured budget. Standalone journeys use the
+// renderer's explicit 180-second bound, never Playwright's implicit 30 seconds.
+export const previewTimeout = Number(process.env.STUDIO_PREVIEW_TIMEOUT_MS || 180000)
+if (!Number.isFinite(previewTimeout) || previewTimeout <= 0) throw Error('No se pudo leer el timeout de vista previa.')
 export const results = []
 export function check (name, ok, detail = '') {
   results.push({ name, ok: !!ok, detail })
@@ -13,6 +17,7 @@ export async function session (base, { viewport = { width: 1440, height: 900 }, 
   const browser = await launch()
   const context = await browser.newContext({ viewport, bypassCSP, colorScheme: scheme, reducedMotion: 'reduce', acceptDownloads: false })
   const page = await context.newPage()
+  page.setDefaultTimeout(Math.max(30000, previewTimeout))
   const errors = []
   page.on('pageerror', e => errors.push('pageerror: ' + String(e).slice(0, 300)))
   page.on('console', m => { if (m.type() === 'error' && !/status of 401|ERR_INTERNET_DISCONNECTED/.test(m.text())) errors.push(m.text().slice(0, 300)) })

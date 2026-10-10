@@ -36,6 +36,25 @@ class AuthHTTP(unittest.TestCase):
         status, data, headers = self.request('POST', '/api/login', {'user': 'javier', 'password': 'fixture-passphrase-1234'})
         self.assertEqual(status, 200); self.cookie = headers['Set-Cookie'].split(';')[0]; self.csrf = data['csrf']
         return headers
+    def test_accented_and_case_variants_share_the_canonical_account(self):
+        for user in ('Matías', 'matias', 'MATIAS', ' Mati\u0301as '):
+            with self.subTest(user=user):
+                status, data, headers = self.request('POST', '/api/login', {'user': user, 'password': 'fixture-passphrase-5678'})
+                self.assertEqual(status, 200)
+                self.cookie = headers['Set-Cookie'].split(';')[0]
+                self.assertEqual(self.request('GET', '/api/me')[1]['user'], 'matias')
+    def test_aliases_share_the_failure_lock_and_audit_identity(self):
+        for user in ('Matías', 'MATIAS', 'mati\u0301as', 'matias', 'Matías'):
+            self.assertEqual(self.request('POST', '/api/login', {'user': user, 'password': 'wrong-password-long'})[0], 401)
+        self.assertEqual(self.request('POST', '/api/login', {'user': 'matias', 'password': 'fixture-passphrase-5678'})[0], 401)
+        row = self.store.db.execute('SELECT failures FROM users WHERE key=?', ('matias',)).fetchone()
+        self.assertEqual(row['failures'], 5)
+        self.assertEqual([r[0] for r in self.store.db.execute("SELECT user FROM audit WHERE action='login_failed'")], ['matias'] * 5)
+    def test_user_creation_normalizes_before_replacing_account_and_sessions(self):
+        self.app.auth.add_user(' MATI\u0301AS ', 'replacement-passphrase-123')
+        self.assertIsNone(self.app.auth.login('matias', 'fixture-passphrase-5678'))
+        self.assertEqual(self.app.auth.login('Matías', 'replacement-passphrase-123')['user'], 'matias')
+        self.assertEqual(self.store.db.execute('SELECT count(*) FROM users').fetchone()[0], 2)
     def test_all_private_routes_require_session(self):
         for method, path in [('GET', '/api/pieces'), ('GET', '/api/me'), ('GET', '/preview/fixture/en/'), ('PUT', '/api/pieces/fixture/doc/en'), ('POST', '/api/site/rollback'), ('GET', '/api/library/briefs'), ('GET', '/api/jobs/abc'), ('GET', '/FCMO-AI-Newsletter/assets/style.css')]:
             with self.subTest(path=path): self.assertEqual(self.request(method, path, headers={'Tailscale-User-Login': 'javier'})[0], 401)
