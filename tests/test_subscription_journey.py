@@ -21,9 +21,17 @@ class SubscriptionJourneyTests(unittest.TestCase):
                 self.assertIn('data-state="idle"', html)
                 self.assertIn('role="alert"', html)
                 self.assertIn('data-sub-pending', html)
+                self.assertIn('data-email-confirmation="opaque"', html)
                 self.assertNotIn('select name="locale"', html)
                 self.assertNotIn('style=', html)
                 self.assertEqual(html.count('hreflang='), 2)
+
+    def test_opaque_confirmation_is_only_enabled_for_validated_kit_action(self):
+        for action in ('https://example.org/signup', 'http://app.kit.com/forms/123/subscriptions',
+                       'https://app.kit.com.evil.invalid/forms/123/subscriptions'):
+            form = SubscribeForm(action, 'email_address', True, 'https://example.org/privacy')
+            with self.subTest(action=action):
+                self.assertNotIn('data-email-confirmation="opaque"', diario_form('en', '/paper/', form))
 
     def test_real_builder_emits_subscription_states_with_noindex_and_site_shell(self):
         from tools.paper.build import PaperBuilder

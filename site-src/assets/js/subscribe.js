@@ -8,7 +8,7 @@
   document.querySelectorAll('form[data-email-form]').forEach((form) => {
     // Kit owns the confirmation. An opaque response proves only submission.
     // Other providers retain their ordinary, readable POST navigation.
-    if (!/^https:\/\/app\.kit\.com\/forms\/[0-9]+\/subscriptions$/.test(form.action)) return;
+    if (form.dataset.emailConfirmation !== 'opaque') return;
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
       if (!form.reportValidity() || form.dataset.busyNow === 'true') return;
