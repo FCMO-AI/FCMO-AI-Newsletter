@@ -8,6 +8,7 @@ import shutil
 import tempfile
 import threading
 import unittest
+from unittest.mock import patch
 from studio.server.http import Application, Server
 from studio.server.storage import Store, git
 from studio.server.publishing import GitHub, Publisher
@@ -140,7 +141,9 @@ for command in (["python3", "tools/paper/build.py", "--stories", "site/data/stor
         slug = piece['slug']
         self.request('PUT', '/api/pieces/' + slug + '/doc/en', {'base_rev': 0, 'doc': DOC, 'cursor': {}}, 'javier')
         self.assertEqual(self.request('GET', '/preview/' + slug + '/en/', user='javier')[0], 200)
-        self.assertEqual(self.request('POST', '/api/pieces/' + slug + '/review/request', {}, 'javier')[0], 409)
+        from studio.translation import FakeProvider
+        with patch('studio.translation.configured_provider', return_value=FakeProvider()):
+            self.assertEqual(self.request('POST', '/api/pieces/' + slug + '/review/request', {}, 'javier')[0], 409)
         self.assertEqual(self.mock.requests, [])
 
     def test_stale_browser_bundle_is_refused_without_blocking_private_api(self):
