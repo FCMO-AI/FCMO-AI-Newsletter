@@ -2,6 +2,8 @@ import json
 import shutil
 import tempfile
 import unittest
+from html.parser import HTMLParser
+from unittest.mock import patch
 from pathlib import Path
 
 from tools.paper.build import PaperBuilder
@@ -9,6 +11,15 @@ from tools.paper.essay_doc import render_document
 
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURE = ROOT / "tests/fixtures/editorial"
+STORIES = ROOT / "contracts/fixtures/stories.v2.json"
+STATUS = ROOT / "contracts/fixtures/newsroom-status.fresh.json"
+
+
+class SearchShards(HTMLParser):
+    def handle_starttag(self, tag, attrs):
+        values = dict(attrs)
+        if tag == "form" and "data-search-form" in values:
+            self.paths = json.loads(values["data-shards"])
 
 
 class EssayBuildTests(unittest.TestCase):
@@ -46,10 +57,12 @@ class EssayBuildTests(unittest.TestCase):
     def test_build_emits_piece_pages_and_discovery_surfaces(self):
         with tempfile.TemporaryDirectory() as temp:
             out = Path(temp) / "out"
-            builder = PaperBuilder(stories_path=ROOT / "site/data/stories.v2.json",
-                                   status_path=ROOT / "site/data/newsroom-status.json",
+            builder = PaperBuilder(stories_path=STORIES,
+                                   status_path=STATUS,
                                    editorial_path=FIXTURE, out=out, base="/FCMO-AI-Newsletter/")
-            builder.build()
+            # Keep shard growth deterministic, independent of daily publication data.
+            with patch("tools.paper.search_index.LIMIT", 4096):
+                builder.build()
             slug = "fixture-essay"
             for route in (f"cartas/{slug}/", f"es/cartas/{slug}/", f"zh/cartas/{slug}/"):
                 self.assertTrue((out / route / "index.html").is_file(), route)
@@ -63,7 +76,14 @@ class EssayBuildTests(unittest.TestCase):
             self.assertIn("fixture-essay", (out / "es/feed.atom").read_text())
             self.assertIn("fixture-essay", (out / "es/feed.json").read_text())
             self.assertIn("fixture-essay", (out / "sitemap.xml").read_text())
-            self.assertIn("fixture-essay", (out / "es/data/search.json").read_text())
+            form = SearchShards()
+            form.feed((out / "es/search/index.html").read_text())
+            paths = [out / url.removeprefix(builder.base) for url in form.paths]
+            self.assertGreater(len(paths), 1)
+            self.assertNotIn("fixture-essay", paths[0].read_text())
+            rows = [row for path in paths for row in json.loads(path.read_text())]
+            self.assertEqual([row["u"] for row in rows if row.get("kind") == "essay"],
+                             [builder.base + "es/cartas/fixture-essay/"])
             self.assertIn("fixture-essay", (out / "es/llms.txt").read_text())
             self.assertIn("A durable public record", (out / "llms-full.txt").read_text())
             self.assertIn("Primeras decisiones", (out / "es/cartas/index.html").read_text())
@@ -71,8 +91,8 @@ class EssayBuildTests(unittest.TestCase):
     def test_pending_locale_is_explicit_and_withdrawn_piece_is_tombstone(self):
         with tempfile.TemporaryDirectory() as temp:
             out = Path(temp) / "out"
-            builder = PaperBuilder(stories_path=ROOT / "site/data/stories.v2.json",
-                                   status_path=ROOT / "site/data/newsroom-status.json",
+            builder = PaperBuilder(stories_path=STORIES,
+                                   status_path=STATUS,
                                    editorial_path=FIXTURE, out=out, base="/FCMO-AI-Newsletter/")
             builder.build()
             pending = (out / "zh/cartas/fixture-essay/index.html").read_text()
@@ -96,8 +116,8 @@ class EssayBuildTests(unittest.TestCase):
             provenance["zh-Hans"] = {"origin": "agent_draft", "human_reviewed": False, "model": "fixture", "source_locale": "en"}
             provenance_path.write_text(json.dumps(provenance))
             out = temp_root / "out"
-            PaperBuilder(stories_path=ROOT / "site/data/stories.v2.json",
-                         status_path=ROOT / "site/data/newsroom-status.json",
+            PaperBuilder(stories_path=STORIES,
+                         status_path=STATUS,
                          editorial_path=editorial, out=out, base="/FCMO-AI-Newsletter/").build()
             page = (out / "zh/cartas/fixture-essay/index.html").read_text()
             self.assertIn('class="mt-disclosure"', page)

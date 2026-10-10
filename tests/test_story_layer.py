@@ -105,12 +105,13 @@ class RepositoryStoryLayerTests(unittest.TestCase):
             for key in ("first_published_at", "url_date", "slug"):
                 self.assertEqual(story[key], frozen[key], f"{rid} {key}")
         # The bridge can deliver records before first-published.json is advanced.
-        # Published fallback values come from the committed Story surface; a
-        # never-published record uses the explicit candidate clock, not the seal.
+        # Full history precedes the current Story surface, whose v1 clock can
+        # advance on refresh; a never-published record uses the candidate clock.
+        history = story_layer.history_first_published(REPO) if FULL_HISTORY else {}
         published = {row["research_id"]: row["published_at"] for row in
                      json.loads((REPO / "site/data/stories.json").read_text())}
         for rid in set(self.stories) - set(ledger):
-            stamp = published.get(rid, NOW)
+            stamp = history.get(rid) or published.get(rid, NOW)
             self.assertEqual(self.stories[rid]["first_published_at"], stamp, rid)
             self.assertEqual(self.stories[rid]["url_date"], story_layer.mx_date(stamp), rid)
 
@@ -198,8 +199,9 @@ class RepositoryStoryLayerTests(unittest.TestCase):
         self.assertEqual({rid: ledger["entries"][rid] for rid in entries}, entries)
         published = {s["research_id"]: s["published_at"] for s in
                      json.loads((REPO / "site/data/stories.json").read_text())}
+        history = story_layer.history_first_published(REPO) if FULL_HISTORY else {}
         for rid in set(ledger["entries"]) - set(entries):
-            self.assertEqual(ledger["entries"][rid]["first_published_at"], published[rid])
+            self.assertEqual(ledger["entries"][rid]["first_published_at"], history.get(rid) or published[rid])
         # A newly composed edition can precede the corpus-owned ledger. Prove
         # idempotence on its completed ledger without modifying the real corpus.
         with tempfile.TemporaryDirectory() as tmp:
@@ -328,8 +330,9 @@ class TemporaryCorpusTests(unittest.TestCase):
         self.assertEqual({rid: ledger["entries"][rid] for rid in committed["entries"]}, committed["entries"])
         published = {s["research_id"]: s["published_at"] for s in
                      json.loads((REPO / "site/data/stories.json").read_text())}
+        history = story_layer.history_first_published(REPO)
         for rid in set(ledger["entries"]) - set(committed["entries"]):
-            self.assertEqual(ledger["entries"][rid]["first_published_at"], published[rid])
+            self.assertEqual(ledger["entries"][rid]["first_published_at"], history.get(rid) or published[rid])
         added = [e for e in tombstones["tombstones"] if e["id"] != FDBE]
         self.assertEqual({e["id"]: e["superseded_by"] for e in added}, MERGES)
         self.assertEqual({e["action"] for e in added}, {"superseded"})
