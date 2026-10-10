@@ -311,8 +311,10 @@ class Publisher:
                     try: validate_translation(payload['docs'][source], payload['docs'][loc], loc)
                     except TranslationError as exc: raise Refused(str(exc)) from None
                     prior = payload['provenance'].get(loc, {})
-                    if loc != source and machine_reviewed(prior, payload['docs'][source], payload['docs'][loc]):
+                    if loc != source:
                         # Publication approval is not a claim of fluency in another language.
+                        if not machine_reviewed(prior, payload['docs'][source], payload['docs'][loc]) and not (prior.get('human_reviewed') is True and prior.get('reviewer')):
+                            raise Refused('La traducción requiere comprobación automática de fidelidad o revisión humana explícita del idioma.')
                         continue
                     payload['provenance'][loc] = {**prior, 'origin': prior.get('origin', 'human_authored' if loc == source else 'human_translated'),
                         'human_reviewed': True, 'reviewer': NAMES[user], 'at': stamp, 'source_locale': source}

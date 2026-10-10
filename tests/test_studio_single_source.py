@@ -156,5 +156,15 @@ class SingleSourceTests(unittest.TestCase):
         prepare(self.store, slug, 'javier', FakeProvider())
         self.assertIn('nuevas', self.store.resource(slug, 'figures')['fig-one']['caption']['zh-Hans'])
 
+    def test_publication_approval_cannot_substitute_for_explicit_target_review(self):
+        from studio.server.publishing import Refused
+        slug = self.source(); translate(self.store, slug, 'javier', 1, FakeProvider())
+        payload = self.store.payload(slug)
+        row = payload['provenance']['zh-Hans']
+        row.update(origin='human_translated'); row.pop('fidelity'); row.pop('review_state')
+        self.store._put(slug, payload, 'javier')
+        publisher = Publisher(self.store, None, None, lambda value: checks(self.store, SimpleNamespace(privacy=lambda _: True), value))
+        with self.assertRaises(Refused): publisher.request(slug, 'javier')
+
 
 if __name__ == '__main__': unittest.main()

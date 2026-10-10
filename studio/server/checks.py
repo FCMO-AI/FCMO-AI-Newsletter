@@ -28,7 +28,7 @@ def checks(store, preview, value):
         row = payload['provenance'].get(loc, {})
         reviewed = (row.get('human_reviewed') is True and bool(row.get('reviewer'))) or (loc != source and machine_reviewed(row, source_doc, doc))
         add('review-' + loc, reviewed, 'Revisa el original; las traducciones requieren comprobación de fidelidad o revisión humana explícita.', 'Review the source; translations require fidelity checks or explicit human review.', loc)
-        results[-1]['approval_satisfiable'] = loc == source or row.get('origin') in ('human_authored', 'human_translated')
+        results[-1]['approval_satisfiable'] = loc == source
         add('alignment-' + loc, [b['id'] for b in doc['blocks']] == source_ids and set(doc['footnotes']) == source_notes,
             'Conserva los mismos párrafos y notas en cada idioma.', 'Keep the same paragraphs and notes in each language.', loc)
         def tokens(document):
