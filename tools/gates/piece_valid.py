@@ -58,7 +58,7 @@ def check(root: Path) -> GateResult:
                 problems.append(f"{directory.name}: {locale} has no named human reviewer")
             if row.get("origin", "").startswith("agent_") and not row.get("model"):
                 problems.append(f"{directory.name}: {locale} is missing the translation model")
-            if row.get("human_reviewed") is not True and not (source and locale != piece['source_locale'] and machine_reviewed(row, source, piece['docs'][locale])):
+            if row.get("human_reviewed") is not True and not (source and locale != piece['source_locale'] and machine_reviewed(row, source, piece['docs'][locale], piece['figures'])):
                 problems.append(f"{directory.name}: ready {locale} is not marked human-reviewed")
             route = root / PREFIXES[locale] / "cartas" / piece["slug"] / "index.html"
             if not route.is_file():

@@ -28,6 +28,10 @@ class SingleSourceTests(unittest.TestCase):
 
     def source(self, loc='es-419'):
         doc = copy.deepcopy(DOC); doc['locale'] = loc
+        if loc == 'en':
+            doc['title'] = 'One test'; doc['dek'] = 'One decision with evidence'
+            doc['blocks'][0]['content'][0]['v'] = 'OpenAI released GPT-6.1 with 42 artificial intelligence trials. FCMO-P-123456789abc remains unconfirmed.'
+            doc['blocks'][0]['content'][1]['c'][0]['v'] = 'evidence'
         slug = self.store.create('javier', 'essay', doc['title'], loc)['slug']
         self.store.save(slug, loc, 'javier', 0, doc, {})
         return slug
@@ -102,6 +106,20 @@ class SingleSourceTests(unittest.TestCase):
             with self.subTest(text=text), self.assertRaises(TranslationError):
                 validate_translation(source, target, 'en')
 
+    def test_protected_names_cannot_be_reused_as_substrings_of_different_entities(self):
+        source = copy.deepcopy(DOC); original = 'OpenAI probó o3 bajo FCMO-P-123456789abc.'
+        source['blocks'][0]['content'][0]['v'] = original
+        for text in (original.replace('OpenAI', 'OtherOpenAI'), original.replace('o3', 'o3-mini'),
+                     original.replace('FCMO-P-123456789abc', 'FCMO-P-123456789abcX')):
+            target = copy.deepcopy(source); target['locale'] = 'zh-Hans'
+            target['blocks'][0]['content'][0]['v'] = text
+            with self.subTest(text=text), self.assertRaises(TranslationError): validate_translation(source, target, 'zh-Hans')
+        target['blocks'][0]['content'][0]['v'] = 'OpenAI已测o3，在FCMO-P-123456789abc下。'
+        validate_translation(source, target, 'zh-Hans')
+        source['blocks'][0]['content'][0]['v'] = 'OpenAI probó inteligencia artificial.'
+        target['blocks'][0]['content'][0]['v'] = 'OpenAI人工智能。'
+        validate_translation(source, target, 'zh-Hans')
+
     def test_codex_subscription_command_and_output_are_injected(self):
         from studio.translation import CodexCLITranslator, make_request
         translator = CodexCLITranslator(timeout=37)
@@ -168,6 +186,60 @@ class SingleSourceTests(unittest.TestCase):
         self.assertTrue(self.store.piece(slug)['locales']['zh-Hans']['source_changed'])
         prepare(self.store, slug, 'javier', FakeProvider())
         self.assertIn('nuevas', self.store.resource(slug, 'figures')['fig-one']['caption']['zh-Hans'])
+
+    def test_visible_figure_labels_are_bound_to_machine_review(self):
+        from studio.translation import machine_reviewed
+        slug = self.source()
+        doc = copy.deepcopy(DOC)
+        doc['blocks'].append({'id': 'b-22345678', 'type': 'figure', 'attrs': {'fig': 'fig-one'}})
+        self.store.save(slug, 'es-419', 'javier', self.store.piece(slug)['head_rev'], doc, {})
+        figure = {'file': 'figures/fig-one.webp', 'width': 1, 'height': 1, 'credit': 'FCMO', 'licence': 'CC BY 4.0',
+                  'alt': {'es-419': '42 pruebas'}, 'caption': {'es-419': 'OpenAI presenta 42 pruebas'}}
+        self.store.resource(slug, 'figures', 'javier', {'fig-one': figure})
+        translate(self.store, slug, 'javier', self.store.piece(slug)['head_rev'], FakeProvider())
+        payload = self.store.payload(slug); row = payload['provenance']['zh-Hans']
+        self.assertTrue(machine_reviewed(row, doc, payload['docs']['zh-Hans'], payload['figures']))
+        changed = copy.deepcopy(payload['figures']); changed['fig-one']['caption']['zh-Hans'] = 'OpenAI presenta 43 pruebas'
+        self.assertFalse(machine_reviewed(row, doc, payload['docs']['zh-Hans'], changed))
+        from tools.email_piece_dispatch import locale_reviewed
+        publication = {**payload['piece'], 'docs': payload['docs'], 'provenance': payload['provenance'], 'figures': changed}
+        self.assertFalse(locale_reviewed(publication, 'zh-Hans'))
+        # The actual public loader/gate must accept the bound figure, then reject
+        # a caption altered after approval, even when the document is unchanged.
+        import shutil
+        image = self.store.directory(slug) / 'figures/fig-one.webp'; image.parent.mkdir(exist_ok=True)
+        shutil.copyfile(Path(__file__).parent / 'fixtures/editorial/pieces/fixture-essay/figures/fig-cover.webp', image)
+        publisher = Publisher(self.store, None, None, lambda _: [{'ok': True}])
+        publisher.request(slug, 'javier'); publisher.approve(slug, 'matias')
+        root = Path(self.tmp.name) / 'bound-public'
+        directory = root / 'editorial/pieces' / slug
+        shutil.copytree(self.store.directory(slug), directory)
+        piece_id = self.store.payload(slug)['piece']['id']
+        for prefix in ('', 'es', 'zh'):
+            route = root / prefix / 'cartas' / slug / 'index.html'; route.parent.mkdir(parents=True)
+            route.write_text('<article class="essay" data-piece-id="' + piece_id + '">')
+        from tools.gates import piece_valid
+        piece_valid.check(root)
+        from tools.paper.essays import load_editorial, render_piece
+        pieces, _ = load_editorial(root / 'editorial')
+        self.assertIn('figcaption', render_piece(pieces[0], 'zh-Hans', base='/')[2])
+        (directory / 'figures.json').write_text(json.dumps(changed))
+        from tools.gates.common import GateFailure
+        with self.assertRaises(GateFailure): piece_valid.check(root)
+
+    def test_editing_target_figure_labels_clears_review_and_rechecks_fidelity(self):
+        from studio.translation import prepare
+        slug = self.source(); doc = copy.deepcopy(DOC)
+        doc['blocks'].append({'id': 'b-22345678', 'type': 'figure', 'attrs': {'fig': 'fig-one'}})
+        self.store.save(slug, 'es-419', 'javier', self.store.piece(slug)['head_rev'], doc, {})
+        figure = {'file': 'figures/fig-one.webp', 'width': 1, 'height': 1, 'credit': 'FCMO', 'licence': 'CC BY 4.0',
+                  'alt': {'es-419': '42 pruebas'}, 'caption': {'es-419': 'OpenAI presenta 42 pruebas'}}
+        self.store.resource(slug, 'figures', 'javier', {'fig-one': figure})
+        translate(self.store, slug, 'javier', self.store.piece(slug)['head_rev'], FakeProvider())
+        figures = self.store.resource(slug, 'figures'); figures['fig-one']['caption']['zh-Hans'] = 'OpenAI presenta 43 pruebas'
+        self.store.resource(slug, 'figures', 'javier', figures)
+        self.assertEqual(self.store.piece(slug)['locales']['zh-Hans']['review_state'], 'MACHINE_TRANSLATED')
+        with self.assertRaises(TranslationError): prepare(self.store, slug, 'javier', FakeProvider())
 
     def test_publication_approval_cannot_substitute_for_explicit_target_review(self):
         from studio.server.publishing import Refused

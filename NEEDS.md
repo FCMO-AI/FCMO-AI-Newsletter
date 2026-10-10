@@ -353,3 +353,11 @@ verification are complete; a local build cannot truthfully update it.
 - El centro de preferencias para cambiar a un solo idioma y separar diario,
   piezas, resumen semanal y alertas no existe todavía. El estado actual conserva
   las membresías explícitas por formulario; puede haber más de un idioma por persona.
+- Inspección de código: al salir de `studio/web/src/screen-editor.js`, el dispose
+  cancela `figT`/`srcT` y solo conserva el documento. Una edición de recursos aún
+  pendiente puede perderse al navegar antes del debounce. Cambio necesario:
+  esperar/guardar documento, figuras y fuentes antes de Publicar o cambiar de
+  pantalla; conservar los buffers y la pantalla cuando falle la escritura.
+  Reproducir con navegador: cambiar el pie de figura y pulsar Publicar antes de
+  900 ms; comprobar el recurso guardado y la regeneración en ambos idiomas.
+  Esta transición de UI sigue pendiente; el flujo HTTP no acredita ese recorrido.

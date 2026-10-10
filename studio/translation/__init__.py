@@ -38,14 +38,28 @@ def targets(source_locale):
 def digest(doc):
     return hashlib.sha256(json.dumps(doc, ensure_ascii=False, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
 
-def fidelity_receipt(source, target):
-    validate_translation(source, target, target['locale'])
-    return {'schema': 'fcmo-studio-fidelity-v1', 'source_sha256': digest(source), 'target_sha256': digest(target)}
+def _fields_doc(fields, loc):
+    return {'schema': 'fcmo-essay-doc-v1', 'locale': loc, 'title': 'FCMO', 'dek': 'FCMO',
+            'blocks': [{'id': f'b-{i:08x}', 'type': 'p', 'content': [{'t': 'text', 'v': text}]} for i, text in enumerate(fields.values())], 'footnotes': {}}
 
-def machine_reviewed(row, source, target):
+def _figure_labels(doc, figures):
+    ids = sorted(set(figures or {}) | {block['attrs']['fig'] for block in doc['blocks'] if block['type'] == 'figure'})
+    try: return {key + ':' + field: figures[key][field][doc['locale']] for key in ids for field in ('alt', 'caption')}
+    except (KeyError, TypeError):
+        raise TranslationError('Completa las etiquetas de las figuras en cada idioma.') from None
+
+def fidelity_receipt(source, target, figures=None):
+    validate_translation(source, target, target['locale'])
+    source_labels, target_labels = _figure_labels(source, figures), _figure_labels(target, figures)
+    if source_labels:
+        validate_translation(_fields_doc(source_labels, source['locale']), _fields_doc(target_labels, target['locale']), target['locale'])
+    bound = lambda doc, labels: digest({'doc': doc, 'figure_labels': labels}) if labels else digest(doc)
+    return {'schema': 'fcmo-studio-fidelity-v1', 'source_sha256': bound(source, source_labels), 'target_sha256': bound(target, target_labels)}
+
+def machine_reviewed(row, source, target, figures=None):
     if row.get('review_state') != 'MACHINE_REVIEWED' or row.get('source_locale') != source['locale'] or not row.get('model'):
         return False
-    try: return row.get('fidelity') == fidelity_receipt(source, target)
+    try: return row.get('fidelity') == fidelity_receipt(source, target, figures)
     except TranslationError: return False
 
 def glossary():
@@ -70,8 +84,7 @@ def translate_fields(fields, source_locale, provider=None):
     if not fields or any(not isinstance(text, str) or not text.strip() for text in fields.values()):
         raise TranslationError('Completa el texto original antes de traducir.')
     keys = list(fields)
-    source = {'schema': 'fcmo-essay-doc-v1', 'locale': source_locale, 'title': 'FCMO', 'dek': 'FCMO',
-              'blocks': [{'id': f'b-{i:08x}', 'type': 'p', 'content': [{'t': 'text', 'v': fields[key]}]} for i, key in enumerate(keys)], 'footnotes': {}}
+    source = _fields_doc(fields, source_locale)
     docs = generate_docs(source, provider or configured_provider())
     return {loc: {key: _text(doc['blocks'][i]) for i, key in enumerate(keys)} for loc, doc in docs.items()}
 
@@ -112,6 +125,14 @@ def _dates(node):
     return Counter(re.findall(r'\d{4}-\d{2}-\d{2}|\d{1,2}/\d{1,2}/\d{2,4}|\d{1,2} de (?:enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre)(?: de \d{4})?', _text(node), re.I))
 def _quotes(node): return Counter(re.findall(r'«[^»]+»|“[^”]+”|"[^"\n]+"', _text(node)))
 def _urls(node): return Counter(re.findall(r'https?://[^\s<>]+', _text(node)))
+
+def _name_count(text, name):
+    # Latin names may touch Chinese prose, but cannot hide inside another name.
+    if not re.match(r'[A-Za-zÀ-ÖØ-öø-ÿ0-9_]', name): return text.count(name)
+    latin = 'A-Za-z0-9_À-ÖØ-öø-ÿ'
+    suffix = '(?![' + latin + '])'
+    if re.search(r'\d', name): suffix = '(?![' + latin + ']|[-.](?=[' + latin + ']))'
+    return len(re.findall('(?<![' + latin + '])' + re.escape(name) + suffix, text))
 
 def _nonempty(doc):
     if not doc['title'].strip() or not doc['dek'].strip() or not doc['blocks']:
@@ -157,11 +178,11 @@ def validate_translation(source, target, loc):
         # Mixed-case brands, model/version identities and public record IDs.
         names.update(re.findall(r'\b(?:FCMO-[A-Z]-[a-z0-9]+|[A-Za-z]+\d[\w.-]*|[A-Za-z][\w]*[-.]\d[\w.-]*|[A-Z][A-Z0-9]*(?:[-.][A-Za-z0-9]+)+|[A-Z][a-z]+[A-Z][\w]*)\b', a))
         for name in names:
-            if a.count(name) != b.count(name): raise TranslationError('La traducción cambió un nombre propio.')
+            if _name_count(a, name) != _name_count(b, name): raise TranslationError('La traducción cambió un nombre propio.')
         for term in glossary()['terms']:
             source_term = term.get(source['locale'], term['source'])
             target_term = term.get(loc, term['source'])
-            if source_term in a and a.count(source_term) != b.count(target_term):
+            if source_term in a and _name_count(a, source_term) != _name_count(b, target_term):
                 raise TranslationError('La traducción cambió un término del glosario o un nombre propio.')
         # Wide language-dependent bounds; this detects truncation/expansion, not semantic equivalence.
         if len(a) >= 40 and not .12 <= len(b) / len(a) <= 4:
@@ -330,7 +351,7 @@ def translate(store, value, user, base_rev, provider=None, replace=False, preser
                 continue
             payload['docs'][loc] = copy.deepcopy(docs[loc])
             payload['provenance'][loc] = {'origin': 'agent_draft', 'human_reviewed': False, 'reviewer': '', 'at': stamp, 'source_locale': source_locale, 'model': provider.model,
-                                        'review_state': 'MACHINE_REVIEWED', 'fidelity': fidelity_receipt(source, docs[loc])}
+                                        'review_state': 'MACHINE_REVIEWED', 'fidelity': fidelity_receipt(source, docs[loc], figures)}
             payload.setdefault('block_provenance', {})[loc] = {b['id']: 'agent_draft' for b in source['blocks']}
             payload.setdefault('source_hashes', {})[loc] = {b['id']: hashlib.sha256(encoded(b).encode()).hexdigest() for b in source['blocks']}
             payload['piece']['locales'][loc] = 'ready'
@@ -357,7 +378,7 @@ def prepare(store, value, user, provider=None):
         for loc in targets(source):
             row = payload['provenance'].get(loc, {})
             if row.get('origin', '').startswith('agent_') and not row.get('human_reviewed'):
-                row.update(review_state='MACHINE_REVIEWED', fidelity=fidelity_receipt(payload['docs'][source], payload['docs'][loc]))
+                row.update(review_state='MACHINE_REVIEWED', fidelity=fidelity_receipt(payload['docs'][source], payload['docs'][loc], payload['figures']))
                 states[loc].update(state='ready', review_state='MACHINE_REVIEWED')
                 payload['piece']['locales'][loc] = 'ready'
         if payload != store.payload(value) or states != store.piece(value)['locale_states']:

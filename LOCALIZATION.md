@@ -19,7 +19,7 @@ prerequisite for publishing a translated Studio piece.
 
 Studio records `MACHINE_TRANSLATED` for machine prose awaiting current checks,
 `MACHINE_REVIEWED` for translations that pass deterministic fidelity checks and carry
-source/target document digests, and `HUMAN_REVIEWED` only after explicit language
+source/target document and figure-label digests, and `HUMAN_REVIEWED` only after explicit language
 review. These checks protect structure, numbers, URLs, IDs, glossary terms, model
 names, quotations and broad length bounds. They do not prove semantic equivalence,
 literary quality or fluency. The translator must preserve evidence, uncertainty and

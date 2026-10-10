@@ -25,7 +25,7 @@ def locale_reviewed(piece, locale):
     if row.get('human_reviewed') is True: return True
     from studio.translation import machine_reviewed
     source = piece.get('source_locale'); docs = piece.get('docs', {})
-    return source != locale and source in docs and locale in docs and machine_reviewed(row, docs[source], docs[locale])
+    return source != locale and source in docs and locale in docs and machine_reviewed(row, docs[source], docs[locale], piece.get('figures', {}))
 
 
 @dataclass(frozen=True)

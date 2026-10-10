@@ -118,7 +118,7 @@ def load_piece(directory: Path) -> dict:
         if row.get("origin") not in {"human_authored", "human_translated", "agent_draft_human_edited", "agent_draft"} or not isinstance(row.get("human_reviewed"), bool):
             raise ValueError(f"{directory}: invalid provenance in {locale}")
         from studio.translation import machine_reviewed
-        machine_ok = locale != piece['source_locale'] and machine_reviewed(row, docs.get(piece['source_locale'], {}), doc)
+        machine_ok = locale != piece['source_locale'] and machine_reviewed(row, docs.get(piece['source_locale'], {}), doc, figures)
         if piece["locales"][locale] == "ready" and row["origin"] != "agent_draft" and row["human_reviewed"] is not True and not machine_ok:
             raise ValueError(f"{directory}: ready {locale} has not been human-reviewed")
         if row["human_reviewed"] is True and not str(row.get("reviewer", "")).strip():

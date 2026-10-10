@@ -313,7 +313,7 @@ class Publisher:
                     prior = payload['provenance'].get(loc, {})
                     if loc != source:
                         # Publication approval is not a claim of fluency in another language.
-                        if not machine_reviewed(prior, payload['docs'][source], payload['docs'][loc]) and not (prior.get('human_reviewed') is True and prior.get('reviewer')):
+                        if not machine_reviewed(prior, payload['docs'][source], payload['docs'][loc], payload['figures']) and not (prior.get('human_reviewed') is True and prior.get('reviewer')):
                             raise Refused('La traducción requiere comprobación automática de fidelidad o revisión humana explícita del idioma.')
                         continue
                     payload['provenance'][loc] = {**prior, 'origin': prior.get('origin', 'human_authored' if loc == source else 'human_translated'),

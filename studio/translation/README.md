@@ -43,7 +43,9 @@ La validación determinista comprueba estructura, términos protegidos y límite
 amplios de longitud; no prueba por sí sola equivalencia literaria. Los estados
 visibles son `MACHINE_TRANSLATED`, `MACHINE_REVIEWED` y `HUMAN_REVIEWED`.
 `MACHINE_REVIEWED` significa que las comprobaciones automáticas pasaron y están
-ligadas a los documentos actuales mediante hashes. Nunca afirma revisión humana.
+ligadas a los documentos y etiquetas de figuras actuales mediante hashes. Nunca
+afirma revisión humana. Editar una etiqueta elimina la revisión vigente;
+publicación y correo comprueban también esas etiquetas.
 La traducción conserva `origin: agent_draft`; una edición humana pasa a
 `agent_draft_human_edited` y vuelve a requerir comprobaciones.
 

@@ -20,13 +20,16 @@ def checks(store, preview, value):
         except (ValueError, TypeError): valid = False
         add('document-' + loc, valid, 'Revisa la estructura y las notas al pie.', 'Check the document structure and footnotes.', loc)
         if not doc: continue
-        from studio.translation import validate_translation, TranslationError, machine_reviewed
+        from studio.translation import validate_translation, fidelity_receipt, TranslationError, machine_reviewed
+        row = payload['provenance'].get(loc, {})
         fidelity = ''
-        try: validate_translation(source_doc, doc, loc)
+        try:
+            if loc != source and row.get('origin', '').startswith('agent_') and not row.get('human_reviewed'):
+                fidelity_receipt(source_doc, doc, payload['figures'])
+            else: validate_translation(source_doc, doc, loc)
         except TranslationError as exc: fidelity = str(exc)
         add('fidelity-' + loc, not fidelity, fidelity or 'Párrafos, notas, citas, enlaces, cifras y fechas completos.', 'Paragraphs, notes, quotations, links, numbers and dates preserved.', loc)
-        row = payload['provenance'].get(loc, {})
-        reviewed = (row.get('human_reviewed') is True and bool(row.get('reviewer'))) or (loc != source and machine_reviewed(row, source_doc, doc))
+        reviewed = (row.get('human_reviewed') is True and bool(row.get('reviewer'))) or (loc != source and machine_reviewed(row, source_doc, doc, payload['figures']))
         add('review-' + loc, reviewed, 'Revisa el original; las traducciones requieren comprobación de fidelidad o revisión humana explícita.', 'Review the source; translations require fidelity checks or explicit human review.', loc)
         results[-1]['approval_satisfiable'] = loc == source
         add('alignment-' + loc, [b['id'] for b in doc['blocks']] == source_ids and set(doc['footnotes']) == source_notes,

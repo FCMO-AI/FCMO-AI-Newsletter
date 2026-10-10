@@ -229,9 +229,18 @@ class Store:
                 (validate_sources if kind == 'sources' else validate_figures)(data)
                 states = self.piece(value)['locale_states']; source = payload['piece']['source_locale']
                 if kind == 'figures':
-                    def source_labels(figures):
-                        return {key: {field: fig[field].get(source) for field in ('alt', 'caption')} for key, fig in figures.items()}
-                    if source_labels(payload[kind]) != source_labels(data):
+                    def labels(figures, loc):
+                        return {key: {field: fig[field].get(loc) for field in ('alt', 'caption')} for key, fig in figures.items()}
+                    for loc in LOCALES:
+                        if loc in payload['docs'] and labels(payload[kind], loc) != labels(data, loc):
+                            row = payload['provenance'].get(loc, {})
+                            row.update(human_reviewed=False, reviewer=''); row.pop('fidelity', None)
+                            states[loc]['human_reviewed'] = False
+                            if row.get('origin', '').startswith('agent_'):
+                                row['review_state'] = states[loc]['review_state'] = 'MACHINE_TRANSLATED'
+                            else:
+                                row.pop('review_state', None); states[loc].pop('review_state', None)
+                    if labels(payload[kind], source) != labels(data, source):
                         for loc in LOCALES:
                             if loc != source and loc in payload['docs']:
                                 states[loc].update(state='drafting', human_reviewed=False, source_changed=True)
