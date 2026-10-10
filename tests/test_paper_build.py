@@ -66,6 +66,17 @@ class CandidateAssetParser(HTMLParser):
 
 
 class PaperBuildTests(unittest.TestCase):
+    def test_europe_uk_region_label_is_localized_in_every_reader_language(self):
+        expected = {
+            "en": "Europe & UK",
+            "es-419": "Europa y Reino Unido",
+            "zh-Hans": "欧洲和英国",
+        }
+        for locale, label in expected.items():
+            with self.subTest(locale=locale):
+                catalog = json.loads((ROOT / f"i18n/ui/{locale}.json").read_text())
+                self.assertEqual(catalog["labels"]["region"].get("Europe & UK"), label)
+
     @classmethod
     def setUpClass(cls):
         cls.temp = tempfile.TemporaryDirectory(prefix="wpA3-")
