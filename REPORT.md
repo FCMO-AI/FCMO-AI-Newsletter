@@ -451,6 +451,12 @@ Ran 853 tests in 1966.141s
 OK (skipped=4)
 ```
 
-The #71 standalone Studio result will be added after it finishes.
+
+$ python3 -m unittest discover -s tests -p 'test_studio*.py'
+Ran 91 tests in 881.534s
+OK (skipped=1)
 
 Both full-suite runs emitted Python `ResourceWarning` messages for unclosed SQLite connections in test server cleanup. Their final unittest status is still `OK`; the warnings are recorded here and were not suppressed.
+
+
+The standalone Studio test runs also emitted Python `ResourceWarning` messages for unclosed SQLite connections during server cleanup. They both ended with `OK (skipped=1)`.
