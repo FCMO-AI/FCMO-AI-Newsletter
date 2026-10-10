@@ -103,14 +103,17 @@ def diario_form(locale, base, form, page=False):
     wrapper = 'subscribe-page' if page else 'subscribe-card'
     confirmation = (' data-email-confirmation="opaque"' if
                     re.fullmatch(r'https://app\.kit\.com/forms/[1-9][0-9]*/subscriptions', form.action) else '')
+    choice = language if not form.fixed_locale else ''
+    language_links = language if form.fixed_locale else ''
     return (f'<section class="subscribe-v2 {wrapper} sub-experience" data-subscribe-state="active" data-state="idle">'
             f'<div data-sub-idle><p class="section-kicker">{copy["kicker"]}</p><{tag} class="page-title">{copy["title"]}</{tag}><p class="sub-lede">{copy["lede"]}</p>'
             f'<form method="post" data-email-form{confirmation} data-email-locale="{locale}" action="{escape(form.action,quote=True)}" data-busy="{copy["busy"]}" data-error="{escape(copy["error"], quote=True)}">'
+            f'{choice}'
             f'<div class="sub-row"><label class="sub-field">{copy["email"]}<input type="email" name="{escape(form.email_field,quote=True)}" autocomplete="email" maxlength="254" placeholder="{copy["placeholder"]}" required></label>'
             f'<button class="button" type="submit">{copy["button"]}</button></div>'
             f'<label class="sub-consent"><input type="checkbox" name="consent" value="yes" required><span>{copy["consent"]} <a href="{escape(root + "privacy/")}">{copy["privacy"]}</a>.</span></label>'
             '<input type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" hidden>'
             '<p class="sub-error" role="alert" hidden></p></form>'
-            f'<p class="sub-fine">{copy["fine"]}</p>{language}{fallback}'
+            f'<p class="sub-fine">{copy["fine"]}</p>{language_links}{fallback}'
             f'<p><a href="{escape(form.privacy_url,quote=True)}">{copy["complete"]}</a></p></div>'
             f'<div data-sub-pending hidden aria-live="polite">{state_page(locale, "pending", base, tag=tag)}</div></section>')

@@ -12,6 +12,21 @@ from tools.paper.templates.subscribe import diario_form
 ROOT = Path(__file__).resolve().parents[1]
 
 class SubscriptionJourneyTests(unittest.TestCase):
+    def test_native_provider_locale_selector_is_submitted_with_the_form(self):
+        from html.parser import HTMLParser
+        class FormParser(HTMLParser):
+            depth = 0
+            select_in_form = False
+            def handle_starttag(self, tag, attrs):
+                if tag == 'form': self.depth += 1
+                if tag == 'select' and dict(attrs).get('name') == 'locale':
+                    self.select_in_form = self.depth > 0
+            def handle_endtag(self, tag):
+                if tag == 'form': self.depth -= 1
+        parser = FormParser()
+        parser.feed(diario_form('es-419', '/paper/', SubscribeForm('https://example.org/signup')))
+        self.assertTrue(parser.select_in_form)
+
     def test_form_has_pending_target_errors_and_language_links_in_each_locale(self):
         for loc in ('en', 'es-419', 'zh-Hans'):
             with self.subTest(loc=loc):
