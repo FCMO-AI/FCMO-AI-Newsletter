@@ -1,0 +1,126 @@
+{
+  "record": {
+    "id": "FCMO-3DCF6AD5CA1E",
+    "title": "A preprint reports that finite precision breaks exact trajectory matching in Orthrus speculative decoding",
+    "desk": "Evaluation Science",
+    "event_at": "2026-09-27T00:00:00Z",
+    "evidence": "A",
+    "confidence": "credible_unconfirmed",
+    "importance": 6,
+    "tier": "Major",
+    "summary": "The v2 preprint compares Orthrus with its Qwen3-1.7B autoregressive reference across 1,190 prompts in 12 domains. Under BF16, exact token trajectories match in 45% of the released-checkpoint runs and 43% of an independently trained implementation; under FP16 the rate is 87%, and under FP32 it is 100% for the tested prompts. The authors report no systematic downstream-task degradation from divergence in their limited benchmarks. These are paper-reported results from two implementations at one model scale, not an independent reproduction.",
+    "topics": [
+      "speculative decoding",
+      "inference precision",
+      "LLM reproducibility",
+      "trajectory equivalence",
+      "inference efficiency"
+    ],
+    "organizations": [
+      "Independent research authors"
+    ],
+    "human_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-3DCF6AD5CA1E.html",
+    "machine_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/data/briefs/FCMO-3DCF6AD5CA1E.json",
+    "citation": {
+      "id": "FCMO-3DCF6AD5CA1E",
+      "source": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-3DCF6AD5CA1E.html"
+    }
+  },
+  "brief": {
+    "claims": [
+      {
+        "label": "CLAIMED",
+        "text": "Across 1,190 prompts in 12 domains, the authors report exact trajectory matches for 45% of the released Orthrus checkpoint's BF16 generations and 43% of an independently trained Orthrus implementation; FP16 matching is 87%, and FP32 matching is 100% on this prompt set."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "The authors report that trajectory divergence does not correspond to systematic degradation on their evaluated downstream benchmarks; point estimates vary with inference precision and are not established as statistically significant improvements or declines."
+      },
+      {
+        "label": "DEMONSTRATED",
+        "text": "The v2 preprint specifies exact token-sequence matching as its operational test of losslessness and documents the two Qwen3-1.7B-based implementations, inference precisions and 12-domain prompt set used in its reported comparison."
+      }
+    ],
+    "confidence": "credible_unconfirmed",
+    "contradictory_evidence": [
+      "The paper reports no systematic downstream-task degradation despite frequent BF16 trajectory divergence; exact sequence inequality does not by itself establish lower task quality.",
+      "FP32 exactly matched all 1,190 prompts in the reported test, showing the observed divergence depends on numerical precision and tested configuration."
+    ],
+    "desks": [
+      "evaluation_science"
+    ],
+    "development_type": "paper",
+    "editions": [
+      "2026-10-09"
+    ],
+    "event_at": "2026-09-27T00:00:00Z",
+    "evidence_class": "A",
+    "evidence_gaps": [
+      {
+        "description": "The linked implementation and reported comparison were not run in this review, and independent replication was not inspected.",
+        "kind": "reproduction_missing",
+        "state": "open"
+      },
+      {
+        "description": "The paper studies Qwen3-1.7B-based Orthrus implementations and does not establish transfer to other scales or speculative-decoding architectures.",
+        "kind": "other",
+        "state": "open"
+      },
+      {
+        "description": "The study does not measure effects of trajectory divergence on long reasoning traces or tool-calling behavior.",
+        "kind": "other",
+        "state": "open"
+      }
+    ],
+    "id": "FCMO-3DCF6AD5CA1E",
+    "importance_effective_score": 6,
+    "importance_rationale": "If practical low-precision inference changes exact output trajectories in methods described as lossless, this can affect reproducibility claims and how inference-acceleration systems are evaluated. Consequence is meaningful for systems relying on exact trajectory preservation; the paper does not show systematic task degradation and tests one Qwen3-1.7B-based architecture.",
+    "importance_scale_version": 2,
+    "importance_score": 6,
+    "importance_tier": "Major",
+    "last_verified_at": "2026-10-09T19:21:41Z",
+    "limitations": [
+      "Author-reported preprint results; this review did not execute code/checkpoints or independently reproduce the measurements.",
+      "The experiments cover two Qwen3-1.7B-based Orthrus implementations, greedy decoding, one hardware/software setup and a curated 1,190-prompt set; behavior at other scales and in other acceleration architectures is unknown.",
+      "The authors do not identify which computational stage causes the precision-dependent divergence.",
+      "Downstream evaluation covers GSM8K, HumanEval and IFEval and does not test chain-of-thought propagation or tool selection; trajectory divergence does not establish practical task harm.",
+      "Exact token trajectory matching is the paper's chosen operational criterion for losslessness; other definitions, including distributional equivalence, are distinct."
+    ],
+    "organizations": [
+      "Independent research authors"
+    ],
+    "primary_desk": "evaluation_science",
+    "recorded_at": "2026-10-09T19:21:41Z",
+    "regions": [
+      "global"
+    ],
+    "relationships": [],
+    "source_languages": [
+      "en"
+    ],
+    "source_urls": [
+      "https://arxiv.org/html/2609.15504"
+    ],
+    "status": "active",
+    "summary": "The v2 preprint compares Orthrus with its Qwen3-1.7B autoregressive reference across 1,190 prompts in 12 domains. Under BF16, exact token trajectories match in 45% of the released-checkpoint runs and 43% of an independently trained implementation; under FP16 the rate is 87%, and under FP32 it is 100% for the tested prompts. The authors report no systematic downstream-task degradation from divergence in their limited benchmarks. These are paper-reported results from two implementations at one model scale, not an independent reproduction.",
+    "technical": {
+      "claimed_result": "For greedy decoding on the reported prompts, exact Orthrus/reference token-sequence matching was 45% for the released checkpoint and 43% for the independent implementation under BF16, 87% for both under FP16, and 100% for both under FP32.",
+      "demonstrated_result": "The authors document a direct token-trajectory comparison over 1,190 prompts in 12 domains and report precision-specific outcomes; this review did not execute the implementation or reproduce them.",
+      "mechanism": "Compare every generated token index from Orthrus against its frozen autoregressive Qwen3 reference until end-of-sequence or the generation limit; any difference marks the sequence as divergent.",
+      "regime": "Two Qwen3-1.7B-based Orthrus implementations; greedy generation, up to 128 new tokens, 1,190 prompts across 12 domains, eager attention on an RTX 3090; BF16, FP16 and FP32 inference.",
+      "reproducibility": "The preprint reports its experimental setup and links author implementation materials; neither code nor checkpoints were executed in this review.",
+      "strongest_baseline": "The corresponding frozen autoregressive Qwen3-1.7B model under matched prompts and inference precision; FP32 served as a higher-precision comparison and yielded exact matches on all tested prompts."
+    },
+    "title": "A preprint reports that finite precision breaks exact trajectory matching in Orthrus speculative decoding",
+    "topics": [
+      "speculative decoding",
+      "inference precision",
+      "LLM reproducibility",
+      "trajectory equivalence",
+      "inference efficiency"
+    ],
+    "why_it_matters": "The study makes the operational meaning of lossless inference concrete: exact output-sequence equivalence can fail under practical low-precision inference even when the decoding algorithm is intended to preserve its reference trajectory. If confirmed across systems, evaluations of accelerated decoding should report precision and exact-match criteria alongside task scores. The results do not show systematic task degradation or establish how often divergence changes consequential reasoning or tool use."
+  },
+  "related": [],
+  "schema": "fcmo-public-brief-v1"
+}

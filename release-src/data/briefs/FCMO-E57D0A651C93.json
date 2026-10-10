@@ -1,0 +1,126 @@
+{
+  "record": {
+    "id": "FCMO-E57D0A651C93",
+    "title": "HBFlex paper reports faster simulated LLM serving with full high-bandwidth flash memory",
+    "desk": "Inference Systems",
+    "event_at": "2026-09-16T00:00:00Z",
+    "evidence": "A",
+    "confidence": "credible_unconfirmed",
+    "importance": 5,
+    "tier": "Notable",
+    "summary": "An arXiv paper proposes HBFlex, a memory-management design for serving LLMs from high-bandwidth flash without retaining HBM in the same package. The authors report trace-driven simulations where HBFlex reaches up to 1.58x throughput over FlashAccel and 3.30x over H3 at the highest tested SWE-bench concurrency. These are model-based results under assumed HBF device parameters, not measured hardware gains.",
+    "topics": [
+      "LLM serving",
+      "KV cache",
+      "high-bandwidth flash",
+      "inference systems"
+    ],
+    "organizations": [
+      "Peking University",
+      "Alibaba Group",
+      "Hong Kong University of Science and Technology"
+    ],
+    "human_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-E57D0A651C93.html",
+    "machine_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/data/briefs/FCMO-E57D0A651C93.json",
+    "citation": {
+      "id": "FCMO-E57D0A651C93",
+      "source": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-E57D0A651C93.html"
+    }
+  },
+  "brief": {
+    "claims": [
+      {
+        "label": "CLAIMED",
+        "text": "The authors propose HBFlex, a full-HBF LLM-serving design combining plane-balanced KV placement, runtime read balancing, window-aware writeback and lifetime-aware reclamation."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "In custom trace-driven simulations, the authors report up to 1.58x average throughput over FlashAccel and 3.30x over H3 at the highest plotted SWE-bench concurrency across four models. These are configuration- and workload-specific simulation results, not measured hardware performance."
+      },
+      {
+        "label": "DEMONSTRATED",
+        "text": "The authors published an arXiv preprint describing the architecture, modeled configuration, baselines and simulation results; this activation did not run the simulator or validate the hardware model."
+      }
+    ],
+    "confidence": "credible_unconfirmed",
+    "contradictory_evidence": [],
+    "desks": [
+      "inference_systems",
+      "efficiency",
+      "compute_hardware"
+    ],
+    "development_type": "paper",
+    "editions": [
+      "2026-10-09"
+    ],
+    "event_at": "2026-09-16T00:00:00Z",
+    "evidence_class": "A",
+    "evidence_gaps": [
+      {
+        "description": "No simulator implementation or independent reproduction was inspected; it is unknown whether another team can reproduce the comparative simulation.",
+        "kind": "missing_artifact",
+        "state": "open"
+      },
+      {
+        "description": "The modeled HBF device parameters and package assumptions have not been validated against measured hardware in this activation.",
+        "kind": "regime_unclear",
+        "state": "open"
+      },
+      {
+        "description": "Benefits vary with concurrency, trace and model; the headline maxima do not describe expected gains across serving regimes.",
+        "kind": "baseline_unclear",
+        "state": "open"
+      }
+    ],
+    "id": "FCMO-E57D0A651C93",
+    "importance_effective_score": 5,
+    "importance_rationale": "If the simulated results transfer to implementable hardware, coordinating KV placement, reads, writes and reclamation in full high-bandwidth flash could expand accelerator-local memory and improve LLM serving throughput under high concurrency. The result affects an important inference-systems design choice, but remains a paper-reported simulation without measured hardware validation.",
+    "importance_scale_version": 2,
+    "importance_score": 5,
+    "importance_tier": "Notable",
+    "last_verified_at": "2026-10-09T16:10:47Z",
+    "limitations": [
+      "Results use a custom trace-driven simulator and assumed HBF parameters (including modeled read/program latency, bandwidth, plane count and SRAM capacity), rather than a hardware implementation.",
+      "The reported 1.58x and 3.30x throughput comparisons apply to the highest plotted SWE-bench concurrency and are averaged across four tested models; results differ at lower concurrency and across traces.",
+      "Alibaba Bailian production traces are workload inputs to simulation, not a deployment of HBFlex on the Alibaba service.",
+      "No simulator code, independent reproduction, sensitivity analysis or measured HBF device validation was inspected in this activation.",
+      "The paper’s high-bandwidth flash configuration and endurance assumptions require validation against actual device and package designs."
+    ],
+    "organizations": [
+      "Peking University",
+      "Alibaba Group",
+      "Hong Kong University of Science and Technology"
+    ],
+    "primary_desk": "inference_systems",
+    "recorded_at": "2026-10-09T16:10:47Z",
+    "regions": [
+      "global"
+    ],
+    "relationships": [],
+    "source_languages": [
+      "en"
+    ],
+    "source_urls": [
+      "https://arxiv.org/abs/2609.18675"
+    ],
+    "status": "active",
+    "summary": "An arXiv paper proposes HBFlex, a memory-management design for serving LLMs from high-bandwidth flash without retaining HBM in the same package. The authors report trace-driven simulations where HBFlex reaches up to 1.58x throughput over FlashAccel and 3.30x over H3 at the highest tested SWE-bench concurrency. These are model-based results under assumed HBF device parameters, not measured hardware gains.",
+    "technical": {
+      "claimed_result": "At highest plotted SWE-bench concurrency the paper reports average throughput speedups of 1.48x and 1.58x over FlashAccel co-located and cascaded configurations, and 3.30x over H3 across four models. Alibaba trace simulation reports mean TTFT gains of 1.20x/1.33x and TPOT gains of 1.21x/1.35x over FlashAccel variants.",
+      "demonstrated_result": "The primary evidence inspected establishes that authors report a detailed design and simulation. No physical HBFlex implementation or independently reproduced performance was established.",
+      "mechanism": "Full-HBF package with base-die SRAM; plane-balanced KV placement and runtime read scheduling; writeback deferred to compute windows; lifetime-guided page packing and reclamation.",
+      "regime": "Custom trace-driven simulation over four models (DeepSeek-V4-Pro, DeepSeek-V3, Hunyuan3 and Qwen3-235B), four Alibaba Bailian traces and SWE-bench concurrency sweeps. Modeled six-stack HBF package with assumed 4 microsecond reads and 75 microsecond programs, 488 GB/s read bandwidth per stack and 40 MB SRAM per stack.",
+      "strongest_baseline": "Matched-package-area comparisons against H3, FlashAccel co-located/cascaded configurations and an integrated HBM/HBF design; baseline allocation and modeled hardware parameters are described in §6.1."
+    },
+    "title": "HBFlex paper reports faster simulated LLM serving with full high-bandwidth flash memory",
+    "topics": [
+      "LLM serving",
+      "KV cache",
+      "high-bandwidth flash",
+      "inference systems"
+    ],
+    "why_it_matters": "KV-cache capacity and movement constrain high-concurrency LLM serving. The paper studies whether plane-aware reads, compute-window writeback and lifetime-aware reclamation could let high-bandwidth flash serve dynamic KV state more efficiently. Real hardware and workload validation will determine whether the simulated advantage survives implementation."
+  },
+  "related": [],
+  "schema": "fcmo-public-brief-v1"
+}
