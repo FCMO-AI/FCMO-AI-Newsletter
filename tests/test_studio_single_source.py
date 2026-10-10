@@ -166,5 +166,12 @@ class SingleSourceTests(unittest.TestCase):
         publisher = Publisher(self.store, None, None, lambda value: checks(self.store, SimpleNamespace(privacy=lambda _: True), value))
         with self.assertRaises(Refused): publisher.request(slug, 'javier')
 
+    def test_lowercase_model_alias_cannot_change_with_the_same_numeric_tokens(self):
+        source = copy.deepcopy(DOC); source['locale'] = 'en'
+        source['blocks'][0]['content'][0]['v'] = 'OpenAI tested o3 with 42 results and uncertainty.'
+        target = copy.deepcopy(source); target['locale'] = 'es-419'
+        target['blocks'][0]['content'][0]['v'] = 'OpenAI tested x3 with 42 results and uncertainty.'
+        with self.assertRaises(TranslationError): validate_translation(source, target, 'es-419')
+
 
 if __name__ == '__main__': unittest.main()

@@ -154,7 +154,7 @@ def validate_translation(source, target, loc):
         name_text = '\n'.join(_strings(original))
         names = set(re.findall(r'\b[A-ZÁÉÍÓÚÑ][\wáéíóúñ]+(?: [A-ZÁÉÍÓÚÑ][\wáéíóúñ]+)+\b', name_text))
         # Mixed-case brands, model/version identities and public record IDs.
-        names.update(re.findall(r'\b(?:FCMO-[A-Z]-[a-z0-9]+|[A-Za-z][\w]*[-.]\d[\w.-]*|[A-Z][A-Z0-9]*(?:[-.][A-Za-z0-9]+)+|[A-Z][a-z]+[A-Z][\w]*)\b', a))
+        names.update(re.findall(r'\b(?:FCMO-[A-Z]-[a-z0-9]+|[A-Za-z]+\d[\w.-]*|[A-Za-z][\w]*[-.]\d[\w.-]*|[A-Z][A-Z0-9]*(?:[-.][A-Za-z0-9]+)+|[A-Z][a-z]+[A-Z][\w]*)\b', a))
         for name in names:
             if a.count(name) != b.count(name): raise TranslationError('La traducción cambió un nombre propio.')
         for term in glossary()['terms']:
