@@ -768,6 +768,15 @@ class PaperBuilder:
         tail = subscription_tail(locale=locale["code"], root=href(self.base, locale["path_prefix"]),
                                  technical=href(self.base, locale["path_prefix"] + TECHNICAL_FRONT), cards=cards)
         self._write_page(locale=locale, suffix="suscribete/", title=f"{subscribe_title} — fCMO + FCMO AI", description=community.COPY[locale["code"]]["promise"], body=f'<article class="story-body">{subscribe}</article>{tail}', kind="subscribe", extra_head=subscribe_script)
+        # Kit redirect surfaces are deterministic templates, never subscriber receipts.
+        from tools.paper.templates.subscription_states import COPY, state_page
+        copy = COPY[locale['code']]
+        self._write_page(locale=locale, suffix='subscribe/', title=copy['title'], description=copy['lede'],
+                         body=f'<article class="story-body">{subscribe}</article>{tail}', kind='subscribe', extra_head=subscribe_script)
+        for suffix, state, title_key in (('subscribe/check-inbox/', 'pending', 'pending'), ('subscribed/', 'confirmed', 'done'), ('unsubscribed/', 'unsubscribed', 'unsub')):
+            body = state_page(locale['code'], state, self.base)
+            self._write_page(locale=locale, suffix=suffix, title=copy[title_key], description=copy[title_key], body=body,
+                             kind='subscribe', index=False, extra_head='<meta name="robots" content="noindex">' + subscribe_script)
 
     def _404(self) -> None:
         blocks = []
