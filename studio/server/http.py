@@ -15,7 +15,7 @@ from .checks import checks
 from .preview import Preview, RendererUnavailable
 from .publishing import GitHub, Workspace, Publisher, Refused, UnknownEffect
 from .storage import Store, Conflict, Locked, atomic
-from studio.translation import translate, TranslationError
+from studio.translation import translate, prepare, TranslationError
 from .validation import locale, slug, validate_webp
 
 PREVIEW_CSP = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; font-src 'self'; connect-src 'none'; frame-ancestors 'self'; form-action 'none'; base-uri 'none'"
@@ -55,6 +55,9 @@ class Application:
             except Exception: pass  # Durable state retained; never log document/token/trace.
     def api(self, method, path, query, body, session):
         user = session['user']; parts = path.strip('/').split('/')
+        if path == '/api/subscriptions/status' and method == 'GET':
+            from .subscriptions import status
+            return status(getattr(self, 'subscription_provider', None))
         if path == '/api/publication-readiness' and method == 'GET':
             statuses = self.github.credential_status() if hasattr(self.github, 'credential_status') else [
                 {'user': u, 'ready': bool(self.github.tokens.get(u)),
@@ -125,6 +128,9 @@ class Application:
             return {**state, 'rev': self.store.piece(value)['head_rev']}
         if rest == ['translate'] and method == 'POST':
             return translate(self.store, value, user, body.get('base_rev'), replace=body.get('replace') is True)
+        if rest == ['prepare-translations'] and method == 'POST':
+            if body.get('base_rev') != self.store.piece(value)['head_rev']: raise Conflict(self.store.doc(value, self.store.piece(value)['source_locale']))
+            return prepare(self.store, value, user)
         if rest == ['distribution'] and method == 'PUT':
             return self.store.distribution(value, user, body.get('base_rev'), body.get('email'))
         if rest == ['versions']:

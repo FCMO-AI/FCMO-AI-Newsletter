@@ -33,7 +33,7 @@ def check(root: Path) -> GateResult:
         if distribution is not None and (not isinstance(distribution, dict) or set(distribution) != {"email"} or type(distribution.get("email")) is not bool):
             problems.append(f"{directory.name}: invalid email distribution intent")
         # The provider-free gate repeats structural checks after human edits.
-        from studio.translation import validate_translation, TranslationError
+        from studio.translation import validate_translation, TranslationError, machine_reviewed
         source = piece["docs"].get(piece["source_locale"])
         if source and piece["status"] != "withdrawn":
             for loc, doc in piece["docs"].items():
@@ -58,7 +58,7 @@ def check(root: Path) -> GateResult:
                 problems.append(f"{directory.name}: {locale} has no named human reviewer")
             if row.get("origin", "").startswith("agent_") and not row.get("model"):
                 problems.append(f"{directory.name}: {locale} is missing the translation model")
-            if row.get("human_reviewed") is not True:
+            if row.get("human_reviewed") is not True and not (source and locale != piece['source_locale'] and machine_reviewed(row, source, piece['docs'][locale])):
                 problems.append(f"{directory.name}: ready {locale} is not marked human-reviewed")
             route = root / PREFIXES[locale] / "cartas" / piece["slug"] / "index.html"
             if not route.is_file():

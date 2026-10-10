@@ -20,6 +20,13 @@ from tools.email_intent import prepare_keys
 
 SITE = 'https://fcmo-ai.github.io/FCMO-AI-Newsletter'
 
+def locale_reviewed(piece, locale):
+    row = piece.get('provenance', {}).get(locale, {})
+    if row.get('human_reviewed') is True: return True
+    from studio.translation import machine_reviewed
+    source = piece.get('source_locale'); docs = piece.get('docs', {})
+    return source != locale and source in docs and locale in docs and machine_reviewed(row, docs[source], docs[locale])
+
 
 @dataclass(frozen=True)
 class PieceEdition:
@@ -48,7 +55,7 @@ class PieceEdition:
     def locale_reason(self, locale):
         if self.piece.get('locales', {}).get(locale) != 'ready' or locale not in self.piece.get('docs', {}):
             return 'locale_not_ready'
-        if self.piece.get('provenance', {}).get(locale, {}).get('human_reviewed') is not True:
+        if not locale_reviewed(self.piece, locale):
             return 'human_review_required'
         return ''
 
@@ -148,7 +155,8 @@ def collect(base_url, lkg_commit, *, fetch=None, git=None, verify=None):
             raw = run('show', lkg_commit + ':' + route)
             if get(base + route, 'piece-input') != raw: raise ValueError('live_piece_differs_from_lkg')
             piece['docs'][locale] = json.loads(raw)
-            if piece.get('locales', {}).get(locale) == 'ready' and piece['provenance'].get(locale, {}).get('human_reviewed') is True:
+        for locale in LOCALES:
+            if piece.get('locales', {}).get(locale) == 'ready' and locale_reviewed(piece, locale):
                 page = get(piece_url(piece, locale, base_url) + 'index.html', 'piece-page').decode('utf-8')
                 if f'data-piece-id="{piece["id"]}"' not in page or escape(piece['docs'][locale]['title']) not in page:
                     raise ValueError('live_piece_page_not_published')

@@ -247,6 +247,10 @@ class KitProvider:
 
     def list_subscribers(self):
         self.sync_subscribers()  # Daily encrypted backup also repairs form→tag drift.
+        yield from self.observe_subscribers()
+
+    def observe_subscribers(self):
+        """Read provider states and locale intent without repairing tags on a GET."""
         # Query every state explicitly; default active-only exports lose suppressions.
         rows = {}
         for state in ('active','inactive','bounced','complained','cancelled'):

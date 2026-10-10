@@ -20,15 +20,15 @@ def checks(store, preview, value):
         except (ValueError, TypeError): valid = False
         add('document-' + loc, valid, 'Revisa la estructura y las notas al pie.', 'Check the document structure and footnotes.', loc)
         if not doc: continue
-        from studio.translation import validate_translation, TranslationError
+        from studio.translation import validate_translation, TranslationError, machine_reviewed
         fidelity = ''
         try: validate_translation(source_doc, doc, loc)
         except TranslationError as exc: fidelity = str(exc)
         add('fidelity-' + loc, not fidelity, fidelity or 'Párrafos, notas, citas, enlaces, cifras y fechas completos.', 'Paragraphs, notes, quotations, links, numbers and dates preserved.', loc)
         row = payload['provenance'].get(loc, {})
-        reviewed = row.get('human_reviewed') is True and bool(row.get('reviewer'))
-        add('review-' + loc, reviewed, 'Revisión humana: marca este idioma revisado o pide la aprobación de ' + ('Matías.' if piece['author'] == 'javier' else 'Javier.'), 'Human review: mark this language reviewed or request the other person’s approval.', loc)
-        results[-1]['approval_satisfiable'] = True
+        reviewed = (row.get('human_reviewed') is True and bool(row.get('reviewer'))) or (loc != source and machine_reviewed(row, source_doc, doc))
+        add('review-' + loc, reviewed, 'Revisa el original; las traducciones requieren comprobación de fidelidad o revisión humana explícita.', 'Review the source; translations require fidelity checks or explicit human review.', loc)
+        results[-1]['approval_satisfiable'] = loc == source or row.get('origin') in ('human_authored', 'human_translated')
         add('alignment-' + loc, [b['id'] for b in doc['blocks']] == source_ids and set(doc['footnotes']) == source_notes,
             'Conserva los mismos párrafos y notas en cada idioma.', 'Keep the same paragraphs and notes in each language.', loc)
         def tokens(document):

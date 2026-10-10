@@ -93,19 +93,21 @@ class TranslationTests(unittest.TestCase):
                 self.store.save(self.slug, 'es-419', 'javier', self.store.piece(self.slug)['head_rev'], doc, {})
                 return super().generate(request)
         with self.assertRaises(Conflict): self.translate(RacingProvider())
-    def test_review_is_required_and_matias_approval_reviews_translations(self):
+    def test_publication_approval_preserves_machine_review_of_translations(self):
         self.source(); self.translate()
         self.store.locale_state(self.slug, 'es-419', 'javier', 'ready', True)
         preview = SimpleNamespace(privacy=lambda value: True)
         publisher = Publisher(self.store, None, None, lambda value: checks(self.store, preview, value))
         results = publisher.checker(self.slug)
-        self.assertTrue(any(not r['ok'] and r['id'].startswith('review-') for r in results))
+        self.assertTrue(all(r['ok'] for r in results if r['id'].startswith('review-')))
         publisher.request(self.slug, 'javier')
         with self.assertRaises(Refused): publisher.approve(self.slug, 'javier')
         publisher.approve(self.slug, 'matias')
         for loc in ('en', 'es-419', 'zh-Hans'):
             row = self.store.payload(self.slug)['provenance'][loc]
-            self.assertTrue(row['human_reviewed']); self.assertEqual(row['reviewer'], 'Matías')
+            self.assertEqual(row['human_reviewed'], loc == 'es-419')
+            self.assertEqual(row['reviewer'], 'Matías' if loc == 'es-419' else '')
+            if loc != 'es-419': self.assertEqual(row['review_state'], 'MACHINE_REVIEWED')
         self.assertEqual(self.store.payload(self.slug)['provenance']['en']['origin'], 'agent_draft')
     def test_email_intent_written_and_closed_schema(self):
         self.source()

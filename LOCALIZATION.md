@@ -8,6 +8,30 @@ English is the **canonical semantic source**. FCMO AI Newsletter supports exactl
 
 Browser extensions, operating-system translation and third-party translation layers are outside this contract.
 
+## Studio: one author source
+
+Human-authored Studio pieces have their own `source_locale`, selected by the author as
+`en` or `es-419`. This does not change the English canonical source for newswire
+records. The author writes one edition; the private Studio server prepares the other
+two through a subscription CLI before requesting publication review. Public builds,
+Actions and page views remain provider-free. Chinese human authorship is never a
+prerequisite for publishing a translated Studio piece.
+
+Studio records `MACHINE_TRANSLATED` for machine prose awaiting current checks,
+`MACHINE_REVIEWED` for translations that pass deterministic fidelity checks and carry
+source/target document digests, and `HUMAN_REVIEWED` only after explicit language
+review. These checks protect structure, numbers, URLs, IDs, glossary terms, model
+names, quotations and broad length bounds. They do not prove semantic equivalence,
+literary quality or fluency. The translator must preserve evidence, uncertainty and
+voice; the author and publication reviewer remain responsible for the piece.
+
+A publication approval reviews the original and authorizes the release; it does not
+claim human review of machine-prepared editions. Those editions keep their localized
+machine disclosure and original link. Source edits invalidate translations, including
+title/dek changes; replacements are generated before a new review. Public validation
+and email dispatch repeat the provider-free fidelity and digest checks. Existing
+historical editions without a machine receipt still require human review.
+
 ## Editorial ownership
 
 The **FCMO Publication Desk** owns the Spanish and Simplified Chinese editions. It is a scheduled editorial task that works in this repository and nowhere else. It translates from the airlocked English public record only, never from private evidence. It carries intent, caveats, evidence strength and terminology across languages. It writes its translated fields only to `site/data/i18n/<locale>/part-desk.json`, and it appends one line per activation to the tracked `ops/publication-desk/LEDGER.jsonl` on main. Preserve existing records and reconcile concurrent main updates before every append; never treat a missing ledger as empty history. The isolated `ops-ledger` migration is deferred until the scheduled writer and all readers are switched and verified together, as described in `docs/PUBLISHING-SETUP.md`. ARB's research tasks never translate: ARB's website separation law keeps them out of presentation work. If ARB ever emits locale deltas (see "Airlock transport"), they are still imported.

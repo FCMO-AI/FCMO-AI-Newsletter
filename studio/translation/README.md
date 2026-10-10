@@ -1,20 +1,23 @@
 # Traducción de Studio
 
-Decisión editorial del 5 de octubre de 2026: Javier escribe en español y publica
-su texto con versiones fieles en inglés y chino. Esta entrada humana de Studio
+El autor elige inglés o español y publica
+su texto con versiones fieles en los otros dos idiomas. Esta entrada humana de Studio
 es independiente del corpus ARB y de su original canónico inglés. No hay
 traducción al abrir páginas ni dentro del build público.
 
-`STUDIO_TRANSLATION_PROVIDER=claude-cli` es el valor predeterminado. Ejecuta
-`claude -p --model sonnet`, sin herramientas ni persistencia de sesión, en un
-directorio privado vacío. `STUDIO_TRANSLATION_TIMEOUT=120` limita la ejecución
-(1–300 segundos). El host debe tener Claude CLI autenticado. Credenciales de
-GitHub, Ghost y configuración de Studio se excluyen del entorno del proceso.
+`STUDIO_TRANSLATION_PROVIDER=codex-cli` es el valor predeterminado. Ejecuta
+`codex exec`, sin herramientas ni persistencia de sesión, en un
+directorio privado vacío y con sandbox de solo lectura. `STUDIO_TRANSLATION_MODEL`
+elige el modelo; por defecto es `gpt-6.1-sol`. `STUDIO_TRANSLATION_TIMEOUT=120`
+limita la ejecución (1–300 segundos). El host debe tener Codex CLI autenticado
+por suscripción. Se hereda solo el entorno necesario para la CLI, sin llaves de
+API ni credenciales de publicación. No hay alternativa automática de pago por API.
 Los documentos son datos, nunca instrucciones; el prompt prohíbe añadidos,
 resúmenes y cambios de voz, registro, nombres, citas o marca.
 
-Entrada: `fcmo-studio-translation-request-v1`, con `source` (documento es-419),
-`targets: ["en", "zh-Hans"]`, `rules` y `glossary`. Salida estricta, sin Markdown:
+Entrada: `fcmo-studio-translation-request-v1`, con `source` (documento en o es-419),
+los otros dos idiomas como `targets`, `rules` y `glossary`. Ejemplo desde español,
+con salida estricta y sin Markdown:
 
 ```json
 {"schema":"fcmo-studio-translation-v1","docs":{"en":{},"zh-Hans":{}}}
@@ -34,12 +37,21 @@ llamada. El reemplazo exige confirmación y conserva un checkpoint.
 estructura: su texto no demuestra calidad lingüística. `zdr` reserva la interfaz
 `generate(request)` y rehúsa ejecutar; no realiza llamadas de red.
 
-La validación determinista comprueba estructura y términos protegidos; no prueba
-por sí sola equivalencia literaria. La revisión humana decide fidelidad semántica,
-voz y registro. Los resultados son `agent_draft`, con modelo y revisión falsa;
-una edición pasa a `agent_draft_human_edited`, conservando el modelo. Javier puede
-marcar cada idioma revisado; la aprobación de Matías revisa todos los idiomas
-listos y registra su nombre y fecha sin cambiar quién preparó el texto.
+La validación determinista comprueba estructura, términos protegidos y límites
+amplios de longitud; no prueba por sí sola equivalencia literaria. Los estados
+visibles son `MACHINE_TRANSLATED`, `MACHINE_REVIEWED` y `HUMAN_REVIEWED`.
+`MACHINE_REVIEWED` significa que las comprobaciones automáticas pasaron y están
+ligadas a los documentos actuales mediante hashes. Nunca afirma revisión humana.
+La traducción conserva `origin: agent_draft`; una edición humana pasa a
+`agent_draft_human_edited` y vuelve a requerir comprobaciones.
+
+Antes de pedir revisión, Studio genera ediciones faltantes o desactualizadas y
+verifica las ediciones editadas. También traduce textos alternativos, pies de
+figura y notas de corrección desde un solo original. Los cambios del original
+invalidan las otras ediciones; los locks y la revisión evitan sobrescribir
+trabajo concurrente. La aprobación editorial revisa el original y autoriza
+publicar; conserva revisión humana falsa en los otros idiomas, salvo revisión
+de idioma explícita. El validador público repite los controles sin proveedor.
 
 ## Correo: interfaz para L28b
 
@@ -47,7 +59,7 @@ listos y registra su nombre y fecha sin cambiar quién preparó el texto.
 piezas antiguas sin el campo conservan su validez; Studio activa el envío por
 defecto en cartas y ensayos nuevos. El autor puede cambiarlo antes de pedir
 revisión; el cambio incrementa la revisión y queda en la misma pieza aprobada.
-Studio no envía correo. L28b consume esa intención después del deploy verificado.
+Studio no envía correo. El dispatcher consume esa intención después del deploy verificado.
 
 Hook integrado L29: `Publisher.public_status` lee por Contents API
 `email-dispatch-state:dispatch.json` sólo tras comprobar la publicación web.

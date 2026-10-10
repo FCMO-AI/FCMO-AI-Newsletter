@@ -143,7 +143,9 @@ class Store:
             row['locale_states'] = json.loads(row.pop('locale_states_json')); row['cursor'] = json.loads(row.pop('cursor_json'))
             row['source_locale'] = payload['piece']['source_locale']
             row['translation_error'] = payload.get('translation_error', '')
-            row['locales'] = {loc: {**state, 'reviewed': state['human_reviewed'], 'origin': payload['provenance'].get(loc, {}).get('origin'), 'words': len(plain_text(payload['docs'].get(loc, {'blocks': []})).split())} for loc, state in row['locale_states'].items()}
+            row['locales'] = {loc: {**state, 'reviewed': state['human_reviewed'],
+                                  'review_state': 'HUMAN_REVIEWED' if state['human_reviewed'] else payload['provenance'].get(loc, {}).get('review_state', 'MACHINE_TRANSLATED' if payload['provenance'].get(loc, {}).get('origin', '').startswith('agent_') else 'DRAFT'),
+                                  'origin': payload['provenance'].get(loc, {}).get('origin'), 'words': len(plain_text(payload['docs'].get(loc, {'blocks': []})).split())} for loc, state in row['locale_states'].items()}
             row['words'] = row['locales'][row['source_locale']]['words']
             row['updated_at'] = datetime.fromtimestamp(row['saved_at'], timezone.utc).isoformat()
             row['meta'] = payload['piece']; row['title'] = payload.get('issue', {}).get('title', {}).get('en') or payload['docs'][payload['piece']['source_locale']]['title']
@@ -187,6 +189,7 @@ class Store:
                 states[loc] = {'state': 'drafting', 'human_reviewed': False}
                 payload['piece']['locales'][loc] = 'pending'
                 prior = payload['provenance'].get(loc, {})
+                prior.pop('fidelity', None); prior.pop('review_state', None)
                 if prior.get('origin', '').startswith('agent_'):
                     prior['origin'] = 'agent_draft_human_edited'; prior['human_reviewed'] = False
                 else: payload['provenance'].pop(loc, None)
@@ -195,10 +198,13 @@ class Store:
                     payload.setdefault('source_hashes', {})[loc] = {b['id']: hashlib.sha256(encoded(b).encode()).hexdigest() for b in payload['docs'][source]['blocks']}
                 if loc == source:
                     for target in LOCALES:
-                        if target != source and states[target]['state'] == 'ready':
+                        if target != source and target in payload['docs']:
                             states[target] = {'state': 'drafting', 'human_reviewed': False, 'source_changed': True}
                             payload['piece']['locales'][target] = 'pending'
-                            if target in payload['provenance']: payload['provenance'][target]['human_reviewed'] = False
+                            if target in payload['provenance']:
+                                payload['provenance'][target]['human_reviewed'] = False
+                                payload['provenance'][target].pop('fidelity', None)
+                                payload['provenance'][target]['review_state'] = 'MACHINE_TRANSLATED'
             self.db.execute('INSERT OR REPLACE INTO locks VALUES(?,?,?,?)', (value, loc, user, self.clock()))
             rev = self._put(value, payload, user, cursor=cursors, states=states)
             return {'rev': rev}
@@ -221,7 +227,18 @@ class Store:
             if data is not None:
                 self._editable(value)
                 (validate_sources if kind == 'sources' else validate_figures)(data)
-                payload[kind] = data; self._put(value, payload, user)
+                states = self.piece(value)['locale_states']; source = payload['piece']['source_locale']
+                if kind == 'figures':
+                    def source_labels(figures):
+                        return {key: {field: fig[field].get(source) for field in ('alt', 'caption')} for key, fig in figures.items()}
+                    if source_labels(payload[kind]) != source_labels(data):
+                        for loc in LOCALES:
+                            if loc != source and loc in payload['docs']:
+                                states[loc].update(state='drafting', human_reviewed=False, source_changed=True)
+                                payload['piece']['locales'][loc] = 'pending'
+                                row = payload['provenance'].get(loc, {})
+                                row.update(human_reviewed=False, review_state='MACHINE_TRANSLATED'); row.pop('fidelity', None)
+                payload[kind] = data; self._put(value, payload, user, states=states)
             return payload[kind]
     def locale_state(self, value, loc, user, state, reviewed=False, confirmation=''):
         locale(loc)
@@ -239,6 +256,9 @@ class Store:
                 payload['provenance'][loc] = {'origin': prior.get('origin', 'human_authored' if loc == source else 'human_translated'),
                     'human_reviewed': reviewed, 'reviewer': NAMES[user] if reviewed else '', 'at': stamp, 'source_locale': source}
                 if prior.get('model'): payload['provenance'][loc]['model'] = prior['model']
+                if reviewed: payload['provenance'][loc]['review_state'] = 'HUMAN_REVIEWED'
+                elif prior.get('fidelity'):
+                    payload['provenance'][loc].update(review_state=prior['review_state'], fidelity=prior['fidelity'])
             payload['piece']['locales'][loc] = 'ready' if state == 'ready' else 'pending'
             self._put(value, payload, user, states=states)
             return states[loc]
@@ -321,13 +341,25 @@ class Store:
             if not row: raise KeyError('El comentario no existe.')
             self.db.execute('UPDATE comments SET resolved_at=? WHERE id=?', (utc(), key)); self.audit(user, 'resolve', row['slug']); self.db.commit()
     def amend(self, value, user, kind, notes, reason=None):
+        if kind not in ('typo', 'clarification', 'substantive', 'withdraw'):
+            raise ValueError('El tipo de corrección no es válido.')
+        with self.mutex:
+            piece = self.piece(value)
+            if piece['author'] != user or piece['state'] not in ('published', 'withdrawn'):
+                raise ValueError('Solo el autor puede corregir una publicación publicada.')
+            initial_rev = piece['head_rev']; source = piece['source_locale']
+        if kind != 'typo' and isinstance(notes, dict) and isinstance(notes.get(source), str) and notes[source].strip() and any(not notes.get(loc) for loc in LOCALES):
+            from studio.translation import translate_fields
+            translations = translate_fields({'note': notes[source]}, source)
+            notes = {**{loc: fields['note'] for loc, fields in translations.items()}, **notes}
         with self.mutex:
             row = self._row(value)
             if row['author'] != user or row['state'] not in ('published', 'withdrawn'): raise ValueError('Solo el autor puede corregir una publicación publicada.')
+            if row['head_rev'] != initial_rev: raise Conflict(self.doc(value, source))
             payload = self.payload(value); piece = payload['piece']
             ready = [loc for loc in LOCALES if piece['locales'][loc] == 'ready']
             if kind != 'typo' and (not isinstance(notes, dict) or any(not isinstance(notes.get(loc), str) or not notes[loc].strip() for loc in ready)):
-                raise ValueError('Escribe una nota en cada idioma publicado.')
+                raise ValueError('Escribe una nota en el idioma original; las otras versiones se traducen antes de continuar.')
             if kind == 'withdraw':
                 if reason not in ('UPSTREAM_RETRACTION', 'UNVERIFIED_RELEASE', 'DUPLICATE', 'FACTUAL_ERROR', 'RIGHTS', 'PRIVACY', 'LEGAL', 'EDITORIAL'):
                     raise ValueError('El motivo de retiro no es válido.')
