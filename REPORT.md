@@ -136,3 +136,44 @@ Deploy, origen público y ciclos automáticos repetidos siguen pendientes.
 **Resumen en español:** se reparó el vocabulario y la admisión por historia;
 86 historias completas se construyen y cinco esperan reparación upstream.
 Suite y gates pasan. Falta demostrar navegador y producción; no se hizo push.
+
+---
+
+# Gate 71 — tiempo de la suite de publicación
+
+## Cambio
+
+`test_defect_fixtures_fail_the_piece_gate` generaba seis veces el mismo candidato
+completo de 1,491 rutas para inyectar seis defectos distintos. Ahora genera un
+candidato limpio una vez, comprueba que el builder se llamó una vez y crea una
+copia aislada para cada mutación. Las seis comprobaciones negativas `PIECE_VALID`
+permanecen activas.
+
+`publish-gate.yml` ejecuta la suite una sola vez, dentro de `ops/publish.py --check`;
+ese comando continúa ejecutando la misma discovery completa antes de los gates del
+candidato. La suite tiene un máximo medido de 35 minutos. Cada comando posterior
+conserva 30 minutos, y el job completo reserva 60 minutos para instalación, suite,
+construcción y verificaciones. El presupuesto se basa en la suite verde reportada
+de 27m49s y el timeout previo de 30 minutos.
+
+## Evidencia
+
+| Comprobación | Antes | Después |
+|---|---:|---:|
+| `test_defect_fixtures_fail_the_piece_gate` | 99.996 s; seis builds completos | 18.302 s; un build y seis copias aisladas |
+| `python3 -m unittest discover -s tests` | CI reportó 27m49s verde; el publish-gate excedió 30m | 848 tests, 4 skips, OK; 18m51.08s local |
+| Suite dentro de `python3 ops/publish.py --check` | El hijo usaba timeout 1800s | 849 tests, 4 skips, OK; 19m03.07s local |
+| `python3 ops/publish.py --check` completo | Timeout durante suite | 20m39.83s; suite, integridad, build, higiene y 14/14 gates pasan; luego `BROWSER_UNAVAILABLE` |
+
+El test `test_publish_check_gives_only_the_suite_its_measured_budget` se observó
+fallar al simular el límite previo de 1800 segundos y pasar con el nuevo límite.
+`test_required_workflow_has_no_path_skip_and_no_write_credentials` confirma que
+la suite no se ejecuta como paso duplicado y que el workflow conserva una única
+comprobación protegida.
+
+## Límite local
+
+La verificación final de navegador no se pudo completar: este contenedor no tiene
+Playwright/Chromium. El workflow instala ambas dependencias antes del check. La
+salida local llegó al oráculo de navegador después de pasar todas las compuertas
+anteriores; no se declara aceptación del navegador aquí.

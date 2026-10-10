@@ -4,7 +4,7 @@ from pathlib import Path
 import subprocess
 import tempfile
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from ops import publish, publish_ledger, publish_ruleset
 
@@ -131,7 +131,9 @@ class ProtectedPublishingTests(unittest.TestCase):
 
     def test_required_workflow_has_no_path_skip_and_no_write_credentials(self):
         text = (ROOT / '.github/workflows/publish-gate.yml').read_text()
+        publish_source = (ROOT / 'ops/publish.py').read_text()
         self.assertIn('name: publish-gate', text)
+        self.assertIn('timeout-minutes: 60', text)
         self.assertIn('pull_request:', text)
         self.assertNotIn('paths:', text)
         self.assertNotIn('pull_request_target', text)
@@ -139,8 +141,17 @@ class ProtectedPublishingTests(unittest.TestCase):
         self.assertIn('contents: read', text)
         self.assertNotIn('contents: write', text)
         self.assertNotIn('secrets.', text)
-        self.assertIn('python3 -m unittest discover -s tests', text)
+        self.assertNotIn('run: python3 -m unittest discover -s tests', text)
+        self.assertIn("[sys.executable, '-m', 'unittest', 'discover', '-s', 'tests']", publish_source)
+        self.assertIn('TEST_SUITE_TIMEOUT_SECONDS = 2100', publish_source)
         self.assertIn('python3 ops/publish.py --check', text)
+
+    def test_publish_check_gives_only_the_suite_its_measured_budget(self):
+        from unittest.mock import patch
+        with patch.object(publish.subprocess, 'run', return_value=Mock(returncode=0)) as run:
+            self.assertEqual(publish.main(['--check']), 0)
+        timeouts = [call.kwargs['timeout'] for call in run.call_args_list]
+        self.assertEqual(timeouts, [2100, 1800, 1800, 1800, 1800, 1800, 1800, 1800])
 
     def test_required_check_name_has_a_single_owner(self):
         import yaml

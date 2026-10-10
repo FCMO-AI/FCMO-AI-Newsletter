@@ -14,6 +14,8 @@ import shutil
 import tempfile
 
 REPOSITORY = 'FCMO-AI/FCMO-AI-Newsletter'
+TEST_SUITE_TIMEOUT_SECONDS = 2100
+COMMAND_TIMEOUT_SECONDS = 1800
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -142,7 +144,10 @@ def main(argv=None):
     if not args.fixture_build:
         commands += [[sys.executable, 'tests/oraculos/verificar_paper.py', str(args.out)]]
     for command in commands:
-        result = subprocess.run(command, cwd=ROOT, env=env, timeout=1800)
+        timeout = (TEST_SUITE_TIMEOUT_SECONDS
+                   if command == [sys.executable, '-m', 'unittest', 'discover', '-s', 'tests']
+                   else COMMAND_TIMEOUT_SECONDS)
+        result = subprocess.run(command, cwd=ROOT, env=env, timeout=timeout)
         if result.returncode:
             print('Publicación rechazada: LKG, construcción o comprobaciones incompletas.', file=sys.stderr)
             return 2

@@ -1,6 +1,8 @@
 import json
+import shutil
 import tempfile
 import unittest
+from unittest import mock
 from pathlib import Path
 
 from tools.gates import english_leak, piece_valid
@@ -26,34 +28,40 @@ class PieceGateTests(unittest.TestCase):
             self.assertEqual(result.checked, 3)
 
     def test_defect_fixtures_fail_the_piece_gate(self):
-        source = FIXTURE / "pieces/fixture-essay"
-        for defect in ("unknown-node", "javascript-href", "id-mismatch", "figure-without-credit",
-                       "footnote-without-body", "duplicate-block"):
-            with self.subTest(defect=defect), tempfile.TemporaryDirectory() as temp:
-                out = Path(temp) / "out"
-                self.build(out)
-                piece_dir = out / "editorial/pieces/fixture-essay"
-                doc_path = piece_dir / "doc.es-419.json"
-                doc = json.loads(doc_path.read_text())
-                if defect == "unknown-node":
-                    doc["blocks"][0]["type"] = "raw_html"
-                elif defect == "javascript-href":
-                    doc["blocks"][1]["content"][0] = {"t": "link", "href": "javascript:alert(1)", "c": [{"t": "text", "v": "x"}]}
-                elif defect == "id-mismatch":
-                    doc["blocks"][0]["id"] = "b-87654321"
-                elif defect == "figure-without-credit":
-                    figures_path = piece_dir / "figures.json"
-                    figures = json.loads(figures_path.read_text())
-                    figures["fig-cover"].pop("credit")
-                    figures_path.write_text(json.dumps(figures))
-                elif defect == "footnote-without-body":
-                    doc["footnotes"] = {}
-                elif defect == "duplicate-block":
-                    doc["blocks"][1]["id"] = doc["blocks"][0]["id"]
-                doc_path.write_text(json.dumps(doc))
-                with self.assertRaises(GateFailure) as caught:
-                    piece_valid.check(out)
-                self.assertEqual(caught.exception.code, "PIECE_VALID")
+        defects = ("unknown-node", "javascript-href", "id-mismatch", "figure-without-credit",
+                   "footnote-without-body", "duplicate-block")
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            template = root / "clean-candidate"
+            with mock.patch.object(self, "build", wraps=self.build) as build:
+                self.build(template)
+            build.assert_called_once_with(template)
+            for defect in defects:
+                with self.subTest(defect=defect):
+                    out = root / defect
+                    shutil.copytree(template, out)
+                    piece_dir = out / "editorial/pieces/fixture-essay"
+                    doc_path = piece_dir / "doc.es-419.json"
+                    doc = json.loads(doc_path.read_text())
+                    if defect == "unknown-node":
+                        doc["blocks"][0]["type"] = "raw_html"
+                    elif defect == "javascript-href":
+                        doc["blocks"][1]["content"][0] = {"t": "link", "href": "javascript:alert(1)", "c": [{"t": "text", "v": "x"}]}
+                    elif defect == "id-mismatch":
+                        doc["blocks"][0]["id"] = "b-87654321"
+                    elif defect == "figure-without-credit":
+                        figures_path = piece_dir / "figures.json"
+                        figures = json.loads(figures_path.read_text())
+                        figures["fig-cover"].pop("credit")
+                        figures_path.write_text(json.dumps(figures))
+                    elif defect == "footnote-without-body":
+                        doc["footnotes"] = {}
+                    elif defect == "duplicate-block":
+                        doc["blocks"][1]["id"] = doc["blocks"][0]["id"]
+                    doc_path.write_text(json.dumps(doc))
+                    with self.assertRaises(GateFailure) as caught:
+                        piece_valid.check(out)
+                    self.assertEqual(caught.exception.code, "PIECE_VALID")
 
     def test_unmarked_english_still_fails_but_structured_lang_quote_is_exempt(self):
         with tempfile.TemporaryDirectory() as temp:
