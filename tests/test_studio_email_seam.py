@@ -83,7 +83,9 @@ class StudioEmailSeamTests(unittest.TestCase):
             def send(edition,locale,key):
                 persisted,_ = state_store.read()
                 self.assertIn(key,persisted['keys'])
-                self.assertEqual(edition.piece['provenance'][locale]['reviewer'],'Matías')
+                row = edition.piece['provenance'][locale]
+                self.assertEqual(row['reviewer'], 'Matías' if locale == 'es-419' else '')
+                if locale != 'es-419': self.assertEqual(row['review_state'], 'MACHINE_REVIEWED')
                 return original_send(edition,locale,key)
             provider.send_edition = send
             paths = {n:root/(n+'.json') for n in ('bundle','intent','state')}
