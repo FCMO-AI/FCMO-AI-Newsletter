@@ -61,6 +61,44 @@ def _card(template: str, *, story: dict, locale: dict, catalog: dict) -> str:
     return template
 
 
+SHARE_COPY = {
+    "en": {"brand_kicker": "Daily AI news, evidence first", "brand_title": "What matters in AI, with the evidence shown.",
+           "brand_dek": "Every story states how well it is supported, what is still unproven and where it came from. Free, in English, Spanish and Chinese.",
+           "brand_meta": "FCMO AI Newsletter", "edition_kicker": "Daily edition", "edition_meta": "Edition", "stories": "stories", "lead": "Lead story"},
+    "es-419": {"brand_kicker": "Noticias diarias de IA, primero la evidencia", "brand_title": "Lo que importa en IA, con la evidencia a la vista.",
+               "brand_dek": "Cada historia dice qué tan sustentada está, qué falta por demostrar y de dónde viene. Gratis, en inglés, español y chino.",
+               "brand_meta": "FCMO AI Newsletter", "edition_kicker": "Edición diaria", "edition_meta": "Edición", "stories": "historias", "lead": "Historia principal"},
+    "zh-Hans": {"brand_kicker": "每日 AI 新闻，证据优先", "brand_title": "AI 领域真正重要的事，附上证据。",
+                "brand_dek": "每篇报道都说明证据强度、尚未证实之处和信息来源。免费，提供英文、西班牙文和中文。",
+                "brand_meta": "FCMO AI Newsletter", "edition_kicker": "每日一期", "edition_meta": "期次", "stories": "篇报道", "lead": "头条"},
+}
+
+
+def _render(template: str, *, lang: str, date: str, evidence: str, beat: str, headline_text: str, dek_text: str) -> str:
+    values = {"LANG": lang, "DATE": date, "EVIDENCE": evidence, "BEAT": beat, "HEADLINE": headline_text,
+              "DEK": truncate(dek_text, 180), "SIZE": str(_size(headline_text))}
+    for key, value in values.items():
+        template = template.replace("{{" + key + "}}", value if key == "SIZE" else escape(str(value)))
+    return template
+
+
+def share_cards(payload: dict, locale: dict, catalog: dict, template: str) -> list[tuple[str, str]]:
+    """Brand card plus one card per published edition (named edition-YYYY-MM-DD)."""
+    code = locale["code"]
+    copy = SHARE_COPY[code]
+    cards = [("brand", _render(template, lang=locale["html_lang"], date=copy["brand_meta"], evidence="fcmo-ai.github.io", beat=copy["brand_kicker"],
+                               headline_text=copy["brand_title"], dek_text=copy["brand_dek"]))]
+    live = [s for s in payload["stories"] if s.get("status") not in {"withdrawn", "merged"} and s.get("url_date")]
+    for date in sorted({s["url_date"] for s in live}, reverse=True):
+        day = [s for s in live if s["url_date"] == date]
+        lead = max(day, key=lambda s: (s.get("importance", 0), s["id"]))
+        head = f'{copy["edition_meta"]} {date} · {len(day)} {copy["stories"]}'
+        cards.append((f"edition-{date}", _render(template, lang=locale["html_lang"], date=date, evidence=copy["edition_meta"],
+                                                 beat=head, headline_text=headline(lead, code, catalog),
+                                                 dek_text=dek(lead, code, catalog))))
+    return cards
+
+
 def png_dimensions(path: Path) -> tuple[int, int]:
     data = path.read_bytes()[:24]
     if len(data) != 24 or data[:8] != b"\x89PNG\r\n\x1a\n" or data[12:16] != b"IHDR":
@@ -101,6 +139,14 @@ def generate_all(payload: dict, out: Path, *, chrome_path: str | None = None) ->
                 html_path.parent.mkdir(parents=True, exist_ok=True)
                 png_path.parent.mkdir(parents=True, exist_ok=True)
                 html_path.write_text(_card(template, story=story, locale=locale, catalog=catalogs[locale["code"]]), encoding="utf-8")
+                manifest.append({"url": html_path.resolve().as_uri(), "out": str(png_path.resolve())})
+        for locale in config["locales"]:
+            for name, html in share_cards(payload, locale, catalogs[locale["code"]], template):
+                html_path = temp / locale["code"] / f"{name}.html"
+                png_path = out / locale["code"] / f"{name}.png"
+                png_path.parent.mkdir(parents=True, exist_ok=True)
+                html_path.parent.mkdir(parents=True, exist_ok=True)
+                html_path.write_text(html, encoding="utf-8")
                 manifest.append({"url": html_path.resolve().as_uri(), "out": str(png_path.resolve())})
         manifest_path = temp / "manifest.json"
         script_path = temp / "render.mjs"
