@@ -14,7 +14,8 @@ and never disappear. Inputs:
 * ``corpus/first-published.json``      frozen first publication time, URL date,
   slug and merge redirect per id. Ids that are not frozen yet take the earliest
   ``published_at`` in the git history of ``site/data/stories.json`` (full clones
-  only), else the currently published value, else the build time.
+  only), else the previous v2 publication time, else the current v1 value,
+  else the build time.
 * ``corpus/data/locales/*/records.json`` and ``site/data/i18n`` locale editions.
 
 Headlines and deks are never produced by cutting text: the headline is the whole
@@ -250,8 +251,9 @@ def load_site_packs(i18n: Path | None) -> dict[str, dict[str, dict[str, Any]]]:
 # First publication and merges
 # ---------------------------------------------------------------------------------------
 def first_published_map(ids: Iterable[str], ledger: dict[str, Any], repo: Path | None,
-                        site: Path | None, now: str | None) -> dict[str, str]:
-    """Frozen ledger value, else full git history, else the live stories.json, else ``now``."""
+                        site: Path | None, now: str | None,
+                        previous: dict[str, str] | None = None) -> dict[str, str]:
+    """Ledger, full history, previous v2, current v1, then the candidate clock."""
     entries = ledger.get("entries", {})
     history = history_first_published(repo) if is_full_history(repo) else {}
     live = current_published(site)
@@ -261,6 +263,8 @@ def first_published_map(ids: Iterable[str], ledger: dict[str, Any], repo: Path |
             out[rid] = entries[rid]["first_published_at"]
         elif rid in history:
             out[rid] = history[rid]
+        elif rid in (previous or {}):
+            out[rid] = previous[rid]
         elif rid in live:
             out[rid] = live[rid]
         elif now is not None:
@@ -676,6 +680,10 @@ class StoryInputs:
         # A shallow checkout has no history: the previous stories.v2 output keeps the
         # last published form of every id that left the corpus.
         before = {s["id"]: s for s in (previous or {}).get("stories", []) if isinstance(s, dict) and s.get("id")}
+        # v1 published_at may have advanced on a later refresh before the ledger
+        # caught up. v2 retains the first-publication clock even for current ids.
+        self.previous_first = {rid: stamp for rid, story in before.items()
+                               if (stamp := taxonomy.utc_seconds(story.get("first_published_at")))}
         frozen = {rid: before[rid] for rid in wanted - set(historical) if rid in before}
         self.unavailable = sorted(wanted - set(historical) - set(frozen))
         self.orphans = (set(historical) | set(frozen)) - set(self.active)
@@ -690,7 +698,7 @@ class StoryInputs:
             self.records.setdefault(record["id"], record)
         for rid, story in frozen.items():
             self.records.setdefault(rid, record_from_story(story))
-        self.first = first_published_map(self.records, self.ledger, repo, site, now)
+        self.first = first_published_map(self.records, self.ledger, repo, site, now, self.previous_first)
         recorded_merges, detected_merges = self.merges()
         notice_ids = set(recorded_merges) | set(detected_merges)
         self.held_back: dict[str, str] = {}
@@ -712,7 +720,7 @@ class StoryInputs:
             for rid in set(self.held_back) - native_carried:
                 self.records.pop(rid, None)
                 frozen.pop(rid, None)
-        self.first = first_published_map(self.records, self.ledger, repo, site, now)
+        self.first = first_published_map(self.records, self.ledger, repo, site, now, self.previous_first)
         # The Story layer consumes the same source-bound field decision as ACK
         # and native routes. A stale pack/delta cannot bypass it by cardinality.
         canonical = load_corpus_canonical(corpus)
@@ -874,8 +882,8 @@ def update_ledger(corpus: Path, repo: Path | None, site: Path | None, now: str) 
     """Freeze first publication for every published id and record detected merges.
 
     Returns (ledger, tombstones, change lines). Only ids that were really
-    published (in the git history or in the live stories.json) are frozen; an id
-    never published stays unfrozen until it is.
+    published (in git history, previous stories.v2, or current stories.json) are
+    frozen; an id never published stays unfrozen until it is.
     """
     inputs = StoryInputs(corpus, repo, site, site / 'data/i18n' if site is not None else None, now)
     ledger = {"schema": LEDGER_SCHEMA, "entries": dict(inputs.ledger["entries"])}
@@ -886,7 +894,7 @@ def update_ledger(corpus: Path, repo: Path | None, site: Path | None, now: str) 
     for rid in sorted(inputs.records):
         if rid in ledger["entries"]:
             continue
-        stamp = history.get(rid) or live.get(rid)
+        stamp = history.get(rid) or inputs.previous_first.get(rid) or live.get(rid)
         if not stamp:
             continue
         ledger["entries"][rid] = {"first_published_at": stamp, "url_date": mx_date(stamp),
