@@ -105,7 +105,8 @@ def _immutable(node):
     walk(node)
     return result
 
-def _numbers(node): return Counter(re.findall(r'\d+(?:[.,]\d+)*', _text(node)))
+def _numbers(node):
+    return Counter(re.findall(r'[+\-−]?\d+(?:[.,]\d+)*(?:[eE][+\-]?\d+)?(?:\s?[%％])?', _text(node)))
 def _dates(node):
     # Numeric dates and written Spanish month dates remain exact by contract.
     return Counter(re.findall(r'\d{4}-\d{2}-\d{2}|\d{1,2}/\d{1,2}/\d{2,4}|\d{1,2} de (?:enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre)(?: de \d{4})?', _text(node), re.I))

@@ -91,6 +91,17 @@ class SingleSourceTests(unittest.TestCase):
             target = copy.deepcopy(source); target['locale'] = 'zh-Hans'; target['blocks'][0]['content'][0]['v'] = text
             with self.subTest(text=text[:70]), self.assertRaises(TranslationError): validate_translation(source, target, 'zh-Hans')
 
+    def test_numeric_signs_percentages_and_scientific_exponents_remain_intact(self):
+        source = copy.deepcopy(DOC)
+        original = 'OpenAI midió -42%, +3.5 y 1e-3.'
+        source['blocks'][0]['content'][0]['v'] = original
+        for text in (original.replace('-42', '42'), original.replace('42%', '42'),
+                     original.replace('+3.5', '3.5'), original.replace('1e-3', '1 y 3')):
+            target = copy.deepcopy(source); target['locale'] = 'en'
+            target['blocks'][0]['content'][0]['v'] = text
+            with self.subTest(text=text), self.assertRaises(TranslationError):
+                validate_translation(source, target, 'en')
+
     def test_codex_subscription_command_and_output_are_injected(self):
         from studio.translation import CodexCLITranslator, make_request
         translator = CodexCLITranslator(timeout=37)
