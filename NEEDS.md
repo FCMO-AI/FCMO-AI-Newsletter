@@ -337,6 +337,10 @@ verification are complete; a local build cannot truthfully update it.
   y conservar los artefactos y manifiesto generados. El bundle comprometido sigue
   siendo el anterior; la comprobación de integridad rechaza las fuentes nuevas
   hasta reconstruirlo. No reiniciar Studio sobre el checkout nuevo antes de ese paso.
+- Fallos nuevos mientras el bundle siga obsoleto:
+  `SingleURLHost.test_preflight_requires_both_local_logins_before_installing` y
+  `SingleURLHost.test_probe_reads_real_loopback_chrome_assets_and_auth_boundary`.
+  Ambos deben pasar después del build; no cambiar sus afirmaciones ni el guard.
 - Chromium tampoco está disponible. Inspeccionar el flujo de autor y las
   superficies de suscripción en los tres idiomas a 390 y 1440 px, teclado,
   estados ocupado/error/pendiente y textos largos. Los templates y pruebas DOM
