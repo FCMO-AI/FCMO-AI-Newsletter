@@ -409,3 +409,48 @@ No se requirieron cambios fuera del alcance. El `NEEDS.md` heredado se preservó
 ## KNOWN GAPS
 
 No se añadieron mecanismos de publicación ni se adelantó el ledger manualmente. La promoción real corresponde a la integración y sus gates de publicación existentes. El resultado de esta lane se limita al software y las verificaciones locales descritas.
+
+---
+
+# PR #74 / #71 sync onto main (#75)
+
+## Commits
+
+- `d86cadcb` — Merge main into Studio readiness branch (`sync/studio-ready`). The only conflict was `REPORT.md`; the Studio report and #75 report are both retained. Generated publication files came from main through the merge; no publication output was hand-edited.
+- `22a15b86` — Merge main into protected publish gate branch (`sync/f4-deploy-red`). `REPORT.md` and `tests/test_story_layer.py` were the only conflicts. Both reports were retained, and the test file merged the #75 clock assertions with #71's quarantine regression.
+- `95b84294` — Clarify retained history-derived publication output in the #71 report.
+
+## #71 overlap decisions
+
+- `beb01a26`: partly superseded by main commit `49102c90` for the overlapping UI labels. Its independent quarantine-test correction remains.
+- `918102f2`: remains useful; #75 does not change the localization test contract allowing California as a proper name in Spanish.
+- `c3567c32`: the shallow-clock behavior overlaps main commit `1c05fbd3`, while the full-history checkout remains the stronger `--history-git` source. Its five history-derived article pages remain valuable outputs and are committed output from that history-aware build; they were not hand-edited.
+- `5337890d`: remains useful; #75 does not modify publish-gate runtime optimization, candidate reuse, or workflow timeout budgets.
+
+No #71 implementation commit was wholly dropped. Main supplies the complete enum labels; unique #71 changes and date-corrected output remain.
+
+## Acceptance tails
+
+From `/var/tmp/nl-pr-sync` (`sync/studio-ready`):
+
+```text
+$ python3 -m unittest discover -s tests
+Ran 862 tests in 1829.519s
+OK (skipped=4)
+
+$ python3 -m unittest discover -s tests -p 'test_studio*.py'
+Ran 101 tests in 592.536s
+OK (skipped=1)
+```
+
+From `/var/tmp/nl-pr-sync-71` (`sync/f4-deploy-red`):
+
+```text
+$ python3 -m unittest discover -s tests
+Ran 853 tests in 1966.141s
+OK (skipped=4)
+```
+
+The #71 standalone Studio result will be added after it finishes.
+
+Both full-suite runs emitted Python `ResourceWarning` messages for unclosed SQLite connections in test server cleanup. Their final unittest status is still `OK`; the warnings are recorded here and were not suppressed.
