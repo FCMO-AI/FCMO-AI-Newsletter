@@ -451,12 +451,20 @@ Ran 853 tests in 1966.141s
 OK (skipped=4)
 ```
 
-
+```text
 $ python3 -m unittest discover -s tests -p 'test_studio*.py'
 Ran 91 tests in 881.534s
 OK (skipped=1)
+```
 
 Both full-suite runs emitted Python `ResourceWarning` messages for unclosed SQLite connections in test server cleanup. Their final unittest status is still `OK`; the warnings are recorded here and were not suppressed.
 
 
 The standalone Studio test runs also emitted Python `ResourceWarning` messages for unclosed SQLite connections during server cleanup. They both ended with `OK (skipped=1)`.
+
+
+## Unverified in the requested test runs
+
+The four full-suite skips were the existing browser-gated cases: `setUpClass (harness.test_harness_tools.BrowserRunTests)` (Playwright is not reachable), `test_ci_visual_gate.CiVisualGateTests.test_fixture_with_horizontal_overflow_fails_the_real_browser_oracle` (Playwright/Chromium is unavailable), `test_studio_preview.PreviewIdentity.test_absent_renderer_fails_closed` (the renderer integration is present), and `test_v4_mobile_first_viewport.OracleInBrowserTests.test_the_real_build_passes_the_first_viewport_oracle` (Playwright does not resolve). Each standalone `test_studio*.py` run skipped only `test_absent_renderer_fails_closed` for the same reason. The running browser-backed visual and absent-renderer behaviors therefore remain unverified here.
+
+No push, deployment, or public-origin check was performed; this sync was kept on local branches as requested.
