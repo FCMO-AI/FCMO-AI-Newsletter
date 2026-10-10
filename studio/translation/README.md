@@ -11,7 +11,9 @@ directorio privado vacío y con sandbox de solo lectura. `STUDIO_TRANSLATION_MOD
 elige el modelo; por defecto es `gpt-6.1-sol`. `STUDIO_TRANSLATION_TIMEOUT=120`
 limita la ejecución (1–300 segundos). El host debe tener Codex CLI autenticado
 por suscripción. Se hereda solo el entorno necesario para la CLI, sin llaves de
-API ni credenciales de publicación. No hay alternativa automática de pago por API.
+API ni credenciales de publicación. Antes de pedir una traducción, se comprueba
+que `codex login status` indique autenticación con ChatGPT; una llave de API
+almacenada o un estado desconocido provocan rechazo. No hay alternativa automática de pago por API.
 Los documentos son datos, nunca instrucciones; el prompt prohíbe añadidos,
 resúmenes y cambios de voz, registro, nombres, citas o marca.
 

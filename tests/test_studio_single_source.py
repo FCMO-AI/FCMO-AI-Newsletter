@@ -96,6 +96,8 @@ class SingleSourceTests(unittest.TestCase):
         translator = CodexCLITranslator(timeout=37)
         request = make_request(DOC); response = FakeProvider().generate(request)
         def run(command, **kwargs):
+            if command == ['codex', 'login', 'status']:
+                return SimpleNamespace(returncode=0, stdout='', stderr='Logged in using ChatGPT')
             self.assertEqual(command[:2], ['codex', 'exec'])
             self.assertIn('gpt-6.1-sol', command)
             self.assertIn('--ephemeral', command); self.assertIn('read-only', command)
@@ -172,6 +174,19 @@ class SingleSourceTests(unittest.TestCase):
         target = copy.deepcopy(source); target['locale'] = 'es-419'
         target['blocks'][0]['content'][0]['v'] = 'OpenAI tested x3 with 42 results and uncertainty.'
         with self.assertRaises(TranslationError): validate_translation(source, target, 'es-419')
+
+    def test_cached_api_auth_is_refused_before_any_model_call(self):
+        from studio.translation import CodexCLITranslator, make_request
+        request = make_request(DOC); response = FakeProvider().generate(request)
+        def run(command, **kwargs):
+            if command == ['codex', 'login', 'status']:
+                return SimpleNamespace(returncode=0, stdout='', stderr='Logged in using an API key.')
+            Path(command[command.index('--output-last-message') + 1]).write_text(json.dumps(response))
+            return SimpleNamespace(returncode=0, stdout='', stderr='')
+        with patch('studio.translation.subprocess.run', side_effect=run) as execute:
+            with self.assertRaisesRegex(TranslationError, 'suscripción'):
+                CodexCLITranslator().generate(request)
+            self.assertEqual(execute.call_count, 1)
 
 
 if __name__ == '__main__': unittest.main()

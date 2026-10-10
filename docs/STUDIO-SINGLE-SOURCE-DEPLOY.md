@@ -31,7 +31,9 @@ STUDIO_LIVE_ENABLED=0
 ```
 
 Codex CLI debe estar instalado y autenticado por suscripción para el usuario que
-ejecuta Studio. Comprobar con `codex exec --help` que admite los argumentos de
+ejecuta Studio. `codex login status` debe indicar autenticación con ChatGPT;
+el traductor rehúsa una llave de API almacenada o un estado de sesión desconocido.
+Comprobar con `codex exec --help` que admite los argumentos de
 `CodexCLITranslator.command`. El proceso conserva la autenticación de la CLI,
 excluye llaves de API y credenciales de publicación, usa un directorio temporal,
 desactiva herramientas y descarta trazas. Modelo y timeout son configurables;

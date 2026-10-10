@@ -220,6 +220,12 @@ class CodexCLITranslator:
         env = {k: v for k, v in os.environ.items() if k in allowed}
         try:
             with tempfile.TemporaryDirectory(prefix='studio-translation-') as cwd:
+                auth = subprocess.run(['codex', 'login', 'status'], text=True, capture_output=True,
+                                      timeout=min(self.timeout, 15), cwd=cwd, env=env)
+                # Removing env keys alone cannot exclude an API key cached by the CLI.
+                # Fail closed on an unread/changed status; never log its potentially sensitive text.
+                if auth.returncode or (auth.stdout + auth.stderr).strip() != 'Logged in using ChatGPT':
+                    raise TranslationError('Inicia sesión de Codex por suscripción; no se admite autenticación con llave de API.')
                 output = Path(cwd) / 'translation.json'
                 run = subprocess.run(self.command(output), input=json.dumps(request, ensure_ascii=False),
                                      text=True, capture_output=True, timeout=self.timeout, cwd=cwd, env=env)
