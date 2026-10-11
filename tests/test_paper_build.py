@@ -207,7 +207,10 @@ class PaperBuildTests(unittest.TestCase):
                 page = (root / "publish" / prefix / suffix).read_text(encoding="utf-8")
                 self.assertIn('class="translation-note" role="note"', page)
                 self.assertIn(note, page)
-                self.assertIn('lang="en" hreflang="en">English original</a>', page)
+                code = "es-419" if prefix == "es" else "zh-Hans"
+                catalog = json.loads((ROOT / "i18n/ui" / f"{code}.json").read_text(encoding="utf-8"))
+                self.assertIn(f'lang="{code}" hreflang="en">{catalog["strings"]["l10n"]["read_original"]}</a>', page)
+                self.assertIn(f'/FCMO-AI-Newsletter/{suffix.removesuffix("index.html")}', page)
             english = (root / "publish" / suffix).read_text(encoding="utf-8")
             self.assertNotIn('class="translation-note"', english)
 

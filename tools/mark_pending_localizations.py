@@ -419,6 +419,12 @@ def render_pending(site: Path, canonical: dict[str, dict[str, Any]], i18n_dir: P
     stories = json.loads((site / "data" / "stories.json").read_text(encoding="utf-8"))
     if not isinstance(stories, list):
         raise SystemExit("pending localization renderer: stories.json must be a list")
+    story_document = site / "data/stories.v2.json"
+    story_rows = {}
+    if story_document.is_file():
+        document = json.loads(story_document.read_text(encoding="utf-8"))
+        if document.get("schema") == "fcmo-stories-v2":
+            story_rows = {row["id"]: row for row in document.get("stories", [])}
     base = site_base(config)
     for locale in ("en", *NATIVE_LOCALES):
         load_ui_catalog(locale, catalog_dir)  # fail before writing anything
@@ -438,6 +444,15 @@ def render_pending(site: Path, canonical: dict[str, dict[str, Any]], i18n_dir: P
             else:
                 statuses[rid] = pair_status(source, rows.get(rid), locale, strict=rid in strict_ids,
                                             provenance=provenance.get(rid))
+                if rid in story_rows and is_complete(statuses[rid]):
+                    try:
+                        from tools.paper.i18n import story_locale
+                    except ImportError:  # direct script execution
+                        from paper.i18n import story_locale
+                    checked = story_locale(story_rows[rid], locale, catalog=load_ui_catalog(locale, catalog_dir))
+                    if checked["state"] not in {"NATIVE_ARB", "MACHINE_REVIEWED"} or checked["missing"]:
+                        statuses[rid] = {**statuses[rid], "state": "PENDING",
+                                         "missing": checked["missing"], "missing_paths": checked["missing_paths"]}
         folder = site / "news" / ROUTE_SLUG[locale]
         folder.mkdir(parents=True, exist_ok=True)
         count = 0
