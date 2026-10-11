@@ -217,6 +217,16 @@ class LegacyStoryRoutes(unittest.TestCase):
                 self.assertNotIn('The original English correction.', page)
                 self.assertIn(i18n.load_catalogs(ROOT)[locale]['strings']['l10n']['pending_notice'], page)
 
+    def test_calendar_event_date_is_not_shifted_to_the_previous_day(self):
+        brief = {'id': 'FCMO-AAAAAAAAAAAA', 'title': 'Título', 'summary': 'Resumen.'}
+        story = {'story_type': 'STANDARD', 'published_at': '2026-10-01T18:00:00Z',
+                 'event_at': '2026-10-01T00:00:00Z'}
+        links = {locale: 'https://example.test/' + locale for locale in surfaces.LOCALES}
+        for locale, expected in (('es-419', 'Ocurrió el 1 de octubre de 2026'),
+                                 ('zh-Hans', '发生于 2026年10月1日')):
+            with self.subTest(locale=locale):
+                self.assertIn(expected, surfaces.article_html(locale, brief, story, links))
+
     def test_original_explainer_caption_uses_native_catalog(self):
         brief = {'id': 'FCMO-AAAAAAAAAAAA', 'title': 'Título', 'summary': 'Resumen.'}
         story = {'story_type': 'STANDARD', 'published_at': '2026-10-01T18:00:00Z',

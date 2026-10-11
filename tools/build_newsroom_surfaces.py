@@ -201,7 +201,8 @@ def article_html(locale: str, brief: dict[str, Any], story: dict[str, Any], all_
     story_type = localization.label(locale, "story_type", story.get("story_type")) or ""
     desk = localization.label(locale, "desk", brief.get("primary_desk")) or ""
     published = strings["published"].format(date=localization.format_date(story.get("published_at"), locale, "minute", "datetime"))
-    event = strings["event_date"].format(date=localization.format_date(story.get("event_at"), locale, "minute", "datetime"))
+    event_precision = brief.get("date_precision") or story.get("date_precision") or localization.infer_precision(story.get("event_at"))
+    event = strings["event_date"].format(date=localization.format_date(story.get("event_at"), locale, event_precision, "datetime"))
     media = story.get("media") or {}
     caption = f'{media.get("credit") or ""} · {media.get("license") or ""}'
     if media.get("mode") == "fcmo_explainer" and media.get("license") == "FCMO original editorial graphic":
