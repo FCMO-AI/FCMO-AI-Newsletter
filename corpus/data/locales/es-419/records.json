@@ -4395,6 +4395,56 @@
       "title": "Un artículo propone reportar emisiones de carbono y elegir el modelo más pequeño que resuelva una tarea en investigación de IA",
       "why_it_matters": "Las decisiones sobre cómo medir pueden influir en las comparaciones entre calidad de modelos y costo computacional. El artículo ofrece métodos y una propuesta de reporte, pero sus ejemplos de entrenamiento pequeños y los datos supuestos para inferencia no establecen estimaciones fiables de huella ni un estándar de selección validado."
     },
+    "FCMO-5091AB997F12": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "En 11 arquitecturas de recuperación y 28 conjuntos de datos, los autores informan que los predictores basados en distribuciones superan la confianza basada en la puntuación máxima bruta en recuperación lógica y temporal; los aumentos de AUROC informados llegan a 0.16 cuando la señal de magnitud es débil."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan que Score Gap y una señal de puntuación basada en varianza mejoran la calidad de respuestas en una prueba de extremo a extremo en BRIGHT que usa Qwen3.6-27B como generador y GPT-4o como evaluador."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El artículo informa que estos predictores usan la distribución existente de puntuaciones de recuperación top-k y no requieren inferencia adicional del modelo ni reentrenamiento."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "Ninguna reproducción independiente ha evaluado las comparaciones entre predictores de recuperación ni el resultado de calidad de respuestas del artículo. La evaluación de extremo a extremo usa un generador y un evaluador.",
+          "kind": "missing_independent",
+          "state": "open",
+          "updated_at": "2026-10-11T21:11:02Z"
+        },
+        {
+          "description": "La evaluación usa los benchmarks públicos BEIR, BRIGHT y TEMPO; se desconoce el comportamiento con corpus propietarios, distribuciones de consultas de producción y entrenamiento personalizado del recuperador.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-11T21:11:02Z"
+        }
+      ],
+      "importance_rationale": "Si se replica en sistemas RAG desplegados, una abstención de recuperación más sólida y sin costo adicional de inferencia podría reducir errores posteriores y cambiar decisiones locales de evaluación y fiabilidad. La evidencia actual se limita a benchmarks; la única prueba de extremo a extremo usa un generador y un evaluador.",
+      "limitations": [
+        "La evaluación de calidad de respuestas de extremo a extremo en BRIGHT usa un generador (Qwen3.6-27B) y un evaluador (GPT-4o); no se probó la transferencia a otras arquitecturas ni protocolos de evaluación.",
+        "Los experimentos usan benchmarks públicos y quizá no representen corpus propietarios, distribuciones de consultas de producción ni recuperadores entrenados a medida.",
+        "El artículo no establece un techo de rendimiento para la abstención sin costo ni cierra la brecha frente al reordenamiento con cross-encoder o la verificación con modelos.",
+        "Los resultados son informados por los autores; el equipo de investigación no ejecutó el código del artículo ni reprodujo las mediciones de manera independiente."
+      ],
+      "relationships": [],
+      "summary": "Los autores evalúan seis predictores de rendimiento de consultas sin costo adicional en 11 arquitecturas de recuperación y 28 conjuntos de datos con tareas semánticas, lógicas y temporales. Informan que las señales basadas en la distribución de puntuaciones, como Score Gap y LSMV, superan la confianza basada en la puntuación máxima bruta en recuperación que exige razonamiento, con aumentos de AUROC de hasta 0.16 cuando la confianza por magnitud discrimina poco. La prueba de calidad de respuestas de extremo a extremo en BRIGHT usa un generador y un evaluador; no se realizó una reproducción independiente ni una validación con distribuciones de producción.",
+      "technical": {
+        "claimed_result": "Los autores informan que los predictores de distribución sin costo adicional, en especial Score Gap y LSMV, mejoran la predicción del éxito de recuperación en benchmarks semánticos, lógicos y temporales; el mayor aumento de AUROC informado es 0.16.",
+        "demonstrated_result": "El equipo de investigación no demostró ningún resultado de forma independiente. El artículo informa mejoras de AUROC de hasta 0.16 para predictores de rendimiento basados en distribuciones frente a la confianza por puntuación máxima en ciertos escenarios.",
+        "mechanism": "Estimar el éxito de recuperación de cada consulta a partir de la forma de la distribución de puntuaciones top-k (por ejemplo, la brecha de la puntuación principal o la varianza), en vez de tratar la similitud máxima absoluta como confianza calibrada.",
+        "regime": "Once arquitecturas de recuperación y 28 conjuntos de datos de recuperación semántica BEIR, razonamiento lógico BRIGHT y razonamiento temporal TEMPO; estadísticas de puntuaciones top-k. La prueba de calidad de respuestas de extremo a extremo usa BRIGHT con Qwen3.6-27B y GPT-4o.",
+        "reproducibility": "El texto completo y los apéndices de arXiv aportan tablas de benchmarks y descripciones del método. El equipo de investigación no ejecutó el estudio de forma independiente; siguen pendientes la transferencia a corpus de producción y los resultados con otros generadores y evaluadores.",
+        "strongest_baseline": "La línea base MaxScore del artículo, basada en la puntuación máxima bruta de recuperación, comparada con Score Gap y otras métricas de distribución usando los mismos resultados clasificados y el mismo protocolo de benchmark."
+      },
+      "title": "Las distribuciones de puntuaciones mejoran la abstención en recuperación con razonamiento complejo",
+      "why_it_matters": "Si el patrón informado se transfiere, los sistemas RAG pueden decidir con mayor fiabilidad cuándo abstenerse de recuperar usando puntuaciones existentes, sin inferencia, reentrenamiento ni latencia adicionales. La evidencia se limita a benchmarks públicos del artículo y a una prueba de extremo a extremo con un generador y un evaluador; no demuestra mejoras generales en producción."
+    },
     "FCMO-5101EF772C8A": {
       "claims": [
         {
@@ -10835,6 +10885,63 @@
       },
       "title": "La Comisión Europea anuncia una reunión especial del grupo científico sobre riesgos de la IA de frontera tras investigaciones sobre pérdida de control",
       "why_it_matters": "El trabajo anunciado conecta el análisis de incidentes y las preguntas técnicas a desarrolladores de modelos con el organismo de la UE que asesora sobre la aplicación de la Ley de IA. Si después se publican recomendaciones y se actúa en consecuencia, podrían orientar la evaluación regulatoria de los riesgos sistémicos de los modelos de frontera. El comunicado actual no revela evidencia de incidentes, recomendaciones ni seguimiento."
+    },
+    "FCMO-CE1EF4F98046": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "En un corpus de producción de 8,199 ejecuciones durante 11 días, los autores atribuyen 2,100 pérdidas del modo agente a modelos identificados; 1,590 (75.7%) ocurrieron después de al menos una llamada a una herramienta. La mayoría persistió en 99.7% de las remuestras agrupadas por modelo."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan que cinco intervenciones del lado del servidor, sin cambiar modelos, instrucciones ni parámetros de muestreo, movieron seis modelos seleccionados entre 6 y 21 celdas de 30."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El artículo informa un factor de confusión de memoria y contexto: un modelo sin límite de contexto de 7.1 GB cargó una ventana de 262,144 tokens y ocupó 51 GB en una máquina de 64 GB, lo que podía parecer un tiempo de espera del modelo en registros ordinarios."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "Ningún grupo independiente ha auditado el corpus, el evaluador o ha reproducido la descomposición de fallos y las intervenciones del servidor.",
+          "kind": "missing_independent",
+          "state": "open",
+          "updated_at": "2026-10-11T21:11:02Z"
+        },
+        {
+          "description": "El estudio cubre un solo cliente SQL; los autores contribuyen al software evaluado. Se desconoce la transferencia a otras herramientas, tareas y contratos de servidor.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-11T21:11:02Z"
+        },
+        {
+          "description": "Las lecturas antes y después se seleccionaron de celdas abiertas con puntuaciones bajas y usan 30 ejecuciones por modelo; el artículo las describe explícitamente como observaciones de campo, no como estimaciones de tamaño de efecto.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-11T21:11:02Z"
+        }
+      ],
+      "importance_rationale": "Si se replica en sistemas de agentes en producción, la descomposición de pérdidas y las correcciones del servidor informadas podrían cambiar materialmente cómo los equipos diagnostican la capacidad de los modelos, diseñan contratos de herramientas y asignan trabajo de ingeniería. La evidencia actual corresponde a un producto, un estudio escrito por colaboradores y comparaciones seleccionadas de intervenciones.",
+      "limitations": [
+        "Corpus de producción de un solo producto (LibreDB Studio) y seis tipos de tareas; no se estableció la generalización externa.",
+        "Los autores contribuyen al software evaluado. El artículo publica artefactos, pero eso no constituye una reproducción independiente.",
+        "El orden de las clases de pérdida cambia bajo remuestreo agrupado por modelo; los autores lo describen como una propiedad de este corpus, no como un resultado general.",
+        "Las seis lecturas de modelos antes y después se seleccionaron de celdas abiertas de baja puntuación y solo tienen 30 ejecuciones cada una; los autores las presentan como observaciones de campo, no como estimaciones de tamaño de efecto.",
+        "El artículo identifica trabajos anteriores sobre retroalimentación de herramientas y fallos mediados por el entorno; su contribución es la evidencia a escala de producción y el detalle de diagnóstico e intervención del servidor, no el descubrimiento de que el entorno de herramientas puede influir."
+      ],
+      "relationships": [],
+      "summary": "Los autores analizan 8,199 ejecuciones durante once días del modo agente de un cliente SQL de código abierto, con 39 modelos de pesos abiertos ejecutados localmente y un control alojado, distribuidos en seis tipos de tareas. Informan que 1,590 de 2,100 pérdidas atribuidas a modelos (75.7%) ocurrieron después de al menos una llamada a una herramienta; la mayoría persiste en 99.7% de las remuestras agrupadas por modelo. Cinco cambios del lado del servidor, sin modificar modelos ni instrucciones, movieron seis modelos seleccionados entre 6 y 21 celdas de 30. El artículo advierte que el orden de las clases de pérdida de transporte, reloj, verificación y capacidad corresponde a este corpus y no se generaliza.",
+      "technical": {
+        "claimed_result": "Los autores informan que 1,590 de 2,100 pérdidas atribuidas a modelos ocurrieron después de usar herramientas en un corpus de producción de 8,199 ejecuciones; la mayoría resiste el remuestreo agrupado por modelo. Cinco cambios de servidor movieron seis modelos seleccionados entre 6 y 21/30 celdas.",
+        "demonstrated_result": "El equipo de investigación no demostró los resultados del artículo de forma independiente. Los autores informan un corpus de producción y cinco cambios del lado del servidor asociados con mejores puntuaciones en seis celdas seleccionadas de modelo y tarea.",
+        "mechanism": "Instrumentar el ciclo completo del agente, incluidos los argumentos de las llamadas a herramientas y los rechazos del servidor, para separar la falta de acción del modelo de fallos de transporte, esquema y verificación; corregir defectos del contrato de herramientas del servidor sin cambiar pesos ni instrucciones.",
+        "regime": "Once días del modo agente en el cliente SQL de código abierto LibreDB Studio; 39 modelos de pesos abiertos ejecutados localmente y un control alojado; seis tipos de tareas de bases de datos; 8,199 ejecuciones y 110,711 eventos de registro.",
+        "reproducibility": "El artículo enlaza el corpus, el evaluador, el verificador y capturas de argumentos de llamadas a herramientas. El equipo de investigación revisó el texto y la lista de artefactos, pero no ejecutó el verificador ni reprodujo las intervenciones de forma independiente.",
+        "strongest_baseline": "En el artículo, las ejecuciones anteriores a la intervención se comparan con lecturas posteriores seleccionadas en el mismo hardware, instrucciones y tareas. Las celdas se eligieron entre casos abiertos con puntuaciones bajas y no constituyen una estimación causal aleatorizada."
+      },
+      "title": "Muchas pérdidas de agentes de bases de datos en producción ocurren después de usar herramientas, y los defectos del servidor cambian las puntuaciones de los modelos",
+      "why_it_matters": "Si el resultado se replica, los fallos de agentes con herramientas podrían atribuirse erróneamente a la capacidad del modelo cuando el factor limitante es la interfaz o el servidor; corregir un defecto del entorno puede ayudar a varios modelos a la vez. El estudio cubre un producto y fue escrito por colaboradores del software evaluado; las lecturas seleccionadas antes y después no establecen tamaños de efecto generales."
     },
     "FCMO-CFC14EB454F9": {
       "claims": [
