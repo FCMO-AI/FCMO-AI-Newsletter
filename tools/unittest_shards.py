@@ -45,12 +45,13 @@ def main(argv=None) -> int:
     if args.count < 1 or not 0 <= args.index < args.count:
         parser.error("index must be in [0, count), and count must be positive")
 
-    all_ids = discovered_test_ids(args.start_dir)
+    # Discover once: a second discover() in the same process sees already
+    # imported modules and can differ (it did on GitHub runners).
+    tests = list(flatten(unittest.defaultTestLoader.discover(args.start_dir)))
+    all_ids = [test.id() for test in tests]
     shards = partition_test_ids(all_ids, args.count)
     selected_ids = set(shards[args.index])
-    by_id = {test.id(): test for test in flatten(unittest.defaultTestLoader.discover(args.start_dir))}
-    if len(by_id) != len(all_ids) or set(by_id) != set(all_ids):
-        raise RuntimeError("unittest discovery changed between shard planning and loading")
+    by_id = {test.id(): test for test in tests}
     print(f"unittest shard {args.index + 1}/{args.count}: {len(selected_ids)} of {len(all_ids)} tests", flush=True)
     suite = unittest.TestSuite(by_id[test_id] for test_id in all_ids if test_id in selected_ids)
     result = unittest.TextTestRunner(verbosity=2).run(suite)
