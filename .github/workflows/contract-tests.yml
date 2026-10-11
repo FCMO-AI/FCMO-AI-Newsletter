@@ -39,7 +39,9 @@ jobs:
   # Keep the existing standalone `test` status check name. Called release gates
   # use the complete suite as parallel deterministic shards below.
   test:
-    if: github.event_name != 'workflow_call'
+    # In a called workflow github.event_name is the caller's event, so the
+    # required source_commit input is what identifies a release-gate call.
+    if: ${{ !inputs.source_commit }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -66,7 +68,7 @@ jobs:
   # Matrix failure is fail-closed: the reusable workflow job succeeds only when
   # every shard passes; tests/test_unittest_shards.py proves exact coverage.
   gate-shards:
-    if: github.event_name == 'workflow_call'
+    if: ${{ inputs.source_commit != null && inputs.source_commit != '' }}
     name: unittest shard ${{ matrix.shard }}/4
     runs-on: ubuntu-latest
     timeout-minutes: 30

@@ -21,5 +21,16 @@ class UnittestShardCoverageTests(unittest.TestCase):
             partition_test_ids(["suite.test_a"], 2)
 
 
+    def test_release_gate_call_is_detected_by_input_not_event_name(self):
+        # Inside a called workflow github.event_name is the caller's event, so a
+        # condition on 'workflow_call' silently skips the shards (PR #80, first run).
+        from pathlib import Path
+        text = (Path(__file__).resolve().parents[1] / ".github/workflows/contract-tests.yml").read_text()
+        self.assertNotIn("event_name == 'workflow_call'", text)
+        self.assertNotIn("event_name != 'workflow_call'", text)
+        self.assertIn("if: ${{ !inputs.source_commit }}", text)
+        self.assertIn("if: ${{ inputs.source_commit != null && inputs.source_commit != '' }}", text)
+
+
 if __name__ == "__main__":
     unittest.main()
