@@ -1,6 +1,6 @@
 {
   "canonical_locale": "en",
-  "canonical_source_sha256": "fa20d680cf2d9c82b05bbdf8f94cf42a4292f839ee4a75f02d39b1e8df889ac2",
+  "canonical_source_sha256": "68edccc3be67fd00fdd78278a1c84b9a69e99623fabbc44a8613e4f2340106a9",
   "generated_from": "ARB airlock; editorial wording authored upstream",
   "locale": "zh-Hans",
   "records": {
@@ -4396,6 +4396,56 @@
       },
       "title": "一篇论文提议在 AI 研究中报告碳排放，并选择能完成任务的最小模型",
       "why_it_matters": "环境测量方式会影响模型质量和计算成本的比较。论文提出了一些方法和报告建议，但其小规模训练示例以及推理排放中的假设输入，尚不能证明排放估算可靠或模型选择标准已得到验证。"
+    },
+    "FCMO-5091AB997F12": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "在11种检索架构和28个数据集上，作者报告基于分布的预测指标在逻辑和时间检索任务中优于基于原始最高分的置信度；当分数幅度信号较弱时，报告的AUROC提升最高为0.16。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "作者报告，Score Gap和一种基于方差的分数信号可提升BRIGHT端到端测试中的答案质量；该测试使用Qwen3.6-27B作为生成器，GPT-4o作为评审器。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "论文报告，这些预测指标使用现有的top-k检索分数分布，不需要额外模型推理或重新训练。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "尚无独立复现检验论文中的检索预测指标对比或下游答案质量结果。端到端评估仅使用一个生成器和一个评审器。",
+          "kind": "missing_independent",
+          "state": "open",
+          "updated_at": "2026-10-11T21:11:02Z"
+        },
+        {
+          "description": "评估使用公开的BEIR、BRIGHT和TEMPO基准；在专有语料、生产查询分布及定制训练的检索器上的表现仍未知。",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-11T21:11:02Z"
+        }
+      ],
+      "importance_rationale": "如果在部署中的RAG系统得到复现，更强且无需额外推理成本的检索弃答能力可能减少下游错误，并改变局部评估与可靠性决策。当前证据限于基准测试；唯一的端到端测试仅使用一个生成器和一个评审器。",
+      "limitations": [
+        "BRIGHT端到端答案质量评估仅使用一个生成器（Qwen3.6-27B）和一个评审器（GPT-4o）；尚未测试其向其他架构和评估协议的迁移。",
+        "实验使用公开基准，可能无法代表专有语料、生产查询分布或定制训练的检索器。",
+        "论文没有确定零额外成本弃答方法的绝对性能上限，也没有证明其可弥合与cross-encoder重排或模型验证之间的差距。",
+        "结果由作者报告；研究团队没有独立运行论文代码或复现测量结果。"
+      ],
+      "relationships": [],
+      "summary": "作者在11种检索架构和28个数据集上评估了六种零额外成本的查询性能预测指标，覆盖语义、逻辑和时间任务。作者报告，Score Gap和LSMV等基于分数分布的信号，在需要推理的检索任务中优于基于原始最高分的置信度；当基于分数幅度的置信度判别力较弱时，AUROC最高提升0.16。BRIGHT端到端答案质量测试只使用一个生成器和一个评审器；研究团队没有独立复现，也没有验证其在生产数据分布上的表现。",
+      "technical": {
+        "claimed_result": "作者报告，零额外成本的分布式预测指标，尤其是Score Gap和LSMV，可改善语义、逻辑和时间基准上的检索成功预测；报告的最大AUROC提升为0.16。",
+        "demonstrated_result": "研究团队没有独立验证任何结果。论文报告，在特定场景中，基于分布的查询性能预测指标比最高分置信度高出最多0.16 AUROC。",
+        "mechanism": "根据top-k检索分数分布的形状（例如最高分与其他分数之间的差距或分数方差）估计查询级检索成功率，而不是将绝对最高相似度分数视为已校准的置信度。",
+        "regime": "十一种检索架构、28个数据集，涵盖BEIR语义检索、BRIGHT逻辑推理和TEMPO时间推理；使用top-k检索分数统计。端到端答案质量实验在BRIGHT上使用Qwen3.6-27B和GPT-4o。",
+        "reproducibility": "arXiv全文和附录提供基准表格与方法说明。研究团队未独立运行实验；在生产语料中的迁移表现及使用其他生成器和评审器的结果仍不可得。",
+        "strongest_baseline": "论文的原始最高检索分数MaxScore基线；与Score Gap及其他分布指标使用相同的检索排序结果和基准协议进行比较。"
+      },
+      "title": "分数分布可改善复杂推理任务中的检索弃答",
+      "why_it_matters": "如果这一模式可以迁移，RAG系统就能利用已有分数更可靠地决定何时放弃检索，无需增加推理、重新训练或延迟。证据仅限于论文中的公开基准，且端到端测试只使用一个生成器和一个评审器，因此不能证明生产环境普遍受益。"
     },
     "FCMO-5101EF772C8A": {
       "claims": [
@@ -10782,6 +10832,63 @@
       "title": "欧盟委员会宣布召开科学小组特别会议，讨论近期失控调查后的前沿 AI 风险",
       "why_it_matters": "这项已宣布的工作将事件分析和面向模型开发者的技术问题，连接到为欧盟《人工智能法案》实施提供建议的机构。如果后续建议公开并得到落实，它们可能影响监管部门如何评估前沿模型的系统性风险。当前公告没有披露事件证据、建议内容或后续行动。"
     },
+    "FCMO-CE1EF4F98046": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "在一个为期11天、包含8,199次运行的生产语料中，作者将智能体模式的2,100次失败归因于具名模型；其中1,590次（75.7%）发生在至少调用过一次工具之后。按模型聚类的重采样中有99.7%仍显示这一多数。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "作者报告，五项服务器端干预没有更改模型、提示或采样设置，却使六个选定模型在30个单元中移动了6–21个单元。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "论文报告了一种上下文与内存混杂因素：未设上下文上限的7.1 GB模型载入了262,144-token上下文窗口，并在64 GB机器上占用51 GB；普通日志可能将其误判为模型超时。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "尚无独立团队审计已发布的语料和评分器，或复现失败分解与服务器干预结果。",
+          "kind": "missing_independent",
+          "state": "open",
+          "updated_at": "2026-10-11T21:11:02Z"
+        },
+        {
+          "description": "该研究只覆盖一个SQL客户端，作者参与了被评估软件的开发。其结果能否迁移到其他工具、任务和服务器契约仍未知。",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-11T21:11:02Z"
+        },
+        {
+          "description": "干预前后测量是从低分、开放的单元中选出的，每个模型仅有30次运行；论文明确称其为现场观察，而非效应大小估计。",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-11T21:11:02Z"
+        }
+      ],
+      "importance_rationale": "如果在生产智能体系统中得到复现，所报告的失败分解和服务器修复可能实质改变团队诊断模型能力、设计工具契约和分配工程资源的方式。当前证据来自单一产品、由软件参与者撰写的研究，以及经过筛选的干预对比。",
+      "limitations": [
+        "生产语料仅来自单一产品（LibreDB Studio）和六类任务；尚未建立外部可推广性。",
+        "作者参与了被评估软件的开发。论文发布了相关工件，但这不等于独立复现。",
+        "按模型聚类重采样后，各失败类别的排序会变化；作者将其称为该语料的特性，而非普遍结论。",
+        "六个模型的干预前后测量来自低分开放单元，每个仅有30次运行；作者称其为现场观察，而非效应大小估计。",
+        "论文指出，已有研究涉及工具反馈和环境导致的失败；其贡献是生产规模的证据，以及服务器诊断和干预的细节，而不是首次发现工具环境可能产生影响。"
+      ],
+      "relationships": [],
+      "summary": "作者分析了一个开源SQL客户端智能体模式在十一天内的8,199次运行，覆盖39个本地运行的开放权重模型和一个托管对照，涉及六类任务。作者报告，在2,100次归因于模型的失败中，1,590次（75.7%）发生在至少调用过一次工具之后；按模型聚类的重采样中有99.7%仍显示这一多数。五项服务器端修改没有更改模型或提示，却使六个选定模型在30个单元中移动了6–21个单元。论文提醒，传输、时钟、验证和能力失败类别的排序只适用于该语料，并不能普遍推广。",
+      "technical": {
+        "claimed_result": "作者报告，在一个包含8,199次生产运行的语料中，2,100次模型归因失败中的1,590次发生在工具使用之后；该多数在按模型聚类重采样后仍成立。五项服务器修改使六个选定模型的得分提高了6–21格（每项共30格）。",
+        "demonstrated_result": "研究团队没有独立验证论文结果。作者报告了一个生产语料，以及五项服务器端修改后六个选定模型与任务单元的得分提升。",
+        "mechanism": "记录智能体的完整工作循环，包括工具调用参数和服务器拒绝原因，以区分模型未能行动与传输、架构校验及验证故障；在不更改模型权重或提示的情况下修正服务器侧工具契约缺陷。",
+        "regime": "开源SQL客户端LibreDB Studio智能体模式的十一天运行；39个本地运行的开放权重模型和一个托管对照；六类数据库任务；共8,199次运行和110,711条日志事件。",
+        "reproducibility": "论文链接了语料、评分器、验证器和工具调用参数记录。研究团队阅读了论文和工件列表，但没有独立运行验证器或复现干预效果。",
+        "strongest_baseline": "论文在相同硬件、提示和任务条件下，将干预前运行与筛选出的干预后测量进行比较。这些单元来自低分开放案例，并非随机因果估计。"
+      },
+      "title": "生产数据库智能体的许多失败发生在调用工具后，服务器缺陷也会改变模型得分",
+      "why_it_matters": "如果这一结果能够复现，工具智能体的失败可能被错误归咎于模型能力，而真正的瓶颈是接口或服务器；修复一个环境缺陷就可能同时帮助多个模型。该研究仅覆盖一个产品，作者参与了被评估软件的开发，且所选干预前后测量不能确定普遍效应大小。"
+    },
     "FCMO-CFC14EB454F9": {
       "claims": [
         {
@@ -15756,6 +15863,48 @@
         "source_sha256": "53c8c4d9bbab80b399b61565f6d9569c27ee7a054b3daa56b47d45d242d787d7"
       }
     },
+    "FCMO-5091AB997F12": {
+      "claims": {
+        "locale_sha256": "da27c4bab57aaeb22a10706b1b77bd6041f1a37a72534ff1e4c595842d104999",
+        "source_sha256": "f1da3b8f55b4c9a8d9fdc47b88466065eeecd63684438c784247e83546754e35"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "1196bf2c0cebedafbfa6ac68d02e74bc61d4d2ecaef71291ab0154b874fb3924",
+        "source_sha256": "40fe23548a1e8413749b344b43487818629bf45e506f1a4e5e71fca14d82642b"
+      },
+      "importance_rationale": {
+        "locale_sha256": "5526d2ef2bf965a39dfdc8cba9ec0539e021f0f9a4db76e6161b7a3d0309ee7d",
+        "source_sha256": "e9f66b8ca4bbd3cafe4f81e5c97fbe46cc00df2d3e6449ddc2ca0a91b5e2ebdf"
+      },
+      "limitations": {
+        "locale_sha256": "b2229802ec621c0adf8d94f3167d8fa72b8c9a0b83c05edb5acb10eac00852b5",
+        "source_sha256": "4acc2f5939ea0bba49f9f4bdedcbe0fe4ecf5576785785303d10488796717489"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "ecf4a8599f75bd71f0cec5d65e2508bae77a26546df2fbec3bf773cdc52afb30",
+        "source_sha256": "0c02325bb86ccec1b7e60b64800f2518038d6be2ffb92b12198fee10920f4904"
+      },
+      "technical": {
+        "locale_sha256": "37ef0836b70b8217f9cf1cfb0a3252084eb702530d8a2c3f5bf74005287b699c",
+        "source_sha256": "e64bb57de514d4d722ad9b62fd2444507de6f05685af5f6c141c7b01d5924513"
+      },
+      "title": {
+        "locale_sha256": "a4442f55a2acb222f2bae7024e764f4c3d41e19a75dfda3b29ec6056f6b7b916",
+        "source_sha256": "02f9bd4211261005d8e97bb345644b0fd86275da3d78c8a607061b3a61dc9626"
+      },
+      "why_it_matters": {
+        "locale_sha256": "f966a5e134990e20d0f2fdd249cbe05e3746b154a5677cf3e2b79c4dab0b5a39",
+        "source_sha256": "ea0bb410743c633323c444c7e579343b829b64c0f7d24af1582e5012463f3b8d"
+      }
+    },
     "FCMO-5101EF772C8A": {
       "claims": {
         "locale_sha256": "8c913a4c9be851b7c0dc83d5c2463f310b7d5641260fc331b2a8f7f25e903085",
@@ -20626,6 +20775,48 @@
       "why_it_matters": {
         "locale_sha256": "3f378123582b2929224bb099b81a1602cf197bf35ccb8cd5a4bd56ab9c1ebed1",
         "source_sha256": "e4b9e989949bdb99390296320c4d1eeccda216d84fd9d211ac4056fd1e5ba991"
+      }
+    },
+    "FCMO-CE1EF4F98046": {
+      "claims": {
+        "locale_sha256": "f0c8b1aa4d65d4d6f567b8d137858cd9c4c2a2d10ced604816e4cafb13502571",
+        "source_sha256": "21b3ed2d6c89ab6097845539d8d89417a5491da71266a383cc14570ff3353ef2"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "f81cd75f6f6677e816c94d8eeb97d2c3d0bf4bcc833ef08ee3d848df2df101cb",
+        "source_sha256": "0dd53e65451507346086f6ad58e16b148f7cf15f668becf884c0269aad7065e1"
+      },
+      "importance_rationale": {
+        "locale_sha256": "596e684831b428f3e909279cc7ef61e7742faba9ed25ec32bd36a923c93d73d4",
+        "source_sha256": "2f177aef734cf5c80492985a1773c0c5599950afe0b89acb639af9454a02f189"
+      },
+      "limitations": {
+        "locale_sha256": "be98b1832469cfe2e4bfe7b11b28df1f1769db10cd9fe73d279372bbe321e02d",
+        "source_sha256": "7efb607d4a851078e432478f368583eb1584005943d3b2d89b55976353979d7a"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "d1d9f62672ee4b81e501c8795b22b61eba2b8a3aa5f1734c717c9c543d10602d",
+        "source_sha256": "90cfcd0a2614bc8b1db33b592d4c31d44f39001907661df120acea87fbefe420"
+      },
+      "technical": {
+        "locale_sha256": "a5680490405e1c50653c1a548f54069ce9972b937c208fac9258ddc0a1ca69af",
+        "source_sha256": "efcdfa5492ff061a9652602ee558f44f9fc1ba6e313b8425735241b8357fddf5"
+      },
+      "title": {
+        "locale_sha256": "0edcb507f6917f15c8575cfc5e223dbe677cd20aef8fa0710856550c25face63",
+        "source_sha256": "70d0627a50347f70ab1ff12d93906b8598bf8635ce1de6372126498bf3645cd5"
+      },
+      "why_it_matters": {
+        "locale_sha256": "b27d90d6c5e0ace8cf014f4eb42abf049a20541f61e157aa7dc4a4637ad3f74f",
+        "source_sha256": "c9f91f90f682f1f6e024f475159f29fe3ca7ef53a40275b0ed11c8e22cc3fa6a"
       }
     },
     "FCMO-CFC14EB454F9": {
