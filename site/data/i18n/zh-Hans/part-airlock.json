@@ -1,6 +1,6 @@
 {
   "canonical_locale": "en",
-  "canonical_source_sha256": "68edccc3be67fd00fdd78278a1c84b9a69e99623fabbc44a8613e4f2340106a9",
+  "canonical_source_sha256": "7f021a20ed7fc8f42c0e53ebdc7f47ebfff4779fec025142e2a7b64d3d71ff52",
   "generated_from": "ARB airlock; editorial wording authored upstream",
   "locale": "zh-Hans",
   "records": {
@@ -2051,6 +2051,44 @@
       },
       "title": "受控 Gemma 4 研究发现，小模型的谈判收益受学习率影响",
       "why_it_matters": "这项研究说明，评估智能体任务的后训练效果时，应调整学习率、使用多个训练种子并测试多样且具有对抗性的交互方：固定学习率下观察到的规模趋势可能混合模型能力、架构、算力和优化效果，而汇总奖励也可能掩盖针对买方模型家族的特定收益。这些有限结果为谈判智能体评测设计提供了有用基线，但不能证明小模型可在采购或市场中取代前沿系统。"
+    },
+    "FCMO-252695B15D80": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "作者报告，Weave在每个MoE层路由完成后动态分配streaming multiprocessor用于通信或计算。在4×H100 SXM GPU、六种MoE模型上，相比论文所称的五种先进系统，其MoE层几何平均加速为2.89×，端到端几何平均加速为1.33×。这些测量由作者报告，本次审查未独立复现。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "所报告的收益来自一套4×H100 SXM配置，尚无独立复现；其能否迁移到其他GPU互连、模型规模、流量组合和serving目标仍未知。",
+          "kind": "missing_independent",
+          "state": "open",
+          "updated_at": "2026-10-11T22:10:00Z"
+        }
+      ],
+      "importance_rationale": "如果在报告的多GPU MoE条件下可持续，按路由结果动态分配streaming multiprocessor可能显著提升推理效率，并影响kernel及serving系统设计。该结果有意义，但仍局限于一套4×H100测试和作者报告的测量。",
+      "limitations": [
+        "2.89×层级及1.33×端到端几何平均加速是论文作者报告的结果，并非本次审查的独立测量。",
+        "摘要列出4×H100 SXM和六种MoE模型，但不能证明其他加速器或负载分布下也有同样表现。",
+        "本次未核实公开实现或复现；比较结果取决于论文采用的基线配置。"
+      ],
+      "relationships": [],
+      "summary": "九月18日的预印本提出Weave：利用路由完成后的信息，为每个MoE层在GPU通信与计算之间动态分配streaming multiprocessor。摘要报告，在4×H100 SXM GPU上的六种MoE模型中，相比五种系统，MoE层几何平均加速为2.89×，端到端加速为1.33×。本次未独立核验完整基线表或实现，也没有发现复现或其他硬件上的迁移证据。",
+      "technical": {
+        "claimed_result": "论文报告在4×H100 SXM GPU、六种MoE模型上，相比五个基线，MoE层几何平均加速2.89×，端到端加速1.33×。",
+        "compute_or_cost": "摘要说明的测试条件为4×H100 SXM GPU；未获取计算成本或能耗比较。",
+        "demonstrated_result": "本次激活未独立验证结果。所引测量是主预印本中的作者声明。",
+        "implementation_status": "预印本描述了含有按路由条件化空间和时间调度器的持久化MoE megakernel；未核实代码是否公开。",
+        "mechanism": "路由信息确定后，轻量成本模型按层、按GPU将SM分配给通信和计算工作组，再协调两组以减少资源错配和空闲间隔。",
+        "novelty": "论文声称的贡献是根据每层路由结果进行细粒度运行时调度，而非固定通信与计算SM比例。",
+        "regime": "专家并行下的MoE推理，在4×H100 SXM GPU和六种模型上评估。",
+        "reproducibility": "主摘要可访问；本次审查未检查实现、完整基线配置表或独立复现。",
+        "strongest_baseline": "作者将五个比较系统描述为先进系统；需查阅全文才能确定各系统及其匹配设置。"
+      },
+      "title": "Weave报告动态GPU调度可提升MoE推理速度",
+      "why_it_matters": "MoE推理需要协调专家计算与分发、合并通信。如果Weave的结果成立，在路由完成后调整通信与计算资源比例，可能减少各层的资源错配并提高端到端效率。报告中的4×H100测试不能证明其能推广到其他硬件、负载或部署目标。"
     },
     "FCMO-28A16703D598": {
       "summary": "ASML 与 TSMC 宣布一项行业计划，将 High-NA EUV 从沿用数十年的 6 英寸光掩模格式迁移到 12 英寸掩模。联合路线图目标是在 2031 建成 12 英寸掩模试产线，并于 2033 让完整光刻系统为先进节点量产做好准备；TSMC 表示计划从 2030 起在大批量制造中使用 High-NA。Samsung 另行确认加入 12 英寸掩模计划，并把 High-NA DRAM 大批量制造目标定在 2028。更大的格式旨在恢复生产率，并消除 High-NA 更小曝光场带来的 stitching 限制，这对大型领先制程逻辑 die 尤其重要。这些是协调一致的路线图承诺，不是今天已经交付的 12 英寸掩模制造能力。",
@@ -4905,6 +4943,45 @@
       },
       "title": "中国启动 2026 年绿色算力设施推荐，纳入能源、碳、水和资源利用标准",
       "why_it_matters": "这些标准把能源、水、可再生电力和资源利用纳入国家算力设施推荐流程，可能影响哪些设施符合认定条件。但通知本身没有显示实际执行、经核验的绩效，也没有说明对 AI 算力供给的影响。"
+    },
+    "FCMO-565F99D94E34": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "作者称，BOOST根据GPU执行波次安排页面，使主机内存与HBM能够并发、按比例访问，且无需修改kernel。在集成vLLM的一台Grace Hopper系统上，固定批量时其输出token时间比仅使用HBM低4.3%。在按容量扩展的高吞吐测试中，平均吞吐量比仅用HBM高31%，比预取高15%。这些结果是作者报告的，本次审查未进行独立复现。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "论文性能测量来自单一Grace Hopper配置；未找到独立复现，也没有证据表明结果能迁移到其他CPU-GPU互连、加速器代际、serving栈或负载。",
+          "kind": "missing_independent",
+          "state": "open",
+          "updated_at": "2026-10-11T22:12:00Z"
+        }
+      ],
+      "importance_rationale": "如果报告的收益成立，在内存受限系统中并发使用主机内存和HBM带宽或能提高LLM serving容量及吞吐量，影响部署经济性和内存系统设计。证据具有实际意义，但仅来自一台Grace Hopper系统和作者报告的测试。",
+      "limitations": [
+        "本文引用的性能结果均由预印本作者报告，本次激活没有独立测量。",
+        "论文在一台搭配vLLM的Grace Hopper系统上进行实验；能否推广到其他互连、硬件、模型和serving栈仍未知。",
+        "摘要将固定批量TPOT与容量扩展吞吐量分开。31%的吞吐量提升不能解读为31%的延迟下降。",
+        "本次审查未查看完整结果表、代码可用性或基线配置细节。"
+      ],
+      "relationships": [],
+      "summary": "九月11日的预印本提出BOOST，通过放置模型权重和KV页面，使GPU线程块波次能够按带宽比例并发访问主机内存与HBM。在一台搭配vLLM的Grace Hopper系统上，作者报告固定批量时输出token时间比仅用HBM低4.3%。在容量扩展的高吞吐测试中，平均吞吐量比仅用HBM高31%，比预取高15%。吞吐量数据包含可用容量增加，不应解读为延迟下降；在容量保持不变时，作者将约四个百分点的收益归因于并发使用带宽。本次审查未独立复现这些结果。",
+      "technical": {
+        "claimed_result": "作者报告固定批量时TPOT比仅用HBM低4.3%；在容量扩展serving中，平均吞吐量比仅用HBM高31%，比预取高15%。",
+        "compute_or_cost": "单一Grace Hopper配置；论文报告吞吐量和延迟结果，但本次审查未获取能耗或每token成本测量。",
+        "demonstrated_result": "本次激活未独立验证任何结果；这些测量是主预印本中的作者声明。",
+        "implementation_status": "论文描述了与vLLM集成的runtime，为静态权重和动态KV页面执行放置；未核实公开实现是否可用。",
+        "mechanism": "感知GPU执行波次的放置方式，使HBM和主机内存中的数据能够并发提供需求读取，而非先通过预取将数据搬入HBM。",
+        "novelty": "论文声称，感知GPU执行波次的内存放置可在不修改推理kernel的情况下，同时利用主机内存与HBM带宽。",
+        "regime": "使用vLLM在Grace Hopper系统上进行LLM推理；固定批量TPOT和容量扩展吞吐量属于不同测试条件。",
+        "reproducibility": "可访问主预印本摘要；本次审查未查看完整结果表、实现或独立复现。",
+        "strongest_baseline": "摘要提到仅用HBM和预取方案；具体配置及按模型的比较需查阅全文。"
+      },
+      "title": "BOOST报告并发使用主机内存和HBM可提升LLM serving性能",
+      "why_it_matters": "HBM容量和带宽限制模型serving。如果BOOST的结果成立，直接并发使用主机内存和HBM可扩大可运行工作集并提高吞吐量。报告的容量扩展吞吐收益同时包含容量增加，而并发带宽贡献较小；这不意味着延迟同比下降，也不能证明所有系统都会获益。"
     },
     "FCMO-57688EE6F24B": {
       "claims": [
@@ -7839,6 +7916,45 @@
       },
       "title": "ScienceBuddy 报告称共同演化科学任务框架与语言模型可提升表现",
       "why_it_matters": "如果能在独立编写的科学任务上复现并验证结果，共同演化研究执行框架及其任务模型或可改善任务完成情况。现有证据仅支持作者在特定基准上报告的结果，并未显示系统取得了科学发现，也未证明当前维护的代码库复现了论文案例。"
+    },
+    "FCMO-94EBAAEAD595": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "作者报告，MorFiC在共享actor-critic策略中通过特征调制条件化critic，并在形态随机化模拟训练后改善四足机器人的零样本迁移。摘要报告，相比形态条件化PPO基线，A1速度提高16.1%，Cheetah约提高2×，B1约提高5×；作者还称模型无需微调即可部署到Go1和Go2机器人。这些是论文报告的结果，并非本次审查的独立测量。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "摘要给出了部分速度提升，并称策略未经微调部署到两种Unitree平台；但本次审查未查看任务数量、机器人测试条件、失败率、不确定性或复现结果。",
+          "kind": "missing_independent",
+          "state": "open",
+          "updated_at": "2026-10-11T22:14:00Z"
+        }
+      ],
+      "importance_rationale": "如果论文结果成立，按形态条件化的critic特征可能减少价值估计干扰并改善不同四足机器人之间的策略迁移，从而影响一项有意义的机器人训练选择。其重要性限于运动控制和少数已报告平台，不能证明广义机器人迁移能力。",
+      "limitations": [
+        "所有性能数字均由预印本作者报告，本次激活未进行独立复现。",
+        "仿真中的速度提升不能证明不同平台上的任务成功率、安全性、鲁棒性或经济表现。",
+        "摘要所述未经微调的实体部署仅涉及Unitree Go1和Go2；本次未查看测试条件和失败率。",
+        "该结果针对四足运动控制，不足以证明可迁移到其他机器人类型。"
+      ],
+      "relationships": [],
+      "summary": "三月15日的预印本提出MorFiC：使用特征调制，根据机器人形态条件化共享策略中的critic。作者称，在带形态随机化的模拟训练后，四足机器人的零样本迁移有所改善；相较形态条件化PPO基线，A1速度提升16.1%，Cheetah约提升2×，B1约提升5×。作者还称无需微调即可部署到Unitree Go1和Go2。本次审查未查看完整结果表、实体机器人协议、代码或独立复现。",
+      "technical": {
+        "claimed_result": "论文报告四足零样本迁移的速度提升：A1为16.1%，Cheetah约2×，B1约5×；另称可未经微调部署到Unitree Go1和Go2。",
+        "compute_or_cost": "摘要未披露计算预算、能耗、训练成本或单任务运行成本。",
+        "demonstrated_result": "本次激活未独立验证任何结果；相关数字是主预印本中的作者声明。",
+        "implementation_status": "预印本描述了共享actor-critic训练及按形态调制critic特征的FiLM机制；未核实公开实现是否可用。",
+        "mechanism": "形态编码器将机器人参数的潜在表示传入critic的FiLM层，使价值函数能随机器人本体变化，同时保持共享策略。",
+        "novelty": "论文提出，按形态条件化critic可减少不同形态间价值目标的干扰，并在形态变化时稳定优势估计。",
+        "regime": "四足运动控制：在单一源机器人上进行形态随机化模拟训练，随后测试其他模拟形态；摘要另称在两种Unitree平台上进行了实体部署。",
+        "reproducibility": "可访问主预印本摘要和大学新闻简报；未查看完整表格、实体测试条件、代码或独立复现。",
+        "strongest_baseline": "摘要提及形态条件化PPO基线；确切配置和逐机器人比较需要查阅全文。"
+      },
+      "title": "MorFiC报告通过形态条件化critic实现四足机器人迁移",
+      "why_it_matters": "不同机器人的本体动力学可能使共享策略的价值估计失准。如果报告结果成立，按形态条件化critic特征或可帮助运动策略迁移，而不必为每台机器人重新训练。目前证据限于作者报告的四足仿真和两项Unitree部署，尚不能证明可安全地迁移到通用机器人。"
     },
     "FCMO-94FB7F8ABEF1": {
       "claims": [
@@ -14085,6 +14201,48 @@
         "source_sha256": "166aa3ca887217869bc78a535435490125589686032f6ab1fb8a189a2b24bd55"
       }
     },
+    "FCMO-252695B15D80": {
+      "claims": {
+        "locale_sha256": "4ebe0d9bca1156c99126e1cf238d6507cd64d8f506260caf25530712dc84291e",
+        "source_sha256": "6667b92d994747c246d6cbf5048e86828cf5b351decec737771485302a52f8bd"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "b326075c7227fb0444b83d21e1ea15ad8a0008e36878da1eea1cbf4dd603c2e5",
+        "source_sha256": "6b65d1cc3f733750d06db7e1ae787dad89352fdc6045edc0e3c32c269e949794"
+      },
+      "importance_rationale": {
+        "locale_sha256": "45d09e3b09cd5dcae1c5be37ba1b5ac3aab99e5cf4efca1ef0dd76b723ead3cf",
+        "source_sha256": "5658b46d6b1559e88a9864d6a173d4d785913b3090eb4efa7570079345cd7e20"
+      },
+      "limitations": {
+        "locale_sha256": "3e8dfe632be13ee348729d08f8567756b3a5bd814e3513e7c9c63addb561021a",
+        "source_sha256": "b2177a7b1ad240f079a7624ae555101f8ff4ad2520a858ef3375e0324a997e21"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "853a78d55cf99ceb85526ce218d64f5e5d3ee56f607b530926031fa1b5ae5227",
+        "source_sha256": "4f3a23e30171bbe2e8ef5b43929d2d45a4123c3d84fa27dc4aa669d68c7508ed"
+      },
+      "technical": {
+        "locale_sha256": "94718500c6689be5b663472b1e36c5c758c2543fc6061709e0731ab10b62437d",
+        "source_sha256": "9be9a075a9c5812682be653bd6d84787c3fbed562b63869e5d878f24bd737d1c"
+      },
+      "title": {
+        "locale_sha256": "e635996789d98ed9e3f17816f45cea4beed7dbbd450588e439dfec3e48b587cf",
+        "source_sha256": "88c4e3154beee69848e2ed61ad43d7c78409a634e8ee46a3d02f028202a76d59"
+      },
+      "why_it_matters": {
+        "locale_sha256": "c9cdcef6ab1bc4c523312907d54462563220cc2f6c48948eae9c60fc891f36f2",
+        "source_sha256": "578df9f9d2a6bf4229aaddb4b6dc1a1850c90f38d1bff140457368ba8a8cd99c"
+      }
+    },
     "FCMO-28A16703D598": {
       "summary": {
         "locale_sha256": "d284140e442cdae30ba710c8654e6a14880ff878131a98f920d2bf0c8c553243",
@@ -16253,6 +16411,48 @@
       "why_it_matters": {
         "locale_sha256": "40b5d85d5353b47aeeedbee60d33292b90b35b396f21c78db1cb2386b97b6138",
         "source_sha256": "b34c56c53c58914e01ddc47afe07c098495090dc134e74a176c4e2ba121b1772"
+      }
+    },
+    "FCMO-565F99D94E34": {
+      "claims": {
+        "locale_sha256": "c66ee834fb5d5963f5706ef045d0c1bfa302991ef79dce413601f57ac789f8a8",
+        "source_sha256": "ceb11f249a8352031ee84b3546732cf60ebda6aa173419d7122371268a55770b"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "c106920c51bdc0c9355b4eb3d0cc50cb3c6b3b52c1c798c2ac79e5627201eb4b",
+        "source_sha256": "1bfe9f78968269f45b9e4ab08bdf06eb41d4614a733b719e864c2410b9fdf382"
+      },
+      "importance_rationale": {
+        "locale_sha256": "c49bc12c63bc65094a6995da15bd828c4f15f10f187594ef3f0bac6e7fe90cfd",
+        "source_sha256": "688443205a40a43edc6ace9e8db262c1b422efeb29021b9c5d34f7f192cde907"
+      },
+      "limitations": {
+        "locale_sha256": "42e7c4b91f4e3718d86becab05c34db5174831249b69bd9ef5f60b83f6c2fd3f",
+        "source_sha256": "7e48584cddd05a01bb7bee1024531e09b595d580b5f1bf0c7bf3815e26c6de51"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "c7c519bbabd8290466081c746c45beb04447375f2012cb9416bebfe25ebcac9b",
+        "source_sha256": "2b65bbf75bb52d6b6c4a42d9067bcdb0bdb9dbc6f78d3082fa3628bbc1ef3c14"
+      },
+      "technical": {
+        "locale_sha256": "f8202cc35244b54b155da407e610d839be695d1dd9d980e1f3c1440bbeddd8e9",
+        "source_sha256": "6f148af960e6e52717c82dd8ceb570a1079fa39cc96996dde71bcd2d8e662f94"
+      },
+      "title": {
+        "locale_sha256": "ae7ffbc73e102ec6f83a21d7346e81a19f87006f1ddfac87b8833307b933908d",
+        "source_sha256": "7ff656b1d8b5fd240580c06c2bad9ce01d58eaf38660e423655b13682e7e0eeb"
+      },
+      "why_it_matters": {
+        "locale_sha256": "cdfc11ae342329687637df429af2e5bf3d337d99ffc3aa91193b5a00b25a4cb6",
+        "source_sha256": "7bb3f11b3eded5abd29cafdb454c8691e4645314d62f4275bd4224243239ef97"
       }
     },
     "FCMO-57688EE6F24B": {
@@ -18465,6 +18665,48 @@
       "why_it_matters": {
         "locale_sha256": "499c8a744601c88c0a79454a5b42e0625e2546b4f62100bf10f6172784887a77",
         "source_sha256": "0719e0b2be638a437536da4ec636bc96c1f7521320bdc515d8b2ec5416b671a5"
+      }
+    },
+    "FCMO-94EBAAEAD595": {
+      "claims": {
+        "locale_sha256": "ad7567e2e71c643c01e35c27f6317c67c26cbd89c895295b90ea1544288b86f6",
+        "source_sha256": "059c8c00f858e97cf7595654186db612433bf650e28ac9fb621f754b0e94bf7e"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "8c5dc96dcce523fa1a390ff657658ce89b1a359381018dac880f7ef020f602ca",
+        "source_sha256": "fe798548fc43876707d27826f59d6ab9119227d3b3fc716d999fdd9fafb96542"
+      },
+      "importance_rationale": {
+        "locale_sha256": "cbd490d18b821340667d96ee6f391f6dc7b7de73b9e2b3251de8453f29375901",
+        "source_sha256": "3a14e44187bace419b939b18e84d061be0629190bfdf8c83cfed7166e7137df0"
+      },
+      "limitations": {
+        "locale_sha256": "b7c2ff05431a2849a3196ebac44034b15f7be285e9a2a70714327878e294cba1",
+        "source_sha256": "1654f6f43958c00024f3ab5125d495fa6d65f90852c783db7ec97a0bc96f88fc"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "566841c32ecbfc09151d06be183c8f9a2d623a913570b2059c2e2f983b15e455",
+        "source_sha256": "71f782b78d957f7405954a5248d3141f478e8e975636a04528d01023cb4e7b60"
+      },
+      "technical": {
+        "locale_sha256": "80bec94d205eb34cb9878eb60b0c7ff933a4462004334a83c561cf4ceade8569",
+        "source_sha256": "06d3556bf62a4a4cc0b95ff18cfdddec173e679dfb27f6c18bfc0503de84350f"
+      },
+      "title": {
+        "locale_sha256": "49ca47439f0d381d754734e71c126c7de95c7250ac2e5da47f0903698558fccf",
+        "source_sha256": "09672c29bb9effebab40fef4370413138f7ce4c43f529c7e627a16498eee7258"
+      },
+      "why_it_matters": {
+        "locale_sha256": "20dff9cb8b3eb1b74db843a2a26170455130d418803135f722a350f02b824119",
+        "source_sha256": "6305e08b5f7d70172db46d949c96658c76669f1b8d8ef8561875572db24bdc11"
       }
     },
     "FCMO-94FB7F8ABEF1": {

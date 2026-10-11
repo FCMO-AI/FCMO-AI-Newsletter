@@ -1,0 +1,104 @@
+{
+  "record": {
+    "id": "FCMO-252695B15D80",
+    "title": "Weave reports routing-conditioned GPU scheduling gains for MoE inference",
+    "desk": "Inference Systems",
+    "event_at": "2026-09-18T00:00:00Z",
+    "evidence": "A",
+    "confidence": "credible_unconfirmed",
+    "importance": 5,
+    "tier": "Notable",
+    "summary": "The September 18 preprint presents Weave, which uses post-routing information to allocate GPU streaming multiprocessors dynamically between communication and computation for each MoE layer. Its abstract reports a 2.89× geometric-mean speedup for MoE layers and 1.33× end-to-end speedup over five systems across six MoE models on 4×H100 SXM GPUs. These are author-reported results; the full baseline tables and implementation were not independently checked here, and no reproduction or evidence of transfer to other hardware was found.",
+    "topics": [
+      "mixture-of-experts",
+      "LLM-inference",
+      "GPU-scheduling",
+      "parallelism",
+      "inference-efficiency"
+    ],
+    "organizations": [],
+    "human_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-252695B15D80.html",
+    "machine_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/data/briefs/FCMO-252695B15D80.json",
+    "citation": {
+      "id": "FCMO-252695B15D80",
+      "source": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-252695B15D80.html"
+    }
+  },
+  "brief": {
+    "claims": [
+      {
+        "label": "CLAIMED",
+        "text": "The authors report that Weave dynamically assigns streaming multiprocessors to communication and computation after per-layer routing on 4×H100 SXM GPUs, reaching a 2.89× geometric-mean MoE-layer speedup and a 1.33× geometric-mean end-to-end speedup across six MoE models versus five named-as-state-of-the-art systems in the paper. These measurements are author-reported and have not been independently reproduced in this review."
+      }
+    ],
+    "confidence": "credible_unconfirmed",
+    "contradictory_evidence": [],
+    "desks": [
+      "inference_systems",
+      "efficiency"
+    ],
+    "development_type": "paper",
+    "editions": [
+      "2026-10-11"
+    ],
+    "event_at": "2026-09-18T00:00:00Z",
+    "evidence_class": "A",
+    "evidence_gaps": [
+      {
+        "description": "The reported speedups come from one 4×H100 SXM configuration and have not been independently reproduced; transfer to other GPU fabrics, model sizes, traffic mixtures and serving objectives is unknown.",
+        "kind": "missing_independent",
+        "state": "open",
+        "updated_at": "2026-10-11T22:10:00Z"
+      }
+    ],
+    "id": "FCMO-252695B15D80",
+    "importance_effective_score": 5,
+    "importance_rationale": "If sustained in the reported multi-GPU MoE regime, routing-conditioned SM scheduling can materially improve inference efficiency and change kernel and serving-system design choices; the result is meaningful but remains bounded to one 4×H100 setup and author-reported measurements.",
+    "importance_scale_version": 2,
+    "importance_score": 5,
+    "importance_tier": "Notable",
+    "last_verified_at": "2026-10-11T22:10:00Z",
+    "limitations": [
+      "The cited 2.89× layer-level and 1.33× end-to-end geometric means are reported by the paper authors, not independently measured here.",
+      "The abstract identifies 4×H100 SXM and six MoE models but does not establish performance on other accelerator systems or workload distributions.",
+      "No public implementation or reproduction was inspected in this bounded review; claimed comparisons depend on the paper's baseline configurations."
+    ],
+    "organizations": [],
+    "primary_desk": "inference_systems",
+    "recorded_at": "2026-10-11T22:10:00Z",
+    "regions": [
+      "global"
+    ],
+    "relationships": [],
+    "source_languages": [
+      "en"
+    ],
+    "source_urls": [
+      "https://arxiv.org/abs/2609.21483"
+    ],
+    "status": "developing",
+    "summary": "The September 18 preprint presents Weave, which uses post-routing information to allocate GPU streaming multiprocessors dynamically between communication and computation for each MoE layer. Its abstract reports a 2.89× geometric-mean speedup for MoE layers and 1.33× end-to-end speedup over five systems across six MoE models on 4×H100 SXM GPUs. These are author-reported results; the full baseline tables and implementation were not independently checked here, and no reproduction or evidence of transfer to other hardware was found.",
+    "technical": {
+      "claimed_result": "On 4×H100 SXM across six MoE models, the paper reports 2.89× geometric-mean MoE-layer and 1.33× end-to-end speedups versus five baselines.",
+      "compute_or_cost": "Evaluation regime stated in the abstract: 4×H100 SXM GPUs; no compute cost or energy comparison was recovered.",
+      "demonstrated_result": "No result independently demonstrated in this activation. The cited measurements are claims reported in the primary preprint.",
+      "implementation_status": "Preprint describes a persistent MoE megakernel with routing-conditioned spatial and temporal SM schedulers; implementation/code availability was not verified.",
+      "mechanism": "Once expert routing is known, a lightweight cost model partitions SMs between communication and computation workers per layer and GPU, then coordinates them over time to reduce resource mismatch and idle bubbles.",
+      "novelty": "The paper's claimed contribution is fine-grained runtime scheduling conditioned on each layer's routing result, rather than a fixed communication/computation SM split.",
+      "regime": "MoE inference under expert parallelism, evaluated on 4×H100 SXM across six models.",
+      "reproducibility": "Primary abstract is accessible; implementation, complete baseline configuration and independent reproduction were not inspected.",
+      "strongest_baseline": "Five systems described by the authors as state-of-the-art; individual baseline identities and matched settings require full-paper table inspection."
+    },
+    "title": "Weave reports routing-conditioned GPU scheduling gains for MoE inference",
+    "topics": [
+      "mixture-of-experts",
+      "LLM-inference",
+      "GPU-scheduling",
+      "parallelism",
+      "inference-efficiency"
+    ],
+    "why_it_matters": "MoE inference spends time coordinating expert computation with dispatch and combine traffic. If Weave's author-reported result holds, adapting the communication/computation split after routing can reduce resource mismatch on each layer and improve end-to-end serving efficiency. The tested 4×H100 result does not establish transfer to other hardware, workloads or deployment objectives."
+  },
+  "related": [],
+  "schema": "fcmo-public-brief-v1"
+}
