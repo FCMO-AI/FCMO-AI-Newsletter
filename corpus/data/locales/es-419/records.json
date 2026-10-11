@@ -2050,6 +2050,44 @@
       "title": "Un estudio controlado de Gemma 4 encuentra que las mejoras de negociación de modelos pequeños dependen de la tasa de aprendizaje",
       "why_it_matters": "El estudio muestra por qué las comparaciones de posentrenamiento en tareas de agentes necesitan tasas de aprendizaje ajustadas, varias semillas de entrenamiento y contrapartes diversas y adversariales: una tendencia de tamaño con tasa fija puede mezclar capacidad, arquitectura, cómputo y optimización, mientras que una recompensa agregada puede ocultar ganancias específicas de la familia del comprador. Sus resultados acotados ofrecen una referencia útil para diseñar evaluaciones de agentes negociadores, pero no demuestran que los modelos pequeños puedan reemplazar sistemas de frontera en compras o mercados."
     },
+    "FCMO-252695B15D80": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan que Weave asigna dinámicamente los streaming multiprocessors entre comunicación y cómputo después del ruteo de cada capa MoE, en GPU 4×H100 SXM, y logra una mejora media geométrica de 2.89× en capas MoE y 1.33× de extremo a extremo en seis modelos, frente a cinco sistemas que el artículo describe como de última generación. Estas mediciones son afirmaciones de los autores; esta revisión no las reprodujo de forma independiente."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "Las mejoras reportadas provienen de una configuración 4×H100 SXM y no se han reproducido de forma independiente; se desconoce su transferencia a otras interconexiones GPU, tamaños de modelo, mezclas de tráfico y objetivos de serving.",
+          "kind": "missing_independent",
+          "state": "open",
+          "updated_at": "2026-10-11T22:10:00Z"
+        }
+      ],
+      "importance_rationale": "Si se mantienen en el régimen MoE multinodo reportado, la asignación de streaming multiprocessors condicionada por el ruteo podría mejorar de forma material la eficiencia de inferencia e influir en el diseño de kernels y sistemas de serving. El resultado es relevante, pero se limita a un ensayo 4×H100 y a mediciones reportadas por los autores.",
+      "limitations": [
+        "Las mejoras medias geométricas de 2.89× a nivel de capa y 1.33× de extremo a extremo son resultados reportados por los autores, no mediciones independientes de esta revisión.",
+        "El resumen identifica GPU 4×H100 SXM y seis modelos MoE, pero no establece el rendimiento en otros aceleradores ni distribuciones de trabajo.",
+        "No se comprobó una implementación pública o reproducción; las comparaciones dependen de las configuraciones de referencia del artículo."
+      ],
+      "relationships": [],
+      "summary": "El preprint del 18 de septiembre presenta Weave, que utiliza la información disponible después del ruteo para asignar dinámicamente los streaming multiprocessors de la GPU entre comunicación y cómputo para cada capa MoE. El resumen informa una mejora media geométrica de 2.89× en capas MoE y de 1.33× de extremo a extremo frente a cinco sistemas, en seis modelos MoE sobre GPU 4×H100 SXM. No se revisaron de forma independiente las tablas completas de referencia ni la implementación; tampoco se encontró una reproducción o evidencia de transferencia a otro hardware.",
+      "technical": {
+        "claimed_result": "En GPU 4×H100 SXM y seis modelos MoE, el artículo reporta mejoras medias geométricas de 2.89× en capas MoE y 1.33× de extremo a extremo frente a cinco líneas base.",
+        "compute_or_cost": "El régimen indicado en el resumen es GPU 4×H100 SXM; no se recuperó una comparación de costo de cómputo o energía.",
+        "demonstrated_result": "Esta activación no demostró ningún resultado de forma independiente. Las mediciones citadas son afirmaciones del preprint principal.",
+        "implementation_status": "El preprint describe un megakernel persistente MoE con planificadores espaciales y temporales condicionados por el ruteo; no se verificó la disponibilidad de código.",
+        "mechanism": "Cuando se conocen las asignaciones de expertos, un modelo de costo ligero divide los SM entre trabajadores de comunicación y cómputo para cada capa y GPU, y luego coordina ambos grupos para reducir desajustes de recursos y tiempos ociosos.",
+        "novelty": "La contribución que afirma el artículo es planificar en tiempo de ejecución con granularidad fina según el ruteo de cada capa, en lugar de fijar una partición entre SM de comunicación y cómputo.",
+        "regime": "Inferencia MoE bajo paralelismo de expertos, evaluada en GPU 4×H100 SXM con seis modelos.",
+        "reproducibility": "El resumen primario está disponible; esta revisión no inspeccionó la implementación, la tabla completa de líneas base ni una reproducción independiente.",
+        "strongest_baseline": "El artículo compara con cinco sistemas que describe como de última generación; hace falta revisar las tablas completas para identificar cada sistema y su configuración."
+      },
+      "title": "Weave reporta mejoras de planificación de GPU para inferencia MoE",
+      "why_it_matters": "La inferencia MoE dedica tiempo a coordinar el cómputo de expertos con el tráfico de envío y combinación. Si se sostienen, los resultados de Weave indican que adaptar la partición entre comunicación y cómputo tras el ruteo puede reducir desajustes en cada capa y mejorar la eficiencia de extremo a extremo. El ensayo reportado en GPU 4×H100 no establece transferencia a otro hardware, cargas de trabajo ni objetivos de despliegue."
+    },
     "FCMO-28A16703D598": {
       "summary": "ASML y TSMC anunciaron una iniciativa industrial para mover High-NA EUV del formato de fotomáscara de 6 pulgadas usado durante décadas hacia máscaras de 12 pulgadas. La hoja de ruta conjunta apunta a una línea piloto de máscaras de 12 pulgadas para 2031 y sistemas de litografía completamente listos para producción en nodos avanzados para 2033; TSMC dice que pretende usar High-NA en manufactura de alto volumen desde 2030. Samsung confirmó por separado que se suma a la iniciativa de máscaras de 12 pulgadas y apunta a manufactura de alto volumen de DRAM High-NA para 2028. El formato mayor pretende recuperar productividad y eliminar restricciones de stitching creadas por el campo de exposición más pequeño de High-NA, algo especialmente relevante para grandes dies lógicos de vanguardia. Son compromisos coordinados de roadmap, no capacidad de fabricación de máscaras de 12 pulgadas ya entregada.",
       "title": "ASML y fabricantes líderes se comprometen con la transición a fotomáscaras de 12 pulgadas para High-NA EUV, con piloto en 2031 y sistemas de producción listos en 2033",
@@ -4903,6 +4941,45 @@
       },
       "title": "China abre las recomendaciones de 2026 para centros de cómputo verde con criterios de energía, carbono, agua y utilización",
       "why_it_matters": "Los criterios incorporan energía, agua, electricidad renovable y utilización de recursos en un proceso nacional de recomendación de instalaciones de cómputo. Podrían influir en qué instalaciones califican para reconocimiento, pero el aviso no muestra adopción, desempeño verificado ni efectos sobre la disponibilidad de cómputo para IA."
+    },
+    "FCMO-565F99D94E34": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Los autores afirman que la colocación de páginas de BOOST, consciente de las olas de ejecución, permite acceder de forma concurrente y proporcional a la memoria del host y a HBM sin modificar los kernels. En un único sistema Grace Hopper integrado con vLLM, reportan 4.3% menos tiempo por token de salida que el servicio solo con HBM a tamaño de lote fijo. En pruebas de alto rendimiento que escalan la capacidad, reportan un promedio de 31% más throughput que con HBM sola y una ventaja de 15% frente al prefetching. Esta revisión no reprodujo de forma independiente esos resultados."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "Las mediciones de rendimiento del artículo corresponden a una sola configuración Grace Hopper; no se encontró una reproducción independiente ni evidencia de transferencia a otros enlaces CPU-GPU, generaciones de aceleradores, pilas de serving o cargas de trabajo.",
+          "kind": "missing_independent",
+          "state": "open",
+          "updated_at": "2026-10-11T22:12:00Z"
+        }
+      ],
+      "importance_rationale": "Si las mejoras reportadas se sostienen, usar concurrentemente el ancho de banda de la memoria del host y de HBM podría aumentar la capacidad y el throughput del servicio LLM en sistemas limitados por memoria, con efectos para la economía del despliegue y el diseño de memoria. La evidencia es relevante, pero se limita a un sistema Grace Hopper y a pruebas reportadas por los autores.",
+      "limitations": [
+        "Todos los resultados de rendimiento citados provienen del preprint y no se midieron de forma independiente en esta activación.",
+        "El artículo describe pruebas en un sistema Grace Hopper con vLLM; se desconoce si los resultados se transfieren a otros enlaces, equipos, modelos y pilas de serving.",
+        "El resumen separa TPOT a lote fijo del throughput al escalar capacidad. El aumento de throughput de 31% no equivale a una reducción de latencia de 31%.",
+        "Esta revisión no examinó las tablas completas, la disponibilidad del código ni los detalles de configuración de las líneas base."
+      ],
+      "relationships": [],
+      "summary": "El preprint del 11 de septiembre presenta BOOST, un sistema que coloca pesos del modelo y páginas KV para que las olas de bloques de hilos de la GPU accedan concurrentemente a la memoria del host y a HBM en proporción a sus anchos de banda. En un único sistema Grace Hopper con vLLM, los autores reportan 4.3% menos tiempo por token de salida que usando solo HBM con lote fijo. En pruebas de alto rendimiento con capacidad escalada, reportan un promedio de 31% más throughput que con HBM sola y una ventaja de 15% frente al prefetching. La cifra de throughput incluye mayor capacidad utilizable y no debe interpretarse como una reducción de latencia; al mantener fija la capacidad, los autores aíslan cerca de cuatro puntos porcentuales atribuibles al acceso concurrente al ancho de banda. Esta revisión no reprodujo los resultados.",
+      "technical": {
+        "claimed_result": "Los autores reportan 4.3% menos TPOT frente a HBM sola con lote fijo; en servicio con capacidad escalada, el throughput promedio es 31% mayor que con HBM sola y 15% mayor que con prefetching.",
+        "compute_or_cost": "Una sola configuración Grace Hopper; el artículo describe latencia y throughput, pero esta revisión no recuperó medidas de energía ni costo por token.",
+        "demonstrated_result": "Esta activación no demostró ningún resultado de forma independiente; las mediciones son afirmaciones del preprint principal.",
+        "implementation_status": "El artículo describe un runtime integrado con vLLM que coloca páginas para pesos estáticos y páginas KV dinámicas; no se verificó la disponibilidad pública del artefacto.",
+        "mechanism": "La colocación consciente de las olas de ejecución alinea los accesos a HBM y a memoria del host para que ambos niveles atiendan cargas concurrentes, en vez de trasladar los datos a HBM mediante prefetching.",
+        "novelty": "El artículo afirma que una colocación de memoria consciente de la ejecución de la GPU puede aprovechar a la vez el ancho de banda de la memoria del host y de HBM sin cambiar los kernels de inferencia.",
+        "regime": "Inferencia LLM con vLLM en un sistema Grace Hopper; TPOT a lote fijo y throughput con capacidad escalada son regímenes de evaluación distintos.",
+        "reproducibility": "El resumen primario está disponible; esta revisión no examinó las tablas completas, la implementación ni una reproducción independiente.",
+        "strongest_baseline": "El resumen menciona el servicio solo con HBM y el prefetching; las configuraciones detalladas y comparaciones por modelo requieren revisar el artículo completo."
+      },
+      "title": "BOOST reporta mejoras de inferencia LLM al combinar memoria del host y HBM",
+      "why_it_matters": "La capacidad y el ancho de banda de HBM limitan el servicio de modelos. Si los resultados de BOOST se sostienen, el uso directo y concurrente de la memoria del host y de HBM podría ampliar el conjunto de trabajo ejecutable y elevar el throughput. El aumento reportado al escalar capacidad combina más capacidad con una contribución menor del ancho de banda concurrente; no implica la misma reducción porcentual de latencia ni ganancias universales en todos los sistemas."
     },
     "FCMO-57688EE6F24B": {
       "claims": [
@@ -7893,6 +7970,45 @@
       },
       "title": "ScienceBuddy reporta mejoras al coevolucionar un arnés científico y un modelo de lenguaje",
       "why_it_matters": "Si se replica con tareas científicas creadas de forma independiente y verificación de resultados, la coevolución de un arnés de investigación y su modelo de tareas podría mejorar la ejecución de tareas. La evidencia actual establece un resultado acotado de benchmark ejecutado por los autores; no muestra que el sistema haya hecho descubrimientos científicos ni que el repositorio mantenido actualmente reproduzca el caso del artículo."
+    },
+    "FCMO-94EBAAEAD595": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Los autores reportan que MorFiC, un crítico condicionado por la morfología que usa modulación por características en una política actor-crítico compartida, mejora la transferencia cero-shot entre cuadrúpedos tras entrenar en simulación con aleatorización morfológica. El resumen informa aumentos de velocidad de 16.1% en A1, cerca de 2× en Cheetah y cerca de 5× en B1 frente a líneas base PPO condicionadas por morfología, además de despliegues en robots Go1 y Go2 sin ajuste fino. Son resultados reportados por el artículo, no mediciones independientes de esta revisión."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "El resumen presenta aumentos seleccionados de velocidad y afirma que la política se desplegó en dos plataformas Unitree sin ajuste fino, pero esta revisión no examinó el número de tareas, las condiciones de prueba de los robots, las tasas de fallos, la incertidumbre ni una reproducción.",
+          "kind": "missing_independent",
+          "state": "open",
+          "updated_at": "2026-10-11T22:14:00Z"
+        }
+      ],
+      "importance_rationale": "Si los resultados del artículo se sostienen, condicionar las características del crítico según la morfología podría reducir la interferencia en la estimación de valor y mejorar la transferencia entre cuadrúpedos, lo que influiría en una decisión relevante de entrenamiento robótico. La importancia se limita a la locomoción y al pequeño conjunto de plataformas evaluadas; no demuestra transferencia robótica general.",
+      "limitations": [
+        "Todas las cifras de rendimiento son resultados reportados por los autores en un preprint; esta activación no los reprodujo de forma independiente.",
+        "Los aumentos de velocidad en simulación no establecen éxito por tarea, seguridad, robustez ni desempeño económico entre plataformas.",
+        "El resumen limita el despliegue físico sin ajuste fino a Unitree Go1 y Go2; no se revisaron las condiciones de prueba ni las tasas de fallo.",
+        "El resultado se refiere a locomoción cuadrúpeda y no establece transferencia morfológica general a otros tipos de robot."
+      ],
+      "relationships": [],
+      "summary": "El preprint del 15 de marzo presenta MorFiC, que condiciona mediante modulación por características el crítico de una política compartida según la morfología del robot. Los autores reportan mejor transferencia cero-shot entre cuadrúpedos tras entrenar en simulación con aleatorización morfológica, con aumentos de velocidad de 16.1% en A1, cerca de 2× en Cheetah y cerca de 5× en B1 frente a líneas base PPO condicionadas por morfología. También reportan despliegues en Unitree Go1 y Go2 sin ajuste fino. Esta revisión no examinó las tablas completas, el protocolo físico, el código ni reproducciones independientes.",
+      "technical": {
+        "claimed_result": "El artículo reporta aumentos de velocidad cero-shot de 16.1% en A1, aproximadamente 2× en Cheetah y aproximadamente 5× en B1, además de despliegues en Unitree Go1 y Go2 sin ajuste fino.",
+        "compute_or_cost": "El resumen no informa presupuesto de cómputo, energía, costo de entrenamiento ni costo operativo por tarea.",
+        "demonstrated_result": "Esta activación no demostró ningún resultado de forma independiente; las cifras son afirmaciones del preprint principal.",
+        "implementation_status": "El preprint describe entrenamiento actor-crítico compartido y modulación FiLM del crítico según la morfología; no se verificó la disponibilidad de una implementación pública.",
+        "mechanism": "Un codificador de morfología entrega parámetros latentes del robot a capas FiLM del crítico, de modo que la función de valor puede variar entre cuerpos mientras la política sigue siendo compartida.",
+        "novelty": "El artículo plantea que condicionar el crítico por morfología reduce la interferencia entre objetivos de valor y estabiliza las ventajas cuando cambia la morfología.",
+        "regime": "Locomoción cuadrúpeda: entrenamiento en un robot de origen con aleatorización morfológica en simulación, seguido de evaluación en otras morfologías simuladas y, según el resumen, dos plataformas Unitree.",
+        "reproducibility": "Están disponibles el resumen primario y una nota universitaria; no se revisaron las tablas completas, las condiciones de prueba física, el código ni una reproducción independiente.",
+        "strongest_baseline": "El resumen menciona líneas base PPO condicionadas por morfología; las configuraciones exactas y comparaciones por robot requieren revisar el artículo completo."
+      },
+      "title": "MorFiC reporta transferencia entre morfologías de cuadrúpedos mediante un crítico condicionado",
+      "why_it_matters": "Distintas dinámicas corporales pueden invalidar las estimaciones de valor de una política compartida. Si los resultados reportados se sostienen, las características del crítico condicionadas por morfología podrían facilitar la transferencia de locomoción sin reentrenar cada robot. La evidencia actual se limita a simulaciones de cuadrúpedos y dos despliegues Unitree descritos por los autores; no demuestra transferencia segura de propósito general."
     },
     "FCMO-94FB7F8ABEF1": {
       "claims": [
