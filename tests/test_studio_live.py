@@ -19,7 +19,7 @@ class LiveContract(unittest.TestCase):
         self.assertIn('publish-gate:', workflow)
         self.assertNotIn('    paths:', workflow, 'Required check must run for every protected-main PR')
         self.assertIn('fetch-depth: 0', workflow)
-        self.assertIn('ops/publish.py --check', workflow)
+        self.assertIn('ops/publish.py --check --tests-verified-commit "$GITHUB_SHA"', workflow)
     def test_recovery_runs_both_pre_studio_and_editorial_lkg_renderers(self):
         import tempfile, os, sys
         workflow = (ROOT / '.github/workflows/pages.yml').read_text()
