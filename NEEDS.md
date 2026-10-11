@@ -361,3 +361,7 @@ verification are complete; a local build cannot truthfully update it.
   Reproducir con navegador: cambiar el pie de figura y pulsar Publicar antes de
   900 ms; comprobar el recurso guardado y la regeneración en ambos idiomas.
   Esta transición de UI sigue pendiente; el flujo HTTP no acredita ese recorrido.
+
+# nl-ci4
+
+- The archived PR #80 merge run (`8c26bcfe675db01ec9d82bafe9e452029f1baf1b`) reports the `FCMO-66E542A93F36` record in `corpus/data/developments.jsonl` with claims missing `label` values. This makes native admission reject the record and causes story-layer census failures. In this worktree at `307f6f5a`, that record has labels and the native-admission and story-layer tests pass alone and in their assigned shard. Reconcile the record on the target branch so every claim retains its intended label, then rerun all four shards against the same merge commit. Keep the admission and story assertions unchanged.

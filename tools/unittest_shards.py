@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+from pathlib import Path
 import sys
 import unittest
 
@@ -36,6 +37,16 @@ def discovered_test_ids(start_dir: str = "tests") -> list[str]:
     return [test.id() for test in flatten(suite)]
 
 
+def ensure_repository_root_on_path() -> Path:
+    """Make repository package imports match ``python -m unittest`` discovery."""
+    root = Path(__file__).resolve().parents[1]
+    root_string = str(root)
+    if root_string in sys.path:
+        sys.path.remove(root_string)
+    sys.path.insert(0, root_string)
+    return root
+
+
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--index", type=int, required=True)
@@ -44,6 +55,11 @@ def main(argv=None) -> int:
     args = parser.parse_args(argv)
     if args.count < 1 or not 0 <= args.index < args.count:
         parser.error("index must be in [0, count), and count must be positive")
+
+    # Script execution puts ``tools/`` rather than the repository root on
+    # sys.path. Add the root before discovery so imports behave like the
+    # serial ``python -m unittest discover`` job.
+    ensure_repository_root_on_path()
 
     # Discover once: a second discover() in the same process sees already
     # imported modules and can differ (it did on GitHub runners).
