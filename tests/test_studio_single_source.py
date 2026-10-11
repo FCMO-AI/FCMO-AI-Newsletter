@@ -10,7 +10,7 @@ from unittest.mock import patch
 from studio.server.storage import Store
 from studio.server.checks import checks
 from studio.server.publishing import Publisher
-from studio.translation import FakeProvider, TranslationError, translate, validate_translation
+from studio.translation import FakeProvider, TranslationError, make_request, translate, validate_translation
 
 
 DOC = {'schema': 'fcmo-essay-doc-v1', 'locale': 'es-419',
@@ -105,6 +105,63 @@ class SingleSourceTests(unittest.TestCase):
             target['blocks'][0]['content'][0]['v'] = text
             with self.subTest(text=text), self.assertRaises(TranslationError):
                 validate_translation(source, target, 'en')
+
+    def test_locale_aware_magnitude_numbers_preserve_values_and_years(self):
+        source = copy.deepcopy(DOC)
+        source['blocks'][0]['content'][0]['v'] = 'La cifra correcta de 12 millones corresponde a 2025.'
+        target = copy.deepcopy(source); target['locale'] = 'zh-Hans'
+        target['blocks'][0]['content'][0]['v'] = '正确数字为1200万，对应2025年。'
+        validate_translation(source, target, 'zh-Hans')
+
+        source['blocks'][0]['content'][0]['v'] = 'El costo fue de 3.5 mil millones.'
+        target = copy.deepcopy(source); target['locale'] = 'zh-Hans'
+        target['blocks'][0]['content'][0]['v'] = '成本为35亿。'
+        validate_translation(source, target, 'zh-Hans')
+        target['blocks'][0]['content'][0]['v'] = '成本为0.12亿。'
+        source['blocks'][0]['content'][0]['v'] = 'El costo fue de 12 millones.'
+        validate_translation(source, target, 'zh-Hans')
+        source['blocks'][0]['content'][0]['v'] = 'El total fue de 1,5 millones.'
+        target['blocks'][0]['content'][0]['v'] = '总额为1.5百万。'
+        validate_translation(source, target, 'zh-Hans')
+        source['blocks'][0]['content'][0]['v'] = 'El presupuesto fue de 2 mil.'
+        target['blocks'][0]['content'][0]['v'] = '预算为2000。'
+        validate_translation(source, target, 'zh-Hans')
+        source['blocks'][0]['content'][0]['v'] = 'La población es de 1 billón.'
+        target['blocks'][0]['content'][0]['v'] = '人口为10000亿。'
+        validate_translation(source, target, 'zh-Hans')
+        source['locale'] = 'en'
+        source['blocks'][0]['content'][0]['v'] = 'The sample included 2 thousand people.'
+        target['locale'] = 'zh-Hans'
+        target['blocks'][0]['content'][0]['v'] = '样本包括2千人。'
+        validate_translation(source, target, 'zh-Hans')
+        source['locale'] = 'es-419'
+
+        source['blocks'][0]['content'][0]['v'] = 'El costo fue de 3.5 mil millones.'
+        target['blocks'][0]['content'][0]['v'] = '成本为35亿。'
+        validate_translation(source, target, 'zh-Hans')
+        target['locale'] = 'en'
+        target['blocks'][0]['content'][0]['v'] = 'The cost was 3.5 billion.'
+        validate_translation(source, target, 'en')
+
+        target['locale'] = 'zh-Hans'
+        target['blocks'][0]['content'][0]['v'] = '成本为1300万。'
+        with self.assertRaises(TranslationError): validate_translation(source, target, 'zh-Hans')
+
+        source['blocks'][0]['content'][0]['v'] = 'La cifra correcta corresponde a 2025.'
+        target = copy.deepcopy(source); target['locale'] = 'zh-Hans'
+        target['blocks'][0]['content'][0]['v'] = '正确数字对应2026年。'
+        with self.assertRaises(TranslationError): validate_translation(source, target, 'zh-Hans')
+
+        source['blocks'][0]['content'][0]['v'] = 'El resultado fue 45%.'
+        target = copy.deepcopy(source); target['locale'] = 'zh-Hans'
+        target['blocks'][0]['content'][0]['v'] = '结果为45%。'
+        validate_translation(source, target, 'zh-Hans')
+
+    def test_translation_request_prompts_for_natural_locale_number_formats(self):
+        request = make_request(DOC)
+        self.assertIn('naturally', request['rules'])
+        self.assertIn('万', request['rules'])
+        self.assertIn('亿', request['rules'])
 
     def test_protected_names_cannot_be_reused_as_substrings_of_different_entities(self):
         source = copy.deepcopy(DOC); original = 'OpenAI probó o3 bajo FCMO-P-123456789abc.'
