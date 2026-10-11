@@ -407,7 +407,17 @@ class PaperBuilder:
         if locale["code"] == "en":
             return story.get("evidence") or {}
         value = field(story, locale["code"], "evidence", {})
-        return value if isinstance(value, dict) else {}
+        if not isinstance(value, dict):
+            return {}
+        # Locale packs carry prose; evidence codes remain canonical and are
+        # displayed only through this edition's catalog.
+        canonical = (story.get("evidence") or {}).get("claims") or []
+        claims = []
+        for index, claim in enumerate(value.get("claims") or []):
+            codes = {key: canonical[index][key] for key in ("label", "qualifier")
+                     if index < len(canonical) and key in canonical[index]}
+            claims.append({**claim, **codes})
+        return {**value, "claims": claims}
 
     def _story(self, story: dict, locale: dict) -> None:
         code = locale["code"]
@@ -416,7 +426,7 @@ class PaperBuilder:
         if story.get("status") in {"withdrawn", "merged"} and story.get("corrections"):
             self._correction_notice(story, locale)
             return
-        complete = is_complete(story, code)
+        complete = is_complete(story, code, catalog=catalog)
         title = headline(story, code, catalog) if complete else strings["l10n"]["pending_title"]
         description = truncate(dek(story, code, catalog))
         suffix = story_path({**locale, "path_prefix": ""}, story)
@@ -427,7 +437,7 @@ class PaperBuilder:
         if code != "en" and story_locale(story, code).get("state") == "MACHINE_REVIEWED":
             english = self._story_href(self.config["locales"][0], story)
             note = (f'<p class="translation-note" role="note">{esc(strings["l10n"]["desk_note"])} '
-                    f'<a href="{esc(english)}" lang="en" hreflang="en">English original</a></p>')
+                    f'<a href="{esc(english)}" lang="{esc(code)}" hreflang="en">{esc(strings["l10n"]["read_original"])}</a></p>')
         dz = strings["design"]
         grade_text = label(catalog, "evidence_class", story.get("evidence_class"))
         conf_text = label(catalog, "confidence", story.get("confidence"))
@@ -500,8 +510,8 @@ class PaperBuilder:
         strings = catalog["strings"]
         fix = story["corrections"][-1]
         text = fix.get("text") or {}
-        notice = text.get(code) or text.get("en") or strings["story"].get(story["status"], "")
-        kind = label(catalog, "correction_kind", fix.get("kind"), fallback=story["status"].title())
+        notice = text.get(code) or strings["l10n"]["pending_notice"]
+        kind = label(catalog, "correction_kind", fix.get("kind"), fallback=strings["story"]["corrections"])
         title = headline(story, code, catalog)
         body = (f'<p class="story-kicker">{esc(kind)} · '
                 f'<time datetime="{esc(fix.get("at", ""))}">{esc(format_date(fix["at"], catalog))}</time></p>'
@@ -726,7 +736,7 @@ class PaperBuilder:
         correction_rows = []
         for story, correction in corrections:
             text = correction.get("text") or {}
-            note = text.get(locale["code"]) or text.get("en") or ""
+            note = text.get(locale["code"]) or s["l10n"]["pending_notice"]
             title = headline(story, locale["code"], catalog)
             date = correction.get("at") or story.get("updated_at")
             correction_rows.append(

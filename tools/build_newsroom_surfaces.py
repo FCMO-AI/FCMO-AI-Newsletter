@@ -29,8 +29,12 @@ from xml.etree.ElementTree import Element, SubElement, ElementTree, register_nam
 
 try:
     from tools import story_layer
+    from tools import mark_pending_localizations as localization
+    from tools.validate_localizations import is_complete, pair_status, load_locale_details
 except ImportError:  # executed as tools/build_newsroom_surfaces.py
     import story_layer  # type: ignore
+    import mark_pending_localizations as localization
+    from validate_localizations import is_complete, pair_status, load_locale_details
 
 BASE = "https://fcmo-ai.github.io/FCMO-AI-Newsletter"
 NEWSROOM_STYLESHEET = "../../assets/newsroom.css"
@@ -39,15 +43,14 @@ LOCALES = {
     "es-419": {"slug": "es", "hreflang": "es", "name": "Español"},
     "zh-Hans": {"slug": "zh-hans", "hreflang": "zh-Hans", "name": "简体中文"},
 }
-LABELS = {
-    "en": {"latest":"Latest","what_changed":"What actually changed","evidence":"Claim vs. evidence","baseline":"Strongest baseline","caveat":"The caveat that matters","unknown":"What remains unknown","lens":"FCMO Lens","sources":"Primary sources","context":"Further public context","method":"Autonomously researched and edited from cited public evidence. English is the canonical semantic edition.","back":"FCMO AI Newsletter"},
-    "es-419": {"latest":"Últimas","what_changed":"Qué cambió realmente","evidence":"Afirmación vs. evidencia","baseline":"Baseline más fuerte","caveat":"La salvedad que importa","unknown":"Qué sigue sin saberse","lens":"Lente FCMO","sources":"Fuentes primarias","context":"Contexto público adicional","method":"Investigado y editado de forma autónoma a partir de evidencia pública citada. El inglés es la edición semántica canónica.","back":"FCMO AI Newsletter"},
-    "zh-Hans": {"latest":"最新","what_changed":"真正发生了什么变化","evidence":"主张与证据","baseline":"最强基线","caveat":"最重要的限制","unknown":"仍然未知的部分","lens":"FCMO 视角","sources":"主要来源","context":"更多公开背景","method":"基于所引公开证据进行自主研究与编辑。英语版是语义上的权威版本。","back":"FCMO AI Newsletter"},
-}
-CLAIM_LABELS = {
-    "es-419": {"DEMONSTRATED":"DEMOSTRADO","CLAIMED":"AFIRMADO","INFERRED":"INFERIDO","SPECULATIVE":"ESPECULATIVO","DISPUTED":"DISPUTADO"},
-    "zh-Hans": {"DEMONSTRATED":"已证实","CLAIMED":"声称","INFERRED":"推断","SPECULATIVE":"推测","DISPUTED":"有争议"},
-}
+def newsroom_labels(locale: str) -> dict[str, str]:
+    strings = localization.load_ui_catalog(locale)["strings"]
+    story = strings["story"]
+    return {"latest": strings["nav"]["latest"], "what_changed": story["what_changed"],
+            "evidence": story["evidence"], "baseline": strings["technical_field"]["strongest_baseline"],
+            "caveat": story["limitations"], "unknown": story["unknowns"], "lens": story["why_it_matters"],
+            "sources": story["sources"], "context": strings["newsroom"]["context"],
+            "method": strings["newsroom"]["method"], "back": strings["site"]["name"]}
 
 
 def read_json(path: Path) -> Any:
@@ -67,14 +70,8 @@ def load_briefs(root: Path) -> dict[str, dict[str, Any]]:
 def load_locale_records(i18n_root: Path, locale: str) -> dict[str, dict[str, Any]]:
     if locale == "en":
         return {}
-    result: dict[str, dict[str, Any]] = {}
-    for path in sorted((i18n_root / locale).glob("part-*.json")):
-        obj = read_json(path)
-        rows = obj.get("records") or {}
-        if not isinstance(rows, dict):
-            raise SystemExit(f"{path}: locale records missing")
-        result.update(rows)
-    return result
+    rows, _, _, _ = load_locale_details(i18n_root, locale)
+    return rows
 
 
 def merge_overlay(source: Any, overlay: Any) -> Any:
@@ -198,18 +195,27 @@ def citation_record(brief: dict[str, Any], canonical_story_url: str) -> tuple[st
 
 
 def article_html(locale: str, brief: dict[str, Any], story: dict[str, Any], all_links: dict[str, str], citation_url: str | None = None) -> str:
-    label = LABELS[locale]
+    label = newsroom_labels(locale)
+    catalog = localization.load_ui_catalog(locale)
+    strings = catalog["strings"]["story"]
+    story_type = localization.label(locale, "story_type", story.get("story_type")) or ""
+    desk = localization.label(locale, "desk", brief.get("primary_desk")) or ""
+    published = strings["published"].format(date=localization.format_date(story.get("published_at"), locale, "minute", "datetime"))
+    event = strings["event_date"].format(date=localization.format_date(story.get("event_at"), locale, "minute", "datetime"))
     media = story.get("media") or {}
+    caption = f'{media.get("credit") or ""} · {media.get("license") or ""}'
+    if media.get("mode") == "fcmo_explainer" and media.get("license") == "FCMO original editorial graphic":
+        credit = strings["byline"].split("·", 1)[0].strip()
+        caption = f'{credit} · {strings["explainer_credit"]} · {catalog["strings"]["newsroom"]["original_graphic"]}'
     image = media.get("image_url")
     if isinstance(image, str) and image.startswith("/"):
         image = BASE + image.removeprefix("/FCMO-AI-Newsletter")
     elif isinstance(image, str) and not image.startswith("http"):
         image = f"{BASE}/{image.lstrip('/')}"
     claims = []
-    claim_map = CLAIM_LABELS.get(locale, {})
     for claim in brief.get("claims") or []:
         if isinstance(claim, dict):
-            claims.append(f"<li><strong>{safe(claim_map.get(str(claim.get('label')), str(claim.get('label') or '')))}</strong> — {safe(claim.get('text'))}</li>")
+            claims.append(f"<li><strong>{safe(localization.label(locale, 'claim_label', claim.get('label')))}</strong> — {safe(claim.get('text'))}</li>")
     technical = brief.get("technical") or {}
     caveats = list(brief.get("limitations") or []) + list(brief.get("contradictory_evidence") or [])
     gaps = [str(x.get("description") or "") for x in brief.get("evidence_gaps") or [] if isinstance(x, dict)]
@@ -221,12 +227,13 @@ def article_html(locale: str, brief: dict[str, Any], story: dict[str, Any], all_
     ld = {"@context":"https://schema.org","@type":"NewsArticle","identifier":brief.get("id"),"headline":brief.get("title"),"description":brief.get("summary"),"datePublished":story.get("published_at"),"dateModified":story.get("modified_at"),"inLanguage":locale,"mainEntityOfPage":url,"citation":citation_url,"isBasedOn":sources,"author":{"@type":"Organization","name":"FCMO AI Research Desk"},"publisher":{"@type":"Organization","name":"FCMO AI Newsletter","url":BASE+"/"}}
     if image: ld["image"] = [image]
     alternates = "\n".join(f'<link rel="alternate" hreflang="{LOCALES[key]["hreflang"]}" href="{safe(href)}">' for key, href in all_links.items()) + f'\n<link rel="alternate" hreflang="x-default" href="{safe(all_links["en"])}">'
-    return f'''<!doctype html><html lang="{safe(locale)}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{safe(brief.get("title"))} · FCMO AI Newsletter</title><meta name="description" content="{safe(brief.get("summary"))}"><link rel="canonical" href="{safe(url)}">{alternates}<link rel="stylesheet" href="{NEWSROOM_STYLESHEET}"><script type="application/ld+json">{json.dumps(ld, ensure_ascii=False).replace('</','<\\/')}</script></head><body><header class="wire-head"><a href="{BASE}/">{safe(label["back"])}</a><span>FCMO WIRE</span></header><main class="story"><div class="kicker">{safe(story["story_type"])} · {safe(brief.get("primary_desk","research")).replace("_"," ")}</div><h1>{safe(brief.get("title"))}</h1><p class="dek">{safe(brief.get("summary"))}</p><p class="byline">FCMO AI Research Desk · Published {safe(story.get("published_at"))} · Research event {safe(story.get("event_at"))}</p><p class="method">{safe(label["method"])}</p>{f'<figure><img src="{safe(image)}" alt="{safe(brief.get("title"))}"><figcaption>{safe(media.get("credit"))} · {safe(media.get("license"))}</figcaption></figure>' if image else ''}<section><h2>{safe(label["what_changed"])}</h2><p>{safe(brief.get("summary"))}</p></section><section><h2>{safe(label["evidence"])}</h2><ul>{''.join(claims)}</ul></section><section><h2>{safe(label["baseline"])}</h2><p>{safe(technical.get("strongest_baseline"))}</p></section><section><h2>{safe(label["caveat"])}</h2>{list_html([str(x) for x in caveats])}</section><section><h2>{safe(label["unknown"])}</h2>{list_html(gaps)}</section><section><h2>{safe(label["lens"])}</h2><p>{safe(brief.get("why_it_matters"))}</p></section><section><h2>{safe(label["sources"])}</h2>{source_links([str(x) for x in brief.get("source_urls") or []])}</section><section><h2>{safe(label["context"])}</h2>{source_links(context_urls)}</section></main></body></html>'''
+    return f'''<!doctype html><html lang="{safe(locale)}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{safe(brief.get("title"))} · FCMO AI Newsletter</title><meta name="description" content="{safe(brief.get("summary"))}"><link rel="canonical" href="{safe(url)}">{alternates}<link rel="stylesheet" href="{NEWSROOM_STYLESHEET}"><script type="application/ld+json">{json.dumps(ld, ensure_ascii=False).replace('</','<\\/')}</script></head><body><header class="wire-head"><a href="{BASE}/">{safe(label["back"])}</a><span>FCMO WIRE</span></header><main class="story"><div class="kicker">{safe(story_type)} · {safe(desk)}</div><h1>{safe(brief.get("title"))}</h1><p class="dek">{safe(brief.get("summary"))}</p><p class="byline">{safe(strings["byline"])} · {safe(published)} · {safe(event)}</p><p class="method">{safe(label["method"])}</p>{f'<figure><img src="{safe(image)}" alt="{safe(brief.get("title"))}"><figcaption>{safe(caption)}</figcaption></figure>' if image else ''}<section><h2>{safe(label["what_changed"])}</h2><p>{safe(brief.get("summary"))}</p></section><section><h2>{safe(label["evidence"])}</h2><ul>{''.join(claims)}</ul></section><section><h2>{safe(label["baseline"])}</h2><p>{safe(technical.get("strongest_baseline"))}</p></section><section><h2>{safe(label["caveat"])}</h2>{list_html([str(x) for x in caveats])}</section><section><h2>{safe(label["unknown"])}</h2>{list_html(gaps)}</section><section><h2>{safe(label["lens"])}</h2><p>{safe(brief.get("why_it_matters"))}</p></section><section><h2>{safe(label["sources"])}</h2>{source_links([str(x) for x in brief.get("source_urls") or []])}</section><section><h2>{safe(label["context"])}</h2>{source_links(context_urls)}</section></main></body></html>'''
 
 
 def index_html(locale: str, stories: list[tuple[dict[str, Any], str]]) -> str:
-    label=LABELS[locale]
-    cards="".join(f'<article><div class="kicker">{safe(story["story_type"])}</div><h2><a href="{safe(href)}">{safe(story["headline"])}</a></h2><p>{safe(story["dek"])}</p><small>Published {safe(story["published_at"])}</small></article>' for story,href in stories)
+    label=newsroom_labels(locale)
+    strings = localization.load_ui_catalog(locale)["strings"]["story"]
+    cards="".join(f'<article><div class="kicker">{safe(localization.label(locale,"story_type",story.get("story_type")))}</div><h2><a href="{safe(href)}">{safe(story["headline"])}</a></h2><p>{safe(story["dek"])}</p><small>{safe(strings["published"].format(date=localization.format_date(story.get("published_at"),locale,"minute","datetime")))}</small></article>' for story,href in stories)
     return f'<!doctype html><html lang="{safe(locale)}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FCMO WIRE · {safe(label["latest"])}</title><link rel="stylesheet" href="{NEWSROOM_STYLESHEET}"></head><body><header class="wire-head"><a href="{BASE}/">FCMO AI Newsletter</a><span>FCMO WIRE</span></header><main class="story"><h1>{safe(label["latest"])}</h1><p class="method">{safe(label["method"])}</p><div class="cards">{cards}</div></main></body></html>'
 
 
@@ -264,16 +271,11 @@ def standard_sitemap(site:Path,pages:list[dict[str,Any]]) -> None:
     ElementTree(root).write(site/"sitemap.xml",encoding="utf-8",xml_declaration=True)
 
 
-NOTICE_LABELS = {
-    "en": {"withdrawn": "This story was withdrawn", "merged": "This story was merged into another report",
-           "original": "Original headline", "current": "Read the current story", "correction": "Correction",
-           "ledger": "Corrections ledger"},
-    "es-419": {"withdrawn": "Esta historia fue retirada", "merged": "Esta historia se integró en otra nota",
-               "original": "Titular original", "current": "Leer la historia vigente", "correction": "Corrección",
-               "ledger": "Registro de correcciones"},
-    "zh-Hans": {"withdrawn": "本文已撤回", "merged": "本文已并入另一篇报道", "original": "原标题",
-                "current": "阅读现行报道", "correction": "更正", "ledger": "更正记录"},
-}
+def notice_labels(locale: str) -> dict[str, str]:
+    strings = localization.load_ui_catalog(locale)["strings"]
+    return {"withdrawn": strings["story"]["withdrawn"], "merged": strings["story"]["merged"],
+            "original": strings["l10n"]["original_headline"], "current": strings["story"]["read_merged"],
+            "correction": strings["nav"]["corrections"], "ledger": strings["corrections_page"]["title"]}
 
 
 def build_story_layer(corpus: Path, site: Path, repo: Path | None, now: str) -> dict[str, Any] | None:
@@ -290,19 +292,19 @@ def build_story_layer(corpus: Path, site: Path, repo: Path | None, now: str) -> 
 
 def notice_html(locale: str, story: dict[str, Any], links: dict[str, str], survivor: str | None) -> str:
     """Public notice that replaces the page of a withdrawn or merged story."""
-    label = NOTICE_LABELS[locale]
+    label = notice_labels(locale)
     fix = story["corrections"][-1] if story["corrections"] else {"text": {}, "at": story["updated_at"]}
     text = fix["text"].get(locale)
-    text_lang = locale if text else "en"
-    text = text or fix["text"].get("en", "")
+    text_lang = locale
+    text = text or localization.ui(locale, "l10n.pending_notice")
     heading = label["merged"] if story["status"] == "merged" else label["withdrawn"]
     canonical = survivor or links[locale]
     alternates = "".join(f'<link rel="alternate" hreflang="{safe(LOCALES[k]["hreflang"])}" href="{safe(v)}">' for k, v in links.items())
     current = f'<p><a href="{safe(survivor)}">{safe(label["current"])}</a></p>' if survivor else ""
     return (f'<!doctype html><html lang="{safe(locale)}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
             f'<title>{safe(heading)} · FCMO AI Newsletter</title><meta name="robots" content="noindex,follow"><link rel="canonical" href="{safe(canonical)}">{alternates}'
-            f'<link rel="stylesheet" href="{NEWSROOM_STYLESHEET}"></head><body><header class="wire-head"><a href="{BASE}/">{safe(LABELS[locale]["back"])}</a><span>FCMO WIRE</span></header>'
-            f'<main class="story" data-fcmo-story-status="{safe(story["status"])}"><div class="kicker">{safe(label["correction"])} · <time datetime="{safe(fix["at"])}">{safe(fix["at"][:10])}</time></div>'
+            f'<link rel="stylesheet" href="{NEWSROOM_STYLESHEET}"></head><body><header class="wire-head"><a href="{BASE}/">{safe(newsroom_labels(locale)["back"])}</a><span>FCMO WIRE</span></header>'
+            f'<main class="story" data-fcmo-story-status="{safe(story["status"])}"><div class="kicker">{safe(label["correction"])} · <time datetime="{safe(fix["at"])}">{safe(localization.format_date(fix["at"],locale))}</time></div>'
             f'<h1>{safe(heading)}</h1><p class="dek" lang="{safe(text_lang)}">{safe(text)}</p>{current}'
             + (f'<p class="byline">{safe(label["original"])}: <span lang="en">{safe(story["title"])}</span></p>' if story["title"] else "")
             + f'<p class="method"><a href="{BASE}/corrections.html">{safe(label["ledger"])}</a></p></main></body></html>')
@@ -400,7 +402,9 @@ def main(argv:list[str]|None=None)->int:
     parser.add_argument("--corpus",type=Path,help="corpus for the v2 story layer (default: <release-src>/../corpus)"); parser.add_argument("--now",help="ISO 8601 clock override (else FCMO_NOW, else the real clock)"); args=parser.parse_args(argv)
     briefs=load_briefs(args.release_src); media_rows=read_json(args.release_src/"data"/"media.json"); media={r.get("id"):r for r in media_rows if isinstance(r,dict)}
     research_dir=args.release_src/"data"/"public-research"; research={p.stem:read_json(p) for p in research_dir.glob("FCMO-*.json")} if research_dir.exists() else {}
-    overlays={locale:load_locale_records(args.site/"data"/"i18n",locale) for locale in LOCALES}
+    locale_details = {locale: load_locale_details(args.site / "data/i18n", locale)
+                      for locale in LOCALES if locale != "en"}
+    overlays = {"en": {}, **{locale: details[0] for locale, details in locale_details.items()}}
     previous_rows=[]
     previous_path=args.site/"data"/"stories.json"
     if previous_path.is_file():
@@ -425,11 +429,32 @@ def main(argv:list[str]|None=None)->int:
     for locale,meta in LOCALES.items():
         folder=args.site/"news"/meta["slug"]; folder.mkdir(parents=True,exist_ok=True); localized_cards=[]
         for rid in ordered_ids:
-            brief=merge_overlay(briefs[rid],overlays[locale].get(rid,{})); story=copy.deepcopy(stories[rid]); story["headline"]=brief.get("title"); story["dek"]=brief.get("summary")
-            links={key:f"{BASE}/news/{value['slug']}/{rid}.html" for key,value in LOCALES.items()}; url=links[locale]; (folder/f"{rid}.html").write_text(article_html(locale,brief,story,links,citations[rid][0]),encoding="utf-8"); localized_cards.append((story,url)); pages.append({"url":url,"language":meta["hreflang"],"headline":str(brief.get("title") or ""),"published_at":str(story.get("published_at") or ""),"modified_at":str(story.get("modified_at") or "")})
+            links = {key: f"{BASE}/news/{value['slug']}/{rid}.html" for key, value in LOCALES.items()}
+            url = links[locale]
+            overlay = overlays[locale].get(rid)
+            status = None
+            if locale != "en":
+                _, strict_ids, provenance, _ = locale_details[locale]
+                status = pair_status(briefs[rid], overlay, locale, strict=rid in strict_ids,
+                                     provenance=provenance.get(rid))
+            story = copy.deepcopy(stories[rid])
+            if status is not None and not is_complete(status):
+                page = localization.pending_page(locale, story, status, overlay, briefs[rid], BASE)
+                story["headline"] = localization.native_text(overlay, "title", status) or localization.ui(locale, "l10n.pending_title")
+                story["dek"] = localization.native_text(overlay, "summary", status) or localization.ui(locale, "l10n.pending_notice")
+            else:
+                brief = merge_overlay(briefs[rid], overlay or {}) if locale != "en" else briefs[rid]
+                story["headline"], story["dek"] = brief.get("title"), brief.get("summary")
+                page = article_html(locale, brief, story, links, citations[rid][0])
+            (folder / f"{rid}.html").write_text(page, encoding="utf-8")
+            localized_cards.append((story, url))
+            pages.append({"url": url, "language": meta["hreflang"], "headline": story["headline"],
+                          "published_at": str(story.get("published_at") or ""),
+                          "modified_at": str(story.get("modified_at") or "")})
         (folder/"index.html").write_text(index_html(locale,localized_cards),encoding="utf-8")
     (args.site/"news").mkdir(exist_ok=True); (args.site/"news"/"index.html").write_text('<!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="0;url=en/"><script>location.replace("en/"+location.search+location.hash)</script>',encoding="utf-8")
     notices=write_story_layer_outputs(args.site,v2,corpus) if v2 else 0
+    localization.render_pending(args.site, briefs, args.site / "data/i18n")
     news_sitemap(args.site,pages); standard_sitemap(args.site,pages); print(f"newsroom surfaces OK; stories={len(stories)}; localized_pages={len(pages)}; newly_published={sum(1 for rid in stories if rid not in previous)}; notices={notices}; story_layer={'v2' if v2 else 'unavailable'}"); return 0
 
 

@@ -4,12 +4,14 @@ from __future__ import annotations
 
 from datetime import datetime
 import json
+from functools import lru_cache
 from pathlib import Path
 import unicodedata
 from zoneinfo import ZoneInfo
 
 COMPLETE_STATES = {"NATIVE_ARB", "MACHINE_REVIEWED"}
-PROSE_FIELDS = ("headline", "dek", "summary", "why_it_matters", "importance_rationale", "technical", "evidence")
+PROSE_FIELDS = ("title", "headline", "dek", "summary", "why_it_matters", "importance_rationale",
+                "technical", "evidence", "related", "body", "sections", "captions")
 
 
 def load_catalogs(root: Path) -> dict[str, dict]:
@@ -20,16 +22,78 @@ def load_catalogs(root: Path) -> dict[str, dict]:
     return result
 
 
-def story_locale(story: dict, locale_code: str) -> dict:
+@lru_cache(maxsize=3)
+def _catalog(locale_code: str) -> dict:
+    path = Path(__file__).resolve().parents[2] / "i18n" / "ui" / f"{locale_code}.json"
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def story_locale(story: dict, locale_code: str, *, catalog: dict | None = None) -> dict:
+    """Recount prose leaves instead of trusting a cached complete state."""
+    try:
+        from tools.validate_localizations import prose_leaves, path_text
+    except ImportError:  # direct script execution from tools/
+        from validate_localizations import prose_leaves, path_text
+
     if locale_code == "en":
         fields = {key: story.get(key) for key in PROSE_FIELDS}
-        fields["title"] = story.get("title")
         return {"state": "NATIVE_ARB", "fields": fields, "missing": []}
-    return story.get("l10n", {}).get(locale_code, {"state": "PENDING", "fields": {}, "missing": list(PROSE_FIELDS)})
+    entry = story.get("l10n", {}).get(locale_code) or {"state": "PENDING", "fields": {}, "missing": []}
+    fields = entry.get("fields") or {}
+    source = {key: story[key] for key in PROSE_FIELDS if key in story}
+    # Derived display variants may use their translated semantic source. An
+    # explicitly different headline or dek requires its own translated value.
+    targets = dict(fields)
+    if story.get("headline") == " ".join(str(story.get("title") or "").split()):
+        targets.setdefault("headline", fields.get("title"))
+    if story.get("dek") and " ".join(str(story.get("summary") or "").split()).startswith(story["dek"]):
+        targets.setdefault("dek", fields.get("summary"))
+    translated = dict(prose_leaves(targets))
+    missing_paths = [path_text(path) for path, _ in prose_leaves(source) if path not in translated]
+    media = story.get("media") or {}
+    for key in ("caption", "alt"):
+        value = media.get(key)
+        # Generated explainer alt text is provided by the localized graphic;
+        # free-form captions and alt strings need explicit locale prose.
+        if isinstance(value, str) and value.strip() and not (fields.get("media") or {}).get(key):
+            missing_paths.append(f"media.{key}")
+        elif isinstance(value, dict) and value.get("en") and not value.get(locale_code) and key == "caption":
+            missing_paths.append(f"media.{key}")
+    for index, correction in enumerate(story.get("corrections") or []):
+        for key in ("title", "text"):
+            value = correction.get(key)
+            if isinstance(value, dict) and value.get("en") and not value.get(locale_code):
+                missing_paths.append(f"corrections[{index}].{key}")
+            elif isinstance(value, str) and value.strip():
+                localized = fields.get("corrections") or []
+                if index >= len(localized) or not localized[index].get(key):
+                    missing_paths.append(f"corrections[{index}].{key}")
+    catalog = catalog if catalog is not None else _catalog(locale_code)
+    groups = {"status": "story_status", "kind": "story_kind", "beat": "beat", "desk": "desk",
+              "confidence": "confidence", "evidence_class": "evidence_class",
+              "importance_tier": "importance_tier", "development_type": "development_type"}
+    codes = [(group, story.get(key)) for key, group in groups.items()]
+    evidence = story.get("evidence") or {}
+    codes.extend(("claim_label", item.get("label")) for item in evidence.get("claims") or [])
+    codes.extend(("gap_kind", item.get("kind")) for item in evidence.get("gaps") or [])
+    codes.extend(("related_type", item.get("type")) for item in story.get("related") or [])
+    codes.extend(("correction_kind", item.get("kind")) for item in story.get("corrections") or [])
+    for group, code in codes:
+        if code and not label(catalog, group, code):
+            missing_paths.append(f"labels.{group}.{code}")
+    missing = list(dict.fromkeys([*(entry.get("missing") or []),
+                                  *(".".join(path.split("[")[0].split(".")[:2]) if not path.startswith("labels.")
+                                    else "labels" for path in missing_paths)]))
+    state = entry.get("state", "PENDING")
+    if missing and state in COMPLETE_STATES:
+        state = "PENDING"
+    # Rejected editions never expose their rejected fields in pending panels.
+    return {**entry, "state": state, "fields": {} if state == "FAILED" else fields,
+            "missing": missing, "missing_paths": missing_paths}
 
 
-def is_complete(story: dict, locale_code: str) -> bool:
-    value = story_locale(story, locale_code)
+def is_complete(story: dict, locale_code: str, *, catalog: dict | None = None) -> bool:
+    value = story_locale(story, locale_code, catalog=catalog)
     return value.get("state") in COMPLETE_STATES and not value.get("missing")
 
 

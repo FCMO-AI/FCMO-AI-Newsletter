@@ -373,7 +373,7 @@ def locale_fields(row: dict[str, Any], story: dict[str, Any], derived_headline: 
             fields[path] = values
     if any(item.get("summary") for item in story.get("related", [])):
         localized_relationships = {
-            (item.get("target_id"), item.get("type")): item
+            (item.get("target_id"), item.get("type") if item.get("type") in taxonomy.RELATION_TYPES else "related"): item
             for item in row.get("relationships", []) if isinstance(item, dict)
         }
         related = []
@@ -403,8 +403,11 @@ def locale_fields(row: dict[str, Any], story: dict[str, Any], derived_headline: 
 
 
 def build_l10n(story: dict[str, Any], sources: list[dict[str, Any]], derived_headline: bool,
-               derived_dek: bool) -> dict[str, Any]:
+               derived_dek: bool, locale_code: str | None = None) -> dict[str, Any]:
     required = list(L10N_FIELDS)
+    for key, derived in (("headline", derived_headline), ("dek", derived_dek)):
+        if story.get(key) and not derived:
+            required.append(key)
     # The paper already uses localized title/summary when a short headline/dek
     # cannot be derived. Those optional display variants are not new prose debt.
     english_empty = {
@@ -437,7 +440,7 @@ def build_l10n(story: dict[str, Any], sources: list[dict[str, Any]], derived_hea
     missing = [p for p in required if p not in flat and not english_empty.get(p, False)]
     if "related" not in missing:
         translated = {
-            (item.get("target_id"), item.get("type")): item
+            (item.get("target_id"), item.get("type") if item.get("type") in taxonomy.RELATION_TYPES else "related"): item
             for row in sources for item in row.get("relationships", []) if isinstance(item, dict)
         }
         relationship_summaries_missing = any(
@@ -475,6 +478,13 @@ def build_l10n(story: dict[str, Any], sources: list[dict[str, Any]], derived_hea
     }
     if provided:
         entry["provenance"] = {p: origins.get(p) for p in provided if origins.get(p) is not None}
+    if locale_code is not None:
+        try:
+            from tools.paper.i18n import story_locale
+        except ImportError:  # direct script execution
+            from paper.i18n import story_locale
+        checked = story_locale({**story, "l10n": {locale_code: entry}}, locale_code)
+        entry["state"], entry["missing"] = checked["state"], checked["missing"]
     return entry
 
 
@@ -575,7 +585,7 @@ def story_object(record: dict[str, Any], ledger_entry: dict[str, Any], carried: 
         "media": media_for(record["id"], record["title"], record["beat"], site),
     })
     story["l10n"] = {loc: build_l10n(story, locale_rows_for(loc, locale_rows), not record.get("headline"),
-                                     not record.get("dek")) for loc in TARGET_LOCALES}
+                                     not record.get("dek"), loc) for loc in TARGET_LOCALES}
     return story
 
 
@@ -856,7 +866,7 @@ def build_stories(inputs: StoryInputs) -> dict[str, Any]:
         record = inputs.records[rid]
         rows = inputs.locale_rows[rid]
         story["l10n"] = {
-            locale: build_l10n(story, locale_rows_for(locale, rows), not record.get("headline"), not record.get("dek"))
+            locale: build_l10n(story, locale_rows_for(locale, rows), not record.get("headline"), not record.get("dek"), locale)
             for locale in TARGET_LOCALES
         }
     ordered = sorted(stories.values(), key=lambda s: (s["first_published_at"], s["id"]), reverse=True)
