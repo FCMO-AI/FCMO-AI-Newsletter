@@ -10,7 +10,7 @@ export function login (root, done) {
   const pass = h('input', { id: 'p', name: 'password', type: 'password', autocomplete: 'current-password', required: true })
   const form = h('form', { class: 'login-card', onsubmit: async e => {
     e.preventDefault(); err.hidden = true
-    try { await post('/api/login', { user: user.value.trim().toLowerCase(), password: pass.value }); done() } catch (x) { err.hidden = false; err.textContent = x instanceof ApiError && x.status === 0 ? t('err.net') : t('login.bad'); pass.select() }
+    try { await post('/api/login', { user: user.value.trim().normalize('NFD').replace(/\p{M}/gu, '').toLowerCase(), password: pass.value }); done() } catch (x) { err.hidden = false; err.textContent = x instanceof ApiError && x.status === 0 ? t('err.net') : t('login.bad'); pass.select() }
   } },
   h('div', { class: 'login-mark' }, 'fCMO', h('span', null, 'Studio')), h('h1', null, t('login.title')), h('p', { class: 'lede' }, t('login.lede')),
   h('label', { for: 'u' }, t('login.user')), user, h('label', { for: 'p' }, t('login.pass')), pass, err, h('button', { class: 'btn primary big', type: 'submit' }, t('login.go')))
@@ -70,6 +70,22 @@ export async function home (root) {
     h('div', { class: 'home-head' }, h('div', null, h('p', { class: 'eyebrow' }, 'fCMO / Studio'), h('h1', null, t('home.hello', { name: me.name }))),
       h('div', { class: 'home-actions' }, h('button', { class: 'btn primary big', type: 'button', onclick: () => newPieceDialog('essay') }, '+ ', t('home.new')),
         h('button', { class: 'btn', type: 'button', onclick: () => newPieceDialog('letter') }, t('home.letter')), h('button', { class: 'btn', type: 'button', onclick: () => newPieceDialog('note') }, t('home.note')))),
-    search, body, h('button', { class: 'btn small', onclick: rollbackDialog }, t('amend.rollback'))), { active: 'home' }))
+    search, body, subscriptionPanel(), h('button', { class: 'btn small', onclick: rollbackDialog }, t('amend.rollback'))), { active: 'home' }))
   return null
+}
+
+function subscriptionPanel () {
+  const summary = h('div', { role: 'status' }, t('sub.unread'))
+  const button = h('button', { class: 'btn small', type: 'button', onclick: async () => {
+    button.disabled = true
+    try {
+      const result = await get('/api/subscriptions/status')
+      clear(summary)
+      if (result.state !== 'read') summary.append(t('sub.unread'))
+      else summary.append(h('ul', null, Object.entries(result.locales).map(([loc, counts]) => h('li', null,
+        LOCALE_NAME[loc], ': ', t('sub.counts', counts)))))
+    } catch { summary.textContent = t('sub.unread') }
+    finally { button.disabled = false }
+  } }, t('sub.read'))
+  return h('section', { class: 'block' }, h('h2', null, t('sub.title')), h('p', null, t('sub.boundary')), button, summary)
 }

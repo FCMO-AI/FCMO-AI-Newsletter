@@ -4,7 +4,12 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import vm from 'node:vm'
-import { loginSource } from '../offline-build.mjs'
+import { discoverLoginBindings, loginSource } from '../offline-build.mjs'
+
+test('offline binding discovery follows generated names instead of pinned minifier aliases', () => {
+  const bundle = 'function z(a,b){n("form",{class:"login-card"});f("login.bad");await X("/api/login",{});x instanceof Err&&x.status===0;" ".normalize("NFD").replace(/\\p{M}/gu,"")}'
+  assert.deepEqual(discoverLoginBindings(bundle), { login: 'z', h: 'n', t: 'f', post: 'X', ApiError: 'Err' })
+})
 
 test('login sends accented and case variants as the canonical username', async () => {
   const source = fs.readFileSync(new URL('../src/screens-home.js', import.meta.url), 'utf8')
