@@ -157,6 +157,21 @@ class SingleSourceTests(unittest.TestCase):
         target['blocks'][0]['content'][0]['v'] = '结果为45%。'
         validate_translation(source, target, 'zh-Hans')
 
+    def test_bare_scale_false_friend_billon_is_not_billion(self):
+        def check(src, tgt, loc):
+            source = copy.deepcopy(DOC); source['blocks'][0]['content'][0]['v'] = src
+            target = copy.deepcopy(source); target['locale'] = loc; target['blocks'][0]['content'][0]['v'] = tgt
+            validate_translation(source, target, loc)
+        with self.assertRaises(TranslationError):
+            check('Un billón de pesos.', 'One billion pesos.', 'en')
+        check('Un billón de pesos.', 'One trillion pesos.', 'en')
+        check('Mil millones de pesos.', 'One billion pesos.', 'en')
+        check('Un billón de pesos.', '一万亿比索。', 'zh-Hans')
+        check('Miles de millones de pesos.', '数十亿比索。', 'zh-Hans')
+        check('Costó 1,2 billones.', 'It cost 1.2 trillion.', 'en')
+        with self.assertRaises(TranslationError):
+            check('Costó 1,2 billones.', 'It cost 1.2 billion.', 'en')
+
     def test_translation_request_prompts_for_natural_locale_number_formats(self):
         request = make_request(DOC)
         self.assertIn('naturally', request['rules'])

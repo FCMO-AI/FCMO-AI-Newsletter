@@ -122,7 +122,7 @@ def _immutable(node):
 
 _NUMBER_RE = re.compile(
     r'(?P<number>[+\-−]?\d+(?:[.,]\d+)*(?:[eE][+\-]?\d+)?)'
-    r'(?:\s*(?P<magnitude>mil\s+millones|mill(ón|on|ones?)|bill(ón|on|ones?)|mil(?!l)|thousands?|millions?|billions?|trillions?|百万|十亿|万|亿|千))?'
+    r'(?:\s*(?P<magnitude>mil\s+millones|mill(ón|on|ones?)|bill(ón|on|ones?)|mil(?!l)|thousands?|millions?|billions?|trillions?|百万|十亿|万亿|万|亿|千))?'
     r'(?:\s?(?P<percent>[%％]))?', re.I)
 _MAGNITUDES = {
     'mil': 10**3, 'thousand': 10**3, 'thousands': 10**3,
@@ -130,7 +130,7 @@ _MAGNITUDES = {
     'million': 10**6, 'millions': 10**6, '百万': 10**6,
     'mil millones': 10**9, 'billion': 10**9, 'billions': 10**9, '十亿': 10**9,
     'billón': 10**12, 'billones': 10**12, 'billon': 10**12,
-    'trillion': 10**12, 'trillions': 10**12, '万': 10**4, '亿': 10**8, '千': 10**3,
+    'trillion': 10**12, 'trillions': 10**12, '万亿': 10**12, '万': 10**4, '亿': 10**8, '千': 10**3,
 }
 
 def _decimal_number(raw, loc):
@@ -179,6 +179,18 @@ def _numbers(node, loc):
                 value *= scale
         values[(value, bool(match.group('percent')), explicit_sign)] += 1
     return values
+# Scale words written without digits ("un billón", "one billion") are the classic false friend:
+# es billón = 10^12, en billion = 10^9. When both sides name such a scale, they must agree.
+_BARE_SCALE_RE = re.compile(r'(?<![\d.,])\s*\b(?:un|una|one|a)?\s*(mil\s+millones|bill(?:ón|on|ones)|billions?|trillions?)\b|(?<![\d.,])(万亿|十亿)', re.I)
+
+def _bare_scales(node):
+    found = Counter()
+    for match in _BARE_SCALE_RE.finditer(_text(node)):
+        word = (match.group(1) or match.group(2)).casefold()
+        word = re.sub(r'\s+', ' ', word)
+        found[_MAGNITUDES.get(word, word)] += 1
+    return found
+
 def _years(node):
     # Calendar years are identifiers, not quantities to be rescaled.
     return Counter(re.findall(r'(?<!\d)(?:19|20)\d{2}(?!\d)', _text(node)))
@@ -228,7 +240,8 @@ def validate_translation(source, target, loc):
         if _immutable(original) != _immutable(translated):
             raise TranslationError('La traducción cambió una nota, fuente, figura, cita o enlace.')
         if (_numbers(original, source['locale']) != _numbers(translated, loc)
-                or _dates(original) != _dates(translated) or _years(original) - _years(translated)):
+                or _dates(original) != _dates(translated) or _years(original) - _years(translated)
+                or (_bare_scales(original) and _bare_scales(translated) and set(_bare_scales(original)) != set(_bare_scales(translated)))):
             raise TranslationError('La traducción cambió una cifra o fecha del original.')
         if _urls(original) != _urls(translated):
             raise TranslationError('La traducción cambió un enlace del original.')
