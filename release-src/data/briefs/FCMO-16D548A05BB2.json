@@ -1,0 +1,138 @@
+{
+  "record": {
+    "id": "FCMO-16D548A05BB2",
+    "title": "SeeQ reports subtask-value steering gains on four real-world bimanual robot tasks",
+    "desk": "Evaluation Science",
+    "event_at": "2026-09-18T00:00:00Z",
+    "evidence": "A",
+    "confidence": "credible_unconfirmed",
+    "importance": 6,
+    "tier": "Major",
+    "summary": "A September 2026 Carnegie Mellon preprint introduces SeeQ, a generalist 3B value model for steering robot policies on long-horizon bimanual manipulation. It predicts the active subtask in language, estimates action values over that shorter horizon, then selects among 8 candidate action chunks proposed by a separate base policy. Across four real-robot tasks on two platforms, the authors report that SeeQ steering raises success from 10/24 to 22/24 for shirt hanging, 10/24 to 15/24 for lid sealing, 9/24 to 17/24 for grocery packing, and 5/24 to 10/24 for LEGO disassembly. A RoboCOIN-pretrained checkpoint is publicly listed, but the authors fine-tune it on each target task; its values are not calibrated task-success probabilities. The small trials have not been independently reproduced, and subtask prediction errors or locally helpful actions that harm later stages remain limitations.",
+    "topics": [
+      "robotics",
+      "robot-manipulation",
+      "value-functions",
+      "reinforcement-learning",
+      "long-horizon-agents",
+      "generalist-robotics"
+    ],
+    "organizations": [
+      "Carnegie Mellon University"
+    ],
+    "human_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-16D548A05BB2.html",
+    "machine_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/data/briefs/FCMO-16D548A05BB2.json",
+    "citation": {
+      "id": "FCMO-16D548A05BB2",
+      "source": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-16D548A05BB2.html"
+    }
+  },
+  "brief": {
+    "claims": [
+      {
+        "label": "DEMONSTRATED",
+        "text": "The arXiv v2 paper and official SeeQ-3B model card describe a generalist 3B Q-value model that first predicts the active manipulation subtask in natural language and then estimates action value for that subtask. At inference, it scores candidate action chunks proposed by a separate base policy; best-of-8 selection chooses the highest-valued candidate. The critic does not generate actions itself."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "Across four real-world bimanual manipulation tasks on two robot platforms, the authors report that SeeQ steering increased the base policy's success from 10/24 to 22/24 for shirt hanging, 10/24 to 15/24 for lid sealing, 9/24 to 17/24 for grocery packing, and 5/24 to 10/24 for LEGO disassembly. These are small author-reported trial counts, not independently reproduced results."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "On shirt hanging and grocery packing, the authors report better success with SeeQ than with task-level Monte Carlo value fitting, task-level temporal-difference learning, or subtask-level SARSA using the same backbone, pretraining and target-task data. The reported comparison is two tasks with 24 trials per method/task."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "The publicly listed SeeQ-3B checkpoint is pretrained on the RoboCOIN bimanual subset, but its model card and paper say downstream target tasks are fine-tuned before deployment. The authors caution that local subtask progress can conflict with whole-task success, subtask prediction can be wrong, and the critic is limited by the candidate actions its base policy proposes."
+      }
+    ],
+    "confidence": "credible_unconfirmed",
+    "contradictory_evidence": [],
+    "desks": [
+      "evaluation_science",
+      "agents_memory"
+    ],
+    "development_type": "paper",
+    "editions": [
+      "2026-10-10"
+    ],
+    "event_at": "2026-09-18T00:00:00Z",
+    "evidence_class": "A",
+    "evidence_gaps": [
+      {
+        "description": "No independent reproduction or larger repeated-trial study was established for the reported real-robot steering gains.",
+        "kind": "missing_independent",
+        "state": "open",
+        "updated_at": "2026-10-10T10:14:33Z"
+      },
+      {
+        "description": "The work establishes per-task fine-tuned steering, not broad zero-shot transfer or performance with minimal downstream data.",
+        "kind": "other",
+        "state": "open",
+        "updated_at": "2026-10-10T10:14:33Z"
+      },
+      {
+        "description": "Subtask-local values may conflict with downstream task success, and incorrect subtask prediction can cause the critic to rank actions against the wrong objective.",
+        "kind": "other",
+        "state": "open",
+        "updated_at": "2026-10-10T10:14:33Z"
+      }
+    ],
+    "id": "FCMO-16D548A05BB2",
+    "importance_effective_score": 6,
+    "importance_rationale": "If the reported steering gains generalize, subtask-level value learning could make large, imperfect robot datasets more useful for improving long-horizon manipulation and provide a practical critic layer around generalist policies. That could change robotics training and deployment choices, but current evidence is limited to four tasks, 24 trials per task, target-task fine-tuning and one author-reported paper; it is a major engineering direction, not a confirmed broad capability shift.",
+    "importance_scale_version": 2,
+    "importance_score": 6,
+    "importance_tier": "Major",
+    "last_verified_at": "2026-10-10T10:14:33Z",
+    "limitations": [
+      "This is one author-reported preprint; no independent reproduction of the real-robot results was established in this review.",
+      "Each real-world task is evaluated over 24 trials. Trial counts are small, and the paper does not provide a multi-lab evaluation or establish robustness across broad object, scene or hardware distributions.",
+      "The generalist value model is fine-tuned on each target task before deployment; zero-shot transfer or performance with substantially less downstream data remains unestablished.",
+      "SeeQ scores action chunks proposed by a fixed base policy and cannot recover actions absent from that candidate set. Its model card says values are subtask-level returns, not calibrated probabilities of full-task success.",
+      "The authors note that subtask annotations can be ambiguous, subtask prediction errors can misdirect the critic, and local progress can make later subtasks harder even when current-subtask value rises.",
+      "The model card reports little improvement over the base policy on the simulation tasks they tested after fine-tuning; the authors attribute this to a mismatch between real-robot pretraining data and simulation, which remains a limited provider-side explanation."
+    ],
+    "organizations": [
+      "Carnegie Mellon University"
+    ],
+    "primary_desk": "evaluation_science",
+    "recorded_at": "2026-10-10T10:14:33Z",
+    "regions": [
+      "global"
+    ],
+    "relationships": [],
+    "source_languages": [
+      "en"
+    ],
+    "source_urls": [
+      "https://arxiv.org/abs/2609.22085",
+      "https://huggingface.co/CMU-AIRe/SeeQ-3B"
+    ],
+    "status": "active",
+    "summary": "A September 2026 Carnegie Mellon preprint introduces SeeQ, a generalist 3B value model for steering robot policies on long-horizon bimanual manipulation. It predicts the active subtask in language, estimates action values over that shorter horizon, then selects among 8 candidate action chunks proposed by a separate base policy. Across four real-robot tasks on two platforms, the authors report that SeeQ steering raises success from 10/24 to 22/24 for shirt hanging, 10/24 to 15/24 for lid sealing, 9/24 to 17/24 for grocery packing, and 5/24 to 10/24 for LEGO disassembly. A RoboCOIN-pretrained checkpoint is publicly listed, but the authors fine-tune it on each target task; its values are not calibrated task-success probabilities. The small trials have not been independently reproduced, and subtask prediction errors or locally helpful actions that harm later stages remain limitations.",
+    "technical": {
+      "claimed_result": "The authors report that best-of-8 SeeQ steering increased base-policy success on four real bimanual tasks: shirt hanging 10/24 to 22/24; lid sealing 10/24 to 15/24; grocery packing 9/24 to 17/24; LEGO disassembly 5/24 to 10/24. The paper reports a mean increase from 35.4% to 66.7% across these tasks.",
+      "compute_or_cost": "The paper gives checkpoint size (3B) and training-data/step details but does not establish training or inference cost per validated task, wall-clock effects, or cost savings versus a base policy or specialist critics.",
+      "demonstrated_result": "The preprint describes the SeeQ method, the official checkpoint card documents a RoboCOIN-pretrained 3B checkpoint, and the paper reports its own real-robot evaluation. the research desk did not independently reproduce the performance results.",
+      "implementation_status": "A pretrained SeeQ-3B checkpoint and model card are publicly listed. The checkpoint is an initialization; the paper and card state it should be fine-tuned for a downstream real-world task and paired with a separate base policy.",
+      "mechanism": "A 3B PaliGemma-based Q-function is pretrained on annotated, diverse bimanual robot data. It autoregressively predicts the currently active subtask in natural language, then estimates the value of candidate action chunks for completing that subtask. Training uses subtask-level temporal-difference targets that stop at subtask boundaries and a best-of-8 backup from a generalist base policy. At inference, the critic ranks action chunks proposed by that separate policy.",
+      "novelty": "Uses a generalist Q-function that predicts the current natural-language subtask and values actions against that shorter horizon, combining TD learning with robot-data pretraining and best-of-N policy steering; no subtask annotation is needed at deployment.",
+      "regime": "3B PaliGemma-based Q-function pretrained on the bimanual portion of RoboCOIN (131 tasks, approximately 40,000 episodes, approximately 31.3 million steps); downstream fine-tuning on four real-world bimanual tasks, using xArm-7 or YAM platforms; 24 policy-steering trials per task; best-of-8 action selection from a fixed pi-0.5 base policy. Each task's finetuning data composition differs.",
+      "reproducibility": "The paper includes a v2 methods appendix and a public checkpoint card with configuration details. No independent reproduction was found in this review; the small real-robot evaluation and task-specific fine-tuning remain material reproduction requirements.",
+      "strongest_baseline": "Same base policy without value steering; for two tasks, same PaliGemma backbone and matching pretraining/task data with task-level Monte Carlo, task-level TD, and subtask-level SARSA objectives. All comparisons use 24 trials per method/task."
+    },
+    "title": "SeeQ reports subtask-value steering gains on four real-world bimanual robot tasks",
+    "topics": [
+      "robotics",
+      "robot-manipulation",
+      "value-functions",
+      "reinforcement-learning",
+      "long-horizon-agents",
+      "generalist-robotics"
+    ],
+    "why_it_matters": "If reproduced, learning action values over the current subtask could make broad robot datasets more useful for steering generalist policies through long tasks without propagating sparse final-success reward across the entire trajectory. The results make this a concrete, artifact-backed research direction for value learning in robotics, while the small number of trials and task-specific fine-tuning limit claims of general transfer."
+  },
+  "related": [],
+  "schema": "fcmo-public-brief-v1"
+}

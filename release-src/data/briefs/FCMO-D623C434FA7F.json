@@ -1,0 +1,120 @@
+{
+  "record": {
+    "id": "FCMO-D623C434FA7F",
+    "title": "A preprint reports faster 128K prefill with radius-adaptive sparse attention on Qwen models",
+    "desk": "Inference Systems",
+    "event_at": "2026-09-17T00:00:00Z",
+    "evidence": "A",
+    "confidence": "credible_unconfirmed",
+    "importance": 6,
+    "tier": "Major",
+    "summary": "A September 17 preprint proposes RBS-Attention, a training-free block selector that combines average key-block relevance with a radius-based rescue path intended to reduce false-negative pruning when a relevant token is diluted by unrelated tokens in the same block. For Qwen3-30B-A3B-Instruct-2507-FP8 at 128K on H100, the authors report 20.65× standalone prefill-attention, 11.92× vLLM prefill-attention and 5.97× end-to-end time-to-first-token speedups over dense execution in the same setup. On Qwen3-32B, they report 88.65 RULER accuracy versus 89.52 for dense attention. The paper includes actual-density selector comparisons and A100 memory measurements; in that implementation, temporary selector workspace is substantial. These are author-reported results from specific Qwen/GPU configurations, not an independent reproduction or a general serving-cost claim.",
+    "topics": [
+      "long-context inference",
+      "sparse attention",
+      "prefill latency",
+      "time-to-first-token"
+    ],
+    "organizations": [
+      "Rutgers University",
+      "Ant Group"
+    ],
+    "human_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-D623C434FA7F.html",
+    "machine_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/data/briefs/FCMO-D623C434FA7F.json",
+    "citation": {
+      "id": "FCMO-D623C434FA7F",
+      "source": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-D623C434FA7F.html"
+    }
+  },
+  "brief": {
+    "claims": [
+      {
+        "label": "CLAIMED",
+        "text": "The authors report that on an NVIDIA H100, RBS-Attention reached 20.65× standalone prefill-attention speedup, 11.92× vLLM prefill-attention speedup and 5.97× end-to-end time-to-first-token speedup at 128K context for Qwen3-30B-A3B-Instruct-2507-FP8, relative to dense execution in the same reported setup."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "On Qwen3-32B, the authors report 88.65 overall RULER accuracy for RBS-Attention versus 89.52 for dense attention; the paper also reports LongBench-v2, InfiniteBench and Video-MME evaluations."
+      },
+      {
+        "label": "DEMONSTRATED",
+        "text": "The v1 preprint describes a training-free selector that combines centroid relevance with radius-adaptive rescue using independently thresholded masks. Its attenuated rescue score is explicitly not a universal upper bound, and the paper reports substantial temporary selector workspace in its A100 measurements."
+      }
+    ],
+    "confidence": "credible_unconfirmed",
+    "contradictory_evidence": [],
+    "desks": [
+      "inference_systems",
+      "efficiency",
+      "evaluation_science"
+    ],
+    "development_type": "paper",
+    "editions": [
+      "2026-10-10"
+    ],
+    "event_at": "2026-09-17T00:00:00Z",
+    "evidence_class": "A",
+    "evidence_gaps": [
+      {
+        "description": "No independent run has confirmed the reported H100/A100 latency, quality, memory or selector-workspace values.",
+        "kind": "reproduction_missing",
+        "state": "open"
+      },
+      {
+        "description": "Transfer beyond the specified Qwen models and benchmark prompts is unknown.",
+        "kind": "regime_unclear",
+        "state": "open"
+      }
+    ],
+    "id": "FCMO-D623C434FA7F",
+    "importance_effective_score": 6,
+    "importance_rationale": "If independently sustained, several-fold lower time-to-first-token at 128K could materially change long-context serving choices and cost budgets. The result is limited to specified Qwen models, GPU configurations and author-run workloads; it does not establish general production economics.",
+    "importance_scale_version": 2,
+    "importance_score": 6,
+    "importance_tier": "Major",
+    "last_verified_at": "2026-10-10T03:15:18Z",
+    "limitations": [
+      "The results are author-reported in one arXiv v1 preprint and have not been independently reproduced.",
+      "The primary latency result is for one Qwen MoE model at 128K on H100; broad hardware, model-family, request-distribution and production-service transfer is unknown.",
+      "RBS workspace reached 1,155.601 MiB in the reported A100 implementation, despite small persistent block-statistic overhead; the method does not establish KV-cache compression.",
+      "The attenuated radius score is not a guaranteed upper bound, and fixed thresholds produce content-dependent densities.",
+      "At 5.34% actual density, RBS had the highest reported RULER accuracy in the paper’s calibrated comparison, but configuration choice matters: RBS was below centroid-only at block sizes 64 and 256 in the reported sensitivity sweep."
+    ],
+    "organizations": [
+      "Rutgers University",
+      "Ant Group"
+    ],
+    "primary_desk": "inference_systems",
+    "recorded_at": "2026-10-10T03:15:18Z",
+    "regions": [
+      "global"
+    ],
+    "relationships": [],
+    "source_languages": [
+      "en"
+    ],
+    "source_urls": [
+      "https://arxiv.org/abs/2609.20971"
+    ],
+    "status": "active",
+    "summary": "A September 17 preprint proposes RBS-Attention, a training-free block selector that combines average key-block relevance with a radius-based rescue path intended to reduce false-negative pruning when a relevant token is diluted by unrelated tokens in the same block. For Qwen3-30B-A3B-Instruct-2507-FP8 at 128K on H100, the authors report 20.65× standalone prefill-attention, 11.92× vLLM prefill-attention and 5.97× end-to-end time-to-first-token speedups over dense execution in the same setup. On Qwen3-32B, they report 88.65 RULER accuracy versus 89.52 for dense attention. The paper includes actual-density selector comparisons and A100 memory measurements; in that implementation, temporary selector workspace is substantial. These are author-reported results from specific Qwen/GPU configurations, not an independent reproduction or a general serving-cost claim.",
+    "technical": {
+      "claimed_result": "The authors report 5.97× end-to-end TTFT speedup at 128K on H100 for the specified Qwen3-30B-A3B FP8 model; 20.65× standalone attention and 11.92× vLLM prefill-attention speedups; and 88.65 versus 89.52 RULER accuracy for RBS versus dense on Qwen3-32B.",
+      "demonstrated_result": "The arXiv v1 paper and its method, configurations, comparison tables, supplementary memory accounting and limitations are publicly accessible. the research desk did not reproduce the GPU measurements.",
+      "mechanism": "For each key block, compute its centroid and maximum radius. Score blocks in a centroid relevance branch and a radius-adaptive rescue branch, threshold each independently, then union the masks with forced sink, local-window and recent blocks before block-sparse FlashAttention. The attenuated rescue score is a risk signal rather than a guaranteed upper bound.",
+      "regime": "Author-run experiments on Qwen3-30B-A3B-Instruct-2507-FP8 and Qwen3-32B, with primary H100 and supplementary A100 measurements; contexts include 128K and the reported benchmark setups. Primary speedups are normalized against dense execution with the same model, hardware, context length and serving stack.",
+      "reproducibility": "The paper provides detailed setup and supplementary tables, but this activation did not independently execute the code or verify GPU timings. No independent reproduction was found in the bounded review.",
+      "strongest_baseline": "Dense execution in matching model/hardware/context/serving configurations for primary speedups and quality; supplementary selector comparisons include centroid-only, Full-L2, Quest-style and other sparse-prefill methods at measured-density anchors."
+    },
+    "title": "A preprint reports faster 128K prefill with radius-adaptive sparse attention on Qwen models",
+    "topics": [
+      "long-context inference",
+      "sparse attention",
+      "prefill latency",
+      "time-to-first-token"
+    ],
+    "why_it_matters": "Prefill latency is a major part of serving long prompts. If the reported speedups and quality tradeoff hold in other implementations and workloads, the method could alter the practical cost of 128K inference. The current evidence is configuration-specific and includes a sizeable selector-workspace cost."
+  },
+  "related": [],
+  "schema": "fcmo-public-brief-v1"
+}

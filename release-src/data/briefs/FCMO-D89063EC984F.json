@@ -1,0 +1,138 @@
+{
+  "record": {
+    "id": "FCMO-D89063EC984F",
+    "title": "Attention-window signals in MoE routing improve reported math results while exposing retrieval tradeoffs",
+    "desk": "Inference Systems",
+    "event_at": "2026-09-17T00:00:00Z",
+    "evidence": "A",
+    "confidence": "credible_unconfirmed",
+    "importance": 5,
+    "tier": "Notable",
+    "summary": "The authors introduce Attention-Aware Routing (AAR), which adds a short window of attention weights to the expert router while freezing the rest of the model. Their preprint reports higher math benchmark scores than continued training of routing parameters alone across OLMoE, Qwen1.5-MoE and Qwen3.6-MoE, and links router changes to later-layer attention shifts. Applying the method at every layer also lowers factual-retrieval scores, while the paper identifies middle-to-deep layer placement as a way to reduce that tradeoff. These are author-reported experiments, not an independent reproduction.",
+    "topics": [
+      "mixture-of-experts",
+      "routing",
+      "attention",
+      "mathematical-reasoning",
+      "factual-retrieval",
+      "inference-systems"
+    ],
+    "organizations": [
+      "National Technical University of Athens",
+      "University of Bern",
+      "Amazon AGI",
+      "Allen Institute for AI"
+    ],
+    "human_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-D89063EC984F.html",
+    "machine_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/data/briefs/FCMO-D89063EC984F.json",
+    "citation": {
+      "id": "FCMO-D89063EC984F",
+      "source": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-D89063EC984F.html"
+    }
+  },
+  "brief": {
+    "claims": [
+      {
+        "label": "CLAIMED",
+        "text": "The paper proposes Attention-Aware Routing, which augments a standard MoE router with a sliding window of attention weights and time-domain and spectral features; experiments train routing parameters while keeping other base-model parameters frozen."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "Across five seeds on OLMoE-1B-7B-SFT, the authors report GSM8K accuracy of 55.36% ± 0.74 for AAR versus 51.99% ± 0.76 for routing-only SFT, a 3.37 percentage-point difference; they also report gains on MATH-500 for OLMoE and Qwen3.6 and GSM8K for Qwen1.5-MoE."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "When the time-domain AAR variant is applied to all OLMoE layers, the authors report a mean 2.1 percentage-point decline on MMLU, with larger losses on several retrieval-heavy subjects; later-layer placement reduces those losses in their tested setup."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "The paper reports that changing routing weights is followed by amplified attention to the first token in the next layer, and that incorrect GSM8K answers are shorter under the time-domain variant; it treats the proposed mechanism linking these effects to math performance as a hypothesis."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "The authors state that AAR requires explicit attention-weight materialization and cannot use FlashAttention at the affected layers, adding overhead that scales with sequence length and active layers."
+      }
+    ],
+    "confidence": "credible_unconfirmed",
+    "contradictory_evidence": [],
+    "desks": [
+      "inference_systems",
+      "evaluation_science"
+    ],
+    "development_type": "paper",
+    "editions": [
+      "2026-10-10"
+    ],
+    "event_at": "2026-09-17T00:00:00Z",
+    "evidence_class": "A",
+    "evidence_gaps": [
+      {
+        "description": "No independent implementation or reproduction of the reported benchmark differences was found in the inspected paper.",
+        "kind": "reproduction_missing",
+        "state": "open"
+      },
+      {
+        "description": "The paper identifies an attention-materialization constraint but does not provide a matched end-to-end serving cost comparison against optimized routing-only inference.",
+        "kind": "other",
+        "state": "open"
+      },
+      {
+        "description": "The reported retrieval penalty and deeper-layer mitigation have not been checked on external retrieval suites or additional MoE families.",
+        "kind": "other",
+        "state": "open"
+      }
+    ],
+    "id": "FCMO-D89063EC984F",
+    "importance_effective_score": 5,
+    "importance_rationale": "If the benchmark results hold in the stated post-SFT settings, attention-conditioned routing could change how open MoE systems trade math reasoning against factual retrieval. The measured gains are incremental and author-reported, with an explicit retrieval cost and inference-kernel constraint, so this is meaningful rather than field-shifting.",
+    "importance_scale_version": 2,
+    "importance_score": 5,
+    "importance_tier": "Notable",
+    "last_verified_at": "2026-10-10T12:09:53Z",
+    "limitations": [
+      "All quantitative results are author-reported in one preprint and have not been independently reproduced.",
+      "Results are benchmark- and model-specific; the authors report that all-layer AAR can reduce factual retrieval performance even when math results improve.",
+      "The method materializes attention weights and the authors say this precludes FlashAttention at AAR-active layers, with overhead that scales with sequence length and active layers.",
+      "The reported routing-to-attention pathway is observationally probed and the causal explanation for math gains is not established."
+    ],
+    "organizations": [
+      "National Technical University of Athens",
+      "University of Bern",
+      "Amazon AGI",
+      "Allen Institute for AI"
+    ],
+    "primary_desk": "inference_systems",
+    "recorded_at": "2026-10-10T12:09:53Z",
+    "regions": [
+      "global"
+    ],
+    "relationships": [],
+    "source_languages": [
+      "en"
+    ],
+    "source_urls": [
+      "https://arxiv.org/abs/2609.20974"
+    ],
+    "status": "active",
+    "summary": "The authors introduce Attention-Aware Routing (AAR), which adds a short window of attention weights to the expert router while freezing the rest of the model. Their preprint reports higher math benchmark scores than continued training of routing parameters alone across OLMoE, Qwen1.5-MoE and Qwen3.6-MoE, and links router changes to later-layer attention shifts. Applying the method at every layer also lowers factual-retrieval scores, while the paper identifies middle-to-deep layer placement as a way to reduce that tradeoff. These are author-reported experiments, not an independent reproduction.",
+    "technical": {
+      "claimed_result": "The authors report a 3.37 percentage-point GSM8K improvement over routing-only SFT on OLMoE across five seeds, plus math benchmark gains on Qwen1.5-MoE and Qwen3.6-MoE. They also report a 2.1-point mean MMLU decline when time-domain AAR is applied to every OLMoE layer, and better retrieval behavior when the intervention starts deeper.",
+      "demonstrated_result": "The primary source is an arXiv preprint with author-reported experimental tables. the research desk inspected its full HTML methods, benchmark results and stated limitations. No independent reproduction or implementation-level measurement was performed in this activation.",
+      "mechanism": "AAR forms a sliding window from attention weights to recent tokens, averages over heads, and maps the resulting time-domain window and optionally its Fourier magnitude features into expert-routing logits. A learned gate interpolates this signal with the ordinary hidden-state router. The reported setup fine-tunes routing parameters while freezing non-router base weights.",
+      "regime": "Post-SFT adaptation of open sparse MoE models: OLMoE-1B-7B-SFT, Qwen1.5-MoE-A2.7B-Chat, and Qwen3.6-MoE. The paper uses sampled Tulu3 training data, benchmark-specific prompts, and selected layer ranges; results do not establish gains for dense models, other training stages, production serving or broad task distributions.",
+      "strongest_baseline": "For OLMoE, the closest control is the same continued-training setup with routing parameters trained without AAR; base weights, data, optimizer and training budget are held to the described setup. The paper reports five random seeds. Qwen3.6-MoE MATH-500 uses three seeds and a smaller 12.8K training sample."
+    },
+    "title": "Attention-window signals in MoE routing improve reported math results while exposing retrieval tradeoffs",
+    "topics": [
+      "mixture-of-experts",
+      "routing",
+      "attention",
+      "mathematical-reasoning",
+      "factual-retrieval",
+      "inference-systems"
+    ],
+    "why_it_matters": "If independently reproduced, AAR would show that attention patterns can provide a useful additional routing signal in sparse expert models without changing base weights, while its depth-dependent retrieval cost would make layer placement a consequential design choice. The reported gains are bounded to three model families and benchmark settings; the method also requires materializing attention weights."
+  },
+  "related": [],
+  "schema": "fcmo-public-brief-v1"
+}
