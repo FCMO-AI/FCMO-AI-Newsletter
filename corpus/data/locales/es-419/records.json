@@ -1989,6 +1989,66 @@
       "title": "Air Security informa de una omisión en la verificación de pines SHA de plugins en cuatro agentes de programación",
       "why_it_matters": "El pin de un commit suele tratarse como prueba de que el agente ejecuta el código del plugin que se revisó. Si el comportamiento descrito se confirma, el agente debe verificar el commit del árbol de trabajo ya resuelto; el pin del marketplace por sí solo no demostraría esa garantía."
     },
+    "FCMO-21277C154D52": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "El artículo define Loopjacking como el uso de una decisión humana entendida como aprobación para la operación A para autorizar o liberar una operación B sustancialmente distinta, y separa la representación incompleta antes de aprobar de la sustitución de estado posterior a la aprobación."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El autor reporta reproducir sustitución posterior a la aprobación en siete versiones muestreadas de Agno AgentOS (2.5.6, 2.9.0, 3.0.1, 3.0.2, 3.0.3, 3.0.6, 3.0.9) y en 12 versiones muestreadas de LangGraph Agent Server, de 0.7.5 a 0.14.0, en una composición especificada en memoria y con una política de autorización personalizada."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El autor reporta que OpenClaw 2026.2.23 liberó un vector de comandos de shell cuya vista de aprobación omitía argumentos sustancialmente distintos, mientras que 2026.2.24 rechazó la discrepancia probada; los controles negativos de OpenAI Agents SDK 0.22.0 y 0.22.2 rechazaron la mutación con el mismo identificador de llamada y ejecutaron las llamadas aprobadas sin cambios."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En las trazas probadas, la comparación exacta al momento de uso o una política que denegaba actualizaciones no autorizadas del estado pendiente bloqueó la operación sustituida y permitió ejecutar la operación aprobada sin cambios."
+        }
+      ],
+      "contradictory_evidence": [
+        "El conjunto de pruebas se eligió deliberadamente y no estima la prevalencia en el ecosistema ni establece un rango continuo de versiones afectadas.",
+        "El resultado de LangGraph depende de una política de autorización personalizada declarada y de una composición en memoria; no se evaluó Postgres de producción.",
+        "OpenClaw 2026.2.24 rechazó la discrepancia de representación probada; el artículo indica que la aprobación se automatizó, por lo que no se evaluó la comprensión humana ni las tasas de engaño.",
+        "OpenAI Agents SDK 0.22.0 y 0.22.2 rechazaron la mutación en la ruta probada de aprobación ordinaria por llamada, lo que muestra que la continuación y la serialización por sí solas no son causas suficientes."
+      ],
+      "evidence_gaps": [
+        {
+          "description": "En esta activación no se ejecutaron de forma independiente los paquetes archivados de Agno, LangGraph, OpenClaw ni el control negativo de OpenAI.",
+          "kind": "missing_independent",
+          "state": "open",
+          "updated_at": "2026-10-12T01:15:39Z"
+        },
+        {
+          "description": "No se estableció un mapa exhaustivo y actual de versiones afectadas ni una estimación de prevalencia; el corte de versiones del artículo es el 10 de septiembre de 2026.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-12T01:15:39Z"
+        }
+      ],
+      "importance_rationale": "Si ocurren discrepancias entre aprobación y ejecución en flujos de trabajo de agentes desplegados, podrían permitir que alguien con menos privilegios reutilice una decisión humana para autorizar otra acción con consecuencias. El artículo reporta trazas acotadas en rutas de producto concretas y controles o correcciones; las pruebas seleccionadas no estiman prevalencia ni el tamaño del mercado afectado.",
+      "limitations": [
+        "El preprint reporta pruebas controladas de una persona investigadora; este equipo de investigación no reprodujo los resultados ni ejecutó el verificador del archivo.",
+        "El corte de evidencia es el 10 de septiembre de 2026. Se reportan versiones probadas concretas; no se clasifican versiones ni despliegues posteriores.",
+        "El archivo consultado no establece una versión corregida de Agno o LangGraph. El resultado de LangGraph depende de la composición en memoria y la política de autorización probadas.",
+        "Las credenciales sintéticas y los registros de ejecución inocuos permiten identificar la operación despachada en las pruebas, pero no muestran que se hayan afectado fondos reales, datos de producción o sistemas de clientes.",
+        "La aprobación en la prueba de OpenClaw se automatizó después de observar el evento exacto del producto; el estudio no mide la comprensión humana ni el engaño de la interfaz."
+      ],
+      "relationships": [],
+      "summary": "Un preprint de septiembre de 2026 define Loopjacking como el uso de una decisión humana sobre una operación A para autorizar una operación B sustancialmente distinta. En pruebas seleccionadas deliberadamente, el autor reporta sustitución posterior a la aprobación en siete versiones muestreadas de Agno AgentOS y 12 composiciones muestreadas de LangGraph Agent Server en memoria, con una política de autorización declarada; también reporta una representación incompleta de aprobación de comandos en OpenClaw 2026.2.23. OpenClaw 2026.2.24 rechazó la discrepancia probada. OpenAI Agents SDK 0.22.0 y 0.22.2 sirvieron como controles negativos que rechazaron la mutación del mismo identificador de llamada. Las pruebas usaron identidades sintéticas y registros de ejecución inocuos; no estiman prevalencia, no establecen susceptibilidad de usuarios ni muestran que todas las versiones estén afectadas.",
+      "technical": {
+        "claimed_result": "El autor reporta trazas controladas y nativas en tres rutas de producto distintas, con un control negativo de OpenAI Agents SDK, y muestra defensas probadas que bloquean la discrepancia y permiten la operación aprobada sin cambios.",
+        "demonstrated_result": "Las fuentes primarias documentan lo que el artículo y el archivo reportan, incluidas versiones exactas, configuración condicional, destinos sintéticos y controles. Este equipo no ejecutó el archivo ni verificó las ejecuciones reportadas.",
+        "mechanism": "Una persona revisa la operación A presentada o canónica; más tarde, la lógica del producto consume la aprobación para la operación B vigente sin comparar el efecto, el objetivo, el principal, la tarea y el alcance completos. El artículo distingue entre ocultar o representar de forma incompleta B antes de la aprobación y sustituir A por B después.",
+        "regime": "Versiones seleccionadas deliberadamente y probadas mediante rutas locales de producto, con identidades sintéticas, modelos locales deterministas, servicios de loopback y registros de ejecución anexables inocuos o archivos temporales. LangGraph usó una composición de Agent Server en memoria y una política de autorización declarada. Corte de evidencia: 2026-09-10.",
+        "reproducibility": "Un archivo público enumera paquetes de evidencia con sumas de verificación y un verificador en Python. En esta activación solo se inspeccionaron la página README y el inventario del repositorio; no se ejecutó el verificador ni se reprodujo ningún arnés.",
+        "strongest_baseline": "Ejecución sin cambios de la operación A aprobada; denegación directa de B sin aprobación; controles de actor y sesión; control negativo de OpenAI Agents SDK; comportamiento corregido de OpenClaw 2026.2.24; y una comparación de investigación de acciones exactas o una política que deniega actualizaciones."
+      },
+      "title": "Un artículo sobre Loopjacking reporta que algunas aprobaciones de agentes se reutilizaron para ejecutar operaciones sustancialmente distintas en rutas de producto probadas",
+      "why_it_matters": "Una pantalla de aprobación solo es un límite de seguridad efectivo si la operación ejecutada sigue vinculada a la operación completa que revisó la persona. La comparación exacta en el momento de uso, o impedir cambios no autorizados al estado pendiente, ofrece defensas que se pueden probar."
+    },
     "FCMO-23126AF42ED1": {
       "claims": [
         {
