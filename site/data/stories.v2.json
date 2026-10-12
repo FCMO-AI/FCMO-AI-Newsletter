@@ -1,7 +1,7 @@
 {
   "schema": "fcmo-stories-v2",
-  "generated_at": "2026-10-11T22:53:16Z",
-  "release_id": "newswire-a9f5083017c794af1339933c",
+  "generated_at": "2026-10-11T23:55:05Z",
+  "release_id": "newswire-910cba77e89abdfc4c9df136",
   "canonical_locale": "en",
   "locales": [
     "en",
@@ -38,6 +38,704 @@
     "2026-10-11"
   ],
   "stories": [
+    {
+      "id": "FCMO-D6FDB2438549",
+      "slug": "poisson-coupled-speculative-sampling-reports-stable-watermark-signal-as",
+      "url_date": "2026-10-11",
+      "kind": "development",
+      "status": "live",
+      "beat": "research",
+      "desk": "compute_inference",
+      "title": "Poisson-coupled speculative sampling reports stable watermark signal as draft count grows",
+      "headline": "Poisson-coupled speculative sampling reports stable watermark signal as draft count grows",
+      "dek": "A September 2026 preprint proposes multi-sample Permute-and-Flip (MPFR), which uses context-indexed keyed Poisson processes to couple speculative decoding with an unbiased watermark.",
+      "summary": "A September 2026 preprint proposes multi-sample Permute-and-Flip (MPFR), which uses context-indexed keyed Poisson processes to couple speculative decoding with an unbiased watermark. The authors prove an acceptance-probability bound and report that, on a Qwen2.5-7B-Instruct target with a Qwen2.5-0.5B-Instruct drafter, the watermark signal changed by at most 0.001 as draft count rose from 2 to 8 at lookahead 4. Their appendix extends results to four target/dataset cells using 1,000 prompts per cell. These are author-reported findings from small-model benchmarks, not independently reproduced production measurements. The paper says a watermark/efficiency tradeoff remains at a fixed draft count and notes extra coupling/bookkeeping overhead.",
+      "why_it_matters": "Speculative decoding seeks higher generation throughput by checking multiple draft tokens in parallel; watermarking seeks detectable provenance signals in generated text. A method that keeps the measured watermark signal stable as draft count increases could help combine the two in a defined regime. The paper does not show production-system speedups, robust watermarking after substantial text edits, or independent replication.",
+      "importance_rationale": "If independently reproduced, a draft-count-stable watermark signal combined with multi-draft speculative decoding could improve the practical tradeoff between generation throughput and output provenance. The current evidence is one paper’s theory and small-model experiments; it does not establish production throughput or robustness in deployed systems.",
+      "technical": {
+        "claimed_result": "The authors report that ANLPPT-U watermark strength stays within 0.001 across draft counts 2–8 for the headline setup at lookahead 4, while average accepted tokens per step are comparable to the Invariant comparator. The paper’s theorem gives an acceptance-probability lower bound; the practical findings remain author-reported.",
+        "compute_or_cost": "The study reports token rate and average accepted tokens per step in its test harness. It does not establish production serving throughput, cost, or end-to-end latency under deployed workloads.",
+        "demonstrated_result": "The paper and its experiment tables are accessible; no code execution or independent replication was performed in this review.",
+        "mechanism": "MPFR uses context-indexed keyed Poisson processes to generate draft samples and target-side samples. The target-side token is emitted and compared with drafts at each node; the keyed context coupling is intended to keep the watermark tied to the final target-token path rather than draft identities.",
+        "regime": "Paper v1 evaluates Qwen2.5-7B-Instruct with a Qwen2.5-0.5B-Instruct drafter and Vicuna-7B-v1.5 with a Vicuna-68M drafter on CNN/DailyMail and ELI5. The multi-draft appendix uses 1,000 prompts per target/dataset cell, lookahead 4 and draft counts 2, 4, 6 and 8.",
+        "reproducibility": "The paper includes algorithms, theorem proofs, prompt templates and appendix tables. No code repository is linked on the arXiv page and no independent run was performed.",
+        "strongest_baseline": "For multi-draft efficiency, the paper compares with the Invariant decoder of Rowan et al. using the same prompts and settings. For watermark strength it compares Basic-UWM, MWS, MSE and MSE-Pseudo; the authors report similar acceptance to Invariant with higher ANLPPT-U in the headline setting."
+      },
+      "importance_tier": "Notable",
+      "development_type": "paper",
+      "event_at": "2026-09-18T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-11T23:54:58Z",
+      "updated_at": "2026-10-11T23:54:58Z",
+      "importance": 5,
+      "evidence_class": "B",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": true,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "CLAIMED",
+            "text": "The authors’ MPFR method indexes keyed Poisson randomness by output context and reports drafter-invariant multi-draft speculative sampling with target-distributed emitted tokens and an embedded unbiased watermark."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "For the paper’s Qwen2.5-7B-Instruct/Qwen2.5-0.5B-Instruct headline configuration, the authors report that the watermark-strength metric ANLPPT-U varies by at most 0.001 as draft count increases from 2 to 8 at lookahead 4; accepted tokens per step remain comparable to the Invariant multi-draft comparator, with cell-dependent deviations."
+          },
+          {
+            "label": "NOT_ESTABLISHED",
+            "text": "The preprint does not establish independent reproduction, production-scale latency or throughput gains, or robust watermark detection after paraphrasing or other substantial text changes. It explicitly retains an efficiency-watermark tradeoff for a fixed number of drafts."
+          }
+        ],
+        "limitations": [
+          "Evidence is one author-reported preprint; no independent implementation or reproduction was reviewed.",
+          "Experiments cover 7B target models and CNN/DailyMail/ELI5 text generation; they do not establish production-scale acceleration or cross-domain performance.",
+          "The authors explicitly state that an efficiency-watermark tradeoff remains at a fixed draft count and identify coupling/bookkeeping overhead.",
+          "Robustness after substantial text edits or transformations is not demonstrated."
+        ],
+        "gaps": [
+          {
+            "kind": "reproduction_missing",
+            "description": "The paper’s theoretical and empirical claims have not been independently reproduced; no code repository is linked from the arXiv record reviewed."
+          },
+          {
+            "kind": "other",
+            "description": "Experiments use 7B target models, one small drafter family per target and two text datasets; large-model, longer-context and multilingual behavior is unmeasured."
+          },
+          {
+            "kind": "other",
+            "description": "The paper notes coupling and watermark-bookkeeping overhead, but does not establish end-to-end serving latency, throughput, power or cost at production scale."
+          },
+          {
+            "kind": "other",
+            "description": "The effect of paraphrasing, truncation, translation or other text transformations on watermark detection was not established in the reviewed experiment scope."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://arxiv.org/abs/2609.21858",
+          "domain": "arxiv.org",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "University College London",
+        "University of Cambridge",
+        "University of Pennsylvania"
+      ],
+      "topics": [
+        "speculative-decoding",
+        "llm-watermarking",
+        "text-provenance",
+        "poisson-processes"
+      ],
+      "regions": [
+        "GLOBAL"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-D6FDB2438549.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: Poisson-coupled speculative sampling reports stable watermark signal as draft count grows"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "Un método Poisson de decodificación especulativa informa una marca de agua estable al aumentar los borradores",
+            "summary": "Un preprint de septiembre de 2026 propone MPFR, un método que usa procesos Poisson con clave e indexados por contexto para combinar decodificación especulativa con múltiples borradores y una marca de agua no sesgada. Los autores prueban un límite para la probabilidad de aceptación e informan que, con Qwen2.5-7B-Instruct como objetivo y Qwen2.5-0.5B-Instruct como borrador, la señal de marca de agua varió como máximo 0.001 al pasar de 2 a 8 borradores con anticipación 4. El apéndice amplía los resultados a cuatro celdas de modelo y conjunto de datos, con 1,000 indicaciones por celda. Son resultados informados por los autores sobre benchmarks con modelos pequeños, no medidas de producción reproducidas independientemente. El artículo dice que el intercambio entre marca de agua y eficiencia persiste cuando se fija el número de borradores y señala costos adicionales de acoplamiento y seguimiento.",
+            "importance_rationale": "Si se reprodujera de manera independiente, una señal de marca de agua estable al aumentar el número de borradores, junto con la decodificación especulativa con múltiples borradores, podría mejorar en la práctica el equilibrio entre rendimiento de generación y procedencia del texto. La evidencia actual consiste en teoría y experimentos con modelos pequeños de un solo artículo; no demuestra rendimiento de producción.",
+            "why_it_matters": "La decodificación especulativa busca aumentar el rendimiento al verificar varios tokens propuestos en paralelo; las marcas de agua buscan aportar señales detectables de procedencia en el texto generado. Un método que mantenga estable la señal medida de marca de agua al aumentar los borradores podría combinar ambos objetivos en el régimen estudiado. El artículo no demuestra mejoras de velocidad en producción, robustez después de ediciones importantes ni reproducción independiente.",
+            "technical": {
+              "claimed_result": "Los autores informan que ANLPPT-U, su métrica de fuerza de marca de agua, varía como máximo 0.001 entre 2 y 8 borradores con anticipación 4 en la configuración principal. Los tokens aceptados por paso son comparables al método Invariant; estos resultados prácticos siguen siendo afirmaciones de los autores.",
+              "compute_or_cost": "El estudio informa tokens aceptados por paso y tasa de tokens en su entorno de prueba. No establece rendimiento, costo o latencia integral en servicios de producción.",
+              "demonstrated_result": "El artículo y sus tablas de experimentos están disponibles; esta revisión no ejecutó código ni realizó una reproducción independiente.",
+              "mechanism": "MPFR utiliza procesos Poisson con clave e indexados por contexto para generar borradores y muestras del modelo objetivo. Emite el token objetivo y lo compara con los borradores de cada nodo; el acoplamiento por contexto y con clave busca vincular la marca de agua al trayecto final de tokens objetivo, en vez de a las identidades de los borradores.",
+              "regime": "El preprint evalúa Qwen2.5-7B-Instruct con el borrador Qwen2.5-0.5B-Instruct y Vicuna-7B-v1.5 con Vicuna-68M en CNN/DailyMail y ELI5. El apéndice de múltiples borradores usa 1,000 indicaciones por celda de modelo/conjunto de datos, anticipación 4 y 2, 4, 6 y 8 borradores.",
+              "reproducibility": "El artículo incluye algoritmos, pruebas, plantillas de indicaciones y tablas de apéndice. La página de arXiv no enlaza un repositorio de código y esta revisión no hizo una ejecución independiente.",
+              "strongest_baseline": "Para la eficiencia con múltiples borradores, el artículo compara con el decodificador Invariant de Rowan et al. usando las mismas indicaciones y configuración. Para la fuerza de marca de agua compara Basic-UWM, MWS, MSE y MSE-Pseudo; los autores informan aceptación similar a Invariant y mayor ANLPPT-U en la configuración principal."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "El método MPFR de los autores indexa la aleatoriedad Poisson con clave por contexto de salida y reporta una decodificación especulativa con múltiples borradores e invarianza al borrador: los tokens emitidos siguen la distribución objetivo e incorporan una marca de agua no sesgada."
+                },
+                {
+                  "text": "Para la configuración principal del artículo, Qwen2.5-7B-Instruct con el borrador Qwen2.5-0.5B-Instruct, los autores informan que la métrica de fuerza de marca de agua ANLPPT-U varía como máximo 0.001 al aumentar los borradores de 2 a 8 con anticipación de 4. La tabla muestra que los tokens aceptados por paso son comparables al método de múltiples borradores Invariant, con diferencias según la celda."
+                },
+                {
+                  "text": "El preprint no demuestra reproducción independiente, ganancias de latencia o rendimiento a escala de producción, ni detección robusta de la marca de agua después de paráfrasis u otros cambios sustanciales del texto. El artículo indica que sigue existiendo un intercambio entre eficiencia y marca de agua con un número fijo de borradores."
+                }
+              ],
+              "limitations": [
+                "La evidencia proviene de un preprint con resultados de los autores; esta revisión no encontró una ejecución o reproducción independiente.",
+                "Los experimentos cubren modelos objetivo de 7B y generación de texto en CNN/DailyMail y ELI5; no establecen aceleración a escala de producción ni resultados en otros dominios.",
+                "Los autores indican explícitamente que persiste un intercambio entre eficiencia y fuerza de marca de agua con un número fijo de borradores, e identifican costos de acoplamiento y seguimiento.",
+                "No se demuestra robustez tras ediciones o transformaciones sustanciales del texto."
+              ],
+              "gaps": [
+                {
+                  "description": "Esta revisión no reprodujo de forma independiente las afirmaciones teóricas o empíricas del artículo; el registro de arXiv consultado no enlaza un repositorio de código."
+                },
+                {
+                  "description": "Los experimentos usan modelos objetivo de 7B, familias pequeñas de borradores y dos conjuntos de datos de texto; no miden modelos mayores, contextos más extensos ni rendimiento multilingüe."
+                },
+                {
+                  "description": "El artículo señala gastos de acoplamiento y seguimiento de la marca de agua, pero no establece latencia, rendimiento, energía o costo del servicio integral a escala de producción."
+                },
+                {
+                  "description": "El alcance experimental revisado no establece el efecto de paráfrasis, truncamiento, traducción u otras transformaciones sobre la detección."
+                }
+              ]
+            },
+            "dek": "Un preprint de septiembre de 2026 propone MPFR, un método que usa procesos Poisson con clave e indexados por contexto para combinar decodificación especulativa con múltiples borradores y una marca de agua no sesgada."
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "泊松过程推测解码研究报告称，草稿数增加时水印信号仍保持稳定",
+            "summary": "2026 年九月的一篇预印本提出 MPFR，利用按上下文索引的带密钥泊松过程，将多草稿推测解码与无偏水印结合。作者证明了接受概率下界，并报告称在 Qwen2.5-7B-Instruct 目标模型和 Qwen2.5-0.5B-Instruct 草稿模型上，前瞻长度为 4 时，草稿数从 2 增至 8，水印信号变化不超过 0.001。附录将结果扩展到四个模型/数据集实验单元，每个单元使用 1,000 条提示。这些是小模型基准上的作者报告结果，尚未独立复现，也不是生产环境测量。论文指出固定草稿数时水印与效率的权衡仍然存在，并提到额外的耦合和跟踪开销。",
+            "importance_rationale": "如果能独立复现，随着草稿数增加仍保持稳定的水印信号，加上多草稿推测解码，可能改善生成吞吐量与文本来源标记之间的实用权衡。目前证据来自单篇论文的理论和小模型实验，并未证明生产环境性能。",
+            "why_it_matters": "推测解码通过并行检查多个草稿 token 来提高生成吞吐量；水印则试图在生成文本中加入可检测的来源信号。如果一种方法在增加草稿数时仍能保持测得的水印信号稳定，便可能在特定研究条件下兼顾两者。论文没有证明生产速度提升、重大文本改写后的稳健性或独立复现。",
+            "technical": {
+              "claimed_result": "作者报告称，在主要配置中，前瞻长度为 4 时，草稿数从 2 增至 8，水印强度指标 ANLPPT-U 的变化不超过 0.001。每步接受的 token 数与 Invariant 基线相近；这些实践结果仍是作者报告。",
+              "compute_or_cost": "研究在测试环境中报告了每步接受的 token 数和 token 速率。它没有证明生产服务的端到端吞吐量、成本或延迟。",
+              "demonstrated_result": "论文及其实验表格可以查阅；本次审查没有运行代码或进行独立复现。",
+              "mechanism": "MPFR 使用按上下文索引的带密钥泊松过程生成草稿和目标模型样本。在每个节点发出目标 token 并将其与草稿比较；这种带密钥的上下文耦合旨在让水印跟随最终目标 token 路径，而非草稿身份。",
+              "regime": "论文评估 Qwen2.5-7B-Instruct 搭配 Qwen2.5-0.5B-Instruct 草稿模型，以及 Vicuna-7B-v1.5 搭配 Vicuna-68M 草稿模型，在 CNN/DailyMail 和 ELI5 上测试。多草稿附录每个模型/数据集单元使用 1,000 条提示、前瞻长度 4，以及 2、4、6、8 个草稿。",
+              "reproducibility": "论文提供了算法、证明、提示模板和附录表格。arXiv 页面没有链接代码仓库，本次也没有独立运行。",
+              "strongest_baseline": "在多草稿效率方面，论文以相同提示和参数比较 Rowan 等人的 Invariant 解码器。在水印强度方面，比较 Basic-UWM、MWS、MSE 和 MSE-Pseudo；作者报告称主要配置中其接受表现与 Invariant 相近，ANLPPT-U 更高。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "作者的 MPFR 方法按输出上下文索引带密钥的泊松随机过程，并报告了一种具备草稿模型不变性的多草稿推测解码：输出 token 服从目标分布，同时嵌入无偏水印。"
+                },
+                {
+                  "text": "在论文的主要配置中，目标模型为 Qwen2.5-7B-Instruct，草稿模型为 Qwen2.5-0.5B-Instruct。作者报告称，前瞻长度为 4 时，草稿数从 2 增至 8，水印强度指标 ANLPPT-U 的变化不超过 0.001。表格显示，每步接受的 token 数与 Invariant 多草稿基线相近，但具体差异随实验单元而变。"
+                },
+                {
+                  "text": "预印本没有证明结果已获独立复现，也没有证明生产规模的延迟或吞吐量提升，或文本经释义等重大改写后仍能可靠检测水印。论文明确指出，草稿数量固定时，效率与水印之间仍存在权衡。"
+                }
+              ],
+              "limitations": [
+                "证据来自一篇由作者报告结果的预印本；本次审查没有找到独立运行或复现。",
+                "实验覆盖 7B 目标模型以及 CNN/DailyMail 和 ELI5 文本生成；不能据此证明生产规模的加速或其他领域的表现。",
+                "作者明确表示，在草稿数固定时，效率与水印之间仍存在权衡，并指出耦合和水印跟踪开销。",
+                "论文没有证明文本经过重大编辑或转换后仍具备稳健检测能力。"
+              ],
+              "gaps": [
+                {
+                  "description": "本次审查没有独立复现论文的理论或实验结论；所查 arXiv 记录没有链接代码仓库。"
+                },
+                {
+                  "description": "实验采用 7B 目标模型、小型草稿模型系列和两个文本数据集；没有测量更大模型、更长上下文或多语言表现。"
+                },
+                {
+                  "description": "论文提到耦合和水印跟踪开销，但没有证明生产规模下端到端服务的延迟、吞吐量、功耗或成本。"
+                },
+                {
+                  "description": "所查实验范围没有证明释义、截断、翻译或其他文本转换对水印检测的影响。"
+                }
+              ]
+            },
+            "headline": "泊松过程推测解码研究报告称，草稿数增加时水印信号仍保持稳定"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
+    {
+      "id": "FCMO-23FE07CB0846",
+      "slug": "reap-study-reports-strong-coding-retention-after-50-expert-pruning-in",
+      "url_date": "2026-10-11",
+      "kind": "development",
+      "status": "live",
+      "beat": "research",
+      "desk": "compute_inference",
+      "title": "REAP study reports strong coding retention after 50% expert pruning in two large MoE models",
+      "dek": "A May 2026 version of a Cerebras-authored preprint reports that its Router-weighted Expert Activation Pruning (REAP) method retained coding benchmark accuracy after removing 50% of experts from Qwen3-Coder-480B and Kimi-K2-Instruct.",
+      "summary": "A May 2026 version of a Cerebras-authored preprint reports that its Router-weighted Expert Activation Pruning (REAP) method retained coding benchmark accuracy after removing 50% of experts from Qwen3-Coder-480B and Kimi-K2-Instruct. The authors summarize the non-agentic coding accuracy decreases across those two models as 0.16% at 25% compression and 1.2% at 50%; model-specific benchmark scores are reported separately in Table 3. These are author-reported results, not independently reproduced serving or economic outcomes.",
+      "why_it_matters": "Large MoE checkpoints carry substantial memory overhead. If the reported task-specific quality retention generalizes, selective expert removal could make some large models easier to store or serve. The paper does not show proportional reductions in wall-clock latency, power, or total serving cost.",
+      "importance_rationale": "If the paper-reported results hold beyond its evaluated models and benchmark setup, removing half of the experts while retaining coding accuracy could materially lower memory requirements for large sparse models. The evidence is an author-reported benchmark result; it does not establish serving cost, latency, or general quality across tasks.",
+      "technical": {
+        "claimed_result": "The paper reports a mean non-agentic coding accuracy decrease of 0.16% and 1.2% at 25% and 50% compression across its Qwen3-Coder-480B and Kimi-K2 evaluations. Table 3 gives model-specific benchmark results; the paper does not claim these averages generalize beyond its evaluated tasks.",
+        "compute_or_cost": "Expert count and model parameter storage are reduced by the compression ratio. The paper does not measure end-to-end serving latency, throughput, power, memory residency, or dollars saved.",
+        "demonstrated_result": "The arXiv v3 paper and its reported tables are accessible; the numerical findings remain author-reported and were not independently reproduced in this review.",
+        "mechanism": "REAP scores experts using both router gate values and activation norms, then removes low-scoring experts while preserving the surviving router’s independent control. The paper argues that merging experts can lose input-dependent routing behavior.",
+        "regime": "Two large sparse MoE checkpoints for the large-scale results: Qwen3-Coder-480B-A35B-Instruct-FP8 and Kimi-K2-Instruct-W4A16. The paper evaluates non-agentic and agentic code generation, tool use and multiple-choice tasks, including 25% and 50% expert compression.",
+        "reproducibility": "The authors link code and selected compressed checkpoints. The public repository README describes pruning/evaluation scripts and a calibration-data mixture. It reports that normalizing top-k router logits on 2026-03-11 changed its five-model non-agentic coding mean decrease from 2.6% to 1.9%; the repository says prior large-scale results used normalized logits. Independent execution or reproduction was not performed in this review.",
+        "strongest_baseline": "The paper compares REAP with frequency-based pruning, Expert Activation Norm pruning, and expert merging methods at matched compression ratios on its listed models and benchmarks."
+      },
+      "importance_tier": "Notable",
+      "development_type": "paper",
+      "event_at": "2026-05-13T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-11T23:54:58Z",
+      "updated_at": "2026-10-11T23:54:58Z",
+      "importance": 5,
+      "evidence_class": "B",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": false,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "CLAIMED",
+            "text": "The authors report that REAP, a pruning criterion combining router gate values and expert activation norms, outperforms the compared pruning and merging baselines on the paper’s generative benchmarks, particularly at 50% expert compression."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "The authors summarize their two-model non-agentic coding results as mean accuracy decreases of 0.16% at 25% compression and 1.2% at 50% compression. Their Table 3 reports benchmark scores separately for each model."
+          },
+          {
+            "label": "NOT_ESTABLISHED",
+            "text": "The preprint does not establish independent reproduction, general quality preservation outside its evaluated tasks and configurations, or real serving savings in memory residency, throughput, latency, power, or cost."
+          }
+        ],
+        "limitations": [
+          "Results are author-reported in a preprint by authors affiliated with Cerebras Systems and the University of Calgary; no independent reproduction was reviewed.",
+          "The strong large-model result is specific to the study’s two listed checkpoints and benchmark setup; other tasks show larger quality losses.",
+          "A reduction in stored experts does not by itself establish proportional runtime, power, or cost savings.",
+          "The text’s percentage summary and model-specific values in Table 3 use different aggregation levels; the paper’s reported aggregate should not be mixed with individual table-cell differences.",
+          "The authors’ repository reports a material implementation/evaluation update: top-k router-logit renormalization improved a five-model non-agentic coding mean decrease from 2.6% to 1.9%; it says prior large-scale results used the normalized setting. These first-party figures were not independently reproduced."
+        ],
+        "gaps": [
+          {
+            "kind": "reproduction_missing",
+            "description": "The benchmark results are from a single author team and have not been independently reproduced in this review."
+          },
+          {
+            "kind": "other",
+            "description": "Quality retention is task- and model-dependent; the paper itself reports weaker results on some agentic/tool-use and multiple-choice metrics, and the result does not cover broad production traffic."
+          },
+          {
+            "kind": "other",
+            "description": "Removing experts does not demonstrate reduced end-to-end serving cost or latency; no matched hardware/runtime measurements were reviewed."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://arxiv.org/abs/2510.13999",
+          "domain": "arxiv.org",
+          "primary": true
+        },
+        {
+          "url": "https://github.com/CerebrasResearch/reap",
+          "domain": "github.com",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "Cerebras Systems",
+        "University of Calgary"
+      ],
+      "topics": [
+        "mixture-of-experts",
+        "model-compression",
+        "expert-pruning",
+        "inference-memory"
+      ],
+      "regions": [
+        "GLOBAL"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-23FE07CB0846.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: REAP study reports strong coding retention after 50% expert pruning in two large MoE models"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "Un estudio de REAP informa que dos grandes modelos MoE mantienen resultados de codificación al podar 50% de sus expertos",
+            "summary": "Una versión de mayo de 2026 de un preprint escrito por autores de Cerebras informa que su método Router-weighted Expert Activation Pruning (REAP) conservó la exactitud en benchmarks de codificación después de eliminar 50% de los expertos de Qwen3-Coder-480B y Kimi-K2-Instruct. Los autores resumen la caída media de exactitud en codificación no agéntica para ambos modelos como 0.16% con 25% de compresión y 1.2% con 50%; la Tabla 3 presenta por separado los puntajes de cada modelo. Son resultados informados por los autores, sin reproducción independiente ni resultados económicos o de servicio demostrados.",
+            "importance_rationale": "Si los resultados informados en el artículo se mantienen fuera de los modelos y benchmarks evaluados, eliminar la mitad de los expertos conservando la exactitud en codificación podría reducir de forma importante los requisitos de memoria de grandes modelos dispersos. La evidencia es un resultado de benchmark informado por los autores; no demuestra menores costos de servicio, latencia ni calidad general en otras tareas.",
+            "why_it_matters": "Los checkpoints MoE grandes requieren mucha memoria. Si los resultados específicos de cada tarea se generalizan, la poda selectiva de expertos podría facilitar el almacenamiento o servicio de algunos modelos. El artículo no demuestra reducciones proporcionales de latencia, consumo eléctrico ni costo total de servicio.",
+            "technical": {
+              "claimed_result": "El artículo informa una caída media de exactitud en codificación no agéntica de 0.16% y 1.2% al comprimir 25% y 50%, respectivamente, en sus evaluaciones de Qwen3-Coder-480B y Kimi-K2. La Tabla 3 presenta resultados por modelo; el artículo no afirma que estos promedios se generalicen a otras tareas.",
+              "compute_or_cost": "La compresión reduce el número de expertos y los parámetros correspondientes. El artículo no mide latencia, rendimiento, consumo eléctrico, memoria residente ni costo del servicio integral.",
+              "demonstrated_result": "El artículo v3 de arXiv y sus tablas están disponibles; los resultados numéricos siguen siendo afirmaciones de los autores y esta revisión no los reprodujo de manera independiente.",
+              "mechanism": "REAP puntúa a los expertos usando los valores de compuerta del enrutador y las normas de activación, y luego elimina los expertos con menor puntuación sin quitar al enrutador el control independiente de los expertos restantes. El artículo sostiene que fusionarlos puede perder el comportamiento de enrutamiento condicionado por la entrada.",
+              "regime": "Los resultados a gran escala cubren dos checkpoints MoE dispersos: Qwen3-Coder-480B-A35B-Instruct-FP8 y Kimi-K2-Instruct-W4A16. El artículo evalúa tareas de codificación agéntica y no agéntica, uso de herramientas y opción múltiple, con compresión de expertos de 25% y 50%.",
+              "reproducibility": "Los autores enlazan código y algunos checkpoints comprimidos. El README del repositorio público describe scripts de poda/evaluación y una mezcla de datos de calibración. Informa que la renormalización de logits top-k del enrutador, en la actualización del 2026-03-11, cambió la caída media de exactitud en codificación no agéntica en cinco modelos de 2.6% a 1.9%; el repositorio indica que los resultados/checkpoints previos a gran escala usaron logits normalizados. Esta revisión no realizó una ejecución o reproducción independiente.",
+              "strongest_baseline": "El artículo compara REAP con poda por frecuencia, poda Expert Activation Norm y métodos de fusión de expertos en los mismos niveles de compresión para los modelos y benchmarks enumerados."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "Los autores informan que REAP, un criterio de poda que combina los valores de compuerta del enrutador con las normas de activación de los expertos, supera a los métodos de poda y fusión comparados en los benchmarks generativos del artículo, en especial con 50% de compresión de expertos."
+                },
+                {
+                  "text": "Los autores resumen los resultados de codificación no agéntica de los dos modelos con una caída media de exactitud de 0.16% al comprimir 25% y de 1.2% al comprimir 50%. La Tabla 3 presenta por separado las puntuaciones de cada modelo."
+                },
+                {
+                  "text": "El preprint no demuestra una reproducción independiente, la conservación general de calidad fuera de los modelos y configuraciones evaluados, ni ahorros reales de memoria residente, rendimiento, latencia, energía o costo de servicio."
+                }
+              ],
+              "limitations": [
+                "Los resultados son informados por los autores en un preprint de investigadores afiliados con Cerebras Systems y University of Calgary; esta revisión no encontró una reproducción independiente.",
+                "El resultado favorable en modelos grandes corresponde a los dos checkpoints y al protocolo de benchmark estudiados; otras tareas muestran pérdidas de calidad mayores.",
+                "Reducir los expertos almacenados no demuestra por sí solo una reducción proporcional del runtime, la energía o el costo.",
+                "El resumen porcentual del texto y los valores por modelo de la Tabla 3 usan niveles de agregación distintos; no deben mezclarse.",
+                "El repositorio de los autores informa una actualización material de implementación/evaluación: al renormalizar los logits top-k del enrutador, la caída media de exactitud en codificación no agéntica en cinco modelos pasó de 2.6% a 1.9%. Indica que los resultados y checkpoints previos a gran escala usaron logits normalizados. Estas cifras de los autores no se reprodujeron de forma independiente."
+              ],
+              "gaps": [
+                {
+                  "description": "Los resultados de los benchmarks provienen de un solo equipo autor y esta revisión no los reprodujo de forma independiente."
+                },
+                {
+                  "description": "La conservación de calidad depende de la tarea y el modelo; el artículo informa resultados más débiles en algunas métricas de uso de herramientas, codificación agéntica y opción múltiple, y no cubre tráfico amplio de producción."
+                },
+                {
+                  "description": "Eliminar expertos no demuestra una reducción del costo o la latencia del servicio integral; esta revisión no encontró mediciones comparables de hardware y runtime."
+                }
+              ]
+            }
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "REAP 研究报告称，两种大型 MoE 模型剪去 50% 专家后仍保持较强编码表现",
+            "summary": "2026 年五月的 Cerebras 作者团队预印本报告称，其 Router-weighted Expert Activation Pruning（REAP）方法在从 Qwen3-Coder-480B 和 Kimi-K2-Instruct 中删除 50% 专家后，仍保留了编码基准准确率。作者将这两个模型在非智能体编码任务上的平均准确率降幅概括为：剪枝 25% 时 0.16%，剪枝 50% 时 1.2%；表 3 分别列出各模型的基准分数。这些是作者报告的结果，尚无独立复现，也没有证明服务或经济效益。",
+            "importance_rationale": "如果论文报告的结果能推广到所评估模型和基准之外，在保留编码准确率的同时删除一半专家，可能显著降低大型稀疏模型的内存需求。现有证据是作者报告的基准结果，并未证明服务成本、延迟或其他任务上的总体质量。",
+            "why_it_matters": "大型 MoE 检查点需要大量内存。如果按任务报告的质量保持结果能够推广，选择性删除专家可能降低部分模型的存储或服务门槛。论文没有证明延迟、功耗或服务总成本会按比例下降。",
+            "technical": {
+              "claimed_result": "论文报告称，在 Qwen3-Coder-480B 和 Kimi-K2 的非智能体编码评估中，剪枝 25% 和 50% 时的平均准确率降幅分别为 0.16% 和 1.2%。表 3 列出了各模型的结果；论文没有声称这些均值适用于评估任务之外的情形。",
+              "compute_or_cost": "压缩会减少专家数量及相应参数。论文没有测量端到端服务延迟、吞吐量、功耗、常驻内存或成本。",
+              "demonstrated_result": "arXiv v3 论文及其报告的表格可以查阅；数值仍是作者报告的结果，本次审查没有进行独立复现。",
+              "mechanism": "REAP 同时利用路由器门控值和专家激活范数为专家评分，然后删除低分专家，同时保留路由器对其余专家的独立控制。论文认为，合并专家可能丢失依赖输入的路由行为。",
+              "regime": "大规模结果涉及两个稀疏 MoE 检查点：Qwen3-Coder-480B-A35B-Instruct-FP8 和 Kimi-K2-Instruct-W4A16。论文评估了非智能体与智能体编码、工具使用和选择题任务，专家剪枝比例为 25% 和 50%。",
+              "reproducibility": "作者链接了代码和部分压缩检查点。公开仓库 README 介绍了剪枝/评估脚本及校准数据混合方案。README 报告称，2026-03-11对路由器 top-k logits 重新归一化后，五个模型在非智能体编码任务上的平均准确率降幅由 2.6% 变为 1.9%；仓库称此前的大规模结果使用了归一化设置。本次审查没有独立运行或复现。",
+              "strongest_baseline": "论文在所列模型和基准上，以相同压缩比例比较 REAP、按频率剪枝、Expert Activation Norm 剪枝和专家合并方法。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "作者报告称，REAP 这一结合路由器门控值与专家激活范数的剪枝准则，在论文的生成式基准上优于所比较的剪枝和专家合并方法，尤其是在剪去 50% 专家时。"
+                },
+                {
+                  "text": "作者将两个模型在非智能体编码任务上的结果概括为：剪枝 25% 时平均准确率下降 0.16%，剪枝 50% 时下降 1.2%。表 3 分别列出了各模型的基准分数。"
+                },
+                {
+                  "text": "这篇预印本没有证明结果已获独立复现，也没有证明质量保持可推广到所评估模型和配置之外，或证明实际服务中的常驻内存、吞吐量、延迟、功耗或成本节省。"
+                }
+              ],
+              "limitations": [
+                "结果由隶属 Cerebras Systems 和 University of Calgary 的作者团队在预印本中报告；本次审查没有发现独立复现。",
+                "大型模型上的良好结果仅适用于论文评估的两个检查点和基准设置；其他任务显示出更大的质量损失。",
+                "减少存储的专家数量本身并不能证明运行时间、功耗或成本会按比例下降。",
+                "正文的百分比概述与表 3 的单模型数值采用不同聚合层级，不应混为一谈。",
+                "作者的代码仓库报告了一项重要的实现/评估更新：对路由器 top-k logits 重新归一化后，五个模型在非智能体编码任务上的平均准确率降幅由 2.6% 降至 1.9%；仓库称此前的大规模结果和检查点使用了归一化设置。这些作者报告的数据尚未获独立复现。"
+              ],
+              "gaps": [
+                {
+                  "description": "基准结果来自同一作者团队，本次审查没有进行独立复现。"
+                },
+                {
+                  "description": "质量保持情况取决于任务和模型；论文在部分智能体/工具使用及选择题指标上报告了更弱结果，也没有覆盖广泛的生产流量。"
+                },
+                {
+                  "description": "删除专家并不能证明端到端服务成本或延迟下降；本次审查没有查看匹配硬件和运行时的测量。"
+                }
+              ]
+            },
+            "headline": "REAP 研究报告称，两种大型 MoE 模型剪去 50% 专家后仍保持较强编码表现"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
+    {
+      "id": "FCMO-072923473E5B",
+      "slug": "who-report-maps-ethics-oversight-across-three-forms-of-ai-related-health",
+      "url_date": "2026-10-11",
+      "kind": "development",
+      "status": "live",
+      "beat": "policy",
+      "desk": "policy_geopolitics",
+      "title": "WHO report maps ethics oversight across three forms of AI-related health research",
+      "headline": "WHO report maps ethics oversight across three forms of AI-related health research",
+      "summary": "A World Health Organization report dated 21 July 2026 examines ethics review and oversight for three categories of AI-related health research: health research using AI with data, research conducted with AI tools, and research about AI tools and technologies. Its official overview describes gaps in existing standards and ethics-review capacity, complementary roles for funders, journals and regulators, and equity risks affecting low- and middle-income countries. The report offers non-exhaustive considerations for strengthening oversight; it is guidance, not a binding regulation, and this review did not inspect the full PDF or verify implementation effects.",
+      "why_it_matters": "AI is entering health research through data analysis, research tools and the evaluation of AI technologies themselves. A WHO framework that distinguishes these categories and identifies the roles of ethics committees and other institutions may shape research governance. Its recommendations are not binding rules, and no implementation or health outcome is established here.",
+      "importance_rationale": "If adopted, a WHO synthesis of oversight gaps across AI-related health research could change how researchers, ethics committees, funders and regulators review projects, including in lower-resource settings. The document is guidance and analysis; it does not create binding rules or demonstrate implementation outcomes.",
+      "technical": {
+        "claimed_result": "The WHO report proposes non-exhaustive considerations to strengthen responsible research conduct and ethics oversight; specific detailed recommendations were not available because the linked full PDF could not be retrieved.",
+        "compute_or_cost": "Not assessed in the accessible publication overview.",
+        "demonstrated_result": "The WHO publication record and announcement establish that the report exists and describe its scope and themes. This review did not inspect the full report or verify adoption, implementation or impact.",
+        "mechanism": "The report groups AI-related health research into three categories and considers oversight across the research lifecycle. The overview identifies research ethics committees as central while describing complementary roles for funders, data-access bodies, journals, regulators and other third parties.",
+        "regime": "Global health research involving AI in data science, AI tools used in research, and research on AI technologies; the overview calls particular attention to equity and capacity in low- and middle-income countries.",
+        "reproducibility": "Official WHO publication metadata, overview and announcement were reviewed. The linked full report PDF returned 403; no implementation evaluation was available.",
+        "strongest_baseline": "The report describes gaps in existing ethical standards and oversight mechanisms as the policy problem it addresses; this review did not compare its proposals with all existing national or international frameworks."
+      },
+      "importance_tier": "Meaningful",
+      "development_type": "policy_action",
+      "event_at": "2026-07-21T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-11T23:54:58Z",
+      "updated_at": "2026-10-11T23:54:58Z",
+      "importance": 4,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": false,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "DEMONSTRATED",
+            "text": "The WHO publication record identifies a 69-page report dated 21 July 2026 on ethics review and oversight for AI-related health research."
+          },
+          {
+            "label": "DEMONSTRATED",
+            "text": "The report overview examines three categories: health-related data science using AI; research conducted with AI tools and technologies; and health-related research on AI tools and technologies. It also discusses gaps in oversight, complementary institutional roles and risks affecting low- and middle-income countries."
+          },
+          {
+            "label": "NOT_ESTABLISHED",
+            "text": "The accessible overview does not establish that the report’s considerations are binding requirements, have been adopted by jurisdictions or institutions, or have improved health research outcomes."
+          }
+        ],
+        "limitations": [
+          "The accessible evidence is the official WHO publication overview and announcement; the full 69-page report was not retrieved because its linked PDF returned 403.",
+          "The report is guidance and analysis; no binding regulation, jurisdictional adoption or institutional compliance was verified.",
+          "No implementation, participant-protection, equity or health-outcome effect is demonstrated."
+        ],
+        "gaps": [
+          {
+            "kind": "other",
+            "description": "The official WHO page overview was accessible, but the linked 69-page report PDF returned 403; detailed recommendations and exact section-level wording were not checked."
+          },
+          {
+            "kind": "other",
+            "description": "The report page does not show which health systems, research ethics committees or regulators have adopted its considerations or whether oversight practice changed."
+          },
+          {
+            "kind": "other",
+            "description": "No measured effect on research participant protection, equity, research quality or health outcomes is established in the accessible source material."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://www.who.int/publications/i/item/9789240124073",
+          "domain": "who.int",
+          "primary": true
+        },
+        {
+          "url": "https://www.who.int/news/item/21-09-2026-new-who-report-calls-for-stronger-ethics-oversight-of-ai-related-health-research",
+          "domain": "who.int",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "World Health Organization"
+      ],
+      "topics": [
+        "ai-health-research",
+        "research-ethics",
+        "oversight",
+        "global-health-policy"
+      ],
+      "regions": [
+        "GLOBAL"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-072923473E5B.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: WHO report maps ethics oversight across three forms of AI-related health research"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "Un informe de la OMS describe la supervisión ética en tres tipos de investigación de salud relacionada con IA",
+            "summary": "Un informe de la Organización Mundial de la Salud (OMS), fechado el 21 de julio de 2026, examina la revisión ética y la supervisión de tres categorías de investigación relacionada con IA en salud: investigación sanitaria con datos que utiliza IA, investigación realizada con herramientas de IA e investigación sobre herramientas y tecnologías de IA. El resumen oficial describe brechas en normas y capacidad de revisión ética, funciones complementarias para financiadores, revistas y reguladores, y riesgos de equidad para países de ingresos bajos y medianos. El informe ofrece consideraciones no exhaustivas para reforzar la supervisión; es orientación, no una regulación vinculante. Esta revisión no pudo inspeccionar el PDF completo ni verificar efectos de implementación.",
+            "importance_rationale": "Si se adopta, una síntesis de la OMS sobre brechas de supervisión en la investigación de salud relacionada con IA podría cambiar cómo investigadores, comités de ética, financiadores y reguladores revisan proyectos, incluidos los realizados en entornos con menos recursos. El documento ofrece orientación y análisis; no crea reglas vinculantes ni demuestra resultados de implementación.",
+            "why_it_matters": "La IA está entrando a la investigación en salud mediante el análisis de datos, las herramientas usadas para investigar y la evaluación de las propias tecnologías de IA. Un marco de la OMS que distingue estas categorías y señala funciones para comités de ética y otras instituciones podría influir en la gobernanza de la investigación. Sus recomendaciones no son reglas vinculantes y aquí no se establecen efectos de implementación ni resultados de salud.",
+            "technical": {
+              "claimed_result": "El informe de la OMS propone consideraciones no exhaustivas para fortalecer la conducta responsable en investigación y la supervisión ética; no se pudo consultar el PDF completo para revisar recomendaciones detalladas.",
+              "compute_or_cost": "La sinopsis de la publicación accesible no evalúa costos o capacidad de cómputo.",
+              "demonstrated_result": "El registro y el anuncio oficiales de la OMS confirman la existencia del informe y describen su alcance y temas. Esta revisión no inspeccionó el documento completo ni verificó su adopción, implementación o impacto.",
+              "mechanism": "El informe agrupa la investigación relacionada con IA en salud en tres categorías y examina la supervisión a lo largo del ciclo de investigación. El resumen identifica a los comités de ética como actores centrales y describe funciones complementarias para financiadores, organismos de acceso a datos, revistas, reguladores y terceros.",
+              "regime": "Investigación sanitaria global que utiliza IA en ciencia de datos, investigación realizada con herramientas de IA e investigación sobre tecnologías de IA; el resumen destaca la equidad y la capacidad en países de ingresos bajos y medianos.",
+              "reproducibility": "Se revisaron los metadatos, el resumen y el anuncio de la OMS. El PDF oficial enlazado devolvió 403 y no se encontró una evaluación de implementación.",
+              "strongest_baseline": "El informe describe brechas en normas éticas y mecanismos de supervisión existentes; esta revisión no comparó sus propuestas con todos los marcos nacionales e internacionales vigentes."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "El registro de publicaciones de la Organización Mundial de la Salud (OMS) identifica un informe de 69 páginas, fechado el 21 de julio de 2026, sobre revisión ética y supervisión de la investigación relacionada con la IA en salud."
+                },
+                {
+                  "text": "El resumen del informe examina tres categorías: ciencia de datos para la salud que utiliza IA; investigación realizada con herramientas y tecnologías de IA; e investigación sobre herramientas y tecnologías de IA para la salud. También aborda brechas de supervisión, funciones institucionales complementarias y riesgos para países de ingresos bajos y medianos."
+                },
+                {
+                  "text": "El resumen disponible no demuestra que las consideraciones del informe sean requisitos vinculantes, que jurisdicciones o instituciones las hayan adoptado ni que hayan mejorado los resultados de la investigación en salud."
+                }
+              ],
+              "limitations": [
+                "La evidencia accesible consiste en el resumen y el anuncio oficiales de la OMS; no se pudo recuperar el informe completo de 69 páginas porque el PDF enlazado devolvió 403.",
+                "El informe ofrece orientación y análisis; no se verificó ninguna regulación vinculante, adopción jurisdiccional ni cumplimiento institucional.",
+                "No se demuestra ningún efecto sobre implementación, protección de participantes, equidad o resultados de salud."
+              ],
+              "gaps": [
+                {
+                  "description": "La página oficial de la OMS fue accesible, pero el PDF enlazado del informe de 69 páginas devolvió 403; no se revisaron las recomendaciones detalladas ni su redacción exacta por sección."
+                },
+                {
+                  "description": "La página del informe no identifica sistemas de salud, comités de ética de investigación ni reguladores que hayan adoptado sus consideraciones, ni demuestra cambios en las prácticas de supervisión."
+                },
+                {
+                  "description": "Las fuentes accesibles no establecen efectos medidos en la protección de participantes, equidad, calidad de la investigación ni resultados de salud."
+                }
+              ]
+            }
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "WHO 报告梳理三类人工智能相关健康研究的伦理监督",
+            "summary": "世界卫生组织（WHO）一份日期为 2026 年七月 21 日的报告，考察了三类人工智能相关健康研究的伦理审查与监督：使用人工智能的健康数据研究、借助人工智能工具开展的研究，以及针对人工智能工具和技术的研究。官方概述指出现有标准和伦理审查能力存在缺口，并讨论资助方、期刊和监管者的互补职责，以及低收入和中等收入国家面临的公平风险。报告提出加强监督的非穷尽性考虑；它属于指导文件，不是有约束力的法规。本次审查未能查看完整 PDF，也未核实实施效果。",
+            "importance_rationale": "如果得到采纳，WHO 对人工智能相关健康研究监督缺口的综合分析可能改变研究人员、伦理委员会、资助方和监管者审查项目的方式，包括资源较少的环境。该文件提供的是指导和分析，不创设有约束力的规则，也没有证明实施结果。",
+            "why_it_matters": "人工智能正通过数据分析、研究工具以及对人工智能技术本身的评估进入健康研究。WHO 框架区分这些类别，并指出伦理委员会及其他机构可以承担的职责，可能影响研究治理。报告建议不是有约束力的规则，本次也没有证实实施或健康结果。",
+            "technical": {
+              "claimed_result": "WHO 报告提出非穷尽性考虑，以加强负责任的研究实践和伦理监督；由于完整 PDF 无法访问，本次未核查详细建议。",
+              "compute_or_cost": "可访问的出版概述没有评估成本或算力。",
+              "demonstrated_result": "WHO 官方出版记录和公告证实该报告存在，并说明其范围与主题。本次未查阅完整报告，也未核实采纳、实施或影响。",
+              "mechanism": "报告将人工智能相关健康研究分为三类，并考察研究生命周期内的监督。概述指出研究伦理委员会居于核心，同时说明资助方、数据访问机制、期刊、监管机构和其他第三方可以发挥互补作用。",
+              "regime": "全球健康研究，包括在数据科学中使用人工智能、借助人工智能工具开展的研究，以及针对人工智能技术的研究；概述特别关注低收入和中等收入国家的公平与能力建设。",
+              "reproducibility": "本次审查了 WHO 官方出版元数据、概述和公告。链接的 WHO IRIS PDF 返回 403；未发现实施评估。",
+              "strongest_baseline": "报告将现行伦理标准和监督机制中的缺口描述为其要处理的问题；本次没有将相关建议与所有现有国家及国际框架逐一比较。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "世界卫生组织（WHO）出版记录显示，这份关于人工智能相关健康研究伦理审查与监督的报告共 69 页，日期为 2026 年七月 21 日。"
+                },
+                {
+                  "text": "报告概述考察了三类研究：使用人工智能的健康相关数据科学；借助人工智能工具和技术开展的研究；以及针对人工智能工具和技术的健康相关研究。概述还讨论了监督缺口、不同机构的互补职责，以及低收入和中等收入国家面临的风险。"
+                },
+                {
+                  "text": "可查阅的概述没有证明报告中的建议属于有约束力的要求，也没有证明任何司法辖区或机构已经采纳这些建议，或其已改善健康研究结果。"
+                }
+              ],
+              "limitations": [
+                "可访问证据是 WHO 官方出版概述和公告；链接的完整 69 页报告 PDF 返回 403，无法获取。",
+                "报告提供的是指导和分析；本次没有核实有约束力的法规、司法辖区采纳或机构合规情况。",
+                "没有证明其对实施、受试者保护、公平性或健康结果产生了影响。"
+              ],
+              "gaps": [
+                {
+                  "description": "WHO 官方出版页可以访问，但链接的 69 页报告 PDF 返回 403；本次没有查看详细建议或逐节原文。"
+                },
+                {
+                  "description": "报告页面没有说明哪些卫生系统、研究伦理委员会或监管机构采纳了相关考虑，也没有证明监督实践已经改变。"
+                },
+                {
+                  "description": "现有可访问材料没有证明其对受试者保护、公平性、研究质量或健康结果产生了可测量影响。"
+                }
+              ]
+            },
+            "headline": "WHO 报告梳理三类人工智能相关健康研究的伦理监督",
+            "dek": "世界卫生组织（WHO）一份日期为 2026 年七月 21 日的报告，考察了三类人工智能相关健康研究的伦理审查与监督：使用人工智能的健康数据研究、借助人工智能工具开展的研究，以及针对人工智能工具和技术的研究。官方概述指出现有标准和伦理审查能力存在缺口，并讨论资助方、期刊和监管者的互补职责，以及低收入和中等收入国家面临的公平风险。报告提出加强监督的非穷尽性考虑；它属于指导文件，不是有约束力的法规。本次审查未能查看完整 PDF，也未核实实施效果。"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
     {
       "id": "FCMO-94EBAAEAD595",
       "slug": "morfic-reports-critic-conditioned-transfer-across-quadruped-morphologies",
