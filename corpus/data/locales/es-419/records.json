@@ -68,6 +68,64 @@
       "title": "LLAnalyzer muestra que la inferencia local no garantiza confidencialidad de prompts entre límites del servicio",
       "why_it_matters": "La ejecución local elimina una relación con un proveedor de nube, pero no controla las copias del prompt, el estado de conversación guardado ni las optimizaciones compartidas del servicio. La restauración entre usuarios probada muestra por qué la autenticación de API requiere autorización por recurso; el resultado temporal separado indica que el estado compartido de caché puede revelar información sin devolver el texto del prompt. El alcance se limita a las configuraciones evaluadas y requiere reproducción en versiones actuales."
     },
+    "FCMO-0180330ECF93": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "DataSpace es un benchmark de 410 tareas multilingües en espacios de trabajo heterogéneos y locales a cada tarea; contiene 7,439 artefactos que suman 15.01 GB entre CSV, JSON, SQLite, Markdown, PDF y video. La salida exigida es una tabla completa y verificable."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Con MiMo-V2.5 fijo, los autores informan una precisión de 30.98% con Smolagents y 46.34% con Grok Build, una diferencia de 15.36 puntos porcentuales entre cinco entornos probados. Con DataSpace-Agent fijo, la mejor precisión entre seis modelos es 66.34%."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan que integrar evidencia multimodal y realizar uniones reduce la precisión en los seis modelos evaluados; en la comparación reportada, los seis modelos fallan en 76 tareas."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El benchmark no demuestra que, en general, el entorno de agentes importe más que el modelo ni que la diferencia medida se traslade a otros conjuntos de datos, versiones de modelos, configuraciones o análisis organizacionales reales."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "El benchmark y las clasificaciones informadas de modelos y entornos no se han reproducido de forma independiente.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "Las comparaciones separadas con modelo fijo y entorno fijo no identifican la interacción entre modelo y entorno en todas las combinaciones probadas.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "La transferencia a espacios de trabajo organizacionales reales y la utilidad para usuarios no se miden mediante la precisión exacta de tablas.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se replica, una diferencia de 15.36 puntos con la base del modelo fija afectaría de forma sustancial la evaluación y optimización de agentes de datos; un benchmark de espacios heterogéneos también podría exponer fallas que no muestran las pruebas centradas en consultas estructuradas. La evidencia procede de un benchmark de 410 tareas elaborado por los autores; la diferencia corresponde a sistemas, versiones y distribución de tareas específicos.",
+      "limitations": [
+        "Los autores informan todos los resultados empíricos del benchmark de 410 tareas; no se localizó ni realizó una reproducción independiente.",
+        "La diferencia de 15.36 puntos entre entornos se midió en un benchmark de 410 tareas, con una base MiMo-V2.5 fija y cinco sistemas/versiones específicos.",
+        "La comparación separada de modelos fija DataSpace-Agent; los dos bloques experimentales no estiman la interacción completa entre modelo y entorno.",
+        "El contenido de las tareas y la distribución de artefactos limitan la validez externa; los análisis organizacionales reales pueden diferir en calidad y acceso a datos y comportamiento de usuarios.",
+        "La precisión del benchmark mide que la tabla completa sea correcta; no mide utilidad para usuarios, control de acceso seguro ni fiabilidad operativa en producción."
+      ],
+      "relationships": [],
+      "summary": "El artículo presenta DataSpace, un benchmark para agentes de datos que deben combinar evidencia dispersa entre espacios de trabajo heterogéneos y devolver tablas completas y verificables. Sus 410 tareas multilingües utilizan 7,439 artefactos que suman 15.01 GB y abarcan seis tipos de archivo y medios. En las comparaciones informadas por los autores, seis bases de modelo alcanzan una precisión máxima de 66.34% con DataSpace-Agent fijo; con MiMo-V2.5 fijo, cinco entornos varían entre 30.98% y 46.34%, una diferencia de 15.36 puntos. También informan que integrar evidencia multimodal y realizar uniones reduce la precisión en todos los modelos evaluados, y que los seis fallan en 76 tareas. La comparación muestra sensibilidad al entorno en este benchmark, pero no que el entorno importe más que el modelo en general. Los resultados siguen limitados al benchmark, son informes de los autores y no se han reproducido.",
+      "technical": {
+        "claimed_result": "En 410 tareas, los autores informan precisión de 66.34% para Grok 4.5 con DataSpace-Agent fijo. Con MiMo-V2.5 fijo, la precisión por entorno es 46.34% para Grok Build, 44.63% para Claude Code, 39.27% para DataSpace-Agent, 34.88% para Codex y 30.98% para Smolagents. Informan que los seis modelos fallan en 76 tareas y que integrar evidencia multimodal y realizar uniones degrada sistemáticamente los resultados.",
+        "demonstrated_result": "El preprint describe el benchmark, el protocolo de evaluación y las comparaciones informadas. No se ejecutó el benchmark ni se reprodujeron los resultados; las mediciones de rendimiento siguen siendo informes de los autores.",
+        "mechanism": "DataSpace convierte recursos analíticos ejecutables en espacios de trabajo locales a cada tarea que contienen varios tipos de artefactos. Los agentes reciben una pregunta y el espacio de trabajo, y devuelven la tabla completa solicitada. Un evaluador determinista alinea columnas, normaliza tipos y precisión, compara filas y rechaza resultados incompletos o incorrectos.",
+        "regime": "410 tareas analíticas multilingües, 7,439 artefactos locales a cada tarea y seis modalidades. La comparación de modelos fija DataSpace-Agent y evalúa seis modelos. La comparación de entornos fija MiMo-V2.5 y evalúa cinco sistemas y versiones. La evaluación mide tablas completas con normalización semántica.",
+        "reproducibility": "El artículo describe la construcción determinista y la evaluación, pero esta revisión no ejecutó código ni reprodujo los resultados del benchmark.",
+        "strongest_baseline": "Para la comparación de entornos, MiMo-V2.5 fijo con Smolagents informa 30.98% de precisión y con Grok Build 46.34%. Para la comparación de modelos con DataSpace-Agent fijo, GPT-5.6 Sol informa 64.63% y Grok 4.5 informa 66.34%. Son bloques de control separados, no una estimación factorial de interacciones entre modelo y entorno."
+      },
+      "title": "DataSpace informa diferencias amplias de precisión según el entorno en tareas heterogéneas de agentes de datos",
+      "why_it_matters": "Las evaluaciones de agentes de datos que aíslan SQL, recuperación o respuestas abiertas pueden pasar por alto fallas cuando hay que localizar, reconciliar y unir evidencia de bases de datos, archivos, documentos y medios. Un benchmark con puntuación determinista de tablas completas puede facilitar la comparación de esas fallas. La diferencia informada entre entornos sugiere que el diseño integrado del agente influye en este régimen de tareas, pero no establece una clasificación universal ni el rendimiento en lugares de trabajo reales."
+    },
     "FCMO-02EE257FF98E": {
       "claims": [
         {
@@ -1044,6 +1102,59 @@
       "title": "TierKV combina compresión predictiva de caché KV y niveles en flash para inferencia móvil de LLM",
       "why_it_matters": "La inferencia en dispositivos depende de memoria compartida y ancho de banda de almacenamiento. Planear conjuntamente la compresión, la residencia de caché y la descarga antes de decodificar es una estrategia concreta para admitir contextos más largos con memoria fija, aunque las mejoras medidas dependen de la carga y del comparador."
     },
+    "FCMO-0C8BF8705385": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "MM-ContextFold separa la planificación persistente solo textual de las ramas temporales que dependen de imágenes, devuelve los hallazgos al contexto principal como texto y descarta imágenes originales y rastros de rama después de cada subtarea."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En siete pruebas de recuperación multimodal y cinco modelos base, los autores informan una reducción de 27.5% en el contexto de trabajo y una mejora promedio de 6.3 puntos porcentuales en precisión frente a ReAct estándar; la Tabla 1 informa media y desviación estándar de tres ejecuciones independientes."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores analizan aproximadamente 10,000 trayectorias e informan que las imágenes se vuelven cada vez más redundantes tras extraer la evidencia visual y convertirla en texto; en sus experimentos, conservarlas puede elevar la entropía de salida y reducir la precisión de la tarea."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "La reducción de longitud del contexto y la mejora de precisión informadas no se han reproducido de forma independiente.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "El estudio conserva prompts y formatos nativos de llamada a herramientas de cada método, por lo que las diferencias de gramática de acciones pueden afectar la atribución pese a que se unifican las herramientas y el presupuesto de llamadas.",
+          "kind": "baseline_unclear",
+          "state": "open"
+        },
+        {
+          "description": "El artículo destaca la longitud del contexto de trabajo, pero no establece el gasto total de tokens, la latencia, el costo de API ni la transferencia a tareas de agente multimodal fuera de recuperación.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se reproduce, liberar las imágenes originales después de las tareas de identificación visual podría reducir la carga de contexto largo y elevar la precisión de recuperación, una decisión de diseño relevante para agentes multimodales. La evidencia es una evaluación informada por el artículo en siete pruebas y cinco modelos base; los formatos de acción difieren y se desconoce la transferencia más allá de agentes de recuperación.",
+      "limitations": [
+        "Todos los resultados de las pruebas son comunicados por los autores; no hubo reproducción independiente.",
+        "La evaluación principal cubre siete pruebas de recuperación multimodal y cinco modelos base; no establece resultados en tareas de agente más amplias.",
+        "Los métodos comparados conservan distintos prompts y gramáticas de acciones, aunque los autores unifican las herramientas subyacentes y el presupuesto total de llamadas.",
+        "Una reducción de 27.5% en el contexto de trabajo no demuestra por sí sola menos tokens totales, latencia, costo de API o cómputo.",
+        "La tabla principal de precisión informa tres ejecuciones independientes; esto no resuelve las preguntas sobre transferencia o comparabilidad del protocolo."
+      ],
+      "relationships": [],
+      "summary": "MM-ContextFold mantiene un contexto persistente de planificación solo textual y abre ramas multimodales temporales cuando un agente necesita inspeccionar imágenes originales. Resume en texto los hallazgos de cada rama y luego descarta las imágenes y el rastro local. Los autores primero analizan aproximadamente 10,000 trayectorias e informan que las imágenes originales se vuelven redundantes después de extraer y convertir a texto la evidencia visual. En siete pruebas de recuperación multimodal con cinco modelos base, informan un contexto de trabajo 27.5% más corto y una precisión promedio 6.3 puntos porcentuales mayor que ReAct estándar. La tabla principal presenta media y desviación estándar de tres ejecuciones independientes. Los métodos usan las mismas herramientas subyacentes de recuperación y el mismo presupuesto total de llamadas, pero conservan prompts y gramáticas de acciones distintas. Son resultados comunicados por los autores; no hubo reproducción independiente ni análisis del costo de despliegue.",
+      "technical": {
+        "claimed_result": "Los autores informan un contexto de trabajo 27.5% más corto y una mejora promedio de +6.3 puntos porcentuales sobre ReAct estándar en siete pruebas y cinco modelos base.",
+        "demonstrated_result": "El manuscrito consultado especifica el mecanismo de plegado de contexto, el análisis de trayectorias y el protocolo de evaluación. Los resultados de rendimiento siguen siendo afirmaciones de los autores y no se reprodujeron de forma independiente.",
+        "mechanism": "Un estado principal solo textual conserva el avance de la tarea y la evidencia destilada. Cuando se necesita identificar elementos visuales, el agente carga imágenes relevantes en una rama multimodal acotada, completa una subtarea y devuelve un resumen textual conciso; después descarta las imágenes y el rastro local.",
+        "regime": "El artículo informa siete pruebas de recuperación multimodal con cinco modelos base y un análisis empírico de aproximadamente 10,000 trayectorias. La precisión principal es media y desviación estándar de tres ejecuciones; los métodos comparados conservan sus formatos de acción, con herramientas y presupuesto de llamadas comunes.",
+        "strongest_baseline": "ReAct estándar en la misma serie de pruebas de recuperación multimodal; los autores informan que MM-ContextFold mejora la precisión promedio en 6.3 puntos porcentuales y reduce la longitud del contexto de trabajo en 27.5%."
+      },
+      "title": "MM-ContextFold informa menor uso de contexto visual y mayor precisión en pruebas de recuperación multimodal",
+      "why_it_matters": "Los agentes multimodales pueden conservar imágenes grandes en historiales extensos de uso de herramientas incluso después de convertir los detalles visuales relevantes en texto. Limitar temporalmente las imágenes a tareas de identificación visual podría reducir el contexto sin sacrificar precisión. El resultado informado es prometedor para recuperación multimodal, pero siguen sin resolverse las diferencias de prompts y formatos de acción, el costo, la latencia y la transferencia a otras tareas de agente."
+    },
     "FCMO-0D4993E1E29E": {
       "claims": [
         {
@@ -1952,6 +2063,58 @@
       },
       "title": "NVIDIA firma un acuerdo definitivo para adquirir Hugging Face, colocando una capa central de distribución de modelos abiertos bajo el proveedor dominante de aceleradores de IA",
       "why_it_matters": "Hugging Face es simultáneamente un registro de modelos y datasets, un host de aplicaciones, una superficie de evaluación/tooling y una capa de inferencia/distribución cada vez más importante para la IA abierta. La propiedad de NVIDIA podría financiar y escalar esa infraestructura, pero también coloca un punto importante de coordinación del ecosistema dentro del proveedor dominante de aceleradores. Por ello, la consecuencia científica y de ingeniería importante no es el precio de compra en sí, sino si el descubrimiento, el hosting, los defaults de inferencia, el soporte de aceleradores, los servicios empresariales y la gobernanza permanecen significativamente neutrales después del cambio de control."
+    },
+    "FCMO-1ABD8D065C8F": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "El artículo propone una hiperred que transforma tokens de contexto representativos de una persona en un LoRA personalizado para un modelo de lenguaje en el dispositivo. Sintetiza el adaptador con pases hacia delante, sin ajuste por gradiente para cada persona ni tokens adicionales en el contexto de inferencia."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En experimentos con Gemma3-1B-IT y Gemma1-2B-IT sobre LongLaMP-3, LongLaMP-4 y LaMP-5, los autores informan que los adaptadores generados por la hiperred suelen lograr los mejores resultados ROUGE-1 o quedar cerca de ellos frente a las líneas base probadas de aprendizaje en contexto y PEFT."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El artículo no demuestra ahorros de latencia, memoria o energía en hardware móvil, rendimiento sólido para personas fuera de la distribución de entrenamiento ni garantías de privacidad para entrenar con datos reales de usuarios."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "Las comparaciones informadas en tres conjuntos de datos de personalización y dos modelos Gemma pequeños no se han reproducido de forma independiente.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "El artículo no informa mediciones de latencia de síntesis del adaptador, memoria máxima, energía ni latencia integral de respuesta en teléfonos representativos.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "Los autores señalan como problemas abiertos a las personas inusuales o fuera de distribución y el entrenamiento con datos reales bajo protección de privacidad.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se reproduce en dispositivos y poblaciones representativos, sintetizar adaptadores personalizados mediante pases hacia delante podría ofrecer un punto medio práctico entre el ajuste costoso para cada persona y los prompts más largos. La comparación de calidad informada se limita a tres conjuntos de datos y dos modelos Gemma pequeños, sin resultados de rendimiento en dispositivos reales ni de implementación con protección de privacidad.",
+      "limitations": [
+        "Todos los resultados comparativos son comunicados por los autores; no se ejecutó el código ni se reprodujeron los experimentos.",
+        "Los experimentos usan dos modelos Gemma pequeños de instrucciones y tres conjuntos de datos existentes; no caracterizan una población de producción.",
+        "El artículo consultado no mide latencia móvil, memoria máxima, energía ni el efecto sobre el servicio de extremo a extremo.",
+        "El artículo advierte que la hiperred podría generalizar mal a personas distintas de las vistas durante el entrenamiento; el entrenamiento con datos reales y protección de privacidad queda como trabajo futuro."
+      ],
+      "relationships": [],
+      "summary": "El artículo presenta una hiperred que transforma ejemplos del texto previo de una persona en un adaptador de bajo rango (LoRA) para un modelo de lenguaje pequeño que funciona en el dispositivo. La síntesis del adaptador usa pases hacia delante, por lo que evita el ajuste por gradiente para cada persona y no agrega tokens al contexto de inferencia. En LongLaMP-3, LongLaMP-4 y LaMP-5, con Gemma3-1B-IT y Gemma1-2B-IT, los autores informan resultados ROUGE-1 que en general igualan o superan las alternativas de aprendizaje en contexto y ajuste eficiente de parámetros (PEFT). La evidencia proviene del artículo: no establece latencia, energía ni memoria en teléfonos de producción, solidez ante personas atípicas ni entrenamiento que proteja la privacidad con datos reales.",
+      "technical": {
+        "claimed_result": "Según el artículo, los LoRA generados por la hiperred suelen obtener el mejor resultado ROUGE-1 o quedar cerca en las configuraciones y conjuntos de datos evaluados.",
+        "demonstrated_result": "Se consultaron el manuscrito y los resultados/configuración experimental que describe. Los resultados de rendimiento siguen siendo afirmaciones de los autores; no se reprodujeron los experimentos.",
+        "mechanism": "Una hiperred compartida recibe el contexto representativo de una persona y genera pesos de adaptador de bajo rango para el modelo objetivo. La generación del adaptador específico requiere pases hacia delante; el artículo plantea el entrenamiento común de la hiperred como una fase amortizada y su generación como personalización en el dispositivo.",
+        "regime": "Los experimentos informados usan Gemma3-1B-IT y Gemma1-2B-IT, LoRA de atención con rangos igualados y los conjuntos LongLaMP-3, LongLaMP-4 y LaMP-5. Los resultados consultados tratan de personalización de generación de texto largo y no miden hardware de teléfonos en producción.",
+        "strongest_baseline": "El artículo compara con aprendizaje en contexto y LoRA de PEFT ajustados para cada persona, usando rangos de LoRA igualados; la clasificación exacta varía por conjunto/configuración y LaMP-5 se describe como difícil para todos los métodos."
+      },
+      "title": "Hiperredes generan LoRA con pases hacia delante para personalizar modelos de lenguaje en el dispositivo",
+      "why_it_matters": "La personalización en un teléfono está limitada por la memoria, el cómputo y la latencia interactiva. Generar un adaptador pequeño y específico para cada persona mediante pases hacia delante podría evitar tanto la optimización individual como los prompts más largos. El artículo informa una comparación inicial de calidad; los costos en dispositivos reales, la generalización y la privacidad siguen sin medirse."
     },
     "FCMO-1B73F04C0D77": {
       "claims": [
@@ -3358,6 +3521,65 @@
       "title": "SPARSEUP de Linkup completa la oferta de recuperación dispersa, pero queda por detrás de las alternativas densas y de interacción tardía en BEIR",
       "why_it_matters": "El lanzamiento permite comparar un recuperador disperso aprendido con arquitecturas densas y de interacción tardía usando una familia compartida de datos y backbone; además, sus pesos por término se pueden inspeccionar. Los resultados no muestran una mejora general de calidad: SPARSEUP queda por debajo de DenseOn en el BEIR-13 reportado y los modos de búsqueda son distintos. Una repetición con búsqueda exacta y aproximada equiparada permitiría aclarar el equilibrio entre calidad, latencia y costo del índice para sistemas de recuperación."
     },
+    "FCMO-2C8C8DD3C146": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "onPanda aplica un ciclo de localizar, corregir y continuar: trunca la respuesta del modelo después del primer token corregido, reanuda la generación y conserva las salidas intermedias como supervisión positiva y negativa."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En una comparación controlada con 21 indicaciones de descripción de imágenes, tres anotadores y respuestas iniciales de Qwen3.5-35B-A3B, el tiempo mediano fue de 330 segundos por indicación con onPanda frente a 681 segundos con la edición posterior de POTATO; los autores informan una tasa de preferencia por pares de 66.7% y una cobertura de respuestas aptas de 100% por diseño."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan que 97.0% de los tokens en las respuestas de producción calificadas fueron generados por el modelo, en 131,996 sesiones de anotación, con cerca de 388,000 correcciones a nivel de token; estas cifras de despliegue no se auditaron de forma independiente."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El estudio no demuestra que las diferencias informadas de tiempo o calidad se trasladen a otras tareas, poblaciones de anotadores, métodos de comparación o entornos de despliegue, ni que onPanda mejore la capacidad posterior del modelo."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "La comparación de tiempo y calidad con 21 indicaciones no se ha reproducido de forma independiente; se confunden la interfaz y el paradigma de anotación.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "Las cifras de sesiones de producción y correcciones del artículo no cuentan con una auditoría independiente en las fuentes examinadas.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "Se desconoce si los datos de corrección por token mejoran el comportamiento posterior del modelo frente a alternativas comparables.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se replica más allá del estudio pequeño, la corrección por token podría reducir el tiempo humano dedicado a producir ejemplos de alineación en política de generación y crear supervisión más detallada para trayectorias de agentes. El resultado cambia una decisión local sobre el flujo de datos; la comparación principal abarca solo 21 indicaciones de descripción de imágenes y no separa los efectos de la interfaz y del paradigma de anotación.",
+      "limitations": [
+        "La comparación controlada principal incluye solo 21 indicaciones de descripción de imágenes y tres anotadores.",
+        "Cada plataforma difiere tanto en interfaz como en paradigma; por ello, la comparación no permite aislar qué característica explica la diferencia de tiempo.",
+        "La tasa principal de preferencia por pares usa un juez basado en un modelo de lenguaje; el resultado separado de preferencia humana procede del mismo estudio pequeño.",
+        "Los autores informaron las sesiones de producción y el total de correcciones; no se auditaron de forma independiente.",
+        "Ningún resultado de entrenamiento posterior demuestra que estas anotaciones mejoren la capacidad o generalización del modelo.",
+        "Se inspeccionó el repositorio público, pero no se ejecutó; no se localizó una reproducción independiente."
+      ],
+      "relationships": [],
+      "summary": "El artículo presenta onPanda, un flujo interactivo de anotación que corrige el primer token inadecuado y continúa la generación desde el prefijo revisado, conservando el contexto generado por el modelo y las trazas de corrección por token. En un estudio con 21 indicaciones de descripción de imágenes, tres anotadores y respuestas de Qwen3.5-35B-A3B, los autores informan un tiempo mediano de 330 segundos por indicación frente a 681 segundos con la edición posterior de POTATO; Argilla obtuvo un tiempo similar mediante clasificación. La comparación evalúa flujos completos, por lo que confunde los efectos de la interfaz y del paradigma de anotación; la muestra pequeña y de una sola tarea limita su transferencia. Los autores también informan cifras amplias de sesiones y correcciones de producción, sin auditoría independiente. Un repositorio público de Python incluye código para conversión de datos, supervisión y evaluación comparativa; aquí no se informa ejecución del código ni reproducción independiente.",
+      "technical": {
+        "claimed_result": "En 21 indicaciones de descripción de imágenes, los autores informan tiempos medianos de anotación de 330 segundos con onPanda, 681 segundos con la edición posterior de POTATO y 336 segundos con la clasificación de Argilla. Un juez basado en un modelo de lenguaje informa una tasa de preferencia por pares de 66.7%; en una comparación humana anónima separada, onPanda fue preferido a POTATO en 54.8% de los pares. Informan cobertura de respuestas aptas de 100% para onPanda y POTATO porque la edición continúa hasta alcanzar el criterio. Las cifras de producción incluyen 131,996 sesiones y cerca de 388,000 correcciones.",
+        "demonstrated_result": "El preprint principal y el repositorio público enlazado ofrecen el método, el protocolo informado, las métricas y código para convertir datos. Los materiales examinados no verifican de forma independiente el comportamiento de la aplicación, los totales de producción ni los resultados informados; las afirmaciones de rendimiento siguen siendo resultados comunicados por los autores.",
+        "mechanism": "Los anotadores localizan el primer token inadecuado, lo sustituyen por un token candidato o una corrección escrita y dejan que el modelo regenere el sufijo. El sistema registra las revisiones intermedias y puede formar ejemplos positivos y negativos. En tareas con agentes, las llamadas a herramientas corregidas pueden revisarse antes de ejecutarse, y los resultados de las herramientas regresan al modelo para continuar.",
+        "regime": "Estudio controlado: 3 anotadores, 21 indicaciones de descripción de imágenes y respuestas iniciales de Qwen3.5-35B-A3B; las herramientas compartieron la misma primera respuesta. El artículo indica que la comparación confunde interfaz y paradigma. Las cifras de producción abarcan sesiones de visión, audio y agentes, sin auditoría independiente localizada.",
+        "reproducibility": "Los autores enlazan un paquete público de Python para analizar datos de onPanda, generar datos de ajuste supervisado, preferencias y supervisión por token, verificar correcciones y evaluar Panda-CVL. Se inspeccionó el README del repositorio, pero no se ejecutó el código ni se localizó una reproducción independiente.",
+        "strongest_baseline": "Edición posterior con POTATO en las mismas 21 indicaciones: mediana de 681 segundos frente a 330 segundos con onPanda; la clasificación de cuatro candidatos de Argilla obtuvo una mediana de 336 segundos. Son comparaciones de flujos completos, no una prueba aislada de la corrección por token."
+      },
+      "title": "onPanda informa una anotación más rápida de datos de alineación mediante corrección por token",
+      "why_it_matters": "La anotación humana es una parte costosa de producir datos de alineación. Corregir una respuesta del modelo en el momento y conservar cada corrección podría reducir el esfuerzo de anotación y generar una supervisión más detallada que editar solo la respuesta final o comparar respuestas completas. Si el pequeño estudio de flujos de trabajo se generaliza, podría influir en el diseño de las canalizaciones de datos; no demuestra una mejora del modelo ni ganancias generales de productividad."
+    },
     "FCMO-2DD7299410CB": {
       "claims": [
         {
@@ -3865,6 +4087,58 @@
       "title": "HUMAIN de Arabia Saudita pone en producción cómputo soberano de IA con AMD MI355X, con fases mayores de AMD/Cisco planificadas",
       "why_it_matters": "Es una transición concreta de roadmap a suministro operativo de aceleradores de clase frontera no-NVIDIA dentro de un programa de IA soberana financiado estratégicamente. Amplía el stack de hardware/software disponible para clientes sauditas y regionales, coloca ROCm y redes Cisco en un régimen de nube soberana de producción y diversifica modestamente la dependencia de aceleradores respecto de NVIDIA. La materialidad proviene de quién puede acceder a cómputo avanzado y qué ecosistemas de proveedores pueden sostener IA a escala nacional, no de la historia genérica de inversión. La pregunta abierta es la escala: sin conteos de MW/GPU activos ni utilización, la capacidad actual no debe confundirse con las fases mucho mayores planeadas para 2027/2030."
     },
+    "FCMO-37EBAD10DCAA": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": " Harness-Zero usa un andamiaje de origen optimizado, un andamiaje de referencia y un agente auxiliar para convertir las propuestas del estudiante en supervisión compatible con un andamiaje objetivo mínimo y fijo; luego aplica ajuste fino supervisado para destilar las conductas resultantes en el modelo."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En SpreadsheetBench Verified, AppWorld y USPTO Retrosynthesis, los autores informan tasas promedio macro de éxito de Qwen3.5-9B de 23.3% con el modelo base bajo un andamiaje mínimo, 44.3% después de la destilación con ese andamiaje y 41.7% para el modelo base con el andamiaje optimizado conectado. Informan una sola semilla de ajuste fino (42)."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El artículo no demuestra que las conductas del andamiaje puedan eliminarse de manera amplia en distintos modelos y dominios, que la propuesta reduzca el cómputo o costo total, ni que los resultados sean estables entre semillas de entrenamiento."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "Las mejoras informadas en éxito de tareas y recuperación de conductas no se han reproducido de forma independiente.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "El ajuste fino informado usa una sola semilla y un estudiante Qwen3.5-9B; se desconoce la variación entre semillas, modelos, dominios y andamiajes objetivo.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "El artículo no proporciona un cálculo de costos comparables para la evolución del andamiaje, la inferencia del agente revisor, la generación de trayectorias, el ajuste fino y el despliegue.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si el efecto se generaliza, transferir conductas útiles del andamiaje a los parámetros del modelo podría cambiar el entrenamiento y despliegue de agentes, reduciendo la dependencia de andamiajes especializados en tiempo de ejecución. La evidencia actual es un resultado comunicado en tres dominios, un modelo estudiante Qwen3.5-9B y una semilla de ajuste fino; faltan pruebas de transferencia amplia y de costos.",
+      "limitations": [
+        "Todos los resultados de rendimiento y recuperación de conductas son comunicados por los autores; no se reprodujeron aquí.",
+        "El experimento de destilación ajusta Qwen3.5-9B por separado para tres dominios con LoRA y ajuste fino supervisado, usando la semilla 42; la configuración consultada no informa variación entre semillas ni modelos estudiantes.",
+        "Las tareas se limitan a SpreadsheetBench Verified, AppWorld y USPTO Retrosynthesis, con un andamiaje objetivo fijo mini-SWE-agent de una sola herramienta Bash.",
+        "El artículo no demuestra transferencia amplia, ganancias estables con otros andamiajes de despliegue ni un costo total menor de entrenamiento e inferencia."
+      ],
+      "relationships": [],
+      "summary": "Harness-Zero usa un andamiaje de origen optimizado y un agente auxiliar para reescribir las propuestas del modelo estudiante como trayectorias compatibles con un andamiaje objetivo fijo y mínimo; después aplica ajuste fino supervisado para que el modelo retenga conductas útiles. En SpreadsheetBench Verified, AppWorld y USPTO Retrosynthesis, los autores informan que el éxito promedio macro de Qwen3.5-9B bajo el andamiaje mínimo sube de 23.3% a 44.3% tras la destilación, por encima del 41.7% del modelo base con el andamiaje optimizado aún conectado. También informan 81.1% frente a 78.1% para agente-como-andamiaje frente a código-como-andamiaje en seis configuraciones de pruebas con modelos de frontera, y recuperación de 82.3% de 28 conductas extraídas del andamiaje. Son resultados comunicados por los autores con una sola semilla de ajuste fino; siguen pendientes la reproducción independiente, una transferencia más amplia y el costo total.",
+      "technical": {
+        "claimed_result": "El artículo informa un éxito promedio macro de 23.3% para el modelo base bajo el andamiaje mínimo, 44.3% después de la destilación bajo ese andamiaje y 41.7% para el modelo base con el andamiaje optimizado conectado. Informa una recuperación promedio de 82.3% en 28 patrones de conducta extraídos del andamiaje.",
+        "demonstrated_result": "Se consultó el manuscrito, que especifica el método, los experimentos acotados y los resultados comunicados por sus autores. No se reprodujeron; siguen siendo resultados afirmados por el artículo.",
+        "mechanism": "Un andamiaje de origen optimizado guía a un agente auxiliar que reescribe las acciones propuestas por el estudiante para ajustarlas a un andamiaje objetivo fijo. Las trayectorias filtradas se usan para ajuste fino supervisado; durante la evaluación de despliegue del modelo destilado se retiran el andamiaje de origen, el andamiaje de referencia y el agente auxiliar.",
+        "regime": "Las pruebas descritas en el artículo cubren SpreadsheetBench Verified, AppWorld y USPTO Retrosynthesis. La destilación usa Qwen3.5-9B, un andamiaje mínimo mini-SWE-agent con una herramienta Bash, ajuste fino LoRA por dominio durante dos épocas y la semilla 42.",
+        "strongest_baseline": "Qwen3.5-9B base bajo el mismo andamiaje objetivo mínimo, con 23.3% de éxito promedio macro; el modelo base con el andamiaje optimizado conectado llega a 41.7%, frente a 44.3% después de la destilación bajo el andamiaje mínimo."
+      },
+      "title": "Harness-Zero informa que puede destilar conductas de un agente en el modelo para ejecutarlo con un andamiaje mínimo",
+      "why_it_matters": "Las capacidades de los agentes suelen depender de herramientas, middleware, memoria y flujos de trabajo difíciles de crear y mantener. Si las conductas útiles del andamiaje pudieran aprenderse en los parámetros del modelo, el despliegue quizá podría usar una estructura fija más sencilla. Este artículo informa un experimento inicial en varios dominios, pero no demuestra transferencia amplia, menor costo total ni eliminación fiable del andamiaje en distintos modelos."
+    },
     "FCMO-3AB0123A135A": {
       "claims": [
         {
@@ -3979,6 +4253,58 @@
       },
       "title": "xAI describe el entrenamiento de horizonte más largo de Grok 4.7 e informa resultados en tareas de varias horas",
       "why_it_matters": "El anuncio presenta una afirmación concreta de un laboratorio de frontera: combina entrenamiento de horizonte más largo y comprensión nativa de un entorno de agente, y publica una comparación en tareas de varias horas. Si otros análisis la respaldan, estas decisiones podrían influir en cómo se entrenan y sirven agentes para trabajo prolongado; el anuncio por sí solo no demuestra que esos cambios de entrenamiento causaran las mejoras informadas."
+    },
+    "FCMO-3BA23823C78E": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "SPHQuant descompone cada vector de pesos 8D en dirección y radio, asigna precisión adicional al radio para reducir degradación por valores atípicos y usa un kernel de inferencia sin rotaciones orientado al hardware."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan precisión competitiva en tareas VLM con cuantización de 2–3 bits y 30.3% más velocidad de decodificación que QTIP en RTX A6000. En RTX 4090 con Qwen3-VL-8B-Instruct, lote 1, 256 tokens de prellenado y 512 tokens generados, informan 288.63 tokens/s, 37.6% más rápido que QTIP."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En la configuración informada de RTX 4090, SPHQuant usa 5.35 GB de memoria GPU frente a 5.02 GB de QTIP; el artículo no demuestra menor consumo total de memoria ni que funcione en móviles o equipos integrados."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "Las mediciones de precisión y velocidad no se han reproducido independientemente.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "El rendimiento informado cubre RTX A6000 y RTX 4090, sin hardware móvil o integrado ni una gama amplia de lotes y contextos.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "La memoria GPU medida en RTX 4090 es mayor con SPHQuant que con QTIP; la velocidad depende de la implementación y configuración probadas.",
+          "kind": "baseline_unclear",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se reproduce con calidad comparable, combinar compresión extrema de pesos con decodificación más rápida podría ampliar el rango práctico de VLM en equipos con memoria limitada. La velocidad se midió en dos GPU NVIDIA; en la prueba RTX 4090 el uso de memoria fue mayor que con QTIP y no se demostró un beneficio móvil o integrado.",
+      "limitations": [
+        "Todas las cifras de pruebas y rendimiento son comunicadas por los autores; no hubo reproducción independiente.",
+        "La evaluación de velocidad cubre RTX A6000 y RTX 4090; los autores indican que el rendimiento móvil o integrado y configuraciones más amplias de lote y contexto no se han probado.",
+        "En la configuración informada de Qwen3-VL-8B-Instruct con RTX 4090, SPHQuant usa 5.35 GB de memoria GPU frente a 5.02 GB para QTIP; el tamaño codificado de pesos y la memoria GPU total son medidas distintas.",
+        "El artículo pide más evaluaciones específicas de tareas con restricciones realistas de latencia, resolución de entrada y longitud de generación."
+      ],
+      "relationships": [],
+      "summary": "SPHQuant representa cada vector de pesos 8D mediante dirección y radio, asigna precisión adicional al radio para tratar valores atípicos y combina un código compacto de direcciones con un kernel CUDA sin rotaciones. Los autores informan precisión competitiva con cuantización de 2–3 bits en varios VLM y una mejora de 30.3% en velocidad de decodificación frente a QTIP en RTX A6000. En una prueba adicional con RTX 4090, Qwen3-VL-8B-Instruct, lote 1, 256 tokens de prellenado y 512 tokens generados, informan 288.63 tokens/s, 37.6% más rápido que QTIP, con 5.35 GB de memoria GPU frente a 5.02 GB de QTIP. Son mediciones del artículo; no hubo reproducción independiente ni evaluación móvil o integrada.",
+      "technical": {
+        "claimed_result": "Los autores informan precisión competitiva frente a QTIP y otros cuantizadores, 30.3% más velocidad de decodificación que QTIP en RTX A6000, y 288.63 tokens/s —37.6% más— en la prueba RTX 4090 con lote 1 especificada.",
+        "demonstrated_result": "El manuscrito consultado describe método, condiciones de prueba y resultados informados. No se ejecutó código ni se reprodujo el rendimiento; siguen siendo afirmaciones del artículo.",
+        "mechanism": "Cada vector de pesos 8D se representa mediante dirección y radio. El método usa un código compacto para direcciones positivas, optimización angular, precisión radial adicional para valores atípicos y un kernel CUDA sin rotaciones que combina consulta, decuantización y multiplicación de matrices.",
+        "regime": "El artículo evalúa cuantización VLM de 2–3 bits. El resultado adicional de RTX 4090 usa Qwen3-VL-8B-Instruct, GPU de 24 GB, lote 1, 256 tokens de prellenado y 512 generados; otra medición de velocidad usa RTX A6000.",
+        "strongest_baseline": "QTIP es la principal línea base de 2 bits. En RTX 4090, SPHQuant informa 288.63 tokens/s, 37.6% más que QTIP, con memoria GPU de 5.35 GB frente a 5.02 GB."
+      },
+      "title": "SPHQuant informa precisión VLM competitiva a 2–3 bits y decodificación más rápida que QTIP en GPU NVIDIA",
+      "why_it_matters": "Los pesos de dos y tres bits podrían reducir almacenamiento y tráfico de memoria de VLM que no caben en precisión mayor. SPHQuant informa combinar cuantización esférica para tratar valores atípicos con un kernel orientado al hardware, pero sus intercambios entre velocidad y precisión se midieron en dos GPU NVIDIA. En la configuración RTX 4090, el uso de memoria fue mayor que con QTIP. El beneficio móvil o integrado sigue sin establecerse."
     },
     "FCMO-3BA65DB67338": {
       "claims": [
@@ -10247,6 +10573,53 @@
       "title": "Frontis-MA1 y OpenMLE informan mejoras en benchmarks de ingeniería de aprendizaje automático con un presupuesto de 12 horas",
       "why_it_matters": "Si se reproducen, los resultados sugieren que el entrenamiento con base en ejecución de operadores reutilizables de evolución de código y la búsqueda de largo horizonte pueden mejorar el desempeño medido en tareas de ingeniería de aprendizaje automático, con contribuciones separadas del modelo y del marco informadas en un segundo benchmark. Esto es pertinente para sistemas de IA para desarrollar IA, pero las mejoras en benchmarks con presupuestos largos no demuestran mejora autónoma del desarrollo de modelos de frontera ni mejora recursiva en un sentido más amplio."
     },
+    "FCMO-9B55B77BE3E5": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Reuters informa diferenciales cercanos a 115 puntos base para emisores vinculados con IA frente a 78 puntos base para el mercado de grado de inversión en general, con datos atribuidos respectivamente a Goldman Sachs e ICE BofA."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El informe dice que Goldman Sachs proyectó $420 mil millones en emisiones brutas de deuda de grandes empresas de nube en 2027, 60% por encima de su estimación para 2026, y cita a inversionistas que describen una mayor selectividad y límites de concentración para deuda ligada a IA."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El informe no demuestra que los diferenciales más altos hayan limitado el endeudamiento de las grandes empresas de nube ni reducido el gasto de capital en infraestructura de IA; los inversionistas entrevistados describen preocupaciones de oferta y concentración, no de impago."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se verificaron las cifras atribuidas en el artículo a Goldman Sachs, ICE BofA y SIFMA con las series de datos o metodologías originales.",
+          "kind": "missing_primary",
+          "state": "open"
+        },
+        {
+          "description": "El informe es una instantánea fechada y no establece si los precios más amplios persisten o cambian la inversión prevista en infraestructura de IA.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si persisten, los mayores diferenciales de endeudamiento y los límites de concentración de los inversionistas podrían elevar los costos de capital de centros de datos e infraestructura de cómputo financiados con deuda. El artículo describe una señal de precios y una proyección de emisiones, pero no demuestra escasez duradera de financiamiento ni una reducción resultante del gasto de capital.",
+      "limitations": [
+        "La evidencia es un informe de Reuters, consultado en una copia sindicada porque la página directa de Reuters no estuvo accesible.",
+        "Los diferenciales y la proyección de $420 mil millones se atribuyen a datos del sector financiero y no se cotejaron con las series originales.",
+        "Las entrevistas con gestores de cartera describen selectividad y preocupaciones por oferta y concentración; no demuestran fallas de financiamiento, riesgo de impago ni reducción del gasto de capital.",
+        "No se establece un vínculo causal entre los precios de mercado informados y la construcción de infraestructura de IA o la disponibilidad de cómputo."
+      ],
+      "relationships": [],
+      "summary": "Un informe de Reuters del 22 de septiembre describe una mayor selectividad de los inversionistas hacia la deuda corporativa vinculada con la IA, mientras crece el endeudamiento para centros de datos, chips e infraestructura. Cita una proyección de Goldman Sachs de $420 mil millones en emisión bruta de deuda de las grandes empresas de nube en 2027, 60% por encima de su estimación para 2026, y diferenciales cercanos a 115 puntos base para emisores relacionados con IA frente a 78 para emisores de grado de inversión en general. El artículo atribuye la selectividad principalmente a la oferta y a los límites de concentración, no al temor de impago, y no informa una reducción resultante de la inversión. Las cifras no se contrastaron con sus series originales.",
+      "technical": {
+        "claimed_result": "Reuters informa cerca de 115 puntos base para diferenciales de emisores vinculados con IA frente a 78 para el crédito de grado de inversión en general, además de una proyección de Goldman Sachs de $420 mil millones de deuda bruta de grandes empresas de nube en 2027, 60% por encima de su estimación para 2026.",
+        "demonstrated_result": "El artículo sindicado consultado confirma que Reuters publicó estas cifras atribuidas y las opiniones de inversionistas. Las mediciones de mercado y la proyección subyacentes no se verificaron de forma independiente.",
+        "mechanism": "Una mayor oferta prevista de deuda corporativa ligada a la IA puede exigir diferenciales o concesiones más amplios; los límites de concentración de las carteras también pueden desplazar la demanda fuera de las grandes empresas de nube. Son condiciones de financiamiento, no evidencia de que no se puedan financiar los proyectos.",
+        "regime": "Informe sobre crédito de grado de inversión en Estados Unidos, publicado el 22 de septiembre de 2026; los diferenciales y las proyecciones de emisiones se atribuyen a Goldman Sachs e ICE BofA. Es una instantánea de mercado, no un análisis causal del gasto de capital.",
+        "strongest_baseline": "La comparación informada es de cerca de 115 puntos base para emisores vinculados con IA frente a 78 para el grado de inversión en general; el informe no ofrece un contrafactual pareado por emisor ni un análisis independiente de series temporales."
+      },
+      "title": "Reuters informa mayores diferenciales y más selectividad de inversionistas ante la deuda de empresas vinculadas con IA",
+      "why_it_matters": "Los mercados de deuda podrían afectar el costo y ritmo de la infraestructura de IA, que requiere mucho capital. Los diferenciales más amplios y los límites de concentración son señales para seguir, pero este informe no demuestra que las grandes empresas de nube no puedan financiar proyectos, hayan reducido el gasto de capital previsto o enfrenten peor calidad crediticia."
+    },
     "FCMO-9E06CC5FA8A5": {
       "claims": [
         {
@@ -11620,6 +11993,64 @@
       },
       "title": "Emergence World informa fallas persistentes en pruebas de estrés multiagente de larga duración",
       "why_it_matters": "El estudio muestra por qué conviene evaluar sistemas de agentes persistentes a través de la memoria, las herramientas, los pares y el estado compartido: en estas pruebas, reconocer una entrada hostil no evitó de manera fiable la acción, persistencia ni propagación. El resultado respalda evaluar el comportamiento de sistemas de larga duración además de respuestas aisladas de modelos, aunque una sola trayectoria por configuración no permite estimar la frecuencia de fallas."
+    },
+    "FCMO-B16DAF2BB6B8": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "GAE transforma las características de un modelo geométrico fundacional en un espacio latente compacto que puede decodificarse conjuntamente en apariencia RGB, profundidad, cámaras y mapas de puntos; un flujo condicional genera a partir de ese estado compartido."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En comparaciones controladas que mantienen fijo el generador y el protocolo de entrenamiento, los autores informan reducciones de FVD de 12.7% en RealEstate10K y 23.1% en DL3DV, además de reducir a la mitad el error de trayectoria de cámara en RealEstate10K frente a las representaciones latentes probadas."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan en ablaciones que la escala de pose métrica, el condicionamiento limpio con referencia, las pérdidas de organización de la representación y el coentrenamiento de texto a imagen mejoran ciertas métricas de apariencia o geometría."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "Las métricas informadas de imagen y video no demuestran fidelidad de simulación física, modelado fiable de mundos a largo plazo ni beneficios posteriores en planificación o control."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "Los resultados de apariencia, cámara y geometría informados no se han reproducido de forma independiente.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "Se desconoce la transferencia más allá de dos conjuntos de datos de video y de la configuración del generador descrita.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "No hay resultados de planificación, control o simulación física que midan la utilidad práctica como modelo del mundo.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se replica, representar escenas generadas en un espacio latente compacto que pueda decodificarse conjuntamente en apariencia y geometría podría mejorar la consistencia multivista y el control de cámara en sistemas de generación de mundos. El resultado podría cambiar una decisión de arquitectura relevante, pero la evidencia es una comparación controlada de un artículo en dos conjuntos de datos de video y no establece utilidad posterior para mundos 3D.",
+      "limitations": [
+        "Los resultados proceden de un único preprint y fueron informados por sus autores; no se localizó ni realizó una reproducción independiente.",
+        "Las comparaciones cuantitativas cubren RealEstate10K y DL3DV bajo el generador y protocolo de entrenamiento del artículo.",
+        "El despliegue de 81 vistas y las salidas condicionadas por texto son demostraciones cualitativas, no evidencia controlada de precisión a largo plazo.",
+        "Las métricas de imagen, video y geometría no demuestran fidelidad de simulación física ni beneficios para planificación y control posteriores.",
+        "Las ganancias de las ablaciones corresponden a componentes concretos y no aíslan el valor de GAE en otras arquitecturas o regímenes de datos."
+      ],
+      "relationships": [],
+      "summary": "El artículo propone GAE, un espacio latente compacto derivado de características de modelos geométricos fundacionales y decodificable conjuntamente en RGB, profundidad, parámetros de cámara y mapas de puntos. Un modelo de flujo condicional genera en esa representación compartida. En comparaciones controladas que mantienen fijo el generador y el protocolo de entrenamiento, los autores informan reducciones de FVD de 12.7% en RealEstate10K y 23.1% en DL3DV, y reducen a la mitad el error de trayectoria de cámara en RealEstate10K. El artículo también informa mejoras en ablaciones de escala de pose métrica, condicionamiento limpio con referencia y organización de la representación. Son resultados informados por los autores en dos conjuntos de datos de video; no hubo reproducción independiente. Las mediciones corresponden a calidad de vistas generadas y consistencia geométrica, no a fidelidad de simulación física ni a planificación o control posteriores.",
+      "technical": {
+        "claimed_result": "在固定生成器比较中，作者报告RealEstate10K上的FVD降低12.7%，DL3DV上降低23.1%，RealEstate10K上的相机轨迹误差减半。消融实验报告，表示整形目标、干净参考条件、度量位姿尺度和文生图联合训练改善了部分外观和几何指标。",
+        "demonstrated_result": "v2预印本报告了方法、控制条件和测量结果。本次审查未独立复现结果，也未执行代码。",
+        "mechanism": "GAE将几何基础模型的多层特征重新参数化为紧凑状态，可解码为RGB和几何输出。条件流模型使用参考图像、相机轨迹和可选文本，从共享潜空间生成视图序列。",
+        "regime": "在RealEstate10K和DL3DV上进行视频生成与几何解码，并采用共同生成器和训练流程；受控比较使用每段多个视角。81视图展开是定性展示，不是受控基准结果。",
+        "reproducibility": "论文提供了方法和补充评估细节；本次审查未执行独立复现或代码。",
+        "strongest_baseline": "匹配生成器的对照使用像素、语义或原始几何潜表示，并沿用相同训练流程。所报告的FVD降幅和相机轨迹误差仅适用于指定数据集与设置，不代表所有世界生成情形。"
+      },
+      "title": "GAE informa mayor consistencia 3D al generar con características latentes geométricas",
+      "why_it_matters": "El realismo visual no garantiza que las vistas generadas conserven una escena coherente. Un espacio latente compartido que represente apariencia y geometría podría mejorar la consistencia entre vistas de cámara y servir de interfaz común para percepción y generación. Las comparaciones controladas informadas justifican estudiar esa decisión de representación, mientras la utilidad práctica para modelos de mundo y control sigue sin establecerse."
     },
     "FCMO-B526C545993A": {
       "claims": [
@@ -13800,6 +14231,59 @@
       "title": "Las señales de atención enrutadas en MoE elevan resultados matemáticos reportados y revelan costos de recuperación factual",
       "why_it_matters": "Si se reproduce de manera independiente, AAR mostraría que los patrones de atención pueden aportar una señal útil para el enrutamiento de modelos dispersos de expertos sin cambiar sus pesos base, mientras que el costo de recuperación según la profundidad vuelve relevante la elección de capas. Las mejoras reportadas se limitan a tres familias de modelos y a evaluaciones comparativas; el método también requiere materializar los pesos de atención."
     },
+    "FCMO-D9733D1678C6": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "En conjuntos de preguntas basados en Wikipedia, los autores informan que la base compartida Qwen2.5-7B-Instruct produce aproximadamente una cita no fiel por cada siete preguntas bajo su medición con pasajes insertados."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En una evaluación de contexto fijo con cuatro conjuntos de preguntas y respuestas, tres agentes RLVR entrenados desde la misma base no muestran una gran mejora en fidelidad de citas: Search-R1 y ReSearch quedan a pocos puntos porcentuales de la base, mientras que R-Search es ligeramente peor. Los autores dicen que la muestra detectaría cambios de alrededor de siete puntos porcentuales."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El estudio no establece que RLVR centrado en respuestas nunca mejore la fidelidad de citas en recuperación interactiva, otros idiomas, prompts o familias de modelos; la puntuación con pasajes insertados puede confundir una cita posterior a la respuesta con obedecer el pasaje modificado."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "Las tasas de citas informadas y la comparación de RLVR no se han reproducido de forma independiente.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "Los casos marcados no se revisaron manualmente; citar un pasaje modificado insertado podría reflejar obediencia a la instrucción de evaluación, no una racionalización posterior.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "La evaluación de contexto fijo y un solo turno difiere del formato de búsqueda multivuelta con el que se entrenaron los agentes RLVR.",
+          "kind": "regime_unclear",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si el patrón observado se generaliza, las recompensas que solo evalúan la respuesta podrían dejar intacta una falla importante de confiabilidad en sistemas de recuperación aumentada, lo que respalda objetivos y pruebas de atribución separados. El resultado se limita a un modelo base de 7B, inglés, cuatro conjuntos de datos y una prueba de contexto fijo con límites de interpretación y formato sin resolver.",
+      "limitations": [
+        "Todos los resultados son comunicados por los autores; no se realizó reproducción independiente ni revisión manual de ejemplos marcados.",
+        "La comparación usa una base Qwen2.5-7B-Instruct compartida, tres agentes RLVR, cuatro conjuntos de datos, texto en inglés, un prompt y una configuración de decodificación.",
+        "Los agentes entrenados para búsqueda multivuelta se evaluaron en un formato de citas de un solo turno y contexto fijo, lo que puede cambiar la abstención y el comportamiento de cita.",
+        "El evaluador usa coincidencia determinista de cadenas sobre pasajes modificados; una cita marcada podría obedecer al pasaje alterado en vez de ser una racionalización posterior.",
+        "Las mayores tasas de abstención y fallas de formato filtran las respuestas puntuadas; los tamaños de muestra varían por modelo."
+      ],
+      "relationships": [],
+      "summary": "El artículo analiza si el aprendizaje por refuerzo con recompensas verificables (RLVR) por acertar respuestas también mejora que las citas respalden realmente las afirmaciones del modelo. Con una base Qwen2.5-7B-Instruct compartida y tres agentes RLVR de pesos abiertos en cuatro conjuntos de preguntas y respuestas, los autores informan que el modelo base produce aproximadamente una cita no fiel por cada siete preguntas en conjuntos basados en Wikipedia. En una evaluación con contexto fijo, Search-R1 y ReSearch se mantienen a pocos puntos porcentuales de la base, mientras que R-Search queda ligeramente peor; los autores dicen que la muestra detectaría cambios de alrededor de siete puntos porcentuales, por lo que descartan una mejora grande bajo este protocolo. Añaden un control sin inserción de texto, que mejora el método de medición previo. Sin embargo, la evaluación es de un solo turno y difiere del formato de entrenamiento multivuelta de los agentes; el evaluador puede confundir obedecer pasajes alterados con falta de fidelidad, y los casos marcados no se revisaron manualmente. Son hallazgos acotados e informados por los autores, no una afirmación general de que RLVR no pueda mejorar la fidelidad de citas.",
+      "technical": {
+        "claimed_result": "Los autores informan aproximadamente una cita no fiel por cada siete preguntas basadas en Wikipedia para el modelo base. En contexto fijo, Search-R1 y ReSearch quedan a pocos puntos porcentuales de la base, R-Search es ligeramente peor y la muestra puede detectar cambios de alrededor de siete puntos porcentuales.",
+        "demonstrated_result": "El manuscrito consultado especifica la medida con pasajes insertados, un control sin inserción, conjuntos de datos, linaje de modelos, protocolo fijo y resultados informados. No se verificaron independientemente las tasas ni la interpretación de atribución.",
+        "mechanism": "El artículo inserta pasajes que parecen contener la respuesta en los documentos recuperados y mide si el modelo cita el pasaje que no usó al producir la respuesta original. Añade un control sin inserción para distinguir el efecto de la prueba. Compara una base ajustada por instrucciones con tres agentes RLVR derivados de ella.",
+        "regime": "Cuatro modelos comparten Qwen2.5-7B-Instruct como base: el modelo base, Search-R1, ReSearch y R-Search. La evaluación usa cuatro conjuntos de preguntas y respuestas, pasajes fijos y un formato de citas de un solo turno en inglés; los agentes RLVR se entrenaron para búsqueda multivuelta. El artículo informa uso de GPU Kaggle T4.",
+        "strongest_baseline": "El modelo base Qwen2.5-7B-Instruct bajo la misma evaluación de citas con contexto fijo; los tres agentes RLVR se comparan con esta base compartida."
+      },
+      "title": "Un estudio controlado informa que RLVR centrado en respuestas no mejoró la fidelidad de las citas",
+      "why_it_matters": "Una respuesta con generación aumentada por recuperación puede ser correcta y aun así citar un pasaje que no sustenta la afirmación. Si el entrenamiento por recompensas solo verifica la respuesta, la calidad de las citas puede seguir siendo un modo de falla separado. Este estudio no informa una mejora grande con su protocolo de contexto fijo, pero el formato y la interpretación de pasajes insertados limitan el alcance del resultado."
+    },
     "FCMO-D9BBA3797A95": {
       "claims": [
         {
@@ -14184,6 +14668,65 @@
       },
       "title": "La codificación con retroalimentación logra mensajes encubiertos más fiables en pruebas acotadas con modelos de lenguaje",
       "why_it_matters": "Un método de retroalimentación que reduce considerablemente los errores de decodificación en el entorno de caja negra probado podría cambiar la manera en que se evalúan los canales encubiertos en conversaciones generadas por modelos. El artículo también muestra que los resultados dependen de la entropía del modelo, la tarea y la integridad de la transcripción, por lo que justifica pruebas específicas por modelo de amenaza, no una afirmación general de fiabilidad en agentes desplegados."
+    },
+    "FCMO-E02E01F0DCDF": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Embed-TTT primero congela la base Vision ARC preentrenada y optimiza una incrustación de la tarea de prueba; en la segunda etapa congela esa incrustación y ajusta la base para ejecutar la tarea."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En ARC-AGI-1, ConceptARC y dos conjuntos de datos controlados, los autores informan mejores resultados de recuperación de incrustaciones y sondeo de reglas con Embed-TTT que al actualizar conjuntamente la base y la incrustación de tarea. En ARC-1, el entrenamiento de prueba solo de la incrustación resuelve 13.0% pass@1 y 17.2% pass@2; la canalización completa de dos etapas informa 49.5% y 55.2%, frente a 48.8% y 53.8% con Full-TTT."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En un conjunto sintético de movimientos paramétricos, los autores informan que la geometría de las incrustaciones permite interpolar entre componentes de reglas representados, pero no extrapolar a reglas ajenas a esa estructura."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "La recuperación de incrustaciones y los clasificadores lineales no demuestran por sí solos abstracción similar a la humana ni razonamiento fuera de distribución; los autores advierten que la recuperación puede reflejar memorización y que la cobertura de reglas de las pruebas es limitada."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "Los resultados de incrustación de tareas y sondeo de reglas no se han reproducido de forma independiente con otras implementaciones o bases del modelo.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "La recuperación de incrustaciones puede reflejar memorización de tareas y no identifica de forma única la regla prevista; la validez de este indicador es limitada.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "El artículo informa interpolación, pero no extrapolación, en su familia de reglas paramétricas; se desconoce la transferencia más amplia.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se replica, separar la adaptación a la regla de tarea de su ejecución por la base podría mejorar la forma de diagnosticar si las pruebas ARC-like miden representaciones aprendidas o resolución de tareas. El trabajo ofrece un método y un resultado de evaluación acotados, pero la evidencia procede de un solo estudio de Vision ARC, utiliza indicadores indirectos en algunos conjuntos y no encuentra extrapolación en la familia de reglas paramétricas examinada.",
+      "limitations": [
+        "Todos los resultados empíricos son comunicados por un solo artículo; no se localizó ni se realizó una reproducción independiente.",
+        "El propio artículo indica que recuperar incrustaciones de tareas de entrenamiento es una evidencia indirecta y puede lograrse mediante memorización; distintas incrustaciones pueden resolver la misma tarea.",
+        "Los conceptos de ConceptARC son metacategorías, no descripciones completas de las reglas que generan las tareas.",
+        "Los conjuntos sintéticos LUCD y Moves cubren familias acotadas de reglas; los resultados paramétricos muestran interpolación, pero no extrapolación.",
+        "La adaptación que solo modifica incrustaciones resuelve una parte de las tareas de ARC-1, ConceptARC y Mini-ARC; el bajo número de parámetros no implica el mismo rendimiento en todas las tareas.",
+        "La pequeña diferencia de rendimiento final entre Full-TTT y Embed-Full-TTT en ARC-1 no equivale a las diferencias mayores en sondeos de representación."
+      ],
+      "relationships": [],
+      "summary": "El artículo estudia si las incrustaciones de tarea de prueba en Vision ARC (VARC) codifican la regla de transformación por separado de su ejecución por el modelo. Embed-TTT congela la base y optimiza primero una incrustación de tarea; después congela la incrustación y ajusta la base. En ARC-AGI-1, ConceptARC y dos conjuntos de reglas personalizados, los autores informan mejor recuperación de incrustaciones y puntuaciones de sondeo de reglas que con el entrenamiento conjunto en tiempo de prueba. En ARC-1, la adaptación de prueba solo de la incrustación informa 13.0% pass@1 y 17.2% pass@2, mientras que el método completo de dos etapas informa 49.5% y 55.2%; Full-TTT informa 48.8% y 53.8%. Son resultados comunicados por los autores en un solo estudio. Advierten que la recuperación de incrustaciones es indirecta y puede reflejar memorización; en su conjunto de reglas paramétricas observan interpolación, pero no extrapolación. Los resultados motivan evaluaciones ARC-like más diagnósticas, pero no demuestran razonamiento general fuera de distribución.",
+      "technical": {
+        "claimed_result": "En duplicados de tareas de entrenamiento de ARC-1, los autores informan una recuperación top-5 de incrustaciones de 86.25% con Embed-TTT frente a 6.5% con Full-TTT. En ConceptARC, informan 98.8% de recuperación y 60.6% de precisión del sondeo lineal, frente a 69.4% y 21.3%. En el conjunto personalizado LUCD, la clasificación de reglas alcanza 100% frente a 11.3%; en Moves, el error RMSE de regresión es 2.12 frente a 2.94. En tareas de prueba de ARC-1, Embed-TTT solo con incrustaciones informa 13.0% pass@1 y 17.2% pass@2, mientras que Embed-Full-TTT informa 49.5% y 55.2%, frente a 48.8% y 53.8% de Full-TTT. Son métricas informadas por los autores.",
+        "demonstrated_result": "El preprint principal describe el protocolo, los conjuntos de evaluación y las mediciones informadas. No se ejecutó código ni se reprodujeron los resultados. La recuperación de incrustaciones es una medida indirecta: los autores señalan que puede bastar la memorización y que distintas incrustaciones pueden resolver una tarea. En su conjunto de reglas paramétricas informan interpolación, pero no extrapolación.",
+        "mechanism": "Dada una tarea de prueba, Embed-TTT congela la base preentrenada y optimiza su incrustación de tarea. En una segunda fase, congela la incrustación y ajusta la base. El artículo evalúa las incrustaciones recuperando incrustaciones conocidas de tareas de entrenamiento o, cuando hay etiquetas de reglas, sondeando la identidad o los parámetros de la regla.",
+        "regime": "Vision ARC (VARC) con ARC-AGI-1, ConceptARC, Mini-ARC y los conjuntos personalizados LUCD/Moves. Algunas evaluaciones usan duplicados de tareas de entrenamiento; los sondeos de ConceptARC aplican validación cruzada de 5 pliegues sobre sus 16 metaconceptos. Los conjuntos personalizados usan reglas sintéticas conocidas. No se informa replicación independiente con otro modelo o familia de tareas.",
+        "reproducibility": "El HTML y los apéndices de arXiv describen el método y los conjuntos personalizados. Esta revisión no localizó ni ejecutó código y no encontró una reproducción independiente.",
+        "strongest_baseline": "Full-TTT, que actualiza conjuntamente la incrustación de tarea y la base durante el entrenamiento de prueba. En la comparación de prueba de ARC-1, Full-TTT informa 48.8% pass@1 y 53.8% pass@2; Embed-Full-TTT informa 49.5% y 55.2%. Las diferencias mayores aparecen en recuperación y sondeos de incrustación, que siguen siendo indicadores indirectos de inducción de reglas."
+      },
+      "title": "Embed-TTT informa estructura de reglas de tarea en incrustaciones ARC-like, con transferencia limitada fuera de distribución",
+      "why_it_matters": "Las pruebas ARC-style suelen combinar la inferencia de una regla de tarea con su ejecución correcta, lo que dificulta interpretar una puntuación alta. Un método que sondee por separado la representación de tarea podría ayudar a distinguir esas capacidades y revelar cuándo la aparente generalización depende de reglas similares a las de entrenamiento. Los efectos informados son prometedores para el diseño de pruebas, pero su transferencia más allá de un modelo y de familias de reglas acotadas sigue abierta."
     },
     "FCMO-E427EC36D447": {
       "claims": [
