@@ -2311,6 +2311,70 @@
       "title": "Weave reporta mejoras de planificación de GPU para inferencia MoE",
       "why_it_matters": "La inferencia MoE dedica tiempo a coordinar el cómputo de expertos con el tráfico de envío y combinación. Si se sostienen, los resultados de Weave indican que adaptar la partición entre comunicación y cómputo tras el ruteo puede reducir desajustes en cada capa y mejorar la eficiencia de extremo a extremo. El ensayo reportado en GPU 4×H100 no establece transferencia a otro hardware, cargas de trabajo ni objetivos de despliegue."
     },
+    "FCMO-2855FF416D32": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "El artículo v3 de arXiv define niveles objetivo de uso de memoria por dato (Ignore, Bound, Control) y reporta un benchmark de 15,000 ejemplos en salud, asistencia general y programación: 13,500 para entrenamiento y 1,500 de prueba disjunta. Los autores describen la construcción y el protocolo de evaluación; el equipo de investigación no auditó los datos de manera independiente."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En su conjunto de prueba de 1,500 ejemplos, el artículo reporta una baja calibración exacta entre los modelos evaluados; GPT-5.6-SOL obtiene la mayor puntuación Exact listada, 28.40% (promedio de tres semillas). La mayoría de los modelos listados presenta un uso excesivo más frecuente o severo que el subuso, mientras que Qwen3-8B muestra el patrón contrario."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Para Qwen3-8B, los autores reportan que MemCalib-RL eleva de 77.94% a 94.75% la exactitud macro del uso de datos de memoria en el conjunto de prueba, frente a su comparador cold-start. En un subconjunto externo de 150 consultas de RPEval, sin entrenamiento adicional, reportan 33.78% de exactitud macro y 78.12% micro en tres semillas; los errores de subuso siguen por encima de los del modelo base."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "Estos resultados de benchmark reportados por los autores no establecen que las métricas o las mejoras de entrenamiento se transfieran a memorias surgidas en uso real, a otras tareas de agentes o a resultados de despliegue; no se inspeccionó una reproducción independiente."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se ejecutó MemCalib ni MemCalib-RL de manera independiente; las puntuaciones reportadas por los autores usan evaluación con juez de lenguaje guiada por rúbricas y tres semillas.",
+          "kind": "reproduction_missing",
+          "state": "open"
+        },
+        {
+          "description": "Los ejemplos de MemCalib se construyen a partir de ocho conjuntos públicos de preguntas y respuestas, con bloques de memoria, anotaciones por dato y rúbricas generados. Se desconoce la generalización a memorias de agentes acumuladas durante interacciones reales.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "El artículo reporta transferencia a un subconjunto de 150 consultas de RPEval, donde todos los métodos entrenados presentan más subuso que el modelo base; siguen abiertas la transferencia más amplia y el costo de omitir datos útiles.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si los resultados del artículo se generalizan, evaluar cuánto debe influir cada dato almacenado podría revelar una falla de uso de memoria que las métricas de recuperación no detectan, y el objetivo de entrenamiento reportado podría mejorar el comportamiento de la memoria de agentes. La evidencia actual proviene de un solo equipo, un benchmark construido y experimentos calificados por jueces de lenguaje; aún no se establece el efecto en otros tipos de trabajo.",
+      "limitations": [
+        "Preprint de un solo equipo; no se inspeccionó una reproducción independiente.",
+        "Los ejemplos del benchmark se construyen a partir de conjuntos públicos de preguntas y respuestas, con datos de memoria generados y anotados; no se prueban memorias longitudinales del mundo real.",
+        "Los juicios sobre el uso efectivo de datos se apoyan en un juez de lenguaje guiado por rúbricas; el artículo informa 96.7% de acuerdo en 150 juicios muestreados y desacuerdos concentrados en el límite entre Bound y Control.",
+        "Los resultados de los modelos promedian tres semillas; la transferencia externa a RPEval cubre un subconjunto de 150 consultas y conserva una tasa de subuso mayor que la del modelo base."
+      ],
+      "relationships": [
+        {
+          "summary": "Ambos trabajos evalúan cómo los agentes usan recuerdos recuperados; MemCalib mide la influencia de cada dato y el trabajo relacionado propone una compuerta de confianza y acción.",
+          "target_id": "FCMO-1A31056E0F2C",
+          "type": "related"
+        }
+      ],
+      "summary": "Un preprint v3 del 8 de octubre presenta MemCalib, un benchmark que evalúa si cada dato en la memoria de un agente debe ignorarse, servir como apoyo acotado o determinar la respuesta. Los autores reportan 15,000 ejemplos de salud, asistencia general y programación. En su conjunto de prueba de 1,500 ejemplos, la mayor calibración exacta reportada es 28.40% para GPT-5.6-SOL; la mayoría de los modelos evaluados tiende más a usar recuerdos en exceso que a usarlos de menos. Los autores informan que MemCalib-RL mejora el uso de átomos de memoria por Qwen3-8B en este benchmark y transfiere a un subconjunto de 150 consultas de RPEval, aunque aumenta el subuso frente al modelo base. Los resultados provienen del artículo y dependen de ejemplos construidos y evaluación con jueces de lenguaje; se desconoce su transferencia al uso real.",
+      "technical": {
+        "claimed_result": "Los autores informan que MemCalib-RL eleva de 77.94% a 94.75% la exactitud macro del uso de datos de memoria por Qwen3-8B en el conjunto de prueba de MemCalib, y alcanza 33.78% macro / 78.12% micro en un subconjunto de 150 consultas de RPEval sin entrenamiento adicional. También reportan más subuso que el modelo base sin entrenar en RPEval.",
+        "compute_or_cost": "Las secciones revisadas del artículo no reportan latencia de inferencia de extremo a extremo ni costo de despliegue.",
+        "demonstrated_result": "El preprint v3 y la ficha del conjunto de datos especifican un benchmark de 15,000 ejemplos, niveles objetivo de uso de memoria y definiciones de puntuación. Esta revisión inspeccionó tablas del artículo y metadatos del conjunto, pero no ejecutó la evaluación ni muestreó las filas de datos.",
+        "mechanism": "Cada dato de memoria recibe un nivel de influencia objetivo: Ignore, Bound o Control. MemCalib compara ese objetivo con la influencia efectiva juzgada mediante rúbrica y mide por separado el uso excesivo y el subuso. MemCalib-RL descompone los pares de uso objetivo y efectivo en canales de recompensa y asigna crédito contrafactual mediante ablación de datos y diferencias de probabilidad por token de respuesta.",
+        "regime": "Los autores construyen 15,000 ejemplos a partir de ocho conjuntos públicos de preguntas y respuestas en salud, asistencia general y programación. Los modelos de referencia se evalúan en 1,500 ejemplos reservados, sin modo de pensamiento, con tres semillas, temperatura y top-p en 1, y DeepSeek-V4-Pro como juez. La transferencia a RPEval usa 150 consultas explícitas con múltiples preferencias y tres semillas.",
+        "reproducibility": "Los autores enlazan una implementación y un conjunto de datos. Esta activación inspeccionó el repositorio y las descripciones del conjunto, pero no ejecutó el código ni validó todas las licencias de los datos fuente.",
+        "strongest_baseline": "En la comparación de entrenamiento de Qwen3-8B, el comparador directo es la versión cold-start del mismo modelo. Para la transferencia externa se compara el modelo base sin entrenamiento con varios métodos de optimización bajo el protocolo de RPEval."
+      },
+      "title": "MemCalib mide si los agentes de lenguaje dan a los recuerdos almacenados la influencia adecuada",
+      "why_it_matters": "Un sistema de memoria puede recuperar un dato pertinente y aun así darle demasiada o muy poca influencia. Las etiquetas por elemento Ignore/Bound/Control de MemCalib permiten medir este comportamiento y separar el uso excesivo de las omisiones. Los autores reportan mejoras de un método de entrenamiento en su benchmark y en un pequeño conjunto externo, pero los ejemplos son construidos y los jueces son modelos; no se ha establecido el desempeño en producción."
+    },
     "FCMO-28A16703D598": {
       "summary": "ASML y TSMC anunciaron una iniciativa industrial para mover High-NA EUV del formato de fotomáscara de 6 pulgadas usado durante décadas hacia máscaras de 12 pulgadas. La hoja de ruta conjunta apunta a una línea piloto de máscaras de 12 pulgadas para 2031 y sistemas de litografía completamente listos para producción en nodos avanzados para 2033; TSMC dice que pretende usar High-NA en manufactura de alto volumen desde 2030. Samsung confirmó por separado que se suma a la iniciativa de máscaras de 12 pulgadas y apunta a manufactura de alto volumen de DRAM High-NA para 2028. El formato mayor pretende recuperar productividad y eliminar restricciones de stitching creadas por el campo de exposición más pequeño de High-NA, algo especialmente relevante para grandes dies lógicos de vanguardia. Son compromisos coordinados de roadmap, no capacidad de fabricación de máscaras de 12 pulgadas ya entregada.",
       "title": "ASML y fabricantes líderes se comprometen con la transición a fotomáscaras de 12 pulgadas para High-NA EUV, con piloto en 2031 y sistemas de producción listos en 2033",
@@ -13147,6 +13211,64 @@
       "summary": "OpenAI publicó una prueba analítica y una formalización en Lean 4 que afirma establecer las alternativas de ruptura C y D del problema del Milenio de Navier-Stokes de Clay: para toda viscosidad positiva, una fuerza externa suave adecuada y datos iniciales suaves llevan al incumplimiento de las condiciones requeridas para una solución suave global en R^3 y el toro periódico. La formalización pública reporta cero sorrys en los resultados principales y sólo axiomas estándar de Lean. Su objetivo Comparator fue adaptado del commit 8bf45ed70d48b2b2a501de9c00b26bfa38c573ee de Google DeepMind Formal Conjectures, fechado el 27 de julio de 2026, antes de la búsqueda de OpenAI en septiembre, lo que fortalece la evidencia de fidelidad del enunciado. OpenAI atribuye el descubrimiento a una gran campaña multiagente con un modelo interno y la verificación formal a GPT-6 Astra. El evento y el artefacto formal están verificados; la resolución matemática sigue siendo una afirmación primaria extraordinaria pendiente de compilación independiente, auditoría semántica, revisión especializada y aceptación formal de Clay.",
       "title": "OpenAI publica una propuesta generada por IA para resolver el problema del Milenio de Navier-Stokes con una formalización Lean sin sorrys",
       "why_it_matters": "Si la prueba sobrevive el escrutinio independiente, sería tanto un gran resultado matemático como evidencia inusualmente fuerte de que sistemas de IA frontera pueden generar investigación nueva al nivel de un problema del Milenio cuando reciben inferencia paralela extrema, acceso a herramientas y verificación formal. Cambiaría materialmente la planificación de ciencia automatizada, pero todavía no puede interpretarse como una medida limpia de la capacidad autónoma de un solo modelo porque OpenAI reporta aproximadamente 10,000 agentes concurrentes, un uso enorme de tokens, dirección de recursos, consolidación entre grupos y una fase separada de formalización."
+    },
+    "FCMO-FB444CC0F9E4": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "El artículo v1 de arXiv describe BabelArena como 16,146 instancias construidas a partir de 702 tareas canónicas, cuatro familias de benchmarks, 13 dominios y 23 idiomas; todos los componentes del benchmark se adaptaron para conservar la estructura ejecutable de las tareas."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En una ablación de adaptación al chino con 40 tareas, los autores reportan que BabelFlow redujo las referencias rotas de 20.0% con traducción independiente a 2.5%, y las discrepancias de comportamiento observadas de 5.0% a 0%; el flujo usó 3.35 veces los tokens de traducción de la línea base."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En cinco modelos evaluados, el artículo reporta menor éxito promedio en tareas y consistencia lingüística para el grupo de idiomas con menos recursos que para el grupo con más recursos. En fallos muestreados de VitaBench, el tailandés y el tamil tuvieron mayores proporciones de errores de uso de herramientas y flujo de control que el inglés y el chino; en tareas emparejadas, las trayectorias de VitaBench en idiomas con menos recursos usaron 1.69–2.06 veces más tokens de entrada con una cantidad similar de turnos."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El artículo no establece que sus benchmarks traducidos conserven la validez semántica o cultural de cada tarea fuente, ni que las diferencias medidas se generalicen a otros modelos, tareas o poblaciones de despliegue; no se inspeccionó una evaluación independiente."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "Ningún equipo independiente reprodujo la comparación de construcción BabelFlow ni la evaluación de BabelArena con cinco modelos.",
+          "kind": "reproduction_missing",
+          "state": "open"
+        },
+        {
+          "description": "La garantía de calidad evalúa una muestra de 200 textos por idioma; expertos puntúan las traducciones de idiomas de altos recursos, mientras GPT-5.6-Sol evalúa las de recursos medios y bajos. Se desconocen la equivalencia y la validez cultural fuera de las tareas muestreadas.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "Los resultados de cinco modelos y el desglose de errores cubren cuatro familias de benchmarks y muestras seleccionadas; no se establece una cobertura amplia de modelos, tareas ni despliegues.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si los hallazgos de construcción y evaluación se generalizan, la confiabilidad multilingüe de agentes debe medirse en herramientas, texto del entorno y flujo de control, no solo en instrucciones traducidas; el costo adicional de tokens reportado también afecta la operación. La evidencia actual es un preprint con cuatro familias de benchmarks y cinco modelos, con auditoría independiente limitada de la calidad lingüística.",
+      "limitations": [
+        "Preprint de un solo equipo; no se inspeccionó una reproducción independiente.",
+        "La ablación del flujo de traducción comprende 40 tareas solo en chino y utiliza 3.35 veces los tokens de traducción de la traducción independiente.",
+        "La calidad lingüística se evalúa con 200 textos por idioma; GPT-5.6-Sol, y no lingüistas humanos, puntúa las muestras de recursos medios y bajos.",
+        "Cinco modelos y cuatro familias de benchmarks no establecen el desempeño general en despliegue; algunos análisis de fallos usan muestras seleccionadas de trayectorias."
+      ],
+      "relationships": [],
+      "summary": "Un preprint del 20 de septiembre presenta BabelFlow, un flujo para adaptar benchmarks de agentes entre idiomas preservando las conexiones entre instrucciones, herramientas, entornos y evaluadores, y publica BabelArena con 16,146 instancias en 23 idiomas. En una ablación de 40 tareas adaptadas al chino, los autores reportan menos referencias rotas y discrepancias de comportamiento que con traducción independiente, a un mayor costo de tokens. Su evaluación de cinco modelos reporta menor éxito en tareas y consistencia lingüística para el grupo de idiomas con menos recursos, además de errores distintivos de uso de herramientas/control y mayor consumo de tokens de entrada en tareas muestreadas. Son resultados del artículo; la validez de las traducciones, la reproducción independiente y la generalización siguen abiertas.",
+      "technical": {
+        "claimed_result": "Los autores reportan menos defectos de adaptación con BabelFlow y diferencias lingüísticas en desempeño y costo de agentes. En tareas VitaBench emparejadas, las trayectorias en idiomas con menos recursos supuestamente usan 1.69–2.06× los tokens de entrada de las trayectorias en inglés con una cantidad similar de turnos; no se midió tiempo transcurrido ni costo monetario.",
+        "compute_or_cost": "La ablación de 40 tareas para chino usa 3.35× los tokens de traducción de la línea base; no se reporta el impacto medido en costo de inferencia.",
+        "demonstrated_result": "El preprint especifica un benchmark de 16,146 instancias, cuatro familias de benchmarks fuente, 13 dominios y 23 idiomas, además del protocolo de adaptación y evaluación. Esta revisión examinó el artículo, pero no ejecutó el código ni evaluó las traducciones de manera independiente.",
+        "mechanism": "Un agente de código rastrea las dependencias de datos en tiempo de ejecución para identificar campos de texto y valores críticos para la ejecución. Los tipos de traducción separan identificadores y recursos que se conservan del texto libre y de traducciones canónicas de entidades. Varios agentes comprueban estructura, consistencia entre componentes, fidelidad semántica y equivalencia de comportamiento; revisores humanos adjudican defectos antes de aceptar una variante.",
+        "regime": "El artículo evalúa cinco modelos de frontera con esfuerzo de razonamiento medio en cuatro familias de benchmarks y 23 idiomas. Una ablación de construcción adapta 40 tareas al chino. La calidad de traducción se muestrea con 200 textos por idioma; los análisis de fallos lingüísticos usan trayectorias seleccionadas.",
+        "reproducibility": "El artículo está disponible públicamente en arXiv. Esta activación no ejecutó el benchmark ni validó los artefactos de tareas publicados.",
+        "strongest_baseline": "Para los defectos de construcción, BabelFlow se compara con traducción independiente de campos y traducción canónica en las mismas 40 tareas fuente. La evaluación de modelos conserva la puntuación de cada benchmark fuente, pero no ofrece un control monolingüe emparejado único para cada combinación de idioma y modelo."
+      },
+      "title": "BabelArena evalúa la ejecución de agentes en 23 idiomas y reporta brechas asociadas al nivel de recursos",
+      "why_it_matters": "Traducir solo las instrucciones puede dejar inconsistencias entre herramientas, bases de datos, analizadores y reglas de puntuación; por eso las pruebas multilingües de agentes deben abarcar flujos ejecutables. El artículo de BabelArena informa diferencias por nivel de recursos en el éxito, los fallos de herramientas/control y el uso de tokens de entrada. Estos hallazgos pueden cambiar el diseño de evaluaciones y las estimaciones de costo de inferencia, pero proceden de un equipo y de benchmarks e idiomas seleccionados."
     },
     "FCMO-FB5A7FAE0B92": {
       "claims": [
