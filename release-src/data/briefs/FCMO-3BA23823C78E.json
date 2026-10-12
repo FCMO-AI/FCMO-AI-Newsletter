@@ -1,0 +1,117 @@
+{
+  "record": {
+    "id": "FCMO-3BA23823C78E",
+    "title": "SPHQuant reports competitive 2–3-bit VLM accuracy with faster decode than QTIP on NVIDIA GPUs",
+    "desk": "Inference Systems",
+    "event_at": "2026-09-21T00:00:00Z",
+    "evidence": "A",
+    "confidence": "credible_unconfirmed",
+    "importance": 5,
+    "tier": "Notable",
+    "summary": "SPHQuant represents each 8D weight vector using direction and radius, allocates additional quantization precision to the radius to handle outliers, and pairs a compact direction codebook with a rotation-free CUDA inference kernel. The authors report competitive 2–3-bit task accuracy against prior quantizers across several VLMs and a 30.3% decode-throughput gain over QTIP on RTX A6000. In an added RTX 4090 test with Qwen3-VL-8B-Instruct, batch size 1, 256 prefill tokens and 512 generated tokens, they report 288.63 tokens/s, 37.6% faster than QTIP, while using 5.35 GB GPU memory versus QTIP's 5.02 GB. These are paper-reported measurements; no independent reproduction or mobile/embedded evaluation was performed.",
+    "topics": [
+      "VLM quantization",
+      "low-bit inference",
+      "CUDA kernels",
+      "vision-language models"
+    ],
+    "organizations": [],
+    "human_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-3BA23823C78E.html",
+    "machine_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/data/briefs/FCMO-3BA23823C78E.json",
+    "citation": {
+      "id": "FCMO-3BA23823C78E",
+      "source": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-3BA23823C78E.html"
+    }
+  },
+  "brief": {
+    "claims": [
+      {
+        "label": "CLAIMED",
+        "text": "SPHQuant decomposes each 8D weight vector into direction and radius, assigns extra precision to radius values to reduce outlier-related degradation, and uses a rotation-free hardware-oriented inference kernel."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "The authors report competitive 2–3-bit VLM task accuracy and 30.3% higher decode throughput than QTIP on RTX A6000. On RTX 4090 with Qwen3-VL-8B-Instruct, batch size 1, 256 prefill tokens and 512 generated tokens, they report 288.63 tokens/s, 37.6% faster than QTIP."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "In the reported RTX 4090 configuration, SPHQuant uses 5.35 GB GPU memory versus 5.02 GB for QTIP; the paper does not establish lower total memory consumption or practical fit on mobile/embedded devices."
+      }
+    ],
+    "confidence": "credible_unconfirmed",
+    "contradictory_evidence": [],
+    "desks": [
+      "inference_systems",
+      "efficiency",
+      "multimodality_world_models"
+    ],
+    "development_type": "paper",
+    "editions": [
+      "2026-10-12"
+    ],
+    "event_at": "2026-09-21T00:00:00Z",
+    "evidence_class": "A",
+    "evidence_gaps": [
+      {
+        "description": "Accuracy and throughput measurements have not been independently reproduced.",
+        "kind": "missing_independent",
+        "state": "open"
+      },
+      {
+        "description": "Performance is reported on RTX A6000 and RTX 4090, without mobile/embedded hardware or broader batch/context configurations.",
+        "kind": "other",
+        "state": "open"
+      },
+      {
+        "description": "The measured RTX 4090 GPU memory footprint is higher for SPHQuant than QTIP, and throughput depends on the tested implementation and configuration.",
+        "kind": "baseline_unclear",
+        "state": "open"
+      }
+    ],
+    "id": "FCMO-3BA23823C78E",
+    "importance_effective_score": 5,
+    "importance_rationale": "If independently reproduced at matched quality, combining extreme low-bit weight compression with faster decoding could widen the practical deployment envelope for memory-constrained VLMs. The measured speed results are limited to two NVIDIA GPUs, and the RTX 4090 test reports higher GPU memory use than QTIP; mobile and embedded benefit is not established.",
+    "importance_scale_version": 2,
+    "importance_score": 5,
+    "importance_tier": "Notable",
+    "last_verified_at": "2026-10-12T16:15:38Z",
+    "limitations": [
+      "All benchmark and performance figures are author-reported; no independent reproduction was conducted.",
+      "Throughput evaluation covers RTX A6000 and RTX 4090; the authors state that embedded/mobile performance and broader batch/context settings remain untested.",
+      "For the reported RTX 4090 Qwen3-VL-8B-Instruct configuration, SPHQuant uses 5.35 GB GPU memory versus 5.02 GB for QTIP; encoded weight payload and total GPU memory are distinct.",
+      "The paper calls for more task-specific evaluation under realistic latency, input-resolution and generation-length constraints."
+    ],
+    "organizations": [],
+    "primary_desk": "inference_systems",
+    "recorded_at": "2026-10-12T16:15:38Z",
+    "regions": [
+      "global"
+    ],
+    "relationships": [],
+    "source_languages": [
+      "en"
+    ],
+    "source_urls": [
+      "https://arxiv.org/abs/2609.24875"
+    ],
+    "status": "active",
+    "summary": "SPHQuant represents each 8D weight vector using direction and radius, allocates additional quantization precision to the radius to handle outliers, and pairs a compact direction codebook with a rotation-free CUDA inference kernel. The authors report competitive 2–3-bit task accuracy against prior quantizers across several VLMs and a 30.3% decode-throughput gain over QTIP on RTX A6000. In an added RTX 4090 test with Qwen3-VL-8B-Instruct, batch size 1, 256 prefill tokens and 512 generated tokens, they report 288.63 tokens/s, 37.6% faster than QTIP, while using 5.35 GB GPU memory versus QTIP's 5.02 GB. These are paper-reported measurements; no independent reproduction or mobile/embedded evaluation was performed.",
+    "technical": {
+      "claimed_result": "Authors report competitive task accuracy against QTIP and other quantizers, 30.3% higher decode throughput than QTIP on RTX A6000, and 288.63 tokens/s / 37.6% higher than QTIP on RTX 4090 in the specified batch-1 test.",
+      "demonstrated_result": "The inspected manuscript specifies the method, benchmark conditions and reported results. the research desk did not run the code or reproduce performance; outcomes remain paper claims.",
+      "mechanism": "Each 8D weight vector is represented by a direction and radius. The method uses a compact codebook for positive directions, angular codebook optimization, additional radial precision for outliers, and a rotation-free CUDA kernel for lookup, dequantization and matrix multiplication.",
+      "regime": "The paper evaluates VLM quantization at 2–3 bits. The additional RTX 4090 result uses Qwen3-VL-8B-Instruct, 24 GB GPU memory, batch size 1, 256 prefill tokens and 512 generated tokens; another throughput result uses RTX A6000.",
+      "strongest_baseline": "QTIP is the principal 2-bit baseline. On RTX 4090, the reported throughput is 288.63 tokens/s for SPHQuant, 37.6% above QTIP, with measured GPU memory 5.35 GB versus 5.02 GB."
+    },
+    "title": "SPHQuant reports competitive 2–3-bit VLM accuracy with faster decode than QTIP on NVIDIA GPUs",
+    "topics": [
+      "VLM quantization",
+      "low-bit inference",
+      "CUDA kernels",
+      "vision-language models"
+    ],
+    "why_it_matters": "Two- and three-bit weights could reduce VLM storage and memory traffic where higher-precision models do not fit. SPHQuant reports combining outlier-aware spherical quantization and a hardware-oriented kernel, but its speed and accuracy tradeoffs are measured on two NVIDIA GPUs, with higher GPU memory than QTIP in the RTX 4090 configuration. Deployment on smaller devices remains an open question."
+  },
+  "related": [],
+  "schema": "fcmo-public-brief-v1"
+}

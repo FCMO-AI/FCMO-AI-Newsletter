@@ -1,7 +1,7 @@
 {
   "schema": "fcmo-stories-v2",
-  "generated_at": "2026-10-12T15:00:13Z",
-  "release_id": "newswire-8af765c96ce94f841cd8e3b7",
+  "generated_at": "2026-10-12T16:54:59Z",
+  "release_id": "newswire-b2890f3340be27960cdd9c2c",
   "canonical_locale": "en",
   "locales": [
     "en",
@@ -39,6 +39,2274 @@
     "2026-10-12"
   ],
   "stories": [
+    {
+      "id": "FCMO-E02E01F0DCDF",
+      "slug": "embed-ttt-reports-task-rule-structure-in-arc-like-embeddings-with",
+      "url_date": "2026-10-12",
+      "kind": "development",
+      "status": "live",
+      "beat": "research",
+      "desk": "evaluation_science",
+      "title": "Embed-TTT reports task-rule structure in ARC-like embeddings, with limited out-of-distribution transfer",
+      "dek": "The paper studies whether test-time task embeddings in Vision ARC (VARC) encode the transformation rule separately from the model's execution of it.",
+      "summary": "The paper studies whether test-time task embeddings in Vision ARC (VARC) encode the transformation rule separately from the model's execution of it. Embed-TTT freezes the backbone and first optimizes a task embedding, then freezes that embedding while fine-tuning the backbone. Across ARC-AGI-1, ConceptARC and two custom rule datasets, authors report better embedding retrieval and rule-probe scores than joint test-time training. On ARC-1, embedding-only test-time training reports 13.0% pass@1 and 17.2% pass@2, while the full two-stage method reports 49.5% and 55.2%; Full-TTT reports 48.8% and 53.8%. These are author-reported results from one study. The authors caution that embedding retrieval is indirect and can reflect memorization, and they find interpolation but not extrapolation on their parametric-rule dataset. The results motivate more diagnostic ARC-like evaluations; they do not establish general out-of-distribution reasoning.",
+      "why_it_matters": "ARC-style benchmarks often combine inferring a task rule with correctly executing it, making a high score hard to interpret. A method that probes a task representation separately may help distinguish these abilities and expose where apparent generalization relies on rules similar to training. The reported effects are promising for benchmark design, while their transfer beyond one model and bounded rule families remains open.",
+      "importance_rationale": "If replicated, separating task-rule adaptation from backbone execution could improve how ARC-like benchmarks diagnose learned representations versus task-solving behavior. The work gives a bounded method and evaluation result, but the evidence comes from one author-run Vision ARC study, uses indirect proxies on some datasets, and explicitly finds no extrapolation on the tested parametric-rule family.",
+      "technical": {
+        "claimed_result": "On ARC-1 training-task duplicates, top-5 embedding retrieval is reported as 86.25% for Embed-TTT versus 6.5% for Full-TTT. On ConceptARC, the paper reports 98.8% retrieval and 60.6% linear-probe accuracy versus 69.4% and 21.3%. On the custom LUCD dataset, rule classification reaches 100% versus 11.3%; on Moves, regression RMSE is 2.12 versus 2.94. On ARC-1 test tasks, embedding-only Embed-TTT reports 13.0% pass@1 and 17.2% pass@2, while Embed-Full-TTT reports 49.5% and 55.2% versus Full-TTT's 48.8% and 53.8%. These are author-reported metrics.",
+        "demonstrated_result": "The primary preprint provides the protocol, benchmark descriptions and reported measurements. the research desk did not execute code or reproduce results. Embedding retrieval is an indirect measure: the authors note that memorization can suffice and that multiple embeddings may solve a task. The paper reports interpolation but not extrapolation on its parametric-rule dataset.",
+        "mechanism": "Given a test task, Embed-TTT freezes the pretrained backbone and optimizes only its task embedding. A second phase freezes the embedding and fine-tunes the backbone. The paper evaluates embeddings by retrieving known training-task embeddings or, when rule labels exist, by probing the embedding for rule identity or parameters.",
+        "regime": "Vision ARC (VARC) with ARC-AGI-1, ConceptARC, Mini-ARC and custom LUCD/Moves datasets. Some evaluations use training-task duplicates; ConceptARC probes use 5-fold cross-validation over its 16 meta-concepts. The custom datasets use synthetic known rules. No independent model or task-family replication is reported.",
+        "reproducibility": "The arXiv HTML and appendices provide method and custom dataset descriptions. This review did not locate or execute code, and no independent reproduction was found.",
+        "strongest_baseline": "Full-TTT, which jointly updates the task embedding and backbone at test time. In the ARC-1 test comparison, Full-TTT reports 48.8% pass@1 and 53.8% pass@2; the two-stage Embed-Full-TTT reports 49.5% and 55.2%. The more pronounced differences are on embedding retrieval and probes, which remain indirect proxies for rule induction."
+      },
+      "importance_tier": "Meaningful",
+      "development_type": "paper",
+      "event_at": "2026-09-18T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-12T16:54:49Z",
+      "updated_at": "2026-10-12T16:54:49Z",
+      "importance": 4,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": false,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "CLAIMED",
+            "text": "Embed-TTT first freezes the pretrained Vision ARC backbone and optimizes a test-task embedding; the second stage freezes that embedding and fine-tunes the backbone for task execution."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "Across ARC-AGI-1, ConceptARC and two controlled datasets, the authors report stronger embedding retrieval and rule-probe results for Embed-TTT than for jointly updating the backbone and task embedding. On ARC-1, embedding-only test-time training solves 13.0% pass@1 and 17.2% pass@2; the full two-stage pipeline reports 49.5% and 55.2%, versus 48.8% and 53.8% for Full-TTT."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "On a synthetic parametric-move dataset, the authors report that the embedding geometry supports interpolation between represented rule components, but not extrapolation to rules outside that structure."
+          },
+          {
+            "label": "NOT_ESTABLISHED",
+            "text": "Embedding retrieval and linear probes do not by themselves establish human-like abstraction or out-of-distribution reasoning; authors note that retrieval may reflect memorization and that benchmark rule coverage is limited."
+          }
+        ],
+        "limitations": [
+          "All empirical results are reported by one paper; no independent reproduction was located or run.",
+          "The paper itself says training-task embedding retrieval is indirect evidence and may be achieved through memorization; multiple embeddings may solve the same task.",
+          "ConceptARC concepts are meta-categories, not complete descriptions of the task-generating rules.",
+          "The custom LUCD and Moves datasets cover bounded synthetic rule families; the reported parametric-rule results support interpolation but not extrapolation.",
+          "Embedding-only adaptation solves only a subset of ARC-1, ConceptARC and Mini-ARC tasks; its low parameter count does not imply equivalent overall task performance.",
+          "The small gap between Full-TTT and Embed-Full-TTT final ARC-1 performance is distinct from the larger representation-probe differences."
+        ],
+        "gaps": [
+          {
+            "kind": "missing_independent",
+            "description": "The task-embedding and rule-probe results have not been independently reproduced across implementations or model backbones."
+          },
+          {
+            "kind": "other",
+            "description": "Embedding retrieval can reflect task memorization and does not uniquely identify the intended rule; the proxy's construct validity remains limited."
+          },
+          {
+            "kind": "other",
+            "description": "The paper reports interpolation but not extrapolation on its custom parametric-rule family; broader transfer is unknown."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://arxiv.org/abs/2609.21181",
+          "domain": "arxiv.org",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "University of Liège",
+        "Santa Fe Institute"
+      ],
+      "topics": [
+        "arc",
+        "test-time-training",
+        "task-embeddings",
+        "rule-induction",
+        "benchmark-validity"
+      ],
+      "regions": [
+        "GLOBAL"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-E02E01F0DCDF.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: Embed-TTT reports task-rule structure in ARC-like embeddings, with limited out-of-distribution transfer"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "Embed-TTT informa estructura de reglas de tarea en incrustaciones ARC-like, con transferencia limitada fuera de distribución",
+            "summary": "El artículo estudia si las incrustaciones de tarea de prueba en Vision ARC (VARC) codifican la regla de transformación por separado de su ejecución por el modelo. Embed-TTT congela la base y optimiza primero una incrustación de tarea; después congela la incrustación y ajusta la base. En ARC-AGI-1, ConceptARC y dos conjuntos de reglas personalizados, los autores informan mejor recuperación de incrustaciones y puntuaciones de sondeo de reglas que con el entrenamiento conjunto en tiempo de prueba. En ARC-1, la adaptación de prueba solo de la incrustación informa 13.0% pass@1 y 17.2% pass@2, mientras que el método completo de dos etapas informa 49.5% y 55.2%; Full-TTT informa 48.8% y 53.8%. Son resultados comunicados por los autores en un solo estudio. Advierten que la recuperación de incrustaciones es indirecta y puede reflejar memorización; en su conjunto de reglas paramétricas observan interpolación, pero no extrapolación. Los resultados motivan evaluaciones ARC-like más diagnósticas, pero no demuestran razonamiento general fuera de distribución.",
+            "importance_rationale": "Si se replica, separar la adaptación a la regla de tarea de su ejecución por la base podría mejorar la forma de diagnosticar si las pruebas ARC-like miden representaciones aprendidas o resolución de tareas. El trabajo ofrece un método y un resultado de evaluación acotados, pero la evidencia procede de un solo estudio de Vision ARC, utiliza indicadores indirectos en algunos conjuntos y no encuentra extrapolación en la familia de reglas paramétricas examinada.",
+            "why_it_matters": "Las pruebas ARC-style suelen combinar la inferencia de una regla de tarea con su ejecución correcta, lo que dificulta interpretar una puntuación alta. Un método que sondee por separado la representación de tarea podría ayudar a distinguir esas capacidades y revelar cuándo la aparente generalización depende de reglas similares a las de entrenamiento. Los efectos informados son prometedores para el diseño de pruebas, pero su transferencia más allá de un modelo y de familias de reglas acotadas sigue abierta.",
+            "technical": {
+              "claimed_result": "En duplicados de tareas de entrenamiento de ARC-1, los autores informan una recuperación top-5 de incrustaciones de 86.25% con Embed-TTT frente a 6.5% con Full-TTT. En ConceptARC, informan 98.8% de recuperación y 60.6% de precisión del sondeo lineal, frente a 69.4% y 21.3%. En el conjunto personalizado LUCD, la clasificación de reglas alcanza 100% frente a 11.3%; en Moves, el error RMSE de regresión es 2.12 frente a 2.94. En tareas de prueba de ARC-1, Embed-TTT solo con incrustaciones informa 13.0% pass@1 y 17.2% pass@2, mientras que Embed-Full-TTT informa 49.5% y 55.2%, frente a 48.8% y 53.8% de Full-TTT. Son métricas informadas por los autores.",
+              "demonstrated_result": "El preprint principal describe el protocolo, los conjuntos de evaluación y las mediciones informadas. No se ejecutó código ni se reprodujeron los resultados. La recuperación de incrustaciones es una medida indirecta: los autores señalan que puede bastar la memorización y que distintas incrustaciones pueden resolver una tarea. En su conjunto de reglas paramétricas informan interpolación, pero no extrapolación.",
+              "mechanism": "Dada una tarea de prueba, Embed-TTT congela la base preentrenada y optimiza su incrustación de tarea. En una segunda fase, congela la incrustación y ajusta la base. El artículo evalúa las incrustaciones recuperando incrustaciones conocidas de tareas de entrenamiento o, cuando hay etiquetas de reglas, sondeando la identidad o los parámetros de la regla.",
+              "regime": "Vision ARC (VARC) con ARC-AGI-1, ConceptARC, Mini-ARC y los conjuntos personalizados LUCD/Moves. Algunas evaluaciones usan duplicados de tareas de entrenamiento; los sondeos de ConceptARC aplican validación cruzada de 5 pliegues sobre sus 16 metaconceptos. Los conjuntos personalizados usan reglas sintéticas conocidas. No se informa replicación independiente con otro modelo o familia de tareas.",
+              "reproducibility": "El HTML y los apéndices de arXiv describen el método y los conjuntos personalizados. Esta revisión no localizó ni ejecutó código y no encontró una reproducción independiente.",
+              "strongest_baseline": "Full-TTT, que actualiza conjuntamente la incrustación de tarea y la base durante el entrenamiento de prueba. En la comparación de prueba de ARC-1, Full-TTT informa 48.8% pass@1 y 53.8% pass@2; Embed-Full-TTT informa 49.5% y 55.2%. Las diferencias mayores aparecen en recuperación y sondeos de incrustación, que siguen siendo indicadores indirectos de inducción de reglas."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "Embed-TTT primero congela la base Vision ARC preentrenada y optimiza una incrustación de la tarea de prueba; en la segunda etapa congela esa incrustación y ajusta la base para ejecutar la tarea."
+                },
+                {
+                  "text": "En ARC-AGI-1, ConceptARC y dos conjuntos de datos controlados, los autores informan mejores resultados de recuperación de incrustaciones y sondeo de reglas con Embed-TTT que al actualizar conjuntamente la base y la incrustación de tarea. En ARC-1, el entrenamiento de prueba solo de la incrustación resuelve 13.0% pass@1 y 17.2% pass@2; la canalización completa de dos etapas informa 49.5% y 55.2%, frente a 48.8% y 53.8% con Full-TTT."
+                },
+                {
+                  "text": "En un conjunto sintético de movimientos paramétricos, los autores informan que la geometría de las incrustaciones permite interpolar entre componentes de reglas representados, pero no extrapolar a reglas ajenas a esa estructura."
+                },
+                {
+                  "text": "La recuperación de incrustaciones y los clasificadores lineales no demuestran por sí solos abstracción similar a la humana ni razonamiento fuera de distribución; los autores advierten que la recuperación puede reflejar memorización y que la cobertura de reglas de las pruebas es limitada."
+                }
+              ],
+              "limitations": [
+                "Todos los resultados empíricos son comunicados por un solo artículo; no se localizó ni se realizó una reproducción independiente.",
+                "El propio artículo indica que recuperar incrustaciones de tareas de entrenamiento es una evidencia indirecta y puede lograrse mediante memorización; distintas incrustaciones pueden resolver la misma tarea.",
+                "Los conceptos de ConceptARC son metacategorías, no descripciones completas de las reglas que generan las tareas.",
+                "Los conjuntos sintéticos LUCD y Moves cubren familias acotadas de reglas; los resultados paramétricos muestran interpolación, pero no extrapolación.",
+                "La adaptación que solo modifica incrustaciones resuelve una parte de las tareas de ARC-1, ConceptARC y Mini-ARC; el bajo número de parámetros no implica el mismo rendimiento en todas las tareas.",
+                "La pequeña diferencia de rendimiento final entre Full-TTT y Embed-Full-TTT en ARC-1 no equivale a las diferencias mayores en sondeos de representación."
+              ],
+              "gaps": [
+                {
+                  "description": "Los resultados de incrustación de tareas y sondeo de reglas no se han reproducido de forma independiente con otras implementaciones o bases del modelo."
+                },
+                {
+                  "description": "La recuperación de incrustaciones puede reflejar memorización de tareas y no identifica de forma única la regla prevista; la validez de este indicador es limitada."
+                },
+                {
+                  "description": "El artículo informa interpolación, pero no extrapolación, en su familia de reglas paramétricas; se desconoce la transferencia más amplia."
+                }
+              ]
+            },
+            "dek": "El artículo estudia si las incrustaciones de tarea de prueba en Vision ARC (VARC) codifican la regla de transformación por separado de su ejecución por el modelo."
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "Embed-TTT报告称ARC类嵌入包含任务规则结构，但分布外迁移有限",
+            "summary": "论文研究Vision ARC（VARC）的测试任务嵌入是否能将变换规则与模型执行分开编码。Embed-TTT先冻结主干网络并优化任务嵌入，然后冻结该嵌入并微调主干网络。在ARC-AGI-1、ConceptARC和两个自定义规则数据集上，作者报告其嵌入检索和规则探测得分优于联合测试时训练。在ARC-1上，仅优化嵌入的测试时训练pass@1为13.0%、pass@2为17.2%；完整两阶段方法为49.5%和55.2%，Full-TTT则为48.8%和53.8%。这些是单项研究中的作者报告结果。作者提醒，嵌入检索属于间接证据，可能反映记忆；在参数化规则数据集上，方法能插值但不能外推。结果支持设计更有诊断性的ARC类评测，但并未证明普遍的分布外推理能力。",
+            "importance_rationale": "如果得到复现，将任务规则适配与主干网络执行分开，可能改善ARC类基准对已学表征和任务求解行为的诊断。该工作给出了范围明确的方法和评估结果，但证据来自一项Vision ARC研究；部分数据集采用间接代理指标，且在所测参数化规则族上没有观察到外推。",
+            "why_it_matters": "ARC类基准通常同时考查推断任务规则和正确执行规则，因此高分难以解释。单独探测任务表征的方法，可能有助于区分这两种能力，并揭示表面上的泛化是否依赖于与训练规则相近的任务。报告的结果对基准设计有参考价值，但能否迁移到其他模型和规则族仍未知。",
+            "technical": {
+              "claimed_result": "在ARC-1训练任务副本上，作者报告Embed-TTT的嵌入top-5检索率为86.25%，Full-TTT为6.5%。在ConceptARC上，检索率和线性探测准确率分别为98.8%和60.6%，Full-TTT为69.4%和21.3%。在自定义LUCD数据集上，规则分类准确率为100%，Full-TTT为11.3%；在Moves上，回归RMSE为2.12，Full-TTT为2.94。在ARC-1测试任务上，仅嵌入Embed-TTT的pass@1为13.0%、pass@2为17.2%；Embed-Full-TTT为49.5%和55.2%，Full-TTT为48.8%和53.8%。以上均为作者报告的指标。",
+              "demonstrated_result": "原始预印本提供了实验流程、基准描述和报告的测量结果。未执行代码或复现结果。嵌入检索是一种间接测量：作者指出，记忆可能足以实现检索，且多个嵌入可能都能解决同一任务。论文在参数化规则数据集上报告了插值，但未报告外推。",
+              "mechanism": "给定测试任务，Embed-TTT冻结预训练主干网络并只优化其任务嵌入。第二阶段冻结嵌入并微调主干网络。论文通过检索已知的训练任务嵌入评测嵌入；当存在规则标签时，则探测嵌入所包含的规则身份或参数。",
+              "regime": "使用Vision ARC（VARC）及ARC-AGI-1、ConceptARC、Mini-ARC和自定义LUCD/Moves数据集。部分评测使用训练任务副本；ConceptARC探测对其16个元概念进行5折交叉验证。自定义数据集使用已知合成规则。论文未报告在其他模型或任务族上的独立复现。",
+              "reproducibility": "arXiv HTML和附录描述了方法及自定义数据集。本次检查未找到或执行代码，也未找到独立复现。",
+              "strongest_baseline": "Full-TTT在测试时同时更新任务嵌入和主干网络。在ARC-1测试比较中，Full-TTT的pass@1为48.8%、pass@2为53.8%；两阶段Embed-Full-TTT为49.5%和55.2%。更明显的差异出现在嵌入检索和探测结果上，但它们仍是规则归纳的间接代理指标。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "Embed-TTT先冻结预训练的Vision ARC主干网络，只优化测试任务嵌入；第二阶段冻结该嵌入并微调主干网络以执行任务。"
+                },
+                {
+                  "text": "在ARC-AGI-1、ConceptARC和两个受控数据集上，作者报告Embed-TTT的嵌入检索和规则探测结果优于同时更新主干网络与任务嵌入的方法。在ARC-1上，仅进行嵌入测试时训练的pass@1为13.0%、pass@2为17.2%；完整两阶段流程分别为49.5%和55.2%，Full-TTT则为48.8%和53.8%。"
+                },
+                {
+                  "text": "在一个合成参数化移动数据集上，作者报告嵌入几何结构支持在已表示的规则组成部分之间进行插值，但不能外推到该结构之外的规则。"
+                },
+                {
+                  "text": "嵌入检索和线性探测本身并不能证明类人抽象或分布外推理；作者指出检索可能反映记忆，且基准覆盖的规则有限。"
+                }
+              ],
+              "limitations": [
+                "所有实证结果均来自一篇论文的作者报告；未找到或执行独立复现。",
+                "论文指出，检索训练任务嵌入只是间接证据，可能通过记忆实现；不同嵌入也可能解决同一任务。",
+                "ConceptARC概念是元类别，并不完整刻画任务生成规则。",
+                "合成LUCD和Moves数据集只涵盖有限规则族；参数化规则结果支持插值，但不支持外推。",
+                "仅调整嵌入的适配方法只能解决ARC-1、ConceptARC和Mini-ARC中的部分任务；参数量较少并不意味着整体任务性能相当。",
+                "ARC-1上Full-TTT与Embed-Full-TTT最终性能差距较小，与表征探测上的较大差异是不同结果。"
+              ],
+              "gaps": [
+                {
+                  "description": "尚无其他实现或模型主干独立复现任务嵌入和规则探测结果。"
+                },
+                {
+                  "description": "嵌入检索可能来自任务记忆，且不能唯一识别预期规则；该代理指标的构念效度有限。"
+                },
+                {
+                  "description": "论文在其参数化规则集合上报告了插值，但未发现外推；更广泛的迁移能力未知。"
+                }
+              ]
+            },
+            "headline": "Embed-TTT报告称ARC类嵌入包含任务规则结构，但分布外迁移有限"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
+    {
+      "id": "FCMO-D9733D1678C6",
+      "slug": "a-controlled-paper-study-reports-answer-only-rlvr-did-not-improve",
+      "url_date": "2026-10-12",
+      "kind": "development",
+      "status": "live",
+      "beat": "research",
+      "desk": "evaluation_science",
+      "title": "A controlled paper study reports answer-only RLVR did not improve citation faithfulness",
+      "headline": "A controlled paper study reports answer-only RLVR did not improve citation faithfulness",
+      "dek": "The paper tests whether reinforcement learning from verifiable rewards (RLVR) for answer correctness also improves whether citations actually support model claims.",
+      "summary": "The paper tests whether reinforcement learning from verifiable rewards (RLVR) for answer correctness also improves whether citations actually support model claims. Using a shared Qwen2.5-7B-Instruct base and three open-weight RLVR agents across four question-answering datasets, the authors report that the baseline produces roughly one unfaithful citation in seven questions on Wikipedia-based datasets. In fixed-context evaluation, Search-R1 and ReSearch track the base within a few percentage points, while R-Search is slightly worse; the authors state their sample could detect shifts of about seven percentage points, ruling out a large gain in this setup. A no-planting control improves on the prior measurement method. However, the evaluation is single-turn and differs from the agents' multi-turn training format; the planting-based scorer may classify obedience to altered passages as unfaithfulness, and flagged cases were not manually adjudicated. These are author-reported, bounded findings, not a general claim that RLVR cannot improve citation faithfulness.",
+      "why_it_matters": "A retrieval-augmented answer can be factually correct yet cite a passage that does not support the claim. If reward training checks only answer correctness, citation quality may remain a separate failure mode. This study reports no large improvement under its fixed-context protocol, but its evaluation format and planted-passage interpretation limit how broadly the result can be applied.",
+      "importance_rationale": "If the observed pattern generalizes, answer-accuracy rewards alone may leave a consequential reliability failure in retrieval-augmented systems untouched, supporting separate attribution objectives and tests. The result is bounded to one 7B base model, English, four datasets and a fixed-context probe with unresolved interpretation and format limits.",
+      "technical": {
+        "claimed_result": "Authors report roughly one unfaithful citation per seven Wikipedia-based questions for the base model. Under fixed-context evaluation, Search-R1 and ReSearch track baseline within a few percentage points, R-Search is slightly worse, and the sample can detect about a seven-percentage-point shift.",
+        "demonstrated_result": "The inspected manuscript specifies the planted-passage measure, a no-planting control, datasets, model lineage, fixed-context protocol and author-reported outcomes. The attribution interpretation and measured rates were not independently verified.",
+        "mechanism": "The paper plants answer-like spans into retrieved passages and measures whether the model cites the passage it did not use when producing the original answer. A no-planting control is added to distinguish the probe effect. The authors compare an instruction-tuned base against three RLVR agents trained from it.",
+        "regime": "Four models share Qwen2.5-7B-Instruct as the base: the base model plus Search-R1, ReSearch and R-Search. Evaluation spans four QA datasets on fixed passages in a single-turn English citation format; RLVR agents were trained for multi-turn search. The paper reports Kaggle T4 GPU use.",
+        "strongest_baseline": "The instruction-tuned Qwen2.5-7B-Instruct base model under the same fixed-context citation evaluation; the three RLVR agents are compared against this shared base."
+      },
+      "importance_tier": "Meaningful",
+      "development_type": "paper",
+      "event_at": "2026-09-19T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-12T16:54:49Z",
+      "updated_at": "2026-10-12T16:54:49Z",
+      "importance": 4,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": true,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "CLAIMED",
+            "text": "On Wikipedia-based question datasets, the authors report that a shared Qwen2.5-7B-Instruct baseline produces roughly one unfaithful citation in seven under their planted-passage measurement."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "Under fixed-context evaluation across four question-answering datasets, three RLVR agents trained from the shared base model do not show a large citation-faithfulness improvement: Search-R1 and ReSearch are within a few percentage points of baseline, while R-Search is slightly worse. The authors state the sample could detect shifts of about seven percentage points."
+          },
+          {
+            "label": "NOT_ESTABLISHED",
+            "text": "The study does not establish that answer-only RLVR never improves citation faithfulness in interactive retrieval, other languages, prompts or model families; its planting-based score may conflate post-rationalization with citing an altered passage as instructed."
+          }
+        ],
+        "limitations": [
+          "All results are author-reported; no independent reproduction or manual adjudication of flagged examples was conducted.",
+          "The comparison uses one shared Qwen2.5-7B-Instruct base, three RLVR agents, four datasets, English text, one prompt and one decoding configuration.",
+          "Agents trained for multi-turn search were evaluated in a fixed-context single-turn citation format, which may affect abstention and citation behavior.",
+          "The scorer is deterministic string matching over planted spans; a flagged citation could represent obedience to an altered passage rather than post-rationalization.",
+          "Higher abstention and format-failure rates filter which answers are scored; sample sizes differ by model."
+        ],
+        "gaps": [
+          {
+            "kind": "missing_independent",
+            "description": "The reported citation rates and RLVR comparison have not been independently reproduced."
+          },
+          {
+            "kind": "other",
+            "description": "Flagged citations were not manually adjudicated; citing a planted altered passage may reflect obedience to the evaluation prompt rather than post-rationalization."
+          },
+          {
+            "kind": "regime_unclear",
+            "description": "The fixed-context single-turn evaluation differs from the multi-turn search format used to train the RLVR agents."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://arxiv.org/abs/2609.23053",
+          "domain": "arxiv.org",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [],
+      "topics": [
+        "rag-citation-faithfulness",
+        "reinforcement-learning",
+        "attribution-evaluation",
+        "retrieval-agents"
+      ],
+      "regions": [
+        "GLOBAL"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-D9733D1678C6.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: A controlled paper study reports answer-only RLVR did not improve citation faithfulness"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "Un estudio controlado informa que RLVR centrado en respuestas no mejoró la fidelidad de las citas",
+            "summary": "El artículo analiza si el aprendizaje por refuerzo con recompensas verificables (RLVR) por acertar respuestas también mejora que las citas respalden realmente las afirmaciones del modelo. Con una base Qwen2.5-7B-Instruct compartida y tres agentes RLVR de pesos abiertos en cuatro conjuntos de preguntas y respuestas, los autores informan que el modelo base produce aproximadamente una cita no fiel por cada siete preguntas en conjuntos basados en Wikipedia. En una evaluación con contexto fijo, Search-R1 y ReSearch se mantienen a pocos puntos porcentuales de la base, mientras que R-Search queda ligeramente peor; los autores dicen que la muestra detectaría cambios de alrededor de siete puntos porcentuales, por lo que descartan una mejora grande bajo este protocolo. Añaden un control sin inserción de texto, que mejora el método de medición previo. Sin embargo, la evaluación es de un solo turno y difiere del formato de entrenamiento multivuelta de los agentes; el evaluador puede confundir obedecer pasajes alterados con falta de fidelidad, y los casos marcados no se revisaron manualmente. Son hallazgos acotados e informados por los autores, no una afirmación general de que RLVR no pueda mejorar la fidelidad de citas.",
+            "importance_rationale": "Si el patrón observado se generaliza, las recompensas que solo evalúan la respuesta podrían dejar intacta una falla importante de confiabilidad en sistemas de recuperación aumentada, lo que respalda objetivos y pruebas de atribución separados. El resultado se limita a un modelo base de 7B, inglés, cuatro conjuntos de datos y una prueba de contexto fijo con límites de interpretación y formato sin resolver.",
+            "why_it_matters": "Una respuesta con generación aumentada por recuperación puede ser correcta y aun así citar un pasaje que no sustenta la afirmación. Si el entrenamiento por recompensas solo verifica la respuesta, la calidad de las citas puede seguir siendo un modo de falla separado. Este estudio no informa una mejora grande con su protocolo de contexto fijo, pero el formato y la interpretación de pasajes insertados limitan el alcance del resultado.",
+            "technical": {
+              "claimed_result": "Los autores informan aproximadamente una cita no fiel por cada siete preguntas basadas en Wikipedia para el modelo base. En contexto fijo, Search-R1 y ReSearch quedan a pocos puntos porcentuales de la base, R-Search es ligeramente peor y la muestra puede detectar cambios de alrededor de siete puntos porcentuales.",
+              "demonstrated_result": "El manuscrito consultado especifica la medida con pasajes insertados, un control sin inserción, conjuntos de datos, linaje de modelos, protocolo fijo y resultados informados. No se verificaron independientemente las tasas ni la interpretación de atribución.",
+              "mechanism": "El artículo inserta pasajes que parecen contener la respuesta en los documentos recuperados y mide si el modelo cita el pasaje que no usó al producir la respuesta original. Añade un control sin inserción para distinguir el efecto de la prueba. Compara una base ajustada por instrucciones con tres agentes RLVR derivados de ella.",
+              "regime": "Cuatro modelos comparten Qwen2.5-7B-Instruct como base: el modelo base, Search-R1, ReSearch y R-Search. La evaluación usa cuatro conjuntos de preguntas y respuestas, pasajes fijos y un formato de citas de un solo turno en inglés; los agentes RLVR se entrenaron para búsqueda multivuelta. El artículo informa uso de GPU Kaggle T4.",
+              "strongest_baseline": "El modelo base Qwen2.5-7B-Instruct bajo la misma evaluación de citas con contexto fijo; los tres agentes RLVR se comparan con esta base compartida."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "En conjuntos de preguntas basados en Wikipedia, los autores informan que la base compartida Qwen2.5-7B-Instruct produce aproximadamente una cita no fiel por cada siete preguntas bajo su medición con pasajes insertados."
+                },
+                {
+                  "text": "En una evaluación de contexto fijo con cuatro conjuntos de preguntas y respuestas, tres agentes RLVR entrenados desde la misma base no muestran una gran mejora en fidelidad de citas: Search-R1 y ReSearch quedan a pocos puntos porcentuales de la base, mientras que R-Search es ligeramente peor. Los autores dicen que la muestra detectaría cambios de alrededor de siete puntos porcentuales."
+                },
+                {
+                  "text": "El estudio no establece que RLVR centrado en respuestas nunca mejore la fidelidad de citas en recuperación interactiva, otros idiomas, prompts o familias de modelos; la puntuación con pasajes insertados puede confundir una cita posterior a la respuesta con obedecer el pasaje modificado."
+                }
+              ],
+              "limitations": [
+                "Todos los resultados son comunicados por los autores; no se realizó reproducción independiente ni revisión manual de ejemplos marcados.",
+                "La comparación usa una base Qwen2.5-7B-Instruct compartida, tres agentes RLVR, cuatro conjuntos de datos, texto en inglés, un prompt y una configuración de decodificación.",
+                "Los agentes entrenados para búsqueda multivuelta se evaluaron en un formato de citas de un solo turno y contexto fijo, lo que puede cambiar la abstención y el comportamiento de cita.",
+                "El evaluador usa coincidencia determinista de cadenas sobre pasajes modificados; una cita marcada podría obedecer al pasaje alterado en vez de ser una racionalización posterior.",
+                "Las mayores tasas de abstención y fallas de formato filtran las respuestas puntuadas; los tamaños de muestra varían por modelo."
+              ],
+              "gaps": [
+                {
+                  "description": "Las tasas de citas informadas y la comparación de RLVR no se han reproducido de forma independiente."
+                },
+                {
+                  "description": "Los casos marcados no se revisaron manualmente; citar un pasaje modificado insertado podría reflejar obediencia a la instrucción de evaluación, no una racionalización posterior."
+                },
+                {
+                  "description": "La evaluación de contexto fijo y un solo turno difiere del formato de búsqueda multivuelta con el que se entrenaron los agentes RLVR."
+                }
+              ]
+            },
+            "dek": "El artículo analiza si el aprendizaje por refuerzo con recompensas verificables (RLVR) por acertar respuestas también mejora que las citas respalden realmente las afirmaciones del modelo."
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "一项受控研究报告称，以答案正确为目标的 RLVR 未提升引文忠实度",
+            "summary": "论文研究：针对答案正确性的可验证奖励强化学习（RLVR）是否也会提升引文对模型主张的实际支撑程度。作者使用共享的 Qwen2.5-7B-Instruct 基础模型，以及由其训练的三个开放权重 RLVR 智能体，在四个问答数据集上进行比较。作者报告称，在基于 Wikipedia 的问题中，基础模型大约每七个问题就有一次引文不忠实。在固定上下文评测中，Search-R1 和 ReSearch 与基础模型仅相差几个百分点，R-Search 则略差；作者称样本可检测约七个百分点的变化，因此在这一设置下排除了较大的提升。论文还增加了无植入对照，改进了此前的测量方法。不过，该评测为单轮形式，与智能体训练时的多轮格式不同；基于植入文本的评分器可能把遵循修改后段落的指令误判为不忠实，且未对标记案例进行人工复核。这些是范围有限的论文报告结果，并不意味着 RLVR 一般无法提升引文忠实度。",
+            "importance_rationale": "如果这一模式能够泛化，仅奖励答案正确性的训练可能无法消除检索增强系统中重要的可靠性缺陷，因此需要单独设置归因目标和测试。当前结果限于一种 7B 基础模型、英语、四个数据集和固定上下文探针，且解释与格式方面仍有未解决限制。",
+            "why_it_matters": "检索增强生成系统可能给出正确答案，却引用并不支持该主张的段落。如果奖励训练只检查答案正确性，引文质量可能仍是独立的失效模式。该研究在固定上下文协议下未报告明显提升，但评测格式和植入段落的解释限制了结果的适用范围。",
+            "technical": {
+              "claimed_result": "作者报告称，基础模型在基于 Wikipedia 的问题中大约每七个问题出现一次不忠实引文。固定上下文评测中，Search-R1 和 ReSearch 与基础模型相差几个百分点，R-Search 略差，样本可检测约七个百分点的变化。",
+              "demonstrated_result": "已检查论文稿，其中说明了植入段落测量、无植入对照、数据集、模型来源、固定上下文协议和作者报告的结果。测量值及归因解释未经独立核验。",
+              "mechanism": "论文在检索段落中植入类似答案的文本，并测量模型是否引用其生成原始答案时没有使用的段落；同时增加无植入对照，以识别探针本身的影响。作者将指令微调基础模型与由其训练的三个 RLVR 智能体进行比较。",
+              "regime": "四个模型共享 Qwen2.5-7B-Instruct 基础模型：基础模型、Search-R1、ReSearch 和 R-Search。评测使用四个问答数据集、固定段落和英语单轮引文格式；RLVR 智能体的训练采用多轮搜索。论文报告使用 Kaggle T4 GPU。",
+              "strongest_baseline": "同一固定上下文引文评测中的指令微调 Qwen2.5-7B-Instruct 基础模型；三个 RLVR 智能体均与这一共享基础模型比较。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "在基于 Wikipedia 的问答数据上，作者报告称，共享的 Qwen2.5-7B-Instruct 基础模型按其植入段落测量方法，大约每七个问题产生一条不忠实引文。"
+                },
+                {
+                  "text": "在覆盖四个问答数据集的固定上下文评测中，由同一基础模型训练的三个 RLVR 智能体没有显示出明显的引文忠实度提升：Search-R1 和 ReSearch 与基础模型仅差几个百分点，R-Search 则略差。作者称样本能够检测约七个百分点的变化。"
+                },
+                {
+                  "text": "该研究不能证明以答案为目标的 RLVR 在交互式检索、其他语言、提示词或模型系列中从不提升引文忠实度；植入段落的评分方法可能混淆事后合理化与遵循修改后段落作答。"
+                }
+              ],
+              "limitations": [
+                "所有结果均由作者报告；没有独立复现，也没有人工复核标记样例。",
+                "比较仅使用一个共享的 Qwen2.5-7B-Instruct 基础模型、三个 RLVR 智能体、四个数据集、英语文本、一个提示词和一种解码配置。",
+                "受训时执行多轮搜索的智能体在固定上下文单轮引文格式下接受评测，这可能影响弃答和引文行为。",
+                "评分器对植入文本进行确定性字符串匹配；被标记的引文可能是在遵循修改后段落，而非发生事后合理化。",
+                "RLVR 智能体的弃答率和格式错误率更高，会筛除部分待评分答案；各模型的样本量不同。"
+              ],
+              "gaps": [
+                {
+                  "description": "报告的引文错误率和 RLVR 比较尚未经过独立复现。"
+                },
+                {
+                  "description": "标记案例未进行人工复核；引用植入的修改段落，可能是遵循评测指令，而非事后合理化。"
+                },
+                {
+                  "description": "固定上下文单轮评测与 RLVR 智能体受训时的多轮搜索格式不同。"
+                }
+              ]
+            },
+            "headline": "一项受控研究报告称，以答案正确为目标的 RLVR 未提升引文忠实度"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
+    {
+      "id": "FCMO-B16DAF2BB6B8",
+      "slug": "gae-reports-improved-3d-consistency-when-generation-uses-geometry-native",
+      "url_date": "2026-10-12",
+      "kind": "development",
+      "status": "live",
+      "beat": "research",
+      "desk": "agents_memory",
+      "title": "GAE reports improved 3D consistency when generation uses geometry-native latent features",
+      "headline": "GAE reports improved 3D consistency when generation uses geometry-native latent features",
+      "dek": "The paper proposes GAE, a compact latent derived from geometry-foundation-model features and jointly decodable to RGB, depth, camera parameters and point maps.",
+      "summary": "The paper proposes GAE, a compact latent derived from geometry-foundation-model features and jointly decodable to RGB, depth, camera parameters and point maps. A conditional flow model generates in that shared representation. In controlled comparisons holding generator and training protocol fixed, authors report FVD reductions of 12.7% on RealEstate10K and 23.1% on DL3DV, and half the camera-trajectory error on RealEstate10K. The paper also reports gains from metric pose scale, clean reference conditioning and representation-shaping ablations. These are author-reported results on two video datasets; no independent reproduction was performed. The measurements concern generated-view quality and geometry consistency, not physical simulation fidelity or downstream planning and control.",
+      "why_it_matters": "Visual realism alone does not guarantee that generated views preserve a coherent scene. A shared latent that represents appearance and geometry may improve consistency across camera views and provide a common interface for perception and generation. The reported controlled comparisons support investigating that representation choice, while practical world-model and downstream control value remain unestablished.",
+      "importance_rationale": "If replicated, representing generated scenes in a compact latent jointly decodable to appearance and geometry could improve multi-view consistency and camera control in world-generation systems. The result could affect a meaningful architecture choice, but evidence is one paper's matched generator comparisons on two video datasets and does not establish downstream 3D-world utility.",
+      "technical": {
+        "claimed_result": "In fixed-generator comparisons, authors report FVD decreases of 12.7% on RealEstate10K and 23.1% on DL3DV, with camera-trajectory error halved on RealEstate10K. Ablations report better selected appearance and geometry metrics from representation-shaping objectives, clean reference conditioning, metric pose scale and text-to-image co-training.",
+        "demonstrated_result": "The v2 preprint reports the method, controls and measurements. Results were not independently reproduced and code was not executed in this review.",
+        "mechanism": "GAE reparameterizes multilevel features from a geometry foundation model into a compact state that can be decoded to RGB and geometric outputs. A conditional flow model uses reference imagery, camera trajectory and optional text to generate view sequences from the shared latent.",
+        "regime": "Video generation and geometry decoding on RealEstate10K and DL3DV under a shared generator/training protocol; controlled comparisons use nine views. An 81-view rollout is a qualitative showcase, not the controlled benchmark result.",
+        "reproducibility": "The paper provides methodological and supplementary evaluation details. No independent reproduction or code execution was performed.",
+        "strongest_baseline": "The matched-generator alternatives use pixel, semantic or raw-geometry latent representations with the same training protocol. Reported FVD reductions and camera-trajectory error apply to the specified datasets and setup, not all world-generation regimes."
+      },
+      "importance_tier": "Notable",
+      "development_type": "paper",
+      "event_at": "2026-09-21T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-12T16:54:49Z",
+      "updated_at": "2026-10-12T16:54:49Z",
+      "importance": 5,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": true,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "CLAIMED",
+            "text": "GAE reparameterizes geometry-foundation-model features into a compact latent that can be decoded jointly to RGB appearance, depth, cameras and point maps; a conditional flow model generates from this shared state."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "In controlled comparisons holding generator and training protocol fixed, the authors report FVD reductions of 12.7% on RealEstate10K and 23.1% on DL3DV, with camera-trajectory error halved on RealEstate10K versus tested latent representations."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "The authors report ablations in which metric pose scale, clean reference conditioning, representation-shaping losses and text-to-image co-training each improve selected appearance or geometry metrics."
+          },
+          {
+            "label": "NOT_ESTABLISHED",
+            "text": "The reported image/video metrics do not establish physical-world simulation fidelity, reliable long-horizon world modeling, or downstream planning and control benefits."
+          }
+        ],
+        "limitations": [
+          "Results are author-reported in one preprint; no independent reproduction was located or run.",
+          "The quantitative comparisons cover RealEstate10K and DL3DV under the paper's generator and training protocol.",
+          "An 81-view rollout and text-conditioned outputs are qualitative capability demonstrations, not controlled evidence of long-horizon accuracy.",
+          "Image/video and geometry metrics do not establish physical simulation fidelity or benefits for downstream planning and control.",
+          "Ablation gains are component-specific and do not isolate the value of GAE in other architectures or data regimes."
+        ],
+        "gaps": [
+          {
+            "kind": "missing_independent",
+            "description": "The reported appearance and camera/geometry results have not been independently reproduced."
+          },
+          {
+            "kind": "other",
+            "description": "Transfer beyond two video datasets and the reported generator setup is unknown."
+          },
+          {
+            "kind": "other",
+            "description": "No downstream planning, control or physical simulation result measures practical world-model utility."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://arxiv.org/abs/2609.24981",
+          "domain": "arxiv.org",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "Tencent ARC Lab",
+        "Hong Kong University of Science and Technology",
+        "The University of Hong Kong",
+        "The University of Texas at Austin"
+      ],
+      "topics": [
+        "world-models",
+        "3d-generation",
+        "geometry-representation",
+        "video-generation",
+        "camera-control"
+      ],
+      "regions": [
+        "GLOBAL"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-B16DAF2BB6B8.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: GAE reports improved 3D consistency when generation uses geometry-native latent features"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "GAE informa mayor consistencia 3D al generar con características latentes geométricas",
+            "summary": "El artículo propone GAE, un espacio latente compacto derivado de características de modelos geométricos fundacionales y decodificable conjuntamente en RGB, profundidad, parámetros de cámara y mapas de puntos. Un modelo de flujo condicional genera en esa representación compartida. En comparaciones controladas que mantienen fijo el generador y el protocolo de entrenamiento, los autores informan reducciones de FVD de 12.7% en RealEstate10K y 23.1% en DL3DV, y reducen a la mitad el error de trayectoria de cámara en RealEstate10K. El artículo también informa mejoras en ablaciones de escala de pose métrica, condicionamiento limpio con referencia y organización de la representación. Son resultados informados por los autores en dos conjuntos de datos de video; no hubo reproducción independiente. Las mediciones corresponden a calidad de vistas generadas y consistencia geométrica, no a fidelidad de simulación física ni a planificación o control posteriores.",
+            "importance_rationale": "Si se replica, representar escenas generadas en un espacio latente compacto que pueda decodificarse conjuntamente en apariencia y geometría podría mejorar la consistencia multivista y el control de cámara en sistemas de generación de mundos. El resultado podría cambiar una decisión de arquitectura relevante, pero la evidencia es una comparación controlada de un artículo en dos conjuntos de datos de video y no establece utilidad posterior para mundos 3D.",
+            "why_it_matters": "El realismo visual no garantiza que las vistas generadas conserven una escena coherente. Un espacio latente compartido que represente apariencia y geometría podría mejorar la consistencia entre vistas de cámara y servir de interfaz común para percepción y generación. Las comparaciones controladas informadas justifican estudiar esa decisión de representación, mientras la utilidad práctica para modelos de mundo y control sigue sin establecerse.",
+            "technical": {
+              "claimed_result": "在固定生成器比较中，作者报告RealEstate10K上的FVD降低12.7%，DL3DV上降低23.1%，RealEstate10K上的相机轨迹误差减半。消融实验报告，表示整形目标、干净参考条件、度量位姿尺度和文生图联合训练改善了部分外观和几何指标。",
+              "demonstrated_result": "v2预印本报告了方法、控制条件和测量结果。本次审查未独立复现结果，也未执行代码。",
+              "mechanism": "GAE将几何基础模型的多层特征重新参数化为紧凑状态，可解码为RGB和几何输出。条件流模型使用参考图像、相机轨迹和可选文本，从共享潜空间生成视图序列。",
+              "regime": "在RealEstate10K和DL3DV上进行视频生成与几何解码，并采用共同生成器和训练流程；受控比较使用每段多个视角。81视图展开是定性展示，不是受控基准结果。",
+              "reproducibility": "论文提供了方法和补充评估细节；本次审查未执行独立复现或代码。",
+              "strongest_baseline": "匹配生成器的对照使用像素、语义或原始几何潜表示，并沿用相同训练流程。所报告的FVD降幅和相机轨迹误差仅适用于指定数据集与设置，不代表所有世界生成情形。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "GAE transforma las características de un modelo geométrico fundacional en un espacio latente compacto que puede decodificarse conjuntamente en apariencia RGB, profundidad, cámaras y mapas de puntos; un flujo condicional genera a partir de ese estado compartido."
+                },
+                {
+                  "text": "En comparaciones controladas que mantienen fijo el generador y el protocolo de entrenamiento, los autores informan reducciones de FVD de 12.7% en RealEstate10K y 23.1% en DL3DV, además de reducir a la mitad el error de trayectoria de cámara en RealEstate10K frente a las representaciones latentes probadas."
+                },
+                {
+                  "text": "Los autores informan en ablaciones que la escala de pose métrica, el condicionamiento limpio con referencia, las pérdidas de organización de la representación y el coentrenamiento de texto a imagen mejoran ciertas métricas de apariencia o geometría."
+                },
+                {
+                  "text": "Las métricas informadas de imagen y video no demuestran fidelidad de simulación física, modelado fiable de mundos a largo plazo ni beneficios posteriores en planificación o control."
+                }
+              ],
+              "limitations": [
+                "Los resultados proceden de un único preprint y fueron informados por sus autores; no se localizó ni realizó una reproducción independiente.",
+                "Las comparaciones cuantitativas cubren RealEstate10K y DL3DV bajo el generador y protocolo de entrenamiento del artículo.",
+                "El despliegue de 81 vistas y las salidas condicionadas por texto son demostraciones cualitativas, no evidencia controlada de precisión a largo plazo.",
+                "Las métricas de imagen, video y geometría no demuestran fidelidad de simulación física ni beneficios para planificación y control posteriores.",
+                "Las ganancias de las ablaciones corresponden a componentes concretos y no aíslan el valor de GAE en otras arquitecturas o regímenes de datos."
+              ],
+              "gaps": [
+                {
+                  "description": "Los resultados de apariencia, cámara y geometría informados no se han reproducido de forma independiente."
+                },
+                {
+                  "description": "Se desconoce la transferencia más allá de dos conjuntos de datos de video y de la configuración del generador descrita."
+                },
+                {
+                  "description": "No hay resultados de planificación, control o simulación física que midan la utilidad práctica como modelo del mundo."
+                }
+              ]
+            },
+            "headline": "GAE informa mayor consistencia 3D al generar con características latentes geométricas",
+            "dek": "El artículo propone GAE, un espacio latente compacto derivado de características de modelos geométricos fundacionales y decodificable conjuntamente en RGB, profundidad, parámetros de cámara y mapas de puntos."
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "GAE报告称，采用几何原生潜特征生成可提升3D一致性",
+            "summary": "论文提出GAE，这是一种由几何基础模型特征构造的紧凑潜空间，可共同解码为RGB、深度、相机参数和点图。条件流模型在该共享表示中生成内容。在固定生成器和训练流程的受控比较中，作者报告RealEstate10K上的FVD降低12.7%，DL3DV上降低23.1%，RealEstate10K上的相机轨迹误差减半。论文还报告，度量位姿尺度、干净的参考条件和表示结构消融均带来改进。这些结果来自两个视频数据集，且由作者报告；未进行独立复现。测量关注生成视图质量和几何一致性，并未衡量物理仿真保真度或下游规划与控制价值。",
+            "importance_rationale": "如果得到复现，在世界生成系统中使用一种可同时解码外观与几何的紧凑潜空间，可能提升多视角一致性和相机控制。该结果可能影响一项重要架构选择，但证据仅来自一篇论文在两个视频数据集上的匹配生成器比较，并未证明其对3D世界建模的下游效用。",
+            "why_it_matters": "视觉逼真并不保证生成视图能保持场景一致。共同表示外观与几何的潜空间，可能改善不同相机视角之间的一致性，并为感知与生成提供共享接口。报告的受控比较支持继续研究这种表示选择，但其对世界模型和控制的实际价值尚未确立。",
+            "technical": {
+              "claimed_result": "在固定生成器的比较中，作者报告RealEstate10K上的FVD降低12.7%，DL3DV上降低23.1%，RealEstate10K上的相机轨迹误差减半。消融结果显示，表示整形、干净参考条件、度量位姿尺度和文生图联合训练均改善部分外观或几何指标。",
+              "demonstrated_result": "v2预印本描述了方法、对照设置和报告的测量。本次审查未独立复现结果，也未执行代码。",
+              "mechanism": "GAE将几何基础模型的多层特征重新参数化为紧凑状态，可解码为RGB和几何输出。条件流模型根据参考图像、相机轨迹和可选文本，从共享潜空间生成视图序列。",
+              "regime": "在RealEstate10K和DL3DV上进行视频生成与几何解码，采用相同生成器和训练流程；受控比较使用每段多个视角。81视角展开是定性展示，不属于受控基准结果。",
+              "reproducibility": "论文提供了方法和补充评测细节；本次审查未独立复现结果或执行代码。",
+              "strongest_baseline": "固定生成器的对照采用像素、语义或原始几何潜表示，并使用相同训练流程。FVD降幅和相机轨迹误差仅适用于指定数据集和设置，并不代表所有世界生成任务。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "GAE将几何基础模型的特征重新参数化为紧凑潜空间，可同时解码为RGB外观、深度、相机和点图；条件流模型基于这一共享状态生成内容。"
+                },
+                {
+                  "text": "在固定生成器和训练流程的受控比较中，作者报告RealEstate10K上的FVD降低12.7%，DL3DV上降低23.1%，RealEstate10K上的相机轨迹误差则减半；比较对象为受测潜表示。"
+                },
+                {
+                  "text": "作者报告的消融实验显示，度量位姿尺度、干净的参考条件、表示结构损失和文生图联合训练，可改善部分外观或几何指标。"
+                },
+                {
+                  "text": "所报告的图像和视频指标并未证明物理仿真保真度、可靠的长时程世界建模或下游规划与控制收益。"
+                }
+              ],
+              "limitations": [
+                "结果来自一篇预印本且由作者报告；未找到或执行独立复现。",
+                "定量比较仅涵盖RealEstate10K和DL3DV，并采用论文指定的生成器与训练流程。",
+                "81视角展开和文本条件输出属于定性展示，并非长时程精度的受控证据。",
+                "图像、视频和几何指标并未证明物理仿真保真度或下游规划与控制收益。",
+                "消融实验的收益针对特定组件，不能分离GAE在其他架构或数据条件下的价值。"
+              ],
+              "gaps": [
+                {
+                  "description": "所报告的外观、相机和几何结果尚未得到独立复现。"
+                },
+                {
+                  "description": "该方法能否迁移到两个视频数据集和论文所用生成器设置之外，尚未知。"
+                },
+                {
+                  "description": "目前没有规划、控制或物理仿真结果来衡量其实际世界模型效用。"
+                }
+              ]
+            },
+            "headline": "GAE报告称，采用几何原生潜特征生成可提升3D一致性"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
+    {
+      "id": "FCMO-9B55B77BE3E5",
+      "slug": "reuters-reports-wider-spreads-and-greater-investor-selectivity-for-ai",
+      "url_date": "2026-10-12",
+      "kind": "development",
+      "status": "live",
+      "beat": "technology",
+      "desk": "labs_industry",
+      "title": "Reuters reports wider spreads and greater investor selectivity for AI-linked borrowers",
+      "headline": "Reuters reports wider spreads and greater investor selectivity for AI-linked borrowers",
+      "dek": "A September 22 Reuters report describes investors becoming more selective toward AI-linked corporate debt as data-center, chip and infrastructure borrowing expands.",
+      "summary": "A September 22 Reuters report describes investors becoming more selective toward AI-linked corporate debt as data-center, chip and infrastructure borrowing expands. It cites Goldman Sachs data projecting $420 billion of gross hyperscaler debt issuance in 2027, 60% above its 2026 estimate, and reports AI-related spreads around 115 basis points versus 78 basis points for broader investment-grade issuers. The article attributes selectivity chiefly to supply and concentration concerns, not default fears, and reports no resulting reduction in investment. The figures were not checked against their underlying series.",
+      "why_it_matters": "Debt markets could affect the cost and pace of capital-intensive AI infrastructure. Wider spreads and concentration limits are a signal to track, but this report does not show that hyperscalers cannot finance projects, have reduced planned capex, or face worsening credit quality.",
+      "importance_rationale": "If persistent, higher borrowing spreads and investor concentration limits could raise capital costs for debt-financed data centers and compute infrastructure. The article describes a market-pricing signal and issuance projection, but neither durable financing scarcity nor a resulting capex reduction is established.",
+      "technical": {
+        "claimed_result": "Reuters reports approximately 115 basis points for AI-related issuer spreads versus 78 basis points for broader investment-grade credit and a Goldman Sachs forecast of $420 billion gross hyperscaler issuance in 2027, 60% above its 2026 estimate.",
+        "demonstrated_result": "The reviewed syndicated article establishes that Reuters reported these attributed figures and quoted investor views. The underlying market measurements and projection were not independently verified.",
+        "mechanism": "Higher expected supply of AI-related corporate debt may require borrowers to offer wider spreads or concessions, while portfolio concentration limits can shift demand away from hyperscaler issuers. These are financing terms, not evidence that projects cannot be funded.",
+        "regime": "US investment-grade credit-market reporting dated September 22, 2026, with spreads and issuance projections attributed to Goldman Sachs and ICE BofA. The article is a market snapshot and does not provide a causal capex analysis.",
+        "strongest_baseline": "The reported comparison is AI-related issuer spreads around 115 basis points versus 78 basis points for broader investment grade; the report gives no matched issuer-level counterfactual or independent time-series analysis."
+      },
+      "importance_tier": "Meaningful",
+      "development_type": "other",
+      "event_at": "2026-09-22T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-12T16:54:49Z",
+      "updated_at": "2026-10-12T16:54:49Z",
+      "importance": 4,
+      "evidence_class": "B",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": true,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "CLAIMED",
+            "text": "Reuters reports that AI-related issuer spreads were around 115 basis points versus 78 basis points for the broader investment-grade market, citing Goldman Sachs and ICE BofA data, respectively."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "The report says Goldman Sachs projected gross hyperscaler debt issuance of $420 billion in 2027, 60% above its 2026 estimate, and quotes investors describing greater selectivity and concentration limits for AI-linked debt."
+          },
+          {
+            "label": "NOT_ESTABLISHED",
+            "text": "The report does not establish that higher spreads have constrained hyperscaler borrowing or reduced AI infrastructure capital expenditure; interviewed investors characterize the issue as supply and concentration rather than default risk."
+          }
+        ],
+        "limitations": [
+          "Evidence is one Reuters report, inspected through a syndicated copy because the direct Reuters page was inaccessible.",
+          "Spread comparisons and the $420 billion issuance projection are attributed to financial-industry data and were not checked against the underlying series.",
+          "Portfolio-manager interviews indicate selectivity and supply/concentration concerns; they do not establish issuer funding failure, default risk or reduced capex.",
+          "No causal link from the reported market pricing to AI infrastructure buildout or compute availability is established."
+        ],
+        "gaps": [
+          {
+            "kind": "missing_primary",
+            "description": "The article's Goldman Sachs, ICE BofA and SIFMA figures were not verified against the underlying data series or methodology."
+          },
+          {
+            "kind": "other",
+            "description": "The report is a dated snapshot and does not establish whether wider pricing persists or changes planned AI infrastructure investment."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://www.marketscreener.com/news/corporate-bond-buyers-get-picky-with-flood-of-ai-debt-ce785ad8db8ef427",
+          "domain": "marketscreener.com",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "Goldman Sachs",
+        "ICE BofA",
+        "SIFMA"
+      ],
+      "topics": [
+        "ai-infrastructure-finance",
+        "hyperscaler-debt",
+        "credit-spreads",
+        "data-centers"
+      ],
+      "regions": [
+        "US"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-9B55B77BE3E5.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: Reuters reports wider spreads and greater investor selectivity for AI-linked borrowers"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "Reuters informa mayores diferenciales y más selectividad de inversionistas ante la deuda de empresas vinculadas con IA",
+            "summary": "Un informe de Reuters del 22 de septiembre describe una mayor selectividad de los inversionistas hacia la deuda corporativa vinculada con la IA, mientras crece el endeudamiento para centros de datos, chips e infraestructura. Cita una proyección de Goldman Sachs de $420 mil millones en emisión bruta de deuda de las grandes empresas de nube en 2027, 60% por encima de su estimación para 2026, y diferenciales cercanos a 115 puntos base para emisores relacionados con IA frente a 78 para emisores de grado de inversión en general. El artículo atribuye la selectividad principalmente a la oferta y a los límites de concentración, no al temor de impago, y no informa una reducción resultante de la inversión. Las cifras no se contrastaron con sus series originales.",
+            "importance_rationale": "Si persisten, los mayores diferenciales de endeudamiento y los límites de concentración de los inversionistas podrían elevar los costos de capital de centros de datos e infraestructura de cómputo financiados con deuda. El artículo describe una señal de precios y una proyección de emisiones, pero no demuestra escasez duradera de financiamiento ni una reducción resultante del gasto de capital.",
+            "why_it_matters": "Los mercados de deuda podrían afectar el costo y ritmo de la infraestructura de IA, que requiere mucho capital. Los diferenciales más amplios y los límites de concentración son señales para seguir, pero este informe no demuestra que las grandes empresas de nube no puedan financiar proyectos, hayan reducido el gasto de capital previsto o enfrenten peor calidad crediticia.",
+            "technical": {
+              "claimed_result": "Reuters informa cerca de 115 puntos base para diferenciales de emisores vinculados con IA frente a 78 para el crédito de grado de inversión en general, además de una proyección de Goldman Sachs de $420 mil millones de deuda bruta de grandes empresas de nube en 2027, 60% por encima de su estimación para 2026.",
+              "demonstrated_result": "El artículo sindicado consultado confirma que Reuters publicó estas cifras atribuidas y las opiniones de inversionistas. Las mediciones de mercado y la proyección subyacentes no se verificaron de forma independiente.",
+              "mechanism": "Una mayor oferta prevista de deuda corporativa ligada a la IA puede exigir diferenciales o concesiones más amplios; los límites de concentración de las carteras también pueden desplazar la demanda fuera de las grandes empresas de nube. Son condiciones de financiamiento, no evidencia de que no se puedan financiar los proyectos.",
+              "regime": "Informe sobre crédito de grado de inversión en Estados Unidos, publicado el 22 de septiembre de 2026; los diferenciales y las proyecciones de emisiones se atribuyen a Goldman Sachs e ICE BofA. Es una instantánea de mercado, no un análisis causal del gasto de capital.",
+              "strongest_baseline": "La comparación informada es de cerca de 115 puntos base para emisores vinculados con IA frente a 78 para el grado de inversión en general; el informe no ofrece un contrafactual pareado por emisor ni un análisis independiente de series temporales."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "Reuters informa diferenciales cercanos a 115 puntos base para emisores vinculados con IA frente a 78 puntos base para el mercado de grado de inversión en general, con datos atribuidos respectivamente a Goldman Sachs e ICE BofA."
+                },
+                {
+                  "text": "El informe dice que Goldman Sachs proyectó $420 mil millones en emisiones brutas de deuda de grandes empresas de nube en 2027, 60% por encima de su estimación para 2026, y cita a inversionistas que describen una mayor selectividad y límites de concentración para deuda ligada a IA."
+                },
+                {
+                  "text": "El informe no demuestra que los diferenciales más altos hayan limitado el endeudamiento de las grandes empresas de nube ni reducido el gasto de capital en infraestructura de IA; los inversionistas entrevistados describen preocupaciones de oferta y concentración, no de impago."
+                }
+              ],
+              "limitations": [
+                "La evidencia es un informe de Reuters, consultado en una copia sindicada porque la página directa de Reuters no estuvo accesible.",
+                "Los diferenciales y la proyección de $420 mil millones se atribuyen a datos del sector financiero y no se cotejaron con las series originales.",
+                "Las entrevistas con gestores de cartera describen selectividad y preocupaciones por oferta y concentración; no demuestran fallas de financiamiento, riesgo de impago ni reducción del gasto de capital.",
+                "No se establece un vínculo causal entre los precios de mercado informados y la construcción de infraestructura de IA o la disponibilidad de cómputo."
+              ],
+              "gaps": [
+                {
+                  "description": "No se verificaron las cifras atribuidas en el artículo a Goldman Sachs, ICE BofA y SIFMA con las series de datos o metodologías originales."
+                },
+                {
+                  "description": "El informe es una instantánea fechada y no establece si los precios más amplios persisten o cambian la inversión prevista en infraestructura de IA."
+                }
+              ]
+            },
+            "dek": "Un informe de Reuters del 22 de septiembre describe una mayor selectividad de los inversionistas hacia la deuda corporativa vinculada con la IA, mientras crece el endeudamiento para centros de datos, chips e infraestructura."
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "Reuters 报道 AI 相关借款人的信用利差走阔，投资者选择更加谨慎",
+            "summary": "Reuters 于 九月 22 日报道称，随着数据中心、芯片和 AI 基础设施借款增加，投资者对 AI 相关企业债务的选择趋于谨慎。报道援引 Goldman Sachs 的预测：2027 年大型云计算企业的债务总发行额将达 420 billion 美元，比其 2026 年估计高 60%；AI 相关发行人的利差约为 115 个基点，而整体投资级发行人为 78 个基点。报道将这种选择性主要归因于供给和集中度，而非违约担忧，也未报告投资因此减少。这里的数字尚未对照原始数据序列核验。",
+            "importance_rationale": "如果这种情况持续，较高的借款利差和投资者集中度限制可能抬高债务融资的数据中心和计算基础设施的资本成本。报道呈现的是市场定价信号和发行预测，但没有证明融资长期短缺或资本支出因此减少。",
+            "why_it_matters": "债务市场可能影响资本密集型 AI 基础设施的成本和建设节奏。利差走阔和集中度限制值得持续观察，但这篇报道没有证明大型云计算企业无法为项目融资、已削减计划资本支出或信用质量恶化。",
+            "technical": {
+              "claimed_result": "Reuters 报道称，AI 相关发行人的利差约为 115 个基点，整体投资级信用约为 78 个基点；此外，Goldman Sachs 预测大型云计算企业 2027 年债务总发行额为 420 billion 美元，比其 2026 年估计高 60%。",
+              "demonstrated_result": "所检查的转载文章证明 Reuters 报道了这些归因数据和投资者观点。底层市场测量和预测未得到独立核验。",
+              "mechanism": "预计 AI 相关企业债务供给增加，可能迫使借款人接受更宽利差或提供发行让步；投资组合集中度限制也可能将需求转向大型云计算企业以外。这些属于融资条件，并不表示项目无法获得资金。",
+              "regime": "2026 年 九月 22 日有关美国投资级信用市场的报道，利差和发行预测归因于 Goldman Sachs 与 ICE BofA。这是市场快照，没有分析资本支出的因果关系。",
+              "strongest_baseline": "报道比较了 AI 相关发行人约 115 个基点的利差与整体投资级市场的 78 个基点；没有提供按发行人匹配的反事实或独立时间序列分析。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "Reuters 报道称，AI 相关发行人的利差约为 115 个基点，而整体投资级市场约为 78 个基点；前者引用 Goldman Sachs 数据，后者引用 ICE BofA 数据。"
+                },
+                {
+                  "text": "报道称，Goldman Sachs 预计大型云计算企业 2027 年债务总发行额为 420 billion 美元，比其 2026 年估计高 60%；报道还引述投资者称，他们对 AI 相关债务的选择更加谨慎，并受到集中度限制。"
+                },
+                {
+                  "text": "报道没有证明较高利差已限制大型云计算企业借款或减少 AI 基础设施资本支出；受访投资者将问题描述为供给和集中度，而非违约风险。"
+                }
+              ],
+              "limitations": [
+                "证据是一篇 Reuters 报道；由于无法访问 Reuters 直链，本次通过转载版本阅读。",
+                "利差比较和 420 billion 美元发行预测均归因于金融行业数据，但没有依据原始序列核验。",
+                "投资组合经理的访谈反映了选择性以及供给和集中度顾虑，但没有证明发行人融资失败、存在违约风险或削减资本支出。",
+                "报道没有建立市场定价与 AI 基础设施建设或计算资源供给之间的因果联系。"
+              ],
+              "gaps": [
+                {
+                  "description": "报道中归于 Goldman Sachs、ICE BofA 和 SIFMA 的数字尚未依据原始数据序列或方法核验。"
+                },
+                {
+                  "description": "这是一份特定日期的市场快照，不能说明较宽的定价是否持续，也不能证明其是否改变了 AI 基础设施计划投资。"
+                }
+              ]
+            },
+            "headline": "Reuters 报道 AI 相关借款人的信用利差走阔，投资者选择更加谨慎",
+            "dek": "Reuters 于 九月 22 日报道称，随着数据中心、芯片和 AI 基础设施借款增加，投资者对 AI 相关企业债务的选择趋于谨慎。报道援引 Goldman Sachs 的预测：2027 年大型云计算企业的债务总发行额将达 420 billion 美元，比其 2026 年估计高 60%；AI 相关发行人的利差约为 115 个基点，而整体投资级发行人为 78 个基点。报道将这种选择性主要归因于供给和集中度，而非违约担忧，也未报告投资因此减少。这里的数字尚未对照原始数据序列核验。"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
+    {
+      "id": "FCMO-3BA23823C78E",
+      "slug": "sphquant-reports-competitive-2-3-bit-vlm-accuracy-with-faster-decode",
+      "url_date": "2026-10-12",
+      "kind": "development",
+      "status": "live",
+      "beat": "research",
+      "desk": "compute_inference",
+      "title": "SPHQuant reports competitive 2–3-bit VLM accuracy with faster decode than QTIP on NVIDIA GPUs",
+      "dek": "SPHQuant represents each 8D weight vector using direction and radius, allocates additional quantization precision to the radius to handle outliers, and pairs a compact direction codebook with a rotation-free CUDA inference kernel.",
+      "summary": "SPHQuant represents each 8D weight vector using direction and radius, allocates additional quantization precision to the radius to handle outliers, and pairs a compact direction codebook with a rotation-free CUDA inference kernel. The authors report competitive 2–3-bit task accuracy against prior quantizers across several VLMs and a 30.3% decode-throughput gain over QTIP on RTX A6000. In an added RTX 4090 test with Qwen3-VL-8B-Instruct, batch size 1, 256 prefill tokens and 512 generated tokens, they report 288.63 tokens/s, 37.6% faster than QTIP, while using 5.35 GB GPU memory versus QTIP's 5.02 GB. These are paper-reported measurements; no independent reproduction or mobile/embedded evaluation was performed.",
+      "why_it_matters": "Two- and three-bit weights could reduce VLM storage and memory traffic where higher-precision models do not fit. SPHQuant reports combining outlier-aware spherical quantization and a hardware-oriented kernel, but its speed and accuracy tradeoffs are measured on two NVIDIA GPUs, with higher GPU memory than QTIP in the RTX 4090 configuration. Deployment on smaller devices remains an open question.",
+      "importance_rationale": "If independently reproduced at matched quality, combining extreme low-bit weight compression with faster decoding could widen the practical deployment envelope for memory-constrained VLMs. The measured speed results are limited to two NVIDIA GPUs, and the RTX 4090 test reports higher GPU memory use than QTIP; mobile and embedded benefit is not established.",
+      "technical": {
+        "claimed_result": "Authors report competitive task accuracy against QTIP and other quantizers, 30.3% higher decode throughput than QTIP on RTX A6000, and 288.63 tokens/s / 37.6% higher than QTIP on RTX 4090 in the specified batch-1 test.",
+        "demonstrated_result": "The inspected manuscript specifies the method, benchmark conditions and reported results. the research desk did not run the code or reproduce performance; outcomes remain paper claims.",
+        "mechanism": "Each 8D weight vector is represented by a direction and radius. The method uses a compact codebook for positive directions, angular codebook optimization, additional radial precision for outliers, and a rotation-free CUDA kernel for lookup, dequantization and matrix multiplication.",
+        "regime": "The paper evaluates VLM quantization at 2–3 bits. The additional RTX 4090 result uses Qwen3-VL-8B-Instruct, 24 GB GPU memory, batch size 1, 256 prefill tokens and 512 generated tokens; another throughput result uses RTX A6000.",
+        "strongest_baseline": "QTIP is the principal 2-bit baseline. On RTX 4090, the reported throughput is 288.63 tokens/s for SPHQuant, 37.6% above QTIP, with measured GPU memory 5.35 GB versus 5.02 GB."
+      },
+      "importance_tier": "Notable",
+      "development_type": "paper",
+      "event_at": "2026-09-21T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-12T16:54:49Z",
+      "updated_at": "2026-10-12T16:54:49Z",
+      "importance": 5,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": false,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "CLAIMED",
+            "text": "SPHQuant decomposes each 8D weight vector into direction and radius, assigns extra precision to radius values to reduce outlier-related degradation, and uses a rotation-free hardware-oriented inference kernel."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "The authors report competitive 2–3-bit VLM task accuracy and 30.3% higher decode throughput than QTIP on RTX A6000. On RTX 4090 with Qwen3-VL-8B-Instruct, batch size 1, 256 prefill tokens and 512 generated tokens, they report 288.63 tokens/s, 37.6% faster than QTIP."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "In the reported RTX 4090 configuration, SPHQuant uses 5.35 GB GPU memory versus 5.02 GB for QTIP; the paper does not establish lower total memory consumption or practical fit on mobile/embedded devices."
+          }
+        ],
+        "limitations": [
+          "All benchmark and performance figures are author-reported; no independent reproduction was conducted.",
+          "Throughput evaluation covers RTX A6000 and RTX 4090; the authors state that embedded/mobile performance and broader batch/context settings remain untested.",
+          "For the reported RTX 4090 Qwen3-VL-8B-Instruct configuration, SPHQuant uses 5.35 GB GPU memory versus 5.02 GB for QTIP; encoded weight payload and total GPU memory are distinct.",
+          "The paper calls for more task-specific evaluation under realistic latency, input-resolution and generation-length constraints."
+        ],
+        "gaps": [
+          {
+            "kind": "missing_independent",
+            "description": "Accuracy and throughput measurements have not been independently reproduced."
+          },
+          {
+            "kind": "other",
+            "description": "Performance is reported on RTX A6000 and RTX 4090, without mobile/embedded hardware or broader batch/context configurations."
+          },
+          {
+            "kind": "baseline_unclear",
+            "description": "The measured RTX 4090 GPU memory footprint is higher for SPHQuant than QTIP, and throughput depends on the tested implementation and configuration."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://arxiv.org/abs/2609.24875",
+          "domain": "arxiv.org",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [],
+      "topics": [
+        "vlm-quantization",
+        "low-bit-inference",
+        "cuda-kernels",
+        "vision-language-models"
+      ],
+      "regions": [
+        "GLOBAL"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-3BA23823C78E.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: SPHQuant reports competitive 2–3-bit VLM accuracy with faster decode than QTIP on NVIDIA GPUs"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "SPHQuant informa precisión VLM competitiva a 2–3 bits y decodificación más rápida que QTIP en GPU NVIDIA",
+            "summary": "SPHQuant representa cada vector de pesos 8D mediante dirección y radio, asigna precisión adicional al radio para tratar valores atípicos y combina un código compacto de direcciones con un kernel CUDA sin rotaciones. Los autores informan precisión competitiva con cuantización de 2–3 bits en varios VLM y una mejora de 30.3% en velocidad de decodificación frente a QTIP en RTX A6000. En una prueba adicional con RTX 4090, Qwen3-VL-8B-Instruct, lote 1, 256 tokens de prellenado y 512 tokens generados, informan 288.63 tokens/s, 37.6% más rápido que QTIP, con 5.35 GB de memoria GPU frente a 5.02 GB de QTIP. Son mediciones del artículo; no hubo reproducción independiente ni evaluación móvil o integrada.",
+            "importance_rationale": "Si se reproduce con calidad comparable, combinar compresión extrema de pesos con decodificación más rápida podría ampliar el rango práctico de VLM en equipos con memoria limitada. La velocidad se midió en dos GPU NVIDIA; en la prueba RTX 4090 el uso de memoria fue mayor que con QTIP y no se demostró un beneficio móvil o integrado.",
+            "why_it_matters": "Los pesos de dos y tres bits podrían reducir almacenamiento y tráfico de memoria de VLM que no caben en precisión mayor. SPHQuant informa combinar cuantización esférica para tratar valores atípicos con un kernel orientado al hardware, pero sus intercambios entre velocidad y precisión se midieron en dos GPU NVIDIA. En la configuración RTX 4090, el uso de memoria fue mayor que con QTIP. El beneficio móvil o integrado sigue sin establecerse.",
+            "technical": {
+              "claimed_result": "Los autores informan precisión competitiva frente a QTIP y otros cuantizadores, 30.3% más velocidad de decodificación que QTIP en RTX A6000, y 288.63 tokens/s —37.6% más— en la prueba RTX 4090 con lote 1 especificada.",
+              "demonstrated_result": "El manuscrito consultado describe método, condiciones de prueba y resultados informados. No se ejecutó código ni se reprodujo el rendimiento; siguen siendo afirmaciones del artículo.",
+              "mechanism": "Cada vector de pesos 8D se representa mediante dirección y radio. El método usa un código compacto para direcciones positivas, optimización angular, precisión radial adicional para valores atípicos y un kernel CUDA sin rotaciones que combina consulta, decuantización y multiplicación de matrices.",
+              "regime": "El artículo evalúa cuantización VLM de 2–3 bits. El resultado adicional de RTX 4090 usa Qwen3-VL-8B-Instruct, GPU de 24 GB, lote 1, 256 tokens de prellenado y 512 generados; otra medición de velocidad usa RTX A6000.",
+              "strongest_baseline": "QTIP es la principal línea base de 2 bits. En RTX 4090, SPHQuant informa 288.63 tokens/s, 37.6% más que QTIP, con memoria GPU de 5.35 GB frente a 5.02 GB."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "SPHQuant descompone cada vector de pesos 8D en dirección y radio, asigna precisión adicional al radio para reducir degradación por valores atípicos y usa un kernel de inferencia sin rotaciones orientado al hardware."
+                },
+                {
+                  "text": "Los autores informan precisión competitiva en tareas VLM con cuantización de 2–3 bits y 30.3% más velocidad de decodificación que QTIP en RTX A6000. En RTX 4090 con Qwen3-VL-8B-Instruct, lote 1, 256 tokens de prellenado y 512 tokens generados, informan 288.63 tokens/s, 37.6% más rápido que QTIP."
+                },
+                {
+                  "text": "En la configuración informada de RTX 4090, SPHQuant usa 5.35 GB de memoria GPU frente a 5.02 GB de QTIP; el artículo no demuestra menor consumo total de memoria ni que funcione en móviles o equipos integrados."
+                }
+              ],
+              "limitations": [
+                "Todas las cifras de pruebas y rendimiento son comunicadas por los autores; no hubo reproducción independiente.",
+                "La evaluación de velocidad cubre RTX A6000 y RTX 4090; los autores indican que el rendimiento móvil o integrado y configuraciones más amplias de lote y contexto no se han probado.",
+                "En la configuración informada de Qwen3-VL-8B-Instruct con RTX 4090, SPHQuant usa 5.35 GB de memoria GPU frente a 5.02 GB para QTIP; el tamaño codificado de pesos y la memoria GPU total son medidas distintas.",
+                "El artículo pide más evaluaciones específicas de tareas con restricciones realistas de latencia, resolución de entrada y longitud de generación."
+              ],
+              "gaps": [
+                {
+                  "description": "Las mediciones de precisión y velocidad no se han reproducido independientemente."
+                },
+                {
+                  "description": "El rendimiento informado cubre RTX A6000 y RTX 4090, sin hardware móvil o integrado ni una gama amplia de lotes y contextos."
+                },
+                {
+                  "description": "La memoria GPU medida en RTX 4090 es mayor con SPHQuant que con QTIP; la velocidad depende de la implementación y configuración probadas."
+                }
+              ]
+            },
+            "dek": "SPHQuant representa cada vector de pesos 8D mediante dirección y radio, asigna precisión adicional al radio para tratar valores atípicos y combina un código compacto de direcciones con un kernel CUDA sin rotaciones."
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "SPHQuant 报告称，在 NVIDIA GPU 上实现有竞争力的 2–3 位 VLM 精度和比 QTIP 更快的解码",
+            "summary": "SPHQuant 用方向和半径表示每个 8D 权重向量，将更多量化精度分配给半径以处理离群值，并结合紧凑方向码本与无旋转 CUDA 推理内核。作者报告称，在多个 VLM 上进行 2–3 位量化时，任务精度具有竞争力；在 RTX A6000 上，解码吞吐量比 QTIP 高 30.3%。另一项 RTX 4090 测试使用 Qwen3-VL-8B-Instruct、批量大小 1、256 个预填充 token 和 512 个生成 token，报告吞吐量为 288.63 token/s，比 QTIP 快 37.6%，但 GPU 内存占用为 5.35 GB，高于 QTIP 的 5.02 GB。这些测量来自论文；未进行独立复现，也未评估移动或嵌入式设备。",
+            "importance_rationale": "如果在相近任务质量下得到独立复现，将极低位权重量化与更快解码结合，可能扩大内存受限 VLM 的实用部署范围。速度结果仅在两种 NVIDIA GPU 上测得；RTX 4090 测试中的内存使用高于 QTIP，尚未证明移动或嵌入式设备受益。",
+            "why_it_matters": "二位和三位权重可能减少 VLM 存储和内存流量，使无法容纳更高精度模型的设备受益。SPHQuant 报告将处理离群值的球面量化与面向硬件的内核结合，但速度和精度权衡只在两种 NVIDIA GPU 上测量。RTX 4090 配置下其 GPU 内存使用高于 QTIP；移动和嵌入式设备的收益仍未证实。",
+            "technical": {
+              "claimed_result": "作者报告称，相较 QTIP 等量化器任务精度具有竞争力；RTX A6000 上解码吞吐量高 30.3%；指定的 RTX 4090 批量 1 测试达到 288.63 token/s，比 QTIP 高 37.6%。",
+              "demonstrated_result": "已检查论文稿，其中列出方法、基准条件和作者报告的结果。未运行代码或复现性能；相关结果仍是论文主张。",
+              "mechanism": "每个 8D 权重向量以方向和半径表示。该方法使用紧凑的正方向码本、角度参数化的码本优化、针对离群值的额外径向精度，以及无旋转 CUDA 内核来完成查表、反量化和矩阵乘法。",
+              "regime": "论文评估了 2–3 位 VLM 量化。额外的 RTX 4090 结果使用 Qwen3-VL-8B-Instruct、24 GB GPU、批量大小 1、256 个预填充 token 和 512 个生成 token；另一项吞吐量结果使用 RTX A6000。",
+              "strongest_baseline": "QTIP 是主要的 2 位基线。RTX 4090 上 SPHQuant 报告吞吐量为 288.63 token/s，比 QTIP 高 37.6%；GPU 内存占用为 5.35 GB，对比 QTIP 的 5.02 GB。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "SPHQuant 将每个 8D 权重向量拆分为方向和半径，为半径值分配额外精度以减轻离群值导致的精度损失，并使用无旋转、面向硬件的推理内核。"
+                },
+                {
+                  "text": "作者报告称，SPHQuant 在 2–3 位 VLM 量化下取得有竞争力的任务精度，在 RTX A6000 上的解码吞吐量比 QTIP 高 30.3%。RTX 4090 测试使用 Qwen3-VL-8B-Instruct、批量 1、256 个预填充 token 和 512 个生成 token，报告为 288.63 token/s，比 QTIP 快 37.6%。"
+                },
+                {
+                  "text": "论文报告的 RTX 4090 配置中，SPHQuant 使用 5.35 GB GPU 内存，QTIP 使用 5.02 GB；论文没有证明总内存更低或可在移动/嵌入式设备上运行。"
+                }
+              ],
+              "limitations": [
+                "所有基准与性能数据均由作者报告；未进行独立复现。",
+                "吞吐量评测覆盖 RTX A6000 和 RTX 4090；作者指出，移动/嵌入式设备表现以及更广泛的批量和上下文设置仍未测试。",
+                "论文报告的 RTX 4090 Qwen3-VL-8B-Instruct 配置中，SPHQuant 使用 5.35 GB GPU 内存，QTIP 使用 5.02 GB；权重编码载荷和 GPU 总内存占用是不同指标。",
+                "论文提出，仍需在真实延迟、输入分辨率和生成长度限制下进行更多任务专项评估。"
+              ],
+              "gaps": [
+                {
+                  "description": "精度和吞吐量测量尚未经过独立复现。"
+                },
+                {
+                  "description": "速度测试仅覆盖 RTX A6000 和 RTX 4090，没有移动或嵌入式硬件，也未覆盖更广泛的批量大小与上下文配置。"
+                },
+                {
+                  "description": "RTX 4090 测得 SPHQuant 的 GPU 内存占用高于 QTIP；吞吐量也取决于所测试的实现与配置。"
+                }
+              ]
+            },
+            "headline": "SPHQuant 报告称，在 NVIDIA GPU 上实现有竞争力的 2–3 位 VLM 精度和比 QTIP 更快的解码"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
+    {
+      "id": "FCMO-37EBAD10DCAA",
+      "slug": "harness-zero-reports-distilling-agent-harness-behavior-into-a-model-for",
+      "url_date": "2026-10-12",
+      "kind": "development",
+      "status": "live",
+      "beat": "research",
+      "desk": "agents_memory",
+      "title": "Harness-Zero reports distilling agent-harness behavior into a model for use under a minimal deployment scaffold",
+      "summary": "Harness-Zero uses an optimized source harness and a harnessing agent to rewrite a student's proposals into trajectories compatible with a fixed, minimal target harness; supervised fine-tuning then aims to retain useful behaviors in the model. Across SpreadsheetBench Verified, AppWorld and USPTO Retrosynthesis, the authors report that Qwen3.5-9B under the minimal harness rises from 23.3% to 44.3% macro-average task success after distillation, above 41.7% for the base model with the optimized harness still attached. The experiments also report an 81.1% versus 78.1% average for agent-as-harness versus code-as-harness in six frontier-model benchmark settings, and 82.3% recovery of 28 mined harness-induced behaviors. These are author-reported results from a single SFT seed; independent reproduction, broader transfer and full cost accounting remain open.",
+      "why_it_matters": "Agent capabilities often depend on tools, middleware, memory and workflow scaffolds that are expensive to build and maintain. If useful scaffold behavior can be learned into model weights, deployment might use a simpler fixed harness. This paper reports an initial cross-domain experiment, but does not establish broad transfer, lower total cost or reliable scaffold removal across models.",
+      "importance_rationale": "If the effect generalizes, transferring useful scaffold behavior into model parameters could change how agents are trained and deployed, reducing dependence on specialized runtime harnesses. Current evidence is a paper-reported result from three domains, one Qwen3.5-9B student and one SFT seed, so broader transfer and cost are unresolved.",
+      "technical": {
+        "claimed_result": "The paper reports macro-average success of 23.3% for the base model under the minimal harness, 44.3% after distillation under that harness and 41.7% for the base model with the optimized source harness still attached. It reports 82.3% average recovery across 28 mined harness-induced behavior patterns.",
+        "demonstrated_result": "The inspected manuscript specifies the method, bounded experiments and author-reported results. the research desk did not reproduce them; they remain claimed outcomes.",
+        "mechanism": "An optimized source harness guides a harnessing agent that rewrites a student's proposed actions into supervision compatible with a fixed target harness. Filtered trajectories are used for supervised fine-tuning; the source harness, reference harness and harnessing agent are removed for the distilled-model deployment evaluation.",
+        "regime": "Paper-reported tests cover SpreadsheetBench Verified, AppWorld and USPTO Retrosynthesis. Distillation uses Qwen3.5-9B, a minimal mini-SWE-agent harness with one Bash tool, domain-specific LoRA SFT for two epochs and seed 42.",
+        "strongest_baseline": "Base Qwen3.5-9B under the same minimal target harness at 23.3% macro-average task success; the base model with optimized harness attached reports 41.7%, versus 44.3% after distillation under the minimal harness."
+      },
+      "importance_tier": "Notable",
+      "development_type": "paper",
+      "event_at": "2026-09-21T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-12T16:54:49Z",
+      "updated_at": "2026-10-12T16:54:49Z",
+      "importance": 5,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": false,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "CLAIMED",
+            "text": "Harness-Zero uses an optimized source harness, a reference harness and a harnessing agent to convert student proposals into supervision compatible with a fixed minimal target harness, then uses supervised fine-tuning to distill resulting behavior into the model."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "Across SpreadsheetBench Verified, AppWorld and USPTO Retrosynthesis, the authors report Qwen3.5-9B macro-average task success of 23.3% for the base model under a minimal harness, 44.3% after Harness-Zero distillation under that harness, and 41.7% for the base model with the optimized harness attached. They report one SFT seed (42)."
+          },
+          {
+            "label": "NOT_ESTABLISHED",
+            "text": "The paper does not establish that harness behaviors can be broadly removed across models and domains, that the distilled approach reduces total compute or cost, or that results are stable across training seeds."
+          }
+        ],
+        "limitations": [
+          "All performance and behavior-recovery results are author-reported; the research desk did not reproduce them.",
+          "The distillation experiment trains Qwen3.5-9B separately for three domains with LoRA SFT using seed 42; variance across seeds and student models is not reported in the inspected setup.",
+          "The tasks and harnesses are bounded to SpreadsheetBench Verified, AppWorld and USPTO Retrosynthesis with a fixed minimal mini-SWE-agent target harness.",
+          "The paper does not establish broad transfer, stable gains under other deployment harnesses, or lower total training and inference cost."
+        ],
+        "gaps": [
+          {
+            "kind": "missing_independent",
+            "description": "The reported task-success improvements and behavior-recovery rates have not been independently reproduced."
+          },
+          {
+            "kind": "other",
+            "description": "Reported SFT uses one seed and one Qwen3.5-9B student; uncertainty across seeds, models, domains and target harnesses is unknown."
+          },
+          {
+            "kind": "other",
+            "description": "The paper does not provide a matched accounting of harness evolution, review-agent inference, trajectory generation, fine-tuning and deployment costs."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://arxiv.org/abs/2609.24974",
+          "domain": "arxiv.org",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [],
+      "topics": [
+        "agent-harnesses",
+        "supervised-fine-tuning",
+        "tool-use",
+        "agent-training"
+      ],
+      "regions": [
+        "GLOBAL"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-37EBAD10DCAA.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: Harness-Zero reports distilling agent-harness behavior into a model for use under a minimal deployment scaffold"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "Harness-Zero informa que puede destilar conductas de un agente en el modelo para ejecutarlo con un andamiaje mínimo",
+            "summary": "Harness-Zero usa un andamiaje de origen optimizado y un agente auxiliar para reescribir las propuestas del modelo estudiante como trayectorias compatibles con un andamiaje objetivo fijo y mínimo; después aplica ajuste fino supervisado para que el modelo retenga conductas útiles. En SpreadsheetBench Verified, AppWorld y USPTO Retrosynthesis, los autores informan que el éxito promedio macro de Qwen3.5-9B bajo el andamiaje mínimo sube de 23.3% a 44.3% tras la destilación, por encima del 41.7% del modelo base con el andamiaje optimizado aún conectado. También informan 81.1% frente a 78.1% para agente-como-andamiaje frente a código-como-andamiaje en seis configuraciones de pruebas con modelos de frontera, y recuperación de 82.3% de 28 conductas extraídas del andamiaje. Son resultados comunicados por los autores con una sola semilla de ajuste fino; siguen pendientes la reproducción independiente, una transferencia más amplia y el costo total.",
+            "importance_rationale": "Si el efecto se generaliza, transferir conductas útiles del andamiaje a los parámetros del modelo podría cambiar el entrenamiento y despliegue de agentes, reduciendo la dependencia de andamiajes especializados en tiempo de ejecución. La evidencia actual es un resultado comunicado en tres dominios, un modelo estudiante Qwen3.5-9B y una semilla de ajuste fino; faltan pruebas de transferencia amplia y de costos.",
+            "why_it_matters": "Las capacidades de los agentes suelen depender de herramientas, middleware, memoria y flujos de trabajo difíciles de crear y mantener. Si las conductas útiles del andamiaje pudieran aprenderse en los parámetros del modelo, el despliegue quizá podría usar una estructura fija más sencilla. Este artículo informa un experimento inicial en varios dominios, pero no demuestra transferencia amplia, menor costo total ni eliminación fiable del andamiaje en distintos modelos.",
+            "technical": {
+              "claimed_result": "El artículo informa un éxito promedio macro de 23.3% para el modelo base bajo el andamiaje mínimo, 44.3% después de la destilación bajo ese andamiaje y 41.7% para el modelo base con el andamiaje optimizado conectado. Informa una recuperación promedio de 82.3% en 28 patrones de conducta extraídos del andamiaje.",
+              "demonstrated_result": "Se consultó el manuscrito, que especifica el método, los experimentos acotados y los resultados comunicados por sus autores. No se reprodujeron; siguen siendo resultados afirmados por el artículo.",
+              "mechanism": "Un andamiaje de origen optimizado guía a un agente auxiliar que reescribe las acciones propuestas por el estudiante para ajustarlas a un andamiaje objetivo fijo. Las trayectorias filtradas se usan para ajuste fino supervisado; durante la evaluación de despliegue del modelo destilado se retiran el andamiaje de origen, el andamiaje de referencia y el agente auxiliar.",
+              "regime": "Las pruebas descritas en el artículo cubren SpreadsheetBench Verified, AppWorld y USPTO Retrosynthesis. La destilación usa Qwen3.5-9B, un andamiaje mínimo mini-SWE-agent con una herramienta Bash, ajuste fino LoRA por dominio durante dos épocas y la semilla 42.",
+              "strongest_baseline": "Qwen3.5-9B base bajo el mismo andamiaje objetivo mínimo, con 23.3% de éxito promedio macro; el modelo base con el andamiaje optimizado conectado llega a 41.7%, frente a 44.3% después de la destilación bajo el andamiaje mínimo."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "Harness-Zero usa un andamiaje de origen optimizado, un andamiaje de referencia y un agente auxiliar para convertir las propuestas del estudiante en supervisión compatible con un andamiaje objetivo mínimo y fijo; luego aplica ajuste fino supervisado para destilar las conductas resultantes en el modelo."
+                },
+                {
+                  "text": "En SpreadsheetBench Verified, AppWorld y USPTO Retrosynthesis, los autores informan tasas promedio macro de éxito de Qwen3.5-9B de 23.3% con el modelo base bajo un andamiaje mínimo, 44.3% después de la destilación con ese andamiaje y 41.7% para el modelo base con el andamiaje optimizado conectado. Informan una sola semilla de ajuste fino (42)."
+                },
+                {
+                  "text": "El artículo no demuestra que las conductas del andamiaje puedan eliminarse de manera amplia en distintos modelos y dominios, que la propuesta reduzca el cómputo o costo total, ni que los resultados sean estables entre semillas de entrenamiento."
+                }
+              ],
+              "limitations": [
+                "Todos los resultados de rendimiento y recuperación de conductas son comunicados por los autores; no se reprodujeron aquí.",
+                "El experimento de destilación ajusta Qwen3.5-9B por separado para tres dominios con LoRA y ajuste fino supervisado, usando la semilla 42; la configuración consultada no informa variación entre semillas ni modelos estudiantes.",
+                "Las tareas se limitan a SpreadsheetBench Verified, AppWorld y USPTO Retrosynthesis, con un andamiaje objetivo fijo mini-SWE-agent de una sola herramienta Bash.",
+                "El artículo no demuestra transferencia amplia, ganancias estables con otros andamiajes de despliegue ni un costo total menor de entrenamiento e inferencia."
+              ],
+              "gaps": [
+                {
+                  "description": "Las mejoras informadas en éxito de tareas y recuperación de conductas no se han reproducido de forma independiente."
+                },
+                {
+                  "description": "El ajuste fino informado usa una sola semilla y un estudiante Qwen3.5-9B; se desconoce la variación entre semillas, modelos, dominios y andamiajes objetivo."
+                },
+                {
+                  "description": "El artículo no proporciona un cálculo de costos comparables para la evolución del andamiaje, la inferencia del agente revisor, la generación de trayectorias, el ajuste fino y el despliegue."
+                }
+              ]
+            }
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "Harness-Zero 报告称，可将智能体支架行为蒸馏进模型，并在精简运行框架下使用",
+            "summary": "Harness-Zero 借助优化后的源支架和一个辅助智能体，将学生模型的提议改写为兼容固定精简目标支架的轨迹，再通过监督微调让模型保留有用行为。在 SpreadsheetBench Verified、AppWorld 和 USPTO Retrosynthesis 上，作者报告称，Qwen3.5-9B 在精简支架下的宏平均任务成功率经蒸馏后从 23.3% 升至 44.3%，高于仍挂载优化支架的基础模型所取得的 41.7%。论文还报告，在六种前沿模型基准配置中，“智能体作为支架”与“代码作为支架”的平均成绩分别为 81.1% 和 78.1%；28 种归纳出的支架行为平均恢复率为 82.3%。这些均为作者报告的结果，监督微调只使用一个随机种子；独立复现、更广泛的迁移验证和总成本核算仍未完成。",
+            "importance_rationale": "如果这一效果能够泛化，将支架中的有用行为迁移到模型参数，可能改变智能体的训练与部署方式，减少对专用运行时支架的依赖。目前证据是作者报告的三个领域实验，仅使用一个 Qwen3.5-9B 学生模型和一个微调随机种子；更广泛的迁移和成本仍未验证。",
+            "why_it_matters": "智能体能力往往依赖工具、中间件、记忆和工作流支架，这些组件难以构建和维护。如果有用的支架行为可以被模型参数学到，部署时或许可以使用更简单的固定框架。论文报告了一个跨领域初步实验，但尚未证明其可广泛迁移、降低总成本，或能在不同模型中可靠移除支架。",
+            "technical": {
+              "claimed_result": "论文报告称，基础模型在精简支架下的宏平均成功率为 23.3%，蒸馏后在同一精简支架下为 44.3%，基础模型挂载优化支架时为 41.7%；28 种归纳的支架行为平均恢复率为 82.3%。",
+              "demonstrated_result": "已检查论文稿，其中说明了方法、范围有限的实验以及作者报告的结果。相关结果尚未由此处独立复现，仍属于论文主张。",
+              "mechanism": "优化后的源支架指导辅助智能体，将学生模型提议的动作改写为兼容固定目标支架的监督数据。筛选后的轨迹用于监督微调；在蒸馏模型的部署评测中，源支架、参考支架和辅助智能体均被移除。",
+              "regime": "论文报告的实验覆盖 SpreadsheetBench Verified、AppWorld 和 USPTO Retrosynthesis。蒸馏使用 Qwen3.5-9B、带一个 Bash 工具的精简 mini-SWE-agent 支架、按领域分别进行 LoRA 监督微调两个 epoch，并使用随机种子 42。",
+              "strongest_baseline": "Qwen3.5-9B 基础模型在相同精简目标支架下的宏平均成功率为 23.3%；挂载优化支架的基础模型为 41.7%，蒸馏模型在精简支架下为 44.3%。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "Harness-Zero 使用优化后的源支架、参考支架和辅助智能体，将学生模型的提议转化为兼容固定精简目标支架的监督数据，然后通过监督微调将相关行为蒸馏进模型。"
+                },
+                {
+                  "text": "在 SpreadsheetBench Verified、AppWorld 和 USPTO Retrosynthesis 上，作者报告称，Qwen3.5-9B 在精简支架下的宏平均成功率为：基础模型 23.3%，蒸馏后 44.3%，基础模型仍挂载优化支架时 41.7%。微调仅报告一个随机种子（42）。"
+                },
+                {
+                  "text": "论文没有证明支架行为可在不同模型和领域中广泛移除，也没有证明该方法降低了总算力或成本，或结果在不同训练种子下稳定。"
+                }
+              ],
+              "limitations": [
+                "所有性能和行为恢复结果均由论文作者报告；这里未进行复现。",
+                "蒸馏实验针对三个领域分别对 Qwen3.5-9B 进行 LoRA 监督微调，使用随机种子 42；所检查的设置未报告跨随机种子或学生模型的差异。",
+                "任务范围限于 SpreadsheetBench Verified、AppWorld 和 USPTO Retrosynthesis，并使用带一个 Bash 工具的固定精简 mini-SWE-agent 目标支架。",
+                "论文没有证明广泛迁移、在其他部署支架下保持稳定收益，或降低训练与推理总成本。"
+              ],
+              "gaps": [
+                {
+                  "description": "报告的任务成功率提升和行为恢复率尚未得到独立复现。"
+                },
+                {
+                  "description": "报告的监督微调只使用一个随机种子和一个 Qwen3.5-9B 学生模型；不同种子、模型、领域和目标支架之间的差异未知。"
+                },
+                {
+                  "description": "论文没有对支架演化、审阅智能体推理、轨迹生成、微调及部署成本进行匹配核算。"
+                }
+              ]
+            },
+            "headline": "Harness-Zero 报告称，可将智能体支架行为蒸馏进模型，并在精简运行框架下使用"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
+    {
+      "id": "FCMO-2C8C8DD3C146",
+      "slug": "onpanda-reports-faster-alignment-data-annotation-through-token-level",
+      "url_date": "2026-10-12",
+      "kind": "development",
+      "status": "live",
+      "beat": "research",
+      "desk": "agents_memory",
+      "title": "onPanda reports faster alignment-data annotation through token-level correction",
+      "headline": "onPanda reports faster alignment-data annotation through token-level correction",
+      "dek": "The paper presents onPanda, an interactive annotation workflow that corrects the first inappropriate token and continues generation from the revised prefix, preserving model-generated context and token-level correction traces.",
+      "summary": "The paper presents onPanda, an interactive annotation workflow that corrects the first inappropriate token and continues generation from the revised prefix, preserving model-generated context and token-level correction traces. In a study of 21 image-description prompts with three annotators and Qwen3.5-35B-A3B rollouts, authors report median annotation time of 330 seconds per prompt versus 681 seconds for POTATO post-editing, with similar time to Argilla ranking and higher reported pairwise preference. The comparison tests whole workflows, so interface and annotation paradigm effects are confounded; its small single-task sample limits transfer. Authors also report large production-session and correction totals, which were not independently audited. A linked public Python repository contains data-conversion, supervision and benchmark code; no code execution or independent reproduction is reported here.",
+      "why_it_matters": "Human annotation is a costly part of alignment-data production. Correcting a model response in place and retaining each correction may reduce annotation effort while yielding finer supervision than final-answer edits or response-level preferences. If the small workflow comparison generalizes, it could influence data-pipeline design, but it does not demonstrate improved model performance or general productivity gains.",
+      "importance_rationale": "If replicated beyond the small study, token-level correction could reduce human time spent producing on-policy alignment examples and create finer-grained supervision for agent trajectories. The result changes a local data-workflow choice; the main controlled comparison covers only 21 image-description prompts and does not isolate interface effects from annotation paradigm.",
+      "technical": {
+        "claimed_result": "On 21 image-description prompts, authors report median annotation times of 330 seconds for onPanda, 681 seconds for POTATO post-editing and 336 seconds for Argilla ranking. Pairwise win rate is reported as 66.7% by an LLM judge; a separate anonymized human comparison preferred onPanda over POTATO in 54.8% of pairs. They report 100% qualified-response coverage for onPanda and POTATO because editing continues until qualification. Production figures report 131,996 annotation sessions and about 388,000 corrections.",
+        "demonstrated_result": "The preprint and linked public repository expose the method, reported protocol, metrics and data-conversion code. The inspected materials do not independently verify application behavior, production totals or reported outcomes; empirical performance claims remain author-reported.",
+        "mechanism": "Annotators identify the first inappropriate token, replace it with a candidate token or typed correction, and let the model regenerate the suffix. The system records intermediate revisions and can form positive/negative samples. For agent tasks, corrected tool calls can be reviewed before execution, with tool results returned to generation.",
+        "regime": "Controlled study: 3 annotators, 21 image-description prompts, Qwen3.5-35B-A3B initial rollouts, with the same first rollout supplied across tools. The paper states workflow comparison confounds interface and paradigm. Production counts span vision, audio and agentic sessions, but no independent audit was located.",
+        "reproducibility": "The authors link a public Python package for parsing onPanda data, building SFT/preference/token-level supervision, correction verification and Panda-CVL benchmarking. The repository README was inspected, but code was not executed and no independent replication was located.",
+        "strongest_baseline": "POTATO post-editing on the same 21 prompts: median 681 seconds versus onPanda 330 seconds; Argilla's four-candidate ranking median was 336 seconds. These are complete-workflow comparisons rather than an isolated test of token-level correction."
+      },
+      "importance_tier": "Meaningful",
+      "development_type": "paper",
+      "event_at": "2026-09-21T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-12T16:54:49Z",
+      "updated_at": "2026-10-12T16:54:49Z",
+      "importance": 4,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": true,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "CLAIMED",
+            "text": "onPanda uses a locate-correct-continue loop that truncates a model response after the first corrected token, continues generation, and retains intermediate outputs for positive/negative supervision."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "In a controlled comparison on 21 image-description prompts, three annotators using Qwen3.5-35B-A3B rollouts recorded median time of 330 seconds per prompt with onPanda versus 681 seconds with POTATO post-editing; the authors report 66.7% pairwise win rate and 100% qualified-response coverage by design."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "The authors report 97.0% of tokens in qualified production responses were model-generated, across 131,996 annotation sessions, with about 388,000 token-level corrections; these deployment totals are not independently audited."
+          },
+          {
+            "label": "NOT_ESTABLISHED",
+            "text": "The study does not establish that the reported time or quality differences transfer to other task types, annotator populations, baselines or deployment settings, or that onPanda improves downstream model capability."
+          }
+        ],
+        "limitations": [
+          "The primary controlled comparison includes only 21 image-description prompts and three annotators.",
+          "Each annotation platform differs in both interface and paradigm, so the comparison cannot isolate which design feature causes the time difference.",
+          "The main pairwise win rate uses an LLM judge; the separate human preference result is based on the same small study.",
+          "Reported production session counts and correction totals are author-reported and were not independently audited.",
+          "No downstream model training result establishes that these annotations improve model capability or generalization.",
+          "The public repository was inspected but not executed; no independent reproduction was located."
+        ],
+        "gaps": [
+          {
+            "kind": "missing_independent",
+            "description": "The 21-prompt annotation-time and quality comparison has not been independently reproduced; interface and paradigm are confounded."
+          },
+          {
+            "kind": "other",
+            "description": "The paper's production session totals and correction statistics have no independent audit in the inspected evidence."
+          },
+          {
+            "kind": "other",
+            "description": "It remains unknown whether token-level correction data improves downstream model behavior relative to matched alternatives."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://arxiv.org/abs/2609.24983",
+          "domain": "arxiv.org",
+          "primary": true
+        },
+        {
+          "url": "https://github.com/on-panda/on-panda-python",
+          "domain": "github.com",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "StepFun",
+        "Xiamen University"
+      ],
+      "topics": [
+        "alignment-data",
+        "post-training",
+        "human-annotation",
+        "agent-trajectories",
+        "token-level-correction"
+      ],
+      "regions": [
+        "GLOBAL"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-2C8C8DD3C146.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: onPanda reports faster alignment-data annotation through token-level correction"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "onPanda informa una anotación más rápida de datos de alineación mediante corrección por token",
+            "summary": "El artículo presenta onPanda, un flujo interactivo de anotación que corrige el primer token inadecuado y continúa la generación desde el prefijo revisado, conservando el contexto generado por el modelo y las trazas de corrección por token. En un estudio con 21 indicaciones de descripción de imágenes, tres anotadores y respuestas de Qwen3.5-35B-A3B, los autores informan un tiempo mediano de 330 segundos por indicación frente a 681 segundos con la edición posterior de POTATO; Argilla obtuvo un tiempo similar mediante clasificación. La comparación evalúa flujos completos, por lo que confunde los efectos de la interfaz y del paradigma de anotación; la muestra pequeña y de una sola tarea limita su transferencia. Los autores también informan cifras amplias de sesiones y correcciones de producción, sin auditoría independiente. Un repositorio público de Python incluye código para conversión de datos, supervisión y evaluación comparativa; aquí no se informa ejecución del código ni reproducción independiente.",
+            "importance_rationale": "Si se replica más allá del estudio pequeño, la corrección por token podría reducir el tiempo humano dedicado a producir ejemplos de alineación en política de generación y crear supervisión más detallada para trayectorias de agentes. El resultado cambia una decisión local sobre el flujo de datos; la comparación principal abarca solo 21 indicaciones de descripción de imágenes y no separa los efectos de la interfaz y del paradigma de anotación.",
+            "why_it_matters": "La anotación humana es una parte costosa de producir datos de alineación. Corregir una respuesta del modelo en el momento y conservar cada corrección podría reducir el esfuerzo de anotación y generar una supervisión más detallada que editar solo la respuesta final o comparar respuestas completas. Si el pequeño estudio de flujos de trabajo se generaliza, podría influir en el diseño de las canalizaciones de datos; no demuestra una mejora del modelo ni ganancias generales de productividad.",
+            "technical": {
+              "claimed_result": "En 21 indicaciones de descripción de imágenes, los autores informan tiempos medianos de anotación de 330 segundos con onPanda, 681 segundos con la edición posterior de POTATO y 336 segundos con la clasificación de Argilla. Un juez basado en un modelo de lenguaje informa una tasa de preferencia por pares de 66.7%; en una comparación humana anónima separada, onPanda fue preferido a POTATO en 54.8% de los pares. Informan cobertura de respuestas aptas de 100% para onPanda y POTATO porque la edición continúa hasta alcanzar el criterio. Las cifras de producción incluyen 131,996 sesiones y cerca de 388,000 correcciones.",
+              "demonstrated_result": "El preprint principal y el repositorio público enlazado ofrecen el método, el protocolo informado, las métricas y código para convertir datos. Los materiales examinados no verifican de forma independiente el comportamiento de la aplicación, los totales de producción ni los resultados informados; las afirmaciones de rendimiento siguen siendo resultados comunicados por los autores.",
+              "mechanism": "Los anotadores localizan el primer token inadecuado, lo sustituyen por un token candidato o una corrección escrita y dejan que el modelo regenere el sufijo. El sistema registra las revisiones intermedias y puede formar ejemplos positivos y negativos. En tareas con agentes, las llamadas a herramientas corregidas pueden revisarse antes de ejecutarse, y los resultados de las herramientas regresan al modelo para continuar.",
+              "regime": "Estudio controlado: 3 anotadores, 21 indicaciones de descripción de imágenes y respuestas iniciales de Qwen3.5-35B-A3B; las herramientas compartieron la misma primera respuesta. El artículo indica que la comparación confunde interfaz y paradigma. Las cifras de producción abarcan sesiones de visión, audio y agentes, sin auditoría independiente localizada.",
+              "reproducibility": "Los autores enlazan un paquete público de Python para analizar datos de onPanda, generar datos de ajuste supervisado, preferencias y supervisión por token, verificar correcciones y evaluar Panda-CVL. Se inspeccionó el README del repositorio, pero no se ejecutó el código ni se localizó una reproducción independiente.",
+              "strongest_baseline": "Edición posterior con POTATO en las mismas 21 indicaciones: mediana de 681 segundos frente a 330 segundos con onPanda; la clasificación de cuatro candidatos de Argilla obtuvo una mediana de 336 segundos. Son comparaciones de flujos completos, no una prueba aislada de la corrección por token."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "onPanda aplica un ciclo de localizar, corregir y continuar: trunca la respuesta del modelo después del primer token corregido, reanuda la generación y conserva las salidas intermedias como supervisión positiva y negativa."
+                },
+                {
+                  "text": "En una comparación controlada con 21 indicaciones de descripción de imágenes, tres anotadores y respuestas iniciales de Qwen3.5-35B-A3B, el tiempo mediano fue de 330 segundos por indicación con onPanda frente a 681 segundos con la edición posterior de POTATO; los autores informan una tasa de preferencia por pares de 66.7% y una cobertura de respuestas aptas de 100% por diseño."
+                },
+                {
+                  "text": "Los autores informan que 97.0% de los tokens en las respuestas de producción calificadas fueron generados por el modelo, en 131,996 sesiones de anotación, con cerca de 388,000 correcciones a nivel de token; estas cifras de despliegue no se auditaron de forma independiente."
+                },
+                {
+                  "text": "El estudio no demuestra que las diferencias informadas de tiempo o calidad se trasladen a otras tareas, poblaciones de anotadores, métodos de comparación o entornos de despliegue, ni que onPanda mejore la capacidad posterior del modelo."
+                }
+              ],
+              "limitations": [
+                "La comparación controlada principal incluye solo 21 indicaciones de descripción de imágenes y tres anotadores.",
+                "Cada plataforma difiere tanto en interfaz como en paradigma; por ello, la comparación no permite aislar qué característica explica la diferencia de tiempo.",
+                "La tasa principal de preferencia por pares usa un juez basado en un modelo de lenguaje; el resultado separado de preferencia humana procede del mismo estudio pequeño.",
+                "Los autores informaron las sesiones de producción y el total de correcciones; no se auditaron de forma independiente.",
+                "Ningún resultado de entrenamiento posterior demuestra que estas anotaciones mejoren la capacidad o generalización del modelo.",
+                "Se inspeccionó el repositorio público, pero no se ejecutó; no se localizó una reproducción independiente."
+              ],
+              "gaps": [
+                {
+                  "description": "La comparación de tiempo y calidad con 21 indicaciones no se ha reproducido de forma independiente; se confunden la interfaz y el paradigma de anotación."
+                },
+                {
+                  "description": "Las cifras de sesiones de producción y correcciones del artículo no cuentan con una auditoría independiente en las fuentes examinadas."
+                },
+                {
+                  "description": "Se desconoce si los datos de corrección por token mejoran el comportamiento posterior del modelo frente a alternativas comparables."
+                }
+              ]
+            },
+            "dek": "El artículo presenta onPanda, un flujo interactivo de anotación que corrige el primer token inadecuado y continúa la generación desde el prefijo revisado, conservando el contexto generado por el modelo y las trazas de corrección por token."
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "onPanda报告称，词元级纠正可加快对齐数据标注",
+            "summary": "该论文介绍了onPanda，这是一种交互式标注流程：纠正第一个不恰当词元后，从修订后的前缀继续生成，从而保留模型生成的上下文和词元级纠正轨迹。在一项包含21条图像描述提示的研究中，三名标注者使用Qwen3.5-35B-A3B生成的回答；作者报告每条提示的标注时间中位数为330秒，POTATO后编辑为681秒，Argilla排序法的时间相近。比较针对完整工作流，因此界面与标注范式的影响相互混杂；单一任务的小样本限制了结果的可迁移性。作者还报告了大量生产会话和纠正数据，但这些数字未经独立审计。相关公开Python仓库包含数据转换、监督构建和基准评测代码；本文未报告代码执行或独立复现。",
+            "importance_rationale": "如果在小规模研究之外得到复现，词元级纠正可能减少人工制作策略对齐样本的时间，并为智能体轨迹提供更细粒度的监督。该结果可能改变局部数据工作流的选择；主要受控比较仅涵盖21条图像描述提示，且无法区分界面效果与标注范式效果。",
+            "why_it_matters": "人工标注是对齐数据生产中的一项高成本环节。即时修正模型回答并保留每次纠正，可能减少标注工作量，并产生比只编辑最终答案或对完整回答进行偏好排序更细粒度的监督。如果这项小规模工作流研究能够推广，可能影响数据流程设计；但它并未证明模型性能提升或普遍的生产效率收益。",
+            "technical": {
+              "claimed_result": "在21条图像描述提示中，作者报告onPanda的标注时间中位数为330秒，POTATO后编辑为681秒，Argilla排序为336秒。语言模型评判的成对胜率为66.7%；另一次匿名人类比较中，onPanda在54.8%的配对中优于POTATO。由于编辑持续到回答达标，onPanda和POTATO报告的合格回答覆盖率均为100%。生产数据包括131,996次标注会话和约388,000次纠正。",
+              "demonstrated_result": "原始预印本和链接的公开代码仓库提供了方法、所报告的实验流程、指标及数据转换代码。所检查的材料无法独立验证应用行为、生产数据总量或所报告的结果；性能结论仍属于作者报告。",
+              "mechanism": "标注者找到第一个不恰当词元，选择候选词元或输入替代内容，然后让模型重新生成后缀。系统记录中间版本，并可据此构造正向和负向样本。在智能体任务中，修正后的工具调用可在执行前由标注者批准；工具结果返回后，模型继续生成。",
+              "regime": "受控研究包括3名标注者、21条图像描述提示和Qwen3.5-35B-A3B初始回答；各工具使用相同的初始回答。论文指出，工作流比较同时包含界面与范式差异。生产统计涵盖视觉、音频和智能体会话，但未找到独立审计。",
+              "reproducibility": "作者链接了一个公开Python软件包，可解析onPanda数据、构建监督微调/偏好/词元级监督数据、验证纠正并评测Panda-CVL。已检查仓库README，但未执行代码，也未找到独立复现。",
+              "strongest_baseline": "同一组21条提示上的POTATO后编辑：时间中位数为681秒，onPanda为330秒；Argilla的四候选排序中位数为336秒。这些是完整工作流之间的比较，并非对词元级纠正的单独检验。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "onPanda 采用“定位、纠正、继续”循环：在第一个被纠正的词元后截断模型回答，继续生成，并保留中间输出作为正向和负向监督。"
+                },
+                {
+                  "text": "在一项包含21条图像描述提示的受控比较中，三名标注者使用Qwen3.5-35B-A3B生成的初始回答；使用onPanda时每条提示的标注时间中位数为330秒，使用POTATO后编辑时为681秒。作者报告成对偏好率为66.7%，按设计达到100%的合格回答覆盖率。"
+                },
+                {
+                  "text": "作者报告，在合格的生产回答中，97.0%的词元由模型生成；共计131,996次标注会话和约388,000次词元级纠正。这些部署数据未经独立审计。"
+                },
+                {
+                  "text": "该研究并未证明所报告的时间或质量差异能够推广到其他任务、标注者群体、比较基线或部署环境，也未证明onPanda能提升模型的下游能力。"
+                }
+              ],
+              "limitations": [
+                "主要受控比较仅包括21条图像描述提示和三名标注者。",
+                "各标注平台在界面和标注范式上均有差异，因此无法从比较中分离出导致时间差异的具体设计特征。",
+                "主要成对偏好率由语言模型评判；另行报告的人类偏好结果也来自同一项小规模研究。",
+                "生产会话数和纠正总数由作者报告，未经独立审计。",
+                "没有下游模型训练结果证明这些标注能提升模型能力或泛化表现。",
+                "已检查公开代码仓库，但未执行代码；未找到独立复现。"
+              ],
+              "gaps": [
+                {
+                  "description": "这项包含21条提示的标注时间与质量比较尚未得到独立复现；界面与标注范式的影响无法区分。"
+                },
+                {
+                  "description": "在已检查的材料中，论文报告的生产会话数和纠正数没有独立审计。"
+                },
+                {
+                  "description": "词元级纠正数据是否比匹配的替代方法更能改善模型下游行为，目前仍未知。"
+                }
+              ]
+            },
+            "headline": "onPanda报告称，词元级纠正可加快对齐数据标注"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
+    {
+      "id": "FCMO-1ABD8D065C8F",
+      "slug": "hypernetworks-report-forward-only-on-device-lora-personalization-with",
+      "url_date": "2026-10-12",
+      "kind": "development",
+      "status": "live",
+      "beat": "research",
+      "desk": "agents_memory",
+      "title": "Hypernetworks report forward-only on-device LoRA personalization with competitive text-generation quality",
+      "dek": "The paper introduces a hypernetwork that maps examples of a user's prior text to a low-rank adapter (LoRA) for a small on-device language model.",
+      "summary": "The paper introduces a hypernetwork that maps examples of a user's prior text to a low-rank adapter (LoRA) for a small on-device language model. Adapter synthesis uses forward passes, avoiding per-user gradient descent and added prompt tokens. Across LongLaMP-3, LongLaMP-4 and LaMP-5 using Gemma3-1B-IT and Gemma1-2B-IT, the authors report ROUGE-1 results generally matching or exceeding in-context learning and PEFT alternatives. The evidence is paper-reported; the experiments do not establish production latency, energy or memory on phones, robustness for unusual users, or privacy-preserving training on real-user data.",
+      "why_it_matters": "Personalization on a phone is constrained by memory, compute and interactive latency. Generating a small user-specific adapter with forward passes could avoid both per-user optimization and longer prompts. The paper reports an initial quality comparison, while practical on-device costs, generalization and privacy remain unmeasured.",
+      "importance_rationale": "If reproduced on representative devices and user populations, forward-only synthesis of personalized adapters could offer a practical middle ground between costly per-user fine-tuning and longer prompts. The reported quality comparison is limited to three datasets and two small Gemma models, with no real-device performance or privacy-preserving deployment result.",
+      "technical": {
+        "claimed_result": "Hypernetwork-generated LoRAs generally yield the best or near-best ROUGE-1 performance across tested configurations and datasets, according to the paper.",
+        "demonstrated_result": "The manuscript and its stated experimental setup/results were inspected. The performance outcomes remain claims by the authors; the research desk did not reproduce the experiments.",
+        "mechanism": "A shared hypernetwork consumes a user's representative context and emits low-rank adapter weights for the target model. User-specific adapter generation requires forward passes; the paper frames common hypernetwork training as an amortized phase and adapter generation as on-device personalization.",
+        "regime": "Author-reported experiments use Gemma3-1B-IT and Gemma1-2B-IT, attention LoRAs at matched ranks, and LongLaMP-3, LongLaMP-4 and LaMP-5 datasets. The inspected result concerns long-form text-generation personalization; it does not measure deployed phone hardware.",
+        "strongest_baseline": "The paper compares with in-context learning and per-user PEFT LoRAs under matched LoRA-rank choices; exact ranking varies by dataset/configuration, with LaMP-5 described as challenging for all methods."
+      },
+      "importance_tier": "Meaningful",
+      "development_type": "paper",
+      "event_at": "2026-09-21T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-12T16:54:49Z",
+      "updated_at": "2026-10-12T16:54:49Z",
+      "importance": 4,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": false,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "CLAIMED",
+            "text": "The paper proposes a hypernetwork that maps representative user-context tokens to a personalized LoRA for an on-device language model, synthesizing the adapter with forward passes rather than per-user gradient descent or added inference-context tokens."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "For experiments using Gemma3-1B-IT and Gemma1-2B-IT on LongLaMP-3, LongLaMP-4 and LaMP-5, the authors report that hypernetwork-generated adapters generally achieve the best or near-best ROUGE-1 results against the tested in-context-learning and PEFT baselines."
+          },
+          {
+            "label": "NOT_ESTABLISHED",
+            "text": "The paper does not establish production latency, memory or energy savings on mobile hardware, robust performance for out-of-distribution users, or privacy guarantees for training on real-user data."
+          }
+        ],
+        "limitations": [
+          "All comparative performance findings are author-reported; the research desk did not execute code or reproduce them.",
+          "The experiments use two small Gemma instruction models and three existing personalization datasets; they do not characterize a production user population.",
+          "Mobile latency, peak memory, energy and end-to-end serving impact are not measured in the inspected paper.",
+          "The paper notes that hypernetwork generalization may under-serve test users unlike those seen during training; privacy-preserving training with real user data remains future work."
+        ],
+        "gaps": [
+          {
+            "kind": "missing_independent",
+            "description": "The reported comparisons across three personalization datasets and two small Gemma models have not been independently reproduced."
+          },
+          {
+            "kind": "other",
+            "description": "The paper does not report measured adapter-synthesis latency, peak memory, energy or end-to-end response latency on representative mobile devices."
+          },
+          {
+            "kind": "other",
+            "description": "The authors identify unusual/out-of-distribution users and privacy-preserving training with real users as unresolved deployment issues."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://arxiv.org/abs/2609.24979",
+          "domain": "arxiv.org",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [],
+      "topics": [
+        "on-device-models",
+        "personalization",
+        "hypernetworks",
+        "lora",
+        "mobile-inference"
+      ],
+      "regions": [
+        "GLOBAL"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-1ABD8D065C8F.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: Hypernetworks report forward-only on-device LoRA personalization with competitive text-generation quality"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "Hiperredes generan LoRA con pases hacia delante para personalizar modelos de lenguaje en el dispositivo",
+            "summary": "El artículo presenta una hiperred que transforma ejemplos del texto previo de una persona en un adaptador de bajo rango (LoRA) para un modelo de lenguaje pequeño que funciona en el dispositivo. La síntesis del adaptador usa pases hacia delante, por lo que evita el ajuste por gradiente para cada persona y no agrega tokens al contexto de inferencia. En LongLaMP-3, LongLaMP-4 y LaMP-5, con Gemma3-1B-IT y Gemma1-2B-IT, los autores informan resultados ROUGE-1 que en general igualan o superan las alternativas de aprendizaje en contexto y ajuste eficiente de parámetros (PEFT). La evidencia proviene del artículo: no establece latencia, energía ni memoria en teléfonos de producción, solidez ante personas atípicas ni entrenamiento que proteja la privacidad con datos reales.",
+            "importance_rationale": "Si se reproduce en dispositivos y poblaciones representativos, sintetizar adaptadores personalizados mediante pases hacia delante podría ofrecer un punto medio práctico entre el ajuste costoso para cada persona y los prompts más largos. La comparación de calidad informada se limita a tres conjuntos de datos y dos modelos Gemma pequeños, sin resultados de rendimiento en dispositivos reales ni de implementación con protección de privacidad.",
+            "why_it_matters": "La personalización en un teléfono está limitada por la memoria, el cómputo y la latencia interactiva. Generar un adaptador pequeño y específico para cada persona mediante pases hacia delante podría evitar tanto la optimización individual como los prompts más largos. El artículo informa una comparación inicial de calidad; los costos en dispositivos reales, la generalización y la privacidad siguen sin medirse.",
+            "technical": {
+              "claimed_result": "Según el artículo, los LoRA generados por la hiperred suelen obtener el mejor resultado ROUGE-1 o quedar cerca en las configuraciones y conjuntos de datos evaluados.",
+              "demonstrated_result": "Se consultaron el manuscrito y los resultados/configuración experimental que describe. Los resultados de rendimiento siguen siendo afirmaciones de los autores; no se reprodujeron los experimentos.",
+              "mechanism": "Una hiperred compartida recibe el contexto representativo de una persona y genera pesos de adaptador de bajo rango para el modelo objetivo. La generación del adaptador específico requiere pases hacia delante; el artículo plantea el entrenamiento común de la hiperred como una fase amortizada y su generación como personalización en el dispositivo.",
+              "regime": "Los experimentos informados usan Gemma3-1B-IT y Gemma1-2B-IT, LoRA de atención con rangos igualados y los conjuntos LongLaMP-3, LongLaMP-4 y LaMP-5. Los resultados consultados tratan de personalización de generación de texto largo y no miden hardware de teléfonos en producción.",
+              "strongest_baseline": "El artículo compara con aprendizaje en contexto y LoRA de PEFT ajustados para cada persona, usando rangos de LoRA igualados; la clasificación exacta varía por conjunto/configuración y LaMP-5 se describe como difícil para todos los métodos."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "El artículo propone una hiperred que transforma tokens de contexto representativos de una persona en un LoRA personalizado para un modelo de lenguaje en el dispositivo. Sintetiza el adaptador con pases hacia delante, sin ajuste por gradiente para cada persona ni tokens adicionales en el contexto de inferencia."
+                },
+                {
+                  "text": "En experimentos con Gemma3-1B-IT y Gemma1-2B-IT sobre LongLaMP-3, LongLaMP-4 y LaMP-5, los autores informan que los adaptadores generados por la hiperred suelen lograr los mejores resultados ROUGE-1 o quedar cerca de ellos frente a las líneas base probadas de aprendizaje en contexto y PEFT."
+                },
+                {
+                  "text": "El artículo no demuestra ahorros de latencia, memoria o energía en hardware móvil, rendimiento sólido para personas fuera de la distribución de entrenamiento ni garantías de privacidad para entrenar con datos reales de usuarios."
+                }
+              ],
+              "limitations": [
+                "Todos los resultados comparativos son comunicados por los autores; no se ejecutó el código ni se reprodujeron los experimentos.",
+                "Los experimentos usan dos modelos Gemma pequeños de instrucciones y tres conjuntos de datos existentes; no caracterizan una población de producción.",
+                "El artículo consultado no mide latencia móvil, memoria máxima, energía ni el efecto sobre el servicio de extremo a extremo.",
+                "El artículo advierte que la hiperred podría generalizar mal a personas distintas de las vistas durante el entrenamiento; el entrenamiento con datos reales y protección de privacidad queda como trabajo futuro."
+              ],
+              "gaps": [
+                {
+                  "description": "Las comparaciones informadas en tres conjuntos de datos de personalización y dos modelos Gemma pequeños no se han reproducido de forma independiente."
+                },
+                {
+                  "description": "El artículo no informa mediciones de latencia de síntesis del adaptador, memoria máxima, energía ni latencia integral de respuesta en teléfonos representativos."
+                },
+                {
+                  "description": "Los autores señalan como problemas abiertos a las personas inusuales o fuera de distribución y el entrenamiento con datos reales bajo protección de privacidad."
+                }
+              ]
+            },
+            "dek": "El artículo presenta una hiperred que transforma ejemplos del texto previo de una persona en un adaptador de bajo rango (LoRA) para un modelo de lenguaje pequeño que funciona en el dispositivo."
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "超网络以纯前向方式生成 LoRA，实现设备端语言模型个性化",
+            "summary": "论文提出一种超网络，将用户先前文本的示例映射为小型设备端语言模型的低秩适配器（LoRA）。适配器生成只需前向计算，无需为每位用户进行梯度微调，也不会增加推理上下文中的 token。作者在 LongLaMP-3、LongLaMP-4 和 LaMP-5 上使用 Gemma3-1B-IT 与 Gemma1-2B-IT，报告称其 ROUGE-1 结果总体上不低于或优于上下文学习和参数高效微调（PEFT）方案。证据仅来自论文报告；它没有证明该方法在量产手机上的延迟、能耗或内存表现，也未证明对分布外用户的稳健性或使用真实用户数据进行隐私保护训练的可行性。",
+            "importance_rationale": "如果该方法能在有代表性的设备和用户群体中复现，通过前向计算合成个性化适配器，可能为逐用户高成本微调和更长提示词之间提供实用折中。论文报告的质量对比仅涉及三个数据集和两种小型 Gemma 模型，没有真实设备性能或隐私保护部署结果。",
+            "why_it_matters": "手机端个性化受内存、算力和交互延迟限制。通过前向计算生成小型用户专属适配器，可能同时避免逐用户优化和增长的提示词长度。论文给出了初步质量对比，但真实设备成本、泛化能力和隐私仍未测量。",
+            "technical": {
+              "claimed_result": "论文称，在所测配置和数据集上，超网络生成的 LoRA 通常达到最好或接近最好的 ROUGE-1 表现。",
+              "demonstrated_result": "已检查论文稿及其描述的实验设置和结果。性能结果仍是作者报告的主张；未复现实验。",
+              "mechanism": "共享超网络接收用户具有代表性的上下文，并为目标模型输出低秩适配器权重。生成用户专属适配器只需前向计算；论文将超网络的共同训练视为可摊销阶段，将适配器生成视为设备端个性化阶段。",
+              "regime": "报告的实验使用 Gemma3-1B-IT、Gemma1-2B-IT、秩匹配的注意力 LoRA，以及 LongLaMP-3、LongLaMP-4 和 LaMP-5。所检查的结果针对长文本生成个性化，没有测量量产手机硬件表现。",
+              "strongest_baseline": "论文将上下文学习与逐用户 PEFT LoRA 进行比较，并尽量匹配 LoRA 秩；各数据集和配置的具体排名有所不同，且论文称 LaMP-5 对所有方法都具有挑战性。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "论文提出一种超网络，将用户具有代表性的上下文 token 映射为设备端语言模型的个性化 LoRA。适配器通过前向计算生成，无需逐用户梯度微调，也不增加推理上下文 token。"
+                },
+                {
+                  "text": "在 Gemma3-1B-IT 和 Gemma1-2B-IT 上使用 LongLaMP-3、LongLaMP-4 与 LaMP-5 的实验中，作者报告称，超网络生成的适配器在 ROUGE-1 上通常取得最好或接近最好的结果，比较对象包括所测试的上下文学习与 PEFT 基线。"
+                },
+                {
+                  "text": "论文没有证明移动硬件上的延迟、内存或能耗节省，没有证明对训练分布外用户的稳健表现，也没有建立使用真实用户数据训练时的隐私保障。"
+                }
+              ],
+              "limitations": [
+                "所有比较性能结果均由论文作者报告；未运行代码或复现实验。",
+                "实验仅使用两种小型 Gemma 指令模型和三个现有个性化数据集，不能代表生产环境中的用户群体。",
+                "所检查的论文未测量手机延迟、峰值内存、能耗或对端到端服务的影响。",
+                "论文指出，对于不同于训练用户的分布外用户，超网络可能效果不佳；使用真实用户数据进行隐私保护训练仍属未来工作。"
+              ],
+              "gaps": [
+                {
+                  "description": "涉及三个个性化数据集和两种小型 Gemma 模型的报告结果尚未经过独立复现。"
+                },
+                {
+                  "description": "论文没有报告在有代表性的手机上测得的适配器生成延迟、峰值内存、能耗或端到端响应延迟。"
+                },
+                {
+                  "description": "作者将分布外或不寻常用户的表现，以及真实用户数据的隐私保护训练，列为尚待解决的问题。"
+                }
+              ]
+            },
+            "headline": "超网络以纯前向方式生成 LoRA，实现设备端语言模型个性化"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
+    {
+      "id": "FCMO-0C8BF8705385",
+      "slug": "mm-contextfold-reports-lower-visual-context-use-and-higher-accuracy",
+      "url_date": "2026-10-12",
+      "kind": "development",
+      "status": "live",
+      "beat": "research",
+      "desk": "agents_memory",
+      "title": "MM-ContextFold reports lower visual context use and higher accuracy across multimodal retrieval benchmarks",
+      "dek": "MM-ContextFold keeps a persistent text-only planning context and opens temporary multimodal branches when an agent needs to inspect raw images.",
+      "summary": "MM-ContextFold keeps a persistent text-only planning context and opens temporary multimodal branches when an agent needs to inspect raw images. It folds each branch's findings back as a concise text summary, then discards the images and local branch trace. The authors first analyze approximately 10,000 trajectories and report that raw images become redundant after visual evidence has been extracted into text. Across seven multimodal agentic retrieval benchmarks and five backbones, they report 27.5% shorter working context and 6.3 percentage points higher average accuracy than a standard ReAct baseline. The main table reports means and standard deviations over three independent runs. Methods use the same underlying retrieval tools and total call budget, but preserve different native prompts and action grammars. These remain paper-reported results; no independent reproduction or deployment-cost analysis was performed.",
+      "why_it_matters": "Multimodal agents can carry large raw images through long tool-use histories after relevant visual details have already been converted into text. Temporarily scoping images to visual-grounding tasks could reduce context use without sacrificing task accuracy. The reported result is promising within multimodal retrieval, while prompt/action-format differences, cost, latency and transfer to other agent tasks remain unresolved.",
+      "importance_rationale": "If reproduced, releasing raw images after visual-grounding subtasks could reduce long-context burden while improving retrieval accuracy, a meaningful design choice for multimodal agents. Evidence is a paper-reported evaluation across seven benchmarks and five backbones; baseline action grammars differ and transfer beyond retrieval agents is unknown.",
+      "technical": {
+        "claimed_result": "Authors report 27.5% shorter working context and +6.3 percentage points average accuracy over standard ReAct across seven benchmarks and five backbones.",
+        "demonstrated_result": "The inspected manuscript specifies the context-folding method, trajectory analysis and evaluation protocol. Performance results remain author-reported and were not independently reproduced.",
+        "mechanism": "A text-only main state stores task progress and distilled evidence. When visual grounding is needed, the agent loads relevant raw images into a bounded multimodal branch, performs a subtask and folds a concise textual result back into the main state; raw images and local branch trace are then discarded.",
+        "regime": "The paper reports seven multimodal agentic retrieval benchmarks across five backbone models, with an empirical analysis of approximately 10,000 trajectories. Main accuracy results are means and standard deviations over three runs; comparison methods retain their native action formats while sharing tool implementations and total call budget.",
+        "strongest_baseline": "Standard ReAct on the same multimodal retrieval benchmark suite; authors report MM-ContextFold improves average accuracy by 6.3 percentage points and reduces working-context length by 27.5%."
+      },
+      "importance_tier": "Notable",
+      "development_type": "paper",
+      "event_at": "2026-09-19T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-12T16:54:49Z",
+      "updated_at": "2026-10-12T16:54:49Z",
+      "importance": 5,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": false,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "CLAIMED",
+            "text": "MM-ContextFold separates persistent text-only planning from temporary image-dependent branches, folds findings back into the main context as text and discards raw images and branch traces after each subtask."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "Across seven multimodal agentic retrieval benchmarks and five backbone models, the authors report 27.5% lower working-context length and 6.3 percentage points higher average accuracy than standard ReAct; Table 1 reports mean and standard deviation over three independent runs."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "The authors analyze approximately 10,000 trajectories and report that raw images become increasingly redundant after visual evidence is extracted into text; continued image retention can raise output entropy and degrade task accuracy in their experiments."
+          }
+        ],
+        "limitations": [
+          "All benchmark results are author-reported; no independent reproduction was conducted.",
+          "The main evaluation covers seven multimodal agentic retrieval benchmarks and five backbone models; broader agent tasks are not established.",
+          "Comparison methods retain different native prompt and action grammars, although the authors unify underlying tools and total call budgets.",
+          "A 27.5% working-context reduction does not by itself establish lower total token use, latency, API cost or compute.",
+          "The paper reports three independent runs for the main accuracy table; this does not resolve transfer or protocol-comparability questions."
+        ],
+        "gaps": [
+          {
+            "kind": "missing_independent",
+            "description": "The reported context-length reduction and accuracy improvement have not been independently reproduced."
+          },
+          {
+            "kind": "baseline_unclear",
+            "description": "The study preserves native prompt and action-call formats across comparison methods, so differences in action grammar may affect attribution despite unified tool implementations and call budgets."
+          },
+          {
+            "kind": "other",
+            "description": "The paper emphasizes working-context length but does not establish total token spend, latency, API cost or transfer to multimodal agent tasks beyond retrieval."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://arxiv.org/abs/2609.23121",
+          "domain": "arxiv.org",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [],
+      "topics": [
+        "multimodal-agents",
+        "context-management",
+        "visual-retrieval",
+        "agent-memory"
+      ],
+      "regions": [
+        "GLOBAL"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-0C8BF8705385.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: MM-ContextFold reports lower visual context use and higher accuracy across multimodal retrieval benchmarks"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "MM-ContextFold informa menor uso de contexto visual y mayor precisión en pruebas de recuperación multimodal",
+            "summary": "MM-ContextFold mantiene un contexto persistente de planificación solo textual y abre ramas multimodales temporales cuando un agente necesita inspeccionar imágenes originales. Resume en texto los hallazgos de cada rama y luego descarta las imágenes y el rastro local. Los autores primero analizan aproximadamente 10,000 trayectorias e informan que las imágenes originales se vuelven redundantes después de extraer y convertir a texto la evidencia visual. En siete pruebas de recuperación multimodal con cinco modelos base, informan un contexto de trabajo 27.5% más corto y una precisión promedio 6.3 puntos porcentuales mayor que ReAct estándar. La tabla principal presenta media y desviación estándar de tres ejecuciones independientes. Los métodos usan las mismas herramientas subyacentes de recuperación y el mismo presupuesto total de llamadas, pero conservan prompts y gramáticas de acciones distintas. Son resultados comunicados por los autores; no hubo reproducción independiente ni análisis del costo de despliegue.",
+            "importance_rationale": "Si se reproduce, liberar las imágenes originales después de las tareas de identificación visual podría reducir la carga de contexto largo y elevar la precisión de recuperación, una decisión de diseño relevante para agentes multimodales. La evidencia es una evaluación informada por el artículo en siete pruebas y cinco modelos base; los formatos de acción difieren y se desconoce la transferencia más allá de agentes de recuperación.",
+            "why_it_matters": "Los agentes multimodales pueden conservar imágenes grandes en historiales extensos de uso de herramientas incluso después de convertir los detalles visuales relevantes en texto. Limitar temporalmente las imágenes a tareas de identificación visual podría reducir el contexto sin sacrificar precisión. El resultado informado es prometedor para recuperación multimodal, pero siguen sin resolverse las diferencias de prompts y formatos de acción, el costo, la latencia y la transferencia a otras tareas de agente.",
+            "technical": {
+              "claimed_result": "Los autores informan un contexto de trabajo 27.5% más corto y una mejora promedio de +6.3 puntos porcentuales sobre ReAct estándar en siete pruebas y cinco modelos base.",
+              "demonstrated_result": "El manuscrito consultado especifica el mecanismo de plegado de contexto, el análisis de trayectorias y el protocolo de evaluación. Los resultados de rendimiento siguen siendo afirmaciones de los autores y no se reprodujeron de forma independiente.",
+              "mechanism": "Un estado principal solo textual conserva el avance de la tarea y la evidencia destilada. Cuando se necesita identificar elementos visuales, el agente carga imágenes relevantes en una rama multimodal acotada, completa una subtarea y devuelve un resumen textual conciso; después descarta las imágenes y el rastro local.",
+              "regime": "El artículo informa siete pruebas de recuperación multimodal con cinco modelos base y un análisis empírico de aproximadamente 10,000 trayectorias. La precisión principal es media y desviación estándar de tres ejecuciones; los métodos comparados conservan sus formatos de acción, con herramientas y presupuesto de llamadas comunes.",
+              "strongest_baseline": "ReAct estándar en la misma serie de pruebas de recuperación multimodal; los autores informan que MM-ContextFold mejora la precisión promedio en 6.3 puntos porcentuales y reduce la longitud del contexto de trabajo en 27.5%."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "MM-ContextFold separa la planificación persistente solo textual de las ramas temporales que dependen de imágenes, devuelve los hallazgos al contexto principal como texto y descarta imágenes originales y rastros de rama después de cada subtarea."
+                },
+                {
+                  "text": "En siete pruebas de recuperación multimodal y cinco modelos base, los autores informan una reducción de 27.5% en el contexto de trabajo y una mejora promedio de 6.3 puntos porcentuales en precisión frente a ReAct estándar; la Tabla 1 informa media y desviación estándar de tres ejecuciones independientes."
+                },
+                {
+                  "text": "Los autores analizan aproximadamente 10,000 trayectorias e informan que las imágenes se vuelven cada vez más redundantes tras extraer la evidencia visual y convertirla en texto; en sus experimentos, conservarlas puede elevar la entropía de salida y reducir la precisión de la tarea."
+                }
+              ],
+              "limitations": [
+                "Todos los resultados de las pruebas son comunicados por los autores; no hubo reproducción independiente.",
+                "La evaluación principal cubre siete pruebas de recuperación multimodal y cinco modelos base; no establece resultados en tareas de agente más amplias.",
+                "Los métodos comparados conservan distintos prompts y gramáticas de acciones, aunque los autores unifican las herramientas subyacentes y el presupuesto total de llamadas.",
+                "Una reducción de 27.5% en el contexto de trabajo no demuestra por sí sola menos tokens totales, latencia, costo de API o cómputo.",
+                "La tabla principal de precisión informa tres ejecuciones independientes; esto no resuelve las preguntas sobre transferencia o comparabilidad del protocolo."
+              ],
+              "gaps": [
+                {
+                  "description": "La reducción de longitud del contexto y la mejora de precisión informadas no se han reproducido de forma independiente."
+                },
+                {
+                  "description": "El estudio conserva prompts y formatos nativos de llamada a herramientas de cada método, por lo que las diferencias de gramática de acciones pueden afectar la atribución pese a que se unifican las herramientas y el presupuesto de llamadas."
+                },
+                {
+                  "description": "El artículo destaca la longitud del contexto de trabajo, pero no establece el gasto total de tokens, la latencia, el costo de API ni la transferencia a tareas de agente multimodal fuera de recuperación."
+                }
+              ]
+            },
+            "dek": "MM-ContextFold mantiene un contexto persistente de planificación solo textual y abre ramas multimodales temporales cuando un agente necesita inspeccionar imágenes originales."
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "MM-ContextFold 报告称，多模态检索测试中视觉上下文更短、准确率更高",
+            "summary": "MM-ContextFold 保留一个持久的纯文本规划上下文，仅在智能体需要检查原始图像时开启临时多模态分支。它将每个分支的发现折叠为简短文本，再丢弃图像和分支局部轨迹。作者先分析约 10,000 条轨迹，并报告称，视觉证据被提取并转成文本后，原始图像会变得冗余。在七项多模态智能体检索基准和五种骨干模型上，作者报告工作上下文缩短 27.5%，平均准确率比标准 ReAct 高 6.3 个百分点。主表报告三次独立运行的均值和标准差。各方法采用相同的底层检索工具和总调用预算，但保留各自原生的提示词与动作语法。这些仍是论文报告的结果；未进行独立复现或部署成本分析。",
+            "importance_rationale": "如果结果能够复现，在视觉识别子任务完成后释放原始图像，可能减轻长上下文负担并提高检索准确率，对多模态智能体的设计有实际意义。证据来自论文报告的七项测试和五种骨干模型；不同方法的动作语法并不相同，且尚不清楚能否迁移到检索智能体以外的任务。",
+            "why_it_matters": "多模态智能体在长工具调用历史中可能持续携带大型原始图像，即使相关视觉细节已被转成文本。将图像临时限制在视觉识别子任务内，或许能减少上下文而不损害任务准确率。论文报告的结果在多模态检索范围内值得关注，但提示词和动作格式差异、成本、延迟以及向其他智能体任务的迁移仍未解决。",
+            "technical": {
+              "claimed_result": "作者报告，在七项基准和五种骨干模型上，工作上下文比标准 ReAct 短 27.5%，平均准确率高 +6.3 个百分点。",
+              "demonstrated_result": "已检查论文稿，其中说明了上下文折叠方法、轨迹分析和评估协议。性能结果仍是作者报告的主张，尚未独立复现。",
+              "mechanism": "纯文本主状态保存任务进展和提炼后的证据。需要视觉识别时，智能体将相关原始图像载入有界多模态分支，完成子任务并将简明文本结果折回主状态，随后丢弃图像与分支局部轨迹。",
+              "regime": "论文报告七项多模态智能体检索基准、五种骨干模型，并分析约 10,000 条轨迹。主要准确率结果为三次运行的均值和标准差；比较方法保留各自动作格式，同时共用工具实现和总调用预算。",
+              "strongest_baseline": "同一多模态检索基准套件上的标准 ReAct；作者报告 MM-ContextFold 平均准确率高 6.3 个百分点，工作上下文长度减少 27.5%。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "MM-ContextFold 将持久的纯文本规划与临时图像相关分支分开，把分支发现以文本形式折回主上下文，并在每个子任务后丢弃原始图像和分支轨迹。"
+                },
+                {
+                  "text": "在七项多模态智能体检索基准和五种骨干模型上，作者报告工作上下文减少 27.5%，平均准确率比标准 ReAct 高 6.3 个百分点；表 1 报告三次独立运行的均值和标准差。"
+                },
+                {
+                  "text": "作者分析约 10,000 条轨迹，报告称视觉证据被提取并转为文本后，原始图像会逐渐变得冗余；在其试验中，持续保留图像可能提高输出熵并降低任务准确率。"
+                }
+              ],
+              "limitations": [
+                "所有基准结果均由作者报告；未进行独立复现。",
+                "主要评测覆盖七项多模态智能体检索基准和五种骨干模型，尚不能说明其他智能体任务的表现。",
+                "虽然作者统一了底层工具和总调用预算，各比较方法仍保留不同的原生提示词与动作语法。",
+                "工作上下文缩短 27.5% 本身不能证明总 token、延迟、API 成本或算力下降。",
+                "主准确率表报告三次独立运行；这并未解决迁移能力或协议可比性问题。"
+              ],
+              "gaps": [
+                {
+                  "description": "报告的上下文长度下降和准确率提升尚未经过独立复现。"
+                },
+                {
+                  "description": "该研究保留各比较方法原生的提示词和工具调用格式，因此即使底层工具实现及总调用预算统一，动作语法差异仍可能影响归因。"
+                },
+                {
+                  "description": "论文重点报告工作上下文长度，但未证明总 token 消耗、延迟、API 成本或向检索以外多模态智能体任务的迁移效果。"
+                }
+              ]
+            },
+            "headline": "MM-ContextFold 报告称，多模态检索测试中视觉上下文更短、准确率更高"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
+    {
+      "id": "FCMO-0180330ECF93",
+      "slug": "dataspace-reports-large-harness-dependent-accuracy-differences-on",
+      "url_date": "2026-10-12",
+      "kind": "development",
+      "status": "live",
+      "beat": "research",
+      "desk": "agents_memory",
+      "title": "DataSpace reports large harness-dependent accuracy differences on heterogeneous data-agent tasks",
+      "dek": "The paper introduces DataSpace, a benchmark for data agents that must combine evidence scattered across heterogeneous task workspaces and return complete, verifiable tables.",
+      "summary": "The paper introduces DataSpace, a benchmark for data agents that must combine evidence scattered across heterogeneous task workspaces and return complete, verifiable tables. Its 410 cross-language tasks use 7,439 artifacts totaling 15.01 GB across six file and media types. In author-run comparisons, six backbones reach a best accuracy of 66.34% with DataSpace-Agent fixed; with MiMo-V2.5 fixed, five harnesses range from 30.98% to 46.34%, a 15.36-point spread. Authors also report that multimodal evidence integration and joins reduce accuracy across all tested backbones, and that 76 tasks are missed by all six. The comparison shows material harness sensitivity in this benchmark, not that harness choice generally dominates model choice. The results remain paper-reported, benchmark-bounded and unreproduced.",
+      "why_it_matters": "Data-agent evaluations that isolate SQL, retrieval or open-ended answers can miss failures when an agent must locate, reconcile and join evidence across databases, files, documents and media. A benchmark with deterministic complete-table scoring can make such failures easier to compare. The reported harness spread suggests that integrated agent design affects outcomes in this task regime, but does not establish a universal ranking or live-workplace performance.",
+      "importance_rationale": "If replicated, a 15.36-point harness spread with a fixed backbone would materially affect how data-agent systems are evaluated and optimized, and a verified heterogeneous-workspace benchmark could expose failures hidden by structured-query-only tests. The evidence is one author-run 410-task benchmark, and the spread is specific to tested systems, versions and task distribution.",
+      "technical": {
+        "claimed_result": "Across 410 tasks, the authors report 66.34% accuracy for Grok 4.5 with DataSpace-Agent fixed. With MiMo-V2.5 fixed, harness accuracy is 46.34% for Grok Build, 44.63% for Claude Code, 39.27% for DataSpace-Agent, 34.88% for Codex and 30.98% for Smolagents. They report 76 tasks missed by all six backbones and consistent degradation from multimodal evidence integration and joins.",
+        "demonstrated_result": "The preprint describes the benchmark, evaluation protocol and reported comparisons. the research desk did not execute the benchmark or reproduce results; performance measurements remain author-reported.",
+        "mechanism": "DataSpace turns executable analytics resources into task-local workspaces containing multiple artifact types. Agents receive a question and workspace and return the full requested table. A deterministic evaluator aligns columns, normalizes types and precision, and compares rows while rejecting incomplete or incorrect results.",
+        "regime": "410 cross-language analytics tasks, 7,439 task-local artifacts and six modalities. Backbone comparisons hold DataSpace-Agent fixed across six models. Harness comparisons hold MiMo-V2.5 fixed across five tested systems and versions. Tasks are evaluated by complete-table exactness with semantics-aware normalization.",
+        "reproducibility": "The paper describes deterministic construction and evaluation, but this review did not execute code or independently reproduce benchmark results.",
+        "strongest_baseline": "For harness comparison, the fixed MiMo-V2.5 backbone with Smolagents reports 30.98% accuracy; Grok Build reports 46.34%. For backbone comparison with DataSpace-Agent fixed, GPT-5.6 Sol reports 64.63% and Grok 4.5 reports 66.34%. These are separate controlled blocks, not a factorial estimate of model-by-harness effects."
+      },
+      "importance_tier": "Notable",
+      "development_type": "paper",
+      "event_at": "2026-08-04T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-12T16:54:49Z",
+      "updated_at": "2026-10-12T16:54:49Z",
+      "importance": 5,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": false,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "CLAIMED",
+            "text": "DataSpace is a benchmark of 410 cross-language tasks over task-local heterogeneous workspaces, with 7,439 artifacts totaling 15.01 GB across CSV, JSON, SQLite, Markdown, PDF and video; the task output is a complete verifiable table."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "With MiMo-V2.5 fixed, the authors report task accuracy from 30.98% for Smolagents to 46.34% for Grok Build, a 15.36 percentage-point spread across five tested harnesses. With DataSpace-Agent fixed, the best of six tested backbones reaches 66.34%."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "The authors report that multimodal evidence integration and joins reduce accuracy across all six tested backbones; 76 of 410 tasks are missed by every backbone in the reported comparison."
+          },
+          {
+            "label": "NOT_ESTABLISHED",
+            "text": "The benchmark does not establish that harness choice generally matters more than model choice, nor that the measured spread transfers to other datasets, model versions, harness configurations or live organizational analytics."
+          }
+        ],
+        "limitations": [
+          "All benchmark construction and model results are reported in one paper; no independent reproduction was located or run.",
+          "The 15.36-point harness spread is measured on one 410-task benchmark, one fixed MiMo-V2.5 backbone and five specific systems/versions.",
+          "The separate backbone comparison fixes DataSpace-Agent; the two experiment blocks do not estimate a full model-by-harness interaction.",
+          "Task content and artifact distribution bound external validity; live organizational analytics may differ in data quality, access and user behavior.",
+          "Benchmark accuracy measures complete-table correctness and does not measure user utility, safe access control or operational reliability in deployment."
+        ],
+        "gaps": [
+          {
+            "kind": "missing_independent",
+            "description": "The task benchmark and reported model/harness rankings have not been independently reproduced."
+          },
+          {
+            "kind": "other",
+            "description": "The separate fixed-backbone and fixed-harness comparisons do not identify the model-by-harness interaction across all tested combinations."
+          },
+          {
+            "kind": "other",
+            "description": "Transfer to live organizational workspaces and user utility is not measured by exact-table benchmark accuracy."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://arxiv.org/abs/2608.03451",
+          "domain": "arxiv.org",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "Hong Kong University of Science and Technology",
+        "Tsinghua University"
+      ],
+      "topics": [
+        "data-agents",
+        "agent-harnesses",
+        "multimodal-retrieval",
+        "benchmarking",
+        "analytics"
+      ],
+      "regions": [
+        "GLOBAL"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-0180330ECF93.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: DataSpace reports large harness-dependent accuracy differences on heterogeneous data-agent tasks"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "DataSpace informa diferencias amplias de precisión según el entorno en tareas heterogéneas de agentes de datos",
+            "summary": "El artículo presenta DataSpace, un benchmark para agentes de datos que deben combinar evidencia dispersa entre espacios de trabajo heterogéneos y devolver tablas completas y verificables. Sus 410 tareas multilingües utilizan 7,439 artefactos que suman 15.01 GB y abarcan seis tipos de archivo y medios. En las comparaciones informadas por los autores, seis bases de modelo alcanzan una precisión máxima de 66.34% con DataSpace-Agent fijo; con MiMo-V2.5 fijo, cinco entornos varían entre 30.98% y 46.34%, una diferencia de 15.36 puntos. También informan que integrar evidencia multimodal y realizar uniones reduce la precisión en todos los modelos evaluados, y que los seis fallan en 76 tareas. La comparación muestra sensibilidad al entorno en este benchmark, pero no que el entorno importe más que el modelo en general. Los resultados siguen limitados al benchmark, son informes de los autores y no se han reproducido.",
+            "importance_rationale": "Si se replica, una diferencia de 15.36 puntos con la base del modelo fija afectaría de forma sustancial la evaluación y optimización de agentes de datos; un benchmark de espacios heterogéneos también podría exponer fallas que no muestran las pruebas centradas en consultas estructuradas. La evidencia procede de un benchmark de 410 tareas elaborado por los autores; la diferencia corresponde a sistemas, versiones y distribución de tareas específicos.",
+            "why_it_matters": "Las evaluaciones de agentes de datos que aíslan SQL, recuperación o respuestas abiertas pueden pasar por alto fallas cuando hay que localizar, reconciliar y unir evidencia de bases de datos, archivos, documentos y medios. Un benchmark con puntuación determinista de tablas completas puede facilitar la comparación de esas fallas. La diferencia informada entre entornos sugiere que el diseño integrado del agente influye en este régimen de tareas, pero no establece una clasificación universal ni el rendimiento en lugares de trabajo reales.",
+            "technical": {
+              "claimed_result": "En 410 tareas, los autores informan precisión de 66.34% para Grok 4.5 con DataSpace-Agent fijo. Con MiMo-V2.5 fijo, la precisión por entorno es 46.34% para Grok Build, 44.63% para Claude Code, 39.27% para DataSpace-Agent, 34.88% para Codex y 30.98% para Smolagents. Informan que los seis modelos fallan en 76 tareas y que integrar evidencia multimodal y realizar uniones degrada sistemáticamente los resultados.",
+              "demonstrated_result": "El preprint describe el benchmark, el protocolo de evaluación y las comparaciones informadas. No se ejecutó el benchmark ni se reprodujeron los resultados; las mediciones de rendimiento siguen siendo informes de los autores.",
+              "mechanism": "DataSpace convierte recursos analíticos ejecutables en espacios de trabajo locales a cada tarea que contienen varios tipos de artefactos. Los agentes reciben una pregunta y el espacio de trabajo, y devuelven la tabla completa solicitada. Un evaluador determinista alinea columnas, normaliza tipos y precisión, compara filas y rechaza resultados incompletos o incorrectos.",
+              "regime": "410 tareas analíticas multilingües, 7,439 artefactos locales a cada tarea y seis modalidades. La comparación de modelos fija DataSpace-Agent y evalúa seis modelos. La comparación de entornos fija MiMo-V2.5 y evalúa cinco sistemas y versiones. La evaluación mide tablas completas con normalización semántica.",
+              "reproducibility": "El artículo describe la construcción determinista y la evaluación, pero esta revisión no ejecutó código ni reprodujo los resultados del benchmark.",
+              "strongest_baseline": "Para la comparación de entornos, MiMo-V2.5 fijo con Smolagents informa 30.98% de precisión y con Grok Build 46.34%. Para la comparación de modelos con DataSpace-Agent fijo, GPT-5.6 Sol informa 64.63% y Grok 4.5 informa 66.34%. Son bloques de control separados, no una estimación factorial de interacciones entre modelo y entorno."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "DataSpace es un benchmark de 410 tareas multilingües en espacios de trabajo heterogéneos y locales a cada tarea; contiene 7,439 artefactos que suman 15.01 GB entre CSV, JSON, SQLite, Markdown, PDF y video. La salida exigida es una tabla completa y verificable."
+                },
+                {
+                  "text": "Con MiMo-V2.5 fijo, los autores informan una precisión de 30.98% con Smolagents y 46.34% con Grok Build, una diferencia de 15.36 puntos porcentuales entre cinco entornos probados. Con DataSpace-Agent fijo, la mejor precisión entre seis modelos es 66.34%."
+                },
+                {
+                  "text": "Los autores informan que integrar evidencia multimodal y realizar uniones reduce la precisión en los seis modelos evaluados; en la comparación reportada, los seis modelos fallan en 76 tareas."
+                },
+                {
+                  "text": "El benchmark no demuestra que, en general, el entorno de agentes importe más que el modelo ni que la diferencia medida se traslade a otros conjuntos de datos, versiones de modelos, configuraciones o análisis organizacionales reales."
+                }
+              ],
+              "limitations": [
+                "Los autores informan todos los resultados empíricos del benchmark de 410 tareas; no se localizó ni realizó una reproducción independiente.",
+                "La diferencia de 15.36 puntos entre entornos se midió en un benchmark de 410 tareas, con una base MiMo-V2.5 fija y cinco sistemas/versiones específicos.",
+                "La comparación separada de modelos fija DataSpace-Agent; los dos bloques experimentales no estiman la interacción completa entre modelo y entorno.",
+                "El contenido de las tareas y la distribución de artefactos limitan la validez externa; los análisis organizacionales reales pueden diferir en calidad y acceso a datos y comportamiento de usuarios.",
+                "La precisión del benchmark mide que la tabla completa sea correcta; no mide utilidad para usuarios, control de acceso seguro ni fiabilidad operativa en producción."
+              ],
+              "gaps": [
+                {
+                  "description": "El benchmark y las clasificaciones informadas de modelos y entornos no se han reproducido de forma independiente."
+                },
+                {
+                  "description": "Las comparaciones separadas con modelo fijo y entorno fijo no identifican la interacción entre modelo y entorno en todas las combinaciones probadas."
+                },
+                {
+                  "description": "La transferencia a espacios de trabajo organizacionales reales y la utilidad para usuarios no se miden mediante la precisión exacta de tablas."
+                }
+              ]
+            },
+            "dek": "El artículo presenta DataSpace, un benchmark para agentes de datos que deben combinar evidencia dispersa entre espacios de trabajo heterogéneos y devolver tablas completas y verificables."
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "DataSpace报告称，异构数据智能体任务的准确率因框架而出现显著差异",
+            "summary": "论文提出DataSpace基准，评测数据智能体能否整合分散在异构工作区中的证据并返回完整、可验证的表格。该基准包含410项跨语言任务，使用7,439个材料、总计15.01 GB，涵盖六种文件和媒体类型。作者报告，在固定DataSpace-Agent的条件下，六种模型的最高准确率为66.34%；固定MiMo-V2.5时，五种框架的准确率介于30.98%和46.34%之间，相差15.36个百分点。作者还报告，多模态证据整合和数据连接会降低所有受测模型的准确率，并且六个模型都未能完成76项任务。该比较表明，在此基准中结果对框架选择敏感，但不能证明一般情况下框架选择比模型选择更重要。结果仍局限于该基准，属于作者报告且未得到复现。",
+            "importance_rationale": "如果得到复现，在固定模型主干时观察到15.36个百分点差异，将实质影响数据智能体的评估与优化；异构工作区基准也可能暴露结构化查询单项测试无法发现的失败。证据来自作者构建的410项任务基准，差异仅适用于特定系统、版本和任务分布。",
+            "why_it_matters": "如果评测只考查SQL、检索或开放式回答，可能会遗漏智能体在跨数据库、文件、文档和媒体定位、核对及连接证据时的失败。采用确定性完整表格评分的基准有助于比较此类失败。报告的框架差异表明，在这一任务范围内，集成式智能体设计会影响结果，但不能据此得出普遍排名，也不能证明真实工作场所表现。",
+            "technical": {
+              "claimed_result": "在410项任务上，作者报告固定DataSpace-Agent时Grok 4.5准确率为66.34%。固定MiMo-V2.5时，各框架准确率为：Grok Build 46.34%、Claude Code 44.63%、DataSpace-Agent 39.27%、Codex 34.88%、Smolagents 30.98%。作者报告六个模型均未完成76项任务，多模态证据整合和数据连接会持续降低准确率。",
+              "demonstrated_result": "预印本描述了基准、评测流程和所报告的比较。本文未运行基准或复现结果；性能测量仍为作者报告。",
+              "mechanism": "DataSpace将可执行分析资源转换为任务本地工作区，其中包含多种材料。智能体接收问题和工作区，并返回所需的完整表格。确定性评测器对齐列、规范化数据类型与精度、比较行，并拒绝不完整或错误结果。",
+              "regime": "410项跨语言分析任务、7,439个任务本地材料和六种模态。模型比较固定DataSpace-Agent并评估六种模型。框架比较固定MiMo-V2.5并评估五个系统及版本。评测通过语义规范化判断完整表格的正确性。",
+              "reproducibility": "论文描述了确定性构建和评测流程，但本次审查未执行代码或独立复现基准结果。",
+              "strongest_baseline": "在框架比较中，固定MiMo-V2.5搭配Smolagents的准确率为30.98%，搭配Grok Build为46.34%。在固定DataSpace-Agent的模型比较中，GPT-5.6 Sol为64.63%，Grok 4.5为66.34%。这是两组分别控制变量的实验，并非完整的模型与框架交互效应估计。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "DataSpace是一个包含410项跨语言任务的基准，每项任务使用本地异构工作区中的材料；数据集包含7,439个文件，总计15.01 GB，涵盖CSV、JSON、SQLite、Markdown、PDF和视频。要求输出完整且可验证的表格。"
+                },
+                {
+                  "text": "固定MiMo-V2.5时，作者报告Smolagents准确率为30.98%，Grok Build为46.34%，五种受测智能体框架之间相差15.36个百分点。固定DataSpace-Agent时，六个受测模型中最高准确率为66.34%。"
+                },
+                {
+                  "text": "作者报告，多模态证据整合和数据连接会降低全部六个受测模型的准确率；在所报告的比较中，六个模型都未能完成76项任务。"
+                },
+                {
+                  "text": "该基准并未证明一般情况下智能体框架比模型选择更重要，也未证明测得的差异能推广到其他数据集、模型版本、配置或真实组织分析场景。"
+                }
+              ],
+              "limitations": [
+                "410项任务基准的实证结果均由论文作者报告；未找到或执行独立复现。",
+                "15.36个百分点的框架差异来自410项任务基准、固定MiMo-V2.5以及五种特定系统/版本。",
+                "单独的模型比较固定DataSpace-Agent；两组实验并未估计完整的模型与框架交互作用。",
+                "任务内容与材料分布限制了外部有效性；真实组织分析在数据质量、访问方式和用户行为方面可能不同。",
+                "基准准确率衡量完整表格是否正确，并不衡量用户效用、安全访问控制或部署中的运行可靠性。"
+              ],
+              "gaps": [
+                {
+                  "description": "尚无独立复现该基准以及论文报告的模型和框架排名。"
+                },
+                {
+                  "description": "分别固定模型和框架的比较并未识别所有受测组合中的模型与框架交互作用。"
+                },
+                {
+                  "description": "精确表格准确率并未测量其在真实组织工作区中的迁移效果和用户效用。"
+                }
+              ]
+            },
+            "headline": "DataSpace报告称，异构数据智能体任务的准确率因框架而出现显著差异"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
     {
       "id": "FCMO-FB811881B4ED",
       "slug": "care-reports-improved-recovery-from-robot-failures-using-staged",
