@@ -1,6 +1,6 @@
 {
   "canonical_locale": "en",
-  "canonical_source_sha256": "205ec99a6bee3dd5fc77ea35ff5ded605ffe26f2ba9f003ecd80a04afb302a92",
+  "canonical_source_sha256": "d435300cb181701141a4e6ff0d2dc08d6ec94538360ced7f141d40bf1a0b6c07",
   "generated_from": "ARB airlock; editorial wording authored upstream",
   "locale": "es-419",
   "records": {
@@ -2797,6 +2797,62 @@
       },
       "title": "Un preprint informa que separar hechos del entorno de procedimientos puede ayudar a agentes que evolucionan",
       "why_it_matters": "Si los resultados informados se transfieren, los sistemas de memoria para agentes podrían beneficiarse de registrar por separado qué parece cierto sobre el entorno y qué procedimientos condicionales funcionan allí, lo que facilitaría detectar fallos ligados al contexto y supuestos obsoletos. La evidencia es de los autores y varía entre dominios; una parte grande de una mejora agregada proviene de un único dominio de benchmark."
+    },
+    "FCMO-266232F3118E": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "MMSafe combina una capa sensible a la seguridad compartida entre idiomas con capas específicas por idioma para ordenar ejemplos de ajuste fino según su potencial estimado de degradar la seguridad."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En cuatro variantes Llama/Qwen, dos conjuntos de ajuste fino y seis combinaciones de conjunto y prueba, los autores informan proporciones de respuestas dañinas de 31.8%–46.5% frente al filtrado aleatorio; el método supera a LARF de una capa en tres de cuatro variantes."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El artículo informa utilidad general y multilingüe ampliamente similar en los entornos probados, mientras que la sensibilidad a la ponderación específica por idioma varía según los modelos y los conjuntos de datos."
+        },
+        {
+          "label": "DEMONSTRATED_SCOPE_LIMITATION",
+          "text": "Los resultados usan ajuste fino LoRA y evaluación con pruebas; no establecen seguridad en despliegue ni eliminan regresiones específicas por idioma."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se ejecutó independientemente la implementación publicada ni se reprodujeron los resultados agregados.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "La evaluación cubre cuatro variantes, dos corpus de ajuste fino, LoRA y pruebas de seguridad seleccionadas; se desconoce el rendimiento fuera de este régimen.",
+          "kind": "regime_unclear",
+          "state": "open"
+        },
+        {
+          "description": "La ponderación específica por idioma preferida varía según el modelo y el conjunto de datos; se informan algunas regresiones por idioma.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se reproduce, seleccionar datos multilingües de ajuste fino mediante señales de seguridad compartidas y por idioma podría reducir regresiones en distintas familias de modelos sin una gran penalización de utilidad medida. La evidencia es un estudio de referencia de los autores, con métricas automáticas y algunas regresiones lingüísticas; no establece seguridad en despliegue.",
+      "limitations": [
+        "Los resultados son de los autores; esta activación no ejecutó el código ni reprodujo el estudio.",
+        "La seguridad se evalúa principalmente con LlamaGuard 3, además de jueces automáticos y humanos descritos en un apéndice.",
+        "Los experimentos usan cuatro variantes, dos conjuntos de datos, LoRA y pruebas multilingües seleccionadas; no establecen seguridad de despliegue.",
+        "La ponderación presenta distintas compensaciones según modelos y conjuntos de datos, con pequeñas regresiones en algunos idiomas."
+      ],
+      "relationships": [],
+      "summary": "Un preprint propone MMSafe, que puntúa ejemplos de ajuste fino usando una capa de seguridad compartida entre idiomas y capas específicas por idioma. En cuatro variantes de modelos Llama y Qwen, dos conjuntos de ajuste fino y tres pruebas multilingües de seguridad, los autores informan que la proporción de respuestas dañinas promedia alrededor de 39% de las líneas base de filtrado aleatorio; el método supera un filtro previo de una sola capa en tres de cuatro variantes. Informan una utilidad general y multilingüe ampliamente similar en las condiciones probadas, aunque los resultados varían según el conjunto de datos, el modelo y la ponderación por idioma. Los hallazgos se limitan a los ajustes LoRA y las pruebas del artículo. Los autores dicen que publicaron el código, pero esta activación no lo ejecutó ni reprodujo los resultados de forma independiente.",
+      "technical": {
+        "claimed_result": "Los autores informan proporciones de respuestas dañinas de 31.8%–46.5% frente a líneas base de filtrado aleatorio en cuatro variantes; MMSafe mejora sobre LARF en tres de cuatro.",
+        "demonstrated_result": "El artículo principal documenta el método e informa mediciones de pruebas; aquí no se realizó reproducción independiente.",
+        "mechanism": "Una capa de seguridad compartida y capas específicas por idioma ofrecen señales complementarias para ordenar ejemplos de ajuste fino.",
+        "regime": "Ajuste fino LoRA de los autores con grupos de datos Aya y Nemotron-SG en cuatro variantes Llama/Qwen, evaluado mediante tres pruebas multilingües de seguridad y jueces.",
+        "strongest_baseline": "Selección aleatoria con el mismo modelo, conjunto de datos y prueba; LARF es la comparación de una sola capa."
+      },
+      "title": "MMSafe informa un filtro multilingüe de ajuste fino que reduce regresiones de seguridad medidas",
+      "why_it_matters": "Los datos de ajuste fino pueden debilitar el comportamiento seguro aunque no sean abiertamente dañinos. El artículo examina si las señales de seguridad multilingües aparecen en distintas capas y presenta un filtro de datos que podría ayudar a preservar la seguridad durante la adaptación."
     },
     "FCMO-2855FF416D32": {
       "claims": [
@@ -9853,6 +9909,61 @@
       "title": "Una prepublicación mide los límites de las defensas genéricas del sistema operativo para el estado persistente de agentes autónomos",
       "why_it_matters": "Los agentes alojados en el equipo del usuario pueden modificar archivos que condicionan su comportamiento futuro. Tras comprometerse un agente, los permisos y registros de archivos habituales quizá no distingan una actualización autorizada de memoria de una escritura maliciosa. Si estas mediciones acotadas se sostienen en más contextos, las defensas necesitarían una frontera de actualización contextual además del aislamiento y las copias de recuperación protegidas."
     },
+    "FCMO-996A9DA8F42A": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Los autores proponen CS-MoE, que combina expertos específicos de cada capa con un grupo compartido de expertos accesible entre capas del transformador."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En experimentos con base Qwen3 de 0.6B a 12B parámetros, los autores informan menor perplejidad que en modelos densos con presupuestos equiparados de parámetros y FLOP; una configuración 8B activa 55% de los parámetros físicos e informa perplejidad 9.55 frente a 9.75 del modelo denso 8B."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Con presupuestos equiparados de parámetros totales y FLOP activos, el artículo informa perplejidad 9.65 frente a 9.70 en escala 8B y 9.19 frente a 9.40 en escala 12B, comparada con sus variantes MoE dispersas aisladas por capa."
+        },
+        {
+          "label": "DEMONSTRATED_SCOPE_LIMITATION",
+          "text": "El artículo inspeccionado indica que la validación empírica llega hasta 12B parámetros y deja para estudios futuros el escalamiento a más de 70B, la aceleración distribuida y los procesos posteriores al entrenamiento."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se inspeccionó una reproducción independiente de las ejecuciones de entrenamiento ni de los resultados informados de perplejidad o tareas posteriores.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "Los autores validan hasta 12B parámetros; no midieron enrutamiento a gran escala, estabilidad del entrenamiento ni rendimiento del sistema por encima de 70B.",
+          "kind": "regime_unclear",
+          "state": "open"
+        },
+        {
+          "description": "El artículo no establece el rendimiento tras el ajuste posterior ni ventajas de costos de servicio de extremo a extremo para CS-MoE.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se replica, el reparto entre capas podría cambiar decisiones de arquitectura y de asignación entre parámetros y FLOP en modelos expertos con recursos limitados. Algunas mejoras informadas son modestas, se limitan a experimentos de hasta 12B parámetros y no demuestran ventajas a mayor escala ni menores costos de servicio.",
+      "limitations": [
+        "Todos los resultados cuantitativos son informes de los autores y no se reprodujeron independientemente en esta activación.",
+        "La comparación de perplejidad 8B con 55% de parámetros activos es distinta de la comparación separada de tareas posteriores 8B, informada después de entrenar con 4.5 billones de tokens.",
+        "El modelo más grande informado por el artículo es 12B; siguen sin conocerse el rendimiento por encima de 70B, las ventajas en sistemas distribuidos y los efectos del ajuste posterior."
+      ],
+      "relationships": [],
+      "summary": "Un preprint propone CS-MoE, que combina expertos locales por capa con un conjunto compartido accesible a través de las capas del transformador. En experimentos con base Qwen3 de 0.6B–12B parámetros, los autores informan menor perplejidad que en modelos densos y MoE aislados por capa, con presupuestos equiparados de parámetros y FLOP. En escala 8B, una configuración activa 55% de los parámetros físicos por pasada y obtiene perplejidad 9.55 frente a 9.75 del modelo denso. Este resultado no es el mismo que la comparación posterior, separada, de rendimiento con 4.5 billones de tokens de entrenamiento. Los modelos más grandes evaluados llegan a 12B; siguen sin establecerse la estabilidad del enrutamiento, las ventajas de eficiencia distribuida y el comportamiento tras el ajuste posterior a esa escala.",
+      "technical": {
+        "claimed_result": "Los autores informan mejoras de perplejidad con presupuestos equiparados frente a modelos densos y MoE dispersos aislados por capa; una configuración 8B activa 55% de los parámetros físicos e informa PPL 9.55 frente a 9.75 para un modelo denso 8B.",
+        "demonstrated_result": "La fuente primaria documenta la arquitectura propuesta y resultados experimentales informados por los autores; en esta activación no se reprodujo ningún resultado de manera independiente.",
+        "mechanism": "Cada capa del transformador tiene expertos locales y un enrutador selecciona un subconjunto de un grupo compartido accesible desde distintas profundidades, lo que permite reutilizar parámetros en varias capas.",
+        "regime": "Experimentos de los autores con base Qwen3 de 0.6B a 12B parámetros, comparaciones equiparadas de parámetros y FLOP, y evaluaciones selectas posteriores.",
+        "strongest_baseline": "Los modelos densos y MoE dispersos aislados por capa del propio artículo, igualados en cantidad total de parámetros y FLOP activos."
+      },
+      "title": "CS-MoE informa mejoras de perplejidad con reparto de expertos entre capas hasta 12B parámetros",
+      "why_it_matters": "Reutilizar parámetros entre capas es una vía arquitectónica concreta para equilibrar capacidad almacenada y cómputo activo. Si se reproducen las mejoras informadas con presupuestos equiparados, podrían influir en el diseño de modelos dispersos sujetos a límites de memoria o cómputo."
+    },
     "FCMO-99C2914CBB6D": {
       "claims": [
         {
@@ -12931,6 +13042,62 @@
       },
       "title": "Muchas pérdidas de agentes de bases de datos en producción ocurren después de usar herramientas, y los defectos del servidor cambian las puntuaciones de los modelos",
       "why_it_matters": "Si el resultado se replica, los fallos de agentes con herramientas podrían atribuirse erróneamente a la capacidad del modelo cuando el factor limitante es la interfaz o el servidor; corregir un defecto del entorno puede ayudar a varios modelos a la vez. El estudio cubre un producto y fue escrito por colaboradores del software evaluado; las lecturas seleccionadas antes y después no establecen tamaños de efecto generales."
+    },
+    "FCMO-CF1ADDC93536": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Los autores evalúan diez LLM base y ajustados posteriormente en decisiones de contratación simuladas, con vacantes y perfiles generados a partir de distribuciones del mercado laboral de EE. UU. en 76 ocupaciones."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Ocho de diez modelos ajustados muestran un cambio negativo en la probabilidad de llamada para postulantes mayores frente a sus versiones base; el artículo informa una mediana de -4.7%."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "La exclusión sistémica se define como que al menos 9 de 10 modelos asignen una probabilidad de llamada inferior a 0.5; los autores informan un aumento estimado de 5.6% en modelos base a 17.3% en modelos ajustados."
+        },
+        {
+          "label": "DEMONSTRATED_SCOPE_LIMITATION",
+          "text": "El estudio usa perfiles generados y un flujo de trabajo simulado compartido; no mide decisiones reales de empleadores ni identifica qué etapa del ajuste posterior causó los cambios."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se inspeccionó una reproducción independiente de los experimentos con perfiles generados ni de sus estimaciones.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "El experimento usa perfiles generados y un flujo simulado en vez de despliegues observados o decisiones de empleadores.",
+          "kind": "regime_unclear",
+          "state": "open"
+        },
+        {
+          "description": "La tasa de exclusión depende del acuerdo de 9 de 10 y del umbral de llamada 0.5; no se separan las etapas de ajuste posterior.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se replica en entornos aplicados, la selección correlacionada de modelos podría concentrar quién recibe oportunidades y afectar la evaluación laboral y la gobernanza del despliegue. El resultado se limita a perfiles sintéticos muestreados y llamadas simuladas, no a contrataciones reales.",
+      "limitations": [
+        "Los resultados son probabilidades de llamada de modelos informadas por los autores, no resultados reales de contratación.",
+        "Los perfiles y vacantes proceden de una instantánea temporal de datos laborales en línea de EE. UU. y se simplifican, sin currículos ni descripciones de puestos completos.",
+        "Las señales demográficas son binarias y usan nombres y fechas de graduación, que pueden reflejar otros factores socioeconómicos.",
+        "El artículo no aísla la etapa de ajuste posterior responsable."
+      ],
+      "relationships": [],
+      "summary": "Un preprint estudia diez modelos de lenguaje base y ajustados posteriormente en una simulación de contratación de EE. UU., con perfiles de postulantes y vacantes generados a partir de datos de 76 ocupaciones. Los autores informan que ocho de diez modelos ajustados redujeron la probabilidad de devolución de llamada para postulantes mayores, con una mediana de 4.7%. Definen exclusión sistémica como que al menos nueve de diez modelos asignen una probabilidad de llamada inferior a 0.5; con esa métrica, la tasa estimada aumenta de 5.6% a 17.3% tras el ajuste posterior. Son resultados de modelos con perfiles generados, no decisiones reales de contratación. Los datos son una instantánea del mercado laboral en línea de EE. UU., las señales demográficas son simplificadas y el estudio no identifica qué etapa del ajuste causó los cambios.",
+      "technical": {
+        "claimed_result": "Los autores informan una caída de llamadas para mayores en ocho de diez modelos ajustados (mediana -4.7%) y un aumento de 5.6% a 17.3% de exclusión sistémica simulada.",
+        "demonstrated_result": "El artículo documenta el método simulado e informa resultados de modelos; no establece resultados laborales aplicados ni una reproducción independiente.",
+        "mechanism": "Los modelos ajustados toman decisiones más correlacionadas en la tarea con postulantes generados; un umbral de acuerdo aumenta la fracción con baja probabilidad de llamada.",
+        "regime": "Diez pares de modelos base/ajustados en una simulación de contratación de EE. UU. con rasgos muestreados de vacantes y perfiles en 76 ocupaciones con título universitario.",
+        "strongest_baseline": "Comparaciones base frente a ajuste posterior dentro del mismo modelo y estimaciones de exclusión en modelos base con los mismos perfiles y umbral."
+      },
+      "title": "Estudio informa que decisiones de contratación más correlacionadas tras el ajuste pueden elevar la exclusión sistémica modelada",
+      "why_it_matters": "Las evaluaciones de diferencias demográficas promedio en un solo sistema pueden pasar por alto el efecto de muchos sistemas que toman decisiones similares. Si se confirma en aplicaciones reales, una selección correlacionada podría aumentar el número de personas excluidas de forma consistente."
     },
     "FCMO-CFC14EB454F9": {
       "claims": [
@@ -17223,6 +17390,48 @@
       "why_it_matters": {
         "locale_sha256": "15db3d2dfde28147f6b3981f398e5ddb2761aa4af383888f122b047d630aa7c4",
         "source_sha256": "a4b5ba2c8dfb28e62b0fd59b978c107a15efca2bd74e7df1d588a8108408347c"
+      }
+    },
+    "FCMO-266232F3118E": {
+      "claims": {
+        "locale_sha256": "e4bee8a662ddbf9f7621c51ad5245423cf48e71dd61b2d0c4628f57b5810c02c",
+        "source_sha256": "2fdfd601023879ab1fa5f4d7a13ec4dd6e56fcf11c0016584b7e43b2befa2af7"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "c9352995300a923ac698ab0be1208c7978fc1d5b2c2d61812aadc7d0a2a8702b",
+        "source_sha256": "209678c7748614fb2dad149321893adaddaba61b9e95597a8abfdbef828cdba7"
+      },
+      "importance_rationale": {
+        "locale_sha256": "db72a3451e18905f3e44fdf951471eb4048e6cdc5ed672060daf181c669e952b",
+        "source_sha256": "e5d2ef174281aa04108157dbb5717a8e0eb1e103f1ccaf63ae0148ddc9c46d8a"
+      },
+      "limitations": {
+        "locale_sha256": "5123afdfb968a45147ae41d7af0f71037fd02d42bb815b4555d9f61c09b86edd",
+        "source_sha256": "d9707f880f8eb52036b3554bcfd854dc760182e80523c6a777eb1b3a5fb8ae01"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "e99192cb7ba074aaa3f06aeb3859e41325791a613b390593451427039897a57b",
+        "source_sha256": "22554533ed57900eb34763eb19e5b7eef6cf55ab72ca3062e479c5e573b4ace2"
+      },
+      "technical": {
+        "locale_sha256": "0ca30efa40a463ff698b78667c5b397a298c4e95715517aaa802f2efe0c682b1",
+        "source_sha256": "9d7ccf13e565a9d9352693bcdf06bf2f80227acc3267891f0374f6bae7532dd1"
+      },
+      "title": {
+        "locale_sha256": "65a2f9d12effc4243959d7e4ddaf6e312385b3b47a5170e2bfa6dac44036fbb2",
+        "source_sha256": "aeb949a4ca88c6c1750e858f1e4dcea815b43d88d0594fa418265e2ea5815eb6"
+      },
+      "why_it_matters": {
+        "locale_sha256": "0620d44cf8153cd278b63c8732c5c47f6c1de461ce74c5e6a01abc943dd5cc62",
+        "source_sha256": "38cf593580f4798a31c9f987ca224f9b756b645034da8c44b045887abab18104"
       }
     },
     "FCMO-2855FF416D32": {
@@ -22629,6 +22838,48 @@
         "source_sha256": "380db4883c9e15a1d4913cbd8df63016f1a6cc89dd3ab83d847fa310115babc0"
       }
     },
+    "FCMO-996A9DA8F42A": {
+      "claims": {
+        "locale_sha256": "76cbd34e4bcb0202b672c08b983bf062e6a9393ba16ef6a1c757531d8bdd76ad",
+        "source_sha256": "33e57cc5d34ba1bcb0160b853b6f8f9bb6385a18247125648f01d558cb261354"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "be3402b8ccf9b770c9852c814067dfb014683f5adcf3c6e2b6be2c785bf397e8",
+        "source_sha256": "e8c21f8227faa1b39215089c4670a7890f63b77ad3dce8d2f9fa16f33d3d0cc5"
+      },
+      "importance_rationale": {
+        "locale_sha256": "ee3b2b5f0d9d3b53b511d6cca02b6de6a46e796160e6ba048acfc52efb4910f1",
+        "source_sha256": "f02583c73425de813544dbe49f491749a35592899b8f536d128a3e51f9482fb5"
+      },
+      "limitations": {
+        "locale_sha256": "55cf66310ed5b35862ade7502c19ae4c0cd8e80b5e5f3069f3412d888e71fa9c",
+        "source_sha256": "b8c08acb61d1ac23d5bfcbd33ebaf3688656f5a427a65a09af14d41f7ac799c9"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "8580c112b94b7dea65f6ebca400065ed6fb00c1c0cba5a5dd7f2fd0959c74bcb",
+        "source_sha256": "4da9698a58b61791538a08586d853b8bbea0d26f1dfb8c5d13dbf0b5ff37d65f"
+      },
+      "technical": {
+        "locale_sha256": "a2855a5ec3427a278aab00b17641a4012374073cfd03eae55dcd70b901d63b3d",
+        "source_sha256": "c1796ede8ea3df03b285e919c6de2c7574daeac2c7f3fbaa09cf059b86518a88"
+      },
+      "title": {
+        "locale_sha256": "134c1e3c4967c257b2c48aaa8bc35cb0d3578bc280c2d752ffcde99721e24178",
+        "source_sha256": "cfa152c4ea00b45409a55102c41f5bcbcc423ce61af8bf1e731b45f7d7cf0f54"
+      },
+      "why_it_matters": {
+        "locale_sha256": "1aadcc7ef2c9c206136e354d4a2dc54b9a36c96e681b074b0b37afd70c0c3da6",
+        "source_sha256": "a77992cf44a72d948183396174de90322c1081c08b99a526d05cd4449f5d5d43"
+      }
+    },
     "FCMO-99C2914CBB6D": {
       "claims": {
         "locale_sha256": "1d8993225679c08125fac6e628b49e21830829e06f42c8d92ec9470e20824e5e",
@@ -25007,6 +25258,48 @@
       "why_it_matters": {
         "locale_sha256": "a72da04b7b4145897a06710c64df6eb36283fdada90d8c170a19c988817cb004",
         "source_sha256": "c9f91f90f682f1f6e024f475159f29fe3ca7ef53a40275b0ed11c8e22cc3fa6a"
+      }
+    },
+    "FCMO-CF1ADDC93536": {
+      "claims": {
+        "locale_sha256": "536e1a6564e1854578d72185e38f39de0774329fa80a54b9aa62bea434099d61",
+        "source_sha256": "de6454d38f834b652c03a400a414b6f12db1437a3ab0c6fbafdef65b546d65ce"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "01b5d6cabf50e617c45b79cdd2a7bf72101cf89fd4e3f8c21617a547488ef038",
+        "source_sha256": "c979a56cbcc144bba3443b28219ca4dc2ba4c017628fddb5c19ec22d8d4ec296"
+      },
+      "importance_rationale": {
+        "locale_sha256": "d01eeb1dd0a4f412a32db42770467f3270d315e0ca4acd3f59fe660386bcf176",
+        "source_sha256": "4f70135257850b97a03ca92d060f8b97ec44d6880bd400b4b314b2de24915cd1"
+      },
+      "limitations": {
+        "locale_sha256": "92af1f9dd1e49cfe28a8f71905e942a3308f1409d2242c071c8ca5626c54961d",
+        "source_sha256": "ef75bf8055c1fed30788a89f8b849b0165d93b5b1589b2d84f7184ba9456c40d"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "65966c0b4285ad80404a12c26519f6b7440da90223696015e29d2391be315cd8",
+        "source_sha256": "6497016471233490f23f726c7acbbd2e3a1c958969dea3944edc43485d0605f4"
+      },
+      "technical": {
+        "locale_sha256": "5b8c9966a7f32600cf7e4f0ce5bee8b0e9d8f6357ae02fde4a8bccb7b8da8837",
+        "source_sha256": "9ac21325f99cba0154245dc160a9e3945fae19e6fdc3e5635f56f2efc563f369"
+      },
+      "title": {
+        "locale_sha256": "1490bef8bd4224b3fa1a323e3bf7ead574a8bb450bb833e333a54a082d46d379",
+        "source_sha256": "5ef84b1b4641ff05a9c68f0fa0efd258cb24473f478e29f83275ca8f25c87770"
+      },
+      "why_it_matters": {
+        "locale_sha256": "ef0941e0c3e723dcd280744d443c3a5c6a1aaf57901555cc1693905262feb333",
+        "source_sha256": "7768388a904f8377da444ac1cb91d7dfafc48b62c6bc4e666d3f8ab0439ffe47"
       }
     },
     "FCMO-CFC14EB454F9": {

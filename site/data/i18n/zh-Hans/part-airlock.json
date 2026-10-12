@@ -1,6 +1,6 @@
 {
   "canonical_locale": "en",
-  "canonical_source_sha256": "205ec99a6bee3dd5fc77ea35ff5ded605ffe26f2ba9f003ecd80a04afb302a92",
+  "canonical_source_sha256": "d435300cb181701141a4e6ff0d2dc08d6ec94538360ced7f141d40bf1a0b6c07",
   "generated_from": "ARB airlock; editorial wording authored upstream",
   "locale": "zh-Hans",
   "records": {
@@ -2797,6 +2797,62 @@
       },
       "title": "预印本报告：将环境事实与任务程序分开，可能有助于自进化智能体",
       "why_it_matters": "如果报告的结果能够迁移，智能体记忆系统或许可以分别记录对环境的事实判断和在特定条件下有效的程序，从而更容易识别依赖上下文的失败和过时假设。证据由作者报告且在不同领域间并不一致；一项汇总增益的大部分来自单一基准领域。"
+    },
+    "FCMO-266232F3118E": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "MMSafe 将跨语言共享的安全敏感层与语言专属层结合，按估计的安全退化风险排列候选微调样本。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "在四种 Llama/Qwen 变体、两个微调数据集及六种数据集-基准组合中，作者报告有害响应比例为随机筛选的 31.8%–46.5%；该方法在四种变体中的三种上优于单层 LARF。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "论文报告称，在测试设置中通用及多语言效用大体相近；但对语言专属权重的敏感性因模型和数据集而异。"
+        },
+        {
+          "label": "DEMONSTRATED_SCOPE_LIMITATION",
+          "text": "结果采用 LoRA 微调和基准评估；不能证明部署安全，也未消除特定语言的回归。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "未独立运行已发布的实现，也未复现汇总结果。",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "评估涵盖四种模型变体、两个微调语料、LoRA 及选定安全基准；此范围以外的表现未知。",
+          "kind": "regime_unclear",
+          "state": "open"
+        },
+        {
+          "description": "首选语言专属权重因模型和数据集而异；论文报告了部分语言回归。",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "如果得到复现，使用共享及语言专属安全信号筛选多语言微调数据，或能在不同模型家族中减少安全回归，且不造成明显的测得效用损失。证据来自作者的基准研究，使用自动安全指标并报告部分语言回归，不能证明部署安全。",
+      "limitations": [
+        "结果由作者报告；本次激活没有运行代码或复现研究。",
+        "安全性主要通过 LlamaGuard 3 评估，附录还报告了自动评审和人工评审。",
+        "实验使用四种模型变体、两个数据集、LoRA 和选定的多语言基准；未证明部署安全。",
+        "权重取舍随模型和数据集而不同，部分语言出现轻微回归。"
+      ],
+      "relationships": [],
+      "summary": "一篇预印本提出 MMSafe：通过跨语言共享的安全敏感层和语言专属层，为微调样本评分。在四种 Llama/Qwen 变体、两个微调数据集和三项多语言安全基准上，作者报告有害响应比例平均约为随机筛选基线的 39%；该方法在四种变体中的三种上优于此前的单层过滤器。作者称，在测试设置中，通用和多语言效用大体相近，但结果会随数据集、模型和语言权重而变。结论限于论文的 LoRA 微调和基准测试。作者称代码已发布，但本次激活未运行代码，也未独立复现结果。",
+      "technical": {
+        "claimed_result": "作者报告在四种模型变体中，有害响应比例为随机筛选基线的 31.8%–46.5%；MMSafe 在四种中的三种优于 LARF。",
+        "demonstrated_result": "主要论文记录了该方法并报告基准测量；本次未进行独立复现。",
+        "mechanism": "共享安全敏感层和语言专属层为微调样本排序提供互补信号。",
+        "regime": "作者以 Aya 和 Nemotron-SG 数据池进行 LoRA 微调，覆盖四种 Llama/Qwen 变体，并用三项多语言安全基准和安全评审器评估。",
+        "strongest_baseline": "在同一模型、数据集和基准下随机选择；LARF 是单层对照。"
+      },
+      "title": "MMSafe 报告一种多语言微调数据筛选器可降低测得的安全回归",
+      "why_it_matters": "即使微调数据本身没有明显危害，也可能削弱安全行为。论文检验多语言安全信号是否分布在模型不同层中，并报告了一种可能帮助模型适配期间维持安全表现的数据筛选方法。"
     },
     "FCMO-2855FF416D32": {
       "claims": [
@@ -9853,6 +9909,61 @@
       "title": "一项预印本测量了通用操作系统防护自托管智能体持久状态的局限",
       "why_it_matters": "自托管智能体可以修改影响其未来行为的文件。若智能体已经被攻陷，常规文件权限与日志也许无法区分合法的记忆更新和恶意写入。如果这些有限范围内的测量在更多环境中成立，防护方案就需要在隔离与受保护恢复之外，另设带有上下文判断的更新边界。"
     },
+    "FCMO-996A9DA8F42A": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "作者提出 CS-MoE，将逐层专家与一个可供 Transformer 多层访问的共享专家池结合。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "在规模为 0.6B 至 12B 参数的 Qwen3 主干实验中，作者报告称，在参数量和 FLOP 预算匹配时，困惑度低于稠密基线；一种 8B 配置激活物理参数的 55%，困惑度为 9.55，而 8B 稠密基线为 9.75。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "在总参数量和活跃 FLOP 预算匹配时，论文报告称，相比其逐层隔离的稀疏 MoE 对照，8B 规模困惑度为 9.65 对 9.70，12B 规模为 9.19 对 9.40。"
+        },
+        {
+          "label": "DEMONSTRATED_SCOPE_LIMITATION",
+          "text": "所检查论文称其实证验证最高到 12B 参数；70B 以上扩展、分布式加速和后训练流程留待未来研究。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "本次未检查训练运行或所报告困惑度及下游结果的独立复现。",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "作者的验证最高到 12B 参数；尚未测量 70B 以上规模的路由、训练稳定性和系统表现。",
+          "kind": "regime_unclear",
+          "state": "open"
+        },
+        {
+          "description": "论文未证明 CS-MoE 的后训练表现或端到端推理服务成本优势。",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "如果复现，跨层共享可能改变资源受限专家模型的架构选择以及参数与 FLOP 的分配方式。部分报告收益幅度有限，实验最高仅到 12B 参数，也未证明更大规模或推理服务成本方面的优势。",
+      "limitations": [
+        "所有定量结果均由论文作者报告，本次激活未进行独立复现。",
+        "55% 参数激活率的 8B 困惑度比较，与论文另行报告的 8B 下游基准结果不同；后者是在训练 4.5 万亿个 token 后测得。",
+        "论文所报告的最大模型为 12B；70B 以上表现、分布式系统收益和后训练效果仍未知。"
+      ],
+      "relationships": [],
+      "summary": "一篇预印本提出 CS-MoE，将层内专家与可跨 Transformer 层调用的共享专家池结合。在基于 Qwen3、规模为 0.6B–12B 参数的实验中，作者报告称，在参数量和 FLOP 预算匹配时，其困惑度低于稠密模型和层间隔离的 MoE 模型。在 8B 规模下，一种配置每次前向计算激活物理参数的 55%，困惑度为 9.55，而稠密基线为 9.75。这项结果不同于论文另行报告的模型、训练 4.5 万亿个 token 后的下游比较。论文评估的最大模型为 12B；更大规模下的路由稳定性、分布式系统效率和后训练表现尚未得到验证。",
+      "technical": {
+        "claimed_result": "作者报告称，相比稠密和逐层隔离稀疏 MoE 基线，CS-MoE 在匹配预算下困惑度有所改善；一种 8B 设置激活物理参数的 55%，PPL 为 9.55，而 8B 稠密模型为 9.75。",
+        "demonstrated_result": "主要论文记载了所提架构和作者报告的实验结果；本次激活未独立复现这些结果。",
+        "mechanism": "每个 Transformer 层有本层专家，路由器还会从可跨深度调用的共享专家池中选择部分专家，使参数能在多层复用。",
+        "regime": "作者在 0.6B 至 12B 参数规模的 Qwen3 主干上进行实验，采用参数量与 FLOP 匹配比较及部分下游评估。",
+        "strongest_baseline": "论文内部的稠密和逐层隔离稀疏 MoE 基线，在总参数量和活跃 FLOP 上与之匹配。"
+      },
+      "title": "CS-MoE 报告跨层专家共享在最高 12B 参数规模下改善困惑度",
+      "why_it_matters": "跨层复用参数为在存储容量和活跃计算之间权衡提供了一种具体架构路径。如果匹配预算下报告的收益能够复现，可能影响受内存或计算限制的稀疏模型设计。"
+    },
     "FCMO-99C2914CBB6D": {
       "claims": [
         {
@@ -12931,6 +13042,62 @@
       },
       "title": "生产数据库智能体的许多失败发生在调用工具后，服务器缺陷也会改变模型得分",
       "why_it_matters": "如果这一结果能够复现，工具智能体的失败可能被错误归咎于模型能力，而真正的瓶颈是接口或服务器；修复一个环境缺陷就可能同时帮助多个模型。该研究仅覆盖一个产品，作者参与了被评估软件的开发，且所选干预前后测量不能确定普遍效应大小。"
+    },
+    "FCMO-CF1ADDC93536": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "作者用生成的职位和求职者档案评估十个基础及后训练 LLM 的模拟招聘决策；档案依据美国劳动力市场分布，覆盖 76 个职业。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "十个后训练模型中有八个对年长求职者的回访概率相对其基础版本出现负向变化；论文报告的中位变化为 -4.7%。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "系统性排斥定义为至少 9/10 个模型给出的回访概率低于 0.5；作者报告估计比例从基础模型的 5.6% 升至后训练模型的 17.3%。"
+        },
+        {
+          "label": "DEMONSTRATED_SCOPE_LIMITATION",
+          "text": "研究使用生成档案和共享模拟流程；没有测量雇主的实际决策，也未识别导致变化的后训练阶段。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "本次未检查生成档案实验或其估计值的独立复现。",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "实验使用生成档案和共享模拟流程，而非已观察到的部署或雇主决策。",
+          "kind": "regime_unclear",
+          "state": "open"
+        },
+        {
+          "description": "排斥率依赖 9/10 一致性和 0.5 回访阈值；各后训练阶段没有分别分析。",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "如果在实际场景中复现，模型选择的相关性可能集中影响谁能获得机会，并影响就业评估与部署治理。该结果仅限于抽样生成档案和模拟回访，不代表真实招聘结果。",
+      "limitations": [
+        "结果是作者报告的模型回访概率，不是真实招聘结果。",
+        "档案和职位来自美国在线劳动力数据的临时快照，并经过简化，不含完整简历和职位描述。",
+        "人口信号采用二元标记和姓名、毕业日期，这些线索可能同时反映其他社会经济因素。",
+        "论文未确定具体哪个后训练阶段造成变化。"
+      ],
+      "relationships": [],
+      "summary": "一篇预印本在美国模拟招聘流程中研究了十个基础及后训练语言模型，使用依据 76 个职业的劳动力分布生成的职位和求职者档案。作者报告称，十个后训练模型中有八个对年长求职者的回访概率相较基础版本下降，中位变化为 4.7%。他们将系统性排斥定义为至少九个模型给出的回访概率低于 0.5；按此指标，估计比例从基础模型的 5.6% 升至后训练模型的 17.3%。这些是模型在生成档案上的输出，不是真实招聘决策。数据只是美国在线劳动力市场的一个快照，人口信号经过简化，研究也未确定是哪一阶段后训练导致了变化。",
+      "technical": {
+        "claimed_result": "作者报告称，十个后训练模型中有八个对年长者的回访下降（中位变化 -4.7%），模拟系统性排斥率从 5.6% 上升到 17.3%。",
+        "demonstrated_result": "论文记录了模拟方法并报告模型输出；没有证明实际招聘结果，也没有独立复现。",
+        "mechanism": "后训练模型在生成求职者任务中做出更相关的决策；一致性阈值继而提高了多数模型赋予低回访概率的比例。",
+        "regime": "在美国生成招聘模拟中使用十组成对基础/后训练模型，采用覆盖 76 个职业的抽样职位和档案特征。",
+        "strongest_baseline": "同一模型内基础版本与后训练版本的比较，以及在相同档案和阈值下基础模型的排斥估计。"
+      },
+      "title": "研究报告：后训练决策相关性上升可能提高模拟的系统性排斥率",
+      "why_it_matters": "只观察单个系统的平均人口差异，可能忽略多个系统做出相似选择的累积影响。如果在实际应用中得到支持，相关选择可能让更多人持续被筛除。"
     },
     "FCMO-CFC14EB454F9": {
       "claims": [
@@ -17223,6 +17390,48 @@
       "why_it_matters": {
         "locale_sha256": "2b4ace23789f09f85bc76e8b7a6aedb73bcb4e4c3336d18bcc297ee05385e374",
         "source_sha256": "a4b5ba2c8dfb28e62b0fd59b978c107a15efca2bd74e7df1d588a8108408347c"
+      }
+    },
+    "FCMO-266232F3118E": {
+      "claims": {
+        "locale_sha256": "ec2257319908e37a94201b8298f557ab3278e3bb8fd24bddc802bd67dc39c872",
+        "source_sha256": "2fdfd601023879ab1fa5f4d7a13ec4dd6e56fcf11c0016584b7e43b2befa2af7"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "cc1557cca11d1f3da2f951d6dfeb8779b5d566a0b89ced1f74a9b07ad61c082a",
+        "source_sha256": "209678c7748614fb2dad149321893adaddaba61b9e95597a8abfdbef828cdba7"
+      },
+      "importance_rationale": {
+        "locale_sha256": "96ed845b54dda10e2ae5264725f43bf3ad35ec6bac5b2c0d704d4897caf8db2d",
+        "source_sha256": "e5d2ef174281aa04108157dbb5717a8e0eb1e103f1ccaf63ae0148ddc9c46d8a"
+      },
+      "limitations": {
+        "locale_sha256": "515b5a10d83a7b589148e486594de73f3ca51051ba7f530a274da6dbb97c6bee",
+        "source_sha256": "d9707f880f8eb52036b3554bcfd854dc760182e80523c6a777eb1b3a5fb8ae01"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "4918901e0d82ff64a95ab544e3c764fa3d832588c1f2225c1b35cb22a0a2d341",
+        "source_sha256": "22554533ed57900eb34763eb19e5b7eef6cf55ab72ca3062e479c5e573b4ace2"
+      },
+      "technical": {
+        "locale_sha256": "5a1decd22a7c44aaad8fe94560a5b6eb8ad25237444de9fe7499be7c372f00bf",
+        "source_sha256": "9d7ccf13e565a9d9352693bcdf06bf2f80227acc3267891f0374f6bae7532dd1"
+      },
+      "title": {
+        "locale_sha256": "86ae7a0ccde5a64209eee2e213f9de3828872aece551a578fcd55daeae8f4b47",
+        "source_sha256": "aeb949a4ca88c6c1750e858f1e4dcea815b43d88d0594fa418265e2ea5815eb6"
+      },
+      "why_it_matters": {
+        "locale_sha256": "17fdaeef402e922c9a8f172fd6a16230fff743b11b496ba6c0e3c27a56d68a88",
+        "source_sha256": "38cf593580f4798a31c9f987ca224f9b756b645034da8c44b045887abab18104"
       }
     },
     "FCMO-2855FF416D32": {
@@ -22629,6 +22838,48 @@
         "source_sha256": "380db4883c9e15a1d4913cbd8df63016f1a6cc89dd3ab83d847fa310115babc0"
       }
     },
+    "FCMO-996A9DA8F42A": {
+      "claims": {
+        "locale_sha256": "3c6a51c1f5d9243910f750227ca9aafc1bf349ce34fd4cefce5f9cd4c1f6bf5a",
+        "source_sha256": "33e57cc5d34ba1bcb0160b853b6f8f9bb6385a18247125648f01d558cb261354"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "7f4a2ee2c71862d4b0c27cf3658d0ab74cc36a5c24391f94b47c547bac76fd99",
+        "source_sha256": "e8c21f8227faa1b39215089c4670a7890f63b77ad3dce8d2f9fa16f33d3d0cc5"
+      },
+      "importance_rationale": {
+        "locale_sha256": "13c259ee9cf74f803879d5f3ca1eb985013b1edcffd287690c4023903bf56fe0",
+        "source_sha256": "f02583c73425de813544dbe49f491749a35592899b8f536d128a3e51f9482fb5"
+      },
+      "limitations": {
+        "locale_sha256": "47a829022a73c4116cb58d0c11f2b7b56ceab19656f134a2e538142135b72578",
+        "source_sha256": "b8c08acb61d1ac23d5bfcbd33ebaf3688656f5a427a65a09af14d41f7ac799c9"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "54f8aaf47bb62c67d1ccecc164fd5baff3ec3521d594813070aa91d12a02e436",
+        "source_sha256": "4da9698a58b61791538a08586d853b8bbea0d26f1dfb8c5d13dbf0b5ff37d65f"
+      },
+      "technical": {
+        "locale_sha256": "f9e5e5fa0eb3ea8ed9263979ef22a865c310ff0c22062d7119fbe7470c2915fb",
+        "source_sha256": "c1796ede8ea3df03b285e919c6de2c7574daeac2c7f3fbaa09cf059b86518a88"
+      },
+      "title": {
+        "locale_sha256": "0e84d26a280e957565d8c40852001f64424c3ca18ad28614a5b07455614303d9",
+        "source_sha256": "cfa152c4ea00b45409a55102c41f5bcbcc423ce61af8bf1e731b45f7d7cf0f54"
+      },
+      "why_it_matters": {
+        "locale_sha256": "da5bb9ad27eecfb5e48321833b624e6f77f076fdc0d7038150489840786188a1",
+        "source_sha256": "a77992cf44a72d948183396174de90322c1081c08b99a526d05cd4449f5d5d43"
+      }
+    },
     "FCMO-99C2914CBB6D": {
       "claims": {
         "locale_sha256": "e7b1f41a86e76990e5c64b31383756c0ee9b0bb7cc25ca0534638ca6148ad339",
@@ -25007,6 +25258,48 @@
       "why_it_matters": {
         "locale_sha256": "b27d90d6c5e0ace8cf014f4eb42abf049a20541f61e157aa7dc4a4637ad3f74f",
         "source_sha256": "c9f91f90f682f1f6e024f475159f29fe3ca7ef53a40275b0ed11c8e22cc3fa6a"
+      }
+    },
+    "FCMO-CF1ADDC93536": {
+      "claims": {
+        "locale_sha256": "8c6f2162db53cf9fdebc2b43656b15a11bfcc9d502031e504d5496aba5d61656",
+        "source_sha256": "de6454d38f834b652c03a400a414b6f12db1437a3ab0c6fbafdef65b546d65ce"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "55d3d24760004d4902fe92d2d89be71b1db953032333dd9a5c695291f3639ddf",
+        "source_sha256": "c979a56cbcc144bba3443b28219ca4dc2ba4c017628fddb5c19ec22d8d4ec296"
+      },
+      "importance_rationale": {
+        "locale_sha256": "b78a1549af1daa217f2974051ef83f3601f1a11f018e9b8b5add24d0d09c9305",
+        "source_sha256": "4f70135257850b97a03ca92d060f8b97ec44d6880bd400b4b314b2de24915cd1"
+      },
+      "limitations": {
+        "locale_sha256": "0cc308cc0ce1fcd128fb0dbe1e9fd5110847b2ea7210f6f65353cdeeab3025e1",
+        "source_sha256": "ef75bf8055c1fed30788a89f8b849b0165d93b5b1589b2d84f7184ba9456c40d"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "fc10116b798ff7db97cce4c5e5f26ffa6c455f6a5f23b2ccf118d437c6d70b2c",
+        "source_sha256": "6497016471233490f23f726c7acbbd2e3a1c958969dea3944edc43485d0605f4"
+      },
+      "technical": {
+        "locale_sha256": "4b2644350ba1edbed9f3aa38fd5094e0b3ceeb5f3816cc8abfee369076047847",
+        "source_sha256": "9ac21325f99cba0154245dc160a9e3945fae19e6fdc3e5635f56f2efc563f369"
+      },
+      "title": {
+        "locale_sha256": "0a965ceb7f82e4f04fad7d08e6d84e8533aef2151ed9df63e8a8f18f6774e306",
+        "source_sha256": "5ef84b1b4641ff05a9c68f0fa0efd258cb24473f478e29f83275ca8f25c87770"
+      },
+      "why_it_matters": {
+        "locale_sha256": "a268f65e17cb9947c2bc1f8648341015d7ce8bd9c90626b3ac1cbbcb4fbaaff4",
+        "source_sha256": "7768388a904f8377da444ac1cb91d7dfafc48b62c6bc4e666d3f8ab0439ffe47"
       }
     },
     "FCMO-CFC14EB454F9": {
