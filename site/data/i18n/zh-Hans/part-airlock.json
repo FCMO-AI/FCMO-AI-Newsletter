@@ -1,6 +1,6 @@
 {
   "canonical_locale": "en",
-  "canonical_source_sha256": "1d97ad5b966e867b66a1a791cb4a882fc21b0f002caa43caf7d61b1c88eaee86",
+  "canonical_source_sha256": "df3b38913daff4c2fb93691a05cdfa353bfa7db99cf9c9b3fb1ada4af4f82cc3",
   "generated_from": "ARB airlock; editorial wording authored upstream",
   "locale": "zh-Hans",
   "records": {
@@ -1990,6 +1990,66 @@
       },
       "title": "Air Security 报告称四款编程代理存在插件 SHA 固定值检出校验缺失",
       "why_it_matters": "提交固定值常被视为代理执行的就是已审查插件代码的证明。如果所述检出行为成立，代理必须验证解析后的工作树提交；仅有市场中的固定值不足以证明这一保证。"
+    },
+    "FCMO-21277C154D52": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "论文将 Loopjacking 定义为：产品逻辑把人员理解为对操作 A 的批准用于授权或释放实质不同的操作 B，并区分审批前展示不完整与审批后状态替换两种情形。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "作者报告在抽样的 七个 Agno AgentOS 版本（2.5.6、2.9.0、3.0.1、3.0.2、3.0.3、3.0.6、3.0.9）以及 12 个抽样的 LangGraph Agent Server 版本（0.7.5 至 0.14.0）中复现了审批后替换；后者使用指定的内存组合和自定义授权策略。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "作者报告称，OpenClaw 2026.2.23 释放了一个命令向量，其审批界面遗漏了实质不同的参数，而 2026.2.24 拒绝了所测不匹配；OpenAI Agents SDK 0.22.0 和 0.22.2 阴性对照拒绝了相同调用标识下的变更，并执行未改动的已批准调用。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "在所测轨迹中，使用时精确比对，或拒绝未授权的待审批状态更新，可以阻止被替换的操作，同时保留对未变更已批准操作的执行。"
+        }
+      ],
+      "contradictory_evidence": [
+        "测试集是有目的选取的，不能估计整个生态的发生率，也不能确定连续的受影响版本范围。",
+        "LangGraph 结果依赖声明的自定义授权策略和内存组合；未测试生产环境中的 Postgres。",
+        "OpenClaw 2026.2.24 拒绝了所测的展示不一致；论文称审批步骤由脚本执行，因此没有测量人的理解或受骗情况。",
+        "OpenAI Agents SDK 0.22.0 和 0.22.2 在所测的普通逐调用审批路径中拒绝变更，说明继续执行和序列化本身并不足以导致问题。"
+      ],
+      "evidence_gaps": [
+        {
+          "description": "本次激活未独立运行档案中的 Agno、LangGraph、OpenClaw 测试包，也未运行 OpenAI 阴性对照。",
+          "kind": "missing_independent",
+          "state": "open",
+          "updated_at": "2026-10-12T01:15:39Z"
+        },
+        {
+          "description": "尚无完整的当前受影响版本图谱或发生率估计；论文版本证据截止于 2026 年九月 10 日。",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-12T01:15:39Z"
+        }
+      ],
+      "importance_rationale": "如果已部署的代理工作流存在审批与执行不一致，低权限参与者可能重用人工决定来授权另一项后果重大的操作。论文报告了特定产品路径上的有限测试，以及控制或修复；有目的的测试不能估算发生率或受影响市场规模。",
+      "limitations": [
+        "预印本报告的是一位研究者进行的受控测试；本研究团队未独立复现，也未运行证据档案中的验证器。",
+        "证据截止日期为 2026 年九月 10 日。论文报告的是明确列出的受测版本，不对之后的版本或部署作判断。",
+        "查阅的档案未确认 Agno 或 LangGraph 已发布修复版本。LangGraph 结果取决于所测的内存组合及授权策略。",
+        "合成凭证和无害执行记录只能确认测试中产品实际分派的操作；它们不能证明真实资金、生产数据或客户系统受到影响。",
+        "OpenClaw 测试在观察到确切产品事件后以脚本执行审批，因此研究没有衡量人的理解程度或界面造成误导的频率。"
+      ],
+      "relationships": [],
+      "summary": "一篇发表于 2026 年九月的预印本将 Loopjacking 定义为：产品逻辑把针对操作 A 的人工决定用于授权实质不同的操作 B。在有目的选取的测试中，作者报告在抽样的七个 Agno AgentOS 版本，以及采用声明式授权策略的 12 个内存版 LangGraph Agent Server 组合中复现了审批后替换；还报告 OpenClaw 2026.2.23 的命令审批展示不完整。OpenClaw 2026.2.24 拒绝了所测不匹配。OpenAI Agents SDK 0.22.0 和 0.22.2 作为阴性对照，拒绝了相同调用标识下的变更。测试使用合成身份和无害的执行记录目标；它们不估计发生率，不证明用户易受欺骗，也不表明所有版本均受影响。",
+      "technical": {
+        "claimed_result": "作者报告在三种不同产品路径中复现了受控原生轨迹，并设置 OpenAI Agents SDK 阴性对照；所测防护能阻止不匹配，同时保留对未变更操作的执行。",
+        "demonstrated_result": "原始来源记录了论文和档案报告的内容，包括具体版本、条件配置、合成执行目标和控制项。本研究团队未运行档案，也未核实论文所述执行结果。",
+        "mechanism": "人员审阅呈现或规范化的操作 A；之后，产品逻辑未比对完整的实质效果、目标、主体、任务及范围，就对当前操作 B 使用该审批。论文区分了审批前隐藏或不完整展示 B，以及审批后将 A 替换为 B。",
+        "regime": "对有目的选取的已发布版本进行测试，使用本地产品路径、合成身份、确定性的本地模型、环回服务，以及无害的追加式记录目标或临时文件。LangGraph 测试采用内存版 Agent Server 组合和声明式授权策略。证据截止日期为 2026-09-10。",
+        "reproducibility": "公开档案列出带校验和的证据包及 Python 验证器。本次激活只检查了仓库 README 和目录清单；未运行验证器或复现任何测试框架。",
+        "strongest_baseline": "未变更的已批准 A 执行；未经批准直接执行 B 时被拒绝；主体与会话边界控制；OpenAI Agents SDK 阴性对照；OpenClaw 2026.2.24 的修复行为；以及研究用精确操作比对或拒绝更新策略。"
+      },
+      "title": "Loopjacking 论文报告：在受测产品路径中，代理审批被用于执行实质不同的操作",
+      "why_it_matters": "只有当最终执行的操作始终绑定到人员审阅的完整操作时，审批界面才构成有效的安全边界。在使用时进行精确比对，或阻止对待审批状态的未授权修改，都是可测试的防护措施。"
     },
     "FCMO-23126AF42ED1": {
       "claims": [
@@ -14634,6 +14694,48 @@
       "why_it_matters": {
         "locale_sha256": "1fce5741bd50afd8c2b493ead39cde01349958159e3b249e8826a40e286bac00",
         "source_sha256": "5b07678da41e7685c442e5d1e541f25f37aabff6ec7f18981d552a22806caa02"
+      }
+    },
+    "FCMO-21277C154D52": {
+      "claims": {
+        "locale_sha256": "97d1e83fe21c6953d3d3441abeae75f007db19c5b96889104aa8fe7de1442457",
+        "source_sha256": "dddf1e80e9f25254cc8f383046ca8765c4f88f86858cc11d59499c22e7f9c530"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "b0795ef214721167441e7489bf5a0b9a7314303c3596fc1b44cf6afdd2f5f8fa",
+        "source_sha256": "85726e4ed16057ab81ff89849335682e98e3c359c7272f12e52ba46490144fd8"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "161494e7faaf357bed34c613024bdf983f24472acc66079f8f786d3bffcac4a4",
+        "source_sha256": "7b6cbf4f0e87d9f858a5f3682821917b4ccd711a7abf116113fa7cbf31eb2218"
+      },
+      "importance_rationale": {
+        "locale_sha256": "b01bf91deb7bb11055f8e75ffcd485064c75d9db20a0f5923dfad302b96c2dd4",
+        "source_sha256": "94b4511b718b76efbc8aa15ee780d74c43aba8a1957b28a1956e3592fd6c28c1"
+      },
+      "limitations": {
+        "locale_sha256": "179d76c468afd3cad063e3c354a851a2217935cd90c2e28131761b5fdeb140fc",
+        "source_sha256": "1e91853d236e167fc9c2f6614d6e8c705f96c91dd1ae89cfa321232cd831d0bc"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "88005a2bdd7cbf31691501dbee107536e6b33b61fa28a10a2e5320d41be42c29",
+        "source_sha256": "72afebf1f61cfb8925c0c6c4486fde67e4e1db5e108b5b52fc3fcc6666d72ad6"
+      },
+      "technical": {
+        "locale_sha256": "93b2c6df98a9580cff604697a4b21162efe14874d35de92aa92b2831986215a1",
+        "source_sha256": "4f3260f39ef37f248cae278a6146d05a3135a3c28813f09675f98a993dac2050"
+      },
+      "title": {
+        "locale_sha256": "e5770f0d2670d1e2454230f78c2f45503ef8a319e065a79bc5e9bb94891f3539",
+        "source_sha256": "5df6c54b7046383928011bf7857560e71832b2987b7cc352fe3e69624a968f3c"
+      },
+      "why_it_matters": {
+        "locale_sha256": "38820b5bd0350bd2539dbfc2dfef452e03b609252ed7bb46e71011cb53d8ddae",
+        "source_sha256": "856020dfd39df8cf22c2cdaad1de0603ee4f608105a1dcf9cfd0a309cfad346f"
       }
     },
     "FCMO-23126AF42ED1": {
