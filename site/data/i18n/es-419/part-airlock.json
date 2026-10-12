@@ -1,6 +1,6 @@
 {
   "canonical_locale": "en",
-  "canonical_source_sha256": "56fbaba17f89084eb2266f93664c08ced0b6dc76e019389defa94b01d5cc308b",
+  "canonical_source_sha256": "eaaa3b24acb75642ff2a71a6a7babc218c3d320462de5873f6677623220f3054",
   "generated_from": "ARB airlock; editorial wording authored upstream",
   "locale": "es-419",
   "records": {
@@ -6718,6 +6718,69 @@
       "title": "Fuse informa un benchmark de razonamiento social mediado por usuarios para asistentes LLM",
       "why_it_matters": "Muchos asistentes de consejo social solo reciben el relato de una persona, que puede omitir o reinterpretar hechos. Un benchmark que varía el encuadre del usuario manteniendo fijos los eventos simulados puede probar si los modelos separan la evidencia de la interpretación. Los resultados sugieren una dimensión de evaluación distinta, pero el entorno sintético no establece frecuencia ni efectos en interacciones reales."
     },
+    "FCMO-6B232DEBE030": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "THAW-VLA entrena un estudiante visión-lenguaje-acción con una pérdida de alineación de características respecto a representaciones en caché de un modelo del mundo congelado; el docente y el proyector se retiran al desplegar."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan que un estudiante de 0.8B mejora el éxito medio en LIBERO de 95.3% a 97.9% y en RoboCasa-GR1 de 48.2% a 50.5%, frente al mismo estudiante entrenado sin alineación."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En dos plataformas robóticas reales y tres tareas, los autores informan 30 pruebas por celda y mejoras frente al estudiante sin destilar. La política de 0.8B se mide a 32 ms y 1.86 GB en una RTX 5090."
+        }
+      ],
+      "contradictory_evidence": [
+        "La mejora informada en LIBERO es modesta en términos absolutos (95.3% a 97.9%) y parte de un benchmark con rendimiento inicial alto; no demuestra robustez amplia.",
+        "La página del proyecto señala que aún hay errores de colocación en las tareas de robot y solo presenta tareas seleccionadas de recoger y colocar o entregar objetos."
+      ],
+      "evidence_gaps": [
+        {
+          "description": "No se reprodujeron de forma independiente las mediciones de simulación, éxito en robots, latencia o memoria.",
+          "kind": "missing_independent",
+          "state": "open",
+          "updated_at": "2026-10-12T07:11:56Z"
+        },
+        {
+          "description": "Las tablas revisadas no miden generalización a robots, tareas, condiciones visuales o hardware de despliegue no vistos.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-12T07:11:56Z"
+        },
+        {
+          "description": "No se cuantifican el cómputo fuera de línea ni el almacenamiento necesarios para generar y guardar características del modelo del mundo.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-12T07:11:56Z"
+        }
+      ],
+      "importance_rationale": "Si la transferencia informada se generaliza, una política robótica compacta podría mejorar tareas gracias a un modelo del mundo sin pagar el costo de segundos por decisión en despliegue. Esto podría cambiar el equilibrio práctico de latencia y memoria en sistemas encarnados. La consecuencia está acotada a un estudiante de 0.8B, tareas de manipulación seleccionadas y resultados de los autores.",
+      "limitations": [
+        "Los autores reportan todos los resultados; esta revisión no hizo una reproducción independiente.",
+        "Las pruebas físicas cubren dos plataformas, tres tareas de manipulación y 30 intentos por celda; no establecen transferencia amplia.",
+        "Algunas cifras externas se tomaron de artículos previos con protocolos diferentes; la comparación interna más fuerte usa el mismo estudiante con y sin alineación.",
+        "Latencia y memoria corresponden a un perfil en RTX 5090; no se establece energía, costo de entrenamiento ni rendimiento en otro hardware.",
+        "La mejora media en LIBERO es de 2.6 puntos porcentuales; importan la variación por tarea y la saturación del benchmark."
+      ],
+      "relationships": [],
+      "summary": "THAW-VLA usa un modelo del mundo congelado para producir una vez características de cuadros de entrenamiento y añade una pérdida de alineación a una política compacta visión-lenguaje-acción. El modelo docente y el proyector se eliminan antes del despliegue; la inferencia usa la gráfica estudiantil sin destilar. Los autores informan que una política de 0.8B parámetros pasa de 95.3% a 97.9% en éxito medio de LIBERO y de 48.2% a 50.5% en RoboCasa-GR1. También reportan mejoras frente al mismo estudiante en tareas robóticas de brazo simple y doble, con 30 pruebas por celda. En una RTX 5090 informan 32 ms y 1.86 GB. Son resultados de los autores y tareas seleccionadas; faltan réplica independiente y cobertura más amplia.",
+      "technical": {
+        "claimed_result": "Los autores informan éxito medio LIBERO 95.3%→97.9%, RoboCasa-GR1 48.2%→50.5%, mejoras en tareas seleccionadas con robots y 32 ms / 1.86 GB de inferencia.",
+        "compute_or_cost": "Los autores informan 32 ms y 1.86 GB de inferencia en RTX 5090. No se cuantifican el preprocesamiento de características, su almacenamiento ni el costo total de entrenamiento.",
+        "demonstrated_result": "esta revisión no hizo una demostración independiente. La página del proyecto informa método, controles del mismo estudiante, tablas y cantidades de pruebas.",
+        "implementation_status": "La página enlaza código fuente y checkpoints; esta revisión inspeccionó el informe y la página, pero no ejecutó el repositorio.",
+        "mechanism": "Ejecutar un modelo del mundo congelado una vez sobre cuadros de entrenamiento, guardar sus características visuales y entrenar el estudiante VLA con una pérdida coseno adicional de alineación. Después se retiran el modelo del mundo y el proyector; en despliegue queda la política estudiantil normal.",
+        "novelty": "Transfiere una representación previa de un modelo del mundo a una VLA compacta durante el entrenamiento, sin cambiar la gráfica de inferencia desplegada.",
+        "regime": "Estudiante Qwen de 0.8B. LIBERO promedia cuatro evaluaciones (2 semillas × 2 GPU); RoboCasa-GR1 tiene una comparación de cuatro ejecuciones y ablaciones adicionales de una ejecución; las pruebas físicas usan AgileX Nero y TRIP-Bag con 30 intentos por celda. Una RTX 5090 para inferencia.",
+        "reproducibility": "El artículo y la página detallan modelos y tareas y ofrecen enlaces públicos. No se verificaron réplicas, procedencia completa de checkpoints ni economía del preprocesamiento.",
+        "strongest_baseline": "La misma base estudiantil entrenada con la misma configuración, pero sin el término de alineación de características. Las políticas externas de mayor tamaño son contexto y no están emparejadas por completo."
+      },
+      "title": "THAW-VLA destila características de modelos del mundo en una política robótica compacta",
+      "why_it_matters": "El método transfiere representaciones de un modelo del mundo a una política robótica menor sin cargar el modelo del mundo ni generar futuros durante la inferencia. Si se replica en más tareas y equipos, podría conservar parte de la fundamentación del modelo del mundo y reducir latencia y memoria. La evidencia actual es un conjunto de benchmarks de los autores y pocas tareas con robots reales."
+    },
     "FCMO-6C390D62E672": {
       "claims": [
         {
@@ -8806,6 +8869,71 @@
       },
       "title": "EmbodiedRSI reporta evolución de un sistema robótico con selección de hipótesis y transferencia a cinco tareas reales",
       "why_it_matters": "Si los resultados reportados se mantienen en ensayos independientes más amplios, elegir experimentos físicos informativos y actualizar conjuntamente habilidades ejecutables y código podría hacer más eficiente en datos la adaptación robótica sin volver a entrenar el modelo fundacional. La evidencia física reportada es prometedora pero acotada, y no demuestra auto-mejora recursiva general ni transferencia amplia."
+    },
+    "FCMO-923F19836F22": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "STeP-PO combina comprobaciones de calidad de pasos basadas en observaciones, estimaciones contrafactuales de importancia y un árbol semántico para distribuir ventajas de proceso y resultado a los tokens de razonamiento durante la optimización de políticas de semáforos."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Con Qwen2.5-3B entrenado en un flujo sintético y evaluado sin ajuste en CityFlow sobre cinco flujos reales de Jinan y Hangzhou, los autores informan que ProcessLight obtiene el mejor resultado en la mayoría de las métricas entre los métodos comparados."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En una ablación de Jinan1 y Hangzhou1, los autores informan tiempo medio de viaje de 289.34 s y 314.99 s con STeP-PO, frente a 305.74 s y 334.25 s con recompensa de resultado sola. Cinco semillas y corrección global de Holm favorecen significativamente al método en 81 de 90 comparaciones."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En apéndice, los autores informan resultados de ProcessLight con Qwen3-8B, Qwen3-32B y Llama3-8B, y con Qwen3-Plus como docente alternativo; los resultados varían por conjunto y métrica, así que estas pruebas no establecen leyes generales de escalamiento."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan que generar las afirmaciones de referencia requirió 3k llamadas a la API en la nube de DeepSeek-V4-Pro, 7.07M tokens de entrada y 1.70M de salida por $9.1; precalcular la importancia de pasos usó Qwen2.5-3B, 21k llamadas, 57.81M tokens de entrada y 1.5 horas de GPU en una RTX PRO 6000 por $1.2. Son costos informados de dos etapas de construcción de datos, no del entrenamiento, la inferencia o el despliegue total."
+        }
+      ],
+      "contradictory_evidence": [
+        "El artículo identifica la topología de cuatro vías y los pasos de razonamiento predefinidos como restricciones actuales; deja intersecciones más complejas para trabajo futuro.",
+        "La simulación no demuestra rendimiento, seguridad ni beneficios viales en intersecciones operativas."
+      ],
+      "evidence_gaps": [
+        {
+          "description": "No se volvió a ejecutar de forma independiente el código público ni las comparaciones de CityFlow.",
+          "kind": "missing_independent",
+          "state": "open",
+          "updated_at": "2026-10-12T07:14:02Z"
+        },
+        {
+          "description": "No se inspeccionó un despliegue o evaluación operativa fuera de la simulación de cuatro vías del artículo.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-12T07:14:02Z"
+        }
+      ],
+      "importance_rationale": "Si se reproduce, las recompensas verificadas contra observaciones y la importancia contrafactual podrían mejorar la asignación de crédito en el aprendizaje por refuerzo de LLM y cambiar el entrenamiento de controladores en el régimen probado. La consecuencia es acotada a una tarea simulada y una configuración con un modelo 3B; no se establece impacto en tráfico desplegado.",
+      "limitations": [
+        "Todos los resultados son de los autores y no se reprodujeron de forma independiente.",
+        "La evaluación corre en CityFlow con flujos reales, pero no en calles o redes de semáforos operativas.",
+        "La tarea usa intersecciones de cuatro vías y pasos predefinidos; no se ha establecido transferencia a otras topologías o razonamiento libre.",
+        "El análisis de 81/90 significativos agrega comparaciones por pares en dos conjuntos; no determina un efecto vial real.",
+        "El artículo incluye algunas variantes adicionales de modelo base y docente, pero este conjunto acotado de evaluaciones no establece escalamiento general por tamaño de modelo ni presupuesto de entrenamiento."
+      ],
+      "relationships": [],
+      "summary": "ProcessLight/ STeP-PO entrena un controlador de semáforos con crédito a nivel de proceso: verifica afirmaciones intermedias sobre el tráfico frente a las observaciones, estima el efecto de cada paso en la fase final al eliminarlo y agrupa pasos semánticamente similares en un árbol para asignar ventajas relativas. Los autores informan un Qwen2.5-3B entrenado con un flujo sintético y evaluado sin ajuste en CityFlow sobre cinco flujos reales de Jinan y Hangzhou; el método lidera la mayoría de las métricas presentadas. En dos conjuntos, el artículo informa menor tiempo medio de viaje que con RL basado solo en el resultado, y 81 de 90 comparaciones corregidas por Holm favorecen significativamente al método en cinco semillas. Es evidencia de simulación para intersecciones de cuatro vías, no de despliegue vial; esta revisión no ejecutó el código. El apéndice también informa variantes Qwen3-8B, Qwen3-32B y Llama3-8B y un docente alternativo, con resultados que varían según el conjunto y la métrica. Todo sigue siendo evidencia de simulación CityFlow reportada por el artículo para su configuración de intersecciones, no evidencia de despliegue vial; esta revisión no volvió a ejecutar el código.",
+      "technical": {
+        "claimed_result": "Los autores informan mejores cifras en la mayoría de las métricas de cinco conjuntos. El tiempo medio de viaje baja de 305.74 a 289.34 s en Jinan1 y de 334.25 a 314.99 s en Hangzhou1 frente a recompensa de resultado sola. El artículo informa 81 de 90 comparaciones corregidas por Holm a favor del método en dos conjuntos y cinco semillas. El apéndice también informa variantes Qwen3-8B, Qwen3-32B y Llama3-8B y un docente Qwen3-Plus alternativo; las comparaciones varían por conjunto y métrica.",
+        "compute_or_cost": "El apéndice informa costos de dos etapas de construcción de datos: $9.1 por 3k llamadas a la API en la nube de DeepSeek-V4-Pro (7.07M tokens de entrada y 1.70M de salida), y $1.2 por precalcular la importancia de pasos con Qwen2.5-3B (21k llamadas, 57.81M tokens de entrada y 1.5 horas de GPU en una RTX PRO 6000). Son costos de etapa informados por los autores, no costos totales de entrenamiento, inferencia o despliegue.",
+        "demonstrated_result": "esta revisión no lo demostró de forma independiente. Son comparaciones de simulador informadas en el artículo.",
+        "implementation_status": "Los autores enlazan código público wenzhaoabc/processlight. esta revisión inspeccionó la página del repositorio, pero no instaló ni ejecutó el código.",
+        "mechanism": "En razonamiento de tráfico estructurado, verificar las afirmaciones de cada paso frente a las observaciones, estimar su importancia retirando el paso y midiendo el cambio en la distribución de acciones, unir pasos semánticos equivalentes en un árbol condicionado por prefijos y asignar ventajas locales y globales a tokens.",
+        "novelty": "Combina calidad de paso basada en datos de tráfico, sensibilidad contrafactual de la decisión y agrupación semántica en árbol para optimizar políticas LLM de control de semáforos.",
+        "regime": "Evaluación principal con Qwen2.5-3B, entrenado en un flujo sintético y evaluado sin ajuste en CityFlow sobre cinco conjuntos reales; intersecciones de cuatro vías y control fijo en las intersecciones vecinas. El apéndice también informa variantes Qwen3-8B, Qwen3-32B y Llama3-8B y un docente alternativo, sin establecer una ley general de escalamiento.",
+        "reproducibility": "El artículo incluye configuración, fuentes de datos, varias semillas y análisis estadístico; también enlaza código. No se hicieron réplicas ni validación externa.",
+        "strongest_baseline": "En la ablación de supervisión, ajuste supervisado más recompensa de resultado. La tabla general incluye métodos fijos, presión máxima, controladores RL y métodos LLM."
+      },
+      "title": "ProcessLight aplica supervisión por pasos al control de semáforos",
+      "why_it_matters": "El trabajo aplica asignación de crédito por paso a un proceso de decisión estructurado cuyas afirmaciones intermedias se pueden contrastar con el estado observado y cuya acción final tiene un resultado claro en el simulador. Si se replica, ofrece un diseño concreto de supervisión de proceso para optimizar políticas LLM. El alcance se limita al simulador, los conjuntos de datos y las intersecciones de cuatro vías del artículo."
     },
     "FCMO-92E86166BABF": {
       "claims": [
@@ -13367,6 +13495,70 @@
       "title": "California firma siete leyes sobre costos de servicios públicos, divulgación, agua y ubicación de centros de datos",
       "why_it_matters": "California es un mercado eléctrico grande y una ubicación importante para infraestructura digital. Si los requisitos operan como los resume el anuncio, podrían cambiar la forma en que algunos centros propuestos divulgan el uso de recursos, cubren mejoras de red y agua y califican para revisiones simplificadas. El alcance legal exacto y los efectos reales sobre tarifas y proyectos siguen sin medirse."
     },
+    "FCMO-EA8DFB8BF4B2": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "PG-TTRL estima la fundamentación acústica según el cambio de probabilidad logarítmica de tokens cuando se enmascara la atención al audio, y escala la ventaja de votación mayoritaria sin etiquetas mediante el margen entre respuestas mayoritarias y disidentes."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Con Qwen2.5-Omni de 3B y 7B en MMAR y MMAU, los autores informan puntuaciones greedy y Avg@8 superiores a TTRL estándar en las cuatro combinaciones modelo/benchmark; la precisión por mayoría no mejora uniformemente."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El artículo informa mejoras frente al modelo base de hasta 4.6 puntos en MMAR y 4.9 en MMAU, usando prompts de prueba sin etiquetas durante una época de adaptación LoRA y reservando las respuestas para evaluación."
+        }
+      ],
+      "contradictory_evidence": [
+        "La precisión Maj@8 no mejora uniformemente: PG-TTRL queda por debajo de TTRL estándar en algunas comparaciones, incluida MMAU con el modelo 7B.",
+        "El procedimiento añade rollouts y pasadas del modelo, pero el artículo no mide el costo ni la latencia frente a TTRL estándar."
+      ],
+      "evidence_gaps": [
+        {
+          "description": "No se implementó ni reprodujo PG-TTRL de forma independiente y el artículo inspeccionado no enlaza código público.",
+          "kind": "missing_independent",
+          "state": "open",
+          "updated_at": "2026-10-12T07:14:02Z"
+        },
+        {
+          "description": "No se mide el costo adicional de rollouts, pasadas con audio enmascarado ni adaptación frente a TTRL estándar.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-12T07:14:02Z"
+        },
+        {
+          "description": "No se establece el rendimiento en dominios de audio disjuntos o tareas de razonamiento distintas a opción múltiple.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-12T07:14:02Z"
+        }
+      ],
+      "importance_rationale": "Si los resultados se sostienen, ponderar actualizaciones según la fundamentación acústica ofrece un control práctico para RL de tiempo de prueba en modelos multimodales, donde los priors de texto pueden contradecir el audio. Esto podría cambiar la adaptación y evaluación del razonamiento auditivo, pero la evidencia se limita a dos tamaños Qwen, dos benchmarks de opción múltiple y adaptación en los conjuntos de prueba.",
+      "limitations": [
+        "Resultados de autores; no hubo reproducción independiente.",
+        "La adaptación usa prompts sin etiquetas de los conjuntos de evaluación durante una época; es un régimen transductivo y no debe confundirse con evaluación de modelos congelados.",
+        "La evaluación cubre dos tamaños Qwen2.5-Omni y dos benchmarks de opción múltiple; se desconoce la transferencia a tareas abiertas, otras familias o dominios no vistos.",
+        "Maj@8 da resultados mixtos y no mejora siempre frente a TTRL estándar.",
+        "El método usa varias muestras y dos condiciones de pasada; no se cuantifican cómputo extra, tiempo de pared ni latencia.",
+        "No se encontró un enlace a implementación pública en el informe inspeccionado."
+      ],
+      "relationships": [],
+      "summary": "Listen Then Reason propone PG-TTRL para modelos de audio-lenguaje. Estima cuánto depende cada respuesta del audio comparando probabilidades de tokens con acceso completo y con atención al audio enmascarada; un margen de fundamentación pondera la ventaja usada en RL de tiempo de prueba con votación mayoritaria y sin etiquetas. En Qwen2.5-Omni 3B y 7B, con MMAR y MMAU, los autores informan puntuaciones greedy y Avg@8 mayores que TTRL estándar en las cuatro combinaciones de modelo y benchmark. Las ganancias frente al modelo base alcanzan 4.6 puntos en MMAR y 4.9 en MMAU, pero Maj@8 no mejora siempre. El método adapta LoRA durante una época con prompts de los conjuntos de prueba sin etiquetas; no se conocen el costo adicional ni la transferencia entre dominios y no hubo réplica independiente.",
+      "technical": {
+        "claimed_result": "Los autores informan mejoras greedy y Avg@8 sobre TTRL estándar en las cuatro combinaciones; las mejoras frente al modelo base alcanzan 4.6 puntos en MMAR y 4.9 en MMAU. Maj@8 es mixto.",
+        "compute_or_cost": "Ocho rollouts por prompt, dos condiciones de pasada para fundamentación y una época de adaptación LoRA; no se informan horas de GPU ni tiempo de ejecución.",
+        "demonstrated_result": "esta revisión no lo demostró de forma independiente. Las puntuaciones y resultados de adaptación son informes del artículo.",
+        "implementation_status": "El informe describe el algoritmo y la configuración; no se encontró enlace a código público en la página inspeccionada.",
+        "mechanism": "Calcular la diferencia de log-probabilidad por token entre atención completa al audio y una condición con audio enmascarado. Comparar la fundamentación media de respuestas mayoritarias y disidentes, mapear el margen a un peso acotado y multiplicar por este la ventaja de votación antes de una actualización LoRA tipo GRPO.",
+        "novelty": "Usa una medida de cuánto depende la respuesta de la entrada acústica para calibrar la confianza en una pseudoetiqueta mayoritaria durante RL de prueba en modelos de audio-lenguaje.",
+        "regime": "Qwen2.5-Omni 3B y 7B con MMAR (1,000 ejemplos) y MMAU test-mini (1,000); ocho rollouts por prompt; una época de adaptación sin etiquetas; LoRA rango 8; una GPU H100 y una A100. Etiquetas solo para evaluación.",
+        "reproducibility": "El artículo especifica método, tamaños de conjuntos, modelos, rollouts, optimizador y semillas. No se verificó código público ni reproducción externa.",
+        "strongest_baseline": "TTRL estándar con votación mayoritaria y optimización GRPO igual, pero sin ponderación por fundamentación, además del modelo base sin adaptación."
+      },
+      "title": "Listen Then Reason pondera el RL de audio en tiempo de prueba según la señal acústica",
+      "why_it_matters": "El trabajo usa una señal explícita de dependencia del audio para decidir cuándo el autoentrenamiento sin etiquetas debe confiar en una respuesta mayoritaria. Si se reproduce, podría reducir un fallo en que los priors de lenguaje dominen el razonamiento sobre audio durante la adaptación. Las mejoras reportadas dependen del benchmark y del protocolo; hay resultados mixtos en mayoría y costo de ejecución no medido."
+    },
     "FCMO-EC25B52CAF32": {
       "claims": [
         {
@@ -13432,6 +13624,62 @@
       },
       "title": "Artículo informa que relatos narrativos incluidos en binarios pueden cambiar los veredictos de modelos de triaje de malware",
       "why_it_matters": "El triaje de malware asistido por IA puede influir en qué alertas investigan primero los analistas. Si el comportamiento informado se generaliza, las cadenas y metadatos que aporta un archivo bajo análisis pueden cambiar la evaluación del modelo aunque el código sospechoso no cambie. El estudio apunta a sistemas de evidencia que mantengan separados los atributos verificados y las afirmaciones incrustadas en artefactos; se desconoce la prevalencia en condiciones reales."
+    },
+    "FCMO-ED9251AD04F0": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "La ampliación del rango de la compuerta de KDA a [-1,1] y del coeficiente delta a [0,2] permite, según el artículo, combinar una actualización delta con una reflexión de canal para representar rotaciones 2D y conservar una transición diagonal más rango uno."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores prueban que toda matriz ortogonal diagonal más rango uno puede representarse exactamente como una transición Complex KDA, e informan experimentos de extrapolación de longitud en grupos finitos y ondas periódicas que superan los rangos KDA probados."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En modelos de lenguaje, los autores informan resultados comparables a la base KDA y una tendencia de escalamiento prometedora. El repositorio contiene tablas y código de reproducción, pero esta revisión no volvió a ejecutar el entrenamiento."
+        }
+      ],
+      "contradictory_evidence": [
+        "Los autores informan que los resultados lingüísticos de CKDA son similares a la base KDA; esto limita cualquier afirmación de mejora actual en modelos de lenguaje.",
+        "La tarea de audio es una extrapolación sintética de un patrón fijo; el repositorio indica que una GRU sigue siendo la más fuerte en esa tarea."
+      ],
+      "evidence_gaps": [
+        {
+          "description": "No se hizo una revisión independiente de la prueba de representabilidad ni se reprodujeron los experimentos de grupos finitos, audio o lenguaje.",
+          "kind": "missing_independent",
+          "state": "open",
+          "updated_at": "2026-10-12T07:11:56Z"
+        },
+        {
+          "description": "El efecto práctico en calidad, contexto largo y cómputo a escalas lingüísticas mayores no queda establecido por los experimentos acotados del artículo.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-12T07:11:56Z"
+        }
+      ],
+      "importance_rationale": "Si el teorema de expresividad y los comportamientos reportados se sostienen, una transición recurrente de bajo rango podría representar transformaciones que de otro modo exigirían componer transiciones. Esto podría cambiar decisiones de arquitectura y seguimiento de estado sin perder la estructura de actualización lineal. La consecuencia actual es significativa pero acotada: los resultados lingüísticos son comparables a KDA y no se demuestra un beneficio práctico amplio.",
+      "limitations": [
+        "Los resultados empíricos son de los autores; esta revisión no los reprodujo de manera independiente ni auditó la prueba.",
+        "Las tareas de grupos finitos usan una capa recurrente y extrapolación de secuencia acotada; el audio periódico sintético no es generación de audio general.",
+        "El artículo describe los resultados lingüísticos como comparables a KDA y el escalamiento como prometedor; no establece una ventaja amplia posterior al entrenamiento.",
+        "El repositorio archiva mediciones y ofrece controladores de reproducción, pero reproducir el entrenamiento de lenguaje a gran escala requiere cómputo externo."
+      ],
+      "relationships": [],
+      "summary": "Complex KDA (CKDA) combina dos extensiones de rango —compuertas de canal con signo y un coeficiente delta de hasta 2— para que Kimi Delta Attention exprese rotaciones 2D con una sola transición recurrente diagonal más rango uno. El artículo prueba la representabilidad exacta de matrices ortogonales de esa clase y presenta experimentos de seguimiento de grupos finitos, audio periódico sintético y modelos de lenguaje. Los autores informan mejor extrapolación de longitud en tareas sintéticas seleccionadas y resultados lingüísticos comparables a KDA, sin afirmar una ventaja amplia. El código y las mediciones archivadas son públicos; esta revisión no auditó la prueba ni reprodujo el entrenamiento.",
+      "technical": {
+        "claimed_result": "Los autores prueban la representabilidad exacta en la clase de matrices descrita e informan mejor extrapolación de longitud entre los rangos KDA probados en tareas sintéticas seleccionadas; los resultados lingüísticos son comparables a KDA.",
+        "compute_or_cost": "esta revisión no hizo un cálculo independiente de cómputo o costo. El repositorio indica que reproducir el entrenamiento completo requiere una pila externa y aceleradores.",
+        "demonstrated_result": "esta revisión no hizo una demostración independiente. El artículo y el repositorio informan el teorema, los resultados, las configuraciones y tablas archivadas.",
+        "implementation_status": "El repositorio OpenEuroLLM contiene implementación abierta y controladores experimentales. Hay mediciones comprometidas; esta revisión inspeccionó el índice, pero no ejecutó los artefactos ni entrenó modelos.",
+        "mechanism": "Ampliar la compuerta de canal KDA α a [-1,1] y el coeficiente de regla delta β a [0,2]. Una transición delta y una reflexión de compuerta representan rotaciones 2D, conservando transiciones no expansivas diagonales más rango uno.",
+        "novelty": "El artículo afirma representación exacta de toda matriz ortogonal diagonal más rango uno con esta parametrización, sin componer dos transiciones delta.",
+        "regime": "Teoría para la familia de transiciones indicada; los experimentos incluyen seguimiento de grupos finitos S3/S4/A5 con una capa, extrapolación de ondas periódicas sintéticas y escalamiento de modelos de lenguaje.",
+        "reproducibility": "Código, configuraciones y tablas comprometidas permiten inspección y reproducción parcial. El entrenamiento de modelos grandes no se ejecutó aquí; los números siguen siendo resultados informados por autores.",
+        "strongest_baseline": "Rangos KDA y transiciones compuestas tipo DeltaProduct2 en comparaciones emparejadas de expresividad y seguimiento; KDA es la base directa para lenguaje."
+      },
+      "title": "Complex KDA amplía la expresividad de las transiciones de estado de Kimi Delta Attention",
+      "why_it_matters": "El resultado propone ampliar las transformaciones de estado disponibles en una capa recurrente lineal sin aumentar el rango de transición, lo cual podría cambiar decisiones de diseño de memoria y recurrencia. El respaldo más sólido es una afirmación matemática del artículo junto con artefactos experimentales abiertos; los beneficios prácticos fuera de las tareas y la configuración de lenguaje evaluadas siguen sin comprobarse."
     },
     "FCMO-EFC5F5FC6FBE": {
       "claims": [
@@ -19346,6 +19594,48 @@
         "source_sha256": "9c9ba0645b1d0dbaec07d7daf33f69f6cb47b45331622293ce471b36403383fc"
       }
     },
+    "FCMO-6B232DEBE030": {
+      "claims": {
+        "locale_sha256": "3027f8ba317316b065fc92697a22d44a9494e5fb445a1ab62e88a655a154347c",
+        "source_sha256": "ff3b1649a1d7dac070223df266f66b2d09fcfb10ad5dcbbfe340bbaab9545ef1"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "20948ef6e919cfa8c66de4df7bd3968b0a6930e4f21a2c81ae133a71e576b311",
+        "source_sha256": "6f90cc8a2ca28ff8a37cbed4c34f1f0c5adaa3c58562b85db4e891532e259fbd"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "2c8fb46135e22e9a621ca6621bf7b7d48d7205cc9b1239e471a933667547da3f",
+        "source_sha256": "0f029cb40cd321fd16b7711d855591ab26dd936ea5d3bc892f67e673eca05681"
+      },
+      "importance_rationale": {
+        "locale_sha256": "6076281fd40ecba0c3adfcdff24e3d4bc42c4d62e3389d975bbc3f276290a3ba",
+        "source_sha256": "0daaabc43134170de8d20b780a856547e78f1e53b660e35c2606d662adc7dc54"
+      },
+      "limitations": {
+        "locale_sha256": "7b4fab1aa6c80e1c226b96a8b290503884cdb46cfdc6410bcf187cbeca1de95b",
+        "source_sha256": "f15fe981472846b2cbc5034f510afb41b36b0ad4297950c03f7c9b8b8a38b453"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "e40caa7bf08b6e5af8ee21aaa9bb82620d78c422e4381a18bf3d7830292bad38",
+        "source_sha256": "3ade0d719bfa704e7d3aa2afa900e6d21e29eb16058d19cab459d89558112b03"
+      },
+      "technical": {
+        "locale_sha256": "a5e4cee906adedae7f13989d67b25bb28b012f26fdd26273d676428a651871f3",
+        "source_sha256": "4ef0100ae1d76a877fe577ad92ae271ede5ef6c8f92f8bcd4474134b22cbd4cb"
+      },
+      "title": {
+        "locale_sha256": "c7f484d7ab97ce5b58cfb8b7595049986091ae1ae2dbcd58a5a1645d85265fdd",
+        "source_sha256": "51b42525900a82decc7a9c15bf7b8d591d400f8841a4c157272c9bc285c54a32"
+      },
+      "why_it_matters": {
+        "locale_sha256": "4da6401a5a950ccdb8839a5618b24285bc35a6119f99e68d9d378e1067330760",
+        "source_sha256": "6559e01c080c40a3021e314a9e388cac50f1435aaf9ea28fb67e5feb8deae9b2"
+      }
+    },
     "FCMO-6C390D62E672": {
       "claims": {
         "locale_sha256": "d87f77d9b4117f74726ce92e27081f3b94c87b4aa0c8e70e69ab572bec173b23",
@@ -20870,6 +21160,48 @@
       "why_it_matters": {
         "locale_sha256": "1eeb556ca81c0ba2efe98df5f06a81f680dc3639ae99083923935d36652555cb",
         "source_sha256": "f01c788073015f0ea8b6b9e51471406d1573ff4124ed4e1e4ef30d7d19e5acd7"
+      }
+    },
+    "FCMO-923F19836F22": {
+      "claims": {
+        "locale_sha256": "d5736db4af312bddfdcd89bb9b9896f4d79b3c37de7bbd165ed778f89df1a5d8",
+        "source_sha256": "a7edd90599e60bf4aa447442643c68bdb957e2ad6458ea90500d15db777df12e"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "27c4f841ede0c4f279043fd73e4fdf5af0f069e861522652af1b031a904396ec",
+        "source_sha256": "b4a5a89fd212be5c1ef59eac7074c03914c60c839da8db8162f71c8b2d37ac3e"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "439db2cebc2bb68aa49d5cbbdf91f77b62fd89eb61b1940547d8babb5a4fe9a3",
+        "source_sha256": "ee10de7fb7e5560c9cc146902ed60a2e25e7c913c5517b6a5e9111d3bcb5f0d3"
+      },
+      "importance_rationale": {
+        "locale_sha256": "fdd7b97af45a952807aba539e72bb5ab9885d7edbbd2ae952b270a35d5b3aed2",
+        "source_sha256": "6fadc5a3a5b47ca2ff99ef75ed98e20dd172fdec39464a0800cdd454e4d93b27"
+      },
+      "limitations": {
+        "locale_sha256": "f4c9fd2dc64003fae30bb5badb9b2cf13d7acdf20494eb501f724eae9653b84d",
+        "source_sha256": "a96ccabe3e943d65c7788e312db451ddc45923cf840807079b6144cd15d22316"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "220ff3d215579fc3824a0ac465cfcf4751fe38c8274b394c09f7db3914b48fe9",
+        "source_sha256": "a5baa26d10184f6c9b7b25182391d75b840e6914ea0f21aa5ef7b76ef5b9e9da"
+      },
+      "technical": {
+        "locale_sha256": "b7e699795d184bfe81c88b0bcf9f1e0ed4af40867b55de426657b88fa6810418",
+        "source_sha256": "1d5c7551579ebf0a0f1e4c914b2761e7457f80d7d844e1801e8b536f7616f370"
+      },
+      "title": {
+        "locale_sha256": "fbcfd061726b6d18259846223eb0a032f7aa7ffcff5a0bf12d6d714ce59de097",
+        "source_sha256": "1512c0e105a71cf2504b8b39e105b314e7d3b23f897ce9297dcad9e238ccf3cd"
+      },
+      "why_it_matters": {
+        "locale_sha256": "c12b44a434b47e1643cb4cb724a1fe04aab4262f356947e05d5704e8aa1f18bb",
+        "source_sha256": "b7ecac99e290b41c6a4b061fce37351b2a7faea0b1abc255f43526ac2fe7c5f4"
       }
     },
     "FCMO-92E86166BABF": {
@@ -24414,6 +24746,48 @@
         "source_sha256": "b87a70ee550e0b7933db09e243f95122680eaa00e7b3b0624da784635b0d0462"
       }
     },
+    "FCMO-EA8DFB8BF4B2": {
+      "claims": {
+        "locale_sha256": "f24d315195a196992904854a4a06cdb8c6f72de118a6687dae67a93abb8b33eb",
+        "source_sha256": "f70256e2084eef5112a744d9dbd26d8871aac767d5afdf18b90ec516994b631b"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "cc26aedc2cbf735eb8db158ac46b5fb60860a797df1be968515f8b6bcc9b89e5",
+        "source_sha256": "ba4a614f56939e950bedb6edc142dfd4c9d1bb51ca25d955605870cb2f0b5294"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "f41be669684021f754e76138844ea06ff02ae78c6034a4c5760b3044ae1334d1",
+        "source_sha256": "43281564d174ad1a58fa8795f08cd176d7e297e3cb74f98f2b3c440e801d7448"
+      },
+      "importance_rationale": {
+        "locale_sha256": "fa69781a3d54eb324067b724d118f3f94bfc422c9fe439126ea3719e23ee934c",
+        "source_sha256": "414a5de9227e0500efc99f2c7aa7c95740b8569f43603a4c910f6fcc00b43567"
+      },
+      "limitations": {
+        "locale_sha256": "a384f10a0562ff7ac75ba43b28440958769224a4f3b5306ac539f77528b9c8de",
+        "source_sha256": "6d026136813606cf7f051f78abf1e1900c94ab45f8c8c03cfcbe533aa2b9594e"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "a20981144364c7870ea360274cca9d41751aeb043a63accc70cea1c107fd810f",
+        "source_sha256": "5d65278e279985c25a1200a8db8238018be0d63b9ee0e6bc90e4bff94b71461c"
+      },
+      "technical": {
+        "locale_sha256": "8a0c76b88b419f6518f47c276cd559ec6ce361d15e2c6d63b41a56a9b188b38b",
+        "source_sha256": "b83578aa806142d7dca9294a61d7314c41937339ee4a60031ea6cfde4dfaf876"
+      },
+      "title": {
+        "locale_sha256": "76e919b6da6b6abe080e13ffacba9d9774d7107dcd7933c1ed0ed26b8e2839a1",
+        "source_sha256": "76a6d16e6eb6cecb2d5e822132ce5832a3acaaaaa33ee86c75d2c19f6abdea4a"
+      },
+      "why_it_matters": {
+        "locale_sha256": "72c075a50ca5edb145e9188de5ad346122c82f03a45f2637d798ebea9bd06043",
+        "source_sha256": "5849326b40a93a50cbfea625725cdc71d2e9b7b5055db730cd0789268bf91681"
+      }
+    },
     "FCMO-EC25B52CAF32": {
       "claims": {
         "locale_sha256": "e3d4f41e630b878865e7e97bc3a5a625fee50e268bc6e99b8f0269e0df558c7e",
@@ -24454,6 +24828,48 @@
       "why_it_matters": {
         "locale_sha256": "d86aa163cebd0962f32b4883530b1c07d00f9a4250bb279e11abbb7bc9495cd8",
         "source_sha256": "a021befa736e4ddb7c42e14f8954aa7431d1aacd8c5e97d136eda5788e552cdd"
+      }
+    },
+    "FCMO-ED9251AD04F0": {
+      "claims": {
+        "locale_sha256": "24e259211a28061b4f781a399a843573a53b893167bb32bd1428746dafa83715",
+        "source_sha256": "5b3a7586e4256b4d56b0e47f2d3315fbe8db00e6ab02aeb74066f2538c2d8739"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "bc3ce98ae858cc46b814da78b4318eec3b917c4d7d12b26f0a39a9cf3c439f6c",
+        "source_sha256": "6965f61e4708278d089b750e8e46c1121533428229a5798301f079a29d966421"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "3618c0d7f0b05e6251cc3fb8f16b44915dcd34afa88d884b6033acd39609c085",
+        "source_sha256": "f67e338f47c3be879612df6d74eda174a91d1497def45a722680ff40bdf948a9"
+      },
+      "importance_rationale": {
+        "locale_sha256": "ceec0e0712c97c4d8a850ff094818a08f0a3d97de4251041d4e9f14dbf49f28e",
+        "source_sha256": "6093df0a7073c7d99e290c0a47a12bf9c001cdc9509c6120a62db995fb7b6ebe"
+      },
+      "limitations": {
+        "locale_sha256": "ef7fec8e732e2cb0cb6238edee9989d12bbbe4e048a45734c3c3b505c9468666",
+        "source_sha256": "7fa62a7be662b4dbd7bc7bb67c03cc8f065de90166b440b00b50b9a195b78420"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "4a1a0919ed0d359bc872a1658c2d0715ee51265ece4c35fe60ec2c05a12b0077",
+        "source_sha256": "d721f852185034314e341f90d58202892c17ddb5d6145780a8fd2418e0f5b76d"
+      },
+      "technical": {
+        "locale_sha256": "e5c195f12684a291daf5466246b54c0f162aeb8a25d28328c83c5974e5b3ef2e",
+        "source_sha256": "7a5de0805932f9d15813a4e9bc4b169881657d6329980044ec3ee37f003f6196"
+      },
+      "title": {
+        "locale_sha256": "5812509cc4e781a4655ccd2b69233f911d9571a74f58e6c66cbc994f4b31ff5a",
+        "source_sha256": "1944f96cff8a7e7a9f8b0406282b3995b189c92343d4c60c95d9fb5bab14c11b"
+      },
+      "why_it_matters": {
+        "locale_sha256": "93a0166e9262e783f15817fe1f56d8a99e6cf889c55f02a6f56835001113f5cb",
+        "source_sha256": "ebb9e6a07a01ea80fb5fad6608cbfcaefe5b26f1580a69740ccdac375613268d"
       }
     },
     "FCMO-EFC5F5FC6FBE": {

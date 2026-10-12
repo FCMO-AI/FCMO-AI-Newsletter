@@ -1,6 +1,6 @@
 {
   "canonical_locale": "en",
-  "canonical_source_sha256": "56fbaba17f89084eb2266f93664c08ced0b6dc76e019389defa94b01d5cc308b",
+  "canonical_source_sha256": "eaaa3b24acb75642ff2a71a6a7babc218c3d320462de5873f6677623220f3054",
   "generated_from": "ARB airlock; editorial wording authored upstream",
   "locale": "zh-Hans",
   "records": {
@@ -6718,6 +6718,69 @@
       "title": "Fuse 报告面向 LLM 助手的用户介导社会推理基准",
       "why_it_matters": "许多社交建议助手只能听到用户的一方叙述，其中可能遗漏或重新诠释事件。若在保持模拟事件不变时改变用户的表达框架，基准便可测试模型能否区分证据与解释。论文结果提示这可能是独立的评测维度，但合成环境不能说明真实使用中的频率或影响。"
     },
+    "FCMO-6B232DEBE030": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "THAW-VLA 通过缓存冻结世界模型表征并加入特征对齐损失来训练视觉-语言-动作学生模型；部署时移除教师和投影头。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "作者报告，0.8B 学生模型在 LIBERO 平均成功率从 95.3% 提高到 97.9%，在 RoboCasa-GR1 从 48.2% 提高到 50.5%，对照为未使用对齐损失的相同学生模型。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "在两种真实机器人平台和三项任务中，作者报告该 0.8B 策略每个单元 30 次试验且较未蒸馏学生模型有所提升；RTX 5090 上推理为 32 毫秒、1.86 GB。"
+        }
+      ],
+      "contradictory_evidence": [
+        "LIBERO 报告的绝对提升较小（95.3% 到 97.9%），且基线已处于较高水平；这不能证明广泛鲁棒性。",
+        "项目页指出真实机器人任务仍有放置误差，并只报告部分抓取放置和双臂交接任务。"
+      ],
+      "evidence_gaps": [
+        {
+          "description": "尚未独立复现仿真、机器人成功率、延迟或内存测量。",
+          "kind": "missing_independent",
+          "state": "open",
+          "updated_at": "2026-10-12T07:11:56Z"
+        },
+        {
+          "description": "已检查的结果表未测量对未见机器人、任务、视觉条件或部署硬件的泛化。",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-12T07:11:56Z"
+        },
+        {
+          "description": "未量化生成并缓存世界模型特征所需的离线计算和存储。",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-12T07:11:56Z"
+        }
+      ],
+      "importance_rationale": "若报告的迁移效果能够泛化，小型机器人策略可借助世界模型提升任务表现，同时避免部署时每次决策耗时数秒。这可能改变具身系统的实际延迟和内存权衡。当前结论限于 0.8B 学生模型、选定操作任务和作者报告结果。",
+      "limitations": [
+        "所有结果均由作者报告，esta revisión 未独立复现。",
+        "真实机器人结果覆盖两种平台、三项操作任务，每格 30 次试验；不能证明广泛迁移。",
+        "部分外部基线引用自不同协议的论文；最强内部对照是相同学生模型有无特征对齐。",
+        "延迟和内存数字来自 RTX 5090 单一配置；未确定能耗、训练成本或其他硬件表现。",
+        "LIBERO 平均成功率提高 2.6 个百分点；任务差异和基准饱和度都很重要。"
+      ],
+      "relationships": [],
+      "summary": "THAW-VLA 使用冻结的世界模型为训练帧缓存特征，并在紧凑型视觉-语言-动作策略训练中加入特征对齐损失。部署时移除教师模型和投影头，推理仍使用未蒸馏学生模型的计算图。作者报告 0.8B 策略在 LIBERO 的平均成功率从 95.3% 提高到 97.9%，在 RoboCasa-GR1 从 48.2% 提高到 50.5%；还报告在单臂和双臂平台上的部分真实机器人任务较同一学生模型有所提升，每个单元 30 次试验。单块 RTX 5090 上报告 32 毫秒和 1.86 GB。结果由作者报告，任务范围有限，尚无独立复现。",
+      "technical": {
+        "claimed_result": "作者报告 LIBERO 平均成功率 95.3%→97.9%，RoboCasa-GR1 48.2%→50.5%，选定机器人任务有所提升，推理为 32 毫秒 / 1.86 GB。",
+        "compute_or_cost": "作者报告 RTX 5090 上推理为 32 毫秒和 1.86 GB。未量化世界模型离线预计算、缓存大小和完整训练成本。",
+        "demonstrated_result": "esta revisión 未独立验证。项目页报告了方法、相同学生模型对照、结果表和试验次数。",
+        "implementation_status": "项目页链接源码和检查点；esta revisión 检查了报告和页面，但未运行仓库。",
+        "mechanism": "冻结的世界模型在训练帧上运行一次并缓存视觉特征；学生 VLA 训练时增加余弦特征对齐损失。训练后移除世界模型和投影头，部署普通学生策略。",
+        "novelty": "训练期间将世界模型的表征先验迁移到紧凑型 VLA，同时不改变部署推理计算图。",
+        "regime": "0.8B Qwen 学生模型。LIBERO 结果是四次评估平均值（2 个种子 × 2 张 GPU）；RoboCasa-GR1 包括四次运行对照和单次消融；真实机器人结果来自 AgileX Nero 和 TRIP-Bag，每格 30 次试验。推理使用一块 RTX 5090。",
+        "reproducibility": "论文和项目页提供模型与任务细节及公开链接；此处未验证独立复现、检查点来源及预计算经济成本。",
+        "strongest_baseline": "相同学生骨干网络、相同设置训练但不加入特征对齐项。外部较大策略仅作背景参照，未完全匹配。"
+      },
+      "title": "THAW-VLA 将世界模型特征蒸馏到紧凑型机器人策略中",
+      "why_it_matters": "该方法在训练期将世界模型表征迁移到较小的机器人策略，无需在推理时加载世界模型或生成未来状态。如果能在更多任务和硬件上复现，可能在保留部分世界模型基础能力的同时降低部署延迟和显存。现有证据来自作者的基准测试及少量真实机器人任务。"
+    },
     "FCMO-6C390D62E672": {
       "claims": [
         {
@@ -8806,6 +8869,71 @@
       },
       "title": "EmbodiedRSI 报告了假设引导的机器人执行框架演进及其向五项真实机器人任务的迁移",
       "why_it_matters": "如果这些报告结果能在更广泛的独立试验中成立，通过选择信息量高的实体实验并联合更新可执行技能与代码，机器人适应可能减少所需数据，而无需重新训练基础模型。目前报告的实体证据有前景但范围有限，尚不能证明普遍的递归自我改进或广泛迁移。"
+    },
+    "FCMO-923F19836F22": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "STeP-PO 将基于观测的逐步质量检查、反事实步骤重要性和语义步骤树结合起来，在交通信号策略优化期间向推理 token 分配过程及结果优势。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "使用 Qwen2.5-3B 在一个合成流量上训练，并于 CityFlow 对济南和杭州的五个真实流量数据集零样本评估时，作者报告 ProcessLight 在比较方法的大多数指标上取得最佳结果。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "在Jinan1和Hangzhou1消融实验中，作者报告 STeP-PO 平均行程时间为 289.34 秒和 314.99 秒；仅使用结果奖励时为 305.74 秒和 334.25 秒。五个种子、Holm 校正后，90 次比较中有 81 次显著支持该方法。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "论文附录报告了使用 Qwen3-8B、Qwen3-32B 和 Llama3-8B 作为底座，以及使用 Qwen3-Plus 作为替代教师时的结果；结果因数据集和指标而异，因此这些测试不能确立普遍的扩展规律。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "作者报告，生成参考判断使用 DeepSeek-V4-Pro 云 API 调用 3k 次，输入 7.07M token、输出 1.70M token，费用为 $9.1；步骤重要性预计算使用 Qwen2.5-3B 调用 21k 次，输入 57.81M token，在单张 RTX PRO 6000 上耗时 1.5 GPU 小时，费用为 $1.2。这是两个数据构建阶段的报告成本，不是训练、推理或部署的总成本。"
+        }
+      ],
+      "contradictory_evidence": [
+        "论文指出，当前设计限于四向路口和预定义推理步骤，复杂路口属于未来工作。",
+        "仿真结果不能证明运营路口中的性能、安全性或交通收益。"
+      ],
+      "evidence_gaps": [
+        {
+          "description": "未独立运行公开代码或 CityFlow 对照。",
+          "kind": "missing_independent",
+          "state": "open",
+          "updated_at": "2026-10-12T07:14:02Z"
+        },
+        {
+          "description": "未检查论文四向仿真以外的运营部署或评估。",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-12T07:14:02Z"
+        }
+      ],
+      "importance_rationale": "若能复现，基于观测验证的逐步奖励和反事实重要性或可改善 LLM 强化学习中的信用分配，并改变已测交通控制场景的训练选择。影响范围仍限于窄域仿真任务和单一 3B 模型设置；尚未证明部署交通影响。",
+      "limitations": [
+        "所有结果由作者报告，未经独立复现。",
+        "评估在 CityFlow 中使用真实流量数据集，但并非真实道路或运营信号网络。",
+        "任务使用四向路口和预定义步骤；尚未证明对其他网络结构或自由形式推理的迁移。",
+        "两个数据集上的 81/90 显著结果汇总了大量成对比较；不能代表真实道路效应。",
+        "论文附录包含若干额外底座和教师变体，但这组有限评估不足以确立普遍的模型规模或训练预算扩展规律。"
+      ],
+      "relationships": [],
+      "summary": "ProcessLight/ STeP-PO 通过过程级信用分配训练交通信号控制器：根据交通观测核验中间判断，通过删除步骤估计其对最终信号相位的影响，并用语义树合并相似步骤以分配相对优势。作者报告 Qwen2.5-3B 在一个合成流量数据集训练后，于 CityFlow 中对来自济南和杭州的五个真实流量数据集进行零样本评估；多数指标领先。两组数据的消融结果报告其平均行程时间低于仅使用结果奖励的 RL；五个随机种子及 Holm 校正分析中，90 次比较有 81 次显著支持该方法。这是标准四向路口的仿真证据，并非道路部署结果；esta revisión 未运行代码。 附录还报告了 Qwen3-8B、Qwen3-32B 和 Llama3-8B 变体以及替代教师，结果因数据集和指标而异。所有发现仍是论文报告的 CityFlow 仿真结果，范围限于论文的路口设置，并非道路部署证据；本次审阅未重新运行代码。",
+      "technical": {
+        "claimed_result": "作者报告五个数据集上的大多数指标最佳。相对仅使用结果奖励，Jinan1 平均行程时间从 305.74 降至 289.34 秒，Hangzhou1 从 334.25 降至 314.99 秒。论文报告两个数据集、五个种子中 90 次 Holm 校正比较有 81 次显著支持该方法。附录还报告 Qwen3-8B、Qwen3-32B 和 Llama3-8B 底座及 Qwen3-Plus 替代教师的结果；比较结果因数据集和指标而异。",
+        "compute_or_cost": "附录报告两个数据构建阶段的成本：DeepSeek-V4-Pro 云 API 调用 3k 次（输入 7.07M token、输出 1.70M token）费用为 $9.1；使用 Qwen2.5-3B 预计算步骤重要性（调用 21k 次、输入 57.81M token、单张 RTX PRO 6000 上耗时 1.5 GPU 小时）费用为 $1.2。这些是作者报告的阶段成本，不代表训练、推理或部署总成本。",
+        "demonstrated_result": "本次审阅 未独立验证。这些是论文报告的模拟器对照。",
+        "implementation_status": "作者链接公开代码 wenzhaoabc/processlight。本次审阅 检查仓库页面，但未安装或运行代码。",
+        "mechanism": "对结构化交通推理步骤，根据交通观测核验判断；通过删除某一步并测量动作分布变化估计其重要性；在前缀条件的树中合并语义相近步骤，随后将局部和整体优势分配给推理 token。",
+        "novelty": "将交通观测支持的步骤质量、反事实决策敏感度和语义树分组用于 LLM 交通信号策略优化。",
+        "regime": "主要评估使用 Qwen2.5-3B，在一个合成流量上训练，并在 CityFlow 的五个真实流量数据集上零样本评估；路口为四向，邻近路口由固定基线控制器管理。附录还报告 Qwen3-8B、Qwen3-32B 和 Llama3-8B 变体以及替代教师，但未确立普遍扩展规律。",
+        "reproducibility": "论文提供设置、数据来源、多种子和统计分析，并链接代码；未进行复现或外部验证。",
+        "strongest_baseline": "过程监督消融中的监督微调加结果奖励；总体表还比较固定时长、最大压力、RL 控制器及其他 LLM 方法。"
+      },
+      "title": "ProcessLight 将逐步过程监督用于交通信号控制",
+      "why_it_matters": "该研究将逐步信用分配用于结构化决策流程，其中中间判断可依据交通观测核验，最终控制动作也能在模拟器中评估。若复现成功，可为 LLM 策略优化提供具体的过程监督设计。证据范围限于论文的模拟器、数据集和四向路口设置。"
     },
     "FCMO-92E86166BABF": {
       "claims": [
@@ -13367,6 +13495,70 @@
       "title": "加利福尼亚州签署七项数据中心法案，涉及公用事业成本、披露、用水和选址",
       "why_it_matters": "加利福尼亚州电力市场规模较大，也是重要的数字基础设施所在地。如果相关要求按公告摘要实施，部分拟建数据中心的信息披露、承担电网和供水升级费用以及简化审查资格可能发生变化。确切法律范围及对费率和项目的实际影响仍未测量。"
     },
+    "FCMO-EA8DFB8BF4B2": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "PG-TTRL 根据屏蔽音频注意力前后 token 对数概率的变化估计声学依据，再按多数答案与异议答案的依据差值缩放无标签多数投票 TTRL 优势。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "在 Qwen2.5-Omni 3B/7B 与 MMAR/MMAU 上，作者报告四种模型/基准组合的 greedy 和 Avg@8 均高于标准 TTRL；多数投票准确率并非始终提升。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "论文报告相对基础模型在 MMAR 最高提高 4.6 个百分点、MMAU 最高提高 4.9 个百分点；适配使用无标签测试提示进行一轮 LoRA 训练，答案仅用于评估。"
+        }
+      ],
+      "contradictory_evidence": [
+        "Maj@8 多数投票准确率并非始终提升：部分比较中 PG-TTRL 低于标准 TTRL，包括 7B MMAU。",
+        "方法增加 rollout 和模型前向计算，但论文未测量相对标准 TTRL 的成本或延迟。"
+      ],
+      "evidence_gaps": [
+        {
+          "description": "未独立实现或复现 PG-TTRL，所检查论文中未找到公开代码链接。",
+          "kind": "missing_independent",
+          "state": "open",
+          "updated_at": "2026-10-12T07:14:02Z"
+        },
+        {
+          "description": "未测量额外 rollout、屏蔽音频前向计算及适配相对标准 TTRL 的成本。",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-12T07:14:02Z"
+        },
+        {
+          "description": "未建立在独立音频域或非选择题推理任务上的效果。",
+          "kind": "missing_independent",
+          "state": "open",
+          "updated_at": "2026-10-12T07:14:02Z"
+        }
+      ],
+      "importance_rationale": "如果结果成立，按声学依据加权更新为多模态模型测试时 RL 提供了实用控制；文本先验可能与输入音频冲突。这可能改变音频推理的适配和评估方式，但现有证据仅涵盖两个 Qwen 规模、两个选择题基准及测试集适配。",
+      "limitations": [
+        "所有经验结果均由作者报告，未独立复现。",
+        "该方法使用评测测试集中的无标签提示进行一轮适配，属于传导式测试时适配，不应与冻结模型评测混淆。",
+        "评测只涉及两个 Qwen2.5-Omni 规模和两个选择题基准；对开放式任务、其他模型系列或未见音频域的迁移未知。",
+        "相对标准 TTRL 的 Maj@8 结果不一。",
+        "方法需要多次采样和两个音频条件的前向计算；未量化额外算力、耗时和延迟。",
+        "检查的报告中未发现公开实现链接。"
+      ],
+      "relationships": [],
+      "summary": "Listen Then Reason 为音频语言模型提出 PG-TTRL。它比较完整音频输入与屏蔽音频注意力时的 token 概率，以估计每个答案依赖音频的程度，再用多数答案和异议答案之间的依据差值，调整无标签多数投票测试时 RL 的优势。在 Qwen2.5-Omni 3B/7B 和 MMAR/MMAU 上，作者报告四种模型/基准组合的 greedy 与 Avg@8 分数均高于标准 TTRL。相对基础模型的最高提升为 MMAR 4.6 个百分点、MMAU 4.9 个百分点，但 Maj@8 并非总是提升。该方法使用测试集无标签提示进行一轮 LoRA 适配；额外计算成本和跨域迁移尚未确定，也未独立复现。",
+      "technical": {
+        "claimed_result": "作者报告四种模型/基准组合的 greedy 与 Avg@8 均优于标准 TTRL；相对基础模型最高提升为 MMAR 4.6、MMAU 4.9 个百分点。Maj@8 结果不一。",
+        "compute_or_cost": "每提示八条 rollout、两种音频条件的前向计算和一轮测试时 LoRA 适配；未报告耗时或 GPU 小时。",
+        "demonstrated_result": "esta revisión 未独立验证。基准分数和适配结果来自论文报告。",
+        "implementation_status": "报告介绍算法和设置；检查的论文页中没有公开代码链接。",
+        "mechanism": "计算完整音频注意力与屏蔽音频条件之间的逐 token 对数概率差。比较多数答案与异议轨迹的平均音频依据程度，将差值映射为有界权重，并在 GRPO 式 LoRA 更新前用该权重乘以无标签投票优势。",
+        "novelty": "在音频语言模型测试时 RL 中，以输入声学内容的依赖程度校准无标签多数伪标签的可信度。",
+        "regime": "Qwen2.5-Omni 3B/7B；MMAR（1,000 个样本）及 MMAU test-mini（1,000 个样本）；每提示八条 rollout；一轮无标签适配；LoRA rank 8；一块 H100 和一块 A100。答案仅用于评估。",
+        "reproducibility": "论文说明算法、数据集规模、模型、rollout、优化器和评测种子；未核验公开代码或外部复现。",
+        "strongest_baseline": "相同 GRPO 优化但不使用声学依据加权的标准多数投票 TTRL，以及未适配基础模型。"
+      },
+      "title": "Listen Then Reason 根据声学依据调整测试时音频强化学习",
+      "why_it_matters": "该研究用明确的音频依赖信号决定何时应信任无标签自训练中的多数答案。若能复现，可能减少适配时语言先验压过音频推理的失败模式。报告增益依赖基准与适配协议，多数投票结果不一，运行成本未测量。"
+    },
     "FCMO-EC25B52CAF32": {
       "claims": [
         {
@@ -13432,6 +13624,62 @@
       },
       "title": "论文报告称，二进制文件中由攻击者控制的叙事可改变LLM恶意软件分诊结论",
       "why_it_matters": "AI辅助恶意软件分诊可能影响分析人员首先调查哪些警报。如果所报告的行为可以泛化，那么被分析文件提供的字符串和元数据可能改变模型判断，即使可疑代码本身没有变化。该研究提出让证据流水线将已验证属性与工件中嵌入的说法分开；现实部署中的发生率仍未知。"
+    },
+    "FCMO-ED9251AD04F0": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "论文称，将 KDA 门控范围扩展到 [-1,1]、delta 系数扩展到 [0,2]，可通过一次 delta 更新和通道门控反射表示2D旋转，同时保持对角加秩一转移。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "作者证明，任意对角加秩一正交矩阵都可精确表示为 Complex KDA 转移，并报告有限群和周期波形任务上的长度外推实验。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "在语言模型实验中，作者报告其结果与 KDA 基线相当且显示出有希望的扩展趋势。公开仓库包含实验表和复现代码，但 esta revisión 未重新运行训练。"
+        }
+      ],
+      "contradictory_evidence": [
+        "作者明确报告 CKDA 的语言模型结果与 KDA 基线相似，因此不能据此宣称当前语言模型性能广泛提升。",
+        "音频任务是在单一合成固定节奏上外推；仓库指出 GRU 在该任务上仍然最强。"
+      ],
+      "evidence_gaps": [
+        {
+          "description": "尚无独立审查对角加秩一表示证明，也未复现有限群、音频或语言模型结果。",
+          "kind": "missing_independent",
+          "state": "open",
+          "updated_at": "2026-10-12T07:11:56Z"
+        },
+        {
+          "description": "有限论文实验尚不能确定更大语言模型规模下的质量、长上下文行为和计算影响。",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-12T07:11:56Z"
+        }
+      ],
+      "importance_rationale": "如果表达能力定理及报告的行为成立，单个低秩递归转移便可能表示原本需要组合多个转移的变换，从而改变架构与状态跟踪选择，同时保留线性更新结构。目前影响显著但有限：语言模型结果仅与 KDA 相当，尚未证明广泛的实际收益。",
+      "limitations": [
+        "所有经验结果均由作者报告；esta revisión 未独立复现，也未审查证明。",
+        "有限群任务使用单层递归模型并进行有限长度外推；合成周期音频任务不代表通用音频生成。",
+        "论文称语言模型结果与 KDA 相当、扩展趋势有希望；未证明广泛的下游优势。",
+        "公开仓库归档测量并提供复现驱动，但大规模语言模型训练需要外部算力。"
+      ],
+      "relationships": [],
+      "summary": "Complex KDA（CKDA）结合两种参数范围扩展——带符号的通道门控和最大为 2 的 delta 系数——使 Kimi Delta Attention 能用单个对角加秩一递归转移表示2D旋转。论文证明该类正交矩阵可被精确表示，并报告有限群状态跟踪、合成周期音频和语言模型实验。作者报告其在若干合成任务上的长度外推优于所测 KDA 参数设置，语言模型结果则与 KDA 相当，并未声称具有普遍优势。代码和归档测量公开；esta revisión 未独立审查证明或复现训练。",
+      "technical": {
+        "claimed_result": "作者证明所述矩阵类可被精确表示，并报告在若干合成任务上长度外推优于已测 KDA 参数设置；语言模型结果与 KDA 相当。",
+        "compute_or_cost": "esta revisión 未独立核算计算或成本。仓库指出完整训练复现需要外部训练栈和加速器资源。",
+        "demonstrated_result": "esta revisión 未独立验证。论文和仓库报告定理、实验结果、配置和归档表格。",
+        "implementation_status": "OpenEuroLLM 仓库提供公开实现和实验驱动，并包含已提交的测量；esta revisión 检查了说明和索引，未运行代码或训练模型。",
+        "mechanism": "将 KDA 通道门控 α 扩展到 [-1,1]，将 delta 系数 β 扩展到 [0,2]。一次 delta 转移加门控反射即可表示2D旋转，同时保留对角加秩一的非扩张转移。",
+        "novelty": "论文声称该参数化能精确表示所有对角加秩一正交转移矩阵，无需组合两次 delta 转移。",
+        "regime": "针对所述转移矩阵族的理论；作者实验包括 S3、S4、A5 单层有限群状态跟踪、合成周期波形外推和语言模型训练/扩展实验。",
+        "reproducibility": "公开代码、配置和提交的实验表支持检查与部分复现。此处未运行大模型训练，数值仍为作者报告。",
+        "strongest_baseline": "表达能力和状态跟踪对照中的 KDA 参数设置与 DeltaProduct2 类组合转移；语言模型直接对照为 KDA。"
+      },
+      "title": "Complex KDA 扩展了 Kimi Delta Attention 的状态转移表达能力",
+      "why_it_matters": "该结果提出一种扩展线性递归层状态变换的方法，同时不提高转移秩，可能影响记忆和递归结构的设计选择。最强依据是论文中的数学主张和开放实验材料；超出已测任务及语言模型配置的实用收益仍未验证。"
     },
     "FCMO-EFC5F5FC6FBE": {
       "claims": [
@@ -19346,6 +19594,48 @@
         "source_sha256": "9c9ba0645b1d0dbaec07d7daf33f69f6cb47b45331622293ce471b36403383fc"
       }
     },
+    "FCMO-6B232DEBE030": {
+      "claims": {
+        "locale_sha256": "beba23ac2a57c7c9038abc2137a42875211246c4544291d629681095edb1d235",
+        "source_sha256": "ff3b1649a1d7dac070223df266f66b2d09fcfb10ad5dcbbfe340bbaab9545ef1"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "decfb6c00328a6b55a6709ef84955e77b31e5337d598a702c458cbbd6dce36e9",
+        "source_sha256": "6f90cc8a2ca28ff8a37cbed4c34f1f0c5adaa3c58562b85db4e891532e259fbd"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "2c858544d0d68260932da5d945a50a806746203bf53c184765e26e9ff402d531",
+        "source_sha256": "0f029cb40cd321fd16b7711d855591ab26dd936ea5d3bc892f67e673eca05681"
+      },
+      "importance_rationale": {
+        "locale_sha256": "9c0a156012a87ecbcda77bc5061bbf1fadcc9dc8f23b0ab5616231843371d2cc",
+        "source_sha256": "0daaabc43134170de8d20b780a856547e78f1e53b660e35c2606d662adc7dc54"
+      },
+      "limitations": {
+        "locale_sha256": "bc06b5529dc45d30732be2094c08789a2e12e8b8912acabd60e3fc15fbe551b4",
+        "source_sha256": "f15fe981472846b2cbc5034f510afb41b36b0ad4297950c03f7c9b8b8a38b453"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "039d0fff075772c1d81fea983b414e3e9f9c5eb9a5807b2d4e93a76f9ed8aa29",
+        "source_sha256": "3ade0d719bfa704e7d3aa2afa900e6d21e29eb16058d19cab459d89558112b03"
+      },
+      "technical": {
+        "locale_sha256": "ff5ef21dba3c9485bc3fd70933c9ed8261ec6c5d830515eddb373aac6ed10229",
+        "source_sha256": "4ef0100ae1d76a877fe577ad92ae271ede5ef6c8f92f8bcd4474134b22cbd4cb"
+      },
+      "title": {
+        "locale_sha256": "1c450aea1ef36cd6c010503560c578043352708724271e81670bc245fe589d9f",
+        "source_sha256": "51b42525900a82decc7a9c15bf7b8d591d400f8841a4c157272c9bc285c54a32"
+      },
+      "why_it_matters": {
+        "locale_sha256": "fd476d36e36f713cf6c9f7274358ed6d5ff14ed835084a0b3bbc11fa9199c012",
+        "source_sha256": "6559e01c080c40a3021e314a9e388cac50f1435aaf9ea28fb67e5feb8deae9b2"
+      }
+    },
     "FCMO-6C390D62E672": {
       "claims": {
         "locale_sha256": "a32fc440338306bb3d7df7d3dbe479ec23c4743f3c42ea185b9b22f6629b0469",
@@ -20870,6 +21160,48 @@
       "why_it_matters": {
         "locale_sha256": "761af5ab7595fd9936cff08f95795100df2d1a7f1324f223c3848cef4a75f368",
         "source_sha256": "f01c788073015f0ea8b6b9e51471406d1573ff4124ed4e1e4ef30d7d19e5acd7"
+      }
+    },
+    "FCMO-923F19836F22": {
+      "claims": {
+        "locale_sha256": "35ca4556e392403960d358fcd5b890dd246e93783ce7c92da407b762f0d6e757",
+        "source_sha256": "a7edd90599e60bf4aa447442643c68bdb957e2ad6458ea90500d15db777df12e"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "133228920de8e66eb0bf9b50f9d3b184b3317aa06d656b22455168da60b5c67e",
+        "source_sha256": "b4a5a89fd212be5c1ef59eac7074c03914c60c839da8db8162f71c8b2d37ac3e"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "bba7a384d952ec5823f22a72dcbdc9fcb1bb25c4681f216bf382f9f30a74d529",
+        "source_sha256": "ee10de7fb7e5560c9cc146902ed60a2e25e7c913c5517b6a5e9111d3bcb5f0d3"
+      },
+      "importance_rationale": {
+        "locale_sha256": "5e03ce90ab263f80602b29c189c1859be4625b3e588056fba7a6fc7e3521a703",
+        "source_sha256": "6fadc5a3a5b47ca2ff99ef75ed98e20dd172fdec39464a0800cdd454e4d93b27"
+      },
+      "limitations": {
+        "locale_sha256": "a56b69384e96df448705ec0f52a14fcb3f55b827180a595942ffa46ac5604092",
+        "source_sha256": "a96ccabe3e943d65c7788e312db451ddc45923cf840807079b6144cd15d22316"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "fb123f4e07f2f2c1f327ce2cf38beb930efa7536c15bebcfe94a3fb1cd9467ad",
+        "source_sha256": "a5baa26d10184f6c9b7b25182391d75b840e6914ea0f21aa5ef7b76ef5b9e9da"
+      },
+      "technical": {
+        "locale_sha256": "2d8df956fd675abf10fbc064f72f9413ace2def6aab7911690fe2a3a7485af9c",
+        "source_sha256": "1d5c7551579ebf0a0f1e4c914b2761e7457f80d7d844e1801e8b536f7616f370"
+      },
+      "title": {
+        "locale_sha256": "89557afc312097116606a95c08594744baf61bb940e30864696090e57584af97",
+        "source_sha256": "1512c0e105a71cf2504b8b39e105b314e7d3b23f897ce9297dcad9e238ccf3cd"
+      },
+      "why_it_matters": {
+        "locale_sha256": "07d989860d021e31dc07e4d6b10eb2c64339c18af72eb73b307d5b435ce27dfd",
+        "source_sha256": "b7ecac99e290b41c6a4b061fce37351b2a7faea0b1abc255f43526ac2fe7c5f4"
       }
     },
     "FCMO-92E86166BABF": {
@@ -24414,6 +24746,48 @@
         "source_sha256": "b87a70ee550e0b7933db09e243f95122680eaa00e7b3b0624da784635b0d0462"
       }
     },
+    "FCMO-EA8DFB8BF4B2": {
+      "claims": {
+        "locale_sha256": "1a21b84db19236ac7fd00d53375cba7166996a42ccf6d6daf7a76c2e3cc65640",
+        "source_sha256": "f70256e2084eef5112a744d9dbd26d8871aac767d5afdf18b90ec516994b631b"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "78cec9c52f46297517f42dfad4d396b9306b3c5c80cf42f5c00a3c98298f9066",
+        "source_sha256": "ba4a614f56939e950bedb6edc142dfd4c9d1bb51ca25d955605870cb2f0b5294"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "e48466b6faa02f9322bd439d8bdbeb8c7f1a19c500bdf5faa053157f5072b78f",
+        "source_sha256": "43281564d174ad1a58fa8795f08cd176d7e297e3cb74f98f2b3c440e801d7448"
+      },
+      "importance_rationale": {
+        "locale_sha256": "d019966a2353a980a87cc6a8006b170b9a8f93bd2f11b5e04648bc435d25ccc0",
+        "source_sha256": "414a5de9227e0500efc99f2c7aa7c95740b8569f43603a4c910f6fcc00b43567"
+      },
+      "limitations": {
+        "locale_sha256": "d45f04b18d2b5cdd9da77b162d01b59e0182313487bea8625d2672ba1dab5e41",
+        "source_sha256": "6d026136813606cf7f051f78abf1e1900c94ab45f8c8c03cfcbe533aa2b9594e"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "4d31923b64d3bd705b9f7c351741941e80d9eb957a80859584514259464f88f9",
+        "source_sha256": "5d65278e279985c25a1200a8db8238018be0d63b9ee0e6bc90e4bff94b71461c"
+      },
+      "technical": {
+        "locale_sha256": "50e3b37f4bb281079549d38e2ddfefff6f5246dc92448fc00175fcafb66b1a6a",
+        "source_sha256": "b83578aa806142d7dca9294a61d7314c41937339ee4a60031ea6cfde4dfaf876"
+      },
+      "title": {
+        "locale_sha256": "51c1c627dba783fb954c7a5feefab6166f348c3578a5d9a8edf882fe5ecd2b80",
+        "source_sha256": "76a6d16e6eb6cecb2d5e822132ce5832a3acaaaaa33ee86c75d2c19f6abdea4a"
+      },
+      "why_it_matters": {
+        "locale_sha256": "da1fb7749d4e0fe46939ad176ecb88b5e7798db56bbb83f1389bc16a842af6bd",
+        "source_sha256": "5849326b40a93a50cbfea625725cdc71d2e9b7b5055db730cd0789268bf91681"
+      }
+    },
     "FCMO-EC25B52CAF32": {
       "claims": {
         "locale_sha256": "e80ba28950b06af78601378810f2a6530902d6adb3efc74437c259d779867b56",
@@ -24454,6 +24828,48 @@
       "why_it_matters": {
         "locale_sha256": "f408e41048ccd8f03647688dcb98020853588e164ce0ae57ab2c00bbed4a67f2",
         "source_sha256": "a021befa736e4ddb7c42e14f8954aa7431d1aacd8c5e97d136eda5788e552cdd"
+      }
+    },
+    "FCMO-ED9251AD04F0": {
+      "claims": {
+        "locale_sha256": "ebe98cf922e6c0ac541a32958bcb575c3f942d67f8ae7b88c5639d4e5bb87885",
+        "source_sha256": "5b3a7586e4256b4d56b0e47f2d3315fbe8db00e6ab02aeb74066f2538c2d8739"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "313a092f29186d94ac9be7c7c1c6ead5a5c9f1bd31e3baec5d9b816d8445cb1f",
+        "source_sha256": "6965f61e4708278d089b750e8e46c1121533428229a5798301f079a29d966421"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "baa1fb2a615eadb4cc754438a152ef910d316da7d3e4514ff92fad6db3fa7a09",
+        "source_sha256": "f67e338f47c3be879612df6d74eda174a91d1497def45a722680ff40bdf948a9"
+      },
+      "importance_rationale": {
+        "locale_sha256": "ed0dd0c5a2741ce7bacc81e412a04b2674432d0cf614eca05d3ec24e4b27ab99",
+        "source_sha256": "6093df0a7073c7d99e290c0a47a12bf9c001cdc9509c6120a62db995fb7b6ebe"
+      },
+      "limitations": {
+        "locale_sha256": "75987eff431b137eb81b4f0a6553e40b32fc4530988d988603d08164b06b93c2",
+        "source_sha256": "7fa62a7be662b4dbd7bc7bb67c03cc8f065de90166b440b00b50b9a195b78420"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "18146407a11c8968de2d2d2f63df99021975b100237ea391767e154dbc16cf34",
+        "source_sha256": "d721f852185034314e341f90d58202892c17ddb5d6145780a8fd2418e0f5b76d"
+      },
+      "technical": {
+        "locale_sha256": "c07eb055bb6ea34529fd7e43c60e16a03eeb54541f38d56804dd802b8b0ca995",
+        "source_sha256": "7a5de0805932f9d15813a4e9bc4b169881657d6329980044ec3ee37f003f6196"
+      },
+      "title": {
+        "locale_sha256": "fbb47f6c7dbb67a9b5e14df88fc99ea96e4acee56eef751b5a4175545ea5a246",
+        "source_sha256": "1944f96cff8a7e7a9f8b0406282b3995b189c92343d4c60c95d9fb5bab14c11b"
+      },
+      "why_it_matters": {
+        "locale_sha256": "67bae5550012ea9baddbcc41ed4ec9b3a5e06365068eb93afb9998bdcd520141",
+        "source_sha256": "ebb9e6a07a01ea80fb5fad6608cbfcaefe5b26f1580a69740ccdac375613268d"
       }
     },
     "FCMO-EFC5F5FC6FBE": {
