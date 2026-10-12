@@ -2796,6 +2796,62 @@
       "title": "Un preprint informa que separar hechos del entorno de procedimientos puede ayudar a agentes que evolucionan",
       "why_it_matters": "Si los resultados informados se transfieren, los sistemas de memoria para agentes podrían beneficiarse de registrar por separado qué parece cierto sobre el entorno y qué procedimientos condicionales funcionan allí, lo que facilitaría detectar fallos ligados al contexto y supuestos obsoletos. La evidencia es de los autores y varía entre dominios; una parte grande de una mejora agregada proviene de un único dominio de benchmark."
     },
+    "FCMO-266232F3118E": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "MMSafe combina una capa sensible a la seguridad compartida entre idiomas con capas específicas por idioma para ordenar ejemplos de ajuste fino según su potencial estimado de degradar la seguridad."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En cuatro variantes Llama/Qwen, dos conjuntos de ajuste fino y seis combinaciones de conjunto y prueba, los autores informan proporciones de respuestas dañinas de 31.8%–46.5% frente al filtrado aleatorio; el método supera a LARF de una capa en tres de cuatro variantes."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El artículo informa utilidad general y multilingüe ampliamente similar en los entornos probados, mientras que la sensibilidad a la ponderación específica por idioma varía según los modelos y los conjuntos de datos."
+        },
+        {
+          "label": "DEMONSTRATED_SCOPE_LIMITATION",
+          "text": "Los resultados usan ajuste fino LoRA y evaluación con pruebas; no establecen seguridad en despliegue ni eliminan regresiones específicas por idioma."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se ejecutó independientemente la implementación publicada ni se reprodujeron los resultados agregados.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "La evaluación cubre cuatro variantes, dos corpus de ajuste fino, LoRA y pruebas de seguridad seleccionadas; se desconoce el rendimiento fuera de este régimen.",
+          "kind": "regime_unclear",
+          "state": "open"
+        },
+        {
+          "description": "La ponderación específica por idioma preferida varía según el modelo y el conjunto de datos; se informan algunas regresiones por idioma.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se reproduce, seleccionar datos multilingües de ajuste fino mediante señales de seguridad compartidas y por idioma podría reducir regresiones en distintas familias de modelos sin una gran penalización de utilidad medida. La evidencia es un estudio de referencia de los autores, con métricas automáticas y algunas regresiones lingüísticas; no establece seguridad en despliegue.",
+      "limitations": [
+        "Los resultados son de los autores; esta activación no ejecutó el código ni reprodujo el estudio.",
+        "La seguridad se evalúa principalmente con LlamaGuard 3, además de jueces automáticos y humanos descritos en un apéndice.",
+        "Los experimentos usan cuatro variantes, dos conjuntos de datos, LoRA y pruebas multilingües seleccionadas; no establecen seguridad de despliegue.",
+        "La ponderación presenta distintas compensaciones según modelos y conjuntos de datos, con pequeñas regresiones en algunos idiomas."
+      ],
+      "relationships": [],
+      "summary": "Un preprint propone MMSafe, que puntúa ejemplos de ajuste fino usando una capa de seguridad compartida entre idiomas y capas específicas por idioma. En cuatro variantes de modelos Llama y Qwen, dos conjuntos de ajuste fino y tres pruebas multilingües de seguridad, los autores informan que la proporción de respuestas dañinas promedia alrededor de 39% de las líneas base de filtrado aleatorio; el método supera un filtro previo de una sola capa en tres de cuatro variantes. Informan una utilidad general y multilingüe ampliamente similar en las condiciones probadas, aunque los resultados varían según el conjunto de datos, el modelo y la ponderación por idioma. Los hallazgos se limitan a los ajustes LoRA y las pruebas del artículo. Los autores dicen que publicaron el código, pero esta activación no lo ejecutó ni reprodujo los resultados de forma independiente.",
+      "technical": {
+        "claimed_result": "Los autores informan proporciones de respuestas dañinas de 31.8%–46.5% frente a líneas base de filtrado aleatorio en cuatro variantes; MMSafe mejora sobre LARF en tres de cuatro.",
+        "demonstrated_result": "El artículo principal documenta el método e informa mediciones de pruebas; aquí no se realizó reproducción independiente.",
+        "mechanism": "Una capa de seguridad compartida y capas específicas por idioma ofrecen señales complementarias para ordenar ejemplos de ajuste fino.",
+        "regime": "Ajuste fino LoRA de los autores con grupos de datos Aya y Nemotron-SG en cuatro variantes Llama/Qwen, evaluado mediante tres pruebas multilingües de seguridad y jueces.",
+        "strongest_baseline": "Selección aleatoria con el mismo modelo, conjunto de datos y prueba; LARF es la comparación de una sola capa."
+      },
+      "title": "MMSafe informa un filtro multilingüe de ajuste fino que reduce regresiones de seguridad medidas",
+      "why_it_matters": "Los datos de ajuste fino pueden debilitar el comportamiento seguro aunque no sean abiertamente dañinos. El artículo examina si las señales de seguridad multilingües aparecen en distintas capas y presenta un filtro de datos que podría ayudar a preservar la seguridad durante la adaptación."
+    },
     "FCMO-2855FF416D32": {
       "claims": [
         {
@@ -9907,6 +9963,61 @@
       "title": "Una prepublicación mide los límites de las defensas genéricas del sistema operativo para el estado persistente de agentes autónomos",
       "why_it_matters": "Los agentes alojados en el equipo del usuario pueden modificar archivos que condicionan su comportamiento futuro. Tras comprometerse un agente, los permisos y registros de archivos habituales quizá no distingan una actualización autorizada de memoria de una escritura maliciosa. Si estas mediciones acotadas se sostienen en más contextos, las defensas necesitarían una frontera de actualización contextual además del aislamiento y las copias de recuperación protegidas."
     },
+    "FCMO-996A9DA8F42A": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Los autores proponen CS-MoE, que combina expertos específicos de cada capa con un grupo compartido de expertos accesible entre capas del transformador."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En experimentos con base Qwen3 de 0.6B a 12B parámetros, los autores informan menor perplejidad que en modelos densos con presupuestos equiparados de parámetros y FLOP; una configuración 8B activa 55% de los parámetros físicos e informa perplejidad 9.55 frente a 9.75 del modelo denso 8B."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Con presupuestos equiparados de parámetros totales y FLOP activos, el artículo informa perplejidad 9.65 frente a 9.70 en escala 8B y 9.19 frente a 9.40 en escala 12B, comparada con sus variantes MoE dispersas aisladas por capa."
+        },
+        {
+          "label": "DEMONSTRATED_SCOPE_LIMITATION",
+          "text": "El artículo inspeccionado indica que la validación empírica llega hasta 12B parámetros y deja para estudios futuros el escalamiento a más de 70B, la aceleración distribuida y los procesos posteriores al entrenamiento."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se inspeccionó una reproducción independiente de las ejecuciones de entrenamiento ni de los resultados informados de perplejidad o tareas posteriores.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "Los autores validan hasta 12B parámetros; no midieron enrutamiento a gran escala, estabilidad del entrenamiento ni rendimiento del sistema por encima de 70B.",
+          "kind": "regime_unclear",
+          "state": "open"
+        },
+        {
+          "description": "El artículo no establece el rendimiento tras el ajuste posterior ni ventajas de costos de servicio de extremo a extremo para CS-MoE.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se replica, el reparto entre capas podría cambiar decisiones de arquitectura y de asignación entre parámetros y FLOP en modelos expertos con recursos limitados. Algunas mejoras informadas son modestas, se limitan a experimentos de hasta 12B parámetros y no demuestran ventajas a mayor escala ni menores costos de servicio.",
+      "limitations": [
+        "Todos los resultados cuantitativos son informes de los autores y no se reprodujeron independientemente en esta activación.",
+        "La comparación de perplejidad 8B con 55% de parámetros activos es distinta de la comparación separada de tareas posteriores 8B, informada después de entrenar con 4.5 billones de tokens.",
+        "El modelo más grande informado por el artículo es 12B; siguen sin conocerse el rendimiento por encima de 70B, las ventajas en sistemas distribuidos y los efectos del ajuste posterior."
+      ],
+      "relationships": [],
+      "summary": "Un preprint propone CS-MoE, que combina expertos locales por capa con un conjunto compartido accesible a través de las capas del transformador. En experimentos con base Qwen3 de 0.6B–12B parámetros, los autores informan menor perplejidad que en modelos densos y MoE aislados por capa, con presupuestos equiparados de parámetros y FLOP. En escala 8B, una configuración activa 55% de los parámetros físicos por pasada y obtiene perplejidad 9.55 frente a 9.75 del modelo denso. Este resultado no es el mismo que la comparación posterior, separada, de rendimiento con 4.5 billones de tokens de entrenamiento. Los modelos más grandes evaluados llegan a 12B; siguen sin establecerse la estabilidad del enrutamiento, las ventajas de eficiencia distribuida y el comportamiento tras el ajuste posterior a esa escala.",
+      "technical": {
+        "claimed_result": "Los autores informan mejoras de perplejidad con presupuestos equiparados frente a modelos densos y MoE dispersos aislados por capa; una configuración 8B activa 55% de los parámetros físicos e informa PPL 9.55 frente a 9.75 para un modelo denso 8B.",
+        "demonstrated_result": "La fuente primaria documenta la arquitectura propuesta y resultados experimentales informados por los autores; en esta activación no se reprodujo ningún resultado de manera independiente.",
+        "mechanism": "Cada capa del transformador tiene expertos locales y un enrutador selecciona un subconjunto de un grupo compartido accesible desde distintas profundidades, lo que permite reutilizar parámetros en varias capas.",
+        "regime": "Experimentos de los autores con base Qwen3 de 0.6B a 12B parámetros, comparaciones equiparadas de parámetros y FLOP, y evaluaciones selectas posteriores.",
+        "strongest_baseline": "Los modelos densos y MoE dispersos aislados por capa del propio artículo, igualados en cantidad total de parámetros y FLOP activos."
+      },
+      "title": "CS-MoE informa mejoras de perplejidad con reparto de expertos entre capas hasta 12B parámetros",
+      "why_it_matters": "Reutilizar parámetros entre capas es una vía arquitectónica concreta para equilibrar capacidad almacenada y cómputo activo. Si se reproducen las mejoras informadas con presupuestos equiparados, podrían influir en el diseño de modelos dispersos sujetos a límites de memoria o cómputo."
+    },
     "FCMO-99C2914CBB6D": {
       "claims": [
         {
@@ -12985,6 +13096,62 @@
       },
       "title": "Muchas pérdidas de agentes de bases de datos en producción ocurren después de usar herramientas, y los defectos del servidor cambian las puntuaciones de los modelos",
       "why_it_matters": "Si el resultado se replica, los fallos de agentes con herramientas podrían atribuirse erróneamente a la capacidad del modelo cuando el factor limitante es la interfaz o el servidor; corregir un defecto del entorno puede ayudar a varios modelos a la vez. El estudio cubre un producto y fue escrito por colaboradores del software evaluado; las lecturas seleccionadas antes y después no establecen tamaños de efecto generales."
+    },
+    "FCMO-CF1ADDC93536": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Los autores evalúan diez LLM base y ajustados posteriormente en decisiones de contratación simuladas, con vacantes y perfiles generados a partir de distribuciones del mercado laboral de EE. UU. en 76 ocupaciones."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Ocho de diez modelos ajustados muestran un cambio negativo en la probabilidad de llamada para postulantes mayores frente a sus versiones base; el artículo informa una mediana de -4.7%."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "La exclusión sistémica se define como que al menos 9 de 10 modelos asignen una probabilidad de llamada inferior a 0.5; los autores informan un aumento estimado de 5.6% en modelos base a 17.3% en modelos ajustados."
+        },
+        {
+          "label": "DEMONSTRATED_SCOPE_LIMITATION",
+          "text": "El estudio usa perfiles generados y un flujo de trabajo simulado compartido; no mide decisiones reales de empleadores ni identifica qué etapa del ajuste posterior causó los cambios."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se inspeccionó una reproducción independiente de los experimentos con perfiles generados ni de sus estimaciones.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "El experimento usa perfiles generados y un flujo simulado en vez de despliegues observados o decisiones de empleadores.",
+          "kind": "regime_unclear",
+          "state": "open"
+        },
+        {
+          "description": "La tasa de exclusión depende del acuerdo de 9 de 10 y del umbral de llamada 0.5; no se separan las etapas de ajuste posterior.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se replica en entornos aplicados, la selección correlacionada de modelos podría concentrar quién recibe oportunidades y afectar la evaluación laboral y la gobernanza del despliegue. El resultado se limita a perfiles sintéticos muestreados y llamadas simuladas, no a contrataciones reales.",
+      "limitations": [
+        "Los resultados son probabilidades de llamada de modelos informadas por los autores, no resultados reales de contratación.",
+        "Los perfiles y vacantes proceden de una instantánea temporal de datos laborales en línea de EE. UU. y se simplifican, sin currículos ni descripciones de puestos completos.",
+        "Las señales demográficas son binarias y usan nombres y fechas de graduación, que pueden reflejar otros factores socioeconómicos.",
+        "El artículo no aísla la etapa de ajuste posterior responsable."
+      ],
+      "relationships": [],
+      "summary": "Un preprint estudia diez modelos de lenguaje base y ajustados posteriormente en una simulación de contratación de EE. UU., con perfiles de postulantes y vacantes generados a partir de datos de 76 ocupaciones. Los autores informan que ocho de diez modelos ajustados redujeron la probabilidad de devolución de llamada para postulantes mayores, con una mediana de 4.7%. Definen exclusión sistémica como que al menos nueve de diez modelos asignen una probabilidad de llamada inferior a 0.5; con esa métrica, la tasa estimada aumenta de 5.6% a 17.3% tras el ajuste posterior. Son resultados de modelos con perfiles generados, no decisiones reales de contratación. Los datos son una instantánea del mercado laboral en línea de EE. UU., las señales demográficas son simplificadas y el estudio no identifica qué etapa del ajuste causó los cambios.",
+      "technical": {
+        "claimed_result": "Los autores informan una caída de llamadas para mayores en ocho de diez modelos ajustados (mediana -4.7%) y un aumento de 5.6% a 17.3% de exclusión sistémica simulada.",
+        "demonstrated_result": "El artículo documenta el método simulado e informa resultados de modelos; no establece resultados laborales aplicados ni una reproducción independiente.",
+        "mechanism": "Los modelos ajustados toman decisiones más correlacionadas en la tarea con postulantes generados; un umbral de acuerdo aumenta la fracción con baja probabilidad de llamada.",
+        "regime": "Diez pares de modelos base/ajustados en una simulación de contratación de EE. UU. con rasgos muestreados de vacantes y perfiles en 76 ocupaciones con título universitario.",
+        "strongest_baseline": "Comparaciones base frente a ajuste posterior dentro del mismo modelo y estimaciones de exclusión en modelos base con los mismos perfiles y umbral."
+      },
+      "title": "Estudio informa que decisiones de contratación más correlacionadas tras el ajuste pueden elevar la exclusión sistémica modelada",
+      "why_it_matters": "Las evaluaciones de diferencias demográficas promedio en un solo sistema pueden pasar por alto el efecto de muchos sistemas que toman decisiones similares. Si se confirma en aplicaciones reales, una selección correlacionada podría aumentar el número de personas excluidas de forma consistente."
     },
     "FCMO-CFC14EB454F9": {
       "claims": [
