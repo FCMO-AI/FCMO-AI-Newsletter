@@ -1,0 +1,123 @@
+{
+  "record": {
+    "id": "FCMO-08FB79207C91",
+    "title": "ActGov reports benchmark reductions in indirect prompt-injection success through per-action authorization checks",
+    "desk": "Agents Memory",
+    "event_at": "2026-09-21T00:00:00Z",
+    "evidence": "A",
+    "confidence": "credible_unconfirmed",
+    "importance": 5,
+    "tier": "Notable",
+    "summary": "A September 2026 preprint introduces ActGov, which checks each proposed tool call against a task-scoped policy before execution. The authors report lower indirect prompt-injection success on AgentDojo and AgentDyn across four model backends, with task utility retained to varying degrees. Their cross-domain transfer test also shows severe over-restriction: an AgentDojo-trained policy has 0.100 clean-task utility on AgentDyn versus 0.767 without defense. These are paper-reported benchmark results, not independent reproduction or evidence of deployment effectiveness.",
+    "topics": [
+      "agent security",
+      "authorization",
+      "indirect prompt injection",
+      "runtime enforcement",
+      "tool use"
+    ],
+    "organizations": [],
+    "human_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-08FB79207C91.html",
+    "machine_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/data/briefs/FCMO-08FB79207C91.json",
+    "citation": {
+      "id": "FCMO-08FB79207C91",
+      "source": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-08FB79207C91.html"
+    }
+  },
+  "brief": {
+    "claims": [
+      {
+        "label": "CLAIMED",
+        "text": "The authors propose an offline policy-generation stage with Z3 checking and a deterministic runtime monitor that intercepts each candidate tool call before external execution."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "On the displayed AgentDojo and AgentDyn test splits, the authors report ActGov attack-success rates from 0 to 0.7% across four model backends, with varying reductions in task utility."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "In cross-domain policy transfer, the authors report zero attack success but severe over-restriction; an AgentDojo-trained policy has 0.100 clean utility on AgentDyn compared with 0.767 for no defense."
+      },
+      {
+        "label": "NOT_ESTABLISHED",
+        "text": "The results do not establish that the policy abstraction or semantic extraction is reliable in open-world deployments, nor that attack reductions generalize beyond these benchmark tasks and assumptions."
+      }
+    ],
+    "confidence": "credible_unconfirmed",
+    "contradictory_evidence": [],
+    "desks": [
+      "agents_memory",
+      "evaluation_science"
+    ],
+    "development_type": "paper",
+    "editions": [
+      "2026-10-12"
+    ],
+    "event_at": "2026-09-21T00:00:00Z",
+    "evidence_class": "A",
+    "evidence_gaps": [
+      {
+        "description": "No independent reproduction of the AgentDojo/AgentDyn split or author-reported attack-success and task-utility values was performed.",
+        "kind": "missing_independent",
+        "state": "open"
+      },
+      {
+        "description": "Evaluation assumes trusted user tasks, an immutable enforcement layer, and complete pre-execution interception; open-world tools and unseen task domains are not established.",
+        "kind": "other",
+        "state": "open"
+      },
+      {
+        "description": "Cross-domain policy transfer preserves low reported attack success through severe conservatism, including 0.100 clean utility on AgentDyn for an AgentDojo-trained policy.",
+        "kind": "other",
+        "state": "open"
+      }
+    ],
+    "id": "FCMO-08FB79207C91",
+    "importance_effective_score": 5,
+    "importance_rationale": "If the reported results generalize, per-action authorization checks could reduce indirect prompt-injection risk in long-running tool agents while preserving useful actions. The paper reports strong in-benchmark attack-rate reductions but severe utility loss under cross-domain policy transfer, so the result is notable engineering evidence rather than a general security guarantee.",
+    "importance_scale_version": 2,
+    "importance_score": 5,
+    "importance_tier": "Notable",
+    "last_verified_at": "2026-10-12T06:09:02Z",
+    "limitations": [
+      "All attack-success and utility measurements are author-reported; the research desk did not run code or reproduce results.",
+      "The threat model trusts the user task and enforcement layer and assumes every external action passes through pre-execution validation.",
+      "Policy abstraction depends on finite records and semantic extraction; errors in mapping runtime context can affect enforcement.",
+      "The main evidence comes from two benchmark suites and specific task splits; cross-domain transfer shows severe utility loss.",
+      "The strongest policy-generation setting uses human review, so it does not demonstrate fully autonomous policy synthesis in that setting."
+    ],
+    "organizations": [],
+    "primary_desk": "agents_memory",
+    "recorded_at": "2026-10-12T06:09:02Z",
+    "regions": [
+      "global"
+    ],
+    "relationships": [],
+    "source_languages": [
+      "en"
+    ],
+    "source_urls": [
+      "https://arxiv.org/abs/2609.24446"
+    ],
+    "status": "active",
+    "summary": "A September 2026 preprint introduces ActGov, which checks each proposed tool call against a task-scoped policy before execution. The authors report lower indirect prompt-injection success on AgentDojo and AgentDyn across four model backends, with task utility retained to varying degrees. Their cross-domain transfer test also shows severe over-restriction: an AgentDojo-trained policy has 0.100 clean-task utility on AgentDyn versus 0.767 without defense. These are paper-reported benchmark results, not independent reproduction or evidence of deployment effectiveness.",
+    "technical": {
+      "claimed_result": "On AgentDyn, the authors report ActGov attack success rates of 0.004–0.007 across Qwen3.6-Flash, MiniMax-M2.5, DeepSeek-V4-Pro and GPT-4o mini. On AgentDojo they report 0.000 for all four backends in the displayed test split. Task-completion utility declines in some configurations. Cross-domain policies yield 0.000 ASR in both transfer directions but can sharply restrict benign tasks; an AgentDojo-trained policy tested on AgentDyn has 0.100 clean utility versus 0.767 without defense.",
+      "demonstrated_result": "The inspected arXiv v2 paper reports the framework, benchmark setup and tabulated results. the research desk did not execute the code or independently reproduce the measurements; the attack and utility outcomes remain author-reported.",
+      "mechanism": "ActGov separates offline policy generation from deterministic runtime enforcement. An LLM proposes policy rules from tool specifications, benign traces and attacks; Z3 checks candidate policies against predefined invariants. At runtime a monitor maps a proposed action and context into finite semantic records and allows it only when it passes the task permissions and policy rules.",
+      "regime": "Indirect prompt-injection tests on AgentDojo (629 security test cases) and AgentDyn (560 security test cases), with four model backends. The main evaluation uses equal training/test splits. The strongest policy setting uses GPT-5.5 as policy proposer for 10 refinement rounds with human review; a separate scalability evaluation removes that review and uses five automated iterations.",
+      "strongest_baseline": "The paper compares against no defense and CaMeL, Progent, DRIFT and ACE. It reports attack-success and clean/attacked task-completion metrics; cross-domain transfer substantially reduces utility despite low attack success."
+    },
+    "title": "ActGov reports benchmark reductions in indirect prompt-injection success through per-action authorization checks",
+    "topics": [
+      "agent security",
+      "authorization",
+      "indirect prompt injection",
+      "runtime enforcement",
+      "tool use"
+    ],
+    "why_it_matters": "ActGov tests a concrete security boundary: authorization is checked at each proposed external action rather than delegated to the model's judgment. The paper's held-out benchmark results make that mechanism worth tracking, while the cross-domain utility collapse shows that low attack success can result from blocking legitimate work. Deployment value depends on whether policy coverage and semantic extraction generalize beyond the tested task splits."
+  },
+  "related": [],
+  "schema": "fcmo-public-brief-v1"
+}

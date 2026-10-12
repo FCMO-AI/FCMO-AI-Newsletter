@@ -1,6 +1,6 @@
 {
   "canonical_locale": "en",
-  "canonical_source_sha256": "287f0a24917acf9d8919e05f7c8777ca405f536bf8cdf3184fa6333e99a4f255",
+  "canonical_source_sha256": "56fbaba17f89084eb2266f93664c08ced0b6dc76e019389defa94b01d5cc308b",
   "generated_from": "ARB airlock; editorial wording authored upstream",
   "locale": "zh-Hans",
   "records": {
@@ -591,6 +591,63 @@
       },
       "title": "TasteVal报告Opus 5.5在八项有限AI研发任务上的实验计算乘数为2.30×",
       "why_it_matters": "如果所报告的效率提升能迁移到规模更大、结构更少的研究环境，可能降低每项实验结果所需的算力，并改变研究项目规划。该基准测量针对固定问题的迭代实验设计与解释，不测量问题选择、新颖想法生成、完整项目执行或实时多智能体研究。"
+    },
+    "FCMO-08FB79207C91": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "作者提出离线策略生成阶段，使用Z3检查，并通过确定性运行时监控器在产生外部影响前拦截每个候选工具调用。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "在展示的AgentDojo和AgentDyn测试划分中，作者报告ActGov在四种模型上的攻击成功率为0至0.7%，同时任务效用降幅不一。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "在跨领域策略迁移中，作者报告攻击成功数为零，但出现严重的过度限制：在AgentDojo上训练的策略在AgentDyn上的正常任务效用为0.100，无防护时为0.767。"
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "这些结果并未证明策略抽象或语义提取在开放环境中可靠，也未证明攻击率下降可推广到这些基准任务和假设以外。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "尚未独立复现AgentDojo/AgentDyn的测试划分，也未独立核验作者报告的攻击成功率和任务效用数值。",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "评估假设用户任务可信、执行层不可篡改且所有操作都在执行前受到完整拦截；未验证开放工具或新领域任务。",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "跨领域策略迁移通过过度保守维持了较低攻击成功率，其中在AgentDojo上训练的策略在AgentDyn上的正常任务效用为0.100。",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "如果报告的结果能够泛化，逐项授权检查可能降低长流程工具代理遭受间接提示注入的风险，同时保留有用操作。论文报告了测试范围内较大的攻击率降幅，但跨领域策略迁移时效用严重下降，因此这属于值得关注的工程证据，而非普遍安全保证。",
+      "limitations": [
+        "所有攻击成功率和效用测量均由作者报告；研究团队未运行代码或复现实验。",
+        "威胁模型信任用户任务和执行层，并假设每个外部操作都经过执行前验证。",
+        "策略抽象依赖有限记录和语义提取；运行时上下文映射错误会影响执行控制。",
+        "主要证据来自两个基准套件和特定数据划分；跨领域迁移显示效用严重下降。",
+        "最强策略生成配置包含人工审查，因此该设置并未证明策略生成完全自主。"
+      ],
+      "relationships": [],
+      "summary": "一篇2026年的预印本介绍了ActGov：它在执行前依据任务范围内的策略检查每个拟议工具调用。作者报告称，在四种模型上，AgentDojo和AgentDyn中的间接提示注入攻击成功率下降，但任务效用各有变化。跨领域迁移测试也显示了严重的过度限制：在AgentDojo上训练的策略在AgentDyn上的干净任务效用为0.100，而无防护时为0.767。这些是论文报告的基准结果，并非独立复现，也不能证明其在实际部署中的效果。",
+      "technical": {
+        "claimed_result": "在AgentDyn上，作者报告ActGov在Qwen3.6-Flash、MiniMax-M2.5、DeepSeek-V4-Pro和GPT-4o mini上的攻击成功率为0.004–0.007。在展示的AgentDojo测试划分中，四种模型的报告值均为0.000。某些配置下任务效用有所下降。跨领域迁移策略在两个方向上均达到0.000的ASR，但可能严重限制正常任务：在AgentDojo上训练并于AgentDyn测试的策略，正常任务效用为0.100，无防护时为0.767。",
+        "demonstrated_result": "所检查的arXiv v2论文描述了该框架、基准测试设置和表格结果。研究团队未运行代码，也未独立复现实验；技术结果仍是作者报告的结果。",
+        "mechanism": "ActGov将离线策略生成与运行时确定性执行分开。语言模型依据工具规范、正常任务轨迹和攻击样例提出策略规则；Z3对候选策略进行检查，确保其满足预设不变量。运行时监控器把拟议操作及其上下文映射为有限语义记录，只有符合任务权限和策略规则时才予以放行。",
+        "regime": "在AgentDojo（629个安全测试案例）和AgentDyn（560个安全测试案例）上进行间接提示注入测试，使用四种模型。主要评估采用相等规模的训练与测试划分。策略生成的强配置使用GPT-5.5进行10轮优化并由人工审查；另一个可扩展性评估移除人工审查，采用五轮自动迭代。",
+        "strongest_baseline": "论文将该方法与无防护、CaMeL、Progent、DRIFT和ACE进行比较，并报告攻击成功率及正常/受攻击任务完成度。跨领域策略迁移尽管保持了较低攻击成功率，却显著降低了效用。"
+      },
+      "title": "ActGov报告称，逐项授权检查可降低间接提示注入攻击成功率",
+      "why_it_matters": "ActGov检验了一条具体的安全边界：对每个拟议的外部操作逐项检查授权，而不是依赖模型自行判断。论文报告的留出测试结果使这一机制值得关注；但跨领域迁移时效用大幅下降，说明低攻击成功率也可能来自阻断合法任务。其部署价值取决于策略覆盖和语义提取能否推广到测试范围之外。"
     },
     "FCMO-09A93E4015DF": {
       "claims": [
@@ -2039,6 +2096,59 @@
       },
       "title": "Air Security 报告称四款编程代理存在插件 SHA 固定值检出校验缺失",
       "why_it_matters": "提交固定值常被视为代理执行的就是已审查插件代码的证明。如果所述检出行为成立，代理必须验证解析后的工作树提交；仅有市场中的固定值不足以证明这一保证。"
+    },
+    "FCMO-1F6BBDBD11C9": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "作者将 PhysAI-Bench 描述为包含10,178个源自无人机轨迹的决策题，每题有四个候选动作；其中开发集包含35个经人工核验的样例，另有500个按任务轨迹隔离的留出样例。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "作者从12种提示词与温度组合中为每个模型选择配置后报告，GPT-5.3 Chat在三次预先规定的运行中取得52.00%的留出集准确率，为所列最高分。参考答案是原始任务轨迹中实际执行的动作，并不证明该动作在全局上最优。"
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "该基准结果不能证明无人机在现实环境中的安全性、低层感知能力、端到端任务完成能力，也不能证明轨迹中的参考动作是全局最优的。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "所查阅仓库尚未发布完整数据集、冻结的划分清单、评测代码和模型输出。",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "轨迹中的参考动作不能证明所选动作是唯一有效或全局最优的。",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "该基准未评测真实飞行、原始多模态感知或端到端任务完成。",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "如果该基准测到了自主决策的有用方面，其最高分不高可能推动研究者更严格地评估智能体在物理、运行和网络约束交织时的表现。结果仅涉及源自无人机轨迹的多选动作判断，不能证明现实飞行安全或任务完成能力，而且评测材料仍未发布。",
+      "limitations": [
+        "所有性能数据均由作者报告；未运行代码或复现结果。",
+        "在所查阅的仓库中，完整数据集、锁定的划分清单、生成与评测代码以及模型输出仍标记为待发布。",
+        "当前基准仅基于无人机任务，使用结构化文本上下文，不包含原始图像、视频、激光雷达、音频或其他传感器模态。",
+        "评测关注高层动作选择，不涵盖低层感知或端到端任务完成。",
+        "记录中的动作是源任务轨迹里实际执行的操作参考，并非全局最优或唯一有效动作的证明。"
+      ],
+      "relationships": [],
+      "summary": "作者推出 PhysAI-Bench，这是一个基于自主无人机任务轨迹、评测基础模型动作选择能力的多选基准。仓库介绍称其包含10,178个决策题，每题有四个候选动作；开发集有35个经人工核验的样例，按任务轨迹隔离的留出集有500个样例。作者为每个模型选定提示词和温度配置后报告，GPT-5.3 Chat的留出集决策准确率为52.00%，为所列最高分。参考答案是原始任务中实际执行的动作，不一定是唯一有效或全局最优的动作。仓库当时仍将完整数据集、划分清单、评测代码和模型输出标为待发布。",
+      "technical": {
+        "claimed_result": "作者 README 报告 GPT-5.3 Chat 的留出集决策准确率为52.00%，为所列最高；GPT-5.2 Chat为49.40%，Grok 4.5为49.07%。这些结果未经独立复现。",
+        "demonstrated_result": "所查阅的作者仓库说明了基准设计、评测协议和报告分数。未独立检查尚未发布的完整评测材料，也未重新运行基准。",
+        "mechanism": "将自主无人机任务的对话轨迹转换为四选一决策题，并在目标动作发生前截断任务轨迹。先在经人工核验的开发集上为每个模型选择提示词和温度配置，再用按任务轨迹隔离的留出任务进行评测。",
+        "regime": "10,178个源自无人机轨迹的决策题，每题四个选项；35个人工核验开发样例；500个按任务轨迹隔离的留出样例；评测29个模型，每个模型测试12种提示词与温度配置，并重复运行三次。",
+        "strongest_baseline": "同一协议报告 GPT-5.2 Chat为49.40%，xAI Grok 4.5为49.07%，最高分为52.00%。这些分数衡量轨迹衍生动作选择，并非真实无人机运行表现。"
+      },
+      "title": "PhysAI-Bench报告：轨迹衍生无人机决策题最高得分为52%",
+      "why_it_matters": "该基准关注任务目标、物理状态、工具使用和网络条件相互影响时的决策。报告的最高分并不高，但评测仅涉及基于任务轨迹的多选动作判断。结果提示需要更好地评估依赖上下文的智能体决策，但尚未证明现实飞行性能、安全性或任务完成能力。"
     },
     "FCMO-21277C154D52": {
       "claims": [
@@ -5522,6 +5632,59 @@
       "title": "中国发布顶层生产力政策意见，提出跨行业科技与人工智能优先事项",
       "why_it_matters": "如果得到落实，该意见可能影响中国的科研投入、产业现代化、人工智能基础设施、应用试点及多个部委和行业的治理工作。其覆盖范围使实施和交付证据比政策措辞本身更具判断价值；文本没有证明实际拨付金额、已部署算力或经测量的人工智能成效。"
     },
+    "FCMO-588BC65DB51A": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "维多利亚州《可持续数据中心行动计划》为新建数据中心提出政策预期，并说明计划中的规划流程管控措施，包括新增数据中心类别，以及能源和用水方面的转介或通知要求。"
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "计划提出，运营方应通过投资新增可再生能源和储能来抵消实际运营用电，并承担项目直接导致的接入和电网扩容成本。具体合规与核验规则将与正在制定的国家标准一并完善。"
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "计划提出了用水方面的预期措施，包括转用非饮用水、抵消过渡期间的饮用水使用、数据中心用水效率门槛、公开报告和水务基础设施全额成本回收。计划称有19项申请寻求每年19,714兆升用水；申请不等于获批，计划还提及澳大利亚能源市场运营机构项目储备中的取消项目。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "仅凭行动计划无法确定最终规划修订、转介触发条件以及合规或核验规则。",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "计划报告了申请和预计需求，但本记录没有衡量项目审批、实际建设、用电或用水情况。",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "计划预计将与当时仍在制定中的联邦强制标准保持一致。",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "如果按计划所述实施，这些措施可能显著影响维多利亚州数据中心选址、电力采购、电网成本和用水。规划和资源规则关系到项目经济性，但合规细节和国家标准仍在制定中。",
+      "limitations": [
+        "行动计划说明了政策预期和拟议的规划及转介管控，但不能证明所有措施都已颁布或具有可执行性。",
+        "在所查阅的文件中，详细合规与核验要求以及统一的国家标准仍在制定中。",
+        "每年19,714兆升的19项申请并非获批项目或实际运营用水；预计项目也可能取消。",
+        "本记录未对电力、用水、投资或消费者价格的可能影响进行独立分析。"
+      ],
+      "relationships": [],
+      "summary": "维多利亚州2026年九月发布的《可持续数据中心行动计划》为新设施提出规划和资源方面的预期。计划说明了拟议的规划和转介管控，要求运营方通过新增可再生能源和储能抵消运营用电，并承担项目直接导致的接入和电网扩容成本。用水措施包括抵消饮用水使用、设定用水效率门槛、公开报告和回收基础设施成本。文件报告称有申请寻求每年19,714兆升用水，这不代表需求已获批或已经发生。若干合规细节仍在制定中，联邦政府当时也在制定后续统一强制标准。",
+      "technical": {
+        "claimed_result": "政府称，该计划旨在协调数据中心投资与能源、用水、规划和社区利益。",
+        "demonstrated_result": "官方计划记录了拟议的政策预期并报告了申请项目储备，但未证明资源节约已经实现、项目已获批或执行结果已经出现。",
+        "implementation_status": "政府于2026年九月发布的行动计划。部分规划和转介管控被描述为未来实施步骤；详细合规与核验要求仍待确定，联邦标准也在制定中。",
+        "mechanism": "计划拟在规划流程中新增数据中心类别，并对能源和用水设置转介或通知管控。计划提出投资新增可再生能源和储能、回收项目导致的电网成本、转用和抵消饮用水、报告用水效率以及回收水务基础设施成本等预期。",
+        "regime": "适用于澳大利亚维多利亚州新建或扩建的数据中心项目；涉及规划、电网接入与扩容、运营用电及用水。",
+        "strongest_baseline": "维多利亚州现行水务法律和新客户贡献框架已允许水务公司拒绝或附条件供水，并要求项目方承担专用基础设施费用。该计划增加了拟议的规划、能源和用水预期；最终合规规则尚未完成。"
+      },
+      "title": "维多利亚州为新建数据中心提出规划与资源预期",
+      "why_it_matters": "该计划将数据中心扩张与电力供应、电网扩容和水务基础设施成本相联系，为开发商评估维多利亚州项目提供了具体资源条件。报告的申请规模提示可能存在资源压力，但不能证明项目已获批、建成或实际消耗资源。应将拟议措施和未完成的合规规则与已经颁布的要求区分开来。"
+    },
     "FCMO-59C524D8FB84": {
       "claims": [
         {
@@ -7097,6 +7260,59 @@
       },
       "title": "墨西哥众议院登记了一项联邦人工智能治理与技术转移法案，现处于委员会审议状态",
       "why_it_matters": "如果通过，该提案可能影响墨西哥联邦层面的人工智能治理规则，以及高校与小企业之间的技术转移渠道。现有证据仅能确认官方案卷摘要及截至九月15日的待审状态；不能确认其精确法律条文、通过或实施情况。"
+    },
+    "FCMO-731B1BCA417D": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "CICL依据估计的决策效用为候选上下文单元打分，并可在token预算内将选定证据整理为类型化记忆卡。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "在50个SWE-bench Verified文件检索实例上，Qwen3.6-Plus对BM25排名前50的候选项重排后，报告hit@1为0.78，对照为0.58，MRR@10为0.790，对照为0.634；R@10为0.714，对照为0.716。"
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "文件检索结果并未证明补丁成功率、端到端代理表现有所提高，也未证明生产环境中存在形式化识别的因果效应。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "尚未独立复现这50个实例的检索结果及相关判断数据。",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "主要真实代码结果衡量文件检索，而不是后续补丁成功率或代理端到端效用。",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "反事实启发式评分并非形式化识别的因果效应，LLM判断标注也不是人工金标准。",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "如果能够复现，决策感知上下文重排或可帮助编程代理更早找到正确的仓库证据，并更高效地打包上下文。报告的提升仅限于50个SWE-bench Verified实例上的文件检索，整体top-10召回率没有变化，也未证明端到端补丁成功率有所提高。",
+      "limitations": [
+        "所有测量均由论文作者报告；研究团队未运行代码或复现实验结果。",
+        "主要真实代码比较仅在50个SWE-bench Verified实例上衡量文件检索，并未评估补丁成功率。",
+        "尽管hit@1和MRR@10提高，top-10召回率为0.714，对照BM25/HybridRAG为0.716。",
+        "论文说明，反事实启发式效用不构成形式化因果识别；结构化模型判断并非人工金标准。",
+        "合成排序和压缩诊断不能证明端到端部署收益。"
+      ],
+      "relationships": [],
+      "summary": "v4版本提出了反事实启发式上下文层（CICL），按候选仓库文件对代理下一步操作的估计影响进行排序，也可将选定上下文压缩为类型化记忆卡。在50个SWE-bench Verified文件检索实例上，作者报告称，使用Qwen3.6-Plus对BM25排名前50的候选项重排后，hit@1从0.58升至0.78，MRR@10从0.634升至0.790。top-10召回率为0.714，对照为0.716；该结果衡量文件检索而非补丁成功率。论文称其效用估计受反事实启发，并未声称实现了形式化因果识别。",
+      "technical": {
+        "claimed_result": "在50个SWE-bench Verified文件检索实例上，使用Qwen3.6-Plus对BM25排名前50的候选项重排，报告hit@1为0.78，对照为0.58；MRR@10为0.790，对照为0.634；R@10为0.714，对照为0.716。一项合成v3受控移除测试报告，移除效用最高的单元后，上下文F1从0.245降至0.000。在RepoBench-R先选后压缩模式下，摘要报告每次查询节省44.93 tokens，同时保留已选证据。这些均为作者报告的结果；50实例比较衡量文件检索，而非补丁成功率。",
+        "demonstrated_result": "所检查的arXiv v4论文及摘要描述了方法、评估设置和所报告指标。研究团队未运行代码、复现实验或核验后续补丁结果；这些仍是作者报告的数据。",
+        "mechanism": "CICL为每个实例构建包含文件、符号、记忆、规则和失败记录的上下文图；通过结构化判断或排序器估算候选单元的决策效用；并在token预算内选择内容。可选的记忆卡包含触发条件、证据、行动提示、忽略风险和适用范围。论文将该效用描述为反事实启发式，而非形式化因果识别。",
+        "regime": "在50个SWE-bench Verified实例上评估文件级检索，使用Qwen3.6-Plus对BM25排名前50的候选项重排；作者报告2,500条判断均可解析。独立的合成v1/v3测试各使用250项任务。RepoBench-R压缩测试使用100项任务。GPT-5.5经Codex进行的供应商检查只覆盖SWE-bench前五个实例。",
+        "strongest_baseline": "同一50实例文件检索任务中的BM25/HybridRAG：hit@1为0.58，MRR@10为0.634，R@10为0.716；Qwen3.6-Plus的CICL重排结果分别为0.78、0.790和0.714。合成任务中更强的基线仍有竞争力；在合成v3上，VanillaRAG的F1高于CICL。"
+      },
+      "title": "CICL报告称，决策感知重排在小型编程检索测试中提升了首位文件命中率",
+      "why_it_matters": "编程代理可能收到许多看似合理的仓库文件，却仍错过能改变下一条命令或编辑的证据。CICL提出按估计的决策效用衡量上下文，并报告了一项小规模真实代码检索结果和受控合成诊断。文件级的有限提升值得关注，但它并未证明软件修复效果、更广泛的代理表现或生产环境中的因果作用。"
     },
     "FCMO-741AF584E339": {
       "claims": [
@@ -9844,6 +10060,59 @@
       },
       "title": "OpenAI发布722篇AI生成的数学手稿，涵盖372个结果系列，并提供部分Lean形式化证明",
       "why_it_matters": "这次发布建立了一个规模较大、可供检查的语料，用于评估前沿模型的数学研究及其验证流程。其影响取决于各定理的新颖性、正确性和人类吸收程度；这些都不能从手稿数量或实验室公告中推断出来。"
+    },
+    "FCMO-AACA8CBEB134": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "LumoTree结合按路径并行验证和已接受路径的状态回放，以支持循环混合模型的投机解码。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "在43条固定录制请求上，LumoTree三次运行报告吞吐为28.13 tokens/s，五token原生MTP为26.12；在另一项10任务研究中，LumoTree解决5/10，MTP-5解决6/10。"
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "该研究并未证明任务完成速度提升、基准测试整体质量、广泛负载泛化能力或经独立复现的采样等价性。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "固定请求回放吞吐、任务结果、数值边界及采样检查均未得到独立复现。",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "任务研究仅包含十个精选Astropy任务，每个配置每项任务仅尝试一次；回放仅涵盖43条请求和有限服务设置。",
+          "kind": "regime_unclear",
+          "state": "open"
+        },
+        {
+          "description": "数值和采样检查仅支持所述原生相对容差和采样约定；未证明普遍的逐位相等，也未覆盖所有批处理与缓存行为。",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "如果能够复现，按路径并行的投机验证可能小幅提高循环混合模型的解码吞吐，同时在论文所述采样约定下不改变模型的目标分布。结果仅限于单一服务配置上的固定请求回放，而小规模编程代理研究没有显示任务层面的优势。",
+      "limitations": [
+        "所有测量均为作者报告；研究团队未运行实现或复现实验结果。",
+        "固定请求吞吐比较仅使用单一GB10服务配置、小规模请求语料和有限重复次数；报告的运行范围不是置信区间。",
+        "编程代理研究对每个配置的十个精选Astropy任务各尝试一次，且没有简单解码代理对照；各组模型和工具轨迹不同。",
+        "LumoTree解决五项任务，原生MTP-5解决六项，且前者代理累计耗时更长；论文明确未声称任务层面的加速。",
+        "数值与采样检查仅适用于所测试的请求、调度、捕获记录、有限随机游走及所述top-k/min-p约定。"
+      ],
+      "relationships": [],
+      "summary": "LumoTree v3预印本将按路径并行的树验证与已接受路径的状态回放结合，用于循环混合模型。在43条固定录制请求上，作者报告三次运行的汇总吞吐为28.13 tokens/s，高于五token原生多token预测（MTP）的26.12。另一项10个任务的编程代理研究中，每个配置每项任务仅尝试一次：LumoTree解决五项，MTP-5解决六项；LumoTree累计耗时也更长。论文没有声称任务完成速度提升；回放结果仅适用于其GB10服务配置和小规模语料。",
+      "technical": {
+        "claimed_result": "在固定的43条录制请求语料上，LumoTree三次运行报告汇总吞吐为28.13 tokens/s，五token原生MTP为26.12（高7.7%）。在另一组语料上，论文报告30.76对27.52。在另一项使用十个精选Astropy任务的实时编程代理研究中，每个配置每项任务尝试一次：LumoTree解决5/10，MTP-5解决6/10，SGLang EAGLE解决5/10；代理累计耗时分别为190.8、99.5和103.0分钟。",
+        "demonstrated_result": "所检查的arXiv v3论文提供了实现、测量方案和报告的比较结果。研究团队未运行该实现，也未独立复现数值、采样或服务性能结果；这些仍是作者报告的数据。",
+        "mechanism": "LumoTree通过共享的逻辑与物理树描述符构建候选树，并并行验证相互独立的路径。采样选定接受路径后，它将该路径回放到原生循环状态，收集卷积历史并重新映射注意力KV状态。系统还结合融合候选选择、设备驻留式接受处理和树结构感知注意力。",
+        "regime": "Qwen3.8-27B混合模型运行于GB10/DGX Spark服务配置，单个活动序列，上下文上限为131,072 tokens。回放吞吐使用固定录制请求；实时任务研究采用SWE-bench Verified中的10个精选Astropy任务，每个任务和配置仅尝试一次，使用Qwen Code 0.19.4，任务预算为9,000秒。",
+        "strongest_baseline": "同一vLLM构建中的五token原生MTP-5是最接近的配对基线。LumoTree在一组43条固定回放请求上快7.7%，但在小规模实时研究中少解决一项任务，代理累计耗时也更长。SGLang EAGLE使用不同的服务栈和端点。"
+      },
+      "title": "LumoTree报告称，混合模型上的投机验证回放性能有所提升",
+      "why_it_matters": "混合模型需要在候选分支间进行投机验证，同时保留循环状态、卷积历史和注意力缓存。LumoTree报告了一种实现，在固定请求上的解码吞吐略高于经过调优的原生MTP基线；但任务层面对比说明，token吞吐不能代替完成的有效工作量。该设计和测量细节有助于服务系统选型，但更广泛负载上的表现和独立复现仍未明确。"
     },
     "FCMO-AAF7DF4B0FB2": {
       "claims": [
@@ -14401,6 +14670,48 @@
         "source_sha256": "293555e4d3791ff49fcba33f305f48deee7aa768e3f5b2f7c949955b61cf66aa"
       }
     },
+    "FCMO-08FB79207C91": {
+      "claims": {
+        "locale_sha256": "2ca840cc91f616236f77c6f994e1316d260a5dbb582277897c533e198edb69e7",
+        "source_sha256": "698d5112acbcfe3d5343e9912076d142f78e235127168d0ed62ac77c0008c467"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "b36cb506496896316a8c0029f9b4bb7e0192281964989d64393e48809169f3e2",
+        "source_sha256": "6c472fcce29c008c7b248d323834f7e0244e2f0da472a71eef53008f621e918e"
+      },
+      "importance_rationale": {
+        "locale_sha256": "b083ca1e399b87435f8b6c50c66e6a53e7874ffff476c407d34b9c823619598d",
+        "source_sha256": "538e7a6ed5f78f1ffe5508fbaaad8c093ac0988b6a252f9a6f1c546984727c7b"
+      },
+      "limitations": {
+        "locale_sha256": "d7e25d06fb49762615a444caa3d917d210fe3f07705e51470c2ee1a5ca14c696",
+        "source_sha256": "e771d72618f9e55d323c6f676ab6baa0b631dfe0cc9b0b90b46660587f205fd0"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "cdada605b973dc5899075a80e8eb0f09654c8b7f7e68c0af0b94dfd6c168c7c8",
+        "source_sha256": "0a6c0a5733ad91a7fe6c312c4f990dadc19b4cf588429d8242b8880959b8f67c"
+      },
+      "technical": {
+        "locale_sha256": "81b0fe8a51e0c706b307f03197671ef7fd89f2e335bad308d8bdd89ec88d99b5",
+        "source_sha256": "75990e2075160b390a5f508f9f4d7c1a384000f97c8f858df91d172b8ac3858b"
+      },
+      "title": {
+        "locale_sha256": "110738a49855fde7c4cdf33149c7739f8160d05011f9069912ac042f69c5c231",
+        "source_sha256": "bc1a5eb8d4915dbc2c0ee4149114959ad0f7898c34e40c020d034203963ed120"
+      },
+      "why_it_matters": {
+        "locale_sha256": "2d63a464eb542c399bfe28461daea1d573581a43043ead4eb7a6019b13a27b00",
+        "source_sha256": "f90df34b92a3d5aeef57406556ed5c9e446ceda64086c9dfc522c4a78c1dae95"
+      }
+    },
     "FCMO-09A93E4015DF": {
       "claims": {
         "locale_sha256": "eb0f34719649fa06f3d194d977c6bef8804658bbee17b12038239e20db21e200",
@@ -15421,6 +15732,48 @@
       "why_it_matters": {
         "locale_sha256": "1fce5741bd50afd8c2b493ead39cde01349958159e3b249e8826a40e286bac00",
         "source_sha256": "5b07678da41e7685c442e5d1e541f25f37aabff6ec7f18981d552a22806caa02"
+      }
+    },
+    "FCMO-1F6BBDBD11C9": {
+      "claims": {
+        "locale_sha256": "4f579c32bea4970c1d226073737f18c2a638ac89e59fa8b0cd02ca033f9a8db0",
+        "source_sha256": "41a64c0b4238a1ca3270332d6e8f5ac757577ef82c61804696aae3766e6055d9"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "73585f81de3ea048eff83e5503154026defd5dad12f1c30c979a6d960bec52ab",
+        "source_sha256": "ae7965fa54f2eb1fc7362a8c33c50e9af3dafe26d6930cb90c52c3f8f59e1887"
+      },
+      "importance_rationale": {
+        "locale_sha256": "40be9045ec1df985132ae154fa8d8daeafbea8ecd8a513d6b5436fa38a097cec",
+        "source_sha256": "aa5b7c2209608ebf3ffa08426de1fffaf33c743743c7c88575c3e84ba0f48efe"
+      },
+      "limitations": {
+        "locale_sha256": "e25e53ee55ede2957b2341c746e9a76e54c5ab11a758dab022af820c6bb51946",
+        "source_sha256": "219c13b6143eb9978a95bfb6af4c7d960161d85399cf201094a3aa3488cbd6ce"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "a7e4e0198132c7bd787743c855f937e4039e87b6b8d4e25f66bb8832d6b5ccab",
+        "source_sha256": "f636cbeaf11262a657582fafa79b91de5bfcb97cc86855fffd545b8e9500acbc"
+      },
+      "technical": {
+        "locale_sha256": "cb206d53e1b8f13945ed49d6ea6a69c6bbda8cf34df5898be50ad2f610baf053",
+        "source_sha256": "c5c7070aa2c5fdc8ec46d240cb3c430744f66c25d3f865e9e20b8a89dac34e44"
+      },
+      "title": {
+        "locale_sha256": "62cafabfe765101bae906efa29d9d0b98a4927992464db3d1616d62d371479ef",
+        "source_sha256": "b05e8162815c9fdc9338953db12212a32587658a8cec274918b9d2c955473e8b"
+      },
+      "why_it_matters": {
+        "locale_sha256": "d5227af072eb9fb6a6ea6d56285c3a7a6cf71eb03152fee04616d6e87356d47c",
+        "source_sha256": "f02c0ebbe66e4d17508dc101b82e1740e5fcd2b175e6ee1d412596d2334b8e93"
       }
     },
     "FCMO-21277C154D52": {
@@ -18097,6 +18450,48 @@
         "source_sha256": "f96568bd49cb73d3667f05b380a61fa986868cabdd58e85fc5fb62a5f5f0ef35"
       }
     },
+    "FCMO-588BC65DB51A": {
+      "claims": {
+        "locale_sha256": "9502aa868e056783af37bd98dc66130f92d97517c8d7cd876226d7be421b5016",
+        "source_sha256": "db1b594b30eb4ca789e762f047017ad3116e097e4dde8731ed9cb50d11ee4bb4"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "76f15768ed144e5999c40f1357c6241d2194b25626bc94d20d5911fbd663a514",
+        "source_sha256": "017e3b4af175c0e1685e6315c674ccfaa2e9b639e2c43a2d12fbab46e69efae5"
+      },
+      "importance_rationale": {
+        "locale_sha256": "156e375af30a8c4b89af674a012e9b17d3f437ea723e7393d06170727b69c98f",
+        "source_sha256": "4a59e94bf1b12fbc35d844209b28c91c46cb385377009f0602065acd24cb1494"
+      },
+      "limitations": {
+        "locale_sha256": "87b4316c6ddf3f41aafe66f71ae3ed0628c41f77d49586a869516f78ad8745cf",
+        "source_sha256": "eb98b1b2d4aa53b58231c123fb7adeb72fcb925cce6fe6b1158e816459e704f1"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "c48d581673d3423e9abf24c7ade9d3c8f5575b340d1e93e28780545ee821a125",
+        "source_sha256": "165eeb5957c4b49515fb9bd26e53899b6754307ee3101fd02d0c504890caaebd"
+      },
+      "technical": {
+        "locale_sha256": "0d36ff9b0376dcf41a1516678a80e5a9e29db801dbd8980d292148b9bbf69b49",
+        "source_sha256": "5d42d5a0f97d4ebbd72348f386ed8aee51ef9d57ecc17d925183adefbb5b9df7"
+      },
+      "title": {
+        "locale_sha256": "ab69faf4d15692ef0b8791991635772b70d5b24e220a024405be6c22d26b958d",
+        "source_sha256": "4637a5b690180919d307d95756e934f826e26d1ccd1ee59b4b6397c16098a528"
+      },
+      "why_it_matters": {
+        "locale_sha256": "b788be4ab766999d7572ee71389c0649497fe161dfb438bb02a2c4e66efd019b",
+        "source_sha256": "13f46b2892ca1caa9724c98678fc217c1ed37b973ecb080e0c213361efcb4d3c"
+      }
+    },
     "FCMO-59C524D8FB84": {
       "claims": {
         "locale_sha256": "c0a190418a73c613ffaff7f2b89ada84daa5f98c6d9169a6b921d62747c04731",
@@ -19369,6 +19764,48 @@
       "why_it_matters": {
         "locale_sha256": "b9e2c92f29471f87a9d51ec5f35bff81bc2bc81171aaa47b5eebdbfeeeff813f",
         "source_sha256": "2f53464f99ef0e76277e7f49082e739cd4147a29f9b48c10708f43e3ec64d5b9"
+      }
+    },
+    "FCMO-731B1BCA417D": {
+      "claims": {
+        "locale_sha256": "7f81ae530e85f57d3fdb37e187170be1421dc2b81dd0db77818c4b6f7ceacec6",
+        "source_sha256": "6396d89657b35e89d3ee7f8a54b2d6faa47e2550f948a7728c6b2479694b1bba"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "a6266980a7855367de2f339a89541d3ede12c828a0396f022e369332395c8498",
+        "source_sha256": "d5051cb7c6d6897cd08c0294bbb24d54e8cbfcae317ca5a4cb30ce19868c8024"
+      },
+      "importance_rationale": {
+        "locale_sha256": "ad7100fe5945c171cbcff8ef067382fedd3273525397d75b3a13921df2c600ef",
+        "source_sha256": "8e8db9ace9981b27073c75a3aecf01af6b4c76a8a271a7f8d752ee74be01b188"
+      },
+      "limitations": {
+        "locale_sha256": "7a96bb55b8f1ffe893ba27db9ba8d8a0df1f1af67c930dc7d12030184f1512fb",
+        "source_sha256": "1604afc3932d87c0b31b9bb27a5853d53bcf14aa22a4b70efb202789a9035e06"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "24af5dd516783eb1d4cae549031ef0ba0296fdde901d88e31165b233b3d1b0d1",
+        "source_sha256": "2fdf0bfab8d772fd21bf961fabe456c3b287edcbebc676f140bfc18590424656"
+      },
+      "technical": {
+        "locale_sha256": "ece049c66b0e3dcad2815f193b5b18712fa36d98dbe03715a85eed65721b2153",
+        "source_sha256": "7b2e5f82390f625e7b5a99327af5b2bf249aa3f9e05bd91a93d5c84246b8fa4d"
+      },
+      "title": {
+        "locale_sha256": "9f4551f87ba70230ccd205e41f8b6551fa5d3523caecee17f833bdad1bf6b494",
+        "source_sha256": "c9b11bdb1c266673bd1911e2638244e96967663295e0dee458dc209d72b62184"
+      },
+      "why_it_matters": {
+        "locale_sha256": "b215555010bd7af28c7464266feb238899462491b20060076c2bdd0ec2ecf1a0",
+        "source_sha256": "e2bec2c3e05c034421c65c85f9eefa28f2010ea401be9ced08e63f9086400c8d"
       }
     },
     "FCMO-741AF584E339": {
@@ -21371,6 +21808,48 @@
       "why_it_matters": {
         "locale_sha256": "ac4cf37442405ae90734741ba7679343a9cbde0dfd936d3407a3d36e7e394bc1",
         "source_sha256": "035d9d2ab99af0e0b1d164f2ff1bd0ebb0467cfaca2d379f275f901ffd0fbe68"
+      }
+    },
+    "FCMO-AACA8CBEB134": {
+      "claims": {
+        "locale_sha256": "de71fb6409121f336e45801c1da5be91341d604ac316eaaa9b323f14d2fa2e79",
+        "source_sha256": "d98536794f11fa64528ed5dac2953e5f5bfe8f6ad1c62264fb91b258a6a4154f"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "e6e9e7f63224302a074a60bf34480a38635ab5c1b97728fd174734a868792949",
+        "source_sha256": "5936e8221ad22f49c81c51c4eda2ffa1460fd4fb055b17219032d78ec1d6be5d"
+      },
+      "importance_rationale": {
+        "locale_sha256": "4b9849cf3fa9c47f9b8e8fc51f922651de3cfde5d3dead98b4145cd49b7a6c6b",
+        "source_sha256": "d6ed7327e8df635a55f6e05580669a377f5b3547c1a935880767fe226640b97d"
+      },
+      "limitations": {
+        "locale_sha256": "6d7942f21e0da8443ad12b15c2b6af0fcfb8650eb79e796525fb416690cb77a4",
+        "source_sha256": "c4aabfb646fcff5d3147adfa87297eed0af8d0925cabea0223ffe41926718072"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "3b798dc51f1a44c7c8ee8b08dc2cca75e83e5dae70e51fbdb82f7dfe7ac9ff96",
+        "source_sha256": "ca4a38d6d7689c7252e09aa3147e8a99a961ab047a20fd25311b8805fa3f1738"
+      },
+      "technical": {
+        "locale_sha256": "0add632ac3b9c5136b1fbf9ed686f621bc0dab7bf29cea87c4bc92304bd05fd8",
+        "source_sha256": "462fb2cf68416059401373f873822cc78c9f4b65283a6ced7b59a96137ce224e"
+      },
+      "title": {
+        "locale_sha256": "ef80e7379df0941d17df46be1b815a876db5aeaf57ea21db37a2429343e10edd",
+        "source_sha256": "a6ae22b4aa2a0049ab47c6ee728d92dab33e149be90998ed8d4bc9d562eac3d1"
+      },
+      "why_it_matters": {
+        "locale_sha256": "24bd8946074a17e4b139486c8f85aa48d2dd3601aa528f9393575aa002d8f6f3",
+        "source_sha256": "625ac7d9d98e914778445199347fe2f289fb5c1e6172766771f4b215e7f461fe"
       }
     },
     "FCMO-AAF7DF4B0FB2": {

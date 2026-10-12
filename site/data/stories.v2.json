@@ -1,7 +1,7 @@
 {
   "schema": "fcmo-stories-v2",
-  "generated_at": "2026-10-12T05:57:15Z",
-  "release_id": "newswire-a94bd44acbf6e3e9a6911f2a",
+  "generated_at": "2026-10-12T06:54:16Z",
+  "release_id": "newswire-71dafbe221dc9efd85e8eb13",
   "canonical_locale": "en",
   "locales": [
     "en",
@@ -38,6 +38,1138 @@
     "2026-10-11"
   ],
   "stories": [
+    {
+      "id": "FCMO-AACA8CBEB134",
+      "slug": "lumotree-reports-modest-replay-gains-for-speculative-verification-on-a",
+      "url_date": "2026-10-12",
+      "kind": "development",
+      "status": "live",
+      "beat": "research",
+      "desk": "compute_inference",
+      "title": "LumoTree reports modest replay gains for speculative verification on a hybrid language model",
+      "dek": "The LumoTree v3 preprint combines path-parallel tree verification with accepted-path state replay for a recurrent-hybrid language model.",
+      "summary": "The LumoTree v3 preprint combines path-parallel tree verification with accepted-path state replay for a recurrent-hybrid language model. On 43 fixed recorded requests, the authors report 28.13 pooled tokens/s across three runs, compared with 26.12 for five-token native multi-token prediction (MTP). In a separate 10-task coding-agent study, one attempt per arm resolved five tasks with LumoTree versus six with MTP-5, and the LumoTree arm took longer in aggregate. The paper does not claim task-completion speedup; the replay result is specific to its GB10 serving setup and small corpora.",
+      "why_it_matters": "Hybrid models need speculative verification to preserve recurrent state, convolution history and attention caches across candidate branches. LumoTree reports one implementation that reaches a modest fixed-request decode-rate improvement over a tuned native MTP baseline, while its task-level comparison shows why token throughput cannot stand in for useful work completed. The design and measurement details are useful for serving-system choices, but broader workloads and independent reproduction remain open.",
+      "importance_rationale": "If replicated, path-parallel speculative verification could modestly improve decode throughput for recurrent-hybrid models without changing the model’s target distribution beyond the stated sampler conventions. The result is limited to fixed-request replay on a single serving configuration, while the small live coding-agent study shows no task-level advantage.",
+      "technical": {
+        "claimed_result": "On a fixed corpus of 43 recorded requests, three LumoTree runs report 28.13 pooled tokens/s versus 26.12 for five-token native MTP (7.7% higher). On a disjoint corpus, the paper reports 30.76 versus 27.52. In a separate live coding-agent study across ten selected Astropy tasks, one attempt per arm resolves 5/10 with LumoTree, 6/10 with MTP-5, and 5/10 with SGLang EAGLE; summed agent time is 190.8, 99.5 and 103.0 minutes, respectively.",
+        "demonstrated_result": "The inspected arXiv v3 paper provides implementation, measurement protocols and reported comparisons. the research desk did not run the artifact or independently reproduce numerical, sampling or serving outcomes; these remain author-reported.",
+        "mechanism": "LumoTree builds candidate trees and verifies independent paths in parallel using a shared logical/physical tree descriptor. After sampling an accepted path, it replays that path into native recurrent state, gathers convolution history, and remaps attention KV state. It combines fused candidate selection, device-resident acceptance and tree-aware attention.",
+        "regime": "Qwen3.8-27B hybrid model on a GB10/DGX Spark serving setup with one active sequence and 131,072-token context limit. Replay rates use fixed recorded requests; the live task study uses 10 selected Astropy SWE-bench Verified tasks, one attempt per task and arm, Qwen Code 0.19.4, and a 9,000-second task budget.",
+        "strongest_baseline": "Five-token native MTP-5 in the same vLLM build is the closest paired baseline. LumoTree is 7.7% faster on one fixed 43-request replay corpus but resolves one fewer task and has longer total agent duration in the small live study. SGLang EAGLE uses a different serving stack and endpoint."
+      },
+      "importance_tier": "Meaningful",
+      "development_type": "paper",
+      "event_at": "2026-09-20T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-12T06:54:08Z",
+      "updated_at": "2026-10-12T06:54:08Z",
+      "importance": 4,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": false,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "CLAIMED",
+            "text": "LumoTree combines path-parallel verification and accepted-path state replay to support speculative decoding for a recurrent-hybrid model."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "On 43 fixed recorded requests, three LumoTree runs report 28.13 pooled tokens/s versus 26.12 for five-token native MTP; on a separate 10-task study, LumoTree resolves 5/10 tasks versus 6/10 for MTP-5."
+          },
+          {
+            "label": "NOT_ESTABLISHED",
+            "text": "The study does not establish task-completion speedup, benchmark-wide quality, broad workload generalization, or independently reproduced sampling equivalence."
+          }
+        ],
+        "limitations": [
+          "All measurements are reported by the paper authors; the research desk did not execute the artifact or reproduce outcomes.",
+          "The fixed-request throughput comparison uses one GB10 serving configuration and small request corpora with limited repetitions; reported run ranges are not confidence intervals.",
+          "The live coding-agent study uses one attempt for each of ten selected Astropy tasks per arm and has no plain-decoding agent control; tool and model trajectories differ.",
+          "LumoTree resolves five tasks versus six for native MTP-5 and has longer summed agent duration; the paper explicitly does not claim task-level speedup.",
+          "The numerical and sampler checks are bounded by tested prompts, schedules, captured rows, finite walks, and stated top-k/min-p conventions."
+        ],
+        "gaps": [
+          {
+            "kind": "missing_independent",
+            "description": "The fixed-request replay rates, task outcomes, numerical bounds and sampler checks have not been independently reproduced."
+          },
+          {
+            "kind": "regime_unclear",
+            "description": "The task study contains ten selected Astropy tasks and one attempt per task and arm; replay coverage is only 43 requests and limited serving settings."
+          },
+          {
+            "kind": "other",
+            "description": "The reported numerical and sampler checks allow stated native-relative tolerances and sampler conventions; they do not establish universal bitwise equality or all batch/cache behaviors."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://arxiv.org/abs/2609.23900",
+          "domain": "arxiv.org",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [],
+      "topics": [
+        "speculative-decoding",
+        "hybrid-language-models",
+        "inference-systems",
+        "serving",
+        "reproducibility"
+      ],
+      "regions": [
+        "GLOBAL"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-AACA8CBEB134.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: LumoTree reports modest replay gains for speculative verification on a hybrid language model"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "LumoTree informa mejoras moderadas de reproducción para la verificación especulativa de un modelo híbrido",
+            "summary": "El preprint v3 de LumoTree combina la verificación de árboles en paralelo por rutas con la reproducción del estado de la ruta aceptada para un modelo híbrido recurrente. En 43 solicitudes grabadas y fijas, los autores informan 28.13 tokens/s agrupados en tres ejecuciones, frente a 26.12 con predicción nativa de varios tokens (MTP) de cinco tokens. En un estudio aparte de agentes de programación con 10 tareas, un intento por configuración resolvió cinco tareas con LumoTree y seis con MTP-5; además, el brazo LumoTree tardó más en total. El artículo no afirma que se completen tareas más rápido; el resultado de reproducción se limita a su configuración GB10 y a corpus pequeños.",
+            "importance_rationale": "Si se replica, la verificación especulativa en paralelo por rutas podría mejorar modestamente el rendimiento de decodificación de modelos híbridos recurrentes sin cambiar la distribución objetivo del modelo más allá de las convenciones de muestreo indicadas. El resultado se limita a la reproducción de solicitudes fijas en una sola configuración de servicio, mientras que el pequeño estudio de agentes de programación no muestra una ventaja a nivel de tarea.",
+            "why_it_matters": "Los modelos híbridos necesitan verificación especulativa que conserve el estado recurrente, el historial de convolución y las cachés de atención entre ramas candidatas. LumoTree informa una implementación que logra una mejora moderada en la tasa de decodificación de solicitudes fijas frente a una referencia MTP nativa optimizada, pero la comparación a nivel de tareas muestra por qué el rendimiento de tokens no equivale al trabajo útil completado. El diseño y las mediciones ayudan a evaluar sistemas de servicio, aunque faltan una reproducción independiente y cargas de trabajo más amplias.",
+            "technical": {
+              "claimed_result": "En un corpus fijo de 43 solicitudes grabadas, tres ejecuciones de LumoTree informan 28.13 tokens/s agrupados frente a 26.12 con MTP nativo de cinco tokens (7.7% más). En un corpus distinto, el artículo informa 30.76 frente a 27.52. En un estudio en vivo aparte con agentes de programación y diez tareas Astropy seleccionadas, un intento por brazo resuelve 5/10 con LumoTree, 6/10 con MTP-5 y 5/10 con SGLang EAGLE; el tiempo total del agente suma 190.8, 99.5 y 103.0 minutos, respectivamente.",
+              "demonstrated_result": "El artículo v3 de arXiv consultado presenta la implementación, los protocolos de medición y las comparaciones informadas. el equipo de investigación no ejecutó el artefacto ni reprodujo de forma independiente los resultados numéricos, de muestreo o de servicio; siguen siendo informes de los autores.",
+              "mechanism": "LumoTree crea árboles candidatos y verifica rutas independientes en paralelo mediante un descriptor compartido de estructura lógica y física. Tras muestrear una ruta aceptada, la reproduce en el estado recurrente nativo, reúne el historial de convolución y reasigna el estado KV de atención. También combina selección fusionada de candidatos, aceptación residente en el dispositivo y atención adaptada a árboles.",
+              "regime": "Modelo híbrido Qwen3.8-27B en una configuración de servicio GB10/DGX Spark, con una secuencia activa y un límite de contexto de 131,072 tokens. Las tasas de reproducción usan solicitudes grabadas fijas; el estudio de tareas en vivo usa 10 tareas Astropy seleccionadas de SWE-bench Verified, un intento por tarea y brazo, Qwen Code 0.19.4 y un límite de 9,000 segundos por tarea.",
+              "strongest_baseline": "MTP-5 nativo de cinco tokens en la misma compilación de vLLM es la referencia pareada más cercana. LumoTree es 7.7% más rápido en un corpus de reproducción fija de 43 solicitudes, pero resuelve una tarea menos y acumula más tiempo total de agente en el pequeño estudio en vivo. SGLang EAGLE usa otra pila de servicio y otro punto de medición."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "LumoTree combina verificación en paralelo por rutas y reproducción del estado de la ruta aceptada para admitir decodificación especulativa en un modelo híbrido recurrente."
+                },
+                {
+                  "text": "En 43 solicitudes grabadas fijas, tres ejecuciones de LumoTree informan 28.13 tokens/s agrupados frente a 26.12 con MTP nativo de cinco tokens; en un estudio aparte de 10 tareas, LumoTree resuelve 5/10 frente a 6/10 con MTP-5."
+                },
+                {
+                  "text": "El estudio no demuestra una aceleración en la finalización de tareas, calidad general de referencia, generalización a cargas de trabajo amplias ni equivalencia de muestreo reproducida de forma independiente."
+                }
+              ],
+              "limitations": [
+                "Todas las mediciones son informes de los autores; el equipo de investigación no ejecutó el artefacto ni reprodujo los resultados.",
+                "La comparación de rendimiento con solicitudes fijas usa una configuración de servicio GB10 y corpus pequeños, con pocas repeticiones; los rangos informados no son intervalos de confianza.",
+                "El estudio con agentes de programación usa un intento por cada una de diez tareas Astropy seleccionadas por brazo y no incluye un control del agente con decodificación simple; las trayectorias y el uso de herramientas difieren.",
+                "LumoTree resuelve cinco tareas frente a seis con MTP-5 nativo y acumula más tiempo total de agente; el artículo niega explícitamente que haya una aceleración a nivel de tarea.",
+                "Las comprobaciones numéricas y de muestreo se limitan a las solicitudes, secuencias, filas capturadas, recorridos finitos y convenciones top-k/min-p probadas."
+              ],
+              "gaps": [
+                {
+                  "description": "No se reprodujeron de forma independiente las tasas de reproducción fija, los resultados de tareas, los límites numéricos ni las comprobaciones de muestreo."
+                },
+                {
+                  "description": "El estudio de tareas incluye diez tareas Astropy seleccionadas y un intento por tarea y brazo; la reproducción cubre solo 43 solicitudes y pocas configuraciones de servicio."
+                },
+                {
+                  "description": "Las comprobaciones numéricas y de muestreo permiten las tolerancias relativas a la implementación nativa y las convenciones indicadas; no establecen igualdad universal bit a bit ni todos los comportamientos de lote y caché."
+                }
+              ]
+            },
+            "dek": "El preprint v3 de LumoTree combina la verificación de árboles en paralelo por rutas con la reproducción del estado de la ruta aceptada para un modelo híbrido recurrente."
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "LumoTree报告称，混合模型上的投机验证回放性能有所提升",
+            "summary": "LumoTree v3预印本将按路径并行的树验证与已接受路径的状态回放结合，用于循环混合模型。在43条固定录制请求上，作者报告三次运行的汇总吞吐为28.13 tokens/s，高于五token原生多token预测（MTP）的26.12。另一项10个任务的编程代理研究中，每个配置每项任务仅尝试一次：LumoTree解决五项，MTP-5解决六项；LumoTree累计耗时也更长。论文没有声称任务完成速度提升；回放结果仅适用于其GB10服务配置和小规模语料。",
+            "importance_rationale": "如果能够复现，按路径并行的投机验证可能小幅提高循环混合模型的解码吞吐，同时在论文所述采样约定下不改变模型的目标分布。结果仅限于单一服务配置上的固定请求回放，而小规模编程代理研究没有显示任务层面的优势。",
+            "why_it_matters": "混合模型需要在候选分支间进行投机验证，同时保留循环状态、卷积历史和注意力缓存。LumoTree报告了一种实现，在固定请求上的解码吞吐略高于经过调优的原生MTP基线；但任务层面对比说明，token吞吐不能代替完成的有效工作量。该设计和测量细节有助于服务系统选型，但更广泛负载上的表现和独立复现仍未明确。",
+            "technical": {
+              "claimed_result": "在固定的43条录制请求语料上，LumoTree三次运行报告汇总吞吐为28.13 tokens/s，五token原生MTP为26.12（高7.7%）。在另一组语料上，论文报告30.76对27.52。在另一项使用十个精选Astropy任务的实时编程代理研究中，每个配置每项任务尝试一次：LumoTree解决5/10，MTP-5解决6/10，SGLang EAGLE解决5/10；代理累计耗时分别为190.8、99.5和103.0分钟。",
+              "demonstrated_result": "所检查的arXiv v3论文提供了实现、测量方案和报告的比较结果。研究团队未运行该实现，也未独立复现数值、采样或服务性能结果；这些仍是作者报告的数据。",
+              "mechanism": "LumoTree通过共享的逻辑与物理树描述符构建候选树，并并行验证相互独立的路径。采样选定接受路径后，它将该路径回放到原生循环状态，收集卷积历史并重新映射注意力KV状态。系统还结合融合候选选择、设备驻留式接受处理和树结构感知注意力。",
+              "regime": "Qwen3.8-27B混合模型运行于GB10/DGX Spark服务配置，单个活动序列，上下文上限为131,072 tokens。回放吞吐使用固定录制请求；实时任务研究采用SWE-bench Verified中的10个精选Astropy任务，每个任务和配置仅尝试一次，使用Qwen Code 0.19.4，任务预算为9,000秒。",
+              "strongest_baseline": "同一vLLM构建中的五token原生MTP-5是最接近的配对基线。LumoTree在一组43条固定回放请求上快7.7%，但在小规模实时研究中少解决一项任务，代理累计耗时也更长。SGLang EAGLE使用不同的服务栈和端点。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "LumoTree结合按路径并行验证和已接受路径的状态回放，以支持循环混合模型的投机解码。"
+                },
+                {
+                  "text": "在43条固定录制请求上，LumoTree三次运行报告吞吐为28.13 tokens/s，五token原生MTP为26.12；在另一项10任务研究中，LumoTree解决5/10，MTP-5解决6/10。"
+                },
+                {
+                  "text": "该研究并未证明任务完成速度提升、基准测试整体质量、广泛负载泛化能力或经独立复现的采样等价性。"
+                }
+              ],
+              "limitations": [
+                "所有测量均为作者报告；研究团队未运行实现或复现实验结果。",
+                "固定请求吞吐比较仅使用单一GB10服务配置、小规模请求语料和有限重复次数；报告的运行范围不是置信区间。",
+                "编程代理研究对每个配置的十个精选Astropy任务各尝试一次，且没有简单解码代理对照；各组模型和工具轨迹不同。",
+                "LumoTree解决五项任务，原生MTP-5解决六项，且前者代理累计耗时更长；论文明确未声称任务层面的加速。",
+                "数值与采样检查仅适用于所测试的请求、调度、捕获记录、有限随机游走及所述top-k/min-p约定。"
+              ],
+              "gaps": [
+                {
+                  "description": "固定请求回放吞吐、任务结果、数值边界及采样检查均未得到独立复现。"
+                },
+                {
+                  "description": "任务研究仅包含十个精选Astropy任务，每个配置每项任务仅尝试一次；回放仅涵盖43条请求和有限服务设置。"
+                },
+                {
+                  "description": "数值和采样检查仅支持所述原生相对容差和采样约定；未证明普遍的逐位相等，也未覆盖所有批处理与缓存行为。"
+                }
+              ]
+            },
+            "headline": "LumoTree报告称，混合模型上的投机验证回放性能有所提升",
+            "dek": "LumoTree v3预印本将按路径并行的树验证与已接受路径的状态回放结合，用于循环混合模型。在43条固定录制请求上，作者报告三次运行的汇总吞吐为28.13 tokens/s，高于五token原生多token预测（MTP）的26.12。另一项10个任务的编程代理研究中，每个配置每项任务仅尝试一次：LumoTree解决五项，MTP-5解决六项；LumoTree累计耗时也更长。论文没有声称任务完成速度提升；回放结果仅适用于其GB10服务配置和小规模语料。"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
+    {
+      "id": "FCMO-731B1BCA417D",
+      "slug": "cicl-reports-improved-first-file-retrieval-from-decision-aware-reranking",
+      "url_date": "2026-10-12",
+      "kind": "development",
+      "status": "live",
+      "beat": "research",
+      "desk": "agents_memory",
+      "title": "CICL reports improved first-file retrieval from decision-aware reranking on a small coding benchmark",
+      "dek": "The v4 preprint presents the Counterfactual-Inspired Context Layer (CICL), which ranks candidate repository evidence by estimated effect on an agent’s next action and can compress selected context into typed memory cards.",
+      "summary": "The v4 preprint presents the Counterfactual-Inspired Context Layer (CICL), which ranks candidate repository evidence by estimated effect on an agent’s next action and can compress selected context into typed memory cards. On 50 SWE-bench Verified file-retrieval instances, the authors report that Qwen3.6-Plus reranking of BM25 top-50 candidates raises hit@1 from 0.58 to 0.78 and MRR@10 from 0.634 to 0.790. Top-10 recall is 0.714 versus 0.716, and the result measures file retrieval rather than patch success. The paper’s own terminology is counterfactual-inspired; it does not claim formal causal identification.",
+      "why_it_matters": "Coding agents can receive many plausible repository files yet still miss the evidence that changes the next command or edit. CICL proposes measuring context by its estimated decision utility, with a small real-code retrieval result and controlled synthetic diagnostics. The narrow file-level gain is worth tracking, but it does not establish improved software repair, broader agent performance, or a causal effect in deployment.",
+      "importance_rationale": "If replicated, decision-aware context reranking could help coding agents surface the right repository evidence earlier and pack it more efficiently. The reported gain is limited to file retrieval on 50 SWE-bench Verified instances, overall top-10 recall is unchanged, and no end-to-end patch success benefit is established.",
+      "technical": {
+        "claimed_result": "On 50 SWE-bench Verified file-retrieval instances, Qwen3.6-Plus reranking BM25 top-50 candidates reports hit@1 0.78 vs 0.58 and MRR@10 0.790 vs 0.634; R@10 is 0.714 vs 0.716. A controlled synthetic v3 removal test reports context F1 falling from 0.245 to 0.000 when the top-utility unit is removed. In selected-then-compressed RepoBench-R mode, the abstract reports 44.93 fewer tokens per query while preserving selected evidence. These are author-reported results, and the 50-instance result is file retrieval rather than patch success.",
+        "demonstrated_result": "The inspected arXiv v4 paper and linked abstract report the method, evaluation setup and metrics. the research desk did not run code, reproduce the benchmark, or verify downstream patch outcomes; results remain author-reported.",
+        "mechanism": "CICL builds an instance context graph of files, symbols, memories, rules and failures; estimates decision-oriented utility for candidate units using structured judgments or rankers; and selects units under a token budget. Optional typed memory cards package a trigger, evidence, action hint, failure-if-ignored and scope. The paper describes the utility as counterfactual-inspired rather than formally causally identified.",
+        "regime": "SWE-bench Verified file-level retrieval on 50 instances, using Qwen3.6-Plus to rerank BM25 top-50 candidates; 2,500 judgments are reported parseable. Separate synthetic v1/v3 suites use 250 tasks each. RepoBench-R compression uses 100 tasks. A GPT-5.5 via Codex provider check covers only the first five SWE-bench instances.",
+        "strongest_baseline": "BM25/HybridRAG on the same 50-instance file-retrieval task: hit@1 0.58, MRR@10 0.634, and R@10 0.716 versus Qwen3.6-Plus CICL reranking at 0.78, 0.790 and 0.714. Stronger synthetic baselines remain competitive; on synthetic v3 VanillaRAG exceeds CICL F1."
+      },
+      "importance_tier": "Meaningful",
+      "development_type": "paper",
+      "event_at": "2026-09-21T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-12T06:54:08Z",
+      "updated_at": "2026-10-12T06:54:08Z",
+      "importance": 4,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": false,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "CLAIMED",
+            "text": "CICL scores candidate context units by estimated decision-oriented utility and can pack selected evidence into typed memory cards under a token budget."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "On 50 SWE-bench Verified file-retrieval instances, Qwen3.6-Plus reranking of BM25 top-50 candidates reports hit@1 0.78 versus 0.58 and MRR@10 0.790 versus 0.634; R@10 is 0.714 versus 0.716."
+          },
+          {
+            "label": "NOT_ESTABLISHED",
+            "text": "The file-retrieval result does not establish improved patch success, end-to-end agent performance, or a formally identified causal effect in deployment."
+          }
+        ],
+        "limitations": [
+          "All measurements are paper-reported; the research desk did not execute code or reproduce results.",
+          "The main real-code comparison is file retrieval on 50 SWE-bench Verified instances and does not measure patch success.",
+          "Top-10 recall is 0.714 versus 0.716 for BM25/HybridRAG despite higher hit@1 and MRR@10.",
+          "The paper states that counterfactual-inspired utility is not formal causal identification; structured model judgments are not human gold labels.",
+          "Synthetic rankings and compression diagnostics do not establish end-to-end deployment benefit."
+        ],
+        "gaps": [
+          {
+            "kind": "missing_independent",
+            "description": "The 50-instance retrieval results and associated judgments have not been independently reproduced."
+          },
+          {
+            "kind": "other",
+            "description": "The paper measures file retrieval rather than downstream patch success or end-to-end agent utility on the main real-code result."
+          },
+          {
+            "kind": "other",
+            "description": "The counterfactual-inspired score is not a formally identified causal effect, and LLM-judge annotations are not human gold labels."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://arxiv.org/abs/2606.08151",
+          "domain": "arxiv.org",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "Alibaba Group"
+      ],
+      "topics": [
+        "agent-context",
+        "memory",
+        "retrieval",
+        "coding-agents",
+        "evaluation"
+      ],
+      "regions": [
+        "GLOBAL"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-731B1BCA417D.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: CICL reports improved first-file retrieval from decision-aware reranking on a small coding benchmark"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "CICL informa una mejora en la recuperación del primer archivo mediante reordenamiento contextual consciente de decisiones en una prueba pequeña de programación",
+            "summary": "La versión v4 presenta Counterfactual-Inspired Context Layer (CICL), que ordena archivos candidatos de un repositorio según su efecto estimado en la siguiente acción del agente y puede comprimir el contexto seleccionado en tarjetas de memoria tipadas. En 50 instancias de recuperación de archivos de SWE-bench Verified, los autores informan que el reordenamiento de los 50 candidatos principales de BM25 con Qwen3.6-Plus eleva hit@1 de 0.58 a 0.78 y MRR@10 de 0.634 a 0.790. La recuperación top-10 es 0.714 frente a 0.716, y el resultado mide recuperación de archivos, no éxito de parches. El propio artículo describe la utilidad como inspirada en contrafactuales; no afirma identificación causal formal.",
+            "importance_rationale": "Si se replica, el reordenamiento contextual consciente de decisiones podría ayudar a los agentes de programación a encontrar antes la evidencia correcta del repositorio y a empaquetarla con más eficiencia. La mejora informada se limita a recuperar archivos en 50 instancias de SWE-bench Verified, la recuperación top-10 general no cambia y no se establece un beneficio en el éxito de parches de extremo a extremo.",
+            "why_it_matters": "Los agentes de programación pueden recibir muchos archivos plausibles del repositorio y aun así pasar por alto la evidencia que cambiaría el siguiente comando o edición. CICL propone medir el contexto por su utilidad decisoria estimada, con un resultado pequeño de recuperación de código real y diagnósticos sintéticos controlados. La mejora acotada a nivel de archivo merece seguimiento, pero no demuestra mejor reparación de software, rendimiento general del agente ni un efecto causal en producción.",
+            "technical": {
+              "claimed_result": "En 50 instancias de recuperación de archivos de SWE-bench Verified, el reordenamiento de los 50 candidatos principales de BM25 con Qwen3.6-Plus informa hit@1 de 0.78 frente a 0.58, MRR@10 de 0.790 frente a 0.634 y R@10 de 0.714 frente a 0.716. Una prueba sintética v3 de eliminación controlada informa que F1 contextual cae de 0.245 a 0.000 al quitar la unidad de mayor utilidad. En el modo RepoBench-R de selección y luego compresión, el resumen informa 44.93 tokens menos por consulta sin perder la evidencia seleccionada. Son resultados comunicados por los autores; la comparación de 50 instancias mide recuperación de archivos, no éxito de parches.",
+              "demonstrated_result": "El artículo v4 de arXiv consultado y su resumen describen el método, la configuración de evaluación y las métricas informadas. El equipo de investigación no ejecutó código, reprodujo la prueba ni verificó resultados posteriores de parches; los resultados siguen siendo informes de los autores.",
+              "mechanism": "CICL construye un grafo contextual por instancia con archivos, símbolos, memorias, reglas y fallas; estima la utilidad decisoria de cada unidad candidata mediante juicios estructurados o clasificadores; y selecciona unidades con un presupuesto de tokens. Las tarjetas de memoria opcionales incluyen un detonante, evidencia, indicación de acción, riesgo de ignorarla y alcance. El artículo describe la utilidad como inspirada en contrafactuales, no como identificación causal formal.",
+              "regime": "Recuperación a nivel de archivo en 50 instancias de SWE-bench Verified, usando Qwen3.6-Plus para reordenar los 50 candidatos principales de BM25; se informa que 2,500 juicios pudieron analizarse correctamente. Las pruebas sintéticas v1/v3 separadas usan 250 tareas cada una. RepoBench-R de compresión usa 100 tareas. Una comprobación con GPT-5.5 mediante Codex cubre solo las primeras cinco instancias de SWE-bench.",
+              "strongest_baseline": "BM25/HybridRAG en la misma tarea de recuperación de archivos de 50 instancias: hit@1 0.58, MRR@10 0.634 y R@10 0.716, frente al reordenamiento CICL con Qwen3.6-Plus en 0.78, 0.790 y 0.714. Las referencias sintéticas más fuertes siguen siendo competitivas; en la prueba sintética v3, VanillaRAG supera a CICL en F1."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "CICL puntúa unidades contextuales candidatas según una utilidad decisoria estimada y puede empaquetar la evidencia seleccionada en tarjetas de memoria tipadas sujetas a un presupuesto de tokens."
+                },
+                {
+                  "text": "En 50 instancias de recuperación de archivos de SWE-bench Verified, el reordenamiento de los 50 candidatos principales de BM25 con Qwen3.6-Plus informa hit@1 0.78 frente a 0.58 y MRR@10 0.790 frente a 0.634; R@10 es 0.714 frente a 0.716."
+                },
+                {
+                  "text": "El resultado de recuperación de archivos no demuestra una mejora en el éxito de parches, el rendimiento integral del agente ni un efecto causal formalmente identificado en producción."
+                }
+              ],
+              "limitations": [
+                "Todas las mediciones son comunicadas por el artículo; el equipo de investigación no ejecutó código ni reprodujo resultados.",
+                "La comparación principal con código real es recuperación de archivos en 50 instancias de SWE-bench Verified y no mide éxito de parches.",
+                "La recuperación top-10 es 0.714 frente a 0.716 con BM25/HybridRAG, aunque hit@1 y MRR@10 son mayores.",
+                "El artículo afirma que la utilidad inspirada en contrafactuales no constituye identificación causal formal; los juicios estructurados de modelos no son etiquetas de referencia humana.",
+                "Las clasificaciones sintéticas y los diagnósticos de compresión no demuestran un beneficio integral en producción."
+              ],
+              "gaps": [
+                {
+                  "description": "Los resultados de recuperación de 50 instancias y los juicios asociados no se han reproducido de forma independiente."
+                },
+                {
+                  "description": "El resultado principal con código real mide recuperación de archivos, no éxito posterior de parches ni utilidad integral del agente."
+                },
+                {
+                  "description": "La puntuación inspirada en contrafactuales no es un efecto causal formalmente identificado, y las anotaciones de jueces LLM no son etiquetas de referencia humana."
+                }
+              ]
+            }
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "CICL报告称，决策感知重排在小型编程检索测试中提升了首位文件命中率",
+            "summary": "v4版本提出了反事实启发式上下文层（CICL），按候选仓库文件对代理下一步操作的估计影响进行排序，也可将选定上下文压缩为类型化记忆卡。在50个SWE-bench Verified文件检索实例上，作者报告称，使用Qwen3.6-Plus对BM25排名前50的候选项重排后，hit@1从0.58升至0.78，MRR@10从0.634升至0.790。top-10召回率为0.714，对照为0.716；该结果衡量文件检索而非补丁成功率。论文称其效用估计受反事实启发，并未声称实现了形式化因果识别。",
+            "importance_rationale": "如果能够复现，决策感知上下文重排或可帮助编程代理更早找到正确的仓库证据，并更高效地打包上下文。报告的提升仅限于50个SWE-bench Verified实例上的文件检索，整体top-10召回率没有变化，也未证明端到端补丁成功率有所提高。",
+            "why_it_matters": "编程代理可能收到许多看似合理的仓库文件，却仍错过能改变下一条命令或编辑的证据。CICL提出按估计的决策效用衡量上下文，并报告了一项小规模真实代码检索结果和受控合成诊断。文件级的有限提升值得关注，但它并未证明软件修复效果、更广泛的代理表现或生产环境中的因果作用。",
+            "technical": {
+              "claimed_result": "在50个SWE-bench Verified文件检索实例上，使用Qwen3.6-Plus对BM25排名前50的候选项重排，报告hit@1为0.78，对照为0.58；MRR@10为0.790，对照为0.634；R@10为0.714，对照为0.716。一项合成v3受控移除测试报告，移除效用最高的单元后，上下文F1从0.245降至0.000。在RepoBench-R先选后压缩模式下，摘要报告每次查询节省44.93 tokens，同时保留已选证据。这些均为作者报告的结果；50实例比较衡量文件检索，而非补丁成功率。",
+              "demonstrated_result": "所检查的arXiv v4论文及摘要描述了方法、评估设置和所报告指标。研究团队未运行代码、复现实验或核验后续补丁结果；这些仍是作者报告的数据。",
+              "mechanism": "CICL为每个实例构建包含文件、符号、记忆、规则和失败记录的上下文图；通过结构化判断或排序器估算候选单元的决策效用；并在token预算内选择内容。可选的记忆卡包含触发条件、证据、行动提示、忽略风险和适用范围。论文将该效用描述为反事实启发式，而非形式化因果识别。",
+              "regime": "在50个SWE-bench Verified实例上评估文件级检索，使用Qwen3.6-Plus对BM25排名前50的候选项重排；作者报告2,500条判断均可解析。独立的合成v1/v3测试各使用250项任务。RepoBench-R压缩测试使用100项任务。GPT-5.5经Codex进行的供应商检查只覆盖SWE-bench前五个实例。",
+              "strongest_baseline": "同一50实例文件检索任务中的BM25/HybridRAG：hit@1为0.58，MRR@10为0.634，R@10为0.716；Qwen3.6-Plus的CICL重排结果分别为0.78、0.790和0.714。合成任务中更强的基线仍有竞争力；在合成v3上，VanillaRAG的F1高于CICL。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "CICL依据估计的决策效用为候选上下文单元打分，并可在token预算内将选定证据整理为类型化记忆卡。"
+                },
+                {
+                  "text": "在50个SWE-bench Verified文件检索实例上，Qwen3.6-Plus对BM25排名前50的候选项重排后，报告hit@1为0.78，对照为0.58，MRR@10为0.790，对照为0.634；R@10为0.714，对照为0.716。"
+                },
+                {
+                  "text": "文件检索结果并未证明补丁成功率、端到端代理表现有所提高，也未证明生产环境中存在形式化识别的因果效应。"
+                }
+              ],
+              "limitations": [
+                "所有测量均由论文作者报告；研究团队未运行代码或复现实验结果。",
+                "主要真实代码比较仅在50个SWE-bench Verified实例上衡量文件检索，并未评估补丁成功率。",
+                "尽管hit@1和MRR@10提高，top-10召回率为0.714，对照BM25/HybridRAG为0.716。",
+                "论文说明，反事实启发式效用不构成形式化因果识别；结构化模型判断并非人工金标准。",
+                "合成排序和压缩诊断不能证明端到端部署收益。"
+              ],
+              "gaps": [
+                {
+                  "description": "尚未独立复现这50个实例的检索结果及相关判断数据。"
+                },
+                {
+                  "description": "主要真实代码结果衡量文件检索，而不是后续补丁成功率或代理端到端效用。"
+                },
+                {
+                  "description": "反事实启发式评分并非形式化识别的因果效应，LLM判断标注也不是人工金标准。"
+                }
+              ]
+            },
+            "headline": "CICL报告称，决策感知重排在小型编程检索测试中提升了首位文件命中率"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
+    {
+      "id": "FCMO-588BC65DB51A",
+      "slug": "victoria-sets-planning-and-resource-expectations-for-new-data-centres",
+      "url_date": "2026-10-12",
+      "kind": "development",
+      "status": "live",
+      "beat": "policy",
+      "desk": "policy_geopolitics",
+      "title": "Victoria sets planning and resource expectations for new data centres",
+      "headline": "Victoria sets planning and resource expectations for new data centres",
+      "dek": "Victoria’s September 2026 Sustainable Data Centre Action Plan sets out planning and resource expectations for new facilities.",
+      "summary": "Victoria’s September 2026 Sustainable Data Centre Action Plan sets out planning and resource expectations for new facilities. It describes planned planning and referral controls, expects operators to offset operational electricity use through new renewable generation and storage, and assigns project-caused connection and network augmentation costs to operators. Water measures include potable-use offsets, a water-efficiency threshold, public reporting and infrastructure cost recovery. The document reports applications seeking 19,714 megalitres annually, not approved or realized demand. Several compliance details remain under development, and the Commonwealth was developing consistent mandatory standards for a later date.",
+      "why_it_matters": "The plan links data-centre growth to electricity supply, grid augmentation and water infrastructure costs, giving developers concrete resource conditions to consider when assessing Victorian projects. The reported application volume indicates potential resource pressure, but does not establish approvals, construction or actual consumption. The plan’s proposed measures and unfinished compliance rules should be distinguished from enacted requirements.",
+      "importance_rationale": "If implemented as described, the plan could materially affect data-centre siting, electricity procurement, network costs and water use in Victoria. Its planning and resource rules matter for project economics, while compliance details and national standards are still being developed.",
+      "technical": {
+        "claimed_result": "The government presents the plan as a way to coordinate data-centre investment with energy, water, planning and community interests.",
+        "demonstrated_result": "The official plan documents its proposed policy expectations and reports the application pipeline; it does not demonstrate realized resource savings, project approvals or enforcement outcomes.",
+        "implementation_status": "Government action plan published in September 2026. Some planning and referral controls are described as future implementation steps; detailed compliance and verification requirements are pending, alongside Commonwealth standards under development.",
+        "mechanism": "The plan proposes a new data-centre category in the planning process with energy and water referral or notification controls. It sets out expectations for renewable generation and storage investment, project-caused network-cost recovery, potable-water transition and offsets, water-efficiency reporting and water-infrastructure cost recovery.",
+        "regime": "New or expanding data-centre projects in Victoria, Australia; planning, grid connection and augmentation, operational electricity and water use.",
+        "strongest_baseline": "Existing Victorian water law and New Customer Contributions rules already allow water corporations to refuse or condition supply and require proponents to fund dedicated infrastructure. The plan adds proposed planning, energy and water expectations; its final compliance rules were not yet complete."
+      },
+      "importance_tier": "Notable",
+      "development_type": "policy_action",
+      "event_at": "2026-09-29T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-12T06:54:08Z",
+      "updated_at": "2026-10-12T06:54:08Z",
+      "importance": 5,
+      "evidence_class": "A",
+      "confidence": "confirmed",
+      "front_page_eligible": true,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "DEMONSTRATED",
+            "text": "Victoria’s Sustainable Data Centre Action Plan sets out expectations for new data centres and describes planned planning-process controls, including a new data-centre category and energy and water referral or notification requirements."
+          },
+          {
+            "label": "DEMONSTRATED",
+            "text": "The plan says operators should offset actual operational electricity use through investment in new renewable generation and storage, and cover connection and network augmentation costs directly caused by their projects. Detailed compliance and verification rules are to be finalized alongside national standards under development."
+          },
+          {
+            "label": "DEMONSTRATED",
+            "text": "The plan sets proposed water expectations including transition away from potable water, potable-water offsetting, a data-centre water-usage effectiveness threshold, public reporting and full cost recovery for water infrastructure. It reports 19 applications seeking 19,714 megalitres per year; applications are not approvals, and the plan cites cancellations among AEMO’s project pipeline."
+          }
+        ],
+        "limitations": [
+          "The action plan describes policy expectations and intended planning/referral controls; it does not establish that every measure is already enacted or enforceable.",
+          "Detailed compliance and verification requirements and consistent Commonwealth mandatory standards remained under development in the inspected document.",
+          "The 19 applications seeking 19,714 megalitres per year are applications, not approvals or operational consumption; projected projects may be cancelled.",
+          "No independent analysis of likely electricity, water, investment or consumer-price effects was conducted for this record."
+        ],
+        "gaps": [
+          {
+            "kind": "other",
+            "description": "Final planning amendments, referral triggers and compliance or verification rules are not established by the action plan alone."
+          },
+          {
+            "kind": "other",
+            "description": "The plan reports applications and projected demand, but approvals, actual construction, electricity use and water consumption are not measured here."
+          },
+          {
+            "kind": "other",
+            "description": "The plan anticipates alignment with Commonwealth mandatory standards that were still under development."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://djsir.vic.gov.au/priorities-and-initiatives/ai-mission-statement/sustainable-data-centre-action-plan",
+          "domain": "djsir.vic.gov.au",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "State of Victoria",
+        "Department of Jobs, Skills, Industry and Regions (Victoria)"
+      ],
+      "topics": [
+        "data-centres",
+        "electricity",
+        "water",
+        "infrastructure",
+        "planning-policy"
+      ],
+      "regions": [
+        "AU"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-588BC65DB51A.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: Victoria sets planning and resource expectations for new data centres"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "Victoria fija expectativas de planificación y recursos para nuevos centros de datos",
+            "summary": "El Plan de Acción para Centros de Datos Sostenibles de Victoria, de septiembre de 2026, establece expectativas de planificación y recursos para nuevas instalaciones. Describe controles previstos de planificación y consulta, espera que los operadores compensen el consumo eléctrico operativo mediante nueva generación renovable y almacenamiento, y les asigna los costos de conexión y ampliación de red causados por sus proyectos. Las medidas de agua incluyen compensar el uso potable, un umbral de eficiencia, informes públicos y recuperar los costos de infraestructura. El documento informa solicitudes por 19,714 megalitros al año, no demanda aprobada ni realizada. Varios detalles de cumplimiento seguían en desarrollo, y la Mancomunidad preparaba estándares obligatorios uniformes para una fecha posterior.",
+            "importance_rationale": "Si se implementa como está descrito, el plan podría afectar de manera sustancial la ubicación de centros de datos, la compra de electricidad, los costos de red y el uso de agua en Victoria. Sus reglas de planificación y recursos importan para la economía de los proyectos, aunque los detalles de cumplimiento y los estándares nacionales aún están en desarrollo.",
+            "why_it_matters": "El plan vincula la expansión de centros de datos con el suministro eléctrico, la ampliación de la red y los costos de infraestructura hídrica, lo que da a los desarrolladores condiciones concretas para evaluar proyectos en Victoria. El volumen informado de solicitudes apunta a una posible presión sobre los recursos, pero no demuestra aprobaciones, construcción ni consumo real. Deben distinguirse las medidas propuestas y las reglas de cumplimiento aún incompletas de los requisitos ya promulgados.",
+            "technical": {
+              "claimed_result": "El gobierno presenta el plan como una forma de coordinar la inversión en centros de datos con los intereses de energía, agua, planificación y comunidades.",
+              "demonstrated_result": "El plan oficial documenta sus expectativas de política propuestas e informa sobre la cartera de solicitudes; no demuestra ahorros efectivos de recursos, aprobaciones de proyectos ni resultados de cumplimiento.",
+              "implementation_status": "Plan de acción gubernamental publicado en septiembre de 2026. Algunos controles de planificación y consulta se describen como pasos futuros; los requisitos detallados de cumplimiento y verificación están pendientes, junto con estándares de la Mancomunidad en desarrollo.",
+              "mechanism": "El plan propone una nueva categoría de centros de datos en el proceso de planificación, con controles de consulta o notificación sobre energía y agua. Expone expectativas de inversión en generación renovable y almacenamiento, recuperación de costos de red causados por los proyectos, transición y compensación de uso potable, informes de eficiencia hídrica y recuperación de costos de infraestructura de agua.",
+              "regime": "Proyectos nuevos o ampliados de centros de datos en Victoria, Australia; planificación, conexión y ampliación de red, consumo operativo de electricidad y uso de agua.",
+              "strongest_baseline": "Las leyes de agua vigentes en Victoria y el marco de Contribuciones de Nuevos Clientes ya permiten que las empresas de agua rechacen o condicionen el suministro y exigen que los proponentes financien infraestructura dedicada. El plan añade expectativas propuestas de planificación, energía y agua; sus reglas finales de cumplimiento aún no estaban completas."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "El Plan de Acción para Centros de Datos Sostenibles de Victoria establece expectativas para nuevas instalaciones y describe controles previstos en el proceso de planificación, incluida una nueva categoría de centros de datos y requisitos de consulta o notificación sobre energía y agua."
+                },
+                {
+                  "text": "El plan indica que los operadores deberían compensar el consumo eléctrico operativo mediante inversiones en nueva generación renovable y almacenamiento, y cubrir los costos de conexión y ampliación de red causados directamente por sus proyectos. Los detalles de cumplimiento y verificación se definirían junto con estándares nacionales en desarrollo."
+                },
+                {
+                  "text": "El plan fija expectativas propuestas sobre agua, incluida la transición desde agua potable, la compensación de su uso, un umbral de eficiencia hídrica para centros de datos, la publicación de datos y la recuperación total de costos de infraestructura. Informa 19 solicitudes que buscan 19,714 megalitros anuales; son solicitudes, no aprobaciones, y el plan cita cancelaciones en la cartera de proyectos de AEMO."
+                }
+              ],
+              "limitations": [
+                "El plan de acción describe expectativas y controles previstos de planificación y consulta; no demuestra que todas las medidas ya estén promulgadas o sean exigibles.",
+                "Los requisitos detallados de cumplimiento y verificación y los estándares nacionales uniformes seguían en desarrollo en el documento consultado.",
+                "Las 19 solicitudes por 19,714 megalitros anuales no son aprobaciones ni consumo operativo; algunos proyectos previstos pueden cancelarse.",
+                "Este registro no incluye un análisis independiente de los probables efectos sobre electricidad, agua, inversión o precios al consumidor."
+              ],
+              "gaps": [
+                {
+                  "description": "Las enmiendas definitivas de planificación, los criterios de consulta y las reglas de cumplimiento o verificación no quedan establecidos solo por el plan de acción."
+                },
+                {
+                  "description": "El plan informa solicitudes y demanda proyectada, pero aquí no se miden aprobaciones, construcción efectiva, consumo eléctrico ni uso de agua."
+                },
+                {
+                  "description": "El plan prevé alinearse con estándares obligatorios de la Mancomunidad que aún estaban en desarrollo."
+                }
+              ]
+            },
+            "headline": "Victoria fija expectativas de planificación y recursos para nuevos centros de datos",
+            "dek": "El Plan de Acción para Centros de Datos Sostenibles de Victoria, de septiembre de 2026, establece expectativas de planificación y recursos para nuevas instalaciones."
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "维多利亚州为新建数据中心提出规划与资源预期",
+            "summary": "维多利亚州2026年九月发布的《可持续数据中心行动计划》为新设施提出规划和资源方面的预期。计划说明了拟议的规划和转介管控，要求运营方通过新增可再生能源和储能抵消运营用电，并承担项目直接导致的接入和电网扩容成本。用水措施包括抵消饮用水使用、设定用水效率门槛、公开报告和回收基础设施成本。文件报告称有申请寻求每年19,714兆升用水，这不代表需求已获批或已经发生。若干合规细节仍在制定中，联邦政府当时也在制定后续统一强制标准。",
+            "importance_rationale": "如果按计划所述实施，这些措施可能显著影响维多利亚州数据中心选址、电力采购、电网成本和用水。规划和资源规则关系到项目经济性，但合规细节和国家标准仍在制定中。",
+            "why_it_matters": "该计划将数据中心扩张与电力供应、电网扩容和水务基础设施成本相联系，为开发商评估维多利亚州项目提供了具体资源条件。报告的申请规模提示可能存在资源压力，但不能证明项目已获批、建成或实际消耗资源。应将拟议措施和未完成的合规规则与已经颁布的要求区分开来。",
+            "technical": {
+              "claimed_result": "政府称，该计划旨在协调数据中心投资与能源、用水、规划和社区利益。",
+              "demonstrated_result": "官方计划记录了拟议的政策预期并报告了申请项目储备，但未证明资源节约已经实现、项目已获批或执行结果已经出现。",
+              "implementation_status": "政府于2026年九月发布的行动计划。部分规划和转介管控被描述为未来实施步骤；详细合规与核验要求仍待确定，联邦标准也在制定中。",
+              "mechanism": "计划拟在规划流程中新增数据中心类别，并对能源和用水设置转介或通知管控。计划提出投资新增可再生能源和储能、回收项目导致的电网成本、转用和抵消饮用水、报告用水效率以及回收水务基础设施成本等预期。",
+              "regime": "适用于澳大利亚维多利亚州新建或扩建的数据中心项目；涉及规划、电网接入与扩容、运营用电及用水。",
+              "strongest_baseline": "维多利亚州现行水务法律和新客户贡献框架已允许水务公司拒绝或附条件供水，并要求项目方承担专用基础设施费用。该计划增加了拟议的规划、能源和用水预期；最终合规规则尚未完成。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "维多利亚州《可持续数据中心行动计划》为新建数据中心提出政策预期，并说明计划中的规划流程管控措施，包括新增数据中心类别，以及能源和用水方面的转介或通知要求。"
+                },
+                {
+                  "text": "计划提出，运营方应通过投资新增可再生能源和储能来抵消实际运营用电，并承担项目直接导致的接入和电网扩容成本。具体合规与核验规则将与正在制定的国家标准一并完善。"
+                },
+                {
+                  "text": "计划提出了用水方面的预期措施，包括转用非饮用水、抵消过渡期间的饮用水使用、数据中心用水效率门槛、公开报告和水务基础设施全额成本回收。计划称有19项申请寻求每年19,714兆升用水；申请不等于获批，计划还提及澳大利亚能源市场运营机构项目储备中的取消项目。"
+                }
+              ],
+              "limitations": [
+                "行动计划说明了政策预期和拟议的规划及转介管控，但不能证明所有措施都已颁布或具有可执行性。",
+                "在所查阅的文件中，详细合规与核验要求以及统一的国家标准仍在制定中。",
+                "每年19,714兆升的19项申请并非获批项目或实际运营用水；预计项目也可能取消。",
+                "本记录未对电力、用水、投资或消费者价格的可能影响进行独立分析。"
+              ],
+              "gaps": [
+                {
+                  "description": "仅凭行动计划无法确定最终规划修订、转介触发条件以及合规或核验规则。"
+                },
+                {
+                  "description": "计划报告了申请和预计需求，但本记录没有衡量项目审批、实际建设、用电或用水情况。"
+                },
+                {
+                  "description": "计划预计将与当时仍在制定中的联邦强制标准保持一致。"
+                }
+              ]
+            },
+            "headline": "维多利亚州为新建数据中心提出规划与资源预期",
+            "dek": "维多利亚州2026年九月发布的《可持续数据中心行动计划》为新设施提出规划和资源方面的预期。计划说明了拟议的规划和转介管控，要求运营方通过新增可再生能源和储能抵消运营用电，并承担项目直接导致的接入和电网扩容成本。用水措施包括抵消饮用水使用、设定用水效率门槛、公开报告和回收基础设施成本。文件报告称有申请寻求每年19,714兆升用水，这不代表需求已获批或已经发生。若干合规细节仍在制定中，联邦政府当时也在制定后续统一强制标准。"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
+    {
+      "id": "FCMO-1F6BBDBD11C9",
+      "slug": "physai-bench-reports-a-52-best-score-on-trace-derived-uav-decisions",
+      "url_date": "2026-10-12",
+      "kind": "development",
+      "status": "live",
+      "beat": "research",
+      "desk": "agents_memory",
+      "title": "PhysAI-Bench reports a 52% best score on trace-derived UAV decisions",
+      "headline": "PhysAI-Bench reports a 52% best score on trace-derived UAV decisions",
+      "dek": "The authors present PhysAI-Bench, a multiple-choice benchmark for foundation-model action selection from trace-derived autonomous UAV missions.",
+      "summary": "The authors present PhysAI-Bench, a multiple-choice benchmark for foundation-model action selection from trace-derived autonomous UAV missions. Its repository describes 10,178 decisions with four candidate actions, a 35-instance human-verified development set and a 500-instance episode-disjoint held-out set. After selecting a model-specific prompt and temperature configuration, the authors report GPT-5.3 Chat at 52.00% held-out decision accuracy, the highest listed score. The reference answer is the action taken in the original mission, not necessarily the only valid or globally optimal action. The repository lists the full dataset, locked split manifests, evaluation code and model outputs as release-pending.",
+      "why_it_matters": "The benchmark targets decision-making where mission goals, physical state, tool use and network conditions interact. Its reported best score is modest, but it measures only trace-derived multiple-choice action selection. The result motivates closer evaluation of context-sensitive agent decisions while leaving real-world flight performance, safety and task completion untested.",
+      "importance_rationale": "If the reported benchmark captures useful aspects of autonomous decision selection, its low best score could motivate stronger evaluation of agents under coupled physical, operational and network constraints. The result is limited to trace-derived multiple-choice UAV decisions; it does not establish real-world flight safety or task completion, and the evaluation artifacts remain release-pending.",
+      "technical": {
+        "claimed_result": "The author README reports 52.00% held-out decision accuracy for GPT-5.3 Chat, the highest listed result; GPT-5.2 Chat is 49.40% and Grok 4.5 is 49.07%. These results are not independently reproduced.",
+        "demonstrated_result": "The inspected author repository documents the benchmark design, evaluation protocol and reported scores. the research desk did not independently inspect the unreleased full evaluation artifacts or rerun the benchmark.",
+        "mechanism": "Converts conversational autonomous UAV mission traces into four-choice decision items. The target episode is truncated immediately before the action; model-specific prompting and temperature are selected on a human-verified development set, then evaluated on episode-disjoint held-out missions.",
+        "regime": "10,178 trace-derived UAV decision items, four choices each; 35-instance human-verified development set; 500-instance episode-disjoint held-out set; 29 models and 12 prompt/temperature configurations per model, with three repeated runs.",
+        "strongest_baseline": "The same protocol reports GPT-5.2 Chat at 49.40% and xAI Grok 4.5 at 49.07%; the top result is 52.00%. Scores measure trace-derived action choice, not real-world UAV operation."
+      },
+      "importance_tier": "Notable",
+      "development_type": "paper",
+      "event_at": "2026-09-20T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-12T06:54:08Z",
+      "updated_at": "2026-10-12T06:54:08Z",
+      "importance": 5,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": true,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "CLAIMED",
+            "text": "The authors describe PhysAI-Bench as 10,178 trace-derived UAV decision instances with four candidate actions each, a 35-instance human-verified development set and a 500-instance episode-disjoint held-out set."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "After model-specific selection among 12 prompting and temperature configurations, the authors report GPT-5.3 Chat at 52.00% held-out accuracy over three prespecified runs, the highest listed score. The reference action is what occurred in the source mission, not proof of a globally optimal action."
+          },
+          {
+            "label": "NOT_ESTABLISHED",
+            "text": "The benchmark result does not establish real-world UAV safety, low-level perception, end-to-end mission completion or that the trace-derived reference action is globally optimal."
+          }
+        ],
+        "limitations": [
+          "All reported performance is author-reported; the research desk did not run code or reproduce results.",
+          "The full dataset, locked development and held-out manifests, generation and evaluation code, and model outputs were listed as release-pending in the inspected repository.",
+          "The benchmark covers autonomous UAV missions and structured text contexts rather than raw images, video, LiDAR, audio or other sensor modalities.",
+          "Evaluation concerns high-level action selection rather than low-level perception or end-to-end task completion.",
+          "The recorded action is an operational reference from the source trace, not proof of global optimality or the only valid choice."
+        ],
+        "gaps": [
+          {
+            "kind": "missing_artifact",
+            "description": "The complete dataset, frozen split manifests, evaluation code and model outputs were not yet released in the inspected repository."
+          },
+          {
+            "kind": "other",
+            "description": "Trace-derived reference actions do not establish that the selected action is uniquely valid or globally optimal."
+          },
+          {
+            "kind": "other",
+            "description": "The benchmark does not evaluate real-world flights, raw multimodal perception or end-to-end task completion."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://arxiv.org/abs/2609.23695",
+          "domain": "arxiv.org",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "United Arab Emirates University",
+        "Khalifa University",
+        "Interuniversity Microelectronics Centre",
+        "Technology Innovation Institute"
+      ],
+      "topics": [
+        "physical-ai",
+        "uavs",
+        "agentic-decision-making",
+        "benchmark",
+        "evaluation"
+      ],
+      "regions": [
+        "GLOBAL"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-1F6BBDBD11C9.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: PhysAI-Bench reports a 52% best score on trace-derived UAV decisions"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "PhysAI-Bench informa una puntuación máxima de 52% en decisiones de UAV derivadas de trazas",
+            "summary": "Los autores presentan PhysAI-Bench, un benchmark de opción múltiple para seleccionar acciones a partir de trazas de misiones autónomas de UAV. El repositorio describe 10,178 decisiones con cuatro acciones candidatas, un conjunto de desarrollo de 35 casos verificados por personas y una prueba separada por episodio de 500 casos. Tras elegir una configuración de instrucciones y temperatura para cada modelo, informan que GPT-5.3 Chat alcanzó 52.00% de exactitud en la prueba, el resultado más alto de la tabla. La respuesta de referencia es la acción tomada en la misión original, que no necesariamente es la única opción válida ni la óptima a nivel global. El repositorio aún marcaba como pendientes el conjunto de datos completo, los manifiestos de partición, el código y las salidas de los modelos.",
+            "importance_rationale": "Si el benchmark mide aspectos útiles de la selección de acciones autónomas, su baja puntuación máxima podría motivar evaluaciones más rigurosas con agentes sujetos a restricciones físicas, operativas y de red combinadas. El resultado se limita a decisiones de opción múltiple derivadas de trazas de UAV; no demuestra seguridad ni finalización de misiones en vuelos reales, y los artefactos de evaluación aún no están disponibles.",
+            "why_it_matters": "El benchmark aborda decisiones donde interactúan los objetivos de misión, el estado físico, las herramientas y las condiciones de red. Su puntuación máxima informada es modesta, pero solo mide selección de acciones de opción múltiple derivadas de trazas. El resultado motiva evaluar mejor las decisiones de agentes sensibles al contexto; aún no prueba rendimiento, seguridad ni finalización de tareas en vuelos reales.",
+            "technical": {
+              "claimed_result": "El README de los autores informa una exactitud de 52.00% para GPT-5.3 Chat en la prueba, la mayor de la tabla; GPT-5.2 Chat alcanza 49.40% y Grok 4.5, 49.07%. Estos resultados no se reprodujeron de forma independiente.",
+              "demonstrated_result": "El repositorio de los autores consultado documenta el diseño del benchmark, el protocolo de evaluación y las puntuaciones informadas. No se inspeccionaron por separado todos los artefactos de evaluación aún no publicados ni volvió a ejecutar el benchmark.",
+              "mechanism": "Convierte trazas conversacionales de misiones autónomas de UAV en preguntas de decisión con cuatro opciones. Cada episodio se trunca justo antes de la acción objetivo; las instrucciones y la temperatura se seleccionan para cada modelo en un conjunto de desarrollo verificado por personas y luego se evalúa en misiones de prueba separadas por episodio.",
+              "regime": "10,178 decisiones de UAV derivadas de trazas, con cuatro opciones cada una; conjunto de desarrollo verificado por personas de 35 casos; prueba separada por episodio de 500 casos; 29 modelos y 12 configuraciones de instrucciones y temperatura por modelo, con tres ejecuciones repetidas.",
+              "strongest_baseline": "El mismo protocolo informa 49.40% para GPT-5.2 Chat y 49.07% para xAI Grok 4.5 frente al 52.00% máximo. Las puntuaciones miden selección de acciones derivadas de trazas, no operación real de UAV."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "Los autores describen PhysAI-Bench como un conjunto de 10,178 decisiones de UAV derivadas de trazas, cada una con cuatro acciones candidatas, un conjunto de desarrollo de 35 casos verificados por personas y una prueba separada por episodio de 500 casos."
+                },
+                {
+                  "text": "Tras elegir una configuración de instrucciones y temperatura específica para cada modelo entre 12 opciones, los autores informan que GPT-5.3 Chat obtuvo 52.00% de exactitud en la prueba, el mayor resultado publicado, en tres ejecuciones preespecificadas. La acción de referencia es la que ocurrió en la misión original, no una prueba de que fuera globalmente óptima."
+                },
+                {
+                  "text": "El resultado del benchmark no demuestra seguridad de UAV en el mundo real, percepción de bajo nivel, finalización integral de misiones ni que la acción de referencia derivada de la traza sea globalmente óptima."
+                }
+              ],
+              "limitations": [
+                "Todas las métricas de rendimiento son informadas por los autores; No se ejecutó código ni se reprodujeron los resultados.",
+                "En el repositorio consultado aún figuraban pendientes el conjunto completo de datos, los manifiestos de partición bloqueados, el código de generación y evaluación y las salidas de los modelos.",
+                "El benchmark se limita a misiones autónomas de UAV y contextos de texto estructurado, no a imágenes, video, LiDAR, audio u otras modalidades sensoriales sin procesar.",
+                "La evaluación mide selección de acciones de alto nivel, no percepción de bajo nivel ni finalización integral de tareas.",
+                "La acción registrada es una referencia operativa de la traza original, no una prueba de optimalidad global ni la única opción válida."
+              ],
+              "gaps": [
+                {
+                  "description": "El repositorio consultado aún no publicaba el conjunto completo de datos, los manifiestos congelados de partición, el código de evaluación ni las salidas de los modelos."
+                },
+                {
+                  "description": "Las acciones de referencia derivadas de trazas no demuestran que la acción elegida sea la única válida o globalmente óptima."
+                },
+                {
+                  "description": "El benchmark no evalúa vuelos reales, percepción multimodal sin procesar ni finalización integral de tareas."
+                }
+              ]
+            },
+            "headline": "PhysAI-Bench informa una puntuación máxima de 52% en decisiones de UAV derivadas de trazas",
+            "dek": "Los autores presentan PhysAI-Bench, un benchmark de opción múltiple para seleccionar acciones a partir de trazas de misiones autónomas de UAV."
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "PhysAI-Bench报告：轨迹衍生无人机决策题最高得分为52%",
+            "summary": "作者推出 PhysAI-Bench，这是一个基于自主无人机任务轨迹、评测基础模型动作选择能力的多选基准。仓库介绍称其包含10,178个决策题，每题有四个候选动作；开发集有35个经人工核验的样例，按任务轨迹隔离的留出集有500个样例。作者为每个模型选定提示词和温度配置后报告，GPT-5.3 Chat的留出集决策准确率为52.00%，为所列最高分。参考答案是原始任务中实际执行的动作，不一定是唯一有效或全局最优的动作。仓库当时仍将完整数据集、划分清单、评测代码和模型输出标为待发布。",
+            "importance_rationale": "如果该基准测到了自主决策的有用方面，其最高分不高可能推动研究者更严格地评估智能体在物理、运行和网络约束交织时的表现。结果仅涉及源自无人机轨迹的多选动作判断，不能证明现实飞行安全或任务完成能力，而且评测材料仍未发布。",
+            "why_it_matters": "该基准关注任务目标、物理状态、工具使用和网络条件相互影响时的决策。报告的最高分并不高，但评测仅涉及基于任务轨迹的多选动作判断。结果提示需要更好地评估依赖上下文的智能体决策，但尚未证明现实飞行性能、安全性或任务完成能力。",
+            "technical": {
+              "claimed_result": "作者 README 报告 GPT-5.3 Chat 的留出集决策准确率为52.00%，为所列最高；GPT-5.2 Chat为49.40%，Grok 4.5为49.07%。这些结果未经独立复现。",
+              "demonstrated_result": "所查阅的作者仓库说明了基准设计、评测协议和报告分数。未独立检查尚未发布的完整评测材料，也未重新运行基准。",
+              "mechanism": "将自主无人机任务的对话轨迹转换为四选一决策题，并在目标动作发生前截断任务轨迹。先在经人工核验的开发集上为每个模型选择提示词和温度配置，再用按任务轨迹隔离的留出任务进行评测。",
+              "regime": "10,178个源自无人机轨迹的决策题，每题四个选项；35个人工核验开发样例；500个按任务轨迹隔离的留出样例；评测29个模型，每个模型测试12种提示词与温度配置，并重复运行三次。",
+              "strongest_baseline": "同一协议报告 GPT-5.2 Chat为49.40%，xAI Grok 4.5为49.07%，最高分为52.00%。这些分数衡量轨迹衍生动作选择，并非真实无人机运行表现。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "作者将 PhysAI-Bench 描述为包含10,178个源自无人机轨迹的决策题，每题有四个候选动作；其中开发集包含35个经人工核验的样例，另有500个按任务轨迹隔离的留出样例。"
+                },
+                {
+                  "text": "作者从12种提示词与温度组合中为每个模型选择配置后报告，GPT-5.3 Chat在三次预先规定的运行中取得52.00%的留出集准确率，为所列最高分。参考答案是原始任务轨迹中实际执行的动作，并不证明该动作在全局上最优。"
+                },
+                {
+                  "text": "该基准结果不能证明无人机在现实环境中的安全性、低层感知能力、端到端任务完成能力，也不能证明轨迹中的参考动作是全局最优的。"
+                }
+              ],
+              "limitations": [
+                "所有性能数据均由作者报告；未运行代码或复现结果。",
+                "在所查阅的仓库中，完整数据集、锁定的划分清单、生成与评测代码以及模型输出仍标记为待发布。",
+                "当前基准仅基于无人机任务，使用结构化文本上下文，不包含原始图像、视频、激光雷达、音频或其他传感器模态。",
+                "评测关注高层动作选择，不涵盖低层感知或端到端任务完成。",
+                "记录中的动作是源任务轨迹里实际执行的操作参考，并非全局最优或唯一有效动作的证明。"
+              ],
+              "gaps": [
+                {
+                  "description": "所查阅仓库尚未发布完整数据集、冻结的划分清单、评测代码和模型输出。"
+                },
+                {
+                  "description": "轨迹中的参考动作不能证明所选动作是唯一有效或全局最优的。"
+                },
+                {
+                  "description": "该基准未评测真实飞行、原始多模态感知或端到端任务完成。"
+                }
+              ]
+            },
+            "headline": "PhysAI-Bench报告：轨迹衍生无人机决策题最高得分为52%",
+            "dek": "作者推出 PhysAI-Bench，这是一个基于自主无人机任务轨迹、评测基础模型动作选择能力的多选基准。仓库介绍称其包含10,178个决策题，每题有四个候选动作；开发集有35个经人工核验的样例，按任务轨迹隔离的留出集有500个样例。作者为每个模型选定提示词和温度配置后报告，GPT-5.3 Chat的留出集决策准确率为52.00%，为所列最高分。参考答案是原始任务中实际执行的动作，不一定是唯一有效或全局最优的动作。仓库当时仍将完整数据集、划分清单、评测代码和模型输出标为待发布。"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
+    {
+      "id": "FCMO-08FB79207C91",
+      "slug": "actgov-reports-benchmark-reductions-in-indirect-prompt-injection-success",
+      "url_date": "2026-10-12",
+      "kind": "development",
+      "status": "live",
+      "beat": "research",
+      "desk": "agents_memory",
+      "title": "ActGov reports benchmark reductions in indirect prompt-injection success through per-action authorization checks",
+      "dek": "A September 2026 preprint introduces ActGov, which checks each proposed tool call against a task-scoped policy before execution.",
+      "summary": "A September 2026 preprint introduces ActGov, which checks each proposed tool call against a task-scoped policy before execution. The authors report lower indirect prompt-injection success on AgentDojo and AgentDyn across four model backends, with task utility retained to varying degrees. Their cross-domain transfer test also shows severe over-restriction: an AgentDojo-trained policy has 0.100 clean-task utility on AgentDyn versus 0.767 without defense. These are paper-reported benchmark results, not independent reproduction or evidence of deployment effectiveness.",
+      "why_it_matters": "ActGov tests a concrete security boundary: authorization is checked at each proposed external action rather than delegated to the model's judgment. The paper's held-out benchmark results make that mechanism worth tracking, while the cross-domain utility collapse shows that low attack success can result from blocking legitimate work. Deployment value depends on whether policy coverage and semantic extraction generalize beyond the tested task splits.",
+      "importance_rationale": "If the reported results generalize, per-action authorization checks could reduce indirect prompt-injection risk in long-running tool agents while preserving useful actions. The paper reports strong in-benchmark attack-rate reductions but severe utility loss under cross-domain policy transfer, so the result is notable engineering evidence rather than a general security guarantee.",
+      "technical": {
+        "claimed_result": "On AgentDyn, the authors report ActGov attack success rates of 0.004–0.007 across Qwen3.6-Flash, MiniMax-M2.5, DeepSeek-V4-Pro and GPT-4o mini. On AgentDojo they report 0.000 for all four backends in the displayed test split. Task-completion utility declines in some configurations. Cross-domain policies yield 0.000 ASR in both transfer directions but can sharply restrict benign tasks; an AgentDojo-trained policy tested on AgentDyn has 0.100 clean utility versus 0.767 without defense.",
+        "demonstrated_result": "The inspected arXiv v2 paper reports the framework, benchmark setup and tabulated results. the research desk did not execute the code or independently reproduce the measurements; the attack and utility outcomes remain author-reported.",
+        "mechanism": "ActGov separates offline policy generation from deterministic runtime enforcement. An LLM proposes policy rules from tool specifications, benign traces and attacks; Z3 checks candidate policies against predefined invariants. At runtime a monitor maps a proposed action and context into finite semantic records and allows it only when it passes the task permissions and policy rules.",
+        "regime": "Indirect prompt-injection tests on AgentDojo (629 security test cases) and AgentDyn (560 security test cases), with four model backends. The main evaluation uses equal training/test splits. The strongest policy setting uses GPT-5.5 as policy proposer for 10 refinement rounds with human review; a separate scalability evaluation removes that review and uses five automated iterations.",
+        "strongest_baseline": "The paper compares against no defense and CaMeL, Progent, DRIFT and ACE. It reports attack-success and clean/attacked task-completion metrics; cross-domain transfer substantially reduces utility despite low attack success."
+      },
+      "importance_tier": "Notable",
+      "development_type": "paper",
+      "event_at": "2026-09-21T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-12T06:54:08Z",
+      "updated_at": "2026-10-12T06:54:08Z",
+      "importance": 5,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": false,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "CLAIMED",
+            "text": "The authors propose an offline policy-generation stage with Z3 checking and a deterministic runtime monitor that intercepts each candidate tool call before external execution."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "On the displayed AgentDojo and AgentDyn test splits, the authors report ActGov attack-success rates from 0 to 0.7% across four model backends, with varying reductions in task utility."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "In cross-domain policy transfer, the authors report zero attack success but severe over-restriction; an AgentDojo-trained policy has 0.100 clean utility on AgentDyn compared with 0.767 for no defense."
+          },
+          {
+            "label": "NOT_ESTABLISHED",
+            "text": "The results do not establish that the policy abstraction or semantic extraction is reliable in open-world deployments, nor that attack reductions generalize beyond these benchmark tasks and assumptions."
+          }
+        ],
+        "limitations": [
+          "All attack-success and utility measurements are author-reported; the research desk did not run code or reproduce results.",
+          "The threat model trusts the user task and enforcement layer and assumes every external action passes through pre-execution validation.",
+          "Policy abstraction depends on finite records and semantic extraction; errors in mapping runtime context can affect enforcement.",
+          "The main evidence comes from two benchmark suites and specific task splits; cross-domain transfer shows severe utility loss.",
+          "The strongest policy-generation setting uses human review, so it does not demonstrate fully autonomous policy synthesis in that setting."
+        ],
+        "gaps": [
+          {
+            "kind": "missing_independent",
+            "description": "No independent reproduction of the AgentDojo/AgentDyn split or author-reported attack-success and task-utility values was performed."
+          },
+          {
+            "kind": "other",
+            "description": "Evaluation assumes trusted user tasks, an immutable enforcement layer, and complete pre-execution interception; open-world tools and unseen task domains are not established."
+          },
+          {
+            "kind": "other",
+            "description": "Cross-domain policy transfer preserves low reported attack success through severe conservatism, including 0.100 clean utility on AgentDyn for an AgentDojo-trained policy."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://arxiv.org/abs/2609.24446",
+          "domain": "arxiv.org",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [],
+      "topics": [
+        "agent-security",
+        "authorization",
+        "indirect-prompt-injection",
+        "runtime-enforcement",
+        "tool-use"
+      ],
+      "regions": [
+        "GLOBAL"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-08FB79207C91.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: ActGov reports benchmark reductions in indirect prompt-injection success through per-action authorization checks"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "ActGov informa una reducción de ataques de inyección indirecta de prompts mediante controles de autorización por acción",
+            "summary": "Un preprint de septiembre de 2026 presenta ActGov, que verifica cada llamada a herramientas propuesta frente a una política limitada a la tarea antes de ejecutarla. Los autores informan menos ataques de inyección indirecta de prompts en AgentDojo y AgentDyn con cuatro modelos, aunque la utilidad de las tareas varía. La prueba de transferencia entre dominios también muestra una restricción grave: una política entrenada en AgentDojo logra una utilidad de tareas limpias de 0.100 en AgentDyn, frente a 0.767 sin defensa. Son resultados comunicados por el artículo, no una reproducción independiente ni pruebas de eficacia en producción.",
+            "importance_rationale": "Si los resultados comunicados se generalizan, las comprobaciones de autorización por acción podrían reducir el riesgo de inyección indirecta de prompts en agentes con herramientas y flujos prolongados sin impedir acciones útiles. El artículo informa grandes reducciones de ataques dentro de las pruebas, pero también una pérdida grave de utilidad al transferir políticas entre dominios; por eso es evidencia de ingeniería relevante, no una garantía general de seguridad.",
+            "why_it_matters": "ActGov evalúa un límite de seguridad concreto: la autorización se comprueba en cada acción externa propuesta en vez de depender del criterio del modelo. Los resultados comunicados en pruebas retenidas justifican seguir el mecanismo, mientras que el desplome de utilidad al transferir entre dominios muestra que una tasa baja de ataques puede deberse a bloquear tareas legítimas. Su valor en producción depende de que la cobertura de políticas y la extracción semántica se generalicen más allá de las tareas probadas.",
+            "technical": {
+              "claimed_result": "En AgentDyn, los autores informan tasas de éxito de ataque de ActGov de 0.004–0.007 con Qwen3.6-Flash, MiniMax-M2.5, DeepSeek-V4-Pro y GPT-4o mini. En AgentDojo informan 0.000 con los cuatro modelos en la partición de prueba mostrada. La utilidad de las tareas disminuye en algunas configuraciones. Las políticas transferidas entre dominios alcanzan ASR de 0.000 en ambas direcciones, pero pueden restringir mucho las tareas benignas: una política entrenada en AgentDojo y probada en AgentDyn obtiene utilidad limpia de 0.100 frente a 0.767 sin defensa.",
+              "demonstrated_result": "El artículo v2 de arXiv consultado describe el marco, la configuración de las pruebas y los resultados tabulados. el equipo de investigación no ejecutó el código ni reprodujo las mediciones de forma independiente; los resultados técnicos siguen siendo informes de los autores.",
+              "mechanism": "ActGov separa la generación de políticas fuera de línea de la aplicación determinista en tiempo de ejecución. Un modelo de lenguaje propone reglas a partir de especificaciones de herramientas, trazas benignas y ataques; Z3 comprueba las políticas candidatas frente a invariantes predefinidos. En tiempo de ejecución, un monitor convierte la acción propuesta y su contexto en registros semánticos finitos y solo la permite si satisface los permisos de la tarea y las reglas de política.",
+              "regime": "Pruebas de inyección indirecta de prompts en AgentDojo (629 casos de seguridad) y AgentDyn (560 casos de seguridad), con cuatro modelos. La evaluación principal usa particiones iguales de entrenamiento y prueba. La configuración más sólida de generación de políticas emplea GPT-5.5 durante 10 rondas de refinamiento con revisión humana; una evaluación aparte de escalabilidad elimina esa revisión y usa cinco iteraciones automatizadas.",
+              "strongest_baseline": "El artículo compara con ausencia de defensa y con CaMeL, Progent, DRIFT y ACE. Informa métricas de éxito de ataques y de finalización de tareas limpias y atacadas; la transferencia entre dominios reduce considerablemente la utilidad pese al bajo éxito de ataques."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "Los autores proponen una etapa de generación de políticas fuera de línea con comprobación mediante Z3 y un monitor determinista en tiempo de ejecución que intercepta cada llamada candidata a herramienta antes de cualquier efecto externo."
+                },
+                {
+                  "text": "En las particiones de prueba mostradas de AgentDojo y AgentDyn, los autores informan tasas de éxito de ataque de ActGov de 0 a 0.7% con cuatro modelos, junto con reducciones variables en la utilidad de las tareas."
+                },
+                {
+                  "text": "En la transferencia de políticas entre dominios, los autores informan cero ataques exitosos, pero una restricción excesiva grave: una política entrenada en AgentDojo alcanza utilidad limpia de 0.100 en AgentDyn, frente a 0.767 sin defensa."
+                },
+                {
+                  "text": "Los resultados no demuestran que la abstracción de políticas o la extracción semántica sean fiables en entornos abiertos, ni que las reducciones de ataques se generalicen más allá de estas tareas y supuestos de prueba."
+                }
+              ],
+              "limitations": [
+                "Todas las mediciones de éxito de ataques y utilidad son informes de los autores; el equipo de investigación no ejecutó el código ni reprodujo los resultados.",
+                "El modelo de amenazas confía en la tarea del usuario y en la capa de aplicación, y supone que toda acción externa pasa por validación previa a la ejecución.",
+                "La abstracción de políticas depende de registros finitos y de la extracción semántica; los errores al representar el contexto de ejecución pueden afectar la aplicación.",
+                "La evidencia principal proviene de dos pruebas comparativas y particiones específicas; la transferencia entre dominios muestra una pérdida grave de utilidad.",
+                "La configuración más sólida de generación de políticas incluye revisión humana y, por tanto, no demuestra síntesis de políticas totalmente autónoma en ese escenario."
+              ],
+              "gaps": [
+                {
+                  "description": "No se reprodujeron de forma independiente las particiones de AgentDojo/AgentDyn ni los valores de éxito de ataques y utilidad de tareas informados por los autores."
+                },
+                {
+                  "description": "La evaluación supone tareas de usuario confiables, una capa de aplicación inmutable y la interceptación completa antes de cualquier ejecución; no establece resultados con herramientas abiertas ni tareas de dominios nuevos."
+                },
+                {
+                  "description": "La transferencia entre dominios mantiene bajo el éxito de ataques mediante una restricción excesiva, incluida una utilidad limpia de 0.100 en AgentDyn para una política entrenada en AgentDojo."
+                }
+              ]
+            },
+            "dek": "Un preprint de septiembre de 2026 presenta ActGov, que verifica cada llamada a herramientas propuesta frente a una política limitada a la tarea antes de ejecutarla."
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "ActGov报告称，逐项授权检查可降低间接提示注入攻击成功率",
+            "summary": "一篇2026年的预印本介绍了ActGov：它在执行前依据任务范围内的策略检查每个拟议工具调用。作者报告称，在四种模型上，AgentDojo和AgentDyn中的间接提示注入攻击成功率下降，但任务效用各有变化。跨领域迁移测试也显示了严重的过度限制：在AgentDojo上训练的策略在AgentDyn上的干净任务效用为0.100，而无防护时为0.767。这些是论文报告的基准结果，并非独立复现，也不能证明其在实际部署中的效果。",
+            "importance_rationale": "如果报告的结果能够泛化，逐项授权检查可能降低长流程工具代理遭受间接提示注入的风险，同时保留有用操作。论文报告了测试范围内较大的攻击率降幅，但跨领域策略迁移时效用严重下降，因此这属于值得关注的工程证据，而非普遍安全保证。",
+            "why_it_matters": "ActGov检验了一条具体的安全边界：对每个拟议的外部操作逐项检查授权，而不是依赖模型自行判断。论文报告的留出测试结果使这一机制值得关注；但跨领域迁移时效用大幅下降，说明低攻击成功率也可能来自阻断合法任务。其部署价值取决于策略覆盖和语义提取能否推广到测试范围之外。",
+            "technical": {
+              "claimed_result": "在AgentDyn上，作者报告ActGov在Qwen3.6-Flash、MiniMax-M2.5、DeepSeek-V4-Pro和GPT-4o mini上的攻击成功率为0.004–0.007。在展示的AgentDojo测试划分中，四种模型的报告值均为0.000。某些配置下任务效用有所下降。跨领域迁移策略在两个方向上均达到0.000的ASR，但可能严重限制正常任务：在AgentDojo上训练并于AgentDyn测试的策略，正常任务效用为0.100，无防护时为0.767。",
+              "demonstrated_result": "所检查的arXiv v2论文描述了该框架、基准测试设置和表格结果。研究团队未运行代码，也未独立复现实验；技术结果仍是作者报告的结果。",
+              "mechanism": "ActGov将离线策略生成与运行时确定性执行分开。语言模型依据工具规范、正常任务轨迹和攻击样例提出策略规则；Z3对候选策略进行检查，确保其满足预设不变量。运行时监控器把拟议操作及其上下文映射为有限语义记录，只有符合任务权限和策略规则时才予以放行。",
+              "regime": "在AgentDojo（629个安全测试案例）和AgentDyn（560个安全测试案例）上进行间接提示注入测试，使用四种模型。主要评估采用相等规模的训练与测试划分。策略生成的强配置使用GPT-5.5进行10轮优化并由人工审查；另一个可扩展性评估移除人工审查，采用五轮自动迭代。",
+              "strongest_baseline": "论文将该方法与无防护、CaMeL、Progent、DRIFT和ACE进行比较，并报告攻击成功率及正常/受攻击任务完成度。跨领域策略迁移尽管保持了较低攻击成功率，却显著降低了效用。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "作者提出离线策略生成阶段，使用Z3检查，并通过确定性运行时监控器在产生外部影响前拦截每个候选工具调用。"
+                },
+                {
+                  "text": "在展示的AgentDojo和AgentDyn测试划分中，作者报告ActGov在四种模型上的攻击成功率为0至0.7%，同时任务效用降幅不一。"
+                },
+                {
+                  "text": "在跨领域策略迁移中，作者报告攻击成功数为零，但出现严重的过度限制：在AgentDojo上训练的策略在AgentDyn上的正常任务效用为0.100，无防护时为0.767。"
+                },
+                {
+                  "text": "这些结果并未证明策略抽象或语义提取在开放环境中可靠，也未证明攻击率下降可推广到这些基准任务和假设以外。"
+                }
+              ],
+              "limitations": [
+                "所有攻击成功率和效用测量均由作者报告；研究团队未运行代码或复现实验。",
+                "威胁模型信任用户任务和执行层，并假设每个外部操作都经过执行前验证。",
+                "策略抽象依赖有限记录和语义提取；运行时上下文映射错误会影响执行控制。",
+                "主要证据来自两个基准套件和特定数据划分；跨领域迁移显示效用严重下降。",
+                "最强策略生成配置包含人工审查，因此该设置并未证明策略生成完全自主。"
+              ],
+              "gaps": [
+                {
+                  "description": "尚未独立复现AgentDojo/AgentDyn的测试划分，也未独立核验作者报告的攻击成功率和任务效用数值。"
+                },
+                {
+                  "description": "评估假设用户任务可信、执行层不可篡改且所有操作都在执行前受到完整拦截；未验证开放工具或新领域任务。"
+                },
+                {
+                  "description": "跨领域策略迁移通过过度保守维持了较低攻击成功率，其中在AgentDojo上训练的策略在AgentDyn上的正常任务效用为0.100。"
+                }
+              ]
+            },
+            "headline": "ActGov报告称，逐项授权检查可降低间接提示注入攻击成功率",
+            "dek": "一篇2026年的预印本介绍了ActGov：它在执行前依据任务范围内的策略检查每个拟议工具调用。作者报告称，在四种模型上，AgentDojo和AgentDyn中的间接提示注入攻击成功率下降，但任务效用各有变化。跨领域迁移测试也显示了严重的过度限制：在AgentDojo上训练的策略在AgentDyn上的干净任务效用为0.100，而无防护时为0.767。这些是论文报告的基准结果，并非独立复现，也不能证明其在实际部署中的效果。"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
     {
       "id": "FCMO-CA2F66E7D798",
       "slug": "available-guardrails-quantifies-when-selective-prediction-can-be",
