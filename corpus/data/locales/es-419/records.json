@@ -6900,6 +6900,58 @@
       "title": "Modelos de lenguaje de frontera ordenan conformeros de moléculas pequeñas por encima de UFF, pero por debajo de MMFF94",
       "why_it_matters": "La capacidad de un modelo de lenguaje para ordenar algunos conformeros de moléculas pequeñas a partir de coordenadas podría orientar flujos de química con IA híbridos. La comparación también pone la capacidad en contexto: en este benchmark, los mejores modelos evaluados quedan por debajo de métodos de campo de fuerza establecidos, y el régimen de 27 moléculas no prueba una generalización química amplia."
     },
+    "FCMO-64B30DCEA7C5": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "En seis tareas de contacto con una plataforma robótica bimanual 22-DoF, los autores informan un puntaje medio de 70.6 para DexTacWAM frente a 38.0 para la mejor referencia incluida, Reactive Diffusion Policy. DexTacWAM obtiene el mayor puntaje en cada tarea de la tabla, con 20 pruebas reales por método y tarea. El acceso a cámaras coincide por tarea, pero DexTacWAM usa acciones relativas del efector final y las referencias conservan su parametrización original."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En una ablación de cuatro tareas con las mismas características táctiles y el mismo experto de acciones, eliminar el modelado del mundo táctil reduce el puntaje medio de 74.7 a 26.6; la prueba compara predicción del mundo táctil con condicionamiento táctil directo en el entorno de los autores."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan adaptar el codificador táctil con cuatro horas de datos de interacción y luego usar alrededor de 100 demostraciones por tarea sin preentrenamiento táctil intermedio; la predicción visual se mantiene dentro de 0.5 dB de los modelos solo visuales. El compresor conserva 89.4% del reconocimiento de contacto previo a la fusión y permite, según el artículo, 2.26× más velocidad de entrenamiento y 1.29× de inferencia."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se encontró una reproducción independiente; la comparación principal cambia la parametrización de acciones, lo que podría contribuir a las diferencias de puntaje.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-12T14:20:30Z"
+        },
+        {
+          "description": "El estudio usa un sensor táctil y seis tareas; se desconoce la transferencia a otros sensores, manos robóticas, objetos y horizontes más largos.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-12T14:20:30Z"
+        }
+      ],
+      "importance_rationale": "Si se mantiene en pruebas independientes, predecir de manera conjunta la dinámica táctil y visual de varios dedos podría mejorar la manipulación diestra y permitir extender modelos de video preentrenados usando relativamente pocos datos táctiles. El resultado con robot y la ablación son relevantes para el diseño de aprendizaje robótico, mientras que una sola plataforma, 20 ensayos y las diferencias en parametrización limitan su alcance.",
+      "limitations": [
+        "Todos los resultados provienen de un solo preprint de los autores; no se inspeccionó una reproducción independiente.",
+        "La evaluación abarca seis tareas en una sola plataforma bimanual 22-DoF, con 20 ensayos por método y tarea. El acceso a cámaras se empareja por tarea, pero DexTacWAM usa acciones relativas del efector final y las referencias mantienen sus parametrizaciones originales.",
+        "La ablación cubre cuatro tareas y un entorno; no demuestra que modelar el mundo táctil supere a la entrada táctil directa con distintas plataformas o políticas.",
+        "Las mejoras informadas de 2.26× en entrenamiento y 1.29× en inferencia dependen de la compresión y el entorno de los autores; no se midieron externamente el costo de despliegue ni la transferencia entre sensores.",
+        "La calidad visual dentro de 0.5 dB se informa para las tareas y el modelo evaluados; no garantiza preservar la capacidad visual en general."
+      ],
+      "relationships": [],
+      "summary": "DexTacWAM trata la dinámica táctil de los dedos como parte del estado de mundo que predice el robot, no solo como una entrada adicional a la política. Codifica cada dedo, comprime cinco flujos táctiles en una representación por mano y predice futuros visuales y táctiles de manera conjunta para generar acciones. En seis tareas reales de contacto, los autores informan un puntaje medio de 70.6 frente a 38.0 para la referencia más sólida, con 20 ensayos por método y tarea. Una ablación de cuatro tareas informa una caída de 74.7 a 26.6 al quitar el modelado del mundo táctil y mantener las mismas características táctiles y el experto de acciones. El artículo también informa cuatro horas de adaptación del codificador táctil, alrededor de 100 demostraciones por tarea, predicción visual dentro de 0.5 dB y mayor velocidad de entrenamiento e inferencia con la compresión. Son resultados de los autores en una sola plataforma bimanual 22-DoF; el acceso a cámaras es equivalente, pero las acciones del método y de las referencias usan parametrizaciones distintas, y no se encontró reproducción independiente.",
+      "technical": {
+        "claimed_result": "Seis tareas reales: puntaje medio 70.6 frente a 38.0 para Reactive Diffusion Policy, 20 ensayos por método y tarea. Ablación de cuatro tareas: el puntaje baja de 74.7 a 26.6 al quitar el modelado del mundo táctil. Adaptación con cuatro horas y unas 100 demostraciones por tarea, sin preentrenamiento táctil intermedio; predicción visual dentro de 0.5 dB, 89.4% de retención del reconocimiento de contacto, y mejoras informadas de 2.26× en entrenamiento y 1.29× en inferencia.",
+        "demonstrated_result": "El preprint inspeccionado especifica el modelo, el protocolo real, los resultados y las ablaciones. Esta revisión no realizó una reproducción independiente.",
+        "implementation_status": "Se reutiliza un VAE visual preentrenado para codificar señales táctiles; unas cuatro horas de interacción bimanual preentrenan el compresor y luego se usan alrededor de 100 demostraciones por tarea. Esta revisión no inspeccionó código público.",
+        "mechanism": "Los mapas táctiles de cada dedo se codifican con un VAE visual preentrenado y congelado; un compresor que toma en cuenta dedos y postura agrupa cinco flujos en una representación por mano. El modelo de mundo predice conjuntamente estados visuales y táctiles de ambas manos, y el experto de acciones se condiciona en ambos. El aprendizaje continuo de visión a tacto adapta el codificador táctil y luego entrena el modelo de mundo y el experto con demostraciones de cada tarea.",
+        "regime": "Seis tareas de contacto en una plataforma bimanual 22-DoF; 20 pruebas reales por método y tarea. El acceso a cámaras coincide dentro de cada tarea. DexTacWAM usa acciones relativas del efector final y las referencias conservan sus parametrizaciones originales. La ablación cubre cuatro tareas.",
+        "reproducibility": "El artículo detalla el método y añade apéndices; esta revisión no inspeccionó código ni reprodujo los resultados. No hay evaluación robótica independiente.",
+        "strongest_baseline": "Reactive Diffusion Policy obtiene puntaje medio de 38.0 frente a 70.6 para DexTacWAM en la tabla de seis tareas; las referencias conservan su parametrización de acciones original, mientras DexTacWAM usa acciones relativas del efector final."
+      },
+      "title": "DexTacWAM informa mejores resultados al modelar el contacto táctil como parte del mundo previsto por el robot",
+      "why_it_matters": "Los robots diestros necesitan razonar sobre contacto, deslizamiento y estabilidad del agarre, que las cámaras pueden no revelar. La ablación del artículo respalda una hipótesis de diseño específica: predecir la evolución del contacto táctil como parte del estado de mundo podría aportar más que entregar lecturas táctiles directamente a la política. Las mejoras reportadas son grandes, pero provienen de una plataforma evaluada por los autores y de una comparación con parametrizaciones de acciones distintas; justifican una reproducción controlada, no prueban transferencia general."
+    },
     "FCMO-66E542A93F36": {
       "claims": [
         {
@@ -8284,6 +8336,64 @@
       },
       "title": "Anthropic abre acceso verificado y limitado por proyecto a modelos biológicos avanzados con supervisión diferida",
       "why_it_matters": "El programa cambia la arquitectura de acceso y control para modelos biológicos avanzados: las organizaciones verificadas pueden recibir un acceso diario más amplio, mientras que el trabajo de mayor riesgo se limita a proyectos individuales y se supervisa entre sesiones. Esto podría reducir fricciones para la ciencia legítima, pero la supervisión retrospectiva y la retención de datos tienen costos distintos de falla y privacidad frente a los bloqueos en tiempo real. El anuncio no mide si los controles previenen el uso indebido ni si mejoran los resultados científicos."
+    },
+    "FCMO-7BB77058887F": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "En LIBERO, los autores informan 97.6% de éxito promedio, 0.7 puntos porcentuales por encima de π0.5, y 20.25% menos actualizaciones del prefijo VLM frente a la actualización completa. En RoboMemArena, informan 26.8% de éxito promedio de tarea y 44.4% de éxito acumulado, los mejores entre los métodos VLA individuales comparados; en la categoría Occlusion, 21.8% TSR y 44.3% CSR."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En seis tareas reales de manipulación sobre una plataforma xArm7 con mano dexterosa, el artículo informa 65% de éxito promedio en 20 ensayos aleatorizados por tarea, frente a 44% para su referencia π0.5 y 53% para una reimplementación de MemoryVLA."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En LIBERO, el enrutamiento de prefijos redujo la tasa de actualización de 100% a 79.75%, la latencia de 156.36 a 150.78 ms y elevó el rendimiento de 6.40 a 6.64 Hz. En RoboMemArena, una tasa de actualización de 98.9% hizo que el costo del enrutamiento elevara la latencia a 137.9 ms frente a 135.1 ms con actualización completa."
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION",
+          "text": "Los autores señalan como límites una memoria de un token, un rango reducido de plataformas, sensores y horizontes, y casos donde una tasa alta de actualización elimina el ahorro de inferencia. Los resultados son de un único preprint evaluado por sus autores; esta revisión no halló reproducción independiente."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se inspeccionó reproducción independiente ni evaluación en otras plataformas robóticas, modalidades de sensores u horizontes de tarea más largos.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-12T14:18:41Z"
+        },
+        {
+          "description": "La comparación real con MemoryVLA usa una reimplementación de los autores; no se auditó de forma independiente la paridad de datos, ajustes y evaluación.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-12T14:18:41Z"
+        }
+      ],
+      "importance_rationale": "Si se mantiene en evaluaciones independientes, la memoria persistente de tareas junto con la reutilización adaptativa de prefijos podría mejorar la manipulación de largo horizonte y reducir cómputo visual-lingüístico redundante. Las mejoras informadas en robots reales y benchmarks son relevantes para decisiones sobre diseño de VLA, pero un solo modelo inicial, una plataforma, pocas pruebas y evaluación de los autores limitan la consecuencia.",
+      "limitations": [
+        "Todos los resultados provienen de un solo preprint de los autores; no se inspeccionó una reproducción independiente.",
+        "La evaluación real usa seis tareas en un solo xArm7, una mano dexterosa y una cámara de muñeca, con 20 ensayos aleatorizados por tarea.",
+        "Las pruebas de simulación usan el diseño de entrenamiento y evaluación del artículo; LIBERO emplea 50 demostraciones y 50 ensayos aleatorizados por tarea; RoboMemArena emplea 100 demostraciones por tarea y 50 episodios con semillas independientes.",
+        "El comparador MemoryVLA en robot real es una reimplementación de los autores, no el sistema original de sus autores.",
+        "El entrenamiento requiere dos etapas que suman 60K pasos con cuatro GPU RTX A6000 y unos cinco días.",
+        "El beneficio de inferencia depende de la frecuencia de actualización: en RoboMemArena, una tasa de 98.9% hace que el costo del enrutamiento supere la latencia de actualización completa.",
+        "Los autores indican que un token puede no conservar múltiples eventos históricos detallados y que la cobertura de plataformas, sensores y horizontes es limitada."
+      ],
+      "relationships": [],
+      "summary": "StateMem añade memoria persistente de un solo token a una política de visión, lenguaje y acción: los residuos de error de predicción actualizan el estado de la tarea, mientras un enrutador adaptativo reutiliza prefijos VLM almacenados y aplica una rama de corrección. El artículo informa un éxito promedio de 97.6% en LIBERO, 20.25% menos actualizaciones de prefijo que la actualización completa, y 26.8% de éxito de tarea / 44.4% de éxito acumulado en RoboMemArena entre los métodos VLA individuales comparados. En seis tareas reales y 20 ensayos por tarea en una plataforma xArm7, informa 65% de éxito promedio, frente a 44% para π0.5 y 53% para una reimplementación de MemoryVLA. La ganancia de eficiencia depende de la carga: en LIBERO, la latencia baja de 156.36 a 150.78 ms; con alta tasa de actualización en RoboMemArena, el enrutamiento resulta más lento que la actualización completa. El entrenamiento usó cuatro GPU RTX A6000 durante unos cinco días. Son resultados de los autores, sin validación independiente; la memoria de un token y una sola plataforma limitan la transferencia.",
+      "technical": {
+        "claimed_result": "En LIBERO, el artículo informa 97.6% de éxito promedio y 20.25% menos actualizaciones de prefijo que la actualización completa. En RoboMemArena informa 26.8% TSR y 44.4% CSR entre métodos VLA individuales. Seis tareas reales en una plataforma promedian 65% de éxito en 20 ensayos por tarea, frente a 44% para π0.5 y 53% para una reimplementación de MemoryVLA hecha por los autores.",
+        "demonstrated_result": "El preprint especifica la arquitectura e informa experimentos propios de simulación, robot, latencia y ablación. Esta revisión no realizó una reproducción independiente.",
+        "implementation_status": "Inicializado desde π0.5, con un VLM PaliGemma-2B y un experto de acciones Gemma-300M. Los autores enlazan código anonimizado. Dos etapas de entrenamiento suman 60K pasos en cuatro GPU RTX A6000 y toman unos cinco días.",
+        "mechanism": "Un predictor estima la característica perceptual actual a partir de un token de memoria persistente. El residuo de predicción actualiza el token mediante una proyección de bajo rango. El residuo respecto de un ancla almacenada decide si se reutiliza o actualiza el prefijo VLM; una rama de corrección rápida compensa durante la reutilización, y un controlador en línea ajusta el umbral con estadísticas acumuladas y auditorías periódicas de acciones.",
+        "regime": "LIBERO: 50 demostraciones y 50 ensayos aleatorizados por tarea. RoboMemArena: 100 demostraciones y 50 episodios con semillas por tarea, en 26 tareas. Robot real: seis tareas, 50 demostraciones para tareas generales y 120–200 para tareas con memoria, 20 ensayos aleatorizados por tarea, un xArm7 de 7-DoF con mano dexterosa y cámara de muñeca.",
+        "reproducibility": "El artículo incluye el algoritmo y el diseño experimental, y enlaza código anonimizado; esta revisión no lo inspeccionó ni ejecutó. No hay reproducción independiente ni evaluación externa con robots.",
+        "strongest_baseline": "Éxito promedio en LIBERO: π0.5 96.9%, MemoryVLA 96.7%, CronusVLA 97.0% frente a StateMem 97.6%. En robot real: π0.5 44%, reimplementación de MemoryVLA por los autores 53%, StateMem 65%. Latencia de actualización completa en LIBERO: 156.36 ms frente a 150.78 ms con enrutamiento."
+      },
+      "title": "StateMem informa mejoras en memoria persistente y caché adaptativa para políticas VLA en simulación y robots",
+      "why_it_matters": "Los robots que actúan durante interacciones prolongadas deben conservar la historia pertinente sin recalcular repetidamente grandes prefijos visuales y lingüísticos. StateMem combina memoria residual compacta con reutilización adaptativa de caché e informa mejoras en simulación estándar, tareas centradas en memoria y un conjunto pequeño de pruebas con robot real. El resultado de latencia dependiente de la carga y la evaluación en una sola plataforma hacen que el artículo aporte evidencia sobre el intercambio de diseño, no una prueba de transferencia amplia ni de ahorro universal."
     },
     "FCMO-7C1AD5760A48": {
       "claims": [
@@ -13266,6 +13376,59 @@
       "title": "Estudio de fallas robóticas vincula la decisión de preguntar con la evidencia disponible y el orden de las opciones",
       "why_it_matters": "El artículo muestra que, después de una falla robótica, la decisión de seguir actuando, revisar otro sensor o interrumpir a una persona depende de la información que realmente ofrecen los sensores y de la capacidad medida del modelo; la confianza verbal y la tendencia a rechazar pueden ser engañosas. Si este patrón de evaluación se generaliza, los sistemas robóticos necesitarán estrategias de escalamiento que consideren sensores y costos. La evidencia actual proviene de un benchmark simulado acotado y no establece tasas de fallas en campo ni mejoras de seguridad en despliegue."
     },
+    "FCMO-D148DDB68D5F": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "El Gobierno del Reino Unido anunció que ampliará los pilotos de ciberdefensa con IA para servicios públicos. Afirma que dos pilotos detectaron y atendieron más de 1,000 vulnerabilidades potenciales; el comunicado no informa gravedad, denominador, validación ni reducción de riesgo medida."
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "El Gobierno dijo que estudiará posibles cambios a la Cyber Security and Resilience Bill y cómo responder a incidentes graves con agentes de IA y reportar casi-incidentes; son planes, no requisitos vigentes."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Un estudio de caso oficial de junio de 2026 informa que hackatones semanales con modelos de frontera, enfocados en código público de nueve organizaciones gubernamentales, identificaron 407 hallazgos en un mes y costaron £13,000 en tokens. Indica que se corrigieron todas las debilidades críticas, que especialistas verificaron manualmente los hallazgos y que no se identificó evidencia de explotación; no ofrece denominador, auditoría independiente ni tasa cuantificada de falsos positivos."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "El caso de junio  informa 407 hallazgos en nueve organizaciones durante un mes; el comunicado de octubre  informa más de 1,000 vulnerabilidades potenciales en dos pilotos. Las fuentes no aclaran si las cifras se solapan ni aportan denominador, validación independiente, gravedad o reducción de riesgo medida.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-12T14:14:45Z"
+        },
+        {
+          "description": "Los cambios a la ley, el reporte de casi-incidentes y la respuesta ante incidentes con agentes de IA se describen como trabajo por explorar o desarrollar; no hay borrador, protocolo operativo ni fecha de entrada en vigor.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-12T14:15:32Z"
+        }
+      ],
+      "importance_rationale": "Si se implementa, ampliar la ciberdefensa asistida por IA y desarrollar mecanismos de respuesta y reporte ante incidentes con agentes autónomos podría cambiar las operaciones de seguridad pública y la gobernanza de incidentes. La puntuación 5 refleja su relevancia institucional amplia, limitada por el carácter exploratorio de la política y la falta de resultados medidos.",
+      "limitations": [
+        "El comunicado es evidencia primaria del anuncio gubernamental, no una demostración independiente de que los pilotos hayan funcionado.",
+        "La cifra de “más de 1,000” se refiere a vulnerabilidades potenciales detectadas y atendidas en dos pilotos; no se informa denominador, gravedad ni validación independiente.",
+        "Explorar cambios legales, respuesta a incidentes y reportes de casi-incidentes no establece obligaciones vigentes ni implementación.",
+        "No se informan modelos, benchmarks ni impacto de seguridad medido.",
+        "El estudio de caso de junio informa 407 hallazgos en un mes y nueve organizaciones, mientras que el comunicado de octubre da un total superior a 1,000 para dos pilotos; no especifica cómo se relacionan estas cifras.",
+        "El estudio de caso de junio es un informe gubernamental, no una auditoría independiente; no da denominador ni tasa de falsos positivos. Corregir hallazgos no equivale a medir una reducción del riesgo."
+      ],
+      "relationships": [],
+      "summary": "El 12 de octubre de 2026, el Gobierno del Reino Unido anunció que ampliará los pilotos de ciberdefensa con IA y preparará respuestas ante incidentes graves con agentes autónomos. Afirma que dos pilotos detectaron y atendieron más de 1,000 vulnerabilidades potenciales, sin informar denominador, gravedad, método de validación ni cambio medido en el riesgo. Un estudio de caso publicado en junio describe hackatones semanales en nueve organizaciones gubernamentales: informa 407 hallazgos en un mes, £13,000 en costos de tokens, la corrección de todas las debilidades críticas y revisiones manuales por especialistas; no se identificó evidencia de explotación. Las fuentes no aclaran cómo se relacionan estas cifras. El anuncio de octubre también propone estudiar posibles cambios legales y reportes de casi-incidentes; no son obligaciones vigentes. La evidencia respalda la orientación del programa y un flujo de trabajo con revisión humana, pero no demuestra de forma independiente su eficacia de seguridad.",
+      "technical": {
+        "claimed_result": "El comunicado de octubre afirma que dos pilotos identificaron y atendieron más de 1,000 vulnerabilidades potenciales. Un estudio de caso distinto, publicado en junio, informa 407 hallazgos en nueve organizaciones durante un mes, £13,000 en tokens, corrección de todas las debilidades críticas y ninguna evidencia de explotación identificada.",
+        "demonstrated_result": "El estudio de caso oficial consultado describe el flujo de trabajo y reporta revisión humana, 407 hallazgos en nueve organizaciones durante un mes, £13,000 en costo de tokens, corrección de todas las debilidades críticas y ninguna explotación identificada. Son resultados operativos informados por el Gobierno, no mediciones auditadas de impacto.",
+        "implementation_status": "El análisis de código con IA se probó en hackatones gubernamentales semanales con verificación manual por especialistas. Se planeó una segunda fase con más departamentos, modelos adicionales y sistemas de código cerrado; el anuncio de octubre describe una expansión más amplia sin calendario detallado.",
+        "mechanism": "El Gobierno describe el uso de IA de frontera para ayudar a identificar y atender vulnerabilidades en sistemas públicos, junto con preparativos para incidentes con agentes de IA. El comunicado no especifica sistemas, métodos de modelo, puntos de aprobación humana ni diseño de evaluación.",
+        "regime": "Anuncio de octubre: dos pilotos gubernamentales previos y una ampliación prevista a servicios públicos; el solapamiento y denominador exactos no se especifican. Estudio de junio: hackatones semanales que analizaron código público en nueve organizaciones durante un mes; 407 hallazgos informados y revisión humana de exposición y falsos positivos.",
+        "reproducibility": "No aplica a la afirmación de que se hizo un anuncio; los resultados de los pilotos no incluyen suficiente detalle metodológico público para reproducirlos.",
+        "strongest_baseline": "No se informa una comparación controlada sin IA ni una referencia de riesgo previa y posterior. El estudio dice que los modelos conectaron problemas entre servicios que los escáneres tradicionales no detectaron, pero no cuantifica la diferencia ni los falsos positivos."
+      },
+      "title": "El Reino Unido amplía los pilotos de ciberdefensa con IA y prepara respuestas ante incidentes con agentes de IA",
+      "why_it_matters": "El anuncio vincula el uso de IA de frontera para ciberdefensa pública con la preparación ante incidentes con agentes y el reporte de casi-incidentes. El estudio de junio aporta detalles operativos —validación humana, hallazgos, costos y correcciones— y muestra la distancia entre contar hallazgos y demostrar una reducción del riesgo. Si estas iniciativas escalan, podrían influir en la seguridad de los servicios públicos, pero ninguna fuente establece eficacia comparativa ni una gobernanza de incidentes madura."
+    },
     "FCMO-D32D8204EF09": {
       "claims": [
         {
@@ -13969,6 +14132,58 @@
       },
       "title": "Un preprint informa menores brechas de pérdida de validación con dos métodos de estados AdamW de 4 bits; falta reproducirlos",
       "why_it_matters": "Los momentos del optimizador ocupan una cantidad importante de memoria persistente durante el entrenamiento. Si estos métodos se reproducen con presupuestos de entrenamiento y hardware comparables, podrían liberar memoria para otras necesidades. Los experimentos del artículo no demuestran que la memoria total del trabajo baje en la misma proporción, que el entrenamiento sea más rápido ni que mejore de forma consistente la calidad en tareas posteriores."
+    },
+    "FCMO-DFB3BC914F13": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "En C4 RealNews y tres modelos abiertos, los autores informan que BAM transmite una carga de 8 bits con aproximadamente 0–0.1% de error empírico por mensaje en unos 46–50 tokens y 1,000 ensayos; el método de caja negra más sólido incluido, ArcMark, informa aproximadamente 10.5–16.8% en 50 tokens."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En pruebas conversacionales de los autores con 100 diálogos por celda, el error varió por modelo y carga: Llama-3.1 y Phi-4 tuvieron menos de 3% de error por mensaje en tres tareas, mientras que Qwen3-A3B-30B mostró 19–22% de error por diálogo."
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION",
+          "text": "El análisis de seguridad del artículo supone un modelo de amenaza específico, con secreto compartido y acceso a la API, y excluye adversarios que editen, borren o parafraseen la transcripción; los autores no afirman optimalidad asintótica clásica para este canal de modelos de lenguaje."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se encontró una implementación ni reproducción independiente de la ventaja de fiabilidad informada.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-12T14:14:45Z"
+        },
+        {
+          "description": "El análisis excluye la edición de transcripciones y no establece recuperación o detección ante paráfrasis, truncamiento o transformaciones de plataforma.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-12T14:14:45Z"
+        }
+      ],
+      "importance_rationale": "Si se reproduce en el entorno descrito, reducir los errores de mensajes encubiertos de caja negra de aproximadamente 10–17% a cerca de 0–0.1% podría cambiar de forma importante las evaluaciones de monitoreo de transcripciones y canales multiagente. La puntuación 5 refleja su relevancia para seguridad y evaluación; sigue siendo un experimento acotado de un solo artículo.",
+      "limitations": [
+        "Todos los resultados de rendimiento provienen de un solo preprint; esta revisión no los reprodujo de forma independiente.",
+        "El resultado de la carga de 8 bits se midió en C4 RealNews, en 1,000 ensayos de los autores y tres modelos abiertos nombrados; no demuestra el mismo rendimiento en modelos propietarios ni en conversaciones desplegadas.",
+        "Las pruebas conversacionales usan 100 diálogos por celda y muestran diferencias materiales por modelo y tarea, incluido un error por diálogo de 19–22% para Qwen3-A3B-30B.",
+        "El análisis de seguridad depende del modelo formal de amenaza con secreto compartido y acceso a la API; editar, borrar o parafrasear la transcripción queda fuera de alcance.",
+        "El costo de decodificación crece exponencialmente con la longitud del mensaje; el apéndice sobre escalabilidad para 24 bits lo señala como una limitación práctica."
+      ],
+      "relationships": [],
+      "summary": "El artículo presenta Burnashev Adaptive Posterior Matching (BAM), que usa la retroalimentación del texto, el ajuste posterior y una fase de confirmación para ocultar mensajes en texto generado sin dar al receptor acceso a los pesos ni al prompt del modelo. En C4 RealNews, los autores informan un error de aproximadamente 0–0.1% para una carga de 8 bits en unos 46–50 tokens con tres modelos abiertos y 1,000 ensayos, frente a aproximadamente 10.5–16.8% para el mejor método de caja negra citado, ArcMark, en 50 tokens. En pruebas conversacionales separadas, los errores variaron según el modelo y la tarea: Llama-3.1 y Phi-4 tuvieron menos de 3% de error por mensaje, mientras que Qwen3-A3B-30B tuvo 19–22% de error por diálogo. Son resultados de un solo preprint; no se encontró reproducción independiente, la implementación tiene costos computacionales y la edición de transcripciones queda fuera del modelo de seguridad declarado.",
+      "technical": {
+        "claimed_result": "Para cargas de 8 bits en C4 RealNews, los autores informan cerca de 0–0.1% de error por mensaje en 46–50 tokens, con tres modelos y 1,000 ensayos, frente a cerca de 10.5–16.8% para ArcMark en 50 tokens. Los resultados conversacionales varían según modelo y carga.",
+        "demonstrated_result": "El preprint inspeccionado describe el algoritmo, experimentos realizados por los autores y una reducción formal bajo supuestos explícitos. No se reprodujeron los resultados de rendimiento de forma independiente.",
+        "implementation_status": "El repositorio público enlazado contiene una demostración interactiva con Llama-3.1-8B-Instruct y un adaptador ArcMark; es una demo de los autores, no una reproducción independiente de la evaluación del artículo.",
+        "mechanism": "El emisor usa un código con retroalimentación basado en ajuste posterior y una fase de confirmación de decodificación. Ambas partes derivan información auxiliar del texto compartido; el receptor observa el texto generado sin acceder a pesos, prompt ni probabilidades de tokens del modelo.",
+        "regime": "Prueba del método básico: C4 RealNews, tres modelos abiertos identificados, carga de 8 bits y 1,000 ensayos. Pruebas conversacionales: 100 diálogos por celda de modelo y tarea, con variación entre modelos.",
+        "reproducibility": "El artículo detalla el método y las pruebas; existe una demo pública, pero esta revisión no la ejecutó ni reprodujo los resultados. No hay réplica entre proveedores o despliegues.",
+        "strongest_baseline": "ArcMark con longitud fija de 50 tokens en la Tabla 1 del artículo; los autores ejecutaron la comparación y no se validó de forma independiente."
+      },
+      "title": "La codificación con retroalimentación logra mensajes encubiertos más fiables en pruebas acotadas con modelos de lenguaje",
+      "why_it_matters": "Un método de retroalimentación que reduce considerablemente los errores de decodificación en el entorno de caja negra probado podría cambiar la manera en que se evalúan los canales encubiertos en conversaciones generadas por modelos. El artículo también muestra que los resultados dependen de la entropía del modelo, la tarea y la integridad de la transcripción, por lo que justifica pruebas específicas por modelo de amenaza, no una afirmación general de fiabilidad en agentes desplegados."
     },
     "FCMO-E427EC36D447": {
       "claims": [
@@ -15224,6 +15439,47 @@
       },
       "title": "Reuters informa que la meta de ¥2T de Nippon Life para financiar infraestructura incluye centros de datos en EE. UU.",
       "why_it_matters": "Si el plan reportado es correcto, una gran aseguradora japonesa podría convertirse en una fuente importante de financiamiento de largo plazo para infraestructura que incluye centros de datos en EE. UU. Esto señalaría un canal potencial de capital además de los balances de empresas tecnológicas y los préstamos bancarios. El reporte no confirma el plan, los desembolsos reales ni la asignación a proyectos."
+    },
+    "FCMO-FB811881B4ED": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "En cuatro tareas reales con el robot bípedo SO-101 de 12 DoF, los autores informan 100 ensayos por tarea y una mejora de 15.9 puntos porcentuales en la comparación general; su medida FSR, centrada en recuperación, aumenta 7.5 puntos. Son resultados de la evaluación de los autores, no una reproducción independiente."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En FSR-Bench, con 36 escenarios de recuperación en cinco tareas, el artículo informa una mejora frente a los métodos comparados y separa las distribuciones de fallos de entrenamiento y prueba. También evalúa siete tareas bimanuales difíciles en RoboTwin 2.0 y tres tareas multi-robot en RoboFactory. Los resultados corresponden a estos bancos de prueba y no demuestran transferencia a otras plataformas o distribuciones de fallos."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se inspeccionó una reproducción independiente. La evaluación real abarca cuatro tareas en una plataforma SO-101; se desconoce la transferencia a otros robots y distribuciones de fallos.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-12T14:23:25Z"
+        }
+      ],
+      "importance_rationale": "Si se replica, extraer fallos propios de la política y entrenar correcciones por etapa podría mejorar la recuperación robótica sin depender de perturbaciones arbitrarias, una limitación importante en la manipulación de larga duración. El artículo incluye simulación y ensayos con robots, pero evalúa una sola plataforma y fue realizado por sus autores, lo que acota el alcance.",
+      "limitations": [
+        "Los hallazgos cuantitativos son resultados informados por los autores; no se inspeccionó una reproducción independiente.",
+        "La evaluación real cubre cuatro tareas bimanuales en una plataforma SO-101 de 12 DoF, con 100 ensayos por tarea; no demuestra transferencia entre plataformas.",
+        "FSR-Bench y las suites de simulación son entornos acotados; se desconoce el rendimiento con otras distribuciones de fallos y condiciones de despliegue.",
+        "El resultado corresponde a un sistema completo que combina extracción de fallos, correcciones por etapa, supervisión geométrica y planificación escalonada; hacen falta ablaciones controladas para atribuir el efecto a cada componente."
+      ],
+      "relationships": [],
+      "summary": "CARE entrena políticas robóticas para recuperarse de fallos que surgen durante su propia ejecución. Recopila trayectorias fallidas, modela desviaciones según la etapa, sintetiza estados de fallo y demostraciones correctivas, y combina un planificador por etapas con supervisión geométrica y un ejecutor VLA unificado. En FSR-Bench, los autores informan mejores resultados de recuperación en cinco tareas simuladas y cuatro tareas reales con robots bimanuales. La evaluación real usa una plataforma SO-101 de 12 DoF y 100 ensayos por tarea; el artículo informa una mejora de 15.9 puntos porcentuales en la comparación real y de 7.5 puntos en la medida FSR de recuperación. Son resultados de los autores en un solo artículo; no se realizó una reproducción independiente.",
+      "technical": {
+        "claimed_result": "Los autores informan una mejora de 15.9 puntos porcentuales en cuatro tareas reales con SO-101 (100 ensayos por tarea) y de 7.5 puntos en la medida FSR de recuperación. FSR-Bench reúne 36 escenarios de recuperación en cinco tareas.",
+        "demonstrated_result": "El preprint inspeccionado describe la evaluación e informa sus resultados; no se realizó una reproducción independiente.",
+        "implementation_status": "El repositorio de los autores (https://github.com/xiaojunlan/care) se revisó en busca de materiales; esta revisión no estableció una reproducción independiente.",
+        "mechanism": "CARE recopila ejecuciones fallidas de la política, modela desviaciones según la etapa, sintetiza estados de fallo y demostraciones correctivas, y luego combina un planificador escalonado y un monitor geométrico de nubes de puntos con un ejecutor VLA unificado.",
+        "regime": "FSR-Bench: 36 escenarios de recuperación en cinco tareas. La simulación también incluye siete tareas bimanuales difíciles de RoboTwin 2.0 y tres tareas multi-robot de RoboFactory. Evaluación real: cuatro tareas bimanuales en una plataforma SO-101 de 12 DoF, con 100 ensayos por tarea.",
+        "reproducibility": "Resultados de un preprint de los autores; no se inspeccionó una reproducción independiente.",
+        "strongest_baseline": "El artículo informa mejoras en puntos porcentuales frente a los métodos evaluados; la interpretación se limita a las tareas, plataforma y protocolos descritos."
+      },
+      "title": "CARE informa una mejor recuperación robótica mediante demostraciones correctivas por etapas",
+      "why_it_matters": "Los robots suelen fallar al apartarse de las demostraciones previstas, y las perturbaciones arbitrarias quizá no se parezcan a los errores que genera una política. CARE informa mejoras al extraer fallos de la propia política y entrenar correcciones específicas por etapa. Si se confirma de forma independiente, este enfoque podría influir en el entrenamiento y la evaluación de la recuperación robótica prolongada; la evidencia actual se limita a los bancos de prueba de los autores y a una plataforma real."
     },
     "FCMO-FCEBF6A61646": {
       "claims": [
