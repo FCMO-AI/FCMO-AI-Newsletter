@@ -1,6 +1,155 @@
 [
   {
     "confidence": "credible_unconfirmed",
+    "demonstrated_result": "No independent demonstration by this review. These results are paper-reported simulator comparisons.",
+    "desks": [
+      "evaluation_science",
+      "open_ecosystem"
+    ],
+    "development_type": "paper",
+    "event_at": "2026-09-19T00:00:00Z",
+    "evidence_class": "A",
+    "id": "FCMO-923F19836F22",
+    "importance_effective_score": 4,
+    "importance_tier": "Meaningful",
+    "last_verified_at": "2026-10-12T07:22:10Z",
+    "mechanism": "For structured traffic reasoning, verify step claims against traffic observations, estimate step importance by the change in action distribution after deleting the step, merge semantically matched steps in a prefix-conditioned tree, then assign local and outcome advantages to reasoning tokens.",
+    "organizations": [
+      "Tongji University"
+    ],
+    "primary_desk": "reasoning_posttraining",
+    "regions": [
+      "China",
+      "global"
+    ],
+    "status": "active",
+    "strongest_baseline": "Within the process-supervision ablation, warm-up plus outcome-level reward alone; broader table comparisons include conventional fixed-time/MaxPressure, RL controllers and other LLM-based methods.",
+    "summary": "ProcessLight/ STeP-PO trains an LLM traffic-signal controller with process-level credit: it scores intermediate traffic claims against observations, estimates each step’s effect on the final phase by removing it, and merges semantically similar steps into a tree for relative advantage assignment. The authors report Qwen2.5-3B trained on one synthetic flow and evaluated zero-shot in CityFlow on five real traffic-flow datasets from Jinan and Hangzhou; the method leads on most reported metrics. On two datasets, the paper reports lower average travel time than outcome-only RL, and a five-seed Holm-corrected analysis finds 81 of 90 baseline comparisons significant in its favor. The appendix also reports Qwen3-8B, Qwen3-32B and Llama3-8B variants and an alternate teacher, with results varying by dataset and metric. All findings remain paper-reported CityFlow simulation results for the paper’s intersection setup, not on-road deployment evidence; this review did not independently rerun the code.",
+    "title": "ProcessLight applies step-level process supervision to traffic-signal control",
+    "topics": [
+      "process-supervision",
+      "reinforcement-learning",
+      "credit-assignment",
+      "traffic-signal-control"
+    ],
+    "why_it_matters": "The work applies step-level credit assignment to a structured decision process where intermediate claims can be checked against observed traffic state and the final control action has a clear simulator outcome. If the reported results reproduce, it offers a concrete process-supervision design for LLM policy optimization. Its demonstrated scope is limited to the paper’s simulator, datasets and four-way intersection setup."
+  },
+  {
+    "confidence": "credible_unconfirmed",
+    "demonstrated_result": "No independent demonstration by this review. The benchmark scores and adaptation results are paper-reported.",
+    "desks": [
+      "multimodality_world_models",
+      "evaluation_science"
+    ],
+    "development_type": "paper",
+    "event_at": "2026-09-20T00:00:00Z",
+    "evidence_class": "A",
+    "id": "FCMO-EA8DFB8BF4B2",
+    "importance_effective_score": 4,
+    "importance_tier": "Meaningful",
+    "last_verified_at": "2026-10-12T07:14:02Z",
+    "mechanism": "Compute a token-level audio-dependence log-probability gap between full audio attention and a masked-audio condition. Compare mean grounding scores for majority-answer and dissenting trajectories, map the margin to a bounded reliability weight, and multiply the unlabeled vote-margin advantage by that weight before a GRPO-style LoRA update.",
+    "organizations": [
+      "University of Melbourne",
+      "University of Auckland",
+      "University of Birmingham",
+      "ARC OPTIMA"
+    ],
+    "primary_desk": "reasoning_posttraining",
+    "regions": [
+      "Australia",
+      "New Zealand",
+      "United Kingdom",
+      "global"
+    ],
+    "status": "active",
+    "strongest_baseline": "Standard majority-vote TTRL using the same GRPO-style optimization without grounding-aware reliability weighting, plus the unadapted base model.",
+    "summary": "Listen Then Reason proposes Perception-Grounded Test-Time RL (PG-TTRL) for audio-language models. It estimates each generated answer’s reliance on audio by comparing token probabilities with full audio access and with audio attention masked; a grounding margin then weights the majority-vote advantage used for unlabeled test-time RL. The authors evaluate Qwen2.5-Omni 3B and 7B on MMAR and MMAU and report higher greedy and Avg@8 scores than standard TTRL in all four model/benchmark pairings, with gains over the base model reaching 4.6 points on MMAR and 4.9 on MMAU. Majority@8 does not improve uniformly. The method adapts LoRA weights on unlabeled prompts from the benchmark test sets; added inference compute and cross-domain transfer are not established, and no independent reproduction was conducted.",
+    "title": "Listen Then Reason weights audio test-time RL by acoustic grounding",
+    "topics": [
+      "audio-language-models",
+      "test-time-training",
+      "reinforcement-learning",
+      "perceptual-grounding"
+    ],
+    "why_it_matters": "The work uses an explicit audio-dependence signal to decide when unlabeled test-time self-training should trust a model’s majority answer. If reproduced, this could reduce a failure mode where language priors dominate audio reasoning during adaptation. Its reported gains are benchmark- and adaptation-protocol-specific, with mixed majority-vote results and unmeasured runtime cost."
+  },
+  {
+    "confidence": "credible_unconfirmed",
+    "demonstrated_result": "No independent demonstration by this review. The paper and repository report the theorem, empirical results, configs and archived measurement tables.",
+    "desks": [
+      "training_data",
+      "evaluation_science",
+      "open_ecosystem"
+    ],
+    "development_type": "paper",
+    "event_at": "2026-09-21T00:00:00Z",
+    "evidence_class": "A",
+    "id": "FCMO-ED9251AD04F0",
+    "importance_effective_score": 5,
+    "importance_tier": "Notable",
+    "last_verified_at": "2026-10-12T07:11:56Z",
+    "mechanism": "Extend KDA channel gate α to [-1,1] and delta-rule coefficient β to [0,2]. A single delta-rule transition plus a gate reflection then represents 2D rotations while preserving diagonal-plus-rank-one, non-expansive transitions.",
+    "organizations": [
+      "OpenEuroLLM",
+      "University of Freiburg",
+      "EPFL"
+    ],
+    "primary_desk": "architectures_scaling",
+    "regions": [
+      "global"
+    ],
+    "status": "active",
+    "strongest_baseline": "KDA range settings and DeltaProduct2-style composed transitions in the paper’s matched expressivity/state-tracking comparisons; KDA is the direct language-model baseline.",
+    "summary": "Complex KDA (CKDA) combines two parameter-range extensions—signed channel gates and a delta coefficient up to 2—to make Kimi Delta Attention express 2D rotations using a single diagonal-plus-rank-one recurrent transition. The paper proves exact representability for orthogonal diagonal-plus-rank-one matrices and reports finite-group state-tracking, synthetic periodic-audio and language-model experiments. The authors report stronger length extrapolation on selected synthetic tasks and language-model results comparable to KDA, not a broad demonstrated language-model advantage. Open code and committed measurements aid inspection; no independent proof audit or training reproduction was conducted.",
+    "title": "Complex KDA extends Kimi Delta Attention state-transition expressivity",
+    "topics": [
+      "linear-recurrent-models",
+      "state-transition-expressivity",
+      "Kimi-Delta-Attention",
+      "sequence-modeling"
+    ],
+    "why_it_matters": "The result identifies a way to expand the state transformations available to a linear recurrent layer without increasing its transition rank, which could change memory and recurrence design choices. The strongest support is a mathematical paper claim with open experiment artifacts; practical gains beyond the tested tasks and language-model setup remain unverified."
+  },
+  {
+    "confidence": "credible_unconfirmed",
+    "demonstrated_result": "No independent demonstration by this review. The project page reports the method, same-student controls, result tables and trial counts.",
+    "desks": [
+      "training_data",
+      "evaluation_science",
+      "open_ecosystem"
+    ],
+    "development_type": "paper",
+    "event_at": "2026-09-21T00:00:00Z",
+    "evidence_class": "A",
+    "id": "FCMO-6B232DEBE030",
+    "importance_effective_score": 5,
+    "importance_tier": "Notable",
+    "last_verified_at": "2026-10-12T07:11:56Z",
+    "mechanism": "Run a frozen world model over training frames once, cache its internal visual features, and train the student VLA with an added cosine feature-alignment loss. Remove the world model and projector after training; deploy the ordinary student policy graph.",
+    "organizations": [
+      "University of Wisconsin–Madison",
+      "University of Illinois Urbana–Champaign"
+    ],
+    "primary_desk": "multimodality_world_models",
+    "regions": [
+      "global"
+    ],
+    "status": "active",
+    "strongest_baseline": "The same student backbone trained on the same setup without the feature-alignment term. Comparisons with larger outside policies are contextual and not fully matched.",
+    "summary": "THAW-VLA uses a frozen world model to produce cached training-frame features, then adds a feature-alignment loss to a compact vision-language-action policy. The teacher and projector are removed before deployment, so inference uses the undistilled student graph. The authors report a 0.8B policy moving from 95.3% to 97.9% mean success on LIBERO and from 48.2% to 50.5% on RoboCasa-GR1; they also report gains over the same student on single-arm and bimanual real-robot tasks, with 30 trials per cell. A single RTX 5090 profile is reported at 32 ms and 1.86 GB. Results remain author-reported and task-specific; independent reproduction and broader robot/task coverage are open.",
+    "title": "THAW-VLA distills world-model features into a compact robot policy",
+    "topics": [
+      "vision-language-action",
+      "robotics",
+      "world-models",
+      "representation-distillation",
+      "embodied-agents"
+    ],
+    "why_it_matters": "The method transfers a world model’s scene representation into a smaller deployed policy without loading the world model or adding test-time generation. If reproduced across tasks and hardware, this could preserve some world-model grounding while reducing deployment latency and memory. Current evidence is an author-run benchmark suite and a small set of real-robot tasks."
+  },
+  {
+    "confidence": "credible_unconfirmed",
     "demonstrated_result": "The inspected author repository documents the benchmark design, evaluation protocol and reported scores. the research desk did not independently inspect the unreleased full evaluation artifacts or rerun the benchmark.",
     "desks": [
       "agents_memory",
