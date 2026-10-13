@@ -1,6 +1,6 @@
 {
   "canonical_locale": "en",
-  "canonical_source_sha256": "7a03056522b9d86d04955fca647c11b1f3f2a8e3d2dbfaeb369670838df3683d",
+  "canonical_source_sha256": "4f1a5553c343544ad993caab17226b13614b1c1f5b3d3df929d8441fa5a0f0d4",
   "generated_from": "ARB airlock; editorial wording authored upstream",
   "locale": "zh-Hans",
   "records": {
@@ -7291,6 +7291,57 @@
       "title": "受控研究显示，编程智能体可将共享开放权重模型修改并部署为未受指示的修复方案",
       "why_it_matters": "如果报告的机制能够推广到智能体可访问权重、训练工具和部署流程的自托管系统，常规维护权限就可能让智能体自行选择的模型更新持续影响多个应用和后续智能体。这使模型更新授权、溯源和评估成为相关的部署控制措施。实验仅证明一种范围有限的受控机制，并未证明其普遍程度、恶意意图，或在基础设施受限时的可能行为。"
     },
+    "FCMO-5ADDBE3E1281": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "作者报告称，在 SWE-Bench Verified 和 SWE-Rebench 上，基于历史结果分组与已清理轨迹嵌入的确定性任务子集选择方法，在评估 10% 的任务时将解析率估计的中位误差控制在 5% 以下；在所分析的试验中，令牌用量比完整运行低 90%。研究覆盖三种软件工程智能体回归场景。这是论文针对这些数据集报告的估计结果，并不能证明在其他领域或架构发生重大变化后，10% 子集可以取代完整评估。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "虽然论文链接了复现包，但本记录尚无独立运行或复现。",
+          "kind": "reproduction_missing",
+          "state": "open",
+          "updated_at": "2026-10-13T11:14:30Z"
+        },
+        {
+          "description": "评估仅覆盖 SWE-Bench Verified 与 SWE-Rebench 的代码修复；尚未证明该方法可迁移到网页导航、通用工具使用、科学智能体或其他基准。",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-13T11:14:30Z"
+        },
+        {
+          "description": "子集选择依赖历史轨迹；智能体架构或行为大幅变化后可能遗漏异常失效。论文建议在典型行为改变时刷新嵌入。",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-13T11:14:30Z"
+        }
+      ],
+      "importance_rationale": "如果该方法能在 SWE 智能体开发中复现，用 10% 的代表性任务子集保留解析率估计能力，同时大幅降低令牌用量，就可能支持更频繁的回归检查，从而加快迭代并扩大评估覆盖。评分 5 代表其对工程和评估具有实质影响，但证据限于代码修复基准、论文作者报告的结果，并依赖以往完整运行的轨迹。",
+      "limitations": [
+        "结果仅限于 SWE-Bench Verified 和 SWE-Rebench 代码修复基准；尚未测试其对其他智能体领域的外部有效性。",
+        "子集选择至少需要一次以往完整运行，并使用历史轨迹和结果；智能体行为或基准变化后，嵌入与分组可能过时。",
+        "论文评估的是完整基准解析率的估计误差，并未评估是否保留每一种罕见失效或所有安全相关属性。",
+        "结果来自作者的离线分析；本记录没有独立复现。",
+        "1,000 个合成分布取自 500 个实例，彼此存在重叠。作者指出，这种依赖会使 Wilcoxon 检验的 p 值偏乐观；他们也报告了效应量以及按难度等级进行的检查。",
+        "10% 子集与令牌用量减少 90% 的结果只适用于论文所评估的条件，并非普遍保证：所选质心子集平均使用 10.48% 的令牌成本，而最宽范围内随机抽取的 10% 子集成本占比为 5.7 至 15.0%。"
+      ],
+      "relationships": [],
+      "summary": "一篇发表于 2026 年九月 21 日的论文提出了一种软件工程智能体回归测试子集选择方法：利用以往任务结果分组，并对已清理的轨迹进行嵌入。在 SWE-Bench Verified 和 SWE-Rebench 上，作者对 76 种配置和三类代码智能体回归场景进行了评估；他们报告称，确定性 10% 子集的解析率估计中位误差低于 5%，在所分析的多模型运行中，令牌消耗从 3.44 十亿降至约 345 百万个。研究分析了来自 58 次运行、五种智能体框架的 31,779 条轨迹，并采用时间划分，确保用于选择的运行早于后续评估。该方法需要以往完整运行记录、针对特定数据集的轨迹清理，以及在行为改变时刷新嵌入；证据仅限于代码修复基准，本记录没有独立复现。",
+      "technical": {
+        "claimed_result": "在作者对 SWE-Bench Verified 和 SWE-Rebench 的评估中，论文报告称，使用轨迹信息选择的 10% 子集可将解析率估计的中位误差控制在 5% 以下。在六次多模型运行的成本分析中，所选 10% 子集使用约 345M 个令牌，而完整的 500 个实例需要 3.44B 个令牌（减少约 90%）。论文报告称，在三类回归场景中，相较典型抽样和高误差基线，估计效果有所改善。",
+        "demonstrated_result": "本记录没有独立验证。这些结果是作者基于公开智能体轨迹和基准数据所做离线分析的报告性主张。",
+        "implementation_status": "论文描述了一条离线子集选择流程，并链接了复现包；未评估其在生产集成测试系统中的采用情况。",
+        "mechanism": "该方法根据以往完整运行的结果对任务分组，清理轨迹记录以删除直接泄露结果的信号，对行为轨迹进行嵌入，然后在每个结果组内确定性地选择几何上具有代表性的实例。之后用该子集的解析率估计完整测试集的解析率，并通过时间划分确保先前运行早于后续评估运行。",
+        "regime": "SWE-Bench Verified 和 SWE-Rebench 上的软件智能体代码修复评估。三种场景分别是相同配置重复运行、模型或配置变化，以及智能体框架变化。研究使用来自 58 次运行和五种智能体框架的 31,779 条轨迹；子集选择依赖以往完整运行的结果与轨迹，并在后续运行中进行时间外评估。",
+        "reproducibility": "作者链接了数据集、解析器、轨迹清理和子集选择实现。本次审查没有运行该软件包，也没有独立复现报告的估计结果。",
+        "strongest_baseline": "论文比较了按历史结果分层的随机抽样，以及其他随机、嵌入、聚类和混合方法。作者报告称，质心嵌入方法在所评估的配置中表现最佳；5% 和 10% 子集的误差收益分别与典型抽样及第 95th 百分位误差抽样基线比较。"
+      },
+      "title": "轨迹感知选择报告称，使用十分之一基准任务即可降低 SWE 智能体回归估计误差",
+      "why_it_matters": "SWE 智能体完整基准运行成本很高，因为每个问题都涉及多次模型调用和工具步骤。如果只用一部分任务就能以较低误差估计解析率，开发者可能在完整评估之间更频繁地检查回归。实际结论仅限于论文研究的两个代码修复基准和历史轨迹设置；这并不能证明可以停止完整评估。"
+    },
     "FCMO-5B5B447325A8": {
       "claims": [
         {
@@ -7934,6 +7985,56 @@
       },
       "title": "Anthropic 报告称，若干案例中出现了由 AI 编排的网络行动和闭环恶意软件适应",
       "why_it_matters": "如果报告所述工作流属实，模型辅助的侦察、基础设施搭建以及依据检测结果调整工具，可能改变防御者需要监测的工作量和可用于响应的时间。该报告提供了具体的第一方案例描述，但没有确立事件普遍程度、AI 带来的因果能力提升、攻击者人力的实测下降或对策的有效性。"
+    },
+    "FCMO-6856948EC174": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "论文从解析上说明，当模块误差可能相关时，边缘分布并不能确定组合量的不确定性。在受控的模拟位置与速度管线中，单模块 95% 覆盖率始终与名义值相差不超过 0.06 个百分点；假设误差独立后，相关系数为 -0.9 时，组合结果的覆盖率为 99.98%，相关系数为 +0.9 时则为 86.46%。在相关系数为 +0.9 的模拟穿越规划器试验中，独立性接口每 10,000 次试验记录到 39.7 次碰撞，而基于预言机联合协方差的结果为 8.7 次。这些是作者报告的高斯仿真结果，并非已部署机器人中的实测碰撞率。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "研究仅测试了双模块高斯模型和模拟穿越控制器；非线性、多模态或依赖上下文的感知误差、分布变化及实体机器人结果尚未得到验证。",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-13T11:16:35Z"
+        },
+        {
+          "description": "本次未查到对表 I 或闭环控制阈值敏感性结果的独立复现。",
+          "kind": "reproduction_missing",
+          "state": "open",
+          "updated_at": "2026-10-13T11:16:35Z"
+        },
+        {
+          "description": "有限校准实验采用特定高斯参数和预设的两个百分点覆盖误差容限；其他工作条件下所需样本量尚不清楚。",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-13T11:16:35Z"
+        }
+      ],
+      "importance_rationale": "如果该机制也出现在已部署的模块化感知与规划系统中，仅有边缘校准就可能造成危险的不准碰撞风险估计，或导致过度保守。评分 5 代表这一发现具有实用且与决策相关的意义，但证据仅来自受控高斯仿真，尚无实体机器人验证。",
+      "limitations": [
+        "研究通过位置和速度双模块的组合解析地隔离机制，并使用边缘分布固定的高斯误差；尚未证明该现象在已部署机器人系统中的普遍程度。",
+        "穿越控制器结果来自采用固定假设和随机种子的仿真；未评估实体机器人或真实感知系统。",
+        "论文作者明确指出，该受控高斯研究用于建立作用机制，并非证明其在非线性系统中的实际表现。",
+        "本记录没有独立复现。",
+        "依赖稳健界限在测试的正相关条件下提高安全性，但在负相关条件下可能过于保守；它并非普遍更优的接口方案。"
+      ],
+      "relationships": [],
+      "summary": "一篇发表于 2026 年九月 20 日的 arXiv 论文研究了分别校准的机器人模块在误差相关时组合使用，可能导致不确定性估计失准的问题。论文分析了一个双模块移动障碍物示例：位置和速度误差保持相同的高斯边缘分布，但相关性发生变化。作者报告称，单模块 95% 覆盖率接近名义水平，但采用独立性假设后，相关系数为 -0.9 时的组合覆盖率为 99.98%，为 +0.9 时则降至 86.46%。在模拟穿越控制器中，正相关情况下，独立性接口每 10,000 次试验发生 39.7 次碰撞，而预言机联合协方差接口为 8.7 次；联合协方差估计将覆盖率恢复到接近 95%，稳健界限则以更保守为代价降低风险。这是受控仿真结果，并非实体机器人或已部署系统的失效率证据。",
+      "technical": {
+        "claimed_result": "在位置与速度边缘分布固定、预测时域 H=3 s 的条件下，论文报告称，假设独立时，名义 95% 区间的组合覆盖率会随误差相关性从 -0.9 到 +0.9 变化，在 99.98% 与 86.46% 之间波动；与此同时，单模块覆盖率与名义值相差不超过 0.06 个百分点。每种条件进行 30,000 次模拟配对穿越试验时，正相关情况下，独立性接口每 10,000 次试验发生 39.7 次碰撞，而预言机协方差接口为 8.7 次。使用 250 个校准样本估计联合协方差后，在极端相关设置的重复估计中，超过 92% 的结果距名义覆盖率不超过 2 个百分点。",
+        "demonstrated_result": "本记录没有独立验证。论文给出了不可识别性的理论论证；覆盖率和控制器结果是作者报告的仿真结果。",
+        "implementation_status": "仅有理论分析和受控数值仿真；未测试实体机器人或真实感知与规划管线。",
+        "mechanism": "作者将障碍物未来位置表示为估计位置加上预测时域乘以估计速度。组合误差方差包含交叉协方差项，而仅使用边缘分布的独立性接口会漏掉该项。作者在模拟穿越控制器中比较独立性接口、预言机联合协方差、由校准样本估计的经验协方差，以及未知依赖条件下的稳健界限。",
+        "regime": "受控的双模块移动障碍物高斯示例：位置不确定性 0.30 m、速度不确定性 0.20 m/s、预测时域 3 s；边缘分布固定，相关系数从 -0.9 到 +0.9。留出校准实验使用 300,000 个样本。闭环穿越控制器使用模拟环境，并在每种相关性和接口条件下运行 30,000 次配对试验；固定随机种子为 20260719。",
+        "reproducibility": "论文报告了固定随机种子的 NumPy CPU 实验和内部一致性检查；本次审查未运行公开工件，也未独立复现实验。",
+        "strongest_baseline": "论文将仅基于边缘分布的独立性接口与预言机联合协方差、根据校准样本估计的经验联合协方差，以及最坏情况依赖稳健界限进行比较。在正相关 +0.9 时，独立性接口覆盖率为 86.46%，每 10,000 次试验发生 39.7 次碰撞；预言机协方差覆盖率约为 95%，碰撞为 8.7 次，每 10,000 次试验。"
+      },
+      "title": "机器人研究论文显示，模块间隐藏的误差依赖可能破坏下游不确定性校准",
+      "why_it_matters": "当模块误差彼此相关时，下游规划器不能仅凭各模块分别校准的边缘分布来重建联合不确定性。如果模块化机器人系统忽略这种依赖，其风险估计可能过度自信或过度保守，从而影响决策。该论文指出了一个具体的接口与评估问题，但只测试了受控高斯仿真。"
     },
     "FCMO-686934293815": {
       "claims": [
@@ -10395,6 +10496,57 @@
       },
       "title": "Claude Fable 5.1 达到新的独立测量前沿，同时 Anthropic 报告经实验室验证的科学工作",
       "why_it_matters": "这比只依赖厂商 benchmark 的发布证据更强。外部评估者独立把 Fable 5.1 放在一个广泛模型指数的当前首位，同时公开科学 artefact 和 Anthropic 所报告的外部 wet lab 验证表明，它产生的有用工作已经超出 benchmark 答题。它也说明前沿进步应被看作 Pareto 曲面而非单一分数：更高能力可能伴随更高推理/输出支出，防护路由也会实质改变所观察到的能力。如果这些科学结果能够经受 artefact 级复现，前沿模型正在从辅助研究走向生成可检验的研究 artefact 和设计。"
+    },
+    "FCMO-8B7403E55F68": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "论文作者报告称，CHOREO 将异构人形机器人技能规范为 SkillMotion 轨迹，并选择与跟踪器相容的过渡方式；在 Unitree G1 的 MuJoCo 仿真中，130 个固定序列任务有 124 个完成成功（95.4%），其中八动作序列为 45/48（93.8%）。论文列出的最佳基线在相同任务序列、运动资源、初始状态和冻结的 GMT 跟踪器下，八动作序列完成率为 20/48（41.7%）。每项任务只运行一次；这是论文作者报告的结果，尚无独立复现。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "本次未查到对这 130 个序列结果的独立复现；也未核实公开代码和准确的任务清单。",
+          "kind": "reproduction_missing",
+          "state": "open",
+          "updated_at": "2026-10-13T11:10:01Z"
+        },
+        {
+          "description": "所有实验均在 MuJoCo 中进行；固定序列每项只运行一次，最长为八个动作。尚未证明实机迁移、重复试验的波动、更长任务时域或分布外任务泛化。",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-13T11:10:01Z"
+        },
+        {
+          "description": "3,069 条导入轨迹中只有 356 条接受了闭环运行测试；通过注册不能等同于整个技能库都具备可靠执行能力。",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-13T11:10:01Z"
+        }
+      ],
+      "importance_rationale": "如果报告结果能够泛化，共享轨迹接口就可能让人形机器人系统积累并组合来自不同训练控制器的技能，而无需重新训练单一整体策略，从而改变能力库的扩展方式。评分 5 代表这项机器人研究具有实质意义，但证据仍受限于仅仿真评估且没有重复试验。",
+      "limitations": [
+        "所有报告实验均使用 MuJoCo 中的 Unitree G1；论文没有提供实体机器人的结果。",
+        "130 个固定序列任务各运行一次，因此没有测量任务级方差和可重复性。",
+        "任务最长为八个动作；未评估更长时域或分布外的技能组合。",
+        "3,069 个源实例均通过注册，但只有 356 个接受闭环运行；353/356 的执行成功率仅适用于该子集。",
+        "结果来自论文作者；本记录中没有独立复现。",
+        "共同的轨迹表示并未消除不同跟踪器的稳健性差异：论文报告的 30 条获准轨迹成功率介于 46.7% 和 100% 之间。"
+      ],
+      "relationships": [],
+      "summary": "一篇发表于 2026 年九月 11 日的 arXiv 论文提出 CHOREO：它将动作片段、预训练强化学习策略的运行结果和生成动作转换为共同的轨迹表示，再通过考虑跟踪器的边界匹配和经过验证的桥接动作进行组合。在 Unitree G1 的 MuJoCo 仿真中，130 个固定序列任务的对照评估中，作者报告 124/130 个任务成功（95.4%），其中八动作任务为 45/48（93.8%）；论文所列最佳基线为 20/48（41.7%）。论文说明每项任务仅运行一次，没有实体机器人测试，而且 3,069 个注册动作中只有 356 个接受了闭环运行测试。这项结果可能对模块化机器人研究有价值，但不能证明现实世界或开放式人形机器人自主能力可靠。",
+      "technical": {
+        "claimed_result": "论文报告称，CHOREO 的长时域评估中，总序列成功率为 95.4%（124/130），八动作任务为 93.8%（45/48），过渡成功率为 96.7%，跌倒率为 4.6%。八动作序列的最佳所列基线是固定站立桥接方案，成功率 41.7%（20/48）。在异构技能资源中，3,069/3,069 个实例通过注册，353/356 个闭环运行案例成功。",
+        "demonstrated_result": "本记录未核实独立演示。这些数字是作者根据论文实验提出的报告性主张。",
+        "implementation_status": "论文报告了仿真实验；没有报告在人形实体机器人上的部署。",
+        "mechanism": "离线适配器将每种技能规范为 SkillMotion，并记录轨迹、语义标签、接触状态、边界和跟踪器元数据。运行时，规划器排列技能标签；跟踪器感知运行时对齐相容边界、应用五次曲线拼接，或插入经验证的站立桥接动作，再交由冻结的动作跟踪器执行。",
+        "regime": "在 MuJoCo 中仿真的 Unitree G1，采用冻结的 GMT 低层跟踪器；固定的指令条件序列包含两、三、五或八个动作；130 个序列各运行一次，论文报告一个随机种子。只有部分已注册动作经过闭环运行测试。",
+        "reproducibility": "本次未查到独立复现。论文描述了固定任务协议和随机种子，但本次审查未核实公开代码或任务清单。",
+        "strongest_baseline": "在相同的 130 个长时域序列、任务动作和运动资源上，固定站立桥接方案的八动作序列成功率为 41.7%，动作匹配方案为 31.2%；所有方法使用相同初始状态和冻结的 GMT 跟踪器。"
+      },
+      "title": "CHOREO 报告称，通过共同轨迹接口组合异构人形机器人技能可实现长时域任务",
+      "why_it_matters": "这篇论文探索了扩展人形机器人行为的一种系统路径：通过外部共同接口，复用来自不同技能生成器和控制器的轨迹，而无需联合重新训练。如果该方法能够泛化，集成新能力的成本可能降低。目前证据仅限于作者在固定仿真评估中报告的表现。"
     },
     "FCMO-8CF914FD8C2A": {
       "claims": [
@@ -14176,6 +14328,56 @@
       },
       "title": "Anthropic发布Haiku 5.5，报告称其计算机操作能力提升且单价更低",
       "why_it_matters": "若小型模型在计算机操作及其他智能体基准上确有提升，且token单价大幅下降，可能扩大高用量智能体工作流程。其每项已完成任务的成本是否下降，取决于在匹配条件下比较性能、推理力度、延迟、token用量和工具设置；仍需独立评估。"
+    },
+    "FCMO-C63BEF968F0B": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "在论文针对九个开放权重模型、七个基准的 913 个问题回放评估中，使用 A100-SXM4-80GB GPU 时，UniRoute 报告精度为 0.618、每个回答 2,192.2 J；KL-GRPO 第 1500 步报告精度为 0.609、每个回答 1,691.9 J（约低 23%）。论文报告精度接近 60% 时出现转折。主比较的能耗是回答所耗 GPU 能量，不包括路由器能耗；这不是设施总能耗或生产部署的测量。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "主比较未能证明计入路由器推理与调度开销后的净节能。",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-13T11:20:41Z"
+        },
+        {
+          "description": "报告的精度和能耗点尚未经过独立复现。",
+          "kind": "reproduction_missing",
+          "state": "open",
+          "updated_at": "2026-10-13T11:20:41Z"
+        },
+        {
+          "description": "尚未测试生产服务，也未验证结果能否迁移到其他硬件和模型池。",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-13T11:20:41Z"
+        }
+      ],
+      "importance_rationale": "如果该结果在本地服务中得到复现，那么在精度仅小幅下降时，每个回答的 GPU 能耗约降低 23%，可能实质性影响推理成本和能耗。评分 5 体现了该结果在受测模型池和硬件范围内的量化意义，同时考虑到评估基于回答回放且主比较排除了路由器能耗。",
+      "limitations": [
+        "能耗比较使用扣除空闲功耗后的 GPU 回答能耗，不代表系统或设施总能耗。",
+        "主比较未包含路由器开销，尽管论文另行讨论了该开销；主比较数值不能证明扣除该开销后的净节能。",
+        "评估使用锦标赛日志中的回放回答，而非在评估时随机生成回答。",
+        "评估使用特定的九模型池和 A100-SXM4-80GB 硬件；能否迁移至其他模型池和服务系统尚不清楚。",
+        "未检查独立复现或生产部署。"
+      ],
+      "relationships": [],
+      "summary": "一篇发表于 2026 年九月的 arXiv 论文评估了一种学习式路由器，该路由器依据精度、延迟、功率和 GPU 能耗信号，在九个开放权重模型中进行选择。在涵盖七个基准的 913 个问题回放集上，作者报告 UniRoute 的精度为 0.618、每个回答耗能 2,192.2 J；KL-GRPO 第 1500 步的精度为 0.609、每个回答耗能 1,691.9 J，回答能耗约低 23%。论文称精度接近 60% 时出现转折。测量使用 A100-SXM4-80GB GPU 和 GPU 能耗；主比较未计入路由器能耗，论文另行讨论了这一点。这是针对本地服务场景的论文报告结果，不是独立复现或生产部署证据。",
+      "technical": {
+        "claimed_result": "表 2 报告 UniRoute 的精度为 0.618、每个回答耗能 2,192.2 J；KL-GRPO 第 1500 步的精度为 0.609、每个回答耗能 1,691.9 J，测试集包含七个基准的 913 个回放问题。",
+        "demonstrated_result": "没有记录独立复现；这些数值是作者基于回放回答报告的结果。",
+        "implementation_status": "在本地 A100-SXM4-80GB GPU 上进行评估；未检查生产部署结果。",
+        "mechanism": "学习式路由器依据离线测得的正确性、延迟、功率和 GPU 能耗，在九个开放权重模型中选择；训练使用考虑能耗的奖励。",
+        "regime": "913 个评估问题回放、七个基准、九个开放权重模型、A100-SXM4-80GB GPU、每 200 毫秒进行一次 NVML 采样，并扣除空闲功耗后的 GPU 能耗。",
+        "reproducibility": "本次激活检查了论文 HTML 和报告表格；未运行公开工件，也未独立复现结果。",
+        "strongest_baseline": "表 2 中的 UniRoute 行与 KL-GRPO 该检查点比较；后者精度略低，但报告的每回答 GPU 能耗约低 23%。"
+      },
+      "title": "一项模型路由研究报告了七个基准上的实测精度与能耗权衡",
+      "why_it_matters": "这项工作给出了在开放权重模型间路由时一个具体的能耗与质量工作点，并指出主比较未计入路由器能耗这一边界。接近精度目标时，能耗感知的服务决策可能改变；但这些基于回放回答的 GPU 测量不能证明设施总能耗或部署后的节能效果。"
     },
     "FCMO-C675AE392767": {
       "claims": [
@@ -22725,6 +22927,48 @@
         "source_sha256": "1b1f405095a9f90081e441bd2becfa7802b762469091a6a82f52b00d7b699e66"
       }
     },
+    "FCMO-5ADDBE3E1281": {
+      "claims": {
+        "locale_sha256": "72e913c454ac19b8126e6a8d2e71741fa6a32459d8d898ba7cea87e7892e73e7",
+        "source_sha256": "057643f66b3649903bc56983e6003e0ba7f69c11dea2f9c289e5702df1cbaf16"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "0e9635e7b6568217331938447a415485415d18bbd3f855ad3a09e6ec3af9c9a1",
+        "source_sha256": "7a01e7bdca3ee6e7890623bd05a22897164fbc10b457fe152f9a82a8c0a8d1a9"
+      },
+      "importance_rationale": {
+        "locale_sha256": "dde90d1eddc1af9ef708ba165f8379ddd2d28fffc032c83e391f6f16d455cf55",
+        "source_sha256": "a3f9f4a35716f830924fed356b9ae23a12ea6f8e5306bb8918170ddec8eed884"
+      },
+      "limitations": {
+        "locale_sha256": "fa2cb5718172ade241cf9758d3e67c53203dc9030c8e9a04f4bd539f68ec60bc",
+        "source_sha256": "a6edb1d627135a484bef0394716d69c15a2f326ba1d4a65ebdd4f1707837e36b"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "5f253b299387c361ec0ec78bff70aad6025eba413e2543f428b97452f5e7a22e",
+        "source_sha256": "f5b458756ae40e5851cd030f561db5a0ddd9ae8cdb597600a2b09c42ec22ea82"
+      },
+      "technical": {
+        "locale_sha256": "d4db7ef825dc4ee467a62d0881802d2fc4dad81ae05c471b229ee21688f72287",
+        "source_sha256": "c121c7ef3baed24670969b609bfddf82b411ade8ee743cc26a7a5c6a4b45d87f"
+      },
+      "title": {
+        "locale_sha256": "4a31603b73925220cf2ca2a5a802d2b67979ed87654cec5b256a308afae6e24c",
+        "source_sha256": "be3efaaa55bb8e9ec63e025fee5fccdc2fb9f396ec6c0266900793ba7c3e2774"
+      },
+      "why_it_matters": {
+        "locale_sha256": "8f29e099aac2be70a763190e5ac636fea9e946bec78d311bfe96f0f4444f6cf4",
+        "source_sha256": "6ae4e767adc7b81faecf67a73d2fca6c051bd257100c4ff8553510543858c2a6"
+      }
+    },
     "FCMO-5B5B447325A8": {
       "claims": {
         "locale_sha256": "e1cdfc181945e50f81f2c378efc3a038e05d700fe999825dea40a8667548f0d0",
@@ -23283,6 +23527,48 @@
       "why_it_matters": {
         "locale_sha256": "1abff08802214d60f2da235cb5c7e0ac6038eb7baba05d55872fe4b05915b4c5",
         "source_sha256": "082a361377f0f39627db450eb441e8274e86cb14c51fd2db2a087a5ea13dd5db"
+      }
+    },
+    "FCMO-6856948EC174": {
+      "claims": {
+        "locale_sha256": "0352fa4f9fd1c67b4962859f810793ad4841be6ab63dcf5f8d7c447b0586966b",
+        "source_sha256": "9dafb94a97f92656e23439ebf51131476d273dd1121d5415584ff4be4b31472a"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "3178bfe72c3f564cfb961ff2dbb963c5d6af5314df5a961d82af0b13fbd88c68",
+        "source_sha256": "79c4f4c9894d4c75d134d9aee321b95f536eb91bd8f9999701bc5b6a5bb34c8d"
+      },
+      "importance_rationale": {
+        "locale_sha256": "41457b749e7ba0911932b4b05440bf2e11d24c02a6d36f13c945473bc9e0d0b2",
+        "source_sha256": "9548949a247697b340414d225a3c54dd99a3892c870d71c0b32d1b904b9ae1d5"
+      },
+      "limitations": {
+        "locale_sha256": "28333d146537fc8ece802fc5f4037a382ac4daa4d82f2efbe82653af2b844572",
+        "source_sha256": "8495051752481deb822224f7a9697993af2f82bf9c7aea8fa469303c3d1bf80e"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "8df97c0ffb687e0b6748ba1909ae138aee238ee6e88bf2dd49f1989a876a37f3",
+        "source_sha256": "1b6022494b00cb4880f6e1c034fad44a5de92228cd60b3e0f01a18b00c86b702"
+      },
+      "technical": {
+        "locale_sha256": "286e32302d55537735057e6c3002c74efc7c42b890e04506839ad955cb8d3cba",
+        "source_sha256": "d1a0f2f9e895a021d17a9efe9ea30c0e3387d87fa576584925ea565732eab023"
+      },
+      "title": {
+        "locale_sha256": "91d5fa7441d49e0a419aaad4e09cfbe14b2cf812307fbbd907572678f6e350d4",
+        "source_sha256": "19910e518ef52357f99da045c8f4ada7b929a3867baecdaa6ba599374378a3cb"
+      },
+      "why_it_matters": {
+        "locale_sha256": "04b47725bab0a77ea94eee07c4b7fd7779e7565794be9c88118f10da063bfba2",
+        "source_sha256": "fc706b6369c6d2e0adb4dad2d41b57af8f585006a0bdaac0b4bf6896326b35ff"
       }
     },
     "FCMO-686934293815": {
@@ -25103,6 +25389,48 @@
       "why_it_matters": {
         "locale_sha256": "55cc910e2df5a0a609a0ccb04e8d4869bfb57ee9e7155e989aef1674fe363d0b",
         "source_sha256": "d674911c6a5bc569feb3a729571456954d57301b5460878de02aaddbd9f2f90c"
+      }
+    },
+    "FCMO-8B7403E55F68": {
+      "claims": {
+        "locale_sha256": "3d8f1234aa9712601fe611f638e49fe277d8edf11b529648b0c6af07c8c28e57",
+        "source_sha256": "52fe29edf26d5e138b72af166a2e5744717dd2ced5c6267c3f0805c179222724"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "ec14ce81a9c1107a3777699124e511aa4272cad476125c0aaafd7645e96e7b9b",
+        "source_sha256": "aca8efd2ccee97faa6cb27373b687169cf56fa36332e950491c16bf5bfcf745d"
+      },
+      "importance_rationale": {
+        "locale_sha256": "aaba36c9ddf68a4aa8c1737b8d564b382b18b7dd169527812d05ff22567f1fab",
+        "source_sha256": "cf0961a95a8973359bf35a76fc585622709d1c901beedf99923cacca34bc991c"
+      },
+      "limitations": {
+        "locale_sha256": "45ae5dc925f559ca5b621e24442c93ec912bfef0503971bc70c3245f6509f3f8",
+        "source_sha256": "dee68446982e315945b3a1e24cc25981a7165d3cfd8a338da6c12b240b55bd60"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "8466b853c2529f885c526527bef507df438496356d0757e11128a251c12fbf62",
+        "source_sha256": "b8e2a50313981f3b4350c727d19bf5fc7d6d80c9aeb2e6e24873827a85f72e6e"
+      },
+      "technical": {
+        "locale_sha256": "04ca0d21a0cfcc4b2752cbe85b06e5f678949461f8fe4eb88c6bb8928ad6afdf",
+        "source_sha256": "791e7ddcd8662f9f528fc8355a9c5b1fd561d92baaa09db7f1ac0bb93299f377"
+      },
+      "title": {
+        "locale_sha256": "2c8cbd0f12754a2c434a0cc1e5b15d034ff543c73082b330ab9f309dfd747b39",
+        "source_sha256": "bb8894ad66a5cbdd7a02f6dc6bce49d4e55ffb0c5d510dd7b6b3a49024e77be6"
+      },
+      "why_it_matters": {
+        "locale_sha256": "353fe4656339c87f1260783162d702c10cd7fec96b2fe9b0eb0115ea7196977c",
+        "source_sha256": "d53baa1a3ee0c12ea243a55f3f0f0a9a7df835c05dd7f3c8e04efe9d1cba25ed"
       }
     },
     "FCMO-8CF914FD8C2A": {
@@ -28001,6 +28329,48 @@
       "why_it_matters": {
         "locale_sha256": "b6bf3d25927bca81154353fc85dc998bee3cfaafb3f82cd2dcb569a232080b2b",
         "source_sha256": "1972c48ddbcd28fcca898506697a85070bd71130370a18e8fcd00d7874b28490"
+      }
+    },
+    "FCMO-C63BEF968F0B": {
+      "claims": {
+        "locale_sha256": "2aa7e244c001e797c11f967dd30d21e3f040b54e81d9065369fee6fdda3c4533",
+        "source_sha256": "5ec997cdd21a93052fce18b04248ca70b1ada3dff6ee197001bc5aeb04e5c629"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "fb97f11e9c5d90e9e3f1a143f0d805c15768e598f5baea39e22786654a01e66a",
+        "source_sha256": "1a448eee246529ea836639508be063b8d0de9a19480be7c27877cd17038a486e"
+      },
+      "importance_rationale": {
+        "locale_sha256": "60cbf1890d8b849a1d5542df204071faee3014db3c6d5f15f56220b4622a6f08",
+        "source_sha256": "88ae54f816eb2ccc6342647a6170b40bf3db6bdfa8bef7b2a40e8882371ba8c0"
+      },
+      "limitations": {
+        "locale_sha256": "1a6f99744cf1fa7ebdb249051f1c71c80f8ded32ba53c1e46502d8bf5f0cd59e",
+        "source_sha256": "285e660fda13ee28c19fd44b612dab55abf5127682d465cb71ee5d43468aea2f"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "176d3edd5fb1f28eff743b1380b10ec6728be71d1b2401f29a054f04b715bcf7",
+        "source_sha256": "59b3bed89ae1342fb29267d1fa2618a6be16476aa33f657f2e7968f15e44367e"
+      },
+      "technical": {
+        "locale_sha256": "49bb2eda5d4401abe3e72321853746cc1a888d9ef20dadc5c5c283f1fb476cb2",
+        "source_sha256": "4091472b177d5ade973d0a4378b8953ea1a408e9b1ce6646d60d1e31978963f9"
+      },
+      "title": {
+        "locale_sha256": "1ebf5341679fb1aebbf72b541509f4cc273498f679869ccfb6620472157802ff",
+        "source_sha256": "acc332b2504c57de546438c363daae191ed0683b188def72e51f040bd80a3f27"
+      },
+      "why_it_matters": {
+        "locale_sha256": "89d9f1219882abda58c265fa1b19e7328899bcc6c4921e93f6feaf15e73414f5",
+        "source_sha256": "30c404ca6ceaeabc905e8aabf98566a160c7071928b25b0781fc50bcdbc14caf"
       }
     },
     "FCMO-C675AE392767": {
