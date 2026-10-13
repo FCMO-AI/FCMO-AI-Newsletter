@@ -1,6 +1,171 @@
 [
   {
     "confidence": "credible_unconfirmed",
+    "demonstrated_result": "The preprint documents the protocol, datasets, models and author-reported measurements. No independent reproduction was performed.",
+    "desks": [
+      "agents_memory",
+      "evaluation_science"
+    ],
+    "development_type": "paper",
+    "event_at": "2026-09-23T00:00:00Z",
+    "evidence_class": "A",
+    "id": "FCMO-8FADF99E8A28",
+    "importance_effective_score": 5,
+    "importance_tier": "Notable",
+    "last_verified_at": "2026-10-13T21:23:31Z",
+    "mechanism": "The study defines each model’s empirical policy from an instruction-free baseline and measures override success only on examples where the target policy conflicts with that baseline. It compares zero-shot system prompting with LoRA adaptation and uses TRAK to analyze adaptation-example influence.",
+    "organizations": [],
+    "primary_desk": "agents_memory",
+    "regions": [
+      "global"
+    ],
+    "status": "active",
+    "strongest_baseline": "Instruction-free empirical baseline and the same model under zero-shot system prompting, compared with LoRA adaptation on target-policy examples. Measures are conditional on observed policy conflicts rather than a model-wide safety score.",
+    "summary": "The Alignment Inertia preprint measures whether system prompts and LoRA fine-tuning override each model’s observed policy behavior on cases where that behavior conflicts with a target policy. It evaluates Llama-3.1-8B-Instruct and Mistral-7B-Instruct-v0.2 on medical-misinformation and hate-speech datasets. Zero-shot prompting leaves some conflicting cases unresolved, with results varying by model, domain and policy direction; LoRA sometimes improves and sometimes worsens override success. These are author-reported behavioral results conditional on the study’s constructed divergence zones and adaptation data, not a universal measure of prompt or fine-tuning reliability.",
+    "title": "Alignment Inertia measures when system prompts and LoRA fail to override prior behavior",
+    "topics": [
+      "automated-red-teaming",
+      "agent-evaluation",
+      "safety-evaluation",
+      "benchmark-methodology",
+      "tool-use"
+    ],
+    "why_it_matters": "An operator may need to make a model more permissive or restrictive than its observed training prior. If the reported, direction-dependent resistance replicates, testing controllability on actual policy conflicts could expose cases that a generic instruction-following score misses. The study’s small model/domain set does not establish behavior across providers or deployments."
+  },
+  {
+    "confidence": "credible_unconfirmed",
+    "demonstrated_result": "The accessible preprint documents its benchmark, methods and author-reported results. the research desk did not independently reproduce them.",
+    "desks": [
+      "agents_memory",
+      "evaluation_science"
+    ],
+    "development_type": "paper",
+    "event_at": "2026-09-23T00:00:00Z",
+    "evidence_class": "A",
+    "id": "FCMO-404D6DE57426",
+    "importance_effective_score": 4,
+    "importance_tier": "Meaningful",
+    "last_verified_at": "2026-10-13T21:21:42Z",
+    "mechanism": "External memory records action-outcome information for retrieval during embodied tasks; the benchmark compares this approach with alternative memory/context conditions, including accumulated visual history.",
+    "organizations": [],
+    "primary_desk": "agents_memory",
+    "regions": [
+      "global"
+    ],
+    "status": "active",
+    "strongest_baseline": "Matched-backbone memory/context conditions in Table 2. The paper's results are task-specific and do not show universal superiority across all tasks or memory budgets.",
+    "summary": "The EmbodiedMemory-Bench preprint evaluates memory methods over 2,554 interactive episodes in four embodied-task families. The authors report matched-backbone comparisons for external action-outcome memory and show that adding maximal historical RGB context can reduce Gemini-3-Flash average success by 10.4 percentage points in the reported comparison. The results are primarily from simulation; the Robotics-ER subset is limited to 10% because of API instability. The paper does not establish physical-robot performance, independent reproduction or deployment benefit.",
+    "title": "EmbodiedMemory-Bench reports simulation results for action-outcome memory",
+    "topics": [
+      "embodied-agents",
+      "agent-memory",
+      "robotics",
+      "benchmark-methodology",
+      "long-horizon-planning"
+    ],
+    "why_it_matters": "The benchmark makes a concrete comparison between structured action-outcome memory and raw multimodal history in embodied-agent tasks. If the task-scoped results reproduce, they could guide memory-system design and evaluation. The result is simulation-bounded and does not support a physical deployment claim."
+  },
+  {
+    "confidence": "credible_unconfirmed",
+    "demonstrated_result": "The accessible preprint defines the framework, evaluation data families, comparison protocol, scoring roles and author-reported results. No independent reproduction was conducted; the results remain claims from the paper.",
+    "desks": [
+      "evaluation_science",
+      "agents_memory"
+    ],
+    "development_type": "paper",
+    "event_at": "2026-09-23T00:00:00Z",
+    "evidence_class": "A",
+    "id": "FCMO-5E04374D154C",
+    "importance_effective_score": 5,
+    "importance_tier": "Notable",
+    "last_verified_at": "2026-10-13T21:18:57Z",
+    "mechanism": "CART separates a Challenger that creates or adapts probes, a Target that responds or acts, and a Judge that assesses evidence. It stores results and lineage and uses earlier findings to direct later testing under a fixed budget, with diversity controls to reduce repetitive probes.",
+    "organizations": [],
+    "primary_desk": "evaluation_science",
+    "regions": [
+      "global"
+    ],
+    "status": "active",
+    "strongest_baseline": "Direct replay of stored seed prompts, evaluated with the same Gemini Judge and rubric as CART. The main comparison fixes Claude as Challenger and Gemini as Judge; a separate Frontier-family experiment varies these roles. This controls evaluator identity for the static/adaptive comparison but does not establish that LLM-judged risk scores are ground truth.",
+    "summary": "The CART preprint presents closed-loop red teaming in which a Challenger adapts probes using earlier results while a separate Judge scores the evidence. Across Frontier, JAH and Agentic case families, the authors report higher discovered failure rates and average risk scores than direct replay of seed prompts for targets with available baselines. The main comparisons fix Claude as Challenger and Gemini as Judge; static replay uses the same Judge and rubric. Budgets are 1,000 rounds for Frontier and JAH and 3,200 for Agentic. The paper reports the largest gap on tool-mediated Agentic cases and says observed test-volume share is not a measure of real-world failure prevalence. The result supports adaptive testing as a way to expose benchmark-conditioned weaknesses, not a claim that deployed models fail at the observed rates.",
+    "title": "CART reports adaptive red teaming finds failures missed by static prompt replay",
+    "topics": [
+      "automated-red-teaming",
+      "agent-evaluation",
+      "safety-evaluation",
+      "benchmark-methodology",
+      "tool-use"
+    ],
+    "why_it_matters": "If the reported comparison holds, fixed benchmark prompts can understate weaknesses that appear when the test context adapts to earlier model behavior. Adaptive, provenance-tracked probes could change how model and agent evaluations allocate a fixed test budget. The paper's results are Judge- and setup-dependent and do not estimate real-world failure prevalence."
+  },
+  {
+    "confidence": "credible_unconfirmed",
+    "demonstrated_result": "The accessible preprint documents the method, modeled rollout setup, comparison policies, metrics and author-reported scale results. Performance remains claimed; the research desk did not execute the artifact or reproduce the results.",
+    "desks": [
+      "agents_memory",
+      "evaluation_science"
+    ],
+    "development_type": "paper",
+    "event_at": "2026-09-23T00:00:00Z",
+    "evidence_class": "A",
+    "id": "FCMO-E16BA2F997F1",
+    "importance_effective_score": 4,
+    "importance_tier": "Meaningful",
+    "last_verified_at": "2026-10-13T21:16:34Z",
+    "mechanism": "Each agent uses a frozen language model to derive a reasoning state from a prompt and pre-generated thinking trace. MAST aggregates local neighbor states with spatial attention, predicts low-level control actions, and returns a learned feedback token to the agent's language-model program. The default configuration uses Qwen3-1.7B, a 160-token trace, 1 Hz feedback refresh and a 10 Hz MAST control loop.",
+    "organizations": [],
+    "primary_desk": "agents_memory",
+    "regions": [
+      "global"
+    ],
+    "status": "active",
+    "strongest_baseline": "The paper compares with a centralized Claude Opus 4.8 controller using hand-engineered feedback and a language-only communication ablation; it also reports an expert-oracle comparison. The bounded scale results are author-run modeled rollouts, not physical matched trials.",
+    "summary": "A robotics preprint presents COMPASS, which couples per-agent language-model reasoning states to a learned multi-agent spatial transformer (MAST) that exchanges local neighbor messages and generates both low-level actions and a feedback token. The frozen Qwen3-1.7B configuration is trained on 32- and 64-agent expert rollouts, then evaluated in 30-second flocking rollouts up to 1,024 agents. The authors report mean heading error decreasing from 2.79° at N=8 to 0.34° at N=1,024, with comparisons against a centralized Claude Opus 4.8 controller and a language-only communication ablation. This is an author-reported result on a narrow modeled flocking task; the paper does not report physical robot trials, and independent replication or artifact execution was not performed.",
+    "title": "COMPASS reports decentralized language-model control for 1,024-agent flocking rollouts",
+    "topics": [
+      "multi-agent-systems",
+      "robotics",
+      "decentralized-control",
+      "language-model-agents",
+      "spatial-transformers"
+    ],
+    "why_it_matters": "If reproduced, the separation of semantic instruction interpretation from local learned coordination may offer a useful architecture for scaling language-guided multi-agent control beyond centralized action generation. The paper reports a large modeled team size, but the evidence is a narrow flocking rollout and does not establish deployment on physical robots or general task transfer."
+  },
+  {
+    "confidence": "credible_unconfirmed",
+    "demonstrated_result": "The accessible preprint defines the method, evaluation protocol, stated deployment regime, and author-reported metrics. The performance and latency measurements remain claims in a single-system paper; the research desk did not reproduce them.",
+    "desks": [
+      "agents_memory",
+      "evaluation_science"
+    ],
+    "development_type": "paper",
+    "event_at": "2026-09-23T00:00:00Z",
+    "evidence_class": "A",
+    "id": "FCMO-882F5295EDE7",
+    "importance_effective_score": 4,
+    "importance_tier": "Meaningful",
+    "last_verified_at": "2026-10-13T21:13:32Z",
+    "mechanism": "SGC decomposes live state into intent/context, factual state slots, and session history. Wrapper W1 selects a tool set and can freeze tool choice early; W2 grounds candidate responses against structured live facts and constraints; W3 schedules cross-turn coaching guidance and writes answer metadata back into session state.",
+    "organizations": [],
+    "primary_desk": "agents_memory",
+    "regions": [
+      "global"
+    ],
+    "status": "active",
+    "strongest_baseline": "PE-Agent shares the same LLM backbone, tool schemas, grounding references, and serving setup, and reports 69.8% turn-level and 26.5% session-level grounding with 6.1 s mean first-token latency. The authors disclose that PE-Agent did not receive the same product-specific prompt tuning during deployment iteration, so the reported gap combines architecture and tuning effects.",
+    "summary": "A double-blind preprint introduces State-Grounded Conditioning (SGC), which moves state-dependent tool and response control into three explicit wrappers for intent/context, live fact slots, and session history. On 200 anonymized production sessions (~1,000 turns) from one in-game coaching system, the authors report that Full SGC reached 96.7% turn-level grounded accuracy and 83.5% session-level grounded accuracy, versus 69.8% and 26.5% for their Plan-and-Execute agent baseline; mean first-token latency was 1.5 s versus 6.1 s. Test labels used two independent human annotators with third-annotator adjudication. This is a bounded, author-reported result in one domain. The baseline had less product-specific prompt tuning, some reliability statistics and confidence intervals are deferred to camera-ready, and no transfer outside gaming or direct user outcome is demonstrated.",
+    "title": "State-Grounded Conditioning reports lower direction drift in a live game-coaching agent",
+    "topics": [
+      "agent-architecture",
+      "agent-memory",
+      "state-grounding",
+      "tool-use",
+      "evaluation-methodology"
+    ],
+    "why_it_matters": "If the reported effect holds in similar stateful agents, deterministic wrappers around live intent, facts, and session memory can reduce direction drift while avoiding a serial plan-execute latency path. The result may affect architecture choices for interactive agents where state changes and multi-turn guidance matter; it does not establish general gains across agent domains."
+  },
+  {
+    "confidence": "credible_unconfirmed",
     "demonstrated_result": "Microsoft describes its measurement study and toolchain feature; numerical outcomes are author-reported. No independent robot evaluation was performed.",
     "desks": [
       "inference_systems",
