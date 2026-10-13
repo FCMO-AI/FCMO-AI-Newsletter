@@ -2127,6 +2127,71 @@
       "title": "Un preprint informa que la guía espacial persistente mejoró la búsqueda de objetos en un pequeño estudio con personas ciegas",
       "why_it_matters": "Si se replica de forma independiente, el seguimiento espacial persistente y las instrucciones corporales ajustadas a cada etapa podrían orientar el diseño de asistencia visual con IA. La evidencia actual es prometedora pero acotada, y no demuestra fiabilidad ni seguridad en el uso cotidiano."
     },
+    "FCMO-186CC6B3799E": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "El artículo presenta la abstracción Experience Data Plane, que expone la ingestión, ubicación y entrega de experiencias mediante puntos de control explícitos del entorno de ejecución, separados de la lógica propia del marco de trabajo."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En sus experimentos con RLlib, los autores informan hasta 97% menos latencia expuesta de la ruta de experiencias y hasta 38% menos latencia de iteración de extremo a extremo en cargas probadas de DQN, SAC y PPO, con ocho actores y ocho aprendices."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El artículo informa escalamiento de 8 a 1,024 GPU AMD MI250X con una carga fija y 50 ms de iteración de extremo a extremo a 1,024 GPU; en esa escala compara Conduit con una variante sin ubicación adaptativa, no con Gear ni Reverb."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En dos tareas probadas con RLlib, el artículo informa curvas de recompensa por iteración similares con y sin Conduit; esto no demuestra que se conserve la convergencia en general, entre algoritmos o cargas de trabajo."
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION",
+          "text": "El preprint consultado no verifica de forma independiente los resultados de latencia, escala o convergencia, ni demuestra que se transfieran a otros marcos, sistemas posteriores o cargas de producción."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "Aún no se ha reproducido de forma independiente la latencia de RLlib ni las curvas de convergencia de la sección 7.2.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "No se ha replicado de manera independiente el resultado de escala a 1,024 GPU MI250X ni la comparación de ubicación adaptativa.",
+          "kind": "reproduction_missing",
+          "state": "open"
+        },
+        {
+          "description": "No se ha medido la transferencia a otros entornos y marcos de trabajo ni las consecuencias completas en energía y costos.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si las reducciones informadas se mantienen en cargas independientes, la programación desacoplada y la ubicación adaptativa podrían cambiar el diseño de sistemas y reducir el tiempo de iteración en aprendizaje por refuerzo distribuido y posentrenamiento de modelos. Es un resultado de sistemas notable, pero su alcance se limita al régimen probado y la evidencia sigue siendo de los autores.",
+      "limitations": [
+        "Los autores informan todas las mediciones de latencia, escala y convergencia; en esta revisión no se ejecutó el sistema ni se reprodujeron los resultados de forma independiente.",
+        "La mejora máxima informada de 38% en tiempo total depende de la carga. El artículo indica que las restricciones de frescura en métodos on-policy limitan las ganancias y que el despliegue o la actualización pueden dominar el tiempo crítico.",
+        "El resultado de escala a 1,024 GPU AMD compara Conduit con y sin ubicación adaptativa; Gear y Reverb se omiten porque no admiten AMD. No constituye una victoria comparativa entre sistemas a 1,024 GPU.",
+        "La comparación de convergencia abarca solo DQN/MountainCar y PPO/Meta-World. Se desconoce la transferencia a otros algoritmos, modelos, conjuntos de datos y entrenamientos más prolongados.",
+        "El artículo no informa costos completos de energía, horas de acelerador o dólares, ni utilización y rendimiento equiparables a producción."
+      ],
+      "relationships": [],
+      "summary": "Zhang y sus colegas presentan Conduit, un Experience Data Plane que separa la ingestión, ubicación y entrega de experiencias de aprendizaje por refuerzo de la ejecución del marco de trabajo. Los autores informan hasta 97% menos latencia expuesta de la ruta de experiencias y hasta 38% menos latencia de iteración de extremo a extremo en pruebas de RLlib con cargas de DQN, SAC y PPO, ocho actores y ocho aprendices. También informan escalamiento de 8 a 1,024 GPU AMD MI250X con una carga fija, comparado con Conduit sin ubicación adaptativa, y curvas de convergencia similares en dos tareas probadas. Son resultados informados por los autores en un preprint, sin reproducción independiente; no se ha medido su transferencia a otras cargas ni el efecto completo en costos o energía.",
+      "technical": {
+        "claimed_result": "Los autores informan hasta 97% menos latencia expuesta de la ruta de experiencias y hasta 38% menos latencia de iteración de extremo a extremo en pruebas de RLlib con DQN, SAC y PPO, ocho actores y ocho aprendices. Informan escalamiento de 8 a 1,024 GPU AMD MI250X con una carga fija, pero el comparador a 1,024 GPU es Conduit sin ubicación adaptativa; la prueba AMD no incluye Gear ni Reverb. También informan curvas de convergencia similares en DQN/MountainCar y PPO/Meta-World.",
+        "compute_or_cost": "El artículo mide latencia de iteración e informa una prueba a 1,024 GPU, pero no ofrece un cálculo comparable de energía, horas de acelerador ni costo monetario para las mejoras principales.",
+        "demonstrated_result": "El preprint público describe el sistema Conduit implementado, el diseño Experience Data Plane, dos bancos de prueba y el protocolo de evaluación informado. Esto establece lo que reportan los autores, no verifica de forma independiente el rendimiento ni la convergencia.",
+        "implementation_status": "Se describe un sistema de investigación implementado e integrado con RLlib; los apéndices informan integraciones con SRL y Verl. Esta revisión no estableció adopción pública en producción.",
+        "mechanism": "Conduit expone la ingestión, ubicación y entrega de experiencias de aprendizaje por refuerzo como puntos de control explícitos del entorno de ejecución. Perfila el ancho de banda, la memoria y los costos de operadores, distribuye el estado de experiencia entre niveles de CPU, GPU y nodos con límites de capacidad, y programa y agrupa la ingestión y entrega para superponerlas con la interacción y las actualizaciones cuando la semántica del algoritmo lo permite.",
+        "novelty": "El trabajo convierte la ruta de experiencias en un objetivo de optimización del entorno de ejecución y aborda conjuntamente la ubicación y la programación según las restricciones semánticas del aprendizaje por refuerzo.",
+        "regime": "Experimentos informados por los autores en dos clústeres: un clúster NVIDIA A100 para las evaluaciones principales con RLlib y una supercomputadora AMD MI250X para escalar hasta 1,024 GPU. Las comparaciones principales usan DQN/SAC/PPO, MountainCar, Multi-agent CartPole, Meta-World y Open X-Embodiment, con ocho actores y ocho aprendices. Las curvas de convergencia cubren solo dos tareas.",
+        "reproducibility": "El manuscrito de arXiv expone métodos y resultados, pero esta revisión no hizo una reproducción independiente. El siguiente paso más económico es ejecutar un artefacto fijado en el banco A100 para la sección 7.2 y después inspeccionar los registros de escala o replicar en un sistema MI250X.",
+        "strongest_baseline": "Para el resultado de latencia total, el búfer de experiencias integrado de RLlib con los mismos algoritmos, entornos y cantidades de actores y aprendices informados. Gear y Reverb aparecen en comparaciones separadas de ubicación y escala cuando son compatibles; no son comparadores del resultado AMD a 1,024 GPU."
+      },
+      "title": "Conduit convierte la gestión de experiencias de RL distribuido en una superficie de optimización del entorno de ejecución",
+      "why_it_matters": "Si los efectos informados se generalizan, tratar el búfer de experiencias como un plano de datos programable podría reducir un cuello de botella importante del aprendizaje por refuerzo distribuido y el posentrenamiento de modelos. El artículo informa mayores ganancias totales cuando la gestión de experiencias ocupa una parte importante de cada iteración, mientras que los requisitos de frescura en métodos on-policy limitan las mejoras; faltan una réplica independiente y pruebas de transferencia."
+    },
     "FCMO-19BFDD9D0FE6": {
       "claims": [
         {
@@ -7868,6 +7933,62 @@
       },
       "title": "Anthropic informa sobre operaciones cibernéticas orquestadas con IA y adaptación de malware mediante ciclos de retroalimentación en casos seleccionados",
       "why_it_matters": "Si los flujos descritos son precisos, el reconocimiento dirigido por modelos, la preparación de infraestructura y la adaptación de herramientas según las detecciones podrían cambiar el trabajo que deben vigilar los defensores y el tiempo disponible para responder. El informe ofrece casos concretos de primera parte, pero no establece prevalencia, aumento causal de capacidad, reducción medida del trabajo de los atacantes ni eficacia de las contramedidas."
+    },
+    "FCMO-686934293815": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "La actualización de Apple del 22 de septiembre de 2026 anuncia la disponibilidad de Mac Studio con M5 Ultra y configuraciones de hasta 512 GB de memoria unificada y 1.2 TB/s de ancho de banda de memoria."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Apple afirma que varios sistemas Mac Studio conectados mediante Thunderbolt 5 con RDMA pueden ofrecer hasta 3× más rendimiento de inferencia de IA distribuida que un solo sistema."
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION",
+          "text": "La página consultada no especifica el tamaño del clúster, modelo, carga, métrica, objetivo de calidad, consumo eléctrico ni base de costos de la comparación de hasta 3×."
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION",
+          "text": "En esta revisión no se completó una prueba comparativa ni una reproducción independiente de la afirmación de inferencia en clúster RDMA de Apple."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "Esta revisión no cuenta con una reproducción independiente de la afirmación de Apple de hasta 3× con clúster RDMA.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "El artículo consultado no especifica la carga ni la configuración exactas detrás de la aceleración RDMA, ni la curva de escalamiento de costo o energía.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si la configuración M5 Ultra disponible y la mejora de clúster RDMA que afirma Apple funcionan en cargas útiles de inferencia local, una gran capacidad de memoria unificada en formato de escritorio podría influir en despliegues locales y clústeres pequeños. Es un cambio de infraestructura notable, pero acotado por precio y carga; la mejora de 3× no se ha establecido de forma independiente.",
+      "limitations": [
+        "La afirmación de hasta 3× en rendimiento de inferencia proviene de Apple y la fuente consultada no precisa la carga, tamaño del clúster, modelo, objetivo de calidad ni métrica.",
+        "No se hicieron mediciones independientes de rendimiento, energía, confiabilidad ni costo por inferencia aceptada.",
+        "El precio inicial publicado en EE. UU. para Mac Studio M5 Ultra con 512 GB es de $5,499; Apple dice que esa configuración llegará a fines de octubre. El precio y el escalamiento del clúster condicionan su viabilidad.",
+        "Una aceleración de 3× en inferencia distribuida frente a un equipo no demuestra escalamiento lineal, mejor rendimiento por vatio, menor costo por token ni ventaja frente a servidores con GPU.",
+        "Las pruebas de julio y las comparaciones de rendimiento de IA descritas por Apple son de la propia empresa; aquí no se revisó la metodología detallada enlazada."
+      ],
+      "relationships": [],
+      "summary": "La actualización de Apple Newsroom del 22 de septiembre de 2026 anunció la disponibilidad de Mac Studio con M5 Ultra y configuraciones de hasta 512 GB de memoria unificada y 1.2 TB/s de ancho de banda. Apple también afirma que Thunderbolt 5 con RDMA permite que varios sistemas Mac Studio ofrezcan hasta 3× el rendimiento de inferencia distribuida de un solo sistema. El anuncio y las especificaciones son hechos de primera fuente; la aceleración es una afirmación de Apple cuyo modelo, tamaño del clúster, métrica y base de consumo y costo no se detallan en la página consultada. No se hizo una medición independiente ni un análisis de costos equivalente.",
+      "technical": {
+        "claimed_result": "Apple afirma que varios Mac Studio agrupados pueden ofrecer hasta 3× más velocidad de inferencia de IA distribuida que un solo sistema. El artículo también anuncia hasta 4.3× más rendimiento de IA para M5 Ultra frente a una comparación que no especifica en el texto; este registro no trata esa cifra como medición independiente.",
+        "compute_or_cost": "Apple publica un precio inicial en EE. UU. de $5,499 para Mac Studio con M5 Ultra; el artículo no informa el costo total del clúster, su consumo eléctrico ni el costo por inferencia.",
+        "demonstrated_result": "El anuncio oficial lista la disponibilidad de M5 Ultra, hasta 512 GB de memoria unificada, 1.2 TB/s de ancho de banda y compatibilidad con Thunderbolt 5 RDMA. Estos datos del producto no validan por sí mismos la aceleración anunciada.",
+        "implementation_status": "Apple anunció la disponibilidad de Mac Studio desde el 22 de septiembre de 2026; indicó que la configuración de 512 GB llegaría más adelante en octubre.",
+        "mechanism": "Apple describe Mac Studio con M5 Ultra, hasta 512 GB de memoria unificada y 1.2 TB/s de ancho de banda, y afirma que Thunderbolt 5 con RDMA permite conectar varios sistemas Mac Studio para inferencia distribuida.",
+        "novelty": "Combina una configuración de escritorio Apple Silicon con mucha memoria y una afirmación de Apple sobre agrupación RDMA mediante Thunderbolt 5 para inferencia de IA distribuida.",
+        "regime": "Mac Studio con M5 Ultra; el máximo anunciado es 512 GB de memoria unificada y 1.2 TB/s de ancho de banda. El resultado de inferencia distribuida se describe solo como agrupación de varios sistemas por Thunderbolt 5 RDMA frente a un equipo individual.",
+        "reproducibility": "Las especificaciones y afirmaciones oficiales se pueden consultar. No se ejecutó una prueba independiente en varios sistemas. Próximo paso más económico: reproducir con un modelo fijado e informar tamaño del clúster, calidad, rendimiento, latencia, potencia y costo de compra frente a un M5 Ultra.",
+        "strongest_baseline": "Apple afirma que compara varios sistemas con uno solo para la inferencia distribuida de hasta 3×, pero la página consultada no identifica tamaño del clúster, modelo, carga, métrica exacta ni otras condiciones equivalentes."
+      },
+      "title": "Apple presenta un equipo M5 Ultra con 512 GB y afirma que RDMA acelera la inferencia en clúster",
+      "why_it_matters": "Un equipo de escritorio con hasta 512 GB de memoria unificada podría facilitar parte de la inferencia local de modelos grandes y la experimentación con varios sistemas sin recurrir a un servidor GPU convencional. Si la aceleración RDMA de Apple se sostiene en cargas útiles, la agrupación podría cambiar la capacidad y economía de la inferencia local; la fuente consultada no establece qué modelo ni qué relación de precio y rendimiento alcanza el resultado."
     },
     "FCMO-68F37C6D8C5C": {
       "claims": [

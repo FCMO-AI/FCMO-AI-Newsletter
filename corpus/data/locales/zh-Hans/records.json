@@ -2127,6 +2127,71 @@
       "title": "预印本报告称，持续空间引导在一项小规模盲人用户研究中改善了物品寻找",
       "why_it_matters": "如果得到独立复现，持续空间跟踪和按动作阶段调整的身体相对提示，可为辅助视觉人工智能的设计提供有用方向。现有证据有参考价值但范围有限，尚不能证明日常使用的可靠性或安全性。"
     },
+    "FCMO-186CC6B3799E": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "论文提出Experience Data Plane抽象，将经验摄取、放置和交付作为显式运行时控制点，与框架自身的执行逻辑分离。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "在RLlib实验中，作者报告称，在包含DQN、SAC和PPO的测试负载及八个执行器、八个学习器配置下，未被隐藏的经验路径延迟最高降低97%，端到端迭代延迟最高降低38%。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "论文报告称，在固定负载下，系统从8张扩展到1,024张AMD MI250X GPU；在1,024张GPU时端到端迭代耗时为50毫秒。该规模测试比较的是启用与未启用自适应放置的Conduit，并未与Gear或Reverb比较。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "在两项RLlib任务中，论文报告称，使用Conduit与不使用时的迭代奖励曲线相近；这不能证明其在所有算法或负载中都能保持收敛。"
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION",
+          "text": "所查阅的预印本未独立验证延迟、规模或收敛结果，也未证明这些结果可迁移到其他框架、后续系统或生产负载。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "尚无独立复现验证第7.2节中的RLlib延迟结果或收敛曲线。",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "尚未独立复现扩展至1,024张MI250X GPU的结果及自适应放置比较。",
+          "kind": "reproduction_missing",
+          "state": "open"
+        },
+        {
+          "description": "尚未测量其在其他环境和框架中的迁移表现，也未评估完整的能源和成本影响。",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "如果报告的降幅在独立负载中仍然成立，解耦调度和自适应放置可能改变分布式强化学习及模型后训练的系统设计并缩短迭代时间。这是一项值得关注的系统成果，但其影响范围限于已测试条件，证据仍来自论文作者。",
+      "limitations": [
+        "所有延迟、规模和收敛结果均由作者报告；本次审阅没有运行该系统或独立复现结果。",
+        "报告的端到端最高38%改善取决于具体负载。论文指出，on-policy新鲜度限制会限制收益，且环境交互或学习器更新仍可能主导关键路径。",
+        "1,024张AMD GPU的结果比较的是启用与未启用自适应放置的Conduit；由于不支持AMD，Gear和Reverb未纳入该比较。因此这不是1,024张GPU条件下的跨系统胜出结论。",
+        "收敛比较只覆盖DQN/MountainCar和PPO/Meta-World。其在其他算法、模型、数据集和长期训练中的迁移情况未知。",
+        "论文没有报告完整的能源、加速器时数或美元成本，也没有给出与生产环境相当的利用率和吞吐量比较。"
+      ],
+      "relationships": [],
+      "summary": "Zhang等人提出Conduit这一Experience Data Plane，将强化学习经验的摄取、放置和交付与框架执行分离。作者报告称，在包含DQN、SAC和PPO的RLlib测试中，使用八个执行器和八个学习器时，未被隐藏的经验路径延迟最高降低97%，端到端迭代延迟最高降低38%。他们还报告称，在固定负载下系统从8张扩展至1,024张AMD MI250X GPU；该规模比较对象是未使用自适应放置的Conduit，并且两项测试任务的收敛曲线相近。这些是单篇预印本中的作者报告结果，尚无独立复现；其对其他负载的迁移能力以及完整成本和能源影响仍未测量。",
+      "technical": {
+        "claimed_result": "作者报告称，在八个执行器和八个学习器配置下，RLlib中的DQN、SAC和PPO测试使未被隐藏的经验路径延迟最高降低97%，端到端迭代延迟最高降低38%。他们报告了固定负载下从8张扩展到1,024张AMD MI250X GPU的结果，但1,024张GPU时的比较对象是未启用自适应放置的Conduit；AMD测试未纳入Gear或Reverb。DQN/MountainCar和PPO/Meta-World的收敛曲线也被报告为相近。",
+        "compute_or_cost": "论文测量了迭代延迟并报告了1,024张GPU的规模测试，但没有为主要性能收益提供匹配的能源、加速器时数或货币成本核算。",
+        "demonstrated_result": "公开预印本描述了已实现的Conduit运行时、Experience Data Plane设计、两个测试平台和作者报告的评估方案。这能确认作者报告了什么，但不能独立验证性能或收敛表现。",
+        "implementation_status": "论文描述了一个已实现并集成到RLlib的研究系统；附录还报告称已集成SRL和Verl。本次审阅未确认其已公开用于生产部署。",
+        "mechanism": "Conduit将强化学习经验的摄取、放置和交付作为显式运行时控制点。系统会测量带宽、内存和算子成本，在容量限制下把经验状态分布到CPU、GPU和节点层级，并在算法语义允许时安排和批处理摄取与交付，使其与环境交互和学习器更新重叠执行。",
+        "novelty": "该工作把经验路径本身作为运行时优化对象，并根据强化学习的语义约束联合优化数据放置和调度。",
+        "regime": "作者在两个集群上开展实验：主要RLlib测试使用NVIDIA A100集群，规模测试使用AMD MI250X超级计算机，最多扩展至1,024张GPU。主要比较涵盖DQN、SAC、PPO以及MountainCar、Multi-agent CartPole、Meta-World和Open X-Embodiment负载，配置为八个执行器和八个学习器。收敛曲线仅展示两项任务。",
+        "reproducibility": "arXiv论文公开了方法和结果，但本次审阅没有独立复现。最经济的下一步是在A100平台上运行固定版本的公开实现，复现第7.2节结果，然后检查规模测试日志或在MI250X级别的系统上复测。",
+        "strongest_baseline": "端到端延迟结果的基准是RLlib内置经验缓冲区，使用相同的所述算法、环境以及执行器和学习器数量。兼容时，Gear和Reverb用于其他放置或规模比较；它们不是1,024张AMD GPU结果的比较对象。"
+      },
+      "title": "Conduit将分布式强化学习的经验管理变为运行时优化面",
+      "why_it_matters": "如果报告的效果可以推广，把经验缓冲区视为可调度的数据平面，可能降低大型分布式强化学习和模型后训练中的重要瓶颈。论文报告称，当经验处理占迭代时间较大比例时，端到端收益更明显；on-policy的新鲜度要求会限制收益。目前仍缺少独立复现和更广泛的迁移测试。"
+    },
     "FCMO-19BFDD9D0FE6": {
       "claims": [
         {
@@ -7868,6 +7933,62 @@
       },
       "title": "Anthropic 报告称，若干案例中出现了由 AI 编排的网络行动和闭环恶意软件适应",
       "why_it_matters": "如果报告所述工作流属实，模型辅助的侦察、基础设施搭建以及依据检测结果调整工具，可能改变防御者需要监测的工作量和可用于响应的时间。该报告提供了具体的第一方案例描述，但没有确立事件普遍程度、AI 带来的因果能力提升、攻击者人力的实测下降或对策的有效性。"
+    },
+    "FCMO-686934293815": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "Apple于2026年九月22日发布的更新宣布，搭载M5 Ultra的Mac Studio已上市，配置最高可达512 GB统一内存和1.2 TB/s内存带宽。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Apple称，多台Mac Studio通过Thunderbolt 5和RDMA连接后，分布式AI推理性能最高可达单台系统的3×。"
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION",
+          "text": "所查阅的产品页面没有说明这一最高3×对比所用的集群规模、模型、负载、指标、质量目标、功耗或系统成本口径。"
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION",
+          "text": "本次审阅没有完成独立基准测试，也未复现Apple关于RDMA集群推理性能的说法。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "本次审阅尚无独立复现验证Apple关于RDMA集群最高3×推理性能的说法。",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "所查阅的文章没有说明RDMA加速结果及成本、能耗扩展曲线背后的具体负载和配置。",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "如果已上市的M5 Ultra配置和Apple声称的RDMA集群加速能支持实用的本地推理负载，桌面设备的大容量统一内存可能影响本地AI部署和小型集群设计。这是值得关注但受价格和负载限制的基础设施变化；所称3×效果尚未得到独立验证。",
+      "limitations": [
+        "最高3×推理性能来自Apple的说法；查阅的来源没有明确负载、集群规模、模型、质量目标或衡量指标。",
+        "本次没有进行独立测试来测量性能、能耗、可靠性或每次有效推理成本。",
+        "Apple公布的M5 Ultra Mac Studio 512 GB配置在美国起售价为5,499美元，并称该配置预计于十月底推出；设备价格和集群扩展方式会影响可行性。",
+        "相较单台设备提升3×的分布式推理速度，并不能证明线性扩展、更高能效、更低令牌成本或优于GPU服务器。",
+        "Apple披露的七月测试及宣传的AI性能比较均由公司自行完成；本次未检查其链接的详细测试方法。"
+      ],
+      "relationships": [],
+      "summary": "Apple于2026年九月22日在Newsroom更新中宣布，搭载M5 Ultra的Mac Studio已上市，配置最高可达512 GB统一内存和1.2 TB/s内存带宽。Apple还称，Thunderbolt 5配合RDMA可使多台Mac Studio的分布式推理性能最高达到单台系统的3×。产品发布和规格属于可查验的一手事实；性能提升则是Apple的说法，所查阅页面没有列明模型、集群规模、指标、功耗或成本口径。本次没有进行独立基准测试，也未开展匹配成本分析。",
+      "technical": {
+        "claimed_result": "Apple声称，多台Mac Studio组成集群后，分布式AI推理速度最高可比单台系统快3×。文章还宣传M5 Ultra的AI性能最高提升4.3×，但正文没有说明比较对象；本记录不把该数字视为独立测量结果。",
+        "compute_or_cost": "Apple公布搭载M5 Ultra的Mac Studio在美国起售价为5,499美元；所查阅文章没有给出多机集群总价、功耗或单次推理成本。",
+        "demonstrated_result": "官方产品公告列明了M5 Ultra上市、最高512 GB统一内存、1.2 TB/s带宽及Thunderbolt 5 RDMA支持。这些产品信息不能独立验证宣传的推理加速效果。",
+        "implementation_status": "Apple宣布Mac Studio自2026年九月22日起发售，并称512 GB配置将于十月底上市。",
+        "mechanism": "Apple介绍了配备M5 Ultra、最高512 GB统一内存和1.2 TB/s带宽的Mac Studio，并称Thunderbolt 5 RDMA可连接多台Mac Studio用于分布式推理。",
+        "novelty": "把大容量统一内存的Apple Silicon桌面配置与Thunderbolt 5 RDMA多机推理这一厂商性能主张结合起来。",
+        "regime": "搭载M5 Ultra的Mac Studio；宣传的最高配置为512 GB统一内存和1.2 TB/s带宽。分布式推理结果仅被描述为多台设备经Thunderbolt 5 RDMA连接后与单台设备的比较。",
+        "reproducibility": "官方规格与说法可供查阅。本次没有运行多系统测试。最经济的下一步是使用固定版本模型进行复现，并报告集群规模、质量、吞吐量、延迟、功耗和采购成本，再与单台M5 Ultra比较。",
+        "strongest_baseline": "Apple称最高3×的分布式推理结果是多台系统与单台系统的比较，但所查阅页面没有说明集群规模、模型、负载、具体指标或其他匹配条件。"
+      },
+      "title": "Apple推出512 GB M5 Ultra桌面设备，并称RDMA集群可加速推理",
+      "why_it_matters": "最高512 GB统一内存的桌面设备可能让部分大型模型本地推理和多机实验更容易开展，而无需传统GPU服务器。如果Apple的RDMA加速在实用负载中成立，集群方案可能改变本地推理的能力和经济性；所查阅来源没有说明达到该结果所用的模型或价格性能条件。"
     },
     "FCMO-68F37C6D8C5C": {
       "claims": [
