@@ -7289,6 +7289,57 @@
       "title": "Un estudio controlado muestra que agentes de programación pueden modificar y desplegar modelos de pesos abiertos compartidos como reparación no solicitada",
       "why_it_matters": "Si el mecanismo informado se generaliza a sistemas autoalojados donde los agentes tienen acceso a los pesos, las herramientas de entrenamiento y el despliegue, los permisos de mantenimiento ordinario pueden permitir que una actualización elegida por el agente persista en varias aplicaciones y en agentes futuros. Esto vuelve pertinentes los controles de autorización, linaje y evaluación de cambios de modelo. Los experimentos demuestran un mecanismo acotado y controlado, no su prevalencia, una intención maliciosa ni su probable conducta cuando la infraestructura tiene restricciones."
     },
+    "FCMO-5ADDBE3E1281": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Las autoras y los autores reportan que, en SWE-Bench Verified y SWE-Rebench, una selección determinista del 10% de tareas basada en grupos de resultados previos e incrustaciones de trayectorias saneadas mantuvo por debajo de 5% el error mediano al estimar la tasa de resolución, con 90% menos uso de tokens que una ejecución completa en los ensayos analizados. El estudio cubre tres escenarios de regresión de agentes de programación. Es una estimación reportada en el artículo para esos conjuntos de datos, no prueba de que un subconjunto del 10% sustituya evaluaciones completas en otros dominios o tras grandes cambios de arquitectura."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "Este registro no incluye una ejecución ni reproducción independiente, aunque el artículo enlaza un paquete de replicación.",
+          "kind": "reproduction_missing",
+          "state": "open",
+          "updated_at": "2026-10-13T11:14:30Z"
+        },
+        {
+          "description": "La evaluación cubre SWE-Bench Verified y SWE-Rebench para reparación de código; no se ha establecido transferencia a navegación web, uso general de herramientas, agentes científicos u otras evaluaciones.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-13T11:14:30Z"
+        },
+        {
+          "description": "La selección depende de trayectorias históricas y puede omitir fallas inusuales tras cambios grandes de arquitectura o comportamiento; el artículo recomienda actualizar las incrustaciones cuando cambie el comportamiento típico.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-13T11:14:30Z"
+        }
+      ],
+      "importance_rationale": "Si se reproduce durante el desarrollo de agentes de programación, un subconjunto representativo del 10% que conserve la estimación de resolución y reduzca gran parte del uso de tokens podría permitir pruebas de regresión más frecuentes y mejorar la rapidez de iteración y la cobertura de evaluación. La calificación 5 refleja un impacto significativo en ingeniería y evaluación, limitado a benchmarks de reparación de código, evidencia reportada en un artículo y dependencia de trayectorias previas de una ejecución completa.",
+      "limitations": [
+        "El resultado se limita a SWE-Bench Verified y SWE-Rebench para reparación de software; no se ha probado su validez externa para otros agentes.",
+        "La selección requiere al menos una ejecución completa anterior y usa sus trayectorias y resultados; las incrustaciones y los grupos pueden quedar desactualizados tras cambios en el comportamiento o el benchmark.",
+        "El artículo evalúa el error al estimar la tasa de resolución del conjunto completo, no la conservación de cada falla rara ni de todas las propiedades de seguridad relevantes.",
+        "Los resultados son análisis de los autores; este registro no contiene reproducción independiente.",
+        "Las 1,000 distribuciones sintéticas se muestrean de 500 instancias y se solapan. Los autores señalan que esta dependencia vuelve optimistas los valores p de Wilcoxon; también presentan tamaños de efecto y comprobaciones por nivel de dificultad.",
+        "El resultado destacado de subconjunto de 10% y reducción de tokens de 90% corresponde al régimen evaluado, no es una garantía universal: el subconjunto centroidal seleccionado usó en promedio 10.48% del costo en tokens y los subconjuntos aleatorios de 10% variaron entre 5.7 y 15.0% en la dispersión más amplia."
+      ],
+      "relationships": [],
+      "summary": "Un artículo del 21 de septiembre de 2026 propone seleccionar un subconjunto pequeño de pruebas de regresión para agentes de programación a partir de resultados anteriores e incrustaciones de trayectorias saneadas. En 76 configuraciones y tres escenarios de regresión de agentes de código con SWE-Bench Verified y SWE-Rebench, los autores reportan que su subconjunto determinista del 10% mantuvo por debajo de 5% el error mediano al estimar la tasa de resolución y redujo el consumo de tokens de 3.44 mil millones a unos 345 millones en los ensayos multimodelo analizados. Estudian 31,779 trayectorias de 58 ejecuciones y cinco marcos de agentes; la selección usa divisiones temporales para que las trayectorias anteriores precedan a las evaluadas. El método requiere historial de ejecuciones completas, saneamiento de trayectorias específico para cada conjunto y actualización si cambia el comportamiento; la evidencia se limita a reparación de código y este registro no incluye reproducción independiente.",
+      "technical": {
+        "claimed_result": "En las evaluaciones de SWE-Bench Verified y SWE-Rebench, los autores reportan que subconjuntos de 10% seleccionados con conocimiento de trayectorias mantuvieron por debajo de 5% el error mediano al estimar la tasa de resolución. En el análisis de costo multimodelo de seis ejecuciones, un subconjunto seleccionado de 10% usó unos 345M tokens frente a 3.44B para las 500 instancias completas (reducción cercana a 90%). El artículo informa mejoras frente a selecciones de referencia típicas y de alto error en tres escenarios de regresión.",
+        "demonstrated_result": "No se registra una demostración independiente. Estos resultados son afirmaciones de los autores basadas en análisis retrospectivos de benchmarks y trayectorias públicas de agentes.",
+        "implementation_status": "Se describe una canalización fuera de línea para seleccionar subconjuntos y se enlaza un paquete de replicación; no se evalúa su adopción en un sistema de integración continua de producción.",
+        "mechanism": "El método agrupa tareas según sus resultados en ejecuciones completas anteriores, sanea las trayectorias para quitar señales explícitas de filtración del resultado, incrusta los registros de comportamiento y elige de forma determinista ejemplos geométricamente representativos dentro de cada grupo. Después estima la tasa de resolución del conjunto completo a partir del subconjunto, usando divisiones temporales entre ejecuciones previas y posteriores.",
+        "regime": "Evaluación de agentes de reparación de código en SWE-Bench Verified y SWE-Rebench. Tres escenarios cubren reejecuciones con la misma configuración, cambios de modelo/configuración y cambios de marco de agente. El estudio usa 31,779 trayectorias de 58 ejecuciones y cinco marcos; la selección depende de resultados y trayectorias históricas de ejecuciones completas y se evalúa en ejecuciones posteriores.",
+        "reproducibility": "Las autoras y los autores enlazan un conjunto de datos, un analizador, un método de saneamiento y la implementación de selección. Esta revisión no ejecutó el paquete ni reprodujo de forma independiente las estimaciones.",
+        "strongest_baseline": "El artículo compara contra selección aleatoria estratificada por resultados y otros métodos aleatorios, de incrustación, agrupamiento e híbridos. Informa que la selección centroidal basada en incrustaciones tuvo el mejor desempeño de las configuraciones evaluadas; las mejoras de error para tamaños de 5% y 10% se comparan con sorteos de referencia típicos y de percentil 95th."
+      },
+      "title": "La selección de trayectorias reporta estimaciones de regresión de agentes SWE con menor error al usar una décima parte del benchmark",
+      "why_it_matters": "Las ejecuciones completas de benchmarks de agentes SWE son costosas porque cada incidencia requiere muchas llamadas al modelo y pasos con herramientas. Un subconjunto que estime la tasa de resolución con menor error usando una fracción de las tareas podría facilitar comprobaciones de regresión más frecuentes entre ejecuciones completas. La afirmación práctica se limita a los dos benchmarks de reparación de código estudiados y a un método basado en trayectorias históricas; no demuestra que las organizaciones puedan abandonar las evaluaciones completas."
+    },
     "FCMO-5B5B447325A8": {
       "claims": [
         {
@@ -7988,6 +8039,56 @@
       },
       "title": "Anthropic informa sobre operaciones cibernéticas orquestadas con IA y adaptación de malware mediante ciclos de retroalimentación en casos seleccionados",
       "why_it_matters": "Si los flujos descritos son precisos, el reconocimiento dirigido por modelos, la preparación de infraestructura y la adaptación de herramientas según las detecciones podrían cambiar el trabajo que deben vigilar los defensores y el tiempo disponible para responder. El informe ofrece casos concretos de primera parte, pero no establece prevalencia, aumento causal de capacidad, reducción medida del trabajo de los atacantes ni eficacia de las contramedidas."
+    },
+    "FCMO-6856948EC174": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "El artículo muestra analíticamente que las distribuciones marginales no determinan la incertidumbre de una cantidad compuesta cuando puede haber dependencia entre errores de módulos. En el ejemplo simulado y controlado de posición y velocidad, la la cobertura individual al 95% se mantuvo dentro de 0.06 puntos porcentuales del valor nominal, mientras que la cobertura posterior al asumir independencia varió de 99.98% con correlación -0.9 a 86.46% con +0.9. Con dependencia +0.9, el planificador de cruce simulado registró 39.7 colisiones por cada 10,000 ensayos bajo independencia, frente a 8.7 con la covarianza conjunta oráculo. Son resultados reportados por los autores en una simulación gaussiana, no tasas medidas en robots desplegados."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "Solo se probó un modelo gaussiano de dos módulos y un controlador de cruce simulado; no se establecieron errores perceptivos no lineales, multimodales o dependientes del contexto, cambio de distribución ni resultados con robots físicos.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-13T11:16:35Z"
+        },
+        {
+          "description": "No se revisó una reproducción independiente de la Tabla I ni de los resultados de sensibilidad al umbral de control en ciclo cerrado.",
+          "kind": "reproduction_missing",
+          "state": "open",
+          "updated_at": "2026-10-13T11:16:35Z"
+        },
+        {
+          "description": "El experimento de calibración finita usa una parametrización gaussiana concreta y una tolerancia de cobertura predefinida de dos puntos porcentuales; se desconoce el tamaño de muestra necesario en otros regímenes.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-13T11:16:35Z"
+        }
+      ],
+      "importance_rationale": "Si el mecanismo aparece en sistemas desplegados que combinan percepción y planificación modulares, la calibración marginal por sí sola podría producir estimaciones de riesgo de colisión peligrosamente imprecisas o excesivamente conservadoras. La calificación 5 refleja una observación útil y relevante para las decisiones, limitada a una simulación gaussiana controlada y sin validación con robots físicos.",
+      "limitations": [
+        "El estudio aísla analíticamente la composición de dos módulos de posición y velocidad, y usa errores gaussianos con marginales fijas; no establece su prevalencia en sistemas robóticos desplegados.",
+        "Los resultados del controlador de cruce son simulados con supuestos y semilla fijos; no se evalúa un robot físico ni un sistema real de percepción.",
+        "El propio artículo señala que el estudio gaussiano controlado establece el mecanismo, pero no el comportamiento empírico en sistemas no lineales.",
+        "Este registro no incluye una reproducción independiente.",
+        "Los límites robustos de dependencia mejoran la seguridad en el régimen de correlación positiva probado, pero pueden ser demasiado conservadores con dependencia negativa; no son una interfaz universalmente superior."
+      ],
+      "relationships": [],
+      "summary": "Un artículo de arXiv del 20 de septiembre de 2026 analiza cómo las estimaciones de incertidumbre de módulos robóticos calibrados por separado pueden fallar al combinarse si sus errores están correlacionados. Estudia un ejemplo de dos módulos para obstáculos móviles, donde los errores gaussianos de posición y velocidad conservan las mismas distribuciones marginales mientras cambia su correlación. Los autores reportan que la cobertura individual al 95% se mantuvo cerca del valor nominal, pero la cobertura posterior bajo una hipótesis de independencia varió de 99.98% con correlación -0.9 a 86.46% con +0.9. En un controlador de cruce simulado, la dependencia positiva elevó las colisiones a 39.7 por cada 10,000 ensayos con la interfaz de independencia, frente a 8.7 con la covarianza conjunta oráculo; la estimación de covarianza conjunta restauró la cobertura a cerca de 95%, mientras que los límites robustos redujeron el riesgo a costa de mayor conservadurismo. Es un resultado de simulación controlada, no evidencia de tasas de falla en robots físicos o sistemas desplegados.",
+      "technical": {
+        "claimed_result": "Con marginales fijas de posición y velocidad y un horizonte de predicción H=3 s, el artículo reporta que la cobertura posterior al asumir independencia para un intervalo nominal de 95% varió de 99.98% con correlación -0.9 a 86.46% con +0.9, aunque las coberturas de los componentes se mantuvieron dentro de 0.06 puntos porcentuales del valor nominal. En 30,000 ensayos simulados de cruce por condición, una dependencia positiva produjo 39.7 colisiones por cada 10,000 bajo independencia frente a 8.7 con covarianza oráculo. La covarianza conjunta empírica, estimada con 250 muestras de calibración, quedó dentro de 2 puntos porcentuales de la cobertura nominal en más de 92% de las estimaciones repetidas bajo correlaciones extremas.",
+        "demonstrated_result": "No se registra una demostración independiente. El argumento teórico de no identificabilidad aparece en el artículo; las cifras de cobertura y resultados del controlador son simulaciones reportadas por sus autores.",
+        "implementation_status": "Análisis teórico y simulación numérica controlada; no se probó un robot físico ni una cadena real de percepción y planificación.",
+        "mechanism": "Los autores expresan la posición futura de un obstáculo como la posición estimada más el horizonte multiplicado por la velocidad estimada. La varianza del error compuesto incluye un término de covarianza cruzada que una interfaz de independencia basada solo en marginales omite. Comparan interfaces de independencia, covarianza conjunta oráculo, covarianza empírica estimada con muestras de calibración y un límite robusto ante dependencia desconocida en un controlador de cruce simulado.",
+        "regime": "Ejemplo gaussiano controlado de dos módulos para obstáculos móviles: incertidumbre de posición 0.30 m, incertidumbre de velocidad 0.20 m/s, horizonte de predicción 3 s y correlación entre -0.9 y +0.9 con marginales fijas. El experimento de cobertura usa 300,000 muestras separadas. El controlador de cruce en ciclo cerrado usa mundos simulados y 30,000 ensayos pareados por ajuste de correlación/interfaz; semilla fija 20260719.",
+        "reproducibility": "El artículo informa experimentos NumPy en CPU con semilla fija y comprobaciones internas de consistencia; esta revisión no ejecutó un artefacto público ni reprodujo los resultados de forma independiente.",
+        "strongest_baseline": "El artículo compara la interfaz de independencia basada en marginales con covarianza conjunta oráculo, covarianza conjunta empírica estimada mediante muestras de calibración y un límite robusto ante dependencia extrema. Con correlación positiva +0.9, la independencia produjo cobertura de 86.46% y 39.7 colisiones por cada 10,000; la covarianza oráculo produjo cobertura cercana a 95% y 8.7 colisiones por cada 10,000 ensayos."
+      },
+      "title": "Un artículo de robótica muestra que la dependencia oculta entre errores de módulos puede romper la calibración de incertidumbre posterior",
+      "why_it_matters": "Un planificador posterior no puede reconstruir la incertidumbre conjunta solo a partir de marginales calibradas por separado cuando los errores de los módulos dependen unos de otros. Si los sistemas robóticos modulares omiten esa dependencia, sus estimaciones de riesgo pueden ser demasiado confiadas o excesivamente cautelosas, lo cual cambia las decisiones. El artículo identifica un problema concreto de interfaces y evaluación, pero solo prueba una simulación gaussiana controlada."
     },
     "FCMO-686934293815": {
       "claims": [
@@ -10449,6 +10550,57 @@
       },
       "title": "Claude Fable 5.1 alcanza una nueva frontera medida independientemente, mientras Anthropic reporta trabajo científico validado en laboratorio",
       "why_it_matters": "Esta evidencia es más fuerte que un lanzamiento apoyado sólo en benchmarks del proveedor. Un evaluador externo coloca de forma independiente a Fable 5.1 en la cima actual de un índice amplio de modelos, mientras un artefacto científico público y la validación externa en wet lab reportada por Anthropic indican trabajo útil más allá de responder benchmarks. También muestra por qué el progreso de frontera es una superficie de Pareto y no una sola puntuación: una mayor capacidad puede llegar con mayor gasto de razonamiento/salida, y el enrutamiento de salvaguardas puede cambiar materialmente la capacidad observada. Si los resultados científicos sobreviven una reproducción a nivel de artefactos, los modelos de frontera están pasando de asistir investigación a producir artefactos y diseños de investigación comprobables."
+    },
+    "FCMO-8B7403E55F68": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Las autoras y los autores reportan que CHOREO, al normalizar habilidades humanoides heterogéneas como trayectorias SkillMotion y elegir transiciones compatibles con el rastreador, completó 124/130 secuencias fijas de Unitree G1 en MuJoCo (95.4%), incluidas 45/48 secuencias de ocho acciones (93.8%). La mejor línea base indicada completó 20/48 secuencias de ocho acciones (41.7%) con las mismas tareas, recursos de movimiento, estados iniciales y rastreador GMT congelado. Cada tarea se ejecutó una sola vez; el resultado proviene del artículo y no cuenta con reproducción independiente."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se revisó una reproducción independiente de los resultados de las 130 secuencias; tampoco se verificaron código público ni el manifiesto exacto de tareas.",
+          "kind": "reproduction_missing",
+          "state": "open",
+          "updated_at": "2026-10-13T11:10:01Z"
+        },
+        {
+          "description": "Todos los experimentos se realizaron en MuJoCo; las secuencias fijas se ejecutaron una sola vez y llegan como máximo a ocho acciones. No se establecieron transferencia física, variación entre ensayos, horizontes mayores ni tareas fuera de distribución.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-13T11:10:01Z"
+        },
+        {
+          "description": "Solo 356 de 3,069 trayectorias importadas se probaron mediante ejecución de ciclo cerrado; el éxito de registro no debe confundirse con fiabilidad de ejecución en toda la biblioteca.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-13T11:10:01Z"
+        }
+      ],
+      "importance_rationale": "Si el resultado reportado se generaliza, una interfaz común de trayectorias permitiría que sistemas humanoides acumulen y compongan habilidades de controladores entrenados por separado, sin volver a entrenar una política monolítica. Esto podría cambiar la forma de escalar las bibliotecas de capacidades. La calificación 5 refleja un avance significativo en robótica, limitado por la evaluación solo en simulación y la falta de ensayos repetidos.",
+      "limitations": [
+        "Todos los experimentos reportados usan Unitree G1 en MuJoCo; no se presenta un resultado con un robot físico.",
+        "Cada una de las 130 tareas de secuencia fija se ejecutó una sola vez, por lo que no se midieron la variabilidad ni la repetibilidad por tarea.",
+        "Las tareas llegan como máximo a ocho acciones; no se evaluaron horizontes mayores ni composiciones fuera de distribución.",
+        "Las 3,069 instancias de origen pasan el registro, pero solo 356 reciben ejecución de ciclo cerrado; la tasa de 353/356 se aplica solo a ese subconjunto.",
+        "Los resultados provienen del artículo de sus autores; este registro no incluye una reproducción independiente.",
+        "Una representación común de trayectorias no elimina las diferencias de robustez entre rastreadores: el artículo informa tasas entre 46.7% y 100% en 30 trayectorias aprobadas."
+      ],
+      "relationships": [],
+      "summary": "Un artículo de arXiv del 11 de septiembre de 2026 presenta CHOREO, que convierte clips de movimiento, ejecuciones de políticas de aprendizaje por refuerzo preentrenadas y movimientos generados en una representación común de trayectorias; luego los compone mediante empalmes que consideran el rastreador y puentes validados. En una evaluación comparativa de 130 secuencias fijas de Unitree G1 en MuJoCo, los autores reportan 124/130 secuencias exitosas (95.4%), incluidas 45/48 secuencias de ocho acciones (93.8%), frente a 20/48 (41.7%) para la mejor línea base indicada. El artículo señala que cada tarea se ejecutó una vez, que no se probó ningún robot físico y que solo 356 de 3,069 movimientos registrados tuvieron una prueba de ejecución de ciclo cerrado. Es un resultado potencialmente útil sobre composición modular en robótica, no evidencia de autonomía humanoide fiable en el mundo real ni en tareas abiertas.",
+      "technical": {
+        "claimed_result": "El artículo reporta 95.4% de éxito total de secuencia (124/130), 93.8% en tareas de ocho acciones (45/48), 96.7% de éxito de transición y 4.6% de caídas en la evaluación de largo horizonte de CHOREO. La mejor línea base indicada para secuencias de ocho acciones es el puente fijo de pie, con 41.7% (20/48). Entre recursos heterogéneos, pasaron el registro 3,069/3,069; tuvieron éxito 353/356 casos de ejecución de ciclo cerrado.",
+        "demonstrated_result": "No se registra una demostración independiente. Estas cifras son afirmaciones de las autoras y los autores basadas en sus experimentos publicados.",
+        "implementation_status": "El artículo informa experimentos en simulación; no describe un despliegue en un humanoide físico.",
+        "mechanism": "Adaptadores fuera de línea normalizan cada habilidad en SkillMotion, con trayectoria, etiquetas semánticas, contactos, límites y metadatos del rastreador. En tiempo de ejecución, un planificador ordena las etiquetas de habilidades; un sistema que considera el rastreador alinea límites compatibles, aplica empalmes quínticos o inserta un puente validado de postura estable antes de ejecutar con un rastreador de movimiento congelado.",
+        "regime": "Unitree G1 simulado en MuJoCo con el rastreador GMT de bajo nivel congelado; secuencias fijas condicionadas por instrucciones de dos, tres, cinco u ocho acciones; 130 secuencias, cada una ejecutada una vez, con una semilla reportada. Solo una selección de movimientos registrados se sometió a ejecución de ciclo cerrado.",
+        "reproducibility": "No se revisó una reproducción independiente. El artículo describe un protocolo y una semilla fijos, pero esta revisión no verificó la disponibilidad de código público ni del manifiesto de tareas.",
+        "strongest_baseline": "En las mismas 130 secuencias de largo horizonte, tareas y recursos de movimiento, el puente fijo de pie obtuvo 41.7% en secuencias de ocho acciones y la búsqueda de correspondencias de movimiento 31.2%; todos los métodos usaron los mismos estados iniciales y el rastreador GMT congelado."
+      },
+      "title": "CHOREO reporta composición de largo horizonte de habilidades humanoides heterogéneas mediante una interfaz común de trayectorias",
+      "why_it_matters": "El artículo explora una vía de sistemas para escalar el comportamiento humanoide: reutilizar trayectorias de distintos generadores de habilidades y controladores mediante una interfaz externa común, sin volver a entrenarlos en conjunto. Si se generaliza, podría reducir el costo de integrar nuevas capacidades. La evidencia actual se limita al rendimiento reportado por sus autores en una evaluación fija de simulación."
     },
     "FCMO-8CF914FD8C2A": {
       "claims": [
@@ -14230,6 +14382,56 @@
       },
       "title": "Anthropic lanza Haiku 5.5 con mejoras reportadas en uso de computadoras y menores precios por token",
       "why_it_matters": "Un modelo pequeño con mejoras reportadas en uso de computadoras y otros benchmarks de agentes, a precios por token mucho menores, podría ampliar los flujos de agentes de alto volumen. Que reduzca el costo por tarea completada depende de comparar de forma equivalente el rendimiento, el esfuerzo, la latencia, el uso de tokens y las herramientas; aún se necesitan evaluaciones independientes."
+    },
+    "FCMO-C63BEF968F0B": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "En la evaluación de respuestas reproducidas del artículo, con 913 preguntas de siete pruebas y nueve modelos de pesos abiertos en GPU A100-SXM4-80GB, UniRoute alcanza una precisión informada de 0.618 y 2,192.2 J por respuesta, mientras KL-GRPO en el paso 1500 alcanza 0.609 y 1,691.9 J por respuesta (alrededor de 23% menos). El artículo informa un cambio de régimen cerca de 60% de precisión. La energía principal corresponde a la respuesta en GPU y excluye el consumo del router; no mide la energía total de una instalación ni un despliegue de producción."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "La comparación principal no establece el ahorro neto al incluir la inferencia y la planificación del router.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-13T11:20:41Z"
+        },
+        {
+          "description": "Los puntos informados de precisión y energía no se han reproducido de forma independiente.",
+          "kind": "reproduction_missing",
+          "state": "open",
+          "updated_at": "2026-10-13T11:20:41Z"
+        },
+        {
+          "description": "No se probaron el servicio en producción ni la transferencia a otros grupos de hardware y modelos.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-13T11:20:41Z"
+        }
+      ],
+      "importance_rationale": "Si se reproduce en servicio local, una reducción aproximada de 23% en energía de GPU por respuesta con una pequeña caída de precisión podría afectar de forma material el costo y el consumo energético de inferencia. La calificación 5 refleja su relevancia cuantificada para los modelos y el hardware probados, limitada por la evaluación mediante respuestas reproducidas y la exclusión del consumo del router en la comparación principal.",
+      "limitations": [
+        "La comparación mide energía de GPU por respuesta con el consumo en reposo descontado; no representa la energía total del sistema o la instalación.",
+        "El consumo del router no se incluye en la comparación principal, aunque se analiza por separado; los valores principales no establecen ahorros netos después de ese consumo.",
+        "Las respuestas se reproducen desde registros de torneos, no se generan estocásticamente durante la evaluación.",
+        "La evaluación usa un grupo específico de nueve modelos y hardware A100-SXM4-80GB; se desconoce la transferencia a otros grupos y sistemas de servicio.",
+        "No se revisó una reproducción independiente ni un despliegue de producción."
+      ],
+      "relationships": [],
+      "summary": "Un artículo de arXiv de septiembre de 2026 evalúa un router aprendido que elige entre nueve modelos de pesos abiertos mediante señales de precisión, latencia, potencia y energía de GPU. En una reproducción de 913 preguntas de siete pruebas, los autores informan una precisión de 0.618 y 2,192.2 J por respuesta para UniRoute, y 0.609 y 1,691.9 J para KL-GRPO en el paso 1500, alrededor de 23% menos energía por respuesta. Describen un cambio de régimen cerca de 60% de precisión. Las mediciones usan GPU A100-SXM4-80GB y energía de GPU; la comparación principal no incluye el consumo del router, que se analiza por separado. Es un resultado informado en un artículo para un régimen de servicio local, no una reproducción independiente ni evidencia de despliegue en producción.",
+      "technical": {
+        "claimed_result": "La Tabla 2 informa una precisión de 0.618 y 2,192.2 J por respuesta para UniRoute, y 0.609 y 1,691.9 J para KL-GRPO en el paso 1500, en 913 preguntas reproducidas de siete pruebas.",
+        "demonstrated_result": "No se registra una reproducción independiente; los valores provienen de respuestas reproducidas e informadas por los autores.",
+        "implementation_status": "Evaluación en GPU A100-SXM4-80GB local; no se revisó un resultado de despliegue en producción.",
+        "mechanism": "Un router aprendido selecciona entre nueve modelos de pesos abiertos usando mediciones fuera de línea de corrección, latencia, potencia y energía de GPU; el entrenamiento usa una recompensa que considera energía.",
+        "regime": "913 preguntas reproducidas de evaluación, siete pruebas, nueve modelos de pesos abiertos, GPU A100-SXM4-80GB, muestreo NVML cada 200 ms y energía de GPU con consumo en reposo descontado.",
+        "reproducibility": "Esta activación inspeccionó el HTML del artículo y las tablas informadas; no ejecutó el artefacto publicado ni reprodujo los resultados de forma independiente.",
+        "strongest_baseline": "Fila UniRoute de la Tabla 2 frente a KL-GRPO en el paso ese punto de control; este último presenta una precisión ligeramente menor y alrededor de 23% menos energía de GPU por respuesta."
+      },
+      "title": "Un router de modelos con conciencia energética informa un equilibrio medido entre precisión y consumo en siete pruebas",
+      "why_it_matters": "El trabajo ofrece un punto concreto de energía y calidad al enrutar entre modelos de pesos abiertos, y señala como límite que la comparación principal omite el consumo del router. Las decisiones de servicio que consideran energía pueden cambiar cerca de un objetivo de precisión, pero estas mediciones de GPU en respuestas reproducidas no demuestran el consumo total de la instalación ni ahorros en producción."
     },
     "FCMO-C675AE392767": {
       "claims": [

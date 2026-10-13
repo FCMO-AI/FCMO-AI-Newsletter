@@ -1,6 +1,150 @@
 [
   {
     "confidence": "credible_unconfirmed",
+    "demonstrated_result": "No independent reproduction is recorded; values are author-reported from replayed tournament answers.",
+    "desks": [
+      "evaluation_science",
+      "efficiency",
+      "compute_hardware"
+    ],
+    "development_type": "paper",
+    "event_at": "2026-09-23T00:00:00Z",
+    "evidence_class": "A",
+    "id": "FCMO-C63BEF968F0B",
+    "importance_effective_score": 5,
+    "importance_tier": "Notable",
+    "last_verified_at": "2026-10-13T11:20:41Z",
+    "mechanism": "A learned router selects among nine open-weight models using offline correctness, latency, power and GPU-energy measurements; training uses an energy-aware reward.",
+    "organizations": [],
+    "primary_desk": "evaluation_science",
+    "regions": [
+      "United States"
+    ],
+    "status": "active",
+    "strongest_baseline": "UniRoute Table 2 row compared with KL-GRPO step 1500; the latter has slightly lower accuracy and about 23% lower reported answer GPU energy.",
+    "summary": "A September 2026 arXiv paper evaluates a learned router that selects among nine open-weight models using accuracy, latency, power and GPU-energy signals. On a held-out replay set of 913 questions across seven benchmarks, the authors report UniRoute accuracy of 0.618 at 2,192.2 J per answer and a KL-GRPO checkpoint at accuracy 0.609 and 1,691.9 J, about 23% lower answer energy. They describe a phase transition near 60% accuracy. The measurements use A100-SXM4-80GB GPUs and GPU energy; the headline comparison does not include router energy, which is discussed separately. This is a paper-reported result for a local-serving regime, not independent reproduction or production deployment evidence.",
+    "title": "An energy-aware model router reports a measured accuracy–energy tradeoff across seven benchmarks",
+    "topics": [
+      "model routing",
+      "inference energy",
+      "evaluation",
+      "open-weight models"
+    ],
+    "why_it_matters": "The work gives a concrete energy–quality operating point for routing among open-weight models and makes the omitted router overhead visible as a boundary on the headline comparison. Energy-aware serving decisions may change near an accuracy target, but these GPU-only replay measurements do not establish total facility energy or deployed savings."
+  },
+  {
+    "confidence": "credible_unconfirmed",
+    "demonstrated_result": "No independent demonstration is recorded. The theoretical non-identifiability argument is given in the paper; numerical coverage and controller outcomes are author-reported simulation results.",
+    "desks": [
+      "evaluation_science",
+      "multimodality_world_models",
+      "agents_memory"
+    ],
+    "development_type": "paper",
+    "event_at": "2026-09-20T00:00:00Z",
+    "evidence_class": "A",
+    "id": "FCMO-6856948EC174",
+    "importance_effective_score": 5,
+    "importance_tier": "Notable",
+    "last_verified_at": "2026-10-13T11:16:35Z",
+    "mechanism": "The authors model future obstacle position as estimated position plus horizon times estimated velocity. The composed error variance includes a cross-covariance term; a marginal-only independence interface omits it. They compare independence, oracle joint covariance, empirical covariance estimated from calibration samples, and a dependence-robust bound in a simulated crossing controller.",
+    "organizations": [
+      "University of Delaware"
+    ],
+    "primary_desk": "evaluation_science",
+    "regions": [
+      "United States"
+    ],
+    "status": "active",
+    "strongest_baseline": "The paper compares the marginal-only independence interface against oracle joint covariance, empirical joint covariance estimated from calibration samples, and a worst-case dependence-robust bound. At positive correlation +0.9, independence gave 86.46% coverage and 39.7 collisions per 10,000 trials; oracle covariance gave about 95% coverage and 8.7 collisions per 10,000.",
+    "summary": "A September 20, 2026 arXiv paper analyzes how uncertainty estimates from separately calibrated robotic modules can fail when combined if their errors are correlated. It studies a two-module moving-obstacle example in which position and velocity errors share fixed Gaussian marginals while their correlation varies. The authors report that individual 95% coverage stayed near nominal, but downstream coverage under an independence assumption ranged from 99.98% at correlation -0.9 to 86.46% at +0.9. In a simulated crossing controller, positive dependence increased collisions to 39.7 per 10,000 trials under the independence interface versus 8.7 with oracle joint covariance; joint-covariance estimation restored coverage near 95%, while robust bounds reduced risk at a conservatism cost. This is a controlled simulation result, not evidence of failure rates in physical robots or deployed stacks.",
+    "title": "A robotics paper shows hidden cross-module error dependence can break downstream uncertainty calibration",
+    "topics": [
+      "robotics",
+      "uncertainty calibration",
+      "modular systems",
+      "risk-aware planning",
+      "correlated errors"
+    ],
+    "why_it_matters": "A downstream planner cannot reconstruct joint uncertainty from separately calibrated module marginals when their errors are dependent. If modular robotics systems omit this dependence, risk estimates can be too confident or overly cautious, changing decisions. The paper identifies a concrete interface and evaluation concern, but tests only a deliberately controlled Gaussian simulation."
+  },
+  {
+    "confidence": "credible_unconfirmed",
+    "demonstrated_result": "No independent demonstration is recorded. These findings are CLAIMED by the paper authors from offline benchmark analyses of public agent trajectories.",
+    "desks": [
+      "evaluation_science",
+      "agents_memory",
+      "efficiency"
+    ],
+    "development_type": "paper",
+    "event_at": "2026-09-21T00:00:00Z",
+    "evidence_class": "A",
+    "id": "FCMO-5ADDBE3E1281",
+    "importance_effective_score": 5,
+    "importance_tier": "Notable",
+    "last_verified_at": "2026-10-13T11:14:30Z",
+    "mechanism": "The method groups tasks by outcomes from prior full runs, sanitizes trajectory records to remove explicit result leakage, embeds behavior traces and deterministically chooses geometrically representative instances within outcome groups. It evaluates resolve rate on that subset as an estimate of the full suite, with temporal splits across earlier and later runs.",
+    "organizations": [
+      "Queen’s University",
+      "Concordia University"
+    ],
+    "primary_desk": "evaluation_science",
+    "regions": [
+      "Canada"
+    ],
+    "status": "active",
+    "strongest_baseline": "The paper compares with outcome-stratified random selection and other random, embedding, clustering and hybrid methods. It reports the centroid-based trajectory embedding method as best among the evaluated configurations; at 5%/10%, error gains are measured relative to typical and 95th-percentile baseline draws.",
+    "summary": "A September 21, 2026 paper proposes selecting a small regression-test subset for software-engineering agents from prior task outcomes and sanitized trajectory embeddings. Across 76 configurations and three code-agent regression scenarios using SWE-Bench Verified and SWE-Rebench, the authors report that their 10% deterministic subset kept median resolve-rate estimation error below 5% and reduced token consumption from 3.44 billion to about 345 million in the analyzed multi-model runs. They analyze 31,779 trajectories from 58 runs across five agent frameworks and use temporal splits so selection uses earlier runs than evaluation runs. The method requires prior full-run history, dataset-specific trajectory sanitization and refresh when behavior changes; evidence is limited to code-repair benchmarks and the paper has no independent reproduction in this record.",
+    "title": "Trajectory-aware selection reports lower-error SWE-agent regression estimates at one-tenth benchmark size",
+    "topics": [
+      "software engineering agents",
+      "agent evaluation",
+      "regression testing",
+      "benchmark selection",
+      "inference cost"
+    ],
+    "why_it_matters": "Full SWE-agent benchmark runs are expensive because each issue triggers many model calls and tool steps. A subset that estimates resolve rate with lower error at a fraction of task count could support more frequent regression checks between full runs. The practical claim is bounded to the paper’s two code-repair benchmarks and historical-trajectory setup; it does not establish that organizations can safely abandon full evaluations."
+  },
+  {
+    "confidence": "credible_unconfirmed",
+    "demonstrated_result": "No independent demonstration is recorded. These figures are CLAIMED by the authors from their paper experiments.",
+    "desks": [
+      "multimodality_world_models",
+      "agents_memory",
+      "evaluation_science"
+    ],
+    "development_type": "paper",
+    "event_at": "2026-09-11T00:00:00Z",
+    "evidence_class": "A",
+    "id": "FCMO-8B7403E55F68",
+    "importance_effective_score": 5,
+    "importance_tier": "Notable",
+    "last_verified_at": "2026-10-13T11:10:01Z",
+    "mechanism": "Offline adapters normalize each skill into SkillMotion, recording trajectory, semantic labels, contacts, boundaries and tracker metadata. At runtime, a planner sequences skill labels; a tracker-aware runtime aligns compatible boundaries, applies quintic seams, or inserts a validated standing bridge before execution through a frozen motion tracker.",
+    "organizations": [
+      "Ocean University of China",
+      "University of Chinese Academy of Sciences",
+      "Institute of Automation, Chinese Academy of Sciences"
+    ],
+    "primary_desk": "multimodality_world_models",
+    "regions": [
+      "China"
+    ],
+    "status": "active",
+    "strongest_baseline": "On the same 130 long-horizon sequences and task assets, fixed standing bridge reached 41.7% on eight-action sequences, while motion matching reached 31.2%; all methods used the same initial states and frozen GMT tracker.",
+    "summary": "A September 11, 2026 arXiv paper introduces CHOREO, which converts motion clips, pretrained RL rollouts and generated motions into a shared trajectory representation, then composes them with tracker-aware boundary matching and validated bridge motions. In a matched Unitree G1 MuJoCo benchmark of 130 fixed sequences, the authors report 124/130 successful sequences (95.4%), including 45/48 eight-action sequences (93.8%), compared with 20/48 (41.7%) for the strongest listed baseline. The paper reports one execution per task, no physical-robot tests, and closed-loop rollout for only 356 of 3,069 registered source assets. This is a potentially useful modular robotics result, not evidence of reliable real-world or open-ended humanoid autonomy.",
+    "title": "CHOREO reports long-horizon composition of heterogeneous humanoid skills through a shared trajectory interface",
+    "topics": [
+      "humanoid robotics",
+      "robot skill composition",
+      "trajectory interfaces",
+      "robotics systems",
+      "simulation evaluation"
+    ],
+    "why_it_matters": "The paper explores a systems path for scaling humanoid behavior: reuse trajectories from different skill generators and controllers through an external common interface, avoiding joint retraining. If it generalizes, this could lower the cost of integrating new capabilities. Its evidence currently establishes only author-reported simulation performance on a fixed benchmark."
+  },
+  {
+    "confidence": "credible_unconfirmed",
     "demonstrated_result": "The paper specifies the simulated environments, baseline implementations and evaluation protocol and reports safety, goal-reaching, success and latency measures. No result was independently verified in this activation.",
     "desks": [
       "inference_systems",
