@@ -1,6 +1,6 @@
 {
   "canonical_locale": "en",
-  "canonical_source_sha256": "0a31ac70722854bbf03c1e37d0c69d4f2fa3567cc1770f2c11937139f51708c9",
+  "canonical_source_sha256": "9e79063df7481f8dc3abd810c93ad136424bf67676d8e97505c00c4d186054a9",
   "generated_from": "ARB airlock; editorial wording authored upstream",
   "locale": "es-419",
   "records": {
@@ -9059,6 +9059,64 @@
       "title": "GraphSkillAA emplea grafos de habilidades direccionables y dos compuertas para actualizar habilidades de agentes de forma focalizada",
       "why_it_matters": "Si se reproduce de forma independiente, el método ofrece una forma concreta de actualizar procedimientos externos de agentes en objetos específicos del grafo, comprobar regresiones y revertir ediciones fallidas. Esto podría influir en el diseño de bibliotecas persistentes de habilidades. La evidencia actual abarca tres conjuntos de benchmarks y ejecuciones de API realizadas por los autores; no demuestra utilidad en despliegues, agentes de larga duración ni auto-mejora general."
     },
+    "FCMO-71A18CEA363D": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "Los autores definen un método de recuperación con procedencia de ejecución y lo evalúan en ISETrace, un corpus sintético de trayectorias de agentes y herramientas; el artículo informa una auditoría humana de 500 consultas de prueba."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En 2,000 consultas de prueba sobre 1,207 trayectorias retenidas, la puntuación Dense-FT equiparada con unidades de procedencia alineadas a las fuentes mejora Full Support@2048 en 19.07 puntos frente a ventanas planas de 512 tokens y en 11.96 puntos frente a un oráculo por métrica sobre cuatro tamaños de fragmento plano."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Al fijar las unidades candidatas y las puntuaciones iniciales, el residuo condicionado por grafo añade 4.55 puntos de Full Support@2048 (IC 95% [2.98, 6.18]); el artículo informa que el beneficio se concentra cuando la evidencia abarca varios eventos."
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "Los autores señalan que ISETrace es sintético y que la separación exacta de trayectorias no garantiza que no se repita texto de intención normalizado; no afirman que los enlaces observables del grafo demuestren dependencia causal."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "Nadie ha reproducido de forma independiente las mejoras informadas para la vista de candidatos ni para el residuo de grafo.",
+          "kind": "missing_independent",
+          "state": "open",
+          "updated_at": "2026-10-13T13:18:20Z"
+        },
+        {
+          "description": "El benchmark usa trayectorias sintéticas; se desconoce el rendimiento con historiales de agentes reales y tareas posteriores reales.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-13T13:18:20Z"
+        }
+      ],
+      "importance_rationale": "Si se reproduce de forma independiente con historiales reales de agentes, la recuperación de evidencia completa bajo un presupuesto fijo de tokens podría mejorar de manera importante la fiabilidad de agentes con contexto extenso. La separación controlada entre las mejoras por unidades alineadas a fuentes y las mejoras menores por grafo puede orientar decisiones de diseño de memoria. La puntuación 5 refleja la posible consecuencia para la investigación y la ingeniería, no la confianza en que el benchmark sintético se transfiera a otros contextos.",
+      "limitations": [
+        "Los hallazgos cuantitativos son informes de los autores; esta activación no ejecutó el código enlazado ni reprodujo el benchmark.",
+        "ISETrace es un corpus sintético con ejecuciones de agentes, por lo que los efectos medidos podrían no transferirse a historiales reales y diversos, otras herramientas o consultas de memoria.",
+        "Las consultas son redactadas por modelos y solo una muestra estratificada de 500 recibe validación humana; la auditoría no demuestra que todas las etiquetas de prueba sean correctas.",
+        "La separación de trayectorias controla la repetición exacta de trayectorias, pero no garantiza que no haya solapamiento de texto de intención normalizado.",
+        "El grafo de procedencia observado registra estructura de ejecución y reutilización léxica; no demuestra dependencia semántica o causal entre eventos.",
+        "La métrica de soporte completo mide recuperación de fragmentos anotados, no finalización fiable de tareas posteriores ni exactitud de respuestas fuera de un análisis limitado de transferencia."
+      ],
+      "relationships": [],
+      "summary": "Un artículo introduce Execution Provenance Graph Memory (EPGM) para recuperar evidencia completa de historiales extensos de ejecución de agentes bajo un presupuesto fijo de tokens. En 2,000 consultas sobre 1,207 trayectorias retenidas de ISETrace, los autores informan que las unidades de procedencia alineadas a las fuentes mejoran Full Support@2048 en 19.07 puntos frente a ventanas planas de 512 tokens y en 11.96 puntos frente a un oráculo por métrica en cuatro tamaños de fragmento plano, con puntuación Dense-FT equiparada. Al fijar unidades candidatas y puntuaciones iniciales, un residuo condicionado por grafo suma 4.55 puntos (IC 95% 2.98–6.18), sobre todo en consultas cuya evidencia abarca varios eventos. El corpus es sintético y los resultados son informes de los autores; no se hizo una reproducción independiente.",
+      "technical": {
+        "claimed_result": "En 2,000 consultas de prueba con fragmentos de evidencia identificados sobre 1,207 trayectorias retenidas, las unidades alineadas a fuentes mejoran Full Support@2048 en 19.07 puntos frente a ventanas planas de 512 tokens y en 11.96 puntos frente a un oráculo por métrica sobre cuatro tamaños de fragmento. Con candidatos y puntuaciones iniciales fijos, el residuo condicionado por grafo añade 4.55 puntos (IC 95% [2.98, 6.18]), principalmente cuando la evidencia abarca varios eventos.",
+        "demonstrated_result": "El artículo y el protocolo, las comparaciones y las limitaciones informadas pueden consultarse públicamente. Las mejoras cuantitativas de recuperación son informes de los autores y no se reprodujeron de manera independiente.",
+        "implementation_status": "Los autores informan que entrenaron un sistema de recuperación y enlazan código y datos en el artículo; en esta activación no se ejecutaron ni inspeccionaron de forma independiente esos recursos.",
+        "mechanism": "El método alinea argumentos y resultados de herramientas con unidades de procedencia respaldadas por su fuente, puntúa candidatos mediante recuperación densa y, opcionalmente, refina las puntuaciones con una red convolucional relacional residual inicializada en cero sobre aristas tipadas de ejecución. La evaluación separa el efecto de la vista de candidatos del residuo condicionado por grafo: primero equipara los puntuadores Dense-FT y luego fija candidatos y puntuaciones iniciales.",
+        "novelty": "El benchmark mide si todos los fragmentos necesarios caben dentro de un presupuesto estricto de tokens y usa coordenadas compartidas de origen para separar las ganancias por candidatos alineados a fuentes de las ganancias por reordenamiento mediante grafo.",
+        "regime": "Corpus sintético ISETrace; 2,000 consultas de prueba sobre 1,207 trayectorias de prueba separadas por trayectoria, con una muestra estratificada de 500 consultas auditada por personas. La métrica principal es el soporte completo de fragmentos de referencia dentro de 2,048 tokens. La evidencia procede de argumentos y resultados de herramientas ejecutadas; se desconoce la transferencia a historiales reales de agentes.",
+        "reproducibility": "El artículo especifica particiones, semillas, comparaciones pareadas e intervalos bootstrap, y enlaza código y datos. Aquí no se replicaron los resultados. Los autores señalan que las trayectorias son sintéticas y que separarlas no elimina el solapamiento de texto de intención normalizado.",
+        "strongest_baseline": "La comparación más sólida usa puntuación Dense-FT equiparada sobre ventanas planas de 512 tokens y un oráculo que elige por métrica el mejor de cuatro tamaños de fragmento plano. Para medir el aporte del grafo, usa el paso directo exacto de la puntuación inicial con las mismas unidades candidatas de procedencia. Así se separan la construcción de candidatos y el residuo de grafo aprendido."
+      },
+      "title": "Unidades alineadas a fuentes mejoran la recuperación de evidencia completa en un benchmark sintético de trazas",
+      "why_it_matters": "Si el resultado informado se generaliza, representar argumentos y resultados de herramientas como unidades alineadas a sus fuentes podría ayudar a la memoria de agentes a recuperar evidencia completa dentro de un presupuesto de contexto. Los controles equiparados sugieren que la mayor parte de la mejora medida proviene de construir candidatos, y una parte menor del razonamiento sobre el grafo. Esto puede cambiar el diseño y la evaluación de sistemas de memoria, pero el experimento usa trazas sintéticas y no demuestra rendimiento fiable en tareas posteriores de agentes reales."
+    },
     "FCMO-727CB05A3E39": {
       "claims": [
         {
@@ -10246,6 +10304,57 @@
       },
       "title": "AutoViewMem organiza la memoria conversacional de largo plazo en vistas semánticas aprendidas",
       "why_it_matters": "Los sistemas de memoria deben conservar preferencias, eventos, restricciones y cambios temporales sin mezclar hechos inconexos. AutoViewMem informa que trasladar la organización a la escritura y consolidación mejoró la recuperación y la personalización en dos pruebas. No demuestra resultados en memoria de investigación u operaciones, flujos con muchas correcciones, entradas adversarias ni cambios de distribución."
+    },
+    "FCMO-85B06151B695": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "Los autores publicaron un artículo que describe DolphinBench, un benchmark para evaluar la memoria de agentes mediante la finalización de tareas, no solo con preguntas y respuestas conversacionales que dan pistas."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El resumen describe tres perfiles de trabajo intelectual, cada uno con aproximadamente 500k tokens de mensajes y 200 tareas; se comprueba que cada tarea dependa del historial al exigir éxito con el historial pertinente y fracaso sin él."
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "Los autores indican que las evaluaciones deben informar costo total y latencia junto con la precisión; el resumen no demuestra que algún sistema sea superior ni valida la generalización externa."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se revisó el protocolo de creación, puntuación y validación de tareas más allá del resumen.",
+          "kind": "missing_primary",
+          "state": "open",
+          "updated_at": "2026-10-13T13:23:00Z"
+        },
+        {
+          "description": "No se estableció el rendimiento con historiales reales y diversos ni entre sistemas de memoria evaluados de forma independiente.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-13T13:23:00Z"
+        }
+      ],
+      "importance_rationale": "Si el benchmark es válido y se adopta, medir la finalización de tareas junto con costo y latencia puede cambiar la selección de sistemas de memoria y revelar compromisos entre calidad y eficiencia. La puntuación 4 refleja una contribución útil a la evaluación; no se ha establecido su validez amplia ni adopción.",
+      "limitations": [
+        "Esta activación revisó únicamente el resumen de arXiv; no se inspeccionaron el protocolo completo ni el artefacto.",
+        "El resumen no establece diversidad de tareas, realismo de los perfiles, fiabilidad de las anotaciones ni validación independiente.",
+        "Aquí no se afirma ningún resultado comparativo de sistemas de memoria.",
+        "Se desconoce la generalización más allá de los tres perfiles de trabajo intelectual y los historiales descritos."
+      ],
+      "relationships": [],
+      "summary": "Un artículo de septiembre de 2026 presenta DolphinBench, un benchmark que evalúa la memoria de agentes mediante la finalización de tareas de conocimiento que dependen de historiales extensos de conversación. El resumen describe tres perfiles con aproximadamente 500k tokens de mensajes cada uno y 200 tareas por perfil; cada tarea se comprueba comparando una ejecución del agente con y sin el historial pertinente. Los autores requieren que se informen costo total y latencia junto con precisión. Es un diseño de benchmark descrito por el artículo, no evidencia de que algún sistema de memoria mejore; el protocolo completo y la validación independiente no se revisaron en esta activación.",
+      "technical": {
+        "claimed_result": "El artículo describe tres perfiles con aproximadamente 500k tokens cada uno y 200 tareas por perfil; comprueba la dependencia de la tarea mediante ejecuciones con y sin el historial pertinente.",
+        "demonstrated_result": "El resumen y el diseño de evaluación que describe pueden consultarse directamente. En esta activación no se estableció ningún resultado comparativo de rendimiento ni se reprodujo el benchmark.",
+        "mechanism": "El benchmark prueba la memoria mediante tareas de agente que dependen de información contenida en historiales extensos. Cada tarea debería depender de ese historial, lo que se verifica al exigir éxito con el historial pertinente y fracaso sin él; las evaluaciones informan precisión, costo total y latencia.",
+        "novelty": "El benchmark se centra en completar tareas y exige informar costo y latencia junto con precisión, en lugar de depender solo de preguntas de recuperación con pistas.",
+        "regime": "Tres perfiles de trabajo intelectual y 200 tareas por perfil basadas en historiales extensos de mensajes; descripción revisada solo en el resumen. Se desconoce la generalización a usuarios reales, otros dominios e historiales no sintéticos.",
+        "reproducibility": "El resumen de arXiv está disponible; no se revisaron el protocolo completo, el artefacto publicado ni una reproducción independiente.",
+        "strongest_baseline": "El control declarado para cada tarea compara la misma tarea con y sin su historial pertinente. El resumen no informa resultados comparativos entre sistemas de memoria."
+      },
+      "title": "DolphinBench evalúa la memoria de agentes mediante tareas, costo y latencia",
+      "why_it_matters": "Si la construcción de tareas y controles del benchmark es válida, evaluar éxito, costo y latencia en conjunto podría revelar compromisos de los sistemas de memoria que la precisión en preguntas con pistas no muestra. El resumen respalda que existe un nuevo benchmark con el diseño descrito, pero no demuestra que las tareas se generalicen más allá de tres perfiles sintéticos ni que algún sistema alcance una frontera favorable."
     },
     "FCMO-85B87AA11EC5": {
       "claims": [
@@ -16025,6 +16134,79 @@
       },
       "title": "Embed-TTT informa estructura de reglas de tarea en incrustaciones ARC-like, con transferencia limitada fuera de distribución",
       "why_it_matters": "Las pruebas ARC-style suelen combinar la inferencia de una regla de tarea con su ejecución correcta, lo que dificulta interpretar una puntuación alta. Un método que sondee por separado la representación de tarea podría ayudar a distinguir esas capacidades y revelar cuándo la aparente generalización depende de reglas similares a las de entrenamiento. Los efectos informados son prometedores para el diseño de pruebas, pero su transferencia más allá de un modelo y de familias de reglas acotadas sigue abierta."
+    },
+    "FCMO-E09F0D62088C": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "Los autores publicaron un preprint y enlazaron un repositorio público de QAOPD con puntos de control de evaluación e instrucciones para evaluar los pesos publicados y reproducir la fase 1 de OPD."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Para cuatro modelos con pesos a 2.79 y 1.88 bits efectivos, los autores informan que OPD eleva la retención promedio de rendimiento BF16 en MATH-500 de 35% a 70% y en HumanEval de 66% a 91%, mientras conserva el desempeño en tareas breves."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El artículo informa que OPD supera QAD continuado en las 16 comparaciones con presupuesto equiparado de GSM8K, MATH-500, MBPP y HumanEval; ambos brazos comparten puntos de partida, corpus, cronogramas por fase, cantidad de pasos, tasas de aprendizaje y muestras por paso."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Para configuraciones seleccionadas, los autores informan que la recuperación con OPD usó menos horas de GPU que la inicialización QAD: 57 frente a 820 horas de GPU para Qwen3-4B a 1.88 bits, y 11 frente a 253 para Falcon3-1B-Instruct a 2.79 bits. Son etapas de entrenamiento distintas; estas cifras no demuestran menor costo total frente a otros procesos de despliegue."
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "Los principales experimentos de OPD usan una caché KV de 16 bits, mientras que la configuración EdgeRazor de 8 bits citada para comparación y los autores señalan que esta desviación favorece sus resultados."
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "El artículo informa que reprodujo la inicialización QAD con la receta publicada, pero usó un lote efectivo menor al indicado y omitió la regeneración docente sin conexión, que era opcional; las comparaciones QAD y OPD heredan esas desviaciones declaradas."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se ha completado una reproducción independiente de OPD, del control QAD equiparado ni de la evaluación de los puntos de control publicados.",
+          "kind": "missing_independent",
+          "state": "open",
+          "updated_at": "2026-10-13T13:11:00Z"
+        },
+        {
+          "description": "Los resultados principales de OPD usan una caché KV de 16 bits en vez de la configuración publicada de 8 bits; se desconoce el desempeño con una caché de 8 bits alineada al despliegue.",
+          "kind": "regime_unclear",
+          "state": "open",
+          "updated_at": "2026-10-13T13:11:00Z"
+        },
+        {
+          "description": "No se ha establecido la transferencia más allá de cuatro puntos de control pequeños o medianos y de las tareas seleccionadas de matemáticas, código y respuestas breves.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-13T13:11:00Z"
+        }
+      ],
+      "importance_rationale": "Si una reproducción independiente y una caché KV equiparada al despliegue confirman las mejoras de razonamiento de baja precisión informadas, el método podría mejorar de forma importante la capacidad por presupuesto de memoria de pesos en algunos modelos. La puntuación de cinco (5) refleja su posible consecuencia dentro del despliegue de baja precisión, no la confianza en el efecto informado ni su transferencia amplia.",
+      "limitations": [
+        "Los resultados de rendimiento y presupuesto de entrenamiento son informes de los autores; esta revisión no ejecutó el repositorio ni reprodujo ninguna tabla.",
+        "Los experimentos principales de OPD usan una caché KV de 16 bits, en vez de la configuración de 8 bits publicada; no demuestran directamente los mismos resultados con una ruta de despliegue totalmente compatible con KV de 8 bits.",
+        "El punto de partida QAD reproducido usa un lote efectivo menor que el de la receta publicada y omite la regeneración docente sin conexión que era opcional; las comparaciones heredan esas decisiones de implementación.",
+        "Los controles equiparados y los métodos de cuantización comparados fueron ejecutados por los autores; siguen pendientes la alineación independiente de baselines, la variación entre semillas y la replicación en otro hardware.",
+        "Las pruebas abarcan cuatro puntos de control y tareas fijas de matemáticas, código y QA; no se estableció la transferencia a modelos mayores, otras arquitecturas, otras tareas ni cargas de servicio reales.",
+        "Las comparaciones de horas de GPU corresponden a etapas de entrenamiento seleccionadas, no al costo total del proceso, latencia de inferencia, energía ni un modelo integral del costo de despliegue."
+      ],
+      "relationships": [],
+      "summary": "Un preprint de septiembre de 2026 estudia por qué la destilación con conocimiento de cuantización puede conservar respuestas breves y, aun así, deteriorar la generación extensa de matemáticas y código con pesos por debajo de 3 bits. Los autores añaden destilación en política (OPD): muestrean por la ruta cuantizada de despliegue y guían con el docente los prefijos que genera el propio estudiante, junto con verificadores de tareas. En modelos Qwen3 y Falcon3 a 2.79 y 1.88 bits efectivos de peso, informan mejores resultados en pruebas de matemáticas y código que los puntos de partida QAD, incluidos avances en las 16 comparaciones con un control QAD continuado y presupuesto equiparado. El repositorio QAOPD publicado enlaza puntos de control e instrucciones de reproducción. Estos resultados de pruebas son informes de los autores; la reproducción independiente sigue pendiente. El artículo también declara una salvedad de implementación: los brazos OPD principales usan una caché KV de 16 bits, no la configuración publicada de caché KV de 8 bits, y los autores indican que esa desviación favorece sus resultados.",
+      "technical": {
+        "claimed_result": "Con pesos efectivos de 2.79 y 1.88 bits, los autores informan mejores resultados en matemáticas y código tras OPD en Qwen3-0.6B, Qwen3-1.7B, Qwen3-4B y Falcon3-1B-Instruct. Informan que la retención BF16 promedio pasa de 35% a 70% en MATH-500 y de 66% a 91% en HumanEval; OPD supera el control QAD continuado de la Tabla 4 en las 16 comparaciones equiparadas. Las mejoras varían sustancialmente por modelo y tarea.",
+        "compute_or_cost": "Ejemplos de la etapa OPD usan 57 horas de GPU frente a 820 para la inicialización QAD en Qwen3-4B W1.88, y 11 frente a 253 en Falcon3-1B-Instruct W2.79. La comparación es entre etapas de entrenamiento; no establece el costo del proceso completo ni la energía o latencia del servicio.",
+        "demonstrated_result": "Se pueden consultar directamente el preprint, sus tablas y el repositorio público enlazado por los autores. Los resultados de pruebas y comparaciones de horas de entrenamiento son afirmaciones de los autores y no se reprodujeron de manera independiente en esta revisión.",
+        "implementation_status": "Los autores informan que entrenaron puntos de control y publicaron un repositorio con instrucciones para evaluación y reproducción de la fase 1 de OPD. No se ejecutó localmente ni se reprodujo de forma independiente.",
+        "mechanism": "El estudiante genera muestras mediante la ruta cuantizada de despliegue. Un docente BF16 congelado aporta orientación por token en prefijos de esas trayectorias, mientras verificadores puntúan la respuesta matemática final y la ejecución de pruebas de código. El proceso parte de QAD para obtener una política viable de baja precisión antes de la recuperación en política.",
+        "novelty": "El artículo aplica la orientación docente en política a trayectorias del estudiante generadas con cuantización de despliegue por debajo de 3 bits; combina supervisión densa por token con verificación de tareas para abordar errores que se acumulan fuera de los prefijos usados en el entrenamiento con docente forzado.",
+        "regime": "Cuatro puntos de control (Qwen3-0.6B, 1.7B y 4B; Falcon3-1B-Instruct), pesos efectivos de 2.79 y 1.88 bits, activaciones INT8 y embeddings/cabezas de salida INT4; conjuntos de matemáticas, código y respuestas breves. Los brazos OPD principales usan una caché KV de 16 bits. Es un experimento de preprint ejecutado por sus autores, no una evaluación de servicio en producción ni de familias amplias de modelos.",
+        "reproducibility": "El artículo incluye tablas detalladas y un repositorio enlazado por los autores con puntos de control e instrucciones. La ejecución independiente sigue pendiente. Los autores informan que usaron un lote efectivo menor y omitieron la regeneración docente opcional al reproducir QAD; OPD usa KV16 en lugar de la configuración publicada KV8, desviación que, según los autores, favorece sus resultados.",
+        "strongest_baseline": "El control directo más fuerte del artículo es continuar QAD desde el mismo punto de control, con corpus, cronogramas por fase, pasos del optimizador, tasa de aprendizaje y muestras por paso equiparados; se evalúa con GSM8K, MATH-500, MBPP y HumanEval (Tabla 4). La comparación adicional de métodos de cuantización usa Qwen3-1.7B con precisiones bajas alineadas, aunque algunos métodos usan anchos enteros mayores y difiere la precisión de embeddings/cabezas en pruebas generativas."
+      },
+      "title": "La destilación en política mejora la retención de razonamiento informada con pesos por debajo de 3 bits",
+      "why_it_matters": "Si las mejoras informadas se reproducen, entrenar con las trayectorias que recorre un modelo cuantizado podría recuperar parte de su razonamiento extenso y capacidad de programación a muy baja precisión de pesos, y mejorar la relación entre calidad y costo en inferencia limitada. El resultado se limita a cuatro familias o configuraciones de modelos y a los protocolos de pruebas del artículo; no establece una solución general de baja precisión ni una ventaja integral en despliegue."
     },
     "FCMO-E427EC36D447": {
       "claims": [
@@ -24549,6 +24731,48 @@
         "source_sha256": "1e23aa850c140c3b293ba552cd18b21ea3aedfebf5d51479183f7e150e5d7a14"
       }
     },
+    "FCMO-71A18CEA363D": {
+      "claims": {
+        "locale_sha256": "7f6a240073e9e204bc40fb132f3d7db464b88ad0ab9913840df7ca888c47bb16",
+        "source_sha256": "8f641df1ff5d9bc0e7c7d70182f2525aa296911d6df86f3f8b207bb58e01f2be"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "4cd484612f3c581122edc0dc536489c3067f0f88be83900cc16207ea88824ade",
+        "source_sha256": "8a85d1e6b45821d5963e38ca6c2985679be81cf59724a66e729481e1161cc64f"
+      },
+      "importance_rationale": {
+        "locale_sha256": "0216d084ce94654a37ec8bf41eb7ede60c8fa20c9fe4cf1e7a72337dbc65626b",
+        "source_sha256": "d8503da47fc73baea633f8b8ee4ae845c76d6cb3b5cbb72f04684fee7707a783"
+      },
+      "limitations": {
+        "locale_sha256": "cb6466fe9ee5ada0f32e4d461e342c8a169e907f4a7a3f0628afe80b6a09f9bf",
+        "source_sha256": "a2b18af75b04cca3a3f74fa1add05fd380d750a4b381532861928eeb6ab085f7"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "2525dfa9a291187e56e7078ca94750422c97ea158b2f529ffc3b72f7e697ea67",
+        "source_sha256": "f9f6a80dcb9c510a4159d234a19441fa24648f063a6aa03c1a553d1d6ce47696"
+      },
+      "technical": {
+        "locale_sha256": "db939148a06c201cc3f0ad6a5498227d524ad0f5a286140241d9f5b0de2ab942",
+        "source_sha256": "1cac7a82b2399ef5de06a943f25e419c1ca91575b7a3078e91d73f1ccd5809d8"
+      },
+      "title": {
+        "locale_sha256": "8bd40b6e9c54a8af8fc743443d245cd408556a2d8c5636b73d399073526a3778",
+        "source_sha256": "f58c3c6de896ba4c85aa380b7bf669bd5701fd2eab5b2e0d48d68f981f88dba9"
+      },
+      "why_it_matters": {
+        "locale_sha256": "a6c0df9b5b0349685a3754e29165273b47988b46d39e5fcf5fed2ddb32908a44",
+        "source_sha256": "58b4f19ccd959245fa844eca784a67e5a2a6fc788cd09de49bd1cf090310d245"
+      }
+    },
     "FCMO-727CB05A3E39": {
       "claims": {
         "locale_sha256": "c34e685f912c39dc6f1900d9d739c2e06c1cea4f176d973766a96b83de903639",
@@ -25443,6 +25667,48 @@
       "why_it_matters": {
         "locale_sha256": "0745e5f7029b736a14758cbe602960c7fba7f22ce34af8591ba3651dfd6f9937",
         "source_sha256": "c6f3633d621344fd9e880f4da63024c274676a7183d3175f67f2e53d7beb267b"
+      }
+    },
+    "FCMO-85B06151B695": {
+      "claims": {
+        "locale_sha256": "61e2c8260c7a4e416a8207c3dd9977c714bf63ca1cae978f785ffa85657696e9",
+        "source_sha256": "85f22243a9f9a4134f4e39d7ef8d63dc8f4e0116c6f41341d91aed5199355117"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "493f100761ef0a50a1e5dcf6f30c2d8d8e738ae210b52913c512c135472dd70f",
+        "source_sha256": "8b15e177a39ff39c61be86eaa8d4989230015a978b8ffffaf85f5ee15e479d8c"
+      },
+      "importance_rationale": {
+        "locale_sha256": "2f236e06ef797fb0680f0948a08d5210c74a790b588c54c05e690dfc6a4a4602",
+        "source_sha256": "9209ae20b239dc7591f42ea3bbfac06309cb582735dfbdddd601df1c3956a8bb"
+      },
+      "limitations": {
+        "locale_sha256": "a12633349ecd0adbf3c06b5515e8c1d86e21e3197f297d0d4599cc061e55b5a1",
+        "source_sha256": "c7c6021a496dd3a58ae1e50357e49dde57110dfa4225cadc7eed38f938483d5f"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "837598bb062547f13264bf0b1a175b99d343cefcca713f7f022b58c51651d0c6",
+        "source_sha256": "359a42a57cd28e82d58bd35d3de59a034b7164798a16f91f73e14b4bd670eaad"
+      },
+      "technical": {
+        "locale_sha256": "4d9c43a991ac822f9421d468de07642b76e4003cc749a49d61d8655bee3dd347",
+        "source_sha256": "ed4cef5e59afb1c539232392dd65b79d760049959d8b82224c19c9afc0745166"
+      },
+      "title": {
+        "locale_sha256": "cf576813a330b4c3e24a98e61a2922283dc62c30a821dd9721e2c4ad7a618533",
+        "source_sha256": "614ea7f0a2c77524129ef99ef62421c70ecf9f81b32906a321549a58f92c85fd"
+      },
+      "why_it_matters": {
+        "locale_sha256": "87d303d80d11882cab392e8213640aa0dee7cfaba2f5f8faa806439181af12dd",
+        "source_sha256": "cda595167d460f0de9e33a3c0dc9cec86a1446dab27d46563e94a3e842da486f"
       }
     },
     "FCMO-85B87AA11EC5": {
@@ -29867,6 +30133,48 @@
       "why_it_matters": {
         "locale_sha256": "a4693a757932a3c3cbb5b1e10df9a5c2d4ff8c99b58810872bcc0e8fad5a47ca",
         "source_sha256": "c90ffe5a1b7b651cddc18578ac96b85c8e3eac70a325a52e06f7ab3e4eec8357"
+      }
+    },
+    "FCMO-E09F0D62088C": {
+      "claims": {
+        "locale_sha256": "a4b51d158451f0178deecdfdaf9f6245c41a444e5e799f4ae551aa94d886b118",
+        "source_sha256": "2b9138ff2074f88b541e333e6ff20f8a71af0a3a0fc653f97a42e3bfc3c6ded2"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "60c13669a4ebaf510837114093f367852ad302bdfb74b97f04178e7431c39fe2",
+        "source_sha256": "02b4b74f63585b3a86fff36f6de9d87e57ff454c996281653683989105798162"
+      },
+      "importance_rationale": {
+        "locale_sha256": "88743f1d3355b412ce5db721cce12fef29439b4e8cf9b98ca919695140d6a2cb",
+        "source_sha256": "c656917af46c9a66a7c53a8ca5e6359224cb0c9a8ab99de6fd5610f75cd9a825"
+      },
+      "limitations": {
+        "locale_sha256": "8ecc0332ab2b5789a65b702ea52a0f6dbff5c8d3ef8f45925c5713825b77bebd",
+        "source_sha256": "b2d71161efad6eb9a950e90e86ba277d28131550f0d9caab9aa3f351ee0b2de2"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "7d1ae20c85764884d21b07573f3bab64848ef37fb861910d172b1a4af9431d9c",
+        "source_sha256": "a33bd7781076895493be6f1b378e5608786754483bc206c571649173d16648b5"
+      },
+      "technical": {
+        "locale_sha256": "c326b6490e4f67f9ce341b6ce964efc752cc66e4f0b0f6fa4e1513f46da141f5",
+        "source_sha256": "11d43245bbcb2a933909adbde7692b5987e83af941772741e84a9b6f1b926a61"
+      },
+      "title": {
+        "locale_sha256": "954fd262f6e70da447a1b1d85f82c1c2fdc44099d1cb39a8e6e7380e665880ae",
+        "source_sha256": "e112251f460ee62c5c831a3683c8b147f579b2c2788ae2dab95f0e3657be6b3e"
+      },
+      "why_it_matters": {
+        "locale_sha256": "c3ec7a53d2f455a6f8d348edb8b86cbd9e71a4cf7f324cec1df194077328a0e3",
+        "source_sha256": "14f019030fc58df82ab1aaa21d6218180f4488e581514da67ae2c36b8565a5bc"
       }
     },
     "FCMO-E427EC36D447": {

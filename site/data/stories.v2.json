@@ -1,7 +1,7 @@
 {
   "schema": "fcmo-stories-v2",
-  "generated_at": "2026-10-13T14:00:26Z",
-  "release_id": "newswire-5d0953a2185e5afab8faf1a6",
+  "generated_at": "2026-10-13T15:01:49Z",
+  "release_id": "newswire-b4899f2beb4b7b9ef5220e33",
   "canonical_locale": "en",
   "locales": [
     "en",
@@ -40,6 +40,745 @@
     "2026-10-13"
   ],
   "stories": [
+    {
+      "id": "FCMO-E09F0D62088C",
+      "slug": "on-policy-distillation-improves-reported-reasoning-retention-at-sub-3",
+      "url_date": "2026-10-13",
+      "kind": "development",
+      "status": "live",
+      "beat": "research",
+      "desk": "compute_inference",
+      "title": "On-policy distillation improves reported reasoning retention at sub-3-bit weights",
+      "headline": "On-policy distillation improves reported reasoning retention at sub-3-bit weights",
+      "dek": "A September 2026 preprint studies why quantization-aware distillation can preserve short-form answers yet leave long mathematical and code generations impaired at sub-3-bit weight precision.",
+      "summary": "A September 2026 preprint studies why quantization-aware distillation can preserve short-form answers yet leave long mathematical and code generations impaired at sub-3-bit weight precision. The authors add on-policy distillation (OPD), which samples through the deployment quantized path and applies teacher guidance to the student's own generated prefixes, alongside task verifiers. Across Qwen3 and Falcon3 models at 2.79 and 1.88 effective weight bits, they report higher math and code benchmark performance than the QAD starting checkpoints, including gains over a matched-budget continued-QAD control in all 16 reported comparisons. The released QAOPD repository links checkpoints and reproduction instructions. These remain author-reported benchmark results; independent reproduction is open. The paper also reports a material implementation caveat: OPD uses a 16-bit KV cache in the principal arms rather than the released 8-bit KV-cache configuration, a deviation the authors say favors their results.",
+      "why_it_matters": "If the reported gains reproduce, training on the trajectories a quantized model actually visits could recover some long-form reasoning and coding capability at very low weight precision, potentially improving the quality-cost frontier for constrained inference. The result is limited to four small-to-mid-sized model families/configurations and the paper's benchmark protocols; it does not establish a general low-bit solution or end-to-end deployment advantage.",
+      "importance_rationale": "If the reported low-bit reasoning recovery holds under independent reproduction and deployment-matched KV-cache conditions, it could materially improve inference capability per weight-memory budget for some model families. Score 5 reflects the potential consequence within low-bit deployment, not confidence in the reported effect or broad transfer.",
+      "technical": {
+        "claimed_result": "At 2.79 and 1.88 effective weight bits, the authors report higher math and code results after OPD across Qwen3-0.6B, Qwen3-1.7B, Qwen3-4B and Falcon3-1B-Instruct. They report average BF16 retention on MATH-500 rising from 35% to 70% and HumanEval from 66% to 91%; all 16 Table 4 matched-budget comparisons favor OPD over continued QAD. Gains vary materially by model and task.",
+        "compute_or_cost": "OPD-stage examples use 57 GPU-hours versus 820 for QAD initialization on Qwen3-4B W1.88, and 11 versus 253 on Falcon3-1B-Instruct W2.79. The comparison is between training stages; full pipeline cost and serving energy or latency are not established.",
+        "demonstrated_result": "The preprint, tables and author-linked public repository are directly inspectable. The reported benchmark outcomes and training-cost comparisons are CLAIMED by the authors, not independently reproduced in this activation.",
+        "implementation_status": "Authors report trained checkpoints and publish a repository with evaluation and OPD phase-1 reproduction instructions. No local execution or independent reproduction was done.",
+        "mechanism": "The student samples completions through its deployment quantized forward path. A frozen BF16 teacher supplies token-level feedback on prefixes from those sampled trajectories, while task verifiers score final-answer correctness in mathematics and test execution in code. The pipeline starts from QAD so that the low-bit policy remains viable before on-policy recovery.",
+        "novelty": "The paper applies on-policy teacher feedback to student trajectories generated under sub-3-bit deployment quantization, pairing dense token-level supervision with task verification to target errors that accumulate outside teacher-forced training prefixes.",
+        "regime": "Four model checkpoints (Qwen3-0.6B, 1.7B and 4B; Falcon3-1B-Instruct), 2.79 and 1.88 effective weight bits, INT8 activations and INT4 embeddings/output heads; math, code and short-form benchmark suites. Principal OPD arms use a 16-bit KV cache. This is an author-run preprint experiment, not a production-serving or broad model-family evaluation.",
+        "reproducibility": "The paper supplies detailed tables and an author-linked repository with checkpoints and instructions. Independent execution remains outstanding. The authors disclose a smaller effective batch and omitted optional offline regeneration in QAD reproduction; OPD uses KV16 rather than the released KV8 configuration, which they note favors their results.",
+        "strongest_baseline": "The paper's strongest direct baseline is continued teacher-forced QAD from a shared QAD checkpoint under matched corpora, phase schedules, optimizer steps, learning rates and samples per step, evaluated on GSM8K, MATH-500, MBPP and HumanEval (Table 4). Its additional quantization-method comparison uses Qwen3-1.7B at aligned low-bit settings, but some methods use wider whole-bit fallbacks and generative benchmark head/embedding precision differs."
+      },
+      "importance_tier": "Notable",
+      "development_type": "paper",
+      "event_at": "2026-09-22T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-13T15:01:38Z",
+      "updated_at": "2026-10-13T15:01:38Z",
+      "importance": 5,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": true,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "DEMONSTRATED",
+            "text": "The authors published a preprint and linked a public QAOPD repository with evaluation checkpoints and instructions for evaluating released weights and reproducing OPD phase 1."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "Across four models at 2.79 and 1.88 effective weight bits, the authors report that OPD raises average BF16 performance retention on MATH-500 from 35% to 70% and on HumanEval from 66% to 91%, while preserving short-form performance."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "The paper reports that OPD outperforms continued teacher-forced QAD in all 16 matched-budget comparisons shown for GSM8K, MATH-500, MBPP and HumanEval, with shared starting checkpoints, corpora, phase schedules, step counts, learning rates and samples per step."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "For selected configurations, the authors report OPD recovery using fewer GPU-hours than QAD initialization, including 57 versus 820 GPU-hours for Qwen3-4B at 1.88 bits and 11 versus 253 GPU-hours for Falcon3-1B-Instruct at 2.79 bits; these figures compare different stages and do not establish total-cost superiority over alternative deployment pipelines."
+          },
+          {
+            "label": "DEMONSTRATED",
+            "text": "The principal OPD arms use a 16-bit KV cache, while the released EdgeRazor configuration referenced for comparison uses an 8-bit KV cache; the authors state this deviation favors their results."
+          },
+          {
+            "label": "DEMONSTRATED",
+            "text": "The paper reports reproducing its QAD initialization from the released recipe, with a smaller effective batch than the recipe specifies and the optional offline regeneration step omitted; the reported QAD and OPD comparisons inherit these stated deviations."
+          }
+        ],
+        "limitations": [
+          "All performance and training-budget results are reported by the paper authors; this activation did not run the repository or reproduce any table.",
+          "The principal OPD experiments use a 16-bit KV cache rather than the released 8-bit configuration, so they do not directly demonstrate the same results with a fully 8-bit KV deployment path.",
+          "The paper's reproduced QAD starting point uses a smaller effective batch than the released recipe specifies and omits optional offline teacher regeneration; comparisons inherit those implementation choices.",
+          "The matched control and quantization baselines are author-run; independent baseline alignment, seed variation and hardware replication remain open.",
+          "Benchmark results cover four model checkpoints and fixed math, code and QA tasks; transfer to larger models, other architectures, other tasks and real serving workloads is not established.",
+          "GPU-hour comparisons are for selected training stages, not total pipeline cost, inference latency, energy, or a complete deployment cost model."
+        ],
+        "gaps": [
+          {
+            "kind": "missing_independent",
+            "description": "No independent reproduction of OPD results, matched-QAD control, or released-checkpoint evaluation has been completed."
+          },
+          {
+            "kind": "regime_unclear",
+            "description": "The principal OPD results use a 16-bit KV cache rather than the referenced released 8-bit KV configuration; performance under a deployment-matched 8-bit KV cache is unknown."
+          },
+          {
+            "kind": "other",
+            "description": "Transfer beyond four small-to-mid-sized checkpoints and the selected math, code and short-form tasks has not been established."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.26708v1",
+          "domain": "arxiv.org",
+          "primary": true
+        },
+        {
+          "url": "https://github.com/MingZwhy/QAOPD",
+          "domain": "github.com",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "Institute of Automation, Chinese Academy of Sciences",
+        "University of Chinese Academy of Sciences",
+        "City University of Hong Kong",
+        "Nanjing University of Science and Technology"
+      ],
+      "topics": [
+        "quantization",
+        "on-policy-distillation",
+        "reasoning",
+        "code-generation",
+        "inference-efficiency"
+      ],
+      "regions": [
+        "GLOBAL",
+        "CN",
+        "HK"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-E09F0D62088C.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: On-policy distillation improves reported reasoning retention at sub-3-bit weights"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "La destilación en política mejora la retención de razonamiento informada con pesos por debajo de 3 bits",
+            "summary": "Un preprint de septiembre de 2026 estudia por qué la destilación con conocimiento de cuantización puede conservar respuestas breves y, aun así, deteriorar la generación extensa de matemáticas y código con pesos por debajo de 3 bits. Los autores añaden destilación en política (OPD): muestrean por la ruta cuantizada de despliegue y guían con el docente los prefijos que genera el propio estudiante, junto con verificadores de tareas. En modelos Qwen3 y Falcon3 a 2.79 y 1.88 bits efectivos de peso, informan mejores resultados en pruebas de matemáticas y código que los puntos de partida QAD, incluidos avances en las 16 comparaciones con un control QAD continuado y presupuesto equiparado. El repositorio QAOPD publicado enlaza puntos de control e instrucciones de reproducción. Estos resultados de pruebas son informes de los autores; la reproducción independiente sigue pendiente. El artículo también declara una salvedad de implementación: los brazos OPD principales usan una caché KV de 16 bits, no la configuración publicada de caché KV de 8 bits, y los autores indican que esa desviación favorece sus resultados.",
+            "importance_rationale": "Si una reproducción independiente y una caché KV equiparada al despliegue confirman las mejoras de razonamiento de baja precisión informadas, el método podría mejorar de forma importante la capacidad por presupuesto de memoria de pesos en algunos modelos. La puntuación de cinco (5) refleja su posible consecuencia dentro del despliegue de baja precisión, no la confianza en el efecto informado ni su transferencia amplia.",
+            "why_it_matters": "Si las mejoras informadas se reproducen, entrenar con las trayectorias que recorre un modelo cuantizado podría recuperar parte de su razonamiento extenso y capacidad de programación a muy baja precisión de pesos, y mejorar la relación entre calidad y costo en inferencia limitada. El resultado se limita a cuatro familias o configuraciones de modelos y a los protocolos de pruebas del artículo; no establece una solución general de baja precisión ni una ventaja integral en despliegue.",
+            "technical": {
+              "claimed_result": "Con pesos efectivos de 2.79 y 1.88 bits, los autores informan mejores resultados en matemáticas y código tras OPD en Qwen3-0.6B, Qwen3-1.7B, Qwen3-4B y Falcon3-1B-Instruct. Informan que la retención BF16 promedio pasa de 35% a 70% en MATH-500 y de 66% a 91% en HumanEval; OPD supera el control QAD continuado de la Tabla 4 en las 16 comparaciones equiparadas. Las mejoras varían sustancialmente por modelo y tarea.",
+              "compute_or_cost": "Ejemplos de la etapa OPD usan 57 horas de GPU frente a 820 para la inicialización QAD en Qwen3-4B W1.88, y 11 frente a 253 en Falcon3-1B-Instruct W2.79. La comparación es entre etapas de entrenamiento; no establece el costo del proceso completo ni la energía o latencia del servicio.",
+              "demonstrated_result": "Se pueden consultar directamente el preprint, sus tablas y el repositorio público enlazado por los autores. Los resultados de pruebas y comparaciones de horas de entrenamiento son afirmaciones de los autores y no se reprodujeron de manera independiente en esta revisión.",
+              "implementation_status": "Los autores informan que entrenaron puntos de control y publicaron un repositorio con instrucciones para evaluación y reproducción de la fase 1 de OPD. No se ejecutó localmente ni se reprodujo de forma independiente.",
+              "mechanism": "El estudiante genera muestras mediante la ruta cuantizada de despliegue. Un docente BF16 congelado aporta orientación por token en prefijos de esas trayectorias, mientras verificadores puntúan la respuesta matemática final y la ejecución de pruebas de código. El proceso parte de QAD para obtener una política viable de baja precisión antes de la recuperación en política.",
+              "novelty": "El artículo aplica la orientación docente en política a trayectorias del estudiante generadas con cuantización de despliegue por debajo de 3 bits; combina supervisión densa por token con verificación de tareas para abordar errores que se acumulan fuera de los prefijos usados en el entrenamiento con docente forzado.",
+              "regime": "Cuatro puntos de control (Qwen3-0.6B, 1.7B y 4B; Falcon3-1B-Instruct), pesos efectivos de 2.79 y 1.88 bits, activaciones INT8 y embeddings/cabezas de salida INT4; conjuntos de matemáticas, código y respuestas breves. Los brazos OPD principales usan una caché KV de 16 bits. Es un experimento de preprint ejecutado por sus autores, no una evaluación de servicio en producción ni de familias amplias de modelos.",
+              "reproducibility": "El artículo incluye tablas detalladas y un repositorio enlazado por los autores con puntos de control e instrucciones. La ejecución independiente sigue pendiente. Los autores informan que usaron un lote efectivo menor y omitieron la regeneración docente opcional al reproducir QAD; OPD usa KV16 en lugar de la configuración publicada KV8, desviación que, según los autores, favorece sus resultados.",
+              "strongest_baseline": "El control directo más fuerte del artículo es continuar QAD desde el mismo punto de control, con corpus, cronogramas por fase, pasos del optimizador, tasa de aprendizaje y muestras por paso equiparados; se evalúa con GSM8K, MATH-500, MBPP y HumanEval (Tabla 4). La comparación adicional de métodos de cuantización usa Qwen3-1.7B con precisiones bajas alineadas, aunque algunos métodos usan anchos enteros mayores y difiere la precisión de embeddings/cabezas en pruebas generativas."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "Los autores publicaron un preprint y enlazaron un repositorio público de QAOPD con puntos de control de evaluación e instrucciones para evaluar los pesos publicados y reproducir la fase 1 de OPD."
+                },
+                {
+                  "text": "Para cuatro modelos con pesos a 2.79 y 1.88 bits efectivos, los autores informan que OPD eleva la retención promedio de rendimiento BF16 en MATH-500 de 35% a 70% y en HumanEval de 66% a 91%, mientras conserva el desempeño en tareas breves."
+                },
+                {
+                  "text": "El artículo informa que OPD supera QAD continuado en las 16 comparaciones con presupuesto equiparado de GSM8K, MATH-500, MBPP y HumanEval; ambos brazos comparten puntos de partida, corpus, cronogramas por fase, cantidad de pasos, tasas de aprendizaje y muestras por paso."
+                },
+                {
+                  "text": "Para configuraciones seleccionadas, los autores informan que la recuperación con OPD usó menos horas de GPU que la inicialización QAD: 57 frente a 820 horas de GPU para Qwen3-4B a 1.88 bits, y 11 frente a 253 para Falcon3-1B-Instruct a 2.79 bits. Son etapas de entrenamiento distintas; estas cifras no demuestran menor costo total frente a otros procesos de despliegue."
+                },
+                {
+                  "text": "Los principales experimentos de OPD usan una caché KV de 16 bits, mientras que la configuración EdgeRazor de 8 bits citada para comparación y los autores señalan que esta desviación favorece sus resultados."
+                },
+                {
+                  "text": "El artículo informa que reprodujo la inicialización QAD con la receta publicada, pero usó un lote efectivo menor al indicado y omitió la regeneración docente sin conexión, que era opcional; las comparaciones QAD y OPD heredan esas desviaciones declaradas."
+                }
+              ],
+              "limitations": [
+                "Los resultados de rendimiento y presupuesto de entrenamiento son informes de los autores; esta revisión no ejecutó el repositorio ni reprodujo ninguna tabla.",
+                "Los experimentos principales de OPD usan una caché KV de 16 bits, en vez de la configuración de 8 bits publicada; no demuestran directamente los mismos resultados con una ruta de despliegue totalmente compatible con KV de 8 bits.",
+                "El punto de partida QAD reproducido usa un lote efectivo menor que el de la receta publicada y omite la regeneración docente sin conexión que era opcional; las comparaciones heredan esas decisiones de implementación.",
+                "Los controles equiparados y los métodos de cuantización comparados fueron ejecutados por los autores; siguen pendientes la alineación independiente de baselines, la variación entre semillas y la replicación en otro hardware.",
+                "Las pruebas abarcan cuatro puntos de control y tareas fijas de matemáticas, código y QA; no se estableció la transferencia a modelos mayores, otras arquitecturas, otras tareas ni cargas de servicio reales.",
+                "Las comparaciones de horas de GPU corresponden a etapas de entrenamiento seleccionadas, no al costo total del proceso, latencia de inferencia, energía ni un modelo integral del costo de despliegue."
+              ],
+              "gaps": [
+                {
+                  "description": "No se ha completado una reproducción independiente de OPD, del control QAD equiparado ni de la evaluación de los puntos de control publicados."
+                },
+                {
+                  "description": "Los resultados principales de OPD usan una caché KV de 16 bits en vez de la configuración publicada de 8 bits; se desconoce el desempeño con una caché de 8 bits alineada al despliegue."
+                },
+                {
+                  "description": "No se ha establecido la transferencia más allá de cuatro puntos de control pequeños o medianos y de las tareas seleccionadas de matemáticas, código y respuestas breves."
+                }
+              ]
+            },
+            "dek": "Un preprint de septiembre de 2026 estudia por qué la destilación con conocimiento de cuantización puede conservar respuestas breves y, aun así, deteriorar la generación extensa de matemáticas y código con pesos por debajo de 3 bits."
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "on-policy 蒸馏提升了作者报告的低于 3 比特权重推理保留率",
+            "summary": "一篇发表于 2026 年的预印本研究了一个现象：低于 3 比特权重下，量化感知蒸馏可能保留短答案能力，却仍会损害长篇数学和代码生成。作者加入了 on-policy distillation（OPD）：通过部署时的量化路径采样，并在学生模型自己生成的前缀上提供教师指导，同时使用任务验证器。在采用 2.79 和 1.88 个有效权重比特的 Qwen3 与 Falcon3 模型上，作者报告其数学和代码评测结果高于 QAD 起始检查点；与等预算的继续 QAD 对照相比，报告的 16 组比较均有提升。公开的 QAOPD 仓库提供检查点和复现说明。这些仍是作者报告的评测结果，独立复现尚待完成。论文还披露一项重要实现限制：OPD 主要实验使用 16 位 KV 缓存，而非已发布的 8 位 KV 缓存配置；作者称这一偏差有利于其结果。",
+            "importance_rationale": "如果独立复现并采用与部署相符的 KV 缓存后仍能得到所报告的低比特推理增益，该方法可能显著提高部分模型在权重内存预算下的能力。评分为 5，体现低比特部署领域内的潜在影响，不代表对所报告效果或广泛迁移性的信心。",
+            "why_it_matters": "如果所报告的增益能够复现，在量化模型实际经历的轨迹上训练，可能恢复部分长篇推理和编程能力，并改善受限推理场景下的质量与成本关系。该结果限于四种模型配置及论文评测协议，尚未证明它是通用低比特方案，也未证明整体部署优势。",
+            "technical": {
+              "claimed_result": "在 2.79 和 1.88 个有效权重比特下，作者报告 OPD 在 Qwen3-0.6B、Qwen3-1.7B、Qwen3-4B 和 Falcon3-1B-Instruct 上提高数学和代码表现。作者报告 MATH-500 上的平均 BF16 保留率从 35% 升至 70%，HumanEval 从 66% 升至 91%；表 4 中 OPD 在全部 16 组等条件比较中均优于继续 QAD。增益因模型和任务而异。",
+              "compute_or_cost": "部分 OPD 阶段示例为：Qwen3-4B W1.88 使用 57 GPU 小时，对比 QAD 初始化的 820 GPU 小时；Falcon3-1B-Instruct W2.79 为 11 对 253 GPU 小时。这些是阶段间比较，未说明完整流程成本，也未证明服务能耗或延迟优势。",
+              "demonstrated_result": "预印本、表格和作者链接的公开仓库均可直接查阅。本次审查未独立复现评测结果或训练时长比较；这些结果仍属于作者报告的主张。",
+              "implementation_status": "作者表示已训练相关检查点，并发布了可用于评测和复现 OPD 第1阶段的仓库。此次未在本地执行或进行独立复现。",
+              "mechanism": "学生模型通过部署时的量化前向路径生成样本。冻结的 BF16 教师在这些生成轨迹的前缀上提供逐 token 指导，而任务验证器对数学最终答案和代码测试执行结果评分。流程从 QAD 检查点开始，以便先得到可用的低比特策略，再进行 on-policy 恢复。",
+              "novelty": "该论文将 on-policy 教师反馈用于低于 3 比特部署量化下生成的学生轨迹，并结合密集逐 token 指导与任务验证，针对 teacher-forced 训练前缀之外逐步累积的错误。",
+              "regime": "四个模型检查点：Qwen3-0.6B、1.7B、4B 以及 Falcon3-1B-Instruct；权重为 2.79 和 1.88 个有效比特，激活为 INT8，embedding 和输出头为 INT4；评测包括数学、代码和短答案任务。OPD 主要实验使用 16 位 KV 缓存。这是作者在预印本中报告的实验，并非生产服务测试或广泛模型家族评测。",
+              "reproducibility": "论文提供详细表格，作者链接的仓库包含检查点和说明；独立执行仍未完成。作者披露复现 QAD 时采用较小有效批量并省略可选的离线教师重生成；OPD 使用 KV16，而非已发布配置 KV8，作者指出这一偏差有利于其结果。",
+              "strongest_baseline": "论文最强的直接基线是在同一 QAD 检查点上继续训练，并对齐语料、阶段安排、优化器步数、学习率及每步样本数，再用 GSM8K、MATH-500、MBPP 和 HumanEval 评估（表 4）。另有 Qwen3-1.7B 的量化方法比较，低比特设置进行了对齐；但部分方法采用更宽的整数位宽，且生成式评测中 embedding/输出头的精度不同。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "作者发布了一篇预印本，并链接了公开的 QAOPD 仓库；仓库提供评测检查点，以及评估已发布权重和复现 OPD 第1阶段的说明。"
+                },
+                {
+                  "text": "对于采用 2.79 和 1.88 个有效比特权重的四个模型，作者报告称，OPD 将 MATH-500 上的平均 BF16 性能保留率从 35% 提高到 70%，并将 HumanEval 上的保留率从 66% 提高到 91%，同时维持短答案任务表现。"
+                },
+                {
+                  "text": "论文报告称，在 GSM8K、MATH-500、MBPP 和 HumanEval 的 16 组等预算对比中，OPD 均优于继续进行 teacher-forced QAD；两组使用相同起始检查点、语料、阶段安排、训练步数、学习率和每步样本数。"
+                },
+                {
+                  "text": "对于部分配置，作者报告 OPD 阶段的 GPU 小时数低于 QAD 初始化：Qwen3-4B 在 1.88 比特下为 57 对 820 GPU 小时，Falcon3-1B-Instruct 在 2.79 比特下为 11 对 253 GPU 小时。这些数字比较的是不同训练阶段，并未证明相较其他部署流程的总成本更低。"
+                },
+                {
+                  "text": "主要 OPD 实验使用 16 位 KV 缓存，而用于比较的已发布 EdgeRazor 配置使用 8 位 KV 缓存；作者指出，这一偏差有利于其结果。"
+                },
+                {
+                  "text": "论文报告称，作者按已发布方案复现了 QAD 初始化，但采用的有效批量小于方案规定值，并省略了可选的离线教师重生成步骤；报告的 QAD 和 OPD 对比都受到这些已声明偏差的影响。"
+                }
+              ],
+              "limitations": [
+                "性能和训练预算结果均由论文作者报告；本次审查未运行仓库代码或复现任何表格。",
+                "OPD 主要实验使用 16 位 KV 缓存，而不是已发布的 8 位配置，因此不能直接证明完整采用 8 位 KV 部署路径时也有相同结果。",
+                "论文复现的 QAD 起始点使用了小于已发布方案规定值的有效批量，并省略可选的离线教师重生成；对比结果继承了这些实现选择。",
+                "等条件对照和量化基线均由作者运行；独立基线对齐、随机种子变化和跨硬件复现仍未完成。",
+                "评测涵盖四个模型检查点以及固定的数学、代码和 QA 任务；尚未证明能迁移到更大模型、其他架构、其他任务或真实服务负载。",
+                "GPU 小时数对比针对所选训练阶段，并非完整流程成本、推理延迟、能耗或全面的部署成本模型。"
+              ],
+              "gaps": [
+                {
+                  "description": "尚未独立复现 OPD 结果、等预算 QAD 对照或已发布检查点评测。"
+                },
+                {
+                  "description": "OPD 主要结果采用 16 位 KV 缓存，而非已发布的 8 位配置；在与部署相符的 8 位 KV 缓存下表现如何仍未知。"
+                },
+                {
+                  "description": "尚未证明这些结果可推广至四个中小型检查点以及所选数学、代码和短答案任务之外。"
+                }
+              ]
+            },
+            "headline": "on-policy 蒸馏提升了作者报告的低于 3 比特权重推理保留率"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
+    {
+      "id": "FCMO-85B06151B695",
+      "slug": "dolphinbench-evaluates-agent-memory-through-task-completion-cost-and",
+      "url_date": "2026-10-13",
+      "kind": "development",
+      "status": "live",
+      "beat": "research",
+      "desk": "agents_memory",
+      "title": "DolphinBench evaluates agent memory through task completion, cost and latency",
+      "headline": "DolphinBench evaluates agent memory through task completion, cost and latency",
+      "dek": "A September 2026 paper introduces DolphinBench, a benchmark for testing agent memory through completion of knowledge-work tasks that depend on long conversation histories.",
+      "summary": "A September 2026 paper introduces DolphinBench, a benchmark for testing agent memory through completion of knowledge-work tasks that depend on long conversation histories. The abstract describes three personas with roughly 500k tokens of messages each and 200 tasks per persona; each task is checked by comparing an agent run with and without the relevant history. The authors require reports of total cost and latency alongside accuracy. This is a paper-reported benchmark design, not evidence that any memory system performs better; the full protocol and independent validation were not inspected in this activation.",
+      "why_it_matters": "If the benchmark's task construction and controls are valid, evaluating task success, cost and latency together could expose memory-system tradeoffs hidden by cued question-answer accuracy alone. The abstract supports the existence and stated design of a new benchmark, but does not establish that its tasks generalize beyond three synthetic knowledge-work personas or that any system has a favorable frontier.",
+      "importance_rationale": "If valid and adopted, measuring task completion alongside cost and latency can change memory-system selection and expose quality-efficiency tradeoffs. Score 4 reflects a useful evaluation contribution; broad validity and adoption are not established.",
+      "technical": {
+        "claimed_result": "The paper describes three personas with about 500k tokens each and 200 tasks per persona, with task relevance checked through with-history versus without-history runs.",
+        "demonstrated_result": "The abstract and its stated benchmark design are directly inspectable. No comparative performance result or benchmark reproduction was established in this activation.",
+        "mechanism": "The benchmark tests memory through agent task completion on information embedded in long histories. Each task is intended to depend on that history, checked by success with relevant history and failure without it; submissions report accuracy, total cost and latency.",
+        "novelty": "The benchmark centers task completion and requires cost and latency reporting alongside accuracy, rather than relying only on cued retrieval questions.",
+        "regime": "Three knowledge-work personas and 200 tasks per persona over long message histories; abstract-level description only. Generalization to real users, other domains and non-synthetic histories is unknown.",
+        "reproducibility": "The arXiv abstract is accessible; the full task-generation protocol, released artifact and independent reproduction were not checked.",
+        "strongest_baseline": "The stated within-task control compares the same task with and without its relevant history. The abstract does not report comparative results across memory systems."
+      },
+      "importance_tier": "Meaningful",
+      "development_type": "dataset_benchmark",
+      "event_at": "2026-09-21T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-13T15:01:38Z",
+      "updated_at": "2026-10-13T15:01:38Z",
+      "importance": 4,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": true,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "DEMONSTRATED",
+            "text": "The authors published a paper describing DolphinBench, a benchmark for evaluating agent memory through task completion rather than conversational question-answer accuracy alone."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "The abstract describes three knowledge-work personas with roughly 500k tokens of messages per persona and 200 tasks per persona; task relevance is checked by requiring success with the relevant history and failure without it."
+          },
+          {
+            "label": "DEMONSTRATED",
+            "text": "The authors state that submissions must report total cost and latency alongside accuracy; the abstract does not establish a comparative winning system or external validity."
+          }
+        ],
+        "limitations": [
+          "This activation inspected the arXiv abstract only; full protocol and artifact were not inspected.",
+          "The abstract does not establish task diversity, persona realism, annotation reliability or independent validity.",
+          "No comparative result for any memory system is claimed here.",
+          "Generalization beyond three knowledge-work personas and the stated histories is unknown."
+        ],
+        "gaps": [
+          {
+            "kind": "missing_primary",
+            "description": "The benchmark task-generation, scoring and validation protocol was not inspected beyond the abstract."
+          },
+          {
+            "kind": "other",
+            "description": "Performance on real and diverse histories and across independently evaluated memory systems has not been established."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://arxiv.org/abs/2609.24971",
+          "domain": "arxiv.org",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "DolphinBench authors"
+      ],
+      "topics": [
+        "agent-memory",
+        "benchmarking",
+        "task-completion",
+        "cost-latency-evaluation"
+      ],
+      "regions": [
+        "GLOBAL"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-85B06151B695.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: DolphinBench evaluates agent memory through task completion, cost and latency"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "DolphinBench evalúa la memoria de agentes mediante tareas, costo y latencia",
+            "summary": "Un artículo de septiembre de 2026 presenta DolphinBench, un benchmark que evalúa la memoria de agentes mediante la finalización de tareas de conocimiento que dependen de historiales extensos de conversación. El resumen describe tres perfiles con aproximadamente 500k tokens de mensajes cada uno y 200 tareas por perfil; cada tarea se comprueba comparando una ejecución del agente con y sin el historial pertinente. Los autores requieren que se informen costo total y latencia junto con precisión. Es un diseño de benchmark descrito por el artículo, no evidencia de que algún sistema de memoria mejore; el protocolo completo y la validación independiente no se revisaron en esta activación.",
+            "importance_rationale": "Si el benchmark es válido y se adopta, medir la finalización de tareas junto con costo y latencia puede cambiar la selección de sistemas de memoria y revelar compromisos entre calidad y eficiencia. La puntuación 4 refleja una contribución útil a la evaluación; no se ha establecido su validez amplia ni adopción.",
+            "why_it_matters": "Si la construcción de tareas y controles del benchmark es válida, evaluar éxito, costo y latencia en conjunto podría revelar compromisos de los sistemas de memoria que la precisión en preguntas con pistas no muestra. El resumen respalda que existe un nuevo benchmark con el diseño descrito, pero no demuestra que las tareas se generalicen más allá de tres perfiles sintéticos ni que algún sistema alcance una frontera favorable.",
+            "technical": {
+              "claimed_result": "El artículo describe tres perfiles con aproximadamente 500k tokens cada uno y 200 tareas por perfil; comprueba la dependencia de la tarea mediante ejecuciones con y sin el historial pertinente.",
+              "demonstrated_result": "El resumen y el diseño de evaluación que describe pueden consultarse directamente. En esta activación no se estableció ningún resultado comparativo de rendimiento ni se reprodujo el benchmark.",
+              "mechanism": "El benchmark prueba la memoria mediante tareas de agente que dependen de información contenida en historiales extensos. Cada tarea debería depender de ese historial, lo que se verifica al exigir éxito con el historial pertinente y fracaso sin él; las evaluaciones informan precisión, costo total y latencia.",
+              "novelty": "El benchmark se centra en completar tareas y exige informar costo y latencia junto con precisión, en lugar de depender solo de preguntas de recuperación con pistas.",
+              "regime": "Tres perfiles de trabajo intelectual y 200 tareas por perfil basadas en historiales extensos de mensajes; descripción revisada solo en el resumen. Se desconoce la generalización a usuarios reales, otros dominios e historiales no sintéticos.",
+              "reproducibility": "El resumen de arXiv está disponible; no se revisaron el protocolo completo, el artefacto publicado ni una reproducción independiente.",
+              "strongest_baseline": "El control declarado para cada tarea compara la misma tarea con y sin su historial pertinente. El resumen no informa resultados comparativos entre sistemas de memoria."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "Los autores publicaron un artículo que describe DolphinBench, un benchmark para evaluar la memoria de agentes mediante la finalización de tareas, no solo con preguntas y respuestas conversacionales que dan pistas."
+                },
+                {
+                  "text": "El resumen describe tres perfiles de trabajo intelectual, cada uno con aproximadamente 500k tokens de mensajes y 200 tareas; se comprueba que cada tarea dependa del historial al exigir éxito con el historial pertinente y fracaso sin él."
+                },
+                {
+                  "text": "Los autores indican que las evaluaciones deben informar costo total y latencia junto con la precisión; el resumen no demuestra que algún sistema sea superior ni valida la generalización externa."
+                }
+              ],
+              "limitations": [
+                "Esta activación revisó únicamente el resumen de arXiv; no se inspeccionaron el protocolo completo ni el artefacto.",
+                "El resumen no establece diversidad de tareas, realismo de los perfiles, fiabilidad de las anotaciones ni validación independiente.",
+                "Aquí no se afirma ningún resultado comparativo de sistemas de memoria.",
+                "Se desconoce la generalización más allá de los tres perfiles de trabajo intelectual y los historiales descritos."
+              ],
+              "gaps": [
+                {
+                  "description": "No se revisó el protocolo de creación, puntuación y validación de tareas más allá del resumen."
+                },
+                {
+                  "description": "No se estableció el rendimiento con historiales reales y diversos ni entre sistemas de memoria evaluados de forma independiente."
+                }
+              ]
+            },
+            "headline": "DolphinBench evalúa la memoria de agentes mediante tareas, costo y latencia",
+            "dek": "Un artículo de septiembre de 2026 presenta DolphinBench, un benchmark que evalúa la memoria de agentes mediante la finalización de tareas de conocimiento que dependen de historiales extensos de conversación."
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "DolphinBench 以任务完成、成本和延迟评估智能体记忆",
+            "summary": "一篇发表于 2026 年的论文介绍 DolphinBench，通过完成依赖长对话历史的知识工作任务来评估智能体记忆。摘要描述了 三种角色，每种约包含 500k tokens 的用户消息，并为每种角色设置 200 项任务；作者通过比较智能体在有无相关历史时的表现，检查任务是否确实依赖该历史。作者要求评测除准确率外还报告总成本和延迟。这是论文所述的基准设计，并不证明任何记忆系统表现更好；本次激活未检查完整协议或独立验证。",
+            "importance_rationale": "如果该基准有效并得到采用，同时衡量任务完成、成本和延迟，可能改变记忆系统选择，并揭示质量与效率之间的权衡。评分 4 体现其作为评测贡献的实用价值；其广泛有效性和采用情况尚未建立。",
+            "why_it_matters": "如果基准的任务构造和控制有效，同时评估任务成功率、成本与延迟，可能揭示仅靠带提示问答准确率看不到的记忆系统权衡。摘要支持存在一项采用所述设计的新基准，但并未证明任务能推广到 三种合成角色之外，也未证明任何系统具有更优的综合表现。",
+            "technical": {
+              "claimed_result": "论文描述了 三种角色，每种约有 500k tokens 的历史和 200 项任务；通过有无相关历史的运行来检查任务依赖关系。",
+              "demonstrated_result": "摘要及其中描述的基准设计可直接查阅。本次激活没有确认任何系统的比较性能，也没有复现该基准。",
+              "mechanism": "该基准通过依赖长历史信息的智能体任务来检验记忆。每项任务都应依赖相关历史，并通过有历史时成功、无历史时失败来检查；评测需报告准确率、总成本和延迟。",
+              "novelty": "该基准关注任务完成，并要求同时报告成本和延迟以及准确率，而不是只依赖带提示线索的事实检索问题。",
+              "regime": "三种知识工作角色，每种角色有 200 项基于长消息历史的任务；本次只查阅了摘要中的描述。能否迁移到真实用户、其他领域和非合成历史尚未知。",
+              "reproducibility": "可查阅 arXiv 摘要；未检查完整任务构造流程、已发布工件或独立复现。",
+              "strongest_baseline": "论文摘要所述的任务内对照，是比较同一任务在提供和移除相关历史时的表现。摘要没有报告不同记忆系统之间的比较结果。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "作者发表了一篇介绍 DolphinBench 的论文。这是一项通过任务完成情况评估智能体记忆的基准，而不只是使用带有提示线索的对话问答。"
+                },
+                {
+                  "text": "摘要描述了 三种知识工作角色，每种角色约有 500k tokens 的消息历史，并设置 200 项任务；通过要求智能体在提供相关历史时成功、移除历史时失败，来检验每项任务是否确实依赖该历史。"
+                },
+                {
+                  "text": "作者要求评测同时报告总成本和延迟以及准确率；摘要没有证明哪种系统更优，也没有建立外部有效性。"
+                }
+              ],
+              "limitations": [
+                "本次激活只查阅了 arXiv 摘要，未检查完整协议或评测工件。",
+                "摘要没有证明任务多样性、角色真实性、标注可靠性或独立验证。",
+                "此处不主张任何记忆系统的比较结果。",
+                "能否推广到所述 三种知识工作角色和历史数据之外仍未知。"
+              ],
+              "gaps": [
+                {
+                  "description": "除摘要外，尚未检查任务构造、评分和验证流程。"
+                },
+                {
+                  "description": "尚未在真实且多样的历史数据上，或通过独立评测多个记忆系统，证明其表现。"
+                }
+              ]
+            },
+            "headline": "DolphinBench 以任务完成、成本和延迟评估智能体记忆",
+            "dek": "一篇发表于 2026 年的论文介绍 DolphinBench，通过完成依赖长对话历史的知识工作任务来评估智能体记忆。摘要描述了 三种角色，每种约包含 500k tokens 的用户消息，并为每种角色设置 200 项任务；作者通过比较智能体在有无相关历史时的表现，检查任务是否确实依赖该历史。作者要求评测除准确率外还报告总成本和延迟。这是论文所述的基准设计，并不证明任何记忆系统表现更好；本次激活未检查完整协议或独立验证。"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
+    {
+      "id": "FCMO-71A18CEA363D",
+      "slug": "source-aligned-agent-memory-units-improve-complete-evidence-retrieval-in",
+      "url_date": "2026-10-13",
+      "kind": "development",
+      "status": "live",
+      "beat": "research",
+      "desk": "agents_memory",
+      "title": "Source-aligned agent-memory units improve complete-evidence retrieval in a synthetic trace benchmark",
+      "dek": "A paper introduces Execution Provenance Graph Memory (EPGM) for retrieving complete supporting evidence from long agent execution histories under a fixed token budget.",
+      "summary": "A paper introduces Execution Provenance Graph Memory (EPGM) for retrieving complete supporting evidence from long agent execution histories under a fixed token budget. On 2,000 queries over 1,207 held-out ISETrace trajectories, the authors report that source-aligned provenance units improve Full Support@2048 by 19.07 points over flat 512-token windows and by 11.96 points over a per-metric oracle across four flat chunk sizes, with matched Dense-FT scoring. Holding candidate units and seed scores fixed, a graph-conditioned residual adds a smaller 4.55 points (95% CI 2.98–6.18), concentrated on queries whose evidence spans multiple events. The corpus is synthetic and the results are author-reported; no independent reproduction was performed.",
+      "why_it_matters": "If the reported result generalizes, representing tool arguments and outputs as source-aligned units may help agent memory return complete evidence within a context budget, while the matched controls suggest most measured improvement comes from candidate construction and a narrower portion from graph propagation. This could change memory-system evaluation and design, but the experiment uses synthetic execution traces and does not establish reliable downstream performance on real agents.",
+      "importance_rationale": "If independently reproduced on real agent histories, complete-evidence retrieval under a fixed token budget could materially improve long-context agent reliability; the controlled separation of source-aligned candidate gains from graph gains may guide memory-system choices. Score 5 reflects the potential research and engineering consequence, not confidence in synthetic-benchmark transfer.",
+      "technical": {
+        "claimed_result": "For 2,000 span-grounded test queries over 1,207 held-out trajectories, source-aligned units improve Full Support@2048 by 19.07 points over flat 512-token windows and 11.96 points over a per-metric oracle across four flat chunk sizes. A graph-conditioned residual adds 4.55 points (95% CI [2.98, 6.18]) with candidates and seed scores fixed, mainly when evidence spans multiple events.",
+        "demonstrated_result": "The paper and its reported protocol, comparisons, and limitations are publicly inspectable. The quantitative retrieval gains are author-reported and were not independently reproduced.",
+        "implementation_status": "Authors report a trained retrieval system and provide code and dataset links in the paper; neither artifact was executed or independently inspected in this activation.",
+        "mechanism": "The method aligns tool arguments and outputs to source-backed provenance units, scores candidates with dense retrieval, and optionally refines scores using a zero-initialized residual relational graph convolutional network over typed execution edges. Evaluation separates the candidate-view effect from the graph-conditioned residual by first matching Dense-FT scorers and then holding candidates and seed scores fixed.",
+        "novelty": "The benchmark measures whether all required source spans fit within a hard retrieval-token budget and uses shared source coordinates to distinguish source-aligned candidate construction from graph-based reranking gains.",
+        "regime": "Synthetic ISETrace corpus; 2,000 test queries over 1,207 trajectory-disjoint test trajectories, with a stratified human-audited subset of 500 queries. Primary metric is complete gold-span support within 2,048 tokens. Evidence consists of executed tool arguments and outputs; transfer to real-world agent histories is unknown.",
+        "reproducibility": "The paper specifies splits, seeds, paired comparisons and bootstrap intervals and links code/data. Results remain unreplicated here; the authors note synthetic traces and that trajectory separation does not eliminate overlap in normalized intent text.",
+        "strongest_baseline": "Matched Dense-FT scoring on flat 512-token windows, plus an oracle selecting the best of four flat chunk sizes per metric; for graph contribution, exact seed-score passthrough with the same provenance-unit candidates. These comparisons separate candidate construction from the learned graph residual."
+      },
+      "importance_tier": "Notable",
+      "development_type": "paper",
+      "event_at": "2026-09-22T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-13T15:01:38Z",
+      "updated_at": "2026-10-13T15:01:38Z",
+      "importance": 5,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": false,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "DEMONSTRATED",
+            "text": "The authors define an execution-provenance retrieval method and evaluate it on ISETrace, a synthetic corpus of agent/tool trajectories; the paper reports a human audit of 500 test queries."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "On 2,000 test queries over 1,207 held-out trajectories, matched Dense-FT scoring with source-aligned provenance units improves Full Support@2048 by 19.07 points over flat 512-token windows and 11.96 points over a per-metric oracle across four flat chunk sizes."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "With candidate units and seed scores fixed, the graph-conditioned residual adds 4.55 Full Support@2048 points (95% CI [2.98, 6.18]); the paper reports that the benefit is concentrated when evidence spans multiple events."
+          },
+          {
+            "label": "DEMONSTRATED",
+            "text": "The authors state that ISETrace is synthetic and that exact trajectory disjointness does not ensure zero overlap in normalized intent text; they do not claim that observable graph links establish causal dependency."
+          }
+        ],
+        "limitations": [
+          "All quantitative findings are reported by the paper authors; this activation did not run the linked code or independently reproduce the benchmark.",
+          "ISETrace is a synthetic execution-grounded corpus, so the measured effects may not transfer to real, diverse agent histories, tools or memory queries.",
+          "Queries are model-authored and only a stratified subset of 500 receives human validation; the audit does not establish error-free labels for the full test set.",
+          "Trajectory-disjoint splits control exact trajectory overlap but do not guarantee zero overlap in normalized intent text.",
+          "The observed provenance graph records execution structure and lexical reuse; it does not establish semantic or causal dependency between events.",
+          "The reported full-support metric evaluates retrieval of annotated spans, not reliable downstream task completion or answer correctness outside a limited transfer analysis."
+        ],
+        "gaps": [
+          {
+            "kind": "missing_independent",
+            "description": "The reported candidate-view and graph-residual gains have not been independently reproduced."
+          },
+          {
+            "kind": "other",
+            "description": "The benchmark uses synthetic trajectories; performance on naturally occurring agent histories and real downstream tasks is unknown."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.25913v2",
+          "domain": "arxiv.org",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "University of Southern Queensland",
+        "Southern University of Science and Technology",
+        "Jiangsu University",
+        "Nanjing University",
+        "Uploading Inc."
+      ],
+      "topics": [
+        "agent-memory",
+        "information-retrieval",
+        "execution-provenance",
+        "graph-neural-networks",
+        "evaluation-methodology"
+      ],
+      "regions": [
+        "AU",
+        "CN",
+        "US",
+        "HK"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-71A18CEA363D.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: Source-aligned agent-memory units improve complete-evidence retrieval in a synthetic trace benchmark"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "Unidades alineadas a fuentes mejoran la recuperación de evidencia completa en un benchmark sintético de trazas",
+            "summary": "Un artículo introduce Execution Provenance Graph Memory (EPGM) para recuperar evidencia completa de historiales extensos de ejecución de agentes bajo un presupuesto fijo de tokens. En 2,000 consultas sobre 1,207 trayectorias retenidas de ISETrace, los autores informan que las unidades de procedencia alineadas a las fuentes mejoran Full Support@2048 en 19.07 puntos frente a ventanas planas de 512 tokens y en 11.96 puntos frente a un oráculo por métrica en cuatro tamaños de fragmento plano, con puntuación Dense-FT equiparada. Al fijar unidades candidatas y puntuaciones iniciales, un residuo condicionado por grafo suma 4.55 puntos (IC 95% 2.98–6.18), sobre todo en consultas cuya evidencia abarca varios eventos. El corpus es sintético y los resultados son informes de los autores; no se hizo una reproducción independiente.",
+            "importance_rationale": "Si se reproduce de forma independiente con historiales reales de agentes, la recuperación de evidencia completa bajo un presupuesto fijo de tokens podría mejorar de manera importante la fiabilidad de agentes con contexto extenso. La separación controlada entre las mejoras por unidades alineadas a fuentes y las mejoras menores por grafo puede orientar decisiones de diseño de memoria. La puntuación 5 refleja la posible consecuencia para la investigación y la ingeniería, no la confianza en que el benchmark sintético se transfiera a otros contextos.",
+            "why_it_matters": "Si el resultado informado se generaliza, representar argumentos y resultados de herramientas como unidades alineadas a sus fuentes podría ayudar a la memoria de agentes a recuperar evidencia completa dentro de un presupuesto de contexto. Los controles equiparados sugieren que la mayor parte de la mejora medida proviene de construir candidatos, y una parte menor del razonamiento sobre el grafo. Esto puede cambiar el diseño y la evaluación de sistemas de memoria, pero el experimento usa trazas sintéticas y no demuestra rendimiento fiable en tareas posteriores de agentes reales.",
+            "technical": {
+              "claimed_result": "En 2,000 consultas de prueba con fragmentos de evidencia identificados sobre 1,207 trayectorias retenidas, las unidades alineadas a fuentes mejoran Full Support@2048 en 19.07 puntos frente a ventanas planas de 512 tokens y en 11.96 puntos frente a un oráculo por métrica sobre cuatro tamaños de fragmento. Con candidatos y puntuaciones iniciales fijos, el residuo condicionado por grafo añade 4.55 puntos (IC 95% [2.98, 6.18]), principalmente cuando la evidencia abarca varios eventos.",
+              "demonstrated_result": "El artículo y el protocolo, las comparaciones y las limitaciones informadas pueden consultarse públicamente. Las mejoras cuantitativas de recuperación son informes de los autores y no se reprodujeron de manera independiente.",
+              "implementation_status": "Los autores informan que entrenaron un sistema de recuperación y enlazan código y datos en el artículo; en esta activación no se ejecutaron ni inspeccionaron de forma independiente esos recursos.",
+              "mechanism": "El método alinea argumentos y resultados de herramientas con unidades de procedencia respaldadas por su fuente, puntúa candidatos mediante recuperación densa y, opcionalmente, refina las puntuaciones con una red convolucional relacional residual inicializada en cero sobre aristas tipadas de ejecución. La evaluación separa el efecto de la vista de candidatos del residuo condicionado por grafo: primero equipara los puntuadores Dense-FT y luego fija candidatos y puntuaciones iniciales.",
+              "novelty": "El benchmark mide si todos los fragmentos necesarios caben dentro de un presupuesto estricto de tokens y usa coordenadas compartidas de origen para separar las ganancias por candidatos alineados a fuentes de las ganancias por reordenamiento mediante grafo.",
+              "regime": "Corpus sintético ISETrace; 2,000 consultas de prueba sobre 1,207 trayectorias de prueba separadas por trayectoria, con una muestra estratificada de 500 consultas auditada por personas. La métrica principal es el soporte completo de fragmentos de referencia dentro de 2,048 tokens. La evidencia procede de argumentos y resultados de herramientas ejecutadas; se desconoce la transferencia a historiales reales de agentes.",
+              "reproducibility": "El artículo especifica particiones, semillas, comparaciones pareadas e intervalos bootstrap, y enlaza código y datos. Aquí no se replicaron los resultados. Los autores señalan que las trayectorias son sintéticas y que separarlas no elimina el solapamiento de texto de intención normalizado.",
+              "strongest_baseline": "La comparación más sólida usa puntuación Dense-FT equiparada sobre ventanas planas de 512 tokens y un oráculo que elige por métrica el mejor de cuatro tamaños de fragmento plano. Para medir el aporte del grafo, usa el paso directo exacto de la puntuación inicial con las mismas unidades candidatas de procedencia. Así se separan la construcción de candidatos y el residuo de grafo aprendido."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "Los autores definen un método de recuperación con procedencia de ejecución y lo evalúan en ISETrace, un corpus sintético de trayectorias de agentes y herramientas; el artículo informa una auditoría humana de 500 consultas de prueba."
+                },
+                {
+                  "text": "En 2,000 consultas de prueba sobre 1,207 trayectorias retenidas, la puntuación Dense-FT equiparada con unidades de procedencia alineadas a las fuentes mejora Full Support@2048 en 19.07 puntos frente a ventanas planas de 512 tokens y en 11.96 puntos frente a un oráculo por métrica sobre cuatro tamaños de fragmento plano."
+                },
+                {
+                  "text": "Al fijar las unidades candidatas y las puntuaciones iniciales, el residuo condicionado por grafo añade 4.55 puntos de Full Support@2048 (IC 95% [2.98, 6.18]); el artículo informa que el beneficio se concentra cuando la evidencia abarca varios eventos."
+                },
+                {
+                  "text": "Los autores señalan que ISETrace es sintético y que la separación exacta de trayectorias no garantiza que no se repita texto de intención normalizado; no afirman que los enlaces observables del grafo demuestren dependencia causal."
+                }
+              ],
+              "limitations": [
+                "Los hallazgos cuantitativos son informes de los autores; esta activación no ejecutó el código enlazado ni reprodujo el benchmark.",
+                "ISETrace es un corpus sintético con ejecuciones de agentes, por lo que los efectos medidos podrían no transferirse a historiales reales y diversos, otras herramientas o consultas de memoria.",
+                "Las consultas son redactadas por modelos y solo una muestra estratificada de 500 recibe validación humana; la auditoría no demuestra que todas las etiquetas de prueba sean correctas.",
+                "La separación de trayectorias controla la repetición exacta de trayectorias, pero no garantiza que no haya solapamiento de texto de intención normalizado.",
+                "El grafo de procedencia observado registra estructura de ejecución y reutilización léxica; no demuestra dependencia semántica o causal entre eventos.",
+                "La métrica de soporte completo mide recuperación de fragmentos anotados, no finalización fiable de tareas posteriores ni exactitud de respuestas fuera de un análisis limitado de transferencia."
+              ],
+              "gaps": [
+                {
+                  "description": "Nadie ha reproducido de forma independiente las mejoras informadas para la vista de candidatos ni para el residuo de grafo."
+                },
+                {
+                  "description": "El benchmark usa trayectorias sintéticas; se desconoce el rendimiento con historiales de agentes reales y tareas posteriores reales."
+                }
+              ]
+            },
+            "dek": "Un artículo introduce Execution Provenance Graph Memory (EPGM) para recuperar evidencia completa de historiales extensos de ejecución de agentes bajo un presupuesto fijo de tokens."
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "源对齐单元提高了合成执行轨迹基准中的完整证据检索表现",
+            "summary": "一篇论文提出 Execution Provenance Graph Memory（EPGM），用于在固定 token 预算内从较长的智能体执行历史中检索完整支撑证据。在 ISETrace 的 1,207 条留出轨迹上进行 2,000 条查询时，作者报告源对齐溯源单元配合 Dense-FT 评分，相比 512-token 扁平窗口使 Full Support@2048 提高 19.07 个百分点；相比在四种扁平分块尺寸中按指标选出的 oracle，提高 11.96 个百分点。固定候选单元和初始评分后，图条件残差额外提高 4.55 个百分点（95% CI 2.98–6.18），主要体现在证据跨越多个事件的查询中。语料是合成数据，结果由作者报告；本次未进行独立复现。",
+            "importance_rationale": "如果能在真实智能体历史上独立复现，固定 token 预算内的完整证据检索可能显著提高长上下文智能体的可靠性。将源对齐单元带来的增益与较小的图传播增益通过控制实验分离，也可能指导记忆系统设计。评分 5 体现其潜在研究和工程影响，并不表示相信合成基准能够迁移到其他环境。",
+            "why_it_matters": "如果报告结果能够泛化，将工具参数和输出表示为源对齐单元，可能帮助智能体记忆系统在有限上下文预算内返回完整证据。匹配控制显示，大部分测得增益来自候选构造，图传播带来的增益较小。这可能影响记忆系统的评测和设计，但实验采用合成轨迹，并未证明真实智能体的下游表现可靠。",
+            "technical": {
+              "claimed_result": "在 1,207 条留出轨迹上的 2,000 条带来源片段的测试查询中，源对齐单元使 Full Support@2048 相比 512-token 扁平窗口提高 19.07 个百分点，相比四种扁平分块尺寸的逐指标 oracle 提高 11.96 个百分点。固定候选项和初始评分后，图条件残差额外提高 4.55 个百分点（95% CI [2.98, 6.18]），尤其是在证据跨越多个事件时。",
+              "demonstrated_result": "论文及其报告的协议、对比和限制均可公开查阅。检索增益的定量结果由作者报告，未经过本次独立复现。",
+              "implementation_status": "作者报告训练了检索系统，并在论文中链接了代码和数据；本次激活未运行或独立检查这些资源。",
+              "mechanism": "该方法把工具参数和输出对齐为有来源依据的溯源单元，使用稠密检索为候选项打分，并可选用在类型化执行边上运行的零初始化关系图卷积残差来调整评分。评测将候选视图的效果与图条件残差分开：先使用匹配的 Dense-FT 评分器，再固定候选项和初始评分。",
+              "novelty": "该基准衡量所有必需来源片段能否在严格 token 预算内一并返回，并使用共享的来源坐标来区分源对齐候选构造与基于图的重排效果。",
+              "regime": "合成 ISETrace 语料；在 1,207 条按轨迹隔离的测试轨迹上有 2,000 条测试查询，并对分层抽取的 500 条查询进行人工审查。主要指标是在 2,048-token 预算内完整检索到标注的支撑片段。证据取自实际执行过的工具参数和输出；能否迁移到真实智能体历史仍未知。",
+              "reproducibility": "论文说明了数据划分、随机种子、配对对比和 bootstrap 区间，并链接代码与数据。本次未复现结果。作者说明轨迹为合成数据，且按轨迹划分不能消除归一化意图文本的重叠。",
+              "strongest_baseline": "最强对比使用 512-token 扁平窗口上的匹配 Dense-FT 评分，并加入逐指标选择四种扁平分块尺寸中最佳结果的 oracle。测量图的增量时，则使用相同溯源单元候选项及初始评分的精确直通对照。这些比较将候选构造效果与学习到的图残差分开。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "作者提出了一种基于执行溯源的检索方法，并在 ISETrace（合成的智能体与工具轨迹语料）上进行评测；论文报告对 500 条测试查询进行了人工审查。"
+                },
+                {
+                  "text": "在 1,207 条留出的轨迹上的 2,000 条测试查询中，采用源对齐溯源单元的 Dense-FT 评分，相比 512-token 扁平窗口，Full Support@2048 提高 19.07 个百分点；相比在四种扁平分块尺寸中按指标挑选的 oracle，提高 11.96 个百分点。"
+                },
+                {
+                  "text": "固定候选单元和初始评分后，图条件残差使 Full Support@2048 额外提高 4.55 个百分点（95% CI [2.98, 6.18]）；论文报告称，增益集中在证据跨越多个事件的查询中。"
+                },
+                {
+                  "text": "作者指出 ISETrace 是合成数据，并且轨迹严格分离并不意味着归一化意图文本完全没有重叠；他们没有声称可观察到的图连接能够证明因果依赖。"
+                }
+              ],
+              "limitations": [
+                "定量发现均由论文作者报告；本次激活未运行链接的代码，也未独立复现基准。",
+                "ISETrace 是合成的执行轨迹语料，测得的效果可能无法迁移到真实且多样的智能体历史、工具或记忆查询。",
+                "查询由模型编写，只有分层抽样的 500 条经过人工验证；这项审计不能证明全部测试标签都无误。",
+                "按轨迹划分数据集可以避免精确轨迹重叠，但不能保证归一化意图文本没有重叠。",
+                "观测到的溯源图记录执行结构和词面复用，并不能证明事件之间存在语义或因果依赖。",
+                "完整支持指标衡量标注片段的检索情况，并不代表下游任务一定可靠完成，也不代表答案一定正确；有限的迁移分析以外的结论尚未建立。"
+              ],
+              "gaps": [
+                {
+                  "description": "尚无独立复现来验证候选视图和图残差的报告增益。"
+                },
+                {
+                  "description": "该基准采用合成轨迹；在真实智能体历史和真实下游任务中的表现未知。"
+                }
+              ]
+            },
+            "headline": "源对齐单元提高了合成执行轨迹基准中的完整证据检索表现"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
     {
       "id": "FCMO-FAF16B248584",
       "slug": "disaggregated-quantization-specializes-prefill-and-decode-for-reported",
