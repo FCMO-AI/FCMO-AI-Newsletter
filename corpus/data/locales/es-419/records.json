@@ -1211,6 +1211,63 @@
       "title": "Deep Noir reporta steering automatizado de activaciones y riesgos de inyección dependientes de la tarea",
       "why_it_matters": "El steering de activaciones basado en interpretabilidad mecanística puede automatizar intervenciones que normalmente requieren elegir capas y magnitudes a mano. La misma intervención puede cambiar cómo responde un clasificador a inyecciones de prompts, por lo que las mejoras de exactitud y la conducta frente a ataques deben medirse juntas. El preprint reporta ambos efectos, pero sus regímenes de clasificación con modelos pequeños y resultados mixtos entre tareas no demuestran transferencia a agentes desplegados."
     },
+    "FCMO-0F8FFE5721F7": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "El artículo propone tres tipos de eventos Nostr firmados para identidad de agentes, cadenas de delegación con permisos cada vez menores y atestaciones entre pares; además, vincula los pagos Lightning HTTP 402 con la identidad de un agente y describe control de identidad por el operador y autorización verificable sin conexión."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En la evaluación del prototipo con semilla fija, los autores informan una mediana de 0.0619 ms para verificar delegaciones de profundidad 4 en 900 mediciones y de 157.4 ms para el flujo L402 completo en 90 ejecuciones sobre un entorno local Docker regtest. Informan que 17/19 modos de falla pasaron pruebas empíricas; uno se acotó analíticamente y otro se declara como limitación."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El artículo enlaza un paquete de reproducción con implementación, banco de pruebas, resultados brutos, entorno Docker y pruebas. La evaluación usa semilla fija en Apple Silicon/macOS con Python 3.11; informa una mediana de 2.422 s para consultas de confianza con 500 nodos sintéticos y señala costos de privacidad de las atestaciones públicas y de consistencia entre relés. Esta activación no ejecutó el artefacto."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se ejecutó de forma independiente el paquete de reproducción enlazado ni se inspeccionó una implementación o un despliegue externo.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "El artículo no establece interoperabilidad con marcos de agentes desplegados ni estandarización de los tipos de eventos Nostr; la comparación con sistemas centralizados o más expresivos es arquitectónica, no operacional y directa.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "El mayor grafo de confianza reportado es sintético y la latencia aumenta mucho con 500 nodos; no se midieron la forma de grafos reales ni la aceptabilidad de la exposición de datos relacionales.",
+          "kind": "baseline_unclear",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se generalizan los resultados locales del prototipo, combinar identidad controlada por operadores, reducción verificable de permisos, revocación, atestaciones entre pares e identidad ligada al pago podría orientar diseños concretos de delegación entre agentes. La puntuación 4 refleja una contribución de infraestructura significativa pero especializada; la evidencia es un prototipo descrito en un artículo, no un despliegue de producción ni una reproducción independiente.",
+      "limitations": [
+        "Todos los resultados medidos provienen de un prototipo de los autores y no se reprodujeron de forma independiente en esta activación.",
+        "La evaluación usa semilla fija 42, una máquina Apple Silicon/macOS y Python 3.11; los flujos Docker usan una red privada regtest, no Bitcoin mainnet ni relés en producción.",
+        "La mediana reportada para consultas de confianza llega a 2.422 segundos con grafos sintéticos de 500 nodos bajo los parámetros probados.",
+        "El grafo de atestaciones es público y expone metadatos de relaciones; es un costo de diseño, no un resultado medido en despliegue.",
+        "El artículo identifica límites de consistencia y divergencia del modelo basado solo en relés, una ventana de propagación para la pre-rotación y una brecha de equivocation en la rotación de claves de un solo nivel.",
+        "Los autores informan que 17 de 19 modos de falla pasaron empíricamente; uno se acotó analíticamente y otro sigue siendo una limitación arquitectónica."
+      ],
+      "relationships": [],
+      "summary": "El artículo propone NostrAgent, que coloca declaraciones de identidad de agentes, cadenas de delegación que reducen permisos y atestaciones entre pares en eventos Nostr firmados, y vincula los pagos Lightning HTTP 402 con la identidad del agente. Su prototipo en Python reporta una mediana de 0.0619 ms para verificar delegaciones de profundidad 4 (900 mediciones) y de 157.4 ms para el flujo L402 completo (90 ejecuciones) en una red local Docker regtest. Los autores informan que 17 de 19 modos de falla pasaron pruebas empíricas; uno se acotó analíticamente y otro sigue siendo una limitación arquitectónica. Son resultados del prototipo de los autores: se usó una semilla fija en Apple Silicon/macOS con Python 3.11 y no se ejecutó de forma independiente el paquete de reproducción enlazado. El artículo también informa que las consultas de confianza alcanzan una mediana de 2.42 s con 500 nodos sintéticos y señala límites de privacidad y consistencia entre relés.",
+      "technical": {
+        "claimed_result": "El prototipo de los autores informa una mediana de 0.0619 ms para la verificación de delegaciones de profundidad 4 sin conexión, 157.4 ms para el flujo L402 completo en regtest, 17/19 modos de falla superados empíricamente y escalamiento lineal con la profundidad de la cadena.",
+        "compute_or_cost": "El artículo mide verificación local y un flujo de pago regtest; no ofrece contabilidad de hardware/costo a escala de producción ni resultados de liquidación en mainnet.",
+        "demonstrated_result": "El artículo revisado presenta la arquitectura, tablas detalladas de pruebas con semilla fija y un paquete de reproducción enlazado. Los resultados de rendimiento y seguridad siguen siendo reportes del artículo y no se reprodujeron de forma independiente aquí.",
+        "implementation_status": "Prototipo de investigación con paquete de reproducción enlazado por los autores; no se establecen despliegue en producción ni estandarización de los tipos de eventos Nostr.",
+        "mechanism": "Los eventos de identidad Kind 38100 usan firmas BIP340 y compromisos de pre-rotación; las cadenas de delegación Kind 38101 exigen que cada paso reduzca los permisos; las atestaciones Kind 38102 forman un grafo de confianza. El pago Lightning HTTP 402 queda vinculado a la identidad del agente, mientras los relés Nostr funcionan como transporte sustituible y no como raíz de confianza.",
+        "regime": "Prototipo en Python; equipo Apple Silicon/macOS, Python 3.11 y semilla fija 42. Las pruebas sin conexión usan 900 mediciones tras 100 de calentamiento. El entorno Docker incluye tres relés strfry, dos nodos LND y un nodo bitcoind en regtest privado; los flujos con estado usan 90 ejecuciones tras el calentamiento.",
+        "reproducibility": "El artículo informa semilla fija, entorno, número de ejecuciones y métodos de prueba, y enlaza implementación, banco de pruebas, resultados brutos, entorno Docker y pruebas. El artefacto no se ejecutó de forma independiente en esta activación.",
+        "strongest_baseline": "La evaluación reportada compara configuraciones y modos de falla dentro del prototipo; no presenta una comparación directa en producción con identidad centralizada, composición OAuth/DID ni sistemas de permisos más expresivos."
+      },
+      "title": "NostrAgent combina identidad descentralizada, delegación acotada, confianza entre agentes y pagos Lightning",
+      "why_it_matters": "La delegación entre agentes requiere continuidad de identidad, permisos mínimos, revocación, confianza y pagos entre organizaciones. NostrAgent ofrece una composición concreta y mide algunos costos de verificación local, lo que puede orientar decisiones de arquitectura para servicios descentralizados de agentes. El entorno acotado y los costos declarados de escala, privacidad y consistencia no demuestran preparación para producción ni que el diseño sea mejor que las alternativas centralizadas o más expresivas."
+    },
     "FCMO-10A013EEF5C3": {
       "claims": [
         {
@@ -2115,6 +2172,66 @@
       },
       "title": "Hiperredes generan LoRA con pases hacia delante para personalizar modelos de lenguaje en el dispositivo",
       "why_it_matters": "La personalización en un teléfono está limitada por la memoria, el cómputo y la latencia interactiva. Generar un adaptador pequeño y específico para cada persona mediante pases hacia delante podría evitar tanto la optimización individual como los prompts más largos. El artículo informa una comparación inicial de calidad; los costos en dispositivos reales, la generalización y la privacidad siguen sin medirse."
+    },
+    "FCMO-1AFA3EFAE2B1": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "La publicación de investigación y el anuncio de prensa de Meta del 12 de octubre de 2026 presentan Muse Wonder y Muse Wonder Full; la publicación indica que Wonder está disponible por la API de Meta Model y Muse Code, y Wonder Full para suscriptores de Muse Code."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "La ficha de Meta indica un contexto de inferencia de 1M de tokens y reporta evaluaciones de tareas de agentes, programación y capacidades generales; estas son especificaciones y evaluaciones de la empresa, no reproducidas de forma independiente en esta revisión."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Meta describe los modelos como líderes en benchmarks seleccionados, pero su ficha indica que puede elegir el mayor resultado interno, autoinformado o de una tabla oficial cuando haya cifras comparables, y que las pruebas internas frente a competidores propietarios son de mejor esfuerzo: las instrucciones, herramientas y el entorno de ejecución podrían no estar optimizados para ellos."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "En esta revisión reciente no se localizó una evaluación independiente y emparejada de Muse Wonder y Wonder Full en las tareas de agentes y programación destacadas por Meta.",
+          "kind": "missing_independent",
+          "state": "open",
+          "updated_at": "2026-10-13T05:11:06Z"
+        },
+        {
+          "description": "Meta indica que publicará evaluaciones de seguridad adicionales en un informe completo futuro; ese informe no estaba disponible en el anuncio ni en la ficha revisados.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-13T05:11:06Z"
+        },
+        {
+          "description": "No se revisaron datos comparables de precio, latencia, rendimiento o costo por carga de trabajo para ninguno de los dos modelos.",
+          "kind": "baseline_unclear",
+          "state": "open",
+          "updated_at": "2026-10-13T05:11:06Z"
+        }
+      ],
+      "importance_rationale": "Si se generaliza el rendimiento reportado en tareas de agentes y programación, el lanzamiento marca el regreso de Meta a la competencia por modelos de frontera y ofrece dos modelos comerciales con contexto de inferencia de 1M de tokens, lo que podría cambiar la selección de modelos y la competencia entre plataformas de agentes. La puntuación 5 refleja su relevancia amplia para la industria y el despliegue; el liderazgo en rendimiento no está establecido de forma independiente.",
+      "limitations": [
+        "El liderazgo en benchmarks proviene de Meta y no se reprodujo de forma independiente en esta activación.",
+        "Cuando hay resultados comparables, la ficha puede seleccionar el mayor entre resultados internos validados, autoinformados o de tablas oficiales; esto puede favorecer los resultados máximos frente al desempeño típico.",
+        "Las comparaciones internas con competidores son de mejor esfuerzo; Meta señala que las instrucciones, herramientas y el entorno de ejecución podrían no estar optimizados para modelos propietarios rivales.",
+        "Las descripciones de Active Memory y Active Focus no demuestran fiabilidad en el mundo real ni rendimiento en tareas independientes de agentes.",
+        "Meta señala que publicará más evaluaciones de seguridad en un informe futuro; la evidencia pública revisada todavía es incompleta para evaluar la seguridad.",
+        "Las fuentes revisadas no informan el cómputo de entrenamiento, el consumo energético ni la economía comparable de inferencia."
+      ],
+      "relationships": [],
+      "summary": "Meta lanzó Muse Wonder y Muse Wonder Full el 12 de octubre de 2026. Su publicación de investigación describe ambos modelos para tareas de agentes personales y profesionales, mientras que la ficha vinculada indica un contexto de inferencia de 1M de tokens y evaluaciones de agentes, programación y capacidades generales. Los modelos están disponibles mediante la API de Meta y Muse Code; Wonder Full se ofrece a suscriptores de Muse Code. Meta informa un rendimiento de vanguardia en benchmarks seleccionados, pero la ficha indica que, cuando hay resultados comparables, selecciona el mayor entre resultados internos validados, autoinformados o de tablas de clasificación oficiales, y que sus comparaciones internas con competidores propietarios son de mejor esfuerzo. Esto confirma un lanzamiento importante y las evaluaciones reportadas por Meta, pero no valida de forma independiente un liderazgo amplio en capacidades; aún se espera un informe de seguridad más completo.",
+      "technical": {
+        "claimed_result": "Meta reporta resultados líderes en benchmarks seleccionados de agentes, memoria y programación, e indica un contexto de inferencia de 1M de tokens.",
+        "compute_or_cost": "El anuncio identifica el centro de datos Prometheus de escala gigavatio de Meta como lugar de entrenamiento, pero no presenta contabilidad de cómputo de entrenamiento ni costos de inferencia comparables en los materiales revisados.",
+        "demonstrated_result": "El lanzamiento público fechado, los canales de acceso indicados y el contenido publicado de la ficha son observables directamente. Las afirmaciones comparativas de capacidad siguen siendo reportes de la empresa.",
+        "implementation_status": "Meta indica que Wonder está disponible mediante Meta Model API y Muse Code, y Wonder Full para suscriptores de Muse Code. Esta disponibilidad no se probó de forma independiente.",
+        "mechanism": "Meta presenta Muse Wonder y Wonder Full como modelos desarrollados mediante preentrenamiento y aprendizaje por refuerzo para tareas persistentes de agentes, con comportamientos descritos como Active Memory y Active Focus. Los materiales públicos revisados no revelan suficientes detalles de entrenamiento para evaluar este mecanismo de forma independiente.",
+        "regime": "Muse Wonder y Muse Wonder Full, con el esfuerzo máximo de razonamiento indicado en las evaluaciones de la ficha; las comparaciones incluyen GPT-6 Astra, Claude Fable 5.1 y Claude Opus 5.5, con resultados internos, de proveedores y de terceros.",
+        "reproducibility": "En esta activación no se realizó una reproducción independiente ni una prueba de acceso a los modelos. La ficha identifica evaluaciones internas y de terceros, pero no se confirmó la publicación general de código o datos de evaluación en esta revisión.",
+        "strongest_baseline": "La ficha compara varios sistemas de frontera identificados, pero las fuentes y los entornos varían según el benchmark; la metodología general advierte que los competidores propietarios podrían no estar optimizados."
+      },
+      "title": "Meta lanza Muse Wonder y Wonder Full, modelos con contexto de 1M de tokens y evaluaciones amplias de agentes",
+      "why_it_matters": "El lanzamiento combina una nueva familia de modelos posicionada en la frontera, un contexto extenso y su distribución mediante API y herramientas de programación, lo que convierte a Meta en una opción relevante para el mercado de modelos de agentes. Las salvedades de evaluación publicadas son relevantes: se mezclan resultados internos y externos, la configuración de competidores puede no estar optimizada y parte del encuadre proviene de la propia empresa. Las evaluaciones independientes y el informe de seguridad prometido ayudarán a determinar cuánto de la amplitud declarada se mantiene fuera del entorno medido por Meta."
     },
     "FCMO-1B73F04C0D77": {
       "claims": [
