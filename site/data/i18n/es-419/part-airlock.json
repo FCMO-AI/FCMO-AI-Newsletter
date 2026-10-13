@@ -1,6 +1,6 @@
 {
   "canonical_locale": "en",
-  "canonical_source_sha256": "a86d1164c18772274fda6b7219ae48603805206689b42628314ce6fb94684e2d",
+  "canonical_source_sha256": "861be6c2acb5f70015633b08f1a3e91240fc979a05177ca4ab0e65829cbf3209",
   "generated_from": "ARB airlock; editorial wording authored upstream",
   "locale": "es-419",
   "records": {
@@ -9839,6 +9839,62 @@
       },
       "title": "Cisco informa que la inferencia cruzada H200/MI350X superó la suma de rendimiento individual",
       "why_it_matters": "Los clústeres de inferencia de IA combinan cada vez más hardware de distintas generaciones y proveedores. La presentación de Cisco en MLPerf v6.1 informa que asignar prefill y decode a aceleradores NVIDIA y AMD distintos superó la suma aritmética del rendimiento individual en una configuración GPT-OSS 120B Server. MLCommons corrobora la presentación mixta; la cifra exacta aún requiere revisar la fila bruta y una repetición independiente."
+    },
+    "FCMO-751952F739FC": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "Los autores publicaron el 22 de septiembre de 2026 un preprint sobre los efectos de la capa de servicio en la evaluación local de llamadas a herramientas."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En el estudio de caso con Ollama, las banderas estáticas de plantilla rechazan solicitudes nativas de herramientas para Phi-3 y Gemma-3 antes de ejecutar el modelo; el entorno de evaluación no conserva el rechazo como metadato estructurado, por lo que un análisis posterior puede contarlo como una omisión del modelo."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En los controles de protocolo y pruebas con cuatro sistemas de servicio, la fidelidad medida depende de la ruta: agregar una indicación textual ayuda a algunos modelos aceptados, un protocolo textual uniforme reduce la fidelidad medida de Llama-3.2, y las estimaciones agrupadas por turno y por semilla difieren hasta unos 55 puntos porcentuales con denominadores reducidos."
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION",
+          "text": "El estudio es pequeño y mide la fidelidad del protocolo; no demuestra una ley de escala, un efecto general de familia de modelos, una relación entre razonamiento y entrenamiento con herramientas ni la prevalencia del problema en despliegues locales. Los autores descartan explícitamente esas inferencias."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se ha realizado una reproducción independiente del rechazo de solicitudes, la clasificación de errores del entorno y las diferencias entre protocolos.",
+          "kind": "missing_independent",
+          "state": "open",
+          "updated_at": "2026-10-13T19:19:32.569407Z"
+        },
+        {
+          "description": "Se desconoce la prevalencia de este modo de falla entre plantillas de modelos, versiones de servidores y entornos de evaluación.",
+          "kind": "regime_unclear",
+          "state": "open",
+          "updated_at": "2026-10-13T19:19:32.569407Z"
+        }
+      ],
+      "importance_rationale": "Si estos factores de confusión de protocolo se repiten, los rechazos de solicitudes y el formato específico del servicio podrían distorsionar de forma material las mediciones del uso de herramientas: no queda claro si hubo inferencia o si el modelo eligió una herramienta. La puntuación 4 refleja un resultado útil sobre validez de medición en un estudio pequeño de sistemas locales; no demuestra que el problema sea generalizado.",
+      "limitations": [
+        "Todas las mediciones fueron informadas por los autores; en esta activación no se realizó una reproducción independiente.",
+        "El estudio es pequeño y las mayores diferencias entre tasas agrupadas y por semilla aparecen con denominadores reducidos y episodios repetitivos.",
+        "Los resultados miden fidelidad del protocolo, no éxito en tareas posteriores ni capacidad general del modelo.",
+        "Los autores descartan explícitamente conclusiones sobre escala, familias de modelos y la relación entre razonamiento y entrenamiento con herramientas.",
+        "No se estableció la prevalencia de estos factores de confusión en despliegues."
+      ],
+      "relationships": [],
+      "summary": "Un preprint de septiembre de 2026 informa que el comportamiento del servicio local puede confundirse con el comportamiento del modelo al evaluar el uso de herramientas. En el entorno de Ollama de los autores, banderas estáticas de plantilla rechazan algunas solicitudes nativas antes de ejecutar el modelo; el entorno de evaluación registra los reintentos agotados como un turno genérico del asistente, de modo que un modelo que nunca se ejecutó puede parecer tener cero fidelidad de llamada. Cuatro sistemas de servicio manejan las solicitudes de forma distinta. Las indicaciones en el mensaje mejoran algunos modelos aceptados, mientras que forzar un protocolo textual uniforme reduce la fidelidad de un modelo con soporte nativo. Las estimaciones agrupadas por turno y por semilla difieren hasta unos 55 puntos cuando un episodio repetitivo domina una muestra pequeña. Son resultados informados por los autores en un estudio acotado, no una estimación de prevalencia ni una comparación general de modelos.",
+      "technical": {
+        "claimed_result": "Los autores informan que una plantilla de Ollama rechaza antes de la inferencia las solicitudes nativas para Phi-3 y Gemma-3, y que el entorno puede registrar ese rechazo como una omisión ordinaria. Un control con llamada nativa e indicación textual recupera fidelidad en varios modelos aceptados, mientras que un protocolo solo textual reduce la fidelidad medida de Llama-3.2. Las pruebas con Ollama, llama.cpp, vLLM y SGLang muestran comportamientos distintos; las tasas agrupadas por turno y por semilla difieren hasta unos 55 puntos.",
+        "compute_or_cost": "No se afirma una comparación de cómputo ni de costos.",
+        "demonstrated_result": "Se pueden inspeccionar directamente el preprint, la descripción del protocolo y las tablas de resultados. Las cifras son informadas por los autores y no se reprodujeron de manera independiente en esta activación.",
+        "mechanism": "La capa de servicio filtra las solicitudes de herramientas y determina si una petición se rechaza, se devuelve como texto o se emite por un canal nativo. Si el entorno no conserva los errores de transporte como resultados estructurados, un rechazo previo a la inferencia puede contarse como una omisión del modelo. El canal del mensaje y la agregación por turno también afectan la fidelidad informada.",
+        "regime": "Estudio pequeño del protocolo de llamadas a herramientas con modelos locales. Ollama es el caso principal y se realizan pruebas con llama.cpp, vLLM y SGLang; las tasas principales se informan para ocho semillas. Se mide la fidelidad del formato de llamada, no el éxito integral de tareas ni la competencia general de agentes.",
+        "reproducibility": "El artículo describe el protocolo e informa su aceptación en REALM @ EMNLP 2026. Esta activación inspeccionó el preprint, pero no inspeccionó ni ejecutó un artefacto del entorno.",
+        "strongest_baseline": "Dentro del artículo, se comparan condiciones emparejadas de llamada nativa, llamada nativa con indicación textual y herramientas descritas solo en texto, además de pruebas entre sistemas de servicio. Son controles realizados por los autores, no reproducciones independientes."
+      },
+      "title": "Un estudio encuentra que los protocolos locales de servicio pueden distorsionar las mediciones de llamadas a herramientas",
+      "why_it_matters": "Las evaluaciones de herramientas pueden mezclar decisiones del modelo con la aceptación de solicitudes, la serialización y el registro del entorno. Separar los rechazos de transporte, las respuestas vacías, las llamadas malformadas y las omisiones elegidas por el modelo puede cambiar la interpretación de los resultados de agentes locales. El artículo no mide qué tan comunes son estos errores en los despliegues."
     },
     "FCMO-7754CC237CCD": {
       "claims": [
@@ -26236,6 +26292,48 @@
       "why_it_matters": {
         "locale_sha256": "7b248dda40fb93ee9c5422e008618084391e7649b628d9acbdb23764411321ed",
         "source_sha256": "3532734694e0cd1d80e02e20c14786f93e84280fdccc9fee36dea51d36dd4838"
+      }
+    },
+    "FCMO-751952F739FC": {
+      "claims": {
+        "locale_sha256": "5a86bcb89f4991346faafcfbb07aaeeb012ae0fe90cb765c173e0d0559fcea84",
+        "source_sha256": "47577c809805cbdb8c42cc984786ae215028e662d953e2ab5d197d4b2209beea"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "cdfee8e471c3146b2af3a30baeaaeef5f6d0b8960aa4581ce02bd9d00d04fd4f",
+        "source_sha256": "8e9765c9be6070463e2e4bd2cf008c347acbc3717b5070f8cdf964d1deaedd9a"
+      },
+      "importance_rationale": {
+        "locale_sha256": "fbfee5dd2cdef2708f81eab273cdac26dc5a482d0898afadd7f29aeffa073e62",
+        "source_sha256": "eb868a63a62351b1491dddb9776de31fd7450fd308f0de7e65ee08e047093852"
+      },
+      "limitations": {
+        "locale_sha256": "7160cc796078fa67c53dbab6b245d3c489bb868940fd419fec2f5fcf0e850073",
+        "source_sha256": "067f72178f257396a63cd5ca69ad81ed2be4a961a3c6c1608b2dec4c8e1118bb"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "909907a9056a55db283292757e7c061b2e403017d7167d2a1478619c976ab2e2",
+        "source_sha256": "23e56eeba2e177fcdbfc36aa5379621a0adb7888750af4f129e9d34c9b170204"
+      },
+      "technical": {
+        "locale_sha256": "24dd02caa2a5cdf90e644a1fb60db3ae65d1ff3b83006adf69b97cf8c7dc0e81",
+        "source_sha256": "388e201a011ef29096d18d91e7febface3396883cc7a84c9999a9fabf9b838dc"
+      },
+      "title": {
+        "locale_sha256": "1810bfbb74a02b67cf51e372c280aec40dc3c9eebbfa5a13eaf74459c0902aaa",
+        "source_sha256": "126199909d3f1b09fdb788c066083bea463ee82acdce6a432c60db6b06a24aef"
+      },
+      "why_it_matters": {
+        "locale_sha256": "683e9e9d67b0b34f1241d29561eba6e217d6b6bae0c232e26c4c6d180468ea70",
+        "source_sha256": "a19fd6aaee34d8127b5d95b86df674049ee5f7d1c695d5a07e9741b07561a1ac"
       }
     },
     "FCMO-7754CC237CCD": {

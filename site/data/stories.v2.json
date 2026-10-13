@@ -1,7 +1,7 @@
 {
   "schema": "fcmo-stories-v2",
-  "generated_at": "2026-10-13T18:58:53Z",
-  "release_id": "newswire-355feb275130a3edae39bc32",
+  "generated_at": "2026-10-13T19:59:23Z",
+  "release_id": "newswire-95dda34d0f6d190afa108f8c",
   "canonical_locale": "en",
   "locales": [
     "en",
@@ -40,6 +40,236 @@
     "2026-10-13"
   ],
   "stories": [
+    {
+      "id": "FCMO-751952F739FC",
+      "slug": "a-paper-finds-local-serving-protocols-can-distort-tool-use-fidelity",
+      "url_date": "2026-10-13",
+      "kind": "development",
+      "status": "live",
+      "beat": "research",
+      "desk": "evaluation_science",
+      "title": "A paper finds local serving protocols can distort tool-use fidelity scores",
+      "headline": "A paper finds local serving protocols can distort tool-use fidelity scores",
+      "dek": "A September 2026 preprint reports that local serving behavior can be mistaken for model tool-use behavior.",
+      "summary": "A September 2026 preprint reports that local serving behavior can be mistaken for model tool-use behavior. In the authors’ Ollama setup, static template flags reject some native tool-call requests before inference; their harness records retry exhaustion as a generic assistant turn, which can make an unrun model appear to have zero tool-call fidelity. Across four serving stacks, request handling differs. Prompt hints improve some accepted models, while forcing a uniform text protocol reduces fidelity for a model with native tool-call support. Turn-pooled and per-seed estimates differ by up to about 55 points when a looping episode dominates a thin sample. These are author-reported results from a small study, not a prevalence estimate or general model comparison.",
+      "why_it_matters": "Tool-use evaluations can conflate model decisions with request acceptance, serialization and harness accounting. Separating transport rejection, non-response, malformed calls and model-selected non-calls could change how local agent results are interpreted. The paper does not show how common these errors are across deployments.",
+      "importance_rationale": "If the reported protocol confounds recur, request rejection and serving-specific formatting can make model tool-use measurements materially misstate whether inference occurred or whether the model selected a tool. Score 4 reflects a useful measurement-validity result in a small local-stack study, with no evidence of field-wide prevalence.",
+      "technical": {
+        "claimed_result": "The authors report that Phi-3 and Gemma-3 native requests are rejected by an Ollama template gate before inference, and that their harness can record rejection as an ordinary non-call. A native-plus-text-hint control recovers fidelity for several accepted models, whereas a uniform text-tools protocol reduces Llama-3.2 fidelity. Cross-stack probes show differing behavior across Ollama, llama.cpp, vLLM and SGLang; pooled and per-seed estimates differ by up to about 55 points.",
+        "compute_or_cost": "No compute or economic comparison is claimed.",
+        "demonstrated_result": "The preprint, protocol description and reported tables are directly inspectable. Numerical results are author-reported and were not independently reproduced in this activation.",
+        "mechanism": "The serving layer gates tool requests and determines whether a request is rejected, returned as text or emitted through a native tool-call channel. If the harness does not retain transport errors as structured outcomes, a pre-inference rejection can be counted as a model non-call. Prompt channel and per-turn aggregation also affect reported fidelity.",
+        "regime": "Small local-model tool-call protocol study. Ollama is the primary case study, with probes across llama.cpp, vLLM and SGLang; the paper reports eight seeds for its main protocol rates. The study tests tool-call format fidelity, not end-to-end task success or general agent competence.",
+        "reproducibility": "The paper describes the protocol and accepted REALM @ EMNLP 2026. This activation inspected the arXiv paper but did not inspect or run an associated harness artifact.",
+        "strongest_baseline": "Within the paper, matched native, native-plus-text-hint and uniform text-tools conditions on the same models, plus a cross-stack probe. These are author-run protocol controls, not independent replications."
+      },
+      "importance_tier": "Meaningful",
+      "development_type": "paper",
+      "event_at": "2026-09-22T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-13T19:59:12Z",
+      "updated_at": "2026-10-13T19:59:12Z",
+      "importance": 4,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": true,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "DEMONSTRATED",
+            "text": "The authors published a September 22, 2026 preprint that studies serving-layer effects on local tool-call evaluation."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "In the authors’ Ollama case study, static template flags reject native tool requests for Phi-3 and Gemma-3 before model inference; their harness does not preserve refusal as structured failure metadata, allowing downstream analysis to count the request as a model non-call."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "Across the reported protocol controls and four-stack probes, fidelity depends on the serving path: adding a text hint helps some accepted models, a uniform text protocol lowers Llama-3.2’s measured fidelity, and turn-pooled versus per-seed estimates differ by up to about 55 percentage points on thin denominators."
+          },
+          {
+            "label": "DEMONSTRATED",
+            "qualifier": "LIMITATION",
+            "text": "The study is a small measurement study and does not establish a general scale law, model-family effect, reasoning/tool-training relationship, or prevalence across local deployments; the authors explicitly disclaim those inferences."
+          }
+        ],
+        "limitations": [
+          "All measurements are author-reported; no independent reproduction was performed in this activation.",
+          "The study is small and the largest pooled-versus-per-seed gaps arise on thin denominators and looping episodes.",
+          "The findings concern protocol fidelity and request handling, not downstream task success or general model capability.",
+          "The authors explicitly disclaim scale, model-family and reasoning/tool-training conclusions.",
+          "The deployment prevalence of these specific confounds is not established."
+        ],
+        "gaps": [
+          {
+            "kind": "missing_independent",
+            "description": "No independent replay established request rejection, harness error classification and protocol-rate differences."
+          },
+          {
+            "kind": "regime_unclear",
+            "description": "Prevalence of the reported failure mode across model templates, server versions and evaluation harnesses is unknown."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://arxiv.org/abs/2609.26693",
+          "domain": "arxiv.org",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "Northeastern University"
+      ],
+      "topics": [
+        "tool-use-evaluation",
+        "local-inference",
+        "serving-protocols",
+        "measurement-validity"
+      ],
+      "regions": [
+        "GLOBAL"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-751952F739FC.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: A paper finds local serving protocols can distort tool-use fidelity scores"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "Un estudio encuentra que los protocolos locales de servicio pueden distorsionar las mediciones de llamadas a herramientas",
+            "summary": "Un preprint de septiembre de 2026 informa que el comportamiento del servicio local puede confundirse con el comportamiento del modelo al evaluar el uso de herramientas. En el entorno de Ollama de los autores, banderas estáticas de plantilla rechazan algunas solicitudes nativas antes de ejecutar el modelo; el entorno de evaluación registra los reintentos agotados como un turno genérico del asistente, de modo que un modelo que nunca se ejecutó puede parecer tener cero fidelidad de llamada. Cuatro sistemas de servicio manejan las solicitudes de forma distinta. Las indicaciones en el mensaje mejoran algunos modelos aceptados, mientras que forzar un protocolo textual uniforme reduce la fidelidad de un modelo con soporte nativo. Las estimaciones agrupadas por turno y por semilla difieren hasta unos 55 puntos cuando un episodio repetitivo domina una muestra pequeña. Son resultados informados por los autores en un estudio acotado, no una estimación de prevalencia ni una comparación general de modelos.",
+            "importance_rationale": "Si estos factores de confusión de protocolo se repiten, los rechazos de solicitudes y el formato específico del servicio podrían distorsionar de forma material las mediciones del uso de herramientas: no queda claro si hubo inferencia o si el modelo eligió una herramienta. La puntuación 4 refleja un resultado útil sobre validez de medición en un estudio pequeño de sistemas locales; no demuestra que el problema sea generalizado.",
+            "why_it_matters": "Las evaluaciones de herramientas pueden mezclar decisiones del modelo con la aceptación de solicitudes, la serialización y el registro del entorno. Separar los rechazos de transporte, las respuestas vacías, las llamadas malformadas y las omisiones elegidas por el modelo puede cambiar la interpretación de los resultados de agentes locales. El artículo no mide qué tan comunes son estos errores en los despliegues.",
+            "technical": {
+              "claimed_result": "Los autores informan que una plantilla de Ollama rechaza antes de la inferencia las solicitudes nativas para Phi-3 y Gemma-3, y que el entorno puede registrar ese rechazo como una omisión ordinaria. Un control con llamada nativa e indicación textual recupera fidelidad en varios modelos aceptados, mientras que un protocolo solo textual reduce la fidelidad medida de Llama-3.2. Las pruebas con Ollama, llama.cpp, vLLM y SGLang muestran comportamientos distintos; las tasas agrupadas por turno y por semilla difieren hasta unos 55 puntos.",
+              "compute_or_cost": "No se afirma una comparación de cómputo ni de costos.",
+              "demonstrated_result": "Se pueden inspeccionar directamente el preprint, la descripción del protocolo y las tablas de resultados. Las cifras son informadas por los autores y no se reprodujeron de manera independiente en esta activación.",
+              "mechanism": "La capa de servicio filtra las solicitudes de herramientas y determina si una petición se rechaza, se devuelve como texto o se emite por un canal nativo. Si el entorno no conserva los errores de transporte como resultados estructurados, un rechazo previo a la inferencia puede contarse como una omisión del modelo. El canal del mensaje y la agregación por turno también afectan la fidelidad informada.",
+              "regime": "Estudio pequeño del protocolo de llamadas a herramientas con modelos locales. Ollama es el caso principal y se realizan pruebas con llama.cpp, vLLM y SGLang; las tasas principales se informan para ocho semillas. Se mide la fidelidad del formato de llamada, no el éxito integral de tareas ni la competencia general de agentes.",
+              "reproducibility": "El artículo describe el protocolo e informa su aceptación en REALM @ EMNLP 2026. Esta activación inspeccionó el preprint, pero no inspeccionó ni ejecutó un artefacto del entorno.",
+              "strongest_baseline": "Dentro del artículo, se comparan condiciones emparejadas de llamada nativa, llamada nativa con indicación textual y herramientas descritas solo en texto, además de pruebas entre sistemas de servicio. Son controles realizados por los autores, no reproducciones independientes."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "Los autores publicaron el 22 de septiembre de 2026 un preprint sobre los efectos de la capa de servicio en la evaluación local de llamadas a herramientas."
+                },
+                {
+                  "text": "En el estudio de caso con Ollama, las banderas estáticas de plantilla rechazan solicitudes nativas de herramientas para Phi-3 y Gemma-3 antes de ejecutar el modelo; el entorno de evaluación no conserva el rechazo como metadato estructurado, por lo que un análisis posterior puede contarlo como una omisión del modelo."
+                },
+                {
+                  "text": "En los controles de protocolo y pruebas con cuatro sistemas de servicio, la fidelidad medida depende de la ruta: agregar una indicación textual ayuda a algunos modelos aceptados, un protocolo textual uniforme reduce la fidelidad medida de Llama-3.2, y las estimaciones agrupadas por turno y por semilla difieren hasta unos 55 puntos porcentuales con denominadores reducidos."
+                },
+                {
+                  "text": "El estudio es pequeño y mide la fidelidad del protocolo; no demuestra una ley de escala, un efecto general de familia de modelos, una relación entre razonamiento y entrenamiento con herramientas ni la prevalencia del problema en despliegues locales. Los autores descartan explícitamente esas inferencias."
+                }
+              ],
+              "limitations": [
+                "Todas las mediciones fueron informadas por los autores; en esta activación no se realizó una reproducción independiente.",
+                "El estudio es pequeño y las mayores diferencias entre tasas agrupadas y por semilla aparecen con denominadores reducidos y episodios repetitivos.",
+                "Los resultados miden fidelidad del protocolo, no éxito en tareas posteriores ni capacidad general del modelo.",
+                "Los autores descartan explícitamente conclusiones sobre escala, familias de modelos y la relación entre razonamiento y entrenamiento con herramientas.",
+                "No se estableció la prevalencia de estos factores de confusión en despliegues."
+              ],
+              "gaps": [
+                {
+                  "description": "No se ha realizado una reproducción independiente del rechazo de solicitudes, la clasificación de errores del entorno y las diferencias entre protocolos."
+                },
+                {
+                  "description": "Se desconoce la prevalencia de este modo de falla entre plantillas de modelos, versiones de servidores y entornos de evaluación."
+                }
+              ]
+            },
+            "dek": "Un preprint de septiembre de 2026 informa que el comportamiento del servicio local puede confundirse con el comportamiento del modelo al evaluar el uso de herramientas."
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "研究发现，本地服务协议可能扭曲工具调用保真度测量",
+            "summary": "一篇2026年九月发布的预印本报告称，本地服务行为可能被误当成模型自身的工具使用行为。在作者的 Ollama 设置中，静态模板标志会在推理前拒绝部分原生工具调用请求；测试框架把重试耗尽记录为普通的助手轮次，于是从未运行的模型可能被记为工具调用保真度为零。四种服务栈对相同请求的处理不同。文本提示能改善部分获准模型的结果，而强制统一文本协议会降低具有原生工具调用支持的模型的测得保真度。当单个循环执行片段主导小样本时，按轮次汇总与按种子估计最多相差约55个百分点。这些是作者在一项小规模研究中的报告结果，不是普遍程度估计，也不是一般性的模型比较。",
+            "importance_rationale": "如果这些协议混杂因素反复出现，请求拒绝和服务格式差异可能实质性扭曲模型工具使用测量，使人无法判断模型是否实际运行或是否选择调用工具。评分4表示这项小规模本地服务研究对测量有效性有参考价值；它不代表该问题普遍存在。",
+            "why_it_matters": "工具使用评测可能把模型决策与请求是否获准、序列化方式及测试框架记账混在一起。区分传输拒绝、无响应、格式错误调用和模型主动不调用，可能改变对本地智能体结果的解读。该论文没有测量这些错误在实际部署中的普遍程度。",
+            "technical": {
+              "claimed_result": "作者报告，Ollama 模板门控会在推理前拒绝 Phi-3 和 Gemma-3 的原生请求，而测试框架可能把拒绝记成普通的未调用工具。原生调用加文本提示的对照条件提高了若干获准模型的测得保真度；统一文本工具协议则降低了 Llama-3.2 的测得保真度。Ollama、llama.cpp、vLLM 和 SGLang 的探测结果各不相同；按轮次汇总与按种子估计最多相差约55个百分点。",
+              "compute_or_cost": "论文未主张计算量或成本比较。",
+              "demonstrated_result": "可以直接查阅该预印本、协议描述和报告表格。数值结果由作者报告，本次激活未独立复现。",
+              "mechanism": "服务层会门控工具请求，并决定请求被拒绝、以文本形式返回，还是通过原生工具调用通道发出。如果测试框架未将传输错误保留为结构化结果，推理前的拒绝可能被算作模型未调用工具。提示词通道和按轮次聚合方式也会影响所报告的保真度。",
+              "regime": "一项针对本地模型工具调用协议的小规模研究。主要案例为 Ollama，并探测了 llama.cpp、vLLM 和 SGLang；主要协议率基于八个随机种子。研究测试工具调用格式保真度，不测试端到端任务成功或智能体的一般能力。",
+              "reproducibility": "论文描述了协议，并称其获 REALM @ EMNLP 2026 接收。本次激活检查了预印本，但未检查或运行相关测试框架。",
+              "strongest_baseline": "论文在相同模型上对比了原生调用、原生调用加文本提示、以及仅用文本描述工具的配对条件，并进行了跨服务栈探测。这些是作者执行的协议对照，不是独立复现。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "作者于2026年九月22日发布了一篇预印本，研究服务层对本地工具调用评测的影响。"
+                },
+                {
+                  "text": "在作者的 Ollama 案例研究中，静态模板标志会在模型推理前拒绝 Phi-3 和 Gemma-3 的原生工具请求；其测试框架没有把拒绝保存为结构化失败元数据，因此后续分析可能把请求记成模型未调用工具。"
+                },
+                {
+                  "text": "作者报告的协议对照和四种服务栈探测显示，测得的调用保真度取决于请求路径：添加文本提示可帮助部分获准模型；统一文本协议会降低 Llama-3.2 的测得保真度；在样本分母较小时，按轮次汇总与按种子估计最多相差约55个百分点。"
+                },
+                {
+                  "text": "这是一项规模较小的测量研究，不能证明普遍的规模规律、模型家族效应、推理与工具训练之间的关系，也不能说明该问题在本地部署中的普遍程度；作者明确不作这些推断。"
+                }
+              ],
+              "limitations": [
+                "所有测量均由作者报告；本次激活未进行独立复现。",
+                "研究规模较小；汇总值与逐种子值的最大差异出现在样本分母较小且存在循环执行片段的情形。",
+                "研究测量的是协议保真度，而非下游任务成功率或模型的一般能力。",
+                "作者明确不对规模、模型家族或推理与工具训练的关系作结论。",
+                "这些混杂因素在实际部署中的普遍程度尚未确定。"
+              ],
+              "gaps": [
+                {
+                  "description": "尚无独立复现验证请求拒绝、测试框架错误分类及协议间测量差异。"
+                },
+                {
+                  "description": "该故障模式在不同模型模板、服务器版本和评测框架中的普遍程度未知。"
+                }
+              ]
+            },
+            "headline": "研究发现，本地服务协议可能扭曲工具调用保真度测量"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
     {
       "id": "FCMO-D8FB24487116",
       "slug": "procredit-reports-improved-long-horizon-tool-task-completion-from-turn",

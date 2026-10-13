@@ -1,6 +1,6 @@
 {
   "canonical_locale": "en",
-  "canonical_source_sha256": "a86d1164c18772274fda6b7219ae48603805206689b42628314ce6fb94684e2d",
+  "canonical_source_sha256": "861be6c2acb5f70015633b08f1a3e91240fc979a05177ca4ab0e65829cbf3209",
   "generated_from": "ARB airlock; editorial wording authored upstream",
   "locale": "zh-Hans",
   "records": {
@@ -9839,6 +9839,62 @@
       },
       "title": "Cisco 报告称 H200/MI350X 跨厂商推理吞吐量超过独立系统之和",
       "why_it_matters": "AI 推理集群越来越多地组合不同代际和厂商的硬件。Cisco 的 MLPerf v6.1 提交报告称，在一个 GPT-OSS 120B Server 配置中，分别使用 NVIDIA 和 AMD 加速器执行 prefill 与 decode 后，吞吐量超过单独测量结果的算术和。MLCommons 证实了混合厂商提交；具体数值仍需核对原始结果行并进行独立复现。"
+    },
+    "FCMO-751952F739FC": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "作者于2026年九月22日发布了一篇预印本，研究服务层对本地工具调用评测的影响。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "在作者的 Ollama 案例研究中，静态模板标志会在模型推理前拒绝 Phi-3 和 Gemma-3 的原生工具请求；其测试框架没有把拒绝保存为结构化失败元数据，因此后续分析可能把请求记成模型未调用工具。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "作者报告的协议对照和四种服务栈探测显示，测得的调用保真度取决于请求路径：添加文本提示可帮助部分获准模型；统一文本协议会降低 Llama-3.2 的测得保真度；在样本分母较小时，按轮次汇总与按种子估计最多相差约55个百分点。"
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION",
+          "text": "这是一项规模较小的测量研究，不能证明普遍的规模规律、模型家族效应、推理与工具训练之间的关系，也不能说明该问题在本地部署中的普遍程度；作者明确不作这些推断。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "尚无独立复现验证请求拒绝、测试框架错误分类及协议间测量差异。",
+          "kind": "missing_independent",
+          "state": "open",
+          "updated_at": "2026-10-13T19:19:32.569407Z"
+        },
+        {
+          "description": "该故障模式在不同模型模板、服务器版本和评测框架中的普遍程度未知。",
+          "kind": "regime_unclear",
+          "state": "open",
+          "updated_at": "2026-10-13T19:19:32.569407Z"
+        }
+      ],
+      "importance_rationale": "如果这些协议混杂因素反复出现，请求拒绝和服务格式差异可能实质性扭曲模型工具使用测量，使人无法判断模型是否实际运行或是否选择调用工具。评分4表示这项小规模本地服务研究对测量有效性有参考价值；它不代表该问题普遍存在。",
+      "limitations": [
+        "所有测量均由作者报告；本次激活未进行独立复现。",
+        "研究规模较小；汇总值与逐种子值的最大差异出现在样本分母较小且存在循环执行片段的情形。",
+        "研究测量的是协议保真度，而非下游任务成功率或模型的一般能力。",
+        "作者明确不对规模、模型家族或推理与工具训练的关系作结论。",
+        "这些混杂因素在实际部署中的普遍程度尚未确定。"
+      ],
+      "relationships": [],
+      "summary": "一篇2026年九月发布的预印本报告称，本地服务行为可能被误当成模型自身的工具使用行为。在作者的 Ollama 设置中，静态模板标志会在推理前拒绝部分原生工具调用请求；测试框架把重试耗尽记录为普通的助手轮次，于是从未运行的模型可能被记为工具调用保真度为零。四种服务栈对相同请求的处理不同。文本提示能改善部分获准模型的结果，而强制统一文本协议会降低具有原生工具调用支持的模型的测得保真度。当单个循环执行片段主导小样本时，按轮次汇总与按种子估计最多相差约55个百分点。这些是作者在一项小规模研究中的报告结果，不是普遍程度估计，也不是一般性的模型比较。",
+      "technical": {
+        "claimed_result": "作者报告，Ollama 模板门控会在推理前拒绝 Phi-3 和 Gemma-3 的原生请求，而测试框架可能把拒绝记成普通的未调用工具。原生调用加文本提示的对照条件提高了若干获准模型的测得保真度；统一文本工具协议则降低了 Llama-3.2 的测得保真度。Ollama、llama.cpp、vLLM 和 SGLang 的探测结果各不相同；按轮次汇总与按种子估计最多相差约55个百分点。",
+        "compute_or_cost": "论文未主张计算量或成本比较。",
+        "demonstrated_result": "可以直接查阅该预印本、协议描述和报告表格。数值结果由作者报告，本次激活未独立复现。",
+        "mechanism": "服务层会门控工具请求，并决定请求被拒绝、以文本形式返回，还是通过原生工具调用通道发出。如果测试框架未将传输错误保留为结构化结果，推理前的拒绝可能被算作模型未调用工具。提示词通道和按轮次聚合方式也会影响所报告的保真度。",
+        "regime": "一项针对本地模型工具调用协议的小规模研究。主要案例为 Ollama，并探测了 llama.cpp、vLLM 和 SGLang；主要协议率基于八个随机种子。研究测试工具调用格式保真度，不测试端到端任务成功或智能体的一般能力。",
+        "reproducibility": "论文描述了协议，并称其获 REALM @ EMNLP 2026 接收。本次激活检查了预印本，但未检查或运行相关测试框架。",
+        "strongest_baseline": "论文在相同模型上对比了原生调用、原生调用加文本提示、以及仅用文本描述工具的配对条件，并进行了跨服务栈探测。这些是作者执行的协议对照，不是独立复现。"
+      },
+      "title": "研究发现，本地服务协议可能扭曲工具调用保真度测量",
+      "why_it_matters": "工具使用评测可能把模型决策与请求是否获准、序列化方式及测试框架记账混在一起。区分传输拒绝、无响应、格式错误调用和模型主动不调用，可能改变对本地智能体结果的解读。该论文没有测量这些错误在实际部署中的普遍程度。"
     },
     "FCMO-7754CC237CCD": {
       "claims": [
@@ -26236,6 +26292,48 @@
       "why_it_matters": {
         "locale_sha256": "920406153b4149d57ec5e5769e242f69c77325077631533dc2815dfe58cb88b7",
         "source_sha256": "3532734694e0cd1d80e02e20c14786f93e84280fdccc9fee36dea51d36dd4838"
+      }
+    },
+    "FCMO-751952F739FC": {
+      "claims": {
+        "locale_sha256": "af8267ea154e3d0685c383f25abed1265e1143f67d9c1c7fa256eca0f13d91b5",
+        "source_sha256": "47577c809805cbdb8c42cc984786ae215028e662d953e2ab5d197d4b2209beea"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "9e05c716fa0d94f69f7e27966c2f3dd2272bea2d3145c2597101a8bbbcdd603a",
+        "source_sha256": "8e9765c9be6070463e2e4bd2cf008c347acbc3717b5070f8cdf964d1deaedd9a"
+      },
+      "importance_rationale": {
+        "locale_sha256": "0ae7580f50e5d6ad25e08346b93a58e5e67a4e867157b8f83a4a754d8fd19751",
+        "source_sha256": "eb868a63a62351b1491dddb9776de31fd7450fd308f0de7e65ee08e047093852"
+      },
+      "limitations": {
+        "locale_sha256": "1a797f84fbdadc1a7fdca3e3d5f1f1a042fe83a7adb9592ae8571089cae09208",
+        "source_sha256": "067f72178f257396a63cd5ca69ad81ed2be4a961a3c6c1608b2dec4c8e1118bb"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "667de5610a95c4421df92b31be16bb7de5c6e8e6419f99344042fefc1cd174b4",
+        "source_sha256": "23e56eeba2e177fcdbfc36aa5379621a0adb7888750af4f129e9d34c9b170204"
+      },
+      "technical": {
+        "locale_sha256": "38d0021deecd82a23afeb7bd442ce11a083a5f9788813141befe879d678b8fd7",
+        "source_sha256": "388e201a011ef29096d18d91e7febface3396883cc7a84c9999a9fabf9b838dc"
+      },
+      "title": {
+        "locale_sha256": "ae272509aef339f9441d01ff50b1cead880acf96f658ca08a5605ab84adc15e4",
+        "source_sha256": "126199909d3f1b09fdb788c066083bea463ee82acdce6a432c60db6b06a24aef"
+      },
+      "why_it_matters": {
+        "locale_sha256": "ff15e2c4750631f12524e06e877c81c8579018b55981a1f37d5381f2dc75e14b",
+        "source_sha256": "a19fd6aaee34d8127b5d95b86df674049ee5f7d1c695d5a07e9741b07561a1ac"
       }
     },
     "FCMO-7754CC237CCD": {
