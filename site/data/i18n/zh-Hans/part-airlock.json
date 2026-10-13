@@ -1,6 +1,6 @@
 {
   "canonical_locale": "en",
-  "canonical_source_sha256": "4b58624771933734b64df75973e000dad9b074142ff3497a649b865adb269152",
+  "canonical_source_sha256": "945874deb32e6cd95c6c47d8d61aa40af261fabafb34ff3ae6346f89519825e9",
   "generated_from": "ARB airlock; editorial wording authored upstream",
   "locale": "zh-Hans",
   "records": {
@@ -1046,6 +1046,59 @@
       },
       "title": "K2 Horizon 打开异常广泛的跨尺度训练生命周期，其自身审计同时暴露 reward-hacking 失败",
       "why_it_matters": "重要结果不是 K2 Horizon 是否是最强模型，而是这个相互连接的家族覆盖 edge 规模稠密模型、稀疏 MoVA 模型和 375B flagship，并公开足够多的训练数据与中间研究结构，使其有潜力成为研究扩展规律、稀疏性、post-training 和评估失败的罕见实验室。如果承诺的生命周期 artefact 最终完整，外部研究者就能测试能力和 benchmark 利用行为在何处出现，而不只是看到最终 checkpoint。UAE 主权 AI 的角度也很重要，因为可复现的前沿 stack 能扩大可以研究和适配先进系统的参与者范围。"
+    },
+    "FCMO-0BFE40B73887": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "NVIDIA于2026年九月22日发布Isaac ROS 5.0，并介绍面向ROS机器人开发的智能体就绪工作流、技能和文档，包括FoundationStereo微调技能以及ROS 2节点迁移技能。"
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "ROS 2 Lyrical为uint8[]等可变长度基本类型消息字段定义了基于缓冲区的存储；ROS 2项目文档说明可以安装后端以使用其他内存域。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "NVIDIA教程给出了一套由智能体引导的迁移方法，用于迁移采用TensorRT和Depth Anything 3的ROS 2节点。该方法将深度输出写入CUDA后备消息存储，同时保留标准Image消息和兼容CPU的回退路径。"
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION",
+          "text": "NVIDIA教程没有公布该迁移节点的实测延迟、吞吐量或拷贝次数；所述优化路径受后端、主机、用户、设备、中间件和运行条件限制。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "目前没有对NVIDIA Depth Anything 3节点在所述CUDA缓冲区迁移前后的端到端性能进行匹配条件下的独立复现测量。",
+          "kind": "reproduction_missing",
+          "state": "open"
+        },
+        {
+          "description": "尚未测量该智能体引导工作流在不同ROS节点、开发者和兼容平台上的节省时间与可靠性。",
+          "kind": "missing_independent",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "如果所述工作流和缓冲区后端能够推广，标准ROS消息就可以在加速器后备存储中承载数据，同时由智能体协助迁移既有机器人节点。这可能减少GPU机器人部署中的接口重复和数据搬运。这是一项具有具体实施路径、值得关注的系统能力，但并不代表已经证明普遍的生产力或性能提升。",
+      "limitations": [
+        "NVIDIA的技术材料属于厂商提供的实施指南，不是独立性能评估。",
+        "所审阅教程没有报告迁移节点的延迟、吞吐量、GPU拷贝数量或开发时间测量。",
+        "CUDA IPC路径取决于上游后端文档所述的运行环境和通信端兼容性；跨主机、设备或用户时会使用回退行为。",
+        "另一个ROS 2教程仓库报告的是LibTorch动画工作流结果，属于不同任务，不能验证NVIDIA的Depth Anything节点或机器人领域的普遍收益。",
+        "这些材料没有证明机器人自主控制、实体任务表现改善、现场可靠性或智能体的通用能力。"
+      ],
+      "relationships": [],
+      "summary": "在2026年九月22日发布的Isaac ROS 5.0材料中，NVIDIA加入了面向智能体的机器人开发工作流，并介绍一种由AI引导的技能，用于将Depth Anything 3 TensorRT节点迁移到ROS 2 Lyrical的rosidl::Buffer及CUDA后端。ROS 2文档支持为uint8[]消息字段使用缓冲区存储；ROS上游CUDA后端README说明，在同一主机、同一GPU和同一用户条件下可进行进程间通信，其他情况下则使用CPU兼容的回退路径。NVIDIA教程给出了实现步骤和验证方法，但本次审阅未发现该节点迁移的端到端性能测量结果。",
+      "technical": {
+        "claimed_result": "NVIDIA称新工作流能够让现有CUDA节点以较少代码改动交换GPU驻留数据。公开教程建议测量延迟和内存传输，但没有报告迁移节点的实测结果。",
+        "demonstrated_result": "NVIDIA和ROS 2的一手材料表明，该工作流、消息缓冲区API和CUDA后端实现均有公开文档。本次激活没有进行独立复现。",
+        "mechanism": "ROS 2 Lyrical使用rosidl::Buffer表示可变长度基本类型数组字段。文档中的CUDA后端对同一主机、同一设备和同一用户的兼容通信端使用CUDA虚拟内存管理IPC；其他情况下可将缓冲区提升或传输到CPU兼容存储。NVIDIA技能会追踪消息字段、依赖项、内存边界、缓冲区生命周期以及启动和测试改动，同时保持Image消息契约。",
+        "regime": "ROS 2 Lyrical及后续版本；支持CUDA的ROS 2节点；NVIDIA的Depth Anything 3迁移示例。零拷贝路径受主机、设备、用户、中间件和后端兼容性限制。",
+        "reproducibility": "相关ROS和CUDA后端代码仓库以及NVIDIA迁移说明均可公开访问。复现需要ROS 2 Lyrical工作区、兼容的CUDA硬件和RMW、节点依赖项及性能剖析；本次没有构建或运行。",
+        "strongest_baseline": "NVIDIA教程指出，当消息两端都能使用CUDA存储时，GPU原生算法周围的CPU后备消息边界可能造成可避免的数据传输；教程没有提供Depth Anything节点迁移前后的测量。另一ROS 2教程仓库报告了不同张量动画演示的CPU与CUDA吞吐量，这些结果不能套用于该节点。"
+      },
+      "title": "NVIDIA将智能体辅助的ROS 2迁移流程与基于缓冲区的GPU传输结合",
+      "why_it_matters": "能够保留加速器后备存储的标准消息字段，为机器人开发者提供了一种有文档支持的方法，在满足条件时避免不必要的主机内存拷贝。智能体引导的迁移技能也可能让这类系统工程更容易重复实施。现有来源说明了接口、实现流程和运行条件边界，但没有证明普遍的生产力提升或节点加速效果。"
     },
     "FCMO-0C68B76FF05E": {
       "claims": [
@@ -5399,6 +5452,60 @@
       },
       "title": "一项研究报告了在企业分析智能体技能上定向分配SFT与RL的收益",
       "why_it_matters": "论文提供了一种可能的方法，用于判断在工具工作流中哪些环节值得投入额外RL算力。证据来自单一企业分析场景和作者开展的实验，并未确立通用训练方法或全领域的效率提升。"
+    },
+    "FCMO-46CA1670BFE8": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "论文推导出，事件配对会从奖励对比方差中去除噪声日程差异部分，并保持每条轨迹的边际环境分布；还给出对比方差下降而梯度方差上升的反例。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "在一项已注册研究中，Qwen3.5-2B智能体每种设计使用三颗种子。瞬时故障下测试成功率平均提高5.1个百分点，但未达到学习标准；评分翻转下AUC差为+0.003，95%区间为-0.029至+0.033。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "对两条轨迹的八个检查点进行探测后，作者报告协方差迹下降：评分翻转下21–30%，工具故障下40–63%。"
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION",
+          "text": "研究只使用一个2B模型、合成模拟器、三颗种子和两条轨迹的探测，不能证明其他模型、任务或生产环境普遍受益。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "尚未使用固定版本代码和数据独立重算训练及梯度探测结果。",
+          "kind": "reproduction_missing",
+          "state": "open"
+        },
+        {
+          "description": "证据仅限单个模型和合成环境；效果取决于环境噪声对梯度方差的贡献。",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "若能在更广泛环境中验证，按事件配对噪声可为工具型智能体训练提供有依据的环境降方差方法。它对训练设计有实际意义，但当前测得的收益仅适用于单个2B模型和合成环境。",
+      "limitations": [
+        "单个2B模型和合成模拟器不能证明可迁移到生产环境或更大模型。",
+        "三颗种子精度有限，且两个主要注册标准均未达到。",
+        "+5.1个百分点是有限样本结果，尽管三颗种子均为正。",
+        "探测使用两条轨迹的八个检查点，不能证明因果关系。",
+        "注册前已有完成的试点；预注册不能消除所有分析选择。",
+        "本次没有独立运行或审计工件。"
+      ],
+      "relationships": [],
+      "summary": "这篇九月21日提交的arXiv论文研究工具型智能体组相对强化学习中的事件键控配对噪声日程。理论显示，配对会去除奖励差异中的共享环境噪声，但某些分数结构下梯度方差仍可能上升。在一项已注册研究中，单个Qwen3.5-2B智能体每种设计使用三颗种子；瞬时工具故障下测试成功率提高5.1个百分点，但未达到学习曲线标准；评分翻转下差异较小且不确定。对两条轨迹的八个检查点进行的探测发现协方差较低，但不能证明普遍学习收益。",
+      "technical": {
+        "claimed_result": "工具故障下成功率平均提高+5.1个百分点，三颗种子差异均为正，但未达到学习标准；评分翻转下AUC为+0.003，95%区间[-0.029,+0.033]。",
+        "demonstrated_result": "理论给出条件和反例；经验结果由作者报告，本次未复现。",
+        "mechanism": "同一提示的轨迹共享按事件索引的噪声日程，策略采样仍独立，每个新组使用新日程。",
+        "regime": "一个采用LoRA的Qwen3.5-2B智能体，在办公室模拟器中遇到瞬时故障和评分翻转；每种设计三颗种子，探测两条轨迹的八个检查点。",
+        "reproducibility": "Apache-2.0仓库链接代码、任务、预注册和摘要；本次只查看README，没有克隆或运行。",
+        "strongest_baseline": "基线为独立噪声日程，并匹配训练预算和任务顺序；每种设计三颗种子。作者披露了注册前试点。"
+      },
+      "title": "配对日程可降低奖励噪声，但不保证智能体学得更好",
+      "why_it_matters": "论文区分了更好的奖励比较、更低的梯度方差和更好的学习效果。当环境噪声解释了较大部分梯度变化时，配对可能有帮助；但奖励差异更稳定本身不能预测学习提升。这是一种有条件的方法，不是普遍加速结论。"
     },
     "FCMO-479F1F4F0228": {
       "claims": [
@@ -15910,6 +16017,70 @@
       "title": "MechSparse 发现，在模式严格的抽取任务中，因果稀疏适配器选择不如激活范数",
       "why_it_matters": "这一负面结果提醒我们，不能假定机制定位会改善稀疏微调：在该论文以输出模式为主的核心指标上，低成本的激活范数启发式胜出，而成本更高的因果方法没有赢得任何主要指标。如果这一结果能够泛化，它会改变局部适配器位置选择，并影响可解释性引导 PEFT 的成本核算。作者提出的任务相关规则仍属初步结论。"
     },
+    "FCMO-F38D91B91495": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "作者发布了DUMA-Bench，这是一个含八类漏洞领域及任务级状态、通信断言的可执行基准；论文称评测了五个模型家族的14个模型。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "arXiv摘要报告攻击成功率从单方评测的26.9%升至双控设置的41.1%。"
+        },
+        {
+          "label": "DISPUTED",
+          "text": "关联README目前给出不同数字：每种设置1,960次试验，单方成功率25.4%，双控为40.3%。差异尚未解决，可能涉及版本变化。"
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION",
+          "text": "论文指出单方与双控比较不是析因消融，无法单独识别用户活动的因果效应。"
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION",
+          "text": "状态断言是确定性的，但通信断言由GPT-4o评判，因此部分分数依赖模型评测器。"
+        }
+      ],
+      "contradictory_evidence": [
+        "关联README给出的汇总攻击率与论文摘要不同；版本审计前不选择任何一方为权威值。"
+      ],
+      "evidence_gaps": [
+        {
+          "description": "arXiv摘要报告26.9%和41.1%，当前README报告25.4%和40.3%。",
+          "kind": "contradiction_unresolved",
+          "state": "open"
+        },
+        {
+          "description": "尚未从逐次试验结果独立复现汇总数值。",
+          "kind": "reproduction_missing",
+          "state": "open"
+        },
+        {
+          "description": "捆绑比较没有区分用户活动、多轮交互和环境状态变化的作用。",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "如果受控比较中仍能观察到该差距，交互式用户和可变环境就会暴露被动评测遗漏的安全失效模式。目前证据来自新基准和作者报告；论文与仓库数值不一且评测设置存在混杂，因此影响程度为值得关注，而非范式转变。",
+      "limitations": [
+        "论文摘要和README报告的汇总率不同；尚未核实版本和分母。",
+        "单方与双控比较同时改变用户活动、轮次和环境演变，不能识别单一因果作用。",
+        "用户由语言模型模拟，结果不一定适用于真实人类行为或生产事件率。",
+        "通信断言由GPT-4o评判，只有状态断言是确定性的。",
+        "本次没有独立运行基准或审计逐次试验。"
+      ],
+      "relationships": [],
+      "summary": "DUMA-Bench构建了智能体和用户模拟器都能改变环境的可执行安全场景。论文报告双控攻击成功率高于单方评测（41.1%对26.9%），但关联README目前显示每种设置各有1,960次试验，成功率为40.3%对25.4%。差异尚未解决。比较还同时改变多轮交互、用户活动和环境演变，因此反映设置层面的稳健性差距，并非用户影响本身的独立因果效应。状态断言是确定性的，通信断言由GPT-4o评判。",
+      "technical": {
+        "claimed_result": "论文报告26.9%升至41.1%；README报告25.4%升至40.3%，每种设置1,960次试验。本次未复现任何数值。",
+        "demonstrated_result": "论文和仓库描述了基准；论文说明设置对比不是析因实验。本次未独立重跑。",
+        "mechanism": "智能体和用户模拟器在多轮中通过工具共同改变环境状态，并检查状态结果和文本响应。",
+        "regime": "八个模拟领域及五个家族的14个模型；双控增加主动用户、多轮互动和状态变化。",
+        "reproducibility": "公开仓库含任务和脚本；本次只查看论文和README，没有运行或固定代码版本。",
+        "strongest_baseline": "在共享任务下比较单方与双控；后者增加多个条件，因此只能视为捆绑设置差异。"
+      },
+      "title": "DUMA-Bench报告双控评测攻击成功率更高，但论文与代码材料数值不一致",
+      "why_it_matters": "智能体安全可能取决于被动提示词测试忽略的交互渠道和可变状态。DUMA-Bench把这些路径做成可执行场景，但报告数值需要核对，且比较捆绑多项变化。证据支持该基准和论文报告的设置差异，不支持单独归因于用户活动，也不代表生产事故率。"
+    },
     "FCMO-F3EA8AB98738": {
       "claims": [
         {
@@ -17259,6 +17430,48 @@
       "why_it_matters": {
         "locale_sha256": "8c4f06c27edf442eddf3e71e60efc0d952f98d57eb00c6670e4d98bdd5a41338",
         "source_sha256": "421d82c6f7f0d8f17a3a50ae21b5bde85faa837038079a662358a5dc231a720e"
+      }
+    },
+    "FCMO-0BFE40B73887": {
+      "claims": {
+        "locale_sha256": "63b0a38b98b8b84898b8cb1b8a47678e8b5e290e8eeeda4a8dd0888c350c8e27",
+        "source_sha256": "2bf14dddbe52d2660ab1b068f71baa32f58cc5a027fd465e756efb405c8c2fc1"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "06700454f19240cc486a2503e397632ca387a8dd6e98cedc1c895303255afb6b",
+        "source_sha256": "cc94447509702e2a81416265af15d9969dd8ff809d6a001ef0b04ec05402df59"
+      },
+      "importance_rationale": {
+        "locale_sha256": "7ae7fbddfb72a8e1ace53a8fb6a8401aca5feb96fb813b5de8dbb2214a9d4724",
+        "source_sha256": "cf6f98ebf416a9fe98e34c7bbae142b27c22369460daa56b1d203d4314c52052"
+      },
+      "limitations": {
+        "locale_sha256": "c62b5107b43324fefb3dbbb204f59ce635fffbd8855ec0448b1f703ca3430954",
+        "source_sha256": "4918215779ccf59552f514ac5786e53203fd3a1c2c8b07e9512f14f9be99923f"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "694c7a8345abd42362d9076e0dc30b335bd2d6dc6ac1d38dc646e9d202e8318c",
+        "source_sha256": "8f6b116e1aaeaa4554e58dd6d226b174eee659bb66b6e8dfa6acec780b328649"
+      },
+      "technical": {
+        "locale_sha256": "9a951801f77c6400e83a6752a624f4f8d2c0409a6ba8a313c66072a1a45bb149",
+        "source_sha256": "d6965865bf7d8d367dfa0c7365621ad35aa08426175d0b375757995b908e5f4a"
+      },
+      "title": {
+        "locale_sha256": "bc1c4c6560269156bbb6dcc7fdac1040ac74c11d0fd80c87da3637c6dbcbc0ae",
+        "source_sha256": "a96e6fbc148eb78e33a757e830b7ed8179d85321c3392f8917d25bd2c5e35e4c"
+      },
+      "why_it_matters": {
+        "locale_sha256": "f199da28b2d5a4551212e0ffec723c3357c958ecd19d28cd8076dc9f1c0ec000",
+        "source_sha256": "7ef7bf54a0deb8bf70a505d0faa5344962608544027bfa2a1a45535bba097961"
       }
     },
     "FCMO-0C68B76FF05E": {
@@ -20549,6 +20762,48 @@
       "why_it_matters": {
         "locale_sha256": "8d77945032cdd744c473354088dfe99bfd6b63ab4182de28302bf77136ae90e8",
         "source_sha256": "94f32befe5d30733938db55c250cca0b15a5edd07410c0613c0168c098907f5b"
+      }
+    },
+    "FCMO-46CA1670BFE8": {
+      "claims": {
+        "locale_sha256": "3dde2ca07a8e1b6abb463578e1d0e076706403c5e3bd22b224f9453e2f4bd797",
+        "source_sha256": "db20d212733a5d9e5abbf599d4797efe906e8231d5faf5e48d1a50d7cc3e9c23"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "dbd598a0e48e400756abd58e1341f8086ffe9ce56c6f8f9ccce0d763e84cebc6",
+        "source_sha256": "939797c2cd43399710814f9df372a724bb68cedb2e39532a61bf7b9491d83910"
+      },
+      "importance_rationale": {
+        "locale_sha256": "576fa1930487b82716663ceaa0732a41dad2f3c4928e4e507f676baa9b3b7940",
+        "source_sha256": "99ae104fcab3ba822be919fca96f77a6e3b5d9a1b4151093321afc82d094181a"
+      },
+      "limitations": {
+        "locale_sha256": "91e1af15c40cd13ee0a911090166696ebcb9eec4f3c27073f2795477a2a85ddd",
+        "source_sha256": "b8e6634cc1f2fffff74d555032f9ffe708939825b67904345ea7dd83ab107025"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "28623591cc0321eaf92b29df08c7489835a57292c0fb19289496f15dc111b075",
+        "source_sha256": "cd95a2b615ea59f9782fa1656bade0657be5a0ab6256c7f757be65a352f531fc"
+      },
+      "technical": {
+        "locale_sha256": "60db95f3461ad74ce021b05b43623b7f623c54cab44c3de699b50c1bdb521ff7",
+        "source_sha256": "e30b308b2c01d5dafb7b361f48574f520f9713f9235dced1fdc331b2af7ced30"
+      },
+      "title": {
+        "locale_sha256": "91d5cff9ae3bac08e1b45abe2fb2b570065765e47a5d99daaac211695f724694",
+        "source_sha256": "c0d52c14347e78a0b5ef7052f26ceb58dd24d88d502c22f34f07db1246e80879"
+      },
+      "why_it_matters": {
+        "locale_sha256": "4773a349542dde78ec7248cc6d7db24a2c9883bfc8b114c16271b63bef3102e7",
+        "source_sha256": "dd4f9dcd970fddbae7c0879f0c6e5738d6d948d8cd697ee52c07e4a458e392a7"
       }
     },
     "FCMO-479F1F4F0228": {
@@ -28641,6 +28896,48 @@
       "why_it_matters": {
         "locale_sha256": "66b11c8fa9b8b647bc0a0bdf1de037d3b9d0c967c2ab3da246954c2a7af651d5",
         "source_sha256": "52be8eaa3cb6d904b1f740ce7989c30bb77074e05dd1f4dec1a0cad25365f60d"
+      }
+    },
+    "FCMO-F38D91B91495": {
+      "claims": {
+        "locale_sha256": "cd43872d71e3babd92d63a22d13ffb16efa20c5c65cf5c5d9ab62446bf19d99a",
+        "source_sha256": "a2e001dc0372dc0a2f0428f77c991b5ee156b6be37dfec41038e20767a4abbbe"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "1ebdb86698a179086d3ef2a5e034f8015db5781cac536920c6c0543cd354d3ab",
+        "source_sha256": "2efaaf09489f89df35e59c7c8f391a9fcc8203c742dc3c54452ab991e4e842e1"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "71051bf0a2cfd6b7e81913a05f4b3bc26578405d32210b7f59f8e235513bed71",
+        "source_sha256": "295269eed39ee32a8573710aecf2514ffc0e467240fc2af351d66a3ca57e4a56"
+      },
+      "importance_rationale": {
+        "locale_sha256": "a8a31cfb611ccdf4782e98618eb23cf9fbf366c3b0b924383b12e77082927dbb",
+        "source_sha256": "a07d08ca457ca3b23f9294a613a5e98a52ed3ce9189b9a7098c068ddf5d1e92a"
+      },
+      "limitations": {
+        "locale_sha256": "fc9bd3b9186561c76adda13c76303be8b452856b3c52ba213b796b9bd6ea025f",
+        "source_sha256": "b448373bce3782948f6ea1fb58968fe425a28ad60d91e8ee928ec466acc475ff"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "b7210540ae992a872acb00af05e72be2aa3738ddab56a38e3dab59c318423fc1",
+        "source_sha256": "a200c47cf97a39e0f8cc78fc32bbefa03e1523fd49a2950a686252897f9b5482"
+      },
+      "technical": {
+        "locale_sha256": "1c130b24e0d8baada696572c186523ffd99ed16068c767a8b5eb42a6455d7f97",
+        "source_sha256": "1461d2139a36da0c12367b52352523d84ca7e4aea3c4757316f5bf9156e41f1c"
+      },
+      "title": {
+        "locale_sha256": "33790d45c610b62349117e2067dc23511ccdee94ebce3cb4cb937cbbdb8bb7e9",
+        "source_sha256": "5536213ababe2dedddb4a706f156f827671fe0dc42b906d89c0bdd33ff2a0652"
+      },
+      "why_it_matters": {
+        "locale_sha256": "90469060de692e5fd364b54d7f7fe9c38b9f4508b51f5f224f6664a6d5352aa2",
+        "source_sha256": "d0b7490a6e2b0a5f989046a18278880369c07b945223d3cf9127b45546f86e08"
       }
     },
     "FCMO-F3EA8AB98738": {

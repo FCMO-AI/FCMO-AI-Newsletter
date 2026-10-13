@@ -1,6 +1,6 @@
 {
   "canonical_locale": "en",
-  "canonical_source_sha256": "4b58624771933734b64df75973e000dad9b074142ff3497a649b865adb269152",
+  "canonical_source_sha256": "945874deb32e6cd95c6c47d8d61aa40af261fabafb34ff3ae6346f89519825e9",
   "generated_from": "ARB airlock; editorial wording authored upstream",
   "locale": "es-419",
   "records": {
@@ -1046,6 +1046,59 @@
       },
       "title": "K2 Horizon abre un ciclo de entrenamiento entre escalas inusualmente amplio, mientras su propia auditoría expone fallas de reward hacking",
       "why_it_matters": "El resultado importante no es que K2 Horizon sea el modelo más fuerte. Es que una familia conectada que abarca modelos densos de escala edge, un modelo MoVA disperso y un flagship 375B expone suficientes datos de entrenamiento y estructura intermedia de investigación como para convertirse en un laboratorio potencialmente raro para estudiar escalamiento, dispersidad, post-entrenamiento y fallas de evaluación. Si los artefactos prometidos del ciclo de vida se completan, investigadores externos podrán probar dónde emergen la capacidad y la explotación de benchmarks en vez de ver únicamente un checkpoint final. El ángulo de IA soberana de UAE es relevante porque stacks de frontera reproducibles pueden ampliar quién puede estudiar y adaptar sistemas avanzados."
+    },
+    "FCMO-0BFE40B73887": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "NVIDIA publicó Isaac ROS 5.0 el 22 de septiembre de 2026 y describe flujos de trabajo, habilidades y documentación preparados para el desarrollo robótico con ROS, incluidos el ajuste fino de FoundationStereo y una habilidad para migrar nodos de ROS 2."
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "ROS 2 Lyrical define almacenamiento respaldado por búferes para campos de mensajes de primitivas de longitud variable, como uint8[], y la documentación del proyecto ROS 2 explica cómo instalar un backend para usar otros dominios de memoria."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El tutorial de NVIDIA presenta una receta de migración guiada por un agente para un nodo ROS 2 con TensorRT y Depth Anything 3. La receta escribe la salida de profundidad en almacenamiento de mensajes respaldado por CUDA, conserva el mensaje Image estándar y admite una ruta compatible con CPU."
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION",
+          "text": "El tutorial de NVIDIA no publica mediciones de latencia, rendimiento ni recuento de copias para el nodo migrado; la ruta optimizada depende del backend, el host, el usuario, el dispositivo, el middleware y las condiciones de ejecución."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se dispone de una medición integral, emparejada y reproducida de forma independiente del nodo Depth Anything 3 de NVIDIA antes y después de la migración descrita al búfer CUDA.",
+          "kind": "reproduction_missing",
+          "state": "open"
+        },
+        {
+          "description": "No se ha medido cuánto tiempo ahorra ni cuán fiable es el flujo guiado por agentes en distintos nodos ROS, personas desarrolladoras y plataformas compatibles.",
+          "kind": "missing_independent",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si el flujo descrito y el backend de búferes se generalizan, un mensaje ROS estándar podría transportar datos en memoria respaldada por aceleradores mientras un agente ayuda a migrar un nodo robótico existente. Esto podría reducir la duplicación de interfaces y el movimiento de datos en implementaciones robóticas con GPU. Es una capacidad de sistemas destacable con una ruta concreta de implementación, no evidencia de mejoras generales de productividad o rendimiento.",
+      "limitations": [
+        "El material técnico de NVIDIA es una guía de implementación de primera parte, no una evaluación independiente del rendimiento.",
+        "El tutorial inspeccionado no informa mediciones de latencia, rendimiento, número de copias de GPU ni tiempo de desarrollo para el nodo migrado.",
+        "La ruta CUDA IPC depende de la compatibilidad del entorno y de los extremos documentada por el backend; entre hosts, dispositivos o usuarios se recurre a rutas alternativas.",
+        "Un repositorio de tutoriales distinto de ROS 2 informa resultados para una canalización de animación con LibTorch; esa carga de trabajo no valida el nodo Depth Anything de NVIDIA ni las mejoras generales en robótica.",
+        "Estas fuentes no demuestran control autónomo de robots, mejor desempeño en tareas físicas, fiabilidad en campo ni capacidad generalizada de agentes."
+      ],
+      "relationships": [],
+      "summary": "En los materiales de Isaac ROS 5.0 del 22 de septiembre de 2026, NVIDIA incorpora flujos de trabajo preparados para agentes y describe una habilidad guiada por IA para migrar un nodo TensorRT de Depth Anything 3 a rosidl::Buffer de ROS 2 Lyrical con un backend CUDA. La documentación de ROS 2 respalda el uso de campos uint8[] con almacenamiento en búfer; el README del backend CUDA de ROS describe IPC entre procesos en el mismo host, la misma GPU y el mismo usuario, y una ruta alternativa basada en CPU en otros casos. El tutorial de NVIDIA presenta una implementación y una receta de verificación, pero esta revisión no encontró una medición publicada del rendimiento integral de esa migración de nodo.",
+      "technical": {
+        "claimed_result": "NVIDIA afirma que el nuevo flujo permite que nodos existentes con CUDA intercambien datos residentes en GPU con pocos cambios de código. El tutorial público recomienda medir latencia y transferencias de memoria, pero no informa un resultado medido para el nodo migrado.",
+        "demonstrated_result": "Los materiales primarios de NVIDIA y ROS 2 confirman que el flujo, la API de mensajes con búferes y la implementación del backend CUDA están documentados públicamente. En esta activación no se hizo una reproducción independiente.",
+        "mechanism": "ROS 2 Lyrical representa los campos de arreglos primitivos de longitud variable mediante rosidl::Buffer. El backend CUDA documentado usa IPC de CUDA Virtual Memory Management para extremos compatibles en el mismo host, dispositivo y usuario; en otros casos puede promover búferes o transferir datos mediante almacenamiento compatible con CPU. La habilidad de NVIDIA rastrea campos de mensajes, dependencias, límites de memoria, vida útil de búferes y cambios de lanzamiento y pruebas, conservando el contrato del mensaje Image.",
+        "regime": "ROS 2 Lyrical o posterior; nodos ROS 2 con CUDA; ejemplo de migración con TensorRT y Depth Anything 3 de NVIDIA. La ruta de copia cero está limitada por la compatibilidad de host, dispositivo, usuario, middleware y backend.",
+        "reproducibility": "Los repositorios pertinentes de ROS y del backend CUDA, así como las instrucciones de migración de NVIDIA, son públicos. La reproducción requiere un entorno ROS 2 Lyrical, hardware CUDA y un RMW compatibles, las dependencias del nodo y perfilado; aquí no se compiló ni ejecutó nada.",
+        "strongest_baseline": "El tutorial de NVIDIA plantea que los límites de mensajes respaldados por CPU alrededor de un algoritmo nativo de GPU generan transferencias evitables cuando ambos nodos pueden usar almacenamiento CUDA. No ofrece una medición anterior y posterior para el nodo Depth Anything. Un repositorio distinto de tutoriales de ROS 2 informa rendimiento de CPU frente a CUDA para una demostración de animación con tensores; esos resultados no se transfieren a este nodo."
+      },
+      "title": "NVIDIA combina una guía de migración de ROS 2 asistida por agentes con transporte de GPU mediante búferes",
+      "why_it_matters": "Un campo estándar de mensaje que conserva los datos en memoria respaldada por un acelerador ofrece a quienes desarrollan robótica una vía documentada para evitar copias innecesarias hacia el host cuando las condiciones lo permiten. Una habilidad de migración guiada por agentes también puede volver más repetible ese trabajo de sistemas. Las fuentes establecen la interfaz, la receta de implementación y sus límites de ejecución; no demuestran mejoras generales de productividad ni aceleraciones del nodo."
     },
     "FCMO-0C68B76FF05E": {
       "claims": [
@@ -5399,6 +5452,60 @@
       },
       "title": "Un estudio informa ganancias al asignar de forma selectiva SFT y RL a habilidades de agentes analíticos empresariales",
       "why_it_matters": "El artículo ofrece una posible forma de decidir dónde vale la pena dedicar cómputo adicional al RL en flujos de trabajo con herramientas. La evidencia procede de un único contexto de analítica empresarial y de experimentos de los autores; no establece una receta general de entrenamiento ni ganancias de eficiencia para todo el campo."
+    },
+    "FCMO-46CA1670BFE8": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "El artículo deriva que el emparejamiento por eventos elimina de la varianza del contraste de recompensa la parte debida a diferencias de calendario y preserva la distribución marginal de cada trayectoria; también presenta un contraejemplo donde baja la varianza del contraste y sube la del gradiente."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En un estudio registrado con un agente Qwen3.5-2B y tres semillas por diseño, las fallas transitorias elevaron el éxito de prueba 5.1 puntos en promedio, pero no se alcanzó el criterio registrado de aprendizaje; ante cambios del evaluador, la diferencia AUC fue +0.003, con intervalo del 95% de -0.029 a +0.033."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Una prueba en ocho puntos de control de dos trayectorias informa trazas de covarianza menores: 21–30% con cambios del evaluador y 40–63% con fallas de herramientas."
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION",
+          "text": "El estudio usa un modelo 2B, un simulador sintético, tres semillas y una prueba de dos trayectorias; no demuestra ganancias generales en otros modelos, tareas o entornos productivos."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "Los resultados de entrenamiento y del sondeo de gradientes no se recalcularon de forma independiente con versiones fijadas de código y datos.",
+          "kind": "reproduction_missing",
+          "state": "open"
+        },
+        {
+          "description": "La evidencia se limita a un modelo y un entorno sintético; el efecto depende de la parte de varianza atribuible al entorno.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se valida en otros entornos, emparejar ruido por evento ofrece una forma fundamentada de reducir varianza ambiental durante el entrenamiento de agentes con herramientas. La consecuencia es relevante para diseñar entrenamientos, aunque el beneficio medido es estrecho y condicional a un modelo 2B y un entorno sintético.",
+      "limitations": [
+        "Un modelo 2B y un simulador sintético no demuestran transferencia a entornos productivos o modelos mayores.",
+        "Tres semillas limitan la precisión y no se alcanzaron los dos criterios principales registrados.",
+        "El resultado de +5.1 puntos es de muestra finita aunque las tres semillas fueran positivas.",
+        "El sondeo usa ocho puntos de control de dos trayectorias y no demuestra causalidad.",
+        "Hubo un piloto terminado antes del registro; el prerregistro no elimina todas las decisiones analíticas.",
+        "No se ejecutaron ni auditaron independientemente los artefactos."
+      ],
+      "relationships": [],
+      "summary": "El artículo de arXiv del 21 de septiembre estudia calendarios de ruido ambiental emparejados por evento en el aprendizaje relativo por grupos de agentes con herramientas. La teoría indica que se elimina el componente compartido del ruido en los contrastes de recompensa, pero algunas geometrías pueden aumentar la varianza del gradiente. En un estudio registrado con un agente Qwen3.5-2B y tres semillas por diseño, el éxito de prueba ante fallas transitorias subió 5.1 puntos, pero no se alcanzó el criterio de curva de aprendizaje; ante cambios del evaluador, la diferencia fue pequeña e incierta. Una prueba de ocho puntos de control de dos trayectorias halló menor covarianza, pero no demuestra ganancias generales.",
+      "technical": {
+        "claimed_result": "Con fallas de herramientas, el éxito medio subió +5.1 puntos y las tres diferencias de semillas fueron positivas, pero se incumplió el criterio de aprendizaje; ante cambios del evaluador, AUC fue +0.003, intervalo del 95% [-0.029,+0.033].",
+        "demonstrated_result": "La teoría ofrece una condición y un contraejemplo; los resultados empíricos son de los autores y no se reprodujeron aquí.",
+        "mechanism": "Las trayectorias de un mismo prompt comparten un calendario de ruido por evento; el muestreo de política sigue independiente y cada grupo nuevo recibe otro calendario.",
+        "regime": "Un agente Qwen3.5-2B con LoRA en un simulador de oficina, con fallas transitorias y cambios del evaluador; tres semillas por diseño y ocho puntos de control de dos trayectorias.",
+        "reproducibility": "El repositorio Apache-2.0 enlaza código, tareas, prerregistro y resúmenes; aquí solo se leyó el README, sin clonar ni ejecutar.",
+        "strongest_baseline": "Calendarios independientes con presupuesto de entrenamiento y orden de tareas emparejados; tres semillas por diseño. Se declara un piloto previo al registro."
+      },
+      "title": "El emparejamiento reduce ruido de recompensa, pero no garantiza mejor aprendizaje de agentes",
+      "why_it_matters": "El estudio separa mejores comparaciones de recompensa, menor varianza del gradiente y mejor aprendizaje. Emparejar puede ayudar cuando el ruido ambiental explica una parte importante de la variación del gradiente, pero una menor varianza del contraste no predice por sí sola mejoras de aprendizaje. Es un método condicional, no una aceleración general."
     },
     "FCMO-479F1F4F0228": {
       "claims": [
@@ -15910,6 +16017,70 @@
       "title": "MechSparse encuentra que la selección causal de adaptadores dispersos pierde ante normas de activación en extracción con esquema rígido",
       "why_it_matters": "El resultado negativo advierte que no debe suponerse que la localización mecanicista mejora el ajuste fino disperso: una heurística barata de norma de activación gana la métrica principal del estudio, dominada por un esquema de salida, mientras el método causal más costoso no gana ninguna métrica principal. Si se generaliza, cambia una decisión local sobre ubicación de adaptadores y el cálculo de costos de PEFT guiado por interpretabilidad. La regla propuesta, dependiente de la tarea, sigue siendo preliminar."
     },
+    "FCMO-F38D91B91495": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "Los autores publicaron DUMA-Bench, un benchmark ejecutable con ocho dominios de vulnerabilidad y aserciones de estado y comunicación; el artículo informa que evaluó 14 modelos de cinco familias."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El resumen de arXiv informa que el éxito de ataques aumenta de 26.9% en evaluación individual a 41.1% bajo control dual."
+        },
+        {
+          "label": "DISPUTED",
+          "text": "El README actual informa 1,960 pruebas por régimen y tasas de 25.4% en evaluación individual y 40.3% con control dual. La diferencia con el resumen no está resuelta y podría reflejar cambios de versión."
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION",
+          "text": "El artículo dice que la comparación no es una ablación factorial y no aísla el efecto causal de la actividad del usuario."
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION",
+          "text": "Las aserciones de estado son deterministas, pero GPT-4o evalúa las aserciones de comunicación; parte del resultado depende de un juez basado en modelo."
+        }
+      ],
+      "contradictory_evidence": [
+        "El README vinculado informa cifras agregadas distintas de las del resumen del artículo; ninguna se considera autoritativa sin auditar versiones."
+      ],
+      "evidence_gaps": [
+        {
+          "description": "El artículo informa 26.9% y 41.1%, mientras el README actual informa 25.4% y 40.3%.",
+          "kind": "contradiction_unresolved",
+          "state": "open"
+        },
+        {
+          "description": "Los resultados agregados no se reprodujeron de forma independiente.",
+          "kind": "reproduction_missing",
+          "state": "open"
+        },
+        {
+          "description": "La comparación no identifica si la diferencia proviene de actividad del usuario, turnos adicionales o estado mutable.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si la brecha se mantiene en una comparación controlada, usuarios interactivos y entornos mutables exponen fallas de seguridad que las evaluaciones pasivas omiten. La evidencia actual es un benchmark nuevo y un estudio de sus autores; la diferencia entre las cifras del artículo y el repositorio, junto con factores de confusión entre regímenes, limita la consecuencia respaldada a notable.",
+      "limitations": [
+        "El artículo y el README muestran tasas distintas; no se conciliaron versiones ni denominadores.",
+        "La comparación combina usuario activo, más turnos y cambios de entorno, sin aislar un efecto causal.",
+        "El usuario es un simulador basado en un modelo de lenguaje; los resultados no establecen conducta humana o tasas de incidentes reales.",
+        "GPT-4o evalúa las aserciones de comunicación; solo las de estado son deterministas.",
+        "No se ejecutó el benchmark ni se auditaron pruebas individuales."
+      ],
+      "relationships": [],
+      "summary": "DUMA-Bench presenta escenarios donde un agente y un usuario simulado modifican un entorno cambiante. El artículo informa mayor éxito de ataques bajo control dual que en evaluación individual (41.1% frente a 26.9%), pero el README vinculado actualmente muestra 40.3% frente a 25.4% en 1,960 pruebas por régimen. La diferencia no está resuelta. El contraste también combina interacción de varios turnos, actividad del usuario y cambios del entorno; por ello mide una brecha entre regímenes, no el efecto causal aislado del usuario. Las aserciones de estado son deterministas; las de comunicación usan GPT-4o.",
+      "technical": {
+        "claimed_result": "El artículo informa 26.9% a 41.1%; el README indica 25.4% a 40.3% en 1,960 pruebas por régimen. No se reprodujo ninguna cifra.",
+        "demonstrated_result": "El artículo y el repositorio documentan el benchmark; el artículo aclara que el contraste no es factorial. No hubo repetición independiente.",
+        "mechanism": "Un agente y un usuario simulado interactúan durante varios turnos con herramientas y un estado compartido. Se comprueban efectos del entorno y respuestas textuales.",
+        "regime": "Ocho dominios simulados y 14 modelos de cinco familias; control dual agrega usuario activo, turnos y cambios de estado.",
+        "reproducibility": "El repositorio público contiene tareas y scripts, pero aquí solo se inspeccionaron el artículo y el README; no se ejecutó ni se fijó la revisión.",
+        "strongest_baseline": "Evaluación individual frente a control dual con tareas compartidas; el segundo agrega varias condiciones y representa una diferencia agrupada."
+      },
+      "title": "El benchmark DUMA informa más ataques exitosos en control dual, con cifras distintas entre artículo y artefacto",
+      "why_it_matters": "La seguridad de los agentes puede depender de interacciones y estados mutables que las pruebas pasivas de prompts omiten. DUMA-Bench convierte esas rutas en escenarios ejecutables, pero las cifras requieren conciliación y la comparación agrupa varios cambios. La evidencia respalda un benchmark y una diferencia reportada entre regímenes, no una estimación causal aislada ni una tasa de incidentes en producción."
+    },
     "FCMO-F3EA8AB98738": {
       "claims": [
         {
@@ -17259,6 +17430,48 @@
       "why_it_matters": {
         "locale_sha256": "2c9fbe542fbf32c7590ad1fdaa42b8039e122b0e6f0a3321e7dd92958513961a",
         "source_sha256": "421d82c6f7f0d8f17a3a50ae21b5bde85faa837038079a662358a5dc231a720e"
+      }
+    },
+    "FCMO-0BFE40B73887": {
+      "claims": {
+        "locale_sha256": "c68b26c8b2e329e34a631b52277e9ad4f6ef44d5979ca36abb39f83688dcbf93",
+        "source_sha256": "2bf14dddbe52d2660ab1b068f71baa32f58cc5a027fd465e756efb405c8c2fc1"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "2b5149e3dd366ab96913650cf35f622d5a4460e1ae3e84a6e1c3731ff9ae0559",
+        "source_sha256": "cc94447509702e2a81416265af15d9969dd8ff809d6a001ef0b04ec05402df59"
+      },
+      "importance_rationale": {
+        "locale_sha256": "2552e55953488b1b8bc5030467b1d44c4c6dd000899235101179958a123c18bb",
+        "source_sha256": "cf6f98ebf416a9fe98e34c7bbae142b27c22369460daa56b1d203d4314c52052"
+      },
+      "limitations": {
+        "locale_sha256": "87dc31933e588f6c50c3b3c62c2d1a18f289815d2a929cd208cb68c408870c5f",
+        "source_sha256": "4918215779ccf59552f514ac5786e53203fd3a1c2c8b07e9512f14f9be99923f"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "5ee1506cc160eb450782293f6639e4d5d0b825057f29b6249961c8b514aa09db",
+        "source_sha256": "8f6b116e1aaeaa4554e58dd6d226b174eee659bb66b6e8dfa6acec780b328649"
+      },
+      "technical": {
+        "locale_sha256": "558583252b7e9637f49cda142c0e408e12c275ebe35f2df8cd379ea4e9739195",
+        "source_sha256": "d6965865bf7d8d367dfa0c7365621ad35aa08426175d0b375757995b908e5f4a"
+      },
+      "title": {
+        "locale_sha256": "4542468f80222f05d4562ab9b4553238e9468155acc956d85c55e9e97877e282",
+        "source_sha256": "a96e6fbc148eb78e33a757e830b7ed8179d85321c3392f8917d25bd2c5e35e4c"
+      },
+      "why_it_matters": {
+        "locale_sha256": "998f570e18473794719bbe4e46eb6dc574cf2e11cf2f91ee8ee254b6b5bbd9f6",
+        "source_sha256": "7ef7bf54a0deb8bf70a505d0faa5344962608544027bfa2a1a45535bba097961"
       }
     },
     "FCMO-0C68B76FF05E": {
@@ -20549,6 +20762,48 @@
       "why_it_matters": {
         "locale_sha256": "79a6c1c070157e85383b1c0e9030b41ae2dc90ca80182224f7c1aa7982079e94",
         "source_sha256": "94f32befe5d30733938db55c250cca0b15a5edd07410c0613c0168c098907f5b"
+      }
+    },
+    "FCMO-46CA1670BFE8": {
+      "claims": {
+        "locale_sha256": "86507dd9aea39ac10d86672c678c8288b94850abe3545cc66998f2afdd4b6dc0",
+        "source_sha256": "db20d212733a5d9e5abbf599d4797efe906e8231d5faf5e48d1a50d7cc3e9c23"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "7d3b5109178360b9ab0dc5a47501aaf6e42f7e0776b3132dec2e6312f803aaa5",
+        "source_sha256": "939797c2cd43399710814f9df372a724bb68cedb2e39532a61bf7b9491d83910"
+      },
+      "importance_rationale": {
+        "locale_sha256": "ffe635a2be1a2af4c7034bf3ad6893120aae4744a17107568ffccdd926c998f1",
+        "source_sha256": "99ae104fcab3ba822be919fca96f77a6e3b5d9a1b4151093321afc82d094181a"
+      },
+      "limitations": {
+        "locale_sha256": "025a4d0031bc6fd9542d6b14c9603d9a9b5fb236f688bcb22fb24512c68d8743",
+        "source_sha256": "b8e6634cc1f2fffff74d555032f9ffe708939825b67904345ea7dd83ab107025"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "24adc54e31f3e507db03e66c4d9c4d5489e3d365c993891e817b8eabe7a92899",
+        "source_sha256": "cd95a2b615ea59f9782fa1656bade0657be5a0ab6256c7f757be65a352f531fc"
+      },
+      "technical": {
+        "locale_sha256": "60ddc3e7c2c7509b78736f82d333ac44c0eed004186ae043cbe94e5a2fcd1bb1",
+        "source_sha256": "e30b308b2c01d5dafb7b361f48574f520f9713f9235dced1fdc331b2af7ced30"
+      },
+      "title": {
+        "locale_sha256": "b073e9897b44f6bbcc01bed0bc435e120c2b3f4719ec4a57e4f381ed13db8abd",
+        "source_sha256": "c0d52c14347e78a0b5ef7052f26ceb58dd24d88d502c22f34f07db1246e80879"
+      },
+      "why_it_matters": {
+        "locale_sha256": "f41017c926c1e8115f80437f1de7d8f1a9646ba047a3313ff2c94137d473f344",
+        "source_sha256": "dd4f9dcd970fddbae7c0879f0c6e5738d6d948d8cd697ee52c07e4a458e392a7"
       }
     },
     "FCMO-479F1F4F0228": {
@@ -28641,6 +28896,48 @@
       "why_it_matters": {
         "locale_sha256": "3dce17335173acde18d5fc930dec28f613bf4ed9faf094467b6518fd08a84f2c",
         "source_sha256": "52be8eaa3cb6d904b1f740ce7989c30bb77074e05dd1f4dec1a0cad25365f60d"
+      }
+    },
+    "FCMO-F38D91B91495": {
+      "claims": {
+        "locale_sha256": "d7f30efbd951ee23def5419280d4cc1d5835002eb7186ec66d452bd25635641b",
+        "source_sha256": "a2e001dc0372dc0a2f0428f77c991b5ee156b6be37dfec41038e20767a4abbbe"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "e292b14eccbbf9d3742b23f48d5e96edea0bafdd973684e48e6a5e4b6917994a",
+        "source_sha256": "2efaaf09489f89df35e59c7c8f391a9fcc8203c742dc3c54452ab991e4e842e1"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "6807ea9bceeaee53412455f034dd8d8d0b1541dfc18297fdf495d6497b403376",
+        "source_sha256": "295269eed39ee32a8573710aecf2514ffc0e467240fc2af351d66a3ca57e4a56"
+      },
+      "importance_rationale": {
+        "locale_sha256": "8d2c191f8ae3645696370d0a10a30ab225520a8a7feda0307862f74a9e494c3f",
+        "source_sha256": "a07d08ca457ca3b23f9294a613a5e98a52ed3ce9189b9a7098c068ddf5d1e92a"
+      },
+      "limitations": {
+        "locale_sha256": "4a0e11a94e496d84b7afedf5f662aef2c6f9f2032e188861128d01185266bfe9",
+        "source_sha256": "b448373bce3782948f6ea1fb58968fe425a28ad60d91e8ee928ec466acc475ff"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "8c5dcf0707a7b2f275e9aca11d0a4ca42046618b6d03c19058738411e019a39d",
+        "source_sha256": "a200c47cf97a39e0f8cc78fc32bbefa03e1523fd49a2950a686252897f9b5482"
+      },
+      "technical": {
+        "locale_sha256": "dac65a5c4aeb218fffb27642438a2d128ffa708482cbe8ae91ac0dd6585a440e",
+        "source_sha256": "1461d2139a36da0c12367b52352523d84ca7e4aea3c4757316f5bf9156e41f1c"
+      },
+      "title": {
+        "locale_sha256": "5bad473f653ed5ebaf33685269db49a35fa1434f66081700b7c27c5e5b90aa99",
+        "source_sha256": "5536213ababe2dedddb4a706f156f827671fe0dc42b906d89c0bdd33ff2a0652"
+      },
+      "why_it_matters": {
+        "locale_sha256": "87d557fccc14b906770e1c124ee54f64df06120a2a03ab2e7f1852528b46d45b",
+        "source_sha256": "d0b7490a6e2b0a5f989046a18278880369c07b945223d3cf9127b45546f86e08"
       }
     },
     "FCMO-F3EA8AB98738": {
