@@ -1,6 +1,6 @@
 {
   "canonical_locale": "en",
-  "canonical_source_sha256": "6ae2da878f86a21e92f1efb89ebb8699c9711df741d77e6c1c42aa93ad1ac3cd",
+  "canonical_source_sha256": "4b241549aab0980d5ba34ddea6fc98e28187e619647134ee8c4b64b1b1c48c42",
   "generated_from": "ARB airlock; editorial wording authored upstream",
   "locale": "zh-Hans",
   "records": {
@@ -6509,6 +6509,57 @@
       "title": "Lei和Ren详述了具有可容许应力和平坦余项的Navier–Stokes爆破剖面构造",
       "why_it_matters": "对关键技术剖面环节进行详细的外部构造，使一项后果重大的拟议证明更便于检查，也明确指出尚有哪个步骤承担建立定理的证明责任。如果该构造和兼容条件经得起专家审查，它们将有助于评估更广泛的Navier–Stokes主张。论文自身指出，仍需配套的残差修正步骤，因此不能将其视为千禧年难题的证明。"
     },
+    "FCMO-4D410E62C996": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "预印本提出一种恢复设计，结合已初始化引擎快照、用于持久只读模型分配的 GPU Memory Service（GMS）以及预初始化的 Shadow Engine。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "在 vLLM 和 SGLang 的四种八 GPU 模型配置中，作者报告 Shadow Engine 在 4.6–6.2 秒内恢复，比热重启基线快 12.8–29.0×。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "回放一条为期 18 周的生产故障轨迹后，作者估计该设计可挽回 79% 因恢复损失的 GPU 小时。"
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION",
+          "text": "快速路径适用于保留设备的引擎进程故障；使设备失效的故障需重建模型状态，生产收益是轨迹回放估算，而非前瞻性线上测量。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "本次激活未确认恢复时延、内存开销或生产轨迹收益的独立复现。",
+          "kind": "missing_independent",
+          "state": "open",
+          "updated_at": "2026-10-13T22:12:06.706022Z"
+        }
+      ],
+      "importance_rationale": "如果快速恢复能在生产负载下奏效，推理可用性可能显著改善，用于掩盖热重启窗口的容量预留也可能减少。评分 6 反映保留设备故障情形下的系统层面潜在影响，不代表已独立证实或普遍可迁移。",
+      "limitations": [
+        "结果由作者报告，本次激活未进行独立复现。",
+        "12.8–29× 数据来自八 GPU 副本以及 GPU 和模型分配仍存活时注入的引擎进程故障；设备故障需要更慢的重建路径。",
+        "热重启对照使用缓存中的权重和编译结果；论文称这相较生产轨迹中的多数恢复情形偏乐观，但基准仍只适用于所测系统。",
+        "79% GPU 小时收益是回放一条生产轨迹得到的估算，并非前瞻性线上部署测量。",
+        "测试中 Shadow Engine 每 GPU 占用 4.3–8.1 GiB；待机并非零成本。"
+      ],
+      "relationships": [],
+      "summary": "NVIDIA 作者于 九月 21 日发布的预印本提出 GPU Memory Service（GMS）、已初始化运行时快照和 Shadow Engine；当工作进程故障但 GPU 仍完好时，可恢复 LLM 推理副本而无需重新加载模型权重。在 vLLM 和 SGLang 的四种八 GPU 模型配置中，论文报告 Shadow Engine 恢复时间为 4.6–6.2 秒，比热重启快 12.8–29.0×。作者通过回放其生产故障轨迹估算，可挽回 79% 因恢复损失的 GPU 小时。这些是针对保留设备的进程故障报告的作者结果；设备丢失和更广泛部署表现仍待验证。",
+      "technical": {
+        "claimed_result": "作者报告，在四种八 GPU 模型配置中恢复时延比热重启低 12.8–29.0×；他们还估计在一条为期 18 周的生产轨迹中可挽回 79% 的恢复相关 GPU 小时。",
+        "compute_or_cost": "待机 Shadow Engine 为 Qwen3.8-27B 每 GPU 增加 4.3 GiB，为更大的受测模型增加 7.4–8.1 GiB，以牺牲 KV 缓存空间换取更快恢复。",
+        "demonstrated_result": "论文说明并实现了这些组件。报告的测试配置中，GMS + Shadow Engine 在 vLLM 和 SGLang 各四种模型/配置下恢复耗时 4.6–6.2 秒；本次未进行独立执行。",
+        "implementation_status": "论文报告已在 Dynamo、vLLM 和 SGLang 中实现并提供代码链接，但本次激活未构建代码或进行独立复现。",
+        "mechanism": "快照捕获已初始化引擎运行时状态，但排除请求 KV 页；GMS 在引擎进程之外持有物理模型权重分配，使其在保留设备的进程故障后继续存在并以只读方式重新挂接。Shadow Engine 共享模型状态并在故障后提升，因此恢复主要只需分配新的 KV 后备空间并向服务发现平面注册。",
+        "regime": "每个副本使用八块 GPU；模型包括 Qwen3.8-27B、DeepSeek-V4-Flash、GLM-5.2 和 DeepSeek-V4-Pro，运行于 vLLM 0.27.1 与 SGLang 0.5.18。注入故障终止引擎进程树，但设备和驻留分配保持完好；设备失效后的恢复更慢。",
+        "reproducibility": "论文提供配置与负载细节，作者表示代码可用。独立复现及部署前提评估仍待完成。",
+        "strongest_baseline": "热重启基线保留了主机页缓存中的模型权重，并缓存了编译产物；作者称这比生产轨迹中的大多数恢复情形更乐观。"
+      },
+      "title": "Dynamo 论文称复用 GPU 驻留状态可将 LLM 服务恢复缩短至数秒",
+      "why_it_matters": "如果这些结果能迁移到线上服务，在重建运行时状态时保留驻留模型分配，可能减少容量损失和为掩盖热重启窗口而预留的备用 GPU。对进程故障后设备和分配仍完好的集群，当前影响最大；这并未证明 GPU 或设备故障后的恢复能力。"
+    },
     "FCMO-4E1FCFCCA9BB": {
       "claims": [
         {
@@ -9228,6 +9279,56 @@
       },
       "title": "预印本形式化了如何验证长时运行代理工作的权限撤销",
       "why_it_matters": "如果该方法适用于真实服务商适配器，它可提供比取消确认或撤销令牌更精确的停止保证，同时保留由其他独立授权根支持的工作。论文明确将保证限制在完整中介的登记路径内，因此并未证明整个系统已停止，也未证明真实部署安全。"
+    },
+    "FCMO-6DC9880173F3": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "作者介绍一种安装在器械上的记录器，使用惯性、飞行时间和霍尔传感器估计器械状态，无需外部相机或跟踪器，并依据机器人真值进行逐通道延迟对齐。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "手持器械示范训练的策略在另外四只活兔中有三只完成阑尾切除，过程采用共享自主，并由外科医生选择手术阶段。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "作者报告使用来自四只活兔的 849 条体内示范训练，并在模拟器中评估 31 种配置以选择策略。"
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION",
+          "text": "研究仅在一天内测试四只部署动物；在部署内窥镜下，视觉预测器仅在 24.6% 的控制步骤中与外科医生判断一致，因此由外科医生选择手术阶段。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "本次未查到独立动物复现或人体临床评估；当前报告使用四只部署动物。",
+          "kind": "missing_independent",
+          "state": "open",
+          "updated_at": "2026-10-13T22:12:06.706022Z"
+        }
+      ],
+      "importance_rationale": "如果手持器械传感能持续提供手术机器人学习所需的示范数据，就可能扩大数据来源并改变手术策略开发。评分反映该流程的潜在影响，不代表仅有四只动物的结果或临床就绪状态。",
+      "limitations": [
+        "结果由作者报告，本次激活未进行独立复现。",
+        "部署评估涉及四只活兔，策略完成其中三例任务。",
+        "这是共享自主：由于部署内窥镜下的视觉阶段预测器表现不佳，手术阶段由外科医生选择。",
+        "论文没有提供人体患者或临床安全证据。",
+        "机器人提供校准真值并执行策略，但没有采集训练示范。"
+      ],
+      "relationships": [],
+      "summary": "九月 22 日的一篇预印本报告了一条端到端流程：通过安装在外科医生常用腹腔镜器械上的传感器记录姿态与夹爪状态，以机器人真值对齐各传感器通道，并在没有机器人采集示范的情况下训练双臂策略。作者在闭环模拟器中比较 31 种配置并选出策略，再用来自四只活兔的 849 条体内示范重新训练；随后在另外四只兔子上测试，其中三例完成阑尾切除，采用共享自主并启用电外科。由于视觉阶段预测器在部署内窥镜下表现不佳，手术阶段由外科医生选择。这是小规模动物研究，并非完全自主或临床证据。",
+      "technical": {
+        "claimed_result": "作者报告，使用 849 条手持采集的体内示范训练后，另外四只活兔中的三只完成阑尾切除；过程中启用了电外科，并由外科医生手动指定阶段。",
+        "demonstrated_result": "预印本描述完整的传感采集和训练流程，并报告共享自主条件下活兔手术完成率为 3/4；本次未确认独立结果。",
+        "implementation_status": "论文介绍研究原型，并称已发布两组示范数据；本次激活未运行代码或数据。",
+        "mechanism": "安装在器械上的紧凑记录器融合 IMU 姿态、飞行时间传感器测得的插入深度和霍尔传感器测得的夹爪状态。各通道延迟先依据机器人真值校准，再形成观测—动作对。作者使用 DINOv3 扩散策略，通过闭环模拟选型，随后用体内示范重新训练。",
+        "regime": "使用两台 FR3 机械臂和标准器械进行双臂腹腔镜阑尾切除。四只活兔提供示范，另外四只用于部署；每只部署动物仅进行一次执行。研究已提交 ICRA 2027。",
+        "reproducibility": "论文描述模拟和体内实验流程并链接示范数据集。独立复现、扩大动物测试及临床转化仍待完成。",
+        "strongest_baseline": "模拟器消融中，选定的 DINOv3 策略解冻一个区块后完整接近阶段完成率为 81%，ResNet-18 为 12%，冻结 DINOv3 为 44%；这些是模拟器配置对照，并非活体结果的独立基线。"
+      },
+      "title": "器械安装式示范训练出一套在活兔上测试的阑尾切除策略",
+      "why_it_matters": "如果该流程能够泛化，它可能将手持微创手术中通常会丢失的动作转化为机器人策略训练数据，并降低对机器人专属示范的依赖。目前结果是动物体内的早期演示，明确保留人工阶段控制；它不证明患者安全或自主手术。"
     },
     "FCMO-6E05AB159B0A": {
       "claims": [
@@ -12090,6 +12191,62 @@
       "summary": "2026年八月17日，NVIDIA、OpenAI与SB Energy宣布PORTS-Pike基础设施安排，OpenAI同意在俄亥俄州Pike县锁定约8 GW的IT容量。NVIDIA是独家AI计算基础设施供应商，将向SB Energy投资$1.5B，并为初始4.25 GW的土地、电力和建筑壳体义务提供信用支持；随后，NVIDIA 2027财年第二季度Form 10-Q披露，这些初始义务对应的担保上限为$105B，并保留在园区扩张时为约3.8 GW额外容量提供支持的选项。该园区分九个阶段，采用OpenAI的20年租约；OpenAI表示首批800 MW预计于2028年交付，而NVIDIA的申报文件称服务将从其2029财年开始。同一份10-Q还显示更广泛的战略转向：$279B的供应/容量承诺、$36B的AI云协议，以及八月签署、旨在长期动员超过$500B第三方AI基础设施资本的MOUs，不过这些MOUs明确仍属初步安排。",
       "title": "NVIDIA为与OpenAI相关的4.25 GW数据中心租赁提供最高$105B担保，并进一步进入AI基础设施融资",
       "why_it_matters": "AI计算的瓶颈正越来越从加速器供应转向土地、电力、建设和融资。GPU供应商利用自身资产负债表和生态合同为多吉瓦客户基础设施降风险，可能实质改变哪些机构能够为前沿训练/推理融资，并加强芯片供应商、云或中介、资本提供方与模型实验室之间的纵向耦合。OpenAI的主要公告称其已同意在该园区锁定约8 GW容量，但全部容量将分阶段交付且附带条件；NVIDIA已签署的信用支持覆盖初始4.25 GW，其余约3.75-3.8 GW由一个选项覆盖，并不等同于当前已经承担的同规模担保敞口。"
+    },
+    "FCMO-967377164E87": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "预印本定义并评估了一种重复命名博弈模型，其中包含同质、完全连接的群体，分别由 Qwen2.5-7B-Instruct、Phi-4、Llama-3.2-3B-Instruct 和 DeepSeek-R1-Distill-Qwen-32B 构成。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "作者报告，只有一个中间状态的路径中，不到 10% 能将累计承诺投入降至直接转变所需投入以下；路径更长时这一比例还会下降。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "在评估的模型群体中，允许第三种约定参与单阶段整合方案，可使 15–40% 的转变具有成本优势；相同三元组上的独立两阶段路径为 12–23%。"
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION",
+          "text": "结果来自同质群体的受控命名博弈模型；论文没有展示针对已部署异质智能体网络的攻击，也未验证现实干预效果。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "本次激活没有独立复现论文报告的模型结果。",
+          "kind": "missing_independent",
+          "state": "open",
+          "updated_at": "2026-10-13T22:21:29Z"
+        },
+        {
+          "description": "论文没有证明这些约定动态会出现在已部署的异质智能体群体中。",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-13T22:21:29Z"
+        }
+      ],
+      "importance_rationale": "如果类似的转变路径存在于已部署的交互式智能体群体中，攻击者或意外扰动就可能通过中间状态改变群体约定，从而影响稳定性评估。评分 6 反映这一有限机制的潜在后果；现有证据是受控命名博弈研究，并非现实场景演示。",
+      "limitations": [
+        "这是一篇预印本，结果由作者报告；本次激活没有进行独立复现。",
+        "模型采用同质、完全连接的群体和命名博弈协调任务，因此向现实智能体网络迁移的范围有限。",
+        "作者指出，只有一个中间状态的路径中不到 10% 是次加性的；在模型描绘的格局中，降低成本的路径并不常见。",
+        "论文没有展示实际部署攻击、现实测量或经过验证的防御措施。"
+      ],
+      "relationships": [],
+      "summary": "一篇 九月21日发布的预印本研究了承诺少数派如何改变约定：研究对象是四种开放权重大语言模型构成的同质、完全连接命名博弈群体。作者报告，只有一个中间状态的路径中，不到 10% 能比直接转变减少累计承诺投入。在所评估的三元组中，单阶段竞争时允许第三种约定参与，可使模型群体中 15–40% 的转变具有成本优势，而独立两阶段路径为 12–23%。这些是受控模型结果，并非观察到的攻击，也不能证明已部署的异质智能体网络会出现相同现象。",
+      "technical": {
+        "claimed_result": "作者报告，只有一个中间状态的路径中不到 10% 是次加性的。在所评估的三元组中，整合单阶段竞争并加入第三种约定后，四种模型群体中 15–40% 的路径具有成本优势；独立两阶段路线为 12–23%。",
+        "compute_or_cost": "这不是硬件或推理成本结果；转变成本按承诺群体比例及其他路径目标衡量。",
+        "demonstrated_result": "预印本介绍了模型，并报告四种同质大语言模型群体的模拟结果；本次激活检查了论文文本，但没有重新运行模拟。",
+        "implementation_status": "预印本中的研究模型；没有展示已部署系统或实际攻击。",
+        "mechanism": "研究为约定之间的成对转变设定临界规模阈值，并将其连成有向网络；随后依据累计和最大承诺成本，对直接路线与经过中间状态的路线进行优化比较。",
+        "regime": "同质、完全连接的命名博弈群体，分别使用 Qwen2.5-7B-Instruct、Phi-4、Llama-3.2-3B-Instruct 和 DeepSeek-R1-Distill-Qwen-32B；约定集合和承诺少数派干预均为受控设置。",
+        "reproducibility": "预印本描述了方法和补充图；本次激活没有独立复现，也没有运行模型。",
+        "strongest_baseline": "约定之间的直接成对转变；研究也比较了相同三元组上的独立多阶段路线。"
+      },
+      "title": "受控智能体群体研究发现，间接改变约定有时能降低转变阈值",
+      "why_it_matters": "论文提示，仅用成对比较评估智能体群体的稳定性，可能会漏掉经过中间约定的转变路线；但在模型中，这类降低成本的路线并不常见。如果该结构能迁移到已部署系统，安全评估可能需要考虑可选约定集合及连续干预过程。论文没有证明现实攻击可行，也未验证缓解措施的效果。"
     },
     "FCMO-973E5F2465F4": {
       "claims": [
@@ -24072,6 +24229,48 @@
         "source_sha256": "0f170a45190c8940150d596d32ae436416f58d97a8481559c0d3a6f2958cda57"
       }
     },
+    "FCMO-4D410E62C996": {
+      "claims": {
+        "locale_sha256": "888c9992a13ecbc879f5dd2c3f2c418faf57beb673cc2773ae89c9597ed90eaa",
+        "source_sha256": "ca7f80b58d396b8472e0d8761d2e2aa729b18b96a0fd08177222c41477485951"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "888af3f4e8c96d823a5cda26488b890e5c74176a04e8dda3754ad26ea74ca10f",
+        "source_sha256": "560561c1d1c240c41e354cab77117f62fabe646ce31ea220495031a63c119775"
+      },
+      "importance_rationale": {
+        "locale_sha256": "162129e7f11adaa05671ce501ba4be097fb816df8ecbbe81ab3260a223dd7a97",
+        "source_sha256": "2d422ebab17977e472eea82beed5caee27d57bb280f1fd6f36235a106776ad1d"
+      },
+      "limitations": {
+        "locale_sha256": "9d006a121c51a1795d3a063c2c2f36a69460b02bbfdce6915d95264f8f840a81",
+        "source_sha256": "a89f60381858005456a9ca6e1b63210c48e9793569808e5352b1905189498d85"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "bf93f2c3ce06cc3c5661b7aef8f27e46cccb75fb2110eb506289fea89ec81cf2",
+        "source_sha256": "80d75d1c3bd71337a4ec15512f61ca24dfae49a654373ad322de537ff2d10855"
+      },
+      "technical": {
+        "locale_sha256": "5bb5ead1c50bea61ab872decba4fd19e1156bc323a3e40a34ebfb42a6e51e3a4",
+        "source_sha256": "070dbc98c991cb054c5f41b34d026c3b1fee4f05a3ead1b9cc4759a78f93d800"
+      },
+      "title": {
+        "locale_sha256": "cea2b7e404321c57b2213a15ebb12f47d4582b6fa7fd3c45028b26e0dfcf4319",
+        "source_sha256": "b5fc8fed6fefe83b9d4fbbaaa722a8eaad6ab92e41a2ce3189ccac3e51ff3e10"
+      },
+      "why_it_matters": {
+        "locale_sha256": "226a38e7f6c4ef45773ced241f7416936366088b2add1b76c4d89d90404aaebe",
+        "source_sha256": "4e0b6ac5e24e472870e224b34b59337ad7ef1d9016d1def75149538fe2797200"
+      }
+    },
     "FCMO-4E1FCFCCA9BB": {
       "claims": {
         "locale_sha256": "33b85ff15f4d4ce28cfbf6f75ca36ec76991bd83acf5dd0b6dead21aa39884f7",
@@ -26242,6 +26441,48 @@
         "source_sha256": "57aceffb31e5f957e8ad80c838d1ac2a329cca6d21ce6785010f0ed820b7d879"
       }
     },
+    "FCMO-6DC9880173F3": {
+      "claims": {
+        "locale_sha256": "23e7c5ee644f4efe866aafffa9b73866db8ad9f325dcde963f30f72f5f1d814d",
+        "source_sha256": "7d11ae3273635d49fce325fa825e79c89747f709f5a0c8a5d091bb88790bbddb"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "3af4c5e826686da0cd4f74ee012b0bb06ee06892557c00e78622254d58bd57cb",
+        "source_sha256": "caff6f43ad30d1420a56da1c4fc2c3319877c1d5c5f43da476ad381144e4a8e2"
+      },
+      "importance_rationale": {
+        "locale_sha256": "d1eac34eb17cb400531944e613b7e64962ab2151ab21a557a06baca860436faa",
+        "source_sha256": "5c818ec5f1a394a639389064e12aa36d93a01461ca12bdd9b00941c82c32bdad"
+      },
+      "limitations": {
+        "locale_sha256": "7f9b7c16d5ae4029fff173d5d4383ec90d58e6052f0b711ebf0e8afb93cee287",
+        "source_sha256": "bebc623e41f1f6352cf5b313854685916d80a2690ca8a00f57b7a1c1f8e30a99"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "368f6b6540219466bd4346657b2accfdee7dedf6a7944ed3212704fe88bdb7b5",
+        "source_sha256": "51e4f603d127327c4d82666fe8c8b3a4695de069eb57d7004bb40f08f34e5f5b"
+      },
+      "technical": {
+        "locale_sha256": "b66aa8f2bbcf11824e7797e0ac8fd2a96d6120f83a4d44a6f579aa6023cfe30e",
+        "source_sha256": "f7fccbe52d5066af8d2cd1d45ba96c26448ef77d7f925d59f4b70264cce2138e"
+      },
+      "title": {
+        "locale_sha256": "5dbf637d1da78893c26f123de5b8d06f9907be20d3f0f2d543af4c192e0175a4",
+        "source_sha256": "5a35f0d30134e4129bfd2241518e923dd1c2dc101eac6963c7419ce81bd0facb"
+      },
+      "why_it_matters": {
+        "locale_sha256": "a2c5f17cefd2a7811396fa84ab041baa70e38f577bba038dbabac27f32d7bf79",
+        "source_sha256": "3e70dac972701a4e50ff3579c4a4a6c679a9237681ffeab9dacae3098d7b08c8"
+      }
+    },
     "FCMO-6E05AB159B0A": {
       "claims": {
         "locale_sha256": "bf3ee88803990ac05f6a7a25829c5a855875e282f6e0dac84fb32d29806d18f4",
@@ -28368,6 +28609,48 @@
       "why_it_matters": {
         "locale_sha256": "643593e1af6f0bd94530ef879bbfdabc9d686c7551cd17599704265784690395",
         "source_sha256": "f0bd4ea7fa636cbe646a20d3cb10cc5a9404bbf85a06e61cf7ef0c138a8b1b18"
+      }
+    },
+    "FCMO-967377164E87": {
+      "claims": {
+        "locale_sha256": "60260071e7b244e5d343bbbde4ed6f977627fa3ad324a8c3503d175a1eba824c",
+        "source_sha256": "2720ce95c069493b45058702665d72fe5641de5908a6bf0341176002ee10c50b"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "cc285659aead617edc0d6389d5071d6a893e712ee0c134ee431de6924238ae62",
+        "source_sha256": "80a89fa4ec6dfcf45d26365b31a03265ab6bafe9d93f0de58748cc5389d88aba"
+      },
+      "importance_rationale": {
+        "locale_sha256": "10a7371e087d24e452c9e22a99de1fa5e68eeb9b2f450ca97dfbb65602457cbe",
+        "source_sha256": "3666a1c1e75f67381bebc8ef64fc8f99089ae11a522aa83f06a4f9dfd26b5f23"
+      },
+      "limitations": {
+        "locale_sha256": "d9952cf00457ab0b1b9ad1fe1d1576b91fe51fbd4b30bee391922518db18655b",
+        "source_sha256": "5cf445bd555b546ae9a0273133406e0f0041f696d4289516ce31c4a5c5a6f991"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "a0b422903331252e1af841f64e7e2497d0369b86add541943d838639adb5d1dd",
+        "source_sha256": "a4fb9aacb279df59e1fce4fdd5f1e0631c048f92799c3b0e3669e38eece5c1ed"
+      },
+      "technical": {
+        "locale_sha256": "46da1ecb9f27d31044994180ffa971943e864834004970cb80f266f2d06bd84a",
+        "source_sha256": "de209e1909f7ff9a86753c0116a4a85ac741eabc65cf101b06f8cf0300c9b9cc"
+      },
+      "title": {
+        "locale_sha256": "d90f3db19aa40c7accc9a5e35dc1f45213be3f4d9d4f2caf2f3191f26cebd748",
+        "source_sha256": "a582997528d2874347fdb19ea05bbcd0c44cb4fe722ff66b7a206a09da3e62e3"
+      },
+      "why_it_matters": {
+        "locale_sha256": "4a30f5dcc2e620d9dc78984f7c429419fa967eb115dff231fb48d0215ffe8016",
+        "source_sha256": "6ac76014f7242ef94316ceb7c74b2a446bd6027d10bb52e8c37a5d8ab6146284"
       }
     },
     "FCMO-973E5F2465F4": {
