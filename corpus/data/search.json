@@ -1,6 +1,115 @@
 [
   {
     "confidence": "credible_unconfirmed",
+    "demonstrated_result": "Public paper and repository document the benchmark design and report results. The paper itself cautions that the solo/dual comparison is not a factorial ablation. No independent re-run was performed.",
+    "desks": [
+      "agents_memory",
+      "reasoning_posttraining"
+    ],
+    "development_type": "paper",
+    "event_at": "2026-09-21T00:00:00Z",
+    "evidence_class": "A",
+    "id": "FCMO-F38D91B91495",
+    "importance_effective_score": 5,
+    "importance_tier": "Notable",
+    "last_verified_at": "2026-10-13T07:20:19Z",
+    "mechanism": "The benchmark runs multi-turn scenarios with an agent, user simulator, environment/tools and security assertions. The user simulator can alter the shared trajectory through messages and user-scoped actions. Binary state checks inspect environment effects; communication checks apply a language-model judge to response text.",
+    "organizations": [
+      "ITMO University",
+      "Hive Trace Lab"
+    ],
+    "primary_desk": "evaluation_science",
+    "regions": [
+      "global"
+    ],
+    "status": "active",
+    "strongest_baseline": "The benchmark's solo/passive-user regime is compared with its dual-control regime using shared task definitions and tools. However, dual-control also adds multi-turn communication and interactive environment changes, so the comparison estimates a bundled regime gap.",
+    "summary": "DUMA-Bench introduces executable security scenarios in which an agent and user simulator can both shape a changing environment. The paper reports higher attack success under dual-control than solo evaluation (41.1% vs 26.9%), but the linked repository README currently displays 40.3% vs 25.4% over 1,960 trials per regime. That paper–artifact difference has not been reconciled. The comparison also changes multi-turn interaction, user activity and environment evolution together, so it is a regime-level robustness gap rather than an isolated causal estimate of user influence. State assertions are deterministic, while communication assertions use GPT-4o judging.",
+    "title": "DUMA-Bench reports higher agent attack success in dual-control tests, with a paper–artifact mismatch",
+    "topics": [
+      "agent security",
+      "dual-control interaction",
+      "security benchmark",
+      "prompt injection",
+      "evaluation methodology"
+    ],
+    "why_it_matters": "Agent security can depend on interaction channels and mutable state that passive prompt tests omit. DUMA-Bench makes those pathways executable across several security domains, but its reported effect size needs reconciliation with the linked artifact and the evaluation regimes bundle several changes together. The evidence supports a benchmark and a paper-reported regime difference, not a causal estimate of user activity alone or a production incident rate."
+  },
+  {
+    "confidence": "credible_unconfirmed",
+    "demonstrated_result": "The mathematical analysis states when pairing removes environment-schedule variance from reward contrasts and supplies a counterexample showing that gradient variance can increase even when contrast variance declines. Empirical outcomes are author-reported and were not independently reproduced here.",
+    "desks": [
+      "agents_memory",
+      "evaluation_science"
+    ],
+    "development_type": "paper",
+    "event_at": "2026-09-21T00:00:00Z",
+    "evidence_class": "A",
+    "id": "FCMO-46CA1670BFE8",
+    "importance_effective_score": 5,
+    "importance_tier": "Notable",
+    "last_verified_at": "2026-10-13T07:18:10Z",
+    "mechanism": "All rollouts for a prompt share an event-keyed environment-noise schedule while policy sampling remains independent; new groups draw new schedules. This preserves per-rollout marginal environment distributions but changes dependence among siblings.",
+    "organizations": [
+      "BRAC University"
+    ],
+    "primary_desk": "reasoning_posttraining",
+    "regions": [
+      "global"
+    ],
+    "status": "active",
+    "strongest_baseline": "Independent environment schedules for sibling rollouts, with matched training rollout budgets and paired seed/task order comparisons. The paper reports three seeds per design and a disclosed previously completed pilot before the registration freeze.",
+    "summary": "The Sep. 21 arXiv paper analyzes paired, event-keyed environment schedules for group-relative reinforcement learning of tool-using agents. Its theory shows that pairing removes the shared environment-noise component from sibling reward contrasts but can still increase gradient variance under some score geometries. In a registered study using one Qwen3.5-2B agent and three seeds per design, pairing improved noisy-test success under transient tool faults by 5.1 points but missed the registered learning-curve criterion; under grader flips, the learning-curve difference was small and uncertain. A finite probe found lower gradient covariance traces, but the result is limited to eight checkpoints from two trajectories and does not establish broad learning gains.",
+    "title": "Paired rollout schedules reduce reward noise, but do not guarantee better agent learning",
+    "topics": [
+      "group-relative reinforcement learning",
+      "tool-use agents",
+      "stochastic environments",
+      "variance reduction",
+      "evaluation methodology"
+    ],
+    "why_it_matters": "The paper separates three outcomes often conflated in stochastic agent training: cleaner within-group reward comparisons, lower gradient variance and better learning. Pairing can help when environmental noise contributes substantially to gradient variation, but reward-contrast improvements alone do not predict learning benefit. The main result is a useful conditional method and evaluation distinction, not a general speedup claim."
+  },
+  {
+    "confidence": "credible_unconfirmed",
+    "demonstrated_result": "Primary NVIDIA and ROS 2 materials establish that the workflow, message-buffer API and CUDA backend implementation are publicly documented. No independent reproduction was performed in this activation.",
+    "desks": [
+      "agents_memory",
+      "open_ecosystem",
+      "compute_hardware"
+    ],
+    "development_type": "technical_report",
+    "event_at": "2026-09-22T00:00:00Z",
+    "evidence_class": "A",
+    "id": "FCMO-0BFE40B73887",
+    "importance_effective_score": 5,
+    "importance_tier": "Notable",
+    "last_verified_at": "2026-10-13T07:11:02Z",
+    "mechanism": "ROS 2 Lyrical represents variable-length primitive array fields with rosidl::Buffer. The documented CUDA backend uses CUDA Virtual Memory Management IPC for eligible same-host, same-device and same-user endpoints; otherwise the backend can promote or transfer through CPU-compatible storage. NVIDIA's skill traces message fields, dependencies, memory boundaries, buffer lifetime and launch/test changes while preserving the Image message contract.",
+    "organizations": [
+      "NVIDIA",
+      "Open Robotics",
+      "ROS 2"
+    ],
+    "primary_desk": "inference_systems",
+    "regions": [
+      "global"
+    ],
+    "status": "active",
+    "strongest_baseline": "The NVIDIA tutorial frames CPU-backed message storage around a GPU-native algorithm as avoidable boundary transfers when both nodes can use CUDA storage. It supplies no measured before/after baseline for the Depth Anything node. A separate ROS 2 tutorial repository reports CPU-versus-CUDA throughput for a different tensor animation demo; those measurements are not transferable to this node.",
+    "summary": "NVIDIA's Sep. 22, 2026 Isaac ROS 5.0 materials add agent-ready robotics workflows and describe using an AI-guided skill to migrate a Depth Anything 3 TensorRT node to ROS 2 Lyrical's rosidl::Buffer with a CUDA backend. ROS 2 documentation supports buffer-backed uint8[] message fields, while the upstream CUDA backend README describes same-host/same-GPU/same-user IPC and CPU fallback elsewhere. NVIDIA's tutorial presents an implementation and a verification recipe, but this review found no measured end-to-end performance result for that node migration.",
+    "title": "NVIDIA pairs an agent-guided ROS 2 migration workflow with buffer-backed GPU transport",
+    "topics": [
+      "robotics",
+      "ROS 2",
+      "CUDA IPC",
+      "agentic software engineering",
+      "inference systems"
+    ],
+    "why_it_matters": "A standard message field that can retain accelerator-backed storage gives robotics developers a documented way to avoid unnecessary host copies on eligible paths, and an agent-guided migration skill makes that systems work more repeatable. The sources establish the interface, implementation recipe and runtime boundary; they do not establish general productivity gains or node-level speedups."
+  },
+  {
+    "confidence": "credible_unconfirmed",
     "demonstrated_result": "The primary preprint and cited code locations are accessible; the research desk re-read the comparisons but did not independently reproduce the estimates. The authors explicitly do not refute the underlying blow-up theorem.",
     "desks": [
       "evaluation_science",
