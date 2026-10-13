@@ -3781,6 +3781,61 @@
       "title": "La Comisión Europea adopta un esquema propuesto de calificación PUE/WUE para centros de datos y abre una consulta separada sobre estándares mínimos",
       "why_it_matters": "El sistema de etiquetas propuesto podría facilitar la comparación de la energía y el agua informadas para decisiones de compra e infraestructura, mientras que el proceso separado de estándares podría cambiar después las restricciones de las instalaciones. La evidencia actual establece el diseño de política y la consulta de la Comisión, no etiquetas desplegadas, umbrales mínimos vinculantes ni ahorros realizados."
     },
+    "FCMO-2B00C06542B1": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "En tres sistemas simulados, evaluados en 32 entornos y tres semillas, los autores informan que la variante de dinámica aprendida alcanza seguridad de 95.83% en Double Integrator, 95.83% en Dubins Car y 96.88% en Crazyflie; sus tasas de éxito son 88.54%, 92.71% y 89.58%."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan tiempos de inferencia de 4.79–5.12 microsegundos por paso para la variante de dinámica aprendida en una RTX 4000 Ada, con evaluación por lotes en 32 entornos; MPC requiere 2,773–9,280 microsegundos en la misma configuración."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "Los resultados no demuestran seguridad en robots físicos: el entrenamiento depende de un simulador de caja negra, el artículo informa una caída de rendimiento con mayor complejidad y señala como riesgo abierto la transferencia a robots reales."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se reprodujeron de manera independiente los resultados de simulación ni las mediciones de latencia.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "El método no presenta evaluación en robots físicos y podría tener una brecha sustancial entre simulación y realidad.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "El rendimiento cae al pasar de sistemas lineales a no lineales y de 2D a 3D; la robustez al ruido está acotada en el apéndice.",
+          "kind": "baseline_unclear",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se pueden aprender restricciones de barrera predictivas sin perder la capacidad de llegar al objetivo de forma segura, esto podría reducir el cómputo en tiempo de ejecución para el control robótico crítico para la seguridad. La puntuación 5 refleja una contribución significativa de método de control en simulación; no se establece seguridad física ni transferencia entre simulación y realidad.",
+      "limitations": [
+        "Todos los resultados de seguridad y latencia son de simulación y provienen de los autores; el equipo de investigación no los reprodujo.",
+        "La variante de dinámica aprendida se entrena con un simulador de caja negra; no se demuestra seguridad en robots físicos ni transferencia sim-to-real.",
+        "Solo se evalúan tres sistemas simulados; los autores informan una caída de rendimiento cuando aumenta la complejidad, de lineal a no lineal y de 2D a 3D.",
+        "La latencia se mide en una estación RTX 4000 Ada con lotes de 32 entornos y como promedio de una trayectoria de 256 pasos; no es latencia embebida en robot con un solo entorno."
+      ],
+      "relationships": [],
+      "summary": "BarrierFormer entrena un transformador causal para predecir trayectorias cortas y aplicar restricciones de funciones barrera de control mediante un instructor de seguridad durante el entrenamiento, eliminando la optimización en línea durante la inferencia. Los autores lo comparan con cuatro baselines reimplementados en simuladores de integrador doble, automóvil Dubins y Crazyflie, con 32 entornos y tres semillas. La variante con dinámica aprendida informa 95.83%–96.88% de seguridad en dos sistemas 2D y 96.88% en el sistema 3D, con alrededor de 4.79–5.12 microsegundos por paso en una estación de trabajo. Es un resultado de simulación: el entrenamiento aún usa un simulador de caja negra, el rendimiento cae con la complejidad y los autores advierten una posible brecha grande entre simulación y realidad.",
+      "technical": {
+        "claimed_result": "Los autores informan seguridad de 95.83%–96.88% y éxito de 88.54%–92.71% para la variante de dinámica aprendida en simulaciones Double Integrator, Dubins Car y Crazyflie. La inferencia por paso se informa en 4.79–5.12 microsegundos, frente a 2,773–9,280 microsegundos para MPC en la misma estación de trabajo.",
+        "compute_or_cost": "No se informan energía ni costos monetarios. El artículo informa latencia simulada; las mediciones por lotes en una estación de trabajo no establecen latencia de despliegue en hardware robótico.",
+        "demonstrated_result": "El artículo especifica entornos simulados, adaptaciones de baselines y protocolo de evaluación y presenta mediciones de seguridad, llegada al objetivo, éxito y latencia. En esta activación no se verificaron de forma independiente.",
+        "implementation_status": "Marco de investigación evaluado en tres simuladores; no se inspeccionó ni informó un despliegue físico.",
+        "mechanism": "Un transformador causal codifica el historial de observaciones y acciones, predice una trayectoria mediante una cabeza de dinámica aprendida y genera correcciones residuales de control. Un crítico de barrera evalúa violaciones a lo largo del horizonte previsto, mientras un instructor SQP de seguridad genera objetivos de entrenamiento. La política desplegada emite acciones sin optimización en línea.",
+        "regime": "Simulación JAX de un integrador doble lineal 2D, un automóvil Dubins no lineal 2D y un modelo Crazyflie no lineal 3D. Se evalúan 32 entornos y tres semillas. La latencia se mide en una RTX 4000 Ada de 20 GB, con 32 entornos paralelos y promedios de trayectorias de 256 pasos.",
+        "reproducibility": "El artículo informa entornos y semillas, adaptaciones de baselines y un apéndice de latencia. Siguen pendientes la ejecución independiente del código y la reproducción.",
+        "strongest_baseline": "Cuatro baselines se reimplementan con dinámicas, observaciones y obstáculos comunes: CBF-RL, CoBL-Diffusion, ConBaT y control predictivo basado en modelo. En la tabla reportada, la variante de dinámica aprendida de BarrierFormer logra el mejor equilibrio entre seguridad y llegada al objetivo entre los métodos sin modelo; la variante de simulador se compara con MPC."
+      },
+      "title": "BarrierFormer informa control predictivo de seguridad con baja latencia simulada",
+      "why_it_matters": "El artículo prueba si las restricciones de seguridad de varios pasos pueden incorporarse a una política para evitar el costo de optimización en línea. Si los resultados de simulación se trasladan, el control predictivo seguro podría ser más barato en tiempo de ejecución para robots con observación parcial. La evidencia actual abarca tres dinámicas simuladas y una estación de trabajo; no demuestra seguridad física ni tiempos reales en hardware embebido."
+    },
     "FCMO-2B53E683F72E": {
       "claims": [
         {
@@ -11263,6 +11318,56 @@
       "title": "Reuters informa mayores diferenciales y más selectividad de inversionistas ante la deuda de empresas vinculadas con IA",
       "why_it_matters": "Los mercados de deuda podrían afectar el costo y ritmo de la infraestructura de IA, que requiere mucho capital. Los diferenciales más amplios y los límites de concentración son señales para seguir, pero este informe no demuestra que las grandes empresas de nube no puedan financiar proyectos, hayan reducido el gasto de capital previsto o enfrenten peor calidad crediticia."
     },
+    "FCMO-9CD55900A307": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "En 22 diseños y tres repeticiones por combinación de modelo y diseño, los autores informan puntuaciones ECO de 79.65 para WaveletECO-Policy INT8 y 79.63 para BF16, frente a 77.44 para GPT-6 Astra, bajo el mismo protocolo y un límite de crecimiento de área de 1%."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores estiman un costo de inferencia de $0.00226 por tarea para INT8 y $0.33188 para GPT-6 Astra, aproximadamente 1/147, con base en rendimiento local medido y precios publicados de API y alquiler de GPU; la estimación excluye costos de EDA y tiempo ocioso."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El artículo no demuestra que la proporción de costos ni la ventaja de puntuación se transfieran a otros backends EDA, poblaciones de diseño mayores o nodos tecnológicos distintos. Los despliegues usados para estimar costos no se volvieron a evaluar en calidad de reparación."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se reprodujeron de manera independiente las afirmaciones de calidad de reparación y costos; el modelo de costo se limita a inferencia y a precios/rentas de referencia de septiembre de 2026.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "El benchmark incluye 22 diseños de un solo entorno y backend EDA; no se midió transferencia entre nodos tecnológicos, clases de diseño o herramientas.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si los resultados de calidad y costo de inferencia se generalizan, los modelos locales especializados podrían cambiar el equilibrio de costos y dependencia de proveedores en los flujos de reparación física de chips. La puntuación 6 refleja su posible importancia en un área de ingeniería costosa, no la certeza ni la transferencia más allá de los diseños evaluados.",
+      "limitations": [
+        "Los autores informan todos los resultados experimentales y costos; el equipo de investigación no reprodujo el benchmark ni el modelo de costos.",
+        "El benchmark contiene 22 diseños, nueve apartados; no demuestra transferencia a diseños o nodos tecnológicos más amplios y diversos.",
+        "El protocolo compartido usa un backend EDA, una acción de reparación candidata por ronda y un límite de crecimiento de área de 1%.",
+        "La proporción 1/147 es un cálculo estimado solo para inferencia. Usa precios de API y proxies de alquiler/rendimiento de GPU y excluye costos EDA y tiempo ocioso; los despliegues de costo no se volvieron a evaluar por calidad."
+      ],
+      "relationships": [],
+      "summary": "Los autores combinan un flujo cerrado de órdenes de cambio de ingeniería con un modelo Qwen3.5-9B entrenado con demostraciones de reparación y preferencias de acciones. En 22 diseños de chips y 594 corridas, informan una puntuación media de reparación de 79.65 para INT8 y 79.63 para BF16, frente a 77.44 para GPT-6 Astra bajo un protocolo de ejecución compartido. Su modelo de costos estima la inferencia INT8 en $0.00226 por tarea y GPT-6 Astra en $0.33188, cerca de 1/147 del costo. El cálculo excluye EDA y tiempo ocioso. Son resultados de los autores en un solo benchmark; nueve diseños quedan apartados, pero la generalización y la economía de despliegue siguen sin verificarse.",
+      "technical": {
+        "claimed_result": "En 594 corridas sobre 22 diseños, WaveletECO-Policy INT8 obtiene 79.65 y BF16 79.63, frente al modelo GPT-6 Astra, que obtuvo 77.44. La comparación con GPT-6 Astra usa el mismo flujo de ejecución. La inferencia INT8 se estima en $0.00226 por tarea frente a $0.33188, o unas 146.8× más puntuación por dólar en el modelo de costos.",
+        "compute_or_cost": "Los autores estiman $0.00226 por tarea para INT8 frente a $0.33188 para GPT-6 Astra, aproximadamente 1/147; el cálculo excluye EDA y tiempo ocioso y depende del rendimiento y precios de GPU/API especificados. No se informa el costo total de producción.",
+        "demonstrated_result": "El artículo inspeccionado describe el flujo, el protocolo, la definición de puntuación, las mediciones informadas y el modelo de costos. En esta activación no se reprodujeron de forma independiente ni el rendimiento ni los costos.",
+        "implementation_status": "El artículo describe una plataforma ECO de circuito cerrado y un modelo 9B local evaluado; en esta activación no se verificó un despliegue independiente ni una integración EDA externa.",
+        "mechanism": "Un flujo físico ECO compartido lee el estado de temporización, errores eléctricos y biblioteca; elige una reparación, la ejecuta y mide, y luego conserva los cambios aceptados o revierte los rechazados. Un Qwen3.5-9B local se entrena con ajuste supervisado y preferencias CPO-SimPO de acciones sobre un mismo estado; variantes cuantizadas usan pesos INT8 o INT4 y activaciones BF16.",
+        "regime": "22 diseños físicos de chips; 13 se usaron para adaptación/selección y nueve quedaron apartados; hasta cinco rondas de reparación; tres repeticiones por modelo y diseño; una acción candidata por ronda y límite de crecimiento de área de 1%. El costo local estima GPU individuales (BF16 en RTX 6000D, INT8/INT4 en RTX 4090); los precios de API se registraron el 19 de septiembre de 2026.",
+        "reproducibility": "El artículo especifica la puntuación, reglas de ejecución compartidas, partición de 22 diseños y tres repeticiones. Siguen pendientes la reproducción independiente y la transferencia a nuevas herramientas y diseños.",
+        "strongest_baseline": "GPT-6 Astra obtuvo 77.44 bajo la misma interfaz ECO y el mismo conjunto de diseños. Los autores también comparan variantes Qwen3.5-9B, WaveletECO SFT, GPT-5.6 Sol y DeepSeek V4. La puntuación de calidad y el costo estimado no forman una comparación de despliegue emparejada, porque los despliegues de costos no se volvieron a evaluar para calidad."
+      },
+      "title": "WaveletECO informa que un modelo local especializado iguala la puntuación de reparación de un servicio de frontera con menor costo de inferencia estimado",
+      "why_it_matters": "Si la calidad y los costos estimados se trasladan a más diseños y flujos de producción, un modelo local especializado podría abaratar la reparación física de chips en varias rondas y reducir la dependencia de APIs de frontera pagadas. La proporción informada solo cubre inferencia y se basa en rendimiento y alquiler estimados de GPU; no demuestra la economía integral de EDA ni una ventaja general frente a modelos de frontera."
+    },
     "FCMO-9E06CC5FA8A5": {
       "claims": [
         {
@@ -13506,6 +13611,66 @@
       "title": "Apple describe una familia de cinco modelos base y pesos residentes en NAND con selección por instrucción para uso en el dispositivo",
       "why_it_matters": "Si el diseño descrito funciona como se afirma, cargar expertos seleccionados para cada instrucción desde memoria flash podría cambiar las restricciones de memoria al ejecutar modelos dispersos mayores en dispositivos de consumo. El anuncio también señala una vía de despliegue en nube privada que conecta a Apple, Google Cloud y NVIDIA. No hay evidencia independiente sobre latencia, energía, calidad, privacidad en operación ni dispositivos compatibles."
     },
+    "FCMO-BF6ACF1C950B": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan 90%–100% de éxito en tres tareas bimanuales de largo horizonte con menos de una hora de demostraciones robóticas por tarea, después de preentrenamiento con datos humanos, coentrenamiento específico y refinamiento en robot."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El artículo informa un corpus EgoWild de 538.9 horas y 179,049 episodios; los autores dicen que publicarán los datos, modelos y código, pero en esta revisión no se comprobó que estuvieran disponibles públicamente."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Para GeoFormer, los autores informan 7.43 ms de latencia media y 12.97 ms en el P95, frente a 162.58 ms y 194.16 ms con proyección más inpainting; se excluyen decodificación de imagen y carga del modelo. Estiman 2.06 frente a 45.16 horas-GPU por millón de cuadros."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El artículo no demuestra transferencia robótica amplia sin adaptación: el método completo usa ajuste con datos de robots, el éxito por objeto no visto promedia 33.3% en tres contenidos y los resultados cubren tres tareas y manos específicas."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se realizó reproducción independiente y no se confirmó el acceso público al conjunto de datos, código y pesos prometidos.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "Los resultados de tareas de extremo a extremo abarcan tres tareas y cuerpos robóticos específicos; no se estableció transferencia a tareas, manos o sitios adicionales.",
+          "kind": "reproduction_missing",
+          "state": "open"
+        },
+        {
+          "description": "El método completo usa datos humanos y robóticos específicos por tarea y refinamiento en robot; no demuestra que basten las demostraciones humanas.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se generalizan los resultados de transferencia y eficiencia de datos, las demostraciones humanas naturales podrían reducir la recolección de datos específicos de robots para manipulación hábil. La puntuación 6 refleja posible importancia para el entrenamiento de modelos encarnados; la evidencia actual es un artículo sobre tres tareas y no elimina el ajuste robótico.",
+      "limitations": [
+        "Todos los resultados son informados por los autores; en esta activación no se reprodujeron ni se ejecutaron los artefactos.",
+        "La canalización completa requiere coentrenamiento humano-robot por tarea y ajuste en robots reales; las demostraciones humanas por sí solas no bastaron para las tareas de largo horizonte reportadas.",
+        "El éxito cubre tres tareas y configuraciones específicas de brazos y manos. El éxito con objetos no vistos promedia 33.3% en tres categorías; no es transferencia amplia de tareas sin adaptación.",
+        "La medición de GeoFormer excluye decodificación de imágenes y carga del modelo; no se confirmó el acceso público a los datos y modelos.",
+        "El artículo indica que GeoFormer no recupera contenido visual que sale del campo de la cámara y deja pendiente la validación con manos de más grados de libertad."
+      ],
+      "relationships": [],
+      "summary": "Los autores presentan EgoWild2Dex, que alinea observaciones egocéntricas humanas con vistas del robot y entrena una política de manipulación hábil mediante preentrenamiento con datos humanos, coentrenamiento humano-robot específico por tarea y refinamiento en el robot. El corpus EgoWild contiene 538.9 horas, 179,049 episodios y 125,961 descripciones de tareas. En tres tareas bimanuales de largo horizonte, los autores informan 90%–100% de éxito con menos de una hora de demostraciones robóticas por tarea; en tres contenidos de paquete no vistos, el éxito por objeto es 30%–40%. GeoFormer registra 7.43 ms de latencia media de alineación frente a 162.58 ms con proyección e inpainting, sin incluir decodificación de imágenes ni carga del modelo. Son resultados de los autores en pocas tareas y configuraciones; el artículo dice que los datos, modelos y código se publicarán y aún requiere ajuste en robots reales.",
+      "technical": {
+        "claimed_result": "Los autores informan 90%–100% de éxito en tres tareas bimanuales de largo horizonte con menos de una hora de datos de robot por tarea. Tres categorías de objetos no vistos alcanzan 30%–40% de éxito (33.3% promedio). GeoFormer registra 7.43 ms de media y 12.97 ms P95 frente a 162.58 ms y 194.16 ms con proyección más inpainting; costo estimado: 2.06 frente a 45.16 horas-GPU por millón de cuadros.",
+        "compute_or_cost": "El artículo estima 2.06 horas-GPU por millón de cuadros para GeoFormer frente a 45.16 para proyección más inpainting, un ahorro estimado de 95.4% bajo el método de medición descrito. No informa costos monetarios ni costo completo de recolección robótica.",
+        "demonstrated_result": "El artículo especifica un corpus de datos en entornos reales, un método de entrenamiento por etapas y evaluaciones robóticas y de alineación realizadas por sus autores. Las mediciones y tasas de éxito siguen siendo resultados informados por los autores, sin reproducción independiente.",
+        "implementation_status": "Sistema de investigación evaluado en robots físicos bimanuales. Los autores dicen que publicarán datos, modelos y código; esta revisión no confirmó disponibilidad.",
+        "mechanism": "EgoWild2Dex primero entrena con datos egocéntricos humanos de manipulación no guionada; después alinea vistas humanas específicas por tarea con vistas del robot mediante GeoFormer, coentrena con datos alineados de personas, guantes y pocos datos robóticos, y refina usando ejecución y recuperación del robot. Las acciones humanas y robóticas se convierten a un espacio de acciones nativo común.",
+        "regime": "538.9 horas de datos humanos egocéntricos (179,049 episodios); tres tareas bimanuales largas; menos de una hora de demostraciones robóticas por tarea, además de demostraciones humanas y de guantes específicas y refinamiento con robots. La transferencia de objetos se prueba en tres contenidos no vistos. Los tiempos de GeoFormer excluyen decodificación y carga del modelo.",
+        "reproducibility": "El artículo describe los recuentos de datos y protocolos de entrenamiento, tareas y tiempos. Sigue pendiente la reproducción independiente y el acceso a los artefactos prometidos.",
+        "strongest_baseline": "Para las tareas completas, el ajuste directo de π₀, π₀.₅ y GR00T-N1.7 tiene menor éxito bajo el protocolo del artículo. Para alineación de imagen, GeoFormer se compara con proyección MoGe más inpainting LaMa; en Open-Box informa 90% de éxito frente a 80%, con menor latencia. Son comparaciones de los autores, sin réplica independiente."
+      },
+      "title": "EgoWild2Dex informa la transferencia de video humano en entornos reales a manipulación bimanual con pocos datos robóticos",
+      "why_it_matters": "El trabajo evalúa una vía desde grandes cantidades de datos humanos de manipulación cotidiana hacia el comportamiento hábil de robots, con menos demostraciones robóticas específicas. Si se extiende más allá de tres tareas y el corpus se vuelve accesible, podría cambiar los requisitos de datos y recolección para la manipulación bimanual. Los resultados todavía dependen de ajuste robótico, manos específicas y un entrenamiento por etapas; no prueban transferencia robótica amplia sin adaptación."
+    },
     "FCMO-BFDCA63E4D53": {
       "summary": "Qualcomm y Amazon anunciaron una colaboración multigeneracional sobre silicio personalizado para inferencia de IA en AWS y conectividad óptica que se extiende hasta 1.6T. Una presentación de Qualcomm ante la SEC del mismo día da un peso probatorio inusual a la estructura comercial: Amazon recibió un warrant por hasta 25 millones de acciones de Qualcomm a $161.26, cuyo vesting está ligado a acuerdos comerciales, órdenes de compra vinculantes y compras reales de productos de chips de servidor, tecnología, sistemas y servicios de manufactura de Qualcomm, hasta $60 mil millones en pagos; 3.75 millones de acciones quedaron vested al emitirse con base en compromisos iniciales de compra. La cifra de $60 mil millones es un techo de vesting, no un compromiso garantizado de compra.",
       "title": "Amazon vincula silicio personalizado de Qualcomm para inferencia de IA y conectividad óptica con un warrant ligado a compras",
@@ -14933,6 +15098,66 @@
       },
       "title": "Un preprint informa una campaña de agentes autónomos de diez días que mantuvo el estado de la tarea durante 47 reinicios de contexto",
       "why_it_matters": "El trabajo con agentes de larga duración depende de qué estado sobrevive entre sesiones, cómo se verifican las acciones y cuándo se usan modelos más capaces. El artículo ofrece un diseño concreto de harness y una campaña informada de diez días, pero la evidencia se limita a una tarea ejecutada por sus autores; siguen sin resolverse la fiabilidad comparativa, la transferencia y el costo de atención humana."
+    },
+    "FCMO-D7EAA36CAACC": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan que las proyecciones W4A4 de FoldQuantVLA reducen la latencia observación-acción 1.20–1.33× frente a TensorRT de punto flotante en Jetson AGX Orin y 1.25–1.52× en una GPU RTX 4070 Ti SUPER para checkpoints GR00T y π₀.₅."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En tareas con robots físicos y N1.7, los autores informan 92.5% de éxito combinado con W8A8 en las proyecciones de salida de atención y reducción de la red, frente a 80.0% con W4A4 uniforme en 80 ensayos; en Orin, esta configuración añade 1 ms a la ruta W4A4 de 119 ms."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El artículo informa que el almacenamiento de pesos W4A4 para N1.6 es 1,011 MB, frente a 3,802 MB con TensorRT de punto flotante; los motores serializados completos ocupan 2,525 MB frente a 5,325 MB."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "Los resultados no establecen que el rendimiento de baja precisión se generalice a arquitecturas VLA distintas ni que INT8 selectivo mejore el éxito en simulación: el artículo informa pérdidas grandes de W4A4 en algunas arquitecturas y diferencias LIBERO emparejadas que no son concluyentes."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se realizó una reproducción independiente de las mediciones de latencia, memoria, simulación o robot físico del artículo.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "Las pruebas físicas son de 20 ensayos por tarea y configuración; la prueba exploratoria agrupada ignora dependencias por tarea y sesión, y el artículo no demuestra una mejora causal general.",
+          "kind": "reproduction_missing",
+          "state": "open"
+        },
+        {
+          "description": "El beneficio y la latencia dependen del checkpoint; W4A4 causa pérdidas grandes en algunas arquitecturas y el efecto de precisión selectiva no queda resuelto en controles LIBERO emparejados.",
+          "kind": "baseline_unclear",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se generalizan los resultados informados de latencia y tareas físicas con baja precisión, podrían cambiar las decisiones de despliegue y precisión para políticas abiertas de visión-lenguaje-acción en GPU de borde. La puntuación 5 refleja relevancia de ingeniería en robótica especializada; la evidencia proviene de un solo artículo y no demuestra rendimiento en producción ni en todos los checkpoints.",
+      "limitations": [
+        "Todos los resultados son informados por los autores; el equipo de investigación no ejecutó el código enlazado ni reprodujo las mediciones.",
+        "Los resultados W4A4 dependen de la arquitectura: el artículo informa pérdidas LIBERO grandes en configuraciones SmolVLA y Evo-1 y no establece que INT8 selectivo las recupere.",
+        "Las pruebas LIBERO emparejadas no resuelven una mejora de éxito con precisión selectiva; las pruebas físicas fueron de 20 ensayos por tarea y el análisis agrupado no modela dependencia por tarea o sesión.",
+        "La latencia se midió en una sola corrida por checkpoint; las aceleraciones comparan con el motor TensorRT de punto flotante del hardware y lote 1 especificados, no entre distintos equipos o cargas.",
+        "Solo algunas proyecciones GEMM usan INT4/INT8; el codificador visual, otras operaciones y el decodificador de acciones siguen en punto flotante. El artículo señala que H100 ejecuta operandos de cuatro bits mediante aritmética INT8."
+      ],
+      "relationships": [],
+      "summary": "Los autores presentan FoldQuantVLA, que mantiene coherentes las transformaciones de coordenadas de activación entre la calibración, el redondeo de pesos cuantizados y la ejecución en TensorRT. En GR00T N1.5/N1.6/N1.7 y π₀.₅, informan aceleraciones W4A4 de 1.20–1.33× frente a TensorRT de punto flotante en Jetson AGX Orin y de 1.25–1.52× en una computadora de escritorio RTX 4070 Ti SUPER. Una configuración selectiva W8A8 para dos proyecciones del lenguaje añade 1 ms a la ruta Orin de N1.7 e informa 92.5% de éxito combinado frente a 80.0% con W4A4 uniforme en 80 ensayos con robots físicos. Son mediciones de los autores: las pruebas fueron pequeñas, las mejoras no quedaron resueltas en los controles LIBERO y la latencia se midió en una sola corrida.",
+      "technical": {
+        "claimed_result": "Los autores informan aceleraciones observación-acción W4A4 de 1.20–1.33× frente a TensorRT de punto flotante en Jetson AGX Orin y 1.25–1.52× en escritorio para GR00T N1.5/N1.6/N1.7 y π₀.₅. En tareas físicas N1.7, W8A8 selectivo informa 92.5% de éxito combinado frente a 80.0% con W4A4 uniforme en 80 ensayos, con +1 ms en Orin.",
+        "compute_or_cost": "Para N1.6, los autores informan 1,011 MB de pesos y un motor serializado de 2,525 MB con W4A4, frente a 3,802 MB y 5,325 MB con TensorRT de punto flotante. No informan costo monetario, energía ni rendimiento con concurrencia.",
+        "demonstrated_result": "El artículo y el repositorio público documentan directamente el método y las mediciones informadas por los autores. No se hizo verificación independiente ni se ejecutó código; el resultado robótico es una diferencia observada con pocas muestras, no una mejora general demostrada.",
+        "implementation_status": "Los autores ofrecen un repositorio Apache-2.0 con complementos TensorRT, integraciones para cuatro checkpoints, pruebas y archivos de resultados. Se inspeccionó el repositorio, pero no se ejecutó en esta activación.",
+        "mechanism": "FoldQuantVLA asigna una transformación de activación a cada sitio compartido, incorpora la transformación inversa en los pesos consumidores, calibra y redondea en esas coordenadas y luego ejecuta en TensorRT una transformación fusionada por token y GEMM entera. W4A4 cubre proyecciones seleccionadas del tronco lingüístico y el experto de acciones; la atención de salida y la proyección descendente del lenguaje conservan W8A8 en la configuración selectiva.",
+        "regime": "Inferencia con lote 1 en Jetson AGX Orin con TensorRT 10.3 y RTX 4070 Ti SUPER con TensorRT 10.15; cuatro checkpoints GR00T y π₀.₅. Las pruebas físicas usan un ajuste GR00T N1.7 en ALOHA y SO-101, con 20 ensayos por tarea y configuración y ubicaciones de objetos emparejadas. LIBERO usa 800 episodios por configuración en una campaña.",
+        "reproducibility": "El artículo especifica checkpoints, datos de calibración, hardware, software, ensayos y protocolos, y enlaza código y resultados. Sigue pendiente la reproducción independiente; una sola medición de latencia por checkpoint y pocas pruebas físicas limitan la incertidumbre.",
+        "strongest_baseline": "La comparación principal de velocidad usa el motor TensorRT de punto flotante de cada checkpoint. Las comparaciones de circuito cerrado incluyen BF16 PyTorch, TensorRT de punto flotante y configuraciones cuantizadas para las distintas versiones de la familia de políticas abiertas. Pruebas LIBERO con calibración emparejada muestran diferencias de precisión selectiva de 3–10 episodios para N1.5/N1.6/N1.7/π₀.₅ y valores p de 0.17–0.78; no resuelven mejoras de simulación."
+      },
+      "title": "FoldQuantVLA informa inferencia de baja precisión más rápida para políticas visión-lenguaje-acción y resultados robóticos en tareas acotadas",
+      "why_it_matters": "El artículo informa un compromiso de despliegue en el borde que combina menor precisión con latencia medida y resultados físicos en varias versiones abiertas de VLA. Si se confirma en corridas independientes, el método podría reducir latencia y memoria para políticas robóticas en hardware limitado. Los resultados dependen del checkpoint, las muestras físicas son pocas y las comparaciones de simulación no resuelven una mejora."
     },
     "FCMO-D89063EC984F": {
       "claims": [
