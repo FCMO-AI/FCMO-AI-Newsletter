@@ -1,6 +1,125 @@
 [
   {
     "confidence": "credible_unconfirmed",
+    "demonstrated_result": "The abstract and its stated benchmark design are directly inspectable. No comparative performance result or benchmark reproduction was established in this activation.",
+    "desks": [
+      "agents_memory",
+      "evaluation_science"
+    ],
+    "development_type": "dataset_or_benchmark",
+    "event_at": "2026-09-21T00:00:00Z",
+    "evidence_class": "A",
+    "id": "FCMO-85B06151B695",
+    "importance_effective_score": 4,
+    "importance_tier": "Meaningful",
+    "last_verified_at": "2026-10-13T13:23:00Z",
+    "mechanism": "The benchmark tests memory through agent task completion on information embedded in long histories. Each task is intended to depend on that history, checked by success with relevant history and failure without it; submissions report accuracy, total cost and latency.",
+    "organizations": [
+      "DolphinBench authors"
+    ],
+    "primary_desk": "agents_memory",
+    "regions": [
+      "global"
+    ],
+    "status": "active",
+    "strongest_baseline": "The stated within-task control compares the same task with and without its relevant history. The abstract does not report comparative results across memory systems.",
+    "summary": "A September 2026 paper introduces DolphinBench, a benchmark for testing agent memory through completion of knowledge-work tasks that depend on long conversation histories. The abstract describes three personas with roughly 500k tokens of messages each and 200 tasks per persona; each task is checked by comparing an agent run with and without the relevant history. The authors require reports of total cost and latency alongside accuracy. This is a paper-reported benchmark design, not evidence that any memory system performs better; the full protocol and independent validation were not inspected in this activation.",
+    "title": "DolphinBench evaluates agent memory through task completion, cost and latency",
+    "topics": [
+      "agent-memory",
+      "benchmarking",
+      "task-completion",
+      "cost-latency-evaluation"
+    ],
+    "why_it_matters": "If the benchmark's task construction and controls are valid, evaluating task success, cost and latency together could expose memory-system tradeoffs hidden by cued question-answer accuracy alone. The abstract supports the existence and stated design of a new benchmark, but does not establish that its tasks generalize beyond three synthetic knowledge-work personas or that any system has a favorable frontier."
+  },
+  {
+    "confidence": "credible_unconfirmed",
+    "demonstrated_result": "The paper and its reported protocol, comparisons, and limitations are publicly inspectable. The quantitative retrieval gains are author-reported and were not independently reproduced.",
+    "desks": [
+      "agents_memory",
+      "evaluation_science",
+      "inference_systems"
+    ],
+    "development_type": "paper",
+    "event_at": "2026-09-22T00:00:00Z",
+    "evidence_class": "A",
+    "id": "FCMO-71A18CEA363D",
+    "importance_effective_score": 5,
+    "importance_tier": "Notable",
+    "last_verified_at": "2026-10-13T13:18:20Z",
+    "mechanism": "The method aligns tool arguments and outputs to source-backed provenance units, scores candidates with dense retrieval, and optionally refines scores using a zero-initialized residual relational graph convolutional network over typed execution edges. Evaluation separates the candidate-view effect from the graph-conditioned residual by first matching Dense-FT scorers and then holding candidates and seed scores fixed.",
+    "organizations": [
+      "University of Southern Queensland",
+      "Southern University of Science and Technology",
+      "Jiangsu University",
+      "Nanjing University",
+      "Uploading Inc."
+    ],
+    "primary_desk": "agents_memory",
+    "regions": [
+      "Australia",
+      "China",
+      "United States",
+      "Hong Kong"
+    ],
+    "status": "active",
+    "strongest_baseline": "Matched Dense-FT scoring on flat 512-token windows, plus an oracle selecting the best of four flat chunk sizes per metric; for graph contribution, exact seed-score passthrough with the same provenance-unit candidates. These comparisons separate candidate construction from the learned graph residual.",
+    "summary": "A paper introduces Execution Provenance Graph Memory (EPGM) for retrieving complete supporting evidence from long agent execution histories under a fixed token budget. On 2,000 queries over 1,207 held-out ISETrace trajectories, the authors report that source-aligned provenance units improve Full Support@2048 by 19.07 points over flat 512-token windows and by 11.96 points over a per-metric oracle across four flat chunk sizes, with matched Dense-FT scoring. Holding candidate units and seed scores fixed, a graph-conditioned residual adds a smaller 4.55 points (95% CI 2.98–6.18), concentrated on queries whose evidence spans multiple events. The corpus is synthetic and the results are author-reported; no independent reproduction was performed.",
+    "title": "Source-aligned agent-memory units improve complete-evidence retrieval in a synthetic trace benchmark",
+    "topics": [
+      "agent-memory",
+      "information-retrieval",
+      "execution-provenance",
+      "graph-neural-networks",
+      "evaluation-methodology"
+    ],
+    "why_it_matters": "If the reported result generalizes, representing tool arguments and outputs as source-aligned units may help agent memory return complete evidence within a context budget, while the matched controls suggest most measured improvement comes from candidate construction and a narrower portion from graph propagation. This could change memory-system evaluation and design, but the experiment uses synthetic execution traces and does not establish reliable downstream performance on real agents."
+  },
+  {
+    "confidence": "credible_unconfirmed",
+    "demonstrated_result": "The preprint, tables and author-linked public repository are directly inspectable. The reported benchmark outcomes and training-cost comparisons are CLAIMED by the authors, not independently reproduced in this activation.",
+    "desks": [
+      "efficiency",
+      "reasoning_posttraining",
+      "inference_systems",
+      "evaluation_science"
+    ],
+    "development_type": "paper",
+    "event_at": "2026-09-22T00:00:00Z",
+    "evidence_class": "A",
+    "id": "FCMO-E09F0D62088C",
+    "importance_effective_score": 5,
+    "importance_tier": "Notable",
+    "last_verified_at": "2026-10-13T13:11:00Z",
+    "mechanism": "The student samples completions through its deployment quantized forward path. A frozen BF16 teacher supplies token-level feedback on prefixes from those sampled trajectories, while task verifiers score final-answer correctness in mathematics and test execution in code. The pipeline starts from QAD so that the low-bit policy remains viable before on-policy recovery.",
+    "organizations": [
+      "Institute of Automation, Chinese Academy of Sciences",
+      "University of Chinese Academy of Sciences",
+      "City University of Hong Kong",
+      "Nanjing University of Science and Technology"
+    ],
+    "primary_desk": "efficiency",
+    "regions": [
+      "global",
+      "China",
+      "Hong Kong"
+    ],
+    "status": "active",
+    "strongest_baseline": "The paper's strongest direct baseline is continued teacher-forced QAD from a shared QAD checkpoint under matched corpora, phase schedules, optimizer steps, learning rates and samples per step, evaluated on GSM8K, MATH-500, MBPP and HumanEval (Table 4). Its additional quantization-method comparison uses Qwen3-1.7B at aligned low-bit settings, but some methods use wider whole-bit fallbacks and generative benchmark head/embedding precision differs.",
+    "summary": "A September 2026 preprint studies why quantization-aware distillation can preserve short-form answers yet leave long mathematical and code generations impaired at sub-3-bit weight precision. The authors add on-policy distillation (OPD), which samples through the deployment quantized path and applies teacher guidance to the student's own generated prefixes, alongside task verifiers. Across Qwen3 and Falcon3 models at 2.79 and 1.88 effective weight bits, they report higher math and code benchmark performance than the QAD starting checkpoints, including gains over a matched-budget continued-QAD control in all 16 reported comparisons. The released QAOPD repository links checkpoints and reproduction instructions. These remain author-reported benchmark results; independent reproduction is open. The paper also reports a material implementation caveat: OPD uses a 16-bit KV cache in the principal arms rather than the released 8-bit KV-cache configuration, a deviation the authors say favors their results.",
+    "title": "On-policy distillation improves reported reasoning retention at sub-3-bit weights",
+    "topics": [
+      "quantization",
+      "on-policy-distillation",
+      "reasoning",
+      "code-generation",
+      "inference-efficiency"
+    ],
+    "why_it_matters": "If the reported gains reproduce, training on the trajectories a quantized model actually visits could recover some long-form reasoning and coding capability at very low weight precision, potentially improving the quality-cost frontier for constrained inference. The result is limited to four small-to-mid-sized model families/configurations and the paper's benchmark protocols; it does not establish a general low-bit solution or end-to-end deployment advantage."
+  },
+  {
+    "confidence": "credible_unconfirmed",
     "demonstrated_result": "The public abstract states the proposed method and its claimed applications. No benchmark, intervention or weight-restoration result was independently verified in this activation.",
     "desks": [
       "evaluation_science",
