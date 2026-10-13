@@ -1,7 +1,7 @@
 {
   "schema": "fcmo-stories-v2",
-  "generated_at": "2026-10-13T05:55:08Z",
-  "release_id": "newswire-5aa12965a348b8e1704a9e64",
+  "generated_at": "2026-10-13T07:00:29Z",
+  "release_id": "newswire-2ebba61a4fdc3a25c7fcc0bc",
   "canonical_locale": "en",
   "locales": [
     "en",
@@ -39,6 +39,1040 @@
     "2026-10-12"
   ],
   "stories": [
+    {
+      "id": "FCMO-A1E08E02B043",
+      "slug": "cache-to-cache-reports-faster-cross-model-communication-through-direct",
+      "url_date": "2026-10-13",
+      "kind": "development",
+      "status": "live",
+      "beat": "research",
+      "desk": "architectures_scaling",
+      "title": "Cache-to-Cache reports faster cross-model communication through direct KV-cache transfer",
+      "headline": "Cache-to-Cache reports faster cross-model communication through direct KV-cache transfer",
+      "dek": "The Cache-to-Cache (C2C) paper proposes transferring a source model’s key/value cache into a target model through a learned fuser, bypassing text generation between models.",
+      "summary": "The Cache-to-Cache (C2C) paper proposes transferring a source model’s key/value cache into a target model through a learned fuser, bypassing text generation between models. Across four question-answering benchmarks and several Qwen, Llama and Gemma combinations, the authors report 6.4–14.2% higher average accuracy than individual models and about 3.1–5.4% above text-to-text handoffs; latency was 2.5× faster on average in their tested settings. Their detailed timing table reports 3.46×, 1.51× and 14.41× speedups over text handoff for three model pairs. The fuser uses trainable pair-specific components, and scaling to many communicating models with O(N) training cost remains open. These are paper-reported results; no independent reproduction was performed.",
+      "why_it_matters": "C2C treats model internal state as a communication medium rather than converting it to readable text. If its reported gains transfer, multi-model systems could avoid serial decoding overhead and transfer information that text handoffs lose. The design also creates a less inspectable channel and requires learned alignment/fusion; the paper’s results are benchmark-bounded and pairwise training cost remains a scaling issue.",
+      "importance_rationale": "If direct KV-cache transfer gives repeatable accuracy and latency gains across heterogeneous model pairs, it could change multi-model inference and agent communication design. The score reflects architectural potential, not confidence in broad transfer or deployment economics.",
+      "technical": {
+        "claimed_result": "Across four benchmarks, authors report 6.4–14.2% higher average accuracy than individual models, approximately 3.1–5.4% over text-to-text communication, and 2.5× average latency speedup. In one MMLU-Redux setup, C2C replaces 80 generated handoff tokens and 1,312 ms of decoding with 90 ms of cache fusion. Results vary substantially by model pair.",
+        "compute_or_cost": "In the reported MMLU-Redux training analysis, a 300-step fuser checkpoint took under 9 GPU hours and approached the final result for three pairs; full training ranged from 44.72 to 54.24 GPU hours. Reported inference speedups exclude general serving and system-integration costs.",
+        "demonstrated_result": "The public paper and code link are inspectable. The reported benchmark and timing outcomes are author-run results and have not been independently reproduced in this review.",
+        "implementation_status": "Paper proposes and evaluates C2C; the linked implementation is public. The fuser is trained for sharer–receiver combinations. Scaling to many communicating models with O(N) training cost is described as an open problem.",
+        "mechanism": "A learned fuser projects the source model’s KV cache into the receiver’s representation and combines it with receiver state using dynamic weights and per-layer gates; model weights are frozen while the fuser is trained. Token and layer alignment support different tokenizers, model families and sizes.",
+        "novelty": "Uses model KV caches for direct cross-model semantic transfer, with a learned conversion/fusion module, instead of serializing an intermediate message as generated text.",
+        "regime": "Research-scale experiments with Qwen2.5/Qwen3, Llama3.2 and Gemma3 models from 0.6B to 14B parameters, four QA benchmarks, a 500k-sample OpenHermes2.5 training subset for fusers, and an A100 timing setup. No production multi-tenant or multi-agent deployment is measured.",
+        "reproducibility": "The paper provides experimental details and links code, but the research desk did not execute or independently reproduce it. Benchmark methodology and author-reported results remain subject to replication.",
+        "strongest_baseline": "The paper compares C2C with text-to-text collaboration, query-level routing, and each sharer/receiver alone. Evaluations use zero-shot prompts at temperature zero and report four knowledge/reasoning benchmarks; inference timing uses one NVIDIA A100 at batch size one."
+      },
+      "importance_tier": "Notable",
+      "development_type": "paper",
+      "event_at": "2025-10-03T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-13T07:00:20Z",
+      "updated_at": "2026-10-13T07:00:20Z",
+      "importance": 5,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": true,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "CLAIMED",
+            "text": "C2C uses a learned module to project and fuse source and receiver KV caches, with a dynamic weighting mechanism and trainable layer gates."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "Across four benchmarks, the authors report 6.4–14.2% higher average accuracy than individual models and about 3.1–5.4% higher accuracy than text-to-text communication, with an average 2.5× speedup in their tested settings."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "In a detailed MMLU-Redux comparison, authors report replacing 80 text handoff tokens and 1,312 ms of decoding with 90 ms of KV-cache fusion; timing used a single A100 with batch size one."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "The paper reports that a weaker sharer can mislead a receiver, and identifies O(N) fuser training cost for scaling to multiple communicating models as unresolved."
+          },
+          {
+            "label": "DEMONSTRATED",
+            "qualifier": "LIMITATION",
+            "text": "No independent reproduction or production deployment result was obtained in this review."
+          }
+        ],
+        "limitations": [
+          "All performance and timing results are reported by the paper authors; no independent replication was performed.",
+          "The evaluated tasks are four multiple-choice QA benchmarks with zero-shot, temperature-zero prompts; this does not establish gains on open-ended agent workflows.",
+          "Timing uses one NVIDIA A100 at batch size one; end-to-end serving costs and integration constraints are not measured.",
+          "A weak or inaccurate sharer can mislead the receiver; the paper includes failure examples.",
+          "Pairwise fuser training scales with the number of communicating model pairs; the authors identify O(N) training cost as an open issue.",
+          "Direct internal-state transfer is less human-readable than text handoffs; the paper does not evaluate auditability or security implications."
+        ],
+        "gaps": [
+          {
+            "kind": "missing_independent",
+            "description": "Independent reproduction of accuracy and latency results across model pairs and benchmarks."
+          },
+          {
+            "kind": "baseline_unclear",
+            "description": "End-to-end matched comparison including fuser training, cache transformation overhead, serving costs and realistic multi-turn agent workloads."
+          },
+          {
+            "kind": "other",
+            "description": "Measure transfer robustness, failure containment and audit/security properties of internal-state communication."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://arxiv.org/abs/2510.03215",
+          "domain": "arxiv.org",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "Tsinghua University",
+        "Infinigence AI",
+        "Shanghai Jiao Tong University",
+        "The Chinese University of Hong Kong",
+        "Shanghai AI Laboratory"
+      ],
+      "topics": [
+        "kv-cache",
+        "multi-model-systems",
+        "agent-communication",
+        "inference-latency",
+        "representation-transfer"
+      ],
+      "regions": [
+        "CN",
+        "GLOBAL"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-A1E08E02B043.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: Cache-to-Cache reports faster cross-model communication through direct KV-cache transfer"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "Cache-to-Cache informa una comunicación más rápida entre modelos mediante transferencia directa de KV cache",
+            "summary": "El artículo Cache-to-Cache (C2C) propone transferir el caché key/value de un modelo de origen a uno receptor mediante un fusionador aprendido, sin generar texto entre modelos. En cuatro pruebas de preguntas y respuestas y varias combinaciones de Qwen, Llama y Gemma, los autores informan una precisión promedio 6.4–14.2% mayor que la de modelos individuales y aproximadamente 3.1–5.4% mayor que con traspasos de texto a texto; la latencia fue 2.5× más rápida en promedio en los contextos probados. Su tabla detallada informa aceleraciones de 3.46×, 1.51× y 14.41× frente al traspaso textual para tres pares de modelos. El fusionador usa componentes entrenables específicos para cada par, y escalar a muchos modelos con un costo de entrenamiento O(N) sigue siendo un problema abierto. Son resultados informados por los autores; no se realizó una reproducción independiente.",
+            "importance_rationale": "Si la transferencia directa de KV cache produce mejoras reproducibles de precisión y latencia entre modelos heterogéneos, podría cambiar el diseño de inferencia multimodelo y comunicación entre agentes. La puntuación refleja su potencial arquitectónico, no la confianza en una transferencia amplia ni la economía de despliegue.",
+            "why_it_matters": "C2C usa el estado interno de un modelo como medio de comunicación en vez de convertirlo en texto legible. Si las mejoras informadas se transfieren, los sistemas multimodelo podrían evitar demoras de decodificación secuencial y transferir información que se pierde en los traspasos de texto. El diseño también crea un canal menos inspeccionable y requiere alinear y fusionar representaciones; los resultados se limitan a pruebas específicas y el costo de entrenamiento por pares sigue siendo un obstáculo de escala.",
+            "technical": {
+              "claimed_result": "En cuatro pruebas, los autores informan una precisión promedio 6.4–14.2% mayor que la de modelos individuales, aproximadamente 3.1–5.4% por encima de comunicación de texto a texto y una aceleración promedio de latencia de 2.5×. En una configuración de MMLU-Redux, C2C reemplaza 80 tokens de traspaso generados y 1,312 ms de decodificación por 90 ms de fusión de caché. Los resultados varían bastante según el par de modelos.",
+              "compute_or_cost": "En el análisis de entrenamiento informado para MMLU-Redux, un punto de control del fusionador de 300 pasos tomó menos de 9 horas de GPU y se acercó al resultado final en tres pares; el entrenamiento completo tomó de 44.72 a 54.24 horas de GPU. Las aceleraciones de inferencia no incluyen costos generales de servicio ni integración.",
+              "demonstrated_result": "El artículo público y su enlace al código se pueden inspeccionar. Los resultados de pruebas y tiempos son de los autores y no se reprodujeron independientemente en esta revisión.",
+              "implementation_status": "El artículo propone y evalúa C2C; la implementación enlazada es pública. Se entrena un fusionador para combinaciones de emisores y receptores. Escalar a muchos modelos comunicados con costo de entrenamiento O(N) queda como problema abierto.",
+              "mechanism": "Un fusionador aprendido proyecta el caché KV del modelo emisor al espacio de representación del receptor y lo combina con el estado de este mediante pesos dinámicos y compuertas por capa; los pesos de los modelos permanecen congelados mientras se entrena el fusionador. La alineación de tokens y capas permite usar tokenizadores, familias y tamaños diferentes.",
+              "novelty": "Usa cachés KV de modelos para transferir directamente semántica entre modelos, mediante un módulo aprendido de conversión y fusión, en vez de serializar un mensaje intermedio como texto generado.",
+              "regime": "Experimentos de investigación con modelos Qwen2.5/Qwen3, Llama3.2 y Gemma3 de 0.6B a 14B parámetros, cuatro pruebas de preguntas y respuestas, un subconjunto de 500k ejemplos de OpenHermes2.5 para entrenar fusionadores y mediciones de tiempo con A100. No se midió un despliegue de producción multiusuario ni multiagente.",
+              "reproducibility": "El artículo aporta detalles experimentales y enlaces al código, pero el equipo de investigación no lo ejecutó ni reprodujo los resultados de forma independiente. La metodología y los resultados de los autores aún requieren reproducción.",
+              "strongest_baseline": "El artículo compara C2C con colaboración de texto a texto, enrutamiento por consulta y cada emisor o receptor por separado. Usa instrucciones de cero ejemplos y temperatura cero en cuatro pruebas de conocimiento y razonamiento; mide inferencia con una NVIDIA A100 y tamaño de lote uno."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "C2C usa un módulo aprendido para proyectar y fusionar los cachés KV del modelo emisor y del receptor, con ponderación dinámica y compuertas entrenables por capa."
+                },
+                {
+                  "text": "En cuatro pruebas, los autores informan una precisión promedio 6.4–14.2% mayor que la de modelos individuales y aproximadamente 3.1–5.4% mayor que con comunicación de texto a texto, además de una aceleración promedio de 2.5× en los contextos probados."
+                },
+                {
+                  "text": "En una comparación detallada de MMLU-Redux, los autores informan que reemplazaron 80 tokens de traspaso textual y 1,312 ms de decodificación por 90 ms de fusión de KV cache; midieron el tiempo con una sola A100 y tamaño de lote uno."
+                },
+                {
+                  "text": "El artículo informa que un emisor más débil puede desorientar al receptor e identifica el costo de entrenamiento O(N) para escalar a varios modelos comunicados como un problema sin resolver."
+                },
+                {
+                  "text": "Esta revisión no obtuvo una reproducción independiente ni resultados de un despliegue de producción."
+                }
+              ],
+              "limitations": [
+                "Todos los resultados de rendimiento y tiempos provienen de los autores; no hubo reproducción independiente.",
+                "Las tareas evaluadas son cuatro pruebas de preguntas y respuestas de opción múltiple con instrucciones de cero ejemplos y temperatura cero; no demuestran mejoras en flujos abiertos de agentes.",
+                "Los tiempos se midieron con una NVIDIA A100 y tamaño de lote uno; no se midieron costos de servicio de extremo a extremo ni de integración.",
+                "Un emisor débil o inexacto puede desorientar al receptor; el artículo muestra ejemplos de fallo.",
+                "El entrenamiento del fusionador por pares crece con la cantidad de pares de modelos; los autores identifican el costo O(N) como un problema abierto.",
+                "La transferencia de estado interno es menos legible para las personas que un traspaso textual; el artículo no evalúa auditabilidad ni implicaciones de seguridad."
+              ],
+              "gaps": [
+                {
+                  "description": "Reproducción independiente de los resultados de precisión y latencia entre pares de modelos y pruebas."
+                },
+                {
+                  "description": "Comparación integral equivalente que incluya entrenamiento del fusionador, sobrecarga de transformación del caché, costos de servicio y flujos realistas de agentes con varios turnos."
+                },
+                {
+                  "description": "Medir robustez de transferencia, contención de errores y propiedades de auditoría y seguridad de la comunicación mediante estado interno."
+                }
+              ]
+            },
+            "dek": "El artículo Cache-to-Cache (C2C) propone transferir el caché key/value de un modelo de origen a uno receptor mediante un fusionador aprendido, sin generar texto entre modelos."
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "Cache-to-Cache报告称直接传输KV缓存可加快模型间通信",
+            "summary": "Cache-to-Cache（C2C）论文提出通过学习型融合器，将源模型的键值缓存传给目标模型，从而避免模型间生成文本。在四项问答基准和多种Qwen、Llama与Gemma组合中，作者报告平均准确率比单个模型高6.4–14.2%，比文本交接高约3.1–5.4%；在所测设置中，平均延迟加快2.5×。详细计时表报告，三个模型组合相对文本交接分别加快3.46×、1.51×和14.41×。融合器包含针对模型对训练的组件；如何以O(N)训练成本扩展到许多通信模型仍是开放问题。这些是论文作者报告的结果，本次没有进行独立复现。",
+            "importance_rationale": "如果直接传输KV缓存能在异构模型间稳定提升准确率和延迟，可能改变多模型推理和智能体通信的设计。评分反映架构潜力，不代表其广泛迁移或部署经济性已获证实。",
+            "why_it_matters": "C2C把模型内部状态作为通信媒介，而不是将其转换成可读文本。如果所报告的收益能够推广，多模型系统可能减少串行解码开销，并传递文本交接时会丢失的信息。该设计也形成了较难检查的通道，并需要学习表示对齐与融合；结果目前局限于特定基准，按模型对训练的成本仍是扩展问题。",
+            "technical": {
+              "claimed_result": "在四项基准中，作者报告平均准确率比单个模型高6.4–14.2%，比文本到文本通信高约3.1–5.4%，平均延迟加快2.5×。在一项MMLU-Redux设置中，C2C以90 ms缓存融合替代80个生成的交接令牌和1,312 ms解码。不同模型组合的结果差异较大。",
+              "compute_or_cost": "作者在MMLU-Redux训练分析中报告，300步融合器检查点耗时不到9 GPU小时，并在三个模型对上接近最终结果；完整训练耗时44.72至54.24 GPU小时。所报推理加速不包括一般服务和系统集成成本。",
+              "demonstrated_result": "公开论文及其代码链接可以查阅。测试和计时结果由论文作者报告，本次审查没有独立复现。",
+              "implementation_status": "论文提出并评估C2C，且提供了公开实现链接。发送模型与接收模型组合需要训练融合器。扩展到许多通信模型且训练成本为O(N)的问题仍未解决。",
+              "mechanism": "学习型融合器将发送模型的KV缓存映射到接收模型的表示空间，再通过动态权重和逐层门控与接收端状态结合；训练融合器时模型权重保持冻结。令牌和层级对齐支持不同分词器、模型家族和规模。",
+              "novelty": "直接使用模型KV缓存传递模型间语义，并通过学习型转换与融合模块处理，而不是把中间消息序列化为生成文本。",
+              "regime": "研究规模实验使用Qwen2.5/Qwen3、Llama3.2和Gemma3，参数量从0.6B到14B，覆盖四项问答基准；训练融合器使用OpenHermes2.5的500k样本子集，A100用于计时。没有评估生产级多租户或多智能体部署。",
+              "reproducibility": "论文提供实验细节并链接代码，但研究团队没有运行代码或独立复现。基准方法和作者报告结果仍需复核。",
+              "strongest_baseline": "论文将C2C与文本到文本协作、按查询路由以及发送或接收模型单独运行进行比较。评估采用零样本提示和零温度，覆盖四项知识与推理基准；推理计时使用单张NVIDIA A100和批量大小一。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "C2C使用学习型模块投射并融合发送模型和接收模型的KV缓存，并采用动态加权机制和可训练的逐层门控。"
+                },
+                {
+                  "text": "在四项基准中，作者报告平均准确率比单个模型高6.4–14.2%，比文本到文本通信高约3.1–5.4%，并在测试设置中实现平均2.5×加速。"
+                },
+                {
+                  "text": "在一项MMLU-Redux详细比较中，作者报告用90 ms的KV缓存融合替代80个文本交接令牌和1,312 ms的解码；计时使用单张A100，批量大小为一。"
+                },
+                {
+                  "text": "论文报告，较弱的发送模型可能误导接收模型，并指出扩展到多个通信模型所需的O(N)融合器训练成本尚未解决。"
+                },
+                {
+                  "text": "本次审查未获得独立复现结果或生产部署结果。"
+                }
+              ],
+              "limitations": [
+                "所有性能和计时结果均由论文作者报告；没有独立复现。",
+                "评估任务是四项零样本、零温度的多项选择问答基准；这不能证明开放式智能体工作流也会获益。",
+                "计时使用单张NVIDIA A100和批量大小一；未测量端到端服务和集成成本。",
+                "发送模型较弱或不准确时可能误导接收模型；论文包含失败案例。",
+                "按模型对训练的融合器会随通信模型对数量增加而扩张；作者将O(N)训练成本列为未解决问题。",
+                "直接传输内部状态比文本交接更难由人阅读；论文没有评估可审计性或安全影响。"
+              ],
+              "gaps": [
+                {
+                  "description": "需要独立复现不同模型组合和基准上的准确率与延迟结果。"
+                },
+                {
+                  "description": "需要在等条件下比较端到端开销，包括融合器训练、缓存转换、服务成本以及真实多轮智能体任务。"
+                },
+                {
+                  "description": "需要测量内部状态通信的迁移稳健性、失败控制以及审计和安全属性。"
+                }
+              ]
+            },
+            "headline": "Cache-to-Cache报告称直接传输KV缓存可加快模型间通信"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
+    {
+      "id": "FCMO-479F1F4F0228",
+      "slug": "anthropic-reports-layered-defenses-cut-observed-reasoning-extraction-by",
+      "url_date": "2026-10-13",
+      "kind": "development",
+      "status": "live",
+      "beat": "research",
+      "desk": "architectures_scaling",
+      "title": "Anthropic reports layered defenses cut observed reasoning extraction by 10–100×",
+      "headline": "Anthropic reports layered defenses cut observed reasoning extraction by 10–100×",
+      "dek": "In an Oct. 12, 2026 research post, Anthropic describes layered defenses against attempts to extract Claude reasoning for unauthorized model distillation.",
+      "summary": "In an Oct. 12, 2026 research post, Anthropic describes layered defenses against attempts to extract Claude reasoning for unauthorized model distillation. The company reports that, after full deployment, reasoning tokens it identified as extracted by distillers on its own platform were consistently 10 to 100 times lower than before; it also says its two-stage classifier caught the extraction techniques described in its September report. This is a provider-reported operational measure, not an independent efficacy evaluation. Anthropic says it has not yet seen a highly sophisticated persistent attempt against the defenses, expects attackers to adapt, and reports integration changes, a benign-request false-positive rate below 0.1%, and charging for some blocked requests.",
+      "why_it_matters": "If the reported reduction generalizes under adaptive attacks, layered context-integrity controls and extraction classifiers could materially change the economics of using frontier APIs as synthetic-data sources. The post also makes the operational costs visible: integration changes, some benign blocking and charges for blocked requests. The evidence supports a new provider-reported defense deployment and telemetry result; it does not establish cross-provider efficacy or durable prevention.",
+      "importance_rationale": "If the claimed 10–100× reduction persists against adaptive extraction, it is a notable operational defense for frontier API providers and could change the economics of unauthorized synthetic-data harvesting. The score reflects potential consequence, not independent confidence or durability.",
+      "technical": {
+        "claimed_result": "Anthropic says reasoning tokens it identified as extracted by distillers on its platform fell by a factor of 10 to 100+ after full implementation, its classifier catches all techniques described in its September report on its most capable generally available models, and the classifier false-positive rate is below 0.1%. It reports tens of thousands of associated accounts banned, often within two hours of campaign start.",
+        "compute_or_cost": "The report says Anthropic turned away meaningful revenue and large volumes of paying traffic and invested research/product effort; some developers had to change integrations, and certain blocked requests are now charged. No full economic cost or avoided-loss estimate is published.",
+        "demonstrated_result": "The existence and date of Anthropic’s public report and the measures it says it deployed are directly inspectable. The report describes the reported on-platform measurement, but the underlying telemetry and evaluation design are not independently available here; the efficacy result remains CLAIMED.",
+        "implementation_status": "Anthropic says the measures are deployed on specified models and are being iterated. Some controls apply only to API accounts created on or after 2026-08-31; model and feature coverage varies.",
+        "mechanism": "Anthropic reports restricting protected reasoning movement across conversations, models and accounts; preserving prior context for newer API accounts; restricting reasoning transcript access to the generating organization for Sonnet 5.5; applying a two-stage classifier to detect extraction attempts; updating defenses as new techniques appear; and imposing stricter limits or account bans for repeated attempts.",
+        "novelty": "The report combines cross-context reasoning controls, account/model isolation, abuse classifiers, enforcement and provider-side before/after telemetry, framing anti-distillation defense as an adaptive operational security system rather than a single prompt filter.",
+        "regime": "Anthropic’s own platform and its most capable generally available Claude models, including Sonnet 5.5, Opus 5/5.5 and Fable 5/5.1; observed extraction attempts and reasoning-token telemetry after layered mitigations. The claim does not cover other providers or prove resistance to a future sophisticated persistent attacker.",
+        "reproducibility": "The announced controls and claims can be inspected as a document, but the private platform telemetry, classifier evaluation set, cohort construction and full intervention analysis are not available for independent reproduction.",
+        "strongest_baseline": "Anthropic compares its platform telemetry before and after full implementation and cites its earlier transcript-summarization experiment: a pretrained model trained on full Claude Opus 4.8 transcripts scored 80.4% on SWE-bench Verified versus 71.8% with summarized transcripts. The current post does not provide a matched external baseline or a full audit protocol for the 10–100× estimate."
+      },
+      "importance_tier": "Notable",
+      "development_type": "technical_report",
+      "event_at": "2026-10-12T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-13T07:00:20Z",
+      "updated_at": "2026-10-13T07:00:20Z",
+      "importance": 5,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": true,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "DEMONSTRATED",
+            "text": "Anthropic published an Oct. 12, 2026 report describing deployed layered defenses against attempts to extract Claude reasoning for unauthorized distillation."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "Anthropic reports that on-platform reasoning tokens it identified as extracted by distillers were consistently 10 to 100 times lower after full deployment, and says its classifier catches all extraction techniques described in its September report on specified models."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "Anthropic reports a classifier false-positive rate below 0.1%, account bans and user-facing tradeoffs including integration changes and charging for certain blocked requests."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "The post says Anthropic has not yet seen a highly sophisticated and persistent attempt to circumvent the defenses and expects the defense-attacker interaction to continue evolving."
+          },
+          {
+            "label": "DEMONSTRATED",
+            "qualifier": "LIMITATION",
+            "text": "The reported platform reduction does not establish independent efficacy, causal attribution to each intervention, effectiveness against adaptive actors, durability, or results at other providers."
+          }
+        ],
+        "limitations": [
+          "All reported efficacy, telemetry, classifier performance and account attribution come from the provider operating the system; public raw data and a complete evaluation protocol are absent.",
+          "The 10–100× comparison is a before/after platform measure; the post does not isolate each intervention or describe a matched unaffected control.",
+          "Anthropic says it has not observed a highly sophisticated persistent attempt against the full defenses, so adaptive robustness remains untested publicly.",
+          "Coverage is limited to Anthropic systems and named models; no cross-provider comparison is reported.",
+          "The claimed false-positive rate below 0.1% is Anthropic’s own estimate, not an independent audit, and the post reports real integration and charging tradeoffs."
+        ],
+        "gaps": [
+          {
+            "kind": "missing_independent",
+            "description": "Independent evaluation or privacy-preserving audit of extraction-token telemetry, intervention timing, classifier recall/precision and benign false positives."
+          },
+          {
+            "kind": "reproduction_missing",
+            "description": "Measure defense performance against persistent adaptive extraction attempts across account, context, language and model boundaries, while tracking legitimate-user harms."
+          },
+          {
+            "kind": "other",
+            "description": "Determine whether comparable controls and measured effects generalize across providers, models and other forms of useful synthetic-data extraction."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://www.anthropic.com/research/distillation-defenses",
+          "domain": "anthropic.com",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "Anthropic"
+      ],
+      "topics": [
+        "model-distillation",
+        "model-extraction",
+        "chain-of-thought",
+        "api-security",
+        "synthetic-data",
+        "evaluation-methodology"
+      ],
+      "regions": [
+        "US",
+        "GLOBAL"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-479F1F4F0228.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: Anthropic reports layered defenses cut observed reasoning extraction by 10–100×"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "Anthropic informa que sus defensas redujeron entre diez y cien veces (10–100×) la extracción observada de razonamiento",
+            "summary": "En una publicación de investigación del 12 de octubre de 2026, Anthropic describe varias defensas contra intentos de extraer razonamiento de Claude para destilar modelos sin autorización. La empresa informa que, tras desplegarlas por completo, los tokens de razonamiento que identificó como extraídos por quienes realizan destilación en su propia plataforma fueron entre diez y cien veces (10–100×) menos que antes; también afirma que su clasificador de dos etapas detectó las técnicas descritas en su informe de septiembre. Es una medición operativa informada por el proveedor, no una evaluación independiente de eficacia. Anthropic dice que aún no ha observado un intento persistente altamente sofisticado contra las defensas, espera que los atacantes se adapten y reconoce cambios necesarios en integraciones, una tasa de falsos positivos menor a 0.1% para solicitudes legítimas y cobros por algunas solicitudes bloqueadas.",
+            "importance_rationale": "Si la reducción de 10 a 100 veces alegada persiste ante extracción adaptativa, sería una defensa operativa relevante para proveedores de API de frontera y podría cambiar la economía de la obtención no autorizada de datos sintéticos. La puntuación refleja la consecuencia potencial, no la confianza independiente ni la durabilidad.",
+            "why_it_matters": "Si la reducción informada se mantiene ante ataques adaptativos, los controles de integridad del contexto y los clasificadores de extracción podrían cambiar de forma importante el costo de usar API de frontera como fuentes de datos sintéticos. La publicación también hace visibles los costos operativos: cambios en integraciones, bloqueo de algunas solicitudes legítimas y cobros por solicitudes bloqueadas. La evidencia respalda que el proveedor desplegó defensas y reportó mediciones de su plataforma; no demuestra eficacia entre proveedores ni prevención duradera.",
+            "technical": {
+              "claimed_result": "Anthropic afirma que los tokens de razonamiento que identificó como extraídos en su plataforma disminuyeron más de cien veces (10–100×) tras implementar las medidas; que el clasificador detecta todas las técnicas descritas en el informe de septiembre en sus modelos de disponibilidad general más capaces; y que la tasa de falsos positivos es menor a 0.1%. Informa que suspendió decenas de miles de cuentas asociadas, a menudo en menos de dos horas desde el inicio de una campaña.",
+              "compute_or_cost": "La publicación dice que Anthropic rechazó ingresos relevantes y grandes volúmenes de tráfico de pago, además de invertir tiempo de sus equipos de investigación y producto. Algunas personas desarrolladoras tuvieron que modificar sus integraciones y ahora se cobra por determinadas solicitudes bloqueadas. No se publica el costo económico total ni una estimación de pérdidas evitadas.",
+              "demonstrated_result": "Es directamente comprobable que Anthropic publicó el informe y describió las medidas que afirma haber desplegado. El texto presenta una medición de la plataforma, pero la telemetría y el diseño de evaluación no están disponibles para una verificación independiente; el resultado de eficacia permanece como afirmación.",
+              "implementation_status": "Anthropic dice que las medidas están desplegadas en modelos especificados y que las mejora continuamente. Algunos controles se aplican solo a cuentas de API creadas desde el 2026-08-31; la cobertura varía por modelo y función.",
+              "mechanism": "Anthropic informa restricciones para mover razonamiento protegido entre conversaciones, modelos y cuentas; preservación del contexto previo para cuentas de API recientes; acceso a transcripciones de razonamiento limitado a la organización que generó la solicitud en Sonnet 5.5; un clasificador de dos etapas para detectar intentos de extracción; actualizaciones ante nuevas técnicas; y límites más estrictos o suspensión de cuentas cuando los intentos son repetidos.",
+              "novelty": "El informe combina controles del razonamiento entre contextos, aislamiento de cuentas y modelos, clasificadores contra abuso, medidas de aplicación y telemetría del proveedor antes y después. Presenta la defensa contra destilación como un sistema operativo de seguridad adaptativo, no como un filtro de instrucciones aislado.",
+              "regime": "Plataforma de Anthropic y sus modelos Claude de disponibilidad general más capaces, entre ellos Sonnet 5.5, Opus 5 y 5.5, y Fable 5 y 5.1; telemetría de intentos de extracción y tokens de razonamiento tras aplicar varias defensas. La afirmación no cubre otros proveedores ni prueba resistencia ante un futuro atacante persistente y sofisticado.",
+              "reproducibility": "Se pueden inspeccionar el anuncio y las afirmaciones publicadas, pero la telemetría privada, el conjunto de evaluación del clasificador, la composición de cohortes y el análisis completo de intervenciones no están disponibles para una reproducción independiente.",
+              "strongest_baseline": "Anthropic compara la telemetría de su plataforma antes y después de la implementación completa y cita un experimento previo de resumen de transcripciones: un modelo preentrenado que aprendió de transcripciones completas de Claude Opus 4.8 obtuvo 80.4% en SWE-bench Verified, frente a 71.8% con razonamiento resumido. La publicación actual no ofrece una referencia externa equivalente ni un protocolo de auditoría completo para la estimación de 10 a 100 veces."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "Anthropic publicó el 12 de octubre de 2026 un informe que describe defensas por capas desplegadas contra intentos de extraer razonamiento de Claude para destilación no autorizada."
+                },
+                {
+                  "text": "Anthropic informa que, en su plataforma, los tokens de razonamiento que identificó como extraídos por quienes hacen destilación fueron sistemáticamente entre diez y cien veces (10–100×) menos tras el despliegue completo; también afirma que su clasificador detecta todas las técnicas de extracción descritas en el informe de septiembre para ciertos modelos."
+                },
+                {
+                  "text": "Anthropic informa una tasa de falsos positivos del clasificador menor a 0.1%, bloqueos de cuentas y costos para usuarios, incluidos cambios en integraciones y cobros por ciertas solicitudes bloqueadas."
+                },
+                {
+                  "text": "La publicación dice que Anthropic aún no ha observado un intento persistente altamente sofisticado para eludir estas defensas y espera que la interacción entre atacantes y defensores siga evolucionando."
+                },
+                {
+                  "text": "La reducción informada en la plataforma no demuestra eficacia independiente, atribución causal a cada intervención, resistencia a atacantes adaptativos, durabilidad ni resultados en otros proveedores."
+                }
+              ],
+              "limitations": [
+                "Toda la eficacia, telemetría, rendimiento del clasificador y atribución de cuentas informados provienen del proveedor que opera el sistema; no se publican datos sin procesar ni un protocolo de evaluación completo.",
+                "La comparación de 10 a 100 veces se basa en mediciones de la plataforma antes y después; la publicación no aísla cada intervención ni describe un grupo de control equivalente que no recibiera los cambios.",
+                "Anthropic dice que no ha observado un intento persistente altamente sofisticado contra el conjunto completo de defensas; la resistencia ante adaptación sigue sin probarse públicamente.",
+                "La cobertura se limita a sistemas de Anthropic y a los modelos nombrados; no se informa una comparación entre proveedores.",
+                "La tasa de falsos positivos menor a 0.1% es una estimación de Anthropic, no una auditoría independiente, y la publicación reconoce costos reales de integración y cobro."
+              ],
+              "gaps": [
+                {
+                  "description": "Hace falta una evaluación independiente o auditoría que proteja la privacidad de las mediciones de extracción de tokens, fechas de intervención, sensibilidad y precisión del clasificador y falsos positivos benignos."
+                },
+                {
+                  "description": "Medir el desempeño de las defensas ante intentos persistentes y adaptativos que crucen límites de cuentas, contexto, idioma y modelo, registrando también los perjuicios para usuarios legítimos."
+                },
+                {
+                  "description": "Determinar si controles y efectos medidos comparables se generalizan a otros proveedores, modelos y formas de extracción de datos sintéticos útiles."
+                }
+              ]
+            },
+            "dek": "En una publicación de investigación del 12 de octubre de 2026, Anthropic describe varias defensas contra intentos de extraer razonamiento de Claude para destilar modelos sin autorización."
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "Anthropic称分层防护使观察到的推理内容提取量降低十至百倍（10–100×）",
+            "summary": "在2026年10月12日发布的研究文章中，Anthropic介绍了多层防护措施，用于阻止未经授权的模型蒸馏者提取Claude的推理内容。该公司称，全面部署后，其在自有平台上识别为蒸馏者提取的推理令牌持续减少至此前的十分之一到百分之一（降幅约100倍）；公司还称，两阶段分类器捕获了其九月报告中描述的提取手法。这是供应商报告的平台运行数据，并非独立的效果评估。Anthropic表示，尚未观察到针对这些防护的高度复杂且持续的攻击，并预计攻击者会调整策略；公司也报告了集成改动、低于0.1%的正常请求误报率，以及对部分被拦截请求收费。",
+            "importance_rationale": "如果声称的十至百倍（10–100×）降幅能够抵御自适应提取攻击，这将是前沿API供应商一项值得关注的运营防护，并可能改变未经授权获取合成数据的经济性。该评分衡量潜在后果，不代表独立验证的可信度或防护持久性。",
+            "why_it_matters": "如果报告的降幅能在面对自适应攻击时持续存在，情境完整性控制和提取检测分类器可能显著改变利用前沿模型API生成合成数据的成本。文章也说明了运营代价：集成需要修改，少量正常请求会被拦截，部分被拦截请求会收费。现有证据支持供应商已部署防护并报告了自有平台数据，但不能证明跨供应商效果或长期有效的防止能力。",
+            "technical": {
+              "claimed_result": "Anthropic称，全面实施后，其在平台上识别为蒸馏者提取的推理令牌减少了10倍至100倍以上；其分类器能捕获九月报告所述的全部手法，适用范围为其最强的普遍可用型号；分类器误报率低于0.1%。公司还称，已封禁数万个相关账户，通常在攻击活动开始后的两小时内处理。",
+              "compute_or_cost": "文章称，Anthropic放弃了相当规模的收入和大量付费流量，并投入研究与产品团队时间。部分开发者需要修改集成，目前对某些被拦截请求收费。文章未给出完整经济成本或避免损失的估算。",
+              "demonstrated_result": "Anthropic确实发布了这篇文章并描述了其声称部署的措施，这些事实可以直接查验。文章给出平台测量结果，但底层遥测数据和评估设计未公开供独立核验；防护效果仍属于供应商声称。",
+              "implementation_status": "Anthropic称这些措施已部署在指定型号上，并会持续改进。部分控制仅适用于2026-08-31及之后创建的API账户；不同型号和功能的覆盖范围有所差异。",
+              "mechanism": "Anthropic称，其限制受保护推理内容在对话、型号和账户间转移；为较新的API账户保留既有上下文；在Sonnet 5.5上限制推理记录仅供产生该记录的组织访问；使用两阶段分类器检测提取尝试；发现新手法后更新防护；并对反复尝试者施加更严格的用量限制或封禁账户。",
+              "novelty": "该报告结合了跨情境推理控制、账户与型号隔离、滥用检测分类器、执行措施以及供应商部署前后的遥测数据，将反蒸馏防护描述为需要适应变化的运营安全体系，而非单一提示过滤器。",
+              "regime": "Anthropic自有平台及其最强的普遍可用Claude型号，包括Sonnet 5.5、Opus 5和5.5、Fable 5和5.1；测量对象是多层缓解措施启用后的提取尝试和推理令牌遥测。该主张不涵盖其他供应商，也不能证明能抵御未来高度复杂且持续的攻击者。",
+              "reproducibility": "文章中的部署说明和主张可以查阅，但私有平台遥测数据、分类器评估集、样本构成以及完整干预分析均未公开，无法独立复现。",
+              "strongest_baseline": "Anthropic比较了其平台全面部署前后的遥测数据，并引用了此前的推理摘要实验：使用Claude Opus 4.8完整记录训练的预训练模型，在SWE-bench Verified上得分80.4%，使用摘要记录训练则为71.8%。当前文章没有为十至百倍（10–100×）的估算提供等效外部基准或完整审计方案。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "Anthropic于2026年10月12日发布文章，介绍了已部署的分层防护措施，以应对未经授权蒸馏者提取Claude推理内容的尝试。"
+                },
+                {
+                  "text": "Anthropic称，全面部署后，其在自有平台上识别为蒸馏者提取的推理令牌持续减少至此前的十分之一到百分之一（约减少100倍）；公司还称，分类器能在指定型号上捕获其九月报告所述的全部提取手法。"
+                },
+                {
+                  "text": "Anthropic报告称，分类器误报率低于0.1%，并封禁了相关账户；用户侧代价包括修改集成以及对部分被拦截请求收费。"
+                },
+                {
+                  "text": "文章称，Anthropic尚未观察到高度复杂且持续的防护绕过尝试，并预计攻防互动仍将持续演变。"
+                },
+                {
+                  "text": "平台报告的降幅不能证明独立效果、各项干预的因果贡献、对自适应攻击者的有效性、防护持久性或其他供应商的结果。"
+                }
+              ],
+              "limitations": [
+                "所有效果、遥测数据、分类器表现和账户归因均由系统运营方报告；公开资料没有原始数据，也没有完整的评估方案。",
+                "十至百倍（10–100×）的比较来自平台部署前后的测量；文章没有分别识别各项干预的贡献，也未描述未受改动影响的匹配对照组。",
+                "Anthropic称尚未观察到针对整套防护的高度复杂且持续的攻击，因此公开证据尚未检验其对自适应攻击的抵抗能力。",
+                "报告仅涉及Anthropic及其列出的型号，没有跨供应商比较。",
+                "低于0.1%的误报率是Anthropic自行估计，并非独立审计；文章也承认集成改动和收费带来的实际代价。"
+              ],
+              "gaps": [
+                {
+                  "description": "需要独立评估或保护隐私的审计，核实提取令牌数据、干预时间、分类器召回率与准确率以及正常请求误报率。"
+                },
+                {
+                  "description": "测试防护在账户、上下文、语言和模型边界间面对持续自适应提取尝试时的表现，并同时记录对合法用户的影响。"
+                },
+                {
+                  "description": "确认可比的控制措施和测得效果能否推广至其他供应商、模型以及其他有价值合成数据的提取形式。"
+                }
+              ]
+            },
+            "headline": "Anthropic称分层防护使观察到的推理内容提取量降低十至百倍（10–100×）"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
+    {
+      "id": "FCMO-17E52DF2A714",
+      "slug": "evoontology-reports-gains-from-queryable-semantic-state-and-a-regression",
+      "url_date": "2026-10-13",
+      "kind": "development",
+      "status": "live",
+      "beat": "research",
+      "desk": "agents_memory",
+      "title": "EvoOntology reports gains from queryable semantic state and a regression-blocking evolution gate",
+      "dek": "EvoOntology presents an MCP-served ontology that data agents can query at runtime and refine through typed edits admitted only after paired evaluation on held-out tasks.",
+      "summary": "EvoOntology presents an MCP-served ontology that data agents can query at runtime and refine through typed edits admitted only after paired evaluation on held-out tasks. On three data-agent benchmarks, the authors report improvements over no-ontology baselines across multiple backbones. On DDR-Bench, the paper reports a mean Trajectory-Wise gain of 12.3 percentage points from the initial ontology and another 7.7 points after self-evolution; on BIRD, initial ontology improves execution accuracy by 5.1 points and evolution adds 3.7. In an ablation averaged across four backbones, removing the paired gate lowers the final DDR-Bench score from 89.5 to 78.3 (-11.2 points), the largest drop among four loop components. These are author-reported results from a single preprint; no independent reproduction is reported here.",
+      "why_it_matters": "The paper combines a queryable structured semantic layer with a controlled self-evolution loop. Its ablation suggests that accepting changes only after paired evaluation can prevent regressions in this data-agent benchmark setting. The result is relevant to systems that let agents modify their own working knowledge, but it does not establish that the gate generalizes beyond the studied benchmarks or prevents broader classes of regressions.",
+      "importance_rationale": "If a queryable ontology plus paired-gated self-editing reliably improves data-agent performance while blocking regressions, it could inform agent memory and self-modification architecture. The score reflects a useful, cross-benchmark design signal, not independent confirmation or generality.",
+      "technical": {
+        "claimed_result": "On DDR-Bench, authors report mean Trajectory-Wise gains of 12.3 points from Baseline to Initial ontology and 7.7 further points after evolution. On BIRD, they report execution-accuracy gains of 5.1 and a further 3.7 points. Removing the gate reduces DDR-Bench score from 89.5 to 78.3 (-11.2) averaged across four backbones.",
+        "compute_or_cost": "The reviewed paper does not establish production compute or operating costs for ontology construction, repeated paired evaluations or serving.",
+        "demonstrated_result": "The preprint and reported benchmark tables/ablations are directly inspectable. Performance results are author-reported; no independent reproduction was located in this review.",
+        "implementation_status": "Preprint presents an experimental system and links code. The self-evolution loop is evaluated on benchmark tasks; deployment outside those settings is not established.",
+        "mechanism": "A builder creates an ontology with schema, content and tool layers, exposed as an MCP server for runtime queries. An evolution loop diagnoses failures, attributes them to a level, proposes typed edits and admits each candidate only when a backbone-conditional paired evaluation on held-out data passes.",
+        "novelty": "Pairs a runtime-queryable semantic layer with typed self-edits and a held-out paired gate that rejects candidate edits when they regress measured performance.",
+        "regime": "Three data-agent benchmarks (DDR-Bench, InsightBench, BIRD); the paired-gate ablation is DDR-Bench averaged across four backbones. Additional headline tables include six backbones; no independent or production evaluation is reported.",
+        "reproducibility": "The paper describes its benchmark and ablation setup and links code, but this review did not run the implementation or reproduce the results.",
+        "strongest_baseline": "The paper compares no-ontology ReAct, a static semantic layer, memory-based persistence and the evolved system. The gate ablation compares the full loop against variants with diagnosis, attribution, typed patching or gating removed on DDR-Bench."
+      },
+      "importance_tier": "Notable",
+      "development_type": "paper",
+      "event_at": "2026-09-14T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-13T07:00:20Z",
+      "updated_at": "2026-10-13T07:00:20Z",
+      "importance": 5,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": false,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "CLAIMED",
+            "text": "EvoOntology exposes a builder-created ontology through an MCP server and proposes typed self-evolution edits admitted only after paired held-out evaluation."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "Authors report mean DDR-Bench gains of 12.3 points from Baseline to Initial ontology and 7.7 additional points after self-evolution; on BIRD they report execution-accuracy gains of 5.1 and a further 3.7 points."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "In a DDR-Bench ablation averaged across four backbones, removing the paired gate reduces the score from 89.5 to 78.3, a drop of 11.2 points, the largest drop among four loop components."
+          },
+          {
+            "label": "DEMONSTRATED",
+            "qualifier": "LIMITATION",
+            "text": "These results are from one preprint and benchmark setup; independent reproduction and transfer beyond the studied tasks remain open."
+          }
+        ],
+        "limitations": [
+          "All benchmark results are reported by the paper authors; no independent reproduction was located.",
+          "The gate ablation is on DDR-Bench and averages four backbones; it does not establish regression prevention in other tasks or production systems.",
+          "The broader benchmark results depend on specific data-agent benchmarks and evaluated backbone/model versions.",
+          "The study does not report production operating cost or how paired evaluation scales as the ontology and task distribution grow.",
+          "A larger score after an ablation does not prove the gate is the only causal mechanism; the result is bounded to the paper’s controlled setup."
+        ],
+        "gaps": [
+          {
+            "kind": "missing_independent",
+            "description": "Independent reproduction of the reported cross-benchmark gains and the paired-gate ablation."
+          },
+          {
+            "kind": "regime_unclear",
+            "description": "Test paired-gated self-evolution on additional heterogeneous data-agent tasks and under distribution shift."
+          },
+          {
+            "kind": "baseline_unclear",
+            "description": "Measure evaluation, curation and serving costs as candidate edits and ontology size grow."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://arxiv.org/abs/2609.15779",
+          "domain": "arxiv.org",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "Renmin University of China"
+      ],
+      "topics": [
+        "data-agents",
+        "ontology",
+        "mcp",
+        "self-evolving-systems",
+        "paired-evaluation",
+        "regression-control"
+      ],
+      "regions": [
+        "CN",
+        "GLOBAL"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-17E52DF2A714.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: EvoOntology reports gains from queryable semantic state and a regression-blocking evolution gate"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "EvoOntology informa mejoras con estado semántico consultable y una barrera de evaluación contra regresiones",
+            "summary": "EvoOntology presenta una ontología servida por MCP que los agentes de datos pueden consultar en tiempo de ejecución y refinar mediante cambios tipados, admitidos solo después de una evaluación pareada con tareas reservadas. En tres pruebas de agentes de datos, los autores informan mejoras frente a referencias sin ontología en varios modelos base. En DDR-Bench, el artículo informa una ganancia media de 12.3 puntos porcentuales en Trayectoria por Tarea al pasar de la referencia a la ontología inicial, y 7.7 puntos adicionales tras la autoevolución; en BIRD, la ontología inicial mejora la precisión de ejecución en 5.1 puntos y la evolución añade 3.7. En una ablación promediada entre cuatro modelos base, retirar la barrera pareada reduce la puntuación final en DDR-Bench de 89.5 a 78.3 (-11.2 puntos), la mayor caída entre cuatro componentes del ciclo. Son resultados informados por los autores en un único preprint; esta revisión no encontró una reproducción independiente.",
+            "importance_rationale": "Si una ontología consultable con autoedición limitada por evaluación pareada mejora de forma fiable el rendimiento de agentes de datos y bloquea regresiones, podría orientar la arquitectura de memoria y automodificación de agentes. La puntuación refleja una señal de diseño útil entre varias pruebas, no confirmación independiente ni generalidad.",
+            "why_it_matters": "El artículo combina una capa semántica estructurada y consultable con un ciclo controlado de autoevolución. Su ablación sugiere que aceptar cambios solo después de una evaluación pareada puede evitar regresiones en este contexto de agentes de datos. El resultado es pertinente para sistemas que permiten a los agentes modificar su conocimiento de trabajo, pero no demuestra que la barrera se generalice más allá de las pruebas estudiadas ni que prevenga otras clases de regresión.",
+            "technical": {
+              "claimed_result": "En DDR-Bench, los autores informan ganancias medias de 12.3 puntos en Trayectoria por Tarea al pasar de la referencia a la ontología inicial y 7.7 puntos adicionales tras la evolución. En BIRD, informan mejoras de precisión de ejecución de 5.1 puntos y otros 3.7. Retirar la barrera reduce la puntuación de DDR-Bench de 89.5 a 78.3 (-11.2), promediada entre cuatro modelos base.",
+              "compute_or_cost": "El artículo revisado no establece los costos de cómputo ni de operación en producción para construir ontologías, ejecutar evaluaciones pareadas repetidas o prestar el servicio.",
+              "demonstrated_result": "El preprint y sus tablas de pruebas y ablaciones se pueden inspeccionar. Los resultados de rendimiento los informan los autores; no se encontró una reproducción independiente.",
+              "implementation_status": "El preprint presenta un sistema experimental y enlaza el código. El ciclo de autoevolución se evalúa en tareas de prueba; no se establece su despliegue fuera de esos contextos.",
+              "mechanism": "Un agente constructor crea una ontología con capas de esquema, contenido y herramientas, expuesta como servidor MCP para consultas en tiempo de ejecución. Un ciclo de evolución diagnostica fallas, las atribuye a un nivel, propone cambios tipados y solo los admite cuando pasan una evaluación pareada y condicionada al modelo base con datos reservados.",
+              "novelty": "Combina una capa semántica consultable en tiempo de ejecución con autoediciones tipadas y una barrera pareada con datos reservados que rechaza cambios cuando reducen el rendimiento medido.",
+              "regime": "Tres pruebas de agentes de datos: DDR-Bench, InsightBench y BIRD. La ablación de la barrera usa DDR-Bench y promedia cuatro modelos base. Otras tablas principales incluyen seis modelos; no se informa una evaluación independiente ni de producción.",
+              "reproducibility": "El artículo describe la configuración de sus pruebas y ablaciones y enlaza el código, pero esta revisión no ejecutó la implementación ni reprodujo los resultados.",
+              "strongest_baseline": "El artículo compara ReAct sin ontología, una capa semántica estática, persistencia basada en memoria y el sistema evolucionado. La ablación compara el ciclo completo con variantes que quitan el diagnóstico, la atribución, los cambios tipados o la barrera en DDR-Bench."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "EvoOntology expone una ontología construida por un agente mediante un servidor MCP y propone cambios tipados de autoevolución que solo se aceptan tras una evaluación pareada con datos reservados."
+                },
+                {
+                  "text": "Los autores informan mejoras medias en DDR-Bench de 12.3 puntos al pasar de la referencia a la ontología inicial y 7.7 puntos adicionales tras la autoevolución; en BIRD informan ganancias de precisión de ejecución de 5.1 y otros 3.7 puntos."
+                },
+                {
+                  "text": "En una ablación de DDR-Bench promediada entre cuatro modelos base, retirar la barrera pareada reduce la puntuación de 89.5 a 78.3, una caída de 11.2 puntos, la mayor entre cuatro componentes del ciclo."
+                },
+                {
+                  "text": "Los resultados provienen de un preprint y una configuración de pruebas; la reproducción independiente y la transferencia a tareas ajenas a las estudiadas siguen pendientes."
+                }
+              ],
+              "limitations": [
+                "Todos los resultados de las pruebas los informan los autores; no se encontró reproducción independiente.",
+                "La ablación de la barrera se limita a DDR-Bench y promedia cuatro modelos base; no demuestra prevención de regresiones en otras tareas ni en producción.",
+                "Los resultados generales dependen de pruebas específicas de agentes de datos y de las versiones de modelos evaluadas.",
+                "El estudio no informa costos operativos de producción ni cómo escala la evaluación pareada al crecer la ontología y cambiar la distribución de tareas.",
+                "Una puntuación mayor tras una ablación no demuestra que la barrera sea el único mecanismo causal; el resultado se limita al diseño controlado del artículo."
+              ],
+              "gaps": [
+                {
+                  "description": "Reproducción independiente de las mejoras informadas entre pruebas y de la ablación de la barrera pareada."
+                },
+                {
+                  "description": "Probar la autoevolución con evaluación pareada en tareas adicionales y heterogéneas de agentes de datos y bajo cambios de distribución."
+                },
+                {
+                  "description": "Medir los costos de evaluación, curación y servicio a medida que crecen los cambios candidatos y el tamaño de la ontología."
+                }
+              ]
+            },
+            "dek": "EvoOntology presenta una ontología servida por MCP que los agentes de datos pueden consultar en tiempo de ejecución y refinar mediante cambios tipados, admitidos solo después de una evaluación pareada con tareas reservadas."
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "EvoOntology报告称，可查询语义状态与防回归评估门带来性能提升",
+            "summary": "EvoOntology提出一种由MCP服务的本体，数据智能体可在运行时查询，并通过类型化修改持续完善；只有经过留出任务上的配对评估，修改才会获准。在三项数据智能体基准上，作者报告其优于无本体基线。在DDR-Bench上，论文报告从基线到初始本体的平均任务轨迹分提高12.3个百分点，自进化后再提高7.7个百分点；在BIRD上，初始本体使执行准确率提高5.1个百分点，进化后再增加3.7个百分点。在四个基座模型的平均消融结果中，移除配对评估门后，DDR-Bench最终得分从89.5降至78.3（下降-11.2分），是四个循环组件中降幅最大的一项。这些是单篇预印本报告的结果；本次审查未找到独立复现。",
+            "importance_rationale": "如果可查询本体加上配对评估门控的自编辑能稳定提升数据智能体表现并阻止回退，可能为智能体记忆和自修改架构提供参考。评分反映跨基准的有用设计信号，不表示结果已获独立确认或具有普遍性。",
+            "why_it_matters": "该论文把可查询的结构化语义层与受控的自进化循环结合起来。消融结果表明，在配对评估后才接纳修改，可能在这类数据智能体任务中避免性能回退。这对允许智能体修改工作知识的系统有参考意义，但不能证明评估门能推广到所研究基准以外，或能阻止其他类别的回归。",
+            "technical": {
+              "claimed_result": "在DDR-Bench上，作者报告从基线到初始本体的平均任务轨迹分提高12.3分，进化后再提高7.7分。在BIRD上，执行准确率分别提高5.1分和额外3.7分。移除评估门后，DDR-Bench得分从89.5降至78.3（下降-11.2），对四个基座模型取平均。",
+              "compute_or_cost": "所审查论文没有说明本体构建、反复配对评估或服务在生产中的计算和运营成本。",
+              "demonstrated_result": "预印本及其基准表格和消融结果可以直接查阅。性能结果由作者报告；本次审查未找到独立复现。",
+              "implementation_status": "预印本介绍了一套实验系统并链接代码。自进化循环在基准任务上评估；尚未证明在这些设置之外部署。",
+              "mechanism": "构建器创建包含模式、内容和工具层的本体，并以MCP服务器形式提供运行时查询。进化循环诊断失败、将其归因到某个层级、提出类型化修改，并仅在通过基座模型条件化的留出数据配对评估后接纳候选修改。",
+              "novelty": "把运行时可查询的语义层与类型化自修改及留出数据配对评估门结合；若修改降低测得表现，就拒绝该修改。",
+              "regime": "三项数据智能体基准：DDR-Bench、InsightBench和BIRD；评估门消融在DDR-Bench上对四个基座模型取平均。其他主要表格包含六个模型；没有独立或生产评估结果。",
+              "reproducibility": "论文描述了基准和消融设置并提供代码链接，但本次审查未运行实现或独立复现结果。",
+              "strongest_baseline": "论文比较了无本体ReAct、静态语义层、记忆持久化和进化后的系统。评估门消融在DDR-Bench上将完整循环与移除诊断、归因、类型化修改或门控的变体比较。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "EvoOntology通过MCP服务器公开由构建器创建的本体，并提出类型化自进化修改；只有通过留出数据配对评估的修改才会获准。"
+                },
+                {
+                  "text": "作者报告，DDR-Bench从基线到初始本体平均提高12.3分，自进化后再提高7.7分；在BIRD上，执行准确率分别提高5.1分和额外3.7分。"
+                },
+                {
+                  "text": "在四个基座模型的DDR-Bench平均消融中，移除配对评估门后得分从89.5降至78.3，下降11.2分，是四个循环组件中降幅最大的一项。"
+                },
+                {
+                  "text": "这些结果来自一篇预印本及其基准设置；独立复现和向所研究任务之外的迁移仍待验证。"
+                }
+              ],
+              "limitations": [
+                "所有基准结果均由论文作者报告；未找到独立复现。",
+                "评估门消融仅涉及DDR-Bench，平均四个基座模型；不能证明在其他任务或生产系统中能防止回归。",
+                "更广泛的基准结果依赖特定数据智能体基准和所评估的模型版本。",
+                "研究没有报告生产运营成本，也未测量本体及任务分布增长时配对评估的扩展情况。",
+                "消融后得分更高不能证明评估门是唯一的因果机制；结果仅适用于论文中的受控设置。"
+              ],
+              "gaps": [
+                {
+                  "description": "需要独立复现所报告的跨基准收益和配对评估门消融结果。"
+                },
+                {
+                  "description": "需要在更多异构数据智能体任务和分布变化条件下测试配对评估门控的自进化。"
+                },
+                {
+                  "description": "需要测量候选修改和本体规模增长时的评估、整理及服务成本。"
+                }
+              ]
+            },
+            "headline": "EvoOntology报告称，可查询语义状态与防回归评估门带来性能提升"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
+    {
+      "id": "FCMO-0F178F944930",
+      "slug": "anthropic-and-accenture-announce-a-directly-funded-embedded-evaluation",
+      "url_date": "2026-10-13",
+      "kind": "development",
+      "status": "live",
+      "beat": "business",
+      "desk": "evaluation_science",
+      "title": "Anthropic and Accenture announce a directly funded embedded evaluation partnership",
+      "headline": "Anthropic and Accenture announce a directly funded embedded evaluation partnership",
+      "dek": "On Sept. 18, 2026, Anthropic announced a non-exclusive partnership with Accenture’s Faculty business to evaluate and red-team models, assess alignment, and test safeguards.",
+      "summary": "On Sept. 18, 2026, Anthropic announced a non-exclusive partnership with Accenture’s Faculty business to evaluate and red-team models, assess alignment, and test safeguards. Each organization said it expects to invest at least $1 billion over five years to build capacity. Evaluators are intended to work inside AI companies with access comparable to employees, including observation of training and deployment decisions and direct staff interviews. Anthropic said access and reporting standards, and a settled funding model for independent evaluation, do not yet exist; it will directly fund this partnership while exploring pilots with nonprofit evaluators. This is evidence of an announced organizational model and planned investment, not evidence that evaluations are operating or independent in practice.",
+      "why_it_matters": "Embedded access could let evaluators inspect model development and safety decisions that external pre-release testing misses. The announcement couples substantial planned capacity building with unresolved questions about evaluator access, reporting, funding independence and accountability. The partnership is a concrete trial of a potentially important oversight model, but no evaluation results or common standards are yet reported.",
+      "importance_rationale": "If implemented with meaningful access and credible independence, embedded evaluation could materially improve observation of frontier-model development and safety decisions. The score reflects the potential value of the oversight model and planned capacity, not proof of independence, execution or effectiveness.",
+      "technical": {
+        "claimed_result": "Anthropic and Accenture each expect to invest at least $1 billion over five years in evaluation capacity. Anthropic says the arrangement can make safety commitments more verifiable and produce a more informed public account of risks and benefits.",
+        "compute_or_cost": "Each partner expects at least $1 billion of investment over five years. These are forward-looking commitments as stated in the announcement; realized spending and evaluator capacity are not yet measured.",
+        "demonstrated_result": "Anthropic published the announcement on Sept. 18 and described the partnership’s intended remit, access model, non-exclusive status and funding plan. No completed evaluation result is reported.",
+        "implementation_status": "Announced as a partnership; operating procedures and standards are still being worked out. Anthropic says it will directly fund Accenture’s work and is discussing separately funded pilot elements with METR and other nonprofit evaluators.",
+        "mechanism": "Anthropic says Accenture’s Faculty business will place evaluators inside AI companies to conduct model evaluations and red-teaming, alignment assessments and safeguard tests. The intended employee-comparable access includes observing models during training, following build/deployment decisions and speaking directly with staff.",
+        "novelty": "The proposed arrangement moves evaluators inside frontier developers with intended employee-comparable access, extending review toward training and organizational decisions rather than only pre-release model behavior.",
+        "regime": "A proposed non-exclusive partnership between Anthropic and Accenture’s Faculty business, with future work inside AI companies. Access and reporting standards, implementation details and common funding arrangements remain unsettled.",
+        "reproducibility": "The announcement is inspectable; no completed evaluation or operational evidence exists yet to reproduce.",
+        "strongest_baseline": "The announcement contrasts embedded access with external evaluators’ current position, but reports no comparative evaluation quality, detection rate or outcome."
+      },
+      "importance_tier": "Notable",
+      "development_type": "organizational",
+      "event_at": "2026-09-18T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-13T07:00:20Z",
+      "updated_at": "2026-10-13T07:00:20Z",
+      "importance": 5,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": true,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "DEMONSTRATED",
+            "text": "Anthropic announced a non-exclusive embedded-evaluation partnership with Accenture’s Faculty business on 2026-09-18, covering model evaluation, red-teaming, alignment assessment and safeguard testing."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "Anthropic and Accenture each expect to invest at least $1 billion over five years to build capacity for this work."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "The planned evaluator access is comparable to employee access and is intended to include observation of training/deployment decisions and direct staff interviews; operating details remain unsettled."
+          },
+          {
+            "label": "DEMONSTRATED",
+            "text": "Anthropic says there are not yet standards for evaluator access or reporting and no settled funding system; it will directly fund Accenture’s work while exploring pilots involving evaluators with their own funding."
+          },
+          {
+            "label": "DEMONSTRATED",
+            "qualifier": "LIMITATION",
+            "text": "The announcement does not establish that evaluators have begun work, are independent in practice, can report publicly without restriction, or improve safety outcomes."
+          }
+        ],
+        "limitations": [
+          "This is a partner announcement, not an evaluation report.",
+          "Funding amounts are expected future investment; realized expenditure, staffing and completed work are not reported.",
+          "Accenture’s work will be directly funded by Anthropic, and no settled funding model for independent evaluation exists yet.",
+          "No common standards define access, reporting, publication, conflict disclosure or evaluator independence.",
+          "The announcement describes intended employee-comparable access but does not provide an operating protocol or evidence that the planned access has been granted."
+        ],
+        "gaps": [
+          {
+            "kind": "missing_artifact",
+            "description": "Operating protocol, evaluator contract and scope of access/reporting rights once the partnership begins."
+          },
+          {
+            "kind": "missing_independent",
+            "description": "Completed evaluations or independent evidence showing whether embedded access improves detection and accountability relative to external evaluation."
+          },
+          {
+            "kind": "other",
+            "description": "Realized investment, staffing, funding safeguards and common standards for evaluator independence and publication."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://www.anthropic.com/news/accenture-embedded-evaluation",
+          "domain": "anthropic.com",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "Anthropic",
+        "Accenture",
+        "Faculty",
+        "METR"
+      ],
+      "topics": [
+        "embedded-evaluation",
+        "independent-audit",
+        "frontier-model-governance",
+        "safety-evaluation",
+        "evaluator-independence"
+      ],
+      "regions": [
+        "US",
+        "GLOBAL"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-0F178F944930.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: Anthropic and Accenture announce a directly funded embedded evaluation partnership"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "Anthropic y Accenture anuncian una alianza de evaluación integrada financiada directamente",
+            "summary": "El 18 de septiembre de 2026, Anthropic anunció una alianza no exclusiva con Faculty, la división de IA especializada de Accenture, para evaluar y someter a pruebas adversariales sus modelos, evaluar alineación y probar salvaguardas. Cada organización espera invertir al menos $1 mil millones durante cinco años para crear capacidad. Se prevé que los evaluadores trabajen dentro de empresas de IA con acceso comparable al de empleados, incluida la observación de decisiones de entrenamiento y despliegue y entrevistas directas con el personal. Anthropic dijo que aún no existen normas de acceso y reporte ni un modelo de financiación acordado para la evaluación independiente; financiará directamente esta alianza mientras explora pilotos con evaluadores sin fines de lucro. Esto acredita un modelo organizativo anunciado y una inversión prevista, no demuestra que las evaluaciones ya operen ni que sean independientes en la práctica.",
+            "importance_rationale": "Si se implementa con acceso significativo e independencia creíble, la evaluación integrada podría mejorar de manera importante la observación del desarrollo de modelos de frontera y las decisiones de seguridad. La puntuación refleja el valor potencial del modelo de supervisión y la capacidad prevista, no prueba independencia, ejecución ni eficacia.",
+            "why_it_matters": "El acceso integrado podría permitir que evaluadores observen el desarrollo de modelos y decisiones de seguridad que las pruebas externas previas al lanzamiento no captan. El anuncio combina una inversión prevista considerable con preguntas pendientes sobre el acceso, los informes, la independencia financiera y la rendición de cuentas. Es una prueba concreta de un modelo de supervisión potencialmente relevante, pero todavía no informa resultados de evaluación ni normas compartidas.",
+            "technical": {
+              "claimed_result": "Anthropic y Accenture esperan invertir cada una al menos $1 mil millones durante cinco años en capacidad de evaluación. Anthropic dice que el acuerdo puede volver más verificables los compromisos de seguridad y ofrecer al público una visión mejor informada de beneficios y riesgos.",
+              "compute_or_cost": "Cada socio espera invertir al menos $1 mil millones durante cinco años. Son compromisos futuros descritos en el anuncio; el gasto realizado y la capacidad de evaluación aún no se miden.",
+              "demonstrated_result": "Anthropic publicó el anuncio el 18 de septiembre y describió el alcance previsto, el modelo de acceso, el carácter no exclusivo y el plan de financiación. No se informa ningún resultado de evaluación completada.",
+              "implementation_status": "La alianza fue anunciada; sus procedimientos y normas siguen en desarrollo. Anthropic dice que financiará directamente el trabajo de Accenture y que conversa con METR y otros evaluadores sin fines de lucro sobre pilotos con financiación propia.",
+              "mechanism": "Anthropic dice que Faculty, la división de Accenture, ubicará evaluadores dentro de empresas de IA para evaluar modelos, hacer pruebas adversariales, evaluar alineación y probar salvaguardas. El acceso previsto, comparable al de empleados, incluye observar modelos durante el entrenamiento, seguir decisiones de desarrollo y despliegue y hablar directamente con el personal.",
+              "novelty": "La propuesta coloca evaluadores dentro de empresas de frontera con acceso previsto comparable al de empleados y extiende la revisión a decisiones organizativas y de entrenamiento, más allá de las pruebas de comportamiento previas al lanzamiento.",
+              "regime": "Alianza no exclusiva propuesta entre Anthropic y Faculty, división de Accenture, con trabajo futuro dentro de empresas de IA. El acceso, las normas de reporte, los detalles de implementación y la financiación común siguen sin definirse.",
+              "reproducibility": "El anuncio puede inspeccionarse; todavía no existen evaluaciones completadas ni evidencia operativa que reproducir.",
+              "strongest_baseline": "El anuncio contrasta el acceso integrado con la posición actual de evaluadores externos, pero no informa calidad comparativa, tasa de detección ni resultados."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "Anthropic anunció el 2026-09-18 una alianza no exclusiva de evaluación integrada con Faculty, la división de Accenture, que abarca evaluación de modelos, pruebas adversariales, evaluaciones de alineación y pruebas de salvaguardas."
+                },
+                {
+                  "text": "Anthropic y Accenture esperan invertir cada una al menos $1 mil millones durante cinco años para crear capacidad para este trabajo."
+                },
+                {
+                  "text": "Se prevé que el acceso de los evaluadores sea comparable al de empleados e incluya observar decisiones de entrenamiento y despliegue y entrevistar directamente al personal; los detalles operativos siguen sin definirse."
+                },
+                {
+                  "text": "Anthropic dice que todavía no hay normas sobre el acceso de evaluadores o sus informes, ni un sistema de financiación acordado; financiará directamente el trabajo de Accenture mientras explora pilotos con evaluadores que tengan financiación propia."
+                },
+                {
+                  "text": "El anuncio no demuestra que los evaluadores hayan comenzado su labor, que sean independientes en la práctica, que puedan informar públicamente sin restricciones ni que mejoren los resultados de seguridad."
+                }
+              ],
+              "limitations": [
+                "Es un anuncio de alianza, no un informe de evaluación.",
+                "Las cantidades son inversiones futuras esperadas; no se informa gasto realizado, personal contratado ni trabajo terminado.",
+                "Anthropic financiará directamente el trabajo de Accenture y aún no existe un modelo acordado de financiación para evaluación independiente.",
+                "No hay normas comunes que definan el acceso, los informes, la publicación, la divulgación de conflictos ni la independencia de los evaluadores.",
+                "El anuncio prevé acceso comparable al de empleados, pero no ofrece un protocolo operativo ni evidencia de que ya se haya concedido."
+              ],
+              "gaps": [
+                {
+                  "description": "Protocolo operativo, contrato de evaluación y alcance de los derechos de acceso e información una vez iniciada la alianza."
+                },
+                {
+                  "description": "Evaluaciones completadas o evidencia independiente sobre si el acceso integrado mejora la detección y la rendición de cuentas frente a evaluaciones externas."
+                },
+                {
+                  "description": "Inversión efectivamente realizada, personal, salvaguardas de financiación y normas comunes para la independencia y publicación de evaluadores."
+                }
+              ]
+            },
+            "headline": "Anthropic y Accenture anuncian una alianza de evaluación integrada financiada directamente",
+            "dek": "El 18 de septiembre de 2026, Anthropic anunció una alianza no exclusiva con Faculty, la división de IA especializada de Accenture, para evaluar y someter a pruebas adversariales sus modelos, evaluar alineación y probar salvaguardas."
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "Anthropic与Accenture宣布直接出资的嵌入式评估合作",
+            "summary": "九月18日，2026年，Anthropic宣布与Accenture旗下的专业AI业务Faculty开展非独家合作，评估和红队测试模型、评估对齐情况并测试安全措施。两家机构各自预计在五年内至少投入1十亿美元建设相关能力。计划让评估人员进入AI公司内部，获得类似员工的访问权限，包括观察训练和部署决策，并直接访谈员工。Anthropic表示，目前尚无关于评估人员访问权限和报告方式的标准，也没有确定独立评估的资助模式；该公司将直接资助此次合作，同时探索与非营利评估机构开展试点。这证明相关组织模式和投资计划已经公布，但不能证明评估已经开展或在实践中保持独立。",
+            "importance_rationale": "如果能以有意义的访问权限和可信的独立性落实，嵌入式评估可能显著改善对前沿模型开发和安全决策的观察。评分反映监督模式和能力建设计划的潜在价值，不代表独立性、执行或有效性已获证明。",
+            "why_it_matters": "嵌入式访问可能使评估人员观察到外部发布前测试难以覆盖的模型开发过程和安全决策。该公告提出了规模可观的建设计划，同时也留下访问权限、报告机制、资金独立性和问责方式等问题。这是对一种潜在重要监督模式的具体尝试，但尚无评估结果或共同标准。",
+            "technical": {
+              "claimed_result": "Anthropic和Accenture各自预计在五年内至少投入1十亿美元建设评估能力。Anthropic称，该合作可使安全承诺更易核验，并帮助公众更全面地了解风险与收益。",
+              "compute_or_cost": "每家合作方都预计在五年内至少投入1十亿美元。这是公告所述的未来承诺；实际支出和评估能力尚未测量。",
+              "demonstrated_result": "Anthropic于九月18日发布了公告，并介绍了合作的预期范围、访问模式、非独家安排和资助计划。公告未报告任何已完成评估的结果。",
+              "implementation_status": "双方已宣布合作，但运营程序和标准仍在制定中。Anthropic称将直接资助Accenture的工作，并正与METR及其他非营利评估机构讨论由其自有资金支持的试点。",
+              "mechanism": "Anthropic称，Accenture旗下Faculty将安排评估人员进入AI公司，开展模型评估、红队测试、对齐评估和安全措施测试。计划中的类似员工访问权限包括观察训练期间的模型、跟踪开发和部署决策，并直接与员工交流。",
+              "novelty": "该方案计划让评估人员进入前沿模型开发机构并获得类似员工的访问权限，使审查范围延伸至训练和组织决策，而不仅是发布前的模型行为测试。",
+              "regime": "Anthropic与Accenture旗下Faculty拟开展的非独家合作，未来将在AI公司内部工作。访问权限、报告规范、实施细节和共同资助安排仍未确定。",
+              "reproducibility": "公告内容可以查阅；目前没有已完成评估或运营证据可供复现。",
+              "strongest_baseline": "公告将嵌入式访问与外部评估人员当前的处境作对比，但没有报告评估质量、检测率或结果方面的比较。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "Anthropic于2026-09-18宣布与Accenture旗下的Faculty开展非独家嵌入式评估合作，涉及模型评估、红队测试、对齐评估和安全措施测试。"
+                },
+                {
+                  "text": "Anthropic和Accenture各自预计在五年内至少投入1十亿美元建设相关能力。"
+                },
+                {
+                  "text": "计划让评估人员获得类似员工的访问权限，包括观察训练和部署决策并直接访谈员工；运营细节仍未确定。"
+                },
+                {
+                  "text": "Anthropic表示，目前尚无评估人员访问权限和报告标准，也没有确定资助体系；公司将直接资助Accenture的工作，同时探索由评估机构自筹资金的试点。"
+                },
+                {
+                  "text": "公告不能证明评估人员已经开始工作、在实践中保持独立、可以不受限制地公开报告，或能改善安全结果。"
+                }
+              ],
+              "limitations": [
+                "这是合作公告，不是评估报告。",
+                "资金数额是预计的未来投入；公告没有报告实际支出、人员规模或已完成的工作。",
+                "Accenture的工作将由Anthropic直接资助，目前尚无确定的独立评估资助模式。",
+                "没有共同标准界定访问权限、报告方式、公开发布、利益冲突披露或评估人员独立性。",
+                "公告描述了类似员工的预期访问权限，但没有提供运营方案或已授予访问权的证据。"
+              ],
+              "gaps": [
+                {
+                  "description": "合作启动后的运营方案、评估合同以及访问和报告权限的具体范围。"
+                },
+                {
+                  "description": "已完成的评估或独立证据，以判断嵌入式访问是否比外部评估更能改善问题发现和问责。"
+                },
+                {
+                  "description": "实际投资额、人员安排、资助保障，以及评估独立性和公开发布的共同标准。"
+                }
+              ]
+            },
+            "headline": "Anthropic与Accenture宣布直接出资的嵌入式评估合作"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
     {
       "id": "FCMO-1AFA3EFAE2B1",
       "slug": "meta-releases-muse-wonder-and-wonder-full-with-a-1m-token-context-and",

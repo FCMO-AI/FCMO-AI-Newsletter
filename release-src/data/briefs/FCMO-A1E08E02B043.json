@@ -1,0 +1,150 @@
+{
+  "record": {
+    "id": "FCMO-A1E08E02B043",
+    "title": "Cache-to-Cache reports faster cross-model communication through direct KV-cache transfer",
+    "desk": "Architectures Scaling",
+    "event_at": "2025-10-03T00:00:00Z",
+    "evidence": "A",
+    "confidence": "credible_unconfirmed",
+    "importance": 5,
+    "tier": "Notable",
+    "summary": "The Cache-to-Cache (C2C) paper proposes transferring a source model’s key/value cache into a target model through a learned fuser, bypassing text generation between models. Across four question-answering benchmarks and several Qwen, Llama and Gemma combinations, the authors report 6.4–14.2% higher average accuracy than individual models and about 3.1–5.4% above text-to-text handoffs; latency was 2.5× faster on average in their tested settings. Their detailed timing table reports 3.46×, 1.51× and 14.41× speedups over text handoff for three model pairs. The fuser uses trainable pair-specific components, and scaling to many communicating models with O(N) training cost remains open. These are paper-reported results; no independent reproduction was performed.",
+    "topics": [
+      "kv-cache",
+      "multi-model-systems",
+      "agent-communication",
+      "inference-latency",
+      "representation-transfer"
+    ],
+    "organizations": [
+      "Tsinghua University",
+      "Infinigence AI",
+      "Shanghai Jiao Tong University",
+      "The Chinese University of Hong Kong",
+      "Shanghai AI Laboratory"
+    ],
+    "human_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-A1E08E02B043.html",
+    "machine_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/data/briefs/FCMO-A1E08E02B043.json",
+    "citation": {
+      "id": "FCMO-A1E08E02B043",
+      "source": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-A1E08E02B043.html"
+    }
+  },
+  "brief": {
+    "claims": [
+      {
+        "label": "CLAIMED",
+        "text": "C2C uses a learned module to project and fuse source and receiver KV caches, with a dynamic weighting mechanism and trainable layer gates."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "Across four benchmarks, the authors report 6.4–14.2% higher average accuracy than individual models and about 3.1–5.4% higher accuracy than text-to-text communication, with an average 2.5× speedup in their tested settings."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "In a detailed MMLU-Redux comparison, authors report replacing 80 text handoff tokens and 1,312 ms of decoding with 90 ms of KV-cache fusion; timing used a single A100 with batch size one."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "The paper reports that a weaker sharer can mislead a receiver, and identifies O(N) fuser training cost for scaling to multiple communicating models as unresolved."
+      },
+      {
+        "label": "DEMONSTRATED_LIMITATION",
+        "text": "No independent reproduction or production deployment result was obtained in this review."
+      }
+    ],
+    "confidence": "credible_unconfirmed",
+    "contradictory_evidence": [],
+    "desks": [
+      "architectures_scaling",
+      "agents_memory",
+      "inference_systems",
+      "evaluation_science"
+    ],
+    "development_type": "paper",
+    "editions": [
+      "2026-10-13"
+    ],
+    "event_at": "2025-10-03T00:00:00Z",
+    "evidence_class": "A",
+    "evidence_gaps": [
+      {
+        "description": "Independent reproduction of accuracy and latency results across model pairs and benchmarks.",
+        "kind": "missing_independent",
+        "state": "open",
+        "updated_at": "2026-10-13T06:15:16Z"
+      },
+      {
+        "description": "End-to-end matched comparison including fuser training, cache transformation overhead, serving costs and realistic multi-turn agent workloads.",
+        "kind": "baseline_unclear",
+        "state": "open",
+        "updated_at": "2026-10-13T06:15:16Z"
+      },
+      {
+        "description": "Measure transfer robustness, failure containment and audit/security properties of internal-state communication.",
+        "kind": "other",
+        "state": "open",
+        "updated_at": "2026-10-13T06:15:16Z"
+      }
+    ],
+    "id": "FCMO-A1E08E02B043",
+    "importance_effective_score": 5,
+    "importance_rationale": "If direct KV-cache transfer gives repeatable accuracy and latency gains across heterogeneous model pairs, it could change multi-model inference and agent communication design. The score reflects architectural potential, not confidence in broad transfer or deployment economics.",
+    "importance_scale_version": 2,
+    "importance_score": 5,
+    "importance_tier": "Notable",
+    "last_verified_at": "2026-10-13T06:15:16Z",
+    "limitations": [
+      "All performance and timing results are reported by the paper authors; no independent replication was performed.",
+      "The evaluated tasks are four multiple-choice QA benchmarks with zero-shot, temperature-zero prompts; this does not establish gains on open-ended agent workflows.",
+      "Timing uses one NVIDIA A100 at batch size one; end-to-end serving costs and integration constraints are not measured.",
+      "A weak or inaccurate sharer can mislead the receiver; the paper includes failure examples.",
+      "Pairwise fuser training scales with the number of communicating model pairs; the authors identify O(N) training cost as an open issue.",
+      "Direct internal-state transfer is less human-readable than text handoffs; the paper does not evaluate auditability or security implications."
+    ],
+    "organizations": [
+      "Tsinghua University",
+      "Infinigence AI",
+      "Shanghai Jiao Tong University",
+      "The Chinese University of Hong Kong",
+      "Shanghai AI Laboratory"
+    ],
+    "primary_desk": "architectures_scaling",
+    "recorded_at": "2026-10-13T06:15:16Z",
+    "regions": [
+      "China",
+      "global"
+    ],
+    "relationships": [],
+    "source_languages": [
+      "en"
+    ],
+    "source_urls": [
+      "https://arxiv.org/abs/2510.03215"
+    ],
+    "status": "active",
+    "summary": "The Cache-to-Cache (C2C) paper proposes transferring a source model’s key/value cache into a target model through a learned fuser, bypassing text generation between models. Across four question-answering benchmarks and several Qwen, Llama and Gemma combinations, the authors report 6.4–14.2% higher average accuracy than individual models and about 3.1–5.4% above text-to-text handoffs; latency was 2.5× faster on average in their tested settings. Their detailed timing table reports 3.46×, 1.51× and 14.41× speedups over text handoff for three model pairs. The fuser uses trainable pair-specific components, and scaling to many communicating models with O(N) training cost remains open. These are paper-reported results; no independent reproduction was performed.",
+    "technical": {
+      "claimed_result": "Across four benchmarks, authors report 6.4–14.2% higher average accuracy than individual models, approximately 3.1–5.4% over text-to-text communication, and 2.5× average latency speedup. In one MMLU-Redux setup, C2C replaces 80 generated handoff tokens and 1,312 ms of decoding with 90 ms of cache fusion. Results vary substantially by model pair.",
+      "compute_or_cost": "In the reported MMLU-Redux training analysis, a 300-step fuser checkpoint took under 9 GPU hours and approached the final result for three pairs; full training ranged from 44.72 to 54.24 GPU hours. Reported inference speedups exclude general serving and system-integration costs.",
+      "demonstrated_result": "The public paper and code link are inspectable. The reported benchmark and timing outcomes are author-run results and have not been independently reproduced in this review.",
+      "implementation_status": "Paper proposes and evaluates C2C; the linked implementation is public. The fuser is trained for sharer–receiver combinations. Scaling to many communicating models with O(N) training cost is described as an open problem.",
+      "mechanism": "A learned fuser projects the source model’s KV cache into the receiver’s representation and combines it with receiver state using dynamic weights and per-layer gates; model weights are frozen while the fuser is trained. Token and layer alignment support different tokenizers, model families and sizes.",
+      "novelty": "Uses model KV caches for direct cross-model semantic transfer, with a learned conversion/fusion module, instead of serializing an intermediate message as generated text.",
+      "regime": "Research-scale experiments with Qwen2.5/Qwen3, Llama3.2 and Gemma3 models from 0.6B to 14B parameters, four QA benchmarks, a 500k-sample OpenHermes2.5 training subset for fusers, and an A100 timing setup. No production multi-tenant or multi-agent deployment is measured.",
+      "reproducibility": "The paper provides experimental details and links code, but the research desk did not execute or independently reproduce it. Benchmark methodology and author-reported results remain subject to replication.",
+      "strongest_baseline": "The paper compares C2C with text-to-text collaboration, query-level routing, and each sharer/receiver alone. Evaluations use zero-shot prompts at temperature zero and report four knowledge/reasoning benchmarks; inference timing uses one NVIDIA A100 at batch size one."
+    },
+    "title": "Cache-to-Cache reports faster cross-model communication through direct KV-cache transfer",
+    "topics": [
+      "kv-cache",
+      "multi-model-systems",
+      "agent-communication",
+      "inference-latency",
+      "representation-transfer"
+    ],
+    "why_it_matters": "C2C treats model internal state as a communication medium rather than converting it to readable text. If its reported gains transfer, multi-model systems could avoid serial decoding overhead and transfer information that text handoffs lose. The design also creates a less inspectable channel and requires learned alignment/fusion; the paper’s results are benchmark-bounded and pairwise training cost remains a scaling issue."
+  },
+  "related": [],
+  "schema": "fcmo-public-brief-v1"
+}
