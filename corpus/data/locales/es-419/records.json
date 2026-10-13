@@ -6507,6 +6507,57 @@
       "title": "Lei y Ren detallan una construcción de perfiles de explosión de Navier–Stokes con esfuerzo admisible y resto plano",
       "why_it_matters": "Una construcción externa detallada de un componente técnico central vuelve más inspeccionable una propuesta de prueba de gran importancia e identifica el paso pendiente que conserva la carga de establecer el teorema. Si la construcción y sus condiciones de compatibilidad resisten la revisión especializada, podrían ayudar a evaluar la afirmación más amplia sobre Navier–Stokes. El propio artículo indica que todavía hace falta un paso complementario de corrección del residuo, por lo que no debe tratarse como una prueba del problema del Milenio."
     },
+    "FCMO-4D410E62C996": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "El preprint presenta un diseño de recuperación que combina instantáneas del motor inicializado, GPU Memory Service (GMS) para asignaciones de modelo persistentes y de solo lectura, y un Shadow Engine preinicializado."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En cuatro configuraciones de modelos de ocho GPU con vLLM y SGLang, los autores informan que Shadow Engine se recuperó en 4.6–6.2 segundos, es decir, entre 12.8–29.0× más rápido que sus líneas base de reinicio en caliente."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Al reproducir una traza de fallas de producción de 18 semanas, los autores estiman que el diseño podría recuperar 79% de las horas-GPU perdidas por recuperación."
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION",
+          "text": "La ruta rápida informada cubre fallas del proceso del motor que preservan el dispositivo; las fallas que invalidan el dispositivo requieren reconstruir el estado del modelo, y el ahorro de producción es una estimación por reproducción, no una medición prospectiva en vivo."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "En esta activación no se estableció una reproducción independiente de la latencia, el costo de memoria ni el ahorro estimado con la traza de producción.",
+          "kind": "missing_independent",
+          "state": "open",
+          "updated_at": "2026-10-13T22:12:06.706022Z"
+        }
+      ],
+      "importance_rationale": "Si la recuperación rápida funciona en cargas de producción, podría mejorar materialmente la disponibilidad de inferencia y reducir la capacidad reservada para ocultar las ventanas de reinicio en caliente. La puntuación 6 refleja esta consecuencia sistémica bajo fallas que preservan el dispositivo, no una confirmación independiente ni una transferencia universal.",
+      "limitations": [
+        "Los resultados son informados por los autores y no se reprodujeron independientemente en esta activación.",
+        "Las cifras de 12.8–29× corresponden a réplicas de ocho GPU y fallas inyectadas del proceso del motor donde sobreviven las GPU y las asignaciones de modelo; una falla del dispositivo requiere una reconstrucción más lenta.",
+        "La comparación usa pesos y compilación en caché para el reinicio en caliente; el artículo señala que esto es optimista frente a la mayoría de las recuperaciones de su traza de producción, pero los puntos de referencia siguen limitados a los sistemas probados.",
+        "El beneficio de 79% de horas-GPU se estima al reproducir una traza de producción, no mediante una medición prospectiva en un despliegue.",
+        "Los Shadow Engines consumen 4.3–8.1 GiB por GPU en las configuraciones probadas; el modo de espera no carece de costo."
+      ],
+      "relationships": [],
+      "summary": "Un preprint del 21 de septiembre de autores de NVIDIA presenta GPU Memory Service (GMS), instantáneas de un entorno inicializado y Shadow Engines para recuperar réplicas de inferencia de LLM sin volver a cargar los pesos cuando falla el proceso de trabajo pero la GPU sigue intacta. En cuatro configuraciones de modelos de ocho GPU con vLLM y SGLang, el artículo informa que Shadow Engine se recuperó en 4.6–6.2 segundos, entre 12.8–29.0× más rápido que un reinicio en caliente. Una reproducción de la traza de fallas de producción de los autores estima que se podrían recuperar 79% de las horas-GPU perdidas por recuperación. Son resultados informados por los autores para fallas de proceso que preservan el dispositivo; quedan abiertas la pérdida del dispositivo y la conducta en despliegues más amplios.",
+      "technical": {
+        "claimed_result": "Los autores informan una latencia de recuperación 12.8–29.0× menor que el reinicio en caliente en cuatro configuraciones de modelos de ocho GPU y estiman que podrían recuperarse 79% de las horas-GPU relacionadas con la recuperación en una traza de producción de 18 semanas.",
+        "compute_or_cost": "El Shadow Engine en espera agrega 4.3 GiB/GPU para Qwen3.8-27B y 7.4–8.1 GiB/GPU para los modelos más grandes probados, a cambio de reducir el espacio KV disponible para el caché.",
+        "demonstrated_result": "El artículo especifica e implementa estos componentes. En la configuración de prueba reportada, la recuperación con GMS + Shadow Engine midió 4.6–6.2 segundos en cuatro filas de modelo/configuración tanto para vLLM como para SGLang; no se ejecutó una evaluación independiente.",
+        "implementation_status": "El artículo informa implementaciones en Dynamo, vLLM y SGLang y enlaza el código, pero en esta activación no se compiló ni se reprodujo independientemente.",
+        "mechanism": "Las instantáneas capturan el estado del entorno inicializado y excluyen las páginas KV de solicitudes; GMS mantiene las asignaciones físicas de pesos fuera de los procesos del motor para que sobrevivan a una falla de proceso que preserve el dispositivo y puedan volver a conectarse en modo de solo lectura. Un Shadow Engine comparte el estado del modelo y se promueve tras la falla; así, la recuperación se reduce principalmente a asignar nuevo respaldo KV y registrar el motor en el plano de servicio.",
+        "regime": "Ocho GPU por réplica; Qwen3.8-27B, DeepSeek-V4-Flash, GLM-5.2 y DeepSeek-V4-Pro con vLLM 0.27.1 y SGLang 0.5.18. La falla inyectada termina los procesos del motor mientras el dispositivo y las asignaciones residentes siguen intactos; una recuperación que invalida el dispositivo es más lenta.",
+        "reproducibility": "El artículo incluye detalles de configuración y carga, y los autores indican que el código está disponible. Siguen pendientes una reproducción independiente y la evaluación de requisitos para desplegarlo.",
+        "strongest_baseline": "Reinicio en caliente con los pesos del modelo ya en la caché de páginas del host y los artefactos de compilación en caché; los autores describen esta base como optimista frente a la mayoría de las recuperaciones de su traza de producción."
+      },
+      "title": "El artículo de Dynamo informa que reutilizar estado en GPU reduce a segundos la recuperación del servicio de LLM",
+      "why_it_matters": "Si los resultados reportados se transfieren al servicio en producción, conservar asignaciones de modelo residentes mientras se reconstruye el estado del entorno podría reducir la pérdida de capacidad y la sobreasignación de GPU de reserva para inferencia tolerante a fallas. La consecuencia inmediata es mayor en clústeres donde las fallas de proceso dejan intactos el dispositivo y sus asignaciones; esto no demuestra recuperación ante una falla de GPU o del dispositivo."
+    },
     "FCMO-4E1FCFCCA9BB": {
       "claims": [
         {
@@ -9282,6 +9333,56 @@
       },
       "title": "Un preprint formaliza cómo verificar la revocación en trabajos prolongados de agentes",
       "why_it_matters": "Si el método funciona con adaptadores de proveedores reales, ofrece una garantía de cierre más precisa que un acuse de cancelación o la revocación de un token y permite preservar trabajo respaldado por otra raíz de autorización independiente. El propio artículo restringe la garantía a rutas registradas y completamente mediadas, por lo que no demuestra la inactividad global del sistema ni la seguridad de un despliegue real."
+    },
+    "FCMO-6DC9880173F3": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "Los autores describen un registrador montado en el instrumento que usa sensores inerciales, de tiempo de vuelo y Hall para estimar el estado de la herramienta sin cámara ni rastreador externo, con alineación de latencia por canal frente a la referencia del robot."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "La política entrenada con demostraciones de instrumentos manuales completó la apendicectomía en tres de cuatro conejos vivos adicionales bajo autonomía compartida y con el cirujano seleccionando la fase quirúrgica."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan que entrenaron con 849 demostraciones in vivo de cuatro conejos y eligieron la configuración tras evaluar 31 alternativas en simulador."
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION",
+          "text": "El estudio se limitó a cuatro animales de despliegue en un día; el predictor visual coincidió con el cirujano en solo 24.6% de los pasos de control, por lo que el cirujano seleccionó la fase."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se inspeccionó una réplica animal independiente ni una evaluación clínica en personas; el informe actual usa cuatro animales para despliegue.",
+          "kind": "missing_independent",
+          "state": "open",
+          "updated_at": "2026-10-13T22:12:06.706022Z"
+        }
+      ],
+      "importance_rationale": "Si la captura con instrumentos manuales proporciona demostraciones útiles para aprender políticas quirúrgicas, podría ampliar la fuente de datos y cambiar su desarrollo. La puntuación refleja el potencial de la canalización, no el resultado limitado a cuatro animales ni la preparación clínica.",
+      "limitations": [
+        "Los autores informan los resultados; no hubo reproducción independiente en esta activación.",
+        "La evaluación de despliegue incluyó cuatro conejos vivos; la política completó la tarea en tres.",
+        "Fue autonomía compartida: un cirujano eligió la fase porque el predictor visual tuvo bajo desempeño con el endoscopio de despliegue.",
+        "No se presenta evidencia en pacientes humanos ni de seguridad clínica.",
+        "El robot proporcionó la referencia de calibración y ejecutó la política, aunque no recogió las demostraciones de entrenamiento."
+      ],
+      "relationships": [],
+      "summary": "Un preprint del 22 de septiembre presenta una canalización integral que registra la pose y el estado de la mandíbula de instrumentos laparoscópicos con sensores montados en las herramientas habituales del cirujano, alinea cada canal con la referencia de un robot y entrena una política bimanual sin demostraciones recogidas por un robot. Tras comparar 31 configuraciones en un simulador de lazo cerrado, los autores reentrenaron la política con 849 demostraciones de cuatro conejos vivos y la probaron en otros cuatro; completó la apendicectomía en tres de cuatro bajo autonomía compartida y con electrocirugía habilitada. Un cirujano eligió la fase porque el predictor visual falló con el endoscopio de despliegue. Es un estudio pequeño en animales, no autonomía plena ni evidencia clínica.",
+      "technical": {
+        "claimed_result": "Los autores informan que la apendicectomía se completó en tres de cuatro conejos vivos adicionales tras entrenar con 849 demostraciones in vivo recogidas a mano; el cirujano indicó la fase y la electrocirugía estaba habilitada.",
+        "demonstrated_result": "El preprint describe la canalización de captura sensorial y entrenamiento. Informa 3/4 procedimientos completados en conejos vivos bajo autonomía compartida; aquí no se estableció un resultado independiente.",
+        "implementation_status": "El artículo presenta un prototipo y dice que publicó los dos corpus de demostraciones; el código y los datos no se ejecutaron en esta activación.",
+        "mechanism": "Un registrador compacto combina la orientación de una IMU, la profundidad de inserción de un sensor de tiempo de vuelo y el estado de mandíbula de un sensor Hall. Las latencias se alinean con la referencia del robot antes de crear pares de observación y acción. Una política de difusión con DINOv3 se selecciona mediante simulaciones de lazo cerrado y se reentrena con demostraciones in vivo.",
+        "regime": "Apendicectomía laparoscópica bimanual con dos brazos FR3 e instrumentos estándar. Cuatro conejos vivos aportaron demostraciones y otros cuatro fueron sujetos de despliegue; cada animal tuvo una ejecución. El estudio se envió a ICRA 2027.",
+        "reproducibility": "El artículo describe los protocolos de simulación e in vivo y enlaza los corpus de demostraciones. Siguen pendientes una réplica independiente, pruebas con más animales y la traducción clínica.",
+        "strongest_baseline": "En simulador, la política DINOv3 seleccionada con un bloque desbloqueado alcanzó 81% de finalización de aproximación completa, frente a 12% con ResNet-18 y 44% con DINOv3 congelado; son comparaciones de configuración en simulador, no una referencia independiente para resultados en animales."
+      },
+      "title": "Demostraciones capturadas en instrumentos entrenan una política de apendicectomía probada en conejos vivos",
+      "why_it_matters": "Si se generaliza, la canalización podría convertir el movimiento normalmente descartado de cirugía laparoscópica manual en datos para entrenar políticas y reducir la dependencia de demostraciones específicas de robots. El resultado actual es una demostración temprana en animales con control humano explícito de la fase, no evidencia de seguridad en pacientes ni de cirugía autónoma."
     },
     "FCMO-6E05AB159B0A": {
       "claims": [
@@ -12144,6 +12245,62 @@
       "summary": "NVIDIA, OpenAI y SB Energy anunciaron el 17 de agosto de 2026 un acuerdo de infraestructura PORTS-Pike bajo el cual OpenAI aceptó asegurar aproximadamente 8 GW de capacidad de TI en el condado de Pike, Ohio. NVIDIA es el proveedor exclusivo de infraestructura de cómputo de IA, invertirá $1.5B en SB Energy y aporta respaldo crediticio para terreno, energía y shell en los 4.25 GW iniciales; posteriormente, el Form 10-Q del segundo trimestre fiscal de 2027 de NVIDIA reveló garantías con un tope de $105B para esas obligaciones iniciales y una opción de respaldo adicional para aproximadamente 3.8 GW conforme escale el sitio. El campus de nueve fases usa arrendamientos de OpenAI a 20 años; OpenAI dice que los primeros 800 MW se esperan en 2028, mientras el filing de NVIDIA describe el inicio del servicio en su año fiscal 2029. El mismo 10-Q muestra un giro estratégico más amplio: $279B en compromisos de suministro/capacidad, $36B en acuerdos de nube de IA y MOUs de agosto destinados a movilizar más de $500B de capital de terceros para infraestructura de IA, aunque esos MOUs son explícitamente preliminares.",
       "title": "NVIDIA respalda hasta $105B en arrendamientos de centros de datos vinculados a OpenAI por 4.25 GW mientras se expande al financiamiento de infraestructura de IA",
       "why_it_matters": "El cuello de botella del cómputo de IA es cada vez más el terreno, la energía, la construcción y el financiamiento, y no sólo el suministro de aceleradores. Que un proveedor de GPU use su balance y contratos de ecosistema para reducir el riesgo de infraestructura multigigavatio puede cambiar materialmente quién logra financiar entrenamiento e inferencia de frontera y puede estrechar el acoplamiento vertical entre proveedor de chips, nube o intermediario, proveedor de capital y laboratorio de modelos. El anuncio primario de OpenAI dice que acordó asegurar aproximadamente 8 GW en el campus, pero la capacidad completa se entrega por fases y está sujeta a condiciones; el respaldo crediticio firmado de NVIDIA cubre los 4.25 GW iniciales, mientras los aproximadamente 3.75-3.8 GW restantes están cubiertos por una opción y no por una exposición de garantía actual equivalente."
+    },
+    "FCMO-967377164E87": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "El preprint define y evalúa un modelo repetido de juego de nombres con poblaciones homogéneas y totalmente conectadas, instanciadas con Qwen2.5-7B-Instruct, Phi-4, Llama-3.2-3B-Instruct y DeepSeek-R1-Distill-Qwen-32B."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan que menos del 10% de las rutas con un solo estado intermedio reducen el esfuerzo comprometido aditivo por debajo del requisito de una transición directa; esta proporción disminuye en rutas más largas."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En las poblaciones de modelos evaluadas, un enfoque integrado de una sola etapa que permite una tercera convención produce transiciones costo-efectivas en 15–40% de los casos, frente a 12–23% en rutas aisladas de dos etapas sobre los mismos tríos."
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION",
+          "text": "Los resultados corresponden a un modelo controlado de juego de nombres con poblaciones homogéneas; el artículo no demuestra ataques contra redes de agentes heterogéneas en producción ni valida intervenciones en el mundo real."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "En esta activación no se reprodujeron independientemente los resultados del modelo reportados.",
+          "kind": "missing_independent",
+          "state": "open",
+          "updated_at": "2026-10-13T22:21:29Z"
+        },
+        {
+          "description": "El artículo no establece que estas dinámicas de convenciones ocurran en poblaciones de agentes heterogéneas desplegadas.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-13T22:21:29Z"
+        }
+      ],
+      "importance_rationale": "Si existen rutas de tipping análogas en poblaciones de agentes interactivos desplegadas, atacantes o perturbaciones accidentales podrían redirigir convenciones colectivas mediante estados intermedios, lo que cambiaría la evaluación de estabilidad. La puntuación 6 refleja la consecuencia potencial de este mecanismo acotado; la evidencia es un estudio controlado de juego de nombres, no una demostración en terreno.",
+      "limitations": [
+        "Es un preprint y los hallazgos son reportados por sus autores; en esta activación no se hizo una reproducción independiente.",
+        "El modelo usa poblaciones homogéneas y totalmente conectadas y una tarea de coordinación basada en un juego de nombres, lo que limita su transferencia a redes reales de agentes.",
+        "Los autores señalan que menos del 10% de las rutas con un solo estado intermedio son subaditivas; las rutas que reducen costos son excepcionales en el panorama modelado.",
+        "No se muestra un ataque desplegado, una medición en terreno ni una defensa validada."
+      ],
+      "relationships": [],
+      "summary": "Un preprint del 21 de septiembre estudia cómo minorías comprometidas pueden redirigir convenciones en poblaciones homogéneas y totalmente conectadas que juegan repetidamente al juego de nombres, con cuatro LLM de pesos abiertos. Los autores informan que menos del 10% de las rutas con un único estado intermedio reducen el esfuerzo comprometido total frente a una transición directa. En los tríos evaluados, permitir una tercera convención durante una sola etapa produce transiciones costo-efectivas en 15–40% de los casos entre las poblaciones de modelos, frente a 12–23% para rutas aisladas de dos etapas. Son resultados de un modelo controlado, no ataques observados ni evidencia sobre redes desplegadas de agentes heterogéneos.",
+      "technical": {
+        "claimed_result": "Los autores informan que menos del 10% de las rutas con un estado intermedio son subaditivas. En los tríos evaluados, permitir una tercera convención en una etapa integrada produce rutas costo-efectivas en 15–40% de los casos, frente a 12–23% en rutas aisladas de dos etapas entre las cuatro poblaciones modeladas.",
+        "compute_or_cost": "No es un resultado de hardware ni de costo de inferencia; el costo de transición se mide como la fracción de población comprometida y otros objetivos de ruta.",
+        "demonstrated_result": "El preprint presenta el modelo y reporta resultados simulados en cuatro poblaciones homogéneas de LLM; esta activación revisó el texto, pero no volvió a ejecutar las simulaciones.",
+        "implementation_status": "Modelo de investigación presentado en un preprint; no se demuestra un sistema desplegado ni un ataque operativo.",
+        "mechanism": "Se asignan umbrales de masa crítica a las transiciones por pares entre convenciones y se conectan en un paisaje dirigido; luego se optimizan rutas intermedias directas e indirectas según costos de compromiso aditivos y máximos.",
+        "regime": "Poblaciones homogéneas y totalmente conectadas del juego de nombres con Qwen2.5-7B-Instruct, Phi-4, Llama-3.2-3B-Instruct y DeepSeek-R1-Distill-Qwen-32B; conjuntos controlados de convenciones e intervenciones de minorías comprometidas.",
+        "reproducibility": "El preprint describe métodos y figuras suplementarias; en esta activación no se realizó una reproducción independiente ni se ejecutaron los modelos.",
+        "strongest_baseline": "Transición directa por pares entre convenciones; la comparación también incluye rutas aisladas de varias etapas sobre los mismos tríos evaluados."
+      },
+      "title": "Un estudio controlado de poblaciones de agentes muestra que los cambios indirectos de convención pueden reducir umbrales de tipping",
+      "why_it_matters": "El artículo sugiere que las pruebas por pares sobre la resistencia de una población de agentes podrían pasar por alto rutas mediante convenciones intermedias, aunque también encuentra que esas rutas que reducen costos son poco comunes en su modelo. Si esta estructura se transfiere a sistemas desplegados, las evaluaciones de seguridad quizá deban considerar el conjunto de convenciones disponible y las secuencias de intervención. No se establecen ataques en el mundo real ni la eficacia de medidas de mitigación."
     },
     "FCMO-973E5F2465F4": {
       "claims": [

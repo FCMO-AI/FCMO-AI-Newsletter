@@ -1,6 +1,111 @@
 [
   {
     "confidence": "credible_unconfirmed",
+    "demonstrated_result": "The preprint presents a model and reports simulated results over four homogeneous LLM populations; this activation inspected the paper text but did not rerun the simulations.",
+    "desks": [
+      "agents_memory"
+    ],
+    "development_type": "paper",
+    "event_at": "2026-09-21T00:00:00Z",
+    "evidence_class": "A",
+    "id": "FCMO-967377164E87",
+    "importance_effective_score": 6,
+    "importance_tier": "Major",
+    "last_verified_at": "2026-10-13T22:21:29Z",
+    "mechanism": "Pairwise convention transitions are assigned critical-mass thresholds and connected into a directed transition landscape; path optimization then compares direct and intermediate routes, with both additive and maximum commitment costs.",
+    "organizations": [],
+    "primary_desk": "agents_memory",
+    "regions": [
+      "global"
+    ],
+    "status": "active",
+    "strongest_baseline": "Direct pairwise convention transition; the comparison also includes isolated multi-stage paths over the same evaluated triplets.",
+    "summary": "A September 21 preprint studies how committed minorities can redirect conventions in homogeneous, fully connected naming-game populations of four open-weight LLMs. The authors report that fewer than 10% of single-intermediate paths reduce total committed effort versus a direct transition. In evaluated triplets, allowing a third convention during a single stage produces cost-effective transitions in 15–40% of cases across model populations, compared with 12–23% for isolated two-stage routes. These are results from a controlled model, not observed attacks or evidence about deployed heterogeneous agent networks.",
+    "title": "A controlled agent-population study finds indirect convention shifts can lower tipping thresholds",
+    "topics": [
+      "multi-agent-systems",
+      "agent-safety",
+      "collective-behavior",
+      "coordination-games",
+      "social-dynamics"
+    ],
+    "why_it_matters": "The paper suggests that pairwise tests of an agent population’s resistance may miss paths through intermediate conventions, while also finding those cost-reducing paths are uncommon in its model. If such structure transfers to deployed systems, safety evaluations may need to consider the available convention set and sequences of interventions. No real-world attack or mitigation effectiveness is established."
+  },
+  {
+    "confidence": "credible_unconfirmed",
+    "demonstrated_result": "The paper specifies and implements the above components. In the reported test setup, GMS + Shadow Engine recovery measured 4.6–6.2 seconds across four vLLM and four SGLang model/configuration rows; independent execution was not performed here.",
+    "desks": [
+      "inference_systems",
+      "efficiency",
+      "compute_hardware"
+    ],
+    "development_type": "paper",
+    "event_at": "2026-09-21T00:00:00Z",
+    "evidence_class": "A",
+    "id": "FCMO-4D410E62C996",
+    "importance_effective_score": 6,
+    "importance_tier": "Major",
+    "last_verified_at": "2026-10-13T22:12:14.824830Z",
+    "mechanism": "Snapshots capture initialized engine runtime state while excluding request KV pages; GMS owns physical model-weight allocations outside engine processes so they survive device-preserving process failure and can be reattached read-only; a Shadow Engine shares model state and is promoted after failure, leaving recovery mainly to allocate fresh KV backing and register with the serving plane.",
+    "organizations": [
+      "NVIDIA Research"
+    ],
+    "primary_desk": "inference_systems",
+    "regions": [
+      "global"
+    ],
+    "status": "active",
+    "strongest_baseline": "Warm restart with model weights already in host page cache and compilation artifacts cached; authors describe this as optimistic relative to most recoveries in their production trace.",
+    "summary": "A Sept. 21 preprint from NVIDIA authors presents GPU Memory Service (GMS), initialized-runtime snapshots and Shadow Engines for recovering LLM inference replicas without reloading model weights when a worker process fails but its GPU remains intact. Across four eight-GPU model configurations on vLLM and SGLang, the paper reports Shadow Engine recovery in 4.6–6.2 seconds, 12.8–29.0× faster than a warm restart. A separate replay of the authors’ production failure trace estimates 79% of recovery-related GPU-hours could be reclaimed. These are author-reported results for device-preserving process failures; device loss and broader deployment behavior remain open.",
+    "title": "Dynamo paper reports GPU-resident state reuse cuts LLM-serving recovery to seconds",
+    "topics": [
+      "llm-inference",
+      "fault-tolerance",
+      "gpu-memory",
+      "serving-reliability",
+      "runtime-recovery"
+    ],
+    "why_it_matters": "If the reported results transfer to live serving, preserving resident model allocations while rebuilding runtime state could reduce capacity loss and spare-GPU overprovisioning for fault-tolerant inference. The immediate consequence is strongest for clusters where process failures leave devices and allocations healthy; this does not establish recovery from GPU/device failure."
+  },
+  {
+    "confidence": "credible_unconfirmed",
+    "demonstrated_result": "The preprint describes an end-to-end sensing and training pipeline. It reports 3/4 appendectomy completions on additional live rabbits under shared autonomy; no independent result was established here.",
+    "desks": [
+      "multimodality_world_models",
+      "evaluation_science",
+      "architectures_scaling"
+    ],
+    "development_type": "paper",
+    "event_at": "2026-09-22T00:00:00Z",
+    "evidence_class": "A",
+    "id": "FCMO-6DC9880173F3",
+    "importance_effective_score": 6,
+    "importance_tier": "Major",
+    "last_verified_at": "2026-10-13T22:12:14.824830Z",
+    "mechanism": "A compact instrument-mounted logger combines IMU orientation, time-of-flight insertion depth and Hall-sensor jaw state. Per-channel latencies are aligned to robot ground truth before forming observation/action pairs. A diffusion policy with DINOv3 is selected using simulator closed-loop rollouts, then retrained on in-vivo demonstrations.",
+    "organizations": [
+      "Seoul National University Hospital",
+      "Rosota Inc."
+    ],
+    "primary_desk": "multimodality_world_models",
+    "regions": [
+      "South Korea"
+    ],
+    "status": "active",
+    "strongest_baseline": "In simulator ablations, selected DINOv3 policy with one unfrozen block reached 81% full-approach completion versus 12% for ResNet-18 and 44% with frozen DINOv3; these are simulator configuration comparisons, not an independent baseline for live-animal completion.",
+    "summary": "A Sept. 22 preprint reports an end-to-end pipeline that records instrument pose and jaw state from sensors mounted on a surgeon’s ordinary laparoscopic tools, aligns the sensor channels against robot ground truth, and trains a bimanual policy without robot-collected demonstrations. After closed-loop simulator selection among 31 configurations, the authors retrained on 849 demonstrations from four live rabbits and tested on four additional rabbits; the policy completed appendectomy in three of four under shared autonomy with electrosurgery armed. A surgeon chose the surgical phase because the vision-based phase predictor failed under the deployment endoscope. This is a small animal study, not full autonomy or clinical evidence.",
+    "title": "Instrument-mounted demonstrations train an appendectomy policy tested in live rabbits",
+    "topics": [
+      "robotics",
+      "surgical-robotics",
+      "imitation-learning",
+      "in-vivo",
+      "demonstration-data"
+    ],
+    "why_it_matters": "If the pipeline generalizes, it could turn otherwise discarded motion from hand-held minimally invasive surgery into policy-training data and reduce dependence on robot-specific demonstrations. The current result is an early in-vivo animal demonstration with explicit human phase control, not evidence of patient safety or autonomous surgery."
+  },
+  {
+    "confidence": "credible_unconfirmed",
     "demonstrated_result": "The preprint documents the protocol, datasets, models and author-reported measurements. No independent reproduction was performed.",
     "desks": [
       "agents_memory",
