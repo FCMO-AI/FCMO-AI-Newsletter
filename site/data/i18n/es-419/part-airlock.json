@@ -1,6 +1,6 @@
 {
   "canonical_locale": "en",
-  "canonical_source_sha256": "a31890686544b8b21f2f7b5ee67216b52d72455407de410a40f65ec4e8241f88",
+  "canonical_source_sha256": "7a03056522b9d86d04955fca647c11b1f3f2a8e3d2dbfaeb369670838df3683d",
   "generated_from": "ARB airlock; editorial wording authored upstream",
   "locale": "es-419",
   "records": {
@@ -3782,6 +3782,61 @@
       },
       "title": "La Comisión Europea adopta un esquema propuesto de calificación PUE/WUE para centros de datos y abre una consulta separada sobre estándares mínimos",
       "why_it_matters": "El sistema de etiquetas propuesto podría facilitar la comparación de la energía y el agua informadas para decisiones de compra e infraestructura, mientras que el proceso separado de estándares podría cambiar después las restricciones de las instalaciones. La evidencia actual establece el diseño de política y la consulta de la Comisión, no etiquetas desplegadas, umbrales mínimos vinculantes ni ahorros realizados."
+    },
+    "FCMO-2B00C06542B1": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "En tres sistemas simulados, evaluados en 32 entornos y tres semillas, los autores informan que la variante de dinámica aprendida alcanza seguridad de 95.83% en Double Integrator, 95.83% en Dubins Car y 96.88% en Crazyflie; sus tasas de éxito son 88.54%, 92.71% y 89.58%."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan tiempos de inferencia de 4.79–5.12 microsegundos por paso para la variante de dinámica aprendida en una RTX 4000 Ada, con evaluación por lotes en 32 entornos; MPC requiere 2,773–9,280 microsegundos en la misma configuración."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "Los resultados no demuestran seguridad en robots físicos: el entrenamiento depende de un simulador de caja negra, el artículo informa una caída de rendimiento con mayor complejidad y señala como riesgo abierto la transferencia a robots reales."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se reprodujeron de manera independiente los resultados de simulación ni las mediciones de latencia.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "El método no presenta evaluación en robots físicos y podría tener una brecha sustancial entre simulación y realidad.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "El rendimiento cae al pasar de sistemas lineales a no lineales y de 2D a 3D; la robustez al ruido está acotada en el apéndice.",
+          "kind": "baseline_unclear",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se pueden aprender restricciones de barrera predictivas sin perder la capacidad de llegar al objetivo de forma segura, esto podría reducir el cómputo en tiempo de ejecución para el control robótico crítico para la seguridad. La puntuación 5 refleja una contribución significativa de método de control en simulación; no se establece seguridad física ni transferencia entre simulación y realidad.",
+      "limitations": [
+        "Todos los resultados de seguridad y latencia son de simulación y provienen de los autores; el equipo de investigación no los reprodujo.",
+        "La variante de dinámica aprendida se entrena con un simulador de caja negra; no se demuestra seguridad en robots físicos ni transferencia sim-to-real.",
+        "Solo se evalúan tres sistemas simulados; los autores informan una caída de rendimiento cuando aumenta la complejidad, de lineal a no lineal y de 2D a 3D.",
+        "La latencia se mide en una estación RTX 4000 Ada con lotes de 32 entornos y como promedio de una trayectoria de 256 pasos; no es latencia embebida en robot con un solo entorno."
+      ],
+      "relationships": [],
+      "summary": "BarrierFormer entrena un transformador causal para predecir trayectorias cortas y aplicar restricciones de funciones barrera de control mediante un instructor de seguridad durante el entrenamiento, eliminando la optimización en línea durante la inferencia. Los autores lo comparan con cuatro baselines reimplementados en simuladores de integrador doble, automóvil Dubins y Crazyflie, con 32 entornos y tres semillas. La variante con dinámica aprendida informa 95.83%–96.88% de seguridad en dos sistemas 2D y 96.88% en el sistema 3D, con alrededor de 4.79–5.12 microsegundos por paso en una estación de trabajo. Es un resultado de simulación: el entrenamiento aún usa un simulador de caja negra, el rendimiento cae con la complejidad y los autores advierten una posible brecha grande entre simulación y realidad.",
+      "technical": {
+        "claimed_result": "Los autores informan seguridad de 95.83%–96.88% y éxito de 88.54%–92.71% para la variante de dinámica aprendida en simulaciones Double Integrator, Dubins Car y Crazyflie. La inferencia por paso se informa en 4.79–5.12 microsegundos, frente a 2,773–9,280 microsegundos para MPC en la misma estación de trabajo.",
+        "compute_or_cost": "No se informan energía ni costos monetarios. El artículo informa latencia simulada; las mediciones por lotes en una estación de trabajo no establecen latencia de despliegue en hardware robótico.",
+        "demonstrated_result": "El artículo especifica entornos simulados, adaptaciones de baselines y protocolo de evaluación y presenta mediciones de seguridad, llegada al objetivo, éxito y latencia. En esta activación no se verificaron de forma independiente.",
+        "implementation_status": "Marco de investigación evaluado en tres simuladores; no se inspeccionó ni informó un despliegue físico.",
+        "mechanism": "Un transformador causal codifica el historial de observaciones y acciones, predice una trayectoria mediante una cabeza de dinámica aprendida y genera correcciones residuales de control. Un crítico de barrera evalúa violaciones a lo largo del horizonte previsto, mientras un instructor SQP de seguridad genera objetivos de entrenamiento. La política desplegada emite acciones sin optimización en línea.",
+        "regime": "Simulación JAX de un integrador doble lineal 2D, un automóvil Dubins no lineal 2D y un modelo Crazyflie no lineal 3D. Se evalúan 32 entornos y tres semillas. La latencia se mide en una RTX 4000 Ada de 20 GB, con 32 entornos paralelos y promedios de trayectorias de 256 pasos.",
+        "reproducibility": "El artículo informa entornos y semillas, adaptaciones de baselines y un apéndice de latencia. Siguen pendientes la ejecución independiente del código y la reproducción.",
+        "strongest_baseline": "Cuatro baselines se reimplementan con dinámicas, observaciones y obstáculos comunes: CBF-RL, CoBL-Diffusion, ConBaT y control predictivo basado en modelo. En la tabla reportada, la variante de dinámica aprendida de BarrierFormer logra el mejor equilibrio entre seguridad y llegada al objetivo entre los métodos sin modelo; la variante de simulador se compara con MPC."
+      },
+      "title": "BarrierFormer informa control predictivo de seguridad con baja latencia simulada",
+      "why_it_matters": "El artículo prueba si las restricciones de seguridad de varios pasos pueden incorporarse a una política para evitar el costo de optimización en línea. Si los resultados de simulación se trasladan, el control predictivo seguro podría ser más barato en tiempo de ejecución para robots con observación parcial. La evidencia actual abarca tres dinámicas simuladas y una estación de trabajo; no demuestra seguridad física ni tiempos reales en hardware embebido."
     },
     "FCMO-2B53E683F72E": {
       "claims": [
@@ -11209,6 +11264,56 @@
       "title": "Reuters informa mayores diferenciales y más selectividad de inversionistas ante la deuda de empresas vinculadas con IA",
       "why_it_matters": "Los mercados de deuda podrían afectar el costo y ritmo de la infraestructura de IA, que requiere mucho capital. Los diferenciales más amplios y los límites de concentración son señales para seguir, pero este informe no demuestra que las grandes empresas de nube no puedan financiar proyectos, hayan reducido el gasto de capital previsto o enfrenten peor calidad crediticia."
     },
+    "FCMO-9CD55900A307": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "En 22 diseños y tres repeticiones por combinación de modelo y diseño, los autores informan puntuaciones ECO de 79.65 para WaveletECO-Policy INT8 y 79.63 para BF16, frente a 77.44 para GPT-6 Astra, bajo el mismo protocolo y un límite de crecimiento de área de 1%."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores estiman un costo de inferencia de $0.00226 por tarea para INT8 y $0.33188 para GPT-6 Astra, aproximadamente 1/147, con base en rendimiento local medido y precios publicados de API y alquiler de GPU; la estimación excluye costos de EDA y tiempo ocioso."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El artículo no demuestra que la proporción de costos ni la ventaja de puntuación se transfieran a otros backends EDA, poblaciones de diseño mayores o nodos tecnológicos distintos. Los despliegues usados para estimar costos no se volvieron a evaluar en calidad de reparación."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se reprodujeron de manera independiente las afirmaciones de calidad de reparación y costos; el modelo de costo se limita a inferencia y a precios/rentas de referencia de septiembre de 2026.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "El benchmark incluye 22 diseños de un solo entorno y backend EDA; no se midió transferencia entre nodos tecnológicos, clases de diseño o herramientas.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si los resultados de calidad y costo de inferencia se generalizan, los modelos locales especializados podrían cambiar el equilibrio de costos y dependencia de proveedores en los flujos de reparación física de chips. La puntuación 6 refleja su posible importancia en un área de ingeniería costosa, no la certeza ni la transferencia más allá de los diseños evaluados.",
+      "limitations": [
+        "Los autores informan todos los resultados experimentales y costos; el equipo de investigación no reprodujo el benchmark ni el modelo de costos.",
+        "El benchmark contiene 22 diseños, nueve apartados; no demuestra transferencia a diseños o nodos tecnológicos más amplios y diversos.",
+        "El protocolo compartido usa un backend EDA, una acción de reparación candidata por ronda y un límite de crecimiento de área de 1%.",
+        "La proporción 1/147 es un cálculo estimado solo para inferencia. Usa precios de API y proxies de alquiler/rendimiento de GPU y excluye costos EDA y tiempo ocioso; los despliegues de costo no se volvieron a evaluar por calidad."
+      ],
+      "relationships": [],
+      "summary": "Los autores combinan un flujo cerrado de órdenes de cambio de ingeniería con un modelo Qwen3.5-9B entrenado con demostraciones de reparación y preferencias de acciones. En 22 diseños de chips y 594 corridas, informan una puntuación media de reparación de 79.65 para INT8 y 79.63 para BF16, frente a 77.44 para GPT-6 Astra bajo un protocolo de ejecución compartido. Su modelo de costos estima la inferencia INT8 en $0.00226 por tarea y GPT-6 Astra en $0.33188, cerca de 1/147 del costo. El cálculo excluye EDA y tiempo ocioso. Son resultados de los autores en un solo benchmark; nueve diseños quedan apartados, pero la generalización y la economía de despliegue siguen sin verificarse.",
+      "technical": {
+        "claimed_result": "En 594 corridas sobre 22 diseños, WaveletECO-Policy INT8 obtiene 79.65 y BF16 79.63, frente al modelo GPT-6 Astra, que obtuvo 77.44. La comparación con GPT-6 Astra usa el mismo flujo de ejecución. La inferencia INT8 se estima en $0.00226 por tarea frente a $0.33188, o unas 146.8× más puntuación por dólar en el modelo de costos.",
+        "compute_or_cost": "Los autores estiman $0.00226 por tarea para INT8 frente a $0.33188 para GPT-6 Astra, aproximadamente 1/147; el cálculo excluye EDA y tiempo ocioso y depende del rendimiento y precios de GPU/API especificados. No se informa el costo total de producción.",
+        "demonstrated_result": "El artículo inspeccionado describe el flujo, el protocolo, la definición de puntuación, las mediciones informadas y el modelo de costos. En esta activación no se reprodujeron de forma independiente ni el rendimiento ni los costos.",
+        "implementation_status": "El artículo describe una plataforma ECO de circuito cerrado y un modelo 9B local evaluado; en esta activación no se verificó un despliegue independiente ni una integración EDA externa.",
+        "mechanism": "Un flujo físico ECO compartido lee el estado de temporización, errores eléctricos y biblioteca; elige una reparación, la ejecuta y mide, y luego conserva los cambios aceptados o revierte los rechazados. Un Qwen3.5-9B local se entrena con ajuste supervisado y preferencias CPO-SimPO de acciones sobre un mismo estado; variantes cuantizadas usan pesos INT8 o INT4 y activaciones BF16.",
+        "regime": "22 diseños físicos de chips; 13 se usaron para adaptación/selección y nueve quedaron apartados; hasta cinco rondas de reparación; tres repeticiones por modelo y diseño; una acción candidata por ronda y límite de crecimiento de área de 1%. El costo local estima GPU individuales (BF16 en RTX 6000D, INT8/INT4 en RTX 4090); los precios de API se registraron el 19 de septiembre de 2026.",
+        "reproducibility": "El artículo especifica la puntuación, reglas de ejecución compartidas, partición de 22 diseños y tres repeticiones. Siguen pendientes la reproducción independiente y la transferencia a nuevas herramientas y diseños.",
+        "strongest_baseline": "GPT-6 Astra obtuvo 77.44 bajo la misma interfaz ECO y el mismo conjunto de diseños. Los autores también comparan variantes Qwen3.5-9B, WaveletECO SFT, GPT-5.6 Sol y DeepSeek V4. La puntuación de calidad y el costo estimado no forman una comparación de despliegue emparejada, porque los despliegues de costos no se volvieron a evaluar para calidad."
+      },
+      "title": "WaveletECO informa que un modelo local especializado iguala la puntuación de reparación de un servicio de frontera con menor costo de inferencia estimado",
+      "why_it_matters": "Si la calidad y los costos estimados se trasladan a más diseños y flujos de producción, un modelo local especializado podría abaratar la reparación física de chips en varias rondas y reducir la dependencia de APIs de frontera pagadas. La proporción informada solo cubre inferencia y se basa en rendimiento y alquiler estimados de GPU; no demuestra la economía integral de EDA ni una ventaja general frente a modelos de frontera."
+    },
     "FCMO-9E06CC5FA8A5": {
       "claims": [
         {
@@ -13452,6 +13557,66 @@
       "title": "Apple describe una familia de cinco modelos base y pesos residentes en NAND con selección por instrucción para uso en el dispositivo",
       "why_it_matters": "Si el diseño descrito funciona como se afirma, cargar expertos seleccionados para cada instrucción desde memoria flash podría cambiar las restricciones de memoria al ejecutar modelos dispersos mayores en dispositivos de consumo. El anuncio también señala una vía de despliegue en nube privada que conecta a Apple, Google Cloud y NVIDIA. No hay evidencia independiente sobre latencia, energía, calidad, privacidad en operación ni dispositivos compatibles."
     },
+    "FCMO-BF6ACF1C950B": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan 90%–100% de éxito en tres tareas bimanuales de largo horizonte con menos de una hora de demostraciones robóticas por tarea, después de preentrenamiento con datos humanos, coentrenamiento específico y refinamiento en robot."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El artículo informa un corpus EgoWild de 538.9 horas y 179,049 episodios; los autores dicen que publicarán los datos, modelos y código, pero en esta revisión no se comprobó que estuvieran disponibles públicamente."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Para GeoFormer, los autores informan 7.43 ms de latencia media y 12.97 ms en el P95, frente a 162.58 ms y 194.16 ms con proyección más inpainting; se excluyen decodificación de imagen y carga del modelo. Estiman 2.06 frente a 45.16 horas-GPU por millón de cuadros."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El artículo no demuestra transferencia robótica amplia sin adaptación: el método completo usa ajuste con datos de robots, el éxito por objeto no visto promedia 33.3% en tres contenidos y los resultados cubren tres tareas y manos específicas."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se realizó reproducción independiente y no se confirmó el acceso público al conjunto de datos, código y pesos prometidos.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "Los resultados de tareas de extremo a extremo abarcan tres tareas y cuerpos robóticos específicos; no se estableció transferencia a tareas, manos o sitios adicionales.",
+          "kind": "reproduction_missing",
+          "state": "open"
+        },
+        {
+          "description": "El método completo usa datos humanos y robóticos específicos por tarea y refinamiento en robot; no demuestra que basten las demostraciones humanas.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se generalizan los resultados de transferencia y eficiencia de datos, las demostraciones humanas naturales podrían reducir la recolección de datos específicos de robots para manipulación hábil. La puntuación 6 refleja posible importancia para el entrenamiento de modelos encarnados; la evidencia actual es un artículo sobre tres tareas y no elimina el ajuste robótico.",
+      "limitations": [
+        "Todos los resultados son informados por los autores; en esta activación no se reprodujeron ni se ejecutaron los artefactos.",
+        "La canalización completa requiere coentrenamiento humano-robot por tarea y ajuste en robots reales; las demostraciones humanas por sí solas no bastaron para las tareas de largo horizonte reportadas.",
+        "El éxito cubre tres tareas y configuraciones específicas de brazos y manos. El éxito con objetos no vistos promedia 33.3% en tres categorías; no es transferencia amplia de tareas sin adaptación.",
+        "La medición de GeoFormer excluye decodificación de imágenes y carga del modelo; no se confirmó el acceso público a los datos y modelos.",
+        "El artículo indica que GeoFormer no recupera contenido visual que sale del campo de la cámara y deja pendiente la validación con manos de más grados de libertad."
+      ],
+      "relationships": [],
+      "summary": "Los autores presentan EgoWild2Dex, que alinea observaciones egocéntricas humanas con vistas del robot y entrena una política de manipulación hábil mediante preentrenamiento con datos humanos, coentrenamiento humano-robot específico por tarea y refinamiento en el robot. El corpus EgoWild contiene 538.9 horas, 179,049 episodios y 125,961 descripciones de tareas. En tres tareas bimanuales de largo horizonte, los autores informan 90%–100% de éxito con menos de una hora de demostraciones robóticas por tarea; en tres contenidos de paquete no vistos, el éxito por objeto es 30%–40%. GeoFormer registra 7.43 ms de latencia media de alineación frente a 162.58 ms con proyección e inpainting, sin incluir decodificación de imágenes ni carga del modelo. Son resultados de los autores en pocas tareas y configuraciones; el artículo dice que los datos, modelos y código se publicarán y aún requiere ajuste en robots reales.",
+      "technical": {
+        "claimed_result": "Los autores informan 90%–100% de éxito en tres tareas bimanuales de largo horizonte con menos de una hora de datos de robot por tarea. Tres categorías de objetos no vistos alcanzan 30%–40% de éxito (33.3% promedio). GeoFormer registra 7.43 ms de media y 12.97 ms P95 frente a 162.58 ms y 194.16 ms con proyección más inpainting; costo estimado: 2.06 frente a 45.16 horas-GPU por millón de cuadros.",
+        "compute_or_cost": "El artículo estima 2.06 horas-GPU por millón de cuadros para GeoFormer frente a 45.16 para proyección más inpainting, un ahorro estimado de 95.4% bajo el método de medición descrito. No informa costos monetarios ni costo completo de recolección robótica.",
+        "demonstrated_result": "El artículo especifica un corpus de datos en entornos reales, un método de entrenamiento por etapas y evaluaciones robóticas y de alineación realizadas por sus autores. Las mediciones y tasas de éxito siguen siendo resultados informados por los autores, sin reproducción independiente.",
+        "implementation_status": "Sistema de investigación evaluado en robots físicos bimanuales. Los autores dicen que publicarán datos, modelos y código; esta revisión no confirmó disponibilidad.",
+        "mechanism": "EgoWild2Dex primero entrena con datos egocéntricos humanos de manipulación no guionada; después alinea vistas humanas específicas por tarea con vistas del robot mediante GeoFormer, coentrena con datos alineados de personas, guantes y pocos datos robóticos, y refina usando ejecución y recuperación del robot. Las acciones humanas y robóticas se convierten a un espacio de acciones nativo común.",
+        "regime": "538.9 horas de datos humanos egocéntricos (179,049 episodios); tres tareas bimanuales largas; menos de una hora de demostraciones robóticas por tarea, además de demostraciones humanas y de guantes específicas y refinamiento con robots. La transferencia de objetos se prueba en tres contenidos no vistos. Los tiempos de GeoFormer excluyen decodificación y carga del modelo.",
+        "reproducibility": "El artículo describe los recuentos de datos y protocolos de entrenamiento, tareas y tiempos. Sigue pendiente la reproducción independiente y el acceso a los artefactos prometidos.",
+        "strongest_baseline": "Para las tareas completas, el ajuste directo de π₀, π₀.₅ y GR00T-N1.7 tiene menor éxito bajo el protocolo del artículo. Para alineación de imagen, GeoFormer se compara con proyección MoGe más inpainting LaMa; en Open-Box informa 90% de éxito frente a 80%, con menor latencia. Son comparaciones de los autores, sin réplica independiente."
+      },
+      "title": "EgoWild2Dex informa la transferencia de video humano en entornos reales a manipulación bimanual con pocos datos robóticos",
+      "why_it_matters": "El trabajo evalúa una vía desde grandes cantidades de datos humanos de manipulación cotidiana hacia el comportamiento hábil de robots, con menos demostraciones robóticas específicas. Si se extiende más allá de tres tareas y el corpus se vuelve accesible, podría cambiar los requisitos de datos y recolección para la manipulación bimanual. Los resultados todavía dependen de ajuste robótico, manos específicas y un entrenamiento por etapas; no prueban transferencia robótica amplia sin adaptación."
+    },
     "FCMO-BFDCA63E4D53": {
       "summary": "Qualcomm y Amazon anunciaron una colaboración multigeneracional sobre silicio personalizado para inferencia de IA en AWS y conectividad óptica que se extiende hasta 1.6T. Una presentación de Qualcomm ante la SEC del mismo día da un peso probatorio inusual a la estructura comercial: Amazon recibió un warrant por hasta 25 millones de acciones de Qualcomm a $161.26, cuyo vesting está ligado a acuerdos comerciales, órdenes de compra vinculantes y compras reales de productos de chips de servidor, tecnología, sistemas y servicios de manufactura de Qualcomm, hasta $60 mil millones en pagos; 3.75 millones de acciones quedaron vested al emitirse con base en compromisos iniciales de compra. La cifra de $60 mil millones es un techo de vesting, no un compromiso garantizado de compra.",
       "title": "Amazon vincula silicio personalizado de Qualcomm para inferencia de IA y conectividad óptica con un warrant ligado a compras",
@@ -14879,6 +15044,66 @@
       },
       "title": "Un preprint informa una campaña de agentes autónomos de diez días que mantuvo el estado de la tarea durante 47 reinicios de contexto",
       "why_it_matters": "El trabajo con agentes de larga duración depende de qué estado sobrevive entre sesiones, cómo se verifican las acciones y cuándo se usan modelos más capaces. El artículo ofrece un diseño concreto de harness y una campaña informada de diez días, pero la evidencia se limita a una tarea ejecutada por sus autores; siguen sin resolverse la fiabilidad comparativa, la transferencia y el costo de atención humana."
+    },
+    "FCMO-D7EAA36CAACC": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan que las proyecciones W4A4 de FoldQuantVLA reducen la latencia observación-acción 1.20–1.33× frente a TensorRT de punto flotante en Jetson AGX Orin y 1.25–1.52× en una GPU RTX 4070 Ti SUPER para checkpoints GR00T y π₀.₅."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En tareas con robots físicos y N1.7, los autores informan 92.5% de éxito combinado con W8A8 en las proyecciones de salida de atención y reducción de la red, frente a 80.0% con W4A4 uniforme en 80 ensayos; en Orin, esta configuración añade 1 ms a la ruta W4A4 de 119 ms."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El artículo informa que el almacenamiento de pesos W4A4 para N1.6 es 1,011 MB, frente a 3,802 MB con TensorRT de punto flotante; los motores serializados completos ocupan 2,525 MB frente a 5,325 MB."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "Los resultados no establecen que el rendimiento de baja precisión se generalice a arquitecturas VLA distintas ni que INT8 selectivo mejore el éxito en simulación: el artículo informa pérdidas grandes de W4A4 en algunas arquitecturas y diferencias LIBERO emparejadas que no son concluyentes."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se realizó una reproducción independiente de las mediciones de latencia, memoria, simulación o robot físico del artículo.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "Las pruebas físicas son de 20 ensayos por tarea y configuración; la prueba exploratoria agrupada ignora dependencias por tarea y sesión, y el artículo no demuestra una mejora causal general.",
+          "kind": "reproduction_missing",
+          "state": "open"
+        },
+        {
+          "description": "El beneficio y la latencia dependen del checkpoint; W4A4 causa pérdidas grandes en algunas arquitecturas y el efecto de precisión selectiva no queda resuelto en controles LIBERO emparejados.",
+          "kind": "baseline_unclear",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se generalizan los resultados informados de latencia y tareas físicas con baja precisión, podrían cambiar las decisiones de despliegue y precisión para políticas abiertas de visión-lenguaje-acción en GPU de borde. La puntuación 5 refleja relevancia de ingeniería en robótica especializada; la evidencia proviene de un solo artículo y no demuestra rendimiento en producción ni en todos los checkpoints.",
+      "limitations": [
+        "Todos los resultados son informados por los autores; el equipo de investigación no ejecutó el código enlazado ni reprodujo las mediciones.",
+        "Los resultados W4A4 dependen de la arquitectura: el artículo informa pérdidas LIBERO grandes en configuraciones SmolVLA y Evo-1 y no establece que INT8 selectivo las recupere.",
+        "Las pruebas LIBERO emparejadas no resuelven una mejora de éxito con precisión selectiva; las pruebas físicas fueron de 20 ensayos por tarea y el análisis agrupado no modela dependencia por tarea o sesión.",
+        "La latencia se midió en una sola corrida por checkpoint; las aceleraciones comparan con el motor TensorRT de punto flotante del hardware y lote 1 especificados, no entre distintos equipos o cargas.",
+        "Solo algunas proyecciones GEMM usan INT4/INT8; el codificador visual, otras operaciones y el decodificador de acciones siguen en punto flotante. El artículo señala que H100 ejecuta operandos de cuatro bits mediante aritmética INT8."
+      ],
+      "relationships": [],
+      "summary": "Los autores presentan FoldQuantVLA, que mantiene coherentes las transformaciones de coordenadas de activación entre la calibración, el redondeo de pesos cuantizados y la ejecución en TensorRT. En GR00T N1.5/N1.6/N1.7 y π₀.₅, informan aceleraciones W4A4 de 1.20–1.33× frente a TensorRT de punto flotante en Jetson AGX Orin y de 1.25–1.52× en una computadora de escritorio RTX 4070 Ti SUPER. Una configuración selectiva W8A8 para dos proyecciones del lenguaje añade 1 ms a la ruta Orin de N1.7 e informa 92.5% de éxito combinado frente a 80.0% con W4A4 uniforme en 80 ensayos con robots físicos. Son mediciones de los autores: las pruebas fueron pequeñas, las mejoras no quedaron resueltas en los controles LIBERO y la latencia se midió en una sola corrida.",
+      "technical": {
+        "claimed_result": "Los autores informan aceleraciones observación-acción W4A4 de 1.20–1.33× frente a TensorRT de punto flotante en Jetson AGX Orin y 1.25–1.52× en escritorio para GR00T N1.5/N1.6/N1.7 y π₀.₅. En tareas físicas N1.7, W8A8 selectivo informa 92.5% de éxito combinado frente a 80.0% con W4A4 uniforme en 80 ensayos, con +1 ms en Orin.",
+        "compute_or_cost": "Para N1.6, los autores informan 1,011 MB de pesos y un motor serializado de 2,525 MB con W4A4, frente a 3,802 MB y 5,325 MB con TensorRT de punto flotante. No informan costo monetario, energía ni rendimiento con concurrencia.",
+        "demonstrated_result": "El artículo y el repositorio público documentan directamente el método y las mediciones informadas por los autores. No se hizo verificación independiente ni se ejecutó código; el resultado robótico es una diferencia observada con pocas muestras, no una mejora general demostrada.",
+        "implementation_status": "Los autores ofrecen un repositorio Apache-2.0 con complementos TensorRT, integraciones para cuatro checkpoints, pruebas y archivos de resultados. Se inspeccionó el repositorio, pero no se ejecutó en esta activación.",
+        "mechanism": "FoldQuantVLA asigna una transformación de activación a cada sitio compartido, incorpora la transformación inversa en los pesos consumidores, calibra y redondea en esas coordenadas y luego ejecuta en TensorRT una transformación fusionada por token y GEMM entera. W4A4 cubre proyecciones seleccionadas del tronco lingüístico y el experto de acciones; la atención de salida y la proyección descendente del lenguaje conservan W8A8 en la configuración selectiva.",
+        "regime": "Inferencia con lote 1 en Jetson AGX Orin con TensorRT 10.3 y RTX 4070 Ti SUPER con TensorRT 10.15; cuatro checkpoints GR00T y π₀.₅. Las pruebas físicas usan un ajuste GR00T N1.7 en ALOHA y SO-101, con 20 ensayos por tarea y configuración y ubicaciones de objetos emparejadas. LIBERO usa 800 episodios por configuración en una campaña.",
+        "reproducibility": "El artículo especifica checkpoints, datos de calibración, hardware, software, ensayos y protocolos, y enlaza código y resultados. Sigue pendiente la reproducción independiente; una sola medición de latencia por checkpoint y pocas pruebas físicas limitan la incertidumbre.",
+        "strongest_baseline": "La comparación principal de velocidad usa el motor TensorRT de punto flotante de cada checkpoint. Las comparaciones de circuito cerrado incluyen BF16 PyTorch, TensorRT de punto flotante y configuraciones cuantizadas para las distintas versiones de la familia de políticas abiertas. Pruebas LIBERO con calibración emparejada muestran diferencias de precisión selectiva de 3–10 episodios para N1.5/N1.6/N1.7/π₀.₅ y valores p de 0.17–0.78; no resuelven mejoras de simulación."
+      },
+      "title": "FoldQuantVLA informa inferencia de baja precisión más rápida para políticas visión-lenguaje-acción y resultados robóticos en tareas acotadas",
+      "why_it_matters": "El artículo informa un compromiso de despliegue en el borde que combina menor precisión con latencia medida y resultados físicos en varias versiones abiertas de VLA. Si se confirma en corridas independientes, el método podría reducir latencia y memoria para políticas robóticas en hardware limitado. Los resultados dependen del checkpoint, las muestras físicas son pocas y las comparaciones de simulación no resuelven una mejora."
     },
     "FCMO-D89063EC984F": {
       "claims": [
@@ -19796,6 +20021,48 @@
       "why_it_matters": {
         "locale_sha256": "868a72f38fcd84f0100ca598456fa9c801bfd45d1a8917f36876559f464cc8a3",
         "source_sha256": "d6d63b39fa73eee3fb1185ad69eb271c4e84e4297af0572b7697971c31557348"
+      }
+    },
+    "FCMO-2B00C06542B1": {
+      "claims": {
+        "locale_sha256": "b3e5df1f6f98afe9d9b6727eb630feb2ea9ffc272832c0f3296f779700edf955",
+        "source_sha256": "b5c10cda69e28416fa7ab59a07e60645d74be751e811afd602c8323a66124ab6"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "c807dd894a49f6b0fe2789d78ae433d195d67e74dbf7cb7829ecf1b9b0c79545",
+        "source_sha256": "d234b2719a7af9ce4b58ac84f1326bca045096f13648d242d11329501d0d4537"
+      },
+      "importance_rationale": {
+        "locale_sha256": "2083a730942066784a15297c0326b137cf5909b7ac2e90703043dce1f68695c7",
+        "source_sha256": "e89c3044b2489e1f34de672a8004d3352847e48b1a955203fa36fd712fe536a8"
+      },
+      "limitations": {
+        "locale_sha256": "9bb5035e94e2cb130fb98989bd0499449b93b71fd5238677fa192324497ad3ff",
+        "source_sha256": "4332ca41d22b1662e59e3b862eede03fb101cc3925224df8f296660835a834ae"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "632c9848b6ecf23e456ccf0b81747061f473db10053c5940abae977b4f9e5f2b",
+        "source_sha256": "e5804c7552ee9964bfc7a6fa96a72d2552fe54b98e021e5fdaeb9153b56a0a0e"
+      },
+      "technical": {
+        "locale_sha256": "32c7445ed4decffbf87bd514165b901289d12f36615c0eda162fa7085b7b0b85",
+        "source_sha256": "40c067379ab6e3921f56d329e1215cd3b36a84ec735c4f262a7113f645ffd0a5"
+      },
+      "title": {
+        "locale_sha256": "dcdcf461c2cccb0aad582a3f66c0ca47ce6c35cb852e5da002af154ffa24c6be",
+        "source_sha256": "d59a042eb8890891d8625c411a56a1cc4fd17e913a97f58fb393b5c09c06b09d"
+      },
+      "why_it_matters": {
+        "locale_sha256": "c3920c7d508c16475f28e4417297a1493ceaf23a11f2515061ac9f29f53ccaaa",
+        "source_sha256": "cf58c4fb077e695b167eee01b53bd6d2c2e0bab5077bb2ec4f779dff8a1b11ae"
       }
     },
     "FCMO-2B53E683F72E": {
@@ -25482,6 +25749,48 @@
         "source_sha256": "b9b19d8c96c6c476b2c3f7814b5863dcd5d51557095a32346b6bfaf0d52cb8c2"
       }
     },
+    "FCMO-9CD55900A307": {
+      "claims": {
+        "locale_sha256": "178dfd76e508351161553eb56fdd1848e1142f4a2d064c9a6749d8f8166e857b",
+        "source_sha256": "50aaea4b2e749d19f195dc0f67c5b95fc79e10d24075a1fea397f665440dd448"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "71b7b876cfdeb0c5e48daf45fcb3325c60c2e01bec605a2e173783dccfcb35de",
+        "source_sha256": "45bf90b7dd501d7b228b119dcae112d6b115cab6631b4cab65363de79345eef5"
+      },
+      "importance_rationale": {
+        "locale_sha256": "b16107a09b4443a6496121f447d907cb1dc71ad3b6ffb79e696272a37fb855da",
+        "source_sha256": "7a9dd65990a9487f156b53478c55b08ad1fc237596b6280542d236ad6ee97baa"
+      },
+      "limitations": {
+        "locale_sha256": "53862c042892140af2b59089511b6c7a9a578a246861be4dfcdc264fe495b0ec",
+        "source_sha256": "de64f4dc6855252250ba82f305e7fc37fbaba2584c6c60cf619b55c31a90e118"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "e075702987bd340a9117c7b1c721a0719786b5cde50aaad8cddb9e18dc9fc028",
+        "source_sha256": "c2794bfbc24b05f114b4d715bf452e0ef6eaf914a918825372ad478105a54623"
+      },
+      "technical": {
+        "locale_sha256": "2f2fef36dda0724d6551e3d7af4efb501f7df96f827858ee85e3f8440dc2bc8c",
+        "source_sha256": "9e2d67c8c8bedad2760cc0da97b8b5eb1f1e0e10d0ed02323d3458380f3e5def"
+      },
+      "title": {
+        "locale_sha256": "c2acaa4a7c7de806ee92b846a87ed1e18ac0b09747ec3b045e42ca7e3f057a8b",
+        "source_sha256": "26d27786393ddca5c98d4c4dc19c021cdf05c8604467d546760ae2ec0c0db395"
+      },
+      "why_it_matters": {
+        "locale_sha256": "b09c8957d3c4232e08b3b6fabf58940c432d870b22783a3ef300475f05b6f003",
+        "source_sha256": "6302e8fd9931f2036c6b7d1d57589d72f415cdff95286f21dd1f719a715cd10e"
+      }
+    },
     "FCMO-9E06CC5FA8A5": {
       "claims": {
         "locale_sha256": "afae5fa0943245f4d88c4f894c4b8ba66a4a4414a80a404abe80f0b069ce2119",
@@ -27176,6 +27485,48 @@
         "source_sha256": "2c48d0fddccaa0b13c883b651902f704690f744540f6850d6fcb6b9ad79f7842"
       }
     },
+    "FCMO-BF6ACF1C950B": {
+      "claims": {
+        "locale_sha256": "a8bb45cb1a1f1bab03a0eb86aeb3ffe1508777ba12eff5faf8c330f32adae455",
+        "source_sha256": "e4f28753c2aaf473b878f591677d85ab23aae2415d57169958853581338be7e7"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "586294767d7652a74ed9275dee947cef6d4715255daff2e900c1c9751beb4716",
+        "source_sha256": "32e920553eec14dac87b3e25fc4b936a27a857f4950c05f7af2484ded351e699"
+      },
+      "importance_rationale": {
+        "locale_sha256": "915243ef165fe57b2f8873fd5fd5a723eb6e54231c336291345d168cc994b725",
+        "source_sha256": "d002e0f346a2ca46c0ecd3b7e200490163e561be56954925f0d4cede8d0e5aac"
+      },
+      "limitations": {
+        "locale_sha256": "50656a1d6b6b1780091a704938b730ce2899df883495330543e0f9d616f5bb54",
+        "source_sha256": "149cac1c6994b33229b4b490a5207933ccc056375570dc39360254edcf27af91"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "a06434457bd2c18b2c57282ee4cc8755ace107db913f6ee6d6290385eed65d7c",
+        "source_sha256": "9a1d0926c815b769c823f8804d1c3dab31a764eb13932b49a701501591ed1a62"
+      },
+      "technical": {
+        "locale_sha256": "6ee8ab1b2eee30d6d57ae038181806bca9894df25fae3f23dfdbf7613a3fc397",
+        "source_sha256": "158b9b82cdba384456e99a29501b028c829556f2acb631f9161bd836a1683b51"
+      },
+      "title": {
+        "locale_sha256": "7e171b8152823e4d920b9a4851393ce0be4b21ff3e96c30bc933df3a317d5dcc",
+        "source_sha256": "1409f2a01bc30cf0ab89fe049b36bd034f2d25a730f28d0e8598181fb60e9ac2"
+      },
+      "why_it_matters": {
+        "locale_sha256": "a8b82c596a32a94a1c267d19613a3d3a2af4aff9b06e46d12810b9e59d83d311",
+        "source_sha256": "4d9a48107a987fab4f9c5375970aab61b5e86935c33be7f67724a4ad1ed4c0c0"
+      }
+    },
     "FCMO-BFDCA63E4D53": {
       "summary": {
         "locale_sha256": "c758c0c5fe8457375defc21fa0ce3cf9278d29652561357e1888398719a5c773",
@@ -28322,6 +28673,48 @@
       "why_it_matters": {
         "locale_sha256": "8af70627a4aac69d8577552dff3e47324d7e72b582706cc79d167e91fc9df8de",
         "source_sha256": "b83dbf10bc736ac50800f485a126664eb751857f1b9b38dc276746a1461433c2"
+      }
+    },
+    "FCMO-D7EAA36CAACC": {
+      "claims": {
+        "locale_sha256": "25372751c474aeae22468f99a43908ca030b9b004f724c43efbb4d7a665a1b4c",
+        "source_sha256": "daa4b3a8c4d9538918bcff7296402f87e6ab594f7ee5c82b0c2e72ef8b9a1934"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "018f80c81b070173ca773246c134bbf04ff6268c4b13786439ab9848f957c7ab",
+        "source_sha256": "a4f62c60fc421145c74b3afd1d7c5276c704880c71059cec20bad0d713fe5fdc"
+      },
+      "importance_rationale": {
+        "locale_sha256": "4f60d48575e7f2391912228f5f4c435d7cd84c2bf598f2181db8c098e00fa154",
+        "source_sha256": "0ae13368bab497b441e7ca22b037e33148f02d3925693477eb97e1230c148cc6"
+      },
+      "limitations": {
+        "locale_sha256": "6da0d1b97b83e13ccfe8a9eb42a4cd85cc048c4e788b4ee38bd8296eb240a425",
+        "source_sha256": "5cdedfd8a4f69e82f031192670639ebb577fa8010c279a828c67c98fd0d88248"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "2126a1c82d8b1efc5534f3aa758128084c1bb625002fee5774c3c2d8f5d6bd7f",
+        "source_sha256": "e743e4eb66995c8ea22350099ea50f87bfac3bf581536d1cb64a14368ae29abc"
+      },
+      "technical": {
+        "locale_sha256": "72444e44f52a737c0f0e61afb581b73511b99679666de2295fd3c6aac55c7664",
+        "source_sha256": "3d4725f04398cf0c0e700a38bd90f2f7d6f981b393ef572d962dea7f0e6d0a41"
+      },
+      "title": {
+        "locale_sha256": "a1171343a8e9d719cad6987990a30bc4bcba0d971fc2a31c5f20ebc8c2463a7b",
+        "source_sha256": "d8d76d97e008400cc1481f753ed6a82c8a0e5edc44990372f4c01a2ccf642e71"
+      },
+      "why_it_matters": {
+        "locale_sha256": "1c64c2bb1b03b629877d7b2baf0564ed60af6f20bcc6b4ab0c0b8f742d87a3b3",
+        "source_sha256": "1cb4c259377b3a57c9c1386c6d291d753471fdcc9e231fd6c1d2da3c05522d0a"
       }
     },
     "FCMO-D89063EC984F": {

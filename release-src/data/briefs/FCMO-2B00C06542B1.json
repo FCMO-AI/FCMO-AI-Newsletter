@@ -1,0 +1,122 @@
+{
+  "record": {
+    "id": "FCMO-2B00C06542B1",
+    "title": "BarrierFormer reports predictive safety control with low simulated inference latency",
+    "desk": "Inference Systems",
+    "event_at": "2026-09-20T00:00:00Z",
+    "evidence": "A",
+    "confidence": "credible_unconfirmed",
+    "importance": 5,
+    "tier": "Notable",
+    "summary": "BarrierFormer trains a causal transformer to predict short state rollouts and enforce control-barrier constraints through a training-time safety teacher, removing online optimization at inference. The authors compare it with four reimplemented baselines across a double integrator, Dubins car and Crazyflie simulator, using 32 environments and three seeds. Their learned-dynamics variant reports 95.83%–96.88% safety on two 2D systems and 96.88% on the 3D system, with per-step batched inference around 4.79–5.12 microseconds on one workstation. This is a simulation result: training still uses a black-box simulator, performance degrades as complexity rises, and the authors warn of a potentially large simulation-to-real gap.",
+    "topics": [
+      "robot safety",
+      "control barrier functions",
+      "predictive control",
+      "robotics inference",
+      "simulation"
+    ],
+    "organizations": [],
+    "human_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-2B00C06542B1.html",
+    "machine_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/data/briefs/FCMO-2B00C06542B1.json",
+    "citation": {
+      "id": "FCMO-2B00C06542B1",
+      "source": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-2B00C06542B1.html"
+    }
+  },
+  "brief": {
+    "claims": [
+      {
+        "label": "CLAIMED",
+        "text": "In three simulated systems evaluated over 32 environments and three seeds, the authors report learned-dynamics BarrierFormer safety rates of 95.83% for Double Integrator, 95.83% for Dubins Car and 96.88% for Crazyflie, with success rates of 88.54%, 92.71% and 89.58%, respectively."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "The authors report per-step inference times of 4.79–5.12 microseconds for the learned-dynamics variant on one RTX 4000 Ada workstation, using batched evaluation across 32 environments; model-predictive control takes 2,773–9,280 microseconds in the same reported setup."
+      },
+      {
+        "label": "NOT_ESTABLISHED",
+        "text": "The results do not establish safety on physical robots: training depends on a black-box simulator, the paper reports performance decreases with problem complexity, and identifies simulation-to-real transfer as an open risk."
+      }
+    ],
+    "confidence": "credible_unconfirmed",
+    "contradictory_evidence": [],
+    "desks": [
+      "inference_systems",
+      "multimodality_world_models",
+      "evaluation_science"
+    ],
+    "development_type": "paper",
+    "editions": [
+      "2026-10-13"
+    ],
+    "event_at": "2026-09-20T00:00:00Z",
+    "evidence_class": "A",
+    "evidence_gaps": [
+      {
+        "description": "No independent reproduction of the simulation results or latency measurements was performed.",
+        "kind": "missing_independent",
+        "state": "open"
+      },
+      {
+        "description": "The method has no reported physical-robot evaluation and may have a substantial simulation-to-real gap.",
+        "kind": "other",
+        "state": "open"
+      },
+      {
+        "description": "Performance declines as the simulated problem moves from linear to nonlinear and 2D to 3D; robustness to noise is bounded in the appendix.",
+        "kind": "baseline_unclear",
+        "state": "open"
+      }
+    ],
+    "id": "FCMO-2B00C06542B1",
+    "importance_effective_score": 5,
+    "importance_rationale": "If predictive barrier constraints can be learned into controllers without sacrificing safe goal completion, this may reduce runtime computation for safety-critical robot control. Score 5 reflects a meaningful control-method contribution in simulation; the paper does not establish physical safety or sim-to-real transfer.",
+    "importance_scale_version": 2,
+    "importance_score": 5,
+    "importance_tier": "Notable",
+    "last_verified_at": "2026-10-13T10:13:45Z",
+    "limitations": [
+      "All safety and latency results are paper-reported simulation outcomes; the research desk did not reproduce them.",
+      "The learned-dynamics policy is trained using a black-box simulator; the paper does not demonstrate physical-robot safety or sim-to-real transfer.",
+      "Only three simulated systems are evaluated; authors report performance loss as complexity rises from linear to nonlinear and from 2D to 3D.",
+      "Latency is measured on one RTX 4000 Ada workstation using batches of 32 environments and averaged across a 256-step rollout; it is not embedded-robot single-environment latency."
+    ],
+    "organizations": [],
+    "primary_desk": "inference_systems",
+    "recorded_at": "2026-10-13T10:13:45Z",
+    "regions": [
+      "global"
+    ],
+    "relationships": [],
+    "source_languages": [
+      "en"
+    ],
+    "source_urls": [
+      "https://arxiv.org/abs/2609.23896"
+    ],
+    "status": "developing",
+    "summary": "BarrierFormer trains a causal transformer to predict short state rollouts and enforce control-barrier constraints through a training-time safety teacher, removing online optimization at inference. The authors compare it with four reimplemented baselines across a double integrator, Dubins car and Crazyflie simulator, using 32 environments and three seeds. Their learned-dynamics variant reports 95.83%–96.88% safety on two 2D systems and 96.88% on the 3D system, with per-step batched inference around 4.79–5.12 microseconds on one workstation. This is a simulation result: training still uses a black-box simulator, performance degrades as complexity rises, and the authors warn of a potentially large simulation-to-real gap.",
+    "technical": {
+      "claimed_result": "Authors report 95.83%–96.88% safety and 88.54%–92.71% success for the learned-dynamics variant across Double Integrator, Dubins Car and Crazyflie simulations. Per-step batched inference is reported at 4.79–5.12 microseconds, versus 2,773–9,280 microseconds for MPC in the same workstation setup.",
+      "compute_or_cost": "No energy or monetary cost is reported. The paper reports simulated inference latency; the setup is batched on a workstation and does not establish deployment latency on robot hardware.",
+      "demonstrated_result": "The paper specifies the simulated environments, baseline implementations and evaluation protocol and reports safety, goal-reaching, success and latency measures. No result was independently verified in this activation.",
+      "implementation_status": "A research framework evaluated in three simulators; no physical deployment was inspected or reported.",
+      "mechanism": "A causal transformer encodes observation-action history, predicts a rollout through a learned dynamics head and outputs residual control corrections. A barrier critic evaluates control-barrier violations along the predicted horizon, while an SQP safety teacher provides training targets. The deployed policy emits actions directly without online optimization.",
+      "regime": "JAX simulation of one linear 2D Double Integrator, one nonlinear 2D Dubins car and one nonlinear 3D Crazyflie model. Evaluation uses 32 environments and three random seeds. Inference timing uses one RTX 4000 Ada 20 GB workstation, 32 parallel environments and 256-step rollout averages.",
+      "reproducibility": "Paper reports environment and seed counts, baseline adaptations and a latency appendix. Independent code execution and reproduction remain open.",
+      "strongest_baseline": "Four baselines are reimplemented under common dynamics, observations and obstacle settings: CBF-RL, CoBL-Diffusion, ConBaT and model-predictive control. BarrierFormer's learned-dynamics variant provides the strongest model-free balance of safety and goal-reaching in the reported table; the simulator-trained variant is compared against MPC."
+    },
+    "title": "BarrierFormer reports predictive safety control with low simulated inference latency",
+    "topics": [
+      "robot safety",
+      "control barrier functions",
+      "predictive control",
+      "robotics inference",
+      "simulation"
+    ],
+    "why_it_matters": "The paper tests whether multi-step safety constraints can be learned into a policy to avoid online optimization costs. If the simulation results transfer, predictive safety could be cheaper at runtime for robots with partial observations. Current evidence is limited to three simulated dynamics and one workstation; it does not establish physical-robot safety or real-time behavior on embedded hardware."
+  },
+  "related": [],
+  "schema": "fcmo-public-brief-v1"
+}

@@ -1,6 +1,6 @@
 {
   "canonical_locale": "en",
-  "canonical_source_sha256": "a31890686544b8b21f2f7b5ee67216b52d72455407de410a40f65ec4e8241f88",
+  "canonical_source_sha256": "7a03056522b9d86d04955fca647c11b1f3f2a8e3d2dbfaeb369670838df3683d",
   "generated_from": "ARB airlock; editorial wording authored upstream",
   "locale": "zh-Hans",
   "records": {
@@ -3782,6 +3782,61 @@
       },
       "title": "欧盟委员会通过数据中心PUE/WUE评级方案文本，并另行就最低性能标准征求意见",
       "why_it_matters": "拟议标签系统可能使数据中心报告的能耗和用水情况更便于比较，从而影响采购和基础设施决策；另一项标准制定程序未来可能改变设施限制。当前证据是委员会的政策设计和咨询，并不证明标签已部署、最低阈值已具约束力或节能已实现。"
+    },
+    "FCMO-2B00C06542B1": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "在三个模拟系统、32个环境和三种随机种子上，作者报告学习动力学版本在Double Integrator上的安全率为95.83%，在Dubins Car上为95.83%，在Crazyflie上为96.88%；成功率分别为88.54%、92.71%和89.58%。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "作者报告称，在一台RTX 4000 Ada工作站上，学习动力学版本每步推理需4.79–5.12微秒，批量评估32个环境；同一设置下，模型预测控制需要2,773–9,280微秒。"
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "这些结果不能证明实体机器人安全：训练依赖黑盒模拟器，论文报告复杂度增加时性能下降，并将仿真到现实迁移列为未解决风险。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "本次未独立复现模拟结果或延迟测量。",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "论文没有实体机器人评估，且可能存在较大的仿真到现实差距。",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "从线性到非线性、从2D到3D时性能下降；附录中的噪声鲁棒性结果范围有限。",
+          "kind": "baseline_unclear",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "如果能够将预测式障碍约束学习进控制器，同时保持安全到达目标的能力，就可能降低安全关键机器人控制的运行时计算量。5分反映其在模拟环境下对控制方法的实质贡献；论文尚未证明实体安全或仿真到现实迁移。",
+      "limitations": [
+        "所有安全和延迟结果均为作者报告的模拟结果；研究团队没有复现。",
+        "学习动力学版本依赖黑盒模拟器训练；论文没有证明实体机器人安全或仿真到现实迁移。",
+        "仅评估三种模拟系统；作者报告问题复杂度从线性到非线性、从2D到3D上升时性能下降。",
+        "延迟在一台RTX 4000 Ada工作站上测量，批量包括32个环境，并对256步轨迹取平均；这不是嵌入式机器人单环境延迟。"
+      ],
+      "relationships": [],
+      "summary": "BarrierFormer通过训练阶段的安全教师，使因果Transformer学习预测短期状态轨迹并满足控制障碍函数约束，从而在推理时省去在线优化。作者在双积分器、Dubins汽车和Crazyflie模拟器上与四种重新实现的基线比较，使用32个环境和三种随机种子。学习动力学版本在两个2D系统上的安全率为96.88%–95.83%，在3D系统上为96.88%；单工作站上的每步批量推理约为4.79–5.12微秒。这是模拟结果：训练仍依赖黑盒模拟器，问题复杂度上升时表现下降，作者也指出可能存在较大的仿真到现实差距。",
+      "technical": {
+        "claimed_result": "作者报告学习动力学版本在Double Integrator、Dubins Car和Crazyflie模拟器中的安全率为95.83%–96.88%，成功率为88.54%–92.71%。该版本每步推理为4.79–5.12微秒，模型预测控制在同一工作站设置下为2,773–9,280微秒。",
+        "compute_or_cost": "论文没有报告能耗或货币成本，只报告模拟推理延迟。工作站批量测试不能证明机器人硬件上的部署延迟。",
+        "demonstrated_result": "论文说明了模拟环境、基线实现和评估协议，并报告安全、到达目标、成功率和延迟指标。本次激活没有独立验证这些结果。",
+        "implementation_status": "该研究框架在三个模拟器中评估；没有检查或报告实体部署。",
+        "mechanism": "因果Transformer编码观测-动作历史，通过学习动力学头预测短期轨迹，并由动作头输出控制残差修正。障碍函数评论器沿预测时域评估约束违反，SQP安全教师生成训练目标。部署策略直接输出动作，无需在线优化。",
+        "regime": "JAX模拟一个线性2D双积分器、一个非线性2D Dubins汽车和一个非线性3D Crazyflie模型。每种环境使用32个环境和三种随机种子。延迟测量在一台20 GB RTX 4000 Ada工作站上进行，采用32个并行环境并对256步轨迹取平均。",
+        "reproducibility": "论文报告了环境、随机种子、基线调整方式和延迟附录。独立运行代码和复现仍未完成。",
+        "strongest_baseline": "四种基线在相同动力学、观测和障碍配置下重新实现：CBF-RL、CoBL-Diffusion、ConBaT和模型预测控制。论文表格中，学习动力学版BarrierFormer在无模型方法中实现了安全与到达目标的最佳平衡；模拟器训练版本与MPC比较。"
+      },
+      "title": "BarrierFormer报告：在模拟环境中实现低延迟的预测式安全控制",
+      "why_it_matters": "该论文测试了能否将多步安全约束学习进策略，从而省去在线优化开销。若模拟结果能够迁移，部分可观测机器人可能以较低运行成本实现预测式安全控制。现有证据仅涉及三种模拟动力学和一台工作站，不能证明实体机器人安全或嵌入式硬件上的实际实时表现。"
     },
     "FCMO-2B53E683F72E": {
       "claims": [
@@ -11209,6 +11264,56 @@
       "title": "Reuters 报道 AI 相关借款人的信用利差走阔，投资者选择更加谨慎",
       "why_it_matters": "债务市场可能影响资本密集型 AI 基础设施的成本和建设节奏。利差走阔和集中度限制值得持续观察，但这篇报道没有证明大型云计算企业无法为项目融资、已削减计划资本支出或信用质量恶化。"
     },
+    "FCMO-9CD55900A307": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "在22个设计、九种模型与设计组合均重复三次的测试中，作者报告称，WaveletECO-Policy INT8和BF16的ECO得分分别为79.65和79.63，GPT-6 Astra为77.44；各组使用相同执行协议，面积增长上限为1%。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "作者估算INT8每项任务的推理成本为$0.00226，GPT-6 Astra为$0.33188，约为1/147；估算依据是实测本地吞吐量及公开API与GPU租赁价格，并排除了EDA和空闲成本。"
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "论文尚未证明该成本比或得分优势可迁移到其他EDA后端、更大的设计集或不同工艺节点；用于成本估算的部署没有重新评估修复质量。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "修复质量和成本主张尚未独立复现；成本模型只覆盖推理，并依据2026年九月的参考价格和租赁估值。",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "基准仅包括一个环境、一个EDA后端的22个设计；尚未测量跨工艺节点、设计类型或工具链迁移。",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "如果质量和推理成本结果能够泛化，专用本地模型可能改变芯片物理修复流程的成本与供应商依赖权衡。6分反映其在高成本工程领域的潜在重要性，而非结果的真实性或对已测设计之外的迁移能力。",
+      "limitations": [
+        "所有实验结果和成本均由作者报告；研究团队没有复现基准或成本模型。",
+        "基准包含22个设计，其中九个留出；尚未证明结果能够迁移至规模更大、类型更多样的设计和工艺节点。",
+        "共享执行协议使用一个EDA后端、每轮一个候选修复动作以及1%的面积增长上限。",
+        "1/147的比率是推理成本估算。它使用固定API价格及GPU租赁/吞吐量估算，排除EDA和空闲成本；成本估算所用部署并未重新评估修复质量。"
+      ],
+      "relationships": [],
+      "summary": "作者将闭环工程变更单（ECO）流程与一个使用修复示范和动作偏好训练的Qwen3.5-9B模型结合起来。在22个芯片设计、共594次运行中，作者报告称，在共享执行协议下，INT8和BF16的平均修复得分分别为79.65和79.63，GPT-6 Astra为77.44。成本模型估算INT8推理每项任务为$0.00226，GPT-6 Astra为$0.33188，约为其1/147。该计算不包括EDA和空闲成本。这些是单一基准上的作者报告结果；其中有九个设计作为留出集，但更广泛的泛化能力和部署经济性仍未核实。",
+      "technical": {
+        "claimed_result": "在22个设计的594次运行中，作者报告WaveletECO-Policy INT8得分为79.65，BF16为79.63，GPT-6 Astra为77.44，均采用共享执行流程。模型估算INT8推理每项任务为$0.00226，GPT-6 Astra为$0.33188，按该估算每美元得分约为146.8×。",
+        "compute_or_cost": "作者估算INT8每项任务为$0.00226，GPT-6 Astra为$0.33188，约为1/147；该估算排除EDA和空闲成本，并依赖所述吞吐量与GPU/API价格。没有报告生产总成本。",
+        "demonstrated_result": "检查过的论文记录了流程、基准协议、评分定义、作者报告的测量和成本模型。本次激活未独立复现性能或成本。",
+        "implementation_status": "论文描述了经评测的闭环平台和本地9B模型；本次激活未核实独立部署或外部EDA集成。",
+        "mechanism": "共享的物理ECO流程读取时序、电气和单元库状态，选择修复、执行并测量，然后保留已接受的改动或回滚被拒绝的改动。本地Qwen3.5-9B模型使用监督微调和CPO-SimPO偏好数据训练，偏好标签比较同一状态下的动作；量化版本采用INT8或INT4权重和BF16激活。",
+        "regime": "22个芯片物理设计，其中13个用于适配/模型选择，九个留出；每次运行最多五轮修复；每个模型-设计组合重复三次；每轮一个候选动作，面积增长上限1%。本地推理成本使用单GPU估算（BF16为RTX 6000D，INT8/INT4为RTX 4090）；API参考价格记录于2026年九月19日。",
+        "reproducibility": "论文给出评分、共享执行规则、22个设计的划分和三次重复。独立复现以及迁移到新工具链和设计集仍待完成。",
+        "strongest_baseline": "GPT-6 Astra在相同ECO执行接口和设计集上得分77.44。作者还比较本地Qwen3.5-9B直接/思考版本、WaveletECO SFT、GPT-5.6 Sol和DeepSeek V4。质量得分与成本估算并非同一部署上的匹配比较，因为成本部署没有重新评估修复质量。"
+      },
+      "title": "WaveletECO报告：专用本地模型以更低的估算推理成本达到前沿API的芯片修复评分",
+      "why_it_matters": "若质量和成本估算能够推广到更多设计和生产流程，专用本地模型可能降低多轮芯片物理修复的成本，并减少对付费前沿API的依赖。所报告的成本比只涉及推理，依据估算的GPU吞吐量和租赁价格；它不能证明端到端EDA经济性，也不能证明相较前沿模型具有普遍优势。"
+    },
     "FCMO-9E06CC5FA8A5": {
       "claims": [
         {
@@ -13452,6 +13557,66 @@
       "title": "Apple介绍五种基础模型组成的系列及设备端NAND驻留权重与按提示路由",
       "why_it_matters": "如果所述设计如其描述般运行，按提示从闪存加载所选专家，可能改变消费设备运行更大型稀疏模型时的内存权衡。该公告还显示一条连接Apple、Google Cloud与NVIDIA的私有云部署路径。没有独立证据能确认其时延、能耗、质量、实际隐私属性或支持设备范围。"
     },
+    "FCMO-BF6ACF1C950B": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "作者报告称，在人类数据预训练、任务特定的人机协同训练和机器人域精调之后，三项长时程双臂任务的成功率为90%–100%，每项任务使用不到一小时机器人示范。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "论文报告EgoWild语料包含538.9小时和179,049个片段；作者称数据、模型和代码将发布，但本次审阅没有确认其已公开可用。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "对于GeoFormer，作者报告平均对齐延迟为7.43 ms、P95为12.97 ms；投影加图像修复基线为162.58 ms和194.16 ms。计时不包括图像解码和模型加载。估算每百万帧分别需要2.06和45.16 GPU小时。"
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "论文尚未证明广泛的零样本机器人迁移：完整流程使用机器人数据进行精调，三个未见包装内容的物体级成功率平均为33.3%，结果仅覆盖三项任务和特定机械手。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "本次没有独立复现，也未确认论文承诺发布的数据、代码和模型权重是否可公开访问。",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "端到端任务结果仅覆盖三项任务和特定机器人形态；尚未证明可迁移到更多任务、机械手或采集地点。",
+          "kind": "reproduction_missing",
+          "state": "open"
+        },
+        {
+          "description": "完整方法使用按任务收集的人类与机器人数据并进行机器人域精调；尚未证明仅靠人类示范即可达到这些结果。",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "如果迁移和数据效率结果能够泛化，自然采集的人类示范可能减少灵巧操作的机器人专属数据采集。6分反映其对具身模型训练的潜在重要性；现有证据是单篇论文的三项任务结果，且方法仍需要机器人精调。",
+      "limitations": [
+        "所有结果均由作者报告；本次激活没有复现结果或运行相关工件。",
+        "完整流程需要按任务开展人机协同训练和实体机器人精调；仅靠人类示范仍不足以完成论文报告的长时程任务。",
+        "成功率结果涵盖三项任务和特定双臂/机械手配置。三个未见物体类别的平均成功率为33.3%，不代表广泛的零样本任务迁移。",
+        "GeoFormer计时不包括图像解码和模型加载；本次没有确认数据集和模型已公开可用。",
+        "论文指出，物体移出相机视野后GeoFormer无法重建缺失内容；更高自由度机械手的验证仍待完成。"
+      ],
+      "relationships": [],
+      "summary": "作者提出EgoWild2Dex，通过将人类第一视角观测与机器人视图对齐，并采用人类数据预训练、按任务开展的人机协同训练以及机器人域精调，训练灵巧操作策略。EgoWild语料包含538.9小时、179,049个片段和125,961条任务描述。在三项长时程双臂任务中，作者报告称，每项任务使用不到一小时机器人示范时，成功率为90%–100%；在三种未见过的包装内容上，物体级成功率为30%–40%。GeoFormer的图像对齐平均延迟为7.43 ms，而投影加图像修复基线为162.58 ms；两者均未计入图像解码和模型加载。这些是少量任务与配置上的作者报告结果；论文称数据、模型和代码将发布，且方法仍需要实体机器人精调。",
+      "technical": {
+        "claimed_result": "作者报告称，三项长时程双臂任务成功率为90%–100%，每项任务使用不到一小时机器人数据。三个未见物体类别的成功率为30%–40%（平均33.3%）。GeoFormer平均延迟7.43 ms、P95为12.97 ms，投影加图像修复为162.58 ms和194.16 ms；估算每百万帧分别需要2.06和45.16 GPU小时。",
+        "compute_or_cost": "论文估算GeoFormer每百万帧需2.06 GPU小时，投影加图像修复需45.16 GPU小时；按所述计时方法估算节省95.4%。没有报告货币成本或完整机器人数据采集成本。",
+        "demonstrated_result": "论文直接描述了真实环境采集语料、分阶段训练方法以及作者开展的实体机器人和视觉对齐评估。测量和成功率仍是作者报告结果，本次未独立复现。",
+        "implementation_status": "该研究系统在实体双臂机器人上进行了评估。作者称数据、模型和代码将发布；本次审阅未确认其可用性。",
+        "mechanism": "EgoWild2Dex先用非脚本化的人类第一视角操作数据进行训练，再用GeoFormer对齐任务特定的人类视图和机器人视图，结合对齐后的人类、手套和少量机器人示范共同训练，最后使用机器人执行与恢复数据进行精调。所有来源的动作都会转换到共同的机器人原生动作空间。",
+        "regime": "538.9小时人类第一视角数据（179,049个片段）；三项长时程双臂任务；每项任务不到一小时机器人示范，另加任务特定的人类/手套示范和机器人域精调。物体迁移评估覆盖三个未见包装内容。GeoFormer计时不包括图像解码和模型加载。",
+        "reproducibility": "论文描述了数据规模、训练阶段、任务和计时协议。独立复现以及访问承诺发布的工件仍待完成。",
+        "strongest_baseline": "完整策略的任务结果与π₀、π₀.₅和GR00T-N1.7的直接微调结果比较，后者在论文协议下成功率较低。图像对齐方面，GeoFormer与MoGe投影加LaMa图像修复比较；Open-Box成功率为90%对80%，且报告延迟更低。这些是作者开展的比较，未独立复现。"
+      },
+      "title": "EgoWild2Dex报告：利用少量机器人数据，将真实环境中的人类视频迁移至双臂操作",
+      "why_it_matters": "该工作评估了一条路径：利用大规模日常人类操作数据，配合较少的任务特定机器人示范，训练灵巧机器人行为。若该结果能扩展到三项任务之外，且语料可供使用，可能改变双臂操作所需的数据和采集方式。目前方法仍依赖机器人精调、特定机械手和分阶段训练，不能证明广泛的零样本机器人迁移。"
+    },
     "FCMO-BFDCA63E4D53": {
       "summary": "Qualcomm 与 Amazon 宣布多代定制芯片合作，用于 AWS AI 推理和最高 1.6T 的光互连。同日 Qualcomm 的 SEC 文件为商业结构提供了异常强的证据：Amazon 获得最多 25 million 股 Qualcomm 股票的 warrant，行权价为 $161.26；归属与商业安排、有约束力的采购订单以及对 Qualcomm 服务器芯片产品、技术、系统和制造服务的实际采购挂钩，支付额最高 $60 billion；基于初始采购承诺，发行时已有 3.75 million 股归属。$60 billion 是归属上限，而不是保证采购承诺。",
       "title": "Amazon 将 Qualcomm 定制 AI 推理芯片和光互连合作与购买挂钩的 warrant 绑定",
@@ -14879,6 +15044,66 @@
       },
       "title": "预印本报告：一项持续十天的自主智能体任务在47次上下文重置后仍保持进展",
       "why_it_matters": "长周期智能体工作的成败取决于会话之间保留哪些状态、如何检查行动，以及何时调用能力更强的模型。论文提供了具体的框架设计，并报告一项持续十天的实验，但证据仅来自作者在单项任务中的运行；其相对可靠性、迁移能力及人工关注成本仍未解决。"
+    },
+    "FCMO-D7EAA36CAACC": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "作者报告称，对GR00T和π₀.₅检查点，FoldQuantVLA的W4A4投影在Jetson AGX Orin上的观测到动作延迟比浮点TensorRT快1.20–1.33×，在RTX 4070 Ti SUPER桌面显卡上快1.25–1.52×。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "在N1.7实体机器人任务中，作者报告称，将注意力输出和前馈降维投影保留为W8A8后，80次试验的汇总成功率为92.5%，均匀W4A4为80.0%；在Orin上，该选择性配置使119 ms的W4A4路径增加1 ms。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "论文报告称，N1.6的W4A4权重存储为1,011 MB，浮点TensorRT为3,802 MB；完整序列化引擎分别为2,525 MB和5,325 MB。"
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "这些结果尚不能证明低比特性能可泛化到其他VLA架构，也不能证明选择性INT8提高模拟任务成功率：论文报告称，某些架构上的W4A4损失较大，配对LIBERO差异也未得到统计确认。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "本次激活没有独立复现论文的延迟、内存、模拟或实体机器人结果。",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "实体试验每种配置、每项任务仅20次；探索性合并检验未考虑任务和场次相关性，论文也没有证明普遍的因果改善。",
+          "kind": "reproduction_missing",
+          "state": "open"
+        },
+        {
+          "description": "收益和延迟取决于检查点；部分架构上的W4A4损失较大，配对校准的LIBERO对照未能确认选择性精度的影响。",
+          "kind": "baseline_unclear",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "如果所报告的低比特延迟和实体任务结果能够泛化，可能会改变开放视觉—语言—动作策略在边缘GPU上的部署与精度选择。5分反映其在特定机器人领域的工程意义；证据来自单篇论文，尚不能证明生产环境或不同检查点上的表现。",
+      "limitations": [
+        "所有结果均由论文作者报告；研究团队没有运行所链接的代码，也没有复现测量。",
+        "W4A4结果依赖架构：论文报告称，SmolVLA和Evo-1的若干配置在LIBERO上损失较大，尚未证明选择性INT8能够恢复这些表现。",
+        "配对LIBERO试验未能确认选择性精度带来的成功率改善；实体试验每项任务仅20次，合并分析未建模任务或场次相关性。",
+        "每个检查点的延迟只测量了一轮；速度比较针对指定硬件和批量1下的浮点TensorRT引擎，不能跨硬件或负载直接比较。",
+        "只有选定的投影GEMM采用INT4/INT8；视觉编码器、其他运算和动作解码器仍为浮点。论文指出，H100会将四比特操作数降为INT8算术执行。"
+      ],
+      "relationships": [],
+      "summary": "作者提出FoldQuantVLA，使校准、量化权重舍入和TensorRT执行中的激活坐标变换保持一致。在GR00T N1.5/N1.6/N1.7和π₀.₅上，作者报告称，W4A4投影在Jetson AGX Orin上的速度比浮点TensorRT快1.20–1.33×，在RTX 4070 Ti SUPER桌面显卡上快1.25–1.52×。一种对两类语言投影采用选择性W8A8的配置，使N1.7的Orin路径增加1 ms；在80次实体机器人试验中，其汇总成功率为92.5%，均匀W4A4为80.0%。这些是作者报告的测量：实体试验规模较小，LIBERO对照未能确认提升，延迟也只测量了一轮。",
+      "technical": {
+        "claimed_result": "作者报告称，在Jetson AGX Orin上，GR00T N1.5/N1.6/N1.7和π₀.₅的W4A4观测到动作延迟比浮点TensorRT快1.20–1.33×，桌面端快1.25–1.52×。N1.7实体任务中，选择性o_proj/down_proj W8A8的汇总成功率为92.5%，均匀W4A4为80.0%，共80次试验；Orin上增加+1 ms。",
+        "compute_or_cost": "作者报告称，N1.6的W4A4权重为1,011 MB、序列化引擎为2,525 MB；浮点TensorRT分别为3,802 MB和5,325 MB。论文没有报告货币成本、能耗或并发吞吐量。",
+        "demonstrated_result": "论文和公开仓库直接记录了该方法及作者报告的测量。本次激活未做独立验证或代码执行；机器人结果只是小样本中观察到的差异，不能证明普遍成功率提升。",
+        "implementation_status": "作者提供Apache-2.0许可仓库，其中包括TensorRT插件、四个检查点的集成、测试和结果文件。该仓库经过页面检查，但本次激活没有运行代码。",
+        "mechanism": "FoldQuantVLA为每个共享激活位置指定一种变换，将逆变换折入消费该激活的权重，在变换后的坐标中进行校准和舍入，然后通过TensorRT融合插件执行逐token变换和整数GEMM。W4A4用于语言主干与动作专家的选定投影；选择性配置在语言注意力输出和前馈降维投影处保留W8A8。",
+        "regime": "批量大小为1；Jetson AGX Orin使用TensorRT 10.3，RTX 4070 Ti SUPER使用TensorRT 10.15；测试四个GR00T检查点和π₀.₅。实体结果使用一个GR00T N1.7微调版本，在ALOHA和SO-101上每项任务、每种配置测试20次，并匹配物体摆放。LIBERO每种配置进行800个回合，只有一轮实验。",
+        "reproducibility": "论文说明了检查点、校准数据、硬件、软件、试验次数和协议，并链接代码与结果。独立复现仍未完成；每个检查点只有一次桌面延迟测量，实体试验数量也有限。",
+        "strongest_baseline": "速度主要与每个检查点自己的浮点TensorRT引擎比较。闭环比较包括BF16 PyTorch、浮点TensorRT和量化配置。采用匹配校准的LIBERO检验显示，N1.5/N1.6/N1.7/π₀.₅的选择性精度差异为3–10次成功，p值为0.17–0.78，无法确认模拟器成功率提升。"
+      },
+      "title": "FoldQuantVLA报告：面向视觉—语言—动作策略的低比特推理更快，并取得小规模机器人任务结果",
+      "why_it_matters": "该论文报告了一种边缘部署权衡，将低精度与实测观测到动作延迟及多个开放VLA检查点的实体任务结果结合起来。若独立复测能够支持这些结果，该方法可能降低受限硬件上机器人策略的延迟和内存需求。结果依赖具体检查点，实体样本较少，模拟器比较也未能确认提升。"
     },
     "FCMO-D89063EC984F": {
       "claims": [
@@ -19796,6 +20021,48 @@
       "why_it_matters": {
         "locale_sha256": "49a0bc67fcc17fd1708eac189722307eccc5d7b28e1000a9425b120502c0fb20",
         "source_sha256": "d6d63b39fa73eee3fb1185ad69eb271c4e84e4297af0572b7697971c31557348"
+      }
+    },
+    "FCMO-2B00C06542B1": {
+      "claims": {
+        "locale_sha256": "a792b95205437dae47a693d2dc21852c64b2e34c1a0dd44a966929b68b69fe6e",
+        "source_sha256": "b5c10cda69e28416fa7ab59a07e60645d74be751e811afd602c8323a66124ab6"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "869608daba05616c94ba383e8769f4f230dd35457697485971157d6f6085fb2a",
+        "source_sha256": "d234b2719a7af9ce4b58ac84f1326bca045096f13648d242d11329501d0d4537"
+      },
+      "importance_rationale": {
+        "locale_sha256": "d8dbf91ca0e186a8045c76006807054fdfd1ce1e8d13b12764e70e237b4e07cc",
+        "source_sha256": "e89c3044b2489e1f34de672a8004d3352847e48b1a955203fa36fd712fe536a8"
+      },
+      "limitations": {
+        "locale_sha256": "71c295d55bb081e9a1cf89afc5a6e61685f94b8f0112af9ba16cafcf8b6c6fda",
+        "source_sha256": "4332ca41d22b1662e59e3b862eede03fb101cc3925224df8f296660835a834ae"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "455624c5c24416b055240e346cfa22cd676f349744bf1cb32ddb69c8674dd272",
+        "source_sha256": "e5804c7552ee9964bfc7a6fa96a72d2552fe54b98e021e5fdaeb9153b56a0a0e"
+      },
+      "technical": {
+        "locale_sha256": "d9c152c991150491809751386eae38849b2fabdc5306e09bdd182a0d7861e701",
+        "source_sha256": "40c067379ab6e3921f56d329e1215cd3b36a84ec735c4f262a7113f645ffd0a5"
+      },
+      "title": {
+        "locale_sha256": "4767235aa7a48f8a035a0cb35366165fc31a54c9c4173e7d2775b30a08f622e3",
+        "source_sha256": "d59a042eb8890891d8625c411a56a1cc4fd17e913a97f58fb393b5c09c06b09d"
+      },
+      "why_it_matters": {
+        "locale_sha256": "73be2249b88a410433704d2f7c60f38fbf018b64b8bb7de977c41d95d46a26f0",
+        "source_sha256": "cf58c4fb077e695b167eee01b53bd6d2c2e0bab5077bb2ec4f779dff8a1b11ae"
       }
     },
     "FCMO-2B53E683F72E": {
@@ -25482,6 +25749,48 @@
         "source_sha256": "b9b19d8c96c6c476b2c3f7814b5863dcd5d51557095a32346b6bfaf0d52cb8c2"
       }
     },
+    "FCMO-9CD55900A307": {
+      "claims": {
+        "locale_sha256": "32955a5ee5b30254ad7bd90733d7fc0d671053deee2e4166089b73eb3643cfba",
+        "source_sha256": "50aaea4b2e749d19f195dc0f67c5b95fc79e10d24075a1fea397f665440dd448"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "749b1929a05eafbaccc52892442dedf513c88520d42a613ab8f8f214df82706d",
+        "source_sha256": "45bf90b7dd501d7b228b119dcae112d6b115cab6631b4cab65363de79345eef5"
+      },
+      "importance_rationale": {
+        "locale_sha256": "0a6711f522404d10be6d74a4b15172dd99bfa54495219303628fa30ae9cc3e87",
+        "source_sha256": "7a9dd65990a9487f156b53478c55b08ad1fc237596b6280542d236ad6ee97baa"
+      },
+      "limitations": {
+        "locale_sha256": "38460a5097f6459c552224c805218478dee3a72cde51ab59c0ee7cc4dff69e5f",
+        "source_sha256": "de64f4dc6855252250ba82f305e7fc37fbaba2584c6c60cf619b55c31a90e118"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "6ac1b5fc64808a8c39887df1f25507aa3ceda194ea16990a124841daf709175a",
+        "source_sha256": "c2794bfbc24b05f114b4d715bf452e0ef6eaf914a918825372ad478105a54623"
+      },
+      "technical": {
+        "locale_sha256": "d3deb40f69f553a040a3242cdb52d0d433d966d1f720982c66d73bda4f68aedc",
+        "source_sha256": "9e2d67c8c8bedad2760cc0da97b8b5eb1f1e0e10d0ed02323d3458380f3e5def"
+      },
+      "title": {
+        "locale_sha256": "412961261928dc7b15a35886951055188e8dd301b4ae61ea49f2763efc60c8ae",
+        "source_sha256": "26d27786393ddca5c98d4c4dc19c021cdf05c8604467d546760ae2ec0c0db395"
+      },
+      "why_it_matters": {
+        "locale_sha256": "9609e5bb16f5077ab89e2f7669db0a48a8d04afba92e532db0e9729df663424f",
+        "source_sha256": "6302e8fd9931f2036c6b7d1d57589d72f415cdff95286f21dd1f719a715cd10e"
+      }
+    },
     "FCMO-9E06CC5FA8A5": {
       "claims": {
         "locale_sha256": "0032daaae674d412a12d1757ccd577f58f85ececb7d1c0755378d47ac9973306",
@@ -27176,6 +27485,48 @@
         "source_sha256": "2c48d0fddccaa0b13c883b651902f704690f744540f6850d6fcb6b9ad79f7842"
       }
     },
+    "FCMO-BF6ACF1C950B": {
+      "claims": {
+        "locale_sha256": "e733986ae1f8fca79147ae6081fbaf1769b4d21bfc689a22744a1aaf94fe19f5",
+        "source_sha256": "e4f28753c2aaf473b878f591677d85ab23aae2415d57169958853581338be7e7"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "90fa1df0150da83cff37de31908ff289e017c23b4f60f579743ec36768620ff1",
+        "source_sha256": "32e920553eec14dac87b3e25fc4b936a27a857f4950c05f7af2484ded351e699"
+      },
+      "importance_rationale": {
+        "locale_sha256": "26c9a01aae682f897e5a926df3884e57e39d27291405790283b36a7620af791e",
+        "source_sha256": "d002e0f346a2ca46c0ecd3b7e200490163e561be56954925f0d4cede8d0e5aac"
+      },
+      "limitations": {
+        "locale_sha256": "3b7004d5e30c6b990e6013b81295510a70a33a623f4c31b4929bdc623c8a7cac",
+        "source_sha256": "149cac1c6994b33229b4b490a5207933ccc056375570dc39360254edcf27af91"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "4c3f98b199e53e0b50ad54d7016ee8ec4a38dcbfbabc521efe66d85e27b3113b",
+        "source_sha256": "9a1d0926c815b769c823f8804d1c3dab31a764eb13932b49a701501591ed1a62"
+      },
+      "technical": {
+        "locale_sha256": "01ca660d1fe4b566731e28eac120ecf223537ada2f73bafe0e6d9a9896758784",
+        "source_sha256": "158b9b82cdba384456e99a29501b028c829556f2acb631f9161bd836a1683b51"
+      },
+      "title": {
+        "locale_sha256": "d2cea072d29162608bd55e931a1a8ba541b6bdc4b9ee0e5bc7ac11cc6fafc8e1",
+        "source_sha256": "1409f2a01bc30cf0ab89fe049b36bd034f2d25a730f28d0e8598181fb60e9ac2"
+      },
+      "why_it_matters": {
+        "locale_sha256": "d8fc03af3cfaabc1a1d140b3816f0bf7d98ad27e15db166c7ed528cf48c0ded1",
+        "source_sha256": "4d9a48107a987fab4f9c5375970aab61b5e86935c33be7f67724a4ad1ed4c0c0"
+      }
+    },
     "FCMO-BFDCA63E4D53": {
       "summary": {
         "locale_sha256": "ef4360500687a8240ff85a2779feed53098b861971f90410a41e8925244f2b75",
@@ -28322,6 +28673,48 @@
       "why_it_matters": {
         "locale_sha256": "a4d1fbb55036322beeaed869f47fa44bc3c98db1b3048cc230686e7371354974",
         "source_sha256": "b83dbf10bc736ac50800f485a126664eb751857f1b9b38dc276746a1461433c2"
+      }
+    },
+    "FCMO-D7EAA36CAACC": {
+      "claims": {
+        "locale_sha256": "caab2a24707f617968501638c0a047ab0d846ebacc970d65c450e4b117910961",
+        "source_sha256": "daa4b3a8c4d9538918bcff7296402f87e6ab594f7ee5c82b0c2e72ef8b9a1934"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "74dfa6abfe17880c0b77d381edf418364d99b6817bf3db5b5b04431549d2b1fc",
+        "source_sha256": "a4f62c60fc421145c74b3afd1d7c5276c704880c71059cec20bad0d713fe5fdc"
+      },
+      "importance_rationale": {
+        "locale_sha256": "8dfde32ef8a4ef021c587f2979201979432d8d6db1341281b57d1c7182e5b596",
+        "source_sha256": "0ae13368bab497b441e7ca22b037e33148f02d3925693477eb97e1230c148cc6"
+      },
+      "limitations": {
+        "locale_sha256": "5b32377dee5f1816bfbbced3c981f918d70c47c7ab521bf5a674c2eb138f1d11",
+        "source_sha256": "5cdedfd8a4f69e82f031192670639ebb577fa8010c279a828c67c98fd0d88248"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "58f7a71acb2b3093caa63e7d4e32791c4247ee105cc148fecf98c0502ed68a87",
+        "source_sha256": "e743e4eb66995c8ea22350099ea50f87bfac3bf581536d1cb64a14368ae29abc"
+      },
+      "technical": {
+        "locale_sha256": "0b625279b6a035a25324bf1b5f75a6c7999baffeef7abec73ec0bf7af821c320",
+        "source_sha256": "3d4725f04398cf0c0e700a38bd90f2f7d6f981b393ef572d962dea7f0e6d0a41"
+      },
+      "title": {
+        "locale_sha256": "9a1144dd45bcf2f2dc945b145ef8cf5f15eebda8cf0945d3eca8a4aa766009ac",
+        "source_sha256": "d8d76d97e008400cc1481f753ed6a82c8a0e5edc44990372f4c01a2ccf642e71"
+      },
+      "why_it_matters": {
+        "locale_sha256": "d36ab20eed12a337f18ba62164f5f3a2613bc2575e83586f60aa98acec035214",
+        "source_sha256": "1cb4c259377b3a57c9c1386c6d291d753471fdcc9e231fd6c1d2da3c05522d0a"
       }
     },
     "FCMO-D89063EC984F": {
