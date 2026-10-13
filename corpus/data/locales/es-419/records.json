@@ -9894,6 +9894,62 @@
       "title": "Cisco informa que la inferencia cruzada H200/MI350X superó la suma de rendimiento individual",
       "why_it_matters": "Los clústeres de inferencia de IA combinan cada vez más hardware de distintas generaciones y proveedores. La presentación de Cisco en MLPerf v6.1 informa que asignar prefill y decode a aceleradores NVIDIA y AMD distintos superó la suma aritmética del rendimiento individual en una configuración GPT-OSS 120B Server. MLCommons corrobora la presentación mixta; la cifra exacta aún requiere revisar la fila bruta y una repetición independiente."
     },
+    "FCMO-751952F739FC": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "Los autores publicaron el 22 de septiembre de 2026 un preprint sobre los efectos de la capa de servicio en la evaluación local de llamadas a herramientas."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En el estudio de caso con Ollama, las banderas estáticas de plantilla rechazan solicitudes nativas de herramientas para Phi-3 y Gemma-3 antes de ejecutar el modelo; el entorno de evaluación no conserva el rechazo como metadato estructurado, por lo que un análisis posterior puede contarlo como una omisión del modelo."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En los controles de protocolo y pruebas con cuatro sistemas de servicio, la fidelidad medida depende de la ruta: agregar una indicación textual ayuda a algunos modelos aceptados, un protocolo textual uniforme reduce la fidelidad medida de Llama-3.2, y las estimaciones agrupadas por turno y por semilla difieren hasta unos 55 puntos porcentuales con denominadores reducidos."
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION",
+          "text": "El estudio es pequeño y mide la fidelidad del protocolo; no demuestra una ley de escala, un efecto general de familia de modelos, una relación entre razonamiento y entrenamiento con herramientas ni la prevalencia del problema en despliegues locales. Los autores descartan explícitamente esas inferencias."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se ha realizado una reproducción independiente del rechazo de solicitudes, la clasificación de errores del entorno y las diferencias entre protocolos.",
+          "kind": "missing_independent",
+          "state": "open",
+          "updated_at": "2026-10-13T19:19:32.569407Z"
+        },
+        {
+          "description": "Se desconoce la prevalencia de este modo de falla entre plantillas de modelos, versiones de servidores y entornos de evaluación.",
+          "kind": "regime_unclear",
+          "state": "open",
+          "updated_at": "2026-10-13T19:19:32.569407Z"
+        }
+      ],
+      "importance_rationale": "Si estos factores de confusión de protocolo se repiten, los rechazos de solicitudes y el formato específico del servicio podrían distorsionar de forma material las mediciones del uso de herramientas: no queda claro si hubo inferencia o si el modelo eligió una herramienta. La puntuación 4 refleja un resultado útil sobre validez de medición en un estudio pequeño de sistemas locales; no demuestra que el problema sea generalizado.",
+      "limitations": [
+        "Todas las mediciones fueron informadas por los autores; en esta activación no se realizó una reproducción independiente.",
+        "El estudio es pequeño y las mayores diferencias entre tasas agrupadas y por semilla aparecen con denominadores reducidos y episodios repetitivos.",
+        "Los resultados miden fidelidad del protocolo, no éxito en tareas posteriores ni capacidad general del modelo.",
+        "Los autores descartan explícitamente conclusiones sobre escala, familias de modelos y la relación entre razonamiento y entrenamiento con herramientas.",
+        "No se estableció la prevalencia de estos factores de confusión en despliegues."
+      ],
+      "relationships": [],
+      "summary": "Un preprint de septiembre de 2026 informa que el comportamiento del servicio local puede confundirse con el comportamiento del modelo al evaluar el uso de herramientas. En el entorno de Ollama de los autores, banderas estáticas de plantilla rechazan algunas solicitudes nativas antes de ejecutar el modelo; el entorno de evaluación registra los reintentos agotados como un turno genérico del asistente, de modo que un modelo que nunca se ejecutó puede parecer tener cero fidelidad de llamada. Cuatro sistemas de servicio manejan las solicitudes de forma distinta. Las indicaciones en el mensaje mejoran algunos modelos aceptados, mientras que forzar un protocolo textual uniforme reduce la fidelidad de un modelo con soporte nativo. Las estimaciones agrupadas por turno y por semilla difieren hasta unos 55 puntos cuando un episodio repetitivo domina una muestra pequeña. Son resultados informados por los autores en un estudio acotado, no una estimación de prevalencia ni una comparación general de modelos.",
+      "technical": {
+        "claimed_result": "Los autores informan que una plantilla de Ollama rechaza antes de la inferencia las solicitudes nativas para Phi-3 y Gemma-3, y que el entorno puede registrar ese rechazo como una omisión ordinaria. Un control con llamada nativa e indicación textual recupera fidelidad en varios modelos aceptados, mientras que un protocolo solo textual reduce la fidelidad medida de Llama-3.2. Las pruebas con Ollama, llama.cpp, vLLM y SGLang muestran comportamientos distintos; las tasas agrupadas por turno y por semilla difieren hasta unos 55 puntos.",
+        "compute_or_cost": "No se afirma una comparación de cómputo ni de costos.",
+        "demonstrated_result": "Se pueden inspeccionar directamente el preprint, la descripción del protocolo y las tablas de resultados. Las cifras son informadas por los autores y no se reprodujeron de manera independiente en esta activación.",
+        "mechanism": "La capa de servicio filtra las solicitudes de herramientas y determina si una petición se rechaza, se devuelve como texto o se emite por un canal nativo. Si el entorno no conserva los errores de transporte como resultados estructurados, un rechazo previo a la inferencia puede contarse como una omisión del modelo. El canal del mensaje y la agregación por turno también afectan la fidelidad informada.",
+        "regime": "Estudio pequeño del protocolo de llamadas a herramientas con modelos locales. Ollama es el caso principal y se realizan pruebas con llama.cpp, vLLM y SGLang; las tasas principales se informan para ocho semillas. Se mide la fidelidad del formato de llamada, no el éxito integral de tareas ni la competencia general de agentes.",
+        "reproducibility": "El artículo describe el protocolo e informa su aceptación en REALM @ EMNLP 2026. Esta activación inspeccionó el preprint, pero no inspeccionó ni ejecutó un artefacto del entorno.",
+        "strongest_baseline": "Dentro del artículo, se comparan condiciones emparejadas de llamada nativa, llamada nativa con indicación textual y herramientas descritas solo en texto, además de pruebas entre sistemas de servicio. Son controles realizados por los autores, no reproducciones independientes."
+      },
+      "title": "Un estudio encuentra que los protocolos locales de servicio pueden distorsionar las mediciones de llamadas a herramientas",
+      "why_it_matters": "Las evaluaciones de herramientas pueden mezclar decisiones del modelo con la aceptación de solicitudes, la serialización y el registro del entorno. Separar los rechazos de transporte, las respuestas vacías, las llamadas malformadas y las omisiones elegidas por el modelo puede cambiar la interpretación de los resultados de agentes locales. El artículo no mide qué tan comunes son estos errores en los despliegues."
+    },
     "FCMO-7754CC237CCD": {
       "claims": [
         {
