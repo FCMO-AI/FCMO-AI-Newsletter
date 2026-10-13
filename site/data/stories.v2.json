@@ -1,7 +1,7 @@
 {
   "schema": "fcmo-stories-v2",
-  "generated_at": "2026-10-13T16:14:44Z",
-  "release_id": "newswire-70c615955d431abddfdcd919",
+  "generated_at": "2026-10-13T17:01:26Z",
+  "release_id": "newswire-166270dfbee20d2be7ae878f",
   "canonical_locale": "en",
   "locales": [
     "en",
@@ -40,6 +40,769 @@
     "2026-10-13"
   ],
   "stories": [
+    {
+      "id": "FCMO-F115B2E5CD51",
+      "slug": "dreamstream-reports-policy-aligned-generative-simulation-and-a-closed",
+      "url_date": "2026-10-13",
+      "kind": "development",
+      "status": "live",
+      "beat": "research",
+      "desk": "multimodality_world_models",
+      "title": "DreamStream reports policy-aligned generative simulation and a closed-loop driving benchmark",
+      "dek": "A CoRL 2026 paper introduces DreamStream, a closed-loop driving simulator that combines a physics simulator with a distilled autoregressive video model, plus FDπ, a policy-feature alignment metric, and the Navhard-CL benchmark.",
+      "summary": "A CoRL 2026 paper introduces DreamStream, a closed-loop driving simulator that combines a physics simulator with a distilled autoregressive video model, plus FDπ, a policy-feature alignment metric, and the Navhard-CL benchmark. The authors report FDπ 1.6× lower than the strongest prior closed-loop simulator on nuScenes and 4.7× lower on NAVSIM, and report that simulated policy outcomes vary with observation rendering and reveal scorer, trajectory-coverage and visual-robustness failures. These are author-reported results from selected datasets and policy panels; FDπ is a visual-alignment measure, not real-world safety. The paper says evaluation remains simulated and long-horizon drift persists. The official repository currently says code release is coming soon, so independent reproduction remains open.",
+      "why_it_matters": "If reproduced, a simulator that preserves policy-relevant visual features while supporting reactive, long-horizon scenarios could improve evaluation of end-to-end driving systems and expose failure modes hidden by static benchmarks. The evidence remains limited to the authors’ simulated datasets and selected policy panel; the paper does not establish real-world safety or broad transfer.",
+      "importance_rationale": "If reproduced, a simulator that preserves policy-relevant visual features while supporting reactive, long-horizon scenarios could improve evaluation of end-to-end driving policies and expose failure modes missed by static benchmarks. Score 4 reflects a meaningful evaluation-method advance in a bounded autonomous-driving domain; the paper-reported results do not establish real-world safety or broad transfer.",
+      "technical": {
+        "claimed_result": "Authors report FDπ 7.27 on nuScenes validation, 1.6× lower than the strongest baseline, and 5.47 on NAVSIM navtest, about 4.7× lower than DriveArena. They also report better closed-loop scores for evaluated policies under DreamStream-rendered observations than compared simulator/DriveArena observations, plus failure analyses for scorer bias, proposal coverage and weather/road-surface robustness.",
+        "compute_or_cost": "Authors estimate roughly 200 A100 GPU-days for full model training; runtime table reports 32 GB VRAM for Wan 2.1 1.3B and 67 GB for Wan 2.2 5B. No independently measured lifecycle cost or deployment economics is reported.",
+        "demonstrated_result": "The paper, tables, methods and benchmark description are directly inspectable. Numerical performance and failure analyses remain author-reported and were not independently reproduced in this activation.",
+        "implementation_status": "Paper describes the simulator and reports author-run experiments. The public repository is visible, but its README says code is coming soon; public runnable implementation was not recovered.",
+        "mechanism": "DreamStream retains a physics simulator for scene state and interactive traffic, while an autoregressive video model renders policy-consumed observations from simulator layouts. The authors describe a three-stage distillation pipeline, traffic-layout guidance and diverse-scene distillation. FDπ compares Fréchet distances between policy scene-context features for real and generated frames; Navhard-CL adds reactive adversarial behaviors and appearance shifts.",
+        "novelty": "Combines a physics-grounded reactive state simulator with a distilled autoregressive video renderer and evaluates generated visuals using feature representations from downstream policies, then supplies closed-loop behavior and appearance variants in Navhard-CL.",
+        "regime": "Paper version v1 submitted 2026-09-22; nuScenes validation and NAVSIM navtest for FDπ comparisons, five public end-to-end driving policies, and the authors’ Navhard-CL simulated scenarios. Reported Wan 2.1/1.3B runtime is 20.2 generated frames/s with 32 GB VRAM; Wan 2.2/5B is 16.9 frames/s with 67 GB VRAM on a single RTX PRO 6000 GPU. The authors estimate full model training at about 200 A100 GPU-days.",
+        "reproducibility": "No independent reproduction was located or performed during this review.",
+        "strongest_baseline": "For FDπ: HUGSIM is the strongest nuScenes comparator in the paper’s table (11.68 vs DreamStream 7.27); DriveArena is the NAVSIM comparator (25.45 vs 5.47). The selected benchmark panel and setup are paper-defined and not independently matched."
+      },
+      "importance_tier": "Meaningful",
+      "development_type": "paper",
+      "event_at": "2026-09-22T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-13T17:01:15Z",
+      "updated_at": "2026-10-13T17:01:15Z",
+      "importance": 4,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": false,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "DEMONSTRATED",
+            "text": "The authors published a CoRL 2026 paper describing DreamStream, which couples a physics simulator to a distilled autoregressive video model and introduces the FDπ metric and Navhard-CL closed-loop benchmark."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "The authors report FDπ 1.6× lower than the strongest prior closed-loop simulator on nuScenes and 4.7× lower on NAVSIM across their selected policy panel; this is a reported representation-alignment metric, not an on-road safety result."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "In the authors’ simulated Navhard-CL evaluation, DreamStream-rendered observations produce higher scores than the compared simulator and DriveArena renderings for the reported policies; the paper also reports scorer-calibration, trajectory-proposal coverage and visual-robustness failures."
+          },
+          {
+            "label": "DEMONSTRATED",
+            "qualifier": "LIMITATION",
+            "text": "The authors state the evaluation remains simulated rather than on-road or hardware-in-the-loop, and that autoregressive video quality still drifts over extensive rollouts. The linked repository README says code release is coming soon."
+          }
+        ],
+        "limitations": [
+          "All performance results are author-reported; no independent reproduction was located or performed.",
+          "FDπ measures representation distribution shift for selected policies and datasets; it does not establish driving safety or real-world policy quality.",
+          "Evaluation is in simulation; the authors explicitly leave on-road and hardware-in-the-loop validation open.",
+          "The paper reports autoregressive drift over extensive rollouts despite mitigations.",
+          "The comparator set and selected policy panel are paper-defined; independent matched evaluation remains absent.",
+          "The official repository README says code release is coming soon; reproducible public implementation was not available in this inspection."
+        ],
+        "gaps": [
+          {
+            "kind": "reproduction_missing",
+            "description": "No runnable code release or independent reproduction was located; the official repository says code release is coming soon."
+          },
+          {
+            "kind": "missing_independent",
+            "description": "No on-road, hardware-in-the-loop, or independent evidence connects lower FDπ to safer or more accurate real-world driving decisions."
+          },
+          {
+            "kind": "other",
+            "description": "Metric validity and benchmark findings are reported for the authors’ selected datasets and policy panel; cross-dataset and independent policy-panel generalization is unmeasured."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://arxiv.org/abs/2609.26792",
+          "domain": "arxiv.org",
+          "primary": true
+        },
+        {
+          "url": "https://github.com/VAIL-UCLA/DreamStream",
+          "domain": "github.com",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "University of California, Los Angeles",
+        "Toyota Research Institute"
+      ],
+      "topics": [
+        "autonomous-driving",
+        "world-models",
+        "closed-loop-evaluation",
+        "simulation",
+        "video-generation",
+        "benchmarking"
+      ],
+      "regions": [
+        "GLOBAL"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-F115B2E5CD51.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: DreamStream reports policy-aligned generative simulation and a closed-loop driving benchmark"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "DreamStream informa una simulación generativa alineada con políticas y un benchmark cerrado de conducción",
+            "summary": "Un artículo de CoRL 2026 presenta DreamStream, un simulador cerrado de conducción que combina un simulador físico con un modelo de video autorregresivo destilado; también presenta FDπ, una métrica de alineación de características de políticas, y el benchmark Navhard-CL. Los autores informan que FDπ es 1.6× menor que el del simulador cerrado previo más sólido en nuScenes y 4.7× menor en NAVSIM, y reportan que los resultados simulados de las políticas cambian según la representación visual, además de fallas de puntuación, cobertura de trayectorias y robustez visual. Son resultados de los autores para conjuntos de datos y paneles de políticas seleccionados; FDπ mide alineación visual, no seguridad en el mundo real. El artículo indica que la evaluación sigue siendo simulada y que persiste la deriva en trayectorias largas. El repositorio oficial dice que el código estará disponible próximamente, por lo que sigue pendiente una reproducción independiente.",
+            "importance_rationale": "Si se reproduce, un simulador que preserve las características visuales relevantes para las políticas y permita escenarios reactivos de larga duración podría mejorar la evaluación de políticas de conducción de extremo a extremo y revelar fallas que los benchmarks estáticos no muestran. La puntuación 4 refleja un avance significativo en métodos de evaluación dentro del ámbito acotado de la conducción autónoma; los resultados reportados por el artículo no demuestran seguridad en el mundo real ni transferencia amplia.",
+            "why_it_matters": "Si se reproduce, un simulador que preserve características visuales relevantes para las políticas y admita escenarios reactivos de larga duración podría mejorar la evaluación de sistemas de conducción de extremo a extremo y revelar fallas ocultas en benchmarks estáticos. La evidencia se limita a simulaciones de los autores, sus conjuntos de datos y el panel de políticas seleccionado; el artículo no demuestra seguridad real ni transferencia amplia.",
+            "technical": {
+              "claimed_result": "Los autores informan FDπ de 7.27 en validación de nuScenes, 1.6× menor que el mejor baseline, y 5.47 en NAVSIM navtest, cerca de 4.7× menor que DriveArena. También informan mejores puntuaciones cerradas para las políticas evaluadas con imágenes renderizadas por DreamStream que con las representaciones comparadas del simulador y DriveArena, además de análisis de fallas de calibración de puntuaciones, cobertura de trayectorias y robustez ante clima y superficies de carretera.",
+              "compute_or_cost": "Los autores estiman alrededor de 200 días-GPU A100 para entrenar el modelo completo. La tabla de ejecución informa 32 GB de VRAM para Wan 2.1 de 1.3B y 67 GB para Wan 2.2 de 5B. No se publica un costo total del ciclo de vida ni una economía de despliegue medida de forma independiente.",
+              "demonstrated_result": "El artículo, sus tablas, métodos y descripción del benchmark se pueden inspeccionar directamente. Los resultados numéricos y los análisis de fallas siguen siendo informes de los autores; no se reprodujeron de manera independiente durante esta activación.",
+              "implementation_status": "El artículo describe el simulador e informa experimentos realizados por sus autores. El repositorio público está disponible, pero su README indica que el código estará disponible próximamente; no se encontró una implementación pública ejecutable.",
+              "mechanism": "DreamStream conserva un simulador físico para el estado de la escena y el tráfico interactivo, mientras un modelo de video autorregresivo genera las observaciones que consume la política a partir de la distribución del simulador. Los autores describen una destilación en tres etapas, guía por distribución del tráfico y destilación de escenas diversas. FDπ compara distancias de Fréchet entre características contextuales de políticas para cuadros reales y generados; Navhard-CL incorpora comportamientos reactivos adversarios y cambios de apariencia.",
+              "novelty": "Combina un simulador reactivo con estado basado en física y un renderizador de video autorregresivo destilado; evalúa las imágenes generadas mediante representaciones de las políticas que las consumen y aporta Navhard-CL con variantes de comportamiento y apariencia cerradas.",
+              "regime": "Versión v1 enviada el 2026-09-22; comparaciones FDπ en validación de nuScenes y NAVSIM navtest, cinco políticas públicas de conducción de extremo a extremo y escenarios simulados Navhard-CL de los autores. Para Wan 2.1 de 1.3B, se informan 20.2 cuadros generados/s con 32 GB de VRAM; para Wan 2.2 de 5B, 16.9 cuadros/s con 67 GB en una sola GPU RTX PRO 6000. Los autores estiman el entrenamiento completo en cerca de 200 días-GPU A100.",
+              "reproducibility": "No se localizó ni se realizó una reproducción independiente durante esta revisión.",
+              "strongest_baseline": "Para FDπ: HUGSIM es el comparador más sólido en nuScenes según la tabla del artículo (11.68 frente a 7.27 de DreamStream); DriveArena lo es en NAVSIM (25.45 frente a 5.47). El panel de políticas y el diseño del benchmark fueron definidos por los autores y no se compararon de manera independiente."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "Un artículo de CoRL 2026 presenta DreamStream, que combina un simulador físico con un modelo de video autorregresivo destilado, e introduce la métrica FDπ y el benchmark cerrado Navhard-CL."
+                },
+                {
+                  "text": "Los autores informan que FDπ es 1.6× menor que el del simulador cerrado previo más sólido en nuScenes y 4.7× menor en NAVSIM, para el panel de políticas que evaluaron; es una métrica de alineación de representaciones, no un resultado de seguridad vial."
+                },
+                {
+                  "text": "En la evaluación simulada Navhard-CL de los autores, las observaciones renderizadas por DreamStream producen puntuaciones más altas que las representaciones comparadas del simulador y DriveArena para las políticas informadas. El artículo también describe fallas de calibración de puntuaciones, cobertura de trayectorias y robustez visual."
+                },
+                {
+                  "text": "Los autores indican que la evaluación sigue siendo simulada, no se realiza en carretera ni con hardware en el circuito, y que persiste la deriva del video autorregresivo en trayectorias muy largas. El README del repositorio oficial dice que el código estará disponible próximamente."
+                }
+              ],
+              "limitations": [
+                "Los autores informan todos los resultados de rendimiento; no se localizó ni realizó una reproducción independiente.",
+                "FDπ mide el cambio en la distribución de representaciones para políticas y conjuntos de datos seleccionados; no demuestra seguridad vial ni calidad de políticas en el mundo real.",
+                "La evaluación es simulada; los autores dejan pendiente la validación en carretera y con hardware en el circuito.",
+                "El artículo informa que persiste la deriva del video autorregresivo en trayectorias muy largas, pese a las mitigaciones.",
+                "El conjunto de comparadores y el panel de políticas fueron definidos por el artículo; falta una evaluación independiente y equivalente.",
+                "El README del repositorio oficial indica que el código estará disponible próximamente; en esta revisión no se encontró una implementación pública reproducible."
+              ],
+              "gaps": [
+                {
+                  "description": "No se encontró una versión ejecutable ni una reproducción independiente; el repositorio oficial indica que el código estará disponible próximamente."
+                },
+                {
+                  "description": "No hay validación en carretera, hardware en el circuito ni evidencia independiente que conecte un FDπ menor con decisiones de conducción más seguras o precisas en el mundo real."
+                },
+                {
+                  "description": "La validez de la métrica y los hallazgos del benchmark se informan para los conjuntos de datos y el panel de políticas seleccionados por los autores; no se midió su generalización a otros conjuntos ni a paneles elegidos de forma independiente."
+                }
+              ]
+            }
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "DreamStream报告了策略对齐的生成式仿真与闭环驾驶基准",
+            "summary": "一篇CoRL 2026论文介绍DreamStream，这是一种将物理仿真器与蒸馏后的自回归视频模型结合的闭环驾驶仿真器；论文还提出FDπ策略特征对齐指标和Navhard-CL基准。作者报告，DreamStream的FDπ在nuScenes上比最强的既有闭环仿真器低1.6×，在NAVSIM上低4.7×；他们还报告，仿真中的策略结果会随观测渲染而变化，并揭示评分器、轨迹覆盖和视觉鲁棒性问题。这些结果由作者在所选数据集和策略面板上报告；FDπ是视觉对齐指标，不代表现实道路安全。论文指出评估仍在仿真中进行，长时序漂移也仍然存在。官方仓库称代码即将发布，因此独立复现仍待完成。",
+            "importance_rationale": "若能复现，一种既保留策略相关视觉特征又支持长时序响应场景的仿真器，可能改进端到端驾驶策略评估，并揭示静态基准遗漏的失效模式。评分4表示其在有限自动驾驶领域内对评估方法具有实际意义；论文报告的结果并未证明现实道路安全或广泛迁移能力。",
+            "why_it_matters": "若能复现，一种保留策略相关视觉特征并支持长时序响应场景的仿真器，可能改进端到端驾驶系统评估，并揭示静态基准遗漏的失效模式。现有证据仅限于作者的仿真、数据集和所选策略面板；论文没有证明现实道路安全或广泛迁移能力。",
+            "technical": {
+              "claimed_result": "作者报告，nuScenes验证集上的FDπ为7.27，比最佳基线低1.6×；NAVSIM navtest上为5.47，约比DriveArena低4.7×。他们还报告，在所评估策略中，使用DreamStream渲染观测时的闭环分数高于所比较的仿真器和DriveArena渲染结果，并分析了评分器校准、轨迹覆盖以及天气和路面变化下的鲁棒性问题。",
+              "compute_or_cost": "作者估算完整模型训练约需200个A100 GPU日。运行表报告，Wan 2.1 1.3B需32 GB显存，Wan 2.2 5B需67 GB。论文未报告经独立测量的全生命周期成本或部署经济性。",
+              "demonstrated_result": "论文、表格、方法和基准说明均可直接查阅。数值性能和失效分析仍是作者报告的结果，本次激活未进行独立复现。",
+              "implementation_status": "论文描述了该仿真器，并报告作者自行进行的实验。公开仓库已可访问，但其README称代码即将发布；本次未找到可运行的公开实现。",
+              "mechanism": "DreamStream用物理仿真器维护场景状态和交互交通，再根据仿真布局由自回归视频模型生成策略实际接收的观测。作者描述了三阶段蒸馏流程、交通布局引导和多样场景蒸馏。FDπ比较真实帧与生成帧在策略场景上下文特征中的Fréchet距离；Navhard-CL加入响应式对抗行为与外观变化。",
+              "novelty": "将基于物理的响应式场景仿真器与蒸馏后的自回归视频渲染器结合，使用下游策略自身的表征评估生成视觉，并提供包含闭环行为与外观变化的Navhard-CL基准。",
+              "regime": "论文v1于2026-09-22提交；FDπ比较使用nuScenes验证集和NAVSIM navtest、五种公开端到端驾驶策略，以及作者的Navhard-CL仿真场景。作者报告，Wan 2.1 1.3B在单张RTX PRO 6000上生成速度为20.2帧/秒、显存32 GB；Wan 2.2 5B为16.9帧/秒、显存67 GB。作者估算完整模型训练约需200个A100 GPU日。",
+              "reproducibility": "本次审查未找到或执行独立复现。",
+              "strongest_baseline": "FDπ方面，论文表格中HUGSIM是nuScenes上最强的比较对象（11.68，对比DreamStream的7.27）；DriveArena是NAVSIM上的比较对象（25.45，对比5.47）。策略面板和基准设置由论文确定，尚无独立匹配评估。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "一篇发表于CoRL 2026的论文介绍了DreamStream：它将物理仿真器与蒸馏后的自回归视频模型结合，并提出FDπ指标和闭环驾驶基准Navhard-CL。"
+                },
+                {
+                  "text": "作者报告，在nuScenes上，DreamStream的FDπ比最强的既有闭环仿真器低1.6×；在NAVSIM上低4.7×，比较范围限于论文选定的策略面板。该指标衡量表征对齐，不是道路安全结果。"
+                },
+                {
+                  "text": "在作者的Navhard-CL仿真评估中，对于报告所列的策略，DreamStream渲染的观测带来高于所比较仿真器和DriveArena渲染结果的分数。论文还报告了评分器校准、轨迹覆盖和视觉鲁棒性方面的问题。"
+                },
+                {
+                  "text": "作者指出，评估仍在仿真中进行，并非道路实测或硬件在环验证；长时序自回归视频仍会出现漂移。官方仓库README称代码即将发布。"
+                }
+              ],
+              "limitations": [
+                "所有性能结果均由论文作者报告；本次未找到或执行独立复现。",
+                "FDπ衡量所选策略和数据集上的表征分布偏移，不能证明道路安全或现实策略质量。",
+                "评估仅在仿真中进行；作者将道路实测和硬件在环验证留待后续工作。",
+                "论文报告，尽管采取了缓解措施，长时序自回归视频仍存在漂移。",
+                "比较对象和策略面板由论文设定；仍缺少独立、匹配的评估。",
+                "官方仓库README称代码即将发布；本次检查未找到可复现的公开实现。"
+              ],
+              "gaps": [
+                {
+                  "description": "目前未找到可运行的代码或独立复现；官方仓库称代码即将发布。"
+                },
+                {
+                  "description": "目前没有道路实测、硬件在环验证或独立证据，能将较低的FDπ与现实中的驾驶决策更安全或更准确联系起来。"
+                },
+                {
+                  "description": "指标有效性和基准结果仅针对作者选定的数据集与策略面板报告；其能否推广到其他数据集或独立选择的策略面板尚未测量。"
+                }
+              ]
+            },
+            "headline": "DreamStream报告了策略对齐的生成式仿真与闭环驾驶基准"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
+    {
+      "id": "FCMO-E8FC79A21E00",
+      "slug": "anthropic-preprint-reports-ai-assisted-discovery-of-repeat-associated",
+      "url_date": "2026-10-13",
+      "kind": "development",
+      "status": "live",
+      "beat": "research",
+      "desk": "agents_memory",
+      "title": "Anthropic preprint reports AI-assisted discovery of repeat-associated phage reverse transcriptases",
+      "summary": "Anthropic’s September 23 preprint describes an autonomous genome-mining campaign in which Claude agents searched reverse-transcriptase loci across 1.9 billion metagenomic protein clusters and surfaced array-associated reverse transcriptases (ART), a candidate family of phage RT loci with tandem non-coding DNA repeats and neighboring partner genes. The authors report 95 ART RT representatives and experiments detecting distinct short RNAs from arrays during phage infection and plasmid expression. These are provider-authored paper results, not an independent replication. The preprint says repeated reruns missed the array and explicitly leaves RT activity, RNA substrate use, partner interaction and phage function unknown. The result supports a bounded claim that an AI-agent campaign surfaced a biologically investigated candidate system; it does not establish a functional CRISPR-like enzyme or a general autonomous-discovery rate.",
+      "why_it_matters": "If replicated and if its biological role is clarified, ART could add a new repeat-associated system to the known diversity of phage reverse transcriptases and show how AI agents can surface anomalies in very large sequence databases. The paper does not establish a CRISPR-like editing tool, a working enzyme mechanism, or a general autonomous-discovery advantage; its strongest current evidence is a provider-reported discovery campaign plus early RNA-expression experiments.",
+      "importance_rationale": "If the bounded discovery account and associated molecular observations hold up, autonomous agents helped surface a previously uncharacterized family of repeat-associated phage reverse-transcriptase loci from a very large sequence search, with follow-up expression evidence. This is a notable proof-of-possibility for AI-assisted biological discovery at database scale. Score 5 reflects potential to redirect research toward new systems, while the function is unknown, repeated reruns missed the signal, and independent replication is absent.",
+      "technical": {
+        "claimed_result": "Authors report a campaign across 1.9 billion metagenomic protein clusters that recovered about 200,000 RT clusters, surveyed roughly 11,000 loci, investigated 17 candidate partner families, and produced 19 reports from 949 agent sessions over 21.5 wall-clock hours. One follow-up found ART loci; the paper identifies 95 representative ART RTs. Experiments report discrete array RNAs during Staphylococcus phage infection and plasmid expression in Escherichia coli.",
+        "compute_or_cost": "The paper reports 949 sessions, 77 cumulative agent-hours, 215.6 million tokens and 21.5 hours wall-clock for the campaign. No comparable expert baseline or full economic cost is reported.",
+        "demonstrated_result": "The publication and its described methods, sequence analyses, and reported experiments are directly inspectable. ART family membership and RNA-expression measurements are author-reported; no independent reproduction was located. The paper does not demonstrate RT enzymatic activity or biological function.",
+        "implementation_status": "The preprint describes the agent harness and wet-lab follow-up. The discovery is not presented as an established product or a characterized biotechnology; follow-up functional experiments remain underway.",
+        "mechanism": "The paper describes a multi-agent harness with worker/supervisor sessions that searched protein-family neighborhoods, generated and reviewed candidate reports, then followed agent-proposed anomalies in raw genomic DNA. The ART signal was a tandem non-coding repeat array next to a phage reverse transcriptase and partner gene. Authors connect discovery to Mythos 5 processing sequence data and repeat-responsive internal signals, but this causal mechanism is not independently demonstrated.",
+        "novelty": "The authors report a general-purpose model directly noticing an unannotated DNA repeat architecture adjacent to a phage reverse transcriptase during a broad agentic genome-mining campaign, followed by experimental observation of array-derived short RNAs.",
+        "regime": "Anthropic’s own campaign and laboratory; Claude Mythos 5 for the main search. The search covered reverse-transcriptase loci in metagenomic sequence databases. The paper reports 949 sessions, 77 agent-hours and 21.5 hours wall-clock for the campaign; experimental follow-up includes phage infection RNA-seq and plasmid expression in E. coli.",
+        "reproducibility": "No independent reproduction of the genome-mining campaign or ART characterization was located. The preprint reports that repeated reruns missed the array; raw campaign transcripts and a fully independent search were not available in this review.",
+        "strongest_baseline": "No matched non-agent or expert-search baseline demonstrates relative discovery rate or cost. Fixed-input characterization benchmarks compare several Claude models and show context/tooling effects; the authors report the ART report was missed in every repeated genome-mining rerun."
+      },
+      "importance_tier": "Notable",
+      "development_type": "paper",
+      "event_at": "2026-09-23T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-13T17:01:15Z",
+      "updated_at": "2026-10-13T17:01:15Z",
+      "importance": 5,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": false,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "DEMONSTRATED",
+            "text": "Anthropic published a preprint describing an autonomous genome-mining campaign for reverse-transcriptase systems and a candidate family it names array-associated reverse transcriptases (ART)."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "The authors report that Claude agents surveyed 1.9 billion metagenomic protein clusters and surfaced ART loci containing a reverse transcriptase, a neighboring partner gene and tandem non-coding DNA repeats; the paper reports 95 ART RT representatives."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "Follow-up experiments reported discrete short RNAs transcribed from ART arrays during Staphylococcus phage infection and after plasmid expression in Escherichia coli. These observations do not establish the enzyme’s activity or the biological role of the system."
+          },
+          {
+            "label": "INFERRED",
+            "text": "The authors argue that direct inspection of raw DNA sequence and Mythos 5 signals responsive to repeated DNA may have enabled recognition of the atypical array; this proposed causal explanation is based on their campaign transcript and provider-run benchmarks, not an independent test of the discovery mechanism."
+          },
+          {
+            "label": "DEMONSTRATED",
+            "qualifier": "LIMITATION",
+            "text": "The paper says repeated search reruns missed the array and states that RT activity, RNA substrates, partner interaction and phage function remain unestablished."
+          }
+        ],
+        "limitations": [
+          "All source materials and experiments inspected were produced by Anthropic; no independent lab replication was found.",
+          "The paper reports that repeated genome-mining reruns failed to recover the ART array, so discovery reproducibility and its sensitivity to model/harness configuration remain open.",
+          "Array RNA expression is reported, but RT activity, whether the array RNAs are enzyme substrates, partner interaction and biological function have not been established.",
+          "The proposed connection between Mythos 5 internal repeat signals and discovery is an author interpretation, not an independently tested causal mechanism.",
+          "No matched human-expert or non-agent baseline establishes comparative discovery speed, cost, or generality across biological targets.",
+          "A single discovery campaign does not establish a general autonomous-discovery rate or replace human laboratory validation."
+        ],
+        "gaps": [
+          {
+            "kind": "reproduction_missing",
+            "description": "No independent laboratory has replicated the ART locus analysis, the array RNA expression findings, or the original agentic genome-mining campaign; the paper reports repeated campaign reruns missed the array."
+          },
+          {
+            "kind": "other",
+            "description": "The preprint does not establish reverse-transcriptase activity, whether ART array RNAs are substrates, partner-protein interaction, or the system’s function during phage infection."
+          },
+          {
+            "kind": "other",
+            "description": "The paper attributes discovery partly to direct DNA reading and repeat-responsive Mythos 5 signals, but no causal ablation demonstrates that these signals enabled the search result."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://www.anthropic.com/news/claude-discovers-novel-enzyme-system",
+          "domain": "anthropic.com",
+          "primary": true
+        },
+        {
+          "url": "https://www-cdn.anthropic.com/22573675ada52a8ca8a97a1a4b4326b2f208a071.pdf",
+          "domain": "www-cdn.anthropic.com",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "Anthropic"
+      ],
+      "topics": [
+        "ai-assisted-science",
+        "genomics",
+        "agentic-research",
+        "reverse-transcriptase",
+        "molecular-biology",
+        "scientific-discovery"
+      ],
+      "regions": [
+        "GLOBAL"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-E8FC79A21E00.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: Anthropic preprint reports AI-assisted discovery of repeat-associated phage reverse transcriptases"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "Preprint de Anthropic informa el hallazgo asistido por IA de transcriptasas inversas de fagos asociadas a repeticiones",
+            "summary": "El preprint de Anthropic del 23 de septiembre describe una campaña autónoma de búsqueda genómica en la que agentes Claude examinaron loci de transcriptasa inversa en 1.9 mil millones de grupos de proteínas metagenómicas y detectaron transcriptasas inversas asociadas a arreglos (ART), una familia candidata de loci de fagos con repeticiones de ADN no codificante en tándem y genes asociados cercanos. Los autores informan 95 representantes de RT ART y experimentos que detectaron ARN cortos diferenciados de los arreglos durante infecciones por fagos y expresión plasmídica. Son resultados de un artículo del proveedor, sin replicación independiente. El preprint dice que las búsquedas repetidas no detectaron el arreglo y deja expresamente sin resolver la actividad de RT, el uso de ARN como sustrato, la interacción con la proteína asociada y la función en el fago. La evidencia permite afirmar que una campaña con agentes señaló un sistema candidato estudiado en el laboratorio; no establece una enzima funcional semejante a CRISPR ni una tasa general de descubrimiento autónomo.",
+            "importance_rationale": "Si se confirma el relato acotado del descubrimiento y las observaciones moleculares asociadas, agentes autónomos habrían detectado una familia hasta ahora no caracterizada de loci de transcriptasa inversa de fagos asociados a repeticiones en una búsqueda genómica muy amplia, seguida de evidencia de expresión. Es una prueba de posibilidad notable para el descubrimiento biológico asistido por IA a escala de bases de datos. La puntuación 5 refleja su potencial para orientar investigación hacia sistemas nuevos; su función sigue sin conocerse, las búsquedas repetidas no recuperaron la señal y no hay replicación independiente.",
+            "why_it_matters": "Si se replica y se aclara su función biológica, ART podría ampliar la diversidad conocida de sistemas de transcriptasa inversa de fagos asociados a repeticiones y mostrar cómo agentes de IA detectan anomalías en bases de datos de secuencias muy grandes. El artículo no establece una herramienta de edición semejante a CRISPR, un mecanismo enzimático funcional ni una ventaja general de descubrimiento autónomo; la evidencia más sólida hoy es una campaña reportada por el proveedor junto con experimentos iniciales de expresión de ARN.",
+            "technical": {
+              "claimed_result": "Los autores informan una campaña en 1.9 mil millones de grupos de proteínas metagenómicas que recuperó cerca de 200,000 grupos de RT, examinó aproximadamente 11,000 loci, investigó 17 familias candidatas de proteínas asociadas y produjo 19 informes a partir de 949 sesiones de agentes durante 21.5 horas de tiempo transcurrido. En un seguimiento encontraron loci ART; el artículo identifica 95 RT ART representativas. Los experimentos informan ARN diferenciados de los arreglos durante una infección por fago Staphylococcus y expresión plasmídica en Escherichia coli.",
+              "compute_or_cost": "El artículo informa 949 sesiones, 77 horas acumuladas de agente, 215.6 millones de tokens y 21.5 horas de tiempo transcurrido para la campaña. No presenta un comparador equivalente con especialistas ni el costo económico total.",
+              "demonstrated_result": "La publicación y sus métodos, análisis de secuencias y experimentos reportados se pueden inspeccionar directamente. La pertenencia a la familia ART y las mediciones de expresión de ARN son resultados informados por los autores; no se encontró una reproducción independiente. El artículo no demuestra actividad enzimática de RT ni una función biológica.",
+              "implementation_status": "El preprint describe el harness de agentes y el seguimiento de laboratorio. El descubrimiento no se presenta como producto establecido ni como biotecnología caracterizada; siguen en curso experimentos para determinar su función.",
+              "mechanism": "El artículo describe un harness multiagente con sesiones de trabajo y supervisión que buscaron en vecindarios de familias proteicas, generaron y revisaron informes de candidatos y luego siguieron anomalías propuestas por agentes en ADN genómico sin procesar. La señal ART fue un arreglo de repeticiones de ADN no codificante junto a una transcriptasa inversa de fago y un gen asociado. Los autores vinculan el hallazgo con el procesamiento de secuencias de ADN por Mythos 5 y señales internas sensibles a repeticiones, pero ese mecanismo causal no se ha demostrado de forma independiente.",
+              "novelty": "Los autores informan que un modelo de propósito general detectó directamente una arquitectura de repeticiones de ADN no anotada junto a una transcriptasa inversa de fago durante una amplia campaña de búsqueda genómica con agentes, seguida de observaciones experimentales de ARN cortos derivados del arreglo.",
+              "regime": "Campaña y laboratorio de Anthropic; Claude Mythos 5 para la búsqueda principal. La búsqueda cubrió loci de transcriptasa inversa en bases de datos de secuencias metagenómicas. El artículo informa 949 sesiones, 77 horas de agente y 21.5 horas transcurridas; el seguimiento experimental incluye secuenciación de ARN durante infección por fagos y expresión plasmídica en E. coli.",
+              "reproducibility": "No se encontró una reproducción independiente de la campaña de búsqueda genómica ni de la caracterización ART. El preprint informa que las búsquedas repetidas no detectaron el arreglo; en esta revisión no se dispuso de transcripciones completas de la campaña ni de una búsqueda independiente integral.",
+              "strongest_baseline": "No hay una comparación equivalente con búsqueda sin agentes o especialistas que demuestre velocidad o costo relativos. Los benchmarks de caracterización con entradas fijas comparan varios modelos Claude y muestran efectos del contexto y las herramientas; los autores informan que el reporte ART no apareció en ninguna de las búsquedas genómicas repetidas."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "Anthropic publicó un preprint sobre una campaña autónoma de búsqueda genómica de sistemas con transcriptasa inversa y una familia candidata que denomina transcriptasas inversas asociadas a arreglos (ART)."
+                },
+                {
+                  "text": "Los autores informan que agentes Claude examinaron 1.9 mil millones de grupos de proteínas metagenómicas y detectaron loci ART con una transcriptasa inversa, un gen asociado cercano y repeticiones de ADN no codificante en tándem; el artículo informa 95 representantes de RT ART."
+                },
+                {
+                  "text": "En experimentos posteriores, los autores detectaron ARN cortos diferenciados transcritos de arreglos ART durante una infección por fago Staphylococcus y tras expresión plasmídica en Escherichia coli. Estas observaciones no establecen la actividad de la enzima ni la función del sistema."
+                },
+                {
+                  "text": "Los autores proponen que la inspección directa de secuencias de ADN y señales de Mythos 5 que responden a repeticiones pudieron permitir reconocer el arreglo atípico; esta explicación causal se basa en la transcripción de la campaña y en benchmarks del proveedor, no en una prueba independiente del mecanismo de descubrimiento."
+                },
+                {
+                  "text": "El artículo dice que las búsquedas repetidas no recuperaron el arreglo y que siguen sin establecerse la actividad de RT, el uso de ARN como sustrato, la interacción con la proteína asociada y la función en el fago."
+                }
+              ],
+              "limitations": [
+                "Anthropic produjo todos los materiales y experimentos revisados; no se encontró una replicación en un laboratorio independiente.",
+                "El artículo informa que búsquedas genómicas repetidas no recuperaron el arreglo ART, por lo que siguen abiertas la reproducibilidad del descubrimiento y su sensibilidad a la configuración del modelo y del harness.",
+                "Se informa expresión de ARN del arreglo, pero no se han establecido la actividad de RT, si los ARN del arreglo son sustratos de la enzima, la interacción con la proteína asociada ni la función biológica.",
+                "La conexión propuesta entre señales internas de Mythos 5 ante repeticiones y el descubrimiento es una interpretación de los autores, no un mecanismo causal probado de forma independiente.",
+                "No hay una comparación equivalente con especialistas humanos o búsqueda sin agentes que establezca velocidad, costo o generalidad de descubrimiento.",
+                "Una sola campaña no establece una tasa general de descubrimiento autónomo ni reemplaza la validación experimental humana."
+              ],
+              "gaps": [
+                {
+                  "description": "Ningún laboratorio independiente ha replicado el análisis de los loci ART, los hallazgos de expresión de ARN ni la campaña de búsqueda genómica con agentes; el artículo informa que las búsquedas repetidas no detectaron el arreglo."
+                },
+                {
+                  "description": "El preprint no establece la actividad de transcriptasa inversa, si los ARN del arreglo ART son sustratos, la interacción con la proteína asociada ni la función del sistema durante la infección por fagos."
+                },
+                {
+                  "description": "El artículo atribuye parte del descubrimiento a la lectura directa del ADN y a señales de Mythos 5 que responden a repeticiones, pero no presenta una ablación causal que demuestre que esas señales produjeron el hallazgo."
+                }
+              ]
+            }
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "Anthropic预印本报告AI辅助发现重复相关的噬菌体逆转录酶",
+            "summary": "Anthropic在九月23日的预印本中介绍了一次自主基因组挖掘活动：Claude智能体搜索了1.9十亿个宏基因组蛋白簇中的逆转录酶位点，并发现阵列相关逆转录酶（ART）这一噬菌体位点候选家族，其特征包括串联排列的非编码DNA重复序列和邻近的相关基因。作者报告了95个ART逆转录酶代表，以及在噬菌体感染和质粒表达实验中检测到阵列来源短RNA的结果。这些是供应商论文中的结果，尚未独立复现。预印本称多次重复搜索均未发现该阵列，并明确指出逆转录酶活性、RNA底物关系、相关蛋白相互作用和噬菌体功能均未解决。现有证据支持“智能体活动发现了一个经实验室研究的候选系统”这一有限结论，但不能证明存在类似CRISPR的功能性酶，也不能确定自主发现的一般成功率。",
+            "importance_rationale": "如果这项有限范围的发现叙述及相关分子观察经得起验证，自主智能体便是在大规模序列搜索中发现了一类此前未表征的重复相关噬菌体逆转录酶位点，随后又获得表达证据。这是AI在数据库规模上辅助生物学发现的一项重要可行性证明。评分5反映其引导研究探索新系统的潜力；其功能仍未知，多次重复搜索未能重现信号，而且缺少独立复现。",
+            "why_it_matters": "如果这一发现能被独立复现且其生物学功能得到澄清，ART可能扩展已知的重复相关噬菌体逆转录酶系统多样性，并展示AI智能体如何从超大型序列数据库中发现异常。论文没有证明存在类似CRISPR的编辑工具、具有功能的酶机制，或自主发现方面的一般优势；目前最有力的证据是供应商报告的一次发现活动及初步RNA表达实验。",
+            "technical": {
+              "claimed_result": "作者报告，该活动搜索了1.9十亿个宏基因组蛋白簇，找回约200,000个逆转录酶簇，检查约11,000个位点，研究17个候选相关蛋白家族，并在21.5小时内由949个智能体会话生成19份报告。后续研究发现ART位点；论文确定了95个ART逆转录酶代表。实验报告称，在葡萄球菌噬菌体感染期间以及大肠杆菌质粒表达后，阵列会产生不同RNA。",
+              "compute_or_cost": "论文报告，该活动共949个会话、77个智能体小时、215.6百万个令牌，墙钟时间为21.5小时。没有提供可比的人类专家基准或完整经济成本。",
+              "demonstrated_result": "论文及其描述的方法、序列分析和报告的实验均可直接查阅。ART家族归属和RNA表达测量由作者报告；未找到独立复现。论文没有证明逆转录酶的酶活性或生物学功能。",
+              "implementation_status": "预印本描述了智能体流程和后续实验室工作。该发现并未被呈现为成熟产品或已表征的生物技术；确定其功能的后续实验仍在进行。",
+              "mechanism": "论文描述了一套多智能体流程，工作会话与监督会话共同搜索蛋白家族邻近区域、生成并审阅候选报告，随后继续跟进智能体在原始基因组DNA中提出的异常。ART信号是一个串联非编码DNA重复阵列，位于噬菌体逆转录酶和相关基因旁。作者将发现与Mythos 5处理DNA序列以及对重复序列有响应的内部信号联系起来，但这一因果机制尚未独立证明。",
+              "novelty": "作者称，通用模型在大规模智能体基因组搜索活动中，直接发现了噬菌体逆转录酶旁未注释的DNA重复结构；后续实验又观察到该阵列来源的短RNA。",
+              "regime": "Anthropic自己的活动和实验室；主要搜索使用Claude Mythos 5。搜索覆盖宏基因组序列数据库中的逆转录酶位点。论文报告949个会话、77个智能体小时和21.5小时墙钟时间；后续实验包括噬菌体感染RNA测序和大肠杆菌质粒表达。",
+              "reproducibility": "未找到基因组挖掘活动或ART表征的独立复现。预印本称多次重复搜索均未发现该阵列；本次检查未获得完整活动记录或全面独立搜索结果。",
+              "strongest_baseline": "没有与非智能体搜索或人类专家搜索的匹配基准来证明相对速度或成本。固定输入表征基准比较了多个Claude型号，并显示上下文和工具会影响结果；作者称，每次重复基因组搜索都没有再次发现ART。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "Anthropic发布了一篇预印本，介绍利用自主基因组挖掘搜索逆转录酶系统的活动，以及其命名为阵列相关逆转录酶（ART）的一类候选系统。"
+                },
+                {
+                  "text": "作者称，Claude智能体检查了1.9十亿个宏基因组蛋白簇，并发现ART位点，其中包括逆转录酶、邻近的相关基因和串联排列的非编码DNA重复序列；论文报告了95个ART逆转录酶代表。"
+                },
+                {
+                  "text": "后续实验报告称，在葡萄球菌噬菌体感染期间以及在大肠杆菌质粒表达后，都检测到了由ART阵列转录的不同短RNA。这些观察尚不能证明酶的活性或该系统的生物学功能。"
+                },
+                {
+                  "text": "作者认为，直接检查DNA序列以及对重复序列有响应的Mythos 5信号，可能帮助识别出异常阵列；这一因果解释基于该团队的活动记录和供应商自行运行的基准，并非对发现机制的独立检验。"
+                },
+                {
+                  "text": "论文称，多次重复搜索均未能发现该阵列，并指出逆转录酶活性、RNA底物关系、相关蛋白之间的相互作用及噬菌体中的系统功能均尚未确定。"
+                }
+              ],
+              "limitations": [
+                "本次检查的所有来源材料和实验均由Anthropic制作；未找到独立实验室复现。",
+                "论文称多次重复基因组挖掘搜索未能发现ART阵列，因此发现的可复现性以及其对模型/流程配置的敏感程度仍未明确。",
+                "论文报告了阵列RNA表达，但尚未证明逆转录酶活性、阵列RNA是否为酶底物、相关蛋白的相互作用或其生物学功能。",
+                "作者提出Mythos 5的重复响应内部信号与发现有关，但这只是作者的解释，并非独立检验的因果机制。",
+                "没有与人类专家或非智能体搜索进行匹配比较，无法确定相对发现速度、成本或在不同生物学目标上的普遍性。",
+                "单次搜索活动不能确定自主发现的一般成功率，也不能取代人类实验室验证。"
+              ],
+              "gaps": [
+                {
+                  "description": "尚无独立实验室复现ART位点分析、阵列RNA表达结果或自主基因组挖掘活动；论文称重复搜索均未发现该阵列。"
+                },
+                {
+                  "description": "预印本未证明逆转录酶活性、ART阵列RNA是否为底物、相关蛋白之间是否相互作用，或该系统在噬菌体感染中的功能。"
+                },
+                {
+                  "description": "论文将发现部分归因于直接读取DNA以及对重复序列有响应的Mythos 5信号，但没有通过因果消融证明这些信号促成了搜索结果。"
+                }
+              ]
+            },
+            "headline": "Anthropic预印本报告AI辅助发现重复相关的噬菌体逆转录酶"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
+    {
+      "id": "FCMO-34FD54DE9272",
+      "slug": "fire-reports-failure-derived-runtime-policies-improve-repeated-agent",
+      "url_date": "2026-10-13",
+      "kind": "development",
+      "status": "live",
+      "beat": "research",
+      "desk": "evaluation_science",
+      "title": "FIRE reports failure-derived runtime policies improve repeated agent task success",
+      "headline": "FIRE reports failure-derived runtime policies improve repeated agent task success",
+      "dek": "An arXiv preprint studies runtime policies derived from observed agent failures: targeted instructions or action denials trigger at risky execution states without changing model weights or user prompts.",
+      "summary": "An arXiv preprint studies runtime policies derived from observed agent failures: targeted instructions or action denials trigger at risky execution states without changing model weights or user prompts. The authors report a randomized five-arm Terminal-Bench panel in which their frozen policies improve success on eligible tasks over baseline and timing-matched sham, while generic verify and reconsider prompts do not reproduce the result. Across an 87-task subset of Terminal-Bench 2.1, the authors also report higher two-attempt success for three model tiers. These are author-reported findings: the prespecified panel policy-versus-sham estimate is +25.0 percentage points with a wide 95% interval [7.1, 46.4] and p=0.061; two tasks were excluded because pinned images could not install the agent. The evidence is limited to English terminal tasks and has no independent replication.",
+      "why_it_matters": "If independently reproduced and transferred, harness policies tied to observable failure states could make agent solutions more dependable without retraining. The reported experiment offers a controlled but small, author-run result: its prespecified policy-versus-sham interval is wide, coverage is limited to English terminal tasks, and broad transfer is not established.",
+      "importance_rationale": "If independently reproduced and transferred, targeted runtime policies could improve dependable delivery of agent work without changing model weights, reducing the gap between capabilities an agent can reach and solutions it reliably delivers. Score 5 reflects a potentially useful engineering method supported by a controlled but small author-run study; it does not measure confidence and does not imply general production effectiveness.",
+      "technical": {
+        "claimed_result": "Authors report 17/28 passes (60.7%) for real policies on eligible tasks versus 10/28 (35.7%) for timing-matched sham and 11/28 (39.3%) for baseline. Primary difference vs sham is +25.0 points (95% CI [7.1,46.4], p=0.061). On all 87 tasks, pass^2 rises 50.6→54.0% Luna, 55.2→60.9% Terra and 64.4→73.6% Sol.",
+        "compute_or_cost": "The authors report policy-guided Terra reaching 71.4% against unassisted Sol at 64.3% on the 14-task frozen portfolio, at about half the cost. This comparison is author-reported and specific to selected tasks/models; complete lifecycle costs are not independently measured.",
+        "demonstrated_result": "The paper directly describes its policy abstraction, frozen portfolio, randomized panel and metrics. Reported outcomes have not been independently checked against raw run artifacts or reproduced in this activation.",
+        "implementation_status": "Research preprint describes policies integrated into the authors’ agent harness. No independent implementation or replication was examined.",
+        "mechanism": "The authors derive policy eligibility and runtime triggers from observed failure states. At selected harness events, a policy adds a short instruction or denies a tool action; the frozen portfolio does not alter model weights or the user prompt.",
+        "novelty": "Derives targeted runtime interventions from observed procedural failures and tests policy content against same-event sham and generic self-checking controls, distinguishing reliable delivery from capability.",
+        "regime": "arXiv v1 submitted 2026-09-22. Terminal-Bench 2.1; 87 of 89 tasks in complete-suite analysis, two attempts per task, three author-selected GPT-5.6 tiers. Separate randomized five-arm panel: 14 eligible plus 16 silent tasks, five arms and two attempts per task/arm (300 attempts).",
+        "reproducibility": "No independent reproduction or audit of raw attempt artifacts was located or performed.",
+        "strongest_baseline": "For causal attribution, the authors’ timing-matched sham on the same eligible tasks is the primary comparator; generic always-verify and reconsider arms are secondary controls. The primary policy-versus-sham estimate is imprecise."
+      },
+      "importance_tier": "Notable",
+      "development_type": "paper",
+      "event_at": "2026-09-22T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-13T17:01:15Z",
+      "updated_at": "2026-10-13T17:01:15Z",
+      "importance": 5,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": true,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "DEMONSTRATED",
+            "text": "The arXiv preprint describes runtime policies derived from observed task failures, implemented as targeted instructions or action denials triggered by task and execution state without changing model weights or user prompts."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "In the authors’ randomized five-arm panel on 14 policy-eligible Terminal-Bench tasks, the frozen runtime policies pass 17/28 attempts (60.7%), compared with 10/28 (35.7%) for a timing-matched sham and 11/28 (39.3%) for baseline. The prespecified policy-versus-sham difference is +25.0 points with a 95% interval [7.1, 46.4] and p=0.061; the estimate is large but imprecise."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "Across the authors’ 87-task Terminal-Bench subset and two attempts per task, policy-guided repeated success rises from 50.6% to 54.0% for Luna, 55.2% to 60.9% for Terra, and 64.4% to 73.6% for Sol. The complete suite excludes two of the benchmark’s 89 tasks because their pinned images could not install the agent."
+          },
+          {
+            "label": "DEMONSTRATED",
+            "qualifier": "LIMITATION",
+            "text": "The authors report a benchmark-specific result from frozen policies and English terminal tasks; policies were derived from failures in the same research program. The paper provides no independent reproduction or evidence of transfer to other domains, harnesses, languages or production agents."
+          }
+        ],
+        "limitations": [
+          "All performance results are author-reported; no independent reproduction was located or performed.",
+          "The prespecified five-arm primary contrast has a wide interval and p=0.061; the 14 eligible tasks provide limited precision.",
+          "The two-attempt design measures observed repeatability but does not identify per-task success probabilities.",
+          "Complete-suite results cover 87 of 89 Terminal-Bench tasks after two image-installation exclusions.",
+          "Evaluation uses English terminal tasks, the authors’ selected models and harness, and policies derived from the same research program; external validity is unknown."
+        ],
+        "gaps": [
+          {
+            "kind": "reproduction_missing",
+            "description": "No independent reproduction of the frozen runtime-policy portfolio or five-arm comparison was located. Attempt-level paper results remain author-reported."
+          },
+          {
+            "kind": "other",
+            "description": "Transfer beyond English Terminal-Bench tasks, these models, this harness and policies derived from this research program is unmeasured."
+          },
+          {
+            "kind": "other",
+            "description": "Two of 89 Terminal-Bench tasks were omitted from complete-suite comparisons because their pinned images could not install the agent."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://arxiv.org/abs/2609.26048",
+          "domain": "arxiv.org",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "Failproof AI"
+      ],
+      "topics": [
+        "agent-reliability",
+        "runtime-policies",
+        "evaluation-science",
+        "benchmarking"
+      ],
+      "regions": [
+        "GLOBAL"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-34FD54DE9272.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: FIRE reports failure-derived runtime policies improve repeated agent task success"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "FIRE informa que políticas de ejecución basadas en fallas mejoran la repetibilidad de tareas de agentes",
+            "summary": "Un preprint de arXiv estudia políticas de ejecución derivadas de fallas observadas en agentes: instrucciones específicas o denegaciones de acciones que se activan ante estados de ejecución riesgosos, sin cambiar los pesos del modelo ni las instrucciones del usuario. Los autores informan un panel aleatorizado de cinco brazos en Terminal-Bench: sus políticas congeladas mejoran el éxito en tareas elegibles frente a una línea base y un control simulado con activación sincronizada, mientras que las instrucciones genéricas para verificar o reconsiderar no reproducen el resultado. En un subconjunto de 87 tareas de Terminal-Bench 2.1, también informan mayor éxito en dos intentos para tres niveles de modelo. Son resultados informados por los autores: la estimación preespecificada de políticas frente al control simulado es de +25.0 puntos porcentuales, con un intervalo amplio de 95% [7.1, 46.4] y p=0.061; se excluyeron dos tareas porque sus imágenes fijadas no permitían instalar el agente. La evidencia se limita a tareas de terminal en inglés y no cuenta con reproducción independiente.",
+            "importance_rationale": "Si se reprodujeran y transfirieran, las políticas de ejecución específicas podrían mejorar la entrega confiable del trabajo de agentes sin cambiar los pesos del modelo, reduciendo la brecha entre las capacidades que un agente puede alcanzar y las soluciones que entrega de forma consistente. La puntuación 5 refleja un método de ingeniería potencialmente útil respaldado por un estudio controlado, pequeño y realizado por los autores; no mide confianza ni implica eficacia general en producción.",
+            "why_it_matters": "Si se reprodujeran y transfirieran, las políticas del entorno vinculadas a estados de falla observables podrían hacer más confiables las soluciones de agentes sin reentrenarlos. El experimento reportado es controlado pero pequeño y realizado por los autores: el intervalo preespecificado frente al control simulado es amplio, la cobertura se limita a tareas de terminal en inglés y no se ha establecido una transferencia amplia.",
+            "technical": {
+              "claimed_result": "Los autores informan 17/28 intentos exitosos (60.7%) con políticas reales en tareas elegibles, frente a 10/28 (35.7%) con control simulado sincronizado y 11/28 (39.3%) con la línea base. La diferencia primaria frente al control simulado es +25.0 puntos (IC 95% [7.1,46.4], p=0.061). En 87 tareas, éxito en ambos intentos aumenta de 50.6→54.0% para Luna, 55.2→60.9% para Terra y 64.4→73.6% para Sol.",
+              "compute_or_cost": "Los autores informan que Terra con políticas alcanza 71.4%, frente a 64.3% de Sol sin asistencia en el conjunto congelado de 14 tareas, con cerca de la mitad del costo. Esta comparación es informada por los autores y se limita a modelos y tareas seleccionados; no se midió de forma independiente el costo total del ciclo de vida.",
+              "demonstrated_result": "El artículo describe directamente la abstracción de políticas, el conjunto congelado, el panel aleatorizado y las métricas. En esta activación no se verificaron los resultados reportados contra artefactos de ejecución sin procesar ni se reprodujeron.",
+              "implementation_status": "El preprint describe políticas integradas en el entorno de agentes de los autores. No se examinó una implementación independiente ni una reproducción.",
+              "mechanism": "Los autores derivan la elegibilidad y los activadores de ejecución a partir de estados de falla observados. En eventos seleccionados del entorno, una política agrega una instrucción breve o deniega una llamada a herramienta; el conjunto congelado no modifica los pesos del modelo ni la instrucción del usuario.",
+              "novelty": "Deriva intervenciones de ejecución específicas de fallas procedimentales observadas y prueba el contenido de las políticas frente a controles simulados sincronizados y controles genéricos de autoverificación, distinguiendo la entrega confiable de la capacidad.",
+              "regime": "Versión v1 de arXiv enviada el 2026-09-22. Terminal-Bench 2.1; 87 de 89 tareas en el análisis completo, dos intentos por tarea y tres niveles de GPT-5.6 seleccionados por los autores. Panel separado aleatorizado de cinco brazos: 14 tareas elegibles y 16 silenciosas, cinco brazos y dos intentos por tarea y brazo (300 intentos).",
+              "reproducibility": "No se localizó ni realizó una reproducción independiente o una auditoría de los artefactos de intentos sin procesar.",
+              "strongest_baseline": "Para la atribución causal, el control simulado sincronizado de los autores en las mismas tareas elegibles es el comparador primario; los controles secundarios son instrucciones generales de verificar y reconsiderar. La estimación primaria frente al control simulado es imprecisa."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "El preprint de arXiv describe políticas de ejecución derivadas de fallas observadas en tareas, implementadas como instrucciones específicas o denegaciones de acciones activadas por el estado de la tarea y la ejecución, sin cambiar los pesos del modelo ni las instrucciones del usuario."
+                },
+                {
+                  "text": "En el panel aleatorizado de cinco brazos de los autores, con 14 tareas elegibles de Terminal-Bench, las políticas de ejecución congeladas superan 17/28 intentos (60.7%), frente a 10/28 (35.7%) para un control simulado con activación sincronizada y 11/28 (39.3%) para la línea base. La diferencia preespecificada entre política y control simulado es de +25.0 puntos, con intervalo de 95% [7.1, 46.4] y p=0.061; la estimación es grande pero imprecisa."
+                },
+                {
+                  "text": "En el subconjunto de 87 tareas de Terminal-Bench de los autores, con dos intentos por tarea, el éxito repetido guiado por políticas aumenta de 50.6% a 54.0% para Luna, de 55.2% a 60.9% para Terra y de 64.4% a 73.6% para Sol. El análisis de la suite completa excluye dos de las 89 tareas del benchmark porque sus imágenes fijadas no permitían instalar el agente."
+                },
+                {
+                  "text": "Los autores informan un resultado específico del benchmark, con políticas congeladas y tareas de terminal en inglés; las políticas se derivaron de fallas observadas en el mismo programa de investigación. El artículo no ofrece reproducción independiente ni evidencia de transferencia a otros dominios, entornos de agentes, idiomas o agentes de producción."
+                }
+              ],
+              "limitations": [
+                "Todos los resultados de rendimiento son informes de los autores; no se localizó ni realizó una reproducción independiente.",
+                "El contraste primario preespecificado de cinco brazos tiene un intervalo amplio y p=0.061; las 14 tareas elegibles ofrecen precisión limitada.",
+                "El diseño de dos intentos mide la repetibilidad observada, pero no identifica probabilidades de éxito por tarea.",
+                "Los resultados de la suite completa abarcan 87 de 89 tareas de Terminal-Bench, tras excluir 2 por problemas de instalación de imágenes.",
+                "La evaluación usa tareas de terminal en inglés, modelos y un entorno seleccionados por los autores, y políticas derivadas del mismo programa de investigación; se desconoce su validez externa."
+              ],
+              "gaps": [
+                {
+                  "description": "No se encontró una reproducción independiente del conjunto de políticas de ejecución congeladas ni de la comparación de cinco brazos. Los resultados por intento del artículo siguen siendo informes de los autores."
+                },
+                {
+                  "description": "No se ha medido la transferencia a tareas de Terminal-Bench en otros idiomas, estos modelos, este entorno de agentes ni a políticas derivadas fuera de este programa de investigación."
+                },
+                {
+                  "description": "Se omitieron dos de las 89 tareas de Terminal-Bench de las comparaciones de la suite completa porque sus imágenes fijadas no permitían instalar el agente."
+                }
+              ]
+            }
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "FIRE报告：基于失败的运行时策略提高智能体任务的重复成功率",
+            "summary": "一篇arXiv预印本研究了从智能体已观察到的失败中提炼运行时策略：在高风险执行状态触发定向指令或动作拒绝，而不改变模型权重或用户提示。作者报告了一项Terminal-Bench五臂随机面板实验：冻结的策略在符合条件的任务上比基线和定时匹配的模拟干预取得更高成功率，而通用验证或重新考虑提示未能复现该结果。在Terminal-Bench 2.1的87个任务子集中，作者还报告三个模型档位的两次尝试成功率提高。这些均为作者报告的发现：预先指定的策略对模拟干预估计值为+25.0个百分点，95%区间较宽，为[7.1, 46.4]，p=0.061；另有两个任务因固定镜像无法安装智能体而被排除。证据仅涉及英文终端任务，且尚无独立复现。",
+            "importance_rationale": "如果能独立复现并验证迁移能力，定向运行时策略可能无需改变模型权重就提升智能体工作的可靠交付，缩小智能体可实现能力与稳定交付成果之间的差距。评分5表示该工程方法可能具有实际价值，依据是一项规模较小、由作者开展的受控研究；它不表示置信度，也不意味着在生产环境中普遍有效。",
+            "why_it_matters": "如果能够复现并验证迁移能力，与可观察失败状态相对应的运行框架策略可能无需重新训练就让智能体解答更可靠。该实验由作者开展且规模较小：预先指定的策略对模拟干预区间较宽，覆盖范围限于英文终端任务，尚未证明广泛迁移能力。",
+            "technical": {
+              "claimed_result": "作者报告，在合格任务中真实策略通过17/28次尝试（60.7%），定时匹配模拟干预为10/28（35.7%），基线为11/28（39.3%）。与模拟干预的主要差异为+25.0个百分点（95% CI [7.1,46.4]，p=0.061）。在全部87个任务中，两次均成功从Luna的50.6→54.0%、Terra的55.2→60.9%、Sol的64.4→73.6%。",
+              "compute_or_cost": "作者报告，在冻结的14个任务组合上，策略引导的Terra达到71.4%，未加策略的Sol为64.3%，成本约为其一半。这一比较由作者报告，限于所选模型和任务；没有独立测量完整生命周期成本。",
+              "demonstrated_result": "论文直接描述了策略抽象、冻结策略组合、随机面板和评估指标。本次激活未依据原始运行记录独立核验或复现所报告的结果。",
+              "implementation_status": "预印本介绍了作者将策略集成到其智能体运行框架中的做法。本次未检查独立实现或复现。",
+              "mechanism": "作者根据已观察到的失败状态确定策略适用条件和运行时触发条件。在运行框架的特定事件中，策略会添加简短指令或拒绝工具调用；冻结策略组合不改变模型权重或用户提示。",
+              "novelty": "从已观察到的程序性失败中提炼定向运行时干预，并通过同一事件触发的模拟对照和通用自检对照检验策略内容，从而区分可靠交付与能力本身。",
+              "regime": "arXiv v1于2026-09-22提交。Terminal-Bench 2.1；完整套件分析含87/89个任务，每个任务尝试两次，使用作者选定的三个GPT-5.6档位。另有五臂随机面板：14个合格任务和16个不触发任务，五个实验臂，每项任务每臂尝试两次（共300次尝试）。",
+              "reproducibility": "本次未找到或执行独立复现，也未审计原始尝试记录。",
+              "strongest_baseline": "因果归因的主要对照是作者在相同合格任务上设置的定时匹配模拟干预；次要对照为通用验证和重新考虑提示。主要策略对模拟干预的估计精度有限。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "arXiv预印本描述了从已观察到的任务失败中提炼运行时策略：根据任务和执行状态触发定向指令或动作拒绝，且不改变模型权重或用户提示。"
+                },
+                {
+                  "text": "在作者针对14个Terminal-Bench合格任务开展的五臂随机面板中，冻结的运行时策略在28次尝试中通过17次（60.7%），而定时匹配的模拟干预为10/28（35.7%），基线为11/28（39.3%）。预先指定的策略对模拟干预差异为+25.0个百分点，95%区间为[7.1, 46.4]，p=0.061；估计值较大但精度有限。"
+                },
+                {
+                  "text": "在作者的87个Terminal-Bench任务子集中，每个任务尝试两次，策略引导的重复成功率从Luna的50.6%升至54.0%，从Terra的55.2%升至60.9%，从Sol的64.4%升至73.6%。完整套件分析排除了基准89个任务中的两个，因为其固定镜像无法安装智能体。"
+                },
+                {
+                  "text": "作者报告的是冻结策略在特定基准和英文终端任务上的结果；这些策略来自同一研究项目观察到的失败。论文没有提供独立复现，也没有证据表明结果可迁移到其他领域、智能体运行框架、语言或生产智能体。"
+                }
+              ],
+              "limitations": [
+                "所有性能结果均由作者报告；本次未找到或执行独立复现。",
+                "预先指定的五臂主要对照区间较宽，p=0.061；14个合格任务的估计精度有限。",
+                "两次尝试的设计测量观察到的重复性，但无法识别各任务的成功概率。",
+                "完整套件结果覆盖Terminal-Bench的89个任务中的87个，另2个因镜像安装问题被排除。",
+                "评估使用英文终端任务、作者选择的模型和运行框架，以及同一研究项目形成的策略；外部有效性尚不清楚。"
+              ],
+              "gaps": [
+                {
+                  "description": "目前没有找到对冻结运行时策略组合或五臂对照实验的独立复现。论文中逐次尝试的结果仍由作者报告。"
+                },
+                {
+                  "description": "目前尚未测量这些策略能否迁移到其他英文以外的Terminal-Bench任务、这些模型、该智能体运行框架，或该研究项目以外形成的策略。"
+                },
+                {
+                  "description": "完整套件对照分析排除了Terminal-Bench的89个任务中的两个，因为其固定镜像无法安装智能体。"
+                }
+              ]
+            },
+            "headline": "FIRE报告：基于失败的运行时策略提高智能体任务的重复成功率"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
     {
       "id": "FCMO-E9F9F4666F91",
       "slug": "kwaimind-reports-ctr-guided-image-editing-gains-in-an-online-product",
