@@ -1,6 +1,6 @@
 {
   "canonical_locale": "en",
-  "canonical_source_sha256": "861be6c2acb5f70015633b08f1a3e91240fc979a05177ca4ab0e65829cbf3209",
+  "canonical_source_sha256": "e03d1d6dd51ecb6177209fc7982400f0486f7f9157c5cf595e070a18da2e00c2",
   "generated_from": "ARB airlock; editorial wording authored upstream",
   "locale": "zh-Hans",
   "records": {
@@ -4804,6 +4804,55 @@
       "title": "FIRE报告：基于失败的运行时策略提高智能体任务的重复成功率",
       "why_it_matters": "如果能够复现并验证迁移能力，与可观察失败状态相对应的运行框架策略可能无需重新训练就让智能体解答更可靠。该实验由作者开展且规模较小：预先指定的策略对模拟干预区间较宽，覆盖范围限于英文终端任务，尚未证明广泛迁移能力。"
     },
+    "FCMO-35FB723DCBDA": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "Microsoft Research 发布了一项有明确日期的移动机器人工作负载研究，并介绍 Physical AI Toolchain 的推理卸载功能，用于在机器人与边缘或云端 GPU 之间分配模型执行。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "在选定工作负载中，Microsoft 报告称，部分内存足够的小型 GPU 在建图和规划上比 A100 慢至 383%；较轻的 GPU 使及时障碍检测下降 30%，而评估中的本地配置令 VLA 准确率下降至多 50%。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "在一项 Stretch-3 比较中，研究以 Raspberry Pi 5 替换本地 GPU 并将推理卸载；Microsoft 报告图示配置的电池续航提升超过 100%。"
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION",
+          "text": "文章指出，推理卸载会带来网络延迟、带宽和可用 GPU 资源方面的权衡；这些结果不能证明远端推理在所有机器人任务或网络条件下都更优。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "报告指出，额外几十毫秒的网络延迟可使操作准确率降低超过 10%；视频流压缩可使操作和语义建图准确率降低近 20%；持续图像传输可能使网络饱和，多台机器人争用计算资源会增加延迟，因此需要准入控制或资源管理。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "尚无对报告中的机器人工作负载及网络和机队权衡进行独立复现，并配套测量匹配任务、延迟、带宽、能耗和成本。",
+          "kind": "missing_independent",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "如果能在有用的机器人任务中复现，将大型物理 AI 推理负载迁移至共享边缘或云端 GPU，可能改变机器人能耗、能力与基础设施设计的权衡。评分反映其对系统与经济的潜在后果，并不表示对 Microsoft 测量结果的置信程度。",
+      "limitations": [
+        "测量由 Microsoft 完成，尚未独立复现。",
+        "研究使用 Stretch 3、TurtleBot 4 和 SO-101 三种特定平台及选定工作负载；这并不证明大规模部署机队的结果。",
+        "报告发现网络延迟可能降低操作准确率，持续视频传输可能使简单云端卸载不切实际，而机队争用需要准入控制或资源管理；最佳计算位置取决于工作负载和网络条件。"
+      ],
+      "relationships": [],
+      "summary": "Microsoft Research 报告了一项移动机器人操作工作负载研究，对比机器人本地、边缘和云端计算，并介绍 Physical AI Toolchain 的推理卸载功能。文章称，较轻的本地 GPU 可能限制建图、导航与操作；卸载推理则可提升所选任务的表现并延长电池续航。文章也明确指出网络延迟、带宽和远端 GPU 可用性会带来权衡。测量结果由厂商报告，适用于选定的工作负载和硬件配置。",
+      "technical": {
+        "claimed_result": "厂商文章报告称，内存足够的小型 GPU 在建图和规划上比 A100 慢至多 383%，较轻 GPU 的及时障碍检测低 30%，VLA 准确率下降至多 50%，并称所述配置下 Stretch-3 的电池续航提高超过 100%。",
+        "demonstrated_result": "Microsoft 介绍了其测量研究和工具链功能；数值结果由作者报告。本次没有进行独立机器人评估。",
+        "mechanism": "Physical AI Toolchain 使用容器化工作负载和基于 Kubernetes 的部署，将机器人推理卸载到边缘或云端 GPU。研究比较了语义建图与规划、导航和操作任务中的本地、边缘和云端配置。",
+        "regime": "Microsoft 的测量研究使用 Stretch 3、TurtleBot 4 和 SO-101，在选定的本地、边缘和云端平台、无线链路以及感知、规划、导航和操作工作负载上进行比较。这是实验室测量研究，并非大规模独立机队部署。",
+        "strongest_baseline": "研究将选定的本地 GPU 与边缘或云端 GPU（包括 A100）比较，并改变网络条件、讨论共享计算。报告发现网络延迟和带宽可能限制卸载，资源争用会增加机队延迟。"
+      },
+      "title": "Microsoft 报告移动机器人推理卸载的测量结果",
+      "why_it_matters": "该研究把推理基础设施视为物理 AI 能力的一部分：机器人可执行的模型和任务取决于本地计算、网络连接与共享远端加速器的共同设计。"
+    },
     "FCMO-37EBAD10DCAA": {
       "claims": [
         {
@@ -7205,6 +7254,52 @@
       },
       "title": "ScientistTwo 报告端到端自动化研究流程，但质量主张依赖 AI 审稿",
       "why_it_matters": "如果经过独立验证，能够端到端提出并测试对已接收研究基线的修改的自主流程，可能改变计算研究的成本和吞吐量。当前证据表明，作者报告了大规模基准运行和自动化审稿评分；评估器依赖、新颖性判定、基线保真度和独立复现仍是关键缺口。"
+    },
+    "FCMO-53464968F2F9": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "作者将 KPR 定义为一套流程：提取主张、与现有文档核对、将新主张路由到相应章节、标记冲突，并将变更日志与文本差异分开记录。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "在跨语言 Wikipedia 修订评估中，KPR 的新增信息准确率和召回率高于论文评估的原始文本与仅主张改写基线；表 2 报告 InfoP 为 0.878，新增信息召回率为 0.891。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "在三个构造的 RAGTIME 更新场景中，论文报告 KPR 在改写方法中保留旧信息和纳入新信息的召回率最高，并会标记相互矛盾的新主张，而非静默地加以消解。"
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION",
+          "text": "作者指出，该流程会调用语言模型多次，编辑成本指标衡量的是生成文本的大小，而非生成这些修改所用的计算量；质量评估使用了语言模型评审。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "尚无使用预留的多语言及时序文档、预先设定的评估器和匹配基线进行的独立复现。",
+          "kind": "missing_independent",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "如果报告的改进可以推广，以主张为单位的变更提案或可让持续更新的多语言知识文档更易审计，并减少旧主张被静默丢失或替换的情况。评分反映其对研究与智能体知识工作流的潜在影响，并不表示对评估结果的置信程度。",
+      "limitations": [
+        "所有性能结果均由论文作者报告，尚未独立复现。",
+        "质量指标使用语言模型评审和各 benchmark 特定的相关性判断。",
+        "RAGTIME 场景是构造的双轮变体，不评估检索过程本身。",
+        "流程会进行多次语言模型调用；编辑规模并不代表推理总计算量。"
+      ],
+      "relationships": [],
+      "summary": "Knowledge Pull Requests（KPR）论文提出一套文档更新流程：从新来源提取主张，对其分类并分配到文档章节，标记冲突，同时记录知识变更日志和文本差异。在跨语言 Wikipedia 修订及三个构造的 RAGTIME 更新场景中，作者报告称，在所评估条件下，该方法比原始文本改写、仅基于主张的改写和从头生成纳入并保留了更多信息。问答评估还显示，当相关知识只出现在其他语言来源中时，KPR 修订后的文章比原文、闭卷回答或网页搜索提供了更强的答案依据。",
+      "technical": {
+        "claimed_result": "在论文的 Wikipedia 设置中，KPR 报告 InfoP 为 0.878、新增信息召回率为 0.891，高于所评估的 ConText 和 ConClaim 改写方法。在三个 RAGTIME 变体中，它报告的旧信息和新信息召回率在改写方法中最高。评估由论文作者报告，并使用语言模型评审。",
+        "demonstrated_result": "论文详细说明了 KPR 流程并报告了受控 benchmark 结果；本次没有进行独立复现。",
+        "mechanism": "KPR 将知识变更的单位（可审阅的主张提案）与文本编辑分开。流程先将来源分解为主张，筛除已覆盖或冲突的内容，再把其余主张分配到章节，只重写受影响的部分，并记录变更日志。",
+        "regime": "跨语言 Wikipedia 文章修订，以及三个构造的双轮 RAGTIME 变体（时间变化、冲突、平衡）。RAGTIME 研究通过相关性判断直接提供来源文档，并未评估检索本身。",
+        "strongest_baseline": "ConText 使用相关原始来源进行改写；ConClaim 使用提取出的主张，但没有 KPR 的主张审阅步骤；Scratch 在 RAGTIME 设置中从头生成文档。"
+      },
+      "title": "论文提出以主张为单位的多语言持续文档更新流程",
+      "why_it_matters": "如果这些结果能够推广，以主张为单位的变更提案或可让持续更新的多语言知识文档更易审计，并减少旧主张被静默丢失或替换的情况。其潜在重要性在于研究与智能体知识工作流，而非对当前评估真实性的判断。"
     },
     "FCMO-549245C022B9": {
       "summary": "Google DeepMind 于 2026-09-08 发布 AlphaGenome Atlas，这是一个约 1 PB 的目录，其中包含 AlphaGenome 对人类参考基因组上超过 9 billion 种可能单核苷酸替换的分子效应预测，并附带新的 AlphaGenome Variant Impact 分数和可解释的特征贡献。底层 AlphaGenome 模型已通过同行评审，并在许多变异效应基准上表现强劲；与此同时，独立的 2026 评估显示，性能会随细胞背景和单倍型背景显著变化。因此 Atlas 代表的是搜索经济学层面的重大科学基础设施变化，而不是对每一种变异的实验测量。",
@@ -17705,6 +17800,51 @@
       "title": "VLM-in-Sandbox报告为多模态智能体管理有界视觉证据状态",
       "why_it_matters": "多模态智能体生成裁剪图、掩码和渲染分析的速度，可能超过这些内容装入活动上下文的速度。显式证据台账和选择性重新查看策略，为丢弃产物或无限追加产物提供了一种具体替代方案。整体报告增益不大且伴有回退，因此它支持对该设计进行测试，并不意味着普遍有效。"
     },
+    "FCMO-EFA0808F5D89": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "作者报告称，在其决策语料中，隐藏表示对压缩和召回决策的预测优于可观察的长度和轮次元数据：压缩平均 AUROC 为 0.831 对 0.751，召回为 0.765 对 0.552。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "在使用 DeepSeek-V4-Flash 的 260 项 WorkBuddyBench 评估中，PaMER 将平均输入与输出 token 降低 73.2%，平均奖励为 69.4，对照基线为 69.9；PaMER+ 将 token 降低 71.7%，报告平均奖励为 71.6。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "在固定的 40 项任务比较中，论文报告 PaMER 和 PaMER+ 分别比基线少用约 52.4% 和 48.1% 的 token，且在该测试集上的平均奖励略高。"
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION",
+          "text": "token 统计包含主智能体及辅助记忆调用的输入和输出，但不能说明总延迟、存储、外部工具成本，或其他推理价格与硬件条件下的成本。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "尚未使用固定版本的模型与运行框架复现 WorkBuddyBench；也缺少总耗时、记忆存储、工具调用和成本数据。",
+          "kind": "missing_independent",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "如果 token 与任务质量之间的权衡可推广，隐藏状态引导的记忆控制或可降低长程智能体的运行成本，而不必只依赖固定窗口或周期性摘要。评分反映这种系统层面的潜在后果；benchmark 结果尚未确认。",
+      "limitations": [
+        "结果来自单一论文报告的 benchmark 以及特定模型和运行框架配置。",
+        "完整 benchmark 与固定的 Pilot40 是不同评估；token 减少本身不代表总运行成本下降。",
+        "本次没有检查独立实现或复现。"
+      ],
+      "relationships": [],
+      "summary": "PaMER 论文研究智能体的隐藏状态是否包含信号，能够预测何时应压缩上下文或取回较早的证据。论文提出状态引导压缩与选择性原始证据检索。在作者使用 DeepSeek-V4-Flash 进行的 260 项 WorkBuddyBench 评估中，PaMER 将平均输入与输出 token 降低了 73.2%，平均任务奖励从 69.9 变为 69.4；PaMER+ 将 token 降低了 71.7%，平均奖励升至 71.6。上述结果由作者报告，取决于 benchmark、运行框架和模型配置。",
+      "technical": {
+        "claimed_result": "在完整的 260 项任务中，作者报告 DeepSeek-V4-Flash 基线的平均奖励为 69.9、token 为 2.69M；PaMER 为 69.4 和 0.72M；PaMER+ 为 71.6 和 0.76M。表 4 报告固定 40 项任务比较中 PaMER 和 PaMER+ 的 token 分别减少 52.4% 和 48.1%。",
+        "demonstrated_result": "论文定义了记忆控制与证据检索方法并报告 benchmark 结果；本次没有进行独立复现。",
+        "mechanism": "PaMER 读取与记忆控制决策相关的隐藏状态信号，依据状态压缩上下文并检索选定的历史原始证据。PaMER+ 进一步按步骤选择证据。",
+        "regime": "论文的 WorkBuddyBench 包含 260 项代码、办公、安全和网页任务。完整 benchmark 比较使用 DeepSeek-V4-Flash；另有一项方法比较使用固定的 40 项 Pilot40。记忆决策语料与评估任务分开收集。",
+        "strongest_baseline": "同一 DeepSeek-V4-Flash 基础智能体，以及 WorkBuddyBench 上固定的上下文管理基线。Pilot40 是固定子集，应与完整 260 项结果区分。"
+      },
+      "title": "论文报告智能体行动前的记忆信号及长程任务中的选择性证据检索",
+      "why_it_matters": "该结果将记忆控制视为独立的系统问题：选择何时压缩上下文、恢复哪些过往证据，或可在评估的智能体范围内减少上下文负担，同时保持任务表现。"
+    },
     "FCMO-EFC5F5FC6FBE": {
       "claims": [
         {
@@ -22388,6 +22528,48 @@
         "source_sha256": "9311e0f4c773cf5f9dae55d3bdb61d45c5291e93073030294b60c7b05ab29e87"
       }
     },
+    "FCMO-35FB723DCBDA": {
+      "claims": {
+        "locale_sha256": "954d2d27f301e27c4de069892348461dac84e70f4205f3feaaec2e577ef74437",
+        "source_sha256": "fd1e46b037e9f2b68f29e484568face642c66c79ddc00c6bf78c02b6345a4184"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "641ad3ac68eb8d8767fcddc416978730060536827521a5314d93e0e859715f7f",
+        "source_sha256": "ac63dd442a700d6aa46d7231af09577dc388b1dcf0c3b8c8f0b9994471297e0b"
+      },
+      "importance_rationale": {
+        "locale_sha256": "81a537a1999f9ef687ebf1ac4975d9776ca5a003667e40804179fbcf9ac0e8d0",
+        "source_sha256": "0c518b7d3ea7529cd5aa6c69f549441c7411401cdb034be0db2f274e5d195cd8"
+      },
+      "limitations": {
+        "locale_sha256": "4879801c0edbb71982f507d8084f02cb48b5a528ed576f5e2213c718aaf48587",
+        "source_sha256": "38302aa916e35b07b8f6be53c9bdd641f56fb77b1744079341b13bbd61b58199"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "6841ac3b8a83b03477866cedd4a0ce9db7302bda29620fee339795d9cfc75f93",
+        "source_sha256": "7b76cdff268bf94c0c27178599c2e7bcd5465d5ba2caccac46414b8004abfc59"
+      },
+      "technical": {
+        "locale_sha256": "387537782e9bdb016de9b1cc9c29c7efe10234d66f939dbaef36c2106ba1d41f",
+        "source_sha256": "c93e152771a089b35ee3e13138c5f021f4037ae8d4f6b1b7ac8505ece6f0b118"
+      },
+      "title": {
+        "locale_sha256": "1274e0554fb35b1bb6c022c67ea05621ba5e2c53777b20948c7b65f0fe4ee481",
+        "source_sha256": "a1b47f8ffeed435c5de3b2a712c771a399f270c06b4e80153250539313f14d9a"
+      },
+      "why_it_matters": {
+        "locale_sha256": "d8af4ba9851fb751ba559f18e4073aecf8996a1104155d62b18f80afc185bf88",
+        "source_sha256": "712f53316590607a4bc4e9432025605537d4fd56a787737cec6f185c5e335222"
+      }
+    },
     "FCMO-37EBAD10DCAA": {
       "claims": {
         "locale_sha256": "2a37cb5eca515236d231b3771dcfa05bcdfde157867fd5c320804c7d3263163b",
@@ -24164,6 +24346,48 @@
       "why_it_matters": {
         "locale_sha256": "c84d81b6e8504efd0bb22af19ed7f4cf07a09082f50d0c8cd20fa87d49eee393",
         "source_sha256": "a029098fdd6539a1ff05a0beb46393b6cad9854474a81ecf180ce9686434b4f3"
+      }
+    },
+    "FCMO-53464968F2F9": {
+      "claims": {
+        "locale_sha256": "18fd3a140eeabfc293e158ef2487892597bb397cb2dd1a46ba254270b00085f0",
+        "source_sha256": "cdff24c39c0ca33862d125d76d199aa7d223ee5df91967bfaca27adae2ab24e4"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "1ae6d16c3e26ed1aa749508c9c64b2cde20664ee68ecaecd77999a9f9000ce57",
+        "source_sha256": "3fb4d05ac130aff83027134ad8094306d73f49defaad2f3c537ffa46c962a07d"
+      },
+      "importance_rationale": {
+        "locale_sha256": "5a42ec167e8d43ed49f4a708cac94b5e69c27d7348cf75ffc9dd1980f968f8ad",
+        "source_sha256": "08466cef128efec1e6b8804c4cd013e347667583751293535815544959f8efef"
+      },
+      "limitations": {
+        "locale_sha256": "a9d266daed87cc6b8c13f689341ac9e7d469b51e74d7893a17a00315e7bec4b5",
+        "source_sha256": "c69d5594945f44ddf5003779e9e1196469c7286c48d00ca0e885479e8c4606a1"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "bf86a63bc7afb981237d4affacff6b5465c865224c33ae52528d2b0abb1eaa53",
+        "source_sha256": "8e24d46971f086c5b3716c734e48c835a2c88dc703f6443eee79751b3e6fc59e"
+      },
+      "technical": {
+        "locale_sha256": "337461cb9eab264d6e776350baa4a9406c93273135fc2076cbcddfb8d59b4df1",
+        "source_sha256": "3247d2945da1e8f12356a73030a3abf2d96edea6d50f90f44f5ceb3399d4c117"
+      },
+      "title": {
+        "locale_sha256": "0757738dd74020bf0df2524bbcb6704b1812ab5adbcbf28e58f75f211751a386",
+        "source_sha256": "2c1abee4c2b43162e90a0ec37e4f9759adc7dc7b2a6014a75da66924e56ba290"
+      },
+      "why_it_matters": {
+        "locale_sha256": "98ee41122583bc34a0a11dd5d04db9899bb4f121cfff3b63a2dd370b6df130e6",
+        "source_sha256": "1ea564d612450160fe5749e618b2160bd6a39b4b8d3ed53a68a9db4d78b7e898"
       }
     },
     "FCMO-549245C022B9": {
@@ -32242,6 +32466,48 @@
       "why_it_matters": {
         "locale_sha256": "c2a040bc0c8abe39acb72436f2b99aab1c323c49bdefd9a56e97418525ccdb76",
         "source_sha256": "ecceadf16d25cd23c0c2174559371e0392e98ac3fe904deae43fa11aa90153c1"
+      }
+    },
+    "FCMO-EFA0808F5D89": {
+      "claims": {
+        "locale_sha256": "832de8b2cffc9512ae302e741543e043fb27d10273f952b2484d431409057d1e",
+        "source_sha256": "aad3876e3bd3d5042110fd615aa7637d99392bbf9f55400193ae6565f7cb7817"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "f77ecdb9799a2125d846171e8ea85dd16293549f85752e34c026dfd058574fd3",
+        "source_sha256": "25f8fd36a21d424f9dc7a1cd175104e1726b74ffd4a3ddccd4e971074acd9aac"
+      },
+      "importance_rationale": {
+        "locale_sha256": "4075178aa8ab2286f0d2a32fa99c9ab86bf6ac82a23506a0eeac5bcf2c96551a",
+        "source_sha256": "b637bf8071386560489069c7daa2d3991ca7d68d54aca9af04be302e0481fec0"
+      },
+      "limitations": {
+        "locale_sha256": "c828ce7e5ef70e42a44427c7ac31fbd29ebae9f99a4422412551bca9a2c852fe",
+        "source_sha256": "9115951d721554c8858d1e9bd32fa50658688bfe68510843261d3bc79f9f150c"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "1897667c6a1e34d6cca1d6e7fe55ae81d166647359517ca29405e6b2a089c213",
+        "source_sha256": "69615a738afebf24dc44c6766a7e4355ac2b488cc1e5a12b58dcb48952ccb6df"
+      },
+      "technical": {
+        "locale_sha256": "153f3271fb341d76dcfab31a472838fd7f80828d96595a2d5f78ca5366f608d0",
+        "source_sha256": "7a57d21b284e5e154b1ead28f44fd3a2c7011ec19b5cbb7ef3082a21607a7600"
+      },
+      "title": {
+        "locale_sha256": "e226a332260ff3249ab023ff6bfea88c4fce85bb77743dcfe8cd12e93ca10f7f",
+        "source_sha256": "e79a998875a7d7e02212d8762c7316fc52087f4a4bffdb7da7b8109823eccf6b"
+      },
+      "why_it_matters": {
+        "locale_sha256": "46177f94322b1b1c1887d4c7671263418402a4578ff8d2a527038588eaa9476e",
+        "source_sha256": "e0725b36eab8e4eddedc2df21f52539bacf50c03789153989645d8496f08cfc8"
       }
     },
     "FCMO-EFC5F5FC6FBE": {
