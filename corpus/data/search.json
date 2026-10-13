@@ -1,6 +1,151 @@
 [
   {
     "confidence": "credible_unconfirmed",
+    "demonstrated_result": "The method, metric definitions, benchmark tables, controls, online ablation and appendix protocols are inspectable in the primary preprint. Performance outcomes remain CLAIMED as author-run results.",
+    "desks": [
+      "agents_memory",
+      "evaluation_science",
+      "reasoning_posttraining"
+    ],
+    "development_type": "paper",
+    "event_at": "2026-09-23T00:00:00Z",
+    "evidence_class": "A",
+    "id": "FCMO-A220B9A60B61",
+    "importance_effective_score": 4,
+    "importance_tier": "Meaningful",
+    "last_verified_at": "2026-10-13T18:24:40Z",
+    "mechanism": "GEM keeps complete original interaction blocks, first protecting recent, goal-related, state, error and source evidence. It then fills a selected core using geometric residuals and forwards selected original messages in chronological order. A request-length deletion guard limits each rewrite to at most 5% of serialized characters; nominal core capacity is not a hard bound on forwarded blocks.",
+    "organizations": [
+      "TierFlow Team",
+      "Renmin University of China",
+      "Tsinghua University"
+    ],
+    "primary_desk": "agents_memory",
+    "regions": [
+      "China",
+      "global"
+    ],
+    "status": "active",
+    "strongest_baseline": "Geometry-only selection is the matched-budget comparator for the 650-checkpoint evidence-retention result. Online reward/token comparisons include the base agent; the fixed-40 reference panel compares several memory and compression methods but is a separate unpaired task panel.",
+    "summary": "A September 2026 preprint introduces GEM, a training-free compressor that protects selected task and execution evidence before adding history blocks by geometric residual. In a matched-retained-count offline analysis, authors report next-action Top-3 block retention of 0.69 versus 0.31 for geometry-only selection across 650 checkpoints from 32 trajectories, while pooled centroid similarity rounds to 0.98 in both conditions. In a separate 260-task online benchmark, authors report 21.4% lower mean combined token use (2.69M to 2.11M per task) and reward of 70.18 versus 69.87. Results vary by domain; the offline metric is not task success, and the preprint has not been independently reproduced.",
+    "title": "GEM reports that geometric coverage can miss task evidence in agent-history compression",
+    "topics": [
+      "agent-memory",
+      "context-compression",
+      "long-horizon-agents",
+      "evaluation",
+      "tool-use"
+    ],
+    "why_it_matters": "History compressors can preserve a global representation while discarding records that carry distinct execution evidence. GEM provides a concrete test of that distinction and reports lower aggregate token use on one online benchmark. Its offline evidence-retention measure must not be read as task success, and the author-run results need independent replication."
+  },
+  {
+    "confidence": "credible_unconfirmed",
+    "demonstrated_result": "The reward construction, model/task setup, benchmark tables, same-score ablation, and reported three-run averages are directly inspectable in the primary preprint. Outcomes remain author-reported and are labeled CLAIMED.",
+    "desks": [
+      "reasoning_posttraining",
+      "agents_memory",
+      "evaluation_science"
+    ],
+    "development_type": "paper",
+    "event_at": "2026-09-23T00:00:00Z",
+    "evidence_class": "A",
+    "id": "FCMO-D8FB24487116",
+    "importance_effective_score": 5,
+    "importance_tier": "Notable",
+    "last_verified_at": "2026-10-13T18:18:01Z",
+    "mechanism": "After each training turn, the method reruns executable acceptance checks on the environment state and measures the change in the fraction passed. The resulting progress reward contributes both a trajectory-level score and a turn-level advantage, distinguishing turns that advance or undo task state. Existing environment checks provide the signal; no separate learned reward model is required.",
+    "organizations": [],
+    "primary_desk": "reasoning_posttraining",
+    "regions": [
+      "global"
+    ],
+    "status": "active",
+    "strongest_baseline": "Outcome-only methods include GRPO, RLOO, DAPO and SALT. GRPO-Phi uses the same trajectory score but only trajectory-level advantages; it isolates the additional turn-level credit. GiGPO uses similar progress rewards with a different default discount factor, which the paper analyzes separately.",
+    "summary": "A September 2026 preprint introduces ProCredit, a reinforcement-learning method that reruns task acceptance checks after each interaction turn and credits progress according to changes in the environment state. On AppWorld, authors report the highest task-goal completion among tested methods at all three Qwen3.5 model sizes on both the normal and challenge test sets, including tasks using applications unseen during training. The largest margin over the strongest outcome-only baseline is 4.1 percentage points at 4B; gains narrow at 9B and 35B. A same-progress ablation attributes the reported benefit to assigning credit at the turn where progress occurs. Results average three author-run training runs and have not been independently reproduced here.",
+    "title": "ProCredit reports improved long-horizon tool-task completion from turn-level progress credit",
+    "topics": [
+      "agentic-reinforcement-learning",
+      "progress-rewards",
+      "credit-assignment",
+      "tool-use",
+      "long-horizon-agents"
+    ],
+    "why_it_matters": "Long-horizon tool agents often receive a single reward after a task ends, leaving training unable to distinguish a failed attempt that made progress from one that did not. ProCredit uses existing executable checks on intermediate environment states to measure progress and assign additional credit to the turn that produced it. The paper reports improvements on AppWorld and a second tool environment, with three model scales and unseen applications in the challenge set. The method depends on intermediate state access and meaningful rerunnable checks, and its gains are author-reported."
+  },
+  {
+    "confidence": "credible_unconfirmed",
+    "demonstrated_result": "The method, baseline definitions, reported tables, ablations and task-order averaging protocol are inspectable in the primary preprint. Benchmark outcomes are author-reported and labeled CLAIMED.",
+    "desks": [
+      "agents_memory",
+      "evaluation_science",
+      "reasoning_posttraining"
+    ],
+    "development_type": "paper",
+    "event_at": "2026-09-23T00:00:00Z",
+    "evidence_class": "A",
+    "id": "FCMO-83062915742D",
+    "importance_effective_score": 4,
+    "importance_tier": "Meaningful",
+    "last_verified_at": "2026-10-13T18:15:14Z",
+    "mechanism": "JitMem stores successful full trajectories rather than fixed summaries. For each new task it retrieves top-k trajectories, synthesizes a temporary task-conditioned payload, runs a frozen executor with that payload, and appends the resulting trajectory if it passes a quality gate. The curator is trained with GRPO from immediate task-success reward.",
+    "organizations": [],
+    "primary_desk": "agents_memory",
+    "regions": [
+      "global"
+    ],
+    "status": "active",
+    "strongest_baseline": "The paper compares with no memory and write-time methods ReasoningBank, MemP and SkillOS, using same- or stronger-curator variants. Its strongest baseline differs by executor, task and domain; the reported gains are not one pooled effect.",
+    "summary": "A September 2026 preprint introduces Just-in-Time Memory (JitMem), which stores successful raw agent trajectories and curates a compact, task-specific payload only when a later task is known. Across ALFWorld, WebShop and tau2-bench, the authors report gains over memory baselines, including 16.2 and 16.3 percentage-point success-rate gains over the strongest same-block learned write-time baseline on ALFWorld and WebShop. Gains on tau2-bench vary by domain: the reported increase is largest on Telecom, while Airline and Retail show no improvement beyond run variance. Results are author-reported and use multiple task orderings; they have not been independently reproduced here.",
+    "title": "Just-in-time memory reports task-adaptive gains over write-time agent memory",
+    "topics": [
+      "agent-memory",
+      "task-adaptation",
+      "reinforcement-learning",
+      "interactive-agents",
+      "evaluation"
+    ],
+    "why_it_matters": "Most memory systems decide what to keep when an experience is stored, before its future use is known. JitMem tests the alternative of keeping raw successful traces and shaping a summary around the current task. The paper reports gains across several interactive benchmarks and transfer of a trained curator to stronger executors, while also identifying the extra per-task model call and simple retrieval as costs. These results may inform agent-memory design, but do not establish general gains outside the tested tasks."
+  },
+  {
+    "confidence": "credible_unconfirmed",
+    "demonstrated_result": "The benchmark description, task schema, tool interface, evaluation protocol and reported tables are directly inspectable in the arXiv paper. Performance outcomes are labeled CLAIMED because they are author-run.",
+    "desks": [
+      "evaluation_science",
+      "agents_memory",
+      "training_data"
+    ],
+    "development_type": "paper",
+    "event_at": "2026-09-23T00:00:00Z",
+    "evidence_class": "A",
+    "id": "FCMO-BB8AA8A5B142",
+    "importance_effective_score": 4,
+    "importance_tier": "Meaningful",
+    "last_verified_at": "2026-10-13T18:10:48Z",
+    "mechanism": "The benchmark generates molecular tasks from design-stage/strategy scenarios, embedding some property constraints in narrative text while also supplying explicit property or functional-group conditions. A 17-tool interface supports generation, analysis, retrieval, coding and molecular representation. The evaluation scores constraint satisfaction and infeasibility judgments.",
+    "organizations": [
+      "Korea University",
+      "LG AI Research"
+    ],
+    "primary_desk": "evaluation_science",
+    "regions": [
+      "South Korea",
+      "global"
+    ],
+    "status": "active",
+    "strongest_baseline": "Table 3 compares six agent configurations with and without tool access: GPT-5.4, Claude Opus 4.6, GPT-OSS-120B, Qwen3-235B, Ether0-24B and InternLM-S1-241B. No human expert performance baseline is reported in the main experiment.",
+    "summary": "A September 2026 preprint introduces MolDesignBench, a benchmark of 2,000 small-molecule generation and optimization tasks. Tasks combine implicit narrative requirements with explicit chemical constraints, include infeasible specifications, and expose 17 chemistry tools. Across six general and chemistry-focused agent configurations, the authors report best success rates of 38% for generation and 43% for optimization. The benchmark tests constraint handling and tool use; it does not test experimental property measurements or whether generated molecules lead to discoveries.",
+    "title": "MolDesignBench reports persistent constraint and feasibility failures in molecular-design agents",
+    "topics": [
+      "molecular-design",
+      "scientific-agents",
+      "agent-evaluation",
+      "chemistry-tools",
+      "benchmark-design"
+    ],
+    "why_it_matters": "The benchmark makes implicit constraints, conflicting requirements and infeasible requests part of a structured evaluation, areas that simpler chemistry tasks may not test. Its reported results suggest current agents can perform poorly even with specialized tools. This is useful evidence for evaluation design, while its synthetic small-molecule setting cannot establish real-world discovery performance."
+  },
+  {
+    "confidence": "credible_unconfirmed",
     "demonstrated_result": "The paper defines a controlled multi-agent environment, reports model-by-model and aggregate results, includes controlled peer-behavior interventions and reports human validation of its LLM onset judge. The results remain author-reported; no independent reproduction was performed.",
     "desks": [
       "evaluation_science",
