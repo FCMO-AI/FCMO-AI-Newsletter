@@ -6050,6 +6050,54 @@
       "title": "Critical-State RL selecciona llamadas entrenables antes de optimizar el uso de herramientas en varios turnos",
       "why_it_matters": "Las recompensas de una trayectoria pueden mezclar el efecto de una llamada del modelo con la aleatoriedad de turnos posteriores. Un diagnóstico de la variación de recompensa dependiente de la acción ofrece una forma concreta de elegir dónde entrenar un agente de varios turnos. El estudio informado también muestra que la ubicación útil de entrenamiento puede cambiar según la tarea."
     },
+    "FCMO-40D9FBA85270": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Ajar genera llamadas a herramientas que una tarea benigna no necesita y mide si una defensa de agentes las permitiría, incluidas las llamadas que no se hicieron durante la ejecución evaluada. Los autores sostienen que esta propiedad no puede deducirse solo del éxito de los ataques y la utilidad en tareas benignas."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En AgentDojo, los autores informan distintos niveles de privilegio abierto entre Progent, CaMeL, AC4A, Permission Assistant y el modo Auto de Claude Code; también informan que una defensa reduce parcialmente la puntuación al rechazar llamadas necesarias para completar la tarea."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "尚未独立重跑或审计所报告的AgentDojo结果及候选调用流程。",
+          "kind": "reproduction_missing",
+          "state": "open",
+          "updated_at": "2026-10-14T12:13:34Z"
+        },
+        {
+          "description": "尚未在AgentDojo以外的工具环境中评估该指标，也未评估其环境参数值中不存在的调用。",
+          "kind": "regime_unclear",
+          "state": "open",
+          "updated_at": "2026-10-14T12:13:34Z"
+        }
+      ],
+      "importance_rationale": "Si los privilegios abiertos captan una propiedad de seguridad que las métricas de éxito ante ataques y utilidad en tareas benignas pasan por alto, podrían afectar de manera sustancial la evaluación y selección de defensas en el límite de las herramientas. La puntuación 5 refleja su relevancia amplia para medir seguridad de agentes, aunque el constructo informado se limita a un benchmark y depende en parte de etiquetas elaboradas por investigadores.",
+      "limitations": [
+        "Esta es una evaluación de un preprint en AgentDojo; no demuestra que los resultados se generalicen a entornos de herramientas reales u organizaciones en producción.",
+        "Los autores informan que los predicados de AgentDojo validan 2,822 de 10,471 etiquetas; las 7,649 restantes (73.0%) dependen del juicio de Ajar. El artículo no afirma validez de constructo más allá de esa proporción.",
+        "La construcción de llamadas candidatas no cubre llamadas cuyos argumentos no aparecen en el entorno del benchmark.",
+        "La puntuación depende de la capa de integración de la defensa y del modelo que decide; el artículo informa variación entre ejecuciones y señala que una sola ejecución no determina la puntuación de una defensa.",
+        "En esta activación no se realizó una reproducción independiente ni una auditoría del código."
+      ],
+      "relationships": [],
+      "summary": "Un preprint de septiembre de 2026 presenta Ajar, que mide si una defensa de agentes permitiría llamadas a herramientas que una tarea no necesita, incluidas las que el agente no llegó a realizar. Los autores lo aplican a AgentDojo e informan que cinco defensas difieren en el nivel de privilegios que dejan disponibles; el éxito ante ataques y la utilidad en tareas benignas no determinan esta medida, y una defensa más restrictiva también puede rechazar llamadas necesarias. Es un resultado informado por los autores en un solo benchmark. Las etiquetas, la generación de llamadas candidatas y la capa de defensa acotan lo que demuestra la puntuación; en esta activación no se hizo una reproducción independiente.",
+      "technical": {
+        "claimed_result": "Los autores informan que cinco defensas evaluadas en AgentDojo dejan abierto un nivel distinto de privilegio innecesario en las llamadas a herramientas, y que la medida propuesta revela diferencias que no se recuperan del éxito de ataques ni de la utilidad en tareas benignas.",
+        "demonstrated_result": "El preprint describe la construcción de las pruebas de Ajar e informa una evaluación en AgentDojo. Este registro trata las comparaciones como resultados informados por los autores; en esta activación no se hizo una reproducción independiente.",
+        "implementation_status": "El artículo enlaza un repositorio público, pero en esta revisión no se inspeccionaron ni ejecutaron su código, las tareas del benchmark, las etiquetas de referencia o los resultados informados.",
+        "mechanism": "Para cada tarea benigna y punto de decisión del benchmark, Ajar construye llamadas candidatas que la tarea no necesita y pregunta a la defensa si las permitiría. Cuenta las llamadas excedentes permitidas junto con las métricas de ataques y utilidad.",
+        "regime": "Benchmark AgentDojo de inyección indirecta de prompts; cinco defensas nombradas. La puntuación depende de las necesidades de la tarea en el benchmark, la construcción de llamadas candidatas, las etiquetas de referencia y la capa que presenta las llamadas a la defensa.",
+        "reproducibility": "Los autores enlazan código. En esta activación no se hizo una ejecución independiente ni una revisión del repositorio.",
+        "strongest_baseline": "Las métricas existentes de éxito ante ataques y utilidad en tareas benignas son la comparación; el artículo sostiene que no identifican los permisos no utilizados que la defensa deja disponibles."
+      },
+      "title": "Ajar añade una medida de privilegios abiertos a la evaluación de defensas de agentes",
+      "why_it_matters": "Las defensas de agentes suelen compararse por los ataques que bloquean y las tareas benignas que completan, pero esos resultados pueden no revelar qué acciones innecesarias permitiría una defensa si el agente las propusiera. Medir los privilegios que quedan abiertos podría cambiar cómo se evalúan y seleccionan las defensas en el límite de las herramientas. La puntuación depende de las necesidades inferidas del benchmark, las llamadas candidatas generadas y una capa de integración; no es una medida general de mínimo privilegio o seguridad en el mundo real."
+    },
     "FCMO-4226674AF5EA": {
       "claims": [
         {
@@ -9146,6 +9194,54 @@
       "title": "EE. UU. y China establecen un diálogo sobre Super Intelligence y un canal para incidentes; los detalles operativos siguen sin publicarse",
       "why_it_matters": "Un mecanismo anunciado para comunicar incidentes entre las dos principales potencias de IA podría ayudar a reducir malentendidos y escaladas por sucesos transfronterizos relacionados con la IA. Es un cambio relevante en la diplomacia bilateral sobre riesgos de IA; su valor práctico sigue siendo desconocido hasta que cada gobierno publique responsabilidades y procedimientos operativos y demuestre que se utilizan. El anuncio no establece por sí mismo una norma de seguridad vinculante, una taxonomía común de incidentes, un deber de notificación para laboratorios ni una salvaguarda técnica."
     },
+    "FCMO-5FFD1CC9A77B": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "En tau-bench, los autores reportan que FRESH alcanza el mejor desempeño promedio de aprobación entre los métodos de memoria comparados para Gemma-4-26B-A4B, Llama-3.2-1B-Instruct y Qwen3-8B, con ganancias relativas promedio frente a cada referencia sin memoria de 10.8%, 38.9% y 53.2%, respectivamente."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En AppWorld, los autores reportan tasas de aprobación de 0.268 en Test-N y 0.146 en Test-C para FRESH, frente a 0.250 y 0.115 para la referencia más sólida incluida. FRESH también reporta 9.4 frente a 9.9 pasos promedio en Test-N y 10.0 frente a 10.4 en Test-C."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "Los resultados reportados de tau-bench/AppWorld y el pipeline de grafo que aprende de fallos no se han ejecutado ni auditado de forma independiente.",
+          "kind": "reproduction_missing",
+          "state": "open",
+          "updated_at": "2026-10-14T12:20:49Z"
+        },
+        {
+          "description": "Las ganancias en benchmarks no demuestran transferencia a API activas, políticas cambiantes ni acciones de alto impacto que modifiquen estados.",
+          "kind": "regime_unclear",
+          "state": "open",
+          "updated_at": "2026-10-14T12:20:49Z"
+        }
+      ],
+      "importance_rationale": "Si las mejoras de memoria que reporta FRESH se transfieren, podrían elevar de manera significativa la finalización de tareas con herramientas y la confiabilidad de acciones en agentes basados en modelos de lenguaje pequeños y medianos. Una puntuación de 4 refleja un resultado útil de sistemas; la evidencia proviene de los autores en dos suites de benchmarks, con tasas absolutas bajas de aprobación en AppWorld y sin reproducción independiente.",
+      "limitations": [
+        "Todos los resultados son reportados por los autores y no se reprodujeron de forma independiente en esta activación.",
+        "Las tasas de aprobación de AppWorld siguen siendo bajas en términos absolutos: 0.268 en Test-N y 0.146 en Test-C, frente a tasas de 0.250 y 0.115 para la referencia más sólida incluida.",
+        "Las ganancias reportadas corresponden a divisiones de tau-bench y AppWorld con trayectorias históricas y presupuestos de ejecución específicos; no se ha demostrado su validez en entornos de herramientas del mundo real.",
+        "El artículo describe estudios de ablación, pero las tablas de resultados inspeccionadas no incluyen intervalos de incertidumbre para las ganancias principales.",
+        "No se auditó de forma independiente la seguridad ni el cumplimiento de políticas del filtro de acciones; completar tareas no demuestra un despliegue seguro."
+      ],
+      "relationships": [],
+      "summary": "Un preprint de septiembre de 2026 propone FRESH: almacena acciones exitosas, fallos, precondiciones y reparaciones en un grafo de experiencias tipadas, y recupera indicaciones concisas para un ejecutor de modelo de lenguaje congelado. En tau-bench, sus autores reportan el mejor desempeño promedio de aprobación entre los métodos de memoria comparados para tres modelos base, con ganancias relativas promedio frente a las referencias sin memoria de 10.8% para Gemma-4-26B-A4B, 38.9% para Llama-3.2-1B-Instruct y 53.2% para Qwen3-8B. En AppWorld, reporta tasas de aprobación de 0.268 frente a 0.250 en Test-N y de 0.146 frente a 0.115 en Test-C, comparadas con la referencia más sólida incluida. Las tasas absolutas de AppWorld siguen siendo bajas; todos los resultados son de benchmarks reportados por los autores y no se reprodujeron de forma independiente.",
+      "technical": {
+        "claimed_result": "Los autores reportan que FRESH mejora los resultados de aprobación en tareas frente a referencias sin memoria y métodos de memoria existentes en tau-bench y AppWorld, con tres modelos base congelados de código abierto, un recuperador de grafos y un filtro de precondiciones para acciones.",
+        "demonstrated_result": "El preprint describe el método y presenta tablas de benchmarks y ablaciones. Los resultados siguen siendo reportes de los autores; en esta activación no se verificaron de forma independiente los resultados ni una ejecución del benchmark.",
+        "implementation_status": "El artículo describe una evaluación implementada con construcción de grafos, recuperación aprendida y controles de política/precondiciones. En esta revisión no se inspeccionó un repositorio público ejecutable.",
+        "mechanism": "FRESH convierte trayectorias exitosas y fallidas de uso de herramientas en un grafo tipado de tareas, acciones, observaciones, errores, precondiciones y reparaciones. Un recuperador de grafos entrega indicaciones concisas de hacer/evitar/verificar/reparar a un ejecutor congelado; las acciones que cambian el estado o dependen de políticas pasan por un filtro activo de precondiciones.",
+        "regime": "Divisiones Airline y Retail de tau-bench, junto con divisiones normal y challenging de AppWorld; tres modelos base congelados de código abierto: Gemma-4-26B-A4B, Llama-3.2-1B-Instruct y Qwen3-8B. El grafo y el recuperador se congelan con tareas de prueba reservadas.",
+        "reproducibility": "El artículo especifica la configuración de benchmarks, las referencias, los nombres de los modelos y las tablas; en esta activación no se inspeccionó un artefacto ejecutable ni se reprodujeron los resultados. No se encontraron intervalos de incertidumbre en las secciones de resultados inspeccionadas.",
+        "strongest_baseline": "El agente sin memoria es la referencia para las ganancias relativas reportadas; las comparaciones de Test-N/Test-C de AppWorld usan las tasas de aprobación de tareas de 0.250 y 0.115 de la referencia más sólida incluida, respectivamente."
+      },
+      "title": "FRESH reporta más tareas completadas con memoria gráfica que aprende de los fallos",
+      "why_it_matters": "Los agentes que usan herramientas pueden repetir llamadas fallidas, pasar por alto precondiciones de una acción o realizar cambios de estado inseguros. FRESH combina memoria estructurada de éxitos y fallos con un filtro para acciones que cambian estados, y reporta mejoras para varios modelos pequeños y medianos en dos benchmarks de uso de herramientas. Las tasas de aprobación y ganancias relativas reportadas se limitan a esas divisiones de benchmark; no demuestran una operación confiable en el mundo real ni la seguridad del filtro."
+    },
     "FCMO-6037B181DFFD": {
       "claims": [
         {
@@ -11354,6 +11450,53 @@
       "title": "Un estudio encuentra que los protocolos locales de servicio pueden distorsionar las mediciones de llamadas a herramientas",
       "why_it_matters": "Las evaluaciones de herramientas pueden mezclar decisiones del modelo con la aceptación de solicitudes, la serialización y el registro del entorno. Separar los rechazos de transporte, las respuestas vacías, las llamadas malformadas y las omisiones elegidas por el modelo puede cambiar la interpretación de los resultados de agentes locales. El artículo no mide qué tan comunes son estos errores en los despliegues."
     },
+    "FCMO-77546960A9C1": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "Anthropic anunció que su oficina de Singapur abrió el 14 de octubre de 2026."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Anthropic afirma que firmó un memorando con el Ministerio de Desarrollo Digital e Información de Singapur para cooperar en seguridad de IA, evaluación de modelos, investigación sobre adopción y adopción responsable. CNA informa por separado sobre la firma y un alcance similar; no se localizó el texto del acuerdo."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se localizó el texto íntegro del memorando firmado ni sus términos, compromisos y entregables; el alcance disponible depende de la descripción de Anthropic y del reporte de CNA.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-14T12:11:12Z"
+        },
+        {
+          "description": "Aún no hay evidencia de que hayan comenzado los intercambios previstos, el trabajo de evaluación, la coordinación de respuesta a incidentes o la investigación sobre adopción, ni de que hayan producido resultados.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-14T12:11:12Z"
+        }
+      ],
+      "importance_rationale": "Si se implementan, el acuerdo y la presencia local podrían influir de forma relevante en los intercambios técnicos entre el gobierno y un desarrollador sobre pruebas de modelos, respuesta a incidentes y adopción institucional en un mercado importante de Asia-Pacífico. La puntuación 4 refleja un canal significativo de política y despliegue; los planes anunciados no demuestran obligaciones vinculantes, implementación ni impacto medido.",
+      "limitations": [
+        "El texto del memorando no estuvo disponible en las fuentes consultadas, por lo que no se caracterizan de forma independiente sus obligaciones y mecanismos de gobernanza.",
+        "Los intercambios técnicos, normas de prueba, respuesta a incidentes e investigación de adopción anunciados son planes, no resultados demostrados.",
+        "Las fuentes no establecen requisitos regulatorios vinculantes, acceso privilegiado a modelos ni cambios en las reglas de IA de Singapur.",
+        "Las afirmaciones de Anthropic sobre uso local, clientes y productividad son declaraciones de la empresa y no se usan como evidencia de impacto económico o en el sector público."
+      ],
+      "relationships": [],
+      "summary": "Anthropic anunció el 14 de octubre que abrió una oficina en Singapur y firmó un memorando de entendimiento con el Ministerio de Desarrollo Digital e Información del país. La empresa dice que el acuerdo prevé intercambios técnicos sobre seguridad de IA, evaluación de modelos, normas de prueba y respuesta a incidentes; investigación sobre la adopción de IA y sus efectos; y apoyo para una adopción responsable en los sectores público y privado. CNA informa por separado que el memorando se firmó el 13 de octubre. No se localizaron el texto del acuerdo ni resultados de implementación, por lo que la cooperación descrita sigue siendo un plan y no una evaluación o un resultado de política demostrado.",
+      "technical": {
+        "claimed_result": "Se dice que el memorando prevé intercambios técnicos sobre evaluación de modelos, normas de prueba y respuesta a incidentes, además de investigación sobre adopción de IA y apoyo para su uso responsable.",
+        "demonstrated_result": "El anuncio demuestra que Anthropic informó públicamente de la firma del memorando y de la apertura de su oficina en Singapur; CNA también informa sobre la firma. No se demuestra ningún resultado de evaluación técnica ni de implementación.",
+        "implementation_status": "Anthropic dice que la oficina de Singapur ya abrió y describe como planificado el trabajo del memorando. No se localizaron el texto íntegro, el calendario, los entregables ni los primeros resultados.",
+        "mechanism": "Se prevé que una oficina local de Anthropic y un memorando ministerial apoyen intercambios técnicos, investigación y adopción responsable en organizaciones públicas y privadas.",
+        "regime": "Singapur y Asia-Pacífico; el anuncio trata de cooperación institucional, no de una prueba de capacidad de un modelo ni de un instrumento regulatorio vinculante.",
+        "reproducibility": "No aplica a la firma reportada. Aún falta localizar el texto del memorando y evidencia oficial posterior de su implementación.",
+        "strongest_baseline": "No se informa una comparación de resultados; el hecho acotado es el anuncio del acuerdo y la oficina."
+      },
+      "title": "Anthropic abre una oficina en Singapur y firma un memorando sobre seguridad y adopción de IA",
+      "why_it_matters": "El acuerdo vincula a un desarrollador de modelos de frontera con un ministerio nacional para intercambiar conocimientos sobre evaluación, respuesta a incidentes e investigación de adopción, mientras Anthropic establece una oficina local. Si se implementan, estos canales podrían influir en cómo las instituciones de Singapur evalúan y adoptan modelos de frontera. El anuncio no demuestra obligaciones vinculantes, nuevas normas de evaluación, acceso a modelos ni efectos económicos o de seguridad medibles."
+    },
     "FCMO-7754CC237CCD": {
       "claims": [
         {
@@ -12421,6 +12564,58 @@
       },
       "title": "Discovery Foundation Models propone revisar estados explícitos de investigación con evidencia externa y controles",
       "why_it_matters": "El marco vuelve comprobable qué tendría que mostrar una afirmación de descubrimiento abierto: la evidencia debe modificar el estado de investigación y las decisiones posteriores, y las habilidades entre tareas requieren validación en tareas reservadas. El caso GALILEO, tal como lo resumen los autores, ilustra un ciclo físico de retroalimentación en un dominio; la arquitectura general DFM, su receta de entrenamiento y su transferencia siguen siendo propuestas sin una implementación Zetema validada en las fuentes inspeccionadas."
+    },
+    "FCMO-865C8CE274D8": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "En BBBC047, los autores informan que un predictor seleccionado por un agente alcanzó Global PCC 0.3153 en datos retenidos, pero permaneció invariante al reemplazo del compuesto; un predictor basado solo en perfiles de control obtuvo 0.3142. Identifican una ruta de consulta del compuesto bloqueada e informan que la invariancia persistió tras volver a ajustar con pozos de control físicamente separados para las entradas y las referencias objetivo."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En una auditoría estratificada de 48 candidatos generados en dos tareas vinculadas, los autores informan que 47 cambiaron sus predicciones al reemplazar el compuesto en ambos pliegues retenidos, pero solo 20 tuvieron ganancias de pérdida objetivo con intervalos superiores a cero en ambos pliegues. Las revisiones guiadas por falsificación recuperaron contribuciones medias positivas del compuesto en BBBC047."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En búsquedas emparejadas de sci-Plex, la retroalimentación enriquecida con auditoría mostró mayor predicción media retenida y mayores contribuciones medias de compuesto y dosis en cinco trayectorias emparejadas, aunque los intervalos emparejados incluyeron cero. En reajustes con una cohorte obtenida de forma independiente, se mantuvo la contribución de la dosis, pero no el respaldo al uso de la identidad del compuesto."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "El análisis de rutas de entrada en el código, las pruebas de reemplazo y los resultados de búsqueda de modelos no se han reproducido de forma independiente.",
+          "kind": "reproduction_missing",
+          "state": "open",
+          "updated_at": "2026-10-14T12:17:45Z"
+        },
+        {
+          "description": "El respaldo al uso de entradas depende de las distribuciones de reemplazo registradas y no demuestra intercambiabilidad biológica, mecanismos ni causalidad; el respaldo a la identidad del compuesto no persistió en la transferencia LKCP informada.",
+          "kind": "regime_unclear",
+          "state": "open",
+          "updated_at": "2026-10-14T12:17:45Z"
+        }
+      ],
+      "importance_rationale": "Si las distinciones de auditoría se generalizan, podrían mejorar de manera sustancial la evaluación de predictores biológicos descubiertos por agentes al separar la predicción del uso y la contribución atribuidos a las intervenciones. La puntuación 5 refleja la relevancia de este método para evaluar IA en biología; los resultados informados siguen siendo específicos de ciertos conjuntos de datos, modelos y distribuciones de reemplazo registradas.",
+      "limitations": [
+        "Todos los análisis informados son de los autores y no se reprodujeron de forma independiente en esta activación.",
+        "Los hallazgos se refieren a conjuntos de datos celulares seleccionados, predictores ajustados y distribuciones de reemplazo registradas; una contribución positiva no establece mecanismos biológicos ni causalidad.",
+        "El artículo presenta evidencia mixta entre medidas: los intervalos emparejados de sci-Plex incluyen cero y el respaldo al uso de la identidad del compuesto no persiste en la cohorte LKCP adquirida de forma independiente, aunque sí persiste la contribución de la dosis.",
+        "Las conclusiones corresponden a los ajustes y checkpoints evaluados; la evidencia de un ajuste no se hereda automáticamente por reajustes posteriores.",
+        "El resultado completo de sci-Plex evalúa un paquete de retroalimentación enriquecido con auditoría y no aísla el efecto de cada diagnóstico."
+      ],
+      "relationships": [],
+      "summary": "Un preprint de septiembre de 2026 presenta CellAudit, un flujo de trabajo que verifica si las entradas que un modelo afirma usar aparecen en el código, afectan las predicciones ajustadas y mejoran la predicción de respuestas observadas. En BBBC047, los autores informan que un predictor seleccionado por un agente alcanzó Global PCC 0.3153 en datos retenidos, pero fue invariante al reemplazo del compuesto; un predictor basado solo en perfiles de control obtuvo 0.3142. Entre 48 candidatos generados, 47 cambiaron al reemplazar el compuesto, pero solo 20 mostraron mejoras de pérdida objetivo en ambos pliegues retenidos. Las revisiones recuperaron contribuciones medias positivas del compuesto. En una cohorte independiente, la evidencia de uso de dosis persistió, pero no la del uso de identidad del compuesto. Son análisis detallados informados por los autores, no una reproducción independiente ni una prueba de causalidad biológica.",
+      "technical": {
+        "claimed_result": "Los autores informan que una predicción retenida puede seguir siendo alta aunque se ignore una entrada de intervención registrada; su auditoría distingue acceso en el código, dependencia del predictor ajustado y contribución a la pérdida objetivo, y usa evidencia de falsificación para orientar revisiones.",
+        "demonstrated_result": "El preprint describe el flujo CellAudit e informa resultados en BBBC047, tareas perturbacionales vinculadas, sci-Plex y reajustes en una cohorte adquirida de forma independiente. Todos los resultados comparativos siguen siendo informes de los autores; aquí no se hizo una reproducción independiente.",
+        "implementation_status": "El artículo enlaza una página del proyecto. En esta activación no se ejecutaron ni auditaron de forma independiente el código, los datos o los checkpoints.",
+        "mechanism": "CellAudit verifica si una entrada registrada llega al cálculo citado, la reemplaza manteniendo fijas otras entradas y checkpoints para medir dependencia, y evalúa si mejora la pérdida objetivo. Usa las comprobaciones de código, errores agrupados y diagnósticos de contribución en la búsqueda posterior de modelos con agentes.",
+        "regime": "Predictores de respuesta celular descubiertos por agentes con datos emparejados de perturbación transcriptómica y morfológica; BBBC047 y tareas relacionadas, búsquedas emparejadas en sci-Plex y reajustes de diseño fijo en LKCP. Los hallazgos dependen del modelo, el pliegue, la cohorte y la distribución de reemplazo registrada.",
+        "reproducibility": "El preprint ofrece detalles de divisiones, métricas, intervalos y apéndices, y enlaza una página del proyecto. En esta activación no se reprodujeron de forma independiente el código y los datos.",
+        "strongest_baseline": "El predictor basado solo en perfiles de control es la referencia clave de BBBC047; el artículo también compara políticas de agentes emparejadas, diseños de modelos fijos y pruebas de reemplazo de entradas entre pliegues y cohortes."
+      },
+      "title": "CellAudit revela que la precisión predictiva puede ocultar que no se usan las variables de intervención",
+      "why_it_matters": "Un modelo puede predecir respuestas celulares retenidas sin utilizar la variable de intervención que su afirmación científica dice que importa. Separar la ruta en código, la dependencia de las predicciones ajustadas y la contribución a la predicción objetivo puede revelar esa brecha y orientar revisiones. El artículo también muestra que la transferencia predictiva y las afirmaciones sobre uso de entradas pueden divergir entre cohortes. Las conclusiones dependen de las distribuciones de reemplazo registradas y de los modelos ajustados; no establecen mecanismos biológicos ni efectos causales."
     },
     "FCMO-882F5295EDE7": {
       "claims": [
@@ -14792,6 +14987,54 @@
       },
       "title": "Un espectro exacto de frecuencias alélicas seleccionadas amplía los cálculos con error controlado a muestras de escala biobancaria",
       "why_it_matters": "Los métodos del espectro de frecuencias alélicas ayudan a inferir cómo la selección natural moldea la variación genética. Si se validan el método numérico y sus controles de error, permitirían comprobar la precisión de las verosimilitudes en tamaños de muestra y regímenes de selección donde las implementaciones de coma flotante son difíciles de auditar, incluso en cohortes grandes de exomas."
+    },
+    "FCMO-A36351D9FF03": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "El artículo propone predecir vectores de movimiento, extrapolar movimiento en cada fotograma y ejecutar inferencia de corrección de deriva de forma asíncrona para sacar el procesamiento completo del backend de la ruta crítica; también permite ajustar la tasa del sensor."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En detección de objetos, los autores informan hasta 66.8% menos latencia de cola P99 y 46% menos energía por salida de percepción producida, con un pequeño costo de precisión. La evaluación usa secuencias de KITTI, YOLOv8 y modelos simulados de la canalización y el cómputo; no mide un SoC móvil físico."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "Las mejoras integrales informadas no se han medido en un ISP/SoC móvil físico con sensor, NPU, consumo, temperatura y comportamiento de control extremo a extremo reales.",
+          "kind": "regime_unclear",
+          "state": "open",
+          "updated_at": "2026-10-14T12:15:51Z"
+        },
+        {
+          "description": "No se hizo una reproducción independiente del simulador, el micropipeline RTL ni los resultados informados para detección y seguimiento de objetos.",
+          "kind": "reproduction_missing",
+          "state": "open",
+          "updated_at": "2026-10-14T12:15:51Z"
+        }
+      ],
+      "importance_rationale": "Si el flujo de movimiento se transfiere más allá del régimen de detección de objetos modelado en el artículo, podría cambiar decisiones locales de arquitectura para sistemas de visión con restricciones de latencia y energía. La puntuación 4 refleja un avance de sistemas significativo; las ganancias informadas son de modelos, no de silicio desplegado, y conllevan un intercambio en precisión.",
+      "limitations": [
+        "Las mejoras principales de latencia y energía proceden de un flujo integral simulado con componentes ISP/CPU/NPU modelados, no de un SoC móvil físico.",
+        "El datapath del ISP se describe como un micropipeline validado con RTL de ciclo exacto; la metodología inspeccionada no informa hardware fabricado ni mediciones de potencia y temperatura en producción.",
+        "La detección de objetos en KITTI es la tarea principal; aunque el artículo también describe evaluaciones de seguimiento, no establece transferencia a otros regímenes de cámara, robótica, AR/VR o seguridad crítica.",
+        "El video KITTI de 10 Hz se amplía a 30 FPS; la precisión se evalúa en los fotogramas y etiquetas originales, mientras los cuadros extrapolados usan cajas delimitadoras trasladadas.",
+        "El rendimiento informado incluye un pequeño costo de precisión y no se reprodujo de forma independiente en esta activación."
+      ],
+      "relationships": [],
+      "summary": "Un artículo de septiembre de 2026 propone un flujo de visión continua que predice vectores de movimiento, extrapola la percepción entre fotogramas de inferencia completa y ejecuta la corrección de deriva en segundo plano. En tareas de detección de objetos, los autores informan hasta 66.8% menos latencia de cola P99 y 46% menos energía por salida producida, con un pequeño costo de precisión. La evaluación combina video de KITTI, YOLOv8, un flujo de visión en tiempo real simulado, modelos gem5/DRAM/NPU y un micropipeline ISP validado con RTL de ciclo exacto; no es una implementación en un SoC móvil físico. Los resultados son de los autores y no se reprodujeron de forma independiente.",
+      "technical": {
+        "claimed_result": "Los autores informan hasta 66.8% menos latencia de cola P99 y 46% menos energía por salida de detección de objetos producida, con un pequeño costo de precisión, mediante predicción de movimiento, extrapolación y corrección asíncrona de deriva.",
+        "demonstrated_result": "El preprint describe un datapath ISP para predecir movimiento y evalúa un flujo de visión en tiempo real simulado con un micropipeline validado mediante RTL de ciclo exacto. Las mejoras integrales informadas son resultados simulados por los autores, no una demostración en un SoC móvil físico.",
+        "implementation_status": "El artículo describe un flujo modelado y un micropipeline RTL de ciclo exacto calibrado a 1080p y 30 FPS. En esta revisión no se verificó un ISP fabricado, un SoC móvil desplegado ni un artefacto público ejecutable.",
+        "mechanism": "Un denoiser y un predictor de movimiento autorregresivo de segundo orden usan vectores ISP para extrapolar detecciones de inmediato. La inferencia completa se ejecuta de forma asíncrona en fotogramas de control de deriva; el movimiento predicho se verifica al llegar el fotograma y se corrige localmente cuando hace falta.",
+        "regime": "Principalmente detección de objetos, con experimentos de seguimiento también descritos. KITTI se grabó a 10 Hz y se amplió a 30 FPS; YOLOv8s se usa en el régimen Balanced y YOLOv8m en Overload. El sistema se modela con gem5, DRAMsim3, un modelo NPU ScaleSimv2 y un micropipeline ISP validado con RTL.",
+        "reproducibility": "El preprint detalla la metodología; en esta activación no se inspeccionó un repositorio de código fuente, un sistema físico ni una reproducción independiente.",
+        "strongest_baseline": "La referencia principal es una canalización convencional serializada; el artículo también compara extrapolación clásica de movimiento, especulación en el dominio de píxeles y un límite superior ideal de predicción perfecta, con un único backend compartido."
+      },
+      "title": "El artículo de MVP informa menor latencia y energía modeladas mediante especulación en el dominio del movimiento",
+      "why_it_matters": "Los sistemas de visión continua pueden perder capacidad de respuesta y eficiencia energética cuando la captura, la inferencia y el procesamiento posterior se serializan o saturan el cómputo compartido. La planificación de MVP en el dominio del movimiento sugiere una forma de entregar antes una percepción provisional y corregir la deriva fuera de la ruta crítica. Las mejoras principales proceden de un sistema modelado y de tareas de detección de objetos; quedan abiertas la respuesta del hardware físico, otras cargas y la seguridad ante cambios rápidos de escena."
     },
     "FCMO-A3F6EF5036B2": {
       "claims": [
