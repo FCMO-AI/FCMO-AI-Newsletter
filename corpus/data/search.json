@@ -1,6 +1,117 @@
 [
   {
     "confidence": "credible_unconfirmed",
+    "demonstrated_result": "The arXiv HTML specifies the method, four backbone families, benchmark protocols and author-reported measurements. the research desk did not execute released code or reproduce the results.",
+    "desks": [
+      "multimodality_world_models",
+      "reasoning_posttraining",
+      "inference_systems",
+      "evaluation_science"
+    ],
+    "development_type": "paper",
+    "event_at": "2026-09-17T00:00:00Z",
+    "evidence_class": "A",
+    "id": "FCMO-084CA145630B",
+    "importance_effective_score": 5,
+    "importance_tier": "Notable",
+    "last_verified_at": "2026-10-14T19:11:36Z",
+    "mechanism": "A small predictor proposes coherent image regions. A frozen MLLM reader scores each region by how its removal changes answer likelihood; region-level reinforcement learning trains the predictor without region annotations or reasoning trajectories. Sparse encoding then spends the crop budget on selected evidence.",
+    "organizations": [
+      "The University of Sydney"
+    ],
+    "primary_desk": "reasoning_posttraining",
+    "regions": [
+      "global"
+    ],
+    "status": "active",
+    "strongest_baseline": "For the training-aligned Qwen3.5-4B ablation, SD-RPN averages 66.6 and the full region-RL plus sparse-encoding system averages 71.1 at the same 576-token source limit. In the main table, the 9B result is compared with multiple published and re-evaluated references; not all rows use the same retraining procedure.",
+    "summary": "Vision-RL2 trains a small region proposal network with region-level reinforcement learning to identify evidence regions for a frozen multimodal reader, then encodes those regions sparsely. The authors report improved accuracy over base systems across six fine-grained benchmarks and four backbones. In a separate training-aligned protocol, the Qwen3.5-4B system at a 576-token source limit reports a six-benchmark average of 71.1, versus 66.6 for SD-RPN, and matches SD-RPN at a 4,096-token limit with 4.2 times fewer visual tokens. These remain paper-reported results; the evaluation protocols differ and performance trades off on some MME-RealWorld splits.",
+    "title": "Vision-RL2 reports fine-grained visual accuracy gains with a small region predictor",
+    "topics": [
+      "multimodal perception",
+      "visual token efficiency",
+      "region-level reinforcement learning",
+      "high-resolution vision"
+    ],
+    "why_it_matters": "High-resolution visual reasoning can spend substantial compute on background pixels. Vision-RL2 treats coherent image regions as actions and trains a lightweight predictor to concentrate resolution on evidence while leaving the main reader frozen. The reported token-efficiency gains could matter for multimodal inference, but they come from specific benchmark protocols and do not establish deployment cost or broad visual reasoning improvements."
+  },
+  {
+    "confidence": "credible_unconfirmed",
+    "demonstrated_result": "The arXiv HTML specifies the algorithm and reports results on two models, RULER and English LongBench-E. No code or independent result was executed in this review.",
+    "desks": [
+      "inference_systems",
+      "efficiency",
+      "evaluation_science"
+    ],
+    "development_type": "paper",
+    "event_at": "2026-09-17T00:00:00Z",
+    "evidence_class": "A",
+    "id": "FCMO-50C5C2E0CC87",
+    "importance_effective_score": 5,
+    "importance_tier": "Notable",
+    "last_verified_at": "2026-10-14T19:11:36Z",
+    "mechanism": "After rotation and normalization, D-Quant entropy-codes quantized KV values using a shared analytic probability model. A length-constrained drift assignment shifts selected values toward lower-cost symbols to fit fixed-size token containers; fused token-oriented kernels decode each stream once and feed the values into attention.",
+    "organizations": [
+      "Qwen Team",
+      "Meta AI"
+    ],
+    "primary_desk": "inference_systems",
+    "regions": [
+      "global"
+    ],
+    "status": "active",
+    "strongest_baseline": "At 128K on RULER, OScaR is the strongest listed quantized baseline: 57.14 for Qwen3-8B and 66.15 for Llama-3.1-8B-Instruct, compared with D-Quant 70.92 and 74.65. The full-precision BF16 reference scores 72.13 and 76.44.",
+    "summary": "The paper proposes D-Quant, which entropy-codes KV-cache values and adjusts a small subset of quantized symbols to keep each token stream within a fixed-size container. On Qwen3-8B and Llama-3.1-8B-Instruct, the authors report 2.26 bits per value and RULER averages close to BF16 across 4K–128K contexts; at 128K, reported scores exceed the strongest listed low-bit baselines. The measurements are paper-reported and use NVIDIA H20 GPUs; the research desk did not run the implementation.",
+    "title": "D-Quant reports near-BF16 long-context accuracy with about 2.26 bits per KV value",
+    "topics": [
+      "KV cache",
+      "entropy coding",
+      "long-context inference",
+      "quantization"
+    ],
+    "why_it_matters": "KV-cache memory can limit the context length and concurrency available for serving large models. D-Quant reports a way to use entropy coding with regular fixed-stride access patterns, and near-BF16 RULER scores at about 2.26 bits per value on two 8B models. If reproduced in real serving stacks, this could improve the memory side of long-context inference, but the paper does not by itself establish production throughput, cost or transfer to other architectures."
+  },
+  {
+    "confidence": "credible_unconfirmed",
+    "demonstrated_result": "The v3 preprint specifies a benchmark with 17 multi-stage streams and 802 unique tasks instantiated across 1,510 axis-specific examples, 520 tools, 42 reference skills and 62 specialist agents. the research desk did not inspect or execute the linked benchmark artifact.",
+    "desks": [
+      "evaluation_science",
+      "agents_memory",
+      "reasoning_posttraining"
+    ],
+    "development_type": "paper",
+    "event_at": "2026-09-26T00:00:00Z",
+    "evidence_class": "A",
+    "id": "FCMO-C0A26D24157E",
+    "importance_effective_score": 5,
+    "importance_tier": "Notable",
+    "last_verified_at": "2026-10-14T19:10:44Z",
+    "mechanism": "The benchmark derives cumulative harness stages from verifier-based tasks, progressively exposing additional tools, skills or specialist agents while retaining previously available capabilities. A deployment evaluation isolates the effect of broader exposure; a separate self-evolving setting tests persistent adaptation across stages.",
+    "organizations": [
+      "Salesforce Research",
+      "University of North Carolina at Chapel Hill",
+      "University of Wisconsin–Madison"
+    ],
+    "primary_desk": "evaluation_science",
+    "regions": [
+      "global"
+    ],
+    "status": "active",
+    "strongest_baseline": "The task-specific harness reference exposes only capabilities annotated as required for each task, compared with the full cumulative harness in deployment evaluation. This is a controlled benchmark reference, not a production baseline.",
+    "summary": "The v3 preprint introduces EvoHarnessBench, which tests how agent performance changes as the externally supplied pool of tools, reusable skills or specialist agents expands. Its 17 constructed streams contain 802 unique tasks derived from two verifier-based agent benchmarks. The authors report that harness expansion alone can reduce performance on previously solved tasks, with reported declines varying across the tool, skill and agent tracks; adaptation gains are also inconsistent and retention can conflict with learning new capabilities. These are paper-reported benchmark results, not independent or production measurements.",
+    "title": "EvoHarnessBench reports competence losses as agent tool, skill and specialist pools expand",
+    "topics": [
+      "agent evaluation",
+      "harness evolution",
+      "tool use",
+      "skills",
+      "multi-agent systems",
+      "retention"
+    ],
+    "why_it_matters": "Agent systems increasingly gain tools, reusable procedures and specialist agents over time. This paper tests that growth as an evaluation variable and reports that broader harnesses can impair performance on earlier tasks, even when the underlying model and prompt remain fixed. The result motivates tracking retention separately from adaptation, while remaining limited to author-run benchmark streams rather than measured production systems."
+  },
+  {
+    "confidence": "credible_unconfirmed",
     "demonstrated_result": "The arXiv paper, project page and official repository establish the method, reported setups, metrics, public inference-code status and stated limitations. the research desk did not reproduce model performance.",
     "desks": [
       "multimodality_world_models",
