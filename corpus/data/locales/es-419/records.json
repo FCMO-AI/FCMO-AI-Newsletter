@@ -9021,6 +9021,61 @@
       "title": "SoftBank completa su inversión adicional de USD 30B en OpenAI y reporta una participación de 13%",
       "why_it_matters": "Una inversión adicional completada de USD 30 billion y una participación divulgada de aproximadamente 13% son evidencia relevante de concentración de capital alrededor de un desarrollador de IA de frontera. El comunicado corporativo no establece cómo los fondos afectan la adquisición de cómputo, el gasto de investigación, la gobernanza o las capacidades de los modelos."
     },
+    "FCMO-68442D8670DE": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "X-AgentRed construye un grafo dirigido que vincula los efectos de una herramienta con los requisitos de ejecución de otras; muestrea rutas entre servicios y usa la retroalimentación de ejecución para diversificar las rutas dañinas y reparar las que quedan bloqueadas."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En una simulación con 30 servicios y 914 herramientas, los autores informan tasas medias de rutas dañinas de 19.2% para X-AgentRed, 10.5% para STAC y 2.7% para TRACE en cuatro agentes evaluados, con 250 escenarios por agente."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan una cobertura media de herramientas de 41.5% para X-AgentRed, frente a 13.9% para STAC y 23.7% para TRACE. Cada configuración tuvo una sola ejecución en el simulador fijo; la agregación de jueces cambia de manera importante la tasa reportada."
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "El registro de arXiv identifica la versión 1 y el envío del 2026-10-09 a las 17:34 UTC. Esto confirma la existencia y fecha del preprint, no una validación independiente de sus resultados."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se examinó una reproducción independiente de los resultados de una ejecución por configuración ni de las etiquetas de los jueces.",
+          "kind": "reproduction_missing",
+          "state": "open"
+        },
+        {
+          "description": "El entorno evaluado es simulado; se desconoce si los resultados se transfieren a integraciones reales cambiantes y a salvaguardas de agentes desplegados.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si el resultado reportado se generaliza más allá de este ecosistema simulado y de una sola ejecución, la exploración guiada por grafos podría mejorar de forma sustancial la detección de daños no intencionales en agentes personales que combinan servicios. La evidencia es un resultado de benchmark informado por los autores, no una estimación del riesgo en producción.",
+      "limitations": [
+        "Cada configuración se evaluó en una sola ejecución; no se estima la variabilidad entre ejecuciones.",
+        "El banco de pruebas es un ecosistema simulado, no agentes conectados a servicios de producción; los resultados no establecen prevalencia ni riesgo en el mundo real.",
+        "La tasa principal requiere acuerdo entre dos jueces de modelos. Aceptar el dictamen de cualquiera eleva las tasas entre 15.2 y 30.4 puntos porcentuales; el artículo describe esto como sensibilidad, no como exactitud de los jueces.",
+        "Las trayectorias ejecutadas más largas y las diferencias de longitud entre métodos dificultan interpretar las comparaciones de cobertura y rutas dañinas.",
+        "En esta revisión no se realizó reproducción independiente ni inspección de artefactos."
+      ],
+      "relationships": [],
+      "summary": "El preprint X-AgentRed, de octubre de 2026, usa un grafo de efectos y requisitos de herramientas para generar escenarios de ataque entre servicios; luego aprovecha la retroalimentación de ejecución para diversificar rutas dañinas y reparar rutas bloqueadas. En una ejecución por configuración, con cuatro agentes objetivo y un ecosistema simulado de 30 servicios y 914 herramientas, los autores informan una tasa de rutas dañinas de 19.2%, frente a 10.5% para STAC y 2.7% para TRACE. La cobertura media de herramientas fue de 41.5%, frente a 13.9% y 23.7%. Son resultados del simulador informados por los autores, no estimaciones del riesgo real de agentes.",
+      "technical": {
+        "claimed_result": "Los autores informan tasas medias de rutas dañinas de 19.2% para X-AgentRed, 10.5% para STAC y 2.7% para TRACE, y coberturas medias de herramientas de 41.5%, 13.9% y 23.7%, respectivamente.",
+        "demonstrated_result": "Se inspeccionaron el texto completo v1 de arXiv, el protocolo experimental, los resultados reportados y las limitaciones. No se realizó una reproducción independiente.",
+        "implementation_status": "该预印本介绍了方法和模拟实验。本次未运行代码、独立复现，也未在已部署服务中评测。",
+        "mechanism": "El sistema representa los requisitos de ejecución, efectos y posibles daños de cada herramienta. Un modelo de lenguaje estima vínculos entre efectos y requisitos para formar el grafo de dependencias HarmFlow; recorridos del grafo generan escenarios. Tras la ejecución, sustituye herramientas adyacentes para diversificar rutas dañinas y ajusta requisitos y pasos previos para reparar rutas bloqueadas.",
+        "novelty": "结合显式跨工具依赖图与执行反馈驱动的扩展、修复，在模拟服务生态中搜索工具组合。",
+        "regime": "Evaluación de los autores con ToolSimulator, 30 servicios y 914 herramientas; cuatro modelos objetivo; 250 escenarios por objetivo; una ejecución por configuración. Dos jueces de modelos deben coincidir para asignar las etiquetas principales de daño.",
+        "reproducibility": "检查了论文报告的评测。每种配置仅运行一次，无法估计不确定性；本次未独立运行，也未审计外部模拟器。未检查 arXiv 关联项目页中的可执行工件。",
+        "strongest_baseline": "STAC es el baseline con mayor tasa media de rutas dañinas (10.5%); TRACE supera a STAC en cobertura media (23.7% frente a 13.9%). X-AgentRed informa 19.2% y 41.5%, respectivamente. Las comparaciones provienen de una sola ejecución por configuración en el simulador fijo de los autores."
+      },
+      "title": "El ataque guiado por grafos encuentra más rutas dañinas entre servicios en un ecosistema simulado de agentes personales",
+      "why_it_matters": "Un grafo de dependencias puede revelar combinaciones de acciones individualmente benignas que los ataques basados en prompts podrían pasar por alto. La ventaja reportada en el benchmark hace de este un método de prueba notable para agentes que usan servicios, aunque una sola ejecución simulada y las etiquetas sensibles al juez dejan incierta su relevancia en campo."
+    },
     "FCMO-6851A79A85AC": {
       "claims": [
         {
@@ -12515,6 +12570,66 @@
       },
       "title": "ScienceBuddy reporta mejoras al coevolucionar un arnés científico y un modelo de lenguaje",
       "why_it_matters": "Si se replica con tareas científicas creadas de forma independiente y verificación de resultados, la coevolución de un arnés de investigación y su modelo de tareas podría mejorar la ejecución de tareas. La evidencia actual establece un resultado acotado de benchmark ejecutado por los autores; no muestra que el sistema haya hecho descubrimientos científicos ni que el repositorio mantenido actualmente reproduzca el caso del artículo."
+    },
+    "FCMO-93DC7BF13995": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Para una solución de Leray–Hopf sin forzamiento en el toro tridimensional periódico y con viscosidad fija, el artículo afirma que el defecto positivo de energía durante una ventana temporal equivale a una cota inferior positiva, uniforme a partir de cierta escala, para el flujo integrado en el tiempo a través de capas de Fourier diádicas."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan pruebas formales de la reducción y de condiciones necesarias relacionadas en Lean 4/Mathlib. Indican expresamente que la biblioteca no contiene un objeto de Navier–Stokes y no conecta la reducción con una teoría de Leray–Hopf formalizada."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El artículo informa 12 simulaciones pseudoespectrales con resoluciones de 128³ y 256³. Las simulaciones se acercan a la condición de flujo mínimo temporal, pero pierden la cota común hacia la escala de Kolmogórov; los autores señalan que estos diagnósticos finitos de punto flotante no prueban nada sobre una solución verdadera."
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION",
+          "text": "El artículo indica que el problema de defecto positivo sin forzamiento sigue abierto y que las construcciones forzadas de Navier–Stokes y las construcciones forzadas o invíscidas de Euler que analiza no pertenecen a la clase objetivo."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "El paquete Lean actual enlazado y el alcance exacto de sus teoremas e importaciones no se han compilado ni auditado de forma independiente; el artículo identifica Lean 4.33.0 y Mathlib 4.33.0, pero indica que no hay un objeto de Navier–Stokes en la biblioteca.",
+          "kind": "reproduction_missing",
+          "state": "open"
+        },
+        {
+          "description": "No existe una derivación formal que conecte las hipótesis abstractas sobre sucesiones y funciones de la reducción con una solución de Leray–Hopf sin forzamiento de Navier–Stokes.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "Nadie ha reproducido de manera independiente los diagnósticos de flujo a resolución finita de los autores; estos tampoco establecen la cota uniforme de escalas finas.",
+          "kind": "reproduction_missing",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si la reducción formal y los criterios de búsqueda del artículo son correctos y útiles, aportan una forma concreta de orientar el trabajo computacional sobre un problema abierto importante de regularidad. Es un avance metodológico notable; la solución sin forzamiento con defecto positivo sigue sin existir y falta el puente formal a objetos de Navier–Stokes.",
+      "limitations": [
+        "El artículo no construye una singularidad de Navier–Stokes sin forzamiento ni resuelve el problema de defecto positivo, que reconoce como abierto.",
+        "La biblioteca Lean no contiene un objeto de Navier–Stokes; aún no se ha establecido el puente entre el teorema abstracto sobre sucesiones y funciones y los objetos formalizados de Leray–Hopf.",
+        "Las 12 simulaciones de resolución finita usan aritmética de punto flotante y no pueden demostrar la condición uniforme en escalas arbitrariamente finas ni acreditar un defecto positivo.",
+        "Esta revisión no compiló el paquete Lean actual, no auditó la prueba de manera independiente ni reprodujo las simulaciones.",
+        "Las condiciones necesarias del artículo no son suficientes para producir un defecto positivo."
+      ],
+      "relationships": [],
+      "summary": "Un preprint de septiembre de 2026 define un defecto de energía positivo para una solución de Leray–Hopf sin forzamiento en el cubo periódico y a viscosidad fija, y presenta una reducción formal en Lean 4: el defecto equivale a una cota inferior positiva y uniforme, en el tiempo promediado, del flujo de energía a través de todas las capas de Fourier diádicas suficientemente finas. El artículo propone condiciones necesarias de admisibilidad y sostiene que una computación de Galerkin finita no puede demostrar la cota uniforme requerida; en sus 12 simulaciones pseudoespectrales a 128³ y 256³ se aproxima la condición temporal, pero la cota no se mantiene hacia la escala de Kolmogórov. Esta es una especificación matemática acotada para orientar búsquedas, no un resultado de singularidad sin forzamiento. Los autores indican que su biblioteca Lean no contiene un objeto de Navier–Stokes ni conecta la reducción con una teoría de Leray–Hopf formalizada por separado; el problema objetivo sigue abierto.",
+      "technical": {
+        "claimed_result": "Los autores informan la reducción mediante el balance de capas, varias condiciones necesarias para un posible defecto positivo y 12 diagnósticos pseudoespectrales a 128³/256³. La condición temporal casi se satisface, pero la condición de escalas finas falla al acercarse a la escala de Kolmogórov.",
+        "demonstrated_result": "El preprint, su fecha, su alcance y sus limitaciones declaradas pueden consultarse directamente. Esta revisión volvió a leer el HTML completo y el README del repositorio enlazado, pero no compiló el paquete Lean actual, ejecutó las simulaciones ni verificó de forma independiente el argumento matemático.",
+        "implementation_status": "Hay un preprint y un repositorio público con código fuente Lean. Esta revisión no compiló el paquete actual ni verificó el resultado de forma independiente.",
+        "mechanism": "El artículo considera el defecto de energía de una solución de Leray–Hopf sin forzamiento y a viscosidad fija durante una ventana temporal, deriva un balance de energía truncado por capas y relaciona el límite del flujo diádico integrado con ese defecto. Un defecto positivo equivale entonces a una cota inferior positiva común del flujo promediado para todas las capas suficientemente finas. El desarrollo Lean formaliza las implicaciones indicadas sobre sucesiones y funciones reales abstractas bajo ciertas hipótesis; el artículo no codifica un objeto de solución de Navier–Stokes.",
+        "novelty": "Una reducción formalizada del objetivo de defecto positivo a un criterio uniforme de flujo diádico promediado, junto con criterios de admisibilidad para la búsqueda y una explicación explícita de por qué una computación de Galerkin finita no puede establecer la condición uniforme en todas las escalas.",
+        "regime": "Navier–Stokes incompresible sin forzamiento en el toro tridimensional periódico y a viscosidad fija, para una solución de Leray–Hopf desde datos suaves. Los diagnósticos numéricos finitos usan la configuración pseudoespectral de los autores a 128³ y 256³; la reducción formal trata sucesiones y funciones abstractas e incorpora las condiciones de Navier–Stokes como hipótesis.",
+        "reproducibility": "El artículo enlaza un repositorio Lean 4.33.0/Mathlib 4.33.0 e informa 12 simulaciones espectrales. Esta revisión no compiló el paquete enlazado; el artículo dice que no está conectado a una formalización existente de la teoría de Leray–Hopf. No se reprodujeron los resultados numéricos de manera independiente.",
+        "strongest_baseline": "El artículo compara la cota de flujo uniforme requerida entre escalas con sus propias simulaciones de resolución finita: estas casi satisfacen la condición temporal, pero el flujo disminuye en las capas más finas cerca de la escala de Kolmogórov. No se incluye reproducción independiente ni una comparación computacional equivalente."
+      },
+      "title": "Un objetivo de búsqueda formalizado en Lean para el problema abierto de Navier–Stokes sin forzamiento",
+      "why_it_matters": "Un objetivo preciso de flujo uniforme entre escalas y criterios explícitos de admisibilidad pueden ayudar a distinguir diagnósticos numéricos útiles de evidencia de una singularidad sin forzamiento. El aporte trata sobre cómo buscar una solución a un problema abierto importante; no resuelve ese problema y aún falta el puente formal hacia objetos de Navier–Stokes."
     },
     "FCMO-94EBAAEAD595": {
       "claims": [
