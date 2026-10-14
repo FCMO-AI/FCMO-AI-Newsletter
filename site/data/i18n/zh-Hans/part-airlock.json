@@ -1,6 +1,6 @@
 {
   "canonical_locale": "en",
-  "canonical_source_sha256": "e29c2df5c92ab35da257232a400822585de9596c633a9281037e5237f8d6b1b7",
+  "canonical_source_sha256": "bd4d02f7306021ef0ecb3294f7c13f7416e1db02e55cf8f26c11a2327caead5f",
   "generated_from": "ARB airlock; editorial wording authored upstream",
   "locale": "zh-Hans",
   "records": {
@@ -18392,6 +18392,63 @@
       "title": "欧盟委员会公布科学小组关于前沿人工智能风险的建议",
       "why_it_matters": "后续说明将会议公告扩展为欧盟具体政策建议，涉及事件调查、内部模型治理、国际信息共享和模型可监测性。如果这些建议获采纳，可能影响对前沿模型的监督。不过，委员会没有公开相关事件或发给企业的合并问题，也没有证明任何有约束力的措施已出台或得到落实。"
     },
+    "FCMO-CB9C10E60FAA": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "KATok 将每个视频潜变量的保留或丢弃决策与潜变量本身联合学习，并使用级联掩码先验预测稀疏 token 在后续流匹配生成中的位置。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "在约 5,000 个 Panda-70M 验证视频片段上，作者报告平均使用 366.24 个 64 通道 token，在 256²×16 下达到 31.24 PSNR 和 5.12 rFVD；在 512²×32 下报告 1,554.24 个 token、33.23 PSNR 和 6.40 rFVD。所列基线使用 8 个通道，论文的压缩指标已计入通道数。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "在 UCF-101 视频生成中，使用相同的 686.29M 参数 SiT-XL 主干网络时，作者报告级联掩码先验条件生成的 gFVD 为 61.53，Omni-VAE 为 100.00；gFVD 统计使用 5,000 个生成样本。"
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "论文没有证明这些性能已获独立复现，也未证明按硬件条件归一化的部署节省，或在所测数据集和模型设置之外普遍提升视频生成效果。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "本次未查到对 Panda-70M 重建或 UCF-101 生成表格的独立复现。",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "论文报告 token 数量和按通道数调整的压缩率，但未证明部署系统端到端的内存、延迟或能耗相对节省。",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "论文指出高频细节与大幅运动同时出现时是重建失败场景；官方仓库称权重仍在内部审核中。",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "如果能在所测视频场景中复现，自适应潜变量分配可在减少冗余视频表示的同时保持或改善报告的质量，从而影响 token 化器和生成器的设计。现有证据限于作者使用的数据集和模型；按通道数计算的压缩幅度明显小于原始 token 数量的降幅。",
+      "limitations": [
+        "所有性能结果均为作者报告；研究团队没有运行代码或独立复现这些结果。",
+        "KATok 使用 64 个潜变量通道，而所列 OmniTokenizer 和 ElasticTok 基线使用 8 个；原始 token 数下降不等于按通道数调整后的压缩率。",
+        "论文的主要重建结果来自约 5,000 个 Panda-70M 验证片段，生成实验使用 SkyTimelapse、UCF-101 和 Kinetics-600；这不足以证明视频生成能力普遍提升。",
+        "补充材料指出，高频细节与大幅运动同时出现时会发生失败（Panda-70M 上约为 19–20 PSNR）。",
+        "官方仓库提供推理代码，但没有训练代码，并称权重仍在内部审核中。"
+      ],
+      "relationships": [],
+      "summary": "Kakao 的 KATok 论文报告了一种视频 VAE，可学习保留或丢弃 token 的掩码，并通过级联掩码先验在生成时放置稀疏潜变量。在约 5,000 个 Panda-70M 验证片段上，作者报告 256²×16 下平均使用 366 个 64 通道 token，达到 31.24 PSNR 和 5.12 rFVD；在 512²×32 下报告 1,554 个 token、33.23 PSNR 和 6.40 rFVD。对于使用相同 SiT-XL 主干的 UCF-101 生成，级联位置条件方法报告 gFVD 为 61.53，Omni-VAE 为 100.00。结果均来自论文报告；由于 KATok 使用 64 个潜变量通道，而所列基线使用 8 个，单看 token 数会夸大压缩效果。",
+      "technical": {
+        "claimed_result": "作者报告，自适应视频 token 化在使用更少活动 token 的同时提高重建指标；在所列基准上，利用稀疏位置的生成方法相较 Omni-VAE token 化器改善了 gFVD。",
+        "demonstrated_result": "arXiv 论文、项目页和官方仓库可用于核对方法、作者报告的设置与指标、公开推理代码状态及其声明的局限。研究团队没有复现模型性能。",
+        "mechanism": "Transformer VAE 使用 Gumbel-Softmax 与连续潜变量联合学习保留/丢弃掩码，并将同一掩码应用于解码器注意力。级联生成器先预测占用掩码，再根据选定位置生成稀疏潜变量内容；联合预测内容与位置的方法作为消融项。",
+        "regime": "作者报告的 Panda-70M 验证集重建设置为 256²×16 和 512²×32；下游流匹配生成使用 686.29M 参数 SiT-XL 主干，在 256²×16 下测试 SkyTimelapse、UCF-101 和 Kinetics-600；gFVD 基于 5,000 个生成样本。主要 token 化器使用 Panda-70M 训练。",
+        "strongest_baseline": "重建方面，比较对象为同属 Transformer 连续 token VAE 的 ElasticTok-KL 和 OmniTokenizer-VAE。256²×16 下，KATok 报告 366.24 个 token ×64 通道；ElasticTok 为 3,845.56 ×8，OmniTokenizer 为 5,120 ×8；对应指标分别为 31.24 PSNR/5.12 rFVD、30.52/12.37 和 28.10/7.84。UCF-101 生成方面，同主干 Omni-VAE 报告 gFVD 100.00，KATok 级联版本为 61.53；均为作者运行的比较。"
+      },
+      "title": "Kakao 报告按内容自适应的视频潜变量与稀疏位置生成",
+      "why_it_matters": "视频 token 化器通常为每段视频分配固定的潜变量网格。KATok 测试一种按内容调整的方案，并处理丢弃 token 后空间布局丢失的问题。如果独立且匹配条件的复现能支持这些结果，它们可能影响视频 token 化器和生成器的设计。现有证据仅来自作者运行的基准；按通道数计算的压缩效果低于突出的 token 数降幅。"
+    },
     "FCMO-CCFA19CB7927": {
       "claims": [
         {
@@ -36216,6 +36273,48 @@
       "why_it_matters": {
         "locale_sha256": "e9c2938a31cae94b2d28ead3c2ff8d84f31e9bb4d415baf199c02a773d41977f",
         "source_sha256": "5f4f4ebefce61e89503af30e53df4329a1afa5efdf3e71dc8fb5b7a9bcf4af41"
+      }
+    },
+    "FCMO-CB9C10E60FAA": {
+      "claims": {
+        "locale_sha256": "3bcc89eee771eb194a5d49fdbd329006e1bcbb161ffeabc6d2cde3a182119c22",
+        "source_sha256": "ce42b29f02c54bf59fc9d8535d72adda55c51c074eefee95a0904ea3146f9401"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "99765d8acce9ed9f5f20994d1c26c54294a3f6620500a036c0fe04f2f9c71205",
+        "source_sha256": "3fb7dc039b39e7cf89106d94fb7cd660e5dbc19a84ad34a2587d5e3a2bd67173"
+      },
+      "importance_rationale": {
+        "locale_sha256": "a308d111c46004e38ba9d47eb09e25981944905d4212be5af492882b3c8bfa0d",
+        "source_sha256": "ec6c93c7babc26a7b8c42281a7b9ba8ea1fe6b072aabf6c88cbe9a08965590e0"
+      },
+      "limitations": {
+        "locale_sha256": "8e9719ba987e8032998636056422859a41f4ac3372cc9da2a2c4b5820003954b",
+        "source_sha256": "f881a34f31dbb684dd539132ac4e7e5876fecafc3315fd42447c1353c526b0aa"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "9efaeeecfe80c32a1af594fe8fc174b28bc5da818d358c124ae7dab4cf168097",
+        "source_sha256": "18747e582a4d885536c6d5d5c0b0c476f66c7dc9a7ea153f0bb2856b189fc24e"
+      },
+      "technical": {
+        "locale_sha256": "fd4a4609bfac059a60f67bd40a546bcce219d6678daa886c345adba20411529d",
+        "source_sha256": "e4eb7382087186250df3d62283107b01f1d4844d74e00173f932d27ff1d8301f"
+      },
+      "title": {
+        "locale_sha256": "0cc82befe63f7487e596fb83182df45c11e78651035245f25fedb43cb99ae446",
+        "source_sha256": "6468e14430ae023188b9a86ebc88d801af5fc9874928413a4ed36476ee4a7f26"
+      },
+      "why_it_matters": {
+        "locale_sha256": "b4470015b7e9b029da6b00706ec2a9a3f35746d0d241d194278e48553456aa5c",
+        "source_sha256": "cd67d23a7ea14386761ed5db609d30297969d90caa8ffa929b4a459b24fc5af9"
       }
     },
     "FCMO-CCFA19CB7927": {

@@ -1,6 +1,6 @@
 {
   "canonical_locale": "en",
-  "canonical_source_sha256": "e29c2df5c92ab35da257232a400822585de9596c633a9281037e5237f8d6b1b7",
+  "canonical_source_sha256": "bd4d02f7306021ef0ecb3294f7c13f7416e1db02e55cf8f26c11a2327caead5f",
   "generated_from": "ARB airlock; editorial wording authored upstream",
   "locale": "es-419",
   "records": {
@@ -18392,6 +18392,63 @@
       "title": "La Comisión Europea presenta recomendaciones del panel científico sobre riesgos de la IA de frontera",
       "why_it_matters": "La nota posterior convierte el anuncio de la reunión en un relato concreto de asesoría normativa de la UE: investigación de incidentes, gobernanza de modelos internos, intercambio internacional de información y límites de monitorización. Si se adoptan, estas propuestas podrían orientar la supervisión de modelos de frontera. Sin embargo, la Comisión no publica los incidentes ni las preguntas combinadas a las empresas, y no se ha demostrado ninguna medida vinculante ni su implementación."
     },
+    "FCMO-CB9C10E60FAA": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "KATok aprende decisiones de conservar o descartar cada token junto con los latentes de video y usa un prior de máscaras en cascada para predecir las posiciones de los tokens dispersos durante la generación por flujo."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En aproximadamente 5,000 clips de validación de Panda-70M, los autores reportan un promedio de 366.24 tokens de 64 canales, 31.24 PSNR y 5.12 rFVD a 256²×16; a 512²×32 reportan 1,554.24 tokens, 33.23 PSNR y 6.40 rFVD. Las bases de comparación indicadas usan 8 canales y la métrica de compresión del artículo tiene en cuenta el número de canales."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Para la generación de video en UCF-101 con la misma arquitectura SiT-XL de 686.29M de parámetros, los autores reportan gFVD de 61.53 con el acondicionamiento en cascada mediante prior de máscaras, frente a 100.00 con Omni-VAE; el cálculo de gFVD usa 5,000 muestras generadas."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El artículo no demuestra un rendimiento reproducido de forma independiente, ahorros de despliegue normalizados por hardware ni mejoras generales de generación de video fuera de los conjuntos de datos y la configuración evaluados."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se inspeccionó ninguna reproducción independiente de las tablas de reconstrucción en Panda-70M o generación en UCF-101.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "El artículo informa conteos de tokens y compresión ajustada por canales, pero no establece ahorros comparativos de memoria, latencia o energía de extremo a extremo en sistemas desplegados.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "El artículo identifica como régimen de fallo la combinación de mucho detalle de alta frecuencia y gran movimiento; el repositorio oficial indica que los pesos siguen bajo revisión interna.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se replica en los regímenes de video evaluados, la asignación adaptativa de latentes podría cambiar el diseño de tokenizadores y generadores al reducir la representación redundante sin perder —y posiblemente mejorando— la calidad reportada. La evidencia se limita a conjuntos de datos y modelos evaluados por los autores, y la compresión ajustada por canales es sustancialmente menor que la reducción bruta del conteo de tokens.",
+      "limitations": [
+        "Todos los resultados de rendimiento fueron reportados por los autores; el equipo de investigación no ejecutó el código ni reprodujo los resultados de forma independiente.",
+        "KATok usa 64 canales latentes, mientras que OmniTokenizer y ElasticTok usan 8 en las comparaciones citadas; la reducción bruta de tokens no equivale a la compresión ajustada por canales.",
+        "El artículo presenta la reconstrucción principal en unos 5,000 clips de validación de Panda-70M y generación en SkyTimelapse, UCF-101 y Kinetics-600; esto no demuestra una mejora amplia de generación de video.",
+        "El suplemento identifica como fallo los clips con mucho detalle de alta frecuencia y gran movimiento (aproximadamente 19–20 PSNR en Panda-70M).",
+        "El repositorio oficial ofrece código de inferencia, pero no código de entrenamiento, y señala que los pesos siguen bajo revisión interna."
+      ],
+      "relationships": [],
+      "summary": "El artículo de Kakao sobre KATok presenta un VAE de video que aprende máscaras para conservar o descartar tokens y usa un prior de máscaras en cascada para ubicar los latentes dispersos durante la generación. En aproximadamente 5,000 clips de validación de Panda-70M, los autores reportan un promedio de 366 tokens de 64 canales, 31.24 PSNR y 5.12 rFVD a 256²×16; a 512²×32 reportan 1,554 tokens, 33.23 PSNR y 6.40 rFVD. Para la generación en UCF-101 con la misma arquitectura SiT-XL, el acondicionamiento por posiciones en cascada reporta gFVD de 61.53 frente a 100.00 con Omni-VAE. Los resultados provienen del artículo; el conteo de tokens por sí solo exagera la compresión, pues KATok usa 64 canales latentes frente a 8 en las bases comparadas.",
+      "technical": {
+        "claimed_result": "Los autores reportan tokenización adaptativa de video con mejores métricas de reconstrucción usando menos tokens activos, además de generación consciente de las posiciones dispersas que mejora el gFVD frente a un tokenizador Omni-VAE en los benchmarks indicados.",
+        "demonstrated_result": "El artículo de arXiv, la página del proyecto y el repositorio oficial permiten verificar el método, las configuraciones y métricas reportadas, la disponibilidad del código de inferencia y las limitaciones declaradas. El equipo de investigación no reprodujo el rendimiento del modelo.",
+        "mechanism": "Un VAE Transformer aprende una máscara de conservar o descartar con Gumbel-Softmax junto con los tokens latentes continuos y aplica la misma máscara a la atención del decodificador. Un generador en cascada predice primero una máscara de ocupación y luego genera el contenido latente disperso condicionado por las posiciones seleccionadas; el método conjunto de contenido y posición se presenta como ablación.",
+        "regime": "Reconstrucción reportada por los autores en validación de Panda-70M a 256²×16 y 512²×32; generación posterior mediante flujo con una arquitectura SiT-XL de 686.29M de parámetros a 256²×16 en SkyTimelapse, UCF-101 y Kinetics-600; gFVD calculado con 5,000 muestras generadas. El tokenizador principal se entrena con Panda-70M.",
+        "strongest_baseline": "Para reconstrucción, ElasticTok-KL y OmniTokenizer-VAE, de la misma familia de VAE Transformer con tokens continuos. A 256²×16, KATok reporta 366.24 tokens ×64 canales frente a 3,845.56 ×8 (ElasticTok) y 5,120 ×8 (OmniTokenizer), con 31.24 PSNR/5.12 rFVD frente a 30.52/12.37 y 28.10/7.84. Para generación en UCF-101, Omni-VAE con la misma arquitectura base reporta gFVD de 100.00 frente a 61.53 con la variante KATok en cascada; ambas cifras provienen de los autores."
+      },
+      "title": "Kakao reporta latentes de video adaptados al contenido y generación con posiciones dispersas",
+      "why_it_matters": "Los tokenizadores de video suelen asignar una cuadrícula latente fija a cada clip. KATok prueba una alternativa adaptada al contenido y aborda el problema de ubicación espacial que aparece al eliminar tokens. Si los resultados reportados se sostienen en reproducciones independientes y comparables, podrían influir en el diseño de tokenizadores y generadores de video. La evidencia se limita a benchmarks ejecutados por los autores, y la compresión ajustada por canales es menor que la reducción destacada del conteo de tokens."
+    },
     "FCMO-CCFA19CB7927": {
       "claims": [
         {
@@ -36216,6 +36273,48 @@
       "why_it_matters": {
         "locale_sha256": "539162c11e3160b4e8aea00f7214076131977c6c27ec7afb97fdf835af22a3f1",
         "source_sha256": "5f4f4ebefce61e89503af30e53df4329a1afa5efdf3e71dc8fb5b7a9bcf4af41"
+      }
+    },
+    "FCMO-CB9C10E60FAA": {
+      "claims": {
+        "locale_sha256": "659f5d756257fd0b99125355ee95c8f0351c8c2241287a978db2916e19d887b0",
+        "source_sha256": "ce42b29f02c54bf59fc9d8535d72adda55c51c074eefee95a0904ea3146f9401"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "e1e47196753e9ea7a662b3b88fc7acd17d35e2e66983dcf80199bf5cb3eff6f7",
+        "source_sha256": "3fb7dc039b39e7cf89106d94fb7cd660e5dbc19a84ad34a2587d5e3a2bd67173"
+      },
+      "importance_rationale": {
+        "locale_sha256": "75ba1b51a0c2ae6a357088565b611b4593e7dff612b1a5ec445db0367a64c5b0",
+        "source_sha256": "ec6c93c7babc26a7b8c42281a7b9ba8ea1fe6b072aabf6c88cbe9a08965590e0"
+      },
+      "limitations": {
+        "locale_sha256": "5d70acccae289009facc1f95db2f7542408911771ab58d33586d2cf11119f13a",
+        "source_sha256": "f881a34f31dbb684dd539132ac4e7e5876fecafc3315fd42447c1353c526b0aa"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "b122c99c3d1570534ac73d9de54fdc5cc85625266c2270a2640a2be76719bd46",
+        "source_sha256": "18747e582a4d885536c6d5d5c0b0c476f66c7dc9a7ea153f0bb2856b189fc24e"
+      },
+      "technical": {
+        "locale_sha256": "795c1fff529a330b5cd5ad79e1ffb13498bae0e29a15218a764292d74c1f8e0f",
+        "source_sha256": "e4eb7382087186250df3d62283107b01f1d4844d74e00173f932d27ff1d8301f"
+      },
+      "title": {
+        "locale_sha256": "9bb4579339ac135580cee72ae89886983f9d85c6433ca738f9cd54506361d0d3",
+        "source_sha256": "6468e14430ae023188b9a86ebc88d801af5fc9874928413a4ed36476ee4a7f26"
+      },
+      "why_it_matters": {
+        "locale_sha256": "d7a8bfbec6ded2c35fe552f99242461705346bc842f7426c7ec5ffe38b693864",
+        "source_sha256": "cd67d23a7ea14386761ed5db609d30297969d90caa8ffa929b4a459b24fc5af9"
       }
     },
     "FCMO-CCFA19CB7927": {
