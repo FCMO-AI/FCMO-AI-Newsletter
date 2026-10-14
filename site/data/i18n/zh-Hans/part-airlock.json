@@ -1,6 +1,6 @@
 {
   "canonical_locale": "en",
-  "canonical_source_sha256": "bd4d02f7306021ef0ecb3294f7c13f7416e1db02e55cf8f26c11a2327caead5f",
+  "canonical_source_sha256": "8cfacf3de0cc6a63dd968afbfaf9ca015d1b8aa24c9e4177748c5fc3e3d8ec4f",
   "generated_from": "ARB airlock; editorial wording authored upstream",
   "locale": "zh-Hans",
   "records": {
@@ -997,6 +997,63 @@
       "summary": "Arm 推出 Neoverse CSS N4，这是围绕 Neoverse N4 CPU 核构建、以 RTL 交付的可配置计算子系统，面向云、网络和 AI 基础设施。合作伙伴可配置每个 die 的 8–128 个核心、缓存、内存、I/O、加速器连接和 chiplet 互连；Arm 列出最高 3.8 GHz、LPDDR6 和 PCIe Gen 7 支持。Arm 声称相较 CSS N3，每 socket 性能最高 2x、每瓦性能最高 1.25x、内存带宽最高 1.75x。这些比较数字都是供应商声明，本次运行未找到独立匹配基准，而且可能包含配置/工艺/平台变化，不一定仅代表核心层改进。",
       "title": "Arm 发布 Neoverse CSS N4：面向 AI 和云基础设施、可高度配置的 8–128 核子系统",
       "why_it_matters": "AI 系统越来越多的非加速器工作花在编排、检索、网络、存储、工具执行和喂给加速器上。一个预集成、高度可配置、具现代内存、I/O 和 chiplet 接口的 CPU 子系统，可以缩短为这类工作负载构建定制 host/control 芯片的路径。这项发展应被视为使能基础设施，而不是新 AI 加速器或模型训练突破的证据。"
+    },
+    "FCMO-084CA145630B": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Vision-RL2使用区域级强化学习训练轻量区域预测器，并配合冻结的多模态阅读器；随后使用稀疏视觉编码突出所选证据。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "作者报告称，该方法在六个细粒度基准和四种架构上优于基础模型；在训练对齐协议下，Qwen3.5-4B于576源图像token限制下的平均分为71.1，SD-RPN为66.6，并以少4.2×视觉token达到SD-RPN在4,096 token限制下的准确率。"
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION",
+          "text": "论文报告称，小型Qwen3.5配置在MME-RealWorld上的得分低于全量微调参考模型；主表和训练对齐效率协议不能直接比较。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "本次评估未检查所链接的训练代码、区域预测器、数据选择流程或发布权重。",
+          "kind": "missing_artifact",
+          "state": "open"
+        },
+        {
+          "description": "本次评估未发现对六项基准准确率以及token/延迟取舍的独立复现。",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "论文未证明其在生产多模态服务系统中的成本、延迟或吞吐量。",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "若能复现，学习哪些连贯图像区域值得更高分辨率，可能提高细粒度多模态感知并降低视觉token和延迟成本。结果覆盖四种架构和多个基准，但效率协议与训练设置对齐，且作者报告的测量显示存在任务特定的性能取舍。",
+      "limitations": [
+        "所有结果均由作者报告；本次激活未进行独立复现。",
+        "主要的16,384-token比较混用多种评分来源，并引用其他论文的部分结果；效率协议另行设置，作者明确表示不能与主表比较。",
+        "训练对齐效率研究使用简短回答、规则评分和RTX A6000；它不能证明生产服务成本或广泛的部署收益。",
+        "Qwen3.5-4B和9B配置在部分MME-RealWorld子集上的得分低于全量微调参考，这与冻结阅读器的取舍一致。",
+        "本次未审计代码链接和训练实现。"
+      ],
+      "relationships": [],
+      "summary": "Vision-RL2通过区域级强化学习训练小型区域提议网络，为冻结的多模态阅读器定位视觉证据，随后对所选区域进行稀疏编码。作者报告称，该方法在六个细粒度感知基准和四种架构上优于基础模型。在单独的训练对齐协议中，Qwen3.5-4B在576源图像token限制下的六项基准平均分为71.1，SD-RPN为66.6；在4,096 token限制下达到SD-RPN的结果时，视觉token减少4.2倍。这些结果由作者报告；评估协议彼此不同，且在部分MME-RealWorld子集上存在性能取舍。",
+      "technical": {
+        "claimed_result": "在16,384源图像token的主协议下，论文报告V* Bench、ZoomBench、HR-Bench 4K/8K及MME-RealWorld EN/CN结果。在另一个训练对齐协议中，Qwen3.5-4B于576源token限制下平均分为71.1；作者报告称，它以少4.2×视觉token达到SD-RPN在4,096 token限制下的准确率。",
+        "compute_or_cost": "训练对齐协议报告视觉token数和RTX A6000上的延迟；未建立生产服务成本、能耗或吞吐量。",
+        "demonstrated_result": "arXiv HTML说明了方法、四类架构、基准协议和作者报告的测量。本次评估未运行公开代码或独立复现结果。",
+        "implementation_status": "该方法只更新小型附加区域预测器，并冻结多模态阅读器；预印本称代码可用，但本次未核实。",
+        "mechanism": "小型预测器提议连贯图像区域。冻结的多模态阅读器根据移除某区域后答案概率的变化为该区域评分；区域级强化学习据此训练预测器，无需区域标注或推理轨迹。之后通过稀疏编码将裁剪预算分配给所选证据。",
+        "novelty": "区域级强化学习将连贯视觉区域作为动作，并按冻结阅读器答案变化进行评分，从而把证据提议与阅读器推理分开。",
+        "regime": "四种架构系列（Qwen2.5-VL、Qwen3-VL、Qwen3.5和Gemma-4）及六个细粒度感知基准。主比较使用16,384源token限制，并结合规则解析与LLM评审。训练对齐协议使用576-token限制、简短回答和规则评分；作者明确表示其效率表不能与主表直接比较。",
+        "reproducibility": "论文称重新评估了部分已发布权重并提供代码链接，但本次激活未检查代码库或独立复现实验。",
+        "strongest_baseline": "在训练对齐的Qwen3.5-4B消融中，SD-RPN在576源token限制下平均为66.6，完整的区域强化学习加稀疏编码系统为71.1。主表中9B结果与重新评估及已发表参考比较，并非所有方法都采用相同的重新训练程序。"
+      },
+      "title": "Vision-RL2报告：小型区域预测器提升细粒度视觉感知",
+      "why_it_matters": "高分辨率视觉推理可能将大量计算花在背景像素上。Vision-RL2把连贯图像区域作为动作来处理，并训练轻量预测器将分辨率集中到证据区域，同时冻结主要阅读器。所报告的token效率收益可能对多模态推理有用，但它们来自特定基准协议，尚未证明生产成本或广泛的视觉推理改进。"
     },
     "FCMO-089B6803D06A": {
       "claims": [
@@ -7869,6 +7926,63 @@
       },
       "title": "分数分布可改善复杂推理任务中的检索弃答",
       "why_it_matters": "如果这一模式可以迁移，RAG系统就能利用已有分数更可靠地决定何时放弃检索，无需增加推理、重新训练或延迟。证据仅限于论文中的公开基准，且端到端测试只使用一个生成器和一个评审器，因此不能证明生产环境普遍受益。"
+    },
+    "FCMO-50C5C2E0CC87": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "论文介绍D-Quant：对量化后的KV值进行熵编码，并通过漂移分配满足每个token固定的存储预算，同时保留适合并行解码的规则布局。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "在Qwen3-8B和Llama-3.1-8B-Instruct上，每个值使用2.26比特时，作者报告RULER平均得分分别为86.50和88.94，BF16分别为87.31和89.69；在128K上下文下，D-Quant得分为70.92和74.65，表中最强低比特基线为57.14和66.15。"
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION",
+          "text": "论文在指定GPU设置下，对两种8B模型测试RULER和英文LongBench-E；尚未证明生产服务节省或其他架构上的结果。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "本次评估未检查代码、融合内核、基准脚本或存储量统计实现。",
+          "kind": "missing_artifact",
+          "state": "open"
+        },
+        {
+          "description": "未独立复现准确率、内存使用量或吞吐量。",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "论文未证明在生产批大小、并发量或其他硬件上的服务效果。",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "如果结果能够推广，在每个键值对值约2.26比特的存储下保持接近BF16的长上下文得分，可能显著降低推理内存负担。评估仅覆盖两种8B模型和作者运行的基准，尚未证明生产环境的节省或更广的架构迁移。",
+      "limitations": [
+        "所有基准和实现结果由作者报告；本次激活未检查代码或独立复现结果。",
+        "评估覆盖Qwen3-8B、Llama-3.1-8B-Instruct、NVIDIA H20 GPU、RULER及英文LongBench-E；向其他架构和服务栈的迁移效果未知。",
+        "Qwen3-8B在64K和128K的结果使用静态YaRN，超过其原生40K上下文窗口；这会降低绝对性能，不过基线使用相同设置。",
+        "在LongBench-E上，不同压缩方法之间的差距小于RULER。",
+        "存储量结果本身并不能证明生产吞吐量、并发能力、能耗或货币节省。"
+      ],
+      "relationships": [],
+      "summary": "论文提出D-Quant：对KV缓存值进行熵编码，并调整少量量化符号，使每个token序列符合固定大小的容器。在Qwen3-8B和Llama-3.1-8B-Instruct上，作者报告每个值平均使用2.26比特，且在4K至128K上下文长度上的RULER得分接近BF16；在128K时，报告得分高于表中最强的低比特基线。这些结果由作者报告，实验使用NVIDIA H20 GPU；本次评估未运行该实现。",
+      "technical": {
+        "claimed_result": "对Qwen3-8B和Llama-3.1-8B-Instruct，D-Quant以每个值2.26比特获得RULER平均得分86.50和88.94，BF16为87.31和89.69。在128K时，得分分别为70.92和74.65，表中最强低比特基线为57.14和66.15。LongBench-E上压缩方法间差距较小。",
+        "compute_or_cost": "主要配置报告每个值2.26比特；本次评估未对GPU吞吐量或成本进行归一化比较。",
+        "demonstrated_result": "arXiv HTML说明了算法，并报告两种模型在RULER和LongBench-E上的结果。本次评估未运行代码或独立复现结果。",
+        "implementation_status": "论文描述了CUDA内核并报告H20实验；本次评估未检查公开实现或测量生产服务系统。",
+        "mechanism": "旋转和归一化后，D-Quant使用共享的解析概率模型对量化KV值进行熵编码。带长度约束的漂移分配将少量值移至成本更低的符号，以适配固定大小的逐token容器；融合的token导向内核每条序列只解码一次，并将数值直接送入注意力计算。",
+        "novelty": "该方法将熵编码的可变长度信息与漂移约束结合，恢复逐token固定大小存储和融合注意力内核所需的规则访问。",
+        "regime": "Qwen3-8B和Llama-3.1-8B-Instruct；RULER六种上下文长度为4K至128K，另有英文LongBench-E；每个任务和长度使用100个RULER样本。采用贪心解码和96GB NVIDIA H20 GPU。Qwen3-8B在64K和128K使用静态YaRN。主要设置平均每个值2.26比特，并以BF16保留最近128个token。",
+        "reproducibility": "论文报告实验并说明使用了官方基线实现，但本次评估未独立检查或运行代码库、内核或实验工件。",
+        "strongest_baseline": "在128K RULER上，OScaR是表中最强的量化基线：Qwen3-8B为57.14，Llama-3.1-8B-Instruct为66.15；D-Quant为70.92和74.65。BF16参考得分为72.13和76.44。"
+      },
+      "title": "D-Quant报告：每个KV值约2.26比特时，长上下文准确率接近BF16",
+      "why_it_matters": "KV缓存内存可能限制大模型服务时的上下文长度和并发量。D-Quant报告了一种将熵编码与固定长度、规则访问相结合的方法，并在两个8B模型上以每个值约2.26比特达到接近BF16的RULER得分。如果能在真实服务系统中复现，该方法可能缓解长上下文推理的内存压力；论文本身尚未证明生产吞吐量、成本或向其他架构的迁移效果。"
     },
     "FCMO-5101EF772C8A": {
       "claims": [
@@ -17393,6 +17507,63 @@
       "title": "Amazon 将 Qualcomm 定制 AI 推理芯片和光互连合作与购买挂钩的 warrant 绑定",
       "why_it_matters": "如果合作达到有意义的部署规模，AWS 将获得另一条用于 AI 推理的定制芯片路径，而 Qualcomm 则获得进入大型超大规模数据中心计算和光互连的通道。与采购挂钩的 warrant 让经济利益与真实采用对齐，但无论 SEC 文件还是发布公告都没有披露加速器架构、性能、效率、部署数量或交付日期。"
     },
+    "FCMO-C0A26D24157E": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "v3预印本介绍EvoHarnessBench：一个受控基准，用于研究外部工具、技能和专家代理池逐步扩大的影响。它由17条多阶段序列和802项独立任务构成，任务取自带验证器的基准。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "作者报告称，向代理提供累积扩大的运行环境，可能降低其在已解决任务上的表现，即使模型和提示保持不变；工具、技能和专家代理轨道的报告降幅分别为12.1%、13.8%和46.4%。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "在论文测试的自适应方法和基准设置中，收益并不稳定；保留既有能力可能与适应新引入能力相冲突。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "论文虽链接了材料，但本次评估未检查基准代码库、任务数据、运行环境实现或实验配置。",
+          "kind": "missing_artifact",
+          "state": "open"
+        },
+        {
+          "description": "扩大运行环境后出现的效果及自适应比较尚未得到独立复现。",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "论文评估的是由两个带验证器的基准构造的序列；没有测量生产环境中运行工具池的扩展，也没有覆盖更广泛的任务分布。",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "如果所报告的效应能够推广，增加工具、可复用技能或专家代理可能削弱既有能力，并改变系统的评估与部署方式。这对代理研究具有意义，但结果来自作者报告、基于两类任务来源构建的基准，尚未证明生产规模的影响。",
+      "limitations": [
+        "所有性能数字均由作者报告；本次激活未进行独立复现。",
+        "部署评估在扩大运行环境时固定模型和提示；这并不能证明所有实际系统都会因增加工具或代理而退化。",
+        "17条序列和802项独立任务由EnterpriseOps-Gym和Agents’ Last Exam构造，不代表生产工作负载的总体样本。",
+        "技能与任务的关联通过技能文本和验证器结果之间的启发式匹配建立；作者指出，这不能确定哪些技能是必要或充分条件。",
+        "部分表格比较了底层运行环境不同的系统配置。Claude Code因使用不同模型和运行环境而未纳入主要受控比较，结果另行报告。"
+      ],
+      "relationships": [],
+      "summary": "v3预印本提出EvoHarnessBench，用于评估外部提供的工具、可复用技能或专家代理不断增加时，代理表现如何变化。该基准包含17条构造的序列和802项独立任务，来源是两个带有验证器的代理基准。作者报告称，仅扩大运行环境就可能降低代理在已解决任务上的表现；工具、技能和专家代理轨道的降幅各不相同。适应收益也不稳定，保留既有能力可能与学习新能力相冲突。这些是作者在基准中报告的结果，并非独立复现或生产环境测量。",
+      "technical": {
+        "claimed_result": "在部署评估中，论文报告称，随着环境扩大，工具、技能和专家代理轨道的表现分别下降12.1%、13.8%和46.4%。论文还报告了跨阶段和环境不稳定的自适应效果。这些测量由作者提供。",
+        "compute_or_cost": "论文报告部分试验的运行时间和token数，但本次评估未将其换算为可比的货币或能耗成本。",
+        "demonstrated_result": "v3预印本说明了一个包含17条多阶段序列、802项独立任务的基准，并实例化为1,510个按评估轴划分的样例、520种工具、42项参考技能和62个专家代理。本次评估未检查或运行所链接的基准工件。",
+        "implementation_status": "arXiv HTML链接了项目页面；本次激活未检查基准代码库或可运行工件。",
+        "mechanism": "基准从带验证器的任务构造累积阶段，并逐步开放更多工具、技能或专家代理，同时保留此前可用的能力。部署评估隔离更大候选池的直接影响；另一种自适应评估考察跨阶段的持久状态。",
+        "novelty": "该研究将外部代理运行环境的扩展设为受控的非平稳性来源，与任务流变化或代理自身学到的新能力相区分。",
+        "regime": "论文从EnterpriseOps-Gym和Agents’ Last Exam构造17条、每条三至六阶段的序列。受控的工具和技能比较采用基于GPT-5的系统；其他多代理和自适应配置按评估轴分别报告。技能匹配采用启发式方法。Claude Code使用不同模型和运行环境，因此单独报告。",
+        "reproducibility": "arXiv v3 HTML说明了构造和评估方法，并链接项目页面；本次评估未审计相关工件，也未独立运行实验。",
+        "strongest_baseline": "按任务定制的运行环境参考组只向每项任务提供标注为所需的能力，并与部署评估中的完整累积环境比较。这是基准中的受控参考条件，不是生产基线。"
+      },
+      "title": "EvoHarnessBench报告：工具、技能和专家代理池扩大时，代理既有能力可能下降",
+      "why_it_matters": "代理系统不断增加工具、可复用流程和专家代理。本文将这种扩展本身作为评估变量，并报告称，即使模型和提示保持不变，更大的运行环境也可能损害先前任务表现。这提示评估时应分别跟踪保留能力与适应能力；现有证据仍限于作者运行的基准序列，并非生产系统测量。"
+    },
     "FCMO-C0C152CEB019": {
       "claims": [
         {
@@ -22975,6 +23146,48 @@
         "source_sha256": "e6194bf9ea95c11b4343d0aa551aaa717dbefd5b6093651b089bf6a64ca45668"
       }
     },
+    "FCMO-084CA145630B": {
+      "claims": {
+        "locale_sha256": "09446edb1c90faa527ab379b1e20e91faff81677d3a134bb1ebae8a5659e157f",
+        "source_sha256": "3498009a8a4210b1e187be527f58647fd2bc8910de8886fcf8a0ef14d3a712eb"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "eb7a329d196ef5d75e9aac6e3f8538187b6bd30df97ff33fdf2828a5c893e871",
+        "source_sha256": "ef6ebe245d616da65c2257d135e5cd898bcbc0a1975627a5634d0d462056b34d"
+      },
+      "importance_rationale": {
+        "locale_sha256": "e0e6ad4f9649c1f023acb901d6f11571a872096eb0f9f4e684962be2736e63e8",
+        "source_sha256": "c640920aca2c06dcd5ab2b24e56a4fe9bd629ee45c6d7e251a7cd387aac7f480"
+      },
+      "limitations": {
+        "locale_sha256": "d5dbbab261bc0aed32d14890da26d189314826c0dd22de8ab4abb9ad98304f22",
+        "source_sha256": "e393eb8f1dfba5669347b90fbb2165b9beeb72686c01a6ce7bf3e8fdc6fa20d0"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "185ec39d9c625a0fd428ed047412dca848c077f3f0cd7a8229dc731e8c385b8f",
+        "source_sha256": "2c0feb78caa0b06de31386af4962602675ff89feb19c9b7e2547668bb48cd843"
+      },
+      "technical": {
+        "locale_sha256": "6567d511902d497766f1fe1745c0cef59fb55d2bfe026e2058129535b8378946",
+        "source_sha256": "839c0936af2bba507dd2bf673e48597bb9454e548db0520bf9617522cd45418d"
+      },
+      "title": {
+        "locale_sha256": "90a9b93be55ddac9c8dbf52fa4b1e7a70619333c2008ef1407423cb0fd6ad439",
+        "source_sha256": "afefb09e3b330c2b434a9426d6678f5b6f73421ad3127760aa78954d44ab3daf"
+      },
+      "why_it_matters": {
+        "locale_sha256": "ab7f23ad41ceefbe1acffb9a9ad3f3d445ddf957b2d18a8dc7717772bc506560",
+        "source_sha256": "21f04d02314acbc245bbfdbd08e6de0d869a382ecb2edff0ce22cf6ed413845d"
+      }
+    },
     "FCMO-089B6803D06A": {
       "claims": {
         "locale_sha256": "846e4101d803c35da898a56360a3c3e784035207a1b6ed76f7eda0f72c7fad26",
@@ -28167,6 +28380,48 @@
       "why_it_matters": {
         "locale_sha256": "f966a5e134990e20d0f2fdd249cbe05e3746b154a5677cf3e2b79c4dab0b5a39",
         "source_sha256": "ea0bb410743c633323c444c7e579343b829b64c0f7d24af1582e5012463f3b8d"
+      }
+    },
+    "FCMO-50C5C2E0CC87": {
+      "claims": {
+        "locale_sha256": "90d336453fbfe048d79b3a322bb96dc2ec72478d58145ce6c6f10a2d9613e47d",
+        "source_sha256": "22c206659759ea82388a055f85db162865e879602605314b880784f881b598e2"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "e41c55a666446dcf3547ac0e4ce21f9005c9cb357eb570c7e68f2c7b76cced9d",
+        "source_sha256": "61543f430f796c773b36e23696e3d7b0d75ac9ff2cf7bb813ab091d18f30b7cf"
+      },
+      "importance_rationale": {
+        "locale_sha256": "9903f3708d9ba659242185d2d6fff239cd1cd3296a00d1947077c6b7c948b09a",
+        "source_sha256": "5ecdc1e3822fe2477c9d78a4bdc8c665a54e2abd4809d573a7128c18a5a0ebf2"
+      },
+      "limitations": {
+        "locale_sha256": "8b6223abc2d09bc28b233481a96bc8f603c56f34a6a4e7410f89c298cfac0ab7",
+        "source_sha256": "31468480e1d4f4d96aebf57bdc3a15bc99ca45a91a9e2879ad4fc68f8dfcbff8"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "b996a49580e2208f8f537d62ebb4600641f94ff56d4274f38dc1baa9dbe851f1",
+        "source_sha256": "73133cf5fe216ee88718bcbce1e9d3bc226d4ea4347596ae34e034c029fb9126"
+      },
+      "technical": {
+        "locale_sha256": "a871c6c623df3ee52922232b0abecb33e35be00698073eb004dd3aeb3be9afbb",
+        "source_sha256": "e9562ea115bbfb2eb2380f68f5968241a0ea2d80bb05e4f92bae8ab802cad897"
+      },
+      "title": {
+        "locale_sha256": "077ced126d54bc7f0e5febfb407219f286ee4e38a66352327fd64b6f8df30184",
+        "source_sha256": "727708891015eebd3daae14941233cde8d1d14dd7e7d7f476cf88f2d9e8fc511"
+      },
+      "why_it_matters": {
+        "locale_sha256": "6463044b9a04a4b61a8693cbe87589e0ca0c37b3f9b5f0c61568f4ea701f6223",
+        "source_sha256": "bd5ff1ad0b52a9dc6383481ae75a3f486519581249cdaebe3034400e106c6488"
       }
     },
     "FCMO-5101EF772C8A": {
@@ -35475,6 +35730,48 @@
       "why_it_matters": {
         "locale_sha256": "782dd90fd979bd23cefbe25576a171ea6a9cb89e93b6a6e3c264c73ba69a11ec",
         "source_sha256": "4d912960f45f96854442da5cc14f5eb90f6ca1197c1258a13763cae28cad0c16"
+      }
+    },
+    "FCMO-C0A26D24157E": {
+      "claims": {
+        "locale_sha256": "211cad83755356dc80f026ffe2970a77c719f768b80a44f5a15bc70812ebffdf",
+        "source_sha256": "c912eb93da54c71071df4834de995cf8d4d515a5cbb2c2e33f4351036337ee7d"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "7bed104a1385136e368eae22dd9e2e67af3d20e99402febaab2403f9d4409272",
+        "source_sha256": "b31ddb38b92b1e2a3b2cff773e0963c265315ee240ed952f7f1b93c34a2e8f03"
+      },
+      "importance_rationale": {
+        "locale_sha256": "fb57e815cb845260394e512de3591f29170e1d27dd7ca30fb8747f2e6f213748",
+        "source_sha256": "e728864929c7a7400adfeae0f191f4556350022bafd3c0c58d54545ebf129d47"
+      },
+      "limitations": {
+        "locale_sha256": "bd89fa6e6cf962de56bec4da1a20dd61f5838e4ec7e7033772ad09dae0e232c8",
+        "source_sha256": "51bfd9ba98250536aac949c9900d56a140357ce3487e7423759e4a79f541c91d"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "49cddb21050e3a199add505ef8694833dab98c45428658d600f96c9eebb1c5dd",
+        "source_sha256": "1199b7b4d5a9195b94f4a687075dfac0a19199d272d7a26c763967701d102736"
+      },
+      "technical": {
+        "locale_sha256": "aba13b06d75566572bd460787ee559627a509146c0e921312c419fb0c023552d",
+        "source_sha256": "b78bac8547ea4a3931a3ee11cf9720ff61d93d9f1f765499c53c4d2c6264151f"
+      },
+      "title": {
+        "locale_sha256": "400b23fdf10b2690fe63f1f4b4ec391f1c81ac388f37a0630a78f3f3e2a2824d",
+        "source_sha256": "dd913bc657e58b8354b2db2c31e80005e8a96c28e26872a3529f3489d9bc4297"
+      },
+      "why_it_matters": {
+        "locale_sha256": "fb13fdc5cf5f3a3d8440456c1c5d614ac8f2be5fc00edadfa73a78cd8b125b2d",
+        "source_sha256": "71a1313b114335234babf9a445b985be116d8594c2301f8efaa0686ed09674f9"
       }
     },
     "FCMO-C0C152CEB019": {

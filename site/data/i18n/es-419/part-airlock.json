@@ -1,6 +1,6 @@
 {
   "canonical_locale": "en",
-  "canonical_source_sha256": "bd4d02f7306021ef0ecb3294f7c13f7416e1db02e55cf8f26c11a2327caead5f",
+  "canonical_source_sha256": "8cfacf3de0cc6a63dd968afbfaf9ca015d1b8aa24c9e4177748c5fc3e3d8ec4f",
   "generated_from": "ARB airlock; editorial wording authored upstream",
   "locale": "es-419",
   "records": {
@@ -997,6 +997,63 @@
       "summary": "Arm presentó Neoverse CSS N4, un subsistema de cómputo configurable entregado como RTL y construido alrededor de núcleos CPU Neoverse N4 para nube, redes e infraestructura de IA. Los socios pueden configurar 8–128 núcleos por die, caché, memoria, I/O, conexión de aceleradores y conectividad de chiplets; Arm enumera soporte de hasta 3.8 GHz, LPDDR6 y PCIe Gen 7. Arm afirma hasta 2x de rendimiento por socket, 1.25x de rendimiento por watt y 1.75x de ancho de banda de memoria frente a CSS N3. Esas cifras comparativas son afirmaciones del proveedor sin un benchmark independiente comparable recuperado en esta ejecución y pueden incorporar cambios de configuración/proceso/plataforma, no sólo mejora a nivel de núcleo.",
       "title": "Arm lanza Neoverse CSS N4 como un subsistema de 8–128 núcleos altamente configurable para infraestructura de IA y nube",
       "why_it_matters": "Los sistemas de IA dedican cada vez más trabajo no acelerado a orquestación, recuperación, redes, almacenamiento, ejecución de herramientas y alimentación de aceleradores. Un subsistema CPU preintegrado y altamente configurable con interfaces modernas de memoria, I/O y chiplets puede acortar el camino hacia silicio host/de control personalizado para esas cargas. El desarrollo importa como infraestructura habilitadora, no como evidencia de un nuevo acelerador de IA o un avance en entrenamiento de modelos."
+    },
+    "FCMO-084CA145630B": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Vision-RL2 usa aprendizaje por refuerzo a nivel regional para entrenar un predictor ligero de regiones con un lector MLLM congelado y después aplica codificación visual dispersa para destacar evidencia seleccionada."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan mejoras frente a modelos base en seis benchmarks detallados y cuatro arquitecturas; con el protocolo alineado al entrenamiento, Qwen3.5-4B con límite de origen de 576 tokens obtiene promedio de 71.1 frente a 66.6 con SD-RPN y alcanza SD-RPN a 4,096 tokens con 4.2× menos tokens visuales."
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION",
+          "text": "El artículo informa puntuaciones MME-RealWorld inferiores a las referencias de ajuste completo para las configuraciones Qwen3.5 más pequeñas, y sus tablas principales y protocolo de eficiencia alineado al entrenamiento no son directamente comparables."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se inspeccionaron el código de entrenamiento enlazado, el predictor regional, la selección de datos ni los pesos publicados.",
+          "kind": "missing_artifact",
+          "state": "open"
+        },
+        {
+          "description": "En esta revisión no se localizó una reproducción independiente de la precisión en seis benchmarks ni de las compensaciones entre tokens y latencia.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "El artículo no establece costo, latencia ni rendimiento bajo un sistema multimodal de servicio en producción.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se reproduce, aprender qué regiones coherentes de una imagen merecen más resolución podría mejorar la percepción multimodal detallada y reducir el costo de tokens visuales y latencia. Los resultados abarcan cuatro arquitecturas y varios benchmarks, pero el protocolo de eficiencia está alineado con el entrenamiento y las mediciones informadas por los autores muestran compensaciones específicas de cada tarea.",
+      "limitations": [
+        "Todos los resultados son comunicados por los autores; esta activación no realizó una reproducción independiente.",
+        "La comparación principal con límite de 16,384 tokens usa varias fuentes de puntuación e incluye resultados citados de otros artículos; el protocolo de eficiencia es separado y se declara no comparable con la tabla principal.",
+        "El estudio de eficiencia alineado con el entrenamiento usa respuestas breves, puntuación basada en reglas y una RTX A6000; no demuestra costo de servicio ni beneficio amplio en producción.",
+        "Las configuraciones Qwen3.5-4B y 9B obtienen puntuaciones menores que referencias de ajuste completo en divisiones MME-RealWorld, una compensación coherente con mantener congelado el lector.",
+        "No se auditó el enlace de código ni la implementación de entrenamiento."
+      ],
+      "relationships": [],
+      "summary": "Vision-RL2 entrena una red pequeña de propuestas de regiones con aprendizaje por refuerzo a nivel regional para identificar evidencia visual para un lector multimodal congelado y luego codifica esas regiones de forma dispersa. Los autores informan mejoras frente a los modelos base en seis benchmarks de percepción detallada y cuatro arquitecturas. En un protocolo separado alineado con el entrenamiento, el sistema Qwen3.5-4B con límite de origen de 576 tokens obtiene promedio de 71.1 en seis benchmarks, frente a 66.6 con SD-RPN, y alcanza el resultado de SD-RPN con límite de 4,096 tokens usando 4.2 veces menos tokens visuales. Son resultados comunicados por los autores; los protocolos difieren y hay compensaciones en algunas divisiones de MME-RealWorld.",
+      "technical": {
+        "claimed_result": "Bajo el protocolo principal con límite de 16,384 tokens de origen, el artículo informa resultados en V* Bench, ZoomBench, HR-Bench 4K/8K y MME-RealWorld EN/CN. En otro protocolo alineado con el entrenamiento, Qwen3.5-4B con región-RL a 576 tokens obtiene promedio de 71.1; los autores informan que iguala a SD-RPN con límite de 4,096 tokens usando 4.2× menos tokens visuales.",
+        "compute_or_cost": "El protocolo alineado con entrenamiento informa tokens visuales y latencia en una RTX A6000; no se establecieron costos, energía ni rendimiento de servicio.",
+        "demonstrated_result": "El HTML de arXiv especifica el método, cuatro familias de arquitecturas, protocolos de benchmark y mediciones comunicadas por los autores. esta revisión no ejecutó código publicado ni reprodujo los resultados.",
+        "implementation_status": "El método actualiza un predictor regional pequeño y mantiene congelado el lector MLLM; el preprint afirma que hay código, pero no se comprobó en esta revisión.",
+        "mechanism": "Un predictor pequeño propone regiones coherentes de la imagen. Un lector MLLM congelado puntúa cada región según cuánto cambia la probabilidad de la respuesta al quitarla; el aprendizaje por refuerzo regional entrena el predictor sin anotaciones de regiones ni trayectorias de razonamiento. La codificación dispersa asigna después el presupuesto de recortes a la evidencia seleccionada.",
+        "novelty": "El aprendizaje por refuerzo a nivel regional trata regiones visuales coherentes como acciones y las puntúa por cambios en la respuesta de un lector congelado, separando la propuesta de evidencia del razonamiento del lector.",
+        "regime": "Cuatro arquitecturas (Qwen2.5-VL, Qwen3-VL, Qwen3.5 y Gemma-4) en seis benchmarks de percepción detallada. La comparación principal usa 16,384 tokens de origen y combina análisis por reglas con evaluación mediante juez LLM. El protocolo alineado al entrenamiento usa un límite de 576 tokens, respuestas breves y puntuación por reglas; su tabla de eficiencia se declara explícitamente no comparable con la tabla principal.",
+        "reproducibility": "El artículo informa una reevaluación de algunos pesos publicados y enlaza código, pero esta activación no inspeccionó el repositorio ni reprodujo el experimento de forma independiente.",
+        "strongest_baseline": "En la ablación alineada con el entrenamiento para Qwen3.5-4B, SD-RPN obtiene promedio de 66.6 y el sistema completo de región-RL más codificación dispersa obtiene 71.1 con el mismo límite de origen de 576 tokens. En la tabla principal, el resultado 9B se compara con referencias revaluadas y publicadas; no todas usan el mismo procedimiento de reentrenamiento."
+      },
+      "title": "Vision-RL2 informa mejoras de percepción visual detallada con un predictor regional pequeño",
+      "why_it_matters": "El razonamiento visual de alta resolución puede gastar cómputo en píxeles de fondo. Vision-RL2 trata regiones coherentes de la imagen como acciones y entrena un predictor ligero para concentrar resolución en evidencia, mientras mantiene congelado el lector principal. Las mejoras informadas en eficiencia de tokens podrían ser útiles para inferencia multimodal, pero corresponden a protocolos de benchmark específicos y no establecen costo de producción ni mejoras generales de razonamiento visual."
     },
     "FCMO-089B6803D06A": {
       "claims": [
@@ -7869,6 +7926,63 @@
       },
       "title": "Las distribuciones de puntuaciones mejoran la abstención en recuperación con razonamiento complejo",
       "why_it_matters": "Si el patrón informado se transfiere, los sistemas RAG pueden decidir con mayor fiabilidad cuándo abstenerse de recuperar usando puntuaciones existentes, sin inferencia, reentrenamiento ni latencia adicionales. La evidencia se limita a benchmarks públicos del artículo y a una prueba de extremo a extremo con un generador y un evaluador; no demuestra mejoras generales en producción."
+    },
+    "FCMO-50C5C2E0CC87": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "El artículo describe D-Quant, que codifica por entropía valores KV cuantizados y usa una asignación de deriva para cumplir un presupuesto fijo de almacenamiento por token, conservando distribuciones regulares para la decodificación paralela."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En Qwen3-8B y Llama-3.1-8B-Instruct con 2.26 bits por valor, los autores informan promedios RULER de 86.50 y 88.94, frente a 87.31 y 89.69 con BF16; a contexto de 128K informan 70.92 y 74.65, frente a 57.14 y 66.15 de las líneas base cuantizadas más fuertes de la tabla."
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION",
+          "text": "El artículo evalúa dos modelos de 8B en RULER y LongBench-E en inglés bajo la configuración de GPU especificada; no demuestra ahorros en servicio de producción ni resultados en otras arquitecturas."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se inspeccionaron el código, los kernels fusionados, los scripts de benchmark ni la implementación del conteo de almacenamiento.",
+          "kind": "missing_artifact",
+          "state": "open"
+        },
+        {
+          "description": "No se realizó una reproducción independiente de la precisión, el uso de memoria ni el rendimiento.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "El artículo no establece el impacto en servicio con tamaños de lote, concurrencia o hardware de producción distintos.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si los resultados se generalizan, almacenar la caché de claves y valores con unos 2.26 bits por valor y conservar puntuaciones de contexto largo cercanas a BF16 podría reducir de forma importante la carga de memoria de la inferencia. La evaluación se limita a dos modelos de 8B y benchmarks ejecutados por los autores, por lo que no establece ahorros ni transferencia en producción.",
+      "limitations": [
+        "Los resultados de benchmark e implementación son comunicados por los autores; esta activación no inspeccionó código ni los reprodujo de forma independiente.",
+        "La evaluación cubre Qwen3-8B y Llama-3.1-8B-Instruct, GPU NVIDIA H20, RULER y LongBench-E en inglés; se desconoce la transferencia a otras arquitecturas y sistemas de servicio.",
+        "Los resultados de Qwen3-8B a 64K y 128K usan YaRN estático más allá de su ventana nativa de 40K; esto reduce la precisión absoluta, aunque las líneas base comparten la configuración.",
+        "En LongBench-E, las diferencias entre los métodos comprimidos son menores que en RULER.",
+        "El resultado de almacenamiento no demuestra por sí solo rendimiento, concurrencia, consumo energético ni ahorro monetario en producción."
+      ],
+      "relationships": [],
+      "summary": "El artículo propone D-Quant, que codifica por entropía los valores de la caché KV y ajusta algunos símbolos cuantizados para que cada secuencia por token quepa en un contenedor de tamaño fijo. En Qwen3-8B y Llama-3.1-8B-Instruct, los autores informan un promedio de 2.26 bits por valor y puntuaciones RULER cercanas a BF16 entre contextos de 4K y 128K; a 128K, las puntuaciones informadas superan las de las líneas base cuantizadas más fuertes de la tabla. Los resultados son comunicados por los autores y usan GPU NVIDIA H20; esta revisión no ejecutó la implementación.",
+      "technical": {
+        "claimed_result": "Para Qwen3-8B y Llama-3.1-8B-Instruct, D-Quant a 2.26 bits por valor informa promedios RULER de 86.50 y 88.94 frente a BF16 87.31 y 89.69. A 128K, las puntuaciones respectivas son 70.92 y 74.65, frente a 57.14 y 66.15 de las líneas base cuantizadas más fuertes de la tabla. En LongBench-E las diferencias entre métodos comprimidos son menores.",
+        "compute_or_cost": "La configuración principal informa 2.26 bits por valor; esta revisión no normalizó rendimiento de GPU ni costo.",
+        "demonstrated_result": "El HTML de arXiv especifica el algoritmo e informa resultados en dos modelos, RULER y LongBench-E. No se ejecutó código ni se reprodujeron resultados independientes.",
+        "implementation_status": "El artículo describe kernels CUDA e informa pruebas en H20; esta revisión no inspeccionó una implementación publicada ni midió un sistema de servicio en producción.",
+        "mechanism": "Tras rotación y normalización, D-Quant codifica por entropía valores KV cuantizados usando un modelo analítico de probabilidades compartido. Una asignación de deriva con restricción de longitud desplaza algunos valores hacia símbolos de menor costo para ajustarse a contenedores fijos por token; kernels fusionados orientados a tokens decodifican cada secuencia una sola vez y entregan los valores a la atención.",
+        "novelty": "El método combina información de longitud variable codificada por entropía con una restricción de deriva que recupera almacenamiento fijo por token y acceso regular para kernels de atención fusionados.",
+        "regime": "Qwen3-8B y Llama-3.1-8B-Instruct; RULER a seis longitudes de contexto de 4K a 128K y LongBench-E en inglés; 100 muestras RULER por tarea y longitud. Decodificación greedy y GPU NVIDIA H20 de 96 GB. Qwen3-8B usa YaRN estático a 64K y 128K. La configuración principal promedia 2.26 bits por valor y conserva 128 tokens recientes en BF16.",
+        "reproducibility": "El artículo informa experimentos y menciona implementaciones oficiales de las líneas base, pero esta revisión no inspeccionó ni ejecutó de forma independiente el repositorio, los kernels o los artefactos de ejecución.",
+        "strongest_baseline": "A 128K en RULER, OScaR es la línea base cuantizada más fuerte de la tabla: 57.14 para Qwen3-8B y 66.15 para Llama-3.1-8B-Instruct, frente a 70.92 y 74.65 con D-Quant. La referencia BF16 obtiene 72.13 y 76.44."
+      },
+      "title": "D-Quant informa precisión de contexto largo cercana a BF16 con cerca de 2.26 bits por valor de KV",
+      "why_it_matters": "La memoria de la caché KV puede limitar la longitud de contexto y la concurrencia disponibles al servir modelos grandes. D-Quant informa una forma de combinar codificación por entropía con acceso regular de tamaño fijo, y puntuaciones RULER cercanas a BF16 con unos 2.26 bits por valor en dos modelos de 8B. Si se reproduce en sistemas de servicio reales, podría aliviar la carga de memoria de la inferencia con contexto largo; el artículo por sí solo no establece rendimiento, costo ni transferencia a otras arquitecturas."
     },
     "FCMO-5101EF772C8A": {
       "claims": [
@@ -17393,6 +17507,63 @@
       "title": "Amazon vincula silicio personalizado de Qualcomm para inferencia de IA y conectividad óptica con un warrant ligado a compras",
       "why_it_matters": "Si la colaboración alcanza un despliegue significativo, AWS obtiene otra ruta de silicio personalizado para inferencia de IA mientras Qualcomm obtiene una vía hacia cómputo de centro de datos a través de un gran hyperscaler y hacia interconexión óptica. El warrant ligado a compras alinea los incentivos económicos con la adopción real, pero ni la presentación ni el anuncio de lanzamiento revelan arquitectura del acelerador, rendimiento, eficiencia, volumen de despliegue o fechas de entrega."
     },
+    "FCMO-C0A26D24157E": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "El preprint v3 describe EvoHarnessBench, un benchmark controlado de entornos externos que amplían herramientas, habilidades y agentes especialistas, construido con 17 secuencias de varias etapas y 802 tareas únicas provenientes de benchmarks con verificación automática."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan que exponer agentes a entornos acumulativos más amplios puede reducir el desempeño en tareas ya resueltas, aun cuando el modelo y la instrucción no cambien; las caídas reportadas difieren entre herramientas, habilidades y agentes especialistas (12.1%, 13.8% y 46.4%, respectivamente)."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En los métodos de adaptación y entornos evaluados, las mejoras son irregulares, y conservar competencias previas puede entrar en conflicto con la adaptación a nuevas capacidades."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se inspeccionaron el repositorio del benchmark, los datos de tareas, las implementaciones del entorno ni la configuración de ejecución, aunque el artículo enlaza materiales.",
+          "kind": "missing_artifact",
+          "state": "open"
+        },
+        {
+          "description": "Los efectos informados al ampliar el entorno y las comparaciones de adaptación no se han reproducido de forma independiente.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "El artículo evalúa secuencias construidas a partir de dos benchmarks con verificación; no mide la evolución de entornos reales de producción ni distribuciones más amplias de tareas.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si el efecto informado se generaliza, añadir herramientas, habilidades reutilizables o agentes especialistas puede reducir competencias previas y cambiar la forma de evaluar y desplegar sistemas. El resultado importa para la investigación de agentes, pero procede de un benchmark comunicado por los autores y construido con dos fuentes de tareas; no demuestra un impacto a escala de producción.",
+      "limitations": [
+        "Todas las cifras de desempeño son comunicadas por los autores; esta activación no realizó una reproducción independiente.",
+        "La evaluación de despliegue mantiene fijos el modelo y la instrucción mientras amplía el entorno; no demuestra que todos los sistemas reales empeoren al añadir herramientas o agentes.",
+        "Las 17 secuencias y 802 tareas únicas se construyen a partir de EnterpriseOps-Gym y Agents’ Last Exam; no constituyen una muestra representativa de cargas de trabajo de producción.",
+        "La asociación entre habilidades y tareas usa coincidencias heurísticas entre el contenido de las habilidades y los resultados verificados; los autores indican que no identifica habilidades necesarias o suficientes.",
+        "Algunas tablas comparan configuraciones de sistemas con entornos subyacentes distintos. Claude Code se excluye de la comparación principal controlada y se presenta por separado."
+      ],
+      "relationships": [],
+      "summary": "El preprint v3 presenta EvoHarnessBench, que evalúa cómo cambia el desempeño de agentes cuando se amplía la oferta externa de herramientas, habilidades reutilizables o agentes especialistas. Sus 17 secuencias construidas contienen 802 tareas únicas derivadas de dos benchmarks de agentes con verificación automática. Los autores informan que la expansión del entorno por sí sola puede reducir el desempeño en tareas ya resueltas; las caídas reportadas varían entre las evaluaciones de herramientas, habilidades y agentes especialistas. Las mejoras por adaptación también son irregulares y la retención puede entrar en tensión con el aprendizaje de nuevas capacidades. Son resultados comunicados en un benchmark por los autores, no mediciones independientes ni de producción.",
+      "technical": {
+        "claimed_result": "En la evaluación de despliegue, el artículo informa caídas de desempeño de 12.1% para herramientas, 13.8% para habilidades y 46.4% para agentes especialistas a medida que crece el entorno. También informa resultados irregulares de adaptación entre etapas y entornos. Son mediciones comunicadas por los autores.",
+        "compute_or_cost": "El artículo informa tiempo de ejecución y cantidad de tokens para algunas pruebas, pero esta revisión no los convirtió en costos monetarios o energéticos comparables.",
+        "demonstrated_result": "El preprint v3 especifica un benchmark con 17 secuencias de varias etapas y 802 tareas únicas, instanciadas como 1,510 ejemplos específicos por eje, 520 herramientas, 42 habilidades de referencia y 62 agentes especialistas. no se inspeccionó ni ejecutó el artefacto enlazado.",
+        "implementation_status": "El HTML de arXiv enlaza una página del proyecto; en esta activación no se inspeccionaron el repositorio del benchmark ni los artefactos ejecutables.",
+        "mechanism": "El benchmark deriva etapas acumulativas del entorno a partir de tareas con verificación y expone progresivamente más herramientas, habilidades o agentes especialistas, conservando las capacidades disponibles en etapas anteriores. Una evaluación de despliegue aísla el efecto de ampliar la oferta; otra evaluación de adaptación estudia el estado persistente entre etapas.",
+        "novelty": "El estudio convierte el crecimiento del entorno externo del agente en una fuente controlada de cambio, distinta de cambiar la secuencia de tareas o de las capacidades que el propio agente aprende.",
+        "regime": "El artículo construye 17 secuencias de tres a seis etapas a partir de EnterpriseOps-Gym y Agents’ Last Exam. Las comparaciones controladas de herramientas y habilidades usan sistemas basados en GPT-5; otras configuraciones multiagente y de adaptación se informan por eje. La asociación de habilidades es heurística. Claude Code se presenta por separado porque usa otro modelo y entorno.",
+        "reproducibility": "El HTML v3 de arXiv detalla la construcción y la evaluación, y enlaza una página del proyecto; los artefactos no se auditaron y no se ejecutó una reproducción independiente.",
+        "strongest_baseline": "La referencia de entorno específico por tarea expone solo las capacidades anotadas como necesarias para esa tarea; se compara con el entorno acumulativo completo en la evaluación de despliegue. Es una referencia controlada del benchmark, no una línea base de producción."
+      },
+      "title": "EvoHarnessBench informa pérdidas de competencia cuando crecen los conjuntos de herramientas, habilidades y agentes especialistas",
+      "why_it_matters": "Los sistemas de agentes incorporan cada vez más herramientas, procedimientos reutilizables y agentes especialistas. Este artículo estudia ese crecimiento como una variable de evaluación y reporta que un entorno más amplio puede perjudicar tareas anteriores incluso cuando el modelo y la instrucción permanecen fijos. El resultado motiva medir por separado la retención y la adaptación, aunque la evidencia se limita a secuencias de benchmark ejecutadas por los autores y no a sistemas de producción."
+    },
     "FCMO-C0C152CEB019": {
       "claims": [
         {
@@ -22975,6 +23146,48 @@
         "source_sha256": "e6194bf9ea95c11b4343d0aa551aaa717dbefd5b6093651b089bf6a64ca45668"
       }
     },
+    "FCMO-084CA145630B": {
+      "claims": {
+        "locale_sha256": "b19374b78b2d8ae7d2fa4aafbad9bc5ee2a057a9cd82e7b32fcbf445c6706dc8",
+        "source_sha256": "3498009a8a4210b1e187be527f58647fd2bc8910de8886fcf8a0ef14d3a712eb"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "59f2e16013a9625282de318f71aeee108786b72879cb8f95b2317599e5145680",
+        "source_sha256": "ef6ebe245d616da65c2257d135e5cd898bcbc0a1975627a5634d0d462056b34d"
+      },
+      "importance_rationale": {
+        "locale_sha256": "6c0c7af99cbc2cdf699deaca5d6d46a4f4a9d3a94f2a4d792bee6ef5e8e60a24",
+        "source_sha256": "c640920aca2c06dcd5ab2b24e56a4fe9bd629ee45c6d7e251a7cd387aac7f480"
+      },
+      "limitations": {
+        "locale_sha256": "4d3984d689f9553f1fb9dfe562ae41419391361b334839cbe1e9477dad538e69",
+        "source_sha256": "e393eb8f1dfba5669347b90fbb2165b9beeb72686c01a6ce7bf3e8fdc6fa20d0"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "f4af721357a24c5666e114771c4a6667dfddeaf930f932bfea716c67f1e5f819",
+        "source_sha256": "2c0feb78caa0b06de31386af4962602675ff89feb19c9b7e2547668bb48cd843"
+      },
+      "technical": {
+        "locale_sha256": "efe996d46c237638803fa7dedc99b69226d016b6234fe98f3a354729f4ceb7f4",
+        "source_sha256": "839c0936af2bba507dd2bf673e48597bb9454e548db0520bf9617522cd45418d"
+      },
+      "title": {
+        "locale_sha256": "eceac3d88ee64ba42a74311f7c34ba721f4b4244d839c2672a9bda1f75b05b43",
+        "source_sha256": "afefb09e3b330c2b434a9426d6678f5b6f73421ad3127760aa78954d44ab3daf"
+      },
+      "why_it_matters": {
+        "locale_sha256": "9b25fbc860102229624cc2f1c9422f2a441bfd29ba91f2316ad7654059ed480f",
+        "source_sha256": "21f04d02314acbc245bbfdbd08e6de0d869a382ecb2edff0ce22cf6ed413845d"
+      }
+    },
     "FCMO-089B6803D06A": {
       "claims": {
         "locale_sha256": "4fc014151385d93702023890541a8006fc63c1011cf62937e466a94a172b04b7",
@@ -28167,6 +28380,48 @@
       "why_it_matters": {
         "locale_sha256": "ffff91859be5abe59410c5249349095085fa9c13778f248c0572949b41e11604",
         "source_sha256": "ea0bb410743c633323c444c7e579343b829b64c0f7d24af1582e5012463f3b8d"
+      }
+    },
+    "FCMO-50C5C2E0CC87": {
+      "claims": {
+        "locale_sha256": "e904167b1a4d2204bc1e69bf79d05ee33ba5d1ded94f268f91e2ecb8544619fc",
+        "source_sha256": "22c206659759ea82388a055f85db162865e879602605314b880784f881b598e2"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "d0ab45632886539c01677c1b995703ad2b8447110c23249109d87465761ea1b6",
+        "source_sha256": "61543f430f796c773b36e23696e3d7b0d75ac9ff2cf7bb813ab091d18f30b7cf"
+      },
+      "importance_rationale": {
+        "locale_sha256": "63cce1352b58bb7fcfc55f600f7bd4dbe8350af5d4c0f2c97987d03ae3674391",
+        "source_sha256": "5ecdc1e3822fe2477c9d78a4bdc8c665a54e2abd4809d573a7128c18a5a0ebf2"
+      },
+      "limitations": {
+        "locale_sha256": "9349a2407f39fa2f82ed4e307f2f3865b2c94ed3a3acf63184b491e07239248a",
+        "source_sha256": "31468480e1d4f4d96aebf57bdc3a15bc99ca45a91a9e2879ad4fc68f8dfcbff8"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "66ecd89c2a8612f6288de02b6b86cef958c9cc01068dcb5c2359f43112313757",
+        "source_sha256": "73133cf5fe216ee88718bcbce1e9d3bc226d4ea4347596ae34e034c029fb9126"
+      },
+      "technical": {
+        "locale_sha256": "e98ceaf08ec180c39d73c7378500e85a748f5d7512017292b9ad2b710ffa88ee",
+        "source_sha256": "e9562ea115bbfb2eb2380f68f5968241a0ea2d80bb05e4f92bae8ab802cad897"
+      },
+      "title": {
+        "locale_sha256": "21456246d8a06a1cdefcd3b3e44b24c37f9fbafa376042430bf634a357ac6db2",
+        "source_sha256": "727708891015eebd3daae14941233cde8d1d14dd7e7d7f476cf88f2d9e8fc511"
+      },
+      "why_it_matters": {
+        "locale_sha256": "b924f03a1be5b09963df9dc34a302cd05eda61fb5ab3d120e630bf5076c47acd",
+        "source_sha256": "bd5ff1ad0b52a9dc6383481ae75a3f486519581249cdaebe3034400e106c6488"
       }
     },
     "FCMO-5101EF772C8A": {
@@ -35475,6 +35730,48 @@
       "why_it_matters": {
         "locale_sha256": "2efb09e5832481e2713d062e1c80e1f89065a549e30ba2e667d206ba1e468ca3",
         "source_sha256": "4d912960f45f96854442da5cc14f5eb90f6ca1197c1258a13763cae28cad0c16"
+      }
+    },
+    "FCMO-C0A26D24157E": {
+      "claims": {
+        "locale_sha256": "290e2554f6fcf3f6357cc2e6c2158dedb759e0b04c48abd297792f6ff1064ec5",
+        "source_sha256": "c912eb93da54c71071df4834de995cf8d4d515a5cbb2c2e33f4351036337ee7d"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "91049c22759a42b02f4176074f90116af35882456d7719ad4f4f089c1734fc1a",
+        "source_sha256": "b31ddb38b92b1e2a3b2cff773e0963c265315ee240ed952f7f1b93c34a2e8f03"
+      },
+      "importance_rationale": {
+        "locale_sha256": "db29f0bcf36fbeb4de42d547f7819e0e213816901d518795823e7d44c43b8ae3",
+        "source_sha256": "e728864929c7a7400adfeae0f191f4556350022bafd3c0c58d54545ebf129d47"
+      },
+      "limitations": {
+        "locale_sha256": "109aaa5ea5bdb003018abddc6c24a680fdda32bfedaa269ff0ec52b32db4b28f",
+        "source_sha256": "51bfd9ba98250536aac949c9900d56a140357ce3487e7423759e4a79f541c91d"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "50f47702ce572605cb9363d492360d5b25c4d19fba2fd7d0ed7956d6434bbcc9",
+        "source_sha256": "1199b7b4d5a9195b94f4a687075dfac0a19199d272d7a26c763967701d102736"
+      },
+      "technical": {
+        "locale_sha256": "e28f77285382215f7f7043e1b7934bdaba9d23afa6a86738bea5553306122735",
+        "source_sha256": "b78bac8547ea4a3931a3ee11cf9720ff61d93d9f1f765499c53c4d2c6264151f"
+      },
+      "title": {
+        "locale_sha256": "b9c72bda46bbc8e3f8337511ff79eae5581d60bc00c8316747ee4c2743229551",
+        "source_sha256": "dd913bc657e58b8354b2db2c31e80005e8a96c28e26872a3529f3489d9bc4297"
+      },
+      "why_it_matters": {
+        "locale_sha256": "03de9fef5e568b40390b4f2669711aa1551e730792ffc9077e5342807544555e",
+        "source_sha256": "71a1313b114335234babf9a445b985be116d8594c2301f8efaa0686ed09674f9"
       }
     },
     "FCMO-C0C152CEB019": {
