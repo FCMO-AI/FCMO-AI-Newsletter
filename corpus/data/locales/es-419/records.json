@@ -9637,6 +9637,60 @@
       "title": "Un preprint formaliza cómo verificar la revocación en trabajos prolongados de agentes",
       "why_it_matters": "Si el método funciona con adaptadores de proveedores reales, ofrece una garantía de cierre más precisa que un acuse de cancelación o la revocación de un token y permite preservar trabajo respaldado por otra raíz de autorización independiente. El propio artículo restringe la garantía a rutas registradas y completamente mediadas, por lo que no demuestra la inactividad global del sistema ni la seguridad de un despliegue real."
     },
+    "FCMO-6DA85B3EB855": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Los autores presentan un benchmark emparejado con evidencia de 50 consultas de comercio electrónico y 1,950 casos. Con Qwen2.5-7B como clasificador por listas congelado, las variantes ricas en afirmaciones no respaldadas ganaron 0.065–0.092 de rango normalizado frente a variantes limpias en tres perfiles, con significancia ajustada por Holm; el efecto fue marginal en MiMo-v2.5 y estuvo ausente en GLM-5.3-Flash."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En el experimento con puntuación por candidato congelada, un reclasificador con etiquetas de evidencia de oráculo redujo la tasa de los tres primeros para variantes no respaldadas de 0.647 a 0.427 y para blanqueo de evidencia de 0.613 a 0.387 con λ=40; se midió cero supresión falsa en los brazos protegidos de ese experimento."
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION",
+          "text": "Todos los jueces automáticos probados fallaron el umbral de fiabilidad prerregistrado. La referencia humana de 370 afirmaciones cubrió una muestra reservada de 10 consultas y mostró supresión colateral cuya interpretación sigue abierta. Los autores no validan una defensa automática; el efecto depende del modelo y el benchmark se limita al comercio electrónico."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "Esta revisión no encontró una réplica independiente del benchmark ni de los resultados de reclasificación.",
+          "kind": "reproduction_missing",
+          "state": "open"
+        },
+        {
+          "description": "Sigue sin resolverse la divergencia entre la muestra humana y las etiquetas de construcción y de los jueces; los jueces automáticos fallaron el umbral prerregistrado.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "Se desconoce la transferencia a búsquedas fuera del comercio electrónico, otros clasificadores y sistemas completos de recuperación.",
+          "kind": "regime_unclear",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si el modo de fallo medido se transfiere, las afirmaciones sin respaldo pero aparentemente pertinentes podrían distorsionar la búsqueda generativa y decisiones de agentes. La consecuencia actual es notable, no mayor: son 50 consultas de comercio electrónico, el efecto varía entre tres clasificadores y la correspondencia automática con evidencia no superó el umbral de fiabilidad de los autores.",
+      "limitations": [
+        "El efecto principal aparece con Qwen2.5-7B, es marginal con MiMo-v2.5 y no aparece con GLM-5.3-Flash; no es universal entre modelos.",
+        "El benchmark contiene 50 consultas de comercio electrónico y no demuestra comportamiento en otros dominios, navegación adaptativa ni productos en vivo.",
+        "Todos los jueces automáticos fallaron el umbral de fiabilidad prerregistrado; las etiquetas de oráculo no son una defensa automática desplegable.",
+        "La muestra humana cubre 10 consultas reservadas y su supresión colateral adversa no se ha adjudicado.",
+        "Los resultados proceden de un preprint y no se reprodujeron de forma independiente en esta revisión."
+      ],
+      "relationships": [],
+      "summary": "GroundedGEO estudia si los clasificadores de búsqueda generativa pueden elevar textos de productos que parecen pertinentes aunque carezcan de respaldo. En un benchmark de comercio electrónico con 50 consultas, los autores reportan una ganancia de clasificación para afirmaciones no respaldadas en Qwen2.5-7B congelado; el efecto fue marginal en otro clasificador y no apareció en un tercero. Un reclasificador con etiquetas de evidencia de oráculo redujo la tasa de los tres primeros en el experimento controlado, pero todos los jueces automáticos probados fallaron un umbral de fiabilidad prerregistrado y la interpretación de la muestra humana sigue abierta. El artículo no valida una defensa automática ni demuestra un efecto general en la web.",
+      "technical": {
+        "claimed_result": "Con Qwen2.5-7B congelado, las variantes no respaldadas ganaron +0.065 a +0.092 de rango normalizado en tres perfiles, con valores p ajustados por Holm de 0.035 a 0.0011. En el puntuador individual congelado, etiquetas de oráculo redujeron la tasa de los tres primeros de 0.647 a 0.427 para variantes no respaldadas y de 0.613 a 0.387 para blanqueo con λ=40; son resultados reportados por los autores.",
+        "demonstrated_result": "La fuente de arXiv confirma el artículo y los resultados reportados. También indica que todos los jueces automáticos fallaron el umbral prerregistrado y que la muestra humana adversa sigue sin resolverse. esta revisión no reprodujo el experimento.",
+        "mechanism": "GroundedGEO añade una penalización posterior a la clasificación, por afirmación, cuando afirmaciones pertinentes para la consulta carecen de respaldo en un paquete de evidencia separado. El artículo prueba efectos de rango, reclasificación con etiquetas de oráculo, pares de textos idénticos con paquetes distintos y cambios de cobertura probatoria.",
+        "regime": "Benchmark construido con 50 consultas de comercio electrónico, cinco productos candidatos por consulta y 1,950 casos; tres clasificadores por listas congelados para el efecto de rango y un puntuador individual congelado para el experimento de reclasificación. La evaluación humana cubre 10 consultas reservadas.",
+        "reproducibility": "El artículo describe su división congelada, regla de ajuste e implementación. En esta revisión no se localizó reproducción independiente ni evaluación completa en producción.",
+        "strongest_baseline": "Los brazos incluyen variantes limpias, con respaldo, neutrales emparejadas, sin respaldo y de blanqueo de evidencia; los comparadores incluyen una penalización textual y etiquetas de evidencia de oráculo. El artículo no afirma superar todas las defensas de integridad de búsqueda."
+      },
+      "title": "GroundedGEO pone a prueba la clasificación con evidencia frente a textos pertinentes pero sin respaldo",
+      "why_it_matters": "El estudio prueba un modo de fallo concreto para sistemas que seleccionan productos o fuentes por pertinencia: afirmaciones más elaboradas pueden clasificarse bien aunque la evidencia disponible no las respalde. Los resultados específicos por modelo y el fallo en la calidad de etiquetas muestran por qué una intervención debe medir tanto la supresión de ataques como la supresión colateral. Los hallazgos se limitan a un benchmark pequeño de comercio electrónico y requieren una réplica independiente más amplia."
+    },
     "FCMO-6DC9880173F3": {
       "claims": [
         {
@@ -12836,6 +12890,54 @@
       "title": "Artículo sobre un agente clínico local que informa autonomía selectiva con filtro de consistencia en simulaciones diagnósticas retrospectivas",
       "why_it_matters": "Los hospitales deben decidir cómo mantener los datos clínicos bajo control institucional cuando la confiabilidad del sistema varía entre casos. El artículo informa una señal de consistencia disponible al decidir que podría permitir el enrutamiento selectivo en la simulación estudiada. No demuestra que mejore la atención ni reduzca la carga de trabajo clínico en la práctica."
     },
+    "FCMO-981CF89EA200": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Los autores presentan la destilación en línea condicionada por restricciones contrafactuales (CC-OPD). Para cada respuesta del estudiante, un docente congelado puntúa los mismos tokens con la instrucción completa y con contextos donde se elimina una restricción cada vez; los cambios de log-verosimilitud por token se agregan, se limitan y se suman a la recompensa habitual de destilación. El estudiante conserva la instrucción completa."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En dos pares docente-estudiante de Qwen y siete benchmarks de seguimiento de instrucciones, el artículo reporta el promedio más alto entre los métodos evaluados. El estudiante Qwen2.5-1.5B supera a su docente Qwen2.5-7B entrenado con GRPO-IR por 2.8 puntos porcentuales en MulDimIF general y por 6.3 puntos en la división más difícil."
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION",
+          "text": "Son resultados reportados en un preprint de los autores. La fuente revisada no establece una reproducción independiente ni generalización más allá de los dos pares de modelos, benchmarks y esquema de entrenamiento evaluados."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "Esta revisión no encontró una reproducción independiente del entrenamiento ni de la tabla de benchmarks.",
+          "kind": "reproduction_missing",
+          "state": "open"
+        },
+        {
+          "description": "Se desconoce la generalización más allá de los dos pares Qwen y el régimen de benchmarks reportado.",
+          "kind": "missing_independent",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si las mejoras reportadas se generalizan, las puntuaciones específicas por restricción podrían elevar la eficiencia del posentrenamiento y la fiabilidad al seguir instrucciones en distintos tamaños de modelo. La consecuencia actual es notable, no mayor: la evidencia es un preprint con dos pares Qwen y sin reproducción independiente.",
+      "limitations": [
+        "La evidencia revisada es un único preprint de los autores y aquí no se reprodujeron sus experimentos.",
+        "La evaluación cubre dos pares docente-estudiante de Qwen y siete benchmarks, no distintas familias de modelos ni cargas de trabajo reales.",
+        "Los hiperparámetros se eligieron con IFEval, IFBench y MulDimIF; otros cuatro conjuntos sirvieron como pruebas de transferencia.",
+        "La ventaja del estudiante sobre el docente se limita a la configuración MulDimIF del artículo y no demuestra que estudiantes pequeños superen en general a docentes mayores."
+      ],
+      "relationships": [],
+      "summary": "El preprint de CC-OPD propone asignar señales de entrenamiento a cada restricción comparando las puntuaciones de un docente congelado con y sin esa restricción. En experimentos reportados por sus autores, obtuvo el mayor promedio entre los métodos evaluados en siete benchmarks y dos pares de modelos Qwen; un estudiante Qwen2.5-1.5B superó a su docente 7B entrenado con GRPO-IR en MulDimIF. Estos resultados no se han reproducido de forma independiente y se limitan a los modelos y al entrenamiento evaluados.",
+      "technical": {
+        "claimed_result": "El artículo reporta el mejor promedio entre sus métodos en IFEval, IFBench, MulDimIF, ComplexBench, InfoBench, FollowBench y CFBench para estudiantes Qwen2.5-1.5B y Qwen3-4B. En MulDimIF, Qwen2.5-1.5B alcanza 72.9 frente a 70.1 del docente 7B entrenado con GRPO-IR; en el nivel más difícil lo supera por 6.3 puntos porcentuales.",
+        "demonstrated_result": "El registro de arXiv confirma el artículo enviado y los resultados que reportan sus autores. esta revisión no reprodujo el entrenamiento ni la evaluación.",
+        "mechanism": "El docente asigna log-verosimilitudes por token a cada respuesta con el prompt completo y con cada contexto que elimina una restricción. La diferencia agregada y limitada se suma a la recompensa base de destilación en línea con tokens muestreados; si la diferencia total es cero, se recupera la recompensa base.",
+        "regime": "Experimentos de posentrenamiento reportados por los autores con dos pares Qwen, siete benchmarks, PPO con tokens muestreados y las decisiones de entrenamiento del artículo. Tres benchmarks se usaron para elegir coeficiente y límite; otros cuatro fueron pruebas de transferencia.",
+        "reproducibility": "El artículo enlaza un repositorio público de código. En esta revisión no se ejecutó el código ni se encontró una reproducción independiente.",
+        "strongest_baseline": "El artículo compara, bajo su configuración, con ajuste supervisado, variantes GRPO con verificadores, destilación en línea estándar y sus variantes, KL docente top-k, EOPD y ExOPD."
+      },
+      "title": "CC-OPD usa puntuaciones contrafactuales del docente para mejorar el seguimiento de instrucciones con múltiples restricciones",
+      "why_it_matters": "Extraer de un docente congelado señales específicas para cada restricción podría ayudar a modelos más pequeños a cumplir instrucciones con varios requisitos sin añadir un evaluador externo. Los resultados son prometedores en los dos entornos Qwen estudiados, pero no demuestran una transferencia más amplia ni una ventaja general de los estudiantes sobre sus docentes."
+    },
     "FCMO-986D269D43F5": {
       "claims": [
         {
@@ -14659,6 +14761,54 @@
       },
       "title": "Un artículo de Cell presenta un benchmark abierto de biología del envejecimiento y modelos de lenguaje especializados y compactos",
       "why_it_matters": "Si los resultados reportados se generalizan más allá de este benchmark, el ajuste fino específico de un dominio podría permitir que modelos compactos analicen datos ómicos sobre envejecimiento con menor costo computacional que los modelos generales de frontera. Es un resultado significativo pero acotado: la evidencia se refiere a un benchmark de 17 tareas creado por los autores, y siguen pendientes la replicación independiente, las comparaciones con costos igualados y la transferencia fuera de la biología del envejecimiento."
+    },
+    "FCMO-AF98C3034ACF": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "El 23 de septiembre de 2026, los senadores estadounidenses Michael Bennet y Peter Welch anunciaron una propuesta para crear una Comisión Digital Federal con autoridad sobre la IA de frontera y las grandes plataformas."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El anuncio describe certificación previa al lanzamiento de modelos de frontera, autoridad para pausar hasta seis meses la distribución de un modelo con riesgo catastrófico —o hasta que existan salvaguardas—, requisitos de mitigación y notificación de incidentes, y multas de hasta 15% de los ingresos globales del año anterior."
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION",
+          "text": "La fuente oficial inspeccionada es un comunicado que describe una propuesta. Esta revisión no localizó número ni texto completo de un proyecto presentado; la propuesta no demuestra una ley promulgada ni supervisión implementada."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "En esta revisión no se localizó el texto legislativo completo ni el número del proyecto.",
+          "kind": "missing_primary",
+          "state": "open"
+        },
+        {
+          "description": "Se desconoce el estado legislativo y el apoyo posterior a la propuesta.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se promulgara la autoridad propuesta, podría cambiar materialmente las obligaciones de lanzamiento y cumplimiento de modelos de frontera en Estados Unidos. La consecuencia actual es significativa, aunque no mayor, porque no se establecieron el texto completo, el avance legislativo ni la promulgación.",
+      "limitations": [
+        "La fuente es un anuncio de los promotores y no demuestra promulgación, apoyo bipartidista ni probabilidad de aprobación.",
+        "La búsqueda no localizó número ni texto completo del proyecto; no se inspeccionaron los documentos explicativos enlazados.",
+        "El límite de multas, los supuestos de revisión y las obligaciones anunciadas no se verificaron contra texto legal operativo.",
+        "No se establecieron implementación, respuesta de desarrolladores ni efectos medidos en lanzamientos."
+      ],
+      "relationships": [],
+      "summary": "Los senadores Michael Bennet y Peter Welch anunciaron una propuesta para crear una Comisión Digital Federal que supervise la IA de frontera y las grandes plataformas digitales. Su comunicado describe certificación previa, posibles pausas de ciertos modelos de alto riesgo, deberes de mitigación y notificación de incidentes, y multas de hasta 15% de los ingresos globales de una empresa en el año anterior. Es una propuesta de sus promotores, no una ley presentada o promulgada; esta revisión no localizó el texto legislativo.",
+      "technical": {
+        "claimed_result": "No se reivindica rendimiento de modelos. Es una propuesta de política cuyas facultades anunciadas podrían afectar el desarrollo y despliegue de IA si se adoptaran.",
+        "demonstrated_result": "La página oficial del Senado confirma que Bennet y Welch anunciaron la propuesta y describieron sus facultades previstas; no establece texto legal ni implementación.",
+        "mechanism": "Según el comunicado, la comisión revisaría ciertos modelos de frontera antes de su lanzamiento, fijaría requisitos de mitigación, notificación de incidentes y transparencia, y podría pausar la distribución hasta seis meses o hasta que hubiera salvaguardas.",
+        "regime": "Supervisión federal de IA de frontera en Estados Unidos según el anuncio de los promotores del 23 de septiembre de 2026; esta revisión no identificó proyecto presentado ni ley promulgada.",
+        "reproducibility": "El anuncio oficial puede inspeccionarse directamente. Confirmar texto legislativo y estado posterior requiere nuevas consultas a fuentes oficiales.",
+        "strongest_baseline": "La propuesta retoma iniciativas anteriores sobre una Comisión de Plataformas Digitales; según sus promotores, esta versión agrega certificación previa de IA de frontera y pausas de lanzamiento por riesgo catastrófico."
+      },
+      "title": "Bennet y Welch proponen una agencia federal con autoridad para revisar modelos de IA antes de su lanzamiento",
+      "why_it_matters": "Si se promulgara como se describe, la propuesta añadiría revisión federal previa y una facultad de pausa para algunos modelos de frontera, lo que cambiaría la planificación de cumplimiento y la vía al mercado. Por ahora solo consta el anuncio de dos senadores; se desconocen la probabilidad de aprobación y los detalles jurídicos operativos."
     },
     "FCMO-B0C0165FEDD8": {
       "claims": [
@@ -16603,50 +16753,55 @@
       "claims": [
         {
           "label": "DEMONSTRATED",
-          "text": "El 9 de octubre de 2026, la Comisión Europea publicó un comunicado que anuncia una reunión especial de su Grupo Científico de la Ley de IA sobre los riesgos de seguridad de la IA de frontera. La Comisión describe al grupo como 60 expertos independientes que asesoran a la Oficina de IA de la UE y a las autoridades nacionales sobre riesgos sistémicos, clasificación de modelos, métodos de evaluación y vigilancia transfronteriza del mercado."
+          "text": "El 9 de octubre de 2026, la Comisión Europea publicó un comunicado sobre una reunión extraordinaria de su Panel Científico de la Ley de IA dedicada a los riesgos de seguridad y protección de la IA de frontera. La Comisión describe el panel como un grupo de 60 especialistas independientes que asesora a la Oficina de IA y a las autoridades nacionales sobre riesgos sistémicos, clasificación de modelos, métodos de evaluación y vigilancia transfronteriza del mercado."
         },
         {
           "label": "CLAIMED",
-          "text": "La Comisión afirma que el grupo investigaba incidentes recientes de pérdida de control y que, junto con la Oficina de IA, había preparado preguntas para las empresas que desarrollaron los modelos involucrados."
+          "text": "La Comisión dice que el panel investigaba incidentes recientes de pérdida de control y que, junto con la Oficina de IA, preparó preguntas para las empresas que desarrollaron los modelos involucrados."
         },
         {
           "label": "CLAIMED",
-          "text": "La Comisión dice que el grupo presentaría recomendaciones sobre los riesgos de seguridad de la IA de frontera en la reunión; el comunicado consultado no publica las recomendaciones ni identifica los incidentes."
+          "text": "La Comisión dijo que el panel presentaría recomendaciones sobre los riesgos de seguridad y protección de la IA de frontera; el comunicado inspeccionado no publica esas recomendaciones ni identifica los incidentes."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En una nota del 12 de octubre, la Comisión dice que la reunión del 9 de octubre abordó incidentes recientes de pérdida de control, la monitorización de modelos y la automejora recursiva. Informa que se prepararon preguntas sobre incidentes y se enviaron solicitudes de información; además resume recomendaciones para gobernar los riesgos de modelos internos, reforzar la investigación de incidentes, promover la cooperación internacional y examinar técnicas de entrenamiento que reducen la monitorización. La nota no identifica incidentes ni modelos, no publica las preguntas combinadas ni demuestra que las recomendaciones se hayan adoptado como política vinculante."
         }
       ],
       "contradictory_evidence": [],
       "evidence_gaps": [
         {
-          "description": "El anuncio de la Comisión no identifica los incidentes ni a las empresas desarrolladoras, no publica las preguntas o recomendaciones y no aporta evidencia para evaluar los casos de pérdida de control descritos.",
+          "description": "La Comisión no identifica los incidentes ni las empresas desarrolladoras, no publica las preguntas combinadas ni la evidencia subyacente, y no proporciona detalles para evaluar los casos reportados de pérdida de control.",
           "kind": "missing_primary",
           "state": "open"
         },
         {
-          "description": "El comunicado no confirma si la reunión se celebró según lo previsto, si se presentaron recomendaciones o si alguna recomendación modificó la práctica regulatoria.",
+          "description": "La nota informa cuatro recomendaciones, pero no establece si la Comisión o la Oficina de IA las adoptaron, modificaron la práctica regulatoria o emitieron requisitos vinculantes.",
           "kind": "other",
           "state": "open"
         }
       ],
-      "importance_rationale": "Si el trabajo descrito informa la supervisión de la UE sobre los riesgos sistémicos de modelos de frontera, podría influir en cómo la experiencia técnica, las preguntas sobre incidentes y las recomendaciones llegan a los reguladores. El comunicado documenta una reunión y el trabajo anunciado, pero no publica recomendaciones, detalles de incidentes ni medidas regulatorias posteriores.",
+      "importance_rationale": "Si el trabajo reportado del panel influye en la supervisión europea del riesgo sistémico de modelos de frontera, podría orientar cómo llegan a los reguladores el análisis técnico, las preguntas sobre incidentes y las recomendaciones. La nota informa propuestas consultivas, pero no publica detalles de los incidentes ni acredita su adopción o implementación.",
       "limitations": [
-        "El comunicado es una versión oficial de la Comisión; no identifica los incidentes ni a las empresas desarrolladoras.",
-        "El anuncio dice que se presentarían recomendaciones, pero no incluye su contenido ni revela si fueron adoptadas.",
-        "Las páginas en inglés y francés son versiones del mismo comunicado, no fuentes independientes.",
-        "Este anuncio no establece nuevos requisitos vinculantes, medidas de cumplimiento ni resultados de seguridad medidos."
+        "Las fuentes son relatos de la Comisión; no identifican los incidentes subyacentes ni a las empresas desarrolladoras.",
+        "La nota del 12 de octubre resume recomendaciones, pero no publica las preguntas combinadas a las empresas ni la evidencia que sustenta los incidentes.",
+        "No se demuestra que las recomendaciones se hayan adoptado como normas vinculantes o se hayan implementado.",
+        "Las páginas en inglés, francés y español son ediciones lingüísticas del mismo relato de la Comisión, no fuentes independientes.",
+        "No se establece ningún incidente verificado de manera independiente, hallazgo técnico ni resultado de seguridad medido."
       ],
       "relationships": [],
-      "summary": "Un comunicado de la Comisión Europea fechado el 9 de octubre de 2026 anuncia una reunión especial, prevista para ese día, del Grupo Científico de la Ley de IA sobre los riesgos de seguridad de la IA de frontera. La Comisión describe al grupo como 60 expertos independientes que asesoran a la Oficina de IA y a las autoridades nacionales sobre riesgos sistémicos, clasificación de modelos, métodos de evaluación y vigilancia transfronteriza del mercado. Afirma que el grupo había investigado incidentes recientes de pérdida de control y que, junto con la Oficina de IA, preparó preguntas para las empresas que desarrollaron los modelos involucrados. El comunicado indica que se presentarían recomendaciones en la reunión, pero no identifica los incidentes, no publica las preguntas ni las recomendaciones y no informa de medidas regulatorias posteriores. Es un informe oficial sobre el trabajo previsto del grupo, no una verificación independiente de incidentes ni una nueva norma vinculante.",
+      "summary": "Un comunicado de la Comisión Europea del 9 de octubre de 2026 anunció una reunión extraordinaria del Panel Científico de la Ley de IA sobre los riesgos de seguridad y protección de la IA de frontera. En una nota en español publicada el 12 de octubre, la Comisión dice que la reunión abordó incidentes recientes de pérdida de control, la monitorización de modelos y la automejora recursiva; resume cuatro recomendaciones, entre ellas gobernar los riesgos de modelos internos, fortalecer la capacidad de investigar incidentes, facilitar el intercambio internacional de información y examinar técnicas de entrenamiento que reducen la monitorización. La Comisión también dice que enviará preguntas combinadas a las empresas desarrolladoras mientras investiga los incidentes. Las fuentes no identifican los incidentes ni los modelos, no publican las preguntas ni demuestran que las recomendaciones se hayan vuelto política vinculante. Es un relato institucional de trabajo consultivo, no una verificación independiente de incidentes.",
       "technical": {
-        "claimed_result": "La Comisión informa que su Grupo Científico investigó incidentes recientes de pérdida de control, preparó preguntas para las empresas desarrolladoras junto con la Oficina de IA y presentaría recomendaciones sobre los riesgos de seguridad de la IA de frontera.",
-        "demonstrated_result": "El anuncio fechado de la Comisión, el mandato del grupo y la reunión prevista pueden consultarse en inglés y francés. El comunicado no aporta los casos subyacentes, las preguntas ni el texto de las recomendaciones.",
-        "implementation_status": "La Comisión anunció una reunión especial del Grupo Científico para el 9 de octubre de 2026. El comunicado describe recomendaciones previstas, pero no informa de una norma adoptada, una medida de cumplimiento ni recomendaciones publicadas.",
-        "mechanism": "El Grupo Científico de la Ley de IA asesora a la Oficina de IA y a las autoridades nacionales; según la Comisión, puede aportar a la evaluación de riesgos sistémicos, la clasificación de modelos, los métodos de evaluación y la vigilancia transfronteriza del mercado.",
-        "regime": "Aplicación de la Ley de IA de la UE y asesoramiento sobre riesgos sistémicos de modelos de propósito general y de frontera. El anuncio no especifica los incidentes o las empresas involucradas ni las decisiones regulatorias que podrían seguir.",
-        "reproducibility": "Se comprobaron las ediciones en inglés y francés del comunicado de la Comisión; ambas corresponden a la misma fuente oficial. El anuncio consultado no enlazaba documentación sobre los incidentes ni resultados del grupo.",
-        "strongest_baseline": "No se ofrece un comparador de rendimiento ni de impacto regulatorio; se trata de un anuncio de trabajo asesor previsto, no de una evaluación comparativa."
+        "claimed_result": "La Comisión informa que su Panel Científico investigó incidentes recientes de pérdida de control, preparó preguntas para las empresas involucradas junto con la Oficina de IA y recomendó gobernar los riesgos de modelos internos, reforzar la investigación de incidentes, coordinarse internacionalmente y examinar con mayor rigor las técnicas de entrenamiento que reducen la monitorización.",
+        "demonstrated_result": "El comunicado fechado de la Comisión y la nota en español sobre la reunión pueden consultarse públicamente. La nota documenta el relato institucional de la reunión y un resumen de recomendaciones, pero no presenta los casos de incidentes, las preguntas combinadas ni la evidencia que los sustenta.",
+        "implementation_status": "La Comisión informa recomendaciones consultivas de la reunión del 9 de octubre en una nota publicada el 12 de octubre 2026. No se establece ninguna norma adoptada, medida de cumplimiento ni resultado de implementación.",
+        "mechanism": "El Panel Científico de la Ley de IA asesora a la Oficina de IA y a las autoridades nacionales; según la Comisión, ese trabajo puede informar el análisis de riesgo sistémico, la clasificación de modelos, los métodos de evaluación y la vigilancia transfronteriza del mercado.",
+        "regime": "Aplicación de la Ley de IA de la UE y asesoría sobre riesgos sistémicos, respuesta a incidentes, monitorización de modelos de frontera y automejora recursiva. Las fuentes no especifican los incidentes ni las empresas involucradas.",
+        "reproducibility": "Se consultaron las páginas de la Comisión Europea en español sobre la reunión; también hay ediciones en inglés y francés del anuncio. Son relatos institucionales, no corroboración independiente. Las páginas inspeccionadas no publican documentación de los incidentes.",
+        "strongest_baseline": "No se ofrece un comparador de impacto normativo; se trata de un relato institucional de asesoría del panel, no de una evaluación comparativa ni de una norma adoptada."
       },
-      "title": "La Comisión Europea anuncia una reunión especial del grupo científico sobre riesgos de la IA de frontera tras investigaciones sobre pérdida de control",
-      "why_it_matters": "El trabajo anunciado conecta el análisis de incidentes y las preguntas técnicas a desarrolladores de modelos con el organismo de la UE que asesora sobre la aplicación de la Ley de IA. Si después se publican recomendaciones y se actúa en consecuencia, podrían orientar la evaluación regulatoria de los riesgos sistémicos de los modelos de frontera. El comunicado actual no revela evidencia de incidentes, recomendaciones ni seguimiento."
+      "title": "La Comisión Europea presenta recomendaciones del panel científico sobre riesgos de la IA de frontera",
+      "why_it_matters": "La nota posterior convierte el anuncio de la reunión en un relato concreto de asesoría normativa de la UE: investigación de incidentes, gobernanza de modelos internos, intercambio internacional de información y límites de monitorización. Si se adoptan, estas propuestas podrían orientar la supervisión de modelos de frontera. Sin embargo, la Comisión no publica los incidentes ni las preguntas combinadas a las empresas, y no se ha demostrado ninguna medida vinculante ni su implementación."
     },
     "FCMO-CD5289FA48D4": {
       "claims": [
