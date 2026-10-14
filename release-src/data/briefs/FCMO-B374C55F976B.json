@@ -1,0 +1,121 @@
+{
+  "record": {
+    "id": "FCMO-B374C55F976B",
+    "title": "RLVR rollout batches trade sample efficiency against training stability",
+    "desk": "Reasoning Posttraining",
+    "event_at": "2026-10-13T00:00:00Z",
+    "evidence": "A",
+    "confidence": "credible_unconfirmed",
+    "importance": 6,
+    "tier": "Major",
+    "summary": "An arXiv paper reports controlled GRPO experiments on Qwen2.5-Math-1.5B and related checkpoints. Across 21 unclipped runs spanning a 32-fold optimizer-batch range and nearly sixfold learning-rate range, the authors find that training failure timing is more consistent with consumed response samples than optimizer steps along square-root learning-rate scaling. They also report declining sample efficiency above a learning-rate-dependent critical batch, with clipping delaying failure but not removing the progress gap. The results are author-reported and have not been independently reproduced.",
+    "topics": [
+      "reinforcement learning",
+      "verifiable rewards",
+      "training efficiency",
+      "batch scaling"
+    ],
+    "organizations": [],
+    "human_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-B374C55F976B.html",
+    "machine_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/data/briefs/FCMO-B374C55F976B.json",
+    "citation": {
+      "id": "FCMO-B374C55F976B",
+      "source": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-B374C55F976B.html"
+    }
+  },
+  "brief": {
+    "claims": [
+      {
+        "label": "DEMONSTRATED",
+        "text": "The authors published a paper presenting a two-clock model and controlled GRPO experiments on Qwen2.5-Math-1.5B and related checkpoints."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "Across 21 unclipped runs spanning a 32-fold batch range and nearly sixfold learning-rate range, the authors report that failure points are approximately invariant in consumed response samples along square-root learning-rate scaling; the fitted failure exponents' 90% intervals include zero for the batch exponent adjusted by the square-root schedule."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "The authors report that larger batches above an estimated learning-rate-dependent critical scale require more response samples for comparable accuracy, while ratio clipping delays failure without eliminating the sample-efficiency gap."
+      },
+      {
+        "label": "DEMONSTRATED_LIMITATION",
+        "text": "The paper's empirical coverage is limited to one model family and a narrow task domain; it measures response samples rather than compute, token or wall-clock efficiency and does not establish a universal batch-scaling law."
+      }
+    ],
+    "confidence": "credible_unconfirmed",
+    "contradictory_evidence": [],
+    "desks": [
+      "reasoning_posttraining",
+      "architectures_scaling"
+    ],
+    "development_type": "paper",
+    "editions": [
+      "2026-10-14"
+    ],
+    "event_at": "2026-10-13T00:00:00Z",
+    "evidence_class": "A",
+    "evidence_gaps": [
+      {
+        "description": "Independent reproduction of the batch/rate sweep and the claimed sample-efficiency and failure-timing behavior.",
+        "kind": "missing_independent",
+        "state": "open",
+        "updated_at": "2026-10-14T07:22:37Z"
+      },
+      {
+        "description": "Generalization beyond the tested Qwen2.5 family and mathematical reasoning task domain is unmeasured.",
+        "kind": "other",
+        "state": "open",
+        "updated_at": "2026-10-14T07:22:37Z"
+      }
+    ],
+    "id": "FCMO-B374C55F976B",
+    "importance_effective_score": 6,
+    "importance_rationale": "If the paper's measured batch-size and failure laws generalize beyond its tested model family and task, they change how RLVR practitioners choose rollout batch sizes and learning-rate schedules, affecting sample use and stability during costly post-training. The practical consequence is meaningful but bounded by one principal task domain and unmeasured compute and wall-clock efficiency.",
+    "importance_scale_version": 2,
+    "importance_score": 6,
+    "importance_tier": "Major",
+    "last_verified_at": "2026-10-14T07:22:37Z",
+    "limitations": [
+      "Results are author-reported and not independently reproduced.",
+      "The main experiments use one model family and a narrow task domain; cross-family transfer is not established.",
+      "Efficiency is measured in generated responses, not tokens, compute cost, throughput or wall-clock time.",
+      "Failure timing varies across seeds, and some runs are censored by the training budget.",
+      "The paper's local theory is evaluated through predictions; the curvature term is not directly measured at this scale."
+    ],
+    "organizations": [],
+    "primary_desk": "reasoning_posttraining",
+    "recorded_at": "2026-10-14T07:22:37Z",
+    "regions": [
+      "global"
+    ],
+    "relationships": [],
+    "source_languages": [
+      "en"
+    ],
+    "source_urls": [
+      "https://arxiv.org/abs/2610.18853"
+    ],
+    "status": "active",
+    "summary": "An arXiv paper reports controlled GRPO experiments on Qwen2.5-Math-1.5B and related checkpoints. Across 21 unclipped runs spanning a 32-fold optimizer-batch range and nearly sixfold learning-rate range, the authors find that training failure timing is more consistent with consumed response samples than optimizer steps along square-root learning-rate scaling. They also report declining sample efficiency above a learning-rate-dependent critical batch, with clipping delaying failure but not removing the progress gap. The results are author-reported and have not been independently reproduced.",
+    "technical": {
+      "claimed_result": "For tested GRPO settings, the paper reports that sample efficiency declines above a learning-rate-dependent critical rollout batch, while unclipped failure timing approximately follows consumed response samples along square-root learning-rate scaling.",
+      "compute_or_cost": "The paper measures response-sample efficiency; it does not report matched token, GPU-compute, monetary-cost or wall-clock efficiency.",
+      "demonstrated_result": "The paper reports controlled experiments including 21 unclipped runs across a 32-fold batch range, additional clipped runs, and checkpoint comparisons. These are author-reported experiments, not independent verification.",
+      "implementation_status": "Experimental paper; no claim of deployment or a universal training recipe.",
+      "mechanism": "A local quadratic progress model predicts curvature-related loss at large batches; a separate drift-threshold account predicts a failure clock tied to consumed samples. Ratio clipping may delay instability, especially at larger batches, while leaving the sample-efficiency gap.",
+      "regime": "GRPO/RLVR training on Qwen2.5-Math-1.5B with related Qwen2.5 checkpoints and math tasks; batch, learning rate, clipping and response-sample budgets varied.",
+      "reproducibility": "The HTML paper provides experimental details and appendices. Independent reproduction was not performed in this review.",
+      "strongest_baseline": "Matched smaller and larger rollout batches under square-root learning-rate scaling, with clipped and unclipped comparisons and checkpoint robustness tests."
+    },
+    "title": "RLVR rollout batches trade sample efficiency against training stability",
+    "topics": [
+      "reinforcement learning",
+      "verifiable rewards",
+      "training efficiency",
+      "batch scaling"
+    ],
+    "why_it_matters": "Large rollout batches are used to increase RLVR training throughput, but this paper reports that sample efficiency can worsen above a critical batch size while instability tracks consumed samples. If the pattern transfers, batch selection and schedule design may need to account for both clocks; the paper does not measure wall-clock or compute savings."
+  },
+  "related": [],
+  "schema": "fcmo-public-brief-v1"
+}
