@@ -1,7 +1,7 @@
 {
   "schema": "fcmo-stories-v2",
-  "generated_at": "2026-10-14T15:06:56Z",
-  "release_id": "newswire-b515ffac38079916eed14181",
+  "generated_at": "2026-10-14T17:02:30Z",
+  "release_id": "newswire-667f6e337561580bf62c6ae1",
   "canonical_locale": "en",
   "locales": [
     "en",
@@ -41,6 +41,786 @@
     "2026-10-14"
   ],
   "stories": [
+    {
+      "id": "FCMO-BDE9CB7163C5",
+      "slug": "chunkact-compiles-agent-memory-into-action-chunks-to-cut-planner-calls",
+      "url_date": "2026-10-14",
+      "kind": "development",
+      "status": "live",
+      "beat": "research",
+      "desk": "compute_inference",
+      "title": "ChunkAct compiles agent memory into action chunks to cut planner calls in simulated robotics",
+      "dek": "A new paper introduces ChunkAct, which compiles an LLM agent’s procedural memory into executable action chunks and calls the planner mainly for decisions or failures.",
+      "summary": "A new paper introduces ChunkAct, which compiles an LLM agent’s procedural memory into executable action chunks and calls the planner mainly for decisions or failures. On LIBERO-Pro simulation, the authors report 83.8% task success versus 78.8% for a matched Harness VLA baseline, with 2.9 times fewer LLM calls, 4.4 times fewer input tokens and 2.3 times fewer output tokens. On LIBERO-Plus, they report zero-shot results above previously reported VLA baselines, though those baselines were fine-tuned on that benchmark. These are paper-reported results; no physical-robot evaluation or independent reproduction was performed in this review.",
+      "why_it_matters": "If the reported matched LIBERO-Pro result reproduces, compiling repeated procedural memory into executable chunks could improve success while lowering planner calls and token use in agentic robot workflows. This would change the cost/reliability trade-off for simulator-based agentic robotics. The evidence remains bounded to author-run benchmarks; real-robot safety, transfer and operating costs are not established.",
+      "importance_rationale": "If reproduced beyond the reported simulation regime, compiling procedural memory into executable chunks could reduce both LLM cost and task failures in tool-using robotic agents; current evidence is one author-reported benchmark program without a real-robot test.",
+      "technical": {
+        "claimed_result": "On LIBERO-Pro, authors report 83.8% task success versus 78.8% for Harness VLA, with 2.9x fewer planner calls, 4.4x fewer input tokens and 2.3x fewer output tokens in a matched high-reasoning setup. On LIBERO-Plus they report 83.9% zero-shot success, 11.0 points above the strongest tabled VLA baseline, but comparator values are from prior fine-tuned runs.",
+        "compute_or_cost": "For LIBERO-Pro high-reasoning runs, paper reports 24.2 to 8.3 LLM calls, 2.2M to 0.5M input tokens and 8.5k to 3.7k output tokens per episode, with task success 78.8% to 83.8%. No complete monetary or wall-clock cost, offline compilation cost or uncertainty interval is provided.",
+        "demonstrated_result": "The public preprint provides the proposed procedure, simulator setup and reported tables. This review establishes what the authors report; no independent reproduction or physical-robot trial was performed.",
+        "mechanism": "ChunkAct consolidates procedural memory offline into executable routines for typed sub-goals. A planner call launches a chain of perception and control primitives; the chunk runs autonomously, verifies stages and returns a typed exit when it fails. The planner handles scene understanding, target grounding and recovery rather than reselecting every primitive.",
+        "novelty": "The authors combine offline compilation of procedural memory into executable robot routines with online action chunking across perception and control primitives, returning control to the LLM mainly for goal decisions and typed failures. This applies action chunking at the agentic workflow level rather than only chunking motor outputs of a learned policy.",
+        "regime": "LIBERO-Pro: four suites crossed with instruction-redirection and object-position-swap perturbations, eight combinations with 10 tasks each and 10 seeds per task; planner GPT-5.6-sol at high reasoning, with up to 100 LLM calls per episode, a shared VLA primitive and segmentation model. LIBERO-Plus uses one seed per task for seven perturbation axes. No physical robot is tested.",
+        "reproducibility": "The arXiv HTML gives benchmark definitions, implementation settings, seeds and tables, but this review did not locate a directly linked runnable code/config package or run a reproduction. The LIBERO-Pro matched experiment appears comparatively well specified; LIBERO-Plus baseline provenance differs because published prior scores are compared with a zero-shot ChunkAct run.",
+        "strongest_baseline": "Harness VLA is the paper’s strongest LIBERO-Pro baseline: 78.8% success, 24.2 planner calls, 2.2M input tokens and 8.5k output tokens per episode versus ChunkAct’s 83.8%, 8.3, 0.5M and 3.7k. The paper states both use the same planner, primitive, perception and memory and differ in whether memory is retrieved at test time or compiled offline."
+      },
+      "importance_tier": "Notable",
+      "development_type": "paper",
+      "event_at": "2026-10-13T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-14T17:02:16Z",
+      "updated_at": "2026-10-14T17:02:16Z",
+      "importance": 5,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": false,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "CLAIMED",
+            "text": "On LIBERO-Pro, the authors report 83.8% overall task success for ChunkAct versus 78.8% for Harness VLA, a 5.0 percentage-point difference. In the same high-reasoning setup they report 8.3 versus 24.2 planner calls per episode, 0.5M versus 2.2M input tokens, and 3.7k versus 8.5k output tokens. The paper says the systems share the planner, VLA primitive, perception and memory and differ in test-time memory use."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "ChunkAct compiles procedural memory offline into reusable executable chunks. At test time a planner call launches a chained chunk; execution continues without further planner calls unless a stage fails, in which case a typed exit returns the failure stage and context for recovery."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "On LIBERO-Plus, the authors report an 83.9% overall success rate for zero-shot ChunkAct, 11.0 points above the strongest tabled prior VLA baseline. The paper notes that ChunkAct is evaluated zero-shot while VLA comparator values are reported from prior work after fine-tuning on the benchmark, so this is not a matched comparison."
+          },
+          {
+            "label": "DEMONSTRATED",
+            "qualifier": "LIMITATION",
+            "text": "The reported evaluation uses the LIBERO simulation benchmark family; the reviewed paper reports no physical-robot experiment. The LIBERO-Plus VLA comparison reuses results from prior work with benchmark-fine-tuned baselines, unlike ChunkAct’s zero-shot evaluation."
+          }
+        ],
+        "limitations": [
+          "The 5.0-point LIBERO-Pro gain and reduced call/token counts are reported by the paper authors and have not been independently reproduced.",
+          "Evaluation is simulation-only in the reviewed paper; transfer to physical robots, safety under long autonomous execution and real-world recovery remain unmeasured.",
+          "LIBERO-Plus baseline comparisons are not matched: ChunkAct is zero-shot, while cited VLA comparator scores come from prior fine-tuned evaluations.",
+          "The reported token/call efficiency does not include a full monetary or wall-clock cost analysis covering simulator setup, offline chunk compilation, model/tool costs and retries.",
+          "The method assumes recurring, compilable action routines and returns control to the planner only at decision points or typed failures; its limits under rapidly changing scenes or unanticipated hazards need evaluation."
+        ],
+        "gaps": [
+          {
+            "kind": "missing_independent",
+            "description": "The LIBERO-Pro performance and efficiency findings have not been independently reproduced."
+          },
+          {
+            "kind": "other",
+            "description": "No physical-robot test establishes transfer to real perception, control, hardware latency, safety or recovery from chunk failures."
+          },
+          {
+            "kind": "other",
+            "description": "LIBERO-Plus comparison is not matched: ChunkAct is zero-shot, but VLA results are prior reported scores after benchmark fine-tuning."
+          },
+          {
+            "kind": "missing_artifact",
+            "description": "This review found no directly linked runnable implementation or evaluation configuration on the arXiv record; the results could not be reproduced here."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://arxiv.org/abs/2610.18874",
+          "domain": "arxiv.org",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "University of Southern California",
+        "University of Central Florida",
+        "Stony Brook University"
+      ],
+      "topics": [],
+      "regions": [
+        "GLOBAL"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-BDE9CB7163C5.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: ChunkAct compiles agent memory into action chunks to cut planner calls in simulated robotics"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "ChunkAct compila la memoria de agentes en bloques de acción y reduce llamadas del planificador en robótica simulada",
+            "summary": "Un nuevo artículo presenta ChunkAct, que compila la memoria procedimental de un agente LLM en bloques ejecutables y reserva al planificador para decisiones y fallos. En la simulación LIBERO-Pro, los autores informan una tasa de éxito de tareas de 83.8% frente a 78.8% para la referencia Harness VLA, con 2.9 veces menos llamadas al LLM, 4.4 veces menos tokens de entrada y 2.3 veces menos tokens de salida. En LIBERO-Plus informan resultados sin ajuste superiores a referencias VLA publicadas anteriormente, aunque estas referencias sí se ajustaron con ese benchmark. Son resultados informados por los autores; esta revisión no realizó una evaluación con robots físicos ni una reproducción independiente.",
+            "importance_rationale": "Si se reproduce más allá del régimen simulado informado, compilar memoria procedimental en bloques ejecutables podría reducir tanto el costo del LLM como los fallos en agentes robóticos que usan herramientas. La evidencia actual es un programa de benchmark informado por sus autores, sin prueba con un robot físico.",
+            "why_it_matters": "Si se reproduce el resultado pareado de LIBERO-Pro, compilar la memoria procedimental repetida en bloques ejecutables podría elevar el éxito y reducir las llamadas al planificador y el uso de tokens en flujos robóticos con agentes. Esto cambiaría el balance entre costo y fiabilidad en robótica basada en agentes dentro del simulador. La evidencia se limita a benchmarks ejecutados por los autores; no establece seguridad, transferencia ni costos operativos en robots físicos.",
+            "technical": {
+              "claimed_result": "En LIBERO-Pro, los autores informan un éxito de 83.8% frente a 78.8% para Harness VLA, con 2.9x menos llamadas del planificador, 4.4x menos tokens de entrada y 2.3x menos tokens de salida en una configuración pareada de razonamiento alto. En LIBERO-Plus informan 83.9% de éxito sin ajuste, 11.0 puntos por encima de la referencia VLA más fuerte incluida en la tabla, pero los resultados comparativos proceden de ejecuciones previas con ajuste.",
+              "compute_or_cost": "En las ejecuciones LIBERO-Pro con razonamiento alto, el artículo informa una reducción de 24.2 a 8.3 llamadas al LLM, de 2.2M a 0.5M tokens de entrada y de 8.5k a 3.7k tokens de salida por episodio, mientras que el éxito de tarea sube de 78.8% a 83.8%. No presenta el costo monetario total, el tiempo real, el costo de compilación sin conexión ni intervalos de incertidumbre.",
+              "demonstrated_result": "El preprint público describe el procedimiento propuesto, la configuración del simulador y las tablas que informan los autores. Esta revisión registra lo que informa el artículo; no realizó una reproducción independiente ni una prueba con robots físicos.",
+              "mechanism": "ChunkAct consolida fuera de línea la memoria procedimental en rutinas ejecutables para subobjetivos tipados. Una llamada del planificador inicia una cadena de primitivas de percepción y control; el bloque se ejecuta de forma autónoma, verifica cada etapa y devuelve una salida tipada si falla. El planificador se ocupa de comprender la escena, ubicar el objetivo y recuperarse, en lugar de volver a seleccionar cada primitiva.",
+              "novelty": "Los autores combinan la compilación fuera de línea de memoria procedimental en rutinas ejecutables con bloques de acción en línea que abarcan primitivas de percepción y control. El flujo devuelve el control al LLM principalmente para decidir subobjetivos o recuperarse de fallos tipados. El agrupamiento se aplica al flujo de trabajo de agentes robóticos, no solo a las salidas motoras de una política aprendida.",
+              "regime": "LIBERO-Pro: cuatro suites cruzadas con desvío de instrucciones e intercambio de posición de objetos, ocho combinaciones con 10 tareas cada una y 10 semillas por tarea; planificador GPT-5.6-sol con razonamiento alto, presupuesto de hasta 100 llamadas al LLM por episodio, una primitiva VLA compartida y un modelo de segmentación. LIBERO-Plus utiliza una semilla por tarea en cada uno de siete ejes de perturbación. No se prueba ningún robot físico.",
+              "reproducibility": "El HTML de arXiv detalla los benchmarks, la configuración de implementación, las semillas y las tablas, pero esta revisión no encontró un paquete de código y configuración ejecutable enlazado directamente ni reprodujo el resultado. El experimento pareado de LIBERO-Pro está relativamente bien especificado; la procedencia de la referencia de LIBERO-Plus es distinta porque se comparan puntuaciones previas con ajuste y una ejecución de ChunkAct sin ajuste.",
+              "strongest_baseline": "Harness VLA es la referencia LIBERO-Pro más fuerte del artículo: informa 78.8% de éxito, 24.2 llamadas del planificador, 2.2M tokens de entrada y 8.5k tokens de salida por episodio, frente a 83.8%, 8.3, 0.5M y 3.7k con ChunkAct. El artículo afirma que ambos utilizan el mismo planificador, primitiva, percepción y memoria, y difieren en si la memoria se consulta durante la prueba o se compila antes."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "En LIBERO-Pro, los autores informan un éxito total de 83.8% para ChunkAct frente a 78.8% para Harness VLA, una diferencia de 5.0 puntos porcentuales. En la misma configuración de razonamiento alto informan 8.3 frente a 24.2 llamadas del planificador por episodio, 0.5M frente a 2.2M tokens de entrada y 3.7k frente a 8.5k tokens de salida. El artículo dice que los sistemas comparten el planificador, la primitiva VLA, la percepción y la memoria, y difieren en el uso de memoria durante la prueba."
+                },
+                {
+                  "text": "ChunkAct compila la memoria procedimental sin conexión en bloques ejecutables reutilizables. Durante la prueba, una llamada al planificador inicia una secuencia de primitivas; la ejecución continúa sin más llamadas hasta que falla una etapa, momento en que un informe de salida tipado devuelve la etapa fallida y el contexto para recuperarse."
+                },
+                {
+                  "text": "En LIBERO-Plus, los autores informan un éxito total de 83.9% en la evaluación sin ajuste de ChunkAct, 11.0 puntos por encima de la referencia VLA previa más fuerte incluida en la tabla. El artículo aclara que ChunkAct se evalúa sin ajuste, mientras que los resultados VLA provienen de trabajos anteriores con ajuste al benchmark; por tanto, la comparación no está igualada."
+                },
+                {
+                  "text": "La evaluación informada usa la familia de benchmarks de simulación LIBERO; el artículo revisado no informa pruebas con robots físicos. La comparación VLA de LIBERO-Plus reutiliza resultados publicados previamente con modelos ajustados al benchmark, a diferencia de la evaluación sin ajuste de ChunkAct."
+                }
+              ],
+              "limitations": [
+                "La mejora de 5.0 puntos en LIBERO-Pro y la reducción de llamadas y tokens son resultados informados por el artículo; no se han reproducido de forma independiente.",
+                "El artículo revisado solo evalúa en simulación; no mide la transferencia a robots físicos, la seguridad durante ejecuciones largas ni la recuperación ante fallos en el mundo real.",
+                "La comparación de LIBERO-Plus no está igualada: ChunkAct se evalúa sin ajuste, mientras que las puntuaciones VLA citadas proceden de evaluaciones previas con ajuste al benchmark.",
+                "Las métricas de llamadas y tokens no incluyen un análisis completo de dinero o tiempo real que abarque la configuración del simulador, la compilación previa de bloques, los costos de modelos y herramientas o los reintentos.",
+                "El método presupone rutinas de acción recurrentes que pueden compilarse y devuelve el control al planificador solo ante decisiones o fallos tipados; falta evaluar sus límites en escenas que cambian rápidamente o ante peligros imprevistos."
+              ],
+              "gaps": [
+                {
+                  "description": "Los resultados de rendimiento y eficiencia en LIBERO-Pro no se han reproducido de forma independiente."
+                },
+                {
+                  "description": "No hay una prueba con robots físicos que establezca la transferencia a percepción real, control, latencia de hardware, seguridad o recuperación ante fallos de los bloques."
+                },
+                {
+                  "description": "La comparación de LIBERO-Plus no está igualada: ChunkAct se evalúa sin ajuste, pero los resultados VLA se informaron antes de ajustar con el benchmark."
+                },
+                {
+                  "description": "En esta revisión no se encontró un paquete de implementación o configuración ejecutable enlazado directamente en el registro de arXiv; no fue posible reproducir los resultados."
+                }
+              ]
+            },
+            "dek": "Un nuevo artículo presenta ChunkAct, que compila la memoria procedimental de un agente LLM en bloques ejecutables y reserva al planificador para decisiones y fallos."
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "ChunkAct 将智能体记忆编译为动作块，以减少模拟机器人任务中的规划器调用",
+            "summary": "一篇新论文提出 ChunkAct：将 LLM 智能体的程序性记忆编译为可执行动作块，让规划器主要处理决策和失败。在 LIBERO-Pro 仿真中，作者报告任务成功率为83.8%，对照 Harness VLA 为78.8%；LLM 调用减少2.9倍，输入令牌减少4.4倍，输出令牌减少2.3倍。在 LIBERO-Plus 上，作者报告其零样本结果高于此前发表的 VLA 基线，但这些基线使用该基准进行了微调。这些均为论文作者报告的结果；本次审查没有进行实体机器人测试或独立复现。",
+            "importance_rationale": "如果该结果能在所报告的仿真范围之外复现，将程序性记忆编译为可执行动作块，可能同时降低工具型机器人智能体的 LLM 成本和任务失败率。目前证据仅来自一组作者报告的基准测试，没有实体机器人实验。",
+            "why_it_matters": "如果 LIBERO-Pro 中的匹配比较结果可以复现，将重复的程序性记忆编译为可执行动作块，可能提升具身智能体工作流中的成功率，同时减少规划器调用和令牌消耗。这会改变模拟环境中智能体机器人方案的成本与可靠性权衡。现有证据仅限作者运行的基准，尚未证明实体机器人上的安全性、迁移能力或运行成本。",
+            "technical": {
+              "claimed_result": "在 LIBERO-Pro 上，作者报告 ChunkAct 成功率为83.8%，Harness VLA 为78.8%；在匹配的高推理设置中，规划器调用减少2.9x、输入令牌减少4.4x、输出令牌减少2.3x。在 LIBERO-Plus 上，作者报告 ChunkAct 零样本成功率为83.9%，比表中最强 VLA 基线高11.0个百分点；但对照结果来自此前的微调实验。",
+              "compute_or_cost": "在 LIBERO-Pro 高推理实验中，论文报告每个回合的 LLM 调用从24.2降至8.3，输入令牌从2.2M降至0.5M，输出令牌从8.5k降至3.7k，同时任务成功率从78.8%升至83.8%。没有报告完整货币成本、实际耗时、离线编译成本或不确定区间。",
+              "demonstrated_result": "公开预印本描述了所提流程、仿真设置和作者报告的结果表。本次审查记录论文所报告的内容；未进行独立复现或实体机器人实验。",
+              "mechanism": "ChunkAct 将程序性记忆离线整合为类型化子目标的可执行流程。规划器的一次调用启动由感知和控制原语组成的动作链；动作块自主执行并验证各阶段，失败时返回类型化退出信息。规划器负责理解场景、定位目标和故障恢复，而不是逐步重新选择每个原语。",
+              "novelty": "作者将程序性记忆离线编译为可执行流程，并在在线阶段用动作块串联感知与控制原语。规划器主要处理子目标决策和类型化失败后的恢复。此处的动作分块面向具身智能体工作流，而不只是学习策略输出的电机动作序列。",
+              "regime": "LIBERO-Pro：四个套件分别与指令改写、物体位置交换两种扰动组合，共八种条件，每种有10项任务且每项运行10个随机种子；规划器为高推理设置的 GPT-5.6-sol，每个回合最多100次 LLM 调用；使用共享 VLA 原语和分割模型。LIBERO-Plus 在七种扰动轴下对每项任务运行一个种子。没有测试实体机器人。",
+              "reproducibility": "arXiv HTML 给出基准定义、实现设置、随机种子和结果表，但本次审查没有找到直接链接的可运行代码/配置包，也未进行复现。LIBERO-Pro 的匹配实验说明相对充分；LIBERO-Plus 的基线来源不同，将此前微调结果与零样本 ChunkAct 运行相比较。",
+              "strongest_baseline": "论文中最强的 LIBERO-Pro 对照是 Harness VLA：每个任务回合成功率78.8%，规划器调用24.2次，输入令牌2.2M，输出令牌8.5k；ChunkAct 对应为83.8%、8.3次、0.5M和3.7k。论文称两者使用相同的规划器、VLA 原语、感知组件和记忆，区别在于测试时读取记忆，还是事先将记忆编译为动作块。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "在 LIBERO-Pro 上，作者报告 ChunkAct 的总体任务成功率为83.8%，Harness VLA 为78.8%，相差5.0个百分点。在相同的高推理设置中，作者报告每个任务回合的规划器调用为8.3次，对照为24.2次；输入令牌为0.5M，对照为2.2M；输出令牌为3.7k，对照为8.5k。论文称两套系统使用相同的规划器、VLA 原语、感知组件和记忆，只在测试时的记忆使用方式上不同。"
+                },
+                {
+                  "text": "ChunkAct 将程序性记忆离线编译成可复用的可执行动作块。测试时，规划器的一次调用启动一串动作原语；只要各步骤没有失败，整段执行不再调用规划器。若某一步失败，类型化退出信息会返回失败步骤及恢复所需的上下文。"
+                },
+                {
+                  "text": "在 LIBERO-Plus 上，作者报告 ChunkAct 零样本评估的总体成功率为83.9%，比表中最强的既有 VLA 基线高11.0个百分点。论文说明，ChunkAct 为零样本评估，而 VLA 对照结果来自此前在该基准上微调的工作，因此比较条件不一致。"
+                },
+                {
+                  "text": "论文报告的评估使用 LIBERO 仿真基准系列；所查论文未报告实体机器人实验。LIBERO-Plus 的 VLA 对比沿用此前发表的、经基准微调的结果，而 ChunkAct 是零样本评估。"
+                }
+              ],
+              "limitations": [
+                "LIBERO-Pro 提高5.0个百分点以及调用和令牌减少均为论文报告结果，尚未独立复现。",
+                "所查论文仅在仿真中评估；尚未测量向实体机器人的迁移、长时间自主执行的安全性或现实环境下的失败恢复能力。",
+                "LIBERO-Plus 的比较条件不一致：ChunkAct 为零样本评估，而所引用的 VLA 分数来自此前针对该基准微调的评估。",
+                "调用和令牌指标没有覆盖完整的货币或实际时间成本分析，其中包括仿真器设置、预先编译动作块、模型与工具成本以及重试。",
+                "该方法假设存在可编译的重复动作流程，并只在需要决策或出现类型化失败时把控制权交回规划器；其在场景快速变化或出现意外危险时的边界仍需评估。"
+              ],
+              "gaps": [
+                {
+                  "description": "尚无独立复现验证 LIBERO-Pro 上报告的性能和效率结果。"
+                },
+                {
+                  "description": "没有实体机器人实验来验证其向真实感知、控制、硬件延迟、安全性或动作块失败恢复能力的迁移。"
+                },
+                {
+                  "description": "LIBERO-Plus 比较条件不一致：ChunkAct 为零样本评估，但 VLA 结果来自此前在基准上微调的实验。"
+                },
+                {
+                  "description": "本次审查没有在 arXiv 页面中找到直接链接的可运行实现或评估配置，因此无法复现结果。"
+                }
+              ]
+            },
+            "headline": "ChunkAct 将智能体记忆编译为动作块，以减少模拟机器人任务中的规划器调用",
+            "dek": "一篇新论文提出 ChunkAct：将 LLM 智能体的程序性记忆编译为可执行动作块，让规划器主要处理决策和失败。在 LIBERO-Pro 仿真中，作者报告任务成功率为83.8%，对照 Harness VLA 为78.8%；LLM 调用减少2.9倍，输入令牌减少4.4倍，输出令牌减少2.3倍。在 LIBERO-Plus 上，作者报告其零样本结果高于此前发表的 VLA 基线，但这些基线使用该基准进行了微调。这些均为论文作者报告的结果；本次审查没有进行实体机器人测试或独立复现。"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
+    {
+      "id": "FCMO-AC076BB74BA2",
+      "slug": "deltaselect-paper-reports-a-budgeted-task-subset-for-repeat-coding-agent",
+      "url_date": "2026-10-14",
+      "kind": "development",
+      "status": "live",
+      "beat": "research",
+      "desk": "evaluation_science",
+      "title": "DeltaSelect paper reports a budgeted task subset for repeat coding-agent A/B tests",
+      "headline": "DeltaSelect paper reports a budgeted task subset for repeat coding-agent A/B tests",
+      "summary": "A paper introduces DeltaSelect, which ranks tasks using resampled one-run correlations with full-benchmark scores, calibrates fractional verifier results, then selects tasks under a cost budget for repeated baseline-versus-candidate comparisons. In one author-reported Agent Layer case study, 13 eight-task evaluations led to a configuration with a 58.1% lower recorded cost and a higher calibrated score than the initial custom skills/instructions. The paper also finds substantial mismatch between published DeepSWE estimates and a Codex target harness. These are bounded paper-reported results; the implementation was not run in this review.",
+      "why_it_matters": "If independently validated, fixed low-cost task subsets could support more frequent coding-agent workflow comparisons. The paper's own data show that task reliability varies and that scores and prices from one harness did not transfer to another. The selector's advantage over alternatives and its usefulness beyond one benchmark, model family and custom harness remain unknown.",
+      "importance_rationale": "If validated across benchmarks and harnesses, an affordable fixed task set could make coding-agent workflow changes easier to compare repeatedly; this is one author-reported method and case study with untested selector alternatives and limited transfer evidence.",
+      "technical": {
+        "claimed_result": "Authors report 22 of 113 DeepSWE tasks with fifth-percentile correlation >=0.50. In a 13-evaluation, eight-task Agent Layer case study, reported recorded cost declined 58.1% ($4.18 to $1.75) while calibrated score rose from 36.46% to 42.36%. The study uses single-run endpoints and transferred variance estimates.",
+        "compute_or_cost": "Paper reports $27.86 total model cost across 13 case-study evaluations at the stated August 16, 2026 rates. Initial and adopted eight-task endpoints are $4.18 and $1.75 respectively. Costs from published mini-swe-agent estimates did not transfer directly: paper reports Codex costs 1.5–3.5 times higher for the same eight tasks and settings.",
+        "demonstrated_result": "The accessible arXiv paper and linked public repository README establish that the paper and a code repository are published. Reported benchmark and case-study values are author claims; this review did not execute or reproduce the implementation.",
+        "mechanism": "DeltaSelect resamples one trial per task and configuration to estimate each task's conservative correlation with full benchmark scores, maps task-level fractional verifier results to a common score using linear calibration, weights by calibration residuals, and scans a fixed reliability ranking under a dollar budget. The task set and scoring specification are then frozen for baseline-versus-candidate comparisons.",
+        "novelty": "The paper combines conservative task ranking from repeated trial resampling, per-task fractional-score calibration, cost-constrained allocation, and target-harness baseline validation for frequent within-system coding-agent comparisons. The paper cites prior benchmark reduction and active-testing methods and frames its contribution as their combination for this use case rather than a universal evaluator.",
+        "regime": "DeepSWE v1.1 snapshot: 22,586 source trials, 22,417 usable trials, 18 models, 50 model-effort configurations and 113 tasks. Method resamples one of four trials per complete task-configuration cell 10,000 times. Target-harness study uses eight selected tasks; Agent Layer case study uses 13 evaluations at gpt-5.6-luna low reasoning. No independent replication reviewed.",
+        "reproducibility": "The paper links a public Agent Layer repository and interactive DeltaSelect page, describes the DeepSWE data snapshot, method and study provenance, but the code and data were not run or audited here. Cheapest next action is a pinned reproduction and equal-cost selector comparison on a held-out benchmark.",
+        "strongest_baseline": "For the eight-task case study the paper compares initial and adopted Agent Layer skill/instruction configurations under the same stated model, reasoning level, tasks, calibration and weights. The adopted endpoint is $1.75 and 42.36% calibrated score versus $4.18 and 36.46% initially. Each endpoint has one run per task, and uncertainty is transferred from repeated mini-swe-agent data."
+      },
+      "importance_tier": "Notable",
+      "development_type": "paper",
+      "event_at": "2026-09-17T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-14T17:02:16Z",
+      "updated_at": "2026-10-14T17:02:16Z",
+      "importance": 5,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": false,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "CLAIMED",
+            "text": "DeltaSelect ranks tasks by the fifth-percentile Pearson correlation across 10,000 deterministic resamples, calibrates fractional verifier results to a common full-score scale, and greedily selects tasks within a configured budget. On the DeepSWE snapshot the authors report that 22 of 113 tasks reached a fifth-percentile correlation of at least 0.50."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "In 13 eight-task evaluations of one gpt-5.6-luna low-reasoning Agent Layer skills/instructions case study, the authors report a final configuration with a 42.36% calibrated score at $1.75, compared with the initial custom bundle at 36.46% and $4.18. The analysis uses one endpoint run per task and transfers variance estimates from published mini-swe-agent runs."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "For the same eight tasks and gpt-5.6-luna settings, paper-reported Codex-harness costs were 1.5 to 3.5 times the corresponding DeepSWE estimates; scores also differed. The paper cautions these comparisons establish a planning mismatch, not a causal estimate of the harness effect."
+          },
+          {
+            "label": "DEMONSTRATED",
+            "text": "The arXiv paper links a public Agent Layer repository and DeltaSelect implementation page. The repository README identifies itself as an open-source coding-agent orchestration project; this review did not run its code."
+          }
+        ],
+        "limitations": [
+          "The task selector and calibration choices are not shown to outperform alternative selectors at matched cost; the paper names those comparisons as future work.",
+          "The published-data projection uses the same DeepSWE snapshot to construct and assess selection, so the evidence is in-sample.",
+          "The Agent Layer case study has one run per endpoint task, transfers variance from mini-swe-agent, and changes more than one instruction in several evaluations; it does not establish a causal effect of a single edit.",
+          "A small fixed task set may omit capabilities, magnify task-quality problems and induce specialization; it is not a broad benchmark or safety evaluation.",
+          "The repository was inspected at README level only; no code, data, or evaluation was executed in this review."
+        ],
+        "gaps": [
+          {
+            "kind": "missing_independent",
+            "description": "No independent team reproduced the selector, case-study endpoints or reported costs in this review."
+          },
+          {
+            "kind": "other",
+            "description": "The selector was not compared with random, cheapest-first or median-correlation selection at equal cost; ranking and published-data example use the same DeepSWE snapshot."
+          },
+          {
+            "kind": "other",
+            "description": "The case study covers one model family, one custom harness and one skill/instruction bundle; endpoint uncertainty uses transferred published variance and some iterations changed multiple instructions."
+          },
+          {
+            "kind": "missing_artifact",
+            "description": "The paper links public code, but no repository code or study artifacts were run or independently audited in this review."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://arxiv.org/abs/2609.19607",
+          "domain": "arxiv.org",
+          "primary": true
+        },
+        {
+          "url": "https://github.com/conn-castle/agent-layer",
+          "domain": "github.com",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "Conn Castle Studios"
+      ],
+      "topics": [],
+      "regions": [
+        "GLOBAL"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-AC076BB74BA2.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: DeltaSelect paper reports a budgeted task subset for repeat coding-agent A/B tests"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "El artículo sobre DeltaSelect presenta una selección de tareas con presupuesto para repetir pruebas A/B de agentes de programación",
+            "summary": "Un artículo presenta DeltaSelect, que ordena tareas mediante correlaciones remuestreadas entre una ejecución y la puntuación completa del benchmark, calibra resultados fraccionarios del verificador y selecciona tareas dentro de un presupuesto para comparar repetidamente una versión de referencia con otra candidata. En un estudio de caso de Agent Layer informado por los autores, 13 evaluaciones con ocho tareas llevaron a una configuración cuyo costo registrado fue 58.1% menor y cuya puntuación calibrada fue mayor que la del conjunto inicial de instrucciones y habilidades. El artículo también encuentra una diferencia sustancial entre las estimaciones publicadas de DeepSWE y un entorno de ejecución objetivo de Codex. Son resultados informados por los autores dentro de estos límites; esta revisión no ejecutó la implementación.",
+            "importance_rationale": "Si se valida en otros benchmarks y entornos, un conjunto fijo de tareas de bajo costo podría facilitar comparaciones repetidas de cambios en flujos de agentes de programación. La evidencia actual es un método y un estudio de caso informados por un autor, con alternativas al selector aún sin probar y transferencia limitada.",
+            "why_it_matters": "Si se valida de forma independiente, seleccionar conjuntos pequeños y económicos de tareas podría facilitar comparaciones más frecuentes de cambios en agentes de programación. Los propios datos del artículo muestran que la fiabilidad varía entre tareas y que las puntuaciones y los precios de un entorno no se trasladaron directamente a otro. Se desconoce si el selector supera a otras alternativas y si funciona fuera de un benchmark, una familia de modelos y un entorno personalizado.",
+            "technical": {
+              "claimed_result": "Los autores informan que 22 de 113 tareas DeepSWE alcanzaron una correlación del percentil cinco de al menos 0.50. En un estudio de caso Agent Layer de 13 evaluaciones con ocho tareas, el costo registrado bajó 58.1% ($4.18 a $1.75) mientras la puntuación calibrada subió de 36.46% a 42.36%. Los extremos usan una sola ejecución por tarea y transfieren estimaciones de variación.",
+              "compute_or_cost": "El artículo informa un costo total de modelo de $27.86 en las 13 evaluaciones del caso, con las tarifas indicadas del 16 de agosto de 2026. Los extremos inicial y adoptado de ocho tareas cuestan $4.18 y $1.75. Las estimaciones publicadas de mini-swe-agent no se trasladaron directamente: los costos Codex informados fueron de 1.5 a 3.5 veces mayores para las mismas ocho tareas y configuración.",
+              "demonstrated_result": "El artículo público de arXiv y el README del repositorio enlazado confirman la publicación del artículo y la existencia de un repositorio de código. Las cifras del benchmark y del estudio de caso son afirmaciones de los autores; esta revisión no ejecutó ni reprodujo la implementación.",
+              "mechanism": "DeltaSelect remuestrea una ejecución por tarea y configuración para estimar la correlación conservadora de cada tarea con las puntuaciones completas del benchmark; calibra los resultados fraccionarios del verificador por tarea a una escala común, asigna pesos según los residuos de calibración y recorre un orden fijo de fiabilidad bajo un presupuesto. Luego se congela el conjunto de tareas y la especificación de puntuación para comparar una versión de referencia con otra candidata.",
+              "novelty": "El artículo combina un ordenamiento conservador de tareas basado en remuestreo de ensayos repetidos, calibración de puntuaciones fraccionarias por tarea, asignación limitada por costo y validación de una línea de base en el entorno objetivo para comparar cambios frecuentes dentro de un mismo sistema de agentes de programación. Reconoce métodos previos de reducción de benchmarks y pruebas activas, y presenta su aporte como una combinación para este uso, no como un evaluador universal.",
+              "regime": "Conjunto DeepSWE v1.1: 22,586 ensayos de origen, 22,417 utilizables, 18 modelos, 50 configuraciones de modelo y esfuerzo y 113 tareas. El método remuestrea 10,000 veces una de cuatro ejecuciones por celda completa de tarea y configuración. El estudio en el entorno objetivo usa ocho tareas seleccionadas; el estudio Agent Layer usa 13 evaluaciones con gpt-5.6-luna y razonamiento bajo. No se revisó una réplica independiente.",
+              "reproducibility": "El artículo enlaza un repositorio público de Agent Layer y una página interactiva de DeltaSelect, y describe el conjunto de datos DeepSWE, el método y la procedencia del estudio. Aquí no se ejecutaron ni auditaron el código o los datos. El siguiente paso económico es una réplica fijada y una comparación de selectores con costo equivalente en otro benchmark.",
+              "strongest_baseline": "En el estudio de caso de ocho tareas, el artículo compara las configuraciones inicial y adoptada de instrucciones y habilidades de Agent Layer con el mismo modelo, nivel de razonamiento, tareas, calibración y pesos declarados. El extremo adoptado registra $1.75 y 42.36% de puntuación calibrada, frente a $4.18 y 36.46% al inicio. Cada extremo tiene una ejecución por tarea y la incertidumbre se transfiere de datos repetidos de mini-swe-agent."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "DeltaSelect ordena tareas por el percentil cinco de la correlación de Pearson en 10,000 remuestreos deterministas, calibra resultados fraccionarios del verificador a una escala común de puntuación completa y elige tareas dentro de un presupuesto. En el conjunto de datos DeepSWE, los autores informan que 22 de 113 tareas alcanzaron una correlación del percentil cinco de al menos 0.50."
+                },
+                {
+                  "text": "En 13 evaluaciones con ocho tareas de un estudio de caso de Agent Layer con gpt-5.6-luna y razonamiento bajo, los autores informan una puntuación calibrada final de 42.36% con costo de $1.75, frente a 36.46% y $4.18 para el conjunto inicial de instrucciones y habilidades. Cada extremo tiene una ejecución por tarea y el análisis transfiere estimaciones de variación de ejecuciones publicadas de mini-swe-agent."
+                },
+                {
+                  "text": "Para las mismas ocho tareas y configuración de gpt-5.6-luna, los costos del entorno Codex informados en el artículo fueron de 1.5 a 3.5 veces las estimaciones correspondientes de DeepSWE; las puntuaciones también difirieron. El artículo aclara que esto muestra una diferencia de planificación, no un efecto causal del entorno."
+                },
+                {
+                  "text": "El artículo de arXiv enlaza un repositorio público de Agent Layer y una página de implementación de DeltaSelect. El README identifica el proyecto como una capa de orquestación de agentes de programación de código abierto; esta revisión no ejecutó el código."
+                }
+              ],
+              "limitations": [
+                "No se demuestra que la selección de tareas y la calibración superen alternativas con el mismo presupuesto; el artículo plantea esas comparaciones como trabajo futuro.",
+                "El mismo conjunto DeepSWE se usa para construir la selección y evaluar el ejemplo con datos publicados, por lo que la evidencia es interna a ese conjunto.",
+                "El estudio de caso Agent Layer tiene una ejecución por tarea en cada extremo, transfiere la variación de mini-swe-agent y cambia varias instrucciones en algunas evaluaciones; no establece el efecto causal de un solo cambio.",
+                "Un conjunto fijo pequeño puede omitir capacidades, amplificar problemas de calidad de tareas y especializar el sistema; no reemplaza un benchmark amplio ni constituye una evaluación de seguridad.",
+                "La revisión solo inspeccionó el README del repositorio; no ejecutó código, datos ni evaluaciones."
+              ],
+              "gaps": [
+                {
+                  "description": "En esta revisión ningún equipo independiente reprodujo el selector, los extremos del estudio de caso ni los costos informados."
+                },
+                {
+                  "description": "El selector no se comparó con selección aleatoria, de menor costo o por correlación mediana con el mismo presupuesto; el ordenamiento y el ejemplo con datos publicados usan el mismo conjunto DeepSWE."
+                },
+                {
+                  "description": "El estudio de caso cubre una familia de modelos, un entorno personalizado y un conjunto de instrucciones y habilidades; usa variación transferida y varias iteraciones cambiaron más de una instrucción."
+                },
+                {
+                  "description": "El artículo enlaza código público, pero esta revisión no ejecutó ni auditó el código o los artefactos del estudio."
+                }
+              ]
+            }
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "DeltaSelect论文提出用于重复比较编程智能体的预算化任务子集",
+            "summary": "一篇论文介绍了DeltaSelect：它通过重采样单次运行与完整基准分数之间的相关性为任务排序，将验证器的分数比例校准到共同尺度，再在预算内选择任务，用于反复比较基线与候选版本。在作者报告的一个Agent Layer案例研究中，13轮八任务评估得到的配置，其记录成本比最初的技能和指令组合低58.1%，校准分数更高。论文还发现，已发表的DeepSWE估计值与Codex目标运行环境之间存在明显差异。这些结果限于论文作者的报告；本次审查没有运行其实现。",
+            "importance_rationale": "如果能在其他基准和运行环境中验证，固定的低成本任务集可能有助于反复比较编程智能体工作流的变化。现有证据来自一位作者报告的方法和案例研究，选择器替代方案尚未检验，迁移证据有限。",
+            "why_it_matters": "如果得到独立验证，低成本的固定任务子集可能让团队更频繁地比较编程智能体工作流的变化。论文自己的数据表明，不同任务的可靠性不一，而且一个运行环境中的分数和价格不能直接转移到另一个环境。该选择器是否优于其他方法、能否适用于一个基准、一类模型和一个定制运行环境之外，仍未确定。",
+            "technical": {
+              "claimed_result": "作者报告DeepSWE的113项任务中有22项达到第五百分位相关系数至少0.50。在Agent Layer的13轮八任务案例研究中，记录成本降低58.1%（$4.18降至$1.75），校准分数从36.46%升至42.36%。端点每项任务只运行一次，并借用方差估计。",
+              "compute_or_cost": "论文报告13轮案例研究的模型成本合计$27.86，按其所列2026年八月16日价格计算。八任务的初始端点成本为$4.18，采用端点为$1.75。已发表mini-swe-agent估算未能直接迁移：论文报告相同八项任务和设置下的Codex成本高1.5至3.5倍。",
+              "demonstrated_result": "公开的arXiv论文和所链接代码库的README表明论文已发布且存在公开代码库。基准和案例研究数字是作者报告；本次审查没有运行或复现其实现。",
+              "mechanism": "DeltaSelect对每项任务和配置抽取一次运行结果，以估计该任务与完整基准分数之间的保守相关性；它把任务级的验证器分数比例校准到共同尺度，依据校准残差赋权，再按固定的可靠性顺序在预算内扫描任务。随后冻结任务集和评分规范，用于基线版本与候选版本的比较。",
+              "novelty": "该论文将基于重复试验重采样的保守任务排序、任务级分数比例校准、成本预算分配和目标运行环境基线验证结合起来，用于频繁比较同一编程智能体系统的版本。论文引用了既有基准缩减和主动测试方法，并将其贡献描述为针对这一用途的组合，而不是通用评估器。",
+              "regime": "DeepSWE v1.1数据集包括22,586条源试验、22,417条可用试验、18个模型、50种模型与推理力度配置，以及113项任务。方法对每个完整任务配置单元中的四次运行抽取一次并重复10,000次。目标运行环境研究使用八项选定任务；Agent Layer案例使用gpt-5.6-luna低推理进行了13轮评估。本次未审查独立复现。",
+              "reproducibility": "论文链接了Agent Layer公开代码库和DeltaSelect交互页面，并描述了DeepSWE数据快照、方法及研究过程。本次未运行或审核代码与数据。低成本的下一步是在固定环境中复现，并在第二个基准上以同等成本比较不同选择器。",
+              "strongest_baseline": "在八任务案例研究中，论文比较了Agent Layer初始版与采用版技能和指令配置，声明两者的模型、推理级别、任务、校准和权重相同。采用版端点为$1.75和42.36%校准分数，初始版为$4.18和36.46%。每个端点每项任务只运行一次，不确定性来自重复的mini-swe-agent数据。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "DeltaSelect按照10,000次确定性重采样中的第五百分位皮尔逊相关系数为任务排序，将验证器分数比例校准到共同的完整分数尺度，并在预算内选择任务。在DeepSWE数据集中，作者报告113项任务中有22项的第五百分位相关系数达到至少0.50。"
+                },
+                {
+                  "text": "在一个使用gpt-5.6-luna低推理设置的Agent Layer八任务案例研究中，13轮评估的最终配置记录成本为$1.75，校准分数为42.36%；最初的技能和指令组合为$4.18和36.46%。每个端点的每项任务只运行一次，不确定性估计借用了已发表mini-swe-agent运行的方差。"
+                },
+                {
+                  "text": "对于相同的八项任务和gpt-5.6-luna设置，论文报告的Codex运行环境成本是相应DeepSWE估算值的1.5至3.5倍，分数也有所不同。论文说明这显示的是规划估算差异，并非运行环境影响的因果估计。"
+                },
+                {
+                  "text": "arXiv论文链接了公开的Agent Layer代码库和DeltaSelect实现页面。代码库README将其描述为开源编程智能体编排层；本次审查没有运行代码。"
+                }
+              ],
+              "limitations": [
+                "论文没有证明该任务选择和校准方法优于同成本的其他方案，并将这些比较列为后续工作。",
+                "构建任务排序和评估已发表数据示例时使用了同一DeepSWE数据集，因此该部分证据属于样本内结果。",
+                "Agent Layer案例研究的每个端点每项任务仅运行一次，借用了mini-swe-agent的方差；部分评估同时改变多项指令，因此无法确立单项修改的因果效果。",
+                "小型固定任务集可能遗漏能力、放大任务质量问题并导致系统针对任务过拟合；它不能替代广泛基准，也不是安全评估。",
+                "本次审查只查看了代码库README，没有运行代码、数据或评估。"
+              ],
+              "gaps": [
+                {
+                  "description": "本次审查中没有独立团队复现该选择器、案例研究端点或报告成本。"
+                },
+                {
+                  "description": "论文未在相同预算下将选择器与随机、最低成本或中位数相关性选择进行比较；排序和已发表数据示例使用同一个DeepSWE数据集。"
+                },
+                {
+                  "description": "案例研究仅涵盖一个模型系列、一个定制运行环境和一组技能与指令；它借用了方差估计，且若干轮次改变了多项指令。"
+                },
+                {
+                  "description": "论文链接了公开代码，但本次审查未运行或审核代码及研究材料。"
+                }
+              ]
+            },
+            "headline": "DeltaSelect论文提出用于重复比较编程智能体的预算化任务子集",
+            "dek": "一篇论文介绍了DeltaSelect：它通过重采样单次运行与完整基准分数之间的相关性为任务排序，将验证器的分数比例校准到共同尺度，再在预算内选择任务，用于反复比较基线与候选版本。在作者报告的一个Agent Layer案例研究中，13轮八任务评估得到的配置，其记录成本比最初的技能和指令组合低58.1%，校准分数更高。论文还发现，已发表的DeepSWE估计值与Codex目标运行环境之间存在明显差异。这些结果限于论文作者的报告；本次审查没有运行其实现。"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
+    {
+      "id": "FCMO-0B69FC982923",
+      "slug": "google-deepmind-and-singapores-govtech-describe-an-on-device-scam",
+      "url_date": "2026-10-14",
+      "kind": "development",
+      "status": "live",
+      "beat": "technology",
+      "desk": "compute_inference",
+      "title": "Google DeepMind and Singapore’s GovTech describe an on-device scam-detection model",
+      "headline": "Google DeepMind and Singapore’s GovTech describe an on-device scam-detection model",
+      "dek": "Google DeepMind says it and Singapore’s GovTech fine-tuned a Gemma-based scam detector intended to analyze conversations on-device, using a lightweight classifier followed by conversation-level analysis for flagged cases.",
+      "summary": "Google DeepMind says it and Singapore’s GovTech fine-tuned a Gemma-based scam detector intended to analyze conversations on-device, using a lightweight classifier followed by conversation-level analysis for flagged cases. Singapore’s cybersecurity minister separately confirmed the collaboration is in development. A pre-existing GovTech AntiScam Pango beta is already described in official terms as using on-device AI, including an authority-tuned generative model; the sources do not establish whether the new Gemma work integrates with Pango or improves its performance. Neither announcement supplies measured detection accuracy, device cost or reduced scam losses.",
+      "why_it_matters": "The specific Google DeepMind/GovTech collaboration describes a two-stage local classifier for messaging, while official GovTech terms already document a separate beta service using on-device generative scam analysis. This makes the comparative question—whether the new Gemma collaboration improves coverage, accuracy or resource use, and how it relates to Pango—more useful than treating on-device scam detection itself as new. No comparison, rollout or efficacy result is established in the reviewed sources.",
+      "importance_rationale": "If the described local, two-stage classifier is deployed effectively, it could offer a privacy-preserving scam-screening path for messaging platforms and inform government–provider deployment practice; its scope is currently localized and no measured performance or rollout is documented.",
+      "technical": {
+        "claimed_result": "Google DeepMind reports a fine-tuned Gemma-based local scam detector developed with Singapore GovTech, using anonymized scam-report/intelligence data and synthetic dialogue/local-corpus stress tests. No quantitative detection or efficiency result is reported in the reviewed post.",
+        "compute_or_cost": "No model size, inference cost, latency, memory or battery measurements are disclosed. The two-stage architecture is presented as a way to reserve the heavier conversation analysis for messages flagged by the lightweight screen.",
+        "demonstrated_result": "The two dated first-party publications establish that Google DeepMind and Singapore GovTech publicly described the collaboration and its development intent on 14 October 2026. They do not independently demonstrate efficacy or app deployment.",
+        "mechanism": "A two-stage on-device flow: a lightweight classifier screens inbound messages; a fine-tuned Gemma model analyzes a larger conversation snapshot for flagged cases. The stated aim is to detect manipulative scam patterns locally rather than inspect messages in a cloud service.",
+        "novelty": "The specific new development is Google DeepMind’s partnership with GovTech and the described Gemma-based, two-stage conversational scam pipeline. On-device generative scam analysis is not new to Singapore GovTech: its earlier Pango beta terms document that broader design pattern. The new system’s relationship to Pango and comparative performance remain unknown.",
+        "regime": "A Gemma-based scam detector being developed by Google DeepMind and Singapore GovTech for possible integration into applications on typical Singapore smartphones; intended input is local messaging conversation data with user consent. No phone class, deployment population, tested language set or production status is specified.",
+        "reproducibility": "No public weights, code, dataset, benchmark protocol or independent replication was linked in the inspected announcement. The exact model, training recipe and stress-test results cannot be reproduced from the current evidence.",
+        "strongest_baseline": "The Google announcement contrasts local analysis with conventional server-side scanning but reports no benchmark against existing anti-scam systems. A separate GovTech AntiScam Pango beta provides an institutional precedent: official terms dated 9 September describe on-device generative and classification models for supported messaging apps. The sources give no matched comparison between Pango and the new Gemma collaboration."
+      },
+      "importance_tier": "Meaningful",
+      "development_type": "model_release",
+      "event_at": "2026-10-14T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-14T17:02:16Z",
+      "updated_at": "2026-10-14T17:02:16Z",
+      "importance": 4,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": true,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "CLAIMED",
+            "text": "Google DeepMind says it and Singapore’s GovTech fine-tuned a lightweight Gemma model on local scam conversations for on-device scam detection. The stated purpose is to help applications identify manipulative conversation patterns while keeping message processing on the user’s device; deployment within applications is described as phased and future-facing."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "Google describes a two-stage design: an on-device lightweight classifier screens inbound messages, then a fine-tuned Gemma model analyzes a larger conversation snapshot for messages flagged as suspicious. The announced sources provide no quantitative accuracy, latency or energy measurements."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "Google says fine-tuning occurred in GovTech’s managed cloud environment using anonymized datasets derived from scam reports and intelligence feeds, excluding private or personally identifiable information; the model was stress-tested with synthetic dialogues and local corpora. The reviewed announcement provides no dataset size, protocol or independent audit."
+          },
+          {
+            "label": "DEMONSTRATED",
+            "text": "Singapore’s Cyber Security Agency published the Minister for Digital Development and Information’s 14 October speech stating that GovTech was collaborating with Google DeepMind to develop real-time AI scam detection on users’ devices while keeping messages on-device. This independently corroborates the collaboration and development status, not effectiveness or deployment."
+          },
+          {
+            "label": "DEMONSTRATED",
+            "text": "Singapore GovTech’s AntiScam Pango Terms of Use, dated 9 September 2026, describe a separate experimental/beta mobile service that uses local AI models to assess messages from supported third-party messaging apps. The terms identify Authority-fine-tuned generative model weights quantized for on-device inference and a scam-classification model. They establish an earlier institutional on-device precedent, not effectiveness or a direct comparison with the newly announced Gemma collaboration."
+          }
+        ],
+        "limitations": [
+          "The central model and pipeline claims come from the developer and government partner; independent replication was not found in this bounded review.",
+          "The sources disclose no quantitative model accuracy, false-positive rate, robustness by scam type or language, model size, latency or battery use.",
+          "Application integration and rollout are described as future or phased; no live availability, adoption or reduced-loss outcome is established.",
+          "The claim that message processing remains on-device is based on the partners’ architectural description; this review did not inspect source code, app permissions or a privacy audit.",
+          "GovTech's AntiScam Pango terms dated 9 September 2026 already describe an experimental/beta service using on-device AI models, including authority-tuned generative weights quantized for local inference; the reviewed sources do not say whether the new Gemma model replaces, complements or is separate from Pango."
+        ],
+        "gaps": [
+          {
+            "kind": "missing_independent",
+            "description": "No disclosed evaluation establishes detection accuracy, false-positive burden or robustness across scam categories and language variation."
+          },
+          {
+            "kind": "missing_artifact",
+            "description": "The reviewed announcement links no model card, model weights, code or implementation specification that would identify model size, screening features or reproducible device requirements."
+          },
+          {
+            "kind": "other",
+            "description": "No supported app partner, public integration date or deployment evidence is stated; the announcement describes a carefully phased future rollout."
+          },
+          {
+            "kind": "other",
+            "description": "On-device feasibility and practical benefit are not measured in the reviewed material; battery, latency and effect on user losses are unknown."
+          },
+          {
+            "kind": "other",
+            "description": "The Google DeepMind/GovTech announcement does not state how its Gemma model relates to GovTech’s separately documented AntiScam Pango beta, which already uses on-device AI and an authority-tuned quantized generative model."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://deepmind.google/blog/on-device-ai-scam-detection-mddi/",
+          "domain": "deepmind.google",
+          "primary": true
+        },
+        {
+          "url": "https://www.csa.gov.sg/news-events/speeches/opening-address-by-minister-josephine-teo-at-the-singapore-international-cyber-week-day-2-on-14-oct-2026/",
+          "domain": "csa.gov.sg",
+          "primary": true
+        },
+        {
+          "url": "https://www.pango.gov.sg/terms-of-use/",
+          "domain": "pango.gov.sg",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "Google DeepMind",
+        "Government Technology Agency of Singapore (GovTech Singapore)",
+        "Cyber Security Agency of Singapore"
+      ],
+      "topics": [],
+      "regions": [
+        "SG"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-0B69FC982923.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: Google DeepMind and Singapore’s GovTech describe an on-device scam-detection model"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "Google DeepMind y GovTech de Singapur describen un modelo para detectar estafas en el dispositivo",
+            "summary": "Google DeepMind afirma que, junto con GovTech de Singapur, ajustó un detector de estafas basado en Gemma para analizar conversaciones en el dispositivo. El flujo descrito usa primero un clasificador ligero y después analiza la conversación cuando detecta señales sospechosas. La ministra de ciberseguridad de Singapur confirmó por separado que la colaboración está en desarrollo. Los términos oficiales de GovTech ya describían una versión beta independiente de AntiScam Pango con modelos de IA locales, incluido un modelo generativo adaptado para ejecutarse en el dispositivo. Las fuentes no aclaran si Gemma se integrará en Pango ni demuestran mayor precisión, costo de ejecución o reducción de pérdidas.",
+            "importance_rationale": "Si el clasificador local de dos etapas se implementa eficazmente, podría ofrecer a las plataformas de mensajería una forma de detectar estafas que preserve la privacidad e informar futuras colaboraciones entre gobiernos y proveedores; por ahora su alcance es local y no se documentan su desempeño ni su despliegue.",
+            "why_it_matters": "La colaboración específica entre Google DeepMind y GovTech describe un clasificador local de dos etapas para mensajes, mientras que los términos oficiales de GovTech ya documentan un servicio beta independiente con análisis de estafas mediante IA en el dispositivo. Por eso, la pregunta útil es si el nuevo trabajo con Gemma mejora la cobertura, exactitud o consumo de recursos y cómo se relaciona con Pango, en vez de tratar la detección local de estafas como una novedad en sí. Las fuentes revisadas no establecen una comparación, un despliegue ni resultados de eficacia.",
+            "technical": {
+              "claimed_result": "Google DeepMind informa que desarrolló con GovTech de Singapur un detector local basado en Gemma, ajustado con datos anonimizados de reportes e información sobre estafas y probado con diálogos sintéticos y corpus locales. La publicación revisada no comunica resultados cuantitativos de detección ni eficiencia.",
+              "compute_or_cost": "No se divulgan el tamaño del modelo ni mediciones de costo de inferencia, latencia, memoria o batería. La arquitectura de dos etapas busca reservar el análisis más pesado de conversaciones para los mensajes que el filtro ligero marque.",
+              "demonstrated_result": "Las dos publicaciones primarias fechadas establecen que Google DeepMind y GovTech de Singapur describieron públicamente la colaboración y su objetivo de desarrollo el 14 de octubre de 2026. No demuestran de manera independiente la eficacia ni la integración en aplicaciones.",
+              "mechanism": "Flujo de dos etapas en el dispositivo: un clasificador ligero revisa los mensajes entrantes y un modelo Gemma ajustado analiza una muestra más amplia de la conversación cuando hay señales sospechosas. El objetivo declarado es identificar localmente patrones de manipulación y no analizar los mensajes en la nube.",
+              "novelty": "El desarrollo específico es la colaboración entre Google DeepMind y GovTech y el flujo conversacional de dos etapas basado en Gemma que describe. El análisis generativo local de estafas no es nuevo para GovTech en Singapur: los términos anteriores de Pango documentan ese patrón general. La relación entre el nuevo sistema y Pango, así como su rendimiento comparativo, siguen sin conocerse.",
+              "regime": "Un detector de estafas basado en Gemma que Google DeepMind y GovTech de Singapur desarrollan para una posible integración en aplicaciones de teléfonos habituales en Singapur; el insumo previsto son conversaciones locales, con consentimiento de la persona usuaria. No se especifican el tipo de teléfono, la población, los idiomas probados ni el estado de producción.",
+              "reproducibility": "El anuncio inspeccionado no enlaza pesos, código, conjuntos de datos, protocolo de evaluación ni una réplica independiente. La evidencia actual no permite reproducir el modelo exacto, su entrenamiento ni sus pruebas de estrés.",
+              "strongest_baseline": "El anuncio de Google contrasta el análisis local con el escaneo convencional de mensajes en servidores, pero no presenta benchmarks frente a sistemas antiestafa existentes. La versión beta independiente AntiScam Pango constituye un antecedente institucional: los términos oficiales de GovTech de 9 de septiembre describen modelos generativos y de clasificación locales para aplicaciones de mensajería compatibles. Las fuentes no ofrecen una comparación directa entre Pango y la nueva colaboración Gemma."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "Google DeepMind dice que, junto con GovTech de Singapur, ajustó un modelo Gemma ligero con conversaciones locales sobre estafas para detectar señales en el dispositivo. El objetivo declarado es ayudar a las aplicaciones a identificar patrones de manipulación sin sacar del dispositivo el procesamiento de mensajes; la integración en aplicaciones se describe como gradual y futura."
+                },
+                {
+                  "text": "Google describe un diseño de dos etapas: un clasificador ligero en el dispositivo revisa los mensajes entrantes y, si marca uno como sospechoso, un modelo Gemma ajustado analiza una muestra más amplia de la conversación. El anuncio no informa métricas cuantitativas de exactitud, latencia ni energía."
+                },
+                {
+                  "text": "Google afirma que el ajuste se realizó en el entorno de nube administrado por GovTech con conjuntos anonimizados derivados de reportes e información sobre estafas, excluyendo datos privados o de identificación personal. También dice que probó el modelo con diálogos sintéticos y corpus locales. El anuncio revisado no informa el tamaño de los conjuntos, el protocolo ni una auditoría independiente."
+                },
+                {
+                  "text": "La Agencia de Ciberseguridad de Singapur publicó el discurso del 14 de octubre de la ministra de Desarrollo Digital e Información, donde afirma que GovTech colabora con Google DeepMind para desarrollar detección de estafas en tiempo real en los dispositivos. Esto corrobora la colaboración y la etapa de desarrollo, pero no demuestra eficacia ni despliegue."
+                },
+                {
+                  "text": "Los términos de uso de AntiScam Pango de GovTech de Singapur, fechados el 9 de septiembre de 2026, describen una aplicación móvil experimental o beta separada que usa modelos locales de IA para analizar mensajes de aplicaciones de terceros compatibles. Identifican ponderaciones generativas ajustadas por la Autoridad y cuantizadas para inferencia en el dispositivo, además de un modelo de clasificación de estafas. Esto establece un antecedente institucional previo, no su eficacia ni una comparación directa con la nueva colaboración Gemma."
+                }
+              ],
+              "limitations": [
+                "Las afirmaciones sobre el modelo y el flujo provienen de su desarrollador y del socio gubernamental; esta revisión acotada no encontró una réplica independiente.",
+                "Las fuentes no informan métricas cuantitativas de exactitud, falsos positivos, robustez por tipo de estafa o idioma, tamaño del modelo, latencia ni consumo de batería.",
+                "La integración en aplicaciones y el despliegue se describen como futuros o graduales; no se demuestra disponibilidad pública, adopción ni reducción de pérdidas.",
+                "La afirmación de que el análisis permanece en el dispositivo se basa en la descripción arquitectónica de los socios; esta revisión no inspeccionó código, permisos de aplicaciones ni una auditoría de privacidad.",
+                "Los términos de AntiScam Pango de GovTech, fechados el 9 de septiembre de 2026, ya describen un servicio experimental o beta con modelos de IA locales, incluidas ponderaciones generativas ajustadas por la Autoridad y cuantizadas para inferencia en el dispositivo; las fuentes revisadas no indican si el nuevo modelo Gemma sustituye, complementa o es independiente de Pango."
+              ],
+              "gaps": [
+                {
+                  "description": "No hay una evaluación publicada que establezca la exactitud de detección, la carga de falsos positivos o la robustez ante distintas categorías de estafa y variaciones lingüísticas."
+                },
+                {
+                  "description": "El anuncio revisado no enlaza una ficha del modelo, pesos, código ni especificación que permita conocer el tamaño del modelo, las funciones de detección o los requisitos reproducibles del dispositivo."
+                },
+                {
+                  "description": "No se identifica una aplicación asociada, fecha pública de integración ni evidencia de despliegue; el anuncio describe una implementación gradual futura."
+                },
+                {
+                  "description": "El material revisado no mide la viabilidad en el dispositivo ni los beneficios prácticos: se desconocen batería, latencia y efectos en las pérdidas por estafas."
+                },
+                {
+                  "description": "El anuncio de Google DeepMind y GovTech no explica cómo se relaciona el modelo Gemma con la versión beta independiente AntiScam Pango de GovTech, que ya usa IA local y un modelo generativo cuantizado ajustado por la Autoridad."
+                }
+              ]
+            },
+            "dek": "Google DeepMind afirma que, junto con GovTech de Singapur, ajustó un detector de estafas basado en Gemma para analizar conversaciones en el dispositivo."
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "Google DeepMind 与新加坡 GovTech 介绍设备端诈骗检测模型",
+            "summary": "Google DeepMind 称，其与新加坡 GovTech 使用 Gemma 微调了一个诈骗检测模型，拟在设备本地分析对话。其描述的流程先用轻量级分类器筛查，再对可疑消息进行整段对话分析。新加坡网络安全主管另称，这项合作仍在开发中。GovTech 的官方条款此前已描述独立的 AntiScam Pango 测试版，其中使用本地 AI 模型，包括为设备端推理微调的生成模型。现有来源没有说明 Gemma 是否会集成到 Pango，也未证明其准确率更高、运行成本更低或诈骗损失下降。",
+            "importance_rationale": "如果这种本地两阶段分类器得到有效部署，它可能为消息平台提供一种兼顾隐私的诈骗筛查方式，并为政府与供应商合作提供参考。目前应用范围局部，尚无测得的性能或部署结果。",
+            "why_it_matters": "Google DeepMind 与 GovTech 的这项具体合作描述了一个面向消息的两阶段本地分类器，而 GovTech 的官方条款已记录另一项使用设备端生成式诈骗分析的测试版服务。因此，更有意义的问题是新的 Gemma 合作能否提升覆盖范围、准确率或资源效率，以及它与 Pango 有何关系；不宜把设备端诈骗检测本身当作新事物。所查来源没有建立比较结果、部署状态或实际效果。",
+            "technical": {
+              "claimed_result": "Google DeepMind 称，它与新加坡 GovTech 开发了基于 Gemma 的本地诈骗检测器，使用匿名诈骗报告与情报数据，并以合成对话及本地语料进行压力测试。所查公告没有提供定量检测或效率结果。",
+              "compute_or_cost": "没有披露模型大小、推理成本、延迟、内存或耗电量。两阶段架构旨在只对轻量级筛查标记的消息使用较重的对话分析。",
+              "demonstrated_result": "两份有日期的第一方材料证明，Google DeepMind 与新加坡 GovTech 于2026年十月14日公开介绍了这项合作及其开发目标；它们并未独立证明模型有效或已接入应用。",
+              "mechanism": "两阶段设备端流程：轻量级分类器筛查收到的消息；若发现可疑信号，微调后的 Gemma 模型再分析更大范围的对话片段。其目标是在本地识别操纵性诈骗模式，而非将消息交由云端检查。",
+              "novelty": "具体的新进展是 Google DeepMind 与 GovTech 的合作，以及所描述的 Gemma 两阶段对话式诈骗检测流程。设备端生成式诈骗分析对新加坡 GovTech 并非全新：较早的 Pango 条款已记录这一总体设计。新系统与 Pango 的关系及相对表现仍不清楚。",
+              "regime": "Google DeepMind 与新加坡 GovTech 正在开发基于 Gemma 的诈骗检测器，拟集成到新加坡常见智能手机上的应用中；预期处理的是经用户同意留在本地的消息对话。材料没有说明手机类别、部署人群、测试语言或生产状态。",
+              "reproducibility": "所查公告未链接公开权重、代码、数据集、基准测试方案或独立复现。目前无法据此复现具体模型、训练方法或压力测试。",
+              "strongest_baseline": "Google 的公告将本地分析与传统云端消息扫描作对比，但没有与现有反诈骗系统进行基准比较。GovTech 独立的 AntiScam Pango 测试版是本地先例：九月9日的官方条款描述了用于受支持消息应用的设备端生成模型和分类模型。来源没有提供 Pango 与新 Gemma 合作之间的匹配比较。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "Google DeepMind 表示，它与新加坡 GovTech 使用本地诈骗对话微调了轻量级 Gemma 模型，用于设备端检测。其目标是帮助应用识别操纵性对话模式，同时让消息处理留在用户设备上；面向应用的集成被描述为未来分阶段推进。"
+                },
+                {
+                  "text": "Google 描述了两阶段设计：设备端轻量级分类器先筛查收到的消息，随后由微调后的 Gemma 模型分析更大范围的对话片段，以核查被标记的消息。公告没有给出准确率、延迟或能耗的定量指标。"
+                },
+                {
+                  "text": "Google 称，模型在 GovTech 管理的云环境中完成微调，使用来自诈骗报告和情报信息的匿名数据，并排除私人或可识别个人身份的信息；模型还使用合成对话和本地语料进行压力测试。公告未说明数据集规模、测试方案或独立审计。"
+                },
+                {
+                  "text": "新加坡网络安全局发布了数码发展与信息部长十月14日的演讲稿，其中称 GovTech 正与 Google DeepMind 合作开发实时设备端 AI 诈骗检测。这独立印证了合作关系及开发状态，但不证明其效果或部署情况。"
+                },
+                {
+                  "text": "新加坡 GovTech 的 AntiScam Pango 使用条款日期为2026年九月9日，其中描述了一个独立的实验/测试版移动服务，使用本地 AI 模型分析受支持的第三方消息应用中的消息。条款指出，主管机构微调的生成模型权重已量化以支持设备端推理，并另有诈骗分类模型。这证明 GovTech 更早已有设备端方案，但不证明其有效，也不构成与新 Gemma 合作的直接比较。"
+                }
+              ],
+              "limitations": [
+                "模型及流程的核心说法来自开发方和政府合作方；本次有限审查未发现独立复现。",
+                "来源未提供检测准确率、误报率、不同诈骗类型或语言下的鲁棒性、模型大小、延迟或耗电量等定量指标。",
+                "应用集成和推出被描述为后续分阶段工作；尚未证明公众可用、用户已采用或诈骗损失有所减少。",
+                "消息留在设备端的说法基于合作方的架构描述；本次审查未检查源代码、应用权限或隐私审计。",
+                "GovTech 日期为2026年九月9日的 AntiScam Pango 条款已描述一项实验/测试版服务，使用设备端 AI 模型，包括由主管机构微调并量化以支持本地推理的生成模型；所查来源没有说明新的 Gemma 模型是替代、补充 Pango，还是与其分离。"
+              ],
+              "gaps": [
+                {
+                  "description": "没有公开评估能确定检测准确率、误报负担或系统对不同诈骗类别及语言变化的鲁棒性。"
+                },
+                {
+                  "description": "所查公告未链接模型卡、权重、代码或实现规格，因此无法确定模型大小、筛查特征或可复现的设备要求。"
+                },
+                {
+                  "description": "没有公布合作应用、公开集成日期或部署证据；公告称后续将谨慎分阶段推出。"
+                },
+                {
+                  "description": "所查材料没有测量设备端可行性或实际收益；耗电量、延迟及其对诈骗损失的影响均未知。"
+                },
+                {
+                  "description": "Google DeepMind 与 GovTech 的公告没有说明 Gemma 模型与 GovTech 另行记录的 AntiScam Pango 测试版有何关系；后者已使用本地 AI 和经量化的主管机构微调生成模型。"
+                }
+              ]
+            },
+            "headline": "Google DeepMind 与新加坡 GovTech 介绍设备端诈骗检测模型"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
     {
       "id": "FCMO-B1F87CBE8CA9",
       "slug": "aewm-reports-agent-state-editing-gains-across-six-benchmarks-and-three",
