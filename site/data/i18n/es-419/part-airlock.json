@@ -1,6 +1,6 @@
 {
   "canonical_locale": "en",
-  "canonical_source_sha256": "cd288394ca5ef6d5c877e93f4fc259cb8f34b570020eb14fbac4f50102ea3928",
+  "canonical_source_sha256": "6eec844d398c92ebf615fa7bba1c1cd70ce7a5ea43fe8afb1b039b05908e73bd",
   "generated_from": "ARB airlock; editorial wording authored upstream",
   "locale": "es-419",
   "records": {
@@ -69,6 +69,70 @@
       },
       "title": "LLAnalyzer muestra que la inferencia local no garantiza confidencialidad de prompts entre límites del servicio",
       "why_it_matters": "La ejecución local elimina una relación con un proveedor de nube, pero no controla las copias del prompt, el estado de conversación guardado ni las optimizaciones compartidas del servicio. La restauración entre usuarios probada muestra por qué la autenticación de API requiere autorización por recurso; el resultado temporal separado indica que el estado compartido de caché puede revelar información sin devolver el texto del prompt. El alcance se limita a las configuraciones evaluadas y requiere reproducción en versiones actuales."
+    },
+    "FCMO-015A5CEC67EF": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Los autores definen la primitiva invoke de JAZ como una función de código generada por un modelo de lenguaje, capaz de hacer llamadas recursivas al modelo y acceder a sus entradas y al historial de REPL como variables."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En tres ejecuciones reportadas con GPT-5.4 nano en StuLife, el artículo informa una tasa de aprobación de 69.9% en 207 tareas de recuerdo lejano para JAZ invoke, frente a 61.8% para Letta v0.16.8 (MemGPT), con costos medios de $18.30 y $42.10, respectivamente."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En la división test-challenge de AppWorld, el artículo informa una finalización de tareas de 74.2% para JAZ invoke frente a 69.9% para ACE; los costos totales reportados son $20.90 y $30.60, respectivamente."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El repositorio de reproducción de los autores indica que las ejecuciones publicadas usaron entornos de desarrollo, en su mayoría con cambios sin confirmar; dos commits de las ejecuciones ya no están disponibles y la versión instalable más cercana no es la versión exacta utilizada. También documenta cambios en las herramientas y los datos de StuLife que afectan a 132 de 1,284 tareas y se aplicaron por igual a cinco configuraciones."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se inspeccionó una reproducción independiente de los resultados de JAZ ni del análisis de costos comparables; las puntuaciones y costos reportados provienen de las implementaciones de benchmark de los autores.",
+          "kind": "missing_independent",
+          "state": "open",
+          "updated_at": "2026-10-14T13:09:48Z"
+        },
+        {
+          "description": "El artículo identifica diferencias de implementación e instrucciones entre sistemas de referencia, incluida una instrucción de CodeAct para AppWorld que incorpora guía específica del benchmark; se desconoce la generalidad fuera de estos ajustes.",
+          "kind": "baseline_unclear",
+          "state": "open",
+          "updated_at": "2026-10-14T13:09:48Z"
+        },
+        {
+          "description": "El paquete de reproducción de los autores indica que la mayoría de las ejecuciones publicadas usaron entornos de desarrollo con cambios sin confirmar, que dos commits ya no están disponibles y que la versión instalable más cercana no es la versión exacta usada; por ello, no es posible reproducir hoy el código exacto de la ejecución únicamente desde la versión publicada.",
+          "kind": "reproduction_missing",
+          "state": "open",
+          "updated_at": "2026-10-14T13:13:29Z"
+        }
+      ],
+      "importance_rationale": "Si se sostienen las comparaciones reportadas en el artículo, una abstracción compacta de agente recursivo podría reproducir partes de sistemas especializados de memoria a largo plazo y mejora continua, con menor costo reportado en un benchmark y mayor finalización en otro. Esto podría cambiar decisiones sobre el diseño de agentes, pero la evidencia se limita a dos conjuntos de tareas y evaluaciones de los autores.",
+      "limitations": [
+        "Las mejoras reportadas son específicas de los benchmarks y no establecen capacidades generales de memoria a largo plazo ni de mejora continua.",
+        "La tabla de StuLife informa tres ejecuciones independientes; los métodos de mejora continua en AppWorld usan seis ejecuciones y el artículo informa errores estándar.",
+        "Las implementaciones de referencia no son idénticas a todas las versiones externas oficiales; el artículo describe sus ablaciones y configuración de instrucciones.",
+        "No se inspeccionó una réplica independiente, un resultado de sistema desplegado ni una medición de confiabilidad en producción.",
+        "El repositorio de reproducción de los autores indica que dos commits usados en las ejecuciones publicadas ya no están disponibles y que la mayoría de las ejecuciones usaron entornos de desarrollo con cambios sin confirmar; la versión instalable más cercana no es la versión exacta utilizada. Esto limita la reproducción exacta del código.",
+        "El fork de StuLife del paquete de reproducción modifica la interfaz de herramientas y repara los datos de 132 de 1,284 tareas; los cambios se aplican a las cinco configuraciones, por lo que las comparaciones internas siguen siendo posibles, pero no equivalen a comparaciones directas con el StuLife original sin modificar."
+      ],
+      "relationships": [],
+      "summary": "Un artículo aceptado en el taller TTCL de NeurIPS 2026 presenta JAZ, cuya primitiva invoke permite que un modelo genere código ejecutable con llamadas recursivas a modelos y que use como variables las entradas de la instrucción y el historial de ejecución. En la evaluación de tres ejecuciones de los autores en StuLife con GPT-5.4 nano, JAZ informa una tasa de aprobación de 69.9% en 207 tareas de recuerdo lejano, frente a 61.8% para Letta (MemGPT), con un costo medio reportado de $18.30 frente a $42.10. En la mejora continua de AppWorld, informa una finalización de tareas de 74.2% frente a 69.9% para ACE. Son resultados de benchmark reportados por los autores, no réplicas independientes; el artículo describe sus protocolos y señala diferencias entre implementaciones de referencia. El repositorio de reproducción de los autores añade una salvedad importante sobre las versiones: las ejecuciones publicadas usaron entornos de desarrollo con cambios sin confirmar en su mayoría, dos commits ya no están disponibles y la versión instalable más cercana no es la versión exacta usada. El fork de StuLife también modificó la interfaz de herramientas y los datos de 132 de 1,284 tareas; aplicó estos cambios a las cinco configuraciones.",
+      "technical": {
+        "claimed_result": "El artículo informa una tasa de aprobación de 69.9% en tareas de recuerdo lejano de StuLife para JAZ invoke frente a 61.8% para Letta (MemGPT), y una finalización de tareas de AppWorld de 74.2% frente a 69.9% para ACE.",
+        "compute_or_cost": "En el recuerdo lejano de StuLife, el costo medio reportado es $18.30 para JAZ invoke y $42.10 para Letta. En AppWorld, el costo total reportado es $20.90 para JAZ y $30.60 para ACE; aplican la contabilidad de costos y las tarifas específicas del entorno del artículo.",
+        "demonstrated_result": "El artículo de arXiv y sus tablas documentan los resultados y el protocolo reportados por los autores; el equipo de investigación no los reprodujo de manera independiente.",
+        "implementation_status": "Los autores enlazan el framework JAZ y el código de evaluación; en esta revisión no se ejecutaron de forma independiente.",
+        "mechanism": "Una primitiva invoke permite que el modelo escriba código ejecutable, llame de forma recursiva a sub-invokes y acceda al historial de interacción como variable del programa; JAZ añade funciones de registro, validación y límites de recursos.",
+        "regime": "StuLife ejecutado por los autores (939 tareas calificadas, 207 de recuerdo lejano) y la secuencia test-challenge de AppWorld (417 tareas), con llamadas del agente solucionador mediante GPT-5.4 nano; el artículo informa ejecuciones repetidas y costos. El fork de evaluación de los autores modifica la interfaz de herramientas de StuLife y 132 registros de tareas por igual en cinco configuraciones.",
+        "reproducibility": "El artículo enlaza repositorios públicos de JAZ y de evaluación, pero el paquete de reproducción de los autores indica que dos commits de ejecución no están disponibles y que la mayoría de las ejecuciones usaron entornos de desarrollo con cambios sin confirmar; la versión instalable más cercana no es la versión exacta. El fork de StuLife también modifica herramientas y 132 tareas. La reproducción debe señalar las diferencias de código, tareas y proveedor.",
+        "strongest_baseline": "Letta v0.16.8 (MemGPT) para recuerdo lejano en StuLife; ACE para mejora continua en AppWorld."
+      },
+      "title": "JAZ informa que un agente recursivo mínimo iguala sistemas especializados en dos flujos acotados",
+      "why_it_matters": "Si se reproducen de manera independiente, los resultados sugerirían que algunas funciones de recuerdo a largo plazo y mejora entre tareas pueden surgir de un ciclo de agente orientado a código y llamadas recursivas, lo que podría reducir la necesidad de componentes especializados en estos entornos. La evidencia se limita a dos conjuntos de benchmarks y comparaciones ejecutadas por los autores."
     },
     "FCMO-0180330ECF93": {
       "claims": [
@@ -3092,6 +3156,58 @@
       },
       "title": "ANVIL separa la formulación con LLM de la compilación determinista de código de optimización",
       "why_it_matters": "El resultado respalda una decisión práctica de arquitectura: mantener el modelo probabilístico en la formulación semántica y usar un compilador tipado determinista para la traducción mecánica, de modo que los fallos de traducción sean reproducibles y atribuibles. No demuestra que la formulación en lenguaje natural sea fiable: el artículo reporta 16 desacuerdos entre 317 casos puntuados de objetivo o estado, baja concordancia en casos infactibles o no acotados, ninguna comparación directa detallada y un benchmark limitado a problemas LP/MILP de estilo académico."
+    },
+    "FCMO-1BF83C190972": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "En dos tareas de manipulación con FANUC LR Mate 200iD y xArm 6, los autores reportan que una puerta trasera activada físicamente mantuvo conteos de éxito de 8–10/10 sin señal y produjo conteos de ataque de 8–10/10. La implementación modificó cinco demostraciones (proporción de envenenamiento de 0.1); los resultados corresponden al pequeño experimento del artículo y no demuestran un incidente en producción ni una vulnerabilidad general de modelos VLA."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En una comparación de defensa con cinco recorridos de clasificación por color, el artículo reporta que la sanitización en línea redujo las ejecuciones exitosas del ataque de 4/5 a 1/5 y restauró el éxito de la tarea defendida a 5/5; las variantes de ajuste fino lograron 0/5 éxitos de tarea defendida. En pruebas separadas de rendimiento de diez minutos, los conteos fueron 31 ciclos sin filtro frente a 32 con filtro en RTX 4090 y 32 frente a 29 en Jetson AGX Orin."
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "El preprint describe una defensa en línea que usa filtrado espacial adaptado a la tarea y la atención espacial de la política para detectar señales probables en regiones de imagen ajenas a la tarea; luego sanea esos píxeles antes de la inferencia, sin volver a entrenar la política afectada. Esto acredita el método descrito en el artículo, no una eficacia independiente más allá de las pruebas reportadas."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "Los resultados de ataque, defensa y rendimiento reportados por los autores no se han reproducido de forma independiente; en el registro de arXiv no se inspeccionó código ni un artefacto reproducible.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "Los resultados de ataque abarcan dos tareas y dos brazos con pocas pruebas, y no establecen transferencia a otras políticas aprendidas, modelos VLA, entornos de producción o actores de amenaza.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "La defensa supone que las señales están en regiones ajenas a la tarea y no evalúa señales en objetos relevantes para la tarea ni señales lingüísticas o entre modalidades.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se reprodujeran, las señales físicas que inducen manipulaciones semánticamente incorrectas mientras se conserva el desempeño habitual cambiarían las revisiones de seguridad de los sistemas robóticos basados en aprendizaje. La evidencia se limita a un estudio preliminar con dos brazos, dos tareas y pocas pruebas, por lo que la consecuencia es significativa pero acotada.",
+      "limitations": [
+        "El estudio es preliminar y usa dos tareas y dos brazos robóticos con pocas pruebas.",
+        "El artículo evalúa una política visuomotora; sus resultados no demuestran que los modelos fundacionales VLA actuales sean vulnerables.",
+        "No se establece ningún incidente industrial, estimación de prevalencia ni réplica independiente.",
+        "El filtro se dirige a señales visibles en regiones ajenas a la tarea; los autores dejan como casos sin resolver las señales en objetos relevantes para la tarea y las de otras modalidades."
+      ],
+      "relationships": [],
+      "summary": "Un preprint de septiembre de 2026 informa experimentos con puertas traseras activadas por señales físicas en dos brazos robóticos comerciales, FANUC LR Mate 200iD y xArm 6. En tareas de clasificación por color y embalaje de maquinaria, los autores reportan tasas de éxito del ataque de 8–10/10 mientras el desempeño sin señal se mantuvo en 8–10/10, tras modificar cinco demostraciones con una proporción de envenenamiento de 0.1. Una defensa en línea que sanea imágenes según la tarea redujo las ejecuciones del ataque en una prueba de cinco recorridos y mantuvo un rendimiento similar en pruebas separadas de diez minutos. Son experimentos pequeños reportados por los autores; no demuestran ataques industriales desplegados, exposición general de modelos VLA ni reproducción independiente.",
+      "technical": {
+        "claimed_result": "Las señales físicas emparejadas con demostraciones envenenadas pueden inducir errores de manipulación en las tareas mientras el desempeño nominal se mantiene alto en el entorno de dos brazos y dos tareas del artículo; la sanitización visual en línea reduce el conteo de ataques reportado en una pequeña prueba de defensa.",
+        "demonstrated_result": "El preprint presenta una descripción del método, el protocolo experimental y tablas con resultados reportados por los autores. No establece reproducción independiente ni despliegue en producción.",
+        "mechanism": "Los autores modifican una pequeña parte de las demostraciones para asociar un objeto físico en una zona del espacio de trabajo ajena a la tarea con un segmento de acción semánticamente incorrecto. Durante la inferencia, una máscara adaptada a la tarea y la atención espacial identifican señales probables fuera de la tarea y limpian esas regiones de la imagen antes de ejecutar la política.",
+        "regime": "Una política visuomotora, dos tareas de manipulación, dos brazos robóticos comerciales, 10 recorridos con y sin ataque por condición de plataforma y tarea, una comparación de defensa de cinco recorridos y dos ventanas separadas de rendimiento de 10 minutos. La defensa supone que las señales están en regiones de imagen ajenas a la tarea.",
+        "strongest_baseline": "Para la defensa, la sanitización en línea reporta 1/5 ejecuciones del ataque y 5/5 éxitos de tarea defendida; cada nivel probado de ajuste fino reporta 4/5 ejecuciones de ataque y 0/5 éxitos de tarea defendida. Estos pequeños resultados de clasificación por color, reportados por los autores, no se han reproducido de forma independiente."
+      },
+      "title": "Un preprint informa sobre puertas traseras activadas por señales físicas y una defensa en línea en dos brazos robóticos industriales",
+      "why_it_matters": "Un robot puede ejecutar una tarea incorrecta desde el punto de vista semántico y aun respetar límites físicos ordinarios si una política aprendida fue envenenada para responder a una señal visual. El artículo reporta este comportamiento en dos plataformas de brazos reales y evalúa un filtro en tiempo de ejecución, lo que ofrece a los equipos de seguridad robótica una amenaza y una defensa concretas para examinar. El alcance reducido y los resultados reportados en el artículo dejan sin resolver la prevalencia, la generalización y el desempeño en despliegues."
     },
     "FCMO-1BFA9A5A6560": {
       "claims": [
@@ -6711,6 +6827,69 @@
       },
       "title": "Anthropic informa que sus defensas redujeron entre diez y cien veces (10–100×) la extracción observada de razonamiento",
       "why_it_matters": "Si la reducción informada se mantiene ante ataques adaptativos, los controles de integridad del contexto y los clasificadores de extracción podrían cambiar de forma importante el costo de usar API de frontera como fuentes de datos sintéticos. La publicación también hace visibles los costos operativos: cambios en integraciones, bloqueo de algunas solicitudes legítimas y cobros por solicitudes bloqueadas. La evidencia respalda que el proveedor desplegó defensas y reportó mediciones de su plataforma; no demuestra eficacia entre proveedores ni prevención duradera."
+    },
+    "FCMO-4852A51EE0AB": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "El artículo revisado por pares informa que Paper2Agent convierte artículos y su código asociado en recursos MCP, instrucciones y herramientas ejecutables probadas. De 100 artículos de biología computacional, convirtió 74 y propuso 599 herramientas, de las cuales 593 superaron la validación automática. Las 26 conversiones fallidas se atribuyeron principalmente a falta de código, datos o modelos, fallas de entorno/dependencias o scripts no generalizables."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En 300 preguntas derivadas de tutoriales, Paper2Agent con Claude Sonnet 4 reporta 91.2 ± 1.6% de exactitud, frente a 80.3 ± 2.3% para Claude Code con acceso directo al repositorio y Sonnet 4, y 86.3 ± 1.1% con Sonnet 4.6. El costo y la latencia reportados por consulta son US $0.20 y 1.6 minutos, frente a US $0.38 y 4.3 minutos para la línea base directa con Sonnet 4."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En 42 tareas de ejecución de 10 artículos computacionales no biológicos, los autores reportan 98.1 ± 0.8% de exactitud en 5 ejecuciones independientes. También describen un caso sobre psoriasis con varios artículos en el que se priorizó GPR137 mediante predicciones computacionales y conjuntos de perturbación independientes; el respaldo estadístico dependió de la condición y una persona investigadora eligió el análisis de validación."
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION",
+          "text": "El artículo indica que la generación abierta de hipótesis y la interpretación mecanística siguen requiriendo participación humana. También señala que la concordancia con una única referencia en preguntas abiertas mide principalmente la ejecución fiel, no la validez analítica. Identifica además retos de seguridad, propiedad intelectual, atribución y mantenimiento de agentes ejecutables para investigación."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "En esta activación no se reprodujeron de forma independiente los resultados de tasa de conversión, benchmarks, costo/latencia o tareas entre disciplinas del artículo.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "El corpus de 100 artículos y los demás conjuntos de tareas no establecen el rendimiento en repositorios científicos arbitrarios, con artefactos incompletos o flujos menos seleccionados; fallaron 26/100 conversiones de biología.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "Las evaluaciones reportadas usan Claude Sonnet 4 y no establecen transferencia a otros modelos base, orquestadores o agentes anfitriones.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "Las pruebas contra resultados de referencia no validan la ciencia, la robustez ante cambios de distribución, el aislamiento de repositorios maliciosos ni la operación sostenida ante cambios en dependencias.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se mantiene más allá de los corpus evaluados por los autores, compilar métodos científicos y código en herramientas probadas y combinables podría cambiar sustancialmente la reutilización de software de investigación y reducir el costo de integración. La tasa reportada de 74/100 conversiones, los benchmarks seleccionados, el uso de un solo modelo base y la supervisión humana limitan el régimen demostrado: es evidencia importante de infraestructura de investigación, no una prueba de ciencia autónoma.",
+      "limitations": [
+        "Los experimentos fueron realizados por los autores; en esta activación no se instaló, ejecutó ni reprodujo de manera independiente la implementación pública.",
+        "Solo 74 de 100 artículos de biología computacional pudieron convertirse; la falta de código, datos o modelos, y los problemas de entorno o dependencias, limitan la aplicabilidad.",
+        "Los corpus y tareas evaluados no establecen el rendimiento en repositorios científicos arbitrarios o menos seleccionados ni en todas las disciplinas.",
+        "El sistema evaluado usa Claude Sonnet 4; estos resultados no establecen transferencia a otros modelos base.",
+        "La fidelidad a resultados de referencia no demuestra validez científica. Los autores señalan que la generación abierta de hipótesis y la interpretación mecanística siguen bajo supervisión humana.",
+        "Los agentes científicos ejecutables plantean retos de seguridad, propiedad intelectual, atribución y mantenimiento; no se establece una garantía general de seguridad frente a repositorios hostiles."
+      ],
+      "relationships": [],
+      "summary": "Un artículo revisado por pares en Nature presenta Paper2Agent, que convierte artículos y su código asociado en recursos MCP estructurados, instrucciones de flujo de trabajo y herramientas ejecutables probadas. En 100 artículos de biología computacional, los autores informan 74 conversiones exitosas y 593/599 herramientas propuestas que superaron la validación automática; 26 artículos no pudieron convertirse, a menudo por falta de artefactos o fallas del entorno. En 300 preguntas derivadas de tutoriales, el sistema obtuvo 91.2% de exactitud y redujo el costo y la latencia por consulta frente a una línea base de acceso directo al repositorio con el mismo modelo. En 42 tareas de ejecución de 10 artículos computacionales ajenos a la biología, reporta 98.1% de exactitud. Son resultados de los autores con Claude Sonnet 4; estos agentes facilitan la ejecución y reutilización, mientras el razonamiento científico abierto sigue bajo supervisión humana.",
+      "technical": {
+        "claimed_result": "Paper2Agent convierte artículos y bases de código en herramientas, recursos e instrucciones MCP y valida las herramientas generadas frente a resultados de referencia. Los autores informan 74/100 conversiones exitosas en biología computacional, mejoras de exactitud y costo frente al acceso directo al repositorio, y 98.1% de exactitud en tareas de ejecución no biológicas.",
+        "demonstrated_result": "El artículo revisado por pares y el repositorio público describen el sistema y su evaluación. Nature reporta benchmarks y casos de estudio, pero en esta activación no se instaló ni reprodujo el software ni se validaron las conclusiones científicas generadas por los agentes.",
+        "mechanism": "Una canalización multiagente localiza el código de un artículo, prepara un entorno aislado, encuentra y ejecuta tutoriales, extrae herramientas MCP reutilizables, las prueba contra resultados de referencia, retira las que fallan repetidamente y ensambla un servidor MCP con recursos e instrucciones. Varios servidores MCP de artículos pueden conectarse a un solo agente posterior.",
+        "regime": "Experimentos informados en Nature: 100 artículos de biología computacional, 26 artículos de datos y descubrimientos, 10 artículos computacionales no biológicos; 300 preguntas de tutoriales y 42 tareas de ejecución en 5 pruebas. Los casos usan Claude Sonnet 4. La conversión depende de disponer de código, datos, modelos y entornos funcionales. La interpretación científica abierta sigue con participación humana.",
+        "strongest_baseline": "En 300 preguntas derivadas de tutoriales, Paper2Agent con Sonnet 4 reporta 91.2 ± 1.6% frente a Claude Code con acceso directo al repositorio: 80.3 ± 2.3% con Sonnet 4 y 86.3 ± 1.1% con Sonnet 4.6. El costo y la latencia reportados por consulta fueron US $0.20/1.6 minutos frente a US $0.38/4.3 minutos para la línea base Sonnet 4. Todos son resultados de los autores bajo la configuración descrita."
+      },
+      "title": "Nature presenta Paper2Agent, un marco que convierte artículos de investigación en herramientas probadas y utilizables por agentes",
+      "why_it_matters": "Los artículos de investigación suelen describir métodos difíciles de reutilizar sin localizar el código, reconstruir los entornos y rehacer los flujos de trabajo. Paper2Agent propone empaquetar esos materiales como interfaces probadas que los agentes pueden invocar, y reporta menor costo y latencia por consulta en sus tareas evaluadas. Si el proceso de conversión y validación funciona con trabajos menos seleccionados, podría cambiar la difusión y combinación de métodos computacionales. Las conversiones fallidas y la supervisión humana acotan esa conclusión."
     },
     "FCMO-487412BD250E": {
       "claims": [
@@ -12972,6 +13151,54 @@
       "title": "CHOREO reporta composición de largo horizonte de habilidades humanoides heterogéneas mediante una interfaz común de trayectorias",
       "why_it_matters": "El artículo explora una vía de sistemas para escalar el comportamiento humanoide: reutilizar trayectorias de distintos generadores de habilidades y controladores mediante una interfaz externa común, sin volver a entrenarlos en conjunto. Si se generaliza, podría reducir el costo de integrar nuevas capacidades. La evidencia actual se limita al rendimiento reportado por sus autores en una evaluación fija de simulación."
     },
+    "FCMO-8C04C689DE0D": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "El comunicado del jefe de Gobierno de Odisha indica que la 46th Autoridad de Aprobación de Alto Nivel (HLCA) aprobó 27 propuestas de proyectos por un total de ₹2,47,115.70 crore en 15 distritos, con 50,162 empleos potenciales."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El comunicado asigna ₹1,42,941 crore a cuatro propuestas de centros de datos, TI y servicios habilitados por TI, entre ellas un centro de datos optimizado para IA de HCL y un centro de datos de IA con un centro de capacidades globales de Sentraforge AI."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "Ninguna fuente revisada acredita cierre de financiamiento, avance de construcción, conexión a la red, carga TI puesta en servicio, equipos de cómputo, utilización ni empleo realizado para las propuestas nombradas.",
+          "kind": "missing_independent",
+          "state": "open",
+          "updated_at": "2026-10-14T13:15:27Z"
+        },
+        {
+          "description": "El comunicado presenta montos de inversión propuesta, pero no indica MW/carga TI, número de racks, mezcla de aceleradores, contratos de energía, fechas de puesta en servicio ni un denominador de cómputo utilizable.",
+          "kind": "regime_unclear",
+          "state": "open",
+          "updated_at": "2026-10-14T13:15:27Z"
+        }
+      ],
+      "importance_rationale": "Si avanzan las aprobaciones anunciadas, la cartera de cuatro proyectos de TI/servicios TI/centros de datos es suficientemente grande como para afectar la planificación regional de infraestructura de IA; el anuncio no acredita capital comprometido, capacidad energizada ni cómputo entregado.",
+      "limitations": [
+        "Todos los montos agregados y cifras de empleo son propuestas o resultados potenciales comunicados por el estado, no inversión o empleo realizado y auditado.",
+        "La categoría de ₹1,42,941 crore para cuatro proyectos combina centros de datos, TI y servicios habilitados por TI; no corresponde exclusivamente a cómputo de IA.",
+        "No se especifican demanda eléctrica, capacidad de la red, compra de aceleradores, construcción, puesta en servicio ni utilización.",
+        "El anuncio no demuestra que los proyectos se completen según el calendario ni que se materialice toda la inversión propuesta."
+      ],
+      "relationships": [],
+      "summary": "Un comunicado del jefe de Gobierno de Odisha del 23 de septiembre de 2026 afirma que la 46th Autoridad de Aprobación de Alto Nivel aprobó 27 propuestas de proyectos por ₹2,47,115.70 crore en 15 distritos, con 50,162 empleos potenciales. Cuatro propuestas de TI, servicios habilitados por TI y centros de datos suman ₹1,42,941 crore; entre ellas figuran un centro de datos optimizado para IA de HCL y un centro de datos de Sentraforge AI con un centro de capacidades globales. Son inversiones propuestas y empleo potencial reportados por el gobierno, no evidencia de financiamiento, construcción, capacidad energizada, cómputo entregado ni puestos de trabajo realizados.",
+      "technical": {
+        "claimed_result": "El comunicado oficial de Odisha informa 27 propuestas de proyectos aprobadas por ₹2,47,115.70 crore en 15 distritos, incluida una categoría de cuatro proyectos de centros de datos/TI/servicios TI por ₹1,42,941 crore con propuestas de centros de datos vinculadas a IA.",
+        "compute_or_cost": "El comunicado informa ₹1,42,941 crore de inversión propuesta para la categoría agrupada de centros de datos/TI/servicios TI/IA; no proporciona MW, racks, aceleradores, datos de energía ni costo por unidad de cómputo.",
+        "demonstrated_result": "El PDF oficial del estado documenta lo anunciado por el gobierno; no se establecieron la ejecución de los proyectos, el capital comprometido, la energización ni el empleo realizado.",
+        "implementation_status": "Aprobación de propuestas según el gobierno; no se revisó evidencia de ejecución o puesta en servicio.",
+        "mechanism": "La aprobación de propuestas por la Autoridad de Aprobación de Alto Nivel crea una cartera oficial y otorga autorizaciones administrativas; es un hito administrativo, no prueba de construcción ni de puesta en servicio.",
+        "regime": "Odisha, India; anuncio de la 46th HLCA del 23 Sep 2026; 27 propuestas en 15 distritos y cuatro propuestas agrupadas como centros de datos/TI/servicios TI/IA.",
+        "reproducibility": "El PDF del comunicado oficial está disponible públicamente; los montos propuestos y el estado de cada proyecto requieren seguimiento con registros oficiales y empresariales.",
+        "strongest_baseline": "El comunicado revisado no establece una comparación por proyecto ni un denominador de inversión equivalente para un período anterior."
+      },
+      "title": "Odisha anuncia una cartera propuesta de ₹1.429T en TI y centros de datos dentro de aprobaciones más amplias",
+      "why_it_matters": "Si se materializa, el segmento propuesto de TI y centros de datos podría ampliar de forma sustancial la cartera de infraestructura digital de India y las opciones regionales para desplegar IA. El anuncio aporta una señal concreta de escala, pero el valor de inversión no mide capacidad de cómputo y ninguna propuesta acredita capacidad operativa."
+    },
     "FCMO-8CF914FD8C2A": {
       "claims": [
         {
@@ -15552,6 +15779,64 @@
       "title": "LLM Inference in a Flash reporta compresión KV y ganancias modeladas con Compute-in-Flash",
       "why_it_matters": "La decodificación de contextos largos puede verse limitada por mover el estado KV entre memoria y cómputo. El artículo reporta una reducción grande del tráfico KV dinámico con cambios pequeños en puntajes LongBench y luego modela posibles beneficios de decodificación en un diseño Compute-in-Flash. Las ganancias modeladas dependen de supuestos sobre ancho de banda del dispositivo, ubicación del diccionario y almacenamiento duplicado, y no establecen rendimiento en dispositivos físicos ni eficiencia de prefill."
     },
+    "FCMO-AEA8F39581B2": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Los autores presentan SWE-Flux, con 480 casos de ejecución de 12 repositorios Python y preguntas de una o varias pruebas sobre siete categorías de comportamiento dinámico. Las respuestas de referencia se extraen de ejecuciones instrumentadas, no las redactan anotadores ni las juzga un modelo. El artículo enlaza un repositorio público que no se inspeccionó."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En la evaluación de cinco modelos, el artículo informa que GPT-5.4 obtuvo la mayor exactitud global, 37.71%. Su exactitud reportada en flujo de datos fue 6.78% en preguntas de una prueba y 0% en preguntas de varias pruebas; los autores describen errores principalmente semánticos, no de formato, al analizar manualmente 299 respuestas incorrectas de GPT-5.4."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En un estudio seleccionado de perturbación, los autores informan variantes válidas para 52 de 58 casos. La exactitud de GPT-5.4 cayó de 100% en esos originales seleccionados a 43.1% en las variantes; dos modelos que no guiaron la perturbación bajaron de 48.3% a 24.1% y de 46.6% a 24.1%. Estos resultados se limitan a los casos Python y la configuración del artículo."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se inspeccionaron ni reprodujeron el repositorio enlazado, los casos ni las ejecuciones de modelos reportadas.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "Todos los casos provienen de 12 repositorios Python; se desconoce su transferencia a otros idiomas, tipos de repositorio y cargas de producción.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "Los modelos no ejecutaron código; límites de recuperación y herramientas pueden contribuir a errores, y los resultados no miden directamente agentes completos.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "Los 58 casos perturbados se eligieron entre ejemplos que GPT-5.4 respondió correctamente, así que el aumento de dificultad depende de esa selección.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se reprodujera, un benchmark de repositorios basado en ejecuciones que mida rutas de llamadas, estado en tiempo de ejecución y agregación entre pruebas podría mejorar la evaluación de agentes de programación. El estudio se limita a 480 casos en 12 repositorios Python y cinco modelos, por lo que es evidencia de investigación notable, no un límite general de capacidad.",
+      "limitations": [
+        "La evaluación cubre 480 casos de 12 repositorios Python y cinco modelos; no establece resultados para otros idiomas ni poblaciones más amplias.",
+        "En esta revisión no se inspeccionaron ni reprodujeron de forma independiente el repositorio enlazado ni las evaluaciones de modelos.",
+        "Los modelos podían consultar repositorios y usar navegación, pero no ejecutar código; el benchmark mide la predicción sin ejecución descrita.",
+        "El estudio de 58 casos perturbados parte de ejemplos que GPT-5.4 había respondido correctamente; no estima el desempeño en una carga representativa de producción.",
+        "La exactitud del benchmark no mide directamente el éxito o la seguridad de agentes de programación de extremo a extremo."
+      ],
+      "relationships": [],
+      "summary": "Un preprint de septiembre de 2026 presenta SWE-Flux, un benchmark para predecir el comportamiento dinámico del código en repositorios Python reales. Contiene 480 preguntas de 12 repositorios, con respuestas obtenidas al ejecutar pruebas instrumentadas. En la evaluación de cinco modelos reportada por los autores, GPT-5.4 obtuvo 37.71% en total; las preguntas de flujo de datos fueron especialmente difíciles. Una canalización de perturbación generó variantes válidas para 52 de 58 casos seleccionados, que resultaron más difíciles para los modelos evaluados. Son resultados del artículo: no se inspeccionaron ni reprodujeron de forma independiente el repositorio enlazado ni las evaluaciones, y la cobertura se limita a Python y a los repositorios seleccionados.",
+      "technical": {
+        "claimed_result": "SWE-Flux mide comportamiento dinámico a nivel de repositorio mediante oráculos de ejecución instrumentada. En la evaluación reportada de cinco modelos, el mejor alcanzó 37.71% global y flujo de datos fue una de las categorías más débiles.",
+        "demonstrated_result": "El preprint describe construcción y protocolos de evaluación, presenta tablas y enlaza un repositorio. No hubo inspección independiente, ejecución ni reproducción.",
+        "mechanism": "Los autores ejecutan pruebas de repositorios fijados en contenedores limpios, registran eventos seleccionados y usan analizadores por instancia para derivar respuestas estructuradas. Los modelos reciben archivos, contexto de prueba y plantillas, pero no trazas ni respuestas de referencia. Un agente separado comprueba que las preguntas retenidas puedan responderse con los materiales publicados.",
+        "regime": "480 casos de 12 repositorios Python, 13 tipos de pregunta de una o varias pruebas, cinco modelos, navegación de repositorios, contexto de 32K tokens para modelos abiertos, hasta 25 llamadas a herramientas y temperatura 0. No mide otros idiomas ni el éxito general de programación.",
+        "strongest_baseline": "GPT-5.4 reporta 37.71% global, seguido de GPT-5.3-Codex con 33.75%. En flujo de datos, GPT-5.4 reporta 6.78% en preguntas de una prueba y 0% en las de varias pruebas. Son resultados del artículo y específicos del benchmark."
+      },
+      "title": "SWE-Flux informa sobre un benchmark de razonamiento dinámico de código a nivel de repositorio",
+      "why_it_matters": "Los agentes de programación deben predecir el comportamiento de código a través de llamadas, cambios de estado y suites de pruebas, incluso cuando no pueden ejecutarlo de forma segura o práctica. SWE-Flux ofrece una forma basada en ejecuciones para medir esa tarea e informa resultados bajos en varias categorías de razonamiento dinámico en su configuración evaluada. Antes de tratar sus puntuaciones como estimaciones generales de capacidad, hacen falta inspección independiente, mayor cobertura de idiomas y reproducción."
+    },
     "FCMO-AF42F16E5385": {
       "claims": [
         {
@@ -15931,6 +16216,65 @@
       },
       "title": "GAE informa mayor consistencia 3D al generar con características latentes geométricas",
       "why_it_matters": "El realismo visual no garantiza que las vistas generadas conserven una escena coherente. Un espacio latente compartido que represente apariencia y geometría podría mejorar la consistencia entre vistas de cámara y servir de interfaz común para percepción y generación. Las comparaciones controladas informadas justifican estudiar esa decisión de representación, mientras la utilidad práctica para modelos de mundo y control sigue sin establecerse."
+    },
+    "FCMO-B1F87CBE8CA9": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "En un benchmark reservado de 3,000 decisiones en Search, Terminal e ingeniería de software, el artículo informa 70.5% de macro-F1 para AEWM frente a 59.9% para DeepSeek-V4-Pro, una diferencia de 10.6 puntos porcentuales."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En seis benchmarks, el artículo informa que EditAct mejora el puntaje promedio frente a la referencia más fuerte en 6.7, 5.2 y 3.2 puntos para Qwen3.5-4B, Qwen3.5-9B y Qwen3.5-35B-A3B, respectivamente; cada benchmark se evalúa en tres ejecuciones independientes."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Para Qwen3.5-35B-A3B ajustado con sus propias trayectorias, el artículo informa que AEWM-RFT supera a Self-RFT por 2.2-2.6 puntos en tres dominios, sin guía de AEWM durante la inferencia."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "En esta activación no se realizó una reproducción independiente de los resultados de AEWM, EditAct o AEWM-RFT; todas las puntuaciones registradas aquí son resultados del artículo ejecutados por sus autores.",
+          "kind": "missing_independent",
+          "state": "open",
+          "updated_at": "2026-10-14T13:18:52Z"
+        },
+        {
+          "description": "El artículo informa 52B tokens de entrenamiento intermedio, 120K ejemplos de SFT y datos internos de búsqueda profunda, pero esta revisión no estableció su disponibilidad completa, el cómputo total de entrenamiento ni el costo de inferencia frente a las referencias.",
+          "kind": "missing_artifact",
+          "state": "open",
+          "updated_at": "2026-10-14T13:18:52Z"
+        },
+        {
+          "description": "Los resultados de EditAct usan tres modelos de inferencia Qwen3.5; se desconoce su transferencia a otras familias de modelos y a scaffolds de agentes ensamblados por separado.",
+          "kind": "regime_unclear",
+          "state": "open",
+          "updated_at": "2026-10-14T13:18:52Z"
+        }
+      ],
+      "importance_rationale": "Si se sostienen, editar directamente el estado de razonamiento y acción propuestos por un agente antes de ejecutarlos podría cambiar el diseño de agentes de horizonte largo; el artículo informa mejoras en benchmarks de búsqueda, terminal e ingeniería de software, aunque la evidencia sigue siendo de los autores y se centra en Qwen3.5.",
+      "limitations": [
+        "Los resultados son reportados por los autores y no se reprodujeron de manera independiente durante esta activación.",
+        "Los resultados de EditAct usan Qwen3.5-4B, Qwen3.5-9B y Qwen3.5-35B-A3B en tres scaffolds especificados; no se ha establecido su generalidad a otras familias de modelos y pilas de agentes.",
+        "DeepSearchQA y SWE-Bench Pro se describen como benchmarks fuera de distribución; los otros cuatro son de distribución similar a la de entrenamiento.",
+        "El entrenamiento usa datos internos de búsqueda profunda, aproximadamente 52B tokens de entrenamiento intermedio y 120K ejemplos de SFT; las secciones inspeccionadas no ofrecen una comparación de costos de cómputo completa y auditable de forma independiente.",
+        "Los puntajes no establecen por sí solos menor costo total, mayor confiabilidad en producción ni mejores resultados en tareas no evaluadas."
+      ],
+      "relationships": [],
+      "summary": "Un artículo de arXiv de 2026 propone AEWM, un modelo que juzga si el par de razonamiento y acción propuesto por un agente es crítico, exploratorio o ruidoso, y luego revisa las propuestas ruidosas antes de ejecutarlas con herramientas reales. En las evaluaciones de tres ejecuciones de los autores, EditAct mejora el puntaje promedio frente a la referencia más fuerte en 6.7, 5.2 y 3.2 puntos para Qwen3.5-4B, Qwen3.5-9B y Qwen3.5-35B-A3B, respectivamente, en seis benchmarks de búsqueda, terminal e ingeniería de software. Un benchmark reservado de 3,000 decisiones de Action Judge informa 70.5% de macro-F1 frente a 59.9% para DeepSeek-V4-Pro. Son resultados reportados por el artículo; la reproducción independiente y el costo siguen abiertos.",
+      "technical": {
+        "claimed_result": "El artículo informa 70.5% de macro-F1 en un benchmark de 3,000 decisiones de Action Judge frente a 59.9% para DeepSeek-V4-Pro; EditAct mejora el puntaje promedio en seis benchmarks frente a la referencia más fuerte por 6.7, 5.2 y 3.2 puntos para Qwen3.5-4B, Qwen3.5-9B y Qwen3.5-35B-A3B.",
+        "compute_or_cost": "El artículo informa 52B tokens de entrenamiento intermedio y 120K ejemplos de SFT. En esta revisión no se determinaron el cómputo total de entrenamiento, la sobrecarga de tokens durante la inferencia ni el costo por tarea frente a referencias comparables.",
+        "demonstrated_result": "El artículo de arXiv de 81 páginas documenta métodos, evaluaciones de tres ejecuciones realizadas por los autores y los puntajes reportados; no se realizó una reproducción independiente.",
+        "implementation_status": "Método de investigación descrito en un artículo de arXiv; esta revisión no verificó su despliegue ni ejecutó los artefactos de los autores.",
+        "mechanism": "Action Judge clasifica el par de razonamiento y acción propuesto por un agente como crítico, exploratorio o ruidoso. State Revision reemplaza tanto el razonamiento como la acción cuando la propuesta es ruidosa; después ejecuta la acción seleccionada en el entorno real para que el historial posterior incluya el estado editado y la retroalimentación observada.",
+        "regime": "Benchmark reservado de 3,000 decisiones de Action Judge en Search, Terminal y SWE; EditAct en seis benchmarks con Qwen3.5-4B, Qwen3.5-9B y Qwen3.5-35B-A3B en los scaffolds ReAct, CalibForge-Eval y SearchSWE. Se informan tres ejecuciones independientes por benchmark.",
+        "reproducibility": "El artículo proporciona métodos extensos, presupuestos de benchmark, prompts y resultados de tres ejecuciones. Siguen abiertos la ejecución independiente, la integridad de artefactos, el acceso completo a datos de entrenamiento y la reproducción del costo de cómputo.",
+        "strongest_baseline": "DeepSeek-V4-Pro para la macro-F1 general de Action Judge; la referencia más sólida entre ReAct, Best@3 por paso y Best@3 por trayectoria en cada benchmark de EditAct."
+      },
+      "title": "AEWM informa mejoras al editar estados de agentes en seis benchmarks y tres tamaños de modelo",
+      "why_it_matters": "Si los efectos reportados se mantienen fuera de la configuración de los autores, cambiar el razonamiento y la siguiente acción propuesta por un agente antes de ejecutarla podría reducir errores persistentes del estado de la tarea y mejorar el rendimiento en búsqueda, terminal e ingeniería de software. El artículo informa una diferencia amplia en el benchmark de Action Judge y mejoras de tareas en varias escalas, pero no demuestra reproducción independiente, confiabilidad en producción ni menor costo total."
     },
     "FCMO-B374C55F976B": {
       "claims": [
@@ -21670,6 +22014,48 @@
         "source_sha256": "207f9e7c082812988310f418e340992b39495fd7261749baac74423b257e8e3c"
       }
     },
+    "FCMO-015A5CEC67EF": {
+      "claims": {
+        "locale_sha256": "3bd218acf04b47d00ff34571720591a09d3e089f65f1948e9a7ac0f8ef0e627c",
+        "source_sha256": "ef96e0a2938234bdd219154bb2c01f0a0ae81e4e712056748693341e012a675b"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "d5f2f03f68f4c2fb394be89ebc2550080962f5c65ee42d7d699370ba8413c88f",
+        "source_sha256": "fe882160b6657e8461ac1c14ef9f12706b004a6a0805b197b9e004dc583f1901"
+      },
+      "importance_rationale": {
+        "locale_sha256": "67493865f447abc083e46f86664fb7fb13457b8e806cbc6da882d6574f3b3153",
+        "source_sha256": "1cbbe20b7025df9d7520096db244af4938d41092f698784c97b9772c8f054ea7"
+      },
+      "limitations": {
+        "locale_sha256": "3fc226f8a8f84d9209fdebc0e48594b3234146ff3364119f305a7df3cd8ccd24",
+        "source_sha256": "1dc5f9a2ee0d36342ee41e9adeafa01d13c8cd97d40e3cb2682d32d6e99f6ca4"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "0de397643a3aff5b867ceb028fd6fb814b5b101f09c0f27d81570939ad607b37",
+        "source_sha256": "a4456460e8488ceb2885d2ff7ea495ed5675ce63057c951ab1e69535e1b28b09"
+      },
+      "technical": {
+        "locale_sha256": "bb91893f9733a2b9f3fd3dd654c8fadf8981010bed67b6b5b5acbe61adea9e7a",
+        "source_sha256": "e634f1ddcd9b4dfc9e81c2ef2b4fd0e32bb01b4bbecf487a7c64f6244569d9a7"
+      },
+      "title": {
+        "locale_sha256": "b585deac22e5498eab952acb24f8cc747afbb46eb77a143bd901a806c0fddafd",
+        "source_sha256": "193757bb0d91a688c2b5c74211edbf16c5dd37a2044260a8f76c2db9b3984680"
+      },
+      "why_it_matters": {
+        "locale_sha256": "0a5d18448e746390f7b4baae39a7b037f3802bfd413450c7c9223b9717354375",
+        "source_sha256": "1fd01c4c3379c3662f951ba9d8f9f3a70380af0e51a1ddfeff8673ddea245860"
+      }
+    },
     "FCMO-0180330ECF93": {
       "claims": {
         "locale_sha256": "e1a9de74332c10f6627c99d4a8917d3fa9b5107e5a080fbbef6cf4ad86891a08",
@@ -23894,6 +24280,48 @@
       "why_it_matters": {
         "locale_sha256": "c5cc870d3780f6101cfabee3f25bd331116651ccc48d05c2ee01d7b6089df51b",
         "source_sha256": "558d9da72db06b77261e2bcfea6ba4849448455a49c7cd51b57aec5508ead03b"
+      }
+    },
+    "FCMO-1BF83C190972": {
+      "claims": {
+        "locale_sha256": "bf6b891e069f331adb847b085014a91e0dd03cb053d57d8cb038b8ecdbb3ad92",
+        "source_sha256": "bc287c02c1a92894e04e7101588f749d33e99aa62771a1e2e161fe0b5911b96a"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "a83f9edde47b883334bea4ad55cab9dc7883365ebbd17d154604c473bcf52637",
+        "source_sha256": "d3405b164eff7cec378e35845284c7579cd1dc87101034595f5fafa4f7b86cdc"
+      },
+      "importance_rationale": {
+        "locale_sha256": "a55919d4f9841f161d4635f61ded82525e24011d0da24451c70abe787f52ea79",
+        "source_sha256": "7e73d61929a2f41127115c92fc36f08954fff9498dfb3f5564e4c04ebbd176e1"
+      },
+      "limitations": {
+        "locale_sha256": "57d9e59bf487953a7716c23d5e1a585d0b8ecec0e98ddff67d145ab54b240cc5",
+        "source_sha256": "7f11ddc730cf6f16244a05972b9618ec214c240900bef9e4fa6e174237ae01ed"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "a404060301961e33f00ba55c44fe67aebb3f146cbbfca24ea06eaabeddb25126",
+        "source_sha256": "d3a603478aed7eb0526b489b0426d1562f0613e7a3d08079bc12df45931b288e"
+      },
+      "technical": {
+        "locale_sha256": "5df2106c53cb37cede5a8f596e786f3e1c3de8f4264d7f85b37ddc81ff7751f7",
+        "source_sha256": "45e178b2b37ece70000d8b06334a92c2417209f25290cefcd6f0b2fc0e240100"
+      },
+      "title": {
+        "locale_sha256": "bbbc798e70cf5a0b2bf9a97e400c82b256251f66e482637266b967011fae95ad",
+        "source_sha256": "ee1d21e2eb13022199e9b20c4e153a8bd9dfe8e0463094969556cd2f179ec6da"
+      },
+      "why_it_matters": {
+        "locale_sha256": "e234691ba8b28b717c916b3fe1b25c22834f7500bbe64b1cf5223b1d884f5375",
+        "source_sha256": "42dbc328f891b4d6b5a819fc9023550a34b4c355b6033d494b00ce36c4a52968"
       }
     },
     "FCMO-1BFA9A5A6560": {
@@ -26666,6 +27094,48 @@
       "why_it_matters": {
         "locale_sha256": "a377f68ee73b011032b99ac30eed3820423fa535ddf3e2c69ff458a9ed95d64f",
         "source_sha256": "5cf195fd2236074ac248aedf870b6ad0b04a7a351c397899a160347e1f8d961f"
+      }
+    },
+    "FCMO-4852A51EE0AB": {
+      "claims": {
+        "locale_sha256": "eac45a8c563d935350656f74063ed2d5b46bbf20b58b97b67aeaf491765607f8",
+        "source_sha256": "51a278b3199adf87b7513ffb7369a66c01ef6b7290489d73f9d88ee92dcc118e"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "4935a2c9342d89216f0104760555ea4b8025998e7d0afaa4a8141107a7b71b55",
+        "source_sha256": "528fc16284ed7d60daccc54078fd4de169a104f4067075d533dfe20faedf6591"
+      },
+      "importance_rationale": {
+        "locale_sha256": "2d8983146e938553fe10829d99befe9b614f48f31546944837a5b4a7fa661377",
+        "source_sha256": "600e8864378bd882dc06348de90454c025a372ec7a88a85c22fba92ef3fdd706"
+      },
+      "limitations": {
+        "locale_sha256": "4fb491df2bd05b6a4b0fdf6ba29cc72743e7f9e9451cc2c4fae62584cad17f8e",
+        "source_sha256": "2b47e79e452e7c2e01bb096f74cbaa031125d698d677482db322359347e5d130"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "088bc4c60e42514dc78a3a986de988cbd79f099aaa4cbeb9382aa2493fcb46b6",
+        "source_sha256": "c64d974a727f707705383384087929dc0109d2af9a8e764338fdd4ab322c1b15"
+      },
+      "technical": {
+        "locale_sha256": "4ad4573f3e411f926ca83ed20b92dba03e7ab7e4cda5fe5e551343c3d414fb83",
+        "source_sha256": "c45188d2371c16e398e7aa1dfebe6472f8eb548404e1f16ced1fa64544afce40"
+      },
+      "title": {
+        "locale_sha256": "35aec1939119ad69e794e56dbb8ef20164f091d1fd38bbcc92b46c6f994aa6cb",
+        "source_sha256": "dc0d358a672c288fa191c7b6f277383b7b104f417a5db24a72254aba11797a3b"
+      },
+      "why_it_matters": {
+        "locale_sha256": "345f9364da4de9001183c5e32e58e34f01aa9088b07a6ed214117d6aef5d0bd0",
+        "source_sha256": "06b7502eec2f51581cda4f111cf5d67d31dda9f6a35dcd43caac0458800c69b2"
       }
     },
     "FCMO-487412BD250E": {
@@ -31554,6 +32024,48 @@
         "source_sha256": "d53baa1a3ee0c12ea243a55f3f0f0a9a7df835c05dd7f3c8e04efe9d1cba25ed"
       }
     },
+    "FCMO-8C04C689DE0D": {
+      "claims": {
+        "locale_sha256": "07b7d8094822017e686bdcad967fe8b98c6a325d9652fd1c5bd364ca8015c6f9",
+        "source_sha256": "879af10e1d6126279e8f1dd1749f2005171e6478daa63833842c430e78632d7c"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "2d8d694a6e20749165306516ce96f94a42d73167b129f4a732da98f5f889cc4e",
+        "source_sha256": "8c20dc73563fb89256fdb7ab865003a66695d9c8f6e1e9552ff0d6a05886c987"
+      },
+      "importance_rationale": {
+        "locale_sha256": "26b4be1c8fe8c3cfc5911c99aefd5ba2d717a2e5a64ee4fe1808ee1b363431dd",
+        "source_sha256": "d58fa1953dae938bcb552445aa58796f2f702685950a1009d06105f2c720fb80"
+      },
+      "limitations": {
+        "locale_sha256": "7b88fc54954e06d0246d8515e8edc3dabf4ae7e624e4324c97f9e07f3d32d32c",
+        "source_sha256": "85c6b87ee5255b9858f577f8f0886f6cf3f2182f46eb37dab5024213b0ae3e92"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "c83eedb902638cf3ab839321f9ea57f7fc888d0099d056c59d65c4f1b949132a",
+        "source_sha256": "0c05a0020fd5804033140f5919be15bffa8affe01f28396f3503230bb109379a"
+      },
+      "technical": {
+        "locale_sha256": "0efe06bb4aa94e94e67e90b6fe9f72ee4347ee325466c965f3fb42d1f7fb6876",
+        "source_sha256": "7ade0796b5ab864ce3fdb3d55847264d515e80a29331327b5ca151d9dd75a534"
+      },
+      "title": {
+        "locale_sha256": "25991639ea8c7d6c530236d5dcc6ef3cce187ab32a0f38fdbee114c7fc77b8b3",
+        "source_sha256": "d031dbb3b21bb41a34c84260324b5ef7ea7cfe9a26003d2f500d894e7792efdb"
+      },
+      "why_it_matters": {
+        "locale_sha256": "fef403a538560f238b63b36c87aaa72f2edbea9fdbe6e422d39f5487cdb6451c",
+        "source_sha256": "2864ad1efb77810e31fc30eed9b0b5d8abcaebb67d90d0059055d54951268e61"
+      }
+    },
     "FCMO-8CF914FD8C2A": {
       "claims": {
         "locale_sha256": "9ced4c8e3ac5a48529155331b944038a40a929bb0ca1b5bf4951aa58b436857a",
@@ -33500,6 +34012,48 @@
         "source_sha256": "964568ac8bb4640c98d3070178a08b3928329ca3e4b267c235859203581602f9"
       }
     },
+    "FCMO-AEA8F39581B2": {
+      "claims": {
+        "locale_sha256": "2e8f54680a1a07be50be2cec7925006ef9c71f5a9fb1f9ff892d1215b89ed724",
+        "source_sha256": "c8872e220764be91bed76c8c7f563a5a1dcff32eb9b7bfd846479803807294fa"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "28945cc19820402c9f890ad58db968f3267b5d35ed0b97ba68e7345b5f18d40e",
+        "source_sha256": "d46999427c963cd156d924127b02f13f84cffa4d6e6e12ba4ef8f5c7584e201a"
+      },
+      "importance_rationale": {
+        "locale_sha256": "fe93ebfcb5dc0002c92004d9d96b63ad7ac49eb533416a393ea4e05f2f807102",
+        "source_sha256": "3adf4a0dbf40d8c45ba1277e83d80e8b50182be1875466c0532dd05510611514"
+      },
+      "limitations": {
+        "locale_sha256": "fc97c76c9a1a04624aa905f0fc8bee3b1eff4d1a6ef1669a920e6ef7861da4b5",
+        "source_sha256": "452b27745990e77cffbb0beb339b7027a0a7b2a4113f356253e7d842698c32de"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "1b5081f541e289e0d61437b31e18e034854293852faa232892b86143edad2581",
+        "source_sha256": "e4044d32cf76711d1dce837ad20536d1a6dfbe2e80c6827f28494bbccdf394b4"
+      },
+      "technical": {
+        "locale_sha256": "2d570fb73fb5c040c75ebc2407e226ca6e3de1b15aa1a04b2298d33833e8e8de",
+        "source_sha256": "53e274af6b31dbcab8de56b43b785381cc2f16942cde41e801a5cc3044d7b04f"
+      },
+      "title": {
+        "locale_sha256": "308ad62dd457c684d780b89e6eb213987fc925a7f93037a3986572b1194363f0",
+        "source_sha256": "e7f9f76addd65d7d35c6c5e569e63c61b851f01dd40dcf3a8058a91ada5604d2"
+      },
+      "why_it_matters": {
+        "locale_sha256": "bb51511d1fa4d9dfc679958428377af6d0c71ebb8da2f8fe31533e13f7c35d06",
+        "source_sha256": "98d69feb25c7d5ede4b9af189027a4f111e3798877c96259533dbd45e7d1b400"
+      }
+    },
     "FCMO-AF42F16E5385": {
       "claims": {
         "locale_sha256": "b0822640140dd08ef236262a3f5540d960e0e6257ca4e9938a48f6e003cd2318",
@@ -33792,6 +34346,48 @@
       "why_it_matters": {
         "locale_sha256": "fcf0c731fdc17239e788ae1d8727a23aef00dcb4d5089f91effc8e4fc107d2f5",
         "source_sha256": "c9f9b0d07fc30b7a4f75e5c3ffe24b6f505aa34727b9bdf759ccf05f754f6219"
+      }
+    },
+    "FCMO-B1F87CBE8CA9": {
+      "claims": {
+        "locale_sha256": "7c77f4a0566abcec7c0ad1a7d649b58f3866f2095dbcf0e4f40db1281b86a9cc",
+        "source_sha256": "03b055498790732b07586d6966540cb94e3e6c734523d1b1813378d5d8b2d59f"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "f1e2528b8b97d8daa616b0b0ee5019d123f4277512d8bdc23fc8a6e805a99358",
+        "source_sha256": "fabb403503240605f3b87f96adf95a6b762262554a20763c5eab991e7b93b240"
+      },
+      "importance_rationale": {
+        "locale_sha256": "f31fe5c50dd02deb0836cd459ffe835dc2cfe8e944f8a535f55050934a11ccb6",
+        "source_sha256": "a47f67ae89b6cd15b513c01371515ff98c45ffec954165df51546a3ce158cb2c"
+      },
+      "limitations": {
+        "locale_sha256": "81800e21eb04605eaf7938bbf5fb86720920215b3d1e8ae8b884e89e5bdff982",
+        "source_sha256": "e4d27c17e4aed27d62c22400cf0971b498f5cb6ea8b3efda905fce06050363a4"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "498887687a68dc86b941169b7cbebab63e79e8b8ff2cbcac53177b851d29bca2",
+        "source_sha256": "bfd768b1c22b45b7deaa29f4ff072698d25071e3d3eb5527fd653e97fa4dfc71"
+      },
+      "technical": {
+        "locale_sha256": "34eb0537aa44def47c1f907443c158567d4b8d4e90694cad052b6818c43f09a1",
+        "source_sha256": "d1112dc8ee6a24ae65f4cb964f4667ac9cd1b6a502ed27d4557781d25ce3f114"
+      },
+      "title": {
+        "locale_sha256": "1ae76bd51baa623dde0c9baca48952490565e3d07f840317638206d1f16b8d68",
+        "source_sha256": "b2e6dd4030f2904b68d02cc880d54255cfdc40f9eb6d8c9560d49d46695e1d99"
+      },
+      "why_it_matters": {
+        "locale_sha256": "0b549379fd339d00c77eba747a6ba3b8c8e4b9ce1759beb6e9ea151e971c0ed2",
+        "source_sha256": "512f08148025d0725b9478205943689c7955b798606b05524cb513a8e5333cd9"
       }
     },
     "FCMO-B374C55F976B": {
