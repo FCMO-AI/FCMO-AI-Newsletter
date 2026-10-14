@@ -1,6 +1,122 @@
 [
   {
     "confidence": "credible_unconfirmed",
+    "demonstrated_result": "The inspected preprint specifies a cross-file code–asset indexing design and reports a paired cost study. the research desk did not inspect the implementation or reproduce the metrics; the paper’s reported result concerns agent navigation cost, not end-to-end code quality.",
+    "desks": [
+      "agents_memory",
+      "efficiency",
+      "evaluation_science",
+      "open_ecosystem"
+    ],
+    "development_type": "paper",
+    "event_at": "2026-09-23T00:00:00Z",
+    "evidence_class": "A",
+    "id": "FCMO-38F18BD9F284",
+    "importance_effective_score": 4,
+    "importance_tier": "Meaningful",
+    "last_verified_at": "2026-10-14T06:13:18Z",
+    "mechanism": "A crawler resolves Unity GUIDs and parses code plus serialized assets into a persistent, read-only SQLite graph. The agent accesses it through typed directory listing, glob, search, read and reference-traversal tools instead of manually following GUIDs through files. The index refreshes incrementally and does not modify project files.",
+    "organizations": [
+      "Tuanjie Engine / Unity China"
+    ],
+    "primary_desk": "agents_memory",
+    "regions": [
+      "global"
+    ],
+    "status": "active",
+    "strongest_baseline": "A general-purpose read-only exploration agent using shell, globbing, text search, file reading and directory listing, compared with the same-model/harness index-backed agent. No code-quality or task-completion baseline is reported.",
+    "summary": "The Unity Insight preprint describes a read-only index that links C# code with serialized Unity scenes, prefabs, ScriptableObjects and GUID references, exposing that graph to a coding agent through typed query tools. In a paired study of 28 project-specific questions across two Unity games, the authors report 53.4% fewer tokens and 51.6% lower wall time than a general-purpose exploration agent using the same model and harness; one project is internal and each question has one run per arm. The study measures navigation cost, not coding correctness or software quality, and has not been independently reproduced here.",
+    "title": "Unity Insight reports lower agent navigation cost on two Unity projects",
+    "topics": [
+      "coding agents",
+      "repository indexing",
+      "Unity",
+      "code and asset graph",
+      "agent efficiency",
+      "software engineering"
+    ],
+    "why_it_matters": "Game-engine projects distribute relevant structure across scripts, scenes, prefabs, metadata and binary assets. If these results generalize, a persistent typed index could make repository-scale agent navigation materially cheaper. Current evidence supports a promising Unity-specific design and developer-reported cost reduction on a small question set; it does not show a broader coding-quality improvement."
+  },
+  {
+    "confidence": "credible_unconfirmed",
+    "demonstrated_result": "The inspected arXiv paper describes the system design, implementation on RLinf and reported simulation experiments. the research desk did not obtain or execute the implementation and does not independently establish the reported performance.",
+    "desks": [
+      "compute_hardware",
+      "reasoning_posttraining",
+      "evaluation_science"
+    ],
+    "development_type": "paper",
+    "event_at": "2026-09-23T00:00:00Z",
+    "evidence_class": "A",
+    "id": "FCMO-45D97C054E39",
+    "importance_effective_score": 6,
+    "importance_tier": "Major",
+    "last_verified_at": "2026-10-14T06:12:50Z",
+    "mechanism": "EBRL profiles simulation, generation and training stages, then jointly allocates CPU cores, GPU SM quotas and batch sizes. An asynchronous pipeline overlaps simulation with action generation and overlaps rollout with training; per-environment scheduling and core rebinding reduce synchronization stalls. Runtime throughput feedback can trigger quota reallocation.",
+    "organizations": [
+      "Nanjing University",
+      "Institute for AI Industry Research, Tsinghua University",
+      "Nanjing University of Posts and Telecommunications",
+      "University of Science and Technology of China"
+    ],
+    "primary_desk": "compute_hardware",
+    "regions": [
+      "global"
+    ],
+    "status": "active",
+    "strongest_baseline": "The paper compares with named prior embodied-RL systems; the reported 1.30×–3.47× range varies by simulator-policy configuration. Baseline tuning and deployment conditions require artifact-level audit.",
+    "summary": "The EBRL preprint describes a system built on RLinf that overlaps rollout with model training, pipelines simulation and generation, schedules environment work asynchronously, and reallocates CPU cores and GPU streaming multiprocessors as stage demands change. Across five simulator-policy configurations and several accelerator testbeds, the authors report 1.30×–3.47× end-to-end trajectory throughput over compared embodied-RL systems. Their ablations report that removing resource allocation, group pipelining or asynchronous execution reduces throughput. These are author-reported simulation results; no independent rerun or physical-robot evaluation was performed here.",
+    "title": "EBRL reports 1.30×–3.47× higher throughput for simulated embodied-RL training",
+    "topics": [
+      "embodied reinforcement learning",
+      "systems",
+      "GPU scheduling",
+      "asynchronous training",
+      "simulation",
+      "compute efficiency"
+    ],
+    "why_it_matters": "Embodied reinforcement learning can be limited by idle CPU/GPU capacity and synchronization between simulation, action generation and training. If EBRL’s reported results reproduce, its scheduler could increase the amount of policy-training work completed per accelerator-hour. Current evidence is from authors’ selected simulation configurations; it does not establish physical-robot transfer or lower cost per successful behavior."
+  },
+  {
+    "confidence": "credible_unconfirmed",
+    "demonstrated_result": "The inspected preprint describes the method, four benchmark comparisons for each of two 7B models, and author-reported run variability. the research desk did not reproduce the training or evaluation.",
+    "desks": [
+      "reasoning_posttraining",
+      "evaluation_science",
+      "inference_systems"
+    ],
+    "development_type": "paper",
+    "event_at": "2026-09-22T00:00:00Z",
+    "evidence_class": "A",
+    "id": "FCMO-CCFA19CB7927",
+    "importance_effective_score": 5,
+    "importance_tier": "Notable",
+    "last_verified_at": "2026-10-14T06:10:35Z",
+    "mechanism": "RECAP segments each generated trace into steps, uses an LLM to annotate support, context and restatement dependencies in a directed acyclic graph, propagates responsibility backward from the final answer, and combines that structural credit with changes in gold-answer log-likelihood to reshape GRPO advantages.",
+    "organizations": [
+      "George Mason University",
+      "Amazon"
+    ],
+    "primary_desk": "reasoning_posttraining",
+    "regions": [
+      "global"
+    ],
+    "status": "active",
+    "strongest_baseline": "GRPO is the direct baseline used for the reported 2.0–3.7 point accuracy and 8–31% token comparison on Qwen2.5-Math-7B. Other methods sometimes score higher, and results on DeepSeek-R1-Distill-Qwen-7B are mixed.",
+    "summary": "The arXiv preprint introduces RECAP, which gives GRPO training step-level credit using LLM-annotated semantic dependencies plus a gold-answer likelihood signal. On Qwen2.5-Math-7B, the authors report 2.0–3.7 percentage-point pass@1 gains and 8–31% fewer reasoning tokens than GRPO across GSM8K, MATH-500, AIME 2024 and AIME 2025. Results on DeepSeek-R1-Distill-Qwen-7B are mixed, so the paper does not establish a uniform cross-model improvement. These are author-reported experiments, not independently reproduced; the tested regime is limited to two 7B math models and four benchmarks.",
+    "title": "RECAP uses dependency-aware step credit to reduce reasoning tokens in math models",
+    "topics": [
+      "reasoning post-training",
+      "GRPO",
+      "credit assignment",
+      "reasoning efficiency",
+      "mathematical reasoning",
+      "inference tokens"
+    ],
+    "why_it_matters": "Reasoning tokens can dominate inference budgets for long mathematical traces. If RECAP’s reported trade-off reproduces and transfers, it could change post-training choices by rewarding steps according to both their downstream use and their progress toward a correct answer. The current paper supports a bounded research result, not a general claim that dependency-aware credit improves reasoning across models or tasks."
+  },
+  {
+    "confidence": "credible_unconfirmed",
     "demonstrated_result": "The v2 preprint describes a skill-to-task construction pipeline and reports 2,756 environments and 8,364 successful trajectories; this review did not audit the releases or independently validate the counts.",
     "desks": [
       "reasoning_posttraining",
