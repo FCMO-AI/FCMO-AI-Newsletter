@@ -1,6 +1,6 @@
 {
   "canonical_locale": "en",
-  "canonical_source_sha256": "ac08653ab2f89c77d24c5d185da425f1d8937c507576a1fb4552edd0631eda92",
+  "canonical_source_sha256": "4c6f7c7273803ac8b6044a6fefd6887972c31995859cd0e9b8c61a405aff0892",
   "generated_from": "ARB airlock; editorial wording authored upstream",
   "locale": "zh-Hans",
   "records": {
@@ -8967,6 +8967,61 @@
       "title": "预印本报告称，答案对齐记忆嵌入可降低长上下文推理成本",
       "why_it_matters": "如果这些成本和质量结果能在实用的窗口定位方式及不同工作负载下成立，经过训练的软记忆方案可能在不更改已部署解码器权重的情况下，降低长上下文解码成本。报告的收益取决于基准和硬件；全量数据下 Mistral 在两项任务上退步，研究也未证明生产成本或独立复现结果。"
     },
+    "FCMO-68442D8670DE": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "X-AgentRed 构建有向图，将某个工具的效果连接到其他工具的执行前提；它从 HarmFlow 图中采样跨服务路径，并利用执行反馈扩展造成危害的路径、修正受阻路径。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "在包含 30 项服务和 914 个工具的模拟环境中，作者报告称，四种目标智能体上的平均有害路径率分别为：X-AgentRed 19.2%、STAC 10.5%、TRACE 2.7%；每种目标智能体测试 250 个候选场景。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "作者报告称，X-AgentRed 的平均工具覆盖率为 41.5%，STAC 为 13.9%，TRACE 为 23.7%。每种配置在固定模拟器中只运行一次；评审模型的聚合方式会显著改变报告的有害路径率。"
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "arXiv 记录标明第 1 版，提交时间为 2026-10-09 17:34 UTC。这确认预印本及其日期，不代表结果经过独立验证。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "本次未检查对每种配置仅运行一次的结果或评审模型标签的独立复现。",
+          "kind": "reproduction_missing",
+          "state": "open"
+        },
+        {
+          "description": "评测环境为模拟环境；结果能否迁移到持续变化的真实服务集成和已部署智能体的防护措施尚不清楚。",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "如果报告结果能推广到单次运行的模拟生态以外，图引导探索可能显著提高对跨服务个人智能体中非预期危害的发现能力。当前证据是作者报告的受控基准结果，并非生产环境风险估计。",
+      "limitations": [
+        "每种配置仅运行一次，因此未估算运行间差异。",
+        "测试环境是模拟生态，并非连接生产服务的智能体；结果不能证明现实发生率或生产风险。",
+        "主要有害路径率要求两名模型评审一致。接受任一评审的判断会使报告率提高 15.2 至 30.4 个百分点；论文说明这是敏感性分析，不是评审准确性验证。",
+        "执行轨迹更长且各方法的路径长度不同，使覆盖率和有害路径对比更难解释。",
+        "本次审查未进行独立复现，也未检查可执行工件。"
+      ],
+      "relationships": [],
+      "summary": "2026 年秋季的 X-AgentRed 预印本通过工具效果和执行前提构建依赖图，以生成跨服务攻击场景，再利用执行反馈扩展有害路径、修复受阻路径。对四种目标智能体，在 30 项服务和 914 个工具的模拟生态中，每种配置运行一次；作者报告有害路径率为 19.2%，高于 STAC 的 10.5% 和 TRACE 的 2.7%。平均工具覆盖率为 41.5%，而二者分别为 13.9% 和 23.7%。这些是作者报告的模拟器结果，不是现实智能体风险估计。",
+      "technical": {
+        "claimed_result": "作者报告的平均有害路径率为：X-AgentRed 19.2%、STAC 10.5%、TRACE 2.7%；平均工具覆盖率分别为 41.5%、13.9% 和 23.7%。",
+        "demonstrated_result": "本次检查了 arXiv v1 全文、实验协议、报告结果和局限。未进行独立复现。",
+        "implementation_status": "预印本介绍了该方法和模拟实验。本次未运行代码、独立复现，也未评测接入真实服务的部署智能体。",
+        "mechanism": "系统用执行前提、效果和潜在危害表示每个工具。语言模型评估效果与前提之间的联系，形成 HarmFlow 依赖图；图遍历生成候选场景。执行后，系统通过替换相邻工具扩展成功的有害路径，并调整前置条件和先前步骤来修正受阻路径。",
+        "novelty": "将显式跨工具依赖图与执行反馈驱动的路径扩展和修复结合起来，在模拟服务生态中搜索工具组合。",
+        "regime": "作者使用 ToolSimulator 评测 30 项服务和 914 个工具中的四种目标智能体；每个目标 250 个场景，每种配置运行一次。主要危害标签要求两名模型评审一致。",
+        "reproducibility": "本次检查了论文报告的评测。每种配置只运行一次，无法估算不确定性；本次未独立运行，也未审计外部模拟器。未检查 arXiv 项目页中的可执行工件。",
+        "strongest_baseline": "STAC 的平均有害路径率最高，为 10.5%；TRACE 的平均工具覆盖率高于 STAC，为 23.7% 对 13.9%。X-AgentRed 报告分别为 19.2% 和 41.5%。比较来自作者固定模拟器中每种配置的一次运行。"
+      },
+      "title": "图引导红队测试在模拟个人智能体生态中发现更多跨服务有害路径",
+      "why_it_matters": "依赖图可能揭示由单独看来无害的工具操作组合而成的跨服务路径，这是仅靠提示词生成的红队测试可能遗漏的。该基准报告的优势使其成为值得关注的服务型智能体测试方法；但单次模拟和对评审模型敏感的标签，使其现实相关性仍不确定。"
+    },
     "FCMO-6851A79A85AC": {
       "claims": [
         {
@@ -12461,6 +12516,66 @@
       },
       "title": "ScienceBuddy 报告称共同演化科学任务框架与语言模型可提升表现",
       "why_it_matters": "如果能在独立编写的科学任务上复现并验证结果，共同演化研究执行框架及其任务模型或可改善任务完成情况。现有证据仅支持作者在特定基准上报告的结果，并未显示系统取得了科学发现，也未证明当前维护的代码库复现了论文案例。"
+    },
+    "FCMO-93DC7BF13995": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "对于固定黏度下周期三维环面上的无外力 Leray–Hopf 解，论文称，在一个时间窗口内存在正能量缺陷，等价于从某个足够细的尺度开始，穿过二进 Fourier 壳层的时间积分通量具有统一正下界。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "作者报告称，他们使用 Lean 4/Mathlib 形式化证明了该约化及相关必要条件。他们明确指出，代码库中没有 Navier–Stokes 对象，也未将该约化连接到一套形式化的 Leray–Hopf 理论。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "论文报告了 12 次伪谱模拟，分辨率为 128³ 和 256³。模拟接近时间通量下限条件，但向 Kolmogorov 尺度延伸时无法维持共同下界；作者指出，这些有限浮点诊断并不能证明真实解的性质。"
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION",
+          "text": "论文指出，无外力正缺陷问题仍未解决；文中讨论的受迫 Navier–Stokes 构造以及受迫或无黏 Euler 构造均不属于目标类别。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "尚未构建或独立审查所链接的当前 Lean 软件包及其定理和导入范围；论文注明使用 Lean 4.33.0 与 Mathlib 4.33.0，同时说明代码库中没有 Navier–Stokes 对象。",
+          "kind": "reproduction_missing",
+          "state": "open"
+        },
+        {
+          "description": "尚无形式化推导将该约化所使用的抽象实数序列/函数假设连接到实际无外力 Navier–Stokes Leray–Hopf 解。",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "作者的有限分辨率通量诊断尚未被独立复现；无论如何，这些诊断都不能证明细尺度统一下界。",
+          "kind": "reproduction_missing",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "如果论文的形式化约化和搜索条件可靠且有用，它们就为围绕一个重要的正则性开放问题开展计算研究提供了具体目标。这是值得关注的方法进展；但无外力正缺陷解仍未发现，通向 Navier–Stokes 对象的形式化桥接也尚不存在。",
+      "limitations": [
+        "论文没有构造无外力 Navier–Stokes 奇点，也没有解决其明确称仍开放的正缺陷问题。",
+        "Lean 库中没有 Navier–Stokes 对象；从抽象序列/函数定理到形式化 Leray–Hopf 对象的桥接尚未建立。",
+        "这 12 次有限分辨率模拟采用浮点计算，无法证明任意细尺度上的统一条件，也不能证实正能量缺陷。",
+        "本次审阅没有构建当前 Lean 软件包、独立审核证明或复现模拟。",
+        "论文给出的必要条件并不足以推出正能量缺陷。"
+      ],
+      "relationships": [],
+      "summary": "一篇发表于 2026 年九月的预印本，为固定黏度下周期立方体上的无外力 Leray–Hopf 解定义正能量缺陷，并报告了一个 Lean 4 形式化约化：该缺陷等价于在所有足够细的二进 Fourier 壳层上，时间平均能量通量具有统一正下界。论文给出了候选解必须满足的条件，并指出有限 Galerkin 计算无法证明所需的统一上界；作者在 128³ 和 256³ 分辨率下进行了 12 次伪谱模拟，结果接近时间条件，但向 Kolmogorov 尺度延伸时无法维持通量下界。这是一个范围有限的数学搜索规范，并非无外力奇点的结果。作者明确说明，Lean 库中没有 Navier–Stokes 对象，也没有将该约化连接到另一套形式化 Leray–Hopf 理论；目标问题仍未解决。",
+      "technical": {
+        "claimed_result": "作者报告了基于壳层能量平衡的约化、正缺陷候选解必须满足的若干条件，以及 12 次 128³/256³ 伪谱诊断。时间条件接近满足，但趋近 Kolmogorov 尺度时，细尺度条件失败。",
+        "demonstrated_result": "该预印本、其日期、范围和明确列出的局限均可直接查阅。本次审阅重读了完整 HTML 以及所链接仓库的 README，但没有构建当前 Lean 软件包、运行模拟或独立验证数学论证。",
+        "implementation_status": "公开提供了预印本和 Lean 源码仓库。本次审阅未构建当前软件包，也未独立验证结果。",
+        "mechanism": "论文考察固定黏度下无外力 Leray–Hopf 解在某个时间窗口上的能量缺陷，推导按壳层截断的能量平衡，并将积分后的二进壳层通量的极限与该缺陷相联系。因而，正缺陷等价于所有足够细壳层上的平均通量都具有共同正下界。Lean 开发在假设条件下形式化了关于抽象实数序列/函数的这些推论；论文并未编码 Navier–Stokes 解对象。",
+        "novelty": "将正缺陷目标形式化约化为二进壳层平均通量的统一条件，并给出搜索可行性标准，明确解释有限 Galerkin 计算为何无法建立所需的跨尺度统一结论。",
+        "regime": "固定黏度下周期三维环面上的无外力不可压 Navier–Stokes 方程，数据光滑且解属于 Leray–Hopf 类。有限数值诊断采用作者在 128³ 和 256³ 分辨率下的伪谱设置；形式化约化使用抽象序列/函数，并把 Navier–Stokes 条件作为假设。",
+        "reproducibility": "论文链接了 Lean 4.33.0/Mathlib 4.33.0 仓库，并报告了 12 次谱模拟。本次审阅未构建该软件包；论文称其尚未与现有 Leray–Hopf 理论形式化连接。没有进行独立数值复现。",
+        "strongest_baseline": "论文将所需的跨尺度统一通量下界与自身有限分辨率模拟相比较：模拟接近满足时间条件，但在 Kolmogorov 尺度附近，越细的壳层通量越低。论文没有提供独立复现或匹配的计算基线。"
+      },
+      "title": "为开放的无外力 Navier–Stokes 问题建立 Lean 形式化搜索目标",
+      "why_it_matters": "精确的跨尺度统一通量目标和明确的可行性条件，有助于研究者区分有用的数值诊断与无外力奇点的证据。这项工作说明了如何搜索一个重要开放问题的解；它并未解决该问题，而且到实际 Navier–Stokes 对象的形式化桥接仍然缺失。"
     },
     "FCMO-94EBAAEAD595": {
       "claims": [
@@ -26869,6 +26984,48 @@
         "source_sha256": "a2b4ae8fa0e08ae1200904c5d275988b56557aacdb715154e5b8b96c5e33d6e0"
       }
     },
+    "FCMO-68442D8670DE": {
+      "claims": {
+        "locale_sha256": "c97d599d86caf95d6ea6a3de7f662c0e8ca3b91d2055e0af688d1a9e4f1dc083",
+        "source_sha256": "dca5845f6581bfbc09572af4b8b99199dd1fcd2b2b98e80eb7d65de74d2f76cb"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "530552d32368fb98835ecebb81006be2962d704994c90bdf5c3b14efd426e429",
+        "source_sha256": "4d4b543e9e1685e95f84c13f988e56bb965b55272cf96860855a047eae56e814"
+      },
+      "importance_rationale": {
+        "locale_sha256": "fce44e2eecf3f9b01bafab1d4fa3f823f3367eeae1ded1290161101592e59486",
+        "source_sha256": "ead4d68ecfdf5ca9b17c44ec65bcfcc3b284a9d5d4bc3b79fe8828a312065730"
+      },
+      "limitations": {
+        "locale_sha256": "d38af09b5e3ee4c15be5e41e8e3e4056e7435797f5916990e424dc188775af04",
+        "source_sha256": "6bdcd22115bbea9da076804930b05da3d2128cc6d0431e3ca2f07bb7ac81c724"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "2b729aa45afa90fab966e02fc35d11f5114bab05cbc1c1ae8da05e059e90379c",
+        "source_sha256": "03f3e7f3ffc1c8d7120dd91b2a4c233e7cc302a3b3c72fbf0c80f0cd901dbbf0"
+      },
+      "technical": {
+        "locale_sha256": "ae119215e7214caa5df7e0babd21c53cbbf60f63476d4dbb1246b727180744e5",
+        "source_sha256": "aab8f5c8f313a361c78e86e171bedce2c9bd8a540faa066c1491046044eeedaa"
+      },
+      "title": {
+        "locale_sha256": "b0a7214ecde3583ed68e186f69d6f732262ceb8bb7145aef8987c147c198f47f",
+        "source_sha256": "84088f1187f639927f69bc7c96039dfabd4df34499f614d4a399c285f9d06f35"
+      },
+      "why_it_matters": {
+        "locale_sha256": "64cc914951c156b62d4e77ad234184677156c2fd02f1a91092cc9e8f4dff9566",
+        "source_sha256": "03b0138bfb77eb9145f2c8c468c3d4016b41fadd73207195416e739e50d55940"
+      }
+    },
     "FCMO-6851A79A85AC": {
       "claims": {
         "locale_sha256": "a233fc06084ca938dcef83ee79bdc58896c49048635cf05b5e9d8fcb72972fbd",
@@ -29443,6 +29600,48 @@
       "why_it_matters": {
         "locale_sha256": "499c8a744601c88c0a79454a5b42e0625e2546b4f62100bf10f6172784887a77",
         "source_sha256": "0719e0b2be638a437536da4ec636bc96c1f7521320bdc515d8b2ec5416b671a5"
+      }
+    },
+    "FCMO-93DC7BF13995": {
+      "claims": {
+        "locale_sha256": "eb9ce249b7fa92e3a95ab5f82cad0cedfb0b46cd0b8e25ecae4a99c5e30312af",
+        "source_sha256": "0d2434ace136c31ec802f1f4067f549e96d09dcb9463ff59d4c4898d807e4231"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "403cd551e8edc896c3defa4212597f3e688c6c68f283a0f9cc2445141d7f707e",
+        "source_sha256": "6b6da45ed2ae2a8d94b43a73035ab6ce73de6dcbd4ed3fc439fe944759528ab4"
+      },
+      "importance_rationale": {
+        "locale_sha256": "cd30ff5aa6c0a01e303dcfcf160e178e79cabc6c255fddbce9c842019c21ccc5",
+        "source_sha256": "8cf1ecbaa27333d9790d82341884dbc3e90c6ed9372efb5a58812691243d64d4"
+      },
+      "limitations": {
+        "locale_sha256": "8deae38bc1c6e4d662751514c120c05bc0bc4730d1d1e8ea300d6320afa59181",
+        "source_sha256": "38d1806aec1a3ea7e8f7cbfbe3a261c5d9f48902ba22fa5eeb3f500ad35ce1a7"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "78d2ead470623ae34572ad162f484366dbe7acc7b50ec19170392e01bd909cfe",
+        "source_sha256": "5dc755b85271553ea8b767dbc83dd4a80919fd1c069e55e33828fb7d2af68fd9"
+      },
+      "technical": {
+        "locale_sha256": "27c2293c7a3573a24f94f9a115dee18b845a7d7a698384a240e381874b2aed04",
+        "source_sha256": "52ffd509ecd57e6fb2b6a81474ebc0eb82cef8d27224b88ac9ef6557291a3e63"
+      },
+      "title": {
+        "locale_sha256": "a993bde0092b10b248e716d2b2bbe0501d38fa2fa48d8d280080a97af335bea0",
+        "source_sha256": "c29bddadd0dc1aee98f1b88712989e13b610bb953ccf5ce2f415e5afae5359ed"
+      },
+      "why_it_matters": {
+        "locale_sha256": "fe4774fe620793eaab4996015bfa9fd5b00edfcdc5598a65c97b1cdc16ab2202",
+        "source_sha256": "201488655b92574e2b096bb11ec17a1e8fb04855a1857d4c2e8d3d7c59cdf8c9"
       }
     },
     "FCMO-94EBAAEAD595": {

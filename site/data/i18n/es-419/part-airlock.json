@@ -1,6 +1,6 @@
 {
   "canonical_locale": "en",
-  "canonical_source_sha256": "ac08653ab2f89c77d24c5d185da425f1d8937c507576a1fb4552edd0631eda92",
+  "canonical_source_sha256": "4c6f7c7273803ac8b6044a6fefd6887972c31995859cd0e9b8c61a405aff0892",
   "generated_from": "ARB airlock; editorial wording authored upstream",
   "locale": "es-419",
   "records": {
@@ -8967,6 +8967,61 @@
       "title": "Un preprint informa que las memorias alineadas con respuestas reducen el costo de inferencia con contextos largos",
       "why_it_matters": "Si las mejoras informadas en costo y calidad se mantienen con una localización práctica de ventanas y diversas cargas de trabajo, una ruta de memoria suave entrenada podría reducir el costo de decodificación con contexto largo sin cambiar los pesos del decodificador desplegado. Las mejoras dependen de los benchmarks y el hardware, los resultados de Mistral con datos completos retroceden en dos tareas y el estudio no demuestra costos de producción ni reproducción independiente."
     },
+    "FCMO-68442D8670DE": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "X-AgentRed construye un grafo dirigido que vincula los efectos de una herramienta con los requisitos de ejecución de otras; muestrea rutas entre servicios y usa la retroalimentación de ejecución para diversificar las rutas dañinas y reparar las que quedan bloqueadas."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En una simulación con 30 servicios y 914 herramientas, los autores informan tasas medias de rutas dañinas de 19.2% para X-AgentRed, 10.5% para STAC y 2.7% para TRACE en cuatro agentes evaluados, con 250 escenarios por agente."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan una cobertura media de herramientas de 41.5% para X-AgentRed, frente a 13.9% para STAC y 23.7% para TRACE. Cada configuración tuvo una sola ejecución en el simulador fijo; la agregación de jueces cambia de manera importante la tasa reportada."
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "El registro de arXiv identifica la versión 1 y el envío del 2026-10-09 a las 17:34 UTC. Esto confirma la existencia y fecha del preprint, no una validación independiente de sus resultados."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se examinó una reproducción independiente de los resultados de una ejecución por configuración ni de las etiquetas de los jueces.",
+          "kind": "reproduction_missing",
+          "state": "open"
+        },
+        {
+          "description": "El entorno evaluado es simulado; se desconoce si los resultados se transfieren a integraciones reales cambiantes y a salvaguardas de agentes desplegados.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si el resultado reportado se generaliza más allá de este ecosistema simulado y de una sola ejecución, la exploración guiada por grafos podría mejorar de forma sustancial la detección de daños no intencionales en agentes personales que combinan servicios. La evidencia es un resultado de benchmark informado por los autores, no una estimación del riesgo en producción.",
+      "limitations": [
+        "Cada configuración se evaluó en una sola ejecución; no se estima la variabilidad entre ejecuciones.",
+        "El banco de pruebas es un ecosistema simulado, no agentes conectados a servicios de producción; los resultados no establecen prevalencia ni riesgo en el mundo real.",
+        "La tasa principal requiere acuerdo entre dos jueces de modelos. Aceptar el dictamen de cualquiera eleva las tasas entre 15.2 y 30.4 puntos porcentuales; el artículo describe esto como sensibilidad, no como exactitud de los jueces.",
+        "Las trayectorias ejecutadas más largas y las diferencias de longitud entre métodos dificultan interpretar las comparaciones de cobertura y rutas dañinas.",
+        "En esta revisión no se realizó reproducción independiente ni inspección de artefactos."
+      ],
+      "relationships": [],
+      "summary": "El preprint X-AgentRed, de octubre de 2026, usa un grafo de efectos y requisitos de herramientas para generar escenarios de ataque entre servicios; luego aprovecha la retroalimentación de ejecución para diversificar rutas dañinas y reparar rutas bloqueadas. En una ejecución por configuración, con cuatro agentes objetivo y un ecosistema simulado de 30 servicios y 914 herramientas, los autores informan una tasa de rutas dañinas de 19.2%, frente a 10.5% para STAC y 2.7% para TRACE. La cobertura media de herramientas fue de 41.5%, frente a 13.9% y 23.7%. Son resultados del simulador informados por los autores, no estimaciones del riesgo real de agentes.",
+      "technical": {
+        "claimed_result": "Los autores informan tasas medias de rutas dañinas de 19.2% para X-AgentRed, 10.5% para STAC y 2.7% para TRACE, y coberturas medias de herramientas de 41.5%, 13.9% y 23.7%, respectivamente.",
+        "demonstrated_result": "Se inspeccionaron el texto completo v1 de arXiv, el protocolo experimental, los resultados reportados y las limitaciones. No se realizó una reproducción independiente.",
+        "implementation_status": "该预印本介绍了方法和模拟实验。本次未运行代码、独立复现，也未在已部署服务中评测。",
+        "mechanism": "El sistema representa los requisitos de ejecución, efectos y posibles daños de cada herramienta. Un modelo de lenguaje estima vínculos entre efectos y requisitos para formar el grafo de dependencias HarmFlow; recorridos del grafo generan escenarios. Tras la ejecución, sustituye herramientas adyacentes para diversificar rutas dañinas y ajusta requisitos y pasos previos para reparar rutas bloqueadas.",
+        "novelty": "结合显式跨工具依赖图与执行反馈驱动的扩展、修复，在模拟服务生态中搜索工具组合。",
+        "regime": "Evaluación de los autores con ToolSimulator, 30 servicios y 914 herramientas; cuatro modelos objetivo; 250 escenarios por objetivo; una ejecución por configuración. Dos jueces de modelos deben coincidir para asignar las etiquetas principales de daño.",
+        "reproducibility": "检查了论文报告的评测。每种配置仅运行一次，无法估计不确定性；本次未独立运行，也未审计外部模拟器。未检查 arXiv 关联项目页中的可执行工件。",
+        "strongest_baseline": "STAC es el baseline con mayor tasa media de rutas dañinas (10.5%); TRACE supera a STAC en cobertura media (23.7% frente a 13.9%). X-AgentRed informa 19.2% y 41.5%, respectivamente. Las comparaciones provienen de una sola ejecución por configuración en el simulador fijo de los autores."
+      },
+      "title": "El ataque guiado por grafos encuentra más rutas dañinas entre servicios en un ecosistema simulado de agentes personales",
+      "why_it_matters": "Un grafo de dependencias puede revelar combinaciones de acciones individualmente benignas que los ataques basados en prompts podrían pasar por alto. La ventaja reportada en el benchmark hace de este un método de prueba notable para agentes que usan servicios, aunque una sola ejecución simulada y las etiquetas sensibles al juez dejan incierta su relevancia en campo."
+    },
     "FCMO-6851A79A85AC": {
       "claims": [
         {
@@ -12461,6 +12516,66 @@
       },
       "title": "ScienceBuddy reporta mejoras al coevolucionar un arnés científico y un modelo de lenguaje",
       "why_it_matters": "Si se replica con tareas científicas creadas de forma independiente y verificación de resultados, la coevolución de un arnés de investigación y su modelo de tareas podría mejorar la ejecución de tareas. La evidencia actual establece un resultado acotado de benchmark ejecutado por los autores; no muestra que el sistema haya hecho descubrimientos científicos ni que el repositorio mantenido actualmente reproduzca el caso del artículo."
+    },
+    "FCMO-93DC7BF13995": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Para una solución de Leray–Hopf sin forzamiento en el toro tridimensional periódico y con viscosidad fija, el artículo afirma que el defecto positivo de energía durante una ventana temporal equivale a una cota inferior positiva, uniforme a partir de cierta escala, para el flujo integrado en el tiempo a través de capas de Fourier diádicas."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan pruebas formales de la reducción y de condiciones necesarias relacionadas en Lean 4/Mathlib. Indican expresamente que la biblioteca no contiene un objeto de Navier–Stokes y no conecta la reducción con una teoría de Leray–Hopf formalizada."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El artículo informa 12 simulaciones pseudoespectrales con resoluciones de 128³ y 256³. Las simulaciones se acercan a la condición de flujo mínimo temporal, pero pierden la cota común hacia la escala de Kolmogórov; los autores señalan que estos diagnósticos finitos de punto flotante no prueban nada sobre una solución verdadera."
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION",
+          "text": "El artículo indica que el problema de defecto positivo sin forzamiento sigue abierto y que las construcciones forzadas de Navier–Stokes y las construcciones forzadas o invíscidas de Euler que analiza no pertenecen a la clase objetivo."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "El paquete Lean actual enlazado y el alcance exacto de sus teoremas e importaciones no se han compilado ni auditado de forma independiente; el artículo identifica Lean 4.33.0 y Mathlib 4.33.0, pero indica que no hay un objeto de Navier–Stokes en la biblioteca.",
+          "kind": "reproduction_missing",
+          "state": "open"
+        },
+        {
+          "description": "No existe una derivación formal que conecte las hipótesis abstractas sobre sucesiones y funciones de la reducción con una solución de Leray–Hopf sin forzamiento de Navier–Stokes.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "Nadie ha reproducido de manera independiente los diagnósticos de flujo a resolución finita de los autores; estos tampoco establecen la cota uniforme de escalas finas.",
+          "kind": "reproduction_missing",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si la reducción formal y los criterios de búsqueda del artículo son correctos y útiles, aportan una forma concreta de orientar el trabajo computacional sobre un problema abierto importante de regularidad. Es un avance metodológico notable; la solución sin forzamiento con defecto positivo sigue sin existir y falta el puente formal a objetos de Navier–Stokes.",
+      "limitations": [
+        "El artículo no construye una singularidad de Navier–Stokes sin forzamiento ni resuelve el problema de defecto positivo, que reconoce como abierto.",
+        "La biblioteca Lean no contiene un objeto de Navier–Stokes; aún no se ha establecido el puente entre el teorema abstracto sobre sucesiones y funciones y los objetos formalizados de Leray–Hopf.",
+        "Las 12 simulaciones de resolución finita usan aritmética de punto flotante y no pueden demostrar la condición uniforme en escalas arbitrariamente finas ni acreditar un defecto positivo.",
+        "Esta revisión no compiló el paquete Lean actual, no auditó la prueba de manera independiente ni reprodujo las simulaciones.",
+        "Las condiciones necesarias del artículo no son suficientes para producir un defecto positivo."
+      ],
+      "relationships": [],
+      "summary": "Un preprint de septiembre de 2026 define un defecto de energía positivo para una solución de Leray–Hopf sin forzamiento en el cubo periódico y a viscosidad fija, y presenta una reducción formal en Lean 4: el defecto equivale a una cota inferior positiva y uniforme, en el tiempo promediado, del flujo de energía a través de todas las capas de Fourier diádicas suficientemente finas. El artículo propone condiciones necesarias de admisibilidad y sostiene que una computación de Galerkin finita no puede demostrar la cota uniforme requerida; en sus 12 simulaciones pseudoespectrales a 128³ y 256³ se aproxima la condición temporal, pero la cota no se mantiene hacia la escala de Kolmogórov. Esta es una especificación matemática acotada para orientar búsquedas, no un resultado de singularidad sin forzamiento. Los autores indican que su biblioteca Lean no contiene un objeto de Navier–Stokes ni conecta la reducción con una teoría de Leray–Hopf formalizada por separado; el problema objetivo sigue abierto.",
+      "technical": {
+        "claimed_result": "Los autores informan la reducción mediante el balance de capas, varias condiciones necesarias para un posible defecto positivo y 12 diagnósticos pseudoespectrales a 128³/256³. La condición temporal casi se satisface, pero la condición de escalas finas falla al acercarse a la escala de Kolmogórov.",
+        "demonstrated_result": "El preprint, su fecha, su alcance y sus limitaciones declaradas pueden consultarse directamente. Esta revisión volvió a leer el HTML completo y el README del repositorio enlazado, pero no compiló el paquete Lean actual, ejecutó las simulaciones ni verificó de forma independiente el argumento matemático.",
+        "implementation_status": "Hay un preprint y un repositorio público con código fuente Lean. Esta revisión no compiló el paquete actual ni verificó el resultado de forma independiente.",
+        "mechanism": "El artículo considera el defecto de energía de una solución de Leray–Hopf sin forzamiento y a viscosidad fija durante una ventana temporal, deriva un balance de energía truncado por capas y relaciona el límite del flujo diádico integrado con ese defecto. Un defecto positivo equivale entonces a una cota inferior positiva común del flujo promediado para todas las capas suficientemente finas. El desarrollo Lean formaliza las implicaciones indicadas sobre sucesiones y funciones reales abstractas bajo ciertas hipótesis; el artículo no codifica un objeto de solución de Navier–Stokes.",
+        "novelty": "Una reducción formalizada del objetivo de defecto positivo a un criterio uniforme de flujo diádico promediado, junto con criterios de admisibilidad para la búsqueda y una explicación explícita de por qué una computación de Galerkin finita no puede establecer la condición uniforme en todas las escalas.",
+        "regime": "Navier–Stokes incompresible sin forzamiento en el toro tridimensional periódico y a viscosidad fija, para una solución de Leray–Hopf desde datos suaves. Los diagnósticos numéricos finitos usan la configuración pseudoespectral de los autores a 128³ y 256³; la reducción formal trata sucesiones y funciones abstractas e incorpora las condiciones de Navier–Stokes como hipótesis.",
+        "reproducibility": "El artículo enlaza un repositorio Lean 4.33.0/Mathlib 4.33.0 e informa 12 simulaciones espectrales. Esta revisión no compiló el paquete enlazado; el artículo dice que no está conectado a una formalización existente de la teoría de Leray–Hopf. No se reprodujeron los resultados numéricos de manera independiente.",
+        "strongest_baseline": "El artículo compara la cota de flujo uniforme requerida entre escalas con sus propias simulaciones de resolución finita: estas casi satisfacen la condición temporal, pero el flujo disminuye en las capas más finas cerca de la escala de Kolmogórov. No se incluye reproducción independiente ni una comparación computacional equivalente."
+      },
+      "title": "Un objetivo de búsqueda formalizado en Lean para el problema abierto de Navier–Stokes sin forzamiento",
+      "why_it_matters": "Un objetivo preciso de flujo uniforme entre escalas y criterios explícitos de admisibilidad pueden ayudar a distinguir diagnósticos numéricos útiles de evidencia de una singularidad sin forzamiento. El aporte trata sobre cómo buscar una solución a un problema abierto importante; no resuelve ese problema y aún falta el puente formal hacia objetos de Navier–Stokes."
     },
     "FCMO-94EBAAEAD595": {
       "claims": [
@@ -26869,6 +26984,48 @@
         "source_sha256": "a2b4ae8fa0e08ae1200904c5d275988b56557aacdb715154e5b8b96c5e33d6e0"
       }
     },
+    "FCMO-68442D8670DE": {
+      "claims": {
+        "locale_sha256": "411d6ae8926bd4f1d75583f21cf7e83ab38b1076ba389bc37eee488f086b3ba6",
+        "source_sha256": "dca5845f6581bfbc09572af4b8b99199dd1fcd2b2b98e80eb7d65de74d2f76cb"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "fc7ec4f98b51a022dfd97739c84d10813ad8b02dcafe2f229b9ff5f943f9c901",
+        "source_sha256": "4d4b543e9e1685e95f84c13f988e56bb965b55272cf96860855a047eae56e814"
+      },
+      "importance_rationale": {
+        "locale_sha256": "931cc9794549d6549ef7b8d57544d9fa29ef2868966c80b9dc019532195212f7",
+        "source_sha256": "ead4d68ecfdf5ca9b17c44ec65bcfcc3b284a9d5d4bc3b79fe8828a312065730"
+      },
+      "limitations": {
+        "locale_sha256": "11ef08670a4baec0f452302cba879752947737f9c37ab5452aa9e8598372c371",
+        "source_sha256": "6bdcd22115bbea9da076804930b05da3d2128cc6d0431e3ca2f07bb7ac81c724"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "257a8f9b7d74b24950c5d351aceeebdcdf2cc22fade8d405118f8827c40e9c42",
+        "source_sha256": "03f3e7f3ffc1c8d7120dd91b2a4c233e7cc302a3b3c72fbf0c80f0cd901dbbf0"
+      },
+      "technical": {
+        "locale_sha256": "1b988adbd166abf49573668e552134ed3bbbf0c7d7d108215763d6b277a011e3",
+        "source_sha256": "aab8f5c8f313a361c78e86e171bedce2c9bd8a540faa066c1491046044eeedaa"
+      },
+      "title": {
+        "locale_sha256": "61be0b8e7fe35f12e67d2c2ac62e370867e8116958c07cd218d00f8b9bfe7c9a",
+        "source_sha256": "84088f1187f639927f69bc7c96039dfabd4df34499f614d4a399c285f9d06f35"
+      },
+      "why_it_matters": {
+        "locale_sha256": "630a833ab221705fa5e12143adeb80300264f31afba10c54da362de2094c092f",
+        "source_sha256": "03b0138bfb77eb9145f2c8c468c3d4016b41fadd73207195416e739e50d55940"
+      }
+    },
     "FCMO-6851A79A85AC": {
       "claims": {
         "locale_sha256": "d69afc4df943ebfaf199ea1896e6426c41ac8f0b0e4513a48de2558d7efb83fc",
@@ -29443,6 +29600,48 @@
       "why_it_matters": {
         "locale_sha256": "b77140aa29dede84f17cec66dd1b794365a938203b499bb68944963f8e282af6",
         "source_sha256": "0719e0b2be638a437536da4ec636bc96c1f7521320bdc515d8b2ec5416b671a5"
+      }
+    },
+    "FCMO-93DC7BF13995": {
+      "claims": {
+        "locale_sha256": "9e30a934870346e14bd4a5aa9b14788df6553e25c4123ae689e4738cfdcdd49f",
+        "source_sha256": "0d2434ace136c31ec802f1f4067f549e96d09dcb9463ff59d4c4898d807e4231"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "db5419e065cdc77d1ae87ef41f6368a3b19f340ba26468e4567fc072da7a941b",
+        "source_sha256": "6b6da45ed2ae2a8d94b43a73035ab6ce73de6dcbd4ed3fc439fe944759528ab4"
+      },
+      "importance_rationale": {
+        "locale_sha256": "fa88ecdff1f8688a328d327834552b0c69127aa650a0a07c5a2dac32682c8b98",
+        "source_sha256": "8cf1ecbaa27333d9790d82341884dbc3e90c6ed9372efb5a58812691243d64d4"
+      },
+      "limitations": {
+        "locale_sha256": "21b1576658afaee0735e2aeea1173ed41daa13b38a7c8c95f1b2812ee16cc4df",
+        "source_sha256": "38d1806aec1a3ea7e8f7cbfbe3a261c5d9f48902ba22fa5eeb3f500ad35ce1a7"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "6aca1473b58d9133cf5a2463c10fc3a2ea7fb198afcb3af5ce480aceb0db5981",
+        "source_sha256": "5dc755b85271553ea8b767dbc83dd4a80919fd1c069e55e33828fb7d2af68fd9"
+      },
+      "technical": {
+        "locale_sha256": "14a6c0fcabf873e66fc7d68b7bf51727b3154145da67064c7c5e914e80d0f997",
+        "source_sha256": "52ffd509ecd57e6fb2b6a81474ebc0eb82cef8d27224b88ac9ef6557291a3e63"
+      },
+      "title": {
+        "locale_sha256": "c589c8525680e05f30c9b221c20139cdfc4ac8ff169742375bf434e415997143",
+        "source_sha256": "c29bddadd0dc1aee98f1b88712989e13b610bb953ccf5ce2f415e5afae5359ed"
+      },
+      "why_it_matters": {
+        "locale_sha256": "b555bb40875ab32a49475379eef7f0394bbe90bc0232097341e5cbeb4959a6ae",
+        "source_sha256": "201488655b92574e2b096bb11ec17a1e8fb04855a1857d4c2e8d3d7c59cdf8c9"
       }
     },
     "FCMO-94EBAAEAD595": {
