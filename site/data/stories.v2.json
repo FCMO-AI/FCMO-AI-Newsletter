@@ -1,7 +1,7 @@
 {
   "schema": "fcmo-stories-v2",
-  "generated_at": "2026-10-14T06:03:21Z",
-  "release_id": "newswire-334e55b27ce17cc72cff0d60",
+  "generated_at": "2026-10-14T07:02:53Z",
+  "release_id": "newswire-a26ba1623d96beac73c7e171",
   "canonical_locale": "en",
   "locales": [
     "en",
@@ -40,6 +40,765 @@
     "2026-10-13"
   ],
   "stories": [
+    {
+      "id": "FCMO-CCFA19CB7927",
+      "slug": "recap-uses-dependency-aware-step-credit-to-reduce-reasoning-tokens-in",
+      "url_date": "2026-10-14",
+      "kind": "development",
+      "status": "live",
+      "beat": "research",
+      "desk": "reasoning_posttraining",
+      "title": "RECAP uses dependency-aware step credit to reduce reasoning tokens in math models",
+      "headline": "RECAP uses dependency-aware step credit to reduce reasoning tokens in math models",
+      "dek": "The arXiv preprint introduces RECAP, which gives GRPO training step-level credit using LLM-annotated semantic dependencies plus a gold-answer likelihood signal.",
+      "summary": "The arXiv preprint introduces RECAP, which gives GRPO training step-level credit using LLM-annotated semantic dependencies plus a gold-answer likelihood signal. On Qwen2.5-Math-7B, the authors report 2.0–3.7 percentage-point pass@1 gains and 8–31% fewer reasoning tokens than GRPO across GSM8K, MATH-500, AIME 2024 and AIME 2025. Results on DeepSeek-R1-Distill-Qwen-7B are mixed, so the paper does not establish a uniform cross-model improvement. These are author-reported experiments, not independently reproduced; the tested regime is limited to two 7B math models and four benchmarks.",
+      "why_it_matters": "Reasoning tokens can dominate inference budgets for long mathematical traces. If RECAP’s reported trade-off reproduces and transfers, it could change post-training choices by rewarding steps according to both their downstream use and their progress toward a correct answer. The current paper supports a bounded research result, not a general claim that dependency-aware credit improves reasoning across models or tasks.",
+      "importance_rationale": "If the reported efficiency gains generalize beyond the tested math models and datasets, dependency-aware step credit could improve reasoning post-training choices by lowering inference tokens while preserving or improving accuracy. Four benchmark results on two 7B models make this notable, but the evidence is author-reported and the regime remains narrow.",
+      "technical": {
+        "claimed_result": "For Qwen2.5-Math-7B, the authors report RECAP pass@1 at 87.7% on GSM8K, 74.2% on MATH-500, 26.7% on AIME 2024 and 12.5% on AIME 2025, with lower completion tokens than GRPO on all four. The paper summarizes gains of 2.0–3.7 percentage points and token reductions of 8–31% relative to GRPO. For DeepSeek-R1-Distill-Qwen-7B, token use is lower than GRPO, but accuracy gains are not uniform and DDCA/LEASH lead on several benchmarks.",
+        "compute_or_cost": "The paper reports reasoning-token counts, not wall-clock inference, energy or cost per solved task. Training and annotation/scoring overhead were not independently measured in this review.",
+        "demonstrated_result": "The inspected preprint describes the method, four benchmark comparisons for each of two 7B models, and author-reported run variability. the research desk did not reproduce the training or evaluation.",
+        "mechanism": "RECAP segments each generated trace into steps, uses an LLM to annotate support, context and restatement dependencies in a directed acyclic graph, propagates responsibility backward from the final answer, and combines that structural credit with changes in gold-answer log-likelihood to reshape GRPO advantages.",
+        "regime": "Author-run mathematical reasoning experiments using Qwen2.5-Math-7B and DeepSeek-R1-Distill-Qwen-7B across GSM8K, MATH-500, AIME 2024 and AIME 2025. These results do not establish performance on general reasoning, coding, multilingual tasks or larger frontier models.",
+        "reproducibility": "The paper gives algorithm, training/evaluation details and prompts in its appendices and reports eight-run variability for the main table. No code/data artifact was verified here, and no independent reproduction was performed.",
+        "strongest_baseline": "GRPO is the direct baseline used for the reported 2.0–3.7 point accuracy and 8–31% token comparison on Qwen2.5-Math-7B. Other methods sometimes score higher, and results on DeepSeek-R1-Distill-Qwen-7B are mixed."
+      },
+      "importance_tier": "Notable",
+      "development_type": "paper",
+      "event_at": "2026-09-22T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-14T07:02:40Z",
+      "updated_at": "2026-10-14T07:02:40Z",
+      "importance": 5,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": true,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "DEMONSTRATED",
+            "text": "The authors introduce RECAP, a GRPO-based reasoning-training method that combines backward-propagated responsibility on LLM-annotated semantic dependency graphs with step efficacy measured by changes in gold-answer log-likelihood. The method does not require a separately trained process reward model or preconstructed concise traces."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "On Qwen2.5-Math-7B across GSM8K, MATH-500, AIME 2024 and AIME 2025, the authors report RECAP improves pass@1 by 2.0–3.7 percentage points and reduces reasoning tokens by 8–31% relative to GRPO; the paper reports eight-run variability for its main table."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "The paper also evaluates DeepSeek-R1-Distill-Qwen-7B. RECAP uses fewer tokens than GRPO across the four reported benchmarks, but accuracy is mixed and stronger baselines outperform it on several cells; this does not establish a uniform gain across models."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "The authors’ trace analysis attributes token savings primarily to fewer reasoning operations and less dead-end reasoning rather than shorter expression; their dependency-edge labels and analysis use model-assisted annotation."
+          }
+        ],
+        "limitations": [
+          "The source is an author-reported arXiv preprint; no independent reproduction was performed.",
+          "The clearest accuracy-and-token result is on Qwen2.5-Math-7B and four math benchmarks; DeepSeek-R1-Distill-Qwen-7B results are mixed.",
+          "The method depends on LLM-annotated semantic dependencies and answer likelihood, adding annotation and model-scoring cost not summarized here as end-to-end deployment economics.",
+          "The reported reduction is in reasoning tokens; it does not by itself establish lower wall-clock latency, energy use or cost per solved task.",
+          "No code artifact or independent baseline audit was verified in this activation."
+        ],
+        "gaps": [
+          {
+            "kind": "missing_artifact",
+            "description": "No publicly linked executable implementation or data artifact was verified during this review, and the research desk did not reproduce the training or evaluation results."
+          },
+          {
+            "kind": "other",
+            "description": "Evaluation is confined to two 7B math-oriented models and four mathematics benchmarks; effectiveness on general reasoning, coding, multilingual or frontier-scale models is unknown."
+          },
+          {
+            "kind": "other",
+            "description": "Semantic dependency labels rely on LLM-assisted annotation; annotation error and sensitivity to annotator model may affect the credit signal."
+          }
+        ],
+        "contradictory": [
+          "On DeepSeek-R1-Distill-Qwen-7B, RECAP is not uniformly more accurate than GRPO or the strongest compared methods; the paper’s claimed gains are model- and benchmark-dependent."
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://arxiv.org/abs/2609.27156",
+          "domain": "arxiv.org",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "George Mason University",
+        "Amazon"
+      ],
+      "topics": [
+        "reasoning-post-training",
+        "grpo",
+        "credit-assignment",
+        "reasoning-efficiency",
+        "mathematical-reasoning",
+        "inference-tokens"
+      ],
+      "regions": [
+        "GLOBAL"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-CCFA19CB7927.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: RECAP uses dependency-aware step credit to reduce reasoning tokens in math models"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "RECAP usa crédito por pasos dependiente de la estructura y reduce tokens de razonamiento en modelos matemáticos",
+            "summary": "El preprint de arXiv presenta RECAP, que asigna crédito a pasos de razonamiento durante el entrenamiento GRPO mediante dependencias semánticas anotadas por un modelo y una señal basada en la probabilidad de la respuesta correcta. Con Qwen2.5-Math-7B, los autores informan mejoras de 2.0–3.7 puntos porcentuales en pass@1 y 8–31% menos tokens de razonamiento que GRPO en GSM8K, MATH-500, AIME 2024 y AIME 2025. Los resultados con DeepSeek-R1-Distill-Qwen-7B son mixtos, por lo que el artículo no establece una mejora uniforme entre modelos. Son experimentos comunicados por los autores, sin reproducción independiente; el estudio abarca dos modelos matemáticos de 7B y cuatro benchmarks.",
+            "importance_rationale": "Si las mejoras de eficiencia reportadas se generalizan más allá de los modelos y conjuntos matemáticos evaluados, el crédito por pasos que considera dependencias podría mejorar las decisiones de posentrenamiento al reducir tokens de inferencia y conservar o elevar la precisión. Cuatro benchmarks en dos modelos de 7B hacen que el resultado sea relevante, aunque la evidencia procede de los autores y el alcance sigue siendo limitado.",
+            "why_it_matters": "Los tokens de razonamiento pueden dominar el presupuesto de inferencia en trazas matemáticas extensas. Si el equilibrio entre precisión y eficiencia informado por RECAP se reproduce y transfiere, podría cambiar el posentrenamiento al recompensar los pasos según su utilidad posterior y su avance hacia una respuesta correcta. El artículo respalda un resultado de investigación acotado, no una afirmación general de mejora entre modelos o tareas.",
+            "technical": {
+              "claimed_result": "Para Qwen2.5-Math-7B, los autores informan pass@1 de RECAP de 87.7% en GSM8K, 74.2% en MATH-500, 26.7% en AIME 2024 y 12.5% en AIME 2025, con menos tokens de finalización que GRPO en los cuatro. El artículo resume mejoras de 2.0–3.7 puntos porcentuales y reducciones de 8–31% en tokens frente a GRPO. En DeepSeek-R1-Distill-Qwen-7B, el uso de tokens es menor que con GRPO, pero las mejoras de precisión no son uniformes y DDCA/LEASH superan a RECAP en varios benchmarks.",
+              "compute_or_cost": "El artículo informa conteos de tokens de razonamiento, no latencia de inferencia, energía ni costo por tarea resuelta. En esta revisión no se midieron de forma independiente el entrenamiento ni los costos de anotación y puntuación.",
+              "demonstrated_result": "El preprint consultado describe el método, comparaciones en cuatro benchmarks con dos modelos de 7B y variabilidad informada por los autores. el equipo de investigación no reprodujo el entrenamiento ni la evaluación.",
+              "mechanism": "RECAP divide cada traza generada en pasos, usa un modelo de lenguaje para anotar dependencias de apoyo, contexto y repetición en un grafo acíclico dirigido, propaga responsabilidad desde la respuesta final hacia atrás y combina ese crédito estructural con los cambios en la log-verosimilitud de la respuesta correcta para ajustar las ventajas de GRPO.",
+              "regime": "Experimentos de razonamiento matemático informados por los autores con Qwen2.5-Math-7B y DeepSeek-R1-Distill-Qwen-7B en GSM8K, MATH-500, AIME 2024 y AIME 2025. Estos resultados no establecen desempeño en razonamiento general, programación, tareas multilingües ni modelos de frontera más grandes.",
+              "reproducibility": "El artículo presenta el algoritmo, los detalles de entrenamiento y evaluación y los prompts en sus apéndices, e informa variabilidad de ocho ejecuciones para la tabla principal. Aquí no se verificaron código ni datos públicos y no se realizó una reproducción independiente.",
+              "strongest_baseline": "GRPO es la comparación directa usada para informar mejoras de precisión de 2.0–3.7 puntos y reducciones de 8–31% en tokens con Qwen2.5-Math-7B. Otros métodos obtienen puntuaciones superiores en algunas tareas y los resultados de DeepSeek-R1-Distill-Qwen-7B son mixtos."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "El artículo presenta RECAP, un método de entrenamiento basado en GRPO que combina la responsabilidad propagada hacia atrás en grafos de dependencias semánticas anotados por un modelo de lenguaje con la eficacia de cada paso, medida mediante cambios en la log-verosimilitud de la respuesta correcta. No requiere un modelo de recompensa de proceso entrenado por separado ni trazas concisas preconstruidas."
+                },
+                {
+                  "text": "Con Qwen2.5-Math-7B en GSM8K, MATH-500, AIME 2024 y AIME 2025, los autores informan que RECAP mejora pass@1 entre 2.0 y 3.7 puntos porcentuales y reduce entre 8 y 31% los tokens de razonamiento frente a GRPO. La tabla principal informa variabilidad de ocho ejecuciones."
+                },
+                {
+                  "text": "El artículo también evalúa DeepSeek-R1-Distill-Qwen-7B. RECAP usa menos tokens que GRPO en los cuatro benchmarks reportados, pero la precisión varía y algunos métodos comparados más fuertes lo superan en varias tareas; no se demuestra una mejora uniforme entre modelos."
+                },
+                {
+                  "text": "El análisis de trazas de los autores atribuye el ahorro de tokens principalmente a menos operaciones de razonamiento y menos razonamiento sin salida, no a una expresión más breve. Las etiquetas de dependencia y el análisis usan anotación asistida por modelos."
+                }
+              ],
+              "limitations": [
+                "La fuente es un preprint de arXiv escrito por sus autores; no se realizó una reproducción independiente.",
+                "El resultado más claro de precisión y uso de tokens corresponde a Qwen2.5-Math-7B y cuatro benchmarks matemáticos; los resultados de DeepSeek-R1-Distill-Qwen-7B son mixtos.",
+                "El método depende de dependencias semánticas anotadas por un modelo y de la puntuación de respuestas; los costos de anotación y evaluación no se resumieron aquí como economía integral de despliegue.",
+                "La reducción reportada corresponde a tokens de razonamiento; por sí sola no demuestra menor latencia, consumo energético ni costo por tarea resuelta.",
+                "En esta activación no se verificó ningún artefacto de código ni reproducción independiente."
+              ],
+              "gaps": [
+                {
+                  "description": "Durante esta revisión no se verificó una implementación ejecutable ni datos públicos, y el equipo de investigación no reprodujo los resultados de entrenamiento o evaluación."
+                },
+                {
+                  "description": "La evaluación se limita a dos modelos matemáticos de 7B y cuatro benchmarks de matemáticas; se desconoce su eficacia en razonamiento general, programación, tareas multilingües o modelos de frontera de mayor tamaño."
+                },
+                {
+                  "description": "Las etiquetas de dependencias semánticas usan anotación asistida por modelos; los errores y la sensibilidad al modelo anotador podrían afectar la señal de crédito."
+                }
+              ],
+              "contradictory": [
+                "En DeepSeek-R1-Distill-Qwen-7B, RECAP no supera sistemáticamente a GRPO ni a los métodos comparados más fuertes en precisión; las mejoras informadas dependen del modelo y del benchmark."
+              ]
+            },
+            "dek": "El preprint de arXiv presenta RECAP, que asigna crédito a pasos de razonamiento durante el entrenamiento GRPO mediante dependencias semánticas anotadas por un modelo y una señal basada en la probabilidad de la respuesta correcta."
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb",
+            "evidence.contradictory": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "RECAP以依赖关系感知的逐步信用分配降低数学模型的推理token",
+            "summary": "这篇arXiv预印本提出RECAP，在GRPO训练中结合模型标注的语义依赖关系和正确答案似然信号，为不同推理步骤分配信用。在Qwen2.5-Math-7B上，作者报告其在GSM8K、MATH-500、AIME 2024和AIME 2025上的pass@1提高2.0–3.7个百分点，推理token比GRPO减少8–31%。DeepSeek-R1-Distill-Qwen-7B上的结果不一致，因此论文没有证明跨模型的普遍提升。这些是作者报告的实验结果，尚未独立复现；评测仅涉及两种7B数学模型和四个基准。",
+            "importance_rationale": "如果报告的效率收益能推广到已测数学模型和数据集之外，考虑依赖关系的逐步信用分配可能在降低推理token的同时保持或提升准确率，从而影响推理后训练方案的选择。两种7B模型和四个基准使该结果具有一定意义，但证据由论文作者报告，适用范围仍然有限。",
+            "why_it_matters": "在较长的数学推理轨迹中，推理token可能占据主要推理预算。如果RECAP报告的精度与效率平衡能够复现并迁移，它可能通过同时奖励步骤的下游作用和对正确答案的推进，改变后训练方案的选择。当前论文支持的是范围有限的研究结果，不能据此声称该方法普遍改善不同模型和任务的推理表现。",
+            "technical": {
+              "claimed_result": "对于Qwen2.5-Math-7B，作者报告RECAP在GSM8K、MATH-500、AIME 2024和AIME 2025上的pass@1分别为87.7%、74.2%、26.7%和12.5%，四项任务的完成token均少于GRPO。论文总结称，相比GRPO，准确率提高2.0–3.7个百分点，token减少8–31%。在DeepSeek-R1-Distill-Qwen-7B上，RECAP的token用量低于GRPO，但准确率收益并不一致，DDCA/LEASH在若干基准上表现更好。",
+              "compute_or_cost": "论文报告推理token数，没有报告推理墙钟延迟、能耗或每个成功任务的成本。本次审阅未独立测量训练、标注或评分开销。",
+              "demonstrated_result": "所审阅的预印本介绍了该方法、两种7B模型的四基准对比以及作者报告的运行波动。本团队没有复现训练或评测。",
+              "mechanism": "RECAP先将生成轨迹切分为多个步骤，再用语言模型在有向无环图中标注支持、上下文和重复关系，并从最终答案向前反向传播结构责任。随后，它将这种结构信用与正确答案对数似然的变化结合，调整GRPO优势值。",
+              "regime": "作者报告的数学推理实验使用Qwen2.5-Math-7B和DeepSeek-R1-Distill-Qwen-7B，覆盖GSM8K、MATH-500、AIME 2024和AIME 2025。该结果不能证明其在通用推理、编程、多语言任务或更大规模前沿模型上的效果。",
+              "reproducibility": "论文给出了算法、训练和评测细节，并在附录中提供提示词；主表报告八次运行的波动。本次未核实公开代码或数据，也未进行独立复现。",
+              "strongest_baseline": "GRPO是Qwen2.5-Math-7B上准确率提高2.0–3.7个百分点、token减少8–31%这一比较的直接基线。其他方法在部分任务上分数更高，DeepSeek-R1-Distill-Qwen-7B的结果则不一致。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "论文提出了RECAP，一种基于GRPO的推理训练方法，将语义依赖图上的反向传播责任与每一步对正确答案的推进效果结合起来；后者通过正确答案对数似然的变化衡量。该方法无需单独训练过程奖励模型，也不需要预先构造简洁推理轨迹。"
+                },
+                {
+                  "text": "在Qwen2.5-Math-7B上，针对GSM8K、MATH-500、AIME 2024和AIME 2025，作者报告RECAP相对GRPO将pass@1提高2.0至3.7个百分点，并减少8至31%的推理token。论文主表报告了八次运行的波动情况。"
+                },
+                {
+                  "text": "论文还评测了DeepSeek-R1-Distill-Qwen-7B。RECAP在四个已报告基准上的token用量均低于GRPO，但准确率结果不一，若干任务上更强的对照方法胜过RECAP；这并未证明跨模型的稳定提升。"
+                },
+                {
+                  "text": "作者的轨迹分析认为，节省token主要来自更少的推理操作和更少的无效推理，而非表达更加简短。其依赖关系标签和分析使用了模型辅助标注。"
+                }
+              ],
+              "limitations": [
+                "来源是作者发布的arXiv预印本；本次未进行独立复现。",
+                "最清晰的准确率与token结果来自Qwen2.5-Math-7B和四个数学基准；DeepSeek-R1-Distill-Qwen-7B的结果不一致。",
+                "该方法依赖模型标注的语义依赖关系和答案似然评分；此处没有将标注与评分开销作为完整部署经济性进行总结。",
+                "报告的下降指标是推理token数，本身不能证明墙钟延迟、能耗或每个成功任务的成本更低。",
+                "本次激活未核实代码工件或独立复现。"
+              ],
+              "gaps": [
+                {
+                  "description": "本次审阅未核实到可执行实现或公开数据，研究团队也未复现训练或评测结果。"
+                },
+                {
+                  "description": "评测仅覆盖两种7B数学模型和四个数学基准；其在通用推理、编程、多语言任务或更大规模前沿模型上的效果未知。"
+                },
+                {
+                  "description": "语义依赖标签依赖模型辅助标注；标注误差以及对标注模型的敏感性可能影响信用分配信号。"
+                }
+              ],
+              "contradictory": [
+                "在DeepSeek-R1-Distill-Qwen-7B上，RECAP的准确率并未始终超过GRPO或最强对照方法；报告的收益取决于模型和基准。"
+              ]
+            },
+            "headline": "RECAP以依赖关系感知的逐步信用分配降低数学模型的推理token"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb",
+            "evidence.contradictory": "arb"
+          }
+        }
+      }
+    },
+    {
+      "id": "FCMO-45D97C054E39",
+      "slug": "ebrl-reports-1-30-3-47-higher-throughput-for-simulated-embodied-rl",
+      "url_date": "2026-10-14",
+      "kind": "development",
+      "status": "live",
+      "beat": "research",
+      "desk": "compute_inference",
+      "title": "EBRL reports 1.30×–3.47× higher throughput for simulated embodied-RL training",
+      "headline": "EBRL reports 1.30×–3.47× higher throughput for simulated embodied-RL training",
+      "summary": "The EBRL preprint describes a system built on RLinf that overlaps rollout with model training, pipelines simulation and generation, schedules environment work asynchronously, and reallocates CPU cores and GPU streaming multiprocessors as stage demands change. Across five simulator-policy configurations and several accelerator testbeds, the authors report 1.30×–3.47× end-to-end trajectory throughput over compared embodied-RL systems. Their ablations report that removing resource allocation, group pipelining or asynchronous execution reduces throughput. These are author-reported simulation results; no independent rerun or physical-robot evaluation was performed here.",
+      "why_it_matters": "Embodied reinforcement learning can be limited by idle CPU/GPU capacity and synchronization between simulation, action generation and training. If EBRL’s reported results reproduce, its scheduler could increase the amount of policy-training work completed per accelerator-hour. Current evidence is from authors’ selected simulation configurations; it does not establish physical-robot transfer or lower cost per successful behavior.",
+      "importance_rationale": "If the reported throughput gains reproduce, asynchronous scheduling and fine-grained CPU/GPU allocation could substantially reduce the compute time needed for embodied-RL rollout and policy updates. Results across five simulated policy-environment configurations and multiple accelerator testbeds make the claim consequential for embodied training infrastructure; evidence remains author-reported and simulation-bound.",
+      "technical": {
+        "claimed_result": "The authors report 1.30×–3.47× end-to-end trajectory throughput across five simulator-policy configurations and H100, A100, H20 and RTX 4090 testbeds. Ablations report about 10% throughput loss without resource allocation, 31% without group pipelining and 26% without asynchronous execution. The abstract also mentions convergence, but its wording is ambiguous and no precise convergence-time claim is included here.",
+        "compute_or_cost": "The paper measures trajectory throughput and system scheduling behavior. It does not establish total cost per successful task, energy savings or end-to-end economic benefit outside the tested workloads.",
+        "demonstrated_result": "The inspected arXiv paper describes the system design, implementation on RLinf and reported simulation experiments. the research desk did not obtain or execute the implementation and does not independently establish the reported performance.",
+        "mechanism": "EBRL profiles simulation, generation and training stages, then jointly allocates CPU cores, GPU SM quotas and batch sizes. An asynchronous pipeline overlaps simulation with action generation and overlaps rollout with training; per-environment scheduling and core rebinding reduce synchronization stalls. Runtime throughput feedback can trigger quota reallocation.",
+        "regime": "Embodied-RL training in selected simulator-policy configurations, including LIBERO, ManiSkill, RoboCasa and BEHAVIOR with policies such as OpenPI, GR00T, OpenVLA-OFT and DreamZero, on specified accelerator pools. Results do not establish physical-robot performance.",
+        "reproducibility": "The paper describes methods, resource controls and evaluation setups, but the research desk did not verify a public source repository, retrieve per-run artifacts or independently reproduce the measurements.",
+        "strongest_baseline": "The paper compares with named prior embodied-RL systems; the reported 1.30×–3.47× range varies by simulator-policy configuration. Baseline tuning and deployment conditions require artifact-level audit."
+      },
+      "importance_tier": "Major",
+      "development_type": "paper",
+      "event_at": "2026-09-23T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-14T07:02:40Z",
+      "updated_at": "2026-10-14T07:02:40Z",
+      "importance": 6,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": false,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "DEMONSTRATED",
+            "text": "The authors describe EBRL, a system built on RLinf that overlaps rollout and training, pipelines simulation with generation across environment groups, schedules environments asynchronously, and allocates CPU cores and GPU streaming multiprocessors according to profiled and observed stage demand."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "Across five simulator-policy configurations and accelerator testbeds including H100, A100, H20 and RTX 4090, the authors report 1.30×–3.47× end-to-end trajectory throughput relative to the compared embodied-RL systems. The paper’s evaluation uses simulation environments, not physical robot tasks."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "Ablations report throughput reductions of approximately 10% without fine-grained resource allocation, 31% without group pipelining and 26% without asynchronous execution; these are author-run system measurements and do not isolate all interaction effects."
+          },
+          {
+            "label": "DEMONSTRATED",
+            "qualifier": "LIMITATION",
+            "text": "The inspected preprint does not establish independent reproduction, deployment economics outside the reported configurations, or throughput gains on physical robots. Its abstract’s convergence-time wording is ambiguous and is not treated here as a precise quantitative claim."
+          }
+        ],
+        "limitations": [
+          "The source is an author-reported arXiv preprint; the research desk did not reproduce the result.",
+          "The evaluation covers five simulator-policy configurations and simulation benchmarks, not physical robots.",
+          "Comparisons are system-level and may depend on baseline tuning and hardware-specific MPS/MIG availability.",
+          "Higher trajectory throughput does not alone establish equal policy quality, lower total cost per successful task or more efficient real-world learning.",
+          "The abstract's phrase about training convergence is ambiguous and is not promoted as a precise claim."
+        ],
+        "gaps": [
+          {
+            "kind": "missing_artifact",
+            "description": "No public EBRL code release or executable artifact was verified in this review, and the research desk did not reproduce the reported throughput comparisons."
+          },
+          {
+            "kind": "other",
+            "description": "Reported speedups cover selected simulated embodied-RL workloads and do not establish transfer to physical-robot training or other RL stacks."
+          },
+          {
+            "kind": "other",
+            "description": "End-to-end throughput comparisons may depend on baseline configuration, policy staleness, simulator settings and hardware-specific resource controls."
+          }
+        ],
+        "contradictory": [
+          "The system is evaluated on selected simulation-policy configurations; no physical-robot training evaluation or independent implementation comparison was verified."
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://arxiv.org/abs/2609.27547",
+          "domain": "arxiv.org",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "Nanjing University",
+        "Institute for AI Industry Research, Tsinghua University",
+        "Nanjing University of Posts and Telecommunications",
+        "University of Science and Technology of China"
+      ],
+      "topics": [
+        "embodied-reinforcement-learning",
+        "systems",
+        "gpu-scheduling",
+        "asynchronous-training",
+        "simulation",
+        "compute-efficiency"
+      ],
+      "regions": [
+        "GLOBAL"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-45D97C054E39.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: EBRL reports 1.30×–3.47× higher throughput for simulated embodied-RL training"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "EBRL informa entre 1.30× y 3.47× más rendimiento en entrenamiento simulado de RL incorporado",
+            "summary": "El preprint de EBRL describe un sistema basado en RLinf que superpone la generación de trayectorias con el entrenamiento, canaliza simulación y generación, programa entornos de forma asíncrona y reasigna núcleos de CPU y unidades SM de GPU cuando cambia la demanda de cada etapa. En cinco configuraciones de simulador y política y varias plataformas aceleradoras, los autores informan un rendimiento de trayectorias de extremo a extremo entre 1.30× y 3.47× superior al de los sistemas de RL incorporado comparados. Las ablaciones atribuyen parte de la diferencia a la asignación de recursos, la canalización por grupos y la ejecución asíncrona. Son resultados informados por los autores en simulación; aquí no se hizo una reproducción independiente ni una evaluación con robots físicos.",
+            "importance_rationale": "Si las mejoras de rendimiento informadas se reproducen, la programación asíncrona y la asignación fina de CPU/GPU podrían reducir considerablemente el tiempo de cómputo necesario para generar trayectorias y actualizar políticas en RL incorporado. Los resultados en cinco configuraciones simuladas y varias plataformas aceleradoras son relevantes para la infraestructura de entrenamiento, aunque la evidencia es de los autores y se limita a simulación.",
+            "why_it_matters": "El entrenamiento de RL incorporado puede quedar limitado por capacidad ociosa de CPU/GPU y por las esperas entre simulación, generación de acciones y entrenamiento. Si los resultados de EBRL se reproducen, su planificador podría aumentar el trabajo de entrenamiento por hora de acelerador. La evidencia actual procede de configuraciones de simulación elegidas por los autores; no demuestra transferencia a robots físicos ni menor costo por conducta exitosa.",
+            "technical": {
+              "claimed_result": "Los autores informan un rendimiento de trayectorias de extremo a extremo entre 1.30× y 3.47× en cinco configuraciones de simulador y política, con plataformas H100, A100, H20 y RTX 4090. Las ablaciones informan cerca de 10% menos rendimiento sin asignación de recursos, 31% menos sin canalización por grupos y 26% menos sin ejecución asíncrona. El resumen también menciona convergencia, pero la formulación es ambigua y aquí no se incluye como una cifra precisa.",
+              "compute_or_cost": "El artículo mide rendimiento de trayectorias y comportamiento de programación. No establece el costo total por tarea exitosa, ahorros de energía ni beneficio económico integral fuera de las cargas probadas.",
+              "demonstrated_result": "El artículo consultado describe el diseño del sistema, su implementación sobre RLinf y experimentos de simulación informados por los autores. el equipo de investigación no obtuvo ni ejecutó la implementación y no establece de forma independiente las mediciones.",
+              "mechanism": "EBRL perfila las etapas de simulación, generación y entrenamiento y asigna conjuntamente núcleos de CPU, cuotas de SM de GPU y tamaños de lote. Un flujo asíncrono superpone simulación y generación de acciones, así como generación de trayectorias y entrenamiento. La programación por entorno y la reasignación de núcleos reducen esperas; la retroalimentación del rendimiento puede activar nuevos ajustes de cuotas.",
+              "regime": "Entrenamiento de RL incorporado en configuraciones seleccionadas de simulador y política, como LIBERO, ManiSkill, RoboCasa y BEHAVIOR con políticas como OpenPI, GR00T, OpenVLA-OFT y DreamZero, en plataformas aceleradoras especificadas. Los resultados no prueban desempeño con robots físicos.",
+              "reproducibility": "El artículo describe métodos, controles de recursos y configuraciones de evaluación, pero el equipo de investigación no verificó un repositorio público, recuperó artefactos por ejecución ni reprodujo las mediciones de forma independiente.",
+              "strongest_baseline": "El artículo compara con sistemas previos de RL incorporado; el rango informado de 1.30× a 3.47× varía según la configuración de simulador y política. Es necesario auditar los ajustes de referencia y las condiciones de despliegue mediante artefactos."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "Los autores describen EBRL, un sistema basado en RLinf que superpone la generación de trayectorias y el entrenamiento, canaliza en paralelo simulación y generación entre grupos de entornos, programa cada entorno de forma asíncrona y asigna núcleos de CPU y unidades SM de GPU según perfiles y demanda observada por etapa."
+                },
+                {
+                  "text": "En cinco configuraciones de simulador y política, con bancos de prueba que incluyen aceleradores H100, A100, H20 y RTX 4090, los autores informan un rendimiento de trayectorias de extremo a extremo entre 1.30× y 3.47× superior al de los sistemas de RL incorporado comparados. La evaluación usa simuladores, no tareas con robots físicos."
+                },
+                {
+                  "text": "Las ablaciones informan caídas de rendimiento cercanas a 10% sin asignación fina de recursos, 31% sin canalización por grupos y 26% sin ejecución asíncrona. Son mediciones del sistema realizadas por los autores y no aíslan todas las interacciones entre componentes."
+                },
+                {
+                  "text": "El preprint consultado no establece reproducción independiente, economía de despliegue fuera de las configuraciones informadas ni mejoras con robots físicos. La expresión del resumen sobre tiempo de convergencia es ambigua y aquí no se presenta como una cifra precisa."
+                }
+              ],
+              "limitations": [
+                "La fuente es un preprint de arXiv informado por sus autores; el equipo de investigación no reprodujo el resultado.",
+                "La evaluación cubre cinco configuraciones de simulador y política, no robots físicos.",
+                "Las comparaciones a nivel de sistema pueden depender del ajuste de las referencias y de la disponibilidad de MPS/MIG en cada hardware.",
+                "Un mayor rendimiento de trayectorias no demuestra por sí solo igual calidad de política, menor costo total por tarea exitosa ni aprendizaje más eficiente en el mundo real.",
+                "La expresión del resumen sobre convergencia es ambigua y no se presenta como una afirmación cuantitativa precisa."
+              ],
+              "gaps": [
+                {
+                  "description": "En esta revisión no se verificó una publicación de código de EBRL ni un artefacto ejecutable, y el equipo de investigación no reprodujo las comparaciones de rendimiento."
+                },
+                {
+                  "description": "Los aumentos de rendimiento informados corresponden a cargas de trabajo simuladas seleccionadas y no demuestran transferencia a entrenamiento con robots físicos ni a otros sistemas de RL."
+                },
+                {
+                  "description": "Las comparaciones dependen de la configuración de referencia, la antigüedad de las políticas, los parámetros del simulador y los controles de recursos propios del hardware."
+                }
+              ],
+              "contradictory": [
+                "El sistema se evalúa en configuraciones de simulación seleccionadas; en esta revisión no se verificó una evaluación con robots físicos ni una comparación implementada de forma independiente."
+              ]
+            }
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb",
+            "evidence.contradictory": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "EBRL报告模拟具身RL训练吞吐量提高1.30×至3.47×",
+            "summary": "EBRL预印本介绍了一个基于RLinf的系统，通过异步执行将轨迹生成与模型训练重叠，流水化模拟和动作生成，并在各阶段负载变化时重新分配CPU核心与GPU SM。在五种模拟器—策略配置和多个加速器测试平台上，作者报告端到端轨迹吞吐量比所比较的具身RL系统高1.30×至3.47×。消融结果显示，资源分配、分组流水线和异步执行均贡献了报告的吞吐表现。这些是作者报告的模拟实验结果；本次未进行独立复现，也未评测物理机器人。",
+            "importance_rationale": "如果报告的吞吐提升能够复现，异步调度与细粒度CPU/GPU资源分配可能显著减少具身RL轨迹采集和策略更新所需的计算时间。五种模拟配置及多种加速器平台上的结果对具身训练基础设施具有实际意义，但证据仍来自作者报告且限于模拟环境。",
+            "why_it_matters": "具身RL训练可能受到CPU/GPU闲置以及模拟、动作生成和训练阶段间同步等待的限制。如果EBRL报告的结果能够复现，其调度器可能提高每个加速器小时完成的策略训练工作量。现有证据来自作者选择的模拟配置，不能证明其适用于物理机器人，也不能证明每个成功行为的成本更低。",
+            "technical": {
+              "claimed_result": "作者报告，在五种模拟器—策略配置以及H100、A100、H20和RTX 4090测试平台上，端到端轨迹吞吐量提高1.30×至3.47×。消融实验报告，取消资源分配后吞吐量约下降10%，取消分组流水线后约下降31%，取消异步执行后约下降26%。摘要还提及收敛，但表述含糊，此处不将其列为精确量化结果。",
+              "compute_or_cost": "论文测量轨迹吞吐量和系统调度行为，没有证明测试工作负载之外每项成功任务的总成本、能耗节约或端到端经济收益。",
+              "demonstrated_result": "所审阅论文描述了系统设计、基于RLinf的实现以及作者报告的模拟实验。本团队未获得或运行实现，因此不能独立确认报告的性能结果。",
+              "mechanism": "EBRL先对模拟、动作生成和训练阶段进行性能画像，再联合分配CPU核心、GPU SM配额和批次大小。异步流水线让模拟与动作生成并行，也让轨迹生成与训练重叠；按环境调度和核心重新绑定可减少同步等待。运行时吞吐反馈可触发配额调整。",
+              "regime": "在选定模拟器—策略配置中的具身RL训练，包括LIBERO、ManiSkill、RoboCasa和BEHAVIOR等，以及OpenPI、GR00T、OpenVLA-OFT和DreamZero等策略；实验使用文中指定的加速器平台。这些结果不能证明物理机器人上的性能。",
+              "reproducibility": "论文介绍了方法、资源控制和评测配置，但本团队未核实公开源代码仓库、获取逐次运行工件或独立复现测量结果。",
+              "strongest_baseline": "论文与具身RL领域的既有系统比较；报告的1.30×至3.47×范围随模拟器—策略配置而变化。基线调优和部署条件仍需通过工件审查。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "作者介绍了构建在RLinf之上的EBRL系统：它将轨迹生成与模型训练重叠执行，在多个环境组间流水化模拟和动作生成，异步调度各环境，并根据各阶段的性能画像和实际负载分配CPU核心与GPU流式多处理器（SM）。"
+                },
+                {
+                  "text": "在五种模拟器—策略配置和包括H100、A100、H20及RTX 4090在内的测试平台上，作者报告端到端轨迹吞吐量比所比较的具身RL系统高1.30×至3.47×。评测使用模拟环境，不包含物理机器人任务。"
+                },
+                {
+                  "text": "消融实验报告：移除细粒度资源分配后吞吐量约下降10%，移除分组流水线后约下降31%，移除异步执行后约下降26%。这些是作者测得的系统数据，未隔离所有组件间的交互影响。"
+                },
+                {
+                  "text": "所审阅的预印本未证明独立复现、测试配置之外的部署经济性或物理机器人训练收益。摘要中关于收敛时间的表述含糊，因此此处不将其作为精确数值结论。"
+                }
+              ],
+              "limitations": [
+                "来源为作者报告的arXiv预印本；本团队未复现结果。",
+                "评测覆盖五种模拟器—策略配置，不包含物理机器人。",
+                "系统级对比可能取决于基线调优以及硬件上的MPS/MIG可用性。",
+                "更高的轨迹吞吐量本身不能证明策略质量相同、每项成功任务的总成本更低，或现实环境中的学习效率更高。",
+                "摘要中的收敛表述含糊，此处不将其作为精确的量化结论。"
+              ],
+              "gaps": [
+                {
+                  "description": "本次审阅未核实EBRL的公开代码发布或可执行工件，研究团队也未复现吞吐量对比。"
+                },
+                {
+                  "description": "报告的吞吐提升来自特定模拟具身RL工作负载，不能证明其可迁移至物理机器人训练或其他RL系统。"
+                },
+                {
+                  "description": "吞吐量结果可能取决于基线配置、策略滞后、模拟器参数及硬件特定的资源控制。"
+                }
+              ],
+              "contradictory": [
+                "系统仅在选定的模拟配置上评测；本次审阅未核实物理机器人评测或独立实现对比。"
+              ]
+            },
+            "headline": "EBRL报告模拟具身RL训练吞吐量提高1.30×至3.47×",
+            "dek": "EBRL预印本介绍了一个基于RLinf的系统，通过异步执行将轨迹生成与模型训练重叠，流水化模拟和动作生成，并在各阶段负载变化时重新分配CPU核心与GPU SM。在五种模拟器—策略配置和多个加速器测试平台上，作者报告端到端轨迹吞吐量比所比较的具身RL系统高1.30×至3.47×。消融结果显示，资源分配、分组流水线和异步执行均贡献了报告的吞吐表现。这些是作者报告的模拟实验结果；本次未进行独立复现，也未评测物理机器人。"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb",
+            "evidence.contradictory": "arb"
+          }
+        }
+      }
+    },
+    {
+      "id": "FCMO-38F18BD9F284",
+      "slug": "unity-insight-reports-lower-agent-navigation-cost-on-two-unity-projects",
+      "url_date": "2026-10-14",
+      "kind": "development",
+      "status": "live",
+      "beat": "research",
+      "desk": "agents_memory",
+      "title": "Unity Insight reports lower agent navigation cost on two Unity projects",
+      "headline": "Unity Insight reports lower agent navigation cost on two Unity projects",
+      "dek": "The Unity Insight preprint describes a read-only index that links C# code with serialized Unity scenes, prefabs, ScriptableObjects and GUID references, exposing that graph to a coding agent through typed query tools.",
+      "summary": "The Unity Insight preprint describes a read-only index that links C# code with serialized Unity scenes, prefabs, ScriptableObjects and GUID references, exposing that graph to a coding agent through typed query tools. In a paired study of 28 project-specific questions across two Unity games, the authors report 53.4% fewer tokens and 51.6% lower wall time than a general-purpose exploration agent using the same model and harness; one project is internal and each question has one run per arm. The study measures navigation cost, not coding correctness or software quality, and has not been independently reproduced here.",
+      "why_it_matters": "Game-engine projects distribute relevant structure across scripts, scenes, prefabs, metadata and binary assets. If these results generalize, a persistent typed index could make repository-scale agent navigation materially cheaper. Current evidence supports a promising Unity-specific design and developer-reported cost reduction on a small question set; it does not show a broader coding-quality improvement.",
+      "importance_rationale": "If the reported gains reproduce, a typed index over Unity code and serialized assets could materially reduce exploration time for coding agents in asset-heavy repositories. The study reports sizable token and wall-time savings on 28 project-specific questions, but uses only two projects and one run per arm/question, so it supports a local tooling decision rather than broad agent-capability claims.",
+      "technical": {
+        "claimed_result": "Across 28 questions on RedRunner and an internal 3D kart project, authors report 5,000,776 versus 2,332,567 total tokens (53.4% lower), 3,363 versus 1,626 wall-clock seconds (51.6% lower), and 23/28 questions with fewer tokens and 22/28 with lower wall time. Paired sign tests report p=0.0009 for tokens and p=0.0037 for wall time. One run per arm per question; same model and harness.",
+        "compute_or_cost": "The paper reports session tokens and wall-clock loop time, including cache tokens and thinking tokens; it does not report monetary cost, energy, index-build cost within measured sessions, or cost per successful code change.",
+        "demonstrated_result": "The inspected preprint specifies a cross-file code–asset indexing design and reports a paired cost study. the research desk did not inspect the implementation or reproduce the metrics; the paper’s reported result concerns agent navigation cost, not end-to-end code quality.",
+        "mechanism": "A crawler resolves Unity GUIDs and parses code plus serialized assets into a persistent, read-only SQLite graph. The agent accesses it through typed directory listing, glob, search, read and reference-traversal tools instead of manually following GUIDs through files. The index refreshes incrementally and does not modify project files.",
+        "regime": "Two Unity game projects, one an open-source 2D platformer and one internal 3D kart-style project; 28 project-specific asset/script navigation questions; same agent model configuration and harness with one run per arm/question. Does not establish transfer to other engines, external repositories or coding task success.",
+        "reproducibility": "The paper describes the experiment and reports question-level aggregate results and sign tests. the research desk did not verify a public study artifact or independently repeat the questions.",
+        "strongest_baseline": "A general-purpose read-only exploration agent using shell, globbing, text search, file reading and directory listing, compared with the same-model/harness index-backed agent. No code-quality or task-completion baseline is reported."
+      },
+      "importance_tier": "Meaningful",
+      "development_type": "paper",
+      "event_at": "2026-09-23T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-14T07:02:40Z",
+      "updated_at": "2026-10-14T07:02:40Z",
+      "importance": 4,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": true,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "DEMONSTRATED",
+            "text": "The paper describes Unity Insight, a persistent read-only SQLite graph joining C# code with serialized Unity assets and GUID references; an agent queries it through five typed tools for listing, globbing, search, reads and bidirectional reference traversal."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "In a paired study of 28 project-specific questions across two Unity games, using the same model and harness with one run per arm per question, the authors report 53.4% fewer total tokens and 51.6% less wall-clock time for the index-backed agent than for a general-purpose exploration agent. The index arm used fewer tokens on 23/28 and less time on 22/28 questions; exact paired sign tests report p=0.0009 and p=0.0037, respectively."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "The authors state Unity Insight had shipped in production with the Tuanjie Codely agent CLI since its public launch on 28 July 2026; the inspected paper reports this deployment but the research desk did not independently verify production use."
+          },
+          {
+            "label": "DEMONSTRATED",
+            "qualifier": "LIMITATION",
+            "text": "The measured result concerns agent exploration cost on two Unity projects, one internal, and does not establish improved task correctness, software quality or coding success across external projects or other game engines."
+          }
+        ],
+        "limitations": [
+          "All measured results are author-reported in a preprint from the system developers; the research desk did not run the study.",
+          "The test contains 28 questions over two Unity projects, including one internal project, with one run per arm per question.",
+          "The metrics measure exploration cost and time; they do not show improved coding correctness, build success or downstream software quality.",
+          "The index is a static snapshot and has disclosed blind spots for dynamic string-based asset loading; runtime/editor state is not captured.",
+          "Production use since July is stated by the authors and was not independently confirmed from release records here."
+        ],
+        "gaps": [
+          {
+            "kind": "missing_independent",
+            "description": "The paired 28-question evaluation was not independently replicated; one project is internal and each question has one run per arm."
+          },
+          {
+            "kind": "other",
+            "description": "The reported outcomes measure exploration cost, not downstream code correctness, successful changes or maintenance quality."
+          },
+          {
+            "kind": "other",
+            "description": "The production-shipping statement and first-public-release date were not independently verified from a contemporaneous official product record in this review."
+          }
+        ],
+        "contradictory": [
+          "The study is small and vendor-authored: only 28 questions, one run per arm per question, two projects including an internal project, and no external replication. This limits generalization beyond the reported navigation-cost outcomes."
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://arxiv.org/abs/2609.27585",
+          "domain": "arxiv.org",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "Tuanjie Engine / Unity China"
+      ],
+      "topics": [
+        "coding-agents",
+        "repository-indexing",
+        "unity",
+        "code-and-asset-graph",
+        "agent-efficiency",
+        "software-engineering"
+      ],
+      "regions": [
+        "GLOBAL"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-38F18BD9F284.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: Unity Insight reports lower agent navigation cost on two Unity projects"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "Unity Insight informa menor costo de navegación de agentes en dos proyectos de Unity",
+            "summary": "El preprint de Unity Insight describe un índice de solo lectura que vincula código C# con escenas, prefabs, ScriptableObjects y referencias GUID serializadas de Unity, y expone ese grafo a un agente de programación mediante herramientas tipadas. En un estudio pareado de 28 preguntas sobre dos juegos de Unity, los autores informan 53.4% menos tokens y 51.6% menos tiempo que con un agente de exploración general, usando el mismo modelo y arnés; uno de los proyectos es interno y hubo una sola ejecución por brazo y pregunta. La evaluación mide costo de navegación, no corrección de código ni calidad de software, y no se reprodujo de forma independiente en esta revisión.",
+            "importance_rationale": "Si los resultados se reproducen, un índice tipado que vincula código y activos de Unity podría reducir de manera significativa el tiempo de exploración de agentes de programación en repositorios que contienen muchos activos. El estudio informa ahorros considerables de tokens y tiempo en 28 preguntas, pero usa solo dos proyectos y una ejecución por brazo y pregunta; respalda una decisión local sobre herramientas, no una afirmación amplia sobre capacidades de agentes.",
+            "why_it_matters": "En proyectos de motores de juego, la estructura relevante se distribuye entre scripts, escenas, prefabs, metadatos y activos binarios. Si los resultados se generalizan, un índice tipado persistente podría abaratar de forma importante la navegación de agentes por repositorios. La evidencia actual respalda un diseño prometedor para Unity y una reducción de costos informada por los desarrolladores en un conjunto pequeño de preguntas; no demuestra una mejora general de la calidad del código.",
+            "technical": {
+              "claimed_result": "En 28 preguntas sobre RedRunner y un proyecto interno de carreras 3D, los autores informan 5,000,776 frente a 2,332,567 tokens totales (53.4% menos) y 3,363 frente a 1,626 segundos de reloj (51.6% menos); en 23/28 preguntas disminuyeron los tokens y en 22/28 el tiempo. Las pruebas de signos pareadas informan p=0.0009 para tokens y p=0.0037 para tiempo. Se hizo una ejecución por brazo y pregunta, con el mismo modelo y arnés.",
+              "compute_or_cost": "El artículo informa tokens de sesión y tiempo de ciclo, incluidos tokens de caché y razonamiento. No informa costos monetarios, energía, costo de construir el índice dentro de las sesiones medidas ni costo por cambio de código exitoso.",
+              "demonstrated_result": "El preprint consultado especifica un diseño para indexar código y activos y reporta un estudio pareado de costos. el equipo de investigación no inspeccionó la implementación ni reprodujo las métricas; el resultado informado mide navegación del agente, no calidad integral del código.",
+              "mechanism": "Un rastreador resuelve GUID de Unity y analiza código junto con activos serializados para crear un grafo SQLite persistente. El agente consulta el grafo mediante herramientas tipadas de listado, búsqueda por patrón, búsqueda de contenido, lectura y recorrido de referencias. El índice se actualiza incrementalmente y no modifica los archivos del proyecto.",
+              "regime": "Dos proyectos de juegos de Unity —un juego de plataformas 2D de código abierto y un proyecto interno de carreras 3D—, 28 preguntas sobre referencias de activos y scripts, el mismo modelo y arnés, y una ejecución por brazo y pregunta. No demuestra transferencia a otros motores, repositorios externos ni éxito en tareas de programación.",
+              "reproducibility": "El artículo describe el experimento e informa resultados agregados por pregunta y pruebas de signos. el equipo de investigación no verificó un artefacto público del estudio ni repitió las preguntas de forma independiente.",
+              "strongest_baseline": "Agente general de exploración de solo lectura con shell, búsqueda por patrones y texto, lectura de archivos y listado de directorios, comparado con el agente que consulta el índice con el mismo modelo y arnés. No se informa una comparación de calidad del código o finalización de tareas."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "El artículo describe Unity Insight, un grafo SQLite persistente y de solo lectura que vincula código C# con activos serializados de Unity y sus referencias GUID. El agente lo consulta mediante cinco herramientas tipadas para listar, buscar rutas, consultar contenido, leer archivos y recorrer referencias en ambas direcciones."
+                },
+                {
+                  "text": "En un estudio pareado de 28 preguntas específicas sobre dos juegos de Unity, con el mismo modelo y arnés y una ejecución por brazo y pregunta, los autores informan 53.4% menos tokens totales y 51.6% menos tiempo de reloj para el agente con índice que para el agente de exploración general. El índice usó menos tokens en 23/28 preguntas y menos tiempo en 22/28; las pruebas pareadas informan p=0.0009 y p=0.0037, respectivamente."
+                },
+                {
+                  "text": "Los autores indican que Unity Insight se integró en producción con la interfaz de línea de comandos Codely de Tuanjie desde su lanzamiento público el 28 de julio de 2026; el artículo reporta este despliegue, pero el equipo de investigación no lo verificó de manera independiente."
+                },
+                {
+                  "text": "El resultado medido se refiere al costo de exploración del agente en dos proyectos de Unity, uno interno; no establece mejoras en corrección de tareas, calidad de software ni éxito de programación en proyectos externos u otros motores de juego."
+                }
+              ],
+              "limitations": [
+                "Todos los resultados medidos son informados por los autores del preprint, desarrolladores del sistema; el equipo de investigación no ejecutó el estudio.",
+                "La prueba contiene 28 preguntas en dos proyectos de Unity, uno interno, con una ejecución por brazo y pregunta.",
+                "Las métricas miden costo y tiempo de exploración; no demuestran mayor corrección de código, compilación exitosa ni calidad posterior del software.",
+                "El índice es una instantánea estática y declara puntos ciegos, como cargas dinámicas de activos mediante cadenas; tampoco captura el estado del editor o de ejecución.",
+                "Los autores afirman que se usa en producción desde julio, pero aquí no se confirmó mediante registros de publicación."
+              ],
+              "gaps": [
+                {
+                  "description": "El estudio pareado de 28 preguntas no se reprodujo de forma independiente; un proyecto es interno y hubo una sola ejecución por brazo y pregunta."
+                },
+                {
+                  "description": "Los resultados miden el costo de exploración, no la corrección del código, los cambios exitosos ni la calidad de mantenimiento."
+                },
+                {
+                  "description": "En esta revisión no se verificó con un registro oficial contemporáneo la afirmación de que el producto estaba en producción ni la fecha de su primer lanzamiento público."
+                }
+              ],
+              "contradictory": [
+                "El estudio es pequeño y fue realizado por los desarrolladores: 28 preguntas, una ejecución por brazo y pregunta, dos proyectos —uno interno— y ninguna reproducción externa. Esto limita la generalización más allá del costo de navegación medido."
+              ]
+            },
+            "headline": "Unity Insight informa menor costo de navegación de agentes en dos proyectos de Unity"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb",
+            "evidence.contradictory": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "Unity Insight报告在两个Unity项目上降低代理导航成本",
+            "summary": "Unity Insight预印本介绍了一个只读索引，将C#代码与Unity序列化场景、prefab、ScriptableObject及GUID引用连接起来，并通过类型化工具供编程代理查询。在两个Unity游戏的28个配对问题上，作者报告相同模型和测试框架下，索引代理比通用探索代理少用53.4%的token，耗时少51.6%；其中一个项目为内部项目，每个实验臂每题运行一次。该研究测量导航成本，不代表代码正确性或软件质量提升，本次也未进行独立复现。",
+            "importance_rationale": "如果结果能够复现，面向Unity代码与资源的类型化索引可能显著缩短编程代理在资源密集型仓库中的探索时间。研究报告了28个项目问题上的token和耗时下降，但仅使用两个项目、每题每实验臂一次运行，因此它支持的是局部工具选择，而非广泛的代理能力结论。",
+            "why_it_matters": "游戏引擎项目的关键信息分散在脚本、场景、prefab、元数据和二进制资源中。如果结果能够推广，持久化类型索引可能显著降低代理进行仓库级导航的成本。当前证据支持一个有前景的Unity专用设计，以及开发者在小规模问题集上报告的成本下降；它不能证明编程质量普遍提升。",
+            "technical": {
+              "claimed_result": "在RedRunner和一个内部3D赛车项目的28个问题中，作者报告总token数为5,000,776对2,332,567（减少53.4%），墙钟时间为3,363秒对1,626秒（减少51.6%）；23/28个问题的token更少，22/28个问题耗时更短。配对符号检验分别报告token的p=0.0009和耗时的p=0.0037。每个实验臂每题运行一次，使用相同模型和测试框架。",
+              "compute_or_cost": "论文报告会话token和代理循环墙钟时间，包括缓存与思考token。未报告货币成本、能耗、测量区间内的索引构建开销或每项成功代码修改的成本。",
+              "demonstrated_result": "所审阅预印本说明了跨文件代码—资源索引设计，并报告一项配对成本实验。本团队未检查实现或复现指标；报告结果衡量代理导航成本，不衡量端到端代码质量。",
+              "mechanism": "爬虫解析Unity GUID、C#代码和序列化资源，构建持久化SQLite图。代理通过类型化工具执行目录列举、路径匹配、内容搜索、文件读取和引用遍历。索引支持增量刷新，不会修改项目文件。",
+              "regime": "两个Unity游戏项目：一个开源2D平台游戏和一个内部3D赛车项目；28个关于资源与脚本引用的问题；相同模型配置与测试框架，每个实验臂每题运行一次。不能据此证明其可迁移至其他引擎、外部仓库或编程任务成功率。",
+              "reproducibility": "论文描述了实验并报告逐题汇总结果和符号检验。本团队未核实公开研究工件，也未独立重复问题集。",
+              "strongest_baseline": "只读通用探索代理可使用shell、路径匹配、文本搜索、文件读取和目录列举；对照为使用相同模型和测试框架、依赖索引工具的代理。论文没有比较代码质量或任务完成率。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "论文介绍了Unity Insight：一个持久、只读的SQLite图，将C#代码与Unity序列化资源及其GUID引用连接起来。代理通过五类工具查询该图，包括目录列表、路径匹配、内容搜索、文件读取和双向引用遍历。"
+                },
+                {
+                  "text": "在两个Unity游戏的28个项目特定问题上，使用相同模型和测试框架、每个问题每个实验臂各运行一次。作者报告，带索引代理的总token数少53.4%，墙钟时间少51.6%。索引组在23/28个问题上使用更少token，在22/28个问题上耗时更短；配对符号检验分别报告p=0.0009和p=0.0037。"
+                },
+                {
+                  "text": "作者称Unity Insight自2026年七月28日Tuanjie Codely代理命令行工具公开发布以来已用于生产环境；论文报告了该部署，但本团队未独立核实。"
+                },
+                {
+                  "text": "测量结果是两个Unity项目上的代理探索成本，其中一个项目为内部项目；研究没有证明任务正确率、软件质量或其在外部项目及其他游戏引擎上的编程成功率有所提高。"
+                }
+              ],
+              "limitations": [
+                "所有测量结果均由该系统开发者在预印本中报告；本团队未运行该研究。",
+                "测试覆盖两个Unity项目中的28个问题，其中一个是内部项目；每个实验臂每题运行一次。",
+                "指标衡量探索成本与时间，不能证明代码正确性、构建成功率或下游软件质量有所提升。",
+                "该索引是静态快照，并披露了通过字符串动态加载资源等盲区；它不捕捉编辑器或运行时状态。",
+                "作者称该工具自七月起用于生产环境，但本次未通过发布记录独立确认。"
+              ],
+              "gaps": [
+                {
+                  "description": "28个问题的配对评测尚未独立复现；其中一个项目为内部项目，且每个实验臂每题只运行一次。"
+                },
+                {
+                  "description": "报告指标衡量探索成本，而非代码正确性、成功完成修改或维护质量。"
+                },
+                {
+                  "description": "本次审阅未通过同期官方产品记录独立核实生产部署声明及首次公开发布日期。"
+                }
+              ],
+              "contradictory": [
+                "该研究规模较小且由系统开发者撰写：仅28个问题、每个实验臂每个问题运行一次、两个项目中有一个为内部项目，也没有外部复现。因此，结论不能轻易推广到已测导航成本之外。"
+              ]
+            },
+            "headline": "Unity Insight报告在两个Unity项目上降低代理导航成本",
+            "dek": "Unity Insight预印本介绍了一个只读索引，将C#代码与Unity序列化场景、prefab、ScriptableObject及GUID引用连接起来，并通过类型化工具供编程代理查询。在两个Unity游戏的28个配对问题上，作者报告相同模型和测试框架下，索引代理比通用探索代理少用53.4%的token，耗时少51.6%；其中一个项目为内部项目，每个实验臂每题运行一次。该研究测量导航成本，不代表代码正确性或软件质量提升，本次也未进行独立复现。"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb",
+            "evidence.contradictory": "arb"
+          }
+        }
+      }
+    },
     {
       "id": "FCMO-93E0233B115D",
       "slug": "tev-reports-long-horizon-agent-training-gains-from-verified-environments",
