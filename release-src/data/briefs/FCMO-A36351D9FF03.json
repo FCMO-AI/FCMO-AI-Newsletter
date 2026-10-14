@@ -1,0 +1,121 @@
+{
+  "record": {
+    "id": "FCMO-A36351D9FF03",
+    "title": "MVP paper reports lower modeled vision latency and energy through motion-domain speculation",
+    "desk": "Inference Systems",
+    "event_at": "2026-09-23T00:00:00Z",
+    "evidence": "A",
+    "confidence": "credible_unconfirmed",
+    "importance": 4,
+    "tier": "Meaningful",
+    "summary": "A September 2026 paper proposes a continuous-vision pipeline that predicts motion vectors, extrapolates perception between full inference frames, and runs drift correction asynchronously. On object-detection workloads, the authors report up to 66.8% lower P99 tail latency and 46% lower energy per produced output, with a small accuracy cost. The evaluation combines KITTI video, YOLOv8, a simulated real-time vision pipeline, gem5/DRAM/NPU models and a cycle-accurate RTL-validated ISP micro-pipeline; it is not a physical mobile-SoC deployment. The results are author-reported and were not independently reproduced.",
+    "topics": [
+      "continuous vision",
+      "motion extrapolation",
+      "speculative inference",
+      "ISP",
+      "tail latency",
+      "energy efficiency"
+    ],
+    "organizations": [
+      "Universitat Politècnica de Catalunya"
+    ],
+    "human_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-A36351D9FF03.html",
+    "machine_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/data/briefs/FCMO-A36351D9FF03.json",
+    "citation": {
+      "id": "FCMO-A36351D9FF03",
+      "source": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-A36351D9FF03.html"
+    }
+  },
+  "brief": {
+    "claims": [
+      {
+        "label": "CLAIMED",
+        "text": "The paper proposes motion-vector prediction, per-frame motion extrapolation and asynchronous drift-correction inference to move full backend processing off the critical path, with optional sensor-rate scaling."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "For object detection, the authors report up to 66.8% lower P99 tail latency and 46% lower energy per produced perception output at a small accuracy cost. Their system evaluation uses KITTI sequences, YOLOv8 and simulated pipeline/compute models; it is not a measurement on a physical mobile SoC."
+      }
+    ],
+    "confidence": "credible_unconfirmed",
+    "contradictory_evidence": [],
+    "desks": [
+      "inference_systems",
+      "compute_hardware",
+      "efficiency"
+    ],
+    "development_type": "paper",
+    "editions": [
+      "2026-10-14"
+    ],
+    "event_at": "2026-09-23T00:00:00Z",
+    "evidence_class": "A",
+    "evidence_gaps": [
+      {
+        "description": "The reported end-to-end gains have not been measured on a physical ISP/mobile SoC with real sensor, NPU, power, thermal and end-to-end control behavior.",
+        "kind": "regime_unclear",
+        "state": "open",
+        "updated_at": "2026-10-14T12:15:51Z"
+      },
+      {
+        "description": "No independent reproduction of the paper's simulator, RTL micro-pipeline or reported object-detection/tracking results was performed.",
+        "kind": "reproduction_missing",
+        "state": "open",
+        "updated_at": "2026-10-14T12:15:51Z"
+      }
+    ],
+    "id": "FCMO-A36351D9FF03",
+    "importance_effective_score": 4,
+    "importance_rationale": "If the motion-domain pipeline transfers beyond the paper's modeled object-detection regime, it could change local architecture choices for latency- and energy-constrained vision systems. A 4 reflects a meaningful systems result; the reported gains are model-based, not measured on deployed silicon, and come with an accuracy trade-off.",
+    "importance_scale_version": 2,
+    "importance_score": 4,
+    "importance_tier": "Meaningful",
+    "last_verified_at": "2026-10-14T12:15:51Z",
+    "limitations": [
+      "The headline latency and energy gains come from an end-to-end simulated pipeline with modeled ISP/CPU/NPU components, not a physical mobile-SoC deployment.",
+      "The ISP datapath is described as a cycle-accurate RTL-validated micro-pipeline; the inspected methodology does not report fabricated hardware or production thermal/power measurements.",
+      "Object detection on KITTI is the primary workload; the paper also reports tracking evaluations, but transfer to broader camera, robotics, AR/VR or safety-critical regimes is not established.",
+      "KITTI's 10 Hz video is upsampled to 30 FPS; accuracy is scored on original frames and labels, while extrapolated frames use translated bounding boxes.",
+      "The reported performance includes a small accuracy cost and was not independently reproduced in this activation."
+    ],
+    "organizations": [
+      "Universitat Politècnica de Catalunya"
+    ],
+    "primary_desk": "inference_systems",
+    "recorded_at": "2026-10-14T12:15:51Z",
+    "regions": [
+      "global"
+    ],
+    "relationships": [],
+    "source_languages": [
+      "en"
+    ],
+    "source_urls": [
+      "https://arxiv.org/abs/2609.27706"
+    ],
+    "status": "active",
+    "summary": "A September 2026 paper proposes a continuous-vision pipeline that predicts motion vectors, extrapolates perception between full inference frames, and runs drift correction asynchronously. On object-detection workloads, the authors report up to 66.8% lower P99 tail latency and 46% lower energy per produced output, with a small accuracy cost. The evaluation combines KITTI video, YOLOv8, a simulated real-time vision pipeline, gem5/DRAM/NPU models and a cycle-accurate RTL-validated ISP micro-pipeline; it is not a physical mobile-SoC deployment. The results are author-reported and were not independently reproduced.",
+    "technical": {
+      "claimed_result": "The authors report up to 66.8% lower P99 tail latency and 46% lower energy per produced object-detection output at a small accuracy cost, using motion-vector prediction, extrapolation and asynchronous drift correction.",
+      "demonstrated_result": "The preprint describes an ISP motion-prediction datapath and evaluates a simulated real-time vision pipeline with a cycle-accurate RTL-validated micro-pipeline. The reported end-to-end gains are author-reported simulation results, not a physical mobile-SoC demonstration.",
+      "implementation_status": "The paper describes a modeled pipeline and a cycle-accurate RTL micro-pipeline calibrated to 1080p at 30 FPS. No fabricated ISP, deployed mobile SoC or public runnable artifact was verified in this review.",
+      "mechanism": "A denoiser and second-order autoregressive motion predictor use ISP motion vectors to extrapolate detections immediately. Full backend inference runs asynchronously on drift-control frames; predicted motion is checked on frame arrival and corrected locally when needed.",
+      "regime": "Object detection primarily, with tracking experiments also described. KITTI is recorded at 10 Hz and upsampled to 30 FPS; YOLOv8s is used for the Balanced regime and YOLOv8m for Overload. System behavior is modeled with gem5, DRAMsim3, a ScaleSimv2 NPU model and an RTL-validated ISP micro-pipeline.",
+      "reproducibility": "The preprint provides methodology details; no source repository, physical system or independent reproduction was inspected in this activation.",
+      "strongest_baseline": "The conventional serialized pipeline is the principal reference; the paper also compares classical motion extrapolation, pixel-domain speculation and an ideal perfect-prediction upper bound under a single shared-backend budget."
+    },
+    "title": "MVP paper reports lower modeled vision latency and energy through motion-domain speculation",
+    "topics": [
+      "continuous vision",
+      "motion extrapolation",
+      "speculative inference",
+      "ISP",
+      "tail latency",
+      "energy efficiency"
+    ],
+    "why_it_matters": "Continuous vision systems can lose responsiveness and energy efficiency when camera capture, inference and downstream work serialize or overload shared compute. MVP's motion-domain scheduling suggests a way to return provisional perception earlier while correcting drift off the critical path. The headline improvements come from a modeled system and object-detection regime; physical hardware behavior, broader workloads and safety under fast scene changes remain open."
+  },
+  "related": [],
+  "schema": "fcmo-public-brief-v1"
+}
