@@ -1,0 +1,106 @@
+{
+  "record": {
+    "id": "FCMO-981CF89EA200",
+    "title": "CC-OPD uses counterfactual teacher scores to improve multi-constraint instruction following",
+    "desk": "Reasoning Posttraining",
+    "event_at": "2026-09-23T00:00:00Z",
+    "evidence": "A",
+    "confidence": "credible_unconfirmed",
+    "importance": 5,
+    "tier": "Notable",
+    "summary": "The CC-OPD preprint proposes assigning token-level training signals to individual instruction constraints by comparing a frozen teacher's scores with and without each constraint. In experiments reported by the authors, CC-OPD had the highest average among the tested methods across seven benchmarks and two Qwen model pairs; a Qwen2.5-1.5B student exceeded its GRPO-IR-trained 7B teacher on MulDimIF. These are preprint-reported outcomes, not independently reproduced results, and the evidence covers only the tested models and training setup.",
+    "topics": [],
+    "organizations": [
+      "Alibaba Group"
+    ],
+    "human_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-981CF89EA200.html",
+    "machine_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/data/briefs/FCMO-981CF89EA200.json",
+    "citation": {
+      "id": "FCMO-981CF89EA200",
+      "source": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-981CF89EA200.html"
+    }
+  },
+  "brief": {
+    "claims": [
+      {
+        "label": "CLAIMED",
+        "text": "The authors introduce counterfactual constraint-conditioned on-policy distillation (CC-OPD). For each student-generated response, a frozen teacher scores the same tokens under the full instruction and under contexts with one constraint removed; the resulting per-token log-likelihood shifts are aggregated, clipped and added to the usual on-policy distillation reward. The student remains conditioned on the full instruction."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "Across two Qwen student–teacher pairs and seven instruction-following benchmarks, the paper reports the highest average among its evaluated training methods. On its Qwen2.5-1.5B pair, the student exceeds its separately GRPO-IR-trained Qwen2.5-7B teacher by 2.8 percentage points on MulDimIF overall and 6.3 points on the hardest split."
+      },
+      {
+        "label": "DEMONSTRATED_LIMITATION",
+        "text": "These are results reported in an author-submitted preprint. The reviewed source does not establish independent reproduction or generalization beyond the two model pairs, reported benchmarks and training setup."
+      }
+    ],
+    "confidence": "credible_unconfirmed",
+    "contradictory_evidence": [],
+    "desks": [
+      "reasoning_posttraining",
+      "evaluation_science"
+    ],
+    "development_type": "paper",
+    "editions": [
+      "2026-10-14"
+    ],
+    "event_at": "2026-09-23T00:00:00Z",
+    "evidence_class": "A",
+    "evidence_gaps": [
+      {
+        "description": "Independent reproduction of the training pipeline and benchmark table is absent from this review.",
+        "kind": "reproduction_missing",
+        "state": "open"
+      },
+      {
+        "description": "Generalization beyond the two Qwen model pairs and reported benchmark regime is unknown.",
+        "kind": "missing_independent",
+        "state": "open"
+      }
+    ],
+    "id": "FCMO-981CF89EA200",
+    "importance_effective_score": 5,
+    "importance_rationale": "If the reported gains generalize, constraint-specific teacher scoring could improve post-training efficiency and instruction reliability across multiple model sizes. Current consequence is notable rather than major because evidence is one preprint with two Qwen pairs and no independent reproduction.",
+    "importance_scale_version": 2,
+    "importance_score": 5,
+    "importance_tier": "Notable",
+    "last_verified_at": "2026-10-14T04:11:21Z",
+    "limitations": [
+      "The evidence reviewed is a single author-submitted preprint and its experiments have not been independently reproduced here.",
+      "Evaluations cover two Qwen student–teacher pairs and seven instruction-following benchmarks, not diverse model families or real-world deployment workloads.",
+      "Shaping hyperparameters were selected using IFEval, IFBench and MulDimIF; four other benchmark suites were used as transfer checks.",
+      "Reported student-over-teacher performance applies to the paper's MulDimIF setup and does not establish that smaller students generally outperform larger teachers."
+    ],
+    "organizations": [
+      "Alibaba Group"
+    ],
+    "primary_desk": "reasoning_posttraining",
+    "recorded_at": "2026-10-14T04:11:21Z",
+    "regions": [
+      "global"
+    ],
+    "relationships": [],
+    "source_languages": [
+      "en"
+    ],
+    "source_urls": [
+      "https://arxiv.org/abs/2609.27421"
+    ],
+    "status": "active",
+    "summary": "The CC-OPD preprint proposes assigning token-level training signals to individual instruction constraints by comparing a frozen teacher's scores with and without each constraint. In experiments reported by the authors, CC-OPD had the highest average among the tested methods across seven benchmarks and two Qwen model pairs; a Qwen2.5-1.5B student exceeded its GRPO-IR-trained 7B teacher on MulDimIF. These are preprint-reported outcomes, not independently reproduced results, and the evidence covers only the tested models and training setup.",
+    "technical": {
+      "claimed_result": "The paper reports the best average among its evaluated methods across IFEval, IFBench, MulDimIF, ComplexBench, InfoBench, FollowBench and CFBench for Qwen2.5-1.5B and Qwen3-4B students. On MulDimIF, Qwen2.5-1.5B reaches 72.9 versus 70.1 for its GRPO-IR-trained 7B teacher overall, and exceeds that teacher by 6.3 percentage points on the hardest level.",
+      "demonstrated_result": "The arXiv record establishes the submitted paper and its reported experimental claims. the research desk did not reproduce training or evaluation.",
+      "mechanism": "The teacher assigns token log-likelihoods to each student rollout under the complete prompt and each leave-one-constraint-out counterfactual. The summed and clipped token-level difference is added to the vanilla sampled-token on-policy distillation reward; where the total difference is zero, the reward reduces to the baseline.",
+      "regime": "Author-reported post-training experiments using two Qwen student–teacher pairs, seven instruction-following benchmarks, sampled-token PPO and the paper's training and evaluation choices. Three benchmark results were used to select the shaping coefficient and clip threshold; four were designated transfer checks.",
+      "reproducibility": "The paper links a public code repository. No code was run and no independent reproduction was located in this review.",
+      "strongest_baseline": "The paper compares with supervised fine-tuning, verifier-based GRPO variants, vanilla on-policy distillation, several on-policy distillation variants, top-k teacher KL variants, EOPD and ExOPD under the reported setup."
+    },
+    "title": "CC-OPD uses counterfactual teacher scores to improve multi-constraint instruction following",
+    "topics": [],
+    "why_it_matters": "A method that extracts constraint-specific supervision from a frozen teacher could improve how smaller models learn to satisfy instructions containing several simultaneous requirements without adding an external grader. The reported results are promising within the paper's two Qwen setups, but they do not yet establish broader transfer or a general student-over-teacher effect."
+  },
+  "related": [],
+  "schema": "fcmo-public-brief-v1"
+}

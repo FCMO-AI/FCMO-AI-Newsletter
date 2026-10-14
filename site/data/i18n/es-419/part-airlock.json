@@ -1,6 +1,6 @@
 {
   "canonical_locale": "en",
-  "canonical_source_sha256": "4c6f7c7273803ac8b6044a6fefd6887972c31995859cd0e9b8c61a405aff0892",
+  "canonical_source_sha256": "c509c0ecd8dde01f53a9f20cdbbcc5bdca19c79827e6fd74d06baf6786087ab9",
   "generated_from": "ARB airlock; editorial wording authored upstream",
   "locale": "es-419",
   "records": {
@@ -9583,6 +9583,60 @@
       "title": "Un preprint formaliza cómo verificar la revocación en trabajos prolongados de agentes",
       "why_it_matters": "Si el método funciona con adaptadores de proveedores reales, ofrece una garantía de cierre más precisa que un acuse de cancelación o la revocación de un token y permite preservar trabajo respaldado por otra raíz de autorización independiente. El propio artículo restringe la garantía a rutas registradas y completamente mediadas, por lo que no demuestra la inactividad global del sistema ni la seguridad de un despliegue real."
     },
+    "FCMO-6DA85B3EB855": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Los autores presentan un benchmark emparejado con evidencia de 50 consultas de comercio electrónico y 1,950 casos. Con Qwen2.5-7B como clasificador por listas congelado, las variantes ricas en afirmaciones no respaldadas ganaron 0.065–0.092 de rango normalizado frente a variantes limpias en tres perfiles, con significancia ajustada por Holm; el efecto fue marginal en MiMo-v2.5 y estuvo ausente en GLM-5.3-Flash."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En el experimento con puntuación por candidato congelada, un reclasificador con etiquetas de evidencia de oráculo redujo la tasa de los tres primeros para variantes no respaldadas de 0.647 a 0.427 y para blanqueo de evidencia de 0.613 a 0.387 con λ=40; se midió cero supresión falsa en los brazos protegidos de ese experimento."
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION",
+          "text": "Todos los jueces automáticos probados fallaron el umbral de fiabilidad prerregistrado. La referencia humana de 370 afirmaciones cubrió una muestra reservada de 10 consultas y mostró supresión colateral cuya interpretación sigue abierta. Los autores no validan una defensa automática; el efecto depende del modelo y el benchmark se limita al comercio electrónico."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "Esta revisión no encontró una réplica independiente del benchmark ni de los resultados de reclasificación.",
+          "kind": "reproduction_missing",
+          "state": "open"
+        },
+        {
+          "description": "Sigue sin resolverse la divergencia entre la muestra humana y las etiquetas de construcción y de los jueces; los jueces automáticos fallaron el umbral prerregistrado.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "Se desconoce la transferencia a búsquedas fuera del comercio electrónico, otros clasificadores y sistemas completos de recuperación.",
+          "kind": "regime_unclear",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si el modo de fallo medido se transfiere, las afirmaciones sin respaldo pero aparentemente pertinentes podrían distorsionar la búsqueda generativa y decisiones de agentes. La consecuencia actual es notable, no mayor: son 50 consultas de comercio electrónico, el efecto varía entre tres clasificadores y la correspondencia automática con evidencia no superó el umbral de fiabilidad de los autores.",
+      "limitations": [
+        "El efecto principal aparece con Qwen2.5-7B, es marginal con MiMo-v2.5 y no aparece con GLM-5.3-Flash; no es universal entre modelos.",
+        "El benchmark contiene 50 consultas de comercio electrónico y no demuestra comportamiento en otros dominios, navegación adaptativa ni productos en vivo.",
+        "Todos los jueces automáticos fallaron el umbral de fiabilidad prerregistrado; las etiquetas de oráculo no son una defensa automática desplegable.",
+        "La muestra humana cubre 10 consultas reservadas y su supresión colateral adversa no se ha adjudicado.",
+        "Los resultados proceden de un preprint y no se reprodujeron de forma independiente en esta revisión."
+      ],
+      "relationships": [],
+      "summary": "GroundedGEO estudia si los clasificadores de búsqueda generativa pueden elevar textos de productos que parecen pertinentes aunque carezcan de respaldo. En un benchmark de comercio electrónico con 50 consultas, los autores reportan una ganancia de clasificación para afirmaciones no respaldadas en Qwen2.5-7B congelado; el efecto fue marginal en otro clasificador y no apareció en un tercero. Un reclasificador con etiquetas de evidencia de oráculo redujo la tasa de los tres primeros en el experimento controlado, pero todos los jueces automáticos probados fallaron un umbral de fiabilidad prerregistrado y la interpretación de la muestra humana sigue abierta. El artículo no valida una defensa automática ni demuestra un efecto general en la web.",
+      "technical": {
+        "claimed_result": "Con Qwen2.5-7B congelado, las variantes no respaldadas ganaron +0.065 a +0.092 de rango normalizado en tres perfiles, con valores p ajustados por Holm de 0.035 a 0.0011. En el puntuador individual congelado, etiquetas de oráculo redujeron la tasa de los tres primeros de 0.647 a 0.427 para variantes no respaldadas y de 0.613 a 0.387 para blanqueo con λ=40; son resultados reportados por los autores.",
+        "demonstrated_result": "La fuente de arXiv confirma el artículo y los resultados reportados. También indica que todos los jueces automáticos fallaron el umbral prerregistrado y que la muestra humana adversa sigue sin resolverse. esta revisión no reprodujo el experimento.",
+        "mechanism": "GroundedGEO añade una penalización posterior a la clasificación, por afirmación, cuando afirmaciones pertinentes para la consulta carecen de respaldo en un paquete de evidencia separado. El artículo prueba efectos de rango, reclasificación con etiquetas de oráculo, pares de textos idénticos con paquetes distintos y cambios de cobertura probatoria.",
+        "regime": "Benchmark construido con 50 consultas de comercio electrónico, cinco productos candidatos por consulta y 1,950 casos; tres clasificadores por listas congelados para el efecto de rango y un puntuador individual congelado para el experimento de reclasificación. La evaluación humana cubre 10 consultas reservadas.",
+        "reproducibility": "El artículo describe su división congelada, regla de ajuste e implementación. En esta revisión no se localizó reproducción independiente ni evaluación completa en producción.",
+        "strongest_baseline": "Los brazos incluyen variantes limpias, con respaldo, neutrales emparejadas, sin respaldo y de blanqueo de evidencia; los comparadores incluyen una penalización textual y etiquetas de evidencia de oráculo. El artículo no afirma superar todas las defensas de integridad de búsqueda."
+      },
+      "title": "GroundedGEO pone a prueba la clasificación con evidencia frente a textos pertinentes pero sin respaldo",
+      "why_it_matters": "El estudio prueba un modo de fallo concreto para sistemas que seleccionan productos o fuentes por pertinencia: afirmaciones más elaboradas pueden clasificarse bien aunque la evidencia disponible no las respalde. Los resultados específicos por modelo y el fallo en la calidad de etiquetas muestran por qué una intervención debe medir tanto la supresión de ataques como la supresión colateral. Los hallazgos se limitan a un benchmark pequeño de comercio electrónico y requieren una réplica independiente más amplia."
+    },
     "FCMO-6DC9880173F3": {
       "claims": [
         {
@@ -12782,6 +12836,54 @@
       "title": "Artículo sobre un agente clínico local que informa autonomía selectiva con filtro de consistencia en simulaciones diagnósticas retrospectivas",
       "why_it_matters": "Los hospitales deben decidir cómo mantener los datos clínicos bajo control institucional cuando la confiabilidad del sistema varía entre casos. El artículo informa una señal de consistencia disponible al decidir que podría permitir el enrutamiento selectivo en la simulación estudiada. No demuestra que mejore la atención ni reduzca la carga de trabajo clínico en la práctica."
     },
+    "FCMO-981CF89EA200": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Los autores presentan la destilación en línea condicionada por restricciones contrafactuales (CC-OPD). Para cada respuesta del estudiante, un docente congelado puntúa los mismos tokens con la instrucción completa y con contextos donde se elimina una restricción cada vez; los cambios de log-verosimilitud por token se agregan, se limitan y se suman a la recompensa habitual de destilación. El estudiante conserva la instrucción completa."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En dos pares docente-estudiante de Qwen y siete benchmarks de seguimiento de instrucciones, el artículo reporta el promedio más alto entre los métodos evaluados. El estudiante Qwen2.5-1.5B supera a su docente Qwen2.5-7B entrenado con GRPO-IR por 2.8 puntos porcentuales en MulDimIF general y por 6.3 puntos en la división más difícil."
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION",
+          "text": "Son resultados reportados en un preprint de los autores. La fuente revisada no establece una reproducción independiente ni generalización más allá de los dos pares de modelos, benchmarks y esquema de entrenamiento evaluados."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "Esta revisión no encontró una reproducción independiente del entrenamiento ni de la tabla de benchmarks.",
+          "kind": "reproduction_missing",
+          "state": "open"
+        },
+        {
+          "description": "Se desconoce la generalización más allá de los dos pares Qwen y el régimen de benchmarks reportado.",
+          "kind": "missing_independent",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si las mejoras reportadas se generalizan, las puntuaciones específicas por restricción podrían elevar la eficiencia del posentrenamiento y la fiabilidad al seguir instrucciones en distintos tamaños de modelo. La consecuencia actual es notable, no mayor: la evidencia es un preprint con dos pares Qwen y sin reproducción independiente.",
+      "limitations": [
+        "La evidencia revisada es un único preprint de los autores y aquí no se reprodujeron sus experimentos.",
+        "La evaluación cubre dos pares docente-estudiante de Qwen y siete benchmarks, no distintas familias de modelos ni cargas de trabajo reales.",
+        "Los hiperparámetros se eligieron con IFEval, IFBench y MulDimIF; otros cuatro conjuntos sirvieron como pruebas de transferencia.",
+        "La ventaja del estudiante sobre el docente se limita a la configuración MulDimIF del artículo y no demuestra que estudiantes pequeños superen en general a docentes mayores."
+      ],
+      "relationships": [],
+      "summary": "El preprint de CC-OPD propone asignar señales de entrenamiento a cada restricción comparando las puntuaciones de un docente congelado con y sin esa restricción. En experimentos reportados por sus autores, obtuvo el mayor promedio entre los métodos evaluados en siete benchmarks y dos pares de modelos Qwen; un estudiante Qwen2.5-1.5B superó a su docente 7B entrenado con GRPO-IR en MulDimIF. Estos resultados no se han reproducido de forma independiente y se limitan a los modelos y al entrenamiento evaluados.",
+      "technical": {
+        "claimed_result": "El artículo reporta el mejor promedio entre sus métodos en IFEval, IFBench, MulDimIF, ComplexBench, InfoBench, FollowBench y CFBench para estudiantes Qwen2.5-1.5B y Qwen3-4B. En MulDimIF, Qwen2.5-1.5B alcanza 72.9 frente a 70.1 del docente 7B entrenado con GRPO-IR; en el nivel más difícil lo supera por 6.3 puntos porcentuales.",
+        "demonstrated_result": "El registro de arXiv confirma el artículo enviado y los resultados que reportan sus autores. esta revisión no reprodujo el entrenamiento ni la evaluación.",
+        "mechanism": "El docente asigna log-verosimilitudes por token a cada respuesta con el prompt completo y con cada contexto que elimina una restricción. La diferencia agregada y limitada se suma a la recompensa base de destilación en línea con tokens muestreados; si la diferencia total es cero, se recupera la recompensa base.",
+        "regime": "Experimentos de posentrenamiento reportados por los autores con dos pares Qwen, siete benchmarks, PPO con tokens muestreados y las decisiones de entrenamiento del artículo. Tres benchmarks se usaron para elegir coeficiente y límite; otros cuatro fueron pruebas de transferencia.",
+        "reproducibility": "El artículo enlaza un repositorio público de código. En esta revisión no se ejecutó el código ni se encontró una reproducción independiente.",
+        "strongest_baseline": "El artículo compara, bajo su configuración, con ajuste supervisado, variantes GRPO con verificadores, destilación en línea estándar y sus variantes, KL docente top-k, EOPD y ExOPD."
+      },
+      "title": "CC-OPD usa puntuaciones contrafactuales del docente para mejorar el seguimiento de instrucciones con múltiples restricciones",
+      "why_it_matters": "Extraer de un docente congelado señales específicas para cada restricción podría ayudar a modelos más pequeños a cumplir instrucciones con varios requisitos sin añadir un evaluador externo. Los resultados son prometedores en los dos entornos Qwen estudiados, pero no demuestran una transferencia más amplia ni una ventaja general de los estudiantes sobre sus docentes."
+    },
     "FCMO-986D269D43F5": {
       "claims": [
         {
@@ -14605,6 +14707,54 @@
       },
       "title": "Un artículo de Cell presenta un benchmark abierto de biología del envejecimiento y modelos de lenguaje especializados y compactos",
       "why_it_matters": "Si los resultados reportados se generalizan más allá de este benchmark, el ajuste fino específico de un dominio podría permitir que modelos compactos analicen datos ómicos sobre envejecimiento con menor costo computacional que los modelos generales de frontera. Es un resultado significativo pero acotado: la evidencia se refiere a un benchmark de 17 tareas creado por los autores, y siguen pendientes la replicación independiente, las comparaciones con costos igualados y la transferencia fuera de la biología del envejecimiento."
+    },
+    "FCMO-AF98C3034ACF": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "El 23 de septiembre de 2026, los senadores estadounidenses Michael Bennet y Peter Welch anunciaron una propuesta para crear una Comisión Digital Federal con autoridad sobre la IA de frontera y las grandes plataformas."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El anuncio describe certificación previa al lanzamiento de modelos de frontera, autoridad para pausar hasta seis meses la distribución de un modelo con riesgo catastrófico —o hasta que existan salvaguardas—, requisitos de mitigación y notificación de incidentes, y multas de hasta 15% de los ingresos globales del año anterior."
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION",
+          "text": "La fuente oficial inspeccionada es un comunicado que describe una propuesta. Esta revisión no localizó número ni texto completo de un proyecto presentado; la propuesta no demuestra una ley promulgada ni supervisión implementada."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "En esta revisión no se localizó el texto legislativo completo ni el número del proyecto.",
+          "kind": "missing_primary",
+          "state": "open"
+        },
+        {
+          "description": "Se desconoce el estado legislativo y el apoyo posterior a la propuesta.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se promulgara la autoridad propuesta, podría cambiar materialmente las obligaciones de lanzamiento y cumplimiento de modelos de frontera en Estados Unidos. La consecuencia actual es significativa, aunque no mayor, porque no se establecieron el texto completo, el avance legislativo ni la promulgación.",
+      "limitations": [
+        "La fuente es un anuncio de los promotores y no demuestra promulgación, apoyo bipartidista ni probabilidad de aprobación.",
+        "La búsqueda no localizó número ni texto completo del proyecto; no se inspeccionaron los documentos explicativos enlazados.",
+        "El límite de multas, los supuestos de revisión y las obligaciones anunciadas no se verificaron contra texto legal operativo.",
+        "No se establecieron implementación, respuesta de desarrolladores ni efectos medidos en lanzamientos."
+      ],
+      "relationships": [],
+      "summary": "Los senadores Michael Bennet y Peter Welch anunciaron una propuesta para crear una Comisión Digital Federal que supervise la IA de frontera y las grandes plataformas digitales. Su comunicado describe certificación previa, posibles pausas de ciertos modelos de alto riesgo, deberes de mitigación y notificación de incidentes, y multas de hasta 15% de los ingresos globales de una empresa en el año anterior. Es una propuesta de sus promotores, no una ley presentada o promulgada; esta revisión no localizó el texto legislativo.",
+      "technical": {
+        "claimed_result": "No se reivindica rendimiento de modelos. Es una propuesta de política cuyas facultades anunciadas podrían afectar el desarrollo y despliegue de IA si se adoptaran.",
+        "demonstrated_result": "La página oficial del Senado confirma que Bennet y Welch anunciaron la propuesta y describieron sus facultades previstas; no establece texto legal ni implementación.",
+        "mechanism": "Según el comunicado, la comisión revisaría ciertos modelos de frontera antes de su lanzamiento, fijaría requisitos de mitigación, notificación de incidentes y transparencia, y podría pausar la distribución hasta seis meses o hasta que hubiera salvaguardas.",
+        "regime": "Supervisión federal de IA de frontera en Estados Unidos según el anuncio de los promotores del 23 de septiembre de 2026; esta revisión no identificó proyecto presentado ni ley promulgada.",
+        "reproducibility": "El anuncio oficial puede inspeccionarse directamente. Confirmar texto legislativo y estado posterior requiere nuevas consultas a fuentes oficiales.",
+        "strongest_baseline": "La propuesta retoma iniciativas anteriores sobre una Comisión de Plataformas Digitales; según sus promotores, esta versión agrega certificación previa de IA de frontera y pausas de lanzamiento por riesgo catastrófico."
+      },
+      "title": "Bennet y Welch proponen una agencia federal con autoridad para revisar modelos de IA antes de su lanzamiento",
+      "why_it_matters": "Si se promulgara como se describe, la propuesta añadiría revisión federal previa y una facultad de pausa para algunos modelos de frontera, lo que cambiaría la planificación de cumplimiento y la vía al mercado. Por ahora solo consta el anuncio de dos senadores; se desconocen la probabilidad de aprobación y los detalles jurídicos operativos."
     },
     "FCMO-B0C0165FEDD8": {
       "claims": [
@@ -16549,50 +16699,55 @@
       "claims": [
         {
           "label": "DEMONSTRATED",
-          "text": "El 9 de octubre de 2026, la Comisión Europea publicó un comunicado que anuncia una reunión especial de su Grupo Científico de la Ley de IA sobre los riesgos de seguridad de la IA de frontera. La Comisión describe al grupo como 60 expertos independientes que asesoran a la Oficina de IA de la UE y a las autoridades nacionales sobre riesgos sistémicos, clasificación de modelos, métodos de evaluación y vigilancia transfronteriza del mercado."
+          "text": "El 9 de octubre de 2026, la Comisión Europea publicó un comunicado sobre una reunión extraordinaria de su Panel Científico de la Ley de IA dedicada a los riesgos de seguridad y protección de la IA de frontera. La Comisión describe el panel como un grupo de 60 especialistas independientes que asesora a la Oficina de IA y a las autoridades nacionales sobre riesgos sistémicos, clasificación de modelos, métodos de evaluación y vigilancia transfronteriza del mercado."
         },
         {
           "label": "CLAIMED",
-          "text": "La Comisión afirma que el grupo investigaba incidentes recientes de pérdida de control y que, junto con la Oficina de IA, había preparado preguntas para las empresas que desarrollaron los modelos involucrados."
+          "text": "La Comisión dice que el panel investigaba incidentes recientes de pérdida de control y que, junto con la Oficina de IA, preparó preguntas para las empresas que desarrollaron los modelos involucrados."
         },
         {
           "label": "CLAIMED",
-          "text": "La Comisión dice que el grupo presentaría recomendaciones sobre los riesgos de seguridad de la IA de frontera en la reunión; el comunicado consultado no publica las recomendaciones ni identifica los incidentes."
+          "text": "La Comisión dijo que el panel presentaría recomendaciones sobre los riesgos de seguridad y protección de la IA de frontera; el comunicado inspeccionado no publica esas recomendaciones ni identifica los incidentes."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En una nota del 12 de octubre, la Comisión dice que la reunión del 9 de octubre abordó incidentes recientes de pérdida de control, la monitorización de modelos y la automejora recursiva. Informa que se prepararon preguntas sobre incidentes y se enviaron solicitudes de información; además resume recomendaciones para gobernar los riesgos de modelos internos, reforzar la investigación de incidentes, promover la cooperación internacional y examinar técnicas de entrenamiento que reducen la monitorización. La nota no identifica incidentes ni modelos, no publica las preguntas combinadas ni demuestra que las recomendaciones se hayan adoptado como política vinculante."
         }
       ],
       "contradictory_evidence": [],
       "evidence_gaps": [
         {
-          "description": "El anuncio de la Comisión no identifica los incidentes ni a las empresas desarrolladoras, no publica las preguntas o recomendaciones y no aporta evidencia para evaluar los casos de pérdida de control descritos.",
+          "description": "La Comisión no identifica los incidentes ni las empresas desarrolladoras, no publica las preguntas combinadas ni la evidencia subyacente, y no proporciona detalles para evaluar los casos reportados de pérdida de control.",
           "kind": "missing_primary",
           "state": "open"
         },
         {
-          "description": "El comunicado no confirma si la reunión se celebró según lo previsto, si se presentaron recomendaciones o si alguna recomendación modificó la práctica regulatoria.",
+          "description": "La nota informa cuatro recomendaciones, pero no establece si la Comisión o la Oficina de IA las adoptaron, modificaron la práctica regulatoria o emitieron requisitos vinculantes.",
           "kind": "other",
           "state": "open"
         }
       ],
-      "importance_rationale": "Si el trabajo descrito informa la supervisión de la UE sobre los riesgos sistémicos de modelos de frontera, podría influir en cómo la experiencia técnica, las preguntas sobre incidentes y las recomendaciones llegan a los reguladores. El comunicado documenta una reunión y el trabajo anunciado, pero no publica recomendaciones, detalles de incidentes ni medidas regulatorias posteriores.",
+      "importance_rationale": "Si el trabajo reportado del panel influye en la supervisión europea del riesgo sistémico de modelos de frontera, podría orientar cómo llegan a los reguladores el análisis técnico, las preguntas sobre incidentes y las recomendaciones. La nota informa propuestas consultivas, pero no publica detalles de los incidentes ni acredita su adopción o implementación.",
       "limitations": [
-        "El comunicado es una versión oficial de la Comisión; no identifica los incidentes ni a las empresas desarrolladoras.",
-        "El anuncio dice que se presentarían recomendaciones, pero no incluye su contenido ni revela si fueron adoptadas.",
-        "Las páginas en inglés y francés son versiones del mismo comunicado, no fuentes independientes.",
-        "Este anuncio no establece nuevos requisitos vinculantes, medidas de cumplimiento ni resultados de seguridad medidos."
+        "Las fuentes son relatos de la Comisión; no identifican los incidentes subyacentes ni a las empresas desarrolladoras.",
+        "La nota del 12 de octubre resume recomendaciones, pero no publica las preguntas combinadas a las empresas ni la evidencia que sustenta los incidentes.",
+        "No se demuestra que las recomendaciones se hayan adoptado como normas vinculantes o se hayan implementado.",
+        "Las páginas en inglés, francés y español son ediciones lingüísticas del mismo relato de la Comisión, no fuentes independientes.",
+        "No se establece ningún incidente verificado de manera independiente, hallazgo técnico ni resultado de seguridad medido."
       ],
       "relationships": [],
-      "summary": "Un comunicado de la Comisión Europea fechado el 9 de octubre de 2026 anuncia una reunión especial, prevista para ese día, del Grupo Científico de la Ley de IA sobre los riesgos de seguridad de la IA de frontera. La Comisión describe al grupo como 60 expertos independientes que asesoran a la Oficina de IA y a las autoridades nacionales sobre riesgos sistémicos, clasificación de modelos, métodos de evaluación y vigilancia transfronteriza del mercado. Afirma que el grupo había investigado incidentes recientes de pérdida de control y que, junto con la Oficina de IA, preparó preguntas para las empresas que desarrollaron los modelos involucrados. El comunicado indica que se presentarían recomendaciones en la reunión, pero no identifica los incidentes, no publica las preguntas ni las recomendaciones y no informa de medidas regulatorias posteriores. Es un informe oficial sobre el trabajo previsto del grupo, no una verificación independiente de incidentes ni una nueva norma vinculante.",
+      "summary": "Un comunicado de la Comisión Europea del 9 de octubre de 2026 anunció una reunión extraordinaria del Panel Científico de la Ley de IA sobre los riesgos de seguridad y protección de la IA de frontera. En una nota en español publicada el 12 de octubre, la Comisión dice que la reunión abordó incidentes recientes de pérdida de control, la monitorización de modelos y la automejora recursiva; resume cuatro recomendaciones, entre ellas gobernar los riesgos de modelos internos, fortalecer la capacidad de investigar incidentes, facilitar el intercambio internacional de información y examinar técnicas de entrenamiento que reducen la monitorización. La Comisión también dice que enviará preguntas combinadas a las empresas desarrolladoras mientras investiga los incidentes. Las fuentes no identifican los incidentes ni los modelos, no publican las preguntas ni demuestran que las recomendaciones se hayan vuelto política vinculante. Es un relato institucional de trabajo consultivo, no una verificación independiente de incidentes.",
       "technical": {
-        "claimed_result": "La Comisión informa que su Grupo Científico investigó incidentes recientes de pérdida de control, preparó preguntas para las empresas desarrolladoras junto con la Oficina de IA y presentaría recomendaciones sobre los riesgos de seguridad de la IA de frontera.",
-        "demonstrated_result": "El anuncio fechado de la Comisión, el mandato del grupo y la reunión prevista pueden consultarse en inglés y francés. El comunicado no aporta los casos subyacentes, las preguntas ni el texto de las recomendaciones.",
-        "implementation_status": "La Comisión anunció una reunión especial del Grupo Científico para el 9 de octubre de 2026. El comunicado describe recomendaciones previstas, pero no informa de una norma adoptada, una medida de cumplimiento ni recomendaciones publicadas.",
-        "mechanism": "El Grupo Científico de la Ley de IA asesora a la Oficina de IA y a las autoridades nacionales; según la Comisión, puede aportar a la evaluación de riesgos sistémicos, la clasificación de modelos, los métodos de evaluación y la vigilancia transfronteriza del mercado.",
-        "regime": "Aplicación de la Ley de IA de la UE y asesoramiento sobre riesgos sistémicos de modelos de propósito general y de frontera. El anuncio no especifica los incidentes o las empresas involucradas ni las decisiones regulatorias que podrían seguir.",
-        "reproducibility": "Se comprobaron las ediciones en inglés y francés del comunicado de la Comisión; ambas corresponden a la misma fuente oficial. El anuncio consultado no enlazaba documentación sobre los incidentes ni resultados del grupo.",
-        "strongest_baseline": "No se ofrece un comparador de rendimiento ni de impacto regulatorio; se trata de un anuncio de trabajo asesor previsto, no de una evaluación comparativa."
+        "claimed_result": "La Comisión informa que su Panel Científico investigó incidentes recientes de pérdida de control, preparó preguntas para las empresas involucradas junto con la Oficina de IA y recomendó gobernar los riesgos de modelos internos, reforzar la investigación de incidentes, coordinarse internacionalmente y examinar con mayor rigor las técnicas de entrenamiento que reducen la monitorización.",
+        "demonstrated_result": "El comunicado fechado de la Comisión y la nota en español sobre la reunión pueden consultarse públicamente. La nota documenta el relato institucional de la reunión y un resumen de recomendaciones, pero no presenta los casos de incidentes, las preguntas combinadas ni la evidencia que los sustenta.",
+        "implementation_status": "La Comisión informa recomendaciones consultivas de la reunión del 9 de octubre en una nota publicada el 12 de octubre 2026. No se establece ninguna norma adoptada, medida de cumplimiento ni resultado de implementación.",
+        "mechanism": "El Panel Científico de la Ley de IA asesora a la Oficina de IA y a las autoridades nacionales; según la Comisión, ese trabajo puede informar el análisis de riesgo sistémico, la clasificación de modelos, los métodos de evaluación y la vigilancia transfronteriza del mercado.",
+        "regime": "Aplicación de la Ley de IA de la UE y asesoría sobre riesgos sistémicos, respuesta a incidentes, monitorización de modelos de frontera y automejora recursiva. Las fuentes no especifican los incidentes ni las empresas involucradas.",
+        "reproducibility": "Se consultaron las páginas de la Comisión Europea en español sobre la reunión; también hay ediciones en inglés y francés del anuncio. Son relatos institucionales, no corroboración independiente. Las páginas inspeccionadas no publican documentación de los incidentes.",
+        "strongest_baseline": "No se ofrece un comparador de impacto normativo; se trata de un relato institucional de asesoría del panel, no de una evaluación comparativa ni de una norma adoptada."
       },
-      "title": "La Comisión Europea anuncia una reunión especial del grupo científico sobre riesgos de la IA de frontera tras investigaciones sobre pérdida de control",
-      "why_it_matters": "El trabajo anunciado conecta el análisis de incidentes y las preguntas técnicas a desarrolladores de modelos con el organismo de la UE que asesora sobre la aplicación de la Ley de IA. Si después se publican recomendaciones y se actúa en consecuencia, podrían orientar la evaluación regulatoria de los riesgos sistémicos de los modelos de frontera. El comunicado actual no revela evidencia de incidentes, recomendaciones ni seguimiento."
+      "title": "La Comisión Europea presenta recomendaciones del panel científico sobre riesgos de la IA de frontera",
+      "why_it_matters": "La nota posterior convierte el anuncio de la reunión en un relato concreto de asesoría normativa de la UE: investigación de incidentes, gobernanza de modelos internos, intercambio internacional de información y límites de monitorización. Si se adoptan, estas propuestas podrían orientar la supervisión de modelos de frontera. Sin embargo, la Comisión no publica los incidentes ni las preguntas combinadas a las empresas, y no se ha demostrado ninguna medida vinculante ni su implementación."
     },
     "FCMO-CD5289FA48D4": {
       "claims": [
@@ -27446,6 +27601,48 @@
         "source_sha256": "57aceffb31e5f957e8ad80c838d1ac2a329cca6d21ce6785010f0ed820b7d879"
       }
     },
+    "FCMO-6DA85B3EB855": {
+      "claims": {
+        "locale_sha256": "dd393853bae3503cc21cf052e2f63c398b46b91af185cf28a37d16586831f45c",
+        "source_sha256": "23008d020d34a3b57bcf9ea5c26531657a63dbfe38e0f476d4fcf8fa981b6c53"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "d617782be6715c2c44005b1f44b665bd64efbe973791fc40eca44a86a8ccc0ef",
+        "source_sha256": "46920004893827128ba3e3abffc0e5206a132dcc7bfe6eeba3c73f7141be9c4c"
+      },
+      "importance_rationale": {
+        "locale_sha256": "4a2da0057cca56556470f24fecdd827c07de570dadae444d4f54845b36947872",
+        "source_sha256": "00b28c8b2b000750b3f3d1054d356968f43f874945fe18b01a34075d9990a1fb"
+      },
+      "limitations": {
+        "locale_sha256": "fcba78c491713d60a27364ab45fab689d439506299d13e2a769fd63709d7dfd1",
+        "source_sha256": "7d08102a87ce04151f9b85edd1b7dd6e34f2f45fa62a7c4e12d08ba792b0bb87"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "4c7281ab36d77b8083ef3f34597fb0c75a344107868b29e0fff003f9d725b987",
+        "source_sha256": "914864a640560e869717fedcf45dd7628b4c1200c6c0bd9e8867fd1e2e8e6238"
+      },
+      "technical": {
+        "locale_sha256": "7c8b3e9b460c6bea7d15f5ad9c44590c8e6c0db7bf040fb612685a637b8877d0",
+        "source_sha256": "4ae57a1f5455d1c885c9bd3f09e2bbf1c9b43b9cd82fbfb12ed955d535c9f475"
+      },
+      "title": {
+        "locale_sha256": "1a0e513f981de2fbdaa386069cd59a8059909cd443bbc830f8999c7cddb37528",
+        "source_sha256": "91925e8d083b0de21f5890042a3f66cb8b30382a57ae9acb92b70ab802132441"
+      },
+      "why_it_matters": {
+        "locale_sha256": "57ae098a5af6ad9661df459c25912fe2954169955ab472f3a5e90bb0f65c79fb",
+        "source_sha256": "0770715cee3aff62bcc74b84c62449f09925688d69431368c941e6f2f2a4493c"
+      }
+    },
     "FCMO-6DC9880173F3": {
       "claims": {
         "locale_sha256": "91d136eb2d1ef9ea4217d119650529dc50bdc968006d65a98d40ba289855d35f",
@@ -29826,6 +30023,48 @@
         "source_sha256": "0c27fbe9e94a224e111edf1b6957c9efc4ebbbb7024bc77020b24cbd52e1bea3"
       }
     },
+    "FCMO-981CF89EA200": {
+      "claims": {
+        "locale_sha256": "e15023c9840efc18d68fb818b37c23b55723f0b66fb805ade487320cbaa3f5b1",
+        "source_sha256": "f021d1099f1743bda505d19c16edacee56ac937935d9bb6bbf59856bb9b63b93"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "f391575cf5c4553ae8d887293992318e926b82c09ebaf3cdd7616653bff7fd37",
+        "source_sha256": "83665bc6db187ed99d78eefdd23664aed592a5808dc1da2f19c7268f7a6413cc"
+      },
+      "importance_rationale": {
+        "locale_sha256": "b264c43ec63f8e02173a49b0b907718252e8e319683a9a8a6b9f350292b5273f",
+        "source_sha256": "854b93fec50d2b1d3d3b05fa5227edc4e8de3946e255bc48ebedbca03e063efb"
+      },
+      "limitations": {
+        "locale_sha256": "3db50357b9fabe156694062467f4cc9a1c747a83dcf87a4bfa79a417ed40f674",
+        "source_sha256": "9eb20b149b1e8e16a807ac7507cd8103d133d63144f71fcf97607983b4581aa4"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "15ed61a09c0bc41acd352a46699ff6edf424ce000ae0e7b07ea89085c573eec8",
+        "source_sha256": "6c2168808f7b067e1320da54fca5b1f86066470e47452f6324a2bc349293fc68"
+      },
+      "technical": {
+        "locale_sha256": "762bf536e80f22828da8291544ff66c85e8d8fc48075269ef1a1479a076ecf34",
+        "source_sha256": "b84929f38acddc3d743354b9c13a8e9407aad2a8fde2f36abeb70e132c75975c"
+      },
+      "title": {
+        "locale_sha256": "8282fe7ed1ae9f034a1de8bdeb328528060e541bb9c5e8fdacd84bafda8aefd6",
+        "source_sha256": "ad7b18d22d13c09fa2692ab51cededa3c62ac6ea0cf7439f014c5c7910d0cfd7"
+      },
+      "why_it_matters": {
+        "locale_sha256": "ef7d1a2d147b5e3d85f3e55da8ff38c05113fe3cb457d115ecee6fb3e08730f2",
+        "source_sha256": "ecf81a263b78add12c8741bce18081bfc94d7f5ac228db2123f5f67e14c38aec"
+      }
+    },
     "FCMO-986D269D43F5": {
       "claims": {
         "locale_sha256": "29079fd636df89479bcfd84ea66ed661cfa6f2b549707cde1135bd1683e34e99",
@@ -31210,6 +31449,48 @@
       "why_it_matters": {
         "locale_sha256": "1e605fa6d876aad179ebf3cebcb830742a0468dcddb219fcb9795c36f322cc40",
         "source_sha256": "1735182524921641433f1b642b521515a4cb115c39146607f1d5e81abd633137"
+      }
+    },
+    "FCMO-AF98C3034ACF": {
+      "claims": {
+        "locale_sha256": "84268aca027442091b481436688f7b10f46324583b49ee92fb2f99cee92088e3",
+        "source_sha256": "3e0ba68d3a5adc709df8d2e2f51f21ab167c6dee4520ac68c252d121ebac39fc"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "c4c614dc5f1ad3bc717c1802d9ce573911ca8e4a5bf2ee940acfa79f1c394378",
+        "source_sha256": "78f89ef3d272f06e6a357e0191935f1cfb2625c88535c9dccc6ad05166c43993"
+      },
+      "importance_rationale": {
+        "locale_sha256": "c589b80a599d15fb3025358f1930d1ba93d0620d6fa6d6c35fa2944849f5519a",
+        "source_sha256": "f177d077942deab8e9b1bfaba7bfa7a4042475af266de4c8acd390696335cb0b"
+      },
+      "limitations": {
+        "locale_sha256": "de594b61f195a34a783e260c52493f0d84210647c9112c36ba6bb8ef87815d07",
+        "source_sha256": "73140d26967c04894c9546bd9a31dbe520588c6f71b30e6a17b76ffd02d1fa7e"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "985b9f157a0a9e2d0f840fe2aa3a363377239bd24646648e59a822d8b9b85e7c",
+        "source_sha256": "5ce9c794439065f0a43cdd64219594e86e7e6130c1e07e749bddfbe1dea651e7"
+      },
+      "technical": {
+        "locale_sha256": "654a18c700bc81b8380d2ade764960bea86924563876d559dc53571a08222927",
+        "source_sha256": "d2eb7c06e84098732706b1b1deae91148b7cfee7370db624fa89c20d93e9c831"
+      },
+      "title": {
+        "locale_sha256": "edad1319d4a7062697d48b912f988214045fdf6c27121550d1b37965dd8998e8",
+        "source_sha256": "3a2a39b0be84fddecb84fd5be45413c2ef8fc68e48f83f38200f0205b4c055fa"
+      },
+      "why_it_matters": {
+        "locale_sha256": "5015094ccc4101e14f0207dbe6bc3de3b96a505b46eec08a54978a46f1636c95",
+        "source_sha256": "ee6e8631d68ecbd732295b3590aaebc58699d883e6bb049bd202715835cf97e0"
       }
     },
     "FCMO-B0C0165FEDD8": {
@@ -32712,44 +32993,44 @@
     },
     "FCMO-CA575C0CC53D": {
       "claims": {
-        "locale_sha256": "83b39366f5b0b5eaa5a281af091a5b47672c2a069f37b55473a4f4a1bc0a1c14",
-        "source_sha256": "b72e01c26606fc319b8da8369382944f6436203b1d1a8cc62e8b6d5fc860d70b"
+        "locale_sha256": "11e8060beda61a0ae3c7bd96f725477f31d4799364fc51124a1e7f1c1743f167",
+        "source_sha256": "33f5e643416e802fe56ac46360f3184c17a4d818bef720d9ca98c4e5ca6ab756"
       },
       "contradictory_evidence": {
         "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
         "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
       },
       "evidence_gaps": {
-        "locale_sha256": "294b8c16e11bb62dc6b75fdf58a87067ea79f62630f879e9269d7e988b3db7f8",
-        "source_sha256": "2655a1120eea58e3c69379d627aa783604c4ad90f6acd4ef46c1516951ec4e26"
+        "locale_sha256": "4e5cac6216e9a30ae3f6a04023cb772df9a966c3812ce4bb0f755b2d3d79b58b",
+        "source_sha256": "a7235c17f389abc754fa69362ec661f01a70e999446a52e9662bbe3adfa6881f"
       },
       "importance_rationale": {
-        "locale_sha256": "b2e1e554ea82d212b6ad5f167706526d5441e0886f8649ee8fe126adafcd3cc3",
+        "locale_sha256": "a45be6950f5396eee5ac0aa2ced2202bd8d703e95e9cf35503e152f1a7079558",
         "source_sha256": "893833bf62ee5dae6358a9d2aa78a18827c72605f34d9cd19074fa28875579d4"
       },
       "limitations": {
-        "locale_sha256": "8c7f61fec586da43e155b2644b24f0286168d6a5fac6dcd4a86410119f3cef06",
-        "source_sha256": "806bee2108334856776365066868d7bff52d15403f0586561b2e088026e59a8b"
+        "locale_sha256": "04b74216eb6d6aab4c1f61ecdbad6665a95fa91c34749110decb16388812b9bf",
+        "source_sha256": "cb30482c3ecbbd1cae9b8fbe0c32c25768b7049378269463a9a48b4bea83f3be"
       },
       "relationships": {
         "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
         "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
       },
       "summary": {
-        "locale_sha256": "4508ab7e2c41252b4c01a9de6cbe10c6e486cc52d5288b4eeb2cc7cf8cb7d639",
-        "source_sha256": "0a8234501880b890ed4424bf457e51b26085d2e96703ea720b36689ee8eaec51"
+        "locale_sha256": "ff5c776351f5a5c7c1e072289ee66dc093599e4c698629796f4dfc23c318ec3b",
+        "source_sha256": "91bc6bc8cc147ec95279617a60b1e59422e6ef2865e80f54feb6fbdfc868abb0"
       },
       "technical": {
-        "locale_sha256": "9c86f4fc43e5d71c128987953eccfc2e177eae812dded1c63988e3cc921267fe",
-        "source_sha256": "f07d6e8dcf7ba39abb651775d5ea519a9840fad803fdbe14c660dcd61b25674d"
+        "locale_sha256": "59c7ca5dd93a37e3f2ecee19eed353dd7f36dbf7d297ffdfc0101cbbaedcdb17",
+        "source_sha256": "3a161da867be65ec9be144ea5aeb49bf336f8dfb5d859c7cc905773ef9d49c99"
       },
       "title": {
-        "locale_sha256": "7588797c41eb4a58459c66f24259728feab12f06bbc36d178f982d64f3bcc7fc",
+        "locale_sha256": "921be951895db5e0b64acb0e1515debdfd8dfa4453a3aaa1c4f335b132572c98",
         "source_sha256": "d06bdbd4bfbcfee5d5322538a80c8aeabc10db1cdabe6b57c2a40b8979a2b1a8"
       },
       "why_it_matters": {
-        "locale_sha256": "f2af69a81c8a8affa14f17ce8ef19867609c2724387b35dc529fabd747914b76",
-        "source_sha256": "e4b9e989949bdb99390296320c4d1eeccda216d84fd9d211ac4056fd1e5ba991"
+        "locale_sha256": "539162c11e3160b4e8aea00f7214076131977c6c27ec7afb97fdf835af22a3f1",
+        "source_sha256": "5f4f4ebefce61e89503af30e53df4329a1afa5efdf3e71dc8fb5b7a9bcf4af41"
       }
     },
     "FCMO-CD5289FA48D4": {
