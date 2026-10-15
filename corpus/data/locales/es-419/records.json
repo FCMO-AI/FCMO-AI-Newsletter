@@ -3669,6 +3669,74 @@
       "title": "PhysAI-Bench informa una puntuación máxima de 52% en decisiones de UAV derivadas de trazas",
       "why_it_matters": "El benchmark aborda decisiones donde interactúan los objetivos de misión, el estado físico, las herramientas y las condiciones de red. Su puntuación máxima informada es modesta, pero solo mide selección de acciones de opción múltiple derivadas de trazas. El resultado motiva evaluar mejor las decisiones de agentes sensibles al contexto; aún no prueba rendimiento, seguridad ni finalización de tareas en vuelos reales."
     },
+    "FCMO-1FBA6659C532": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Latent Compaction inicializa una caché KV compacta para cada documento mediante importancia de reconstrucción, atención de un modelo docente y diversidad del espacio de claves; luego entrena las entradas de la caché en dos etapas para igualar la atención y las salidas de la caché completa. Los pesos del modelo base permanecen congelados; los autores dicen que el entrenamiento usa indicaciones genéricas sobre el documento, sin preguntas ni respuestas posteriores."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores destacan un resultado de RULER con exactitud de 96.7% a compresión de 32×, frente a 40.0% con KVZip+. La Figura 1 del artículo compara Qwen3-1.7B en RULER y Phonebook Lookup. Es un resultado de referencia informado, no una reproducción independiente."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El artículo informa que en LongBench Latent Compaction supera al resumen de texto en las relaciones de compresión evaluadas y a KVZip+ en 16× y 32× para Qwen3-0.6B, 1.7B y 4B. Indica que la ventaja es menor en 4× y que los resultados bajan al aumentar la compresión, manteniendo una brecha frente a los modelos sin comprimir."
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "Los autores indican explícitamente que sus comparaciones usan presupuestos de pares KV lógicos y no miden ahorro de memoria ni mejoras de velocidad de inferencia. También informan que el resumen de texto supera a Latent Compaction en RULER en las relaciones más agresivas y que Phonebook Lookup se acerca a cero para todos los métodos comprimidos a 64× o más."
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "El repositorio público de los autores está disponible y enumera código de implementación con licencia MIT. Se verificó la disponibilidad del repositorio, pero esta revisión no ejecutó el código, descargó modelos ni reprodujo de forma independiente los resultados."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "En esta revisión no se localizó ni realizó una reproducción independiente de las mejoras de recuperación informadas.",
+          "kind": "missing_independent",
+          "state": "open",
+          "updated_at": "2026-10-15T02:21:41Z"
+        },
+        {
+          "description": "El recuento de pares KV lógicos no establece la reducción de memoria física, el rendimiento real ni la latencia; esta revisión no midió el servicio.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-15T02:21:41Z"
+        },
+        {
+          "description": "El entrenamiento de caché específico por documento tiene costos de preparación que quizá solo se amortizan al reutilizar documentos; se desconoce la economía integral para distintas tasas de reutilización.",
+          "kind": "regime_unclear",
+          "state": "open",
+          "updated_at": "2026-10-15T02:21:41Z"
+        }
+      ],
+      "importance_rationale": "Si se reproduce de forma independiente y se mide con memoria y latencia reales, la optimización de un estado KV compacto por documento podría cambiar de forma sustancial las decisiones de inferencia con contextos largos; la puntuación refleja el impacto potencial en estos regímenes, no la confianza en el resultado.",
+      "limitations": [
+        "Todos los resultados de desempeño fueron informados por los autores en un único preprint y no se reprodujeron de forma independiente.",
+        "Los autores definen la compresión mediante presupuestos de pares KV lógicos; no midieron memoria física ni velocidad de inferencia.",
+        "La ventaja informada varía según la prueba y la relación de compresión: el resumen de texto supera al método en las relaciones RULER más agresivas, y Phonebook Lookup se acerca a cero para todos los métodos comprimidos a 64× o más.",
+        "La comparación destacada de 96.7% frente a 40.0% es un resultado seleccionado del artículo; su transferencia y desempeño operativo requieren medición independiente.",
+        "Se inspeccionaron el repositorio y su licencia, pero el código, las dependencias, los modelos y los datos no se auditaron ni ejecutaron."
+      ],
+      "relationships": [],
+      "summary": "Un preprint de arXiv del 14 de octubre presenta Latent Compaction, que usa entrenamiento en tiempo de prueba para optimizar una caché de clave-valor compacta y específica de cada documento, con los pesos del modelo congelados. Los autores destacan un resultado de RULER con exactitud de 96.7% a una compresión de 32×, frente a 40.0% con KVZip+, y reportan mejoras más amplias en LongBench con relaciones de compresión mayores en distintos tamaños de Qwen3. El artículo también indica que el resumen de texto supera a Latent Compaction en RULER en las relaciones más agresivas y que Phonebook Lookup se acerca a cero para todos los métodos comprimidos a 64× o más. Son resultados de referencia informados por los autores. La evaluación cuenta pares KV lógicos; no mide ahorros reales de memoria ni velocidad de inferencia.",
+      "technical": {
+        "claimed_result": "Los autores informan 96.7% de exactitud frente a 40.0% con KVZip+ en un resultado destacado de RULER a compresión de 32×; también reportan mejoras en LongBench con relaciones mayores en Qwen3 de distintos tamaños, con resultados variables según la tarea y el nivel de compresión.",
+        "compute_or_cost": "El método realiza optimización de prueba específica por documento: 1,000 actualizaciones de ajuste de atención por capa y 1,000 actualizaciones conjuntas en el refinamiento predeterminado informado. Esta revisión no midió cómputo de preparación, memoria física ahorrada, latencia ni cambios en el rendimiento por consulta; la amortización depende de la reutilización de documentos.",
+        "demonstrated_result": "El artículo describe un método de optimización de caché de dos etapas y resultados de referencia; el repositorio de los autores aparece públicamente con licencia MIT. No se realizó ejecución ni reproducción independiente.",
+        "implementation_status": "El repositorio público de los autores enumera el código de implementación y la licencia MIT. No se descargaron, auditaron ni ejecutaron código, modelos o conjuntos de datos.",
+        "mechanism": "El método inicializa una caché compacta específica del documento mediante selección basada en reconstrucción, importancia según la atención del modelo docente y diversidad del espacio de claves. La primera etapa ajusta salidas de atención y log-normalizadores, con ciertas entradas preservadas fijas; la segunda optimiza conjuntamente la caché compacta mediante destilación del modelo con caché completa. Los pesos del modelo quedan congelados y las indicaciones son genéricas, no preguntas posteriores.",
+        "novelty": "En vez de seleccionar solo entradas KV originales o resumir el documento en texto, el método entrena en tiempo de prueba una representación KV compacta y específica del documento para aproximar la atención y las predicciones del modelo con la caché completa.",
+        "regime": "Las comparaciones de RULER y Phonebook Lookup de la Figura 1 usan Qwen3-1.7B; LongBench incluye Qwen3-0.6B, 1.7B y 4B con relaciones de compresión de 4×–32×. Otros experimentos de recuperación cubren más tamaños Qwen3 y MiniCPM5, con salidas docentes propias para cada modelo. El artículo aclara que los presupuestos KV lógicos no prueban ahorros de memoria ni aumentos de velocidad reales.",
+        "reproducibility": "El artículo describe el entrenamiento y las referencias, y enlaza el código. Siguen pendientes la reproducción independiente, la contabilidad de memoria física, las pruebas de servicio y la amortización de costos de preparación.",
+        "strongest_baseline": "KVZip+ es la referencia citada en el resultado destacado de RULER a 32×. El orden de las referencias no es uniforme: el artículo indica que el resumen de texto supera al método en las relaciones RUL más agresivas; en LongBench, los resultados favorecen al método frente a KVZip+ en 16× y 32×."
+      },
+      "title": "Latent Compaction informa mejoras de recuperación al entrenar la caché KV específica de cada documento",
+      "why_it_matters": "Si se reproducen los resultados y el costo de preparación puede amortizarse al reutilizar un documento, optimizar un estado KV compacto podría ofrecer una nueva opción para inferencia con contextos largos. El artículo actual establece resultados de referencia bajo presupuestos lógicos de caché, no reducciones de memoria física, mejoras de latencia ni ahorros de servicio; el desempeño también disminuye con mayor compresión y varía según la tarea."
+    },
     "FCMO-21277C154D52": {
       "claims": [
         {
@@ -21353,6 +21421,73 @@
       },
       "title": "Un estudio externo reconstruye la coordinación de agentes en una wiki pública, pero no puede vincularla con el desempeño real",
       "why_it_matters": "Si la reconstrucción es robusta, muestra que los agentes pueden coordinarse mediante un espacio público compartido durante una evaluación y que las trazas guardadas quizá no revelen si eso mejora el desempeño. Para interpretar el resultado son centrales la corrección explícita del artículo —de causalidad a asociación descriptiva— y la falta de resultados con verdad de referencia."
+    },
+    "FCMO-E49C53258142": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "El artículo presenta HybridAgents, que combina generación en modo latente para el razonamiento interno y generación de texto para respuestas e interacción externa con herramientas. Conserva el contexto combinado entre turnos y entrena los modelos con HybridSFT seguido de HybridRL."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En 11 pruebas de matemáticas, ciencias, medicina, búsqueda de conocimiento y razonamiento con agentes, los autores informan mejoras frente a referencias comparables de texto y latentes para las bases de 8B y 14B. Para el sistema de 14B informan una mejora promedio de 17.4% frente a la referencia de agentes más fuerte en las métricas de agentes seleccionadas por el artículo; los resultados varían según la tarea y la métrica."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan entre 35.5% y 54.7% menos tokens, una inferencia entre 1.8× y 2.6× más rápida y entre 2.7× y 3.7× menos cómputo en sus entornos evaluados. Son comparaciones informadas por los autores; esta revisión no normalizó hardware, costo total de entrenamiento, utilización del servicio ni costo monetario entre implementaciones independientes."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Para los resultados con agentes, el artículo informa cinco ejecuciones independientes y una desviación estándar promedio de 0.014 en exactitud (IC del 95% ±0.017); para matemáticas y búsqueda informa desviaciones estándar promedio separadas de 0.031 y 0.018. El artículo no establece una reproducción por grupos independientes."
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "El repositorio público mantenido por los autores está disponible en GitHub y su archivo README enumera generación híbrida, código de entrenamiento HybridSFT/HybridRL, utilidades de inferencia y enlaces a modelos de 8B/14B y conjuntos de entrenamiento. Esto confirma que los artefactos se anuncian públicamente, pero no que reproduzcan los resultados; esta revisión no ejecutó código."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "Ningún grupo independiente ha reproducido los resultados de referencia o eficiencia; esta revisión examinó las fuentes, pero no ejecutó el código ni verificó salidas de los modelos.",
+          "kind": "missing_independent",
+          "state": "open",
+          "updated_at": "2026-10-15T02:15:44Z"
+        },
+        {
+          "description": "El modelo de costos de la Tabla 9 contabiliza cada paso de texto/latente como una pasada completa hacia adelante de la red troncal y supone un costo de $2.50 por hora de H100 con una utilización del 10% del rendimiento máximo BF16. Excluye el prellenado del prompt, la atención dependiente del contexto y la ejecución de herramientas externas; los costos monetarios y de servicio integrales siguen sin verificarse.",
+          "kind": "regime_unclear",
+          "state": "open",
+          "updated_at": "2026-10-15T02:19:26Z"
+        },
+        {
+          "description": "Se desconoce la generalización más allá de las bases Qwen3 de 8B/14B, las instrucciones de referencia, las distribuciones de tareas y las configuraciones de herramientas y recompensas evaluadas.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-15T02:15:44Z"
+        }
+      ],
+      "importance_rationale": "Si se replica de forma independiente, combinar razonamiento latente con acciones mediante texto y reducciones considerables de tokens y cómputo podría influir materialmente en el entrenamiento y la inferencia de agentes; la puntuación refleja la consecuencia potencial en estos regímenes de modelos y tareas, no la confianza en que sea cierto.",
+      "limitations": [
+        "Todas las cifras de desempeño y eficiencia son informadas por los autores en un preprint; esta revisión no las reprodujo de forma independiente.",
+        "La suite de pruebas y las condiciones de eficiencia corresponden a modelos, herramientas, instrucciones, presupuestos de entrenamiento y hardware específicos; los promedios destacados no implican mejoras universales de agentes.",
+        "Se confirmó la existencia del repositorio y de los enlaces a modelos/datos en el README mantenido por los autores, pero los artefactos no se auditaron ni ejecutaron.",
+        "Las afirmaciones de interpretabilidad se refieren a representaciones legibles del contenido en modo latente y a análisis de tareas; no demuestran que esas lecturas expliquen fielmente el cómputo interno."
+      ],
+      "relationships": [],
+      "summary": "Un preprint de arXiv del 13 de octubre presenta HybridAgents, un sistema que alterna entre razonamiento interno en modo latente y texto para interactuar con herramientas, con las etapas de ajuste HybridSFT y HybridRL. En 11 pruebas de matemáticas, ciencias, medicina, búsqueda y razonamiento con agentes, los autores informan mejoras de sus sistemas 8B y 14B frente a referencias comparables de texto y latentes. También informan entre 35.5% y 54.7% menos tokens generados, una inferencia entre 1.8× y 2.6× más rápida y entre 2.7× y 3.7× menos costo computacional en los entornos evaluados. El artículo informa cinco ejecuciones independientes para sus resultados con agentes y presenta desviaciones estándar e intervalos de confianza promedio. Son resultados de referencia informados por los autores, no hallazgos independientes; los promedios destacados abarcan tareas, modelos, instrucciones y hardware específicos.",
+      "technical": {
+        "claimed_result": "Los autores informan mejores resultados frente a referencias comparables de texto y latentes en 11 pruebas y una mejora promedio de 17.4% frente a la referencia de agentes más fuerte para 14B en métricas seleccionadas, junto con reducciones de tokens, velocidad y costo computacional.",
+        "compute_or_cost": "Los autores estiman el cómputo de decodificación contabilizando cada paso generado, ya sea de texto o latente, como una pasada completa hacia adelante de la red troncal, además del costo de proyectar el vocabulario o de HybridLink. La Tabla 9 compara redes troncales Qwen3 de 4B/8B/14B y estima un costo de $2.50 por hora de H100 con una utilización del 10% del rendimiento máximo BF16. Excluye el prellenado del prompt, la atención dependiente del contexto y la ejecución de herramientas externas; por ello, las reducciones monetarias de 2.7×–3.7× son estimaciones del costo de generación modelado, no facturas integrales de servicio. No se realizó normalización ni medición independiente.",
+        "demonstrated_result": "El preprint especifica la arquitectura, los métodos de entrenamiento y las evaluaciones; el repositorio de los autores y los artefactos enlazados figuran públicamente. No se ejecutaron modelos ni se hizo una reproducción independiente o auditoría de artefactos.",
+        "implementation_status": "El repositorio público de los autores enumera código y artefactos enlazados de modelos/datos. esta revisión confirmó el repositorio y su README, pero no auditó, descargó ni ejecutó los artefactos.",
+        "mechanism": "HybridLink proyecta estados ocultos latentes al espacio de entrada de embeddings para permitir transiciones entre modos latente y de texto. Una memoria de trabajo continua transporta entre turnos segmentos latentes, texto, observaciones de herramientas y estado de continuación. HybridSFT enseña generación coordinada; HybridRL optimiza cuándo razonar en modo latente y cuándo interactuar mediante texto.",
+        "novelty": "El trabajo combina generación interna en modo latente con uso de herramientas mediante texto y memoria de trabajo entre turnos, con ajuste posterior orientado a aprender las transiciones entre modos.",
+        "regime": "El artículo evalúa sistemas Qwen3 de 8B y 14B en pruebas seleccionadas de matemáticas, ciencias, medicina, búsqueda y razonamiento con agentes, con instrucciones, herramientas, recompensas y hardware propios del estudio. Los resultados con agentes incluyen cinco ejecuciones. Las cifras de eficiencia reflejan las implementaciones de evaluación descritas, no mediciones universales del costo de servicio.",
+        "reproducibility": "El artículo ofrece detalles experimentales y enlaces a código/modelos/datos. Quedan por evaluar la reproducción independiente, integridad de los artefactos, licencias de cada componente de datos y equivalencia exacta del cómputo integral.",
+        "strongest_baseline": "La referencia de agentes más fuerte varía según la prueba; la comparación agregada de 14B informa una mejora promedio de 17.4% frente a la referencia más fuerte enumerada para métricas seleccionadas. GRPO/ARPO de tamaño comparable y sistemas de texto/latentes son referencias de entrenamiento pertinentes en las Tablas 1–2; el orden exacto varía por tarea."
+      },
+      "title": "Hybrid Reasoning Agents informa mejoras en pruebas con razonamiento latente y uso de herramientas mediante texto",
+      "why_it_matters": "Si las comparaciones se reproducen con presupuestos integrales equivalentes, las representaciones internas híbridas podrían mejorar el equilibrio entre capacidad y costo de servicio de los agentes con herramientas, conservando el uso de texto para operarlas y lecturas inspeccionables del razonamiento. Las mejoras de velocidad y costo corresponden al entorno de inferencia del artículo: no demuestran ahorros equivalentes en producción, y aquí no se realizó una reproducción independiente."
     },
     "FCMO-E57D0A651C93": {
       "claims": [
