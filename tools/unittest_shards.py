@@ -36,7 +36,7 @@ def flatten(suite):
             yield item
 
 
-DEFAULT_SECONDS_PER_TEST = 2.0
+DEFAULT_SECONDS_PER_TEST = 1.0
 WEIGHTS = Path(__file__).with_name("unittest_shard_weights.json")
 
 
