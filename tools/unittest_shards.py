@@ -36,6 +36,10 @@ def flatten(suite):
             yield item
 
 
+DEFAULT_SECONDS_PER_TEST = 2.0
+WEIGHTS = Path(__file__).with_name("unittest_shard_weights.json")
+
+
 def group_key(test_id: str) -> str:
     """The unit of assignment: the test class (``module.Class``)."""
     head, _, _ = test_id.rpartition(".")
@@ -46,13 +50,16 @@ def _stable(value: str) -> bytes:
     return hashlib.sha256(value.encode("utf-8")).digest()
 
 
-def partition_test_ids(test_ids: list[str], shard_count: int) -> list[list[str]]:
+def partition_test_ids(test_ids: list[str], shard_count: int,
+                       weights: dict[str, float] | None = None) -> list[list[str]]:
     """Return ``shard_count`` shards that cover ``test_ids`` exactly once.
 
-    Classes are kept whole and assigned largest-first to the currently
+    Classes are kept whole and assigned heaviest-first to the currently
     lightest shard (ties broken by shard index), so the result depends only on
-    the set of IDs, not on discovery order or the machine.  Inside a shard the
-    original discovery order is preserved.
+    the set of IDs and the committed weights, not on discovery order or the
+    machine.  A class's weight is its measured seconds from ``weights`` when
+    known, else ``DEFAULT_SECONDS_PER_TEST`` per test (without ``weights``,
+    simply its test count).  Inside a shard the discovery order is preserved.
     """
     if shard_count < 1:
         raise ValueError("shard_count must be positive")
@@ -63,18 +70,35 @@ def partition_test_ids(test_ids: list[str], shard_count: int) -> list[list[str]]
         groups.setdefault(group_key(test_id), []).append(test_id)
     if len(groups) < shard_count:
         raise ValueError("discovery must find at least one test class per shard")
-    ordered = sorted(groups, key=lambda key: (-len(groups[key]), _stable(key)))
-    loads = [0] * shard_count
+
+    def weight(key: str) -> float:
+        if weights is None:
+            return float(len(groups[key]))
+        known = weights.get(key)
+        return float(known) if isinstance(known, (int, float)) and known > 0 else \
+            DEFAULT_SECONDS_PER_TEST * len(groups[key])
+
+    ordered = sorted(groups, key=lambda key: (-weight(key), _stable(key)))
+    loads = [0.0] * shard_count
     owner: dict[str, int] = {}
     for key in ordered:
         target = min(range(shard_count), key=lambda index: (loads[index], index))
         owner[key] = target
-        loads[target] += len(groups[key])
+        loads[target] += weight(key)
     shards: list[list[str]] = [[] for _ in range(shard_count)]
     for test_id in test_ids:
         shards[owner[group_key(test_id)]].append(test_id)
     assert_complete(test_ids, shards)
     return shards
+
+
+def load_weights(path: Path) -> dict[str, float]:
+    """Measured seconds per test class; a missing file means count balancing."""
+    if not path.is_file():
+        return {}
+    data = json.loads(path.read_text(encoding="utf-8"))
+    classes = data.get("class_seconds", {}) if isinstance(data, dict) else {}
+    return {str(key): float(value) for key, value in classes.items() if isinstance(value, (int, float))}
 
 
 def assert_complete(test_ids: list[str], shards: list[list[str]]) -> None:
@@ -96,21 +120,24 @@ def suite_digest(test_ids: list[str]) -> str:
 
 
 class TimedResult(unittest.TextTestResult):
-    """Record wall time per test class so shard balance can be tuned from logs."""
+    """Record wall time per test class so shard balance can be tuned from logs.
+
+    Everything since the previous test stopped is charged to the next test's
+    class, so ``setUpModule``/``setUpClass`` cost lands on the class that
+    needed it.
+    """
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.class_seconds: dict[str, float] = {}
-        self._started = 0.0
-
-    def startTest(self, test):
-        self._started = time.monotonic()
-        super().startTest(test)
+        self._last = time.monotonic()
 
     def stopTest(self, test):
         super().stopTest(test)
+        now = time.monotonic()
         key = group_key(test.id())
-        self.class_seconds[key] = self.class_seconds.get(key, 0.0) + time.monotonic() - self._started
+        self.class_seconds[key] = self.class_seconds.get(key, 0.0) + now - self._last
+        self._last = now
 
 
 def ensure_repository_root_on_path() -> Path:
@@ -129,6 +156,7 @@ def main(argv=None) -> int:
     parser.add_argument("--count", type=int, required=True)
     parser.add_argument("--start-dir", default="tests")
     parser.add_argument("--list", action="store_true", help="print the partition as JSON and exit")
+    parser.add_argument("--weights", type=Path, default=WEIGHTS, help="measured class seconds (balance only)")
     args = parser.parse_args(argv)
     if args.count < 1:
         parser.error("count must be positive")
@@ -148,7 +176,7 @@ def main(argv=None) -> int:
     # modules and can differ.
     tests = list(flatten(unittest.defaultTestLoader.discover(args.start_dir)))
     all_ids = [test.id() for test in tests]
-    shards = partition_test_ids(all_ids, args.count)
+    shards = partition_test_ids(all_ids, args.count, load_weights(args.weights))
     digest = suite_digest(all_ids)
     if args.list:
         print(json.dumps({"tests": len(all_ids), "suite_sha256": digest,
@@ -159,9 +187,11 @@ def main(argv=None) -> int:
           f"suite_sha256={digest}", flush=True)
     suite = unittest.TestSuite(test for test in tests if test.id() in selected)
     result = unittest.TextTestRunner(verbosity=2, resultclass=TimedResult).run(suite)
-    slowest = sorted(result.class_seconds.items(), key=lambda item: -item[1])[:10]
-    print("slowest classes in this shard: " + "; ".join(f"{key} {seconds:.0f}s" for key, seconds in slowest),
+    slowest = sorted(result.class_seconds.items(), key=lambda item: -item[1])
+    print("slowest classes in this shard: " + "; ".join(f"{key} {seconds:.0f}s" for key, seconds in slowest[:10]),
           flush=True)
+    print("class seconds: " + json.dumps({key: round(seconds, 1) for key, seconds in slowest if seconds >= 5},
+                                         sort_keys=True), flush=True)
     return 0 if result.wasSuccessful() else 1
 
 

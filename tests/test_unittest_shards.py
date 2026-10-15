@@ -61,6 +61,19 @@ class PartitionTests(unittest.TestCase):
         shards = unittest_shards.partition_test_ids(ids({"A": 10, "B": 6, "C": 5, "D": 4, "E": 3}), 2)
         self.assertEqual(sorted(len(shard) for shard in shards), [14, 14])
 
+    def test_measured_weights_balance_by_seconds_without_changing_coverage(self) -> None:
+        test_ids = ids({"Slow": 2, "A": 10, "B": 10, "C": 10})
+        shards = unittest_shards.partition_test_ids(test_ids, 2, {"test_mod.Slow": 600.0})
+        self.assertCountEqual([test_id for shard in shards for test_id in shard], test_ids)
+        slow = next(shard for shard in shards if "test_mod.Slow.test_0" in shard)
+        self.assertEqual({unittest_shards.group_key(test_id) for test_id in slow}, {"test_mod.Slow"})
+
+    def test_committed_weights_are_valid_and_optional(self) -> None:
+        weights = unittest_shards.load_weights(unittest_shards.WEIGHTS)
+        self.assertTrue(weights, "the measured weights file is missing or empty")
+        self.assertTrue(all(seconds > 0 for seconds in weights.values()))
+        self.assertEqual(unittest_shards.load_weights(ROOT / "does-not-exist.json"), {})
+
     def test_invalid_partitions_are_refused(self) -> None:
         with self.assertRaises(ValueError):
             unittest_shards.partition_test_ids(ids({"A": 2}), 0)
