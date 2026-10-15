@@ -44,7 +44,10 @@ concurrency:
   # Manual rollback intentionally shares the active lease so it supersedes any
   # candidate still in flight and is the final Pages writer.
   group: github-pages-v4-${{ (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion != 'success' || github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/main') && github.run_id || 'active' }}
-  cancel-in-progress: true
+  # A full run takes ~50 min and corpus-driven runs start about hourly, so cancelling
+  # in-flight runs starved the site (live stuck at 2026-10-11, 2026-10-15). Only a manual
+  # dispatch (rollback) may preempt; everything else queues and the newest pending wins.
+  cancel-in-progress: ${{ github.event_name == 'workflow_dispatch' }}
 
 env:
   BASE_PATH: /FCMO-AI-Newsletter/

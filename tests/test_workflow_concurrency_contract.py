@@ -16,7 +16,12 @@ class WorkflowConcurrencyContractTests(unittest.TestCase):
         self.assertIn("github.event.workflow_run.conclusion != 'success'",text)
         self.assertIn("github.run_id || 'active'",text)
         self.assertIn(group_prefix,text)
-        self.assertIn("cancel-in-progress: true",text)
+        if name=="pages.yml":
+            # Pages runs ~50 min; hourly corpus runs must queue, never cancel (live starved 10-11..10-15).
+            self.assertNotIn("cancel-in-progress: true",text)
+            self.assertIn("cancel-in-progress: ${{ github.event_name == 'workflow_dispatch' }}",text)
+        else:
+            self.assertIn("cancel-in-progress: true",text)
 
     def test_failed_bridge_event_cannot_cancel_active_refresh(self) -> None:
         self.assert_failed_workflow_run_isolated(
