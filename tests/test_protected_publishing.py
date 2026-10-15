@@ -143,6 +143,8 @@ class ProtectedPublishingTests(unittest.TestCase):
 
     def test_required_workflow_has_no_path_skip_and_no_write_credentials(self):
         text = (ROOT / '.github/workflows/publish-gate.yml').read_text()
+        integrity = (ROOT / '.github/workflows/release-validate.yml').read_text()
+        test_workflow = (ROOT / '.github/workflows/contract-tests.yml').read_text()
         publish_source = (ROOT / 'ops/publish.py').read_text()
         self.assertIn('name: publish-gate', text)
         self.assertIn('timeout-minutes: 60', text)
@@ -156,7 +158,17 @@ class ProtectedPublishingTests(unittest.TestCase):
         self.assertNotIn('run: python3 -m unittest discover -s tests', text)
         self.assertIn("[sys.executable, '-m', 'unittest', 'discover', '-s', 'tests']", publish_source)
         self.assertIn('TEST_SUITE_TIMEOUT_SECONDS = 3600', publish_source)
-        self.assertIn('python3 ops/publish.py --check', text)
+        self.assertIn('uses: ./.github/workflows/contract-tests.yml', text)
+        self.assertIn('needs: unit-tests', text)
+        self.assertIn('--tests-verified-commit "$GITHUB_SHA"', text)
+        self.assertIn('actions/cache@v4', text)
+        self.assertIn('uses: ./.github/workflows/contract-tests.yml', integrity)
+        self.assertIn('needs: unit-tests', integrity)
+        self.assertIn('--tests-verified-commit "$GITHUB_SHA"', integrity)
+        self.assertIn('actions/cache@v4', integrity)
+        self.assertIn('workflow_call:', test_workflow)
+        self.assertIn('matrix:\n        shard: [0, 1, 2, 3]', test_workflow)
+        self.assertIn('python tools/unittest_shards.py --index', test_workflow)
 
     def test_publish_check_gives_only_the_suite_its_measured_budget(self):
         from unittest.mock import patch
@@ -164,6 +176,18 @@ class ProtectedPublishingTests(unittest.TestCase):
             self.assertEqual(publish.main(['--check']), 0)
         timeouts = [call.kwargs['timeout'] for call in run.call_args_list]
         self.assertEqual(timeouts, [3600, 1800, 1800, 1800, 1800, 1800, 1800, 1800])
+
+    def test_preverified_suite_is_skipped_only_for_the_exact_checkout_commit(self):
+        with patch.object(publish, 'git', return_value='a' * 40), \
+             patch.object(publish.subprocess, 'run', return_value=Mock(returncode=0)) as run:
+            self.assertEqual(publish.main(['--check', '--tests-verified-commit', 'a' * 40]), 0)
+        commands = [call.args[0] for call in run.call_args_list]
+        self.assertFalse(any(command[1:4] == ['-m', 'unittest', 'discover'] for command in commands))
+        with patch.object(publish, 'git', return_value='b' * 40), \
+             patch.object(publish.subprocess, 'run') as run:
+            with self.assertRaises(SystemExit):
+                publish.main(['--check', '--tests-verified-commit', 'a' * 40])
+        run.assert_not_called()
 
     def test_required_check_name_has_a_single_owner(self):
         import yaml

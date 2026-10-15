@@ -15,8 +15,14 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  unit-tests:
+    uses: ./.github/workflows/contract-tests.yml
+    with:
+      source_commit: ${{ github.sha }}
+
   publish-gate:
     name: publish-gate
+    needs: unit-tests
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
@@ -30,6 +36,14 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: '22'
+      - name: Cache pinned browser runtime
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ runner.temp }}/playwright/node_modules
+            ~/.npm
+            ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-1.63.0-node-22-chromium-v1
       - name: Install pinned browser dependencies
         run: |
           npm install --prefix "$RUNNER_TEMP/playwright" --no-save playwright@1.63.0 axe-core@4.14.0
@@ -44,4 +58,7 @@ jobs:
           sudo apt-get install -y age
 
       - name: Run the full regression suite and validate the immutable candidate through every release and browser gate
-        run: python3 ops/publish.py --check
+        # The reusable unittest job checked this exact workflow commit in four
+        # deterministic shards; ops/publish.py verifies the SHA before skipping
+        # only that already-passed suite invocation.
+        run: python3 ops/publish.py --check --tests-verified-commit "$GITHUB_SHA"

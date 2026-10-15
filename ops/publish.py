@@ -108,6 +108,8 @@ def main(argv=None):
     parser.add_argument('--local-bare', type=Path)
     parser.add_argument('--ref', default='refs/heads/main')
     parser.add_argument('--receipt', type=Path)
+    parser.add_argument('--tests-verified-commit',
+                        help='Skip unittest discovery only when a prior gate passed for this exact checkout commit')
     parser.add_argument('--out', type=Path, default=ROOT / 'publish')
     parser.add_argument('--fixture-build', action='store_true', help='Test-fixture build only; never sufficient for publication')
     args = parser.parse_args(argv)
@@ -127,15 +129,21 @@ def main(argv=None):
             print('Publicación rechazada: comprobaciones incompletas.', file=sys.stderr)
             return 2
     if args.local_bare or args.receipt or args.ref != 'refs/heads/main': parser.error('--check uses the local candidate')
+    if args.tests_verified_commit:
+        try:
+            checked_out_sha = git(ROOT, 'rev-parse', '--verify', 'HEAD^{commit}')
+        except subprocess.CalledProcessError as exc:
+            parser.error(f'cannot verify checkout commit: {exc}')
+        if checked_out_sha != args.tests_verified_commit:
+            parser.error('preverified unittest commit does not match the checked-out commit')
     env = {k: v for k, v in os.environ.items() if not k.startswith(('GH_TOKEN', 'GITHUB_TOKEN', 'STUDIO_', 'GHOST_'))}
     env['GHOST_CONTENT_URL'] = ''; env['GHOST_CONTENT_API_KEY'] = ''
     commands = []
     if not args.fixture_build:
-        commands += [
-            [sys.executable, '-m', 'unittest', 'discover', '-s', 'tests'],
-            [sys.executable, 'tools/build_ready_receipt.py'],
-            [sys.executable, 'tools/verify_release.py'],
-        ]
+        if not args.tests_verified_commit:
+            commands.append([sys.executable, '-m', 'unittest', 'discover', '-s', 'tests'])
+        commands += [[sys.executable, 'tools/build_ready_receipt.py'],
+                     [sys.executable, 'tools/verify_release.py']]
     commands += [
         ['git', 'rev-parse', '--verify', 'refs/tags/lkg^{commit}'],
         [sys.executable, 'tools/paper/build.py', '--stories', 'site/data/stories.v2.json', '--status', 'site/data/newsroom-status.json', '--editorial', 'editorial', '--out', str(args.out), '--base', '/FCMO-AI-Newsletter/'],
