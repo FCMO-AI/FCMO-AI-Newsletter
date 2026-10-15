@@ -1,36 +1,351 @@
 [
   {
     "date": "2026-10-15",
-    "authority": "research_snapshot",
-    "published": false,
+    "authority": "published_edition",
+    "published": true,
     "preamble": [
       {
+        "type": "p",
+        "text": "Published 2026-10-15T12:33:47.747168Z · evidence cutoff 2026-10-15T12:24:08Z"
+      },
+      {
         "type": "div",
-        "text": "Publication state: draft. No published daily newsletter is asserted for this date."
+        "text": "Historical snapshot: later evidence may be reflected in current research pages and corrections."
+      },
+      {
+        "type": "heading",
+        "text": "FCMO AI Newsletter Brief — 2026-10-15"
+      },
+      {
+        "type": "blockquote",
+        "text": "Deterministically compiled from canonical evidence. Importance measures impact, not truth; evidence/confidence remain separate."
       }
     ],
-    "sections": [],
+    "sections": [
+      {
+        "title": "Front page",
+        "blocks": [
+          {
+            "type": "h4",
+            "text": "1. Latent Compaction reports retrieval accuracy gains from document-specific test-time KV-cache training"
+          },
+          {
+            "type": "p",
+            "text": "Desk: inference_systems Evidence: A · credible_unconfirmed · active · importance 6/10 (Major) Importance rationale: If independently replicated with real memory and latency measurements, document-specific optimization of compact KV state could materially change long-context inference choices; the score reflects potential impact in the stated regimes, not truth confidence."
+          },
+          {
+            "type": "p",
+            "text": "What changed: A 14 October arXiv preprint introduces Latent Compaction, which uses test-time training to optimize a compact, document-specific key–value cache while keeping model weights frozen. The authors report a highlighted RULER result of 96.7% accuracy at 32× compression versus 40.0% for KVZip+, and report broader gains on LongBench at stronger compression ratios across Qwen3 model sizes. The paper also states that text summarization outperforms Latent Compaction on RULER at the most aggressive ratios and that Phonebook Lookup accuracy approaches zero for all compressed methods at 64× and above. These are author-reported benchmark results. The evaluation counts logical KV pairs; it does not measure actual memory savings or inference speed. Why it matters: If the retrieval results reproduce and preparation cost can be amortized across repeated use of a document, optimizing compact KV state could provide a new option for long-context inference. The current paper establishes benchmark behavior under logical cache budgets, not physical memory reductions, latency gains or serving-cost savings; performance also declines at stronger compression and differs by task."
+          },
+          {
+            "type": "p",
+            "text": "Demonstrated: The paper documents a two-stage cache-optimization method and benchmark results; its repository is publicly listed under MIT license. No independent execution or reproduction was performed."
+          },
+          {
+            "type": "p",
+            "text": "Claimed: Authors report 96.7% accuracy versus 40.0% for KVZip+ in a highlighted RULER result at 32× compression; they report gains on LongBench at higher ratios across Qwen3 sizes, with non-uniform results by task and compression level."
+          },
+          {
+            "type": "p",
+            "text": "Mechanism: The method initializes a compact document-specific cache using reconstruction-based selection, teacher-attention importance and key-space diversity. A first training stage fits attention outputs and log-normalizers with selected preserver entries fixed; a second jointly optimizes the compact cache by distillation from the full-cache model. Model weights stay frozen and prompts are generic rather than downstream questions."
+          },
+          {
+            "type": "p",
+            "text": "Strongest baseline: KVZip+ is the cited baseline in the highlighted RULER 32× comparison. Baseline ordering is not uniform: the paper says text summarization beats Latent Compaction at the most aggressive RULER ratios; LongBench results favor it over KVZip+ at 16× and 32×."
+          },
+          {
+            "type": "p",
+            "text": "Regime: RULER and Phonebook Lookup comparisons use Qwen3-1.7B in Figure 1; LongBench includes Qwen3-0.6B, 1.7B and 4B at 4×–32× compression. Additional retrieval experiments cover other Qwen3 sizes and MiniCPM5, using each model’s own teacher outputs. The paper states logical KV-pair budgets do not establish actual memory savings or inference speedups."
+          },
+          {
+            "type": "p",
+            "text": "Limitations: All performance results are author-reported in a single preprint and were not independently reproduced.; The authors define compression using logical KV-pair budgets; physical memory usage and inference speed were not measured.; The reported advantage varies by benchmark and ratio: text summarization is stronger at the most aggressive RULER ratios, and Phonebook Lookup approaches zero accuracy for all compressed methods at 64× and above.; The highlighted 96.7% versus 40.0% comparison is a paper-selected result; broader transfer and operational performance require independent measurement.; The author repository was inspected for availability and license only; code, dependencies, model artifacts and data were not audited or executed."
+          },
+          {
+            "type": "p",
+            "text": "Open evidence gaps: No independent reproduction of the reported retrieval gains was located or performed in this review.; Logical KV-pair counts do not establish physical memory reduction, actual throughput or latency; no serving measurement was performed in this review.; Document-specific cache training has preparation costs that may be amortized only when documents are reused; end-to-end economics under varied reuse rates remain unknown."
+          },
+          {
+            "type": "p",
+            "text": "Sources: https://arxiv.org/abs/2610.20582 · https://github.com/THUNLP/latent-compaction"
+          },
+          {
+            "type": "h4",
+            "text": "2. Hybrid Reasoning Agents reports benchmark gains with latent thoughts and text-based tool use"
+          },
+          {
+            "type": "p",
+            "text": "Desk: reasoning_posttraining Evidence: A · credible_unconfirmed · active · importance 6/10 (Major) Importance rationale: If independently replicated, latent reasoning combined with text-based tool action and sizeable reported token/compute reductions could materially affect agent post-training and inference choices; the score reflects potential consequence within these evaluated model/task regimes, not truth confidence."
+          },
+          {
+            "type": "p",
+            "text": "What changed: A 13 October arXiv preprint introduces HybridAgents, which alternates between latent internal reasoning and text for tool interaction, with HybridSFT and HybridRL post-training. Across 11 math, science, medicine, search and agentic benchmarks, the authors report that their 8B and 14B systems improve on matched text/latent baselines; they also report 35.5%–54.7% fewer generated tokens, 1.8×–2.6× faster inference and 2.7×–3.7× lower compute cost in their evaluated settings. The paper reports five independent runs for its agentic results and gives average standard deviations and confidence intervals. These are author-reported benchmark results, not independent findings; the paper’s headline aggregates span specific tasks, models, prompts and hardware. Why it matters: If the method and efficiency comparisons replicate under matched end-to-end budgets, hybrid internal representations could improve the capability and serving-cost tradeoff for tool-using agents while retaining text-mediated tool calls and inspectable reasoning readouts. The reported speed and cost changes are tied to the paper’s inference setup; they do not establish equivalent production savings, and the method has not been independently reproduced here."
+          },
+          {
+            "type": "p",
+            "text": "Demonstrated: The preprint specifies architecture, training methods and evaluations; the author repository and linked artifacts are publicly listed. No model execution, independent reproduction or artifact audit was performed."
+          },
+          {
+            "type": "p",
+            "text": "Claimed: Authors report improved results over matched text/latent baselines across 11 benchmarks and an average 17.4% improvement over the strongest agentic baseline for 14B on selected agentic metrics, alongside token, speed and compute-cost reductions."
+          },
+          {
+            "type": "p",
+            "text": "Mechanism: HybridLink maps latent hidden states into the embedding input space to permit transitions between latent and text modes. A continuous working memory carries latent spans, text, tool observations and continuation state across turns. HybridSFT teaches coordinated generation; HybridRL optimizes when to reason latently and when to interact through text."
+          },
+          {
+            "type": "p",
+            "text": "Strongest baseline: The paper’s strongest agentic baseline varies by benchmark; its aggregate 14B comparison reports a 17.4% average gain over the strongest listed agentic baseline. Matched-size GRPO/ARPO and text/latent systems are relevant training baselines in Tables 1–2; exact rank varies across tasks."
+          },
+          {
+            "type": "p",
+            "text": "Regime: The paper evaluates 8B and 14B Qwen3-based systems on selected mathematics, science, medicine, search and agentic benchmarks, with paper-specific prompts, tools, rewards and hardware. Agentic results report five runs. Efficiency figures reflect the listed evaluation implementations and do not constitute universal serving-cost measurements."
+          },
+          {
+            "type": "p",
+            "text": "Open evidence gaps: No independent group has reproduced the reported benchmark or efficiency results; this review inspected source material but did not execute code or verify model outputs.; The paper’s Table 9 models generation cost by charging text/latent steps as full backbone forward passes and assumes $2.50 per H100-hour at 10% peak BF16 utilization. It excludes prompt prefill, context-dependent attention and external tool execution; actual end-to-end and monetary costs remain unverified.; Generalization beyond the evaluated 8B/14B Qwen-family backbones, benchmark prompts, task distributions and tool/reward configurations is unknown."
+          },
+          {
+            "type": "p",
+            "text": "Sources: https://arxiv.org/abs/2610.18861 · https://github.com/togethercomputer/HybridAgent"
+          }
+        ]
+      },
+      {
+        "title": "Research desk digest",
+        "blocks": [
+          {
+            "type": "h4",
+            "text": "agents_memory"
+          },
+          {
+            "type": "list",
+            "items": [
+              "Cairn tests community reputation as shared memory for agent tools and services — importance 5/10 · A September 2026 preprint presents Cairn, a community reputation service where agents check a tool, data source or peer before use and add a rubric-based rating afterward. Its time-decayed Beta scorer shrinks uncertain ratings toward neutral. In simulations averaged over 100 seeds, reported scores tracked responder accuracy with mean absolute deviation 0.017, but pooled ratings failed sharply when dishonest raters approached or exceeded a majority. A live-corpus retrieval test reached R@5 0.65 overall and only 0.34 for mostly negative entities, so failure reports were harder to retrieve. A judge-rated sample of 5,000 active Moltbook agents produced scores uncorrelated with platform karma. These are paper-reported system and judge results; the paper does not establish improved downstream task outcomes, and Sybil attacks remain an open threat. — FCMO-D68600FB4FE0",
+              "SELF-INDEX reports search and memory retrieval gains from revisable keys — importance 5/10 · The authors of SELF-INDEX describe an optimizer that diagnoses retrieval shortfalls, revises document keys, validates changes and uses simulated queries. Their paper reports improvements across BRIGHT with three retrievers, BrowseComp-Plus across four backbones and LongMemEval V2. For GPT-OSS-120B with BM25, reported BrowseComp-Plus accuracy rises from 31.08% to 58.92% while search calls decrease. LongMemEval results vary by task: several improve by 9.2–13.9%, while Gotchas is unchanged or lower. These are paper-reported results; independent replication and matched full optimization-cost comparisons remain open. — FCMO-8DBC4A0BB4B9",
+              "OpenAI reports Third Moment Research runs 10,000 agents in 36–48-hour investigations — importance 5/10 · An Oct 14 OpenAI customer case study reports that Third Moment Research runs 10,000 concurrent agents on 36–48-hour computational investigations. It describes a quantitative-finance workflow using Codex to diagnose a backtest bottleneck and reduce one year of order-level US-equity backtesting from roughly 3 hours to roughly 3–5 minutes through caching and memory packing. The account also describes a Dockerized environment and an outer harness that can retry, terminate or escalate unfinished tasks to human review. These are claims published by the model provider and attributed to its customer; no independent run logs or audit are included. The story does not establish trading performance, general autonomous research quality or the provider page’s future scale-up roadmap. — FCMO-110DF4DE0EB0",
+              "KIR reports typed checks for agent-authored building models, with direct-code comparison still open — importance 4/10 · A September 2026 preprint introduces KIR, a typed intermediate representation and compiler for agents authoring building information models in Revit. On a pinned KIR 0.8.1 snapshot, the author reports offline checks across 83 operation contracts, including typed refusals for 29 of 42 stress-test programs, 38 named absences among 377 witness obligations, and no vacuous certificate in 219 program-version runs. These are paper-reported results from project-authored artifacts; native Revit runs are separately reported from project records. The paper specifies but has not run a same-model, same-budget comparison against agents writing Revit code directly, and it demonstrates only Revit as an execution backend. — FCMO-EFEE0D7FEFC7"
+            ]
+          },
+          {
+            "type": "h4",
+            "text": "evaluation_science"
+          },
+          {
+            "type": "list",
+            "items": [
+              "Study finds chat and reasoning LLMs unreliable as standalone protocol verifiers — importance 5/10 · A September 12 journal paper evaluates GPT-5.4 and DeepSeek v4 Flash on 130 obfuscated AnB/AnBx protocols covering 388 security goals, with three runs per configuration and formal-verifier references. The authors report a chat-versus-reasoning trade-off: chat modes recall more attacks but generate many false alarms, while reasoning raises precision and misses more attacks. On their imbalanced goal set, both chat configurations score below a 77.1% always-secure accuracy baseline; agreement authentication goals remain difficult, and self-reported confidence is poorly calibrated. The paper recommends pre-screening only, with formal confirmation. These are author-reported results; the journal article and public artifact were not independently reproduced in this review. — FCMO-F169A4A477FE",
+              "Preprint derives sharp force-space density thresholds for forced Navier–Stokes breakdown — importance 5/10 · Cao, Chi, and Nie report sharp thresholds for how close smooth forcing can be, in weak Sobolev norms, while producing classical breakdown by a prescribed time. For fixed positive viscosity and zero initial velocity, their preprint claims density exactly below s=1/2 in relative L1_t H^s_x on both T3 and R3; on R3 it gives the corresponding L2_t H^s_x threshold s<-1/2. The construction glues in a compact forced blowup block attributed to OpenAI while changing the external force. These are preprint claims not independently reproduced here, and they do not address the unforced Millennium problem or independently verify the building block. — FCMO-FB6A01B766C2",
+              "Manacá-1B-Instruct-2 reports PT-BR safety results and an LLM-judge refusal failure — importance 5/10 · An October 14 arXiv report describes Manacá-1B-Instruct-2, a 1.72B-parameter model trained from scratch for Brazilian Portuguese, with a new safety-SFT alignment and unusually detailed negative results. The authors report 97.2% held-out safety on 218 harmful prompts against four external PT-BR models tested on the same items and harness; the lower Wilson confidence bound is 94.1%, above all four baselines. The paper also reports that its Claude judge refused to score 2 of 6 sensitive MT-Bench-PT prompts regardless of the evaluated answer, reducing the effective sample for this category across eight historical project reports. The authors say their repository now exposes this missingness. These are author-reported results; model scale, benchmark scope, low absolute general capability and absent independent reproduction sharply limit wider claims. — FCMO-8EACCBAADA18",
+              "Chain-of-thought monitoring can fail even when the reasoning is necessary — importance 5/10 · A 13 October 2026 preprint proposes four levels of chain-of-thought (CoT) necessity and reports that CoT monitoring can miss influential attributes even when the CoT is necessary to produce the answer. In intervention experiments with Qwen3 and Gemma4 models on benign classification tasks, the authors report near-zero monitorability scores for selected medical-task attributes; for Qwen3-8B on a thyroid-diagnosis class, patient sex and a thyroxine-history attribute systematically influenced at least 19% and 24% of correct CoT answers, respectively, yet were almost never identified as influential in the CoT. The paper presents this as evidence that answer-level CoT necessity alone does not guarantee monitorability. It does not test dangerous behavior or deployed frontier systems; the largest model is 31B parameters, the mechanism behind failures remains open, and the authors’ code repository says code will be released soon. — FCMO-566F41460481",
+              "ISD evaluation finds accuracy and completeness gaps in election answers, with a marked Spanish-language decline — importance 5/10 · The Institute for Strategic Dialogue (ISD) published a structured evaluation of six chatbot models answering US election-procedure questions across ten selected states. Its mid-2026 dataset contains 2,400 responses to generic and adversarial prompts. ISD reports that 29% of generic English answers were incomplete, inaccurate or outdated, while another 16% were correct but omitted important voter details; it reports a 16% overall accuracy decline for generic Spanish prompts. These are report-reported findings from a single response per test condition, with material API/UI and state-selection limits—not estimates of current nationwide product performance. — FCMO-0A56AEB565FE",
+              "Google Research releases Deep Review after opt-in conference-paper pilots — importance 4/10 · Google Research publicly released Deep Review on Oct 14, expanding its Paper Assistant Tool from opt-in pre-submission feedback for computer-science papers into a document-review product with two free weekly reviews and API access. Google reports more than 16,000 submissions across four conference pilots, while the underlying preprint details the first two pilots and an author-run test on 26 papers with 29 documented mathematical or proof errors. The authors report 89.7% error detection against 55.2% for a Gemini 3.1 Pro zero-shot baseline, using an LLM grader audited by an author. The pilots were not part of official peer review; independent accuracy, false-positive burden and workload effects remain unmeasured. — FCMO-FAD9C8412861"
+            ]
+          },
+          {
+            "type": "h4",
+            "text": "inference_systems"
+          },
+          {
+            "type": "list",
+            "items": [
+              "Latent Compaction reports retrieval accuracy gains from document-specific test-time KV-cache training — importance 6/10 · A 14 October arXiv preprint introduces Latent Compaction, which uses test-time training to optimize a compact, document-specific key–value cache while keeping model weights frozen. The authors report a highlighted RULER result of 96.7% accuracy at 32× compression versus 40.0% for KVZip+, and report broader gains on LongBench at stronger compression ratios across Qwen3 model sizes. The paper also states that text summarization outperforms Latent Compaction on RULER at the most aggressive ratios and that Phonebook Lookup accuracy approaches zero for all compressed methods at 64× and above. These are author-reported benchmark results. The evaluation counts logical KV pairs; it does not measure actual memory savings or inference speed. — FCMO-1FBA6659C532",
+              "BATON reports gains from balancing feedback attribution and trajectory mass in agent RL — importance 5/10 · A September 2026 preprint introduces BATON, which combines Bayesian Feedback Attribution within trajectories with equal-mass aggregation across trajectories. On Qwen2.5-Instruct models, the authors report gains over matched GRPO and GiGPO variants on ALFWorld, WebShop and seven-dataset search-augmented QA; a 2×2 ablation reports gains from each component separately. For example, ALFWorld success with Qwen2.5-1.5B rises from 72.9% to 85.6% for GRPO and from 86.8% to 94.1% for GiGPO. These are paper-reported results, not independently reproduced. The authors explicitly say the feedback likelihood measures model-based compatibility rather than causal effects of counterfactual actions. — FCMO-79D763B4399F",
+              "Elastic describes a guarded agent harness for performance optimization — importance 4/10 · In a September 11 engineering post, Elastic described atune, a harness for agent-assisted Elasticsearch optimization. It separates broad workload exploration from bounded patch tasks, routes work through human-approved benchmarks, compares candidate and baseline forks under matched conditions, and requires statistical and end-to-end checks before a change is accepted for human review. The post documents the design and its intended gates, not measured optimization outcomes; Elastic said examples and results would follow in part two, which was not located in this review. — FCMO-35F1E14EF640"
+            ]
+          },
+          {
+            "type": "h4",
+            "text": "labs_industry"
+          },
+          {
+            "type": "list",
+            "items": [
+              "QuEra reports an MHS-enabled, AI-developed laser controller recovered 99.3% of testbed disturbances — importance 5/10 · Anthropic's Aug 27 announcement opened an early preview of the Model Hardware Standard (MHS), a model-agnostic device interface with standardized discovery, state/procedure metadata and read/write controls. QuEra's same-day partner report describes using MHS and Claude to develop a controller for laser recovery on a dedicated, human-bounded quantum-computing testbed. QuEra reports 695 successful on-target recoveries in 700 induced trials (99.3%) across seven disturbance classes and automatic recovery of all 43 spontaneous mode hops observed during several weeks of testing. The AI-developed relock controller is a deterministic standalone script with AI out of the loop at runtime; a separate tuning workflow remains AI-in-the-loop. These are first-party partner results, not independently replicated or evidence of live fleet deployment. — FCMO-5B2825F12E25"
+            ]
+          },
+          {
+            "type": "h4",
+            "text": "multimodality_world_models"
+          },
+          {
+            "type": "list",
+            "items": [
+              "REACT reports target-free event-stream collision-time estimates at 4.6 ms latency — importance 5/10 · Keime, Cuperlier and Cottereau report REACT, a fully spiking state-space model that updates from raw event-camera streams without temporal accumulation. On the EvTTC validation split, their v1 preprint reports 9.59±0.74% relative time-to-collision error and 4.6 ms end-to-end latency without a target-box prior. The authors report 4 cm of travel during that latency at the dataset mean approach speed of 9.22 m/s; at 100 km/h the same latency corresponds to 12.8 cm. Their INT8 energy figures are analytical estimates, not hardware measurements. The numerical results are author-reported and have not been independently reproduced. — FCMO-80FF0F95B3E8",
+              "Japan releases a terms-gated 5,025-hour HSR mobile-manipulation dataset — importance 5/10 · Japan’s GENIAC program and the AI Robot Association released the AIRoA MoMa 5k real-robot mobile-manipulation dataset with a continued-pretraining model and training code. The dataset card reports 1,184,259 successful episodes and 5,025.1 hours from 44 HSR robots at five sites, but access is terms-gated, limited to research and development, train-only and success-only. The program page separately reports a 3-point task-success gain without a task denominator or matched evaluation details. — FCMO-870643587CBB"
+            ]
+          },
+          {
+            "type": "h4",
+            "text": "policy_geopolitics"
+          },
+          {
+            "type": "list",
+            "items": [
+              "Anthropic announces official voting information and election results for Claude ahead of US midterms — importance 5/10 · In an Oct. 14 post, Anthropic described planned state-specific voting information from Democracy Works and official election-result answers, and reported service-specific conversation statistics from a one-week sample. It also summarized an ISD and McCain Institute pressure test in the US, Israel and Brazil: single harmful requests were reportedly refused, but a coordinated campaign split into benign-looking steps could evade defenses. Anthropic says it added multi-step misuse classifiers and other safeguards. The partner methods, underlying data and post-change effectiveness were not independently reviewed; product rollout remains unverified. — FCMO-3BB7760367CD",
+              "Singapore publishes quantum-safe migration milestones and pilot grant — importance 5/10 · Singapore’s Cyber Security Agency published quantum-safe migration milestones and launched a pilot grant on 14 October. Non-CII organizations exposed to quantum risks are advised to prepare a migration plan by the end of 2027 and aim to complete migration by 2035. CII owners have a 31 March 2027 plan-submission deadline, a 31 December 2031 migration target, and quantum-safe procurement considerations from 2028. The Quantum-Safe Kickstarter Grant is open to Singapore-incorporated non-government organizations for Singapore-based work, prioritizes CII owners, and covers up to 70% of eligible costs with 30% cash co-funding; funded pilots may last up to six months during the 1 November 2026–31 October 2027 grant period. No award, completed pilot or migration outcome is established. — FCMO-978650B13A2E",
+              "TC260 issues general and sector guidance for AI application security — importance 4/10 · On September 17, 2026, China’s National Technical Committee 260 on Cybersecurity published four AI application security practice guides: one general guide and three for education, health, and broadcasting/online audiovisual services. The general guide, TC260-PG-20268A v1.0-202609, is organized across planning, design and development, validation, deployment, operation and monitoring, continued assessment, and retirement. The three sector guides state distinct audiences and application settings for education institutions, health institutions and technology providers, and broadcasting/online audiovisual organizations. The issuer describes these as practice guidance documents; this record does not establish binding legal force, organizational adoption, compliance, or measured safety outcomes. — FCMO-4E3A2859862A",
+              "Singapore commits S$30 million to extend ASEAN cyber centre’s AI-risk capacity-building — importance 4/10 · At the October 14, 2026 ASEAN Ministerial Conference on Cybersecurity, Singapore’s Minister for Digital Development and Information announced a further S$30 million over five years to extend and enhance the ASEAN-Singapore Cybersecurity Centre of Excellence. She said the next phase will prepare participants for incident response, critical-infrastructure protection, AI-related cyber risks, and cyber diplomacy, and will work with industry and academia. This is an official funding commitment and programme announcement; the speech does not establish disbursement, detailed AI-specific programming, or outcomes. — FCMO-89F4C291C5F6",
+              "Eurobarometer finds 42% of surveyed EU SMEs and mid-caps currently use AI or algorithmic management — importance 4/10 · The European Commission published Flash Eurobarometer 578 on October 14, 2026, reporting on telephone interviews with 12,826 heads of privately owned small and medium-sized enterprises and mid-caps with 1–749 employees across all 27 EU member states. In the survey’s combined AI-or-algorithmic-management categories, 42% reported current use (12% extensive and 30% limited or experimental), 21% planned use, 35% had no plan, and 2% did not know. The infographic also reports that 75% expected these tools to improve job quality. These are company-reported survey responses: the measure combines AI with algorithmic management, and does not establish independently verified deployment, productivity, or workforce effects. — FCMO-F54EC1048700"
+            ]
+          },
+          {
+            "type": "h4",
+            "text": "reasoning_posttraining"
+          },
+          {
+            "type": "list",
+            "items": [
+              "Hybrid Reasoning Agents reports benchmark gains with latent thoughts and text-based tool use — importance 6/10 · A 13 October arXiv preprint introduces HybridAgents, which alternates between latent internal reasoning and text for tool interaction, with HybridSFT and HybridRL post-training. Across 11 math, science, medicine, search and agentic benchmarks, the authors report that their 8B and 14B systems improve on matched text/latent baselines; they also report 35.5%–54.7% fewer generated tokens, 1.8×–2.6× faster inference and 2.7×–3.7× lower compute cost in their evaluated settings. The paper reports five independent runs for its agentic results and gives average standard deviations and confidence intervals. These are author-reported benchmark results, not independent findings; the paper’s headline aggregates span specific tasks, models, prompts and hardware. — FCMO-E49C53258142",
+              "Short token cues elicit reasoning behavior associated with training data in tested base models — importance 5/10 · An arXiv preprint reports that prefilling selected response-opening tokens can raise tested base models’ math accuracy toward that of direct-RL counterparts, and controlled data edits can make arbitrary openings act as reasoning cues. The results support a training-association mechanism in the tested models, while leaving the contribution of RL, generalization and cue-conditioned safety unresolved. — FCMO-4451D09D0450",
+              "SIFT uses pairwise judging and disaggregated search to improve recursive coding-agent benchmarks — importance 5/10 · A Sep 17, 2026 arXiv preprint introduces SIFT, which uses pairwise LLM judgments and a regularized Bradley–Terry ranking signal to steer a disaggregated search over coding-agent modifications, reserving more expensive task evaluations for selected candidates. The authors report Polyglot gains over named recursive-search baselines and a TerminalBench result where judge-ranked selection outperforms selection by search-subset score across three repeated full evaluations. These are author-reported results from one preprint. A resource table and adjacent prose disagree substantially on the o3-mini/GPT-5.4 run's steps, cost and CPU time, so the paper's efficiency comparison is not resolved here. — FCMO-9C7A3408F76A"
+            ]
+          },
+          {
+            "type": "h4",
+            "text": "training_data"
+          },
+          {
+            "type": "list",
+            "items": [
+              "A multilingual scaling study reports that more experts reduce the loss penalty of broader language coverage — importance 5/10 · A new arXiv preprint fits a joint scaling law for multilingual mixture-of-experts models across model size, training tokens per language, expert count and language coverage. The authors report improved prediction on held-out configurations and a smaller loss penalty when increasing coverage from 12 to 200 languages with more experts, at matched active parameters and tokens per language. These remain author-reported results from a controlled, sub-billion-parameter training grid. — FCMO-82DA0C3569B8"
+            ]
+          }
+        ]
+      },
+      {
+        "title": "Signals / credible unconfirmed developments",
+        "blocks": [
+          {
+            "type": "p",
+            "text": "No signal-lane items cleared the deterministic importance threshold."
+          }
+        ]
+      },
+      {
+        "title": "Deep research completed today",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              "Revisited five source-backed candidates at the bounded paper/report/release-claim level: promoted Governance-as-Code, PANORAMA, Xiaomi MiMo-V2.6 dashboard telemetry, Qwen-Image-2.1 and its Turbo checkpoint with author/vendor attribution and open reproduction or matched-measurement gaps. Retained the US-China meeting candidate as deferred because the inspected official account does not support its stronger security/minerals claim. A follow-up opened Google DeepMind's Oct 14 Singapore/GovTech on-device scam-detection announcement and confirmed it was already represented by the existing bounded development; no duplicate was created. No distinct material Oct. 15 event was verified in this partial sweep; because the current newest records are dated only to Oct. 14, their exact age against the 36-hour SLO remains unverified.",
+              "Reviewed the full 36-hour arXiv interval enumeration and assessed the most material fresh paper, Latent Compaction, from its full HTML against the existing bounded canonical account; no independent reproduction was claimed.",
+              "Reviewed and promoted the cue-prefill reasoning paper and multilingual MoE scaling paper from primary full text; audited the MoE numerical replay repository and preserved the distinction between CPU replay and full training.",
+              "Reviewed the Japanese GENIAC source and dataset artifact; separated artifact metadata from the provider-reported collection and performance claims.",
+              "Re-read the freshest Anthropic election announcement against the existing canonical development; assessed recent official lab and policy findings and all six queued candidate reviews; recorded deferred/rejected negative knowledge.",
+              "Rechecked the high-priority Navier-Stokes record against the current Clay problem page and public Lean repository; no independent build or new status found.",
+              "Completed the bounded approximately 36-hour recent-source sweep before backlog review: checked selected frontier-lab news/release surfaces, arXiv recent listings for cs.AI/cs.CL/cs.LG, and EU policy surfaces. No distinct newly qualifying event was identified. Existing AS-Bench was already canonical; Gemini 4 Argon was dated outside the strict window.",
+              "Reviewed all six source-backed promotion-review candidates against the bounded public-claim standard, reread primary materials, and updated the guarded candidate records with current evidence, disposition and specific next steps. No candidate met the standard for a new or revised public development in this activation.",
+              "Technical depth: rechecked the llama.cpp Vulkan row-id-hoisting fix and retained author-reported single-device gains separately from missing second-device reproduction; rechecked the Navier–Stokes proof status and preserved the distinction between a pinned formalization snapshot and unresolved later analytic-proof claims.",
+              "Economics/policy depth: traced the Langfang four-voucher consultation status; compared it with Jiangsu instrument details in the public-support additionality question; checked EU AI-IPCEI pre-notification status; and reconciled Chinese green-power rules, regional metrics, and Datang project chronology. Added official builder evidence that 14 turbines in one 500-MW wind section began generating on Oct 5, while retaining uncertainty about full commissioning, metered outcomes, and causal connection to the May rule. Updated both linked open questions.",
+              "Reviewed the source-backed recent promotion queue before widening discovery. Re-read the official Anthropic Oct 14 post and bounded the sample findings and announced future voter-information/results features to the provider-authored claims and stated method gaps; no independent prevalence or rollout claim.",
+              "Re-read arXiv:2609.19204v1 and reconciled EvTTC 9.59±0.74%, the rounded 9.3% table entry, and the distinct FCWD 25.7% result; reconciled latency-to-distance calculations and preserved input mismatch, proxy energy, and independent-reproduction gaps. Promoted the bounded paper-reported claim.",
+              "Enumerated 424 arXiv cs.AI/cs.CL/cs.LG submissions for Oct 14–15, triaged eight recent entries, and deeply inspected arXiv:2610.20570v1 plus its public Portuguese/English repository. Assessed the held-out Portuguese safety result, small composition sweep, and Claude judge refusal audit, preserving author attribution, scope and experimental limitations; promoted as claimed evidence with credible_unconfirmed confidence.",
+              "Rechecked the Chinese-language Hunan MIIT source and exact-name official search. Retained the bounded ¥5.2B / planned 1,500P / Feb site-leveling account, deferred for lack of a fresh dated event, and distinguished that freshness gap from operating metrics required only for stronger outcome claims.",
+              "Updated the Oct 15 historical edition for both new public development records; stamped and validated complete es-419 and zh-Hans overlays.",
+              "Completed the partial 36-hour lab/arXiv/EU-US policy sweep; inspected Anthropic’s Oct 14 election update and updated its attributed campaign-test claims, provider-reported measures, rollout limits, and open partner-evidence gap.",
+              "Reviewed the six source-backed promotion candidates in canonical priority order. Promoted the bounded arXiv:2609.10262v4 force-density result at credible_unconfirmed confidence with v2 importance, while preserving its dependence on the OpenAI forced-breakdown construction; deferred SAIR, Terminal-Bench Science, Laitent, Lean Kernel Challenge and Reuters/Anthropic strategy for their specific missing evidence.",
+              "Backfilled ISD’s Sept 3 election-answer evaluation from its official English page and Spanish report. Recorded the 2,400-response June 2026 snapshot, reported English/Spanish gaps, one-shot sample, API/UI mismatch, selected states and coding limitations as report claims; left answer-level reproduction open.",
+              "Searched Chinese-language official policy/standards surfaces after discovering a CCTV report on CESI’s alleged “Qiusi” v4.0 benchmark. No first-party specification or matching versioned artifact was located, so the candidate remains deferred.",
+              "Completed the bounded 36-hour primary-source sweep. Anthropic's October 14 election-safeguards report was directly inspected and matched the existing canonical development already on today's brief; no duplicate was created. Google had a visible October 14 item but it was not directly opened. Lab, arXiv-category and policy search surfaces were partial, so no exhaustive interval coverage is claimed.",
+              "Reviewed the recent benchmark-catalog candidate, targeted White House/ODNI policy candidate, ONS AI-adoption bulletin candidate, Elastic atune post, China Mobile heterogeneous-inference claim and arXiv/journal protocol-security paper against their bounded public claims. Preserved deferrals/investigation where the claim-level evidence was incomplete and recorded specific next actions.",
+              "Promoted Elastic's September 11 atune post as a bounded, company-reported harness-design development; no performance outcome is claimed. Added importance v2 score 4 and complete native editions.",
+              "Promoted the peer-reviewed protocol-security evaluation as author-reported CLAIMED results with credible_unconfirmed confidence, retaining scope, baseline and reproduction limits. Importance v2 score 5; complete native editions. Full publisher tables/appendices and repository artifacts were not audited or executed.",
+              "Rebuilt deterministic publication/query projections and checked the current October 15 historical edition; it already includes the newest reviewed October 14 story. Strict native-edition parity passed for both new developments.",
+              "Fresh frontier: swept official OpenAI, Anthropic, Google DeepMind and Google Research pages and visible recent cs.AI/cs.CL/cs.LG listings. Assessed Google Research’s Oct 14 Deep Review launch against the editorial standard; promoted a bounded public account with its author-reported pilot results, small benchmark sample, opt-in/pre-submission regime and open false-positive/independent-evaluation gaps. OpenAI’s Oct 14 Third Moment account was already canonical and was not duplicated.",
+              "Depth frontier: inspected SELF-INDEX arXiv full text and tables across BRIGHT, BrowseComp-Plus and LongMemEval V2; promoted an author-reported account preserving task heterogeneity and unresolved total offline/online cost. Inspected linked GitHub reproduction instructions and pinned setup but ran no code; updated the candidate with concrete reproduction prerequisites and next action.",
+              "Promotion-review queue: re-read and updated six source-backed records (Gemini Live, Anthropic compound LSVP/ART, Open-RAIL, Atria Dawn, ModularRSI, SELF-INDEX); reconciled Atria’s two conflicting paper candidates and intake alias through guarded duplicate links to the richer canonical paper owner. No independent reproduction gap was used alone to block a bounded paper claim.",
+              "Economics/policy desk: inspected Ireland Department of Enterprise’s Dublin Declaration announcement and associated funding statements during the policy sweep; the full declaration/signatory record was not located. A follow-up official-page retrieval was blocked and logged separately; no binding-rule or delivered-funding claim was inferred.",
+              "Reviewed and promoted bounded KIR, Cairn and BATON preprint developments; compared KIR with CADIR, BIMgent and Text2BIM; captured author-reported results, baselines, counterevidence/adjacent work, and specific reproduction or transfer gaps. Completed es-419 and zh-Hans editions for all three.",
+              "Revisited BATON, network-truth-transition, GUI-nudge and MetaClaw deferred candidates via their primary arXiv abstracts. Preserved them as investigating with stable identities and method-level next actions; Cairn was reviewed in full and promoted.",
+              "Reconciled the 15 Oct worker-support issue as rejected noise after URL cache miss and scope review. Updated the 15 Oct historical brief depth section to reflect reviews without presenting backfill as breaking news."
+            ]
+          }
+        ]
+      },
+      {
+        "title": "Corrections / status changes to earlier reporting",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              "FCMO-8F0EB89DAE2C · correction — Corrected the prior Q2 GDP comparator in the MAS AI-cycle review. MAS's July statement cited preliminary Q2 2026 growth of 5.7% y/y and 1.1% q/q seasonally adjusted. The 14 October MTI/SingStat advance Q3 release revises Q2 to 6.2% y/y and 1.5% q/q, and reports Q3 at 5.4% and 1.1%, respectively. The Q3 estimate is preliminary and subject to revision. — Direct inspection of the Ministry of Energy, Trade and Industry release and Singapore Department of Statistics page showed the updated Q2 comparison and the advance-estimate method. The older July values were valid at publication but are superseded by the later revision; they should not be used as October's current baseline. None of these aggregate figures isolates AI's causal contribution."
+            ]
+          }
+        ]
+      },
+      {
+        "title": "What to watch next",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              "CAND-2026-06-12-A91C37E5 — HarnessX reports large cross-benchmark gains from evolving typed agent harnesses, creating a useful contrast with HARNESSEVO's localized-credit result — revisit if: Independent reproduction appears, a paper-tagged release or exact benchmark/evolution manifests are published, or matched controls separate model/backbone, harness composition, adaptation compute, verifier leakage and component-level credit.",
+              "CAND-2026-07-15-CHINA-ANTHROPOMORPHIC-AI-RULES — China's dedicated anthropomorphic-AI interaction rules enter force with dependency, manipulation and minor-protection duties — revisit if: CAC or other agencies publish enforcement cases, implementing standards, safety-assessment guidance, filing data or interpretations affecting agent memory/personalization/autonomy.",
+              "CAND-2026-08-02-EU-AI-ACT-ENFORCEMENT — EU AI Act enters an enforcement phase for GPAI and transparency obligations — revisit if: Commission enforcement actions, GPAI guidance updates, Code-of-Practice implementation evidence, complaints/decisions or material court/regulator interpretations appear.",
+              "CAND-2026-08-02-EU-GPAI-ENFORCEMENT — European Commission enforcement powers for general-purpose AI model obligations enter application — revisit if: The Commission announces a first GPAI enforcement action, systemic-risk notification decision, serious-incident proceeding, fine, or material interpretive update.",
+              "CAND-2026-08-18-FDA-GENAI-MEDICAL-DEVICES — FDA opens competency-based regulatory framework discussion for generative-AI medical devices — revisit if: FDA publishes docket comments, workshop material, draft/final guidance, legal-authority analysis or concrete submission expectations before the deadline.",
+              "CAND-2026-08-26-ANTHROPIC-CVD-SCALE — Anthropic's disclosure ledger shows AI-assisted vulnerability discovery scaling to thousands of human-reviewed findings — revisit if: The dashboard materially changes, per-model discovery attribution/cost is released, or independent organizations publish matched AI-versus-human vulnerability-discovery throughput.",
+              "CAND-2026-08-26-AWS-NVIDIA-2M-GPU-EXPANSION — AWS and NVIDIA plan 2 million additional Blackwell Ultra/Rubin-class GPUs across 2027–2028 — revisit if: AWS discloses installed/deployed counts, Rubin instances reach GA, procurement/power buildout data appears, or timelines materially change.",
+              "CAND-2026-08-31-3C91A8D4 — European Commission designates ChatGPT a Very Large Online Search Engine under the Digital Services Act — revisit if: The Commission publishes the designation decision, compliance deadline, systemic-risk requirements, audit/researcher-access details, enforcement actions or OpenAI implementation changes.",
+              "CAND-2026-08-31-4F2C8E11 — EuroHPC signs €387.8M AMD MI430X LUMI-AI contract for 2027 deployment — revisit if: EuroHPC/CSC publish accelerator counts, peak/sustained AI performance, access policy or deployment milestones; installation begins; or the contract/system architecture materially changes.",
+              "CAND-2026-08-31-54C150C8 — China MIIT launches national AI application-service-provider cultivation action — revisit if: MIIT publishes the national resource pool, procurement/compute-support figures, standards, adoption results, provider lists, or measurable model/agent deployment outcomes.",
+              "CAND-2026-08-31-5BE9E260 — Signal: draft IPO documents reportedly show a $5.5B OpenAI warrant position in SB Energy as AI infrastructure financing deepens — revisit if: SB Energy IPO filing, SEC document, OpenAI/SoftBank/NVIDIA statement, audited financing document, or additional independent reporting confirms or contradicts the warrant and guarantee details.",
+              "CAND-2026-08-31-A11F0A7E — Maniformer reports a million-hour multimodal human-interaction corpus and 20,000-device collection fleet for Physical AI — revisit if: Public dataset slices, model/data cards, independent quality audits, VLA scaling curves, privacy/consent documentation, customer training results or cross-embodiment transfer measurements appear.",
+              "CAND-2026-08-31-A1C3550A — HUMAIN puts AMD MI355X/Cisco AI infrastructure into production in Saudi Arabia and targets a much larger sovereign compute buildout — revisit if: Installed accelerator count, power draw, acceptance benchmark, pricing, customer workload metrics, independent utilization data, MI400 phase commissioning, or sovereign-AI procurement documents appear.",
+              "CAND-2026-08-31-AGENT-CAPABILITY-COST-EVAL — Agent capability-cost evaluation: cheaper failure is not a Pareto win, and run provenance is load-bearing — revisit if: A larger attempt-linked dataset, repeated trials, pinned model/tool configurations or independent harness comparisons appear.",
+              "CAND-2026-08-31-C43E30F0 — China's Intelligent Chemical Model 3.0 Pro moves a vertical model toward tool-executing chemical-engineering workflows — revisit if: Technical report, benchmark protocol, model/data card, reproducible agent tasks, pilot-plant closed-loop results, safety/audit details or independent industrial evaluation appears.",
+              "CAND-2026-08-31-CHINA-NATIONAL-AI-COMPUTE-SCALE — China reports 2.45 million PFLOPS FP16 of national intelligent-compute capacity and expanding centralized scheduling — revisit if: National Data Administration publishes methodology, accelerator inventory/utilization, energy data, task-level scheduling statistics, or independent capacity estimates suitable for cross-country comparison.",
+              "CAND-2026-08-31-CN-AI-APPLICATION-SERVICE-PROVIDERS — China MIIT launches national AI application-service-provider program with explicit demand-side procurement support — revisit if: new evidence",
+              "CAND-2026-08-31-CONFIDENCE-CHANNEL-DIVERGENCE — Linguistic confidence is a lossy and poorly calibrated channel for internal model confidence — revisit if: Independent reproduction, stronger black-box calibration methods, or adaptive-compute/agent-routing studies compare verbal confidence against internal or ensemble uncertainty at matched cost.",
+              "CAND-2026-08-31-CXMT-HBM4-SIGNAL — Signal: CXMT reportedly begins small-scale HBM4 production — revisit if: CXMT or a named customer confirms HBM4 shipments/specifications, teardown/benchmark evidence appears, packaging partners disclose volume, or multiple independent sources corroborate yield and scale.",
+              "CAND-2026-08-31-EU-CHATGPT-VLOSE — European Commission designates ChatGPT a Very Large Online Search Engine under the DSA — revisit if: Commission publishes the designation decision, compliance deadlines, systemic-risk assessment, audit requirements, data-access measures, enforcement action or OpenAI implementation details."
+            ]
+          }
+        ]
+      },
+      {
+        "title": "Coverage note",
+        "blocks": [
+          {
+            "type": "p",
+            "text": "Coverage limitations are summarized in this edition. This edition makes no exhaustive-completeness claim."
+          }
+        ]
+      }
+    ],
     "related_brief_ids": [
-      "FCMO-1FBA6659C532",
-      "FCMO-E49C53258142",
+      "FCMO-D68600FB4FE0",
+      "FCMO-8DBC4A0BB4B9",
+      "FCMO-110DF4DE0EB0",
+      "FCMO-EFEE0D7FEFC7",
       "FCMO-F169A4A477FE",
-      "FCMO-3BB7760367CD",
       "FCMO-FB6A01B766C2",
       "FCMO-8EACCBAADA18",
-      "FCMO-80FF0F95B3E8",
-      "FCMO-870643587CBB",
-      "FCMO-82DA0C3569B8",
-      "FCMO-4451D09D0450",
-      "FCMO-110DF4DE0EB0",
-      "FCMO-5B2825F12E25",
-      "FCMO-9C7A3408F76A",
-      "FCMO-978650B13A2E",
       "FCMO-566F41460481",
       "FCMO-0A56AEB565FE",
-      "FCMO-4E3A2859862A",
+      "FCMO-FAD9C8412861",
+      "FCMO-1FBA6659C532",
+      "FCMO-79D763B4399F",
       "FCMO-35F1E14EF640",
+      "FCMO-5B2825F12E25",
+      "FCMO-80FF0F95B3E8",
+      "FCMO-870643587CBB",
+      "FCMO-3BB7760367CD",
+      "FCMO-978650B13A2E",
+      "FCMO-4E3A2859862A",
       "FCMO-89F4C291C5F6",
-      "FCMO-F54EC1048700"
+      "FCMO-F54EC1048700",
+      "FCMO-E49C53258142",
+      "FCMO-4451D09D0450",
+      "FCMO-9C7A3408F76A",
+      "FCMO-82DA0C3569B8",
+      "FCMO-8F0EB89DAE2C",
+      "FCMO-323DB2722B0F",
+      "FCMO-0CC9985849E8",
+      "FCMO-F81EBA109D3B",
+      "FCMO-8B21CDB5C8C0",
+      "FCMO-B696FF2048DB"
     ]
   },
   {
