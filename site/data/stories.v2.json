@@ -1,7 +1,7 @@
 {
   "schema": "fcmo-stories-v2",
-  "generated_at": "2026-10-15T17:08:59Z",
-  "release_id": "newswire-537c8bd72cdaf724ca4a4b2a",
+  "generated_at": "2026-10-15T19:07:15Z",
+  "release_id": "newswire-53a0d22745c0ac3afd80f893",
   "canonical_locale": "en",
   "locales": [
     "en",
@@ -42,6 +42,1401 @@
     "2026-10-15"
   ],
   "stories": [
+    {
+      "id": "FCMO-E93F03B4AD00",
+      "slug": "llm-generated-gpu-kernel-gains-depend-on-workload-headroom-and-benchmark",
+      "url_date": "2026-10-15",
+      "kind": "development",
+      "status": "live",
+      "beat": "research",
+      "desk": "compute_inference",
+      "title": "LLM-generated GPU-kernel gains depend on workload headroom and benchmark validity",
+      "headline": "LLM-generated GPU-kernel gains depend on workload headroom and benchmark validity",
+      "dek": "A September 17 arXiv paper examines both how well language models generate GPU kernels and how much real workload time those kernels could affect.",
+      "summary": "A September 17 arXiv paper examines both how well language models generate GPU kernels and how much real workload time those kernels could affect. In its author-run tests on two A100-80GB GPUs, GPT-5.6 kernels passed correctness checks on 91.1% of 56 eligible KernelBench level-1 tasks, with 22 speedups surviving the paper's additional verifier. The authors' profiles put addressable work at 8.9–16.8% in their transformer workloads, implying roughly 1.3–2.5% end-to-end gains under their assumptions; one DLRM inference profile had 58.2% addressable time and an 8.63% projection. The paper also identifies four benchmark tasks where zero output passes the absolute-tolerance check and describes two author-run exploits. These results are author-reported and limited to one host, one GPU type, level-1 tasks and selected profiles; no independent reproduction was performed.",
+      "why_it_matters": "KernelBench pass rates and peak per-kernel speedups can overstate system-level value when optimized operations occupy little of a workload's runtime. The paper's profile-based denominator suggests the economic payoff differs sharply by workload, while its benchmark exploit shows that absolute-tolerance correctness gates can reward incomplete output. Both points matter to choosing optimization targets and validating generated kernels. The profiles and proposed fixes remain author-reported and need outside reproduction.",
+      "importance_rationale": "If the reported measurements generalize within their tested workload regimes, they change where kernel-generation effort is likely to yield end-to-end benefit and expose a correctness flaw in a widely used evaluation check. That can alter GPU optimization and benchmark-design decisions; the result remains limited to one host, one GPU type and narrow profiles.",
+      "technical": {
+        "claimed_result": "Under the paper's two-A100, KernelBench level-1 setup, authors report 22 independently re-verified GPT-5.6 speedups from 56 eligible tasks, median 1.235x; transformer addressable fractions of 8.9–16.8%; one DLRM inference fraction of 58.2%; and four of 60 tasks vulnerable to all-zero output under the original tolerance check.",
+        "demonstrated_result": "The paper documents its setup, verification protocol, tables, worked exploit examples, limitations and public artifact paths. Numerical measurements and implementation effectiveness were not independently reproduced in this review.",
+        "implementation_status": "Research preprint with public code, evaluation data, verifier, profilers and DLRM-Bench listed in the author repository. No artifacts were executed in this review.",
+        "mechanism": "The authors classify profiled CUDA runtime into already-optimized, addressable, overhead and unclassified buckets, then combine addressable shares with measured in-domain win rates and speedups for an Amdahl-style end-to-end projection. Their verifier adds scale-normalized correctness, output-write coverage, operation invariants where available, and retiming against matched baselines. They report that absolute tolerances on near-zero outputs allowed invalid kernels to score as correct.",
+        "regime": "Two NVIDIA A100-80GB GPUs; torch 2.14.0+cu130, CUDA 13.0 and Triton 3.8.0; bf16; KernelBench level 1 (60 tasks, four excluded as uninformative); 879 evaluations and 874 generations across 19 experiments and five model configurations; seven profiled workloads, one batch size/shape per profile and one model per family.",
+        "reproducibility": "The authors report releasing all 879 evaluations and associated scripts. The repository README states that analysis derives from data without a GPU, while timing baselines are hardware-specific. No independent rerun or artifact fingerprint audit was performed.",
+        "strongest_baseline": "For kernel speedups, the fastest of eager cuBLAS, torch.compile/Inductor and a same-hardware recorded Inductor timing set. For model comparison, GPT-5.6 is compared with Qwen2.5-Coder and DeepSeek-R1-Distill-Qwen configurations. The paper's end-to-end estimates are not a matched multi-host benchmark."
+      },
+      "importance_tier": "Notable",
+      "development_type": "technical_report",
+      "event_at": "2026-09-17T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-15T19:07:00Z",
+      "updated_at": "2026-10-15T19:07:00Z",
+      "importance": 5,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": true,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "CLAIMED",
+            "text": "The authors report 879 evaluations across 19 experiments on two NVIDIA A100-80GB GPUs. On 56 eligible KernelBench level-1 problems, GPT-5.6 produced correct kernels in 91.1% of cases and 22 kernels passed the paper's independent verification, with 1.235x median speedup. These are paper-reported results, not an independent replication."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "The authors' profiling of seven workloads reports that potentially replaceable kernels accounted for 8.9–16.8% of runtime in the evaluated transformer workloads, corresponding to projected end-to-end gains of 1.32–2.49%; one DLRM inference profile had 58.2% addressable runtime and a projected 8.63% gain. Projections rely on the paper's selected models, shapes, category estimates and measured in-domain kernel results."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "The paper reports that an absolute-tolerance KernelBench correctness check accepted all-zero outputs on four of 60 level-1 problems; two author-generated kernels exploited this before detection, including one scored at 283x while writing 0.3% of its output buffer. The authors propose scale-normalized error, output-coverage and operation-invariant checks."
+          },
+          {
+            "label": "DEMONSTRATED",
+            "text": "The arXiv paper and linked public repository expose the described verifier, workload profilers, DLRM-Bench and evaluation artifacts. This review inspected their listing and documentation but did not execute the code or independently validate the recorded results."
+          }
+        ],
+        "limitations": [
+          "All result tables and measurements are from the author-run paper; no independent reproduction was performed.",
+          "Experiments use one host and two A100-80GB GPUs. The paper does not show transfer to another GPU type.",
+          "KernelBench level 1 uses single operations and is less representative than levels 2 and 3; profiles use one batch size and shape and one model per family.",
+          "Addressable categories are assigned by kernel-name patterns and the end-to-end improvements are estimates based on those categories and selected in-domain kernel gains.",
+          "The frontier-model correctness rate can age as models change; the structural profile conclusions may also shift with model, shape, compiler and hardware."
+        ],
+        "gaps": [
+          {
+            "kind": "reproduction_missing",
+            "description": "The public 879-evaluation artifact, independent verifier and profiles have not been independently executed or checked against a pinned artifact revision."
+          },
+          {
+            "kind": "regime_unclear",
+            "description": "Addressable fractions and end-to-end gains are based on seven selected profiles with one shape per profile, not a representative production workload sample or measured service-level gains."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://arxiv.org/abs/2609.21058",
+          "domain": "arxiv.org",
+          "primary": true
+        },
+        {
+          "url": "https://github.com/gauravapiscean/kernel-headroom",
+          "domain": "github.com",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "Gaurav Agarwal",
+        "Ashish Garg",
+        "Isha Singhal"
+      ],
+      "topics": [
+        "gpu-kernels",
+        "llm-code-generation",
+        "kernel-benchmarks",
+        "inference-efficiency",
+        "evaluation-validity"
+      ],
+      "regions": [
+        "GLOBAL"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-E93F03B4AD00.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: LLM-generated GPU-kernel gains depend on workload headroom and benchmark validity"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "Las ganancias de kernels de GPU generados por IA dependen del margen de mejora de cada carga y de la validez del benchmark",
+            "summary": "Un artículo de arXiv del 17 de septiembre analiza tanto la calidad de los kernels de GPU generados por modelos de lenguaje como la proporción del tiempo real de trabajo que podrían afectar. En pruebas de los autores con dos A100-80GB, los kernels de GPT-5.6 superaron las comprobaciones de corrección en 91.1% de 56 tareas elegibles de nivel 1 de KernelBench, y 22 aceleraciones pasaron el verificador adicional del artículo. En sus perfiles, el trabajo aprovechable representa 8.9–16.8% del tiempo en las cargas transformer evaluadas, con mejoras integrales estimadas de aproximadamente 1.3–2.5% bajo sus supuestos; un perfil de inferencia DLRM tuvo 58.2% de tiempo aprovechable y una proyección de 8.63%. El artículo también identifica cuatro tareas del benchmark en que una salida cero supera la tolerancia absoluta, y describe dos ejemplos generados por los autores. Los resultados se limitan a un equipo, un tipo de GPU, tareas de nivel 1 y perfiles seleccionados; no se realizó reproducción independiente.",
+            "importance_rationale": "Si las mediciones informadas se generalizan dentro de los regímenes evaluados, cambiarían dónde conviene invertir en generación de kernels para obtener beneficios integrales y revelarían una falla de corrección en una comprobación de evaluación ampliamente usada. Esto puede modificar decisiones de optimización de GPU y diseño de benchmarks; los resultados siguen limitados a un equipo, un tipo de GPU y perfiles acotados.",
+            "why_it_matters": "Las tasas de aprobación de KernelBench y las máximas aceleraciones por kernel pueden exagerar el valor para el sistema cuando las operaciones optimizadas ocupan poco tiempo de ejecución. El denominador basado en perfiles del artículo sugiere que el beneficio económico cambia mucho según la carga, mientras que la falla del benchmark muestra que una tolerancia absoluta puede premiar salidas incompletas. Ambos hallazgos importan al elegir objetivos de optimización y validar kernels generados. Los perfiles y las correcciones propuestas siguen siendo resultados de los autores y requieren reproducción externa.",
+            "technical": {
+              "claimed_result": "En las condiciones del artículo —dos A100 y KernelBench de nivel 1—, los autores informan 22 aceleraciones de GPT-5.6 verificadas de forma independiente entre 56 tareas elegibles, con una mediana de 1.235x; fracciones aprovechables de 8.9–16.8% en transformers; 58.2% en un perfil de inferencia DLRM; y cuatro de 60 tareas vulnerables a una salida completamente en cero con la comprobación de tolerancia original.",
+              "demonstrated_result": "El artículo documenta su configuración, protocolo de verificación, tablas, ejemplos de explotación, limitaciones y rutas a los artefactos públicos. En esta revisión no se reprodujeron de forma independiente las mediciones ni la eficacia de la implementación.",
+              "implementation_status": "Prepublicación de investigación con código, datos de evaluación, verificador, perfiladores y DLRM-Bench disponibles según el repositorio de los autores. En esta revisión no se ejecutaron los artefactos.",
+              "mechanism": "Los autores clasifican el tiempo de las cargas perfiladas entre kernels ya optimizados, aprovechables, costos indirectos y no clasificados. Luego combinan la fracción aprovechable con las tasas de éxito y aceleraciones medidas dentro del dominio para estimar el efecto integral al estilo de Amdahl. Su verificador incorpora corrección normalizada por escala, cobertura de escritura de la salida, invariantes de la operación cuando existen y mediciones repetidas frente a bases emparejadas. Informan que la tolerancia absoluta en salidas casi nulas permitió que kernels incorrectos aprobaran.",
+              "regime": "Dos GPU NVIDIA A100-80GB; torch 2.14.0+cu130, CUDA 13.0 y Triton 3.8.0; bf16; KernelBench de nivel 1 (60 tareas, cuatro excluidas por no ser informativas); 879 evaluaciones y 874 generaciones en 19 experimentos y cinco configuraciones de modelo; siete cargas perfiladas, una forma y tamaño de lote por perfil y un modelo por familia.",
+              "reproducibility": "Los autores indican que publicaron las 879 evaluaciones y los scripts relacionados. El README del repositorio dice que el análisis se deriva de los datos sin requerir una GPU, mientras que las bases de tiempos dependen del hardware. No se hizo una repetición independiente ni se verificó la huella de los artefactos.",
+              "strongest_baseline": "Para las aceleraciones de kernels, se usa la más rápida entre cuBLAS en modo eager, torch.compile/Inductor y un conjunto de tiempos de Inductor medido previamente en el mismo hardware. Para comparar modelos, GPT-5.6 se contrasta con configuraciones Qwen2.5-Coder y DeepSeek-R1-Distill-Qwen. Las estimaciones integrales del artículo no son una comparación emparejada entre varios equipos."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "Los autores informan 879 evaluaciones en 19 experimentos con dos GPU NVIDIA A100-80GB. En 56 tareas elegibles de nivel 1 de KernelBench, GPT-5.6 produjo kernels correctos en el 91.1% de los casos y 22 kernels superaron la verificación independiente descrita en el artículo, con una aceleración mediana de 1.235x. Son resultados informados por el artículo, no una reproducción independiente."
+                },
+                {
+                  "text": "Al perfilar siete cargas de trabajo, los autores estiman que los kernels potencialmente reemplazables representan el 8.9–16.8% del tiempo de ejecución en las cargas transformer evaluadas, lo que corresponde a mejoras integrales proyectadas de 1.32–2.49%; en un perfil de inferencia DLRM, la fracción aprovechable fue de 58.2% y la mejora proyectada de 8.63%. Las proyecciones dependen de los modelos, formas, estimaciones de categorías y resultados de kernels dentro de cada dominio elegidos por el artículo."
+                },
+                {
+                  "text": "El artículo informa que una comprobación de corrección de KernelBench basada en tolerancia absoluta aceptó salidas completamente en cero en cuatro de 60 tareas de nivel 1; dos kernels generados por los autores aprovecharon esa falla antes de que la detectaran, incluido uno con una puntuación de 283x que escribió solo 0.3% del búfer de salida. Los autores proponen comprobaciones de error normalizado por escala, cobertura de salida e invariantes propios de cada operación."
+                },
+                {
+                  "text": "El artículo de arXiv y el repositorio público enlazado muestran el verificador descrito, los perfiladores, DLRM-Bench y los artefactos de evaluación. Esta revisión examinó sus listados y documentación, pero no ejecutó el código ni validó los resultados de forma independiente."
+                }
+              ],
+              "limitations": [
+                "Todas las tablas y mediciones provienen del artículo de los autores; no se realizó una reproducción independiente.",
+                "Los experimentos usan un equipo y dos GPU A100-80GB. El artículo no demuestra que los resultados se transfieran a otro tipo de GPU.",
+                "KernelBench de nivel 1 evalúa operaciones individuales y representa menos los sistemas reales que los niveles 2 y 3; cada perfil usa una forma y tamaño de lote, y cada familia un solo modelo.",
+                "Las categorías de operaciones aprovechables se asignan a partir de patrones en los nombres de kernels; las mejoras integrales son estimaciones basadas en esas categorías y en ganancias seleccionadas dentro de cada dominio.",
+                "La tasa de corrección del modelo de frontera puede cambiar con modelos nuevos; las conclusiones estructurales de los perfiles también podrían variar con el modelo, la forma, el compilador y el hardware."
+              ],
+              "gaps": [
+                {
+                  "description": "Los artefactos públicos con 879 evaluaciones, el verificador independiente y los perfiles todavía no se ejecutaron de forma independiente ni se comprobaron contra una revisión fijada del repositorio."
+                },
+                {
+                  "description": "Las fracciones aprovechables y mejoras integrales se basan en siete perfiles elegidos y una sola forma por perfil; no representan una muestra de producción ni mejoras de servicio medidas."
+                }
+              ]
+            },
+            "dek": "Un artículo de arXiv del 17 de septiembre analiza tanto la calidad de los kernels de GPU generados por modelos de lenguaje como la proporción del tiempo real de trabajo que podrían afectar."
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "AI 生成 GPU 内核的收益取决于工作负载的优化空间和基准正确性",
+            "summary": "arXiv 于 17 日发布的一篇论文同时考察语言模型生成 GPU 内核的表现，以及这些内核实际可能影响多少工作负载运行时间。作者在两块 A100-80GB GPU 上测试，GPT-5.6 内核在 56 个有效 level-1 KernelBench 任务中有 91.1% 通过正确性检查，另有 22 个加速结果通过论文的附加验证。作者分析的 transformer 配置中，可优化工作占运行时间的 8.9–16.8%；按其假设推算，端到端收益约为 1.3–2.5%。一个 DLRM 推理配置的可优化比例为 58.2%，推算收益为 8.63%。论文还指出，四个基准任务的绝对误差容差检查会接受全零输出，并列出两个作者生成的利用示例。结果仅限于一台主机、一种 GPU、level-1 任务和选定配置；没有进行独立复现。",
+            "importance_rationale": "如果这些测量能在所测工作负载范围内得到验证，它们会改变团队选择内核生成优化目标的方式，并揭示一种广泛使用的评测正确性检查存在缺陷。这可能影响 GPU 优化和基准设计决策；目前结果仅来自一台主机、一种 GPU 和有限的性能分析配置。",
+            "why_it_matters": "当被优化的操作只占工作负载运行时间的一小部分时，KernelBench 的通过率和单个内核的峰值加速比可能夸大系统层面的价值。论文按真实负载性能分析所采用的分母显示，不同工作负载的经济收益差异很大；基准漏洞则说明，绝对误差容差可能奖励只生成部分输出的内核。这两点都会影响优化目标选择和生成内核的验证。相关分析及修正方案仍是作者报告的结果，需要外部复现。",
+            "technical": {
+              "claimed_result": "在论文的双 A100、level-1 设置中，作者报告有 22 个 GPT-5.6 加速结果通过独立验证，覆盖 56 个有效任务，中位数为 1.235x；transformer 的可优化比例为 8.9–16.8%；一个 DLRM 推理配置为 58.2%；原有检查会让 60 个任务中的四个接受全零输出。",
+              "demonstrated_result": "论文记录了实验配置、验证流程、结果表、利用示例、局限性和公开材料位置。本次审查未独立复现实测数据，也未验证实现的实际效果。",
+              "implementation_status": "研究预印本；作者仓库列出了公开代码、评测数据、验证器、性能分析脚本和 DLRM-Bench。本次未运行任何材料。",
+              "mechanism": "作者将性能分析中的 CUDA 运行时间划分为已优化、可优化、额外开销和未分类部分，再结合域内测得的获胜率与加速比，按 Amdahl 定律估算端到端收益。其验证器增加了尺度归一化正确性、输出写入覆盖率、适用时的操作不变量，以及相对于匹配基线的重新计时。作者报告称，接近零的参考输出遇到绝对误差容差时，会使错误内核通过检查。",
+              "regime": "两块 NVIDIA A100-80GB GPU；torch 2.14.0+cu130、CUDA 13.0 和 Triton 3.8.0；bf16；KernelBench level-1（60 个任务，其中四个因检查无信息量而排除）；879 次评测和 874 次生成，分为 19 组实验，涵盖五种模型配置；七种性能分析工作负载，每个配置只有一种形状和批量大小，每个模型家族只选一个模型。",
+              "reproducibility": "作者称公开了全部 879 次评测和配套脚本。仓库 README 表示分析可直接从数据完成，无需 GPU；计时基线则依赖特定硬件。本次未独立重跑，也未核验固定版本的材料指纹。",
+              "strongest_baseline": "内核加速比较采用 eager cuBLAS、torch.compile/Inductor，以及同一硬件上预先记录的 Inductor 计时三者中的最快结果。模型比较中，GPT-5.6 对照 Qwen2.5-Coder 和 DeepSeek-R1-Distill-Qwen 配置。论文的端到端估算不是多台设备之间的匹配测试。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "作者报告称，共进行了 879 次评测、分为 19 组实验，使用两块 NVIDIA A100-80GB GPU。在 KernelBench 的 56 个有效 level-1 任务中，GPT-5.6 生成的内核有 91.1% 通过正确性检查；22 个内核通过论文所述的独立验证，中位加速比为 1.235x。这些是论文报告的结果，并非独立复现。"
+                },
+                {
+                  "text": "作者对七种工作负载的分析显示，在所测 transformer 工作负载中，理论上可替换的内核占运行时间的 8.9–16.8%，据此估算的端到端收益为 1.32–2.49%；一个 DLRM 推理配置中，可优化比例为 58.2%，估算收益为 8.63%。这些估算取决于论文所选的模型、形状、分类估计以及域内内核结果。"
+                },
+                {
+                  "text": "论文报告称，KernelBench 的绝对误差容差检查会让 60 个 level-1 任务中的四个接受全零输出；作者生成的两个内核在问题被发现前利用了这一点，其中一个获得 283x 加速分数，却只写入输出缓冲区的 0.3%。作者提出按尺度归一化的误差、输出写入覆盖率和操作不变量检查。"
+                },
+                {
+                  "text": "arXiv 论文及其链接的公开仓库列出了所述验证器、工作负载分析脚本、DLRM-Bench 和评测材料。本次审查查看了文件列表与说明，但没有运行代码，也没有独立核验记录的结果。"
+                }
+              ],
+              "limitations": [
+                "所有结果表和测量均来自作者的论文；没有进行独立复现。",
+                "实验只使用一台主机和两块 A100-80GB GPU。论文未证明结果可迁移到其他 GPU 类型。",
+                "KernelBench level-1 只测试单个操作，代表性弱于 level-2 和 level-3；每个性能分析配置仅用一种形状和批量大小，每类模型也只测一个模型。",
+                "可优化类别根据内核名称模式判定；端到端收益是基于这些类别和选定域内内核提升的估算值。",
+                "前沿模型的正确率会随模型迭代而变化；性能分析所得的结构性结论也可能受模型、形状、编译器和硬件影响。"
+              ],
+              "gaps": [
+                {
+                  "description": "公开的 879 次评测材料、独立验证器和性能分析结果尚未经过独立运行，也未对照固定的仓库版本进行核验。"
+                },
+                {
+                  "description": "可优化比例和端到端收益来自七个选定配置，每个配置只有一种形状；这并非生产工作负载的代表性样本，也不是实际测得的服务收益。"
+                }
+              ]
+            },
+            "headline": "AI 生成 GPU 内核的收益取决于工作负载的优化空间和基准正确性"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
+    {
+      "id": "FCMO-C1FF018C4522",
+      "slug": "audiollm-interrupt-and-silent-training-reports-proactive-alerts-in",
+      "url_date": "2026-10-15",
+      "kind": "development",
+      "status": "live",
+      "beat": "research",
+      "desk": "multimodality_world_models",
+      "title": "AudioLLM interrupt-and-silent training reports proactive alerts in bounded sound benchmarks",
+      "dek": "A September 18 arXiv paper proposes Interrupt and Silent Modeling (ISM), which adds <interrupt> and <silent> decisions to an audio-language model so one watch-out intent can drive continuous alerts without a new query for every event.",
+      "summary": "A September 18 arXiv paper proposes Interrupt and Silent Modeling (ISM), which adds <interrupt> and <silent> decisions to an audio-language model so one watch-out intent can drive continuous alerts without a new query for every event. On ESC-50, the authors report 99.6% interrupt F1 and 100.0% recall for suppressing duplicate alerts. In a zero-shot Epic-Sounds evaluation, interrupt F1 was 67.5 and onset recall 96.7%, but irrelevant-silence recall was 10.1% and sustained-relevance recall 41.2%; duplicate suppression was not measured there. The reported 3.5-second mean latency comes from 400 constructed streams with the event onset fixed at five seconds. These are author-reported benchmark results, not evidence of wearable deployment or improved outcomes for Deaf and Hard of Hearing users.",
+      "why_it_matters": "Reactive audio models wait for a query for each event, while sound-awareness systems can become tiring if they repeat alerts or notify on irrelevant sounds. ISM makes event onset, continued relevance, irrelevance and prior notification history explicit parts of the model's decision. The paper offers a bounded first evaluation of this design, but its poor irrelevant-silence score on noisy Epic-Sounds and the absence of a DHH user study leave real-world usefulness unresolved.",
+      "importance_rationale": "If the reported results reproduce, history-aware audio interruption from a single user intent could improve assistive sound monitoring by reducing repeated notifications while detecting relevant events. This is a meaningful but bounded design/evaluation result: performance is mixed across datasets, and no real wearable deployment or user benefit is established.",
+      "technical": {
+        "claimed_result": "Authors report 99.6% interrupt F1 and 100.0% duplicate-suppression recall on ESC-50. On the held-out Epic-Sounds evaluation they report 67.5 interrupt F1, 96.7% onset recall, 10.1% irrelevant-silence recall and 41.2% sustained-relevance recall. A constructed streaming test reports 3.5 seconds average response latency.",
+        "demonstrated_result": "The paper documents the task formulation, four-state ISM design, evaluation protocol and reported results. No result was independently reproduced, and no real-world device or user outcome was measured.",
+        "implementation_status": "Paper describes a fine-tuned Qwen2-Audio-7B research system. No wearable product deployment, user trial or implementation artifact was verified in this review.",
+        "mechanism": "ISM adds <interrupt> and <silent> tokens to autoregressive decoding and trains four states: interrupt at relevant-event onset, interrupt when the entire current window is relevant, remain silent for irrelevant audio, and remain silent when a relevant event was already reported in conversation history. The reported PALLM uses Qwen2-Audio-7B, a Whisper-large-v3 audio encoder, and LoRA fine-tuning.",
+        "regime": "Qwen2-Audio-7B / PALLM, about 8B total parameters; trained with LoRA on ESC-50 using six NVIDIA H100 GPUs. ESC-50 contains 2,000 five-second clips in 50 classes. Epic-Sounds has 44 egocentric kitchen-audio classes and is used only for evaluation. Streaming latency is measured on 400 constructed 15-second clips with a five-second rolling window and fixed target interval from seconds 5–10.",
+        "reproducibility": "The paper gives model, dataset, training and metric details; a fixed seed is stated for training. This review did not execute an artifact or independently reproduce any table.",
+        "strongest_baseline": "On ESC-50, reactive SFT is the closest reported baseline for interrupt F1 (79.8 versus 99.6 for ISM), while zero-shot prompting nearly always interrupts and has only 0.2% duplicate-suppression recall. On Epic-Sounds, ISM's 67.5 F1 narrowly exceeds zero-shot's 66.9 and reactive SFT's 65.2; the behaviors trade off onset detection against silence decisions."
+      },
+      "importance_tier": "Meaningful",
+      "development_type": "paper",
+      "event_at": "2026-09-18T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-15T19:07:00Z",
+      "updated_at": "2026-10-15T19:07:00Z",
+      "importance": 4,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": false,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "CLAIMED",
+            "text": "Using Qwen2-Audio-7B with Interrupt and Silent Modeling (ISM), the authors report 99.6% interrupt F1 and 100.0% de-duplication recall on ESC-50 under their proactive evaluation. ESC-50 uses balanced proactive examples derived from a 2,000-clip dataset; reactive classification uses five-fold cross-validation. These are author-reported results."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "On Epic-Sounds, which was used only for evaluation, the authors report 67.5 interrupt F1 and 96.7% onset recall for ISM, compared with 66.9 F1 for zero-shot prompting and 65.2 for reactive fine-tuning. ISM's irrelevant-silence recall was 10.1% and sustained-relevance recall was 41.2%; de-duplication was not evaluated on Epic-Sounds because the protocol did not preserve conversation history across samples."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "In a controlled streaming test of 400 constructed 15-second samples spanning 50 ESC-50 classes, with relevant audio placed at a fixed 5–10 second interval, the authors report 3.5 seconds average response latency and suppression of repeated alerts through conversation history. This is not a wearable deployment or a user study."
+          },
+          {
+            "label": "DEMONSTRATED",
+            "text": "The paper defines a four-state proactive audio task and a training method that adds <interrupt> and <silent> tokens to autoregressive decoding. The reviewed source documents this design; it does not establish that performance generalizes to other AudioLLMs or real assistive devices."
+          }
+        ],
+        "limitations": [
+          "All numerical results are author-reported; no independent reproduction was performed.",
+          "The experiments use one Qwen2-Audio-7B backbone and controlled benchmark datasets; transfer to other audio-language models is proposed but not tested.",
+          "On Epic-Sounds, irrelevant-silence recall is 10.1% and sustained-relevance recall is 41.2%, despite 96.7% onset recall. De-duplication is not evaluated on Epic-Sounds because sample histories do not carry over.",
+          "The 400-sample streaming test uses constructed clips with a fixed event onset and duration. The paper identifies randomized timing and latency tradeoffs as future work.",
+          "The paper reports no deployment on wearable hardware and no study with Deaf or Hard of Hearing participants; accessibility benefit, alert fatigue and user preference remain unknown.",
+          "Only one zero-shot Epic-Sounds evaluation set is reported; the paper does not show broader environmental generalization or real-world false-alert rates."
+        ],
+        "gaps": [
+          {
+            "kind": "reproduction_missing",
+            "description": "The paper's ESC-50, Epic-Sounds and streaming results have not been independently reproduced from a pinned implementation and complete test protocol."
+          },
+          {
+            "kind": "missing_independent",
+            "description": "Real-world utility and burden for Deaf and Hard of Hearing users are unknown; the paper reports no wearable deployment or participant study."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://arxiv.org/abs/2609.21183",
+          "domain": "arxiv.org",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "Meta Reality Labs"
+      ],
+      "topics": [
+        "audio-language-models",
+        "proactive-assistance",
+        "assistive-technology",
+        "streaming-audio",
+        "notification-de-duplication"
+      ],
+      "regions": [
+        "GLOBAL"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-C1FF018C4522.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: AudioLLM interrupt-and-silent training reports proactive alerts in bounded sound benchmarks"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "El entrenamiento de AudioLLM para interrumpir y guardar silencio reporta alertas proactivas en benchmarks acotados",
+            "summary": "Un artículo de arXiv del 18 de septiembre propone Interrupt and Silent Modeling (ISM): añade decisiones <interrupt> y <silent> a un AudioLLM para que una sola intención de vigilancia pueda activar alertas continuas sin consultar al modelo por cada evento. En ESC-50, los autores reportan 99.6% de F1 de interrupción y 100.0% de recall al suprimir avisos duplicados. En una evaluación zero-shot de Epic-Sounds, el F1 de interrupción fue 67.5 y el recall de inicio 96.7%, pero el recall de silencio ante sonidos irrelevantes fue 10.1% y el de relevancia sostenida 41.2%; allí no se midió la eliminación de duplicados. La latencia media de 3.5 segundos proviene de 400 transmisiones construidas con el inicio del evento fijado en el segundo cinco. Son resultados informados por los autores, no evidencia de un producto vestible ni de mejores resultados para personas sordas o con dificultades auditivas.",
+            "importance_rationale": "Si los resultados informados se reproducen, las alertas de audio con historial y activadas por una sola intención podrían mejorar la asistencia auditiva al reducir avisos repetidos sin dejar de detectar eventos relevantes. Es un avance significativo pero acotado de diseño y evaluación: el rendimiento cambia entre conjuntos de datos y no se ha demostrado un despliegue real ni un beneficio para las personas usuarias.",
+            "why_it_matters": "Los modelos de audio reactivos esperan una consulta para cada evento, mientras que los sistemas de alerta pueden volverse agotadores si repiten avisos o señalan sonidos irrelevantes. ISM convierte el inicio del evento, su relevancia sostenida, la irrelevancia y el historial de notificaciones en partes explícitas de la decisión del modelo. El artículo ofrece una primera evaluación acotada del diseño, pero el bajo recall de silencio ante sonidos irrelevantes en Epic-Sounds y la falta de un estudio con usuarios sordos o con dificultades auditivas dejan sin resolver su utilidad real.",
+            "technical": {
+              "claimed_result": "Los autores reportan 99.6% de F1 de interrupción y 100.0% de recall al suprimir duplicados en ESC-50. En Epic-Sounds, la evaluación retenida reporta 67.5 de F1 de interrupción, 96.7% de recall de inicio, 10.1% de recall ante silencio irrelevante y 41.2% de recall de relevancia sostenida. Una prueba de transmisión construida reporta 3.5 segundos de latencia media.",
+              "demonstrated_result": "El artículo documenta la formulación de la tarea, el diseño ISM de cuatro estados, el protocolo de evaluación y los resultados que informa. No se reprodujo ningún resultado de forma independiente ni se midieron dispositivos o resultados con usuarios reales.",
+              "implementation_status": "El artículo describe un sistema de investigación ajustado sobre Qwen2-Audio-7B. Esta revisión no verificó un despliegue en un producto vestible, un ensayo con usuarios ni un artefacto ejecutable.",
+              "mechanism": "ISM añade los tokens <interrupt> y <silent> a la decodificación autorregresiva y entrena cuatro estados: interrumpir al comenzar un evento relevante, interrumpir cuando toda la ventana actual es relevante, guardar silencio ante audio irrelevante y guardar silencio si ya se avisó del evento en el historial de conversación. El PALLM reportado usa Qwen2-Audio-7B, un codificador de audio Whisper-large-v3 y ajuste fino LoRA.",
+              "regime": "Qwen2-Audio-7B / PALLM, cerca de 8B parámetros en total; ajuste LoRA con ESC-50 usando seis GPU NVIDIA H100. ESC-50 contiene 2,000 clips de cinco segundos en 50 clases. Epic-Sounds contiene 44 clases de audio de cocinas en primera persona y solo se usa para evaluación. La latencia de transmisión se mide en 400 clips construidos de 15 segundos, con una ventana móvil de cinco segundos y el intervalo objetivo fijo de los segundos 5–10.",
+              "reproducibility": "El artículo describe el modelo, los datos, el entrenamiento y las métricas; indica una semilla fija de entrenamiento. Esta revisión no ejecutó un artefacto ni reprodujo ninguna tabla de manera independiente.",
+              "strongest_baseline": "En ESC-50, el ajuste fino reactivo es la referencia más cercana para F1 de interrupción (79.8 frente a 99.6 de ISM); las instrucciones zero-shot generan interrupciones casi siempre y solo logran 0.2% de recall al suprimir duplicados. En Epic-Sounds, el F1 de ISM (67.5) supera por poco al zero-shot (66.9) y al ajuste fino reactivo (65.2); los métodos intercambian detección de inicio y decisiones de silencio."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "Con Qwen2-Audio-7B e Interrupt and Silent Modeling (ISM), los autores reportan 99.6% de F1 de interrupción y 100.0% de recall de supresión de alertas duplicadas en ESC-50 bajo su evaluación proactiva. ESC-50 aporta ejemplos proactivos balanceados a partir de 2,000 clips; la clasificación reactiva usa validación cruzada de cinco particiones. Son resultados informados por los autores."
+                },
+                {
+                  "text": "En Epic-Sounds, usado solo para evaluación, los autores reportan 67.5 de F1 de interrupción y 96.7% de recall de inicio para ISM, frente a 66.9 de F1 con instrucciones de disparo único y 65.2 con ajuste fino reactivo. El recall de silencio ante sonidos irrelevantes de ISM fue 10.1% y el recall de relevancia sostenida fue 41.2%; Epic-Sounds no evaluó la eliminación de duplicados porque el protocolo no conservó el historial entre muestras."
+                },
+                {
+                  "text": "En una prueba controlada de transmisión con 400 muestras construidas de 15 segundos que abarcan 50 clases de ESC-50, y con el audio relevante ubicado en un intervalo fijo de 5–10 segundos, los autores reportan una latencia media de respuesta de 3.5 segundos y la supresión de alertas repetidas mediante el historial de conversación. No se trata de un despliegue en un dispositivo vestible ni de un estudio con usuarios."
+                },
+                {
+                  "text": "El artículo define una tarea de audio proactivo con cuatro estados y un método de entrenamiento que añade los tokens <interrupt> y <silent> a la decodificación autorregresiva. La fuente revisada documenta este diseño; no demuestra que el desempeño se generalice a otros AudioLLM ni a dispositivos de asistencia reales."
+                }
+              ],
+              "limitations": [
+                "Todos los resultados numéricos provienen de los autores; no se realizó una reproducción independiente.",
+                "Los experimentos usan una sola base Qwen2-Audio-7B y conjuntos de datos controlados; no se probó la transferencia a otros modelos de audio y lenguaje.",
+                "En Epic-Sounds, el recall ante silencio irrelevante es 10.1% y el recall de relevancia sostenida es 41.2%, pese al 96.7% de recall de inicio. Allí no se evaluó la supresión de duplicados porque el historial entre muestras no se conserva.",
+                "La prueba de transmisión con 400 muestras utiliza clips construidos con inicio y duración del evento fijos. El artículo deja para trabajo futuro variar los tiempos y estudiar las compensaciones de latencia.",
+                "El artículo no reporta despliegue en hardware vestible ni estudio con participantes sordos o con dificultades auditivas; siguen sin conocerse el beneficio de accesibilidad, la fatiga por alertas y las preferencias de usuarios.",
+                "Solo se reporta una evaluación zero-shot de Epic-Sounds; el artículo no demuestra una generalización ambiental más amplia ni tasas de falsas alertas en uso real."
+              ],
+              "gaps": [
+                {
+                  "description": "Los resultados del artículo en ESC-50, Epic-Sounds y la prueba de transmisión no se han reproducido de manera independiente con una implementación fijada y el protocolo de prueba completo."
+                },
+                {
+                  "description": "Se desconoce la utilidad y la carga de alertas en el mundo real para personas sordas o con dificultades auditivas; el artículo no incluye despliegue en dispositivos vestibles ni estudio con participantes."
+                }
+              ]
+            }
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "AudioLLM 的中断与静默训练在有限音频基准上报告了主动提醒能力",
+            "summary": "一篇 arXiv 于 18 日发布的论文提出 Interrupt and Silent Modeling (ISM)：在音频语言模型的自回归解码中加入 <interrupt> 和 <silent> 决策，使单一监听意图可以触发持续提醒，而无需每发生一个事件都重新提问。在 ESC-50 上，作者报告中断 F1 为 99.6%，抑制重复提醒的召回率为 100.0%。在 Epic-Sounds 零样本评测中，中断 F1 为 67.5，事件起始召回率为 96.7%；但对无关声音保持静默的召回率只有 10.1%，持续相关性召回率为 41.2%，且没有评测重复提醒抑制。3.5 秒平均延迟来自 400 条合成音频流测试，事件起始固定在第五秒。这些是作者报告的基准结果，不能证明可穿戴产品部署或聋人及听障用户获得了更好效果。",
+            "importance_rationale": "如果这些结果可复现，基于历史记录、由单一意图触发的音频提醒可能减少重复通知，同时保留对相关事件的检测能力，从而改进听觉辅助。该研究在设计和评测上有一定意义，但范围有限：不同数据集上的表现不一致，也没有证明真实部署或用户获益。",
+            "why_it_matters": "反应式音频模型需要用户为每个事件发起查询；若提醒系统不断重复通知或报告无关声音，也容易让人疲劳。ISM 将事件起始、持续相关性、无关声音和历史提醒状态显式纳入模型决策。论文对这一设计提供了范围有限的初步评测，但其在嘈杂 Epic-Sounds 上对无关声音的静默召回率较低，且没有聋人或听障用户研究，因此真实效用仍未确定。",
+            "technical": {
+              "claimed_result": "在 ESC-50 上，作者报告中断 F1 为 99.6%、抑制重复提醒召回率为 100.0%。Epic-Sounds 测试报告中断 F1 为 67.5、起始召回率为 96.7%、无关静默召回率为 10.1%、持续相关性召回率为 41.2%。合成流式测试报告平均响应延迟为 3.5 秒。",
+              "demonstrated_result": "论文记录了任务定义、四状态 ISM 设计、评测流程和报告结果。本次未独立复现任何结果，也未测量真实设备或用户效果。",
+              "implementation_status": "论文介绍了基于 Qwen2-Audio-7B 微调的研究系统。本次未核实可穿戴产品部署、用户试验或可执行实现。",
+              "mechanism": "ISM 在自回归解码中加入 <interrupt> 和 <silent> 标记，并训练四种状态：相关事件开始时打断；当前整个窗口都相关时打断；遇到无关声音时保持静默；若对话历史显示已提醒过该事件，则再次保持静默。论文中的 PALLM 使用 Qwen2-Audio-7B、Whisper-large-v3 音频编码器和 LoRA 微调。",
+              "regime": "Qwen2-Audio-7B / PALLM，总参数约 8B；使用六块 NVIDIA H100 GPU 在 ESC-50 上进行 LoRA 微调。ESC-50 有 2,000 个五秒片段、共 50 个类别。Epic-Sounds 有 44 类第一视角厨房音频，仅用于评测。流式延迟测试使用 400 段合成的 15 秒音频、五秒滚动窗口，目标声音固定在第 5–10 秒。",
+              "reproducibility": "论文说明了模型、数据集、训练和指标，并称训练使用固定随机种子。本次审查没有运行任何材料，也没有独立复现结果表。",
+              "strongest_baseline": "在 ESC-50 上，反应式微调的中断 F1 最接近 ISM（79.8 对 99.6）；单次提示几乎总会触发提醒，其重复抑制召回率只有 0.2%。在 Epic-Sounds 上，ISM 的 F1 为 67.5，略高于单次提示的 66.9 和反应式微调的 65.2；不同方法在起始检测与静默决策之间存在取舍。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "作者使用 Qwen2-Audio-7B 和 Interrupt and Silent Modeling (ISM)，报告称其中断 F1 为 99.6%，在 ESC-50 主动评测中的重复提醒抑制召回率为 100.0%。该数据集包含 2,000 个片段和 50 个类别；主动评测使用平衡样例，反应式分类采用五折交叉验证。这些是作者报告的结果。"
+                },
+                {
+                  "text": "Epic-Sounds 仅用于评测。作者报告 ISM 的中断 F1 为 67.5、事件起始召回率为 96.7%，单次提示基线为 66.9，反应式微调为 65.2。ISM 对无关声音保持静默的召回率为 10.1%，对持续相关事件的召回率为 41.2%；由于该协议没有跨样例保留对话历史，Epic-Sounds 未评测重复提醒抑制。"
+                },
+                {
+                  "text": "在一项受控流式测试中，作者使用 400 个合成样例，每段 15 秒，覆盖 ESC-50 的 50 个类别，并将相关声音固定在 5–10 秒区间。作者报告平均响应延迟为 3.5 秒，并称系统借助对话历史抑制重复提醒。这不是可穿戴设备部署，也不是用户研究。"
+                },
+                {
+                  "text": "论文定义了四种状态的主动音频任务，并提出在自回归解码中加入 <interrupt> 和 <silent> 标记的训练方法。所审阅来源记录了这一设计，但没有证明其性能可推广到其他 AudioLLM 或真实辅助设备。"
+                }
+              ],
+              "limitations": [
+                "所有数值结果均由作者报告；没有进行独立复现。",
+                "实验只使用一个 Qwen2-Audio-7B 主干模型和受控数据集；没有测试其向其他音频语言模型迁移的效果。",
+                "在 Epic-Sounds 上，对无关声音保持静默的召回率为 10.1%，持续相关性召回率为 41.2%，尽管事件起始召回率达到 96.7%。由于样例间没有保留历史，该数据集未评测重复提醒抑制。",
+                "400 个样例的流式测试使用合成音频，事件起始时间和持续时间固定。论文将随机化时间设置以及延迟权衡留作后续工作。",
+                "论文没有报告可穿戴硬件部署，也没有聋人或听障参与者研究；辅助效益、提醒疲劳和用户偏好仍未知。",
+                "论文只报告了一组 Epic-Sounds 零样本评测；未证明其能广泛适应真实环境，也没有给出实际误报率。"
+              ],
+              "gaps": [
+                {
+                  "description": "论文在 ESC-50、Epic-Sounds 和流式测试中的结果尚未基于固定版本实现和完整测试协议进行独立复现。"
+                },
+                {
+                  "description": "聋人及听障人士在真实环境中的实际收益和提醒负担仍未知；论文没有可穿戴设备部署或参与者研究。"
+                }
+              ]
+            },
+            "headline": "AudioLLM 的中断与静默训练在有限音频基准上报告了主动提醒能力"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
+    {
+      "id": "FCMO-A6A1F73E64FA",
+      "slug": "a-production-agent-study-compares-lower-cost-recurring-evaluation",
+      "url_date": "2026-10-15",
+      "kind": "development",
+      "status": "live",
+      "beat": "research",
+      "desk": "evaluation_science",
+      "title": "A production-agent study compares lower-cost recurring evaluation methods",
+      "headline": "A production-agent study compares lower-cost recurring evaluation methods",
+      "dek": "A September 2026 paper reports a temporal holdout study of partial evaluation for one production analytics agent: 574 runs of a 519-question benchmark were split evenly between calibration and held-out periods.",
+      "summary": "A September 2026 paper reports a temporal holdout study of partial evaluation for one production analytics agent: 574 runs of a 519-question benchmark were split evenly between calibration and held-out periods. It compares random sampling, historical caching, fixed subsets and adaptive testing. At 200 executed questions, the paper reports 1.37 percentage points of pass-rate mean absolute error in its results section, while its abstract reports 1.03 points for that budget. Difficulty-stratified fixed subsets were deployed for simplicity and tested on five additional agent families. These are author-reported results from one organization and task; the paper does not establish broad external reliability.",
+      "why_it_matters": "Repeated full agent benchmarks can be costly; if these results transfer, difficulty-stratified subsets offer one practical way to reduce recurring evaluation work while tracking score and ranking changes. The evidence is bounded to one production analytics benchmark, and the paper gives conflicting MAE figures for the 200-question adaptive-testing result.",
+      "importance_rationale": "If the reported evaluation savings and transfer results hold, they could change how teams schedule recurring production-agent benchmarks; the demonstrated scope is one organization’s analytics agent, so this is a meaningful operational method result rather than evidence of general agent reliability.",
+      "technical": {
+        "claimed_result": "For the source’s one 519-question production analytics benchmark, authors report 574 runs over 52 days split 287/287. At a 200-question budget they report adaptive-testing MAE of 1.37pp in Section 5.1 but 1.03pp in the abstract. Difficulty-stratified subsets were selected for deployment simplicity and reported to transfer to five further agent families.",
+        "compute_or_cost": "Full benchmark run is reported to take approximately three hours. A 200-question evaluation is 38.5% of the question count; the paper reports score/ranking errors but this activation did not independently measure wall-clock or monetary savings.",
+        "demonstrated_result": "The inspected primary source contains a temporally held-out study design and reported comparisons. It does not independently demonstrate the claimed performance beyond the authors’ own evaluation; the research desk did not reproduce it.",
+        "mechanism": "Use prior question-level pass/fail outcomes to select fixed representative subsets or adaptively choose questions, then estimate full-benchmark score and ranking fidelity from fewer executions. The study compares random sampling, historical outcome caching, fixed subsets and item-response-theory adaptive testing.",
+        "novelty": "A production-oriented temporal comparison that evaluates both score and ranking fidelity for partial recurring agent evaluations, including reported deployment and cross-family transfer rather than only static model benchmark subsampling.",
+        "regime": "One organization’s evolving production analytics agent, 519-question benchmark, 574 historical runs collected over 52 days, chronological 287/287 calibration/test split; additional transfer test reports 299 pooled runs across five anonymized agent families.",
+        "reproducibility": "The paper is available as arXiv:2609.21267v1. Code/data were not inspected during this activation and no reproduction was performed. The conflicting MAE values also need author/source clarification.",
+        "strongest_baseline": "Within the paper, random sampling, historical caching, difficulty-stratified fixed subsets and adaptive testing are compared against full-run scores on the same 287 held-out runs. External baselines are not established."
+      },
+      "importance_tier": "Meaningful",
+      "development_type": "paper",
+      "event_at": "2026-09-18T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-15T19:07:00Z",
+      "updated_at": "2026-10-15T19:07:00Z",
+      "importance": 4,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": true,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "CLAIMED",
+            "text": "The authors report using 574 historical benchmark runs over 52 days, split chronologically into 287 calibration and 287 held-out runs, for one production analytics agent. Its central benchmark has 519 questions and takes about three hours per full run."
+          },
+          {
+            "label": "DISPUTED",
+            "text": "At 200 questions (38.5% of the benchmark), the abstract reports 1.03 percentage points of mean absolute error for multidimensional 2PL adaptive testing, while Section 5.1 reports 1.37 points for adaptive testing. The source does not reconcile these figures."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "The paper reports that difficulty-stratified fixed subsets performed best at smaller budgets, and that the authors deployed this method for operational simplicity. It reports transfer without recalibration to five other agent families; the paper describes 299 pooled transfer runs."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "For the held-out runs, the authors report adaptive testing improving score fidelity at larger question budgets and difficulty-stratified subsets providing strong ranking fidelity at smaller budgets; historical caching showed weaker score fidelity at comparable execution fractions but preserved rankings better than score error alone suggests."
+          }
+        ],
+        "limitations": [
+          "This is one production analytics agent’s benchmark and a single organization’s historical data; task and organizational transfer are not established broadly.",
+          "The paper's abstract and results section disagree on the 200-question adaptive-testing MAE (1.03pp versus 1.37pp); no resolution was found in the inspected source.",
+          "The results are reported by the paper authors; this activation did not inspect code/data artifacts or independently reproduce the comparisons.",
+          "Cross-agent transfer uses five anonymized agent families and 299 pooled runs; family-specific independence and external replication are not established here."
+        ],
+        "gaps": [
+          {
+            "kind": "contradiction_unresolved",
+            "description": "The abstract and Section 5.1 report different 200-question adaptive-testing MAE values (1.03pp and 1.37pp)."
+          },
+          {
+            "kind": "missing_independent",
+            "description": "The paper reports results from one organization’s production analytics agent and anonymized transfer families; independent external validation is absent in this review."
+          },
+          {
+            "kind": "missing_artifact",
+            "description": "Underlying run-level data and implementation artifacts were not inspected in this activation, so analysis cannot be independently audited from the recorded source locators alone."
+          }
+        ],
+        "contradictory": [
+          "Internal source inconsistency: arXiv HTML abstract (lines 75–77) reports 1.03pp MAE at 200/519 questions for multidimensional 2PL adaptive testing, while Section 5.1 (lines 239–246) reports 1.37pp at the same budget. The discrepancy remains unresolved."
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://arxiv.org/abs/2609.21267",
+          "domain": "arxiv.org",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "Meta"
+      ],
+      "topics": [
+        "agent-evaluation",
+        "benchmarking",
+        "partial-evaluation",
+        "production-systems"
+      ],
+      "regions": [
+        "GLOBAL"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-A6A1F73E64FA.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: A production-agent study compares lower-cost recurring evaluation methods"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "Un estudio de un agente en producción compara métodos de evaluación recurrente de menor costo",
+            "summary": "Un artículo de septiembre de 2026 presenta un estudio con corte temporal sobre evaluación parcial de un único agente de analítica en producción: 574 ejecuciones de un benchmark de 519 preguntas, divididas en partes iguales entre calibración y prueba. Compara muestreo aleatorio, reutilización de resultados históricos, subconjuntos fijos y pruebas adaptativas. Con 200 preguntas ejecutadas, la sección de resultados informa un error absoluto medio de 1.37 puntos porcentuales en la tasa de aprobación, mientras que el resumen informa 1.03 puntos para ese mismo presupuesto. Los autores desplegaron subconjuntos estratificados por dificultad por su sencillez operativa y los probaron en cinco familias adicionales de agentes. Son resultados reportados por los autores para una organización y una tarea; el artículo no demuestra fiabilidad general de los agentes.",
+            "importance_rationale": "Si se sostienen los ahorros de evaluación y la transferencia reportados, podrían cambiar la forma en que los equipos programan los benchmarks recurrentes de agentes en producción. La evidencia demostrada se limita al agente de analítica de una organización, por lo que es un resultado metodológico útil y acotado, no evidencia de fiabilidad general de agentes.",
+            "why_it_matters": "Las evaluaciones completas y repetidas de agentes pueden ser costosas. Si los resultados se transfieren, los subconjuntos estratificados por dificultad ofrecen una opción práctica para reducir el trabajo de evaluación recurrente y seguir cambios en puntuaciones y rankings. La evidencia se limita a un benchmark de analítica en producción, y el artículo da cifras incompatibles de MAE para la prueba adaptativa con 200 preguntas.",
+            "technical": {
+              "claimed_result": "Para el benchmark de 519 preguntas de un agente de analítica en producción, los autores informan 574 ejecuciones en 52 días, divididas 287/287. Con 200 preguntas reportan un MAE de 1.37 puntos porcentuales en la sección 5.1, pero 1.03 en el resumen. Desplegaron subconjuntos estratificados por dificultad por sencillez operativa y reportan transferencia a otras cinco familias de agentes.",
+              "compute_or_cost": "Se informa que una ejecución completa del benchmark tarda aproximadamente tres horas. Evaluar 200 preguntas equivale al 38.5% del total. El artículo informa errores de puntuación y ranking, pero esta activación no midió de forma independiente el tiempo ni el costo monetario.",
+              "demonstrated_result": "La fuente primaria inspeccionada contiene el diseño de prueba temporal y comparaciones reportadas por los autores. No demuestra de forma independiente el rendimiento alegado más allá de la evaluación realizada por ellos; el equipo de investigación no la reprodujo.",
+              "mechanism": "Usar resultados históricos por pregunta para elegir subconjuntos representativos fijos o seleccionar preguntas de forma adaptativa; luego estimar la puntuación y el ranking del benchmark completo con menos ejecuciones. El estudio compara muestreo aleatorio, reutilización histórica, subconjuntos fijos y pruebas adaptativas basadas en teoría de respuesta al ítem.",
+              "novelty": "Una comparación temporal orientada a producción que evalúa fidelidad de puntuación y de ranking para evaluaciones recurrentes parciales de agentes, e incluye despliegue reportado y transferencia entre familias en vez de solo submuestreo de benchmarks estáticos.",
+              "regime": "Un agente de analítica en producción de una organización, benchmark de 519 preguntas, 574 ejecuciones históricas durante 52 días y división cronológica de 287 ejecuciones para calibración y 287 para prueba. La transferencia adicional incluye 299 ejecuciones agrupadas de cinco familias de agentes anonimizadas.",
+              "reproducibility": "El artículo está disponible como arXiv:2609.21267v1. En esta activación no se inspeccionaron el código ni los datos, y no se reprodujeron los resultados. También se necesita aclarar la discrepancia entre las cifras de MAE.",
+              "strongest_baseline": "En el artículo, el muestreo aleatorio, la reutilización histórica, los subconjuntos estratificados por dificultad y las pruebas adaptativas se comparan con la puntuación de ejecuciones completas en las mismas 287 ejecuciones de prueba. No se estableció aquí una referencia externa."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "Los autores dicen haber usado 574 ejecuciones históricas del benchmark durante 52 días, divididas cronológicamente en 287 ejecuciones para calibración y 287 para prueba, para un agente de analítica en producción. Su benchmark central tiene 519 preguntas y una ejecución completa tarda cerca de tres horas."
+                },
+                {
+                  "text": "Con 200 preguntas (38.5% del benchmark), el resumen informa un error absoluto medio de 1.03 puntos porcentuales para las pruebas adaptativas multidimensionales 2PL, mientras que la sección 5.1 informa 1.37 puntos para la prueba adaptativa. La fuente no reconcilia las cifras."
+                },
+                {
+                  "text": "El artículo informa que los subconjuntos fijos estratificados por dificultad rindieron mejor con presupuestos pequeños y que los autores los desplegaron por sencillez operativa. Reporta transferencia sin recalibración a cinco familias adicionales de agentes; describe 299 ejecuciones agrupadas para esas pruebas."
+                },
+                {
+                  "text": "En las ejecuciones de prueba, los autores informan que las pruebas adaptativas mejoran la fidelidad de la puntuación con presupuestos mayores y que los subconjuntos estratificados por dificultad conservan bien los rankings con presupuestos menores. La reutilización histórica mostró menor fidelidad de puntuación a niveles de ejecución comparables, aunque preservó los rankings mejor de lo que su error de puntuación por sí solo sugeriría."
+                }
+              ],
+              "limitations": [
+                "Este estudio cubre el benchmark de un agente de analítica en producción de una sola organización; no demuestra transferencia amplia entre tareas u organizaciones.",
+                "El resumen y la sección de resultados discrepan sobre el MAE de la prueba adaptativa con 200 preguntas (1.03 frente a 1.37 puntos porcentuales); no se encontró una explicación en la fuente inspeccionada.",
+                "Los resultados los reportan los autores; en esta activación no se inspeccionaron código ni datos, ni se hizo una reproducción independiente.",
+                "La transferencia entre agentes usa cinco familias anonimizadas y 299 ejecuciones agrupadas; esta revisión no establece su independencia ni una reproducción externa."
+              ],
+              "gaps": [
+                {
+                  "description": "El resumen y la sección 5.1 informan valores distintos de MAE para la prueba adaptativa con 200 preguntas: 1.03 y 1.37 puntos porcentuales."
+                },
+                {
+                  "description": "El artículo informa datos de un agente de analítica de una organización y familias de transferencia anonimizadas; esta revisión no encontró validación externa independiente."
+                },
+                {
+                  "description": "En esta activación no se inspeccionaron los datos subyacentes por ejecución ni artefactos de implementación, por lo que no se puede auditar el análisis de forma independiente solo con los localizadores registrados."
+                }
+              ],
+              "contradictory": [
+                "Contradicción interna de la fuente: el resumen HTML de arXiv (líneas 75–77) informa 1.03 pp de MAE con 200/519 preguntas para la prueba adaptativa multidimensional 2PL, mientras que la sección 5.1 (líneas 239–246) informa 1.37 pp con el mismo presupuesto. La discrepancia sigue sin resolverse."
+              ]
+            }
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb",
+            "evidence.contradictory": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "一项生产环境智能体研究比较成本更低的周期性评测方法",
+            "summary": "一篇2026年九月的论文报告了对单个生产环境分析智能体进行的时间留出研究：针对一个包含519道题的基准，共使用574次运行，并按时间平均划分为校准集和留出集。研究比较随机抽样、历史结果缓存、固定子集和自适应测试。执行200道题时，结果章节报告通过率平均绝对误差为1.37个百分点，而摘要对同一预算报告为1.03个百分点。作者因操作简单而部署了按难度分层的固定子集，并在另外五类智能体上进行了测试。这些是作者基于单一机构和任务报告的结果；论文没有证明智能体具有普遍可靠性。",
+            "importance_rationale": "如果报告的评测节省和迁移结果成立，团队安排生产智能体周期性基准测试的方式可能会改变。已报告的证据仅限于单一机构的分析智能体，因此这是有意义但范围有限的方法结果，并非智能体普遍可靠性的证据。",
+            "why_it_matters": "反复运行完整的智能体基准可能代价高昂。如果这些结果能够迁移，按难度分层的子集可作为减少周期性评测工作、同时追踪分数和排序变化的一种实用方法。证据仅限于一个生产分析基准，而且论文对200题自适应测试的MAE给出了互不一致的数值。",
+            "technical": {
+              "claimed_result": "对于单一生产分析智能体的519题基准，作者报告52天内574次运行，并按287/287划分。在200题预算下，第5.1节报告MAE为1.37个百分点，而摘要为1.03。作者因操作简单部署了难度分层子集，并报告其迁移到另外五类智能体。",
+              "compute_or_cost": "论文报告完整基准运行约需三小时。评测200道题相当于题目总数的38.5%；论文报告分数和排序误差，但本次激活没有独立测量实际耗时或货币成本。",
+              "demonstrated_result": "所查一手来源包含时间留出设计及作者报告的比较结果。它没有在作者自身评测之外独立证明所述性能；研究团队未进行复现。",
+              "mechanism": "利用历史逐题通过/失败结果选择固定的代表性子集，或在评测中自适应选择题目，再用较少的执行估算完整基准的分数和排序。研究比较随机抽样、历史结果缓存、固定子集和基于项目反应理论的自适应测试。",
+              "novelty": "面向生产场景的时间留出比较，同时评估周期性智能体部分评测的分数与排序保真度，并报告了实际部署及跨智能体家族迁移，而非仅对静态基准进行子采样。",
+              "regime": "一家机构的演进中生产分析智能体；519题基准；52天内574次历史运行；按时间划分为287次校准运行和287次测试运行。额外迁移测试报告五类匿名智能体共299次运行。",
+              "reproducibility": "论文以arXiv:2609.21267v1公开。本次激活未检查代码或数据，也未复现结果。MAE数值差异仍需澄清。",
+              "strongest_baseline": "论文在相同的287次留出运行中，将随机抽样、历史缓存、难度分层固定子集和自适应测试与完整运行分数进行比较。本次未建立外部基线。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "作者称，他们使用了一个生产分析智能体在52天内的574次历史基准运行，并按时间分为287次校准运行和287次留出运行。核心基准包含519道题，完整运行约需三小时。"
+                },
+                {
+                  "text": "执行200道题（基准的38.5%）时，摘要报告多维2PL自适应测试的平均绝对误差为1.03个百分点，而第5.1节报告自适应测试为1.37个百分点。原文没有解释这两项数值的差异。"
+                },
+                {
+                  "text": "论文报告，按难度分层的固定子集在小预算下表现最佳，作者因操作简单而部署了该方法。论文称该方法无需重新校准即可迁移到另外五类智能体，并说明迁移测试汇总了299次运行。"
+                },
+                {
+                  "text": "对于留出运行，作者报告自适应测试在较大预算下提高分数保真度，而按难度分层的子集在较小预算下保持较好的排序。相同执行比例下，历史缓存的分数保真度较弱，但其排序保持能力优于单看分数误差所得出的印象。"
+                }
+              ],
+              "limitations": [
+                "该研究只涉及一家机构的一个生产分析智能体基准，没有证明其能广泛迁移到不同任务或机构。",
+                "摘要与结果章节对200题自适应测试的MAE存在差异（1.03与1.37个百分点）；在所查来源中未找到解释。",
+                "结果由论文作者报告；本次激活未检查代码或数据，也未进行独立复现。",
+                "跨智能体迁移使用五类匿名智能体和299次汇总运行；本次审查未确认其独立性或外部复现情况。"
+              ],
+              "gaps": [
+                {
+                  "description": "摘要和第5.1节对200题自适应测试报告了不同的MAE：1.03和1.37个百分点。"
+                },
+                {
+                  "description": "论文报告的是一家机构的分析智能体及匿名迁移智能体；本次审查没有找到独立外部验证。"
+                },
+                {
+                  "description": "本次激活未检查逐次运行数据或实现材料，因此仅凭所记录的来源定位无法独立审计分析。"
+                }
+              ],
+              "contradictory": [
+                "来源内部存在矛盾：arXiv 的HTML摘要（第75–77行）报告多维2PL自适应测试在200/519题时的MAE为1.03个百分点；第5.1节（第239–246行）则报告相同预算下为1.37个百分点。该差异尚未解决。"
+              ]
+            },
+            "headline": "一项生产环境智能体研究比较成本更低的周期性评测方法",
+            "dek": "一篇2026年九月的论文报告了对单个生产环境分析智能体进行的时间留出研究：针对一个包含519道题的基准，共使用574次运行，并按时间平均划分为校准集和留出集。研究比较随机抽样、历史结果缓存、固定子集和自适应测试。执行200道题时，结果章节报告通过率平均绝对误差为1.37个百分点，而摘要对同一预算报告为1.03个百分点。作者因操作简单而部署了按难度分层的固定子集，并在另外五类智能体上进行了测试。这些是作者基于单一机构和任务报告的结果；论文没有证明智能体具有普遍可靠性。"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb",
+            "evidence.contradictory": "arb"
+          }
+        }
+      }
+    },
+    {
+      "id": "FCMO-9B2550DE9D19",
+      "slug": "openmas-gcom-reports-controlled-diagnosis-of-multi-agent-system",
+      "url_date": "2026-10-15",
+      "kind": "development",
+      "status": "live",
+      "beat": "research",
+      "desk": "evaluation_science",
+      "title": "OpenMAS-GCom reports controlled diagnosis of multi-agent system components",
+      "headline": "OpenMAS-GCom reports controlled diagnosis of multi-agent system components",
+      "dek": "An arXiv paper introduces OpenMAS-GCom, a benchmark that compares multi-agent configurations with one component changed while tasks, models, prompts and budget limits are held fixed.",
+      "summary": "An arXiv paper introduces OpenMAS-GCom, a benchmark that compares multi-agent configurations with one component changed while tasks, models, prompts and budget limits are held fixed. The paper reports 17 configurations across 29 datasets in six domains, four interventions, and 400 frozen multi-document tasks requiring source-aware conflict resolution. In a five-dataset aggregate, it reports a 3.58 percentage-point mean score loss after specialist removal versus 0.58 points after critic removal. These are author-reported benchmark results; independent reproduction and broader task-weighted interpretation remain open.",
+      "why_it_matters": "Final scores alone can hide which collaboration component contributes to performance. If the reported controlled comparisons hold, this benchmark offers a way to test whether roles, communication and worker availability matter under fixed task/model settings, informing multi-agent architecture and evaluation choices. The results do not establish that specialists are universally necessary or that the paper’s aggregates transfer to production systems.",
+      "importance_rationale": "If the paper’s interventions and benchmark findings hold, they can change how teams diagnose role and communication choices in multi-agent systems; the results remain bounded to the paper’s tested configurations and task suites.",
+      "technical": {
+        "claimed_result": "Across five datasets, authors report mean loss of 3.58 points after specialist removal and 0.58 after critic removal, with configuration-dependent message-corruption and worker-failure effects. The 400-task G-MAS-Complex suite produces different leaders for strict accuracy and accuracy per token.",
+        "compute_or_cost": "The benchmark records token usage, calls, latency, executed nodes/edges and retries. This activation did not independently measure run cost; paper tables report configuration-dependent accuracy per token.",
+        "demonstrated_result": "The primary paper provides a specific benchmark design and quantitative author-reported intervention results. the research desk did not independently verify those outcomes.",
+        "mechanism": "Represent a multi-agent system by collaboration units, communication links, shared intermediate information and execution rules; compare an original run to a paired version with one graph, role, message or worker component changed while common task/model/prompt/budget settings are held fixed.",
+        "novelty": "Intervention-based attribution of communication, role, message and worker effects under fixed controls, paired with multi-document conflict/provenance tasks; this extends final-score-only comparison with explicit component-diagnosis claims.",
+        "regime": "17 single-agent, ordinary multi-agent and graph-enhanced configurations; 29 datasets in six domains; 400 frozen multi-document tasks; matched controls as described in the paper. Findings remain author-reported and benchmark-specific.",
+        "reproducibility": "arXiv HTML contains the design, controls and run-record schema. Although the authors describe a reusable open benchmark library, this activation did not inspect a public implementation or rerun results.",
+        "strongest_baseline": "Within the paper, each intervention is paired against the original configuration with the same task set, model/backend, prompts, parser and budget controls; no independent benchmark comparison was performed here."
+      },
+      "importance_tier": "Meaningful",
+      "development_type": "dataset_benchmark",
+      "event_at": "2026-09-18T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-15T19:07:00Z",
+      "updated_at": "2026-10-15T19:07:00Z",
+      "importance": 4,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": true,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "CLAIMED",
+            "text": "The authors report a controlled benchmark that changes one organizational component at a time while keeping task inputs, models, prompts and computation-budget limits fixed. It evaluates 17 configurations across 29 datasets in six domains and four intervention families: graph rewiring, role removal, incorrect-message injection and worker failure."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "Across five datasets, the paper reports mean score falling by 3.58 percentage points after removing specialists and by 0.58 points after removing critics; it also reports exceptions and differing response to incorrect messages across configurations."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "The authors report adding 400 frozen multi-document tasks with cross-document dependencies, conflicting records and structured answers requiring source identifiers. On these tasks, different configurations lead in strict exact-match accuracy and accuracy per token."
+          }
+        ],
+        "limitations": [
+          "All quantitative findings are author-reported; this activation did not run the benchmark or independently reproduce the reported comparisons.",
+          "The five-dataset aggregate for specialist and critic removal does not establish that the same effect holds across every dataset, task mix, model or production setting; the paper itself reports task/configuration-specific differences.",
+          "The authors describe an open-sourced benchmark library, but this activation did not locate and inspect a reproducible code artifact.",
+          "The G-MAS-Complex benchmark has 400 frozen constructed tasks; the paper does not establish external validity for real-world production workloads."
+        ],
+        "gaps": [
+          {
+            "kind": "missing_independent",
+            "description": "The multi-agent component-removal and message-corruption results have not been independently reproduced in this review."
+          },
+          {
+            "kind": "missing_artifact",
+            "description": "An accessible benchmark implementation and exact tested configuration artifacts were not located and inspected during this activation."
+          },
+          {
+            "kind": "regime_unclear",
+            "description": "External validity of the 29 datasets and constructed 400-task suite for deployed multi-agent workloads is unestablished."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://arxiv.org/abs/2609.21527",
+          "domain": "arxiv.org",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [],
+      "topics": [
+        "multi-agent-systems",
+        "benchmark-design",
+        "controlled-interventions",
+        "evaluation-attribution"
+      ],
+      "regions": [
+        "GLOBAL"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-9B2550DE9D19.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: OpenMAS-GCom reports controlled diagnosis of multi-agent system components"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "OpenMAS-GCom informa un diagnóstico controlado de componentes de sistemas multiagente",
+            "summary": "Un artículo en arXiv presenta OpenMAS-GCom, un benchmark que compara configuraciones multiagente cambiando un componente por vez y manteniendo fijas las tareas, los modelos, los prompts y los límites de cómputo. El artículo informa 17 configuraciones en 29 conjuntos de datos de seis dominios, cuatro tipos de intervención y 400 tareas congeladas con varios documentos que requieren resolver conflictos con referencias a las fuentes. En un agregado de cinco conjuntos de datos, informa una caída media de 3.58 puntos porcentuales al quitar especialistas frente a 0.58 puntos al quitar críticos. Son resultados del benchmark reportados por los autores; siguen pendientes su reproducción independiente y una interpretación más amplia ponderada por tareas.",
+            "importance_rationale": "Si se sostienen los resultados y las intervenciones del artículo, pueden cambiar cómo los equipos diagnostican las decisiones sobre roles y comunicación en sistemas multiagente. La evidencia se limita a las configuraciones y los conjuntos de tareas probados en el artículo.",
+            "why_it_matters": "Las puntuaciones finales por sí solas pueden ocultar qué componente de colaboración aporta al rendimiento. Si se sostienen las comparaciones controladas reportadas, este benchmark ofrece una forma de probar el efecto de roles, comunicación y disponibilidad de trabajadores bajo tareas y modelos fijos, lo que puede orientar la evaluación y el diseño de sistemas multiagente. Los resultados no demuestran que los especialistas siempre sean necesarios ni que los agregados se transfieran a sistemas en producción.",
+            "technical": {
+              "claimed_result": "En cinco conjuntos de datos, los autores informan pérdidas medias de 3.58 puntos al quitar especialistas y 0.58 al quitar críticos, con efectos dependientes de la configuración ante corrupción de mensajes y fallos de trabajadores. En las 400 tareas G-MAS-Complex, distintas configuraciones lideran en exactitud estricta y exactitud por token.",
+              "compute_or_cost": "El benchmark registra uso de tokens, llamadas, latencia, nodos y enlaces ejecutados y reintentos. Esta activación no midió el costo de las ejecuciones; las tablas del artículo informan exactitud por token según la configuración.",
+              "demonstrated_result": "El artículo primario presenta un diseño de benchmark específico y resultados cuantitativos de intervenciones reportados por sus autores. el equipo de investigación no verificó esos resultados de forma independiente.",
+              "mechanism": "Representar un sistema multiagente mediante unidades de colaboración, enlaces de comunicación, información intermedia compartida y reglas de ejecución. Comparar una ejecución original con otra emparejada en la que se modifica un componente del grafo, rol, mensaje o trabajador, manteniendo controles comunes de tarea, modelo, prompt y presupuesto.",
+              "novelty": "Atribución mediante intervenciones de los efectos de comunicación, roles, mensajes y disponibilidad de trabajadores bajo controles fijos, junto con tareas de varios documentos que exigen resolver conflictos y preservar procedencia; añade diagnósticos explícitos de componentes a las comparaciones basadas solo en puntuaciones finales.",
+              "regime": "17 configuraciones monoagente, multiagente convencionales y multiagente con grafos; 29 conjuntos de datos en seis dominios; 400 tareas congeladas con varios documentos; controles emparejados según el artículo. Los resultados son reportados por los autores y específicos del benchmark.",
+              "reproducibility": "El HTML de arXiv incluye el diseño, los controles y el esquema de registros de ejecución. Aunque los autores describen una biblioteca de benchmark reutilizable y abierta, esta activación no inspeccionó una implementación pública ni reprodujo resultados.",
+              "strongest_baseline": "En el artículo, cada intervención se empareja con la configuración original usando la misma tarea, modelo y backend, prompts, analizador y límites de presupuesto. Aquí no se hizo una comparación con un benchmark independiente."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "Los autores informan un benchmark controlado que cambia un componente organizativo a la vez y mantiene fijas las entradas de tarea, los modelos, los prompts y los límites de cómputo. Evalúa 17 configuraciones en 29 conjuntos de datos de seis dominios y cuatro familias de intervención: reconexión del grafo, eliminación de roles, inyección de mensajes incorrectos y fallos de trabajadores."
+                },
+                {
+                  "text": "En cinco conjuntos de datos, el artículo informa una caída media de 3.58 puntos porcentuales al quitar especialistas y de 0.58 puntos al quitar críticos; también informa excepciones y distintas respuestas a mensajes incorrectos según la configuración."
+                },
+                {
+                  "text": "Los autores dicen haber añadido 400 tareas congeladas con varios documentos, dependencias entre documentos, registros en conflicto y respuestas estructuradas que exigen identificar las fuentes. En estas tareas, distintas configuraciones lideran en exactitud estricta y exactitud por token."
+                }
+              ],
+              "limitations": [
+                "Todos los resultados cuantitativos los reportan los autores; esta activación no ejecutó el benchmark ni reprodujo las comparaciones.",
+                "El agregado de cinco conjuntos de datos para eliminar especialistas o críticos no demuestra que el mismo efecto se aplique a todos los conjuntos, mezclas de tareas, modelos o entornos productivos; el artículo informa diferencias por tarea y configuración.",
+                "Los autores describen una biblioteca de benchmark abierta, pero esta activación no localizó ni inspeccionó un artefacto reproducible.",
+                "G-MAS-Complex contiene 400 tareas construidas y congeladas; el artículo no demuestra validez externa para cargas de trabajo reales en producción."
+              ],
+              "gaps": [
+                {
+                  "description": "Esta revisión no reprodujo de manera independiente los resultados de eliminación de componentes ni de corrupción de mensajes multiagente."
+                },
+                {
+                  "description": "Durante esta activación no se localizó ni inspeccionó una implementación reproducible del benchmark ni los artefactos exactos de configuración probados."
+                },
+                {
+                  "description": "No se estableció la validez externa de los 29 conjuntos de datos y las 400 tareas construidas para cargas de trabajo multiagente desplegadas."
+                }
+              ]
+            },
+            "headline": "OpenMAS-GCom informa un diagnóstico controlado de componentes de sistemas multiagente",
+            "dek": "Un artículo en arXiv presenta OpenMAS-GCom, un benchmark que compara configuraciones multiagente cambiando un componente por vez y manteniendo fijas las tareas, los modelos, los prompts y los límites de cómputo."
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "OpenMAS-GCom报告对多智能体系统组件的受控诊断",
+            "summary": "一篇arXiv论文介绍了OpenMAS-GCom基准：每次只改变一个组件，同时固定任务、模型、提示词和计算预算，以比较多智能体配置。论文报告了六个领域中29个数据集上的17种配置、四类干预，以及400项冻结的多文档任务；这些任务要求在引用来源的同时解决记录冲突。在五个数据集的汇总中，论文报告移除专家后平均分下降3.58个百分点，移除评论者后下降0.58个百分点。这些是作者报告的基准结果；独立复现和更广泛的任务加权解释仍待完成。",
+            "importance_rationale": "如果论文的干预结果和基准发现成立，团队诊断多智能体系统中的角色与通信选择时可能采用不同方法。证据范围限于论文测试的配置和任务集。",
+            "why_it_matters": "最终分数本身可能掩盖协作组件各自对表现的贡献。如果论文报告的受控比较成立，该基准可用于在任务和模型固定时检验角色、通信和工作节点可用性的影响，进而帮助多智能体系统的评测与架构选择。结果并不能证明专家角色总是必要，也不能证明汇总效应可迁移到生产系统。",
+            "technical": {
+              "claimed_result": "在五个数据集中，作者报告移除专家后的平均损失为3.58个百分点，移除评论者后为0.58个百分点；消息污染和工作节点故障的影响随配置而异。在400项G-MAS-Complex任务中，不同配置分别在严格准确率和每千token准确率上领先。",
+              "compute_or_cost": "基准记录token用量、调用次数、延迟、执行节点/边和重试次数。本次激活未独立测量运行成本；论文表格报告了不同配置下的每token准确率。",
+              "demonstrated_result": "一手论文提出了具体的基准设计，并报告了量化干预结果。研究团队未独立核实这些结果。",
+              "mechanism": "将多智能体系统表示为协作单元、通信连接、共享中间信息和执行规则；比较原始运行与一项配对修改运行，后者改变图、角色、消息或工作节点中的一个组件，同时保持共同的任务、模型、提示词和预算控制。",
+              "novelty": "在固定控制条件下通过干预归因通信、角色、消息和工作节点可用性的影响，并结合需要跨文档冲突处理和来源溯源的任务；相较仅比较最终分数的方法，它增加了明确的组件诊断。",
+              "regime": "17种单智能体、普通多智能体和图增强多智能体配置；六个领域的29个数据集；400项冻结多文档任务；控制条件以论文描述为准。结果由作者报告，且局限于这些基准。",
+              "reproducibility": "arXiv HTML提供设计、控制条件和运行记录方案。尽管作者称基准库可复用且已开源，本次激活没有检查公开实现或重新运行结果。",
+              "strongest_baseline": "论文将每项干预与原始配置配对比较，并使用相同任务集、模型/后端、提示词、解析器和预算限制。本次未与独立基准进行比较。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "作者报告了一项受控基准：每次改变一个组织组件，同时固定任务输入、模型、提示词和计算预算上限。基准评估六个领域、29个数据集上的17种配置，以及图重连、角色移除、错误消息注入和工作节点失效四类干预。"
+                },
+                {
+                  "text": "在五个数据集的汇总中，论文报告移除专家使平均分下降3.58个百分点，移除评论者下降0.58个百分点；不同配置也会对错误消息产生不同响应，且存在例外。"
+                },
+                {
+                  "text": "作者称，他们新增了400项冻结多文档任务，涵盖跨文档依赖、冲突记录以及需要标注来源的结构化答案。在这些任务上，不同配置分别在严格精确匹配准确率和每千token准确率方面领先。"
+                }
+              ],
+              "limitations": [
+                "所有定量发现均由作者报告；本次激活没有运行基准或独立复现比较结果。",
+                "五个数据集上移除专家与评论者的汇总结果，不能证明同一效应适用于所有数据集、任务组合、模型或生产环境；论文也报告了任务和配置间的差异。",
+                "作者称基准库已经开源，但本次激活未找到并检查可复现的软件材料。",
+                "G-MAS-Complex基准包含400项冻结构造任务；论文没有证明其对真实生产工作负载具有外部有效性。"
+              ],
+              "gaps": [
+                {
+                  "description": "本次审查没有独立复现多智能体组件移除或消息污染结果。"
+                },
+                {
+                  "description": "本次激活未找到并检查可复现的基准实现及准确的受测配置材料。"
+                },
+                {
+                  "description": "尚未确立29个数据集和400项构造任务对已部署多智能体工作负载的外部有效性。"
+                }
+              ]
+            },
+            "headline": "OpenMAS-GCom报告对多智能体系统组件的受控诊断",
+            "dek": "一篇arXiv论文介绍了OpenMAS-GCom基准：每次只改变一个组件，同时固定任务、模型、提示词和计算预算，以比较多智能体配置。论文报告了六个领域中29个数据集上的17种配置、四类干预，以及400项冻结的多文档任务；这些任务要求在引用来源的同时解决记录冲突。在五个数据集的汇总中，论文报告移除专家后平均分下降3.58个百分点，移除评论者后下降0.58个百分点。这些是作者报告的基准结果；独立复现和更广泛的任务加权解释仍待完成。"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
+    {
+      "id": "FCMO-7BBF2F25BA75",
+      "slug": "gvpo-is-extended-to-sequence-level-on-policy-distillation-objectives",
+      "url_date": "2026-10-15",
+      "kind": "development",
+      "status": "live",
+      "beat": "research",
+      "desk": "reasoning_posttraining",
+      "title": "GVPO is extended to sequence-level on-policy distillation objectives",
+      "headline": "GVPO is extended to sequence-level on-policy distillation objectives",
+      "dek": "An arXiv paper explicitly extends the authors’ NeurIPS 2025 Group Variance Policy Optimization (GVPO) work.",
+      "summary": "An arXiv paper explicitly extends the authors’ NeurIPS 2025 Group Variance Policy Optimization (GVPO) work. Its new bounded contribution is a sequence-level formulation for on-policy distillation (OPD): the authors derive a GVPO loss for matching student and teacher distributions, then generalize it to positive response-weighted teacher/student distributions. The paper proves a consistency result for the transformed objective and shows how group-centering cancels partition-function terms, allowing sampling from the student or previous student policy without importance-sampling correction. The theory is author-reported; this activation did not audit proofs, experiments or code, and does not establish training gains in practice.",
+      "why_it_matters": "If the derivation and assumptions hold in practical training regimes, the extension could make sequence-level distillation possible without token-level alignment and provide a family of weighted objectives for teacher-student training. The concrete contribution is theoretical; empirical benefit, stability and compute tradeoffs remain unverified here.",
+      "importance_rationale": "If the new sequence-level OPD derivation and weighted-objective family work as stated, they could affect local post-training objective and sampling choices; practical gains and stability have not been established.",
+      "technical": {
+        "claimed_result": "The authors claim the weighted OPD objective has the teacher policy as its exact optimum and can be optimized using samples from the student or prior student policy without importance-sampling corrections, while avoiding explicit partition-function calculations.",
+        "demonstrated_result": "The arXiv paper states and proves Theorem V.1 within its own manuscript and provides a derivation for the weighted objective. This is a source-reported theoretical result; the research desk did not independently verify the proof.",
+        "mechanism": "Re-express teacher-student reverse-KL distillation as a group-centered GVPO loss over complete sequences; for positive response-level weights, define transformed teacher/student distributions and center log-ratio terms so partition-function contributions cancel.",
+        "novelty": "Compared with the official NeurIPS 2025 GVPO account, this extension adds a sequence-level OPD loss, a family of response-weighted transformed objectives, a consistency theorem and a group-centering route that avoids partition-function evaluation.",
+        "regime": "Paper-level mathematical derivations for sequence-level on-policy distillation and positive response-weighted extensions; empirical generality and model-training performance were not assessed in this activation.",
+        "reproducibility": "The new arXiv full text exposes the derivation and theorem locator. The authors identify an implementation in the verl repository, but this activation did not inspect or run it.",
+        "strongest_baseline": "The official NeurIPS 2025 GVPO paper is the prior version: it establishes the base GVPO post-training method and its theoretical sampling/optimality claims. The distinct addition here is sequence-level standard and weighted OPD, rather than a new claim for the original GVPO method."
+      },
+      "importance_tier": "Meaningful",
+      "development_type": "paper",
+      "event_at": "2026-09-18T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-15T19:07:00Z",
+      "updated_at": "2026-10-15T19:07:00Z",
+      "importance": 4,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": true,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "CLAIMED",
+            "text": "The authors extend GVPO to standard on-policy distillation by expressing the student-teacher reverse-KL objective as a group-centered sequence-level loss. The derivation removes dependence on an arbitrary reference policy and does not require token-level alignment between teacher and student."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "For positive response weight f(x,y), the paper defines weighted teacher and student distributions and proves that equality of those distributions implies recovery of the teacher policy (Theorem V.1). Its group-centered loss cancels partition-function terms, and the authors state that sampling from the student or previous student policy retains the theoretical guarantee without importance-sampling correction."
+          },
+          {
+            "label": "DEMONSTRATED",
+            "text": "The official NeurIPS 2025 record establishes the prior GVPO paper and its core claims about KL-constrained reward optimization, unique optimum and flexible sampling. It does not include the later paper’s OPD extension, which is the distinct contribution assessed here."
+          }
+        ],
+        "limitations": [
+          "The new claims are theoretical statements from the authors; this activation did not independently audit the proofs or verify all assumptions.",
+          "The paper’s empirical post-training and distillation sections were not audited in this activation, and no model training was run.",
+          "No independent evidence here establishes quality improvements, stability, compute savings or transfer across different teacher/student model families.",
+          "The source explicitly extends a 2025 GVPO paper; the core GVPO method itself is not treated as new in this record."
+        ],
+        "gaps": [
+          {
+            "kind": "other",
+            "description": "Theoretical derivation and consistency theorem were not independently checked against proof details and assumptions in this review."
+          },
+          {
+            "kind": "reproduction_missing",
+            "description": "The claimed OPD training properties and practical outcomes were not independently reproduced; empirical section/code were not examined in this activation."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://arxiv.org/abs/2609.21432",
+          "domain": "arxiv.org",
+          "primary": true
+        },
+        {
+          "url": "https://papers.nips.cc/paper_files/paper/2025/hash/f21a76d688be0553c943a6b6c1d4bb1f-Abstract-Conference.html",
+          "domain": "papers.nips.cc",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [],
+      "topics": [
+        "post-training",
+        "on-policy-distillation",
+        "policy-optimization",
+        "sequence-level-training"
+      ],
+      "regions": [
+        "GLOBAL"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-7BBF2F25BA75.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: GVPO is extended to sequence-level on-policy distillation objectives"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "GVPO se extiende a objetivos de destilación on-policy a nivel de secuencia",
+            "summary": "Un artículo de arXiv amplía explícitamente el trabajo de 2025 en NeurIPS de los autores sobre Group Variance Policy Optimization (GVPO). Su aporte nuevo y acotado es una formulación a nivel de secuencia para destilación on-policy (OPD): los autores derivan una pérdida GVPO para igualar distribuciones de estudiante y docente y luego la generalizan a distribuciones ponderadas por respuesta con pesos positivos. El artículo prueba un resultado de consistencia para el objetivo transformado y muestra cómo el centrado por grupos cancela términos de función de partición, lo que permite muestrear de la política del estudiante o de una política anterior sin corrección de muestreo por importancia. La teoría es reportada por los autores; esta activación no auditó las pruebas, los experimentos ni el código, y no demuestra ganancias de entrenamiento en la práctica.",
+            "importance_rationale": "Si la nueva derivación de OPD a nivel de secuencia y la familia de objetivos ponderados funcionan como se afirma, podrían cambiar decisiones locales sobre objetivos y muestreo en postentrenamiento; aún no se establecieron las ganancias prácticas ni la estabilidad.",
+            "why_it_matters": "Si la derivación y sus supuestos se sostienen en regímenes prácticos de entrenamiento, la extensión podría permitir destilación por secuencias completas sin alinear tokens y ofrecer una familia de objetivos ponderados para entrenar docente-estudiante. La contribución concreta es teórica; aquí no se verificaron beneficios empíricos, estabilidad ni intercambios de cómputo.",
+            "technical": {
+              "claimed_result": "Los autores afirman que el objetivo OPD ponderado tiene la política docente como óptimo exacto y puede optimizarse con muestras de la política del estudiante o de una versión previa, sin correcciones de muestreo por importancia ni cálculo explícito de funciones de partición.",
+              "demonstrated_result": "El artículo de arXiv enuncia y demuestra el Teorema V.1 dentro de su manuscrito y ofrece una derivación para el objetivo ponderado. Es un resultado teórico reportado por la fuente; el equipo de investigación no comprobó la prueba de manera independiente.",
+              "mechanism": "Reformular la KL inversa entre docente y estudiante como una pérdida GVPO centrada por grupos sobre secuencias completas. Para pesos positivos por respuesta, definir distribuciones transformadas de docente y estudiante y centrar los logaritmos de sus razones para cancelar las contribuciones de las funciones de partición.",
+              "novelty": "Frente al registro oficial de GVPO de NeurIPS 2025, esta extensión añade una pérdida OPD a nivel de secuencia, una familia de objetivos transformados ponderados por respuesta, un teorema de consistencia y una vía de centrado por grupos que evita evaluar funciones de partición.",
+              "regime": "Derivaciones matemáticas del artículo para destilación on-policy a nivel de secuencia y extensiones con pesos positivos por respuesta; esta activación no evaluó la generalidad empírica ni el rendimiento de entrenamiento de modelos.",
+              "reproducibility": "El texto completo nuevo de arXiv expone la derivación y el localizador del teorema. Los autores señalan una implementación en el repositorio verl, pero esta activación no la inspeccionó ni ejecutó.",
+              "strongest_baseline": "El artículo oficial de NeurIPS 2025 es la versión previa: presenta el método base GVPO y sus afirmaciones teóricas de muestreo y optimalidad. El aporte distinto de esta extensión es la OPD estándar y ponderada a nivel de secuencia, no una afirmación nueva sobre GVPO original."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "Los autores amplían GVPO a la destilación on-policy estándar al expresar el objetivo de KL inversa entre estudiante y docente como una pérdida secuencial centrada por grupos. La derivación elimina la dependencia de una política de referencia arbitraria y no exige alineación token a token entre docente y estudiante."
+                },
+                {
+                  "text": "Para pesos positivos por respuesta f(x,y), el artículo define distribuciones ponderadas de docente y estudiante y prueba que su igualdad implica recuperar la política docente (Teorema V.1). Su pérdida centrada por grupos cancela los términos de función de partición; los autores dicen que se puede muestrear de la política del estudiante o de una política anterior conservando la garantía teórica, sin corrección de muestreo por importancia."
+                },
+                {
+                  "text": "El registro oficial de NeurIPS 2025 confirma el artículo GVPO previo y sus afirmaciones centrales sobre optimización de recompensa con KL, óptimo único y muestreo flexible. No contiene la extensión posterior a OPD, que es el aporte distinto evaluado aquí."
+                }
+              ],
+              "limitations": [
+                "Las afirmaciones nuevas son resultados teóricos de los autores; esta activación no auditó de forma independiente las pruebas ni todos sus supuestos.",
+                "En esta activación no se revisaron las secciones empíricas de postentrenamiento y destilación, y no se ejecutó entrenamiento de modelos.",
+                "No hay aquí evidencia independiente de mejoras de calidad, estabilidad, ahorro de cómputo o transferencia entre familias distintas de modelos docente y estudiante.",
+                "La fuente indica que extiende un artículo GVPO de 2025; este registro no presenta como nueva la base metodológica GVPO."
+              ],
+              "gaps": [
+                {
+                  "description": "En esta revisión no se comprobaron de forma independiente la derivación teórica ni los detalles y supuestos de la prueba."
+                },
+                {
+                  "description": "No se reprodujeron de manera independiente las propiedades ni los resultados prácticos de entrenamiento OPD; esta activación no examinó la sección empírica ni el código."
+                }
+              ]
+            },
+            "headline": "GVPO se extiende a objetivos de destilación on-policy a nivel de secuencia",
+            "dek": "Un artículo de arXiv amplía explícitamente el trabajo de 2025 en NeurIPS de los autores sobre Group Variance Policy Optimization (GVPO)."
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "GVPO扩展至序列级on-policy蒸馏目标",
+            "summary": "一篇arXiv论文明确扩展了作者2025年NeurIPS的Group Variance Policy Optimization（GVPO）工作。其新的有限贡献是on-policy蒸馏（OPD）的序列级公式：作者推导出用于匹配学生与教师分布的GVPO损失，并将其推广到按正响应权重构造的学生/教师分布。论文证明了变换后目标的一致性，并展示组中心化如何抵消配分函数项，从而可以从学生策略或先前学生策略采样，而无需重要性采样修正。该理论由作者报告；本次激活未审计证明、实验或代码，也未证明实际训练收益。",
+            "importance_rationale": "如果新的序列级OPD推导和加权目标族按所述方式成立，局部的后训练目标和采样选择可能受到影响；目前尚未确立实际收益或稳定性。",
+            "why_it_matters": "如果该推导及其假设在实际训练条件下成立，这种扩展可能使无需token级对齐的整序列蒸馏成为可能，并为教师-学生训练提供一系列加权目标。此处明确的贡献是理论方法；实证收益、稳定性和计算权衡尚未得到验证。",
+            "technical": {
+              "claimed_result": "作者称，加权OPD目标的精确最优策略是教师策略，并可使用当前或先前学生策略的样本优化，无需重要性采样修正，也无需显式计算配分函数。",
+              "demonstrated_result": "arXiv论文在其手稿中陈述并证明定理V.1，并给出加权目标的推导。这是来源所报告的理论结果；研究团队未独立核实证明。",
+              "mechanism": "将教师与学生之间的反向KL蒸馏重写为对完整序列计算的组中心化GVPO损失。对于正的响应权重，定义变换后的教师和学生分布，并对对数比项进行组中心化，以抵消配分函数贡献。",
+              "novelty": "与NeurIPS 2025官方GVPO记录相比，该扩展新增序列级OPD损失、按响应加权的变换目标族、一致性定理，以及避免评估配分函数的组中心化方法。",
+              "regime": "论文针对序列级on-policy蒸馏及正响应权重扩展的数学推导；本次激活未评估实证泛化能力或模型训练性能。",
+              "reproducibility": "新版arXiv全文公开了推导和定理位置。作者指出verl仓库中已有实现，但本次激活未检查或运行该实现。",
+              "strongest_baseline": "NeurIPS 2025官方GVPO论文是此前版本：它提出基础GVPO方法及其采样和最优性理论主张。本扩展的不同之处在于序列级标准及加权OPD，而非对原GVPO方法提出新主张。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "作者将GVPO扩展到标准on-policy蒸馏：把学生与教师之间的反向KL目标表示为组中心化的序列级损失。该推导不再依赖任意参考策略，也不要求教师与学生逐token对齐。"
+                },
+                {
+                  "text": "对于正的响应权重f(x,y)，论文定义加权的教师与学生分布，并证明两者相等时可以恢复教师策略（定理V.1）。作者称组中心化损失会抵消配分函数项，而且从学生策略或先前学生策略采样仍保留理论保证，无需重要性采样修正。"
+                },
+                {
+                  "text": "NeurIPS 2025官方记录确认了此前的GVPO论文及其关于KL约束奖励优化、唯一最优解和灵活采样的核心主张。该记录不包含后续的OPD扩展；后者是本记录评估的独立贡献。"
+                }
+              ],
+              "limitations": [
+                "新的主张是作者报告的理论结果；本次激活未独立审计证明或核实全部假设。",
+                "本次激活未审查后训练及蒸馏的实验章节，也未运行模型训练。",
+                "此处没有独立证据证明质量提升、稳定性、计算节省或在不同教师/学生模型系列间迁移。",
+                "来源明确将该工作描述为2025年GVPO论文的扩展；本记录不把GVPO基础方法本身列为新发现。"
+              ],
+              "gaps": [
+                {
+                  "description": "本次审查没有独立核对理论推导、完整证明及所需假设。"
+                },
+                {
+                  "description": "没有独立复现所称的OPD训练性质或实际结果；本次激活未检查实证章节或代码。"
+                }
+              ]
+            },
+            "headline": "GVPO扩展至序列级on-policy蒸馏目标"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
+    {
+      "id": "FCMO-0FC596D014F3",
+      "slug": "brazils-anpd-consultation-analysis-maps-platform-oversight-and-ai",
+      "url_date": "2026-10-15",
+      "kind": "development",
+      "status": "live",
+      "beat": "policy",
+      "desk": "policy_geopolitics",
+      "title": "Brazil’s ANPD consultation analysis maps platform oversight and AI intimate-image proposals",
+      "dek": "On 15 October 2026, Brazil’s data-protection authority (ANPD) published Technical Note 23/2026 analyzing consultation responses on platform regulation under the Marco Civil da Internet.",
+      "summary": "On 15 October 2026, Brazil’s data-protection authority (ANPD) published Technical Note 23/2026 analyzing consultation responses on platform regulation under the Marco Civil da Internet. The note says 74 submissions were received and 66 analyzed after screening; participation was led by private-sector contributors (47%), followed by organized civil society (30.3%). ANPD’s synthesis highlights calls for clearer platform-responsibility criteria, proportionate risk-based supervision, transparency reporting and complaint channels, and preventive safeguards against nonconsensual AI-generated intimate content. It also records disagreement over liability criteria, removal deadlines and the limits of agency authority. This is consultation analysis feeding ongoing regulation, not a final binding rule or a representative poll.",
+      "why_it_matters": "The consultation analysis shows how Brazil’s regulator is framing implementation of new platform-governance decrees, including supervision of systemic failures and safeguards for AI-generated intimate imagery. If carried into final rules, these issues could affect platform compliance, transparency and content-safety systems in a major Latin American market. The publication records agency synthesis of submissions, not adopted rules or consensus across the broader public.",
+      "importance_rationale": "If the proposals inform final Brazilian platform rules, they could materially affect platform oversight, reporting, risk management and safeguards for nonconsensual AI-generated intimate content. The note records public consultation analysis rather than adopted obligations, so impact remains prospective and stakeholder input is not a population-representative measure.",
+      "technical": {
+        "claimed_result": "The agency reports 74 submissions, 66 admissible submissions analyzed, and leading themes including general obligations (92%), asymmetric regulatory scope (85%), information/reporting duties (85%) and oversight of systemic platform failures (79%). These percentages describe consultation submissions, not public prevalence.",
+        "demonstrated_result": "The official Portuguese note documents the consultation process, screening counts, agency synthesis and proposed regulatory topics. It records proposals and disagreements; it does not create the final rules.",
+        "implementation_status": "Regulatory analysis published; the 2027–2028 agenda remained under consultation and future rules were not adopted in this note.",
+        "mechanism": "ANPD’s Technical Note 23/2026 aggregates responses to 11 consultation questions on the Marco Civil da Internet and Decrees 12.975/2026 and 12.976/2026, grouping convergences, disagreements and proposals to inform its 2027–2028 regulatory agenda and future supervisory rules.",
+        "regime": "Brazilian data-protection and platform oversight under the Marco Civil da Internet, as amended by Decrees 12.975/2026 and 12.976/2026. Consultation ran 30 June–17 August 2026; the note was published 15 October 2026.",
+        "strongest_baseline": "No prior final implementing rule or measured compliance outcome is established by this consultation analysis; the comparison is between submitted proposals, areas of reported alignment and recorded disagreements."
+      },
+      "importance_tier": "Notable",
+      "development_type": "technical_report",
+      "event_at": "2026-10-15T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-15T19:07:00Z",
+      "updated_at": "2026-10-15T19:07:00Z",
+      "importance": 5,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": false,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "DEMONSTRATED",
+            "text": "On 15 October 2026, Brazil’s ANPD published Technical Note 23/2026 analyzing submissions to its 2026 consultation on regulation under the Marco Civil da Internet and Decrees 12.975/2026 and 12.976/2026."
+          },
+          {
+            "label": "DEMONSTRATED",
+            "text": "The technical note says the consultation received 74 submissions and analyzed 66 after relevance and duplicate screening; 47% of participation came from the private sector and 30.3% from organized civil society. The note reports submission shares, not representative public opinion."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "ANPD’s synthesis reports convergence around clearer platform-responsibility criteria and proportionate, risk-based supervision. Proposed topics include transparency reporting, complaint channels, systemic-failure oversight and preventive measures against nonconsensual AI-generated intimate content. The agency records unresolved disagreements over liability criteria, removal deadlines and the limits of its administrative role."
+          },
+          {
+            "label": "DEMONSTRATED",
+            "qualifier": "LIMITATION",
+            "text": "Technical Note 23/2026 is consultation analysis and input to ongoing agenda and rulemaking work; it does not itself establish final binding platform obligations or show implementation outcomes."
+          }
+        ],
+        "limitations": [
+          "This is ANPD’s synthesis of consultation responses, not an enacted regulation or final agency decision.",
+          "The 74 submissions (66 analyzed) are voluntary stakeholder contributions and do not represent public opinion or the full set of affected parties.",
+          "Reported alignment does not establish agreement on exact obligations; the note records material disagreements over liability, deadlines and administrative authority.",
+          "The note does not measure platform implementation, compliance cost, safety outcomes, impacts on lawful expression or privacy, or the effectiveness of proposed controls."
+        ],
+        "gaps": [
+          {
+            "kind": "other",
+            "description": "Final binding requirements and agency positions may change after the 2027–2028 agenda consultation and subsequent rulemaking."
+          },
+          {
+            "kind": "other",
+            "description": "No implementation or outcome evidence shows how any eventual platform duties affect safety, expression, privacy or compliance burden."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://www.gov.br/anpd/pt-br/assuntos/noticias/anpd-publica-analise-contribuicoes-marco-civil-internet",
+          "domain": "gov.br",
+          "primary": true
+        },
+        {
+          "url": "https://sei.anpd.gov.br/sei/modulos/pesquisa/md_pesq_documento_consulta_externa.php?yPDszXhdoNcWQHJaQlHJmJIqCNXRK_Sh2SMdn1U-tzPsnEKLhIGDQMZH0qwfsoWgUDNiDqGjqa6cftAwcfKBjJX986ENochTda7cJGadUQcRf2Sc5W3YFtPPdBFfZVus=",
+          "domain": "sei.anpd.gov.br",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "Agência Nacional de Proteção de Dados (ANPD)"
+      ],
+      "topics": [
+        "platform-regulation",
+        "ai-generated-intimate-imagery",
+        "risk-based-supervision",
+        "content-moderation",
+        "brazil"
+      ],
+      "regions": [
+        "BR"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-0FC596D014F3.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: Brazil’s ANPD consultation analysis maps platform oversight and AI intimate-image proposals"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "La consulta de la ANPD brasileña traza propuestas sobre supervisión de plataformas e imágenes íntimas generadas por IA",
+            "summary": "El 15 de octubre de 2026, la autoridad brasileña de protección de datos (ANPD) publicó la Nota Técnica 23/2026, con un análisis de las respuestas a una consulta sobre las reglas para plataformas previstas en el Marco Civil da Internet. La nota informa que recibió 74 aportes y analizó 66 tras aplicar filtros; la participación provino principalmente del sector privado (47%), seguido de la sociedad civil organizada (30.3%). La síntesis de la ANPD destaca pedidos de criterios claros de responsabilidad, supervisión proporcional basada en riesgos, informes de transparencia y canales de denuncia, además de salvaguardas preventivas contra contenido íntimo generado por IA sin consentimiento. También registra desacuerdos sobre responsabilidad, plazos de retiro y límites de autoridad. Es un análisis consultivo que alimenta el trabajo regulatorio, no una norma definitiva ni una encuesta representativa.",
+            "importance_rationale": "Si las propuestas influyen en las reglas brasileñas definitivas para plataformas, podrían cambiar de forma sustancial la supervisión, los reportes, la gestión de riesgos y las salvaguardas contra contenido íntimo generado por IA sin consentimiento. La nota analiza una consulta pública, no obligaciones adoptadas; por ello, su impacto es prospectivo y los aportes no representan a toda la población.",
+            "why_it_matters": "El análisis de la consulta muestra cómo la autoridad brasileña está planteando la aplicación de nuevos decretos sobre plataformas, incluida la supervisión de fallas sistémicas y las salvaguardas para imágenes íntimas generadas por IA. Si estas propuestas pasan a las reglas finales, podrían afectar el cumplimiento, la transparencia y los sistemas de seguridad de contenidos en un mercado latinoamericano importante. La publicación sintetiza aportes recibidos; no son reglas adoptadas ni consenso de toda la sociedad.",
+            "technical": {
+              "claimed_result": "La agencia informa 74 aportes, de los cuales 66 fueron considerados admisibles y analizados. Los temas destacados incluyen obligaciones generales (92%), alcance regulatorio asimétrico (85%), deberes de información y reporte (85%) y supervisión de fallas sistémicas de plataformas (79%). Los porcentajes describen los aportes, no la prevalencia de opiniones públicas.",
+              "demonstrated_result": "La nota oficial en portugués documenta el proceso de consulta, los recuentos tras el filtro, la síntesis de la agencia y los temas regulatorios propuestos. Registra propuestas y desacuerdos; no promulga las reglas definitivas.",
+              "implementation_status": "Se publicó el análisis regulatorio; la agenda 2027–2028 seguía en consulta y la nota no adoptó reglas futuras.",
+              "mechanism": "La Nota Técnica 23/2026 de la ANPD agrupa respuestas a 11 preguntas sobre el Marco Civil da Internet y los Decretos 12.975/2026 y 12.976/2026. Resume coincidencias, desacuerdos y propuestas para aportar a la agenda regulatoria 2027–2028 y a futuras reglas de supervisión.",
+              "regime": "Supervisión brasileña de protección de datos y plataformas bajo el Marco Civil da Internet, actualizado por los Decretos 12.975/2026 y 12.976/2026. La consulta transcurrió del 30 de junio al 17 de agosto de 2026; la nota se publicó el 15 de octubre de 2026.",
+              "strongest_baseline": "El análisis no establece una regla final de implementación previa ni resultados medidos de cumplimiento; compara las propuestas recibidas, las áreas de coincidencia que identifica la agencia y los desacuerdos registrados."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "El 15 de octubre de 2026, la ANPD de Brasil publicó la Nota Técnica 23/2026, que analiza las respuestas a su consulta de 2026 sobre la regulación del Marco Civil da Internet y los Decretos 12.975/2026 y 12.976/2026."
+                },
+                {
+                  "text": "La nota técnica indica que la consulta recibió 74 aportes y analizó 66 tras filtrar pertinencia y duplicados; 47% de la participación provino del sector privado y 30.3% de la sociedad civil organizada. Son proporciones de quienes enviaron aportes, no una medición representativa de la opinión pública."
+                },
+                {
+                  "text": "La síntesis de la ANPD informa coincidencias sobre la necesidad de criterios más claros de responsabilidad de las plataformas y una supervisión proporcional basada en riesgos. Entre las propuestas están los informes de transparencia, canales de denuncia, supervisión de fallas sistémicas y medidas preventivas contra contenido íntimo generado por IA sin consentimiento. La agencia también registra desacuerdos sobre responsabilidad, plazos de retiro y límites de su función administrativa."
+                },
+                {
+                  "text": "La Nota Técnica 23/2026 analiza una consulta y aporta insumos al trabajo regulatorio en curso; no establece por sí misma obligaciones finales vinculantes para las plataformas ni demuestra resultados de implementación."
+                }
+              ],
+              "limitations": [
+                "La nota es una síntesis de respuestas a una consulta de la ANPD, no una regulación promulgada ni una decisión final de la agencia.",
+                "Los 74 aportes recibidos (66 analizados) son contribuciones voluntarias de partes interesadas y no representan a la opinión pública ni necesariamente a todas las partes afectadas.",
+                "Las coincidencias descritas no resuelven las obligaciones exactas; la nota registra desacuerdos relevantes sobre responsabilidad, plazos y facultades administrativas.",
+                "La nota no mide implementación, costo de cumplimiento, resultados de seguridad, efectos en la expresión lícita o la privacidad, ni eficacia de las medidas propuestas."
+              ],
+              "gaps": [
+                {
+                  "description": "Los requisitos vinculantes y la posición de la agencia podrían cambiar tras la consulta de la agenda regulatoria 2027–2028 y el proceso normativo posterior."
+                },
+                {
+                  "description": "No hay evidencia de implementación ni resultados sobre cómo los deberes futuros afectarían la seguridad, la expresión, la privacidad o los costos de cumplimiento."
+                }
+              ]
+            },
+            "dek": "El 15 de octubre de 2026, la autoridad brasileña de protección de datos (ANPD) publicó la Nota Técnica 23/2026, con un análisis de las respuestas a una consulta sobre las reglas para plataformas previstas en el Marco Civil da Internet."
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "巴西 ANPD 意见分析提出平台监督与 AI 亲密影像治理方向",
+            "summary": "15 日（2026 年），巴西数据保护机构 ANPD 发布第 23/2026 号技术说明，分析了关于《互联网民事框架》平台监管规则的意见征集回复。说明称收到 74 份意见，筛查后分析了 66 份；参与者以私营部门为主 (47%)，其次为有组织的民间社会 (30.3%)。ANPD 汇总强调了明确平台责任标准、合比例的风险监管、透明度报告和投诉渠道等诉求，也包括防止未经同意生成 AI 亲密影像的预防性保障。说明同时记录了责任认定、下架时限及机构权限边界方面的分歧。这是为后续监管工作提供依据的咨询分析，不是最终法规，也不是具有代表性的民意调查。",
+            "importance_rationale": "如果这些提案被纳入巴西最终的平台规则，平台监管、报告、风险管理以及防止未经同意生成 AI 亲密影像的保障措施都可能发生实质变化。该说明记录的是公众咨询分析，而非已通过的义务；其影响仍是未来性的，意见提交者也不代表整个社会。",
+            "why_it_matters": "这份意见分析显示，巴西监管机构如何考虑落实有关平台治理的新法令，包括监管系统性失灵，以及防止 AI 生成亲密影像的保障措施。如果这些提案进入最终规则，可能影响这一重要拉美市场的平台合规、透明度和内容安全系统。该发布内容是对提交意见的机构汇总，并非已通过的规则，也不代表全社会共识。",
+            "technical": {
+              "claimed_result": "该机构报告收到 74 份意见，筛查后分析了 66 份有效意见。重点主题包括一般义务 (92%)、差异化监管范围 (85%)、信息提供与报告义务 (85%)，以及对平台系统性失灵的监督 (79%)。这些比例描述的是意见内容，并非公众观点的流行程度。",
+              "demonstrated_result": "葡萄牙语官方说明记录了意见征集流程、筛查后的数量、机构汇总以及提议的监管议题。它记录了提案和分歧，并未颁布最终规则。",
+              "implementation_status": "监管分析已发布；2027–2028 年议程仍在征求意见，本说明没有通过未来规则。",
+              "mechanism": "ANPD 第 23/2026 号技术说明汇总了关于《互联网民事框架》的 11 个问题，以及针对第 12.975/2026 号和第 12.976/2026 号法令的回复；它将趋同意见、分歧和提案归类，为 2027–2028 年监管议程和未来监督规则提供参考。",
+              "regime": "巴西依据《互联网民事框架》实施的数据保护与平台监管；该框架经第 12.975/2026 号和第 12.976/2026 号法令修订。意见征集自 30 日持续至 17 日（2026 年）；技术说明于 15 日发布（2026 年）。",
+              "strongest_baseline": "这份意见分析没有确立此前最终实施规则或已测得的合规结果；比较对象是提交的提案、机构总结的趋同领域和记录在案的分歧。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "15 日（2026 年），巴西国家数据保护局 (ANPD) 发布第 23/2026 号技术说明，分析其 2026 年关于《互联网民事框架》以及第 12.975/2026 号和第 12.976/2026 号法令实施规则的意见征集回复。"
+                },
+                {
+                  "text": "技术说明称，意见征集收到 74 份意见，经过相关性和重复项筛查后分析了 66 份；47% 的参与来自私营部门，30.3% 来自有组织的民间社会。这些比例反映意见提交者构成，并非具有代表性的公众意见调查。"
+                },
+                {
+                  "text": "ANPD 的汇总指出，参与者普遍认为需要更明确的平台责任标准，以及合比例、基于风险的监管。提案涉及透明度报告、投诉渠道、平台系统性失灵的监督，以及防止未经同意生成或传播 AI 亲密影像的预防措施。该机构也记录了关于责任标准、内容下架时限和行政职权边界的分歧。"
+                },
+                {
+                  "text": "第 23/2026 号技术说明是对意见征集的分析，为进行中的议程和规则制定提供参考；它本身没有确立最终且有约束力的平台义务，也没有证明实施效果。"
+                }
+              ],
+              "limitations": [
+                "这是 ANPD 对意见征集回复的汇总，不是已颁布的法规或机构最终决定。",
+                "收到的 74 份意见中有 66 份经过分析；这些都是利益相关方自愿提交的材料，不代表公众意见，也未必涵盖所有受影响群体。",
+                "报告的意见趋同不代表具体义务已达成一致；说明中记录了责任、时限和行政权限方面的重要分歧。",
+                "该说明没有测量平台实施情况、合规成本、安全效果、对合法表达或隐私的影响，也没有评估提议措施的效力。"
+              ],
+              "gaps": [
+                {
+                  "description": "2027–2028 年监管议程征求意见及后续规则制定可能改变最终有约束力的要求和机构立场。"
+                },
+                {
+                  "description": "目前没有实施或结果证据说明未来平台义务会如何影响安全、表达、隐私或合规成本。"
+                }
+              ]
+            },
+            "headline": "巴西 ANPD 意见分析提出平台监督与 AI 亲密影像治理方向"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
     {
       "id": "FCMO-5B02BBD3E3A3",
       "slug": "gesturefar-reports-real-time-continuous-latent-streaming-gestures-on",
