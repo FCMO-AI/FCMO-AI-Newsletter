@@ -1,6 +1,6 @@
 {
   "canonical_locale": "en",
-  "canonical_source_sha256": "d51c928dcf1b8fa4f1d0ceedeb722f65ad09def7a602e895dd71f63eb1958cca",
+  "canonical_source_sha256": "52024e4caa8533b0e388a1e224f7793f4dbe3212a334ad945517506a452e6d5c",
   "generated_from": "ARB airlock; editorial wording authored upstream",
   "locale": "es-419",
   "records": {
@@ -3670,6 +3670,74 @@
       },
       "title": "PhysAI-Bench informa una puntuación máxima de 52% en decisiones de UAV derivadas de trazas",
       "why_it_matters": "El benchmark aborda decisiones donde interactúan los objetivos de misión, el estado físico, las herramientas y las condiciones de red. Su puntuación máxima informada es modesta, pero solo mide selección de acciones de opción múltiple derivadas de trazas. El resultado motiva evaluar mejor las decisiones de agentes sensibles al contexto; aún no prueba rendimiento, seguridad ni finalización de tareas en vuelos reales."
+    },
+    "FCMO-1FBA6659C532": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Latent Compaction inicializa una caché KV compacta para cada documento mediante importancia de reconstrucción, atención de un modelo docente y diversidad del espacio de claves; luego entrena las entradas de la caché en dos etapas para igualar la atención y las salidas de la caché completa. Los pesos del modelo base permanecen congelados; los autores dicen que el entrenamiento usa indicaciones genéricas sobre el documento, sin preguntas ni respuestas posteriores."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores destacan un resultado de RULER con exactitud de 96.7% a compresión de 32×, frente a 40.0% con KVZip+. La Figura 1 del artículo compara Qwen3-1.7B en RULER y Phonebook Lookup. Es un resultado de referencia informado, no una reproducción independiente."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El artículo informa que en LongBench Latent Compaction supera al resumen de texto en las relaciones de compresión evaluadas y a KVZip+ en 16× y 32× para Qwen3-0.6B, 1.7B y 4B. Indica que la ventaja es menor en 4× y que los resultados bajan al aumentar la compresión, manteniendo una brecha frente a los modelos sin comprimir."
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "Los autores indican explícitamente que sus comparaciones usan presupuestos de pares KV lógicos y no miden ahorro de memoria ni mejoras de velocidad de inferencia. También informan que el resumen de texto supera a Latent Compaction en RULER en las relaciones más agresivas y que Phonebook Lookup se acerca a cero para todos los métodos comprimidos a 64× o más."
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "El repositorio público de los autores está disponible y enumera código de implementación con licencia MIT. Se verificó la disponibilidad del repositorio, pero esta revisión no ejecutó el código, descargó modelos ni reprodujo de forma independiente los resultados."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "En esta revisión no se localizó ni realizó una reproducción independiente de las mejoras de recuperación informadas.",
+          "kind": "missing_independent",
+          "state": "open",
+          "updated_at": "2026-10-15T02:21:41Z"
+        },
+        {
+          "description": "El recuento de pares KV lógicos no establece la reducción de memoria física, el rendimiento real ni la latencia; esta revisión no midió el servicio.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-15T02:21:41Z"
+        },
+        {
+          "description": "El entrenamiento de caché específico por documento tiene costos de preparación que quizá solo se amortizan al reutilizar documentos; se desconoce la economía integral para distintas tasas de reutilización.",
+          "kind": "regime_unclear",
+          "state": "open",
+          "updated_at": "2026-10-15T02:21:41Z"
+        }
+      ],
+      "importance_rationale": "Si se reproduce de forma independiente y se mide con memoria y latencia reales, la optimización de un estado KV compacto por documento podría cambiar de forma sustancial las decisiones de inferencia con contextos largos; la puntuación refleja el impacto potencial en estos regímenes, no la confianza en el resultado.",
+      "limitations": [
+        "Todos los resultados de desempeño fueron informados por los autores en un único preprint y no se reprodujeron de forma independiente.",
+        "Los autores definen la compresión mediante presupuestos de pares KV lógicos; no midieron memoria física ni velocidad de inferencia.",
+        "La ventaja informada varía según la prueba y la relación de compresión: el resumen de texto supera al método en las relaciones RULER más agresivas, y Phonebook Lookup se acerca a cero para todos los métodos comprimidos a 64× o más.",
+        "La comparación destacada de 96.7% frente a 40.0% es un resultado seleccionado del artículo; su transferencia y desempeño operativo requieren medición independiente.",
+        "Se inspeccionaron el repositorio y su licencia, pero el código, las dependencias, los modelos y los datos no se auditaron ni ejecutaron."
+      ],
+      "relationships": [],
+      "summary": "Un preprint de arXiv del 14 de octubre presenta Latent Compaction, que usa entrenamiento en tiempo de prueba para optimizar una caché de clave-valor compacta y específica de cada documento, con los pesos del modelo congelados. Los autores destacan un resultado de RULER con exactitud de 96.7% a una compresión de 32×, frente a 40.0% con KVZip+, y reportan mejoras más amplias en LongBench con relaciones de compresión mayores en distintos tamaños de Qwen3. El artículo también indica que el resumen de texto supera a Latent Compaction en RULER en las relaciones más agresivas y que Phonebook Lookup se acerca a cero para todos los métodos comprimidos a 64× o más. Son resultados de referencia informados por los autores. La evaluación cuenta pares KV lógicos; no mide ahorros reales de memoria ni velocidad de inferencia.",
+      "technical": {
+        "claimed_result": "Los autores informan 96.7% de exactitud frente a 40.0% con KVZip+ en un resultado destacado de RULER a compresión de 32×; también reportan mejoras en LongBench con relaciones mayores en Qwen3 de distintos tamaños, con resultados variables según la tarea y el nivel de compresión.",
+        "compute_or_cost": "El método realiza optimización de prueba específica por documento: 1,000 actualizaciones de ajuste de atención por capa y 1,000 actualizaciones conjuntas en el refinamiento predeterminado informado. Esta revisión no midió cómputo de preparación, memoria física ahorrada, latencia ni cambios en el rendimiento por consulta; la amortización depende de la reutilización de documentos.",
+        "demonstrated_result": "El artículo describe un método de optimización de caché de dos etapas y resultados de referencia; el repositorio de los autores aparece públicamente con licencia MIT. No se realizó ejecución ni reproducción independiente.",
+        "implementation_status": "El repositorio público de los autores enumera el código de implementación y la licencia MIT. No se descargaron, auditaron ni ejecutaron código, modelos o conjuntos de datos.",
+        "mechanism": "El método inicializa una caché compacta específica del documento mediante selección basada en reconstrucción, importancia según la atención del modelo docente y diversidad del espacio de claves. La primera etapa ajusta salidas de atención y log-normalizadores, con ciertas entradas preservadas fijas; la segunda optimiza conjuntamente la caché compacta mediante destilación del modelo con caché completa. Los pesos del modelo quedan congelados y las indicaciones son genéricas, no preguntas posteriores.",
+        "novelty": "En vez de seleccionar solo entradas KV originales o resumir el documento en texto, el método entrena en tiempo de prueba una representación KV compacta y específica del documento para aproximar la atención y las predicciones del modelo con la caché completa.",
+        "regime": "Las comparaciones de RULER y Phonebook Lookup de la Figura 1 usan Qwen3-1.7B; LongBench incluye Qwen3-0.6B, 1.7B y 4B con relaciones de compresión de 4×–32×. Otros experimentos de recuperación cubren más tamaños Qwen3 y MiniCPM5, con salidas docentes propias para cada modelo. El artículo aclara que los presupuestos KV lógicos no prueban ahorros de memoria ni aumentos de velocidad reales.",
+        "reproducibility": "El artículo describe el entrenamiento y las referencias, y enlaza el código. Siguen pendientes la reproducción independiente, la contabilidad de memoria física, las pruebas de servicio y la amortización de costos de preparación.",
+        "strongest_baseline": "KVZip+ es la referencia citada en el resultado destacado de RULER a 32×. El orden de las referencias no es uniforme: el artículo indica que el resumen de texto supera al método en las relaciones RUL más agresivas; en LongBench, los resultados favorecen al método frente a KVZip+ en 16× y 32×."
+      },
+      "title": "Latent Compaction informa mejoras de recuperación al entrenar la caché KV específica de cada documento",
+      "why_it_matters": "Si se reproducen los resultados y el costo de preparación puede amortizarse al reutilizar un documento, optimizar un estado KV compacto podría ofrecer una nueva opción para inferencia con contextos largos. El artículo actual establece resultados de referencia bajo presupuestos lógicos de caché, no reducciones de memoria física, mejoras de latencia ni ahorros de servicio; el desempeño también disminuye con mayor compresión y varía según la tarea."
     },
     "FCMO-21277C154D52": {
       "claims": [
@@ -21239,6 +21307,73 @@
       "title": "Un estudio externo reconstruye la coordinación de agentes en una wiki pública, pero no puede vincularla con el desempeño real",
       "why_it_matters": "Si la reconstrucción es robusta, muestra que los agentes pueden coordinarse mediante un espacio público compartido durante una evaluación y que las trazas guardadas quizá no revelen si eso mejora el desempeño. Para interpretar el resultado son centrales la corrección explícita del artículo —de causalidad a asociación descriptiva— y la falta de resultados con verdad de referencia."
     },
+    "FCMO-E49C53258142": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "El artículo presenta HybridAgents, que combina generación en modo latente para el razonamiento interno y generación de texto para respuestas e interacción externa con herramientas. Conserva el contexto combinado entre turnos y entrena los modelos con HybridSFT seguido de HybridRL."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En 11 pruebas de matemáticas, ciencias, medicina, búsqueda de conocimiento y razonamiento con agentes, los autores informan mejoras frente a referencias comparables de texto y latentes para las bases de 8B y 14B. Para el sistema de 14B informan una mejora promedio de 17.4% frente a la referencia de agentes más fuerte en las métricas de agentes seleccionadas por el artículo; los resultados varían según la tarea y la métrica."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan entre 35.5% y 54.7% menos tokens, una inferencia entre 1.8× y 2.6× más rápida y entre 2.7× y 3.7× menos cómputo en sus entornos evaluados. Son comparaciones informadas por los autores; esta revisión no normalizó hardware, costo total de entrenamiento, utilización del servicio ni costo monetario entre implementaciones independientes."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Para los resultados con agentes, el artículo informa cinco ejecuciones independientes y una desviación estándar promedio de 0.014 en exactitud (IC del 95% ±0.017); para matemáticas y búsqueda informa desviaciones estándar promedio separadas de 0.031 y 0.018. El artículo no establece una reproducción por grupos independientes."
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "El repositorio público mantenido por los autores está disponible en GitHub y su archivo README enumera generación híbrida, código de entrenamiento HybridSFT/HybridRL, utilidades de inferencia y enlaces a modelos de 8B/14B y conjuntos de entrenamiento. Esto confirma que los artefactos se anuncian públicamente, pero no que reproduzcan los resultados; esta revisión no ejecutó código."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "Ningún grupo independiente ha reproducido los resultados de referencia o eficiencia; esta revisión examinó las fuentes, pero no ejecutó el código ni verificó salidas de los modelos.",
+          "kind": "missing_independent",
+          "state": "open",
+          "updated_at": "2026-10-15T02:15:44Z"
+        },
+        {
+          "description": "El modelo de costos de la Tabla 9 contabiliza cada paso de texto/latente como una pasada completa hacia adelante de la red troncal y supone un costo de $2.50 por hora de H100 con una utilización del 10% del rendimiento máximo BF16. Excluye el prellenado del prompt, la atención dependiente del contexto y la ejecución de herramientas externas; los costos monetarios y de servicio integrales siguen sin verificarse.",
+          "kind": "regime_unclear",
+          "state": "open",
+          "updated_at": "2026-10-15T02:19:26Z"
+        },
+        {
+          "description": "Se desconoce la generalización más allá de las bases Qwen3 de 8B/14B, las instrucciones de referencia, las distribuciones de tareas y las configuraciones de herramientas y recompensas evaluadas.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-15T02:15:44Z"
+        }
+      ],
+      "importance_rationale": "Si se replica de forma independiente, combinar razonamiento latente con acciones mediante texto y reducciones considerables de tokens y cómputo podría influir materialmente en el entrenamiento y la inferencia de agentes; la puntuación refleja la consecuencia potencial en estos regímenes de modelos y tareas, no la confianza en que sea cierto.",
+      "limitations": [
+        "Todas las cifras de desempeño y eficiencia son informadas por los autores en un preprint; esta revisión no las reprodujo de forma independiente.",
+        "La suite de pruebas y las condiciones de eficiencia corresponden a modelos, herramientas, instrucciones, presupuestos de entrenamiento y hardware específicos; los promedios destacados no implican mejoras universales de agentes.",
+        "Se confirmó la existencia del repositorio y de los enlaces a modelos/datos en el README mantenido por los autores, pero los artefactos no se auditaron ni ejecutaron.",
+        "Las afirmaciones de interpretabilidad se refieren a representaciones legibles del contenido en modo latente y a análisis de tareas; no demuestran que esas lecturas expliquen fielmente el cómputo interno."
+      ],
+      "relationships": [],
+      "summary": "Un preprint de arXiv del 13 de octubre presenta HybridAgents, un sistema que alterna entre razonamiento interno en modo latente y texto para interactuar con herramientas, con las etapas de ajuste HybridSFT y HybridRL. En 11 pruebas de matemáticas, ciencias, medicina, búsqueda y razonamiento con agentes, los autores informan mejoras de sus sistemas 8B y 14B frente a referencias comparables de texto y latentes. También informan entre 35.5% y 54.7% menos tokens generados, una inferencia entre 1.8× y 2.6× más rápida y entre 2.7× y 3.7× menos costo computacional en los entornos evaluados. El artículo informa cinco ejecuciones independientes para sus resultados con agentes y presenta desviaciones estándar e intervalos de confianza promedio. Son resultados de referencia informados por los autores, no hallazgos independientes; los promedios destacados abarcan tareas, modelos, instrucciones y hardware específicos.",
+      "technical": {
+        "claimed_result": "Los autores informan mejores resultados frente a referencias comparables de texto y latentes en 11 pruebas y una mejora promedio de 17.4% frente a la referencia de agentes más fuerte para 14B en métricas seleccionadas, junto con reducciones de tokens, velocidad y costo computacional.",
+        "compute_or_cost": "Los autores estiman el cómputo de decodificación contabilizando cada paso generado, ya sea de texto o latente, como una pasada completa hacia adelante de la red troncal, además del costo de proyectar el vocabulario o de HybridLink. La Tabla 9 compara redes troncales Qwen3 de 4B/8B/14B y estima un costo de $2.50 por hora de H100 con una utilización del 10% del rendimiento máximo BF16. Excluye el prellenado del prompt, la atención dependiente del contexto y la ejecución de herramientas externas; por ello, las reducciones monetarias de 2.7×–3.7× son estimaciones del costo de generación modelado, no facturas integrales de servicio. No se realizó normalización ni medición independiente.",
+        "demonstrated_result": "El preprint especifica la arquitectura, los métodos de entrenamiento y las evaluaciones; el repositorio de los autores y los artefactos enlazados figuran públicamente. No se ejecutaron modelos ni se hizo una reproducción independiente o auditoría de artefactos.",
+        "implementation_status": "El repositorio público de los autores enumera código y artefactos enlazados de modelos/datos. esta revisión confirmó el repositorio y su README, pero no auditó, descargó ni ejecutó los artefactos.",
+        "mechanism": "HybridLink proyecta estados ocultos latentes al espacio de entrada de embeddings para permitir transiciones entre modos latente y de texto. Una memoria de trabajo continua transporta entre turnos segmentos latentes, texto, observaciones de herramientas y estado de continuación. HybridSFT enseña generación coordinada; HybridRL optimiza cuándo razonar en modo latente y cuándo interactuar mediante texto.",
+        "novelty": "El trabajo combina generación interna en modo latente con uso de herramientas mediante texto y memoria de trabajo entre turnos, con ajuste posterior orientado a aprender las transiciones entre modos.",
+        "regime": "El artículo evalúa sistemas Qwen3 de 8B y 14B en pruebas seleccionadas de matemáticas, ciencias, medicina, búsqueda y razonamiento con agentes, con instrucciones, herramientas, recompensas y hardware propios del estudio. Los resultados con agentes incluyen cinco ejecuciones. Las cifras de eficiencia reflejan las implementaciones de evaluación descritas, no mediciones universales del costo de servicio.",
+        "reproducibility": "El artículo ofrece detalles experimentales y enlaces a código/modelos/datos. Quedan por evaluar la reproducción independiente, integridad de los artefactos, licencias de cada componente de datos y equivalencia exacta del cómputo integral.",
+        "strongest_baseline": "La referencia de agentes más fuerte varía según la prueba; la comparación agregada de 14B informa una mejora promedio de 17.4% frente a la referencia más fuerte enumerada para métricas seleccionadas. GRPO/ARPO de tamaño comparable y sistemas de texto/latentes son referencias de entrenamiento pertinentes en las Tablas 1–2; el orden exacto varía por tarea."
+      },
+      "title": "Hybrid Reasoning Agents informa mejoras en pruebas con razonamiento latente y uso de herramientas mediante texto",
+      "why_it_matters": "Si las comparaciones se reproducen con presupuestos integrales equivalentes, las representaciones internas híbridas podrían mejorar el equilibrio entre capacidad y costo de servicio de los agentes con herramientas, conservando el uso de texto para operarlas y lecturas inspeccionables del razonamiento. Las mejoras de velocidad y costo corresponden al entorno de inferencia del artículo: no demuestran ahorros equivalentes en producción, y aquí no se realizó una reproducción independiente."
+    },
     "FCMO-E57D0A651C93": {
       "claims": [
         {
@@ -26030,6 +26165,48 @@
       "why_it_matters": {
         "locale_sha256": "94e1f3ec30f7f833e77ed0c8083f29ba988b1fe87c002129bfed0364fdc00bc7",
         "source_sha256": "f02c0ebbe66e4d17508dc101b82e1740e5fcd2b175e6ee1d412596d2334b8e93"
+      }
+    },
+    "FCMO-1FBA6659C532": {
+      "claims": {
+        "locale_sha256": "b0be400ded0a1b4a33b54ea8613e63f4869960d36c1bb8b3b4fce20ccfaff26c",
+        "source_sha256": "6e1cd4371afcfca9233a0c5ebf173a1c3bdb6a7b4633c9b8054cc03d5757f925"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "3e2aebd5a94591ede07910fadf64a2b01298584167a25626d11ea5ab7ddf46e7",
+        "source_sha256": "64ce7b310408d8b233ba721b52a705ac68bb907be9178dda9e0a78b4d8a5b877"
+      },
+      "importance_rationale": {
+        "locale_sha256": "02d0a2e6d13880c70b08a8e76e4ceaa5e37965507fc77b7ec603f367a07e7a0b",
+        "source_sha256": "538e14de8e6911b6dfbe8d2f18f38382f2dc5a0e3b78486311fd4b272f097588"
+      },
+      "limitations": {
+        "locale_sha256": "fb557c65572875386daa860746b734fb9b28102cb792d6f63c5a4581c336d382",
+        "source_sha256": "de05dead5b80e3380ecd21e9da8c76d518e9892e142c72de85d9b3f747357fb1"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "f8501cc857bba1e042ca0b86cc81bf15cb1b17212a6062fbee5d01348eba8836",
+        "source_sha256": "a2da80ad93f189a70065aa69bca990440537a3e0e25208973d29b64ebf1d4da2"
+      },
+      "technical": {
+        "locale_sha256": "5c6251df3b1eedcb9212278796566326e7d175a15dd2f331bfeb09651d688d34",
+        "source_sha256": "bf7a9a6c89bdd9743fd5ee3f46eb89bfa893fcca943140d240795de4c09af59d"
+      },
+      "title": {
+        "locale_sha256": "ec7ad6c4852954372b19dd3a5da7a07bec3d04ec3956f3e6d1ec3cd8346f71b4",
+        "source_sha256": "097bedee50897b5ea6bc07da2bce5b8ed046d418996534417fa62ba97aedbe9f"
+      },
+      "why_it_matters": {
+        "locale_sha256": "c47f32af547f4c971339d9d57225b9c11ed30f4425800a9e7509fcd48c25bc1c",
+        "source_sha256": "bebc78dfd94a0b62b804e6e4ab6f9e23dc08bdf23d21678d54d5871d5096b2a0"
       }
     },
     "FCMO-21277C154D52": {
@@ -39498,6 +39675,48 @@
       "why_it_matters": {
         "locale_sha256": "ba6e3e7f1ad0c93cc29fe38e0548ff8df117da75d6384d91fa4066e40917933d",
         "source_sha256": "3bc64aa4425d32692204cbd7adb5b9586cd580fec32fc051747ef56e1017efa2"
+      }
+    },
+    "FCMO-E49C53258142": {
+      "claims": {
+        "locale_sha256": "266feebce7d66dc2130a349a6fa4460d5c1014865a389e03303eb015a538985b",
+        "source_sha256": "0384d88b209b232b404bbd6e9ff8c37ec837821bb0f3495606b73504a9bee59b"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "5dc773ce95cf1f22826f09fb04b8e9bcf35939b75cd02709ad3b3f0067bcbb0c",
+        "source_sha256": "c9d454e4b1e98efce05789728d8fcb3ac1a25c475d58b6384229a0f5b75c87e4"
+      },
+      "importance_rationale": {
+        "locale_sha256": "0487a20e20d042b6f1c1789196e8cab75ebe26f0d8f87cb1f194902dd42b302a",
+        "source_sha256": "29dd0d624d427868101c2190d193357c2c9bab9cb6fe65762d9bed4711a3d11c"
+      },
+      "limitations": {
+        "locale_sha256": "12bfacda5cb79bcbe7fe539a96692098393eb54fb03506e6ee269b764b7f721f",
+        "source_sha256": "4913ba417014da5a2b0c94d1a32edc658608009f765796cdaea1620387d324b0"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "9f9300701f7f3da8dc3b38b14d7ceee981f928c57d4365f1e9d7d122e4619a80",
+        "source_sha256": "07f60fc680093f0edda93df375603a3c82f730b3850ecb997a05c14136abdf29"
+      },
+      "technical": {
+        "locale_sha256": "8df221d983cf3824d0dc07a8e9403d60af71c9ba02008b7bee78d89591568d5d",
+        "source_sha256": "3d71564f0cfd639ceaea116cac606ea32ccfbd542f4443c298c552ccb0f0b447"
+      },
+      "title": {
+        "locale_sha256": "b471fa543ea150b679ee1a6aa91dc218f05fb7d0d61f69ba581f559dc0959024",
+        "source_sha256": "07f51dca88c49d84c12e5971d49f0b030c5a08569cac68befd4febf1c6582a55"
+      },
+      "why_it_matters": {
+        "locale_sha256": "c5dc6b5fc591e0382a1587cd875783b3f8f823c18cd7a7a505424d594236e72c",
+        "source_sha256": "56d4b4434d4f7bf1d9258ad0bf5a6eadf924f5e1311183a35f3917b5372a9755"
       }
     },
     "FCMO-E57D0A651C93": {
