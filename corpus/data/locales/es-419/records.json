@@ -11185,6 +11185,70 @@
       "title": "DexTacWAM informa mejores resultados al modelar el contacto táctil como parte del mundo previsto por el robot",
       "why_it_matters": "Los robots diestros necesitan razonar sobre contacto, deslizamiento y estabilidad del agarre, que las cámaras pueden no revelar. La ablación del artículo respalda una hipótesis de diseño específica: predecir la evolución del contacto táctil como parte del estado de mundo podría aportar más que entregar lecturas táctiles directamente a la política. Las mejoras reportadas son grandes, pero provienen de una plataforma evaluada por los autores y de una comparación con parametrizaciones de acciones distintas; justifican una reproducción controlada, no prueban transferencia general."
     },
+    "FCMO-6588C0954ABA": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED_PUBLICATION_EVENT",
+          "text": "Los autores publicaron el preprint JustMem en arXiv el 2026-09-17."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En LoCoMo y LongMemEval-S, los autores informan que JustMem obtuvo la mayor exactitud media y el mayor recall de recuperación entre los sistemas de memoria comparados: 79.61% de exactitud en LoCoMo y 83.40% en LongMemEval-S."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Frente a LightMem, el sistema de memoria con mayor exactitud media en LoCoMo, los autores informan reducciones de 50.7% en tokens para construir la memoria y de 67.2% en tokens de consulta en LoCoMo; en LongMemEval-S, informan reducciones de 64.9% y 55.7%, respectivamente."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En la división cognitiva de 401 preguntas de LoCoMo-Plus, los autores informan 62.59% de exactitud para JustMem frente a 31.67% para MemOS, la línea base más sólida de esa comparación."
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION_DISCLOSURE",
+          "text": "El artículo indica que la evaluación se limita a pruebas establecidas de memoria conversacional a largo plazo y a una configuración específica de memoria y recuperación; el análisis de eficiencia se centra en tokens generativos y no contabiliza todo el cómputo del sistema."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se encontró una reproducción independiente de los resultados de las pruebas ni de los costos de tokens informados.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "Durante esta revisión no se encontró una implementación pública para inspeccionar directamente el planificador, la recuperación de fuentes y el banco de pruebas.",
+          "kind": "missing_artifact",
+          "state": "open"
+        },
+        {
+          "description": "La comparación principal de eficiencia cuenta tokens generativos, pero no informa cómputo total, latencia, energía ni costo monetario.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si los aumentos informados se generalizan, recuperar evidencia de conversaciones mediante una estrategia que adapta la amplitud de búsqueda podría mejorar la memoria de largo plazo y reducir el uso de tokens del modelo. La puntuación 4 refleja un avance significativo para el diseño de memoria, mientras la evidencia se limita a pruebas realizadas por los autores y a su contabilidad de tokens.",
+      "limitations": [
+        "Los resultados cuantitativos provienen de los autores; aquí no se reprodujeron de manera independiente.",
+        "Las comparaciones principales usan un conjunto limitado de pruebas de memoria conversacional y una configuración específica; no se conoce su generalización a otras tareas o plataformas de modelos.",
+        "En LoCoMo, la comparación pareada informada frente a LightMem no es estadísticamente significativa (p=0.532).",
+        "La contabilidad de tokens excluye embeddings, reranking y otros cómputos del sistema, por lo que un menor uso de tokens generativos no demuestra menor latencia, energía ni costo total.",
+        "Los autores identifican riesgos de privacidad, retención, control de acceso y filtración de información sensible porque el sistema conserva recuerdos y enlaces de procedencia que permiten recuperar conversaciones fuente."
+      ],
+      "relationships": [],
+      "summary": "Un preprint de septiembre de 2026 presenta JustMem, un sistema de memoria conversacional de largo plazo que adapta la amplitud de recuperación y la fidelidad de lectura de fuentes a cada consulta. En pruebas de los autores con GPT-4.1-mini en LoCoMo y LongMemEval-S, el sistema obtuvo la mayor exactitud media entre las memorias comparadas y usó menos tokens generativos. Los resultados son informes del artículo y aún no tienen reproducción independiente.",
+      "technical": {
+        "claimed_result": "Con GPT-4.1-mini para construir recuerdos, planificar, responder y evaluar mediante un juez LLM, los autores informan una exactitud media de 79.61% en LoCoMo y 83.40% en LongMemEval-S, junto con la mayor exactitud media y recall de recuperación entre los sistemas comparados. También informan presupuestos menores de tokens generativos y una exactitud de 62.59% en la división cognitiva de LoCoMo-Plus.",
+        "compute_or_cost": "El artículo informa los tokens generativos usados al construir memorias y procesar consultas; su análisis principal excluye embeddings, reranking, evaluación fuera de línea y otros costos de cómputo del sistema.",
+        "demonstrated_result": "Existe un preprint público que describe el sistema, el protocolo de pruebas y sus tablas de resultados. En esta revisión no se ejecutó ni reprodujo de forma independiente el sistema.",
+        "mechanism": "JustMem guarda recuerdos atómicos compactos con enlaces de procedencia, estima qué evidencia requiere cada consulta y elige entre Lookup local, Compose con búsqueda más amplia o Replay que recupera la conversación original. Compose amplía los candidatos sin aumentar el presupuesto de evidencia compacta; Replay recupera el contexto fuente solo cuando la consulta requiere mayor fidelidad.",
+        "novelty": "El artículo propone separar la amplitud de descubrimiento de la fidelidad de lectura como dos dimensiones adaptables de acceso a memoria. No se estableció de manera independiente la prioridad frente a todos los sistemas de memoria recientes.",
+        "regime": "Experimentos informados por los autores en LoCoMo (1,540 preguntas), LongMemEval-S (500 preguntas) y la división cognitiva de 401 preguntas de LoCoMo-Plus. En las comparaciones principales, los métodos comparten el modelo generativo y las instrucciones de evaluación; se repiten cinco rondas de respuesta y evaluación con las memorias construidas y la evidencia recuperada fijas.",
+        "reproducibility": "El preprint especifica instrucciones, modelos y configuración de pruebas. No se localizó código público ni se reprodujeron los resultados de forma independiente en esta revisión.",
+        "strongest_baseline": "LightMem es el sistema de memoria comparado con mayor exactitud media en LoCoMo; la comparación pareada con JustMem informa p=0.532. En LongMemEval-S, el artículo informa 76.44% para LightMem y 83.40% para JustMem. En la división LoCoMo-Plus, MemOS es la línea base más sólida (31.67% frente a 62.59%)."
+      },
+      "title": "JustMem informa mayor exactitud en pruebas de memoria a largo plazo y menor uso de tokens del modelo",
+      "why_it_matters": "Si los resultados informados se generalizan, separar la búsqueda amplia de evidencia de la recuperación selectiva de fuentes podría mejorar la memoria conversacional y reducir el uso de tokens generativos. El resultado es significativo para el diseño de memoria de agentes, pero proviene de un conjunto limitado de pruebas y no mide el costo total del sistema."
+    },
     "FCMO-66C5569688C1": {
       "claims": [
         {
@@ -18233,6 +18297,60 @@
       },
       "title": "Artículo informa verificación de entrenamiento diferencialmente privado con una CPU-TEE y GPU no confiables",
       "why_it_matters": "Si se valida de manera independiente, el diseño podría permitir que las organizaciones produzcan evidencia de que se siguió un protocolo de entrenamiento diferencialmente privado mientras usan GPU sin soporte TEE nativo. La sobrecarga y los límites de resistencia a ataques informados se restringen a modelos pequeños, el protocolo de un artículo y condiciones calibradas de hardware y software."
+    },
+    "FCMO-ADDB7C80E534": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED_DOCUMENTATION",
+          "text": "El NOTICE de ZCode dice que el adaptador compartido de ejecución de Agent no incluye un sandbox de sistema operativo de forma predeterminada y advierte que la identidad del espacio de trabajo, los worktrees de Git, el aislamiento del navegador y el contexto de Node REPL no garantizan aislamiento a nivel del sistema para todas las herramientas."
+        },
+        {
+          "label": "DEMONSTRATED_IN_SOURCE",
+          "text": "El código run.ts del CLI define yolo como el modo predeterminado para solicitudes sin interacción; al ejecutar --prompt sin modo explícito, pasa mode ?? DEFAULT_HEADLESS_PROMPT_MODE."
+        },
+        {
+          "label": "DEMONSTRATED_IN_SOURCE",
+          "text": "El servicio de permisos indica que yolo omite las solicitudes de permiso para llamadas ordinarias a herramientas cuando no está activo el modo plan; conserva comprobaciones separadas para herramientas que requieren interacción o siempre preguntan, y NOTICE distingue otras superficies y modos controlados por el host."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "No se inspeccionó un paquete de ZCode v3.15.1 ni el despliegue de un operador. Los archivos fuente se fijaron al commit del repositorio v3.15.1; no se probó si un despliegue añade aislamiento ni cuál es el comportamiento efectivo en ejecución."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se inspeccionó un paquete de ZCode v3.15.1 ni un entorno de ejecución, aunque los archivos fuente están fijados al commit de esa versión.",
+          "kind": "missing_artifact",
+          "state": "open"
+        },
+        {
+          "description": "No se probaron en ejecución las solicitudes de aprobación ni el aislamiento del sistema operativo en una instalación o despliegue.",
+          "kind": "missing_independent",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si estos valores predeterminados documentados se aplican a la revisión del CLI y el adaptador compartido de ZCode, afectan de forma material las expectativas sobre aislamiento y aprobación en ejecuciones de agentes bajo la cuenta del host. La puntuación 4 refleja una consideración práctica para elegir y desplegar el harness; el hallazgo se limita a los modos documentados y no supone que todas las superficies de ZCode usen los mismos valores.",
+      "limitations": [
+        "La declaración de que no hay sandbox predeterminado se limita al adaptador compartido de ejecución de Agent en NOTICE; no debe generalizarse a todas las herramientas o modos de ZCode.",
+        "El modo yolo predeterminado cuando se omite --mode aplica a llamadas independientes no interactivas del CLI con --prompt; no se extiende automáticamente a TUI, escritorio, tareas reanudadas, target ni ejecución controlada por el host.",
+        "El servicio de permisos conserva reglas separadas para interacción del usuario, always-ask, herramientas prohibidas y modo plan; yolo no implica que todos los controles se omitan.",
+        "Los archivos fuente inspeccionados están fijados al commit aac4755666d09fdcd70272fcf063c077a639015f, identificado como actualización v3.15.1. No se probó la ejecución ni se inspeccionó el binario distribuido.",
+        "El código del repositorio no establece si el despliegue de un operador agrega sandbox de sistema operativo u otro aislamiento."
+      ],
+      "relationships": [],
+      "summary": "El commit del repositorio ZCode v3.15.1, fechado el 2026-10-10, incluye un NOTICE en chino que indica que el adaptador compartido de ejecución de Agent no tiene sandbox de sistema operativo predeterminado. Las llamadas independientes del CLI con --prompt usan yolo cuando se omite --mode. El código fuente fijado define ese valor y describe cuándo se omiten los avisos de permiso y qué excepciones existen. El hallazgo se limita a esos modos documentados; no se probó un paquete distribuido.",
+      "technical": {
+        "claimed_result": "La documentación del proyecto dice que el adaptador compartido de ejecución de Agent no cuenta con sandbox de sistema operativo predeterminado y que el CLI independiente usa yolo en llamadas no interactivas con --prompt cuando se omite --mode.",
+        "demonstrated_result": "El NOTICE del repositorio y el código del CLI revisados contienen esas declaraciones acotadas y las rutas de código correspondientes. No se probó el comportamiento de un paquete fijado durante su ejecución.",
+        "mechanism": "La ruta no interactiva del CLI usa yolo como valor de reserva si no se indica un modo. El servicio de permisos permite que llamadas ordinarias a herramientas omitan avisos de permiso en ese modo, pero mantiene comprobaciones distintas para capacidades que requieren interacción o siempre preguntan. Por separado, NOTICE dice que el adaptador compartido no tiene sandbox de sistema operativo predeterminado.",
+        "novelty": "El aspecto material es la divulgación explícita y diferenciada por modo de los valores predeterminados de sandbox y aprobación; no se afirma novedad en la arquitectura de permisos subyacente.",
+        "regime": "Commit aac4755666d09fdcd70272fcf063c077a639015f del repositorio ZCode v3.15.1, fechado el 2026-10-10. El hallazgo se refiere al adaptador compartido de ejecución de Agent y a la ruta independiente no interactiva del CLI con --prompt, no a todas las superficies de ZCode.",
+        "reproducibility": "NOTICE y ambos archivos de código quedaron vinculados al mismo commit mediante el historial de GitHub por ruta. Se fijaron las fuentes, pero no se inspeccionó un paquete distribuido ni se probó su ejecución.",
+        "strongest_baseline": "No hay comparación entre proyectos. NOTICE distingue el adaptador compartido y la ruta del CLI independiente de los modos interactivo, de escritorio, reanudado y controlado por el host; build y plan tienen reglas de permiso propias."
+      },
+      "title": "ZCode documenta que su adaptador Agent no tiene sandbox de sistema operativo predeterminado y que el CLI no interactivo usa yolo por defecto",
+      "why_it_matters": "Al elegir un harness de agentes, los usuarios necesitan saber si las operaciones ordinarias de archivos, shell y red están aisladas por el sistema operativo, y si las llamadas desatendidas del CLI requieren aprobación explícita. La documentación y el código de ZCode muestran valores predeterminados distintos según el modo de ejecución, por lo que las aprobaciones del proyecto no deben tratarse como una frontera de seguridad uniforme."
     },
     "FCMO-AE1EFB209913": {
       "claims": [

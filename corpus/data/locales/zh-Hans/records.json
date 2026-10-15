@@ -11185,6 +11185,70 @@
       "title": "DexTacWAM报告称，将触觉接触纳入机器人预测的世界状态后，操作得分有所提高",
       "why_it_matters": "灵巧机器人需要判断接触、滑动和抓取稳定性，而这些状态可能无法从相机画面中充分观测。论文消融支持一种具体设计假设：把触觉接触变化作为世界状态来预测，可能比直接将触觉读数送入策略更有帮助。报告的增益较大，但来自作者在单一平台上的评估，且对比方法的动作参数化不同，因此需要严格控制条件下的复现，不能据此证明普遍迁移能力。"
     },
+    "FCMO-6588C0954ABA": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED_PUBLICATION_EVENT",
+          "text": "作者于2026-09-17在arXiv发布了JustMem预印本。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "作者报告JustMem在LoCoMo和LongMemEval-S上比对比记忆系统有更高的平均准确率和检索召回率：LoCoMo准确率为79.61%，LongMemEval-S为83.40%。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "相较于LoCoMo上平均准确率最高的对比系统LightMem，作者报告LoCoMo记忆构建token减少50.7%、查询token减少67.2%；在LongMemEval-S上分别减少64.9%和55.7%。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "在LoCoMo-Plus的401题认知子集中，作者报告JustMem准确率为62.59%，该比较中最强基线MemOS为31.67%。"
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION_DISCLOSURE",
+          "text": "论文指出，评估仅涉及现有长期对话记忆基准和特定记忆及检索配置；效率分析主要衡量生成模型token，没有统计系统级全部计算。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "尚未发现对所报告基准结果或token成本的独立复现。",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "本次审阅未找到公开实现，因而无法直接检查访问规划器、源内容恢复或基准测试代码。",
+          "kind": "missing_artifact",
+          "state": "open"
+        },
+        {
+          "description": "主要效率比较只统计生成token，未提供系统总计算量、延迟、能耗或货币成本。",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "如果所报告的收益可以推广，按查询调整检索范围可能改善长期对话记忆并减少模型token用量。评分4体现该结果对记忆系统设计有实际意义；现有证据仍限于作者开展的基准测试和token统计。",
+      "limitations": [
+        "所有量化结果均为作者报告，本次未进行独立复现。",
+        "主要比较只涵盖有限的长期对话记忆基准和特定配置；能否推广到其他任务或模型栈仍未知。",
+        "在LoCoMo上，与LightMem的配对比较未达到统计显著性（p=0.532）。",
+        "token统计不包含嵌入、重排序及其他系统级计算，因此生成token减少不能证明总延迟、能耗或成本降低。",
+        "作者指出，记忆存储和来源链接会带来隐私、数据保留、访问控制及敏感信息泄露风险。"
+      ],
+      "relationships": [],
+      "summary": "一篇2026年秋季的预印本介绍了JustMem，这是一种按查询调整检索范围和源内容阅读保真度的长期对话记忆系统。作者使用GPT-4.1-mini在LoCoMo和LongMemEval-S上开展测试，报告其平均准确率高于对比记忆系统，同时使用更少的生成模型token。这些结果仅为论文报告，尚未得到独立复现。",
+      "technical": {
+        "claimed_result": "作者使用GPT-4.1-mini进行记忆构建、查询规划、回答和LLM评判，报告LoCoMo平均准确率79.61%、LongMemEval-S为83.40%，且在对比系统中平均准确率和检索召回率最高。作者还报告生成token预算更低，以及LoCoMo-Plus认知子集准确率62.59%。",
+        "compute_or_cost": "论文报告了记忆构建和在线查询的生成token用量；其主要效率统计未包括嵌入、重排序、离线评估及系统其他计算开销。",
+        "demonstrated_result": "公开预印本描述了系统、基准测试方案和结果表。本次未独立运行或复现所报告结果。",
+        "mechanism": "JustMem保存带来源链接的紧凑原子记忆，预测每个查询需要何种证据，再选择局部Lookup、更广泛搜索的Compose，或通过来源链接恢复原始对话的Replay。Compose扩大候选搜索，但保持紧凑证据预算不变；只有查询需要更高保真度时，Replay才恢复源上下文。",
+        "novelty": "论文提出将发现范围与阅读保真度分为两种可按查询调整的记忆访问维度。尚未独立确认其相对所有近期记忆系统的优先性。",
+        "regime": "作者在LoCoMo（1,540题）、LongMemEval-S（500题）和LoCoMo-Plus认知子集（401题）上开展测试。主要比较采用相同生成模型和评估提示，并在固定已构建记忆和检索证据的条件下重复五次回答及评估。",
+        "reproducibility": "预印本说明了提示词、模型和基准配置。本次未找到公开代码，也未独立复现结果。",
+        "strongest_baseline": "LightMem是在LoCoMo上平均准确率最高的对比记忆系统；其与JustMem的配对比较p=0.532。论文报告LongMemEval-S上LightMem为76.44%、JustMem为83.40%。在LoCoMo-Plus子集中，MemOS是最强基线（31.67%，JustMem为62.59%）。"
+      },
+      "title": "JustMem报告提升长期记忆基准准确率并减少模型token用量",
+      "why_it_matters": "如果所报告结果可以推广，将广泛发现证据与选择性读取原始来源分开，或可改善对话记忆并减少生成模型token用量。这对智能体记忆设计有实际意义，但现有证据来自有限的基准配置，且没有衡量系统总成本。"
+    },
     "FCMO-66C5569688C1": {
       "claims": [
         {
@@ -18233,6 +18297,60 @@
       },
       "title": "论文报告了使用CPU-TEE验证不可信GPU上的差分隐私训练",
       "why_it_matters": "如果得到独立验证，这种设计可能让组织在使用不具备原生TEE支持的GPU时，仍能提供差分隐私训练协议确实得到执行的证据。当前报告的开销和攻击抵抗界限仅适用于小模型任务、单篇论文提出的协议以及经过校准的软硬件条件。"
+    },
+    "FCMO-ADDB7C80E534": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED_DOCUMENTATION",
+          "text": "ZCode的NOTICE指出，其共享Agent执行适配器默认不提供操作系统沙箱，并提醒工作区身份、Git worktree、浏览器隔离和Node REPL上下文不构成所有工具的系统级隔离保证。"
+        },
+        {
+          "label": "DEMONSTRATED_IN_SOURCE",
+          "text": "CLI的run.ts源码将无交互提示模式的默认值设为yolo；非交互式--prompt请求若没有显式模式，会传入mode ?? DEFAULT_HEADLESS_PROMPT_MODE。"
+        },
+        {
+          "label": "DEMONSTRATED_IN_SOURCE",
+          "text": "权限服务说明，未启用计划模式时，yolo会让普通工具调用绕过权限提示；用户交互和always-ask工具仍有独立检查，NOTICE还区分其他产品界面及宿主控制模式。"
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "本次没有检查ZCode v3.15.1发行包或运营方部署。源文件已固定到v3.15.1仓库提交，但没有测试部署额外增加的隔离措施或实际运行行为。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "尽管源文件已固定到发行提交，本次未检查ZCode v3.15.1发行包或运行环境。",
+          "kind": "missing_artifact",
+          "state": "open"
+        },
+        {
+          "description": "没有运行测试来确认发行版或部署中的有效审批提示和操作系统级隔离。",
+          "kind": "missing_independent",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "如果这些记录的默认设置适用于所检查的ZCode CLI及共享适配器，它们会显著影响对智能体运行隔离和审批机制的判断。评分4体现其对工具选型和部署决策的现实影响；结论只覆盖文档描述的模式，不表示所有ZCode界面采用相同设置。",
+      "limitations": [
+        "NOTICE中的无默认沙箱声明仅适用于共享Agent执行适配器，不能推广到每一种ZCode工具或运行模式。",
+        "省略--mode时的yolo默认仅适用于独立CLI非交互式--prompt调用，不自动适用于交互式TUI、桌面、恢复任务、target或宿主管理的运行。",
+        "权限服务保留用户交互、always-ask、禁用工具及计划模式的独立判断；不能据此声称yolo绕过了所有控制。",
+        "检查的文件已固定到commit aac4755666d09fdcd70272fcf063c077a639015f，该提交对应v3.15.1更新；本次未测试运行行为或分发二进制文件。",
+        "仓库源码没有说明运营部署是否额外配置了操作系统沙箱或其他隔离。"
+      ],
+      "relationships": [],
+      "summary": "ZCode在2026-10-10发布的v3.15.1仓库提交中包含中文NOTICE，称其共享Agent执行适配器默认不提供操作系统沙箱；独立CLI省略--mode的非交互式--prompt调用默认采用yolo。固定版本CLI源码实现了这一回退，权限服务则描述了绕过权限提示的规则和例外。结论仅针对文档所述适配器和CLI路径，未测试发行包的实际运行。",
+      "technical": {
+        "claimed_result": "项目文档说明，共享Agent执行适配器默认没有操作系统沙箱；独立CLI在非交互式--prompt调用中省略--mode时默认使用yolo。",
+        "demonstrated_result": "所检查的仓库NOTICE和CLI源码包含这些有范围限制的说明及代码路径。未在固定版本的发行包上验证运行行为。",
+        "mechanism": "CLI非交互提示路径在未指定模式时回退到yolo。权限服务允许该模式下的普通工具调用绕过权限提示，同时单独处理用户交互和always-ask能力。此外，仓库NOTICE称共享Agent执行适配器默认不提供操作系统沙箱。",
+        "novelty": "实质信息是仓库对沙箱和审批默认值作出了明确且区分模式的披露；这里不主张底层权限架构具有新颖性。",
+        "regime": "ZCode v3.15.1仓库提交 aac4755666d09fdcd70272fcf063c077a639015f，日期为2026-10-10。结论针对共享Agent执行适配器和独立CLI非交互式--prompt路径，并非所有ZCode运行界面。",
+        "reproducibility": "NOTICE及两个源码文件已通过GitHub按路径提交历史固定到同一版本提交。没有检查发行包或测试运行行为。",
+        "strongest_baseline": "没有进行跨项目比较。ZCode NOTICE区分共享适配器与独立CLI提示路径，以及交互式、桌面、恢复和宿主控制模式；build与plan模式也各有权限逻辑。"
+      },
+      "title": "ZCode披露共享Agent适配器无默认操作系统沙箱，非交互CLI提示默认采用yolo",
+      "why_it_matters": "选择智能体工具时，用户需要了解常规文件、shell和网络操作是否受到操作系统隔离，以及无人值守CLI调用是否要求逐次确认。ZCode文档和源码表明不同运行模式采用不同默认值，因此不能将项目级审批视为统一的安全边界。"
     },
     "FCMO-AE1EFB209913": {
       "claims": [
