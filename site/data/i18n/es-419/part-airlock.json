@@ -1,6 +1,6 @@
 {
   "canonical_locale": "en",
-  "canonical_source_sha256": "bdeaea7b0bae681415b571132e1995adb29cbf05e61661799f3a765990e7cf3f",
+  "canonical_source_sha256": "70cb277b638772e89bfbd77f0e1142dd4af04381fccef9a8027918e40afb34e6",
   "generated_from": "ARB airlock; editorial wording authored upstream",
   "locale": "es-419",
   "records": {
@@ -12824,6 +12824,60 @@
       "title": "Presidente rotativo de Huawei dice que la demanda interna de cómputo para IA supera la oferta y limita una expansión internacional plena",
       "why_it_matters": "Si la restricción reportada es precisa y persiste, limita la rapidez con que Huawei puede abastecer infraestructura nacional de IA y expandirse al exterior, lo que influye en la disponibilidad de alternativas a aceleradores extranjeros. La declaración no aporta datos de producción, envíos, pedidos pendientes ni clientes; por ello no cuantifica la capacidad ni demuestra una escasez en toda la industria."
     },
+    "FCMO-80FF0F95B3E8": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan que REACT procesa eventos sin procesar de forma secuencial con dinámica de espacio de estados espigante en tiempo continuo, sin acumular eventos ni usar una caja delimitadora del objetivo."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En EvTTC, los autores informan un error relativo de TTC de 9.59±0.74% y una latencia integral de extremo a extremo de 4.6 ms; el desplazamiento de 4 cm corresponde a la velocidad media del conjunto, 9.22 m/s, mientras que 12.8 cm corresponde a 100 km/h."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan un error relativo de TTC de 25.7% en una secuencia FCWD sin ajuste fino; las cifras de energía son estimaciones analíticas basadas en un proxy de 45 nm y aún requieren validación en hardware."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se realizó una reproducción independiente de la evaluación EvTTC ni de la latencia informada; faltan comprobar de manera independiente las secuencias exactas, el preprocesamiento, el hardware de ejecución y los detalles de medición.",
+          "kind": "reproduction_missing",
+          "state": "open"
+        },
+        {
+          "description": "Los resultados de energía usan un proxy analítico de 45 nm; la fuente revisada no informa mediciones en hardware neuromórfico físico ni en una plataforma robótica.",
+          "kind": "missing_artifact",
+          "state": "open"
+        },
+        {
+          "description": "El conjunto de prueba es limitado y la transferencia sin ajuste cubre una sola secuencia FCWD; no se ha establecido la generalización a distintas velocidades, escenas, sensores ni al comportamiento robótico de ciclo cerrado.",
+          "kind": "regime_unclear",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si el desempeño informado para estimar el tiempo hasta colisión evento por evento y sin objetivo se generaliza, podría cambiar las decisiones de latencia perceptual y arquitectura de sensores para robots reactivos. Su alcance es significativo dentro de la robótica basada en eventos; la evaluación es acotada y no hay evidencia de despliegue.",
+      "limitations": [
+        "Todas las cifras de desempeño provienen del preprint v1 de arXiv de los autores y no se reprodujeron de forma independiente.",
+        "La comparación EvTTC de 9.59% usa entradas distintas de las líneas base con caja delimitadora del objetivo; no debe presentarse como una ventaja plenamente emparejada con la misma entrada.",
+        "Las cifras de desplazamiento de 4 cm y 12.8 cm usan supuestos diferentes sobre la velocidad del vehículo y no deben tratarse como mediciones en conflicto.",
+        "La estimación de energía INT8 es un proxy analítico y no debe describirse como energía medida en un dispositivo.",
+        "Los autores prometen publicar el código cuando aparezca el artículo; el preprint revisado no incluye una implementación pública."
+      ],
+      "relationships": [],
+      "summary": "Keime, Cuperlier y Cottereau presentan REACT, un modelo espigante de espacio de estados que se actualiza a partir de flujos sin procesar de cámaras de eventos, sin acumulación temporal. En la partición de validación EvTTC, su preprint v1 informa un error relativo de tiempo hasta la colisión de 9.59±0.74% y una latencia integral de extremo a extremo de 4.6 ms sin prior de caja delimitadora del objetivo. Los autores calculan un desplazamiento de 4 cm durante esa latencia a la velocidad media de aproximación del conjunto, 9.22 m/s; a 100 km/h, la misma latencia equivale a 12.8 cm. Las cifras de energía con INT8 son estimaciones analíticas, no mediciones de hardware. Los resultados numéricos son informes de los autores y no se han reproducido de forma independiente.",
+      "technical": {
+        "claimed_result": "El preprint informa un error relativo de TTC de 9.59±0.74% con una latencia integral de extremo a extremo de 4.6 ms en EvTTC, sin caja delimitadora del objetivo. Informa un desplazamiento vehicular de 4 cm a la velocidad media de 9.22 m/s del conjunto; los 12.8 cm usan esa misma latencia a 100 km/h. La cuantización INT8 informa un error de 10.26±0.81% y una energía estimada de 2.8 mJ por cada 32,768 eventos.",
+        "demonstrated_result": "La fuente v1 de arXiv revisada documenta la arquitectura, las tablas experimentales y los resultados informados por sus autores. No se revisó una reproducción independiente, una medición física en hardware neuromórfico ni una implementación robótica real.",
+        "mechanism": "Cada evento sin procesar actualiza un modelo espigante de espacio de estados; el intervalo físico entre eventos impulsa la dinámica C-SiLIF compleja en tiempo continuo y evita acumular eventos en ventanas fijas.",
+        "regime": "Partición de validación EvTTC; transferencia sin ajuste a FCWD; clasificación DVS128-Gesture. Según los autores, las métricas agregan tres semillas para gestos y cinco para EvTTC. La latencia es de extremo a extremo en la evaluación del artículo; no se verificaron la plataforma de hardware ni una réplica externa.",
+        "reproducibility": "El HTML v1 revisado no enlaza código público; los autores dicen que lo publicarán al aparecer el artículo. Próximo paso de menor costo: revisar las revisiones de arXiv y el repositorio de los autores para localizar el código y luego reproducir la tabla EvTTC con el sensor, la secuencia y el preprocesamiento documentados.",
+        "strongest_baseline": "La comparación EvTTC de la Tabla II incluye Garl-TTC con 9.44% y 113 ms, usando eventos, cuadros y una caja del objetivo; REACT usa solo eventos y no requiere ese prior. Como cambian las entradas y la configuración de la tarea, la comparación es informativa, pero no constituye una comparación causal plenamente emparejada."
+      },
+      "title": "REACT informa estimaciones de tiempo hasta colisión desde eventos con latencia de 4.6 ms",
+      "why_it_matters": "Un modelo que estima de forma continua el tiempo hasta la colisión a partir de eventos sin procesar, sin detectar ni seguir primero un objetivo, podría acortar la ruta entre percepción y acción en robótica reactiva rápida. La precisión informada se acerca a la de métodos aprendidos que usan una caja del objetivo, aunque bajo otra configuración de entrada; se trata de una sola evaluación de preprint con datos de conducción limitados y no se han establecido la utilidad en robots reales ni la energía en hardware."
+    },
     "FCMO-8173F1E96690": {
       "claims": [
         {
@@ -14276,6 +14330,70 @@
       },
       "title": "ForceTwin informa gemelos físicos a partir de fuerzas que mejoran la manipulación robótica y la dinámica de simulación",
       "why_it_matters": "Si se generalizan las mejoras informadas, medir las fuerzas de la puerta o el cajón específico podría producir un modelo de simulación y control anticipado más útil que los priors basados solo en apariencia, sobre todo cuando las cargas ocultas o los cierrapuertas exigen mucha fuerza. El artículo conecta un sondeo humano accesible con el control robótico y el entrenamiento de políticas en simulación; el costo de obtener datos por instancia, la identificabilidad parcial y la falta de comparación con aleatorización de dominio limitan la afirmación más amplia de eficiencia."
+    },
+    "FCMO-8EACCBAADA18": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "El informe v1 de arXiv del 14 de octubre documenta Manacá-1B-Instruct-2, sus experimentos de postentrenamiento, la evaluación de seguridad y sus limitaciones declaradas; el README del proyecto en portugués e inglés identifica una versión experimental v0.2 y dice que no ofrece seguridad de nivel productivo."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan 97.2% de seguridad en 218 solicitudes dañinas retenidas para v4, con un límite inferior del intervalo de Wilson de 94.1%, superior a los cuatro baselines externos PT-BR evaluados con los mismos ejemplos y el mismo harness. Informan 9.2% de rechazo excesivo en 184 ejemplos; la comparación estadística fue realizada por los autores y no se reprodujo de manera independiente."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan que el juez Claude se negó a puntuar 2 de 6 ejemplos sensibles de MT-Bench-PT, independientemente de la respuesta evaluada, reduciendo la muestra efectiva en seis modelos y ocho informes históricos del proyecto; el repositorio dice que corrigió el reporte para mostrar el tamaño de muestra por celda y los rechazos del juez."
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION",
+          "text": "Los autores indican que el barrido controlado de datos generales de 10–60% usó una ronda de entrenamiento por punto y sondas pequeñas de N=16/34; el patrón no monótono de rechazo excesivo y el “punto de inflexión” de 40–50% podrían deberse en parte al ruido y no se probaron a otra escala. También informan baja capacidad general absoluta y resultados cercanos al azar en varios exámenes para modelos de esta escala."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "Falta una reproducción independiente de las comparaciones de seguridad con 218 ejemplos y de rechazo excesivo con 184, así como de las pruebas estadísticas pareadas.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "No se verificó de manera independiente la relación entre los pesos v4 publicados, el commit exacto del repositorio y el checkpoint final del artículo.",
+          "kind": "missing_artifact",
+          "state": "open"
+        },
+        {
+          "description": "Se desconoce si la falla del juez se generaliza más allá del juez Claude, esta categoría sensible de MT-Bench-PT y los ocho informes históricos del proyecto.",
+          "kind": "regime_unclear",
+          "state": "open"
+        },
+        {
+          "description": "El barrido controlado de la composición de datos tiene una semilla de entrenamiento por punto y sondas N=16/34; el punto de inflexión de 40–50% podría reflejar ruido de entrenamiento o muestreo.",
+          "kind": "missing_independent",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se sostienen la comparación acotada y la auditoría de datos faltantes del juez, pueden orientar la evaluación de seguridad de modelos lingüísticos de menor representación y prevenir errores silenciosos de denominador en categorías sensibles evaluadas con jueces LLM. Es útil desde el punto de vista metodológico, pero la evidencia empírica corresponde a un solo proyecto PT-BR de 1.72B y a un flujo de trabajo de un juez.",
+      "limitations": [
+        "Todas las comparaciones son resultados informados por los autores; se leyó el README actual del repositorio, pero no se ejecutaron independientemente los pesos, el código ni el pipeline de evaluación.",
+        "El modelo es un único sistema PT-BR de 1.72B; estos resultados no establecen seguridad en otros idiomas, escalas, familias de modelos o usos desplegados.",
+        "El barrido de composición de 10–60% usa una semilla por punto y sondas pequeñas N=16/34; los autores advierten que el aparente punto de inflexión podría deberse en parte al ruido.",
+        "El porcentaje de seguridad depende del conjunto de solicitudes, reglas de clasificación, parámetros de generación y baselines elegidos por los autores.",
+        "El repositorio identifica el modelo como una versión experimental de investigación y niega explícitamente que ofrezca seguridad de nivel productivo.",
+        "La falla del juez se documenta dentro de un proyecto y un flujo de evaluación con Claude; se desconoce su prevalencia más amplia."
+      ],
+      "relationships": [],
+      "summary": "Un informe de arXiv del 14 de octubre describe Manacá-1B-Instruct-2, un modelo de 1.72B parámetros entrenado desde cero para portugués brasileño, con una nueva alineación safety-SFT y resultados negativos detallados. Los autores informan 97.2% de seguridad en 218 solicitudes dañinas retenidas, frente a cuatro modelos PT-BR externos evaluados con los mismos ejemplos y el mismo harness; el límite inferior del intervalo de Wilson es 94.1%, por encima de los cuatro baselines. El artículo también informa que su juez Claude se negó a puntuar 2 de 6 solicitudes sensibles de MT-Bench-PT sin importar la respuesta evaluada, reduciendo la muestra efectiva de esta categoría en ocho informes históricos del proyecto. Los autores dicen que el repositorio ahora muestra esta omisión. Son resultados de los autores; la escala del modelo, el alcance del benchmark, la baja capacidad general absoluta y la falta de reproducción independiente limitan las conclusiones más amplias.",
+      "technical": {
+        "claimed_result": "Los autores informan para v4 97.2% de seguridad retenida con N=218 y 9.2% de rechazo excesivo con N=184. El intervalo de Wilson del 95% para seguridad se informa como 94.1–98.7%, y su límite inferior supera los intervalos de los cuatro baselines externos. También informan 2/6 rechazos del juez en la categoría de seguridad, repetidos en seis modelos y ocho informes históricos del proyecto.",
+        "demonstrated_result": "El informe de arXiv y el README público del proyecto documentan el estudio, las comparaciones informadas, los intentos negativos de DPO, la auditoría del rechazo del juez y el estado de versión experimental. No se hizo una réplica independiente, una verificación de los pesos ni una ejecución del código.",
+        "mechanism": "Tras intentos de DPO sin éxito, los autores usan un safety-SFT dedicado al estilo AnswerCarefully, que combina objetivos directos de rechazo con ejemplos de ayuda benigna y datos generales. Un barrido controlado varía la proporción de datos generales de 10% a 60%. Por separado, inspeccionan los motivos de detención de la API del juez LLM para detectar rechazos que omiten elementos de la evaluación.",
+        "regime": "Safety-SFT v4 de Manacá-1B-Instruct-2; seguridad retenida PT-BR N=218; rechazo excesivo N=184; cuatro baselines externos PT-BR; juez Claude en seis ejemplos sensibles de MT-Bench-PT; barrido de composición de datos generales de 10–60% en un solo modelo.",
+        "reproducibility": "El artículo y el README actual de GitHub enlazan una guía de reproducción y materiales de entrenamiento y evaluación; esta activación solo inspeccionó los metadatos del repositorio y su README bilingüe. No fijó el commit de cada artefacto, no verificó que los pesos publicados correspondan a v4, no instaló dependencias ni ejecutó la evaluación. El siguiente paso más económico es fijar el commit del 15 de octubre y reproducir las comparaciones con 218/184 ejemplos y la auditoría del rechazo del juez.",
+        "strongest_baseline": "Se evaluaron cuatro modelos PT-BR externos con los mismos ejemplos y el mismo harness. Sus tasas de seguridad informadas fueron 3.2%, 15.1%, 14.7% y 70.6%, frente a 97.2% para v4. El artículo informa intervalos de Wilson y pruebas de McNemar pareadas con corrección Holm-Bonferroni, pero el análisis no se reprodujo de manera independiente."
+      },
+      "title": "Manacá-1B-Instruct-2 informa resultados de seguridad en PT-BR y una falla de evaluación con juez LLM",
+      "why_it_matters": "El trabajo aporta dos señales acotadas: una comparación de seguridad con apariencia reproducible para un idioma menos representado y una falla concreta en la que la propia capa de seguridad del evaluador elimina de forma silenciosa elementos sensibles del denominador. Si se confirma de manera independiente, esta última observación podría mejorar la práctica de reporte en evaluaciones con jueces LLM. El artículo no demuestra seguridad general, preparación para producción ni que la falla observada sea frecuente fuera de este proyecto."
     },
     "FCMO-8F0EB89DAE2C": {
       "claims": [
@@ -33754,6 +33872,48 @@
         "source_sha256": "11997d4ba7a1595dca98b9d497b7e78a79a76745ccfad8782043fe5de13585fd"
       }
     },
+    "FCMO-80FF0F95B3E8": {
+      "claims": {
+        "locale_sha256": "e10ce1ff1c76af74b97a562a9a70226d0949671509edd8d4c272265d0adc07ff",
+        "source_sha256": "7af4c993347eb92f42f6b79e5ee36f6baf32a8e07dd8d91c77c57f96aa1250b7"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "bf12f8d9d8017bd5cda6e2b9ad0d29dbfb761ba4ab27925238f791c0c6df6f1e",
+        "source_sha256": "3107547b797654e5d2f89772fbd6782887d3ec6a06327e2138eabb060da506a2"
+      },
+      "importance_rationale": {
+        "locale_sha256": "a012a8c952e86f884339209878b463b537cd924725d351536578d5c422e8b208",
+        "source_sha256": "6b3645e2ba187ba9576f95755167cab10d96849dbfadd7b36af119f6be9e42be"
+      },
+      "limitations": {
+        "locale_sha256": "a78814e723c145806c039da8e07b69ecdd741ac2ab66a3ae6b5d47522822a87d",
+        "source_sha256": "9da07a9b8283caedf884415910ea59ba55d806efec069f5ca739c3adb9a53daa"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "c61be13ebdc2844e73db1454092fa153a769a09c81fb4bb9a8f7438f9941126f",
+        "source_sha256": "9abd9acc6affe29f9ada22dd31775b4412f94189efbe70d3faf988c4113c6a4c"
+      },
+      "technical": {
+        "locale_sha256": "be375742b380444c8eb16f88fc748907e974767c5633829859df8f97af9e2409",
+        "source_sha256": "8ee0ca4cef816f02061d69a9704a9ea36aa12db9fcffe042914cbfeffb972ea5"
+      },
+      "title": {
+        "locale_sha256": "93ddcbc83db5c648f7b602e7237a1f4b071625602e6990685f5fe364829e567d",
+        "source_sha256": "569b4d64dc820ae4f3c7a60b3cdb9a07dea449a45b57aa973c2b3e8a4d4a7e53"
+      },
+      "why_it_matters": {
+        "locale_sha256": "8d5890e5781097a64aacd73be5ba053000c3847d6716fa0d4d782cb9fcad38a0",
+        "source_sha256": "3056437e0176e8943cefecbed58aacc690881d400beeebed67c601a793047614"
+      }
+    },
     "FCMO-8173F1E96690": {
       "claims": {
         "locale_sha256": "d0d8d1d76d08fbd8fc105d984fb9cd5b9469e999da58cdd944241167f631f947",
@@ -34802,6 +34962,48 @@
       "why_it_matters": {
         "locale_sha256": "d9d8309f9fd80530283e2e4ac95b48f0ac79cf0e573372367d413589c1510f83",
         "source_sha256": "45974e566827c076be4ee1cb288074626b4a050b9f585eff5138e483b618a886"
+      }
+    },
+    "FCMO-8EACCBAADA18": {
+      "claims": {
+        "locale_sha256": "749aa37988898330cba2c9bdee90d8ba562ace40815b04a48183e55729f3aec2",
+        "source_sha256": "a749b39469201dbdaba5ebe375cff005469a1a0eae9e0c0e81fbc62c6fb55cc7"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "1a7f9305c7b431a2d377d84aa485bba339956f1cf6c387a8f17e6598163e5481",
+        "source_sha256": "831b6c786ef79ec6d9cedaa080440a4651a27087523badbbcfa0cc1dd0e60f17"
+      },
+      "importance_rationale": {
+        "locale_sha256": "9ad244357e726a93091ba3a7a654d54d214e390c2f8b1bcce0acbe4a88c97655",
+        "source_sha256": "22cfdef2db7babdc675b9353ce538ad565230ccabb49614d485ed6104545f95d"
+      },
+      "limitations": {
+        "locale_sha256": "73277a5ab9c46961f496a321ac7a116e8ba8e53ea8c7324d4c7c756b93dafc84",
+        "source_sha256": "0b14df4fde17fb13f15665ca63de0e659e97aaa6987b39d36d36ebcdcc34b34e"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "9059e8cc6f8b983284eb61a0dbc2c9f6b23952e19abe31884eb3f5ba4c980c84",
+        "source_sha256": "25a6eb2689619563215b23b24ffabb9160e7666678175335ce6dbddf719535c6"
+      },
+      "technical": {
+        "locale_sha256": "f26cff5d9d83981cef4a49c071187bec03e6994ab47f30ef2fb6a0bb32bf31c8",
+        "source_sha256": "4b43d784e98e08e9b54b44344435fedd4d85faa71ea0f3254bbca2b0ff771e80"
+      },
+      "title": {
+        "locale_sha256": "d26d0732b82a1896909021a9a81eb132aaf776ceacdfc49b118a9699a140fcf3",
+        "source_sha256": "ca47b3bb4847c6f4047c4b75d4cf37821c2358788a475f388ae6cd409668b4f9"
+      },
+      "why_it_matters": {
+        "locale_sha256": "468d2fdc9c51e6d31396e3d8d50647b37cda975c36d292a9ea761b7d6ccebb1f",
+        "source_sha256": "fb1897507a1639b8bcc9a31465fc4edf507d84a0646e3a90b16904b965595490"
       }
     },
     "FCMO-8F0EB89DAE2C": {

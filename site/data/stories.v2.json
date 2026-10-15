@@ -1,7 +1,7 @@
 {
   "schema": "fcmo-stories-v2",
-  "generated_at": "2026-10-15T08:06:00Z",
-  "release_id": "newswire-98e8c7a2d931c9a2abc18eed",
+  "generated_at": "2026-10-15T09:02:41Z",
+  "release_id": "newswire-77d09f25836ff0b28c2488d7",
   "canonical_locale": "en",
   "locales": [
     "en",
@@ -41,6 +41,497 @@
     "2026-10-14"
   ],
   "stories": [
+    {
+      "id": "FCMO-8EACCBAADA18",
+      "slug": "manaca-1b-instruct-2-reports-pt-br-safety-results-and-an-llm-judge",
+      "url_date": "2026-10-15",
+      "kind": "development",
+      "status": "live",
+      "beat": "research",
+      "desk": "evaluation_science",
+      "title": "Manacá-1B-Instruct-2 reports PT-BR safety results and an LLM-judge refusal failure",
+      "headline": "Manacá-1B-Instruct-2 reports PT-BR safety results and an LLM-judge refusal failure",
+      "dek": "An October 14 arXiv report describes Manacá-1B-Instruct-2, a 1.72B-parameter model trained from scratch for Brazilian Portuguese, with a new safety-SFT alignment and unusually detailed negative results.",
+      "summary": "An October 14 arXiv report describes Manacá-1B-Instruct-2, a 1.72B-parameter model trained from scratch for Brazilian Portuguese, with a new safety-SFT alignment and unusually detailed negative results. The authors report 97.2% held-out safety on 218 harmful prompts against four external PT-BR models tested on the same items and harness; the lower Wilson confidence bound is 94.1%, above all four baselines. The paper also reports that its Claude judge refused to score 2 of 6 sensitive MT-Bench-PT prompts regardless of the evaluated answer, reducing the effective sample for this category across eight historical project reports. The authors say their repository now exposes this missingness. These are author-reported results; model scale, benchmark scope, low absolute general capability and absent independent reproduction sharply limit wider claims.",
+      "why_it_matters": "The work contributes two bounded signals: a reproducible-looking safety comparison for an underrepresented language, and a concrete failure mode in which the evaluator’s own safety layer silently removes sensitive items from a score denominator. If independently checked, the latter could improve reporting practice for LLM-judge evaluations. The paper does not show general safety, production readiness, or that the observed judge failure is widespread beyond this project.",
+      "importance_rationale": "If the bounded comparison and judge-missingness audit hold, they can inform safety-evaluation design for lower-resource language models and prevent silent denominator errors in sensitive LLM-judge categories. This is methodologically useful beyond one model, while the empirical scope is a single 1.72B Brazilian-Portuguese project and one judge workflow.",
+      "technical": {
+        "claimed_result": "Authors report v4 scores of 97.2% held-out safety on N=218 and 9.2% over-refusal on N=184. The 95% Wilson safety interval is reported as 94.1–98.7%, with its lower bound above all four external baseline intervals. The authors also report 2/6 safety-category judge refusals repeated across six models and eight historical reports.",
+        "demonstrated_result": "The arXiv report and the public project README document the study, reported comparisons, negative DPO attempts, judge-refusal audit and experimental-release status. No independent rerun, model-weight verification or code execution was performed.",
+        "mechanism": "After three unsuccessful DPO attempts, the authors use a dedicated safety-SFT in an AnswerCarefully style, mixing direct refusal targets with benign-helpfulness and general data. A controlled scan varies the general-data fraction from 10% to 60%. Separately, they inspect API stop_reason values from the LLM judge to identify refusals that silently omit evaluation items.",
+        "regime": "Manacá-1B-Instruct-2 safety-SFT v4; held-out PT-BR safety N=218; over-refusal N=184; four external PT-BR baselines; Claude judge on six MT-Bench-PT sensitive-category items; 10–60% general-data composition scan on one model.",
+        "reproducibility": "The paper and current GitHub README link a reproduction runbook, training/evaluation material and reports; this activation inspected the repository metadata and bilingual README only. It did not pin a commit for every artifact, verify that published weights match v4, install dependencies or execute the evaluation. Cheapest next step is to pin the Oct 15 repository commit and reproduce the 218/184-item comparisons and judge-refusal audit.",
+        "strongest_baseline": "Four external PT-BR models were run on the same items and harness. Reported safety rates were 3.2%, 15.1%, 14.7%, and 70.6% versus 97.2% for v4. The paper reports Wilson intervals and paired McNemar tests with Holm-Bonferroni correction, but the analysis is not independently reproduced."
+      },
+      "importance_tier": "Notable",
+      "development_type": "paper",
+      "event_at": "2026-10-14T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-15T09:02:26Z",
+      "updated_at": "2026-10-15T09:02:26Z",
+      "importance": 5,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": true,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "DEMONSTRATED",
+            "text": "The October 14 arXiv v1 report documents Manacá-1B-Instruct-2, its post-training experiments, safety evaluation, and stated limitations; the project repository README in Portuguese and English identifies an experimental v0.2 release and says it is not production-grade safety."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "The authors report 97.2% held-out safety on 218 harmful prompts for v4, with a 94.1% lower Wilson confidence bound above the reported results for four external PT-BR baselines tested on the same items and harness. They report 9.2% over-refusal on 184 items; the statistical comparison is author-run and has not been independently reproduced."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "The authors report that the Claude judge refused to score 2 of 6 sensitive MT-Bench-PT items regardless of the answer being evaluated, reducing the effective sample across six models and eight historical project reports; the repository says its reporting was corrected to expose per-cell sample size and judge refusals."
+          },
+          {
+            "label": "DEMONSTRATED",
+            "qualifier": "LIMITATION",
+            "text": "The authors state that the controlled 10–60% general-data composition scan used one training round per point and small N=16/34 probes; its non-monotonic over-refusal pattern and 40–50% “knee” may be partly noise and are untested at another model scale. They also report low absolute general capability and chance-level results on several exams for models at this scale."
+          }
+        ],
+        "limitations": [
+          "All comparative results are author-reported; the current repository README was read but the model weights, code and evaluation pipeline were not independently executed.",
+          "The model is one 1.72B Brazilian-Portuguese system; these results do not establish safety for other languages, scales, model families or deployed use.",
+          "The 10–60% composition scan uses one training seed per point and small N=16/34 probes; the authors state the apparent knee may partly be noise.",
+          "The safety percentage depends on the authors’ prompt set, classification rules, generation settings and matched baseline choice.",
+          "The repository labels this an experimental research release and explicitly disclaims production-grade safety.",
+          "The judge refusal mechanism is documented within one project and one Claude evaluation workflow; broader prevalence is unknown."
+        ],
+        "gaps": [
+          {
+            "kind": "missing_independent",
+            "description": "Independent reproduction of the 218-item safety and 184-item over-refusal comparisons and the reported paired statistical tests is absent."
+          },
+          {
+            "kind": "missing_artifact",
+            "description": "The relationship between the released v4 weights, the exact repository commit and the paper’s reported final checkpoint was not independently verified."
+          },
+          {
+            "kind": "regime_unclear",
+            "description": "Generalization of the judge-refusal finding beyond the Claude judge, this MT-Bench-PT safety category and the project’s eight historical reports is unknown."
+          },
+          {
+            "kind": "missing_independent",
+            "description": "The controlled general-data composition scan has one training seed per point and N=16/34 iteration probes; the 40–50% knee may reflect training or sampling noise."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2610.20570v1",
+          "domain": "arxiv.org",
+          "primary": true
+        },
+        {
+          "url": "https://github.com/Instituto-IA-LNCC/manaca-1b-instruct-2",
+          "domain": "github.com",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "National Laboratory for Scientific Computing (LNCC)",
+        "NII/LLM-jp",
+        "Instituto de Inteligência Artificial/LNCC"
+      ],
+      "topics": [
+        "brazilian-portuguese-models",
+        "safety-alignment",
+        "llm-as-a-judge",
+        "evaluation-reliability",
+        "over-refusal"
+      ],
+      "regions": [
+        "BR",
+        "GLOBAL"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-8EACCBAADA18.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: Manacá-1B-Instruct-2 reports PT-BR safety results and an LLM-judge refusal failure"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "Manacá-1B-Instruct-2 informa resultados de seguridad en PT-BR y una falla de evaluación con juez LLM",
+            "summary": "Un informe de arXiv del 14 de octubre describe Manacá-1B-Instruct-2, un modelo de 1.72B parámetros entrenado desde cero para portugués brasileño, con una nueva alineación safety-SFT y resultados negativos detallados. Los autores informan 97.2% de seguridad en 218 solicitudes dañinas retenidas, frente a cuatro modelos PT-BR externos evaluados con los mismos ejemplos y el mismo harness; el límite inferior del intervalo de Wilson es 94.1%, por encima de los cuatro baselines. El artículo también informa que su juez Claude se negó a puntuar 2 de 6 solicitudes sensibles de MT-Bench-PT sin importar la respuesta evaluada, reduciendo la muestra efectiva de esta categoría en ocho informes históricos del proyecto. Los autores dicen que el repositorio ahora muestra esta omisión. Son resultados de los autores; la escala del modelo, el alcance del benchmark, la baja capacidad general absoluta y la falta de reproducción independiente limitan las conclusiones más amplias.",
+            "importance_rationale": "Si se sostienen la comparación acotada y la auditoría de datos faltantes del juez, pueden orientar la evaluación de seguridad de modelos lingüísticos de menor representación y prevenir errores silenciosos de denominador en categorías sensibles evaluadas con jueces LLM. Es útil desde el punto de vista metodológico, pero la evidencia empírica corresponde a un solo proyecto PT-BR de 1.72B y a un flujo de trabajo de un juez.",
+            "why_it_matters": "El trabajo aporta dos señales acotadas: una comparación de seguridad con apariencia reproducible para un idioma menos representado y una falla concreta en la que la propia capa de seguridad del evaluador elimina de forma silenciosa elementos sensibles del denominador. Si se confirma de manera independiente, esta última observación podría mejorar la práctica de reporte en evaluaciones con jueces LLM. El artículo no demuestra seguridad general, preparación para producción ni que la falla observada sea frecuente fuera de este proyecto.",
+            "technical": {
+              "claimed_result": "Los autores informan para v4 97.2% de seguridad retenida con N=218 y 9.2% de rechazo excesivo con N=184. El intervalo de Wilson del 95% para seguridad se informa como 94.1–98.7%, y su límite inferior supera los intervalos de los cuatro baselines externos. También informan 2/6 rechazos del juez en la categoría de seguridad, repetidos en seis modelos y ocho informes históricos del proyecto.",
+              "demonstrated_result": "El informe de arXiv y el README público del proyecto documentan el estudio, las comparaciones informadas, los intentos negativos de DPO, la auditoría del rechazo del juez y el estado de versión experimental. No se hizo una réplica independiente, una verificación de los pesos ni una ejecución del código.",
+              "mechanism": "Tras intentos de DPO sin éxito, los autores usan un safety-SFT dedicado al estilo AnswerCarefully, que combina objetivos directos de rechazo con ejemplos de ayuda benigna y datos generales. Un barrido controlado varía la proporción de datos generales de 10% a 60%. Por separado, inspeccionan los motivos de detención de la API del juez LLM para detectar rechazos que omiten elementos de la evaluación.",
+              "regime": "Safety-SFT v4 de Manacá-1B-Instruct-2; seguridad retenida PT-BR N=218; rechazo excesivo N=184; cuatro baselines externos PT-BR; juez Claude en seis ejemplos sensibles de MT-Bench-PT; barrido de composición de datos generales de 10–60% en un solo modelo.",
+              "reproducibility": "El artículo y el README actual de GitHub enlazan una guía de reproducción y materiales de entrenamiento y evaluación; esta activación solo inspeccionó los metadatos del repositorio y su README bilingüe. No fijó el commit de cada artefacto, no verificó que los pesos publicados correspondan a v4, no instaló dependencias ni ejecutó la evaluación. El siguiente paso más económico es fijar el commit del 15 de octubre y reproducir las comparaciones con 218/184 ejemplos y la auditoría del rechazo del juez.",
+              "strongest_baseline": "Se evaluaron cuatro modelos PT-BR externos con los mismos ejemplos y el mismo harness. Sus tasas de seguridad informadas fueron 3.2%, 15.1%, 14.7% y 70.6%, frente a 97.2% para v4. El artículo informa intervalos de Wilson y pruebas de McNemar pareadas con corrección Holm-Bonferroni, pero el análisis no se reprodujo de manera independiente."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "El informe v1 de arXiv del 14 de octubre documenta Manacá-1B-Instruct-2, sus experimentos de postentrenamiento, la evaluación de seguridad y sus limitaciones declaradas; el README del proyecto en portugués e inglés identifica una versión experimental v0.2 y dice que no ofrece seguridad de nivel productivo."
+                },
+                {
+                  "text": "Los autores informan 97.2% de seguridad en 218 solicitudes dañinas retenidas para v4, con un límite inferior del intervalo de Wilson de 94.1%, superior a los cuatro baselines externos PT-BR evaluados con los mismos ejemplos y el mismo harness. Informan 9.2% de rechazo excesivo en 184 ejemplos; la comparación estadística fue realizada por los autores y no se reprodujo de manera independiente."
+                },
+                {
+                  "text": "Los autores informan que el juez Claude se negó a puntuar 2 de 6 ejemplos sensibles de MT-Bench-PT, independientemente de la respuesta evaluada, reduciendo la muestra efectiva en seis modelos y ocho informes históricos del proyecto; el repositorio dice que corrigió el reporte para mostrar el tamaño de muestra por celda y los rechazos del juez."
+                },
+                {
+                  "text": "Los autores indican que el barrido controlado de datos generales de 10–60% usó una ronda de entrenamiento por punto y sondas pequeñas de N=16/34; el patrón no monótono de rechazo excesivo y el “punto de inflexión” de 40–50% podrían deberse en parte al ruido y no se probaron a otra escala. También informan baja capacidad general absoluta y resultados cercanos al azar en varios exámenes para modelos de esta escala."
+                }
+              ],
+              "limitations": [
+                "Todas las comparaciones son resultados informados por los autores; se leyó el README actual del repositorio, pero no se ejecutaron independientemente los pesos, el código ni el pipeline de evaluación.",
+                "El modelo es un único sistema PT-BR de 1.72B; estos resultados no establecen seguridad en otros idiomas, escalas, familias de modelos o usos desplegados.",
+                "El barrido de composición de 10–60% usa una semilla por punto y sondas pequeñas N=16/34; los autores advierten que el aparente punto de inflexión podría deberse en parte al ruido.",
+                "El porcentaje de seguridad depende del conjunto de solicitudes, reglas de clasificación, parámetros de generación y baselines elegidos por los autores.",
+                "El repositorio identifica el modelo como una versión experimental de investigación y niega explícitamente que ofrezca seguridad de nivel productivo.",
+                "La falla del juez se documenta dentro de un proyecto y un flujo de evaluación con Claude; se desconoce su prevalencia más amplia."
+              ],
+              "gaps": [
+                {
+                  "description": "Falta una reproducción independiente de las comparaciones de seguridad con 218 ejemplos y de rechazo excesivo con 184, así como de las pruebas estadísticas pareadas."
+                },
+                {
+                  "description": "No se verificó de manera independiente la relación entre los pesos v4 publicados, el commit exacto del repositorio y el checkpoint final del artículo."
+                },
+                {
+                  "description": "Se desconoce si la falla del juez se generaliza más allá del juez Claude, esta categoría sensible de MT-Bench-PT y los ocho informes históricos del proyecto."
+                },
+                {
+                  "description": "El barrido controlado de la composición de datos tiene una semilla de entrenamiento por punto y sondas N=16/34; el punto de inflexión de 40–50% podría reflejar ruido de entrenamiento o muestreo."
+                }
+              ]
+            },
+            "dek": "Un informe de arXiv del 14 de octubre describe Manacá-1B-Instruct-2, un modelo de 1.72B parámetros entrenado desde cero para portugués brasileño, con una nueva alineación safety-SFT y resultados negativos detallados."
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "Manacá-1B-Instruct-2报告PT-BR安全结果及LLM评审器拒评分问题",
+            "summary": "一篇十月14日的arXiv报告介绍Manacá-1B-Instruct-2：一个从零开始为巴西葡萄牙语训练、参数量为1.72B的模型，并提供新的安全SFT对齐和详细负面结果。作者报告称，在218条留出的有害请求上，模型安全率为97.2%；四个外部PT-BR模型在相同样例和同一测试框架下进行比较，Wilson置信区间下界为94.1%，高于四个基线。论文还报告称，无论被评模型给出什么回答，Claude评审器都会拒绝给MT-Bench-PT中的2/6条敏感样例评分，使该类别在项目此前的八份报告中有效样本数被悄然缩小。作者称现有仓库已公开这一缺失。以上均为作者报告；模型规模、基准范围、较低的绝对通用能力及缺少独立复现限制了更广泛结论。",
+            "importance_rationale": "如果这项有限比较和评审器缺失样例审计成立，它们可以指导低资源语言模型的安全评估，并防止敏感类别LLM评审中出现隐蔽的分母错误。其方法学价值超出单个模型，但实证范围仅限于一个1.72B的巴西葡萄牙语项目和一种评审流程。",
+            "why_it_matters": "这项工作带来两个范围有限的信号：针对代表性不足语言的一项看似可复现的安全比较，以及一种具体评估故障，即评审器自身的安全层会悄然把敏感样例从分母中移除。如果得到独立核验，后者可能改进LLM评审评估的报告实践。论文没有证明普遍安全、具备生产部署条件，也没有证明这一故障在该项目之外很常见。",
+            "technical": {
+              "claimed_result": "作者报告v4在留出安全测试N=218上达到97.2%，在N=184上过度拒绝率为9.2%。安全率的95% Wilson区间报告为94.1–98.7%，下界高于四个外部基线区间。作者还报告安全类别中有2/6条样例触发评审器拒评，该问题在六个模型和项目八份历史报告中重复出现。",
+              "demonstrated_result": "arXiv报告及项目公开README记录了研究、作者报告的比较、DPO负面尝试、评审器拒评分审计及实验版本状态。本次没有独立复现、核验模型权重或运行代码。",
+              "mechanism": "三次DPO尝试均未成功后，作者采用AnswerCarefully风格的专门安全SFT，将直接拒绝目标与良性帮助示例和通用数据混合。受控扫描将通用数据比例从10%变至60%。另行检查LLM评审器API停止原因，以发现会悄然从评估中漏掉的拒评分样例。",
+              "regime": "Manacá-1B-Instruct-2的安全SFT v4；PT-BR留出安全样例N=218；过度拒绝N=184；四个PT-BR外部基线；Claude评审器在MT-Bench-PT中评估六条敏感样例；单一模型上的10–60%通用数据比例扫描。",
+              "reproducibility": "论文和当前GitHub README提供复现指南及训练、评估材料链接；本次仅检查了仓库元数据和双语README。没有为每项制品固定提交版本、核验已发布权重是否对应v4、安装依赖或执行评估。最低成本的下一步是固定十月15日的仓库提交，再复现218/184条样例比较和评审器拒评分审计。",
+              "strongest_baseline": "四个外部PT-BR模型使用相同样例和测试框架评估。其报告安全率分别为3.2%、15.1%、14.7%和70.6%，v4为97.2%。论文报告Wilson区间及带Holm-Bonferroni校正的配对McNemar检验，但本次没有独立复现分析。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "十月14日的arXiv v1报告记录了Manacá-1B-Instruct-2、其后训练实验、安全评估和作者列出的限制；项目的葡萄牙语及英语README将其标为实验性v0.2版本，并称其不具备生产级安全性。"
+                },
+                {
+                  "text": "作者报告称，v4在218条留出的有害请求上安全率为97.2%，Wilson置信区间下界为94.1%，高于四个外部PT-BR基线在相同样例和同一测试框架下的结果。作者报告称，在184条样例上的过度拒绝率为9.2%；该统计比较由作者完成，尚未独立复现。"
+                },
+                {
+                  "text": "作者报告称，Claude评审器对MT-Bench-PT中2/6条敏感样例拒绝评分，无论被评模型如何作答；这使项目此前八份报告中六个模型的有效样本数减少。仓库称报告已修正，现会显示每个单元格的样本数及评审器拒评分。"
+                },
+                {
+                  "text": "作者指出，10–60%通用数据比例的受控扫描每个比例只训练一轮，迭代探针样本较小，为N=16/34；过度拒绝率的非单调变化和40–50%的“拐点”可能部分来自噪声，且未在其他模型规模上测试。作者还报告称，该规模模型的绝对通用能力较低，多项考试的结果接近随机水平。"
+                }
+              ],
+              "limitations": [
+                "所有比较结果均由作者报告；本次阅读了当前仓库README，但没有独立执行权重、代码或评估流程。",
+                "模型是一个1.72B巴西葡萄牙语系统；这些结果不能证明其他语言、规模、模型系列或部署用途具备安全性。",
+                "10–60%的数据比例扫描每点只有一个训练种子，探针样本N=16/34；作者指出观察到的拐点可能部分由噪声造成。",
+                "安全率取决于作者选用的请求集、分类规则、生成设置和对照模型。",
+                "仓库将该模型标记为实验性研究版本，并明确声明其不具备生产级安全性。",
+                "评审器拒评分问题仅在该项目的一套Claude评估流程中记录；更广泛的发生率未知。"
+              ],
+              "gaps": [
+                {
+                  "description": "缺少对218条安全样例、184条过度拒绝样例上的比较及配对统计检验的独立复现。"
+                },
+                {
+                  "description": "尚未独立核验已发布的v4权重、确切仓库提交版本与论文最终检查点之间的关系。"
+                },
+                {
+                  "description": "评审器拒评分问题是否超出Claude评审器、MT-Bench-PT敏感类别及项目八份历史报告，尚不清楚。"
+                },
+                {
+                  "description": "受控通用数据比例扫描每个点只有一个训练种子，探针较小，为N=16/34；40–50%的拐点可能反映训练或抽样噪声。"
+                }
+              ]
+            },
+            "headline": "Manacá-1B-Instruct-2报告PT-BR安全结果及LLM评审器拒评分问题"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
+    {
+      "id": "FCMO-80FF0F95B3E8",
+      "slug": "react-reports-target-free-event-stream-collision-time-estimates-at-4-6",
+      "url_date": "2026-10-15",
+      "kind": "development",
+      "status": "live",
+      "beat": "research",
+      "desk": "multimodality_world_models",
+      "title": "REACT reports target-free event-stream collision-time estimates at 4.6 ms latency",
+      "headline": "REACT reports target-free event-stream collision-time estimates at 4.6 ms latency",
+      "dek": "Keime, Cuperlier and Cottereau report REACT, a fully spiking state-space model that updates from raw event-camera streams without temporal accumulation.",
+      "summary": "Keime, Cuperlier and Cottereau report REACT, a fully spiking state-space model that updates from raw event-camera streams without temporal accumulation. On the EvTTC validation split, their v1 preprint reports 9.59±0.74% relative time-to-collision error and 4.6 ms end-to-end latency without a target-box prior. The authors report 4 cm of travel during that latency at the dataset mean approach speed of 9.22 m/s; at 100 km/h the same latency corresponds to 12.8 cm. Their INT8 energy figures are analytical estimates, not hardware measurements. The numerical results are author-reported and have not been independently reproduced.",
+      "why_it_matters": "A model that predicts collision timing continuously from raw events without first detecting or tracking a target could shorten the perception-to-action path in fast reactive robotics. The reported accuracy is close to target-box-based learned methods under a different input regime, but this remains a single preprint evaluation on limited driving data; real-robot utility and hardware energy are not established.",
+      "importance_rationale": "If the reported target-free, event-by-event collision-time performance generalizes, it could change perception latency and sensing architecture choices for reactive robots. Consequence is meaningful within event-based robotics; evaluation scope is narrow and deployment evidence is absent.",
+      "technical": {
+        "claimed_result": "The preprint reports 9.59±0.74% relative TTC error at 4.6 ms end-to-end latency on EvTTC without a target bounding box. It reports 4 cm vehicle travel at 9.22 m/s dataset mean speed; the 12.8 cm value uses the same latency at 100 km/h. INT8 quantization reports 10.26±0.81% error and an estimated 2.8 mJ per 32,768 events.",
+        "demonstrated_result": "The inspected arXiv v1 source documents the architecture, experiment tables and author-reported results. No independent reproduction, physical neuromorphic measurement, or real-robot deployment was inspected.",
+        "mechanism": "Each raw event updates a spiking state-space model; physical inter-event time drives complex C-SiLIF continuous-time dynamics, avoiding fixed temporal accumulation.",
+        "regime": "EvTTC validation split; FCWD zero-shot transfer; DVS128-Gesture. Reported metrics aggregate three gesture seeds/five EvTTC seeds as stated by authors. Latency is end-to-end in the paper’s evaluation; hardware platform detail and external replication were not verified.",
+        "reproducibility": "No public code was linked in the inspected v1 HTML; the authors say code will be made public upon publication. Cheapest next check: inspect arXiv revisions and the authors’ repository for code, then reproduce the EvTTC table with matched sensor, sequence and preprocessing details.",
+        "strongest_baseline": "EvTTC comparison in Table II includes Garl-TTC at 9.44% and 113 ms with event+frame input and target box; REACT uses events only and no target prior. The comparison changes inputs and task setup, so it is informative but not a fully matched causal comparison."
+      },
+      "importance_tier": "Notable",
+      "development_type": "paper",
+      "event_at": "2026-09-16T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-15T09:02:26Z",
+      "updated_at": "2026-10-15T09:02:26Z",
+      "importance": 5,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": true,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "CLAIMED",
+            "text": "The authors report that REACT processes raw events sequentially with continuous-time spiking state-space dynamics, without event accumulation or target-box input."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "On EvTTC, the authors report 9.59±0.74% relative TTC error and 4.6 ms end-to-end latency; 4 cm travel uses dataset mean speed 9.22 m/s, while 12.8 cm uses 100 km/h."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "The authors report 25.7% relative TTC error on one FCWD sequence without fine-tuning; energy figures are analytical estimates based on a 45 nm proxy and await hardware validation."
+          }
+        ],
+        "limitations": [
+          "All reported performance values are from the authors’ arXiv v1 preprint and have not been independently reproduced.",
+          "The 9.59% EvTTC comparison changes input regime relative to target-box baselines; do not present it as a fully matched same-input win.",
+          "The 4 cm and 12.8 cm distance figures use different vehicle-speed assumptions and should not be compared as conflicting measurements.",
+          "The INT8 energy estimate is a proxy and should not be described as measured device energy.",
+          "The authors promise code on publication; the inspected paper does not provide a public implementation."
+        ],
+        "gaps": [
+          {
+            "kind": "reproduction_missing",
+            "description": "No independent reproduction of the EvTTC evaluation or reported latency was performed; exact test sequences, preprocessing, runtime hardware and measurement details are not independently checked."
+          },
+          {
+            "kind": "missing_artifact",
+            "description": "Energy results use a 45 nm analytical proxy; no physical neuromorphic hardware or robotic-platform measurement is reported in the inspected source."
+          },
+          {
+            "kind": "regime_unclear",
+            "description": "The test set is limited and zero-shot transfer covers one FCWD sequence; generalization to varied speeds, scenes, sensors and closed-loop robot behavior is not established."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.19204v1",
+          "domain": "arxiv.org",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "CNRS",
+        "Université de Toulouse",
+        "CY Cergy Paris Université",
+        "CNRS/IPAL"
+      ],
+      "topics": [
+        "event-based-vision",
+        "spiking-neural-networks",
+        "state-space-models",
+        "robotic-perception",
+        "time-to-collision"
+      ],
+      "regions": [
+        "GLOBAL"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-80FF0F95B3E8.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: REACT reports target-free event-stream collision-time estimates at 4.6 ms latency"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "REACT informa estimaciones de tiempo hasta colisión desde eventos con latencia de 4.6 ms",
+            "summary": "Keime, Cuperlier y Cottereau presentan REACT, un modelo espigante de espacio de estados que se actualiza a partir de flujos sin procesar de cámaras de eventos, sin acumulación temporal. En la partición de validación EvTTC, su preprint v1 informa un error relativo de tiempo hasta la colisión de 9.59±0.74% y una latencia integral de extremo a extremo de 4.6 ms sin prior de caja delimitadora del objetivo. Los autores calculan un desplazamiento de 4 cm durante esa latencia a la velocidad media de aproximación del conjunto, 9.22 m/s; a 100 km/h, la misma latencia equivale a 12.8 cm. Las cifras de energía con INT8 son estimaciones analíticas, no mediciones de hardware. Los resultados numéricos son informes de los autores y no se han reproducido de forma independiente.",
+            "importance_rationale": "Si el desempeño informado para estimar el tiempo hasta colisión evento por evento y sin objetivo se generaliza, podría cambiar las decisiones de latencia perceptual y arquitectura de sensores para robots reactivos. Su alcance es significativo dentro de la robótica basada en eventos; la evaluación es acotada y no hay evidencia de despliegue.",
+            "why_it_matters": "Un modelo que estima de forma continua el tiempo hasta la colisión a partir de eventos sin procesar, sin detectar ni seguir primero un objetivo, podría acortar la ruta entre percepción y acción en robótica reactiva rápida. La precisión informada se acerca a la de métodos aprendidos que usan una caja del objetivo, aunque bajo otra configuración de entrada; se trata de una sola evaluación de preprint con datos de conducción limitados y no se han establecido la utilidad en robots reales ni la energía en hardware.",
+            "technical": {
+              "claimed_result": "El preprint informa un error relativo de TTC de 9.59±0.74% con una latencia integral de extremo a extremo de 4.6 ms en EvTTC, sin caja delimitadora del objetivo. Informa un desplazamiento vehicular de 4 cm a la velocidad media de 9.22 m/s del conjunto; los 12.8 cm usan esa misma latencia a 100 km/h. La cuantización INT8 informa un error de 10.26±0.81% y una energía estimada de 2.8 mJ por cada 32,768 eventos.",
+              "demonstrated_result": "La fuente v1 de arXiv revisada documenta la arquitectura, las tablas experimentales y los resultados informados por sus autores. No se revisó una reproducción independiente, una medición física en hardware neuromórfico ni una implementación robótica real.",
+              "mechanism": "Cada evento sin procesar actualiza un modelo espigante de espacio de estados; el intervalo físico entre eventos impulsa la dinámica C-SiLIF compleja en tiempo continuo y evita acumular eventos en ventanas fijas.",
+              "regime": "Partición de validación EvTTC; transferencia sin ajuste a FCWD; clasificación DVS128-Gesture. Según los autores, las métricas agregan tres semillas para gestos y cinco para EvTTC. La latencia es de extremo a extremo en la evaluación del artículo; no se verificaron la plataforma de hardware ni una réplica externa.",
+              "reproducibility": "El HTML v1 revisado no enlaza código público; los autores dicen que lo publicarán al aparecer el artículo. Próximo paso de menor costo: revisar las revisiones de arXiv y el repositorio de los autores para localizar el código y luego reproducir la tabla EvTTC con el sensor, la secuencia y el preprocesamiento documentados.",
+              "strongest_baseline": "La comparación EvTTC de la Tabla II incluye Garl-TTC con 9.44% y 113 ms, usando eventos, cuadros y una caja del objetivo; REACT usa solo eventos y no requiere ese prior. Como cambian las entradas y la configuración de la tarea, la comparación es informativa, pero no constituye una comparación causal plenamente emparejada."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "Los autores informan que REACT procesa eventos sin procesar de forma secuencial con dinámica de espacio de estados espigante en tiempo continuo, sin acumular eventos ni usar una caja delimitadora del objetivo."
+                },
+                {
+                  "text": "En EvTTC, los autores informan un error relativo de TTC de 9.59±0.74% y una latencia integral de extremo a extremo de 4.6 ms; el desplazamiento de 4 cm corresponde a la velocidad media del conjunto, 9.22 m/s, mientras que 12.8 cm corresponde a 100 km/h."
+                },
+                {
+                  "text": "Los autores informan un error relativo de TTC de 25.7% en una secuencia FCWD sin ajuste fino; las cifras de energía son estimaciones analíticas basadas en un proxy de 45 nm y aún requieren validación en hardware."
+                }
+              ],
+              "limitations": [
+                "Todas las cifras de desempeño provienen del preprint v1 de arXiv de los autores y no se reprodujeron de forma independiente.",
+                "La comparación EvTTC de 9.59% usa entradas distintas de las líneas base con caja delimitadora del objetivo; no debe presentarse como una ventaja plenamente emparejada con la misma entrada.",
+                "Las cifras de desplazamiento de 4 cm y 12.8 cm usan supuestos diferentes sobre la velocidad del vehículo y no deben tratarse como mediciones en conflicto.",
+                "La estimación de energía INT8 es un proxy analítico y no debe describirse como energía medida en un dispositivo.",
+                "Los autores prometen publicar el código cuando aparezca el artículo; el preprint revisado no incluye una implementación pública."
+              ],
+              "gaps": [
+                {
+                  "description": "No se realizó una reproducción independiente de la evaluación EvTTC ni de la latencia informada; faltan comprobar de manera independiente las secuencias exactas, el preprocesamiento, el hardware de ejecución y los detalles de medición."
+                },
+                {
+                  "description": "Los resultados de energía usan un proxy analítico de 45 nm; la fuente revisada no informa mediciones en hardware neuromórfico físico ni en una plataforma robótica."
+                },
+                {
+                  "description": "El conjunto de prueba es limitado y la transferencia sin ajuste cubre una sola secuencia FCWD; no se ha establecido la generalización a distintas velocidades, escenas, sensores ni al comportamiento robótico de ciclo cerrado."
+                }
+              ]
+            },
+            "headline": "REACT informa estimaciones de tiempo hasta colisión desde eventos con latencia de 4.6 ms",
+            "dek": "Keime, Cuperlier y Cottereau presentan REACT, un modelo espigante de espacio de estados que se actualiza a partir de flujos sin procesar de cámaras de eventos, sin acumulación temporal."
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "REACT报告从事件流估算碰撞时间，延迟为4.6 ms",
+            "summary": "Keime、Cuperlier和Cottereau提出REACT：一种全脉冲状态空间模型，可直接随事件相机的原始事件流更新，不需要时间累积。在EvTTC验证划分上，作者的v1预印本报告相对碰撞时间误差为9.59±0.74%，端到端总延迟为4.6 ms，且不使用目标框先验。作者按数据集平均接近速度9.22 m/s计算，该延迟期间移动4 cm；在100 km/h时，同一延迟对应12.8 cm。INT8能耗数字是分析估算，不是硬件测量。数值结果来自作者报告，尚无独立复现。",
+            "importance_rationale": "如果报告的无目标、逐事件碰撞时间估算性能可以泛化，可能改变反应式机器人的感知延迟和传感架构选择。在事件视觉机器人研究中具有实质意义；当前评估范围有限，也没有部署证据。",
+            "why_it_matters": "如果模型能从原始事件中连续估算碰撞时间，而无需先检测或跟踪目标，就可能缩短快速反应机器人从感知到动作的路径。报告的精度接近使用目标框的学习方法，但输入条件不同；目前只有一项有限驾驶数据上的预印本评估，尚未证明真实机器人效用或硬件能耗表现。",
+            "technical": {
+              "claimed_result": "预印本报告，在EvTTC上不使用目标边界框时，相对TTC误差为9.59±0.74%，端到端总延迟为4.6 ms。作者按数据集平均速度9.22 m/s计算车辆移动4 cm；12.8 cm使用相同延迟和100 km/h车速。INT8量化结果为10.26±0.81%误差，每32,768个事件的估算能耗为2.8 mJ。",
+              "demonstrated_result": "所审阅的arXiv v1来源记录了架构、实验表格和作者报告的结果。本次未审阅独立复现、实体神经形态测量或真实机器人部署。",
+              "mechanism": "每个原始事件都会更新脉冲状态空间模型；物理事件间隔驱动复数C-SiLIF连续时间动态，从而避免固定时间窗累积。",
+              "regime": "EvTTC验证划分；FCWD免微调迁移；DVS128-Gesture。作者称手势结果汇总三种随机种子，EvTTC汇总五种。延迟是在论文评估中的端到端延迟；未核验硬件平台细节和外部复现。",
+              "reproducibility": "所审阅的v1 HTML未链接公开代码；作者称论文发表时会公开代码。最低成本的下一步是检查arXiv修订版和作者代码库，再按文档所述传感器、序列和预处理复现EvTTC表格。",
+              "strongest_baseline": "EvTTC表II纳入Garl-TTC：误差9.44%、延迟113 ms，使用事件、帧图像和目标框；REACT只用事件且无目标先验。两者输入和任务设置不同，因此该比较有参考价值，但不是完全匹配的因果比较。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "作者报告，REACT以连续时间脉冲状态空间动态逐个处理原始事件，不进行事件累积，也不需要目标边界框。"
+                },
+                {
+                  "text": "在EvTTC上，作者报告相对TTC误差为9.59±0.74%，端到端总延迟为4.6 ms；4 cm位移按数据集平均速度9.22 m/s计算，12.8 cm则按100 km/h计算。"
+                },
+                {
+                  "text": "作者报告，在一条FCWD序列上未经微调时相对TTC误差为25.7%；能耗数字是基于45 nm代理模型的分析估算，仍待硬件验证。"
+                }
+              ],
+              "limitations": [
+                "所有性能数字均来自作者的arXiv v1预印本，本次未进行独立复现。",
+                "EvTTC的9.59%比较与使用目标框的基线输入条件不同，不能表述为同输入条件下完全匹配的优势。",
+                "4 cm和12.8 cm位移数字采用不同车速假设，不应视为相互冲突的测量。",
+                "INT8能耗是代理模型估算，不能称为设备实测能耗。",
+                "作者承诺论文发表后公开代码；所审阅预印本没有提供公开实现。"
+              ],
+              "gaps": [
+                {
+                  "description": "尚未独立复现EvTTC评估或所报延迟；具体测试序列、预处理、运行硬件和测量细节也未经过独立核验。"
+                },
+                {
+                  "description": "能耗结果采用45 nm分析代理；所审阅来源没有报告实体神经形态硬件或机器人平台上的测量。"
+                },
+                {
+                  "description": "测试集范围有限，免微调迁移只覆盖一条FCWD序列；尚未证明可泛化至不同速度、场景、传感器或闭环机器人行为。"
+                }
+              ]
+            },
+            "headline": "REACT报告从事件流估算碰撞时间，延迟为4.6 ms",
+            "dek": "Keime、Cuperlier和Cottereau提出REACT：一种全脉冲状态空间模型，可直接随事件相机的原始事件流更新，不需要时间累积。在EvTTC验证划分上，作者的v1预印本报告相对碰撞时间误差为9.59±0.74%，端到端总延迟为4.6 ms，且不使用目标框先验。作者按数据集平均接近速度9.22 m/s计算，该延迟期间移动4 cm；在100 km/h时，同一延迟对应12.8 cm。INT8能耗数字是分析估算，不是硬件测量。数值结果来自作者报告，尚无独立复现。"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
     {
       "id": "FCMO-870643587CBB",
       "slug": "japan-releases-a-terms-gated-5-025-hour-hsr-mobile-manipulation-dataset",
