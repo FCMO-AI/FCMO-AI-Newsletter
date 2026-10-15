@@ -1,4 +1,5 @@
 // Tiny DOM helpers. All text goes through textContent; no innerHTML anywhere.
+import { t as tr } from './i18n.js'
 export function h (tag, props, ...kids) {
   const el = document.createElement(tag)
   for (const [k, v] of Object.entries(props || {})) {
@@ -43,9 +44,18 @@ export function modal ({ title, body, actions = [], wide = false, onClose }) {
   let closed = false
   const close = reason => { if (closed) return; closed = true; openModals.delete(close); back.remove(); document.removeEventListener('keydown', onKey); onClose && onClose(reason) }
   const onKey = e => { if (e.key === 'Escape') close() }
+  const fail = h('p', { class: 'form-error', role: 'alert', hidden: true })
   const dlg = h('div', { class: 'modal' + (wide ? ' wide' : ''), role: 'dialog', 'aria-modal': 'true', 'aria-label': title },
     h('h2', null, title), h('div', { class: 'modal-body' }, body),
-    h('div', { class: 'modal-actions' }, actions.map(a => h('button', { class: 'btn ' + (a.kind || ''), type: 'button', onclick: () => { if (a.onclick) a.onclick(close); else close() } }, a.label))))
+    fail, h('div', { class: 'modal-actions' }, actions.map(a => h('button', { class: 'btn ' + (a.kind || ''), type: 'button', onclick: async ev => {
+      // One click, one action: a double click or a slow network must never run it twice, and a failure must be said, not swallowed.
+      const btn = ev.currentTarget
+      if (!a.onclick) return close()
+      if (btn.disabled) return
+      btn.disabled = true; btn.setAttribute('aria-busy', 'true'); fail.hidden = true
+      try { await a.onclick(close) } catch (e) { fail.hidden = false; fail.textContent = e && e.status === 0 ? tr('err.net') : tr('err.generic') }
+      if (!closed) { btn.disabled = false; btn.removeAttribute('aria-busy') }
+    } }, a.label))))
   openModals.add(close); back.append(dlg); document.body.append(back); document.addEventListener('keydown', onKey)
   const first = dlg.querySelector('input,textarea,button.primary,button'); first && first.focus()
   return close

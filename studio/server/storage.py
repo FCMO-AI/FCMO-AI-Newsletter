@@ -11,6 +11,7 @@ import json
 import os
 from pathlib import Path
 import re
+import unicodedata
 import secrets
 import sqlite3
 import subprocess
@@ -123,7 +124,8 @@ class Store:
         if source_locale not in ('en', 'es-419') and os.environ.get('STUDIO_ALLOW_NON_EN_SOURCE') != '1':
             raise ValueError('Puedes escribir en español o inglés; el original chino aún no está habilitado.')
         with self.mutex:
-            value = (re.sub('[^a-z0-9]+', '-', title.lower()).strip('-')[:60] or 'ensayo') + '-' + secrets.token_hex(4)
+            folded = ''.join(c for c in unicodedata.normalize('NFKD', title) if not unicodedata.combining(c))  # «precisión» -> «precision», not «precisi-n»
+            value = (re.sub('[^a-z0-9]+', '-', folded.lower()).strip('-')[:60] or 'ensayo') + '-' + secrets.token_hex(4)
             stamp = utc()
             piece = {'schema': 'fcmo-piece-v1', 'id': 'FCMO-P-' + secrets.token_hex(6), 'kind': kind, 'slug': value,
                      'authors': [{'key': user, 'name': NAMES[user]}], 'brand': 'fcmo' if user == 'javier' else 'fcmo-ai',
