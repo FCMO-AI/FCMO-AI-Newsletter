@@ -6931,6 +6931,59 @@
       "title": "Ensayo del DeepMind Institute propone medir y preservar la transparencia del razonamiento",
       "why_it_matters": "El ensayo convierte la transparencia del razonamiento en un asunto explícito de diseño y evaluación, cuando OpenAI ha informado por separado de una menor monitorabilidad de la cadena de pensamiento de GPT-6 Astra bajo presión adversarial. Medir si los rastros visibles siguen siendo informativos podría ayudar a distinguir el razonamiento supervisable de una falsa sensación de supervisión. Las propuestas y el ejemplo de escalado de cómputo son argumentos, no resultados de ingeniería validados ni política corporativa oficial."
     },
+    "FCMO-4451D09D0450": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "En las condiciones probadas por los autores, anteponer aperturas seleccionadas de dos tokens elevó el pass@1 de MATH-500 de Olmo-3-7B de 42% a 78% (el modelo RL-Zero comparado obtuvo 75%) y el de Qwen3-14B de 72% a 87% (igual que su variante con RL). Los autores informan mejoras en varios benchmarks de matemáticas; el resultado de programación de Qwen quedó cerca del nivel de su modelo base."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan que ediciones controladas de datos de entrenamiento intermedio hicieron que tokens antes ineficaces, como “chicken”, provocaran razonamiento en Olmo-3-7B; en otra condición probada, una edición similar hizo que “Think duck duck goose” rindiera de forma comparable a “Think step by step”."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "Estos experimentos no demuestran que el aprendizaje por refuerzo no aporte capacidad de razonamiento, que los efectos informados se generalicen a modelos de instrucción desplegados ni que alguna clave sea segura en general; los autores informan cambios en el rechazo y las respuestas dañinas según la clave."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se ha examinado una reproducción independiente de los resultados principales sobre claves y las intervenciones en los datos.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "El §2.1 del artículo describe propuestas de búsqueda de aperturas con 30 problemas de entrenamiento MATH, mientras que el código público inicial fijado usa 100 propuestas y 30 problemas de filtrado; no se sabe qué configuración produjo las cifras publicadas.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "El análisis de seguridad es un estudio de caso de los autores y depende de la clave; faltan más modelos y prompts, así como una evaluación independiente.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se sostienen, estos resultados cambiarían la interpretación de las mejoras de razonamiento obtenidas con RL directo y podrían convertir las asociaciones de los datos de entrenamiento en una variable práctica de control. La evidencia se limita a modelos base seleccionados y condiciones probadas por los autores, por lo que la consecuencia potencial es notable, pero no definitiva.",
+      "limitations": [
+        "Las mediciones de rendimiento y las intervenciones en los datos son informes de los autores del preprint; el equipo de investigación no las reprodujo de manera independiente.",
+        "Las comparaciones principales usan aperturas seleccionadas en Olmo-3-7B y Qwen3-14B, con prompts definidos y hasta 32 respuestas muestreadas por problema; la eficacia de cada clave varía según el modelo y el prompt.",
+        "La discrepancia entre el artículo y el código sobre el número de problemas de búsqueda deja sin resolver la configuración que generó las cifras publicadas.",
+        "La comparación de RL estudia entrenamiento directo desde el modelo base y no establece qué aporta el post-entrenamiento de varias etapas.",
+        "La evidencia de seguridad es un caso específico de claves, no una tasa general; las claves pueden cambiar el rechazo y las respuestas dañinas."
+      ],
+      "relationships": [],
+      "summary": "Un preprint de arXiv informa que anteponer ciertos tokens al inicio de la respuesta puede acercar la precisión matemática de modelos base evaluados a la de sus equivalentes entrenados con RL directo; además, ediciones controladas de datos pueden convertir aperturas arbitrarias en claves para el razonamiento. Los resultados respaldan un mecanismo de asociaciones con los datos de entrenamiento en los modelos estudiados, pero no resuelven cuánto aporta el RL, si el efecto se generaliza ni cómo cambia la seguridad según la clave.",
+      "technical": {
+        "claimed_result": "En Olmo-3-7B, los autores informan que la clave seleccionada eleva el pass@1 de MATH-500 de 42% a 78%, frente a 75% para el modelo RL-Zero comparado; en Qwen3-14B sube de 72% a 87%, igualando la variante con RL. Las ediciones controladas del entrenamiento intermedio hacen que claves arbitrarias seleccionadas provoquen razonamiento en los modelos probados. El preprint informa estos resultados; no se han reproducido de manera independiente.",
+        "demonstrated_result": "El preprint primario consultado informa resultados de rendimiento condicionados por claves y experimentos controlados de edición de datos. El equipo de investigación no ejecutó los modelos ni reprodujo los experimentos; los resultados informados siguen siendo CLAIMED.",
+        "mechanism": "Un breve prefijo fijo cambia la distribución de continuaciones que genera el modelo base. Los autores informan que el RL aumenta la probabilidad de aperturas seleccionadas y que las ediciones contrafactuales de datos pueden cambiar qué tokens activan el razonamiento. Esto respalda asociaciones aprendidas entre tokens y conducta en los regímenes estudiados; no prueba que el RL solo cambie los tokens iniciales.",
+        "regime": "Experimentos de los autores con Olmo-3-7B y Qwen3-14B, aperturas seleccionadas de dos tokens, benchmarks de matemáticas y programación y 32 respuestas por problema; reentrenamiento con datos editados en Olmo-3-7B y SmolLM3-3B. Las comparaciones directas del artículo son entre modelos base y variantes entrenadas con RL directo.",
+        "strongest_baseline": "El artículo compara cada modelo base sin clave y con su clave seleccionada frente a la variante entrenada con RL. En MATH-500, las tasas informadas son 42% / 78% / 75% para Olmo-3-7B y 72% / 87% / 87% para Qwen3-14B."
+      },
+      "title": "Claves breves de tokens evocan conductas de razonamiento asociadas con los datos de entrenamiento en modelos base evaluados",
+      "why_it_matters": "Los resultados muestran que, en estos modelos, ciertas aperturas breves pueden evocar conductas de razonamiento asociadas con los datos de entrenamiento, lo que complica las afirmaciones simples sobre lo que el RL enseña de nuevo. Si se replican, cambiarían la interpretación del post-entrenamiento y el diseño de las evaluaciones. Los experimentos no demuestran transferencia amplia a despliegues ni que el RL no aporte capacidad."
+    },
     "FCMO-454AA3F20046": {
       "claims": [
         {
@@ -13073,6 +13126,60 @@
       "title": "SciExam informa que sistemas de agentes de IA construyeron modelos de ENSO que superaron una referencia publicada",
       "why_it_matters": "Es una prueba concreta de si sistemas de agentes pueden construir modelos científicos compactos evaluados con diagnósticos ocultos y observaciones reservadas, más allá de responder una pregunta fija. Si se replica, podría orientar la evaluación de agentes de investigación para construir modelos. Las puntuaciones reportadas corresponden a ejecuciones únicas del benchmark y las familias de mecanismos propuestas no son descubrimientos confirmados sobre el ENSO."
     },
+    "FCMO-82DA0C3569B8": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan que su ley de escalamiento conjunta, que considera la repetición de datos, predice configuraciones excluidas del ajuste con un RMSE medio de 0.03319, 28% menor que el de su mejor baseline con entradas alternativas (JointMoE con tokens de entrenamiento por idioma, RMSE 0.04617). El ajuste usa 26,300 observaciones de pérdida por idioma procedentes de 64 configuraciones principales."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Con la misma cantidad de parámetros activos y de tokens de entrenamiento por idioma, los autores informan que aumentar los expertos de 1 a 32 redujo en 83% la penalización media de pérdida al ampliar la cobertura de 12 a 200 idiomas (de 0.0796 a 0.0135), promediada entre cuatro tamaños de modelo. La pérdida de texto externa mostró una dirección coherente, mientras que los efectos en la precisión de tareas posteriores variaron."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El estudio no demuestra que la ley ajustada ni la estimación de 83% se transfieran sin cambios al entrenamiento multilingüe de frontera, a otros corpus o mezclas de idiomas, ni a presupuestos de cómputo de producción; la cuadrícula principal usa modelos con menos de mil millones de parámetros activos y la estimación de cómputo excluye costos de enrutamiento y comunicación."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se ha examinado una reproducción independiente del ajuste de la ley ni de las comparaciones de cobertura multilingüe con tokens igualados.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "La cuadrícula principal de 64 configuraciones usa una sola semilla por configuración; las comprobaciones con varias semillas se concentran en un subconjunto cercano a 190M de parámetros activos.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "Los FLOP lógicos de entrenamiento excluyen el enrutamiento y la comunicación; el estudio no mide costos de entrenamiento o inferencia a escala de frontera.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se replica, la interacción entre cantidad de expertos y cobertura lingüística cambiaría cómo se asigna la capacidad de modelos multilingües y podría reducir el costo de ampliar el soporte lingüístico con una capacidad activa por token similar. La evidencia es un estudio de escalamiento de los autores en modelos con menos de mil millones de parámetros activos, por lo que su consecuencia es significativa pero acotada.",
+      "limitations": [
+        "Todas las mediciones reportadas proceden de un solo preprint y no se han reproducido de manera independiente.",
+        "La cuadrícula factorial principal cubre 92.8–589.8M de parámetros activos; un modelo mayor funciona como prueba de estrés, no como validación de entrenamiento a escala de frontera.",
+        "Las 64 configuraciones principales usan una semilla cada una; la réplica de tres semillas se limita a comparaciones seleccionadas cerca de 190M de parámetros activos.",
+        "La estimación de 83% promedia cuatro tamaños de modelo y una expansión anidada específica de 12 a 200 idiomas con tokens de entrenamiento por idioma igualados; los efectos por tarea varían.",
+        "El estudio utiliza mezclas concretas de idiomas de FineWeb/FineWeb2, su propio tokenizador y su procedimiento de muestreo.",
+        "El cómputo de entrenamiento se aproxima como 6ND y excluye costos de enrutamiento y comunicación; no establece el costo económico total ni el de producción."
+      ],
+      "relationships": [],
+      "summary": "Un nuevo preprint de arXiv ajusta una ley conjunta de escalamiento para modelos multilingües de mezcla de expertos, considerando tamaño del modelo, tokens por idioma, número de expertos y cobertura lingüística. Los autores informan mejores predicciones en configuraciones excluidas del ajuste y una menor penalización de pérdida al ampliar la cobertura de 12 a 200 idiomas con más expertos, manteniendo iguales los parámetros activos y los tokens por idioma. Son resultados informados por los autores en una cuadrícula controlada con menos de mil millones de parámetros activos.",
+      "technical": {
+        "claimed_result": "En 26,300 observaciones de pérdida por idioma de 64 configuraciones principales, los autores informan que su ley conjunta con ajuste por repetición logra un RMSE medio de 0.03319 en configuraciones excluidas del ajuste, frente a 0.04617 para la mejor baseline evaluada con entradas alternativas, una reducción de 28%. Al igualar tokens por idioma, pasar de 1 a 32 expertos reduce en 83% la penalización media de pérdida al expandir de 12 a 200 idiomas (de 0.0796 a 0.0135).",
+        "demonstrated_result": "El preprint consultado describe un estudio de entrenamiento factorial, su ley ajustada, evaluaciones con configuraciones excluidas y benchmarks externos. El equipo de investigación no ha reproducido el estudio; los resultados numéricos siguen siendo informes de los autores.",
+        "mechanism": "La ley combina parámetros activos, tokens de entrenamiento por idioma, cantidad de expertos y cobertura lingüística, e incorpora rendimientos decrecientes cuando se repite el uso de datos limitados de un idioma. Más expertos agregan capacidad almacenada mientras la cantidad de parámetros activos se mantiene aproximadamente fija; los autores encuentran que esto puede reducir la interferencia al ampliar la cobertura.",
+        "regime": "Cuadrícula principal: 64 configuraciones de modelos decoder-only con 92.8–589.8M de parámetros activos, 1/4/16/32 expertos y mezclas anidadas de 1/12/50/200 idiomas; hasta 32B tokens de entrenamiento y 400 puntos de evaluación. Las semillas adicionales y mezclas alternativas cubren comparaciones seleccionadas. Un modelo de 1.15B activo / 21.23B almacenado es una prueba de estrés de mayor escala.",
+        "strongest_baseline": "Para la predicción en configuraciones excluidas, la mejor baseline evaluada tras adaptar las entradas es JointMoE con tokens por idioma (RMSE medio 0.04617), frente a 0.03319 de la ley propuesta. Para la expansión lingüística, se compara el modelo denso E=1 con MoE E=32, igualando parámetros activos y tokens por idioma."
+      },
+      "title": "Un estudio de escalamiento multilingüe informa que más expertos reducen el costo en pérdida de ampliar la cobertura de idiomas",
+      "why_it_matters": "Si se replican en escalas y mezclas de idiomas más amplias, la interacción entre capacidad de expertos y cobertura lingüística podría orientar la asignación de cómputo de entrenamiento y parámetros almacenados, reduciendo un costo de pérdida medido al agregar idiomas. La evidencia actual es un preprint con una cuadrícula controlada de menos de mil millones de parámetros activos; no establece resultados a escala de frontera ni la economía de producción."
+    },
     "FCMO-83062915742D": {
       "claims": [
         {
@@ -13542,6 +13649,60 @@
       },
       "title": "CellAudit revela que la precisión predictiva puede ocultar que no se usan las variables de intervención",
       "why_it_matters": "Un modelo puede predecir respuestas celulares retenidas sin utilizar la variable de intervención que su afirmación científica dice que importa. Separar la ruta en código, la dependencia de las predicciones ajustadas y la contribución a la predicción objetivo puede revelar esa brecha y orientar revisiones. El artículo también muestra que la transferencia predictiva y las afirmaciones sobre uso de entradas pueden divergir entre cohortes. Las conclusiones dependen de las distribuciones de reemplazo registradas y de los modelos ajustados; no establecen mecanismos biológicos ni efectos causales."
+    },
+    "FCMO-870643587CBB": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "La ficha de AIRoA MoMa 5k describe un artefacto público sujeto a términos que contiene 1,184,259 episodios exitosos de acciones primitivas, 5,025.1 horas registradas y 180,905,084 cuadros de 44 robots HSR físicos en cinco sitios. Solo incluye datos de entrenamiento y episodios exitosos; la ficha indica un tamaño aproximado de 4.0 TiB y limita el uso a investigación y desarrollo, sin redistribución."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "La página de resultados del programa METI/NEDO atribuye a AIRoA una campaña más amplia con cerca de 80,000 horas recolectadas y unas 18,000 horas depuradas. También informa que un modelo con preentrenamiento continuo basado en π0.5 superó por 3 puntos de éxito en tareas a un ajuste fino existente de pesos abiertos. La página no especifica el denominador de tareas, intervalo de incertidumbre, protocolo de referencia equiparado ni costo de evaluación."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El lanzamiento no establece el rendimiento general de políticas robóticas: solo contiene episodios exitosos, no tiene partición de evaluación ni benchmark estandarizado, cubre una sola plataforma robótica y presenta desequilibrios importantes entre sitios y tareas."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se ha establecido una reproducción independiente de las cifras de rendimiento o de las intervenciones en los datos.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "La ventaja informada de 3 puntos en éxito del modelo carece de denominador especificado, intervalo de confianza, protocolo de referencia equiparado y reproducción independiente en el resumen gubernamental consultado.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "Los términos limitan el uso del conjunto/modelo a investigación y desarrollo y prohíben la redistribución; no se ha establecido el acceso industrial posterior ni su adopción.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se reutiliza en investigación robótica, un conjunto sujeto a términos de aproximadamente 5,000 horas de demostraciones reales de manipulación móvil podría reducir las barreras de recolección para investigación VLA a escala HSR. Su cobertura solo de éxitos y entrenamiento, una única plataforma y términos restringidos limitan lo que puede concluirse sobre capacidad y efecto en el ecosistema.",
+      "limitations": [
+        "Las cifras del gobierno y de la ficha son fuentes de primera parte; el equipo no descargó ni auditó de manera independiente todo el conjunto.",
+        "El artefacto público contiene 1,184,259 episodios exitosos y 5,025.1 horas registradas, pero no incluye ejemplos fallidos o subóptimos y solo ofrece datos de entrenamiento.",
+        "El conjunto cubre 44 robots Toyota HSR en cinco sitios; la ficha informa un marcado desequilibrio por sitio y advierte que los conteos no miden dificultad ni rendimiento de políticas.",
+        "Los términos limitan el uso a investigación y desarrollo y prohíben la redistribución a terceros; el acceso público no implica disponibilidad comercial o sin restricciones.",
+        "La página del programa informa una mejora de 3 puntos en éxito de tareas, pero omite el denominador, el intervalo de confianza, el protocolo equiparado, el costo completo y una reproducción independiente.",
+        "No se establece generalización más allá de la plataforma HSR, adopción industrial, preparación para despliegue ni una mejora amplia de capacidad VLA."
+      ],
+      "relationships": [],
+      "summary": "El programa GENIAC de Japón y la Asociación de Robots con IA publicaron AIRoA MoMa 5k, un conjunto de manipulación móvil con robots reales, junto con un modelo de preentrenamiento continuo y código de entrenamiento. La ficha informa 1,184,259 episodios exitosos y 5,025.1 horas de 44 robots HSR en cinco sitios, pero el acceso está sujeto a términos, se limita a investigación y desarrollo, y el conjunto es solo de entrenamiento y solo incluye éxitos. La página del programa informa por separado una mejora de 3 puntos en éxito de tareas sin denominador ni detalles de evaluación equiparada.",
+      "technical": {
+        "claimed_result": "La ficha de AIRoA informa 1,184,259 episodios exitosos de acciones primitivas, 180,905,084 cuadros y 5,025.1 horas registradas de 44 robots HSR físicos en cinco sitios. La página japonesa de METI/NEDO informa cerca de 80,000 horas recolectadas y 18,000 horas depuradas en el programa más amplio, y atribuye una ventaja de 3 puntos en éxito de tareas frente a un ajuste fino de pesos abiertos al preentrenamiento continuo de π0.5. La comparación del modelo sigue sin verificarse más allá del informe del programa.",
+        "demonstrated_result": "La página oficial del programa, el anuncio de AIRoA y la ficha del conjunto están disponibles y describen el lanzamiento y sus términos. El equipo no descargó ni auditó todos los datos, no examinó una evaluación reproducible del modelo ni verificó el uso posterior; las cifras de rendimiento siguen como CLAIMED.",
+        "mechanism": "El lanzamiento proporciona episodios de manipulación móvil HSR por teleoperación, con video de cabeza y mano, estado del robot, acciones de base móvil, historial de fuerza-par y metadatos de jerarquía de tareas. El informe gubernamental describe la depuración mediante aprendizaje automático y el preentrenamiento continuo de un modelo VLA abierto.",
+        "regime": "AIRoA MoMa 5k: 1,184,259 episodios exitosos de acciones primitivas, 180,905,084 cuadros y 5,025.1 horas registradas de 44 robots Toyota HSR en cinco sitios, recolectadas entre Apr 2025–Jan 2026. Solo entrenamiento, solo éxitos y acceso sujeto a términos; uso de investigación y desarrollo, sin redistribución. El resultado separado del modelo es un informe de primera parte sin denominador de tareas ni protocolo completo equiparado.",
+        "strongest_baseline": "La página de METI/NEDO afirma que el modelo con preentrenamiento continuo basado en π0.5 superó por 3 puntos en éxito de tareas a un modelo existente de pesos abiertos ajustado finamente. El resumen consultado no identifica la cantidad de tareas de evaluación, la incertidumbre ni el protocolo completo equiparado."
+      },
+      "title": "Japón publica un conjunto de manipulación móvil HSR de 5,025 horas sujeto a términos de uso",
+      "why_it_matters": "Un lanzamiento sujeto a términos con más de 5,000 horas de datos reales de manipulación móvil podría reducir las barreras de recolección para investigar modelos VLA con robots HSR. El conjunto solo contiene éxitos de una plataforma, está desequilibrado por sitio y solo puede usarse para investigación y desarrollo, lo que limita la evaluación y reutilización; la afirmación independiente sobre el rendimiento del modelo no está comprobada."
     },
     "FCMO-882F5295EDE7": {
       "claims": [
