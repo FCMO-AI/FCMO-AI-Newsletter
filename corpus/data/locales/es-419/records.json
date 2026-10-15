@@ -12743,6 +12743,60 @@
       "title": "Anthropic abre acceso verificado y limitado por proyecto a modelos biológicos avanzados con supervisión diferida",
       "why_it_matters": "El programa cambia la arquitectura de acceso y control para modelos biológicos avanzados: las organizaciones verificadas pueden recibir un acceso diario más amplio, mientras que el trabajo de mayor riesgo se limita a proyectos individuales y se supervisa entre sesiones. Esto podría reducir fricciones para la ciencia legítima, pero la supervisión retrospectiva y la retención de datos tienen costos distintos de falla y privacidad frente a los bloqueos en tiempo real. El anuncio no mide si los controles previenen el uso indebido ni si mejoran los resultados científicos."
     },
+    "FCMO-79D763B4399F": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "El artículo define BATON como una combinación de Bayesian Feedback Attribution (BFA), que repondera la contribución de acciones dentro de una trayectoria mediante las probabilidades del modelo para la respuesta ambiental observada, y Trajectory Mass Normalization (TMN), que asigna el mismo peso externo a cada trayectoria completa. Los autores aclaran que BFA mide compatibilidad del modelo con la respuesta, no los efectos causales de acciones contrafactuales."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Con modelos Qwen2.5-Instruct, el artículo informa mejoras frente a variantes GRPO y GiGPO emparejadas en ALFWorld, WebShop y siete conjuntos de QA con búsqueda. En ALFWorld con 1.5B, el éxito de GRPO pasa de 72.9% a 85.6% y el de GiGPO de 86.8% a 94.1%. El diseño indica que las variantes emparejadas comparten checkpoint inicial, presupuesto de ejecuciones, construcción de recompensa/ventaja, ajustes de optimización y protocolo de evaluación."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Una ablación 2×2 informada separa BFA y TMN. En ALFWorld con Qwen2.5-1.5B, GRPO obtiene 72.9% sin cambios, 84.1% con BFA, 82.4% con TMN y 85.6% con ambos; GiGPO obtiene 86.8%, 93.4%, 90.7% y 94.1%, respectivamente."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En la evaluación de ALFWorld con Qwen2.5-1.5B, el artículo informa menos acciones y tokens generados en promedio en la actualización 150: GRPO pasa de 21.51 acciones/1,734 tokens a 16.39/1,301; GiGPO, de 13.51/1,431 a 10.82/746. Son mediciones informadas por los autores."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "Los resultados de mejora, ablación y costo de trayectoria provienen de un único preprint; no se localizó ni realizó una reproducción independiente.",
+          "kind": "reproduction_missing",
+          "state": "open",
+          "updated_at": "2026-10-15T12:24:08Z"
+        },
+        {
+          "description": "Los experimentos revisados usan Qwen2.5-Instruct de 1.5B/3B/7B en ALFWorld, WebShop y QA con búsqueda; faltan pruebas con otras familias de modelos, entornos y resultados de despliegue.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-15T12:24:08Z"
+        }
+      ],
+      "importance_rationale": "Si las mejoras informadas se reproducen, dos cambios sencillos del objetivo podrían mejorar el entrenamiento de agentes de varios turnos y reducir acciones/tokens en distintos tipos de tareas. La evidencia actual procede de un preprint con Qwen2.5 y benchmarks seleccionados; la consecuencia es significativa pero no demuestra una capacidad general ni un beneficio en despliegue.",
+      "limitations": [
+        "Todos los resultados medidos son informes del artículo; esta activación no los reprodujo.",
+        "BFA usa compatibilidad de verosimilitud del modelo para el feedback observado; el artículo aclara que no mide efectos causales de acciones contrafactuales.",
+        "Los backbones y tareas evaluados se limitan a Qwen2.5-Instruct y los benchmarks descritos; no se establece beneficio en despliegue."
+      ],
+      "relationships": [],
+      "summary": "Un preprint de septiembre de 2026 presenta BATON, que combina atribución bayesiana del feedback dentro de cada trayectoria con agregación de igual peso entre trayectorias. En modelos Qwen2.5-Instruct, los autores informan mejoras frente a variantes GRPO y GiGPO emparejadas en ALFWorld, WebShop y QA con búsqueda en siete conjuntos; una ablación 2×2 informa ganancias de cada componente por separado. Por ejemplo, el éxito en ALFWorld con Qwen2.5-1.5B sube de 72.9% a 85.6% para GRPO y de 86.8% a 94.1% para GiGPO. Son resultados informados por el artículo, sin reproducción independiente. Los autores aclaran que la probabilidad de feedback mide compatibilidad del modelo, no efectos causales de acciones.",
+      "technical": {
+        "claimed_result": "作者报告，相较匹配的 GRPO/GiGPO，该方法在 ALFWorld、WebShop 和七个搜索问答数据集上有所提升；2×2 消融显示 BFA、TMN 各自及组合均有收益；ALFWorld 评估中的动作数和 token 数下降。",
+        "demonstrated_result": "审阅的预印本报告了匹配实验设计、组件消融和基准结果。这些仍属于作者报告；本次未进行独立实现或复现。",
+        "implementation_status": "原始预印本描述了该方法；本次未检查或运行其公开实现。",
+        "mechanism": "BFA compara las probabilidades del modelo para la respuesta observada tras la acción ejecutada y una alternativa muestreada según la política, normaliza los pesos dentro de cada trayectoria y los separa del gradiente de la pérdida anfitriona. TMN calcula primero la media de los términos válidos de cada trayectoria y luego promedia las trayectorias con igual peso.",
+        "regime": "Qwen2.5-Instruct：ALFWorld 和 WebShop 使用 1.5B/7B，搜索增强问答使用 3B/7B；结果为作者报告的基准训练与评估。",
+        "reproducibility": "论文说明了匹配变体并报告均值和标准差，但本次未独立复现代码、随机种子或结果。",
+        "strongest_baseline": "匹配的 GRPO 和 GiGPO 宿主学习器变体，共享初始检查点、采样预算、奖励/优势构造、优化设置和评估协议。"
+      },
+      "title": "BATON informa mejoras al equilibrar la atribución de feedback y el peso de trayectorias en RL de agentes",
+      "why_it_matters": "El artículo separa dos decisiones de entrenamiento para agentes de varios turnos: cómo ponderar las acciones según las respuestas del entorno dentro de una trayectoria y cómo combinar trayectorias largas y cortas en un lote. Sus comparaciones emparejadas y ablación por componentes ofrecen un resultado de optimización concreto para seguir. La evidencia se limita a un preprint, benchmarks seleccionados y modelos Qwen2.5; no demuestra generalización a otras familias o beneficios en despliegue."
+    },
     "FCMO-7BB77058887F": {
       "claims": [
         {
@@ -21153,6 +21207,72 @@
       "title": "COMED escala selectivamente la colaboración entre modelos para equilibrar rescates y perjuicios",
       "why_it_matters": "El trabajo convierte la colaboración entre modelos en una decisión selectiva durante la inferencia y contabiliza tanto las respuestas incorrectas que los pares pueden corregir como las respuestas correctas que pueden deteriorar. Si se reproduce de forma independiente, el controlador podría mejorar el equilibrio entre precisión y costo en sistemas de varios modelos. La evidencia actual se limita a pruebas ejecutadas por los autores y no demuestra impacto en producción."
     },
+    "FCMO-D68600FB4FE0": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "El artículo presenta Cairn como un servicio comunitario de reputación con un ciclo de consulta, uso y valoración; un registro de eventos de solo anexado; y puntuación Beta con decaimiento temporal y contracción de confianza para fuentes de datos, capacidades y agentes pares."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En 100 semillas de simulación, los autores informan que las puntuaciones siguieron la precisión de quienes respondían, con una desviación absoluta media de 0.017. La colusión y la difamación dejaron de ser fiables cuando las personas evaluadoras deshonestas se acercaron a la paridad; con un filtro estricto de confianza, la detección de mentirosos cayó a F1=0.07 porque las entidades mal puntuadas dejaron de recibir tráfico."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En un corpus activo de 933 eventos y 218 entidades de herramientas/fuentes de datos, el artículo informa una recuperación R@5=0.65 en general (0.84 al agrupar endpoints relacionados), pero 0.34 para entidades con eventos mayormente negativos frente a 0.72 en las demás; por ello, la ausencia en los resultados no demuestra seguridad."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Un estudio informado en el artículo usó jueces para puntuar 14,966 comentarios de 5,000 agentes activos de Moltbook. Las puntuaciones medias no se correlacionaron con votos positivos (r=0.03) ni karma (r=0.02); un segundo juez volvió a puntuar 3,306 comentarios, con r de Pearson=0.85 y MAE=0.23, y menor acuerdo ante evidencia mixta. Esto mide rasgos asignados por jueces, no el desempeño posterior de los agentes."
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "El artículo identifica los ataques Sybil como una amenaza fundamental sin resolver para los sistemas de reputación abiertos y señala que la memoria colectiva falla cuando los evaluadores deshonestos dejan de ser minoría."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "El artículo evalúa un puntuador, la recuperación y un corpus calificado por jueces, pero no prueba si los agentes que usan Cairn toman decisiones posteriores más seguras o exitosas que los agentes sin Cairn.",
+          "kind": "missing_independent",
+          "state": "open",
+          "updated_at": "2026-10-15T12:19:25Z"
+        },
+        {
+          "description": "El artículo identifica los ataques Sybil y una mayoría de evaluadores deshonestos como problemas no resueltos; las simulaciones muestran que la memoria colectiva se degrada con fuerza cerca de la paridad.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-15T12:19:25Z"
+        },
+        {
+          "description": "El estudio de campo de Moltbook usa jueces LLM basados en una rúbrica; el acuerdo entre dos jueces es menor ante evidencia mixta, y la calidad real de las tareas no se estableció de forma independiente.",
+          "kind": "reproduction_missing",
+          "state": "open",
+          "updated_at": "2026-10-15T12:19:25Z"
+        }
+      ],
+      "importance_rationale": "Si el sistema informado funciona en implementaciones reales, compartir evidencia sobre herramientas y agentes podría reducir fallas de confianza repetidas entre ecosistemas de agentes. La evidencia incluye simulaciones y un estudio de corpus activo puntuado por jueces, pero no muestra beneficios en tareas posteriores, reproducción independiente ni resistencia a una mayoría Sybil; por eso la consecuencia es significativa pero acotada.",
+      "limitations": [
+        "Todas las evaluaciones del sistema son elaboradas por los autores; aquí no se realizó una implementación o reproducción independiente.",
+        "El simulador adversarial presupone una configuración específica de interacciones y valoraciones; el resultado sobre mayorías honestas depende de esos supuestos.",
+        "El enrutamiento mediante filtros de confianza deja sin tráfico nuevo a las entidades con baja puntuación y reduce la detección simulada de mentirosos a F1=0.07.",
+        "Los informes negativos se recuperan con más dificultad: R@5 es 0.34 para entidades mayormente negativas frente a 0.72 en las demás; por ello, una búsqueda vacía o con resultados solo positivos no demuestra seguridad.",
+        "La muestra de Moltbook y las puntuaciones de jueces no demuestran capacidad, honestidad ni calidad de decisión real de los agentes; la resistencia a ataques Sybil sigue sin resolverse."
+      ],
+      "relationships": [],
+      "summary": "Un preprint de septiembre de 2026 presenta Cairn, un servicio comunitario de reputación en el que los agentes consultan información sobre una herramienta, fuente de datos o agente par antes de usarla y luego añaden una valoración basada en una rúbrica. Su puntuador Beta con decaimiento temporal contrae hacia lo neutral las valoraciones inciertas. En simulaciones sobre 100 semillas, las puntuaciones informadas siguieron la precisión de quienes respondían con una desviación absoluta media de 0.017, pero las valoraciones colectivas fallaron con rapidez cuando las personas evaluadoras deshonestas se acercaron o superaron la mayoría. Una prueba de recuperación sobre un corpus activo obtuvo R@5=0.65 en general y solo 0.34 para entidades con registros mayormente negativos, por lo que los informes de fallas fueron más difíciles de recuperar. Una muestra de 5,000 agentes activos de Moltbook puntuada por jueces produjo valores sin correlación con el karma de la plataforma. Son resultados de sistema y de jueces informados en el artículo; no se demuestra una mejora en tareas posteriores y los ataques Sybil siguen siendo una amenaza abierta.",
+      "technical": {
+        "claimed_result": "Los autores informan una desviación absoluta media de 0.017 entre puntuaciones simuladas y precisión de quienes respondían en 100 semillas; colapso cerca de la paridad de evaluadores deshonestos; R@5=0.65 en el corpus activo, que cae a 0.34 para entidades con eventos mayormente negativos; y puntuaciones de jueces para 5,000 agentes de Moltbook sin correlación con karma/votos positivos.",
+        "demonstrated_result": "El preprint primario revisado documenta el diseño del sistema e informa simulaciones, pruebas de recuperación y un estudio de caso de producción puntuado por jueces. Los resultados siguen siendo afirmaciones de los autores; aquí no hubo reproducción independiente ni prueba de intervención posterior.",
+        "implementation_status": "El artículo describe un servicio disponible, un hook para Claude Code y un servidor MCP con 10 herramientas. Las consultas no requieren autenticación y las escrituras requieren una clave API; la implementación fuente no se inspeccionó de forma independiente en esta revisión.",
+        "mechanism": "Los agentes consultan la reputación compartida de una entidad antes de usarla y luego aportan evidencia basada en una rúbrica. Un registro de valoraciones de solo anexado alimenta un puntuador Beta con decaimiento temporal y contracción de confianza, recuperación semántica de razones y lecturas con marca de tiempo.",
+        "regime": "Puntuador de producción de Cairn bajo simulaciones adversariales elaboradas por los autores, recuperación activa sobre 933 eventos/218 entidades y una muestra calificada por jueces de 14,966 comentarios de 5,000 agentes activos de Moltbook.",
+        "reproducibility": "El registro de eventos de solo anexado y el puntuador se describen como reproducibles mediante reproducción del registro, pero aquí no se inspeccionó código ni se hizo una reproducción independiente. El estudio de campo depende de la rúbrica y los jueces LLM del artículo.",
+        "strongest_baseline": "No hay un estudio emparejado de agentes con y sin memoria de reputación Cairn. El estudio de campo compara puntuaciones de jueces con karma/votos positivos de la plataforma, no con resultados de tareas."
+      },
+      "title": "Cairn evalúa la reputación comunitaria como memoria compartida para herramientas y servicios de agentes",
+      "why_it_matters": "Cairn convierte observaciones posteriores al uso en un prior de reputación compartida y decreciente para herramientas, fuentes de datos y agentes: una posible capa de confianza para ecosistemas de agentes. Su evaluación muestra un límite operativo: la reputación puede seguir la fiabilidad bajo los supuestos indicados, pero colapsa cerca de la paridad de evaluadores deshonestos y la recuperación es más débil para informes negativos. El estudio de campo mide calidad de agentes asignada por jueces, no si usar Cairn mejora sus decisiones o resultados."
+    },
     "FCMO-D6FDB2438549": {
       "claims": [
         {
@@ -23232,6 +23352,73 @@
       },
       "title": "China emite un marco de ocho ministerios para ampliar los productos, servicios y escenarios de consumo con IA",
       "why_it_matters": "El marco conecta la oferta y los servicios de IA para consumidores con el comercio, la logística, los proyectos piloto, los instrumentos fiscales y crediticios, la infraestructura y los estándares entre varios ministerios. Si se implementa, podría influir en la disponibilidad de productos y los incentivos de despliegue. El documento no informa gasto, adopción ni efectos medidos sobre productividad o demanda."
+    },
+    "FCMO-EFEE0D7FEFC7": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "El preprint presenta KIR como una representación intermedia tipada y un compilador para modelos de información de edificios creados por agentes; explicita rechazos, valores predeterminados, obligaciones de verificación, incertidumbre transaccional y decisiones ligadas a un resumen criptográfico del estado."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Para la versión fijada de KIR 0.8.1, el autor informa que 29 de 42 programas de prueba de estrés se rechazaron con códigos de diagnóstico y sin excepciones no controladas; se aceptaron tres defectos silenciosos; 38 de 377 obligaciones de verificación se identificaron como ausentes; y no hubo certificados vacuos en 219 ejecuciones. Son resultados sin conexión informados por el autor, no una reproducción independiente."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El preprint informa por separado ejecuciones de Revit tomadas de registros del proyecto: 26/28 operaciones nombradas en Revit 2023 y 17/21 en Revit 2026; el artículo indica que no volvió a ejecutarlas."
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "El artículo afirma que especificó, pero no ejecutó, la comparación con el mismo modelo y presupuesto entre KIR y agentes que escriben código directamente para el anfitrión; Revit es el único backend demostrado."
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "Un preprint independiente de 2026 sobre CADIR describe una representación intermedia editable y reporta reconstrucción entre FreeCAD, SolidWorks y Fusion 360. Aborda un área vecina de representación CAD y transferencia entre backends; el resumen revisado no demuestra una comparación equivalente con KIR ni las mismas semánticas de transacción y verificación BIM/Revit."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "El artículo especifica, pero aún no ejecuta, la comparación principal con el mismo modelo y presupuesto frente a agentes que escriben código directamente para el anfitrión; sin ella se desconocen las diferencias de éxito, fiabilidad y costo.",
+          "kind": "baseline_unclear",
+          "state": "open",
+          "updated_at": "2026-10-15T12:13:10Z"
+        },
+        {
+          "description": "Los resultados sin conexión y los registros de ejecuciones nativas de Revit fueron elaborados o informados por el proyecto; no se encontró una reproducción independiente.",
+          "kind": "reproduction_missing",
+          "state": "open",
+          "updated_at": "2026-10-15T12:13:10Z"
+        },
+        {
+          "description": "El artículo solo demuestra Revit; la independencia del backend es una propiedad de diseño, no un resultado evaluado.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-15T12:13:10Z"
+        }
+      ],
+      "importance_rationale": "Si el diseño informado es válido, los rechazos tipados, la procedencia y los resultados transaccionales desconocidos pueden mejorar la fiabilidad de modelos de ingeniería creados por agentes: un caso de sistemas significativo pero acotado. El artículo no incluye una comparación con código directo, demuestra un solo backend y carece de reproducción independiente; por ello no constituye un resultado de capacidad para todo el campo.",
+      "limitations": [
+        "La evaluación sin conexión corresponde a una sola instantánea del proyecto; no se comparó el éxito de tareas de agentes con el código escrito directamente para el anfitrión.",
+        "Se aceptaron tres defectos silenciosos en los 42 programas de prueba de estrés informados.",
+        "El artículo informa pruebas elaboradas por el proyecto y operaciones en Revit; en esta activación no se ejecutaron ni reprodujeron de forma independiente.",
+        "Solo se demuestra Revit; la portabilidad a IFC u otros anfitriones sigue siendo prospectiva.",
+        "La comparación de tamaño de representación de 329× enfrenta KIR con el código C# emitido, no con código directo escrito bajo condiciones equivalentes.",
+        "相关工作已包括 CADIR：一项 2026 年 CAD 中间表示，报告了三个 CAD 后端之间的可编辑重建；此处的区别在于 KIR 面向 Revit 的 BIM 事务、来源记录和见证语义。这是相邻工作，并不证明 KIR 更优。"
+      ],
+      "relationships": [],
+      "summary": "Un preprint de septiembre de 2026 presenta KIR, una representación intermedia tipada y un compilador para agentes que crean modelos de información de edificios en Revit. En una instantánea fijada de KIR 0.8.1, el autor informa pruebas sin conexión sobre 83 contratos de operación: entre ellas, rechazos tipados para 29 de 42 programas de estrés, 38 ausencias identificadas entre 377 obligaciones de verificación y ningún certificado vacuo en 219 ejecuciones por programa y versión. Son resultados informados a partir de artefactos del propio proyecto; las ejecuciones nativas de Revit se reportan por separado a partir de registros del proyecto. El artículo especifica, pero no ejecuta, una comparación con el mismo modelo y presupuesto frente a agentes que escriben código Revit directamente, y solo demuestra Revit como backend de ejecución.",
+      "technical": {
+        "claimed_result": "En KIR 0.8.1 fijado, el artículo informa que 29/42 programas de estrés se rechazaron con diagnósticos y sin excepciones no controladas (aunque se aceptaron 3 defectos silenciosos); se señalaron 38/377 obligaciones de verificación como ausentes; hubo 0/219 certificados vacuos; y las operaciones en Revit informadas por el proyecto fueron 26/28 (2023) y 17/21 (2026).",
+        "demonstrated_result": "Las fuentes revisadas demuestran que el preprint y el README del proyecto describen un kit de herramientas público en Python e informan resultados concretos de pruebas sin conexión. El autor reporta las cifras; no se ejecutaron ni reprodujeron de forma independiente.",
+        "implementation_status": "Se enlazan el código público y el suplemento del artículo; el README de GitHub indica que la versión actual del repositorio contiene cambios aún no publicados. El artículo informa las ejecuciones nativas de Revit a partir de registros del proyecto y no las volvió a ejecutar.",
+        "mechanism": "Un agente redacta un programa tipado y versionado que se compila a código específico para Revit. La representación conserva tipos de selectores, procedencia de valores, obligaciones de verificación no cubiertas, un ensayo previo a la ejecución, comprobaciones de certificados, estados transaccionales y resúmenes del estado.",
+        "regime": "Programas BIM creados por agentes y compilados para Autodesk Revit; pruebas sin conexión sobre una instantánea de KIR 0.8.1 y ejecuciones de Revit tomadas de registros del proyecto.",
+        "reproducibility": "El artículo describe RQ1–RQ5 como reproducibles sin Revit y enlaza código y artefactos, pero aquí no se realizó una reproducción independiente. Las ejecuciones nativas requieren el software anfitrión y no se volvieron a ejecutar.",
+        "strongest_baseline": "No hay una comparación ejecutada con código directo. El artículo especifica una comparación con el mismo modelo y presupuesto frente a agentes que escriben código para el anfitrión, pero indica que no se ejecutó."
+      },
+      "title": "KIR informa comprobaciones tipadas para modelos de edificios creados por agentes; sigue pendiente compararlo con código directo",
+      "why_it_matters": "KIR explicita ambigüedades, valores predeterminados, comprobaciones faltantes, incertidumbre transaccional y decisiones basadas en estados desactualizados en la interfaz entre un agente y un anfitrión. Si el diseño informado resiste nuevas pruebas, ofrece un patrón concreto para auditar agentes que modifican modelos de ingeniería con estado. La evidencia actual no muestra que KIR mejore el éxito o la seguridad frente a agentes de código directo, ni que se transfiera más allá de la instantánea evaluada de Revit."
     },
     "FCMO-F010E67C8A35": {
       "claims": [
