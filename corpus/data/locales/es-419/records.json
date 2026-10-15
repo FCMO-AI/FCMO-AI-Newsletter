@@ -8260,6 +8260,61 @@
       "title": "La recuperación de conjuntos de evidencia según el estado mejora la búsqueda de los agentes de programación en pruebas reportadas por sus autores",
       "why_it_matters": "Si el resultado se generaliza más allá del entorno de agentes de programación de los autores, seleccionar evidencia complementaria según un estado de decisión registrado podría mejorar el uso del contexto y las decisiones de reparación cuando una clasificación por relevancia repite información conocida o deja sin cubrir un requisito."
     },
+    "FCMO-4C74A8BB4DFD": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Aikido informa que Altar-1 parte de GLM-5.3 AWQ INT4 y usa poda REAP para reducir los pesos almacenados de 488.2 GB a 328.0 GB, conservando 168 de 256 expertos enrutados por capa. Frente a la base BF16 sin podar, de 1,506.7 GB, la reducción informada es 78.2%."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En el benchmark interno de Aikido, con 32 vulnerabilidades conocidas en 30 repositorios y tres ejecuciones por caso, Altar-1 obtuvo 60.4% de recuperación media por ejecución y redescubrió 23/32 vulnerabilidades al menos una vez. GLM-5.3 AWQ INT4 obtuvo 61.5% y cubrió las mismas 23/32; el modelo de precisión completa obtuvo 65.6% y cubrió 25/32."
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION",
+          "text": "Aikido define la prueba como búsqueda dirigida de CVE conocidas dentro de una canalización que utiliza otros modelos en las etapas circundantes. No mide descubrimiento a ciegas, validación de exploits ni propuestas de corrección. Esta revisión no reprodujo de forma independiente la evaluación interna."
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "Aikido publica los pesos de Altar-1 y documenta una configuración de servicio con vLLM dirigida a cuatro NVIDIA H200; la ficha identifica el modelo como una variante GLM-5.3 de 504B parámetros, podada y en formato W4A16."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "La comparación de recuperación y cobertura proviene del benchmark interno de Aikido con 32 CVE; no se ha reproducido ni adjudicado de forma independiente.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "El informe no presenta tasas de falsos positivos, latencia o rendimiento de servicio, costo de recursos ni resultados sobre descubrimiento de vulnerabilidades desconocidas y remediación.",
+          "kind": "regime_unclear",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si la evaluación específica de Aikido se generaliza, la poda puede permitir ejecutar un modelo abierto grande de seguridad en cuatro H200 con poca pérdida de recuperación informada frente a la base cuantizada, una opción útil de servicio local y privacidad para algunos flujos defensivos. El impacto es acotado: el benchmark es pequeño e interno y mide la búsqueda de vulnerabilidades conocidas, no pruebas de penetración generales.",
+      "limitations": [
+        "Todas las cifras de rendimiento provienen de Aikido; no se encontró ni se realizó una reproducción independiente.",
+        "La evaluación abarca 32 vulnerabilidades conocidas en 30 repositorios y tres ejecuciones por caso; no es una prueba de descubrimiento a ciegas.",
+        "El benchmark forma parte de una canalización más amplia que usa otros modelos en etapas circundantes; no aísla la contribución total del modelo ni los efectos de la revisión humana.",
+        "El informe presenta recuperación y cobertura, pero no precisión, falsos positivos, validación de exploits, calidad de parches, tiempo de ejecución, rendimiento ni costo de servicio.",
+        "La configuración de cuatro H200 es una opción declarada por el proveedor; no establece un requisito mínimo de hardware ni un perfil de producción verificado independientemente."
+      ],
+      "relationships": [],
+      "summary": "Aikido publicó Altar-1, una variante W4A16/REAP de GLM-5.3 de 328 GB para tareas locales de seguridad defensiva. La empresa informa que la poda reduce de 488.2 GB a 328.0 GB los pesos de la base ya cuantizada. En un benchmark interno de 32 vulnerabilidades conocidas en 30 repositorios, con tres ejecuciones por caso, la variante obtuvo 60.4% de recuperación media por ejecución frente a 61.5% de la base. Ambos identificaron las mismas 23 vulnerabilidades al menos una vez. El proveedor documenta su uso con vLLM en cuatro H200. Son cifras de la empresa en una prueba dirigida dentro de una canalización más amplia; no demuestran descubrimiento a ciegas, validación de exploits, calidad de parches ni rendimiento independiente.",
+      "technical": {
+        "claimed_result": "Aikido informa 1,506.7 GB de pesos para GLM-5.3 de precisión completa, 488.2 GB para la base AWQ INT4 y 328.0 GB para Altar-1. En su benchmark interno de vulnerabilidades conocidas, informa recuperaciones medias por ejecución de 65.6%, 61.5% y 60.4%, respectivamente. la variante podada y la base AWQ cubrieron 23 de 32 vulnerabilidades al menos una vez en tres ejecuciones; GLM-5.3 completo cubrió 25.",
+        "compute_or_cost": "Las fuentes informan el tamaño de los pesos y un objetivo de servicio con cuatro H200, pero no miden latencia, rendimiento, energía, costo de servicio, margen de memoria en una carga definida ni costo total de hardware.",
+        "demonstrated_result": "La ficha y los pesos públicos documentan el artefacto Altar-1, su configuración W4A16/REAP y un objetivo de servicio vLLM con cuatro H200. Esto verifica la disponibilidad y configuración declarada, no el rendimiento alegado.",
+        "implementation_status": "Aikido publica los pesos de Altar-1 en Hugging Face y documenta su uso con vLLM en cuatro NVIDIA H200. La empresa afirma que lo desplegó en su flota Aikido Machine; esta revisión no inspeccionó ese despliegue.",
+        "mechanism": "Aikido cuantiza con AWQ INT4 los expertos enrutados de GLM-5.3 y luego usa puntuaciones REAP y una selección que preserva dominios para eliminar 88 de los 256 expertos por capa, sin reentrenar. Cada token sigue activando ocho expertos enrutados.",
+        "regime": "El benchmark interno cubre 32 vulnerabilidades conocidas en 30 repositorios, con tres ejecuciones por caso. Aikido lo describe como búsqueda dirigida dentro de su canalización AI Code Analysis, que utiliza otros modelos en etapas circundantes. La ficha documenta una configuración vLLM para cuatro H200.",
+        "reproducibility": "Aikido enlaza un estudio de fidelidad y herramientas de poda; la ficha ofrece pesos e instrucciones. Esta revisión no ejecutó el modelo, no inspeccionó resultados brutos ni reprodujo el benchmark CVE. Los casos conocidos y la canalización interna limitan la validación externa.",
+        "strongest_baseline": "La comparación más directa es el mismo GLM-5.3 cuantizado con AWQ INT4 antes de REAP: Aikido informa 488.2 GB, 61.5% de recuperación media por ejecución y 23/32 vulnerabilidades cubiertas al menos una vez, frente a 328.0 GB, 60.4% y 23/32 para Altar-1. La prueba es interna y no tiene reproducción independiente."
+      },
+      "title": "Aikido informa que su modelo GLM-5.3 de seguridad, reducido a 328 GB, conserva una recuperación CVE cercana a la base",
+      "why_it_matters": "Este resultado muestra un intercambio concreto entre el almacenamiento de pesos y la recuperación en una tarea de seguridad: Aikido informa una reducción adicional de 32.8% frente a la base cuantizada, con alrededor de 1.1 puntos porcentuales menos de recuperación media en su benchmark interno. Si una evaluación independiente lo confirma, podría reducir el umbral de hardware para la inferencia local de seguridad defensiva. La prueba no demuestra que el modelo encuentre vulnerabilidades desconocidas ni que realice una prueba de penetración completa."
+    },
     "FCMO-4C7D37607E1E": {
       "claims": [
         {
