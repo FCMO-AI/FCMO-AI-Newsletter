@@ -10,13 +10,14 @@ class WorkflowConcurrencyContractTests(unittest.TestCase):
     def text(self,name: str) -> str:
         return (ROOT/".github"/"workflows"/name).read_text(encoding="utf-8")
 
-    def assert_failed_workflow_run_isolated(self,name: str,group_prefix: str) -> None:
+    def assert_failed_workflow_run_isolated(self,name: str,group_prefix: str,
+                                            cancel: str="cancel-in-progress: true") -> None:
         text=self.text(name)
         self.assertIn("github.event_name == 'workflow_run'",text)
         self.assertIn("github.event.workflow_run.conclusion != 'success'",text)
         self.assertIn("github.run_id || 'active'",text)
         self.assertIn(group_prefix,text)
-        self.assertIn("cancel-in-progress: true",text)
+        self.assertIn(cancel,text)
 
     def test_failed_bridge_event_cannot_cancel_active_refresh(self) -> None:
         self.assert_failed_workflow_run_isolated(
@@ -24,8 +25,11 @@ class WorkflowConcurrencyContractTests(unittest.TestCase):
         )
 
     def test_failed_refresh_event_cannot_cancel_active_pages(self) -> None:
+        # Pages queues automatic runs on the 'active' lease (cancelling them
+        # starved every deploy); only a manual main dispatch pre-empts.
         self.assert_failed_workflow_run_isolated(
-            "pages.yml","github-pages-v4-"
+            "pages.yml","github-pages-v4-",
+            "cancel-in-progress: ${{ github.event_name == 'workflow_dispatch' }}",
         )
 
     def test_pages_workflow_run_does_not_depend_on_optional_visibility_payload(self) -> None:
