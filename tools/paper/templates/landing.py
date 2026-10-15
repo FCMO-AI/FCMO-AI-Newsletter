@@ -103,7 +103,7 @@ COPY = {
 
 def render(*, locale: dict, home: str, technical: str, about: str, subscribe: str,
            lead: str, top: str, cartas: str, stats: tuple[int, int, int] = (0, 0, 0),
-           feature: dict | None = None) -> str:
+           feature: dict | None = None, catalog: dict | None = None) -> str:
     c = COPY[locale["code"]]
     e = lambda value: escape(str(value), quote=True)
     letter = cartas or f'<div class="landing-empty"><p class="section-kicker">fCMO / Javier</p><h3>{e(c["latest"])}</h3><p>{e(c["empty"])}</p><a href="{e(home)}cartas/">{e(c["letter_path"])} →</a></div>'
@@ -128,8 +128,13 @@ def render(*, locale: dict, home: str, technical: str, about: str, subscribe: st
         )
     lead = re.sub(r'<figure class="data-hero".*?</figure>', "", lead, flags=re.S)
     lead = lead.replace("<h1 ", "<h3 ", 1).replace("</h1>", "</h3>", 1)
-    record = (f'<div class="landing-record" aria-label="{e(c['record'])}"><span>{e(c['record'])}</span><strong>{stats[0]} <small>{e(c['stories'])}</small></strong>'
-              f'<strong>{stats[1]} <small>{e(c['topics'])}</small></strong><strong>{stats[2]} <small>{e(c['organizations'])}</small></strong></div>')
+    if catalog is not None:  # counted nouns agree with their figure: "1 story", "2 stories"
+        from tools.paper.i18n import noun
+        names = tuple(noun(catalog, key, n) for key, n in zip(("story", "topic", "organization"), stats))
+    else:
+        names = (c["stories"], c["topics"], c["organizations"])
+    record = (f'<div class="landing-record" aria-label="{e(c['record'])}"><span>{e(c['record'])}</span><strong>{stats[0]} <small>{e(names[0])}</small></strong>'
+              f'<strong>{stats[1]} <small>{e(names[1])}</small></strong><strong>{stats[2]} <small>{e(names[2])}</small></strong></div>')
     jump = (f'<div class="landing-jump"><a href="{e(home)}cartas/">{e(c['letter'])} <span aria-hidden="true">↗</span></a>'
             f'<a href="{e(technical)}">FCMO AI <span aria-hidden="true">↗</span></a></div>')
     if feature:

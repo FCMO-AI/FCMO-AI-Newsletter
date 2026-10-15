@@ -376,7 +376,7 @@ def normalize_claim_label(value: Any) -> tuple[str, str | None] | None:
     if "CLAIM" in raw:
         qualifier = raw.split("_CLAIM", 1)[0] if "_CLAIM" in raw else raw.replace("CLAIM", "").strip("_")
         return "CLAIMED", (qualifier[:64] or None)
-    if "COUNTER" in raw or "DISPUT" in raw or "CONTEST" in raw:
+    if "COUNTER" in raw or "DISPUT" in raw or "CONTEST" in raw or "CONTRADICT" in raw:
         return "DISPUTED", (raw if raw != "DISPUTED" else None)
     if "SPECULAT" in raw or "HYPOTHES" in raw:
         return "SPECULATIVE", None
@@ -593,6 +593,11 @@ def normalize_record(row: Any) -> dict[str, Any]:
         mapped = normalize_claim_label(claim.get("label"))
         if not text:
             continue
+        if mapped is None and not _text(claim.get("label")):
+            # Upstream sent the claim without any label. Quarantining the whole story for a
+            # missing tag held back SoftBank/OpenAI reporting; the weakest positive state is
+            # kept instead, marked so the gap stays visible. Unrecognized labels still fail closed.
+            mapped = ("CLAIMED", "LABEL_MISSING_UPSTREAM")
         if mapped is None:
             codes.append("CLAIM_LABEL_UNKNOWN")
             continue

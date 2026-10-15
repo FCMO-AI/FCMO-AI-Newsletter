@@ -135,6 +135,15 @@ def plural(catalog: dict, key: str, count: int) -> str:
     return str(forms.get(category) or forms["other"]).format(count=count)
 
 
+def noun(catalog: dict, key: str, count: int) -> str:
+    """The counted noun alone ("story"/"stories", "historia"/"historias"), agreeing with ``count``.
+
+    For templates that render the number in its own element (``<strong>3</strong> stories``) so
+    the noun never disagrees with the figure.
+    """
+    return plural(catalog, key, count).replace(str(count), "", 1).strip()
+
+
 def _parse(value: str) -> datetime:
     return datetime.fromisoformat(value.replace("Z", "+00:00"))
 

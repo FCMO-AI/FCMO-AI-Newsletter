@@ -537,6 +537,15 @@ class TaxonomyTests(unittest.TestCase):
         with self.assertRaisesRegex(taxonomy.Quarantine, "CLAIM_LABEL_UNKNOWN"):
             taxonomy.normalize_record(row)
 
+    def test_blank_and_contradictory_claim_labels_do_not_quarantine_the_story(self) -> None:
+        source = taxonomy.read_jsonl(FIXTURES / "corpus-44" / "data" / "developments.jsonl")[0]
+        row = dict(source, claims=[{"label": "", "text": "The filing states a figure."},
+                                   {"label": "CONTRADICTORY", "text": "Another report disagrees."}])
+        record = taxonomy.normalize_record(row)
+        self.assertEqual([(c["label"], c.get("qualifier")) for c in record["claims"]],
+                         [("CLAIMED", "LABEL_MISSING_UPSTREAM"), ("DISPUTED", "CONTRADICTORY")])
+        self.assertEqual(validator_for(CONTRACTS / "record.v3.schema.json").errors(record), [])
+
     def test_vocabulary_maps(self) -> None:
         self.assertEqual(taxonomy.normalize_desk("efficiency_quantization_sparsity_compression"), "compute_inference")
         self.assertEqual(taxonomy.normalize_desk("Evaluation / Science"), "evaluation_science")

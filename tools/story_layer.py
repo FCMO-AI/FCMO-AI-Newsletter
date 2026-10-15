@@ -869,6 +869,16 @@ def build_stories(inputs: StoryInputs) -> dict[str, Any]:
             locale: build_l10n(story, locale_rows_for(locale, rows), not record.get("headline"), not record.get("dek"), locale)
             for locale in TARGET_LOCALES
         }
+        # A withdrawn or merged story is never translated as an edition, but its headline
+        # is still the heading of its correction page. The tombstone may carry the desk's
+        # translation of that one line so readers do not see "translation pending" there.
+        if story["status"] != "live":
+            tomb = inputs.active.get(rid) or {}
+            for locale, text in (tomb.get("titles") or {}).items():
+                entry = story["l10n"].get(locale)
+                short = (tomb.get("headlines") or {}).get(locale) or text
+                if entry is not None and isinstance(text, str) and text.strip():
+                    entry["fields"] = {**entry.get("fields", {}), "title": text.strip(), "headline": short.strip()}
     ordered = sorted(stories.values(), key=lambda s: (s["first_published_at"], s["id"]), reverse=True)
     return {
         "schema": STORIES_SCHEMA,
