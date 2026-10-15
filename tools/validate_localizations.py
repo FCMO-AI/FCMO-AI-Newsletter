@@ -40,8 +40,10 @@ from pathlib import Path
 from typing import Any, Iterator
 
 try:
+    from tools import localization_checks
     from tools.reconcile_locale_overlays import canonical_records
 except ImportError:  # direct script execution from tools/
+    import localization_checks  # type: ignore[no-redef]
     from reconcile_locale_overlays import canonical_records
 
 LOCALES = ("es-419", "zh-Hans")
@@ -148,7 +150,57 @@ def load_locale_details(root: Path, locale: str) -> tuple[dict[str, dict[str, An
                 if binding is not None:
                     provenance[rid][key] = {**meta, **binding}
         strict.add(rid)
+    apply_corrections(result, provenance, load_corrections(root, locale))
     return result, strict, provenance, alternates
+
+
+# ---------------------------------------------------------------------------
+# Desk corrections of upstream (ARB) wording
+# ---------------------------------------------------------------------------
+# ARB's locale delta replaces its own fields wholesale on every refresh, and the desk
+# can only fill gaps, so a wrong magnitude or a leftover English term in ARB wording
+# cannot be repaired in the pack: the next airlock receive would put it back. A
+# correction is bound to the exact upstream wording it repairs (``upstream_sha256``).
+# It applies only while the upstream field is still that text; once ARB changes the
+# field the correction goes inert and the new upstream wording is judged on its own.
+CORRECTIONS_FILE = "corrections.json"
+CORRECTIONS_SCHEMA = "fcmo-locale-corrections-v1"
+
+
+def load_corrections(root: Path, locale: str) -> dict[str, dict[str, dict[str, Any]]]:
+    path = root / locale / CORRECTIONS_FILE
+    if not path.is_file():
+        return {}
+    doc = json.loads(path.read_text(encoding="utf-8"))
+    if doc.get("schema") != CORRECTIONS_SCHEMA or doc.get("locale") != locale \
+            or not isinstance(doc.get("corrections"), dict):
+        raise ValueError(f"{path}: not a {CORRECTIONS_SCHEMA} document for {locale}")
+    for rid, keys in doc["corrections"].items():
+        for key, entry in keys.items():
+            missing = [f for f in ("upstream_sha256", "source_sha256", "value", "at", "reason") if f not in entry]
+            if missing:
+                raise ValueError(f"{path}: {rid}.{key} is missing {missing}")
+    return doc["corrections"]
+
+
+def apply_corrections(rows: dict[str, dict[str, Any]], provenance: dict[str, dict[str, dict[str, Any]]],
+                      corrections: dict[str, dict[str, dict[str, Any]]]) -> list[tuple[str, str]]:
+    """Lay corrections over ``rows``; returns the (id, key) pairs that were applied."""
+    applied: list[tuple[str, str]] = []
+    for rid, keys in corrections.items():
+        row = rows.get(rid)
+        if not isinstance(row, dict):
+            continue
+        for key, entry in keys.items():
+            if key not in row or stable_digest(row[key]) != entry["upstream_sha256"]:
+                continue  # upstream changed the field: the correction is inert
+            row[key] = json.loads(json.dumps(entry["value"], ensure_ascii=False))
+            provenance.setdefault(rid, {})[key] = {
+                "origin": "publication-desk", "at": entry["at"], "human_reviewed": False,
+                "network_translation": False, "model": entry.get("model", "claude-sonnet-5-5"),
+                "source_sha256": entry["source_sha256"], "locale_sha256": stable_digest(row[key])}
+            applied.append((rid, key))
+    return applied
 
 
 def load_locale(root: Path, locale: str) -> tuple[dict[str, dict[str, Any]], set[str]]:
@@ -371,6 +423,24 @@ def pair_status(source: dict[str, Any], overlay: Any, locale: str, strict: bool 
             return failed("ENGLISH_LEAK", f"{path_text(path)} is identical to the English original")
         if looks_english(text, locale):
             return failed("ENGLISH_LEAK", f"{path_text(path)} is English prose")
+        # A field that is mostly translated can still carry an English sentence, an
+        # English importance-tier term ("Very major") or a wrong/dropped magnitude;
+        # the whole-field heuristic above and the digit-token check both pass those.
+        embedded = localization_checks.english_sentences(text, locale)
+        if embedded:
+            return failed("ENGLISH_LEAK", f"{path_text(path)} contains an English sentence: {embedded[0][:80]}")
+        tier = localization_checks.english_tier_terms(text)
+        if tier:
+            return failed("ENGLISH_LEAK", f"{path_text(path)} leaves the English importance term {tier[0]!r}")
+        if (provenance or {}).get(path[0], {}).get("origin") == "publication-desk":
+            # The desk owns these words, so an English scale word ("13 million") is its to translate.
+            left = localization_checks.untranslated_scales(text, locale)
+            if left:
+                return failed("ENGLISH_LEAK", f"{path_text(path)} leaves the English scale word in {left[0]!r}")
+        if original is not None:
+            magnitude = localization_checks.magnitude_errors(original, text, locale)
+            if magnitude:
+                return failed("MAGNITUDE_CHANGED", f"{path_text(path)}: {magnitude[0]}")
     if locale == "zh-Hans":
         merged = "\n".join(overlay_leaves.values())
         if len(merged) >= 120 and len(CJK.findall(merged)) < 20:
@@ -495,6 +565,8 @@ def effective_overlays_details(locale: str, i18n_dir: Path | None, corpus: Path 
                             if selected.get(key, {}).get("origin") == "publication-desk"}, **delta}
             provenance[rid] = {key: selected[key] for key in rows[rid]}
             strict.add(rid)
+        if i18n_dir is not None:
+            apply_corrections(rows, provenance, load_corrections(i18n_dir, locale))
     return rows, strict, provenance, alternates
 
 
@@ -680,7 +752,7 @@ def strict_main(args: argparse.Namespace) -> int:
             if status["state"] == "PENDING":
                 print(f"PENDING {locale} {rid} missing={','.join(status['missing'])}")
             elif status["state"] == "FAILED":
-                print(f"FAILED {locale} {rid} gate={status['failure']['gate']}")
+                print(f"FAILED {locale} {rid} gate={status['failure']['gate']} {status['failure'].get('detail', '')}")
         stale = documents[locale].pop("_stale_ids")
         for rid in stale:
             print(f"STALE {locale} {rid} (overlay for an id that is not live; ignored)")
