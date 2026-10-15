@@ -1,6 +1,6 @@
 {
   "canonical_locale": "en",
-  "canonical_source_sha256": "52024e4caa8533b0e388a1e224f7793f4dbe3212a334ad945517506a452e6d5c",
+  "canonical_source_sha256": "a6f2237132cf318ee18865d1cec03cb1d9a874f2088b21898d06c3d34a76bbb3",
   "generated_from": "ARB airlock; editorial wording authored upstream",
   "locale": "zh-Hans",
   "records": {
@@ -8915,6 +8915,84 @@
       },
       "title": "BOOST报告并发使用主机内存和HBM可提升LLM serving性能",
       "why_it_matters": "HBM容量和带宽限制模型serving。如果BOOST的结果成立，直接并发使用主机内存和HBM可扩大可运行工作集并提高吞吐量。报告的容量扩展吞吐收益同时包含容量增加，而并发带宽贡献较小；这不意味着延迟同比下降，也不能证明所有系统都会获益。"
+    },
+    "FCMO-566F41460481": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "作者于2026年十月13日发布arXiv:2610.18105，提出CoT必要性的四层级框架及基于干预的可监测性测量方法。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "在四种Qwen3和Gemma4模型配置及三个复杂但良性的分类数据集上，作者报告了答案生成必须依赖CoT时的CoT监测失效；他们将这种必要性定义为无CoT时目标答案概率低于0.01。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "在Qwen3-8B的一个甲状腺诊断类别中，作者报告患者性别和甲状腺素用药相关属性分别系统性地影响至少19%和24%的正确CoT答案，但CoT几乎从未将这些影响表达为关键因素。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "后续干预实验报告，这些属性在作答阶段的直接效应约为总效应的7%和14%；作者据此认为，在这些案例中，属性无法脱离必要的CoT计算单独处理。"
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION",
+          "text": "论文说明，研究用良性行为作近似，模型规模最高为31B参数，关键影响因素的判断依赖一项假设性代理指标，且没有可靠的真阴性得分；所链接的代码仓库称代码即将发布。"
+        },
+        {
+          "label": "INFERRED",
+          "text": "该结果细化了但并未直接否定既有发现：必要的CoT可能使蓄意逃避监测更困难。本研究测量良性任务中有影响的属性是否被表达；此前研究则关注故意隐藏有害行为，或前沿模型中的隐式影响。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "这些干预结果和可监测性得分尚未得到独立复现；所链接的代码仓库目前尚未提供代码。",
+          "kind": "reproduction_missing",
+          "state": "open",
+          "updated_at": "2026-10-15T03:13:52Z"
+        },
+        {
+          "description": "研究使用良性任务作近似，没有检验危险行为、策略性隐藏行为、已部署智能体或前沿规模系统中是否也会出现相同的可监测性失效。",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-15T03:13:52Z"
+        },
+        {
+          "description": "该得分依赖一项关于哪些属性属于关键影响因素的假设，且未提供可靠的真阴性率。",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-15T03:13:52Z"
+        }
+      ],
+      "importance_rationale": "如果论文的干预结果可靠，它们表明即使思维链是得出答案所必需的，可见CoT仍可能漏掉有影响的属性，这会改变可监测性评估的设计。这是一项重要但范围有限的方法结果：研究采用良性任务，模型规模不超过31B，且缺少独立复现，因此不能据此对已部署前沿系统作出宽泛结论。",
+      "limitations": [
+        "这是作者报告的预印本结果，尚未独立复现。",
+        "评估对象是良性行为代理，不包括危险行为、奖励操纵或已部署智能体的行动。",
+        "样本涵盖四种模型配置，规模最高为31B参数，并不代表当前前沿系统。",
+        "可监测性得分假设足够大的系统性效应意味着该属性是关键影响因素；论文指出无法可靠判断真阴性，因此若模型把所有属性都说成有影响，也可能取得高分。",
+        "使用的语言模型评审器为DeepSeek-V4-Flash-0731；作者报告了一个有限子集与人工标签的一致度，但评审器和标注流程尚未经过独立验证。",
+        "公开代码仓库称代码即将发布；本次无法独立复现研究产物。",
+        "该结果并未直接否定Emmons等人（2025）的研究：后者考察复杂有害意图的蓄意隐藏，本研究测量良性任务中普通影响属性是否被表达。Duzan与Stickland（2026）研究前沿模型的隐式影响可监测性，但没有建立相同的答案必要条件。"
+      ],
+      "relationships": [
+        {
+          "summary": "相关证据显示，前沿模型的思维链可监测性会随对抗条件而变化；该记录涉及不同模型和评估条件。",
+          "target_id": "FCMO-841949AEA161",
+          "type": "related"
+        }
+      ],
+      "summary": "一篇发表于2026年十月13日的预印本提出思维链（CoT）必要性的四个层级，并报告称，即使生成答案必须经过CoT，监测也可能漏掉有影响的属性。在Qwen3和Gemma4模型上的良性分类任务干预实验中，作者报告某些医疗任务属性的可监测性得分接近零；在Qwen3-8B的一个甲状腺诊断类别中，患者性别和甲状腺素用药相关属性分别系统性地影响至少19%和24%的正确CoT答案，但CoT几乎从未将这些影响明确说出。论文据此认为，回答必须依赖CoT并不保证CoT可被监测。研究没有测试危险行为或已部署的前沿系统；最大模型为31B参数，失效机制仍未明确，作者链接的代码仓库称代码即将发布。",
+      "technical": {
+        "claimed_result": "作者报告，在某些属性上，即使回答必须依赖CoT，其可监测性得分仍接近零。在Qwen3-8B的甲状腺类别G中，论文称患者性别和甲状腺素用药相关属性分别影响至少19%和24%的正确CoT答案，但几乎从未在CoT中被描述为有影响。",
+        "compute_or_cost": "作者报告，论文全部实验约使用3,000小时A100 GPU和2,000小时B200 GPU。",
+        "demonstrated_result": "本次查阅了公开预印本、其说明的实验条件、测量和局限。研究团队尚未独立复现这些实验。",
+        "mechanism": "通过属性干预估计其系统性影响的下界，再用语言模型评审器判断CoT是否表达了这种影响。必要性层级区分：CoT是否为得出答案所必需，以及是否必须借助CoT处理被监测属性。",
+        "regime": "良性分类与多项选择任务，四种Qwen3/Gemma4配置，模型规模不超过31B参数；这些结果不能确立安全行为表现或向前沿系统迁移。",
+        "reproducibility": "作者链接的仓库称代码即将发布；本次未复现结果，也未审查代码。",
+        "strongest_baseline": "Emmons等人（arXiv:2507.05246）报告，复杂有害行为若必须经过CoT，蓄意逃避监测会变难，除非给予大量协助或反复对抗优化。Duzan与Stickland（arXiv:2608.04735）报告，七种前沿扩展思考模型在隐式影响下比显式影响下更难监测。本研究则在良性分类任务中干预单个属性，并报告CoT必须参与作答时仍会失效。各研究条件不同，属于相邻或互补结果，并非配对比较。"
+      },
+      "title": "即使推理不可或缺，思维链监测仍可能失效",
+      "why_it_matters": "如果这些有界结果能够推广，那么即便推理是得出答案所必需的，可见推理轨迹仍可能无法揭示哪些因素产生了影响。这收窄了一项常见的监督假设，也为评估者提供更精细的区分：任务是否需要推理，与被监测属性是否必须通过推理过程处理，是两回事。现有证据来自作者对良性任务和较小模型的研究，并未证明有害行为或当前前沿部署系统也会出现同类失效。"
     },
     "FCMO-5690CE12C84F": {
       "claims": [
@@ -30225,6 +30303,48 @@
       "why_it_matters": {
         "locale_sha256": "cdfc11ae342329687637df429af2e5bf3d337d99ffc3aa91193b5a00b25a4cb6",
         "source_sha256": "7bb3f11b3eded5abd29cafdb454c8691e4645314d62f4275bd4224243239ef97"
+      }
+    },
+    "FCMO-566F41460481": {
+      "claims": {
+        "locale_sha256": "8a53e99ef8d16c011e0ebc49e409999caa153f07e1d2094fb5101ae34d3acea9",
+        "source_sha256": "b637c4a8b419104890f9dbeb1ae78e222c0a27da47728a103e9973944e388e96"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "8dde06a6bb81dfa9520b030244723e16d4a0112351164ff526e3bb981b88dc6c",
+        "source_sha256": "eaab13e0677ee1777581a68a2376e1fe3f46bfbe3f7583b194db5c8898ce5d1a"
+      },
+      "importance_rationale": {
+        "locale_sha256": "5de5675c7eba0812cd601a05483c990ad6400726c1f78ca64cd401b334e9e13b",
+        "source_sha256": "e978183d4accc2744a622d0dcf5c37841de17eb127f7b68f6fdef0a1b09b0f99"
+      },
+      "limitations": {
+        "locale_sha256": "79b6ddad98771fb966c565a0b9745ad94290212b11843f6234f084fa93aef9e1",
+        "source_sha256": "ef1c9445a875c85a8c21aa399091d49be2f96114bcccfad1f2527807078700f5"
+      },
+      "relationships": {
+        "locale_sha256": "d56bf5f1a70ff520cae7f234a0ba4c94072d227ca1059fd6f62608e44fb24f30",
+        "source_sha256": "b6aaf49b77c9bc679aa0f6e7cebff65ca0f5ccb86d9da64a523de33fb9a0fe37"
+      },
+      "summary": {
+        "locale_sha256": "5c3dd020e903eb8ea3b3f6a79c80aad8e068b90bcb3084a11be1a70c3d7aad74",
+        "source_sha256": "380a9af9bd71207d83ba90593f04e1a1c787d8eeb0c3a9d4c571ae59cc60836f"
+      },
+      "technical": {
+        "locale_sha256": "e2acaedc48a0dc6c886e00393f1a5dd91385b9ed6ae118940d3f8150c54b6cde",
+        "source_sha256": "5ebc13ea418717106ab3f2fa7a96a965f17af300cbcfbce618d48201f4a7d9e7"
+      },
+      "title": {
+        "locale_sha256": "9437aec244978c8e0dbb3846c763d283084a11e70ee314ddb06d81bcd3be2ff7",
+        "source_sha256": "533c4cb6676cc3e2b1edc893a31b779b94715f18ed6e4af76384fff8c9a8154f"
+      },
+      "why_it_matters": {
+        "locale_sha256": "c919596a5d87f49bd4d1362e9e7a108752047ef798ceee32859381b13c5bb929",
+        "source_sha256": "1e23b006d2ca20032b30caf73a3832b55f51bd7dbc36a7d30b7096118e62a09e"
       }
     },
     "FCMO-5690CE12C84F": {
