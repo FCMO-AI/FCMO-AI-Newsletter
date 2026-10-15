@@ -1,6 +1,6 @@
 {
   "canonical_locale": "en",
-  "canonical_source_sha256": "9028efc2c7de7efce45ea03cc00185d9daebf66d732ec6fe3868bd3fcb38b08f",
+  "canonical_source_sha256": "bdeaea7b0bae681415b571132e1995adb29cbf05e61661799f3a765990e7cf3f",
   "generated_from": "ARB airlock; editorial wording authored upstream",
   "locale": "es-419",
   "records": {
@@ -6933,6 +6933,59 @@
       "title": "Ensayo del DeepMind Institute propone medir y preservar la transparencia del razonamiento",
       "why_it_matters": "El ensayo convierte la transparencia del razonamiento en un asunto explícito de diseño y evaluación, cuando OpenAI ha informado por separado de una menor monitorabilidad de la cadena de pensamiento de GPT-6 Astra bajo presión adversarial. Medir si los rastros visibles siguen siendo informativos podría ayudar a distinguir el razonamiento supervisable de una falsa sensación de supervisión. Las propuestas y el ejemplo de escalado de cómputo son argumentos, no resultados de ingeniería validados ni política corporativa oficial."
     },
+    "FCMO-4451D09D0450": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "En las condiciones probadas por los autores, anteponer aperturas seleccionadas de dos tokens elevó el pass@1 de MATH-500 de Olmo-3-7B de 42% a 78% (el modelo RL-Zero comparado obtuvo 75%) y el de Qwen3-14B de 72% a 87% (igual que su variante con RL). Los autores informan mejoras en varios benchmarks de matemáticas; el resultado de programación de Qwen quedó cerca del nivel de su modelo base."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan que ediciones controladas de datos de entrenamiento intermedio hicieron que tokens antes ineficaces, como “chicken”, provocaran razonamiento en Olmo-3-7B; en otra condición probada, una edición similar hizo que “Think duck duck goose” rindiera de forma comparable a “Think step by step”."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "Estos experimentos no demuestran que el aprendizaje por refuerzo no aporte capacidad de razonamiento, que los efectos informados se generalicen a modelos de instrucción desplegados ni que alguna clave sea segura en general; los autores informan cambios en el rechazo y las respuestas dañinas según la clave."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se ha examinado una reproducción independiente de los resultados principales sobre claves y las intervenciones en los datos.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "El §2.1 del artículo describe propuestas de búsqueda de aperturas con 30 problemas de entrenamiento MATH, mientras que el código público inicial fijado usa 100 propuestas y 30 problemas de filtrado; no se sabe qué configuración produjo las cifras publicadas.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "El análisis de seguridad es un estudio de caso de los autores y depende de la clave; faltan más modelos y prompts, así como una evaluación independiente.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se sostienen, estos resultados cambiarían la interpretación de las mejoras de razonamiento obtenidas con RL directo y podrían convertir las asociaciones de los datos de entrenamiento en una variable práctica de control. La evidencia se limita a modelos base seleccionados y condiciones probadas por los autores, por lo que la consecuencia potencial es notable, pero no definitiva.",
+      "limitations": [
+        "Las mediciones de rendimiento y las intervenciones en los datos son informes de los autores del preprint; el equipo de investigación no las reprodujo de manera independiente.",
+        "Las comparaciones principales usan aperturas seleccionadas en Olmo-3-7B y Qwen3-14B, con prompts definidos y hasta 32 respuestas muestreadas por problema; la eficacia de cada clave varía según el modelo y el prompt.",
+        "La discrepancia entre el artículo y el código sobre el número de problemas de búsqueda deja sin resolver la configuración que generó las cifras publicadas.",
+        "La comparación de RL estudia entrenamiento directo desde el modelo base y no establece qué aporta el post-entrenamiento de varias etapas.",
+        "La evidencia de seguridad es un caso específico de claves, no una tasa general; las claves pueden cambiar el rechazo y las respuestas dañinas."
+      ],
+      "relationships": [],
+      "summary": "Un preprint de arXiv informa que anteponer ciertos tokens al inicio de la respuesta puede acercar la precisión matemática de modelos base evaluados a la de sus equivalentes entrenados con RL directo; además, ediciones controladas de datos pueden convertir aperturas arbitrarias en claves para el razonamiento. Los resultados respaldan un mecanismo de asociaciones con los datos de entrenamiento en los modelos estudiados, pero no resuelven cuánto aporta el RL, si el efecto se generaliza ni cómo cambia la seguridad según la clave.",
+      "technical": {
+        "claimed_result": "En Olmo-3-7B, los autores informan que la clave seleccionada eleva el pass@1 de MATH-500 de 42% a 78%, frente a 75% para el modelo RL-Zero comparado; en Qwen3-14B sube de 72% a 87%, igualando la variante con RL. Las ediciones controladas del entrenamiento intermedio hacen que claves arbitrarias seleccionadas provoquen razonamiento en los modelos probados. El preprint informa estos resultados; no se han reproducido de manera independiente.",
+        "demonstrated_result": "El preprint primario consultado informa resultados de rendimiento condicionados por claves y experimentos controlados de edición de datos. El equipo de investigación no ejecutó los modelos ni reprodujo los experimentos; los resultados informados siguen siendo CLAIMED.",
+        "mechanism": "Un breve prefijo fijo cambia la distribución de continuaciones que genera el modelo base. Los autores informan que el RL aumenta la probabilidad de aperturas seleccionadas y que las ediciones contrafactuales de datos pueden cambiar qué tokens activan el razonamiento. Esto respalda asociaciones aprendidas entre tokens y conducta en los regímenes estudiados; no prueba que el RL solo cambie los tokens iniciales.",
+        "regime": "Experimentos de los autores con Olmo-3-7B y Qwen3-14B, aperturas seleccionadas de dos tokens, benchmarks de matemáticas y programación y 32 respuestas por problema; reentrenamiento con datos editados en Olmo-3-7B y SmolLM3-3B. Las comparaciones directas del artículo son entre modelos base y variantes entrenadas con RL directo.",
+        "strongest_baseline": "El artículo compara cada modelo base sin clave y con su clave seleccionada frente a la variante entrenada con RL. En MATH-500, las tasas informadas son 42% / 78% / 75% para Olmo-3-7B y 72% / 87% / 87% para Qwen3-14B."
+      },
+      "title": "Claves breves de tokens evocan conductas de razonamiento asociadas con los datos de entrenamiento en modelos base evaluados",
+      "why_it_matters": "Los resultados muestran que, en estos modelos, ciertas aperturas breves pueden evocar conductas de razonamiento asociadas con los datos de entrenamiento, lo que complica las afirmaciones simples sobre lo que el RL enseña de nuevo. Si se replican, cambiarían la interpretación del post-entrenamiento y el diseño de las evaluaciones. Los experimentos no demuestran transferencia amplia a despliegues ni que el RL no aporte capacidad."
+    },
     "FCMO-454AA3F20046": {
       "claims": [
         {
@@ -12958,6 +13011,60 @@
       "title": "SciExam informa que sistemas de agentes de IA construyeron modelos de ENSO que superaron una referencia publicada",
       "why_it_matters": "Es una prueba concreta de si sistemas de agentes pueden construir modelos científicos compactos evaluados con diagnósticos ocultos y observaciones reservadas, más allá de responder una pregunta fija. Si se replica, podría orientar la evaluación de agentes de investigación para construir modelos. Las puntuaciones reportadas corresponden a ejecuciones únicas del benchmark y las familias de mecanismos propuestas no son descubrimientos confirmados sobre el ENSO."
     },
+    "FCMO-82DA0C3569B8": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan que su ley de escalamiento conjunta, que considera la repetición de datos, predice configuraciones excluidas del ajuste con un RMSE medio de 0.03319, 28% menor que el de su mejor baseline con entradas alternativas (JointMoE con tokens de entrenamiento por idioma, RMSE 0.04617). El ajuste usa 26,300 observaciones de pérdida por idioma procedentes de 64 configuraciones principales."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Con la misma cantidad de parámetros activos y de tokens de entrenamiento por idioma, los autores informan que aumentar los expertos de 1 a 32 redujo en 83% la penalización media de pérdida al ampliar la cobertura de 12 a 200 idiomas (de 0.0796 a 0.0135), promediada entre cuatro tamaños de modelo. La pérdida de texto externa mostró una dirección coherente, mientras que los efectos en la precisión de tareas posteriores variaron."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El estudio no demuestra que la ley ajustada ni la estimación de 83% se transfieran sin cambios al entrenamiento multilingüe de frontera, a otros corpus o mezclas de idiomas, ni a presupuestos de cómputo de producción; la cuadrícula principal usa modelos con menos de mil millones de parámetros activos y la estimación de cómputo excluye costos de enrutamiento y comunicación."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se ha examinado una reproducción independiente del ajuste de la ley ni de las comparaciones de cobertura multilingüe con tokens igualados.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "La cuadrícula principal de 64 configuraciones usa una sola semilla por configuración; las comprobaciones con varias semillas se concentran en un subconjunto cercano a 190M de parámetros activos.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "Los FLOP lógicos de entrenamiento excluyen el enrutamiento y la comunicación; el estudio no mide costos de entrenamiento o inferencia a escala de frontera.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se replica, la interacción entre cantidad de expertos y cobertura lingüística cambiaría cómo se asigna la capacidad de modelos multilingües y podría reducir el costo de ampliar el soporte lingüístico con una capacidad activa por token similar. La evidencia es un estudio de escalamiento de los autores en modelos con menos de mil millones de parámetros activos, por lo que su consecuencia es significativa pero acotada.",
+      "limitations": [
+        "Todas las mediciones reportadas proceden de un solo preprint y no se han reproducido de manera independiente.",
+        "La cuadrícula factorial principal cubre 92.8–589.8M de parámetros activos; un modelo mayor funciona como prueba de estrés, no como validación de entrenamiento a escala de frontera.",
+        "Las 64 configuraciones principales usan una semilla cada una; la réplica de tres semillas se limita a comparaciones seleccionadas cerca de 190M de parámetros activos.",
+        "La estimación de 83% promedia cuatro tamaños de modelo y una expansión anidada específica de 12 a 200 idiomas con tokens de entrenamiento por idioma igualados; los efectos por tarea varían.",
+        "El estudio utiliza mezclas concretas de idiomas de FineWeb/FineWeb2, su propio tokenizador y su procedimiento de muestreo.",
+        "El cómputo de entrenamiento se aproxima como 6ND y excluye costos de enrutamiento y comunicación; no establece el costo económico total ni el de producción."
+      ],
+      "relationships": [],
+      "summary": "Un nuevo preprint de arXiv ajusta una ley conjunta de escalamiento para modelos multilingües de mezcla de expertos, considerando tamaño del modelo, tokens por idioma, número de expertos y cobertura lingüística. Los autores informan mejores predicciones en configuraciones excluidas del ajuste y una menor penalización de pérdida al ampliar la cobertura de 12 a 200 idiomas con más expertos, manteniendo iguales los parámetros activos y los tokens por idioma. Son resultados informados por los autores en una cuadrícula controlada con menos de mil millones de parámetros activos.",
+      "technical": {
+        "claimed_result": "En 26,300 observaciones de pérdida por idioma de 64 configuraciones principales, los autores informan que su ley conjunta con ajuste por repetición logra un RMSE medio de 0.03319 en configuraciones excluidas del ajuste, frente a 0.04617 para la mejor baseline evaluada con entradas alternativas, una reducción de 28%. Al igualar tokens por idioma, pasar de 1 a 32 expertos reduce en 83% la penalización media de pérdida al expandir de 12 a 200 idiomas (de 0.0796 a 0.0135).",
+        "demonstrated_result": "El preprint consultado describe un estudio de entrenamiento factorial, su ley ajustada, evaluaciones con configuraciones excluidas y benchmarks externos. El equipo de investigación no ha reproducido el estudio; los resultados numéricos siguen siendo informes de los autores.",
+        "mechanism": "La ley combina parámetros activos, tokens de entrenamiento por idioma, cantidad de expertos y cobertura lingüística, e incorpora rendimientos decrecientes cuando se repite el uso de datos limitados de un idioma. Más expertos agregan capacidad almacenada mientras la cantidad de parámetros activos se mantiene aproximadamente fija; los autores encuentran que esto puede reducir la interferencia al ampliar la cobertura.",
+        "regime": "Cuadrícula principal: 64 configuraciones de modelos decoder-only con 92.8–589.8M de parámetros activos, 1/4/16/32 expertos y mezclas anidadas de 1/12/50/200 idiomas; hasta 32B tokens de entrenamiento y 400 puntos de evaluación. Las semillas adicionales y mezclas alternativas cubren comparaciones seleccionadas. Un modelo de 1.15B activo / 21.23B almacenado es una prueba de estrés de mayor escala.",
+        "strongest_baseline": "Para la predicción en configuraciones excluidas, la mejor baseline evaluada tras adaptar las entradas es JointMoE con tokens por idioma (RMSE medio 0.04617), frente a 0.03319 de la ley propuesta. Para la expansión lingüística, se compara el modelo denso E=1 con MoE E=32, igualando parámetros activos y tokens por idioma."
+      },
+      "title": "Un estudio de escalamiento multilingüe informa que más expertos reducen el costo en pérdida de ampliar la cobertura de idiomas",
+      "why_it_matters": "Si se replican en escalas y mezclas de idiomas más amplias, la interacción entre capacidad de expertos y cobertura lingüística podría orientar la asignación de cómputo de entrenamiento y parámetros almacenados, reduciendo un costo de pérdida medido al agregar idiomas. La evidencia actual es un preprint con una cuadrícula controlada de menos de mil millones de parámetros activos; no establece resultados a escala de frontera ni la economía de producción."
+    },
     "FCMO-83062915742D": {
       "claims": [
         {
@@ -13427,6 +13534,60 @@
       },
       "title": "CellAudit revela que la precisión predictiva puede ocultar que no se usan las variables de intervención",
       "why_it_matters": "Un modelo puede predecir respuestas celulares retenidas sin utilizar la variable de intervención que su afirmación científica dice que importa. Separar la ruta en código, la dependencia de las predicciones ajustadas y la contribución a la predicción objetivo puede revelar esa brecha y orientar revisiones. El artículo también muestra que la transferencia predictiva y las afirmaciones sobre uso de entradas pueden divergir entre cohortes. Las conclusiones dependen de las distribuciones de reemplazo registradas y de los modelos ajustados; no establecen mecanismos biológicos ni efectos causales."
+    },
+    "FCMO-870643587CBB": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "La ficha de AIRoA MoMa 5k describe un artefacto público sujeto a términos que contiene 1,184,259 episodios exitosos de acciones primitivas, 5,025.1 horas registradas y 180,905,084 cuadros de 44 robots HSR físicos en cinco sitios. Solo incluye datos de entrenamiento y episodios exitosos; la ficha indica un tamaño aproximado de 4.0 TiB y limita el uso a investigación y desarrollo, sin redistribución."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "La página de resultados del programa METI/NEDO atribuye a AIRoA una campaña más amplia con cerca de 80,000 horas recolectadas y unas 18,000 horas depuradas. También informa que un modelo con preentrenamiento continuo basado en π0.5 superó por 3 puntos de éxito en tareas a un ajuste fino existente de pesos abiertos. La página no especifica el denominador de tareas, intervalo de incertidumbre, protocolo de referencia equiparado ni costo de evaluación."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El lanzamiento no establece el rendimiento general de políticas robóticas: solo contiene episodios exitosos, no tiene partición de evaluación ni benchmark estandarizado, cubre una sola plataforma robótica y presenta desequilibrios importantes entre sitios y tareas."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se ha establecido una reproducción independiente de las cifras de rendimiento o de las intervenciones en los datos.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "La ventaja informada de 3 puntos en éxito del modelo carece de denominador especificado, intervalo de confianza, protocolo de referencia equiparado y reproducción independiente en el resumen gubernamental consultado.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "Los términos limitan el uso del conjunto/modelo a investigación y desarrollo y prohíben la redistribución; no se ha establecido el acceso industrial posterior ni su adopción.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se reutiliza en investigación robótica, un conjunto sujeto a términos de aproximadamente 5,000 horas de demostraciones reales de manipulación móvil podría reducir las barreras de recolección para investigación VLA a escala HSR. Su cobertura solo de éxitos y entrenamiento, una única plataforma y términos restringidos limitan lo que puede concluirse sobre capacidad y efecto en el ecosistema.",
+      "limitations": [
+        "Las cifras del gobierno y de la ficha son fuentes de primera parte; el equipo no descargó ni auditó de manera independiente todo el conjunto.",
+        "El artefacto público contiene 1,184,259 episodios exitosos y 5,025.1 horas registradas, pero no incluye ejemplos fallidos o subóptimos y solo ofrece datos de entrenamiento.",
+        "El conjunto cubre 44 robots Toyota HSR en cinco sitios; la ficha informa un marcado desequilibrio por sitio y advierte que los conteos no miden dificultad ni rendimiento de políticas.",
+        "Los términos limitan el uso a investigación y desarrollo y prohíben la redistribución a terceros; el acceso público no implica disponibilidad comercial o sin restricciones.",
+        "La página del programa informa una mejora de 3 puntos en éxito de tareas, pero omite el denominador, el intervalo de confianza, el protocolo equiparado, el costo completo y una reproducción independiente.",
+        "No se establece generalización más allá de la plataforma HSR, adopción industrial, preparación para despliegue ni una mejora amplia de capacidad VLA."
+      ],
+      "relationships": [],
+      "summary": "El programa GENIAC de Japón y la Asociación de Robots con IA publicaron AIRoA MoMa 5k, un conjunto de manipulación móvil con robots reales, junto con un modelo de preentrenamiento continuo y código de entrenamiento. La ficha informa 1,184,259 episodios exitosos y 5,025.1 horas de 44 robots HSR en cinco sitios, pero el acceso está sujeto a términos, se limita a investigación y desarrollo, y el conjunto es solo de entrenamiento y solo incluye éxitos. La página del programa informa por separado una mejora de 3 puntos en éxito de tareas sin denominador ni detalles de evaluación equiparada.",
+      "technical": {
+        "claimed_result": "La ficha de AIRoA informa 1,184,259 episodios exitosos de acciones primitivas, 180,905,084 cuadros y 5,025.1 horas registradas de 44 robots HSR físicos en cinco sitios. La página japonesa de METI/NEDO informa cerca de 80,000 horas recolectadas y 18,000 horas depuradas en el programa más amplio, y atribuye una ventaja de 3 puntos en éxito de tareas frente a un ajuste fino de pesos abiertos al preentrenamiento continuo de π0.5. La comparación del modelo sigue sin verificarse más allá del informe del programa.",
+        "demonstrated_result": "La página oficial del programa, el anuncio de AIRoA y la ficha del conjunto están disponibles y describen el lanzamiento y sus términos. El equipo no descargó ni auditó todos los datos, no examinó una evaluación reproducible del modelo ni verificó el uso posterior; las cifras de rendimiento siguen como CLAIMED.",
+        "mechanism": "El lanzamiento proporciona episodios de manipulación móvil HSR por teleoperación, con video de cabeza y mano, estado del robot, acciones de base móvil, historial de fuerza-par y metadatos de jerarquía de tareas. El informe gubernamental describe la depuración mediante aprendizaje automático y el preentrenamiento continuo de un modelo VLA abierto.",
+        "regime": "AIRoA MoMa 5k: 1,184,259 episodios exitosos de acciones primitivas, 180,905,084 cuadros y 5,025.1 horas registradas de 44 robots Toyota HSR en cinco sitios, recolectadas entre Apr 2025–Jan 2026. Solo entrenamiento, solo éxitos y acceso sujeto a términos; uso de investigación y desarrollo, sin redistribución. El resultado separado del modelo es un informe de primera parte sin denominador de tareas ni protocolo completo equiparado.",
+        "strongest_baseline": "La página de METI/NEDO afirma que el modelo con preentrenamiento continuo basado en π0.5 superó por 3 puntos en éxito de tareas a un modelo existente de pesos abiertos ajustado finamente. El resumen consultado no identifica la cantidad de tareas de evaluación, la incertidumbre ni el protocolo completo equiparado."
+      },
+      "title": "Japón publica un conjunto de manipulación móvil HSR de 5,025 horas sujeto a términos de uso",
+      "why_it_matters": "Un lanzamiento sujeto a términos con más de 5,000 horas de datos reales de manipulación móvil podría reducir las barreras de recolección para investigar modelos VLA con robots HSR. El conjunto solo contiene éxitos de una plataforma, está desequilibrado por sitio y solo puede usarse para investigación y desarrollo, lo que limita la evaluación y reutilización; la afirmación independiente sobre el rendimiento del modelo no está comprobada."
     },
     "FCMO-882F5295EDE7": {
       "claims": [
@@ -28959,6 +29120,48 @@
         "source_sha256": "9cf947807745c1dd304a84fad128f27a157641fc58e7bd5d9cea4d644d5ecf90"
       }
     },
+    "FCMO-4451D09D0450": {
+      "claims": {
+        "locale_sha256": "1bc47b0b0b2f9f5bdbdc11884d202b14d2fc1987c00446509e7404bb43b41f2f",
+        "source_sha256": "59ec18808070ce622cd7dbc9fc8bc50957f3edea7119c0420098e365dd4f3277"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "c4d9b77e3ee73cc3e4c93cc3feed0e481ac247782e45ca2863c6b852d0c0ff79",
+        "source_sha256": "c868a95e3dae31397558076caaf5839bd566cac088394e4e77b340b4ec5b65b2"
+      },
+      "importance_rationale": {
+        "locale_sha256": "f6ae5d65a668b5a48feef439d758ee411e01058f54e14c227713d6e5fd2fe8f9",
+        "source_sha256": "8855f220e7037408006b1f3a2431d84931d97c0b928a52f529df212999f67656"
+      },
+      "limitations": {
+        "locale_sha256": "19758d3bb8d3ba6183a572caba88d73862007d5cd13e21bbae0545437eada6be",
+        "source_sha256": "d3f6396e18724d9c153415b43c0f55d99253e4c1564751b825cddd84beadd251"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "267473a7e019ee2dd6d63f11d6eb546f8802e4c1669ab85a5f2f49b1bdab4eee",
+        "source_sha256": "b950a7f5d90fd89f9e4549dda1892aa4d2127cacce8e7d28ad3aad5c2a3e86aa"
+      },
+      "technical": {
+        "locale_sha256": "3a06816809985d2260e0585bb245f5cd6ea184a9f4d8477fd90dfb9b6f01021e",
+        "source_sha256": "8992f070f8dbd375b3421d87892d7393d5e533a2f908755dc71bd05580c160a7"
+      },
+      "title": {
+        "locale_sha256": "a81c9569683889c7ff21d61336bd3cfece0bffb30f0add0fe89ab20de320fd03",
+        "source_sha256": "6e60d6d97fd43e3002ba03cbffd66dbfcdf25b1c72bb2853d8f91d1395ffe4a4"
+      },
+      "why_it_matters": {
+        "locale_sha256": "04c7a9f16ed64bd3f83e82d4f6f029380817cc866ba821606c762b6b72bfd2ac",
+        "source_sha256": "a1ed71b6e5aa21bd0f240d8191e37799db9bee735ecd3bf94e1af198c2b0e64d"
+      }
+    },
     "FCMO-454AA3F20046": {
       "claims": {
         "locale_sha256": "5af3543ce118dd9571626e7bc225e39e93cc5a9b0afc0e325c04c2ecea728faf",
@@ -33677,6 +33880,48 @@
         "source_sha256": "4970a3b7fff5d8bb9d8ef24a5eb35e91f40d852c128b4cfcdbd9f0b88603dfb0"
       }
     },
+    "FCMO-82DA0C3569B8": {
+      "claims": {
+        "locale_sha256": "1140b11cc20b484b47f01b31fa47cb22f9cbfda4750e32e3d5800ee80b99d10a",
+        "source_sha256": "d8d14a8c24e1a5baa01c113f1553cc02746c014b88c8a9957e8067b0411dcbe6"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "69be5d7af8fe5c5375a1380e04032c521f7b309f9599d79dcf26909251804b78",
+        "source_sha256": "2d62283e7c730dd3e0e59f86e433f484c28dc9f3e350100a293c5010f0ed15cf"
+      },
+      "importance_rationale": {
+        "locale_sha256": "d0b2c94684198a21db6e01883b0504f1500d5b6fdf95cc09a8504a3383420bc5",
+        "source_sha256": "8c1f770183c3682302e7434d333f4d973c7ee19ff9fde244ac8374aac2557f0d"
+      },
+      "limitations": {
+        "locale_sha256": "0cae48caaa81a4b0ae199c20077609fc480f8400ee77b306363148d3e547d600",
+        "source_sha256": "14db36e9a246a00d4878c72ff51faf3d07bfa5d82232a027ded2b346ea06edba"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "6c08af768785f0e6a205d94715750e62f22419b9fe7388a0c220c5038ea25a03",
+        "source_sha256": "1b92fb63de178f2b90a3ecb2dcf2d0f680dfd7e3fcfc0fb213f6d54aaedd1e51"
+      },
+      "technical": {
+        "locale_sha256": "4eaa2f9adaded35b4f471f9a55d438fec7a8ad58a5acb4dc3bec6a70462686c5",
+        "source_sha256": "5bfec1404ee8c7d405c337884716ea85ec97d91082eb7b40c834c2df2b5ae2f2"
+      },
+      "title": {
+        "locale_sha256": "005be63bbd7974e5f0fcf7865a7a22b03069b65fd1307bdb30df23c4b7ed0aca",
+        "source_sha256": "7145605c163d40bacefb6e915fd2f91ffd7ec887146609a1f669409873b8c795"
+      },
+      "why_it_matters": {
+        "locale_sha256": "65d0b916073d60e1de4947d998fc51a3b29796b64e7c9b30c5e15f224c050c8a",
+        "source_sha256": "ee369deda277fe80c8903f9950add960774f44ffc5c6e7ad69708464d1816391"
+      }
+    },
     "FCMO-83062915742D": {
       "claims": {
         "locale_sha256": "04eba7b49c82b1a216da9ee4c135d056a88e8ee88ef5cb0d24d1ba550e79fae8",
@@ -34011,6 +34256,48 @@
       "why_it_matters": {
         "locale_sha256": "899a122c64e93c90b4601a2b05922345cb89c75507b6b35474c7774cc0ba9b70",
         "source_sha256": "a9e6a20f2a69a555c98bdc2db8503d71920788db5b19cf6e2c6c17d3f6ead98e"
+      }
+    },
+    "FCMO-870643587CBB": {
+      "claims": {
+        "locale_sha256": "2aee4dcff66baa152ab19743e47b2b120834354cd8c9d85f5d5cce99dcfd41ca",
+        "source_sha256": "5577dacdd99e2051512af80d668ae6c8df9a32def1198db3bbd470ecf5b3fd86"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "d408b9d4ff76334a29e3d43ea448481e4ba40e36a080e459c935159913de0734",
+        "source_sha256": "b83895842d1949ad695e91ffe09874404544cbb364b87b94e226fa4e934e5ebf"
+      },
+      "importance_rationale": {
+        "locale_sha256": "95b6e24c8e1a629533f3c710cadedef1ca60aecb1f19dd2fb99f9f6d5dc74755",
+        "source_sha256": "7f510504a1d57a97c4bac1faf07cdb42b0b034aa68d4ad10b3ff4df3e154ed93"
+      },
+      "limitations": {
+        "locale_sha256": "6c357b4e5095c8dcbb1871e6c2a511037f94e36530fab6f87b745f70ab7b7c96",
+        "source_sha256": "72bb5a61a0fb45461871e7dab7c8f02a61b9c83e05e2877432c50205d1346839"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "5c377277263e06ffab320ab1c45fcfd39ccaa0eb0671c8cd69416ebca91015ea",
+        "source_sha256": "5c575da414de7e8291396cc16636a9ca155d50d29252524d433042194a14812d"
+      },
+      "technical": {
+        "locale_sha256": "ef9548cfdaf3fac84f9d1a464528e61047ebe87caa511eb9334ff85ca1af79e4",
+        "source_sha256": "a27343c6cd66ef22deaf6d2042d58b8d084828bdb7027239a4615c0f06924b6f"
+      },
+      "title": {
+        "locale_sha256": "5e41b79d39f812ac61f72134b22fcb8c122443688ec4240dcc389637b7d8b110",
+        "source_sha256": "403a417c98ed32da78e00e2c9d91ea7a0d9ca731ee45d713d6a0476000ab31d0"
+      },
+      "why_it_matters": {
+        "locale_sha256": "6a25666bbdf9a4db6b17f204cfbd5dfa2b13a3676f7bb3a605e321a6dbd90a96",
+        "source_sha256": "25e09a3d706687d866ae8d2a895f0c22a6e8d35897c007cdecfcc8509ea3f3b6"
       }
     },
     "FCMO-882F5295EDE7": {
