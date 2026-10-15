@@ -88,7 +88,7 @@ jobs:
     # shard, whole classes stay together, and a shard refuses to run unless
     # the partition is complete. Same environment as the former serial step
     # (Playwright, axe, age, PyYAML, full history). It writes nothing.
-    name: regression shard ${{ matrix.shard }}/8
+    name: regression shard ${{ matrix.shard }} of 0-7
     if: >-
       (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success') &&
       (github.event_name != 'workflow_dispatch' || inputs.operation == 'deploy')
@@ -97,7 +97,8 @@ jobs:
     permissions:
       contents: read
     strategy:
-      fail-fast: true
+      # Every shard finishes so one run reports every failing test at once.
+      fail-fast: false
       matrix:
         shard: [0, 1, 2, 3, 4, 5, 6, 7]
     steps:

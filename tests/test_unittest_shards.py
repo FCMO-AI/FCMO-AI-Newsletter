@@ -103,7 +103,7 @@ class PagesCadenceTests(unittest.TestCase):
         self.assertEqual(shards, list(range(len(shards))))
         run = jobs["regression"]["steps"][-1]["run"]
         self.assertEqual(run, f"python3 tools/unittest_shards.py --index ${{{{ matrix.shard }}}} --count {len(shards)}")
-        self.assertTrue(jobs["regression"]["strategy"]["fail-fast"])
+        self.assertIs(jobs["regression"]["strategy"]["fail-fast"], False)
         self.assertNotIn("continue-on-error", json.dumps(jobs["regression"]))
         build_runs = [step.get("run", "") for step in jobs["build"]["steps"]]
         self.assertFalse(any("unittest discover" in run for run in build_runs))
