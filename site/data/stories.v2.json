@@ -1,7 +1,7 @@
 {
   "schema": "fcmo-stories-v2",
-  "generated_at": "2026-10-15T05:05:13Z",
-  "release_id": "newswire-ca6e6ce48cf8d25175e07425",
+  "generated_at": "2026-10-15T06:02:24Z",
+  "release_id": "newswire-91622cb6932149237baa9919",
   "canonical_locale": "en",
   "locales": [
     "en",
@@ -41,6 +41,986 @@
     "2026-10-14"
   ],
   "stories": [
+    {
+      "id": "FCMO-9C7A3408F76A",
+      "slug": "sift-uses-pairwise-judging-and-disaggregated-search-to-improve-recursive",
+      "url_date": "2026-10-15",
+      "kind": "development",
+      "status": "live",
+      "beat": "research",
+      "desk": "reasoning_posttraining",
+      "title": "SIFT uses pairwise judging and disaggregated search to improve recursive coding-agent benchmarks",
+      "summary": "A Sep 17, 2026 arXiv preprint introduces SIFT, which uses pairwise LLM judgments and a regularized Bradley–Terry ranking signal to steer a disaggregated search over coding-agent modifications, reserving more expensive task evaluations for selected candidates. The authors report Polyglot gains over named recursive-search baselines and a TerminalBench result where judge-ranked selection outperforms selection by search-subset score across three repeated full evaluations. These are author-reported results from one preprint. A resource table and adjacent prose disagree substantially on the o3-mini/GPT-5.4 run's steps, cost and CPU time, so the paper's efficiency comparison is not resolved here.",
+      "why_it_matters": "If independently reproduced with reconciled accounting, cheap pairwise judging could help recursive coding-agent research spend fewer benchmark runs on weak candidate modifications. The current evidence is one author-run preprint; it does not establish a general compute advantage, and its reported resource figures conflict for a key run.",
+      "importance_rationale": "If the reported results hold, pairwise patch judging that reduces expensive benchmark evaluations could change how teams allocate compute in recursive coding-agent search. A 5 reflects a notable but currently single-paper advance in a specialist frontier; the results are author-reported and a material run-cost discrepancy remains unresolved.",
+      "technical": {
+        "claimed_result": "Authors report Polyglot-225 gains in Qwen3-Coder-30B and o3-mini configurations and a TerminalBench 2.1 selection result. Results are limited to the paper's evaluated harnesses and benchmarks.",
+        "compute_or_cost": "The authors report CPU-hour, wall-clock and API-cost savings, but Table 3's o3-mini/GPT-5.4 row (20 steps, $86.8, 59 CPU hours, 2.1 hours) conflicts with adjacent prose (30 steps, $150, 42 CPU hours, under five hours). Do not use that row as a reconciled cost estimate.",
+        "demonstrated_result": "The accessible arXiv v1 documents the method, experiment descriptions, tables and an internal inconsistency in one run's resource accounting. No independent code execution or reproduction was performed.",
+        "mechanism": "An LLM judge compares candidate patches pairwise against selected incumbents. A regularized Bradley–Terry fit aggregates the win-loss results; ranks guide parent sampling and an asynchronous evaluation queue in a disaggregated tree search. Full benchmark execution remains the selection signal for promising nodes.",
+        "regime": "arXiv:2609.19526v1, submitted Sep 17, 2026. Polyglot-225 includes Qwen3-Coder-30B and o3-mini agent configurations with different judge models. TerminalBench search uses a sampled 50-task subset and reports repeated full evaluation over 89 tasks. Results are author-reported.",
+        "reproducibility": "The full v1 HTML is available on arXiv. No code link is listed on the arXiv record and no independent reproduction was located or performed in this review. The arXiv record lists only v1; the exact resource discrepancy remains unresolved.",
+        "strongest_baseline": "For Qwen3-Coder-30B, the paper reports 31.1% for SIFT versus 30.5% for HGM. For o3-mini with GPT-5.4 judge it reports 35.1% versus 30.7% for DGM, but the paper compares 30 SIFT expansion steps with 80 DGM search nodes. On TerminalBench the judge-ranked candidate's repeated evaluation mean exceeds the candidate chosen by search-subset accuracy; this is a selector comparison, not a matched generalization claim."
+      },
+      "importance_tier": "Notable",
+      "development_type": "paper",
+      "event_at": "2026-09-17T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-15T06:02:10Z",
+      "updated_at": "2026-10-15T06:02:10Z",
+      "importance": 5,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": false,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "CLAIMED",
+            "text": "SIFT uses pairwise LLM judgments of candidate code patches, aggregates wins and losses with a regularized Bradley–Terry model, and uses those scores for rank-based parent sampling in a disaggregated search pipeline; expensive task evaluations are reserved for selected nodes."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "On the authors' Polyglot-225 experiments, SIFT with Qwen3-Coder-30B and a Qwen3-Coder-480B judge reaches 31.1%, compared with 30.5% for HGM in the reported comparison. With o3-mini and a GPT-5.4 judge, SIFT reaches 35.1%, compared with 30.7% for DGM, which the paper says used 80 search nodes while the SIFT run used 30 expansion steps."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "On TerminalBench 2.1, the authors report three repeated full evaluations averaging 36.7% for the agent selected by judge rank and 28.1% for the agent selected by search-score rank, after search used a sampled 50-task subset."
+          },
+          {
+            "label": "DEMONSTRATED",
+            "text": "The v1 paper's resource accounting is internally inconsistent for the o3-mini/GPT-5.4 SIFT result: Table 3 lists 20 expansion steps, $86.8 API cost, 59 CPU hours and 2.1 hours wall time, while adjacent prose describes 30 steps, $150 in credits, 42 CPU hours and under five hours. This review does not reconcile the figures."
+          }
+        ],
+        "limitations": [
+          "All performance results are author-reported in a single arXiv preprint; no independent reproduction was performed.",
+          "The o3-mini/GPT-5.4 resource totals and expansion-step count conflict between Table 3 and adjacent prose; resource efficiency cannot be inferred from that row without clarification.",
+          "The reported comparisons use specific coding, expansion and judge models; transfer to other models, patch distributions and agent harnesses is not established generally.",
+          "TerminalBench search uses a 50-task subset before repeated full evaluations; selected-agent outcomes do not establish that judge ranking is reliable across task distributions.",
+          "No public source-code link was listed on the arXiv record during this review, and no execution was attempted."
+        ],
+        "gaps": [
+          {
+            "kind": "contradiction_unresolved",
+            "description": "The paper's Table 3 and adjacent prose disagree on steps, API credits and CPU hours for the o3-mini/GPT-5.4 SIFT run."
+          },
+          {
+            "kind": "missing_independent",
+            "description": "No independent reproduction of the Polyglot or TerminalBench results was located or performed."
+          },
+          {
+            "kind": "missing_artifact",
+            "description": "No implementation repository link appears in the arXiv record inspected for v1."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://arxiv.org/abs/2609.19526",
+          "domain": "arxiv.org",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "Massachusetts Institute of Technology",
+        "Sakana AI"
+      ],
+      "topics": [
+        "recursive-self-improvement",
+        "coding-agents",
+        "llm-judges",
+        "tree-search",
+        "benchmark-efficiency"
+      ],
+      "regions": [
+        "US",
+        "JP"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-9C7A3408F76A.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: SIFT uses pairwise judging and disaggregated search to improve recursive coding-agent benchmarks"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "SIFT usa juicio por pares y búsqueda desacoplada para mejorar pruebas de agentes de código recursivos",
+            "summary": "Un preprint de arXiv del 17 de septiembre de 2026 presenta SIFT, que emplea juicios por pares de un LLM y una señal de clasificación Bradley–Terry regularizada para dirigir una búsqueda desacoplada de modificaciones a agentes de código; las evaluaciones de tareas más costosas se reservan para candidatos seleccionados. Los autores informan mejoras en Polyglot frente a métodos recursivos de búsqueda con nombre y un resultado en TerminalBench donde la selección por rango del juez supera la selección por puntuación del subconjunto de búsqueda en tres evaluaciones completas repetidas. Son resultados reportados por los autores en un único preprint. La tabla de recursos y el texto cercano discrepan sustancialmente sobre pasos, costo y tiempo de CPU de la ejecución o3-mini/GPT-5.4, así que aquí no queda resuelta la comparación de eficiencia del artículo.",
+            "importance_rationale": "Si los resultados reportados se sostienen, el juicio por pares de parches podría cambiar cómo los equipos distribuyen cómputo durante la búsqueda recursiva de agentes de código. Una puntuación de 5 refleja un avance notable, aunque especializado y basado en un solo artículo; los resultados son de los autores y queda sin resolver una discrepancia importante en los costos de ejecución.",
+            "why_it_matters": "Si se reproduce de forma independiente y se concilia la contabilidad, el juicio económico por pares podría ayudar a la investigación de agentes de código recursivos a gastar menos ejecuciones de benchmark en modificaciones poco prometedoras. La evidencia actual es un preprint de los autores; no establece una ventaja general de cómputo, y sus cifras de recursos discrepan en una ejecución clave.",
+            "technical": {
+              "claimed_result": "Los autores informan mejoras de SIFT en Polyglot-225 con configuraciones o3-mini y Qwen3-Coder-30B, además de un resultado de selección en TerminalBench 2.1. Los resultados se limitan a los arneses y pruebas evaluados en el artículo.",
+              "compute_or_cost": "Los autores informan ahorros de horas de CPU, tiempo real y costo API, pero la fila o3-mini/GPT-5.4 de la Tabla 3 (20 pasos, $86.8, 59 horas de CPU, 2.1 horas) contradice el texto cercano (30 pasos, $150, 42 horas de CPU, menos de cinco horas). No se debe tratar esa fila como un costo conciliado.",
+              "demonstrated_result": "La v1 de arXiv documenta el método, las descripciones experimentales, las tablas y una inconsistencia interna en la contabilidad de recursos de una ejecución. No se ejecutó código de forma independiente ni se reprodujeron los resultados.",
+              "mechanism": "Un juez LLM compara por pares parches candidatos con opciones seleccionadas. Un ajuste Bradley–Terry regularizado agrega los resultados de victorias y derrotas; los rangos orientan el muestreo de padres y una cola de evaluación asíncrona dentro de una búsqueda desacoplada. La ejecución del benchmark completo sigue siendo la señal de selección para los nodos prometedores.",
+              "regime": "arXiv:2609.19526v1, enviado el 17 de septiembre de 2026. Polyglot-225 incluye configuraciones de agentes Qwen3-Coder-30B y o3-mini con distintos modelos de juez. La búsqueda de TerminalBench usa una muestra de 50 tareas y reporta evaluaciones completas repetidas sobre 89 tareas. Los resultados son de los autores.",
+              "reproducibility": "El texto completo de la v1 está disponible en arXiv. En el registro revisado no aparece un enlace al código; tampoco se localizó ni se realizó una reproducción independiente. El registro de arXiv solo enumera la v1 y la discrepancia exacta de recursos sigue sin resolverse.",
+              "strongest_baseline": "Para Qwen3-Coder-30B, el artículo informa 31.1% para SIFT frente a 30.5% para HGM. Para o3-mini con juez GPT-5.4 informa 35.1% frente a 30.7% para DGM, pero compara 30 pasos de expansión SIFT con 80 nodos de búsqueda DGM. En TerminalBench, el promedio de evaluación repetida del candidato elegido por el juez supera al elegido por precisión en el subconjunto de búsqueda; esto compara selectores y no demuestra una generalización equivalente."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "SIFT compara parches de código candidatos por pares mediante un juez LLM, agrega victorias y derrotas con un modelo Bradley–Terry regularizado y usa esas puntuaciones para muestrear padres por rango en una búsqueda desacoplada; reserva las evaluaciones costosas de tareas para nodos seleccionados."
+                },
+                {
+                  "text": "En los experimentos Polyglot-225 de los autores, SIFT con Qwen3-Coder-30B y un juez Qwen3-Coder-480B alcanza 31.1%, frente a 30.5% de HGM en la comparación reportada. Con o3-mini y un juez GPT-5.4, SIFT alcanza 35.1%, frente a 30.7% de DGM; según el artículo, DGM usó 80 nodos de búsqueda y la ejecución de SIFT, 30 pasos de expansión."
+                },
+                {
+                  "text": "En TerminalBench 2.1, los autores informan evaluaciones completas repetidas tres veces con promedios de 36.7% para el agente elegido por rango del juez y 28.1% para el elegido por puntuación de búsqueda, después de que la búsqueda usó una muestra de 50 tareas."
+                },
+                {
+                  "text": "La contabilidad de recursos de la v1 del artículo es internamente inconsistente para el resultado SIFT con o3-mini y GPT-5.4: la Tabla 3 enumera 20 pasos de expansión, un costo API de $86.8, 59 horas de CPU y 2.1 horas de tiempo real, mientras que el texto cercano describe 30 pasos, $150 en créditos, 42 horas de CPU y menos de cinco horas. Esta revisión no reconcilia las cifras."
+                }
+              ],
+              "limitations": [
+                "Todos los resultados de rendimiento son reportados por los autores en un solo preprint de arXiv; no se realizó una reproducción independiente.",
+                "Los recursos totales y el número de pasos de expansión del resultado o3-mini/GPT-5.4 difieren entre la Tabla 3 y el texto cercano; no se puede inferir eficiencia de recursos de esa fila hasta aclararla.",
+                "Las comparaciones reportadas usan modelos específicos de código, expansión y juicio; no se ha establecido una transferencia general a otros modelos, distribuciones de parches o arneses de agentes.",
+                "La búsqueda de TerminalBench utiliza una muestra de 50 tareas antes de las evaluaciones completas repetidas; el resultado de los agentes seleccionados no demuestra que el rango del juez sea fiable en otras distribuciones de tareas.",
+                "El registro de arXiv no mostró un enlace público al código durante esta revisión, y no se intentó ejecutar ninguna implementación."
+              ],
+              "gaps": [
+                {
+                  "description": "La Tabla 3 del artículo y el texto cercano discrepan sobre los pasos, los créditos API y las horas de CPU de la ejecución SIFT con o3-mini y GPT-5.4."
+                },
+                {
+                  "description": "No se localizó ni se realizó una reproducción independiente de los resultados Polyglot o TerminalBench."
+                },
+                {
+                  "description": "El registro de arXiv revisado para la v1 no incluye un enlace a un repositorio de implementación."
+                }
+              ]
+            }
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "SIFT用成对评审和解耦搜索提升递归代码智能体基准表现",
+            "summary": "2026年九月17日提交的一篇arXiv预印本介绍了SIFT：它用LLM成对评审和正则化Bradley–Terry排名信号引导对代码智能体修改方案进行解耦搜索，并将成本较高的任务评测留给筛选出的候选方案。作者报告称，该方法在Polyglot上优于论文列出的递归搜索基线；在TerminalBench中，按评审排名选出的方案经过三次完整重复评测后优于按搜索子集得分选出的方案。这些是单篇预印本中的作者报告结果。资源表与相邻正文对o3-mini/GPT-5.4运行的步骤、成本和CPU时间存在明显分歧，因此本次不认为论文的效率比较已得到核实。",
+            "importance_rationale": "如果报告结果成立，补丁成对评审可能改变团队在递归代码智能体搜索中分配算力的方式。评分5表示这是一项值得关注但领域较窄、目前仅见于单篇论文的进展；结果由作者报告，且关键运行的成本核算差异尚未解决。",
+            "why_it_matters": "如果能独立复现并解决资源核算差异，低成本的成对评审可能帮助递归代码智能体研究减少对低潜力修改方案的基准测试次数。目前证据来自一篇作者报告的预印本；它不能证明普遍的算力优势，且关键运行的资源数字存在矛盾。",
+            "technical": {
+              "claimed_result": "作者报告称，SIFT在Polyglot-225的o3-mini和Qwen3-Coder-30B配置中取得提升，并在TerminalBench 2.1上展示了选择结果。这些结果仅适用于论文评测的框架和基准。",
+              "compute_or_cost": "作者报告了CPU小时、实时时长和API成本的节省，但表3中的o3-mini/GPT-5.4一行（20步、$86.8、59 CPU小时、2.1小时）与相邻正文（30步、$150、42 CPU小时、不足五小时）相矛盾。在核对前不能把该行视为一致的成本估算。",
+              "demonstrated_result": "arXiv v1记录了方法、实验描述、表格以及一次运行资源核算的内部不一致。本次没有独立运行代码或复现结果。",
+              "mechanism": "LLM评审员将候选补丁与选定方案进行成对比较。正则化Bradley–Terry拟合汇总胜负；排名用于在解耦搜索中抽取父节点并安排异步评测队列。对有潜力的节点仍以完整基准执行作为筛选信号。",
+              "regime": "arXiv:2609.19526v1，提交于2026年九月17日。Polyglot-225包含Qwen3-Coder-30B和o3-mini智能体配置，并使用不同的评审模型。TerminalBench搜索使用50项任务的抽样子集，随后对89项任务开展重复完整评测。结果均由作者报告。",
+              "reproducibility": "arXiv提供了v1全文。本次查阅的记录未列出代码链接，也未找到或开展独立复现。arXiv记录仅列出v1，资源差异仍未解决。",
+              "strongest_baseline": "对Qwen3-Coder-30B，论文报告SIFT为31.1%、HGM为30.5%。对使用GPT-5.4评审员的o3-mini，论文报告SIFT为35.1%、DGM为30.7%，但比较的是SIFT的30个扩展步骤和DGM的80个搜索节点。在TerminalBench中，评审排名选出的候选方案在重复评测中的均值高于按搜索子集得分选出的方案；这是选择方法比较，并非等条件下的普遍化结论。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "SIFT让LLM评审员成对比较候选代码补丁，用正则化Bradley–Terry模型汇总胜负，并依据得分在解耦搜索流程中按排名抽取父节点；成本较高的任务评测仅用于筛选出的节点。"
+                },
+                {
+                  "text": "在作者的Polyglot-225实验中，使用Qwen3-Coder-30B和Qwen3-Coder-480B评审员的SIFT达到31.1%，作者报告的HGM对照为30.5%。使用o3-mini和GPT-5.4评审员时，SIFT达到35.1%，DGM为30.7%；论文称DGM使用了80个搜索节点，而SIFT运行使用了30个扩展步骤。"
+                },
+                {
+                  "text": "在TerminalBench 2.1上，作者报告了三次重复完整评测的平均值：按评审员排名选出的智能体为36.7%，按搜索得分选出的智能体为28.1%；搜索阶段使用了抽样的50项任务。"
+                },
+                {
+                  "text": "论文v1中，o3-mini/GPT-5.4的SIFT资源核算存在内部矛盾：表3列出20个扩展步骤、$86.8 API成本、59 CPU小时和2.1小时实时时长；相邻正文则称30个步骤、$150额度、42 CPU小时和不足五小时。本次审查未能调和这些数字。"
+                }
+              ],
+              "limitations": [
+                "所有性能结果均由单篇arXiv预印本的作者报告；本次未进行独立复现。",
+                "o3-mini/GPT-5.4结果的资源总量和扩展步骤数在表3与相邻正文之间不一致；澄清之前不能据此行推断资源效率。",
+                "报告中的比较使用特定代码模型、扩展模型和评审模型；尚未证明其能普遍迁移到其他模型、补丁分布或智能体框架。",
+                "TerminalBench搜索先使用50项任务的子集，再开展重复完整评测；所选智能体结果无法证明评审排名在其他任务分布中同样可靠。",
+                "本次审查的arXiv记录没有列出公开代码链接，也未尝试执行实现。"
+              ],
+              "gaps": [
+                {
+                  "description": "论文表3与相邻正文对o3-mini/GPT-5.4 SIFT运行的步骤数、API额度和CPU小时存在分歧。"
+                },
+                {
+                  "description": "尚未找到或开展Polyglot、TerminalBench结果的独立复现。"
+                },
+                {
+                  "description": "本次审查的arXiv v1记录没有提供实现代码仓库链接。"
+                }
+              ]
+            },
+            "headline": "SIFT用成对评审和解耦搜索提升递归代码智能体基准表现"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
+    {
+      "id": "FCMO-978650B13A2E",
+      "slug": "singapore-publishes-quantum-safe-migration-milestones-and-pilot-grant",
+      "url_date": "2026-10-15",
+      "kind": "development",
+      "status": "live",
+      "beat": "policy",
+      "desk": "policy_geopolitics",
+      "title": "Singapore publishes quantum-safe migration milestones and pilot grant",
+      "headline": "Singapore publishes quantum-safe migration milestones and pilot grant",
+      "dek": "Singapore’s Cyber Security Agency published quantum-safe migration milestones and launched a pilot grant on 14 October.",
+      "summary": "Singapore’s Cyber Security Agency published quantum-safe migration milestones and launched a pilot grant on 14 October. Non-CII organizations exposed to quantum risks are advised to prepare a migration plan by the end of 2027 and aim to complete migration by 2035. CII owners have a 31 March 2027 plan-submission deadline, a 31 December 2031 migration target, and quantum-safe procurement considerations from 2028. The Quantum-Safe Kickstarter Grant is open to Singapore-incorporated non-government organizations for Singapore-based work, prioritizes CII owners, and covers up to 70% of eligible costs with 30% cash co-funding; funded pilots may last up to six months during the 1 November 2026–31 October 2027 grant period. No award, completed pilot or migration outcome is established.",
+      "why_it_matters": "The guidance turns a broad quantum-readiness goal into dated planning, procurement and migration milestones, while the grant can help organizations test discovery and migration on real systems before a cryptographically relevant quantum threat exists. The rules create observable implementation checkpoints, but their effect depends on organizational uptake and pilot quality; no migration or risk-reduction result is yet established.",
+      "importance_rationale": "If implemented, extending migration guidance beyond critical infrastructure and funding early pilots could accelerate replacement of vulnerable cryptography in sensitive systems and surface practical transition barriers. The announcement establishes intent, not coverage, uptake or risk reduction.",
+      "technical": {
+        "claimed_result": "CSA’s published advisory recommends non-CII organizations exposed to quantum risks have migration plans by end-2027 and aim for completion by 2035; it sets CII milestones for 31 March 2027 plan submission, 31 December 2031 migration completion and quantum-safe procurement from 2028. The grant covers up to 70% of project costs with 30% cash co-funding, and funded pilots may last up to six months.",
+        "demonstrated_result": "CSA published the advisory and grant information pack on 14 October 2026. The documents specify differentiated milestones, Singapore applicant eligibility, grant coverage, timing and reporting requirements. No pilot award or migration outcome was reviewed.",
+        "mechanism": "CSA published risk-based migration milestones and practical advisory guidance; a time-bounded, co-funded grant supports operational pilots that test cryptographic discovery, system migration and legacy/OT transition, with participants required to report methods, findings and demonstrated impact.",
+        "regime": "Singapore organizations exposed to quantum-related cybersecurity risks. Non-CII organizations should plan by end-2027 and aim to complete migration by 2035; CII owners have separate plan and system migration milestones. The grant supports qualifying Singapore-incorporated non-government organizations conducting Singapore-based pilots, gives CII owners priority, covers up to 70% of eligible costs, and runs 1 November 2026–31 October 2027.",
+        "reproducibility": "The government guidance and grant terms are publicly inspectable. Future pilot reports are required to document technical implementation, testing methods, results, limitations and resourcing, but none was reviewed in this activation.",
+        "strongest_baseline": "CSA’s earlier June 2026 guidance for CII owners set a 2031 migration target. The 14 October advisory extends planning guidance to other organizations with a 2035 target and end-2027 plan milestone; the grant adds partial cash support for bounded migration pilots."
+      },
+      "importance_tier": "Notable",
+      "development_type": "policy_action",
+      "event_at": "2026-10-14T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-15T06:02:10Z",
+      "updated_at": "2026-10-15T06:02:10Z",
+      "importance": 5,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": true,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "DEMONSTRATED",
+            "text": "Singapore’s Cyber Security Agency published a quantum-safe migration advisory on 14 October 2026. It advises non-CII organizations exposed to quantum risks to establish a migration plan by the end of 2027 and aim to complete migration by 2035; the advisory is broad guidance, not evidence that organizations have acted."
+          },
+          {
+            "label": "DEMONSTRATED",
+            "text": "The official guidance sets separate CII milestones: submit migration plans by 31 March 2027, complete migration of CII systems by 31 December 2031, and account for quantum-safe considerations in new CII system procurement from 2028."
+          },
+          {
+            "label": "DEMONSTRATED",
+            "text": "CSA launched the Quantum-Safe Kickstarter Grant. Applications are open; the grant period runs from 1 November 2026 through 31 October 2027, with pilots lasting up to six months. It covers up to 70% of eligible project costs and requires a 30% cash contribution. Eligible applicants are non-government organizations registered and incorporated in Singapore undertaking work in Singapore; CII owners receive priority."
+          },
+          {
+            "label": "DEMONSTRATED",
+            "qualifier": "LIMITATION",
+            "text": "The published documents describe milestones, grant terms and required pilot reporting, but this review found no awards, completed pilots, organization-level migration progress or measured reduction in cryptographic risk."
+          }
+        ],
+        "limitations": [
+          "The advisory recommends milestones; this review did not establish that the non-CII timelines are legally mandatory.",
+          "Grant terms establish funding rules and applicant eligibility, not award volume, recipient selection or successful migration.",
+          "No organization-level progress, completed pilots, measured performance, interoperability results or cryptographic risk reduction is reported.",
+          "Migration progress depends on cryptographic inventories, vendor readiness, legacy-system constraints and organizational implementation; these are not measured here."
+        ],
+        "gaps": [
+          {
+            "kind": "other",
+            "description": "The advisory sets milestones but no organization-level adoption, migration-plan submissions or CII procurement compliance data were found."
+          },
+          {
+            "kind": "other",
+            "description": "The grant is open, but no awards or completed pilot reports were available in the reviewed materials. The page says reports should document technical implementation, testing methods, results, limitations and resourcing."
+          },
+          {
+            "kind": "missing_independent",
+            "description": "No evidence yet shows that guidance or funded pilots reduce cryptographic exposure or improve migration readiness at ecosystem scale."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://www.mddi.gov.sg/newsroom/opening-address-by-minister-josephine-teo-at-the-singapore-international-cyber-week--day-2-/",
+          "domain": "mddi.gov.sg",
+          "primary": true
+        },
+        {
+          "url": "https://www.csa.gov.sg/news-events/press-releases/csa-sets-out-quantum-safe-migration-timeline-for-organisations-and-launches-new-grant/",
+          "domain": "csa.gov.sg",
+          "primary": true
+        },
+        {
+          "url": "https://www.csa.gov.sg/alerts-and-advisories/advisories/advisory-on-quantum-safe-migration-for-organisations/",
+          "domain": "csa.gov.sg",
+          "primary": true
+        },
+        {
+          "url": "https://www.csa.gov.sg/our-programmes/support-for-enterprises/quantum-safe-kickstarter-grant/",
+          "domain": "csa.gov.sg",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "Ministry of Digital Development and Information, Singapore",
+        "Cyber Security Agency of Singapore"
+      ],
+      "topics": [
+        "post-quantum-cryptography",
+        "cybersecurity",
+        "cryptographic-migration",
+        "government-policy"
+      ],
+      "regions": [
+        "SG"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-978650B13A2E.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: Singapore publishes quantum-safe migration milestones and pilot grant"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "Singapur publica hitos de migración criptográfica y lanza una subvención piloto",
+            "summary": "El 14 de octubre, la Agencia de Ciberseguridad de Singapur publicó hitos de migración a criptografía segura ante la computación cuántica y lanzó una subvención para proyectos piloto. Recomienda a organizaciones ajenas a la infraestructura crítica que estén expuestas a estos riesgos preparar un plan para fines de 2027 y procurar completar la migración para 2035. Las entidades de infraestructura crítica deben presentar planes a más tardar el 31 de marzo de 2027, completar la migración de sus sistemas para el 31 de diciembre de 2031 e incorporar criterios criptográficos en nuevas adquisiciones desde 2028. La subvención Quantum-Safe Kickstarter está abierta a organizaciones no gubernamentales constituidas en Singapur para actividades en el país, prioriza a las propietarias de infraestructura crítica y cubre hasta 70% de costos elegibles con 30% de cofinanciamiento en efectivo. Los proyectos pueden durar hasta seis meses durante el periodo del 1 de noviembre de 2026 al 31 de octubre de 2027. No se demuestra ninguna adjudicación, proyecto piloto terminado ni resultado de migración.",
+            "importance_rationale": "La orientación convierte un objetivo general de preparación cuántica en hitos con fecha para la planificación, las adquisiciones y la migración, mientras que la subvención puede ayudar a probar el inventario criptográfico y la migración en sistemas reales antes de que exista una amenaza cuántica capaz de romper la criptografía. El efecto dependerá de la adopción institucional y la calidad de los pilotos; todavía no se demuestra una migración ni una reducción del riesgo.",
+            "why_it_matters": "La orientación convierte la preparación ante amenazas cuánticas en fechas concretas para planificar, adquirir tecnología y migrar sistemas, mientras que la subvención puede ayudar a probar el descubrimiento criptográfico y la migración en sistemas reales antes de que exista una computadora cuántica capaz de romper la criptografía. Las reglas crean hitos observables, pero su efecto dependerá de la adopción y la calidad de los pilotos; aún no se demuestra una migración ni una reducción del riesgo.",
+            "technical": {
+              "claimed_result": "El aviso publicado por la Agencia de Ciberseguridad de Singapur recomienda que las organizaciones ajenas a la infraestructura crítica expuestas a estos riesgos tengan un plan de migración para fines de 2027 y procuren completarla para 2035. Fija para las entidades de infraestructura crítica hitos de presentación del plan a más tardar el 31 de marzo de 2027, finalización de la migración para el 31 de diciembre de 2031 e incorporación de criterios criptográficos en nuevas adquisiciones desde 2028. La subvención cubre hasta 70% de los costos de proyecto y requiere 30% de cofinanciamiento en efectivo; los pilotos pueden durar hasta seis meses.",
+              "demonstrated_result": "La Agencia de Ciberseguridad de Singapur publicó el aviso y la guía de la subvención el 14 de octubre de 2026. Los documentos especifican hitos diferenciados, elegibilidad de organizaciones singapurenses, cobertura y duración de la subvención, y requisitos de informes. No se revisó ninguna adjudicación ni resultado de migración.",
+              "mechanism": "La Agencia publicó hitos de migración basados en el riesgo y orientación práctica; una subvención limitada en el tiempo y cofinanciada permite probar proyectos operativos que examinan el descubrimiento criptográfico, la migración de sistemas y la transición de sistemas heredados o de tecnología operativa. Se exige informar métodos, hallazgos e impacto demostrado.",
+              "regime": "Organizaciones de Singapur expuestas a riesgos de ciberseguridad relacionados con la computación cuántica. Las organizaciones ajenas a la infraestructura crítica deberían planificar para fines de 2027 y procurar terminar la migración para 2035; las propietarias de infraestructura crítica tienen hitos distintos para sus planes y sistemas. La subvención apoya proyectos piloto en Singapur de organizaciones no gubernamentales constituidas en el país, prioriza a las propietarias de infraestructura crítica, cubre hasta 70% de los costos elegibles y opera del 1 de noviembre de 2026 al 31 de octubre de 2027.",
+              "reproducibility": "La orientación y las condiciones de la subvención son públicas y se pueden inspeccionar. Los futuros informes de los pilotos deben documentar implementación técnica, métodos de prueba, resultados, limitaciones y recursos, pero esta activación no revisó ninguno.",
+              "strongest_baseline": "La orientación de junio de 2026 de la Agencia para las entidades de infraestructura crítica fijó un objetivo de migración para 2031. El aviso del 14 de octubre extiende la planificación a otras organizaciones con un objetivo de 2035 y un hito de planes para fines de 2027; la subvención agrega apoyo parcial en efectivo para proyectos piloto acotados."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "La Agencia de Ciberseguridad de Singapur publicó un aviso sobre migración a criptografía segura ante la computación cuántica el 14 de octubre de 2026. Recomienda a las organizaciones ajenas a la infraestructura crítica que estén expuestas a esos riesgos establecer un plan de migración para fines de 2027 y procurar completarla para 2035; es orientación general, no prueba de que las organizaciones ya hayan actuado."
+                },
+                {
+                  "text": "La orientación fija hitos distintos para la infraestructura crítica: presentar los planes de migración a más tardar el 31 de marzo de 2027, completar la migración de sus sistemas para el 31 de diciembre de 2031 e incorporar consideraciones de criptografía segura ante la computación cuántica en las nuevas adquisiciones de sistemas desde 2028."
+                },
+                {
+                  "text": "La Agencia de Ciberseguridad de Singapur lanzó la subvención Quantum-Safe Kickstarter. Las solicitudes están abiertas; el periodo de la subvención va del 1 de noviembre de 2026 al 31 de octubre de 2027 y cada proyecto piloto puede durar hasta seis meses. Cubre hasta 70% de los costos elegibles y requiere una contribución en efectivo de 30%. Pueden postular organizaciones no gubernamentales registradas y constituidas en Singapur que realicen actividades en el país; se dará prioridad a las propietarias de infraestructura crítica."
+                },
+                {
+                  "text": "Los documentos publicados describen hitos, condiciones de la subvención y requisitos de informes de los proyectos piloto, pero esta revisión no encontró adjudicaciones, pilotos terminados, avances de migración por organización ni una reducción medida del riesgo criptográfico."
+                }
+              ],
+              "limitations": [
+                "El aviso recomienda hitos; esta revisión no estableció que los plazos para organizaciones ajenas a la infraestructura crítica sean legalmente obligatorios.",
+                "Las condiciones de la subvención establecen reglas de financiamiento y elegibilidad, pero no el número de adjudicaciones, la selección de receptores ni el éxito de la migración.",
+                "No se informan avances por organización, proyectos piloto concluidos, desempeño medido, resultados de interoperabilidad ni reducción del riesgo criptográfico.",
+                "El avance depende de inventarios criptográficos, preparación de proveedores, limitaciones de sistemas heredados e implementación institucional; aquí no se midieron estos factores."
+              ],
+              "gaps": [
+                {
+                  "description": "El aviso establece hitos, pero no se encontraron datos sobre adopción por organización, presentación de planes de migración ni cumplimiento de las reglas de adquisición por parte de entidades de infraestructura crítica."
+                },
+                {
+                  "description": "La subvención está abierta, pero no se encontraron adjudicaciones ni informes de proyectos piloto terminados. La página indica que los informes deben documentar la implementación técnica, los métodos de prueba, los resultados, las limitaciones y los recursos utilizados."
+                },
+                {
+                  "description": "Aún no hay evidencia de que la orientación o los proyectos piloto financiados reduzcan la exposición criptográfica o mejoren la preparación para la migración en todo el ecosistema."
+                }
+              ]
+            },
+            "headline": "Singapur publica hitos de migración criptográfica y lanza una subvención piloto",
+            "dek": "El 14 de octubre, la Agencia de Ciberseguridad de Singapur publicó hitos de migración a criptografía segura ante la computación cuántica y lanzó una subvención para proyectos piloto."
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "新加坡发布量子安全迁移节点并推出试点资助",
+            "summary": "新加坡网络安全局于十月14日发布了量子安全密码迁移节点并推出试点资助计划。该局建议面临量子风险的非关键基础设施组织在2027年底前制定迁移计划，并争取于2035年前完成迁移。关键基础设施所有者须最迟于2027年三月31日提交计划、于2031年十二月31日前完成系统迁移，并从2028年起在新系统采购中考虑量子安全要求。“量子安全启动资助计划”面向在新加坡注册成立、在当地开展相关工作的非政府组织开放申请，优先考虑关键基础设施所有者；资助最多覆盖符合条件成本的70%，申请方须现金配套30%。试点最长六个月，资助期为2026年十一月1日至2027年十月31日。目前没有获批项目、已完成试点或迁移结果的证据。",
+            "importance_rationale": "该指导把量子安全准备这一总体目标转化为有日期的规划、采购和迁移节点；资助也可帮助机构在出现具备密码破解能力的量子威胁前，针对真实系统测试密码资产盘点与迁移方案。实际影响仍取决于机构采用情况和试点质量，目前尚未证明迁移进展或风险下降。",
+            "why_it_matters": "该指导把量子威胁准备转化为有日期的规划、采购和系统迁移节点，资助则可帮助机构在具备密码破解能力的量子计算机出现前，针对真实系统测试密码资产盘点和迁移方案。这些规则建立了可追踪的实施节点，但实际效果取决于机构参与和试点质量；目前没有迁移完成或风险下降的证据。",
+            "technical": {
+              "claimed_result": "新加坡网络安全局发布的公告建议面临量子风险的非关键基础设施组织在2027年底前制定迁移计划，并争取于2035年前完成迁移；关键基础设施节点包括最迟于2027年三月31日提交计划、于2031年十二月31日前完成迁移，以及从2028年起在新采购中考虑量子安全要求。资助最多覆盖项目成本的70%，要求现金配套30%，试点最长六个月。",
+              "demonstrated_result": "新加坡网络安全局于2026年十月14日发布了迁移公告和资助信息。文件列出不同群体的节点、新加坡机构的资格、资助覆盖范围、时间安排和报告要求。本次没有审阅任何获批项目或迁移结果。",
+              "mechanism": "网络安全局发布基于风险的迁移节点和实用建议；一项有期限、需共同出资的资助用于支持实际试点，检验密码资产发现、系统迁移以及遗留或运营技术系统转型，并要求参与者报告方法、发现和实测影响。",
+              "regime": "面临量子相关网络安全风险的新加坡组织。非关键基础设施组织应在2027年底前规划并争取于2035年前完成迁移；关键基础设施所有者另有计划和系统迁移节点。资助支持在新加坡开展试点、且在当地注册成立的非政府组织，优先考虑关键基础设施所有者，最多覆盖符合条件成本的70%，资助期为2026年十一月1日至2027年十月31日。",
+              "reproducibility": "政府指导和资助条件可以公开查阅。未来试点报告须说明技术实施、测试方法、结果、局限和投入资源，但本次激活尚未审阅相关报告。",
+              "strongest_baseline": "网络安全局2026年六月针对关键基础设施所有者的指导设定了2031年迁移目标。十月14日的公告将规划扩展至其他组织，目标为2035年，并要求在2027年底前制定计划；资助计划为范围明确的试点提供部分现金支持。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "新加坡网络安全局于2026年十月14日发布了量子安全密码迁移公告。公告建议面临量子风险的非关键基础设施组织在2027年底前制定迁移计划，并争取在2035年前完成迁移；这属于广泛指导，并不证明机构已经采取行动。"
+                },
+                {
+                  "text": "官方指导为关键基础设施设定了不同里程碑：最迟于2027年三月31日提交迁移计划，最迟于2031年十二月31日完成关键基础设施系统迁移，并从2028年起在关键基础设施系统的新采购中考虑量子安全要求。"
+                },
+                {
+                  "text": "新加坡网络安全局推出了“量子安全启动资助计划”（Quantum-Safe Kickstarter Grant）。该计划现已开放申请，资助期为2026年十一月1日至2027年十月31日，每个试点最长可持续六个月。资助最多覆盖符合条件项目成本的70%，申请方须以现金承担30%。申请者须为在新加坡注册成立、并在当地开展相关工作的非政府组织；关键基础设施所有者将获优先考虑。"
+                },
+                {
+                  "text": "已发布文件说明了迁移节点、资助条件和试点报告要求，但本次审查没有发现获批项目、已完成试点、机构层面的迁移进展或密码风险降低的实测数据。"
+                }
+              ],
+              "limitations": [
+                "该公告提出迁移建议；本次审查未确认非关键基础设施组织的时间节点具有法律强制力。",
+                "资助条件说明了资金规则和申请资格，但没有说明获批数量、受资助者或迁移是否成功。",
+                "没有公布机构进展、已完成试点、实测性能、互操作性结果或密码风险降低情况。",
+                "迁移进展取决于密码资产清单、供应商准备情况、遗留系统限制和机构执行；本记录未对这些因素进行测量。"
+              ],
+              "gaps": [
+                {
+                  "description": "公告设定了里程碑，但尚无机构层面的采用数据、迁移计划提交情况或关键基础设施采购合规数据。"
+                },
+                {
+                  "description": "资助计划已经开放，但尚未发现获批项目或已完成试点的报告。网页要求报告说明技术实施、测试方法、结果、局限和投入资源。"
+                },
+                {
+                  "description": "目前没有证据表明该指导或资助试点降低了密码暴露风险，或提高了整个生态系统的迁移准备度。"
+                }
+              ]
+            },
+            "headline": "新加坡发布量子安全迁移节点并推出试点资助"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
+    {
+      "id": "FCMO-5B2825F12E25",
+      "slug": "quera-reports-an-mhs-enabled-ai-developed-laser-controller-recovered-99",
+      "url_date": "2026-10-15",
+      "kind": "development",
+      "status": "live",
+      "beat": "research",
+      "desk": "labs_industry",
+      "title": "QuEra reports an MHS-enabled, AI-developed laser controller recovered 99.3% of testbed disturbances",
+      "dek": "Anthropic's Aug 27 announcement opened an early preview of the Model Hardware Standard (MHS), a model-agnostic device interface with standardized discovery, state/procedure metadata and read/write controls.",
+      "summary": "Anthropic's Aug 27 announcement opened an early preview of the Model Hardware Standard (MHS), a model-agnostic device interface with standardized discovery, state/procedure metadata and read/write controls. QuEra's same-day partner report describes using MHS and Claude to develop a controller for laser recovery on a dedicated, human-bounded quantum-computing testbed. QuEra reports 695 successful on-target recoveries in 700 induced trials (99.3%) across seven disturbance classes and automatic recovery of all 43 spontaneous mode hops observed during several weeks of testing. The AI-developed relock controller is a deterministic standalone script with AI out of the loop at runtime; a separate tuning workflow remains AI-in-the-loop. These are first-party partner results, not independently replicated or evidence of live fleet deployment.",
+      "why_it_matters": "If independently confirmed, the results suggest a model-assisted development process can produce a fast, bounded controller for a delicate instrument task and reduce overnight expert callouts. The current evidence is one company testbed; the relock script runs without AI, while tuning still uses AI and the safety boundary is implemented below the model. General physical reasoning, safe transfer to other devices and live quantum-processor deployment are not established.",
+      "importance_rationale": "If QuEra's reported testbed results hold, an agent-developed controller could reduce specialist intervention and recovery time for a fragile quantum-computer subsystem. This is a notable, bounded physical-control result with possible implications for other instrument workflows, but it concerns one laser system, company-run tests and a human-bounded testbed rather than general autonomous hardware operation.",
+      "technical": {
+        "claimed_result": "QuEra reports 695/700 on-target recoveries across seven disturbance classes, 43/43 spontaneous mode hops recovered during a multiweek pilot, and in a separate AI-in-loop tuning process reports fivefold lower residual noise, no drops in a roughly 19-hour soak, and improved out-of-loop spectral measurements. These are partner-reported results from a dedicated testbed.",
+        "compute_or_cost": "QuEra reports the dedicated testbed contained roughly $0.7M in precision hardware. No cost accounting, engineering hours for the new controller, fleet-level savings, or total cost of ownership comparison was inspected. QuEra says the prior handwritten script took roughly two to three weeks to build; this is company-reported development time.",
+        "demonstrated_result": "The official MHS and QuEra posts establish that the organizations publicly described the preview and pilot, including method, test counts and reported limitations. This review did not independently inspect raw logs, code, instrument data or hardware; the performance results remain claims by the participating organizations.",
+        "mechanism": "MHS exposes programmable devices through a standard driver and device-readable state/procedure information, with MCP, command-line and code interfaces. In QuEra's account, Claude used MHS to experiment against a live testbed, develop and validate a relock controller, and generate a deterministic script. Device bounds, interlocks and emergency stops are enforced at the hardware interface; the model is not in the standalone relock runtime path.",
+        "regime": "One QuEra laser system on a dedicated testbed with human-set safety bounds. Relock validation covers seven disturbance classes with 100 timed trials each; the separate tuning workflow evaluates 12 interdependent feedback parameters. QuEra says live-machine deployment is next. Results do not establish general-purpose physical autonomy or multi-site transfer.",
+        "reproducibility": "Both primary company posts describe procedures and summary results, but raw trial logs, controller source, safety-conformance tests and an independent replication were not inspected. The relock script is described as deterministic and inspectable, but its source was not provided in the reviewed pages.",
+        "strongest_baseline": "QuEra compares the AI-developed relock controller against its earlier fixed recovery script, which it reports recovered about 58% of cases and took around 150 seconds per attempt. The newer controller is reported at 99.3% across seven injected disturbance classes. The account does not provide an independently audited, trial-level matched comparison or raw logs; it also distinguishes this recovery result from separate in-loop tuning gains."
+      },
+      "importance_tier": "Notable",
+      "development_type": "technical_report",
+      "event_at": "2026-08-27T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-15T06:02:10Z",
+      "updated_at": "2026-10-15T06:02:10Z",
+      "importance": 5,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": false,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "DEMONSTRATED",
+            "text": "Anthropic opened an early research preview of the Model Hardware Standard on Aug 27, 2026. Its announcement describes a model-agnostic driver/interface with device discovery, read/write primitives and device metadata, accessible through MCP, CLI or APIs. The standard was not yet open source at announcement and Anthropic said it was working with partners on safety evaluations."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "QuEra reports that, on a dedicated laser testbed, its AI-developed controller recovered on target in 695 of 700 trials (99.3%) across seven disturbance classes, with 100 timed trials per class. Recovery took 0.9–5.4 seconds for wavelength-preserving faults and about 10–14 seconds for the hardest frequency-hop faults. QuEra also reports automatic recovery of all 43 mode hops observed during several weeks of testing in a working lab."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "QuEra says the relock controller was developed with Claude through MHS, but the deployed relock code is a deterministic standalone script with AI out of the loop at runtime. QuEra says the development and validation remained human-orchestrated, within human-set safety bounds, and MHS enforces device-declared bounds, interlocks and emergency stops at the hardware interface."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "In a separate tuning workflow, QuEra reports roughly 12,500 evaluations with no laser mode hops, residual frequency noise reduced fivefold, zero unattended lock drops in a roughly 19-hour soak versus a prior rate of 1.6 per hour, and an independent out-of-loop measurement that found an approximately thousandfold suppression of a hidden resonance near 220 kHz and a linewidth-type metric change from 58 to 21 kHz. The tuning workflow still uses AI at runtime; QuEra describes live-machine deployment as future work."
+          }
+        ],
+        "limitations": [
+          "Performance figures come from QuEra's first-party case report and have not been independently reproduced or audited in this review.",
+          "The evidence concerns one dedicated testbed and one laser system; live deployment on QuEra processors is described as future work.",
+          "The relock controller is AI-developed but runs as a deterministic standalone program with AI out of the loop. It does not establish an autonomous model making live control decisions.",
+          "The separate tuning workflow remains AI-in-the-loop, is bounded by device safety limits and was conducted with close human orchestration and physical reality checks.",
+          "QuEra reports a prior fixed script at about 58% and 150 seconds per attempt, but the reviewed account does not provide raw trial-level data or an independently audited matched protocol for comparing the two controllers.",
+          "Anthropic described MHS as an early preview and said it was collaborating with partners to develop safety evaluations before open-sourcing the standard; the reviewed announcement does not establish open-source availability or cross-vendor conformance."
+        ],
+        "gaps": [
+          {
+            "kind": "missing_independent",
+            "description": "The QuEra controller, trial counts and tuning results are participant-reported; no independent lab reproduction or audit of raw logs was inspected."
+          },
+          {
+            "kind": "missing_artifact",
+            "description": "The reviewed pages do not provide the MHS specification, driver implementation or relock controller source needed to audit interface semantics and safety enforcement."
+          },
+          {
+            "kind": "regime_unclear",
+            "description": "The pilot does not establish transfer to other laser systems, devices, labs or live processor fleets, and the relock controller runs without AI at runtime."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://www.anthropic.com/news/model-hardware-standard-research-preview",
+          "domain": "anthropic.com",
+          "primary": true
+        },
+        {
+          "url": "https://www.quera.com/blog-posts/holding-the-light-teaching-an-ai-to-lock-and-tune-our-quantum-computers-lasers",
+          "domain": "quera.com",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "QuEra Computing",
+        "Anthropic",
+        "HHMI Janelia Research Campus"
+      ],
+      "topics": [
+        "physical-agents",
+        "hardware-interoperability",
+        "quantum-computing",
+        "laser-stabilization",
+        "lab-automation"
+      ],
+      "regions": [
+        "US"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-5B2825F12E25.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: QuEra reports an MHS-enabled, AI-developed laser controller recovered 99.3% of testbed disturbances"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "QuEra informa que un controlador de láser desarrollado con IA y MHS recuperó 99.3% de las perturbaciones del banco de pruebas",
+            "summary": "El anuncio de Anthropic del 27 de agosto abrió una vista previa temprana del Model Hardware Standard (MHS), una interfaz de dispositivos independiente del modelo con descubrimiento estandarizado, metadatos de estado y procedimientos, y controles de lectura y escritura. El informe de socio de QuEra de ese mismo día describe el uso de MHS y Claude para desarrollar un controlador de recuperación láser en un banco de pruebas dedicado para computación cuántica, con límites de seguridad definidos por personas. QuEra informa 695 recuperaciones correctas en 700 ensayos inducidos (99.3%) en siete clases de perturbaciones y la recuperación automática de los 43 saltos de modo espontáneos observados durante varias semanas. El controlador desarrollado con IA es un programa determinista independiente, sin IA durante su ejecución; un flujo de ajuste separado sí conserva la IA en el lazo. Son resultados reportados por el socio y la empresa, sin reproducción independiente ni evidencia de despliegue en una flota de máquinas activas.",
+            "importance_rationale": "Si los resultados de banco de pruebas reportados por QuEra se sostienen, un controlador desarrollado con IA podría reducir la intervención de especialistas y el tiempo de recuperación de un subsistema frágil de computación cuántica. Es un resultado notable y acotado de control físico, con posibles implicaciones para otros flujos con instrumentos, pero se refiere a un solo sistema láser, pruebas de una empresa y un banco con límites definidos por personas; no demuestra operación autónoma general de hardware.",
+            "why_it_matters": "Si se confirman de forma independiente, los resultados sugieren que un proceso de desarrollo asistido por modelos puede producir un controlador rápido y acotado para una tarea delicada con instrumentos y reducir las llamadas nocturnas a especialistas. La evidencia actual corresponde a un banco de pruebas de una empresa; el controlador de recuperación funciona sin IA, mientras que el ajuste aún usa IA y el límite de seguridad está por debajo del modelo. No se establecen el razonamiento físico general, la transferencia segura a otros dispositivos ni el despliegue en procesadores cuánticos activos.",
+            "technical": {
+              "claimed_result": "QuEra informa 695/700 recuperaciones correctas en siete clases de perturbaciones, 43/43 saltos de modo espontáneos recuperados durante un piloto de varias semanas y, en un proceso separado de ajuste con IA en el lazo, una reducción de cinco veces del ruido residual, cero pérdidas durante una prueba de unas 19 horas y mejores mediciones espectrales fuera del lazo. Son resultados reportados por el socio en un banco de pruebas dedicado.",
+              "compute_or_cost": "QuEra informa que el banco de pruebas dedicado contenía aproximadamente $0.7M en hardware de precisión. No se inspeccionó un cálculo de costos, las horas de ingeniería del nuevo controlador, ahorros en toda una flota ni una comparación del costo total de propiedad. QuEra dice que el programa manual anterior tomó alrededor de dos a tres semanas; es una estimación reportada por la empresa.",
+              "demonstrated_result": "Las publicaciones oficiales de MHS y QuEra confirman que ambas organizaciones describieron públicamente la vista previa y el piloto, incluidos el método, el número de pruebas y las limitaciones reportadas. Esta revisión no inspeccionó de forma independiente los registros originales, el código, los datos de instrumentos ni el hardware; los resultados de rendimiento siguen siendo afirmaciones de las organizaciones participantes.",
+              "mechanism": "MHS expone dispositivos programables mediante un controlador estándar e información legible por dispositivos sobre estados y procedimientos, con interfaces MCP, CLI y código. Según QuEra, Claude usó MHS para experimentar con un banco de pruebas activo, desarrollar y validar un controlador de recuperación y generar un programa determinista. Los límites del dispositivo, los interbloqueos y las paradas de emergencia se aplican en la interfaz de hardware; el modelo no forma parte del recorrido de ejecución del controlador independiente.",
+              "regime": "Un sistema láser de QuEra en un banco de pruebas dedicado, con límites de seguridad definidos por personas. La validación de recuperación cubre siete clases de perturbación con 100 ensayos cronometrados por clase; el flujo de ajuste separado evalúa 12 parámetros interdependientes de retroalimentación. QuEra dice que el despliegue en máquinas activas es el próximo paso. Los resultados no establecen autonomía física de propósito general ni transferencia a varios sitios.",
+              "reproducibility": "Las dos publicaciones de las empresas describen procedimientos y resultados resumidos, pero en esta revisión no se inspeccionaron registros de ensayos, código del controlador, pruebas de conformidad de seguridad ni una reproducción independiente. El controlador de recuperación se describe como determinista e inspeccionable, pero las páginas revisadas no proporcionaron su código fuente.",
+              "strongest_baseline": "QuEra compara el controlador de recuperación desarrollado con IA con su programa fijo anterior, que, según la empresa, acertaba alrededor de 58% y tardaba unos 150 segundos por intento. El nuevo controlador se reporta en 99.3% en siete clases de perturbaciones inducidas. El informe no aporta registros de cada ensayo ni una comparación emparejada auditada de forma independiente; además, distingue este resultado de recuperación de las mejoras del flujo de ajuste separado, que mantiene la IA en el lazo."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "Anthropic abrió el 27 de agosto de 2026 una vista previa de investigación del Model Hardware Standard. Su anuncio describe una interfaz/controlador independiente del modelo, con descubrimiento de dispositivos, primitivas de lectura y escritura y metadatos de equipos, accesible mediante MCP, CLI o API. Al anunciarla, la norma aún no era de código abierto y Anthropic dijo que trabajaba con socios en evaluaciones de seguridad."
+                },
+                {
+                  "text": "QuEra informa que, en un banco de pruebas dedicado para láseres, su controlador desarrollado con IA recuperó el estado correcto en 695 de 700 ensayos (99.3%) en siete clases de perturbaciones, con 100 pruebas cronometradas por clase. La recuperación tomó de 0.9 a 5.4 segundos para fallas que preservaban la longitud de onda y alrededor de 10 a 14 segundos para los saltos de frecuencia más difíciles. QuEra también informa que recuperó automáticamente los 43 saltos de modo observados durante varias semanas de pruebas en un laboratorio activo."
+                },
+                {
+                  "text": "QuEra dice que el controlador de recuperación se desarrolló con Claude mediante MHS, pero el código desplegado es un programa determinista independiente, sin IA durante su ejecución. QuEra indica que el desarrollo y la validación siguieron bajo orquestación humana y límites de seguridad definidos por personas; MHS aplica límites declarados por el dispositivo, interbloqueos y paradas de emergencia en la interfaz de hardware."
+                },
+                {
+                  "text": "En un flujo de ajuste separado, QuEra informa unas 12,500 evaluaciones sin saltos de modo del láser, una reducción de cinco veces en el ruido residual de frecuencia, cero pérdidas de bloqueo sin supervisión durante una prueba de unas 19 horas frente a una tasa previa de 1.6 por hora, y una medición independiente fuera del lazo que encontró una supresión de aproximadamente mil veces de una resonancia oculta cerca de 220 kHz y un cambio de 58 a 21 kHz en una métrica de ancho de línea. El flujo de ajuste sigue usando IA durante la ejecución; QuEra describe el despliegue en máquinas reales como trabajo futuro."
+                }
+              ],
+              "limitations": [
+                "Las cifras de rendimiento provienen del informe de caso de QuEra y no fueron reproducidas ni auditadas de forma independiente en esta revisión.",
+                "La evidencia corresponde a un banco de pruebas dedicado y un sistema láser; QuEra describe el despliegue en sus procesadores como trabajo futuro.",
+                "El controlador de recuperación fue desarrollado con IA, pero se ejecuta como un programa determinista independiente, sin IA en el lazo. No demuestra que un modelo controle el hardware en tiempo real.",
+                "El flujo de ajuste separado sí mantiene la IA en el lazo, está limitado por controles de seguridad del dispositivo y se llevó a cabo con estrecha orquestación humana y comprobaciones físicas.",
+                "QuEra informa que el programa fijo anterior acertaba alrededor de 58% y tardaba 150 segundos por intento, pero el informe revisado no aporta datos de cada ensayo ni un protocolo comparativo emparejado auditado de forma independiente.",
+                "Anthropic describió MHS como una vista previa temprana y dijo que colaboraba con socios para desarrollar evaluaciones de seguridad antes de publicar la norma como código abierto; el anuncio revisado no demuestra que ya esté abierta ni que haya conformidad entre proveedores."
+              ],
+              "gaps": [
+                {
+                  "description": "El controlador, el número de ensayos y los resultados de ajuste provienen del socio QuEra; no se inspeccionó una reproducción independiente ni una auditoría de los registros originales."
+                },
+                {
+                  "description": "Las páginas revisadas no incluyen la especificación MHS, la implementación del controlador ni el código de recuperación necesarios para auditar la semántica de interfaz y la aplicación de seguridad."
+                },
+                {
+                  "description": "El piloto no demuestra transferencia a otros láseres, dispositivos, laboratorios o flotas de procesadores activos; además, el controlador de recuperación funciona sin IA durante su ejecución."
+                }
+              ]
+            }
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "QuEra报告称，基于MHS开发的AI激光控制器恢复了测试台上99.3%的扰动",
+            "summary": "Anthropic于八月27日宣布开放Model Hardware Standard（MHS）的早期预览。这是一种与模型无关的设备接口，提供标准化发现、状态/程序元数据和读写控制。QuEra同日发布的合作案例称，他们使用MHS和Claude在专用量子计算测试台上开发激光复锁控制器，并设置了人工定义的安全边界。QuEra报告称，在七类扰动的700次诱发试验中有695次正确复锁（99.3%），并在数周测试中自动恢复了观察到的全部43次自发模式跳变。AI开发的复锁控制器是确定性的独立脚本，运行时没有AI参与；另一项调谐流程则仍在运行时使用AI。这些是参与公司报告的结果，尚无独立复现，也不能证明已部署到实际机器集群。",
+            "importance_rationale": "如果QuEra报告的测试台结果成立，由AI辅助开发的控制器可能减少脆弱量子计算子系统所需的专家干预和恢复时间。这是一项值得关注但范围有限的物理控制结果，可能对其他仪器流程有启发；但证据只涉及一套激光系统、企业自身测试和人工设定安全边界的测试台，并未证明通用的自主硬件运行能力。",
+            "why_it_matters": "如果能够独立确认，这些结果说明模型辅助开发流程可能为精密仪器任务产出快速且受约束的控制器，并减少专家夜间到场处理的需要。目前证据只来自一家公司测试台；复锁脚本运行时没有AI，调谐仍使用AI，安全边界则在模型接口下方执行。研究没有证明通用物理推理能力、向其他设备安全迁移或在实际量子处理器上部署。",
+            "technical": {
+              "claimed_result": "QuEra报告称，在七类扰动中实现695/700次目标复锁，数周试点中恢复了43/43次自发模式跳变；另一项运行时使用AI的调谐流程则报告残余噪声降低五倍、约19小时测试零次失锁，并改善了环外频谱测量。这些是专用测试台上的合作方报告结果。",
+              "compute_or_cost": "QuEra称该专用测试台包含约$0.7M的精密硬件。本次未检查成本核算、新控制器所需工程工时、集群级节省或总拥有成本对照。QuEra称此前手写脚本约花了两到三周开发；这仍是公司报告的时间。",
+              "demonstrated_result": "MHS和QuEra的官方文章证明，两家机构公开介绍了预览和试点，包括方法、试验次数和报告的限制。本次没有独立检查原始记录、代码、仪器数据或硬件；性能结果仍属于参与机构的报告。",
+              "mechanism": "MHS通过标准驱动和设备可读的状态/程序信息开放可编程设备，并支持MCP、命令行和代码接口。按QuEra的描述，Claude通过MHS在真实测试台上开展实验、开发并验证复锁控制器，然后生成确定性脚本。设备边界、联锁和紧急停止由硬件接口执行；AI模型不在独立复锁脚本的运行路径中。",
+              "regime": "QuEra的一套激光系统，运行在具有人为设定安全边界的专用测试台上。复锁验证覆盖七类扰动，每类100次计时试验；另一项调谐流程评估12个相互依赖的反馈参数。QuEra称下一步是部署到实际机器。结果不能证明通用物理自主能力或跨地点迁移。",
+              "reproducibility": "两篇企业第一方文章描述了流程和汇总结果，但本次未检查原始试验记录、控制器代码、安全符合性测试或独立复现。复锁脚本被描述为确定且可检查，但查阅页面没有提供其源代码。",
+              "strongest_baseline": "QuEra将AI开发的复锁控制器与此前的固定恢复脚本进行比较；公司称旧脚本成功率约58%，每次约需150秒。新控制器在七类诱发扰动中的报告成功率为99.3%。文章没有提供经独立审计的逐次试验记录或配对协议，并明确把复锁结果与另一项仍在运行时使用AI的调谐结果区分开。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "Anthropic于2026年八月27日开放了Model Hardware Standard的早期研究预览。公告介绍了一种与模型无关的驱动/接口，包含设备发现、读写原语和设备元数据，并可通过MCP、CLI或API访问。公告发布时，该标准尚未开源；Anthropic称正与合作伙伴共同制定安全评估。"
+                },
+                {
+                  "text": "QuEra报告称，在专用激光测试台上，其AI开发的控制器在七类扰动中进行了700次试验，每类100次计时试验，共有695次恢复到目标状态（99.3%）。波长保持类故障的恢复时间为0.9–5.4秒，最难的频率跳变故障约需10–14秒。QuEra还称，在数周的真实实验室测试中观察到的43次模式跳变均由系统自动恢复。"
+                },
+                {
+                  "text": "QuEra称，Claude通过MHS参与开发了复锁控制器，但实际运行的复锁代码是确定性的独立脚本，运行时没有AI介入。QuEra表示，开发和验证过程由人类编排，并在人工设定的安全边界内进行；MHS在硬件接口层执行设备声明的边界、联锁和紧急停止。"
+                },
+                {
+                  "text": "在另一项调谐流程中，QuEra报告称进行了约12,500次评估，未发生激光模式跳变；残余频率噪声降低了五倍；约19小时的无人值守测试中零次失锁，而此前速率为每小时1.6次。独立的环外测量还发现，约220 kHz处的隐藏共振被抑制约一千倍，一项线宽指标从58 kHz降至21 kHz。该调谐流程运行时仍使用AI；QuEra称部署到实际机器仍属后续工作。"
+                }
+              ],
+              "limitations": [
+                "性能数字来自QuEra的第一方案例报告；本次审查未独立复现或审计。",
+                "证据只涉及一个专用测试台和一套激光系统；QuEra将其处理器上的实际部署描述为后续工作。",
+                "复锁控制器由AI开发，但实际以确定性的独立程序运行，运行时没有AI参与；这不能证明模型在实时控制硬件。",
+                "另一项调谐流程运行时仍使用AI，受设备安全限制约束，并由人类密切编排和进行物理现实检查。",
+                "QuEra称此前的固定脚本成功率约58%，每次尝试耗时150秒，但本次查阅的报告未提供逐次试验数据或经过独立审计的配对比较协议。",
+                "Anthropic将MHS描述为早期预览，并称正与合作伙伴制定安全评估，然后才开源标准；本次查阅的公告没有证明标准已经开源或实现跨供应商一致性。"
+              ],
+              "gaps": [
+                {
+                  "description": "控制器、试验次数和调谐结果均由参与方QuEra报告；本次未检查独立实验室复现或原始记录审计。"
+                },
+                {
+                  "description": "本次查阅的页面没有提供MHS规范、驱动实现或复锁控制器代码，无法据此审计接口语义和安全执行机制。"
+                },
+                {
+                  "description": "该试点没有证明结果可迁移到其他激光器、设备、实验室或运行中的处理器集群；复锁控制器运行时也没有AI参与。"
+                }
+              ]
+            },
+            "headline": "QuEra报告称，基于MHS开发的AI激光控制器恢复了测试台上99.3%的扰动"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
+    {
+      "id": "FCMO-110DF4DE0EB0",
+      "slug": "openai-reports-third-moment-research-runs-10-000-agents-in-36-48-hour",
+      "url_date": "2026-10-15",
+      "kind": "development",
+      "status": "live",
+      "beat": "research",
+      "desk": "agents_memory",
+      "title": "OpenAI reports Third Moment Research runs 10,000 agents in 36–48-hour investigations",
+      "headline": "OpenAI reports Third Moment Research runs 10,000 agents in 36–48-hour investigations",
+      "dek": "An Oct 14 OpenAI customer case study reports that Third Moment Research runs 10,000 concurrent agents on 36–48-hour computational investigations.",
+      "summary": "An Oct 14 OpenAI customer case study reports that Third Moment Research runs 10,000 concurrent agents on 36–48-hour computational investigations. It describes a quantitative-finance workflow using Codex to diagnose a backtest bottleneck and reduce one year of order-level US-equity backtesting from roughly 3 hours to roughly 3–5 minutes through caching and memory packing. The account also describes a Dockerized environment and an outer harness that can retry, terminate or escalate unfinished tasks to human review. These are claims published by the model provider and attributed to its customer; no independent run logs or audit are included. The story does not establish trading performance, general autonomous research quality or the provider page’s future scale-up roadmap.",
+      "why_it_matters": "If accurate, a system coordinating 10,000 agents across multi-day computational investigations would extend the scale and duration of practical agent workflows. The backtest example also shows a concrete systems bottleneck fix that can reduce wasted runtime and polling tokens. The evidence is a vendor-published customer account; task quality, concurrency definitions, cost, human intervention and independent replication remain unknown.",
+      "importance_rationale": "If the reported deployment is accurate, orchestrating 10,000 concurrent research agents over 36–48-hour investigations would materially change the scale and duration at which organizations can run computational research. A 5 reflects a notable infrastructure/practice result, while independent validation, completed-task quality and economics remain unknown; the larger scale figures are roadmap goals, not achieved results.",
+      "technical": {
+        "claimed_result": "OpenAI attributes 10,000 concurrent agents and 36–48-hour investigations to Third Moment Research. It also reports a one-year order-level US-equity backtest falling from roughly 3 hours to 3–5 minutes after an optimization. The article's 97% headline is provider-reported and not independently audited here.",
+        "compute_or_cost": "The page mentions 10,000 concurrent agents, 36–48-hour sessions and one trillion OpenAI tokens on a single day, but does not define how these metrics aggregate, report compute/cost per completed task, or separate retries from productive work. The backtest timing comparison is one reported optimization and does not include infrastructure cost or full workload savings.",
+        "demonstrated_result": "The official OpenAI case study establishes what OpenAI published and which claims it attributes to Third Moment founders. No independent examination of logs, code, dataset, agent trajectories, task success or production telemetry was performed.",
+        "mechanism": "Third Moment reportedly combines a Dockerized research repository and data environment, Codex tools for coding and experiment execution, frontier models for reasoning, subagents for parallel work, and an outer harness that reviews incomplete trajectories and chooses retry, termination or human escalation. For one backtest, Codex profiled the code and usage, then applied caching and memory packing.",
+        "regime": "A customer-described quantitative-research environment using historical US equity order-level data, a Dockerized repository and named OpenAI models/harnesses. The page states concurrent agent count and investigation duration but does not define scheduling, completed-task criteria, effective concurrency over time or the distribution of human interventions.",
+        "reproducibility": "No customer-authored technical report, immutable run logs, code changes or independent evaluation artifacts were linked in the reviewed case study. The quantitative-finance improvement and agent-scale metrics remain unverified outside the vendor/customer account.",
+        "strongest_baseline": "For the runtime optimization, the page compares one backtest before and after caching/memory packing: about 3 hours versus about 3–5 minutes. It does not publish the code change, repeated-run variance, hardware, cache invalidation tests or correctness-equivalence results. The baseline trading strategy was built by Third Moment engineers; reported agent contributions do not establish out-of-sample returns."
+      },
+      "importance_tier": "Notable",
+      "development_type": "technical_report",
+      "event_at": "2026-10-14T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-15T06:02:10Z",
+      "updated_at": "2026-10-15T06:02:10Z",
+      "importance": 5,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": true,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "CLAIMED",
+            "text": "OpenAI's Oct 14 customer case study attributes to Third Moment Research a system that runs 10,000 concurrent agents on investigations lasting 36–48 hours. The page does not provide independent logs or a run-level audit."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "OpenAI says Third Moment used Codex to profile a backtest over a year of order-level US-equity data, identify caching and memory-packing changes, and reduce runtime from about 3 hours to about 3–5 minutes. This is one reported production optimization, not evidence of trading returns or general coding-agent performance."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "The account describes a Dockerized research environment and an outer harness that examines incomplete agent trajectories and decides whether to retry, terminate or escalate to human review. OpenAI attributes these implementation details to Third Moment Research."
+          },
+          {
+            "label": "DEMONSTRATED",
+            "text": "OpenAI's Oct 14 page presents a one-trillion-token single-day metric and a roadmap toward hundreds of thousands of collaborating agents. The page does not define the token metric's scope or provide evidence that the future agent scale has been reached; the roadmap is prospective."
+          }
+        ],
+        "limitations": [
+          "All deployment and performance claims are reported in an OpenAI customer case study and attributed to Third Moment founders; no independent audit or raw run logs were inspected.",
+          "The 10,000 concurrent-agent and 36–48-hour figures lack a published operational definition, completed-task denominator, concurrency trace or human-intervention distribution.",
+          "The backtest reduction is one reported before/after optimization; hardware, repeated-run variance, code, cache correctness and independent timing were not inspected.",
+          "Improving a backtest runtime does not establish the quality, profitability or out-of-sample validity of the trading strategies researched by agents.",
+          "The one-trillion-token figure's scope and measurement method are unspecified in the page; do not treat it as verified throughput or productive research output.",
+          "The page's hundreds-of-thousands collaborating-agent scale is a roadmap aspiration, not an achieved deployment."
+        ],
+        "gaps": [
+          {
+            "kind": "missing_independent",
+            "description": "No independent audit of the 10,000-agent concurrency, 36–48-hour session, backtest timing or reported token volume was inspected."
+          },
+          {
+            "kind": "regime_unclear",
+            "description": "The OpenAI case study does not define effective concurrency, job completion, agent failure/retry rates or compute cost per completed research task."
+          },
+          {
+            "kind": "baseline_unclear",
+            "description": "The reported backtest runtime improvement lacks code, hardware, repeated-run variation, cache correctness checks and a published correctness-equivalence test."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://openai.com/index/third-moment-research/",
+          "domain": "openai.com",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "Third Moment Research",
+        "OpenAI"
+      ],
+      "topics": [
+        "long-horizon-agents",
+        "multi-agent-orchestration",
+        "coding-agents",
+        "quantitative-research",
+        "runtime-efficiency"
+      ],
+      "regions": [],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-110DF4DE0EB0.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: OpenAI reports Third Moment Research runs 10,000 agents in 36–48-hour investigations"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "OpenAI informa que Third Moment Research ejecuta 10,000 agentes en investigaciones de 36–48 horas",
+            "summary": "Un caso de cliente de OpenAI publicado el 14 de octubre informa que Third Moment Research ejecuta 10,000 agentes concurrentes en investigaciones computacionales de 36–48 horas. Describe un flujo de finanzas cuantitativas en el que Codex diagnosticó un cuello de botella de backtesting y redujo una prueba de un año de datos bursátiles estadounidenses con detalle de órdenes, de unas 3 horas a aproximadamente 3–5 minutos mediante almacenamiento en caché y empaquetado de memoria. El caso también describe un entorno con Docker y un arnés externo que puede reintentar, terminar o escalar a revisión humana las tareas incompletas. Son afirmaciones publicadas por el proveedor del modelo y atribuidas a su cliente; no se incluyen registros independientes ni auditoría. La historia no establece rendimiento bursátil, calidad general de investigación autónoma ni el aumento de escala futuro que plantea el proveedor.",
+            "importance_rationale": "Si el despliegue reportado es correcto, coordinar 10,000 agentes en investigaciones computacionales de 36–48 horas cambiaría de forma importante la escala y duración con que las organizaciones pueden hacer investigación computacional. Una puntuación de 5 refleja un avance notable de infraestructura y práctica, aunque se desconocen su validación independiente, la calidad de las tareas completadas y su economía; las cifras mayores son metas de hoja de ruta, no resultados alcanzados.",
+            "why_it_matters": "Si es correcta, una plataforma que coordina 10,000 agentes en investigaciones computacionales de varios días ampliaría la escala y duración de los flujos prácticos con agentes. El ejemplo del backtest también muestra una corrección concreta de infraestructura que puede reducir tiempo desperdiciado y tokens de sondeo. La evidencia es un caso de cliente publicado por el proveedor; siguen sin conocerse la calidad de las tareas, las definiciones de concurrencia, el costo, la intervención humana y la reproducción independiente.",
+            "technical": {
+              "claimed_result": "OpenAI atribuye a Third Moment Research 10,000 agentes concurrentes e investigaciones de 36–48 horas. También informa que una prueba retrospectiva de un año de datos bursátiles estadounidenses con detalle de órdenes pasó de unas 3 horas a 3–5 minutos tras una optimización. El titular del artículo dice 97%, una cifra del proveedor que no fue auditada de forma independiente aquí.",
+              "compute_or_cost": "La página menciona 10,000 agentes concurrentes, sesiones de 36–48 horas y un billón de tokens de OpenAI en un solo día, pero no define cómo se agregan estas métricas, no informa el costo o cómputo por tarea terminada ni separa reintentos de trabajo productivo. La comparación de tiempos del backtest corresponde a una optimización y no incluye el costo de infraestructura ni el ahorro en la carga completa.",
+              "demonstrated_result": "El caso oficial de OpenAI establece lo que la empresa publicó y qué afirmaciones atribuye a los fundadores de Third Moment. No se examinaron de forma independiente registros, código, conjunto de datos, trayectorias de agentes, éxito de tareas ni telemetría de producción.",
+              "mechanism": "Según el relato, Third Moment combina un repositorio de investigación y entorno de datos con Docker, herramientas Codex para codificar y ejecutar experimentos, modelos avanzados para razonamiento, subagentes para trabajo en paralelo y un arnés externo que revisa trayectorias incompletas y elige entre reintentar, terminar o pedir revisión humana. Para un backtest, Codex perfiló el código y su uso y luego aplicó caché y empaquetado de memoria.",
+              "regime": "Entorno de investigación cuantitativa descrito por un cliente, con datos históricos de acciones estadounidenses a nivel de orden, un repositorio con Docker y modelos/arneses de OpenAI identificados. La página informa el número de agentes concurrentes y la duración de investigaciones, pero no define programación, criterios de tarea completada, concurrencia efectiva a lo largo del tiempo ni la distribución de intervención humana.",
+              "reproducibility": "El caso revisado no enlaza un informe técnico escrito por el cliente, registros inmutables de ejecución, cambios de código ni artefactos de evaluación independientes. La mejora financiera cuantitativa y las métricas de escala de agentes siguen sin verificarse fuera del relato proveedor/cliente.",
+              "strongest_baseline": "Para la optimización de tiempo, la página compara un backtest antes y después de aplicar caché y empaquetado de memoria: unas 3 horas frente a aproximadamente 3–5 minutos. No publica el cambio de código, variación entre ejecuciones, hardware, pruebas de invalidación de caché ni equivalencia de resultados. Third Moment construyó la estrategia base; las contribuciones reportadas de los agentes no establecen retornos fuera de muestra."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "El caso de cliente de OpenAI del 14 de octubre atribuye a Third Moment Research un sistema que ejecuta 10,000 agentes en paralelo durante investigaciones de 36–48 horas. La página no aporta registros independientes ni una auditoría por ejecución."
+                },
+                {
+                  "text": "OpenAI dice que Third Moment usó Codex para perfilar una prueba retrospectiva sobre un año de datos bursátiles estadounidenses con detalle de órdenes, identificar cambios de almacenamiento en caché y empaquetado de memoria, y reducir el tiempo de unas 3 horas a aproximadamente 3–5 minutos. Es una optimización de producción reportada, no evidencia de retornos bursátiles ni del rendimiento general de agentes de código."
+                },
+                {
+                  "text": "El caso describe un entorno de investigación con Docker y un arnés externo que examina trayectorias incompletas de agentes y decide si reintenta, termina o escala a revisión humana. OpenAI atribuye estos detalles de implementación a Third Moment Research."
+                },
+                {
+                  "text": "La página de OpenAI del 14 de octubre presenta una métrica de un billón de tokens en un solo día y una hoja de ruta hacia cientos de miles de subagentes colaborativos. No define el alcance de la métrica de tokens ni demuestra que se haya alcanzado la escala futura; la hoja de ruta es prospectiva."
+                }
+              ],
+              "limitations": [
+                "Todas las afirmaciones de despliegue y rendimiento aparecen en un caso de cliente publicado por OpenAI y atribuido a los fundadores de Third Moment; no se inspeccionaron auditorías independientes ni registros de ejecución sin procesar.",
+                "Las cifras de 10,000 agentes concurrentes y 36–48 horas carecen de una definición operativa publicada, denominador de tareas completadas, traza de concurrencia o distribución de intervenciones humanas.",
+                "La reducción del backtest es una optimización antes/después reportada; no se inspeccionaron hardware, variación entre ejecuciones, código, corrección de la caché ni mediciones independientes.",
+                "Mejorar el tiempo de un backtest no establece la calidad, rentabilidad ni validez fuera de muestra de las estrategias investigadas por los agentes.",
+                "La página no especifica el alcance ni el método de medición de la cifra de un billón de tokens; no debe tratarse como volumen productivo verificado.",
+                "La escala de cientos de miles de agentes colaborativos es una aspiración de hoja de ruta, no un despliegue realizado."
+              ],
+              "gaps": [
+                {
+                  "description": "No se inspeccionó una auditoría independiente de la concurrencia de 10,000 agentes, la sesión de 36–48 horas, el tiempo de backtest ni el volumen de tokens reportado."
+                },
+                {
+                  "description": "El caso de OpenAI no define la concurrencia efectiva, cuándo cuenta un trabajo como terminado, las tasas de fallo/reintento ni el cómputo por tarea de investigación completada."
+                },
+                {
+                  "description": "La mejora de tiempo del backtest no incluye código, hardware, variación entre ejecuciones, pruebas de corrección de caché ni una prueba publicada de equivalencia de resultados."
+                }
+              ]
+            },
+            "dek": "Un caso de cliente de OpenAI publicado el 14 de octubre informa que Third Moment Research ejecuta 10,000 agentes concurrentes en investigaciones computacionales de 36–48 horas."
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "OpenAI称Third Moment Research在36–48小时研究任务中运行10,000个智能体",
+            "summary": "OpenAI于十月14日发布的客户案例称，Third Moment Research在36–48小时的计算研究任务中运行10,000个并发智能体。案例介绍了一项量化金融流程：Codex诊断回测瓶颈，并通过缓存和内存打包优化，将一年美国股票逐笔订单数据的回测从约3小时缩短至约3–5分钟。案例还描述了Docker化环境，以及可对未完成任务重试、终止或升级为人工审查的外层框架。这些说法由模型供应商发布并归于其客户；页面没有提供独立运行日志或审计。该案例没有证明交易表现、通用自主研究质量，也没有证明供应商提出的未来扩容路线图已经实现。",
+            "importance_rationale": "如果报告中的部署属实，在36–48小时的计算研究任务中协调10,000个并发智能体，将显著改变组织开展计算研究的规模和持续时间。评分5代表一项值得关注的基础设施与实践进展，但独立验证、已完成任务质量和经济性仍未知；更大的规模只是路线图目标，并非已实现结果。",
+            "why_it_matters": "如果属实，一个能在多日计算研究中协调10,000个智能体的系统，将扩展实用智能体工作流的规模和持续时间。回测案例也展示了一项具体的系统瓶颈优化，可减少等待和轮询所耗资源。证据来自供应商发布的客户案例；任务质量、并发定义、成本、人工介入和独立复现均未知。",
+            "technical": {
+              "claimed_result": "OpenAI称，Third Moment Research运行10,000个并发智能体，研究任务持续36–48小时。OpenAI还报告称，一年美国股票逐笔订单数据回测经优化后从约3小时降至3–5分钟。文章标题提到97%，这是本次没有独立审计的供应商数据。",
+              "compute_or_cost": "页面提及10,000个并发智能体、36–48小时任务和单日一万亿个OpenAI token，但没有定义这些指标如何汇总，没有报告每项已完成任务的算力/成本，也没有区分重试和有效工作。回测时间比较只对应一项优化，不包括基础设施成本或完整工作负载的节省量。",
+              "demonstrated_result": "OpenAI官方客户案例证明了OpenAI发布了哪些内容，以及哪些说法归于Third Moment创始人。本次未独立检查运行日志、代码、数据集、智能体轨迹、任务成功情况或生产遥测。",
+              "mechanism": "据报道，Third Moment将Docker化研究代码库和数据环境、用于编码与实验执行的Codex工具、负责推理的前沿模型、并行子智能体，以及检查未完成轨迹并选择重试/终止/人工升级的外层框架结合起来。针对一次回测，Codex分析了代码和使用方式，然后实施缓存与内存打包优化。",
+              "regime": "客户所述的量化研究环境，使用美国股票历史逐笔订单数据、Docker化代码库及指定的OpenAI模型/框架。页面提到并发智能体数量和研究持续时间，但没有定义调度方式、任务完成标准、随时间变化的有效并发量或人工干预分布。",
+              "reproducibility": "本次查阅的案例没有链接客户撰写的技术报告、不可变运行日志、代码改动或独立评测工件。量化金融优化和智能体规模指标在供应商/客户叙述之外仍未经核实。",
+              "strongest_baseline": "针对运行时间优化，页面比较了缓存/内存打包前后的同一回测：约3小时对约3–5分钟。页面没有公开代码改动、重复运行差异、硬件、缓存失效测试或结果等价性验证。基线交易策略由Third Moment工程师构建；报告中的智能体贡献不能证明样本外收益。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "OpenAI于十月14日发布的客户案例称，Third Moment Research运行着一个系统，可在36–48小时的研究任务中并行运行10,000个智能体。页面没有提供独立运行日志或逐次审计。"
+                },
+                {
+                  "text": "OpenAI称，Third Moment使用Codex分析了基于一年美国股票逐笔订单数据的回测，找出缓存和内存打包优化，并将运行时间从约3小时缩短到约3–5分钟。这是报告中的一项生产优化，不代表交易收益，也不能证明代码智能体整体性能。"
+                },
+                {
+                  "text": "该案例介绍了一个Docker化研究环境和外层框架：它会检查未完成的智能体轨迹，并决定重试、终止或升级为人工审查。OpenAI将这些实现细节归于Third Moment Research。"
+                },
+                {
+                  "text": "OpenAI的十月14日页面列出单日一万亿个token的指标，并提出未来扩展到数十万协作子智能体的路线图。页面未定义token指标的统计范围，也未证明未来规模已经实现；路线图属于前瞻计划。"
+                }
+              ],
+              "limitations": [
+                "所有部署和性能说法均来自OpenAI发布的客户案例，并归于Third Moment创始人；本次未检查独立审计或原始运行日志。",
+                "10,000个并发智能体和36–48小时的数字没有公开的操作定义、已完成任务分母、并发轨迹或人工干预分布。",
+                "回测提速是报告中的单项前后优化；本次未检查硬件、重复运行差异、代码、缓存正确性或独立计时。",
+                "缩短回测时间不能证明智能体研究的交易策略质量、盈利能力或样本外有效性。",
+                "页面没有说明单日一万亿token指标的范围和测量方法；不能把它视为已核实的有效吞吐或研究产出。",
+                "扩展到数十万协作智能体是路线图设想，并非已实现部署。"
+              ],
+              "gaps": [
+                {
+                  "description": "本次未检查10,000个智能体并发、36–48小时任务、回测时长或token数量的独立审计。"
+                },
+                {
+                  "description": "OpenAI案例没有定义有效并发量、任务完成标准、智能体失败/重试率，或每项已完成研究任务的算力成本。"
+                },
+                {
+                  "description": "报告的回测提速没有附代码、硬件、重复运行差异、缓存正确性检查或已公开的结果等价性测试。"
+                }
+              ]
+            },
+            "headline": "OpenAI称Third Moment Research在36–48小时研究任务中运行10,000个智能体"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
     {
       "id": "FCMO-566F41460481",
       "slug": "chain-of-thought-monitoring-can-fail-even-when-the-reasoning-is",
