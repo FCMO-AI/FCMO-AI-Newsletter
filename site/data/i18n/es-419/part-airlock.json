@@ -1,6 +1,6 @@
 {
   "canonical_locale": "en",
-  "canonical_source_sha256": "0409b1e41528f6092445f47f3379901c88a97e210f5ba0bca1807d92e5533430",
+  "canonical_source_sha256": "de86e64f0b8f81a28654db10dbb5d51e477066b0fca3a9c58d4c6a0d1e111548",
   "generated_from": "ARB airlock; editorial wording authored upstream",
   "locale": "es-419",
   "records": {
@@ -8262,6 +8262,61 @@
       "title": "La recuperación de conjuntos de evidencia según el estado mejora la búsqueda de los agentes de programación en pruebas reportadas por sus autores",
       "why_it_matters": "Si el resultado se generaliza más allá del entorno de agentes de programación de los autores, seleccionar evidencia complementaria según un estado de decisión registrado podría mejorar el uso del contexto y las decisiones de reparación cuando una clasificación por relevancia repite información conocida o deja sin cubrir un requisito."
     },
+    "FCMO-4C74A8BB4DFD": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Aikido informa que Altar-1 parte de GLM-5.3 AWQ INT4 y usa poda REAP para reducir los pesos almacenados de 488.2 GB a 328.0 GB, conservando 168 de 256 expertos enrutados por capa. Frente a la base BF16 sin podar, de 1,506.7 GB, la reducción informada es 78.2%."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En el benchmark interno de Aikido, con 32 vulnerabilidades conocidas en 30 repositorios y tres ejecuciones por caso, Altar-1 obtuvo 60.4% de recuperación media por ejecución y redescubrió 23/32 vulnerabilidades al menos una vez. GLM-5.3 AWQ INT4 obtuvo 61.5% y cubrió las mismas 23/32; el modelo de precisión completa obtuvo 65.6% y cubrió 25/32."
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION",
+          "text": "Aikido define la prueba como búsqueda dirigida de CVE conocidas dentro de una canalización que utiliza otros modelos en las etapas circundantes. No mide descubrimiento a ciegas, validación de exploits ni propuestas de corrección. Esta revisión no reprodujo de forma independiente la evaluación interna."
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "Aikido publica los pesos de Altar-1 y documenta una configuración de servicio con vLLM dirigida a cuatro NVIDIA H200; la ficha identifica el modelo como una variante GLM-5.3 de 504B parámetros, podada y en formato W4A16."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "La comparación de recuperación y cobertura proviene del benchmark interno de Aikido con 32 CVE; no se ha reproducido ni adjudicado de forma independiente.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "El informe no presenta tasas de falsos positivos, latencia o rendimiento de servicio, costo de recursos ni resultados sobre descubrimiento de vulnerabilidades desconocidas y remediación.",
+          "kind": "regime_unclear",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si la evaluación específica de Aikido se generaliza, la poda puede permitir ejecutar un modelo abierto grande de seguridad en cuatro H200 con poca pérdida de recuperación informada frente a la base cuantizada, una opción útil de servicio local y privacidad para algunos flujos defensivos. El impacto es acotado: el benchmark es pequeño e interno y mide la búsqueda de vulnerabilidades conocidas, no pruebas de penetración generales.",
+      "limitations": [
+        "Todas las cifras de rendimiento provienen de Aikido; no se encontró ni se realizó una reproducción independiente.",
+        "La evaluación abarca 32 vulnerabilidades conocidas en 30 repositorios y tres ejecuciones por caso; no es una prueba de descubrimiento a ciegas.",
+        "El benchmark forma parte de una canalización más amplia que usa otros modelos en etapas circundantes; no aísla la contribución total del modelo ni los efectos de la revisión humana.",
+        "El informe presenta recuperación y cobertura, pero no precisión, falsos positivos, validación de exploits, calidad de parches, tiempo de ejecución, rendimiento ni costo de servicio.",
+        "La configuración de cuatro H200 es una opción declarada por el proveedor; no establece un requisito mínimo de hardware ni un perfil de producción verificado independientemente."
+      ],
+      "relationships": [],
+      "summary": "Aikido publicó Altar-1, una variante W4A16/REAP de GLM-5.3 de 328 GB para tareas locales de seguridad defensiva. La empresa informa que la poda reduce de 488.2 GB a 328.0 GB los pesos de la base ya cuantizada. En un benchmark interno de 32 vulnerabilidades conocidas en 30 repositorios, con tres ejecuciones por caso, la variante obtuvo 60.4% de recuperación media por ejecución frente a 61.5% de la base. Ambos identificaron las mismas 23 vulnerabilidades al menos una vez. El proveedor documenta su uso con vLLM en cuatro H200. Son cifras de la empresa en una prueba dirigida dentro de una canalización más amplia; no demuestran descubrimiento a ciegas, validación de exploits, calidad de parches ni rendimiento independiente.",
+      "technical": {
+        "claimed_result": "Aikido informa 1,506.7 GB de pesos para GLM-5.3 de precisión completa, 488.2 GB para la base AWQ INT4 y 328.0 GB para Altar-1. En su benchmark interno de vulnerabilidades conocidas, informa recuperaciones medias por ejecución de 65.6%, 61.5% y 60.4%, respectivamente. la variante podada y la base AWQ cubrieron 23 de 32 vulnerabilidades al menos una vez en tres ejecuciones; GLM-5.3 completo cubrió 25.",
+        "compute_or_cost": "Las fuentes informan el tamaño de los pesos y un objetivo de servicio con cuatro H200, pero no miden latencia, rendimiento, energía, costo de servicio, margen de memoria en una carga definida ni costo total de hardware.",
+        "demonstrated_result": "La ficha y los pesos públicos documentan el artefacto Altar-1, su configuración W4A16/REAP y un objetivo de servicio vLLM con cuatro H200. Esto verifica la disponibilidad y configuración declarada, no el rendimiento alegado.",
+        "implementation_status": "Aikido publica los pesos de Altar-1 en Hugging Face y documenta su uso con vLLM en cuatro NVIDIA H200. La empresa afirma que lo desplegó en su flota Aikido Machine; esta revisión no inspeccionó ese despliegue.",
+        "mechanism": "Aikido cuantiza con AWQ INT4 los expertos enrutados de GLM-5.3 y luego usa puntuaciones REAP y una selección que preserva dominios para eliminar 88 de los 256 expertos por capa, sin reentrenar. Cada token sigue activando ocho expertos enrutados.",
+        "regime": "El benchmark interno cubre 32 vulnerabilidades conocidas en 30 repositorios, con tres ejecuciones por caso. Aikido lo describe como búsqueda dirigida dentro de su canalización AI Code Analysis, que utiliza otros modelos en etapas circundantes. La ficha documenta una configuración vLLM para cuatro H200.",
+        "reproducibility": "Aikido enlaza un estudio de fidelidad y herramientas de poda; la ficha ofrece pesos e instrucciones. Esta revisión no ejecutó el modelo, no inspeccionó resultados brutos ni reprodujo el benchmark CVE. Los casos conocidos y la canalización interna limitan la validación externa.",
+        "strongest_baseline": "La comparación más directa es el mismo GLM-5.3 cuantizado con AWQ INT4 antes de REAP: Aikido informa 488.2 GB, 61.5% de recuperación media por ejecución y 23/32 vulnerabilidades cubiertas al menos una vez, frente a 328.0 GB, 60.4% y 23/32 para Altar-1. La prueba es interna y no tiene reproducción independiente."
+      },
+      "title": "Aikido informa que su modelo GLM-5.3 de seguridad, reducido a 328 GB, conserva una recuperación CVE cercana a la base",
+      "why_it_matters": "Este resultado muestra un intercambio concreto entre el almacenamiento de pesos y la recuperación en una tarea de seguridad: Aikido informa una reducción adicional de 32.8% frente a la base cuantizada, con alrededor de 1.1 puntos porcentuales menos de recuperación media en su benchmark interno. Si una evaluación independiente lo confirma, podría reducir el umbral de hardware para la inferencia local de seguridad defensiva. La prueba no demuestra que el modelo encuentre vulnerabilidades desconocidas ni que realice una prueba de penetración completa."
+    },
     "FCMO-4C7D37607E1E": {
       "claims": [
         {
@@ -11125,6 +11180,70 @@
       },
       "title": "DexTacWAM informa mejores resultados al modelar el contacto táctil como parte del mundo previsto por el robot",
       "why_it_matters": "Los robots diestros necesitan razonar sobre contacto, deslizamiento y estabilidad del agarre, que las cámaras pueden no revelar. La ablación del artículo respalda una hipótesis de diseño específica: predecir la evolución del contacto táctil como parte del estado de mundo podría aportar más que entregar lecturas táctiles directamente a la política. Las mejoras reportadas son grandes, pero provienen de una plataforma evaluada por los autores y de una comparación con parametrizaciones de acciones distintas; justifican una reproducción controlada, no prueban transferencia general."
+    },
+    "FCMO-6588C0954ABA": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED_PUBLICATION_EVENT",
+          "text": "Los autores publicaron el preprint JustMem en arXiv el 2026-09-17."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En LoCoMo y LongMemEval-S, los autores informan que JustMem obtuvo la mayor exactitud media y el mayor recall de recuperación entre los sistemas de memoria comparados: 79.61% de exactitud en LoCoMo y 83.40% en LongMemEval-S."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Frente a LightMem, el sistema de memoria con mayor exactitud media en LoCoMo, los autores informan reducciones de 50.7% en tokens para construir la memoria y de 67.2% en tokens de consulta en LoCoMo; en LongMemEval-S, informan reducciones de 64.9% y 55.7%, respectivamente."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En la división cognitiva de 401 preguntas de LoCoMo-Plus, los autores informan 62.59% de exactitud para JustMem frente a 31.67% para MemOS, la línea base más sólida de esa comparación."
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION_DISCLOSURE",
+          "text": "El artículo indica que la evaluación se limita a pruebas establecidas de memoria conversacional a largo plazo y a una configuración específica de memoria y recuperación; el análisis de eficiencia se centra en tokens generativos y no contabiliza todo el cómputo del sistema."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se encontró una reproducción independiente de los resultados de las pruebas ni de los costos de tokens informados.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "Durante esta revisión no se encontró una implementación pública para inspeccionar directamente el planificador, la recuperación de fuentes y el banco de pruebas.",
+          "kind": "missing_artifact",
+          "state": "open"
+        },
+        {
+          "description": "La comparación principal de eficiencia cuenta tokens generativos, pero no informa cómputo total, latencia, energía ni costo monetario.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si los aumentos informados se generalizan, recuperar evidencia de conversaciones mediante una estrategia que adapta la amplitud de búsqueda podría mejorar la memoria de largo plazo y reducir el uso de tokens del modelo. La puntuación 4 refleja un avance significativo para el diseño de memoria, mientras la evidencia se limita a pruebas realizadas por los autores y a su contabilidad de tokens.",
+      "limitations": [
+        "Los resultados cuantitativos provienen de los autores; aquí no se reprodujeron de manera independiente.",
+        "Las comparaciones principales usan un conjunto limitado de pruebas de memoria conversacional y una configuración específica; no se conoce su generalización a otras tareas o plataformas de modelos.",
+        "En LoCoMo, la comparación pareada informada frente a LightMem no es estadísticamente significativa (p=0.532).",
+        "La contabilidad de tokens excluye embeddings, reranking y otros cómputos del sistema, por lo que un menor uso de tokens generativos no demuestra menor latencia, energía ni costo total.",
+        "Los autores identifican riesgos de privacidad, retención, control de acceso y filtración de información sensible porque el sistema conserva recuerdos y enlaces de procedencia que permiten recuperar conversaciones fuente."
+      ],
+      "relationships": [],
+      "summary": "Un preprint de septiembre de 2026 presenta JustMem, un sistema de memoria conversacional de largo plazo que adapta la amplitud de recuperación y la fidelidad de lectura de fuentes a cada consulta. En pruebas de los autores con GPT-4.1-mini en LoCoMo y LongMemEval-S, el sistema obtuvo la mayor exactitud media entre las memorias comparadas y usó menos tokens generativos. Los resultados son informes del artículo y aún no tienen reproducción independiente.",
+      "technical": {
+        "claimed_result": "Con GPT-4.1-mini para construir recuerdos, planificar, responder y evaluar mediante un juez LLM, los autores informan una exactitud media de 79.61% en LoCoMo y 83.40% en LongMemEval-S, junto con la mayor exactitud media y recall de recuperación entre los sistemas comparados. También informan presupuestos menores de tokens generativos y una exactitud de 62.59% en la división cognitiva de LoCoMo-Plus.",
+        "compute_or_cost": "El artículo informa los tokens generativos usados al construir memorias y procesar consultas; su análisis principal excluye embeddings, reranking, evaluación fuera de línea y otros costos de cómputo del sistema.",
+        "demonstrated_result": "Existe un preprint público que describe el sistema, el protocolo de pruebas y sus tablas de resultados. En esta revisión no se ejecutó ni reprodujo de forma independiente el sistema.",
+        "mechanism": "JustMem guarda recuerdos atómicos compactos con enlaces de procedencia, estima qué evidencia requiere cada consulta y elige entre Lookup local, Compose con búsqueda más amplia o Replay que recupera la conversación original. Compose amplía los candidatos sin aumentar el presupuesto de evidencia compacta; Replay recupera el contexto fuente solo cuando la consulta requiere mayor fidelidad.",
+        "novelty": "El artículo propone separar la amplitud de descubrimiento de la fidelidad de lectura como dos dimensiones adaptables de acceso a memoria. No se estableció de manera independiente la prioridad frente a todos los sistemas de memoria recientes.",
+        "regime": "Experimentos informados por los autores en LoCoMo (1,540 preguntas), LongMemEval-S (500 preguntas) y la división cognitiva de 401 preguntas de LoCoMo-Plus. En las comparaciones principales, los métodos comparten el modelo generativo y las instrucciones de evaluación; se repiten cinco rondas de respuesta y evaluación con las memorias construidas y la evidencia recuperada fijas.",
+        "reproducibility": "El preprint especifica instrucciones, modelos y configuración de pruebas. No se localizó código público ni se reprodujeron los resultados de forma independiente en esta revisión.",
+        "strongest_baseline": "LightMem es el sistema de memoria comparado con mayor exactitud media en LoCoMo; la comparación pareada con JustMem informa p=0.532. En LongMemEval-S, el artículo informa 76.44% para LightMem y 83.40% para JustMem. En la división LoCoMo-Plus, MemOS es la línea base más sólida (31.67% frente a 62.59%)."
+      },
+      "title": "JustMem informa mayor exactitud en pruebas de memoria a largo plazo y menor uso de tokens del modelo",
+      "why_it_matters": "Si los resultados informados se generalizan, separar la búsqueda amplia de evidencia de la recuperación selectiva de fuentes podría mejorar la memoria conversacional y reducir el uso de tokens generativos. El resultado es significativo para el diseño de memoria de agentes, pero proviene de un conjunto limitado de pruebas y no mide el costo total del sistema."
     },
     "FCMO-66C5569688C1": {
       "claims": [
@@ -18118,6 +18237,60 @@
       },
       "title": "Artículo informa verificación de entrenamiento diferencialmente privado con una CPU-TEE y GPU no confiables",
       "why_it_matters": "Si se valida de manera independiente, el diseño podría permitir que las organizaciones produzcan evidencia de que se siguió un protocolo de entrenamiento diferencialmente privado mientras usan GPU sin soporte TEE nativo. La sobrecarga y los límites de resistencia a ataques informados se restringen a modelos pequeños, el protocolo de un artículo y condiciones calibradas de hardware y software."
+    },
+    "FCMO-ADDB7C80E534": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED_DOCUMENTATION",
+          "text": "El NOTICE de ZCode dice que el adaptador compartido de ejecución de Agent no incluye un sandbox de sistema operativo de forma predeterminada y advierte que la identidad del espacio de trabajo, los worktrees de Git, el aislamiento del navegador y el contexto de Node REPL no garantizan aislamiento a nivel del sistema para todas las herramientas."
+        },
+        {
+          "label": "DEMONSTRATED_IN_SOURCE",
+          "text": "El código run.ts del CLI define yolo como el modo predeterminado para solicitudes sin interacción; al ejecutar --prompt sin modo explícito, pasa mode ?? DEFAULT_HEADLESS_PROMPT_MODE."
+        },
+        {
+          "label": "DEMONSTRATED_IN_SOURCE",
+          "text": "El servicio de permisos indica que yolo omite las solicitudes de permiso para llamadas ordinarias a herramientas cuando no está activo el modo plan; conserva comprobaciones separadas para herramientas que requieren interacción o siempre preguntan, y NOTICE distingue otras superficies y modos controlados por el host."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "No se inspeccionó un paquete de ZCode v3.15.1 ni el despliegue de un operador. Los archivos fuente se fijaron al commit del repositorio v3.15.1; no se probó si un despliegue añade aislamiento ni cuál es el comportamiento efectivo en ejecución."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se inspeccionó un paquete de ZCode v3.15.1 ni un entorno de ejecución, aunque los archivos fuente están fijados al commit de esa versión.",
+          "kind": "missing_artifact",
+          "state": "open"
+        },
+        {
+          "description": "No se probaron en ejecución las solicitudes de aprobación ni el aislamiento del sistema operativo en una instalación o despliegue.",
+          "kind": "missing_independent",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si estos valores predeterminados documentados se aplican a la revisión del CLI y el adaptador compartido de ZCode, afectan de forma material las expectativas sobre aislamiento y aprobación en ejecuciones de agentes bajo la cuenta del host. La puntuación 4 refleja una consideración práctica para elegir y desplegar el harness; el hallazgo se limita a los modos documentados y no supone que todas las superficies de ZCode usen los mismos valores.",
+      "limitations": [
+        "La declaración de que no hay sandbox predeterminado se limita al adaptador compartido de ejecución de Agent en NOTICE; no debe generalizarse a todas las herramientas o modos de ZCode.",
+        "El modo yolo predeterminado cuando se omite --mode aplica a llamadas independientes no interactivas del CLI con --prompt; no se extiende automáticamente a TUI, escritorio, tareas reanudadas, target ni ejecución controlada por el host.",
+        "El servicio de permisos conserva reglas separadas para interacción del usuario, always-ask, herramientas prohibidas y modo plan; yolo no implica que todos los controles se omitan.",
+        "Los archivos fuente inspeccionados están fijados al commit aac4755666d09fdcd70272fcf063c077a639015f, identificado como actualización v3.15.1. No se probó la ejecución ni se inspeccionó el binario distribuido.",
+        "El código del repositorio no establece si el despliegue de un operador agrega sandbox de sistema operativo u otro aislamiento."
+      ],
+      "relationships": [],
+      "summary": "El commit del repositorio ZCode v3.15.1, fechado el 2026-10-10, incluye un NOTICE en chino que indica que el adaptador compartido de ejecución de Agent no tiene sandbox de sistema operativo predeterminado. Las llamadas independientes del CLI con --prompt usan yolo cuando se omite --mode. El código fuente fijado define ese valor y describe cuándo se omiten los avisos de permiso y qué excepciones existen. El hallazgo se limita a esos modos documentados; no se probó un paquete distribuido.",
+      "technical": {
+        "claimed_result": "La documentación del proyecto dice que el adaptador compartido de ejecución de Agent no cuenta con sandbox de sistema operativo predeterminado y que el CLI independiente usa yolo en llamadas no interactivas con --prompt cuando se omite --mode.",
+        "demonstrated_result": "El NOTICE del repositorio y el código del CLI revisados contienen esas declaraciones acotadas y las rutas de código correspondientes. No se probó el comportamiento de un paquete fijado durante su ejecución.",
+        "mechanism": "La ruta no interactiva del CLI usa yolo como valor de reserva si no se indica un modo. El servicio de permisos permite que llamadas ordinarias a herramientas omitan avisos de permiso en ese modo, pero mantiene comprobaciones distintas para capacidades que requieren interacción o siempre preguntan. Por separado, NOTICE dice que el adaptador compartido no tiene sandbox de sistema operativo predeterminado.",
+        "novelty": "El aspecto material es la divulgación explícita y diferenciada por modo de los valores predeterminados de sandbox y aprobación; no se afirma novedad en la arquitectura de permisos subyacente.",
+        "regime": "Commit aac4755666d09fdcd70272fcf063c077a639015f del repositorio ZCode v3.15.1, fechado el 2026-10-10. El hallazgo se refiere al adaptador compartido de ejecución de Agent y a la ruta independiente no interactiva del CLI con --prompt, no a todas las superficies de ZCode.",
+        "reproducibility": "NOTICE y ambos archivos de código quedaron vinculados al mismo commit mediante el historial de GitHub por ruta. Se fijaron las fuentes, pero no se inspeccionó un paquete distribuido ni se probó su ejecución.",
+        "strongest_baseline": "No hay comparación entre proyectos. NOTICE distingue el adaptador compartido y la ruta del CLI independiente de los modos interactivo, de escritorio, reanudado y controlado por el host; build y plan tienen reglas de permiso propias."
+      },
+      "title": "ZCode documenta que su adaptador Agent no tiene sandbox de sistema operativo predeterminado y que el CLI no interactivo usa yolo por defecto",
+      "why_it_matters": "Al elegir un harness de agentes, los usuarios necesitan saber si las operaciones ordinarias de archivos, shell y red están aisladas por el sistema operativo, y si las llamadas desatendidas del CLI requieren aprobación explícita. La documentación y el código de ZCode muestran valores predeterminados distintos según el modo de ejecución, por lo que las aprobaciones del proyecto no deben tratarse como una frontera de seguridad uniforme."
     },
     "FCMO-AE1EFB209913": {
       "claims": [
@@ -32130,6 +32303,48 @@
         "source_sha256": "3572af4cc9093fd4a6cd40cdcb76ebde8bf2f04f91d2d6c10666c64b2a36ec94"
       }
     },
+    "FCMO-4C74A8BB4DFD": {
+      "claims": {
+        "locale_sha256": "2118f16089cc404501b590268e8d37a712057fb827bf967d07d4c1d790c4ca68",
+        "source_sha256": "19a082fe2664c0c38a4db8a2991ff527c9a11796ee18539abae4fbdc2e423273"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "5cfe0e8e31f96de2166ef8bf4d35b1b96828d8041a11a44e7ab74e34107aecba",
+        "source_sha256": "826d908dd9c42e0ead0f89032b5ecb1d1b8f953538cf431afd2590ad864f876a"
+      },
+      "importance_rationale": {
+        "locale_sha256": "aae0e328dddf025a68545ce690d1c45cf2879ba3879bb052589bb0c00831c0ab",
+        "source_sha256": "10ff65814b35af023e2c10a7d8cfcc2ca2dbc4c365c1ac7d8021150da2527dfa"
+      },
+      "limitations": {
+        "locale_sha256": "9cc1a7639ca199ed89924c4b4498405fd6d5f3b4e165455907bef403e17c9dd9",
+        "source_sha256": "4b50e5f9f30922a87de4dd17d312d20c20f497194c1d3061bbb6f48c5f0f0f25"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "0bc853c59379f16b47263ae7f0d981b262f0c405275c74e0d4d4307fbebb198b",
+        "source_sha256": "e7cf1dadf806982be5e558292031f88c92877b9549af6066cfcd416bcf4e3ed3"
+      },
+      "technical": {
+        "locale_sha256": "91b08e9a149bc42e2647e534b513b29a4771aeac30766a07e780b3e129aad2d2",
+        "source_sha256": "aaac91c4cf3ead4f175f78e1830f6530bfe2f33670128bad2e09964389c507ac"
+      },
+      "title": {
+        "locale_sha256": "00c528ec0eec87cb12c363648d7dccb494420d243c71455b7d687e146968e702",
+        "source_sha256": "6243838723a9d5dd590acaac9e1560f311899026b6319ce6c7aa77c641497995"
+      },
+      "why_it_matters": {
+        "locale_sha256": "c7f6ca766c264fd7c2c0c565503fd44a7a630bcae510358e620d3292bc438012",
+        "source_sha256": "80ac4db356c80d3f957c6f30b39d5db408cbaf2afbb4a1564f1738f4c2e5de83"
+      }
+    },
     "FCMO-4C7D37607E1E": {
       "claims": {
         "locale_sha256": "93c9f48c388df5d39222edb2a37179020fb19d6f2242da0c28e0800656546ed3",
@@ -34424,6 +34639,48 @@
       "why_it_matters": {
         "locale_sha256": "223b9731f59c856a3c480305f78a884a6f60cfd72eb4d99354ad1cd4a8cef23c",
         "source_sha256": "334f7d2cd05c016c557e156b83ca0069613c2ca69f178deef613666efeeaa67e"
+      }
+    },
+    "FCMO-6588C0954ABA": {
+      "claims": {
+        "locale_sha256": "25d1f072fa694f187f0c1d4ee482c36cef3f2136a00379bc4d3e0830c8d2281f",
+        "source_sha256": "0ee0ec38b7a63f0050df146060d2f2fdbe81ae0232dcc5a344da317590b1698f"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "0d4abb2a0eee46b2f470fee3b828a97dd8f788c493a15a052f8bac8d84d26bc7",
+        "source_sha256": "4cbd8eb473d1d93d10c5991c563c5f616aa2a08d07a0d4da1cce597476fb9ddd"
+      },
+      "importance_rationale": {
+        "locale_sha256": "228c4228c9d0871cef4c1a5a52ccad225d2a680b3c9868f684fcd46d021cce1b",
+        "source_sha256": "7d8ca892e2d864f6dd08bdc2c8b58ed56bcd65161644db0493daf60c96a9e99f"
+      },
+      "limitations": {
+        "locale_sha256": "9c62331446437e43af9be92bf2f1270d99e7a06a31f1911fdce21f9c947b377d",
+        "source_sha256": "808e5216bd863c6ffeec48116f8bfb3e92b562eb50c45d68ec3987995c38dea1"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "9ad6a53f36b7c866cfa0070fbf999ba5acd92b74193186515136dceb6c6a1e8d",
+        "source_sha256": "07d3d52581f08329b6ebab9bebd3b50fc0d504da7ad00891de1551585145cbf4"
+      },
+      "technical": {
+        "locale_sha256": "171cd2438d38b25f41b960a2ff09e4a219bb4e0f19bc7857b6bc33f8c550dcf8",
+        "source_sha256": "78a996e8f90a864e4d5758b8aecfb0ff927e17bb08de468eee546c5438c532d0"
+      },
+      "title": {
+        "locale_sha256": "7f56dfd4df6ceb2f50f32243c51c985ab3556145f2e9b3f4c7f8383633d698f4",
+        "source_sha256": "5495006dc98077e34c27c41010802bba57008fb343c62093b1d3c264ff255dfb"
+      },
+      "why_it_matters": {
+        "locale_sha256": "f8e928fd61e8d846bb50f7e7b51190a9d0a6695f8211c75098489a4d6d72f813",
+        "source_sha256": "a14cb66ec2eab0934e2e3dc26ad57535843f7e40a196becd176b66b0f87de34d"
       }
     },
     "FCMO-66C5569688C1": {
@@ -39702,6 +39959,48 @@
       "why_it_matters": {
         "locale_sha256": "68924e705d5940f3bebcc381003b99f04bb106e6adb3ffd0057026df32fec263",
         "source_sha256": "cc50ee653cfab81a0906ce16b04945eb684a9a867e4533174fd0d7e9590efca6"
+      }
+    },
+    "FCMO-ADDB7C80E534": {
+      "claims": {
+        "locale_sha256": "23e3aa37923c4939fb137ff02c8290720cc781a52a608e28c2fff058dfb056d2",
+        "source_sha256": "2fa9304254073753b2d6d5f5a4ff8d9f95328d32699efba05a1ffa5eb4fe6896"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "1978a57777f62819794c2a636072fe63b37957d20125c2d574b296e4917e5cfc",
+        "source_sha256": "885de59592c986c0831a02ec0c123aad5cba6f71fccee4321bb198795f5c55c6"
+      },
+      "importance_rationale": {
+        "locale_sha256": "f7ccbd720a69539b8c1563b44cfb2bdcf7e97bd3a22fdf366210a17a86566ba3",
+        "source_sha256": "0acddc9645fd95e35f9d77916aea78b39ee7522d6de792148f0a1052bc804cb3"
+      },
+      "limitations": {
+        "locale_sha256": "320b8f4b749ad6c686157b29225f2087dc29c66956dd3b9ef1e4e5231c5a19e8",
+        "source_sha256": "b366ec225870e6631506bc7ca1e107aa6cf3d904f3495e96a9b74fbdd376d1c2"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "c6e20296eb6c8bea4f8ba6628df2493df20b4d087f19430f5f9ee01b35969948",
+        "source_sha256": "38f1549d396ba6d2463259c7a9b5c9d61669a0a2413d8aa95e7d8bd5242fe0ec"
+      },
+      "technical": {
+        "locale_sha256": "a3372c2bb8ce3baed281d8c37bc921d8cfd378f742acadcef398753229242ae0",
+        "source_sha256": "2f7083f0949b33db6e4828a779f0c1e1841c73960c102e845b37d0ac7dc1daeb"
+      },
+      "title": {
+        "locale_sha256": "4ad72e207bbb83ff93f23656b02c15f110d1bdff2ae45732ee1563891b2d717e",
+        "source_sha256": "2c2230458aee95af9f73eac989f6aa595ea0be95387bb4d8a26cc4bf7e397d12"
+      },
+      "why_it_matters": {
+        "locale_sha256": "1a2f367350b7f9486c5ad068e2341eddf98d803183e5d92c5a6cc1219dabbdd1",
+        "source_sha256": "fdd5253e879a25bbb3a3e62156c07cf939d75f15af50564e895264ced37e98ec"
       }
     },
     "FCMO-AE1EFB209913": {

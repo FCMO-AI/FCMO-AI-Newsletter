@@ -1,7 +1,7 @@
 {
   "schema": "fcmo-stories-v2",
-  "generated_at": "2026-10-15T20:06:37Z",
-  "release_id": "newswire-6ddcbc3fe51a1c65dd4fec26",
+  "generated_at": "2026-10-15T23:07:26Z",
+  "release_id": "newswire-a9bf2bf0050a9b5bd85d8d41",
   "canonical_locale": "en",
   "locales": [
     "en",
@@ -42,6 +42,750 @@
     "2026-10-15"
   ],
   "stories": [
+    {
+      "id": "FCMO-ADDB7C80E534",
+      "slug": "zcode-documents-no-default-os-sandbox-for-its-shared-agent-adapter-and-a",
+      "url_date": "2026-10-15",
+      "kind": "development",
+      "status": "live",
+      "beat": "society",
+      "desk": "agents_memory",
+      "title": "ZCode documents no default OS sandbox for its shared Agent adapter and a yolo default for non-interactive CLI prompts",
+      "summary": "The ZCode v3.15.1 repository commit dated 2026-10-10 includes a Chinese NOTICE stating that its shared Agent execution adapter has no default operating-system sandbox, and that standalone CLI --prompt calls default to yolo when --mode is omitted. The pinned CLI source defines that fallback, and its permission service describes prompt-bypass rules and exceptions. These findings are scoped to the documented adapter and non-interactive CLI path; no packaged runtime was tested.",
+      "why_it_matters": "Users selecting an agent harness need to know whether ordinary file, shell and network operations receive operating-system isolation and whether unattended CLI calls require explicit permission prompts. ZCode's own documentation and source expose materially different defaults by execution mode, so treating project-level approval as a uniform security boundary would be unsafe.",
+      "importance_rationale": "If these documented defaults apply to the inspected ZCode CLI/shared-adapter revision, they materially affect isolation and approval assumptions for agent runs that can execute tools under the host account. Score 4 reflects an actionable harness-selection and deployment concern; the statement is scoped to documented modes and is not a claim that all ZCode surfaces share these defaults.",
+      "technical": {
+        "claimed_result": "The project documentation states there is no default OS sandbox for its shared Agent execution adapter and that non-interactive standalone CLI --prompt runs default to yolo without --mode.",
+        "demonstrated_result": "The current repository NOTICE and CLI source contain the scoped statements and code paths described. Runtime behavior in a pinned packaged build was not tested.",
+        "mechanism": "The CLI's non-interactive prompt path falls back to yolo when no prompt mode is supplied. The permission service's mode logic allows ordinary tool calls in yolo mode without permission prompts, while user-interaction and always-ask capabilities have separate checks. Independently, the repository NOTICE says the shared Agent execution adapter has no default OS sandbox.",
+        "novelty": "The material information is the repository's explicit, mode-scoped disclosure of sandbox and approval defaults; no novelty claim is made about the underlying permission architecture.",
+        "regime": "ZCode v3.15.1 commit aac4755666d09fdcd70272fcf063c077a639015f, dated 2026-10-10. Findings concern the shared Agent execution adapter and standalone CLI non-interactive --prompt path, not all ZCode execution surfaces.",
+        "reproducibility": "The NOTICE and both source files were bound to the same release commit SHA using path-specific GitHub commit history. Source paths are pinned; no packaged binary or runtime behavior was tested.",
+        "strongest_baseline": "No cross-project comparison is claimed. Within ZCode, NOTICE distinguishes the shared adapter and standalone CLI prompt path from interactive, desktop, resumed and host-controlled modes; build and plan modes have separate permission behavior."
+      },
+      "importance_tier": "Meaningful",
+      "development_type": "repository_release",
+      "event_at": "2026-10-10T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-15T23:07:10Z",
+      "updated_at": "2026-10-15T23:07:10Z",
+      "importance": 4,
+      "evidence_class": "A",
+      "confidence": "strongly_supported",
+      "front_page_eligible": false,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "DEMONSTRATED",
+            "qualifier": "DOCUMENTATION",
+            "text": "ZCode's NOTICE says the shared Agent execution adapter does not provide a default operating-system sandbox and warns that workspace identity, Git worktrees, browser isolation and Node REPL context are not system-level isolation guarantees for all tools."
+          },
+          {
+            "label": "DEMONSTRATED",
+            "qualifier": "IN_SOURCE",
+            "text": "The current CLI run.ts source defines the default headless prompt mode as yolo and passes mode ?? DEFAULT_HEADLESS_PROMPT_MODE when invoking a non-interactive --prompt request without an explicit mode."
+          },
+          {
+            "label": "DEMONSTRATED",
+            "qualifier": "IN_SOURCE",
+            "text": "The permission service says yolo mode bypasses permission prompts for ordinary tool calls when plan mode is not enabled; separate checks retain user-interaction and always-ask handling, while NOTICE distinguishes other execution surfaces and host-controlled modes."
+          },
+          {
+            "label": "NOT_ESTABLISHED",
+            "text": "No packaged ZCode v3.15.1 binary or operator deployment was inspected; the source files were pinned to the v3.15.1 repository commit, but deployment-added isolation and effective runtime behavior were not tested."
+          }
+        ],
+        "limitations": [
+          "The no-default-sandbox statement is scoped by the NOTICE to the shared Agent execution adapter; it should not be generalized to every ZCode tool or operating mode.",
+          "The yolo default applies to standalone non-interactive CLI --prompt calls when --mode is omitted, not automatically to interactive TUI or every desktop, resumed, target or host-managed execution.",
+          "The permission service retains separate user-interaction, always-ask, disallowed-tool and plan-mode logic; 'yolo' is not evidence that all interactions bypass every control.",
+          "The inspected source files are pinned to commit aac4755666d09fdcd70272fcf063c077a639015f, identified as the v3.15.1 update. No runtime test or distributed binary inspection was performed.",
+          "The repository source does not establish whether an operator's deployment adds external OS sandboxing or other isolation."
+        ],
+        "gaps": [
+          {
+            "kind": "missing_artifact",
+            "description": "No packaged ZCode v3.15.1 binary or runtime environment was inspected, despite the source files being pinned to the release commit."
+          },
+          {
+            "kind": "missing_independent",
+            "description": "No runtime test confirmed the effective approval prompts or OS-level isolation of a packaged or deployed ZCode configuration."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://github.com/zai-org/ZCode/blob/aac4755666d09fdcd70272fcf063c077a639015f/NOTICE.md",
+          "domain": "github.com",
+          "primary": true
+        },
+        {
+          "url": "https://github.com/zai-org/ZCode/blob/aac4755666d09fdcd70272fcf063c077a639015f/apps/zcode-cli/packages/cli/src/run.ts",
+          "domain": "github.com",
+          "primary": true
+        },
+        {
+          "url": "https://github.com/zai-org/ZCode/blob/aac4755666d09fdcd70272fcf063c077a639015f/apps/zcode-cli/packages/core/src/permission/service.ts",
+          "domain": "github.com",
+          "primary": true
+        },
+        {
+          "url": "https://github.com/zai-org/ZCode/commit/aac4755666d09fdcd70272fcf063c077a639015f",
+          "domain": "github.com",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "Z.ai"
+      ],
+      "topics": [
+        "agent-security",
+        "tool-permissions",
+        "os-sandboxing",
+        "coding-agents"
+      ],
+      "regions": [
+        "CN",
+        "GLOBAL"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-ADDB7C80E534.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: ZCode documents no default OS sandbox for its shared Agent adapter and a yolo default for non-interactive CLI prompts"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "ZCode documenta que su adaptador Agent no tiene sandbox de sistema operativo predeterminado y que el CLI no interactivo usa yolo por defecto",
+            "summary": "El commit del repositorio ZCode v3.15.1, fechado el 2026-10-10, incluye un NOTICE en chino que indica que el adaptador compartido de ejecución de Agent no tiene sandbox de sistema operativo predeterminado. Las llamadas independientes del CLI con --prompt usan yolo cuando se omite --mode. El código fuente fijado define ese valor y describe cuándo se omiten los avisos de permiso y qué excepciones existen. El hallazgo se limita a esos modos documentados; no se probó un paquete distribuido.",
+            "importance_rationale": "Si estos valores predeterminados documentados se aplican a la revisión del CLI y el adaptador compartido de ZCode, afectan de forma material las expectativas sobre aislamiento y aprobación en ejecuciones de agentes bajo la cuenta del host. La puntuación 4 refleja una consideración práctica para elegir y desplegar el harness; el hallazgo se limita a los modos documentados y no supone que todas las superficies de ZCode usen los mismos valores.",
+            "why_it_matters": "Al elegir un harness de agentes, los usuarios necesitan saber si las operaciones ordinarias de archivos, shell y red están aisladas por el sistema operativo, y si las llamadas desatendidas del CLI requieren aprobación explícita. La documentación y el código de ZCode muestran valores predeterminados distintos según el modo de ejecución, por lo que las aprobaciones del proyecto no deben tratarse como una frontera de seguridad uniforme.",
+            "technical": {
+              "claimed_result": "La documentación del proyecto dice que el adaptador compartido de ejecución de Agent no cuenta con sandbox de sistema operativo predeterminado y que el CLI independiente usa yolo en llamadas no interactivas con --prompt cuando se omite --mode.",
+              "demonstrated_result": "El NOTICE del repositorio y el código del CLI revisados contienen esas declaraciones acotadas y las rutas de código correspondientes. No se probó el comportamiento de un paquete fijado durante su ejecución.",
+              "mechanism": "La ruta no interactiva del CLI usa yolo como valor de reserva si no se indica un modo. El servicio de permisos permite que llamadas ordinarias a herramientas omitan avisos de permiso en ese modo, pero mantiene comprobaciones distintas para capacidades que requieren interacción o siempre preguntan. Por separado, NOTICE dice que el adaptador compartido no tiene sandbox de sistema operativo predeterminado.",
+              "novelty": "El aspecto material es la divulgación explícita y diferenciada por modo de los valores predeterminados de sandbox y aprobación; no se afirma novedad en la arquitectura de permisos subyacente.",
+              "regime": "Commit aac4755666d09fdcd70272fcf063c077a639015f del repositorio ZCode v3.15.1, fechado el 2026-10-10. El hallazgo se refiere al adaptador compartido de ejecución de Agent y a la ruta independiente no interactiva del CLI con --prompt, no a todas las superficies de ZCode.",
+              "reproducibility": "NOTICE y ambos archivos de código quedaron vinculados al mismo commit mediante el historial de GitHub por ruta. Se fijaron las fuentes, pero no se inspeccionó un paquete distribuido ni se probó su ejecución.",
+              "strongest_baseline": "No hay comparación entre proyectos. NOTICE distingue el adaptador compartido y la ruta del CLI independiente de los modos interactivo, de escritorio, reanudado y controlado por el host; build y plan tienen reglas de permiso propias."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "El NOTICE de ZCode dice que el adaptador compartido de ejecución de Agent no incluye un sandbox de sistema operativo de forma predeterminada y advierte que la identidad del espacio de trabajo, los worktrees de Git, el aislamiento del navegador y el contexto de Node REPL no garantizan aislamiento a nivel del sistema para todas las herramientas."
+                },
+                {
+                  "text": "El código run.ts del CLI define yolo como el modo predeterminado para solicitudes sin interacción; al ejecutar --prompt sin modo explícito, pasa mode ?? DEFAULT_HEADLESS_PROMPT_MODE."
+                },
+                {
+                  "text": "El servicio de permisos indica que yolo omite las solicitudes de permiso para llamadas ordinarias a herramientas cuando no está activo el modo plan; conserva comprobaciones separadas para herramientas que requieren interacción o siempre preguntan, y NOTICE distingue otras superficies y modos controlados por el host."
+                },
+                {
+                  "text": "No se inspeccionó un paquete de ZCode v3.15.1 ni el despliegue de un operador. Los archivos fuente se fijaron al commit del repositorio v3.15.1; no se probó si un despliegue añade aislamiento ni cuál es el comportamiento efectivo en ejecución."
+                }
+              ],
+              "limitations": [
+                "La declaración de que no hay sandbox predeterminado se limita al adaptador compartido de ejecución de Agent en NOTICE; no debe generalizarse a todas las herramientas o modos de ZCode.",
+                "El modo yolo predeterminado cuando se omite --mode aplica a llamadas independientes no interactivas del CLI con --prompt; no se extiende automáticamente a TUI, escritorio, tareas reanudadas, target ni ejecución controlada por el host.",
+                "El servicio de permisos conserva reglas separadas para interacción del usuario, always-ask, herramientas prohibidas y modo plan; yolo no implica que todos los controles se omitan.",
+                "Los archivos fuente inspeccionados están fijados al commit aac4755666d09fdcd70272fcf063c077a639015f, identificado como actualización v3.15.1. No se probó la ejecución ni se inspeccionó el binario distribuido.",
+                "El código del repositorio no establece si el despliegue de un operador agrega sandbox de sistema operativo u otro aislamiento."
+              ],
+              "gaps": [
+                {
+                  "description": "No se inspeccionó un paquete de ZCode v3.15.1 ni un entorno de ejecución, aunque los archivos fuente están fijados al commit de esa versión."
+                },
+                {
+                  "description": "No se probaron en ejecución las solicitudes de aprobación ni el aislamiento del sistema operativo en una instalación o despliegue."
+                }
+              ]
+            },
+            "dek": "El commit del repositorio ZCode v3.15.1, fechado el 2026-10-10, incluye un NOTICE en chino que indica que el adaptador compartido de ejecución de Agent no tiene sandbox de sistema operativo predeterminado."
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "ZCode披露共享Agent适配器无默认操作系统沙箱，非交互CLI提示默认采用yolo",
+            "summary": "ZCode在2026-10-10发布的v3.15.1仓库提交中包含中文NOTICE，称其共享Agent执行适配器默认不提供操作系统沙箱；独立CLI省略--mode的非交互式--prompt调用默认采用yolo。固定版本CLI源码实现了这一回退，权限服务则描述了绕过权限提示的规则和例外。结论仅针对文档所述适配器和CLI路径，未测试发行包的实际运行。",
+            "importance_rationale": "如果这些记录的默认设置适用于所检查的ZCode CLI及共享适配器，它们会显著影响对智能体运行隔离和审批机制的判断。评分4体现其对工具选型和部署决策的现实影响；结论只覆盖文档描述的模式，不表示所有ZCode界面采用相同设置。",
+            "why_it_matters": "选择智能体工具时，用户需要了解常规文件、shell和网络操作是否受到操作系统隔离，以及无人值守CLI调用是否要求逐次确认。ZCode文档和源码表明不同运行模式采用不同默认值，因此不能将项目级审批视为统一的安全边界。",
+            "technical": {
+              "claimed_result": "项目文档说明，共享Agent执行适配器默认没有操作系统沙箱；独立CLI在非交互式--prompt调用中省略--mode时默认使用yolo。",
+              "demonstrated_result": "所检查的仓库NOTICE和CLI源码包含这些有范围限制的说明及代码路径。未在固定版本的发行包上验证运行行为。",
+              "mechanism": "CLI非交互提示路径在未指定模式时回退到yolo。权限服务允许该模式下的普通工具调用绕过权限提示，同时单独处理用户交互和always-ask能力。此外，仓库NOTICE称共享Agent执行适配器默认不提供操作系统沙箱。",
+              "novelty": "实质信息是仓库对沙箱和审批默认值作出了明确且区分模式的披露；这里不主张底层权限架构具有新颖性。",
+              "regime": "ZCode v3.15.1仓库提交 aac4755666d09fdcd70272fcf063c077a639015f，日期为2026-10-10。结论针对共享Agent执行适配器和独立CLI非交互式--prompt路径，并非所有ZCode运行界面。",
+              "reproducibility": "NOTICE及两个源码文件已通过GitHub按路径提交历史固定到同一版本提交。没有检查发行包或测试运行行为。",
+              "strongest_baseline": "没有进行跨项目比较。ZCode NOTICE区分共享适配器与独立CLI提示路径，以及交互式、桌面、恢复和宿主控制模式；build与plan模式也各有权限逻辑。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "ZCode的NOTICE指出，其共享Agent执行适配器默认不提供操作系统沙箱，并提醒工作区身份、Git worktree、浏览器隔离和Node REPL上下文不构成所有工具的系统级隔离保证。"
+                },
+                {
+                  "text": "CLI的run.ts源码将无交互提示模式的默认值设为yolo；非交互式--prompt请求若没有显式模式，会传入mode ?? DEFAULT_HEADLESS_PROMPT_MODE。"
+                },
+                {
+                  "text": "权限服务说明，未启用计划模式时，yolo会让普通工具调用绕过权限提示；用户交互和always-ask工具仍有独立检查，NOTICE还区分其他产品界面及宿主控制模式。"
+                },
+                {
+                  "text": "本次没有检查ZCode v3.15.1发行包或运营方部署。源文件已固定到v3.15.1仓库提交，但没有测试部署额外增加的隔离措施或实际运行行为。"
+                }
+              ],
+              "limitations": [
+                "NOTICE中的无默认沙箱声明仅适用于共享Agent执行适配器，不能推广到每一种ZCode工具或运行模式。",
+                "省略--mode时的yolo默认仅适用于独立CLI非交互式--prompt调用，不自动适用于交互式TUI、桌面、恢复任务、target或宿主管理的运行。",
+                "权限服务保留用户交互、always-ask、禁用工具及计划模式的独立判断；不能据此声称yolo绕过了所有控制。",
+                "检查的文件已固定到commit aac4755666d09fdcd70272fcf063c077a639015f，该提交对应v3.15.1更新；本次未测试运行行为或分发二进制文件。",
+                "仓库源码没有说明运营部署是否额外配置了操作系统沙箱或其他隔离。"
+              ],
+              "gaps": [
+                {
+                  "description": "尽管源文件已固定到发行提交，本次未检查ZCode v3.15.1发行包或运行环境。"
+                },
+                {
+                  "description": "没有运行测试来确认发行版或部署中的有效审批提示和操作系统级隔离。"
+                }
+              ]
+            },
+            "headline": "ZCode披露共享Agent适配器无默认操作系统沙箱，非交互CLI提示默认采用yolo",
+            "dek": "ZCode在2026-10-10发布的v3.15.1仓库提交中包含中文NOTICE，称其共享Agent执行适配器默认不提供操作系统沙箱；独立CLI省略--mode的非交互式--prompt调用默认采用yolo。固定版本CLI源码实现了这一回退，权限服务则描述了绕过权限提示的规则和例外。结论仅针对文档所述适配器和CLI路径，未测试发行包的实际运行。"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
+    {
+      "id": "FCMO-6588C0954ABA",
+      "slug": "justmem-reports-adaptive-long-term-memory-access-with-higher-benchmark",
+      "url_date": "2026-10-15",
+      "kind": "development",
+      "status": "live",
+      "beat": "research",
+      "desk": "agents_memory",
+      "title": "JustMem reports adaptive long-term memory access with higher benchmark accuracy and lower model-token use",
+      "dek": "A September 2026 preprint introduces JustMem, a long-term conversational-memory system that adapts retrieval breadth and source-reading fidelity to each query.",
+      "summary": "A September 2026 preprint introduces JustMem, a long-term conversational-memory system that adapts retrieval breadth and source-reading fidelity to each query. In author-run tests using GPT-4.1-mini across LoCoMo and LongMemEval-S, it reports the best mean accuracy among the compared memory systems while using fewer generative-model tokens. Results are paper-reported and have not been independently reproduced.",
+      "why_it_matters": "If the reported results generalize, separating broad evidence discovery from selective source replay could improve conversational recall while reducing generative-model token use. The result is meaningful for agent-memory design, but evidence comes from a bounded benchmark setup and does not measure total system cost.",
+      "importance_rationale": "If the reported gains generalize, query-adaptive evidence retrieval could improve multi-session conversational memory and reduce model-token use. Score 4 reflects a meaningful memory-design result while the evidence remains limited to author-run benchmarks and reported token accounting.",
+      "technical": {
+        "claimed_result": "Using GPT-4.1-mini for memory construction, planning, answering and LLM judging, the authors report 79.61% mean accuracy on LoCoMo and 83.40% on LongMemEval-S, with the highest compared-system mean accuracy and retrieval recall on both. They report lower generative-token budgets than comparison memory systems, and 62.59% accuracy on the LoCoMo-Plus cognitive split.",
+        "compute_or_cost": "The paper reports generative-model token counts for construction and online inference; embedding, reranking, offline evaluation and other system-level compute are excluded from its principal efficiency accounting.",
+        "demonstrated_result": "A public preprint describes the system, benchmark protocol and reported tables. No independent execution or reproduction of its results was performed.",
+        "mechanism": "JustMem stores compact atomic memories with provenance links, predicts query evidence demands, then chooses local Lookup, broader Compose retrieval, or provenance-based Replay of source conversations. Compose broadens the candidate search while keeping the compact evidence budget fixed; Replay recovers full source context only for fidelity-sensitive queries.",
+        "novelty": "The paper's proposed distinction between discovery breadth and reading fidelity is its own framing; priority relative to all recent memory systems was not independently established.",
+        "regime": "Author-reported experiments on LoCoMo (1,540 questions), LongMemEval-S (500 questions), and the 401-question cognitive split of LoCoMo-Plus. Primary benchmark comparisons hold the generative model and evaluation prompts fixed across methods and repeat answering/judging five times with memory stores and retrieved evidence fixed.",
+        "reproducibility": "The preprint details prompts, models and benchmark setup. No public implementation was located or independently reproduced in this review.",
+        "strongest_baseline": "LightMem is the strongest compared memory system by mean accuracy on LoCoMo; JustMem's paired comparison there has p=0.532. For LongMemEval-S, the paper reports 76.44% LightMem accuracy versus 83.40% JustMem. On LoCoMo-Plus, MemOS is the strongest baseline at 31.67% versus 62.59% for JustMem."
+      },
+      "importance_tier": "Meaningful",
+      "development_type": "paper",
+      "event_at": "2026-09-17T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-15T23:07:10Z",
+      "updated_at": "2026-10-15T23:07:10Z",
+      "importance": 4,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": false,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "DEMONSTRATED",
+            "qualifier": "PUBLICATION_EVENT",
+            "text": "The authors published the JustMem preprint on arXiv on 2026-09-17."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "On LoCoMo and LongMemEval-S, the authors report that JustMem had the highest mean accuracy and retrieval recall among the compared memory systems, with 79.61% accuracy on LoCoMo and 83.40% on LongMemEval-S."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "Against LightMem, the strongest comparison by mean accuracy on LoCoMo, the authors report 50.7% lower memory-construction tokens and 67.2% lower query-time tokens on LoCoMo, and 64.9% and 55.7% reductions respectively on LongMemEval-S."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "On the 401-question cognitive split of LoCoMo-Plus, the authors report 62.59% accuracy for JustMem versus 31.67% for MemOS, the strongest baseline in that comparison."
+          },
+          {
+            "label": "DEMONSTRATED",
+            "qualifier": "LIMITATION_DISCLOSURE",
+            "text": "The paper states that evaluation is limited to established long-term conversational memory benchmarks and a specific memory/retrieval configuration; its efficiency analysis primarily counts generative-model tokens and omits other system-level computation."
+          }
+        ],
+        "limitations": [
+          "All quantitative results are author-reported and have not been independently reproduced.",
+          "The main comparisons use selected long-term conversational-memory benchmarks and a specific configuration; generality to other memory tasks and model stacks is unknown.",
+          "On LoCoMo, the reported paired comparison against LightMem is not statistically significant (p=0.532).",
+          "Token accounting excludes embeddings, reranking and other system-level computation, so lower generative-token use does not establish lower total latency, energy or cost.",
+          "The authors identify privacy, retention, access-control and sensitive-information leakage risks from stored memories and provenance-based source recovery."
+        ],
+        "gaps": [
+          {
+            "kind": "missing_independent",
+            "description": "No independent reproduction of the benchmark results or reported token costs was identified."
+          },
+          {
+            "kind": "missing_artifact",
+            "description": "No public implementation was located during this review, preventing direct inspection of retrieval, source-recovery and planner behavior."
+          },
+          {
+            "kind": "other",
+            "description": "The principal efficiency comparison reports generative tokens but not total system-level compute, latency, energy or dollar cost."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://arxiv.org/abs/2609.19877",
+          "domain": "arxiv.org",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "Beihang University"
+      ],
+      "topics": [
+        "long-term-conversational-memory",
+        "agent-memory",
+        "retrieval",
+        "inference-efficiency"
+      ],
+      "regions": [
+        "GLOBAL",
+        "CN"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-6588C0954ABA.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: JustMem reports adaptive long-term memory access with higher benchmark accuracy and lower model-token use"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "JustMem informa mayor exactitud en pruebas de memoria a largo plazo y menor uso de tokens del modelo",
+            "summary": "Un preprint de septiembre de 2026 presenta JustMem, un sistema de memoria conversacional de largo plazo que adapta la amplitud de recuperación y la fidelidad de lectura de fuentes a cada consulta. En pruebas de los autores con GPT-4.1-mini en LoCoMo y LongMemEval-S, el sistema obtuvo la mayor exactitud media entre las memorias comparadas y usó menos tokens generativos. Los resultados son informes del artículo y aún no tienen reproducción independiente.",
+            "importance_rationale": "Si los aumentos informados se generalizan, recuperar evidencia de conversaciones mediante una estrategia que adapta la amplitud de búsqueda podría mejorar la memoria de largo plazo y reducir el uso de tokens del modelo. La puntuación 4 refleja un avance significativo para el diseño de memoria, mientras la evidencia se limita a pruebas realizadas por los autores y a su contabilidad de tokens.",
+            "why_it_matters": "Si los resultados informados se generalizan, separar la búsqueda amplia de evidencia de la recuperación selectiva de fuentes podría mejorar la memoria conversacional y reducir el uso de tokens generativos. El resultado es significativo para el diseño de memoria de agentes, pero proviene de un conjunto limitado de pruebas y no mide el costo total del sistema.",
+            "technical": {
+              "claimed_result": "Con GPT-4.1-mini para construir recuerdos, planificar, responder y evaluar mediante un juez LLM, los autores informan una exactitud media de 79.61% en LoCoMo y 83.40% en LongMemEval-S, junto con la mayor exactitud media y recall de recuperación entre los sistemas comparados. También informan presupuestos menores de tokens generativos y una exactitud de 62.59% en la división cognitiva de LoCoMo-Plus.",
+              "compute_or_cost": "El artículo informa los tokens generativos usados al construir memorias y procesar consultas; su análisis principal excluye embeddings, reranking, evaluación fuera de línea y otros costos de cómputo del sistema.",
+              "demonstrated_result": "Existe un preprint público que describe el sistema, el protocolo de pruebas y sus tablas de resultados. En esta revisión no se ejecutó ni reprodujo de forma independiente el sistema.",
+              "mechanism": "JustMem guarda recuerdos atómicos compactos con enlaces de procedencia, estima qué evidencia requiere cada consulta y elige entre Lookup local, Compose con búsqueda más amplia o Replay que recupera la conversación original. Compose amplía los candidatos sin aumentar el presupuesto de evidencia compacta; Replay recupera el contexto fuente solo cuando la consulta requiere mayor fidelidad.",
+              "novelty": "El artículo propone separar la amplitud de descubrimiento de la fidelidad de lectura como dos dimensiones adaptables de acceso a memoria. No se estableció de manera independiente la prioridad frente a todos los sistemas de memoria recientes.",
+              "regime": "Experimentos informados por los autores en LoCoMo (1,540 preguntas), LongMemEval-S (500 preguntas) y la división cognitiva de 401 preguntas de LoCoMo-Plus. En las comparaciones principales, los métodos comparten el modelo generativo y las instrucciones de evaluación; se repiten cinco rondas de respuesta y evaluación con las memorias construidas y la evidencia recuperada fijas.",
+              "reproducibility": "El preprint especifica instrucciones, modelos y configuración de pruebas. No se localizó código público ni se reprodujeron los resultados de forma independiente en esta revisión.",
+              "strongest_baseline": "LightMem es el sistema de memoria comparado con mayor exactitud media en LoCoMo; la comparación pareada con JustMem informa p=0.532. En LongMemEval-S, el artículo informa 76.44% para LightMem y 83.40% para JustMem. En la división LoCoMo-Plus, MemOS es la línea base más sólida (31.67% frente a 62.59%)."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "Los autores publicaron el preprint JustMem en arXiv el 2026-09-17."
+                },
+                {
+                  "text": "En LoCoMo y LongMemEval-S, los autores informan que JustMem obtuvo la mayor exactitud media y el mayor recall de recuperación entre los sistemas de memoria comparados: 79.61% de exactitud en LoCoMo y 83.40% en LongMemEval-S."
+                },
+                {
+                  "text": "Frente a LightMem, el sistema de memoria con mayor exactitud media en LoCoMo, los autores informan reducciones de 50.7% en tokens para construir la memoria y de 67.2% en tokens de consulta en LoCoMo; en LongMemEval-S, informan reducciones de 64.9% y 55.7%, respectivamente."
+                },
+                {
+                  "text": "En la división cognitiva de 401 preguntas de LoCoMo-Plus, los autores informan 62.59% de exactitud para JustMem frente a 31.67% para MemOS, la línea base más sólida de esa comparación."
+                },
+                {
+                  "text": "El artículo indica que la evaluación se limita a pruebas establecidas de memoria conversacional a largo plazo y a una configuración específica de memoria y recuperación; el análisis de eficiencia se centra en tokens generativos y no contabiliza todo el cómputo del sistema."
+                }
+              ],
+              "limitations": [
+                "Los resultados cuantitativos provienen de los autores; aquí no se reprodujeron de manera independiente.",
+                "Las comparaciones principales usan un conjunto limitado de pruebas de memoria conversacional y una configuración específica; no se conoce su generalización a otras tareas o plataformas de modelos.",
+                "En LoCoMo, la comparación pareada informada frente a LightMem no es estadísticamente significativa (p=0.532).",
+                "La contabilidad de tokens excluye embeddings, reranking y otros cómputos del sistema, por lo que un menor uso de tokens generativos no demuestra menor latencia, energía ni costo total.",
+                "Los autores identifican riesgos de privacidad, retención, control de acceso y filtración de información sensible porque el sistema conserva recuerdos y enlaces de procedencia que permiten recuperar conversaciones fuente."
+              ],
+              "gaps": [
+                {
+                  "description": "No se encontró una reproducción independiente de los resultados de las pruebas ni de los costos de tokens informados."
+                },
+                {
+                  "description": "Durante esta revisión no se encontró una implementación pública para inspeccionar directamente el planificador, la recuperación de fuentes y el banco de pruebas."
+                },
+                {
+                  "description": "La comparación principal de eficiencia cuenta tokens generativos, pero no informa cómputo total, latencia, energía ni costo monetario."
+                }
+              ]
+            },
+            "dek": "Un preprint de septiembre de 2026 presenta JustMem, un sistema de memoria conversacional de largo plazo que adapta la amplitud de recuperación y la fidelidad de lectura de fuentes a cada consulta."
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "JustMem报告提升长期记忆基准准确率并减少模型token用量",
+            "summary": "一篇2026年秋季的预印本介绍了JustMem，这是一种按查询调整检索范围和源内容阅读保真度的长期对话记忆系统。作者使用GPT-4.1-mini在LoCoMo和LongMemEval-S上开展测试，报告其平均准确率高于对比记忆系统，同时使用更少的生成模型token。这些结果仅为论文报告，尚未得到独立复现。",
+            "importance_rationale": "如果所报告的收益可以推广，按查询调整检索范围可能改善长期对话记忆并减少模型token用量。评分4体现该结果对记忆系统设计有实际意义；现有证据仍限于作者开展的基准测试和token统计。",
+            "why_it_matters": "如果所报告结果可以推广，将广泛发现证据与选择性读取原始来源分开，或可改善对话记忆并减少生成模型token用量。这对智能体记忆设计有实际意义，但现有证据来自有限的基准配置，且没有衡量系统总成本。",
+            "technical": {
+              "claimed_result": "作者使用GPT-4.1-mini进行记忆构建、查询规划、回答和LLM评判，报告LoCoMo平均准确率79.61%、LongMemEval-S为83.40%，且在对比系统中平均准确率和检索召回率最高。作者还报告生成token预算更低，以及LoCoMo-Plus认知子集准确率62.59%。",
+              "compute_or_cost": "论文报告了记忆构建和在线查询的生成token用量；其主要效率统计未包括嵌入、重排序、离线评估及系统其他计算开销。",
+              "demonstrated_result": "公开预印本描述了系统、基准测试方案和结果表。本次未独立运行或复现所报告结果。",
+              "mechanism": "JustMem保存带来源链接的紧凑原子记忆，预测每个查询需要何种证据，再选择局部Lookup、更广泛搜索的Compose，或通过来源链接恢复原始对话的Replay。Compose扩大候选搜索，但保持紧凑证据预算不变；只有查询需要更高保真度时，Replay才恢复源上下文。",
+              "novelty": "论文提出将发现范围与阅读保真度分为两种可按查询调整的记忆访问维度。尚未独立确认其相对所有近期记忆系统的优先性。",
+              "regime": "作者在LoCoMo（1,540题）、LongMemEval-S（500题）和LoCoMo-Plus认知子集（401题）上开展测试。主要比较采用相同生成模型和评估提示，并在固定已构建记忆和检索证据的条件下重复五次回答及评估。",
+              "reproducibility": "预印本说明了提示词、模型和基准配置。本次未找到公开代码，也未独立复现结果。",
+              "strongest_baseline": "LightMem是在LoCoMo上平均准确率最高的对比记忆系统；其与JustMem的配对比较p=0.532。论文报告LongMemEval-S上LightMem为76.44%、JustMem为83.40%。在LoCoMo-Plus子集中，MemOS是最强基线（31.67%，JustMem为62.59%）。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "作者于2026-09-17在arXiv发布了JustMem预印本。"
+                },
+                {
+                  "text": "作者报告JustMem在LoCoMo和LongMemEval-S上比对比记忆系统有更高的平均准确率和检索召回率：LoCoMo准确率为79.61%，LongMemEval-S为83.40%。"
+                },
+                {
+                  "text": "相较于LoCoMo上平均准确率最高的对比系统LightMem，作者报告LoCoMo记忆构建token减少50.7%、查询token减少67.2%；在LongMemEval-S上分别减少64.9%和55.7%。"
+                },
+                {
+                  "text": "在LoCoMo-Plus的401题认知子集中，作者报告JustMem准确率为62.59%，该比较中最强基线MemOS为31.67%。"
+                },
+                {
+                  "text": "论文指出，评估仅涉及现有长期对话记忆基准和特定记忆及检索配置；效率分析主要衡量生成模型token，没有统计系统级全部计算。"
+                }
+              ],
+              "limitations": [
+                "所有量化结果均为作者报告，本次未进行独立复现。",
+                "主要比较只涵盖有限的长期对话记忆基准和特定配置；能否推广到其他任务或模型栈仍未知。",
+                "在LoCoMo上，与LightMem的配对比较未达到统计显著性（p=0.532）。",
+                "token统计不包含嵌入、重排序及其他系统级计算，因此生成token减少不能证明总延迟、能耗或成本降低。",
+                "作者指出，记忆存储和来源链接会带来隐私、数据保留、访问控制及敏感信息泄露风险。"
+              ],
+              "gaps": [
+                {
+                  "description": "尚未发现对所报告基准结果或token成本的独立复现。"
+                },
+                {
+                  "description": "本次审阅未找到公开实现，因而无法直接检查访问规划器、源内容恢复或基准测试代码。"
+                },
+                {
+                  "description": "主要效率比较只统计生成token，未提供系统总计算量、延迟、能耗或货币成本。"
+                }
+              ]
+            },
+            "headline": "JustMem报告提升长期记忆基准准确率并减少模型token用量",
+            "dek": "一篇2026年秋季的预印本介绍了JustMem，这是一种按查询调整检索范围和源内容阅读保真度的长期对话记忆系统。作者使用GPT-4.1-mini在LoCoMo和LongMemEval-S上开展测试，报告其平均准确率高于对比记忆系统，同时使用更少的生成模型token。这些结果仅为论文报告，尚未得到独立复现。"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
+    {
+      "id": "FCMO-4C74A8BB4DFD",
+      "slug": "aikido-reports-a-328-gb-pruned-glm-5-3-security-model-with-near-parent",
+      "url_date": "2026-10-15",
+      "kind": "development",
+      "status": "live",
+      "beat": "society",
+      "desk": "compute_inference",
+      "title": "Aikido reports a 328 GB pruned GLM-5.3 security model with near-parent CVE recall",
+      "headline": "Aikido reports a 328 GB pruned GLM-5.3 security model with near-parent CVE recall",
+      "dek": "Aikido released Altar-1, a 328 GB W4A16/REAP-pruned derivative of GLM-5.3 intended for local defensive-security workloads.",
+      "summary": "Aikido released Altar-1, a 328 GB W4A16/REAP-pruned derivative of GLM-5.3 intended for local defensive-security workloads. Aikido reports that pruning reduces its already-quantized parent from 488.2 GB to 328.0 GB while retaining 60.4% average recall per run, versus 61.5% for the parent, on an internal benchmark of 32 known vulnerabilities across 30 repositories with three runs per case. Both versions rediscovered the same 23 vulnerabilities at least once. The vendor says the model is configured for vLLM on four H200 GPUs. These are company-reported results from targeted known-CVE rediscovery inside a larger pipeline; they do not demonstrate blind vulnerability discovery, exploit validation, patch quality or independent performance.",
+      "why_it_matters": "The result gives a concrete example of trading model weight storage against task-specific security recall: Aikido reports another 32.8% reduction against an already-quantized parent with about a 1.1 percentage-point lower mean recall on its internal benchmark. If independently confirmed, this could lower the hardware threshold for local defensive-security inference. The test does not establish that the model finds unknown vulnerabilities or performs a complete penetration test.",
+      "importance_rationale": "If Aikido’s task-specific evaluation generalizes, pruning can make a large open-weight security model fit a four-H200 node with little reported recall loss against its quantized parent, a useful serving and privacy option for some defensive workflows. The impact is meaningful but narrow: the benchmark is small, internal, and measures known-vulnerability rediscovery rather than broad pentesting.",
+      "technical": {
+        "claimed_result": "Aikido reports stored weights of 1,506.7 GB for full-precision GLM-5.3, 488.2 GB for the AWQ INT4 parent, and 328.0 GB for Altar-1. It reports average per-run recall of 65.6%, 61.5%, and 60.4%, respectively, on its internal known-CVE benchmark. Altar and the AWQ parent each covered 23 of 32 vulnerabilities at least once over three runs; full-precision GLM-5.3 covered 25.",
+        "compute_or_cost": "The sources report stored weight sizes and a four-H200 serving target, but do not provide measured latency, throughput, energy use, serving cost, memory headroom under a specified production workload, or comparison of total hardware cost.",
+        "demonstrated_result": "The public model card and weights document the released Altar-1 artifact, its W4A16/REAP configuration and a four-H200 vLLM serving target. This verifies model availability and declared configuration, not the vendor’s performance claims.",
+        "implementation_status": "Aikido publishes Altar-1 weights on Hugging Face and documents use in vLLM on four NVIDIA H200 GPUs. The company says it deployed the model in its Aikido Machine fleet; this is a company report, not an independently inspected deployment.",
+        "mechanism": "Aikido applies AWQ INT4 quantization to routed experts in GLM-5.3, then uses REAP contribution scores and a domain-preserving selection strategy to remove 88 of 256 routed experts per layer without retraining. The remaining model keeps eight routed experts active per token.",
+        "regime": "Aikido’s internal benchmark covers 32 known vulnerabilities across 30 repositories and three runs per case. The company describes it as targeted rediscovery inside a larger AI Code Analysis pipeline that uses other models for surrounding stages. The model card documents a vLLM configuration for four H200 GPUs.",
+        "reproducibility": "Aikido links a public fidelity study and pruning toolkit, and the model card exposes weights and serving instructions. This review did not execute the model, inspect raw run outputs, or independently reproduce the CVE benchmark. The benchmark’s known-cases and internal pipeline limit external validation.",
+        "strongest_baseline": "The closest compression baseline is the same GLM-5.3 checkpoint quantized with AWQ INT4 before REAP pruning: Aikido reports 488.2 GB, 61.5% mean recall per run and 23/32 vulnerabilities covered at least once, compared with Altar-1 at 328.0 GB, 60.4% and 23/32. The benchmark is internal and the evaluation has not been independently replicated."
+      },
+      "importance_tier": "Meaningful",
+      "development_type": "model_release",
+      "event_at": "2026-09-21T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-15T23:07:10Z",
+      "updated_at": "2026-10-15T23:07:10Z",
+      "importance": 4,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": true,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "CLAIMED",
+            "text": "Aikido reports that Altar-1 starts from GLM-5.3 AWQ INT4 and uses REAP expert pruning to reduce stored weights from 488.2 GB to 328.0 GB, retaining 168 of 256 routed experts per layer. Relative to the unpruned 1,506.7 GB BF16 parent, the reported storage reduction is 78.2%."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "On Aikido’s internal benchmark of 32 known vulnerabilities across 30 repositories, with three runs per case, Altar-1 averaged 60.4% recall per run and rediscovered 23/32 vulnerabilities at least once across three runs. The GLM-5.3 AWQ INT4 parent averaged 61.5% recall and covered the same 23/32; the full-precision parent averaged 65.6% and covered 25/32."
+          },
+          {
+            "label": "DEMONSTRATED",
+            "qualifier": "LIMITATION",
+            "text": "Aikido defines this as targeted CVE rediscovery within a pipeline that uses other models for surrounding stages. It does not measure blind discovery across a codebase, exploit validation, or fix proposals. The published evaluation is an internal vendor benchmark and has not been independently reproduced in this review."
+          },
+          {
+            "label": "DEMONSTRATED",
+            "text": "Aikido publishes Altar-1 model weights and documents a vLLM serving configuration targeting four NVIDIA H200 GPUs; its model card identifies the model as a 504B-parameter, W4A16 pruned GLM-5.3 derivative."
+          }
+        ],
+        "limitations": [
+          "All model-performance figures in the release are Aikido-reported; no independent replication was located or performed.",
+          "The evaluation covers 32 known vulnerabilities in 30 repositories with three runs per case and is not a blind discovery test.",
+          "The benchmark runs within Aikido’s larger pipeline, which uses other models for surrounding stages; it isolates neither the security model’s complete product contribution nor human review effects.",
+          "The report gives recall and coverage but no precision, false-positive rates, exploit-validation outcomes, patch quality, runtime, throughput or serving cost.",
+          "A four-H200 serving target documents a feasible configuration claimed by the model provider; it is not a measured minimum hardware requirement or independently verified production profile."
+        ],
+        "gaps": [
+          {
+            "kind": "missing_independent",
+            "description": "The recall and coverage comparison comes from Aikido’s internal 32-CVE benchmark and has not been independently reproduced or adjudicated."
+          },
+          {
+            "kind": "regime_unclear",
+            "description": "The release does not report false-positive rates, serving latency/throughput, resource cost, or quality on unknown-vulnerability discovery and remediation tasks."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://www.aikido.dev/blog/aikido-altar-open-weight-ai-sovereign-security",
+          "domain": "aikido.dev",
+          "primary": true
+        },
+        {
+          "url": "https://huggingface.co/AikidoSec/altar-1",
+          "domain": "huggingface.co",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "Aikido Security",
+        "Z.AI",
+        "Cerebras Research"
+      ],
+      "topics": [
+        "mixture-of-experts",
+        "model-compression",
+        "expert-pruning",
+        "cybersecurity-models",
+        "on-premise-inference",
+        "evaluation"
+      ],
+      "regions": [
+        "GLOBAL"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-4C74A8BB4DFD.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: Aikido reports a 328 GB pruned GLM-5.3 security model with near-parent CVE recall"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "Aikido informa que su modelo GLM-5.3 de seguridad, reducido a 328 GB, conserva una recuperación CVE cercana a la base",
+            "summary": "Aikido publicó Altar-1, una variante W4A16/REAP de GLM-5.3 de 328 GB para tareas locales de seguridad defensiva. La empresa informa que la poda reduce de 488.2 GB a 328.0 GB los pesos de la base ya cuantizada. En un benchmark interno de 32 vulnerabilidades conocidas en 30 repositorios, con tres ejecuciones por caso, la variante obtuvo 60.4% de recuperación media por ejecución frente a 61.5% de la base. Ambos identificaron las mismas 23 vulnerabilidades al menos una vez. El proveedor documenta su uso con vLLM en cuatro H200. Son cifras de la empresa en una prueba dirigida dentro de una canalización más amplia; no demuestran descubrimiento a ciegas, validación de exploits, calidad de parches ni rendimiento independiente.",
+            "importance_rationale": "Si la evaluación específica de Aikido se generaliza, la poda puede permitir ejecutar un modelo abierto grande de seguridad en cuatro H200 con poca pérdida de recuperación informada frente a la base cuantizada, una opción útil de servicio local y privacidad para algunos flujos defensivos. El impacto es acotado: el benchmark es pequeño e interno y mide la búsqueda de vulnerabilidades conocidas, no pruebas de penetración generales.",
+            "why_it_matters": "Este resultado muestra un intercambio concreto entre el almacenamiento de pesos y la recuperación en una tarea de seguridad: Aikido informa una reducción adicional de 32.8% frente a la base cuantizada, con alrededor de 1.1 puntos porcentuales menos de recuperación media en su benchmark interno. Si una evaluación independiente lo confirma, podría reducir el umbral de hardware para la inferencia local de seguridad defensiva. La prueba no demuestra que el modelo encuentre vulnerabilidades desconocidas ni que realice una prueba de penetración completa.",
+            "technical": {
+              "claimed_result": "Aikido informa 1,506.7 GB de pesos para GLM-5.3 de precisión completa, 488.2 GB para la base AWQ INT4 y 328.0 GB para Altar-1. En su benchmark interno de vulnerabilidades conocidas, informa recuperaciones medias por ejecución de 65.6%, 61.5% y 60.4%, respectivamente. la variante podada y la base AWQ cubrieron 23 de 32 vulnerabilidades al menos una vez en tres ejecuciones; GLM-5.3 completo cubrió 25.",
+              "compute_or_cost": "Las fuentes informan el tamaño de los pesos y un objetivo de servicio con cuatro H200, pero no miden latencia, rendimiento, energía, costo de servicio, margen de memoria en una carga definida ni costo total de hardware.",
+              "demonstrated_result": "La ficha y los pesos públicos documentan el artefacto Altar-1, su configuración W4A16/REAP y un objetivo de servicio vLLM con cuatro H200. Esto verifica la disponibilidad y configuración declarada, no el rendimiento alegado.",
+              "implementation_status": "Aikido publica los pesos de Altar-1 en Hugging Face y documenta su uso con vLLM en cuatro NVIDIA H200. La empresa afirma que lo desplegó en su flota Aikido Machine; esta revisión no inspeccionó ese despliegue.",
+              "mechanism": "Aikido cuantiza con AWQ INT4 los expertos enrutados de GLM-5.3 y luego usa puntuaciones REAP y una selección que preserva dominios para eliminar 88 de los 256 expertos por capa, sin reentrenar. Cada token sigue activando ocho expertos enrutados.",
+              "regime": "El benchmark interno cubre 32 vulnerabilidades conocidas en 30 repositorios, con tres ejecuciones por caso. Aikido lo describe como búsqueda dirigida dentro de su canalización AI Code Analysis, que utiliza otros modelos en etapas circundantes. La ficha documenta una configuración vLLM para cuatro H200.",
+              "reproducibility": "Aikido enlaza un estudio de fidelidad y herramientas de poda; la ficha ofrece pesos e instrucciones. Esta revisión no ejecutó el modelo, no inspeccionó resultados brutos ni reprodujo el benchmark CVE. Los casos conocidos y la canalización interna limitan la validación externa.",
+              "strongest_baseline": "La comparación más directa es el mismo GLM-5.3 cuantizado con AWQ INT4 antes de REAP: Aikido informa 488.2 GB, 61.5% de recuperación media por ejecución y 23/32 vulnerabilidades cubiertas al menos una vez, frente a 328.0 GB, 60.4% y 23/32 para Altar-1. La prueba es interna y no tiene reproducción independiente."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "Aikido informa que Altar-1 parte de GLM-5.3 AWQ INT4 y usa poda REAP para reducir los pesos almacenados de 488.2 GB a 328.0 GB, conservando 168 de 256 expertos enrutados por capa. Frente a la base BF16 sin podar, de 1,506.7 GB, la reducción informada es 78.2%."
+                },
+                {
+                  "text": "En el benchmark interno de Aikido, con 32 vulnerabilidades conocidas en 30 repositorios y tres ejecuciones por caso, Altar-1 obtuvo 60.4% de recuperación media por ejecución y redescubrió 23/32 vulnerabilidades al menos una vez. GLM-5.3 AWQ INT4 obtuvo 61.5% y cubrió las mismas 23/32; el modelo de precisión completa obtuvo 65.6% y cubrió 25/32."
+                },
+                {
+                  "text": "Aikido define la prueba como búsqueda dirigida de CVE conocidas dentro de una canalización que utiliza otros modelos en las etapas circundantes. No mide descubrimiento a ciegas, validación de exploits ni propuestas de corrección. Esta revisión no reprodujo de forma independiente la evaluación interna."
+                },
+                {
+                  "text": "Aikido publica los pesos de Altar-1 y documenta una configuración de servicio con vLLM dirigida a cuatro NVIDIA H200; la ficha identifica el modelo como una variante GLM-5.3 de 504B parámetros, podada y en formato W4A16."
+                }
+              ],
+              "limitations": [
+                "Todas las cifras de rendimiento provienen de Aikido; no se encontró ni se realizó una reproducción independiente.",
+                "La evaluación abarca 32 vulnerabilidades conocidas en 30 repositorios y tres ejecuciones por caso; no es una prueba de descubrimiento a ciegas.",
+                "El benchmark forma parte de una canalización más amplia que usa otros modelos en etapas circundantes; no aísla la contribución total del modelo ni los efectos de la revisión humana.",
+                "El informe presenta recuperación y cobertura, pero no precisión, falsos positivos, validación de exploits, calidad de parches, tiempo de ejecución, rendimiento ni costo de servicio.",
+                "La configuración de cuatro H200 es una opción declarada por el proveedor; no establece un requisito mínimo de hardware ni un perfil de producción verificado independientemente."
+              ],
+              "gaps": [
+                {
+                  "description": "La comparación de recuperación y cobertura proviene del benchmark interno de Aikido con 32 CVE; no se ha reproducido ni adjudicado de forma independiente."
+                },
+                {
+                  "description": "El informe no presenta tasas de falsos positivos, latencia o rendimiento de servicio, costo de recursos ni resultados sobre descubrimiento de vulnerabilidades desconocidas y remediación."
+                }
+              ]
+            },
+            "dek": "Aikido publicó Altar-1, una variante W4A16/REAP de GLM-5.3 de 328 GB para tareas locales de seguridad defensiva."
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "Aikido报告称：剪枝后的328 GB GLM-5.3安全模型在CVE测试中接近基座召回率",
+            "summary": "Aikido发布了Altar-1，这是一款用于本地防御性安全任务、采用W4A16/REAP剪枝的328 GB GLM-5.3衍生模型。公司报告称，剪枝将已量化基座的权重从488.2 GB降至328.0 GB。在30个代码库中的32个已知漏洞、每个案例运行三次的内部基准上，该模型每次运行的平均召回率为60.4%，基座为61.5%；两者至少一次重新发现的漏洞均为23个。供应商记录了使用四张H200运行vLLM的配置。这些是公司在更大流水线中的已知漏洞定向测试结果；它们不能证明盲测发现、漏洞利用验证、补丁质量或独立性能。",
+            "importance_rationale": "如果Aikido的任务专用评估可以推广，剪枝可能让大型开放权重安全模型在四张H200上运行，同时相较量化基座仅有较小的召回率下降，为部分防御工作流提供本地部署和隐私选项。影响仍较窄：基准规模小且为内部测试，测量的是已知漏洞重新发现，而非广泛渗透测试。",
+            "why_it_matters": "该结果具体展示了模型权重存储与安全任务召回率之间的取舍：Aikido报告称，相较已量化基座，权重再减少32.8%，内部基准的平均召回率约低1.1个百分点。如果经独立验证，这可能降低本地防御性安全推理的硬件门槛。但该测试不能证明模型可以发现未知漏洞或完成全面渗透测试。",
+            "technical": {
+              "claimed_result": "Aikido报告称，全精度GLM-5.3、AWQ INT4基座和Altar-1的存储权重分别为1,506.7 GB、488.2 GB和328.0 GB。在Aikido内部基准中，三者每次运行的平均召回率分别为65.6%、61.5%和60.4%。三次运行中，剪枝模型和AWQ基座各至少覆盖32个漏洞中的23个；全精度GLM-5.3覆盖25个。",
+              "compute_or_cost": "来源给出了存储权重大小和四张H200的服务目标，但未报告延迟、吞吐量、能耗、服务成本、指定生产负载下的显存余量或总硬件成本对比。",
+              "demonstrated_result": "公开模型卡和权重记录了Altar-1、其W4A16/REAP配置，以及面向四张H200的vLLM服务目标。这能确认模型可用及其声明配置，但不能验证供应商的性能说法。",
+              "implementation_status": "Aikido在Hugging Face公开Altar-1权重，并记录了在四张NVIDIA H200上使用vLLM的方式。公司称已将模型部署到Aikido Machine车队；本次审查未独立检查该部署。",
+              "mechanism": "Aikido先对GLM-5.3的路由专家应用AWQ INT4量化，再使用REAP贡献分数和领域保留策略，在不重新训练的情况下删除每层256个路由专家中的88个。每个token仍激活八个路由专家。",
+              "regime": "Aikido内部基准包含30个代码库中的32个已知漏洞，每个案例运行三次。公司称这是AI Code Analysis流水线中的定向重新发现测试，周边环节还使用其他模型。模型卡记录了面向四张H200的vLLM服务配置。",
+              "reproducibility": "Aikido链接了公开的保真度研究和剪枝工具，模型卡也提供权重与服务说明。本次未运行模型、检查原始结果或独立复现CVE基准。已知案例和内部流水线限制了外部验证。",
+              "strongest_baseline": "最接近的压缩基线是先经AWQ INT4量化、再剪枝前的同一GLM-5.3模型。Aikido报告该基线为488.2 GB、每次运行平均召回率61.5%，三次运行中至少覆盖23/32个漏洞；Altar-1为328.0 GB、60.4%和23/32。该基准为内部测试，尚无独立复现。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "Aikido报告称，Altar-1以GLM-5.3 AWQ INT4为基础，通过REAP专家剪枝将存储权重从488.2 GB降至328.0 GB，每层保留256个路由专家中的168个。相较未剪枝的1,506.7 GB BF16基座，存储据称减少78.2%。"
+                },
+                {
+                  "text": "在Aikido内部基准中，32个已知漏洞来自30个代码库，每个案例运行三次。Altar-1每次运行的平均召回率为60.4%，三次运行中至少一次重新发现23/32个漏洞。GLM-5.3 AWQ INT4基座为61.5%，覆盖同样的23/32；全精度基座为65.6%，覆盖25/32。"
+                },
+                {
+                  "text": "Aikido将该测试定义为在一个周边环节使用其他模型的流水线中，定向重新发现已知CVE。它没有测量代码库中的盲测漏洞发现、漏洞利用验证或修复建议。本次审查未独立复现该内部评估。"
+                },
+                {
+                  "text": "Aikido公开了Altar-1权重，并记录了面向四张NVIDIA H200的vLLM服务配置；模型卡将其描述为504B参数、经剪枝且采用W4A16格式的GLM-5.3衍生模型。"
+                }
+              ],
+              "limitations": [
+                "所有性能数字均由Aikido报告；本次未找到或执行独立复现。",
+                "评估涵盖30个代码库中的32个已知漏洞，每个案例运行三次，并非盲测发现。",
+                "基准运行在使用其他模型处理周边环节的更大流水线中；它无法单独衡量该模型对完整产品的贡献，也未测量人工审查影响。",
+                "报告给出召回率和覆盖率，但未给出精确率、误报率、漏洞利用验证结果、补丁质量、运行时间、吞吐量或服务成本。",
+                "四张H200是供应商声明的一种服务配置；它并未确立最低硬件要求，也不是经独立验证的生产配置。"
+              ],
+              "gaps": [
+                {
+                  "description": "召回率和覆盖率对比来自Aikido内部的32-CVE基准，尚未经过独立复现或判定。"
+                },
+                {
+                  "description": "报告未提供误报率、服务延迟或吞吐量、资源成本，也未说明其在未知漏洞发现和修复任务中的表现。"
+                }
+              ]
+            },
+            "headline": "Aikido报告称：剪枝后的328 GB GLM-5.3安全模型在CVE测试中接近基座召回率"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
     {
       "id": "FCMO-F9694A798839",
       "slug": "sure-grpo-reports-more-efficient-abstention-on-underspecified-reasoning",

@@ -1,6 +1,6 @@
 {
   "canonical_locale": "en",
-  "canonical_source_sha256": "0409b1e41528f6092445f47f3379901c88a97e210f5ba0bca1807d92e5533430",
+  "canonical_source_sha256": "de86e64f0b8f81a28654db10dbb5d51e477066b0fca3a9c58d4c6a0d1e111548",
   "generated_from": "ARB airlock; editorial wording authored upstream",
   "locale": "zh-Hans",
   "records": {
@@ -8262,6 +8262,61 @@
       "title": "按决策状态恢复证据集，在作者报告的测试中提升了编程智能体检索效果",
       "why_it_matters": "如果这一结果能在作者的编程智能体环境之外成立，根据已记录的决策状态选择互补证据，可能改善上下文利用和代码修复决策，尤其适用于相关性排序会重复已知信息或遗漏某项必要支持的情形。"
     },
+    "FCMO-4C74A8BB4DFD": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Aikido报告称，Altar-1以GLM-5.3 AWQ INT4为基础，通过REAP专家剪枝将存储权重从488.2 GB降至328.0 GB，每层保留256个路由专家中的168个。相较未剪枝的1,506.7 GB BF16基座，存储据称减少78.2%。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "在Aikido内部基准中，32个已知漏洞来自30个代码库，每个案例运行三次。Altar-1每次运行的平均召回率为60.4%，三次运行中至少一次重新发现23/32个漏洞。GLM-5.3 AWQ INT4基座为61.5%，覆盖同样的23/32；全精度基座为65.6%，覆盖25/32。"
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION",
+          "text": "Aikido将该测试定义为在一个周边环节使用其他模型的流水线中，定向重新发现已知CVE。它没有测量代码库中的盲测漏洞发现、漏洞利用验证或修复建议。本次审查未独立复现该内部评估。"
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "Aikido公开了Altar-1权重，并记录了面向四张NVIDIA H200的vLLM服务配置；模型卡将其描述为504B参数、经剪枝且采用W4A16格式的GLM-5.3衍生模型。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "召回率和覆盖率对比来自Aikido内部的32-CVE基准，尚未经过独立复现或判定。",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "报告未提供误报率、服务延迟或吞吐量、资源成本，也未说明其在未知漏洞发现和修复任务中的表现。",
+          "kind": "regime_unclear",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "如果Aikido的任务专用评估可以推广，剪枝可能让大型开放权重安全模型在四张H200上运行，同时相较量化基座仅有较小的召回率下降，为部分防御工作流提供本地部署和隐私选项。影响仍较窄：基准规模小且为内部测试，测量的是已知漏洞重新发现，而非广泛渗透测试。",
+      "limitations": [
+        "所有性能数字均由Aikido报告；本次未找到或执行独立复现。",
+        "评估涵盖30个代码库中的32个已知漏洞，每个案例运行三次，并非盲测发现。",
+        "基准运行在使用其他模型处理周边环节的更大流水线中；它无法单独衡量该模型对完整产品的贡献，也未测量人工审查影响。",
+        "报告给出召回率和覆盖率，但未给出精确率、误报率、漏洞利用验证结果、补丁质量、运行时间、吞吐量或服务成本。",
+        "四张H200是供应商声明的一种服务配置；它并未确立最低硬件要求，也不是经独立验证的生产配置。"
+      ],
+      "relationships": [],
+      "summary": "Aikido发布了Altar-1，这是一款用于本地防御性安全任务、采用W4A16/REAP剪枝的328 GB GLM-5.3衍生模型。公司报告称，剪枝将已量化基座的权重从488.2 GB降至328.0 GB。在30个代码库中的32个已知漏洞、每个案例运行三次的内部基准上，该模型每次运行的平均召回率为60.4%，基座为61.5%；两者至少一次重新发现的漏洞均为23个。供应商记录了使用四张H200运行vLLM的配置。这些是公司在更大流水线中的已知漏洞定向测试结果；它们不能证明盲测发现、漏洞利用验证、补丁质量或独立性能。",
+      "technical": {
+        "claimed_result": "Aikido报告称，全精度GLM-5.3、AWQ INT4基座和Altar-1的存储权重分别为1,506.7 GB、488.2 GB和328.0 GB。在Aikido内部基准中，三者每次运行的平均召回率分别为65.6%、61.5%和60.4%。三次运行中，剪枝模型和AWQ基座各至少覆盖32个漏洞中的23个；全精度GLM-5.3覆盖25个。",
+        "compute_or_cost": "来源给出了存储权重大小和四张H200的服务目标，但未报告延迟、吞吐量、能耗、服务成本、指定生产负载下的显存余量或总硬件成本对比。",
+        "demonstrated_result": "公开模型卡和权重记录了Altar-1、其W4A16/REAP配置，以及面向四张H200的vLLM服务目标。这能确认模型可用及其声明配置，但不能验证供应商的性能说法。",
+        "implementation_status": "Aikido在Hugging Face公开Altar-1权重，并记录了在四张NVIDIA H200上使用vLLM的方式。公司称已将模型部署到Aikido Machine车队；本次审查未独立检查该部署。",
+        "mechanism": "Aikido先对GLM-5.3的路由专家应用AWQ INT4量化，再使用REAP贡献分数和领域保留策略，在不重新训练的情况下删除每层256个路由专家中的88个。每个token仍激活八个路由专家。",
+        "regime": "Aikido内部基准包含30个代码库中的32个已知漏洞，每个案例运行三次。公司称这是AI Code Analysis流水线中的定向重新发现测试，周边环节还使用其他模型。模型卡记录了面向四张H200的vLLM服务配置。",
+        "reproducibility": "Aikido链接了公开的保真度研究和剪枝工具，模型卡也提供权重与服务说明。本次未运行模型、检查原始结果或独立复现CVE基准。已知案例和内部流水线限制了外部验证。",
+        "strongest_baseline": "最接近的压缩基线是先经AWQ INT4量化、再剪枝前的同一GLM-5.3模型。Aikido报告该基线为488.2 GB、每次运行平均召回率61.5%，三次运行中至少覆盖23/32个漏洞；Altar-1为328.0 GB、60.4%和23/32。该基准为内部测试，尚无独立复现。"
+      },
+      "title": "Aikido报告称：剪枝后的328 GB GLM-5.3安全模型在CVE测试中接近基座召回率",
+      "why_it_matters": "该结果具体展示了模型权重存储与安全任务召回率之间的取舍：Aikido报告称，相较已量化基座，权重再减少32.8%，内部基准的平均召回率约低1.1个百分点。如果经独立验证，这可能降低本地防御性安全推理的硬件门槛。但该测试不能证明模型可以发现未知漏洞或完成全面渗透测试。"
+    },
     "FCMO-4C7D37607E1E": {
       "claims": [
         {
@@ -11125,6 +11180,70 @@
       },
       "title": "DexTacWAM报告称，将触觉接触纳入机器人预测的世界状态后，操作得分有所提高",
       "why_it_matters": "灵巧机器人需要判断接触、滑动和抓取稳定性，而这些状态可能无法从相机画面中充分观测。论文消融支持一种具体设计假设：把触觉接触变化作为世界状态来预测，可能比直接将触觉读数送入策略更有帮助。报告的增益较大，但来自作者在单一平台上的评估，且对比方法的动作参数化不同，因此需要严格控制条件下的复现，不能据此证明普遍迁移能力。"
+    },
+    "FCMO-6588C0954ABA": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED_PUBLICATION_EVENT",
+          "text": "作者于2026-09-17在arXiv发布了JustMem预印本。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "作者报告JustMem在LoCoMo和LongMemEval-S上比对比记忆系统有更高的平均准确率和检索召回率：LoCoMo准确率为79.61%，LongMemEval-S为83.40%。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "相较于LoCoMo上平均准确率最高的对比系统LightMem，作者报告LoCoMo记忆构建token减少50.7%、查询token减少67.2%；在LongMemEval-S上分别减少64.9%和55.7%。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "在LoCoMo-Plus的401题认知子集中，作者报告JustMem准确率为62.59%，该比较中最强基线MemOS为31.67%。"
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION_DISCLOSURE",
+          "text": "论文指出，评估仅涉及现有长期对话记忆基准和特定记忆及检索配置；效率分析主要衡量生成模型token，没有统计系统级全部计算。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "尚未发现对所报告基准结果或token成本的独立复现。",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "本次审阅未找到公开实现，因而无法直接检查访问规划器、源内容恢复或基准测试代码。",
+          "kind": "missing_artifact",
+          "state": "open"
+        },
+        {
+          "description": "主要效率比较只统计生成token，未提供系统总计算量、延迟、能耗或货币成本。",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "如果所报告的收益可以推广，按查询调整检索范围可能改善长期对话记忆并减少模型token用量。评分4体现该结果对记忆系统设计有实际意义；现有证据仍限于作者开展的基准测试和token统计。",
+      "limitations": [
+        "所有量化结果均为作者报告，本次未进行独立复现。",
+        "主要比较只涵盖有限的长期对话记忆基准和特定配置；能否推广到其他任务或模型栈仍未知。",
+        "在LoCoMo上，与LightMem的配对比较未达到统计显著性（p=0.532）。",
+        "token统计不包含嵌入、重排序及其他系统级计算，因此生成token减少不能证明总延迟、能耗或成本降低。",
+        "作者指出，记忆存储和来源链接会带来隐私、数据保留、访问控制及敏感信息泄露风险。"
+      ],
+      "relationships": [],
+      "summary": "一篇2026年秋季的预印本介绍了JustMem，这是一种按查询调整检索范围和源内容阅读保真度的长期对话记忆系统。作者使用GPT-4.1-mini在LoCoMo和LongMemEval-S上开展测试，报告其平均准确率高于对比记忆系统，同时使用更少的生成模型token。这些结果仅为论文报告，尚未得到独立复现。",
+      "technical": {
+        "claimed_result": "作者使用GPT-4.1-mini进行记忆构建、查询规划、回答和LLM评判，报告LoCoMo平均准确率79.61%、LongMemEval-S为83.40%，且在对比系统中平均准确率和检索召回率最高。作者还报告生成token预算更低，以及LoCoMo-Plus认知子集准确率62.59%。",
+        "compute_or_cost": "论文报告了记忆构建和在线查询的生成token用量；其主要效率统计未包括嵌入、重排序、离线评估及系统其他计算开销。",
+        "demonstrated_result": "公开预印本描述了系统、基准测试方案和结果表。本次未独立运行或复现所报告结果。",
+        "mechanism": "JustMem保存带来源链接的紧凑原子记忆，预测每个查询需要何种证据，再选择局部Lookup、更广泛搜索的Compose，或通过来源链接恢复原始对话的Replay。Compose扩大候选搜索，但保持紧凑证据预算不变；只有查询需要更高保真度时，Replay才恢复源上下文。",
+        "novelty": "论文提出将发现范围与阅读保真度分为两种可按查询调整的记忆访问维度。尚未独立确认其相对所有近期记忆系统的优先性。",
+        "regime": "作者在LoCoMo（1,540题）、LongMemEval-S（500题）和LoCoMo-Plus认知子集（401题）上开展测试。主要比较采用相同生成模型和评估提示，并在固定已构建记忆和检索证据的条件下重复五次回答及评估。",
+        "reproducibility": "预印本说明了提示词、模型和基准配置。本次未找到公开代码，也未独立复现结果。",
+        "strongest_baseline": "LightMem是在LoCoMo上平均准确率最高的对比记忆系统；其与JustMem的配对比较p=0.532。论文报告LongMemEval-S上LightMem为76.44%、JustMem为83.40%。在LoCoMo-Plus子集中，MemOS是最强基线（31.67%，JustMem为62.59%）。"
+      },
+      "title": "JustMem报告提升长期记忆基准准确率并减少模型token用量",
+      "why_it_matters": "如果所报告结果可以推广，将广泛发现证据与选择性读取原始来源分开，或可改善对话记忆并减少生成模型token用量。这对智能体记忆设计有实际意义，但现有证据来自有限的基准配置，且没有衡量系统总成本。"
     },
     "FCMO-66C5569688C1": {
       "claims": [
@@ -18118,6 +18237,60 @@
       },
       "title": "论文报告了使用CPU-TEE验证不可信GPU上的差分隐私训练",
       "why_it_matters": "如果得到独立验证，这种设计可能让组织在使用不具备原生TEE支持的GPU时，仍能提供差分隐私训练协议确实得到执行的证据。当前报告的开销和攻击抵抗界限仅适用于小模型任务、单篇论文提出的协议以及经过校准的软硬件条件。"
+    },
+    "FCMO-ADDB7C80E534": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED_DOCUMENTATION",
+          "text": "ZCode的NOTICE指出，其共享Agent执行适配器默认不提供操作系统沙箱，并提醒工作区身份、Git worktree、浏览器隔离和Node REPL上下文不构成所有工具的系统级隔离保证。"
+        },
+        {
+          "label": "DEMONSTRATED_IN_SOURCE",
+          "text": "CLI的run.ts源码将无交互提示模式的默认值设为yolo；非交互式--prompt请求若没有显式模式，会传入mode ?? DEFAULT_HEADLESS_PROMPT_MODE。"
+        },
+        {
+          "label": "DEMONSTRATED_IN_SOURCE",
+          "text": "权限服务说明，未启用计划模式时，yolo会让普通工具调用绕过权限提示；用户交互和always-ask工具仍有独立检查，NOTICE还区分其他产品界面及宿主控制模式。"
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "本次没有检查ZCode v3.15.1发行包或运营方部署。源文件已固定到v3.15.1仓库提交，但没有测试部署额外增加的隔离措施或实际运行行为。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "尽管源文件已固定到发行提交，本次未检查ZCode v3.15.1发行包或运行环境。",
+          "kind": "missing_artifact",
+          "state": "open"
+        },
+        {
+          "description": "没有运行测试来确认发行版或部署中的有效审批提示和操作系统级隔离。",
+          "kind": "missing_independent",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "如果这些记录的默认设置适用于所检查的ZCode CLI及共享适配器，它们会显著影响对智能体运行隔离和审批机制的判断。评分4体现其对工具选型和部署决策的现实影响；结论只覆盖文档描述的模式，不表示所有ZCode界面采用相同设置。",
+      "limitations": [
+        "NOTICE中的无默认沙箱声明仅适用于共享Agent执行适配器，不能推广到每一种ZCode工具或运行模式。",
+        "省略--mode时的yolo默认仅适用于独立CLI非交互式--prompt调用，不自动适用于交互式TUI、桌面、恢复任务、target或宿主管理的运行。",
+        "权限服务保留用户交互、always-ask、禁用工具及计划模式的独立判断；不能据此声称yolo绕过了所有控制。",
+        "检查的文件已固定到commit aac4755666d09fdcd70272fcf063c077a639015f，该提交对应v3.15.1更新；本次未测试运行行为或分发二进制文件。",
+        "仓库源码没有说明运营部署是否额外配置了操作系统沙箱或其他隔离。"
+      ],
+      "relationships": [],
+      "summary": "ZCode在2026-10-10发布的v3.15.1仓库提交中包含中文NOTICE，称其共享Agent执行适配器默认不提供操作系统沙箱；独立CLI省略--mode的非交互式--prompt调用默认采用yolo。固定版本CLI源码实现了这一回退，权限服务则描述了绕过权限提示的规则和例外。结论仅针对文档所述适配器和CLI路径，未测试发行包的实际运行。",
+      "technical": {
+        "claimed_result": "项目文档说明，共享Agent执行适配器默认没有操作系统沙箱；独立CLI在非交互式--prompt调用中省略--mode时默认使用yolo。",
+        "demonstrated_result": "所检查的仓库NOTICE和CLI源码包含这些有范围限制的说明及代码路径。未在固定版本的发行包上验证运行行为。",
+        "mechanism": "CLI非交互提示路径在未指定模式时回退到yolo。权限服务允许该模式下的普通工具调用绕过权限提示，同时单独处理用户交互和always-ask能力。此外，仓库NOTICE称共享Agent执行适配器默认不提供操作系统沙箱。",
+        "novelty": "实质信息是仓库对沙箱和审批默认值作出了明确且区分模式的披露；这里不主张底层权限架构具有新颖性。",
+        "regime": "ZCode v3.15.1仓库提交 aac4755666d09fdcd70272fcf063c077a639015f，日期为2026-10-10。结论针对共享Agent执行适配器和独立CLI非交互式--prompt路径，并非所有ZCode运行界面。",
+        "reproducibility": "NOTICE及两个源码文件已通过GitHub按路径提交历史固定到同一版本提交。没有检查发行包或测试运行行为。",
+        "strongest_baseline": "没有进行跨项目比较。ZCode NOTICE区分共享适配器与独立CLI提示路径，以及交互式、桌面、恢复和宿主控制模式；build与plan模式也各有权限逻辑。"
+      },
+      "title": "ZCode披露共享Agent适配器无默认操作系统沙箱，非交互CLI提示默认采用yolo",
+      "why_it_matters": "选择智能体工具时，用户需要了解常规文件、shell和网络操作是否受到操作系统隔离，以及无人值守CLI调用是否要求逐次确认。ZCode文档和源码表明不同运行模式采用不同默认值，因此不能将项目级审批视为统一的安全边界。"
     },
     "FCMO-AE1EFB209913": {
       "claims": [
@@ -32130,6 +32303,48 @@
         "source_sha256": "3572af4cc9093fd4a6cd40cdcb76ebde8bf2f04f91d2d6c10666c64b2a36ec94"
       }
     },
+    "FCMO-4C74A8BB4DFD": {
+      "claims": {
+        "locale_sha256": "a3f7d4c7a7b07d06942fe6c2080b109d6216a0e4997a04fd2db837c01513b59e",
+        "source_sha256": "19a082fe2664c0c38a4db8a2991ff527c9a11796ee18539abae4fbdc2e423273"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "ee3ebd1361d96d43439b02c966d1c97bfa950712d64b2293b8b647868a36a05e",
+        "source_sha256": "826d908dd9c42e0ead0f89032b5ecb1d1b8f953538cf431afd2590ad864f876a"
+      },
+      "importance_rationale": {
+        "locale_sha256": "82ae424197195e5bfa8db0c628889cd2ec6936e86e3463528603985303791c65",
+        "source_sha256": "10ff65814b35af023e2c10a7d8cfcc2ca2dbc4c365c1ac7d8021150da2527dfa"
+      },
+      "limitations": {
+        "locale_sha256": "0b84c33953144ea65054b2fed61cb6e4e4eaf3de1d6ac7b20ae4998a18676196",
+        "source_sha256": "4b50e5f9f30922a87de4dd17d312d20c20f497194c1d3061bbb6f48c5f0f0f25"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "a9ccb592d6d9a62f171b138d467e91476683851d2c5c06d798345948d2475c5d",
+        "source_sha256": "e7cf1dadf806982be5e558292031f88c92877b9549af6066cfcd416bcf4e3ed3"
+      },
+      "technical": {
+        "locale_sha256": "088bf3dd995029d94776f1b21a7ab98196bc13b5bff186f9a20039183b7b5466",
+        "source_sha256": "aaac91c4cf3ead4f175f78e1830f6530bfe2f33670128bad2e09964389c507ac"
+      },
+      "title": {
+        "locale_sha256": "bcd82192f50c84eb0d4aa73741e767273661865bc023227249f79bfd21526568",
+        "source_sha256": "6243838723a9d5dd590acaac9e1560f311899026b6319ce6c7aa77c641497995"
+      },
+      "why_it_matters": {
+        "locale_sha256": "701bd9761ce6b18c6e3fafe10fb2eab794d0db0b20a5d3271e9d49e3f15195ef",
+        "source_sha256": "80ac4db356c80d3f957c6f30b39d5db408cbaf2afbb4a1564f1738f4c2e5de83"
+      }
+    },
     "FCMO-4C7D37607E1E": {
       "claims": {
         "locale_sha256": "eebf645f72572e4f43c1b5fd6d03bb59dc55958bdf7aec59c1e7e7f98d2529e9",
@@ -34424,6 +34639,48 @@
       "why_it_matters": {
         "locale_sha256": "68039a43fb7b23aad88f4bb6e272f0853471e97c79f2ab3e512e124f97fd2358",
         "source_sha256": "334f7d2cd05c016c557e156b83ca0069613c2ca69f178deef613666efeeaa67e"
+      }
+    },
+    "FCMO-6588C0954ABA": {
+      "claims": {
+        "locale_sha256": "fc95232a5eb89ac629167f5056523b6072693ce1bdbc72a418c4ee23bdc10705",
+        "source_sha256": "0ee0ec38b7a63f0050df146060d2f2fdbe81ae0232dcc5a344da317590b1698f"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "1ac995bfbb5c2db904a84ff76c350ad7148703637a5455568b260e9a2a26661f",
+        "source_sha256": "4cbd8eb473d1d93d10c5991c563c5f616aa2a08d07a0d4da1cce597476fb9ddd"
+      },
+      "importance_rationale": {
+        "locale_sha256": "24f96f06a4a77ef662fe32086e018ca0d5b28f8810bc69a4d4605199dd0e4825",
+        "source_sha256": "7d8ca892e2d864f6dd08bdc2c8b58ed56bcd65161644db0493daf60c96a9e99f"
+      },
+      "limitations": {
+        "locale_sha256": "6701fb20b763093be41536fa719e47f7f8e03538bca297c315edae57db05441c",
+        "source_sha256": "808e5216bd863c6ffeec48116f8bfb3e92b562eb50c45d68ec3987995c38dea1"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "d74ad8d42d3502ff94ee23f84ca2085ba757cb5d4c114d3ae73ab87f4f488fe3",
+        "source_sha256": "07d3d52581f08329b6ebab9bebd3b50fc0d504da7ad00891de1551585145cbf4"
+      },
+      "technical": {
+        "locale_sha256": "14edc49ec6646bd21f9f048a0f9a7979554f87416162e398797610093cb6cdac",
+        "source_sha256": "78a996e8f90a864e4d5758b8aecfb0ff927e17bb08de468eee546c5438c532d0"
+      },
+      "title": {
+        "locale_sha256": "b5ad1acdcf14f2fd3dc327c39fcec35311e60138a570962b60684834e5d2d4da",
+        "source_sha256": "5495006dc98077e34c27c41010802bba57008fb343c62093b1d3c264ff255dfb"
+      },
+      "why_it_matters": {
+        "locale_sha256": "4c32619b845cb707821cf9ee98d3ed90a09ecc6a7c68f102aacc53871a5ec4a2",
+        "source_sha256": "a14cb66ec2eab0934e2e3dc26ad57535843f7e40a196becd176b66b0f87de34d"
       }
     },
     "FCMO-66C5569688C1": {
@@ -39702,6 +39959,48 @@
       "why_it_matters": {
         "locale_sha256": "31a95e2f0090d0d8015d205476e1523aa5219ad1bfeb2b5c1a37f09665782496",
         "source_sha256": "cc50ee653cfab81a0906ce16b04945eb684a9a867e4533174fd0d7e9590efca6"
+      }
+    },
+    "FCMO-ADDB7C80E534": {
+      "claims": {
+        "locale_sha256": "72e13b7c84c078045a9f52e31be265748e1f78a2e09d47358b35c7e87b7b2486",
+        "source_sha256": "2fa9304254073753b2d6d5f5a4ff8d9f95328d32699efba05a1ffa5eb4fe6896"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "856e0f7ce6cbac96f43983a1f62345d73c036583f8a4863c920671207b8ab364",
+        "source_sha256": "885de59592c986c0831a02ec0c123aad5cba6f71fccee4321bb198795f5c55c6"
+      },
+      "importance_rationale": {
+        "locale_sha256": "4fd1db2ec5aee5d7cc6eca39f01f70a43d6da43fb31802553aea32f51d099807",
+        "source_sha256": "0acddc9645fd95e35f9d77916aea78b39ee7522d6de792148f0a1052bc804cb3"
+      },
+      "limitations": {
+        "locale_sha256": "6c3d680d412a9729fd176aa32c977fd7c1d14bd87613b959fd3821dcd9430046",
+        "source_sha256": "b366ec225870e6631506bc7ca1e107aa6cf3d904f3495e96a9b74fbdd376d1c2"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "43fd3fcfcd7b3ffb9c78dc4f908a8f76bf733497b7b885bf79966681f381c106",
+        "source_sha256": "38f1549d396ba6d2463259c7a9b5c9d61669a0a2413d8aa95e7d8bd5242fe0ec"
+      },
+      "technical": {
+        "locale_sha256": "ec310503774b24a62a295f457f9cda2ebcf869d3953466e6fa033e8ca7a7253e",
+        "source_sha256": "2f7083f0949b33db6e4828a779f0c1e1841c73960c102e845b37d0ac7dc1daeb"
+      },
+      "title": {
+        "locale_sha256": "6964573ca433a45ec691cb5cd3956fc4df2a46e4eccafe98fac56819b040e95e",
+        "source_sha256": "2c2230458aee95af9f73eac989f6aa595ea0be95387bb4d8a26cc4bf7e397d12"
+      },
+      "why_it_matters": {
+        "locale_sha256": "d9c6fbebe67de55b211eae93fe98bc5d8366825b1eef0dadd5c879cdde2adb7d",
+        "source_sha256": "fdd5253e879a25bbb3a3e62156c07cf939d75f15af50564e895264ced37e98ec"
       }
     },
     "FCMO-AE1EFB209913": {
