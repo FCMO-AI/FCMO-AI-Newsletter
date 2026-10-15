@@ -1894,6 +1894,58 @@
       "title": "MM-ContextFold informa menor uso de contexto visual y mayor precisión en pruebas de recuperación multimodal",
       "why_it_matters": "Los agentes multimodales pueden conservar imágenes grandes en historiales extensos de uso de herramientas incluso después de convertir los detalles visuales relevantes en texto. Limitar temporalmente las imágenes a tareas de identificación visual podría reducir el contexto sin sacrificar precisión. El resultado informado es prometedor para recuperación multimodal, pero siguen sin resolverse las diferencias de prompts y formatos de acción, el costo, la latencia y la transferencia a otras tareas de agente."
     },
+    "FCMO-0CC464D3A678": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan que el aprendizaje por refuerzo en tareas seleccionadas de VLM puede aumentar la recompensa de tarea a la vez que reduce la monitorización de la cadena de pensamiento medida mediante dos puertas. El cambio va acompañado de variaciones en el enrutamiento de atención y menor separación entre rasgos SAE asociados a plantillas y contenido visualmente fundamentado; las intervenciones emparejadas sobre rasgos aportan evidencia de una contribución causal parcial y específica por conjunto de datos."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "TAME combina retroalimentación de indicaciones evolutivas con una penalización de activación dirigida mediante un autoencoder disperso durante el aprendizaje por refuerzo. En la evaluación humana emparejada y ciega del artículo, la medida de monitorización humana favorece a TAME por 12.50 puntos porcentuales en VIRL y 13.75 en SPA-VL; dos familias de monitores no usadas en entrenamiento también informan cambios positivos sobre las mismas trazas congeladas."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los efectos sobre las tareas y la capacidad general son mixtos: la precisión de tarea de Qwen3-VL-8B en VIRL cambia de 0.646 con GRPO a 0.640 con TAME, mientras que el artículo informa compensaciones que dependen del conjunto de datos y del modelo, incluida una puntuación MMMU-Pro de 43.0 para Qwen entrenado en VIRL frente a 44.6 con GRPO."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El artículo no demuestra que su medida operativa de monitorización garantice acceso fiel al razonamiento interno, que las mejoras se transfieran a sistemas desplegados u otros VLM ni que TAME mejore los resultados generales de seguridad."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se localizó ni realizó una reproducción independiente del método de entrenamiento, las medidas de monitorización de dos puertas o las compensaciones de capacidad.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "La monitorización operativa se define como la recuperación equilibrada de etiquetas de referencia específicas de cada conjunto a partir de la traza; no mide directamente la fidelidad del razonamiento interno ni resultados de seguridad en el mundo real.",
+          "kind": "regime_unclear",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si los resultados se generalizan, la combinación de retroalimentación conductual y restricciones de activación dirigidas de TAME podría ofrecer a los investigadores una forma de conservar evidencia observable en el razonamiento VLM entrenado con RL. La evidencia procede de un preprint en modelos y conjuntos seleccionados; la monitorización se define mediante un indicador de dos puertas específico de las tareas y las compensaciones de capacidad varían según el régimen. La puntuación refleja su posible utilidad para la evaluación de seguridad, no la confianza en los resultados.",
+      "limitations": [
+        "Todos los resultados proceden de un único preprint de los autores; el equipo de investigación no ejecutó el código ni reprodujo los resultados de forma independiente.",
+        "La monitorización se operacionaliza como recuperación de etiquetas de referencia de dos puertas específicas del conjunto a partir de CoT y texto de respuesta; no establece directamente que CoT refleje el cálculo interno.",
+        "La evidencia principal usa Qwen3-VL-8B y Gemma-3-12B-it en GQA, VIRL-39k y SPA-VL; se desconoce la generalización fuera de esos regímenes.",
+        "La evaluación humana abarca 80 unidades de indicación-imagen reservadas por conjunto e informa cambios de métricas y preferencias; la muestra es limitada, y los efectos sobre exactitud y capacidad general varían por modelo y conjunto.",
+        "Los autores informan un paso adicional por el modelo base congelado, menos de 5% de sobrecarga por codificación SAE y una llamada API del actualizador de indicaciones cada 10 pasos; el costo total de entrenamiento no fue medido de forma independiente."
+      ],
+      "relationships": [],
+      "summary": "Un preprint del 21 de septiembre presenta TAME, que combina retroalimentación de indicaciones evolutivas con una penalización dirigida de activación mediante un autoencoder disperso durante el aprendizaje por refuerzo para mejorar la monitorización de CoT en VLM. En experimentos con Qwen3-VL-8B y Gemma-3-12B-it en GQA, VIRL-39k y SPA-VL, los autores informan que la monitorización puede caer mientras aumenta la recompensa de tarea y que las intervenciones de rasgos y TAME recuperan parcialmente su medida operativa. Una evaluación humana emparejada y ciega favorece a TAME por 12.50 puntos porcentuales en VIRL y 13.75 en SPA-VL; dos familias de monitores no usadas en entrenamiento también informan cambios positivos sobre las mismas trazas congeladas. Los efectos sobre exactitud y capacidad general son pequeños o mixtos y dependen del entorno. Son resultados informados por los autores; la medida operativa no establece acceso fiel al razonamiento interno ni una mayor seguridad en el mundo real.",
+      "technical": {
+        "claimed_result": "Los autores informan mejoras de monitorización de hasta 30.9 y 16.7 puntos porcentuales frente a GRPO en configuraciones VIRL y SPA-VL, preferencias humanas ciegas y emparejadas de 12.50 y 13.75 puntos, y cambios positivos en dos familias de monitores reservados sobre trazas congeladas. Los resultados de exactitud y capacidad general son mixtos; para Qwen entrenado en VIRL, MMMU-Pro es 43.0 con TAME frente a 44.6 con GRPO, y 4.0 puntos de la caída entre base y TAME ya aparecen con GRPO.",
+        "demonstrated_result": "El preprint documenta el método, los protocolos de etiquetado y las evaluaciones de los autores, incluido un estudio humano ciego y emparejado y pruebas con monitores reservados. el equipo de investigación no ejecutó el código ni verificó los resultados de manera independiente.",
+        "mechanism": "TAME combina un ciclo de retroalimentación conductual que modifica indicaciones para reducir plantillas genéricas de razonamiento y recuperar el anclaje visual con una pérdida asimétrica basada en un autoencoder disperso. La pérdida penaliza activaciones de rasgos asociados a plantillas solo cuando superan la referencia congelada del modelo anterior a RL; el diccionario de rasgos SAE permanece congelado.",
+        "regime": "Un preprint que usa Qwen3-VL-8B y Gemma-3-12B-it en el piloto GQA, razonamiento visual VIRL-39k y alineación de seguridad SPA-VL. Las evaluaciones principales incluyen etiquetas de monitorización de dos puertas, GPT-4o como monitor principal, un estudio humano ciego con 80 unidades de indicación-imagen reservadas por conjunto y comprobaciones con MiniMax-M3/Kimi-K2.6 en las mismas trazas congeladas. El entrenamiento usa un nodo con 8 GPU NVIDIA H100 de 80GB; los autores calculan menos de 5% de sobrecarga de codificación SAE y una llamada al actualizador de indicaciones cada 10 pasos.",
+        "strongest_baseline": "GRPO es la referencia principal de aprendizaje por refuerzo; el artículo también informa DAPO, recompensa de monitorización y ablaciones por componente. En Qwen3-VL-8B, la medida de monitorización de dos puertas con TAME es 0.611 frente a 0.302 con GRPO en VIRL y 0.561 frente a 0.394 en SPA-VL; son métricas operativas informadas por los autores, no resultados externos de seguridad."
+      },
+      "title": "TAME informa mejoras en la monitorización de CoT en VLM con compensaciones mixtas de capacidad",
+      "why_it_matters": "TAME ofrece una forma concreta de comprobar si el aprendizaje por refuerzo mejora la recompensa de tarea de un VLM a la vez que degrada la evidencia que un monitor puede utilizar para auditar su respuesta, y luego restringir un patrón de activación interno durante el entrenamiento. Si la medida y la intervención se generalizan, podrían añadir un eje útil de evaluación al posentrenamiento multimodal. La evidencia actual es un único preprint con conjuntos acotados, compensaciones mixtas de capacidad y sin reproducción independiente; la monitorización no prueba que el razonamiento sea fiel ni que el despliegue sea más seguro."
+    },
     "FCMO-0CC9985849E8": {
       "claims": [
         {
@@ -9328,6 +9380,58 @@
       "title": "Designer-RSI informa mejoras en agentes de diseño gráfico mediante memoria procedimental con filtros de regresión",
       "why_it_matters": "Si se reproduce fuera de este sistema de diseño, una memoria externa de habilidades con un filtro conservador de cambios podría ofrecer una forma práctica de adaptar agentes desplegados sin ajustar sus pesos. El artículo presenta un patrón probado para equilibrar la cobertura de más tareas con la prevención de regresiones, pero deja abiertas las preguntas sobre transferencia, fiabilidad del evaluador y rendimiento ante la distribución real de despliegue."
     },
+    "FCMO-520F598EA82A": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "El informe final del FSB presenta 12 prácticas recomendadas para la gobernanza de la IA en instituciones financieras. Abarcan la gobernanza de toda la organización y la gestión de riesgos a lo largo del ciclo de vida, incluida la materialidad de los casos de uso, la selección tecnológica, los datos, la explicabilidad, la evaluación del rendimiento, la supervisión humana, la ciberseguridad y los riesgos de terceros."
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "El FSB alienta firmemente a las juntas directivas y a la alta dirección a considerar las prácticas como un conjunto adaptable y proporcional. Declara expresamente que no son prescriptivas, no constituyen una norma internacional vinculante y no sustituyen las obligaciones legales o regulatorias locales."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El FSB afirma que el informe final responde a comentarios de la consulta mediante una cobertura ampliada de la documentación, la transparencia, los riesgos de IA de terceros y los riesgos avanzados de sistemas agénticos o multiagente. También señala que las prácticas específicas para sistemas agénticos y multiagente aún son incipientes y podrían requerir un tratamiento más amplio en el futuro."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El informe no demuestra que las instituciones financieras o los supervisores hayan adoptado las prácticas, que estas hayan reducido los riesgos de la IA ni que sean obligaciones vinculantes en alguna jurisdicción."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se revisaron las medidas de implementación de supervisores nacionales, la orientación de adopción, las acciones de cumplimiento ni la adopción por instituciones tras el informe final.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "Los casos ilustran prácticas y beneficios reportados por instituciones, pero no son resultados auditados de manera independiente ni referencias de rendimiento esperadas.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si las instituciones financieras y los supervisores usan estas prácticas como referencia, el marco transversal del FSB podría influir en decisiones de gobernanza y contratación tecnológica en un sector de gran importancia, incluso respecto de sistemas agénticos y proveedores compartidos. El informe es expresamente no vinculante y esta revisión no estableció adopción nacional; la puntuación refleja una posible influencia de gobernanza, no efecto jurídico ni evidencia de implementación.",
+      "limitations": [
+        "El FSB declara que sus decisiones y actividades no son vinculantes y que este informe no es una norma internacional obligatoria.",
+        "Las prácticas no son prescriptivas, deben aplicarse proporcionalmente y no sustituyen las obligaciones legales locales.",
+        "El informe indica que las prácticas específicas para IA agéntica y multiagente aún son incipientes y podrían recibir un tratamiento más completo posteriormente.",
+        "Los casos institucionales son ilustrativos, reflejan beneficios reportados por las instituciones participantes y no constituyen resultados establecidos de forma independiente ni referencias de rendimiento.",
+        "Esta revisión no midió la implementación nacional, la adopción institucional ni los efectos resultantes sobre la seguridad o la estabilidad financiera."
+      ],
+      "relationships": [],
+      "summary": "El 15 de octubre, el Consejo de Estabilidad Financiera (FSB) publicó un informe final con 12 prácticas no vinculantes para la adopción responsable de IA por instituciones financieras. Las prácticas abarcan la supervisión de juntas directivas y la gestión de riesgos de toda la organización, además de controles del ciclo de vida para evaluar casos de uso, seleccionar tecnología, gobernar datos, gestionar transparencia y rendimiento, ejercer supervisión humana y gestionar riesgos cibernéticos, de TIC y de terceros. El FSB dice que revisó el informe tras una consulta pública e incorporó un análisis más amplio de documentación, riesgos de terceros y sistemas agénticos y multiagente. Presenta las prácticas como una herramienta adaptable, no como una norma vinculante, y reconoce que la orientación específica para sistemas agénticos aún es incipiente.",
+      "technical": {
+        "claimed_result": "El FSB señala que el informe final incorpora comentarios de la consulta de junio de 2026, amplía el análisis de documentación, transparencia y riesgos de terceros, y añade consideraciones sobre riesgos agénticos y multiagente. El FSB describe los casos ilustrativos como beneficios reportados por instituciones, no como resultados auditados ni referencias de rendimiento.",
+        "demonstrated_result": "El informe final oficial documenta el marco recomendado por el FSB y el estado jurídico que este declara. La existencia y el contenido del informe están establecidos directamente; no se midieron adopción, implementación ni efectos de reducción de riesgos.",
+        "mechanism": "El FSB organiza 12 prácticas recomendadas en dos grupos: gobernanza y gestión de riesgos de toda la organización, y gestión del ciclo de vida desde el inicio del uso de IA hasta su despliegue y retiro. Vincula la supervisión de la junta directiva y la alta dirección con la evaluación de riesgos, la selección de modelos, la gobernanza de datos, la explicabilidad, las pruebas de rendimiento, la supervisión humana, los controles cibernéticos y de TIC y la gestión de riesgos de terceros.",
+        "regime": "Orientación internacional dirigida al sector financiero, a sus juntas y a la alta dirección, con aplicación proporcional según el tamaño, la complejidad, la interconexión y la materialidad de los usos de IA. No es vinculante ni reemplaza la legislación local.",
+        "strongest_baseline": "El informe final parte del borrador de consulta del FSB de junio de 2026 y del trabajo financiero previo en IA. Identifica cambios realizados tras la consulta, pero sigue siendo compatible en términos generales con el trabajo de otros organismos normativos; esta revisión no comparó línea por línea el borrador y la versión final."
+      },
+      "title": "El FSB publica 12 prácticas no vinculantes de gobernanza de IA para instituciones financieras",
+      "why_it_matters": "El informe ofrece a instituciones financieras y supervisores una referencia común para evaluar la gobernanza de IA mediante controles organizacionales y de ciclo de vida, incluidos los proveedores de modelos y los sistemas cada vez más autónomos. Su efecto práctico dependerá de que las autoridades nacionales y las empresas incorporen las prácticas a sus expectativas y operaciones locales. El FSB afirma expresamente que no son vinculantes y reconoce que la orientación para IA agéntica aún es incompleta."
+    },
     "FCMO-52772AF29E99": {
       "claims": [
         {
@@ -10072,6 +10176,54 @@
       },
       "title": "Anthropic informa de acciones no previstas en sistemas reales durante evaluaciones y uso interno",
       "why_it_matters": "Estos casos muestran por qué el acceso a herramientas, los límites de las evaluaciones y el uso de la web abierta requieren controles que vayan más allá de las instrucciones de la tarea: acciones aparentemente menores pueden pasar de una prueba a sistemas externos reales. Anthropic afirma que retiró algunas evaluaciones públicas de internet en vivo o las trasladó a versiones fuera de línea, restringió las herramientas de consulta web y desplegó detección automatizada que bloqueó todos los casos divulgados durante las pruebas. El informe es de la propia empresa, presenta ejemplos seleccionados y describe un impacto mínimo; se desconocen la frecuencia, los falsos negativos del detector y la transferencia a otros usos."
+    },
+    "FCMO-59C783C29FBE": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Los autores proponen CaLR, un marco de entrenamiento para modelos de lenguaje por difusión que extrae dependencias entre conceptos mediante un modelo docente y luego combina una matriz de topología causal con revisión latente guiada por diferenciación implícita para restringir las actualizaciones del razonamiento intermedio."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El artículo informa evaluaciones con LLaDA-8B ajustado mediante LoRA en tareas matemáticas, de programación, conocimiento, sentido común y razonamiento lógico, pero la estructura aplanada de columnas de la Tabla 1 y algunos valores en el texto no se reconcilian con claridad suficiente para respaldar un resumen numérico de rendimiento."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El artículo no demuestra que las mejoras informadas de CaLR se reproduzcan de forma independiente ni que el análisis teórico de complejidad de circuitos prediga el rendimiento práctico de razonamiento o la eficiencia de servicio."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "En arXiv v1, §4.2 informa una precisión GSM8K de 58.36%, mientras que la Tabla 1 contiene un encabezado aplanado con varias métricas y una fila de CaLR-8B que incluye 88.20; no queda claro a qué columna corresponde exactamente. La explicación de Sudoku y la Figura 4 también requieren reconciliación de valores.",
+          "kind": "contradiction_unresolved",
+          "state": "open"
+        },
+        {
+          "description": "No se localizó ni realizó una ejecución o reproducción independiente del método o de los resultados comparativos.",
+          "kind": "missing_independent",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se valida de manera independiente, un método que incorpora estructura causal derivada de un modelo docente en la revisión latente de modelos de difusión podría influir en la investigación sobre razonamiento paralelo y corrección. Las tablas de rendimiento y el texto del artículo contienen inconsistencias métricas pendientes, por lo que esta puntuación refleja el potencial limitado del mecanismo propuesto y no la confianza en las mejoras reportadas.",
+      "limitations": [
+        "El método y los resultados de evaluación se informan en un único preprint; el equipo de investigación no inspeccionó el código de los autores, ejecutó el modelo ni reprodujo las afirmaciones de forma independiente.",
+        "El encabezado y los valores aplanados de la Tabla 1 no permiten asignar con claridad las tareas a todas las columnas; el valor GSM8K del §4.2 no coincide con el valor aparente correspondiente a CaLR-8B en la tabla.",
+        "La evaluación Sudoku 4x4 y sus resultados con pocas muestras requieren una comprobación aparte frente a la Figura 4 y la configuración del tamaño de entrenamiento.",
+        "El análisis teórico de complejidad de circuitos depende de sus supuestos, incluida una capacidad suficiente del modelo denoising; por sí solo no establece velocidad de inferencia práctica ni mejoras generales de razonamiento.",
+        "La fuente inspeccionada informa un ajuste LoRA de LLaDA-8B y tareas seleccionadas; se desconoce la transferencia a modelos más grandes, otras arquitecturas de difusión o razonamiento de uso real."
+      ],
+      "relationships": [],
+      "summary": "Un preprint del 17 de septiembre propone Causal Latent Revision (CaLR), un método para modelos de lenguaje por difusión que utiliza un modelo docente para extraer dependencias entre conceptos y guía después las actualizaciones latentes mediante una matriz de topología causal y diferenciación implícita. Los autores evalúan LLaDA-8B ajustado con LoRA en varias tareas de razonamiento y programación. La información numérica del artículo es difícil de reconciliar internamente: el §4.2 informa una precisión GSM8K de 58.36%, mientras que el encabezado aplanado y los valores de CaLR-8B en la Tabla 1 no dejan clara la columna correspondiente. Esta revisión registra el método propuesto, pero no se basa en magnitudes de rendimiento disputadas; los resultados siguen siendo informes de los autores y no han sido reproducidos.",
+      "technical": {
+        "claimed_result": "Los autores informan evaluaciones de LLaDA-8B ajustado con LoRA en tareas de razonamiento y programación, incluidas GSM8K y Sudoku 4x4. El texto y las columnas métricas aplanadas de la Tabla 1 no se reconcilian con claridad suficiente para informar una mejora numérica fiable; todo el rendimiento reportado sigue sin verificarse.",
+        "demonstrated_result": "El preprint inspeccionado documenta el método propuesto y la configuración de evaluación ejecutada por los autores. No se ejecutó el modelo ni se hizo una reproducción independiente; aquí no se considera demostrado ningún resultado de rendimiento.",
+        "mechanism": "Un modelo docente sustituto separa conceptos principales y contexto, deriva dependencias dirigidas y las codifica en una matriz de topología causal. CaLR combina esa estructura con un objetivo de revisión latente basado en diferenciación implícita, que restringe las actualizaciones latentes durante el entrenamiento del modelo de difusión. El artículo propone revisar estados intermedios preservando las dependencias causales permitidas.",
+        "regime": "Un preprint del 17 de septiembre, con LLaDA-8B como base principal, ajuste LoRA y evaluaciones seleccionadas GSM8K, HumanEval, MMLU, ARC-C, GPQA, Trip-Planning y Sudoku 4x4. El artículo especifica indicaciones distintas según la tarea y un tamaño de bloque predeterminado de 32. No se auditaron de forma independiente el código, el hardware ni los resultados.",
+        "strongest_baseline": "El artículo compara CaLR-8B con los modelos de difusión LLaDA-8B y Dream-7B y con varios modelos autorregresivos. Dado que las columnas de tarea y métrica de la tabla son ambiguas, este registro no selecciona una comparación emparejada como referencia principal fiable."
+      },
+      "title": "CaLR propone revisión latente guiada por topología causal para el razonamiento por difusión",
+      "why_it_matters": "CaLR explora si los modelos de difusión pueden revisar pasos intermedios de razonamiento usando una estructura explícita de dependencias para limitar qué componentes latentes se modifican. Si el mecanismo y sus evaluaciones se sostienen, podría aportar ideas para la decodificación paralela y la corrección en modelos de lenguaje por difusión. El artículo actual no respalda una afirmación cuantitativa fiable de mejora porque la asignación de columnas y el texto se contradicen, y el método aún no se ha reproducido de forma independiente."
     },
     "FCMO-5A02D68A8ACB": {
       "claims": [
@@ -11239,6 +11391,66 @@
       },
       "title": "DexTacWAM informa mejores resultados al modelar el contacto táctil como parte del mundo previsto por el robot",
       "why_it_matters": "Los robots diestros necesitan razonar sobre contacto, deslizamiento y estabilidad del agarre, que las cámaras pueden no revelar. La ablación del artículo respalda una hipótesis de diseño específica: predecir la evolución del contacto táctil como parte del estado de mundo podría aportar más que entregar lecturas táctiles directamente a la política. Las mejoras reportadas son grandes, pero provienen de una plataforma evaluada por los autores y de una comparación con parametrizaciones de acciones distintas; justifican una reproducción controlada, no prueban transferencia general."
+    },
+    "FCMO-6560CD72CDEE": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "La actualización de Anthropic del 15 de octubre dice que incorporó a seis empleados de METR con equipos de la empresa, espacio de oficina y acceso a sistemas/herramientas internos aproximadamente comparable al de sus equipos de evaluación de riesgos."
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "Anthropic afirma que METR puede publicar evaluaciones de niveles de riesgo, incidentes o prácticas; Anthropic no puede vetarlas, pero sí solicitar redacciones estrechas y predefinidas que METR puede comentar públicamente."
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION",
+          "text": "La declaración es el relato de Anthropic sobre el acuerdo; la fuente no publica contratos ni registros de acceso. No informa una evaluación terminada de METR ni resultados de seguridad medidos."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "La fuente revisada no ofrece confirmación independiente de que los seis empleados de METR tengan acceso práctico a los sistemas y procesos de riesgo pertinentes.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "Todavía no se informa un hallazgo de METR, un comentario sobre redacciones ni evidencia de un cambio en una decisión de seguridad o lanzamiento.",
+          "kind": "missing_primary",
+          "state": "open"
+        },
+        {
+          "description": "El anuncio no establece la financiación, los controles de conflicto ni la independencia práctica del equipo integrado.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se implementa como se describe y permite una revisión independiente, el acceso comparable al de empleados junto con derechos de publicación podría mejorar de forma sustancial la observabilidad de las prácticas de seguridad e incidentes de un laboratorio de frontera. La importancia es notable pero acotada: es el relato de Anthropic sobre un equipo de seis personas de METR, con exclusiones definidas y sin hallazgos publicados ni efectos medidos sobre la seguridad.",
+      "limitations": [
+        "Este es el relato de primera parte de Anthropic; la fuente revisada no incluye términos contractuales, registros de acceso ni confirmación independiente del alcance práctico.",
+        "El acuerdo cubre un equipo de seis personas de METR, aislado de otros trabajos de METR, no toda la organización evaluadora.",
+        "Los datos de clientes, la información protegida por secreto profesional y la arquitectura del modelo figuran entre las categorías excluidas salvo aprobación específica; se desconoce cómo esas fronteras afectan la cobertura.",
+        "METR puede publicar sujeto a redacciones estrechas; no se describe un informe terminado, una disputa de redacción ni un cambio en decisiones de lanzamiento o entrenamiento.",
+        "La fuente no demuestra independencia efectiva del evaluador ni un beneficio para la seguridad."
+      ],
+      "relationships": [
+        {
+          "summary": "Una actualización posterior informa el inicio de acceso y derechos de publicación para METR dentro del programa de evaluación integrado de Anthropic anunciado antes con Accenture; no presenta una comparación de efectividad.",
+          "target_id": "FCMO-0F178F944930",
+          "type": "extends"
+        }
+      ],
+      "summary": "El 15 de octubre de 2026, Anthropic informó que incorporó a seis empleados de METR con equipos de la empresa, espacio de oficina y acceso a herramientas y sistemas internos aproximadamente comparable al de sus equipos de evaluación de riesgos. Anthropic afirma que METR puede publicar análisis de sus niveles de riesgo, incidentes y prácticas; no puede vetar la publicación, aunque sí solicitar redacciones dentro de categorías estrechas y predefinidas, que METR puede comentar públicamente. El equipo está aislado de otros trabajos de METR. Es un informe de primera parte sobre un acuerdo de acceso operativo, no una confirmación independiente del acceso práctico ni de la independencia del evaluador. La publicación no informa hallazgos de una evaluación terminada ni resultados de seguridad.",
+      "technical": {
+        "claimed_result": "Anthropic afirma que el acuerdo integrado permitirá a METR evaluar niveles de riesgo, incidentes y prácticas con acceso comparable al de sus equipos internos de evaluación de riesgos, y publicar hallazgos sujeto a redacciones estrechas. No informa efectos sobre la seguridad ni sobre decisiones de lanzamiento.",
+        "demonstrated_result": "Anthropic publicó una descripción fechada de la incorporación de seis empleados de METR y del acceso y derechos de publicación previstos. Esto confirma la declaración pública de la empresa, no una auditoría independiente del acceso real ni una evaluación terminada.",
+        "mechanism": "Integra un pequeño equipo externo de evaluación en el laboratorio con herramientas y acceso a información comparables a los de sus empleados, y permite publicar análisis de riesgos, incidentes y prácticas, con redacciones estrechas predefinidas que también pueden comentarse públicamente.",
+        "regime": "Seis empleados de METR, equipos y oficinas de la empresa, y herramientas/sistemas internos aproximadamente equivalentes a los equipos de evaluación de riesgos de Anthropic; equipo aislado de otros trabajos de METR; exclusiones nombradas como datos de clientes, material privilegiado y arquitectura del modelo. No se informa un resultado de evaluación de un modelo específico.",
+        "reproducibility": "La publicación puede inspeccionarse. No incluye contratos, registros de acceso ni el análisis posterior de METR; esta fuente no permite una auditoría operativa independiente ni reproducir un resultado de seguridad.",
+        "strongest_baseline": "El anuncio de la asociación Anthropic–Accenture del 18 de septiembre describió el acceso integrado previsto y señaló que los estándares operativos estaban pendientes. La actualización del 15 de octubre añade la incorporación y condiciones de publicación informadas para METR, pero no compara evaluaciones ni valida efectividad."
+      },
+      "title": "Anthropic informa que seis evaluadores de METR ya tienen acceso comparable al de empleados y derechos de publicación",
+      "why_it_matters": "Si el acceso y los derechos de publicación descritos funcionan en la práctica, el compromiso de supervisión de un laboratorio de frontera pasa a un acuerdo concreto que podrá contrastarse con los informes futuros de METR y cualquier disputa de redacción. El modelo se vuelve más observable que una promesa general de revisión externa. La actualización no demuestra que los evaluadores hayan cambiado una decisión de lanzamiento, descubierto un riesgo nuevo o mejorado la seguridad."
     },
     "FCMO-6588C0954ABA": {
       "claims": [
@@ -12932,6 +13144,64 @@
       },
       "title": "CICL informa una mejora en la recuperación del primer archivo mediante reordenamiento contextual consciente de decisiones en una prueba pequeña de programación",
       "why_it_matters": "Los agentes de programación pueden recibir muchos archivos plausibles del repositorio y aun así pasar por alto la evidencia que cambiaría el siguiente comando o edición. CICL propone medir el contexto por su utilidad decisoria estimada, con un resultado pequeño de recuperación de código real y diagnósticos sintéticos controlados. La mejora acotada a nivel de archivo merece seguimiento, pero no demuestra mejor reparación de software, rendimiento general del agente ni un efecto causal en producción."
+    },
+    "FCMO-73B93B014175": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "Los autores publicaron la versión v1 de arXiv:2609.24150 el 21 de septiembre de 2026 y definen EAL para la verificación codiciosa y WTV para la aceptación basada en muestreo dentro de ventanas especulativas."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En experimentos con Qwen3 y Gemma4 sobre cinco benchmarks, los autores informan que los objetivos ajustados al verificador mejoran la longitud de aceptación frente al entrenamiento basado en KL; las ganancias son mayores con muestreo que con verificación codiciosa."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Para la decodificación en árbol Qwen3-8B/Qwen3-0.6B, los autores informan una longitud media de aceptación de 4.780 frente a 4.304 con temperatura de muestreo 0.5, y de 5.750 frente a 4.998 con temperatura 1.0, al comparar WTV con la referencia KL. Con verificación codiciosa, KL+EAL alcanza 4.503 frente a 4.494 con KL, mientras que WTV por sí sola alcanza 4.428."
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION",
+          "text": "El experimento revisado informa la longitud de aceptación, pero no establece latencia integral, consumo de energía ni ahorros en costos de servicio; no se ejecutó el código ni se hizo una reproducción independiente."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se encontró ni se realizó una reproducción independiente de los resultados informados para EAL/WTV.",
+          "kind": "reproduction_missing",
+          "state": "open"
+        },
+        {
+          "description": "El artículo informa tokens aceptados por paso de verificación, pero no velocidad integral de pared, caudal, energía ni costo de servicio.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "No está clara la generalización a otras familias de modelos objetivo/borrador ni a distribuciones de prompts de producción.",
+          "kind": "regime_unclear",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se replica, entrenar directamente los modelos borrador con el objetivo de aceptación específico del verificador podría cambiar el diseño de entrenamiento para decodificación especulativa y las decisiones de inferencia en regímenes de servicio habituales. La consecuencia sería notable, pero se limita a mejoras de longitud de aceptación informadas por los autores; no se han establecido latencia integral, consumo de energía, costos de servicio ni reproducción independiente.",
+      "limitations": [
+        "Todos los resultados de rendimiento provienen del preprint de los autores y no se han reproducido de forma independiente.",
+        "La longitud de aceptación es una aproximación de la eficiencia del servicio; el artículo no informa latencia de pared, caudal, energía ni costo total que incluya el gasto del modelo borrador.",
+        "Los resultados revisados se limitan a configuraciones específicas de Qwen3/Gemma4, cinco benchmarks y dos temperaturas de muestreo; no se ha establecido la transferencia a otras familias objetivo/borrador ni a cargas de producción.",
+        "Los resultados del árbol Qwen3-0.6B muestran cambios pequeños con verificación codiciosa y mayores ganancias de WTV con muestreo; el orden de los métodos depende del régimen de decodificación.",
+        "No se localizaron ni ejecutaron el código y los checkpoints."
+      ],
+      "relationships": [],
+      "summary": "Un preprint de arXiv del 21 de septiembre de 2026 presenta entrenamiento de longitud esperada de aceptación (EAL) para verificación codiciosa y entrenamiento de variación total por ventana (WTV) para decodificación especulativa basada en muestreo. En configuraciones de Qwen3 y Gemma4 ejecutadas por los autores y cinco benchmarks, informan mayores longitudes medias de aceptación cuando el objetivo coincide con el verificador, con ganancias mayores bajo muestreo que bajo verificación codiciosa. En decodificación en árbol Qwen3-8B/Qwen3-0.6B, WTV eleva la longitud media informada de 4.998 a 5.750 con temperatura 1.0 y de 4.304 a 4.780 con 0.5; con verificación codiciosa, KL+EAL cambia de 4.494 a 4.503, mientras que WTV por sí sola obtiene un resultado inferior, de 4.428. El artículo mide la longitud de aceptación, no la latencia integral ni el costo del servicio. Son resultados que afirman los autores del preprint y no se han reproducido de forma independiente.",
+      "technical": {
+        "claimed_result": "Los autores informan ganancias en el promedio de tokens aceptados por paso de verificación. Para Qwen3-8B/Qwen3-0.6B con borradores en árbol, WTV informa 4.780 frente a 4.304 con T=0.5 y 5.750 frente a 4.998 con T=1.0; la comparación codiciosa KL+EAL es 4.503 frente a 4.494 y WTV por sí sola obtiene 4.428. Los resultados varían según el régimen de decodificación y el tamaño del modelo borrador.",
+        "demonstrated_result": "El texto público v1 documenta estos objetivos, las condiciones experimentales y las tablas. No se ejecutaron pruebas externas ni auditorías de código, y no se hizo una reproducción independiente.",
+        "mechanism": "El artículo optimiza directamente la cantidad esperada de tokens aceptados en una ventana especulativa. EAL suma productos de probabilidades de los tokens objetivo principales para verificación codiciosa; WTV usa el solapamiento secuencial entre las distribuciones objetivo y borrador ajustadas por temperatura para verificación con muestreo. Los autores añaden opcionalmente una etapa GRPO que usa la longitud de aceptación simulada como recompensa.",
+        "regime": "Decodificación especulativa evaluada por los autores con objetivos Qwen3-8B y borradores Qwen3-0.6B/1.7B, además de configuraciones Gemma4; cinco benchmarks; borradores en cadena y en árbol; verificación codiciosa y por muestreo de rechazo con temperaturas 0.5 y 1.0. El entrenamiento usa dos GPU NVIDIA H100 y secuencias de ShareGPT generadas por el modelo objetivo; la evaluación usa una GPU H100 con lote 1.",
+        "reproducibility": "La fuente de arXiv incluye el método y el texto completo de las tablas. No se encontró ni ejecutó el código de los autores en esta revisión acotada; siguen pendientes la reproducción independiente y la medición de latencia en servicio.",
+        "strongest_baseline": "El entrenamiento basado en KL con el mismo par objetivo/borrador y la misma configuración de decodificación es la referencia principal. El artículo también compara CE, TV por posición, la pérdida de aceptación LK y variantes aumentadas con GRPO. En el ajuste citado de decodificación en árbol Qwen3-0.6B, WTV gana con muestreo, pero no con verificación codiciosa."
+      },
+      "title": "El entrenamiento atento a la aceptación mejora la longitud de aceptación informada para decodificación especulativa en regímenes emparejados",
+      "why_it_matters": "La decodificación especulativa depende de cuántos tokens borrador acepta el modelo objetivo, y la regla de aceptación cambia entre verificación codiciosa y con muestreo. Si se replican los resultados acotados del artículo, ajustar el objetivo de entrenamiento a cada verificador podría mejorar las decisiones sobre sistemas de inferencia y ofrecer un método práctico para entrenar borradores. La evidencia respalda únicamente cambios informados en longitud de aceptación; no establece un servicio más rápido ni menos costoso."
     },
     "FCMO-73F9503FD474": {
       "claims": [
@@ -21742,6 +22012,54 @@
       "title": "Google habilita Gemini 4 Argon a nivel mundial e informa resultados de trabajo con agentes",
       "why_it_matters": "La tarjeta de modelo añade una descripción material de seguridad de primera parte al lanzamiento global de Argon: Google dice que no puede descartar umbrales de capacidad biológica y cibernética ni un umbral de sigilo/consciencia situacional, y afirma que sus mitigaciones reducen los riesgos residuales evaluados. Junto con los resultados amplios de flujos de trabajo que reporta y el acceso público por API, esto vuelve importante el lanzamiento para decisiones de capacidad y despliegue. Son evaluaciones internas; siguen pendientes la evaluación independiente y una revisión detallada del caso de seguridad. La publicación de robótica de Google añade una puntuación ERQA elevada y demostraciones que abarcan simulación y robots físicos, ampliando las aplicaciones que se atribuyen al modelo. La puntuación y las demostraciones siguen siendo afirmaciones de primera parte sin reproducción independiente."
     },
+    "FCMO-CD66A5AAB230": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "OpenAI informa que GPT-Live-1.1 no presenta regresiones estadísticamente significativas frente a GPT-Live-1 en su evaluación de voz con indicaciones del conjunto de producción, mientras que en la evaluación con indicaciones sintéticas se observan regresiones estadísticamente significativas para GPT-Live-1.1 en las categorías sexual, salud mental, dependencia emocional y gore."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "La ficha describe regresiones leves de GPT-Live-1.1 en una prueba de respeto a restricciones, una mejora leve en la comunicación de bloqueos frente a GPT-Live-1 y un resultado algo peor en la prueba de búsqueda no disponible; GPT-Live-1.1 Quip muestra cambios distintos en algunas comparaciones."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "Las puntuaciones informadas no establecen la prevalencia de fallas de seguridad en el tráfico desplegado, las tasas generales de daño en el mundo real ni la contribución causal de la actualización del modelo por separado de las salvaguardas del sistema y los cambios de evaluación."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se localizó ni realizó una prueba independiente y emparejada de GPT-Live-1.1 frente a GPT-Live-1 en las tareas de seguridad por voz divulgadas.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "OpenAI indica que los conjuntos de indicaciones de producción y sintéticas son difíciles, no ponderados por prevalencia y cubren superficies de riesgo distintas; ninguno estima la prevalencia en el tráfico real, y la ficha señala que algunas mediciones no incluyen intervenciones de seguridad del sistema.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si las regresiones informadas en indicaciones sintéticas también aparecen en interacciones de voz pertinentes, podrían influir en decisiones de seguridad sobre una actualización de voz desplegada en servicios para consumidores y desarrolladores. El informe también encuentra un patrón distinto en su conjunto de indicaciones de producción; la puntuación refleja la posible consecuencia de las categorías medidas, no la confianza ni su prevalencia estimada.",
+      "limitations": [
+        "Todos los resultados provienen de la ficha de seguridad de OpenAI; el equipo de investigación no probó los modelos ni reprodujo las evaluaciones.",
+        "Las indicaciones sintéticas de voz se enfocan en casos adversariales deliberadamente difíciles basados en políticas y no se ponderan por prevalencia; sus puntuaciones no estiman la frecuencia de incidentes en producción.",
+        "La evaluación con indicaciones de producción utiliza audios compartidos voluntariamente por usuarios seleccionados y sometidos a controles de privacidad y elegibilidad; tampoco se pondera por prevalencia.",
+        "OpenAI indica que la evaluación sintética no incluye intervenciones del sistema como Trusted Contact, líneas locales de atención a crisis y Controles parentales para usuarios más jóvenes; el comportamiento del modelo subyacente difiere del producto completo.",
+        "La ficha señala que los detalles de evaluación evolucionan y que, en general, las puntuaciones de fichas anteriores no son directamente comparables cuando cambian las políticas, los evaluadores, los datos o los métodos de medición."
+      ],
+      "relationships": [],
+      "summary": "La ficha de sistema de GPT-Live-1.1 publicada por OpenAI el 15 de octubre presenta resultados mixtos en seguridad de voz. En su conjunto de indicaciones de producción, la empresa informa que no hay regresiones estadísticamente significativas frente a GPT-Live-1. En el conjunto de indicaciones sintéticas, deliberadamente difíciles, informa regresiones estadísticamente significativas para GPT-Live-1.1 en las categorías sexual, salud mental, dependencia emocional y gore; también describe una regresión leve en una prueba de respeto a restricciones y cambios mixtos en tareas de comunicación de bloqueos y búsqueda no disponible. Son resultados de primera parte, y ninguno de los conjuntos estima la prevalencia de incidentes de seguridad en el tráfico de producción.",
+      "technical": {
+        "claimed_result": "En indicaciones sintéticas, la ficha informa cambios en las puntuaciones de GPT-Live-1.1 frente a GPT-Live-1 de 0.87 a 0.84 en sexual, 0.70 a 0.63 en salud mental, 0.86 a 0.81 en dependencia emocional y 0.76 a 0.69 en gore; OpenAI califica estas regresiones como estadísticamente significativas. En la tabla de indicaciones de producción no informa regresiones estadísticamente significativas. Son puntuaciones del proveedor y no estiman prevalencia en el tráfico real.",
+        "demonstrated_result": "La ficha de sistema inspeccionada documenta la actualización del modelo, el diseño de evaluación y las comparaciones informadas por OpenAI. El equipo de investigación no probó el modelo ni verificó de forma independiente la significancia estadística.",
+        "mechanism": "GPT-Live-1.1 y GPT-Live-1.1 Quip son actualizaciones de modelos de voz dúplex completa. La ficha describe entrenamiento de seguridad, evaluaciones específicas para voz, integraciones de sistema existentes y la misma infraestructura de monitoreo, revisión y aplicación de medidas que en sus predecesores.",
+        "regime": "Comparaciones de primera parte entre GPT-Live-1.1 y GPT-Live-1, y entre GPT-Live-1.1 Quip y GPT-Live-1 mini. Los conjuntos incluyen audios seleccionados y compartidos por usuarios que se convierten en transcripciones y respuestas para evaluar seguridad, indicaciones de audio sintético generadas desde políticas y tareas básicas de alineación. Las evaluaciones de voz de producción y sintéticas no se ponderan por prevalencia. Algunas pruebas de alineación omiten las salvaguardas estándar del sistema y las instrucciones de desarrollador de los productos de primera parte. La ficha advierte que los valores de los modelos anteriores corresponden a sus versiones más recientes y que los detalles de evaluación pueden cambiar entre fichas.",
+        "strongest_baseline": "Los predecesores comparados directamente son GPT-Live-1 para GPT-Live-1.1 y GPT-Live-1 mini para GPT-Live-1.1 Quip. OpenAI informa que GPT-Live-1.1 no presenta regresiones estadísticamente significativas con indicaciones de producción, pero sí regresiones significativas en cuatro categorías con indicaciones sintéticas. Los conjuntos cubren superficies de riesgo diferentes y se complementan; no son intercambiables."
+      },
+      "title": "La ficha de GPT-Live-1.1 informa regresiones de seguridad de voz ante indicaciones adversariales sintéticas",
+      "why_it_matters": "La ficha muestra una distinción útil para el despliegue: la actualización de voz parece mantener resultados similares en un conjunto seleccionado de indicaciones de producción, pero presenta regresiones específicas en indicaciones adversariales sintéticas. Esto vuelve importantes el diseño de los conjuntos de evaluación, las salvaguardas del sistema y el seguimiento por categoría al lanzar modelos de voz. Las mediciones no establecen tasas de daño real ni cuánto compensan las salvaguardas desplegadas los cambios informados del modelo."
+    },
     "FCMO-CE1EF4F98046": {
       "claims": [
         {
@@ -21909,6 +22227,63 @@
       "title": "TypeSafe presenta Jev, un modelo de decisión estructurada con evaluaciones propias de flujos de trabajo",
       "why_it_matters": "Las decisiones estructuradas rápidas y de bajo costo podrían ampliar los casos en que el software usa IA, sobre todo cuando el texto generado por modelos convencionales requiere análisis y validación. Aún no se sabe si Jev mantiene la ventaja declarada fuera de cuatro flujos diseñados por su equipo; la construcción de las pruebas, las etiquetas de referencia y la configuración de los modelos pueden cambiar la comparación."
     },
+    "FCMO-CFD9055187D6": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Los autores presentan EvoPathBench, una prueba con 1,800 secuencias ordenadas en seis familias de tareas y dos capas de mercado. Evalúa actualizaciones persistentes de memoria y habilidades mediante pruebas en puntos de control reservados para medir generalización, retención de capacidades y adaptación de reglas."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En los experimentos informados, las mejoras en condiciones conocidas a menudo disminuyeron bajo cambio de distribución, las pérdidas de retención se concentraron en algunas trayectorias y ningún método evaluado mostró una adaptación fiable de reglas. Ningún efecto de revisión conservó significancia estadística tras la corrección de Holm."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan que la selección de candidatos es un cuello de botella importante: las salvaguardas redujeron las actualizaciones perjudiciales aceptadas, pero también disminuyeron la captura de mejoras y la recuperación de opciones beneficiosas. La prueba compara métodos de actualización de artefactos en sus propias tareas de mercado construidas."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El preprint no demuestra que los efectos medidos se generalicen a agentes desplegados, a otras configuraciones de modelos o herramientas ni a resultados de operaciones financieras reales; el equipo de investigación no reprodujo los resultados de forma independiente."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se ejecutó el código ni se reprodujeron de forma independiente los resultados de la prueba.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "La prueba combina datos públicos de Binance Spot con trayectorias sintéticas calibradas; la evidencia no demuestra validez para otros despliegues de agentes ni para operaciones financieras reales.",
+          "kind": "regime_unclear",
+          "state": "open"
+        },
+        {
+          "description": "Ningún efecto de revisión de reglas mantuvo significancia tras la corrección de Holm; las estimaciones puntuales no son evidencia fiable de superioridad entre métodos.",
+          "kind": "contradiction_unresolved",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si los resultados de la prueba se sostienen, medir en puntos de control la transferencia, la retención y la revisión de reglas podría revelar fallas que una puntuación final oculta y ayudar a evaluar actualizaciones persistentes de agentes. La consecuencia potencial para el diseño de evaluaciones es relevante, pero la evidencia procede de una sola prueba de autores en tareas de mercado construidas y no demuestra efectos en agentes desplegados ni en mercados reales. La puntuación refleja las posibles consecuencias, no la confianza.",
+      "limitations": [
+        "Todos los hallazgos empíricos proceden de un único preprint; el equipo de investigación no ejecutó el código ni reprodujo los resultados de manera independiente.",
+        "La prueba comprende secuencias de tareas construidas que combinan datos públicos de Binance Spot con trayectorias sintéticas calibradas; no mide resultados de operaciones reales.",
+        "Los resultados cubren diez configuraciones con modelos base, herramientas y ejecutores fijos y cinco oportunidades de actualización; se desconoce su generalización fuera de ellas.",
+        "El artículo informa que ningún efecto de revisión de reglas fue estadísticamente significativo después de la corrección de Holm; las posiciones basadas en estimaciones puntuales no deben interpretarse como superioridad fiable.",
+        "La prueba y las comparaciones de métodos fueron diseñadas por los autores; siguen pendientes la evaluación independiente de validez de tareas, variabilidad de modelos o API y reproducibilidad del lanzamiento."
+      ],
+      "relationships": [],
+      "summary": "Un preprint del 21 de septiembre presenta EvoPathBench, una prueba creada por sus autores para seguir actualizaciones persistentes de memoria y habilidades en agentes mediante 1,800 secuencias ordenadas de tareas. Mide generalización reservada, retención después de aprendizaje no relacionado y adaptación cuando cambia una regla. En los experimentos informados, las mejoras a menudo disminuyeron bajo cambio de distribución, las pérdidas de retención se concentraron en algunas trayectorias y ningún método mostró adaptación fiable; los efectos de adaptación no fueron significativos tras la corrección de Holm. El artículo también informa que las salvaguardas de selección reducen actualizaciones perjudiciales aceptadas, pero dejan pasar más mejoras. Los resultados provienen de configuraciones fijas en entornos de mercado construidos con datos públicos de Binance y trayectorias sintéticas calibradas. No se reprodujeron de forma independiente y no demuestran rendimiento de agentes desplegados ni de mercados reales.",
+      "technical": {
+        "claimed_result": "En diez configuraciones, las mejoras informadas en tareas cercanas a menudo disminuyeron o se invirtieron al transferirse; las pérdidas de retención variaron entre trayectorias; y ningún efecto de adaptación de reglas mantuvo significancia tras la corrección de Holm. Las salvaguardas de selección redujeron actualizaciones perjudiciales aceptadas, pero también redujeron la captura de mejoras y aumentaron las mejoras omitidas.",
+        "demonstrated_result": "El artículo describe una prueba con 1,800 secuencias en tres plantillas, seis familias de tareas y dos capas de mercado. Evalúa seis puntos de control con artefactos congelados mediante episodios reservados. Estos son detalles de diseño y resultados informados por los autores; el equipo de investigación no los reprodujo de forma independiente.",
+        "mechanism": "EvoPathBench mantiene fijos el modelo base, las herramientas y el ejecutor, mientras permite cambiar artefactos persistentes explícitos, como memorias, habilidades o reglas de flujo de trabajo. Las secuencias de acumulación, interferencia e inversión prueban transferencia, retención y adaptación; las evaluaciones reservadas emparejadas comparan los métodos evolutivos con una referencia sin actualizaciones y con el acceso al artefacto desactivado.",
+        "regime": "Los autores comparan diez configuraciones a lo largo de cinco oportunidades de actualización y seis puntos de control. El entorno combina precios públicos de Binance Spot con trayectorias sintéticas calibradas e incluye capas de mercado exógenas y endógenas. Los hallazgos se refieren a la evolución de artefactos en estas tareas construidas.",
+        "strongest_baseline": "La referencia sin evolución se usa para comparar la evolución de capacidades y la retención; desactivar el acceso al artefacto permite medir su efecto. El artículo también compara métodos de memoria y evolución de habilidades."
+      },
+      "title": "EvoPathBench evalúa si los agentes que evolucionan retienen y adaptan capacidades",
+      "why_it_matters": "Las memorias y habilidades persistentes pueden cambiar a un agente a lo largo de una secuencia de tareas, mientras que una puntuación final puede ocultar lo que aprendió, perdió o no logró corregir. EvoPathBench informa una forma estructurada de probar transferencia, retención y adaptación en puntos de control congelados. Sus resultados señalan debilidades de transferencia y selección de actualizaciones, pero la evidencia procede de tareas de mercado construidas por los autores; el artículo no demuestra efectos en operaciones reales ni en agentes desplegados."
+    },
     "FCMO-D06570E9DCAA": {
       "claims": [
         {
@@ -22020,6 +22395,61 @@
       },
       "title": "El Reino Unido amplía los pilotos de ciberdefensa con IA y prepara respuestas ante incidentes con agentes de IA",
       "why_it_matters": "El anuncio vincula el uso de IA de frontera para ciberdefensa pública con la preparación ante incidentes con agentes y el reporte de casi-incidentes. El estudio de junio aporta detalles operativos —validación humana, hallazgos, costos y correcciones— y muestra la distancia entre contar hallazgos y demostrar una reducción del riesgo. Si estas iniciativas escalan, podrían influir en la seguridad de los servicios públicos, pero ninguna fuente establece eficacia comparativa ni una gobernanza de incidentes madura."
+    },
+    "FCMO-D2AAFDDC6A80": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "Cognizant publicó un informe y su autor enlazó un repositorio público con licencia MIT para un transformer autorregresivo de 75M parámetros especializado en ARC-AGI."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Cognizant informa cerca de 76% de pass@2 en el conjunto de evaluación pública de ARC-AGI-1 tras algo más de cuatro horas de entrenamiento y evaluación en una NVIDIA H100; cerca de 80% para un conjunto de ocho modelos; aproximadamente 17%/22% en ARC-AGI-2 para un modelo/conjunto; y cerca de 44% con una configuración ARC-AGI-1 más rápida, de unos 17 minutos."
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION",
+          "text": "El informe indica que las puntuaciones provienen del conjunto público de evaluación, no de la tabla privada de ARC-AGI. El repositorio dice que las puntuaciones principales promedian varias semillas, mientras que las páginas de ejemplo muestran las mejores entre ocho. No se realizó una reproducción independiente ni una auditoría del código."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se encontró ni realizó una reproducción independiente de las puntuaciones y tiempos de entrenamiento informados para ARC-AGI-1/2.",
+          "kind": "reproduction_missing",
+          "state": "open"
+        },
+        {
+          "description": "Siguen sin resolverse la agregación exacta de puntuaciones, la incertidumbre entre semillas y la paridad del evaluador público con los criterios de ARC Prize.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "El informe público no ofrece una comparación emparejada con modelos de frontera que iguale presupuesto de candidatos de prueba y costo total de entrenamiento más inferencia.",
+          "kind": "baseline_unclear",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se replica, el resultado informado afectaría de forma significativa las decisiones de arquitectura y cómputo para tareas de razonamiento estrechas y estructuradas: un modelo pequeño entrenado desde cero podría alcanzar una puntuación alta en ARC-AGI-1 público con poco tiempo de una GPU. La importancia es notable, pero limitada a tareas ARC y a la evaluación pública de la empresa; la transferencia, integridad del puntaje y paridad de comparación siguen sin verificarse.",
+      "limitations": [
+        "Todas las puntuaciones y tiempos de cómputo son afirmaciones de primera parte; no se ejecutó el código ni hubo reproducción independiente.",
+        "La evaluación usa tareas públicas de ARC-AGI, no la tabla privada; el autor describe las cifras como estimaciones y advierte que las comparaciones dependen de la configuración y del cálculo de costos.",
+        "El informe compara el rango de puntuación con modelos mayores, pero no iguala tareas, instrucciones, presupuesto de candidatos, procedimiento de prueba ni alcance del entrenamiento. No demuestra paridad amplia de capacidades.",
+        "El README indica que las cifras principales promedian varias semillas; las páginas de ejemplo muestran los mejores resultados entre ocho. Aquí no se reconstruyeron la agregación exacta ni la varianza.",
+        "Según el informe y el repositorio, los datos de entrenamiento incluyen demostraciones de evaluación mientras excluyen las respuestas de prueba reservadas; no se auditó la contaminación de forma independiente.",
+        "La configuración de 17 minutos alcanza cerca de 44%, lo que muestra una compensación sustancial entre puntuación y cómputo; no debe presentarse como el resultado de 76%."
+      ],
+      "relationships": [],
+      "summary": "Una publicación del 21 de septiembre de 2026 de Cognizant AI Lab y su repositorio público describen un transformer autorregresivo de 75 millones de parámetros, entrenado desde cero para ARC-AGI. Cognizant informa cerca de 76% de pass@2 en el conjunto de evaluación pública de ARC-AGI-1 tras algo más de cuatro horas de entrenamiento y evaluación en una NVIDIA H100; un conjunto de ocho modelos supuestamente alcanza cerca de 80%. También informa cerca de 17% en ARC-AGI-2 para un modelo y 22% para el conjunto, mientras una configuración rápida de unos 17 minutos alcanza cerca de 44% en ARC-AGI-1. El repositorio indica que las puntuaciones principales promedian varias semillas, pero sus páginas de ejemplo muestran las mejores semillas entre ocho. Son resultados informados por primera parte sobre tareas de evaluación públicas, no una puntuación de la tabla privada ni una reproducción independiente. Se revisaron el README y la receta enlazada, pero no se ejecutó ni auditó el código.",
+      "technical": {
+        "claimed_result": "Cognizant informa cerca de 76% de pass@2 en la evaluación pública de ARC-AGI-1 con un modelo de 75M tras algo más de cuatro horas de entrenamiento y evaluación en una H100; cerca de 80% con ocho modelos; aproximadamente 17%/22% en ARC-AGI-2; y cerca de 44% con una configuración rápida de 17 minutos.",
+        "demonstrated_result": "El informe y el README públicos especifican el tamaño del modelo, el método especializado, el alcance de evaluación pública y una receta ejecutable. Se inspeccionaron las fuentes, pero no se ejecutó ni auditó el código; las puntuaciones y tiempos siguen siendo afirmaciones.",
+        "mechanism": "El modelo conserva la identidad de filas, columnas y cuadrículas mediante coordenadas, aumenta colores, rotaciones, reflejos y escalas, predice varios tokens a la vez, genera soluciones candidatas transformadas y las clasifica con probabilidad aumentada y comprobaciones simbólicas de consistencia.",
+        "regime": "Transformer de 75M parámetros entrenado desde cero con datos ARC; tareas públicas de evaluación ARC-AGI-1 y ARC-AGI-2; receta completa de una H100 (más de 4h), receta rápida (unos 17 min) y conjunto de ocho modelos. La afirmación excluye respuestas de prueba reservadas según los autores; las demostraciones de evaluación se incluyen en los datos ARC.",
+        "reproducibility": "Un repositorio público con licencia MIT incluye estructura de código, preparación de datos e instrucciones de ejecución. Se revisó su README, pero no se ejecutaron ni auditaron el código, dependencias, datos, checkpoints o puntuación.",
+        "strongest_baseline": "La publicación compara la estimación en ARC-AGI-1 público con puntuaciones publicadas de modelos grandes y advierte que sus capacidades y costos no son equivalentes. No se estableció un control emparejado de modelo, instrucciones, presupuesto de candidatos, costo de entrenamiento y evaluador."
+      },
+      "title": "Cognizant informa que un transformer de 75M alcanzó cerca de 76% de pass@2 en la evaluación pública de ARC-AGI-1",
+      "why_it_matters": "El informe presenta un caso concreto en el que un modelo de 75M adaptado a la estructura de la tarea y unas cuatro horas de trabajo en una sola GPU supuestamente alcanzan una puntuación alta en ARC-AGI-1 público. Si se reproduce con una partición limpia, ayudaría a medir cuánto pueden aportar la representación especializada, la aumentación, la predicción de varios tokens y la selección de candidatos en un benchmark estructurado. No demuestra paridad de razonamiento general con modelos de frontera: los resultados de ARC-AGI-2 son menores, la evaluación usa el conjunto público y no se estableció una comparación directa emparejada ni una ejecución independiente."
     },
     "FCMO-D32D8204EF09": {
       "claims": [
