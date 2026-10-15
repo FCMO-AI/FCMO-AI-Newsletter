@@ -314,7 +314,8 @@ class NewswireBridgeWorkflowContractTests(unittest.TestCase):
         freshness = "\n".join(step.get("run", "") for step in jobs["publication-freshness"]["steps"])
         self.assertIn("python tools/wire_status.py classify --wire-status corpus/wire-status.json", freshness)
         editorial = "\n".join(step.get("run", "") for step in jobs["editorial-freshness"]["steps"])
-        self.assertIn("editorial_freshness.py check", editorial)
+        # Editorial freshness is measured on the edition the public origin serves.
+        self.assertIn("python tools/served_edition.py", editorial)
         state = jobs["health-state"]
         self.assertIn("always()", state["if"])
         self.assertEqual(set(state["needs"]), {"serving-health", "publication-freshness", "editorial-freshness", "translation-health"})

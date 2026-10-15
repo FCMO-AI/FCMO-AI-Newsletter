@@ -139,6 +139,11 @@ def main(argv=None) -> int:
     # sys.path; add the root so imports behave like the serial discover job.
     ensure_repository_root_on_path()
 
+    # The serial suite creates the ignored ``_audit/`` scratch directory in an
+    # early test and several later tests write temporary trees under it without
+    # creating it; every shard reproduces that precondition.
+    Path("_audit").mkdir(exist_ok=True)
+
     # Discover once: a second discover() in one process sees already imported
     # modules and can differ.
     tests = list(flatten(unittest.defaultTestLoader.discover(args.start_dir)))
