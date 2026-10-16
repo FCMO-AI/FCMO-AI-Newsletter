@@ -1,7 +1,7 @@
 {
   "schema": "fcmo-stories-v2",
-  "generated_at": "2026-10-16T00:05:44Z",
-  "release_id": "newswire-d1da31774e3d47d9d7a984a2",
+  "generated_at": "2026-10-16T03:09:59Z",
+  "release_id": "newswire-e8ca596ddc0924062236b4fb",
   "canonical_locale": "en",
   "locales": [
     "en",
@@ -42,6 +42,2023 @@
     "2026-10-15"
   ],
   "stories": [
+    {
+      "id": "FCMO-F8EFB501EED2",
+      "slug": "fixed-sae-track-traces-bounded-format-heavy-rl-shifts-in-a-small",
+      "url_date": "2026-10-15",
+      "kind": "development",
+      "status": "live",
+      "beat": "research",
+      "desk": "reasoning_posttraining",
+      "title": "Fixed-SAE Track traces bounded, format-heavy RL shifts in a small reasoning model",
+      "headline": "Fixed-SAE Track traces bounded, format-heavy RL shifts in a small reasoning model",
+      "summary": "A September 14, 2026 arXiv paper introduces Fixed-SAE Track: it trains one shared sparse autoencoder per analyzed layer on activations pooled across a base model and its RL checkpoints, then freezes the feature directions to track representation shifts. In the main Qwen2.5-1.5B-Instruct math-RL setting, the authors report gradual late-layer drift concentrated in formatting and reasoning scaffolds. Steering amplified features at dose α=10 raises strict accuracy from 0.050 to 0.192, close to the short-RL final model’s 0.175, while lenient reasoning accuracy changes more modestly. The paper also reports that all 29 selected GSM8K problems that shift from greedy-base-wrong to RL-right are solved by base sampling at k=64; however, 2000 additional RL steps raise lenient accuracy from 0.300 to 0.408, and directly injecting a necessary reasoning feature set recovers little. The approximately 80% headline therefore concerns a bounded short-RL extractability/format effect, not a general claim that RL only elicits existing capability. Results are author-reported and not independently reproduced.",
+      "why_it_matters": "A shared fixed feature basis can make checkpoint-to-checkpoint interpretability less dependent on matching separately trained SAE features. The reported interventions suggest some short-run mathematical RL gains may reflect answer-format extractability, while the paper also finds genuine reasoning gains under sustained training. This distinction could change how post-training gains are measured and interpreted, but the evidence remains author-reported and narrow in model/task regime.",
+      "importance_rationale": "If replicated, a shared SAE dictionary across RL checkpoints offers a useful method for separating representation drift from feature-index mismatch, and the reported interventions suggest short-run math-RL gains can partly reflect improved answer-format extractability. This could change how post-training gains are mechanistically interpreted, but the main evidence is one small model/task regime, author-run and explicitly qualified by modest sustained-training reasoning gains.",
+      "technical": {
+        "claimed_result": "The authors report small gradual late-layer drift, mostly in formatting/scaffolding features, and that steering amplified features in the base model reproduces much of short-RL strict-accuracy/tag-rate gains. They report base pass@64 solves all 29 selected RL-fixed GSM8K problems and sustained training adds lenient accuracy; the paper therefore qualifies the short-RL elicitation result.",
+        "demonstrated_result": "The public v1 paper defines a pooled shared-SAE tracking method and reports activation analyses and steering/ablation experiments. These establish what the authors measured and claim, not independent confirmation of the mechanistic interpretation.",
+        "mechanism": "Pool activation vectors across base and RL checkpoints, train and freeze a shared TopK SAE per layer, and compare stable latent activations across checkpoints. Use token attribution and causal steering/ablation to distinguish feature correlations from tested sufficiency/necessity.",
+        "regime": "Primarily Qwen2.5-1.5B-Instruct math RL, GRPO and layer-27 SAE analysis, with strict-format and lenient-reasoning metrics; 29 selected GSM8K problems for base pass@64; a 2000-step continuation for sustained training.",
+        "reproducibility": "The full arXiv paper and appendices are public and report controls and cross-run/cross-algorithm analyses, but no independent implementation or reproduction was inspected.",
+        "strongest_baseline": "For steering sufficiency, the short-RL final checkpoint is compared with the base model under amplified-feature and random-direction interventions. For base capability, the comparator is greedy decoding versus sampling pass@k on the selected 29 GSM8K items. These comparisons answer different questions and should not be collapsed into one general RL effect."
+      },
+      "importance_tier": "Notable",
+      "development_type": "paper",
+      "event_at": "2026-09-14T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-16T03:09:45Z",
+      "updated_at": "2026-10-16T03:09:45Z",
+      "importance": 5,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": false,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "CLAIMED",
+            "text": "The authors introduce Fixed-SAE Track, which trains one shared SAE per analyzed layer on pooled activations from a base model and RL checkpoints, then re-encodes all checkpoints through the frozen dictionary to track feature shifts using fixed directions."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "In the main Qwen2.5-1.5B-Instruct mathematical RL setting, the authors report small, gradual, late-layer feature drift concentrated in formatting scaffolds and ladder tokens. At steering dose α=10, steering amplified features raises strict accuracy from 0.050 to 0.192 versus 0.175 for the short-RL final model, while lenient accuracy changes more modestly."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "For 29 GSM8K problems that are wrong under greedy base decoding but correct after RL, the authors report base pass@k rises to 1.00 at k=64; they also report that continuing training for 2000 steps raises lenient accuracy from 0.300 to 0.408. These results qualify the claim that short RL mainly elicits existing sampled capability: sustained training can add reasoning performance in this regime."
+          },
+          {
+            "label": "NOT_ESTABLISHED",
+            "text": "The paper does not establish that RL generally only elicits pre-existing capabilities or that the headline steering recovery is a general fraction of RL’s gain; the ~80% framing concerns a short-training strict-accuracy/extractability effect, while directly injecting a reasoning feature set recovers little."
+          }
+        ],
+        "limitations": [
+          "All evidence is from the author-reported arXiv v1 paper; no independent reproduction was performed.",
+          "The main representational analysis focuses on Qwen2.5-1.5B-Instruct mathematical RL and a fixed SAE at layer 27, with some layer comparisons; broader transfer is unknown.",
+          "The approximately 80% headline describes steering recovery of a short-RL strict-accuracy/extractability effect; lenient reasoning accuracy changes more modestly, and sustained training raises it further.",
+          "Among 29 GSM8K problems wrong under greedy base decoding but right after RL, base sampling solves all by k=64; this selected set does not establish general capability boundaries.",
+          "A reasoning feature set is reported as causally necessary under ablation, but direct static injection recovers only a small fraction of the RL gain."
+        ],
+        "gaps": [
+          {
+            "kind": "missing_independent",
+            "description": "No independent reproduction of Fixed-SAE Track, feature interpretations or steering results has been inspected."
+          },
+          {
+            "kind": "other",
+            "description": "The main mechanistic claims center on one small model family, mathematical RL and a specific fixed SAE layer; broader model, task and algorithm transfer remains uncertain."
+          },
+          {
+            "kind": "other",
+            "description": "The approximately 80% steering recovery framing refers to the short-RL strict-accuracy/extractability effect; sustained training also improves lenient accuracy, and static injection of the reasoning feature set recovers little."
+          },
+          {
+            "kind": "other",
+            "description": "The base pass@64 result covers the 29 selected GSM8K problems that switch from greedy-base-wrong to RL-right; it does not establish broad capability presence across harder tasks or sampling budgets."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://arxiv.org/abs/2609.15064",
+          "domain": "arxiv.org",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "Peking University",
+        "National University of Singapore",
+        "The Chinese University of Hong Kong"
+      ],
+      "topics": [],
+      "regions": [
+        "GLOBAL",
+        "CN",
+        "SG",
+        "HK"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-F8EFB501EED2.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: Fixed-SAE Track traces bounded, format-heavy RL shifts in a small reasoning model"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "Fixed-SAE Track registra cambios acotados y centrados en el formato tras RL en un modelo pequeño de razonamiento",
+            "summary": "Un artículo de arXiv del 14 de septiembre de 2026 presenta Fixed-SAE Track: entrena un autoencoder disperso compartido por capa analizada con activaciones combinadas del modelo base y sus checkpoints de RL, y congela las direcciones de características para rastrear cambios de representación. En el principal régimen de razonamiento matemático con Qwen2.5-1.5B-Instruct, los autores informan una deriva gradual en capas tardías, concentrada en formato y andamiaje del razonamiento. Con dosis α=10, aplicar steering a características amplificadas eleva la exactitud estricta de 0.050 a 0.192, cerca del 0.175 del modelo final tras RL breve; la exactitud flexible de razonamiento cambia menos. El artículo también informa que el muestreo base resuelve con k=64 los 29 problemas GSM8K seleccionados que pasan de incorrectos con decodificación voraz base a correctos tras RL; sin embargo, otros 2000 pasos de RL elevan la exactitud flexible de 0.300 a 0.408, y la inyección directa de un conjunto necesario de características de razonamiento recupera poco. Por ello, la referencia cercana a 80% describe un efecto acotado de extractabilidad/formato tras RL breve, no que RL en general solo haga aflorar capacidades existentes. Los resultados son de los autores y no se han reproducido de forma independiente.",
+            "importance_rationale": "Si se reproduce, una base SAE compartida entre checkpoints ofrece un método útil para separar la deriva de representación de cambios arbitrarios en índices de características. Las intervenciones sugieren que parte de las mejoras matemáticas de RL breve puede consistir en facilitar la extracción de respuestas con el formato esperado. Esto podría cambiar la interpretación mecanística del posentrenamiento, aunque la evidencia principal es de un régimen estrecho, reportada por los autores y matizada explícitamente por mejoras de razonamiento con entrenamiento sostenido.",
+            "why_it_matters": "Una base de características fija y compartida puede reducir la dependencia del análisis entre checkpoints de la correspondencia entre SAEs entrenados por separado. Las intervenciones sugieren que algunas mejoras matemáticas de RL breve pueden reflejar una mayor facilidad para extraer respuestas con formato válido, mientras que el artículo también encuentra mejoras reales de razonamiento con entrenamiento sostenido. Esta distinción podría cambiar la medición e interpretación del posentrenamiento, pero la evidencia sigue siendo de los autores y limitada a un modelo y tareas concretos.",
+            "technical": {
+              "claimed_result": "Los autores informan una deriva pequeña, gradual y tardía, mayormente en características de formato, y que el steering de características amplificadas en el modelo base reproduce gran parte de la mejora de exactitud estricta y tasa de etiquetas tras RL breve. También informan que el modelo base resuelve con pass@64 los 29 problemas GSM8K seleccionados y que el entrenamiento sostenido añade exactitud flexible; por tanto, el artículo matiza la conclusión sobre el afloramiento de capacidades.",
+              "demonstrated_result": "El artículo público v1 define un método de seguimiento con SAE compartido y presenta análisis de activaciones, steering y ablación. Esto acredita lo que los autores midieron y afirman, no una confirmación independiente de su interpretación mecanística.",
+              "mechanism": "Combina activaciones del modelo base y checkpoints de RL, entrena y congela un SAE TopK compartido por capa y compara activaciones latentes estables entre checkpoints. Usa atribución por token y steering/ablación causal para evaluar si las correlaciones de características también son suficientes o necesarias en las intervenciones probadas.",
+              "regime": "Principalmente RL matemático de Qwen2.5-1.5B-Instruct con GRPO, análisis SAE en torno a la capa 27 y métricas estrictas de formato y flexibles de razonamiento; 29 problemas GSM8K seleccionados para pass@64; continuación de entrenamiento de 2000 pasos.",
+              "reproducibility": "El artículo completo y sus apéndices son públicos e informan controles y análisis entre ejecuciones y algoritmos; no se inspeccionó una implementación o reproducción independiente.",
+              "strongest_baseline": "Para suficiencia del steering, se compara el checkpoint final tras RL breve con el modelo base bajo intervenciones de características amplificadas y direcciones aleatorias. Para capacidad base, se contrasta la decodificación voraz con muestreo pass@k en los 29 problemas seleccionados. Son comparaciones que responden preguntas distintas y no deben fusionarse en un único efecto general de RL."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "Los autores presentan Fixed-SAE Track, que entrena un único SAE compartido por capa analizada con activaciones combinadas del modelo base y sus checkpoints de RL, y luego vuelve a codificar todos los checkpoints con ese diccionario congelado para rastrear cambios de características con direcciones fijas."
+                },
+                {
+                  "text": "En el experimento principal de razonamiento matemático con Qwen2.5-1.5B-Instruct, los autores informan una deriva pequeña, gradual y concentrada en capas tardías, sobre todo en elementos de formato. Con dosis de dirección α=10, la conducción de características amplificadas sube la exactitud estricta de 0.050 a 0.192, frente a 0.175 en el modelo final tras RL breve; la exactitud de razonamiento flexible cambia menos."
+                },
+                {
+                  "text": "Para 29 problemas GSM8K incorrectos con decodificación voraz del modelo base y correctos tras RL, los autores informan que pass@k del modelo base llega a 1.00 con k=64. También informan que 2000 pasos adicionales elevan la exactitud flexible de 0.300 a 0.408. Estos resultados matizan la hipótesis de que RL breve solo hace aflorar capacidad ya muestreada: en este régimen, el entrenamiento sostenido también puede mejorar el razonamiento."
+                },
+                {
+                  "text": "El artículo no demuestra que RL solo haga aflorar capacidades preexistentes en general ni que la recuperación destacada por steering represente una fracción general de la ganancia de RL. La referencia cercana a 80% corresponde a un efecto de exactitud estricta y facilidad de extracción tras RL breve; inyectar directamente un conjunto de características de razonamiento recupera poco."
+                }
+              ],
+              "limitations": [
+                "Toda la evidencia procede del artículo arXiv v1 de los autores; no se realizó una reproducción independiente.",
+                "El análisis principal se centra en Qwen2.5-1.5B-Instruct, RL matemático y un SAE fijo en la capa 27, con algunas comparaciones entre capas; se desconoce la transferencia más amplia.",
+                "La afirmación cercana a 80% describe la recuperación por steering de un efecto de exactitud estricta/extractabilidad tras RL breve; la exactitud flexible cambia menos y aumenta más con entrenamiento sostenido.",
+                "Entre 29 problemas GSM8K incorrectos con decodificación voraz base y correctos tras RL, el muestreo base resuelve todos con k=64; este conjunto seleccionado no determina fronteras generales de capacidad.",
+                "El artículo informa que un conjunto de características de razonamiento es causalmente necesario según ablación, pero su inyección estática directa recupera solo una fracción pequeña de la ganancia de RL."
+              ],
+              "gaps": [
+                {
+                  "description": "No se ha inspeccionado una reproducción independiente de Fixed-SAE Track, las interpretaciones de características ni los resultados de steering."
+                },
+                {
+                  "description": "El análisis mecanístico principal se concentra en un modelo pequeño, matemáticas y una capa de SAE fija; la transferencia a otros modelos, tareas y algoritmos sigue siendo incierta."
+                },
+                {
+                  "description": "La referencia de recuperación cercana a 80% se refiere al efecto de exactitud estricta/extractabilidad tras RL breve; el entrenamiento sostenido también mejora la exactitud flexible y la inyección estática de características de razonamiento recupera poco."
+                },
+                {
+                  "description": "El resultado pass@64 abarca 29 problemas GSM8K seleccionados como incorrectos con decodificación voraz base y correctos tras RL; no establece una frontera amplia de capacidad en tareas más difíciles o con otros presupuestos de muestreo."
+                }
+              ]
+            }
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "Fixed-SAE Track追踪到小型推理模型中有限且偏向格式的RL表征变化",
+            "summary": "2026年九月14日发布的一篇arXiv论文提出Fixed-SAE Track：它用基础模型及其RL检查点的合并激活，按层训练共享稀疏自编码器，并冻结特征方向来追踪表征变化。在Qwen2.5-1.5B-Instruct数学RL主实验中，作者报告称，表征漂移逐渐发生于后层，主要集中在格式和推理脚手架特征。以α=10对增强特征进行steering后，严格准确率从0.050升至0.192，接近短程RL最终模型的0.175；宽松推理准确率变化较小。论文还报告称，对于29道从基础模型贪心解码错误转为RL正确的GSM8K题目，基础模型采样到k=64时均能答对；但继续训练2000步后，宽松准确率仍从0.300升至0.408，直接注入一组必要推理特征则只能恢复少量收益。因此，约80%的说法仅指短程RL后有限的可提取性/格式效应，并不意味着RL普遍只是唤起既有能力。结果由作者报告，尚无独立复现。",
+            "importance_rationale": "如果得到复现，在RL检查点间使用共享SAE字典可提供一种有用方法，区分真实表征漂移与特征索引变化。相关干预提示，短程数学RL带来的部分提升可能来自答案格式更易被评分器提取。这可能改变对后训练收益的机制性解释，但主要证据来自作者报告的狭窄设置，且论文明确指出持续训练也会带来推理提升。",
+            "why_it_matters": "跨检查点使用固定共享特征基底，或可减少分析对不同训练SAE特征匹配的依赖。相关干预提示，一些短程数学RL提升可能源于答案格式更容易被提取；论文也发现持续训练能带来真实的推理提升。这一区分可能改变后训练收益的测量与解释，但当前证据仍由作者报告，且局限于特定模型和任务。",
+            "technical": {
+              "claimed_result": "作者报告称，特征漂移幅度较小、渐进且集中在后层，主要涉及格式特征；在基础模型中steering增强特征可复现短程RL带来的大部分严格准确率/标签率提升。作者还报告，基础模型pass@64可答对筛选的29道题，持续训练能提高宽松准确率，因此论文对短程RL唤起能力的解释有所限定。",
+              "demonstrated_result": "公开的v1论文定义了共享SAE追踪方法，并给出了激活分析、steering及消融实验。这证明作者记录了这些测量和主张，但不能独立确认其机制性解释。",
+              "mechanism": "合并基础模型和RL检查点的激活，按层训练并冻结共享TopK SAE，再比较各检查点在稳定特征上的激活。通过token归因以及因果steering/消融，检验特征相关性是否在所测干预中呈现充分性或必要性。",
+              "regime": "主要为Qwen2.5-1.5B-Instruct数学RL与GRPO，围绕第27层开展SAE分析，并分别采用严格格式和宽松推理指标；29道筛选的GSM8K题用于pass@64分析；持续训练追加2000步。",
+              "reproducibility": "完整论文和附录公开，包含控制实验及跨运行、跨算法分析；本次审查未检查独立实现或复现。",
+              "strongest_baseline": "在steering充分性比较中，将短程RL最终检查点与基础模型在增强特征及随机方向干预下比较。在基础能力比较中，对筛选的29题比较贪心解码和pass@k采样。这些实验回答不同问题，不应合并成一个普遍的RL效应。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "作者提出Fixed-SAE Track：每个分析层使用基础模型及其RL检查点的合并激活训练一个共享SAE，再用冻结的字典重新编码所有检查点，以固定特征方向追踪变化。"
+                },
+                {
+                  "text": "在Qwen2.5-1.5B-Instruct数学推理主实验中，作者报告称，特征漂移幅度较小、渐进发生且集中在后层，主要涉及格式特征。以α=10进行特征steering后，严格准确率从0.050升至0.192，接近短程RL最终模型的0.175；宽松推理准确率变化较小。"
+                },
+                {
+                  "text": "对于29道基础模型贪心解码答错、RL后答对的GSM8K题目，作者报告称，基础模型的pass@k在k=64时达到1.00。作者还报告，额外训练2000步后，宽松准确率从0.300升至0.408。这些结果修正了“短程RL只是唤起已有采样能力”的解释：在该设置中，持续训练也能提高推理表现。"
+                },
+                {
+                  "text": "论文没有证明RL普遍只会唤起既有能力，也没有证明steering恢复比例可代表RL收益的一般比例。约80%的表述针对短程训练后的严格准确率/答案可提取性效应；直接注入推理特征集合仅恢复了少量收益。"
+                }
+              ],
+              "limitations": [
+                "所有证据均来自作者的arXiv v1论文；本次未进行独立复现。",
+                "主要分析聚焦于Qwen2.5-1.5B-Instruct数学RL和第27层固定SAE，并包含少量跨层比较；更广泛的迁移能力未知。",
+                "约80%的说法描述短程RL后严格准确率/可提取性效应的steering恢复；宽松推理准确率变化较小，并会随持续训练进一步提高。",
+                "在29道基础模型贪心解码答错、RL后答对的GSM8K题目中，基础模型采样至k=64时全部答对；该筛选集并不能确定普遍能力边界。",
+                "论文报告，消融实验显示某推理特征集具有因果必要性，但直接静态注入该集合只能恢复少量RL收益。"
+              ],
+              "gaps": [
+                {
+                  "description": "尚未检查Fixed-SAE Track、特征解释或steering结果的独立复现。"
+                },
+                {
+                  "description": "主要机制分析集中于一个小型模型、数学任务及特定固定SAE层；其向其他模型、任务和算法迁移的能力尚不确定。"
+                },
+                {
+                  "description": "约80%的恢复说法指短程RL后的严格准确率/答案可提取性效应；持续训练也会提高宽松准确率，而静态注入推理特征只能恢复少量收益。"
+                },
+                {
+                  "description": "pass@64结果只涵盖29道经过筛选的GSM8K题目，这些题在基础模型贪心解码下答错、RL后答对；它不能确定更难任务或其他采样预算下的普遍能力边界。"
+                }
+              ]
+            },
+            "headline": "Fixed-SAE Track追踪到小型推理模型中有限且偏向格式的RL表征变化"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
+    {
+      "id": "FCMO-E4BFA07CFB38",
+      "slug": "beijing-opens-a-call-for-scientific-data-centers-to-support-ai-enabled",
+      "url_date": "2026-10-15",
+      "kind": "development",
+      "status": "live",
+      "beat": "policy",
+      "desk": "policy_geopolitics",
+      "title": "Beijing opens a call for scientific data centers to support AI-enabled research",
+      "headline": "Beijing opens a call for scientific data centers to support AI-enabled research",
+      "dek": "Beijing opened a call for proposals to build domain scientific data centers for AI-enabled research.",
+      "summary": "Beijing opened a call for proposals to build domain scientific data centers for AI-enabled research. The notice and its construction requirements specify data aggregation and governance, AI-Ready preprocessing and annotation pipelines, multimodal processing, research-trajectory datasets, audited access controls, and connection to the municipal open-science-data platform with API and integrated-compute services. Projects may last up to three years; company applicants must provide matching funds at a minimum 2:1 ratio to municipal science funding. Applications are due October 28, 2026. The call establishes requirements, not awards, operating centers or delivered research-data access.",
+      "why_it_matters": "The proposal joins AI-ready scientific datasets with research-process traces, reusable access controls, platform integration and compute services. If funded and implemented, that infrastructure could support reproducible research and model training/evaluation across several scientific fields. The solicitation does not establish awards, actual access or research effects.",
+      "importance_rationale": "If selected and implemented, shared scientific-data infrastructure with platform and compute integration could improve AI-enabled research capacity in multiple fields. This is a city-level proposal call; the score reflects potential consequence if delivered, not evidence that centers or outcomes exist.",
+      "technical": {
+        "claimed_result": "The authorities plan to support domain scientific-data centers with AI-Ready data services and research-process records for model training, evaluation and reproducible research.",
+        "demonstrated_result": "The official call and construction requirements specify AI-Ready data processing, research-trajectory datasets, access controls, platform integration, APIs and compute services. No center has been shown to be selected or operational.",
+        "mechanism": "Competitive proposals for projects of up to three years, connecting domain datasets to the Beijing municipal open-science-data platform and providing search, APIs, sandboxes and integrated computing. Construction requirements include tools for data preprocessing, feature extraction and annotation; authorized, traceable research-process records; tiered access; and audited security controls. Company applicants must specify funding and provide at least 2:1 matching support relative to municipal science funding.",
+        "regime": "Beijing municipal program announced 15 October 2026; proposals close 28 October 2026 at 18:00 China Standard Time. The notice targets selected scientific domains and organizations based in Beijing.",
+        "reproducibility": "The construction requirements describe traceable data and research-process records as a goal. No proposed center, access service, dataset, model-training use or reproducibility outcome was inspected.",
+        "strongest_baseline": "The call says it implements Beijing’s 2026–2028 AI-for-science plan. It does not quantify current data access or compare expected center capacity with a measured baseline."
+      },
+      "importance_tier": "Meaningful",
+      "development_type": "policy_action",
+      "event_at": "2026-10-15T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-16T03:09:45Z",
+      "updated_at": "2026-10-16T03:09:45Z",
+      "importance": 4,
+      "evidence_class": "A",
+      "confidence": "confirmed",
+      "front_page_eligible": true,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "DEMONSTRATED",
+            "text": "Beijing’s Municipal Science and Technology Commission and Zhongguancun Science Park Administrative Committee published a call on 15 October 2026 inviting proposals for Beijing scientific data centers serving AI-enabled research."
+          },
+          {
+            "label": "DEMONSTRATED",
+            "text": "The notice says projects may run for up to three years, must connect to the municipal science-data sharing platform, and should provide data-service systems with search, API calls and integrated compute support. It requires company applicants to identify funding sources and provide supporting funds at no less than a 2:1 ratio to municipal science funding."
+          },
+          {
+            "label": "DEMONSTRATED",
+            "text": "The official construction requirements specify AI-Ready data-processing pipelines, tools for preprocessing, feature extraction and annotation, multimodal processing and trustworthy evaluation; they also call for traceable and reproducible research-process datasets, tiered data access, and audited security controls. These are project requirements, not demonstrated operating capabilities."
+          },
+          {
+            "label": "NOT_ESTABLISHED",
+            "text": "The solicitation and construction requirements do not establish which projects will be selected, final budgets, operational data-center capacity, delivered data access or research outcomes. A sample value in the application template is not an announced grant cap."
+          }
+        ],
+        "limitations": [
+          "This is a government solicitation and a set of construction requirements, not evidence that any proposal has been selected or that a center is operating.",
+          "The application form contains sample/placeholding entries; no program grant ceiling or award amount was established.",
+          "No actual center count, data volume, user access, compute capacity or research outcome is specified by the inspected materials."
+        ],
+        "gaps": [
+          {
+            "kind": "other",
+            "description": "No proposal selections, final budgets, operating data centers, delivered data and compute services, or research outcomes were established in the notice or application materials."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://kw.beijing.gov.cn/zwgk/zcwj/202610/t20261015_4903481.html",
+          "domain": "kw.beijing.gov.cn",
+          "primary": true
+        },
+        {
+          "url": "https://kw.beijing.gov.cn/zwgk/zcwj/202610/W020261015590875227325.docx",
+          "domain": "kw.beijing.gov.cn",
+          "primary": true
+        },
+        {
+          "url": "https://kw.beijing.gov.cn/zwgk/zcwj/202610/W020261015590875342039.docx",
+          "domain": "kw.beijing.gov.cn",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "Beijing Municipal Science and Technology Commission",
+        "Zhongguancun Science Park Administrative Committee"
+      ],
+      "topics": [
+        "ai-for-science",
+        "scientific-data-infrastructure",
+        "research-data",
+        "compute-access",
+        "chinese-ai-policy"
+      ],
+      "regions": [
+        "CN"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-E4BFA07CFB38.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: Beijing opens a call for scientific data centers to support AI-enabled research"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "Beijing abre una convocatoria para centros de datos científicos que apoyen la investigación con IA",
+            "summary": "Beijing abrió una convocatoria para proponer centros de datos científicos especializados que apoyen la investigación con IA. El aviso y los requisitos de construcción especifican la agregación y gobernanza de datos, procesos AI-Ready de preparación y anotación, tratamiento multimodal, conjuntos de datos sobre procesos de investigación, controles de acceso auditados y conexión con la plataforma municipal de datos científicos, con API y servicios de cómputo integrado. Los proyectos pueden durar hasta tres años; las empresas solicitantes deben aportar fondos de contrapartida en una proporción mínima de 2:1 respecto al financiamiento municipal para ciencia. Las solicitudes vencen el 28 de octubre de 2026. La convocatoria establece requisitos, pero no demuestra adjudicaciones, centros operativos ni acceso efectivo a datos de investigación.",
+            "importance_rationale": "Si se seleccionan y ejecutan los proyectos, la infraestructura compartida de datos científicos, integrada con plataformas y cómputo, podría fortalecer la investigación con IA en varios campos. Es una convocatoria municipal; el puntaje expresa la consecuencia potencial si se concreta, no evidencia de que ya existan centros o resultados.",
+            "why_it_matters": "La propuesta combina datos científicos preparados para IA con registros de procesos de investigación, controles de acceso reutilizables, integración de plataformas y servicios de cómputo. Si recibe financiamiento y se implementa, esa infraestructura podría respaldar investigación reproducible y entrenamiento o evaluación de modelos en varias disciplinas. La convocatoria no demuestra adjudicaciones, acceso efectivo ni resultados científicos.",
+            "technical": {
+              "claimed_result": "Las autoridades planean respaldar centros de datos científicos especializados con servicios de datos AI-Ready y registros de procesos de investigación para entrenamiento de modelos, evaluación e investigación reproducible.",
+              "demonstrated_result": "La convocatoria y los requisitos de construcción especifican procesamiento de datos AI-Ready, conjuntos de datos sobre procesos de investigación, controles de acceso, integración con plataformas, API y servicios de cómputo. No se ha demostrado que algún centro haya sido seleccionado u opere.",
+              "mechanism": "Convocatoria competitiva para proyectos de hasta tres años, que conecten datos especializados con la plataforma municipal de Beijing y ofrezcan búsqueda, API, entornos aislados y cómputo integrado. Los requisitos incluyen herramientas de preprocesamiento, extracción de características y anotación; registros autorizados y trazables de procesos de investigación; acceso por niveles y controles auditados. Las empresas deben indicar su financiamiento y aportar al menos 2:1 en recursos propios respecto al financiamiento municipal para ciencia.",
+              "regime": "Programa municipal de Beijing anunciado el 15 de octubre de 2026; las solicitudes cierran el 28 de octubre de 2026 a las 18:00, hora estándar de China. El aviso se dirige a ámbitos científicos seleccionados y organizaciones con sede en Beijing.",
+              "reproducibility": "Los requisitos describen conjuntos de datos trazables y registros del proceso de investigación como objetivo. No se inspeccionaron centros propuestos, servicios de acceso, conjuntos de datos, usos para entrenamiento de modelos ni resultados de reproducibilidad.",
+              "strongest_baseline": "La convocatoria indica que implementa el plan de Beijing para IA y ciencia de 2026–2028. No cuantifica el acceso actual a datos ni compara la futura capacidad de los centros con una línea de base medida."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "La Comisión Municipal de Ciencia y Tecnología de Beijing y el Comité Administrativo del Parque Científico de Zhongguancun publicaron el 15 de octubre de 2026 una convocatoria para proponer centros de datos científicos que apoyen la investigación con IA."
+                },
+                {
+                  "text": "El aviso permite proyectos de hasta tres años, exige conexión con la plataforma municipal de datos científicos y pide sistemas con búsqueda, llamadas a API y cómputo integrado. Las empresas solicitantes deben indicar sus fuentes de financiamiento y aportar recursos propios en una proporción mínima de 2:1 respecto al financiamiento municipal para ciencia."
+                },
+                {
+                  "text": "Los requisitos oficiales especifican procesos de datos AI-Ready, herramientas para preprocesamiento, extracción de características y anotación, tratamiento multimodal y evaluación confiable; también piden conjuntos de datos trazables y reproducibles sobre procesos de investigación, acceso por niveles y controles de seguridad auditados. Son requisitos para los proyectos, no capacidades ya operativas."
+                },
+                {
+                  "text": "La convocatoria y los requisitos de construcción no determinan qué proyectos serán seleccionados, los presupuestos finales, la capacidad operativa, el acceso efectivo a datos ni los resultados de investigación. Un valor de muestra del formulario no constituye un tope de subvención anunciado."
+                }
+              ],
+              "limitations": [
+                "Se trata de una convocatoria gubernamental y de requisitos de construcción; no demuestra que se haya seleccionado una propuesta o que opere un centro.",
+                "El formulario de solicitud contiene valores de muestra o marcadores; no se estableció un tope de subvención ni un monto adjudicado para el programa.",
+                "Los materiales inspeccionados no especifican el número final de centros, el volumen de datos, el acceso de usuarios, la capacidad de cómputo ni los resultados científicos."
+              ],
+              "gaps": [
+                {
+                  "description": "No se establecieron proyectos seleccionados, presupuestos finales, centros operativos, servicios entregados de datos o cómputo ni resultados de investigación en el aviso o los materiales de solicitud."
+                }
+              ]
+            },
+            "dek": "Beijing abrió una convocatoria para proponer centros de datos científicos especializados que apoyen la investigación con IA."
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "北京启动科学数据中心建设申报，支持人工智能赋能科研",
+            "summary": "北京启动领域科学数据中心建设项目征集，以支持人工智能赋能科研。通知及建设要求包括数据汇集与治理、AI-Ready 数据处理和标注流程、多模态处理、研究过程数据集、可审计的访问控制，以及接入市级科学数据平台并提供 API 和一体化算力服务。项目建设周期最长为三年；企业申报单位须提供配套经费，比例不低于市级科技经费的 2:1。申报截止时间为 2026 年 十月 28 日。此次征集规定了建设要求，但不能证明已有项目获批、中心运行或科研数据已经开放。",
+            "importance_rationale": "如果项目获选并实施，接入平台和算力的共享科学数据基础设施可能提升多个领域的人工智能科研能力。这是一项市级项目征集；评分反映实施后的潜在影响，并不表示数据中心或成果已经存在。",
+            "why_it_matters": "该项目把适用于人工智能的科学数据与研究过程记录、可复用访问控制、平台接入和算力服务结合起来。如果获得资助并落实，相关基础设施可能支持多个科学领域开展可复现研究以及模型训练与评估。申报通知不能证明项目获批、数据已经开放或科研成果已经产生。",
+            "technical": {
+              "claimed_result": "主管部门计划支持建设领域科学数据中心，提供适用于人工智能的数据服务和科研过程记录，以支持模型训练、能力评估及可复现研究。",
+              "demonstrated_result": "项目征集和建设要求规定了 AI-Ready 数据处理、科研过程数据集、访问控制、平台接入、API 和算力服务要求。尚无证据表明有中心获选或投入运行。",
+              "mechanism": "通过竞争性申报支持最长三年的项目，将领域数据接入北京市级科学数据开放共享平台，并提供检索、API、沙箱和一体化算力服务。建设要求包括数据预处理、特征提取与标注工具；经授权、可追溯的科研过程记录；分级访问和可审计的安全控制。企业申报单位须说明资金来源，并按不低于 2:1 的比例提供配套资金。",
+              "regime": "北京市于 2026 年 十月 15 日发布该市级项目；申报于 2026 年 十月 28 日中国标准时间 18:00 截止，面向特定科学领域和在京单位。",
+              "reproducibility": "建设要求把可追溯的科研数据集和过程记录列为目标。尚未检查拟建中心、访问服务、数据集、模型训练用途或可复现研究结果。",
+              "strongest_baseline": "通知称该项目落实北京市 2026–2028 年人工智能赋能科研方案，但未量化当前数据获取状况，也未与测量过的基线比较未来中心能力。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "北京市科学技术委员会与中关村科技园区管理委员会于 2026 年 十月 15 日发布通知，征集支持人工智能赋能科研的北京科学数据中心建设项目。"
+                },
+                {
+                  "text": "通知允许最长三年的项目建设周期，要求接入市级科学数据开放共享平台，并建设具备数据检索、API 调用和算力一体化支撑服务能力的系统。企业申报单位须说明资金来源，配套经费与市级科技经费比例不得低于 2:1。"
+                },
+                {
+                  "text": "官方建设要求包括 AI-Ready 数据处理流程、预处理与标注工具、多模态处理、可信评测、可追溯和可复现的科研过程数据集、分级访问和可审计的安全控制。这些是项目要求，并非已经运行的能力。"
+                },
+                {
+                  "text": "项目征集及建设要求没有确定入选项目、最终预算、中心运行能力、数据实际开放情况或科研成果。申请模板中的样例数值并不构成已公布的资助上限。"
+                }
+              ],
+              "limitations": [
+                "这是政府项目征集及建设要求，不证明任何申报项目已获批或数据中心已运行。",
+                "申请表中含有样例值或占位值；本次审查没有确认项目资助上限或实际资助金额。",
+                "所查材料没有说明最终中心数量、数据规模、用户访问权限、算力容量或科研成果。"
+              ],
+              "gaps": [
+                {
+                  "description": "通知及申报材料没有确认已入选项目、最终预算、已运行的数据中心、已交付的数据或算力服务，也没有科研结果。"
+                }
+              ]
+            },
+            "headline": "北京启动科学数据中心建设申报，支持人工智能赋能科研",
+            "dek": "北京启动领域科学数据中心建设项目征集，以支持人工智能赋能科研。通知及建设要求包括数据汇集与治理、AI-Ready 数据处理和标注流程、多模态处理、研究过程数据集、可审计的访问控制，以及接入市级科学数据平台并提供 API 和一体化算力服务。项目建设周期最长为三年；企业申报单位须提供配套经费，比例不低于市级科技经费的 2:1。申报截止时间为 2026 年 十月 28 日。此次征集规定了建设要求，但不能证明已有项目获批、中心运行或科研数据已经开放。"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
+    {
+      "id": "FCMO-DB3FAFB756A1",
+      "slug": "eu-member-states-set-shared-priorities-for-safe-sovereign-and",
+      "url_date": "2026-10-15",
+      "kind": "development",
+      "status": "live",
+      "beat": "policy",
+      "desk": "policy_geopolitics",
+      "title": "EU member states set shared priorities for safe, sovereign and sustainable AI in the Dublin Declaration",
+      "dek": "Participating EU member states adopted Ireland’s Dublin Declaration on 14 October 2026.",
+      "summary": "Participating EU member states adopted Ireland’s Dublin Declaration on 14 October 2026. The document records shared intentions across AI safety and resilience, trusted adoption, European sovereignty, infrastructure and skills, sustainability, public-sector procurement, and international cooperation. It is a political commitment, not a binding legal instrument; this record does not establish new legal duties, funded delivery or implementation.",
+      "why_it_matters": "The declaration puts regional coordination around compute access, infrastructure, safety, public procurement and strategic autonomy into a single political agenda. It may guide later national and EU actions, but its effect depends on subsequent policy, budgets and implementation.",
+      "importance_rationale": "If followed by policy and investment, a multi-state agenda spanning compute capacity, AI safety, sustainability and public-sector adoption could shape Europe’s AI development conditions. The document alone establishes political intent, not binding rules or implemented capacity.",
+      "technical": {
+        "claimed_result": "The participating ministers state a shared intent to coordinate on seven AI policy priorities.",
+        "demonstrated_result": "The signed declaration records its adoption date, participating ministers and seven areas of shared intention. No implementation outcome is demonstrated.",
+        "mechanism": "Political coordination through a ministerial declaration; later EU or national legal, budgetary and administrative actions would be needed to implement the stated priorities.",
+        "regime": "Participating EU member states under Ireland’s Council Presidency, at the Dublin International AI Summit on 14 October 2026.",
+        "strongest_baseline": "The declaration refers to existing EU legal frameworks and work already underway. It states shared priorities but does not quantify a change in policy, spending or compute capacity."
+      },
+      "importance_tier": "Meaningful",
+      "development_type": "policy_action",
+      "event_at": "2026-10-14T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-16T03:09:45Z",
+      "updated_at": "2026-10-16T03:09:45Z",
+      "importance": 4,
+      "evidence_class": "A",
+      "confidence": "confirmed",
+      "front_page_eligible": false,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "DEMONSTRATED",
+            "text": "Participating EU member-state ministers adopted the Dublin Declaration on 14 October 2026 at the International AI Summit in Dublin."
+          },
+          {
+            "label": "DEMONSTRATED",
+            "text": "The declaration records shared intentions in seven areas: AI safety and resilience; trusted applied-AI capability; European AI sovereignty; infrastructure and skills; sustainability; public-sector innovation; and European and international cooperation."
+          },
+          {
+            "label": "NOT_ESTABLISHED",
+            "text": "The declaration does not by itself enact legal duties, allocate budgets, establish implementation milestones or demonstrate delivery of the stated priorities."
+          }
+        ],
+        "limitations": [
+          "The source is an official government-hosted copy of a political declaration. It records commitments and intentions but is not itself presented here as binding EU law.",
+          "No independent signatory confirmation, implementation evidence, budget allocation or outcome data were checked."
+        ],
+        "gaps": [
+          {
+            "kind": "other",
+            "description": "No binding act or implementation measure is established by this political declaration. Subsequent EU or national instruments and funded actions have not been assessed."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://enterprise.gov.ie/en/publications/publication-files/dublin-declaration-on-trustworthy-safe-and-sovereign-ai.pdf",
+          "domain": "enterprise.gov.ie",
+          "primary": true
+        },
+        {
+          "url": "https://enterprise.gov.ie/en/publications/dublin-declaration-on-trustworthy-safe-and-sovereign-ai.html",
+          "domain": "enterprise.gov.ie",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "Participating EU member states",
+        "Government of Ireland",
+        "European Union"
+      ],
+      "topics": [
+        "ai-governance",
+        "european-ai-strategy",
+        "ai-infrastructure",
+        "compute-access",
+        "public-sector-ai",
+        "ai-sustainability"
+      ],
+      "regions": [
+        "EU",
+        "IE"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-DB3FAFB756A1.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: EU member states set shared priorities for safe, sovereign and sustainable AI in the Dublin Declaration"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "Estados miembros de la UE fijan prioridades compartidas para una IA segura, soberana y sostenible en la Declaración de Dublín",
+            "summary": "Los Estados miembros participantes de la Unión Europea adoptaron la Declaración de Dublín de Irlanda el 14 de octubre de 2026. El documento expresa intenciones compartidas sobre seguridad y resiliencia de la IA, adopción confiable, soberanía europea, infraestructura y capacidades, sostenibilidad, contratación pública y cooperación internacional. Es un compromiso político, no un instrumento jurídico vinculante; este registro no establece nuevas obligaciones legales, financiamiento ni implementación.",
+            "importance_rationale": "Si da lugar a políticas e inversión, una agenda multinacional sobre capacidad de cómputo, seguridad de IA, sostenibilidad y adopción en el sector público podría influir en las condiciones para desarrollar IA en Europa. El documento solo establece una intención política, no reglas vinculantes ni capacidad implementada.",
+            "why_it_matters": "La declaración reúne una agenda regional de coordinación sobre acceso a cómputo, infraestructura, seguridad, contratación pública y autonomía estratégica. Podría orientar acciones posteriores de la UE y sus países, pero su efecto dependerá de políticas, presupuestos e implementación futuras.",
+            "technical": {
+              "claimed_result": "Los ministros participantes expresan la intención compartida de coordinarse en siete prioridades de política sobre IA.",
+              "demonstrated_result": "La declaración firmada registra la fecha de adopción, los ministros participantes y siete áreas de intención compartida. No demuestra resultados de implementación.",
+              "mechanism": "Coordinación política mediante una declaración ministerial; su implementación requeriría posteriores medidas jurídicas, presupuestarias y administrativas de la UE o de cada país.",
+              "regime": "Estados miembros participantes de la UE, durante la presidencia irlandesa del Consejo, en la Cumbre Internacional de IA de Dublín del 14 de octubre de 2026.",
+              "strongest_baseline": "La declaración alude al marco jurídico de la UE y al trabajo ya en curso. Expresa prioridades compartidas, pero no cuantifica cambios en políticas, gasto o capacidad de cómputo."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "Ministros de los Estados miembros participantes de la UE adoptaron la Declaración de Dublín el 14 de octubre de 2026 durante la Cumbre Internacional de IA en Dublín."
+                },
+                {
+                  "text": "La declaración expresa intenciones compartidas en siete áreas: seguridad y resiliencia de la IA; capacidad confiable de IA aplicada; soberanía europea en IA; infraestructura y capacidades; sostenibilidad; innovación del sector público; y cooperación europea e internacional."
+                },
+                {
+                  "text": "La declaración no promulga por sí misma obligaciones legales, asigna presupuestos, fija hitos de implementación ni demuestra que se hayan cumplido las prioridades expresadas."
+                }
+              ],
+              "limitations": [
+                "La fuente es una copia oficial de una declaración política alojada por un gobierno. Registra compromisos e intenciones, pero aquí no se presenta como legislación vinculante de la UE.",
+                "No se verificaron las firmas por una vía independiente, ni la implementación, la asignación de presupuestos o los resultados."
+              ],
+              "gaps": [
+                {
+                  "description": "Esta declaración política no establece una ley ni una medida de implementación vinculante. Aún no se evaluaron instrumentos posteriores de la UE o de los países ni acciones financiadas."
+                }
+              ]
+            },
+            "dek": "Los Estados miembros participantes de la Unión Europea adoptaron la Declaración de Dublín de Irlanda el 14 de octubre de 2026."
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "欧盟成员国在《都柏林宣言》中提出安全、主权和可持续人工智能的共同优先事项",
+            "summary": "参与的欧盟成员国于 2026 年 十月 14 日通过了爱尔兰《都柏林宣言》。文件表达了在人工智能安全与韧性、可信应用、欧洲技术主权、基础设施与技能、可持续性、公共部门创新和国际合作方面的共同意向。这是一项政治承诺，不是具有约束力的法律文件；本记录不能证明新增法律义务、资金安排或具体落实。",
+            "importance_rationale": "如果后续政策和投资落实，一项涵盖算力、人工智能安全、可持续性和公共部门应用的多国议程可能影响欧洲人工智能发展的条件。该文件本身只确立政治意向，并未形成约束性规则或已建成的能力。",
+            "why_it_matters": "这项宣言把围绕算力获取、基础设施、安全、公共采购和战略自主的区域协调议程汇集在一起。它可能影响欧盟及成员国后续行动，但实际效果取决于未来的政策、预算和落实情况。",
+            "technical": {
+              "claimed_result": "参与国部长表达了在七项人工智能政策优先事项上协调合作的共同意向。",
+              "demonstrated_result": "签署的宣言记录了通过日期、参与部长以及七个共同意向领域，但未证明实施结果。",
+              "mechanism": "通过部长级宣言开展政治协调；落实这些意向仍需后续欧盟或成员国的法律、预算和行政措施。",
+              "regime": "在爱尔兰担任欧盟理事会轮值主席国期间，参与的欧盟成员国于 2026 年 十月 14 日在都柏林国际人工智能峰会作出该项承诺。",
+              "strongest_baseline": "宣言提及现有欧盟法律框架及已开展的工作。它提出共同优先事项，但未量化政策、支出或算力能力的变化。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "参与的欧盟成员国部长于 2026 年 十月 14 日在都柏林国际人工智能峰会上通过了《都柏林宣言》。"
+                },
+                {
+                  "text": "宣言表达了七个方面的共同意向：人工智能安全与韧性、可信人工智能应用能力、欧洲人工智能主权、基础设施与技能、可持续性、公共部门创新，以及欧洲和国际合作。"
+                },
+                {
+                  "text": "宣言本身并未制定法律义务、拨付预算、设定实施里程碑，也未证明所述优先事项已经落实。"
+                }
+              ],
+              "limitations": [
+                "来源是政府网站托管的官方政治宣言副本。本记录将其作为承诺和意向，不视为具有约束力的欧盟法律。",
+                "未通过独立渠道核实签署情况，也未核实实施、预算拨付或结果。"
+              ],
+              "gaps": [
+                {
+                  "description": "这项政治宣言本身不确立具有约束力的法律或实施措施。尚未评估后续欧盟或成员国文件及获得资助的行动。"
+                }
+              ]
+            },
+            "headline": "欧盟成员国在《都柏林宣言》中提出安全、主权和可持续人工智能的共同优先事项",
+            "dek": "参与的欧盟成员国于 2026 年 十月 14 日通过了爱尔兰《都柏林宣言》。文件表达了在人工智能安全与韧性、可信应用、欧洲技术主权、基础设施与技能、可持续性、公共部门创新和国际合作方面的共同意向。这是一项政治承诺，不是具有约束力的法律文件；本记录不能证明新增法律义务、资金安排或具体落实。"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
+    {
+      "id": "FCMO-D4944D597980",
+      "slug": "bonsai-2-27b-whitepaper-reports-roughly-three-quarter-retention-on-two",
+      "url_date": "2026-10-15",
+      "kind": "development",
+      "status": "live",
+      "beat": "technology",
+      "desk": "evaluation_science",
+      "title": "Bonsai 2 27B whitepaper reports roughly three-quarter retention on two agentic coding benchmarks",
+      "dek": "PrismML’s September 17, 2026 whitepaper reports Ternary Bonsai 2 27B at 52.8 on Terminal-Bench 2.1 and 60.8% resolved on SWE-bench Verified, compared with 69.7 and 80.6 for Qwen3.8-27B FP16.",
+      "summary": "PrismML’s September 17, 2026 whitepaper reports Ternary Bonsai 2 27B at 52.8 on Terminal-Bench 2.1 and 60.8% resolved on SWE-bench Verified, compared with 69.7 and 80.6 for Qwen3.8-27B FP16. The paper says the Terminal-Bench run used Terminus-2 on 89 tasks with one attempt each, while SWE-bench Verified used mini-swe-agent on all 500 instances. These two agentic results are separate from the paper’s 20-benchmark aggregate, where Bonsai 2 scores 83.9 versus 85.4 (98.2% retention). This is a bounded vendor-reported quality tradeoff, not independent validation; checkpoint hashes, run traces and independent reproduction remain open.",
+      "why_it_matters": "A small 27B-class model can preserve most of a broad 20-benchmark average while showing a materially larger reported drop on long-horizon coding agents. Separating the agentic tasks from the aggregate helps deployment decisions account for workload-specific quality. The exact scores remain vendor-reported pending reproduction.",
+      "importance_rationale": "If the vendor-reported gap holds, it materially qualifies a near-lossless compression headline for long-horizon coding agents: the roughly 6 GB model retains about three quarters of the Qwen3.8-27B FP16 scores on two agentic software-engineering evaluations. The results are consequential for local deployment choices but remain first-party and unreproduced.",
+      "technical": {
+        "claimed_result": "PrismML reports Terminal-Bench 2.1 52.8 vs 69.7 and SWE-bench Verified 60.8 vs 80.6 for Bonsai 2 27B vs Qwen3.8-27B FP16. The separate 20-benchmark suite reports 83.9 vs 85.4 (98.2%).",
+        "demonstrated_result": "The primary whitepaper at the vendor’s official repository contains these reported scores and describes the benchmark setup. No independent confirmation of the scores or underlying runs was performed.",
+        "mechanism": "Ternary Bonsai 2 27B is evaluated against its Qwen3.8-27B FP16 comparator using Terminal-Bench 2.1 and SWE-bench Verified agent scaffolds, apart from the 20-benchmark aggregate.",
+        "regime": "Vendor-reported Terminal-Bench 2.1 using Terminus-2 on 89 tasks with one attempt each and eight concurrent trials; SWE-bench Verified with mini-swe-agent on 500 instances. The paper states both are driven by Harbor.",
+        "reproducibility": "The primary whitepaper and protocol are public; this review did not independently run the benchmarks, inspect per-instance traces, or verify checkpoint hashes.",
+        "strongest_baseline": "The paper directly compares Bonsai 2 27B to Qwen3.8-27B FP16 on both agentic benchmarks; no other low-bit baseline is reported for these two task-specific scores."
+      },
+      "importance_tier": "Notable",
+      "development_type": "model_release",
+      "event_at": "2026-09-17T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-16T03:09:45Z",
+      "updated_at": "2026-10-16T03:09:45Z",
+      "importance": 5,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": false,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "CLAIMED",
+            "text": "PrismML’s September 17 Bonsai 2 27B whitepaper reports scores of 52.8 on Terminal-Bench 2.1 and 60.8% resolved on SWE-bench Verified, versus 69.7 and 80.6 for its Qwen3.8-27B FP16 comparator. The paper describes these as separate agentic benchmarks, outside the 20-benchmark suite behind its 83.9 versus 85.4 aggregate (98.2% retention) headline."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "The paper says Terminal-Bench 2.1 used Terminus-2 with one attempt on all 89 tasks, eight concurrent trials, and an 80,000-token output budget per turn; SWE-bench Verified used mini-swe-agent on all 500 instances and reports resolved rate. The two evaluations ran on an identical Harbor-driven agent framework; detailed per-instance results or independent reproduction were not inspected."
+          }
+        ],
+        "limitations": [
+          "The results and protocol are reported by PrismML in its own whitepaper; no independent reproduction was inspected.",
+          "The paper’s main 20-benchmark aggregate reports 83.9 versus 85.4, but Terminal-Bench 2.1 and SWE-bench Verified are separately reported and excluded from that 20-benchmark suite.",
+          "This review did not inspect checkpoint hashes, per-instance result artifacts, or uncertainty intervals.",
+          "Terminal-Bench reports one attempt per task on 89 tasks; SWE-bench Verified reports resolved rate across 500 instances."
+        ],
+        "gaps": [
+          {
+            "kind": "missing_independent",
+            "description": "No independent reproduction or instance-level audit of the reported Terminal-Bench 2.1 and SWE-bench Verified scores was performed. The whitepaper gives benchmark denominators and agent protocols but no audited run traces in this review."
+          },
+          {
+            "kind": "baseline_unclear",
+            "description": "This review did not verify the exact checkpoint hashes or independently confirm that the compared Bonsai and FP16 artifacts share the stated model lineage."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://github.com/PrismML-Eng/Bonsai-demo/blob/db871ea96bffff5ce5609873c412b75d7cd5ba3c/bonsai-2-27b-whitepaper.pdf",
+          "domain": "github.com",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "PrismML",
+        "Alibaba Qwen"
+      ],
+      "topics": [],
+      "regions": [
+        "GLOBAL"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-D4944D597980.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: Bonsai 2 27B whitepaper reports roughly three-quarter retention on two agentic coding benchmarks"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "El informe de Bonsai 2 27B registra cerca de tres cuartas partes del rendimiento en dos benchmarks de programación con agentes",
+            "summary": "El informe técnico de PrismML del 17 de septiembre de 2026 publica para Ternary Bonsai 2 27B una puntuación de 52.8 en Terminal-Bench 2.1 y una tasa de resolución de 60.8% en SWE-bench Verified, frente a 69.7 y 80.6 para Qwen3.8-27B FP16. El informe dice que Terminal-Bench usó Terminus-2 en 89 tareas con un intento por tarea, y SWE-bench Verified usó mini-swe-agent en las 500 instancias. Estos dos resultados agentivos se presentan aparte del promedio de 20 benchmarks, donde Bonsai 2 obtiene 83.9 frente a 85.4 (retención de 98.2%). Es una diferencia de calidad informada por el proveedor, no una validación independiente; siguen pendientes la verificación de hashes, las trazas y la reproducción.",
+            "importance_rationale": "Si se confirma la brecha informada por el proveedor, matiza de forma sustancial el titular de compresión casi sin pérdida para agentes de programación de largo horizonte: el modelo de cerca de 6 GB conserva aproximadamente tres cuartas partes de las puntuaciones del Qwen3.8-27B FP16 en dos evaluaciones de ingeniería de software con agentes. Los resultados importan para decidir despliegues locales, pero son del propio proveedor y aún no se han reproducido.",
+            "why_it_matters": "Un modelo compacto de clase 27B puede mantener gran parte del promedio general de 20 benchmarks y, al mismo tiempo, mostrar una caída informada mayor en agentes de programación de largo horizonte. Separar esas tareas del promedio permite que las decisiones de despliegue reflejen la calidad según el tipo de trabajo. Las puntuaciones exactas siguen siendo afirmaciones del proveedor pendientes de reproducción.",
+            "technical": {
+              "claimed_result": "PrismML informa 52.8 frente a 69.7 en Terminal-Bench 2.1 y 60.8 frente a 80.6 en SWE-bench Verified para Bonsai 2 27B frente a Qwen3.8-27B FP16. El conjunto separado de 20 benchmarks arroja 83.9 frente a 85.4 (98.2%).",
+              "demonstrated_result": "El informe técnico primario del repositorio oficial contiene estas puntuaciones y describe el protocolo de Terminal-Bench 2.1. No se confirmaron de forma independiente las puntuaciones ni las ejecuciones subyacentes.",
+              "mechanism": "El proveedor compara su versión ternaria Bonsai 2 27B con Qwen3.8-27B FP16 en benchmarks de programación con agentes; estos resultados se separan del promedio de 20 benchmarks.",
+              "regime": "Según el proveedor: Terminal-Bench 2.1 con Terminus-2 en 89 tareas, un intento por tarea y ocho pruebas concurrentes; SWE-bench Verified con mini-swe-agent en 500 instancias. El informe indica que Harbor dirige ambos.",
+              "reproducibility": "El informe técnico primario y el protocolo son públicos; esta revisión no ejecutó los benchmarks, no inspeccionó trazas por instancia ni verificó hashes de checkpoints.",
+              "strongest_baseline": "El informe compara directamente Bonsai 2 27B con Qwen3.8-27B FP16 en ambos benchmarks agentivos; no presenta otra línea base de baja precisión para estas dos puntuaciones."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "El informe técnico de PrismML del 17 de septiembre sobre Bonsai 2 27B publica puntuaciones de 52.8 en Terminal-Bench 2.1 y 60.8% de resolución en SWE-bench Verified, frente a 69.7 y 80.6 para su comparador Qwen3.8-27B FP16. El documento presenta estas pruebas agentivas por separado del conjunto de 20 benchmarks que sustenta el promedio de 83.9 frente a 85.4 (retención de 98.2%)."
+                },
+                {
+                  "text": "El informe indica que Terminal-Bench 2.1 usó Terminus-2 con un intento en las 89 tareas, ocho pruebas concurrentes y un presupuesto de salida de 80,000 tokens por turno; SWE-bench Verified usó mini-swe-agent en sus 500 instancias y reporta la tasa de resolución. Ambas evaluaciones usaron el marco Harbor. No se inspeccionaron resultados por instancia ni se realizó una reproducción independiente."
+                }
+              ],
+              "limitations": [
+                "Los resultados y el protocolo provienen del informe de PrismML; no se inspeccionó una reproducción independiente.",
+                "El promedio principal del informe comprende 20 benchmarks y es 83.9 frente a 85.4. Terminal-Bench 2.1 y SWE-bench Verified se reportan por separado y no forman parte de ese conjunto de 20 pruebas.",
+                "Esta revisión no examinó hashes de checkpoints, artefactos de resultados por instancia ni intervalos de incertidumbre.",
+                "Terminal-Bench informa un intento por tarea en 89 tareas; SWE-bench Verified informa la tasa de resolución de 500 instancias."
+              ],
+              "gaps": [
+                {
+                  "description": "No se realizó una reproducción independiente ni una auditoría de resultados por instancia del modelo de 6 GB para Terminal-Bench 2.1 y SWE-bench Verified. El informe da los denominadores y protocolos, pero en esta revisión no se auditaron trazas de ejecución."
+                },
+                {
+                  "description": "Esta revisión no verificó los hashes exactos de los checkpoints ni confirmó de forma independiente que los artefactos comparados tengan el linaje de modelo indicado."
+                }
+              ]
+            },
+            "dek": "El informe técnico de PrismML del 17 de septiembre de 2026 publica para Ternary Bonsai 2 27B una puntuación de 52.8 en Terminal-Bench 2.1 y una tasa de resolución de 60.8% en SWE-bench Verified, frente a 69.7 y 80.6 para Qwen3.8-27B FP16."
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "白皮书报告Bonsai 2 27B在两项智能体编程基准上保留约四分之三成绩",
+            "summary": "PrismML在2026年九月17日发布的白皮书报告，Ternary Bonsai 2 27B在Terminal-Bench 2.1得分52.8，在SWE-bench Verified上的解决率为60.8%；Qwen3.8-27B FP16对应为69.7和80.6。白皮书称Terminal-Bench使用Terminus-2评测89项任务，每项尝试一次；SWE-bench Verified使用mini-swe-agent评测全部500个实例。这两项智能体结果与20项基准综合分分开报告；后者为Bonsai 2的83.9对85.4（保留率98.2%）。这是供应商报告的有限范围质量差异，并非独立验证；检查点哈希、运行轨迹和独立复现仍待核查。",
+            "importance_rationale": "如果供应商报告的差距成立，它会显著限定长程编程智能体场景中的近乎无损压缩说法：约6 GB的模型在两项智能体软件工程评测中保留了Qwen3.8-27B FP16约四分之三的成绩。这些结果会影响本地部署选择，但目前仍是供应商自报且尚未复现。",
+            "why_it_matters": "一款紧凑的27B级模型可以维持20项综合基准的大部分成绩，同时在长程编程智能体任务上出现更明显的报告差距。将这些任务与综合分拆开，有助于部署决策反映不同工作负载的质量。具体成绩仍是待复现的供应商报告。",
+            "technical": {
+              "claimed_result": "PrismML报告Bonsai 2 27B与Qwen3.8-27B FP16相比，在Terminal-Bench 2.1上为52.8对69.7，在SWE-bench Verified上为60.8对80.6。单独的20项基准套件成绩为83.9对85.4（98.2%）。",
+              "demonstrated_result": "供应商官方仓库中的白皮书载有这些成绩并说明评测设置，包括Terminal-Bench 2.1协议。本次未独立确认成绩或底层运行。",
+              "mechanism": "供应商使用智能体软件基准，将三元权重的Bonsai 2 27B与Qwen3.8-27B FP16对照模型比较；这些结果与20项基准综合分分开报告。",
+              "regime": "供应商报告：Terminal-Bench 2.1使用Terminus-2评测89项任务，每项尝试一次，并进行八项并发试验；SWE-bench Verified使用mini-swe-agent评测500个实例。白皮书称两项评测均由Harbor驱动。",
+              "reproducibility": "白皮书和协议公开可查；本次未独立运行基准、检查逐实例轨迹或核验检查点哈希。",
+              "strongest_baseline": "白皮书在两项智能体基准上直接比较Bonsai 2 27B与Qwen3.8-27B FP16；这两项成绩没有报告其他低比特基线。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "PrismML在九月17日发布的Bonsai 2 27B白皮书报告，模型在Terminal-Bench 2.1得分52.8，在SWE-bench Verified上的解决率为60.8%；其Qwen3.8-27B FP16对照模型分别为69.7和80.6。白皮书将这两项智能体基准与支撑83.9对85.4综合成绩（保留率98.2%）的20项基准套件分开报告。"
+                },
+                {
+                  "text": "白皮书称，Terminal-Bench 2.1使用Terminus-2，在全部89项任务上各尝试一次，并进行八项并发试验，每轮输出预算为80,000个token；SWE-bench Verified使用mini-swe-agent评测全部500个实例，并报告解决率。两项评测均使用Harbor驱动框架。本次未检查逐实例结果，也未进行独立复现。"
+                }
+              ],
+              "limitations": [
+                "成绩和协议来自PrismML自己的白皮书；本次未检查独立复现。",
+                "白皮书主要20项基准的综合分为83.9对85.4。Terminal-Bench 2.1和SWE-bench Verified单独报告，不属于该20项套件。",
+                "本次未审查检查点哈希、逐实例结果制品或不确定性区间。",
+                "Terminal-Bench在89项任务上每项尝试一次；SWE-bench Verified报告500个实例的解决率。"
+              ],
+              "gaps": [
+                {
+                  "description": "尚未对报告的Terminal-Bench 2.1和SWE-bench Verified成绩进行独立复现或逐实例审计。白皮书提供了基准分母和智能体评测协议，但本次审查未审计运行轨迹。"
+                },
+                {
+                  "description": "本次审查未核实确切检查点哈希，也未独立确认所比较的Bonsai和FP16制品具有白皮书所述的模型沿袭关系。"
+                }
+              ]
+            },
+            "headline": "白皮书报告Bonsai 2 27B在两项智能体编程基准上保留约四分之三成绩"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
+    {
+      "id": "FCMO-9C3B22ED4893",
+      "slug": "infoppo-uses-information-time-discounting-and-adaptive-clipping-for-long",
+      "url_date": "2026-10-15",
+      "kind": "development",
+      "status": "live",
+      "beat": "research",
+      "desk": "reasoning_posttraining",
+      "title": "InfoPPO uses information-time discounting and adaptive clipping for long-horizon language-model RL",
+      "dek": "A September 21, 2026 arXiv paper introduces InfoPPO, which measures temporal progression in RLVR by accumulated information density rather than raw token count and uses that density to adapt policy clipping.",
+      "summary": "A September 21, 2026 arXiv paper introduces InfoPPO, which measures temporal progression in RLVR by accumulated information density rather than raw token count and uses that density to adapt policy clipping. In author-reported Mean@16 results across five competition-style mathematics benchmarks, average accuracy for Qwen3-4B/8B/14B is 34.9/41.2/49.4, compared with DAPO at 32.2/36.3/45.3. The paper reports response lengths broadly comparable to DAPO/DAPO-FT and shorter than PPO in its table, and adds one Llama-3.2-3B appendix comparison. These are CLAIMED paper results, not independently reproduced; no seed-level uncertainty is reported in the main aggregate table, and task/model transfer remains open.",
+      "why_it_matters": "If reproduced, information-conditioned temporal credit and policy updates could offer a useful way to preserve horizon control in long reasoning trajectories without simply lengthening outputs. The reported gains are specific to author-run math RLVR comparisons and are not yet evidence of general post-training improvement.",
+      "importance_rationale": "If the reported gains persist, measuring temporal credit in information time and coupling it to update size could change RLVR design for long reasoning traces and improve the accuracy–length trade-off. The evidence is one author-run paper with a bounded model/task regime and no independent reproduction, so consequence remains notable rather than field-shifting.",
+      "technical": {
+        "claimed_result": "The authors report higher average Mean@16 benchmark accuracy for InfoPPO than DAPO across all three Qwen3 base scales, with lengths broadly comparable to DAPO/DAPO-FT and shorter than PPO in the reported table. They also report greater stability under non-trivial discount settings than token-time PPO.",
+        "demonstrated_result": "The public v1 paper defines an information-time formulation, describes entropy-based instantiation and adaptive clipping, and reports its own experimental tables. This demonstrates that the authors made and documented these methodological and empirical claims; it does not independently establish the measured performance gains.",
+        "mechanism": "Accumulate normalized state-wise entropy as an information-time coordinate for discounting/trace decay, then make policy clipping bounds depend on that same local information density.",
+        "regime": "Competition-style math RLVR; DAPO-Math-17K training; Qwen3-4B/8B/14B base models; five benchmarks; Mean@16. An appendix adds Llama-3.2-3B Instruct on the same benchmark family.",
+        "reproducibility": "The full paper is accessible on arXiv, including method and implementation details, but no code, checkpoints, experiment logs or independent reproduction were inspected. The aggregate table reports 16 responses per prompt, without seed-level uncertainty.",
+        "strongest_baseline": "DAPO is the main strongest matched practical baseline in Table 1 for the reported aggregate comparison; InfoPPO’s averages are higher on all three Qwen3 scales, but DAPO-FT leads InfoPPO on some individual benchmark cells and the study lacks seed-level uncertainty."
+      },
+      "importance_tier": "Notable",
+      "development_type": "paper",
+      "event_at": "2026-09-21T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-16T03:09:45Z",
+      "updated_at": "2026-10-16T03:09:45Z",
+      "importance": 5,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": false,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "CLAIMED",
+            "text": "The authors report that InfoPPO replaces token-count time with accumulated state-wise information density for discounting and adaptive policy clipping, and gives higher average Mean@16 accuracy than DAPO across five mathematical reasoning benchmarks for Qwen3-4B, Qwen3-8B, and Qwen3-14B base models."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "In the paper’s Table 1, Qwen3-4B average accuracy is 34.9 for InfoPPO versus 32.2 for DAPO; Qwen3-8B is 41.2 versus 36.3; and Qwen3-14B is 49.4 versus 45.3. Authors report lengths broadly comparable to DAPO/DAPO-FT and shorter than PPO in the listed settings."
+          },
+          {
+            "label": "NOT_ESTABLISHED",
+            "text": "The paper does not establish independent reproducibility, broad transfer beyond the tested mathematical reasoning tasks, or seed-level uncertainty for the reported aggregate comparisons."
+          }
+        ],
+        "limitations": [
+          "All reported empirical results are from the authors’ paper; no independent reproduction was found in this review.",
+          "Table 1 uses Mean@16 with 16 independently sampled responses per prompt, but does not report seed-level uncertainty in the aggregate comparison.",
+          "Main experiments use Qwen3-4B/8B/14B base models trained on DAPO-Math-17K and five competition-style math benchmarks; generalization beyond this regime is unknown.",
+          "Appendix C reports one additional Llama-3.2-3B Instruct comparison, which is not broad cross-family validation."
+        ],
+        "gaps": [
+          {
+            "kind": "missing_independent",
+            "description": "No independent reproduction of the reported InfoPPO comparisons has been inspected."
+          },
+          {
+            "kind": "other",
+            "description": "The main comparison reports Mean@16 per prompt but does not provide seed-level uncertainty in the reviewed table, so training-run variability and uncertainty of aggregate differences are not established."
+          },
+          {
+            "kind": "other",
+            "description": "The central empirical suite focuses on competition-style mathematical reasoning and three Qwen3 base-model scales; transfer to other model families, tasks, and reward regimes is limited."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://arxiv.org/abs/2609.24380",
+          "domain": "arxiv.org",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "Institute of Automation, Chinese Academy of Sciences",
+        "University College London",
+        "Microsoft Research AI4Science",
+        "Li Auto"
+      ],
+      "topics": [],
+      "regions": [
+        "GLOBAL",
+        "CN",
+        "GB",
+        "US"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-9C3B22ED4893.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: InfoPPO uses information-time discounting and adaptive clipping for long-horizon language-model RL"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "InfoPPO aplica descuento por tiempo de información y recorte adaptativo al aprendizaje por refuerzo de modelos de lenguaje en secuencias extensas",
+            "summary": "Un artículo de arXiv del 21 de septiembre de 2026 presenta InfoPPO, que mide el avance temporal en RLVR mediante densidad de información acumulada en vez de contar tokens, y usa esa densidad para adaptar el recorte de política. En resultados Mean@16 reportados por los autores para cinco pruebas de razonamiento matemático, la exactitud media de Qwen3-4B/8B/14B es 34.9/41.2/49.4, frente a 32.2/36.3/45.3 con DAPO. El artículo informa longitudes de respuesta parecidas a DAPO/DAPO-FT y menores que PPO en la tabla, además de una comparación complementaria con Llama-3.2-3B. Son resultados AFIRMADOS por el artículo, sin reproducción independiente; la tabla agregada principal no informa incertidumbre entre semillas y la transferencia a otras tareas y modelos sigue abierta.",
+            "importance_rationale": "Si las mejoras reportadas se mantienen, medir el crédito temporal en tiempo de información y vincularlo con la magnitud de las actualizaciones podría cambiar el diseño de RLVR para razonamientos extensos y mejorar el equilibrio entre exactitud y longitud. La evidencia procede de un artículo con experimentos de sus autores, un régimen acotado de modelos y tareas y ninguna reproducción independiente; por eso la consecuencia potencial es notable, no transformadora del campo.",
+            "why_it_matters": "Si se reproduce, el crédito temporal condicionado por información y las actualizaciones de política adaptativas podrían ayudar a conservar el control del horizonte en razonamientos extensos sin alargar simplemente las respuestas. Las mejoras reportadas se limitan a comparaciones de RLVR matemático realizadas por los autores y todavía no demuestran una mejora general del posentrenamiento.",
+            "technical": {
+              "claimed_result": "Los autores informan una exactitud media Mean@16 mayor con InfoPPO que con DAPO en las cinco pruebas matemáticas y las tres escalas base de Qwen3. Las longitudes son similares a DAPO/DAPO-FT y menores que con PPO en la tabla; también informan mayor estabilidad que PPO con tiempo por token al usar descuentos no triviales.",
+              "demonstrated_result": "El artículo público v1 define una formulación de tiempo de información, describe su implementación basada en entropía y el recorte adaptativo, y presenta tablas experimentales propias. Esto demuestra que los autores documentaron estos métodos y resultados, pero no establece de forma independiente las mejoras medidas.",
+              "mechanism": "Acumula la entropía normalizada de cada estado como coordenada temporal para el descuento y la decaída de trazas, y ajusta los límites de recorte según la densidad de información local.",
+              "regime": "RLVR para matemáticas competitivas; entrenamiento con DAPO-Math-17K; modelos base Qwen3-4B/8B/14B; cinco pruebas; Mean@16. Un apéndice agrega Llama-3.2-3B Instruct en la misma familia de pruebas.",
+              "reproducibility": "El artículo completo está disponible en arXiv, con método y detalles de implementación; en esta revisión no se inspeccionaron código, puntos de control, registros experimentales ni una reproducción independiente. La tabla agregada informa 16 respuestas por pregunta, sin incertidumbre entre semillas.",
+              "strongest_baseline": "DAPO es la principal referencia práctica comparada en la Tabla 1: los promedios de InfoPPO son mayores en las tres escalas Qwen3, aunque DAPO-FT supera a InfoPPO en algunas pruebas individuales y el estudio no informa incertidumbre entre semillas."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "Los autores informan que InfoPPO sustituye el tiempo medido por cantidad de tokens por una densidad de información acumulada para el descuento y el recorte adaptativo de actualizaciones, y obtiene mayor exactitud media Mean@16 que DAPO en cinco pruebas de razonamiento matemático con modelos base Qwen3-4B, Qwen3-8B y Qwen3-14B."
+                },
+                {
+                  "text": "En la Tabla 1 del artículo, la exactitud media de Qwen3-4B es 34.9 con InfoPPO frente a 32.2 con DAPO; para Qwen3-8B es 41.2 frente a 36.3; y para Qwen3-14B es 49.4 frente a 45.3. Los autores indican que las longitudes son similares a DAPO/DAPO-FT y menores que con PPO en las configuraciones presentadas."
+                },
+                {
+                  "text": "El artículo no demuestra reproducibilidad independiente, transferencia amplia fuera de las tareas matemáticas probadas ni incertidumbre entre semillas para las comparaciones agregadas."
+                }
+              ],
+              "limitations": [
+                "Todos los resultados empíricos proceden del artículo de los autores; en esta revisión no se encontró una reproducción independiente.",
+                "La Tabla 1 usa Mean@16 con 16 respuestas muestreadas independientemente por pregunta, pero no informa incertidumbre entre semillas para la comparación agregada.",
+                "Los experimentos principales usan modelos base Qwen3-4B/8B/14B entrenados con DAPO-Math-17K y cinco pruebas de matemáticas competitivas; se desconoce la generalización fuera de ese régimen.",
+                "El Apéndice C presenta una comparación adicional con Llama-3.2-3B Instruct, que no constituye una validación amplia entre familias de modelos."
+              ],
+              "gaps": [
+                {
+                  "description": "No se ha examinado una reproducción independiente de las comparaciones reportadas para InfoPPO."
+                },
+                {
+                  "description": "La comparación principal informa Mean@16 por pregunta, pero la tabla revisada no presenta incertidumbre entre semillas; por ello no quedan establecidas la variabilidad entre entrenamientos ni la incertidumbre de las diferencias agregadas."
+                },
+                {
+                  "description": "La evaluación empírica principal se concentra en razonamiento matemático competitivo y tres escalas base de Qwen3; la transferencia a otras familias, tareas y esquemas de recompensa es limitada."
+                }
+              ]
+            },
+            "dek": "Un artículo de arXiv del 21 de septiembre de 2026 presenta InfoPPO, que mide el avance temporal en RLVR mediante densidad de información acumulada en vez de contar tokens, y usa esa densidad para adaptar el recorte de política."
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "InfoPPO以信息时间折扣和自适应裁剪改进长程语言模型强化学习",
+            "summary": "2026年九月21日发布的一篇arXiv论文提出InfoPPO：它以累积信息密度而非原始token数量来衡量RLVR中的时间进程，并据此调整策略裁剪。在作者报告的五项竞赛式数学基准Mean@16结果中，Qwen3-4B/8B/14B的平均准确率分别为34.9/41.2/49.4，DAPO则为32.2/36.3/45.3。论文称，在表列设置下，回答长度与DAPO/DAPO-FT大体相当且短于PPO，并在附录中补充了一项Llama-3.2-3B比较。这些仍是论文作者报告的结果，尚无独立复现；主要汇总表没有报告种子间不确定性，向其他模型和任务迁移的能力仍待验证。",
+            "importance_rationale": "如果所报告的提升能够持续成立，以信息时间衡量长期推理中的时序信用并据此调整更新幅度，可能改变RLVR设计并改善准确率与输出长度之间的权衡。但现有证据只有一篇作者自测论文，模型和任务范围有限且缺乏独立复现，因此其潜在影响值得关注，但尚不足以称为范式转变。",
+            "why_it_matters": "如果能够复现，基于信息密度的时序信用分配和策略更新或可在不单纯延长回答的情况下，帮助长期推理训练维持有效的时域控制。当前提升仅见于作者开展的数学RLVR比较，尚不能说明一般的后训练方法都会受益。",
+            "technical": {
+              "claimed_result": "作者报告称，在三个Qwen3基础模型规模和五项数学基准上，InfoPPO的Mean@16平均准确率高于DAPO。表中回答长度与DAPO/DAPO-FT大致相当并短于PPO；作者还称，在采用非平凡折扣时，其表现比按token计时的PPO更稳定。",
+              "demonstrated_result": "公开的v1论文定义了信息时间框架，描述了基于熵的实现和自适应裁剪，并给出了作者自己的实验表格。这证明作者公开记录了该方法和实验主张，但不能独立验证测得的性能提升。",
+              "mechanism": "将归一化的逐状态熵累积为折扣和轨迹衰减所用的信息时间坐标，并依据局部信息密度调整策略更新的裁剪边界。",
+              "regime": "竞赛式数学RLVR；使用DAPO-Math-17K训练；Qwen3-4B/8B/14B基础模型；五项基准；Mean@16。附录增加了同类基准上的Llama-3.2-3B Instruct比较。",
+              "reproducibility": "arXiv提供完整论文，包括方法与实现细节；本次审查未检查代码、检查点、实验日志或独立复现。汇总表每题报告16个回答，但没有给出种子间不确定性。",
+              "strongest_baseline": "表1中的DAPO是主要的实用对照；三个Qwen3规模上InfoPPO的平均值均较高，但在部分单项基准中DAPO-FT高于InfoPPO，而且研究未报告种子间不确定性。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "作者报告称，InfoPPO以累积信息密度取代按token数量计时，用于折扣和自适应策略裁剪；在五项数学推理基准上，Qwen3-4B、Qwen3-8B和Qwen3-14B基础模型的Mean@16平均准确率高于DAPO。"
+                },
+                {
+                  "text": "论文表1中，Qwen3-4B的平均准确率为InfoPPO 34.9、DAPO 32.2；Qwen3-8B为41.2和36.3；Qwen3-14B为49.4和45.3。作者称，在所列设置中，生成长度与DAPO/DAPO-FT大致相当，且短于PPO。"
+                },
+                {
+                  "text": "论文未能证明这些结果可由独立团队复现，也未证明其能广泛迁移到已测试数学推理任务之外；汇总比较也未给出不同训练种子之间的不确定性。"
+                }
+              ],
+              "limitations": [
+                "所有实证结果均来自作者论文；本次审查未发现独立复现。",
+                "表1采用Mean@16，即每道题独立采样16个回答，但汇总比较未报告种子间不确定性。",
+                "主要实验使用Qwen3-4B/8B/14B基础模型，在DAPO-Math-17K上训练并评估五项竞赛式数学基准；超出该范围的泛化能力未知。",
+                "附录C增加了一项Llama-3.2-3B Instruct比较，仍不足以构成广泛的跨模型系列验证。"
+              ],
+              "gaps": [
+                {
+                  "description": "尚未检查InfoPPO报告比较的独立复现结果。"
+                },
+                {
+                  "description": "主要比较按题目报告Mean@16，但所查阅的汇总表未给出种子间不确定性，因此训练运行的变异性及汇总差异的不确定性尚未明确。"
+                },
+                {
+                  "description": "主要实证套件集中于竞赛式数学推理和三个规模的Qwen3基础模型；其向其他模型系列、任务及奖励机制的迁移能力仍有限。"
+                }
+              ]
+            },
+            "headline": "InfoPPO以信息时间折扣和自适应裁剪改进长程语言模型强化学习"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
+    {
+      "id": "FCMO-5250676F2582",
+      "slug": "aolani-announces-plans-for-22-000-blackwell-ultra-gpus-across-malaysia",
+      "url_date": "2026-10-15",
+      "kind": "development",
+      "status": "live",
+      "beat": "technology",
+      "desk": "compute_inference",
+      "title": "Aolani announces plans for 22,000 Blackwell Ultra GPUs across Malaysia and the Philippines",
+      "headline": "Aolani announces plans for 22,000 Blackwell Ultra GPUs across Malaysia and the Philippines",
+      "dek": "Aolani’s September 21, 2026 announcement says it expects to deploy 22,000 NVIDIA Blackwell Ultra GPUs across two AI factories in Malaysia and the Philippines in early 2027.",
+      "summary": "Aolani’s September 21, 2026 announcement says it expects to deploy 22,000 NVIDIA Blackwell Ultra GPUs across two AI factories in Malaysia and the Philippines in early 2027. It says the collaboration brings its AI factory capacity above 100 MW and total deployment above 48,000 GPUs. These are forward-looking company statements: this review did not verify financing, construction, permits, delivery, operational capacity, utilization, or NVIDIA’s corroboration.",
+      "why_it_matters": "If delivered and made available, the announced deployment would add substantial planned AI compute capacity in Southeast Asia. The announcement provides a bounded company claim about scale and location, while leaving the delivery timeline, financing and usable operating capacity unverified.",
+      "importance_rationale": "If the announced plan is delivered and made usable, 22,000 Blackwell Ultra GPUs across Malaysia and the Philippines would materially expand planned regional AI compute capacity. The announcement is prospective and does not establish financing, delivery, operational availability or utilization.",
+      "technical": {
+        "claimed_result": "Aolani says 22,000 NVIDIA Blackwell Ultra GPUs are expected across Malaysia and the Philippines in early 2027; it says this raises total planned deployment above 48,000 GPUs and factory capacity above 100 MW.",
+        "demonstrated_result": "The official company newsroom page publishes the announcement and explicitly frames future deployment and capacity statements as forward-looking; actual delivery and operation were not independently established.",
+        "mechanism": "Aolani describes two planned AI factories and NVIDIA-powered cloud services in Southeast Asia.",
+        "regime": "Company-announced infrastructure plan covering Malaysia and the Philippines, with 22,000 Blackwell Ultra GPUs expected in early 2027 and stated combined capacity above 100 MW. No project-level implementation details were verified.",
+        "reproducibility": "The announcement is publicly accessible. Its future deployment claims have not been independently verified; no operational measurements were available in this review.",
+        "strongest_baseline": "No like-for-like regional capacity or operational deployment comparison was included in the announcement or this review."
+      },
+      "importance_tier": "Notable",
+      "development_type": "hardware_infrastructure",
+      "event_at": "2026-09-21T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-16T03:09:45Z",
+      "updated_at": "2026-10-16T03:09:45Z",
+      "importance": 5,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": true,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "CLAIMED",
+            "text": "Aolani says it expects to deploy 22,000 NVIDIA Blackwell Ultra GPUs across two AI factories in Malaysia and the Philippines in early 2027, bringing its total deployment above 48,000 GPUs. The announcement also says its AI factory capacity will exceed 100 MW. These are future plans, not verified deliveries or operating capacity."
+          },
+          {
+            "label": "DEMONSTRATED",
+            "qualifier": "LIMITATION",
+            "text": "Aolani’s announcement labels statements about future capacity, infrastructure plans, services and regional expansion as forward-looking. This source alone does not establish financing, permits, construction, delivery, independent corroboration, power availability or utilization."
+          }
+        ],
+        "limitations": [
+          "The 22,000-GPU deployment is announced as expected in early 2027, not as delivered.",
+          "More than 100 MW is a company-stated planned capacity figure; no site-level power or commissioning evidence was checked.",
+          "The stated total above 48,000 GPUs is prospective and does not establish installed or operational units.",
+          "Financing, permits, construction, offtake, NVIDIA corroboration, customer access and utilization were not verified."
+        ],
+        "gaps": [
+          {
+            "kind": "missing_independent",
+            "description": "The source is Aolani’s own forward-looking announcement; NVIDIA corroboration and project-level financing, permits, construction, delivery and utilization were not checked."
+          },
+          {
+            "kind": "regime_unclear",
+            "description": "The announcement does not specify how much of the stated capacity is committed, energized, available to customers, or allocated to each location."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://aolani.com/newsroom/aolani-nvidia-ai-factory-infrastructure-southeast-asia",
+          "domain": "aolani.com",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "Aolani",
+        "NVIDIA"
+      ],
+      "topics": [
+        "compute-infrastructure",
+        "gpu-deployment",
+        "southeast-asia",
+        "blackwell-ultra"
+      ],
+      "regions": [
+        "MY",
+        "PH"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-5250676F2582.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: Aolani announces plans for 22,000 Blackwell Ultra GPUs across Malaysia and the Philippines"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "Aolani anuncia planes para desplegar 22,000 GPU Blackwell Ultra en Malasia y Filipinas",
+            "summary": "El anuncio de Aolani del 21 de septiembre de 2026 dice que espera desplegar 22,000 GPU NVIDIA Blackwell Ultra en dos centros de IA de Malasia y Filipinas a principios de 2027. Afirma que la capacidad de sus centros superará 100 MW y que su despliegue total pasará de 48,000 GPU. Son declaraciones prospectivas de la empresa: esta revisión no verificó financiamiento, construcción, permisos, entrega, capacidad operativa, utilización ni confirmación de NVIDIA.",
+            "importance_rationale": "Si se ejecuta el plan anunciado, 22,000 GPU Blackwell Ultra en Malasia y Filipinas ampliarían de forma material la capacidad regional de cómputo de IA prevista. El anuncio es prospectivo y no demuestra financiamiento, entrega, disponibilidad operativa ni utilización.",
+            "why_it_matters": "Si se entrega y queda disponible, el despliegue anunciado ampliaría de forma sustancial la capacidad de cómputo de IA prevista en el sudeste asiático. La fuente primaria acota el plan a su escala y ubicación, pero no acredita el calendario, el financiamiento ni la capacidad operativa utilizable.",
+            "technical": {
+              "claimed_result": "Aolani dice que espera 22,000 GPU NVIDIA Blackwell Ultra en Malasia y Filipinas a principios de 2027; afirma que esto elevará su despliegue total por encima de 48,000 GPU y la capacidad de sus centros por encima de 100 MW.",
+              "demonstrated_result": "La página oficial de la empresa publica el anuncio y califica expresamente las declaraciones futuras de capacidad e infraestructura como prospectivas; no se verificaron entregas ni operación real.",
+              "mechanism": "Aolani describe dos centros de IA planificados y servicios de nube impulsados por NVIDIA en el sudeste asiático.",
+              "regime": "Plan de infraestructura anunciado por la empresa para Malasia y Filipinas: 22,000 GPU Blackwell Ultra previstas para principios de 2027 y capacidad conjunta declarada de más de 100 MW. No se verificaron detalles de implementación por proyecto.",
+              "reproducibility": "El anuncio es público. Sus planes de despliegue futuro no se han verificado de forma independiente y esta revisión no encontró mediciones operativas.",
+              "strongest_baseline": "El anuncio y esta revisión no incluyen una comparación equivalente de capacidad regional ni de infraestructura en operación."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "Aolani afirma que espera desplegar 22,000 GPU NVIDIA Blackwell Ultra en dos centros de IA de Malasia y Filipinas a principios de 2027, con lo que su despliegue total superaría 48,000 GPU. También dice que la capacidad de sus centros superará 100 MW. Son planes futuros, no entregas ni capacidad operativa verificadas."
+                },
+                {
+                  "text": "El anuncio de Aolani identifica las declaraciones sobre capacidad futura, infraestructura, servicios y expansión regional como prospectivas. Esta fuente por sí sola no demuestra financiamiento, permisos, construcción, entrega, confirmación independiente, suministro eléctrico ni utilización."
+                }
+              ],
+              "limitations": [
+                "El despliegue de 22,000 GPU se anuncia como esperado a principios de 2027; no se informa que se hayan entregado.",
+                "La capacidad superior a 100 MW es una cifra planificada por la empresa; no se verificaron datos de energía o puesta en servicio por centro.",
+                "El total anunciado de más de 48,000 GPU es prospectivo y no demuestra unidades instaladas u operativas.",
+                "No se verificaron financiamiento, permisos, construcción, contratos de suministro, confirmación de NVIDIA, acceso de clientes ni utilización."
+              ],
+              "gaps": [
+                {
+                  "description": "La fuente es un anuncio prospectivo de Aolani; no se comprobaron la confirmación de NVIDIA ni el financiamiento, permisos, construcción, entrega o utilización del proyecto."
+                },
+                {
+                  "description": "El anuncio no especifica qué parte de la capacidad indicada está financiada, energizada, disponible para clientes o asignada a cada ubicación."
+                }
+              ]
+            },
+            "headline": "Aolani anuncia planes para desplegar 22,000 GPU Blackwell Ultra en Malasia y Filipinas",
+            "dek": "El anuncio de Aolani del 21 de septiembre de 2026 dice que espera desplegar 22,000 GPU NVIDIA Blackwell Ultra en dos centros de IA de Malasia y Filipinas a principios de 2027."
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "Aolani宣布计划在马来西亚和菲律宾部署22,000块Blackwell Ultra GPU",
+            "summary": "Aolani在2026年九月21日的公告称，计划于2027年初在马来西亚和菲律宾的两座AI工厂部署22,000块NVIDIA Blackwell Ultra GPU。公告称合作将使其AI工厂容量超过100 MW，总部署量超过48,000块GPU。这些是公司的前瞻性陈述：本次审查未核实融资、建设、许可、交付、运营容量、利用率或NVIDIA方面的确认。",
+            "importance_rationale": "如果计划落实，在马来西亚和菲律宾部署22,000块Blackwell Ultra GPU将实质性扩大该地区规划中的AI算力。公告属于前瞻性陈述，未证明融资、交付、运营可用性或利用率。",
+            "why_it_matters": "如果按计划交付并投入使用，这项部署将显著扩大东南亚规划中的AI算力。该一手来源明确了计划规模和地点，但没有证明时间表、融资或可用运营容量。",
+            "technical": {
+              "claimed_result": "Aolani称，22,000块NVIDIA Blackwell Ultra GPU预计于2027年初部署在马来西亚和菲律宾；其总部署量将超过48,000块，工厂容量将超过100 MW。",
+              "demonstrated_result": "公司官方新闻页面发布了这项公告，并明确将未来容量和基础设施陈述界定为前瞻性内容；本次未独立核实交付或实际运营。",
+              "mechanism": "Aolani称将在东南亚建设两座规划中的AI工厂，并通过NVIDIA云服务向客户提供算力。",
+              "regime": "公司公告中的基础设施计划涉及马来西亚和菲律宾，预计于2027年初部署22,000块Blackwell Ultra GPU，所称合计容量超过100 MW。本次未核实项目实施细节。",
+              "reproducibility": "公告可公开访问。未来部署计划尚未独立核实，本次审查未获得运营测量数据。",
+              "strongest_baseline": "公告及本次审查均未提供区域算力或运营部署的匹配比较。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "Aolani称计划于2027年初在马来西亚和菲律宾的两座AI工厂部署22,000块NVIDIA Blackwell Ultra GPU，使其总部署量超过48,000块。公告还称其AI工厂容量将超过100 MW。这些是未来计划，并非已核实的交付或运营容量。"
+                },
+                {
+                  "text": "Aolani公告明确将未来容量、基础设施计划、服务和区域扩张陈述标为前瞻性内容。仅凭该来源无法证明融资、许可、建设、交付、独立确认、电力供应或利用率。"
+                }
+              ],
+              "limitations": [
+                "公告称22,000块GPU预计于2027年初部署，并未报告已经交付。",
+                "超过100 MW是公司所述的规划容量；本次未检查各站点电力或调试证据。",
+                "公告所述超过48,000块GPU的总量属于前瞻性陈述，不能证明设备已安装或运行。",
+                "融资、许可、建设、供电合同、NVIDIA确认、客户接入和利用率均未核实。"
+              ],
+              "gaps": [
+                {
+                  "description": "来源是Aolani自己的前瞻性公告；本次未核实NVIDIA确认，也未检查项目融资、许可、建设、交付或利用情况。"
+                },
+                {
+                  "description": "公告未说明所述容量中有多少已获融资、通电、向客户开放或分配至各个地点。"
+                }
+              ]
+            },
+            "headline": "Aolani宣布计划在马来西亚和菲律宾部署22,000块Blackwell Ultra GPU",
+            "dek": "Aolani在2026年九月21日的公告称，计划于2027年初在马来西亚和菲律宾的两座AI工厂部署22,000块NVIDIA Blackwell Ultra GPU。公告称合作将使其AI工厂容量超过100 MW，总部署量超过48,000块GPU。这些是公司的前瞻性陈述：本次审查未核实融资、建设、许可、交付、运营容量、利用率或NVIDIA方面的确认。"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
+    {
+      "id": "FCMO-50066C920DF8",
+      "slug": "drivingbench-reports-one-successful-low-speed-physical-car-course",
+      "url_date": "2026-10-15",
+      "kind": "development",
+      "status": "live",
+      "beat": "research",
+      "desk": "evaluation_science",
+      "title": "DrivingBench reports one successful low-speed physical-car course completion by GPT-6 Astra in a four-model evaluation",
+      "summary": "A preprint and its authors’ benchmark site describe a closed-course test in which four general-purpose vision-language models controlled steering and speed in a 2022 Toyota Corolla through a 127 m cone course, using vendor-native agent harnesses and up to three attempts in one conversation. The authors report GPT-6 Astra was the only model to finish, on attempt 2; Claude Fable 5.1 reached 45% on attempt 3, while no other attempt passed 50%. The test used a human operator ready to brake, a single course and one evaluation session per model. The arXiv paper reports Astra’s finish at 4:44 after its first command, while the live site and attempt trace list 5:22; the timing difference is unresolved. This is evidence of a narrow author-reported physical-control result, not general road-driving ability or vehicle safety.",
+      "why_it_matters": "The evaluation moves a general-purpose multimodal model from image interpretation to closed-loop action on a real vehicle, where latency and stale observations matter because the car continues moving while the model reasons. The result supports a constrained capability claim and makes harness, task framing and in-context reflection part of the measurement. A single low-speed course run with a human safety operator does not establish reliable driving or safe autonomy.",
+      "importance_rationale": "If the bounded result is accurate, a general-purpose vision-language model completed one real-car, closed-loop cone-course run after a prior attempt and reflection, extending evaluation beyond simulation and digital tasks. Its consequence is notable for physical-agent capability assessment, but evidence is one course and one same-context session per model, with no independent replication or general safety evidence.",
+      "technical": {
+        "claimed_result": "The authors argue general-purpose frontier vision-language models can begin to act in the physical world and that physical-agent evaluation should account for latency, task framing and in-context adaptation. No general driving or safety claim is established.",
+        "compute_or_cost": "Published trace lists 5:22 and 6.6M tokens / $7.74 for Astra attempt 2. This cost depends on the listed model/harness pricing and does not measure deployment cost or driving efficiency.",
+        "demonstrated_result": "The authors report one successful Astra completion of a fixed low-speed cone course on its second same-context attempt among four evaluated models; Claude Fable 5.1 reached 45% on attempt 3 and the other attempts remained below 50%. These are author-reported measurements, not an independent replication.",
+        "implementation_status": "Research benchmark and open-source harness/report; not a deployed autonomous-driving system.",
+        "mechanism": "A model receives camera frames and speed/steering state through observe(), then issues timed steering and speed commands; the vehicle continues under a command while the model reasons, and later commands replace the current command. This makes perception, planning, actuation calibration and inference latency interact in closed loop.",
+        "regime": "2022 Toyota Corolla, Comma 4/openpilot-based interface, 127 m closed parking-lot course, low-speed commands, cones, one model session per system and up to three sequential same-chat attempts; human operator remained ready to brake.",
+        "reproducibility": "Authors publish code, prompt, map, traces, video and telemetry; exact rerun requires a similar supported Toyota, Comma 4/openpilot setup and course. No independent physical rerun or artifact audit was performed.",
+        "strongest_baseline": "The within-study comparisons use four named models in vendor-native harnesses on the same single course, with up to three attempts and retained conversation context. Harness differences and one session per model limit causal model ranking."
+      },
+      "importance_tier": "Notable",
+      "development_type": "dataset_benchmark",
+      "event_at": "2026-09-30T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-16T03:09:45Z",
+      "updated_at": "2026-10-16T03:09:45Z",
+      "importance": 5,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": false,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "CLAIMED",
+            "text": "The authors report that, among GPT-6 Astra, Claude Fable 5.1, GPT-5.6 Sol and Grok 4.6, only Astra completed their 127 m low-speed cone course, doing so on its second attempt; Fable reached 45% on its third attempt and no other attempt passed 50%."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "The benchmark gave each model up to three attempts in one continuous conversation and used a human operator in the vehicle, ready to brake; the tested result does not establish open-road performance or safety."
+          },
+          {
+            "label": "DISPUTED",
+            "qualifier": "CONTRADICTORY",
+            "text": "The paper states Astra reached the finish 4 minutes 44 seconds after its first command, while the current site leaderboard and trace list the attempt duration as 5 minutes 22 seconds; the difference in timing boundary is not resolved in the inspected sources."
+          }
+        ],
+        "limitations": [
+          "The study evaluates four model/harness combinations on one course, with only one evaluation session per model; three attempts in the same conversation are not independent trials.",
+          "A human operator sat in the vehicle with a foot over the brake and could intervene; the setup was low-speed and on a closed lot.",
+          "The paper and current leaderboard/trace report different Astra finish durations (4:44 versus 5:22); the timing boundary was not resolved.",
+          "The course/map and cone placement were not fully surveyed; the authors note camera blind spots, actuator constraints and launch overshoot.",
+          "No independent reproduction, road test, crash-risk estimate, broad driving benchmark or safety validation was inspected."
+        ],
+        "gaps": [
+          {
+            "kind": "missing_independent",
+            "description": "No independent researcher has repeated the physical benchmark or audited the published raw traces and outcome calculation in this review."
+          },
+          {
+            "kind": "regime_unclear",
+            "description": "The result covers one closed course and one session per model; reliability across maps, weather, lighting, vehicle models and repeated trials is unknown."
+          },
+          {
+            "kind": "other",
+            "description": "The paper’s 4:44 Astra completion time differs from the live site/trace duration of 5:22; the timing boundary remains unclear."
+          }
+        ],
+        "contradictory": [
+          "The arXiv paper says Astra reached the finish 4 minutes 44 seconds after its first command, while the live benchmark site and the attempt-2 trace list 5 minutes 22 seconds. The exact timing definition differs across the accessible pages and was not resolved in this review."
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://arxiv.org/abs/2609.38948",
+          "domain": "arxiv.org",
+          "primary": true
+        },
+        {
+          "url": "https://drivingbench.com/report/",
+          "domain": "drivingbench.com",
+          "primary": true
+        },
+        {
+          "url": "https://drivingbench.com/trace/gpt-6-astra/2/",
+          "domain": "drivingbench.com",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "DrivingBench authors",
+        "OpenAI",
+        "Anthropic",
+        "xAI"
+      ],
+      "topics": [
+        "physical-ai",
+        "vision-language-models",
+        "robotics",
+        "real-world-evaluation",
+        "in-context-learning",
+        "inference-latency"
+      ],
+      "regions": [
+        "US"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-50066C920DF8.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: DrivingBench reports one successful low-speed physical-car course completion by GPT-6 Astra in a four-model evaluation"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "DrivingBench informa que GPT-6 Astra completó un circuito de baja velocidad en un auto real dentro de una evaluación de cuatro modelos",
+            "summary": "Un preprint y el sitio de la prueba de sus autores describen un ensayo en circuito cerrado en el que cuatro modelos generales de visión y lenguaje controlaron la dirección y la velocidad de un Toyota Corolla 2022 en un recorrido de conos de 127 m, con entornos de agentes propios de cada proveedor y hasta tres intentos dentro de una conversación. Los autores informan que GPT-6 Astra fue el único modelo en terminar, en el intento 2; Claude Fable 5.1 llegó al 45% en el intento 3, y ningún otro intento superó el 50%. Una persona estaba en el vehículo preparada para frenar; hubo un solo circuito y una sesión de evaluación por modelo. El artículo de arXiv sitúa el final de Astra a los 4:44 desde su primer comando, mientras que el sitio y la traza indican 5:22; la diferencia no está resuelta. Es un resultado acotado informado por los autores sobre control físico, no evidencia de conducción general ni de seguridad vehicular.",
+            "importance_rationale": "Si el resultado acotado es correcto, un modelo general de visión y lenguaje completó una vuelta en un circuito de conos con un auto real tras un intento y reflexión previos. Esto amplía la evaluación más allá de la simulación y las tareas digitales. Su consecuencia es notable para medir agentes físicos, pero la evidencia se limita a un circuito y una sesión por modelo, sin reproducción independiente ni evidencia general de seguridad.",
+            "why_it_matters": "La prueba lleva un modelo multimodal general desde la interpretación de imágenes hasta la acción de circuito cerrado en un vehículo real, donde la latencia y las observaciones desactualizadas importan porque el auto sigue moviéndose mientras el modelo razona. El resultado respalda una afirmación de capacidad acotada y muestra que el entorno de herramientas, la tarea y la reflexión dentro del contexto forman parte de la medición. Una sola vuelta a baja velocidad, con una persona preparada para frenar, no demuestra conducción fiable ni autonomía segura.",
+            "technical": {
+              "claimed_result": "Los autores sostienen que la evaluación de agentes físicos debe considerar la latencia, el encuadre de la tarea y la adaptación dentro del contexto; no se establece conducción general ni seguridad.",
+              "compute_or_cost": "La traza publicada indica 5:22 y 6.6M tokens / $7.74 para el intento 2 de Astra. El costo depende del precio indicado para el modelo y el entorno de herramientas; no mide el costo de despliegue ni la eficiencia de conducción.",
+              "demonstrated_result": "Los autores informan que Astra completó un circuito fijo de conos a baja velocidad en su segundo intento dentro del mismo contexto, entre cuatro modelos evaluados; Claude Fable 5.1 llegó al 45% en el intento 3 y los demás intentos quedaron por debajo del 50%. Son mediciones informadas por los autores, no una reproducción independiente.",
+              "implementation_status": "Prueba de investigación y entorno de control de código abierto; no es un sistema de conducción autónoma desplegado.",
+              "mechanism": "El modelo recibe imágenes de cámara y el estado de velocidad y dirección mediante observe(); luego emite comandos temporizados de dirección y velocidad. El vehículo sigue obedeciendo el comando mientras el modelo razona, hasta que un comando posterior lo reemplaza. Así interactúan percepción, planificación, calibración de actuadores y latencia de inferencia en un circuito cerrado.",
+              "regime": "Toyota Corolla 2022, interfaz basada en Comma 4/openpilot, circuito de estacionamiento cerrado de 127 m, comandos de baja velocidad y conos; una sesión por modelo y hasta tres intentos secuenciales en el mismo chat. Una persona estaba preparada para frenar.",
+              "reproducibility": "Los autores publican código, prompt, mapa, trazas, video y telemetría. Una repetición precisa requiere un Toyota compatible, Comma 4/openpilot y un circuito similar. No se hizo una repetición física independiente ni una auditoría de artefactos.",
+              "strongest_baseline": "La comparación del estudio usa cuatro modelos nombrados con sus entornos de herramientas propios en el mismo circuito y hasta tres intentos con el contexto de conversación retenido. Las diferencias entre entornos y una sola sesión por modelo limitan la clasificación causal de los modelos."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "Los autores informan que, entre GPT-6 Astra, Claude Fable 5.1, GPT-5.6 Sol y Grok 4.6, solo Astra completó el circuito de conos de baja velocidad de 127 m, en su segundo intento; Fable llegó al 45% en su tercer intento y ningún otro intento superó el 50%."
+                },
+                {
+                  "text": "La prueba permitió hasta tres intentos por modelo dentro de una conversación continua y contó con una persona en el vehículo, preparada para frenar; el resultado no establece desempeño ni seguridad en vías abiertas."
+                },
+                {
+                  "text": "El artículo indica que Astra llegó a la meta 4 minutos y 44 segundos después de su primer comando, mientras que la tabla del sitio y la traza indican una duración de 5 minutos y 22 segundos; las fuentes examinadas no resuelven la diferencia en el límite temporal."
+                }
+              ],
+              "limitations": [
+                "El estudio evalúa cuatro combinaciones de modelo y entorno de herramientas en un circuito y con una sola sesión por modelo; tres intentos dentro de la misma conversación no son pruebas independientes.",
+                "Una persona iba en el vehículo con el pie sobre el freno y podía intervenir; la prueba fue a baja velocidad y en un estacionamiento cerrado.",
+                "El artículo y la tabla/traza actuales informan tiempos distintos para Astra (4:44 frente a 5:22); no se resolvió el límite temporal usado.",
+                "El circuito, el mapa y la colocación de los conos no se midieron por completo; los autores señalan puntos ciegos de cámara, límites de actuadores y exceso al iniciar.",
+                "No se examinó una reproducción independiente, una prueba en carretera, una estimación de riesgo de choque, una evaluación amplia de conducción ni una validación de seguridad."
+              ],
+              "gaps": [
+                {
+                  "description": "Ningún investigador independiente repitió la prueba física ni auditó en esta revisión las trazas originales publicadas y el cálculo del resultado."
+                },
+                {
+                  "description": "El resultado cubre un circuito cerrado y una sesión por modelo; se desconoce la fiabilidad en otros mapas, condiciones meteorológicas, iluminación, vehículos y ensayos repetidos."
+                },
+                {
+                  "description": "El tiempo de finalización de Astra de 4:44 en el artículo difiere de la duración de 5:22 en el sitio y la traza; el límite temporal no está claro."
+                }
+              ],
+              "contradictory": [
+                "El artículo de arXiv afirma que Astra llegó a la meta 4 minutos y 44 segundos después del primer comando, mientras que el sitio del benchmark y la traza del intento 2 indican 5 minutos y 22 segundos. Las páginas accesibles usan límites temporales distintos y esta revisión no pudo aclararlos."
+              ]
+            }
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb",
+            "evidence.contradictory": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "DrivingBench报告：GPT-6 Astra在四模型评测中完成了一次真实汽车低速赛道测试",
+            "summary": "一篇预印本和作者的基准网站介绍了一项封闭场地测试：四种通用视觉语言模型通过各自厂商的智能体工具控制一辆2022年Toyota Corolla，在127 m锥桶赛道上控制方向和速度；每个模型可在同一对话中最多尝试三次。作者报告，只有GPT-6 Astra完成赛道，且是在第2次尝试；Claude Fable 5.1达到45%，这是第3次尝试，其他尝试均未超过50%。车内有一名随时准备踩刹车的操作员；每个模型只评测一次，且只用了一条赛道。arXiv论文称Astra从首次指令到到达终点用时4:44，而网站和轨迹记录为5:22；检查到的资料无法解释计时边界差异。这是作者报告的一项范围有限的实体控制结果，不能证明一般道路驾驶能力或车辆安全性。",
+            "importance_rationale": "如果这一受限结果准确，通用视觉语言模型在一次先前尝试和反思之后，完成了一次真实汽车锥桶赛道测试。这将评估范围从模拟器和数字任务扩展到实体控制。它对实体智能体能力评估具有一定意义，但证据仅来自一条赛道和每个模型一次会话，没有独立复现，也没有一般安全证据。",
+            "why_it_matters": "该测试让通用多模态模型从图像理解扩展到真实车辆的闭环控制；车辆在模型推理期间仍会移动，因此延迟和过时观测很重要。结果支持一项受限能力主张，也说明工具环境、任务设定和上下文内反思都是测量的一部分。一次由安全员随时准备制动的低速赛道运行，无法证明可靠驾驶或安全自主能力。",
+            "technical": {
+              "claimed_result": "作者认为，对实体智能体的评估应考虑延迟、任务设定和上下文内适应；该报告未证明一般道路驾驶能力或安全性。",
+              "compute_or_cost": "公开轨迹记录显示，Astra的一次尝试用时5:22，使用6.6M tokens，费用为$7.74；这是第2次尝试。该费用取决于所列模型和工具环境的定价，并不表示部署成本或驾驶效率。",
+              "demonstrated_result": "作者报告，在四种受测模型中，Astra在同一上下文中完成了一条固定低速锥桶赛道；Claude Fable 5.1达到45%，这是第3次尝试，其他尝试均低于50%。这些是作者报告的测量结果，未经独立复现。",
+              "implementation_status": "研究基准及开放源代码控制工具；不是已部署的自动驾驶系统。",
+              "mechanism": "模型通过observe()接收相机画面以及速度和方向状态，然后发出带时长的方向和速度指令。模型思考期间，车辆继续执行当前指令，直到后续指令将其替换。因此，感知、规划、执行器校准和推理延迟会在闭环中相互作用。",
+              "regime": "2022年Toyota Corolla，基于Comma 4/openpilot的接口，127 m封闭停车场赛道，低速指令和锥桶；每个系统评测一次，每个会话内最多连续尝试三次；有一名操作员随时准备制动。",
+              "reproducibility": "作者公开了代码、提示词、地图、轨迹、视频和遥测数据。精确复测需要兼容的Toyota车辆、Comma 4/openpilot配置和类似赛道。本次未进行独立实体复测或产物审计。",
+              "strongest_baseline": "研究在同一条赛道上比较四种具名模型及其厂商原生工具环境，并允许最多三次连续尝试且保留对话上下文。工具环境差异和每个模型仅一次会话，限制了模型间的因果排名。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "作者报告，在GPT-6 Astra、Claude Fable 5.1、GPT-5.6 Sol和Grok 4.6中，只有Astra完成了127 m低速锥桶赛道，并且是在第二次尝试；Fable达到45%，这是第三次尝试，其他尝试均未超过50%。"
+                },
+                {
+                  "text": "该基准允许每个模型在同一连续对话中最多尝试三次，车内有一名随时准备制动的操作员；这一测试结果不能证明开放道路上的表现或安全性。"
+                },
+                {
+                  "text": "论文称Astra从首次指令到抵达终点用时4分44秒，而当前网站榜单和轨迹记录的尝试时长为5分22秒；检查到的资料无法确定计时边界差异。"
+                }
+              ],
+              "limitations": [
+                "研究在一条赛道上评估了四种模型与工具环境组合，每个模型只有一次评测；同一对话中的三次尝试不是独立试验。",
+                "一名操作员坐在车内，脚放在刹车附近并可介入；测试在封闭场地以低速进行。",
+                "论文与当前榜单/轨迹给出的Astra完成时间不同（4:44与5:22）；计时边界尚未厘清。",
+                "赛道、地图和锥桶位置没有完全测绘；作者提到相机盲区、执行器约束和起步过冲。",
+                "本次未检查到独立复现、道路测试、碰撞风险估算、广泛驾驶基准或安全验证。"
+              ],
+              "gaps": [
+                {
+                  "description": "本次检查中，没有独立研究者重复实体测试或审计已公布的原始轨迹及结果计算。"
+                },
+                {
+                  "description": "结果只涵盖一条封闭赛道和每个模型一次会话；其在其他地图、天气、光照、车型和重复试验中的可靠性未知。"
+                },
+                {
+                  "description": "论文中Astra的4:44完成时间与网站/轨迹的5:22时长不同，计时边界仍不明确。"
+                }
+              ],
+              "contradictory": [
+                "arXiv论文称Astra在首次指令后4分44秒到达终点，而基准网站和第2次尝试轨迹记录为5分22秒。当前可访问页面采用的计时定义不同，本次检查未能厘清差异。"
+              ]
+            },
+            "headline": "DrivingBench报告：GPT-6 Astra在四模型评测中完成了一次真实汽车低速赛道测试"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb",
+            "evidence.contradictory": "arb"
+          }
+        }
+      }
+    },
+    {
+      "id": "FCMO-2130EC610C72",
+      "slug": "h-spec-removes-the-separate-drafter-kv-cache-in-parallel-speculative",
+      "url_date": "2026-10-15",
+      "kind": "development",
+      "status": "live",
+      "beat": "research",
+      "desk": "compute_inference",
+      "title": "H-Spec removes the separate drafter KV cache in parallel speculative decoding",
+      "headline": "H-Spec removes the separate drafter KV cache in parallel speculative decoding",
+      "dek": "A September 21, 2026 arXiv paper introduces H-Spec, a parallel speculative-decoding drafter that combines Mamba state initialized from the target model’s last-position hidden state with attention that reuses the target KV cache in place.",
+      "summary": "A September 21, 2026 arXiv paper introduces H-Spec, a parallel speculative-decoding drafter that combines Mamba state initialized from the target model’s last-position hidden state with attention that reuses the target KV cache in place. This removes a separate drafter-side KV cache. Under the authors’ matched training recipe, H-Spec reports 5.0–13.3% higher mean accepted length and 5.3–12.6% higher batch-size-1 inter-token-latency speedup than the best baseline across three targets and eight tasks, with paired bootstrap 95% intervals above zero. On one NVIDIA A100 80G using vLLM, the paper reports higher throughput and lower KV-cache utilization across concurrency 8–128. These remain author-reported results; the paper notes slower drafting below concurrency 32 and initially on shorter inputs, and requires matching drafter and target K/V dimensions. Independent serving reproduction and transfer beyond the measured setup remain open.",
+      "why_it_matters": "If the serving results reproduce, avoiding a separate per-request drafter cache could let inference systems preserve more request capacity or throughput while using parallel speculative decoding. The reported benefit depends on concurrency and context length, and target-specific K/V dimensions limit plug-in compatibility; no independent or fleet-scale result is established.",
+      "importance_rationale": "If the measured efficiency gains reproduce in serving, eliminating a per-request drafter KV cache while preserving parallel speculative drafting could materially improve memory capacity and throughput for high-concurrency long-context inference. The result is an author-run paper on three targets and a stated GPU/software regime; low-concurrency and short-input tradeoffs and K/V compatibility constraints bound its effect.",
+      "technical": {
+        "claimed_result": "The authors report higher accepted draft length and batch-1 ITL speedup than the best parallel-drafter baseline on three targets/eight tasks, and higher vLLM throughput with lower KV utilization across the evaluated concurrency levels. These are author-run results.",
+        "demonstrated_result": "The public v1 paper documents a hybrid Mamba-attention architecture, matched training comparisons, confidence intervals and vLLM serving measurements. It establishes that these methods and results are reported in the paper, not that an independent serving implementation confirms them.",
+        "mechanism": "Initialize Mamba state from projected last-position target hidden states, reuse target KVs in attention in place, and draft blocks through parallel Mamba scans; a causal correction head supports inter-token dependence.",
+        "regime": "Three targets (Llama3.1-8B-IT, Qwen3-4B, Qwen3-8B), eight single-request tasks, and selected math/code/chat vLLM workloads; one NVIDIA A100 80G; concurrency 8–128 for serving.",
+        "reproducibility": "The paper provides architecture/training details and bootstrap uncertainty analysis, but no independent reproduction or public checkpoint/code execution was inspected.",
+        "strongest_baseline": "Best of reproduced P-Eagle, DFlash and DSpark under the paper’s matched training recipe. H-Spec’s single-request margins vary by target; the paper also reports DFlash-2 in a preliminary appendix comparison with no official training pipeline."
+      },
+      "importance_tier": "Major",
+      "development_type": "paper",
+      "event_at": "2026-09-21T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-16T03:09:45Z",
+      "updated_at": "2026-10-16T03:09:45Z",
+      "importance": 6,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": true,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "CLAIMED",
+            "text": "The authors propose H-Spec, a hybrid Mamba-attention parallel drafter that initializes Mamba state from last-position target hidden states and reuses target KVs in place, eliminating a separate drafter-side KV cache while retaining block-parallel drafting."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "Under their matched training recipe, the authors report 5.0–13.3% higher mean accepted length and 5.3–12.6% higher batch-size-1 inter-token-latency speedup than the best baseline across Llama3.1-8B-IT, Qwen3-4B and Qwen3-8B on eight tasks; paired bootstrap 95% intervals are reported above zero."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "In vLLM serving on an NVIDIA A100 80G, the authors report higher throughput and lower KV-cache utilization than baselines across concurrency 8–128, with the advantage generally larger at higher concurrency."
+          },
+          {
+            "label": "NOT_ESTABLISHED",
+            "text": "The paper does not establish independent reproduction or universal serving gains; its own measurements show slower drafting at concurrency below 32 and initially at shorter input lengths, and the drafter’s K/V dimensions must match the target model."
+          }
+        ],
+        "limitations": [
+          "Performance results are reported by the paper authors; no independent reproduction was performed in this review.",
+          "The serving measurements use one NVIDIA A100 80G and vLLM; other hardware, runtimes and production request distributions are not established.",
+          "The paper reports slower drafting at concurrency below 32 and initially at shorter input lengths, with the trend reversing at higher concurrency/longer contexts.",
+          "The K/V dimensions must match the target architecture, constraining drop-in compatibility.",
+          "The single-request and vLLM workload results use selected models and tasks; production economics, energy and fleet-level effects were not measured."
+        ],
+        "gaps": [
+          {
+            "kind": "missing_independent",
+            "description": "No independent implementation or reproduction of the H-Spec performance and serving comparisons has been inspected."
+          },
+          {
+            "kind": "other",
+            "description": "The serving comparison is bounded to one NVIDIA A100 80G and the stated vLLM setup; transfer to other accelerators, runtimes and production workloads is unknown."
+          },
+          {
+            "kind": "other",
+            "description": "H-Spec requires the drafter K/V dimensions to match target K/V dimensions; the method’s compatibility across architectures is constrained."
+          },
+          {
+            "kind": "other",
+            "description": "The authors report the hybrid backbone drafts more slowly at concurrency below 32 and initially at shorter input lengths, so operational break-even depends on workload mix."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://arxiv.org/abs/2609.24197",
+          "domain": "arxiv.org",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "Red Hat",
+        "Harvard University",
+        "Capital One",
+        "NVIDIA"
+      ],
+      "topics": [],
+      "regions": [
+        "GLOBAL",
+        "US"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-2130EC610C72.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: H-Spec removes the separate drafter KV cache in parallel speculative decoding"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "H-Spec elimina la caché KV separada del borrador en la decodificación especulativa paralela",
+            "summary": "Un artículo de arXiv del 21 de septiembre de 2026 presenta H-Spec, un borrador de decodificación especulativa paralela que combina el estado Mamba inicializado con estados ocultos del modelo objetivo en la última posición y la atención que reutiliza directamente la caché KV del objetivo. Esto elimina una caché KV separada para el borrador. Con la receta de entrenamiento emparejada de los autores, H-Spec informa una longitud media aceptada 5.0–13.3% mayor y una mejora de velocidad de latencia entre tokens con tamaño de lote 1 5.3–12.6% mayor que la mejor referencia, en tres modelos objetivo y ocho tareas; los intervalos bootstrap pareados del 95% quedan por encima de cero. En servicio con vLLM sobre una NVIDIA A100 80G, el artículo informa mayor rendimiento y menor utilización de caché KV para concurrencias de 8–128. Son resultados de los autores; el artículo indica que la generación de borradores es más lenta por debajo de concurrencia 32 y al principio con entradas cortas, y exige dimensiones K/V compatibles entre borrador y modelo objetivo. La reproducción independiente y la transferencia fuera del entorno medido siguen pendientes.",
+            "importance_rationale": "Si las mejoras de servicio se reproducen, eliminar una caché KV por solicitud del borrador y conservar la generación especulativa paralela podría aumentar de forma material la capacidad de memoria y el rendimiento en inferencia de alta concurrencia y contexto extenso. El resultado procede de una evaluación de los autores con tres modelos objetivo y una configuración concreta de GPU y software; los costos con baja concurrencia o entradas breves y el requisito de dimensiones K/V compatibles limitan su alcance.",
+            "why_it_matters": "Si se reproducen, los resultados de servicio sugieren que eliminar la caché separada por solicitud permitiría conservar más capacidad o rendimiento de inferencia con decodificación especulativa paralela. El beneficio informado depende de la concurrencia y la longitud del contexto, y las dimensiones K/V específicas del objetivo limitan la compatibilidad directa; todavía no se ha demostrado a escala independiente ni de flota.",
+            "technical": {
+              "claimed_result": "Los autores informan mayor longitud de borrador aceptada y mayor mejora de ITL en lotes de 1 que la mejor referencia de borrador paralelo, para tres objetivos y ocho tareas; en servicio vLLM informan mayor rendimiento y menor utilización de KV en los niveles de concurrencia evaluados. Son mediciones realizadas por los autores.",
+              "demonstrated_result": "El artículo público v1 documenta una arquitectura híbrida de Mamba y atención, comparaciones de entrenamiento emparejadas, intervalos de confianza y mediciones de servicio con vLLM. Esto demuestra que esos métodos y resultados están descritos en el artículo, no que una implementación independiente confirme el servicio medido.",
+              "mechanism": "Inicializa el estado de Mamba a partir de estados ocultos proyectados del objetivo en la última posición, reutiliza directamente las cachés KV del objetivo en atención y genera bloques mediante recorridos paralelos de Mamba; una cabeza de corrección causal sostiene las dependencias entre tokens.",
+              "regime": "Tres objetivos (Llama3.1-8B-IT, Qwen3-4B y Qwen3-8B), ocho tareas de solicitud individual y cargas seleccionadas de matemáticas, código y chat en vLLM; una NVIDIA A100 80G; concurrencia de 8–128 en servicio.",
+              "reproducibility": "El artículo ofrece detalles de arquitectura y entrenamiento y un análisis bootstrap de incertidumbre, pero en esta revisión no se inspeccionó una reproducción independiente ni la ejecución de código o checkpoints públicos.",
+              "strongest_baseline": "La mejor entre P-Eagle, DFlash y DSpark, reentrenados con la receta emparejada del artículo. Los márgenes de H-Spec en solicitudes individuales varían según el modelo objetivo; el artículo también presenta una comparación preliminar con DFlash-2 en apéndice, sin un flujo oficial de entrenamiento."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "Los autores proponen H-Spec, un borrador paralelo híbrido de Mamba y atención que inicializa el estado de Mamba con estados ocultos del modelo objetivo en la última posición y reutiliza directamente las cachés KV del objetivo. Así elimina una caché KV separada para el borrador y mantiene la generación paralela por bloques."
+                },
+                {
+                  "text": "Con una receta de entrenamiento emparejada, los autores informan una longitud media aceptada 5.0–13.3% mayor y una mejora de velocidad de latencia entre tokens con tamaño de lote 1 5.3–12.6% mayor que la mejor referencia, para Llama3.1-8B-IT, Qwen3-4B y Qwen3-8B en ocho tareas; los intervalos bootstrap pareados del 95% quedan por encima de cero."
+                },
+                {
+                  "text": "En pruebas de servicio con vLLM sobre una NVIDIA A100 80G, los autores informan mayor rendimiento y menor utilización de caché KV que las referencias para concurrencias de 8–128; la ventaja suele crecer con la concurrencia."
+                },
+                {
+                  "text": "El artículo no establece una reproducción independiente ni mejoras universales en servicio. Sus propias mediciones muestran un borrado más lento con concurrencia inferior a 32 y, al principio, con entradas cortas; además, las dimensiones K/V del borrador deben coincidir con las del modelo objetivo."
+                }
+              ],
+              "limitations": [
+                "Los resultados de rendimiento los informa el artículo de los autores; en esta revisión no se realizó una reproducción independiente.",
+                "Las mediciones de servicio usan una NVIDIA A100 80G y vLLM; no se establecen resultados con otro hardware, runtime o distribución de solicitudes de producción.",
+                "El artículo informa una generación de borradores más lenta con concurrencia inferior a 32 y al inicio para entradas cortas; la tendencia se invierte con mayor concurrencia o contextos más largos.",
+                "Las dimensiones K/V deben coincidir con la arquitectura objetivo, lo que limita la compatibilidad directa.",
+                "Los resultados de solicitud individual y de servicio con vLLM se basan en modelos y tareas seleccionados; no se midieron economía de producción, consumo energético ni efectos a escala de flota."
+              ],
+              "gaps": [
+                {
+                  "description": "No se ha inspeccionado una implementación independiente ni una reproducción de las comparaciones de rendimiento y servicio de H-Spec."
+                },
+                {
+                  "description": "La comparación de servicio se limita a una NVIDIA A100 80G y la configuración indicada de vLLM; no se conocen los resultados en otros aceleradores, runtimes y cargas de producción."
+                },
+                {
+                  "description": "H-Spec requiere que las dimensiones K/V del borrador coincidan con las del modelo objetivo, lo que restringe la compatibilidad arquitectónica."
+                },
+                {
+                  "description": "Los autores informan que la red de borrado híbrida es más lenta con concurrencia menor a 32 y al inicio con entradas cortas; el comportamiento se invierte con concurrencia o contextos mayores."
+                }
+              ]
+            }
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "H-Spec在并行推测解码中移除了独立的草稿端KV缓存",
+            "summary": "2026年九月21日发布的一篇arXiv论文提出H-Spec：一种并行推测解码草稿模型，将目标模型最后一个位置的隐藏状态用于初始化Mamba状态，并通过注意力直接复用目标模型的KV缓存，因此无需单独的草稿端KV缓存。在作者统一的训练方案下，H-Spec在三个目标模型、八项任务上的平均接受长度比最佳基线高5.0–13.3%，批量大小为1时的逐token延迟加速比高5.3–12.6%；配对bootstrap 95%区间均高于零。论文还报告，在一张NVIDIA A100 80G上使用vLLM时，并发为8–128的服务吞吐量更高、KV缓存利用率更低。这些仍是作者报告的结果；论文指出，并发低于32或输入较短时草稿生成较慢，而且草稿端与目标模型的K/V维度必须匹配。独立服务复现及向所测环境之外的迁移仍待验证。",
+            "importance_rationale": "如果服务效率提升得到复现，在保留并行推测解码的同时消除每个请求单独占用的草稿KV缓存，可能显著提高高并发长上下文推理的内存承载能力或吞吐量。现有结果来自作者在三个目标模型及特定硬件软件环境下开展的评估；低并发和短输入的代价，以及K/V维度兼容要求，限制了其适用范围。",
+            "why_it_matters": "如果服务结果能够复现，移除每个请求单独占用的草稿缓存，或可在保留并行推测解码的同时提高推理系统的请求容量或吞吐量。报告的收益取决于并发度和上下文长度，目标模型特有的K/V维度也限制了即插即用能力；目前尚无独立或集群规模的验证。",
+            "technical": {
+              "claimed_result": "作者报告称，在三个目标模型的八项任务上，H-Spec的接受草稿长度和批量大小为1时的ITL加速均高于最佳并行草稿基线；在所测并发水平下，vLLM吞吐量更高而KV利用率更低。这些结果来自作者实验。",
+              "demonstrated_result": "公开的v1论文记录了Mamba与注意力混合架构、统一训练比较、置信区间以及vLLM服务测量。这说明论文公开描述了这些方法和结果，但并不能证明独立服务实现也会得到相同测量结果。",
+              "mechanism": "用目标模型最后位置的隐藏状态初始化Mamba状态，在注意力模块中直接复用目标KV缓存，并通过Mamba并行扫描生成草稿块；因果校正头用于维持token间依赖。",
+              "regime": "三个目标模型（Llama3.1-8B-IT、Qwen3-4B、Qwen3-8B），八项单请求任务，以及vLLM中的数学、代码和聊天选定负载；一张NVIDIA A100 80G；服务并发为8–128。",
+              "reproducibility": "论文提供架构、训练细节和bootstrap不确定性分析；本次审查未检查独立复现，也未运行公开代码或检查点。",
+              "strongest_baseline": "采用论文统一训练方案复现的P-Eagle、DFlash与DSpark中表现最佳者。H-Spec单请求优势因目标模型而异；论文附录还报告了与DFlash-2的初步比较，但没有官方训练流程。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "作者提出H-Spec：一种Mamba与注意力混合的并行草稿模型。它用目标模型最后一个位置的隐藏状态初始化Mamba状态，并直接复用目标模型的KV缓存，因此无需单独的草稿端KV缓存，同时保留分块并行生成。"
+                },
+                {
+                  "text": "在统一训练方案下，作者报告称，在Llama3.1-8B-IT、Qwen3-4B和Qwen3-8B这三个目标模型的八项任务上，H-Spec的平均接受长度比最佳基线高5.0–13.3%，批量大小为1时的逐token延迟加速比高5.3–12.6%；配对bootstrap 95%区间均高于零。"
+                },
+                {
+                  "text": "在NVIDIA A100 80G上使用vLLM进行服务测试时，作者报告称，与基线相比，H-Spec在8–128并发范围内吞吐量更高、KV缓存利用率更低；优势通常随并发增加而扩大。"
+                },
+                {
+                  "text": "论文未能证明结果得到独立复现，也未能证明服务表现普遍提升。论文自身的测量显示，并发低于32且输入较短的初始阶段，草稿生成较慢；此外，草稿端的K/V维度必须与目标模型匹配。"
+                }
+              ],
+              "limitations": [
+                "性能结果由论文作者报告；本次审查未进行独立复现。",
+                "服务测量使用一张NVIDIA A100 80G和vLLM；其他硬件、运行时及生产请求分布下的结果尚未确立。",
+                "论文报告，并发低于32或输入较短时，草稿生成较慢；并发较高或上下文较长时，趋势反转。",
+                "草稿端K/V维度必须匹配目标架构，限制了即插即用兼容性。",
+                "单请求及vLLM服务结果只覆盖选定的模型和任务；未测量生产经济性、能耗或集群层面的效果。"
+              ],
+              "gaps": [
+                {
+                  "description": "尚未检查H-Spec性能和服务比较的独立实现或复现。"
+                },
+                {
+                  "description": "服务比较限于一张NVIDIA A100 80G和所述vLLM配置；在其他加速器、运行时及生产负载下的表现未知。"
+                },
+                {
+                  "description": "H-Spec要求草稿端K/V维度与目标模型一致，因此其跨架构兼容性受限。"
+                },
+                {
+                  "description": "作者报告，混合骨干在并发低于32或输入长度较短时生成草稿更慢；并发提高或上下文变长后，趋势才反转。"
+                }
+              ]
+            },
+            "headline": "H-Spec在并行推测解码中移除了独立的草稿端KV缓存"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
+    {
+      "id": "FCMO-196DFADB2B0D",
+      "slug": "me-brain-reports-memory-guided-improvement-across-simulated-and-small",
+      "url_date": "2026-10-15",
+      "kind": "development",
+      "status": "live",
+      "beat": "research",
+      "desk": "evaluation_science",
+      "title": "ME-Brain reports memory-guided improvement across simulated and small-scale robot tasks",
+      "headline": "ME-Brain reports memory-guided improvement across simulated and small-scale robot tasks",
+      "dek": "Li Auto’s ME-Brain technical report describes an embodied system combining an external multimodal memory, a cognitive module and an action model, and reports comparisons on RoboMME, RoboDojo and six physical manipulation tasks.",
+      "summary": "Li Auto’s ME-Brain technical report describes an embodied system combining an external multimodal memory, a cognitive module and an action model, and reports comparisons on RoboMME, RoboDojo and six physical manipulation tasks. These are author-reported results: the real-robot evaluation used a Piper dual-arm platform and 10 trials per task. No independent reproduction, released artifact or broad deployment result is established here.",
+      "why_it_matters": "The report offers a concrete systems approach to carrying task experience across robot actions and reports gains on memory-oriented and manipulation benchmarks. If reproduced, that could matter for long-horizon physical tasks; the current evidence is a single vendor report with limited trials and no verified independent replication.",
+      "importance_rationale": "If the reported results hold under independent evaluation, a system that reuses embodied experience across tasks without weight retraining could improve long-horizon manipulation and lower the need for repeated model training. The evidence is one company-authored technical report with narrow benchmark and robot coverage, so broader consequence remains uncertain.",
+      "technical": {
+        "claimed_result": "Authors report gains on memory-oriented and manipulation benchmarks and six physical robot tasks.",
+        "demonstrated_result": "The accessible arXiv v2 report contains method descriptions, benchmark tables and the authors’ physical-robot evaluation protocol/results; external reproduction is not established.",
+        "mechanism": "An external hierarchical multimodal memory stores task events and experience; a cognitive module retrieves and consolidates experience into skills; an action model uses retrieved history to guide manipulation without weight retraining.",
+        "regime": "RoboMME and RoboDojo benchmarks plus six ME-RealBench tabletop manipulation tasks on a Piper dual-arm platform. The report gives 10 trials per real-robot task; simulator results use the task/trial counts stated in the paper.",
+        "strongest_baseline": "Reported comparisons include FrameSampling + Modulation and MemER on RoboMME, leaderboard models on RoboDojo, and DM0.5 and pi_0.5 on ME-RealBench. Baseline recipe parity and independent validation were not assessed."
+      },
+      "importance_tier": "Notable",
+      "development_type": "technical_report",
+      "event_at": "2026-09-29T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-16T03:09:45Z",
+      "updated_at": "2026-10-16T03:09:45Z",
+      "importance": 5,
+      "evidence_class": "B",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": true,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "CLAIMED",
+            "text": "The authors describe ME-Brain as a three-part embodied system with Evolvable Memory, Cognitive Core and Action Model, intended to reuse multimodal task experience across executions without updating model weights."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "On RoboMME, the report gives ME-Brain a 47.88% mean success rate, compared with 44.62% for its FrameSampling + Modulation comparator and 41.75% for MemER; on the reported RoboDojo leaderboard comparison, it gives ME-Brain a 21.51 mean score and 16.03% success rate."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "For six ME-RealBench manipulation tasks on a Piper dual-arm robot, the authors report mean success of 66.7% and mean score of 69.5, based on 10 trials per task."
+          },
+          {
+            "label": "NOT_ESTABLISHED",
+            "text": "The report does not establish independent reproduction, generalization beyond the stated benchmarks/tasks, robust deployment across sites, or the isolated causal contribution of each system module."
+          }
+        ],
+        "limitations": [
+          "All performance values are reported by the paper authors and have not been independently reproduced here.",
+          "The real-robot evaluation is limited to six tasks and 10 trials per task on a Piper dual-arm robot.",
+          "No public code, checkpoint, independent evaluation or broad commercial deployment was verified in this review."
+        ],
+        "gaps": [
+          {
+            "kind": "missing_independent",
+            "description": "No independent reproduction of the reported comparisons or module ablations was checked."
+          },
+          {
+            "kind": "other",
+            "description": "The physical evaluation covers six tasks on one Piper dual-arm setup at 10 trials per task; cross-site and broader deployment robustness are not established."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://arxiv.org/abs/2609.24271",
+          "domain": "arxiv.org",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "Li Auto Inc."
+      ],
+      "topics": [
+        "embodied-ai",
+        "robotics",
+        "multimodal-memory",
+        "robot-manipulation",
+        "evaluation"
+      ],
+      "regions": [
+        "CN"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-196DFADB2B0D.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: ME-Brain reports memory-guided improvement across simulated and small-scale robot tasks"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "ME-Brain informa resultados de memoria reutilizable en simulaciones y tareas robóticas acotadas",
+            "summary": "El informe técnico de ME-Brain de Li Auto describe un sistema de robótica encarnada que combina memoria multimodal externa, un módulo cognitivo y un modelo de acción, e informa comparaciones en RoboMME, RoboDojo y seis tareas físicas de manipulación. Son resultados comunicados por los autores: la evaluación física usó un robot Piper de dos brazos y 10 pruebas por tarea. Este registro no establece reproducción independiente, artefactos publicados ni resultados de despliegue amplio.",
+            "importance_rationale": "Si se confirman mediante evaluación independiente, reutilizar experiencias físicas entre tareas sin volver a entrenar los pesos podría mejorar la manipulación de largo plazo y reducir la necesidad de entrenamientos repetidos. La evidencia proviene de un único informe técnico de una empresa y cubre pocas tareas y pruebas físicas, por lo que las consecuencias más amplias siguen siendo inciertas.",
+            "why_it_matters": "El informe presenta un enfoque concreto para conservar experiencias de tareas y usarlas en acciones robóticas posteriores, junto con resultados en pruebas centradas en memoria y manipulación. Si se reproduce, podría ser relevante para tareas físicas prolongadas; la evidencia actual es un único informe empresarial con pocas pruebas y sin replicación independiente verificada.",
+            "technical": {
+              "claimed_result": "Los autores informan mejoras en pruebas de memoria y manipulación, además de seis tareas con robots físicos.",
+              "demonstrated_result": "El informe v2 disponible en arXiv incluye descripción del método, tablas de pruebas y el protocolo y los resultados de la evaluación física de los autores; no se demuestra una reproducción externa.",
+              "mechanism": "Una memoria multimodal jerárquica externa conserva eventos y experiencias de cada tarea; un módulo cognitivo las recupera y convierte en destrezas; un modelo de acción emplea el historial recuperado para guiar la manipulación sin volver a entrenar los pesos.",
+              "regime": "Pruebas RoboMME y RoboDojo, más seis tareas de manipulación física de ME-RealBench con un robot Piper de dos brazos. El informe indica 10 pruebas por tarea real; para los resultados simulados se usan las cantidades de tareas y pruebas señaladas en el artículo.",
+              "strongest_baseline": "Las comparaciones informadas incluyen FrameSampling + Modulation y MemER en RoboMME, modelos de la tabla de clasificación en RoboDojo, y DM0.5 y pi_0.5 en ME-RealBench. No se evaluaron la paridad de las configuraciones de referencia ni una validación independiente."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "Los autores describen ME-Brain como un sistema de robótica encarnada con tres componentes —Evolvable Memory, Cognitive Core y Action Model— que busca reutilizar experiencias multimodales entre tareas sin actualizar los pesos del modelo."
+                },
+                {
+                  "text": "En RoboMME, el informe atribuye a ME-Brain una tasa media de éxito de 47.88%, frente a 44.62% de FrameSampling + Modulation y 41.75% de MemER. En la comparación con la tabla de clasificación de RoboDojo, informa un puntaje medio de 21.51 y una tasa de éxito de 16.03%."
+                },
+                {
+                  "text": "En seis tareas de manipulación de ME-RealBench con un robot Piper de dos brazos, los autores informan un éxito medio de 66.7% y un puntaje medio de 69.5, con 10 pruebas por tarea."
+                },
+                {
+                  "text": "El informe no demuestra una reproducción independiente, generalización más allá de las pruebas y tareas indicadas, despliegue sólido en distintos sitios ni la contribución causal aislada de cada módulo."
+                }
+              ],
+              "limitations": [
+                "Todos los valores de rendimiento proceden del informe de los autores y no se reprodujeron de forma independiente en esta revisión.",
+                "La evaluación con robots físicos se limita a seis tareas y 10 pruebas por tarea en un robot Piper de dos brazos.",
+                "En esta revisión no se verificaron código público, puntos de control, evaluación independiente ni despliegue comercial amplio."
+              ],
+              "gaps": [
+                {
+                  "description": "No se revisó una reproducción independiente de las comparaciones informadas ni ablaciones de los módulos."
+                },
+                {
+                  "description": "La evaluación física abarca seis tareas, con 10 pruebas por tarea, en una sola configuración de robot Piper de dos brazos; no establece robustez en otros sitios ni en un despliegue más amplio."
+                }
+              ]
+            }
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "ME-Brain报告了可复用记忆在模拟环境和有限机器人任务中的结果",
+            "summary": "Li Auto的ME-Brain技术报告介绍了一种具身机器人系统，组合使用外部多模态记忆、认知模块和动作模型，并报告了RoboMME、RoboDojo及六项实体操作任务的比较结果。实体机器人评估使用Piper双臂机器人，每项任务进行10次试验。这些结果由作者报告；本记录没有证明独立复现、公开可用的模型工件或广泛部署成效。",
+            "importance_rationale": "如果独立评估能够确认这些结果，在不重新训练模型权重的情况下跨任务复用具身经验，可能提升长时程操作能力并减少重复训练需求。当前证据来自一家公司的单份技术报告，实体机器人任务和试验数量有限，因此更广泛的影响仍不确定。",
+            "why_it_matters": "该报告提出一种在不同机器人动作中保留并复用任务经验的具体系统方案，也给出了以记忆和操作为重点的基准结果。如果能够复现，可能对长时程实体任务有意义；目前证据仅来自一份企业报告，试验范围有限，且没有经过核验的独立复现。",
+            "technical": {
+              "claimed_result": "作者报告了记忆和操作基准上的提升，以及实体机器人上的六项任务结果。",
+              "demonstrated_result": "arXiv v2报告包含方法说明、基准表格以及作者所做实体机器人评估的流程和结果；并未证明外部复现。",
+              "mechanism": "外部层级多模态记忆保存各任务事件和经验；认知模块检索并将经验归纳为技能；动作模型利用检索到的历史信息指导操作，而无需重新训练模型权重。",
+              "regime": "RoboMME与RoboDojo基准，以及Piper双臂机器人上的六项ME-RealBench实体操作任务。报告称每项实体任务进行10次试验；模拟结果使用论文所列任务和试验数量。",
+              "strongest_baseline": "报告中的比较包括RoboMME上的FrameSampling + Modulation与MemER、RoboDojo排行榜中的模型，以及ME-RealBench上的DM0.5与pi_0.5。本次没有评估基线配置是否匹配，也没有进行独立验证。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "作者将ME-Brain描述为由Evolvable Memory、Cognitive Core和Action Model组成的具身机器人系统，目标是在不更新模型权重的情况下，让多模态任务经验在不同执行过程中重复使用。"
+                },
+                {
+                  "text": "在RoboMME上，报告给出的ME-Brain平均成功率为47.88%，FrameSampling + Modulation为44.62%，MemER为41.75%。在RoboDojo排行榜比较中，报告给出的ME-Brain平均得分为21.51，成功率为16.03%。"
+                },
+                {
+                  "text": "在Piper双臂机器人上进行的六项ME-RealBench操作任务中，作者报告平均成功率为66.7%，平均得分为69.5；每项任务进行了10次试验。"
+                },
+                {
+                  "text": "该报告没有证明这些结果已由独立团队复现，也没有证明其可推广至所列基准和任务以外、可在不同地点稳定部署，或能单独归因于各系统模块。"
+                }
+              ],
+              "limitations": [
+                "所有性能数值均来自论文作者的报告，本次没有独立复现。",
+                "实体机器人评估仅包括Piper双臂机器人上的六项任务，每项10次试验。",
+                "本次没有核验公开代码、模型检查点、独立评估或大规模商业部署。"
+              ],
+              "gaps": [
+                {
+                  "description": "本次没有核验这些比较结果的独立复现，也没有核验各模块的消融结果。"
+                },
+                {
+                  "description": "实体机器人评估仅覆盖一套Piper双臂配置中的六项任务，每项10次试验；这不足以证明跨地点表现或更广泛部署的稳健性。"
+                }
+              ]
+            },
+            "headline": "ME-Brain报告了可复用记忆在模拟环境和有限机器人任务中的结果",
+            "dek": "Li Auto的ME-Brain技术报告介绍了一种具身机器人系统，组合使用外部多模态记忆、认知模块和动作模型，并报告了RoboMME、RoboDojo及六项实体操作任务的比较结果。实体机器人评估使用Piper双臂机器人，每项任务进行10次试验。这些结果由作者报告；本记录没有证明独立复现、公开可用的模型工件或广泛部署成效。"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
     {
       "id": "FCMO-D2AAFDDC6A80",
       "slug": "cognizant-reports-a-75m-transformer-reached-about-76-pass-2-on-arc-agi-1",
@@ -65858,6 +67875,247 @@
             },
             "headline": "预印本形式化了如何验证长时运行代理工作的权限撤销",
             "dek": "一篇 九月 18 日的预印本为长时间运行的代理定义了按授权根限定的静默机制，处理工作在队列、回调、委派凭据和服务商操作中继续存在的情况。该方法把持久化的根纪元切断、目标端屏障、承载项核算和服务商证据组合为有界证书。论文给出条件式形式证明，并报告了一个本地 17 项晚到效果套件及独立检查器；本次审查没有复现这些结果。"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
+    {
+      "id": "FCMO-66E542A93F36",
+      "slug": "softbank-completes-its-usd-30b-openai-follow-on-investment-and-reports",
+      "url_date": "2026-10-10",
+      "kind": "development",
+      "status": "live",
+      "beat": "business",
+      "desk": "labs_industry",
+      "title": "SoftBank completes its USD 30B OpenAI follow-on investment and reports 13% ownership",
+      "headline": "SoftBank completes its USD 30B OpenAI follow-on investment and reports 13% ownership",
+      "dek": "SoftBank Group says it executed the final USD 10 billion tranche of its previously announced USD 30 billion OpenAI follow-on investment on October 1, 2026, completing the commitment.",
+      "summary": "SoftBank Group says it executed the final USD 10 billion tranche of its previously announced USD 30 billion OpenAI follow-on investment on October 1, 2026, completing the commitment. The company reports cumulative OpenAI investment of USD 64.6 billion and an approximately 13% ownership interest. SoftBank says the final tranche was funded from foreign-currency senior-note proceeds and it canceled the remaining USD 10 billion of an associated bridge facility. This establishes a major investor’s announced capital commitment and financing, not OpenAI’s resulting compute capacity, research spending, or technical progress.",
+      "why_it_matters": "A completed USD 30 billion follow-on investment and disclosed approximately 13% stake are consequential evidence about capital concentration around a frontier AI developer. The corporate release does not establish how the funds affect compute procurement, research output, governance, or model capability.",
+      "importance_rationale": "If sustained, a USD 30 billion follow-on investment and approximately 13% disclosed ownership represent material capital concentration around a frontier AI developer and could influence its financing options. The release establishes transaction execution, not resulting compute, research, governance or technical outcomes.",
+      "technical": {
+        "claimed_result": "SoftBank reports that its final USD 10 billion tranche completed the USD 30 billion follow-on investment on 2026-10-01; its cumulative investment in OpenAI is USD 64.6 billion and its ownership interest is approximately 13%. The company says the tranche was funded with proceeds from Sep 24 foreign-currency senior notes and it canceled remaining USD 10 billion of bridge capacity.",
+        "compute_or_cost": "USD 30 billion follow-on commitment; final tranche USD 10 billion. The release does not quantify compute procurement or research expenditure.",
+        "demonstrated_result": "SoftBank’s Japanese and English primary releases were inspected. They establish the company’s own reported transaction execution and financing; no resulting research, compute or model outcome is demonstrated.",
+        "implementation_status": "SoftBank reports the investment as completed on 2026-10-01 and reports approximately 13% ownership following completion. No independent transaction filing was reviewed.",
+        "mechanism": "Equity investment through SoftBank Vision Fund 2, with the final tranche funded by proceeds from foreign-currency senior notes; the company also canceled unused bridge capacity.",
+        "regime": "Corporate capital allocation to OpenAI Group PBC through SoftBank Vision Fund 2; final tranche dated 2026-10-01 Japan time.",
+        "reproducibility": "Corporate release provides first-party transaction details; no independent filings, OpenAI spending data or downstream technical outcomes were assessed.",
+        "strongest_baseline": "The Feb 27 SoftBank commitment was USD 30 billion in three USD 10 billion tranches. The Oct 1 release states the third/final tranche executed and the prior commitment completed. No comparative AI investment or output analysis is made."
+      },
+      "importance_tier": "Notable",
+      "development_type": "organizational",
+      "event_at": "2026-10-01T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-11T00:51:57Z",
+      "updated_at": "2026-10-11T00:51:57Z",
+      "importance": 5,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": true,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "DEMONSTRATED",
+            "text": "SoftBank Group’s 2026-10-01 Japanese and English releases state that it executed the final USD 10 billion tranche of its previously announced USD 30 billion OpenAI follow-on investment through SoftBank Vision Fund 2, completing the commitment."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "SoftBank reports cumulative OpenAI investment of USD 64.6 billion and an ownership interest of approximately 13% after the third tranche."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "SoftBank states that foreign-currency senior-note proceeds funded the final tranche and that it canceled the remaining USD 10 billion of undrawn bridge-facility capacity effective 2026-09-30."
+          },
+          {
+            "label": "NOT_ESTABLISHED",
+            "text": "These corporate financing disclosures do not establish how the investment changes OpenAI’s compute capacity, research spending, governance, or model capability."
+          }
+        ],
+        "limitations": [
+          "First-party investor announcement; no independent transaction filing was reviewed.",
+          "The source reports financing and ownership, not use of proceeds for compute or R&D.",
+          "No model capability, infrastructure deployment, governance or economic-output effect is established.",
+          "Reuters source URL in the intake was inaccessible; the event was checked against SoftBank primary releases instead."
+        ],
+        "gaps": [
+          {
+            "kind": "other",
+            "description": "The reviewed releases do not show how the completed investment is allocated to OpenAI compute procurement, research spending, or other uses."
+          },
+          {
+            "kind": "missing_independent",
+            "description": "Transaction and ownership figures are from SoftBank’s own releases; no independent filing or OpenAI-side confirmation was reviewed."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://group.softbank/news/press/20261001",
+          "domain": "group.softbank",
+          "primary": true
+        },
+        {
+          "url": "https://group.softbank/en/news/press/20261001",
+          "domain": "group.softbank",
+          "primary": true
+        },
+        {
+          "url": "https://group.softbank/en/news/press/20260924",
+          "domain": "group.softbank",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "Zhejiang University",
+        "Jiangxi Normal University",
+        "CSIRO Data61"
+      ],
+      "topics": [
+        "ai-investment",
+        "frontier-lab-financing",
+        "capital-concentration"
+      ],
+      "regions": [
+        "GLOBAL"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-66E542A93F36.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: SoftBank completes its USD 30B OpenAI follow-on investment and reports 13% ownership"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "SoftBank completa su inversión adicional de USD 30B en OpenAI y reporta una participación de 13%",
+            "summary": "SoftBank Group informa que el 1 de octubre de 2026 ejecutó el tramo final de USD 10 billion de su inversión adicional previamente anunciada de USD 30 billion en OpenAI, con lo que completó el compromiso. La empresa reporta una inversión acumulada en OpenAI de USD 64.6 billion y una participación de aproximadamente 13%. SoftBank señala que el tramo final se financió con los ingresos de bonos sénior en moneda extranjera y que canceló los USD 10 billion restantes de una línea de crédito puente asociada. Esto confirma el compromiso de capital y su financiamiento según un gran inversionista, no la capacidad de cómputo, el gasto de investigación ni el progreso técnico resultantes de OpenAI.",
+            "importance_rationale": "Si se mantiene, una inversión adicional de USD 30 billion y una participación divulgada de aproximadamente 13% representan una concentración de capital importante alrededor de un desarrollador de IA de frontera y podrían influir en sus opciones de financiamiento. El comunicado confirma la ejecución de la transacción, pero no sus efectos en cómputo, investigación, gobernanza o resultados técnicos.",
+            "why_it_matters": "Una inversión adicional completada de USD 30 billion y una participación divulgada de aproximadamente 13% son evidencia relevante de concentración de capital alrededor de un desarrollador de IA de frontera. El comunicado corporativo no establece cómo los fondos afectan la adquisición de cómputo, el gasto de investigación, la gobernanza o las capacidades de los modelos.",
+            "technical": {
+              "claimed_result": "SoftBank informa que el 2026-10-01 ejecutó el tramo final de USD 10 billion de la inversión adicional de USD 30 billion en OpenAI; su inversión acumulada en OpenAI es de USD 64.6 billion y su participación es de aproximadamente 13%. La empresa afirma que el tramo se financió con ingresos de bonos sénior en moneda extranjera emitidos el 24 de septiembre y que canceló USD 10 billion de capacidad de crédito puente.",
+              "compute_or_cost": "Compromiso de inversión adicional de USD 30 billion; tramo final de USD 10 billion. El comunicado no cuantifica la adquisición de cómputo ni el gasto de investigación.",
+              "demonstrated_result": "Se revisaron los comunicados primarios de SoftBank en japonés e inglés. Confirman lo que la empresa reporta sobre la ejecución de la transacción y su financiamiento; no se demuestra ningún resultado posterior de investigación, cómputo o modelos.",
+              "implementation_status": "SoftBank informa que la inversión se completó el 2026-10-01 y reporta una participación de aproximadamente 13%. No se revisó un registro independiente de la transacción.",
+              "mechanism": "Inversión de capital a través de SoftBank Vision Fund 2; el tramo final se financió con ingresos de bonos sénior en moneda extranjera y la empresa canceló capacidad de crédito puente no utilizada.",
+              "regime": "Asignación de capital corporativo a OpenAI Group PBC a través de SoftBank Vision Fund 2; tramo final fechado 2026-10-01, hora de Japón.",
+              "reproducibility": "El comunicado corporativo aporta detalles primarios de la transacción; no se evaluaron registros independientes, datos de gasto de OpenAI ni resultados técnicos posteriores.",
+              "strongest_baseline": "El compromiso de SoftBank del 27 de febrero fue de USD 30 billion en tres tramos de USD 10 billion. El comunicado del 1 de octubre indica que ejecutó el tercer y último tramo y completó el compromiso anterior. No presenta un análisis comparativo de inversión ni resultados de IA."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "Los comunicados primarios de SoftBank Group en japonés e inglés, fechados 2026-10-01, afirman que ejecutó mediante SoftBank Vision Fund 2 el tramo final de USD 10 billion de su inversión adicional de USD 30 billion en OpenAI, previamente anunciada, y completó así el compromiso."
+                },
+                {
+                  "text": "SoftBank reporta que, tras el tercer tramo, su inversión acumulada en OpenAI es de USD 64.6 billion y que su participación es de aproximadamente 13%."
+                },
+                {
+                  "text": "SoftBank afirma que el tramo final se financió con los ingresos de bonos sénior en moneda extranjera y que canceló, con efecto 2026-09-30, los USD 10 billion restantes de capacidad no utilizada de la línea de crédito puente."
+                },
+                {
+                  "text": "Estos comunicados de financiamiento corporativo no establecen cómo la inversión cambia la capacidad de cómputo, el gasto de investigación, la gobernanza o las capacidades de los modelos de OpenAI."
+                }
+              ],
+              "limitations": [
+                "Anuncio del inversionista; no se revisó un registro independiente de la transacción.",
+                "La fuente informa financiamiento y participación, no el uso de los fondos para cómputo o investigación y desarrollo.",
+                "No se establece ningún efecto en capacidades de modelos, despliegue de infraestructura, gobernanza ni resultados económicos.",
+                "La URL de Reuters incluida en la recepción no estuvo accesible; el evento se verificó con comunicados primarios de SoftBank."
+              ],
+              "gaps": [
+                {
+                  "description": "Los comunicados revisados no muestran cómo se asigna la inversión completada al cómputo, al gasto de investigación de OpenAI ni a otros usos."
+                },
+                {
+                  "description": "Las cifras de la transacción y la participación provienen de comunicados de SoftBank; no se revisó un registro independiente ni una confirmación de OpenAI."
+                }
+              ]
+            },
+            "dek": "SoftBank Group informa que el 1 de octubre de 2026 ejecutó el tramo final de USD 10 billion de su inversión adicional previamente anunciada de USD 30 billion en OpenAI, con lo que completó el compromiso."
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "软银完成对OpenAI的USD 30B追加投资，并披露13%持股",
+            "summary": "软银集团称其于2026年十月1日通过此前宣布的USD 30 billion OpenAI追加投资，执行了最后一笔USD 10 billion款项，至此完成该项承诺。公司披露，对OpenAI的累计投资为USD 64.6 billion，持股约13%。软银表示，最后一笔投资使用外币高级债券发行所得资金，并取消了相关桥接融资剩余的USD 10 billion额度。这证明一家大型投资者宣布的资本承诺及融资安排，但不能证明OpenAI因此获得了多少算力、研发支出或技术进展。",
+            "importance_rationale": "如果这一投资长期保持，USD 30 billion追加投资及披露的约13%持股意味着前沿AI开发商周围出现重要资本集中，并可能影响其融资选择。公司公告证明交易执行，但不能说明其对算力、研发、治理或技术结果的影响。",
+            "why_it_matters": "一项已完成的USD 30 billion追加投资和披露的约13%持股，是前沿AI开发商资本集中度的重要信息。公司公告并未说明资金如何影响算力采购、研发支出、治理或模型能力。",
+            "technical": {
+              "claimed_result": "软银称其于2026-10-01执行了USD 30 billion OpenAI追加投资中的最后一笔USD 10 billion；其对OpenAI的累计投资为USD 64.6 billion，持股约13%。公司称该笔资金来自九月24日发行的外币高级债券所得，并取消了USD 10 billion桥接额度。",
+              "compute_or_cost": "追加投资承诺总额USD 30 billion；最后一笔为USD 10 billion。公告未量化算力采购或研发支出。",
+              "demonstrated_result": "已检查软银发布的日文和英文官方公告。公告确认公司报告的交易执行和融资安排；未证明后续研发、算力或模型结果。",
+              "implementation_status": "软银报告该投资于2026-10-01完成，并披露持股约13%。未审阅独立交易备案。",
+              "mechanism": "通过SoftBank Vision Fund 2进行股权投资；最后一笔资金来自外币高级债券发行所得，公司还取消了未使用的桥接融资额度。",
+              "regime": "SoftBank Vision Fund 2向OpenAI Group PBC配置企业资本；最后一笔投资日期为日本时间2026-10-01。",
+              "reproducibility": "公司公告提供第一方交易详情；本次未检查独立备案、OpenAI支出数据或后续技术结果。",
+              "strongest_baseline": "软银于二月27日宣布USD 30 billion追加投资，分为三笔USD 10 billion。十月1日公告称第三笔也是最后一笔已经执行，先前承诺已完成。公告未比较AI投资或技术产出。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "软银集团2026-10-01发布的日文和英文公告称，公司通过SoftBank Vision Fund 2执行了此前宣布的USD 30 billion OpenAI追加投资中的最后一笔USD 10 billion，并完成该项承诺。"
+                },
+                {
+                  "text": "软银披露，完成第三笔投资后，其对OpenAI的累计投资为USD 64.6 billion，持股约13%。"
+                },
+                {
+                  "text": "软银称最后一笔投资使用外币高级债券发行所得资金，并于2026-09-30取消了桥接融资中剩余未提取的USD 10 billion额度。"
+                },
+                {
+                  "text": "这些公司融资公告并未证明该投资如何改变OpenAI的算力、研发支出、治理或模型能力。"
+                }
+              ],
+              "limitations": [
+                "这是投资方公告；未审阅独立交易备案。",
+                "来源报告的是融资和持股，并未说明资金是否用于算力或研发。",
+                "未证明模型能力、基础设施部署、治理或经济产出发生变化。",
+                "接收材料中的Reuters链接无法访问；本次改用软银官方公告核实该事件。"
+              ],
+              "gaps": [
+                {
+                  "description": "已审阅的公告未说明这笔已完成投资将如何分配到OpenAI的算力采购、研发支出或其他用途。"
+                },
+                {
+                  "description": "交易和持股数据来自软银公告；本次未审阅独立备案或OpenAI方面的确认。"
+                }
+              ]
+            },
+            "headline": "软银完成对OpenAI的USD 30B追加投资，并披露13%持股",
+            "dek": "软银集团称其于2026年十月1日通过此前宣布的USD 30 billion OpenAI追加投资，执行了最后一笔USD 10 billion款项，至此完成该项承诺。公司披露，对OpenAI的累计投资为USD 64.6 billion，持股约13%。软银表示，最后一笔投资使用外币高级债券发行所得资金，并取消了相关桥接融资剩余的USD 10 billion额度。这证明一家大型投资者宣布的资本承诺及融资安排，但不能证明OpenAI因此获得了多少算力、研发支出或技术进展。"
           },
           "missing": [],
           "provenance": {
