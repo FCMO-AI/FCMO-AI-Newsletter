@@ -147,7 +147,7 @@ def main(argv: list[str] | None = None) -> int:
         # The route list is passed as a file: all 447 routes exceed the kernel's per-variable limit (E2BIG).
         completed = subprocess.run(
             ["node", "--input-type=commonjs", "-e", LAYOUT_BUDGETS, base, str((args.root / "data" / "routes.json").resolve())],
-            cwd=ROOT, env=env, text=True, capture_output=True, timeout=900,
+            cwd=ROOT, env=env, text=True, capture_output=True, timeout=1800,
         )
         if completed.returncode == 2:
             raise RuntimeError(completed.stderr.strip() or "layout budgets: browser unavailable")

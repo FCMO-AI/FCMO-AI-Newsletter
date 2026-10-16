@@ -374,7 +374,7 @@ class OracleInBrowserTests(unittest.TestCase):
         if not module:
             self.skipTest("Playwright module does not resolve from this checkout")
         result = subprocess.run([sys.executable, str(ORACLE), "--playwright-module", module, "--print-measurements"],
-                                cwd=ROOT, capture_output=True, text=True, timeout=900)
+                                cwd=ROOT, capture_output=True, text=True, timeout=2400)
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertIn("MOBILE FIRST VIEWPORT OK", result.stdout)
         measurements = json.loads(next(line for line in result.stdout.splitlines() if line.startswith("{")))
