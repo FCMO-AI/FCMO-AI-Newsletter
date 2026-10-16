@@ -315,6 +315,9 @@ jobs:
           trap 'rc=$?; printf "step_exit=%s\n" "$rc" >&3' EXIT
           set -euo pipefail
           echo 'VERIFY_FAILED' >"$CODES/transport_error"
+          # A defective single record (blank claim label, Chinese es-419 prose) is quarantined
+          # and listed in wire-status; it must never block the rest of the release.
+          env -i "PATH=$PATH" "HOME=$HOME" python tools/newswire_bridge_partial_locales.py quarantine "$RELEASE_DIR" --out "$CODES/quarantined" 3>&-
           env -i "PATH=$PATH" "HOME=$HOME" python tools/newswire_bridge_partial_locales.py verify "$RELEASE_DIR" 3>&-
           rm -f "$CODES/transport_error"
 
@@ -472,6 +475,7 @@ jobs:
               --transport-error "$ERROR" \
               --source-mode "$(cat "$CODES/source_mode" 2>/dev/null || true)" \
               --arb-failures "$CODES/arb_failures" \
+              --quarantined "$CODES/quarantined" \
               --checkpoint-at "$(cat "$CODES/checkpoint_at" 2>/dev/null || true)" \
               --airlock corpus/airlock.json \
               --records corpus/data/developments.jsonl \

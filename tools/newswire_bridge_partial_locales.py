@@ -70,6 +70,63 @@ def _synthetic_coverage_baseline(release: Path) -> Path:
     return root
 
 
+def _bad_record_ids(release: Path) -> set[str]:
+    """Ids whose own bytes are defective (blank/unknown claim label, Chinese es-419 title/summary)."""
+    bad: set[str] = set(strict._unclassified_claims(release / "data" / "developments.jsonl"))
+    path = release / "data" / "locales" / "es-419" / "records.json"
+    if path.is_file():
+        rows = json.loads(path.read_text(encoding="utf-8")).get("records")
+        for rid, overlay in (rows.items() if isinstance(rows, dict) else []):
+            if isinstance(overlay, dict) and any(
+                isinstance(overlay.get(k), str) and strict._han_dominated(overlay[k]) for k in ("title", "summary")
+            ):
+                bad.add(rid)
+    return bad
+
+
+def quarantine_release(release: Path) -> list[str]:
+    """Drop per-record defects from the release instead of refusing the whole transfer.
+
+    A quarantined story is removed from the corpus and from every locale delta, and the
+    airlock receipt is re-sealed over the remaining bytes. The corpus guard then carries
+    the last published version of it forward (or never admits it if it was never published).
+    Structural defects (privacy, paths, schema) are NOT quarantined: verify still refuses them.
+    """
+    release = release.resolve()
+    bad = _bad_record_ids(release)
+    if not bad:
+        return []
+    dev = release / "data" / "developments.jsonl"
+    kept = []
+    for line in dev.read_text(encoding="utf-8").splitlines():
+        if line.strip():
+            try:
+                if json.loads(line).get("id") in bad:
+                    continue
+            except (json.JSONDecodeError, AttributeError):
+                pass
+        kept.append(line)
+    dev.write_text("\n".join(kept) + "\n", encoding="utf-8")
+    for locale in strict.LOCALES:
+        lp = release / "data" / "locales" / locale / "records.json"
+        if lp.is_file():
+            doc = json.loads(lp.read_text(encoding="utf-8"))
+            if isinstance(doc.get("records"), dict):
+                for rid in bad:
+                    doc["records"].pop(rid, None)
+                lp.write_text(json.dumps(doc, indent=2, sort_keys=True, ensure_ascii=False) + "\n", encoding="utf-8")
+    receipt_path = release / "airlock.json"
+    receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+    digest = strict.release_digest(release)
+    receipt.update(
+        corpus_digest=digest,
+        release_id=f"newswire-{digest[:24]}",
+        record_count=len(_public_ids(release)),
+    )
+    receipt_path.write_text(json.dumps(receipt, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    return sorted(bad)
+
+
 def verify_release(release: Path) -> dict[str, Any]:
     release = release.resolve()
     proof = _synthetic_coverage_baseline(release)
@@ -132,10 +189,23 @@ def main(argv: list[str] | None = None) -> int:
     sub = parser.add_subparsers(dest="command", required=True)
     v = sub.add_parser("verify")
     v.add_argument("release", type=Path)
+    q = sub.add_parser("quarantine")
+    q.add_argument("release", type=Path)
+    q.add_argument("--out", type=Path, help="file receiving one quarantined id per line")
     s = sub.add_parser("stage")
     s.add_argument("release", type=Path)
     s.add_argument("corpus", type=Path)
     args = parser.parse_args(argv)
+    if args.command == "quarantine":
+        try:
+            ids = quarantine_release(args.release)
+        except (OSError, ValueError, json.JSONDecodeError) as exc:
+            print(str(exc), file=sys.stderr)
+            return 1
+        if args.out:
+            args.out.write_text("".join(f"{i}\n" for i in ids), encoding="utf-8")
+        print(f"quarantined {len(ids)} record(s)")
+        return 0
     try:
         receipt = verify_release(args.release) if args.command == "verify" else stage_release(args.release, args.corpus)
     except strict.GuardRefused as exc:
