@@ -175,7 +175,9 @@ class ProtectedPublishingTests(unittest.TestCase):
     def test_pages_manual_publish_cannot_run_from_unreviewed_branch(self):
         text = (ROOT / '.github/workflows/pages.yml').read_text()
         self.assertIn("github.ref == 'refs/heads/main'", text)
-        self.assertIn('python3 -m unittest discover -s tests', text)
+        # The full suite runs as complete parallel shards that the build needs.
+        self.assertIn('python3 tools/unittest_shards.py --index ${{ matrix.shard }} --count 8', text)
+        self.assertIn('needs: regression', text)
         self.assertIn('python3 tools/verify_release.py', text)
 
 
