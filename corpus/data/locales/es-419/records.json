@@ -3830,6 +3830,56 @@
       "title": "Hiperredes generan LoRA con pases hacia delante para personalizar modelos de lenguaje en el dispositivo",
       "why_it_matters": "La personalización en un teléfono está limitada por la memoria, el cómputo y la latencia interactiva. Generar un adaptador pequeño y específico para cada persona mediante pases hacia delante podría evitar tanto la optimización individual como los prompts más largos. El artículo informa una comparación inicial de calidad; los costos en dispositivos reales, la generalización y la privacidad siguen sin medirse."
     },
+    "FCMO-1AEA68038362": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "El preprint de arXiv presenta GUI-SD-v2, un método de auto-destilación on-policy en dos etapas para agentes GUI de varios turnos. La primera etapa optimiza conjuntamente interacciones con y sin guía privilegiada correctiva; la segunda destila señales paso a paso de razonamiento y memoria en las salidas de acción y memoria."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Con Qwen3-VL-Instruct-8B, el artículo informa 67.2% de éxito Pass@1 y 79.3% Pass@3 en AndroidWorld, y 25.6% y 31.6% en el subconjunto GUI-only de MobileWorld. Son resultados de benchmarks reportados por los autores; no se hizo una reproducción independiente."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Con tareas de entrenamiento fijas y supervisión generada por Kimi-K3, el artículo informa que GUI-SD-v2 supera sus líneas base evaluadas de SFT, GRPO, OPSD ingenuo y GUI-SD-v1 en ambos benchmarks y en Pass@1/Pass@3. Es una comparación interna del artículo, no prueba de superioridad general entre modelos, entornos o distribuciones de tareas."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "Todos los resultados y ablaciones informados provienen del artículo; el código y los datos de entrenamiento se anuncian como una publicación futura y no estaban disponibles en la fuente revisada.",
+          "kind": "reproduction_missing",
+          "state": "open"
+        },
+        {
+          "description": "La evaluación se limita a Qwen3-VL-Instruct-8B en AndroidWorld y el subconjunto GUI-only de MobileWorld; no se estableció transferencia a otros tamaños, interfaces de escritorio/web, distribuciones más amplias ni fiabilidad en producción.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si las mejoras reportadas se mantienen, transferir razonamiento privilegiado y memoria relevante para la tarea a una política GUI móvil de 8B podría mejorar el entrenamiento de interacciones de varios pasos y modificar las decisiones de post-entrenamiento. La evidencia es un artículo con resultados en dos entornos de benchmarks móviles, no fiabilidad amplia en escritorio ni validación independiente.",
+      "limitations": [
+        "Es un único preprint de arXiv sin revisión por pares; los resultados son de los autores y no se reprodujeron independientemente.",
+        "Los experimentos usan un solo modelo base, Qwen3-VL-Instruct-8B, y entornos móviles Android.",
+        "Los resultados de MobileWorld cubren su subconjunto GUI-only, no el benchmark completo.",
+        "El entrenamiento utiliza guía generada por Kimi-K3 y tareas seleccionadas de OpenMobile/MobileForge; se desconoce la transferencia fuera de esta supervisión y mezcla de tareas.",
+        "El artículo anuncia una futura publicación del código y los datos de entrenamiento; esta activación no verificó tal publicación.",
+        "Las tasas de éxito en benchmarks no demuestran fiabilidad general en tareas largas ni comportamiento en producción."
+      ],
+      "relationships": [],
+      "summary": "Un preprint de arXiv presenta GUI-SD-v2, que entrena a un agente GUI móvil en dos etapas: primero para seguir guía privilegiada correctiva y luego para destilar razonamiento paso a paso y memoria pertinente a la tarea desde sus propias interacciones. Con Qwen3-VL-Instruct-8B y supervisión generada por Kimi-K3, los autores reportan 67.2%/79.3% Pass@1/Pass@3 en AndroidWorld y 25.6%/31.6% en el subconjunto GUI-only de MobileWorld, por encima de las líneas base evaluadas bajo la configuración del artículo. Son resultados reportados por los autores en dos entornos móviles; el código y los datos se anunciaron para una publicación futura, y no se establecieron reproducción independiente ni transferencia más amplia.",
+      "technical": {
+        "claimed_result": "Los autores informan que GUI-SD-v2 mejora Pass@1/Pass@3 frente a las líneas base evaluadas en AndroidWorld y el subconjunto GUI-only de MobileWorld con Qwen3-VL-Instruct-8B.",
+        "demonstrated_result": "El artículo especifica el método de dos etapas, las condiciones de benchmark y los resultados reportados; esta activación releyó el artículo, pero no ejecutó los experimentos.",
+        "implementation_status": "Preprint de investigación. El artículo dice que publicará el código y los datos de entrenamiento; esta revisión no verificó que ya estén disponibles.",
+        "mechanism": "La optimización de seguimiento de privilegios entrena conjuntamente interacciones con contexto original y con guía correctiva. Después, la destilación informativa transfiere señales paso a paso de razonamiento y memoria desde un auto-docente con contexto privilegiado hacia las salidas de acción y memoria de la misma política.",
+        "regime": "Qwen3-VL-Instruct-8B en emuladores Android; tareas seleccionadas de OpenMobile/MobileForge con supervisión generada por Kimi-K3; evaluación en AndroidWorld y el subconjunto GUI-only de MobileWorld.",
+        "strongest_baseline": "Dentro del artículo: SFT, GRPO, OPSD ingenuo y GUI-SD-v1 con igual escala de tareas y supervisión Kimi-K3; además compara algunos sistemas GUI. No hay reproducción independiente con controles emparejados."
+      },
+      "title": "GUI-SD-v2 informa mayor éxito en agentes GUI móviles tras destilar guía de acciones y memoria paso a paso",
+      "why_it_matters": "El método aborda un cuello de botella concreto de los agentes de interfaz con varios turnos: una política puede recibir pistas privilegiadas útiles y aun así no seguirlas o no conservar el estado de la tarea. Si las mejoras reportadas se reproducen, entrenar a la misma política para usar guía paso a paso de razonamiento y memoria podría mejorar el post-entrenamiento de agentes móviles. La evidencia sigue limitada a benchmarks y no demuestra fiabilidad general de agentes."
+    },
     "FCMO-1AFA3EFAE2B1": {
       "claims": [
         {
@@ -12556,62 +12606,6 @@
       "title": "Un preprint informa que las memorias alineadas con respuestas reducen el costo de inferencia con contextos largos",
       "why_it_matters": "Si las mejoras informadas en costo y calidad se mantienen con una localización práctica de ventanas y diversas cargas de trabajo, una ruta de memoria suave entrenada podría reducir el costo de decodificación con contexto largo sin cambiar los pesos del decodificador desplegado. Las mejoras dependen de los benchmarks y el hardware, los resultados de Mistral con datos completos retroceden en dos tareas y el estudio no demuestra costos de producción ni reproducción independiente."
     },
-    "FCMO-66E542A93F36": {
-      "claims": [
-        {
-          "label": "DEMONSTRATED",
-          "text": "Los comunicados primarios de SoftBank Group en japonés e inglés, fechados 2026-10-01, afirman que ejecutó mediante SoftBank Vision Fund 2 el tramo final de USD 10 billion de su inversión adicional de USD 30 billion en OpenAI, previamente anunciada, y completó así el compromiso."
-        },
-        {
-          "label": "CLAIMED",
-          "text": "SoftBank reporta que, tras el tercer tramo, su inversión acumulada en OpenAI es de USD 64.6 billion y que su participación es de aproximadamente 13%."
-        },
-        {
-          "label": "DEMONSTRATED",
-          "text": "SoftBank afirma que el tramo final se financió con los ingresos de bonos sénior en moneda extranjera y que canceló, con efecto 2026-09-30, los USD 10 billion restantes de capacidad no utilizada de la línea de crédito puente."
-        },
-        {
-          "label": "NOT_ESTABLISHED",
-          "text": "Estos comunicados de financiamiento corporativo no establecen cómo la inversión cambia la capacidad de cómputo, el gasto de investigación, la gobernanza o las capacidades de los modelos de OpenAI."
-        }
-      ],
-      "contradictory_evidence": [],
-      "evidence_gaps": [
-        {
-          "description": "Los comunicados revisados no muestran cómo se asigna la inversión completada al cómputo, al gasto de investigación de OpenAI ni a otros usos.",
-          "kind": "other",
-          "state": "open",
-          "updated_at": "2026-10-10T06:20:20Z"
-        },
-        {
-          "description": "Las cifras de la transacción y la participación provienen de comunicados de SoftBank; no se revisó un registro independiente ni una confirmación de OpenAI.",
-          "kind": "missing_independent",
-          "state": "open",
-          "updated_at": "2026-10-10T06:20:20Z"
-        }
-      ],
-      "importance_rationale": "Si se mantiene, una inversión adicional de USD 30 billion y una participación divulgada de aproximadamente 13% representan una concentración de capital importante alrededor de un desarrollador de IA de frontera y podrían influir en sus opciones de financiamiento. El comunicado confirma la ejecución de la transacción, pero no sus efectos en cómputo, investigación, gobernanza o resultados técnicos.",
-      "limitations": [
-        "Anuncio del inversionista; no se revisó un registro independiente de la transacción.",
-        "La fuente informa financiamiento y participación, no el uso de los fondos para cómputo o investigación y desarrollo.",
-        "No se establece ningún efecto en capacidades de modelos, despliegue de infraestructura, gobernanza ni resultados económicos.",
-        "La URL de Reuters incluida en la recepción no estuvo accesible; el evento se verificó con comunicados primarios de SoftBank."
-      ],
-      "relationships": [],
-      "summary": "SoftBank Group informa que el 1 de octubre de 2026 ejecutó el tramo final de USD 10 billion de su inversión adicional previamente anunciada de USD 30 billion en OpenAI, con lo que completó el compromiso. La empresa reporta una inversión acumulada en OpenAI de USD 64.6 billion y una participación de aproximadamente 13%. SoftBank señala que el tramo final se financió con los ingresos de bonos sénior en moneda extranjera y que canceló los USD 10 billion restantes de una línea de crédito puente asociada. Esto confirma el compromiso de capital y su financiamiento según un gran inversionista, no la capacidad de cómputo, el gasto de investigación ni el progreso técnico resultantes de OpenAI.",
-      "technical": {
-        "claimed_result": "SoftBank informa que el 2026-10-01 ejecutó el tramo final de USD 10 billion de la inversión adicional de USD 30 billion en OpenAI; su inversión acumulada en OpenAI es de USD 64.6 billion y su participación es de aproximadamente 13%. La empresa afirma que el tramo se financió con ingresos de bonos sénior en moneda extranjera emitidos el 24 de septiembre y que canceló USD 10 billion de capacidad de crédito puente.",
-        "compute_or_cost": "Compromiso de inversión adicional de USD 30 billion; tramo final de USD 10 billion. El comunicado no cuantifica la adquisición de cómputo ni el gasto de investigación.",
-        "demonstrated_result": "Se revisaron los comunicados primarios de SoftBank en japonés e inglés. Confirman lo que la empresa reporta sobre la ejecución de la transacción y su financiamiento; no se demuestra ningún resultado posterior de investigación, cómputo o modelos.",
-        "implementation_status": "SoftBank informa que la inversión se completó el 2026-10-01 y reporta una participación de aproximadamente 13%. No se revisó un registro independiente de la transacción.",
-        "mechanism": "Inversión de capital a través de SoftBank Vision Fund 2; el tramo final se financió con ingresos de bonos sénior en moneda extranjera y la empresa canceló capacidad de crédito puente no utilizada.",
-        "regime": "Asignación de capital corporativo a OpenAI Group PBC a través de SoftBank Vision Fund 2; tramo final fechado 2026-10-01, hora de Japón.",
-        "reproducibility": "El comunicado corporativo aporta detalles primarios de la transacción; no se evaluaron registros independientes, datos de gasto de OpenAI ni resultados técnicos posteriores.",
-        "strongest_baseline": "El compromiso de SoftBank del 27 de febrero fue de USD 30 billion en tres tramos de USD 10 billion. El comunicado del 1 de octubre indica que ejecutó el tercer y último tramo y completó el compromiso anterior. No presenta un análisis comparativo de inversión ni resultados de IA."
-      },
-      "title": "SoftBank completa su inversión adicional de USD 30B en OpenAI y reporta una participación de 13%",
-      "why_it_matters": "Una inversión adicional completada de USD 30 billion y una participación divulgada de aproximadamente 13% son evidencia relevante de concentración de capital alrededor de un desarrollador de IA de frontera. El comunicado corporativo no establece cómo los fondos afectan la adquisición de cómputo, el gasto de investigación, la gobernanza o las capacidades de los modelos."
-    },
     "FCMO-6761DE6BF374": {
       "claims": [
         {
@@ -18696,57 +18690,6 @@
       "title": "Brasil vincula los incentivos fiscales para centros de datos a energía limpia, capacidad local e I+D",
       "why_it_matters": "El régimen intercambia alivio fiscal condicionado para equipos por disponibilidad de cómputo nacional, energía limpia, eficiencia hídrica e inversión local en innovación. Estos términos pueden incidir en la ubicación y economía de los centros de datos, pero aún no se midieron el gasto tributario efectivo, las autorizaciones, la construcción ni el cumplimiento. LC 237/2026 define el tratamiento de Redata bajo determinadas reglas de beneficios tributarios de 2026 y establece una obligación legal de seguimiento y evaluación, sujeta a las condiciones presupuestarias y de resultado primario; ninguna de esas disposiciones demuestra el gasto tributario ni el impacto reales."
     },
-    "FCMO-9E51A9966402": {
-      "claims": [
-        {
-          "label": "CLAIMED",
-          "text": "En tres tareas de manipulación con dos brazos, los autores informan que sus barreras GLIDE refinadas con trayectorias elevan el éxito de la teleoperación de 0/10, 1/10 y 0/10 con OpenTV sin protección a 7/10, 9/10 y 9/10, respectivamente; una línea base de barreras programadas a mano por expertos del dominio llega a 2/10, 6/10 y 6/10."
-        },
-        {
-          "label": "CLAIMED",
-          "text": "En políticas entrenadas solo con éxitos, las barreras en ejecución elevan el éxito en la transferencia de tomates del 0% al 60% y en el traspaso de marcadores del 20% al 50% con 10 ensayos por condición, mientras que el éxito en el servicio de vino baja del 50% al 40%. Con datos mixtos de GLIDE y la barrera activa, el éxito es del 70%, 60% y 60% en las tres tareas."
-        },
-        {
-          "label": "NOT_ESTABLISHED",
-          "text": "El conjunto reducido de tareas y las condiciones de 10 ensayos no establecen una generalización amplia entre tareas, garantías sólidas de seguridad ni un mejor desempeño en otras plataformas robóticas y tareas de horizonte más largo."
-        }
-      ],
-      "contradictory_evidence": [],
-      "evidence_gaps": [
-        {
-          "description": "Los autores ya publicaron un repositorio del sistema para robots reales y conjuntos de datos de demostración. En esta revisión no descargamos ni ejecutamos ninguno de los dos, y tampoco realizamos una reproducción independiente ni una evaluación con más ensayos.",
-          "kind": "missing_independent",
-          "state": "open"
-        },
-        {
-          "description": "La cobertura de tareas, robots y sensores es limitada; el filtrado en ejecución es propioceptivo y su transferencia a tareas de horizonte largo o móviles no se ha probado.",
-          "kind": "other",
-          "state": "open"
-        }
-      ],
-      "importance_rationale": "Si el enfoque se sostiene en más tareas y con ensayos más numerosos, las restricciones generadas en tiempo de ejecución podrían hacer más útiles los datos de teleoperación imperfectos y permitir que las políticas aprendidas los aprovechen sin retirar la protección en ejecución. La puntuación 5 refleja un resultado relevante en datos y control robóticos; la evidencia se limita a tres tareas y condiciones de 10 ensayos en un estudio de los propios autores.",
-      "limitations": [
-        "Todos los resultados fueron informados por los autores y no se reprodujeron de forma independiente.",
-        "Cada condición informada usa 10 ensayos de evaluación, por lo que las estimaciones son aproximadas y el texto revisado no ofrece intervalos de incertidumbre.",
-        "El estudio abarca tres tareas de manipulación con una sola configuración de robot; la manipulación de horizonte largo y móvil queda como trabajo futuro.",
-        "Las barreras en ejecución usan solo propiocepción; el filtrado en ejecución con visión y tacto se plantea como extensión futura.",
-        "Las barreras en ejecución no mejoran todas las tareas: el éxito informado en el servicio de vino baja del 50% al 40% en una condición de política entrenada solo con éxitos.",
-        "Los autores ofrecen código público del sistema y conjuntos de datos de demostración, pero en esta activación no los descargamos, ejecutamos ni validamos de forma independiente."
-      ],
-      "relationships": [],
-      "summary": "GLIDE es un marco que genera barreras de comandos ejecutables a partir de descripciones de tareas, las refina con trayectorias de teleoperación y las reutiliza durante la ejecución de la política. En tres tareas de manipulación con dos brazos, los autores informan que las barreras de GLIDE elevan el éxito de la teleoperación al 70%, 90% y 90%, frente al 0%, 10% y 0% sin barreras y al 20%, 60% y 60% con barreras escritas a mano por expertos del dominio. En condiciones de política con 10 ensayos, las barreras en ejecución mejoran dos tareas entrenadas solo con éxitos, pero reducen el éxito en el servicio de vino del 50% al 40%; los datos mixtos de GLIDE con filtrado alcanzan el 70%, 60% y 60%. El artículo describe un estudio acotado con robots físicos y no demuestra seguridad general ni transferencia amplia entre tareas. Los autores ofrecen un repositorio público del sistema y conjuntos de datos de demostración; aquí no se ejecutaron ni analizaron de forma independiente.",
-      "technical": {
-        "claimed_result": "Con las barreras aprendidas, se informa un éxito de teleoperación del 70%, 90% y 90% en la transferencia de plato con tomate, el traspaso de marcadores y el servicio de vino, frente al 0%, 10% y 0% sin protección y al 20%, 60% y 60% con barreras de expertos del dominio. En pruebas de política con 10 ensayos, el filtrado en ejecución cambia el éxito de la política entrenada solo con éxitos del 0% al 60% y del 20% al 50% en dos tareas, pero del 50% al 40% en el servicio de vino.",
-        "demonstrated_result": "El preprint accesible presenta las tablas de las tres tareas, el proceso de refinamiento con trayectorias y las comparaciones del filtrado en ejecución. Todos los resultados son informados por los autores; no se realizó ninguna reproducción independiente.",
-        "implementation_status": "Prototipo de investigación evaluado en una configuración física de manipulación con dos brazos; no se ha establecido un despliegue amplio en otras plataformas.",
-        "mechanism": "Un agente de programación infiere los puntos de fallo a partir de las descripciones de las tareas, genera filtros ejecutables sobre los comandos propuestos para el brazo, registra los resultados de la teleoperación protegida, diagnostica los fallos con video y trayectorias, refina los filtros y aplica las barreras finales tanto a la recolección de datos como a la ejecución de la política aprendida.",
-        "regime": "Tres tareas de manipulación con dos brazos: transferencia de plato con tomate, traspaso de marcadores en posición erguida y servicio de vino. Cada línea base o ronda de recolección y cada condición de política informa 10 ensayos. Los experimentos de política usan pi_0.5 entrenado con datos solo de éxito o con datos mixtos de GLIDE, o con datos de OpenTV sin protección. Los filtros en ejecución usan propiocepción.",
-        "reproducibility": "Están disponibles el preprint, la página del proyecto de los autores, el repositorio del sistema y la ficha del conjunto de datos. No descargamos ni ejecutamos el código o los datos; siguen pendientes la reproducción independiente y los ensayos con muestras mayores.",
-        "strongest_baseline": "Barreras programadas a mano por expertos del dominio durante la recolección y ejecución comparada, con y sin protección, de la misma política para las comparaciones de despliegue."
-      },
-      "title": "GLIDE informa que las barreras ejecutables mejoran las demostraciones de manipulación y algunos ensayos de políticas robóticas",
-      "why_it_matters": "Las demostraciones robóticas pueden fallar cuando la teleoperación no mantiene estables los objetos o no completa traspasos delicados. GLIDE prueba un mecanismo concreto: generar filtros de comandos específicos para cada tarea, refinarlos a partir de los resultados de las trayectorias y mantener el filtro activo cuando las políticas aprenden de los datos resultantes. Las mejoras informadas son prometedoras, pero específicas de cada tarea, con solo 10 ensayos de política por condición y una excepción en la que el filtrado en ejecución reduce el éxito."
-    },
     "FCMO-9EAC166A2708": {
       "claims": [
         {
@@ -24312,6 +24255,67 @@
       "title": "Anthropic y Amazon anuncian un compromiso de $100 mil millones con AWS y hasta 5 GW de cómputo",
       "why_it_matters": "El acuerdo une suministro de aceleradores, alojamiento en la nube, distribución de modelos e inversión en una relación de largo plazo entre un desarrollador de modelos de frontera y un hiperescalador. Si se cumple, su escala podría afectar el acceso al cómputo y estrechar los vínculos técnicos y comerciales con un proveedor específico. Los anuncios públicos establecen los compromisos declarados por las partes, pero no muestran costos realizados, entrega de capacidad, rendimiento comparativo ni qué parte de la infraestructura puede trasladarse a otros proveedores."
     },
+    "FCMO-D48C2CFC8C29": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "El anuncio de la Comisión Europea del 15 de octubre de 2026 dice que lanzó la iniciativa de compromisos RAISE AI in Science Enablers en la Cumbre de Dublín sobre IA en la ciencia, para movilizar apoyo privado y filantrópico a investigadores europeos que trabajan entre la IA y la ciencia."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "La Comisión afirma que la iniciativa reúne aportes voluntarios en especie, entre ellos acceso a modelos de IA, capacidad de cómputo, licencias de software de investigación, datos, capacitación y otros recursos. Nombra como participantes iniciales a Novo Nordisk Foundation, NVIDIA, Elsevier, Sanofi, Frontiers, Mistral y Google DeepMind; el anuncio no indica una valoración total ni un calendario de entrega."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El mismo anuncio dice que Mistral AI y CERN anunciaron una alianza para desarrollar lo que la Comisión describe como un futuro modelo fundacional destacado para física. La fuente no especifica tamaño del modelo, cómputo, conjuntos de datos, condiciones de publicación, calendario ni resultados de rendimiento."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "La Comisión señala que la iniciativa tendrá una revisión anual y que los compromisos y avances se presentarán en futuras cumbres europeas de IA en la ciencia. Es un plan de seguimiento anunciado, no evidencia de que los aportes se hayan entregado o utilizado."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El portal de compromisos de la Comisión enumera ofertas concretas: Frontiers dice que aportará más de €1.6 millones en servicios, incluida la curación con IA de 1,000 conjuntos de datos de Horizon Europe y 100 subvenciones FAIR² para publicar datos; Google dice que destinará $3 millones en créditos/tokens de Google Cloud a investigadores europeos. Son compromisos anunciados, no entrega o uso verificados."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "El portal cuantifica algunas ofertas, entre ellas más de €1.6 millones en servicios de Frontiers y $3 millones en créditos/tokens de Google Cloud, pero no da el valor conjunto de los compromisos, criterios comunes de acceso, fechas de entrega ni cumplimiento verificado de forma independiente.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "La alianza Mistral AI–CERN para un modelo de física no tiene en el anuncio consultado datos públicos sobre tamaño, cómputo de entrenamiento, conjuntos de datos, publicación, calendario ni evaluación.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "La iniciativa anuncia revisiones anuales de compromisos y avances, pero todavía no se ha medido en esta fuente la entrega de recursos, la participación de investigadores ni los resultados científicos.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si los compromisos iniciales se convierten en recursos accesibles para la investigación, reunir acceso privado y filantrópico a modelos, cómputo, datos, software y capacitación podría modificar la capacidad práctica para la ciencia con IA en Europa. El anuncio concreta los tipos de aportes y los participantes iniciales, pero no informa valoración total, condiciones de acceso, calendario de entrega ni resultados de investigación medidos.",
+      "limitations": [
+        "Las fuentes son anuncios y un portal de compromisos de la Comisión Europea; no auditan de manera independiente los aportes ni sus valoraciones.",
+        "El portal cuantifica algunas ofertas (>€1.6 millones en servicios de Frontiers; $3 millones en créditos/tokens de Google Cloud), pero no da el valor total de la iniciativa ni condiciones comunes de acceso.",
+        "Las fuentes consultadas no indican fechas de entrega, inventario de aportes cumplidos ni mediciones de uso por investigadores.",
+        "La alianza Mistral AI–CERN anunciada por la Comisión carece aquí de alcance técnico, escala del modelo, detalles de cómputo/datos, condiciones de publicación y resultados de evaluación."
+      ],
+      "relationships": [],
+      "summary": "El 15 de octubre de 2026, la Comisión Europea lanzó la iniciativa RAISE AI in Science Enablers para reunir apoyo voluntario privado y filantrópico a la investigación europea. La Comisión nombra siete participantes iniciales y describe acceso a modelos, cómputo, software, datos y capacitación. Su portal de compromisos detalla algunas condiciones: Frontiers ofrece servicios por más de €1.6 millones, incluida la curación de 1,000 conjuntos de datos de Horizon Europe y 100 subvenciones para publicar datos, mientras que Google compromete $3 millones en créditos/tokens de nube. El portal también describe otras aportaciones de investigación, acceso a modelos y API, y cómputo. Son compromisos anunciados; no hay valoración total, marco común de acceso, constancia de entrega ni medición del uso por investigadores. También se anuncia una alianza Mistral AI–CERN para un modelo de física, sin especificaciones técnicas.",
+      "technical": {
+        "claimed_result": "La Comisión informa de una iniciativa voluntaria con siete participantes iniciales. Su portal describe servicios de Frontiers valorados en más de €1.6 millones, créditos/tokens de Google Cloud por $3 millones y otras ofertas de modelos, cómputo, software, datos, capacitación y apoyo a la investigación. También informa de una alianza Mistral AI–CERN para un modelo de física; no comunica resultados de rendimiento.",
+        "demonstrated_result": "El anuncio oficial de la Comisión, publicado en francés, confirma que la iniciativa y la alianza se anunciaron públicamente el 15 de octubre de 2026. No demuestra entrega ni rendimiento.",
+        "implementation_status": "Iniciativa lanzada y compromisos de participantes publicados; al menos dos entradas del portal cuantifican ofertas. El portal consultado no da valoración conjunta, marco común de acceso, fechas de entrega ni evidencia de participación de investigadores.",
+        "mechanism": "Organizaciones privadas y filantrópicas pueden aportar modelos de IA, cómputo, licencias de software de investigación, datos, capacitación, apoyo financiero, becas o financiación para investigadores; la Comisión dice que los compromisos y avances se revisarán anualmente.",
+        "regime": "Ecosistema europeo de investigación e innovación; aportes voluntarios bajo RAISE, Resource for AI Science in Europe.",
+        "strongest_baseline": "La Comisión presenta el apoyo privado y filantrópico conjunto como complemento de los fondos públicos; el portal enumera algunos compromisos de participantes, pero no ofrece un total ni una línea base de recursos entregados."
+      },
+      "title": "La Comisión Europea lanza una iniciativa RAISE de aportes en especie para la ciencia con IA",
+      "why_it_matters": "RAISE es un canal público-privado identificado para aportar capacidad de investigación, y su portal ya especifica al menos dos ofertas considerables: más de €1.6 millones en servicios de Frontiers y $3 millones en créditos/tokens de Google Cloud, además de aportes de modelos, cómputo, software y capacitación. Si se entregan con condiciones accesibles, podrían ampliar la capacidad de investigación con IA. La evidencia aún se refiere a compromisos anunciados: no establece el total, la elegibilidad común, la entrega ni el uso por investigadores."
+    },
     "FCMO-D4944D597980": {
       "claims": [
         {
@@ -25735,6 +25739,59 @@
       },
       "title": "COMPASS informa control descentralizado con modelos de lenguaje para bandadas de hasta 1,024 agentes",
       "why_it_matters": "Si se reproduce, separar la interpretación semántica de instrucciones de la coordinación local aprendida puede ofrecer una arquitectura útil para escalar el control multiagente guiado por lenguaje más allá de la generación centralizada de acciones. El artículo informa un tamaño de equipo modelado grande, pero la evidencia se limita a recorridos de bandadas y no demuestra despliegue en robots físicos ni transferencia general a otras tareas."
+    },
+    "FCMO-E220B922017C": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "Para el modelo de ruta fija del artículo, φ = A ∨ (M ∧ R) ∨ (V ∧ T ∧ Q), los seis cortes mínimos entre funciones visibles contienen tres fallos cada uno. Bajo el supuesto adicional de que los seis componentes fallan de forma independiente con la misma probabilidad pequeña ε, el modelo da una probabilidad de fallo del sistema de 6ε³ − 9ε⁴ + 5ε⁵ − ε⁶, asintótica a 6ε³."
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "En dos mapas ilustrativos explícitos de dominios de fallo que conservan la arquitectura visible de la ruta, un evento compartido que deshabilita el control de acceso y la monitorización reduce de tres a dos el tamaño mínimo del corte de eventos subyacentes; un evento hipotético compartido que afecta cada ruta suficiente lo reduce a uno. El artículo aclara que estos mapas no describen la implementación de Google DeepMind."
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "El modelo condicional del artículo muestra que, si la prevención reduce los casos ordinarios de establecimiento más rápido que un régimen de fallos difíciles o compartidos, ese régimen puede dominar la población que llega a recuperación. Por ello, deriva que la mezcla de pruebas de recuperación debe reflejar P(C|E), y que limpiar el estado comprometido previo antes de una prueba puede medir otra cantidad."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El autor recomienda mapear los dominios de fallo compartidos, seguir medidas de aseguramiento conjuntas y condicionales a nivel de sistema, priorizar intervenciones mediante medidas de importancia propias del modelo y probar la recuperación conservando o reproduciendo fielmente el mecanismo del fallo. Son recomendaciones de un preprint analítico, no mejoras medidas en un sistema de control desplegado."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "El artículo aplica su modelo de ruta a una hoja de ruta pública de Google DeepMind, pero no existe un mapa independiente de la implementación que establezca qué modelos, identidades, credenciales, operadores, código o planos de control comparten realmente las salvaguardas.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "El artículo no informa probabilidades de fallo calibradas, mediciones empíricas de dependencia ni validación de que el efecto de selección condicional de recuperación ocurra en un sistema de control operativo.",
+          "kind": "missing_independent",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si este análisis condicional sirve como modelo de una ruta de control de IA desplegada, las dependencias compartidas pueden reducir una protección nominal de tres componentes a uno o dos fallos subyacentes, mientras que la prevención puede seleccionar casos más difíciles para recuperación. Esto cambia qué deben medir las pruebas de independencia arquitectónica y recuperación; el artículo no establece dependencias de una implementación real ni riesgo desplegado calibrado.",
+      "limitations": [
+        "Es un único preprint de arXiv que aplica teoría de confiabilidad establecida a una ruta de despliegue fija y estática; no presenta un formalismo general de confiabilidad nuevo.",
+        "El resultado de tercer orden sobre fallos raros supone fallos visibles independientes y con la misma probabilidad pequeña.",
+        "Los ejemplos de causa común son construcciones hipotéticas, no afirmaciones sobre la arquitectura o las tasas de fallo reales de Google DeepMind.",
+        "La fuente no ofrece probabilidades de despliegue calibradas, mediciones empíricas de dependencia ni una medición operativa del efecto de selección durante la recuperación.",
+        "La adaptación dinámica, las restricciones de recursos, el aprendizaje del atacante y las rutas múltiples quedan fuera del modelo de ruta fija."
+      ],
+      "relationships": [],
+      "summary": "Un preprint de arXiv modela una ruta publicada de control de IA mediante control de acceso, monitorización más respuesta, o visibilidad más rastreo y contención. Con fallos raros, independientes e igualmente probables, el modelo visible tiene seis cortes mínimos de tamaño tres y una probabilidad de fallo asintótica de 6ε³. Los dominios de fallo compartidos ilustrativos reducen el tamaño mínimo del corte subyacente a dos o uno; una derivación condicional muestra por qué una prevención más eficaz puede concentrar las demandas posteriores de recuperación en regímenes más difíciles. El artículo recomienda mapear las dependencias y probar la recuperación conservando el fallo inicial. Es un análisis condicional: los ejemplos de causa común no describen la implementación de Google DeepMind y no hay probabilidades operativas calibradas.",
+      "technical": {
+        "claimed_result": "El artículo presenta un análisis formal de confiabilidad para una ruta fija de control de IA: los fallos independientes de salvaguardas visibles producen supresión de fallos raros de orden tres; los fallos compartidos ilustrativos pueden reducir el corte subyacente, y la prevención puede seleccionar casos más difíciles para recuperación.",
+        "demonstrated_result": "Los resultados algebraicos sobre cortes y condicionamiento se derivan dentro del modelo booleano de ruta y de sus supuestos probabilísticos. Los casos de causa común son ejemplos construidos, no hechos medidos de una implementación.",
+        "implementation_status": "Preprint analítico; no establece una implementación operativa, probabilidades calibradas ni resultados medidos de un sistema de control.",
+        "mechanism": "Representar el control de acceso, la monitorización con respuesta y la visibilidad con rastreo y contención como rutas alternativas de éxito; mapear fallos subyacentes que pueden desactivar varias funciones; condicionar la confiabilidad de recuperación al evento y régimen de fallo que produjo el establecimiento.",
+        "regime": "Una ruta fija de una hoja de ruta pública de Google DeepMind. Estructura booleana estática; fallos independientes en el ejemplo nominal; eventos básicos independientes y construidos en los escenarios ilustrativos de causa común.",
+        "strongest_baseline": "El artículo compara la misma ruta visible con un modelo idealizado de componentes independientes y con mapas hipotéticos alternativos de dominios de fallo compartidos. No presenta una comparación empírica."
+      },
+      "title": "Un modelo condicional de confiabilidad muestra cómo los fallos compartidos borran la redundancia nominal del control de IA",
+      "why_it_matters": "Contar salvaguardas visibles puede exagerar la redundancia cuando varias dependen de un mismo modelo, servicio de identidad, base de código o plano de control. El artículo ofrece un marco condicional concreto para examinar esas dependencias y ponderar las pruebas de recuperación según los fallos que realmente llegarían a esa etapa. Su valor está en el diseño y la medición; no estima el riesgo real de un sistema."
     },
     "FCMO-E338876726B6": {
       "claims": [
@@ -27667,6 +27724,60 @@
       },
       "title": "Hubei amplía la canasta de subsidios al consumidor de 2026 para incluir robots incorporados, de cocina, exoesqueletos y de compañía",
       "why_it_matters": "La revisión incorpora explícitamente varios tipos de robots a las categorías de consumo elegibles para un subsidio provincial, lo que crea un canal concreto de política que podría influir en los precios de compra y la demanda. Su alcance real depende de las definiciones de productos elegibles, los reembolsos a consumidores y el financiamiento del programa; el aviso por sí solo no demuestra adopción ni impacto económico."
+    },
+    "FCMO-F49D9961AA54": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED_PUBLICATION_EVENT",
+          "text": "Los autores publicaron el preprint arXiv 2610.20667v1, incluido el 16 de octubre de 2026 en las nuevas entregas de cs.AI."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En 16 modelos objetivo, dos periodos y cuatro dominios, los autores reportan que comparar entre sí las transcripciones de tareas saturadas resueltas correctamente produce un error cuadrático medio agrupado de predicción de capacidad de 0.26, frente a 1.37 con la línea base basada solo en puntajes (5.27 veces menor), y una mejora media de verosimilitud logarítmica con p=0.005."
+        },
+        {
+          "label": "CLAIMED_LIMITATION",
+          "text": "Los autores reportan fallas ante cambios temporales y de distribución: en algunos periodos históricos evaluados, la comparación entre pares no supera la línea base y subestima los primeros modelos de razonamiento. También estiman que el protocolo completo cuesta entre US$55 y US$105 por semestre, según los precios asumidos para septiembre de 2026."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se inspeccionaron ni reprodujeron de forma independiente la implementación de los autores, las transcripciones, las divisiones del benchmark ni los datos de referencia sobre capacidad.",
+          "kind": "missing_artifact",
+          "state": "open"
+        },
+        {
+          "description": "Se desconoce la confiabilidad del protocolo con familias actuales de modelos de frontera y nuevos paradigmas de razonamiento o uso de herramientas; el artículo documenta un error grande ante el cambio hacia los primeros modelos de razonamiento.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "Los supuestos sobre costo operativo y acceso a transcripciones podrían no trasladarse a los precios actuales de los modelos evaluadores ni a proveedores que no muestran trazas de razonamiento o uso de herramientas.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si el efecto reportado se mantiene, comparar transcripciones podría extender algunas evaluaciones saturadas y ayudar a distinguir capacidades sin construir de inmediato tareas más difíciles. La puntuación 5 refleja su relevancia amplia para evaluación y gobernanza, con cautela por su alcance retrospectivo, fallas temporales, límites de acceso a transcripciones y costo considerable.",
+      "limitations": [
+        "Los resultados provienen de un estudio retrospectivo de los autores con 16 modelos objetivo, cuatro dominios y dos periodos principales; no demuestran el desempeño en modelos actuales ni ante futuros cambios de capacidad.",
+        "Las mayores mejoras reportadas aparecen en programación y ciberseguridad; la comparación entre pares no supera la línea base en algunos periodos históricos y subestima marcadamente los primeros modelos de razonamiento.",
+        "Según el artículo, la comparación completa entre pares cuesta entre US$55 y US$105 por semestre bajo los precios asumidos para septiembre de 2026, porque las comparaciones crecen con los pares de modelos objetivo y referencia.",
+        "En esta revisión no se inspeccionaron el código ni los datos, no se hizo una reproducción independiente y no se evaluó el método en una decisión real de seguridad o gobernanza."
+      ],
+      "relationships": [],
+      "summary": "Hamada, Yeon, Migliarini, Olive y Dubois estudian si las transcripciones de tareas resueltas correctamente en benchmarks saturados conservan información sobre la capacidad de los modelos en tareas más difíciles. En un análisis retrospectivo de 16 modelos objetivo de ciencia, matemáticas, programación y ciberseguridad, los autores reportan que comparar transcripciones mediante un modelo de lenguaje predice mejor la capacidad en tareas reservadas que una línea base basada solo en puntajes. El error cuadrático medio agrupado fue 0.26, frente a 1.37 con la línea base (una reducción reportada de 5.27 veces). Sin embargo, el desempeño varía según el periodo y el dominio: el método no supera la línea base en algunos periodos históricos y subestima notablemente los primeros modelos de razonamiento. Es un resultado metodológico reportado en un artículo, no una evaluación de seguridad validada de forma independiente.",
+      "technical": {
+        "claimed_result": "Los autores reportan que comparar transcripciones de tareas saturadas resueltas correctamente predice la capacidad en tareas no saturadas reservadas mejor que asignar la capacidad media de la línea base: error cuadrático medio agrupado de 0.26 frente a 1.37 en 16 modelos objetivo.",
+        "demonstrated_result": "El preprint público en arXiv v1 describe el método retrospectivo, los periodos y modelos evaluados, los protocolos de predicción y los resultados reportados por sus autores. No se hizo una reproducción independiente.",
+        "implementation_status": "Evaluación retrospectiva reportada por los autores; no se ha demostrado una implementación operativa ni un uso en decisiones de seguridad.",
+        "mechanism": "Usar las estimaciones de capacidad y las transcripciones de modelos de referencia que resolvieron correctamente las tareas; luego comparar transcripciones objetivo y de referencia en tareas saturadas, calibrar los juicios relativos con las capacidades de referencia y predecir la capacidad en tareas reservadas.",
+        "regime": "Evaluación retrospectiva en ciencia, matemáticas, programación y ciberseguridad. Los resultados principales abarcan 16 modelos objetivo de 2025-II y 2026-I, con modelos del semestre anterior como referencia. La capacidad en tareas reservadas se estima mediante TRI sobre elementos no saturados.",
+        "reproducibility": "El método, los protocolos y los apéndices son públicos en arXiv:2610.20667v1. En esta revisión no se inspeccionaron el código, los datos ni las transcripciones, y no se intentó reproducir los resultados.",
+        "strongest_baseline": "Línea base de saturación basada solo en puntajes: asigna al modelo objetivo la capacidad media de los modelos de referencia. Por construcción, los modelos de referencia con mayor capacidad resuelven correctamente los elementos observados."
+      },
+      "title": "Un estudio reporta que comparar transcripciones puede recuperar señales de capacidad en benchmarks saturados",
+      "why_it_matters": "Cuando un benchmark se satura, sus puntajes conocidos dejan de distinguir bien entre modelos avanzados, justo cuando las decisiones de seguridad y gobernanza necesitan comparaciones. El artículo reporta una forma de extraer señal adicional de las transcripciones existentes y también muestra que los cambios temporales pueden romper la estimación, además de imponer un costo considerable al análisis completo entre pares."
     },
     "FCMO-F53F9BC47FED": {
       "claims": [
