@@ -1,0 +1,123 @@
+{
+  "record": {
+    "id": "FCMO-4847BDD75623",
+    "title": "IER adds gradient-estimation reliability to sparse on-policy distillation",
+    "desk": "Reasoning Posttraining",
+    "event_at": "2026-09-21T00:00:00Z",
+    "evidence": "A",
+    "confidence": "credible_unconfirmed",
+    "importance": 4,
+    "tier": "Meaningful",
+    "summary": "The paper analyzes sampled-token on-policy distillation (OPD) and defines an information-efficiency ratio (IER) for the reliability of reverse-KL gradient estimates at a fixed prefix. It approximates IER on a finite top-K candidate set and combines the resulting token ranking with existing usefulness scores. Across selected mathematical and medical reasoning settings, the authors report that combined selectors can approach or exceed full OPD at 0.1%–1% token budgets, with mixed results across settings. This concerns token selection for the loss: full student responses and teacher supervision remain computed, and proportional end-to-end compute savings are not established.",
+    "topics": [
+      "on-policy-distillation",
+      "gradient-estimation",
+      "token-selection",
+      "post-training"
+    ],
+    "organizations": [
+      "MBZUAI",
+      "Ant Group"
+    ],
+    "human_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-4847BDD75623.html",
+    "machine_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/data/briefs/FCMO-4847BDD75623.json",
+    "citation": {
+      "id": "FCMO-4847BDD75623",
+      "source": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-4847BDD75623.html"
+    }
+  },
+  "brief": {
+    "claims": [
+      {
+        "label": "CLAIMED",
+        "text": "The authors define an information-efficiency ratio (IER) from a signal-to-noise decomposition of the sampled reverse-KL gradient at a fixed student-generated prefix, using an optimal scalar baseline; its reciprocal is the relative mean-squared estimation error under that baseline."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "The authors report that combining IER with existing usefulness-based token selectors can match or exceed full on-policy distillation on some mathematical and medical reasoning settings at 0.1%–1% token budgets; results vary across selectors, models and tasks."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "IER is approximated on a finite union of top-K student and teacher tokens plus the sampled token, with missing log probabilities filled by a small value and log-ratios clipped for numerical stability."
+      }
+    ],
+    "confidence": "credible_unconfirmed",
+    "contradictory_evidence": [],
+    "desks": [
+      "reasoning_posttraining",
+      "efficiency",
+      "evaluation_science"
+    ],
+    "development_type": "paper",
+    "editions": [
+      "2026-10-16"
+    ],
+    "event_at": "2026-09-21T00:00:00Z",
+    "evidence_class": "A",
+    "evidence_gaps": [
+      {
+        "description": "No matched independent reproduction has measured the sensitivity of IER gains to candidate-set support, missing-probability fill and ratio clipping.",
+        "kind": "missing_independent",
+        "state": "open",
+        "updated_at": "2026-10-16T09:16:14Z"
+      },
+      {
+        "description": "The sparse token budget does not itself establish end-to-end compute savings because student rollouts and teacher supervision are still computed.",
+        "kind": "other",
+        "state": "open",
+        "updated_at": "2026-10-16T09:16:14Z"
+      }
+    ],
+    "id": "FCMO-4847BDD75623",
+    "importance_effective_score": 4,
+    "importance_rationale": "If the paper's method and results generalize, selecting distillation tokens by both usefulness and sampled-gradient reliability could change training choices for sparse on-policy distillation. The consequence is meaningful but local to a specialized post-training method; reported token budgets do not establish proportional end-to-end compute savings.",
+    "importance_scale_version": 2,
+    "importance_score": 4,
+    "importance_tier": "Meaningful",
+    "last_verified_at": "2026-10-16T09:16:14Z",
+    "limitations": [
+      "The IER estimate uses a finite top-K candidate union rather than the full vocabulary; missing log probabilities and clipping can change the approximation.",
+      "Low-token-budget results vary across task/model/selector combinations; the paper includes regressions and cases where another selector performs better.",
+      "Selecting a small fraction of tokens does not remove full student rollout generation or teacher supervision, so the paper does not establish proportional end-to-end compute savings.",
+      "No independent reproduction or matched profiling was conducted in this activation."
+    ],
+    "organizations": [
+      "MBZUAI",
+      "Ant Group"
+    ],
+    "primary_desk": "reasoning_posttraining",
+    "recorded_at": "2026-10-16T09:16:14Z",
+    "regions": [
+      "global"
+    ],
+    "relationships": [],
+    "source_languages": [
+      "en"
+    ],
+    "source_urls": [
+      "https://arxiv.org/html/2609.24432"
+    ],
+    "status": "active",
+    "summary": "The paper analyzes sampled-token on-policy distillation (OPD) and defines an information-efficiency ratio (IER) for the reliability of reverse-KL gradient estimates at a fixed prefix. It approximates IER on a finite top-K candidate set and combines the resulting token ranking with existing usefulness scores. Across selected mathematical and medical reasoning settings, the authors report that combined selectors can approach or exceed full OPD at 0.1%–1% token budgets, with mixed results across settings. This concerns token selection for the loss: full student responses and teacher supervision remain computed, and proportional end-to-end compute savings are not established.",
+    "technical": {
+      "claimed_result": "The authors report that IER combined with usefulness selectors can match or exceed full OPD on some mathematical and medical reasoning settings at 0.1%–1% token budgets. Results are mixed by task, selector and model pair.",
+      "compute_or_cost": "The token budget governs which positions contribute distillation loss. Full student responses and teacher supervision remain computed; proportional end-to-end compute savings are not established. The paper reports near-unchanged wall-clock and memory in its efficiency appendix.",
+      "demonstrated_result": "No independent reproduction was conducted. Results remain author-reported CLAIMED findings.",
+      "implementation_status": "The paper links a public implementation, previously inspected in a targeted review but not executed in this activation. The current source review focused on paper derivation, results and limitations.",
+      "mechanism": "At each student-generated prefix, IER estimates the ratio of expected gradient signal to sampling noise under an optimal scalar baseline. A finite union of top-K student and teacher logits plus the sampled token approximates the full vocabulary; IER ranks tokens alone or combines with usefulness rankings through OR/AND selectors.",
+      "regime": "The paper evaluates mathematical and medical reasoning, including strong-to-weak and big-to-small teacher/student settings and thinking-on/off modes. Reported budgets include 0.1%, 1% and 10% of rollout tokens selected for distillation.",
+      "reproducibility": "The paper gives mathematical derivation, experimental tables and a code link. This activation did not run the code. The candidate-set approximation uses top-K support, fills missing log probabilities with -12 by default per prior code review, and clips log ratios to ±30; sensitivity remains unmeasured.",
+      "strongest_baseline": "Full OPD without token selection and existing usefulness-based selectors under the same reported model-pair/task setups."
+    },
+    "title": "IER adds gradient-estimation reliability to sparse on-policy distillation",
+    "topics": [
+      "on-policy-distillation",
+      "gradient-estimation",
+      "token-selection",
+      "post-training"
+    ],
+    "why_it_matters": "Sparse OPD methods can select useful supervision while overlooking whether a one-sample gradient estimate is reliable. IER supplies a distinct criterion and, in the paper's reported experiments, improves some low-token-budget comparisons. It is a bounded post-training method result; implementation sensitivity and end-to-end savings remain open."
+  },
+  "related": [],
+  "schema": "fcmo-public-brief-v1"
+}

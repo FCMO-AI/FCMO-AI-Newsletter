@@ -1,6 +1,6 @@
 {
   "canonical_locale": "en",
-  "canonical_source_sha256": "385d81eded3c23ad81c271ac1f0667f41c0b4a98785fa4c44a5b32c17952c330",
+  "canonical_source_sha256": "1e32107e27750025ed56d7b33b17fe7fc6bd971f9b6ee641321bb3d0a3665d28",
   "generated_from": "ARB airlock; editorial wording authored upstream",
   "locale": "es-419",
   "records": {
@@ -4704,6 +4704,63 @@
       "title": "H-Spec elimina la caché KV separada del borrador en la decodificación especulativa paralela",
       "why_it_matters": "Si se reproducen, los resultados de servicio sugieren que eliminar la caché separada por solicitud permitiría conservar más capacidad o rendimiento de inferencia con decodificación especulativa paralela. El beneficio informado depende de la concurrencia y la longitud del contexto, y las dimensiones K/V específicas del objetivo limitan la compatibilidad directa; todavía no se ha demostrado a escala independiente ni de flota."
     },
+    "FCMO-2251D42CF830": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "En LoCoMo, los autores informan una precisión global de EnSIMem de 90.6% con evaluación de GPT-4o-mini y 90.0% con Qwen3-32B; presentan por separado los resultados de cada evaluador."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En LongMemEval, los autores informan 92.8% global con cada uno de los evaluadores GPT-4o-mini y Qwen3-32B. Las filas comparativas de otros métodos se transcriben de trabajos anteriores y no se volvieron a ejecutar en este estudio."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Una ablación fija de recuperación en LoCoMo informa 96.59% de precisión para la recuperación estructurada por entidad/tipo/propiedad frente a 86.36% para recuperación densa, manteniendo fijos los modelos de respuesta y evaluación."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El artículo informa una latencia media en línea de 14.4 segundos para EnSIMem frente a 5.70 segundos para MEMORA(P); los autores advierten que las convenciones de conteo de tokens difieren y que MEMORA no informa una latencia de generación separada."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "Los resultados de benchmark y las ablaciones de recuperación de EnSIMem no se reprodujeron de manera independiente en esta activación; la equivalencia de todas las comparaciones con las bases no está establecida.",
+          "kind": "missing_independent",
+          "state": "open",
+          "updated_at": "2026-10-16T09:19:49Z"
+        },
+        {
+          "description": "La latencia en línea informada es considerablemente mayor que el resultado citado de MEMORA(P), y las comparaciones de tokens de contexto podrían usar convenciones de conteo distintas.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-16T09:19:49Z"
+        }
+      ],
+      "importance_rationale": "Si los resultados informados por el artículo se generalizan, indexar entidades y propiedades conservando enlaces al diálogo original podría mejorar la recuperación de evidencia en agentes conversacionales de larga duración. Es un resultado notable para el diseño de memoria episódica, pero la evidencia proviene de los autores, usa evaluación basada en LLM y no cubre habilidades procedimentales ni consolidación semántica; además, la latencia en línea informada supera la del comparador citado.",
+      "limitations": [
+        "Los benchmarks evalúan recuperación conversacional episódica, no ejecución de habilidades procedimentales ni consolidación semántica de largo plazo.",
+        "Las puntuaciones dependen de segmentación, extracción, planificación y evaluación de respuestas con LLM; cambios en los modelos pueden alterar las representaciones intermedias.",
+        "La latencia en línea informada de EnSIMem es 14.4s frente a 5.70s para MEMORA(P), con el costo adicional concentrado en planificación y recuperación.",
+        "Varias filas comparativas de los benchmarks se transcriben de trabajos anteriores; los autores informan una repetición local como control de protocolo para MEMORA(P), no una repetición emparejada completa de todas las bases.",
+        "En esta activación no se hizo una reproducción independiente ni una auditoría de artefactos."
+      ],
+      "relationships": [],
+      "summary": "EnSIMem almacena índices de entidades y propiedades basados en diálogos como direcciones hacia episodios temáticos coherentes; después descompone cada consulta en requisitos de evidencia y recupera los turnos originales necesarios para responder. Los autores informan una precisión global en LoCoMo de 90.6% con GPT-4o-mini y 90.0% con Qwen3-32B, y de 92.8% con ambos evaluadores en LongMemEval. Una ablación fija de recuperación en LoCoMo informa 96.59% para la recuperación estructurada por entidad/tipo/propiedad frente a 86.36% para la recuperación densa. Son resultados informados en el artículo y evaluados por LLM. La latencia en línea informada es 14.4 segundos frente a 5.70 segundos para MEMORA(P); algunas filas comparativas se transcribieron y no se volvieron a ejecutar.",
+      "technical": {
+        "claimed_result": "Las precisiones globales informadas por los autores y separadas por evaluador son 90.6%/90.0% en LoCoMo y 92.8%/92.8% en LongMemEval. Una ablación fija de recuperación en LoCoMo informa 96.59% para recuperación estructurada frente a 86.36% solo para recuperación densa.",
+        "compute_or_cost": "El artículo informa una latencia media en línea de 14.4 segundos para EnSIMem frente a 5.70 segundos para MEMORA(P), con tiempo adicional principalmente en planificación y recuperación. Se excluye la construcción fuera de línea. El conteo de tokens puede usar convenciones distintas entre sistemas.",
+        "demonstrated_result": "No se hizo una reproducción independiente en esta revisión. Las puntuaciones de benchmark siguen siendo resultados CLAIMED informados por los autores.",
+        "implementation_status": "El artículo enlaza paquetes de código para ambos benchmarks e informa que incluyen instrucciones y configuraciones. Esta activación no ejecutó la implementación.",
+        "mechanism": "En la etapa fuera de línea, divide diálogos en episodios temáticos coherentes e indexa valores de entidad/tipo/propiedad enlazados a los turnos originales. En línea, la planificación descompone una solicitud en requisitos de evidencia y tipo de consulta; después combina la búsqueda estructurada con respaldo de recuperación densa y recupera evidencia de forma adaptativa hasta cubrir los requisitos. La respuesta usa los turnos originales recuperados.",
+        "regime": "El artículo evalúa recuperación conversacional episódica con LoCoMo y LongMemEval, usando GPT-4.1-mini para generar respuestas y GPT-4o-mini más Qwen3-32B como evaluadores LLM separados. La latencia en línea informada excluye la construcción de memoria fuera de línea.",
+        "reproducibility": "Se revisaron el artículo v2 completo, las tablas de benchmark y las limitaciones. Las evaluaciones usan LLM a temperatura 0 y se presentan por separado para dos evaluadores. Siguen pendientes la reproducción independiente y la auditoría de equivalencia entre comparadores.",
+        "strongest_baseline": "Para la ablación de recuperación en LoCoMo, recuperación densa bajo la misma configuración de modelos de respuesta y evaluador GPT-4o-mini. Varias filas de comparación global provienen de trabajos publicados; los autores repitieron localmente MEMORA(P) como control de protocolo y obtuvieron 86.23% frente al 86.3% publicado en LoCoMo."
+      },
+      "title": "EnSIMem enlaza índices estructurados de memoria con evidencia conversacional original",
+      "why_it_matters": "El diseño trata el índice como una dirección a diálogos preservados, no como un sustituto con pérdida de la evidencia original. Combina coincidencia de entidades y propiedades con planificación de cobertura específica para cada consulta, y recupera los turnos originales antes de generar una respuesta. Si se reproduce, podría orientar sistemas de memoria que requieren recuperación temporal, composicional o de varios hechos; en la medición informada, el manejo explícito de evidencia tiene como costo una latencia en línea mayor."
+    },
     "FCMO-23126AF42ED1": {
       "claims": [
         {
@@ -8680,6 +8737,58 @@
       "title": "Un generador de conceptos entrenado eleva el pass@128 informado en conjuntos matemáticos difíciles filtrados",
       "why_it_matters": "El artículo estudia si una política pequeña entrenable puede orientar a un modelo mayor congelado hacia estrategias diversas, en vez de gastar el cómputo de inferencia en respuestas repetidas sin guía. Los resultados en subconjuntos difíciles son amplios, pero acotados: el costo de entrenamiento, la selección de problemas y el uso de un juez de la misma familia dejan sin resolver la economía de producción y el impacto general en razonamiento."
     },
+    "FCMO-4847BDD75623": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Los autores definen una razón de eficiencia de información (IER) a partir de una descomposición señal-ruido del gradiente de KL inversa muestreado en un prefijo generado por el estudiante, con una línea base escalar óptima; su recíproco es el error cuadrático medio relativo de estimación bajo esa línea base."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan que combinar IER con selectores existentes basados en utilidad puede igualar o superar la destilación on-policy completa en algunas configuraciones de razonamiento matemático y médico con presupuestos de tokens de 0.1%–1%; los resultados varían entre selectores, modelos y tareas."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "IER se aproxima usando una unión finita de los tokens top-K del estudiante y del docente, más el token muestreado; las probabilidades logarítmicas ausentes se rellenan con un valor pequeño y las razones logarítmicas se recortan por estabilidad numérica."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No hay una reproducción independiente emparejada que mida la sensibilidad de las mejoras de IER a la cobertura del conjunto de candidatos, al relleno de probabilidades ausentes y al recorte de razones.",
+          "kind": "missing_independent",
+          "state": "open",
+          "updated_at": "2026-10-16T09:16:14Z"
+        },
+        {
+          "description": "El presupuesto reducido de tokens no demuestra por sí solo ahorro de cómputo de extremo a extremo, porque aún se generan las respuestas completas del estudiante y se calcula la supervisión del docente.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-16T09:16:14Z"
+        }
+      ],
+      "importance_rationale": "Si el método y los resultados del artículo se generalizan, seleccionar tokens de destilación tanto por utilidad como por fiabilidad del gradiente muestreado podría cambiar las decisiones de entrenamiento para la destilación on-policy dispersa. La consecuencia es significativa, pero se limita a un método especializado de posentrenamiento; los presupuestos de tokens informados no demuestran ahorros de cómputo proporcionales de extremo a extremo.",
+      "limitations": [
+        "La estimación de IER utiliza una unión finita de candidatos top-K en lugar del vocabulario completo; el relleno de probabilidades logarítmicas ausentes y el recorte pueden alterar la aproximación.",
+        "Los resultados con presupuestos bajos de tokens varían entre tareas, modelos y selectores; el artículo incluye regresiones y casos en que otro selector rinde mejor.",
+        "Seleccionar una fracción pequeña de tokens no elimina la generación completa de respuestas del estudiante ni el cálculo de supervisión del docente; por ello, el artículo no establece ahorros de cómputo proporcionales de extremo a extremo.",
+        "En esta activación no se realizó una reproducción independiente ni un perfilado emparejado."
+      ],
+      "relationships": [],
+      "summary": "El artículo analiza la destilación on-policy (OPD) con tokens muestreados y define una razón de eficiencia de información (IER) para la fiabilidad de las estimaciones del gradiente de KL inversa en un prefijo fijo. Aproxima IER sobre un conjunto finito de candidatos top-K y combina la clasificación resultante con puntuaciones de utilidad existentes. En ciertas tareas de razonamiento matemático y médico, los autores informan que los selectores combinados pueden acercarse o superar la OPD completa con presupuestos de 0.1%–1% de tokens, aunque los resultados varían según la configuración. Esto se refiere a la selección de tokens para la función de pérdida: todavía se generan las respuestas completas del estudiante y se calcula la supervisión del docente, y no se han establecido ahorros proporcionales de cómputo de extremo a extremo.",
+      "technical": {
+        "claimed_result": "Los autores informan que IER combinada con selectores de utilidad puede igualar o superar la OPD completa en algunas tareas de razonamiento matemático y médico con presupuestos de 0.1%–1%. Los resultados varían según la tarea, el selector y el par de modelos.",
+        "compute_or_cost": "El presupuesto de tokens determina qué posiciones contribuyen a la pérdida de destilación. Se siguen calculando las respuestas completas del estudiante y la supervisión del docente; no se han establecido ahorros proporcionales de cómputo de extremo a extremo. En el apéndice de eficiencia, el artículo informa tiempos de pared y memoria casi sin cambios.",
+        "demonstrated_result": "No se realizó una reproducción independiente. Los resultados siguen siendo hallazgos CLAIMED informados por los autores.",
+        "implementation_status": "El artículo enlaza una implementación pública, inspeccionada en una revisión anterior pero no ejecutada durante esta activación. La revisión actual de la fuente se centró en la derivación, los resultados y las limitaciones del artículo.",
+        "mechanism": "En cada prefijo generado por el estudiante, IER estima la razón entre la señal esperada del gradiente y el ruido de muestreo usando una línea base escalar óptima. Una unión finita de logits top-K del estudiante y del docente, más el token muestreado, aproxima el vocabulario completo; IER clasifica los tokens por sí sola o se combina con clasificaciones de utilidad mediante selectores OR/AND.",
+        "regime": "El artículo evalúa razonamiento matemático y médico, incluidos escenarios docente-estudiante de fuerte a débil y de grande a pequeño, así como modos de razonamiento activado y desactivado. Los presupuestos informados incluyen 0.1%, 1% y 10% de los tokens de la trayectoria seleccionados para destilación.",
+        "reproducibility": "El artículo incluye derivación matemática, tablas experimentales y un enlace al código. Esta activación no ejecutó el código. La aproximación por conjunto de candidatos utiliza soporte top-K, rellena las probabilidades logarítmicas ausentes con -12 por defecto según una revisión previa del código y recorta las razones logarítmicas a ±30; la sensibilidad no se ha medido.",
+        "strongest_baseline": "OPD completa sin selección de tokens y selectores existentes basados en utilidad, en las mismas configuraciones de tarea y pares de modelos informadas."
+      },
+      "title": "IER añade fiabilidad de estimación del gradiente a la destilación on-policy dispersa",
+      "why_it_matters": "Los métodos de OPD dispersa pueden seleccionar supervisión útil sin considerar si una estimación del gradiente basada en una sola muestra es fiable. IER aporta un criterio distinto y, en los experimentos informados por el artículo, mejora algunas comparaciones con presupuestos bajos de tokens. Es un resultado acotado de un método de posentrenamiento; la sensibilidad de la implementación y los ahorros de extremo a extremo siguen abiertos."
+    },
     "FCMO-4852A51EE0AB": {
       "claims": [
         {
@@ -12449,6 +12558,62 @@
       "title": "Un preprint informa que las memorias alineadas con respuestas reducen el costo de inferencia con contextos largos",
       "why_it_matters": "Si las mejoras informadas en costo y calidad se mantienen con una localización práctica de ventanas y diversas cargas de trabajo, una ruta de memoria suave entrenada podría reducir el costo de decodificación con contexto largo sin cambiar los pesos del decodificador desplegado. Las mejoras dependen de los benchmarks y el hardware, los resultados de Mistral con datos completos retroceden en dos tareas y el estudio no demuestra costos de producción ni reproducción independiente."
     },
+    "FCMO-66E542A93F36": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "Los comunicados primarios de SoftBank Group en japonés e inglés, fechados 2026-10-01, afirman que ejecutó mediante SoftBank Vision Fund 2 el tramo final de USD 10 billion de su inversión adicional de USD 30 billion en OpenAI, previamente anunciada, y completó así el compromiso."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "SoftBank reporta que, tras el tercer tramo, su inversión acumulada en OpenAI es de USD 64.6 billion y que su participación es de aproximadamente 13%."
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "SoftBank afirma que el tramo final se financió con los ingresos de bonos sénior en moneda extranjera y que canceló, con efecto 2026-09-30, los USD 10 billion restantes de capacidad no utilizada de la línea de crédito puente."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "Estos comunicados de financiamiento corporativo no establecen cómo la inversión cambia la capacidad de cómputo, el gasto de investigación, la gobernanza o las capacidades de los modelos de OpenAI."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "Los comunicados revisados no muestran cómo se asigna la inversión completada al cómputo, al gasto de investigación de OpenAI ni a otros usos.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-10T06:20:20Z"
+        },
+        {
+          "description": "Las cifras de la transacción y la participación provienen de comunicados de SoftBank; no se revisó un registro independiente ni una confirmación de OpenAI.",
+          "kind": "missing_independent",
+          "state": "open",
+          "updated_at": "2026-10-10T06:20:20Z"
+        }
+      ],
+      "importance_rationale": "Si se mantiene, una inversión adicional de USD 30 billion y una participación divulgada de aproximadamente 13% representan una concentración de capital importante alrededor de un desarrollador de IA de frontera y podrían influir en sus opciones de financiamiento. El comunicado confirma la ejecución de la transacción, pero no sus efectos en cómputo, investigación, gobernanza o resultados técnicos.",
+      "limitations": [
+        "Anuncio del inversionista; no se revisó un registro independiente de la transacción.",
+        "La fuente informa financiamiento y participación, no el uso de los fondos para cómputo o investigación y desarrollo.",
+        "No se establece ningún efecto en capacidades de modelos, despliegue de infraestructura, gobernanza ni resultados económicos.",
+        "La URL de Reuters incluida en la recepción no estuvo accesible; el evento se verificó con comunicados primarios de SoftBank."
+      ],
+      "relationships": [],
+      "summary": "SoftBank Group informa que el 1 de octubre de 2026 ejecutó el tramo final de USD 10 billion de su inversión adicional previamente anunciada de USD 30 billion en OpenAI, con lo que completó el compromiso. La empresa reporta una inversión acumulada en OpenAI de USD 64.6 billion y una participación de aproximadamente 13%. SoftBank señala que el tramo final se financió con los ingresos de bonos sénior en moneda extranjera y que canceló los USD 10 billion restantes de una línea de crédito puente asociada. Esto confirma el compromiso de capital y su financiamiento según un gran inversionista, no la capacidad de cómputo, el gasto de investigación ni el progreso técnico resultantes de OpenAI.",
+      "technical": {
+        "claimed_result": "SoftBank informa que el 2026-10-01 ejecutó el tramo final de USD 10 billion de la inversión adicional de USD 30 billion en OpenAI; su inversión acumulada en OpenAI es de USD 64.6 billion y su participación es de aproximadamente 13%. La empresa afirma que el tramo se financió con ingresos de bonos sénior en moneda extranjera emitidos el 24 de septiembre y que canceló USD 10 billion de capacidad de crédito puente.",
+        "compute_or_cost": "Compromiso de inversión adicional de USD 30 billion; tramo final de USD 10 billion. El comunicado no cuantifica la adquisición de cómputo ni el gasto de investigación.",
+        "demonstrated_result": "Se revisaron los comunicados primarios de SoftBank en japonés e inglés. Confirman lo que la empresa reporta sobre la ejecución de la transacción y su financiamiento; no se demuestra ningún resultado posterior de investigación, cómputo o modelos.",
+        "implementation_status": "SoftBank informa que la inversión se completó el 2026-10-01 y reporta una participación de aproximadamente 13%. No se revisó un registro independiente de la transacción.",
+        "mechanism": "Inversión de capital a través de SoftBank Vision Fund 2; el tramo final se financió con ingresos de bonos sénior en moneda extranjera y la empresa canceló capacidad de crédito puente no utilizada.",
+        "regime": "Asignación de capital corporativo a OpenAI Group PBC a través de SoftBank Vision Fund 2; tramo final fechado 2026-10-01, hora de Japón.",
+        "reproducibility": "El comunicado corporativo aporta detalles primarios de la transacción; no se evaluaron registros independientes, datos de gasto de OpenAI ni resultados técnicos posteriores.",
+        "strongest_baseline": "El compromiso de SoftBank del 27 de febrero fue de USD 30 billion en tres tramos de USD 10 billion. El comunicado del 1 de octubre indica que ejecutó el tercer y último tramo y completó el compromiso anterior. No presenta un análisis comparativo de inversión ni resultados de IA."
+      },
+      "title": "SoftBank completa su inversión adicional de USD 30B en OpenAI y reporta una participación de 13%",
+      "why_it_matters": "Una inversión adicional completada de USD 30 billion y una participación divulgada de aproximadamente 13% son evidencia relevante de concentración de capital alrededor de un desarrollador de IA de frontera. El comunicado corporativo no establece cómo los fondos afectan la adquisición de cómputo, el gasto de investigación, la gobernanza o las capacidades de los modelos."
+    },
     "FCMO-6761DE6BF374": {
       "claims": [
         {
@@ -14770,6 +14935,59 @@
       },
       "title": "BATON informa mejoras al equilibrar la atribución de feedback y el peso de trayectorias en RL de agentes",
       "why_it_matters": "El artículo separa dos decisiones de entrenamiento para agentes de varios turnos: cómo ponderar las acciones según las respuestas del entorno dentro de una trayectoria y cómo combinar trayectorias largas y cortas en un lote. Sus comparaciones emparejadas y ablación por componentes ofrecen un resultado de optimización concreto para seguir. La evidencia se limita a un preprint, benchmarks seleccionados y modelos Qwen2.5; no demuestra generalización a otras familias o beneficios en despliegue."
+    },
+    "FCMO-7A75105C20C1": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan que MLExpert, un MoE posentrenado de 35B parámetros totales y aproximadamente 3B activos, inicializado a partir de Qwen3.6-35B-A3B, eleva la tasa de cualquier medalla de 37.9% a 72.7% en el subconjunto de 22 tareas de MLE-Bench Lite con el entorno unificado del artículo."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Con el entorno de propósito general Claude Code, el artículo informa una tasa de cualquier medalla de 69.7% para MLExpert frente a 42.4% para el modelo base del mismo tamaño."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En NatureBench Lite, el artículo informa que MLExpert iguala o supera el estado del arte en 5/10 tareas, frente a 0/10 para su base con Claude Code; otros sistemas de frontera evaluados también obtienen resultados altos en este subconjunto pequeño."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "Los resultados de benchmarks y generalización provienen del artículo. No se auditaron ni ejecutaron de forma independiente el código/modelo publicado, la generación de tareas ni la separación entre entrenamiento y prueba.",
+          "kind": "missing_independent",
+          "state": "open",
+          "updated_at": "2026-10-16T09:11:26Z"
+        },
+        {
+          "description": "El artículo revisado no ofrece un desglose completo del cómputo y costo de entrenamiento, lo que limita las comparaciones de eficiencia.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-16T09:11:26Z"
+        }
+      ],
+      "importance_rationale": "Si las mejoras informadas por el artículo se generalizan más allá de su configuración de benchmark, entrenar un agente para mejorar soluciones de aprendizaje automático mediante experimentación prolongada podría ampliar materialmente la ingeniería de IA asistida por IA. La consecuencia potencial es sustancial, pero la evidencia procede de un único estudio de los autores en un subconjunto de 22 tareas; sus efectos en capacidades y despliegues más amplios siguen sin establecerse.",
+      "limitations": [
+        "La comparación de 37.9% a 72.7% es un resultado de los autores en solo 22 tareas históricas de competencia; hace falta examinar de forma independiente la variación por tarea y la transferencia a otros benchmarks.",
+        "Los resultados con Claude Code y con el entorno del artículo se informan por separado y no deben mezclarse.",
+        "NatureBench Lite incluye solo diez tareas; el resultado informado de 5/10 no demuestra una capacidad amplia de descubrimiento científico.",
+        "No se realizó una reproducción independiente, una auditoría de los artefactos publicados, un cálculo completo del cómputo de entrenamiento ni una auditoría de contaminación del benchmark.",
+        "La mejora recursiva de la IA es una motivación del artículo; las tareas medidas no demuestran el desarrollo autónomo de un modelo fundacional más capaz."
+      ],
+      "relationships": [],
+      "summary": "El artículo de arXiv del 15 de octubre presenta MLExpert, un MoE de 35B parámetros totales y aproximadamente 3B activos, inicializado con Qwen3.6-35B-A3B y posentrenado para ingeniería de aprendizaje automático de horizonte largo mediante SFT agéntica jerárquica y Windowed Interaction RL. En un subconjunto de 22 tareas de MLE-Bench Lite, los autores informan 72.7% de cualquier medalla frente a 37.9% para el modelo base con su entorno unificado; con Claude Code informan 69.7% frente a 42.4%. Una comparación de 10 tareas de NatureBench Lite también informa mejoras sobre la base. Son resultados de benchmarks informados en un artículo, no una demostración independiente de investigación autónoma con IA ni de mejora recursiva de la IA.",
+      "technical": {
+        "claimed_result": "Los autores informan que la tasa de cualquier medalla sube de 37.9% a 72.7% en el subconjunto de 22 tareas de MLE-Bench Lite con el entorno del artículo; una comparación con Claude Code informa 42.4% para la base y 69.7% para MLExpert.",
+        "compute_or_cost": "El artículo describe una configuración de evaluación con H200 y un límite de ejecución de doce horas por tarea, pero no ofrece un desglose completo del cómputo de entrenamiento o de los costos económicos para comparar la relación costo-eficacia.",
+        "demonstrated_result": "No se realizó una demostración independiente. El artículo informa los resultados de benchmark en C1–C3; las afirmaciones siguen etiquetadas CLAIMED.",
+        "implementation_status": "El artículo enlaza un repositorio de GitHub y un modelo en Hugging Face; ninguno de los dos artefactos fue auditado ni ejecutado en esta revisión.",
+        "mechanism": "El ajuste fino supervisado agéntico jerárquico va seguido de Windowed Interaction RL, que asigna una recompensa compartida basada en resultados a las decisiones del modelo entre resultados sucesivos de experimentos; la recopilación asíncrona y la corrección de política permiten actualizar antes de que termine una trayectoria completa.",
+        "regime": "El resultado principal de MLE-Bench Lite abarca 22 competencias históricas de Kaggle, con hasta 3,000 pasos de interacción y 12 horas por tarea, usando 20 vCPU, 220 GB de RAM y una GPU NVIDIA H200 para evaluación. MLExpert parte de Qwen3.6-35B-A3B (35B totales, aproximadamente 3B activos).",
+        "reproducibility": "Se revisaron el texto completo v1 del artículo y sus tablas de benchmark. No se auditaron de forma independiente la implementación, la construcción de tareas ni la separación entre entrenamiento y prueba; tampoco se hizo una reproducción.",
+        "strongest_baseline": "El modelo base Qwen3.6-35B-A3B del mismo tamaño bajo el mismo entorno de evaluación informado; el artículo informa por separado una comparación con Claude Code de propósito general."
+      },
+      "title": "MLExpert informa mejoras de posentrenamiento en ingeniería de aprendizaje automático de horizonte largo",
+      "why_it_matters": "El estudio prueba si un agente puede aprender a elegir experimentos, revisar soluciones ejecutables y usar la retroalimentación de ejecución durante flujos prolongados de aprendizaje automático. Si la mejora informada se transfiere a tareas más amplias y se reproduce de manera independiente, podría influir en cómo se entrenan los agentes de ingeniería de IA. La evidencia actual se limita a tareas históricas de competencia y evaluaciones de los autores."
     },
     "FCMO-7BB77058887F": {
       "claims": [
@@ -32027,6 +32245,48 @@
         "source_sha256": "371fff8cd742bdfd126ee4de1df1e30575b24fceeac393f01829a926c66a1edd"
       }
     },
+    "FCMO-2251D42CF830": {
+      "claims": {
+        "locale_sha256": "d23eaf1f9565202194fb0b2dc0b1e44fe95a5fef554b9d52884ed13e2438a453",
+        "source_sha256": "8aa52e9322467902a509c7d4cd17d57b6054dfc0467b8ae504e8f6ed384d847a"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "cca55ab16a6a219fff700854efd8b81be6143010578dc97d14b8563087dbf018",
+        "source_sha256": "69e58da99dac2305dd6f97b608986133332b05181671c71d8834a8becf25ad43"
+      },
+      "importance_rationale": {
+        "locale_sha256": "dc5460bc375f696e8f5ac2cb65d0fe0c78d2b7a5a8aca9a956f93cbb7a48d94a",
+        "source_sha256": "bf265fc9ee66e84879660d108ffcc1eaa004ed4591bfccd2a855ca1e8d45a588"
+      },
+      "limitations": {
+        "locale_sha256": "43e4800ca8137d5e9e59016fcdba0751de113f58f71fe7af6ad2cb74a811efe6",
+        "source_sha256": "a0ec177ab4d34553caf5aa5aaf8e9cdd29cd2b3a13072eecb558fda6c3c450ee"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "d5273bbaeb0108c1ede7d12afefcd4156ffc739b81cd4ada2ae631d4e338e2b7",
+        "source_sha256": "37e8aaba2f12bcc9331dae2e49e89ede02501da98d83094e4a0eee076c71b169"
+      },
+      "technical": {
+        "locale_sha256": "d1695cf595eea32e63952de92390dfd0141d635c32faf16351c9fb19ca931861",
+        "source_sha256": "6473bfbbac5a8120f1436cda2f9a99c62a2f65058593cafbfdc20f33c546f88b"
+      },
+      "title": {
+        "locale_sha256": "6f0bb6c052668ec323106ab003290b48c3545d33b83724630070d3d5e9100179",
+        "source_sha256": "c04e5ec7edc731491789cb93c83ce6ce54ed2f89d3d365aebcf930b65434b0af"
+      },
+      "why_it_matters": {
+        "locale_sha256": "ea0f6bf1a15f9d28e5d090daf13f17d19cc8a5b84a0c47e6767b664a993d0adb",
+        "source_sha256": "ac495ae38a6a5b517b220dbd63daa93eee32c506bd5a0f69f41ee7b53b3b94c0"
+      }
+    },
     "FCMO-23126AF42ED1": {
       "claims": {
         "locale_sha256": "ec7d78e0b59ff65e58f0188cbb2015b8fa67af52a4cd70b1437246b5320a12c8",
@@ -35049,6 +35309,48 @@
       "why_it_matters": {
         "locale_sha256": "f7c19494e600042e67d31365420ae174d3e31f67f36cb893394e830c0e6da5f5",
         "source_sha256": "513fbf72ea23fccee776295428c3c898166a805e0f58d7453313c77e9d40c320"
+      }
+    },
+    "FCMO-4847BDD75623": {
+      "claims": {
+        "locale_sha256": "257f7793f5b9ddc78ee4b1b91581e68e369d8c95e8ac52c188472f6d9ac1747b",
+        "source_sha256": "6b911ecd3e28ffa887749b470187a89e668588f3edc6380e5432105a96efcb1d"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "8cd4e0ea9d09c28378a139d2095518dd795ee75e6015086bbc4e73ccb2cfeb49",
+        "source_sha256": "860d344c4fa4ac09874917c37f0c80b899d3a838dd82726e166d3d8ad929c5fa"
+      },
+      "importance_rationale": {
+        "locale_sha256": "aa281fddda69f89274428bf6071e843732c03dcff854f3e57c63cf8ec00e304d",
+        "source_sha256": "ddb96b962cf8d9c5c99999a35cfc1f6284cd2b2cff98f9f9c5072e04506cb3cb"
+      },
+      "limitations": {
+        "locale_sha256": "005719afc1174f5f2ace3d40c0451c387412d33ce58096d9e4ecdb30c1393ec4",
+        "source_sha256": "a833a08ae8a470d9579c43fa5b7ca16d9ecae89debd5c430de281993e49ff721"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "790cbfa21e9e29afe57f55016019c18644156bc60369422d5548ebea0d3d0251",
+        "source_sha256": "9fffe050a9c3ddbf2f65f6c012cd89bd753b7f53d2b0aff210dac5a573f8ffbd"
+      },
+      "technical": {
+        "locale_sha256": "d30a95fe82d19b424c73c119ac8c8eda8ddfa02748bd2c0996f951eb9429a0e4",
+        "source_sha256": "b150976d1c4f395ae14d366de6abf1fb7dba1ea480b754dd14d3d249e076c78b"
+      },
+      "title": {
+        "locale_sha256": "57cb44f351bb14b04c68a52c4c31940996560ee258f764357f81d9900106a683",
+        "source_sha256": "35bd1965073fbb1d72064e2c1bd7878a3120581e9ac34ed97f5e82f60d94214e"
+      },
+      "why_it_matters": {
+        "locale_sha256": "c24170693839302235b66f91a607416b0943c2a54e7bf4f6f02657cfcf0cc7c5",
+        "source_sha256": "9f442e1df67214f14f409b2c5176917a0b220da8538c7c52ce3f143a3c2f4e1f"
       }
     },
     "FCMO-4852A51EE0AB": {
@@ -39795,6 +40097,48 @@
       "why_it_matters": {
         "locale_sha256": "9b219d670face0bfca182fbbd19ee640ea88e6af4c9fcc47611af7018006697b",
         "source_sha256": "caebe0f9a24cd3b8cab87990e8882663234807cd1d8484368b38a2c40d5a350d"
+      }
+    },
+    "FCMO-7A75105C20C1": {
+      "claims": {
+        "locale_sha256": "627bac04b7594f68310aef9c1565e624f9bdca321aa872bf2bc177bae3ac0d48",
+        "source_sha256": "b3af6f8a95725fb8b1067d54fd9cd8705763212e39951d0337087340308f5cca"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "8b8b519dab5b111428b46a4736c77138c17848f6f335b07c2d54baefff1cfd53",
+        "source_sha256": "d7656d5922b92d86a8bc307cbc3ad142c574bd3a59ef4f025f4a10754c098293"
+      },
+      "importance_rationale": {
+        "locale_sha256": "ef6422730abc22f8e896285dde15208288d204d6fefcb98496fd36f851aa62c7",
+        "source_sha256": "ec1d7ba0817178c2430d9a121a8df4e616692984aa1d26b84bcb301e8617e66c"
+      },
+      "limitations": {
+        "locale_sha256": "ebfab257d0f0a166c45afcbba7c5b5c7cc0dbbd52aaf2334b76b77f2b6b97b3e",
+        "source_sha256": "0885d5cf2aa5f398a204cb3074ecf92068a3674dc7d4eb7d6ec10b60db7e8c2c"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "4525e00aacbddf4148f6186f2b4f632ee8d9fcfd4094efe8c67eaeaf00a2985e",
+        "source_sha256": "5e7431b5316ffc857fd3a19a0177f4c9523f9e17991a3eac0ebdddb29db95f18"
+      },
+      "technical": {
+        "locale_sha256": "4b9f7b6196ab97ec8b8d3d82689d4157eab91b16b5413c543c1f948d29378f0a",
+        "source_sha256": "f7066845a037f3e53d4c6d61e97f860a7a3a40565d9da6f95d8c8651a84e8673"
+      },
+      "title": {
+        "locale_sha256": "c315678f92381998c58a4867856475b3e81a421d1a2baa210aad3009a72027b2",
+        "source_sha256": "0dddcb65177cb4457bdc128bf124ecb1535fa215652ebab7f67348ab48fe5e8e"
+      },
+      "why_it_matters": {
+        "locale_sha256": "7819d8cab54f14f9086bd5bf72eb42ee494453ba26f9070640372885835fb30f",
+        "source_sha256": "030f2ee12af80c082b6041d9d537fcf03ed404425dc3cd4e28eb8eec2bb16bbc"
       }
     },
     "FCMO-7BB77058887F": {
