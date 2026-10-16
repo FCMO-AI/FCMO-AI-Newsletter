@@ -2793,6 +2793,59 @@
       "title": "Un estudio revisado por pares presenta un modelo generalista para 146 hallazgos en tomografías abdominales; aún falta validación clínica",
       "why_it_matters": "Este es un ejemplo revisado por pares y acompañado de artefactos de un modelo generalista de imágenes entrenado con informes clínicos existentes, en lugar de depender solo de conjuntos etiquetados manualmente para un hallazgo. Si los resultados reportados se sostienen, podrían orientar la investigación sobre cobertura diagnóstica amplia y asistencia a profesionales. La evaluación separada que publica el repositorio ofrece una vía concreta para probar un conjunto externo, pero ambos resultados siguen siendo reportes de los autores; el resumen y los artefactos públicos no demuestran beneficio clínico ni preparación para el despliegue."
     },
+    "FCMO-158AD889F16B": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "En cuatro tareas de manipulación de larga duración en una sola Franka Panda de 7 grados de libertad, los autores informan que HALTER restableció la escena en el 76% de 100 episodios, frente al 52% de AutoEval y el 65% del restablecimiento mediante planificación de movimiento."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En los 100 episodios de las tareas principales, el artículo informa una precisión del 90% al puntuar la finalización de la tarea, del 91% al verificar el restablecimiento y 24 minutos de tiempo del operador, frente al 76%, 78% y 88 minutos para las mediciones de referencia o de restablecimiento manual. En tres tareas retenidas (25 episodios cada una), informa un éxito de restablecimiento del 74.7%, frente al 1.3% de una política de restablecimiento específica para cada tarea."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El estudio con un solo brazo no demuestra que el restablecimiento autónomo sea fiable en distintas plataformas robóticas, laboratorios o familias de tareas. El artículo informa resultados para un robot y siete tareas de mesa; en Pot-Cook, HALTER queda por debajo del método de planificación de movimiento (48% frente a 72%)."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se realizó una reproducción independiente del éxito de restablecimiento, la puntuación, la verificación ni el tiempo del operador.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "El resultado se limita a un brazo Franka y siete tareas de mesa; se desconoce la transferencia entre plataformas y laboratorios.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "En Pot-Cook, el método queda por debajo del restablecimiento por planificación de movimiento, y no está claro si el cálculo de intervenciones y tiempo se generaliza.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se reproduce, la automatización del restablecimiento y la puntuación en distintos estados de fallo podría reducir un importante cuello de botella de operadores en la evaluación física de robots y hacer más repetibles los resultados de tareas de larga duración. El artículo informa 100 episodios en cuatro tareas y tres tareas retenidas con un solo brazo Franka; no se ha establecido el valor en distintos robots o laboratorios.",
+      "limitations": [
+        "Todos los resultados son informes de los autores; no se ejecutó código de forma independiente, no se revisaron registros de episodios y no se repitió físicamente la prueba.",
+        "Los experimentos usan un brazo Franka Panda, dos escenas de mesa y siete tareas; no se ha establecido la transferencia a otros robots, laboratorios o familias de tareas.",
+        "El éxito de restablecimiento de HALTER en Pot-Cook es 48%, por debajo del 72% de la referencia de planificación de movimiento; la mejora no es uniforme.",
+        "La evaluación retenida cubre tres tareas y 25 episodios por tarea; no demuestra robustez ante cambios amplios de distribución ni la creación de tareas nuevas.",
+        "La medida de tiempo del operador cuenta cada intervención humana como un restablecimiento manual; no se han establecido los costos laborales más amplios, la disponibilidad del hardware ni la economía del rendimiento en tiempo real."
+      ],
+      "relationships": [],
+      "summary": "Un artículo de arXiv presenta HALTER, un sistema para puntuar y restablecer ensayos reales de manipulación robótica de larga duración. En un brazo Franka Panda, los autores informan restablecimientos exitosos en el 76% de 100 episodios repartidos en cuatro tareas, frente al 52% de AutoEval y el 65% de un método de planificación de movimiento; la precisión de verificación del restablecimiento es del 91%, y el tiempo del operador es de 24 frente a 88 minutos en el restablecimiento manual. En tres tareas retenidas, HALTER habría restablecido el 74.7% de los episodios, frente al 1.3% de una política específica por tarea. Los resultados son informes de los autores y se limitan a un robot y siete tareas de mesa; en una tarea principal, la referencia de planificación de movimiento obtiene mejores resultados.",
+      "technical": {
+        "claimed_result": "Los autores informan un éxito de restablecimiento del 76% en 100 episodios de cuatro tareas, precisión del 90% al puntuar la finalización, precisión del 91% al verificar el restablecimiento y una reducción del tiempo del operador de 88 a 24 minutos frente al restablecimiento manual. En las tres tareas retenidas, el éxito reportado es del 74.7% frente al 1.3% de una política específica por tarea. Son mediciones informadas por los autores.",
+        "demonstrated_result": "El artículo documenta la configuración del brazo Franka, los protocolos de tareas, los denominadores por episodio, las referencias comparativas de restablecimiento y los resultados tabulados. El equipo revisor no ejecutó el código ni inspeccionó los registros originales de los ensayos; los resultados medidos siguen siendo informes de los autores.",
+        "mechanism": "HALTER construye un grafo de escena temporal a partir de observaciones RGB-D y nubes de puntos de objetos. Luego, un LLM puntúa el progreso de la tarea, planifica cómo restaurar la escena desde el estado final observado y verifica el restablecimiento. Un planificador combina habilidades de restablecimiento atómicas aprendidas de una biblioteca compartida, en vez de entrenar una política independiente para cada estado final posible.",
+        "regime": "Un brazo Franka Panda de 7 grados de libertad con tres cámaras RGB-D. Cuatro tareas de mesa de larga duración y tres tareas retenidas; 25 episodios por tarea. El estudio emplea Qwen3.5-397B para puntuar, planificar el restablecimiento y verificarlo; habilidades de restablecimiento X-VLA aprendidas; y comparaciones con AutoEval y un método de planificación de movimiento.",
+        "strongest_baseline": "AutoEval aprende una política de restablecimiento específica por tarea y usa el mismo LLM que HALTER para puntuar y verificar. La referencia de planificación de movimiento conserva el planificador y la puntuación de HALTER, pero ejecuta las habilidades de agarre y movimiento de forma fija. En las tareas retenidas, la comparación es con una política específica por tarea."
+      },
+      "title": "HALTER informa restablecimientos autónomos para evaluar tareas robóticas de larga duración",
+      "why_it_matters": "La evaluación con robots físicos todavía depende de personas que restauran la escena entre ensayos, lo que limita el rendimiento y hace menos consistentes las condiciones iniciales. Si los resultados acotados de HALTER se reproducen, combinar habilidades de restablecimiento y seguimiento del estado de la escena podría reducir el trabajo manual al evaluar políticas de larga duración. El estudio no demuestra transferencia entre robots, laboratorios ni familias de tareas más amplias."
+    },
     "FCMO-15AFE9C9F136": {
       "claims": [
         {
@@ -8562,6 +8615,68 @@
       },
       "title": "Anthropic informa que sus defensas redujeron entre diez y cien veces (10–100×) la extracción observada de razonamiento",
       "why_it_matters": "Si la reducción informada se mantiene ante ataques adaptativos, los controles de integridad del contexto y los clasificadores de extracción podrían cambiar de forma importante el costo de usar API de frontera como fuentes de datos sintéticos. La publicación también hace visibles los costos operativos: cambios en integraciones, bloqueo de algunas solicitudes legítimas y cobros por solicitudes bloqueadas. La evidencia respalda que el proveedor desplegó defensas y reportó mediciones de su plataforma; no demuestra eficacia entre proveedores ni prevención duradera."
+    },
+    "FCMO-47F8E56301D3": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "En las evaluaciones de conjuntos difíciles filtrados por modelo y con la misma asignación de respuestas, los autores informan que un generador de conceptos Qwen2.5-7B entrenado con RL, que guía a un modelo de respuestas Qwen2.5-32B congelado, alcanza pass@128 de 39.2% frente a 19.0% con muestreo repetido en un subconjunto de 1,000 problemas difíciles de DeepMath, y de 18.60% frente a 11.29% en un conjunto de Omni-MATH 2 filtrado por separado."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En el mismo conjunto de DeepMath, una evaluación de transferencia con Llama-3.3-70B como modelo de respuestas informa pass@34.3% de 128 frente a 26.2% con muestreo repetido. El conjunto se filtró según el rendimiento de Qwen2.5-32B y este modelo de Qwen sigue siendo el juez."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "La reevaluación del artículo sobre un método anterior de muestreo guiado iterativo informa que sus ganancias desaparecen en gran medida frente al muestreo repetido exploratorio en 25 pares de tamaños Qwen2.5 en MATH500. El artículo atribuye los resultados del método entrenado a la generación de varios conceptos en una sola trayectoria y al entrenamiento RL del generador de conceptos."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "Estos resultados no establecen mejoras en tareas matemáticas ordinarias o generales, ahorros de costos en producción ni rendimiento reproducido de forma independiente. El ciclo de recompensa del entrenamiento consume muchos recursos y los subconjuntos se eligen por el bajo rendimiento de referencia."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se realizó una implementación ni reproducción independiente del entrenamiento y la evaluación publicados.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "Los conjuntos principales de DeepMath y Omni-MATH 2 conservan solo problemas sin aciertos observados en 128 muestras de referencia; no se estableció el rendimiento en distribuciones de evaluación ordinarias.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "Los autores describen la estimación de recompensas como costosa: durante el entrenamiento usan ocho trayectorias de conceptos y 128 respuestas del modelo por trayectoria; no se estableció el punto de equilibrio entre costo de entrenamiento e inferencia.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "La evaluación principal reutiliza Qwen2.5-32B-Instruct, el modelo de respuestas, para juzgar la corrección y puede tener errores de evaluación.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si una política pequeña entrenada puede redirigir de manera fiable a un modelo mayor y congelado hacia estrategias de razonamiento útiles, podría mejorar tareas difíciles sin actualizar el modelo de respuestas y permitiría orientar sistemas costosos o cerrados. El artículo informa grandes mejoras pass@128 en subconjuntos matemáticos filtrados, pero el entrenamiento consume muchos recursos, se usa un juez de la misma familia y no hay reproducción independiente; se desconoce el impacto amplio o económico.",
+      "limitations": [
+        "Todos los resultados son informados por los autores; no se auditaron los artefactos ni se reprodujeron de forma independiente.",
+        "Los conjuntos principales de DeepMath y Omni-MATH 2 son subconjuntos difíciles filtrados por modelo, sin éxito de referencia observado en 128 muestras; no representan el rendimiento general en esos bancos de pruebas.",
+        "El juez principal es Qwen2.5-32B-Instruct, también usado como modelo de respuestas; la transferencia entre familias conserva el mismo juez.",
+        "La estimación de recompensas durante el entrenamiento consume muchos recursos; el artículo no establece un punto de equilibrio del costo total a escala de producción.",
+        "El artículo informa una mejora modesta de inferencia en un subconjunto de transferencia entre familias, pero no demuestra mejoras generales en distintos modelos, tareas o cargas habituales."
+      ],
+      "relationships": [],
+      "summary": "Un artículo entrena con aprendizaje por refuerzo un generador de conceptos de 7B parámetros para proponer estrategias de razonamiento a un modelo de respuestas mayor que permanece congelado. En un subconjunto difícil de DeepMath con 1,000 problemas, seleccionado porque Qwen2.5-32B no resolvió ninguno en 128 intentos previos, los autores informan pass@128 de 39.2% frente a 19.0% con muestreo repetido y el mismo número de respuestas. En un subconjunto difícil de Omni-MATH 2 filtrado de forma similar, informan 18.60% frente a 11.29%. Una evaluación limitada con Llama-3.3-70B informa una mejora menor. Son resultados de referencia informados por los autores y acotados a esos subconjuntos: el juez reutiliza el modelo Qwen, el entrenamiento de recompensas consume muchos recursos y no se ha establecido una reproducción independiente ni una ventaja de costo general.",
+      "technical": {
+        "claimed_result": "Un generador de conceptos Qwen2.5-7B entrenado con RL mejora los resultados pass@128 de los autores frente al muestreo repetido con la misma asignación de respuestas, en subconjuntos difíciles de DeepMath y Omni-MATH 2 filtrados por modelo. También se informa una transferencia limitada a otro modelo de respuestas.",
+        "demonstrated_result": "El artículo documenta los modelos fijos de respuesta, la selección de subconjuntos difíciles, la asignación de muestras, el juez de la misma familia, los resultados pass@k en tablas, el análisis bootstrap pareado y el alto costo del ciclo de recompensa. el equipo de investigación no ejecutó los artefactos; el rendimiento sigue siendo un resultado informado por los autores.",
+        "mechanism": "El generador de conceptos produce varias estrategias específicas para el problema en una sola trayectoria. Un modelo de respuestas mayor y congelado distribuye su presupuesto fijo de respuestas entre esos conceptos. El generador de conceptos se entrena con un objetivo estilo GRPO, cuya recompensa combina los juicios de corrección de las respuestas posteriores.",
+        "regime": "Los experimentos usan Qwen2.5-7B-Instruct como generador de conceptos y Qwen2.5-32B-Instruct congelado como modelo de respuestas, con transferencia a Llama-3.3-70B-Instruct. Los subconjuntos difíciles de DeepMath y Omni-MATH 2 se filtran para conservar problemas sin éxito observado de Qwen2.5-32B en 128 intentos. El juez principal es Qwen2.5-32B-Instruct. El entrenamiento emplea ocho trayectorias de conceptos, 128 respuestas por trayectoria y 200 lotes.",
+        "strongest_baseline": "Muestreo repetido con el mismo presupuesto de respuestas y decodificación exploratoria; el artículo también compara instrucciones genéricas, generadores de conceptos sin entrenar y el protocolo iterativo anterior de muestreo guiado."
+      },
+      "title": "Un generador de conceptos entrenado eleva el pass@128 informado en conjuntos matemáticos difíciles filtrados",
+      "why_it_matters": "El artículo estudia si una política pequeña entrenable puede orientar a un modelo mayor congelado hacia estrategias diversas, en vez de gastar el cómputo de inferencia en respuestas repetidas sin guía. Los resultados en subconjuntos difíciles son amplios, pero acotados: el costo de entrenamiento, la selección de problemas y el uso de un juez de la misma familia dejan sin resolver la economía de producción y el impacto general en razonamiento."
     },
     "FCMO-4852A51EE0AB": {
       "claims": [
@@ -16943,6 +17058,60 @@
       "title": "MIGU reporta mejor referencia mediante señalamiento y lenguaje, y mejoras al pedir aclaración en un robot móvil",
       "why_it_matters": "Los robots que combinan señalamiento, lenguaje y contexto visual necesitan saber cuándo su estimación del objetivo es tan incierta que deben preguntar antes de actuar. MIGU conecta un modelo explícito de incertidumbre con la decisión de pedir aclaración y la planificación de tareas, y reporta resultados tanto en un conjunto de referencias etiquetadas como en un pequeño estudio repetido de manipulación móvil. Los supuestos de calibración, una sola ronda de aclaración, las pocas tareas y la falta de reproducción independiente delimitan el resultado."
     },
+    "FCMO-90C225286611": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "En el corpus de arXiv recopilado mediante búsquedas de los autores, con 259 artículos que informan tasas cuantitativas de éxito de ataque (ASR), el 58.0% de una muestra aleatoria codificada manualmente de 50 no informó ni una estimación de varianza ni ejecuciones repetidas (IC de Wilson del 95%: 44.2–70.6); detectores automatizados revisados estimaron 65.3% en los 259."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El artículo identifica seis decisiones de diseño que pueden cambiar el significado de una ASR y sostiene que cuatro pueden cambiar las clasificaciones de defensas según el sistema. Bajo sus supuestos, estima que en un benchmark de 100 casos la diferencia mínima detectable con potencia del 80% es de 18.2 puntos porcentuales, y que una evaluación de una sola ejecución invierte cerca del 21% de las veces una diferencia real de cinco puntos."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El artículo no demuestra que una defensa identificada sea ineficaz ni que los trabajos observados sobre seguridad de agentes tengan clasificaciones incorrectas; las inversiones de clasificación son resultados analíticos y no se evaluaron defensas de extremo a extremo."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se reconstruyeron de forma independiente las 12 consultas del corpus ni se recodificó a ciegas la muestra de 50 artículos.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "El análisis no prueba si las clasificaciones observadas de defensas de seguridad de agentes cambian bajo evaluaciones repetidas y emparejadas.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "La lista de verificación propuesta no se ha evaluado para determinar si mejora la calidad de los informes o la comparabilidad entre estudios.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se sostienen las brechas de reporte medidas por el artículo, muchas comparaciones directas entre tasas de éxito de ataques a agentes no permitirían ordenar defensas, lo que afectaría la interpretación de benchmarks y el diseño de evaluaciones en un área de investigación en expansión. La evidencia proviene de un corpus de arXiv con límites de codificación y un solo evaluador; no muestra que una defensa concreta sea ineficaz o esté mal clasificada en la práctica.",
+      "limitations": [
+        "El corpus se recuperó mediante consultas y solo cubre arXiv y trabajos en inglés; se omitieron 15 artículos examinados que no tenían versión HTML.",
+        "Los dos constructos principales se codificaron manualmente en una muestra aleatoria de 50; toda la adjudicación estuvo a cargo de una sola persona, y kappa mide la concordancia del detector con esa persona.",
+        "Otros 88 artículos mencionan ASR sin un numeral detectado; 26 muestran posible pérdida de numerales al convertir HTML a texto, por lo que la población incluida podría ser de 259–347. No se comprobó que este artefacto sea independiente de las prácticas de reporte.",
+        "La mayoría de las tasas de otros detectores se basa en estimaciones de precisión obtenidas de muestras pequeñas de coincidencias, sin medir sensibilidad; los autores advierten que podrían ser límites inferiores.",
+        "Los cálculos de inversión de clasificaciones son analíticos, suponen unidades independientes y no ejecutaron defensas de extremo a extremo; la dependencia entre casos reales puede reducir el tamaño efectivo de muestra.",
+        "No se validó que la lista de verificación propuesta mejore la comparabilidad."
+      ],
+      "relationships": [],
+      "summary": "Un preprint de arXiv analiza 259 artículos con tasas de éxito de ataques a agentes, procedentes de un corpus en inglés recuperado mediante consultas. Los autores informan que el 58.0% de una muestra aleatoria codificada manualmente de 50 artículos (IC de Wilson del 95%: 44.2–70.6) no reportó ni una estimación de varianza ni ejecuciones repetidas; detectores automatizados revisados estiman 65.3% en los 259. Identifican seis decisiones que pueden cambiar lo que mide una ASR, entre ellas la unidad de evaluación, el criterio de éxito, la adaptabilidad del atacante y cuánto conoce de la defensa. El artículo sostiene que esas diferencias pueden volver incomparables las cifras entre trabajos. No afirma que algún artículo individual sea incorrecto; las estimaciones de inversión de clasificación son analíticas y no provienen de comparaciones observadas entre defensas.",
+      "technical": {
+        "claimed_result": "El artículo informa que, en el corpus de arXiv acotado y en la muestra codificada manualmente, suele faltar el reporte de incertidumbre y de ejecuciones repetidas; además, seis decisiones de diseño hacen heterogéneas las ASR. Los cálculos analíticos ilustran posibles inversiones de clasificación por muestreo con tamaños de benchmark habituales.",
+        "demonstrated_result": "El artículo consultado documenta la construcción del corpus, el procedimiento de codificación, la muestra manual y las fórmulas. El equipo revisor no reconstruyó el corpus ni verificó las tasas de codificación; el resultado sigue siendo un informe de los autores.",
+        "mechanism": "Los autores definen la ASR según las unidades evaluadas, las trayectorias del agente muestreadas y un criterio binario de éxito. Luego identifican seis ejes: unidad de análisis, criterio de éxito, número de ejecuciones, adaptabilidad del atacante, conocimiento de la defensa por parte del atacante y tratamiento binario de los éxitos parciales. Evalúan las prácticas de reporte con detectores de texto completo, validan detectores en pasajes muestreados y codifican manualmente una muestra aleatoria de 50 artículos para los dos constructos centrales sobre incertidumbre.",
+        "regime": "259 artículos de arXiv en inglés (2025-02-27 a 2026-09-17) que informan una tasa cuantitativa de éxito de ataque, recuperados mediante doce consultas temáticas; una muestra aleatoria codificada manualmente de 50; cálculos binomiales analíticos.",
+        "strongest_baseline": "Para comparar las prácticas de reporte, las estimaciones de detectores revisados sobre el texto completo se contrastan con una muestra aleatoria codificada manualmente para dos constructos. No se evalúa un estándar ASR alternativo ni se compara ninguna defensa de extremo a extremo."
+      },
+      "title": "Las tasas de éxito de ataques a agentes carecen de un método de medición común",
+      "why_it_matters": "Los equipos de seguridad y de investigación suelen comparar cifras de ASR como si midieran el mismo resultado. Si las omisiones reportadas son comunes, los porcentajes destacados quizá no permitan determinar qué defensa para agentes es más sólida. Informar las unidades, los criterios de éxito, los presupuestos de ataque, la variación entre ejecuciones y la utilidad en tareas benignas facilitaría la interpretación."
+    },
     "FCMO-917420640A76": {
       "claims": [
         {
@@ -22675,6 +22844,62 @@
       "title": "Anthropic lanza Haiku 5.5 con mejoras reportadas en uso de computadoras y menores precios por token",
       "why_it_matters": "Un modelo pequeño con mejoras reportadas en uso de computadoras y otros benchmarks de agentes, a precios por token mucho menores, podría ampliar los flujos de agentes de alto volumen. Que reduzca el costo por tarea completada depende de comparar de forma equivalente el rendimiento, el esfuerzo, la latencia, el uso de tokens y las herramientas; aún se necesitan evaluaciones independientes."
     },
+    "FCMO-C625017F1F6B": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Los autores presentan RoboFollow, un banco de pruebas diagnóstico controlado con cuatro familias de escenas, 75 etiquetas de tareas de entrenamiento en seis configuraciones iniciales independientes de la tarea y 3,750 episodios de entrenamiento. Nueve políticas VLA y WAM se evalúan bajo perturbaciones L0–L3 mediante medidas por etapa de intención y ejecución."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En el ajuste fino y banco de pruebas descritos, los autores informan que la puntuación de intención de pi0 en la Escena 1 cae de 98.2% en L0, dentro de la distribución, a 0.0% tras el cambio de disposición L1; pi0.5 en la Escena 2 cae de 100.0% en L0 a 34.2% bajo la perturbación visual-semántica conjunta L3."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En un piloto preliminar con el robot y pi0.5, el artículo informa 20/40 éxitos (50%) en ocho instrucciones de entrenamiento y 6/40 (15%) en ocho instrucciones retenidas, con cinco pruebas por instrucción. Los conjuntos y composiciones de tareas no estaban emparejados."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "Estos resultados no establecen tasas generales de fallas de seguimiento de instrucciones en el mundo real, transferencia a tareas largas o con contacto complejo, ni falta de fiabilidad general de los agentes incorporados. El piloto es pequeño y no emparejado, y el banco de pruebas usa escenas controladas, breves y mediciones informadas por los autores."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se auditaron ni reprodujeron de forma independiente las tablas, los datos o los scripts de puntuación del artículo.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "El banco usa cuatro familias de escenas controladas y breves, objetos simples y acciones del repertorio entrenado; se desconoce la transferencia a tareas más largas, con contacto complejo y a otros robots.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "El piloto con 16 instrucciones compara conjuntos distintos de instrucciones y composiciones de tareas, por lo que no ofrece una estimación emparejada de la pérdida de rendimiento.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si la comprensión de instrucciones se deteriora cuando cambia la disposición de la escena o la combinación semántica, las altas tasas de éxito en tareas conocidas podrían exagerar cuánto sigue un robot la intención solicitada. El banco informa grandes descensos para determinadas políticas bajo perturbaciones controladas y separa la intención de la ejecución. Sus escenas breves, el piloto limitado y los resultados informados por autores no establecen tasas de fallas en producción ni falta de fiabilidad general.",
+      "limitations": [
+        "Los autores informan todos los resultados del banco y del piloto; no se auditaron de forma independiente el código, los datos ni las puntuaciones.",
+        "El banco usa cuatro familias de escenas controladas y breves, con acciones del repertorio entrenado; no establece transferencia a tareas largas, con contacto complejo o a robots diversos.",
+        "El piloto real usa ocho instrucciones de entrenamiento y ocho retenidas, cinco pruebas por instrucción, pero compara conjuntos y composiciones no emparejados.",
+        "La puntuación de intención mide diagnóstico en este banco bajo perturbaciones definidas; no estima la frecuencia de fallas en robots desplegados."
+      ],
+      "relationships": [],
+      "summary": "RoboFollow es un banco diseñado por sus autores para comprobar si las políticas incorporadas usan el lenguaje para elegir una tarea cuando la escena visual admite varias acciones válidas. En cuatro familias controladas, nueve políticas VLA/WAM y perturbaciones visuales o semánticas L0–L3, el artículo informa fuertes descensos en la puntuación de intención de algunas políticas; por ejemplo, pi0 pasa de 98.2% a 0.0% tras un cambio de disposición en la Escena 1, y pi0.5 de 100.0% a 34.2% bajo una perturbación combinada en la Escena 2. Un pequeño piloto con pi0.5 informa 20/40 éxitos con instrucciones de entrenamiento y 6/40 con otro conjunto retenido, pero la comparación no está emparejada. Estos resultados informados por los autores diagnostican sensibilidad en un banco controlado de tareas breves; no establecen tasas generales de fallas en producción ni falta de fiabilidad general.",
+      "technical": {
+        "claimed_result": "Los autores informan que nueve políticas VLA/WAM reducen sustancialmente su puntuación de intención ante perturbaciones de disposición y semántica definidas en RoboFollow. Por ejemplo, pi0 en la Escena 1 baja de 98.2% en L0 a 0.0% en L1; pi0.5 en la Escena 2 baja de 100.0% en L0 a 34.2% en L3.",
+        "demonstrated_result": "El artículo describe el banco controlado, el número de etiquetas de tareas y episodios, las definiciones de puntuación, los resultados de políticas seleccionadas y un piloto preliminar con robot. el equipo de investigación no ejecutó el código ni verificó las puntuaciones; los resultados siguen siendo informes de los autores.",
+        "mechanism": "RoboFollow entrena cada configuración inicial con varias ramas de tarea semánticamente distintas y físicamente factibles, de modo que la imagen inicial no basta para identificar la tarea pretendida. Cuatro niveles de prueba cambian por separado la disposición, las combinaciones semánticas o ambas. Las puntuaciones por etapa de intención y ejecución distinguen elegir el objetivo indicado de completar físicamente su subobjetivo.",
+        "regime": "Cuatro familias simuladas de tareas breves, 75 etiquetas de tareas en seis configuraciones iniciales independientes de la tarea y 3,750 episodios de entrenamiento; nueve políticas VLA/WAM ajustadas; divisiones de prueba L0–L3. Un piloto preliminar de pi0.5 usa ocho instrucciones de entrenamiento y ocho retenidas, con cinco intentos cada una; los conjuntos y composiciones no están emparejados.",
+        "strongest_baseline": "Para cada política, el nivel L0 dentro de la distribución se compara con las perturbaciones de disposición L1, recombinación semántica L2 y perturbación combinada L3. Son diagnósticos internos y no comparaciones emparejadas entre estudios ni estimaciones de prevalencia."
+      },
+      "title": "Un banco controlado de robótica informa caídas en la comprensión de instrucciones al cambiar las escenas",
+      "why_it_matters": "Un robot puede completar una tarea conocida mediante atajos visuales y aun así ignorar la instrucción solicitada. RoboFollow crea escenas en las que varias acciones son visualmente plausibles y separa elegir la intención indicada de ejecutarla. Los resultados de perturbación permiten examinar esta diferencia en ciertos modelos, pero el banco y su piloto no determinan con qué frecuencia fallan los robots desplegados."
+    },
     "FCMO-C63BEF968F0B": {
       "claims": [
         {
@@ -24072,6 +24297,59 @@
       },
       "title": "Context-sharded block parallelism informa un entrenamiento más rápido de modelos de difusión con contexto largo",
       "why_it_matters": "El entrenamiento de modelos de difusión con contexto largo puede incurrir en comunicación para activaciones de bloques que no necesitan cruzar dispositivos. CSBP adapta la unidad de paralelismo a un objetivo de entrenamiento separable, lo que podría mejorar el rendimiento y permitir más progreso dentro de un presupuesto fijo. Las ganancias dependen de la carga, la longitud de contexto y la topología; acelerar el entrenamiento no demuestra por sí mismo una mejor inferencia ni una capacidad general de agente."
+    },
+    "FCMO-D5F665CC63C4": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "En cinco escenarios certificados de entrega de ajuste supervisado fino (SFT) y 38 episodios ejecutados en GPU real, los autores informan que cuatro sistemas de agentes actuales no entregaron ningún modelo que entrenara sin aprender y no eludieron ninguna puerta de aprobación de despliegue. El escenario de preferencias no superó el control positivo y se excluyó antes de la evaluación."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan que se rechazaron 31/38 entregas que habían superado la métrica debido a requisitos del contrato de entrega. Con una configuración correcta proporcionada por un oráculo, las 24/24 entregas superaron la aceptación con datos retenidos, pero 22/24 todavía fueron rechazadas por los requisitos del contrato. Tres sistemas emblemáticos mantuvieron la aprobación humana en 360/360 pruebas de presión con entregas viables; los sistemas más baratos de primera generación mostraron menor cumplimiento."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "Los resultados no determinan con qué frecuencia fallan en la práctica los servicios de ajuste posterior o los agentes desplegados; proceden de un único plano de gobernanza construido y de un conjunto reducido de escenarios SFT certificados."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se reconstruyó de forma independiente el benchmark ni se reprodujeron los resultados de las puertas de aprobación.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "El resultado procede de un único plano de entrega construido y de un conjunto limitado de escenarios certificados; se desconoce la transferencia a otras plataformas, proveedores y contratos de servicio en producción.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "El escenario de preferencias no superó el control positivo y se excluyó, lo que limita la cobertura de entregas de optimización de preferencias.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si el hallazgo acotado se generaliza, los agentes de ajuste posterior pueden mejorar métricas de tarea y aun así incumplir los requisitos de entrega relativos al esquema de la ficha del modelo, la conciliación de costos, las comprobaciones del registro y la aprobación humana. Eso cambiaría la forma de evaluar la ingeniería de ML con agentes y los servicios de ajuste posterior. La evidencia procede de un solo plano construido, cinco escenarios certificados y 38 episodios; no establece tasas de fallo en el campo ni fiabilidad general en producción.",
+      "limitations": [
+        "Todas las mediciones son informes de los autores; no se inspeccionaron artefactos de forma independiente ni se reprodujeron los resultados.",
+        "La campaña certificada cubre un solo plano de entrega construido, cinco escenarios SFT y 38 episodios; no establece la frecuencia de fallos en el campo ni la fiabilidad general en producción.",
+        "El escenario de preferencias no superó el control positivo y se excluyó; Glaive-FC y el escenario claro de Bitext tampoco formaron parte de los denominadores de la campaña certificada.",
+        "Los resultados de presión de los sistemas emblemáticos actuales cubren tres modelos y el conjunto de tickets descrito; los sistemas más baratos de primera generación se comportan de manera distinta, por lo que los resultados dependen del nivel de capacidad y del harness.",
+        "La selección de tareas, los hechos de la plataforma, el margen de aceptación y el contrato de entrega del benchmark fueron definidos por los investigadores; no se midió la transferencia a operadores comerciales de PTaaS."
+      ],
+      "relationships": [],
+      "summary": "Un artículo de arXiv propone un benchmark con gobernanza para agentes que entregan modelos ajustados, donde las decisiones de cada etapa se puntúan a partir de evidencia registrada por la plataforma y una puerta de aceptación retenida verifica el modelo entregado. En cinco escenarios SFT certificados y 38 episodios en GPU real, cuatro sistemas de agentes actuales no produjeron entregas que entrenaran sin aprender ni eludieron puertas de despliegue. Sin embargo, se rechazaron 31 de 38 entregas que habían superado la métrica por controles del contrato de entrega; proporcionar una configuración de entrenamiento correcta según el oráculo aún dejó 22 de 24 entregas rechazadas. El estudio usa un plano de entrega construido y pocos escenarios; no mide prevalencia en el campo ni fiabilidad general en producción.",
+      "technical": {
+        "claimed_result": "En la campaña certificada de cinco escenarios, cuatro sistemas de agentes completaron 38 episodios sin que se informara de una entrega que entrenara sin aprender ni de un bypass de la puerta de despliegue. El artículo informa que 31/38 entregas que superaron la métrica fueron rechazadas por verificaciones de esquema, conciliación de costos y CI del registro; una configuración correcta según el oráculo superó la aceptación en 24/24 casos, pero 22/24 siguieron rechazándose por el contrato. Son resultados de benchmark informados por los autores.",
+        "demonstrated_result": "El artículo documenta el plano de entrega gobernado, la certificación de escenarios, los criterios del oráculo, los episodios ejecutados en GPU real y los resultados tabulados de las puertas. El equipo de investigación no inspeccionó los artefactos de ejecución ni reprodujo la campaña; los resultados siguen siendo informes de los autores.",
+        "mechanism": "Un agente controla diez etapas, desde la recepción del pedido hasta el entrenamiento, la evaluación, el registro, el despliegue y la entrega. Un oráculo desacoplado puntúa los criterios de cada etapa usando hechos registrados por la plataforma, en vez de las afirmaciones del agente. Una puerta de aceptación independiente evalúa el modelo entregado con datos retenidos; las fichas de modelo validadas por esquema, los informes de costos conciliados y CI del registro determinan si una entrega que superó la métrica cumple el contrato.",
+        "regime": "Un solo plano de entrega gobernado y construido para el estudio. Cinco tickets SFT certificados en cuatro modelos base abiertos de tres familias; cuatro sistemas actuales de agentes de frontera en GPU L40S, A100 y H200 medidas por consumo. El Acto II informa 38 episodios certificados en GPU real. El ticket de preferencias no superó el control positivo y se excluyó; Glaive-FC y un ticket claro de Bitext también se excluyeron de la lista certificada.",
+        "strongest_baseline": "Un par de referencia programado certifica los controles de cada escenario antes de puntuar agentes. El mismo oráculo puntúa cuatro sistemas de agentes actuales y dos equipos de ingenieros de ML con asistente. Una intervención con configuración fijada prueba si corregir los ajustes de entrenamiento basta para reparar los fallos de entrega."
+      },
+      "title": "Un benchmark de entrega de ajuste posterior distingue la mejora del modelo de la entrega correcta del servicio",
+      "why_it_matters": "Un entrenamiento puede reducir la pérdida y superar comprobaciones rutinarias del panel, pero aun así no cumplir el objetivo real del cliente o el contrato de entrega. Este artículo prueba esa diferencia con aceptación en datos retenidos y puertas que usan registros de la plataforma; los resultados sugieren que evaluar el ajuste posterior con agentes solo por la mejora de métricas puede pasar por alto fallos de esquema, costos, registro y aprobación. La evidencia procede de un benchmark acotado ejecutado por los autores, no mide la frecuencia de fallos en servicios desplegados."
     },
     "FCMO-D623C434FA7F": {
       "claims": [
