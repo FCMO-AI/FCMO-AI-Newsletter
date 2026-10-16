@@ -93,9 +93,21 @@ def quarantine_release(release: Path) -> list[str]:
     Structural defects (privacy, paths, schema) are NOT quarantined: verify still refuses them.
     """
     release = release.resolve()
+    # Integrity first, before any mutation: the ORIGINAL bytes must match the ORIGINAL receipt,
+    # otherwise re-sealing would launder tampered bytes. Nothing is changed if this fails.
+    receipt_path = release / "airlock.json"
+    receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+    if not isinstance(receipt, dict) or receipt.get("schema") != strict.AIRLOCK_SCHEMA \
+            or receipt.get("state") != strict.AIRLOCK_STATE:
+        raise ValueError("airlock.json: not a ready airlock receipt; refusing to quarantine")
+    original_digest = strict.release_digest(release)
+    if receipt.get("corpus_digest") != original_digest \
+            or receipt.get("release_id") != f"newswire-{original_digest[:24]}":
+        raise ValueError("airlock.json: original bytes do not match the original receipt; refusing to quarantine")
     bad = _bad_record_ids(release)
     if not bad:
         return []
+    original_release_id = receipt["release_id"]
     dev = release / "data" / "developments.jsonl"
     kept = []
     for line in dev.read_text(encoding="utf-8").splitlines():
@@ -115,13 +127,22 @@ def quarantine_release(release: Path) -> list[str]:
                 for rid in bad:
                     doc["records"].pop(rid, None)
                 lp.write_text(json.dumps(doc, indent=2, sort_keys=True, ensure_ascii=False) + "\n", encoding="utf-8")
-    receipt_path = release / "airlock.json"
-    receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+    # Pages keyed by a quarantined id (developments/<rid>.html, per-locale pages) must not be
+    # published: the build asserts pages == ids. Aggregates (topics, search) are regenerated
+    # by the newsroom build from the remaining corpus.
+    for path in sorted(release.rglob("*")):
+        if path.is_file() and path != receipt_path and any(rid in path.name for rid in bad):
+            path.unlink()
     digest = strict.release_digest(release)
     receipt.update(
         corpus_digest=digest,
         release_id=f"newswire-{digest[:24]}",
         record_count=len(_public_ids(release)),
+        quarantined_from={
+            "release_id": original_release_id,
+            "corpus_digest": original_digest,
+            "ids": sorted(bad),
+        },
     )
     receipt_path.write_text(json.dumps(receipt, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     return sorted(bad)

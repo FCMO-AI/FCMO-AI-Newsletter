@@ -55,6 +55,31 @@ class QuarantineTests(unittest.TestCase):
             doc = json.loads((self.root / f"data/locales/{locale}/records.json").read_text())
             self.assertEqual(sorted(doc["records"]), [RID])
 
+    def test_orphan_pages_of_quarantined_records_are_removed(self) -> None:
+        self._poison()
+        partial.quarantine_release(self.root)
+        self.assertFalse((self.root / f"developments/{RID2}.html").exists())
+        self.assertFalse((self.root / f"developments/{RID3}.html").exists())
+        self.assertTrue((self.root / f"developments/{RID}.html").exists())
+
+    def test_provenance_of_the_original_seal_is_kept(self) -> None:
+        self._poison()
+        original = json.loads((self.root / "airlock.json").read_text())
+        partial.quarantine_release(self.root)
+        sealed = json.loads((self.root / "airlock.json").read_text())
+        self.assertEqual(sealed["quarantined_from"], {
+            "release_id": original["release_id"], "corpus_digest": original["corpus_digest"],
+            "ids": sorted([RID2, RID3])})
+
+    def test_tampered_bytes_are_never_resealed(self) -> None:
+        self._poison()
+        (self.root / "editions/2026-09-05.html").write_text("<html>TAMPERED</html>", encoding="utf-8")  # no restamp
+        before = {p: p.read_bytes() for p in self.root.rglob("*") if p.is_file()}
+        with self.assertRaisesRegex(ValueError, "do not match the original receipt"):
+            partial.quarantine_release(self.root)
+        after = {p: p.read_bytes() for p in self.root.rglob("*") if p.is_file()}
+        self.assertEqual(before, after)  # nothing mutated
+
     def test_clean_release_quarantines_nothing(self) -> None:
         self.assertEqual(partial.quarantine_release(self.root), [])
         partial.verify_release(self.root)
