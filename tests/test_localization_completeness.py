@@ -721,15 +721,19 @@ class UICatalogs(unittest.TestCase):
         # Every value present in the current corpus must have a label. This follows
         # the live data instead of silently relaxing when the corpus fingerprint
         # changes; label() omits an unknown value rather than printing it raw.
+        missing = []
         for locale in CATALOG_LOCALES:
             labels = self.cat[locale]["labels"]
             everything = set().union(*(set(group) for group in labels.values()))
             for group, codes in observed.items():
                 for code in sorted(c for c in codes if c):
                     if group.startswith("contract:"):
-                        self.assertIn(code, everything, f"{locale}: {group} enum {code} has no label")
-                    else:
-                        self.assertIn(code, labels[group], f"{locale}: labels.{group}.{code} missing")
+                        if code not in everything:
+                            missing.append(f"{locale}: {group} enum {code} has no label")
+                    elif code not in labels[group]:
+                        missing.append(f"{locale}: labels.{group}.{code} missing")
+        # Report every gap at once, not just the first one.
+        self.assertEqual([], missing, "reader-facing enum values without labels:\n" + "\n".join(missing))
 
     def test_no_sept_and_explicit_month_tables(self):
         for locale in CATALOG_LOCALES:
@@ -776,7 +780,7 @@ class UICatalogs(unittest.TestCase):
             self.assertNotEqual(errors["not_found_title"], english)
 
     def test_spanish_catalog_is_spanish(self):
-        allowed_same = {"Hubei", "Asia", "Hong Kong", "Odisha", "Victoria", "California", "Australia", "Argentina", "Agenda", "Atom", "Blog", "China", "FCMO AI", "Global", "India", "JSON Feed",
+        allowed_same = {"Hubei", "Asia", "Hong Kong", "Odisha", "Victoria", "Vietnam", "California", "Australia", "Argentina", "Agenda", "Atom", "Blog", "China", "FCMO AI", "Global", "India", "JSON Feed",
                         "Notable", "RSS", "{date}, {time} ({tz})", "© {year} FCMO AI", "English", "Español", "简体中文"}
         english = dict(self.reader_leaves("en"))
         for path, value in self.reader_leaves("es-419"):
