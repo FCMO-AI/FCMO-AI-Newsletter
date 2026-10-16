@@ -7471,6 +7471,63 @@
       "title": "Ajar añade una medida de privilegios abiertos a la evaluación de defensas de agentes",
       "why_it_matters": "Las defensas de agentes suelen compararse por los ataques que bloquean y las tareas benignas que completan, pero esos resultados pueden no revelar qué acciones innecesarias permitiría una defensa si el agente las propusiera. Medir los privilegios que quedan abiertos podría cambiar cómo se evalúan y seleccionan las defensas en el límite de las herramientas. La puntuación depende de las necesidades inferidas del benchmark, las llamadas candidatas generadas y una capa de integración; no es una medida general de mínimo privilegio o seguridad en el mundo real."
     },
+    "FCMO-410F11073F8B": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan que el postentrenamiento secuencial de Qwen3-8B-Base en matemáticas, búsqueda, comercio electrónico y seguimiento de instrucciones provocó olvido sustancial y dependiente de la tarea: tras el entrenamiento de comercio electrónico, AIME26 bajó de 23.33 a 6.04 y Natural Questions de 45.2 a 14.6; el punto de control final solo recuperó parcialmente los máximos previos. Los resultados de referencia secuencial se informan sobre tres ejecuciones independientes."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El artículo propone Mixture of Low-Rank Experts (MLE): ajuste supervisado con reproducción de trayectorias especializadas y, después, expertos LoRA separados entrenados con RL y seleccionados según el contexto observable del entorno. En la configuración del artículo con Qwen3-8B-Base, MLE informa puntuaciones combinadas dentro y fuera del dominio superiores a las alternativas de punto de control compartido MMOPD, SDFT y combinación de modelos en varias tareas; no supera a todos los expertos especializados por tarea."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El artículo indica que los experimentos se centran principalmente en Qwen3-8B-Base y un currículo fijo de cuatro etapas; no prueba la selección de expertos cuando el contexto del entorno es ambiguo o cambia, ni cuando se necesitan varias especializaciones dentro de un episodio."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "En esta revisión no se inspeccionó una reproducción independiente ni un artefacto público para el análisis del olvido secuencial o las comparaciones de MLE.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "El estudio usa una familia de modelos y un orden fijo de cuatro etapas; se desconoce la generalización a otras familias y currículos.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "El enrutamiento de MLE supone que el contexto del entorno y las herramientas es observable; no se probaron contextos ambiguos o cambiantes ni la combinación de especializaciones en un episodio. Tampoco se midieron los costos de latencia y memoria en inferencia.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se replica, la comparación controlada podría cambiar cómo se diseña el postentrenamiento de agentes con varias etapas: muestra que las habilidades acumuladas pueden sobrescribirse y que residuos LoRA específicos por tarea podrían conservar especializaciones incompatibles. La evidencia se limita a una familia Qwen3-8B-Base y un currículo fijo de cuatro etapas; la transferencia y los costos de despliegue siguen sin conocerse.",
+      "limitations": [
+        "Los resultados son informes de los autores y no se reprodujeron de forma independiente en esta revisión.",
+        "Los experimentos se centran principalmente en Qwen3-8B-Base y un currículo fijo de cuatro etapas; no se estableció la transferencia entre familias de modelos, tareas y órdenes de etapas.",
+        "Los patrones de olvido secuencial dependen de la tarea; los métodos de consolidación recuperan capacidades distintas y conllevan compromisos, en lugar de mejorar uniformemente todos los dominios.",
+        "MLE selecciona expertos según el contexto observable del entorno; siguen sin probarse los contextos ambiguos o cambiantes y la combinación de especializaciones dentro de un episodio.",
+        "El artículo informa resultados de benchmarks, no un despliegue en producción; no establece memoria de adaptadores, latencia de enrutamiento ni economía del servicio."
+      ],
+      "relationships": [],
+      "summary": "Un preprint de arXiv presenta ACLArena, un estudio controlado sobre la retención de capacidades durante el postentrenamiento de agentes en varias etapas. En Qwen3-8B-Base, los autores informan que las etapas secuenciales de matemáticas, búsqueda, comercio electrónico y seguimiento de instrucciones pueden sobrescribir capacidades anteriores: tras el entrenamiento de comercio electrónico, AIME26 bajó de 23.33 a 6.04 y Natural Questions de 45.2 a 14.6. Comparan destilación en línea con varios docentes, ajuste supervisado basado en reproducciones y combinación de modelos; luego proponen Mixture of Low-Rank Experts (MLE), que combina comportamiento compartido entrenado con reproducciones y expertos LoRA separados, entrenados con RL y seleccionados por el contexto del entorno. Los resultados informados se acercan a expertos por tarea en varias tareas, pero el currículo fijo, una sola familia de modelos y el enrutamiento por contexto observable dejan sin resolver la transferencia y los costos de despliegue.",
+      "technical": {
+        "claimed_result": "Los autores informan olvido sustancial y dependiente de la tarea durante el postentrenamiento secuencial y proponen que una base compartida entrenada con reproducciones, más expertos LoRA aislados y entrenados con RL, puede recuperar un conjunto más amplio de capacidades que los métodos de consolidación con puntos de control compartidos en su configuración probada de Qwen3-8B-Base.",
+        "compute_or_cost": "El artículo usa dos nodos NVIDIA H200 en los experimentos. No establece costos de servicio en producción, latencia de enrutamiento ni memoria de adaptadores en despliegue.",
+        "demonstrated_result": "El artículo de arXiv describe la configuración de ACLArena, los métodos y las tablas informadas por los autores. el equipo no reprodujo los entrenamientos ni los resultados de benchmarks.",
+        "implementation_status": "El preprint describe un marco de investigación y un método experimental; esta revisión no inspeccionó reproducción independiente ni despliegue en producción.",
+        "mechanism": "MLE aplica primero ajuste supervisado con reproducciones de trayectorias especializadas para formar una base compartida; congela esa base y entrena un experto LoRA de bajo rango por etapa mediante RL. En inferencia selecciona un experto a partir del contexto observable de interacción y herramientas.",
+        "novelty": "Presenta una comparación controlada entre entrenamiento secuencial, destilación en línea con varios docentes, autodestilación con reproducciones y combinación de modelos; después prueba expertos LoRA aislados y entrenados con RL para retener especializaciones que interfieren entre sí.",
+        "regime": "Qwen3-8B-Base; currículo fijo de matemáticas, búsqueda, comercio electrónico y seguimiento de instrucciones; evaluaciones dentro y fuera del dominio para razonamiento, búsqueda, comercio con herramientas y seguimiento de instrucciones.",
+        "reproducibility": "El artículo aporta detalles de tareas y entrenamiento, pero esta revisión no inspeccionó implementación o puntos de control públicos ni reprodujo resultados de forma independiente.",
+        "strongest_baseline": "El punto de control final de Qwen3-8B-Base entrenado secuencialmente y las alternativas MMOPD, SDFT y combinación de modelos con comparación emparejada del artículo; los expertos entrenados por tarea sirven como referencia de especialización."
+      },
+      "title": "ACLArena informa olvido de tareas en el entrenamiento secuencial de agentes y prueba expertos LoRA enrutados",
+      "why_it_matters": "Si se replica en otras familias y currículos, este trabajo podría cambiar el postentrenamiento de agentes con varias etapas: en vez de asumir que las capacidades se acumulan, convendría medir y proteger las habilidades que una etapa posterior puede sobrescribir. La propuesta conserva adaptadores específicos por tarea y usa enrutamiento basado en contexto; la evidencia aún no establece transferencia, enrutamiento robusto ni costos de despliegue."
+    },
     "FCMO-4226674AF5EA": {
       "claims": [
         {
@@ -10241,6 +10298,61 @@
       "title": "China fija prioridades intersectoriales de ciencia e inteligencia artificial en una Opinión de política productiva",
       "why_it_matters": "Si se ejecuta, la Opinión podría orientar el financiamiento científico de China, la modernización industrial, la infraestructura de inteligencia artificial, los proyectos piloto y la gobernanza en varios ministerios y sectores. Su alcance hace que la evidencia sobre implementación y resultados sea más importante que la formulación política por sí sola; el texto no demuestra montos financiados, capacidad desplegada ni resultados medidos de inteligencia artificial."
     },
+    "FCMO-5804F5DA4E09": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan que DART elevó la precisión de un Deep Thinking System en laberintos de 31×31 a 99.91±0.13%, frente a 73.92±26.01% con entropía cruzada, y mejoró la precisión de un Tiny Recursive Model en Sudoku con 50% de celdas ocultas, a profundidad 56, a 38.0±0.1% frente a 32.4±1.7%. Son resultados de los entornos evaluados en el artículo."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En la evaluación de problemas de ajedrez del artículo, DART por sí solo alcanzó una precisión máxima reportada de 84.83±0.03%, pero cayó a 11.13±4.64% en la iteración 50. DART progresivo llegó a 83.52±0.16% de precisión final, frente a 83.46±0.02% con entropía cruzada progresiva."
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION",
+          "text": "El artículo evalúa laberintos generados, problemas de ajedrez derivados de Lichess y Sudoku con celdas ocultas, usando Deep Thinking Systems y Tiny Recursive Models; los resultados no demuestran transferencia a otras familias de modelos, tareas ni despliegues. DART por sí solo tampoco eliminó la caída en iteraciones tardías de ajedrez."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "Esta revisión no inspeccionó los artefactos enlazados ni reprodujo los experimentos de forma independiente; las medias y variaciones se consideran únicamente cifras reportadas por los autores.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "Los experimentos cubren dos familias de modelos recurrentes y tres tipos de tareas estructuradas; en esta revisión no se probó la transferencia a otros entornos.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "El artículo no establece la relación costo-beneficio de entrenamiento o inferencia frente a los objetivos comparados.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se reproduce, el trabajo propone un cambio en el objetivo de entrenamiento que mejora sustancialmente la precisión reportada en laberintos difíciles y de forma moderada en Sudoku con muchas celdas ocultas, con posible relevancia para la generalización algorítmica de modelos recurrentes compactos. El alcance está acotado por tareas sintéticas, dos familias de modelos y una transferencia no verificada; además, la estabilidad en ajedrez sigue requiriendo entrenamiento progresivo.",
+      "limitations": [
+        "Todas las cifras de desempeño provienen de los autores y no se reprodujeron de forma independiente en esta revisión.",
+        "La evidencia cubre laberintos generados, problemas de ajedrez derivados de Lichess y Sudoku con celdas ocultas, usando Deep Thinking Systems y Tiny Recursive Models; se desconoce su generalización a otros contextos.",
+        "DART por sí solo aún mostró una caída en iteraciones tardías de ajedrez; el entrenamiento progresivo cambió el resultado.",
+        "No se auditaron artefactos de forma independiente ni se compararon costos de cómputo."
+      ],
+      "relationships": [],
+      "summary": "Un preprint de arXiv presenta Distributional Adversarial Recurrent Training (DART), que entrena modelos de razonamiento recurrente con una distribución objetivo perturbada localmente y un crítico adversarial condicionado a la entrada. Los autores informan mejores resultados de fácil a difícil para Deep Thinking Systems en laberintos y problemas de ajedrez, y para Tiny Recursive Models en Sudoku con celdas ocultas. En laberintos de 31×31, la precisión informada es 99.91±0.13% con DART frente a 73.92±26.01% con entropía cruzada; con 50% de celdas ocultas en Sudoku y profundidad 56, informan 38.0±0.1% frente a 32.4±1.7%. DART por sí solo aún pierde precisión en iteraciones tardías de ajedrez; según el artículo, combinarlo con entrenamiento progresivo mejora la precisión final. Son resultados reportados en el artículo, no reproducidos de forma independiente aquí.",
+      "technical": {
+        "claimed_result": "Mejoras reportadas en las evaluaciones de laberintos, ajedrez y Sudoku con celdas ocultas, incluida la comparación en laberintos de 31×31 y Sudoku con 50% de celdas ocultas resumida en C1.",
+        "compute_or_cost": "No se verificó una comparación con presupuestos equivalentes de costo de entrenamiento e inferencia.",
+        "demonstrated_result": "El artículo define y evalúa un método de entrenamiento con distribución objetivo y crítico adversarial; el equipo de investigación no reprodujo sus resultados.",
+        "implementation_status": "Preprint de investigación; esta revisión no verificó la disponibilidad ni integridad del código y los datos enlazados.",
+        "mechanism": "DART aplica perturbaciones gaussianas acotadas a objetivos one-hot, las normaliza para formar una distribución objetivo local y entrena un crítico recurrente, condicionado por la entrada, para distinguir esos objetivos de las salidas del modelo. El modelo combina pérdida supervisada con alineación adversarial. El artículo aclara que el vecindario local no enumera soluciones válidas semánticamente distintas.",
+        "regime": "Deep Thinking Systems en laberintos generados y problemas de ajedrez; Tiny Recursive Models en Sudoku con celdas ocultas. Los resultados se limitan a los datos, métricas y condiciones de entrenamiento del artículo.",
+        "reproducibility": "El artículo describe el entrenamiento y la construcción de los datos, pero no se inspeccionaron los artefactos ni se reprodujeron los resultados de forma independiente.",
+        "strongest_baseline": "Las variantes de entropía cruzada y entrenamiento progresivo informadas por el artículo; también es pertinente la ablación de suavizado de objetivos."
+      },
+      "title": "DART informa mayor precisión de fácil a difícil en modelos de razonamiento recurrente",
+      "why_it_matters": "Si se reproducen, los resultados sugieren que la supervisión adversarial sobre distribuciones podría ayudar a modelos recurrentes compactos a mantener soluciones estructuradas válidas cuando aumenta la dificultad de prueba. La evidencia se limita a los laberintos, el ajedrez y el Sudoku seleccionados en el artículo; en ajedrez, DART por sí solo tampoco evita la caída de precisión en iteraciones tardías."
+    },
     "FCMO-583DA2C1C81C": {
       "claims": [
         {
@@ -11862,6 +11974,63 @@
       },
       "title": "SoftBank completa su inversión adicional de USD 30B en OpenAI y reporta una participación de 13%",
       "why_it_matters": "Una inversión adicional completada de USD 30 billion y una participación divulgada de aproximadamente 13% son evidencia relevante de concentración de capital alrededor de un desarrollador de IA de frontera. El comunicado corporativo no establece cómo los fondos afectan la adquisición de cómputo, el gasto de investigación, la gobernanza o las capacidades de los modelos."
+    },
+    "FCMO-6761DE6BF374": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan que SCOPE combina el ajuste posterior al entrenamiento de Qwen3.5-9B con demostraciones de capacidad, continuaciones seguras y rechazos explícitos, seguido de RL orientado a la capacidad. SCOPE-RL alcanzó 54.17% de éxito en tareas de OSWorld y 64.30% de evitación de ataques en OS-BLIND, con una media armónica de 58.80% en la evaluación del artículo."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En ablaciones de SFT con el mismo presupuesto de pasos, retirar 81 trayectorias de rechazo explícito redujo la evitación de ataques de OS-BLIND de 66.30% a 13.00%; sustituir las trayectorias de continuación segura por rechazos adicionales mantuvo la evitación en 66.70%, pero redujo el éxito en tareas de OSWorld de 49.72% a 43.21%. Los autores interpretan que los rechazos y el manejo de riesgos cumplen funciones distintas."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El artículo señala que la evitación de ataques de OS-BLIND no distingue entre continuación segura, rechazo o fallo incidental; la media armónica es específica de estos benchmarks y no garantiza seguridad en despliegue."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "Esta revisión no inspeccionó una reproducción independiente ni los artefactos públicos enlazados de datos o modelos.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "La evitación de ataques de OS-BLIND puede contar un rechazo o un fallo incidental como evitación; por sí sola no demuestra continuación segura. La métrica agregada tampoco mide seguridad en despliegue.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "El entrenamiento y los benchmarks se limitan a Qwen3.5-9B y un conjunto acotado de interfaces gráficas; se desconoce la generalización a otros modelos, aplicaciones y flujos de trabajo reales.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se reproducen, los resultados ofrecen evidencia concreta de que las trayectorias explícitas de seguridad y manejo de riesgos pueden cambiar el comportamiento de agentes de uso de computadora y que RL de capacidad recupera el éxito en tareas: una decisión útil para el postentrenamiento de agentes. Se limita a un modelo y una suite de benchmarks, y la métrica de evitación no distingue una finalización segura de un rechazo o un fallo; por tanto, no demuestra seguridad en despliegue.",
+      "limitations": [
+        "Todos los resultados de modelos son informes de los autores; no se reprodujeron de forma independiente en esta revisión.",
+        "El artículo evalúa Qwen3.5-9B en OSWorld y OS-BLIND; se desconoce la transferencia a otras familias de modelos, aplicaciones y entornos de usuarios reales.",
+        "La evitación de ataques de OS-BLIND no distingue continuación segura, rechazo o fallo incidental.",
+        "La media armónica de capacidad y seguridad depende de los benchmarks seleccionados y no garantiza seguridad completa en despliegue.",
+        "No se inspeccionaron los artefactos públicos enlazados para verificar su disponibilidad, integridad o reproducibilidad."
+      ],
+      "relationships": [],
+      "summary": "Un preprint de arXiv presenta SCOPE, un método de postentrenamiento para agentes de uso de computadora que combina demostraciones de capacidad, continuaciones seguras ante riesgos del entorno, rechazos explícitos y RL posterior orientado a la capacidad. En Qwen3.5-9B, los autores informan que SCOPE-RL alcanzó 54.17% de éxito en tareas de OSWorld y 64.30% de evitación de ataques en OS-BLIND, con una media armónica de 58.80% en su configuración de benchmarks. Las ablaciones con el mismo presupuesto sugieren que las trayectorias de rechazo aportan la mayor parte de la ganancia medida en evitación, mientras que las trayectorias de continuación segura conservan mejor la utilidad de las tareas. Son resultados informados por los autores para un modelo y una suite de benchmarks; OS-BLIND no distingue una continuación segura de un rechazo o un fallo incidental, y la métrica agregada no garantiza seguridad en despliegue.",
+      "technical": {
+        "claimed_result": "Los autores informan que el SFT conjunto de capacidad y seguridad, seguido de RL de capacidad en Qwen3.5-9B, alcanzó 54.17% de éxito en OSWorld, 64.30% de evitación de ataques en OS-BLIND y una media armónica de benchmarks de 58.80%. Las ablaciones con el mismo presupuesto muestran efectos distintos de las trayectorias de rechazo y manejo de riesgos.",
+        "compute_or_cost": "El entrenamiento incluye tres épocas de SFT y RL en línea con 64 entornos concurrentes; el artículo no informa una comparación de costos de despliegue ni economía de servicio de extremo a extremo.",
+        "demonstrated_result": "El preprint describe los métodos de SCOPE, la composición de los datos SATraj-OS y los resultados de benchmarks informados por sus autores. el equipo no reprodujo el entrenamiento ni la evaluación.",
+        "implementation_status": "Preprint experimental con enlaces a colecciones de datos y modelos; esta revisión no inspeccionó los artefactos ni verificó un despliegue.",
+        "mechanism": "Genera tareas de interfaz gráfica verificables mediante programas, incorpora riesgos ambientales observables en variantes emparejadas sin cambiar la meta del usuario, entrena con trayectorias de capacidad, continuación segura y rechazo, y después aplica RL de capacidad con equilibrio por trayectoria.",
+        "novelty": "Empareja tareas de capacidad con variantes seguras y combina supervisión de continuación segura con datos explícitos de rechazo antes del RL de capacidad, distinguiendo evitar riesgos mientras se continúa de detener tareas dañinas.",
+        "regime": "Qwen3.5-9B evaluado en OSWorld y OS-BLIND. La tabla del conjunto publicado enumera 2,740 trayectorias retenidas de capacidad, riesgo ambiental y rechazo; el RL en línea usa tareas de capacidad generadas.",
+        "reproducibility": "El artículo enlaza recursos de modelos y datos y describe métodos y entrenamiento, pero aquí no se evaluó la integridad de los artefactos públicos ni se reprodujeron los resultados.",
+        "strongest_baseline": "El Qwen3.5-9B base, el SFT solo de capacidad y las ablaciones emparejadas de trayectorias de seguridad del artículo."
+      },
+      "title": "SCOPE informa postentrenamiento conjunto de capacidad y seguridad para agentes de uso de computadora",
+      "why_it_matters": "Si se reproduce, este trabajo ofrece una forma concreta de enseñar a agentes de interfaz gráfica a evitar riesgos mientras completan tareas benignas y a rechazar metas dañinas, y después recuperar la ejecución mediante RL. Las métricas no establecen seguridad en despliegue: la evitación de OS-BLIND mezcla el rechazo y el fallo con la continuación segura, y los resultados abarcan una sola familia de modelos."
     },
     "FCMO-67D852FE9CDE": {
       "claims": [
@@ -17175,6 +17344,61 @@
       },
       "title": "Frontis-MA1 y OpenMLE informan mejoras en benchmarks de ingeniería de aprendizaje automático con un presupuesto de 12 horas",
       "why_it_matters": "Si se reproducen, los resultados sugieren que el entrenamiento con base en ejecución de operadores reutilizables de evolución de código y la búsqueda de largo horizonte pueden mejorar el desempeño medido en tareas de ingeniería de aprendizaje automático, con contribuciones separadas del modelo y del marco informadas en un segundo benchmark. Esto es pertinente para sistemas de IA para desarrollar IA, pero las mejoras en benchmarks con presupuestos largos no demuestran mejora autónoma del desarrollo de modelos de frontera ni mejora recursiva en un sentido más amplio."
+    },
+    "FCMO-9B00C92A3A97": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "El LNCC informa que dirige la planificación técnica de un nuevo sistema de HPC enfocado en IA en el Parque Científico y Tecnológico Augusto Severo, en Macaíba, Rio Grande do Norte, como parte del Plan Brasileño de Inteligencia Artificial. La fuente es el laboratorio público responsable del proyecto y reporta el sitio y su alcance."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El registro oficial de la FACC clasifica la Selección Pública n.º 27/2026 como una contratación presencial, publicada el 20 de agosto de 2026, con sesión y cierre el 4 de noviembre de 2026, para una solución integrada de HPC destinada a IA, investigación, desarrollo tecnológico e innovación. El informe oficial del LNCC indica un valor de selección de R$ 959,040,959.04. En esta revisión no cargaron el aviso, los términos ni sus anexos; no se verificó una adjudicación."
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION",
+          "text": "El informe oficial describe una contratación prevista y el uso previsto para desarrollar, entrenar y ejecutar modelos; no documenta una adjudicación concluida, hardware entregado, cómputo disponible, rendimiento operativo, condiciones de acceso ni consumo de energía."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "El registro de la FACC enlaza el aviso de selección, los términos de referencia y el aviso del Diario Oficial, pero los tres archivos PDF no cargaron en esta revisión. Por ello siguen sin verificarse las especificaciones, la duración contractual y cómo se relaciona el valor informado de R$ 959,040,959.04 con todo el alcance.",
+          "kind": "missing_primary",
+          "state": "open"
+        },
+        {
+          "description": "No se verificaron adjudicación, proveedor o configuración final, calendario de entrega ni situación operativa.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "El informe no proporciona capacidad de cómputo medida, asignación de acceso público, costos operativos, consumo de energía ni resultados de investigación realizados.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se entrega y queda disponible según lo previsto, un sistema público de HPC para IA cuyo proceso de selección indica un valor cercano a R$ 959 millones podría afectar la capacidad nacional de investigación y la estrategia de infraestructura de IA de Brasil. Su impacto queda acotado porque el informe oficial documenta un proceso de contratación, no una adjudicación, cómputo instalado, política de acceso, huella energética ni resultados realizados.",
+      "limitations": [
+        "La fuente es un informe oficial de un laboratorio gubernamental, pero los planes y cifras de contratación no prueban que el sistema haya sido adjudicado o puesto en operación.",
+        "Se revisó el registro oficial de contratación, pero no cargaron el aviso, los términos ni los anexos enlazados; el alcance detallado y las condiciones siguen sin verificarse.",
+        "No se verificaron proveedor, adjudicación, hardware entregado, capacidad de cómputo medida, condiciones de acceso público, costos operativos, consumo de energía ni resultados.",
+        "En esta revisión no se identificó ni verificó un proveedor."
+      ],
+      "relationships": [],
+      "summary": "El Laboratorio Nacional de Computación Científica de Brasil (LNCC), unidad de investigación del MCTI, informa que dirige los estudios técnicos para un nuevo computador de alto desempeño enfocado en IA, previsto para Macaíba, Rio Grande do Norte, como parte del Plan Brasileño de Inteligencia Artificial. El registro oficial de la FACC enumera la Selección Pública n.º 27/2026 como una contratación presencial, publicada el 20 de agosto de 2026 y con cierre el 4 de noviembre de 2026, para una solución integrada de HPC destinada a IA, investigación, desarrollo tecnológico e innovación. El informe del LNCC indica un valor de contratación de R$ 959,040,959.04 y señala que el sistema se destinaría al desarrollo, entrenamiento e inferencia de modelos y a organismos públicos, investigadores, universidades y al ecosistema brasileño de innovación en IA. En esta revisión no cargaron el aviso, los términos ni los anexos enlazados. Las fuentes disponibles acreditan la contratación prevista, no una adjudicación, configuración entregada, cómputo operativo ni rendimiento medido.",
+      "technical": {
+        "claimed_result": "El LNCC informa un paso de contratación pública para un sistema HPC enfocado en IA en Macaíba, con un valor de selección indicado de R$ 959,040,959.04; no se afirma ningún resultado de rendimiento del sistema.",
+        "compute_or_cost": "El informe oficial indica R$ 959,040,959.04 para el objeto de la selección pública. También describe anuncios federales de infraestructura para IA de mayor alcance; sus valores no deben confundirse. La fuente revisada no informa costos operativos ni capacidad de cómputo entregada.",
+        "demonstrated_result": "El informe oficial documenta el proyecto previsto y su etapa de selección. Esta revisión no verificó adjudicación, sistema instalado ni resultados operativos.",
+        "implementation_status": "El registro oficial de la FACC mantiene abierta la contratación presencial hasta el 4 de noviembre de 2026; no cargaron los PDF del aviso, los términos ni el Diario Oficial. No se verificaron adjudicación ni puesta en operación.",
+        "mechanism": "El LNCC dirige las especificaciones técnicas y los estudios de implementación; la selección pública busca una solución integrada de computación de alto desempeño para investigación y desarrollo de IA.",
+        "regime": "Infraestructura nacional de HPC para IA prevista en Macaíba, Rio Grande do Norte, vinculada al Plan Brasileño de Inteligencia Artificial. Se prevé atender a organismos públicos, instituciones de investigación, universidades y al ecosistema de innovación en IA.",
+        "reproducibility": "Es un desarrollo de política y contratación, no una afirmación de rendimiento. Se revisó el registro de la FACC, pero no cargaron los anexos enlazados; tampoco se revisaron registros posteriores de adjudicación o entrega.",
+        "strongest_baseline": "El supercomputador científico Santos Dumont, en Petrópolis, sigue en operación según el informe; el nuevo sistema previsto ampliaría la infraestructura y no lo reemplazaría."
+      },
+      "title": "Brasil abre una selección pública para un supercomputador nacional de IA bajo el liderazgo del LNCC",
+      "why_it_matters": "Si se contrata y opera según lo previsto, el proyecto podría ampliar de forma sustancial la capacidad pública de cómputo para IA en Brasil y vincular el gasto en infraestructura con investigación, formación laboral y transferencia tecnológica. La capacidad efectiva, las condiciones de acceso, el consumo de energía, los costos y los efectos sobre las capacidades nacionales siguen sin verificarse, pues la fuente informa una etapa de selección y no una instalación operativa."
     },
     "FCMO-9B2550DE9D19": {
       "claims": [
@@ -26028,6 +26252,63 @@
       },
       "title": "MechSparse encuentra que la selección causal de adaptadores dispersos pierde ante normas de activación en extracción con esquema rígido",
       "why_it_matters": "El resultado negativo advierte que no debe suponerse que la localización mecanicista mejora el ajuste fino disperso: una heurística barata de norma de activación gana la métrica principal del estudio, dominada por un esquema de salida, mientras el método causal más costoso no gana ninguna métrica principal. Si se generaliza, cambia una decisión local sobre ubicación de adaptadores y el cálculo de costos de PEFT guiado por interpretabilidad. La regla propuesta, dependiente de la tarea, sigue siendo preliminar."
+    },
+    "FCMO-F30A28013544": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan que comprimir el codificador de audio de Qwen3-ASR-0.6B de 18 a 16 capas, mediante poda progresiva y recuperación entre escalas, redujo el error macro no ponderado de 5.61% a 5.27% en diez benchmarks públicos de chino e inglés. El modelo de 14 capas tenía 20.7% menos parámetros en la torre de audio y un error macro de 5.75%."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Para el modelo de 14 capas, el artículo informa reducciones de latencia del codificador de 21.4% en un PPU para vehículos y de 11.4% en una NVIDIA H800; la latencia de extremo a extremo bajó 4.7% y 2.6%, respectivamente, según promedios de más de 50 enunciados de distintas duraciones."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El artículo informa ejecuciones únicas con semilla 42, sin incertidumbre entre semillas ni intervalos de confianza, y una sola salida conservada de la prueba de hardware sin variabilidad entre ejecuciones; solo evalúa una familia de modelos."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se inspeccionó una reproducción independiente, una estimación con varias semillas ni intervalos de confianza por enunciado; las pequeñas diferencias macro podrían reflejar variación de una sola ejecución o de la selección de puntos de control.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "Los promedios de hardware no conservan variación entre ejecuciones y la fuente revisada no presenta un artefacto público de implementación. La reducción medida corresponde al codificador; las ganancias de extremo a extremo son menores.",
+          "kind": "missing_primary",
+          "state": "open"
+        },
+        {
+          "description": "Se desconoce si el resultado se generaliza más allá de Qwen3-ASR-0.6B y la combinación de idiomas y dominios evaluada.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se confirman, estos resultados ofrecen una opción de diseño útil y localizada para reducir parámetros y latencia del codificador de voz conservando el rendimiento de benchmarks en una configuración de Qwen3-ASR. Las ganancias de velocidad de extremo a extremo son modestas y el preprint no incluye incertidumbre ni reproducción independiente; por ello no implica un cambio amplio de la frontera de eficiencia.",
+      "limitations": [
+        "Todos los resultados de rendimiento y tiempos son informes de los autores; no se reprodujeron de forma independiente en esta revisión.",
+        "Los resultados principales proceden de ejecuciones únicas (semilla 42), sin variación entre semillas, intervalos de confianza emparejados ni pruebas de significancia; para elegir puntos de control se usan subconjuntos de desarrollo pequeños y fijos.",
+        "Las mediciones de hardware promedian más de 50 enunciados, pero no conservan variación entre ejecuciones. La latencia del codificador baja más que la de extremo a extremo porque la decodificación autorregresiva domina el tiempo total.",
+        "Solo se estudia Qwen3-ASR-0.6B y la mezcla de entrenamiento incluye datos propietarios y del dominio de cabina; no se estableció la transferencia a otras familias o dominios.",
+        "Los resultados informados para 14 capas incluyen compromisos por idioma: error medio de 5.75% frente a 5.61% del modelo base, con regresiones mayores en algunos conjuntos de inglés."
+      ],
+      "relationships": [],
+      "summary": "Un preprint de arXiv presenta X-AuT, un método progresivo de poda y recuperación entre escalas para el codificador de audio de Qwen3-ASR-0.6B. En diez benchmarks públicos de reconocimiento de voz en chino e inglés, los autores informan que reducir de 18 a 16 capas bajó el error macro no ponderado de 5.61% a 5.27%; el modelo de 14 capas usó 20.7% menos parámetros en la torre de audio y obtuvo 5.75% de error macro. Para el modelo de 14 capas, la latencia del codificador bajó 21.4% en un PPU para vehículos y 11.4% en una H800, pero la latencia de extremo a extremo bajó solo 4.7% y 2.6%. Son resultados de una sola ejecución, informados por los autores y limitados a una familia de modelos; no se informa incertidumbre entre semillas ni reproducción independiente.",
+      "technical": {
+        "claimed_result": "La poda progresiva por capas y la recuperación entre escalas producen, según los autores, dos configuraciones de precisión y eficiencia para Qwen3-ASR-0.6B: el modelo de 16 capas mejora el error macro en diez conjuntos a 5.27%; el de 14 capas elimina 20.7% de los parámetros de la torre de audio con 5.75% de error macro y ganancias modestas de latencia total.",
+        "compute_or_cost": "El artículo informa reducciones de latencia del codificador de 21.4% en un PPU para vehículos y 11.4% en una NVIDIA H800 para el modelo de 14 capas; las reducciones de extremo a extremo son 4.7% y 2.6%. Los promedios cubren más de 50 enunciados y no conservan variabilidad.",
+        "demonstrated_result": "El artículo de arXiv y sus tablas establecen qué resultados informan los autores. el equipo de investigación no reprodujo el modelo, los resultados de benchmarks ni las mediciones de hardware.",
+        "implementation_status": "Resultado experimental de un preprint; esta revisión no verificó una implementación independiente ni un despliegue en producción.",
+        "mechanism": "Poda en dos etapas de 18→16→14 capas, con breves pruebas de comportamiento para elegir combinaciones de capas, alineación de representaciones, destilación entre escalas con un docente 1.7B, contextos programados generados por el estudiante y recuperación LoRA con el bloque principal del decodificador congelado.",
+        "novelty": "Combina la selección de combinaciones de capas mediante pruebas de comportamiento con recuperación progresiva posterior al entrenamiento para un modelo de voz y lenguaje preentrenado; informa comparaciones de poda directa, escala del docente y hardware.",
+        "regime": "Qwen3-ASR-0.6B, una semilla (42) y diez benchmarks públicos de voz en chino e inglés; el estudiante 0.6B se entrena con un docente 1.7B. Los tiempos comparan un PPU para vehículos y una NVIDIA H800.",
+        "reproducibility": "El artículo describe métodos e hiperparámetros en detalle, pero en esta revisión no se inspeccionaron código, pesos ni salidas de tiempos sin procesar y no se encontró una reproducción independiente.",
+        "strongest_baseline": "Qwen3-ASR-0.6B sin podar, de 18 capas, evaluado en los mismos diez conjuntos públicos; el artículo también compara la poda progresiva de 14 capas con la poda directa bajo un presupuesto nominalmente equivalente."
+      },
+      "title": "X-AuT informa compresión progresiva del codificador de Qwen3-ASR con modestas ganancias de latencia total",
+      "why_it_matters": "Si se reproduce, el artículo ofrece una vía concreta de ajuste posterior al entrenamiento para reducir el cómputo del codificador de voz en una familia importante de ASR. El beneficio medido es localizado: el tiempo del codificador mejora más que la latencia total, mientras que el modelo de 14 capas tiene un error medio algo peor y no informa incertidumbre de ejecuciones repetidas."
     },
     "FCMO-F323BAA47595": {
       "claims": [
