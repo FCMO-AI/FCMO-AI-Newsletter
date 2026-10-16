@@ -4313,6 +4313,69 @@
       "title": "Un artículo sobre Loopjacking reporta que algunas aprobaciones de agentes se reutilizaron para ejecutar operaciones sustancialmente distintas en rutas de producto probadas",
       "why_it_matters": "Una pantalla de aprobación solo es un límite de seguridad efectivo si la operación ejecutada sigue vinculada a la operación completa que revisó la persona. La comparación exacta en el momento de uso, o impedir cambios no autorizados al estado pendiente, ofrece defensas que se pueden probar."
     },
+    "FCMO-2130EC610C72": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Los autores proponen H-Spec, un borrador paralelo híbrido de Mamba y atención que inicializa el estado de Mamba con estados ocultos del modelo objetivo en la última posición y reutiliza directamente las cachés KV del objetivo. Así elimina una caché KV separada para el borrador y mantiene la generación paralela por bloques."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Con una receta de entrenamiento emparejada, los autores informan una longitud media aceptada 5.0–13.3% mayor y una mejora de velocidad de latencia entre tokens con tamaño de lote 1 5.3–12.6% mayor que la mejor referencia, para Llama3.1-8B-IT, Qwen3-4B y Qwen3-8B en ocho tareas; los intervalos bootstrap pareados del 95% quedan por encima de cero."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En pruebas de servicio con vLLM sobre una NVIDIA A100 80G, los autores informan mayor rendimiento y menor utilización de caché KV que las referencias para concurrencias de 8–128; la ventaja suele crecer con la concurrencia."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El artículo no establece una reproducción independiente ni mejoras universales en servicio. Sus propias mediciones muestran un borrado más lento con concurrencia inferior a 32 y, al principio, con entradas cortas; además, las dimensiones K/V del borrador deben coincidir con las del modelo objetivo."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se ha inspeccionado una implementación independiente ni una reproducción de las comparaciones de rendimiento y servicio de H-Spec.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "La comparación de servicio se limita a una NVIDIA A100 80G y la configuración indicada de vLLM; no se conocen los resultados en otros aceleradores, runtimes y cargas de producción.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "H-Spec requiere que las dimensiones K/V del borrador coincidan con las del modelo objetivo, lo que restringe la compatibilidad arquitectónica.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "Los autores informan que la red de borrado híbrida es más lenta con concurrencia menor a 32 y al inicio con entradas cortas; el comportamiento se invierte con concurrencia o contextos mayores.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si las mejoras de servicio se reproducen, eliminar una caché KV por solicitud del borrador y conservar la generación especulativa paralela podría aumentar de forma material la capacidad de memoria y el rendimiento en inferencia de alta concurrencia y contexto extenso. El resultado procede de una evaluación de los autores con tres modelos objetivo y una configuración concreta de GPU y software; los costos con baja concurrencia o entradas breves y el requisito de dimensiones K/V compatibles limitan su alcance.",
+      "limitations": [
+        "Los resultados de rendimiento los informa el artículo de los autores; en esta revisión no se realizó una reproducción independiente.",
+        "Las mediciones de servicio usan una NVIDIA A100 80G y vLLM; no se establecen resultados con otro hardware, runtime o distribución de solicitudes de producción.",
+        "El artículo informa una generación de borradores más lenta con concurrencia inferior a 32 y al inicio para entradas cortas; la tendencia se invierte con mayor concurrencia o contextos más largos.",
+        "Las dimensiones K/V deben coincidir con la arquitectura objetivo, lo que limita la compatibilidad directa.",
+        "Los resultados de solicitud individual y de servicio con vLLM se basan en modelos y tareas seleccionados; no se midieron economía de producción, consumo energético ni efectos a escala de flota."
+      ],
+      "relationships": [],
+      "summary": "Un artículo de arXiv del 21 de septiembre de 2026 presenta H-Spec, un borrador de decodificación especulativa paralela que combina el estado Mamba inicializado con estados ocultos del modelo objetivo en la última posición y la atención que reutiliza directamente la caché KV del objetivo. Esto elimina una caché KV separada para el borrador. Con la receta de entrenamiento emparejada de los autores, H-Spec informa una longitud media aceptada 5.0–13.3% mayor y una mejora de velocidad de latencia entre tokens con tamaño de lote 1 5.3–12.6% mayor que la mejor referencia, en tres modelos objetivo y ocho tareas; los intervalos bootstrap pareados del 95% quedan por encima de cero. En servicio con vLLM sobre una NVIDIA A100 80G, el artículo informa mayor rendimiento y menor utilización de caché KV para concurrencias de 8–128. Son resultados de los autores; el artículo indica que la generación de borradores es más lenta por debajo de concurrencia 32 y al principio con entradas cortas, y exige dimensiones K/V compatibles entre borrador y modelo objetivo. La reproducción independiente y la transferencia fuera del entorno medido siguen pendientes.",
+      "technical": {
+        "claimed_result": "Los autores informan mayor longitud de borrador aceptada y mayor mejora de ITL en lotes de 1 que la mejor referencia de borrador paralelo, para tres objetivos y ocho tareas; en servicio vLLM informan mayor rendimiento y menor utilización de KV en los niveles de concurrencia evaluados. Son mediciones realizadas por los autores.",
+        "demonstrated_result": "El artículo público v1 documenta una arquitectura híbrida de Mamba y atención, comparaciones de entrenamiento emparejadas, intervalos de confianza y mediciones de servicio con vLLM. Esto demuestra que esos métodos y resultados están descritos en el artículo, no que una implementación independiente confirme el servicio medido.",
+        "mechanism": "Inicializa el estado de Mamba a partir de estados ocultos proyectados del objetivo en la última posición, reutiliza directamente las cachés KV del objetivo en atención y genera bloques mediante recorridos paralelos de Mamba; una cabeza de corrección causal sostiene las dependencias entre tokens.",
+        "regime": "Tres objetivos (Llama3.1-8B-IT, Qwen3-4B y Qwen3-8B), ocho tareas de solicitud individual y cargas seleccionadas de matemáticas, código y chat en vLLM; una NVIDIA A100 80G; concurrencia de 8–128 en servicio.",
+        "reproducibility": "El artículo ofrece detalles de arquitectura y entrenamiento y un análisis bootstrap de incertidumbre, pero en esta revisión no se inspeccionó una reproducción independiente ni la ejecución de código o checkpoints públicos.",
+        "strongest_baseline": "La mejor entre P-Eagle, DFlash y DSpark, reentrenados con la receta emparejada del artículo. Los márgenes de H-Spec en solicitudes individuales varían según el modelo objetivo; el artículo también presenta una comparación preliminar con DFlash-2 en apéndice, sin un flujo oficial de entrenamiento."
+      },
+      "title": "H-Spec elimina la caché KV separada del borrador en la decodificación especulativa paralela",
+      "why_it_matters": "Si se reproducen, los resultados de servicio sugieren que eliminar la caché separada por solicitud permitiría conservar más capacidad o rendimiento de inferencia con decodificación especulativa paralela. El beneficio informado depende de la concurrencia y la longitud del contexto, y las dimensiones K/V específicas del objetivo limitan la compatibilidad directa; todavía no se ha demostrado a escala independiente ni de flota."
+    },
     "FCMO-23126AF42ED1": {
       "claims": [
         {
@@ -9481,6 +9544,50 @@
       },
       "title": "El FSB publica 12 prácticas no vinculantes de gobernanza de IA para instituciones financieras",
       "why_it_matters": "El informe ofrece a instituciones financieras y supervisores una referencia común para evaluar la gobernanza de IA mediante controles organizacionales y de ciclo de vida, incluidos los proveedores de modelos y los sistemas cada vez más autónomos. Su efecto práctico dependerá de que las autoridades nacionales y las empresas incorporen las prácticas a sus expectativas y operaciones locales. El FSB afirma expresamente que no son vinculantes y reconoce que la orientación para IA agéntica aún es incompleta."
+    },
+    "FCMO-5250676F2582": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Aolani afirma que espera desplegar 22,000 GPU NVIDIA Blackwell Ultra en dos centros de IA de Malasia y Filipinas a principios de 2027, con lo que su despliegue total superaría 48,000 GPU. También dice que la capacidad de sus centros superará 100 MW. Son planes futuros, no entregas ni capacidad operativa verificadas."
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION",
+          "text": "El anuncio de Aolani identifica las declaraciones sobre capacidad futura, infraestructura, servicios y expansión regional como prospectivas. Esta fuente por sí sola no demuestra financiamiento, permisos, construcción, entrega, confirmación independiente, suministro eléctrico ni utilización."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "La fuente es un anuncio prospectivo de Aolani; no se comprobaron la confirmación de NVIDIA ni el financiamiento, permisos, construcción, entrega o utilización del proyecto.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "El anuncio no especifica qué parte de la capacidad indicada está financiada, energizada, disponible para clientes o asignada a cada ubicación.",
+          "kind": "regime_unclear",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se ejecuta el plan anunciado, 22,000 GPU Blackwell Ultra en Malasia y Filipinas ampliarían de forma material la capacidad regional de cómputo de IA prevista. El anuncio es prospectivo y no demuestra financiamiento, entrega, disponibilidad operativa ni utilización.",
+      "limitations": [
+        "El despliegue de 22,000 GPU se anuncia como esperado a principios de 2027; no se informa que se hayan entregado.",
+        "La capacidad superior a 100 MW es una cifra planificada por la empresa; no se verificaron datos de energía o puesta en servicio por centro.",
+        "El total anunciado de más de 48,000 GPU es prospectivo y no demuestra unidades instaladas u operativas.",
+        "No se verificaron financiamiento, permisos, construcción, contratos de suministro, confirmación de NVIDIA, acceso de clientes ni utilización."
+      ],
+      "relationships": [],
+      "summary": "El anuncio de Aolani del 21 de septiembre de 2026 dice que espera desplegar 22,000 GPU NVIDIA Blackwell Ultra en dos centros de IA de Malasia y Filipinas a principios de 2027. Afirma que la capacidad de sus centros superará 100 MW y que su despliegue total pasará de 48,000 GPU. Son declaraciones prospectivas de la empresa: esta revisión no verificó financiamiento, construcción, permisos, entrega, capacidad operativa, utilización ni confirmación de NVIDIA.",
+      "technical": {
+        "claimed_result": "Aolani dice que espera 22,000 GPU NVIDIA Blackwell Ultra en Malasia y Filipinas a principios de 2027; afirma que esto elevará su despliegue total por encima de 48,000 GPU y la capacidad de sus centros por encima de 100 MW.",
+        "demonstrated_result": "La página oficial de la empresa publica el anuncio y califica expresamente las declaraciones futuras de capacidad e infraestructura como prospectivas; no se verificaron entregas ni operación real.",
+        "mechanism": "Aolani describe dos centros de IA planificados y servicios de nube impulsados por NVIDIA en el sudeste asiático.",
+        "regime": "Plan de infraestructura anunciado por la empresa para Malasia y Filipinas: 22,000 GPU Blackwell Ultra previstas para principios de 2027 y capacidad conjunta declarada de más de 100 MW. No se verificaron detalles de implementación por proyecto.",
+        "reproducibility": "El anuncio es público. Sus planes de despliegue futuro no se han verificado de forma independiente y esta revisión no encontró mediciones operativas.",
+        "strongest_baseline": "El anuncio y esta revisión no incluyen una comparación equivalente de capacidad regional ni de infraestructura en operación."
+      },
+      "title": "Aolani anuncia planes para desplegar 22,000 GPU Blackwell Ultra en Malasia y Filipinas",
+      "why_it_matters": "Si se entrega y queda disponible, el despliegue anunciado ampliaría de forma sustancial la capacidad de cómputo de IA prevista en el sudeste asiático. La fuente primaria acota el plan a su escala y ubicación, pero no acredita el calendario, el financiamiento ni la capacidad operativa utilizable."
     },
     "FCMO-52772AF29E99": {
       "claims": [
@@ -17103,6 +17210,59 @@
       "title": "Reuters informa mayores diferenciales y más selectividad de inversionistas ante la deuda de empresas vinculadas con IA",
       "why_it_matters": "Los mercados de deuda podrían afectar el costo y ritmo de la infraestructura de IA, que requiere mucho capital. Los diferenciales más amplios y los límites de concentración son señales para seguir, pero este informe no demuestra que las grandes empresas de nube no puedan financiar proyectos, hayan reducido el gasto de capital previsto o enfrenten peor calidad crediticia."
     },
+    "FCMO-9C3B22ED4893": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan que InfoPPO sustituye el tiempo medido por cantidad de tokens por una densidad de información acumulada para el descuento y el recorte adaptativo de actualizaciones, y obtiene mayor exactitud media Mean@16 que DAPO en cinco pruebas de razonamiento matemático con modelos base Qwen3-4B, Qwen3-8B y Qwen3-14B."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En la Tabla 1 del artículo, la exactitud media de Qwen3-4B es 34.9 con InfoPPO frente a 32.2 con DAPO; para Qwen3-8B es 41.2 frente a 36.3; y para Qwen3-14B es 49.4 frente a 45.3. Los autores indican que las longitudes son similares a DAPO/DAPO-FT y menores que con PPO en las configuraciones presentadas."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El artículo no demuestra reproducibilidad independiente, transferencia amplia fuera de las tareas matemáticas probadas ni incertidumbre entre semillas para las comparaciones agregadas."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se ha examinado una reproducción independiente de las comparaciones reportadas para InfoPPO.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "La comparación principal informa Mean@16 por pregunta, pero la tabla revisada no presenta incertidumbre entre semillas; por ello no quedan establecidas la variabilidad entre entrenamientos ni la incertidumbre de las diferencias agregadas.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "La evaluación empírica principal se concentra en razonamiento matemático competitivo y tres escalas base de Qwen3; la transferencia a otras familias, tareas y esquemas de recompensa es limitada.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si las mejoras reportadas se mantienen, medir el crédito temporal en tiempo de información y vincularlo con la magnitud de las actualizaciones podría cambiar el diseño de RLVR para razonamientos extensos y mejorar el equilibrio entre exactitud y longitud. La evidencia procede de un artículo con experimentos de sus autores, un régimen acotado de modelos y tareas y ninguna reproducción independiente; por eso la consecuencia potencial es notable, no transformadora del campo.",
+      "limitations": [
+        "Todos los resultados empíricos proceden del artículo de los autores; en esta revisión no se encontró una reproducción independiente.",
+        "La Tabla 1 usa Mean@16 con 16 respuestas muestreadas independientemente por pregunta, pero no informa incertidumbre entre semillas para la comparación agregada.",
+        "Los experimentos principales usan modelos base Qwen3-4B/8B/14B entrenados con DAPO-Math-17K y cinco pruebas de matemáticas competitivas; se desconoce la generalización fuera de ese régimen.",
+        "El Apéndice C presenta una comparación adicional con Llama-3.2-3B Instruct, que no constituye una validación amplia entre familias de modelos."
+      ],
+      "relationships": [],
+      "summary": "Un artículo de arXiv del 21 de septiembre de 2026 presenta InfoPPO, que mide el avance temporal en RLVR mediante densidad de información acumulada en vez de contar tokens, y usa esa densidad para adaptar el recorte de política. En resultados Mean@16 reportados por los autores para cinco pruebas de razonamiento matemático, la exactitud media de Qwen3-4B/8B/14B es 34.9/41.2/49.4, frente a 32.2/36.3/45.3 con DAPO. El artículo informa longitudes de respuesta parecidas a DAPO/DAPO-FT y menores que PPO en la tabla, además de una comparación complementaria con Llama-3.2-3B. Son resultados AFIRMADOS por el artículo, sin reproducción independiente; la tabla agregada principal no informa incertidumbre entre semillas y la transferencia a otras tareas y modelos sigue abierta.",
+      "technical": {
+        "claimed_result": "Los autores informan una exactitud media Mean@16 mayor con InfoPPO que con DAPO en las cinco pruebas matemáticas y las tres escalas base de Qwen3. Las longitudes son similares a DAPO/DAPO-FT y menores que con PPO en la tabla; también informan mayor estabilidad que PPO con tiempo por token al usar descuentos no triviales.",
+        "demonstrated_result": "El artículo público v1 define una formulación de tiempo de información, describe su implementación basada en entropía y el recorte adaptativo, y presenta tablas experimentales propias. Esto demuestra que los autores documentaron estos métodos y resultados, pero no establece de forma independiente las mejoras medidas.",
+        "mechanism": "Acumula la entropía normalizada de cada estado como coordenada temporal para el descuento y la decaída de trazas, y ajusta los límites de recorte según la densidad de información local.",
+        "regime": "RLVR para matemáticas competitivas; entrenamiento con DAPO-Math-17K; modelos base Qwen3-4B/8B/14B; cinco pruebas; Mean@16. Un apéndice agrega Llama-3.2-3B Instruct en la misma familia de pruebas.",
+        "reproducibility": "El artículo completo está disponible en arXiv, con método y detalles de implementación; en esta revisión no se inspeccionaron código, puntos de control, registros experimentales ni una reproducción independiente. La tabla agregada informa 16 respuestas por pregunta, sin incertidumbre entre semillas.",
+        "strongest_baseline": "DAPO es la principal referencia práctica comparada en la Tabla 1: los promedios de InfoPPO son mayores en las tres escalas Qwen3, aunque DAPO-FT supera a InfoPPO en algunas pruebas individuales y el estudio no informa incertidumbre entre semillas."
+      },
+      "title": "InfoPPO aplica descuento por tiempo de información y recorte adaptativo al aprendizaje por refuerzo de modelos de lenguaje en secuencias extensas",
+      "why_it_matters": "Si se reproduce, el crédito temporal condicionado por información y las actualizaciones de política adaptativas podrían ayudar a conservar el control del horizonte en razonamientos extensos sin alargar simplemente las respuestas. Las mejoras reportadas se limitan a comparaciones de RLVR matemático realizadas por los autores y todavía no demuestran una mejora general del posentrenamiento."
+    },
     "FCMO-9C7A3408F76A": {
       "claims": [
         {
@@ -22727,6 +22887,50 @@
       "title": "Anthropic y Amazon anuncian un compromiso de $100 mil millones con AWS y hasta 5 GW de cómputo",
       "why_it_matters": "El acuerdo une suministro de aceleradores, alojamiento en la nube, distribución de modelos e inversión en una relación de largo plazo entre un desarrollador de modelos de frontera y un hiperescalador. Si se cumple, su escala podría afectar el acceso al cómputo y estrechar los vínculos técnicos y comerciales con un proveedor específico. Los anuncios públicos establecen los compromisos declarados por las partes, pero no muestran costos realizados, entrega de capacidad, rendimiento comparativo ni qué parte de la infraestructura puede trasladarse a otros proveedores."
     },
+    "FCMO-D4944D597980": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "El informe técnico de PrismML del 17 de septiembre sobre Bonsai 2 27B publica puntuaciones de 52.8 en Terminal-Bench 2.1 y 60.8% de resolución en SWE-bench Verified, frente a 69.7 y 80.6 para su comparador Qwen3.8-27B FP16. El documento presenta estas pruebas agentivas por separado del conjunto de 20 benchmarks que sustenta el promedio de 83.9 frente a 85.4 (retención de 98.2%)."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El informe indica que Terminal-Bench 2.1 usó Terminus-2 con un intento en las 89 tareas, ocho pruebas concurrentes y un presupuesto de salida de 80,000 tokens por turno; SWE-bench Verified usó mini-swe-agent en sus 500 instancias y reporta la tasa de resolución. Ambas evaluaciones usaron el marco Harbor. No se inspeccionaron resultados por instancia ni se realizó una reproducción independiente."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se realizó una reproducción independiente ni una auditoría de resultados por instancia del modelo de 6 GB para Terminal-Bench 2.1 y SWE-bench Verified. El informe da los denominadores y protocolos, pero en esta revisión no se auditaron trazas de ejecución.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "Esta revisión no verificó los hashes exactos de los checkpoints ni confirmó de forma independiente que los artefactos comparados tengan el linaje de modelo indicado.",
+          "kind": "baseline_unclear",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se confirma la brecha informada por el proveedor, matiza de forma sustancial el titular de compresión casi sin pérdida para agentes de programación de largo horizonte: el modelo de cerca de 6 GB conserva aproximadamente tres cuartas partes de las puntuaciones del Qwen3.8-27B FP16 en dos evaluaciones de ingeniería de software con agentes. Los resultados importan para decidir despliegues locales, pero son del propio proveedor y aún no se han reproducido.",
+      "limitations": [
+        "Los resultados y el protocolo provienen del informe de PrismML; no se inspeccionó una reproducción independiente.",
+        "El promedio principal del informe comprende 20 benchmarks y es 83.9 frente a 85.4. Terminal-Bench 2.1 y SWE-bench Verified se reportan por separado y no forman parte de ese conjunto de 20 pruebas.",
+        "Esta revisión no examinó hashes de checkpoints, artefactos de resultados por instancia ni intervalos de incertidumbre.",
+        "Terminal-Bench informa un intento por tarea en 89 tareas; SWE-bench Verified informa la tasa de resolución de 500 instancias."
+      ],
+      "relationships": [],
+      "summary": "El informe técnico de PrismML del 17 de septiembre de 2026 publica para Ternary Bonsai 2 27B una puntuación de 52.8 en Terminal-Bench 2.1 y una tasa de resolución de 60.8% en SWE-bench Verified, frente a 69.7 y 80.6 para Qwen3.8-27B FP16. El informe dice que Terminal-Bench usó Terminus-2 en 89 tareas con un intento por tarea, y SWE-bench Verified usó mini-swe-agent en las 500 instancias. Estos dos resultados agentivos se presentan aparte del promedio de 20 benchmarks, donde Bonsai 2 obtiene 83.9 frente a 85.4 (retención de 98.2%). Es una diferencia de calidad informada por el proveedor, no una validación independiente; siguen pendientes la verificación de hashes, las trazas y la reproducción.",
+      "technical": {
+        "claimed_result": "PrismML informa 52.8 frente a 69.7 en Terminal-Bench 2.1 y 60.8 frente a 80.6 en SWE-bench Verified para Bonsai 2 27B frente a Qwen3.8-27B FP16. El conjunto separado de 20 benchmarks arroja 83.9 frente a 85.4 (98.2%).",
+        "demonstrated_result": "El informe técnico primario del repositorio oficial contiene estas puntuaciones y describe el protocolo de Terminal-Bench 2.1. No se confirmaron de forma independiente las puntuaciones ni las ejecuciones subyacentes.",
+        "mechanism": "El proveedor compara su versión ternaria Bonsai 2 27B con Qwen3.8-27B FP16 en benchmarks de programación con agentes; estos resultados se separan del promedio de 20 benchmarks.",
+        "regime": "Según el proveedor: Terminal-Bench 2.1 con Terminus-2 en 89 tareas, un intento por tarea y ocho pruebas concurrentes; SWE-bench Verified con mini-swe-agent en 500 instancias. El informe indica que Harbor dirige ambos.",
+        "reproducibility": "El informe técnico primario y el protocolo son públicos; esta revisión no ejecutó los benchmarks, no inspeccionó trazas por instancia ni verificó hashes de checkpoints.",
+        "strongest_baseline": "El informe compara directamente Bonsai 2 27B con Qwen3.8-27B FP16 en ambos benchmarks agentivos; no presenta otra línea base de baja precisión para estas dos puntuaciones."
+      },
+      "title": "El informe de Bonsai 2 27B registra cerca de tres cuartas partes del rendimiento en dos benchmarks de programación con agentes",
+      "why_it_matters": "Un modelo compacto de clase 27B puede mantener gran parte del promedio general de 20 benchmarks y, al mismo tiempo, mostrar una caída informada mayor en agentes de programación de largo horizonte. Separar esas tareas del promedio permite que las decisiones de despliegue reflejen la calidad según el tipo de trabajo. Las puntuaciones exactas siguen siendo afirmaciones del proveedor pendientes de reproducción."
+    },
     "FCMO-D4C6B59E90A8": {
       "claims": [
         {
@@ -26228,6 +26432,69 @@
       },
       "title": "NYU Shanghai conserva una captura histórica del tablero de RL de MiMo-V2.6 de Xiaomi",
       "why_it_matters": "La captura fechada ofrece una vista poco común de la escala, el costo y la infraestructura del entrenamiento RL agéntico a gran escala. Si los contadores son correctos, ayudan a razonar sobre la economía de entrenamiento basada en rollouts y sus fallas operativas. La captura no demuestra la capacidad final del modelo, su eficiencia comparativa ni el estado actual del entrenamiento."
+    },
+    "FCMO-F8EFB501EED2": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Los autores presentan Fixed-SAE Track, que entrena un único SAE compartido por capa analizada con activaciones combinadas del modelo base y sus checkpoints de RL, y luego vuelve a codificar todos los checkpoints con ese diccionario congelado para rastrear cambios de características con direcciones fijas."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En el experimento principal de razonamiento matemático con Qwen2.5-1.5B-Instruct, los autores informan una deriva pequeña, gradual y concentrada en capas tardías, sobre todo en elementos de formato. Con dosis de dirección α=10, la conducción de características amplificadas sube la exactitud estricta de 0.050 a 0.192, frente a 0.175 en el modelo final tras RL breve; la exactitud de razonamiento flexible cambia menos."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Para 29 problemas GSM8K incorrectos con decodificación voraz del modelo base y correctos tras RL, los autores informan que pass@k del modelo base llega a 1.00 con k=64. También informan que 2000 pasos adicionales elevan la exactitud flexible de 0.300 a 0.408. Estos resultados matizan la hipótesis de que RL breve solo hace aflorar capacidad ya muestreada: en este régimen, el entrenamiento sostenido también puede mejorar el razonamiento."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El artículo no demuestra que RL solo haga aflorar capacidades preexistentes en general ni que la recuperación destacada por steering represente una fracción general de la ganancia de RL. La referencia cercana a 80% corresponde a un efecto de exactitud estricta y facilidad de extracción tras RL breve; inyectar directamente un conjunto de características de razonamiento recupera poco."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se ha inspeccionado una reproducción independiente de Fixed-SAE Track, las interpretaciones de características ni los resultados de steering.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "El análisis mecanístico principal se concentra en un modelo pequeño, matemáticas y una capa de SAE fija; la transferencia a otros modelos, tareas y algoritmos sigue siendo incierta.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "La referencia de recuperación cercana a 80% se refiere al efecto de exactitud estricta/extractabilidad tras RL breve; el entrenamiento sostenido también mejora la exactitud flexible y la inyección estática de características de razonamiento recupera poco.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "El resultado pass@64 abarca 29 problemas GSM8K seleccionados como incorrectos con decodificación voraz base y correctos tras RL; no establece una frontera amplia de capacidad en tareas más difíciles o con otros presupuestos de muestreo.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se reproduce, una base SAE compartida entre checkpoints ofrece un método útil para separar la deriva de representación de cambios arbitrarios en índices de características. Las intervenciones sugieren que parte de las mejoras matemáticas de RL breve puede consistir en facilitar la extracción de respuestas con el formato esperado. Esto podría cambiar la interpretación mecanística del posentrenamiento, aunque la evidencia principal es de un régimen estrecho, reportada por los autores y matizada explícitamente por mejoras de razonamiento con entrenamiento sostenido.",
+      "limitations": [
+        "Toda la evidencia procede del artículo arXiv v1 de los autores; no se realizó una reproducción independiente.",
+        "El análisis principal se centra en Qwen2.5-1.5B-Instruct, RL matemático y un SAE fijo en la capa 27, con algunas comparaciones entre capas; se desconoce la transferencia más amplia.",
+        "La afirmación cercana a 80% describe la recuperación por steering de un efecto de exactitud estricta/extractabilidad tras RL breve; la exactitud flexible cambia menos y aumenta más con entrenamiento sostenido.",
+        "Entre 29 problemas GSM8K incorrectos con decodificación voraz base y correctos tras RL, el muestreo base resuelve todos con k=64; este conjunto seleccionado no determina fronteras generales de capacidad.",
+        "El artículo informa que un conjunto de características de razonamiento es causalmente necesario según ablación, pero su inyección estática directa recupera solo una fracción pequeña de la ganancia de RL."
+      ],
+      "relationships": [],
+      "summary": "Un artículo de arXiv del 14 de septiembre de 2026 presenta Fixed-SAE Track: entrena un autoencoder disperso compartido por capa analizada con activaciones combinadas del modelo base y sus checkpoints de RL, y congela las direcciones de características para rastrear cambios de representación. En el principal régimen de razonamiento matemático con Qwen2.5-1.5B-Instruct, los autores informan una deriva gradual en capas tardías, concentrada en formato y andamiaje del razonamiento. Con dosis α=10, aplicar steering a características amplificadas eleva la exactitud estricta de 0.050 a 0.192, cerca del 0.175 del modelo final tras RL breve; la exactitud flexible de razonamiento cambia menos. El artículo también informa que el muestreo base resuelve con k=64 los 29 problemas GSM8K seleccionados que pasan de incorrectos con decodificación voraz base a correctos tras RL; sin embargo, otros 2000 pasos de RL elevan la exactitud flexible de 0.300 a 0.408, y la inyección directa de un conjunto necesario de características de razonamiento recupera poco. Por ello, la referencia cercana a 80% describe un efecto acotado de extractabilidad/formato tras RL breve, no que RL en general solo haga aflorar capacidades existentes. Los resultados son de los autores y no se han reproducido de forma independiente.",
+      "technical": {
+        "claimed_result": "Los autores informan una deriva pequeña, gradual y tardía, mayormente en características de formato, y que el steering de características amplificadas en el modelo base reproduce gran parte de la mejora de exactitud estricta y tasa de etiquetas tras RL breve. También informan que el modelo base resuelve con pass@64 los 29 problemas GSM8K seleccionados y que el entrenamiento sostenido añade exactitud flexible; por tanto, el artículo matiza la conclusión sobre el afloramiento de capacidades.",
+        "demonstrated_result": "El artículo público v1 define un método de seguimiento con SAE compartido y presenta análisis de activaciones, steering y ablación. Esto acredita lo que los autores midieron y afirman, no una confirmación independiente de su interpretación mecanística.",
+        "mechanism": "Combina activaciones del modelo base y checkpoints de RL, entrena y congela un SAE TopK compartido por capa y compara activaciones latentes estables entre checkpoints. Usa atribución por token y steering/ablación causal para evaluar si las correlaciones de características también son suficientes o necesarias en las intervenciones probadas.",
+        "regime": "Principalmente RL matemático de Qwen2.5-1.5B-Instruct con GRPO, análisis SAE en torno a la capa 27 y métricas estrictas de formato y flexibles de razonamiento; 29 problemas GSM8K seleccionados para pass@64; continuación de entrenamiento de 2000 pasos.",
+        "reproducibility": "El artículo completo y sus apéndices son públicos e informan controles y análisis entre ejecuciones y algoritmos; no se inspeccionó una implementación o reproducción independiente.",
+        "strongest_baseline": "Para suficiencia del steering, se compara el checkpoint final tras RL breve con el modelo base bajo intervenciones de características amplificadas y direcciones aleatorias. Para capacidad base, se contrasta la decodificación voraz con muestreo pass@k en los 29 problemas seleccionados. Son comparaciones que responden preguntas distintas y no deben fusionarse en un único efecto general de RL."
+      },
+      "title": "Fixed-SAE Track registra cambios acotados y centrados en el formato tras RL en un modelo pequeño de razonamiento",
+      "why_it_matters": "Una base de características fija y compartida puede reducir la dependencia del análisis entre checkpoints de la correspondencia entre SAEs entrenados por separado. Las intervenciones sugieren que algunas mejoras matemáticas de RL breve pueden reflejar una mayor facilidad para extraer respuestas con formato válido, mientras que el artículo también encuentra mejoras reales de razonamiento con entrenamiento sostenido. Esta distinción podría cambiar la medición e interpretación del posentrenamiento, pero la evidencia sigue siendo de los autores y limitada a un modelo y tareas concretos."
     },
     "FCMO-F9694A798839": {
       "claims": [
