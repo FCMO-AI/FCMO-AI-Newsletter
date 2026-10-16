@@ -1,6 +1,6 @@
 {
   "canonical_locale": "en",
-  "canonical_source_sha256": "90c0bd6e3027b2358bda4da2ff8a2840ce31eb4c38c6b9c41f1e024352bc5f51",
+  "canonical_source_sha256": "385d81eded3c23ad81c271ac1f0667f41c0b4a98785fa4c44a5b32c17952c330",
   "generated_from": "ARB airlock; editorial wording authored upstream",
   "locale": "zh-Hans",
   "records": {
@@ -2794,6 +2794,59 @@
       },
       "title": "一项同行评审研究报告了可覆盖腹部CT中146种影像发现的通用模型；临床验证仍待完成",
       "why_it_matters": "这是一个经过同行评审且附有资源的通用影像模型案例。它使用现有临床报告进行训练，而不是只依赖针对单一影像发现的人工标注数据。如果报告的结果能够在更多场景中复现，可能影响对广覆盖诊断和临床人员辅助工具的研究。代码库另行公布的评估为外部测试集提供了明确的复测路径，但两组结果都仍是作者报告；公开摘要和资源不能证明临床获益或具备部署条件。"
+    },
+    "FCMO-158AD889F16B": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "在一台Franka Panda 7自由度机械臂的四项长时程操作任务中，作者报告HALTER在100次episode中有76%成功恢复场景，AutoEval为52%，运动规划恢复方法为65%。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "在100次主要任务episode中，论文报告任务完成评分准确率为90%，恢复验证准确率为91%，操作员用时为24分钟；所报告的基线或人工恢复测量分别为76%、78%和88分钟。在三项留出任务中（每项25次episode），论文报告HALTER恢复成功率为74.7%，逐任务恢复策略为1.3%。"
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "单机械臂研究不能证明自主恢复在不同机器人平台、实验室或任务类别中可靠。论文只报告了一台机器人和七项桌面任务；在Pot-Cook任务上，HALTER低于运动规划方法（48%对72%）。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "没有独立复现恢复成功率、评分、验证或操作员用时数据。",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "结果仅限一台Franka机械臂和七项桌面任务；跨平台和跨实验室迁移情况未知。",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "在Pot-Cook任务上，HALTER低于运动规划恢复方法；干预和用时的核算方式是否适用于其他流程也未知。",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "如果能够复现，在多种失败状态下自动恢复场景并评分，可能减少实体机器人评估中的主要人工瓶颈，并提高长时程任务结果的可重复性。论文报告了一台Franka机械臂上四项任务的100次episode和三项留出任务；跨机器人和跨实验室的价值尚未确立。",
+      "limitations": [
+        "所有结果均由论文作者报告；没有独立运行代码、审查原始episode日志或进行实体复测。",
+        "实验只使用一台Franka Panda机械臂、两个桌面场景和七项任务；跨机器人、跨实验室和更广任务类别的迁移尚未得到证明。",
+        "HALTER在Pot-Cook任务上的恢复成功率为48%，低于运动规划基线的72%；性能提升并非在所有任务上都成立。",
+        "留出评估覆盖三项任务，每项25次episode；没有展示对广泛分布变化或新任务创建的稳健性。",
+        "操作员时间指标将每次人工干预计为一次人工恢复；更广泛的劳动成本、硬件正常运行时间和实时吞吐经济性尚未确立。"
+      ],
+      "relationships": [],
+      "summary": "一篇arXiv论文介绍HALTER，用于为长时程实体机器人操作试验评分并恢复场景。在一台Franka Panda机械臂上，作者报告四项任务共100次episode中有76%成功恢复，AutoEval为52%，运动规划基线为65%；恢复验证准确率为91%，人工恢复用时88分钟，而HALTER的操作员用时为24分钟。在三项留出任务中，HALTER据称恢复了74.7%的episode，逐任务策略为1.3%。结果来自作者报告，范围仅限一台机器人和七项桌面任务；在一项主要任务上，运动规划基线表现更好。",
+      "technical": {
+        "claimed_result": "作者报告，在四项任务的100次episode中，场景恢复成功率为76%，任务完成评分准确率为90%，恢复验证准确率为91%；与人工恢复相比，操作员用时从88分钟降至24分钟。三项留出任务的恢复成功率为74.7%，逐任务恢复策略为1.3%。这些是作者报告的测量结果。",
+        "demonstrated_result": "论文记录了Franka机械臂设置、任务协议、按episode统计的分母、匹配的恢复基线和表格结果。研究团队没有运行代码或检查原始试验日志；这些测量结果仍属于作者报告。",
+        "mechanism": "HALTER根据RGB-D观测和物体点云构建随时间变化的场景图，然后由LLM评分任务进度、规划从观测到的终止状态恢复场景，并验证恢复是否成功。规划器从共享库中组合已学习的原子恢复技能，而不是针对每一种可能的终止状态单独训练策略。",
+        "regime": "一台配有三台RGB-D相机的Franka Panda 7自由度机械臂。四项长时程桌面任务和三项留出任务；每项任务25次episode。研究使用Qwen3.5-397B进行评分、恢复规划和验证，使用学习得到的X-VLA恢复技能，并与AutoEval和运动规划恢复方法比较。",
+        "strongest_baseline": "AutoEval为每项任务学习独立的恢复策略，并与HALTER使用相同的LLM进行评分和验证。运动规划基线保留HALTER的规划和评分组件，但用固定的抓取与运动技能执行计划。留出任务的对照是逐任务恢复策略。"
+      },
+      "title": "HALTER报告了长时程机器人评估的自主场景恢复结果",
+      "why_it_matters": "实体机器人评估仍依赖人员在试验间恢复场景，这会限制实验吞吐量，也使初始条件不够一致。如果HALTER的限定结果能够复现，组合式恢复技能和场景状态跟踪可能减少长时程策略评估所需的人工操作。该研究没有证明其可迁移到其他机器人、实验室或更广泛的任务类别。"
     },
     "FCMO-15AFE9C9F136": {
       "claims": [
@@ -8564,6 +8617,68 @@
       },
       "title": "Anthropic称分层防护使观察到的推理内容提取量降低十至百倍（10–100×）",
       "why_it_matters": "如果报告的降幅能在面对自适应攻击时持续存在，情境完整性控制和提取检测分类器可能显著改变利用前沿模型API生成合成数据的成本。文章也说明了运营代价：集成需要修改，少量正常请求会被拦截，部分被拦截请求会收费。现有证据支持供应商已部署防护并报告了自有平台数据，但不能证明跨供应商效果或长期有效的防止能力。"
+    },
+    "FCMO-47F8E56301D3": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "在按模型筛选的难题集、且答案生成预算相同的评估中，作者报告称，经过强化学习训练的Qwen2.5-7B概念生成器可引导冻结的Qwen2.5-32B答案模型：在含128道难题的DeepMath子集上，pass@39.2%为19.0%，重复采样为1,000；在单独筛选的Omni-MATH 18.60%集合上为11.29%，重复采样为2。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "在同一个DeepMath集合上，以Llama-3.3-70B作为答案模型的迁移评估报告pass@34.3%为128，重复采样为26.2%。该集合依据Qwen2.5-32B的表现筛选，评判器仍使用Qwen模型。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "论文重新评估了一种较早的迭代式概念引导采样方法。作者报告称，在MATH525上的5组Qwen2.00模型规模组合中，与允许探索式解码的重复采样相比，该方法的优势大多消失。论文将训练方法的结果归因于单条轨迹生成多个概念，以及对概念生成器进行强化学习训练。"
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "这些结果不能证明普通或广泛数学推理任务有所提升、部署成本有所节省，或结果已获独立复现。训练奖励循环耗费大量计算，且评测子集按基线表现较差来筛选。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "本次未独立实现或复现论文报告的概念生成训练和评估。",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "DeepMath和Omni-MATH 2主要集合只保留128次基线采样均未观察到成功的问题；普通评测分布上的表现尚未确定。",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "作者称奖励估计计算开销很大：训练时每个概念轨迹使用128次答案模型采样，每个样例有八条概念轨迹；尚未确定训练成本与推理成本的盈亏平衡点。",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "主要评估使用Qwen2.5-32B-Instruct（即答案模型）判断答案正确性，评判可能存在误差。",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "如果小型训练策略能够可靠地引导更大的冻结模型采用有效推理策略，便可能在不更新答案模型的情况下改善难题表现，也可能使昂贵或闭源系统更易受控。论文在筛选后的数学难题集上报告了显著的pass@128提升，但训练计算开销大、采用同系列评判器且尚无独立复现；其广泛影响与经济性仍不明确。",
+      "limitations": [
+        "所有结果均由论文作者报告；本次未审计工件或进行独立复现。",
+        "DeepMath和Omni-MATH 2主要集合是按模型筛选的难题子集，基线在128次采样中未观察到成功；它们不代表一般基准表现。",
+        "主要评判器Qwen2.5-32B-Instruct同时也是答案模型；跨系列迁移评估仍使用同一个评判器。",
+        "训练奖励估计计算开销很大；论文未确定生产规模下的总成本盈亏平衡点。",
+        "论文报告了有限跨系列迁移子集上的小幅推理收益，但未证明其在不同模型、任务或常规工作负载上普遍有效。"
+      ],
+      "relationships": [],
+      "summary": "一篇论文使用强化学习训练7B概念生成器，为保持冻结状态的较大答案模型提出推理策略。在含1,000道题的DeepMath难题子集上，Qwen2.5-32B在先前128次基线采样中均未答对这些题；作者报告同等答案采样预算下，pass@128为39.2%，而重复采样为19.0%。在类似筛选的Omni-MATH 2子集上，报告值为18.60%，重复采样为11.29%。对Llama-3.3-70B的有限迁移评估报告了较小增益。这些是针对筛选基准的作者报告结果：主要评判器重复使用Qwen答案模型，训练奖励循环计算开销大，独立复现和一般成本优势尚未确立。",
+      "technical": {
+        "claimed_result": "经过强化学习训练的Qwen2.5-7B概念生成器，在按模型筛选的DeepMath和Omni-MATH 128难题子集上，以相同答案采样预算取得高于重复采样的论文报告pass@2结果；论文还报告了有限的跨系列答案模型迁移。",
+        "demonstrated_result": "论文记录了固定答案模型、难题子集筛选方法、采样分配、同系列评判器、pass@k表格结果、配对bootstrap分析以及高计算开销的奖励循环。研究团队未独立运行这些工件；性能仍属于作者报告。",
+        "mechanism": "概念生成器在一条轨迹中生成多个针对具体问题的策略。更大的冻结答案模型将固定的答案采样预算分配给这些概念。概念生成器使用类似GRPO的目标训练，奖励由下游答案采样的正确性判断汇总而成。",
+        "regime": "论文实验使用Qwen2.5-7B-Instruct作为概念生成器、冻结的Qwen2.5-32B-Instruct作为答案模型，并迁移到Llama-3.3-70B-Instruct。DeepMath和Omni-MATH 2难题子集按Qwen2.5-32B在128次采样中零成功筛选。主要评判器为Qwen2.5-32B-Instruct。训练采用八条概念轨迹、每条轨迹128次答案采样和200个批次。",
+        "strongest_baseline": "采用探索式解码且答案采样预算相同的重复采样；论文还比较了通用提示、未训练概念生成器以及先前的迭代式引导采样协议。"
+      },
+      "title": "训练概念生成器提升了筛选数学难题集上报告的pass@128",
+      "why_it_matters": "论文研究一种小型可训练策略能否引导更大的冻结模型探索多种解题思路，而不是把推理计算花在无引导的重复答案上。难题子集上的结果幅度较大，但证据范围有限：训练成本、题目筛选以及同系列评判器，使生产经济性和一般推理影响仍未确定。"
     },
     "FCMO-4852A51EE0AB": {
       "claims": [
@@ -16889,6 +17004,60 @@
       "title": "MIGU 报告指向手势与语言融合提升定位效果，并显示澄清有助于移动操作机器人",
       "why_it_matters": "机器人融合指向手势、语言和视觉上下文后，需要判断目标估计是否仍不确定到应当在行动前询问。MIGU 将明确的不确定性模型连接到澄清决策和任务规划，并在带标签的定位集合及小规模重复移动操作研究中报告结果。其校准假设、单轮澄清、任务数量有限和缺少独立复现，限定了这些结果的适用范围。"
     },
+    "FCMO-90C225286611": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "在作者通过检索构建的259篇报告了智能体安全定量攻击成功率（ASR）的arXiv论文中，随机抽取并由人工编码的50篇里，58.0%既未报告方差估计，也未报告重复运行（95% Wilson置信区间：44.2–70.6）；修订后的自动检测器对全部259篇的估计为65.3%。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "论文指出六项设计选择会改变ASR的含义，并认为其中四项可能因系统而异地改变防御排序。在论文所用假设下，分析估计：对100个样本的基准测试，达到80%统计功效所需的最小可检测差异为18.2个百分点；单次运行约有21%的概率颠倒真实差异为五个百分点的排序。"
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "论文没有证明任何具体防御无效，也没有证明现有智能体安全论文的排序实际出错；排序颠倒结果来自分析推导，研究没有端到端运行防御。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "尚未独立重建12项检索查询对应的语料，也未对50篇样本进行盲法独立复编码。",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "该分析没有测试在重复且匹配的评估中，实际观察到的智能体安全防御排序是否会改变。",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "尚未验证所提报告清单能否提高报告质量或跨论文可比性。",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "如果论文测得的报告缺口成立，那么许多智能体安全攻击成功率就无法用于直接比较防御排序，从而影响这一快速发展领域的基准解释和评估设计。证据来自有编码限制的arXiv语料，且由单一编码者裁定；它没有表明任何具体防御在实践中无效或排序错误。",
+      "limitations": [
+        "语料通过检索构建，仅包括arXiv和英文论文；筛选出的候选论文中有15篇没有HTML版本，因而未纳入。",
+        "两个核心构念仅在随机抽取的50篇论文中进行人工编码；所有裁定均由一名编码者完成，kappa衡量的是检测器与该编码者之间的一致性。",
+        "另外88篇论文提到ASR但没有检测到数字，其中26篇可能因HTML转文本而丢失数字，因此纳入总体可能为259–347篇。尚未验证这一转换问题与报告实践是否独立。",
+        "多数其他检测器的比率只根据少量匹配样本估计精确率，未测召回率；作者提醒这些比率可能是下限。",
+        "排序颠倒计算是分析结果，假设基准样本相互独立，也没有端到端运行防御；实际基准中的相关性可能降低有效样本量。",
+        "尚未验证所提清单能否改善可比性。"
+      ],
+      "relationships": [],
+      "summary": "一篇arXiv预印本分析了来自检索所得英文语料的259篇智能体安全论文，这些论文均报告了攻击成功率。作者称，在随机抽取并由人工编码的50篇论文中，58.0%（95% Wilson置信区间：44.2–70.6）既未报告方差估计，也未报告重复运行；修订后的自动检测器对全部259篇估计为65.3%。论文指出六项选择会改变ASR的测量含义，包括评估单位、成功判定标准、攻击者适应能力以及攻击者对防御的了解程度。作者认为，这些差异可能使不同论文中的数值无法直接比较。论文没有指称任何单篇论文有误；排序颠倒估计是分析结果，并非对防御的实测比较。",
+      "technical": {
+        "claimed_result": "论文报告，在其范围限定的arXiv语料和人工编码样本中，不确定性和重复运行的报告较少；六项设计选择会使ASR的含义不同。分析计算说明，常见基准规模下可能发生由抽样造成的排序颠倒。",
+        "demonstrated_result": "所查论文记录了语料构建、编码流程、人工样本及公式。研究团队没有独立重建语料或核验编码率，因此该结果仍是作者报告。",
+        "mechanism": "作者将ASR定义为评估单位、抽样得到的智能体轨迹和二元成功判定标准的函数，并指出六个设计维度：分析单位、成功判定标准、试验次数、攻击者适应能力、攻击者对防御的了解程度，以及部分成功的二元化处理。作者使用全文检测器评估报告实践，在抽样段落上验证检测器，并对50篇随机样本中两个关于不确定性的核心构念进行人工编码。",
+        "regime": "259篇英文arXiv论文（2025-02-27至2026-09-17），均报告定量攻击成功率，通过十二项主题查询检索；另有50篇随机抽样的人工编码样本；以及二项分布分析计算。",
+        "strongest_baseline": "报告实践比较中，修订后的全文检测器估计值与针对两个构念的随机人工编码样本进行对照。研究没有测试其他ASR标准，也没有进行端到端防御比较。"
+      },
+      "title": "智能体安全攻击成功率缺乏统一的测量约定",
+      "why_it_matters": "安全团队和研究者常把ASR数值当作测量同一结果来比较。如果论文所述的报告遗漏普遍存在，醒目的百分比可能不足以判断哪种智能体防御更强。报告评估单位、成功判定标准、攻击预算、随机运行的波动以及良性任务效用，会让结果更容易解释。"
+    },
     "FCMO-917420640A76": {
       "claims": [
         {
@@ -22621,6 +22790,62 @@
       "title": "Anthropic发布Haiku 5.5，报告称其计算机操作能力提升且单价更低",
       "why_it_matters": "若小型模型在计算机操作及其他智能体基准上确有提升，且token单价大幅下降，可能扩大高用量智能体工作流程。其每项已完成任务的成本是否下降，取决于在匹配条件下比较性能、推理力度、延迟、token用量和工具设置；仍需独立评估。"
     },
+    "FCMO-C625017F1F6B": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "作者提出RoboFollow这一受控诊断基准，包含四类场景、75个训练任务标签和六种与任务无关的初始配置，共有3,750个训练回合。该研究在L0–L3扰动级别评估九种VLA和WAM策略，并按阶段测量意图与执行。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "在论文所述微调和基准设置下，作者报告pi0在场景1的意图分数从分布内L0的98.2%降至布局改变L1的0.0%；pi0.5在场景2则从L0的100.0%降至视觉与语义联合扰动L3的34.2%。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "在使用pi0.5的初步真实机器人试验中，论文报告八条训练指令的20/40次试验成功（50%），八条留出指令成功6/40次（15%），每条指令试验五次。两组指令和任务组合并不匹配。"
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "这些结果不能证明现实世界中普遍存在指令跟随失败、能够迁移到长时程或复杂接触任务，也不能证明具身智能体普遍不可靠。机器人试验规模小且未匹配；基准使用短时程受控场景，测量结果由作者报告。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "本次未独立审计或复现论文的结果表、数据集和评分脚本。",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "该基准使用四类短时程受控场景、简单物体及训练时已有的动作；其向更长任务、复杂接触任务和其他机器人的迁移情况未知。",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "涉及16条指令的真实机器人试验比较不同指令集和任务组合，因此不是性能下降的匹配估计。",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "如果场景布局或语义组合发生变化时，指令理解能力会大幅下降，那么熟悉任务上的高成功率可能夸大机器人遵循目标指令的能力。该基准报告了指定受控扰动下某些策略的大幅下降，并将意图选择与动作执行分开测量。但短时程场景、有限机器人试验及作者报告结果并不能确立生产环境失败率或普遍不可靠性。",
+      "limitations": [
+        "基准和试验结果均由作者报告；本次未独立审计代码、数据或评分。",
+        "基准使用四类短时程受控场景及训练时已有的动作；不能据此证明长时程、复杂接触或跨机器人迁移。",
+        "真实机器人试验使用八条训练指令和八条留出指令，每条试验五次，但两组任务组合并不匹配。",
+        "意图分数是在该基准的指定布局和语义扰动下进行的诊断测量，并非现实部署机器人的失败率估计。"
+      ],
+      "relationships": [],
+      "summary": "RoboFollow是作者设计的基准，用来检验具身策略是否会用语言选择任务，尤其是在同一视觉场景允许多种有效动作时。在四类受控场景、九种VLA/WAM策略以及L0–L3视觉或语义扰动中，论文报告某些策略的意图分数大幅下降：例如，pi0从98.2%降至0.0%，这是场景1布局变化的结果；pi0.5从100.0%降至34.2%，这是场景2组合扰动的结果。pi0.5的一项小型机器人试验报告训练指令成功20/40次，另一组留出指令成功6/40次，但两组并未匹配。这些作者报告结果反映了短时程受控基准中的敏感性，不能确立普遍部署失败率或具身智能体普遍不可靠。",
+      "technical": {
+        "claimed_result": "作者报告称，在RoboFollow指定布局和语义扰动下，九种VLA/WAM策略的意图分数大幅下降。例如，pi0在场景1从L0的98.2%降至L1的0.0%；pi0.5在场景2从L0的100.0%降至L3的34.2%。",
+        "demonstrated_result": "论文描述了受控基准、任务标签和训练回合数量、评分定义、部分策略结果以及初步机器人试验。研究团队未独立运行代码或核验分数；结果仍为作者报告。",
+        "mechanism": "RoboFollow在每种初始场景配置中安排多个语义不同且运动学上可行的任务分支，因此仅凭初始视觉无法确定目标任务。四个测试级别分别改变布局、语义组合或两者。分阶段的意图分数和执行分数用于区分是否选择了指令目标及是否完成了对应子目标。",
+        "regime": "四类短时程模拟场景，75个训练任务标签分布在六种与任务无关的初始配置中，共有3,750个训练回合；九种微调后的VLA/WAM策略；L0–L3测试集。pi0.5的初步真实机器人试验使用八条训练指令和八条留出指令，每条试验五次；两组任务组合并不匹配。",
+        "strongest_baseline": "针对每个策略，将分布内L0与指定的布局变化L1、语义重组L2及联合扰动L3比较。这些是基准内部诊断，并非跨研究匹配比较或普遍失败率估计。"
+      },
+      "title": "受控机器人基准报告场景变化下的指令理解下降",
+      "why_it_matters": "机器人可能完成熟悉任务时依靠视觉捷径，而没有遵循用户要求。RoboFollow构造了多种动作在视觉上均合理的场景，并将目标选择与实际执行分开。其扰动结果使研究者能在特定模型上检验这一区别，但基准和试验尚不能说明已部署机器人有多常失败。"
+    },
     "FCMO-C63BEF968F0B": {
       "claims": [
         {
@@ -24018,6 +24243,59 @@
       },
       "title": "Context-sharded block parallelism报告了扩散语言模型长上下文训练提速",
       "why_it_matters": "长上下文扩散模型训练可能需要为无需跨设备传输的块局部激活付出通信成本。CSBP将并行单位调整为可分解的训练目标，可能提高吞吐量并在固定预算下推进更多训练。收益取决于工作负载、上下文长度和拓扑；训练加速本身并不能证明推理更好或智能体能力普遍提升。"
+    },
+    "FCMO-D5F665CC63C4": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "在五个通过认证的监督微调（SFT）交付场景和38次真实GPU episode中，作者报告四种当前智能体系统没有产生“训练但未学会”的交付，也没有绕过部署审批门。偏好场景未通过正向控制，因此在评分前被排除。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "作者报告，38项通过指标门槛的交付中有31项因交付合同检查而被拒。在提供预言机判定正确的配置后，24/24项交付都通过留出数据验收，但仍有22/24项因合同要求被拒。在有压力的可交付试验中，三种旗舰系统在360/360次试验中都保留了人工审批；较便宜的第一代系统合规性较低。"
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "这些结果不能说明实际后训练服务或已部署智能体在多大比例的情况下无法满足交付合同；实验来自一个构造的治理平台和少量经过认证的SFT场景。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "没有独立重建该基准，也没有复现所报告的审批门结果。",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "结果来自一个构造的交付平台和有限的认证场景；向其他平台、服务商和生产服务合同迁移的情况未知。",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "偏好场景未通过正向控制，因此被排除；偏好优化交付的覆盖有限。",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "如果这一限定发现能够推广，后训练智能体即使提高任务指标，也可能无法满足模型卡结构、成本对账、注册表检查和人工审批等交付要求。这会改变智能体机器学习工程和后训练即服务的评估方式。证据来自一个构造的平台、五个认证场景和38次episode；它不能确定实际环境中的失败率，也不能证明一般部署可靠性。",
+      "limitations": [
+        "所有测量结果均由论文作者报告；没有独立检查实验产物或复现结果。",
+        "认证活动覆盖一个构造的交付平台、五个SFT场景和38次episode；不能据此确定实际失败率或一般生产可靠性。",
+        "偏好场景未通过正向控制而被排除；Glaive-FC和清晰的Bitext场景也不在认证活动的统计分母中。",
+        "当前旗舰系统的压力测试结果仅覆盖三种模型和指定票据套件；较便宜的第一代系统行为不同，因此结果取决于能力档位和运行框架。",
+        "研究人员定义了基准的任务选择、平台事实、验收边界和交付合同；尚未测量向生产后训练服务运营方的迁移情况。"
+      ],
+      "relationships": [],
+      "summary": "一篇arXiv论文提出一个带治理约束的基准，用于评估智能体交付后训练模型；各阶段决策根据平台记录的证据评分，留出验收门则检查最终交付模型。在五个通过认证的SFT场景和38次真实GPU episode中，四种当前智能体系统没有出现“训练但未学会”的交付，也没有绕过部署门。然而，38项通过指标门槛的交付中有31项被交付合同检查拒绝；即使提供预言机判定正确的配置，24项中仍有22项被拒。研究使用一个构造的交付平台和少量场景，不能代表实际发生率或一般部署可靠性。",
+      "technical": {
+        "claimed_result": "在五场景认证活动中，四种智能体完成38次episode，没有报告“训练但未学会”的交付或部署审批绕过。论文报告，31/38项通过指标门槛的交付被模型卡结构、成本对账和注册表CI合同检查拒绝；预言机判定正确的配置在24/24项中通过验收，但22/24项仍因合同被拒。这些是作者报告的基准结果。",
+        "demonstrated_result": "论文记录了治理交付平台、场景认证、预言机判定条件、真实GPU episode及审批门的表格结果。研究团队没有检查运行产物或复现该活动；结果仍属于作者报告。",
+        "mechanism": "智能体驱动从客户需求到训练、评估、注册、部署和交接的十个阶段。一个解耦的预言机使用平台记录的事实评估各阶段条件，而不采信智能体自己的陈述。独立验收门用留出数据评估交付模型；经过结构校验的模型卡、对账后的成本报告和注册表CI决定一项指标合格的交付是否满足合同。",
+        "regime": "一个为研究构造的治理交付平台。五个认证SFT任务单跨三种模型系列的四个开放基座模型；四种当前前沿智能体系统使用计量的L40S、A100和H200 GPU。第二幕报告38次真实GPU认证episode。偏好任务单未通过正向控制而被排除；Glaive-FC和清晰的Bitext任务单也未纳入认证名单。",
+        "strongest_baseline": "在智能体评分前，一个脚本化参考组认证每个场景的控制。相同预言机为四种当前智能体系统和两组带助手的人工机器学习工程师评分。固定配置干预用于检验，仅修正训练配置是否足以消除交付失败。"
+      },
+      "title": "后训练交付基准将模型指标提升与服务正确交付区分开来",
+      "why_it_matters": "训练过程可能降低损失并通过常规面板检查，却仍未达到客户的实际目标或交付合同。本文通过留出验收和基于平台记录的审批门测试了这一差别；结果提示，只看智能体后训练中的指标提升，可能遗漏结构、成本、注册和审批方面的失败。证据来自作者运行的限定基准，并非已部署服务的失败率统计。"
     },
     "FCMO-D623C434FA7F": {
       "claims": [
@@ -30349,6 +30627,48 @@
         "source_sha256": "9d650ebe93ac8faae97340d23cc682b4bcc9a2c4c6bb6baf0acc7dce954102b6"
       }
     },
+    "FCMO-158AD889F16B": {
+      "claims": {
+        "locale_sha256": "a309aecd06bb5653c2b783167554ba150042f5f25c8b27ea3f81d967747abb96",
+        "source_sha256": "cb60a87737eb6a2cfa9bb7e52b9fab0889c269fba10ef21bedde7e83e9ab3d5f"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "ec648026adcc788a52bc7a46ed91060bca11660db9667bb326fceeb5338519bf",
+        "source_sha256": "8e426b14d8b328c7c4e49de2acf74a08a9119bb92caef178ff28475a39433987"
+      },
+      "importance_rationale": {
+        "locale_sha256": "8fb3ca2ee8861acf03db6973667521ada4bb44febb794ca1741d94a1dd19fd9c",
+        "source_sha256": "4a4cebbb527890ca33125c9ae75efdfa1e531c1309a3283c2427f56dc890a951"
+      },
+      "limitations": {
+        "locale_sha256": "1b494573f0627cb3c66fd4b6f912d1cb3249e70c1c0ed9574e11eb83498965a2",
+        "source_sha256": "d80a90cecaef7e2931ba52576a2f3e66a41a9337258372a028b2d942e92daf08"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "cd684301930b9f15bb6bc65d0f8b1da08f853038d69ac9174b914eb4b9c7780a",
+        "source_sha256": "302d1342693a22f0175234cfd3c15e018da967ee5e675299c0ae8f4c1e7bb960"
+      },
+      "technical": {
+        "locale_sha256": "ec719759787ea6ad1b2b15228044f276564431fa2d0d2ff38a3983b8e26c2dc7",
+        "source_sha256": "c37eab28e74629602544c31bcabcf36475559605c302e54239563fdb6fb1f2a1"
+      },
+      "title": {
+        "locale_sha256": "e3ceecd4ec1e26aa93cd8cf6dce2ea95737aa784a0c3829fdbfe92c4a5ed4851",
+        "source_sha256": "e0075aee8060cc357b987edded1fe076f356e8f691ec1f50a0561477a5b78ea4"
+      },
+      "why_it_matters": {
+        "locale_sha256": "cdbf33318ee06477ad7d2b50b9f8ead4965f50ae2dfed8e508de8557c226bd34",
+        "source_sha256": "9caaf288cb095ece885355452d6d1c5c29981ec2fb229dc6c9c68d15612cdf46"
+      }
+    },
     "FCMO-15AFE9C9F136": {
       "claims": {
         "locale_sha256": "be247c94e5e1b33e7ff20ab4dcd48bb808ed5b6c166c6f127d574182809a6c20",
@@ -34687,6 +35007,48 @@
       "why_it_matters": {
         "locale_sha256": "4c90213db897e6b03bbbec7fe8450f8981f076716452711f5637cbfa5e8c8701",
         "source_sha256": "5cf195fd2236074ac248aedf870b6ad0b04a7a351c397899a160347e1f8d961f"
+      }
+    },
+    "FCMO-47F8E56301D3": {
+      "claims": {
+        "locale_sha256": "9c736183fa8a0d151ab4c07da1fb13fc20ca30a2752201b3be07aeb09f2a7339",
+        "source_sha256": "9b34d6d2f27589311661e73bec200bdb6702fafd59eb292b7ce6ad027a8b0d7b"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "ab70d477450ff086c286621275e5d640a102fa4f53884ad49af443809a37bb9a",
+        "source_sha256": "b73755dd3d2ce0f06de3bca805939549aa48c28ef095e9e0ed48ff80093033c9"
+      },
+      "importance_rationale": {
+        "locale_sha256": "336f62d9d36f4da704fedb2775fae3aa2ce01a5326ecc6e21d12ddd508b51af4",
+        "source_sha256": "48053b7034d7e186e543aec87595483f67e56bfcd671e5534e198c3f601db3ec"
+      },
+      "limitations": {
+        "locale_sha256": "3144e70c240f3223ee1fef606b4975241cb450d217c2ff58a54b69db9a96bf2c",
+        "source_sha256": "3b821e2b4b3f4e838c69929f0effef5d362840b0d3b8137e809b62c8b51805ba"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "01999d8d7da26c4a9058a2c9dfca111585a8105cd4c20cad17ca99116e2c459e",
+        "source_sha256": "9cf81d67d0f5c58b32e46c08f0677c05c0febaf109071fdfd1ff61f40a4ab156"
+      },
+      "technical": {
+        "locale_sha256": "9e54e2402b2680f20d5acbd972cfe6f918a4d63f3324b8c45c2dae3f9b9c4f28",
+        "source_sha256": "3749a213e9a64d0e47656adb8dcc91b79f17558a629c6d1335b23f61e014cfda"
+      },
+      "title": {
+        "locale_sha256": "f57c3aca5fb6517fb9c69bc90966ea9f9e45d9e124b17c767e0390d4eca0eacd",
+        "source_sha256": "c271efbef0467368804499cd537b30e427119c762bde685d890eddecf3a0f4f2"
+      },
+      "why_it_matters": {
+        "locale_sha256": "818b415587015dc20f9887bd51f8046b7d1cb559de6c568018cb837c829d0ee7",
+        "source_sha256": "513fbf72ea23fccee776295428c3c898166a805e0f58d7453313c77e9d40c320"
       }
     },
     "FCMO-4852A51EE0AB": {
@@ -41087,6 +41449,48 @@
         "source_sha256": "9dd3324d91014720c651cfd6c1f7d8169eae2713c13c1d320303138031e60d3c"
       }
     },
+    "FCMO-90C225286611": {
+      "claims": {
+        "locale_sha256": "27c4624f622f01d8399a4ab780174ac78351c67c2871035a9af42da80675da90",
+        "source_sha256": "df1aef664bb253117f6a6bbc6de90d48900cc09650d10db863a569f8f9b1ee48"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "c98685674023b649fd22712be65978ddd65af0c2d367807a17cc547c4997e3d2",
+        "source_sha256": "5eea8c4b9e78a2f003d64e50e1c96b73ea8eb9b93022bf9861f19cd6061d2bdd"
+      },
+      "importance_rationale": {
+        "locale_sha256": "ef22a5e9b6ef1e63d1617bf9aafa6cb8ad50fb2b543b1d3e7a7a9e06967cde38",
+        "source_sha256": "116101b31ca594b58c3b4a2c267ade6a9ff05286547cf99a086c04c60d16a75f"
+      },
+      "limitations": {
+        "locale_sha256": "f71b39f575ca8ca05b7bbb6db2797ee26cbf1d40d6b861a183082820cfbfe7a9",
+        "source_sha256": "6ad18e6e191b0932cc39754823dae7959e6dcd33ecf1a44b196bdbde90509ed9"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "c17a8c51fc27c06432bab0558944b11c584c3cc4abde3d2fa3796f637631e12a",
+        "source_sha256": "6731c0bdcc17feb3a45b669fc3fc543b1c1eaa206799f0e9863b9aebbc6fd9ba"
+      },
+      "technical": {
+        "locale_sha256": "12e566c7d31c7bb7fab11f71cfa847ce1a676d215e934e59ad16b7bebc4e0342",
+        "source_sha256": "c4028d2d2cab789c667cf102494196f90c77356654f170c30f594bb14f9902a2"
+      },
+      "title": {
+        "locale_sha256": "45bb6c332c475878017a946e75fba7a8d87ae0d8f129cdbf0cd65c77c9933552",
+        "source_sha256": "26aa40e541d5d063388490920923afbbb34b94a94f4e5e83b63c552fd6605331"
+      },
+      "why_it_matters": {
+        "locale_sha256": "84346949b0d2507f83a158f896b6307c033a5b5c03cd65a1c0a0e2fb4fe0642b",
+        "source_sha256": "9ba1ea71790359278563bcfa1674d13c3221169cb9f38fbaa21bf6727fa6d484"
+      }
+    },
     "FCMO-917420640A76": {
       "claims": {
         "locale_sha256": "42a2731beaa4250c209d1034f75081dab991c0839918c077ea54ace3e02fde3c",
@@ -45455,6 +45859,48 @@
         "source_sha256": "1972c48ddbcd28fcca898506697a85070bd71130370a18e8fcd00d7874b28490"
       }
     },
+    "FCMO-C625017F1F6B": {
+      "claims": {
+        "locale_sha256": "a732965896f1b3702d011b15c6309f1aef91bed1a975d91d3ce9e6fdd4c00a7d",
+        "source_sha256": "d36ec7ddf6504ab7482c20b41f32bf7594d53b8f11273a2a132454282b381393"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "75dca02df31d9b63e08b45ab9b3b3df52bff46db11711c27d1673e66845e03e0",
+        "source_sha256": "0b0d4abbf8ab3af2f50101f6811d0d3d54453448c00f22baf990777f0805bf5f"
+      },
+      "importance_rationale": {
+        "locale_sha256": "3559b833f0a16136a02d90f70421097fce00fb9896fc9da483724aa4d5c7120e",
+        "source_sha256": "026c593fcc904c92777af0e55a90111976ea4fd5d8ef4f5540a5b8ebd6445991"
+      },
+      "limitations": {
+        "locale_sha256": "92d67c1444ec1877008f6e785d7fb3975ebfbd7fbc74b0fe260864968c102a19",
+        "source_sha256": "61105541239d6b662f34b90237b12ffcd8013dbe3fd86fabc2f973a58b3c5a18"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "c3fec3c94203aa31a951555944111da9314387e3e27687449646a7f85b581a11",
+        "source_sha256": "6aa90f3abe821d5843ceae274ba40b47a1ebba7cfe5cc45eb8335255d28cd194"
+      },
+      "technical": {
+        "locale_sha256": "cb0f56faca6ec8ef31ee8e0b2ecb612f0a19f588c64e13adb49a38ac6eb58e98",
+        "source_sha256": "023d569c7a33a1b9b48ab302028f33b03f9ed3f484491ade2e046f04d6ad6c1f"
+      },
+      "title": {
+        "locale_sha256": "8b98344eab31bb46c16d7c271399c4d7825eede13ee89a742f4857c81ed85bb8",
+        "source_sha256": "cd8e1e18843ba0d7d4fa006ae88117d8a47caa4aacee63078df3a5d0a0ffba59"
+      },
+      "why_it_matters": {
+        "locale_sha256": "9becdbe7b9c51772cf272e4ebc575c39e02e04eb5e60e2f4af564fa4f64a24c4",
+        "source_sha256": "aa90eede03c714b21ed17c809966595bcba1a1ef9de144001c3bc650b12c82f1"
+      }
+    },
     "FCMO-C63BEF968F0B": {
       "claims": {
         "locale_sha256": "2aa7e244c001e797c11f967dd30d21e3f040b54e81d9065369fee6fdda3c4533",
@@ -46503,6 +46949,48 @@
       "why_it_matters": {
         "locale_sha256": "87d52fba35935a21410c6a0053a40ebb5e40b4e545a9bd569ddca2ba6bac5213",
         "source_sha256": "cb3818f0823b5a54a794f07bf7f099d6047ddff3069737b93aea2213dbf67423"
+      }
+    },
+    "FCMO-D5F665CC63C4": {
+      "claims": {
+        "locale_sha256": "dfcbe11840652432f983c6900a24b52d476468b37bd1f2b666f142753380d0e4",
+        "source_sha256": "0880f1c73a278eed8c985cbe941afbe4b1cefc3d6f665dd1b21ab6356f357b83"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "a56b5c2ef307ed246065b6788fa3fb2f5b519ced2c81145ad4953cb89243bf74",
+        "source_sha256": "5ef4f452a964ad06b5a6adb72e40689ed96899111726c849561a16ecb0c36955"
+      },
+      "importance_rationale": {
+        "locale_sha256": "fca0365e14141f2f321931889877bf2de0d9993de3f78437b7ac8e42665d4b7c",
+        "source_sha256": "12a252f1b931e5b57c129a9afcd41d71de2963de645494b4c7667dd18a419c6a"
+      },
+      "limitations": {
+        "locale_sha256": "c389407dae4eade986e7f87a48fa681bda38cc9e46cfd84f3bf9193f030ecac4",
+        "source_sha256": "dbd86ed5bd705c44ad81584fc1522c6878fbb424bf93892644a6ea35cc8b4824"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "704c605393ef7a983f12f8eda2b6b6dc4f8f6e24121261368c2803779757f93a",
+        "source_sha256": "c47670ede275787a8a2d2acbe30b5fd91774ed6806e0399a127132883b4165f3"
+      },
+      "technical": {
+        "locale_sha256": "d8b81b71e2911f6a014091c0abb3561c7e3eb640c82d4277eaf5c7f9306c83eb",
+        "source_sha256": "8b5bfb8db0a06456aa0f7510f38a9b86fb3c9b0bc3f6b02f75e129a916fa7980"
+      },
+      "title": {
+        "locale_sha256": "956674e3a4f6d39886f4596e52dc1bf0df102baac3d4f861a8c585250f3c3bab",
+        "source_sha256": "eefc361ef45e23658a87257bc0ea14ec17f594791aa76b05f2a6a0126da8f3c8"
+      },
+      "why_it_matters": {
+        "locale_sha256": "3d5ee5831c9f553294b58f077a9cb8ebc925b128e2385e2398717ce7b3bc43fd",
+        "source_sha256": "98a33ff40166118a2d7f575ffeb726e27914aca451321dde03bdee7389be1e06"
       }
     },
     "FCMO-D623C434FA7F": {
