@@ -1,6 +1,78 @@
 [
   {
     "confidence": "credible_unconfirmed",
+    "demonstrated_result": "The paper and its reported results were inspected; no code was run or performance independently reproduced.",
+    "desks": [
+      "inference_systems",
+      "efficiency"
+    ],
+    "development_type": "paper",
+    "event_at": "2026-09-22T00:00:00Z",
+    "evidence_class": "A",
+    "id": "FCMO-427F4BCD929D",
+    "importance_effective_score": 4,
+    "importance_tier": "Meaningful",
+    "last_verified_at": "2026-10-16T07:16:10Z",
+    "mechanism": "Flash-Cache fuses projection, rotary embedding and KV-cache writes to reduce memory traffic; Flash-Verify uses a causal two-view draft/mask pass so the diffusion model checks its own candidate tokens without a separate verifier.",
+    "organizations": [
+      "Mohamed bin Zayed University of Artificial Intelligence"
+    ],
+    "primary_desk": "inference_systems",
+    "regions": [
+      "global"
+    ],
+    "status": "active",
+    "strongest_baseline": "The paper and authors’ README identify Elastic-Cache as the strongest prior baseline for the headline 5.1× GSM8K-512 and 11.0× HumanEval-512 ratios. Separate table ratios compare against greedy no-cache decoding. Baseline, quality and throughput depend on task and configuration.",
+    "summary": "A September 2026 paper proposes Flash-Cache, which fuses KV-cache operations, and Flash-Verify, which lets a diffusion LLM draft and verify candidate tokens without an auxiliary model. On one NVIDIA A100 80GB running LLaDA-1.5, the authors report 5.1× speedup over Elastic-Cache on GSM8K at 512 tokens and 11.0× on HumanEval at 512 tokens. Across the paper’s 512-token settings, reported throughput reaches 210.6 tokens/s on GSM8K, 210.1 on MATH, 185.6 on HumanEval and 148.2 on MBPP; accuracy varies by task, and the fastest setting is not always the most accurate. The authors provide an Apache-2.0 repository with benchmark scripts, but no code was run; its README flags a possible difference between paper and adapter descriptions of the verification threshold. These remain author-reported results from one model and hardware setup.",
+    "title": "Flash-dLLM reports faster diffusion-model decoding with fused KV caching and self-verification",
+    "topics": [
+      "diffusion language models",
+      "KV caching",
+      "parallel decoding",
+      "inference throughput"
+    ],
+    "why_it_matters": "If the reported gains hold on other diffusion language models and serving systems, fused cache handling plus same-model verification could change inference-engine design and narrow the efficiency gap for diffusion LLMs. The paper’s single-model, single-GPU regime and task-dependent accuracy trade-offs sharply bound that implication."
+  },
+  {
+    "confidence": "credible_unconfirmed",
+    "demonstrated_result": "The publication event and paper contents were inspected. Numerical performance values below are author-reported and are not independently demonstrated in this review.",
+    "desks": [
+      "evaluation_science",
+      "inference_systems",
+      "efficiency"
+    ],
+    "development_type": "paper",
+    "event_at": "2026-09-22T00:00:00Z",
+    "evidence_class": "A",
+    "id": "FCMO-FB768B2CB466",
+    "importance_effective_score": 5,
+    "importance_tier": "Notable",
+    "last_verified_at": "2026-10-16T07:13:49Z",
+    "mechanism": "The authors attribute cross-format token flips to small top-two logit margins when BF16/FP16 rounding perturbs the output-head decision. Their selective intervention recomputes the LM head in FP32 only when the margin falls below a threshold.",
+    "organizations": [
+      "University of Tennessee, Knoxville",
+      "University of Chicago",
+      "Amazon",
+      "University of Texas at Austin"
+    ],
+    "primary_desk": "evaluation_science",
+    "regions": [
+      "global"
+    ],
+    "status": "active",
+    "strongest_baseline": "The paper compares the intervention against unmodified inference and broader-scope FP32 recomputation. The authors report broader FP32 scope can reduce agreement; no external reproduction was located.",
+    "summary": "A September 2026 TMLR paper reports that BF16 versus FP16 inference produced different greedy-decoding sequences on 49–100% of prompts across six tested models and three benchmarks. The authors report that recomputing only the language-model output head in FP32 when the top-two logit margin is small improved exact agreement by 22–36 percentage points on an A10G and 12–21 points on L4/A100 GPUs, with under 4% latency overhead at batch sizes up to 4. They report that the intervention’s benefit disappears at batch size 8 or higher and under end-to-end FP8. These are author-reported results, not an independent reproduction.",
+    "title": "A study finds BF16 and FP16 can produce different greedy LLM outputs",
+    "topics": [
+      "inference precision",
+      "reproducibility",
+      "greedy decoding",
+      "FP32 output head recomputation"
+    ],
+    "why_it_matters": "If the reported regime-specific effect generalizes, serving precision can change exact model behavior even under greedy decoding, complicating cross-system replay and evaluation. The paper also offers a targeted but explicitly partial mitigation; its bounded workload and batch limits determine where the result applies."
+  },
+  {
+    "confidence": "credible_unconfirmed",
     "demonstrated_result": "The inspected v3 preprint reports these table results; the research desk did not run the code or independently reproduce them.",
     "desks": [
       "multimodality_world_models",

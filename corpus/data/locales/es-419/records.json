@@ -8004,6 +8004,62 @@
       "title": "Retrieve-for-Train compila el comportamiento de recuperación por conjuntos en un recuperador compacto de difusión",
       "why_it_matters": "R4T ofrece un ejemplo concreto de trasladar el costoso descubrimiento de comportamientos de búsqueda guiados por recompensas al entrenamiento fuera de línea y servir luego un recuperador especializado más pequeño. Si los resultados acotados se reproducen, podría mejorar la economía de servicio de tareas estables de recuperación por conjuntos; todavía no se ha medido si el costo inicial de RL, síntesis de datos y entrenamiento de difusión se recupera con volúmenes realistas de consultas."
     },
+    "FCMO-427F4BCD929D": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "El artículo primario de arXiv describe Flash-Cache y Flash-Verify para la inferencia de modelos de lenguaje de difusión."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan pruebas con LLaDA-1.5 en una sola GPU NVIDIA A100 de 80 GB y aceleraciones de 5.1× en GSM8K y 11.0× en HumanEval frente al mejor método previo que evaluaron."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En resultados de generación de 512 tokens, el artículo informa 210.6 tokens/s en GSM8K, 210.1 en MATH, 185.6 en HumanEval y 148.2 en MBPP para el método combinado; los compromisos de exactitud dependen de la tarea."
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "Los autores proporcionan un repositorio Apache-2.0 con scripts de evaluación y guía de configuración; esta revisión examinó el README, pero no ejecutó el código ni verificó una reproducción."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se realizó una reproducción independiente ni una validación en otras familias de modelos para los resultados de velocidad, exactitud o memoria. El repositorio público no está fijado a un commit, y el README advierte posibles diferencias entre el artículo y el adaptador sobre la semántica del umbral de verificación.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "No se estableció la generalización a otras generaciones de GPU, tareas abiertas más largas ni distribuciones de lotes de producción.",
+          "kind": "regime_unclear",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si las mejoras de velocidad y memoria informadas se generalizan, el método combinado cambiaría decisiones de ingeniería para servir modelos de lenguaje de difusión. El resultado es relevante para esta familia emergente, pero se limita a un modelo, una GPU y pruebas seleccionadas, por lo que no representa un avance amplio de servicio de modelos.",
+      "limitations": [
+        "Todas las mediciones son informes de los autores; no se realizó una reproducción independiente.",
+        "Las pruebas usan una A100 de 80 GB y un modelo, LLaDA-1.5; se desconoce el rendimiento en otras familias de modelos de difusión y hardware.",
+        "La configuración más rápida no es siempre la más exacta; los compromisos varían según benchmark y longitud de generación.",
+        "Las aceleraciones dependen del método de referencia y la configuración; no demuestran mejoras comparables frente a todos los modelos autorregresivos ni en servicios de producción.",
+        "El README del repositorio advierte una posible diferencia entre la formulación del artículo y la documentación del adaptador sobre el umbral de verificación; debe resolverse antes de reproducir los barridos de umbral."
+      ],
+      "relationships": [],
+      "summary": "Un artículo de septiembre de 2026 propone Flash-Cache, que fusiona operaciones de caché KV, y Flash-Verify, que permite que un modelo de difusión proponga y verifique tokens sin un modelo auxiliar. En una NVIDIA A100 de 80 GB con LLaDA-1.5, los autores informan una aceleración de 5.1× frente a Elastic-Cache en GSM8K a 512 tokens y de 11.0× en HumanEval a 512 tokens. En las pruebas de 512 tokens, informan hasta 210.6 tokens/s en GSM8K, 210.1 en MATH, 185.6 en HumanEval y 148.2 en MBPP; la exactitud varía por tarea y la configuración más rápida no siempre es la más exacta. Los autores publican un repositorio Apache-2.0 con scripts de evaluación, pero no se ejecutó el código; el README señala una posible diferencia entre la descripción del umbral de verificación del artículo y la del adaptador. Los resultados siguen siendo informes de los autores para un modelo y una configuración de hardware.",
+      "technical": {
+        "claimed_result": "Los autores informan aceleraciones de 5.1× en GSM8K y 11.0× en HumanEval frente a Elastic-Cache. En pruebas de 512 tokens, la Tabla 1 informa 210.6 tokens/s en GSM8K, 210.1 en MATH, 185.6 en HumanEval y 148.2 en MBPP. Los compromisos de exactitud cambian según tarea.",
+        "compute_or_cost": "No se realizó una medición independiente de energía o costo; el artículo informa rendimiento y uso de memoria en una GPU.",
+        "demonstrated_result": "Se inspeccionaron el artículo y el repositorio de los autores; no se ejecutó código ni se reprodujo el rendimiento.",
+        "implementation_status": "Los autores ofrecen un repositorio Apache-2.0 con scripts de evaluación. Esta revisión inspeccionó el README y los archivos principales, pero no ejecutó el código ni fijó un commit.",
+        "mechanism": "Flash-Cache fusiona la proyección, el embedding rotatorio y las escrituras de caché KV para reducir el tráfico de memoria. Flash-Verify utiliza una pasada causal con dos vistas (borrador y máscara) para que el modelo de difusión verifique sus propios tokens candidatos sin un verificador externo.",
+        "novelty": "Combina la fusión de caché KV con verificación de tokens por el propio modelo de difusión, sin un verificador autorregresivo auxiliar ni entrenamiento adicional.",
+        "regime": "Todas las pruebas usan LLaDA-1.5 en una sola NVIDIA A100 de 80 GB, en GSM8K, MATH, HumanEval y MBPP, con instrucciones y longitudes de generación específicas por benchmark.",
+        "reproducibility": "Resultados de benchmarks informados por los autores; falta la reproducción independiente y la validación entre modelos.",
+        "strongest_baseline": "El artículo y el README identifican Elastic-Cache como el mejor método previo para las aceleraciones principales de 5.1× en GSM8K-512 y 11.0× en HumanEval-512. Otra tabla calcula razones mayores frente a decodificación voraz sin caché. Los resultados dependen de la tarea y la configuración."
+      },
+      "title": "Flash-dLLM informa una decodificación más rápida para modelos de difusión",
+      "why_it_matters": "Si las mejoras informadas se sostienen en otros modelos de lenguaje de difusión y sistemas de servicio, la fusión de caché con verificación del mismo modelo podría cambiar el diseño de motores de inferencia y reducir la brecha de eficiencia de esta familia. El uso de un solo modelo, una sola GPU y tareas estructuradas, junto con los compromisos de exactitud por tarea, limitan esa conclusión."
+    },
     "FCMO-43F4CDA9C083": {
       "claims": [
         {
@@ -27918,6 +27974,61 @@
       },
       "title": "Un preprint establece umbrales precisos de densidad de fuerzas para la pérdida de regularidad de Navier–Stokes bajo forzamiento",
       "why_it_matters": "Si es correcto, el resultado caracteriza con umbrales precisos cuándo fuerzas suaves pueden ser arbitrariamente pequeñas en ciertas normas débiles y aun así causar pérdida de regularidad clásica. Esto aclara la sensibilidad de la dinámica de Navier–Stokes con forzamiento y orienta qué normas de fuerza pueden controlar la pérdida de regularidad. Su alcance teórico es significativo pero acotado: modifica la fuerza externa y depende de una solución compacta de pérdida de regularidad atribuida a OpenAI; el equipo de investigación no verificó de manera independiente ninguna de las dos pruebas."
+    },
+    "FCMO-FB768B2CB466": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "El artículo de TMLR se publicó en septiembre de 2026 y está disponible mediante su registro y PDF de arXiv."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan que las secuencias de decodificación voraz en BF16 y FP16 difirieron en 49–100% de las consultas en seis modelos de 1.1B–7B, cuatro familias y tres pruebas; también caracterizaron la divergencia por separado en un modelo de 12.2B."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan que recalcular selectivamente la cabeza de salida en FP32 cuando los dos logits principales están muy próximos elevó la coincidencia exacta en 22–36 puntos porcentuales en A10G y 12–21 puntos en L4/A100, con menos de 4% de sobrecarga de latencia para lotes de hasta 4."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan que el beneficio de la intervención desaparece con lotes de 8 o más y con FP8 de extremo a extremo; no garantiza determinismo universal."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se realizó una reproducción independiente de las tasas de divergencia entre precisiones ni de la intervención selectiva en la cabeza de salida.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "El artículo no establece con qué frecuencia ocurre el problema en servicios de producción ni en modelos cerrados o de mayor tamaño.",
+          "kind": "regime_unclear",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se generalizan la divergencia entre formatos y la corrección selectiva informadas, afectarían la reproducibilidad y la evaluación del servicio de modelos en formatos de uso común. El artículo presenta resultados de varios modelos, pero sus pruebas acotadas y la falta de reproducción externa hacen de esto una preocupación de ingeniería notable, no una falla universal de determinismo.",
+      "limitations": [
+        "Todos los resultados numéricos son informes de los autores y no se reprodujeron de manera independiente.",
+        "La divergencia y la eficacia de la corrección varían según modelo, GPU, tamaño del lote y formato de precisión; la intervención no es universal.",
+        "La corrección de baja sobrecarga solo se aplica a inferencia de baja carga por lote; el artículo informa que el beneficio desaparece con lotes de 8 o más y con FP8 de extremo a extremo.",
+        "El artículo estudia modelos seleccionados de 1.1B–7B y determinadas pruebas; caracteriza la divergencia en 12.2B por separado. No establece prevalencia en modelos cerrados, cargas de producción ni todos los formatos numéricos."
+      ],
+      "relationships": [],
+      "summary": "Un artículo de TMLR de septiembre de 2026 informa que la inferencia en BF16 frente a FP16 produjo secuencias distintas con decodificación voraz en de 49 a 100% de las consultas evaluadas, en seis modelos y tres pruebas de referencia. Los autores informan que recalcular solo la cabeza de salida del modelo en FP32 cuando el margen entre los dos logits principales es pequeño elevó la coincidencia exacta entre 22 y 36 puntos porcentuales en una A10G y entre 12 y 21 puntos en GPU L4/A100, con menos de 4% de sobrecarga de latencia para lotes de hasta 4. Informan que el beneficio desaparece con lotes de 8 o más y con FP8 de extremo a extremo. Son resultados informados por los autores, no una reproducción independiente.",
+      "technical": {
+        "claimed_result": "El artículo informa divergencia de secuencias BF16/FP16 en 49–100% de las consultas en seis modelos de 1.1B–7B y cuatro familias; una prueba aparte de 12.2B caracteriza la divergencia. Recalcular selectivamente la cabeza de salida en FP32 eleva la coincidencia exacta en 22–36 puntos en A10G y 12–21 puntos en L4/A100, con menos de 4% de sobrecarga para inferencia de baja carga por lote (hasta 4).",
+        "compute_or_cost": "Los autores informan menos de 4% de sobrecarga de latencia para recálculo selectivo en el régimen de lotes pequeños descrito.",
+        "demonstrated_result": "Se revisaron el artículo y sus resultados informados; no se ejecutó el código ni se reprodujo el rendimiento de manera independiente.",
+        "implementation_status": "El artículo describe y evalúa una intervención durante la inferencia; esta revisión no ejecutó el código ni verificó su uso en un servicio.",
+        "mechanism": "Los autores atribuyen los cambios de token entre formatos a márgenes pequeños entre los dos logits principales cuando el redondeo BF16/FP16 perturba la decisión de la cabeza de salida. La intervención selectiva recalcula esa cabeza en FP32 solo cuando el margen cae bajo un umbral.",
+        "novelty": "El artículo combina mediciones de salida entre precisiones, análisis controlado del mecanismo y recálculo de la cabeza de salida activado por margen; los autores lo distinguen de la no determinación dentro de un mismo formato ya conocida.",
+        "regime": "Las pruebas del artículo comparan BF16 y FP16 en el mismo hardware para decodificación autorregresiva voraz, principalmente en modelos pequeños de pesos abiertos y pruebas seleccionadas. La intervención se informa para inferencia de una sola secuencia con lotes de hasta 4; las mejoras desaparecen con lotes de 8 o más y con FP8 de extremo a extremo.",
+        "reproducibility": "El artículo informa experimentos; siguen pendientes una reproducción independiente y la verificación en servicios de producción.",
+        "strongest_baseline": "El artículo compara la intervención con inferencia sin cambios y con recálculo FP32 de alcance más amplio. Los autores informan que ampliar el recálculo FP32 puede reducir la coincidencia; no se halló una reproducción externa."
+      },
+      "title": "Un estudio halla que BF16 y FP16 pueden producir respuestas distintas con decodificación voraz",
+      "why_it_matters": "Si el efecto por formato y la corrección selectiva se generalizan, la precisión de servicio puede cambiar el comportamiento exacto del modelo incluso con decodificación voraz, lo que complica la reproducción y la evaluación entre sistemas. El artículo propone una corrección parcial y acotada; el tipo de carga y el tamaño del lote delimitan dónde aplica."
     },
     "FCMO-FB811881B4ED": {
       "claims": [
