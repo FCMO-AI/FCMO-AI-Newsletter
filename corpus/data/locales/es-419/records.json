@@ -4702,6 +4702,63 @@
       "title": "H-Spec elimina la caché KV separada del borrador en la decodificación especulativa paralela",
       "why_it_matters": "Si se reproducen, los resultados de servicio sugieren que eliminar la caché separada por solicitud permitiría conservar más capacidad o rendimiento de inferencia con decodificación especulativa paralela. El beneficio informado depende de la concurrencia y la longitud del contexto, y las dimensiones K/V específicas del objetivo limitan la compatibilidad directa; todavía no se ha demostrado a escala independiente ni de flota."
     },
+    "FCMO-2251D42CF830": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "En LoCoMo, los autores informan una precisión global de EnSIMem de 90.6% con evaluación de GPT-4o-mini y 90.0% con Qwen3-32B; presentan por separado los resultados de cada evaluador."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En LongMemEval, los autores informan 92.8% global con cada uno de los evaluadores GPT-4o-mini y Qwen3-32B. Las filas comparativas de otros métodos se transcriben de trabajos anteriores y no se volvieron a ejecutar en este estudio."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Una ablación fija de recuperación en LoCoMo informa 96.59% de precisión para la recuperación estructurada por entidad/tipo/propiedad frente a 86.36% para recuperación densa, manteniendo fijos los modelos de respuesta y evaluación."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El artículo informa una latencia media en línea de 14.4 segundos para EnSIMem frente a 5.70 segundos para MEMORA(P); los autores advierten que las convenciones de conteo de tokens difieren y que MEMORA no informa una latencia de generación separada."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "Los resultados de benchmark y las ablaciones de recuperación de EnSIMem no se reprodujeron de manera independiente en esta activación; la equivalencia de todas las comparaciones con las bases no está establecida.",
+          "kind": "missing_independent",
+          "state": "open",
+          "updated_at": "2026-10-16T09:19:49Z"
+        },
+        {
+          "description": "La latencia en línea informada es considerablemente mayor que el resultado citado de MEMORA(P), y las comparaciones de tokens de contexto podrían usar convenciones de conteo distintas.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-16T09:19:49Z"
+        }
+      ],
+      "importance_rationale": "Si los resultados informados por el artículo se generalizan, indexar entidades y propiedades conservando enlaces al diálogo original podría mejorar la recuperación de evidencia en agentes conversacionales de larga duración. Es un resultado notable para el diseño de memoria episódica, pero la evidencia proviene de los autores, usa evaluación basada en LLM y no cubre habilidades procedimentales ni consolidación semántica; además, la latencia en línea informada supera la del comparador citado.",
+      "limitations": [
+        "Los benchmarks evalúan recuperación conversacional episódica, no ejecución de habilidades procedimentales ni consolidación semántica de largo plazo.",
+        "Las puntuaciones dependen de segmentación, extracción, planificación y evaluación de respuestas con LLM; cambios en los modelos pueden alterar las representaciones intermedias.",
+        "La latencia en línea informada de EnSIMem es 14.4s frente a 5.70s para MEMORA(P), con el costo adicional concentrado en planificación y recuperación.",
+        "Varias filas comparativas de los benchmarks se transcriben de trabajos anteriores; los autores informan una repetición local como control de protocolo para MEMORA(P), no una repetición emparejada completa de todas las bases.",
+        "En esta activación no se hizo una reproducción independiente ni una auditoría de artefactos."
+      ],
+      "relationships": [],
+      "summary": "EnSIMem almacena índices de entidades y propiedades basados en diálogos como direcciones hacia episodios temáticos coherentes; después descompone cada consulta en requisitos de evidencia y recupera los turnos originales necesarios para responder. Los autores informan una precisión global en LoCoMo de 90.6% con GPT-4o-mini y 90.0% con Qwen3-32B, y de 92.8% con ambos evaluadores en LongMemEval. Una ablación fija de recuperación en LoCoMo informa 96.59% para la recuperación estructurada por entidad/tipo/propiedad frente a 86.36% para la recuperación densa. Son resultados informados en el artículo y evaluados por LLM. La latencia en línea informada es 14.4 segundos frente a 5.70 segundos para MEMORA(P); algunas filas comparativas se transcribieron y no se volvieron a ejecutar.",
+      "technical": {
+        "claimed_result": "Las precisiones globales informadas por los autores y separadas por evaluador son 90.6%/90.0% en LoCoMo y 92.8%/92.8% en LongMemEval. Una ablación fija de recuperación en LoCoMo informa 96.59% para recuperación estructurada frente a 86.36% solo para recuperación densa.",
+        "compute_or_cost": "El artículo informa una latencia media en línea de 14.4 segundos para EnSIMem frente a 5.70 segundos para MEMORA(P), con tiempo adicional principalmente en planificación y recuperación. Se excluye la construcción fuera de línea. El conteo de tokens puede usar convenciones distintas entre sistemas.",
+        "demonstrated_result": "No se hizo una reproducción independiente en esta revisión. Las puntuaciones de benchmark siguen siendo resultados CLAIMED informados por los autores.",
+        "implementation_status": "El artículo enlaza paquetes de código para ambos benchmarks e informa que incluyen instrucciones y configuraciones. Esta activación no ejecutó la implementación.",
+        "mechanism": "En la etapa fuera de línea, divide diálogos en episodios temáticos coherentes e indexa valores de entidad/tipo/propiedad enlazados a los turnos originales. En línea, la planificación descompone una solicitud en requisitos de evidencia y tipo de consulta; después combina la búsqueda estructurada con respaldo de recuperación densa y recupera evidencia de forma adaptativa hasta cubrir los requisitos. La respuesta usa los turnos originales recuperados.",
+        "regime": "El artículo evalúa recuperación conversacional episódica con LoCoMo y LongMemEval, usando GPT-4.1-mini para generar respuestas y GPT-4o-mini más Qwen3-32B como evaluadores LLM separados. La latencia en línea informada excluye la construcción de memoria fuera de línea.",
+        "reproducibility": "Se revisaron el artículo v2 completo, las tablas de benchmark y las limitaciones. Las evaluaciones usan LLM a temperatura 0 y se presentan por separado para dos evaluadores. Siguen pendientes la reproducción independiente y la auditoría de equivalencia entre comparadores.",
+        "strongest_baseline": "Para la ablación de recuperación en LoCoMo, recuperación densa bajo la misma configuración de modelos de respuesta y evaluador GPT-4o-mini. Varias filas de comparación global provienen de trabajos publicados; los autores repitieron localmente MEMORA(P) como control de protocolo y obtuvieron 86.23% frente al 86.3% publicado en LoCoMo."
+      },
+      "title": "EnSIMem enlaza índices estructurados de memoria con evidencia conversacional original",
+      "why_it_matters": "El diseño trata el índice como una dirección a diálogos preservados, no como un sustituto con pérdida de la evidencia original. Combina coincidencia de entidades y propiedades con planificación de cobertura específica para cada consulta, y recupera los turnos originales antes de generar una respuesta. Si se reproduce, podría orientar sistemas de memoria que requieren recuperación temporal, composicional o de varios hechos; en la medición informada, el manejo explícito de evidencia tiene como costo una latencia en línea mayor."
+    },
     "FCMO-23126AF42ED1": {
       "claims": [
         {
@@ -8677,6 +8734,58 @@
       },
       "title": "Un generador de conceptos entrenado eleva el pass@128 informado en conjuntos matemáticos difíciles filtrados",
       "why_it_matters": "El artículo estudia si una política pequeña entrenable puede orientar a un modelo mayor congelado hacia estrategias diversas, en vez de gastar el cómputo de inferencia en respuestas repetidas sin guía. Los resultados en subconjuntos difíciles son amplios, pero acotados: el costo de entrenamiento, la selección de problemas y el uso de un juez de la misma familia dejan sin resolver la economía de producción y el impacto general en razonamiento."
+    },
+    "FCMO-4847BDD75623": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Los autores definen una razón de eficiencia de información (IER) a partir de una descomposición señal-ruido del gradiente de KL inversa muestreado en un prefijo generado por el estudiante, con una línea base escalar óptima; su recíproco es el error cuadrático medio relativo de estimación bajo esa línea base."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan que combinar IER con selectores existentes basados en utilidad puede igualar o superar la destilación on-policy completa en algunas configuraciones de razonamiento matemático y médico con presupuestos de tokens de 0.1%–1%; los resultados varían entre selectores, modelos y tareas."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "IER se aproxima usando una unión finita de los tokens top-K del estudiante y del docente, más el token muestreado; las probabilidades logarítmicas ausentes se rellenan con un valor pequeño y las razones logarítmicas se recortan por estabilidad numérica."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No hay una reproducción independiente emparejada que mida la sensibilidad de las mejoras de IER a la cobertura del conjunto de candidatos, al relleno de probabilidades ausentes y al recorte de razones.",
+          "kind": "missing_independent",
+          "state": "open",
+          "updated_at": "2026-10-16T09:16:14Z"
+        },
+        {
+          "description": "El presupuesto reducido de tokens no demuestra por sí solo ahorro de cómputo de extremo a extremo, porque aún se generan las respuestas completas del estudiante y se calcula la supervisión del docente.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-16T09:16:14Z"
+        }
+      ],
+      "importance_rationale": "Si el método y los resultados del artículo se generalizan, seleccionar tokens de destilación tanto por utilidad como por fiabilidad del gradiente muestreado podría cambiar las decisiones de entrenamiento para la destilación on-policy dispersa. La consecuencia es significativa, pero se limita a un método especializado de posentrenamiento; los presupuestos de tokens informados no demuestran ahorros de cómputo proporcionales de extremo a extremo.",
+      "limitations": [
+        "La estimación de IER utiliza una unión finita de candidatos top-K en lugar del vocabulario completo; el relleno de probabilidades logarítmicas ausentes y el recorte pueden alterar la aproximación.",
+        "Los resultados con presupuestos bajos de tokens varían entre tareas, modelos y selectores; el artículo incluye regresiones y casos en que otro selector rinde mejor.",
+        "Seleccionar una fracción pequeña de tokens no elimina la generación completa de respuestas del estudiante ni el cálculo de supervisión del docente; por ello, el artículo no establece ahorros de cómputo proporcionales de extremo a extremo.",
+        "En esta activación no se realizó una reproducción independiente ni un perfilado emparejado."
+      ],
+      "relationships": [],
+      "summary": "El artículo analiza la destilación on-policy (OPD) con tokens muestreados y define una razón de eficiencia de información (IER) para la fiabilidad de las estimaciones del gradiente de KL inversa en un prefijo fijo. Aproxima IER sobre un conjunto finito de candidatos top-K y combina la clasificación resultante con puntuaciones de utilidad existentes. En ciertas tareas de razonamiento matemático y médico, los autores informan que los selectores combinados pueden acercarse o superar la OPD completa con presupuestos de 0.1%–1% de tokens, aunque los resultados varían según la configuración. Esto se refiere a la selección de tokens para la función de pérdida: todavía se generan las respuestas completas del estudiante y se calcula la supervisión del docente, y no se han establecido ahorros proporcionales de cómputo de extremo a extremo.",
+      "technical": {
+        "claimed_result": "Los autores informan que IER combinada con selectores de utilidad puede igualar o superar la OPD completa en algunas tareas de razonamiento matemático y médico con presupuestos de 0.1%–1%. Los resultados varían según la tarea, el selector y el par de modelos.",
+        "compute_or_cost": "El presupuesto de tokens determina qué posiciones contribuyen a la pérdida de destilación. Se siguen calculando las respuestas completas del estudiante y la supervisión del docente; no se han establecido ahorros proporcionales de cómputo de extremo a extremo. En el apéndice de eficiencia, el artículo informa tiempos de pared y memoria casi sin cambios.",
+        "demonstrated_result": "No se realizó una reproducción independiente. Los resultados siguen siendo hallazgos CLAIMED informados por los autores.",
+        "implementation_status": "El artículo enlaza una implementación pública, inspeccionada en una revisión anterior pero no ejecutada durante esta activación. La revisión actual de la fuente se centró en la derivación, los resultados y las limitaciones del artículo.",
+        "mechanism": "En cada prefijo generado por el estudiante, IER estima la razón entre la señal esperada del gradiente y el ruido de muestreo usando una línea base escalar óptima. Una unión finita de logits top-K del estudiante y del docente, más el token muestreado, aproxima el vocabulario completo; IER clasifica los tokens por sí sola o se combina con clasificaciones de utilidad mediante selectores OR/AND.",
+        "regime": "El artículo evalúa razonamiento matemático y médico, incluidos escenarios docente-estudiante de fuerte a débil y de grande a pequeño, así como modos de razonamiento activado y desactivado. Los presupuestos informados incluyen 0.1%, 1% y 10% de los tokens de la trayectoria seleccionados para destilación.",
+        "reproducibility": "El artículo incluye derivación matemática, tablas experimentales y un enlace al código. Esta activación no ejecutó el código. La aproximación por conjunto de candidatos utiliza soporte top-K, rellena las probabilidades logarítmicas ausentes con -12 por defecto según una revisión previa del código y recorta las razones logarítmicas a ±30; la sensibilidad no se ha medido.",
+        "strongest_baseline": "OPD completa sin selección de tokens y selectores existentes basados en utilidad, en las mismas configuraciones de tarea y pares de modelos informadas."
+      },
+      "title": "IER añade fiabilidad de estimación del gradiente a la destilación on-policy dispersa",
+      "why_it_matters": "Los métodos de OPD dispersa pueden seleccionar supervisión útil sin considerar si una estimación del gradiente basada en una sola muestra es fiable. IER aporta un criterio distinto y, en los experimentos informados por el artículo, mejora algunas comparaciones con presupuestos bajos de tokens. Es un resultado acotado de un método de posentrenamiento; la sensibilidad de la implementación y los ahorros de extremo a extremo siguen abiertos."
     },
     "FCMO-4852A51EE0AB": {
       "claims": [
@@ -14824,6 +14933,59 @@
       },
       "title": "BATON informa mejoras al equilibrar la atribución de feedback y el peso de trayectorias en RL de agentes",
       "why_it_matters": "El artículo separa dos decisiones de entrenamiento para agentes de varios turnos: cómo ponderar las acciones según las respuestas del entorno dentro de una trayectoria y cómo combinar trayectorias largas y cortas en un lote. Sus comparaciones emparejadas y ablación por componentes ofrecen un resultado de optimización concreto para seguir. La evidencia se limita a un preprint, benchmarks seleccionados y modelos Qwen2.5; no demuestra generalización a otras familias o beneficios en despliegue."
+    },
+    "FCMO-7A75105C20C1": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan que MLExpert, un MoE posentrenado de 35B parámetros totales y aproximadamente 3B activos, inicializado a partir de Qwen3.6-35B-A3B, eleva la tasa de cualquier medalla de 37.9% a 72.7% en el subconjunto de 22 tareas de MLE-Bench Lite con el entorno unificado del artículo."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Con el entorno de propósito general Claude Code, el artículo informa una tasa de cualquier medalla de 69.7% para MLExpert frente a 42.4% para el modelo base del mismo tamaño."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En NatureBench Lite, el artículo informa que MLExpert iguala o supera el estado del arte en 5/10 tareas, frente a 0/10 para su base con Claude Code; otros sistemas de frontera evaluados también obtienen resultados altos en este subconjunto pequeño."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "Los resultados de benchmarks y generalización provienen del artículo. No se auditaron ni ejecutaron de forma independiente el código/modelo publicado, la generación de tareas ni la separación entre entrenamiento y prueba.",
+          "kind": "missing_independent",
+          "state": "open",
+          "updated_at": "2026-10-16T09:11:26Z"
+        },
+        {
+          "description": "El artículo revisado no ofrece un desglose completo del cómputo y costo de entrenamiento, lo que limita las comparaciones de eficiencia.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-16T09:11:26Z"
+        }
+      ],
+      "importance_rationale": "Si las mejoras informadas por el artículo se generalizan más allá de su configuración de benchmark, entrenar un agente para mejorar soluciones de aprendizaje automático mediante experimentación prolongada podría ampliar materialmente la ingeniería de IA asistida por IA. La consecuencia potencial es sustancial, pero la evidencia procede de un único estudio de los autores en un subconjunto de 22 tareas; sus efectos en capacidades y despliegues más amplios siguen sin establecerse.",
+      "limitations": [
+        "La comparación de 37.9% a 72.7% es un resultado de los autores en solo 22 tareas históricas de competencia; hace falta examinar de forma independiente la variación por tarea y la transferencia a otros benchmarks.",
+        "Los resultados con Claude Code y con el entorno del artículo se informan por separado y no deben mezclarse.",
+        "NatureBench Lite incluye solo diez tareas; el resultado informado de 5/10 no demuestra una capacidad amplia de descubrimiento científico.",
+        "No se realizó una reproducción independiente, una auditoría de los artefactos publicados, un cálculo completo del cómputo de entrenamiento ni una auditoría de contaminación del benchmark.",
+        "La mejora recursiva de la IA es una motivación del artículo; las tareas medidas no demuestran el desarrollo autónomo de un modelo fundacional más capaz."
+      ],
+      "relationships": [],
+      "summary": "El artículo de arXiv del 15 de octubre presenta MLExpert, un MoE de 35B parámetros totales y aproximadamente 3B activos, inicializado con Qwen3.6-35B-A3B y posentrenado para ingeniería de aprendizaje automático de horizonte largo mediante SFT agéntica jerárquica y Windowed Interaction RL. En un subconjunto de 22 tareas de MLE-Bench Lite, los autores informan 72.7% de cualquier medalla frente a 37.9% para el modelo base con su entorno unificado; con Claude Code informan 69.7% frente a 42.4%. Una comparación de 10 tareas de NatureBench Lite también informa mejoras sobre la base. Son resultados de benchmarks informados en un artículo, no una demostración independiente de investigación autónoma con IA ni de mejora recursiva de la IA.",
+      "technical": {
+        "claimed_result": "Los autores informan que la tasa de cualquier medalla sube de 37.9% a 72.7% en el subconjunto de 22 tareas de MLE-Bench Lite con el entorno del artículo; una comparación con Claude Code informa 42.4% para la base y 69.7% para MLExpert.",
+        "compute_or_cost": "El artículo describe una configuración de evaluación con H200 y un límite de ejecución de doce horas por tarea, pero no ofrece un desglose completo del cómputo de entrenamiento o de los costos económicos para comparar la relación costo-eficacia.",
+        "demonstrated_result": "No se realizó una demostración independiente. El artículo informa los resultados de benchmark en C1–C3; las afirmaciones siguen etiquetadas CLAIMED.",
+        "implementation_status": "El artículo enlaza un repositorio de GitHub y un modelo en Hugging Face; ninguno de los dos artefactos fue auditado ni ejecutado en esta revisión.",
+        "mechanism": "El ajuste fino supervisado agéntico jerárquico va seguido de Windowed Interaction RL, que asigna una recompensa compartida basada en resultados a las decisiones del modelo entre resultados sucesivos de experimentos; la recopilación asíncrona y la corrección de política permiten actualizar antes de que termine una trayectoria completa.",
+        "regime": "El resultado principal de MLE-Bench Lite abarca 22 competencias históricas de Kaggle, con hasta 3,000 pasos de interacción y 12 horas por tarea, usando 20 vCPU, 220 GB de RAM y una GPU NVIDIA H200 para evaluación. MLExpert parte de Qwen3.6-35B-A3B (35B totales, aproximadamente 3B activos).",
+        "reproducibility": "Se revisaron el texto completo v1 del artículo y sus tablas de benchmark. No se auditaron de forma independiente la implementación, la construcción de tareas ni la separación entre entrenamiento y prueba; tampoco se hizo una reproducción.",
+        "strongest_baseline": "El modelo base Qwen3.6-35B-A3B del mismo tamaño bajo el mismo entorno de evaluación informado; el artículo informa por separado una comparación con Claude Code de propósito general."
+      },
+      "title": "MLExpert informa mejoras de posentrenamiento en ingeniería de aprendizaje automático de horizonte largo",
+      "why_it_matters": "El estudio prueba si un agente puede aprender a elegir experimentos, revisar soluciones ejecutables y usar la retroalimentación de ejecución durante flujos prolongados de aprendizaje automático. Si la mejora informada se transfiere a tareas más amplias y se reproduce de manera independiente, podría influir en cómo se entrenan los agentes de ingeniería de IA. La evidencia actual se limita a tareas históricas de competencia y evaluaciones de los autores."
     },
     "FCMO-7BB77058887F": {
       "claims": [
