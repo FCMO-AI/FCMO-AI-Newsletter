@@ -1,6 +1,6 @@
 {
   "canonical_locale": "en",
-  "canonical_source_sha256": "1e32107e27750025ed56d7b33b17fe7fc6bd971f9b6ee641321bb3d0a3665d28",
+  "canonical_source_sha256": "7924842ec435a211831084d4ecf30bcc77efb26e96b149066f1545ab48142904",
   "generated_from": "ARB airlock; editorial wording authored upstream",
   "locale": "es-419",
   "records": {
@@ -3831,6 +3831,56 @@
       },
       "title": "Hiperredes generan LoRA con pases hacia delante para personalizar modelos de lenguaje en el dispositivo",
       "why_it_matters": "La personalización en un teléfono está limitada por la memoria, el cómputo y la latencia interactiva. Generar un adaptador pequeño y específico para cada persona mediante pases hacia delante podría evitar tanto la optimización individual como los prompts más largos. El artículo informa una comparación inicial de calidad; los costos en dispositivos reales, la generalización y la privacidad siguen sin medirse."
+    },
+    "FCMO-1AEA68038362": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "El preprint de arXiv presenta GUI-SD-v2, un método de auto-destilación on-policy en dos etapas para agentes GUI de varios turnos. La primera etapa optimiza conjuntamente interacciones con y sin guía privilegiada correctiva; la segunda destila señales paso a paso de razonamiento y memoria en las salidas de acción y memoria."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Con Qwen3-VL-Instruct-8B, el artículo informa 67.2% de éxito Pass@1 y 79.3% Pass@3 en AndroidWorld, y 25.6% y 31.6% en el subconjunto GUI-only de MobileWorld. Son resultados de benchmarks reportados por los autores; no se hizo una reproducción independiente."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Con tareas de entrenamiento fijas y supervisión generada por Kimi-K3, el artículo informa que GUI-SD-v2 supera sus líneas base evaluadas de SFT, GRPO, OPSD ingenuo y GUI-SD-v1 en ambos benchmarks y en Pass@1/Pass@3. Es una comparación interna del artículo, no prueba de superioridad general entre modelos, entornos o distribuciones de tareas."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "Todos los resultados y ablaciones informados provienen del artículo; el código y los datos de entrenamiento se anuncian como una publicación futura y no estaban disponibles en la fuente revisada.",
+          "kind": "reproduction_missing",
+          "state": "open"
+        },
+        {
+          "description": "La evaluación se limita a Qwen3-VL-Instruct-8B en AndroidWorld y el subconjunto GUI-only de MobileWorld; no se estableció transferencia a otros tamaños, interfaces de escritorio/web, distribuciones más amplias ni fiabilidad en producción.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si las mejoras reportadas se mantienen, transferir razonamiento privilegiado y memoria relevante para la tarea a una política GUI móvil de 8B podría mejorar el entrenamiento de interacciones de varios pasos y modificar las decisiones de post-entrenamiento. La evidencia es un artículo con resultados en dos entornos de benchmarks móviles, no fiabilidad amplia en escritorio ni validación independiente.",
+      "limitations": [
+        "Es un único preprint de arXiv sin revisión por pares; los resultados son de los autores y no se reprodujeron independientemente.",
+        "Los experimentos usan un solo modelo base, Qwen3-VL-Instruct-8B, y entornos móviles Android.",
+        "Los resultados de MobileWorld cubren su subconjunto GUI-only, no el benchmark completo.",
+        "El entrenamiento utiliza guía generada por Kimi-K3 y tareas seleccionadas de OpenMobile/MobileForge; se desconoce la transferencia fuera de esta supervisión y mezcla de tareas.",
+        "El artículo anuncia una futura publicación del código y los datos de entrenamiento; esta activación no verificó tal publicación.",
+        "Las tasas de éxito en benchmarks no demuestran fiabilidad general en tareas largas ni comportamiento en producción."
+      ],
+      "relationships": [],
+      "summary": "Un preprint de arXiv presenta GUI-SD-v2, que entrena a un agente GUI móvil en dos etapas: primero para seguir guía privilegiada correctiva y luego para destilar razonamiento paso a paso y memoria pertinente a la tarea desde sus propias interacciones. Con Qwen3-VL-Instruct-8B y supervisión generada por Kimi-K3, los autores reportan 67.2%/79.3% Pass@1/Pass@3 en AndroidWorld y 25.6%/31.6% en el subconjunto GUI-only de MobileWorld, por encima de las líneas base evaluadas bajo la configuración del artículo. Son resultados reportados por los autores en dos entornos móviles; el código y los datos se anunciaron para una publicación futura, y no se establecieron reproducción independiente ni transferencia más amplia.",
+      "technical": {
+        "claimed_result": "Los autores informan que GUI-SD-v2 mejora Pass@1/Pass@3 frente a las líneas base evaluadas en AndroidWorld y el subconjunto GUI-only de MobileWorld con Qwen3-VL-Instruct-8B.",
+        "demonstrated_result": "El artículo especifica el método de dos etapas, las condiciones de benchmark y los resultados reportados; esta activación releyó el artículo, pero no ejecutó los experimentos.",
+        "implementation_status": "Preprint de investigación. El artículo dice que publicará el código y los datos de entrenamiento; esta revisión no verificó que ya estén disponibles.",
+        "mechanism": "La optimización de seguimiento de privilegios entrena conjuntamente interacciones con contexto original y con guía correctiva. Después, la destilación informativa transfiere señales paso a paso de razonamiento y memoria desde un auto-docente con contexto privilegiado hacia las salidas de acción y memoria de la misma política.",
+        "regime": "Qwen3-VL-Instruct-8B en emuladores Android; tareas seleccionadas de OpenMobile/MobileForge con supervisión generada por Kimi-K3; evaluación en AndroidWorld y el subconjunto GUI-only de MobileWorld.",
+        "strongest_baseline": "Dentro del artículo: SFT, GRPO, OPSD ingenuo y GUI-SD-v1 con igual escala de tareas y supervisión Kimi-K3; además compara algunos sistemas GUI. No hay reproducción independiente con controles emparejados."
+      },
+      "title": "GUI-SD-v2 informa mayor éxito en agentes GUI móviles tras destilar guía de acciones y memoria paso a paso",
+      "why_it_matters": "El método aborda un cuello de botella concreto de los agentes de interfaz con varios turnos: una política puede recibir pistas privilegiadas útiles y aun así no seguirlas o no conservar el estado de la tarea. Si las mejoras reportadas se reproducen, entrenar a la misma política para usar guía paso a paso de razonamiento y memoria podría mejorar el post-entrenamiento de agentes móviles. La evidencia sigue limitada a benchmarks y no demuestra fiabilidad general de agentes."
     },
     "FCMO-1AFA3EFAE2B1": {
       "claims": [
@@ -24314,6 +24364,67 @@
       "title": "Anthropic y Amazon anuncian un compromiso de $100 mil millones con AWS y hasta 5 GW de cómputo",
       "why_it_matters": "El acuerdo une suministro de aceleradores, alojamiento en la nube, distribución de modelos e inversión en una relación de largo plazo entre un desarrollador de modelos de frontera y un hiperescalador. Si se cumple, su escala podría afectar el acceso al cómputo y estrechar los vínculos técnicos y comerciales con un proveedor específico. Los anuncios públicos establecen los compromisos declarados por las partes, pero no muestran costos realizados, entrega de capacidad, rendimiento comparativo ni qué parte de la infraestructura puede trasladarse a otros proveedores."
     },
+    "FCMO-D48C2CFC8C29": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "El anuncio de la Comisión Europea del 15 de octubre de 2026 dice que lanzó la iniciativa de compromisos RAISE AI in Science Enablers en la Cumbre de Dublín sobre IA en la ciencia, para movilizar apoyo privado y filantrópico a investigadores europeos que trabajan entre la IA y la ciencia."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "La Comisión afirma que la iniciativa reúne aportes voluntarios en especie, entre ellos acceso a modelos de IA, capacidad de cómputo, licencias de software de investigación, datos, capacitación y otros recursos. Nombra como participantes iniciales a Novo Nordisk Foundation, NVIDIA, Elsevier, Sanofi, Frontiers, Mistral y Google DeepMind; el anuncio no indica una valoración total ni un calendario de entrega."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El mismo anuncio dice que Mistral AI y CERN anunciaron una alianza para desarrollar lo que la Comisión describe como un futuro modelo fundacional destacado para física. La fuente no especifica tamaño del modelo, cómputo, conjuntos de datos, condiciones de publicación, calendario ni resultados de rendimiento."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "La Comisión señala que la iniciativa tendrá una revisión anual y que los compromisos y avances se presentarán en futuras cumbres europeas de IA en la ciencia. Es un plan de seguimiento anunciado, no evidencia de que los aportes se hayan entregado o utilizado."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El portal de compromisos de la Comisión enumera ofertas concretas: Frontiers dice que aportará más de €1.6 millones en servicios, incluida la curación con IA de 1,000 conjuntos de datos de Horizon Europe y 100 subvenciones FAIR² para publicar datos; Google dice que destinará $3 millones en créditos/tokens de Google Cloud a investigadores europeos. Son compromisos anunciados, no entrega o uso verificados."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "El portal cuantifica algunas ofertas, entre ellas más de €1.6 millones en servicios de Frontiers y $3 millones en créditos/tokens de Google Cloud, pero no da el valor conjunto de los compromisos, criterios comunes de acceso, fechas de entrega ni cumplimiento verificado de forma independiente.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "La alianza Mistral AI–CERN para un modelo de física no tiene en el anuncio consultado datos públicos sobre tamaño, cómputo de entrenamiento, conjuntos de datos, publicación, calendario ni evaluación.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "La iniciativa anuncia revisiones anuales de compromisos y avances, pero todavía no se ha medido en esta fuente la entrega de recursos, la participación de investigadores ni los resultados científicos.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si los compromisos iniciales se convierten en recursos accesibles para la investigación, reunir acceso privado y filantrópico a modelos, cómputo, datos, software y capacitación podría modificar la capacidad práctica para la ciencia con IA en Europa. El anuncio concreta los tipos de aportes y los participantes iniciales, pero no informa valoración total, condiciones de acceso, calendario de entrega ni resultados de investigación medidos.",
+      "limitations": [
+        "Las fuentes son anuncios y un portal de compromisos de la Comisión Europea; no auditan de manera independiente los aportes ni sus valoraciones.",
+        "El portal cuantifica algunas ofertas (>€1.6 millones en servicios de Frontiers; $3 millones en créditos/tokens de Google Cloud), pero no da el valor total de la iniciativa ni condiciones comunes de acceso.",
+        "Las fuentes consultadas no indican fechas de entrega, inventario de aportes cumplidos ni mediciones de uso por investigadores.",
+        "La alianza Mistral AI–CERN anunciada por la Comisión carece aquí de alcance técnico, escala del modelo, detalles de cómputo/datos, condiciones de publicación y resultados de evaluación."
+      ],
+      "relationships": [],
+      "summary": "El 15 de octubre de 2026, la Comisión Europea lanzó la iniciativa RAISE AI in Science Enablers para reunir apoyo voluntario privado y filantrópico a la investigación europea. La Comisión nombra siete participantes iniciales y describe acceso a modelos, cómputo, software, datos y capacitación. Su portal de compromisos detalla algunas condiciones: Frontiers ofrece servicios por más de €1.6 millones, incluida la curación de 1,000 conjuntos de datos de Horizon Europe y 100 subvenciones para publicar datos, mientras que Google compromete $3 millones en créditos/tokens de nube. El portal también describe otras aportaciones de investigación, acceso a modelos y API, y cómputo. Son compromisos anunciados; no hay valoración total, marco común de acceso, constancia de entrega ni medición del uso por investigadores. También se anuncia una alianza Mistral AI–CERN para un modelo de física, sin especificaciones técnicas.",
+      "technical": {
+        "claimed_result": "La Comisión informa de una iniciativa voluntaria con siete participantes iniciales. Su portal describe servicios de Frontiers valorados en más de €1.6 millones, créditos/tokens de Google Cloud por $3 millones y otras ofertas de modelos, cómputo, software, datos, capacitación y apoyo a la investigación. También informa de una alianza Mistral AI–CERN para un modelo de física; no comunica resultados de rendimiento.",
+        "demonstrated_result": "El anuncio oficial de la Comisión, publicado en francés, confirma que la iniciativa y la alianza se anunciaron públicamente el 15 de octubre de 2026. No demuestra entrega ni rendimiento.",
+        "implementation_status": "Iniciativa lanzada y compromisos de participantes publicados; al menos dos entradas del portal cuantifican ofertas. El portal consultado no da valoración conjunta, marco común de acceso, fechas de entrega ni evidencia de participación de investigadores.",
+        "mechanism": "Organizaciones privadas y filantrópicas pueden aportar modelos de IA, cómputo, licencias de software de investigación, datos, capacitación, apoyo financiero, becas o financiación para investigadores; la Comisión dice que los compromisos y avances se revisarán anualmente.",
+        "regime": "Ecosistema europeo de investigación e innovación; aportes voluntarios bajo RAISE, Resource for AI Science in Europe.",
+        "strongest_baseline": "La Comisión presenta el apoyo privado y filantrópico conjunto como complemento de los fondos públicos; el portal enumera algunos compromisos de participantes, pero no ofrece un total ni una línea base de recursos entregados."
+      },
+      "title": "La Comisión Europea lanza una iniciativa RAISE de aportes en especie para la ciencia con IA",
+      "why_it_matters": "RAISE es un canal público-privado identificado para aportar capacidad de investigación, y su portal ya especifica al menos dos ofertas considerables: más de €1.6 millones en servicios de Frontiers y $3 millones en créditos/tokens de Google Cloud, además de aportes de modelos, cómputo, software y capacitación. Si se entregan con condiciones accesibles, podrían ampliar la capacidad de investigación con IA. La evidencia aún se refiere a compromisos anunciados: no establece el total, la elegibilidad común, la entrega ni el uso por investigadores."
+    },
     "FCMO-D4944D597980": {
       "claims": [
         {
@@ -25737,6 +25848,59 @@
       },
       "title": "COMPASS informa control descentralizado con modelos de lenguaje para bandadas de hasta 1,024 agentes",
       "why_it_matters": "Si se reproduce, separar la interpretación semántica de instrucciones de la coordinación local aprendida puede ofrecer una arquitectura útil para escalar el control multiagente guiado por lenguaje más allá de la generación centralizada de acciones. El artículo informa un tamaño de equipo modelado grande, pero la evidencia se limita a recorridos de bandadas y no demuestra despliegue en robots físicos ni transferencia general a otras tareas."
+    },
+    "FCMO-E220B922017C": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "Para el modelo de ruta fija del artículo, φ = A ∨ (M ∧ R) ∨ (V ∧ T ∧ Q), los seis cortes mínimos entre funciones visibles contienen tres fallos cada uno. Bajo el supuesto adicional de que los seis componentes fallan de forma independiente con la misma probabilidad pequeña ε, el modelo da una probabilidad de fallo del sistema de 6ε³ − 9ε⁴ + 5ε⁵ − ε⁶, asintótica a 6ε³."
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "En dos mapas ilustrativos explícitos de dominios de fallo que conservan la arquitectura visible de la ruta, un evento compartido que deshabilita el control de acceso y la monitorización reduce de tres a dos el tamaño mínimo del corte de eventos subyacentes; un evento hipotético compartido que afecta cada ruta suficiente lo reduce a uno. El artículo aclara que estos mapas no describen la implementación de Google DeepMind."
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "El modelo condicional del artículo muestra que, si la prevención reduce los casos ordinarios de establecimiento más rápido que un régimen de fallos difíciles o compartidos, ese régimen puede dominar la población que llega a recuperación. Por ello, deriva que la mezcla de pruebas de recuperación debe reflejar P(C|E), y que limpiar el estado comprometido previo antes de una prueba puede medir otra cantidad."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El autor recomienda mapear los dominios de fallo compartidos, seguir medidas de aseguramiento conjuntas y condicionales a nivel de sistema, priorizar intervenciones mediante medidas de importancia propias del modelo y probar la recuperación conservando o reproduciendo fielmente el mecanismo del fallo. Son recomendaciones de un preprint analítico, no mejoras medidas en un sistema de control desplegado."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "El artículo aplica su modelo de ruta a una hoja de ruta pública de Google DeepMind, pero no existe un mapa independiente de la implementación que establezca qué modelos, identidades, credenciales, operadores, código o planos de control comparten realmente las salvaguardas.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "El artículo no informa probabilidades de fallo calibradas, mediciones empíricas de dependencia ni validación de que el efecto de selección condicional de recuperación ocurra en un sistema de control operativo.",
+          "kind": "missing_independent",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si este análisis condicional sirve como modelo de una ruta de control de IA desplegada, las dependencias compartidas pueden reducir una protección nominal de tres componentes a uno o dos fallos subyacentes, mientras que la prevención puede seleccionar casos más difíciles para recuperación. Esto cambia qué deben medir las pruebas de independencia arquitectónica y recuperación; el artículo no establece dependencias de una implementación real ni riesgo desplegado calibrado.",
+      "limitations": [
+        "Es un único preprint de arXiv que aplica teoría de confiabilidad establecida a una ruta de despliegue fija y estática; no presenta un formalismo general de confiabilidad nuevo.",
+        "El resultado de tercer orden sobre fallos raros supone fallos visibles independientes y con la misma probabilidad pequeña.",
+        "Los ejemplos de causa común son construcciones hipotéticas, no afirmaciones sobre la arquitectura o las tasas de fallo reales de Google DeepMind.",
+        "La fuente no ofrece probabilidades de despliegue calibradas, mediciones empíricas de dependencia ni una medición operativa del efecto de selección durante la recuperación.",
+        "La adaptación dinámica, las restricciones de recursos, el aprendizaje del atacante y las rutas múltiples quedan fuera del modelo de ruta fija."
+      ],
+      "relationships": [],
+      "summary": "Un preprint de arXiv modela una ruta publicada de control de IA mediante control de acceso, monitorización más respuesta, o visibilidad más rastreo y contención. Con fallos raros, independientes e igualmente probables, el modelo visible tiene seis cortes mínimos de tamaño tres y una probabilidad de fallo asintótica de 6ε³. Los dominios de fallo compartidos ilustrativos reducen el tamaño mínimo del corte subyacente a dos o uno; una derivación condicional muestra por qué una prevención más eficaz puede concentrar las demandas posteriores de recuperación en regímenes más difíciles. El artículo recomienda mapear las dependencias y probar la recuperación conservando el fallo inicial. Es un análisis condicional: los ejemplos de causa común no describen la implementación de Google DeepMind y no hay probabilidades operativas calibradas.",
+      "technical": {
+        "claimed_result": "El artículo presenta un análisis formal de confiabilidad para una ruta fija de control de IA: los fallos independientes de salvaguardas visibles producen supresión de fallos raros de orden tres; los fallos compartidos ilustrativos pueden reducir el corte subyacente, y la prevención puede seleccionar casos más difíciles para recuperación.",
+        "demonstrated_result": "Los resultados algebraicos sobre cortes y condicionamiento se derivan dentro del modelo booleano de ruta y de sus supuestos probabilísticos. Los casos de causa común son ejemplos construidos, no hechos medidos de una implementación.",
+        "implementation_status": "Preprint analítico; no establece una implementación operativa, probabilidades calibradas ni resultados medidos de un sistema de control.",
+        "mechanism": "Representar el control de acceso, la monitorización con respuesta y la visibilidad con rastreo y contención como rutas alternativas de éxito; mapear fallos subyacentes que pueden desactivar varias funciones; condicionar la confiabilidad de recuperación al evento y régimen de fallo que produjo el establecimiento.",
+        "regime": "Una ruta fija de una hoja de ruta pública de Google DeepMind. Estructura booleana estática; fallos independientes en el ejemplo nominal; eventos básicos independientes y construidos en los escenarios ilustrativos de causa común.",
+        "strongest_baseline": "El artículo compara la misma ruta visible con un modelo idealizado de componentes independientes y con mapas hipotéticos alternativos de dominios de fallo compartidos. No presenta una comparación empírica."
+      },
+      "title": "Un modelo condicional de confiabilidad muestra cómo los fallos compartidos borran la redundancia nominal del control de IA",
+      "why_it_matters": "Contar salvaguardas visibles puede exagerar la redundancia cuando varias dependen de un mismo modelo, servicio de identidad, base de código o plano de control. El artículo ofrece un marco condicional concreto para examinar esas dependencias y ponderar las pruebas de recuperación según los fallos que realmente llegarían a esa etapa. Su valor está en el diseño y la medición; no estima el riesgo real de un sistema."
     },
     "FCMO-E338876726B6": {
       "claims": [
@@ -27664,6 +27828,60 @@
       },
       "title": "Hubei amplía la canasta de subsidios al consumidor de 2026 para incluir robots incorporados, de cocina, exoesqueletos y de compañía",
       "why_it_matters": "La revisión incorpora explícitamente varios tipos de robots a las categorías de consumo elegibles para un subsidio provincial, lo que crea un canal concreto de política que podría influir en los precios de compra y la demanda. Su alcance real depende de las definiciones de productos elegibles, los reembolsos a consumidores y el financiamiento del programa; el aviso por sí solo no demuestra adopción ni impacto económico."
+    },
+    "FCMO-F49D9961AA54": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED_PUBLICATION_EVENT",
+          "text": "Los autores publicaron el preprint arXiv 2610.20667v1, incluido el 16 de octubre de 2026 en las nuevas entregas de cs.AI."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En 16 modelos objetivo, dos periodos y cuatro dominios, los autores reportan que comparar entre sí las transcripciones de tareas saturadas resueltas correctamente produce un error cuadrático medio agrupado de predicción de capacidad de 0.26, frente a 1.37 con la línea base basada solo en puntajes (5.27 veces menor), y una mejora media de verosimilitud logarítmica con p=0.005."
+        },
+        {
+          "label": "CLAIMED_LIMITATION",
+          "text": "Los autores reportan fallas ante cambios temporales y de distribución: en algunos periodos históricos evaluados, la comparación entre pares no supera la línea base y subestima los primeros modelos de razonamiento. También estiman que el protocolo completo cuesta entre US$55 y US$105 por semestre, según los precios asumidos para septiembre de 2026."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se inspeccionaron ni reprodujeron de forma independiente la implementación de los autores, las transcripciones, las divisiones del benchmark ni los datos de referencia sobre capacidad.",
+          "kind": "missing_artifact",
+          "state": "open"
+        },
+        {
+          "description": "Se desconoce la confiabilidad del protocolo con familias actuales de modelos de frontera y nuevos paradigmas de razonamiento o uso de herramientas; el artículo documenta un error grande ante el cambio hacia los primeros modelos de razonamiento.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "Los supuestos sobre costo operativo y acceso a transcripciones podrían no trasladarse a los precios actuales de los modelos evaluadores ni a proveedores que no muestran trazas de razonamiento o uso de herramientas.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si el efecto reportado se mantiene, comparar transcripciones podría extender algunas evaluaciones saturadas y ayudar a distinguir capacidades sin construir de inmediato tareas más difíciles. La puntuación 5 refleja su relevancia amplia para evaluación y gobernanza, con cautela por su alcance retrospectivo, fallas temporales, límites de acceso a transcripciones y costo considerable.",
+      "limitations": [
+        "Los resultados provienen de un estudio retrospectivo de los autores con 16 modelos objetivo, cuatro dominios y dos periodos principales; no demuestran el desempeño en modelos actuales ni ante futuros cambios de capacidad.",
+        "Las mayores mejoras reportadas aparecen en programación y ciberseguridad; la comparación entre pares no supera la línea base en algunos periodos históricos y subestima marcadamente los primeros modelos de razonamiento.",
+        "Según el artículo, la comparación completa entre pares cuesta entre US$55 y US$105 por semestre bajo los precios asumidos para septiembre de 2026, porque las comparaciones crecen con los pares de modelos objetivo y referencia.",
+        "En esta revisión no se inspeccionaron el código ni los datos, no se hizo una reproducción independiente y no se evaluó el método en una decisión real de seguridad o gobernanza."
+      ],
+      "relationships": [],
+      "summary": "Hamada, Yeon, Migliarini, Olive y Dubois estudian si las transcripciones de tareas resueltas correctamente en benchmarks saturados conservan información sobre la capacidad de los modelos en tareas más difíciles. En un análisis retrospectivo de 16 modelos objetivo de ciencia, matemáticas, programación y ciberseguridad, los autores reportan que comparar transcripciones mediante un modelo de lenguaje predice mejor la capacidad en tareas reservadas que una línea base basada solo en puntajes. El error cuadrático medio agrupado fue 0.26, frente a 1.37 con la línea base (una reducción reportada de 5.27 veces). Sin embargo, el desempeño varía según el periodo y el dominio: el método no supera la línea base en algunos periodos históricos y subestima notablemente los primeros modelos de razonamiento. Es un resultado metodológico reportado en un artículo, no una evaluación de seguridad validada de forma independiente.",
+      "technical": {
+        "claimed_result": "Los autores reportan que comparar transcripciones de tareas saturadas resueltas correctamente predice la capacidad en tareas no saturadas reservadas mejor que asignar la capacidad media de la línea base: error cuadrático medio agrupado de 0.26 frente a 1.37 en 16 modelos objetivo.",
+        "demonstrated_result": "El preprint público en arXiv v1 describe el método retrospectivo, los periodos y modelos evaluados, los protocolos de predicción y los resultados reportados por sus autores. No se hizo una reproducción independiente.",
+        "implementation_status": "Evaluación retrospectiva reportada por los autores; no se ha demostrado una implementación operativa ni un uso en decisiones de seguridad.",
+        "mechanism": "Usar las estimaciones de capacidad y las transcripciones de modelos de referencia que resolvieron correctamente las tareas; luego comparar transcripciones objetivo y de referencia en tareas saturadas, calibrar los juicios relativos con las capacidades de referencia y predecir la capacidad en tareas reservadas.",
+        "regime": "Evaluación retrospectiva en ciencia, matemáticas, programación y ciberseguridad. Los resultados principales abarcan 16 modelos objetivo de 2025-II y 2026-I, con modelos del semestre anterior como referencia. La capacidad en tareas reservadas se estima mediante TRI sobre elementos no saturados.",
+        "reproducibility": "El método, los protocolos y los apéndices son públicos en arXiv:2610.20667v1. En esta revisión no se inspeccionaron el código, los datos ni las transcripciones, y no se intentó reproducir los resultados.",
+        "strongest_baseline": "Línea base de saturación basada solo en puntajes: asigna al modelo objetivo la capacidad media de los modelos de referencia. Por construcción, los modelos de referencia con mayor capacidad resuelven correctamente los elementos observados."
+      },
+      "title": "Un estudio reporta que comparar transcripciones puede recuperar señales de capacidad en benchmarks saturados",
+      "why_it_matters": "Cuando un benchmark se satura, sus puntajes conocidos dejan de distinguir bien entre modelos avanzados, justo cuando las decisiones de seguridad y gobernanza necesitan comparaciones. El artículo reporta una forma de extraer señal adicional de las transcripciones existentes y también muestra que los cambios temporales pueden romper la estimación, además de imponer un costo considerable al análisis completo entre pares."
     },
     "FCMO-F53F9BC47FED": {
       "claims": [
@@ -31613,6 +31831,48 @@
       "why_it_matters": {
         "locale_sha256": "c40a3142edefd6f1f0220e00c740daaa246d5b6972af992892568e1e9713cc59",
         "source_sha256": "d0bc6258ea140599bc9aef5cd97e728848b1a10731766fa197a274a53f91283f"
+      }
+    },
+    "FCMO-1AEA68038362": {
+      "claims": {
+        "locale_sha256": "76a492f12ab5a7a0a7badfdf02f51216d0caf01d566d11d6ae5af1d7c1dea920",
+        "source_sha256": "8a8363a1a7457614b38423b5d0cfd8798902135acbc796e26eec2f5548903352"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "5fb73b93a2590738611cdb1a283f512311681aaf52ffda63164fa791c688f2ea",
+        "source_sha256": "8c3fe4ae6ed61723c53b7c84a2444cf5e6fa0f8d717cea03ea8a728b2cd814f8"
+      },
+      "importance_rationale": {
+        "locale_sha256": "751e4477480178f707fa437088332f5ef5fe1b5e51c399bb944751bc4283681b",
+        "source_sha256": "39997208ffb6ca433795df34a17c548066e78075cead46b4a47cbe0585051781"
+      },
+      "limitations": {
+        "locale_sha256": "89b308212e66633fe4e2cf8465d2c541e9b39c36d3f56b6305afa5cd4995a45a",
+        "source_sha256": "80fc24169dd251b6a42f9c1539ac5856545f2b1a8f3ab942dfe6d1cd8d53a124"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "e8fb9418d3144b01acb1c784c3d56770f162b000f1fec034a2101c4b72d11f19",
+        "source_sha256": "eb192812a49f6dcb8ae301209da42860631515ead8001823af701f9d3564e56f"
+      },
+      "technical": {
+        "locale_sha256": "ed27d934ad441f4147e57ae5d516595769e42a5b15041088cfe8aba4310528d5",
+        "source_sha256": "fa28d81263fc20476179c42f75b067557b9e17599e87ceef55f582addff34f1c"
+      },
+      "title": {
+        "locale_sha256": "98173be1b4806b080f41f895d7bf4a274b439d9426e867c521e7b9e24a244563",
+        "source_sha256": "b9578a25e8b9d01f3dff79d90f6edf81617aca30e34c31bb943cb64297667d36"
+      },
+      "why_it_matters": {
+        "locale_sha256": "ad3d76576351d6c60351aedc5a57d97fe8eca3648f629ea6c22dfe25b92a1564",
+        "source_sha256": "8ad923a5407a22b4116a58f3b48fcbbdf37cead5cfc9936dd209e6d4060aaae6"
       }
     },
     "FCMO-1AFA3EFAE2B1": {
@@ -47169,6 +47429,48 @@
         "source_sha256": "4affbd42322e0cf8f16e83370ef24c8a11a406748b73bed92803de505d1eac01"
       }
     },
+    "FCMO-D48C2CFC8C29": {
+      "claims": {
+        "locale_sha256": "a9adc9a85471d2baff9014ee127dca0adf1dd94c395a1a0e3897f5e6922bdd4d",
+        "source_sha256": "604398797e9936d9891253a97c14e7838595affbd789fc13271588f5d67727ce"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "6b366588e983c14459bc8476acaf28b2eef892b40ffc42f33e5730550d062384",
+        "source_sha256": "ac36159d6204b9daa78e4175e77338172e190c64077bba29adf40b4f78eb22d1"
+      },
+      "importance_rationale": {
+        "locale_sha256": "320c3e783373f1518651b0071fbab97fb9acc4f91aa0d4dc312f6e67c24277e2",
+        "source_sha256": "ec7afac59e9ae835c2d42548ac06ca280364703c6b5a3b70a382c58bdffeff07"
+      },
+      "limitations": {
+        "locale_sha256": "50dc3c930492f9593046441bd0cca61184c4c3d29693db2b7dc622576a214a73",
+        "source_sha256": "7be62dab3d9cca893911e6f4465bc233be42d33114c43703280669161f0b8f41"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "ac2f42d0e20b36c8f754c09a45ef7690c3d38f8fee533024784b3675e705d124",
+        "source_sha256": "cd2be8905a38835ce4bd9deef218d6955e628b74dd43a6b3f3a51c35e130b735"
+      },
+      "technical": {
+        "locale_sha256": "b4c52c9a63b3d5a06430dee26f49afc832a2262d721c905529755d5f111acb13",
+        "source_sha256": "b48d7d5d1392dea0271a445264f44e5a875cd5aaa78bf944d8f9218093b04672"
+      },
+      "title": {
+        "locale_sha256": "c14cb4f44288bd6157cdfe0352fe447e67ba0c4f9d994401132f1d8eaf9f17d4",
+        "source_sha256": "4e60a4a83b146175b17b40fba1aa532b8c2c3579e9381ec537944a61ac7ff559"
+      },
+      "why_it_matters": {
+        "locale_sha256": "cc03ac6d7c622977d0ce670e3191f186ec21501f41f5411897846263a34a91b8",
+        "source_sha256": "c133091ba1eb9b02417353c51e18f72dcfc65edf6cdbb99261a46f4b7d719c31"
+      }
+    },
     "FCMO-D4944D597980": {
       "claims": {
         "locale_sha256": "dbe60ffb42c0364fe1c5aa14e7a38ca7d029e88f55ada1ca84a9fe44c79c0841",
@@ -48273,6 +48575,48 @@
       "why_it_matters": {
         "locale_sha256": "abfc6de1bf098a0ff6e91ad36008b655bfc675fcdb394f2d0eba834af559e6cb",
         "source_sha256": "ee16aa6113e03e2cb728230e68e365dc2da7eb6cafad8277c57e1d5d581c2f63"
+      }
+    },
+    "FCMO-E220B922017C": {
+      "claims": {
+        "locale_sha256": "1bee6355a299abd20b0f3183c0ada4cec96798ed160d3b89894af5b52d609ba7",
+        "source_sha256": "fe4b1d0dda51e83b135e8a4cc8a8928c48ffeab58242b6d882fc99ab89f06d6f"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "e15c71a17865538c3ff4f0e5f9f2de61a9e6ab8eb0b688cdc351499c2541a24c",
+        "source_sha256": "dbcf11b92fb43831e60848281edfabe269ce44bfb8e13011d4f14bf25cb85996"
+      },
+      "importance_rationale": {
+        "locale_sha256": "b7d892e055e77b4fb760a2d74c54defc2ef3aa7e782933acb9a381521c5e5164",
+        "source_sha256": "24e0efc7437fca3d5124e9072dae65680b076e8665d7e4e304cc4c9f79351c3d"
+      },
+      "limitations": {
+        "locale_sha256": "9f0b42714ddccb6c0d17e00b5221522c8a846dcbb969f9d636298d8e47cd6c57",
+        "source_sha256": "d7c965cdd2829bffd7a389e3378fdea49ecd4a75a9e660fb69219458bbd84b42"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "d98383b673bed5938a2e935e3a6a92576d640645c4b2d9c19942b972798fa5a2",
+        "source_sha256": "803785617ff0a5f158fc378c4e82a494d3aadd98ec1822de0d8c965d9d48ae09"
+      },
+      "technical": {
+        "locale_sha256": "2a14fcdd1ea4307290f20299ad9723105175e3c3771137a3852e76286456c434",
+        "source_sha256": "964b231f9c6a208fcfb36db472debdb116e70ab04c98197a670e8c9ed9b178a5"
+      },
+      "title": {
+        "locale_sha256": "d829378720d0dcca6fd8939a3bda12f00b5d65dc441bad1976ee8421344b3fa9",
+        "source_sha256": "af99822035cb70644584e44838e8a0116222ac1d85056c107b2548a41fddf968"
+      },
+      "why_it_matters": {
+        "locale_sha256": "cd2403b48995df9d384f92486f06b1b653caeea8ae79a565b8f636daf9c3f9ba",
+        "source_sha256": "186abf9275312e5c662d3fed360a394980a097a1a901e3bff76d845e4e38beae"
       }
     },
     "FCMO-E338876726B6": {
@@ -49743,6 +50087,48 @@
       "why_it_matters": {
         "locale_sha256": "929fd4cc178254d559260f4439180f753d3a87b226f0d054c40d69b17909e7a6",
         "source_sha256": "fe25fa392814d255791dcc23d087aec7525bd87f53ef479249a247967509fb6e"
+      }
+    },
+    "FCMO-F49D9961AA54": {
+      "claims": {
+        "locale_sha256": "df04a929e7ef1fc8167abceb71d0c0e232f01f8e036a7ae73e472f79611b653c",
+        "source_sha256": "4b8eeefe7a9f99722727d7cd5a6e8e55a833b5ae4b92679a90f220cde3dfbb63"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "c8fc8c6e7a6e24eb36aa7a7ca25d5b6bfd98fef7bdfcd91c60b94e30d3cf477b",
+        "source_sha256": "73416c6376ba83b409a8a5ee472323321eda921e08bf64c0844e3c21750fdb6e"
+      },
+      "importance_rationale": {
+        "locale_sha256": "4247a30d6dc498ef2910ee3cb98b35f6686230fecee9b63a78ada9cae1a9fd40",
+        "source_sha256": "290bb91d94be672b92f9b28754432911f3e76924d61e411850dd651050ab7a2a"
+      },
+      "limitations": {
+        "locale_sha256": "c2a42c40c7a2d44133b4a047d1c6b5c9199eb13d795017ac835747ea97627b6c",
+        "source_sha256": "271a3a3f7fbfe26a4c9b33eba843be8bcd8e7e94678a756af3215ee6f77ddf3a"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "445d575ee394da819eb73ed10d4f12c2dc93d624b4eb43bcea04a7378eb632d2",
+        "source_sha256": "bb7bfca78d0fecaff897dbdad5e26274c7c6d35c527e0c644bf6503bf2756ded"
+      },
+      "technical": {
+        "locale_sha256": "ca675628f68a7ebb8c825cb45c9196dfbfe52c319bbee85c3487c5bac62e1d46",
+        "source_sha256": "89f9498dd8b2021ed95333800e544fad8ef84737a018ddacc81e772dc7b96ef0"
+      },
+      "title": {
+        "locale_sha256": "7d12324eb22b4e0310305b83f657f71ffabe59caff8e624ab985f4594fb38ab2",
+        "source_sha256": "20696ea986b70fe39da94856db6ea42b7bb0d32bd3a7f33f1306c5c450133150"
+      },
+      "why_it_matters": {
+        "locale_sha256": "8bb78f27b95eb3b9c99ec31572a37873956ee3bdd7a1977662c1c2fc8c438a83",
+        "source_sha256": "0406aee4c63948f27084a6080d3df99bc172e001ac925b196bb7a1f8a2bf4abb"
       }
     },
     "FCMO-F53F9BC47FED": {
