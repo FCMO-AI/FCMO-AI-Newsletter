@@ -24,6 +24,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
+from tools import corpus_guard  # noqa: E402
 from tools import mark_pending_localizations as mp  # noqa: E402
 from tools import validate_localizations as vl  # noqa: E402
 
@@ -369,8 +370,13 @@ class RealCorpusBacklog(unittest.TestCase):
             # require generated output to lead the corpus writer.
             source_additions = (set(delta) & published_canonical) - set(before)
             imported_additions = set(after) - set(before)
-            self.assertLessEqual(imported_additions, source_additions)
-            for rid in imported_additions:
+            # A record the bridge quarantined (airlock quarantined_from / wire-status) is
+            # absent from the incoming delta; its last published version is carried forward
+            # in the pack. Only recorded quarantine is allowed here, not any extra id.
+            carried_quarantine = ({c["id"] for c in corpus_guard.read_carried(ROOT / "corpus")}
+                                  & corpus_guard.recorded_quarantine(ROOT / "corpus")) - set(delta)
+            self.assertLessEqual(imported_additions, source_additions | carried_quarantine)
+            for rid in imported_additions - carried_quarantine:
                 self.assertEqual(after[rid], delta[rid])
             ui = json.loads((ROOT / "site/data/i18n" / locale / "ui.json").read_text(encoding="utf-8"))
             self.assertEqual(ui["canonical_record_count"], len(published_canonical))

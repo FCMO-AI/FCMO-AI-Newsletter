@@ -281,6 +281,29 @@ class RepositoryTombstonesTests(unittest.TestCase):
         result = corpus_guard.check(corpus, corpus, corpus_guard.load_tombstones(corpus / "tombstones.json"))
         self.assertEqual(result["verdict"], "OK")
 
+    def test_recorded_quarantine_is_carried_but_not_a_failure(self) -> None:
+        corpus = REPO / "corpus"
+        result = corpus_guard.check(corpus, corpus, corpus_guard.load_tombstones(corpus / "tombstones.json"))
+        recorded = corpus_guard.recorded_quarantine(corpus)
+        self.assertTrue(recorded)
+        self.assertEqual(result["quarantined"], sorted(recorded))
+        self.assertEqual(result["missing"], [])
+        self.assertEqual(set(result["quarantined"]) - set(result["carried"]), set())
+
+    def test_unrecorded_carry_forward_is_still_carry_forward(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            candidate = Path(tmp) / "candidate"
+            shutil.copytree(REPO / "corpus", candidate)
+            for name in ("airlock.json", "wire-status.json"):
+                doc = json.loads((candidate / name).read_text())
+                doc.pop("quarantined_from", None)
+                doc.pop("quarantined", None)
+                (candidate / name).write_text(json.dumps(doc))
+            result = corpus_guard.check(REPO / "corpus", candidate, corpus_guard.load_tombstones(REPO / "corpus" / "tombstones.json"))
+        self.assertEqual(result["verdict"], "CARRY_FORWARD")
+        self.assertEqual(result["quarantined"], [])
+        self.assertTrue(result["missing"])
+
 
 if __name__ == "__main__":
     unittest.main()

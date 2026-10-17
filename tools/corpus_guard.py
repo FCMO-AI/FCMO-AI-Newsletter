@@ -226,6 +226,29 @@ def live_ids(records: list[dict[str, Any]], carried: list[dict[str, Any]], tombs
     return ({r["id"] for r in records} | {c["id"] for c in carried}) - already_withdrawn - set(tombstoned)
 
 
+def recorded_quarantine(corpus: Path) -> set[str]:
+    """Ids a release records as quarantined: airlock ``quarantined_from.ids``, wire-status ``quarantined``.
+
+    Only these two receipts count. A missing id with no such record is still a failure.
+    """
+    corpus = Path(corpus)
+    found: set[str] = set()
+    if not corpus.is_dir():
+        return found
+    for name, pick in (("airlock.json", lambda d: (d.get("quarantined_from") or {}).get("ids")),
+                       ("wire-status.json", lambda d: d.get("quarantined"))):
+        path = corpus / name
+        if not path.is_file():
+            continue
+        try:
+            values = pick(json.loads(path.read_text(encoding="utf-8")))
+        except (OSError, ValueError, AttributeError):
+            continue
+        if isinstance(values, list):
+            found.update(v for v in values if isinstance(v, str) and PUBLIC_ID.fullmatch(v))
+    return found
+
+
 def check(
     published: Path,
     candidate: Path,
@@ -238,13 +261,21 @@ def check(
     cand_rows = read_records(candidate, "candidate")
     already_withdrawn = {r["id"] for r in pub_rows if r.get("status") in WITHDRAWN_STATUSES}
     live = ({r["id"] for r in pub_rows} | {c["id"] for c in pub_carried}) - already_withdrawn
-    result = verdict(
-        live,
-        (r["id"] for r in cand_rows),
-        active_tombstones(tombstones),
-        (r["id"] for r in cand_rows if r.get("status") in WITHDRAWN_STATUSES),
-        max_missing_ratio,
+    cand_ids = {r["id"] for r in cand_rows}
+    tomb = active_tombstones(tombstones)
+    upstream = [r["id"] for r in cand_rows if r.get("status") in WITHDRAWN_STATUSES]
+    result = verdict(live, cand_ids, tomb, upstream, max_missing_ratio)
+    # Recorded quarantine (the candidate says it held the record back) is a legitimate
+    # carry-forward, not a failure: the last published version stays live. The ratio still
+    # counts it, so a mass quarantine is refused exactly like a mass disappearance.
+    quarantined = sorted(
+        (recorded_quarantine(candidate) & live & set(result["missing"])) if result["exit_code"] == EXIT_OK else ()
     )
+    if quarantined:
+        result = verdict(live, cand_ids | set(quarantined), tomb, upstream, max_missing_ratio)
+        result["carried"] = sorted(set(result["carried"]) | set(quarantined))
+        result["candidate_count"] = len(cand_ids)
+    result["quarantined"] = quarantined
     result["published_release_id"] = read_release_id(published)
     result["candidate_release_id"] = read_release_id(candidate)
     result["_published_rows"] = pub_rows

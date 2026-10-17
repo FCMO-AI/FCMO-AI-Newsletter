@@ -13,7 +13,7 @@ from pathlib import Path
 
 from tests.harness.validate import validator_for
 from tools import build_newsroom_surfaces as surfaces
-from tools import ingest_corpus, story_layer, taxonomy
+from tools import corpus_guard, ingest_corpus, story_layer, taxonomy
 
 REPO = Path(__file__).resolve().parents[1]
 CONTRACTS = REPO / "contracts"
@@ -49,7 +49,14 @@ def expected_live_ids(corpus: Path = CORPUS, native: bool = True) -> set[str]:
     if native:
         from tests.test_localization_completeness import independent_backlog
         dead |= independent_backlog("es-419") | independent_backlog("zh-Hans")
-    return {r["id"] for r in rows} - dead
+    live = {r["id"] for r in rows} - dead
+    # A record the bridge quarantined (recorded in airlock/wire-status) keeps its last
+    # published version live via carried.jsonl; an unrecorded carried id is not admitted here.
+    recorded = corpus_guard.recorded_quarantine(corpus)
+    carried = {c["id"] for c in corpus_guard.read_carried(corpus)} & recorded
+    tombstoned = {e["id"] for e in json.loads((corpus / "tombstones.json").read_text())["tombstones"]
+                  if e.get("reinstated_at") is None}
+    return live | (carried - tombstoned)
 
 
 class RepositoryStoryLayerTests(unittest.TestCase):
@@ -119,7 +126,9 @@ class RepositoryStoryLayerTests(unittest.TestCase):
         corpus_ids = {json.loads(l)["id"] for l in (CORPUS / "data" / "developments.jsonl").read_text().splitlines() if l.strip()}
         from tests.test_localization_completeness import independent_backlog
         held = independent_backlog("es-419") | independent_backlog("zh-Hans")
-        self.assertEqual(set(self.stories), (corpus_ids - held) | {FDBE})
+        carried_quarantine = ({c["id"] for c in corpus_guard.read_carried(CORPUS)}
+                              & corpus_guard.recorded_quarantine(CORPUS))
+        self.assertEqual(set(self.stories), (corpus_ids - held) | carried_quarantine | {FDBE})
         for rid in held:
             self.assertIn(f"HELD_BACK {rid} NATIVE_EDITION:", self.stderr)
         live = [s for s in self.document["stories"] if s["status"] == "live"]
@@ -504,7 +513,7 @@ class IngestSelectionTests(unittest.TestCase):
         (self.corpus / "carried.jsonl").write_text(line + "\n")
         selected, _, held = self.select(self.rows)
         self.assertIn(FDBE, {r["id"] for r in selected})
-        self.assertEqual({r["id"] for r in selected}, expected_live_ids(native=False) | {FDBE})
+        self.assertEqual({r["id"] for r in selected}, expected_live_ids(self.corpus, native=False) | {FDBE})
 
 
 class TaxonomyTests(unittest.TestCase):
