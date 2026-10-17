@@ -31,3 +31,25 @@ test('login sends accented and case variants as the canonical username', async (
     assert.equal(completed, true)
   }
 })
+
+test('an expired session says so on the login screen, and a plain visit does not', () => {
+  const source = fs.readFileSync(new URL('../src/screens-home.js', import.meta.url), 'utf8')
+  const render = notice => {
+    const seen = []
+    const h = (tag, attrs, ...children) => { seen.push({ tag, attrs, children }); return { tag, attrs, children, append () {} } }
+    const scope = { h, t: x => x, post: async () => {}, ApiError: class extends Error {} }
+    vm.runInNewContext(loginSource(source).body + '\nthis.login = login;', scope)
+    scope.login({ append () {} }, () => {}, notice)
+    return seen.filter(n => n.attrs && n.attrs.role === 'status' && n.attrs.class === 'notice')
+  }
+  assert.equal(render('Tu sesión terminó.').length, 1)
+  assert.equal(render('').length, 0)
+  assert.equal(render(undefined).length, 0)
+})
+
+test('modal actions run once per click burst and report failure instead of swallowing it', () => {
+  const ui = fs.readFileSync(new URL('../src/ui.js', import.meta.url), 'utf8')
+  assert.match(ui, /if \(btn\.disabled\) return/)
+  assert.match(ui, /btn\.disabled = true/)
+  assert.match(ui, /catch \(e\) \{ fail\.hidden = false/)
+})
