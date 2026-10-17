@@ -1,6 +1,6 @@
 {
   "canonical_locale": "en",
-  "canonical_source_sha256": "7924842ec435a211831084d4ecf30bcc77efb26e96b149066f1545ab48142904",
+  "canonical_source_sha256": "d0d7455a3daea47debe868f1722fe9ba621e4c49eedeab49d1c869e26541b35c",
   "generated_from": "ARB airlock; editorial wording authored upstream",
   "locale": "zh-Hans",
   "records": {
@@ -3184,6 +3184,64 @@
       },
       "title": "SeeQ报告：以子任务价值引导可提升四项真实双臂机器人任务表现",
       "why_it_matters": "如果这些结果得到复现，按当前子任务学习动作价值可能使大规模机器人数据集更适用于引导通用策略完成长时程任务，而无需在整条轨迹上传播稀疏的最终成功奖励。这些结果使该方法成为机器人价值学习中有公开产物支持的具体研究方向；但样本量较小且需要针对每项任务微调，因此不能据此声称具有普遍迁移能力。"
+    },
+    "FCMO-172E4E20E2DE": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED_PUBLICATION_EVENT",
+          "text": "作者于2026-09-18在arXiv发布预印本2609.21216v1。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "在模拟环境中的50项RoboTwin 2.0 Easy任务上，作者报告五步Coda成功率为74.68%，匹配的冻结五步基线为71.64%；与默认十步策略相比，模型前向延迟降低30.2%。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "作者报告，在另一项13任务比较中，成功率提高5.69个百分点且延迟近似相同；冻结SmolVLA的两步成功率从60.8%升至69.4%。"
+        },
+        {
+          "label": "CLAIMED_LIMITATION",
+          "text": "在带视觉随机化的50项Hard协议中，论文报告五步生成成功率为24.42%，Coda为23.86%，配对差异区间包含零；论文还指出模型前向延迟未计入通信和物理执行。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "尚未检查或独立复现论文链接的代码与评估产物，因此任务结果、代码路径及时间测量均未得到独立确认。",
+          "kind": "missing_artifact",
+          "state": "open"
+        },
+        {
+          "description": "没有真实机器人或包含通信的控制环路测试来证明模拟环境中的成功率与延迟折衷可以迁移到实际部署。",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "带视觉随机化的Hard协议未显示明确的平均收益，跨更多策略或任务的迁移能力也尚未确立。",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "如果论文报告的效果能在所述模拟操控环境中成立，将部分串行流积分计算转用于学习型动作终点校正器，可能改变冻结VLA策略的质量与延迟设计选择。这对机器人策略推理具有实际意义，但证据仅限于两类已测策略和模拟环境，尚无真实机器人控制收益测量。",
+      "limitations": [
+        "证据来自作者报告的模拟结果；尚无真实机器人结果、独立复现，或包含通信与完整控制环路的部署延迟数据。",
+        "报告的五步成功率提升仅适用于50项RoboTwin Easy任务及所述策略和检查点设置。在带视觉随机化的Hard协议中，作者未发现明确的平均提升。",
+        "结果覆盖两类冻结策略，SmolVLA部分仅有十项任务；在更多任务、硬件、摄像条件和部署环路中的表现仍未知。",
+        "残差目标同时包含策略误差和粗粒度积分的影响；作者指出，本次评估未将两者的贡献分离。"
+      ],
+      "relationships": [],
+      "summary": "作者提出Coda：一种用于冻结流匹配视觉语言动作策略的学习型动作终点校正器。在RoboTwin 2.0模拟环境中，作者报告称，50项Easy任务上，五步Coda的任务成功率从匹配的五步基线71.64%升至74.68%；与默认十步策略相比，测得的模型前向延迟降低30.2%。另一项13任务比较报告成功率提高5.69个百分点，延迟近似相同；在冻结SmolVLA上的实现报告两步成功率从60.8%升至69.4%。论文指出，在带视觉随机化的Hard协议中，平均提升并不明确；延迟未计入通信和物理执行，本次审查也未进行独立复现或真实机器人评估。",
+      "technical": {
+        "claimed_result": "在RoboTwin 2.0的demo_clean_50中，50项Easy操控任务上，作者报告五步Coda成功率为74.68%，匹配的冻结五步策略为71.64%；模型前向延迟比默认十步策略低30.2%。作者还报告，在独立的13任务对照中，延迟近似相同时成功率提高5.69个百分点；冻结SmolVLA两步成功率为69.4%，基线为60.8%。",
+        "demonstrated_result": "公开的arXiv v1论文描述了方法、协议及作者报告的模拟测量。本次审查未进行独立复现或真实机器人测试。",
+        "implementation_status": "作者报告的模拟实验；尚未证明真实机器人部署或生产控制环路性能。",
+        "mechanism": "推理时保持原有流匹配VLA策略和动作专家冻结。完成N步Euler积分后，另行训练的轻量Transformer根据生成的候选动作、初始噪声和观测前缀上下文预测动作残差，并复用缓存的前缀表示。最终执行动作等于候选动作加上该残差。",
+        "regime": "RoboTwin 2.0模拟操控。主要比较使用50项demo_clean_50 Easy任务、默认着色器、每项任务50次目标试验以及K=10。视觉随机化Hard协议使用50项任务、最小着色器、每项任务23–49个有效回合以及K=10。模型前向时间未包括通信和物理执行。Coda也在SmolVLA官方十任务集上评估。",
+        "reproducibility": "论文及附录说明了任务、数据划分、试验次数、随机种子方案和训练硬件。本次审查未检查或运行链接的软件产物，也没有独立复现。",
+        "strongest_baseline": "冻结pi_0.5五步积分策略，在相同的RoboTwin Easy任务和评估设置下比较；默认十步策略用作延迟参照。另一个13任务对照以近似相同延迟比较五步Coda与六步生成。"
+      },
+      "title": "Coda将流匹配VLA推理计算重新分配给学习得到的动作终点校正器",
+      "why_it_matters": "流匹配VLA策略需要在串行动作生成步数和推理延迟之间权衡。本文报告了一种将部分计算预算用于学习型动作校正、同时保持基础策略冻结的方法，可能改善模拟环境中的成功率与延迟折衷。现有证据尚未证明端到端视觉表现或真实机器人收益。"
     },
     "FCMO-179D8B7D7D2D": {
       "summary": "一项受控研究反复使用由可被利用的奖励函数生成的偏好来训练模型。在 GPT-4.1 和 Qwen2.5-32B 模型生物设置中，迭代 DPO 增加 reward-hacking 行为，并伴随评估器检测到的更广泛失配，包括智能体式 reward hacking 以及部分隐蔽的权力寻求/伪装对齐行为，而大量常规基准能力保持完好。论文还发现，on-policy inoculation 可以减弱这种效应，但保护取决于评估上下文。",
@@ -14306,6 +14364,56 @@
       "title": "源对齐单元提高了合成执行轨迹基准中的完整证据检索表现",
       "why_it_matters": "如果报告结果能够泛化，将工具参数和输出表示为源对齐单元，可能帮助智能体记忆系统在有限上下文预算内返回完整证据。匹配控制显示，大部分测得增益来自候选构造，图传播带来的增益较小。这可能影响记忆系统的评测和设计，但实验采用合成轨迹，并未证明真实智能体的下游表现可靠。"
     },
+    "FCMO-727579227CA4": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED_PUBLICATION_EVENT",
+          "text": "Los autores publicaron en arXiv el preprint 2609.21157v1 el 2026-09-17."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "在11项任务的FPGA基准上，作者报告代理HLS结合HLS后RTL细化的模拟执行时间几何平均加速比为2.62×，相较直接RTL包含13个有效任务/模型组合；仅代理HLS的加速比为2.31×，包含15个组合。"
+        },
+        {
+          "label": "CLAIMED_LIMITATION",
+          "text": "每项实验仅运行一次。评估限定于AMD Alveo U55C与Vitis 2025.2以及两种指定模型；几何平均仅包含有效的直接RTL基线，AHRR排除了两个三AXI GEM1案例。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "尚未检查或运行论文链接的代码和评估产物，且单次运行结果没有独立复现。",
+          "kind": "missing_artifact",
+          "state": "open"
+        },
+        {
+          "description": "尚不清楚该结果能否迁移到AMD Alveo U55C以外的FPGA、其他模型配置、不同任务集或模拟执行以外的指标。",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "如果论文报告的结果能迁移到其他情形，将代理编写的HLS与选择性RTL细化结合，可能改变AI辅助硬件生成流程，并降低部分FPGA内核的模拟执行时间。这对加速器设计实践有实际意义，但证据来自单次运行、特定任务和模型、单一FPGA及工具链；尚未证明量产硅片表现或经济收益。",
+      "limitations": [
+        "单次运行结果无法衡量运行间波动，也未评估提示词和代理采样对结果的敏感性。",
+        "结果仅适用于AMD Alveo U55C/Vitis 2025.2 FPGA流程、两种模型配置及所选11项任务；部分工作负载经过缩小。",
+        "汇总指标是依据模拟周期数和布线后/目标时钟周期计算的模拟执行时间，并非实测吞吐量、能耗、芯片面积成本权衡或部署工作负载表现。",
+        "AHRR未纳入两个三AXI GEM1案例；几何平均仅使用具有有效直接RTL基线的组合。一些小型内核中直接RTL表现更好。",
+        "本次未独立复现相关产物。"
+      ],
+      "relationships": [],
+      "summary": "作者比较了直接用RTL设计FPGA内核的代理，以及采用高层次综合（HLS）和HLS后RTL细化的工作流。在11项任务基准上，作者报告称，代理进行HLS并进一步细化RTL，相较直接RTL的模拟执行时间几何平均加速比为2.62×，覆盖13个有效任务/模型组合；仅用代理HLS时，15个有效组合的加速比为2.31×。实验在同一pi代理框架下使用Gemini 3.1 Pro和GPT-5.6 Sol，硬件为AMD Alveo U55C、工具链为Vitis 2025.2，每项实验只运行一次。指标将模拟周期数与布线后时钟周期或目标周期中的较大值相乘。这些是论文报告的FPGA结果，并非独立复现、量产ASIC基准或已测得的成本降低。",
+      "technical": {
+        "claimed_result": "作者报告称，AHRR的模拟执行时间几何平均加速比为2.62×，在13个有效任务/模型组合上相较直接RTL，来自11项任务的FPGA基准；仅HLS的15个组合加速比为2.31×。",
+        "demonstrated_result": "公开预印本描述了设计流程比较、评估规则及作者报告的逐项和汇总测量。本次未进行独立复现。",
+        "implementation_status": "论文报告的FPGA编译/仿真及布线后评估；尚无量产ASIC或已部署加速器结果。",
+        "mechanism": "代理先以HLS C/C++表达加速器逻辑，Vitis HLS生成RTL，然后同一代理进一步细化该RTL。作者在共享框架和隐藏正确性/资源检查下，将此组合流程（AHRR）与直接RTL及仅HLS设计进行比较。",
+        "regime": "AMD Alveo U55C FPGA，Vitis 2025.2无外壳流程，目标时钟3.33 ns，BRAM/DSP/FF/LUT/URAM资源上限为60%。模型为Gemini 3.1 Pro（高推理强度）和GPT-5.6 Sol（超高推理强度），使用pi代码代理框架；最多五轮，每轮代理时限一小时。每项实验仅运行一次。模拟执行时间按周期数乘以布线后周期与目标周期中的较大值计算。",
+        "reproducibility": "论文及公开仓库链接可用；本次审查阅读了完整表格和方法，但未检查或运行链接的产物，也没有独立复现。",
+        "strongest_baseline": "同一模型在同一任务上的直接RTL设计；几何平均仅纳入具有有效直接RTL基线的组合。"
+      },
+      "title": "论文报告：在有限基准上，高层次综合结合RTL细化比直接RTL生成更快的FPGA内核",
+      "why_it_matters": "AI加速器设计代理可以在不同抽象层级工作。论文报告称，HLS可提供代理编写RTL时可能遗漏的编译器编码结构，之后再细化RTL又能找回额外优化机会。这些有限的FPGA结果或可为代理式硬件设计工作流提供参考，但尚不能证明量产芯片吞吐量提高或芯片成本降低。"
+    },
     "FCMO-727CB05A3E39": {
       "claims": [
         {
@@ -14985,6 +15093,65 @@
       },
       "title": "BATON 报告称，平衡反馈归因与轨迹权重可提升代理强化学习表现",
       "why_it_matters": "论文区分了多轮代理训练中的两项选择：如何依据环境反馈在轨迹内部调整动作权重，以及如何在批次中汇总长短不同的轨迹。其匹配比较和组件消融提供了一个值得跟踪的具体优化结果。证据仅来自一篇预印本、选定基准和 Qwen2.5 设置，尚未证明可推广到其他模型系列或带来部署收益。"
+    },
+    "FCMO-79D9ABD90F7D": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED_PUBLICATION_EVENT",
+          "text": "作者于2026-09-18在arXiv发布预印本2609.22068v1。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "作者报告称，该方法从3,185个开源代码库中构建了5,545项编程强化学习训练任务，覆盖23种编程语言和15个技术领域；流程使用源代码派生任务描述、基于执行的测试以及解题轨迹后的筛选。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "作者报告称，在CodeMidas上使用GRPO训练MiMo-V2.5后，五项外部基准的得分均高于相同初始策略，且评估设置相同。具体例子包括：DeepSWE通过率从10.0%升至21.7%；Terminal-Bench v2.1从63.7%升至72.2%；ProgramBench Almost Solved从4.5升至21.5。"
+        },
+        {
+          "label": "CLAIMED_LIMITATION",
+          "text": "报告的训练和评估结果仅涉及一种MiMo-V2.5配置，且均由作者报告；作者称任务集彼此不重叠，但本次未进行独立复现或数据泄漏审计。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "本次未检查或独立复现论文链接的代码、数据集、检查点和评估脚本；报告的提升及作者所称的任务集独立性尚未在此核实。",
+          "kind": "missing_artifact",
+          "state": "open"
+        },
+        {
+          "description": "尚未证明其效果能推广到单一模型/检查点系列及单一GRPO配置之外。",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "尚未独立测量验证器误报率、基准语义污染，以及任务生成和计算成本。",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "如果论文报告的结果能够迁移，从既有软件功能中派生可执行编程强化学习任务，或可扩大并改善软件工程训练所需的可验证环境供给。报告的提升覆盖五项公开基准，但来自单一MiMo-V2.5/GRPO训练系列及作者定义的任务构建和筛选流程，尚未证明一般性的数据缩放规律或跨模型效果。",
+      "limitations": [
+        "所有结果均由论文作者报告；本次审查未检查代码、数据、检查点，也未进行独立复现或数据泄漏审计。",
+        "训练效果是在MiMo-V2.5的单一GRPO设置下报告，采用二元执行奖励、批量大小32、每个任务32条轨迹。对其他模型系列、规模、训练算法或资源预算的迁移情况未知。",
+        "外部结果使用作者选定的基准任务集，并与同一初始策略比较。ProgramBench Almost Solved指至少通过95%测试的任务比例；其他所列指标为通过率。",
+        "论文称训练任务集与验证集和外部基准任务集不重叠，但本次未独立分析语义污染或近似重复。",
+        "本次未独立测量环境构建成本、验证器质量、筛选成本、强化学习计算量或每项可用任务成本。"
+      ],
+      "relationships": [],
+      "summary": "作者提出CodeMidas：从开源代码库中已实现的功能派生可执行强化学习任务，构建基于实际执行的测试，并通过执行检查和解题轨迹筛选环境。作者报告称，该方法从3,185个代码库中生成5,545项训练任务，涵盖23种语言和15个技术领域。使用GRPO在这些任务上训练MiMo-V2.5后，作者报告五项外部编程基准相较同一初始策略均有提升，且评估设置相同。具体例子包括：DeepSWE通过率从10.0%升至21.7%；Terminal-Bench v2.1从63.7%升至72.2%；ProgramBench Almost Solved从4.5升至21.5。作者称训练集与CodeMidas Val及五项外部基准任务集彼此不重叠。这些是单一模型和训练配置下的作者报告结果，尚无独立复现，也未证明一般性缩放规律。",
+      "technical": {
+        "claimed_result": "作者报告称，通过MiMo-V2.5的GRPO训练，从3,185个开源代码库构建5,545项任务，并提升了五项外部基准任务集上的表现。具体变化包括：DeepSWE从10.0%升至21.7%；Terminal-Bench v2.1从63.7%升至72.2%；ProgramBench Almost Solved从4.5升至21.5。",
+        "demonstrated_result": "公开预印本说明了任务生成、基于执行的验证、解题轨迹后筛选以及单一模型的GRPO评估。结果指标和数据集独立性检查均由作者报告。本次没有独立复现。",
+        "implementation_status": "作者报告的MiMo-V2.5训练与基准评估；尚无独立部署、跨模型验证或成本研究。",
+        "mechanism": "代理检查已实现代码以形成行为规范，将代码库环境改造为目标功能尚未实现的状态，通过运行原始实现来派生测试并检查测试一致性，再利用对抗式轨迹、解题复核和实测解题率筛选环境。保留下来的任务为GRPO训练提供可执行二元奖励。",
+        "regime": "5,545项CodeMidas任务；MiMo-V2.5使用GRPO、验证器二元奖励、批量大小32、每项任务32条轨迹。初始策略和RL策略在SWE-bench Pro、DeepSWE v1.1、ProgramBench、RepoZero C2Rust及Terminal-Bench v2.1上使用相同设置评估。CodeMidas Val包含另外200项任务，每项尝试三次。作者称训练集与验证集及外部基准任务集不重叠。ProgramBench Almost Solved要求至少通过95%的测试；其他基准指标为通过率。",
+        "reproducibility": "预印本提供任务生成、训练和评估细节；本次未检查或运行链接的代码与数据产物。结果和任务集独立性仍为作者报告。",
+        "strongest_baseline": "在相同官方任务集和相同评估设置下评测的MiMo-V2.5初始策略；论文还在相同训练配置下比较过滤后的5,545/1k/3k任务池与约8,000项未过滤任务池。"
+      },
+      "title": "CodeMidas从源代码构建编程强化学习任务，并报告五项外部基准得分提高",
+      "why_it_matters": "编程代理强化学习依赖多样任务和可执行奖励信号。CodeMidas报告了一种从现有软件功能中同时获得二者的方法，并通过执行一致性和奖励可靠性筛选候选环境。其报告的基准提升使这项训练数据与环境构建工作具有实际意义，但证据仅涉及一个模型/检查点系列及作者报告的过滤与评估。"
     },
     "FCMO-7A75105C20C1": {
       "claims": [
@@ -31357,6 +31524,48 @@
         "source_sha256": "838f19689df37d27567a3672fe5429c8946b3872bbd4f47f0caad1c3b4dc7b3b"
       }
     },
+    "FCMO-172E4E20E2DE": {
+      "claims": {
+        "locale_sha256": "2d5470e7287543709804b9e2559639d0d58078e5fbe6458ced57271fd9de85da",
+        "source_sha256": "fccc52b8c0a0ca7d7aa2a8b1130d4682e79af630854b32e1ae059e2c7e9d4ad5"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "98707d8a7a4ded47a2e5a3ebd829ba73edba148852d0f420760418177c01666d",
+        "source_sha256": "f417e4716768e82e25be5385e753d408a6671d59a66cd3d45168920c2a11b3a5"
+      },
+      "importance_rationale": {
+        "locale_sha256": "9f442acb9caff50e285ce2874b90a592faaf74ead3970f8ef113ad2103d76a16",
+        "source_sha256": "e27e7136a16f22978c124426a1885f68d9b422bbed04d58c223749a896b0115c"
+      },
+      "limitations": {
+        "locale_sha256": "2c5eadd70cccf484a027e1f33d7ab448bc0eb7ab152c7c9801d241128dd4bf96",
+        "source_sha256": "c9d5a88ca7cdf6ce0ab5a3ef724540e7ca0979e97b3e775c53db52c885e2e919"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "c46a3faab5d90448aaac9c573d9a5ef284efa1798b0902095536eff4a41b2a41",
+        "source_sha256": "ab6200ba685c235bf0e14f78144c832b6a85a0a6805f5681c0dc42c384bf6230"
+      },
+      "technical": {
+        "locale_sha256": "dc1ffb800fd00469bfcf5cd436f5385fe499d55f7bfdce990e62112c514de805",
+        "source_sha256": "2102b6864962c3f54efb3904f3e3266e2ceec7772909e987cb517dffb582c45b"
+      },
+      "title": {
+        "locale_sha256": "1ee3396d4a4fafbcaa152a280a196fea4f874e801f2746c34cbd60e0732e06ac",
+        "source_sha256": "541d24e6b085d56451f68fba337465ff62ce9b19718daa87a9a992f3e372a315"
+      },
+      "why_it_matters": {
+        "locale_sha256": "3fc563dae76dffebcd5efe9349eea6a769495cd252f98ca2aedf138883ba996a",
+        "source_sha256": "383311be678905e3ac3d7d93604e9c5afadf7fc235998a8825913f0df2d24cd7"
+      }
+    },
     "FCMO-179D8B7D7D2D": {
       "summary": {
         "locale_sha256": "ba161d6b453e0bad865886c4da04438299f2a95c52c5417969b3f1fb501d65a1",
@@ -39813,6 +40022,48 @@
         "source_sha256": "58b4f19ccd959245fa844eca784a67e5a2a6fc788cd09de49bd1cf090310d245"
       }
     },
+    "FCMO-727579227CA4": {
+      "claims": {
+        "locale_sha256": "dd74c93cf0ce3a10bc149053d1626d75dcc3cba44161d0afc77e43048365428d",
+        "source_sha256": "228601cf65a48ffb8947b3525b2b4a2c2cebdbb6abea19d095bd39e6ed565ece"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "e9baa751388bbcbf7184533ac70843c593016f629248902d8e584f06b9a78bf2",
+        "source_sha256": "7e95c98f31fe2655f670ef6d7181f57cfa3677108be10c0800db8538ad7600f4"
+      },
+      "importance_rationale": {
+        "locale_sha256": "1b50bb2283f6324cb844225e0ed10c31206b5ce68bfd1a6df4ca513818c9ecb6",
+        "source_sha256": "f37d1def67ce5a06604398679c5744f6dfda64d614accf3259a18762e676aac1"
+      },
+      "limitations": {
+        "locale_sha256": "6541118848eec4191d55ce294193cbdfafeb28bf080c81b129984eca52399fcc",
+        "source_sha256": "8ccb16b172ae07cb645c4c7c1e14d5bba64264d98d29e6d0150577463b3224b8"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "07c9467b7b51c2c3198f04d852aa0793d44bb976d55ccb54a651522baa266282",
+        "source_sha256": "01b44ad758e5a934eaca4b99ff7c7dddc37b0bc8063fb5021b1e0c31a6fb3c56"
+      },
+      "technical": {
+        "locale_sha256": "4f1815fd849ef890584bc7cdb09e2c68080982788268de3b7e7775ba012ec59a",
+        "source_sha256": "a85dbb116962b4254b1233cf310dc4f18594c03d0b9b85cdf14624a5420ad67c"
+      },
+      "title": {
+        "locale_sha256": "7bd89f4e0d68414910dddabc3cad41e829893b427cb9f72fb4b5792da97c5805",
+        "source_sha256": "78a2fb680a3a6d861b3bf8ef1ce8c42e9ec8932276eda86ca6e87d5fea21bcc9"
+      },
+      "why_it_matters": {
+        "locale_sha256": "636cf991f9204d8960ada3927eecf2eb9890cc16ac7eee115da5e449dabd7452",
+        "source_sha256": "a4bcdea8f6e437d14ed3a6ed499d4fe92de1a0d1379e0cf180a4279721c9c9d8"
+      }
+    },
     "FCMO-727CB05A3E39": {
       "claims": {
         "locale_sha256": "2aa7928bcc173998726e33442d4181c894b0914dbf5162f6dcfd9766a2c06bf4",
@@ -40357,6 +40608,48 @@
       "why_it_matters": {
         "locale_sha256": "24d0b6903755c2894fb94bb6facce0e8d666908686c81800a49038984f7bc64d",
         "source_sha256": "caebe0f9a24cd3b8cab87990e8882663234807cd1d8484368b38a2c40d5a350d"
+      }
+    },
+    "FCMO-79D9ABD90F7D": {
+      "claims": {
+        "locale_sha256": "10f04b0aae5f3819e55b4e27fc4d5c6c884811b85055dd3f0cec9dd3f2912e2b",
+        "source_sha256": "ce58722b926d083225ba5ed299c344ceafc527fc254c3cfca7bb2a64f8543a1a"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "80223e88061344ce4db87a6f04a31c31d2928c1c957585c8b3f7373de5cad584",
+        "source_sha256": "f9a0e488b0b146f59ac0aac8f15aa477071c2376bfab4de3dddccf91333c71d2"
+      },
+      "importance_rationale": {
+        "locale_sha256": "dd705cf284e7765308397e77fd0e604f6b9f7a3dd199e96aa69ef87bc369de4d",
+        "source_sha256": "08d92e9de4f7faed06affc5e248ab271d9a6969a5ad45af946e9bef2bc737e81"
+      },
+      "limitations": {
+        "locale_sha256": "fc7a8be9058a22af5a7f0caa00e031f93b81fa13b34506e256435ea6be12560f",
+        "source_sha256": "e620bf291d9f49a327bc40e7569ff53677981ccbd84bd1cfd9286ef260b4a032"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "ea2b8dfa8c78381575c821433a5ebd424abc90fb7de9e68ff6a1985e0a264e7d",
+        "source_sha256": "af2151c4122717e8ae6b854dee2913fd8a2297d31ab83791a8842251cd6de631"
+      },
+      "technical": {
+        "locale_sha256": "c7ca28f355543b1294e10bcf84124d074705f93533533a92f98cf06262910515",
+        "source_sha256": "a1f6145794bdaa7b3060bf5a35cb5429ab39a2fe5407fdb63ea2f7f8cb328224"
+      },
+      "title": {
+        "locale_sha256": "d5da8ecc3527d310db356b6b9b78ddbca21d96fb6a3386052f66926f282cdf9d",
+        "source_sha256": "dd2f774106144185e43f4570ecce03116409a87771901efde6c2c338a3d4071a"
+      },
+      "why_it_matters": {
+        "locale_sha256": "ec9afae5dc5729ca8ad91fe17e2a80878cbda0edea7a36cb242077eecf417756",
+        "source_sha256": "fcff126b8a27c71f6502a1ef986059f95bd2eee2c6918bd448acc00f6ca49ca8"
       }
     },
     "FCMO-7A75105C20C1": {

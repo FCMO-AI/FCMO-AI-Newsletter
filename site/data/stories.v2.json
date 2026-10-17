@@ -1,7 +1,7 @@
 {
   "schema": "fcmo-stories-v2",
-  "generated_at": "2026-10-17T05:09:06Z",
-  "release_id": "newswire-2194e08eb4e4bab0c0ad32d1",
+  "generated_at": "2026-10-17T08:06:15Z",
+  "release_id": "newswire-3d02c944f32d84e9e7188e7b",
   "canonical_locale": "en",
   "locales": [
     "en",
@@ -42,6 +42,716 @@
     "2026-10-15"
   ],
   "stories": [
+    {
+      "id": "FCMO-79D9ABD90F7D",
+      "slug": "codemidas-builds-coding-rl-tasks-from-source-code-and-reports-gains-on",
+      "url_date": "2026-10-17",
+      "kind": "development",
+      "status": "live",
+      "beat": "research",
+      "desk": "architectures_scaling",
+      "title": "CodeMidas builds coding RL tasks from source code and reports gains on five external benchmarks",
+      "summary": "The authors introduce CodeMidas, a pipeline that derives executable reinforcement-learning tasks from implemented functionality in open-source codebases, constructs execution-grounded tests, and filters environments using execution checks and solution rollouts. They report 5,545 training tasks from 3,185 repositories across 23 languages and 15 technical domains. Training MiMo-V2.5 with GRPO on this dataset reportedly improves all five listed external coding benchmarks relative to the same initial policy and evaluation settings. Examples include DeepSWE pass rate rising from 10.0% to 21.7%, Terminal-Bench v2.1 from 63.7% to 72.2%, and ProgramBench Almost Solved from 4.5 to 21.5. The authors report task-set disjointness from CodeMidas Val and the five external benchmark sets. These are author-reported results for one model/training setup, not an independent reproduction or general scaling law.",
+      "why_it_matters": "Coding-agent RL depends on task diversity and executable reward signals. CodeMidas reports a way to source both from existing software functionality, then filter candidate environments for execution consistency and reward reliability. Its reported benchmark gains make this a meaningful training-data and environment-construction result, while the evidence remains limited to one model/checkpoint family and author-reported filtering/evaluation.",
+      "importance_rationale": "If the paper-reported results transfer, deriving executable coding-RL tasks from existing functionality could broaden and improve the supply of verifiable software-engineering training environments. The reported gains span five public benchmarks, but come from one MiMo-V2.5/GRPO run family and author-defined task construction/filtering; they do not establish a general data-scaling law or cross-model result.",
+      "technical": {
+        "claimed_result": "Authors report 5,545 tasks from 3,185 open-source codebases and improved scores on all five external benchmark task sets after MiMo-V2.5 GRPO training. Specific reported changes include DeepSWE 10.0% to 21.7%, Terminal-Bench v2.1 63.7% to 72.2%, and ProgramBench Almost Solved 4.5 to 21.5.",
+        "demonstrated_result": "The public preprint specifies task generation, execution-grounded verification, post-rollout filtering and a one-model GRPO evaluation; outcome metrics and dataset-disjointness checks are reported by the authors. No independent reproduction was done.",
+        "implementation_status": "Author-reported training and benchmark evaluation on MiMo-V2.5; no independent deployment, cross-model validation or cost study established.",
+        "mechanism": "Agents inspect implemented code to formulate behavioral specifications, adapt a codebase environment where the target functionality remains unimplemented, derive tests by executing the original implementation, check test consistency, and filter environments through adversarial rollouts, solution review and observed rollout success. The retained tasks provide executable binary rewards for GRPO training.",
+        "regime": "5,545 CodeMidas tasks; MiMo-V2.5 with GRPO, binary verifier reward, batch size 32 and 32 rollouts per task. Evaluation uses the same settings for the initial and RL policies on SWE-bench Pro, DeepSWE v1.1, ProgramBench, RepoZero C2Rust and Terminal-Bench v2.1. CodeMidas Val is 200 separate tasks with three attempts each. Authors report train/validation/external benchmark task-set disjointness. ProgramBench Almost Solved requires passing at least 95% of tests; other benchmark metrics are pass rate.",
+        "reproducibility": "The preprint provides task-generation, training and evaluation details; the linked artifact and data were not inspected or run in this review. All outcome and disjointness results remain author-reported.",
+        "strongest_baseline": "The same MiMo-V2.5 initial policy evaluated on the same official task sets and identical evaluation settings; the paper also compares filtered 5,545/1k/3k task pools with an approximately 8,000-task unfiltered pool under the same training configuration."
+      },
+      "importance_tier": "Notable",
+      "development_type": "paper",
+      "event_at": "2026-09-18T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-17T08:06:01Z",
+      "updated_at": "2026-10-17T08:06:01Z",
+      "importance": 5,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": false,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "DEMONSTRATED",
+            "qualifier": "PUBLICATION_EVENT",
+            "text": "The authors posted arXiv preprint 2609.22068v1 on 2026-09-18."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "The authors report constructing 5,545 coding reinforcement-learning training tasks from 3,185 open-source codebases spanning 23 programming languages and 15 technical domains, using source-derived task statements, execution-grounded tests and post-rollout filtering."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "Training MiMo-V2.5 with GRPO on CodeMidas reportedly improves all five listed external benchmark scores against the same initial policy and identical evaluation settings; examples include DeepSWE pass rate 10.0% to 21.7%, Terminal-Bench v2.1 63.7% to 72.2%, and ProgramBench Almost Solved 4.5 to 21.5."
+          },
+          {
+            "label": "CLAIMED",
+            "qualifier": "LIMITATION",
+            "text": "The reported training and evaluation results concern one MiMo-V2.5 setup and remain author-reported; the authors state task-set disjointness, but no independent reproduction or data-leakage audit was performed in this review."
+          }
+        ],
+        "limitations": [
+          "All results are reported by the paper authors; no code, dataset, checkpoint, independent reproduction or leakage audit was performed in this review.",
+          "The reported training effect is for MiMo-V2.5 under one GRPO setup with binary execution reward, batch size 32 and 32 rollouts per task. Transfer to other model families, scales, training algorithms or resource budgets is unknown.",
+          "External results use the authors’ benchmark task sets and compare against the same initial policy; ProgramBench Almost Solved is the share of tasks passing at least 95% of tests, while the other listed metrics are pass rates.",
+          "The paper reports its training-task set is disjoint from validation and external benchmark task sets, but independent semantic/near-duplicate contamination analysis was not performed here.",
+          "Environment construction, verifier quality, filtering cost, RL compute and cost per usable task are not independently measured in this review."
+        ],
+        "gaps": [
+          {
+            "kind": "missing_artifact",
+            "description": "The linked code, dataset, checkpoints and evaluation scripts were not inspected or independently reproduced; reported gains and claimed task-set disjointness remain unverified here."
+          },
+          {
+            "kind": "other",
+            "description": "Generalization beyond one model/checkpoint family and one GRPO configuration has not been established."
+          },
+          {
+            "kind": "other",
+            "description": "Verifier false-positive rates, semantic benchmark contamination and task-generation/compute costs were not independently measured."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.22068v1",
+          "domain": "arxiv.org",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "Xiaomi",
+        "Peking University",
+        "University of Hong Kong",
+        "Renmin University of China"
+      ],
+      "topics": [
+        "coding-agents",
+        "reinforcement-learning",
+        "training-data",
+        "software-engineering",
+        "executable-environments",
+        "verifier-quality"
+      ],
+      "regions": [
+        "GLOBAL"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-79D9ABD90F7D.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: CodeMidas builds coding RL tasks from source code and reports gains on five external benchmarks"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "CodeMidas genera tareas de RL para programación a partir del código fuente e informa avances en cinco evaluaciones externas",
+            "summary": "Los autores presentan CodeMidas, un flujo que deriva tareas ejecutables de aprendizaje por refuerzo a partir de funcionalidad implementada en repositorios de código abierto, crea pruebas basadas en la ejecución y filtra entornos mediante comprobaciones de ejecución y soluciones de prueba. Informan 5,545 tareas de entrenamiento extraídas de 3,185 repositorios, con cobertura de 23 lenguajes y 15 áreas técnicas. Según el artículo, entrenar MiMo-V2.5 con GRPO en este conjunto mejora los cinco benchmarks externos de programación incluidos, frente a la misma política inicial y con idénticas condiciones de evaluación. Entre los ejemplos informados: DeepSWE sube de 10.0% a 21.7% de aprobación; Terminal-Bench v2.1, de 63.7% a 72.2%; y ProgramBench Almost Solved, de 4.5 a 21.5. Los autores informan que separaron las tareas de entrenamiento de CodeMidas Val y de los cinco benchmarks externos. Son resultados de los autores para un modelo y una configuración de entrenamiento, sin reproducción independiente ni una ley general de escalamiento.",
+            "importance_rationale": "Si los resultados informados se trasladan a otros casos, derivar tareas ejecutables de RL para programación a partir de funcionalidad existente podría ampliar y mejorar la oferta de entornos verificables para entrenar ingeniería de software. Los avances reportados abarcan cinco benchmarks públicos, pero provienen de una sola familia de entrenamiento MiMo-V2.5/GRPO y de construcción y filtrado de tareas definidos por los autores; no establecen una ley general de escalamiento de datos ni resultados en otros modelos.",
+            "why_it_matters": "El RL para agentes de programación depende de tareas variadas y señales de recompensa ejecutables. CodeMidas informa un método para obtener ambas de la funcionalidad existente en software y filtrar entornos según su consistencia de ejecución y confiabilidad de las recompensas. Los avances informados en benchmarks hacen de este un resultado significativo sobre datos de entrenamiento y construcción de entornos, aunque la evidencia se limita a una familia de modelos/checkpoints y a evaluaciones y filtros informados por los autores.",
+            "technical": {
+              "claimed_result": "Los autores informan 5,545 tareas de 3,185 repositorios de código abierto y mejoras en los cinco conjuntos de tareas de benchmarks externos después de entrenar MiMo-V2.5 con GRPO. Entre los cambios informados: DeepSWE de 10.0% a 21.7%; Terminal-Bench v2.1 de 63.7% a 72.2%; y ProgramBench Almost Solved de 4.5 a 21.5.",
+              "demonstrated_result": "El preprint público especifica generación de tareas, verificación basada en ejecución, filtrado posterior a las pruebas y una evaluación de GRPO con un modelo. Las métricas de resultado y las comprobaciones de separación de datos son informadas por los autores. No se hizo una reproducción independiente.",
+              "implementation_status": "Entrenamiento y evaluación de benchmarks en MiMo-V2.5, informados por los autores; no se establecieron despliegue independiente, validación con otros modelos ni análisis de costos.",
+              "mechanism": "Agentes inspeccionan la funcionalidad implementada para formular especificaciones de comportamiento, adaptan un entorno de código donde la funcionalidad objetivo aún debe implementarse, derivan pruebas al ejecutar la implementación original, verifican la consistencia de las pruebas y filtran entornos mediante pruebas adversariales, revisión de soluciones y éxito observado en ejecuciones. Las tareas retenidas proporcionan recompensas binarias ejecutables para entrenar con GRPO.",
+              "regime": "5,545 tareas de CodeMidas; MiMo-V2.5 con GRPO, recompensa binaria del verificador, tamaño de lote 32 y 32 intentos por tarea. La evaluación aplica las mismas condiciones a la política inicial y a la política de RL en SWE-bench Pro, DeepSWE v1.1, ProgramBench, RepoZero C2Rust y Terminal-Bench v2.1. CodeMidas Val contiene 200 tareas separadas y tres intentos por tarea. Los autores informan que los conjuntos de entrenamiento, validación y benchmarks externos no se superponen. ProgramBench Almost Solved exige pasar al menos 95% de las pruebas; las otras métricas son tasas de aprobación.",
+              "reproducibility": "El preprint describe la generación de tareas, el entrenamiento y la evaluación; en esta revisión no se inspeccionaron ni ejecutaron los artefactos o datos enlazados. Los resultados y la separación entre conjuntos siguen siendo afirmaciones de los autores.",
+              "strongest_baseline": "La política inicial de MiMo-V2.5 evaluada en los mismos conjuntos oficiales y con condiciones idénticas; el artículo también compara conjuntos filtrados de 5,545/1k/3k tareas con un conjunto sin filtrar de aproximadamente 8,000 tareas bajo la misma configuración de entrenamiento."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "Los autores publicaron el preprint 2609.22068v1 en arXiv el 2026-09-18."
+                },
+                {
+                  "text": "Los autores informan la creación de 5,545 tareas de aprendizaje por refuerzo para programación a partir de 3,185 repositorios de código abierto, con 23 lenguajes de programación y 15 áreas técnicas, mediante descripciones de tareas derivadas del código fuente, pruebas basadas en ejecución y filtrado posterior a las pruebas de solución."
+                },
+                {
+                  "text": "Según los autores, entrenar MiMo-V2.5 con GRPO en CodeMidas mejora las puntuaciones en los cinco benchmarks externos incluidos frente a la misma política inicial y con idénticas condiciones de evaluación. Entre los ejemplos informados: DeepSWE sube de 10.0% a 21.7% de aprobación; Terminal-Bench v2.1, de 63.7% a 72.2%; y ProgramBench Almost Solved, de 4.5 a 21.5."
+                },
+                {
+                  "text": "Los resultados de entrenamiento y evaluación informados corresponden a una configuración de MiMo-V2.5 y son reportados por los autores; estos señalan que los conjuntos de tareas no se superponen, pero en esta revisión no se hizo una reproducción independiente ni auditoría de filtración de datos."
+                }
+              ],
+              "limitations": [
+                "Todos los resultados son informados por los autores; en esta revisión no se inspeccionaron el código, los datos, los checkpoints ni se hizo una reproducción independiente o auditoría de filtración de datos.",
+                "El efecto de entrenamiento informado corresponde a MiMo-V2.5 bajo una configuración GRPO con recompensa binaria de ejecución, tamaño de lote 32 y 32 intentos por tarea. Se desconoce la transferencia a otras familias de modelos, escalas, algoritmos de entrenamiento o presupuestos de recursos.",
+                "Los resultados externos usan conjuntos de tareas de benchmarks elegidos por los autores y comparan con la misma política inicial. ProgramBench Almost Solved es la proporción de tareas que pasan al menos 95% de las pruebas; las demás métricas indicadas son tasas de aprobación.",
+                "El artículo informa que su conjunto de entrenamiento no se superpone con los conjuntos de validación y benchmarks externos, pero aquí no se realizó un análisis independiente de contaminación semántica o de duplicados aproximados.",
+                "En esta revisión no se midieron de forma independiente el costo de construir entornos, la calidad del verificador, el costo del filtrado, el cómputo de RL ni el costo por tarea utilizable."
+              ],
+              "gaps": [
+                {
+                  "description": "No se inspeccionaron ni reprodujeron de forma independiente el código, el conjunto de datos, los checkpoints ni los scripts de evaluación enlazados; los avances y la separación de conjuntos afirmada por los autores siguen sin verificarse aquí."
+                },
+                {
+                  "description": "No se ha establecido la generalización más allá de una familia de modelos/checkpoints y una configuración GRPO."
+                },
+                {
+                  "description": "No se midieron de forma independiente las tasas de falsos positivos del verificador, la contaminación semántica de los benchmarks ni el costo de generación de tareas y cómputo."
+                }
+              ]
+            }
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "CodeMidas从源代码构建编程强化学习任务，并报告五项外部基准得分提高",
+            "summary": "作者提出CodeMidas：从开源代码库中已实现的功能派生可执行强化学习任务，构建基于实际执行的测试，并通过执行检查和解题轨迹筛选环境。作者报告称，该方法从3,185个代码库中生成5,545项训练任务，涵盖23种语言和15个技术领域。使用GRPO在这些任务上训练MiMo-V2.5后，作者报告五项外部编程基准相较同一初始策略均有提升，且评估设置相同。具体例子包括：DeepSWE通过率从10.0%升至21.7%；Terminal-Bench v2.1从63.7%升至72.2%；ProgramBench Almost Solved从4.5升至21.5。作者称训练集与CodeMidas Val及五项外部基准任务集彼此不重叠。这些是单一模型和训练配置下的作者报告结果，尚无独立复现，也未证明一般性缩放规律。",
+            "importance_rationale": "如果论文报告的结果能够迁移，从既有软件功能中派生可执行编程强化学习任务，或可扩大并改善软件工程训练所需的可验证环境供给。报告的提升覆盖五项公开基准，但来自单一MiMo-V2.5/GRPO训练系列及作者定义的任务构建和筛选流程，尚未证明一般性的数据缩放规律或跨模型效果。",
+            "why_it_matters": "编程代理强化学习依赖多样任务和可执行奖励信号。CodeMidas报告了一种从现有软件功能中同时获得二者的方法，并通过执行一致性和奖励可靠性筛选候选环境。其报告的基准提升使这项训练数据与环境构建工作具有实际意义，但证据仅涉及一个模型/检查点系列及作者报告的过滤与评估。",
+            "technical": {
+              "claimed_result": "作者报告称，通过MiMo-V2.5的GRPO训练，从3,185个开源代码库构建5,545项任务，并提升了五项外部基准任务集上的表现。具体变化包括：DeepSWE从10.0%升至21.7%；Terminal-Bench v2.1从63.7%升至72.2%；ProgramBench Almost Solved从4.5升至21.5。",
+              "demonstrated_result": "公开预印本说明了任务生成、基于执行的验证、解题轨迹后筛选以及单一模型的GRPO评估。结果指标和数据集独立性检查均由作者报告。本次没有独立复现。",
+              "implementation_status": "作者报告的MiMo-V2.5训练与基准评估；尚无独立部署、跨模型验证或成本研究。",
+              "mechanism": "代理检查已实现代码以形成行为规范，将代码库环境改造为目标功能尚未实现的状态，通过运行原始实现来派生测试并检查测试一致性，再利用对抗式轨迹、解题复核和实测解题率筛选环境。保留下来的任务为GRPO训练提供可执行二元奖励。",
+              "regime": "5,545项CodeMidas任务；MiMo-V2.5使用GRPO、验证器二元奖励、批量大小32、每项任务32条轨迹。初始策略和RL策略在SWE-bench Pro、DeepSWE v1.1、ProgramBench、RepoZero C2Rust及Terminal-Bench v2.1上使用相同设置评估。CodeMidas Val包含另外200项任务，每项尝试三次。作者称训练集与验证集及外部基准任务集不重叠。ProgramBench Almost Solved要求至少通过95%的测试；其他基准指标为通过率。",
+              "reproducibility": "预印本提供任务生成、训练和评估细节；本次未检查或运行链接的代码与数据产物。结果和任务集独立性仍为作者报告。",
+              "strongest_baseline": "在相同官方任务集和相同评估设置下评测的MiMo-V2.5初始策略；论文还在相同训练配置下比较过滤后的5,545/1k/3k任务池与约8,000项未过滤任务池。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "作者于2026-09-18在arXiv发布预印本2609.22068v1。"
+                },
+                {
+                  "text": "作者报告称，该方法从3,185个开源代码库中构建了5,545项编程强化学习训练任务，覆盖23种编程语言和15个技术领域；流程使用源代码派生任务描述、基于执行的测试以及解题轨迹后的筛选。"
+                },
+                {
+                  "text": "作者报告称，在CodeMidas上使用GRPO训练MiMo-V2.5后，五项外部基准的得分均高于相同初始策略，且评估设置相同。具体例子包括：DeepSWE通过率从10.0%升至21.7%；Terminal-Bench v2.1从63.7%升至72.2%；ProgramBench Almost Solved从4.5升至21.5。"
+                },
+                {
+                  "text": "报告的训练和评估结果仅涉及一种MiMo-V2.5配置，且均由作者报告；作者称任务集彼此不重叠，但本次未进行独立复现或数据泄漏审计。"
+                }
+              ],
+              "limitations": [
+                "所有结果均由论文作者报告；本次审查未检查代码、数据、检查点，也未进行独立复现或数据泄漏审计。",
+                "训练效果是在MiMo-V2.5的单一GRPO设置下报告，采用二元执行奖励、批量大小32、每个任务32条轨迹。对其他模型系列、规模、训练算法或资源预算的迁移情况未知。",
+                "外部结果使用作者选定的基准任务集，并与同一初始策略比较。ProgramBench Almost Solved指至少通过95%测试的任务比例；其他所列指标为通过率。",
+                "论文称训练任务集与验证集和外部基准任务集不重叠，但本次未独立分析语义污染或近似重复。",
+                "本次未独立测量环境构建成本、验证器质量、筛选成本、强化学习计算量或每项可用任务成本。"
+              ],
+              "gaps": [
+                {
+                  "description": "本次未检查或独立复现论文链接的代码、数据集、检查点和评估脚本；报告的提升及作者所称的任务集独立性尚未在此核实。"
+                },
+                {
+                  "description": "尚未证明其效果能推广到单一模型/检查点系列及单一GRPO配置之外。"
+                },
+                {
+                  "description": "尚未独立测量验证器误报率、基准语义污染，以及任务生成和计算成本。"
+                }
+              ]
+            },
+            "headline": "CodeMidas从源代码构建编程强化学习任务，并报告五项外部基准得分提高"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
+    {
+      "id": "FCMO-727579227CA4",
+      "slug": "agentic-high-level-synthesis-with-rtl-refinement-reports-faster-fpga",
+      "url_date": "2026-10-17",
+      "kind": "development",
+      "status": "live",
+      "beat": "research",
+      "desk": "compute_inference",
+      "title": "Agentic high-level synthesis with RTL refinement reports faster FPGA kernels than direct RTL on a bounded benchmark",
+      "dek": "The authors compare agents designing FPGA kernels directly in RTL with workflows that use high-level synthesis (HLS) and post-HLS RTL refinement.",
+      "summary": "The authors compare agents designing FPGA kernels directly in RTL with workflows that use high-level synthesis (HLS) and post-HLS RTL refinement. On an 11-task benchmark, they report a 2.62× geometric-mean speedup in simulated execution time for agent-based HLS with RTL refinement over direct RTL across 13 valid task/model pairs; agent-based HLS alone reports 2.31× across 15 valid pairs. The experiments use Gemini 3.1 Pro and GPT-5.6 Sol in the same pi harness, AMD Alveo U55C and Vitis 2025.2, with each experiment run once. The metric combines simulated cycle count with the greater of post-route clock period or target period. These are paper-reported FPGA results, not an independent reproduction, production ASIC benchmark or measured cost reduction.",
+      "why_it_matters": "AI accelerator design agents can work at several abstraction levels. This paper reports that HLS can supply compiler-encoded structure that agent-written RTL may miss, while later RTL refinement can recover additional optimization opportunities. Its bounded FPGA results may inform agentic hardware-design workflows, but do not establish improved production-chip throughput or lower chip cost.",
+      "importance_rationale": "If the paper-reported results transfer, combining agent-written HLS with selective RTL refinement can change the design workflow for AI-assisted hardware generation and lower simulated execution time on some FPGA kernels. The consequence is meaningful for accelerator-design practice, but evidence comes from one-run, task/model-specific experiments on a single FPGA/toolchain and does not establish production silicon or economic gains.",
+      "technical": {
+        "claimed_result": "Authors report 2.62× geometric-mean speedup in simulated execution time for AHRR over direct RTL on 13 valid task/model pairs drawn from an 11-task FPGA suite; HLS-only reports 2.31× over 15 pairs.",
+        "demonstrated_result": "The public preprint describes the design-flow comparison, evaluation rules and author-reported per-pair and aggregate measurements. No independent reproduction was conducted.",
+        "implementation_status": "Paper-reported FPGA compilation/simulation and post-route evaluation; no production ASIC or deployed accelerator result is established.",
+        "mechanism": "The workflow lets the agent first express accelerator logic in HLS C/C++, uses Vitis HLS to generate RTL, then allows the same agent to refine that generated RTL. The authors compare this combination (AHRR) with direct RTL and HLS-only design under a shared harness and hidden correctness/resource checks.",
+        "regime": "AMD Alveo U55C FPGA, Vitis 2025.2 out-of-context flow, target clock 3.33 ns, resource ceiling 60% of BRAM/DSP/FF/LUT/URAM. Models are Gemini 3.1 Pro (high) and GPT-5.6 Sol (extra-high) in the pi coding-agent harness; up to five rounds, one-hour agent-round timeout. Each experiment runs once. Simulated execution time is cycle count times max(post-route period, target period).",
+        "reproducibility": "A public author repository is available under MIT and its README describes tasks, harness, results and artifact-generation layout; the visible repository history shows one commit. This review did not pin that commit, inspect implementation files or run the code. No independent reproduction.",
+        "strongest_baseline": "Direct RTL Design by the same model on the same task; geometric means include only valid direct-RTL pairs."
+      },
+      "importance_tier": "Meaningful",
+      "development_type": "paper",
+      "event_at": "2026-09-17T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-17T08:06:01Z",
+      "updated_at": "2026-10-17T08:06:01Z",
+      "importance": 4,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": false,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "DEMONSTRATED",
+            "qualifier": "PUBLICATION_EVENT",
+            "text": "The authors posted arXiv preprint 2609.21157v1 on 2026-09-17."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "On an 11-task FPGA benchmark, the authors report that agent-based HLS with post-HLS RTL refinement achieves a 2.62× geometric-mean speedup in simulated execution time over direct RTL across 13 valid task/model pairs; HLS alone reports 2.31× across 15 pairs."
+          },
+          {
+            "label": "CLAIMED",
+            "qualifier": "LIMITATION",
+            "text": "Each experiment was run once. The evaluation is limited to AMD Alveo U55C with Vitis 2025.2 and two named models; the geometric mean includes only valid direct-RTL baselines, and two GEM1 three-AXI cases were excluded from AHRR."
+          }
+        ],
+        "limitations": [
+          "Single-run results do not quantify run-to-run variation or sensitivity to prompts and agent sampling.",
+          "The result is specific to an AMD Alveo U55C/Vitis 2025.2 FPGA flow, two model configurations and the selected 11-task suite; some workloads are scaled down.",
+          "The aggregate metric is simulated execution time based on cycle count and post-route/target clock, not measured throughput, energy, chip area-cost trade-offs or deployed workload performance.",
+          "AHRR excludes two GEM1 three-AXI cases; geometric means use only valid direct-RTL baseline pairs. Some small kernels perform better under direct RTL.",
+          "No independent artifact reproduction was performed."
+        ],
+        "gaps": [
+          {
+            "kind": "missing_artifact",
+            "description": "The author repository and evaluation artifacts are publicly listed, but this review did not pin a revision, inspect source/result-generation files or run the artifacts; single-run reported results remain independently unverified."
+          },
+          {
+            "kind": "other",
+            "description": "Transfer beyond the chosen U55C/Vitis toolchain, two model configurations, task suite and simulated execution metric is unknown."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.21157v1",
+          "domain": "arxiv.org",
+          "primary": true
+        },
+        {
+          "url": "https://github.com/ZijD/AHRR",
+          "domain": "github.com",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "University of California, Los Angeles"
+      ],
+      "topics": [
+        "ai-chip-design",
+        "high-level-synthesis",
+        "fpga",
+        "hardware-agents",
+        "rtl-refinement"
+      ],
+      "regions": [
+        "GLOBAL"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-727579227CA4.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: Agentic high-level synthesis with RTL refinement reports faster FPGA kernels than direct RTL on a bounded benchmark"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "La síntesis de alto nivel con refinamiento RTL informa kernels FPGA más rápidos que RTL directo en una evaluación acotada",
+            "summary": "Los autores comparan agentes que diseñan kernels FPGA directamente en RTL con flujos que emplean síntesis de alto nivel (HLS) y refinamiento RTL posterior a HLS. En una evaluación de 11 tareas, informan que HLS con refinamiento RTL logra una aceleración media geométrica de 2.62× en tiempo de ejecución simulado frente a RTL directo en 13 pares válidos de tarea y modelo; HLS por sí sola informa 2.31× en 15 pares válidos. Los experimentos usan Gemini 3.1 Pro y GPT-5.6 Sol con el mismo arnés pi, una AMD Alveo U55C y Vitis 2025.2, y cada experimento se ejecutó una vez. La métrica combina ciclos simulados con el mayor entre el periodo posterior al ruteo y el periodo objetivo. Son resultados de FPGA informados por el artículo: no son una reproducción independiente, una evaluación de ASIC de producción ni una reducción de costos medida.",
+            "importance_rationale": "Si los resultados informados por el artículo se trasladan a otros casos, combinar HLS escrito por agentes con refinamiento selectivo de RTL podría cambiar el flujo de diseño de hardware asistido por IA y reducir el tiempo de ejecución simulado de algunos kernels FPGA. La consecuencia es significativa para la práctica de diseño de aceleradores, aunque la evidencia proviene de pruebas de una sola ejecución y específicas de tareas/modelos en una única FPGA y cadena de herramientas; no establece ganancias económicas ni en silicio de producción.",
+            "why_it_matters": "Los agentes de diseño de aceleradores de IA pueden trabajar en varios niveles de abstracción. Este artículo informa que HLS puede aportar estructura codificada por compilador que el RTL escrito por agentes podría pasar por alto, mientras que un refinamiento RTL posterior puede recuperar oportunidades adicionales de optimización. Los resultados acotados de FPGA pueden orientar flujos de diseño de hardware con agentes, pero no demuestran mayor rendimiento de chips de producción ni menores costos de chip.",
+            "technical": {
+              "claimed_result": "Los autores informan una aceleración media geométrica de 2.62× en tiempo de ejecución simulado para AHRR frente a RTL directo en 13 pares válidos de tarea y modelo, derivados de una evaluación FPGA de 11 tareas; HLS por sí sola informa 2.31× en 15 pares.",
+              "demonstrated_result": "El preprint público describe la comparación de flujos de diseño, las reglas de evaluación y las mediciones por par y agregadas que informan los autores. No se hizo una reproducción independiente.",
+              "implementation_status": "Compilación/simulación FPGA y evaluación posterior al ruteo informadas en el artículo; no se han establecido resultados de ASIC de producción ni de aceleradores desplegados.",
+              "mechanism": "El flujo permite que el agente exprese primero la lógica del acelerador en HLS C/C++; Vitis HLS genera el RTL y luego el mismo agente puede refinarlo. Los autores comparan esta combinación (AHRR) con diseño RTL directo y con HLS sin refinamiento, usando un arnés compartido y controles ocultos de corrección y recursos.",
+              "regime": "FPGA AMD Alveo U55C y flujo Vitis 2025.2 fuera de contexto; reloj objetivo de 3.33 ns y límite de recursos del 60% para BRAM/DSP/FF/LUT/URAM. Modelos Gemini 3.1 Pro (nivel alto) y GPT-5.6 Sol (nivel extra alto) en el arnés de agente de código pi; hasta cinco rondas, con límite de una hora por ronda del agente. Cada experimento se ejecutó una vez. El tiempo simulado es ciclos multiplicados por el máximo entre periodo posterior al ruteo y periodo objetivo.",
+              "reproducibility": "El artículo y el enlace al repositorio público están disponibles; esta revisión consultó las tablas y métodos completos, pero no inspeccionó ni ejecutó el artefacto enlazado. No hay reproducción independiente.",
+              "strongest_baseline": "Diseño RTL directo del mismo modelo y en la misma tarea; las medias geométricas solo incluyen pares con una línea base RTL directa válida."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "Los autores publicaron en arXiv el preprint 2609.21157v1 el 2026-09-17."
+                },
+                {
+                  "text": "En una evaluación FPGA de 11 tareas, los autores informan que HLS con refinamiento RTL posterior alcanza una aceleración media geométrica de 2.62× en tiempo de ejecución simulado frente a RTL directo en 13 pares válidos de tarea y modelo; HLS por sí sola informa 2.31× en 15 pares."
+                },
+                {
+                  "text": "Cada experimento se ejecutó una vez. La evaluación se limita a AMD Alveo U55C con Vitis 2025.2 y dos modelos especificados; la media geométrica solo incluye líneas base RTL directas válidas y AHRR excluye dos casos GEM1 de tres AXI."
+                }
+              ],
+              "limitations": [
+                "Los resultados de una sola ejecución no miden la variación entre corridas ni la sensibilidad a instrucciones y muestreo del agente.",
+                "Los resultados son específicos del flujo FPGA AMD Alveo U55C/Vitis 2025.2, dos configuraciones de modelo y la evaluación de 11 tareas; algunas cargas de trabajo fueron reducidas.",
+                "La métrica agregada es tiempo de ejecución simulado, calculado con ciclos y el periodo posterior al ruteo/periodo objetivo; no mide rendimiento, energía, compromisos entre área y costo ni desempeño en cargas de producción.",
+                "AHRR excluye dos casos GEM1 de tres AXI; las medias geométricas incluyen solo pares con una línea base RTL directa válida. RTL directo supera a HLS en algunos kernels pequeños.",
+                "No se reprodujo de forma independiente el artefacto."
+              ],
+              "gaps": [
+                {
+                  "description": "No se inspeccionaron ni ejecutaron el código y los artefactos de evaluación enlazados, y los resultados de una sola ejecución no cuentan con reproducción independiente."
+                },
+                {
+                  "description": "Se desconoce la transferencia más allá de la FPGA AMD Alveo U55C, las dos configuraciones de modelo, las tareas seleccionadas y la métrica de ejecución simulada."
+                }
+              ]
+            },
+            "dek": "Los autores comparan agentes que diseñan kernels FPGA directamente en RTL con flujos que emplean síntesis de alto nivel (HLS) y refinamiento RTL posterior a HLS."
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "论文报告：在有限基准上，高层次综合结合RTL细化比直接RTL生成更快的FPGA内核",
+            "summary": "作者比较了直接用RTL设计FPGA内核的代理，以及采用高层次综合（HLS）和HLS后RTL细化的工作流。在11项任务基准上，作者报告称，代理进行HLS并进一步细化RTL，相较直接RTL的模拟执行时间几何平均加速比为2.62×，覆盖13个有效任务/模型组合；仅用代理HLS时，15个有效组合的加速比为2.31×。实验在同一pi代理框架下使用Gemini 3.1 Pro和GPT-5.6 Sol，硬件为AMD Alveo U55C、工具链为Vitis 2025.2，每项实验只运行一次。指标将模拟周期数与布线后时钟周期或目标周期中的较大值相乘。这些是论文报告的FPGA结果，并非独立复现、量产ASIC基准或已测得的成本降低。",
+            "importance_rationale": "如果论文报告的结果能迁移到其他情形，将代理编写的HLS与选择性RTL细化结合，可能改变AI辅助硬件生成流程，并降低部分FPGA内核的模拟执行时间。这对加速器设计实践有实际意义，但证据来自单次运行、特定任务和模型、单一FPGA及工具链；尚未证明量产硅片表现或经济收益。",
+            "why_it_matters": "AI加速器设计代理可以在不同抽象层级工作。论文报告称，HLS可提供代理编写RTL时可能遗漏的编译器编码结构，之后再细化RTL又能找回额外优化机会。这些有限的FPGA结果或可为代理式硬件设计工作流提供参考，但尚不能证明量产芯片吞吐量提高或芯片成本降低。",
+            "technical": {
+              "claimed_result": "作者报告称，AHRR的模拟执行时间几何平均加速比为2.62×，在13个有效任务/模型组合上相较直接RTL，来自11项任务的FPGA基准；仅HLS的15个组合加速比为2.31×。",
+              "demonstrated_result": "公开预印本描述了设计流程比较、评估规则及作者报告的逐项和汇总测量。本次未进行独立复现。",
+              "implementation_status": "论文报告的FPGA编译/仿真及布线后评估；尚无量产ASIC或已部署加速器结果。",
+              "mechanism": "代理先以HLS C/C++表达加速器逻辑，Vitis HLS生成RTL，然后同一代理进一步细化该RTL。作者在共享框架和隐藏正确性/资源检查下，将此组合流程（AHRR）与直接RTL及仅HLS设计进行比较。",
+              "regime": "AMD Alveo U55C FPGA，Vitis 2025.2无外壳流程，目标时钟3.33 ns，BRAM/DSP/FF/LUT/URAM资源上限为60%。模型为Gemini 3.1 Pro（高推理强度）和GPT-5.6 Sol（超高推理强度），使用pi代码代理框架；最多五轮，每轮代理时限一小时。每项实验仅运行一次。模拟执行时间按周期数乘以布线后周期与目标周期中的较大值计算。",
+              "reproducibility": "论文及公开仓库链接可用；本次审查阅读了完整表格和方法，但未检查或运行链接的产物，也没有独立复现。",
+              "strongest_baseline": "同一模型在同一任务上的直接RTL设计；几何平均仅纳入具有有效直接RTL基线的组合。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "Los autores publicaron en arXiv el preprint 2609.21157v1 el 2026-09-17."
+                },
+                {
+                  "text": "在11项任务的FPGA基准上，作者报告代理HLS结合HLS后RTL细化的模拟执行时间几何平均加速比为2.62×，相较直接RTL包含13个有效任务/模型组合；仅代理HLS的加速比为2.31×，包含15个组合。"
+                },
+                {
+                  "text": "每项实验仅运行一次。评估限定于AMD Alveo U55C与Vitis 2025.2以及两种指定模型；几何平均仅包含有效的直接RTL基线，AHRR排除了两个三AXI GEM1案例。"
+                }
+              ],
+              "limitations": [
+                "单次运行结果无法衡量运行间波动，也未评估提示词和代理采样对结果的敏感性。",
+                "结果仅适用于AMD Alveo U55C/Vitis 2025.2 FPGA流程、两种模型配置及所选11项任务；部分工作负载经过缩小。",
+                "汇总指标是依据模拟周期数和布线后/目标时钟周期计算的模拟执行时间，并非实测吞吐量、能耗、芯片面积成本权衡或部署工作负载表现。",
+                "AHRR未纳入两个三AXI GEM1案例；几何平均仅使用具有有效直接RTL基线的组合。一些小型内核中直接RTL表现更好。",
+                "本次未独立复现相关产物。"
+              ],
+              "gaps": [
+                {
+                  "description": "尚未检查或运行论文链接的代码和评估产物，且单次运行结果没有独立复现。"
+                },
+                {
+                  "description": "尚不清楚该结果能否迁移到AMD Alveo U55C以外的FPGA、其他模型配置、不同任务集或模拟执行以外的指标。"
+                }
+              ]
+            },
+            "headline": "论文报告：在有限基准上，高层次综合结合RTL细化比直接RTL生成更快的FPGA内核"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
+    {
+      "id": "FCMO-172E4E20E2DE",
+      "slug": "coda-reallocates-flow-matching-vla-inference-compute-to-a-learned",
+      "url_date": "2026-10-17",
+      "kind": "development",
+      "status": "live",
+      "beat": "research",
+      "desk": "multimodality_world_models",
+      "title": "Coda reallocates flow-matching VLA inference compute to a learned endpoint correction",
+      "headline": "Coda reallocates flow-matching VLA inference compute to a learned endpoint correction",
+      "dek": "The authors introduce Coda, a learned endpoint correction for frozen flow-matching vision-language-action policies.",
+      "summary": "The authors introduce Coda, a learned endpoint correction for frozen flow-matching vision-language-action policies. On RoboTwin 2.0 simulation, they report that five-step Coda raises task success from 71.64% to 74.68% over a matched five-step baseline across 50 Easy tasks, while reducing measured model-forward latency 30.2% against the default ten-step policy. A separate 13-task comparison reports a 5.69-point success gain at nearly equal latency, and an implementation on frozen SmolVLA reports a two-step gain from 60.8% to 69.4%. The paper reports no clear average gain on its visual-randomization Hard protocol; latency excludes communication and physical execution, and no real-robot evaluation or independent reproduction was conducted.",
+      "why_it_matters": "Flow-matching VLA policies trade serial action-generation steps against inference latency. This paper reports a way to spend part of that budget on a learned action correction while leaving the base policy frozen, potentially improving the simulated success-latency trade-off. The evidence does not establish end-to-end visual performance or real-robot gains.",
+      "importance_rationale": "If the paper-reported effect holds in the stated simulated manipulation regime, shifting some serial flow-integration compute to a learned endpoint correction can change the quality-latency design choice for frozen VLA policies. Its consequence is meaningful for robotic-policy inference, but remains bounded to two evaluated policies and simulation, with no measured real-robot control benefit.",
+      "technical": {
+        "claimed_result": "On RoboTwin 2.0 demo_clean_50 across 50 Easy manipulation tasks, authors report 74.68% success for five-step Coda versus 71.64% for the matched five-step policy baseline, and 30.2% lower model-forward latency than the default ten-step policy. They also report 5.69 points gain at nearly equal latency on an independent 13-task control and two-step frozen SmolVLA success of 69.4% versus 60.8%.",
+        "demonstrated_result": "The public arXiv v1 paper specifies the approach, protocols and author-reported simulation measurements. No independent reproduction or real-robot test was performed.",
+        "implementation_status": "Author-reported simulation experiments; no real-robot deployment or production control-loop performance established.",
+        "mechanism": "Keep the original flow-matching VLA and action expert frozen at inference; after N Euler integration steps, a separately trained lightweight Transformer predicts an action residual from the generated candidate, source noise and observation-prefix context, reusing the cached prefix representation. The executed action is the candidate plus this residual.",
+        "regime": "RoboTwin 2.0 simulated manipulation. Main comparison uses 50 demo_clean_50 Easy tasks, default shader, 50 target trials per task and K=10. The randomized Hard protocol uses 50 tasks, a minimal shader, 23–49 valid episodes per task and K=10. Model-forward timings exclude communication and physical execution. Coda is also evaluated on the official ten-task SmolVLA set.",
+        "reproducibility": "The paper and appendix state tasks, splits, trial counts, seed scheme and training hardware. The linked software artifact was not inspected or run; there is no independent reproduction in this record.",
+        "strongest_baseline": "Frozen pi_0.5 five-step integration baseline under matched RoboTwin Easy tasks and evaluation settings; the default ten-step policy is the latency reference. A separate 13-task control compares five-step Coda against six-step generation at nearly equal latency."
+      },
+      "importance_tier": "Meaningful",
+      "development_type": "paper",
+      "event_at": "2026-09-18T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-17T08:06:01Z",
+      "updated_at": "2026-10-17T08:06:01Z",
+      "importance": 4,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": true,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "DEMONSTRATED",
+            "qualifier": "PUBLICATION_EVENT",
+            "text": "The authors posted arXiv preprint 2609.21216v1 on 2026-09-18."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "Across 50 RoboTwin 2.0 Easy tasks in simulation, the authors report that five-step Coda achieves 74.68% success versus 71.64% for a matched five-step frozen-policy baseline, with 30.2% lower model-forward latency than the default ten-step policy."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "The authors report a 5.69 percentage-point gain at nearly equal latency on a separate 13-task comparison, and report two-step SmolVLA success increasing from 60.8% to 69.4%."
+          },
+          {
+            "label": "CLAIMED",
+            "qualifier": "LIMITATION",
+            "text": "On the 50-task visually randomized Hard protocol, the paper reports 24.42% success for five-step generation and 23.86% for Coda, with a paired difference interval spanning zero; it reports that model-forward latency excludes communication and physical execution."
+          }
+        ],
+        "limitations": [
+          "Evidence is author-reported from simulation; no physical-robot result, independent reproduction or communication-inclusive/closed-loop deployment latency was established.",
+          "The reported five-step success gain is bounded to 50 RoboTwin Easy tasks and the stated policy/checkpoint regime. On the visual-randomization Hard protocol, authors report no clear average gain.",
+          "Results cover two evaluated frozen policy families, with a ten-task SmolVLA set; performance across broader tasks, hardware, camera conditions and deployment loops remains unknown.",
+          "The residual combines policy error and coarse-integration effects; the authors note that their contributions are not separately identified in this evaluation."
+        ],
+        "gaps": [
+          {
+            "kind": "missing_artifact",
+            "description": "The linked code and evaluation artifact were not inspected or independently reproduced, so the reported task outcomes, code path and timing measurements have not been independently confirmed."
+          },
+          {
+            "kind": "other",
+            "description": "No physical robot or communication-inclusive control-loop test establishes that the simulation success-latency trade-off transfers to real deployment."
+          },
+          {
+            "kind": "other",
+            "description": "The reported visual-randomization Hard protocol shows no clear mean success gain, and broader policy/task transfer is not established."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.21216v1",
+          "domain": "arxiv.org",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "Institute of Computing Technology, Chinese Academy of Sciences",
+        "Zhongke Haichuan Intelligent"
+      ],
+      "topics": [
+        "vision-language-action",
+        "flow-matching",
+        "robotics",
+        "inference-latency",
+        "action-correction",
+        "simulation-evaluation"
+      ],
+      "regions": [
+        "GLOBAL"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-172E4E20E2DE.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: Coda reallocates flow-matching VLA inference compute to a learned endpoint correction"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "Coda reasigna cómputo de inferencia en políticas VLA de flujo a una corrección aprendida del extremo de la acción",
+            "summary": "Los autores presentan Coda, una corrección aprendida del extremo de la acción para políticas visión-lenguaje-acción basadas en flujo y congeladas. En la simulación RoboTwin 2.0, informan que Coda con cinco pasos eleva el éxito de tarea de 71.64% a 74.68% frente a una línea base comparable de cinco pasos en 50 tareas Easy, y reduce 30.2% la latencia medida del paso hacia adelante del modelo respecto de la política predeterminada de diez pasos. Otra comparación con 13 tareas informa una mejora de 5.69 puntos con latencia casi igual; una implementación en SmolVLA congelado informa que el éxito con dos pasos aumenta de 60.8% a 69.4%. El artículo no encuentra una mejora media clara en su protocolo Hard con aleatorización visual; la latencia excluye comunicación y ejecución física, y en esta revisión no se realizó reproducción independiente ni evaluación con robots reales.",
+            "importance_rationale": "Si el efecto informado por el artículo se mantiene en el régimen de manipulación simulado descrito, trasladar parte del cómputo de integración serial de flujo a una corrección aprendida del extremo de la acción podría cambiar las decisiones de diseño sobre calidad y latencia de políticas VLA congeladas. Su consecuencia es significativa para la inferencia robótica, pero la evidencia se limita a dos familias de políticas evaluadas en simulación y no mide beneficios en control con robots reales.",
+            "why_it_matters": "Las políticas VLA de flujo intercambian pasos seriales de generación de acciones por latencia de inferencia. Este artículo informa una forma de destinar parte de ese presupuesto a corregir acciones mediante un componente aprendido, manteniendo congelada la política base, con la posibilidad de mejorar el equilibrio entre éxito y latencia en simulación. La evidencia no demuestra rendimiento visual de extremo a extremo ni mejoras con robots reales.",
+            "technical": {
+              "claimed_result": "En 50 tareas de manipulación Easy de demo_clean_50 en RoboTwin 2.0, los autores informan un éxito de 74.68% para Coda con cinco pasos frente a 71.64% para la política comparable de cinco pasos, y una latencia medida del paso hacia adelante del modelo 30.2% menor que con la política predeterminada de diez pasos. También informan una mejora de 5.69 puntos con latencia casi igual en un control independiente de 13 tareas, y un éxito con dos pasos de SmolVLA congelado de 69.4% frente a 60.8%.",
+              "demonstrated_result": "El artículo v1 público de arXiv especifica el método, los protocolos y las mediciones de simulación informadas por sus autores. En esta revisión no se hizo una reproducción independiente ni una prueba con robots reales.",
+              "implementation_status": "Experimentos de simulación informados por los autores; no se ha establecido un despliegue en robots reales ni el rendimiento de un ciclo de control de producción.",
+              "mechanism": "Durante la inferencia, se mantiene congelada la política VLA de flujo original y su experto de acciones. Después de N pasos de integración de Euler, un Transformer ligero entrenado por separado predice un residuo de acción a partir de la acción candidata generada, el ruido de origen y el contexto del prefijo de observación; reutiliza la representación en caché del prefijo. La acción ejecutada es la candidata más ese residuo.",
+              "regime": "Manipulación simulada en RoboTwin 2.0. La comparación principal usa 50 tareas Easy de demo_clean_50, shader predeterminado, 50 ensayos objetivo por tarea y K=10. El protocolo Hard con aleatorización usa 50 tareas, shader mínimo, 23–49 episodios válidos por tarea y K=10. Los tiempos de paso hacia adelante del modelo excluyen la comunicación y la ejecución física. Coda también se evalúa con el conjunto oficial de diez tareas de SmolVLA.",
+              "reproducibility": "El artículo y su apéndice especifican tareas, divisiones, cantidad de ensayos, esquema de semillas y hardware de entrenamiento. En esta revisión no se inspeccionó ni ejecutó el artefacto de software enlazado, y no hay una reproducción independiente.",
+              "strongest_baseline": "Política pi_0.5 congelada con integración de cinco pasos bajo las mismas tareas y configuración de RoboTwin Easy; la política predeterminada de diez pasos sirve como referencia de latencia. Un control aparte de 13 tareas compara Coda de cinco pasos con generación de seis pasos a latencia casi igual."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "Los autores publicaron el preprint 2609.21216v1 en arXiv el 2026-09-18."
+                },
+                {
+                  "text": "En 50 tareas Easy de RoboTwin 2.0 en simulación, los autores informan que Coda con cinco pasos alcanza un éxito de 74.68%, frente a 71.64% de una línea base congelada comparable de cinco pasos, y una latencia medida del paso hacia adelante del modelo 30.2% menor que la política predeterminada de diez pasos."
+                },
+                {
+                  "text": "Los autores informan una mejora de 5.69 puntos porcentuales con latencia casi igual en otra comparación de 13 tareas, y un aumento del éxito de SmolVLA congelado con dos pasos, de 60.8% a 69.4%."
+                },
+                {
+                  "text": "En el protocolo Hard de 50 tareas con aleatorización visual, el artículo informa un éxito de 24.42% para la generación de cinco pasos y 23.86% para Coda, con un intervalo de diferencia pareada que incluye cero; también indica que la latencia del paso hacia adelante del modelo excluye la comunicación y la ejecución física."
+                }
+              ],
+              "limitations": [
+                "La evidencia proviene de resultados de simulación informados por los autores; no se establecieron resultados con robots físicos, reproducción independiente ni latencia de despliegue que incluya comunicaciones y el ciclo de control completo.",
+                "La mejora de éxito informada para cinco pasos se limita a 50 tareas RoboTwin Easy y al régimen de política y checkpoint indicado. En el protocolo Hard con aleatorización visual, los autores no encuentran una mejora media clara.",
+                "Los resultados cubren dos familias de políticas congeladas y un conjunto de diez tareas con SmolVLA; se desconoce el desempeño en más tareas, hardware, condiciones de cámara y ciclos de despliegue.",
+                "El objetivo residual combina errores de política y efectos de integración aproximada; los autores señalan que esta evaluación no separa sus contribuciones."
+              ],
+              "gaps": [
+                {
+                  "description": "No se inspeccionó ni reprodujo de forma independiente el código y el artefacto de evaluación enlazados; por ello, no se confirmaron por separado los resultados de tareas, la ruta de código ni las mediciones de tiempo."
+                },
+                {
+                  "description": "No hay pruebas con robots físicos ni un ciclo de control que incluya comunicación para establecer que el equilibrio entre éxito en simulación y latencia se traslade al despliegue real."
+                },
+                {
+                  "description": "El protocolo Hard con aleatorización visual no muestra una mejora media clara, y no se ha establecido la transferencia a más políticas o tareas."
+                }
+              ]
+            },
+            "dek": "Los autores presentan Coda, una corrección aprendida del extremo de la acción para políticas visión-lenguaje-acción basadas en flujo y congeladas."
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "Coda将流匹配VLA推理计算重新分配给学习得到的动作终点校正器",
+            "summary": "作者提出Coda：一种用于冻结流匹配视觉语言动作策略的学习型动作终点校正器。在RoboTwin 2.0模拟环境中，作者报告称，50项Easy任务上，五步Coda的任务成功率从匹配的五步基线71.64%升至74.68%；与默认十步策略相比，测得的模型前向延迟降低30.2%。另一项13任务比较报告成功率提高5.69个百分点，延迟近似相同；在冻结SmolVLA上的实现报告两步成功率从60.8%升至69.4%。论文指出，在带视觉随机化的Hard协议中，平均提升并不明确；延迟未计入通信和物理执行，本次审查也未进行独立复现或真实机器人评估。",
+            "importance_rationale": "如果论文报告的效果能在所述模拟操控环境中成立，将部分串行流积分计算转用于学习型动作终点校正器，可能改变冻结VLA策略的质量与延迟设计选择。这对机器人策略推理具有实际意义，但证据仅限于两类已测策略和模拟环境，尚无真实机器人控制收益测量。",
+            "why_it_matters": "流匹配VLA策略需要在串行动作生成步数和推理延迟之间权衡。本文报告了一种将部分计算预算用于学习型动作校正、同时保持基础策略冻结的方法，可能改善模拟环境中的成功率与延迟折衷。现有证据尚未证明端到端视觉表现或真实机器人收益。",
+            "technical": {
+              "claimed_result": "在RoboTwin 2.0的demo_clean_50中，50项Easy操控任务上，作者报告五步Coda成功率为74.68%，匹配的冻结五步策略为71.64%；模型前向延迟比默认十步策略低30.2%。作者还报告，在独立的13任务对照中，延迟近似相同时成功率提高5.69个百分点；冻结SmolVLA两步成功率为69.4%，基线为60.8%。",
+              "demonstrated_result": "公开的arXiv v1论文描述了方法、协议及作者报告的模拟测量。本次审查未进行独立复现或真实机器人测试。",
+              "implementation_status": "作者报告的模拟实验；尚未证明真实机器人部署或生产控制环路性能。",
+              "mechanism": "推理时保持原有流匹配VLA策略和动作专家冻结。完成N步Euler积分后，另行训练的轻量Transformer根据生成的候选动作、初始噪声和观测前缀上下文预测动作残差，并复用缓存的前缀表示。最终执行动作等于候选动作加上该残差。",
+              "regime": "RoboTwin 2.0模拟操控。主要比较使用50项demo_clean_50 Easy任务、默认着色器、每项任务50次目标试验以及K=10。视觉随机化Hard协议使用50项任务、最小着色器、每项任务23–49个有效回合以及K=10。模型前向时间未包括通信和物理执行。Coda也在SmolVLA官方十任务集上评估。",
+              "reproducibility": "论文及附录说明了任务、数据划分、试验次数、随机种子方案和训练硬件。本次审查未检查或运行链接的软件产物，也没有独立复现。",
+              "strongest_baseline": "冻结pi_0.5五步积分策略，在相同的RoboTwin Easy任务和评估设置下比较；默认十步策略用作延迟参照。另一个13任务对照以近似相同延迟比较五步Coda与六步生成。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "作者于2026-09-18在arXiv发布预印本2609.21216v1。"
+                },
+                {
+                  "text": "在模拟环境中的50项RoboTwin 2.0 Easy任务上，作者报告五步Coda成功率为74.68%，匹配的冻结五步基线为71.64%；与默认十步策略相比，模型前向延迟降低30.2%。"
+                },
+                {
+                  "text": "作者报告，在另一项13任务比较中，成功率提高5.69个百分点且延迟近似相同；冻结SmolVLA的两步成功率从60.8%升至69.4%。"
+                },
+                {
+                  "text": "在带视觉随机化的50项Hard协议中，论文报告五步生成成功率为24.42%，Coda为23.86%，配对差异区间包含零；论文还指出模型前向延迟未计入通信和物理执行。"
+                }
+              ],
+              "limitations": [
+                "证据来自作者报告的模拟结果；尚无真实机器人结果、独立复现，或包含通信与完整控制环路的部署延迟数据。",
+                "报告的五步成功率提升仅适用于50项RoboTwin Easy任务及所述策略和检查点设置。在带视觉随机化的Hard协议中，作者未发现明确的平均提升。",
+                "结果覆盖两类冻结策略，SmolVLA部分仅有十项任务；在更多任务、硬件、摄像条件和部署环路中的表现仍未知。",
+                "残差目标同时包含策略误差和粗粒度积分的影响；作者指出，本次评估未将两者的贡献分离。"
+              ],
+              "gaps": [
+                {
+                  "description": "尚未检查或独立复现论文链接的代码与评估产物，因此任务结果、代码路径及时间测量均未得到独立确认。"
+                },
+                {
+                  "description": "没有真实机器人或包含通信的控制环路测试来证明模拟环境中的成功率与延迟折衷可以迁移到实际部署。"
+                },
+                {
+                  "description": "带视觉随机化的Hard协议未显示明确的平均收益，跨更多策略或任务的迁移能力也尚未确立。"
+                }
+              ]
+            },
+            "headline": "Coda将流匹配VLA推理计算重新分配给学习得到的动作终点校正器"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
     {
       "id": "FCMO-F49D9961AA54",
       "slug": "study-reports-pairwise-judging-can-recover-capability-signals-from",
