@@ -385,3 +385,27 @@ Ejecutar `nice -n 15 python3 ops/publish.py --check --tests-prevalidated` despu�
 Comparar la duración por comando con ejecuciones recientes de main y con el run 39208638359. El código sitúa el oráculo de navegador inmediatamente después de las catorce compuertas; la suite serial anterior y los builds repetidos precedían a ese punto. Sin consultar los logs de Actions no se atribuye una duración exacta a un comando concreto. Los tiempos versionados de clases lentas suman 15126 segundos; no son una medición nueva del run afectado.
 
 La ejecución integral local fue interrumpida después de unos 390 segundos en `tools/build_ready_receipt.py`, al estar confirmada la ausencia del navegador necesario para la aceptación posterior. No dejó procesos descendientes vivos ni cambió el recibo. La ejecución directa del oráculo confirmó `BROWSER_UNAVAILABLE`. No se probó publicación, despliegue ni frescura del origen público.
+
+# paper-perf
+
+La suite completa encuentra un bloqueo heredado en
+`tests/test_ready_receipt_pipeline.py:53`,
+`ReadyReceiptPipelineTests.test_local_check_prepares_a_receipt_before_the_integrity_gate`.
+El fixture parchea `publish.subprocess.run`, pero `ops/publish.py` ya ejecuta
+los comandos mediante `publish.run_command` (que usa `Popen`). La prueba lanza
+una nueva discovery real, que vuelve a ejecutar esta misma prueba. Esto impide
+terminar la aceptación completa y puede alcanzar la preparación real del recibo.
+
+Cambio exacto fuera de los archivos de este carril: sustituir únicamente
+`mock.patch.object(publish.subprocess, 'run', side_effect=run)` por
+`mock.patch.object(publish, 'run_command', side_effect=run)` en ese fixture.
+Conservar todas las aserciones de orden, número de llamadas y resultado.
+Después ejecutar esa prueba y `nice -n 15 python3 -m unittest discover -s tests`
+sin exclusiones. El problema existe en la base de este carril; el renderer no
+causa la recursión. La ejecución recursiva local se detuvo y no se acredita como
+una aceptación verde de la suite completa.
+
+La sustitución propuesta se comprobó cargando una copia de la prueba en memoria:
+sus aserciones originales pasan en 0,006 s y el archivo versionado permanece
+intacto. También se interceptó `Popen` antes de crear hijos: el fixture original
+intenta lanzar `python -m unittest discover -s tests` pese a su mock.
