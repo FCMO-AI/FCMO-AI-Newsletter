@@ -16904,6 +16904,61 @@
       "title": "Discovery Foundation Models propone revisar estados explícitos de investigación con evidencia externa y controles",
       "why_it_matters": "El marco vuelve comprobable qué tendría que mostrar una afirmación de descubrimiento abierto: la evidencia debe modificar el estado de investigación y las decisiones posteriores, y las habilidades entre tareas requieren validación en tareas reservadas. El caso GALILEO, tal como lo resumen los autores, ilustra un ciclo físico de retroalimentación en un dominio; la arquitectura general DFM, su receta de entrenamiento y su transferencia siguen siendo propuestas sin una implementación Zetema validada en las fuentes inspeccionadas."
     },
+    "FCMO-85CFF9125C37": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "El artículo informa que los expertos compartidos reducen aproximadamente en un orden de magnitud la varianza de características inducida por el enrutamiento en el modelo analizado, mientras que la segmentación fina de expertos aumenta las combinaciones de rutas que deben explorarse durante el preentrenamiento."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En cuatro MoE con expertos compartidos de 100M–2.4B de parámetros totales, los autores informan menor perplejidad de prueba con MirrorMoE; para el modelo de 2.4B, la perplejidad de prueba baja de 21.17 a 20.50 y el promedio en seis tareas de sentido común sube de 45.23 a 46.87 (+1.64 puntos)."
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "El repositorio publicado por los autores incluye MirrorMoE y scripts de referencia de enrutamiento estándar para cuatro tamaños de modelo, y documenta un entorno basado en Megatron-LM, PyTorch 2.6.0 y CUDA 12.4; la disponibilidad del código no equivale a reproducir los resultados."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se realizó una reproducción independiente ni un análisis de incertidumbre con varias semillas; el artículo inspeccionado no informa cuántas semillas se usaron en las comparaciones principales.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "Los experimentos cubren 100M–2.4B de parámetros totales, entrenamiento con H100 y un fragmento de DCLM; se desconocen el rendimiento y la estabilidad en modelos de escala de frontera, otras mezclas de datos, hardware y presupuestos más largos.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "La evaluación posterior es un promedio de seis tareas de sentido común; no se establecieron capacidades más amplias, ajuste de instrucciones, eficiencia de inferencia, costos de comunicación de enrutamiento ni servicio en producción.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se reproduce a mayor escala, la supresión adaptativa de expertos de baja contribución según token y capa podría ayudar a los MoE con expertos compartidos a obtener mejoras del enrutamiento más granular con un presupuesto fijo de expertos activos, lo que afectaría decisiones de arquitectura y entrenamiento. El potencial es relevante, pero la evidencia actual es un estudio de autores de hasta 2.4B de parámetros totales con tareas posteriores limitadas.",
+      "limitations": [
+        "Todas las cifras de rendimiento provienen del artículo y no se reprodujeron de forma independiente en esta activación.",
+        "Los modelos van de 100M a 2.4B de parámetros totales; el trabajo no establece rendimiento a escala de frontera.",
+        "El repositorio de los autores documenta un fragmento de DCLM y una división de datos 90/5/5. Los resultados podrían depender de este segmento de datos y de la receta de entrenamiento.",
+        "La evaluación posterior promedia seis tareas de sentido común; se desconocen los efectos sobre capacidades más amplias y seguimiento de instrucciones.",
+        "En la versión inspeccionada, el artículo no informa un número explícito de semillas para la comparación principal ni intervalos de incertidumbre para los promedios de tareas posteriores.",
+        "El tiempo por iteración es similar o algo menor en las ejecuciones informadas, pero no se ofrece un análisis completo del costo de entrenamiento, energía, latencia de inferencia ni servicio.",
+        "El repositorio ofrece scripts y código, pero no se ejecutó código ni se inspeccionó de forma independiente ningún punto de control publicado."
+      ],
+      "relationships": [],
+      "summary": "Un artículo presenta MirrorMoE, un enrutador de preentrenamiento para modelos de mezcla de expertos que combina logits reflejados en signo para seleccionar expertos con las probabilidades estándar de enrutamiento para ponderar su agregación, y luego reduce gradualmente a cero el componente reflejado. Los autores informan que los expertos compartidos reducen la varianza de características inducida por el enrutamiento, mientras que los expertos de granularidad fina aumentan las rutas que deben explorarse; en cuatro modelos con expertos compartidos, de 100M a 2.4B de parámetros totales, MirrorMoE reduce la perplejidad de prueba y mejora el promedio en seis tareas de sentido común. Para 2.4B, los cambios informados son 0.67 menos de perplejidad y +1.64 puntos porcentuales en el promedio de seis tareas. El trabajo usa datos DCLM y GPU H100; la receta publicada identifica un fragmento de DCLM y una división 90/5/5 para entrenamiento/validación/prueba. Son resultados informados por los autores a escala moderada, sin reproducción independiente ni evidencia de mejoras a escala de frontera.",
+      "technical": {
+        "claimed_result": "Los autores informan menor perplejidad de prueba en cuatro MoE con expertos compartidos de 100M a 2.4B de parámetros totales; para 2.4B informan 0.67 menos de perplejidad y +1.64 puntos en el promedio de seis tareas de sentido común, con un tiempo por iteración similar o algo menor.",
+        "demonstrated_result": "El artículo y el repositorio de los autores existen y exponen el método informado y recetas ejecutables. Los resultados de calidad del modelo siguen siendo afirmaciones de los autores; esta activación no ejecutó el código.",
+        "mechanism": "El enrutamiento espejo selecciona expertos mediante p=(1−ρ)ξ+ρζ, donde ξ=softmax(Gh) y ζ=softmax(−Gh); al agregar, pondera los expertos seleccionados con ξ en vez de p, de modo que expertos con logits bajos pueden seleccionarse pero contribuir poco. ρ se reduce mediante una programación coseno desde ρ₀=0.4 hasta cero, y el balance de carga usa ξ. Así se reduce de forma adaptativa el espacio efectivo de enrutamiento al inicio del preentrenamiento y luego se restaura el enrutamiento top-k estándar.",
+        "regime": "Experimentos de preentrenamiento con NVIDIA H100 usando Megatron-LM/DCLM; cuatro modelos con expertos compartidos de 100M a 2.4B de parámetros totales, un fragmento de DCLM, 4.4B–12.8B tokens y una evaluación de sentido común de seis tareas. No se probó la transferencia a escala de frontera.",
+        "strongest_baseline": "El artículo compara con el enrutamiento MoE estándar con expertos compartidos y con programaciones lineales/de coseno globales y fijas para los expertos activos. Informa cantidades totales de tokens comparables; algunas configuraciones sin expertos compartidos usan distintas cantidades de GPU por las restricciones del paralelismo de expertos."
+      },
+      "title": "MirrorMoE informa mejores resultados de preentrenamiento para MoE con expertos compartidos al adaptar el espacio de enrutamiento",
+      "why_it_matters": "Si los efectos informados se mantienen a mayor escala y en distintas configuraciones de entrenamiento, adaptar cuántos expertos seleccionados contribuyen materialmente podría ayudar a los MoE con expertos compartidos a aprovechar la capacidad adicional de un enrutamiento más granular sin aumentar el número nominal de expertos activos. Esto podría influir en las decisiones de arquitectura MoE y preentrenamiento. La evidencia actual se limita a los modelos de 100M–2.4B de un artículo, una receta de datos publicada y un promedio posterior de seis tareas."
+    },
     "FCMO-865C8CE274D8": {
       "claims": [
         {
@@ -23844,6 +23899,48 @@
       },
       "title": "Japón incorpora obligaciones de reporte para centros de datos y un umbral de PUE para nuevas instalaciones elegibles",
       "why_it_matters": "El reporte energético de centros de datos y una condición futura de eficiencia pueden influir en el diseño, la economía de los sitios y las decisiones operativas de una parte de la infraestructura de cómputo japonesa. El registro público da varios años para adaptarse, pero los costos y efectos en instalaciones siguen sin medirse."
+    },
+    "FCMO-C382C6793D33": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "El 8 de junio de 2026, el DSIT anunció públicamente que se duplicaría la capacidad de cómputo disponible mediante el AI Research Resource para las empresas respaldadas por Sovereign AI Fund."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El anuncio presenta la duplicación como una forma de dar más cómputo a las empresas respaldadas para investigación y desarrollo; el comunicado no establece el volumen, las reglas de asignación, la entrega ni los efectos."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "El comunicado no cuantifica la base previa, las horas de GPU adicionales, el límite por startup, el tamaño del grupo elegible, el procedimiento de asignación ni el costo público total; tampoco se revisaron registros de adjudicación o consumo de cómputo.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "No hay evidencia contrafactual o de resultados que establezca que el acceso adicional causó más I+D, mayor capacidad de modelos, permanencia de startups o productividad, ni que desplazó gasto privado en cómputo.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se entrega, el cómputo adicional de AIRR podría ampliar los experimentos y entrenamientos posibles para ciertas startups británicas de IA: una intervención pública relevante, aunque limitada a un grupo. La puntuación refleja esa consecuencia potencial; el anuncio no cuantifica capacidad ni demuestra entrega, uso o adicionalidad.",
+      "limitations": [
+        "Este registro documenta el anuncio oficial de política, no que el cómputo se haya asignado, entregado o consumido.",
+        "La página enlazada de Sovereign AI identifica una publicación de octubre de 2026 y dice “Hoy en London Tech Week”; el comunicado primario de GOV.UK vincula la misma duplicación con el anuncio del 8 de junio de 2026. No se debe tratar la etiqueta de octubre como una fecha nueva del evento.",
+        "La fuente no respalda estimaciones de costo, volumen de cómputo, asignación por startup, productividad, rendimiento de modelos ni desplazamiento de inversión privada."
+      ],
+      "relationships": [],
+      "summary": "El 8 de junio de 2026, el Departamento de Ciencia, Innovación y Tecnología del Reino Unido anunció que se duplicaría el cómputo disponible mediante AI Research Resource para startups respaldadas por Sovereign AI Fund. El anuncio formó parte de un plan más amplio de hardware de IA y cómputo público. El comunicado gubernamental no indica la asignación numérica por startup, el tamaño del grupo elegible, el volumen adicional total, las reglas de asignación, las adjudicaciones, el uso real ni los efectos económicos; la duplicación debe tratarse como una orientación de política anunciada, no como capacidad entregada o adicionalidad verificada.",
+      "technical": {
+        "claimed_result": "El Gobierno afirma que se duplicará el cómputo disponible para las empresas respaldadas por Sovereign AI Fund.",
+        "demonstrated_result": "El comunicado de GOV.UK del 8 de junio de 2026 documenta el anuncio. No demuestra entrega ni utilización.",
+        "mechanism": "El Gobierno señala que duplicará el acceso a cómputo mediante AIRR para empresas respaldadas por Sovereign AI Fund; la fuente no indica reglas operativas de asignación ni volumen numérico.",
+        "regime": "Política británica de cómputo público dirigida a una parte de las startups de IA respaldadas por Sovereign AI Fund, con acceso mediante AIRR.",
+        "strongest_baseline": "El comunicado no proporciona una cantidad de referencia ni la asignación previa por empresa para calcular el aumento."
+      },
+      "title": "El Reino Unido anuncia duplicar el acceso a cómputo público de startups respaldadas por Sovereign AI Fund",
+      "why_it_matters": "El cómputo público dirigido puede aliviar una restricción de insumos para ciertas startups de IA y cambiar los experimentos o entrenamientos que pueden realizar. La consecuencia se limita a las empresas respaldadas por Sovereign AI Fund, y la fuente pública no cuantifica el cómputo añadido ni demuestra que el acceso anunciado se haya entregado o haya cambiado resultados."
     },
     "FCMO-C39DD13E7C9B": {
       "claims": [
