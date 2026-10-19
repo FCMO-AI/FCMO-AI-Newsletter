@@ -18,6 +18,9 @@ TEST_SUITE_TIMEOUT_SECONDS = 3600
 COMMAND_TIMEOUT_SECONDS = 1800
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+from tools.release_process import run_command
+
 CHECK_COMMAND_TIMEOUT_SECONDS = 3600
 
 def git(repository: Path, *args: str) -> str:
@@ -37,7 +40,8 @@ def step(root: Path, *args: str) -> None:
     # Local evidence must not depend on live Ghost content or a publisher key.
     for key in ('GHOST_CONTENT_URL', 'GHOST_CONTENT_API_KEY', 'GHOST_PORTAL_URL'):
         env.pop(key, None)
-    result = subprocess.run([sys.executable, *map(str, args)], cwd=root, env=env, check=False)
+    result = run_command([sys.executable, *map(str, args)], cwd=root, env=env,
+                         timeout=COMMAND_TIMEOUT_SECONDS)
     if result.returncode:
         raise RuntimeError(f'publication blocked: {args[0]} (exit {result.returncode})')
 
@@ -153,7 +157,12 @@ def main(argv=None):
         timeout = (TEST_SUITE_TIMEOUT_SECONDS
                    if command == [sys.executable, '-m', 'unittest', 'discover', '-s', 'tests']
                    else COMMAND_TIMEOUT_SECONDS)
-        result = subprocess.run(command, cwd=ROOT, env=env, timeout=timeout)
+        try:
+            result = run_command(command, cwd=ROOT, env=env, timeout=timeout)
+        except (OSError, subprocess.TimeoutExpired) as exc:
+            print(f'Publicación rechazada: {command[1]} no completó la comprobación '
+                  f'dentro del límite de {timeout} s ({type(exc).__name__}).', file=sys.stderr, flush=True)
+            return 2
         if result.returncode:
             print('Publicación rechazada: LKG, construcción o comprobaciones incompletas.', file=sys.stderr)
             return 2

@@ -24,7 +24,7 @@ class ProtectedPublishingTests(unittest.TestCase):
             calls.append(kwargs.get('timeout'))
             return subprocess.CompletedProcess(command, 0)
 
-        with patch.object(publish.subprocess, 'run', side_effect=successful_command):
+        with patch.object(publish, 'run_command', side_effect=successful_command):
             self.assertEqual(publish.main(['--check']), 0)
         self.assertEqual(calls, [publish.TEST_SUITE_TIMEOUT_SECONDS] + [publish.COMMAND_TIMEOUT_SECONDS] * 7)
         self.assertEqual(publish.TEST_SUITE_TIMEOUT_SECONDS, 3600)
@@ -161,13 +161,13 @@ class ProtectedPublishingTests(unittest.TestCase):
 
     def test_publish_check_gives_only_the_suite_its_measured_budget(self):
         from unittest.mock import patch
-        with patch.object(publish.subprocess, 'run', return_value=Mock(returncode=0)) as run:
+        with patch.object(publish, 'run_command', return_value=Mock(returncode=0)) as run:
             self.assertEqual(publish.main(['--check']), 0)
         timeouts = [call.kwargs['timeout'] for call in run.call_args_list]
         self.assertEqual(timeouts, [3600, 1800, 1800, 1800, 1800, 1800, 1800, 1800])
 
     def test_prevalidated_check_skips_only_the_suite(self):
-        with patch.object(publish.subprocess, 'run', return_value=Mock(returncode=0)) as run:
+        with patch.object(publish, 'run_command', return_value=Mock(returncode=0)) as run:
             self.assertEqual(publish.main(['--check', '--tests-prevalidated']), 0)
         commands = [call.args[0] for call in run.call_args_list]
         self.assertEqual(len(commands), 7)
