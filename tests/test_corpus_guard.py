@@ -286,7 +286,11 @@ class RepositoryTombstonesTests(unittest.TestCase):
         result = corpus_guard.check(corpus, corpus, corpus_guard.load_tombstones(corpus / "tombstones.json"))
         recorded = corpus_guard.recorded_quarantine(corpus)
         self.assertTrue(recorded)
-        self.assertEqual(result["quarantined"], sorted(recorded))
+        # Only a recorded id that was already published is carried. One quarantined before
+        # its first publication has no last-published version to carry, so it is not "live".
+        live = {r["id"] for r in corpus_guard.read_records(corpus, "published")} | {
+            c["id"] for c in corpus_guard.read_carried(corpus)}
+        self.assertEqual(result["quarantined"], sorted(recorded & live))
         self.assertEqual(result["missing"], [])
         self.assertEqual(set(result["quarantined"]) - set(result["carried"]), set())
 

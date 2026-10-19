@@ -5,7 +5,7 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from tools import ingest_corpus, story_layer, taxonomy
+from tools import corpus_guard, ingest_corpus, story_layer, taxonomy
 from tools.paper.i18n import label
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -14,7 +14,10 @@ ROOT = Path(__file__).resolve().parents[1]
 class NativeAdmission(unittest.TestCase):
     def test_softbank_source_claims_are_classified_and_admitted(self):
         rows = [json.loads(line) for line in (ROOT / 'corpus/data/developments.jsonl').read_text().splitlines() if line]
-        record = next(row for row in rows if row['id'] == 'FCMO-66E542A93F36')
+        # The record may be in the current delta or, once the bridge records it as
+        # quarantined, carried forward from its last published version; both must admit.
+        carried = [c['record'] for c in corpus_guard.read_carried(ROOT / 'corpus')]
+        record = next(row for row in rows + carried if row['id'] == 'FCMO-66E542A93F36')
         self.assertTrue(record['claims'])
         self.assertTrue(all(claim.get('label') for claim in record['claims']))
         admitted, _, held = ingest_corpus.publishable_rows(

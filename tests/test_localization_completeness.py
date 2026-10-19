@@ -786,7 +786,7 @@ class UICatalogs(unittest.TestCase):
             self.assertNotEqual(errors["not_found_title"], english)
 
     def test_spanish_catalog_is_spanish(self):
-        allowed_same = {"Hubei", "Asia", "Hong Kong", "Odisha", "Victoria", "Vietnam", "California", "Australia", "Argentina", "Agenda", "Atom", "Blog", "China", "FCMO AI", "Global", "India", "JSON Feed",
+        allowed_same = {"Hubei", "Hunan", "Austria", "Asia", "Hong Kong", "Odisha", "Victoria", "Vietnam", "California", "Australia", "Argentina", "Agenda", "Atom", "Blog", "China", "FCMO AI", "Global", "India", "JSON Feed",
                         "Notable", "RSS", "{date}, {time} ({tz})", "© {year} FCMO AI", "English", "Español", "简体中文"}
         english = dict(self.reader_leaves("en"))
         for path, value in self.reader_leaves("es-419"):
