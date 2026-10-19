@@ -361,3 +361,27 @@ verification are complete; a local build cannot truthfully update it.
   Reproducir con navegador: cambiar el pie de figura y pulsar Publicar antes de
   900 ms; comprobar el recurso guardado y la regeneración en ambos idiomas.
   Esta transición de UI sigue pendiente; el flujo HTTP no acredita ese recorrido.
+
+# nl97-fix
+
+La aceptación completa requiere un host con pytest y Playwright/Chromium ya instalados. Esta caja no dispone de ellos y el carril no autoriza red ni dependencias nuevas.
+
+Ejecutar las seis regresiones sin cambiar sus aserciones:
+
+```sh
+nice -n 15 python3 -m pytest -q \
+  tests/test_corpus_guard.py::RepositoryTombstonesTests::test_recorded_quarantine_is_carried_but_not_a_failure \
+  tests/test_native_admission.py::NativeAdmission::test_softbank_source_claims_are_classified_and_admitted \
+  tests/test_story_layer.py::IngestSelectionTests::test_mass_quarantine_refuses_the_batch \
+  tests/test_localization_completeness.py::UICatalogs::test_spanish_catalog_is_spanish \
+  tests/test_localization_completeness.py::RealCorpusBacklog::test_pd1_desk_values_and_airlock_baseline_are_preserved \
+  tests/test_paper_build.py::PaperBuildTests::test_machine_prepared_story_discloses_review_status_and_english_original
+```
+
+El deploy ejecuta `nice -n 15 python3 tools/unittest_shards.py --index N --count 8`, para cada N de 0 a 7. La partición local cubre las 993 pruebas descubiertas una sola vez; listar la partición no equivale a ejecutar esos ocho grupos.
+
+Ejecutar `nice -n 15 python3 ops/publish.py --check --tests-prevalidated` después de los ocho grupos, y `nice -n 15 python3 tests/oraculos/verificar_paper.py publish` sobre el candidato producido. Confirmar que el primer comando termina después de `GATES PASS (14/14)` y que ambos dejan cero procesos de servidor, Node o Chromium. Las pruebas locales reproducen y corrigen fugas al terminar, al vencer el plazo y entre watchdogs anidados, pero no sustituyen esta comprobación con Chromium real.
+
+Comparar la duración por comando con ejecuciones recientes de main y con el run 39208638359. El código sitúa el oráculo de navegador inmediatamente después de las catorce compuertas; la suite serial anterior y los builds repetidos precedían a ese punto. Sin consultar los logs de Actions no se atribuye una duración exacta a un comando concreto. Los tiempos versionados de clases lentas suman 15126 segundos; no son una medición nueva del run afectado.
+
+La ejecución integral local fue interrumpida después de unos 390 segundos en `tools/build_ready_receipt.py`, al estar confirmada la ausencia del navegador necesario para la aceptación posterior. No dejó procesos descendientes vivos ni cambió el recibo. La ejecución directa del oráculo confirmó `BROWSER_UNAVAILABLE`. No se probó publicación, despliegue ni frescura del origen público.
