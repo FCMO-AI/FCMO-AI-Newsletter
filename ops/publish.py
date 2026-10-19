@@ -110,7 +110,11 @@ def main(argv=None):
     parser.add_argument('--receipt', type=Path)
     parser.add_argument('--out', type=Path, default=ROOT / 'publish')
     parser.add_argument('--fixture-build', action='store_true', help='Test-fixture build only; never sufficient for publication')
+    parser.add_argument('--tests-prevalidated', action='store_true',
+                        help='Skip the suite after a workflow has completed every deterministic test shard')
     args = parser.parse_args(argv)
+    if args.tests_prevalidated and not args.check:
+        parser.error('--tests-prevalidated is valid only with --check')
     if not args.check:
         try:
             if args.fixture_build or args.out != ROOT / 'publish': raise ValueError('candidate overrides require --check')
@@ -131,8 +135,9 @@ def main(argv=None):
     env['GHOST_CONTENT_URL'] = ''; env['GHOST_CONTENT_API_KEY'] = ''
     commands = []
     if not args.fixture_build:
+        if not args.tests_prevalidated:
+            commands.append([sys.executable, '-m', 'unittest', 'discover', '-s', 'tests'])
         commands += [
-            [sys.executable, '-m', 'unittest', 'discover', '-s', 'tests'],
             [sys.executable, 'tools/build_ready_receipt.py'],
             [sys.executable, 'tools/verify_release.py'],
         ]

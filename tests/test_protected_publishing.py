@@ -156,7 +156,8 @@ class ProtectedPublishingTests(unittest.TestCase):
         self.assertNotIn('run: python3 -m unittest discover -s tests', text)
         self.assertIn("[sys.executable, '-m', 'unittest', 'discover', '-s', 'tests']", publish_source)
         self.assertIn('TEST_SUITE_TIMEOUT_SECONDS = 3600', publish_source)
-        self.assertIn('python3 ops/publish.py --check', text)
+        self.assertIn('python3 ops/publish.py --check --tests-prevalidated', text)
+        self.assertIn('tools/unittest_shards.py --index ${{ matrix.shard }} --count 8', text)
 
     def test_publish_check_gives_only_the_suite_its_measured_budget(self):
         from unittest.mock import patch
@@ -164,6 +165,37 @@ class ProtectedPublishingTests(unittest.TestCase):
             self.assertEqual(publish.main(['--check']), 0)
         timeouts = [call.kwargs['timeout'] for call in run.call_args_list]
         self.assertEqual(timeouts, [3600, 1800, 1800, 1800, 1800, 1800, 1800, 1800])
+
+    def test_prevalidated_check_skips_only_the_suite(self):
+        with patch.object(publish.subprocess, 'run', return_value=Mock(returncode=0)) as run:
+            self.assertEqual(publish.main(['--check', '--tests-prevalidated']), 0)
+        commands = [call.args[0] for call in run.call_args_list]
+        self.assertEqual(len(commands), 7)
+        self.assertNotIn([publish.sys.executable, '-m', 'unittest', 'discover', '-s', 'tests'], commands)
+        self.assertIn([publish.sys.executable, 'tools/verify_release.py'], commands)
+        self.assertIn([publish.sys.executable, 'tools/paper/build.py', '--stories',
+                       'site/data/stories.v2.json', '--status', 'site/data/newsroom-status.json',
+                       '--editorial', 'editorial', '--out', str(publish.ROOT / 'publish'),
+                       '--base', '/FCMO-AI-Newsletter/'], commands)
+
+    def test_prevalidated_suite_flag_is_rejected_outside_check_mode(self):
+        with self.assertRaises(SystemExit) as error:
+            publish.main(['--publish', '--tests-prevalidated'])
+        self.assertEqual(error.exception.code, 2)
+
+    def test_release_integrity_waits_for_all_complete_suite_shards(self):
+        import yaml
+        workflow = yaml.safe_load((ROOT / '.github/workflows/release-validate.yml').read_text())
+        regression = workflow['jobs']['regression']
+        self.assertEqual(regression['strategy']['matrix']['shard'], list(range(8)))
+        self.assertIs(regression['strategy']['fail-fast'], False)
+        self.assertIn('tools/unittest_shards.py --index ${{ matrix.shard }} --count 8',
+                      regression['steps'][-1]['run'])
+        gate = workflow['jobs']['publish-gate']
+        self.assertEqual(gate['name'], 'release-integrity')
+        self.assertEqual(gate['needs'], 'regression')
+        self.assertEqual(gate['steps'][-3]['run'],
+                         'python ops/publish.py --check --tests-prevalidated')
 
     def test_required_check_name_has_a_single_owner(self):
         import yaml
