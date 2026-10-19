@@ -499,8 +499,11 @@ class IngestSelectionTests(unittest.TestCase):
         self.assertIn((rows[4]["id"], "WITHDRAWN_UPSTREAM"), held)
 
     def test_mass_quarantine_refuses_the_batch(self) -> None:
-        # Exceed the actual 20% limit as the autonomous corpus grows.
-        count = len(self.rows) // 5 + 1
+        # The guard's denominator is every candidate: corpus rows plus carried-forward
+        # records absent from them. Exceed the configured limit over that whole set.
+        present = {r.get("id") for r in self.rows}
+        total = len(self.rows) + sum(c["id"] not in present for c in corpus_guard.read_carried(self.corpus))
+        count = int(total * corpus_guard.default_max_missing_ratio()) + 1
         rows = [dict(r, claims=[]) if i < count else r for i, r in enumerate(self.rows)]
         with self.assertRaisesRegex(ValueError, f"refusing to publish: {count} of"):
             self.select(rows)
