@@ -1,6 +1,6 @@
 {
   "canonical_locale": "en",
-  "canonical_source_sha256": "eecc1f081a813c1ab8ca8f687a9b8a167f372ddc2fffddf45f7e29b76fdeff6d",
+  "canonical_source_sha256": "dd88a8f4038ad2e2bd145700838b0172725983a5da93f758af214cf25536eaf7",
   "generated_from": "ARB airlock; editorial wording authored upstream",
   "locale": "zh-Hans",
   "records": {
@@ -6838,6 +6838,77 @@
       },
       "title": "ARIA论文报告：在范围有限的多智能体运行时修复基准中，故障伤害较低",
       "why_it_matters": "如果独立复现成立，学习得到的运行时检查可能有助于多智能体系统从级联错误中恢复，同时减少有害干预。论文报告的改进仅适用于其基准任务和执行设置。公开实现的干预边界不支持结构化工具调用或任意主机状态回滚，因此不能据此证明通用自主恢复能力。"
+    },
+    "FCMO-2F598BCB7240": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "作者报告称，在使用Qwen3-1.7B的五类任务中，与LoRA微调的完整上下文基线相比，TokenGate将预填充首令牌时间降低1.4–11.3x、将预填充峰值内存降低1.5–3.4x，同时任务准确率相当。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "作者报告称，在32k的长文档信息检索任务中，Qwen3.5-2B混合注意力评估的首令牌时间比完整预填充低3.8x且准确率相当；在Gated DeltaNet早期层进行门控时，速度最高提升7.8x，准确率处于完整预填充的6%以内。"
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "预印本介绍了一种可训练的令牌评分门控和令牌门控注意力，使选择器和模型主体能够联合调整；论文还描述了训练和计时流程以及采用的比较方法。"
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "论文报告的比较结果没有证明存在独立复现、更高并发服务收益、生产质量、能耗节省或经济影响。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "本次没有检查独立实现或对报告的质量、TTFT和内存前沿的复现；链接的代码仓库目前显示为空。",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "报告的计时使用单个A100、批大小为一，并且只测预填充；这些结果没有确立现实并发服务下的吞吐量、内存或尾延迟表现。",
+          "kind": "regime_unclear",
+          "state": "open"
+        },
+        {
+          "description": "核心实验使用Qwen3-1.7B和五类基准任务；能否迁移到更大模型、领域变化后的文档和生产代码库，尚不清楚。",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "作者报告称，使用最长16k的上下文训练后可外推至128k，但尚未确立更广泛128k任务中的质量和成本覆盖情况。",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "如果报告的收益能推广到所测小模型范围之外，学习式令牌剪枝可能显著降低服务系统中长上下文预填充的延迟和内存压力。目前的证据来自一项作者报告的Qwen模型评估，推理计时仅使用一张GPU且批大小为一。",
+      "limitations": [
+        "所有性能数字均由论文作者报告；研究团队没有独立复现。",
+        "Qwen3-1.7B的主要测量使用单个A100、批大小为一，并且只测预填充；并发服务、其他硬件和端到端完整请求的性能尚未确定。",
+        "主要实验使用一个小型预训练模型和五类基准任务。该方法能否推广到更大的模型、其他分词器、不同领域和生产代码库，尚不清楚。",
+        "训练文档最长为16k令牌；32k/64k/128k的NIAH结果是从使用16k训练的模型外推长度，并非广泛的长上下文评估。",
+        "作者链接的GitHub代码仓库目前显示为空；本次没有检查代码或模型检查点。作者称代码已提供，但无法核验其可复现性。",
+        "该方法仍会在门控层以下处理完整上下文，因此内存仍受未剪枝前缀计算限制；论文在主要对比中关闭了KV缓存剪枝。",
+        "没有证据确立能耗、货币成本、服务批次吞吐量、用户延迟分布或生产质量结果。"
+      ],
+      "relationships": [
+        {
+          "summary": "一篇较早的预印本也研究预填充效率，使用无需训练的半径自适应稀疏注意力，并在更大的Qwen模型和GPU推理上报告结果。TokenGate则在微调期间学习剪枝门控，并在较小的Qwen模型上报告批大小为一的计时。两者的机制、规模和硬件条件不同，并非直接比较。",
+          "target_id": "FCMO-D623C434FA7F",
+          "type": "related"
+        }
+      ],
+      "summary": "一篇发表于2026-10-19的预印本介绍了TokenGate。它学习在模型早期层之后保留哪些输入令牌，并根据学习到的分数调整上层注意力。作者报告称，在五类任务中，相对于完整上下文处理的Qwen3-1.7B，首令牌时间降低1.4–11.3x，预填充峰值内存降低1.5–3.4x，同时任务准确率相当。作者还报告了一个范围较窄的Qwen3.5-2B混合注意力结果。这些实验结果均由作者报告：推理计时使用单个A100、批大小为一，链接的代码仓库目前显示为空，研究团队没有复现这些结果。",
+      "technical": {
+        "claimed_result": "作者报告称，在五类任务中，相对完整上下文Qwen3-1.7B，预填充TTFT降低1.4–11.3x、峰值预填充内存降低1.5–3.4x，且基准准确率相当。相对次优方法，作者报告TTFT最多降低1.2–6.4x、内存最多降低2.1x。对于Qwen3.5-2B，作者报告在NIAH 32k中TTFT降低3.8x且准确率相当；在早期循环层进行门控时，速度最多提升7.8x，准确率与完整预填充相差不超过6%。",
+        "demonstrated_result": "该预印本证明作者报告了此方法和这些实验结果。研究团队没有运行该方法，也没有独立复现其底层性能。",
+        "mechanism": "一个评分网络读取模型早期层的令牌表示，选择得分最高的top-K文档令牌进入更深层处理，并将学习到的重要性分数提供给上层的令牌门控注意力。门控模块与模型主体联合微调，使模型能够适应剪枝预算。在主要预填充实验中，门控层以下的令牌仍参与计算，也仍会生成KV缓存条目。",
+        "novelty": "论文将学习式top-K令牌选择与令牌门控注意力结合，使预训练模型与令牌选择器能够通过任务损失共同适配；作者还报告将其应用于标准Transformer和混合循环注意力层。",
+        "regime": "五类任务（RepoBench-P、2WikiMultihopQA、MultiNews、BioDEX和长文档信息检索），主要使用Qwen3-1.7B；训练文档长度为2k–16k令牌。计时仅覆盖预填充，使用单个A100和批大小为一；主要比较中关闭了下层KV缓存剪枝。范围较窄的Qwen3.5-2B测试使用NIAH 32k；另一个使用16k训练上下文的模型外推到128k，用于报告速度和内存变化。所有数字均为作者报告的结果。",
+        "strongest_baseline": "对于Qwen3-1.7B，作者将TokenGate与同任务LoRA微调的完整上下文基线，以及无需训练的令牌剪枝和稀疏注意力方法进行比较，包括FastKV、SlimInfer、DASH、GemFilter、FlexPrefill和MInference。作者还在相同门控层位置比较FastKV。论文称基线和TokenGate使用相同的基础模型微调配置；作者对实现和计时所作的选择尚未经过独立核验。"
+      },
+      "title": "TokenGate论文报告：通过学习式令牌剪枝加快长上下文预填充",
+      "why_it_matters": "长上下文预填充的延迟和内存会限制响应速度与服务并发。如果这些报告的收益能超出所测的小模型和单GPU条件，学习哪些令牌需要更深入处理，可能为现有预训练模型提供一条实用的效率提升路径。该论文没有证明生产环境吞吐量、能耗节省或更大服务批次下的质量保持情况。"
     },
     "FCMO-2FD75289C054": {
       "claims": [
@@ -37627,6 +37698,48 @@
       "why_it_matters": {
         "locale_sha256": "66abb5408185fcea0d14ef8772a923c40aae9a0763b95728b8903a4afff8a83c",
         "source_sha256": "c89f2dcd342849e22c368959dd0e76d0c3045c56b1bab8ad9b9be26453ac53ae"
+      }
+    },
+    "FCMO-2F598BCB7240": {
+      "claims": {
+        "locale_sha256": "9b582014e6fa807cac039e71bf66609fc2cc0661a35f28e1f88ac457e989340b",
+        "source_sha256": "8ce858ec0b77b49bf623ba8378f64cc997242f387bc974f7bededb775f5e3067"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "a0ee3027e7b2576e23408709320c2db00354898e925ec5deaed39073d2564568",
+        "source_sha256": "8cbc1614b7a8569c5d8cc77d263f8ff473c0768fb2e2410d2d04a850af8bd368"
+      },
+      "importance_rationale": {
+        "locale_sha256": "c8b67c66594f26594360ddaf4e2f9e295026bfbc6f954986e43c0c8771997539",
+        "source_sha256": "dd8ab4c2dcf5d73ab57e8492826d4d27d6452616a76c14a8f8b7fb1f16465efa"
+      },
+      "limitations": {
+        "locale_sha256": "69a8b3999b006f933ab205d71e7aa843cc524370c73d537aa6cbd5695b0cbd37",
+        "source_sha256": "4365c0032f8190eaeb0b0a2f04ccc48b892fab1512d579df23108d8af2cb492c"
+      },
+      "relationships": {
+        "locale_sha256": "5a09d27e6bdd71975561028d9f818a09ef8e48745d14f7b8e5fdc93b690e6611",
+        "source_sha256": "9dd26e34cb67b240a88c190b5008655857f3659f48ba597543c91f11e0b5df58"
+      },
+      "summary": {
+        "locale_sha256": "180f2aec729da2f27ad135ffda43044cd6bc58aba6d79f407db4debc480f637e",
+        "source_sha256": "50df141dc798beac4dc422582b193f70be497f10c04a3d56771e0f16f9c83af4"
+      },
+      "technical": {
+        "locale_sha256": "1589948474c51b6513472e65aee19472b9d04719ae76a51ef59e5da5a56d946a",
+        "source_sha256": "12e533c2206b3cc0acbc2742215fa54fba8e318b0bf0bb8eab0c66afb169d792"
+      },
+      "title": {
+        "locale_sha256": "d0d8a451e1eea068998fd4f9fc0f9e2a1a77159761bcca8d5313471a0dd449de",
+        "source_sha256": "bb613b29023d12a3d63643f45646974207a65e823b43b7aa83e1e15972f335b8"
+      },
+      "why_it_matters": {
+        "locale_sha256": "f42cdcc781acf9e57f29a9834cf77ef5df391f372f7e28cca24aece3333b3388",
+        "source_sha256": "3a3a0968f03f09c4807be44fe644412b4c9c4410439362e8172a3bf0fe699146"
       }
     },
     "FCMO-2FD75289C054": {

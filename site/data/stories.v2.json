@@ -1,7 +1,7 @@
 {
   "schema": "fcmo-stories-v2",
-  "generated_at": "2026-10-20T15:09:47Z",
-  "release_id": "newswire-7a831729826fb953f43e3d07",
+  "generated_at": "2026-10-20T16:20:54Z",
+  "release_id": "newswire-9fe3ce65a5bfcc7a77e8ddf9",
   "canonical_locale": "en",
   "locales": [
     "en",
@@ -46,6 +46,277 @@
     "2026-10-20"
   ],
   "stories": [
+    {
+      "id": "FCMO-2F598BCB7240",
+      "slug": "tokengate-paper-reports-faster-long-context-prefill-through-learned",
+      "url_date": "2026-10-20",
+      "kind": "development",
+      "status": "live",
+      "beat": "research",
+      "desk": "compute_inference",
+      "title": "TokenGate paper reports faster long-context prefill through learned token pruning",
+      "headline": "TokenGate paper reports faster long-context prefill through learned token pruning",
+      "dek": "A 2026-10-19 preprint introduces TokenGate, which learns to keep selected input tokens after an early model layer and adjusts upper-layer attention using the learned token scores.",
+      "summary": "A 2026-10-19 preprint introduces TokenGate, which learns to keep selected input tokens after an early model layer and adjusts upper-layer attention using the learned token scores. The authors report 1.4–11.3x lower time-to-first-token and 1.5–3.4x lower peak prefill memory than full-context Qwen3-1.7B at matched task accuracy across five task families. They also report a narrower Qwen3.5-2B hybrid-attention result. These are author-reported experiments: inference timing used batch size one on one A100, the linked code repository currently appears empty, and the research desk did not reproduce the results.",
+      "why_it_matters": "Long-context prefill latency and memory constrain responsiveness and concurrent serving. If these reported gains transfer beyond the tested small-model, single-GPU regime, learning which tokens need deeper processing could offer a practical efficiency route for existing pretrained models. The paper does not establish production throughput, energy savings, or quality retention at larger serving batches.",
+      "importance_rationale": "If the reported gains generalize beyond the tested small-model regime, learned token pruning could materially reduce long-context prefill latency and memory pressure across serving systems. Current evidence is a single paper-reported evaluation on Qwen models and one-GPU, batch-one timing.",
+      "technical": {
+        "claimed_result": "Authors report 1.4–11.3x lower prefill TTFT and 1.5–3.4x lower peak prefill memory than full-context Qwen3-1.7B at matched benchmark accuracy across five task families. Against next-best methods, they report 1.2–6.4x TTFT reduction and up to 2.1x lower memory. For Qwen3.5-2B, they report 3.8x lower TTFT at matched accuracy on NIAH 32k, and up to 7.8x at accuracy within 6% of full prefill when gating in early recurrent layers.",
+        "demonstrated_result": "The arXiv preprint demonstrates that its authors report this method and these experimental results. the research desk did not execute the method or independently reproduce the underlying performance.",
+        "mechanism": "A scoring network reads token representations at an early layer, selects the top-K document tokens for deeper processing, and supplies learned token importance scores to token-gated attention above that layer. The gate and backbone are jointly fine-tuned so the model can adapt to the pruning budget. Tokens below the gate are not pruned from lower-layer computation or KV cache in the main prefill experiments.",
+        "novelty": "The paper combines learned top-K token selection with token-gated attention so a pretrained model and the token selector can co-adapt using task loss, and reports applying the method to both standard transformer and hybrid recurrent-attention layers.",
+        "regime": "Five task families (RepoBench-P, 2WikiMultihopQA, MultiNews, BioDEX and needle-in-a-haystack) primarily on Qwen3-1.7B; training documents are 2k–16k tokens. Timing is prefill-only, batch size one, one A100; lower-layer KV-cache pruning is disabled in the main comparisons. A narrower hybrid Qwen3.5-2B test uses NIAH at 32k and a separate 16k-trained model extrapolated to 128k context for reported speed/memory ratios. All numerical findings are paper-reported.",
+        "strongest_baseline": "For Qwen3-1.7B, the authors compare against a same-task LoRA-fine-tuned full-context model and training-free token-pruning and sparse-attention methods, including FastKV, SlimInfer, DASH, GemFilter, FlexPrefill and MInference. They additionally compare FastKV at the same gate layer. The paper says baseline and TokenGate models use the same fine-tuned backbone configuration; author-side implementation/timing choices remain unverified."
+      },
+      "importance_tier": "Notable",
+      "development_type": "paper",
+      "event_at": "2026-10-19T17:15:53Z",
+      "date_precision": "minute",
+      "first_published_at": "2026-10-20T16:20:33Z",
+      "updated_at": "2026-10-20T16:20:33Z",
+      "importance": 5,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": true,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "CLAIMED",
+            "text": "The authors report that on five task families using Qwen3-1.7B, TokenGate reduces prefill time-to-first-token by 1.4–11.3x and peak prefill memory by 1.5–3.4x versus a LoRA-fine-tuned full-context baseline at matched task accuracy."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "The authors report that a Qwen3.5-2B hybrid-attention evaluation achieves 3.8x lower time-to-first-token than full prefill at matched accuracy on a 32k needle-in-a-haystack task; early gating on Gated DeltaNet layers reaches up to 7.8x speedup with accuracy within 6% of full prefill."
+          },
+          {
+            "label": "DEMONSTRATED",
+            "text": "The preprint describes a trainable token-scoring gate and token-gated attention that allow the selector and model backbone to be adapted together; the paper reports training and timing procedures and named comparison methods."
+          },
+          {
+            "label": "NOT_ESTABLISHED",
+            "text": "The paper-reported comparisons do not establish independent reproduction, higher-throughput serving gains, production quality, energy savings or economic impact."
+          }
+        ],
+        "limitations": [
+          "All performance figures are reported by the paper authors; the research desk did not independently reproduce them.",
+          "The primary Qwen3-1.7B measurements use batch size one on one A100 and isolate prefill; performance under concurrent serving, other hardware and full end-to-end request workloads is unestablished.",
+          "The main experiments use a small pretrained model and five benchmark task families. Generalization to larger models, other tokenizers, domains and production repositories is unknown.",
+          "Training uses documents up to 16k tokens; the 32k/64k/128k NIAH results are length extrapolations from a model trained at 16k, not a broad long-context evaluation.",
+          "The linked author GitHub repository currently renders as empty; no code or checkpoint was inspected. The authors state code is available, but reproducibility could not be checked.",
+          "The method leaves lower-layer context processing intact, so memory is bounded by the unpruned prefix computation; the paper disables KV-cache pruning in its main comparisons.",
+          "No energy, monetary cost, throughput at serving batch, user latency distribution or production quality result is established."
+        ],
+        "gaps": [
+          {
+            "kind": "missing_independent",
+            "description": "No independent implementation or reproduction of the reported quality/TTFT/memory frontier was inspected; the linked code repository currently appears empty."
+          },
+          {
+            "kind": "regime_unclear",
+            "description": "The reported timing is batch one on one A100 and prefill-only; the results do not establish throughput, memory or tail-latency effects under realistic concurrent serving."
+          },
+          {
+            "kind": "other",
+            "description": "The core experiment uses Qwen3-1.7B and five benchmark families; transfer to larger models, domain-shifted documents and production repositories is unknown."
+          },
+          {
+            "kind": "other",
+            "description": "The authors report length extrapolation to 128k from a model trained with contexts up to 16k, but quality and cost coverage across broader 128k tasks is not established."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://arxiv.org/abs/2610.26754",
+          "domain": "arxiv.org",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [
+        {
+          "id": "FCMO-D623C434FA7F",
+          "type": "related",
+          "summary": "An earlier preprint also studies prefill efficiency, using training-free radius-adaptive sparse attention on larger Qwen models and GPU inference. TokenGate instead learns a pruning gate during fine-tuning and reports batch-one timings on smaller Qwen models. The different mechanisms, scales and hardware regimes are not a direct comparison."
+        }
+      ],
+      "organizations": [
+        "Stanford University",
+        "University of California, Berkeley"
+      ],
+      "topics": [],
+      "regions": [
+        "GLOBAL"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-2F598BCB7240.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: TokenGate paper reports faster long-context prefill through learned token pruning"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "El artículo de TokenGate informa un prellenado de contexto largo más rápido mediante poda de tokens aprendida",
+            "summary": "Un preprint del 2026-10-19 presenta TokenGate, que aprende a conservar ciertos tokens de entrada después de una capa inicial del modelo y ajusta la atención de las capas superiores con sus puntuaciones. Los autores informan una reducción de 1.4–11.3x en el tiempo hasta el primer token y de 1.5–3.4x en la memoria máxima de prellenado frente al procesamiento completo de Qwen3-1.7B, con precisión similar en cinco familias de tareas. También informan un resultado más acotado con la arquitectura híbrida Qwen3.5-2B. Son experimentos reportados por sus autores: las mediciones de inferencia usaron lote de tamaño uno en una A100, el repositorio de código enlazado aparece vacío y el equipo de investigación no reprodujo los resultados.",
+            "importance_rationale": "Si las mejoras reportadas se generalizan más allá de la escala de modelos pequeños evaluada, la poda aprendida de tokens podría reducir de forma relevante la latencia y la presión de memoria del prellenado de contexto largo en sistemas de servicio. La evidencia actual proviene de una sola evaluación reportada por los autores con modelos Qwen y mediciones de una GPU con lote de tamaño uno.",
+            "why_it_matters": "La latencia y la memoria del prellenado de contexto largo limitan la capacidad de respuesta y la concurrencia del servicio. Si estas mejoras reportadas se transfieren más allá de los modelos pequeños y la configuración de una sola GPU evaluados, aprender qué tokens requieren más procesamiento podría ofrecer una vía práctica para mejorar la eficiencia de modelos preentrenados existentes. El artículo no demuestra el rendimiento en producción, el ahorro de energía ni la conservación de calidad con lotes de servicio mayores.",
+            "technical": {
+              "claimed_result": "Los autores informan una reducción de 1.4–11.3x en TTFT de prellenado y de 1.5–3.4x en la memoria máxima frente a Qwen3-1.7B con contexto completo y precisión similar en cinco familias de tareas. Frente a los siguientes mejores métodos, informan una reducción de TTFT de 1.2–6.4x y de memoria de hasta 2.1x. Para Qwen3.5-2B informan una reducción de TTFT de 3.8x con precisión similar en NIAH 32k y de hasta 7.8x con precisión dentro de 6% de la referencia completa al colocar la compuerta en capas recurrentes iniciales.",
+              "demonstrated_result": "El preprint demuestra que sus autores reportan este método y estos resultados experimentales. El equipo de investigación no ejecutó el método ni reprodujo de forma independiente el rendimiento subyacente.",
+              "mechanism": "Una red de puntuación lee las representaciones de tokens en una capa inicial, selecciona los tokens de documento con mayor puntuación para procesarlos en capas más profundas y aporta sus puntuaciones de importancia a la atención modulada por tokens en las capas siguientes. La compuerta y el cuerpo del modelo se ajustan conjuntamente para adaptarse al presupuesto de poda. En los experimentos principales de prellenado, los tokens por debajo de la compuerta siguen procesándose en las capas inferiores y siguen generando entradas de caché KV.",
+              "novelty": "El artículo combina la selección aprendida de tokens top-K con atención modulada por tokens para que un modelo preentrenado y el selector puedan adaptarse conjuntamente mediante la pérdida de tarea; también informa su aplicación a transformadores estándar y a capas híbridas de atención recurrente.",
+              "regime": "Cinco familias de tareas (RepoBench-P, 2WikiMultihopQA, MultiNews, BioDEX y búsqueda de información entre documentos) principalmente con Qwen3-1.7B; los documentos de entrenamiento tienen de 2k–16k tokens. Las mediciones cubren solo el prellenado, con lote de tamaño uno y una A100; la poda de la caché KV de capas inferiores se desactiva en las comparaciones principales. Una prueba más acotada con Qwen3.5-2B usa NIAH a 32k; otro modelo entrenado con 16k se extrapola a un contexto de 128k para las relaciones de velocidad y memoria reportadas. Todas las cifras son resultados reportados por los autores.",
+              "strongest_baseline": "Para Qwen3-1.7B, los autores comparan con un modelo de referencia ajustado con LoRA en la misma tarea y contexto completo, además de métodos de poda de tokens y atención dispersa sin entrenamiento, como FastKV, SlimInfer, DASH, GemFilter, FlexPrefill y MInference. También comparan FastKV aplicado en la misma capa que la compuerta. El artículo afirma que las referencias y TokenGate usan la misma configuración de ajuste del modelo base; las decisiones de implementación y medición de los autores no se verificaron de forma independiente."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "Los autores informan que, en cinco familias de tareas con Qwen3-1.7B, TokenGate reduce el tiempo hasta el primer token de prellenado en 1.4–11.3x y la memoria máxima de prellenado en 1.5–3.4x frente a una referencia ajustada con LoRA y contexto completo, con precisión de tarea similar."
+                },
+                {
+                  "text": "Los autores informan que una evaluación de atención híbrida con Qwen3.5-2B logra un tiempo hasta el primer token 3.8x menor que el prellenado completo, con precisión similar, en una tarea de búsqueda de información entre documentos de 32k; la poda temprana en capas Gated DeltaNet llega a una aceleración de hasta 7.8x con una precisión dentro de 6% del prellenado completo."
+                },
+                {
+                  "text": "El preprint describe una compuerta entrenable que puntúa tokens y una atención modulada por esas puntuaciones, de modo que el selector y el cuerpo del modelo se adaptan conjuntamente; también describe sus procedimientos de entrenamiento y medición y los métodos de comparación utilizados."
+                },
+                {
+                  "text": "Las comparaciones reportadas en el artículo no demuestran una reproducción independiente, mejoras de servicio con mayor concurrencia, calidad en producción, ahorro de energía ni impacto económico."
+                }
+              ],
+              "limitations": [
+                "Todas las cifras de rendimiento son reportadas por los autores; el equipo de investigación no las reprodujo de forma independiente.",
+                "Las mediciones principales de Qwen3-1.7B usan lote de tamaño uno en una A100 y aíslan el prellenado; no se estableció el rendimiento con servicio concurrente, otro hardware ni solicitudes completas de extremo a extremo.",
+                "Los experimentos principales usan un modelo preentrenado pequeño y cinco familias de tareas de referencia. Se desconoce la generalización a modelos más grandes, otros tokenizadores, dominios y repositorios de producción.",
+                "El entrenamiento usa documentos de hasta 16k tokens; los resultados NIAH de 32k/64k/128k extrapolan la longitud desde un modelo entrenado con 16k, y no constituyen una evaluación amplia de contexto largo.",
+                "El repositorio de GitHub enlazado por los autores aparece vacío; no se inspeccionaron código ni puntos de control. Los autores indican que el código está disponible, pero no se pudo comprobar la reproducibilidad.",
+                "El método conserva el procesamiento del contexto en las capas inferiores, por lo que el uso de memoria queda limitado por el cálculo del prefijo sin podar; en las comparaciones principales el artículo desactiva la poda de la caché KV.",
+                "No se establecen resultados de energía, costo monetario, rendimiento con lotes de servicio, distribución de latencia para usuarios ni calidad en producción."
+              ],
+              "gaps": [
+                {
+                  "description": "No se inspeccionó una implementación independiente ni una reproducción de la frontera de calidad, TTFT y memoria reportada; el repositorio de código enlazado parece vacío."
+                },
+                {
+                  "description": "Las mediciones reportadas usan lote de tamaño uno en una A100 y solo cubren el prellenado; no establecen el rendimiento, la memoria ni los efectos en latencia de cola bajo servicio concurrente realista."
+                },
+                {
+                  "description": "El experimento principal utiliza Qwen3-1.7B y cinco familias de tareas; se desconoce la transferencia a modelos mayores, documentos con cambios de dominio y repositorios de producción."
+                },
+                {
+                  "description": "Los autores informan una extrapolación de longitud hasta 128k a partir de entrenamiento con contextos de hasta 16k, pero no se estableció la calidad ni el costo en una gama más amplia de tareas con 128k."
+                }
+              ]
+            },
+            "related": [
+              {
+                "id": "FCMO-D623C434FA7F",
+                "type": "related",
+                "summary": "Un preprint anterior también estudia la eficiencia del prellenado, con atención dispersa de radio adaptativo sin entrenamiento en modelos Qwen más grandes y pruebas de inferencia con GPU. TokenGate, en cambio, aprende una compuerta de poda durante el ajuste fino e informa mediciones por lote de tamaño uno en modelos Qwen más pequeños. Los mecanismos, escalas y regímenes de hardware difieren; no es una comparación directa."
+              }
+            ],
+            "dek": "Un preprint del 2026-10-19 presenta TokenGate, que aprende a conservar ciertos tokens de entrada después de una capa inicial del modelo y ajusta la atención de las capas superiores con sus puntuaciones."
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb",
+            "related": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "TokenGate论文报告：通过学习式令牌剪枝加快长上下文预填充",
+            "summary": "一篇发表于2026-10-19的预印本介绍了TokenGate。它学习在模型早期层之后保留哪些输入令牌，并根据学习到的分数调整上层注意力。作者报告称，在五类任务中，相对于完整上下文处理的Qwen3-1.7B，首令牌时间降低1.4–11.3x，预填充峰值内存降低1.5–3.4x，同时任务准确率相当。作者还报告了一个范围较窄的Qwen3.5-2B混合注意力结果。这些实验结果均由作者报告：推理计时使用单个A100、批大小为一，链接的代码仓库目前显示为空，研究团队没有复现这些结果。",
+            "importance_rationale": "如果报告的收益能推广到所测小模型范围之外，学习式令牌剪枝可能显著降低服务系统中长上下文预填充的延迟和内存压力。目前的证据来自一项作者报告的Qwen模型评估，推理计时仅使用一张GPU且批大小为一。",
+            "why_it_matters": "长上下文预填充的延迟和内存会限制响应速度与服务并发。如果这些报告的收益能超出所测的小模型和单GPU条件，学习哪些令牌需要更深入处理，可能为现有预训练模型提供一条实用的效率提升路径。该论文没有证明生产环境吞吐量、能耗节省或更大服务批次下的质量保持情况。",
+            "technical": {
+              "claimed_result": "作者报告称，在五类任务中，相对完整上下文Qwen3-1.7B，预填充TTFT降低1.4–11.3x、峰值预填充内存降低1.5–3.4x，且基准准确率相当。相对次优方法，作者报告TTFT最多降低1.2–6.4x、内存最多降低2.1x。对于Qwen3.5-2B，作者报告在NIAH 32k中TTFT降低3.8x且准确率相当；在早期循环层进行门控时，速度最多提升7.8x，准确率与完整预填充相差不超过6%。",
+              "demonstrated_result": "该预印本证明作者报告了此方法和这些实验结果。研究团队没有运行该方法，也没有独立复现其底层性能。",
+              "mechanism": "一个评分网络读取模型早期层的令牌表示，选择得分最高的top-K文档令牌进入更深层处理，并将学习到的重要性分数提供给上层的令牌门控注意力。门控模块与模型主体联合微调，使模型能够适应剪枝预算。在主要预填充实验中，门控层以下的令牌仍参与计算，也仍会生成KV缓存条目。",
+              "novelty": "论文将学习式top-K令牌选择与令牌门控注意力结合，使预训练模型与令牌选择器能够通过任务损失共同适配；作者还报告将其应用于标准Transformer和混合循环注意力层。",
+              "regime": "五类任务（RepoBench-P、2WikiMultihopQA、MultiNews、BioDEX和长文档信息检索），主要使用Qwen3-1.7B；训练文档长度为2k–16k令牌。计时仅覆盖预填充，使用单个A100和批大小为一；主要比较中关闭了下层KV缓存剪枝。范围较窄的Qwen3.5-2B测试使用NIAH 32k；另一个使用16k训练上下文的模型外推到128k，用于报告速度和内存变化。所有数字均为作者报告的结果。",
+              "strongest_baseline": "对于Qwen3-1.7B，作者将TokenGate与同任务LoRA微调的完整上下文基线，以及无需训练的令牌剪枝和稀疏注意力方法进行比较，包括FastKV、SlimInfer、DASH、GemFilter、FlexPrefill和MInference。作者还在相同门控层位置比较FastKV。论文称基线和TokenGate使用相同的基础模型微调配置；作者对实现和计时所作的选择尚未经过独立核验。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "作者报告称，在使用Qwen3-1.7B的五类任务中，与LoRA微调的完整上下文基线相比，TokenGate将预填充首令牌时间降低1.4–11.3x、将预填充峰值内存降低1.5–3.4x，同时任务准确率相当。"
+                },
+                {
+                  "text": "作者报告称，在32k的长文档信息检索任务中，Qwen3.5-2B混合注意力评估的首令牌时间比完整预填充低3.8x且准确率相当；在Gated DeltaNet早期层进行门控时，速度最高提升7.8x，准确率处于完整预填充的6%以内。"
+                },
+                {
+                  "text": "预印本介绍了一种可训练的令牌评分门控和令牌门控注意力，使选择器和模型主体能够联合调整；论文还描述了训练和计时流程以及采用的比较方法。"
+                },
+                {
+                  "text": "论文报告的比较结果没有证明存在独立复现、更高并发服务收益、生产质量、能耗节省或经济影响。"
+                }
+              ],
+              "limitations": [
+                "所有性能数字均由论文作者报告；研究团队没有独立复现。",
+                "Qwen3-1.7B的主要测量使用单个A100、批大小为一，并且只测预填充；并发服务、其他硬件和端到端完整请求的性能尚未确定。",
+                "主要实验使用一个小型预训练模型和五类基准任务。该方法能否推广到更大的模型、其他分词器、不同领域和生产代码库，尚不清楚。",
+                "训练文档最长为16k令牌；32k/64k/128k的NIAH结果是从使用16k训练的模型外推长度，并非广泛的长上下文评估。",
+                "作者链接的GitHub代码仓库目前显示为空；本次没有检查代码或模型检查点。作者称代码已提供，但无法核验其可复现性。",
+                "该方法仍会在门控层以下处理完整上下文，因此内存仍受未剪枝前缀计算限制；论文在主要对比中关闭了KV缓存剪枝。",
+                "没有证据确立能耗、货币成本、服务批次吞吐量、用户延迟分布或生产质量结果。"
+              ],
+              "gaps": [
+                {
+                  "description": "本次没有检查独立实现或对报告的质量、TTFT和内存前沿的复现；链接的代码仓库目前显示为空。"
+                },
+                {
+                  "description": "报告的计时使用单个A100、批大小为一，并且只测预填充；这些结果没有确立现实并发服务下的吞吐量、内存或尾延迟表现。"
+                },
+                {
+                  "description": "核心实验使用Qwen3-1.7B和五类基准任务；能否迁移到更大模型、领域变化后的文档和生产代码库，尚不清楚。"
+                },
+                {
+                  "description": "作者报告称，使用最长16k的上下文训练后可外推至128k，但尚未确立更广泛128k任务中的质量和成本覆盖情况。"
+                }
+              ]
+            },
+            "related": [
+              {
+                "id": "FCMO-D623C434FA7F",
+                "type": "related",
+                "summary": "一篇较早的预印本也研究预填充效率，使用无需训练的半径自适应稀疏注意力，并在更大的Qwen模型和GPU推理上报告结果。TokenGate则在微调期间学习剪枝门控，并在较小的Qwen模型上报告批大小为一的计时。两者的机制、规模和硬件条件不同，并非直接比较。"
+              }
+            ],
+            "headline": "TokenGate论文报告：通过学习式令牌剪枝加快长上下文预填充",
+            "dek": "一篇发表于2026-10-19的预印本介绍了TokenGate。它学习在模型早期层之后保留哪些输入令牌，并根据学习到的分数调整上层注意力。作者报告称，在五类任务中，相对于完整上下文处理的Qwen3-1.7B，首令牌时间降低1.4–11.3x，预填充峰值内存降低1.5–3.4x，同时任务准确率相当。作者还报告了一个范围较窄的Qwen3.5-2B混合注意力结果。这些实验结果均由作者报告：推理计时使用单个A100、批大小为一，链接的代码仓库目前显示为空，研究团队没有复现这些结果。"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb",
+            "related": "arb"
+          }
+        }
+      }
+    },
     {
       "id": "FCMO-557125FFAB15",
       "slug": "wikimedia-foundation-reports-unauthorized-openai-agent-activity-on-its",
@@ -660,7 +931,7 @@
       "event_at": "2026-10-19T00:00:00Z",
       "date_precision": "day",
       "first_published_at": "2026-10-20T12:14:17Z",
-      "updated_at": "2026-10-20T15:09:47Z",
+      "updated_at": "2026-10-20T16:20:54Z",
       "importance": 5,
       "evidence_class": "A",
       "confidence": "claimed_unverified",
@@ -712,7 +983,7 @@
       ],
       "corrections": [
         {
-          "at": "2026-10-20T15:09:47Z",
+          "at": "2026-10-20T16:20:54Z",
           "kind": "merge",
           "reason_code": "DUPLICATE",
           "text": {

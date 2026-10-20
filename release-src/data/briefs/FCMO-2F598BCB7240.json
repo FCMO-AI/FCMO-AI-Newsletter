@@ -1,0 +1,166 @@
+{
+  "record": {
+    "id": "FCMO-2F598BCB7240",
+    "title": "TokenGate paper reports faster long-context prefill through learned token pruning",
+    "desk": "Inference Systems",
+    "event_at": "2026-10-19T17:15:53Z",
+    "evidence": "A",
+    "confidence": "credible_unconfirmed",
+    "importance": 5,
+    "tier": "Notable",
+    "summary": "A 2026-10-19 preprint introduces TokenGate, which learns to keep selected input tokens after an early model layer and adjusts upper-layer attention using the learned token scores. The authors report 1.4–11.3x lower time-to-first-token and 1.5–3.4x lower peak prefill memory than full-context Qwen3-1.7B at matched task accuracy across five task families. They also report a narrower Qwen3.5-2B hybrid-attention result. These are author-reported experiments: inference timing used batch size one on one A100, the linked code repository currently appears empty, and the research desk did not reproduce the results.",
+    "topics": [],
+    "organizations": [
+      "Stanford University",
+      "University of California, Berkeley"
+    ],
+    "human_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-2F598BCB7240.html",
+    "machine_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/data/briefs/FCMO-2F598BCB7240.json",
+    "citation": {
+      "id": "FCMO-2F598BCB7240",
+      "source": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-2F598BCB7240.html"
+    }
+  },
+  "brief": {
+    "claims": [
+      {
+        "label": "CLAIMED",
+        "text": "The authors report that on five task families using Qwen3-1.7B, TokenGate reduces prefill time-to-first-token by 1.4–11.3x and peak prefill memory by 1.5–3.4x versus a LoRA-fine-tuned full-context baseline at matched task accuracy."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "The authors report that a Qwen3.5-2B hybrid-attention evaluation achieves 3.8x lower time-to-first-token than full prefill at matched accuracy on a 32k needle-in-a-haystack task; early gating on Gated DeltaNet layers reaches up to 7.8x speedup with accuracy within 6% of full prefill."
+      },
+      {
+        "label": "DEMONSTRATED",
+        "text": "The preprint describes a trainable token-scoring gate and token-gated attention that allow the selector and model backbone to be adapted together; the paper reports training and timing procedures and named comparison methods."
+      },
+      {
+        "label": "NOT_ESTABLISHED",
+        "text": "The paper-reported comparisons do not establish independent reproduction, higher-throughput serving gains, production quality, energy savings or economic impact."
+      }
+    ],
+    "confidence": "credible_unconfirmed",
+    "contradictory_evidence": [],
+    "desks": [
+      "inference_systems",
+      "efficiency",
+      "evaluation_science"
+    ],
+    "development_type": "paper",
+    "editions": [
+      "2026-10-20"
+    ],
+    "event_at": "2026-10-19T17:15:53Z",
+    "evidence_class": "A",
+    "evidence_gaps": [
+      {
+        "description": "No independent implementation or reproduction of the reported quality/TTFT/memory frontier was inspected; the linked code repository currently appears empty.",
+        "kind": "missing_independent",
+        "state": "open"
+      },
+      {
+        "description": "The reported timing is batch one on one A100 and prefill-only; the results do not establish throughput, memory or tail-latency effects under realistic concurrent serving.",
+        "kind": "regime_unclear",
+        "state": "open"
+      },
+      {
+        "description": "The core experiment uses Qwen3-1.7B and five benchmark families; transfer to larger models, domain-shifted documents and production repositories is unknown.",
+        "kind": "other",
+        "state": "open"
+      },
+      {
+        "description": "The authors report length extrapolation to 128k from a model trained with contexts up to 16k, but quality and cost coverage across broader 128k tasks is not established.",
+        "kind": "other",
+        "state": "open"
+      }
+    ],
+    "id": "FCMO-2F598BCB7240",
+    "importance_effective_score": 5,
+    "importance_rationale": "If the reported gains generalize beyond the tested small-model regime, learned token pruning could materially reduce long-context prefill latency and memory pressure across serving systems. Current evidence is a single paper-reported evaluation on Qwen models and one-GPU, batch-one timing.",
+    "importance_scale_version": 2,
+    "importance_score": 5,
+    "importance_tier": "Notable",
+    "last_verified_at": "2026-10-20T14:18:13.508540Z",
+    "limitations": [
+      "All performance figures are reported by the paper authors; the research desk did not independently reproduce them.",
+      "The primary Qwen3-1.7B measurements use batch size one on one A100 and isolate prefill; performance under concurrent serving, other hardware and full end-to-end request workloads is unestablished.",
+      "The main experiments use a small pretrained model and five benchmark task families. Generalization to larger models, other tokenizers, domains and production repositories is unknown.",
+      "Training uses documents up to 16k tokens; the 32k/64k/128k NIAH results are length extrapolations from a model trained at 16k, not a broad long-context evaluation.",
+      "The linked author GitHub repository currently renders as empty; no code or checkpoint was inspected. The authors state code is available, but reproducibility could not be checked.",
+      "The method leaves lower-layer context processing intact, so memory is bounded by the unpruned prefix computation; the paper disables KV-cache pruning in its main comparisons.",
+      "No energy, monetary cost, throughput at serving batch, user latency distribution or production quality result is established."
+    ],
+    "organizations": [
+      "Stanford University",
+      "University of California, Berkeley"
+    ],
+    "primary_desk": "inference_systems",
+    "recorded_at": "2026-10-20T14:13:58.206180Z",
+    "regions": [
+      "global"
+    ],
+    "relationships": [
+      {
+        "summary": "An earlier preprint also studies prefill efficiency, using training-free radius-adaptive sparse attention on larger Qwen models and GPU inference. TokenGate instead learns a pruning gate during fine-tuning and reports batch-one timings on smaller Qwen models. The different mechanisms, scales and hardware regimes are not a direct comparison.",
+        "target_id": "FCMO-D623C434FA7F",
+        "type": "related"
+      }
+    ],
+    "source_languages": [
+      "en"
+    ],
+    "source_urls": [
+      "https://arxiv.org/abs/2610.26754"
+    ],
+    "status": "active",
+    "summary": "A 2026-10-19 preprint introduces TokenGate, which learns to keep selected input tokens after an early model layer and adjusts upper-layer attention using the learned token scores. The authors report 1.4–11.3x lower time-to-first-token and 1.5–3.4x lower peak prefill memory than full-context Qwen3-1.7B at matched task accuracy across five task families. They also report a narrower Qwen3.5-2B hybrid-attention result. These are author-reported experiments: inference timing used batch size one on one A100, the linked code repository currently appears empty, and the research desk did not reproduce the results.",
+    "technical": {
+      "claimed_result": "Authors report 1.4–11.3x lower prefill TTFT and 1.5–3.4x lower peak prefill memory than full-context Qwen3-1.7B at matched benchmark accuracy across five task families. Against next-best methods, they report 1.2–6.4x TTFT reduction and up to 2.1x lower memory. For Qwen3.5-2B, they report 3.8x lower TTFT at matched accuracy on NIAH 32k, and up to 7.8x at accuracy within 6% of full prefill when gating in early recurrent layers.",
+      "demonstrated_result": "The arXiv preprint demonstrates that its authors report this method and these experimental results. the research desk did not execute the method or independently reproduce the underlying performance.",
+      "mechanism": "A scoring network reads token representations at an early layer, selects the top-K document tokens for deeper processing, and supplies learned token importance scores to token-gated attention above that layer. The gate and backbone are jointly fine-tuned so the model can adapt to the pruning budget. Tokens below the gate are not pruned from lower-layer computation or KV cache in the main prefill experiments.",
+      "novelty": "The paper combines learned top-K token selection with token-gated attention so a pretrained model and the token selector can co-adapt using task loss, and reports applying the method to both standard transformer and hybrid recurrent-attention layers.",
+      "regime": "Five task families (RepoBench-P, 2WikiMultihopQA, MultiNews, BioDEX and needle-in-a-haystack) primarily on Qwen3-1.7B; training documents are 2k–16k tokens. Timing is prefill-only, batch size one, one A100; lower-layer KV-cache pruning is disabled in the main comparisons. A narrower hybrid Qwen3.5-2B test uses NIAH at 32k and a separate 16k-trained model extrapolated to 128k context for reported speed/memory ratios. All numerical findings are paper-reported.",
+      "strongest_baseline": "For Qwen3-1.7B, the authors compare against a same-task LoRA-fine-tuned full-context model and training-free token-pruning and sparse-attention methods, including FastKV, SlimInfer, DASH, GemFilter, FlexPrefill and MInference. They additionally compare FastKV at the same gate layer. The paper says baseline and TokenGate models use the same fine-tuned backbone configuration; author-side implementation/timing choices remain unverified."
+    },
+    "title": "TokenGate paper reports faster long-context prefill through learned token pruning",
+    "topics": [],
+    "why_it_matters": "Long-context prefill latency and memory constrain responsiveness and concurrent serving. If these reported gains transfer beyond the tested small-model, single-GPU regime, learning which tokens need deeper processing could offer a practical efficiency route for existing pretrained models. The paper does not establish production throughput, energy savings, or quality retention at larger serving batches."
+  },
+  "related": [
+    {
+      "source_id": "FCMO-2F598BCB7240",
+      "summary": "An earlier preprint also studies prefill efficiency, using training-free radius-adaptive sparse attention on larger Qwen models and GPU inference. TokenGate instead learns a pruning gate during fine-tuning and reports batch-one timings on smaller Qwen models. The different mechanisms, scales and hardware regimes are not a direct comparison.",
+      "target_id": "FCMO-D623C434FA7F",
+      "type": "related",
+      "other": {
+        "id": "FCMO-D623C434FA7F",
+        "title": "A preprint reports faster 128K prefill with radius-adaptive sparse attention on Qwen models",
+        "desk": "Inference Systems",
+        "event_at": "2026-09-17T00:00:00Z",
+        "evidence": "A",
+        "confidence": "credible_unconfirmed",
+        "importance": 6,
+        "tier": "Major",
+        "summary": "A September 17 preprint proposes RBS-Attention, a training-free block selector that combines average key-block relevance with a radius-based rescue path intended to reduce false-negative pruning when a relevant token is diluted by unrelated tokens in the same block. For Qwen3-30B-A3B-Instruct-2507-FP8 at 128K on H100, the authors report 20.65× standalone prefill-attention, 11.92× vLLM prefill-attention and 5.97× end-to-end time-to-first-token speedups over dense execution in the same setup. On Qwen3-32B, they report 88.65 RULER accuracy versus 89.52 for dense attention. The paper includes actual-density selector comparisons and A100 memory measurements; in that implementation, temporary selector workspace is substantial. These are author-reported results from specific Qwen/GPU configurations, not an independent reproduction or a general serving-cost claim.",
+        "topics": [
+          "long-context inference",
+          "sparse attention",
+          "prefill latency",
+          "time-to-first-token"
+        ],
+        "organizations": [
+          "Rutgers University",
+          "Ant Group"
+        ],
+        "human_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-D623C434FA7F.html",
+        "machine_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/data/briefs/FCMO-D623C434FA7F.json",
+        "citation": {
+          "id": "FCMO-D623C434FA7F",
+          "source": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-D623C434FA7F.html"
+        }
+      }
+    }
+  ],
+  "schema": "fcmo-public-brief-v1"
+}
