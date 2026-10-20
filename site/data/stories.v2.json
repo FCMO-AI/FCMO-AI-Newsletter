@@ -1,7 +1,7 @@
 {
   "schema": "fcmo-stories-v2",
-  "generated_at": "2026-10-20T13:14:41Z",
-  "release_id": "newswire-0d4a95c675b6bd060f6df103",
+  "generated_at": "2026-10-20T14:11:01Z",
+  "release_id": "newswire-eb37f42cdb8fa697d3a423eb",
   "canonical_locale": "en",
   "locales": [
     "en",
@@ -42,9 +42,332 @@
     "2026-10-15",
     "2026-10-17",
     "2026-10-18",
-    "2026-10-19"
+    "2026-10-19",
+    "2026-10-20"
   ],
   "stories": [
+    {
+      "id": "FCMO-5D553CACDD81",
+      "slug": "a-preprint-reports-safety-retention-from-joint-safety-and-utility-mid",
+      "url_date": "2026-10-20",
+      "kind": "development",
+      "status": "live",
+      "beat": "research",
+      "desk": "reasoning_posttraining",
+      "title": "A preprint reports safety retention from joint safety-and-utility mid-training",
+      "headline": "A preprint reports safety retention from joint safety-and-utility mid-training",
+      "dek": "A new arXiv paper adds to an existing line of alignment-oriented mid-training research.",
+      "summary": "A new arXiv paper adds to an existing line of alignment-oriented mid-training research. It trains a shared reasoning schema on safety and general prompts using model-generated structured documents and traces, then continues causal language-model training before SFT or RL. The authors report lower attack success and higher utility on Qwen3 through 8B and Llama-3.2 through 3B, with safety largely retained under later general-only SFT and GRPO. A Qwen3-4B ablation reports that direct SFT on the same generated reasoning data did not produce the same gain. Earlier Anthropic work also studies model-spec mid-training; a separate OpenAI report found limited transfer for a different alignment-document intervention after reasoning post-training. These are distinct author-run regimes, not a controlled comparison; none establishes broad transfer from this paper’s method.",
+      "why_it_matters": "If reproduced, training safety alongside general-task reasoning before post-training could help preserve safety when later optimization focuses on general tasks. That would affect alignment-training design. Mid-training on alignment-related documents is already an established research direction, and this study’s incremental contribution is its shared safety/general-task schema and reported retention under specific later training regimes. The results remain limited to the paper’s models and benchmarks; broad deployment transfer and cost are unknown.",
+      "importance_rationale": "If the reported safety retention generalizes, it could improve joint safety/capability training and reduce reliance on safety-specific data in later stages. The authors estimate roughly 15 workstation-days for the headline experimental program, so the method’s consequence also depends on reproducing its safety gains at a useful compute and data-generation cost beyond these smaller models.",
+      "technical": {
+        "claimed_result": "The authors report lower average attack success and higher utility after the proposed safety mid-training, with safety largely retained through later general-only SFT and GRPO on Qwen3 and Llama-3.2 base models.",
+        "demonstrated_result": "The arXiv v1 paper and its tables demonstrate that the authors report these results under the stated model and benchmark regimes. The underlying performance and transfer have not been independently reproduced.",
+        "mechanism": "The authors use a shared schema to generate structured intent, knowledge, constraints and consequences documents plus model-generated reasoning and answers for safety and utility prompts; after judge filtering, they continue causal-language-model training on the mixed corpus before SFT or GRPO.",
+        "novelty": "Mid-training on alignment-relevant documents predates this paper: Anthropic’s Model Spec Midtraining teaches specification documents before alignment fine-tuning, and OpenAI has reported a separate alignment-document intervention with limited post-reasoning transfer. The incremental question here is whether one shared schema for safety and general prompts, used in causal mid-training, improves safety and utility and retains safety through later general-only SFT/GRPO. No matched comparison against those prior methods is reported; the studies use different base models, data and evaluations.",
+        "regime": "Paper-reported experiments: Qwen3-1.7B/4B/8B and Llama-3.2-1B/3B base models; about 185k source prompts and about 200M tokens for the default reasoning-plus-document corpus. Reported benchmarks include safety attack-success metrics and general-utility tasks; components use LLM judges.",
+        "strongest_baseline": "The paper compares with same-family base models, post-training-only SFT, Safety Pretraining and Alignment Pretraining variants, and a same-data direct-SFT versus mid-training ablation. All comparisons are author-run; no independent reproduction was found in this activation."
+      },
+      "importance_tier": "Major",
+      "development_type": "technical_report",
+      "event_at": "2026-10-19T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-20T14:10:40Z",
+      "updated_at": "2026-10-20T14:10:40Z",
+      "importance": 6,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": true,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "CLAIMED",
+            "text": "The authors report that a mid-training stage on self-generated structured documents and reasoning traces for safety and general prompts reduces average attack success while improving general-task utility before SFT on Qwen3-1.7B, 4B and 8B. Table 1 reports ASR changing from 30.4% to 8.4%, 34.1% to 6.6%, and 25.4% to 4.9%, respectively."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "On Qwen3 models, the authors report that the safety advantage persists after supervised fine-tuning on general-only data. For Qwen3-4B, their reported ASR is 7.6% for mid-training plus general-only SFT versus 13.6% for the base-plus-SFT baseline; reported utility is 74.9% versus 59.4%. They also report smaller safety degradation under general-only GRPO without safety prompts or safety rewards."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "In a Qwen3-4B ablation using the same self-generated reasoning traces, direct SFT leaves reported average ASR at 22.8%, whereas using the data in the mid-training stage lowers it to 7.5% and raises utility from 68.9% to 74.7%. This is an author-reported comparison within the paper, not independent confirmation."
+          },
+          {
+            "label": "DEMONSTRATED",
+            "text": "The arXiv v1 paper describes an approximately 185,000-prompt pool, an approximately 200-million-token reasoning-plus-document training corpus, Qwen3 experiments up to 8B, Llama-3.2 experiments up to 3B, and benchmark evaluation with model-judged components. It states that evaluation does not cover every domain, language, or real-world interaction pattern."
+          },
+          {
+            "label": "NOT_ESTABLISHED",
+            "text": "The paper does not establish that safety-oriented mid-training is new as a general training-stage idea or that its method outperforms prior approaches in a matched cross-paper comparison. Earlier primary work reports Model Spec mid-training before alignment fine-tuning, while a separate OpenAI report found that a different synthetic alignment-document intervention did not transfer reliably to realistic chat/agent evaluations after reasoning post-training. These studies use different models, data and evaluations; they bound generalization claims rather than directly contradicting this result."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "Appendix B.4 reports training and data-generation times from the authors’ logs on one workstation with four NVIDIA RTX Pro 6000 GPUs: self-generated data construction takes about 3–5 days per Qwen3 size; one default-corpus mid-training epoch takes 4h14m for Qwen3-1.7B, 9h for 4B and 13h38m for 8B; the headline experiment set totals roughly 15 workstation-days. The authors also report 97.8–98.2% agreement, mean 98.1%, between three panel model judges and gpt-4.1-mini on a stratified 500-prompt sample. These figures are paper-reported; they do not establish energy, dollar cost, judge correctness or general training economics."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "In a Qwen3-4B sweep that holds total mid-training data size fixed, the authors report a non-monotonic safety/over-refusal/utility trade-off across the unsafe-prompt share. At the selected 25% ratio they report ASR 8.5%, XSTest over-refusal 9.7%, and selected average utility 81.6%; at 100% unsafe prompts they report ASR 0%, over-refusal 88%, and utility 45%. These are author-reported scores from one model and benchmark setting."
+          }
+        ],
+        "limitations": [
+          "All performance results are author-reported from a single arXiv v1 paper; the research desk did not reproduce the experiments.",
+          "Evaluated models are Qwen3 through 8B and Llama-3.2 through 3B; larger frontier models and deployed systems were not tested.",
+          "The authors state that their evaluation does not cover every domain, language, or real-world interaction pattern.",
+          "The paper says generated data and documentation are planned for release; no public code or data artifact was verified here.",
+          "The paper gives different headline ASR-reduction ranges for different scopes: 72–81% for the three Qwen3 models in the abstract/body, versus 68–86% when the broader discussion includes Llama. Table-specific results should take precedence over a single generalized range.",
+          "Mid-training on alignment-related documents predates this study. Anthropic’s Model Spec Midtraining trains on spec documents before alignment fine-tuning and reports lower agentic-misalignment rates in its tested setting. The current paper’s incremental claim is the joint safety/general-task data schema and reported retention through later general-only training, not the invention of alignment mid-training.",
+          "OpenAI reports that a different intervention using synthetic aligned/misaligned documents did not reliably distinguish the conditions on more realistic chat and agent evaluations after reasoning post-training. The base models, data and evaluations differ, so this is a transfer warning rather than a direct contradiction or reproduction of the present method.",
+          "No controlled head-to-head against the cited prior mid-training methods is reported; relative effectiveness and compute efficiency remain unknown.",
+          "The paper reports a three-judge comparison on 500 prompts with mean 98.1% agreement against gpt-4.1-mini. Agreement among model judges does not independently establish correctness of the rubric, safety ground truth or general coverage.",
+          "Appendix B.4 reports about 15 workstation-days for the headline experiment set and phase-level wall-clock on one 4× RTX Pro 6000 system. Energy use, dollar cost, alternate-hardware efficiency and cost per safety/utility gain were not independently measured here.",
+          "The unsafe-prompt-ratio sweep quantifies a sharp over-refusal trade-off on Qwen3-4B: the authors report 9.7% XSTest over-refusal at their selected 25% unsafe ratio and 88% at 100%. This is one author-run benchmark sweep, not a broad deployed safety/utility frontier or multi-seed replication."
+        ],
+        "gaps": [
+          {
+            "kind": "missing_independent",
+            "description": "No independent reproduction of the mid-training, SFT or GRPO results was found, and code/data release was not verified."
+          },
+          {
+            "kind": "other",
+            "description": "The paper’s benchmarks and LLM-judged scores do not establish behavior on broader languages, domains, larger models or real multi-turn deployments."
+          },
+          {
+            "kind": "other",
+            "description": "The paper does not compare its shared safety/general-task method head-to-head against prior Model Spec or alignment-document mid-training on matched models, data, downstream training and evaluations."
+          },
+          {
+            "kind": "other",
+            "description": "The authors provide phase-level wall-clock measurements and an aggregate estimate of about 15 workstation-days on one 4× RTX Pro 6000 workstation, but energy use, dollar cost, hardware utilization and cost per measured safety/utility gain are not independently established."
+          },
+          {
+            "kind": "other",
+            "description": "The reported unsafe-prompt-ratio trade-off is a single Qwen3-4B benchmark sweep; seed-level variability, multilingual/interaction-level behavior and transfer to larger models are unestablished."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://arxiv.org/abs/2610.26809",
+          "domain": "arxiv.org",
+          "primary": true
+        },
+        {
+          "url": "https://alignment.anthropic.com/2026/msm/",
+          "domain": "alignment.anthropic.com",
+          "primary": true
+        },
+        {
+          "url": "https://arxiv.org/abs/2605.02087",
+          "domain": "arxiv.org",
+          "primary": true
+        },
+        {
+          "url": "https://alignment.openai.com/how-far-does-alignment-midtraining-generalize/",
+          "domain": "alignment.openai.com",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "Johns Hopkins University",
+        "University of Washington",
+        "Stanford University"
+      ],
+      "topics": [
+        "safety-alignment",
+        "mid-training",
+        "synthetic-data",
+        "safety-retention",
+        "general-only-post-training"
+      ],
+      "regions": [
+        "GLOBAL"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-5D553CACDD81.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: A preprint reports safety retention from joint safety-and-utility mid-training"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "Un preprint informa retención de seguridad mediante entrenamiento intermedio conjunto de tareas generales y de seguridad",
+            "summary": "Un nuevo preprint de arXiv se suma a una línea previa de investigación sobre entrenamiento intermedio orientado a la alineación. Entrena un esquema de razonamiento compartido con indicaciones de seguridad y generales mediante documentos y trazas generados por el modelo, y luego continúa el entrenamiento causal de lenguaje antes del SFT o RL. Los autores informan menos ataques exitosos y mayor utilidad en Qwen3 hasta 8B y Llama-3.2 hasta 3B, con seguridad mayormente preservada en SFT y GRPO posteriores con datos generales únicamente. Una ablación con Qwen3-4B informa que el SFT directo de los mismos datos de razonamiento no produjo la misma mejora. Un trabajo anterior de Anthropic también estudia el entrenamiento intermedio basado en una especificación del modelo; un informe distinto de OpenAI encontró transferencia limitada para otra intervención con documentos de alineación después del postentrenamiento de razonamiento. Son regímenes distintos realizados por sus respectivos autores, no una comparación controlada; ninguno establece transferencia amplia del método de este artículo.",
+            "importance_rationale": "Si la retención de seguridad informada se generaliza, podría mejorar la formación conjunta de seguridad y capacidad general y reducir la dependencia de datos específicos de seguridad en etapas posteriores. Los autores estiman unas 15 jornadas de trabajo de una estación para el programa experimental principal, por lo que las consecuencias del método también dependen de que sus mejoras de seguridad se reproduzcan a un coste útil de cómputo y generación de datos, más allá de estos modelos pequeños.",
+            "why_it_matters": "Si se reproduce, entrenar la seguridad junto con el razonamiento de tareas generales antes del postentrenamiento podría ayudar a conservarla cuando las etapas posteriores se centran en tareas generales. Eso afectaría el diseño del entrenamiento de alineación. El entrenamiento intermedio con documentos relacionados con la alineación ya es una línea de investigación establecida; el aporte incremental de este estudio es su esquema compartido de seguridad y tareas generales y la retención informada bajo etapas posteriores específicas. Los resultados se limitan a los modelos y pruebas del artículo; se desconocen la transferencia a despliegues amplios y sus costes.",
+            "technical": {
+              "claimed_result": "Los autores informan menor tasa media de éxito de ataques y mayor utilidad tras el entrenamiento intermedio de seguridad propuesto, y que la seguridad se conserva en gran medida durante SFT y GRPO posteriores con datos generales únicamente en modelos base Qwen3 y Llama-3.2.",
+              "demonstrated_result": "El artículo v1 de arXiv y sus tablas demuestran que los autores informan estos resultados en los regímenes de modelos y evaluaciones descritos. El rendimiento y su transferencia no se han reproducido de forma independiente.",
+              "mechanism": "Los autores aplican un esquema compartido para generar documentos estructurados sobre intención, conocimiento, restricciones y consecuencias, junto con razonamientos y respuestas generados por el modelo, para indicaciones generales y de seguridad. Tras filtrar los ejemplos con un modelo juez, continúan el entrenamiento causal de lenguaje con el corpus combinado antes de SFT o GRPO.",
+              "novelty": "El entrenamiento intermedio con documentos relacionados con la alineación precede a este artículo: el trabajo de Anthropic basado en especificaciones entrena con documentos que describen la especificación del modelo antes del ajuste de alineación, y OpenAI informó de otra intervención con transferencia limitada después del postentrenamiento de razonamiento. La pregunta incremental aquí es si un esquema compartido para indicaciones de seguridad y generales, usado en entrenamiento causal intermedio, mejora la seguridad y la utilidad y conserva la seguridad durante SFT/GRPO posteriores con datos generales. No se informa una comparación controlada con esos métodos; los estudios usan modelos base, datos y evaluaciones distintos.",
+              "regime": "Experimentos informados en el artículo: modelos base Qwen3-1.7B/4B/8B y Llama-3.2-1B/3B; alrededor de 185k indicaciones de origen y unos 200M de tokens para el corpus predeterminado de razonamiento y documentos. Las evaluaciones informadas incluyen métricas de éxito de ataques y tareas de utilidad general; algunos componentes usan jueces basados en modelos.",
+              "strongest_baseline": "El artículo compara con modelos base de las mismas familias, ajuste supervisado posterior, variantes de Safety Pretraining y Alignment Pretraining, y una ablación con los mismos datos que contrasta SFT directo con entrenamiento intermedio. Todas las comparaciones fueron realizadas por los autores; esta activación no encontró una reproducción independiente."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "Los autores informan que una etapa de entrenamiento intermedio con documentos estructurados y trazas de razonamiento generados por el propio modelo, para indicaciones generales y de seguridad, reduce la tasa media de éxito de ataques y mejora la utilidad en tareas generales antes del ajuste supervisado (SFT) en Qwen3-1.7B, 4B y 8B. La Tabla 1 muestra que la ASR cambia de 30.4% a 8.4%, de 34.1% a 6.6% y de 25.4% a 4.9%, respectivamente."
+                },
+                {
+                  "text": "En los modelos Qwen3, los autores informan que la ventaja de seguridad persiste después de un SFT posterior con datos exclusivamente generales. Para Qwen3-4B, la ASR informada es 7.6% con entrenamiento intermedio más SFT general, frente a 13.6% con la línea base de modelo base más SFT; la utilidad informada es 74.9% frente a 59.4%. También informan una menor degradación de seguridad con GRPO de datos generales, sin indicaciones ni recompensas de seguridad."
+                },
+                {
+                  "text": "En una ablación de Qwen3-4B que usa las mismas trazas de razonamiento autogeneradas, el SFT directo mantiene la ASR media informada en 22.8%, mientras que utilizar los datos en la etapa intermedia la reduce a 7.5% y eleva la utilidad de 68.9% a 74.7%. Es una comparación informada por los autores dentro del artículo, no una confirmación independiente."
+                },
+                {
+                  "text": "La versión v1 de arXiv describe un conjunto de aproximadamente 185,000 indicaciones, un corpus de entrenamiento de aproximadamente 200 millones de tokens con razonamiento y documentos, experimentos con Qwen3 hasta 8B y Llama-3.2 hasta 3B, y evaluaciones de referencia que incluyen componentes juzgados por modelos. Señala que la evaluación no cubre todos los dominios, idiomas ni interacciones del mundo real."
+                },
+                {
+                  "text": "El artículo no demuestra que el entrenamiento intermedio orientado a la seguridad sea una idea nueva como etapa general ni que su método supere a enfoques anteriores en una comparación cruzada controlada. Trabajos previos describen entrenamiento intermedio con especificaciones del modelo antes del ajuste de alineación; otro informe de OpenAI encontró que una intervención diferente con documentos sintéticos de alineación no se transfirió de manera fiable a evaluaciones de chat y agentes más realistas después del postentrenamiento de razonamiento. Esos estudios usan modelos, datos y evaluaciones distintos: limitan las afirmaciones de generalización, pero no contradicen directamente este resultado."
+                },
+                {
+                  "text": "El Apéndice B.4 informa tiempos de entrenamiento y generación de datos tomados de los registros de los autores en una estación con cuatro GPU NVIDIA RTX Pro 6000: construir datos autogenerados requiere unos 3–5 días por tamaño Qwen3; una época de entrenamiento intermedio con el corpus predeterminado tarda 4h14m para Qwen3-1.7B, 9h para 4B y 13h38m para 8B; el conjunto de experimentos principales suma aproximadamente 15 jornadas de estación. Los autores también informan una concordancia de 97.8–98.2%, con media de 98.1%, entre tres modelos jueces y gpt-4.1-mini en una muestra estratificada de 500 indicaciones. Son cifras del artículo: no establecen consumo energético, coste monetario, corrección de los jueces ni economía general del entrenamiento."
+                },
+                {
+                  "text": "En una prueba de proporción de indicaciones inseguras con Qwen3-4B, manteniendo constante el tamaño total de los datos de entrenamiento intermedio, los autores informan una compensación no monotónica entre seguridad, rechazo excesivo y utilidad. Con la proporción seleccionada de 25% de indicaciones inseguras, informan ASR de 8.5%, rechazo excesivo de 9.7% en XSTest y utilidad media seleccionada de 81.6%; con 100% de indicaciones inseguras, informan ASR de 0%, rechazo excesivo de 88% y utilidad de 45%. Son puntuaciones informadas por los autores en un único modelo y régimen de evaluación."
+                }
+              ],
+              "limitations": [
+                "Todos los resultados de rendimiento provienen de un único artículo v1 en arXiv; el equipo de investigación no reprodujo los experimentos.",
+                "Los modelos evaluados son Qwen3 hasta 8B y Llama-3.2 hasta 3B; no se probaron modelos frontera mayores ni sistemas desplegados.",
+                "Los autores indican que la evaluación no cubre todos los dominios, idiomas ni patrones de interacción del mundo real.",
+                "El artículo dice que se prevé publicar los datos generados y la documentación; aquí no se verificó ningún artefacto público de código o datos.",
+                "El artículo ofrece rangos distintos de reducción de ASR según el alcance: 72–81% para los tres modelos Qwen3 y 68–86% en un pasaje más amplio que incluye Llama. Por ello, se conservan los valores específicos de las tablas en lugar de un único rango generalizado.",
+                "El entrenamiento intermedio con documentos sobre alineación ya se había estudiado. El trabajo de Anthropic basado en especificaciones del modelo usa documentos sobre la especificación antes del ajuste de alineación e informa menos desalineación agentiva en su régimen. El aporte incremental del artículo actual es su esquema conjunto de seguridad y tareas generales y la retención informada tras entrenamiento general posterior, no la invención del entrenamiento intermedio de alineación.",
+                "OpenAI informa que una intervención diferente, basada en documentos sintéticos alineados y desalineados, no separó de forma fiable ambas condiciones en evaluaciones de chat y agentes más realistas tras el postentrenamiento de razonamiento. Como los modelos, datos y evaluaciones difieren, es una advertencia sobre transferencia, no una contradicción directa ni una reproducción de este método.",
+                "No se informa una comparación directa y controlada con los métodos de entrenamiento intermedio citados; se desconocen su eficacia relativa y eficiencia de cómputo.",
+                "El artículo informa una comparación entre tres modelos jueces y gpt-4.1-mini en 500 indicaciones, con concordancia media de 98.1%. La coincidencia entre modelos jueces no establece por sí sola la corrección de la rúbrica, la verdad de referencia sobre seguridad ni una cobertura general.",
+                "El Apéndice B.4 informa unas 15 jornadas de estación para el conjunto principal y tiempos por fase en un sistema con 4× RTX Pro 6000. No se midieron de forma independiente el consumo de energía, el coste monetario, la utilización del hardware ni el coste por mejora de seguridad/utilidad.",
+                "La prueba de proporción de indicaciones inseguras cuantifica un marcado coste de rechazo excesivo en Qwen3-4B: los autores informan 9.7% de rechazo excesivo en XSTest con la proporción seleccionada de 25%, y 88% con 100%. Es una prueba de referencia ejecutada por los autores, no una frontera amplia de seguridad/utilidad en despliegue ni una réplica con varias semillas."
+              ],
+              "gaps": [
+                {
+                  "description": "No se encontró una reproducción independiente de los resultados de entrenamiento intermedio, SFT o GRPO, y no se verificó la publicación de código ni datos."
+                },
+                {
+                  "description": "Las evaluaciones y puntuaciones juzgadas por modelos no establecen el comportamiento en más idiomas y dominios, modelos de mayor escala ni despliegues reales de múltiples turnos."
+                },
+                {
+                  "description": "Aún no se contabilizan de forma independiente los costes de generación de datos, filtrado con un modelo juez, entrenamiento intermedio y SFT/RL posterior frente a las mejoras de seguridad y utilidad."
+                },
+                {
+                  "description": "Los autores presentan tiempos por fase y un total estimado de unas 15 jornadas de estación en un sistema 4× RTX Pro 6000, pero no se establecen de manera independiente el consumo energético, el coste monetario, la utilización del hardware ni el coste por mejora de seguridad/utilidad medida."
+                },
+                {
+                  "description": "La compensación informada al variar la proporción de indicaciones inseguras proviene de una sola prueba de referencia con Qwen3-4B; no se establecieron la variabilidad entre semillas, el comportamiento multilingüe o interactivo ni la transferencia a modelos mayores."
+                }
+              ]
+            },
+            "dek": "Un nuevo preprint de arXiv se suma a una línea previa de investigación sobre entrenamiento intermedio orientado a la alineación."
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "预印本报告：联合安全与通用任务的中期训练可保持安全能力",
+            "summary": "一篇新的 arXiv 预印本加入了既有的对齐导向中期训练研究。该方法使用模型生成的结构化文档和推理轨迹，在安全与通用提示上训练共享推理结构，随后在 SFT 或 RL 前继续进行因果语言模型训练。作者报告称，最高至 8B 的 Qwen3 和最高至 3B 的 Llama-3.2 模型攻击成功率更低、效用更高；后续仅使用通用数据进行 SFT 和 GRPO 时，安全能力大体得以保留。Qwen3-4B 消融实验报告称，将相同推理数据直接用于 SFT 并未产生相同增益。Anthropic 先前也研究过基于模型规范文档的中期训练；OpenAI 的另一项报告则发现，不同的合成对齐文档干预在推理后训练后未能可靠迁移。这些研究由各自作者在不同设定下完成，并非受控比较；它们均未证明本文方法可以广泛迁移。",
+            "importance_rationale": "如果报告的安全保持效果能够泛化，可能会改善安全与通用能力的联合训练，并降低后续阶段对安全专用数据的依赖。作者估算主要实验计划需要约 15 个工作站日，因此该方法的实际意义还取决于其安全增益能否在这些较小模型之外，以可接受的计算与数据生成成本复现。",
+            "why_it_matters": "如果结果得到复现，在后训练前将安全与通用任务推理一起训练，可能有助于在后续优化转向通用任务时保持安全能力。这会影响对齐训练设计。使用对齐相关文档进行中期训练已是既有研究方向；本文的增量贡献是共享的安全/通用任务结构，以及在特定后续训练设定中报告的安全保持效果。结果仍局限于论文所用模型与基准；能否迁移到广泛部署场景及其成本仍不清楚。",
+            "technical": {
+              "claimed_result": "作者报告称，采用所提安全中期训练后，Qwen3 与 Llama-3.2 基础模型的平均攻击成功率下降、通用任务效用提高；后续仅使用通用数据进行 SFT 和 GRPO 后，安全能力大体保留。",
+              "demonstrated_result": "arXiv v1 论文及其表格表明，作者在所述模型和评测范围内报告了这些结果。相关性能及其迁移效果尚无独立复现。",
+              "mechanism": "作者采用统一结构，围绕安全与通用提示生成意图、知识、约束和后果等结构化文档，以及模型生成的推理和回答；经模型评审筛选后，在 SFT 或 GRPO 前使用混合语料继续进行因果语言模型训练。",
+              "novelty": "在本文之前，已有研究使用对齐相关文档进行中期训练：Anthropic 的模型规范方案在对齐微调前训练模型规范文档；OpenAI 则报告了另一种对齐文档干预在推理后训练后的迁移有限。本文要回答的增量问题是：对安全与通用提示使用同一结构进行因果中期训练，能否提高安全和效用，并在后续仅用通用数据进行 SFT/GRPO 时保持安全。论文未与这些先前方案进行受控对比；相关研究使用不同基础模型、数据和评测。",
+              "regime": "论文报告的实验使用 Qwen3-1.7B/4B/8B 和 Llama-3.2-1B/3B 基础模型；来源提示约 185k 条，默认推理加文档语料约 200M tokens。报告的评测包括攻击成功指标和通用效用任务，部分环节使用模型评审。",
+              "strongest_baseline": "论文与同系列基础模型、仅后训练 SFT、Safety Pretraining 和 Alignment Pretraining 方案进行了比较，并用相同数据对直接 SFT 与中期训练做了消融对比。所有比较均由论文作者执行；本次激活未发现独立复现。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "作者报告称，在 Qwen3-1.7B、4B 和 8B 上，针对安全与通用提示使用模型自生成的结构化文档和推理轨迹进行中期训练后、监督微调（SFT）前，平均攻击成功率会下降，通用任务效用会提高。表 1 报告的 ASR 分别从 30.4% 降至 8.4%、从 34.1% 降至 6.6%、从 25.4% 降至 4.9%。"
+                },
+                {
+                  "text": "作者报告称，在 Qwen3 模型上，后续仅使用通用数据进行 SFT 后，安全优势仍然存在。对 Qwen3-4B，作者报告的 ASR 为：中期训练加通用数据 SFT 后 7.6%，基础模型加 SFT 基线为 13.6%；报告的效用分别为 74.9% 和 59.4%。作者还报告称，在没有安全提示或安全奖励的通用数据 GRPO 后，安全性能下降较小。"
+                },
+                {
+                  "text": "在 Qwen3-4B 的一项消融实验中，作者对相同的自生成推理轨迹进行了比较：直接 SFT 后报告的平均 ASR 仍为 22.8%，而将这些数据用于中期训练后，ASR 降至 7.5%，效用从 68.9% 提高到 74.7%。这是论文中的作者报告结果，并非独立确认。"
+                },
+                {
+                  "text": "arXiv v1 论文描述了约 185,000 条提示、约 200 million tokens 的推理加文档训练语料、最高至 8B 的 Qwen3 实验、最高至 3B 的 Llama-3.2 实验，以及包含模型评审环节的基准测试。论文指出，评估并未覆盖所有领域、语言或真实世界交互模式。"
+                },
+                {
+                  "text": "论文未证明安全导向中期训练作为一般训练阶段概念是新的，也未通过跨论文受控比较证明其方法优于先前方案。早期研究报告了在对齐微调前使用模型规范文档进行中期训练；OpenAI 的另一份报告则发现，采用不同合成对齐文档干预后，在推理后训练之后并未可靠迁移至更真实的聊天与智能体评测。这些研究的模型、数据和评测不同，因此限制了泛化主张，但并不直接反驳本文结果。"
+                },
+                {
+                  "text": "附录 B.4 根据作者日志报告了使用一台配备四张 NVIDIA RTX Pro 6000 GPU 的工作站进行训练和数据生成所需的时间：每种 Qwen3 规模的数据自生成约需 3–5 天；默认语料的一轮中期训练在 Qwen3-1.7B、4B 和 8B 上分别耗时 4h14m、9h 和 13h38m；主要实验集合总计约需 15 个工作站日。作者还报告称，在分层抽取的 500 条提示样本中，三个模型评审与 gpt-4.1-mini 的一致率为 97.8–98.2%，平均为 98.1%。这些数字来自论文报告，并不能证明能耗、货币成本、评审正确性或普遍的训练经济性。"
+                },
+                {
+                  "text": "在 Qwen3-4B 的不安全提示比例实验中，作者保持中期训练数据总量不变，并报告安全、过度拒绝与效用之间存在非单调权衡。在选定的 25% 不安全提示比例下，报告的 ASR 为 8.5%、XSTest 过度拒绝率为 9.7%、选定效用均值为 81.6%；在 100% 不安全提示比例下，ASR 为 0%、过度拒绝率为 88%、效用为 45%。这些是单一模型和评测设定下由作者报告的分数。"
+                }
+              ],
+              "limitations": [
+                "所有性能结果均来自一篇 arXiv v1 论文作者的报告；研究团队未复现实验。",
+                "评估模型为最高至 8B 的 Qwen3 和最高至 3B 的 Llama-3.2；未测试更大的前沿模型或已部署系统。",
+                "作者指出，评估并未覆盖所有领域、语言或真实世界交互模式。",
+                "论文称计划发布生成的数据和文档；本次未核实公开代码或数据制品。",
+                "论文针对不同范围给出了不同的 ASR 降幅区间：三个 Qwen3 模型为 72–81%；一处包含 Llama 的更广范围讨论为 68–86%。因此上文保留表格中的具体数值，而不归纳为单一通用区间。",
+                "本研究之前已有研究使用对齐相关文档进行中期训练。Anthropic 的模型规范方案在对齐微调前使用规范文档，并报告了在其测试设定中智能体失调率下降。本文的增量主张是联合安全/通用任务的数据结构，以及后续仅用通用数据训练时的安全保持效果，而非发明对齐中期训练。",
+                "OpenAI 报告称，另一种使用合成正向/负向对齐文档的干预，在推理后训练后未能在更真实的聊天和智能体评测中可靠区分两种条件。由于模型、数据与评测不同，这是一项迁移风险提示，并非对本文方法的直接反驳或复现。",
+                "论文未与所引先前中期训练方法进行受控的直接比较，因此相对效果和计算效率仍未知。",
+                "论文报告了对 500 条提示样本的三模型评审核验，和 gpt-4.1-mini 的平均一致率为 98.1%。模型评审之间的一致并不能单独证明评分标准正确、安全真值可靠或覆盖范围充分。",
+                "附录 B.4 报告主要实验集合约需 15 个工作站日，并给出一台 4× RTX Pro 6000 系统上的分阶段墙钟时间。本次未独立测量能耗、货币成本、其他硬件上的效率或单位安全/效用增益成本。",
+                "不安全提示比例实验量化了 Qwen3-4B 上明显的过度拒绝代价：作者报告所选 25% 不安全提示比例下，XSTest 过度拒绝率为 9.7%；比例为 100% 时为 88%。这是作者执行的一项基准实验，并非部署场景下广泛的安全/效用前沿，也不是多随机种子复现。"
+              ],
+              "gaps": [
+                {
+                  "description": "未发现对中期训练、SFT 或 GRPO 结果的独立复现，也未核实代码或数据已公开发布。"
+                },
+                {
+                  "description": "论文基准及模型评审分数无法证明模型在更多语言、领域、更大规模模型或真实多轮部署中的行为。"
+                },
+                {
+                  "description": "数据生成、模型评审筛选、中期训练以及后续 SFT/RL 的成本尚未与安全和效用增益进行独立核算。"
+                },
+                {
+                  "description": "作者提供了单台 4× RTX Pro 6000 工作站上各阶段墙钟时间及约 15 个工作站日的总估算，但能耗、货币成本、硬件利用率和单位安全/效用增益成本尚未独立确定。"
+                },
+                {
+                  "description": "报告的不安全提示比例权衡来自一项 Qwen3-4B 基准实验；随机种子间变异、多语言/交互行为和向更大模型的迁移尚未确定。"
+                }
+              ]
+            },
+            "headline": "预印本报告：联合安全与通用任务的中期训练可保持安全能力"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
     {
       "id": "FCMO-5ED489E1C757",
       "slug": "anthropic-reports-a-production-inference-verification-prototype-and",
@@ -70,7 +393,7 @@
       "event_at": "2026-10-19T00:00:00Z",
       "date_precision": "day",
       "first_published_at": "2026-10-20T12:14:17Z",
-      "updated_at": "2026-10-20T13:14:41Z",
+      "updated_at": "2026-10-20T14:11:01Z",
       "importance": 5,
       "evidence_class": "A",
       "confidence": "claimed_unverified",
@@ -122,7 +445,7 @@
       ],
       "corrections": [
         {
-          "at": "2026-10-20T13:14:41Z",
+          "at": "2026-10-20T14:11:01Z",
           "kind": "merge",
           "reason_code": "DUPLICATE",
           "text": {
