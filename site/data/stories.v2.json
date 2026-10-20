@@ -1,7 +1,7 @@
 {
   "schema": "fcmo-stories-v2",
-  "generated_at": "2026-10-20T08:13:20Z",
-  "release_id": "newswire-b5754939c6e6c153ae4015f3",
+  "generated_at": "2026-10-20T09:14:45Z",
+  "release_id": "newswire-6614d67abeb6daea68b51f18",
   "canonical_locale": "en",
   "locales": [
     "en",
@@ -45,6 +45,236 @@
     "2026-10-19"
   ],
   "stories": [
+    {
+      "id": "FCMO-DB8F9345083A",
+      "slug": "preprint-reports-conditional-decay-of-prompt-influence-in-bounded",
+      "url_date": "2026-10-20",
+      "kind": "development",
+      "status": "live",
+      "beat": "research",
+      "desk": "architectures_scaling",
+      "title": "Preprint reports conditional decay of prompt influence in bounded transformer regimes",
+      "headline": "Preprint reports conditional decay of prompt influence in bounded transformer regimes",
+      "summary": "A 2026-10-16 arXiv preprint proves a conditional O(P(log t)^(L-1)/t) upper bound on prompt-induced hidden-state offsets for finite-depth pre-LN transformers with full causal softmax attention, bounded logits and non-degenerate pre-norm activations. Experiments on Pythia and Qwen2.5 report faster teacher-forced prompt-offset decay in trained than untrained models and a relay-path mechanism that training suppresses early. On Pythia-160m, a uniform logit boost at s=0.5 lowers measured decay exponents by 0.17–0.25 for +2.6% perplexity; on Qwen2.5-0.5B-Instruct, fully French outputs rise from 31% to 94% after 2048 tokens. Small multi-turn tests suggest improved adherence, but samples are limited and boosts can cause instruction echoing. These are author-reported results, not evidence of widespread deployed-model failure or a validated production remedy.",
+      "why_it_matters": "If independently sustained, the result provides a formal lens for when prompt effects attenuate inside transformer hidden states and how long-context evaluations should distinguish hidden-state decay from information retained in generated text. Its present scope is conditional and does not show general instruction loss in deployed models.",
+      "importance_rationale": "If the reported theorem and prompt-bias interventions hold beyond these small-model tests, they provide a tractable mechanism and control knob for prompt persistence, long-context behavior and system-instruction adherence. The present evidence is one paper, small model families and limited free-generation samples, so broader deployment relevance is not established.",
+      "technical": {
+        "claimed_result": "The theorem gives a conditional O(P(log t)^(L-1)/t) hidden-state offset bound. In Pythia/Qwen2.5, authors report trained-model exponents around 0.55–0.7 beyond early layers versus about 0.2–0.5 untrained. On Pythia-160m, prompt-logit boost s=0.5 lowers exponents by 0.17–0.25 for +2.6% perplexity; Qwen2.5-0.5B-Instruct fully French outputs increase from 31% to 94% after 2048 tokens.",
+        "demonstrated_result": "The accessible preprint establishes that the authors report the theorem, experiments and interventions. This review did not independently check the proof or reproduce the reported outcomes.",
+        "mechanism": "Geometric dilution reduces the prompt share of attention as context grows. Continuation tokens can relay prompt information through layers; the authors report training suppresses relay within the first billion tokens. A logit bias toward prompt tokens counteracts dilution, but can increase perplexity and instruction echoing.",
+        "regime": "Finite-depth pre-LN full-causal-softmax transformers with bounded logits and non-degenerate pre-norm activations for the theorem. Empirical tests use Pythia 160m/410m/1b and Qwen2.5 0.5b/1.5b; instruction adherence tests are small and include 32 conversations per multi-turn condition.",
+        "strongest_baseline": "Matched prompt pairs under shared teacher-forced continuations, trained versus untrained checkpoints, and matched prompt-logit versus placebo/constant boosts."
+      },
+      "importance_tier": "Notable",
+      "development_type": "paper",
+      "event_at": "2026-10-16T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-20T09:14:27Z",
+      "updated_at": "2026-10-20T09:14:27Z",
+      "importance": 5,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": false,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "CLAIMED",
+            "text": "The authors prove a conditional bound O(P(log t)^(L-1)/t) on the prompt-induced hidden-state offset for finite-depth pre-LN transformers with full causal softmax attention, bounded attention logits and non-degenerate pre-norm activations; conditional on a shared generated history, prompt influence on the next-token distribution vanishes at the same asymptotic rate."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "Across Pythia and Qwen2.5 experiments, the authors report teacher-forced prompt-offset decay exponents around 0.55–0.7 in trained models beyond early layers, versus about 0.2–0.5 in untrained models. Their path decomposition attributes much of the untrained late offset to a slowly decaying relay path; training suppresses relay within the first billion tokens."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "On Pythia-160m real-corpus prompt pairs, the authors report that a uniform prompt-logit boost with strength s=0.5 lowers measured decay exponents by 0.17–0.25 at a +2.6% WikiText perplexity cost. On Qwen2.5-0.5B-Instruct, the fraction of outputs fully in French after 2048 generated tokens rises from 31% to 94% at s=0.5."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "In an eight-turn Qwen2.5-1.5B-Instruct setup, prompt boosts improved reported French adherence trends across 32 conversations per condition, while excess instruction echoing increased in single-turn forced-length tests. The authors say these adherence differences are trends rather than statistically significant effects and found no clear advantage of log-shaped boost over a constant boost with the same mean."
+          },
+          {
+            "label": "NOT_ESTABLISHED",
+            "text": "The study does not establish broad system-prompt failure in deployed frontier models or robust production benefit from logit compensation: results are author-reported, tested on small model families, free-generation samples are limited, and boosts can raise perplexity or cause instruction echoing. Independent replication remains open."
+          }
+        ],
+        "limitations": [
+          "One author-reported preprint; no independent proof review or empirical reproduction was conducted.",
+          "The theorem assumes finite depth, pre-layer normalization, full causal softmax attention, bounded attention logits and pre-norm activations bounded away from zero.",
+          "Most offset measurements use teacher-forced shared continuations, which isolate hidden-state prompt influence but do not alone capture free-running interaction. Generated text can itself preserve prompt information.",
+          "The empirical model set is limited to small Pythia and Qwen2.5 sizes; broad frontier-model or production generalization is not established.",
+          "The reported Qwen instruction-adherence and multi-turn tests are limited in scale; the authors characterize small multi-turn differences as trends and find no clear log-shaped-boost advantage over matched constant bias.",
+          "Prompt-logit compensation can raise perplexity and induce instruction echoing; stronger per-head compensation produced very large perplexity costs.",
+          "The promised toolkit was not located in the targeted search."
+        ],
+        "gaps": [
+          {
+            "kind": "reproduction_missing",
+            "description": "The theorem and empirical experiments have not been independently checked or reproduced. The paper says it will release a Hugging Face toolkit, but no official artifact repository was located."
+          },
+          {
+            "kind": "other",
+            "description": "Prompt-bias adherence results come from small model families and limited samples; the multi-turn study uses 32 conversations per condition, while boosts also carry perplexity and echoing costs."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2610.24133",
+          "domain": "arxiv.org",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [],
+      "topics": [],
+      "regions": [
+        "GLOBAL"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-DB8F9345083A.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: Preprint reports conditional decay of prompt influence in bounded transformer regimes"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "Un preprint informa la atenuación condicional de la influencia del prompt en transformadores",
+            "summary": "Un preprint de arXiv fechado el 2026-10-16 demuestra una cota condicional O(P(log t)^(L-1)/t) para la diferencia de estados ocultos inducida por el prompt en transformadores finitos pre-LN con atención causal softmax completa, logits acotados y activaciones no degeneradas. En experimentos con Pythia y Qwen2.5, los autores informan una atenuación teacher-forced más rápida en modelos entrenados que en modelos sin entrenar y un mecanismo de relevo que el entrenamiento suprime temprano. En Pythia-160m, un sesgo uniforme de logits con s=0.5 reduce los exponentes medidos entre 0.17–0.25 por un costo de +2.6% en perplexity; en Qwen2.5-0.5B-Instruct, las respuestas totalmente en francés suben de 31% a 94% tras 2048 tokens. Pruebas pequeñas de varios turnos sugieren mayor adherencia, pero las muestras son limitadas y el sesgo puede causar eco de instrucciones. Son resultados informados por los autores, no evidencia de fallas extendidas en modelos desplegados ni de una solución de producción validada.",
+            "importance_rationale": "Si se sostiene más allá de estas pruebas con modelos pequeños, el teorema y las intervenciones sobre el prompt ofrecen un mecanismo y un control concreto para estudiar persistencia, contextos largos y adherencia a instrucciones. La evidencia actual no establece relevancia general en producción.",
+            "why_it_matters": "Si la demostración y las intervenciones se sostienen más allá de estas pruebas con modelos pequeños, ofrecen un mecanismo y un control concreto para estudiar la persistencia del prompt, el comportamiento con contextos largos y la adherencia a instrucciones del sistema. La evidencia actual proviene de un solo artículo, pocas familias de modelos y muestras limitadas de generación libre; no establece relevancia amplia en producción.",
+            "technical": {
+              "claimed_result": "El teorema establece una cota condicional O(P(log t)^(L-1)/t). En Pythia/Qwen2.5, los autores informan exponentes de aproximadamente 0.55–0.7 en modelos entrenados frente a cerca de 0.2–0.5 en modelos sin entrenar. En Pythia-160m, el sesgo del prompt s=0.5 reduce los exponentes entre 0.17–0.25 por +2.6% de perplexity; las salidas completamente en francés de Qwen2.5-0.5B-Instruct suben de 31% a 94% después de 2048 tokens.",
+              "demonstrated_result": "El preprint accesible confirma que los autores informan el teorema, los experimentos y las intervenciones. Esta revisión no verificó de forma independiente la demostración ni reprodujo los resultados.",
+              "mechanism": "La dilución geométrica reduce la proporción de atención que recibe el prompt al crecer el contexto. Los tokens de continuación pueden retransmitir información del prompt entre capas; los autores informan que el entrenamiento suprime ese relevo durante el primer millardo de tokens. Un sesgo de logits hacia el prompt contrarresta la dilución, pero puede aumentar perplexity y el eco de instrucciones.",
+              "regime": "Transformadores finitos pre-LN con atención causal softmax completa, logits acotados y activaciones pre-norm no degeneradas para el teorema. Las pruebas usan Pythia 160m/410m/1b y Qwen2.5 0.5b/1.5b; las pruebas de adherencia tienen muestras pequeñas, incluidas 32 conversaciones por condición en el estudio de varios turnos.",
+              "strongest_baseline": "Pares de prompts emparejados bajo continuaciones teacher-forced compartidas; checkpoints entrenados frente a inicialización y sesgos emparejados sobre el prompt frente a controles placebo/constantes."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "Los autores demuestran una cota condicional O(P(log t)^(L-1)/t) para la diferencia de estados ocultos inducida por el prompt en transformadores finitos pre-LN con atención causal softmax completa, logits de atención acotados y activaciones pre-norm no degeneradas; bajo un historial generado compartido, la influencia del prompt en la siguiente distribución de tokens se desvanece a la misma tasa asintótica."
+                },
+                {
+                  "text": "En experimentos con Pythia y Qwen2.5, los autores informan exponentes de decaimiento teacher-forced de aproximadamente 0.55–0.7 en modelos entrenados más allá de las primeras capas, frente a cerca de 0.2–0.5 en modelos sin entrenar. Su análisis de rutas atribuye parte del residuo tardío del prompt a un relevo que el entrenamiento suprime durante el primer millardo de tokens."
+                },
+                {
+                  "text": "En pares de prompts de corpus real con Pythia-160m, los autores informan que un sesgo uniforme de logits sobre el prompt con intensidad s=0.5 reduce los exponentes medidos entre 0.17–0.25, con un costo de +2.6% en perplexity de WikiText. En Qwen2.5-0.5B-Instruct, la fracción de salidas completamente en francés sube de 31% a 94% después de 2048 tokens generados con s=0.5."
+                },
+                {
+                  "text": "En una configuración de ocho turnos con Qwen2.5-1.5B-Instruct, los autores informan tendencias de mayor adherencia al francés con sesgos sobre el prompt, en 32 conversaciones por condición; en pruebas de una sola respuesta con longitud forzada también aumentó el eco de instrucciones. Los autores describen las diferencias de adherencia como tendencias, no efectos estadísticamente significativos, y no hallan una ventaja clara del sesgo logarítmico frente a uno constante con la misma intensidad media."
+                },
+                {
+                  "text": "El estudio no demuestra fallas generales de prompts de sistema en modelos de frontera desplegados ni beneficios robustos de producción por compensar logits: los resultados son de los autores, se probaron familias pequeñas, las muestras de generación libre son limitadas y los sesgos pueden aumentar perplexity o producir eco de instrucciones. Sigue pendiente la reproducción independiente."
+                }
+              ],
+              "limitations": [
+                "Es un preprint de un solo equipo; no se revisó de forma independiente la demostración ni se reprodujeron los resultados.",
+                "El teorema supone profundidad finita, pre-normalización por capa, atención causal softmax completa, logits acotados y activaciones pre-norm alejadas de cero.",
+                "La mayoría de las mediciones usa continuaciones compartidas teacher-forced: aíslan la influencia del prompt en estados ocultos, pero no representan por sí solas una interacción de generación libre. El texto generado puede conservar información del prompt.",
+                "El conjunto empírico se limita a modelos Pythia y Qwen2.5 pequeños; no establece generalización amplia a modelos de frontera o producción.",
+                "Las pruebas de adherencia de Qwen son pequeñas; los autores califican como tendencias las diferencias de varios turnos y no ven ventaja clara del sesgo logarítmico frente a un sesgo constante emparejado.",
+                "Compensar logits sobre el prompt puede elevar perplexity y causar eco de instrucciones; la compensación calibrada por cabeza tuvo costos de perplexity muy altos.",
+                "No se localizó la herramienta prometida."
+              ],
+              "gaps": [
+                {
+                  "description": "Nadie ha revisado o reproducido de forma independiente el teorema ni los experimentos. El artículo promete una herramienta para Hugging Face, pero no se localizó un repositorio oficial de artefactos."
+                },
+                {
+                  "description": "Los resultados de adherencia al prompt provienen de pocas familias y muestras limitadas; el estudio de varios turnos usa 32 conversaciones por condición, mientras que los sesgos también elevan el costo en perplexity y pueden generar eco."
+                }
+              ]
+            }
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "预印本报告：提示影响在变换器中会条件性衰减",
+            "summary": "一篇日期为 2026-10-16 的 arXiv 预印本证明了条件上界 O(P(log t)^(L-1)/t)，适用于有限深度、pre-LN、完整 softmax 因果注意力、logits 有界且激活非退化的变换器。在 Pythia 和 Qwen2.5 实验中，作者报告训练模型的 teacher-forced 衰减快于未训练模型，并提出训练会较早抑制中继路径。在 Pythia-160m 上，s=0.5 的统一 logits 偏置使测得的衰减指数降低 0.17–0.25，代价为 +2.6% perplexity；在 Qwen2.5-0.5B-Instruct 上，生成 2048 个 token 后完全使用法语的回答比例从 31% 升至 94%。小规模多轮测试显示遵循指令的趋势有所改善，但样本有限，偏置也可能造成指令回声。这些是作者报告的结果，不能证明已部署模型普遍失效，也不是经过验证的生产解决方案。",
+            "importance_rationale": "如果定理和干预能在小模型测试之外成立，它们可为提示保持、长上下文和指令遵循研究提供机制与控制手段。现有证据尚未证明其在生产环境中普遍适用。",
+            "why_it_matters": "如果这些定理和干预在小模型测试之外仍成立，它们可为提示保持、长上下文行为和系统指令遵循提供具体机制与控制手段。目前证据来自一篇论文、少数模型系列和有限的自由生成样本，尚未证明其在生产环境中具有普遍意义。",
+            "technical": {
+              "claimed_result": "定理给出条件上界 O(P(log t)^(L-1)/t)。在 Pythia/Qwen2.5 上，作者报告训练模型的指数约为 0.55–0.7，未训练模型约为 0.2–0.5。在 Pythia-160m 上，s=0.5 的提示 logits 偏置使指数降低 0.17–0.25，代价为 +2.6% perplexity；Qwen2.5-0.5B-Instruct 完全法语输出在生成 2048 tokens 后从 31% 升至 94%。",
+              "demonstrated_result": "可访问的预印本确认作者报告了该定理、实验和干预。本次未独立核验证明或复现实验结果。",
+              "mechanism": "随着上下文增长，几何稀释会降低提示获得的注意力比例。续写 token 可在层间中继提示信息；作者报告训练在第一个十亿 tokens 内抑制了中继。提高提示 logits 可抵消稀释，但也可能提高 perplexity 并引发指令回声。",
+              "regime": "定理适用于有限深度、pre-LN、完整 softmax 因果注意力、logits 有界且激活非退化的变换器。实验使用 Pythia 160m/410m/1b 和 Qwen2.5 0.5b/1.5b；指令遵循样本有限，多轮测试每种条件有 32 段对话。",
+              "strongest_baseline": "共享 teacher-forced 续写中的匹配提示对；训练后 checkpoint 与初始化对照；提示偏置与匹配的 placebo/常数偏置对照。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "作者证明，在有限深度、pre-LN、完整 softmax 因果注意力、注意力 logits 有界且 pre-norm 激活非退化的变换器中，提示引起的隐藏状态差异满足条件上界 O(P(log t)^(L-1)/t)；在共享生成历史的条件下，提示对下一 token 分布的影响以相同渐近速率消失。"
+                },
+                {
+                  "text": "在 Pythia 和 Qwen2.5 实验中，作者报告训练模型前几层之后的 teacher-forced 衰减指数约为 0.55–0.7，未训练模型约为 0.2–0.5。路径分解将部分晚期提示残留归因于中继路径；作者报告训练在第一个十亿 tokens 内抑制了中继。"
+                },
+                {
+                  "text": "在 Pythia-160m 的真实语料提示对上，作者报告 s=0.5 的统一提示 logits 偏置使测得的衰减指数降低 0.17–0.25，WikiText perplexity 代价为 +2.6%。在 Qwen2.5-0.5B-Instruct 上，生成 2048 tokens 后完全使用法语的输出比例从 31% 升至 94%，s=0.5。"
+                },
+                {
+                  "text": "在 Qwen2.5-1.5B-Instruct 的八轮设置中，作者报告偏置提高了法语遵循指令的趋势，每种条件有 32 段对话；单轮定长生成测试中的指令回声也有所增加。作者称多轮遵循差异只是趋势，并非统计显著效果；对比同等平均强度的常数偏置，log 形状偏置没有明确优势。"
+                },
+                {
+                  "text": "该研究未证明已部署前沿模型普遍发生系统提示失效，也未证明 logits 补偿有稳定的生产收益：结果由作者报告，测试模型系列较小，自由生成样本有限，偏置可能提高 perplexity 或引发指令回声。独立复现仍待完成。"
+                }
+              ],
+              "limitations": [
+                "这是一篇单一作者团队的预印本；本次未独立核查证明或复现实验结果。",
+                "定理假设有限深度、前置层归一化、完整 softmax 因果注意力、注意力 logits 有界且 pre-norm 激活远离零。",
+                "多数偏移测量采用共享的 teacher-forced 续写；它隔离了隐藏状态中的提示影响，但本身不能代表自由生成对话。生成文本也可能保留提示信息。",
+                "实证模型仅包含小型 Pythia 与 Qwen2.5；尚未证明对前沿模型或生产环境广泛适用。",
+                "Qwen 指令遵循测试规模有限；作者称多轮差异只是趋势，并未发现 log 形状偏置优于匹配的常数偏置。",
+                "提示 logits 补偿可能提高 perplexity 并产生指令回声；更强的逐头补偿导致很高的 perplexity 成本。",
+                "本次未找到作者承诺发布的工具。"
+              ],
+              "gaps": [
+                {
+                  "description": "该定理和实验尚未经过独立检查或复现。论文称将发布 Hugging Face 工具，但本次未找到官方工件仓库。"
+                },
+                {
+                  "description": "提示偏置的遵循结果来自少数模型系列和有限样本；多轮研究每种条件只有 32 段对话，偏置还会带来 perplexity 与指令回声成本。"
+                }
+              ]
+            },
+            "headline": "预印本报告：提示影响在变换器中会条件性衰减"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
     {
       "id": "FCMO-D0BFEDC1D424",
       "slug": "anthropic-reports-automated-red-team-matched-or-exceeded-its-best-human",
