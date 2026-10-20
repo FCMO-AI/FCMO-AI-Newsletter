@@ -5,6 +5,8 @@ import os
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
+from studio.translation import FakeProvider
 from studio.server.storage import Store, git
 from studio.server.publishing import GitHub, Workspace, Publisher, Refused, PieceHTML
 from tests.harness.mock_github import MockGitHub
@@ -18,6 +20,8 @@ class MockWorkspace(Workspace):
 
 class Publish(unittest.TestCase):
     def setUp(self):
+        provider = patch('studio.translation.configured_provider', return_value=FakeProvider())
+        provider.start(); self.addCleanup(provider.stop)
         (ROOT / '_audit').mkdir(exist_ok=True)
         self.tmp = tempfile.TemporaryDirectory(dir=ROOT / '_audit'); self.data = Path(self.tmp.name)
         self.store = Store(self.data / 'data'); self.slug = self.store.create('javier', 'essay', 'Private essay', 'en')['slug']

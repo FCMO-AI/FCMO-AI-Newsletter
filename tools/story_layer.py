@@ -280,12 +280,35 @@ def _lead_url(record: dict[str, Any]) -> str:
     return f"{host}{parts.path.rstrip('/')}" + (f"?{parts.query}" if parts.query else "")
 
 
+_STOPWORDS = frozenset("""the and for with from that this into than are was were has have had its their his her
+after over about report reports which not but also such more""".split())
+# Measured on the corpus: genuine duplicates overlap at 0.6 or more, distinct findings that
+# share one multi-item source page (a roadmap, an index) sit near 0.2.
+MIN_TEXT_OVERLAP = 0.4
+
+
+def _content_tokens(record: dict[str, Any]) -> set[str]:
+    text = f"{record.get('title') or ''} {record.get('summary') or ''}".casefold()
+    return {w for w in re.findall(r"[a-z0-9]+", text) if len(w) > 3 and w not in _STOPWORDS}
+
+
+def _same_development(a: dict[str, Any], b: dict[str, Any]) -> bool:
+    """Same lead source and organization are not enough when the texts report different findings.
+
+    Missing text keeps the lead-source rule alone, so records without a summary behave as before.
+    """
+    ta, tb = _content_tokens(a), _content_tokens(b)
+    if not ta or not tb:
+        return True
+    return len(ta & tb) / min(len(ta), len(tb)) >= MIN_TEXT_OVERLAP
+
+
 def find_duplicates(records: dict[str, dict[str, Any]], first_published: dict[str, str],
                     blocked: Iterable[str] = ()) -> dict[str, str]:
     """{duplicate id: surviving id} for stories that report one development.
 
-    Two records are one development when they cite the same lead source and share
-    an organization. The earliest published story survives. Ids in ``blocked``
+    Two records are one development when they cite the same lead source, share
+    an organization and their title and summary overlap enough to report one finding. The earliest published story survives. Ids in ``blocked``
     (reinstated after a merge) are never merged automatically again.
     """
     blocked = set(blocked)
@@ -305,7 +328,8 @@ def find_duplicates(records: dict[str, dict[str, Any]], first_published: dict[st
         for rid in ordered[1:]:
             if rid in blocked:
                 continue
-            if orgs & {o.casefold() for o in records[rid].get("organizations", [])}:
+            if (orgs & {o.casefold() for o in records[rid].get("organizations", [])}
+                    and _same_development(records[survivor], records[rid])):
                 merges[rid] = survivor
     return merges
 
@@ -373,7 +397,7 @@ def locale_fields(row: dict[str, Any], story: dict[str, Any], derived_headline: 
             fields[path] = values
     if any(item.get("summary") for item in story.get("related", [])):
         localized_relationships = {
-            (item.get("target_id"), item.get("type")): item
+            (item.get("target_id"), item.get("type") if item.get("type") in taxonomy.RELATION_TYPES else "related"): item
             for item in row.get("relationships", []) if isinstance(item, dict)
         }
         related = []
@@ -403,8 +427,11 @@ def locale_fields(row: dict[str, Any], story: dict[str, Any], derived_headline: 
 
 
 def build_l10n(story: dict[str, Any], sources: list[dict[str, Any]], derived_headline: bool,
-               derived_dek: bool) -> dict[str, Any]:
+               derived_dek: bool, locale_code: str | None = None) -> dict[str, Any]:
     required = list(L10N_FIELDS)
+    for key, derived in (("headline", derived_headline), ("dek", derived_dek)):
+        if story.get(key) and not derived:
+            required.append(key)
     # The paper already uses localized title/summary when a short headline/dek
     # cannot be derived. Those optional display variants are not new prose debt.
     english_empty = {
@@ -437,7 +464,7 @@ def build_l10n(story: dict[str, Any], sources: list[dict[str, Any]], derived_hea
     missing = [p for p in required if p not in flat and not english_empty.get(p, False)]
     if "related" not in missing:
         translated = {
-            (item.get("target_id"), item.get("type")): item
+            (item.get("target_id"), item.get("type") if item.get("type") in taxonomy.RELATION_TYPES else "related"): item
             for row in sources for item in row.get("relationships", []) if isinstance(item, dict)
         }
         relationship_summaries_missing = any(
@@ -475,6 +502,13 @@ def build_l10n(story: dict[str, Any], sources: list[dict[str, Any]], derived_hea
     }
     if provided:
         entry["provenance"] = {p: origins.get(p) for p in provided if origins.get(p) is not None}
+    if locale_code is not None:
+        try:
+            from tools.paper.i18n import story_locale
+        except ImportError:  # direct script execution
+            from paper.i18n import story_locale
+        checked = story_locale({**story, "l10n": {locale_code: entry}}, locale_code)
+        entry["state"], entry["missing"] = checked["state"], checked["missing"]
     return entry
 
 
@@ -575,7 +609,7 @@ def story_object(record: dict[str, Any], ledger_entry: dict[str, Any], carried: 
         "media": media_for(record["id"], record["title"], record["beat"], site),
     })
     story["l10n"] = {loc: build_l10n(story, locale_rows_for(loc, locale_rows), not record.get("headline"),
-                                     not record.get("dek")) for loc in TARGET_LOCALES}
+                                     not record.get("dek"), loc) for loc in TARGET_LOCALES}
     return story
 
 
@@ -856,7 +890,7 @@ def build_stories(inputs: StoryInputs) -> dict[str, Any]:
         record = inputs.records[rid]
         rows = inputs.locale_rows[rid]
         story["l10n"] = {
-            locale: build_l10n(story, locale_rows_for(locale, rows), not record.get("headline"), not record.get("dek"))
+            locale: build_l10n(story, locale_rows_for(locale, rows), not record.get("headline"), not record.get("dek"), locale)
             for locale in TARGET_LOCALES
         }
     ordered = sorted(stories.values(), key=lambda s: (s["first_published_at"], s["id"]), reverse=True)

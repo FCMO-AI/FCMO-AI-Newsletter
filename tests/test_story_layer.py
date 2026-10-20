@@ -13,7 +13,7 @@ from pathlib import Path
 
 from tests.harness.validate import validator_for
 from tools import build_newsroom_surfaces as surfaces
-from tools import ingest_corpus, story_layer, taxonomy
+from tools import corpus_guard, ingest_corpus, story_layer, taxonomy
 
 REPO = Path(__file__).resolve().parents[1]
 CONTRACTS = REPO / "contracts"
@@ -49,7 +49,14 @@ def expected_live_ids(corpus: Path = CORPUS, native: bool = True) -> set[str]:
     if native:
         from tests.test_localization_completeness import independent_backlog
         dead |= independent_backlog("es-419") | independent_backlog("zh-Hans")
-    return {r["id"] for r in rows} - dead
+    live = {r["id"] for r in rows} - dead
+    # A record the bridge quarantined (recorded in airlock/wire-status) keeps its last
+    # published version live via carried.jsonl; an unrecorded carried id is not admitted here.
+    recorded = corpus_guard.recorded_quarantine(corpus)
+    carried = {c["id"] for c in corpus_guard.read_carried(corpus)} & recorded
+    tombstoned = {e["id"] for e in json.loads((corpus / "tombstones.json").read_text())["tombstones"]
+                  if e.get("reinstated_at") is None}
+    return live | (carried - tombstoned)
 
 
 class RepositoryStoryLayerTests(unittest.TestCase):
@@ -119,7 +126,9 @@ class RepositoryStoryLayerTests(unittest.TestCase):
         corpus_ids = {json.loads(l)["id"] for l in (CORPUS / "data" / "developments.jsonl").read_text().splitlines() if l.strip()}
         from tests.test_localization_completeness import independent_backlog
         held = independent_backlog("es-419") | independent_backlog("zh-Hans")
-        self.assertEqual(set(self.stories), (corpus_ids - held) | {FDBE})
+        carried_quarantine = ({c["id"] for c in corpus_guard.read_carried(CORPUS)}
+                              & corpus_guard.recorded_quarantine(CORPUS))
+        self.assertEqual(set(self.stories), (corpus_ids - held) | carried_quarantine | {FDBE})
         for rid in held:
             self.assertIn(f"HELD_BACK {rid} NATIVE_EDITION:", self.stderr)
         live = [s for s in self.document["stories"] if s["status"] == "live"]
@@ -274,14 +283,19 @@ class TemporaryCorpusTests(unittest.TestCase):
     def test_bad_record_is_quarantined_not_fatal(self) -> None:
         before, _ = build(self.corpus)
         rows = self.rows()
-        victim = rows[5]["id"]
-        rows[5]["claims"] = []
-        rows[6].pop("primary_desk")
-        rows[6]["desks"] = []
+        # Corrupt two rows that are actually published. A row held back by the
+        # native-edition gate (e.g. ENGLISH_LEAK) is already absent from the
+        # build, so corrupting it would not change the story count.
+        published = {story["id"] for story in before["stories"]}
+        a, b = [i for i, row in enumerate(rows) if row["id"] in published][5:7]
+        victim = rows[a]["id"]
+        rows[a]["claims"] = []
+        rows[b].pop("primary_desk")
+        rows[b]["desks"] = []
         self.write_rows(rows)
         document, stderr = build(self.corpus)
         self.assertIn(f"QUARANTINE {victim} CLAIMS_MISSING", stderr)
-        self.assertIn(f"QUARANTINE {rows[6]['id']} DESK_UNKNOWN", stderr)
+        self.assertIn(f"QUARANTINE {rows[b]['id']} DESK_UNKNOWN", stderr)
         self.assertNotIn(victim, by_id(document))
         self.assertEqual(len(document["stories"]), len(before["stories"]) - 2)
 
@@ -315,6 +329,25 @@ class TemporaryCorpusTests(unittest.TestCase):
             self.assertIn(f"MERGE_UNRECORDED {dup} -> {survivor}", stderr)
             self.assertEqual(by_id(document)[dup]["merged_into"], survivor)
         self.assertEqual({s["id"] for s in document["stories"] if s["status"] == "live"}, expected_live_ids())
+
+    def test_distinct_findings_from_one_multi_item_source_are_not_merged(self) -> None:
+        base = {"organizations": ["ExampleLab"], "source_urls": ["https://example.org/roadmap"],
+                "event_at": "2026-10-19T00:00:00Z"}
+        records = {
+            "FCMO-AAAAAAAAAAAA": dict(base, title="ExampleLab reports a signed token traffic verification prototype",
+                                     summary="A prototype binds inference outputs to approved weights using signed internal token traffic."),
+            "FCMO-BBBBBBBBBBBB": dict(base, title="ExampleLab reports automated red team matched human bounty submissions",
+                                     summary="An automated red team matched or exceeded the best human bounty entries in twenty four test pairs."),
+        }
+        stamps = {"FCMO-AAAAAAAAAAAA": "2026-10-20T00:00:00Z", "FCMO-BBBBBBBBBBBB": "2026-10-20T01:00:00Z"}
+        self.assertEqual(story_layer.find_duplicates(records, stamps), {})
+        same = dict(records["FCMO-AAAAAAAAAAAA"], title="ExampleLab reports a token traffic verification prototype for signed inference",
+                    summary="A prototype binds inference outputs to approved weights using signed internal token traffic.")
+        records["FCMO-BBBBBBBBBBBB"] = same
+        self.assertEqual(story_layer.find_duplicates(records, stamps), {"FCMO-BBBBBBBBBBBB": "FCMO-AAAAAAAAAAAA"})
+        # No text to compare: the lead-source rule alone applies, as before.
+        bare = {k: {kk: vv for kk, vv in v.items() if kk not in {"title", "summary"}} for k, v in records.items()}
+        self.assertEqual(story_layer.find_duplicates(bare, stamps), {"FCMO-BBBBBBBBBBBB": "FCMO-AAAAAAAAAAAA"})
 
     @unittest.skipUnless(FULL_HISTORY, "needs the full git history")
     def test_ledger_from_history_equals_the_contract_fixture(self) -> None:
@@ -485,8 +518,11 @@ class IngestSelectionTests(unittest.TestCase):
         self.assertIn((rows[4]["id"], "WITHDRAWN_UPSTREAM"), held)
 
     def test_mass_quarantine_refuses_the_batch(self) -> None:
-        # Exceed the actual 20% limit as the autonomous corpus grows.
-        count = len(self.rows) // 5 + 1
+        # The guard's denominator is every candidate: corpus rows plus carried-forward
+        # records absent from them. Exceed the configured limit over that whole set.
+        present = {r.get("id") for r in self.rows}
+        total = len(self.rows) + sum(c["id"] not in present for c in corpus_guard.read_carried(self.corpus))
+        count = int(total * corpus_guard.default_max_missing_ratio()) + 1
         rows = [dict(r, claims=[]) if i < count else r for i, r in enumerate(self.rows)]
         with self.assertRaisesRegex(ValueError, f"refusing to publish: {count} of"):
             self.select(rows)
@@ -499,10 +535,14 @@ class IngestSelectionTests(unittest.TestCase):
         (self.corpus / "carried.jsonl").write_text(line + "\n")
         selected, _, held = self.select(self.rows)
         self.assertIn(FDBE, {r["id"] for r in selected})
-        self.assertEqual({r["id"] for r in selected}, expected_live_ids(native=False) | {FDBE})
+        self.assertEqual({r["id"] for r in selected}, expected_live_ids(self.corpus, native=False) | {FDBE})
 
 
 class TaxonomyTests(unittest.TestCase):
+    def test_retracted_claim_label_normalizes_as_a_demonstrated_correction(self) -> None:
+        normalized = taxonomy.normalize_claim_label("RETRACTED_OR_INVALIDATED")
+        self.assertEqual(normalized, ("DEMONSTRATED", "RETRACTED_OR_INVALIDATED"))
+
     def test_every_corpus_record_normalizes_to_record_v3(self) -> None:
         validator = validator_for(CONTRACTS / "record.v3.schema.json")
         for source in (CORPUS / "data" / "developments.jsonl", FIXTURES / "corpus-44" / "data" / "developments.jsonl"):

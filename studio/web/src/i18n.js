@@ -1,10 +1,10 @@
 // Studio chrome strings. Spanish first, English second. Never code words: no git, branch, JSON, hash, gate.
 export const S = {
   es: {
-    'tr.both': 'Traducir a inglés y chino', 'tr.busy': 'Traduciendo…', 'tr.done': 'Borradores listos para revisión.',
-    'tr.replace': 'Reemplazar traducciones', 'tr.replace.body': 'Se guardará una versión antes de reemplazar los borradores de inglés y chino.',
+    'tr.both': 'Traducir a los otros idiomas', 'tr.busy': 'Traduciendo…', 'tr.done': 'Traducciones listas; fidelidad comprobada.',
+    'tr.replace': 'Reemplazar traducciones', 'tr.replace.body': 'Se guardará una versión antes de reemplazar las otras dos ediciones.',
     'pub.destinations': 'Publicar en todos los medios', 'pub.site': 'Sitio: páginas en inglés, español y chino.', 'pub.feeds': 'Feeds: RSS, Atom y JSON.',
-    'pub.email': 'Enviar por correo a los suscriptores', 'pub.email.after': 'Se enviará después de comprobar el despliegue.', 'pub.threshold': 'Umbral FCMO', 'pub.approval': '{who} debe aprobar el texto y sus traducciones antes de publicar.',
+    'pub.email': 'Enviar por correo a los suscriptores', 'pub.email.after': 'Se enviará después de comprobar el despliegue.', 'pub.threshold': 'Umbral FCMO', 'pub.approval': '{who} revisa el original y autoriza publicar las ediciones comprobadas.',
     'prog.email.queued': 'Correo programado ✓', 'prog.email.pending': 'Correo pendiente de programación.',
     'app.name': 'FCMO Studio', 'nav.home': 'Escritorio', 'nav.issues': 'Ediciones', 'nav.logout': 'Salir', 'nav.theme': 'Tema', 'nav.skip': 'Ir al contenido',
     'login.title': 'Entrar al estudio', 'login.user': 'Persona', 'login.pass': 'Contraseña', 'login.go': 'Entrar', 'login.bad': 'Esa combinación no es correcta. Revisa e inténtalo de nuevo.', 'login.lede': 'Un solo lugar para escribir, traducir y publicar.',
@@ -47,10 +47,10 @@ export const S = {
     'zones.local': 'Esta aplicación funciona dentro de tu red privada.'
   },
   en: {
-    'tr.both': 'Translate into English and Chinese', 'tr.busy': 'Translating…', 'tr.done': 'Drafts ready for review.',
-    'tr.replace': 'Replace translations', 'tr.replace.body': 'A version will be saved before replacing the English and Chinese drafts.',
+    'tr.both': 'Translate into the other languages', 'tr.busy': 'Translating…', 'tr.done': 'Translations ready; fidelity checks passed.',
+    'tr.replace': 'Replace translations', 'tr.replace.body': 'A version will be saved before replacing the other two editions.',
     'pub.destinations': 'Publish across all channels', 'pub.site': 'Site: English, Spanish and Chinese pages.', 'pub.feeds': 'Feeds: RSS, Atom and JSON.',
-    'pub.email': 'Email subscribers', 'pub.email.after': 'Email follows the verified deployment.', 'pub.threshold': 'FCMO publication standard', 'pub.approval': '{who} must approve the piece and its translations before publication.',
+    'pub.email': 'Email subscribers', 'pub.email.after': 'Email follows the verified deployment.', 'pub.threshold': 'FCMO publication standard', 'pub.approval': '{who} reviews the original and authorizes publication of the checked editions.',
     'prog.email.queued': 'Email scheduled ✓', 'prog.email.pending': 'Email awaits scheduling.',
     'app.name': 'FCMO Studio', 'nav.home': 'Desk', 'nav.issues': 'Issues', 'nav.logout': 'Sign out', 'nav.theme': 'Theme', 'nav.skip': 'Skip to content',
     'login.title': 'Enter the studio', 'login.user': 'Person', 'login.pass': 'Password', 'login.go': 'Enter', 'login.bad': 'That combination is not right. Check it and try again.', 'login.lede': 'One place to write, translate and publish.',
@@ -79,6 +79,25 @@ export function t (key, vars) {
 }
 export const LOCALE_NAME = { en: 'English', 'es-419': 'Español', 'zh-Hans': '中文' }
 export const LOCALE_SHORT = { en: 'EN', 'es-419': 'ES', 'zh-Hans': '中文' }
+
+Object.assign(S.es, {
+  'tr.state.DRAFT': 'Sin revisión', 'tr.state.MACHINE_TRANSLATED': 'Traducción automática sin comprobación vigente',
+  'tr.state.MACHINE_REVIEWED': 'Fidelidad comprobada automáticamente', 'tr.state.HUMAN_REVIEWED': 'Revisado por persona',
+  'pub.machine': '{langs}: traducciones automáticas; la aprobación de publicación no afirma revisión humana de esos idiomas.',
+  'sub.title': 'Suscripciones por correo', 'sub.read': 'Consultar estado',
+  'sub.unread': 'Estado sin leer: ? No se puede confirmar el número de suscriptores.',
+  'sub.boundary': 'El proveedor confirma el alta y gestiona la baja. Solo se muestra el estado agregado por idioma.',
+  'sub.counts': '{confirmed} confirmados · {pending} pendientes · {suppressed} bajas o bloqueados'
+})
+Object.assign(S.en, {
+  'tr.state.DRAFT': 'Unreviewed', 'tr.state.MACHINE_TRANSLATED': 'Machine translated; current checks pending',
+  'tr.state.MACHINE_REVIEWED': 'Automatic fidelity checks passed', 'tr.state.HUMAN_REVIEWED': 'Human reviewed',
+  'pub.machine': '{langs}: machine translations; publication approval does not claim human review of those languages.',
+  'sub.title': 'Email subscriptions', 'sub.read': 'Read status',
+  'sub.unread': 'Unread status: ? Subscriber counts could not be confirmed.',
+  'sub.boundary': 'The provider confirms signup and manages unsubscribe. Only aggregate locale status is shown.',
+  'sub.counts': '{confirmed} confirmed · {pending} pending · {suppressed} unsubscribed or suppressed'
+})
 
 /* second pass: new keys (es) and the complete English catalogue */
 Object.assign(S.es, {

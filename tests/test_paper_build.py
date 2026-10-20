@@ -66,6 +66,17 @@ class CandidateAssetParser(HTMLParser):
 
 
 class PaperBuildTests(unittest.TestCase):
+    def test_europe_uk_region_label_is_localized_in_every_reader_language(self):
+        expected = {
+            "en": "Europe & UK",
+            "es-419": "Europa y Reino Unido",
+            "zh-Hans": "欧洲和英国",
+        }
+        for locale, label in expected.items():
+            with self.subTest(locale=locale):
+                catalog = json.loads((ROOT / f"i18n/ui/{locale}.json").read_text())
+                self.assertEqual(catalog["labels"]["region"].get("Europe & UK"), label)
+
     @classmethod
     def setUpClass(cls):
         cls.temp = tempfile.TemporaryDirectory(prefix="wpA3-")
@@ -196,7 +207,10 @@ class PaperBuildTests(unittest.TestCase):
                 page = (root / "publish" / prefix / suffix).read_text(encoding="utf-8")
                 self.assertIn('class="translation-note" role="note"', page)
                 self.assertIn(note, page)
-                self.assertIn('lang="en" hreflang="en">English original</a>', page)
+                code = "es-419" if prefix == "es" else "zh-Hans"
+                catalog = json.loads((ROOT / "i18n/ui" / f"{code}.json").read_text(encoding="utf-8"))
+                self.assertIn(f'lang="{code}" hreflang="en">{catalog["strings"]["l10n"]["read_original"]}</a>', page)
+                self.assertIn(f'/FCMO-AI-Newsletter/{suffix.removesuffix("index.html")}', page)
             english = (root / "publish" / suffix).read_text(encoding="utf-8")
             self.assertNotIn('class="translation-note"', english)
 
@@ -403,11 +417,15 @@ class RealDataPaperBuildTests(unittest.TestCase):
             for story in self.payload["stories"]
             if story.get("corrections")
         }
-        self.assertEqual(len(affected), 3)
+        # Derived from the stories' own records: every withdrawn or merged story, and only those,
+        # carries a correction, so the census follows the corpus instead of a frozen count.
+        retired = {story["id"] for story in self.payload["stories"] if story["status"] in {"withdrawn", "merged"}}
+        self.assertTrue(retired)
+        self.assertEqual(set(affected), retired)
         locales = (("", "en"), ("es/", "es-419"), ("zh/", "zh-Hans"))
         for locale_prefix, locale_code in locales:
             page = (self.out / locale_prefix / "corrections" / "index.html").read_text(encoding="utf-8")
-            self.assertEqual(page.count('<article class="correction">'), 3, locale_prefix)
+            self.assertEqual(page.count('<article class="correction">'), len(affected), locale_prefix)
             for story_id, story in affected.items():
                 route = "corrections/story/" + story["slug"] + "/"
                 self.assertIn(f'href="/FCMO-AI-Newsletter/{locale_prefix}{route}"', page, story_id)

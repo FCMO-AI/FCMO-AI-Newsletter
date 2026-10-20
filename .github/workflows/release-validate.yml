@@ -14,8 +14,45 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  regression:
+    name: regression shard ${{ matrix.shard }} of 0-7
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5, 6, 7]
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Compile the publication implementation
+        run: python -m compileall -q tools tests
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - name: Install pinned Playwright and Chromium
+        run: |
+          npm install --prefix "$RUNNER_TEMP/playwright" --no-save playwright@1.63.0 axe-core@4.14.0
+          echo "PLAYWRIGHT_MODULE=$RUNNER_TEMP/playwright/node_modules/playwright" >> "$GITHUB_ENV"
+          echo "NODE_PATH=$RUNNER_TEMP/playwright/node_modules" >> "$GITHUB_ENV"
+          echo "AXE_CORE_PATH=$RUNNER_TEMP/playwright/node_modules/axe-core/axe.min.js" >> "$GITHUB_ENV"
+          "$RUNNER_TEMP/playwright/node_modules/.bin/playwright" install --with-deps chromium
+      - name: Install regression dependencies
+        run: |
+          python -m pip install PyYAML==6.0.2
+          sudo apt-get update
+          sudo apt-get install -y age
+      - name: Run this complete-suite shard
+        run: python3 tools/unittest_shards.py --index ${{ matrix.shard }} --count 8
+
   publish-gate:
     name: release-integrity
+    needs: regression
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -43,7 +80,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y age
       - name: Reconstruct and gate the immutable editorial candidate
-        run: python ops/publish.py --check
+        run: python ops/publish.py --check --tests-prevalidated
       - name: Prove deployment identity can be generated
         run: >-
           python tools/build_deployment_identity.py --site publish

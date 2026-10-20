@@ -286,24 +286,28 @@ class PaperBuilder:
 
     def _topic_links(self, locale: dict, *, exclude_topic: str = "", exclude_org: str = "", limit: int = 5) -> str:
         """Link into co-occurring topics and organizations using the live corpus."""
-        anchors: list[tuple[int, str, str]] = []
-        for story in self.live:
-            topics = [value for value in story.get("topics", []) if value != exclude_topic and slugify(value) != exclude_topic]
-            orgs = [value for value in story.get("organizations", []) if value != exclude_org and slugify(value) != exclude_org]
-            for value in topics:
-                count = sum(value in (other.get("topics") or []) for other in self.live)
-                if count >= 3:
-                    anchors.append((count, value, href(self.base, locale["path_prefix"] + "topic/" + slugify(value) + "/")))
-            for value in orgs:
-                anchors.append((sum(value in (other.get("organizations") or []) for other in self.live), value,
-                                href(self.base, locale["path_prefix"] + "org/" + slugify(value) + "/")))
-        unique: dict[tuple[str, str], int] = {}
-        for count, value, url in anchors:
-            unique[(value, url)] = max(count, unique.get((value, url), 0))
-        selected = sorted(((count, value, url) for (value, url), count in unique.items()),
-                          key=lambda row: (-row[0], row[1].casefold()))[:limit]
-        links = "".join(f'<li><a href="{esc(url)}" translate="no">{esc(value)}</a><span>{count}</span></li>'
-                        for count, value, url in selected)
+        if not hasattr(self, "_taxonomy_neighbors"):
+            # Membership counts are per story, even if a field repeats a name.
+            # Keep first encounter order for equal count/casefold sort keys.
+            counts = {field: Counter(value for story in self.live for value in set(story.get(field) or []))
+                      for field in ("topics", "organizations")}
+            unique = {}
+            for story in self.live:
+                for field, route in (("topics", "topic"), ("organizations", "org")):
+                    for value in story.get(field, []):
+                        count = counts[field][value]
+                        if field == "topics" and count < 3:
+                            continue
+                        unique.setdefault((value, route), (count, value, slugify(value), route))
+            self._taxonomy_neighbors = sorted(unique.values(), key=lambda row: (-row[0], row[1].casefold()))
+        selected = []
+        for count, value, slug, route in self._taxonomy_neighbors:
+            excluded = exclude_topic if route == "topic" else exclude_org
+            if value == excluded or slug == excluded:
+                continue
+            selected.append((count, value, slug, route))
+        links = "".join(f'<li><a href="{esc(href(self.base, locale["path_prefix"] + route + "/" + slug + "/"))}" translate="no">{esc(value)}</a><span>{count}</span></li>'
+                        for count, value, slug, route in selected[:limit])
         return f'<nav class="taxonomy-neighbors"><h2>{esc(self.catalogs[locale["code"]]["strings"]["front"]["see_all"])}</h2><ul>{links}</ul></nav>' if links else ""
 
     def _edition_card(self, date: str, locale: dict) -> str:
@@ -409,7 +413,17 @@ class PaperBuilder:
         if locale["code"] == "en":
             return story.get("evidence") or {}
         value = field(story, locale["code"], "evidence", {})
-        return value if isinstance(value, dict) else {}
+        if not isinstance(value, dict):
+            return {}
+        # Locale packs carry prose; evidence codes remain canonical and are
+        # displayed only through this edition's catalog.
+        canonical = (story.get("evidence") or {}).get("claims") or []
+        claims = []
+        for index, claim in enumerate(value.get("claims") or []):
+            codes = {key: canonical[index][key] for key in ("label", "qualifier")
+                     if index < len(canonical) and key in canonical[index]}
+            claims.append({**claim, **codes})
+        return {**value, "claims": claims}
 
     def _story(self, story: dict, locale: dict) -> None:
         code = locale["code"]
@@ -418,7 +432,7 @@ class PaperBuilder:
         if story.get("status") in {"withdrawn", "merged"} and story.get("corrections"):
             self._correction_notice(story, locale)
             return
-        complete = is_complete(story, code)
+        complete = is_complete(story, code, catalog=catalog)
         title = headline(story, code, catalog) if complete else strings["l10n"]["pending_title"]
         description = truncate(dek(story, code, catalog))
         suffix = story_path({**locale, "path_prefix": ""}, story)
@@ -429,7 +443,7 @@ class PaperBuilder:
         if code != "en" and story_locale(story, code).get("state") == "MACHINE_REVIEWED":
             english = self._story_href(self.config["locales"][0], story)
             note = (f'<p class="translation-note" role="note">{esc(strings["l10n"]["desk_note"])} '
-                    f'<a href="{esc(english)}" lang="en" hreflang="en">English original</a></p>')
+                    f'<a href="{esc(english)}" lang="{esc(code)}" hreflang="en">{esc(strings["l10n"]["read_original"])}</a></p>')
         dz = strings["design"]
         grade_text = label(catalog, "evidence_class", story.get("evidence_class"))
         conf_text = label(catalog, "confidence", story.get("confidence"))
@@ -502,8 +516,8 @@ class PaperBuilder:
         strings = catalog["strings"]
         fix = story["corrections"][-1]
         text = fix.get("text") or {}
-        notice = text.get(code) or text.get("en") or strings["story"].get(story["status"], "")
-        kind = label(catalog, "correction_kind", fix.get("kind"), fallback=story["status"].title())
+        notice = text.get(code) or strings["l10n"]["pending_notice"]
+        kind = label(catalog, "correction_kind", fix.get("kind"), fallback=strings["story"]["corrections"])
         title = headline(story, code, catalog)
         body = (f'<p class="story-kicker">{esc(kind)} · '
                 f'<time datetime="{esc(fix.get("at", ""))}">{esc(format_date(fix["at"], catalog))}</time></p>'
@@ -760,7 +774,7 @@ class PaperBuilder:
         correction_rows = []
         for story, correction in corrections:
             text = correction.get("text") or {}
-            note = text.get(locale["code"]) or text.get("en") or ""
+            note = text.get(locale["code"]) or s["l10n"]["pending_notice"]
             title = headline(story, locale["code"], catalog)
             date = correction.get("at") or story.get("updated_at")
             correction_rows.append(
@@ -802,6 +816,15 @@ class PaperBuilder:
         tail = subscription_tail(locale=locale["code"], root=href(self.base, locale["path_prefix"]),
                                  technical=href(self.base, locale["path_prefix"] + TECHNICAL_FRONT), cards=cards)
         self._write_page(locale=locale, suffix="suscribete/", title=f"{subscribe_title} — fCMO + FCMO AI", description=community.COPY[locale["code"]]["promise"], body=f'<article class="story-body">{subscribe}</article>{tail}', kind="subscribe", extra_head=subscribe_script)
+        # Kit redirect surfaces are deterministic templates, never subscriber receipts.
+        from tools.paper.templates.subscription_states import COPY, state_page
+        copy = COPY[locale['code']]
+        self._write_page(locale=locale, suffix='subscribe/', title=copy['title'], description=copy['lede'],
+                         body=f'<article class="story-body">{subscribe}</article>{tail}', kind='subscribe', extra_head=subscribe_script)
+        for suffix, state, title_key in (('subscribe/check-inbox/', 'pending', 'pending'), ('subscribed/', 'confirmed', 'done'), ('unsubscribed/', 'unsubscribed', 'unsub')):
+            body = state_page(locale['code'], state, self.base)
+            self._write_page(locale=locale, suffix=suffix, title=copy[title_key], description=copy[title_key], body=body,
+                             kind='subscribe', index=False, extra_head='<meta name="robots" content="noindex">' + subscribe_script)
 
     def _404(self) -> None:
         blocks = []

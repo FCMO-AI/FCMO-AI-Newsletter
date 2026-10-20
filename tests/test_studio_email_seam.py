@@ -42,7 +42,11 @@ class StudioEmailSeamTests(unittest.TestCase):
             publisher = Publisher(store, gh, None, lambda value: checks(store, SimpleNamespace(privacy=lambda _:True), value))
             publisher.request(slug, 'javier'); approved = publisher.approve(slug, 'matias')
             self.assertEqual(approved['payload']['distribution'], {'email':True})
-            self.assertTrue(all(store.payload(slug)['provenance'][loc]['human_reviewed'] is True for loc in LOCALES))
+            # Publication approval must not invent a human Chinese-language review.
+            self.assertTrue(store.payload(slug)['provenance']['es-419']['human_reviewed'])
+            for loc in ('en', 'zh-Hans'):
+                self.assertFalse(store.payload(slug)['provenance'][loc]['human_reviewed'])
+                self.assertEqual(store.payload(slug)['provenance'][loc]['review_state'], 'MACHINE_REVIEWED')
             remote = root/'remote'; remote.mkdir(); git(remote, 'init', '-q', '-b', 'main')
             (remote/'base.txt').write_text('Synthetic public base')
             git(remote, 'add', '.'); git(remote, '-c','user.name=Codex','-c','user.email=noreply@openai.com','commit','-qm','Base')
@@ -79,7 +83,9 @@ class StudioEmailSeamTests(unittest.TestCase):
             def send(edition,locale,key):
                 persisted,_ = state_store.read()
                 self.assertIn(key,persisted['keys'])
-                self.assertEqual(edition.piece['provenance'][locale]['reviewer'],'Matías')
+                row = edition.piece['provenance'][locale]
+                self.assertEqual(row['reviewer'], 'Matías' if locale == 'es-419' else '')
+                if locale != 'es-419': self.assertEqual(row['review_state'], 'MACHINE_REVIEWED')
                 return original_send(edition,locale,key)
             provider.send_edition = send
             paths = {n:root/(n+'.json') for n in ('bundle','intent','state')}

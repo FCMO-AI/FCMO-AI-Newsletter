@@ -8,6 +8,7 @@ from __future__ import annotations
 from html import escape
 import json
 import os
+import re
 from pathlib import Path
 from urllib.parse import urlsplit, urlunsplit
 
@@ -89,28 +90,30 @@ def subscribe_block(zone: str, locale: str, *, base: str = "/FCMO-AI-Newsletter/
 
 
 def diario_form(locale, base, form, page=False):
-    copy = {
-        'en': ('Get the FCMO AI Newsletter by email', 'Read the daily AI digest in English, Spanish or Simplified Chinese.', 'Email', 'Email language', 'I want to receive the FCMO AI Newsletter and have read the privacy notice.', 'Subscribe', 'Confirm your email to begin. Every edition includes an unsubscribe link.', 'Privacy notice', 'Complete privacy notice'),
-        'es-419': ('Recibe la Newsletter de FCMO AI por correo', 'Lee el resumen diario de IA en inglés, español o chino simplificado.', 'Correo', 'Idioma del correo', 'Quiero recibir la Newsletter de FCMO AI y he leído el aviso de privacidad.', 'Suscribirme', 'Confirma tu correo para empezar. Cada edición incluye un enlace de baja.', 'Aviso de privacidad', 'Aviso integral'),
-        'zh-Hans': ('通过邮件订阅 FCMO AI Newsletter', '阅读英语、西班牙语或简体中文的每日人工智能摘要。', '邮箱', '邮件语言', '我希望收到 FCMO AI Newsletter，并已阅读隐私声明。', '订阅', '确认邮箱后开始发送。每期邮件均提供退订链接。', '隐私声明', '完整隐私声明'),
-    }[locale]
-    prefix = {'en':'', 'es-419':'es/', 'zh-Hans':'zh/'}[locale]
+    from .subscription_states import COPY, PREFIX, LANGUAGE, state_page
+    copy = COPY[locale]; prefix = PREFIX[locale]
     root = base.rstrip('/')+'/'+prefix
     options = ''.join('<option value="'+v+'"'+(' selected' if v==locale else '')+'>'+label+'</option>' for v,label in (('en','English'),('es-419','Español'),('zh-Hans','简体中文')))
-    language = f'<p><label>{copy[3]} <select name="locale">{options}</select></label></p>'
+    language = f'<p><label>{escape(LANGUAGE[locale])} <select name="locale">{options}</select></label></p>'
     if form.fixed_locale:
-        label = {'en':'English','es-419':'Español','zh-Hans':'简体中文'}[locale]
-        language = f'<p>{copy[3]}: {label}</p>'
-    fallback_label = {'en':'Open the signup page', 'es-419':'Abrir la página de suscripción', 'zh-Hans':'打开订阅页面'}[locale]
-    fallback = (f'<noscript><p><a href="{escape(form.fallback_url,quote=True)}" rel="external noopener">{fallback_label}</a></p></noscript>' if form.fallback_url else '')
+        links = ' · '.join(f'<a href="{escape(base.rstrip("/") + "/" + PREFIX[loc] + "subscribe/")}" hreflang="{loc}" lang="{loc}">{LANGUAGE[loc]}</a>' for loc in PREFIX if loc != locale)
+        language = f'<p class="sub-langs">{copy["language"]} {links}.</p>'
+    fallback = (f'<noscript><p><a href="{escape(form.fallback_url,quote=True)}" rel="external noopener">{copy["fallback"]}</a></p></noscript>' if form.fallback_url else '')
     tag = 'h1' if page else 'h2'
-    return (f'<section class="subscribe-v2 subscribe-page" data-subscribe-state="active">'
-            f'<{tag} class="page-title">{copy[0]}</{tag}><p>{copy[1]}</p>'
-            f'<form method="post" data-email-locale="{locale}" action="{escape(form.action,quote=True)}">'
-            f'<p><label>{copy[2]} <input type="email" name="{escape(form.email_field,quote=True)}" autocomplete="email" maxlength="254" required style="max-width:100%;box-sizing:border-box"></label></p>'
-            f'{language}'
-            f'<p><label><input type="checkbox" name="consent" value="yes" required> {copy[4]}</label></p>'
+    wrapper = 'subscribe-page' if page else 'subscribe-card'
+    confirmation = (' data-email-confirmation="opaque"' if
+                    re.fullmatch(r'https://app\.kit\.com/forms/[1-9][0-9]*/subscriptions', form.action) else '')
+    choice = language if not form.fixed_locale else ''
+    language_links = language if form.fixed_locale else ''
+    return (f'<section class="subscribe-v2 {wrapper} sub-experience" data-subscribe-state="active" data-state="idle">'
+            f'<div data-sub-idle><p class="section-kicker">{copy["kicker"]}</p><{tag} class="page-title">{copy["title"]}</{tag}><p class="sub-lede">{copy["lede"]}</p>'
+            f'<form method="post" data-email-form{confirmation} data-email-locale="{locale}" action="{escape(form.action,quote=True)}" data-busy="{copy["busy"]}" data-error="{escape(copy["error"], quote=True)}">'
+            f'{choice}'
+            f'<div class="sub-row"><label class="sub-field">{copy["email"]}<input type="email" name="{escape(form.email_field,quote=True)}" autocomplete="email" maxlength="254" placeholder="{copy["placeholder"]}" required></label>'
+            f'<button class="button" type="submit">{copy["button"]}</button></div>'
+            f'<label class="sub-consent"><input type="checkbox" name="consent" value="yes" required><span>{copy["consent"]} <a href="{escape(root + "privacy/")}">{copy["privacy"]}</a>.</span></label>'
             '<input type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" hidden>'
-            f'<p><button class="button" type="submit">{copy[5]}</button></p></form><p>{copy[6]}</p>'
-            f'{fallback}<p><a href="{escape(root+"privacy/",quote=True)}">{copy[7]}</a> · '
-            f'<a href="{escape(form.privacy_url,quote=True)}">{copy[8]}</a></p></section>')
+            '<p class="sub-error" role="alert" hidden></p></form>'
+            f'<p class="sub-fine">{copy["fine"]}</p>{language_links}{fallback}'
+            f'<p><a href="{escape(form.privacy_url,quote=True)}">{copy["complete"]}</a></p></div>'
+            f'<div data-sub-pending hidden aria-live="polite">{state_page(locale, "pending", base, tag=tag)}</div></section>')

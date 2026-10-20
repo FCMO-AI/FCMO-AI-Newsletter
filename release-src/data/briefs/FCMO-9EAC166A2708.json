@@ -1,0 +1,125 @@
+{
+  "record": {
+    "id": "FCMO-9EAC166A2708",
+    "title": "An open FlashAttention mapping on AMD XDNA 2 moves long-sequence attention into the compute-bound regime",
+    "desk": "Inference Systems",
+    "event_at": "2026-09-18T00:00:00Z",
+    "evidence": "A",
+    "confidence": "credible_unconfirmed",
+    "importance": 5,
+    "tier": "Notable",
+    "summary": "A September 18 preprint compares four FlashAttention mappings on AMD XDNA 1 and XDNA 2 accelerators. On a Ryzen AI 9 HX 370 with XDNA 2, its fused MLIR-AIR mapping keeps attention-score intermediates in compute-tile memory and uses the cascade interconnect for reductions; for GPT-2 Small dimensions it reports 3.62 effective GEMM TFLOP/s at 32K sequence length, about 2.0× the IRON mapping. The authors also report 6.5× energy efficiency over an optimized Triton/ROCm integrated-GPU implementation on the same system at 32K. This is a paper-reported operator result, not end-to-end LLM serving or independently reproduced deployment performance.",
+    "topics": [
+      "FlashAttention",
+      "AMD XDNA",
+      "spatial NPU",
+      "edge inference",
+      "memory hierarchy",
+      "kernel fusion"
+    ],
+    "organizations": [
+      "AMD",
+      "MLIR-AIR"
+    ],
+    "human_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-9EAC166A2708.html",
+    "machine_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/data/briefs/FCMO-9EAC166A2708.json",
+    "citation": {
+      "id": "FCMO-9EAC166A2708",
+      "source": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-9EAC166A2708.html"
+    }
+  },
+  "brief": {
+    "claims": [
+      {
+        "label": "CLAIMED",
+        "text": "On XDNA 2 (Ryzen AI 9 HX 370), a fused MLIR-AIR FlashAttention mapping reports 3.62 effective GEMM TFLOP/s at 32K sequence length for GPT-2 Small attention dimensions, about twice the IRON mapping."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "At 32K sequence length, the paper reports 6.5× energy efficiency versus an optimized Triton/ROCm integrated-GPU implementation on the same Ryzen AI 9 HX 370, using the same bfloat16 causal-attention configurations and effective-matmul workload."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "Roofline analysis and measurements indicate that on XDNA 2, the fused mapping removes intermediate MemTile traffic and moves the evaluated FlashAttention workload into a compute-bound regime; on XDNA 1, streamed mappings already reach that regime and full fusion adds little throughput."
+      },
+      {
+        "label": "NOT_ESTABLISHED",
+        "text": "The paper does not demonstrate end-to-end LLM generation speed, application-level energy savings, or independent reproduction of the reported results."
+      }
+    ],
+    "confidence": "credible_unconfirmed",
+    "contradictory_evidence": [],
+    "desks": [
+      "efficiency",
+      "compute_hardware",
+      "open_ecosystem"
+    ],
+    "development_type": "paper",
+    "editions": [
+      "2026-10-11"
+    ],
+    "event_at": "2026-09-18T00:00:00Z",
+    "evidence_class": "A",
+    "evidence_gaps": [
+      {
+        "description": "No independent reproduction of the XDNA 2 fused-kernel throughput or energy measurements was inspected.",
+        "kind": "missing_independent",
+        "state": "open"
+      },
+      {
+        "description": "The paper evaluates FlashAttention as an operator and does not measure end-to-end LLM decode/prefill throughput, whole-system energy or application quality.",
+        "kind": "other",
+        "state": "open"
+      }
+    ],
+    "id": "FCMO-9EAC166A2708",
+    "importance_effective_score": 5,
+    "importance_rationale": "If sustained outside this author-run operator evaluation, a roughly 2× fused attention throughput gain and 6.5× same-chip integrated-GPU energy-efficiency result would change the feasibility and software priorities for long-context edge inference on this NPU class. These are narrow operator measurements on one platform, not demonstrated end-to-end model economics.",
+    "importance_scale_version": 2,
+    "importance_score": 5,
+    "importance_tier": "Notable",
+    "last_verified_at": "2026-10-11T20:08:56Z",
+    "limitations": [
+      "The performance and energy numbers are author-reported in one preprint; independent reproduction was not inspected.",
+      "The headline comparison measures attention kernels rather than end-to-end model inference.",
+      "The iGPU baseline is a same-device, optimized Triton/ROCm attention implementation, but other model stacks and workloads may change relative performance."
+    ],
+    "organizations": [
+      "AMD",
+      "MLIR-AIR"
+    ],
+    "primary_desk": "inference_systems",
+    "recorded_at": "2026-10-11T20:08:56Z",
+    "regions": [
+      "global"
+    ],
+    "relationships": [],
+    "source_languages": [
+      "en"
+    ],
+    "source_urls": [
+      "https://arxiv.org/abs/2609.21264"
+    ],
+    "status": "active",
+    "summary": "A September 18 preprint compares four FlashAttention mappings on AMD XDNA 1 and XDNA 2 accelerators. On a Ryzen AI 9 HX 370 with XDNA 2, its fused MLIR-AIR mapping keeps attention-score intermediates in compute-tile memory and uses the cascade interconnect for reductions; for GPT-2 Small dimensions it reports 3.62 effective GEMM TFLOP/s at 32K sequence length, about 2.0× the IRON mapping. The authors also report 6.5× energy efficiency over an optimized Triton/ROCm integrated-GPU implementation on the same system at 32K. This is a paper-reported operator result, not end-to-end LLM serving or independently reproduced deployment performance.",
+    "technical": {
+      "claimed_result": "At 32K sequence length on XDNA 2, fused MLIR-AIR reports 3.62 effective GEMM TFLOP/s versus 1.805 for IRON (~2.0×). At the same sequence length, measured energy efficiency is reported as 6.5× the iGPU and 31.5× CPU.",
+      "demonstrated_result": "The inspected arXiv v1 paper reports the measurements, roofline analysis, numerical stability sweep, and implementation details. These remain author-reported; the research desk did not independently reproduce them or inspect the blocked/anonymized code links.",
+      "mechanism": "The MLIR-AIR kernel tiles query positions across columns and key/value chunks across compute tiles; each tile computes attention stages while retaining QK score intermediates in local compute-tile memory, then reduces partial online-softmax state over the cascade interconnect. This avoids repeated spill/reload through shared MemTile memory.",
+      "regime": "Paper evaluation on AMD Ryzen 7 8845HS with XDNA 1 and Ryzen AI 9 HX 370 with XDNA 2. Main mapping ablation uses GPT-2 Small attention dimensions (12 heads, d_k=d_v=64), causal bfloat16, sequence lengths 256–32768; architecture generality is evaluated on additional attention configurations up to 128K. Energy comparison uses the XDNA 2 NPU and integrated GPU on the same HX 370 platform.",
+      "strongest_baseline": "IRON attention mapping on the same XDNA 2 device for the operator throughput ablation; an optimized fused Triton implementation compiled through AMD ROCm 7.2 on the same Ryzen AI SoC for the energy comparison."
+    },
+    "title": "An open FlashAttention mapping on AMD XDNA 2 moves long-sequence attention into the compute-bound regime",
+    "topics": [
+      "FlashAttention",
+      "AMD XDNA",
+      "spatial NPU",
+      "edge inference",
+      "memory hierarchy",
+      "kernel fusion"
+    ],
+    "why_it_matters": "The paper gives a concrete memory-hierarchy rule for deciding when fusing attention kernels helps on spatial NPUs: XDNA 2 benefits when fusion removes MemTile traffic, while XDNA 1 is already compute-bound after streaming. If the reported operator results transfer to deployed workloads, this could improve long-context edge inference efficiency; whole-model latency, power and application-level benefit remain unmeasured."
+  },
+  "related": [],
+  "schema": "fcmo-public-brief-v1"
+}

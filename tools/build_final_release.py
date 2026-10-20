@@ -62,6 +62,11 @@ def sha256(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
+def payload_parts(parts_dir: Path) -> list[Path]:
+    """Return numbered payload chunks in numeric, not lexical, order."""
+    return sorted(parts_dir.glob("part-*.b64"), key=lambda path: int(path.stem.removeprefix("part-")))
+
+
 def source_files(source: Path) -> list[Path]:
     if not source.is_dir():
         raise ValueError(f"source tree does not exist or is not a directory: {source}")
@@ -173,7 +178,7 @@ def expected_manifest(manifest: dict, artifacts: Artifacts, source: Path) -> dic
 
 def disk_encoded_parts(overlay: Path) -> tuple[list[Path], str]:
     parts_dir = overlay / "parts"
-    parts = sorted(parts_dir.glob("part-*.b64"))
+    parts = payload_parts(parts_dir)
     try:
         encoded = "".join(path.read_text(encoding="ascii").strip() for path in parts)
     except Exception as exc:

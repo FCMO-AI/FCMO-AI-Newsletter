@@ -362,8 +362,8 @@ def pair_status(source: dict[str, Any], overlay: Any, locale: str, strict: bool 
         where = shape[0].split(":", 1)[0].replace("overlay.", "", 1)
         return failed("SHAPE_MISMATCH", f"{where}: {detail}")
 
-    source_leaves = dict(prose_leaves(source))
-    overlay_leaves = dict(prose_leaves(overlay))
+    source_leaves = dict(prose_leaves({key: source[key] for key in needed}))
+    overlay_leaves = dict(prose_leaves({key: overlay[key] for key in needed if key in overlay}))
     for path, text in overlay_leaves.items():
         original = source_leaves.get(path)
         if original is not None and " ".join(original.split()) == " ".join(text.split()) \

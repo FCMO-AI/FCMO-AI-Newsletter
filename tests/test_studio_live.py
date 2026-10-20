@@ -183,7 +183,9 @@ class CredentialsAndBase(unittest.TestCase):
         from studio.server.storage import Store
         from studio.server.http import Application
         from tests.test_studio_storage import DOC
-        with tempfile.TemporaryDirectory(dir=ROOT / '_audit') as tmp, patch.dict(os.environ, {'STUDIO_DRY_RUN': '1'}):
+        from studio.translation import FakeProvider
+        with tempfile.TemporaryDirectory(dir=ROOT / '_audit') as tmp, patch.dict(os.environ, {'STUDIO_DRY_RUN': '1'}), \
+                patch('studio.translation.configured_provider', return_value=FakeProvider()):
             store = Store(Path(tmp))
             try:
                 app = Application(store, 'https://studio.invalid', 'fixture-session-' + 'x'*32, ROOT)

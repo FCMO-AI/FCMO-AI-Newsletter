@@ -1,0 +1,108 @@
+{
+  "record": {
+    "id": "FCMO-565F99D94E34",
+    "title": "BOOST reports concurrent host-memory and HBM gains for LLM serving",
+    "desk": "Inference Systems",
+    "event_at": "2026-09-11T00:00:00Z",
+    "evidence": "A",
+    "confidence": "credible_unconfirmed",
+    "importance": 5,
+    "tier": "Notable",
+    "summary": "The September 11 preprint presents BOOST, a runtime that places model weights and KV pages so GPU threadblock waves can access host memory and HBM concurrently in proportion to their bandwidth. On one Grace Hopper system with vLLM, the authors report 4.3% lower time-per-output-token than HBM-only serving at fixed batch size. In capacity-scaled high-throughput tests they report 31% higher average throughput than HBM-only and a 15% advantage over prefetching. The throughput result includes additional usable capacity and should not be interpreted as a latency reduction; when capacity is held constant, the authors isolate about four percentage points from concurrent bandwidth use. These claims have not been independently reproduced here.",
+    "topics": [
+      "LLM-inference",
+      "GPU-memory",
+      "host-memory",
+      "HBM",
+      "serving-throughput",
+      "inference-efficiency"
+    ],
+    "organizations": [],
+    "human_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-565F99D94E34.html",
+    "machine_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/data/briefs/FCMO-565F99D94E34.json",
+    "citation": {
+      "id": "FCMO-565F99D94E34",
+      "source": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-565F99D94E34.html"
+    }
+  },
+  "brief": {
+    "claims": [
+      {
+        "label": "CLAIMED",
+        "text": "The authors report that BOOST's wave-aware page placement enables concurrent proportional access to host memory and HBM without kernel changes. On one Grace Hopper system integrated with vLLM, they report 4.3% lower time-per-output-token than HBM-only serving at fixed batch size, and 31% higher throughput on average than HBM-only serving in capacity-scaled high-throughput tests, 15% ahead of prefetching. These are author-reported results and have not been independently reproduced in this review."
+      }
+    ],
+    "confidence": "credible_unconfirmed",
+    "contradictory_evidence": [],
+    "desks": [
+      "inference_systems",
+      "efficiency",
+      "compute_hardware"
+    ],
+    "development_type": "paper",
+    "editions": [
+      "2026-10-11"
+    ],
+    "event_at": "2026-09-11T00:00:00Z",
+    "evidence_class": "A",
+    "evidence_gaps": [
+      {
+        "description": "The paper's performance measurements are from a single Grace Hopper configuration; no independent reproduction or evidence of transfer to other CPU-GPU links, accelerator generations, serving stacks or workloads was recovered.",
+        "kind": "missing_independent",
+        "state": "open",
+        "updated_at": "2026-10-11T22:12:00Z"
+      }
+    ],
+    "id": "FCMO-565F99D94E34",
+    "importance_effective_score": 5,
+    "importance_rationale": "If the reported gains hold, using host-memory bandwidth concurrently with GPU HBM could improve LLM serving capacity and throughput on memory-constrained systems, affecting deployment economics and memory-system design. The evidence is meaningful but limited to one Grace Hopper system and author-reported tests.",
+    "importance_scale_version": 2,
+    "importance_score": 5,
+    "importance_tier": "Notable",
+    "last_verified_at": "2026-10-11T22:12:00Z",
+    "limitations": [
+      "All performance results cited here are reported by the preprint authors and were not independently measured in this activation.",
+      "The paper reports experiments on a Grace Hopper system with vLLM; generalization to other interconnects, hardware, models and serving stacks is unknown.",
+      "The abstract distinguishes fixed-batch TPOT from capacity-scaled throughput. The 31% throughput result should not be read as a 31% latency reduction.",
+      "Full tables, code availability and detailed baseline settings were not inspected in this review."
+    ],
+    "organizations": [],
+    "primary_desk": "inference_systems",
+    "recorded_at": "2026-10-11T22:12:00Z",
+    "regions": [
+      "global"
+    ],
+    "relationships": [],
+    "source_languages": [
+      "en"
+    ],
+    "source_urls": [
+      "https://arxiv.org/abs/2609.13592"
+    ],
+    "status": "developing",
+    "summary": "The September 11 preprint presents BOOST, a runtime that places model weights and KV pages so GPU threadblock waves can access host memory and HBM concurrently in proportion to their bandwidth. On one Grace Hopper system with vLLM, the authors report 4.3% lower time-per-output-token than HBM-only serving at fixed batch size. In capacity-scaled high-throughput tests they report 31% higher average throughput than HBM-only and a 15% advantage over prefetching. The throughput result includes additional usable capacity and should not be interpreted as a latency reduction; when capacity is held constant, the authors isolate about four percentage points from concurrent bandwidth use. These claims have not been independently reproduced here.",
+    "technical": {
+      "claimed_result": "The authors report 4.3% lower fixed-batch TPOT versus HBM-only; in capacity-scaled serving, average throughput is 31% higher than HBM-only and 15% higher than prefetching.",
+      "compute_or_cost": "Single Grace Hopper configuration; the paper describes throughput and latency results but this review recovered no energy or cost-per-token measurement.",
+      "demonstrated_result": "No result independently demonstrated in this activation. The measurements are claims reported in the primary preprint.",
+      "implementation_status": "Paper describes a runtime integrated into vLLM with page placement for static weights and dynamic KV pages; public artifact availability was not verified.",
+      "mechanism": "Wave-aware placement aligns HBM- versus host-resident accesses with GPU threadblock waves so both tiers can supply demand loads concurrently, rather than staging data through HBM with prefetching.",
+      "novelty": "The paper's claim is that memory placement aware of GPU execution waves can exploit host-memory bandwidth concurrently with HBM without modifying inference kernels.",
+      "regime": "LLM inference with vLLM on a Grace Hopper system; fixed-batch TPOT and capacity-scaled throughput are separate evaluation regimes.",
+      "reproducibility": "Primary abstract is accessible; full evaluation tables, implementation and independent reproduction were not inspected.",
+      "strongest_baseline": "HBM-only serving and prefetching are named in the abstract; detailed configurations and model-specific comparisons require full-paper review."
+    },
+    "title": "BOOST reports concurrent host-memory and HBM gains for LLM serving",
+    "topics": [
+      "LLM-inference",
+      "GPU-memory",
+      "host-memory",
+      "HBM",
+      "serving-throughput",
+      "inference-efficiency"
+    ],
+    "why_it_matters": "HBM capacity and bandwidth constrain model serving. If BOOST's results hold, direct concurrent use of host-memory and HBM bandwidth could raise throughput while expanding the runnable working set. The reported capacity-scaled throughput gain bundles more capacity with a smaller contribution from concurrent bandwidth use, so it does not imply the same percentage reduction in latency or universal gains across systems."
+  },
+  "related": [],
+  "schema": "fcmo-public-brief-v1"
+}

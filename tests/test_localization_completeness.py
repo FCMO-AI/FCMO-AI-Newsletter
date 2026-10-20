@@ -24,6 +24,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
+from tools import corpus_guard  # noqa: E402
 from tools import mark_pending_localizations as mp  # noqa: E402
 from tools import validate_localizations as vl  # noqa: E402
 
@@ -369,8 +370,13 @@ class RealCorpusBacklog(unittest.TestCase):
             # require generated output to lead the corpus writer.
             source_additions = (set(delta) & published_canonical) - set(before)
             imported_additions = set(after) - set(before)
-            self.assertLessEqual(imported_additions, source_additions)
-            for rid in imported_additions:
+            # A record the bridge quarantined (airlock quarantined_from / wire-status) is
+            # absent from the incoming delta; its last published version is carried forward
+            # in the pack. Only recorded quarantine is allowed here, not any extra id.
+            carried_quarantine = ({c["id"] for c in corpus_guard.read_carried(ROOT / "corpus")}
+                                  & corpus_guard.recorded_quarantine(ROOT / "corpus")) - set(delta)
+            self.assertLessEqual(imported_additions, source_additions | carried_quarantine)
+            for rid in imported_additions - carried_quarantine:
                 self.assertEqual(after[rid], delta[rid])
             ui = json.loads((ROOT / "site/data/i18n" / locale / "ui.json").read_text(encoding="utf-8"))
             self.assertEqual(ui["canonical_record_count"], len(published_canonical))
@@ -721,15 +727,19 @@ class UICatalogs(unittest.TestCase):
         # Every value present in the current corpus must have a label. This follows
         # the live data instead of silently relaxing when the corpus fingerprint
         # changes; label() omits an unknown value rather than printing it raw.
+        missing = []
         for locale in CATALOG_LOCALES:
             labels = self.cat[locale]["labels"]
             everything = set().union(*(set(group) for group in labels.values()))
             for group, codes in observed.items():
                 for code in sorted(c for c in codes if c):
                     if group.startswith("contract:"):
-                        self.assertIn(code, everything, f"{locale}: {group} enum {code} has no label")
-                    else:
-                        self.assertIn(code, labels[group], f"{locale}: labels.{group}.{code} missing")
+                        if code not in everything:
+                            missing.append(f"{locale}: {group} enum {code} has no label")
+                    elif code not in labels[group]:
+                        missing.append(f"{locale}: labels.{group}.{code} missing")
+        # Report every gap at once, not just the first one.
+        self.assertEqual([], missing, "reader-facing enum values without labels:\n" + "\n".join(missing))
 
     def test_no_sept_and_explicit_month_tables(self):
         for locale in CATALOG_LOCALES:
@@ -776,7 +786,7 @@ class UICatalogs(unittest.TestCase):
             self.assertNotEqual(errors["not_found_title"], english)
 
     def test_spanish_catalog_is_spanish(self):
-        allowed_same = {"Hubei", "Australia", "Argentina", "Agenda", "Atom", "Blog", "China", "FCMO AI", "Global", "India", "JSON Feed",
+        allowed_same = {"Hubei", "Hunan", "Austria", "Asia", "Hong Kong", "Odisha", "Victoria", "Vietnam", "California", "Australia", "Argentina", "Agenda", "Atom", "Blog", "China", "FCMO AI", "Global", "India", "JSON Feed",
                         "Notable", "RSS", "{date}, {time} ({tz})", "© {year} FCMO AI", "English", "Español", "简体中文"}
         english = dict(self.reader_leaves("en"))
         for path, value in self.reader_leaves("es-419"):

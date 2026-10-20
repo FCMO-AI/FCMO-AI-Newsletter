@@ -1,0 +1,140 @@
+{
+  "record": {
+    "id": "FCMO-D7EAA36CAACC",
+    "title": "FoldQuantVLA reports faster low-bit inference for vision-language-action policies with small-task robot results",
+    "desk": "Inference Systems",
+    "event_at": "2026-09-21T00:00:00Z",
+    "evidence": "A",
+    "confidence": "credible_unconfirmed",
+    "importance": 5,
+    "tier": "Notable",
+    "summary": "The authors introduce FoldQuantVLA, which keeps activation coordinate transforms consistent across calibration, quantized weight rounding and TensorRT execution. On GR00T N1.5/N1.6/N1.7 and π₀.₅, they report W4A4 projection speedups of 1.20–1.33× over floating-point TensorRT on Jetson AGX Orin and 1.25–1.52× on a desktop RTX 4070 Ti SUPER. A selective W8A8 setting for two language projections adds 1 ms to the N1.7 Orin path and reports 92.5% pooled success versus 80.0% for uniform W4A4 across 80 physical-robot trials. These are author-reported measurements: selective-precision gains were not resolved in their LIBERO controls, robot trials were small, and latency measurements used one timing run.",
+    "topics": [
+      "vision-language-action models",
+      "post-training quantization",
+      "robotics inference",
+      "edge deployment",
+      "TensorRT"
+    ],
+    "organizations": [
+      "VinRobotics",
+      "VinUniversity",
+      "Peking University",
+      "University of Arkansas",
+      "TU Darmstadt"
+    ],
+    "human_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-D7EAA36CAACC.html",
+    "machine_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/data/briefs/FCMO-D7EAA36CAACC.json",
+    "citation": {
+      "id": "FCMO-D7EAA36CAACC",
+      "source": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-D7EAA36CAACC.html"
+    }
+  },
+  "brief": {
+    "claims": [
+      {
+        "label": "CLAIMED",
+        "text": "The authors report that FoldQuantVLA's W4A4 projections reduce observation-to-action latency by 1.20–1.33× versus floating-point TensorRT on Jetson AGX Orin and 1.25–1.52× on an RTX 4070 Ti SUPER desktop for GR00T and π₀.₅ checkpoints."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "On N1.7 physical-robot tasks, the authors report pooled success of 92.5% for W4A4 with attention-output and feed-forward down projections retained at W8A8, versus 80.0% for uniform W4A4 across 80 trials; on Orin this selective setting adds 1 ms to the reported 119 ms W4A4 path."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "The paper reports N1.6 W4A4 weight storage of 1,011 MB versus 3,802 MB for floating-point TensorRT weights, while complete serialized engine sizes are 2,525 MB versus 5,325 MB."
+      },
+      {
+        "label": "NOT_ESTABLISHED",
+        "text": "The results do not establish that low-bit performance generalizes across VLA architectures or that selective INT8 improves closed-loop simulator success: the paper reports significant architecture-dependent W4A4 losses, and preset-matched LIBERO differences were not statistically resolved."
+      }
+    ],
+    "confidence": "credible_unconfirmed",
+    "contradictory_evidence": [],
+    "desks": [
+      "inference_systems",
+      "efficiency",
+      "multimodality_world_models"
+    ],
+    "development_type": "paper",
+    "editions": [
+      "2026-10-13"
+    ],
+    "event_at": "2026-09-21T00:00:00Z",
+    "evidence_class": "A",
+    "evidence_gaps": [
+      {
+        "description": "No independent reproduction of the paper's latency, memory, simulator or physical-robot results was performed in this activation.",
+        "kind": "missing_independent",
+        "state": "open"
+      },
+      {
+        "description": "Physical-robot trials are 20 per task per arm, and the paper's pooled exploratory Fisher test does not model task or session dependence; the reported difference is observational.",
+        "kind": "reproduction_missing",
+        "state": "open"
+      },
+      {
+        "description": "Benefit and latency are checkpoint-dependent; W4A4 causes large losses for some tested architectures, and the selective-precision effect is unresolved in preset-matched LIBERO tests.",
+        "kind": "baseline_unclear",
+        "state": "open"
+      }
+    ],
+    "id": "FCMO-D7EAA36CAACC",
+    "importance_effective_score": 5,
+    "importance_rationale": "If the reported low-bit latency and physical-task results generalize, they could change the deployment cost and precision choices for open vision-language-action policies on edge GPUs. Score 5 reflects broad engineering relevance within a specialized robotics regime; the evidence is a single paper and does not establish cross-checkpoint or production performance.",
+    "importance_scale_version": 2,
+    "importance_score": 5,
+    "importance_tier": "Notable",
+    "last_verified_at": "2026-10-13T10:11:20Z",
+    "limitations": [
+      "All results are reported by the paper authors; the research desk did not run the linked code or reproduce measurements.",
+      "W4A4 results are architecture-dependent: the paper reports large LIBERO losses for SmolVLA and Evo-1 configurations and does not establish recovery from selective INT8 for those architectures.",
+      "The preset-matched LIBERO tests do not resolve a selective-precision success gain; robot trials used 20 trials per task, and the paper's pooled exploratory test ignores matched-placement and task/session dependence.",
+      "Latency uses one timing run per checkpoint; measured speedups compare with compiled floating-point TensorRT on specified hardware and batch size 1, not across different hardware or workloads.",
+      "Only selected projection GEMMs use INT4/INT8; the vision encoder, non-projection operations and action decoder remain floating point. The paper notes H100 execution lowers four-bit operands to INT8 arithmetic."
+    ],
+    "organizations": [
+      "VinRobotics",
+      "VinUniversity",
+      "Peking University",
+      "University of Arkansas",
+      "TU Darmstadt"
+    ],
+    "primary_desk": "inference_systems",
+    "recorded_at": "2026-10-13T10:11:20Z",
+    "regions": [
+      "global"
+    ],
+    "relationships": [],
+    "source_languages": [
+      "en"
+    ],
+    "source_urls": [
+      "https://arxiv.org/abs/2609.24433",
+      "https://github.com/cair-vinuni/FoldQuantVLA"
+    ],
+    "status": "developing",
+    "summary": "The authors introduce FoldQuantVLA, which keeps activation coordinate transforms consistent across calibration, quantized weight rounding and TensorRT execution. On GR00T N1.5/N1.6/N1.7 and π₀.₅, they report W4A4 projection speedups of 1.20–1.33× over floating-point TensorRT on Jetson AGX Orin and 1.25–1.52× on a desktop RTX 4070 Ti SUPER. A selective W8A8 setting for two language projections adds 1 ms to the N1.7 Orin path and reports 92.5% pooled success versus 80.0% for uniform W4A4 across 80 physical-robot trials. These are author-reported measurements: selective-precision gains were not resolved in their LIBERO controls, robot trials were small, and latency measurements used one timing run.",
+    "technical": {
+      "claimed_result": "Authors report W4A4 observation-to-action speedups of 1.20–1.33× over floating-point TensorRT on Jetson AGX Orin and 1.25–1.52× on desktop for GR00T N1.5/N1.6/N1.7 and π₀.₅. On the N1.7 physical-robot tasks, selective o_proj/down_proj W8A8 reports 92.5% pooled success versus 80.0% for uniform W4A4 over 80 trials, at +1 ms on Orin.",
+      "compute_or_cost": "The paper reports lower weight and engine storage for N1.6 W4A4 (1,011 MB weights and 2,525 MB serialized engine) than floating-point TensorRT (3,802 MB and 5,325 MB). It does not report monetary inference cost, energy or throughput at concurrency.",
+      "demonstrated_result": "The paper and public repository directly document the method and author-reported measurements. No independent verification or code execution was performed; the robot result is an observed small-sample difference and not a demonstrated general success improvement.",
+      "implementation_status": "Authors provide a public Apache-2.0 repository with TensorRT plugins, integrations for four checkpoints, tests and result files. The repository was inspected but not executed in this activation.",
+      "mechanism": "FoldQuantVLA assigns one activation transform to each shared activation site, folds the inverse transform into consuming weights, calibrates and rounds in the transformed coordinates, then applies a fused per-token transform and integer GEMM in TensorRT plugins. W4A4 covers selected language-backbone and action-expert projections; selective W8A8 is retained at language attention-output and feed-forward down projections.",
+      "regime": "Batch-1 inference on Jetson AGX Orin with TensorRT 10.3 and RTX 4070 Ti SUPER with TensorRT 10.15; four GR00T checkpoints and π₀.₅. Robot results use one GR00T N1.7 fine-tune on ALOHA and SO-101, with 20 trials per task per arm and matched object placements. LIBERO uses 800 episodes per arm in a single campaign.",
+      "reproducibility": "The paper specifies checkpoints, calibration data, hardware, software, trial counts and protocols and links code and results. Independent reproduction is still open; a single desktop timing run per checkpoint and small physical trial counts limit uncertainty.",
+      "strongest_baseline": "The main speed comparison is each checkpoint's own floating-point TensorRT engine. Closed-loop comparisons include BF16 PyTorch, floating-point TensorRT and quantized configurations. Preset-matched LIBERO tests show selective-precision differences of 3–10 episodes on N1.5/N1.6/N1.7/π₀.₅, with p-values 0.17–0.78; they do not resolve simulator gains."
+    },
+    "title": "FoldQuantVLA reports faster low-bit inference for vision-language-action policies with small-task robot results",
+    "topics": [
+      "vision-language-action models",
+      "post-training quantization",
+      "robotics inference",
+      "edge deployment",
+      "TensorRT"
+    ],
+    "why_it_matters": "The paper reports an edge deployment trade-off that couples lower precision with measured observation-to-action latency and physical-task outcomes across several open VLA checkpoints. If the results hold in independent runs, the method could lower latency and memory requirements for robotic policies on constrained hardware. Checkpoint dependence, small physical samples and unresolved simulator comparisons limit the claim."
+  },
+  "related": [],
+  "schema": "fcmo-public-brief-v1"
+}

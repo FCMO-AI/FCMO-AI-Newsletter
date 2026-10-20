@@ -364,6 +364,10 @@ def normalize_claim_label(value: Any) -> tuple[str, str | None] | None:
     raw = re.sub(r"[^A-Z0-9]+", "_", str(value or "").upper()).strip("_")
     if not raw:
         return None
+    if raw == "RETRACTED_OR_INVALIDATED":
+        # record.v3 has no separate retraction label. Preserve this sourced
+        # status as a qualifier on the demonstrated correction event.
+        return "DEMONSTRATED", raw
     for base in CLAIM_LABELS:
         if raw == base:
             return base, None
@@ -372,7 +376,7 @@ def normalize_claim_label(value: Any) -> tuple[str, str | None] | None:
     if "CLAIM" in raw:
         qualifier = raw.split("_CLAIM", 1)[0] if "_CLAIM" in raw else raw.replace("CLAIM", "").strip("_")
         return "CLAIMED", (qualifier[:64] or None)
-    if "COUNTER" in raw or "DISPUT" in raw or "CONTEST" in raw:
+    if "COUNTER" in raw or "DISPUT" in raw or "CONTEST" in raw or "CONTRADICT" in raw:
         return "DISPUTED", (raw if raw != "DISPUTED" else None)
     if "SPECULAT" in raw or "HYPOTHES" in raw:
         return "SPECULATIVE", None

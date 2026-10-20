@@ -1,0 +1,119 @@
+{
+  "record": {
+    "id": "FCMO-40938C5CB331",
+    "title": "Critical-State RL selects trainable calls before optimizing multi-turn tool use",
+    "desk": "Reasoning Posttraining",
+    "event_at": "2026-09-21T00:00:00Z",
+    "evidence": "A",
+    "confidence": "credible_unconfirmed",
+    "importance": 5,
+    "tier": "Notable",
+    "summary": "The preprint proposes diagnosing which occurrence in a multi-turn interaction is trainable before applying a local reinforcement-learning update. Nested sampling holds each candidate action fixed while resampling reward-only continuations to separate action-dependent signal from downstream noise. In a four-cell BFCL v4 multi_turn study using Gemma-4-26B-A4B, authors report that training the diagnostically selected recovery call raised missing-function accuracy from 0.14 to 0.283 ± 0.015 across four seeds on 200 paired examples; training the alternative decision call reduced it to 0.095. In the missing-argument category, the selected decision call rose from 0.435 to 0.473 ± 0.010, while the alternative recovery call reached 0.445. These are paper-reported results, not an independent reproduction.",
+    "topics": [
+      "reinforcement learning",
+      "tool use",
+      "credit assignment",
+      "multi-turn agents",
+      "training data"
+    ],
+    "organizations": [
+      "Salesforce AI Research"
+    ],
+    "human_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-40938C5CB331.html",
+    "machine_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/data/briefs/FCMO-40938C5CB331.json",
+    "citation": {
+      "id": "FCMO-40938C5CB331",
+      "source": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-40938C5CB331.html"
+    }
+  },
+  "brief": {
+    "claims": [
+      {
+        "label": "CLAIMED",
+        "text": "Critical-State RL uses nested sampling to separate action-dependent reward variation from continuation noise, then applies an update to a diagnostically selected model call."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "In the paper's BFCL v4 multi_turn four-cell Gemma-4-26B-A4B study, selected-call training improved the reported scores in the two tested categories while the alternative call was flat or worse."
+      },
+      {
+        "label": "NOT_ESTABLISHED",
+        "text": "The reported results do not establish independent reproducibility or general improvement across deployed multi-turn agents, models, tasks or reward designs."
+      }
+    ],
+    "confidence": "credible_unconfirmed",
+    "contradictory_evidence": [],
+    "desks": [
+      "reasoning_posttraining",
+      "agents_memory",
+      "evaluation_science"
+    ],
+    "development_type": "paper",
+    "editions": [
+      "2026-10-12"
+    ],
+    "event_at": "2026-09-21T00:00:00Z",
+    "evidence_class": "A",
+    "evidence_gaps": [
+      {
+        "description": "The diagnostic and BFCL training results have not been independently reproduced.",
+        "kind": "missing_independent",
+        "state": "open"
+      },
+      {
+        "description": "Generalization beyond the two BFCL categories and the tested Gemma setup is unknown.",
+        "kind": "other",
+        "state": "open"
+      }
+    ],
+    "id": "FCMO-40938C5CB331",
+    "importance_effective_score": 5,
+    "importance_rationale": "If the reported diagnostic reliably identifies which call benefits from training, it could improve how teams allocate reinforcement-learning updates across multi-turn tool trajectories. The demonstrated scope is a bounded benchmark intervention and several applications; it does not establish general agent gains.",
+    "importance_scale_version": 2,
+    "importance_score": 5,
+    "importance_tier": "Notable",
+    "last_verified_at": "2026-10-12T08:09:28Z",
+    "limitations": [
+      "All empirical results are reported by the paper authors; the research desk did not run code or reproduce them.",
+      "The four-cell selection experiment is limited to two BFCL v4 multi_turn categories and one no-think Gemma-4-26B-A4B setup.",
+      "The selected cells summarize four seeds, but alternative-turn comparisons are point estimates; the paired evaluation uses 200 examples.",
+      "Task-specific local reward construction is part of the method and may affect transfer to other settings.",
+      "Additional cross-setting examples do not establish general deployment gains."
+    ],
+    "organizations": [
+      "Salesforce AI Research"
+    ],
+    "primary_desk": "reasoning_posttraining",
+    "recorded_at": "2026-10-12T08:09:28Z",
+    "regions": [
+      "global"
+    ],
+    "relationships": [],
+    "source_languages": [
+      "en"
+    ],
+    "source_urls": [
+      "https://arxiv.org/abs/2609.24985"
+    ],
+    "status": "active",
+    "summary": "The preprint proposes diagnosing which occurrence in a multi-turn interaction is trainable before applying a local reinforcement-learning update. Nested sampling holds each candidate action fixed while resampling reward-only continuations to separate action-dependent signal from downstream noise. In a four-cell BFCL v4 multi_turn study using Gemma-4-26B-A4B, authors report that training the diagnostically selected recovery call raised missing-function accuracy from 0.14 to 0.283 ± 0.015 across four seeds on 200 paired examples; training the alternative decision call reduced it to 0.095. In the missing-argument category, the selected decision call rose from 0.435 to 0.473 ± 0.010, while the alternative recovery call reached 0.445. These are paper-reported results, not an independent reproduction.",
+    "technical": {
+      "claimed_result": "In BFCL v4 multi_turn with frozen no-think Gemma-4-26B-A4B, the four-cell study reports selected recovery training for missing-function tasks at 0.14→0.283 ± 0.015 and selected decision training for missing-argument tasks at 0.435→0.473 ± 0.010. The paired deterministic evaluation used 200 examples; selected cells summarize four seeds, while alternatives are point estimates. An unseen-bridge test reports a 13.0 percentage-point gain in the selected missing-function setting.",
+      "demonstrated_result": "The arXiv v1 paper and its HTML report the method, protocol and results. the research desk inspected the paper but did not execute code or independently reproduce the experiment; empirical outcomes remain author-reported.",
+      "mechanism": "For task-defined candidate calls and local rewards, the method screens for action-sufficiency and reference-policy headroom, samples prefixes and candidate actions, then resamples continuations while holding actions fixed. It estimates action-dependent reward variance and applies the training loss only to the selected occurrence; surrounding calls provide context or consequence without receiving gradient.",
+      "regime": "BFCL v4 multi_turn, two task categories, no-think Gemma-4-26B-A4B for the four-cell selection experiment, deterministic decoding, step-30 checkpoint and paired 200-example evaluation. Additional applications use logged repeat-call traces, Nemotron and memory tasks with different local labels.",
+      "strongest_baseline": "Within-category alternative occurrence training under the same occurrence-local RL interface: for missing-function, decision-turn training moved accuracy from 0.14 to 0.095 versus selected recovery at 0.283 ± 0.015. For missing-argument, recovery moved 0.435 to 0.445 versus selected decision at 0.473 ± 0.010."
+    },
+    "title": "Critical-State RL selects trainable calls before optimizing multi-turn tool use",
+    "topics": [
+      "reinforcement learning",
+      "tool use",
+      "credit assignment",
+      "multi-turn agents",
+      "training data"
+    ],
+    "why_it_matters": "Trajectory-level rewards can mix the effect of one model call with randomness from later turns. A diagnostic that estimates action-dependent reward variation offers a concrete way to select where to train in a multi-turn agent, while the reported study also shows that the useful training location can vary by task."
+  },
+  "related": [],
+  "schema": "fcmo-public-brief-v1"
+}

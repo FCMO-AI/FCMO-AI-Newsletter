@@ -14,8 +14,14 @@ import shutil
 import tempfile
 
 REPOSITORY = 'FCMO-AI/FCMO-AI-Newsletter'
+TEST_SUITE_TIMEOUT_SECONDS = 3600
+COMMAND_TIMEOUT_SECONDS = 1800
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+from tools.release_process import run_command
+
+CHECK_COMMAND_TIMEOUT_SECONDS = 3600
 
 def git(repository: Path, *args: str) -> str:
     return subprocess.run(['git', '-C', str(repository), *args], check=True,
@@ -34,7 +40,8 @@ def step(root: Path, *args: str) -> None:
     # Local evidence must not depend on live Ghost content or a publisher key.
     for key in ('GHOST_CONTENT_URL', 'GHOST_CONTENT_API_KEY', 'GHOST_PORTAL_URL'):
         env.pop(key, None)
-    result = subprocess.run([sys.executable, *map(str, args)], cwd=root, env=env, check=False)
+    result = run_command([sys.executable, *map(str, args)], cwd=root, env=env,
+                         timeout=COMMAND_TIMEOUT_SECONDS)
     if result.returncode:
         raise RuntimeError(f'publication blocked: {args[0]} (exit {result.returncode})')
 
@@ -107,7 +114,11 @@ def main(argv=None):
     parser.add_argument('--receipt', type=Path)
     parser.add_argument('--out', type=Path, default=ROOT / 'publish')
     parser.add_argument('--fixture-build', action='store_true', help='Test-fixture build only; never sufficient for publication')
+    parser.add_argument('--tests-prevalidated', action='store_true',
+                        help='Skip the suite after a workflow has completed every deterministic test shard')
     args = parser.parse_args(argv)
+    if args.tests_prevalidated and not args.check:
+        parser.error('--tests-prevalidated is valid only with --check')
     if not args.check:
         try:
             if args.fixture_build or args.out != ROOT / 'publish': raise ValueError('candidate overrides require --check')
@@ -128,8 +139,9 @@ def main(argv=None):
     env['GHOST_CONTENT_URL'] = ''; env['GHOST_CONTENT_API_KEY'] = ''
     commands = []
     if not args.fixture_build:
+        if not args.tests_prevalidated:
+            commands.append([sys.executable, '-m', 'unittest', 'discover', '-s', 'tests'])
         commands += [
-            [sys.executable, '-m', 'unittest', 'discover', '-s', 'tests'],
             [sys.executable, 'tools/build_ready_receipt.py'],
             [sys.executable, 'tools/verify_release.py'],
         ]
@@ -142,7 +154,15 @@ def main(argv=None):
     if not args.fixture_build:
         commands += [[sys.executable, 'tests/oraculos/verificar_paper.py', str(args.out)]]
     for command in commands:
-        result = subprocess.run(command, cwd=ROOT, env=env, timeout=1800)
+        timeout = (TEST_SUITE_TIMEOUT_SECONDS
+                   if command == [sys.executable, '-m', 'unittest', 'discover', '-s', 'tests']
+                   else COMMAND_TIMEOUT_SECONDS)
+        try:
+            result = run_command(command, cwd=ROOT, env=env, timeout=timeout)
+        except (OSError, subprocess.TimeoutExpired) as exc:
+            print(f'Publicación rechazada: {command[1]} no completó la comprobación '
+                  f'dentro del límite de {timeout} s ({type(exc).__name__}).', file=sys.stderr, flush=True)
+            return 2
         if result.returncode:
             print('Publicación rechazada: LKG, construcción o comprobaciones incompletas.', file=sys.stderr)
             return 2

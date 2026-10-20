@@ -70,8 +70,15 @@ class LocaleSourceDrift(unittest.TestCase):
             self.assertTrue(story['carried_forward'])
             self.assertIn(rid, inputs.held_back)
             write_json(site / 'data/stories.v2.json', doc)
-            write_json(site / 'data/i18n/translation-status.json', {
-                'schema': 'fcmo-translation-status-v2', 'canonical_story_count': 0})
+            # The ACK measures the full legacy Story projection assembled from
+            # the freshly admitted release source, plus its derived locale status.
+            # The old 207-row site fixture is stale after this corpus refresh.
+            from tools import build_newsroom_surfaces, mark_pending_localizations
+            self.assertEqual(build_newsroom_surfaces.main([
+                '--release-src', str(release), '--site', str(site), '--corpus', str(corpus),
+                '--now', '2026-10-07T20:00:00Z']), 0)
+            self.assertEqual(mark_pending_localizations.main([
+                '--site', str(site), '--corpus', str(corpus)]), 0)
             args = type('Args', (), {'corpus': corpus, 'site': site, 'release_src': release,
                 'status': site / 'data/newsroom-status.json', 'wire_status': corpus / 'wire-status.json',
                 'now': '2026-10-07T20:00:00Z'})()

@@ -4,7 +4,7 @@ from pathlib import Path
 import subprocess
 import tempfile
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from ops import publish, publish_ledger, publish_ruleset
 
@@ -17,6 +17,18 @@ def git(root, *args, data=None):
 
 
 class ProtectedPublishingTests(unittest.TestCase):
+    def test_local_check_timeout_allows_the_full_regression_suite_to_finish(self):
+        calls = []
+
+        def successful_command(command, **kwargs):
+            calls.append(kwargs.get('timeout'))
+            return subprocess.CompletedProcess(command, 0)
+
+        with patch.object(publish, 'run_command', side_effect=successful_command):
+            self.assertEqual(publish.main(['--check']), 0)
+        self.assertEqual(calls, [publish.TEST_SUITE_TIMEOUT_SECONDS] + [publish.COMMAND_TIMEOUT_SECONDS] * 7)
+        self.assertEqual(publish.TEST_SUITE_TIMEOUT_SECONDS, 3600)
+
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.addCleanup(self.tmp.cleanup)
@@ -131,7 +143,9 @@ class ProtectedPublishingTests(unittest.TestCase):
 
     def test_required_workflow_has_no_path_skip_and_no_write_credentials(self):
         text = (ROOT / '.github/workflows/publish-gate.yml').read_text()
+        publish_source = (ROOT / 'ops/publish.py').read_text()
         self.assertIn('name: publish-gate', text)
+        self.assertIn('timeout-minutes: 60', text)
         self.assertIn('pull_request:', text)
         self.assertNotIn('paths:', text)
         self.assertNotIn('pull_request_target', text)
@@ -139,8 +153,49 @@ class ProtectedPublishingTests(unittest.TestCase):
         self.assertIn('contents: read', text)
         self.assertNotIn('contents: write', text)
         self.assertNotIn('secrets.', text)
-        self.assertIn('python3 -m unittest discover -s tests', text)
-        self.assertIn('python3 ops/publish.py --check', text)
+        self.assertNotIn('run: python3 -m unittest discover -s tests', text)
+        self.assertIn("[sys.executable, '-m', 'unittest', 'discover', '-s', 'tests']", publish_source)
+        self.assertIn('TEST_SUITE_TIMEOUT_SECONDS = 3600', publish_source)
+        self.assertIn('python3 ops/publish.py --check --tests-prevalidated', text)
+        self.assertIn('tools/unittest_shards.py --index ${{ matrix.shard }} --count 8', text)
+
+    def test_publish_check_gives_only_the_suite_its_measured_budget(self):
+        from unittest.mock import patch
+        with patch.object(publish, 'run_command', return_value=Mock(returncode=0)) as run:
+            self.assertEqual(publish.main(['--check']), 0)
+        timeouts = [call.kwargs['timeout'] for call in run.call_args_list]
+        self.assertEqual(timeouts, [3600, 1800, 1800, 1800, 1800, 1800, 1800, 1800])
+
+    def test_prevalidated_check_skips_only_the_suite(self):
+        with patch.object(publish, 'run_command', return_value=Mock(returncode=0)) as run:
+            self.assertEqual(publish.main(['--check', '--tests-prevalidated']), 0)
+        commands = [call.args[0] for call in run.call_args_list]
+        self.assertEqual(len(commands), 7)
+        self.assertNotIn([publish.sys.executable, '-m', 'unittest', 'discover', '-s', 'tests'], commands)
+        self.assertIn([publish.sys.executable, 'tools/verify_release.py'], commands)
+        self.assertIn([publish.sys.executable, 'tools/paper/build.py', '--stories',
+                       'site/data/stories.v2.json', '--status', 'site/data/newsroom-status.json',
+                       '--editorial', 'editorial', '--out', str(publish.ROOT / 'publish'),
+                       '--base', '/FCMO-AI-Newsletter/'], commands)
+
+    def test_prevalidated_suite_flag_is_rejected_outside_check_mode(self):
+        with self.assertRaises(SystemExit) as error:
+            publish.main(['--publish', '--tests-prevalidated'])
+        self.assertEqual(error.exception.code, 2)
+
+    def test_release_integrity_waits_for_all_complete_suite_shards(self):
+        import yaml
+        workflow = yaml.safe_load((ROOT / '.github/workflows/release-validate.yml').read_text())
+        regression = workflow['jobs']['regression']
+        self.assertEqual(regression['strategy']['matrix']['shard'], list(range(8)))
+        self.assertIs(regression['strategy']['fail-fast'], False)
+        self.assertIn('tools/unittest_shards.py --index ${{ matrix.shard }} --count 8',
+                      regression['steps'][-1]['run'])
+        gate = workflow['jobs']['publish-gate']
+        self.assertEqual(gate['name'], 'release-integrity')
+        self.assertEqual(gate['needs'], 'regression')
+        self.assertEqual(gate['steps'][-3]['run'],
+                         'python ops/publish.py --check --tests-prevalidated')
 
     def test_required_check_name_has_a_single_owner(self):
         import yaml
@@ -152,7 +207,9 @@ class ProtectedPublishingTests(unittest.TestCase):
     def test_pages_manual_publish_cannot_run_from_unreviewed_branch(self):
         text = (ROOT / '.github/workflows/pages.yml').read_text()
         self.assertIn("github.ref == 'refs/heads/main'", text)
-        self.assertIn('python3 -m unittest discover -s tests', text)
+        # The full suite runs as complete parallel shards that the build needs.
+        self.assertIn('python3 tools/unittest_shards.py --index ${{ matrix.shard }} --count 8', text)
+        self.assertIn('needs: regression', text)
         self.assertIn('python3 tools/verify_release.py', text)
 
 

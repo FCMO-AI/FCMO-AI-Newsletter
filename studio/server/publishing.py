@@ -259,6 +259,11 @@ class Publisher:
             if not row: return {'state': self.store.piece(value)['state'], 'timeline': []}
             result = dict(row); result['payload'] = json.loads(result.pop('payload_json')); return result
     def request(self, value, user):
+        piece = self.store.piece(value)
+        if piece['kind'] != 'issue' and piece['source_locale'] in ('en', 'es-419') and self.store.payload(value)['piece']['status'] != 'withdrawn':
+            from studio.translation import prepare, TranslationError
+            try: prepare(self.store, value, user)
+            except TranslationError as exc: raise Refused(str(exc)) from None
         initial_rev = self.store.piece(value)['head_rev']
         checks = self.checker(value)
         with self.mutex:
@@ -295,7 +300,7 @@ class Publisher:
             ident = __import__('secrets').token_hex(12); payload = self.store.payload(value)
             stamp = utc(); payload['piece']['updated_at'] = stamp
             if 'issue' not in payload and payload['piece']['status'] != 'withdrawn':
-                from studio.translation import validate_translation, TranslationError
+                from studio.translation import validate_translation, TranslationError, machine_reviewed
                 source = payload['piece']['source_locale']
                 if payload.get('translation_error'): raise Refused(payload['translation_error'])
                 states = self.store.piece(value)['locale_states']
@@ -306,6 +311,11 @@ class Publisher:
                     try: validate_translation(payload['docs'][source], payload['docs'][loc], loc)
                     except TranslationError as exc: raise Refused(str(exc)) from None
                     prior = payload['provenance'].get(loc, {})
+                    if loc != source:
+                        # Publication approval is not a claim of fluency in another language.
+                        if not machine_reviewed(prior, payload['docs'][source], payload['docs'][loc], payload['figures']) and not (prior.get('human_reviewed') is True and prior.get('reviewer')):
+                            raise Refused('La traducción requiere comprobación automática de fidelidad o revisión humana explícita del idioma.')
+                        continue
                     payload['provenance'][loc] = {**prior, 'origin': prior.get('origin', 'human_authored' if loc == source else 'human_translated'),
                         'human_reviewed': True, 'reviewer': NAMES[user], 'at': stamp, 'source_locale': source}
                     states[loc] = {**states[loc], 'human_reviewed': True, 'by': user, 'at': stamp}

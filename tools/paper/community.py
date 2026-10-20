@@ -266,8 +266,8 @@ def portal_signup_url(portal_url: str | None) -> str | None:
         return None
 
 
-def subscribe_script_tag(base: str, locale_code: str, portal_url: str | None) -> str:
-    if locale_code != "es-419" or portal_signup_url(portal_url) is None:
+def subscribe_script_tag(base: str, locale_code: str, portal_url: str | None, *, email_form=False) -> str:
+    if not email_form and (locale_code != "es-419" or portal_signup_url(portal_url) is None):
         return ""
     digest = base64.b64encode(hashlib.sha384(_SUBSCRIBE_JS.read_bytes()).digest()).decode("ascii")
     src = base.rstrip("/") + "/assets/js/subscribe.js"
@@ -294,7 +294,7 @@ def render_subscribe(*, locale_code: str, path_prefix: str, base: str, portal_ur
     html = subscribe_block("all" if page else "paper", locale_code, base=base,
                            path_prefix=path_prefix, ghost_url=ghost_url, page=page)
     css = f'<link rel="stylesheet" href="{_e(base.rstrip("/") + "/assets/subscribe/subscribe.css")}">'
-    return html, css + subscribe_script_tag(base, locale_code, ghost_url)
+    return html, css + subscribe_script_tag(base, locale_code, ghost_url, email_form='data-email-form' in html)
 
 
 def subscribe_page_title(locale_code: str, portal_url: str | None) -> str:

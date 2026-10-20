@@ -137,6 +137,42 @@ class NewswireBridgeTests(unittest.TestCase):
         self._restamp()
         return target
 
+    def _set_claims(self, claims: list) -> None:
+        self._write("data/developments.jsonl", json.dumps({"id": RID, "title": "Public story", "claims": claims}) + "\n")
+        self._restamp()
+
+    def test_blank_claim_label_is_refused_at_the_door(self) -> None:
+        self._set_claims([{"label": "CLAIMED", "text": "A claim."}, {"label": "", "text": "Unclassified claim."}])
+        with self.assertRaisesRegex(ValueError, r"claims without a valid label.*" + RID):
+            newswire_bridge.verify_release(self.root)
+
+    def test_unknown_claim_label_is_refused_at_the_door(self) -> None:
+        self._set_claims([{"label": "VIBES", "text": "Unclassified claim."}])
+        with self.assertRaisesRegex(ValueError, "claims without a valid label"):
+            newswire_bridge.verify_release(self.root)
+
+    def test_classified_claim_labels_pass(self) -> None:
+        self._set_claims([{"label": "CLAIMED", "text": "A."}, {"label": "NOT_ESTABLISHED", "text": "B."},
+                          {"label": "DEMONSTRATED_DOCUMENTATION", "text": "C."}])
+        newswire_bridge.verify_release(self.root)
+
+    def test_chinese_headline_in_the_spanish_pack_is_refused(self) -> None:
+        path = self.root / "data/locales/es-419/records.json"
+        doc = json.loads(path.read_text(encoding="utf-8"))
+        doc["records"][RID]["title"] = "机器人护栏提高遥操作成功率"
+        path.write_text(json.dumps(doc), encoding="utf-8")
+        self._restamp()
+        with self.assertRaisesRegex(ValueError, r"title is Chinese prose in the Spanish edition"):
+            newswire_bridge.verify_release(self.root)
+
+    def test_han_name_inside_a_spanish_headline_passes(self) -> None:
+        path = self.root / "data/locales/es-419/records.json"
+        doc = json.loads(path.read_text(encoding="utf-8"))
+        doc["records"][RID]["title"] = "Moonshot (月之暗面) lanza un modelo abierto de razonamiento"
+        path.write_text(json.dumps(doc), encoding="utf-8")
+        self._restamp()
+        newswire_bridge.verify_release(self.root)
+
     def test_safe_release_passes(self) -> None:
         receipt = newswire_bridge.verify_release(self.root)
         self.assertEqual(receipt["record_count"], 1)

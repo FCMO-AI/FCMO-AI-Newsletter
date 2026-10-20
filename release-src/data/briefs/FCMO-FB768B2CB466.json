@@ -1,0 +1,130 @@
+{
+  "record": {
+    "id": "FCMO-FB768B2CB466",
+    "title": "A study finds BF16 and FP16 can produce different greedy LLM outputs",
+    "desk": "Evaluation Science",
+    "event_at": "2026-09-22T00:00:00Z",
+    "evidence": "A",
+    "confidence": "credible_unconfirmed",
+    "importance": 5,
+    "tier": "Notable",
+    "summary": "A September 2026 TMLR paper reports that BF16 versus FP16 inference produced different greedy-decoding sequences on 49–100% of prompts across six tested models and three benchmarks. The authors report that recomputing only the language-model output head in FP32 when the top-two logit margin is small improved exact agreement by 22–36 percentage points on an A10G and 12–21 points on L4/A100 GPUs, with under 4% latency overhead at batch sizes up to 4. They report that the intervention’s benefit disappears at batch size 8 or higher and under end-to-end FP8. These are author-reported results, not an independent reproduction.",
+    "topics": [
+      "inference precision",
+      "reproducibility",
+      "greedy decoding",
+      "FP32 output head recomputation"
+    ],
+    "organizations": [
+      "University of Tennessee, Knoxville",
+      "University of Chicago",
+      "Amazon",
+      "University of Texas at Austin"
+    ],
+    "human_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-FB768B2CB466.html",
+    "machine_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/data/briefs/FCMO-FB768B2CB466.json",
+    "citation": {
+      "id": "FCMO-FB768B2CB466",
+      "source": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-FB768B2CB466.html"
+    }
+  },
+  "brief": {
+    "claims": [
+      {
+        "label": "DEMONSTRATED",
+        "text": "The TMLR paper was published in September 2026 and is available through its arXiv record and PDF."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "The authors report BF16/FP16 greedy-decoding sequences diverged on 49–100% of prompts across six 1.1B–7B models, four model families and three benchmarks; a separate 12.2B test characterized divergence."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "The authors report that selective FP32 LM-head recomputation at low top-two margins improved exact sequence agreement by 22–36 percentage points on A10G and 12–21 points on L4/A100 with less than 4% latency overhead at batch size <=4."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "The authors report that the intervention’s benefit vanishes at batch size >=8 and under end-to-end FP8; it is not a universal determinism guarantee."
+      }
+    ],
+    "confidence": "credible_unconfirmed",
+    "contradictory_evidence": [],
+    "desks": [
+      "evaluation_science",
+      "inference_systems",
+      "efficiency"
+    ],
+    "development_type": "paper",
+    "editions": [
+      "2026-10-16"
+    ],
+    "event_at": "2026-09-22T00:00:00Z",
+    "evidence_class": "A",
+    "evidence_gaps": [
+      {
+        "description": "No independent reproduction of the cross-precision divergence rates or selective LM-head intervention was performed.",
+        "kind": "missing_independent",
+        "state": "open"
+      },
+      {
+        "description": "The paper does not establish how often this issue occurs in production serving configurations or on larger/closed models.",
+        "kind": "regime_unclear",
+        "state": "open"
+      }
+    ],
+    "id": "FCMO-FB768B2CB466",
+    "importance_effective_score": 5,
+    "importance_rationale": "If the reported cross-precision divergence and gated repair generalize, they affect reproducibility and evaluation in model serving across common deployment formats. The paper reports multi-model results, but the bounded experiments and unverified external reproduction make this a notable engineering concern rather than a universal determinism failure.",
+    "importance_scale_version": 2,
+    "importance_score": 5,
+    "importance_tier": "Notable",
+    "last_verified_at": "2026-10-16T07:13:49Z",
+    "limitations": [
+      "All numerical performance findings are the paper authors’ reports and were not independently reproduced.",
+      "Divergence and repair effectiveness vary by model, GPU, batch size and precision regime; the intervention is not universal.",
+      "The low-overhead repair applies only to low-batch single-stream settings in the paper; benefit disappears at batch size >=8 and under tested end-to-end FP8.",
+      "The paper studies selected 1.1B–7B models and benchmarks, with a separate 12.2B divergence characterization; it does not establish prevalence for closed models, production workloads or all numerical formats."
+    ],
+    "organizations": [
+      "University of Tennessee, Knoxville",
+      "University of Chicago",
+      "Amazon",
+      "University of Texas at Austin"
+    ],
+    "primary_desk": "evaluation_science",
+    "recorded_at": "2026-10-16T07:13:49Z",
+    "regions": [
+      "global"
+    ],
+    "relationships": [],
+    "source_languages": [
+      "en"
+    ],
+    "source_urls": [
+      "https://arxiv.org/abs/2609.26621"
+    ],
+    "status": "active",
+    "summary": "A September 2026 TMLR paper reports that BF16 versus FP16 inference produced different greedy-decoding sequences on 49–100% of prompts across six tested models and three benchmarks. The authors report that recomputing only the language-model output head in FP32 when the top-two logit margin is small improved exact agreement by 22–36 percentage points on an A10G and 12–21 points on L4/A100 GPUs, with under 4% latency overhead at batch sizes up to 4. They report that the intervention’s benefit disappears at batch size 8 or higher and under end-to-end FP8. These are author-reported results, not an independent reproduction.",
+    "technical": {
+      "claimed_result": "The paper reports 49–100% prompt-level BF16/FP16 sequence divergence across six 1.1B–7B models, four model families and three benchmarks; a separate 12.2B test characterizes divergence. Selective FP32 LM-head recomputation reportedly raises exact agreement by 22–36 percentage points on A10G and 12–21 points on L4/A100 with less than 4% latency overhead for batch size <=4.",
+      "compute_or_cost": "Authors report <4% latency overhead for selective recomputation in the stated low-batch regime.",
+      "demonstrated_result": "The publication event and paper contents were inspected. Numerical performance values below are author-reported and are not independently demonstrated in this review.",
+      "implementation_status": "The paper describes and evaluates an inference-time intervention; this review did not run the code or verify deployment in a serving stack.",
+      "mechanism": "The authors attribute cross-format token flips to small top-two logit margins when BF16/FP16 rounding perturbs the output-head decision. Their selective intervention recomputes the LM head in FP32 only when the margin falls below a threshold.",
+      "novelty": "The paper combines output-level cross-precision measurements, controlled mechanism analysis and a margin-triggered output-head recomputation; the authors distinguish this from known within-format nondeterminism.",
+      "regime": "Paper experiments compare BF16 and FP16 on the same hardware for autoregressive greedy decoding, mainly on small open-weight models and selected benchmarks. The gated intervention is reported for low-batch single-stream inference (batch <=4); gains vanish at batch >=8 and under end-to-end FP8.",
+      "reproducibility": "Paper reports experiments; independent reproduction and production-serving verification remain open.",
+      "strongest_baseline": "The paper compares the intervention against unmodified inference and broader-scope FP32 recomputation. The authors report broader FP32 scope can reduce agreement; no external reproduction was located."
+    },
+    "title": "A study finds BF16 and FP16 can produce different greedy LLM outputs",
+    "topics": [
+      "inference precision",
+      "reproducibility",
+      "greedy decoding",
+      "FP32 output head recomputation"
+    ],
+    "why_it_matters": "If the reported regime-specific effect generalizes, serving precision can change exact model behavior even under greedy decoding, complicating cross-system replay and evaluation. The paper also offers a targeted but explicitly partial mitigation; its bounded workload and batch limits determine where the result applies."
+  },
+  "related": [],
+  "schema": "fcmo-public-brief-v1"
+}

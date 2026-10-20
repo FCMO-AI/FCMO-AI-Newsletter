@@ -1,0 +1,126 @@
+{
+  "record": {
+    "id": "FCMO-23FE07CB0846",
+    "title": "REAP study reports strong coding retention after 50% expert pruning in two large MoE models",
+    "desk": "Efficiency",
+    "event_at": "2026-05-13T00:00:00Z",
+    "evidence": "B",
+    "confidence": "credible_unconfirmed",
+    "importance": 5,
+    "tier": "Notable",
+    "summary": "A May 2026 version of a Cerebras-authored preprint reports that its Router-weighted Expert Activation Pruning (REAP) method retained coding benchmark accuracy after removing 50% of experts from Qwen3-Coder-480B and Kimi-K2-Instruct. The authors summarize the non-agentic coding accuracy decreases across those two models as 0.16% at 25% compression and 1.2% at 50%; model-specific benchmark scores are reported separately in Table 3. These are author-reported results, not independently reproduced serving or economic outcomes.",
+    "topics": [
+      "Mixture-of-Experts",
+      "model compression",
+      "expert pruning",
+      "inference memory"
+    ],
+    "organizations": [
+      "Cerebras Systems",
+      "University of Calgary"
+    ],
+    "human_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-23FE07CB0846.html",
+    "machine_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/data/briefs/FCMO-23FE07CB0846.json",
+    "citation": {
+      "id": "FCMO-23FE07CB0846",
+      "source": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-23FE07CB0846.html"
+    }
+  },
+  "brief": {
+    "claims": [
+      {
+        "label": "CLAIMED",
+        "text": "The authors report that REAP, a pruning criterion combining router gate values and expert activation norms, outperforms the compared pruning and merging baselines on the paper’s generative benchmarks, particularly at 50% expert compression."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "The authors summarize their two-model non-agentic coding results as mean accuracy decreases of 0.16% at 25% compression and 1.2% at 50% compression. Their Table 3 reports benchmark scores separately for each model."
+      },
+      {
+        "label": "NOT_ESTABLISHED",
+        "text": "The preprint does not establish independent reproduction, general quality preservation outside its evaluated tasks and configurations, or real serving savings in memory residency, throughput, latency, power, or cost."
+      }
+    ],
+    "confidence": "credible_unconfirmed",
+    "contradictory_evidence": [],
+    "desks": [
+      "efficiency",
+      "agents_memory"
+    ],
+    "development_type": "paper",
+    "editions": [
+      "2026-10-11"
+    ],
+    "event_at": "2026-05-13T00:00:00Z",
+    "evidence_class": "B",
+    "evidence_gaps": [
+      {
+        "description": "The benchmark results are from a single author team and have not been independently reproduced in this review.",
+        "kind": "reproduction_missing",
+        "state": "open"
+      },
+      {
+        "description": "Quality retention is task- and model-dependent; the paper itself reports weaker results on some agentic/tool-use and multiple-choice metrics, and the result does not cover broad production traffic.",
+        "kind": "other",
+        "state": "open"
+      },
+      {
+        "description": "Removing experts does not demonstrate reduced end-to-end serving cost or latency; no matched hardware/runtime measurements were reviewed.",
+        "kind": "other",
+        "state": "open"
+      }
+    ],
+    "id": "FCMO-23FE07CB0846",
+    "importance_effective_score": 5,
+    "importance_rationale": "If the paper-reported results hold beyond its evaluated models and benchmark setup, removing half of the experts while retaining coding accuracy could materially lower memory requirements for large sparse models. The evidence is an author-reported benchmark result; it does not establish serving cost, latency, or general quality across tasks.",
+    "importance_scale_version": 2,
+    "importance_score": 5,
+    "importance_tier": "Notable",
+    "last_verified_at": "2026-10-11T23:12:04Z",
+    "limitations": [
+      "Results are author-reported in a preprint by authors affiliated with Cerebras Systems and the University of Calgary; no independent reproduction was reviewed.",
+      "The strong large-model result is specific to the study’s two listed checkpoints and benchmark setup; other tasks show larger quality losses.",
+      "A reduction in stored experts does not by itself establish proportional runtime, power, or cost savings.",
+      "The text’s percentage summary and model-specific values in Table 3 use different aggregation levels; the paper’s reported aggregate should not be mixed with individual table-cell differences.",
+      "The authors’ repository reports a material implementation/evaluation update: top-k router-logit renormalization improved a five-model non-agentic coding mean decrease from 2.6% to 1.9%; it says prior large-scale results used the normalized setting. These first-party figures were not independently reproduced."
+    ],
+    "organizations": [
+      "Cerebras Systems",
+      "University of Calgary"
+    ],
+    "primary_desk": "efficiency",
+    "recorded_at": "2026-10-11T23:12:04Z",
+    "regions": [
+      "Global"
+    ],
+    "relationships": [],
+    "source_languages": [
+      "en"
+    ],
+    "source_urls": [
+      "https://arxiv.org/abs/2510.13999",
+      "https://github.com/CerebrasResearch/reap"
+    ],
+    "status": "active",
+    "summary": "A May 2026 version of a Cerebras-authored preprint reports that its Router-weighted Expert Activation Pruning (REAP) method retained coding benchmark accuracy after removing 50% of experts from Qwen3-Coder-480B and Kimi-K2-Instruct. The authors summarize the non-agentic coding accuracy decreases across those two models as 0.16% at 25% compression and 1.2% at 50%; model-specific benchmark scores are reported separately in Table 3. These are author-reported results, not independently reproduced serving or economic outcomes.",
+    "technical": {
+      "claimed_result": "The paper reports a mean non-agentic coding accuracy decrease of 0.16% and 1.2% at 25% and 50% compression across its Qwen3-Coder-480B and Kimi-K2 evaluations. Table 3 gives model-specific benchmark results; the paper does not claim these averages generalize beyond its evaluated tasks.",
+      "compute_or_cost": "Expert count and model parameter storage are reduced by the compression ratio. The paper does not measure end-to-end serving latency, throughput, power, memory residency, or dollars saved.",
+      "demonstrated_result": "The arXiv v3 paper and its reported tables are accessible; the numerical findings remain author-reported and were not independently reproduced in this review.",
+      "mechanism": "REAP scores experts using both router gate values and activation norms, then removes low-scoring experts while preserving the surviving router’s independent control. The paper argues that merging experts can lose input-dependent routing behavior.",
+      "regime": "Two large sparse MoE checkpoints for the large-scale results: Qwen3-Coder-480B-A35B-Instruct-FP8 and Kimi-K2-Instruct-W4A16. The paper evaluates non-agentic and agentic code generation, tool use and multiple-choice tasks, including 25% and 50% expert compression.",
+      "reproducibility": "The authors link code and selected compressed checkpoints. The public repository README describes pruning/evaluation scripts and a calibration-data mixture. It reports that normalizing top-k router logits on 2026-03-11 changed its five-model non-agentic coding mean decrease from 2.6% to 1.9%; the repository says prior large-scale results used normalized logits. Independent execution or reproduction was not performed in this review.",
+      "strongest_baseline": "The paper compares REAP with frequency-based pruning, Expert Activation Norm pruning, and expert merging methods at matched compression ratios on its listed models and benchmarks."
+    },
+    "title": "REAP study reports strong coding retention after 50% expert pruning in two large MoE models",
+    "topics": [
+      "Mixture-of-Experts",
+      "model compression",
+      "expert pruning",
+      "inference memory"
+    ],
+    "why_it_matters": "Large MoE checkpoints carry substantial memory overhead. If the reported task-specific quality retention generalizes, selective expert removal could make some large models easier to store or serve. The paper does not show proportional reductions in wall-clock latency, power, or total serving cost."
+  },
+  "related": [],
+  "schema": "fcmo-public-brief-v1"
+}

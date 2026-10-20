@@ -1,0 +1,144 @@
+{
+  "record": {
+    "id": "FCMO-0BB5C5BC6E3F",
+    "title": "LM-CXD paper reports lower prefix-cache time-to-first-token using chunk-aware CXL-SSD emulation",
+    "desk": "Inference Systems",
+    "event_at": "2026-09-20T00:00:00Z",
+    "evidence": "A",
+    "confidence": "credible_unconfirmed",
+    "importance": 5,
+    "tier": "Notable",
+    "summary": "A September 2026 systems preprint presents LM-CXD, a CXL-SSD design that makes KV-cache chunks visible to the device and coordinates prefix lookup, device-DRAM residency, request scheduling and prefetching with vLLM/LMCache. In an emulated device with a modeled 16 GiB DRAM region and 384 GiB NAND region, the authors report lower average time-to-first-token than a stock CXL-SSD baseline on five evaluated language models: up to 2.6× with compute-asynchronous prefetch and 4.03× with layerwise prefetch in specific workloads, with average TTFT within 1.5× of local DRAM. These are author-reported results from device emulation rather than a commercial CXL-SSD. Gains depend on model, prefix length and concurrency; the paper reports that Llama-3.1-70B has weaker average improvement and P99 cases near the stock device.",
+    "topics": [
+      "llm-inference",
+      "kv-cache",
+      "cxl",
+      "storage-systems",
+      "time-to-first-token",
+      "prefetching"
+    ],
+    "organizations": [
+      "Sogang University",
+      "Samsung Electronics",
+      "ETRI"
+    ],
+    "human_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-0BB5C5BC6E3F.html",
+    "machine_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/data/briefs/FCMO-0BB5C5BC6E3F.json",
+    "citation": {
+      "id": "FCMO-0BB5C5BC6E3F",
+      "source": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-0BB5C5BC6E3F.html"
+    }
+  },
+  "brief": {
+    "claims": [
+      {
+        "label": "DEMONSTRATED",
+        "text": "The authors posted the LM-CXD systems preprint to arXiv on 20 September 2026."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "Across five evaluated language models, the authors report average TTFT reductions over a stock CXL-SSD of up to 2.6× with compute-asynchronous prefetch and 4.03× with layerwise prefetch, in model-specific workloads."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "The evaluation models a CXL-SSD with 16 GiB of device DRAM and 384 GiB of NAND, and compares the proposed design against a stock CXL-SSD implementation; the reported results use a modified NVMeVirt device emulator rather than commercial CXL-SSD hardware."
+      },
+      {
+        "label": "DEMONSTRATED_LIMITATION",
+        "text": "The paper reports model- and workload-dependent tradeoffs: layerwise prefetch can increase prefill time, lookahead buffers consume device DRAM, and Llama-3.1-70B has P99 TTFT cases near the stock CXL-SSD."
+      },
+      {
+        "label": "DEMONSTRATED_LIMITATION",
+        "text": "The reported benchmark does not establish performance, reliability or total cost on a physical CXL-SSD or at production serving scale."
+      }
+    ],
+    "confidence": "credible_unconfirmed",
+    "contradictory_evidence": [],
+    "desks": [
+      "efficiency",
+      "compute_hardware"
+    ],
+    "development_type": "paper",
+    "editions": [
+      "2026-10-14"
+    ],
+    "event_at": "2026-09-20T00:00:00Z",
+    "evidence_class": "A",
+    "evidence_gaps": [
+      {
+        "description": "No independently inspectable public implementation or hardware testbed was found in this review; the reported CXL-SSD runs use a modified NVMeVirt device emulator.",
+        "kind": "missing_artifact",
+        "state": "open",
+        "updated_at": "2026-10-14T09:16:00Z"
+      },
+      {
+        "description": "Independent reproduction with pinned model/runtime versions and real CXL-SSD hardware is needed to check TTFT and tail-latency gains against matched stock-device and local-DRAM baselines.",
+        "kind": "missing_independent",
+        "state": "open",
+        "updated_at": "2026-10-14T09:16:00Z"
+      },
+      {
+        "description": "Measure total system cost, device-DRAM capacity sensitivity, reliability/endurance and performance across broader prefix lengths, concurrency, model architectures and production traces.",
+        "kind": "other",
+        "state": "open",
+        "updated_at": "2026-10-14T09:16:00Z"
+      }
+    ],
+    "id": "FCMO-0BB5C5BC6E3F",
+    "importance_effective_score": 5,
+    "importance_rationale": "If the paper-reported latency reductions hold on physical CXL-SSD hardware and broader serving workloads, chunk-aware device interfaces could change design choices for capacity-bound inference and long-prefix serving. Consequence is notable for systems and serving economics, while results remain emulated, workload-specific and without measured total cost.",
+    "importance_scale_version": 2,
+    "importance_score": 5,
+    "importance_tier": "Notable",
+    "last_verified_at": "2026-10-14T09:16:00Z",
+    "limitations": [
+      "The proposed CXL-SSD is an emulation using a modified NVMeVirt platform; no commercial CXL-SSD hardware was available or measured.",
+      "The emulated device uses a 16 GiB DRAM region and 384 GiB NAND region, with NAND timings modeled from Samsung Z-NAND parameters in prior CXL-SSD studies.",
+      "The strongest TTFT gains are tied to specific model/prefetch/workload combinations; no single prefetch method wins across all models, and Llama-3.1-70B P99 tails can approach the stock baseline.",
+      "Layerwise lookahead buffers use substantial device DRAM at long prefixes and scale with prefix length and concurrency; the paper reports no comprehensive total-cost-of-ownership or reliability comparison.",
+      "The paper is author-reported; no independent reproduction or public implementation was identified in this review."
+    ],
+    "organizations": [
+      "Sogang University",
+      "Samsung Electronics",
+      "ETRI"
+    ],
+    "primary_desk": "inference_systems",
+    "recorded_at": "2026-10-14T09:16:00Z",
+    "regions": [
+      "global"
+    ],
+    "relationships": [],
+    "source_languages": [
+      "en"
+    ],
+    "source_urls": [
+      "https://arxiv.org/abs/2609.26828"
+    ],
+    "status": "active",
+    "summary": "A September 2026 systems preprint presents LM-CXD, a CXL-SSD design that makes KV-cache chunks visible to the device and coordinates prefix lookup, device-DRAM residency, request scheduling and prefetching with vLLM/LMCache. In an emulated device with a modeled 16 GiB DRAM region and 384 GiB NAND region, the authors report lower average time-to-first-token than a stock CXL-SSD baseline on five evaluated language models: up to 2.6× with compute-asynchronous prefetch and 4.03× with layerwise prefetch in specific workloads, with average TTFT within 1.5× of local DRAM. These are author-reported results from device emulation rather than a commercial CXL-SSD. Gains depend on model, prefix length and concurrency; the paper reports that Llama-3.1-70B has weaker average improvement and P99 cases near the stock device.",
+    "technical": {
+      "claimed_result": "The abstract reports, across five LLMs, average TTFT reductions over stock CXL-SSD of up to 2.6× using compute-asynchronous prefetch and 4.03× using layerwise prefetch, with TTFT within 1.5× of local DRAM on average. In the multi-turn Q&A results, CAP improves average TTFT by 2.51× for Qwen3-4B and 2.6× for Ministral-8B; layerwise prefetch improves Qwen3-VL-32B by 4.03× and Llama-3.1-70B by 1.74× on average, while some Llama P99 cases approach the stock device.",
+      "compute_or_cost": "No complete hardware bill of materials, energy measurement or total-cost-of-ownership analysis is reported. Device DRAM region size and prefetch-buffer occupancy are measured as performance constraints.",
+      "demonstrated_result": "The authors provide a detailed paper describing LM-CXD’s design and an evaluation on an emulated device. The paper reports matching the emulator’s bimodal memory-latency behavior against Cylon and describes a native vLLM/LMCache/CUDA evaluation; this is not validation on physical CXL-SSD hardware.",
+      "implementation_status": "Research implementation in a modified NVMeVirt device emulator connected to native vLLM/LMCache/CUDA; no commercial CXL-SSD deployment reported.",
+      "mechanism": "LM-CXD exposes chunk-level prefix-cache state and NAND-to-device-DRAM progress to LMCache, uses shared device data structures to coordinate placement and eviction, and provides compute-asynchronous or layerwise prefetching to overlap NAND movement with GPU computation.",
+      "novelty": "The paper’s design contribution is coordinating serving-engine prefix semantics with device-side chunk placement and NAND-to-DRAM progress, then selecting prefetch schedules that overlap data movement and GPU work. Prior CXL/KV-cache systems exist; the bounded novelty claim is this CXL-SSD-specific chunk-aware co-design, not CXL-based KV caching generally.",
+      "regime": "Five GQA model configurations on a dual Xeon Gold 6548Y+ host with four NVIDIA L40S GPUs; vLLM 0.16.0 and LMCache 0.3.13. The modeled device advertises 400 GiB total capacity (16 GiB device DRAM + 384 GiB NAND). The CxS workload uses four concurrent users, four sessions each, six turns, and fixed prefixes generally 16k–160k depending on model and test.",
+      "reproducibility": "The paper provides detailed setup and workload parameters, and validates its modified NVMeVirt emulator’s memory-latency shape and per-miss timing against Cylon. No author implementation/data repository or independent reproduction was located in this review.",
+      "strongest_baseline": "A stock CXL-SSD implementation with matched 2 MiB hugepages and CLOCK eviction; CAP comparisons also enable asynchronous LMCache loading where supported. The paper separately compares local DRAM in characterization and TTFT discussion. No commercial device baseline is available."
+    },
+    "title": "LM-CXD paper reports lower prefix-cache time-to-first-token using chunk-aware CXL-SSD emulation",
+    "topics": [
+      "llm-inference",
+      "kv-cache",
+      "cxl",
+      "storage-systems",
+      "time-to-first-token",
+      "prefetching"
+    ],
+    "why_it_matters": "If the emulated design transfers to real CXL-SSD hardware, application-aware chunk interfaces and coordinated prefetch could improve the latency-capacity tradeoff for long-prefix and multi-turn LLM serving. The reported result is a systems paper signal, not yet a measured hardware or total-cost-of-ownership advantage; model-specific tail behavior and device-DRAM requirements remain important."
+  },
+  "related": [],
+  "schema": "fcmo-public-brief-v1"
+}

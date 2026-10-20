@@ -113,11 +113,13 @@ def load_piece(directory: Path) -> dict:
         if ids != source_ids:
             raise ValueError(f"{directory}: block id mismatch in {locale}")
         row = provenance.get(locale, {})
-        if not isinstance(row, dict) or set(row) - {"origin", "human_reviewed", "reviewer", "at", "model", "source_locale"}:
+        if not isinstance(row, dict) or set(row) - {"origin", "human_reviewed", "reviewer", "at", "model", "source_locale", "review_state", "fidelity"}:
             raise ValueError(f"{directory}: invalid provenance fields in {locale}")
         if row.get("origin") not in {"human_authored", "human_translated", "agent_draft_human_edited", "agent_draft"} or not isinstance(row.get("human_reviewed"), bool):
             raise ValueError(f"{directory}: invalid provenance in {locale}")
-        if piece["locales"][locale] == "ready" and row["origin"] != "agent_draft" and row["human_reviewed"] is not True:
+        from studio.translation import machine_reviewed
+        machine_ok = locale != piece['source_locale'] and machine_reviewed(row, docs.get(piece['source_locale'], {}), doc, figures)
+        if piece["locales"][locale] == "ready" and row["origin"] != "agent_draft" and row["human_reviewed"] is not True and not machine_ok:
             raise ValueError(f"{directory}: ready {locale} has not been human-reviewed")
         if row["human_reviewed"] is True and not str(row.get("reviewer", "")).strip():
             raise ValueError(f"{directory}: human review needs a named reviewer")

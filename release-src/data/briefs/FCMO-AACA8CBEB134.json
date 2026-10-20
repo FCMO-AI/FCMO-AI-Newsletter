@@ -1,0 +1,119 @@
+{
+  "record": {
+    "id": "FCMO-AACA8CBEB134",
+    "title": "LumoTree reports modest replay gains for speculative verification on a hybrid language model",
+    "desk": "Inference Systems",
+    "event_at": "2026-09-20T00:00:00Z",
+    "evidence": "A",
+    "confidence": "credible_unconfirmed",
+    "importance": 4,
+    "tier": "Meaningful",
+    "summary": "The LumoTree v3 preprint combines path-parallel tree verification with accepted-path state replay for a recurrent-hybrid language model. On 43 fixed recorded requests, the authors report 28.13 pooled tokens/s across three runs, compared with 26.12 for five-token native multi-token prediction (MTP). In a separate 10-task coding-agent study, one attempt per arm resolved five tasks with LumoTree versus six with MTP-5, and the LumoTree arm took longer in aggregate. The paper does not claim task-completion speedup; the replay result is specific to its GB10 serving setup and small corpora.",
+    "topics": [
+      "speculative decoding",
+      "hybrid language models",
+      "inference systems",
+      "serving",
+      "reproducibility"
+    ],
+    "organizations": [],
+    "human_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-AACA8CBEB134.html",
+    "machine_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/data/briefs/FCMO-AACA8CBEB134.json",
+    "citation": {
+      "id": "FCMO-AACA8CBEB134",
+      "source": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-AACA8CBEB134.html"
+    }
+  },
+  "brief": {
+    "claims": [
+      {
+        "label": "CLAIMED",
+        "text": "LumoTree combines path-parallel verification and accepted-path state replay to support speculative decoding for a recurrent-hybrid model."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "On 43 fixed recorded requests, three LumoTree runs report 28.13 pooled tokens/s versus 26.12 for five-token native MTP; on a separate 10-task study, LumoTree resolves 5/10 tasks versus 6/10 for MTP-5."
+      },
+      {
+        "label": "NOT_ESTABLISHED",
+        "text": "The study does not establish task-completion speedup, benchmark-wide quality, broad workload generalization, or independently reproduced sampling equivalence."
+      }
+    ],
+    "confidence": "credible_unconfirmed",
+    "contradictory_evidence": [],
+    "desks": [
+      "inference_systems",
+      "efficiency"
+    ],
+    "development_type": "paper",
+    "editions": [
+      "2026-10-12"
+    ],
+    "event_at": "2026-09-20T00:00:00Z",
+    "evidence_class": "A",
+    "evidence_gaps": [
+      {
+        "description": "The fixed-request replay rates, task outcomes, numerical bounds and sampler checks have not been independently reproduced.",
+        "kind": "missing_independent",
+        "state": "open"
+      },
+      {
+        "description": "The task study contains ten selected Astropy tasks and one attempt per task and arm; replay coverage is only 43 requests and limited serving settings.",
+        "kind": "regime_unclear",
+        "state": "open"
+      },
+      {
+        "description": "The reported numerical and sampler checks allow stated native-relative tolerances and sampler conventions; they do not establish universal bitwise equality or all batch/cache behaviors.",
+        "kind": "other",
+        "state": "open"
+      }
+    ],
+    "id": "FCMO-AACA8CBEB134",
+    "importance_effective_score": 4,
+    "importance_rationale": "If replicated, path-parallel speculative verification could modestly improve decode throughput for recurrent-hybrid models without changing the model’s target distribution beyond the stated sampler conventions. The result is limited to fixed-request replay on a single serving configuration, while the small live coding-agent study shows no task-level advantage.",
+    "importance_scale_version": 2,
+    "importance_score": 4,
+    "importance_tier": "Meaningful",
+    "last_verified_at": "2026-10-12T06:11:56Z",
+    "limitations": [
+      "All measurements are reported by the paper authors; the research desk did not execute the artifact or reproduce outcomes.",
+      "The fixed-request throughput comparison uses one GB10 serving configuration and small request corpora with limited repetitions; reported run ranges are not confidence intervals.",
+      "The live coding-agent study uses one attempt for each of ten selected Astropy tasks per arm and has no plain-decoding agent control; tool and model trajectories differ.",
+      "LumoTree resolves five tasks versus six for native MTP-5 and has longer summed agent duration; the paper explicitly does not claim task-level speedup.",
+      "The numerical and sampler checks are bounded by tested prompts, schedules, captured rows, finite walks, and stated top-k/min-p conventions."
+    ],
+    "organizations": [],
+    "primary_desk": "inference_systems",
+    "recorded_at": "2026-10-12T06:11:56Z",
+    "regions": [
+      "global"
+    ],
+    "relationships": [],
+    "source_languages": [
+      "en"
+    ],
+    "source_urls": [
+      "https://arxiv.org/abs/2609.23900"
+    ],
+    "status": "active",
+    "summary": "The LumoTree v3 preprint combines path-parallel tree verification with accepted-path state replay for a recurrent-hybrid language model. On 43 fixed recorded requests, the authors report 28.13 pooled tokens/s across three runs, compared with 26.12 for five-token native multi-token prediction (MTP). In a separate 10-task coding-agent study, one attempt per arm resolved five tasks with LumoTree versus six with MTP-5, and the LumoTree arm took longer in aggregate. The paper does not claim task-completion speedup; the replay result is specific to its GB10 serving setup and small corpora.",
+    "technical": {
+      "claimed_result": "On a fixed corpus of 43 recorded requests, three LumoTree runs report 28.13 pooled tokens/s versus 26.12 for five-token native MTP (7.7% higher). On a disjoint corpus, the paper reports 30.76 versus 27.52. In a separate live coding-agent study across ten selected Astropy tasks, one attempt per arm resolves 5/10 with LumoTree, 6/10 with MTP-5, and 5/10 with SGLang EAGLE; summed agent time is 190.8, 99.5 and 103.0 minutes, respectively.",
+      "demonstrated_result": "The inspected arXiv v3 paper provides implementation, measurement protocols and reported comparisons. the research desk did not run the artifact or independently reproduce numerical, sampling or serving outcomes; these remain author-reported.",
+      "mechanism": "LumoTree builds candidate trees and verifies independent paths in parallel using a shared logical/physical tree descriptor. After sampling an accepted path, it replays that path into native recurrent state, gathers convolution history, and remaps attention KV state. It combines fused candidate selection, device-resident acceptance and tree-aware attention.",
+      "regime": "Qwen3.8-27B hybrid model on a GB10/DGX Spark serving setup with one active sequence and 131,072-token context limit. Replay rates use fixed recorded requests; the live task study uses 10 selected Astropy SWE-bench Verified tasks, one attempt per task and arm, Qwen Code 0.19.4, and a 9,000-second task budget.",
+      "strongest_baseline": "Five-token native MTP-5 in the same vLLM build is the closest paired baseline. LumoTree is 7.7% faster on one fixed 43-request replay corpus but resolves one fewer task and has longer total agent duration in the small live study. SGLang EAGLE uses a different serving stack and endpoint."
+    },
+    "title": "LumoTree reports modest replay gains for speculative verification on a hybrid language model",
+    "topics": [
+      "speculative decoding",
+      "hybrid language models",
+      "inference systems",
+      "serving",
+      "reproducibility"
+    ],
+    "why_it_matters": "Hybrid models need speculative verification to preserve recurrent state, convolution history and attention caches across candidate branches. LumoTree reports one implementation that reaches a modest fixed-request decode-rate improvement over a tuned native MTP baseline, while its task-level comparison shows why token throughput cannot stand in for useful work completed. The design and measurement details are useful for serving-system choices, but broader workloads and independent reproduction remain open."
+  },
+  "related": [],
+  "schema": "fcmo-public-brief-v1"
+}

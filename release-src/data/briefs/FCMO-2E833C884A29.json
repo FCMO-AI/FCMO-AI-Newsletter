@@ -1,0 +1,125 @@
+{
+  "record": {
+    "id": "FCMO-2E833C884A29",
+    "title": "ARIA paper reports lower failure harm in bounded multi-agent runtime-repair benchmarks",
+    "desk": "Evaluation Science",
+    "event_at": "2026-10-14T00:00:00Z",
+    "evidence": "A",
+    "confidence": "credible_unconfirmed",
+    "importance": 5,
+    "tier": "Notable",
+    "summary": "An October 14 preprint introduces ARIA, a learned policy that detects and repairs failures during multi-agent execution. In the authors’ runtime comparison, ARIA with Llama-3.1-8B reports 19.2% task success and 1.49% harmful-intervention rate; the Qwen2.5-7B row reports 21.4% and 2.00%. The paper defines harm over the full selected task pool, including tasks with no intervention, and reports per-task execution cost separately from model-call overhead. The released native hook shows a narrow implementation boundary: it can substitute one pending plain-text response, while structured/tool responses and host rollback are outside that hook. These are single-paper benchmark claims; no independent reproduction or deployment-level reliability result is established.",
+    "topics": [
+      "multi-agent systems",
+      "runtime repair",
+      "failure localization",
+      "execution verification",
+      "agent reliability"
+    ],
+    "organizations": [
+      "LabRAI",
+      "Florida State University"
+    ],
+    "human_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-2E833C884A29.html",
+    "machine_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/data/briefs/FCMO-2E833C884A29.json",
+    "citation": {
+      "id": "FCMO-2E833C884A29",
+      "source": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-2E833C884A29.html"
+    }
+  },
+  "brief": {
+    "claims": [
+      {
+        "label": "CLAIMED",
+        "text": "In the paper’s runtime comparison, ARIA with Llama-3.1-8B reports aggregate task success of 19.2% and harmful-intervention rate of 1.49%; its Qwen2.5-7B comparison row reports 21.4% and 2.00%. These are author-reported benchmark results, not independent reproductions."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "The paper defines runtime evaluation over the full selected task pool, including tasks that do not trigger intervention; harmful-intervention rate is task-normalized, several harmful events on one task count once, and execution cost and ARIA model-call overhead are accounted separately."
+      },
+      {
+        "label": "DEMONSTRATED",
+        "text": "At the inspected author repository commit, the native model hook operates at a pending-response boundary and substitutes one plain-text response; its module documentation excludes tool/structured-protocol responses, multi-event patches and host rollback from the implemented operation."
+      }
+    ],
+    "confidence": "credible_unconfirmed",
+    "contradictory_evidence": [],
+    "desks": [
+      "inference_systems",
+      "reasoning_posttraining"
+    ],
+    "development_type": "paper",
+    "editions": [
+      "2026-10-18"
+    ],
+    "event_at": "2026-10-14T00:00:00Z",
+    "evidence_class": "A",
+    "evidence_gaps": [
+      {
+        "description": "No independent build or reproduction of the reported runtime success, harm, generalization or cost results was completed.",
+        "kind": "missing_independent",
+        "state": "open"
+      },
+      {
+        "description": "The released native integration substitutes one pending plain-text response; behavior for tool calls, structured outputs, multi-event repair and host-state rollback is not implemented by that hook.",
+        "kind": "regime_unclear",
+        "state": "open"
+      },
+      {
+        "description": "The evaluation expects 4,890 cases and reports a separate 3,953-case post-hoc subset; full task artifacts, checkpoints and resource costs were not independently audited.",
+        "kind": "other",
+        "state": "open"
+      }
+    ],
+    "id": "FCMO-2E833C884A29",
+    "importance_effective_score": 5,
+    "importance_rationale": "If execution-verified repair training reliably improves multi-agent recovery while limiting harmful interventions, it could change engineering practice for tool-using systems. Its consequence is meaningful but bounded to the reported benchmark/framework regimes and a narrow text-response intervention; independent reproduction and deployment-scale safety are absent.",
+    "importance_scale_version": 2,
+    "importance_score": 5,
+    "importance_tier": "Notable",
+    "last_verified_at": "2026-10-18T22:13:14.876076Z",
+    "limitations": [
+      "All quantitative performance values are reported by the paper and were not independently reproduced.",
+      "The reported runtime hook is restricted to one pending plain-text response; structured/tool responses, multi-event patches and host rollback remain outside the inspected native implementation.",
+      "Paper-defined pooled task-normalized harm is not a universal safety measure and should not be read as a deployment harm probability.",
+      "No deployment-scale reliability, arbitrary framework-state recovery, or broad transfer beyond evaluated systems/tasks is established."
+    ],
+    "organizations": [
+      "LabRAI",
+      "Florida State University"
+    ],
+    "primary_desk": "evaluation_science",
+    "recorded_at": "2026-10-18T22:13:14.876076Z",
+    "regions": [
+      "global"
+    ],
+    "relationships": [],
+    "source_languages": [
+      "en"
+    ],
+    "source_urls": [
+      "https://arxiv.org/abs/2610.20780",
+      "https://github.com/LabRAI/ARIA"
+    ],
+    "status": "active",
+    "summary": "An October 14 preprint introduces ARIA, a learned policy that detects and repairs failures during multi-agent execution. In the authors’ runtime comparison, ARIA with Llama-3.1-8B reports 19.2% task success and 1.49% harmful-intervention rate; the Qwen2.5-7B row reports 21.4% and 2.00%. The paper defines harm over the full selected task pool, including tasks with no intervention, and reports per-task execution cost separately from model-call overhead. The released native hook shows a narrow implementation boundary: it can substitute one pending plain-text response, while structured/tool responses and host rollback are outside that hook. These are single-paper benchmark claims; no independent reproduction or deployment-level reliability result is established.",
+    "technical": {
+      "claimed_result": "Authors report a 19.2% task-success rate and 1.49% harmful-intervention rate for the Llama-3.1-8B runtime comparison, and 21.4% / 2.00% for the Qwen2.5-7B comparison row. Appendix B.7 defines task-normalized denominators over the full runtime pool and separately records model-call, token and latency costs.",
+      "demonstrated_result": "The paper and released source code establish the reported method, evaluation definition and a concrete narrow native-hook implementation. The numerical success/harm results remain CLAIMED because this activation did not run or independently reproduce them.",
+      "mechanism": "ARIA combines execution-trace inspection, failure attribution, repair-patch construction, and a learned intervention policy. At runtime, the native hook evaluates a pending model response and can substitute one plain-text response; the paper’s benchmark accounting includes an untreated control and task-level harmful-intervention metric.",
+      "regime": "Paper evaluation spans four multi-agent frameworks, six benchmarks and eight host models. The public RQ1 config expects a 4,890-case pool and 3,953 source-failure cases for post-hoc analysis, uses fixed seed defaults and runtime budgets of 1, 2 and 4. The inspected native code boundary is one pending plain-text response.",
+      "strongest_baseline": "The paper compares against adapted Spark to Fire and SafeAgent runtime methods under a single-execution budget; method-specific adaptations and harness details remain author-reported and were not independently audited here."
+    },
+    "title": "ARIA paper reports lower failure harm in bounded multi-agent runtime-repair benchmarks",
+    "topics": [
+      "multi-agent systems",
+      "runtime repair",
+      "failure localization",
+      "execution verification",
+      "agent reliability"
+    ],
+    "why_it_matters": "If independently sustained, learned runtime inspection could improve recovery from cascading multi-agent errors while limiting damaging interventions. The reported gains apply to the paper’s benchmark suite and execution setup. The released intervention boundary does not cover structured tool calls or arbitrary host-state rollback, so the result is not evidence of general autonomous recovery."
+  },
+  "related": [],
+  "schema": "fcmo-public-brief-v1"
+}

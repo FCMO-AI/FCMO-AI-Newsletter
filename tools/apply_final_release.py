@@ -62,6 +62,11 @@ def sha256(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
+def payload_parts(parts_dir: Path) -> list[Path]:
+    """Return numbered payload chunks in numeric, not lexical, order."""
+    return sorted(parts_dir.glob("part-*.b64"), key=lambda path: int(path.stem.removeprefix("part-")))
+
+
 def canonical_corpus_count(index_text: str) -> int:
     match = re.search(r'<script id="fcmo-data" type="application/json">(.*?)</script>', index_text, re.S)
     if not match:
@@ -78,7 +83,7 @@ def fail(message: str) -> "NoReturn":
 
 
 def reconstruct(manifest: dict) -> bytes:
-    parts = sorted((OVERLAY / "parts").glob("part-*.b64"))
+    parts = payload_parts(OVERLAY / "parts")
     if len(parts) != manifest["parts"]:
         fail(f"expected {manifest['parts']} payload parts, found {len(parts)}")
     encoded = "".join(p.read_text(encoding="ascii").strip() for p in parts)

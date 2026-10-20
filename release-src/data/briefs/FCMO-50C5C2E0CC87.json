@@ -1,0 +1,128 @@
+{
+  "record": {
+    "id": "FCMO-50C5C2E0CC87",
+    "title": "D-Quant reports near-BF16 long-context accuracy with about 2.26 bits per KV value",
+    "desk": "Inference Systems",
+    "event_at": "2026-09-17T00:00:00Z",
+    "evidence": "A",
+    "confidence": "credible_unconfirmed",
+    "importance": 5,
+    "tier": "Notable",
+    "summary": "The paper proposes D-Quant, which entropy-codes KV-cache values and adjusts a small subset of quantized symbols to keep each token stream within a fixed-size container. On Qwen3-8B and Llama-3.1-8B-Instruct, the authors report 2.26 bits per value and RULER averages close to BF16 across 4K–128K contexts; at 128K, reported scores exceed the strongest listed low-bit baselines. The measurements are paper-reported and use NVIDIA H20 GPUs; the research desk did not run the implementation.",
+    "topics": [
+      "KV cache",
+      "entropy coding",
+      "long-context inference",
+      "quantization"
+    ],
+    "organizations": [
+      "Qwen Team",
+      "Meta AI"
+    ],
+    "human_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-50C5C2E0CC87.html",
+    "machine_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/data/briefs/FCMO-50C5C2E0CC87.json",
+    "citation": {
+      "id": "FCMO-50C5C2E0CC87",
+      "source": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-50C5C2E0CC87.html"
+    }
+  },
+  "brief": {
+    "claims": [
+      {
+        "label": "CLAIMED",
+        "text": "The paper describes D-Quant, which entropy-codes quantized KV values and uses a drift assignment to satisfy a fixed per-token storage budget while preserving regular layouts for parallel decoding."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "On Qwen3-8B and Llama-3.1-8B-Instruct at 2.26 bits per value, the authors report RULER average scores of 86.50 and 88.94, compared with BF16 scores of 87.31 and 89.69; at 128K context, D-Quant reports 70.92 and 74.65 versus strongest listed low-bit baselines of 57.14 and 66.15."
+      },
+      {
+        "label": "DEMONSTRATED_LIMITATION",
+        "text": "The paper evaluates two 8B models on RULER and English LongBench-E under its stated GPU/configuration setup; it does not establish production serving savings or results on other architectures."
+      }
+    ],
+    "confidence": "credible_unconfirmed",
+    "contradictory_evidence": [],
+    "desks": [
+      "inference_systems",
+      "efficiency",
+      "evaluation_science"
+    ],
+    "development_type": "paper",
+    "editions": [
+      "2026-10-14"
+    ],
+    "event_at": "2026-09-17T00:00:00Z",
+    "evidence_class": "A",
+    "evidence_gaps": [
+      {
+        "description": "The code, fused kernels, benchmark scripts and storage-accounting implementation were not inspected.",
+        "kind": "missing_artifact",
+        "state": "open"
+      },
+      {
+        "description": "No independent reproduction of accuracy, memory use or throughput was performed.",
+        "kind": "missing_independent",
+        "state": "open"
+      },
+      {
+        "description": "The paper does not establish serving impact under production batch sizes, concurrency or different hardware.",
+        "kind": "other",
+        "state": "open"
+      }
+    ],
+    "id": "FCMO-50C5C2E0CC87",
+    "importance_effective_score": 5,
+    "importance_rationale": "If the reported results generalize, fitting key-value cache state into roughly 2.26 bits per value while retaining near-BF16 long-context benchmark scores could materially reduce the memory burden of long-context inference. The evaluation is limited to two 8B models and author-run benchmarks, so deployment savings and broader model transfer remain unestablished.",
+    "importance_scale_version": 2,
+    "importance_score": 5,
+    "importance_tier": "Notable",
+    "last_verified_at": "2026-10-14T19:11:36Z",
+    "limitations": [
+      "All benchmark and implementation results are author-reported; this activation did not inspect code or independently reproduce them.",
+      "Evaluation covers Qwen3-8B and Llama-3.1-8B-Instruct, NVIDIA H20 GPUs, RULER and English LongBench-E; transfer to other model architectures and serving stacks is unknown.",
+      "Qwen3-8B results at 64K and 128K use static YaRN beyond its native 40K context, which degrades absolute performance even though baselines share the setting.",
+      "LongBench-E differences among compressed methods are smaller than the RULER differences.",
+      "The paper’s storage result does not alone establish production throughput, concurrency, energy or monetary savings."
+    ],
+    "organizations": [
+      "Qwen Team",
+      "Meta AI"
+    ],
+    "primary_desk": "inference_systems",
+    "recorded_at": "2026-10-14T19:11:36Z",
+    "regions": [
+      "global"
+    ],
+    "relationships": [],
+    "source_languages": [
+      "en"
+    ],
+    "source_urls": [
+      "https://arxiv.org/abs/2609.19880"
+    ],
+    "status": "active",
+    "summary": "The paper proposes D-Quant, which entropy-codes KV-cache values and adjusts a small subset of quantized symbols to keep each token stream within a fixed-size container. On Qwen3-8B and Llama-3.1-8B-Instruct, the authors report 2.26 bits per value and RULER averages close to BF16 across 4K–128K contexts; at 128K, reported scores exceed the strongest listed low-bit baselines. The measurements are paper-reported and use NVIDIA H20 GPUs; the research desk did not run the implementation.",
+    "technical": {
+      "claimed_result": "For Qwen3-8B and Llama-3.1-8B-Instruct, D-Quant at 2.26 bits per value reports RULER averages of 86.50 and 88.94 versus BF16 87.31 and 89.69. At 128K the respective scores are 70.92 and 74.65, versus the strongest listed low-bit baselines at 57.14 and 66.15. LongBench-E differences among compressed methods are smaller.",
+      "compute_or_cost": "Storage is reported at 2.26 bits per value for the main setting, with GPU throughput/cost not normalized in this review.",
+      "demonstrated_result": "The arXiv HTML specifies the algorithm and reports results on two models, RULER and English LongBench-E. No code or independent result was executed in this review.",
+      "implementation_status": "The paper describes CUDA kernel design and reports H20 experiments; this review did not inspect a released implementation or measure a production serving stack.",
+      "mechanism": "After rotation and normalization, D-Quant entropy-codes quantized KV values using a shared analytic probability model. A length-constrained drift assignment shifts selected values toward lower-cost symbols to fit fixed-size token containers; fused token-oriented kernels decode each stream once and feed the values into attention.",
+      "novelty": "The method combines entropy-coded variable information with a drift constraint that restores fixed-size per-token storage and regular access for fused attention kernels.",
+      "regime": "Qwen3-8B and Llama-3.1-8B-Instruct; RULER at six context lengths from 4K to 128K and English LongBench-E; 100 RULER samples per task and length. Evaluations use greedy decoding and NVIDIA H20 96GB GPUs. Qwen3-8B uses static YaRN at 64K and 128K. The main D-Quant setting averages 2.26 bits per value with a 128-token BF16 residual window.",
+      "reproducibility": "The paper reports experiments and names official baselines, but the repository, kernel code and exact run artifacts were not independently inspected or executed.",
+      "strongest_baseline": "At 128K on RULER, OScaR is the strongest listed quantized baseline: 57.14 for Qwen3-8B and 66.15 for Llama-3.1-8B-Instruct, compared with D-Quant 70.92 and 74.65. The full-precision BF16 reference scores 72.13 and 76.44."
+    },
+    "title": "D-Quant reports near-BF16 long-context accuracy with about 2.26 bits per KV value",
+    "topics": [
+      "KV cache",
+      "entropy coding",
+      "long-context inference",
+      "quantization"
+    ],
+    "why_it_matters": "KV-cache memory can limit the context length and concurrency available for serving large models. D-Quant reports a way to use entropy coding with regular fixed-stride access patterns, and near-BF16 RULER scores at about 2.26 bits per value on two 8B models. If reproduced in real serving stacks, this could improve the memory side of long-context inference, but the paper does not by itself establish production throughput, cost or transfer to other architectures."
+  },
+  "related": [],
+  "schema": "fcmo-public-brief-v1"
+}

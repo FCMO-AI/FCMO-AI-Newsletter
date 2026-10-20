@@ -6,14 +6,14 @@ import os
 from pathlib import Path
 import sys
 import threading
-from .auth import Auth
+from .auth import Auth, normalize_username
 from .http import Application, Server
 from .storage import Store
 from .publishing import Refused
 
 def main():
     parser = argparse.ArgumentParser(description='FCMO Studio')
-    parser.add_argument('--add-user', choices=('javier', 'matias'))
+    parser.add_argument('--add-user', type=normalize_username, choices=('javier', 'matias'))
     args = parser.parse_args()
     if os.environ.get('STUDIO_BIND', '127.0.0.1') != '127.0.0.1':
         print('Studio solo puede escuchar en 127.0.0.1.', file=sys.stderr); return 2
@@ -33,6 +33,7 @@ def main():
         fcntl.flock(lockfile.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
         from .snapshot import refresh
         refresh(store, app.github)
+        app.preview.warm()
         server = Server(('127.0.0.1', int(os.environ.get('STUDIO_PORT', '8490'))), app)
         threading.Thread(target=app.worker, daemon=True).start()
         try: server.serve_forever()

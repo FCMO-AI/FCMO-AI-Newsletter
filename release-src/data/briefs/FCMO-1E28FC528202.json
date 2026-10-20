@@ -8,7 +8,7 @@
     "confidence": "confirmed",
     "importance": 8,
     "tier": "Field-shifting",
-    "summary": "Tencent released Hy4 preview under Apache-2.0 with a 770B-parameter MoE backbone, 49B active parameters per token, 1M context, Gated DeepSeek Sparse Attention, cross-layer IndexCache reuse, four-stream identity Hyper-Connections, and a native MTP layer intended for speculative decoding.",
+    "summary": "Tencent released Hy4 preview under Apache-2.0 with a 770B-parameter MoE backbone, 49B active parameters per token, 1M context, Gated DeepSeek Sparse Attention, cross-layer IndexCache reuse, four-stream identity Hyper-Connections, and a native MTP layer intended for speculative decoding. Tencent lists API prices of CNY 6 per million input tokens, CNY 18 per million output tokens and cache-hit prices from CNY 0.3; its separate 31.8% throughput gain is a vendor claim without enough matched measurement detail for independent comparison.",
     "topics": [
       "mixture-of-experts",
       "sparse-attention",
@@ -38,6 +38,14 @@
       {
         "label": "CLAIMED",
         "text": "Tencent reports Hy4 preview slightly ahead of GLM-5.3 and Kimi K3 on its internal 203-task expert evaluation."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "Tencent states that Hy4 preview API pricing is CNY 6 per million input tokens, CNY 18 per million output tokens, and as low as CNY 0.3 for cache hits."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "Tencent reports a 31.8% end-to-end throughput increase over its baseline after model-led optimization of inference infrastructure operators; the release does not provide sufficient hardware/load detail for independent comparison."
       }
     ],
     "confidence": "confirmed",
@@ -48,7 +56,9 @@
       "open_ecosystem"
     ],
     "development_type": "model_or_system_release",
-    "editions": [],
+    "editions": [
+      "2026-10-19"
+    ],
     "event_at": "2026-08-28T00:00:00Z",
     "evidence_class": "A",
     "evidence_gaps": [
@@ -71,12 +81,14 @@
     "importance_scale_version": 1,
     "importance_score": 5,
     "importance_tier": "Field-shifting",
-    "last_verified_at": "2026-08-29T19:08:00Z",
+    "last_verified_at": "2026-10-19T15:17:13Z",
     "limitations": [
       "The strongest quality comparison disclosed in the model card is vendor-run and narrowly separated from GLM-5.3/Kimi K3; it is not independent evidence.",
       "No matched-compute ablation isolates the contribution of sparse attention, IndexCache, iHC or native MTP.",
       "49B active parameters still implies a heavy local serving regime; sparse activation does not make the 770B stored model a small local model.",
-      "Tencent explicitly notes overlong reasoning and over-verification in this preview."
+      "Tencent explicitly notes overlong reasoning and over-verification in this preview.",
+      "Tencent’s Chinese release reports a 31.8% end-to-end throughput improvement after model-led operator optimization, but the inspected statement does not give enough hardware, request-load or baseline detail to reproduce or generalize it.",
+      "Published API token prices do not establish total cost of ownership, local deployment cost, or throughput-adjusted unit economics."
     ],
     "organizations": [
       "Tencent"
@@ -88,18 +100,20 @@
     ],
     "relationships": [],
     "source_languages": [
-      "en"
+      "en",
+      "zh-Hans"
     ],
     "source_urls": [
       "https://huggingface.co/tencent/Hy4-preview",
       "https://huggingface.co/tencent/Hy4-preview/blob/main/config.json",
-      "https://www.tencent.com/tencent-releases-and-open-sources-tencent-hy4-preview/"
+      "https://www.tencent.com/tencent-releases-and-open-sources-tencent-hy4-preview/",
+      "https://www.tencent.com/zh-cn/tencent-releases-and-open-sources-tencent-hy4-preview/"
     ],
     "status": "active",
-    "summary": "Tencent released Hy4 preview under Apache-2.0 with a 770B-parameter MoE backbone, 49B active parameters per token, 1M context, Gated DeepSeek Sparse Attention, cross-layer IndexCache reuse, four-stream identity Hyper-Connections, and a native MTP layer intended for speculative decoding.",
+    "summary": "Tencent released Hy4 preview under Apache-2.0 with a 770B-parameter MoE backbone, 49B active parameters per token, 1M context, Gated DeepSeek Sparse Attention, cross-layer IndexCache reuse, four-stream identity Hyper-Connections, and a native MTP layer intended for speculative decoding. Tencent lists API prices of CNY 6 per million input tokens, CNY 18 per million output tokens and cache-hit prices from CNY 0.3; its separate 31.8% throughput gain is a vendor claim without enough matched measurement detail for independent comparison.",
     "technical": {
-      "claimed_result": "Tencent reports its largest generation-over-generation capability gain and small wins over GLM-5.3 and Kimi K3 in an internal blind evaluation of 163 experts across 203 engineering tasks.",
-      "compute_or_cost": "49B backbone parameters are active per token plus 0.7B active in the native MTP layer; total stored capacity is 770B backbone plus 10B MTP. Exact training FLOPs and matched serving throughput were not found in the primary release material reviewed.",
+      "claimed_result": "Tencent reports its largest generation-over-generation capability gain and small wins over GLM-5.3 and Kimi K3 in an internal blind evaluation of 163 experts across 203 engineering tasks. Tencent’s Chinese release additionally reports an internal blind evaluation of 163 experts over 203 engineering tasks (mean 2.99/4 vs. GLM 5.3 at 2.92/4 and Kimi K3 at 2.94/4), and a 31.8% end-to-end throughput gain over an unspecified baseline after model-led operator optimization; both remain vendor claims.",
+      "compute_or_cost": "The release reports 49B backbone parameters active per token plus 0.7B active in native MTP; total stored capacity is 770B backbone plus 10B MTP. Tencent lists API prices of CNY 6 per million input tokens, CNY 18 per million output tokens, and cache-hit pricing from CNY 0.3 per million tokens. Exact training FLOPs, hardware/load for the 31.8% throughput claim, and matched serving cost remain unknown.",
       "demonstrated_result": "Released BF16/FP8 model artifacts and configuration expose a 770B backbone with 49B active parameters per token, 1M context, 256 routed experts, top-8 routing, Gated DSA, four residual streams and native MTP. Apache-2.0 licensing is present in the released artifact.",
       "implementation_status": "Weights, FP8 variant, config, deployment guidance, finetuning guidance and compression tooling are released.",
       "mechanism": "A 78-layer MoE backbone: one dense FFN layer followed by 77 MoE layers with 256 routed experts plus one shared expert; top-8 routed experts are active per token. Attention uses Gated DeepSeek Sparse Attention with IndexCache to reuse sparse indices across layers. The residual path uses four-stream identity Hyper-Connections. A separate native MTP layer adds 10B total/0.7B active parameters for speculative decoding.",
@@ -119,7 +133,7 @@
       "speculative-decoding",
       "open-weights"
     ],
-    "why_it_matters": "Hy4 is a third major open-weight frontier release in the same week emphasizing sparse long-context retrieval and richer residual routing, while also shipping native multi-token prediction. It strengthens the architectural-convergence signal but does not by itself establish that these mechanisms outperform matched dense or hybrid alternatives."
+    "why_it_matters": "Hy4 is a third major open-weight frontier release in the same week emphasizing sparse long-context retrieval and richer residual routing, while also shipping native multi-token prediction. It strengthens the architectural-convergence signal but does not by itself establish that these mechanisms outperform matched dense or hybrid alternatives. The official Chinese release also supplies concrete API prices and a vendor-reported 31.8% throughput gain, while leaving total cost, matched serving conditions and independent confirmation open."
   },
   "related": [],
   "schema": "fcmo-public-brief-v1"

@@ -297,3 +297,115 @@ verification are complete; a local build cannot truthfully update it.
   de reparar el renderer; las 46 imágenes existentes son de la ejecución previa.
   Los recibos actuales registran `completed: false` y no acreditan esas imágenes
   para el corpus nuevo.
+
+
+## Studio ready — continuación fuera de esta lane
+
+- **Renderer canónico:** `tools/paper/build.py`, `PaperBuilder._topic_links`.
+  Trasladar el índice de membresía por historia y el caché de vecinos de
+  `studio/server/render_preview.py:StudioPaperBuilder` al builder común;
+  conservar duplicados por historia, exclusiones nombre/slug, orden de empates,
+  límites y todos los bytes de salida. Actualmente Studio lo acelera, pero las
+  compilaciones de publicación generales todavía recalculan ese índice. Esta
+  edición está fuera del alcance studio/ de la lane. Verificar con el test de
+  identidad completa y los gates del renderer; luego retirar sólo el override
+  redundante de Studio. No se ha cambiado el renderer canónico en esta lane.
+- **Aceptación visual:** montar las dependencias existentes de Playwright y
+  Chromium del runner, sin descargas en esta lane. Ejecutar
+  `python3 -m tests.harness.studio_host_journey --out "$STUDIO_EVIDENCE"`
+  con salida privada; exigir completed=true, frames actuales de escritorio y
+  teléfono, y tiempos cold_preview_seconds/preview_timeout_ms en journey.json.
+  En esta sesión el probe devuelve BROWSER_UNAVAILABLE: Playwright ausente.
+  Los frames históricos no prueban este bundle. Repetir después el arranque en
+  el host autorizado de Javier y medir allí la primera vista previa; esta lane
+  no inicia ni reinicia servicios reales.
+- **Pruebas web completas:** montar una instalación que respete
+  `studio/web/package-lock.json` en `studio/web/node_modules` y repetir
+  `npm test --prefix studio/web`. docmodel no se pudo ejecutar porque falta
+  prosemirror-model; login y WebP pasan sin esas dependencias. Con esbuild
+  disponible, repetir también `node studio/web/build.mjs` y bundle_ready.
+  La lane conserva el lockfile y no instala paquetes ni descarga dependencias.
+
+# Studio: reconstrucción e inspección pendientes
+
+- Dependencias existentes de `studio/web/package-lock.json` no disponibles en
+  este entorno. `npm ci --offline --ignore-scripts --no-audit --no-fund` falla
+  con `ENOTCACHED`; `npm run build` falla por ausencia de `esbuild`.
+- Cambio necesario en un entorno con esas dependencias: ejecutar en el checkout
+  limpio `cd studio/web && npm ci && npm run test && npm run build`; comprobar
+  desde la raíz `python3 -c 'from studio.server.bundle import ready; assert ready(".")'`
+  y conservar los artefactos y manifiesto generados. El bundle comprometido sigue
+  siendo el anterior; la comprobación de integridad rechaza las fuentes nuevas
+  hasta reconstruirlo. No reiniciar Studio sobre el checkout nuevo antes de ese paso.
+- Fallos nuevos mientras el bundle siga obsoleto:
+  `SingleURLHost.test_preflight_requires_both_local_logins_before_installing` y
+  `SingleURLHost.test_probe_reads_real_loopback_chrome_assets_and_auth_boundary`.
+  Ambos deben pasar después del build; no cambiar sus afirmaciones ni el guard.
+- Chromium tampoco está disponible. Inspeccionar el flujo de autor y las
+  superficies de suscripción en los tres idiomas a 390 y 1440 px, teclado,
+  estados ocupado/error/pendiente y textos largos. Los templates y pruebas DOM
+  no acreditan esa inspección visual.
+- La política de esta ejecución prohíbe red, llamadas reales a modelos, correos
+  reales y reinicios de servicios. Comprobar en el host la sesión Codex por
+  suscripción, doble opt-in y baja de Kit, preferencia de idioma, recepción real
+  y persistencia tras reinicio. El procedimiento público está en
+  `docs/STUDIO-SINGLE-SOURCE-DEPLOY.md`.
+- El centro de preferencias para cambiar a un solo idioma y separar diario,
+  piezas, resumen semanal y alertas no existe todavía. El estado actual conserva
+  las membresías explícitas por formulario; puede haber más de un idioma por persona.
+- Inspección de código: al salir de `studio/web/src/screen-editor.js`, el dispose
+  cancela `figT`/`srcT` y solo conserva el documento. Una edición de recursos aún
+  pendiente puede perderse al navegar antes del debounce. Cambio necesario:
+  esperar/guardar documento, figuras y fuentes antes de Publicar o cambiar de
+  pantalla; conservar los buffers y la pantalla cuando falle la escritura.
+  Reproducir con navegador: cambiar el pie de figura y pulsar Publicar antes de
+  900 ms; comprobar el recurso guardado y la regeneración en ambos idiomas.
+  Esta transición de UI sigue pendiente; el flujo HTTP no acredita ese recorrido.
+
+# nl97-fix
+
+La aceptación completa requiere un host con pytest y Playwright/Chromium ya instalados. Esta caja no dispone de ellos y el carril no autoriza red ni dependencias nuevas.
+
+Ejecutar las seis regresiones sin cambiar sus aserciones:
+
+```sh
+nice -n 15 python3 -m pytest -q \
+  tests/test_corpus_guard.py::RepositoryTombstonesTests::test_recorded_quarantine_is_carried_but_not_a_failure \
+  tests/test_native_admission.py::NativeAdmission::test_softbank_source_claims_are_classified_and_admitted \
+  tests/test_story_layer.py::IngestSelectionTests::test_mass_quarantine_refuses_the_batch \
+  tests/test_localization_completeness.py::UICatalogs::test_spanish_catalog_is_spanish \
+  tests/test_localization_completeness.py::RealCorpusBacklog::test_pd1_desk_values_and_airlock_baseline_are_preserved \
+  tests/test_paper_build.py::PaperBuildTests::test_machine_prepared_story_discloses_review_status_and_english_original
+```
+
+El deploy ejecuta `nice -n 15 python3 tools/unittest_shards.py --index N --count 8`, para cada N de 0 a 7. La partición local cubre las 993 pruebas descubiertas una sola vez; listar la partición no equivale a ejecutar esos ocho grupos.
+
+Ejecutar `nice -n 15 python3 ops/publish.py --check --tests-prevalidated` después de los ocho grupos, y `nice -n 15 python3 tests/oraculos/verificar_paper.py publish` sobre el candidato producido. Confirmar que el primer comando termina después de `GATES PASS (14/14)` y que ambos dejan cero procesos de servidor, Node o Chromium. Las pruebas locales reproducen y corrigen fugas al terminar, al vencer el plazo y entre watchdogs anidados, pero no sustituyen esta comprobación con Chromium real.
+
+Comparar la duración por comando con ejecuciones recientes de main y con el run 39208638359. El código sitúa el oráculo de navegador inmediatamente después de las catorce compuertas; la suite serial anterior y los builds repetidos precedían a ese punto. Sin consultar los logs de Actions no se atribuye una duración exacta a un comando concreto. Los tiempos versionados de clases lentas suman 15126 segundos; no son una medición nueva del run afectado.
+
+La ejecución integral local fue interrumpida después de unos 390 segundos en `tools/build_ready_receipt.py`, al estar confirmada la ausencia del navegador necesario para la aceptación posterior. No dejó procesos descendientes vivos ni cambió el recibo. La ejecución directa del oráculo confirmó `BROWSER_UNAVAILABLE`. No se probó publicación, despliegue ni frescura del origen público.
+
+# paper-perf
+
+La suite completa encuentra un bloqueo heredado en
+`tests/test_ready_receipt_pipeline.py:53`,
+`ReadyReceiptPipelineTests.test_local_check_prepares_a_receipt_before_the_integrity_gate`.
+El fixture parchea `publish.subprocess.run`, pero `ops/publish.py` ya ejecuta
+los comandos mediante `publish.run_command` (que usa `Popen`). La prueba lanza
+una nueva discovery real, que vuelve a ejecutar esta misma prueba. Esto impide
+terminar la aceptación completa y puede alcanzar la preparación real del recibo.
+
+Cambio exacto fuera de los archivos de este carril: sustituir únicamente
+`mock.patch.object(publish.subprocess, 'run', side_effect=run)` por
+`mock.patch.object(publish, 'run_command', side_effect=run)` en ese fixture.
+Conservar todas las aserciones de orden, número de llamadas y resultado.
+Después ejecutar esa prueba y `nice -n 15 python3 -m unittest discover -s tests`
+sin exclusiones. El problema existe en la base de este carril; el renderer no
+causa la recursión. La ejecución recursiva local se detuvo y no se acredita como
+una aceptación verde de la suite completa.
+
+La sustitución propuesta se comprobó cargando una copia de la prueba en memoria:
+sus aserciones originales pasan en 0,006 s y el archivo versionado permanece
+intacto. También se interceptó `Popen` antes de crear hijos: el fixture original
+intenta lanzar `python -m unittest discover -s tests` pese a su mock.

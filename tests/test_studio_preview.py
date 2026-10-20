@@ -42,6 +42,13 @@ class PreviewIdentity(unittest.TestCase):
                 run = subprocess.run(['python3', 'tools/paper/build.py', '--stories', 'site/data/stories.v2.json', '--status', 'site/data/newsroom-status.json', '--editorial', str(editorial), '--out', str(out), '--base', preview.base], cwd=ROOT, capture_output=True)
                 self.assertEqual(run.returncode, 0, run.stderr.decode())
                 self.assertEqual(candidate, (out / 'es/cartas' / value / 'index.html').read_bytes())
+                # The Studio optimization must retain the complete production
+                # tree, including taxonomy pages, assets and machine surfaces.
+                optimized = preview.build(value)
+                expected = {p.relative_to(out) for p in out.rglob('*') if p.is_file()}
+                self.assertEqual(expected, {p.relative_to(optimized) for p in optimized.rglob('*') if p.is_file()})
+                for relative in sorted(expected):
+                    self.assertEqual((optimized / relative).read_bytes(), (out / relative).read_bytes(), str(relative))
             finally: store.close()
     def test_absent_renderer_fails_closed(self):
         if (ROOT / 'tools/paper/essays.py').is_file(): self.skipTest('Renderer integration is present; exercised by byte-identity test.')
