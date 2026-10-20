@@ -13108,6 +13108,92 @@
       "title": "PARTS informa mejoras de aprendizaje por refuerzo dirigido en tareas robóticas largas sobre dos plataformas",
       "why_it_matters": "Si se reproducen de manera independiente, concentrar la interacción costosa del robot en las subtareas que limitan el éxito podría hacer más eficiente la adaptación de políticas robóticas preentrenadas, sin cambiar las conductas que ya son fiables. El artículo prueba ese diseño en varias tareas y bajo un presupuesto igualado de interacción del robot, y también muestra dónde siguen haciendo falta supervisión humana y reinicios físicos."
     },
+    "FCMO-5D553CACDD81": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan que una etapa de entrenamiento intermedio con documentos estructurados y trazas de razonamiento generados por el propio modelo, para indicaciones generales y de seguridad, reduce la tasa media de éxito de ataques y mejora la utilidad en tareas generales antes del ajuste supervisado (SFT) en Qwen3-1.7B, 4B y 8B. La Tabla 1 muestra que la ASR cambia de 30.4% a 8.4%, de 34.1% a 6.6% y de 25.4% a 4.9%, respectivamente."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En los modelos Qwen3, los autores informan que la ventaja de seguridad persiste después de un SFT posterior con datos exclusivamente generales. Para Qwen3-4B, la ASR informada es 7.6% con entrenamiento intermedio más SFT general, frente a 13.6% con la línea base de modelo base más SFT; la utilidad informada es 74.9% frente a 59.4%. También informan una menor degradación de seguridad con GRPO de datos generales, sin indicaciones ni recompensas de seguridad."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En una ablación de Qwen3-4B que usa las mismas trazas de razonamiento autogeneradas, el SFT directo mantiene la ASR media informada en 22.8%, mientras que utilizar los datos en la etapa intermedia la reduce a 7.5% y eleva la utilidad de 68.9% a 74.7%. Es una comparación informada por los autores dentro del artículo, no una confirmación independiente."
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "La versión v1 de arXiv describe un conjunto de aproximadamente 185,000 indicaciones, un corpus de entrenamiento de aproximadamente 200 millones de tokens con razonamiento y documentos, experimentos con Qwen3 hasta 8B y Llama-3.2 hasta 3B, y evaluaciones de referencia que incluyen componentes juzgados por modelos. Señala que la evaluación no cubre todos los dominios, idiomas ni interacciones del mundo real."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El artículo no demuestra que el entrenamiento intermedio orientado a la seguridad sea una idea nueva como etapa general ni que su método supere a enfoques anteriores en una comparación cruzada controlada. Trabajos previos describen entrenamiento intermedio con especificaciones del modelo antes del ajuste de alineación; otro informe de OpenAI encontró que una intervención diferente con documentos sintéticos de alineación no se transfirió de manera fiable a evaluaciones de chat y agentes más realistas después del postentrenamiento de razonamiento. Esos estudios usan modelos, datos y evaluaciones distintos: limitan las afirmaciones de generalización, pero no contradicen directamente este resultado."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El Apéndice B.4 informa tiempos de entrenamiento y generación de datos tomados de los registros de los autores en una estación con cuatro GPU NVIDIA RTX Pro 6000: construir datos autogenerados requiere unos 3–5 días por tamaño Qwen3; una época de entrenamiento intermedio con el corpus predeterminado tarda 4h14m para Qwen3-1.7B, 9h para 4B y 13h38m para 8B; el conjunto de experimentos principales suma aproximadamente 15 jornadas de estación. Los autores también informan una concordancia de 97.8–98.2%, con media de 98.1%, entre tres modelos jueces y gpt-4.1-mini en una muestra estratificada de 500 indicaciones. Son cifras del artículo: no establecen consumo energético, coste monetario, corrección de los jueces ni economía general del entrenamiento."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En una prueba de proporción de indicaciones inseguras con Qwen3-4B, manteniendo constante el tamaño total de los datos de entrenamiento intermedio, los autores informan una compensación no monotónica entre seguridad, rechazo excesivo y utilidad. Con la proporción seleccionada de 25% de indicaciones inseguras, informan ASR de 8.5%, rechazo excesivo de 9.7% en XSTest y utilidad media seleccionada de 81.6%; con 100% de indicaciones inseguras, informan ASR de 0%, rechazo excesivo de 88% y utilidad de 45%. Son puntuaciones informadas por los autores en un único modelo y régimen de evaluación."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se encontró una reproducción independiente de los resultados de entrenamiento intermedio, SFT o GRPO, y no se verificó la publicación de código ni datos.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "Las evaluaciones y puntuaciones juzgadas por modelos no establecen el comportamiento en más idiomas y dominios, modelos de mayor escala ni despliegues reales de múltiples turnos.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "Aún no se contabilizan de forma independiente los costes de generación de datos, filtrado con un modelo juez, entrenamiento intermedio y SFT/RL posterior frente a las mejoras de seguridad y utilidad.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "Los autores presentan tiempos por fase y un total estimado de unas 15 jornadas de estación en un sistema 4× RTX Pro 6000, pero no se establecen de manera independiente el consumo energético, el coste monetario, la utilización del hardware ni el coste por mejora de seguridad/utilidad medida.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "La compensación informada al variar la proporción de indicaciones inseguras proviene de una sola prueba de referencia con Qwen3-4B; no se establecieron la variabilidad entre semillas, el comportamiento multilingüe o interactivo ni la transferencia a modelos mayores.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si la retención de seguridad informada se generaliza, podría mejorar la formación conjunta de seguridad y capacidad general y reducir la dependencia de datos específicos de seguridad en etapas posteriores. Los autores estiman unas 15 jornadas de trabajo de una estación para el programa experimental principal, por lo que las consecuencias del método también dependen de que sus mejoras de seguridad se reproduzcan a un coste útil de cómputo y generación de datos, más allá de estos modelos pequeños.",
+      "limitations": [
+        "Todos los resultados de rendimiento provienen de un único artículo v1 en arXiv; el equipo de investigación no reprodujo los experimentos.",
+        "Los modelos evaluados son Qwen3 hasta 8B y Llama-3.2 hasta 3B; no se probaron modelos frontera mayores ni sistemas desplegados.",
+        "Los autores indican que la evaluación no cubre todos los dominios, idiomas ni patrones de interacción del mundo real.",
+        "El artículo dice que se prevé publicar los datos generados y la documentación; aquí no se verificó ningún artefacto público de código o datos.",
+        "El artículo ofrece rangos distintos de reducción de ASR según el alcance: 72–81% para los tres modelos Qwen3 y 68–86% en un pasaje más amplio que incluye Llama. Por ello, se conservan los valores específicos de las tablas en lugar de un único rango generalizado.",
+        "El entrenamiento intermedio con documentos sobre alineación ya se había estudiado. El trabajo de Anthropic basado en especificaciones del modelo usa documentos sobre la especificación antes del ajuste de alineación e informa menos desalineación agentiva en su régimen. El aporte incremental del artículo actual es su esquema conjunto de seguridad y tareas generales y la retención informada tras entrenamiento general posterior, no la invención del entrenamiento intermedio de alineación.",
+        "OpenAI informa que una intervención diferente, basada en documentos sintéticos alineados y desalineados, no separó de forma fiable ambas condiciones en evaluaciones de chat y agentes más realistas tras el postentrenamiento de razonamiento. Como los modelos, datos y evaluaciones difieren, es una advertencia sobre transferencia, no una contradicción directa ni una reproducción de este método.",
+        "No se informa una comparación directa y controlada con los métodos de entrenamiento intermedio citados; se desconocen su eficacia relativa y eficiencia de cómputo.",
+        "El artículo informa una comparación entre tres modelos jueces y gpt-4.1-mini en 500 indicaciones, con concordancia media de 98.1%. La coincidencia entre modelos jueces no establece por sí sola la corrección de la rúbrica, la verdad de referencia sobre seguridad ni una cobertura general.",
+        "El Apéndice B.4 informa unas 15 jornadas de estación para el conjunto principal y tiempos por fase en un sistema con 4× RTX Pro 6000. No se midieron de forma independiente el consumo de energía, el coste monetario, la utilización del hardware ni el coste por mejora de seguridad/utilidad.",
+        "La prueba de proporción de indicaciones inseguras cuantifica un marcado coste de rechazo excesivo en Qwen3-4B: los autores informan 9.7% de rechazo excesivo en XSTest con la proporción seleccionada de 25%, y 88% con 100%. Es una prueba de referencia ejecutada por los autores, no una frontera amplia de seguridad/utilidad en despliegue ni una réplica con varias semillas."
+      ],
+      "relationships": [],
+      "summary": "Un nuevo preprint de arXiv se suma a una línea previa de investigación sobre entrenamiento intermedio orientado a la alineación. Entrena un esquema de razonamiento compartido con indicaciones de seguridad y generales mediante documentos y trazas generados por el modelo, y luego continúa el entrenamiento causal de lenguaje antes del SFT o RL. Los autores informan menos ataques exitosos y mayor utilidad en Qwen3 hasta 8B y Llama-3.2 hasta 3B, con seguridad mayormente preservada en SFT y GRPO posteriores con datos generales únicamente. Una ablación con Qwen3-4B informa que el SFT directo de los mismos datos de razonamiento no produjo la misma mejora. Un trabajo anterior de Anthropic también estudia el entrenamiento intermedio basado en una especificación del modelo; un informe distinto de OpenAI encontró transferencia limitada para otra intervención con documentos de alineación después del postentrenamiento de razonamiento. Son regímenes distintos realizados por sus respectivos autores, no una comparación controlada; ninguno establece transferencia amplia del método de este artículo.",
+      "technical": {
+        "claimed_result": "Los autores informan menor tasa media de éxito de ataques y mayor utilidad tras el entrenamiento intermedio de seguridad propuesto, y que la seguridad se conserva en gran medida durante SFT y GRPO posteriores con datos generales únicamente en modelos base Qwen3 y Llama-3.2.",
+        "demonstrated_result": "El artículo v1 de arXiv y sus tablas demuestran que los autores informan estos resultados en los regímenes de modelos y evaluaciones descritos. El rendimiento y su transferencia no se han reproducido de forma independiente.",
+        "mechanism": "Los autores aplican un esquema compartido para generar documentos estructurados sobre intención, conocimiento, restricciones y consecuencias, junto con razonamientos y respuestas generados por el modelo, para indicaciones generales y de seguridad. Tras filtrar los ejemplos con un modelo juez, continúan el entrenamiento causal de lenguaje con el corpus combinado antes de SFT o GRPO.",
+        "novelty": "El entrenamiento intermedio con documentos relacionados con la alineación precede a este artículo: el trabajo de Anthropic basado en especificaciones entrena con documentos que describen la especificación del modelo antes del ajuste de alineación, y OpenAI informó de otra intervención con transferencia limitada después del postentrenamiento de razonamiento. La pregunta incremental aquí es si un esquema compartido para indicaciones de seguridad y generales, usado en entrenamiento causal intermedio, mejora la seguridad y la utilidad y conserva la seguridad durante SFT/GRPO posteriores con datos generales. No se informa una comparación controlada con esos métodos; los estudios usan modelos base, datos y evaluaciones distintos.",
+        "regime": "Experimentos informados en el artículo: modelos base Qwen3-1.7B/4B/8B y Llama-3.2-1B/3B; alrededor de 185k indicaciones de origen y unos 200M de tokens para el corpus predeterminado de razonamiento y documentos. Las evaluaciones informadas incluyen métricas de éxito de ataques y tareas de utilidad general; algunos componentes usan jueces basados en modelos.",
+        "strongest_baseline": "El artículo compara con modelos base de las mismas familias, ajuste supervisado posterior, variantes de Safety Pretraining y Alignment Pretraining, y una ablación con los mismos datos que contrasta SFT directo con entrenamiento intermedio. Todas las comparaciones fueron realizadas por los autores; esta activación no encontró una reproducción independiente."
+      },
+      "title": "Un preprint informa retención de seguridad mediante entrenamiento intermedio conjunto de tareas generales y de seguridad",
+      "why_it_matters": "Si se reproduce, entrenar la seguridad junto con el razonamiento de tareas generales antes del postentrenamiento podría ayudar a conservarla cuando las etapas posteriores se centran en tareas generales. Eso afectaría el diseño del entrenamiento de alineación. El entrenamiento intermedio con documentos relacionados con la alineación ya es una línea de investigación establecida; el aporte incremental de este estudio es su esquema compartido de seguridad y tareas generales y la retención informada bajo etapas posteriores específicas. Los resultados se limitan a los modelos y pruebas del artículo; se desconocen la transferencia a despliegues amplios y sus costes."
+    },
     "FCMO-5D64A22A05BF": {
       "claims": [
         {
