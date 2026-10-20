@@ -1,0 +1,127 @@
+{
+  "record": {
+    "id": "FCMO-93886C1AF8B9",
+    "title": "Joint Subspace Sparse Attention reports long-context decoding gains in author-run benchmarks",
+    "desk": "Inference Systems",
+    "event_at": "2026-10-13T00:00:00Z",
+    "evidence": "A",
+    "confidence": "credible_unconfirmed",
+    "importance": 6,
+    "tier": "Major",
+    "summary": "The Oct. 13 preprint introduces Joint Subspace Sparse Attention (JSSA), a training-free token-level sparse-attention method that combines a shared query–key scoring subspace with gather-free indexed attention. In author-run tests on one NVIDIA B200 at 128K context with 2,048 selected KV tokens, the paper reports up to 1.51× full-KV decoding throughput on Qwen3-8B, 1.88× on Gemma4-26B-A4B-It, and 6.43× on GLM-4.7-Flash. The authors report accuracy near full-KV on the tested tasks and provide an implementation and benchmark scripts. These are paper-reported results; the research desk did not reproduce them.",
+    "topics": [],
+    "organizations": [
+      "Seoul National University"
+    ],
+    "human_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-93886C1AF8B9.html",
+    "machine_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/data/briefs/FCMO-93886C1AF8B9.json",
+    "citation": {
+      "id": "FCMO-93886C1AF8B9",
+      "source": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-93886C1AF8B9.html"
+    }
+  },
+  "brief": {
+    "claims": [
+      {
+        "label": "CLAIMED",
+        "text": "The authors introduce JSSA, a training-free token-level sparse-attention method that scores tokens in a shared low-dimensional query–key subspace and uses gather-free indexed attention for distinct per-KV-head selections in GQA."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "On one NVIDIA B200 at 128K context with a 2,048-token KV budget, the authors report up to 1.51× full-KV decoding throughput for Qwen3-8B, 1.88× for Gemma4-26B-A4B-It, and 6.43× for GLM-4.7-Flash; the Gemma4 setup sparsifies only global-attention layers."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "The paper reports JSSA accuracy close to full-KV attention on its evaluated long-context and reasoning tasks; at roughly 700B scale it reports 96.1–99.2% of native DSA throughput on eight B200 GPUs, with model- and checkpoint-comparison limits."
+      },
+      {
+        "label": "DEMONSTRATED",
+        "text": "The authors' public repository contains a vLLM patch, calibration code, benchmark scripts, a paper-to-code map and setup instructions; this demonstrates artifact availability, not independent validation of the reported outcomes."
+      },
+      {
+        "label": "NOT_ESTABLISHED",
+        "text": "The reported speedups have not been independently reproduced and do not establish deployment-wide quality, throughput, cost or reliability improvements."
+      }
+    ],
+    "confidence": "credible_unconfirmed",
+    "contradictory_evidence": [],
+    "desks": [
+      "inference_systems",
+      "efficiency",
+      "architectures_scaling"
+    ],
+    "development_type": "paper",
+    "editions": [
+      "2026-10-18"
+    ],
+    "event_at": "2026-10-13T00:00:00Z",
+    "evidence_class": "A",
+    "evidence_gaps": [
+      {
+        "description": "No independent reproduction of the paper's speed, quality, or long-context throughput results was performed.",
+        "kind": "missing_independent",
+        "state": "open"
+      },
+      {
+        "description": "Reported throughput uses a short benchmark protocol and depends on architecture, context length, batch size, hardware, cache format, calibration and sparse-token budget; deployment-wide cost and service-quality effects are unmeasured.",
+        "kind": "other",
+        "state": "open"
+      },
+      {
+        "description": "The 700B-scale comparison does not provide a full-attention checkpoint for GLM-5.2, while DeepSeek compares different checkpoints and training states for native DSA; it does not isolate architecture-only causality.",
+        "kind": "other",
+        "state": "open"
+      }
+    ],
+    "id": "FCMO-93886C1AF8B9",
+    "importance_effective_score": 6,
+    "importance_rationale": "If the reported performance generalizes to serving, a training-free method yielding sizable long-context decoding gains across GQA, hybrid attention and MLA could materially change inference-system design and deployment choices. The consequence is meaningful, but remains bounded to author-run configurations and has not been independently reproduced.",
+    "importance_scale_version": 2,
+    "importance_score": 6,
+    "importance_tier": "Major",
+    "last_verified_at": "2026-10-18T07:10:26Z",
+    "limitations": [
+      "All numerical performance and quality results are author-reported; the research desk did not execute the code or independently reproduce the measurements.",
+      "The 1.51×, 1.88× and 6.43× values are maxima on one B200 at 128K context with a 2,048-token KV budget; the largest value is for GLM-4.7-Flash and depends on MLA/FlashMLA sparse execution.",
+      "For Gemma4-26B-A4B-It, only global-attention layers are sparsified; local sliding-window layers remain dense.",
+      "Appendix A.7 reports one warm-up plus three measured runs of 128 generated tokens and excludes model loading, calibration, kernel compilation and warm-up from throughput measurements.",
+      "The 700B-scale comparison uses eight B200 GPUs and has checkpoint-comparability limitations; GLM-5.2 has no corresponding full-attention checkpoint in the paper.",
+      "The paper and repository do not establish deployment-wide cost, reliability, service quality, energy use or independent replication."
+    ],
+    "organizations": [
+      "Seoul National University"
+    ],
+    "primary_desk": "inference_systems",
+    "recorded_at": "2026-10-18T07:10:26Z",
+    "regions": [
+      "global",
+      "South Korea"
+    ],
+    "relationships": [],
+    "source_languages": [
+      "en"
+    ],
+    "source_urls": [
+      "https://arxiv.org/abs/2610.19026",
+      "https://github.com/jiwonsong-dev/JSSA"
+    ],
+    "status": "active",
+    "summary": "The Oct. 13 preprint introduces Joint Subspace Sparse Attention (JSSA), a training-free token-level sparse-attention method that combines a shared query–key scoring subspace with gather-free indexed attention. In author-run tests on one NVIDIA B200 at 128K context with 2,048 selected KV tokens, the paper reports up to 1.51× full-KV decoding throughput on Qwen3-8B, 1.88× on Gemma4-26B-A4B-It, and 6.43× on GLM-4.7-Flash. The authors report accuracy near full-KV on the tested tasks and provide an implementation and benchmark scripts. These are paper-reported results; the research desk did not reproduce them.",
+    "technical": {
+      "claimed_result": "Authors report up to 1.51×, 1.88× and 6.43× decoding throughput versus full-KV for Qwen3-8B, Gemma4-26B-A4B-It and GLM-4.7-Flash respectively at 128K context and 2,048 selected KV tokens on one NVIDIA B200. They report accuracy near full-KV on tested tasks and 96.1–99.2% of native DSA throughput at roughly 700B scale on eight B200 GPUs.",
+      "compute_or_cost": "Throughput is reported on one B200 for the smaller-model sweep and eight B200s for the DeepSeek large-scale sweep. No independent energy or deployed-cost measurement is available.",
+      "demonstrated_result": "The preprint describes the algorithm, evaluation setup and author-reported results. The author's GitHub repository exposes code and benchmark scripts. No independent result was established by this review.",
+      "implementation_status": "Research implementation is publicly available as an author repository and vLLM patch. Deployment outside the paper's benchmark environment was not established.",
+      "mechanism": "A shared low-dimensional subspace preserves query–key scoring structure for token selection; per-KV-head selected tokens are consumed directly from the cache through gather-free indexed attention. The method requires calibration but no model training.",
+      "novelty": "Combines joint query–key subspace selection with gather-free token-level attention and per-KV-head indices; claims training-free applicability across multiple attention layouts.",
+      "regime": "Long-context autoregressive decoding at 32K–128K contexts with token budgets and batch sizes described in the paper; main headline values are 128K / 2,048-token budget. Models cover standard GQA, hybrid local/global GQA and MLA. Results are hardware- and implementation-specific.",
+      "reproducibility": "Author repository includes a pinned vLLM patch, calibration scripts, throughput benchmarks and a paper-to-code map. This review inspected the repository landing page/README but did not clone or run the code; independent reproduction remains open.",
+      "strongest_baseline": "The paper compares against full-KV attention and selected sparse-attention baselines in its declared configurations. Results are author-run and not independently matched by the research desk."
+    },
+    "title": "Joint Subspace Sparse Attention reports long-context decoding gains in author-run benchmarks",
+    "topics": [],
+    "why_it_matters": "Long-context decoding can be limited by KV-cache memory traffic. If the reported gains generalize, a training-free sparse-attention method with released implementation could change serving choices across several attention architectures. The largest headline gain is specific to GLM-4.7-Flash with a 2,048-token budget at 128K context; it does not establish a general 6.43× serving improvement or lower deployed cost."
+  },
+  "related": [],
+  "schema": "fcmo-public-brief-v1"
+}

@@ -1,0 +1,127 @@
+{
+  "record": {
+    "id": "FCMO-ADDB7C80E534",
+    "title": "ZCode documents no default OS sandbox for its shared Agent adapter and a yolo default for non-interactive CLI prompts",
+    "desk": "Agents Memory",
+    "event_at": "2026-10-10T00:00:00Z",
+    "evidence": "A",
+    "confidence": "strongly_supported",
+    "importance": 4,
+    "tier": "Meaningful",
+    "summary": "The ZCode v3.15.1 repository commit dated 2026-10-10 includes a Chinese NOTICE stating that its shared Agent execution adapter has no default operating-system sandbox, and that standalone CLI --prompt calls default to yolo when --mode is omitted. The pinned CLI source defines that fallback, and its permission service describes prompt-bypass rules and exceptions. These findings are scoped to the documented adapter and non-interactive CLI path; no packaged runtime was tested.",
+    "topics": [
+      "agent security",
+      "tool permissions",
+      "OS sandboxing",
+      "coding agents"
+    ],
+    "organizations": [
+      "Z.ai"
+    ],
+    "human_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-ADDB7C80E534.html",
+    "machine_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/data/briefs/FCMO-ADDB7C80E534.json",
+    "citation": {
+      "id": "FCMO-ADDB7C80E534",
+      "source": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-ADDB7C80E534.html"
+    }
+  },
+  "brief": {
+    "claims": [
+      {
+        "label": "DEMONSTRATED_DOCUMENTATION",
+        "text": "ZCode's NOTICE says the shared Agent execution adapter does not provide a default operating-system sandbox and warns that workspace identity, Git worktrees, browser isolation and Node REPL context are not system-level isolation guarantees for all tools."
+      },
+      {
+        "label": "DEMONSTRATED_IN_SOURCE",
+        "text": "The current CLI run.ts source defines the default headless prompt mode as yolo and passes mode ?? DEFAULT_HEADLESS_PROMPT_MODE when invoking a non-interactive --prompt request without an explicit mode."
+      },
+      {
+        "label": "DEMONSTRATED_IN_SOURCE",
+        "text": "The permission service says yolo mode bypasses permission prompts for ordinary tool calls when plan mode is not enabled; separate checks retain user-interaction and always-ask handling, while NOTICE distinguishes other execution surfaces and host-controlled modes."
+      },
+      {
+        "label": "NOT_ESTABLISHED",
+        "text": "No packaged ZCode v3.15.1 binary or operator deployment was inspected; the source files were pinned to the v3.15.1 repository commit, but deployment-added isolation and effective runtime behavior were not tested."
+      }
+    ],
+    "confidence": "strongly_supported",
+    "contradictory_evidence": [],
+    "desks": [
+      "agents_memory",
+      "open_ecosystem"
+    ],
+    "development_type": "repository_release",
+    "editions": [
+      "2026-10-15"
+    ],
+    "event_at": "2026-10-10T00:00:00Z",
+    "evidence_class": "A",
+    "evidence_gaps": [
+      {
+        "description": "No packaged ZCode v3.15.1 binary or runtime environment was inspected, despite the source files being pinned to the release commit.",
+        "kind": "missing_artifact",
+        "state": "open"
+      },
+      {
+        "description": "No runtime test confirmed the effective approval prompts or OS-level isolation of a packaged or deployed ZCode configuration.",
+        "kind": "missing_independent",
+        "state": "open"
+      }
+    ],
+    "id": "FCMO-ADDB7C80E534",
+    "importance_effective_score": 4,
+    "importance_rationale": "If these documented defaults apply to the inspected ZCode CLI/shared-adapter revision, they materially affect isolation and approval assumptions for agent runs that can execute tools under the host account. Score 4 reflects an actionable harness-selection and deployment concern; the statement is scoped to documented modes and is not a claim that all ZCode surfaces share these defaults.",
+    "importance_scale_version": 2,
+    "importance_score": 4,
+    "importance_tier": "Meaningful",
+    "last_verified_at": "2026-10-15T20:17:12Z",
+    "limitations": [
+      "The no-default-sandbox statement is scoped by the NOTICE to the shared Agent execution adapter; it should not be generalized to every ZCode tool or operating mode.",
+      "The yolo default applies to standalone non-interactive CLI --prompt calls when --mode is omitted, not automatically to interactive TUI or every desktop, resumed, target or host-managed execution.",
+      "The permission service retains separate user-interaction, always-ask, disallowed-tool and plan-mode logic; 'yolo' is not evidence that all interactions bypass every control.",
+      "The inspected source files are pinned to commit aac4755666d09fdcd70272fcf063c077a639015f, identified as the v3.15.1 update. No runtime test or distributed binary inspection was performed.",
+      "The repository source does not establish whether an operator's deployment adds external OS sandboxing or other isolation."
+    ],
+    "organizations": [
+      "Z.ai"
+    ],
+    "primary_desk": "agents_memory",
+    "recorded_at": "2026-10-15T20:17:12Z",
+    "regions": [
+      "China",
+      "global"
+    ],
+    "relationships": [],
+    "source_languages": [
+      "zh-Hans",
+      "en"
+    ],
+    "source_urls": [
+      "https://github.com/zai-org/ZCode/blob/aac4755666d09fdcd70272fcf063c077a639015f/NOTICE.md",
+      "https://github.com/zai-org/ZCode/blob/aac4755666d09fdcd70272fcf063c077a639015f/apps/zcode-cli/packages/cli/src/run.ts",
+      "https://github.com/zai-org/ZCode/blob/aac4755666d09fdcd70272fcf063c077a639015f/apps/zcode-cli/packages/core/src/permission/service.ts",
+      "https://github.com/zai-org/ZCode/commit/aac4755666d09fdcd70272fcf063c077a639015f"
+    ],
+    "status": "active",
+    "summary": "The ZCode v3.15.1 repository commit dated 2026-10-10 includes a Chinese NOTICE stating that its shared Agent execution adapter has no default operating-system sandbox, and that standalone CLI --prompt calls default to yolo when --mode is omitted. The pinned CLI source defines that fallback, and its permission service describes prompt-bypass rules and exceptions. These findings are scoped to the documented adapter and non-interactive CLI path; no packaged runtime was tested.",
+    "technical": {
+      "claimed_result": "The project documentation states there is no default OS sandbox for its shared Agent execution adapter and that non-interactive standalone CLI --prompt runs default to yolo without --mode.",
+      "demonstrated_result": "The current repository NOTICE and CLI source contain the scoped statements and code paths described. Runtime behavior in a pinned packaged build was not tested.",
+      "mechanism": "The CLI's non-interactive prompt path falls back to yolo when no prompt mode is supplied. The permission service's mode logic allows ordinary tool calls in yolo mode without permission prompts, while user-interaction and always-ask capabilities have separate checks. Independently, the repository NOTICE says the shared Agent execution adapter has no default OS sandbox.",
+      "novelty": "The material information is the repository's explicit, mode-scoped disclosure of sandbox and approval defaults; no novelty claim is made about the underlying permission architecture.",
+      "regime": "ZCode v3.15.1 commit aac4755666d09fdcd70272fcf063c077a639015f, dated 2026-10-10. Findings concern the shared Agent execution adapter and standalone CLI non-interactive --prompt path, not all ZCode execution surfaces.",
+      "reproducibility": "The NOTICE and both source files were bound to the same release commit SHA using path-specific GitHub commit history. Source paths are pinned; no packaged binary or runtime behavior was tested.",
+      "strongest_baseline": "No cross-project comparison is claimed. Within ZCode, NOTICE distinguishes the shared adapter and standalone CLI prompt path from interactive, desktop, resumed and host-controlled modes; build and plan modes have separate permission behavior."
+    },
+    "title": "ZCode documents no default OS sandbox for its shared Agent adapter and a yolo default for non-interactive CLI prompts",
+    "topics": [
+      "agent security",
+      "tool permissions",
+      "OS sandboxing",
+      "coding agents"
+    ],
+    "why_it_matters": "Users selecting an agent harness need to know whether ordinary file, shell and network operations receive operating-system isolation and whether unattended CLI calls require explicit permission prompts. ZCode's own documentation and source expose materially different defaults by execution mode, so treating project-level approval as a uniform security boundary would be unsafe."
+  },
+  "related": [],
+  "schema": "fcmo-public-brief-v1"
+}

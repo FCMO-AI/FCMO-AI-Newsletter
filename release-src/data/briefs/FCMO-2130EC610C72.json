@@ -1,0 +1,128 @@
+{
+  "record": {
+    "id": "FCMO-2130EC610C72",
+    "title": "H-Spec removes the separate drafter KV cache in parallel speculative decoding",
+    "desk": "Inference Systems",
+    "event_at": "2026-09-21T00:00:00Z",
+    "evidence": "A",
+    "confidence": "credible_unconfirmed",
+    "importance": 6,
+    "tier": "Major",
+    "summary": "A September 21, 2026 arXiv paper introduces H-Spec, a parallel speculative-decoding drafter that combines Mamba state initialized from the target model’s last-position hidden state with attention that reuses the target KV cache in place. This removes a separate drafter-side KV cache. Under the authors’ matched training recipe, H-Spec reports 5.0–13.3% higher mean accepted length and 5.3–12.6% higher batch-size-1 inter-token-latency speedup than the best baseline across three targets and eight tasks, with paired bootstrap 95% intervals above zero. On one NVIDIA A100 80G using vLLM, the paper reports higher throughput and lower KV-cache utilization across concurrency 8–128. These remain author-reported results; the paper notes slower drafting below concurrency 32 and initially on shorter inputs, and requires matching drafter and target K/V dimensions. Independent serving reproduction and transfer beyond the measured setup remain open.",
+    "topics": [],
+    "organizations": [
+      "Red Hat",
+      "Harvard University",
+      "Capital One",
+      "NVIDIA"
+    ],
+    "human_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-2130EC610C72.html",
+    "machine_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/data/briefs/FCMO-2130EC610C72.json",
+    "citation": {
+      "id": "FCMO-2130EC610C72",
+      "source": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-2130EC610C72.html"
+    }
+  },
+  "brief": {
+    "claims": [
+      {
+        "label": "CLAIMED",
+        "text": "The authors propose H-Spec, a hybrid Mamba-attention parallel drafter that initializes Mamba state from last-position target hidden states and reuses target KVs in place, eliminating a separate drafter-side KV cache while retaining block-parallel drafting."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "Under their matched training recipe, the authors report 5.0–13.3% higher mean accepted length and 5.3–12.6% higher batch-size-1 inter-token-latency speedup than the best baseline across Llama3.1-8B-IT, Qwen3-4B and Qwen3-8B on eight tasks; paired bootstrap 95% intervals are reported above zero."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "In vLLM serving on an NVIDIA A100 80G, the authors report higher throughput and lower KV-cache utilization than baselines across concurrency 8–128, with the advantage generally larger at higher concurrency."
+      },
+      {
+        "label": "NOT_ESTABLISHED",
+        "text": "The paper does not establish independent reproduction or universal serving gains; its own measurements show slower drafting at concurrency below 32 and initially at shorter input lengths, and the drafter’s K/V dimensions must match the target model."
+      }
+    ],
+    "confidence": "credible_unconfirmed",
+    "contradictory_evidence": [],
+    "desks": [
+      "inference_systems",
+      "evaluation_science"
+    ],
+    "development_type": "paper",
+    "editions": [
+      "2026-10-16"
+    ],
+    "event_at": "2026-09-21T00:00:00Z",
+    "evidence_class": "A",
+    "evidence_gaps": [
+      {
+        "description": "No independent implementation or reproduction of the H-Spec performance and serving comparisons has been inspected.",
+        "kind": "missing_independent",
+        "state": "open"
+      },
+      {
+        "description": "The serving comparison is bounded to one NVIDIA A100 80G and the stated vLLM setup; transfer to other accelerators, runtimes and production workloads is unknown.",
+        "kind": "other",
+        "state": "open"
+      },
+      {
+        "description": "H-Spec requires the drafter K/V dimensions to match target K/V dimensions; the method’s compatibility across architectures is constrained.",
+        "kind": "other",
+        "state": "open"
+      },
+      {
+        "description": "The authors report the hybrid backbone drafts more slowly at concurrency below 32 and initially at shorter input lengths, so operational break-even depends on workload mix.",
+        "kind": "other",
+        "state": "open"
+      }
+    ],
+    "id": "FCMO-2130EC610C72",
+    "importance_effective_score": 6,
+    "importance_rationale": "If the measured efficiency gains reproduce in serving, eliminating a per-request drafter KV cache while preserving parallel speculative drafting could materially improve memory capacity and throughput for high-concurrency long-context inference. The result is an author-run paper on three targets and a stated GPU/software regime; low-concurrency and short-input tradeoffs and K/V compatibility constraints bound its effect.",
+    "importance_scale_version": 2,
+    "importance_score": 6,
+    "importance_tier": "Major",
+    "last_verified_at": "2026-10-16T01:13:11Z",
+    "limitations": [
+      "Performance results are reported by the paper authors; no independent reproduction was performed in this review.",
+      "The serving measurements use one NVIDIA A100 80G and vLLM; other hardware, runtimes and production request distributions are not established.",
+      "The paper reports slower drafting at concurrency below 32 and initially at shorter input lengths, with the trend reversing at higher concurrency/longer contexts.",
+      "The K/V dimensions must match the target architecture, constraining drop-in compatibility.",
+      "The single-request and vLLM workload results use selected models and tasks; production economics, energy and fleet-level effects were not measured."
+    ],
+    "organizations": [
+      "Red Hat",
+      "Harvard University",
+      "Capital One",
+      "NVIDIA"
+    ],
+    "primary_desk": "inference_systems",
+    "recorded_at": "2026-10-16T01:13:11Z",
+    "regions": [
+      "Global",
+      "United States"
+    ],
+    "relationships": [],
+    "source_languages": [
+      "en"
+    ],
+    "source_urls": [
+      "https://arxiv.org/abs/2609.24197"
+    ],
+    "status": "active",
+    "summary": "A September 21, 2026 arXiv paper introduces H-Spec, a parallel speculative-decoding drafter that combines Mamba state initialized from the target model’s last-position hidden state with attention that reuses the target KV cache in place. This removes a separate drafter-side KV cache. Under the authors’ matched training recipe, H-Spec reports 5.0–13.3% higher mean accepted length and 5.3–12.6% higher batch-size-1 inter-token-latency speedup than the best baseline across three targets and eight tasks, with paired bootstrap 95% intervals above zero. On one NVIDIA A100 80G using vLLM, the paper reports higher throughput and lower KV-cache utilization across concurrency 8–128. These remain author-reported results; the paper notes slower drafting below concurrency 32 and initially on shorter inputs, and requires matching drafter and target K/V dimensions. Independent serving reproduction and transfer beyond the measured setup remain open.",
+    "technical": {
+      "claimed_result": "The authors report higher accepted draft length and batch-1 ITL speedup than the best parallel-drafter baseline on three targets/eight tasks, and higher vLLM throughput with lower KV utilization across the evaluated concurrency levels. These are author-run results.",
+      "demonstrated_result": "The public v1 paper documents a hybrid Mamba-attention architecture, matched training comparisons, confidence intervals and vLLM serving measurements. It establishes that these methods and results are reported in the paper, not that an independent serving implementation confirms them.",
+      "mechanism": "Initialize Mamba state from projected last-position target hidden states, reuse target KVs in attention in place, and draft blocks through parallel Mamba scans; a causal correction head supports inter-token dependence.",
+      "regime": "Three targets (Llama3.1-8B-IT, Qwen3-4B, Qwen3-8B), eight single-request tasks, and selected math/code/chat vLLM workloads; one NVIDIA A100 80G; concurrency 8–128 for serving.",
+      "reproducibility": "The paper provides architecture/training details and bootstrap uncertainty analysis, but no independent reproduction or public checkpoint/code execution was inspected.",
+      "strongest_baseline": "Best of reproduced P-Eagle, DFlash and DSpark under the paper’s matched training recipe. H-Spec’s single-request margins vary by target; the paper also reports DFlash-2 in a preliminary appendix comparison with no official training pipeline."
+    },
+    "title": "H-Spec removes the separate drafter KV cache in parallel speculative decoding",
+    "topics": [],
+    "why_it_matters": "If the serving results reproduce, avoiding a separate per-request drafter cache could let inference systems preserve more request capacity or throughput while using parallel speculative decoding. The reported benefit depends on concurrency and context length, and target-specific K/V dimensions limit plug-in compatibility; no independent or fleet-scale result is established."
+  },
+  "related": [],
+  "schema": "fcmo-public-brief-v1"
+}

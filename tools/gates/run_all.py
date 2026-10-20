@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import sys
+import time
 from pathlib import Path
 
 if __package__ in {None, ""}:
@@ -35,7 +36,13 @@ GATES = (
 def run(root: Path) -> list[GateResult]:
     if not root.is_dir(): raise GateFailure("PUBLICATION_ROOT", [f"not a directory: {root}"])
     results = []
-    for gate in GATES: results.append(gate(root))
+    for index, gate in enumerate(GATES, 1):
+        name = gate.__module__.rsplit('.', 1)[-1]
+        print(f'Compuerta {index}/{len(GATES)}: {name}', flush=True)
+        started = time.monotonic()
+        results.append(gate(root))
+        print(f'{results[-1].code} PASS ({results[-1].checked}; '
+              f'{time.monotonic() - started:.1f} s)', flush=True)
     return results
 
 
@@ -49,7 +56,6 @@ def main(argv=None) -> int:
         return 1
     for result in results:
         for warning in result.warnings: print(f"{result.code} WARN: {warning}")
-        print(f"{result.code} PASS ({result.checked})")
     print(f"GATES PASS ({len(results)}/{len(GATES)})")
     return 0
 

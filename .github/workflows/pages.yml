@@ -40,11 +40,30 @@ permissions:
   id-token: write
 
 concurrency:
-  # Failed upstream notifications are no-ops and must not cancel a real run.
-  # Manual rollback intentionally shares the active lease so it supersedes any
-  # candidate still in flight and is the final Pages writer.
+  # One lease ('active') serialises every run that can write Pages: there is
+  # never more than one writer, and GitHub keeps at most one *pending* run per
+  # group, replacing an older pending run with the newer one.
+  #
+  # Automatic triggers (push, refresh workflow_run, schedule) QUEUE instead of
+  # cancelling. With cancel-in-progress the in-flight candidate was cancelled
+  # by every refresh; refreshes land every 30-60 min and a build took 45-130
+  # min, so from 2026-10-11 14:50Z no run reached deploy for days (PR text has
+  # the run ids). Queueing keeps the old guarantees without the starvation:
+  # runs execute in creation order, each run builds the main head current
+  # when it was created, so a later Pages write is always from a newer (or the
+  # same) commit; a stale candidate can never overwrite a newer one, and the
+  # newest pending run always deploys after the one in flight.
+  #
+  # A manual dispatch on main (deploy or rollback) still pre-empts whatever is
+  # in flight, so a rollback is never stuck behind a candidate. An automatic
+  # run that arrives during a rollback now waits for it instead of cancelling
+  # it.
+  #
+  # Failed upstream notifications and non-main dispatches get their own group
+  # and can neither cancel nor queue behind a real run; a non-main dispatch
+  # runs only the regression shards (no build, no Pages write).
   group: github-pages-v4-${{ (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion != 'success' || github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/main') && github.run_id || 'active' }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'workflow_dispatch' }}
 
 env:
   BASE_PATH: /FCMO-AI-Newsletter/
@@ -63,7 +82,51 @@ env:
   KIT_FORM_UID_ZH: ${{ vars.KIT_FORM_UID_ZH }}
 
 jobs:
+  regression:
+    # The full regression suite, unchanged, split into parallel shards
+    # (tools/unittest_shards.py): every discovered test runs in exactly one
+    # shard, whole classes stay together, and a shard refuses to run unless
+    # the partition is complete. Same environment as the former serial step
+    # (Playwright, axe, age, PyYAML, full history). It writes nothing.
+    name: regression shard ${{ matrix.shard }} of 0-7
+    if: >-
+      (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success') &&
+      (github.event_name != 'workflow_dispatch' || inputs.operation == 'deploy')
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    permissions:
+      contents: read
+    strategy:
+      # Every shard finishes so one run reports every failing test at once.
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5, 6, 7]
+    steps:
+      - name: Checkout the exact publication input with LKG history
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - name: Install pinned Playwright and Chromium
+        run: |
+          npm install --prefix "$RUNNER_TEMP/playwright" --no-save playwright@1.63.0 axe-core@4.14.0
+          echo "PLAYWRIGHT_MODULE=$RUNNER_TEMP/playwright/node_modules/playwright" >> "$GITHUB_ENV"
+          echo "NODE_PATH=$RUNNER_TEMP/playwright/node_modules" >> "$GITHUB_ENV"
+          echo "AXE_CORE_PATH=$RUNNER_TEMP/playwright/node_modules/axe-core/axe.min.js" >> "$GITHUB_ENV"
+          "$RUNNER_TEMP/playwright/node_modules/.bin/playwright" install --with-deps chromium
+      - name: Install regression dependencies
+        run: |
+          python -m pip install PyYAML==6.0.2
+          sudo apt-get update
+          sudo apt-get install -y age
+      - name: Run this shard of the full regression suite before publication
+        run: python3 tools/unittest_shards.py --index ${{ matrix.shard }} --count 8
+
   build:
+    needs: regression
     if: >-
       (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success') &&
       (github.event_name != 'workflow_dispatch' || (inputs.operation == 'deploy' && github.ref == 'refs/heads/main'))
@@ -93,9 +156,6 @@ jobs:
           python -m pip install PyYAML==6.0.2
           sudo apt-get update
           sudo apt-get install -y age
-
-      - name: Run the full regression suite before publication
-        run: python3 -m unittest discover -s tests
 
       - name: Receipt the current automated newspaper inputs before integrity checks
         run: python3 tools/build_ready_receipt.py

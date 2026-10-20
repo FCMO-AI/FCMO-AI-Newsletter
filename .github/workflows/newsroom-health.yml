@@ -15,6 +15,7 @@ on:
     paths:
       - 'tools/translation_health.py'
       - 'tools/editorial_freshness.py'
+      - 'tools/served_edition.py'
       - 'tools/verify_live_newsroom.py'
       - 'tools/verify_live_front_page.py'
       - 'tools/newsroom_receipt.py'
@@ -91,6 +92,12 @@ jobs:
   editorial-freshness:
     # Transport can be fresh while the newspaper is editorially stale. Measure
     # live Story output, excluding quarantined, merged and withdrawn records.
+    # Measure the edition the PUBLIC ORIGIN serves (its deployment identity's
+    # source commit), not the repository checkout: from 2026-10-11 every Pages
+    # deploy was cancelled for days while this job, reading main's Story
+    # layer, kept reporting a fresh newspaper. tools/served_edition.py also
+    # fails when main has carried undeployed stories for longer than the
+    # editorial limit, and fails closed when the served edition is unknown.
     if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     outputs:
@@ -98,19 +105,23 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
+          # The served commit must be resolvable from main's history.
+          fetch-depth: 0
           persist-credentials: false
       - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
-      - name: Enforce the newest-event freshness SLO
+      - name: Enforce the newest-event freshness SLO on the served edition
         id: editorial
         shell: bash
         run: |
           set +e
-          python tools/editorial_freshness.py check \
+          python tools/served_edition.py \
+            --identity-url https://fcmo-ai.github.io/FCMO-AI-Newsletter/deployment-identity.json \
+            --ref HEAD \
             --wire-status corpus/wire-status.json \
             --records corpus/data/developments.jsonl \
-            --stories site/data/stories.v2.json \
+            --work-dir "$RUNNER_TEMP/served" \
             --signal-out "$RUNNER_TEMP/editorial.json"
           rc=$?
           set -e

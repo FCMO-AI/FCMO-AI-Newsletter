@@ -13,7 +13,7 @@ from pathlib import Path
 
 from tests.harness.validate import validator_for
 from tools import build_newsroom_surfaces as surfaces
-from tools import ingest_corpus, story_layer, taxonomy
+from tools import corpus_guard, ingest_corpus, story_layer, taxonomy
 
 REPO = Path(__file__).resolve().parents[1]
 CONTRACTS = REPO / "contracts"
@@ -49,7 +49,14 @@ def expected_live_ids(corpus: Path = CORPUS, native: bool = True) -> set[str]:
     if native:
         from tests.test_localization_completeness import independent_backlog
         dead |= independent_backlog("es-419") | independent_backlog("zh-Hans")
-    return {r["id"] for r in rows} - dead
+    live = {r["id"] for r in rows} - dead
+    # A record the bridge quarantined (recorded in airlock/wire-status) keeps its last
+    # published version live via carried.jsonl; an unrecorded carried id is not admitted here.
+    recorded = corpus_guard.recorded_quarantine(corpus)
+    carried = {c["id"] for c in corpus_guard.read_carried(corpus)} & recorded
+    tombstoned = {e["id"] for e in json.loads((corpus / "tombstones.json").read_text())["tombstones"]
+                  if e.get("reinstated_at") is None}
+    return live | (carried - tombstoned)
 
 
 class RepositoryStoryLayerTests(unittest.TestCase):
@@ -119,7 +126,9 @@ class RepositoryStoryLayerTests(unittest.TestCase):
         corpus_ids = {json.loads(l)["id"] for l in (CORPUS / "data" / "developments.jsonl").read_text().splitlines() if l.strip()}
         from tests.test_localization_completeness import independent_backlog
         held = independent_backlog("es-419") | independent_backlog("zh-Hans")
-        self.assertEqual(set(self.stories), (corpus_ids - held) | {FDBE})
+        carried_quarantine = ({c["id"] for c in corpus_guard.read_carried(CORPUS)}
+                              & corpus_guard.recorded_quarantine(CORPUS))
+        self.assertEqual(set(self.stories), (corpus_ids - held) | carried_quarantine | {FDBE})
         for rid in held:
             self.assertIn(f"HELD_BACK {rid} NATIVE_EDITION:", self.stderr)
         live = [s for s in self.document["stories"] if s["status"] == "live"]
@@ -321,6 +330,25 @@ class TemporaryCorpusTests(unittest.TestCase):
             self.assertEqual(by_id(document)[dup]["merged_into"], survivor)
         self.assertEqual({s["id"] for s in document["stories"] if s["status"] == "live"}, expected_live_ids())
 
+    def test_distinct_findings_from_one_multi_item_source_are_not_merged(self) -> None:
+        base = {"organizations": ["ExampleLab"], "source_urls": ["https://example.org/roadmap"],
+                "event_at": "2026-10-19T00:00:00Z"}
+        records = {
+            "FCMO-AAAAAAAAAAAA": dict(base, title="ExampleLab reports a signed token traffic verification prototype",
+                                     summary="A prototype binds inference outputs to approved weights using signed internal token traffic."),
+            "FCMO-BBBBBBBBBBBB": dict(base, title="ExampleLab reports automated red team matched human bounty submissions",
+                                     summary="An automated red team matched or exceeded the best human bounty entries in twenty four test pairs."),
+        }
+        stamps = {"FCMO-AAAAAAAAAAAA": "2026-10-20T00:00:00Z", "FCMO-BBBBBBBBBBBB": "2026-10-20T01:00:00Z"}
+        self.assertEqual(story_layer.find_duplicates(records, stamps), {})
+        same = dict(records["FCMO-AAAAAAAAAAAA"], title="ExampleLab reports a token traffic verification prototype for signed inference",
+                    summary="A prototype binds inference outputs to approved weights using signed internal token traffic.")
+        records["FCMO-BBBBBBBBBBBB"] = same
+        self.assertEqual(story_layer.find_duplicates(records, stamps), {"FCMO-BBBBBBBBBBBB": "FCMO-AAAAAAAAAAAA"})
+        # No text to compare: the lead-source rule alone applies, as before.
+        bare = {k: {kk: vv for kk, vv in v.items() if kk not in {"title", "summary"}} for k, v in records.items()}
+        self.assertEqual(story_layer.find_duplicates(bare, stamps), {"FCMO-BBBBBBBBBBBB": "FCMO-AAAAAAAAAAAA"})
+
     @unittest.skipUnless(FULL_HISTORY, "needs the full git history")
     def test_ledger_from_history_equals_the_contract_fixture(self) -> None:
         (self.corpus / "first-published.json").unlink()
@@ -490,8 +518,11 @@ class IngestSelectionTests(unittest.TestCase):
         self.assertIn((rows[4]["id"], "WITHDRAWN_UPSTREAM"), held)
 
     def test_mass_quarantine_refuses_the_batch(self) -> None:
-        # Exceed the actual 20% limit as the autonomous corpus grows.
-        count = len(self.rows) // 5 + 1
+        # The guard's denominator is every candidate: corpus rows plus carried-forward
+        # records absent from them. Exceed the configured limit over that whole set.
+        present = {r.get("id") for r in self.rows}
+        total = len(self.rows) + sum(c["id"] not in present for c in corpus_guard.read_carried(self.corpus))
+        count = int(total * corpus_guard.default_max_missing_ratio()) + 1
         rows = [dict(r, claims=[]) if i < count else r for i, r in enumerate(self.rows)]
         with self.assertRaisesRegex(ValueError, f"refusing to publish: {count} of"):
             self.select(rows)
@@ -504,7 +535,7 @@ class IngestSelectionTests(unittest.TestCase):
         (self.corpus / "carried.jsonl").write_text(line + "\n")
         selected, _, held = self.select(self.rows)
         self.assertIn(FDBE, {r["id"] for r in selected})
-        self.assertEqual({r["id"] for r in selected}, expected_live_ids(native=False) | {FDBE})
+        self.assertEqual({r["id"] for r in selected}, expected_live_ids(self.corpus, native=False) | {FDBE})
 
 
 class TaxonomyTests(unittest.TestCase):

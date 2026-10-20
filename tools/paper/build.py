@@ -284,24 +284,28 @@ class PaperBuilder:
 
     def _topic_links(self, locale: dict, *, exclude_topic: str = "", exclude_org: str = "", limit: int = 5) -> str:
         """Link into co-occurring topics and organizations using the live corpus."""
-        anchors: list[tuple[int, str, str]] = []
-        for story in self.live:
-            topics = [value for value in story.get("topics", []) if value != exclude_topic and slugify(value) != exclude_topic]
-            orgs = [value for value in story.get("organizations", []) if value != exclude_org and slugify(value) != exclude_org]
-            for value in topics:
-                count = sum(value in (other.get("topics") or []) for other in self.live)
-                if count >= 3:
-                    anchors.append((count, value, href(self.base, locale["path_prefix"] + "topic/" + slugify(value) + "/")))
-            for value in orgs:
-                anchors.append((sum(value in (other.get("organizations") or []) for other in self.live), value,
-                                href(self.base, locale["path_prefix"] + "org/" + slugify(value) + "/")))
-        unique: dict[tuple[str, str], int] = {}
-        for count, value, url in anchors:
-            unique[(value, url)] = max(count, unique.get((value, url), 0))
-        selected = sorted(((count, value, url) for (value, url), count in unique.items()),
-                          key=lambda row: (-row[0], row[1].casefold()))[:limit]
-        links = "".join(f'<li><a href="{esc(url)}" translate="no">{esc(value)}</a><span>{count}</span></li>'
-                        for count, value, url in selected)
+        if not hasattr(self, "_taxonomy_neighbors"):
+            # Membership counts are per story, even if a field repeats a name.
+            # Keep first encounter order for equal count/casefold sort keys.
+            counts = {field: Counter(value for story in self.live for value in set(story.get(field) or []))
+                      for field in ("topics", "organizations")}
+            unique = {}
+            for story in self.live:
+                for field, route in (("topics", "topic"), ("organizations", "org")):
+                    for value in story.get(field, []):
+                        count = counts[field][value]
+                        if field == "topics" and count < 3:
+                            continue
+                        unique.setdefault((value, route), (count, value, slugify(value), route))
+            self._taxonomy_neighbors = sorted(unique.values(), key=lambda row: (-row[0], row[1].casefold()))
+        selected = []
+        for count, value, slug, route in self._taxonomy_neighbors:
+            excluded = exclude_topic if route == "topic" else exclude_org
+            if value == excluded or slug == excluded:
+                continue
+            selected.append((count, value, slug, route))
+        links = "".join(f'<li><a href="{esc(href(self.base, locale["path_prefix"] + route + "/" + slug + "/"))}" translate="no">{esc(value)}</a><span>{count}</span></li>'
+                        for count, value, slug, route in selected[:limit])
         return f'<nav class="taxonomy-neighbors"><h2>{esc(self.catalogs[locale["code"]]["strings"]["front"]["see_all"])}</h2><ul>{links}</ul></nav>' if links else ""
 
     def _edition_card(self, date: str, locale: dict) -> str:

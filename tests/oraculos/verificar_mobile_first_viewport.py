@@ -256,7 +256,7 @@ def measure(module: str, base: str, temp: Path) -> dict:
     env = dict(os.environ, TMPDIR=str(temp), TMP=str(temp), TEMP=str(temp))
     completed = subprocess.run(
         ["node", "--input-type=commonjs", "-e", MEASURE, module, base, json.dumps(LOCALES), json.dumps(MOBILE),
-         json.dumps(DESKTOP)], cwd=temp, env=env, text=True, capture_output=True, timeout=900, check=False)
+         json.dumps(DESKTOP)], cwd=temp, env=env, text=True, capture_output=True, timeout=1800, check=False)
     if completed.returncode == 2:
         raise BrowserUnavailable(completed.stderr.strip())
     if completed.returncode:

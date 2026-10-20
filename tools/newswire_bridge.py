@@ -21,9 +21,10 @@ from pathlib import Path
 from typing import Any
 
 try:
-    from tools import corpus_guard
+    from tools import corpus_guard, taxonomy
 except ImportError:  # executed as tools/newswire_bridge.py or imported from tools/
     import corpus_guard  # type: ignore
+    import taxonomy  # type: ignore
 
 AIRLOCK_SCHEMA = "fcmo-newswire-airlock-v2"
 AIRLOCK_STATE = "READY_FOR_PUBLICATION"
@@ -290,6 +291,39 @@ def release_digest(root: Path) -> str:
     return digest.hexdigest()
 
 
+def _unclassified_claims(path: Path) -> list[str]:
+    """Ids of records with a claim whose label the taxonomy cannot classify.
+
+    A blank or unknown label quarantines the record at ingest and turns the
+    whole-corpus regression suite red, so the transfer is refused at the door
+    (corpus/ untouched) instead of landing a record that cannot be published.
+    """
+    bad: list[str] = []
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if not line.strip():
+            continue
+        try:
+            row = json.loads(line)
+        except json.JSONDecodeError:
+            continue  # reported by _canonical_ids
+        claims = row.get("claims") if isinstance(row, dict) else None
+        for claim in claims or []:
+            if isinstance(claim, dict) and str(claim.get("text") or "").strip() \
+                    and taxonomy.normalize_claim_label(claim.get("label")) is None:
+                bad.append(str(row.get("id")))
+                break
+    return bad
+
+
+_HAN = re.compile(r"[\u3400-\u4dbf\u4e00-\u9fff]")
+
+
+def _han_dominated(text: str) -> bool:
+    visible = len(re.sub(r"\s", "", text))
+    han = len(_HAN.findall(text))
+    return han >= 4 and visible > 0 and han / visible >= 0.3
+
+
 def _allowed(rel: str) -> bool:
     return rel in EXACT_PATHS or rel in NEWSROOM_FILES or any(pattern.fullmatch(rel) for pattern in DYNAMIC_PATHS)
 
@@ -413,6 +447,14 @@ def verify_release(root: Path, baseline_i18n: Path | None = None) -> dict[str, A
 
     ids = _canonical_ids(root / "data/developments.jsonl", errors) if (root / "data/developments.jsonl").is_file() else set()
 
+    if (root / "data/developments.jsonl").is_file():
+        unclassified = _unclassified_claims(root / "data/developments.jsonl")
+        if unclassified:
+            errors.append(
+                "data/developments.jsonl: claims without a valid label (blank or unknown) "
+                f"in {len(unclassified)} record(s): {sorted(unclassified)}"
+            )
+
     public_receipts: list[dict[str, Any]] = []
     for path in sorted(root.rglob("PUBLICATION.json")):
         rel = path.relative_to(root).as_posix()
@@ -494,6 +536,12 @@ def verify_release(root: Path, baseline_i18n: Path | None = None) -> dict[str, A
                 errors.append(f"{rel}: malformed locale record {rid!r}")
                 continue
             current.add(rid)
+            if locale == "es-419":
+                # A Spanish pack whose headline or dek is Chinese is a wrong-locale
+                # delivery (seen 2026-10-13 and 2026-10-16); refuse it at the door.
+                for key in ("title", "summary"):
+                    if isinstance(overlay.get(key), str) and _han_dominated(overlay[key]):
+                        errors.append(f"{rel}: {rid}.{key} is Chinese prose in the Spanish edition")
         if not current.issubset(ids):
             errors.append(f"{rel}: locale delta contains IDs outside the public corpus: {sorted(current - ids)}")
 

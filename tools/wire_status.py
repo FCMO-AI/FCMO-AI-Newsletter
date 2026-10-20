@@ -87,7 +87,7 @@ PUBLICATION_FIELDS = (
     "last_authoritative_publication_at", "last_authoritative_edition_id",
     "last_authoritative_publication_status",
 )
-ALLOWED = frozenset(REQUIRED + PUBLICATION_FIELDS)
+ALLOWED = frozenset(REQUIRED + PUBLICATION_FIELDS + ("quarantined",))
 
 
 # ---------------------------------------------------------------------------------------
@@ -221,6 +221,8 @@ def wire_errors(doc: Any) -> list[str]:
     check(doc["previous_state"] is None or doc["previous_state"] in BRIDGE_STATES, "previous_state")
     check(isinstance(doc["warnings"], list) and all(w in WARNINGS for w in doc["warnings"])
           and len(set(doc["warnings"])) == len(doc["warnings"]), "warnings")
+    q = doc.get("quarantined", [])
+    check(isinstance(q, list) and all(isinstance(i, str) and re.fullmatch(r"FCMO-[0-9A-F]{12}", i) for i in q), "quarantined")
     authority = doc.get("publication_authority")
     check(authority in (None, "AUTHORITATIVE", "UNKNOWN"), "publication_authority")
     present_publication = [key for key in PUBLICATION_FIELDS[1:] if key in doc]
@@ -424,6 +426,7 @@ def build_wire_status(
     release_changed: bool,
     publication_receipt: dict[str, Any] | None = None,
     thresholds: dict[str, Any] | None = None,
+    quarantined: list[str] | None = None,
 ) -> dict[str, Any]:
     """Compose this run's wire-status (README "What the bridge writes")."""
     thresholds = thresholds or load_thresholds()
@@ -487,6 +490,8 @@ def build_wire_status(
                 "last_authoritative_edition_id": publication_receipt["edition_id"],
                 "last_authoritative_publication_status": publication_receipt["status"],
             })
+        if quarantined:
+            doc["quarantined"] = sorted(set(quarantined))
         if doc["source_mode"] == "CHECKPOINT" and doc["checkpoint_at"] is None:
             doc["checkpoint_at"] = last_change
     else:
@@ -528,7 +533,7 @@ def build_wire_status(
     doc["state"] = "DELAYED:TRANSPORT_FAIL"  # placeholder for validation below
     doc["previous_state"] = prev.get("state") if prev else None
     doc["state_since"] = run_at_s
-    doc = {key: doc[key] for key in REQUIRED + PUBLICATION_FIELDS if key in doc}
+    doc = {key: doc[key] for key in REQUIRED + PUBLICATION_FIELDS + ("quarantined",) if key in doc}
     state, _ = classify(doc, run_at_s, thresholds)
     if state == "TRANSPORT_DOWN":  # the bridge can never observe this; only a reader can
         raise ValueError(f"wire-status would not validate: {wire_errors(doc)}")
@@ -791,6 +796,7 @@ def cmd_write(args: argparse.Namespace) -> int:
         transport=args.transport,
         transport_error=args.transport_error or None,
         source_mode=args.source_mode or None,
+        quarantined=_read_codes(args.quarantined) if args.quarantined else None,
         arb_failures=_read_codes(args.arb_failures) + [c for c in (args.arb_failure or []) if c],
         checkpoint_at=args.checkpoint_at or None,
         airlock=read_json(args.airlock) if args.airlock else None,
@@ -897,6 +903,7 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--source-mode", choices=("MAIN", "CHECKPOINT", "NONE", ""), default="")
     p.add_argument("--arb-failures", type=Path, help="file with one failure code per line")
     p.add_argument("--arb-failure", action="append", help="one failure code (repeatable)")
+    p.add_argument("--quarantined", type=Path, help="file with one quarantined record id per line")
     p.add_argument("--checkpoint-at", default="")
     p.add_argument("--airlock", type=Path)
     p.add_argument(
