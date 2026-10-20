@@ -6837,6 +6837,77 @@
       "title": "ARIA informa menor daño por fallas en pruebas acotadas de reparación multiagente en tiempo real",
       "why_it_matters": "Si se confirma de manera independiente, la inspección aprendida en tiempo real podría mejorar la recuperación frente a errores en cascada en sistemas multiagente y limitar intervenciones perjudiciales. Las mejoras informadas corresponden al conjunto de pruebas y al esquema de ejecución del artículo. El límite de intervención del código publicado no cubre llamadas estructuradas a herramientas ni la reversión arbitraria del estado del sistema anfitrión; por ello, el resultado no demuestra recuperación autónoma general."
     },
+    "FCMO-2F598BCB7240": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan que, en cinco familias de tareas con Qwen3-1.7B, TokenGate reduce el tiempo hasta el primer token de prellenado en 1.4–11.3x y la memoria máxima de prellenado en 1.5–3.4x frente a una referencia ajustada con LoRA y contexto completo, con precisión de tarea similar."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan que una evaluación de atención híbrida con Qwen3.5-2B logra un tiempo hasta el primer token 3.8x menor que el prellenado completo, con precisión similar, en una tarea de búsqueda de información entre documentos de 32k; la poda temprana en capas Gated DeltaNet llega a una aceleración de hasta 7.8x con una precisión dentro de 6% del prellenado completo."
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "El preprint describe una compuerta entrenable que puntúa tokens y una atención modulada por esas puntuaciones, de modo que el selector y el cuerpo del modelo se adaptan conjuntamente; también describe sus procedimientos de entrenamiento y medición y los métodos de comparación utilizados."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "Las comparaciones reportadas en el artículo no demuestran una reproducción independiente, mejoras de servicio con mayor concurrencia, calidad en producción, ahorro de energía ni impacto económico."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se inspeccionó una implementación independiente ni una reproducción de la frontera de calidad, TTFT y memoria reportada; el repositorio de código enlazado parece vacío.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "Las mediciones reportadas usan lote de tamaño uno en una A100 y solo cubren el prellenado; no establecen el rendimiento, la memoria ni los efectos en latencia de cola bajo servicio concurrente realista.",
+          "kind": "regime_unclear",
+          "state": "open"
+        },
+        {
+          "description": "El experimento principal utiliza Qwen3-1.7B y cinco familias de tareas; se desconoce la transferencia a modelos mayores, documentos con cambios de dominio y repositorios de producción.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "Los autores informan una extrapolación de longitud hasta 128k a partir de entrenamiento con contextos de hasta 16k, pero no se estableció la calidad ni el costo en una gama más amplia de tareas con 128k.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si las mejoras reportadas se generalizan más allá de la escala de modelos pequeños evaluada, la poda aprendida de tokens podría reducir de forma relevante la latencia y la presión de memoria del prellenado de contexto largo en sistemas de servicio. La evidencia actual proviene de una sola evaluación reportada por los autores con modelos Qwen y mediciones de una GPU con lote de tamaño uno.",
+      "limitations": [
+        "Todas las cifras de rendimiento son reportadas por los autores; el equipo de investigación no las reprodujo de forma independiente.",
+        "Las mediciones principales de Qwen3-1.7B usan lote de tamaño uno en una A100 y aíslan el prellenado; no se estableció el rendimiento con servicio concurrente, otro hardware ni solicitudes completas de extremo a extremo.",
+        "Los experimentos principales usan un modelo preentrenado pequeño y cinco familias de tareas de referencia. Se desconoce la generalización a modelos más grandes, otros tokenizadores, dominios y repositorios de producción.",
+        "El entrenamiento usa documentos de hasta 16k tokens; los resultados NIAH de 32k/64k/128k extrapolan la longitud desde un modelo entrenado con 16k, y no constituyen una evaluación amplia de contexto largo.",
+        "El repositorio de GitHub enlazado por los autores aparece vacío; no se inspeccionaron código ni puntos de control. Los autores indican que el código está disponible, pero no se pudo comprobar la reproducibilidad.",
+        "El método conserva el procesamiento del contexto en las capas inferiores, por lo que el uso de memoria queda limitado por el cálculo del prefijo sin podar; en las comparaciones principales el artículo desactiva la poda de la caché KV.",
+        "No se establecen resultados de energía, costo monetario, rendimiento con lotes de servicio, distribución de latencia para usuarios ni calidad en producción."
+      ],
+      "relationships": [
+        {
+          "summary": "Un preprint anterior también estudia la eficiencia del prellenado, con atención dispersa de radio adaptativo sin entrenamiento en modelos Qwen más grandes y pruebas de inferencia con GPU. TokenGate, en cambio, aprende una compuerta de poda durante el ajuste fino e informa mediciones por lote de tamaño uno en modelos Qwen más pequeños. Los mecanismos, escalas y regímenes de hardware difieren; no es una comparación directa.",
+          "target_id": "FCMO-D623C434FA7F",
+          "type": "related"
+        }
+      ],
+      "summary": "Un preprint del 2026-10-19 presenta TokenGate, que aprende a conservar ciertos tokens de entrada después de una capa inicial del modelo y ajusta la atención de las capas superiores con sus puntuaciones. Los autores informan una reducción de 1.4–11.3x en el tiempo hasta el primer token y de 1.5–3.4x en la memoria máxima de prellenado frente al procesamiento completo de Qwen3-1.7B, con precisión similar en cinco familias de tareas. También informan un resultado más acotado con la arquitectura híbrida Qwen3.5-2B. Son experimentos reportados por sus autores: las mediciones de inferencia usaron lote de tamaño uno en una A100, el repositorio de código enlazado aparece vacío y el equipo de investigación no reprodujo los resultados.",
+      "technical": {
+        "claimed_result": "Los autores informan una reducción de 1.4–11.3x en TTFT de prellenado y de 1.5–3.4x en la memoria máxima frente a Qwen3-1.7B con contexto completo y precisión similar en cinco familias de tareas. Frente a los siguientes mejores métodos, informan una reducción de TTFT de 1.2–6.4x y de memoria de hasta 2.1x. Para Qwen3.5-2B informan una reducción de TTFT de 3.8x con precisión similar en NIAH 32k y de hasta 7.8x con precisión dentro de 6% de la referencia completa al colocar la compuerta en capas recurrentes iniciales.",
+        "demonstrated_result": "El preprint demuestra que sus autores reportan este método y estos resultados experimentales. El equipo de investigación no ejecutó el método ni reprodujo de forma independiente el rendimiento subyacente.",
+        "mechanism": "Una red de puntuación lee las representaciones de tokens en una capa inicial, selecciona los tokens de documento con mayor puntuación para procesarlos en capas más profundas y aporta sus puntuaciones de importancia a la atención modulada por tokens en las capas siguientes. La compuerta y el cuerpo del modelo se ajustan conjuntamente para adaptarse al presupuesto de poda. En los experimentos principales de prellenado, los tokens por debajo de la compuerta siguen procesándose en las capas inferiores y siguen generando entradas de caché KV.",
+        "novelty": "El artículo combina la selección aprendida de tokens top-K con atención modulada por tokens para que un modelo preentrenado y el selector puedan adaptarse conjuntamente mediante la pérdida de tarea; también informa su aplicación a transformadores estándar y a capas híbridas de atención recurrente.",
+        "regime": "Cinco familias de tareas (RepoBench-P, 2WikiMultihopQA, MultiNews, BioDEX y búsqueda de información entre documentos) principalmente con Qwen3-1.7B; los documentos de entrenamiento tienen de 2k–16k tokens. Las mediciones cubren solo el prellenado, con lote de tamaño uno y una A100; la poda de la caché KV de capas inferiores se desactiva en las comparaciones principales. Una prueba más acotada con Qwen3.5-2B usa NIAH a 32k; otro modelo entrenado con 16k se extrapola a un contexto de 128k para las relaciones de velocidad y memoria reportadas. Todas las cifras son resultados reportados por los autores.",
+        "strongest_baseline": "Para Qwen3-1.7B, los autores comparan con un modelo de referencia ajustado con LoRA en la misma tarea y contexto completo, además de métodos de poda de tokens y atención dispersa sin entrenamiento, como FastKV, SlimInfer, DASH, GemFilter, FlexPrefill y MInference. También comparan FastKV aplicado en la misma capa que la compuerta. El artículo afirma que las referencias y TokenGate usan la misma configuración de ajuste del modelo base; las decisiones de implementación y medición de los autores no se verificaron de forma independiente."
+      },
+      "title": "El artículo de TokenGate informa un prellenado de contexto largo más rápido mediante poda de tokens aprendida",
+      "why_it_matters": "La latencia y la memoria del prellenado de contexto largo limitan la capacidad de respuesta y la concurrencia del servicio. Si estas mejoras reportadas se transfieren más allá de los modelos pequeños y la configuración de una sola GPU evaluados, aprender qué tokens requieren más procesamiento podría ofrecer una vía práctica para mejorar la eficiencia de modelos preentrenados existentes. El artículo no demuestra el rendimiento en producción, el ahorro de energía ni la conservación de calidad con lotes de servicio mayores."
+    },
     "FCMO-2FD75289C054": {
       "claims": [
         {
