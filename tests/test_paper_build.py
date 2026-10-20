@@ -417,11 +417,15 @@ class RealDataPaperBuildTests(unittest.TestCase):
             for story in self.payload["stories"]
             if story.get("corrections")
         }
-        self.assertEqual(len(affected), 3)
+        # Derived from the stories' own records: every withdrawn or merged story, and only those,
+        # carries a correction, so the census follows the corpus instead of a frozen count.
+        retired = {story["id"] for story in self.payload["stories"] if story["status"] in {"withdrawn", "merged"}}
+        self.assertTrue(retired)
+        self.assertEqual(set(affected), retired)
         locales = (("", "en"), ("es/", "es-419"), ("zh/", "zh-Hans"))
         for locale_prefix, locale_code in locales:
             page = (self.out / locale_prefix / "corrections" / "index.html").read_text(encoding="utf-8")
-            self.assertEqual(page.count('<article class="correction">'), 3, locale_prefix)
+            self.assertEqual(page.count('<article class="correction">'), len(affected), locale_prefix)
             for story_id, story in affected.items():
                 route = "corrections/story/" + story["slug"] + "/"
                 self.assertIn(f'href="/FCMO-AI-Newsletter/{locale_prefix}{route}"', page, story_id)

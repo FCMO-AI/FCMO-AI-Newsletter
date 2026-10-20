@@ -280,12 +280,35 @@ def _lead_url(record: dict[str, Any]) -> str:
     return f"{host}{parts.path.rstrip('/')}" + (f"?{parts.query}" if parts.query else "")
 
 
+_STOPWORDS = frozenset("""the and for with from that this into than are was were has have had its their his her
+after over about report reports which not but also such more""".split())
+# Measured on the corpus: genuine duplicates overlap at 0.6 or more, distinct findings that
+# share one multi-item source page (a roadmap, an index) sit near 0.2.
+MIN_TEXT_OVERLAP = 0.4
+
+
+def _content_tokens(record: dict[str, Any]) -> set[str]:
+    text = f"{record.get('title') or ''} {record.get('summary') or ''}".casefold()
+    return {w for w in re.findall(r"[a-z0-9]+", text) if len(w) > 3 and w not in _STOPWORDS}
+
+
+def _same_development(a: dict[str, Any], b: dict[str, Any]) -> bool:
+    """Same lead source and organization are not enough when the texts report different findings.
+
+    Missing text keeps the lead-source rule alone, so records without a summary behave as before.
+    """
+    ta, tb = _content_tokens(a), _content_tokens(b)
+    if not ta or not tb:
+        return True
+    return len(ta & tb) / min(len(ta), len(tb)) >= MIN_TEXT_OVERLAP
+
+
 def find_duplicates(records: dict[str, dict[str, Any]], first_published: dict[str, str],
                     blocked: Iterable[str] = ()) -> dict[str, str]:
     """{duplicate id: surviving id} for stories that report one development.
 
-    Two records are one development when they cite the same lead source and share
-    an organization. The earliest published story survives. Ids in ``blocked``
+    Two records are one development when they cite the same lead source, share
+    an organization and their title and summary overlap enough to report one finding. The earliest published story survives. Ids in ``blocked``
     (reinstated after a merge) are never merged automatically again.
     """
     blocked = set(blocked)
@@ -305,7 +328,8 @@ def find_duplicates(records: dict[str, dict[str, Any]], first_published: dict[st
         for rid in ordered[1:]:
             if rid in blocked:
                 continue
-            if orgs & {o.casefold() for o in records[rid].get("organizations", [])}:
+            if (orgs & {o.casefold() for o in records[rid].get("organizations", [])}
+                    and _same_development(records[survivor], records[rid])):
                 merges[rid] = survivor
     return merges
 

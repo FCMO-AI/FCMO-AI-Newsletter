@@ -330,6 +330,25 @@ class TemporaryCorpusTests(unittest.TestCase):
             self.assertEqual(by_id(document)[dup]["merged_into"], survivor)
         self.assertEqual({s["id"] for s in document["stories"] if s["status"] == "live"}, expected_live_ids())
 
+    def test_distinct_findings_from_one_multi_item_source_are_not_merged(self) -> None:
+        base = {"organizations": ["ExampleLab"], "source_urls": ["https://example.org/roadmap"],
+                "event_at": "2026-10-19T00:00:00Z"}
+        records = {
+            "FCMO-AAAAAAAAAAAA": dict(base, title="ExampleLab reports a signed token traffic verification prototype",
+                                     summary="A prototype binds inference outputs to approved weights using signed internal token traffic."),
+            "FCMO-BBBBBBBBBBBB": dict(base, title="ExampleLab reports automated red team matched human bounty submissions",
+                                     summary="An automated red team matched or exceeded the best human bounty entries in twenty four test pairs."),
+        }
+        stamps = {"FCMO-AAAAAAAAAAAA": "2026-10-20T00:00:00Z", "FCMO-BBBBBBBBBBBB": "2026-10-20T01:00:00Z"}
+        self.assertEqual(story_layer.find_duplicates(records, stamps), {})
+        same = dict(records["FCMO-AAAAAAAAAAAA"], title="ExampleLab reports a token traffic verification prototype for signed inference",
+                    summary="A prototype binds inference outputs to approved weights using signed internal token traffic.")
+        records["FCMO-BBBBBBBBBBBB"] = same
+        self.assertEqual(story_layer.find_duplicates(records, stamps), {"FCMO-BBBBBBBBBBBB": "FCMO-AAAAAAAAAAAA"})
+        # No text to compare: the lead-source rule alone applies, as before.
+        bare = {k: {kk: vv for kk, vv in v.items() if kk not in {"title", "summary"}} for k, v in records.items()}
+        self.assertEqual(story_layer.find_duplicates(bare, stamps), {"FCMO-BBBBBBBBBBBB": "FCMO-AAAAAAAAAAAA"})
+
     @unittest.skipUnless(FULL_HISTORY, "needs the full git history")
     def test_ledger_from_history_equals_the_contract_fixture(self) -> None:
         (self.corpus / "first-published.json").unlink()

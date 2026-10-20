@@ -50,7 +50,9 @@ class ReadyReceiptPipelineTests(unittest.TestCase):
         def run(command, **kwargs):
             observed.append(command)
             return mock.Mock(returncode=0)
-        with mock.patch.object(publish.subprocess, 'run', side_effect=run):
+        # publish.py launches every step through run_command (descendant reaping);
+        # patching subprocess.run let the real recursive suite run and fail.
+        with mock.patch.object(publish, 'run_command', side_effect=run):
             self.assertEqual(publish.main(['--check', '--out', '/tmp/receipt-test']), 0)
         generator = [i for i, cmd in enumerate(observed) if cmd[1:] == ['tools/build_ready_receipt.py']]
         self.assertEqual(len(generator), 1, 'ops/publish.py --check trusts a stale committed receipt')
