@@ -9,18 +9,18 @@ Status: **the deterministic A3 publication candidate is assembled and measurable
 - Receipt schema: `fcmo-paper-receipt-v1`
 - Story schema: `fcmo-stories-v2`
 - Newsroom-status schema: `fcmo-newsroom-status-v2`
-- Story layer generated at: `2026-10-20T17:32:34Z`
+- Story layer generated at: `2026-10-20T18:14:24Z`
 - Edition: `2026-10-20` (`FRESH`)
 
 ## Final route/data manifest
 
-- `data/routes.json`: 4893 routes; SHA-256 `1503e13fc1ba4025c8c2fe4ce717b1431d2a6e4bed0b86edbfcfd1d5f551e2ab`
+- `data/routes.json`: 4893 routes; SHA-256 `96520940e49b97af0cb9151c50eada4bae7d2b60e0e9cb940ac7d523383123c9`
 - Route locales: en=1631, es-419=1631, zh-Hans=1631
-- Route kinds: about=3, agenda=3, archive=3, author=3, beat=15, community=3, correction=12, corrections=3, edition=117, feeds=3, front=3, guide=3, landing=3, legal=9, letters=3, method=3, org=2316, search=3, status=3, story=1845, subscribe=15, topic=522
-- Story routes: 1845 for 615 live canonical stories
-- Embedded `data/stories.v2.json`: byte-identical to the Story layer; SHA-256 `57264085ad2b28a14da5192e0401ae93669cda39331a3666f93d041aeebac01b`
-- Embedded `data/newsroom-status.json`: byte-identical to newsroom status; SHA-256 `7417f612e4a7951d71bbb25d48bdc5dd058e27e39078924dd382398e2576f8d3`
-- Candidate tree: 17680 files, including 1857 local story-media files; SHA-256 `29c0748209612ec2aa53822386efe47997358d98a7c48368482e4f9e2a6a93f1`
+- Route kinds: about=3, agenda=3, archive=3, author=3, beat=15, community=3, correction=9, corrections=3, edition=117, feeds=3, front=3, guide=3, landing=3, legal=9, letters=3, method=3, org=2316, search=3, status=3, story=1848, subscribe=15, topic=522
+- Story routes: 1848 for 616 live canonical stories
+- Embedded `data/stories.v2.json`: byte-identical to the Story layer; SHA-256 `6c0bf55d0208606b9fdde454159435a04eb93a12bf608a580a0903425c9e3951`
+- Embedded `data/newsroom-status.json`: byte-identical to newsroom status; SHA-256 `8ce07876fd6ae018b8e895095f8897d9e52e496b358dd6238dc4d125d5d0dc5f`
+- Candidate tree: 17685 files, including 1857 local story-media files; SHA-256 `b7ff7fa82bd88051334ff9a2f054a1755f67e77c6ed4022aa20f7bd07a7eecbc`
 
 ## Verification boundary
 
