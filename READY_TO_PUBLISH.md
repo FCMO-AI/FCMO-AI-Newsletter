@@ -1,6 +1,6 @@
 # FCMO AI Newsletter — static-paper release receipt
 
-Release: **newswire-62e7468c19065c1dc7f797e9**
+Release: **newswire-0d4a95c675b6bd060f6df103**
 
 Status: **the deterministic A3 publication candidate is assembled and measurable.** Deployment still requires the A4 integrity gates, browser oracle, and post-deploy live verification.
 
@@ -9,18 +9,18 @@ Status: **the deterministic A3 publication candidate is assembled and measurable
 - Receipt schema: `fcmo-paper-receipt-v1`
 - Story schema: `fcmo-stories-v2`
 - Newsroom-status schema: `fcmo-newsroom-status-v2`
-- Story layer generated at: `2026-10-20T12:14:36Z`
+- Story layer generated at: `2026-10-20T13:14:41Z`
 - Edition: `2026-10-20` (`FRESH`)
 
 ## Final route/data manifest
 
-- `data/routes.json`: 4878 routes; SHA-256 `ee2ff62bf90e7d7375a29d3440149a2b708d9f5b895b43b3efc998abbb68fede`
+- `data/routes.json`: 4878 routes; SHA-256 `08cd319fa681c79ae858dd6f55536fc714a5466a85bdfe80b2df47f928f431da`
 - Route locales: en=1626, es-419=1626, zh-Hans=1626
 - Route kinds: about=3, agenda=3, archive=3, author=3, beat=15, community=3, correction=12, corrections=3, edition=117, feeds=3, front=3, guide=3, landing=3, legal=9, letters=3, method=3, org=2313, search=3, status=3, story=1833, subscribe=15, topic=522
 - Story routes: 1833 for 611 live canonical stories
-- Embedded `data/stories.v2.json`: byte-identical to the Story layer; SHA-256 `3cc365e53fab6e565ceb8ff2aa6711277a5eb688211ce1b7bf36c2c7b8157428`
-- Embedded `data/newsroom-status.json`: byte-identical to newsroom status; SHA-256 `7b74a5156568c1da01a59e76174b1b2f8b1996969190e7d1c8af5cb38be60b3a`
-- Candidate tree: 17588 files, including 1845 local story-media files; SHA-256 `0c42bd55de75b85e63ac01830f734550bdc95e0904279197bd520ae3b1e16fe4`
+- Embedded `data/stories.v2.json`: byte-identical to the Story layer; SHA-256 `ca4171055c7398baba07dd74b14220c03e4aa8c8b806fb09a792fb86a9e35ec0`
+- Embedded `data/newsroom-status.json`: byte-identical to newsroom status; SHA-256 `9895907adf527dc3dafd30971ba9381d6b36ad8595f24d3b131dd3a6224ec9e2`
+- Candidate tree: 17589 files, including 1845 local story-media files; SHA-256 `479af4001e1e1599228e6f15e2bac58bd97df7a499f8dedcb10079676227f4df`
 
 ## Verification boundary
 
