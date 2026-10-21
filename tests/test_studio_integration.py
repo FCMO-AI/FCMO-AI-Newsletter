@@ -1,5 +1,6 @@
 """Real loopback API, production renderer and local candidate, only GitHub mocked."""
 import copy
+import hashlib
 from http.client import HTTPConnection
 import json
 from pathlib import Path
@@ -17,6 +18,40 @@ from tests.test_studio_publish import MockWorkspace
 from tests.test_studio_storage import ROOT, DOC
 
 
+def publication_repository(source, remote):
+    """Current renderer/gates with fixed public inputs and no production history."""
+    remote.mkdir()
+    git(remote, 'init', '-q', '-b', 'main')
+    for relative in git(source, 'ls-files').splitlines():
+        # These trees grow with every autonomous release. They are not fixtures
+        # for a human-authored Studio publication and must not enter its tests.
+        if relative.startswith(('corpus/', 'site/', 'release-src/', 'release-overlay/')):
+            continue
+        path = source / relative
+        if path.is_file():
+            target = remote / relative
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(path, target)
+    data = remote / 'site/data'
+    data.mkdir(parents=True)
+    for name, fixture in (('stories.v2.json', 'stories.v2.json'),
+                          ('newsroom-status.json', 'newsroom-status.fresh.json')):
+        shutil.copyfile(source / 'contracts/fixtures' / fixture, data / name)
+    # The renderer retains compatibility datasets and copies referenced media.
+    # Use only the media named by this frozen corpus, never the live newspaper.
+    shutil.copytree(source / 'tests/fixtures/studio/newspaper-data', remote / 'release-src/data')
+    stories = json.loads((data / 'stories.v2.json').read_text())['stories']
+    for story in stories:
+        relative = (story.get('media') or {}).get('local_path')
+        if relative and not (remote / 'site-src' / relative).is_file():
+            target = remote / 'site' / relative
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(source / 'site' / relative, target)
+    git(remote, 'add', '.')
+    git(remote, '-c', 'user.name=Codex', '-c', 'user.email=noreply@openai.com',
+        'commit', '-qm', 'Integration fixture source')
+
+
 class StudioIntegration(unittest.TestCase):
     def setUp(self):
         (ROOT / '_audit/studio-int').mkdir(parents=True, exist_ok=True)
@@ -27,16 +62,7 @@ class StudioIntegration(unittest.TestCase):
         gh = GitHub({'javier': 'fixture-javier', 'matias': 'fixture-matias'}, self.mock.url, live_base=self.mock.url + '/live/')
         # The candidate uses the actual production build + fourteen gates, never a green stub.
         remote = self.root / 'remote'
-        subprocess.run(['git', 'clone', '--quiet', '--no-hardlinks', str(ROOT), str(remote)], check=True)
-        git(remote, 'checkout', '-qB', 'main')
-        # Exercise current working source during red/green development as well as commits.
-        for relative in git(ROOT, 'ls-files').splitlines():
-            source = ROOT / relative
-            if source.is_file():
-                target = remote / relative; target.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copyfile(source, target)
-        git(remote, 'add', '.')
-        git(remote, '-c', 'user.name=Codex', '-c', 'user.email=noreply@openai.com', 'commit', '--allow-empty', '-qm', 'Integration fixture source')
+        publication_repository(ROOT, remote)
         git(self.store.data / 'clone', 'remote', 'set-url', 'origin', str(remote))
         gate_script = self.root / 'candidate_check.py'
         gate_script.write_text("""from pathlib import Path
@@ -48,7 +74,7 @@ for command in (["python3", "tools/paper/build.py", "--stories", "site/data/stor
 """)
         self.mock.refs['main'] = git(remote, 'rev-parse', 'HEAD')
         workspace = MockWorkspace(self.store, gh, ['python3', str(gate_script)])
-        self.app = Application(self.store, 'http://studio.invalid', 'integration-session-' + 'x'*32, ROOT, live=True)
+        self.app = Application(self.store, 'http://studio.invalid', 'integration-session-' + 'x'*32, remote, live=True)
         self.app.publisher = Publisher(self.store, gh, workspace, lambda slug: __import__('studio.server.checks', fromlist=['checks']).checks(self.store, self.app.preview, slug))
         for user in ('javier', 'matias'):
             self.app.auth.add_user(user, 'integration-fixture-password')
@@ -79,6 +105,16 @@ for command in (["python3", "tools/paper/build.py", "--stories", "site/data/stor
             return res.status, json.loads(raw) if hs.get('Content-Type', '').startswith('application/json') else raw, hs
         finally:
             conn.close()
+
+    def test_newspaper_inputs_are_frozen(self):
+        remote = self.root / 'remote'
+        for name, fixture in (('stories.v2.json', 'stories.v2.json'),
+                              ('newsroom-status.json', 'newsroom-status.fresh.json')):
+            self.assertEqual(
+                hashlib.sha256((remote / 'site/data' / name).read_bytes()).hexdigest(),
+                hashlib.sha256((ROOT / 'contracts/fixtures' / fixture).read_bytes()).hexdigest(),
+                'Studio integration must use frozen newspaper inputs: ' + name)
+        self.assertEqual(git(remote, 'rev-list', '--count', 'HEAD'), '1')
 
     def test_real_http_create_edit_preview_review_and_mock_publish(self):
         status, me, _ = self.request('GET', '/api/me', user='javier')
