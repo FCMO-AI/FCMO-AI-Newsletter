@@ -12726,7 +12726,7 @@
         },
         {
           "label": "CLAIMED",
-          "text": "Para la decodificación BF16 de Qwen2.5-7B, Qwen2.5-14B y Mistral-7B en GPU NVIDIA GH200 y GB300, además de una configuración Qwen2.5-7B con paralelismo tensorial en dos GH200, los autores informan que las estimaciones de energía media por condición quedan a menos de 3.73% de las mediciones en 270 ejecuciones y 54 condiciones estáticas. La condición de transferencia entre dispositivos conserva los coeficientes del dispositivo de origen."
+          "text": "En la validación de cargas estáticas, los autores informan 270 ejecuciones retenidas en 54 condiciones específicas, con predicciones medias por condición a no más de 3.73% de la energía medida en la tarjeta GPU. Esta cifra es un subtotal, no el total de validaciones del artículo."
         },
         {
           "label": "CLAIMED",
@@ -12739,12 +12739,16 @@
         {
           "label": "NOT_ESTABLISHED",
           "text": "Esta revisión del artículo no establece una reproducción independiente, coeficientes portátiles, resultados de energía a nivel de instalación ni una reducción general del costo de servicio."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan 104 ejecuciones adicionales de energía en pruebas de salida escalonada de solicitudes en GH200 para Qwen2.5-7B y Mistral-7B; todos los errores de las medias por condición quedan por debajo de 1%. Sumadas a las 270 ejecuciones estáticas, completan 374 ejecuciones de validación energética. Por separado, 177 perfiles HBM evalúan si las coordenadas de lectura lógicas se corresponden con el tráfico HBM medido; no son ensayos de energía."
         }
       ],
       "contradictory_evidence": [],
       "evidence_gaps": [
         {
-          "description": "Los coeficientes y predicciones retenidas del modelo no tienen reproducción independiente; el máximo declarado de 3.73% corresponde a medias por condición y configuraciones elegidas por los autores.",
+          "description": "El error informado por los autores abarca 270 ejecuciones estáticas y 104 pruebas controladas de salida escalonada; no se ha reproducido de forma independiente. Los 177 perfiles HBM separados no reproducen el modelo de energía.",
           "kind": "missing_independent",
           "state": "open"
         },
@@ -12766,16 +12770,18 @@
         "Los coeficientes se calibran por modelo y configuración de hardware y software; no deben considerarse universales ni portátiles sin validación.",
         "La evaluación incluye tres modelos en GH200 y GB300, más una configuración tensorial de dos GH200; no cubre otras arquitecturas, cargas ni hardware.",
         "El error declarado compara medias por condición dentro del diseño de los autores; no demuestra precisión fuera del dominio ni ahorros en producción.",
-        "La búsqueda acotada no encontró artefactos de reproducción enlazados por los autores ni una reproducción independiente; no encontrarlo no demuestra que no exista."
+        "La búsqueda acotada no encontró artefactos de reproducción enlazados por los autores ni una reproducción independiente; no encontrarlo no demuestra que no exista.",
+        "Las 374 ejecuciones de validación energética informadas comprenden 270 pruebas estáticas y 104 pruebas controladas con salida escalonada; los 177 perfiles HBM separados miden tráfico de memoria. Son estudios de los autores, no reproducciones independientes.",
+        "El modelo de energía usa el tiempo de decodificación observado. Una estimación prospectiva también requiere un modelo de duración validado por separado."
       ],
       "relationships": [],
-      "summary": "Un nuevo artículo de arXiv propone un modelo compacto de energía de GPU por token de salida para la decodificación densa de modelos de lenguaje con historial completo. Combina los bytes lógicos de pesos y de la caché KV por salida con el tiempo de decodificación observado, y calibra los coeficientes por modelo y configuración de hardware y software. En tres modelos BF16 sobre GPU GH200 y GB300, más una configuración de dos GH200, los autores informan estimaciones medias por condición a menos de 3.73% de la medición en 270 ejecuciones y 54 condiciones estáticas. En los rangos probados, lotes mayores usan menos energía media de GPU por salida útil, mientras que historiales más largos la elevan. Son ajustes declarados por los autores y específicos de cada configuración; no se han establecido una reproducción independiente, la energía de las instalaciones ni ahorros monetarios.",
+      "summary": "Un nuevo artículo de arXiv propone un modelo calibrado localmente para estimar la energía de la tarjeta GPU por salida útil en la decodificación densa con historial completo. Combina los bytes de pesos compartidos, los bytes del historial KV privado por solicitud y el tiempo de decodificación observado. Los autores informan 374 ejecuciones de energía retenidas en total: 270 pruebas estáticas en 54 condiciones (error máximo de 3.73% en las medias por condición) y 104 pruebas controladas con salida escalonada de solicitudes (todos los errores de las medias por condición por debajo de 1%). Otros 177 perfiles HBM examinan si las coordenadas lógicas de bytes reflejan las lecturas físicas. Los resultados cubren tres modelos BF16 y configuraciones GH200/GB300 específicas; no establecen reproducción independiente, coeficientes portátiles, energía de instalaciones ni ahorro monetario.",
       "technical": {
-        "claimed_result": "Las estimaciones retenidas del modelo quedan a menos de 3.73% de la energía GPU media medida por condición en 270 ejecuciones y 54 condiciones estáticas, para tres modelos BF16 en GH200/GB300 y dos GH200. En seis pares de modelo y GPU, los autores informan entre 33.2–46.8% menos energía media por salida útil con el lote probado más grande que con el más pequeño; con lote fijo, la energía aumenta al alargar el historial probado.",
-        "demonstrated_result": "El preprint primario documenta el modelo de bytes activos y tiempo de trabajo, el protocolo de medición y la validación declarada por los autores. esta revisión no reprodujo las mediciones ni validó su portabilidad.",
+        "claimed_result": "Para la decodificación BF16 densa con historial completo, los autores informan 374 ejecuciones de validación energética retenidas: 270 pruebas estáticas en 54 condiciones, con error máximo de 3.73% en las medias por condición, más 104 pruebas controladas de salida escalonada, cuyos errores por condición quedan todos por debajo de 1%. Por separado, 177 perfiles HBM examinan si los bytes activos reflejan las lecturas físicas. Las pruebas abarcan tres modelos y configuraciones GH200/GB300 específicas; no se ha establecido reproducción independiente ni un resultado a nivel de instalación.",
+        "demonstrated_result": "El artículo documenta el modelo local de trabajo y tiempo, su protocolo de medición y los resultados de validación informados por sus autores en cargas estáticas y pruebas controladas de salida escalonada. El subtotal estático es de 270 ejecuciones en 54 condiciones; otras 104 pruebas elevan el total a 374. Los 177 perfiles HBM evalúan por separado la correspondencia con las lecturas físicas. La investigación no reprodujo las mediciones ni validó la portabilidad de los coeficientes.",
         "mechanism": "El modelo estima la energía de GPU por token de salida como respuesta afín a los bytes de pesos densos amortizados por el tamaño efectivo del lote, los bytes del historial KV privado por salida y el tiempo transcurrido de decodificación por token útil. Los coeficientes se ajustan por estrato de modelo y hardware/software.",
         "regime": "Decodificación BF16 densa con historial completo para Qwen2.5-7B, Qwen2.5-14B y Mistral-7B en NVIDIA GH200 y GB300, más una configuración Qwen2.5-7B con dos GH200 y paralelismo tensorial. La evaluación informa medias retenidas por condición y ejecuciones repetidas; no se establece la portabilidad de los coeficientes.",
-        "reproducibility": "El artículo informa 270 ejecuciones en 54 condiciones estáticas y una transferencia entre dispositivos del mismo tipo; esta activación revisó el artículo completo y sus tablas, pero no ejecutó código. Una búsqueda acotada por título e ID de arXiv no ubicó scripts ni trazas de energía enlazados por los autores; eso no demuestra que no existan.",
+        "reproducibility": "El artículo describe 374 ejecuciones de validación energética retenidas (270 estáticas y 104 con salida escalonada) y otros 177 perfiles HBM. Esta activación examinó el texto completo y la descomposición de las cifras, pero no ejecutó código ni reprodujo mediciones. Una búsqueda acotada por título e ID de arXiv en la revisión canónica previa no encontró scripts ni trazas originales enlazados por los autores; eso no demuestra que no existan.",
         "strongest_baseline": "Dentro de cada modelo y GPU enumerados, el artículo compara la energía medida entre tamaños de lote e historiales y valida las predicciones en condiciones retenidas. Los resultados internos no comparan proveedores, calidad del modelo, energía de instalaciones ni costos totales del servicio."
       },
       "title": "Un artículo modela la energía GPU por token de salida a partir de bytes activos y tiempo de decodificación",
