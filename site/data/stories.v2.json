@@ -1,7 +1,7 @@
 {
   "schema": "fcmo-stories-v2",
-  "generated_at": "2026-10-21T10:35:03Z",
-  "release_id": "newswire-3e54472bd3b64f7025eb9b68",
+  "generated_at": "2026-10-21T12:12:12Z",
+  "release_id": "newswire-250349e82cdf1a44beb30c06",
   "canonical_locale": "en",
   "locales": [
     "en",
@@ -46,6 +46,248 @@
     "2026-10-20"
   ],
   "stories": [
+    {
+      "id": "FCMO-BA302BBC01CF",
+      "slug": "openai-alignment-proposes-complementary-metrics-for-monitorability-and",
+      "url_date": "2026-10-21",
+      "kind": "development",
+      "status": "live",
+      "beat": "research",
+      "desk": "evaluation_science",
+      "title": "OpenAI Alignment proposes complementary metrics for monitorability and monitor-gated risk",
+      "headline": "OpenAI Alignment proposes complementary metrics for monitorability and monitor-gated risk",
+      "dek": "An OpenAI Alignment post proposes pair-matched comparisons for monitorability and a post-control risk measure for systems that reject monitored outputs and retry.",
+      "summary": "An OpenAI Alignment post proposes pair-matched comparisons for monitorability and a post-control risk measure for systems that reject monitored outputs and retry. The authors report synthetic tests designed to expose selection effects and apply the methods to historical OpenAI system-card rollouts. Their article says pair matching still leaves behavior-class and difficulty differences unresolved. This review has not independently reproduced the analyses.",
+      "why_it_matters": "Monitorability comparisons can be distorted when models produce target behavior on different task subsets, while a monitor's deployment effect also depends on retries and on whether anything is ultimately deployed. If the proposed measures prove useful on external data, they could change how safety evaluations compare models and describe monitor-gated deployment risk. The evidence here is one lab-authored methods post and its historical-data analysis, not an independent validation or a universal metric standard.",
+      "importance_rationale": "If useful beyond the authors’ historical-card analysis, the metrics could change evaluation design by exposing model-dependent task selection and distinguishing residual bad-output risk from the probability that a monitor-gated system deploys any output. This is a meaningful evaluation-method contribution; general validity and behavior-class control remain open.",
+      "technical": {
+        "claimed_result": "Authors report reduced sensitivity to model-dependent instance selection in synthetic tests, broadly similar pair-matched and dataset-level rankings on historical system-card data, and post-control estimates showing that retries can restore some risk removed by monitor gating in the analyzed rollouts.",
+        "demonstrated_result": "The official post documents the proposed metrics, their estimands and the authors' analyses. It does not establish an independently reproduced or externally validated improvement in monitorability or safety.",
+        "mechanism": "The pair-matched method calculates relevant monitorability components on task instances supported by both model configurations, then fits model scores from supported pairwise differences with inverse-variance-weighted HodgeRank. The post-control metric estimates bad, clean and no-deployment outcomes when monitored outputs can be rejected and retried up to K attempts.",
+        "regime": "Official OpenAI Alignment methods post, published Oct 20, 2026. Historical analysis covers seven OpenAI agent-model configurations and a consistent monitor configuration, using system-card rollouts and 500 deterministic hierarchical bootstrap replicates. Synthetic experiments vary capability while holding a known monitorability ordering fixed. Post-control analyses model monitor-gated rejection sampling with finite rollout pools and retry budgets including K=1 and K=4. External models, deployments and independent analyses are untested.",
+        "reproducibility": "The article describes its equations, simulation design, historical system-card datasets and analysis choices. This bounded review did not locate an independent reproduction or execute an artifact during this bounded review.",
+        "strongest_baseline": "Dataset-level g-mean² is retained as the primary per-model measure; pair-matched estimates and post-control risk are proposed as complementary views answering different questions. The post also compares a magnitude-aware HodgeRank summary with a matched Bradley–Terry prototype in synthetic experiments."
+      },
+      "importance_tier": "Meaningful",
+      "development_type": "technical_report",
+      "event_at": "2026-10-20T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-21T12:11:50Z",
+      "updated_at": "2026-10-21T12:11:50Z",
+      "importance": 4,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": true,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "CLAIMED",
+            "text": "The authors propose pair-matched monitorability metrics that compare models on shared evaluation instances and use inverse-variance-weighted HodgeRank to summarize supported pairwise differences; they present the method as complementary to dataset-level g-mean²."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "In synthetic experiments with known monitorability orderings, the authors report that pair-matched HodgeRank remains closer to the designed ordering as model-dependent task selection changes, while dataset-level g-mean² becomes more sensitive to the differing instance mix."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "The authors apply pair-matched metrics to historical OpenAI system-card rollouts for seven agent-model configurations and report that pair-matched and dataset-level orderings generally agree, with disagreements highlighting selection sensitivity or small differences."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "For outcome and process evaluations, the authors define a post-control measure that estimates bad-output probability, deployment probability and the fraction of deployed outputs that are bad when a monitor rejects outputs and the system retries up to a specified budget; they report that retries can restore some risk removed by gating in their analyzed data."
+          },
+          {
+            "label": "NOT_ESTABLISHED",
+            "text": "The post does not establish that the proposed metrics generalize to external models, monitor datasets or deployment settings, nor that they predict real-world harm or safety outcomes."
+          }
+        ],
+        "limitations": [
+          "All empirical findings described here are OpenAI-authored simulation and historical system-card analyses; This review did not independently reproduce or validate them.",
+          "Pair matching reduces model-dependent instance-mixture bias but does not ensure the models produce behavior of equal class or difficulty on a shared task.",
+          "The historical analysis uses seven OpenAI agent-model configurations and is not external validation; the article excludes a model evaluated with a different monitor from its pairwise comparison.",
+          "Post-control risk depends on behavior prevalence, monitor, retry budget and deployment policy; process-evaluation results use only positive-behavior rollouts and are not the model's full output mix.",
+          "Intervention post-control risk is not reported because the source cannot identify which individual positive outcomes were caused by the intervention."
+        ],
+        "gaps": [
+          {
+            "kind": "missing_independent",
+            "description": "The synthetic results and historical-system-card reanalysis have not been independently reproduced or checked against an external monitor dataset."
+          },
+          {
+            "kind": "other",
+            "description": "Matching task instances does not control for models producing behavior of different classes, severity or judging difficulty; the authors identify this as a next step."
+          },
+          {
+            "kind": "regime_unclear",
+            "description": "The post-control analysis uses finite historical rollout pools and assumes retries begin from the original context without feedback about prior rejections; deployed retry systems may differ."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://alignment.openai.com/beyond-gmean-squared/",
+          "domain": "alignment.openai.com",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "OpenAI"
+      ],
+      "topics": [],
+      "regions": [
+        "GLOBAL"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-BA302BBC01CF.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: OpenAI Alignment proposes complementary metrics for monitorability and monitor-gated risk"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "OpenAI Alignment propone métricas complementarias para la monitorabilidad y el riesgo con filtrado y reintentos",
+            "summary": "Una publicación de OpenAI Alignment propone comparaciones con pares emparejados para medir la monitorabilidad y una medida de riesgo posterior al control para sistemas que rechazan respuestas marcadas por un monitor y vuelven a intentarlo. Los autores informan pruebas sintéticas diseñadas para revelar efectos de selección y aplican los métodos a respuestas históricas de tarjetas de sistema de OpenAI. El artículo indica que emparejar instancias aún deja sin resolver las diferencias de clase y dificultad de comportamiento. Esta revisión no reprodujo los análisis de forma independiente.",
+            "importance_rationale": "Si resultan útiles más allá del análisis histórico de tarjetas de sistema de los autores, estas métricas podrían cambiar el diseño de evaluaciones al revelar la selección de tareas dependiente del modelo y distinguir el riesgo residual de respuestas no deseadas de la probabilidad de que un sistema con monitor despliegue alguna salida. Es un aporte metodológico significativo para la evaluación; su validez general y el control por clase de comportamiento siguen abiertos.",
+            "why_it_matters": "Las comparaciones de monitorabilidad pueden distorsionarse cuando los modelos producen el comportamiento objetivo en distintos subconjuntos de tareas; además, el efecto de despliegue de un monitor depende de los reintentos y de si finalmente se entrega alguna salida. Si las medidas propuestas funcionan con datos externos, podrían cambiar la forma de comparar evaluaciones de seguridad y describir el riesgo de despliegues con monitor. La evidencia aquí consiste en un método y análisis de datos históricos elaborados por un solo laboratorio, no en una validación independiente ni en una métrica de aceptación universal.",
+            "technical": {
+              "claimed_result": "Los autores informan menor sensibilidad a la selección de instancias dependiente del modelo en pruebas sintéticas, ordenamientos generalmente similares entre pares emparejados y por conjunto de datos en datos históricos de tarjetas de sistema, y estimaciones posteriores al control que muestran que los reintentos pueden devolver parte del riesgo reducido por el filtrado en las respuestas analizadas.",
+              "demonstrated_result": "La publicación oficial documenta las métricas propuestas, sus estimandos y los análisis de los autores. No demuestra una mejora en monitorabilidad o seguridad que se haya reproducido de forma independiente o validado externamente.",
+              "mechanism": "El método de pares emparejados calcula los componentes pertinentes de monitorabilidad sobre instancias de tareas respaldadas para ambas configuraciones de modelo y luego ajusta puntuaciones a partir de las diferencias por pares respaldadas mediante HodgeRank ponderado por la inversa de la varianza. La medida posterior al control estima los resultados de salida no deseada, salida limpia o ausencia de despliegue cuando el monitor puede rechazar respuestas y volver a intentarlo hasta K veces.",
+              "regime": "Publicación metodológica del sitio oficial de OpenAI Alignment, del 20 de octubre de 2026. El análisis histórico abarca siete configuraciones de modelos agentes de OpenAI y una configuración de monitor coherente, con respuestas de tarjetas de sistema y 500 réplicas deterministas de bootstrap jerárquico. Los experimentos sintéticos varían la capacidad manteniendo fijo un orden conocido de monitorabilidad. Los análisis posteriores al control modelan muestreo con rechazo y presupuestos de reintentos que incluyen K=1 y K=4. No se prueban modelos, despliegues ni análisis independientes externos.",
+              "reproducibility": "El artículo describe sus ecuaciones, el diseño de la simulación, los datos de tarjetas de sistema históricos y las decisiones analíticas. Esta revisión acotada no encontró una reproducción independiente ni ejecutó un artefacto.",
+              "strongest_baseline": "Se conserva g-mean² por conjunto de datos como medida principal para cada modelo; las estimaciones por pares emparejados y el riesgo posterior al control se proponen como perspectivas complementarias que responden preguntas distintas. En los experimentos sintéticos, la publicación también compara el resumen HodgeRank, que conserva la magnitud, con un prototipo Bradley–Terry de pares emparejados."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "Los autores proponen métricas de monitorabilidad con comparación por pares emparejados: comparan modelos sobre instancias de evaluación compartidas y usan HodgeRank ponderado por la inversa de la varianza para resumir las diferencias por pares respaldadas; presentan el método como complemento del g-mean² por conjunto de datos."
+                },
+                {
+                  "text": "En experimentos sintéticos con ordenamientos de monitorabilidad conocidos, los autores informan que HodgeRank con pares emparejados se mantiene más cerca del orden diseñado cuando cambia la selección de tareas según el modelo, mientras que g-mean² por conjunto de datos se vuelve más sensible a las distintas mezclas de instancias."
+                },
+                {
+                  "text": "Los autores aplican métricas con pares emparejados a datos históricos de tarjetas de sistema de OpenAI para siete configuraciones de modelos agentes e informan que los ordenamientos con pares emparejados y por conjunto de datos suelen coincidir; las discrepancias revelan sensibilidad a la selección o diferencias pequeñas."
+                },
+                {
+                  "text": "Para evaluaciones de resultados y de procesos, los autores definen una medida posterior al control que estima la probabilidad de una salida no deseada, la probabilidad de desplegar una salida y la fracción de salidas desplegadas que son no deseadas cuando un monitor rechaza respuestas y el sistema vuelve a intentarlo hasta un presupuesto especificado; informan que, en los datos analizados, los reintentos pueden devolver parte del riesgo reducido por el filtrado."
+                },
+                {
+                  "text": "La publicación no demuestra que las métricas propuestas se generalicen a modelos, conjuntos de datos de monitores o entornos de despliegue externos, ni que predigan daños o resultados de seguridad en el mundo real."
+                }
+              ],
+              "limitations": [
+                "Todos los hallazgos empíricos descritos proceden de simulaciones y análisis de tarjetas de sistema realizados por OpenAI; esta revisión no los reprodujo ni validó de manera independiente.",
+                "El emparejamiento reduce el sesgo por mezcla de instancias dependiente del modelo, pero no garantiza que los modelos produzcan comportamientos de igual clase o dificultad en una misma tarea.",
+                "El análisis histórico usa siete configuraciones de modelos agentes de OpenAI y no constituye validación externa; el artículo excluye de la comparación por pares a un modelo evaluado con otro monitor.",
+                "El riesgo posterior al control depende de la prevalencia del comportamiento, el monitor, el presupuesto de reintentos y la política de despliegue; los resultados de evaluaciones de procesos usan solo respuestas con comportamiento positivo y no representan la mezcla completa de salidas del modelo.",
+                "No se informa el riesgo posterior al control para evaluaciones de intervención porque la fuente no puede identificar qué resultados positivos individuales fueron causados por la intervención."
+              ],
+              "gaps": [
+                {
+                  "description": "Los resultados sintéticos y el nuevo análisis de tarjetas de sistema históricas no se han reproducido de forma independiente ni comprobado con un conjunto de datos externo de monitores."
+                },
+                {
+                  "description": "Emparejar instancias de tareas no controla que los modelos produzcan comportamientos de distinta clase, gravedad o dificultad de evaluación; los autores señalan este punto como trabajo futuro."
+                },
+                {
+                  "description": "El análisis posterior al control usa conjuntos finitos de respuestas históricas y supone que los reintentos comienzan con el contexto original, sin informar al modelo de rechazos previos; los sistemas desplegados pueden diferir."
+                }
+              ]
+            },
+            "dek": "Una publicación de OpenAI Alignment propone comparaciones con pares emparejados para medir la monitorabilidad y una medida de riesgo posterior al control para sistemas que rechazan respuestas marcadas por un monitor y vuelven a intentarlo."
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "OpenAI Alignment提出用于可监控性和监控门控后风险的补充指标",
+            "summary": "OpenAI Alignment的一篇文章提出用成对匹配比较模型可监控性，并以控制后风险指标衡量拒绝被监控器拦截的输出后继续重试的系统。作者报告了旨在揭示选择效应的合成测试，并将这些方法应用于OpenAI历史系统卡的输出数据。文章指出，仅匹配实例仍无法解决行为类别和难度差异。本次审查未独立复现这些分析。",
+            "importance_rationale": "如果这些指标在作者的历史系统卡分析之外也有用，它们可能改变评估设计，揭示与模型相关的任务选择，并区分剩余有害输出风险与监控系统最终部署任意输出的概率。这是一项对评估设计有实际意义的方法贡献，但其普遍有效性以及对行为类别的控制仍待验证。",
+            "why_it_matters": "当不同模型只在不同任务子集上产生目标行为时，可监控性比较可能受到扭曲；监控器对部署的影响也取决于重试次数以及最终是否部署任何输出。如果这些指标能在外部数据上成立，它们可能改变安全评估中的模型比较方式，以及对监控门控部署风险的描述。此处证据来自单一实验室撰写的方法文章及其历史数据分析，并非独立验证，也不是普遍认可的指标标准。",
+            "technical": {
+              "claimed_result": "作者报告称，合成测试中模型相关实例选择造成的敏感性有所降低；历史系统卡数据中的成对匹配排序与数据集级排序大体相似；在分析的输出样本中，重试会使监控过滤降低的部分风险回升。",
+              "demonstrated_result": "官方文章记录了所提指标、其估计目标以及作者的分析，但没有证明可监控性或安全性得到独立复现或外部验证的提升。",
+              "mechanism": "成对匹配方法在两种模型配置都支持的任务实例上计算相关可监控性分量，再通过逆方差加权HodgeRank拟合有数据支持的成对差异所对应的模型分数。控制后指标则估计监控器拒绝输出并最多重试K次时，出现有害输出、干净输出或没有输出部署的结果。",
+              "regime": "OpenAI Alignment官方网站发布的方法文章，发布日期为20 Oct 2026。历史分析涵盖七种OpenAI代理模型配置和一致的监控器配置，使用系统卡输出及500次确定性分层bootstrap复样。合成实验在保持已知可监控性排序不变的同时改变模型能力。控制后分析模拟监控门控的重试采样，重试预算包括K=1和K=4。未检验外部模型、部署或独立分析。",
+              "reproducibility": "文章描述了方程、模拟设计、历史系统卡数据和分析选择。本次有界审查未找到独立复现，也未运行相关工件。",
+              "strongest_baseline": "数据集级g-mean²仍是每个模型的主要指标；成对匹配估计和控制后风险作为回答不同问题的补充视角。文章还在合成实验中比较了保留差异幅度的HodgeRank汇总与成对匹配Bradley–Terry原型。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "作者提出成对匹配的可监控性指标：在共享评估实例上比较模型，并使用逆方差加权HodgeRank汇总有数据支持的成对差异；他们将该方法定位为数据集级g-mean²的补充。"
+                },
+                {
+                  "text": "在监控能力排序已知的合成实验中，作者报告称，随着模型相关任务选择发生变化，成对匹配HodgeRank仍更接近预设排序，而数据集级g-mean²对不同实例组合变得更敏感。"
+                },
+                {
+                  "text": "作者将成对匹配指标应用于OpenAI历史系统卡中的七种代理模型配置，并报告称，成对匹配排序与数据集级排序总体一致；两者分歧揭示了选择敏感性或很小的差异。"
+                },
+                {
+                  "text": "对于结果评估和过程评估，作者定义了一个控制后指标：当监控器拒绝输出且系统在指定重试预算内再次尝试时，估计有害输出的概率、部署任意输出的概率，以及已部署输出中有害输出的比例；作者报告称，在其分析的数据中，重试会使监控过滤降低的部分风险回升。"
+                },
+                {
+                  "text": "该文没有证明所提指标可推广到外部模型、监控数据集或部署环境，也没有证明其能够预测现实世界的危害或安全结果。"
+                }
+              ],
+              "limitations": [
+                "这里描述的所有实证发现均来自OpenAI制作的模拟和历史系统卡分析；本次审查未独立复现或验证这些发现。",
+                "成对匹配能减少与模型相关的实例组合偏差，但不能确保不同模型在同一任务上产生的行为类别或难度相同。",
+                "历史分析使用OpenAI的七种代理模型配置，并非外部验证；文章排除了使用不同监控器评估的一个模型，没有将其纳入成对比较。",
+                "控制后风险取决于行为发生率、监控器、重试预算和部署策略；过程评估结果仅使用出现目标行为的输出，并不代表模型完整的输出组合。",
+                "文章未报告干预评估的控制后风险，因为来源无法识别哪些单独的正向结果由干预造成。"
+              ],
+              "gaps": [
+                {
+                  "description": "尚未有人独立复现合成结果和历史系统卡再分析，也未使用外部监控数据集检验。"
+                },
+                {
+                  "description": "匹配任务实例并不能控制模型所产生行为在类别、严重程度或判断难度上的差异；作者将此列为下一步工作。"
+                },
+                {
+                  "description": "控制后分析使用有限的历史输出样本，并假设重试始终从原始上下文开始、不会获得先前被拒信息；实际部署的重试系统可能不同。"
+                }
+              ]
+            },
+            "headline": "OpenAI Alignment提出用于可监控性和监控门控后风险的补充指标",
+            "dek": "OpenAI Alignment的一篇文章提出用成对匹配比较模型可监控性，并以控制后风险指标衡量拒绝被监控器拦截的输出后继续重试的系统。作者报告了旨在揭示选择效应的合成测试，并将这些方法应用于OpenAI历史系统卡的输出数据。文章指出，仅匹配实例仍无法解决行为类别和难度差异。本次审查未独立复现这些分析。"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
     {
       "id": "FCMO-581885E6842F",
       "slug": "a-paper-models-gpu-energy-per-output-token-from-active-bytes-and-decode",
