@@ -60,7 +60,13 @@ class BareRemote(integration.StudioIntegration):
     def setUp(self):
         super().setUp()
         self.bare = self.root / 'publication.git'
-        subprocess.run(['git', 'clone', '--bare', '--quiet', str(self.root / 'remote'), str(self.bare)], check=True)
+        # --no-local: a path clone otherwise hardlinks/copies the source's loose
+        # objects directly (copy_or_link_directory). CI intermittently failed there
+        # ("fatal: failed to copy file to .../objects/xx/...: No such file or
+        # directory", exit 128) right after the fixture commit. Transporting over
+        # the pack protocol builds the bare repo from the source's refs and objects
+        # without touching its object directories.
+        subprocess.run(['git', 'clone', '--bare', '--no-local', '--quiet', str(self.root / 'remote'), str(self.bare)], check=True)
         git(self.bare, 'tag', '-f', 'lkg', 'main')
         clone = self.store.data / 'clone'
         git(clone, 'remote', 'set-url', 'origin', str(self.bare))
