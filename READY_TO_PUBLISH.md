@@ -14,13 +14,13 @@ Status: **the deterministic A3 publication candidate is assembled and measurable
 
 ## Final route/data manifest
 
-- `data/routes.json`: 4956 routes; SHA-256 `6b68a8f07a36ca0ea93fc05ea98f55f92c8936a7e15ef7c4f52727322d1fc1f0`
+- `data/routes.json`: 4956 routes; SHA-256 `ae4d0a2d5abfbbb548157d4ec24d88820d5a7bf191e8f56972593260dab10042`
 - Route locales: en=1652, es-419=1652, zh-Hans=1652
 - Route kinds: about=3, agenda=3, archive=3, author=3, beat=15, community=3, correction=9, corrections=3, edition=117, feeds=3, front=3, guide=3, landing=3, legal=9, letters=3, method=3, org=2352, search=3, status=3, story=1872, subscribe=15, topic=525
 - Story routes: 1872 for 624 live canonical stories
 - Embedded `data/stories.v2.json`: byte-identical to the Story layer; SHA-256 `0d05ce6fa7163e177d238731c814ec512c65fd049b1dfbc0c870c5aa4462ab54`
-- Embedded `data/newsroom-status.json`: byte-identical to newsroom status; SHA-256 `a1159c3c92bb0e8f4fe1f3043c7726e1e4ee8c35dd5e9131264d9fa94d333d01`
-- Candidate tree: 17915 files, including 1881 local story-media files; SHA-256 `cb13848238842443e35d7fe4c8b49cd4366807cb7d172fb19fb8908fa1216b1e`
+- Embedded `data/newsroom-status.json`: byte-identical to newsroom status; SHA-256 `82bdab5c1d5f81a0b66325c66dcfbf635fe498d46840da9851f6f486acdc2956`
+- Candidate tree: 17915 files, including 1881 local story-media files; SHA-256 `98cb19313f6f61bc708a13ee80e34bbd33ac18e523859cd398c3b76f05585b9a`
 
 ## Verification boundary
 
