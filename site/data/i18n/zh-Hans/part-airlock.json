@@ -1,6 +1,6 @@
 {
   "canonical_locale": "en",
-  "canonical_source_sha256": "021d9ec91374f6074cd52a15a67a00643284612667444a443b12091afa911ead",
+  "canonical_source_sha256": "43afa9170c9f1f68d7bb571c34518b8194d886f9a5f9882bb88351796b7dd759",
   "generated_from": "ARB airlock; editorial wording authored upstream",
   "locale": "zh-Hans",
   "records": {
@@ -8555,6 +8555,71 @@
       "title": "Anthropic称选举测试发现协调式滥用漏洞，并宣布加强防护",
       "why_it_matters": "如果过滤器只逐条评估请求，攻击者把协调式选举滥用拆分成看似正常的任务时，系统可能无法识别。Anthropic称合作方测试发现了这一失效方式，并介绍了新增分类器，同时宣布将接入官方投票信息。这是具有现实影响的防护更新，但证据仍来自企业自身报告：合作方的详细测试和缓解措施的效果均未独立核实，公民信息功能仍处于计划阶段。"
     },
+    "FCMO-3C5D5B5048CB": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "作者提出噪声下规划方法 PUN：它从部分收敛的 Walk-on-Stars 蒙特卡洛标签中学习受几何条件约束的期望值场，并通过有界局部搜索，在控制执行噪声下进行重规划。其推导依赖控制与噪声相匹配的假设。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "在4D重规划基准中，PUN报告的成功率依次为100%、100%、100%和95%，对应噪声水平 λ=0.25、1、2和4；每个起点的耗时分别为10.63、10.51、10.55和11.66 ms/start。λ=4时，A*基线成功率为59.17%，每个起点耗时62.44 ms/start；其他基线报告的成功率更低、耗时更长。这些是论文报告的几何模拟结果；PUN在GPU上计时，基线在CPU上计时。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "附录D.1称，各重规划方法使用相同的已保存环境—目标查询和高斯噪声序列；4D测试集有480张地图，每张地图三个目标、每个目标一个起点。作者每个维度只评估一个训练模型，并报告按地图重采样所得区间；没有报告多个训练随机种子的结果。"
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION",
+          "text": "论文指出，实验不包含完整的带接触机器人模型，限于控制与噪声相匹配的情形，并且对抗性迷宫仍然困难。论文还说明，反射边界价值场是在把碰撞计为失败的轨迹中评估的；这并非该执行模型对应的精确价值函数。"
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "本次审查未能确认独立复现、经过验证的代码制品、实体机器人评测、带接触操作结果，或超出控制—噪声匹配几何基准的迁移效果。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "4D基准及其成功率和耗时尚无独立复现；论文每个维度也只评估一个训练模型。",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "控制与噪声相匹配的核心假设，以及把碰撞计为失败的执行评测，限制了向真实机器人动力学的迁移。",
+          "kind": "regime_unclear",
+          "state": "open"
+        },
+        {
+          "description": "公开的耗时比较使用B200 GPU运行PUN，使用CPU运行基线。",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "若报告的提升能推广到所研究几何基准和控制—噪声匹配条件以外，按几何条件学习的神经价值场可能降低高维随机规划成本，无需对每个实例单独求解偏微分方程。这对机器人研究具有潜在价值，但实体部署、带接触机器人和向其他条件的迁移尚未得到证实。",
+      "limitations": [
+        "筛选泊松方程的推导要求控制与噪声相匹配；实验也限于作者认为该假设合理的设置。",
+        "没有完整的带接触机器人模型或实体机器人试验；向带接触操作的迁移仍未评估。",
+        "作者指出，迷宫等对抗性几何仍有挑战，因为长走廊可能造成微弱或未充分解析的学习梯度。",
+        "价值场按反射边界推导，而实验把障碍物碰撞计为失败；作者指出该场并非这种执行模型的精确价值函数。",
+        "附录D.1仅报告每个维度一个训练模型；地图重采样区间估计的是查询集不确定性，不能说明训练随机种子差异或独立复现。",
+        "表5以GPU上的PUN耗时对比CPU基线；硬件和实现不同，因此耗时比值并非硬件归一化比较。",
+        "本次有界搜索未发现官方制品或独立复现；搜索未发现并不能证明其不存在。"
+      ],
+      "relationships": [],
+      "summary": "一篇新预印本介绍了噪声下规划方法 PUN：该神经算子把障碍物几何、目标、代价和噪声映射为期望值场，再以有界局部搜索引导随机重规划。作者在4D几何基准上报告，四种噪声水平下成功率为95–100%，每个起点耗时10.51–11.66 ms/start。论文称各比较方法使用相同的已保存测试查询和噪声序列；但 PUN 在 B200 GPU 上计时，基线则采用更快的 CPU 实现。每个维度只评估了一个训练模型。该方法依赖控制与噪声相匹配的假设，不包含完整的接触机器人模型，在对抗性迷宫中仍有困难。这些是作者报告、尚未独立核实的结果，并非机器人实地能力的证明。",
+      "technical": {
+        "claimed_result": "4D重规划表在 λ=0.25、1、2、4时报告95–100%的成功率，每个起点耗时10.51–11.66 ms/start。λ=4时，作者报告PUN成功率95%，A*为59.17%、Dijkstra为59.17%、RRT为85.83%、MPPI为71.67%、PI²-CMA为78.33%。对应耗时依次为11.66 ms/start，以及62.44、59.39、38.31、374.83和356.72 ms/start。",
+        "demonstrated_result": "第一方预印本证明作者发表了该方法、评测协议和所报告的基准数值。研究团队未独立核实这些数值，也未运行该方法。",
+        "mechanism": "PUN在可线性求解的随机控制条件下推导筛选泊松期望值问题，在障碍物处使用反射型 Neumann 条件、在目标处使用 Dirichlet 边界；将 Walk-on-Stars 监督扩展到更高维，用有噪且部分收敛的标签训练傅里叶神经算子，再对预测场进行有界局部搜索，执行一小段路径后重新规划。",
+        "novelty": "把反射边界的 Walk-on-Stars 标签、跨几何神经算子摊销和有界局部搜索结合起来，用于引导随机重规划；这里最重要的证据是作者报告的4D基准结果，而非实体部署。",
+        "regime": "合成几何随机路径规划基准，覆盖2D至4D。4D重规划测试有480张地图，每张三个目标、每个目标一个起点；所有比较方法使用相同的已保存查询和噪声序列。论文每个维度报告一个训练模型。专门化动力学假设与控制代价匹配的各向同性噪声（Σ=λI）；碰撞和越过外边界均计为失败。",
+        "reproducibility": "预印本详细说明了基准与计时协议，报告按地图配对重采样区间，并使用配对查询和噪声序列，但每个维度仅评估一个训练模型。按论文标题和arXiv编号搜索并检查论文后，未发现官方代码制品或独立复现。研究团队没有运行代码，也没有复现结果。",
+        "strongest_baseline": "λ=4的4D测试中，RRT是表内成功率最接近的方法：85.83%，PUN为95%；RRT每个起点耗时38.31 ms/start，PUN为11.66 ms/start。表中基线计时均使用CPU，因为其CPU实现快于GPU实现；PUN则使用GPU，因此耗时比较受设备与实现影响。较低噪声时A*是重要对照：λ=0.25时成功率100%，λ=1时为96.67%。"
+      },
+      "title": "PUN在2D至4D几何基准上报告了抗噪规划结果",
+      "why_it_matters": "学习到的全局价值场结合测试时有界搜索，可能降低高维空间随机规划对逐实例求解偏微分方程的依赖。该基准结果对机器人规划研究有参考价值，但能否迁移取决于严格的控制与噪声匹配条件，目前也没有在带接触的实体机器人上评估。GPU与CPU之间的耗时比较未按硬件统一。"
+    },
     "FCMO-3CE4BEB693AD": {
       "claims": [
         {
@@ -12654,6 +12719,69 @@
       },
       "title": "DART报告循环推理模型在由易到难任务上的准确率提升",
       "why_it_matters": "如果能够复现，分布式对抗监督可能帮助紧凑型循环模型在测试问题变难时维持有效的结构化解答。证据仅涉及论文选取的迷宫、国际象棋和数独设置；在国际象棋上，单独使用DART仍未能避免后期迭代准确率下降。"
+    },
+    "FCMO-581885E6842F": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "作者提出一种估算密集型全历史解码中每个输出令牌 GPU 板级能耗的模型。模型结合由实际批量分摊的逻辑密集权重字节数、每个请求私有的 KV 历史字节数和实测解码时间；系数按模型及硬件/运行时配置分别拟合。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "对于 NVIDIA GH200 和 GB300 上 Qwen2.5-7B、Qwen2.5-14B、Mistral-7B 的 BF16 解码，以及双 GH200 张量并行的 Qwen2.5-7B 配置，作者报告称，在270次执行和54个静态条件下，留出条件均值能耗估计与测量值的差异均不超过3.73%。设备迁移条件沿用源设备系数。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "在论文测试范围内的六组单 GPU 模型—平台组合中，在模型和历史长度相同的条件下，作者测得最大测试批量的每个有效输出平均板级能耗比最小批量低33.2–46.8%；固定批量时，测试历史越长，测得的平均能耗越高。"
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION",
+          "text": "论文研究的是三种模型在 NVIDIA Hopper/Blackwell GPU 上的密集型 BF16 全历史解码。系数按模型及硬件/运行时配置校准，测量边界为 GPU 板卡；论文没有证明机房能耗或货币成本。"
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "本次论文审查未能确认独立复现、可移植的系数、机房级能耗结果或普遍的服务成本下降。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "该模型报告的系数和留出预测尚无独立复现；所述3.73%最大误差是在作者选择的配置与条件均值范围内得出。",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "测量边界仅为 GPU 板卡能耗；模型针对密集型全历史 BF16 解码，不涵盖预填充、机房开销或所有服务架构。",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "有界制品搜索未找到作者链接的测量脚本或原始能耗轨迹。",
+          "kind": "missing_artifact",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "如果该关系能推广至相近的密集型解码部署，那么在批量和上下文变化时估算 GPU 板级能耗，可能改善推理效率对比和运营决策。大规模服务中的潜在影响具有实际意义，但验证仅覆盖少量模型和 Hopper/Blackwell 配置，并未证明机房级节能。",
+      "limitations": [
+        "论文结果由作者报告，尚无独立复现。",
+        "该模型估算密集型全历史 BF16 解码的 GPU 板级能耗，不测量机房能耗、预填充阶段或端到端货币成本。",
+        "能耗模型系数按模型及硬件/运行时配置校准；未经验证不得视为通用或可迁移。",
+        "评测包括 GH200 和 GB300 上的三种模型，以及双 GH200 配置；其他架构、工作负载和硬件尚未测试。",
+        "所报告的留出误差是作者设计中各条件均值的比较，不代表域外预测精度或生产节省。",
+        "本次有界搜索未找到作者链接的复现制品或独立复现；搜索未发现并不能证明其不存在。"
+      ],
+      "relationships": [],
+      "summary": "一篇新 arXiv 论文提出一种紧凑模型，用于估算密集型全历史大语言模型解码中每个输出令牌的 GPU 板级能耗。模型将每个输出对应的逻辑权重字节数、KV 缓存字节数与实测解码时间结合，并针对不同模型及硬件/运行时配置分别校准系数。作者报告称，在 GH200 和 GB300 上三种 BF16 模型以及双 GH200 配置中，270次执行、54个静态条件的留出条件均值估计与测量值相差不超过3.73%。在测试范围内，较大批量的每个有效输出平均板级能耗更低，而较长历史会提高能耗。这些是按配置拟合的作者报告结果；独立复现、机房能耗及货币节省尚未得到证实。",
+      "technical": {
+        "claimed_result": "在三种 BF16 模型的 GH200/GB300 测试以及双 GH200 配置中，模型对270次执行、54个静态条件的留出条件均值能耗估计与实测值相差不超过3.73%。在六组单 GPU 模型—平台组合中，作者报告最大测试批量的每个有效输出平均板级能耗低于最小批量33.2–46.8%；批量固定时，测试历史越长，能耗越高。",
+        "demonstrated_result": "第一方预印本记录了活动字节/工作时间模型、测量协议和作者报告的验证结果。本次审查 未复现测量，也未验证其可迁移性。",
+        "mechanism": "模型将每个输出令牌的 GPU 板级能耗表示为仿射响应，输入包括按实际批量分摊的密集权重字节数、每个输出对应的私有 KV 历史字节数，以及每个有效输出令牌的实测解码时间。系数按模型及硬件/运行时分层拟合。",
+        "regime": "NVIDIA GH200 和 GB300 上 Qwen2.5-7B、Qwen2.5-14B、Mistral-7B 的密集型全历史 BF16 解码，另有双 GH200 上 Qwen2.5-7B 的张量并行配置。评测报告了留出条件均值和重复执行；系数能否迁移至测试外配置尚未确定。",
+        "reproducibility": "论文报告了54个静态条件下270次执行，以及一项同型号设备迁移试验。本次激活阅读了全文相关章节和表格，但未运行代码。按精确标题和 arXiv 编号进行的有界制品搜索未找到作者链接的脚本或原始能耗轨迹；这不能证明制品不存在。",
+        "strongest_baseline": "对于列出的每种模型和 GPU，论文比较不同批量与历史长度下的实测板级能耗，并在留出条件上验证预测。该研究内部结果没有比较不同供应商、模型质量、机房能耗或总服务成本。"
+      },
+      "title": "论文根据活动字节和解码时间建立每个输出令牌的 GPU 能耗模型",
+      "why_it_matters": "批量大小和上下文长度会共同影响推理能耗，而令牌数量本身无法描述每个输出所需的工作量和时间。如果能在真实服务条件下独立复现，该模型可让硬件和批量效率对比更有依据。目前证据是作者报告的特定配置 GPU 板级研究，不能用于普遍预测能耗或成本。"
     },
     "FCMO-583DA2C1C81C": {
       "claims": [
@@ -39742,6 +39870,48 @@
         "source_sha256": "a703b2e4e327c1a4d1695f353f2931fbad27abbb47aef2e444e216d8c31bf5f1"
       }
     },
+    "FCMO-3C5D5B5048CB": {
+      "claims": {
+        "locale_sha256": "af85d0c22dc4da8a591b4f1f6ec9a922c9696dc988868880385f51cd8ddcf034",
+        "source_sha256": "580fa9ba8515a8f824ce2f55b5388ae58494f5c25d978f36ed10d0b7bba704be"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "43720db16426ed81a40c9be16a6aa4a55c65c614a89ec25cf124b20d4d939633",
+        "source_sha256": "422b85285120e0df682404c820292fcf40a8cfc5a6c082f6de2c80cba002e32b"
+      },
+      "importance_rationale": {
+        "locale_sha256": "c9454e29803614fcf2fe114e2db88c5865b1efca2af04752b202a18e02911204",
+        "source_sha256": "29bfe80a517a11094dc42ccf1c3d3a8b279da579bbd23d984d4f671d3e1bbca8"
+      },
+      "limitations": {
+        "locale_sha256": "8f8a97ce10207acd612cffd8ced9f451495efac597e3d3326e30fddb6f72c866",
+        "source_sha256": "fe3cd7f8c729d2ea55bb41c0cfe094d417c0e4e6e6ae4248cd745f67bcf77611"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "06190190b4bda060195bea697f0b752dadf90ce3fdd2c5f64e8615b98a049f10",
+        "source_sha256": "1371743191e7f3d8ce8a15e25f5b86ef1c60ed573e03fb1ec10c4323b60533d1"
+      },
+      "technical": {
+        "locale_sha256": "722dadbc96b2f1d1a69ee237f5f93b659345f52d08bde49759ebb337bba4839a",
+        "source_sha256": "415e7f434802d8fa50ca53761722f1891866a30e8e090a247aa9ddd62b9cede9"
+      },
+      "title": {
+        "locale_sha256": "e6b8bd74e5a2adc7cbb6b20a804e9a3b8d97328b1615459fcd8628703eb54016",
+        "source_sha256": "288184fbc108aca88985de6627997530c721fc9a32ec8aaf93cc7e9d650662e4"
+      },
+      "why_it_matters": {
+        "locale_sha256": "e245066839f0ea4e8667bba212d418c1daea64cd3e6f3d77c0ff5732f98785fd",
+        "source_sha256": "9a874f727f84279a0d00f508be9e36add22c8d9adff0e223be75a4c9a51e4a73"
+      }
+    },
     "FCMO-3CE4BEB693AD": {
       "claims": {
         "locale_sha256": "5a173c65dcce5bb61d07b479e70ee5bbf9a74a8eb5164ade4570769992a6b593",
@@ -42876,6 +43046,48 @@
       "why_it_matters": {
         "locale_sha256": "d24b24c1c1f85bd042c054f69170ecee85e7336eeee0c8b899dbf662c8884014",
         "source_sha256": "303a57f1ffb9a4d45f5e30df6aa37fe4a37b62b6cff9313380006b1127a4b8f5"
+      }
+    },
+    "FCMO-581885E6842F": {
+      "claims": {
+        "locale_sha256": "2543a6c6425547152a6f49a0108f3ef04bed113dd2c6663fcbd05b1bfb5b758e",
+        "source_sha256": "045afced11dde9be29bc43610c8e390a3a657ebb6b79d50796397b45c17b4d4e"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "998698153271c659d4b3a3d8c453aae15129890906abac3bfbe4c8a528199d5e",
+        "source_sha256": "58b9a61a6eed3c87bab377f74c2c6770c9d12d9cbd7d5e2dcb87af36455767f4"
+      },
+      "importance_rationale": {
+        "locale_sha256": "e2d3970ed1e3a1f37197ff6e428eda7add58ae42e7e742efc070b27eddd7b96a",
+        "source_sha256": "bfb8d6d45d6af959017820bee5868770146c75e2591dab70dc02506f22229275"
+      },
+      "limitations": {
+        "locale_sha256": "fb984a4658673eee28cd7c95ad6a17ec18e8338ba1547f4bdb779a8463b92051",
+        "source_sha256": "6c25c0b190c661b2163505a4aa47e2f1c9b908ea8ffdc2bb78da45291a627905"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "03cee4eb94ae031b8a307406cde7fcfaa19161b3a5686e314928af2280db785d",
+        "source_sha256": "6c3b0e8fa8bcb2cace281bbc693823a0e5bd6c12b8aec3ec5ca37d71eb7ced8c"
+      },
+      "technical": {
+        "locale_sha256": "b06ff9b73ffc887cbdbb4a452094b29a988b127cc230306f5a97a25b463c6fa9",
+        "source_sha256": "127690ae47881507120ba684253b423b4c5b987d7ea29fccdc8c4791b533e733"
+      },
+      "title": {
+        "locale_sha256": "cdf27853c23576e379a7b386ce2780edace872bec504ffcf841f1b9ff9aba328",
+        "source_sha256": "5e5a19a02b8f02b3581251f21ad3976eb29a41883ff05039f85f904ac95ba652"
+      },
+      "why_it_matters": {
+        "locale_sha256": "0a1a202ef2c6825dbe288c6ea35fb17b95407942e3895608745e6673bfe2c9a0",
+        "source_sha256": "755d1045553433e1e2a7f912aef632967c905ba434dc0abfce2f34da612b451e"
       }
     },
     "FCMO-583DA2C1C81C": {

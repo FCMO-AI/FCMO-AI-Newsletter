@@ -1,6 +1,6 @@
 {
   "canonical_locale": "en",
-  "canonical_source_sha256": "021d9ec91374f6074cd52a15a67a00643284612667444a443b12091afa911ead",
+  "canonical_source_sha256": "43afa9170c9f1f68d7bb571c34518b8194d886f9a5f9882bb88351796b7dd759",
   "generated_from": "ARB airlock; editorial wording authored upstream",
   "locale": "es-419",
   "records": {
@@ -8555,6 +8555,71 @@
       "title": "Anthropic informa que pruebas electorales detectaron riesgos de campañas coordinadas y anuncia nuevas salvaguardas",
       "why_it_matters": "Un filtro que evalúa cada solicitud por separado puede pasar por alto abusos electorales coordinados cuando se dividen en tareas que parecen normales. El relato de Anthropic identifica ese modo de falla en pruebas con socios y describe nuevos clasificadores, además de anunciar información oficial para votantes. Es una actualización de control relevante, pero basada en informes de la propia empresa: no se verificaron las pruebas detalladas de los socios ni la eficacia de las mitigaciones, y la función de información cívica aún está planificada."
     },
+    "FCMO-3C5D5B5048CB": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Los autores presentan Planning Under Noise (PUN), que aprende un campo de deseabilidad o valor condicionado por la geometría a partir de etiquetas Monte Carlo de Walk-on-Stars parcialmente convergidas y aplica búsqueda local acotada para replanificar bajo ruido de ejecución del control. La derivación presupone correspondencia entre control y ruido."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En el banco de replanificación 4D, PUN informa tasas de éxito de 100%, 100%, 100% y 95% para niveles de ruido λ=0.25, 1, 2 y 4, con tiempos de 10.63, 10.51, 10.55 y 11.66 ms/start. Para λ=4, la línea base A* registra 59.17% de éxito y 62.44 ms/start; otras líneas base también tienen menor éxito y tiempos más largos. Son resultados de simulación geométrica declarados en el artículo; PUN se mide en GPU y las líneas base en CPU."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El apéndice D.1 indica que los métodos de replanificación comparten las consultas guardadas de entorno y meta, así como las secuencias de ruido gaussiano; el conjunto 4D usa 480 mapas, tres metas y un inicio por meta. Los autores informan un modelo entrenado por dimensión e intervalos mediante remuestreo por mapa; no reportan varias semillas de entrenamiento."
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION",
+          "text": "El artículo señala que los experimentos no incluyen modelos completos de robots con contacto, se restringen a entornos donde control y ruido están emparejados y encuentran difíciles los laberintos adversariales. También indica que el campo con fronteras reflectantes se evalúa en trayectorias donde las colisiones cuentan como fallos, lo que no constituye la función de valor exacta para ese modelo de ejecución."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "Esta revisión no establece una reproducción independiente, un artefacto de código verificado, una evaluación en robots físicos, resultados en manipulación con contacto ni transferencia fuera de los bancos geométricos del artículo bajo correspondencia entre control y ruido."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "El banco 4D, sus tasas de éxito y sus tiempos no tienen una reproducción independiente; el artículo informa un solo modelo entrenado por dimensión.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "La suposición central de correspondencia entre control y ruido y la evaluación con fallos por colisión limitan la transferencia a dinámicas robóticas realistas.",
+          "kind": "regime_unclear",
+          "state": "open"
+        },
+        {
+          "description": "Las comparaciones de tiempo publicadas usan GPU B200 para PUN e implementaciones de CPU para los métodos de referencia.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si las mejoras declaradas se mantienen fuera de los bancos geométricos y del régimen de correspondencia entre control y ruido estudiado, un campo neuronal condicionado por la geometría podría reducir el costo de la planificación estocástica en espacios de mayor dimensión sin resolver una ecuación diferencial parcial para cada instancia. Es un resultado potencialmente útil para la investigación robótica, aunque no se han establecido el despliegue físico, los robots con contacto ni la transferencia a otros regímenes.",
+      "limitations": [
+        "La derivación de Poisson con cribado requiere correspondencia entre control y ruido, y los experimentos se restringen a los casos donde los autores consideran razonable ese supuesto.",
+        "No se incluyen modelos completos de robots con contacto ni pruebas en robots físicos; la transferencia a manipulación con contacto sigue sin evaluarse.",
+        "Los autores indican que las geometrías adversariales, como los laberintos, continúan siendo difíciles porque los pasillos largos pueden producir gradientes débiles o mal resueltos.",
+        "El campo se deriva para fronteras reflectantes, mientras que los experimentos cuentan las colisiones con obstáculos como fallos; los autores señalan que no es la función de valor exacta para ese modelo de ejecución.",
+        "El apéndice D.1 informa un modelo entrenado por dimensión; el remuestreo de mapas estima la incertidumbre de las consultas, pero no la variabilidad entre semillas de entrenamiento ni una reproducción independiente.",
+        "La tabla 5 compara tiempos de PUN en GPU con tiempos de CPU para las líneas base; difieren el hardware y las implementaciones, por lo que las razones de tiempo no están normalizadas por hardware.",
+        "La búsqueda acotada de esta activación no encontró un artefacto oficial ni una reproducción independiente; esto no demuestra que no existan."
+      ],
+      "relationships": [],
+      "summary": "Un nuevo preprint presenta Planning Under Noise (PUN), un operador neuronal que transforma la geometría de obstáculos, la meta, el costo y el ruido en un campo de deseabilidad, y luego usa búsqueda local acotada para guiar la replanificación estocástica. En el banco geométrico 4D de los autores, PUN alcanza una tasa de éxito reportada de 95–100% y un tiempo de 10.51–11.66 ms/start en cuatro niveles de ruido. El artículo indica que los métodos comparados comparten las consultas de prueba y las secuencias de ruido guardadas; sin embargo, PUN se mide en una GPU B200 y las líneas base, en implementaciones de CPU que resultaron más rápidas. Se evalúa un solo modelo entrenado por dimensión. El método supone correspondencia entre control y ruido; no incluye modelos completos de robots con contacto y sigue teniendo dificultades con laberintos adversariales. Son resultados declarados por los autores, aún sin confirmación independiente, no una demostración en robots.",
+      "technical": {
+        "claimed_result": "La tabla de replanificación 4D informa éxitos de 95–100% y tiempos de 10.51–11.66 ms/start para λ=0.25, 1, 2 y 4. Para λ=4, los autores informan 95% para PUN frente a 59.17% para A*, 59.17% para Dijkstra, 85.83% para RRT, 71.67% para MPPI y 78.33% para PI²-CMA. Los tiempos enumerados son 11.66 ms/start para PUN frente a 62.44, 59.39, 38.31, 374.83 y 356.72 ms/start, respectivamente.",
+        "demonstrated_result": "El preprint primario confirma que los autores publicaron este método, protocolo y valores declarados del banco de pruebas. El equipo de investigación no verificó los valores de forma independiente ni ejecutó el método.",
+        "mechanism": "PUN deriva un problema de deseabilidad de Poisson con cribado bajo control estocástico resoluble linealmente; usa condiciones de Neumann reflectantes en obstáculos y una frontera de Dirichlet en la meta; amplía la supervisión de Walk-on-Stars a dimensiones mayores; entrena un operador neuronal de Fourier con etiquetas ruidosas y parcialmente convergidas; y aplica búsqueda local acotada sobre el campo predicho antes de ejecutar un tramo corto y planificar de nuevo.",
+        "novelty": "Combina etiquetas Walk-on-Stars con fronteras reflectantes, amortización mediante un operador neuronal entre geometrías y búsqueda local acotada para guiar la replanificación estocástica; la evidencia más relevante es el resultado 4D declarado por los autores, no un despliegue físico.",
+        "regime": "Bancos geométricos sintéticos de planificación estocástica en 2D–4D. La prueba de replanificación 4D usa 480 mapas, tres metas por mapa y un inicio por meta; todos los métodos comparados comparten las consultas y secuencias de ruido guardadas. El artículo informa un modelo entrenado por dimensión. La dinámica especializada supone ruido isotrópico emparejado con el costo de control (Σ=λI); las colisiones y salidas del límite exterior cuentan como fallos.",
+        "reproducibility": "El preprint detalla los bancos y protocolos de tiempo, informa intervalos mediante remuestreo pareado por mapa y usa consultas y secuencias de ruido emparejadas, pero evalúa un modelo entrenado por dimensión. La búsqueda acotada por título e identificador de arXiv y la revisión del artículo no encontraron un artefacto oficial de código ni una reproducción independiente. El equipo de investigación no ejecutó el código ni reprodujo los resultados.",
+        "strongest_baseline": "Para λ=4 en 4D, RRT tiene la tasa de éxito más cercana entre los métodos enumerados: 85.83% frente a 95% para PUN, con 38.31 ms/start frente a 11.66 ms/start. Todos los tiempos enumerados de comparación usan CPU porque sus versiones en CPU fueron más rápidas que las de GPU; PUN se mide en GPU, por lo que la comparación depende de las implementaciones y los dispositivos. A* es un contraste importante con menos ruido: informa 100% de éxito para λ=0.25 y 96.67% para λ=1."
+      },
+      "title": "PUN informa resultados de planificación con ruido en bancos geométricos 2D–4D",
+      "why_it_matters": "Un campo de valor global aprendido, combinado con búsqueda acotada al momento de la prueba, podría reducir la dependencia de resolver una ecuación diferencial parcial para cada geometría al planificar bajo ruido en espacios de mayor dimensión. Los resultados en bancos de prueba son prometedores y pertinentes para la investigación en planificación robótica, pero su transferencia depende de una correspondencia restrictiva entre control y ruido y no se ha evaluado en robots físicos con contacto. Las comparaciones de tiempo entre GPU y CPU no están normalizadas por hardware."
+    },
     "FCMO-3CE4BEB693AD": {
       "claims": [
         {
@@ -12654,6 +12719,69 @@
       },
       "title": "DART informa mayor precisión de fácil a difícil en modelos de razonamiento recurrente",
       "why_it_matters": "Si se reproducen, los resultados sugieren que la supervisión adversarial sobre distribuciones podría ayudar a modelos recurrentes compactos a mantener soluciones estructuradas válidas cuando aumenta la dificultad de prueba. La evidencia se limita a los laberintos, el ajedrez y el Sudoku seleccionados en el artículo; en ajedrez, DART por sí solo tampoco evita la caída de precisión en iteraciones tardías."
+    },
+    "FCMO-581885E6842F": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Los autores proponen un modelo de energía de GPU por token de salida para la decodificación densa con historial completo. Combina los bytes lógicos de pesos densos, amortizados entre el lote efectivo, los bytes del historial KV privado por solicitud y el tiempo de decodificación observado; los coeficientes se ajustan por modelo y configuración de hardware y software."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Para la decodificación BF16 de Qwen2.5-7B, Qwen2.5-14B y Mistral-7B en GPU NVIDIA GH200 y GB300, además de una configuración Qwen2.5-7B con paralelismo tensorial en dos GH200, los autores informan que las estimaciones de energía media por condición quedan a menos de 3.73% de las mediciones en 270 ejecuciones y 54 condiciones estáticas. La condición de transferencia entre dispositivos conserva los coeficientes del dispositivo de origen."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En seis pares de modelo y GPU de una sola tarjeta dentro del rango probado, los autores informan que el lote más grande consume entre 33.2–46.8% menos energía media medida por salida útil que el más pequeño con modelo e historial iguales; con lote fijo, la energía media medida aumenta al alargar el historial probado."
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION",
+          "text": "El artículo estudia decodificación BF16 densa con historial completo en tres modelos y GPU NVIDIA Hopper/Blackwell. Sus coeficientes se calibran por modelo y configuración de hardware y software, y la energía se mide en la tarjeta GPU; el artículo no establece energía de instalaciones ni costos monetarios."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "Esta revisión del artículo no establece una reproducción independiente, coeficientes portátiles, resultados de energía a nivel de instalación ni una reducción general del costo de servicio."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "Los coeficientes y predicciones retenidas del modelo no tienen reproducción independiente; el máximo declarado de 3.73% corresponde a medias por condición y configuraciones elegidas por los autores.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "La frontera medida es la energía de la tarjeta GPU; el modelo cubre decodificación BF16 densa con historial completo, no el prellenado, los gastos de las instalaciones ni todos los tipos de servicio.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "La búsqueda acotada de artefactos no encontró scripts de medición ni trazas de energía enlazadas por los autores.",
+          "kind": "missing_artifact",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si la relación declarada se generaliza a implementaciones comparables de decodificación densa, estimar la energía de la GPU cuando cambian el lote y el contexto podría mejorar las comparaciones de eficiencia y las decisiones operativas. La consecuencia puede ser relevante a escala de servicio, pero la validación se limita a pocos modelos y configuraciones Hopper/Blackwell, sin establecer ahorros a nivel de instalación.",
+      "limitations": [
+        "Los resultados del artículo son de los autores y no tienen reproducción independiente.",
+        "El modelo predice la energía de la tarjeta GPU para decodificación BF16 densa con historial completo; no mide energía de instalaciones, prellenado ni costos monetarios de extremo a extremo.",
+        "Los coeficientes se calibran por modelo y configuración de hardware y software; no deben considerarse universales ni portátiles sin validación.",
+        "La evaluación incluye tres modelos en GH200 y GB300, más una configuración tensorial de dos GH200; no cubre otras arquitecturas, cargas ni hardware.",
+        "El error declarado compara medias por condición dentro del diseño de los autores; no demuestra precisión fuera del dominio ni ahorros en producción.",
+        "La búsqueda acotada no encontró artefactos de reproducción enlazados por los autores ni una reproducción independiente; no encontrarlo no demuestra que no exista."
+      ],
+      "relationships": [],
+      "summary": "Un nuevo artículo de arXiv propone un modelo compacto de energía de GPU por token de salida para la decodificación densa de modelos de lenguaje con historial completo. Combina los bytes lógicos de pesos y de la caché KV por salida con el tiempo de decodificación observado, y calibra los coeficientes por modelo y configuración de hardware y software. En tres modelos BF16 sobre GPU GH200 y GB300, más una configuración de dos GH200, los autores informan estimaciones medias por condición a menos de 3.73% de la medición en 270 ejecuciones y 54 condiciones estáticas. En los rangos probados, lotes mayores usan menos energía media de GPU por salida útil, mientras que historiales más largos la elevan. Son ajustes declarados por los autores y específicos de cada configuración; no se han establecido una reproducción independiente, la energía de las instalaciones ni ahorros monetarios.",
+      "technical": {
+        "claimed_result": "Las estimaciones retenidas del modelo quedan a menos de 3.73% de la energía GPU media medida por condición en 270 ejecuciones y 54 condiciones estáticas, para tres modelos BF16 en GH200/GB300 y dos GH200. En seis pares de modelo y GPU, los autores informan entre 33.2–46.8% menos energía media por salida útil con el lote probado más grande que con el más pequeño; con lote fijo, la energía aumenta al alargar el historial probado.",
+        "demonstrated_result": "El preprint primario documenta el modelo de bytes activos y tiempo de trabajo, el protocolo de medición y la validación declarada por los autores. esta revisión no reprodujo las mediciones ni validó su portabilidad.",
+        "mechanism": "El modelo estima la energía de GPU por token de salida como respuesta afín a los bytes de pesos densos amortizados por el tamaño efectivo del lote, los bytes del historial KV privado por salida y el tiempo transcurrido de decodificación por token útil. Los coeficientes se ajustan por estrato de modelo y hardware/software.",
+        "regime": "Decodificación BF16 densa con historial completo para Qwen2.5-7B, Qwen2.5-14B y Mistral-7B en NVIDIA GH200 y GB300, más una configuración Qwen2.5-7B con dos GH200 y paralelismo tensorial. La evaluación informa medias retenidas por condición y ejecuciones repetidas; no se establece la portabilidad de los coeficientes.",
+        "reproducibility": "El artículo informa 270 ejecuciones en 54 condiciones estáticas y una transferencia entre dispositivos del mismo tipo; esta activación revisó el artículo completo y sus tablas, pero no ejecutó código. Una búsqueda acotada por título e ID de arXiv no ubicó scripts ni trazas de energía enlazados por los autores; eso no demuestra que no existan.",
+        "strongest_baseline": "Dentro de cada modelo y GPU enumerados, el artículo compara la energía medida entre tamaños de lote e historiales y valida las predicciones en condiciones retenidas. Los resultados internos no comparan proveedores, calidad del modelo, energía de instalaciones ni costos totales del servicio."
+      },
+      "title": "Un artículo modela la energía GPU por token de salida a partir de bytes activos y tiempo de decodificación",
+      "why_it_matters": "El tamaño del lote y la longitud del contexto afectan conjuntamente la energía de inferencia, pero el conteo de tokens por sí solo no describe el trabajo ni el tiempo que requiere cada salida. Si se reproduce en condiciones reales de servicio, este modelo podría hacer más informativas las comparaciones de eficiencia entre hardware y tamaños de lote. La evidencia actual es un estudio de GPU, declarado por sus autores y específico de ciertas configuraciones; no es una predicción general de energía ni de costos."
     },
     "FCMO-583DA2C1C81C": {
       "claims": [
@@ -39742,6 +39870,48 @@
         "source_sha256": "a703b2e4e327c1a4d1695f353f2931fbad27abbb47aef2e444e216d8c31bf5f1"
       }
     },
+    "FCMO-3C5D5B5048CB": {
+      "claims": {
+        "locale_sha256": "fdff415efea37f9b0eeeee22e883a7300758bfda7a52a114e2576fbd1e5f0dc0",
+        "source_sha256": "580fa9ba8515a8f824ce2f55b5388ae58494f5c25d978f36ed10d0b7bba704be"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "28705c4c5e8d4bfe49368dc90a39ca30e2fd0c30ff30af0b2f22342412606c28",
+        "source_sha256": "422b85285120e0df682404c820292fcf40a8cfc5a6c082f6de2c80cba002e32b"
+      },
+      "importance_rationale": {
+        "locale_sha256": "d4feae4977a1179c6d83f6830a935bc33553d7c5870cfe887770a53a871799e2",
+        "source_sha256": "29bfe80a517a11094dc42ccf1c3d3a8b279da579bbd23d984d4f671d3e1bbca8"
+      },
+      "limitations": {
+        "locale_sha256": "7dcb98cfd6d2587b10c2c42ccd78b271e9718a1ee82d5dc64d8fd1de41dc96ef",
+        "source_sha256": "fe3cd7f8c729d2ea55bb41c0cfe094d417c0e4e6e6ae4248cd745f67bcf77611"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "f2ca059fddc83b35dbae0f803b2b2dd34091fc2235121c2c0ba60cad2cfd8301",
+        "source_sha256": "1371743191e7f3d8ce8a15e25f5b86ef1c60ed573e03fb1ec10c4323b60533d1"
+      },
+      "technical": {
+        "locale_sha256": "b23400ff881663b812eeac073a0e1de21bc7c337b1ce7841802a8a3748d77ed2",
+        "source_sha256": "415e7f434802d8fa50ca53761722f1891866a30e8e090a247aa9ddd62b9cede9"
+      },
+      "title": {
+        "locale_sha256": "db1c3b0814e570402c129cd2fb9acaa0232c087bea8a5eed604f7bd0a3a016c1",
+        "source_sha256": "288184fbc108aca88985de6627997530c721fc9a32ec8aaf93cc7e9d650662e4"
+      },
+      "why_it_matters": {
+        "locale_sha256": "fc1f07ccfd07def052247a0028211e7d8de92c254506766ceeb98c80decf4fa8",
+        "source_sha256": "9a874f727f84279a0d00f508be9e36add22c8d9adff0e223be75a4c9a51e4a73"
+      }
+    },
     "FCMO-3CE4BEB693AD": {
       "claims": {
         "locale_sha256": "30298cf1b8d0752d6fcf938977cd0410f7cdbaa815df0c21cc13557a58edc476",
@@ -42876,6 +43046,48 @@
       "why_it_matters": {
         "locale_sha256": "885a69ca00157d66f7487f74be0d5c51b2913ac5c777865fdc24707b520315f5",
         "source_sha256": "303a57f1ffb9a4d45f5e30df6aa37fe4a37b62b6cff9313380006b1127a4b8f5"
+      }
+    },
+    "FCMO-581885E6842F": {
+      "claims": {
+        "locale_sha256": "dd58e92f666a1e29219fd9bc75a98ff879cd1396bd4a24f9fed2516535513747",
+        "source_sha256": "045afced11dde9be29bc43610c8e390a3a657ebb6b79d50796397b45c17b4d4e"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "e0a6790b5210371a17bc6c237f2852f51e4b4cf7df4c940c6982ae772f03463a",
+        "source_sha256": "58b9a61a6eed3c87bab377f74c2c6770c9d12d9cbd7d5e2dcb87af36455767f4"
+      },
+      "importance_rationale": {
+        "locale_sha256": "ead8353e254f6a70f20911b88bd5a4ba76dd831284eb7fe2657a1c24d95f64ba",
+        "source_sha256": "bfb8d6d45d6af959017820bee5868770146c75e2591dab70dc02506f22229275"
+      },
+      "limitations": {
+        "locale_sha256": "098003b9bce8429008b32543aba8e6c3f894dcbf9173e5f3c256b0ef9fe05982",
+        "source_sha256": "6c25c0b190c661b2163505a4aa47e2f1c9b908ea8ffdc2bb78da45291a627905"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "ccbeaf15ee05ff97a839b9a226b97728bdaced7e9f4be23022b6d46b51599dae",
+        "source_sha256": "6c3b0e8fa8bcb2cace281bbc693823a0e5bd6c12b8aec3ec5ca37d71eb7ced8c"
+      },
+      "technical": {
+        "locale_sha256": "a19cfba6960a7104ac28db7dcf65662b1ddcb3ac4cd480090dd5846334aa43c5",
+        "source_sha256": "127690ae47881507120ba684253b423b4c5b987d7ea29fccdc8c4791b533e733"
+      },
+      "title": {
+        "locale_sha256": "a0799a5e529448ed633201ad093a44d8629c4b8fb3f8378587d90f3ea8b91cff",
+        "source_sha256": "5e5a19a02b8f02b3581251f21ad3976eb29a41883ff05039f85f904ac95ba652"
+      },
+      "why_it_matters": {
+        "locale_sha256": "8d0b719c1e207e15fbc578cfad4f31a2cdf9449bbc221ef12c0c766c1ccbcda8",
+        "source_sha256": "755d1045553433e1e2a7f912aef632967c905ba434dc0abfce2f34da612b451e"
       }
     },
     "FCMO-583DA2C1C81C": {

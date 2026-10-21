@@ -1,7 +1,7 @@
 {
   "schema": "fcmo-stories-v2",
-  "generated_at": "2026-10-21T05:13:38Z",
-  "release_id": "newswire-f943e94f3ca9a6e714a7bf29",
+  "generated_at": "2026-10-21T08:09:25Z",
+  "release_id": "newswire-2a2f70c7c291155ed050852f",
   "canonical_locale": "en",
   "locales": [
     "en",
@@ -46,6 +46,505 @@
     "2026-10-20"
   ],
   "stories": [
+    {
+      "id": "FCMO-581885E6842F",
+      "slug": "a-paper-models-gpu-energy-per-output-token-from-active-bytes-and-decode",
+      "url_date": "2026-10-21",
+      "kind": "development",
+      "status": "live",
+      "beat": "research",
+      "desk": "compute_inference",
+      "title": "A paper models GPU energy per output token from active bytes and decode time",
+      "headline": "A paper models GPU energy per output token from active bytes and decode time",
+      "dek": "A new arXiv paper proposes a compact model for GPU-board energy per output token during dense, full-history LLM decoding.",
+      "summary": "A new arXiv paper proposes a compact model for GPU-board energy per output token during dense, full-history LLM decoding. The model combines logical weight and KV-cache bytes per output with observed decode time, using coefficients calibrated separately for each model and hardware/runtime configuration. Across three BF16 models on GH200 and GB300 GPUs, plus a two-GH200 tensor-parallel setup, the authors report held-out condition-mean estimates within 3.73% of measured board energy across 270 executions and 54 static conditions. In the tested ranges, larger batches use less mean board energy per useful output, while longer histories increase it. These author-reported fits are configuration-specific; independent reproduction, facility energy and monetary savings are not established.",
+      "why_it_matters": "Batch size and context length jointly shape inference energy, but token counts alone do not describe the work or time spent generating each output. If independently reproduced within real serving regimes, this model could make hardware and batching efficiency comparisons more informative. Its present evidence is a configuration-specific, author-run GPU-board study, not a general energy or cost forecast.",
+      "importance_rationale": "If the reported relationship generalizes within comparable dense-decoding deployments, estimating GPU-board energy as batch and context change could improve inference efficiency comparisons and operating decisions. The consequence is meaningful at serving scale, while validation remains local to three models and a small Hopper/Blackwell configuration set and does not establish facility-wide savings.",
+      "technical": {
+        "claimed_result": "Held-out condition-mean model estimates are within 3.73% of measured GPU-board energy per useful output across 270 executions and 54 static conditions for three BF16 models on GH200/GB300 and two-GPU GH200. In six single-GPU model-platform pairs, the authors report 33.2–46.8% lower measured mean board energy at the largest versus smallest tested batch, and higher energy at longer histories for fixed batch.",
+        "demonstrated_result": "The primary preprint documents the proposed active-byte/work–time model, measurement protocol and author-reported validation. the research desk has not reproduced the measurements or validated portability.",
+        "mechanism": "The model estimates per-output-token GPU-board energy as an affine response to dense weight bytes amortized across realized batch size, private KV-history bytes per output, and elapsed decode time per useful output token. Coefficients are fitted for each model and hardware/runtime stratum.",
+        "regime": "Dense full-history BF16 decoding for Qwen2.5-7B, Qwen2.5-14B and Mistral-7B on NVIDIA GH200 and GB300, with one two-GH200 tensor-parallel Qwen2.5-7B setup. Evaluation reports held-out condition means and repeated runs; coefficient portability beyond tested configurations is not established.",
+        "reproducibility": "The paper reports 270 executions across 54 static-workload conditions and a separate same-SKU device transfer; this activation reviewed the full paper sections and tables but did not execute code. A bounded exact-title/arXiv-ID artifact search did not locate author-linked scripts or raw traces; their absence is not established.",
+        "strongest_baseline": "Within each listed model/platform, the paper compares measured board energy across batch and history settings and validates model predictions on held-out conditions. These within-study results do not compare providers, model quality, facility energy, or total serving costs."
+      },
+      "importance_tier": "Notable",
+      "development_type": "paper",
+      "event_at": "2026-10-20T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-21T08:09:03Z",
+      "updated_at": "2026-10-21T08:09:03Z",
+      "importance": 5,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": true,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "CLAIMED",
+            "text": "The authors propose a GPU-board energy-per-output-token model for dense, full-history decoding. It combines logical dense-weight bytes amortized across the realized batch, per-request KV-history bytes, and observed decode time; fitted coefficients are specific to each model and hardware/runtime configuration."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "For BF16 decoding of Qwen2.5-7B, Qwen2.5-14B and Mistral-7B on NVIDIA GH200 and GB300, plus a two-GH200 tensor-parallel Qwen2.5-7B setup, the authors report held-out condition-mean energy estimates within 3.73% of measurement across 270 executions and 54 static-workload conditions. The device-transfer condition retains source-device coefficients."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "Across six single-GPU model/platform pairs in the paper’s tested range, the largest tested batch has 33.2–46.8% lower measured mean GPU-board energy per useful output than the smallest tested batch at matched model and history; measured mean energy rises with longer tested histories at fixed batch."
+          },
+          {
+            "label": "DEMONSTRATED",
+            "qualifier": "LIMITATION",
+            "text": "The paper studies dense full-history BF16 decode on three models and NVIDIA Hopper/Blackwell GPUs. Its coefficients are calibrated per model/platform/runtime, energy is measured at the GPU-board boundary, and the paper does not establish facility energy or monetary cost."
+          },
+          {
+            "label": "NOT_ESTABLISHED",
+            "text": "No independent reproduction, portable coefficient set, facility-level energy result, or general serving-cost reduction is established by this paper-level review."
+          }
+        ],
+        "limitations": [
+          "The paper’s results are author-reported and have not been independently reproduced.",
+          "The model predicts GPU-board energy for dense full-history BF16 decoding; it does not measure facility energy, prefill, or end-to-end monetary costs.",
+          "Energy-model coefficients are calibrated per model and hardware/runtime configuration and must not be treated as universal or portable without validation.",
+          "The evaluation includes three models on GH200 and GB300 plus a two-GH200 tensor-parallel configuration; broader architectures, workloads and hardware are untested.",
+          "Reported held-out error compares condition means in the authors’ design; it does not establish out-of-domain predictive accuracy or production savings.",
+          "No author-linked reproducibility artifact or independent reproduction was located in this bounded review; search absence does not prove no artifact exists."
+        ],
+        "gaps": [
+          {
+            "kind": "missing_independent",
+            "description": "The model’s reported coefficients and held-out predictions have not been independently reproduced; the observed 3.73% maximum is across author-selected condition means and configurations."
+          },
+          {
+            "kind": "other",
+            "description": "Measured boundary is GPU-board energy, and the model covers dense full-history BF16 decode rather than prefill, facility overhead, or every serving architecture."
+          },
+          {
+            "kind": "missing_artifact",
+            "description": "No author-linked measurement scripts or raw energy traces surfaced in the bounded artifact search."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://arxiv.org/abs/2610.28576",
+          "domain": "arxiv.org",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "NVIDIA Corporation",
+        "Texas Tech University",
+        "Texas Advanced Computing Center"
+      ],
+      "topics": [],
+      "regions": [
+        "GLOBAL"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-581885E6842F.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: A paper models GPU energy per output token from active bytes and decode time"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "Un artículo modela la energía GPU por token de salida a partir de bytes activos y tiempo de decodificación",
+            "summary": "Un nuevo artículo de arXiv propone un modelo compacto de energía de GPU por token de salida para la decodificación densa de modelos de lenguaje con historial completo. Combina los bytes lógicos de pesos y de la caché KV por salida con el tiempo de decodificación observado, y calibra los coeficientes por modelo y configuración de hardware y software. En tres modelos BF16 sobre GPU GH200 y GB300, más una configuración de dos GH200, los autores informan estimaciones medias por condición a menos de 3.73% de la medición en 270 ejecuciones y 54 condiciones estáticas. En los rangos probados, lotes mayores usan menos energía media de GPU por salida útil, mientras que historiales más largos la elevan. Son ajustes declarados por los autores y específicos de cada configuración; no se han establecido una reproducción independiente, la energía de las instalaciones ni ahorros monetarios.",
+            "importance_rationale": "Si la relación declarada se generaliza a implementaciones comparables de decodificación densa, estimar la energía de la GPU cuando cambian el lote y el contexto podría mejorar las comparaciones de eficiencia y las decisiones operativas. La consecuencia puede ser relevante a escala de servicio, pero la validación se limita a pocos modelos y configuraciones Hopper/Blackwell, sin establecer ahorros a nivel de instalación.",
+            "why_it_matters": "El tamaño del lote y la longitud del contexto afectan conjuntamente la energía de inferencia, pero el conteo de tokens por sí solo no describe el trabajo ni el tiempo que requiere cada salida. Si se reproduce en condiciones reales de servicio, este modelo podría hacer más informativas las comparaciones de eficiencia entre hardware y tamaños de lote. La evidencia actual es un estudio de GPU, declarado por sus autores y específico de ciertas configuraciones; no es una predicción general de energía ni de costos.",
+            "technical": {
+              "claimed_result": "Las estimaciones retenidas del modelo quedan a menos de 3.73% de la energía GPU media medida por condición en 270 ejecuciones y 54 condiciones estáticas, para tres modelos BF16 en GH200/GB300 y dos GH200. En seis pares de modelo y GPU, los autores informan entre 33.2–46.8% menos energía media por salida útil con el lote probado más grande que con el más pequeño; con lote fijo, la energía aumenta al alargar el historial probado.",
+              "demonstrated_result": "El preprint primario documenta el modelo de bytes activos y tiempo de trabajo, el protocolo de medición y la validación declarada por los autores. esta revisión no reprodujo las mediciones ni validó su portabilidad.",
+              "mechanism": "El modelo estima la energía de GPU por token de salida como respuesta afín a los bytes de pesos densos amortizados por el tamaño efectivo del lote, los bytes del historial KV privado por salida y el tiempo transcurrido de decodificación por token útil. Los coeficientes se ajustan por estrato de modelo y hardware/software.",
+              "regime": "Decodificación BF16 densa con historial completo para Qwen2.5-7B, Qwen2.5-14B y Mistral-7B en NVIDIA GH200 y GB300, más una configuración Qwen2.5-7B con dos GH200 y paralelismo tensorial. La evaluación informa medias retenidas por condición y ejecuciones repetidas; no se establece la portabilidad de los coeficientes.",
+              "reproducibility": "El artículo informa 270 ejecuciones en 54 condiciones estáticas y una transferencia entre dispositivos del mismo tipo; esta activación revisó el artículo completo y sus tablas, pero no ejecutó código. Una búsqueda acotada por título e ID de arXiv no ubicó scripts ni trazas de energía enlazados por los autores; eso no demuestra que no existan.",
+              "strongest_baseline": "Dentro de cada modelo y GPU enumerados, el artículo compara la energía medida entre tamaños de lote e historiales y valida las predicciones en condiciones retenidas. Los resultados internos no comparan proveedores, calidad del modelo, energía de instalaciones ni costos totales del servicio."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "Los autores proponen un modelo de energía de GPU por token de salida para la decodificación densa con historial completo. Combina los bytes lógicos de pesos densos, amortizados entre el lote efectivo, los bytes del historial KV privado por solicitud y el tiempo de decodificación observado; los coeficientes se ajustan por modelo y configuración de hardware y software."
+                },
+                {
+                  "text": "Para la decodificación BF16 de Qwen2.5-7B, Qwen2.5-14B y Mistral-7B en GPU NVIDIA GH200 y GB300, además de una configuración Qwen2.5-7B con paralelismo tensorial en dos GH200, los autores informan que las estimaciones de energía media por condición quedan a menos de 3.73% de las mediciones en 270 ejecuciones y 54 condiciones estáticas. La condición de transferencia entre dispositivos conserva los coeficientes del dispositivo de origen."
+                },
+                {
+                  "text": "En seis pares de modelo y GPU de una sola tarjeta dentro del rango probado, los autores informan que el lote más grande consume entre 33.2–46.8% menos energía media medida por salida útil que el más pequeño con modelo e historial iguales; con lote fijo, la energía media medida aumenta al alargar el historial probado."
+                },
+                {
+                  "text": "El artículo estudia decodificación BF16 densa con historial completo en tres modelos y GPU NVIDIA Hopper/Blackwell. Sus coeficientes se calibran por modelo y configuración de hardware y software, y la energía se mide en la tarjeta GPU; el artículo no establece energía de instalaciones ni costos monetarios."
+                },
+                {
+                  "text": "Esta revisión del artículo no establece una reproducción independiente, coeficientes portátiles, resultados de energía a nivel de instalación ni una reducción general del costo de servicio."
+                }
+              ],
+              "limitations": [
+                "Los resultados del artículo son de los autores y no tienen reproducción independiente.",
+                "El modelo predice la energía de la tarjeta GPU para decodificación BF16 densa con historial completo; no mide energía de instalaciones, prellenado ni costos monetarios de extremo a extremo.",
+                "Los coeficientes se calibran por modelo y configuración de hardware y software; no deben considerarse universales ni portátiles sin validación.",
+                "La evaluación incluye tres modelos en GH200 y GB300, más una configuración tensorial de dos GH200; no cubre otras arquitecturas, cargas ni hardware.",
+                "El error declarado compara medias por condición dentro del diseño de los autores; no demuestra precisión fuera del dominio ni ahorros en producción.",
+                "La búsqueda acotada no encontró artefactos de reproducción enlazados por los autores ni una reproducción independiente; no encontrarlo no demuestra que no exista."
+              ],
+              "gaps": [
+                {
+                  "description": "Los coeficientes y predicciones retenidas del modelo no tienen reproducción independiente; el máximo declarado de 3.73% corresponde a medias por condición y configuraciones elegidas por los autores."
+                },
+                {
+                  "description": "La frontera medida es la energía de la tarjeta GPU; el modelo cubre decodificación BF16 densa con historial completo, no el prellenado, los gastos de las instalaciones ni todos los tipos de servicio."
+                },
+                {
+                  "description": "La búsqueda acotada de artefactos no encontró scripts de medición ni trazas de energía enlazadas por los autores."
+                }
+              ]
+            },
+            "dek": "Un nuevo artículo de arXiv propone un modelo compacto de energía de GPU por token de salida para la decodificación densa de modelos de lenguaje con historial completo."
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "论文根据活动字节和解码时间建立每个输出令牌的 GPU 能耗模型",
+            "summary": "一篇新 arXiv 论文提出一种紧凑模型，用于估算密集型全历史大语言模型解码中每个输出令牌的 GPU 板级能耗。模型将每个输出对应的逻辑权重字节数、KV 缓存字节数与实测解码时间结合，并针对不同模型及硬件/运行时配置分别校准系数。作者报告称，在 GH200 和 GB300 上三种 BF16 模型以及双 GH200 配置中，270次执行、54个静态条件的留出条件均值估计与测量值相差不超过3.73%。在测试范围内，较大批量的每个有效输出平均板级能耗更低，而较长历史会提高能耗。这些是按配置拟合的作者报告结果；独立复现、机房能耗及货币节省尚未得到证实。",
+            "importance_rationale": "如果该关系能推广至相近的密集型解码部署，那么在批量和上下文变化时估算 GPU 板级能耗，可能改善推理效率对比和运营决策。大规模服务中的潜在影响具有实际意义，但验证仅覆盖少量模型和 Hopper/Blackwell 配置，并未证明机房级节能。",
+            "why_it_matters": "批量大小和上下文长度会共同影响推理能耗，而令牌数量本身无法描述每个输出所需的工作量和时间。如果能在真实服务条件下独立复现，该模型可让硬件和批量效率对比更有依据。目前证据是作者报告的特定配置 GPU 板级研究，不能用于普遍预测能耗或成本。",
+            "technical": {
+              "claimed_result": "在三种 BF16 模型的 GH200/GB300 测试以及双 GH200 配置中，模型对270次执行、54个静态条件的留出条件均值能耗估计与实测值相差不超过3.73%。在六组单 GPU 模型—平台组合中，作者报告最大测试批量的每个有效输出平均板级能耗低于最小批量33.2–46.8%；批量固定时，测试历史越长，能耗越高。",
+              "demonstrated_result": "第一方预印本记录了活动字节/工作时间模型、测量协议和作者报告的验证结果。本次审查 未复现测量，也未验证其可迁移性。",
+              "mechanism": "模型将每个输出令牌的 GPU 板级能耗表示为仿射响应，输入包括按实际批量分摊的密集权重字节数、每个输出对应的私有 KV 历史字节数，以及每个有效输出令牌的实测解码时间。系数按模型及硬件/运行时分层拟合。",
+              "regime": "NVIDIA GH200 和 GB300 上 Qwen2.5-7B、Qwen2.5-14B、Mistral-7B 的密集型全历史 BF16 解码，另有双 GH200 上 Qwen2.5-7B 的张量并行配置。评测报告了留出条件均值和重复执行；系数能否迁移至测试外配置尚未确定。",
+              "reproducibility": "论文报告了54个静态条件下270次执行，以及一项同型号设备迁移试验。本次激活阅读了全文相关章节和表格，但未运行代码。按精确标题和 arXiv 编号进行的有界制品搜索未找到作者链接的脚本或原始能耗轨迹；这不能证明制品不存在。",
+              "strongest_baseline": "对于列出的每种模型和 GPU，论文比较不同批量与历史长度下的实测板级能耗，并在留出条件上验证预测。该研究内部结果没有比较不同供应商、模型质量、机房能耗或总服务成本。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "作者提出一种估算密集型全历史解码中每个输出令牌 GPU 板级能耗的模型。模型结合由实际批量分摊的逻辑密集权重字节数、每个请求私有的 KV 历史字节数和实测解码时间；系数按模型及硬件/运行时配置分别拟合。"
+                },
+                {
+                  "text": "对于 NVIDIA GH200 和 GB300 上 Qwen2.5-7B、Qwen2.5-14B、Mistral-7B 的 BF16 解码，以及双 GH200 张量并行的 Qwen2.5-7B 配置，作者报告称，在270次执行和54个静态条件下，留出条件均值能耗估计与测量值的差异均不超过3.73%。设备迁移条件沿用源设备系数。"
+                },
+                {
+                  "text": "在论文测试范围内的六组单 GPU 模型—平台组合中，在模型和历史长度相同的条件下，作者测得最大测试批量的每个有效输出平均板级能耗比最小批量低33.2–46.8%；固定批量时，测试历史越长，测得的平均能耗越高。"
+                },
+                {
+                  "text": "论文研究的是三种模型在 NVIDIA Hopper/Blackwell GPU 上的密集型 BF16 全历史解码。系数按模型及硬件/运行时配置校准，测量边界为 GPU 板卡；论文没有证明机房能耗或货币成本。"
+                },
+                {
+                  "text": "本次论文审查未能确认独立复现、可移植的系数、机房级能耗结果或普遍的服务成本下降。"
+                }
+              ],
+              "limitations": [
+                "论文结果由作者报告，尚无独立复现。",
+                "该模型估算密集型全历史 BF16 解码的 GPU 板级能耗，不测量机房能耗、预填充阶段或端到端货币成本。",
+                "能耗模型系数按模型及硬件/运行时配置校准；未经验证不得视为通用或可迁移。",
+                "评测包括 GH200 和 GB300 上的三种模型，以及双 GH200 配置；其他架构、工作负载和硬件尚未测试。",
+                "所报告的留出误差是作者设计中各条件均值的比较，不代表域外预测精度或生产节省。",
+                "本次有界搜索未找到作者链接的复现制品或独立复现；搜索未发现并不能证明其不存在。"
+              ],
+              "gaps": [
+                {
+                  "description": "该模型报告的系数和留出预测尚无独立复现；所述3.73%最大误差是在作者选择的配置与条件均值范围内得出。"
+                },
+                {
+                  "description": "测量边界仅为 GPU 板卡能耗；模型针对密集型全历史 BF16 解码，不涵盖预填充、机房开销或所有服务架构。"
+                },
+                {
+                  "description": "有界制品搜索未找到作者链接的测量脚本或原始能耗轨迹。"
+                }
+              ]
+            },
+            "headline": "论文根据活动字节和解码时间建立每个输出令牌的 GPU 能耗模型"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
+    {
+      "id": "FCMO-3C5D5B5048CB",
+      "slug": "pun-reports-noise-aware-planning-results-on-geometric-2d-4d-benchmarks",
+      "url_date": "2026-10-21",
+      "kind": "development",
+      "status": "live",
+      "beat": "research",
+      "desk": "evaluation_science",
+      "title": "PUN reports noise-aware planning results on geometric 2D–4D benchmarks",
+      "headline": "PUN reports noise-aware planning results on geometric 2D–4D benchmarks",
+      "dek": "A new preprint introduces Planning Under Noise (PUN), a neural operator that maps obstacle geometry, goal, cost and noise inputs to a desirability field, then uses bounded local search to guide stochastic replanning.",
+      "summary": "A new preprint introduces Planning Under Noise (PUN), a neural operator that maps obstacle geometry, goal, cost and noise inputs to a desirability field, then uses bounded local search to guide stochastic replanning. On the authors’ 4D geometric benchmark it reports 95–100% success at 10.51–11.66 ms/start across four tested noise levels. The paper says compared methods share the saved test queries and noise sequence, but PUN timings use a B200 GPU while listed baseline timings use faster CPU implementations; only one trained model per dimension is evaluated. The method assumes control–noise matching, and the authors report no full robot/contact models and continued difficulty on adversarial mazes. These are credible but unconfirmed paper-reported results, not a demonstrated robotics deployment.",
+      "why_it_matters": "A learned global value field paired with bounded test-time search could make stochastic planning over unseen higher-dimensional geometries less dependent on a per-instance PDE solve. The reported benchmark is promising and directly relevant to robotics planning research, but its transfer depends on a restrictive control–noise matching regime and has not been tested on contact-rich physical robots. Cross-device runtimes should not be read as a hardware-normalized speed comparison.",
+      "importance_rationale": "If the reported gains hold beyond the studied geometry benchmarks and control–noise-matched regime, a learned value field with local search could reduce the cost of stochastic planning in higher-dimensional workspaces without solving a PDE for each instance. This is a potentially useful robotics-research result, while physical deployment, contact-rich robots and transfer outside the matching assumption remain unestablished.",
+      "technical": {
+        "claimed_result": "The 4D replanning table reports 95–100% success and 10.51–11.66 ms/start across λ=0.25, 1, 2, 4. At λ=4 the authors report 95% for PUN versus 59.17% for A*, 59.17% for Dijkstra, 85.83% for RRT, 71.67% for MPPI and 78.33% for PI²-CMA. Listed runtimes are 11.66 ms/start for PUN versus 62.44, 59.39, 38.31, 374.83 and 356.72 ms/start, respectively.",
+        "demonstrated_result": "The primary preprint establishes that the authors published this method, protocol and reported benchmark values. the research desk has not independently verified the numerical results or run the method.",
+        "mechanism": "PUN derives a screened-Poisson desirability problem under linearly solvable stochastic optimal control, uses reflecting Neumann conditions at obstacles and a goal Dirichlet boundary, extends Walk-on-Stars supervision to higher dimensions, trains a Fourier neural operator from noisy partially converged labels, and performs bounded grid-local search over the predicted field before executing a short prefix and replanning.",
+        "novelty": "Combines reflecting-boundary Walk-on-Stars labels, neural-operator amortization across geometries and bounded local search to guide stochastic replanning; the paper’s most consequential evidence here is its author-reported 4D benchmark, not a physical deployment.",
+        "regime": "Synthetic/geometric 2D–4D stochastic path-planning benchmarks. The 4D replanning test has 480 maps, three goals per map and one start per goal; all compared methods use the same saved queries/noise sequence. The paper reports one trained model per dimension. Dynamics assume isotropic noise matched to control cost (Σ=λI in the specialized regime); rollouts count collisions and outer-boundary violations as failures.",
+        "reproducibility": "The preprint gives detailed benchmark and timing protocols, reports paired-map bootstrap intervals and matched query/noise samples, but evaluates one trained model per dimension. A targeted exact-title/arXiv-ID search and inspection of the paper surfaced no official code artifact or independent reproduction. the research desk did not run the code or reproduce results.",
+        "strongest_baseline": "At λ=4 in 4D, RRT has the closest reported success rate among the listed methods (85.83% versus PUN 95%) and uses 38.31 ms/start versus PUN 11.66 ms/start. All listed comparator runtimes in this table use CPU implementations because they were faster than their GPU counterparts; PUN uses GPU timing, so the runtime comparison is implementation-and-device specific. A* is an important counterpoint at lower noise and reports 100% success at λ=0.25 and 96.67% at λ=1."
+      },
+      "importance_tier": "Notable",
+      "development_type": "paper",
+      "event_at": "2026-10-20T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-21T08:09:03Z",
+      "updated_at": "2026-10-21T08:09:03Z",
+      "importance": 5,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": true,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "CLAIMED",
+            "text": "The authors introduce Planning Under Noise (PUN), which learns a geometry-conditioned desirability/value field from partially converged Walk-on-Stars Monte Carlo labels and uses bounded local search over the learned field for replanning under control execution noise. The derivation relies on a control–noise matching assumption."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "In the paper’s 4D replanning benchmark, PUN reports success rates of 100%, 100%, 100% and 95% across noise levels λ=0.25, 1, 2 and 4, with reported runtime 10.63, 10.51, 10.55 and 11.66 ms/start. At λ=4 the listed A* baseline reports 59.17% success and 62.44 ms/start; other baselines also have lower reported success and longer listed runtimes. These are paper-reported geometric simulation results, with PUN GPU timings and CPU baseline timings."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "Appendix D.1 says replanning methods share saved environment-goal queries and Gaussian noise sequences; the 4D set uses 480 maps with three goals and one start per goal. The authors report one trained model per dimension and map-level bootstrap intervals; repeated model-training seeds are not reported."
+          },
+          {
+            "label": "DEMONSTRATED",
+            "qualifier": "LIMITATION",
+            "text": "The paper states its experiments do not include full robot models with contact, are restricted to settings where control and noise are matched, and find adversarial maze-like geometries challenging. Its reflecting-boundary value field is also evaluated in collision-failure rollouts, which the authors say is not the exact value function for that execution model."
+          },
+          {
+            "label": "NOT_ESTABLISHED",
+            "text": "No independent reproduction, verified code artifact, physical-robot evaluation, contact-rich manipulation result, or transfer beyond the paper’s control–noise-matched geometric benchmarks is established by this review."
+          }
+        ],
+        "limitations": [
+          "The screened-Poisson derivation requires a control–noise matching assumption, and experiments are restricted to settings where the authors consider that assumption reasonable.",
+          "No full robot models with contact or physical robot trials are included; transfer to contact-rich manipulation is untested.",
+          "The authors state adversarial geometries such as mazes remain challenging because long corridors can produce weak or poorly resolved learned gradients.",
+          "The field is derived for reflecting boundaries, while experiments count obstacle collisions as rollout failures; the authors note this is not the exact value function for the collision-failure execution model.",
+          "Appendix D.1 reports one trained model per dimension; bootstrap resampling of maps quantifies query-set uncertainty but does not establish training-seed variability or independent replication.",
+          "Table 5 compares PUN GPU timings with CPU timings for the listed baselines; hardware and implementation differ, so the runtime ratios are not hardware-normalized.",
+          "No official artifact or independent reproduction surfaced in this activation’s bounded search; absence from search results is not proof that none exists."
+        ],
+        "gaps": [
+          {
+            "kind": "missing_independent",
+            "description": "The 4D benchmark, reported success rates and runtime results have not been independently reproduced, and only one trained model per dimension is reported."
+          },
+          {
+            "kind": "regime_unclear",
+            "description": "The paper’s key control–noise matching assumption and collision-failure execution evaluation limit transfer to realistic robot dynamics."
+          },
+          {
+            "kind": "other",
+            "description": "Published runtime comparisons use a B200 GPU for PUN and CPU implementations for the baseline methods."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://arxiv.org/abs/2610.28623",
+          "domain": "arxiv.org",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "California Institute of Technology",
+        "New York University"
+      ],
+      "topics": [],
+      "regions": [
+        "GLOBAL"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-3C5D5B5048CB.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: PUN reports noise-aware planning results on geometric 2D–4D benchmarks"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "PUN informa resultados de planificación con ruido en bancos geométricos 2D–4D",
+            "summary": "Un nuevo preprint presenta Planning Under Noise (PUN), un operador neuronal que transforma la geometría de obstáculos, la meta, el costo y el ruido en un campo de deseabilidad, y luego usa búsqueda local acotada para guiar la replanificación estocástica. En el banco geométrico 4D de los autores, PUN alcanza una tasa de éxito reportada de 95–100% y un tiempo de 10.51–11.66 ms/start en cuatro niveles de ruido. El artículo indica que los métodos comparados comparten las consultas de prueba y las secuencias de ruido guardadas; sin embargo, PUN se mide en una GPU B200 y las líneas base, en implementaciones de CPU que resultaron más rápidas. Se evalúa un solo modelo entrenado por dimensión. El método supone correspondencia entre control y ruido; no incluye modelos completos de robots con contacto y sigue teniendo dificultades con laberintos adversariales. Son resultados declarados por los autores, aún sin confirmación independiente, no una demostración en robots.",
+            "importance_rationale": "Si las mejoras declaradas se mantienen fuera de los bancos geométricos y del régimen de correspondencia entre control y ruido estudiado, un campo neuronal condicionado por la geometría podría reducir el costo de la planificación estocástica en espacios de mayor dimensión sin resolver una ecuación diferencial parcial para cada instancia. Es un resultado potencialmente útil para la investigación robótica, aunque no se han establecido el despliegue físico, los robots con contacto ni la transferencia a otros regímenes.",
+            "why_it_matters": "Un campo de valor global aprendido, combinado con búsqueda acotada al momento de la prueba, podría reducir la dependencia de resolver una ecuación diferencial parcial para cada geometría al planificar bajo ruido en espacios de mayor dimensión. Los resultados en bancos de prueba son prometedores y pertinentes para la investigación en planificación robótica, pero su transferencia depende de una correspondencia restrictiva entre control y ruido y no se ha evaluado en robots físicos con contacto. Las comparaciones de tiempo entre GPU y CPU no están normalizadas por hardware.",
+            "technical": {
+              "claimed_result": "La tabla de replanificación 4D informa éxitos de 95–100% y tiempos de 10.51–11.66 ms/start para λ=0.25, 1, 2 y 4. Para λ=4, los autores informan 95% para PUN frente a 59.17% para A*, 59.17% para Dijkstra, 85.83% para RRT, 71.67% para MPPI y 78.33% para PI²-CMA. Los tiempos enumerados son 11.66 ms/start para PUN frente a 62.44, 59.39, 38.31, 374.83 y 356.72 ms/start, respectivamente.",
+              "demonstrated_result": "El preprint primario confirma que los autores publicaron este método, protocolo y valores declarados del banco de pruebas. El equipo de investigación no verificó los valores de forma independiente ni ejecutó el método.",
+              "mechanism": "PUN deriva un problema de deseabilidad de Poisson con cribado bajo control estocástico resoluble linealmente; usa condiciones de Neumann reflectantes en obstáculos y una frontera de Dirichlet en la meta; amplía la supervisión de Walk-on-Stars a dimensiones mayores; entrena un operador neuronal de Fourier con etiquetas ruidosas y parcialmente convergidas; y aplica búsqueda local acotada sobre el campo predicho antes de ejecutar un tramo corto y planificar de nuevo.",
+              "novelty": "Combina etiquetas Walk-on-Stars con fronteras reflectantes, amortización mediante un operador neuronal entre geometrías y búsqueda local acotada para guiar la replanificación estocástica; la evidencia más relevante es el resultado 4D declarado por los autores, no un despliegue físico.",
+              "regime": "Bancos geométricos sintéticos de planificación estocástica en 2D–4D. La prueba de replanificación 4D usa 480 mapas, tres metas por mapa y un inicio por meta; todos los métodos comparados comparten las consultas y secuencias de ruido guardadas. El artículo informa un modelo entrenado por dimensión. La dinámica especializada supone ruido isotrópico emparejado con el costo de control (Σ=λI); las colisiones y salidas del límite exterior cuentan como fallos.",
+              "reproducibility": "El preprint detalla los bancos y protocolos de tiempo, informa intervalos mediante remuestreo pareado por mapa y usa consultas y secuencias de ruido emparejadas, pero evalúa un modelo entrenado por dimensión. La búsqueda acotada por título e identificador de arXiv y la revisión del artículo no encontraron un artefacto oficial de código ni una reproducción independiente. El equipo de investigación no ejecutó el código ni reprodujo los resultados.",
+              "strongest_baseline": "Para λ=4 en 4D, RRT tiene la tasa de éxito más cercana entre los métodos enumerados: 85.83% frente a 95% para PUN, con 38.31 ms/start frente a 11.66 ms/start. Todos los tiempos enumerados de comparación usan CPU porque sus versiones en CPU fueron más rápidas que las de GPU; PUN se mide en GPU, por lo que la comparación depende de las implementaciones y los dispositivos. A* es un contraste importante con menos ruido: informa 100% de éxito para λ=0.25 y 96.67% para λ=1."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "Los autores presentan Planning Under Noise (PUN), que aprende un campo de deseabilidad o valor condicionado por la geometría a partir de etiquetas Monte Carlo de Walk-on-Stars parcialmente convergidas y aplica búsqueda local acotada para replanificar bajo ruido de ejecución del control. La derivación presupone correspondencia entre control y ruido."
+                },
+                {
+                  "text": "En el banco de replanificación 4D, PUN informa tasas de éxito de 100%, 100%, 100% y 95% para niveles de ruido λ=0.25, 1, 2 y 4, con tiempos de 10.63, 10.51, 10.55 y 11.66 ms/start. Para λ=4, la línea base A* registra 59.17% de éxito y 62.44 ms/start; otras líneas base también tienen menor éxito y tiempos más largos. Son resultados de simulación geométrica declarados en el artículo; PUN se mide en GPU y las líneas base en CPU."
+                },
+                {
+                  "text": "El apéndice D.1 indica que los métodos de replanificación comparten las consultas guardadas de entorno y meta, así como las secuencias de ruido gaussiano; el conjunto 4D usa 480 mapas, tres metas y un inicio por meta. Los autores informan un modelo entrenado por dimensión e intervalos mediante remuestreo por mapa; no reportan varias semillas de entrenamiento."
+                },
+                {
+                  "text": "El artículo señala que los experimentos no incluyen modelos completos de robots con contacto, se restringen a entornos donde control y ruido están emparejados y encuentran difíciles los laberintos adversariales. También indica que el campo con fronteras reflectantes se evalúa en trayectorias donde las colisiones cuentan como fallos, lo que no constituye la función de valor exacta para ese modelo de ejecución."
+                },
+                {
+                  "text": "Esta revisión no establece una reproducción independiente, un artefacto de código verificado, una evaluación en robots físicos, resultados en manipulación con contacto ni transferencia fuera de los bancos geométricos del artículo bajo correspondencia entre control y ruido."
+                }
+              ],
+              "limitations": [
+                "La derivación de Poisson con cribado requiere correspondencia entre control y ruido, y los experimentos se restringen a los casos donde los autores consideran razonable ese supuesto.",
+                "No se incluyen modelos completos de robots con contacto ni pruebas en robots físicos; la transferencia a manipulación con contacto sigue sin evaluarse.",
+                "Los autores indican que las geometrías adversariales, como los laberintos, continúan siendo difíciles porque los pasillos largos pueden producir gradientes débiles o mal resueltos.",
+                "El campo se deriva para fronteras reflectantes, mientras que los experimentos cuentan las colisiones con obstáculos como fallos; los autores señalan que no es la función de valor exacta para ese modelo de ejecución.",
+                "El apéndice D.1 informa un modelo entrenado por dimensión; el remuestreo de mapas estima la incertidumbre de las consultas, pero no la variabilidad entre semillas de entrenamiento ni una reproducción independiente.",
+                "La tabla 5 compara tiempos de PUN en GPU con tiempos de CPU para las líneas base; difieren el hardware y las implementaciones, por lo que las razones de tiempo no están normalizadas por hardware.",
+                "La búsqueda acotada de esta activación no encontró un artefacto oficial ni una reproducción independiente; esto no demuestra que no existan."
+              ],
+              "gaps": [
+                {
+                  "description": "El banco 4D, sus tasas de éxito y sus tiempos no tienen una reproducción independiente; el artículo informa un solo modelo entrenado por dimensión."
+                },
+                {
+                  "description": "La suposición central de correspondencia entre control y ruido y la evaluación con fallos por colisión limitan la transferencia a dinámicas robóticas realistas."
+                },
+                {
+                  "description": "Las comparaciones de tiempo publicadas usan GPU B200 para PUN e implementaciones de CPU para los métodos de referencia."
+                }
+              ]
+            },
+            "headline": "PUN informa resultados de planificación con ruido en bancos geométricos 2D–4D"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "PUN在2D至4D几何基准上报告了抗噪规划结果",
+            "summary": "一篇新预印本介绍了噪声下规划方法 PUN：该神经算子把障碍物几何、目标、代价和噪声映射为期望值场，再以有界局部搜索引导随机重规划。作者在4D几何基准上报告，四种噪声水平下成功率为95–100%，每个起点耗时10.51–11.66 ms/start。论文称各比较方法使用相同的已保存测试查询和噪声序列；但 PUN 在 B200 GPU 上计时，基线则采用更快的 CPU 实现。每个维度只评估了一个训练模型。该方法依赖控制与噪声相匹配的假设，不包含完整的接触机器人模型，在对抗性迷宫中仍有困难。这些是作者报告、尚未独立核实的结果，并非机器人实地能力的证明。",
+            "importance_rationale": "若报告的提升能推广到所研究几何基准和控制—噪声匹配条件以外，按几何条件学习的神经价值场可能降低高维随机规划成本，无需对每个实例单独求解偏微分方程。这对机器人研究具有潜在价值，但实体部署、带接触机器人和向其他条件的迁移尚未得到证实。",
+            "why_it_matters": "学习到的全局价值场结合测试时有界搜索，可能降低高维空间随机规划对逐实例求解偏微分方程的依赖。该基准结果对机器人规划研究有参考价值，但能否迁移取决于严格的控制与噪声匹配条件，目前也没有在带接触的实体机器人上评估。GPU与CPU之间的耗时比较未按硬件统一。",
+            "technical": {
+              "claimed_result": "4D重规划表在 λ=0.25、1、2、4时报告95–100%的成功率，每个起点耗时10.51–11.66 ms/start。λ=4时，作者报告PUN成功率95%，A*为59.17%、Dijkstra为59.17%、RRT为85.83%、MPPI为71.67%、PI²-CMA为78.33%。对应耗时依次为11.66 ms/start，以及62.44、59.39、38.31、374.83和356.72 ms/start。",
+              "demonstrated_result": "第一方预印本证明作者发表了该方法、评测协议和所报告的基准数值。研究团队未独立核实这些数值，也未运行该方法。",
+              "mechanism": "PUN在可线性求解的随机控制条件下推导筛选泊松期望值问题，在障碍物处使用反射型 Neumann 条件、在目标处使用 Dirichlet 边界；将 Walk-on-Stars 监督扩展到更高维，用有噪且部分收敛的标签训练傅里叶神经算子，再对预测场进行有界局部搜索，执行一小段路径后重新规划。",
+              "novelty": "把反射边界的 Walk-on-Stars 标签、跨几何神经算子摊销和有界局部搜索结合起来，用于引导随机重规划；这里最重要的证据是作者报告的4D基准结果，而非实体部署。",
+              "regime": "合成几何随机路径规划基准，覆盖2D至4D。4D重规划测试有480张地图，每张三个目标、每个目标一个起点；所有比较方法使用相同的已保存查询和噪声序列。论文每个维度报告一个训练模型。专门化动力学假设与控制代价匹配的各向同性噪声（Σ=λI）；碰撞和越过外边界均计为失败。",
+              "reproducibility": "预印本详细说明了基准与计时协议，报告按地图配对重采样区间，并使用配对查询和噪声序列，但每个维度仅评估一个训练模型。按论文标题和arXiv编号搜索并检查论文后，未发现官方代码制品或独立复现。研究团队没有运行代码，也没有复现结果。",
+              "strongest_baseline": "λ=4的4D测试中，RRT是表内成功率最接近的方法：85.83%，PUN为95%；RRT每个起点耗时38.31 ms/start，PUN为11.66 ms/start。表中基线计时均使用CPU，因为其CPU实现快于GPU实现；PUN则使用GPU，因此耗时比较受设备与实现影响。较低噪声时A*是重要对照：λ=0.25时成功率100%，λ=1时为96.67%。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "作者提出噪声下规划方法 PUN：它从部分收敛的 Walk-on-Stars 蒙特卡洛标签中学习受几何条件约束的期望值场，并通过有界局部搜索，在控制执行噪声下进行重规划。其推导依赖控制与噪声相匹配的假设。"
+                },
+                {
+                  "text": "在4D重规划基准中，PUN报告的成功率依次为100%、100%、100%和95%，对应噪声水平 λ=0.25、1、2和4；每个起点的耗时分别为10.63、10.51、10.55和11.66 ms/start。λ=4时，A*基线成功率为59.17%，每个起点耗时62.44 ms/start；其他基线报告的成功率更低、耗时更长。这些是论文报告的几何模拟结果；PUN在GPU上计时，基线在CPU上计时。"
+                },
+                {
+                  "text": "附录D.1称，各重规划方法使用相同的已保存环境—目标查询和高斯噪声序列；4D测试集有480张地图，每张地图三个目标、每个目标一个起点。作者每个维度只评估一个训练模型，并报告按地图重采样所得区间；没有报告多个训练随机种子的结果。"
+                },
+                {
+                  "text": "论文指出，实验不包含完整的带接触机器人模型，限于控制与噪声相匹配的情形，并且对抗性迷宫仍然困难。论文还说明，反射边界价值场是在把碰撞计为失败的轨迹中评估的；这并非该执行模型对应的精确价值函数。"
+                },
+                {
+                  "text": "本次审查未能确认独立复现、经过验证的代码制品、实体机器人评测、带接触操作结果，或超出控制—噪声匹配几何基准的迁移效果。"
+                }
+              ],
+              "limitations": [
+                "筛选泊松方程的推导要求控制与噪声相匹配；实验也限于作者认为该假设合理的设置。",
+                "没有完整的带接触机器人模型或实体机器人试验；向带接触操作的迁移仍未评估。",
+                "作者指出，迷宫等对抗性几何仍有挑战，因为长走廊可能造成微弱或未充分解析的学习梯度。",
+                "价值场按反射边界推导，而实验把障碍物碰撞计为失败；作者指出该场并非这种执行模型的精确价值函数。",
+                "附录D.1仅报告每个维度一个训练模型；地图重采样区间估计的是查询集不确定性，不能说明训练随机种子差异或独立复现。",
+                "表5以GPU上的PUN耗时对比CPU基线；硬件和实现不同，因此耗时比值并非硬件归一化比较。",
+                "本次有界搜索未发现官方制品或独立复现；搜索未发现并不能证明其不存在。"
+              ],
+              "gaps": [
+                {
+                  "description": "4D基准及其成功率和耗时尚无独立复现；论文每个维度也只评估一个训练模型。"
+                },
+                {
+                  "description": "控制与噪声相匹配的核心假设，以及把碰撞计为失败的执行评测，限制了向真实机器人动力学的迁移。"
+                },
+                {
+                  "description": "公开的耗时比较使用B200 GPU运行PUN，使用CPU运行基线。"
+                }
+              ]
+            },
+            "headline": "PUN在2D至4D几何基准上报告了抗噪规划结果"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
     {
       "id": "FCMO-A640AD9B4FF9",
       "slug": "optscientist-uses-a-symbolic-model-and-language-model-research-loop-to",
