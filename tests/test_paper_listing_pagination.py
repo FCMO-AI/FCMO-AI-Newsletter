@@ -90,6 +90,21 @@ class ListingPagination(unittest.TestCase):
                                generated_at=self.builder.payload['generated_at'])
                 self.assertIn(suffix + 'page/3/', (self.out / 'sitemap.xml').read_text())
 
+    def test_pagination_labels_are_localized_and_a_single_link_fills_the_row(self):
+        self.render('archive', 'archive/', self.stories[:250])
+        english = self.builder.catalogs['en']['strings']['archive']
+        for locale, prefix in (('es-419', 'es/'), ('zh-Hans', 'zh/')):
+            strings = self.builder.catalogs[locale]['strings']['archive']
+            self.assertNotEqual(strings['newer'], english['newer'])
+            self.assertNotEqual(strings['older'], english['older'])
+            page = (self.out / prefix / 'archive/page/2/index.html').read_text()
+            self.assertIn(strings['newer'], page)
+            self.assertIn(strings['older'], page)
+            self.assertNotIn(english['newer'], page)
+            self.assertNotIn(english['older'], page)
+        css = (ROOT / 'site-src/assets/css/paper.css').read_text()
+        self.assertIn('.edition-neighbors[data-pagination]:has(>a:only-child){grid-template-columns:minmax(0,1fr)}', css)
+
 
 if __name__ == '__main__':
     unittest.main()
