@@ -1,6 +1,6 @@
 {
   "canonical_locale": "en",
-  "canonical_source_sha256": "4d84172dde7130c144af9ff7b63b148eea1d4970f49c944c66b6d51623976eff",
+  "canonical_source_sha256": "d316384f3a011c1a9fbf2e9d87744f78e28ab84a524e72237b5714e8f7d3eea6",
   "generated_from": "ARB airlock; editorial wording authored upstream",
   "locale": "es-419",
   "records": {
@@ -18073,6 +18073,90 @@
       "title": "JitMem informa mejoras de memoria adaptativa para agentes",
       "why_it_matters": "La mayoría de los sistemas de memoria deciden qué conservar cuando se almacena una experiencia, antes de conocer su uso futuro. JitMem prueba la alternativa de conservar trazas sin resumir y adaptarlas a la tarea actual. El artículo informa mejoras en varios benchmarks interactivos y transferencia de un curador entrenado a ejecutores más capaces; también identifica como costos una llamada adicional al modelo por tarea y la recuperación simple. Estos resultados pueden orientar el diseño de memoria para agentes, pero no demuestran mejoras generales fuera de las tareas evaluadas."
     },
+    "FCMO-83D876C273E3": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan que R2S supera tres líneas de base recientes de OPD agéntica en las doce celdas principales de modelo, estudiante y entorno, con un promedio de 12.8 puntos porcentuales de éxito por encima de la mejor línea de base de cada celda."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores describen el mecanismo: extraer estados de gran desacuerdo de un estudiante sin entrenar, recopilar ocho intervenciones del docente por estado, seleccionar una intervención exitosa mediante consenso o un juez LLM, ajustar el docente para puntuar el sufijo del estudiante con objetivos de tokens informados por la intervención y luego congelarlo para la OPD habitual."
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "El repositorio público ofrece la etiqueta de código r2s y documenta el proceso de entrenamiento, la configuración de entornos y la publicación de 24 puntos de control; el README indica una licencia Apache-2.0."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "Las mejoras informadas no establecen una reproducción independiente, transferencia más allá de los modelos Qwen y entornos de agentes de texto evaluados, ni una ventaja neta de cómputo o costo tras el trabajo de intervenciones y reparación del docente."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En el Apéndice E, los autores informan que R2S supera en promedio a cada línea de base en los 24 cortes de evaluación de la Tabla 12; estos resultados del artículo no fueron reproducidos de forma independiente por el equipo de investigación."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se encontró ni se realizó una reproducción independiente de los resultados de R2S frente a las líneas de base.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "La tabla principal usa una ejecución de entrenamiento del estudiante por celda y tres decodificaciones finales; por ello, las desviaciones estándar publicadas no miden la variación entre ejecuciones de entrenamiento.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "Antes de destilar al estudiante se realizan hasta 19,200 intervenciones del docente y el ajuste fino del docente; no se mide la eficiencia neta de cómputo o costo.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "El repositorio advierte que el orden sintetizado de ScienceWorld produce un subconjunto distinto de 134 filas no visto frente al archivo de tareas de la campaña del artículo.",
+          "kind": "missing_artifact",
+          "state": "open"
+        },
+        {
+          "description": "Los resultados abarcan dos familias relacionadas de docentes Qwen y tareas de agentes de texto reproducibles mediante repetición.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si las mejoras informadas se generalizan, usar las trayectorias seleccionadas por un docente para reparar su puntuador a nivel de token podría cambiar de forma sustancial el diseño del postentrenamiento agéntico, al mejorar la destilación multiturno sin añadir recompensa de tarea al objetivo del estudiante. La afirmación es notable en este ámbito, pero procede de un solo preprint evaluado con dos familias de modelos Qwen y tres entornos de agentes de texto.",
+      "limitations": [
+        "Todas las cifras de rendimiento proceden de los autores del preprint; equipo de investigación no ejecutó el código publicado ni reprodujo los resultados.",
+        "La tabla principal cubre dos familias relacionadas de docentes Qwen, cuatro estudiantes y tres referencias de agentes de texto reproducibles mediante repetición; se desconoce la transferencia a otras familias de modelos, modalidades o entornos menos reproducibles.",
+        "Cada celda principal de modelo, estudiante y entorno usa una ejecución de entrenamiento de 150 pasos; tres decodificaciones finales no estiman la variación entre semillas de entrenamiento.",
+        "La reparación puede requerir hasta 19,200 episodios de intervención del docente y su ajuste fino; no se establece una ventaja neta de cómputo o costo de extremo a extremo.",
+        "El README del código indica que el orden sintetizado de ScienceWorld cambia el subconjunto no visto de 134 filas del artículo; la reproducción exacta requiere campaign test.jsonl, no el orden sintetizado."
+      ],
+      "relationships": [
+        {
+          "summary": "Ambos trabajos estudian cómo la puntuación OPD a nivel de token afecta la conducta de agentes; el trabajo anterior aborda el desajuste semántico de tokens de parada, mientras que R2S cambia las puntuaciones mediante trayectorias exitosas seleccionadas del docente.",
+          "target_id": "FCMO-3AB0123A135A",
+          "type": "related"
+        },
+        {
+          "summary": "Ambos modifican la señal de aprendizaje en OPD; IER selecciona tokens del estudiante para obtener gradientes fiables, mientras que R2S repara el puntuador del docente antes de la destilación.",
+          "target_id": "FCMO-4847BDD75623",
+          "type": "related"
+        }
+      ],
+      "summary": "Zhao y Yu presentan Rollout-to-Scorer Distillation (R2S), que usa intervenciones seleccionadas del docente en estados de alto desacuerdo de un estudiante sin entrenar para ajustar el puntuador del docente a nivel de token antes de la destilación agéntica en línea habitual (OPD). El estudiante sigue entrenándose contra el puntuador congelado con el objetivo estándar de KL inversa muestreada; la recompensa de tarea no se usa para entrenarlo. En ALFWorld, WebShop y ScienceWorld, los autores informan que R2S superó tres líneas de base recientes de OPD agéntica en las doce celdas de modelo, estudiante y entorno, con un promedio de 12.8 puntos de éxito por encima de la mejor línea de base de cada celda; el Apéndice E informa que R2S supera en promedio a todas las líneas de base en los 24 cortes de evaluación. El estudio usa dos familias de docentes Qwen y cuatro estudiantes. Son resultados de los autores del preprint, sin reproducción independiente; la tabla principal usa una ejecución de entrenamiento por celda y la reparación requiere hasta 19,200 intervenciones del docente.",
+      "technical": {
+        "claimed_result": "En tres entornos de agentes de texto reproducibles mediante repetición y doce celdas principales de modelo, estudiante y entorno, los autores informan que R2S supera en cada celda a tres líneas de base recientes de OPD agéntica, con una mejora promedio de 12.8 puntos porcentuales frente al mejor comparador de cada celda. El Apéndice E también informa que R2S supera en promedio a todas las líneas de base en los 24 cortes de evaluación. Los autores también informan menos finales fuera de turno y menos turnos de búsqueda.",
+        "compute_or_cost": "Para cada docente reparado, el artículo informa la extracción de hasta 2,400 estados y ocho intervenciones por estado (hasta 19,200 episodios de intervención), seguida de selección y una época de ajuste fino del docente. No informa una comparación de costo integral frente a las mejoras del estudiante.",
+        "demonstrated_result": "El preprint y el repositorio etiquetado con licencia Apache-2.0 están disponibles públicamente; el repositorio incluye código de entrenamiento, configuración de entornos y enlaces a 24 puntos de control. equipo de investigación inspeccionó el PDF del artículo y el README, pero no ejecutó el código ni verificó el rendimiento de forma independiente.",
+        "mechanism": "R2S extrae los turnos en los que la distribución del siguiente token de un estudiante sin entrenar más diverge de la del docente. El docente continúa cada estado seleccionado ocho veces; las intervenciones exitosas se seleccionan por consenso o con un juez LLM. Una copia entrenable del docente aprende a puntuar la continuación original del estudiante usando distribuciones de tokens condicionadas por la intervención seleccionada, sin añadir esa intervención al contexto del estudiante. El docente reparado se congela y se usa como único puntuador en la OPD estándar de KL inversa muestreada; la recompensa de tarea se registra, pero no se usa para reparar ni entrenar al estudiante.",
+        "regime": "Tareas de agentes de texto ALFWorld, WebShop y ScienceWorld; dos familias de docentes Qwen (Qwen3.5-9B y Qwen3-30B-A3B-Instruct-2507), cuatro modelos de estudiante distintos y una condición de autodestilación Qwen3.5-4B. Las 12 celdas principales usan una ejecución de entrenamiento de 150 pasos cada una y tres decodificaciones del punto de control final.",
+        "reproducibility": "La etiqueta de código r2s, las instrucciones de entorno y 24 puntos de control son públicos. El repositorio indica que el orden sintetizado de ScienceWorld cambia el subconjunto no visto de 134 filas del artículo; reproducir las cifras del artículo requiere campaign test.jsonl. equipo de investigación no ejecutó el artefacto ni encontró una reproducción independiente durante esta revisión acotada.",
+        "strongest_baseline": "Los autores comparan OPD estándar, TCOD-F2B, Guided-OPD y FutureBridge con un modelo, indicación, estimador y protocolo de entrenamiento compartidos. Informan un promedio de 12.8 puntos por encima de la mejor de estas líneas de base en cada celda principal; sigue pendiente una reproducción independiente con condiciones emparejadas."
+      },
+      "title": "La reparación del docente sin recompensa mejora la destilación agéntica en línea en tres referencias de agentes de texto",
+      "why_it_matters": "Si el resultado se generaliza, las trayectorias exitosas de un docente pueden mejorar la señal a nivel de token que ofrece a un estudiante agente. Esto aborda una decisión de diseño local del postentrenamiento agéntico sin añadir recompensa de tarea al objetivo del estudiante. El estudio informa mejoras en varios estudiantes y tres tareas, pero la evidencia se limita a modelos Qwen y referencias de agentes de texto reproducibles; el costo de cómputo de la reparación y la transferencia a otras familias de modelos siguen sin medirse."
+    },
     "FCMO-841949AEA161": {
       "claims": [
         {
@@ -22479,6 +22563,72 @@
       },
       "title": "MindEval2 informa fallas de calibración de orientación en modelos de apoyo de salud mental",
       "why_it_matters": "Si las rúbricas y el simulador resultan útiles más allá del diseño evaluado, permitirían que la evaluación de chatbots de salud mental examine si la orientación se ajusta al contexto conversacional a lo largo del tiempo, además de la calidad superficial y el respeto de límites. El artículo también identifica un modo de falla entre los sistemas evaluados. Los pacientes sintéticos, un solo juez de lenguaje y la falta de resultados clínicos limitan lo que demuestran las puntuaciones."
+    },
+    "FCMO-A9AE2856379C": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "La API oficial de GitHub muestra llm-d v1.0.0 como versión más reciente, publicada el 2026-10-20T02:30:10Z; la etiqueta v1.0.0 apunta al commit 378b42d18dabe0b9c4ced4e6f3670d93b52db08e. Las notas indican que no se completaron todos los objetivos del issue #2619."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Las notas del proyecto incluyen como funciones de v1.0 el control de flujo multiusuario, reserva activa y actualizaciones graduales, coordinación de actualizaciones de DisaggregatedSet, una API estable del router y enrutamiento de sesiones de agentes; también enumeran versiones alineadas de componentes."
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "Los distintivos activos de la matriz release-1.0 marcan como aprobadas rutas seleccionadas de control de flujo en GKE y ROCm, disgregación de prefill y generación con vLLM GPU en GKE, API para agentes con vLLM GPU en GKE y línea base optimizada con vLLM GPU en GKE. El validador indica que demuestra el orden por prioridad y excluye la equidad ponderada multiusuario realista y los SLO a escala; esto requiere reproducir trazas separadas con inference-perf."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El proyecto y IBM Research informan despliegues amplios y ejemplos de rendimiento y costo, incluidos reutilización de caché y reducciones del costo del servicio; esta revisión no auditó de forma independiente esos resultados."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "Las rutas aprobadas no establecen de forma independiente la QoS de producción con tráfico multiusuario realista, el servicio durante fallas o actualizaciones, el ahorro de clientes ni mejoras de throughput o latencia en los regímenes anunciados."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "Las notas indican que no se completaron todos los objetivos del issue #2619, pero no enumeran los elementos incompletos.",
+          "kind": "missing_artifact",
+          "state": "open"
+        },
+        {
+          "description": "Los distintivos de prueba informan que algunas rutas propias aprobaron, pero no demuestran equidad ponderada multiusuario realista ni SLO a escala.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "La matriz no demuestra de forma independiente recuperación ante fallas del router, actualizaciones sin pérdida de solicitudes, continuidad de caché ni afinidad de sesión con tráfico realista de agentes.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "Las cifras de velocidad, caché y costo carecen de datos plenamente comparables sobre modelo, hardware, carga, concurrencia, calidad, SLO, utilización y costo total.",
+          "kind": "regime_unclear",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se implementan, estos controles podrían proteger el tráfico sensible a la latencia durante picos, actualizaciones y cargas de agentes, y reducir el recálculo de contexto en servicios compartidos. Son útiles para muchos equipos, pero el impacto de servicio y económico no se ha medido de forma independiente.",
+      "limitations": [
+        "Los artefactos y distintivos de prueba son del propio proyecto; establecen la publicación y el estado que este reporta, no una validación independiente.",
+        "Las notas dicen que no se completaron todos los objetivos del issue #2619, sin detallar cada elemento pendiente en el resumen.",
+        "El script de control de flujo limita la prueba al orden por prioridad; equidad ponderada realista y SLO a escala quedan fuera.",
+        "Algunas rutas aprobadas no demuestran todas las combinaciones de nube y acelerador ni confiabilidad bajo fallas y tráfico real.",
+        "Las cifras de throughput, latencia, caché y costo siguen siendo informes de proveedores o clientes sin controles completos ni reproducción independiente."
+      ],
+      "relationships": [],
+      "summary": "El 20 de octubre, llm-d publicó la versión v1.0.0, cuya etiqueta apunta al commit 378b42d18dabe0b9c4ced4e6f3670d93b52db08e. Las notas alinean 18 componentes principales en torno a v1.0.0 y describen control de flujo multiusuario, reserva activa, actualizaciones coordinadas para serving disgregado, una API estable del router y enrutamiento adaptado a agentes. La matriz específica de la versión marca algunas rutas de control de flujo, disgregación de prefill y generación, API para agentes y línea base optimizada como aprobadas. El validador de control de flujo limita expresamente su prueba al orden por prioridad; señala que la equidad ponderada multiusuario realista y los SLO a escala requieren reproducción separada de trazas con inference-perf. Las cifras de throughput y costo informadas por proveedores o clientes siguen sin verificarse.",
+      "technical": {
+        "claimed_result": "El proyecto y sus mantenedores informan despliegues en diversas nubes y aceleradores, y ejemplos de velocidad, caché y costo comunicados por clientes o proveedores.",
+        "demonstrated_result": "La API de publicaciones y el objeto de etiqueta de GitHub confirman v1.0.0 y su commit. Las notas enumeran versiones de componentes. La matriz informa que algunas rutas específicas aprobaron. El validador de extremo a extremo dice que su test de control de flujo solo establece el orden por prioridad, no la equidad ponderada realista ni los SLO a escala. No se ejecutó un despliegue ni un benchmark de rendimiento.",
+        "mechanism": "Las notas describen colas del router por prioridad y equidad con admisión controlada ante sobrecarga, selección de endpoints con reserva activa, preparación y enrutamiento coordinados para réplicas disgregadas de prefill y generación, una API v1 estable y afinidad de sesión para reutilizar contexto en turnos de agentes. El commit etiquetado incluye guía de control de flujo, documentación y flujos de trabajo de publicación.",
+        "regime": "Versión de un sistema de inferencia distribuida nativo de Kubernetes con guías vLLM/SGLang para diversos aceleradores y nubes. La matriz cubre rutas específicas de prueba informadas por el proyecto.",
+        "strongest_baseline": "La tabla de componentes compara versiones de software —por ejemplo, router endpoint picker v0.11.0 y v1.0.0—, no rendimiento de servicio en condiciones equivalentes."
+      },
+      "title": "llm-d publica v1.0 con funciones para operar flotas de inferencia distribuida",
+      "why_it_matters": "Una versión estable que cubra varios componentes, con priorización explícita del tráfico, actualizaciones coordinadas de inferencia disgregada y enrutamiento por sesión de agentes, podría facilitar la operación de flotas heterogéneas y afectar la confiabilidad y el costo del servicio. Los artefactos primarios establecen que se publicó v1.0.0 y que algunas rutas de prueba específicas aparecen aprobadas. Estas pruebas no demuestran resultados independientes en producción: el test de control de flujo documenta un alcance más acotado, limitado al orden por prioridad, y las afirmaciones de reducción de costos de 5–10x o 11.5x aún requieren contabilidad comparable e independiente."
     },
     "FCMO-AA18A117DBA1": {
       "claims": [
@@ -31409,6 +31559,57 @@
       },
       "title": "Un estudio concluye que los modelos de chat y razonamiento no son verificadores autónomos fiables de protocolos",
       "why_it_matters": "El análisis de protocolos de seguridad es crítico y cuenta con verificadores formales de semántica explícita. El intercambio informado entre precisión y sensibilidad, y los ataques de autenticación omitidos, acotan el uso posible de estas configuraciones probadas: una pasada rápida de un modelo de lenguaje podría ayudar a priorizar tareas, pero no puede reemplazar la verificación formal ni justificar que se la omita. El resultado se limita a dos proveedores, una familia de notación y una instrucción de cero ejemplos."
+    },
+    "FCMO-F1E17B2ACD46": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "La comisión municipal de ciencia y tecnología de Beijing y el comité de Zhongguancun publicaron una convocatoria el 20 de octubre de 2026 para solicitar propuestas de reserva sobre defensa de ciberseguridad con IA y una plataforma de pruebas y validación adversariales de alta fidelidad."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El aviso especifica áreas de investigación como operaciones de seguridad multiagente, identificación de componentes maliciosos, gestión de superficies de ataque y defensa ante ataques de variantes desconocidas, además de pruebas adversariales automatizadas y escenarios cibernéticos de alta simulación."
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "El aviso limita el tema de productos a empresas o solicitudes dirigidas por empresas y la plataforma de pruebas a universidades e institutos de investigación; señala que la duración habitual no superará 1 año, que la solicitud va del 20 al 29 de octubre, que cada empresa puede presentar como máximo 1 proyecto y que debe aportar fondos de contrapartida de al menos 2:1 frente al financiamiento público de ciencia."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El aviso no especifica presupuesto total ni monto de financiamiento, no identifica proyectos seleccionados, no demuestra adjudicaciones o finalización, y no informa defensas desplegadas ni resultados de ciberseguridad medidos."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "El aviso no especifica el fondo disponible, el monto de las adjudicaciones, la lista de proyectos seleccionados ni las decisiones de financiamiento.",
+          "kind": "missing_primary",
+          "state": "open"
+        },
+        {
+          "description": "No se publican resultados técnicos ni mediciones de los productos de defensa o de la plataforma adversarial solicitada.",
+          "kind": "missing_independent",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si la convocatoria genera proyectos financiados, combinar desarrollo de productos defensivos de ciberseguridad con IA y una plataforma adversarial de alta fidelidad podría influir en las prioridades regionales de IA aplicada y en la infraestructura para evaluar defensas. El aviso establece condiciones concretas de solicitud y una contrapartida empresarial de 2:1, pero no informa fondos totales, adjudicatarios, implementación ni resultados, lo que limita su consecuencia actual.",
+      "limitations": [
+        "Es una convocatoria de propuestas, no evidencia de que algún proyecto haya sido seleccionado, financiado o concluido.",
+        "El aviso no indica presupuesto total, máximo por proyecto, distribución de fondos, ejecución de la contrapartida ni condiciones contractuales.",
+        "Los objetivos de defensa y evaluación adversarial no se acompañan de resultados de pruebas, sistemas desplegados o mediciones independientes.",
+        "La convocatoria pertenece a un programa regional de Beijing y no debe generalizarse como política nacional china de ciberseguridad con IA ni como medida de inversión regional."
+      ],
+      "relationships": [],
+      "summary": "El 20 de octubre, la Comisión Municipal de Ciencia y Tecnología de Beijing y el Comité Administrativo de Zhongguancun abrieron una convocatoria para proyectos de reserva de 2026 en dos áreas: productos de ciberseguridad con IA y una plataforma de pruebas y validación adversariales de alta fidelidad. El aviso original en chino describe operaciones de seguridad multiagente, detección de componentes maliciosos, gestión de superficies de ataque y defensa contra ataques desconocidos; para la segunda área solicita pruebas adversariales automatizadas y entornos cibernéticos de alta simulación. Limita el primer tema a empresas o consorcios liderados por empresas y el segundo a universidades e institutos de investigación. Cada empresa puede presentar como máximo un proyecto y debe aportar fondos de contrapartida por al menos 2:1 frente al financiamiento público de ciencia. La duración normalmente no debe superar 1 año y la convocatoria permanece abierta del 20 al 29 de octubre. Es una solicitud de propuestas, no evidencia de adjudicaciones, montos, sistemas desplegados ni resultados de ciberseguridad medidos.",
+      "technical": {
+        "claimed_result": "Las entidades convocantes señalan que el programa busca impulsar la investigación tecnológica y el desarrollo de productos de ciberseguridad con IA. Es un objetivo declarado, no un resultado técnico logrado.",
+        "demonstrated_result": "El aviso oficial en chino documenta la convocatoria, las dos líneas de investigación, la elegibilidad, la regla de contrapartida y las fechas de solicitud. No incluye selecciones, montos adjudicados, entregas ni resultados.",
+        "mechanism": "El aviso solicita propuestas en dos áreas: productos y plataformas de defensa cibernética con IA para detectar y responder, incluidas operaciones de seguridad multiagente; y una plataforma adversarial de alta fidelidad, con generación automatizada de pruebas, entornos cibernéticos realistas y retroalimentación continua para evaluar productos defensivos.",
+        "regime": "Convocatoria municipal de Beijing para proyectos de reserva de 2026; el primer tema se limita a empresas o propuestas lideradas por empresas y el segundo a universidades e institutos de investigación; la duración indicada normalmente no superará 1 año.",
+        "strongest_baseline": "No se revisó una convocatoria anterior comparable ni un proyecto financiado de referencia; el aviso es una nueva solicitud y no presenta mediciones de capacidades antes y después."
+      },
+      "title": "Beijing solicita proyectos de defensa cibernética con IA y pruebas adversariales",
+      "why_it_matters": "La convocatoria concreta prioridades regionales de ciberseguridad con IA en dos líneas distintas: productos defensivos y una plataforma de evaluación adversarial de alta fidelidad. Si se financian y ejecutan, podrían influir en el desarrollo local de productos y en la infraestructura de pruebas. El aviso no informa el presupuesto total, los adjudicatarios, la implementación ni resultados medidos; por ahora señala prioridades oficiales, no resultados entregados."
     },
     "FCMO-F22DAAF83F20": {
       "claims": [
@@ -46673,6 +46874,48 @@
         "source_sha256": "a71fc57fe9e1f9e124f76ee8923fcc5ad77d465549d374f0a10c521a5c05f229"
       }
     },
+    "FCMO-83D876C273E3": {
+      "claims": {
+        "locale_sha256": "8e9050815ed4eefe79de4d73b94c3e675d6f8493015854971bcc7461835a7ef7",
+        "source_sha256": "db77b715102432eb79d7697e626c559b4e043abcde0e38a9202d3f0535c2edc6"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "d6972c116b2373cc39c441ba1d436f27bba68525eaf209372c6845ade2e2aa9f",
+        "source_sha256": "4645882b8d693c31d29402ead563a3bc7e3af501dbe7b1cf426b6277f8cb0460"
+      },
+      "importance_rationale": {
+        "locale_sha256": "79e263feeed1f821e8844dc41fc7b148c4faeef39ff1633c68a8d97aff7703ce",
+        "source_sha256": "1bd130ebb1b0f57d69f5ca38ab20a5809d09465ee3ba94054a0f377c38aa0a4e"
+      },
+      "limitations": {
+        "locale_sha256": "b909585857d9c01346b5a3106581099644a6eb74ce1209f8dec1b9eb91b6da6a",
+        "source_sha256": "5164869538cc7a81d98cdba12801c02e28a1c25456c95d272ddc1cd54dac1b71"
+      },
+      "relationships": {
+        "locale_sha256": "79d5316309cea32d975e30fbde22ffe60a043c18a72e70fe1c1f632b5595fe8a",
+        "source_sha256": "c31c392f0d2ce6afc1f614908c39a387bcdb4249c4b8d287e693ebf5252eb383"
+      },
+      "summary": {
+        "locale_sha256": "fca7145c694dc83c6a14797bdf3ff2bbd7bb48e741189ce76792f4b9bdd9dfba",
+        "source_sha256": "6ae1c54a9faff07db818ad525bdd9a2b948ff4e1a860dadd88bd7be9265a3a6d"
+      },
+      "technical": {
+        "locale_sha256": "c0d5d3d57d9b07d3d7f15c8951e0a3622581e2213a9dcf84f472bd037bceec0e",
+        "source_sha256": "b3a60a621850be2fc494249ae8a47217ef896ac8c727389ed0d0925d61a6f8f9"
+      },
+      "title": {
+        "locale_sha256": "2a9ee30eb186cda346d57235bf2a186e2ae7c12cffba492e172869edd7fbe7b4",
+        "source_sha256": "0fdc902b3480fedc9bf73cf0ec5324f96dbf14de1df83ceeb168f7fcd4889683"
+      },
+      "why_it_matters": {
+        "locale_sha256": "275a3e9b1b8ee4a836eb3bfd64c681ab91449e92e6bb71bea2bd23b9afce0dd3",
+        "source_sha256": "65d014079d1a0af543a77b304d86a05d465513314e52709e7b3fdc825e7678e1"
+      }
+    },
     "FCMO-841949AEA161": {
       "claims": {
         "locale_sha256": "452fe59f5245f5ee5166cf6dad03c8c9d34d5b12f3170946671b888573f183f2",
@@ -49919,6 +50162,48 @@
       "why_it_matters": {
         "locale_sha256": "bdf7490707218a20f854241e9204c1f57f7ebffe0e97bfca960405350d0d389d",
         "source_sha256": "d8f7221317e8838aa2d3b726aeecb54b20637f3ba5c44814c9375b44a770dbe4"
+      }
+    },
+    "FCMO-A9AE2856379C": {
+      "claims": {
+        "locale_sha256": "c95c8bbd7b1d599a07a7f89d4332d2d94f85c298d50820ba9e83a68888417737",
+        "source_sha256": "8bc6eb11acec345a3d70937327cabfc4382c115c333db8b675887d7397a2a501"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "cb0abb6f4a7b7dd4c8db879d75a90fcf645a8a770c7314eae0418b83dc069c3a",
+        "source_sha256": "8f57195926ce89a9649a8b862b9dfccfa4f2a6d203610d398d8149426b499adb"
+      },
+      "importance_rationale": {
+        "locale_sha256": "29201ee061a8b31d5296540fd5d39de8e23ad8b1134f713df0deb9d7299dbbf1",
+        "source_sha256": "be4023b65c83f5c399c4ca923aab63f5b6b69d2811de967f1a6a8ffaa125029d"
+      },
+      "limitations": {
+        "locale_sha256": "03229e774102189d2ad7f0b7bf1b197b448f91eee38192183ee1e3bbd7977022",
+        "source_sha256": "8359e6985b8bb0b20565ec4615d4c79986eaa3a373a7a5e4de985f6bebcd2e5b"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "cac70fcd63a05b18effe48a5fe4810f2d29818c73ae43c8dac7837fb82eff661",
+        "source_sha256": "d18dfe1b43a0e5b59f8f57796604764a0f240d488d407d29e948c7253bc94279"
+      },
+      "technical": {
+        "locale_sha256": "e329445f77594fa92da6846591146d25604eb2e62ecb786695b8d7bbd1462c75",
+        "source_sha256": "320bba6a8117577657abc4a913c2f1592f8862085d86c2f2eb2222d38c80fd25"
+      },
+      "title": {
+        "locale_sha256": "585eb3f7695ce62b5135355c34234c40da206957e9cfd715426948d0c5c0fbf9",
+        "source_sha256": "bf53f202007d2a8d26ec7d2ebd04989720ed84ceb6d95d5226d9a15b4be9071d"
+      },
+      "why_it_matters": {
+        "locale_sha256": "7588cdfd9b71a53fd01961cd41203d49466b5ce1d87beebdbbbc75fa1ed83c66",
+        "source_sha256": "65c22525440f43656c5f85797a619a426cf0cd1b329a7699115ef5b41042a6f7"
       }
     },
     "FCMO-AA18A117DBA1": {
@@ -56765,6 +57050,48 @@
       "why_it_matters": {
         "locale_sha256": "cc69510328d87e62b3d873847b2fc684a415a1465d89473b9b10caa88b290be1",
         "source_sha256": "3b751f6336b8eaa9227064cc15ead625e867bac90ecc18ede3324a24c54b58f1"
+      }
+    },
+    "FCMO-F1E17B2ACD46": {
+      "claims": {
+        "locale_sha256": "6bab4e959774d911e3461f62e5318b6f6ed3dd8c3396bf4d2b142096f6c4cf5e",
+        "source_sha256": "9ffc353aaea08fb2294d82bfc2c47ed1c7da0d2c252196b6942906c61b8c1cca"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "33beba88f8b4329e402995f9c0ac61022eea40c40d317696f5532a7ff2044b0d",
+        "source_sha256": "805e807eb35c1ab7ed12f43afde3d910a5a20b0d5eb7c9a2c1eadab4d93f6c86"
+      },
+      "importance_rationale": {
+        "locale_sha256": "992c824a8cca80cdba830912ed34b2e29eac4ad16361d1412847d54a5aa86e93",
+        "source_sha256": "4c3f2493e2b543a6ba5e768d5f94cae77817e176b00f8aa3d4cbe0b0923a174f"
+      },
+      "limitations": {
+        "locale_sha256": "adeef7ab98489e0046348145b3daa12477676844ce91d9af4034a0d8e586feab",
+        "source_sha256": "4789fda307fe2ea84a064147855271cd00bab648072bd515148d7ba5defcc887"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "4c616a4f27240914ebac0a9cfd3f126809b7b66403b29023a2cb0c0be1b2ce23",
+        "source_sha256": "fed07a6e907a1700ab9745d7ed035f3a7334b799271a46b581bafe0a803bf5f7"
+      },
+      "technical": {
+        "locale_sha256": "c93da37d435ffcd35c8d42a45215bbecd41c914c6d65365c7889ea70927d7f57",
+        "source_sha256": "c40803a3dd5acd852b5c87af933ab5baa5dc20ed721e7f291d883dc15734d0dd"
+      },
+      "title": {
+        "locale_sha256": "755476bde45b4fee6de36436ca08bf7955fb07b310260a2f97956b356f861609",
+        "source_sha256": "11417bbf238dc3d72afc3a9b9f3bf38acc046bfa37d382516a9ece6cbc3a2ad9"
+      },
+      "why_it_matters": {
+        "locale_sha256": "285808e72fcc8eee937cc2c5b43002e1f0098473f0510f6fe63709fc02beccb0",
+        "source_sha256": "46fc92ac06e8ce6d7a9e148c2ed0a0f11b2e5454ed5f62b01f3524b1d2b11ffc"
       }
     },
     "FCMO-F22DAAF83F20": {

@@ -1,0 +1,225 @@
+{
+  "record": {
+    "id": "FCMO-83D876C273E3",
+    "title": "A reward-free teacher repair improves agentic on-policy distillation on three text-agent benchmarks",
+    "desk": "Reasoning Posttraining",
+    "event_at": "2026-10-20T00:00:00Z",
+    "evidence": "A",
+    "confidence": "credible_unconfirmed",
+    "importance": 5,
+    "tier": "Notable",
+    "summary": "Zhao and Yu introduce Rollout-to-Scorer Distillation (R2S), which uses selected teacher takeovers from high-disagreement states of an untrained student to fine-tune the teacher’s token-level scorer before ordinary on-policy distillation (OPD). The student still trains against the frozen scorer with the standard sampled reverse-KL objective; task reward is not used to train it. Across ALFWorld, WebShop and ScienceWorld, the authors report that R2S outperformed three recent agentic-OPD baselines in all twelve model/student/environment cells, averaging 12.8 success points above the strongest baseline in each cell; Appendix E reports that R2S exceeds every baseline in mean on all 24 evaluation splits. The study uses two Qwen teacher families and four students. These are preprint-author results, not independently reproduced; the main table uses one training run per cell and the repair requires up to 19,200 teacher takeover episodes.",
+    "topics": [
+      "agentic on-policy distillation",
+      "teacher repair",
+      "reward-free post-training",
+      "long-horizon agents",
+      "teacher scoring"
+    ],
+    "organizations": [
+      "NVIDIA"
+    ],
+    "human_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-83D876C273E3.html",
+    "machine_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/data/briefs/FCMO-83D876C273E3.json",
+    "citation": {
+      "id": "FCMO-83D876C273E3",
+      "source": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-83D876C273E3.html"
+    }
+  },
+  "brief": {
+    "claims": [
+      {
+        "label": "CLAIMED",
+        "text": "The authors report that R2S exceeds three recent agentic-OPD baselines in all twelve main model/student/environment cells, averaging 12.8 success percentage points above the strongest baseline in each cell."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "The authors report the mechanism: mine high-disagreement states from an untrained student, collect eight teacher takeovers per state, select a passing takeover using consensus or an LLM judge, fine-tune the teacher to score the student’s suffix with takeover-informed token targets, then freeze that teacher for ordinary OPD."
+      },
+      {
+        "label": "DEMONSTRATED",
+        "text": "The public repository provides the r2s code tag and documents the training pipeline, environment setup and release of 24 checkpoints; its README identifies an Apache-2.0 license."
+      },
+      {
+        "label": "NOT_ESTABLISHED",
+        "text": "The reported gains do not establish independent replication, transfer beyond the evaluated Qwen models and replayable text-agent environments, or a net compute/cost advantage after takeover and teacher-repair work."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "In Appendix E, the authors report that R2S exceeds every baseline in mean on all 24 evaluation splits shown in Table 12; these are paper-reported results, not independently reproduced by the research desk."
+      }
+    ],
+    "confidence": "credible_unconfirmed",
+    "contradictory_evidence": [],
+    "desks": [
+      "reasoning_posttraining",
+      "agents_memory",
+      "evaluation_science"
+    ],
+    "development_type": "paper",
+    "editions": [
+      "2026-10-21"
+    ],
+    "event_at": "2026-10-20T00:00:00Z",
+    "evidence_class": "A",
+    "evidence_gaps": [
+      {
+        "description": "No independent reproduction of the R2S-versus-baseline results was found or performed.",
+        "kind": "missing_independent",
+        "state": "open"
+      },
+      {
+        "description": "The main table uses one student-training run per cell and three final decodes, so the published standard deviations do not measure between-training-run variation.",
+        "kind": "other",
+        "state": "open"
+      },
+      {
+        "description": "Up to 19,200 teacher takeovers and teacher fine-tuning are incurred before student distillation; net compute or cost efficiency is not measured.",
+        "kind": "other",
+        "state": "open"
+      },
+      {
+        "description": "The repository warns that synthesized ScienceWorld ordering produces a different unseen 134-row subset from the paper’s campaign task file.",
+        "kind": "missing_artifact",
+        "state": "open"
+      },
+      {
+        "description": "Results cover two related Qwen teacher families and replayable text-agent tasks only.",
+        "kind": "other",
+        "state": "open"
+      }
+    ],
+    "id": "FCMO-83D876C273E3",
+    "importance_effective_score": 5,
+    "importance_rationale": "If the reported gains generalize, using a teacher’s selected rollouts to repair its token-level scorer could materially change agentic post-training design by improving multi-turn distillation without adding task reward to the student objective. The claim is notable within agentic post-training, but remains a single preprint evaluated on two related Qwen model families and three text-agent environments.",
+    "importance_scale_version": 2,
+    "importance_score": 5,
+    "importance_tier": "Notable",
+    "last_verified_at": "2026-10-21T02:15:26.420071+00:00",
+    "limitations": [
+      "All performance figures are preprint-author reports; the research desk did not execute the released code or reproduce results.",
+      "The main table covers two related Qwen teacher families, four students and three replayable text-agent benchmarks; transfer to other model families, modalities or less replayable environments is unknown.",
+      "Each main model/student/environment cell uses one 150-step training run; three final decodes do not estimate between-training-seed variation.",
+      "The repair can require up to 19,200 takeover episodes plus teacher fine-tuning; no net end-to-end compute or cost advantage is established.",
+      "The code README states that synthesized ScienceWorld ordering changes the paper’s unseen 134-row slice; exact reproduction needs the campaign test.jsonl rather than the synthesized ordering."
+    ],
+    "organizations": [
+      "NVIDIA"
+    ],
+    "primary_desk": "reasoning_posttraining",
+    "recorded_at": "2026-10-21T02:15:26.420071+00:00",
+    "regions": [
+      "global"
+    ],
+    "relationships": [
+      {
+        "summary": "Both study how token-level OPD scoring affects agent behavior; the earlier work addresses semantic stop-token mismatch, while R2S changes scores using selected successful teacher rollouts.",
+        "target_id": "FCMO-3AB0123A135A",
+        "type": "related"
+      },
+      {
+        "summary": "Both modify the learning signal in OPD; IER selects student tokens for reliable gradients, while R2S repairs the teacher scorer before distillation.",
+        "target_id": "FCMO-4847BDD75623",
+        "type": "related"
+      }
+    ],
+    "source_languages": [
+      "en"
+    ],
+    "source_urls": [
+      "https://arxiv.org/abs/2610.28586",
+      "https://github.com/Tree-Shu-Zhao/miles-agent/tree/r2s"
+    ],
+    "status": "active",
+    "summary": "Zhao and Yu introduce Rollout-to-Scorer Distillation (R2S), which uses selected teacher takeovers from high-disagreement states of an untrained student to fine-tune the teacher’s token-level scorer before ordinary on-policy distillation (OPD). The student still trains against the frozen scorer with the standard sampled reverse-KL objective; task reward is not used to train it. Across ALFWorld, WebShop and ScienceWorld, the authors report that R2S outperformed three recent agentic-OPD baselines in all twelve model/student/environment cells, averaging 12.8 success points above the strongest baseline in each cell; Appendix E reports that R2S exceeds every baseline in mean on all 24 evaluation splits. The study uses two Qwen teacher families and four students. These are preprint-author results, not independently reproduced; the main table uses one training run per cell and the repair requires up to 19,200 teacher takeover episodes.",
+    "technical": {
+      "claimed_result": "In three replayable text-agent environments and twelve main model/student/environment cells, the authors report R2S above three recent agentic-OPD baselines in every cell, with a 12.8 percentage-point average gain over the strongest comparator in each cell. Appendix E further reports R2S above every baseline in mean on all 24 evaluation splits. The authors also report reduced out-of-turn endings and fewer searching turns.",
+      "compute_or_cost": "For each repaired teacher the paper reports mining up to 2,400 states and eight takeovers per state (up to 19,200 takeover episodes), followed by selection and one teacher fine-tuning epoch. It does not report an end-to-end cost comparison against the student gains.",
+      "demonstrated_result": "The preprint and tagged Apache-2.0 repository are publicly available; the repository includes training code, environment setup and links to 24 released checkpoints. the research desk inspected the paper PDF and README but did not execute the code or independently verify performance.",
+      "mechanism": "R2S mines the turns where an untrained student’s next-token distribution diverges most from a teacher. The teacher continues each selected state eight times; passing takeovers are selected by consensus or an LLM judge. A trainable copy of the teacher learns to score the student’s original continuation using token distributions conditioned on the selected takeover, without putting that takeover into the student context. The repaired teacher is frozen and used as the sole scorer in standard sampled reverse-KL OPD; task reward is logged but not used for repair or student training.",
+      "regime": "ALFWorld, WebShop and ScienceWorld text-agent tasks; two Qwen teacher families (Qwen3.5-9B and Qwen3-30B-A3B-Instruct-2507), four distinct student models, plus a Qwen3.5-4B self-distillation condition. The main 12 cells use one 150-step training run each and three final checkpoint decodes.",
+      "reproducibility": "The r2s code tag, environment instructions and 24 checkpoints are public. The repository notes that synthesized ScienceWorld ordering changes the paper’s unseen 134-row subset; reproduction of paper numbers requires campaign test.jsonl. the research desk did not execute the artifact, and no independent reproduction was located in this bounded review.",
+      "strongest_baseline": "The authors compare against vanilla OPD, TCOD-F2B, Guided-OPD and FutureBridge under a shared model, prompt, estimator and training protocol. They report averaging 12.8 points over the best of these baselines per main cell; independent matched replication is open."
+    },
+    "title": "A reward-free teacher repair improves agentic on-policy distillation on three text-agent benchmarks",
+    "topics": [
+      "agentic on-policy distillation",
+      "teacher repair",
+      "reward-free post-training",
+      "long-horizon agents",
+      "teacher scoring"
+    ],
+    "why_it_matters": "If the result generalizes, a teacher’s successful rollouts can improve the token-level signal it provides to an agent student, addressing a local design choice in agentic post-training without adding task reward to the student objective. The study reports gains across several students and three tasks, but evidence is limited to Qwen models and replayable text-agent benchmarks; repair compute and transfer to other model families remain unmeasured."
+  },
+  "related": [
+    {
+      "source_id": "FCMO-83D876C273E3",
+      "summary": "Both study how token-level OPD scoring affects agent behavior; the earlier work addresses semantic stop-token mismatch, while R2S changes scores using selected successful teacher rollouts.",
+      "target_id": "FCMO-3AB0123A135A",
+      "type": "related",
+      "other": {
+        "id": "FCMO-3AB0123A135A",
+        "title": "A paper reports semantic stop-token alignment reduces length inflation in on-policy distillation",
+        "desk": "Reasoning Posttraining",
+        "event_at": "2026-09-17T00:00:00Z",
+        "evidence": "A",
+        "confidence": "credible_unconfirmed",
+        "importance": 4,
+        "tier": "Meaningful",
+        "summary": "A September 17 preprint studies length inflation in sampled-token on-policy distillation (OPD). It argues that when a base student and post-trained teacher encode the same stopping decision with different tokens, the teacher can give a negative signal to the student’s sampled EOS while the teacher-preferred token receives little support. Across Qwen3, Llama 3.2 and Gemma 3, the authors report that aligning total probability over semantically equivalent stop tokens in the distillation signal reduces mismatch-driven length and clipping; merely expanding the decoder stop set does not. An earlier OPD paper already describes EOS canonicalization in Appendix D, so the basic alignment idea is prior art; the newer paper adds cross-family empirical comparisons, a shared-declared-set Gemma test and stage-wise residual analysis. It also reports late-stage K2-Horizon re-inflation after correction. These are author-run, single-turn mathematical-reasoning results; multi-turn/tool semantics and independent replication remain open.",
+        "topics": [
+          "on-policy distillation",
+          "termination-token mismatch",
+          "reasoning post-training",
+          "generation length",
+          "evaluation protocol"
+        ],
+        "organizations": [
+          "University of North Carolina at Chapel Hill",
+          "Brigham Young University",
+          "Microsoft"
+        ],
+        "human_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-3AB0123A135A.html",
+        "machine_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/data/briefs/FCMO-3AB0123A135A.json",
+        "citation": {
+          "id": "FCMO-3AB0123A135A",
+          "source": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-3AB0123A135A.html"
+        }
+      }
+    },
+    {
+      "source_id": "FCMO-83D876C273E3",
+      "summary": "Both modify the learning signal in OPD; IER selects student tokens for reliable gradients, while R2S repairs the teacher scorer before distillation.",
+      "target_id": "FCMO-4847BDD75623",
+      "type": "related",
+      "other": {
+        "id": "FCMO-4847BDD75623",
+        "title": "IER adds gradient-estimation reliability to sparse on-policy distillation",
+        "desk": "Reasoning Posttraining",
+        "event_at": "2026-09-21T00:00:00Z",
+        "evidence": "A",
+        "confidence": "credible_unconfirmed",
+        "importance": 4,
+        "tier": "Meaningful",
+        "summary": "The paper analyzes sampled-token on-policy distillation (OPD) and defines an information-efficiency ratio (IER) for the reliability of reverse-KL gradient estimates at a fixed prefix. It approximates IER on a finite top-K candidate set and combines the resulting token ranking with existing usefulness scores. Across selected mathematical and medical reasoning settings, the authors report that combined selectors can approach or exceed full OPD at 0.1%–1% token budgets, with mixed results across settings. This concerns token selection for the loss: full student responses and teacher supervision remain computed, and proportional end-to-end compute savings are not established.",
+        "topics": [
+          "on-policy-distillation",
+          "gradient-estimation",
+          "token-selection",
+          "post-training"
+        ],
+        "organizations": [
+          "MBZUAI",
+          "Ant Group"
+        ],
+        "human_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-4847BDD75623.html",
+        "machine_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/data/briefs/FCMO-4847BDD75623.json",
+        "citation": {
+          "id": "FCMO-4847BDD75623",
+          "source": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-4847BDD75623.html"
+        }
+      }
+    }
+  ],
+  "schema": "fcmo-public-brief-v1"
+}

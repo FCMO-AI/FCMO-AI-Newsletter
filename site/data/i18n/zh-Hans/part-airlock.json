@@ -1,6 +1,6 @@
 {
   "canonical_locale": "en",
-  "canonical_source_sha256": "4d84172dde7130c144af9ff7b63b148eea1d4970f49c944c66b6d51623976eff",
+  "canonical_source_sha256": "d316384f3a011c1a9fbf2e9d87744f78e28ab84a524e72237b5714e8f7d3eea6",
   "generated_from": "ARB airlock; editorial wording authored upstream",
   "locale": "zh-Hans",
   "records": {
@@ -18073,6 +18073,90 @@
       "title": "JitMem报告了任务自适应智能体记忆的改进",
       "why_it_matters": "大多数记忆系统会在存储经验时决定保留什么，而那时还不知道未来如何使用。JitMem测试另一种做法：保留未总结的轨迹，再根据当前任务整理。论文报告了多个交互式基准上的改进，以及训练好的整理器向更强执行模型迁移的结果；同时指出每项任务多一次模型调用和简单检索是其代价。这些结果可能影响智能体记忆设计，但不能证明在测试任务之外也普遍有效。"
     },
+    "FCMO-83D876C273E3": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "作者报告称，在十二个主要模型、学生模型与环境组合中，R2S 均优于三个近期的智能体 OPD 基线；相对于每个组合中的最佳基线，成功率平均高出 12.8 个百分点。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "作者描述的机制是：从未经训练的学生模型中挖掘高分歧状态；每个状态收集八次教师接管；通过共识或 LLM 评审选择成功的接管；微调教师模型，使其依据接管信息对学生后缀评分；随后冻结该教师模型，用于常规 OPD。"
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "公开仓库提供 r2s 代码标签，并记录训练流程、环境设置和 24 个检查点的发布；其 README 标明 Apache-2.0 许可证。"
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "报告的增益并不能证明结果已获独立复现、能够迁移到所评估 Qwen 模型及可回放文本智能体环境之外，也未证明计入教师接管和修复工作后仍有净计算或成本优势。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "作者在附录 E 中报告，R2S 在表 12 所列全部 24 个评测切分上的平均值均高于每个基线；这些是论文报告的结果，研究团队未进行独立复现。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "未找到或进行 R2S 与基线结果的独立复现。",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "主表中每个组合只有一次学生训练运行和三次最终解码，因此已发表的标准差并不衡量训练运行之间的波动。",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "在学生蒸馏前，教师最多进行 19,200 次接管并接受微调；研究没有测量净计算效率或成本效率。",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "仓库警告称，合成的 ScienceWorld 排序产生了与论文 campaign 任务文件不同的 134 行未见子集。",
+          "kind": "missing_artifact",
+          "state": "open"
+        },
+        {
+          "description": "结果仅涉及两个相关的 Qwen 教师模型系列和可回放的文本智能体任务。",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "如果报告的增益能够泛化，利用教师筛选出的轨迹修复其 token 级评分器，可能显著改变智能体后训练设计：在不把任务奖励加入学生目标的情况下改善多轮蒸馏。这项主张在智能体后训练领域值得关注，但目前仅来自一篇预印本，评测对象是两个相关 Qwen 模型系列和三个文本智能体环境。",
+      "limitations": [
+        "所有性能数字均为预印本作者报告；研究团队 未运行公开代码，也未复现结果。",
+        "主表覆盖两个相关的 Qwen 教师模型系列、四个学生模型和三个可回放文本智能体基准；结果能否迁移到其他模型系列、模态或较难回放的环境尚不清楚。",
+        "每个主要模型、学生模型与环境组合仅进行一次 150 步训练；三次最终解码无法估计不同训练种子之间的波动。",
+        "修复过程可能需要最多 19,200 次教师接管以及教师微调；尚未证明端到端计算或成本上的净优势。",
+        "代码 README 指出，合成的 ScienceWorld 排序会改变论文使用的 134 行未见切片；精确复现需要 campaign test.jsonl，而非合成排序。"
+      ],
+      "relationships": [
+        {
+          "summary": "两项研究都探讨 token 级 OPD 评分如何影响智能体行为；较早的工作研究语义停止 token 不匹配，R2S 则通过筛选出的成功教师轨迹改变评分。",
+          "target_id": "FCMO-3AB0123A135A",
+          "type": "related"
+        },
+        {
+          "summary": "两项研究都改变 OPD 中的学习信号；IER 选择学生 token 以获得可靠梯度，R2S 则在蒸馏前修复教师评分器。",
+          "target_id": "FCMO-4847BDD75623",
+          "type": "related"
+        }
+      ],
+      "summary": "Zhao 和 Yu 提出 Rollout-to-Scorer Distillation (R2S)：利用未经训练的学生模型在高分歧状态下的筛选教师接管，在常规智能体在线蒸馏 (OPD) 之前微调教师的 token 级评分器。学生仍使用标准采样反向 KL 目标对冻结的评分器进行训练；任务奖励不用于训练学生。在 ALFWorld、WebShop 和 ScienceWorld 上，作者报告称 R2S 在十二 个模型、学生模型与环境组合中均优于三个近期智能体 OPD 基线，相对于每个组合的最佳基线平均提高 12.8 个成功率百分点；附录 E 报告称，R2S 在全部 24 个评测切分上的平均值均高于各基线。研究使用两个 Qwen 教师模型系列和四个学生模型。这些是预印本作者报告的结果，尚无独立复现；主表每个组合只进行一次训练，修复过程最多需要 19,200 次教师接管。",
+      "technical": {
+        "claimed_result": "在三个可回放文本智能体环境的十二个主要模型、学生模型与环境组合中，作者报告 R2S 每次都超过三个近期智能体 OPD 基线，相对每个组合中的最佳对照平均提升 12.8 个百分点。附录 E 还报告称，R2S 在全部 24 个评测切分上的平均值均高于各基线。作者还报告减少了非轮次结束和搜索轮次。",
+        "compute_or_cost": "论文报告称，每个待修复教师最多挖掘 2,400 个状态，每个状态进行八次接管（最多 19,200 次接管），随后进行筛选和一轮教师微调。论文没有比较整体成本与学生模型增益。",
+        "demonstrated_result": "预印本和带 Apache-2.0 许可证标签的仓库均已公开；仓库包含训练代码、环境设置和 24 个检查点的链接。研究团队 检查了论文 PDF 和 README，但没有运行代码，也没有独立核验性能。",
+        "mechanism": "R2S 挖掘未经训练的学生模型与教师模型在下一 token 分布上差异最大的轮次。教师对每个选定状态继续生成八次；通过共识或 LLM 评审选出成功接管。一个可训练的教师副本学习使用以选定接管为条件的 token 分布，为学生原始续写评分，但不会把该接管加入学生上下文。修复后的教师被冻结，并作为标准采样反向 KL OPD 中唯一的评分器；任务奖励会被记录，但不用于教师修复或学生训练。",
+        "regime": "ALFWorld、WebShop 和 ScienceWorld 文本智能体任务；两个 Qwen 教师模型系列（Qwen3.5-9B 与 Qwen3-30B-A3B-Instruct-2507）、四个不同的学生模型，以及 Qwen3.5-4B 自蒸馏条件。12 个主要组合各使用一次 150 步训练，并对最终检查点解码三次。",
+        "reproducibility": "r2s 代码标签、环境说明和 24 个检查点均为公开资源。仓库指出，合成的 ScienceWorld 排序会改变论文使用的 134 行未见子集；要复现论文数字，需取得 campaign test.jsonl。研究团队 未运行该代码，也未在本次有限审查中找到独立复现。",
+        "strongest_baseline": "作者在共享模型、提示、估计器和训练协议下比较 vanilla OPD、TCOD-F2B、Guided-OPD 与 FutureBridge。他们报告称，每个主要组合平均比其中最佳基线高 12.8 个百分点；仍需独立的匹配条件复现。"
+      },
+      "title": "无奖励教师修复提升了三个文本智能体基准上的智能体在线蒸馏表现",
+      "why_it_matters": "如果结果能够泛化，教师的成功轨迹可改善其向智能体学生提供的 token 级信号。这针对智能体后训练中的一个局部设计选择，同时不把任务奖励加入学生目标。研究报告称多个学生模型和三项任务均有增益，但证据仅限 Qwen 模型与可回放文本智能体基准；修复计算成本及向其他模型系列迁移的能力仍未测量。"
+    },
     "FCMO-841949AEA161": {
       "claims": [
         {
@@ -22479,6 +22563,72 @@
       },
       "title": "MindEval2报告心理健康支持模型的指导校准问题",
       "why_it_matters": "如果这些量表和模拟器在当前测试设置之外仍然有用，它们可推动心理健康聊天机器人评估关注指导是否随对话情境变化而保持适当，而不只看表面质量和边界遵守情况。论文还指出了受测系统中的一种失效模式。合成患者、单一语言模型评审器以及缺少临床结果，限制了这些分数能够说明的范围。"
+    },
+    "FCMO-A9AE2856379C": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "GitHub官方API将llm-d v1.0.0列为最新版本，发布时间为2026-10-20T02:30:10Z；v1.0.0标签解析到提交378b42d18dabe0b9c4ced4e6f3670d93b52db08e。版本说明称issue #2619追踪的目标并未全部完成。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "项目版本说明将多租户流量控制、热备和滚动升级、DisaggregatedSet协调升级、稳定的路由器API以及智能体会话路由列为v1.0功能，并列出统一后的组件版本。"
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "release-1.0矩阵当前徽标将GKE和ROCm流量控制、GKE vLLM GPU预填充与生成分离、GKE vLLM GPU智能体API，以及GKE vLLM GPU优化基线等选定路径标为通过。验证脚本说明其测试范围是优先级排序，并明确不涵盖现实的加权多租户公平性和规模化SLO；后者需要另行用inference-perf重放流量轨迹。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "项目和IBM Research报告了多地部署及性能、成本示例，包括缓存复用与服务成本下降；本次检查未独立审计这些运营说法。"
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "矩阵中的通过状态无法独立证明现实多租户流量下的生产QoS、故障或升级期间的服务表现、客户成本节省，或公告所述硬件和云环境中的吞吐量与延迟提升。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "版本说明指出issue #2619目标并未全部完成，但摘要没有列出未完成事项。",
+          "kind": "missing_artifact",
+          "state": "open"
+        },
+        {
+          "description": "版本徽标报告部分项目测试路径通过，但不能证明现实的加权多租户公平性或规模化SLO表现。",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "版本矩阵无法独立证明路由器故障恢复、升级时请求不中断、缓存连续性或真实智能体流量下的会话亲和性。",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "速度、缓存和成本数据缺少可比的模型、硬件、负载、并发量、质量目标、服务等级目标、利用率和总成本信息。",
+          "kind": "regime_unclear",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "如果按公告实现，这些运维控制可能在流量突发、升级和智能体负载期间保护对延迟敏感的请求，并减少共享服务中的重复上下文计算。当前运营和经济影响尚未得到独立测量。",
+      "limitations": [
+        "版本制品和测试徽标由项目发布；它们证明版本已发布及项目报告的测试状态，不构成独立验证。",
+        "版本说明称issue #2619的目标未全部完成，但摘要没有逐项列出尚未完成的工作。",
+        "流量控制端到端脚本将验证范围限定为优先级排序；现实的加权公平性和规模化SLO不在该测试范围内。",
+        "部分版本矩阵路径通过，并不能证明所有云和加速器组合、所有部署指南或生产故障下的现场可靠性。",
+        "吞吐量、延迟、缓存命中和成本方面的大幅数字仍是供应商或客户报告，缺少完整匹配对照，也未得到独立复现。"
+      ],
+      "relationships": [],
+      "summary": "十月20日，llm-d发布了v1.0.0，标签指向提交378b42d18dabe0b9c4ced4e6f3670d93b52db08e。版本说明将18个核心组件统一到v1.0.0，并介绍多租户流量控制、热备路由、分离式推理的协调升级、稳定的路由器API以及面向智能体的路由。当前版本专属测试矩阵将部分流量控制、预填充与生成分离、智能体API和优化基线测试路径标为通过。流量控制端到端验证脚本明确指出，其测试范围仅限优先级排序；要检验现实的加权多租户公平性及规模化SLO，还需另行使用inference-perf重放流量轨迹。供应商和客户报告的吞吐量与成本数据仍未核实。",
+      "technical": {
+        "claimed_result": "项目及其维护方报告了跨云和加速器的部署，并提供客户或供应商报告的速度、缓存复用和成本示例。",
+        "demonstrated_result": "GitHub发布API和标签对象确认v1.0.0已经发布并指明其提交。版本说明列出组件版本。版本专属测试矩阵徽标当前报告部分部署指南路径通过。代码中的流量控制端到端验证脚本明确说明，它只验证优先级排序，不验证现实的加权公平性或规模化SLO。本次没有运行部署或性能基准。",
+        "mechanism": "版本说明介绍了路由器按优先级和公平性管理请求队列，并在过载时控制准入；采用热备端点选择；为分离式预填充与生成副本协调就绪状态和版本路由；提供稳定的v1 API；还通过会话亲和性在智能体多轮请求间复用缓存上下文。带标签的提交包含流量控制指南、架构与运维文档及版本工作流。",
+        "regime": "Kubernetes原生分布式推理系统版本，配有适用于多种加速器和云环境的vLLM/SGLang指南。矩阵证据局限于项目报告的具体测试路径及其当前徽标状态。",
+        "strongest_baseline": "组件表列出先前版本，例如路由器端点选择器从v0.11.0升至v1.0.0。这是软件版本对比，不是服务性能的匹配基线。"
+      },
+      "title": "llm-d发布v1.0分布式推理集群运维功能",
+      "why_it_matters": "跨组件稳定版本、明确的流量优先级、分离式推理协调升级和智能体会话路由，可能让异构推理集群更易运维，并影响服务可靠性与成本。官方制品证明v1.0.0已经发布，部分版本测试路径也被标为通过。但这些测试没有证明独立的生产效果：流量控制测试明确只验证优先级排序，而5–10x或11.5x的成本下降说法仍需在匹配条件下独立核算。"
     },
     "FCMO-AA18A117DBA1": {
       "claims": [
@@ -31409,6 +31559,57 @@
       },
       "title": "研究发现，聊天与推理大模型不能可靠地单独验证安全协议",
       "why_it_matters": "安全协议分析关系重大，并已有语义明确的形式化验证工具。论文报告的精确率与召回率取舍以及漏检的认证攻击，限定了这些受测配置的可用方式：快速的大语言模型筛查或可帮助安排优先级，但不能取代形式化验证，也不能成为跳过验证的理由。该结果仅适用于两家提供方、一类协议记法和一个零样本提示。"
+    },
+    "FCMO-F1E17B2ACD46": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "北京市科学技术委员会和中关村管委会于2026年十月20日发布征集通知，邀请申报AI网络安全防御及高仿真对抗测试验证平台储备课题。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "通知列出多智能体安全运营、AI恶意组件识别、攻击面治理、未知变种攻击防御，以及自动化对抗测试和高仿真攻防场景等研究方向。"
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "通知限定产品课题由企业或企业牵头申报，测试平台课题由高校和科研院所申报；课题周期原则上不超过1年，申报期为20日至29日，每家企业最多申报1项，企业配套资金不低于科技资金的2:1。"
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "通知未说明总预算或资助金额，未公布入选项目，也未证明课题已经获批或完成，更未报告已部署防御系统或实测网络安全效果。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "通知未说明可用资金总额、单项资助金额、入选项目名单或资助决定。",
+          "kind": "missing_primary",
+          "state": "open"
+        },
+        {
+          "description": "尚无所征集防御产品或对抗测试平台的技术成果或实测结果。",
+          "kind": "missing_independent",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "如果最终形成获资助项目，将AI网络防御产品研发与高仿真对抗测试平台结合，可能影响区域应用型AI研究重点及防御评测基础设施。通知规定了明确的征集条件和2:1企业配套比例，但未公布总资金、获选项目、实施情况或结果，因此当前影响有限。",
+      "limitations": [
+        "这是项目征集通知，并不能证明有项目已获选、获资助或完成。",
+        "通知没有给出项目总预算、单项上限、资金分配、配套资金落实方式或合同条款。",
+        "防御和对抗评测目标没有伴随测试结果、已部署系统或独立测量。",
+        "该征集属于北京地方计划，不能据此推断中国全国性AI网络安全政策或地区投资规模。"
+      ],
+      "relationships": [],
+      "summary": "十月20日，北京市科学技术委员会与中关村管委会启动2026年度储备课题征集，涵盖两个方向：AI赋能网络安全防御产品，以及高仿真对抗测试验证平台。中文原始通知将多智能体安全运营、恶意组件识别、攻击面治理和未知攻击防御列为研究方向；第二方向征集自动化对抗测试和高仿真网络攻防环境。产品方向仅限企业或企业牵头申报，测试平台方向仅限高校和科研院所。每家企业最多申报一项，配套经费与科技经费总额的比例不得低于2:1。课题周期原则上不超过1年，申报窗口为十月20日至29日。这是项目征集通知，并不证明已有项目获选、获得多少资金、系统已部署或网络防御效果已有测量。",
+      "technical": {
+        "claimed_result": "主管部门表示，该征集旨在推进AI网络安全技术攻关及产品研发。这是计划目标，不是已实现的技术结果。",
+        "demonstrated_result": "中文官方通知记载了征集事项、两个技术方向、申报资格、配套资金规则和申报日期。通知没有项目遴选、资助金额、交付物或结果。",
+        "mechanism": "通知征集两类项目：用于检测和响应的AI网络防御产品与平台，包括多智能体安全运营；以及高仿真对抗测试平台，涵盖自动生成测试、现实攻防环境和用于评估防御产品的持续反馈。",
+        "regime": "北京市2026年度储备课题征集；产品方向限企业或企业牵头申报，测试平台方向限高校和科研院所；课题周期原则上不超过1年。",
+        "strongest_baseline": "本次未检查可比的往期征集或已资助项目作为基线；此通知仅公布新征集内容，没有前后能力测量。"
+      },
+      "title": "北京征集AI网络防御与对抗测试项目",
+      "why_it_matters": "该征集通过两条明确路线将区域AI网络安全政策具体化：防御产品研发和高仿真对抗评测平台。如果项目获资助并执行，可能影响本地产品研发和测试基础设施。通知没有公布总预算、获选单位、实施情况或实测结果，因此目前只能说明政策方向，不能证明已交付成果。"
     },
     "FCMO-F22DAAF83F20": {
       "claims": [
@@ -46673,6 +46874,48 @@
         "source_sha256": "a71fc57fe9e1f9e124f76ee8923fcc5ad77d465549d374f0a10c521a5c05f229"
       }
     },
+    "FCMO-83D876C273E3": {
+      "claims": {
+        "locale_sha256": "f2aa0a651eb0d36ea30dd5437889cb2a29aaa44740985c525010495ec516f323",
+        "source_sha256": "db77b715102432eb79d7697e626c559b4e043abcde0e38a9202d3f0535c2edc6"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "0502cbc38e9cc671f0536cb15b0f67aaf0e5850910f5d3528c35462693e025c6",
+        "source_sha256": "4645882b8d693c31d29402ead563a3bc7e3af501dbe7b1cf426b6277f8cb0460"
+      },
+      "importance_rationale": {
+        "locale_sha256": "dcb7e17366770e1d04c927ee032ce0c95830e5c8dcf3b000913de1c369c03286",
+        "source_sha256": "1bd130ebb1b0f57d69f5ca38ab20a5809d09465ee3ba94054a0f377c38aa0a4e"
+      },
+      "limitations": {
+        "locale_sha256": "db45ea1d570b3083ba4370fddf0a5c3e90bcdf546a58dc1449ccf7fe42390ab3",
+        "source_sha256": "5164869538cc7a81d98cdba12801c02e28a1c25456c95d272ddc1cd54dac1b71"
+      },
+      "relationships": {
+        "locale_sha256": "b0d8b1fb4e6a870d51652c19c4decdc83618df9ed297324feb2b6d63168e6014",
+        "source_sha256": "c31c392f0d2ce6afc1f614908c39a387bcdb4249c4b8d287e693ebf5252eb383"
+      },
+      "summary": {
+        "locale_sha256": "4d5f6056512fbf41b6d975d2c46cbd55a63d6e3aad201cd57dc104ef2f29be08",
+        "source_sha256": "6ae1c54a9faff07db818ad525bdd9a2b948ff4e1a860dadd88bd7be9265a3a6d"
+      },
+      "technical": {
+        "locale_sha256": "c028e8232f29113e4bc1ec2759e623d15ec44d717e8e4b68a2049d321292de9d",
+        "source_sha256": "b3a60a621850be2fc494249ae8a47217ef896ac8c727389ed0d0925d61a6f8f9"
+      },
+      "title": {
+        "locale_sha256": "764a8b4124b574c865e25d89a0891aadeca159601fbb00859817ece6dad64655",
+        "source_sha256": "0fdc902b3480fedc9bf73cf0ec5324f96dbf14de1df83ceeb168f7fcd4889683"
+      },
+      "why_it_matters": {
+        "locale_sha256": "69b22a0a26324e75e78467ffe912592b7876ddcd5125127dc1d72b4d6c2f9f72",
+        "source_sha256": "65d014079d1a0af543a77b304d86a05d465513314e52709e7b3fdc825e7678e1"
+      }
+    },
     "FCMO-841949AEA161": {
       "claims": {
         "locale_sha256": "3da0e04bc1fbeedbcc1811b76a62f32fc057c9320d923e2a372113ee9aa07293",
@@ -49919,6 +50162,48 @@
       "why_it_matters": {
         "locale_sha256": "67e67d4697c87413105a0ca83a6a9644f0a6906c53089c91ced52beca8642ab5",
         "source_sha256": "d8f7221317e8838aa2d3b726aeecb54b20637f3ba5c44814c9375b44a770dbe4"
+      }
+    },
+    "FCMO-A9AE2856379C": {
+      "claims": {
+        "locale_sha256": "6b70682384d41ae0d9e3e71ac54d06abf9fe5fce62d32b1b6b27bedbe3fd8a85",
+        "source_sha256": "8bc6eb11acec345a3d70937327cabfc4382c115c333db8b675887d7397a2a501"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "3d359dbb17bd1239ed66f7a1077087fd7df76f7ad6e2143bdbced41873e057c5",
+        "source_sha256": "8f57195926ce89a9649a8b862b9dfccfa4f2a6d203610d398d8149426b499adb"
+      },
+      "importance_rationale": {
+        "locale_sha256": "42687508fc9c9382f9e53d22961a8530df7e12787d86a03dcd758436a8f9911b",
+        "source_sha256": "be4023b65c83f5c399c4ca923aab63f5b6b69d2811de967f1a6a8ffaa125029d"
+      },
+      "limitations": {
+        "locale_sha256": "0904de4810263352456b0afc0989ac2ed4c0003d49524d21ba887494b5891669",
+        "source_sha256": "8359e6985b8bb0b20565ec4615d4c79986eaa3a373a7a5e4de985f6bebcd2e5b"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "8af401f2b9b7fcccfc401c7bda882c317ec52571e320616bd536a7c5bc89a0ba",
+        "source_sha256": "d18dfe1b43a0e5b59f8f57796604764a0f240d488d407d29e948c7253bc94279"
+      },
+      "technical": {
+        "locale_sha256": "938b396aba4338da66f7ed51d53b1db3abff7de2b29c401fd78f846d4635c969",
+        "source_sha256": "320bba6a8117577657abc4a913c2f1592f8862085d86c2f2eb2222d38c80fd25"
+      },
+      "title": {
+        "locale_sha256": "e413b4df1b2b98ec984cc41d15f8c9fc797c3213373718433e214b76aef12275",
+        "source_sha256": "bf53f202007d2a8d26ec7d2ebd04989720ed84ceb6d95d5226d9a15b4be9071d"
+      },
+      "why_it_matters": {
+        "locale_sha256": "a046ae46e40e066227936b234a12c9650ca4bac9debe9ed42ec8d2da5b61ddbb",
+        "source_sha256": "65c22525440f43656c5f85797a619a426cf0cd1b329a7699115ef5b41042a6f7"
       }
     },
     "FCMO-AA18A117DBA1": {
@@ -56765,6 +57050,48 @@
       "why_it_matters": {
         "locale_sha256": "2838da7af85005bbb61a3143fad9c06a3b9d63668ee1511da70a7ce0ae3e9f37",
         "source_sha256": "3b751f6336b8eaa9227064cc15ead625e867bac90ecc18ede3324a24c54b58f1"
+      }
+    },
+    "FCMO-F1E17B2ACD46": {
+      "claims": {
+        "locale_sha256": "33e3662a5f0039cc097e3146ba669991766990d359f3889512309c1194ecdf31",
+        "source_sha256": "9ffc353aaea08fb2294d82bfc2c47ed1c7da0d2c252196b6942906c61b8c1cca"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "2ca06acbc7ed119a590e14f88c7d02b68b7975c4f116fc20f433bdfff624615d",
+        "source_sha256": "805e807eb35c1ab7ed12f43afde3d910a5a20b0d5eb7c9a2c1eadab4d93f6c86"
+      },
+      "importance_rationale": {
+        "locale_sha256": "ca84a9c75ddb1a8ed432283f0b3fe393b3eeb9e80cf9baaab5d5925b9ad99f3c",
+        "source_sha256": "4c3f2493e2b543a6ba5e768d5f94cae77817e176b00f8aa3d4cbe0b0923a174f"
+      },
+      "limitations": {
+        "locale_sha256": "dc7967d7152eb4f52c5401c99d9719c5adb0a28475dda3c42768933ff748b9f9",
+        "source_sha256": "4789fda307fe2ea84a064147855271cd00bab648072bd515148d7ba5defcc887"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "1fb257a11145fc72652a758737943f215027c495701b96e2573cc7d97c201677",
+        "source_sha256": "fed07a6e907a1700ab9745d7ed035f3a7334b799271a46b581bafe0a803bf5f7"
+      },
+      "technical": {
+        "locale_sha256": "761865c06b5e526cd22bbc17c83e6cd246d4829361267a139f0cf36fc3d60712",
+        "source_sha256": "c40803a3dd5acd852b5c87af933ab5baa5dc20ed721e7f291d883dc15734d0dd"
+      },
+      "title": {
+        "locale_sha256": "dcfe036fc643905a1eedf9a7b999c1df5e8535eaa88a7dbf927a65ed025c3d3f",
+        "source_sha256": "11417bbf238dc3d72afc3a9b9f3bf38acc046bfa37d382516a9ece6cbc3a2ad9"
+      },
+      "why_it_matters": {
+        "locale_sha256": "88af69815414afff65ae04187cf4ccf5d143dc2ea1689ae2b21a53220d688b5e",
+        "source_sha256": "46fc92ac06e8ce6d7a9e148c2ed0a0f11b2e5454ed5f62b01f3524b1d2b11ffc"
       }
     },
     "FCMO-F22DAAF83F20": {
