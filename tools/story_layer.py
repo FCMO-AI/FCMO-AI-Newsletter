@@ -937,7 +937,12 @@ def update_ledger(corpus: Path, repo: Path | None, site: Path | None, now: str) 
     recorded, detected = inputs.merges()
     tombstoned = {e["id"] for e in tombstones["tombstones"]}
     for dup, survivor in sorted(detected.items()):
-        if dup in tombstoned or dup not in ledger["entries"] or survivor not in ledger["entries"]:
+        # A duplicate that arrives together with its survivor has not been
+        # published yet, so it is not in the ledger. It must still be recorded:
+        # the refresh job cannot commit corpus/, and an unrecorded merge is
+        # published by the legacy ingest as a second live story while the Story
+        # layer already reports it as merged (2026-10-21, FCMO-5593CD02887F).
+        if dup in tombstoned:
             continue
         tombstones["tombstones"].append({
             "id": dup,
