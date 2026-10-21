@@ -22,9 +22,21 @@ CORPUS = REPO / "corpus"
 TOOL = REPO / "tools" / "story_layer.py"
 NOW = "2026-09-26T20:00:00Z"
 FDBE = "FCMO-FDBE3D996243"
-MERGES = {"FCMO-EEF757F0D806": "FCMO-1A874373897A", "FCMO-1E497EDC718A": "FCMO-C74403EE205F"}
+# The two merges frozen by the contract fixture. Daily supply adds more, so the
+# full set is derived from the recorded tombstones below, never counted by hand.
+FROZEN_MERGES = {"FCMO-EEF757F0D806": "FCMO-1A874373897A", "FCMO-1E497EDC718A": "FCMO-C74403EE205F"}
 BEATS = {"technology", "business", "policy", "society", "research"}
 FULL_HISTORY = story_layer.is_full_history(REPO)
+
+
+def recorded_merges(corpus: Path = CORPUS) -> dict[str, str]:
+    """{duplicate: survivor} for every merge the corpus has recorded (active tombstones)."""
+    doc = json.loads((corpus / "tombstones.json").read_text())
+    return {e["id"]: e["superseded_by"] for e in doc["tombstones"]
+            if e.get("action") == "superseded" and e.get("reinstated_at") is None}
+
+
+MERGES = recorded_merges()
 
 
 def build(corpus: Path = CORPUS, site: Path | None = REPO / "site", now: str = NOW,
@@ -98,7 +110,7 @@ class RepositoryStoryLayerTests(unittest.TestCase):
                                    "--out", str(out), "--now", NOW], capture_output=True, text=True, cwd=REPO)
             self.assertEqual(proc.returncode, 0, proc.stderr)
             self.assertEqual(proc.stdout.strip(),
-                             f"stories OK live={len(expected_live_ids())} withdrawn=1 merged=2 "
+                             f"stories OK live={len(expected_live_ids())} withdrawn=1 merged={len(MERGES)} "
                              f"front_page={sum(s['front_page_eligible'] for s in self.document['stories'])}")
             validate = subprocess.run([sys.executable, str(REPO / "tests" / "harness" / "validate.py"),
                                        str(CONTRACTS / "stories.v2.schema.json"), str(out)], capture_output=True, text=True)
@@ -312,9 +324,11 @@ class TemporaryCorpusTests(unittest.TestCase):
 
     def test_upstream_withdrawal_needs_no_human(self) -> None:
         rows = self.rows()
-        rows[0]["status"] = "withdrawn"
+        # A merged duplicate stays "merged"; withdraw a story nothing else points at.
+        target = next(r for r in rows if r["id"] not in MERGES and r["id"] not in MERGES.values())
+        target["status"] = "withdrawn"
         self.write_rows(rows)
-        story = by_id(build(self.corpus)[0])[rows[0]["id"]]
+        story = by_id(build(self.corpus)[0])[target["id"]]
         self.assertEqual(story["status"], "withdrawn")
         self.assertEqual(story["corrections"][0]["kind"], "withdrawal")
         self.assertEqual(story["corrections"][0]["reason_code"], "UPSTREAM_RETRACTION")
@@ -453,7 +467,7 @@ class NewsroomOutputTests(unittest.TestCase):
 
     def test_notices_corrections_and_data(self) -> None:
         notices = surfaces.write_story_layer_outputs(self.site, self.document, CORPUS)
-        self.assertEqual(notices, 9)
+        self.assertEqual(notices, 3 * (1 + len(MERGES)))
         self.assertEqual(json.loads(self.read("data/stories.v2.json")), self.document)
         rows = json.loads(self.read("data/corrections.json"))
         self.assertEqual({(r["story_id"], r["kind"]) for r in rows},
@@ -470,7 +484,7 @@ class NewsroomOutputTests(unittest.TestCase):
     def test_tombstone_alone_still_retires_the_page(self) -> None:
         document = dict(self.document, stories=[s for s in self.document["stories"] if s["id"] != FDBE])
         for _ in range(2):  # the second run reads the title back from corrections.json
-            self.assertEqual(surfaces.write_story_layer_outputs(self.site, document, CORPUS), 9)
+            self.assertEqual(surfaces.write_story_layer_outputs(self.site, document, CORPUS), 3 * (1 + len(MERGES)))
             page = self.read(f"news/en/{FDBE}.html")
             self.assertIn('data-fcmo-story-status="withdrawn"', page)
             self.assertIn("Old &amp; true headline", page)
@@ -478,6 +492,45 @@ class NewsroomOutputTests(unittest.TestCase):
             self.assertEqual((row["kind"], row["reason_code"], row["story_title"]),
                              ("withdrawal", "UNVERIFIED_RELEASE", "Old & true headline"))
         self.assertNotIn(FDBE, by_id(json.loads(self.read("data/stories.v2.json"))))
+
+
+class MergeRecordingTests(unittest.TestCase):
+    """A merge must be recorded in the corpus, or legacy and Story surfaces disagree."""
+
+    def test_every_detected_duplicate_is_recorded_in_the_committed_corpus(self) -> None:
+        inputs = story_layer.StoryInputs(CORPUS, REPO, REPO / "site", REPO / "site" / "data" / "i18n", NOW)
+        with contextlib.redirect_stderr(io.StringIO()):
+            _recorded, detected = inputs.merges()
+        self.assertEqual(detected, {}, "duplicates detected but missing from corpus/tombstones.json; "
+                                       "the legacy ingest would publish both as live")
+
+    def test_frozen_merges_stay_recorded_and_every_merge_is_a_real_duplicate(self) -> None:
+        self.assertEqual({k: v for k, v in MERGES.items() if k in FROZEN_MERGES}, FROZEN_MERGES)
+        rows = {r["id"]: r for r in taxonomy.read_jsonl(CORPUS / "data/developments.jsonl")}
+        for dup, survivor in MERGES.items():
+            if dup not in rows or survivor not in rows:
+                continue
+            org = lambda r: {o.casefold() for o in r.get("organizations", [])}
+            self.assertTrue(org(rows[dup]) & org(rows[survivor]), f"{dup} shares no organization with {survivor}")
+
+    def test_duplicate_arriving_unpublished_with_its_survivor_is_recorded_and_held(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            corpus = Path(tmp) / "corpus"
+            shutil.copytree(CORPUS, corpus)
+            rows = taxonomy.read_jsonl(corpus / "data/developments.jsonl")
+            base = next(r for r in rows if r["id"] not in MERGES and r["id"] not in MERGES.values()
+                        and r["id"] != FDBE and r["status"] == "active")
+            first = dict(base, id="FCMO-00000000AAA1")
+            second = dict(base, id="FCMO-00000000AAA2")
+            (corpus / "data/developments.jsonl").write_text(
+                "".join(json.dumps(r) + "\n" for r in rows + [first, second]))
+            with contextlib.redirect_stderr(io.StringIO()):
+                _ledger, tombstones, changes = story_layer.update_ledger(corpus, None, None, NOW)
+        merged = {e["id"]: e["superseded_by"] for e in tombstones["tombstones"] if e["id"].startswith("FCMO-00000000")}
+        self.assertEqual(len(merged), 1, changes)
+        (dup, survivor), = merged.items()
+        self.assertEqual({dup, survivor}, {first["id"], second["id"]})
+        self.assertIn(f"MERGE {dup} -> {survivor}", changes)
 
 
 class IngestSelectionTests(unittest.TestCase):
