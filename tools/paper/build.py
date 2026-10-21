@@ -53,6 +53,7 @@ else:
 ROOT = Path(__file__).resolve().parents[2]
 from tools.publication_freshness import publication_status, reader_status
 BEATS = ("technology", "business", "policy", "society", "research")
+LISTING_PAGE_SIZE = 100
 
 SEARCH_JS = r'''(()=>{const f=document.querySelector('[data-search-form]'),q=document.querySelector('[data-search-input]'),o=document.querySelector('[data-search-results]');if(!f)return;let rows,pending,serial=0;const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));f.addEventListener('submit',async e=>{e.preventDefault();const run=++serial,term=q.value.trim().toLocaleLowerCase();if(!term)return;if(!rows){o.textContent=o.dataset.loading;try{pending??=Promise.all((f.dataset.shards?JSON.parse(f.dataset.shards):[f.dataset.index]).map(url=>fetch(url).then(r=>{if(!r.ok)throw Error(r.status);return r.json()}))).then(parts=>parts.flat());rows=await pending}catch{pending=undefined;if(run===serial)o.textContent=o.dataset.error;return}}if(run!==serial)return;let hits=rows.filter(x=>[x.h,x.d,x.b,...x.o,...x.t,x.search_text||''].join(' ').toLocaleLowerCase().includes(term)).slice(0,30);o.innerHTML=hits.length?hits.map(x=>`<article class="story-card"><span class="card-meta">${esc(x.b)}</span><h2><a href="${esc(x.u)}">${esc(x.h)}</a></h2><p>${esc(x.d)}</p></article>`).join(''):`<p>${esc(o.dataset.empty.replace('{query}',term))}</p>`})})()'''
 
@@ -599,7 +600,6 @@ class PaperBuilder:
     def _listing(self, *, locale: dict, suffix: str, title: str, stories: list[dict], kind: str,
                  title_html: str | None = None) -> None:
         catalog = self.catalogs[locale["code"]]
-        items = "".join(f'<article class="archive-item" data-story-id="{esc(story["id"])}"><time datetime="{esc(story["event_at"])}">{esc(format_date(story["event_at"],catalog,precision=story.get("date_precision","day")))}</time><a class="archive-art" href="{esc(self._story_href(locale,story))}" aria-hidden="true" tabindex="-1"><img src="{esc(self._story_media_url(story, locale))}" alt="" width="320" height="180" loading="lazy"></a><div class="archive-copy"><h2><a href="{esc(self._story_href(locale,story))}">{esc(headline(story,locale["code"],catalog))}</a></h2><p>{esc(truncate(dek(story,locale["code"],catalog),220))}</p><p class="archive-meta">{esc(label(catalog, "beat", story.get("beat")))} · {esc(catalog["strings"]["story"]["importance"].format(score=story.get("importance", 0)))}</p>{evidence_strip(story, catalog)}</div></article>' for story in stories)
         topics = {value for item in stories for value in item.get("topics", [])}
         orgs = {value for item in stories for value in item.get("organizations", [])}
         labels = {"en": ("stories", "topics", "organizations"), "es-419": ("historias", "temas", "organizaciones"), "zh-Hans": ("篇报道", "个主题", "家机构")}[locale["code"]]
@@ -623,13 +623,27 @@ class PaperBuilder:
             navigation = self._topic_links(locale, exclude_topic=suffix.strip("/").split("/")[-1])
         elif kind == "org":
             navigation = self._topic_links(locale, exclude_org=suffix.strip("/").split("/")[-1])
-        body = archive_page(title, catalog["strings"]["site"]["description"], items or f'<p>{esc(catalog["strings"]["archive"]["empty"])}</p>', kicker=catalog["strings"]["kicker"]["archive"], title_html=title_html, context=context, navigation=navigation)
         resources = None
         if kind == "edition":
             date = suffix.strip("/").split("/")[-1]
             resources = [("text/markdown", absolute(self.base_url, locale["path_prefix"] + f"edition/{date}.md")),
                          ("application/json", absolute(self.base_url, f"api/v1/editions/{date}.json"))]
-        self._write_page(locale=locale, suffix=suffix, title=f"{title} — FCMO AI", description=title, body=body, kind=kind, machine_alternates=resources)
+        pages = max(1, (len(stories) + LISTING_PAGE_SIZE - 1) // LISTING_PAGE_SIZE)
+        def page_path(number):
+            return suffix if number == 1 else suffix + f"page/{number}/"
+        for number in range(1, pages + 1):
+            start = (number - 1) * LISTING_PAGE_SIZE
+            items = "".join(f'<article class="archive-item" data-story-id="{esc(story["id"])}"><time datetime="{esc(story["event_at"])}">{esc(format_date(story["event_at"],catalog,precision=story.get("date_precision","day")))}</time><a class="archive-art" href="{esc(self._story_href(locale,story))}" aria-hidden="true" tabindex="-1"><img src="{esc(self._story_media_url(story, locale))}" alt="" width="320" height="180" loading="lazy"></a><div class="archive-copy"><h2><a href="{esc(self._story_href(locale,story))}">{esc(headline(story,locale["code"],catalog))}</a></h2><p>{esc(truncate(dek(story,locale["code"],catalog),220))}</p><p class="archive-meta">{esc(label(catalog, "beat", story.get("beat")))} · {esc(catalog["strings"]["story"]["importance"].format(score=story.get("importance", 0)))}</p>{evidence_strip(story, catalog)}</div></article>' for story in stories[start:start + LISTING_PAGE_SIZE])
+            links = []
+            for rel, destination, key in (("prev", number - 1, "newer"), ("next", number + 1, "older")):
+                if 1 <= destination <= pages:
+                    url = href(self.base, locale["path_prefix"] + page_path(destination))
+                    links.append(f'<a rel="{rel}" href="{esc(url)}">{esc(catalog["strings"]["archive"][key])} · {destination}/{pages}</a>')
+            paging = (f'<nav class="edition-neighbors" data-pagination aria-label="{esc(catalog["strings"]["archive"]["title"])}">{"".join(links)}</nav>'
+                      if pages > 1 else "")
+            body = archive_page(title, catalog["strings"]["site"]["description"], items or f'<p>{esc(catalog["strings"]["archive"]["empty"])}</p>', kicker=catalog["strings"]["kicker"]["archive"], title_html=title_html, context=context, navigation=navigation + paging) + paging
+            page_title = title if number == 1 else f"{title} · {number}/{pages}"
+            self._write_page(locale=locale, suffix=page_path(number), title=f"{page_title} — FCMO AI", description=title, body=body, kind=kind, machine_alternates=resources)
 
     def _status(self, locale: dict) -> None:
         catalog = self.catalogs[locale["code"]]
