@@ -390,5 +390,45 @@ class OracleInBrowserTests(unittest.TestCase):
                 self.assertFalse(mobile["freshness"]["clipped"])
 
 
+class LongTokenDoesNotOverflowTests(unittest.TestCase):
+    """A hash or URL with no spaces inside zh text must wrap, not scroll a 390px phone page sideways."""
+
+    TOKEN = "378b42d18dabe0b9c4ced4e6f3670d93b52db08e" * 3
+    MEASURE = r"""const { chromium } = require(process.argv[1]);
+const fs = require('fs');
+(async () => {
+  const browser = await chromium.launch();
+  const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  await page.setContent(fs.readFileSync(process.argv[2], 'utf8'));
+  const out = await page.evaluate(() => ({ scroll: document.documentElement.scrollWidth,
+    client: document.documentElement.clientWidth }));
+  await browser.close();
+  process.stdout.write(JSON.stringify(out));
+})().catch(e => { console.error(e); process.exit(3); });
+"""
+
+    def test_a_long_unbroken_token_in_zh_text_does_not_overflow_at_390(self):
+        module = resolve_playwright_module()
+        if not module:
+            self.skipTest("Playwright module does not resolve from this checkout")
+        css = PAPER_CSS.read_text(encoding="utf-8")
+        text = f"十月20日，llm-d发布了v1.0.0，标签指向提交{self.TOKEN}。版本说明将18个核心组件统一到v1.0.0。"
+        page = (f'<!doctype html><html lang="zh-Hans"><meta charset="utf-8"><style>{css}</style><body>'
+                '<main class="page-shell"><section class="card-row"><article class="story-card">'
+                f'<h3><a href="#">标题</a></h3><p>{text}</p></article></section>'
+                '<div class="archive-list"><article class="archive-item"><div class="archive-copy">'
+                f'<h2>标题</h2><p>{text}</p></div></article></div>'
+                f'<ul><li>{text}</li></ul></main></body></html>')
+        with tempfile.TemporaryDirectory() as name:
+            source = Path(name) / "page.html"
+            source.write_text(page, encoding="utf-8")
+            result = subprocess.run(["node", "-e", self.MEASURE, module, str(source)], cwd=name,
+                                    capture_output=True, text=True, timeout=120)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        measured = json.loads(result.stdout)
+        self.assertLessEqual(measured["scroll"], measured["client"],
+                             f"a long unbroken token overflows a 390px phone page: {measured}")
+
+
 if __name__ == "__main__":
     unittest.main()
