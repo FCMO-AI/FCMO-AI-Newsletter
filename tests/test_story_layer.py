@@ -644,7 +644,7 @@ class TaxonomyTests(unittest.TestCase):
 
     def test_slugify(self) -> None:
         self.assertEqual(taxonomy.slugify("M&A: NVIDIA's $105B deal at 4.25%"), "m-a-nvidias-105b-deal-at-4-25")
-        self.assertEqual(taxonomy.slugify("8–128 core Café"), "8-128-core-cafe")
+        self.assertEqual(taxonomy.slugify("8–96 core Café"), "8-96-core-cafe")
         long = taxonomy.slugify("word " * 40, 72)
         self.assertLessEqual(len(long), 72)
         self.assertFalse(long.endswith("-"))
