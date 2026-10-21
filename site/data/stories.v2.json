@@ -1,7 +1,7 @@
 {
   "schema": "fcmo-stories-v2",
-  "generated_at": "2026-10-21T13:13:36Z",
-  "release_id": "newswire-f65b13e985154885c4879f25",
+  "generated_at": "2026-10-21T14:14:01Z",
+  "release_id": "newswire-8a5984d10daed85675c53100",
   "canonical_locale": "en",
   "locales": [
     "en",
@@ -43,9 +43,279 @@
     "2026-10-17",
     "2026-10-18",
     "2026-10-19",
-    "2026-10-20"
+    "2026-10-20",
+    "2026-10-21"
   ],
   "stories": [
+    {
+      "id": "FCMO-D0FB7994910C",
+      "slug": "a-preprint-proposes-context-conditioned-control-of-multi-token-decoding",
+      "url_date": "2026-10-21",
+      "kind": "development",
+      "status": "live",
+      "beat": "research",
+      "desk": "architectures_scaling",
+      "title": "A preprint proposes context-conditioned control of multi-token decoding horizons",
+      "headline": "A preprint proposes context-conditioned control of multi-token decoding horizons",
+      "dek": "A new preprint proposes choosing the number of draft tokens in multi-token speculative decoding from context-dependent acceptance forecasts and measured round costs.",
+      "summary": "A new preprint proposes choosing the number of draft tokens in multi-token speculative decoding from context-dependent acceptance forecasts and measured round costs. Its controller selects the horizon before drafting, uses exact-verifier feedback to update online, and is paired with a regret analysis. In five draft-target pairings over AIME 2025 and GSM8K, the authors report small, uneven gains over fixed horizons (up to 10%, with 8 of 10 settings matching or ahead). The larger up-to-4.1x figure is against plain decoding. The tests disable the KV-cache and use no fixed random seed; one AIME table row has an unexplained 3.7x adaptive/fixed throughput gap. These are credible but unconfirmed paper-reported results, not an established serving improvement.",
+      "why_it_matters": "Speculative decoding's efficiency depends on how many proposed tokens survive exact verification. A controller that adapts this horizon before drafting could reduce wasted inference work without retraining. The paper's formal framing is useful for inference research, but its measured improvement over already-speculative fixed-window decoding is modest and inconsistent; the reported tests omit KV-caching, and one result row is unexplained.",
+      "importance_rationale": "If the proposed controller generalizes, it could make multi-token inference more efficient by choosing a horizon from context and verification feedback without retraining or changing the exact verifier. The reported benefit over fixed horizons is modest and uneven, so impact is meaningful but bounded.",
+      "technical": {
+        "claimed_result": "The paper reports five draft-target pairings across AIME 2025 and GSM8K. It says AMTP matches or outperforms fixed windows in 8/10 settings, with up to 10% throughput gain over fixed speculation, and reaches up to 4.1x versus plain decoding. Direct comparison tables show varied outcomes: Qwen3-4B self-speculation is 34.5 vs 34.0 tok/s on AIME and 38.3 vs 38.6 on GSM8K; Medusa Llama-3.1-8B is 25.3 vs 23.6 on AIME and 19.4 vs 20.0 on GSM8K. The Llama-2-13B AIME row reports 28.2 vs 7.6 tok/s without a visible explanation for the discrepancy.",
+        "demonstrated_result": "The inspected arXiv v1 contains the proposed mechanism, theorem statements and reported tables. the research desk did not independently verify the proofs, run the code, or reproduce the numerical results.",
+        "mechanism": "Before each draft, AMTP predicts position-wise conditional rejection hazards from pre-draft features, converts them to expected accepted-token counts, estimates total round costs, and picks the horizon with the highest predicted tokens per second. A randomized full-horizon exploration arm supplies feedback at positions short horizons would not reveal; inverse-probability weighting updates the predictor. The verification algorithm and target distribution are unchanged.",
+        "regime": "AIME 2025 and GSM8K with five pairs using Qwen3-4B MTP, Meta MTP 7B, Medusa Llama-3.1-8B and target models Llama-2-7B/13B and Qwen3-14B. The paper disables KV-cache for all runs, processes a single sample at a time, uses no fixed random seed, and reports capped Meta-MTP and Medusa conditions. Reported results concern a paper implementation, not production serving.",
+        "reproducibility": "The preprint provides a detailed method and setup and says package versions are pinned in a released code lock file, but an author-linked code repository was not surfaced by the exact-title/arXiv-ID searches or the page's displayed links. The benchmark is not bit-for-bit repeatable because no fixed random seed is used. No independent reproduction was found or attempted.",
+        "strongest_baseline": "The relevant baseline for AMTP's incremental effect is the same MTP/draft-target pair with a fixed window, not plain autoregressive decoding. Against fixed windows, measured outcomes are mixed and generally close; the abstract reports up to 10% improvement in eight of ten settings. The largest table gap is an unexplained Llama-2-13B AIME row (28.2 vs 7.6 tok/s), which requires artifact/log verification."
+      },
+      "importance_tier": "Meaningful",
+      "development_type": "paper",
+      "event_at": "2026-10-20T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-21T14:13:39Z",
+      "updated_at": "2026-10-21T14:13:39Z",
+      "importance": 4,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": true,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "CLAIMED",
+            "text": "The preprint introduces Adaptive Multi-Token Prediction (AMTP), a training-free controller that chooses the MTP draft horizon before each round using predicted acceptance hazards and estimated round costs, then updates from verification feedback. The authors state the exact verifier remains unchanged."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "The authors derive a bound transferring online hazard-prediction error to throughput regret against the best horizon at each visited context, and give a sublinear-regret result for online gradient descent under their assumptions."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "Across five draft-target pairings and AIME 2025/GSM8K, the paper reports AMTP matches or exceeds a fixed horizon in 8 of 10 settings and claims throughput gains up to 10% versus fixed-window decoding; gains are not uniform and several rows show parity or regressions. Its up-to-4.1x figure compares speculative decoding against plain decoding, not the incremental effect of AMTP over fixed-window speculation."
+          },
+          {
+            "label": "DEMONSTRATED",
+            "qualifier": "LIMITATION",
+            "text": "Appendix D states runs disable the KV-cache, use no fixed random seed and process one sample at a time. Some benchmark conditions are capped or have uninformative task accuracy; the authors report throughput and acceptance only for base-model rows where accuracy is not meaningful."
+          },
+          {
+            "label": "DEMONSTRATED",
+            "qualifier": "LIMITATION",
+            "text": "Appendix D.3 table 7 reports 28.2 tokens/s and 0.07 generation hours for adaptive Meta MTP 7B to Llama-2-13B AIME, versus 7.6 tokens/s and 0.54 hours for fixed k=4. The same appendix describes the same hardware group and evaluation regime; the paper provides no visible reconciliation for this large gap. The values are source-reported, not independently checked."
+          },
+          {
+            "label": "NOT_ESTABLISHED",
+            "text": "No independent reproduction, fixed-seed variance estimate, production KV-cache evaluation, or verified author-linked code artifact is established by this activation."
+          }
+        ],
+        "limitations": [
+          "All empirical outcomes are reported by the paper authors and remain unconfirmed here.",
+          "The reported tests disable the KV-cache and have no fixed random seed; deployment effects may differ.",
+          "The AMTP-versus-fixed comparison is mixed; some rows are at parity or regress, while the reported maximum improvement over fixed horizons is 10%.",
+          "One Llama-2-13B AIME table row has an unexplained 28.2 vs 7.6 tok/s adaptive/fixed difference and 0.07 vs 0.54 hours.",
+          "Theoretical guarantees have not been independently audited; they depend on the assumptions stated in the paper.",
+          "Exact-title/arXiv-ID searches did not surface the author-linked code artifact, but this bounded search does not prove no artifact exists.",
+          "Adaptive MTP and speculative-decoding horizon selection predate this paper; its narrower contribution is a training-free pre-draft controller with context-conditioned online hazard forecasts and the associated analysis."
+        ],
+        "gaps": [
+          {
+            "kind": "missing_artifact",
+            "description": "The preprint refers to a released code lock file but the inspected paper/page and exact-title/identifier searches did not surface the author-controlled repository."
+          },
+          {
+            "kind": "missing_independent",
+            "description": "No independent, repeated-seed reproduction verifies the reported AMTP-versus-fixed-horizon gains."
+          },
+          {
+            "kind": "other",
+            "description": "The Llama-2-13B AIME row reports 28.2 tok/s adaptive vs 7.6 fixed and 0.07 vs 0.54 generation hours, a large unexplained discrepancy under the same stated hardware group."
+          },
+          {
+            "kind": "regime_unclear",
+            "description": "All experiments disable the KV-cache, while serving cost and viable MTP horizon can change with cache use and production batching/concurrency."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://arxiv.org/abs/2610.28619",
+          "domain": "arxiv.org",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "Georgia Institute of Technology"
+      ],
+      "topics": [],
+      "regions": [
+        "GLOBAL"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-D0FB7994910C.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: A preprint proposes context-conditioned control of multi-token decoding horizons"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "Un preprint propone controlar por contexto los horizontes de decodificación con múltiples tokens",
+            "summary": "Un nuevo preprint propone elegir cuántos tokens proponer en la decodificación especulativa de múltiples tokens según pronósticos de aceptación dependientes del contexto y los costos medidos de cada ronda. El controlador selecciona el horizonte antes de generar las propuestas, se actualiza en línea con la retroalimentación del verificador exacto y se acompaña de un análisis de regret. En cinco pares de modelos de propuesta y objetivo sobre AIME 2025 y GSM8K, los autores informan mejoras pequeñas y disparejas frente a horizontes fijos (hasta 10%, con resultados iguales o mejores en 8 de 10 configuraciones). La cifra mayor, de hasta 4.1x, compara la decodificación especulativa con la decodificación simple. Las pruebas desactivan KV-cache y no usan una semilla aleatoria fija; una fila de la tabla de AIME presenta una diferencia de rendimiento/tiempo de 3.7x sin explicación. Son resultados creíbles pero aún no confirmados, informados por los autores, y no prueban una mejora del servicio en producción.",
+            "importance_rationale": "Si el controlador propuesto se generaliza, podría hacer más eficiente la inferencia con múltiples tokens al elegir un horizonte según el contexto y la retroalimentación del verificador, sin reentrenar ni cambiar el verificador exacto. El beneficio informado frente a horizontes fijos es modesto e irregular, por lo que el impacto es significativo pero acotado.",
+            "why_it_matters": "La eficiencia de la decodificación especulativa depende de cuántos tokens propuestos sobreviven al verificador exacto. Un controlador que ajuste ese horizonte antes de generar podría reducir el trabajo de inferencia desperdiciado sin reentrenar el modelo. El encuadre formal del artículo es útil para investigar inferencia, pero la mejora medida frente a la decodificación especulativa con ventana fija es pequeña e irregular; las pruebas reportadas omiten KV-cache y una fila de resultados no está explicada.",
+            "technical": {
+              "claimed_result": "El artículo informa cinco pares de modelos de propuesta y objetivo sobre AIME 2025 y GSM8K. Indica que AMTP iguala o supera ventanas fijas en 8/10 configuraciones, con hasta 10% más rendimiento que la especulación fija, y llega a 4.1x frente a la decodificación simple. Las comparaciones directas varían: la autoespeculación Qwen3-4B alcanza 34.5 frente a 34.0 tok/s en AIME y 38.3 frente a 38.6 en GSM8K; Medusa Llama-3.1-8B alcanza 25.3 frente a 23.6 en AIME y 19.4 frente a 20.0 en GSM8K. La fila AIME de Llama-2-13B informa 28.2 frente a 7.6 tok/s sin explicar visiblemente la diferencia.",
+              "demonstrated_result": "La versión v1 de arXiv consultada contiene el método propuesto, los enunciados de los teoremas y las tablas informadas. El equipo de investigación no verificó los argumentos, ejecutó el código ni reprodujo los resultados numéricos de manera independiente.",
+              "mechanism": "Antes de cada propuesta, AMTP pronostica los riesgos condicionales de rechazo por posición a partir de atributos disponibles antes de generar, los convierte en una cantidad esperada de tokens aceptados, estima el costo total de cada ronda y elige el horizonte con más tokens por segundo pronosticados. Un brazo aleatorio que explora el horizonte completo obtiene retroalimentación en posiciones que las ventanas cortas no revelarían; ponderación por probabilidad inversa actualiza el predictor. El algoritmo de verificación y la distribución objetivo permanecen sin cambios.",
+              "regime": "AIME 2025 y GSM8K con cinco pares que usan Qwen3-4B MTP, Meta MTP 7B, Medusa Llama-3.1-8B y modelos objetivo Llama-2-7B/13B y Qwen3-14B. El artículo desactiva KV-cache en todas las pruebas, procesa una muestra a la vez, no fija la semilla aleatoria y reporta condiciones limitadas para Meta MTP y Medusa. Los resultados corresponden a una implementación de artículo, no a un servicio de producción.",
+              "reproducibility": "El preprint detalla el método y la configuración, y dice que el archivo de bloqueo del código publicado fija versiones de paquetes; sin embargo, las búsquedas por título e identificador y los enlaces visibles de la página no localizaron un repositorio de los autores. El benchmark no es repetible bit por bit porque no se usa una semilla fija. No se encontró ni se intentó una reproducción independiente.",
+              "strongest_baseline": "La comparación pertinente para medir el efecto incremental de AMTP es el mismo par de modelos MTP con ventana fija, no la decodificación autorregresiva simple. Frente a ventanas fijas, los resultados medidos son mixtos y por lo general cercanos; el resumen informa hasta 10% de mejora en ocho de diez configuraciones. La mayor diferencia de tabla es una fila AIME de Llama-2-13B sin explicación (28.2 frente a 7.6 tok/s), que requiere verificar artefacto y registros."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "El preprint presenta Adaptive Multi-Token Prediction (AMTP), un controlador sin reentrenamiento que elige el horizonte de propuesta MTP antes de cada ronda a partir de pronósticos de rechazo y costos estimados, y luego se actualiza con la retroalimentación de verificación. Los autores indican que el verificador exacto permanece sin cambios."
+                },
+                {
+                  "text": "Los autores derivan una cota que relaciona el error de predicción de rechazos en línea con el regret de rendimiento frente al mejor horizonte en cada contexto visitado, y presentan un resultado de regret sublineal para descenso de gradiente en línea bajo sus supuestos."
+                },
+                {
+                  "text": "En cinco pares de modelos de propuesta y objetivo, sobre AIME 2025 y GSM8K, el artículo informa que AMTP iguala o supera una ventana fija en 8 de 10 configuraciones y registra una mejora de rendimiento de hasta 10% frente a la decodificación con ventana fija; los avances no son uniformes y varias filas muestran paridad o retrocesos. La cifra de hasta 4.1x compara la decodificación especulativa con la simple, no el efecto incremental de AMTP frente a una ventana especulativa fija."
+                },
+                {
+                  "text": "El apéndice D indica que las pruebas desactivan KV-cache, no usan una semilla aleatoria fija y procesan una muestra a la vez. Algunas condiciones están limitadas o tienen una exactitud de tarea poco informativa; para ciertas filas con modelos base, los autores informan solo rendimiento y aceptación porque la exactitud no es significativa."
+                },
+                {
+                  "text": "El apéndice D.3, tabla 7, informa 28.2 tokens/s y 0.07 horas de generación para Meta MTP 7B → Llama-2-13B en AIME con el ajuste adaptativo, frente a 7.6 tokens/s y 0.54 horas con k=4 fijo. El mismo apéndice describe el mismo grupo de hardware y régimen de evaluación; el artículo no ofrece una explicación visible para esta diferencia grande. Los valores provienen del artículo y no se verificaron de manera independiente."
+                },
+                {
+                  "text": "Esta activación no establece una reproducción independiente, una estimación de variación con semillas fijas, una evaluación con KV-cache en producción ni un artefacto de código verificado y vinculado por los autores."
+                }
+              ],
+              "limitations": [
+                "Todos los resultados empíricos son informes de los autores y aquí siguen sin confirmación independiente.",
+                "Las pruebas reportadas desactivan KV-cache y no fijan la semilla aleatoria; los efectos en despliegue podrían diferir.",
+                "La comparación AMTP frente a horizonte fijo es mixta: algunas filas empatan o retroceden, y la mejora máxima reportada frente a horizontes fijos es 10%.",
+                "Una fila AIME de Llama-2-13B muestra una diferencia adaptativa/fija de 28.2 frente a 7.6 tok/s y 0.07 frente a 0.54 horas, sin explicación.",
+                "Las garantías teóricas no se auditaron de forma independiente y dependen de los supuestos establecidos en el artículo.",
+                "Las búsquedas por título e identificador no encontraron el artefacto de código enlazado por los autores; esta búsqueda acotada no demuestra que el artefacto no exista.",
+                "La inferencia adaptativa con múltiples tokens y la selección del horizonte de decodificación especulativa son anteriores a este artículo; su aporte más específico es un controlador en línea, sin reentrenamiento, con pronósticos de rechazo condicionados al contexto y su análisis asociado."
+              ],
+              "gaps": [
+                {
+                  "description": "El preprint menciona un archivo de bloqueo de versiones del código publicado, pero ni el artículo/página inspeccionados ni las búsquedas por título e identificador permitieron localizar el repositorio de los autores."
+                },
+                {
+                  "description": "No hay una reproducción independiente, con varias semillas, que verifique las mejoras reportadas de AMTP frente a horizontes fijos."
+                },
+                {
+                  "description": "La fila AIME para Llama-2-13B informa 28.2 tok/s en la condición adaptativa frente a 7.6 en la fija, y 0.07 frente a 0.54 horas, una diferencia grande sin explicación bajo el mismo grupo de hardware declarado."
+                },
+                {
+                  "description": "Todos los experimentos desactivan KV-cache, aunque los costos de servicio y el horizonte MTP conveniente pueden cambiar con caché, lotes y concurrencia en producción."
+                }
+              ]
+            },
+            "dek": "Un nuevo preprint propone elegir cuántos tokens proponer en la decodificación especulativa de múltiples tokens según pronósticos de aceptación dependientes del contexto y los costos medidos de cada ronda."
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "预印本提出按上下文控制多令牌解码窗口",
+            "summary": "一篇新预印本提出，在多令牌投机解码中，根据依赖上下文的接受率预测和实测轮次成本来选择每次提议的令牌数。该控制器在生成提议前选定窗口，利用精确验证器的反馈在线更新，并配有遗憾分析。作者在 AIME 2025 和 GSM8K 的五组草稿模型—目标模型配对中报告，相比固定窗口，收益较小且不一致（最高 10%，其中 8/10 种设置持平或更好）。更大的“最高 4.1x”数字比较的是投机解码与普通解码。测试关闭了 KV 缓存且没有固定随机种子；AIME 表格中有一行的吞吐量/时间相差 3.7x，文章未作解释。这些是可信但尚未确认的论文报告结果，并未证明生产服务得到改善。",
+            "importance_rationale": "如果该控制器能够泛化，它或许可以依据上下文和验证反馈选择窗口，在不重新训练、也不改变精确验证器的情况下提高多令牌推理效率。相对固定窗口的收益较小且不一致，因此影响有意义但范围有限。",
+            "why_it_matters": "投机解码的效率取决于有多少个提议令牌能通过精确验证。若控制器能在提议前调整窗口，就可能减少浪费的推理计算，而无需重新训练。论文的形式化分析对推理研究有参考价值，但相对于已有固定窗口投机解码，实测提升幅度有限且并不稳定；报告的测试没有使用 KV 缓存，且有一行结果缺少解释。",
+            "technical": {
+              "claimed_result": "论文报告在 AIME 2025 和 GSM8K 上评估了五组草稿模型—目标模型配对。作者称 AMTP 在 8/10 种设置中持平或超过固定窗口，相比固定投机解码最高提高 10%，相对普通解码最高达到 4.1x。直接比较结果并不一致：Qwen3-4B 自投机在 AIME 为 34.5 对 34.0 tok/s，在 GSM8K 为 38.3 对 38.6；Medusa Llama-3.1-8B 在 AIME 为 25.3 对 23.6，在 GSM8K 为 19.4 对 20.0。Llama-2-13B 的 AIME 行报告自适应设置为 28.2 对固定设置 7.6 tok/s，文章没有明显解释这一差异。",
+              "demonstrated_result": "所查阅的 arXiv v1 包含所提方法、定理陈述和报告表格。研究团队没有独立核验其证明、运行代码或复现数值结果。",
+              "mechanism": "每次提议前，AMTP 根据预提议特征预测各位置的条件拒绝风险，将其换算为预期接受令牌数，并估计每个窗口的轮次总成本；随后选择预测 tokens/s 最高的窗口。一个随机化的全窗口探索分支可获得短窗口无法揭示的后续位置反馈；逆概率加权用于更新预测器。验证算法和目标分布均保持不变。",
+              "regime": "测试任务为 AIME 2025 和 GSM8K，包含五组配对，使用 Qwen3-4B MTP、Meta MTP 7B、Medusa Llama-3.1-8B，以及目标模型 Llama-2-7B/13B 和 Qwen3-14B。论文关闭所有测试的 KV 缓存，每次只处理一个样本，没有固定随机种子，并对 Meta MTP 和 Medusa 的部分条件设置了样本上限。结果来自论文实现，不是生产服务评测。",
+              "reproducibility": "预印本详细说明了方法和设置，并称已发布代码锁定文件固定了软件包版本；但按标题、编号搜索以及页面显示的链接均未找到作者代码仓库。由于没有固定随机种子，基准无法逐位重复。本次未找到也未尝试独立复现。",
+              "strongest_baseline": "衡量 AMTP 增量效果时，相关基准是同一草稿—目标模型配对的固定窗口，而非普通自回归解码。相对固定窗口的实测表现不一，通常接近；论文摘要报告的最高提升为 10%。表格中最大的差异是 Llama-2-13B 的 AIME 行（28.2 对 7.6 tok/s），目前没有解释，需核对代码和运行记录。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "预印本提出 Adaptive Multi-Token Prediction（AMTP）：一种无需重新训练的控制器，在每轮开始前根据预测的拒绝风险和估计的轮次成本选择 MTP 提议窗口，再利用验证反馈更新。作者称精确验证器保持不变。"
+                },
+                {
+                  "text": "作者推导了在线拒绝风险预测误差与相对于每个已访问上下文最优窗口的吞吐遗憾之间的界限，并在其假设下给出在线梯度下降的次线性遗憾结果。"
+                },
+                {
+                  "text": "在 AIME 2025 和 GSM8K 上的五组草稿模型—目标模型配对中，论文报告 AMTP 在 8/10 种设置中持平或超过固定窗口，相对固定窗口吞吐量最高提高 10%；收益并不一致，数行结果持平或退步。最高 4.1x 的数字比较投机解码与普通解码，并非 AMTP 相对于固定投机窗口的增量效果。"
+                },
+                {
+                  "text": "附录 D 表示测试关闭了 KV 缓存、没有固定随机种子，并且每次只处理一个样本。有些条件受到样本上限限制，或任务准确率缺少解释力；对于部分基础模型行，作者只报告吞吐量和接受率，因为准确率并无意义。"
+                },
+                {
+                  "text": "附录 D.3 的表 7 报告，在 AIME 中，28.2 tokens/s 和 0.07 小时对应 Meta MTP 7B → Llama-2-13B 的自适应设置，固定窗口则为 7.6 tokens/s 和 0.54 小时（k=4）。该附录将两者描述为使用相同硬件组和评测条件；文章没有明显解释这一巨大差异。这里记录的是论文中的数值，未经过独立核验。"
+                },
+                {
+                  "text": "本次激活未能确认存在独立复现、固定种子的方差估计、生产 KV 缓存评测或经过核实的作者代码仓库。"
+                }
+              ],
+              "limitations": [
+                "所有经验结果均由论文作者报告，本次工作没有独立确认。",
+                "测试关闭 KV 缓存且没有固定随机种子；部署后的效果可能不同。",
+                "AMTP 与固定窗口的比较结果不一致：部分行持平或退步，报告的最高提升为 10%。",
+                "Llama-2-13B 的一行 AIME 结果中，自适应/固定设置分别为 28.2/7.6 tok/s 和 0.07/0.54 小时，差异尚无解释。",
+                "理论保证尚未经过独立审查，并依赖论文所述假设。",
+                "按标题和编号进行的有限搜索没有找到作者代码链接；这不能证明代码不存在。",
+                "自适应多令牌推理和投机解码窗口选择早于本文；本文较具体的贡献是无需重训、按上下文预测令牌拒绝风险的在线预提议控制器及其相关分析。"
+              ],
+              "gaps": [
+                {
+                  "description": "预印本提到已发布代码的锁定文件，但在所查阅的论文/页面以及按标题和编号进行的搜索中，没有找到作者维护的代码仓库。"
+                },
+                {
+                  "description": "尚无多随机种子的独立复现来核验 AMTP 相对于固定窗口的提升。"
+                },
+                {
+                  "description": "Llama-2-13B 的 AIME 行报告自适应设置为 28.2 tok/s、固定设置为 7.6 tok/s，耗时分别为 0.07 和 0.54 小时；在所述同一硬件组下，这一大幅差异没有解释。"
+                },
+                {
+                  "description": "所有实验都关闭了 KV 缓存，但缓存、批处理和并发负载可能改变服务成本和合适的 MTP 窗口。"
+                }
+              ]
+            },
+            "headline": "预印本提出按上下文控制多令牌解码窗口"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
     {
       "id": "FCMO-151795B29502",
       "slug": "self-credit-uses-cross-rollout-turn-citations-to-assign-credit-in-long",
