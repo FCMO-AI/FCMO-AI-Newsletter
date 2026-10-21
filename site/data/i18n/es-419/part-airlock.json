@@ -1,6 +1,6 @@
 {
   "canonical_locale": "en",
-  "canonical_source_sha256": "12b12283e198a3c1801284d563d3a5949bb72d134f63a1abcc919042a710729c",
+  "canonical_source_sha256": "78ea9a38728bc05857921a06bf3a6e18b46a12efcf715dd1de045e17c2079bcc",
   "generated_from": "ARB airlock; editorial wording authored upstream",
   "locale": "es-419",
   "records": {
@@ -3110,6 +3110,68 @@
       },
       "title": "Un artículo encuentra que los traspasos con pérdida de contexto pueden borrar el estado de autorización y elevar las aprobaciones del monitor",
       "why_it_matters": "Los sistemas de agentes suelen pasar afirmaciones por resúmenes, memoria y monitores. Si la afirmación sobrevive pero su estado de verificación no, un componente posterior puede tratarla como confirmada. El artículo cuantifica ese fallo con prompts controlados y propone mantener la procedencia como estado estructurado vinculado a la afirmación. Los resultados justifican probar estos traspasos; no establecen prevalencia en despliegues ni que el estado estructurado por sí solo resuelva el problema."
+    },
+    "FCMO-151795B29502": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "El preprint v1 describe Self-Credit: pide al agente citar turnos anteriores en sus resúmenes generados y luego reajusta el crédito de los turnos citados entre trayectorias exitosas y fallidas de una misma consigna, antes de volver a ponderar las ventajas por turno."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En BrowseComp-Plus, los autores reportan una exactitud Pass@1, con tres semillas, de 47.0% para Qwen3-32B y 40.6% para Qwen3-8B: 5.6 y 8.5 puntos porcentuales por encima de la línea base reportada más fuerte en cada caso. Para Gemma4-E4B reportan 39.2% en GAIA, solo texto, y 16.7% en xBench-DeepSearch, es decir, 4.9 y 4.7 puntos más que las líneas base reportadas más fuertes. Son resultados del artículo, aún sin reproducción independiente."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En las ablaciones de BrowseComp-Plus, retirar el reajuste intragrupo, las penalizaciones por fallos repetidos o las citas autogeneradas redujo la exactitud reportada; la magnitud varió entre Qwen3-8B y Qwen3-32B. Esto muestra sensibilidad a componentes dentro del diseño de los autores, pero no establece por sí solo un efecto causal independiente."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se encontró ni realizó una reproducción independiente; la exactitud del benchmark se evalúa con un juez de modelo de lenguaje.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "El artículo no establece si las mejoras se mantienen con cómputo integral equiparado ni en otras familias de modelos y entornos de tareas.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si los avances reportados se generalizan, una señal de crédito autogenerada que aprovecha trayectorias exitosas y fallidas podría cambiar cómo se entrenan agentes de investigación de varios pasos con recompensas dispersas. Su impacto actual es significativo dentro del postentrenamiento de agentes, pero la evidencia se limita a un preprint y a los modelos y tareas evaluados.",
+      "limitations": [
+        "Todos los valores de rendimiento son reportes de los autores en un único preprint de arXiv; no se realizó una reproducción independiente.",
+        "La exactitud se juzga mediante modelos de lenguaje: un juez Qwen3-32B independiente para BrowseComp-Plus y evaluación con una rúbrica de juez de modelo para las tareas de investigación profunda. Se desconoce la sensibilidad a jueces alternativos a ciegas o a la evaluación humana.",
+        "El entrenamiento y la evaluación de BrowseComp-Plus usan un corpus e índice estáticos; la evaluación de investigación profunda emplea una API abierta de búsqueda web, por lo que las condiciones difieren entre conjuntos de datos.",
+        "Los experimentos abarcan Qwen3-8B/32B y Gemma4-E4B en tareas específicas de búsqueda e investigación profunda; no se ha establecido la transferencia a otras familias de modelos, tareas agénticas o fiabilidad en producción.",
+        "No se verificaron artefactos independientes ni comparaciones integrales de cómputo y costo.",
+        "El método supone que cada turno contribuye de manera independiente al resultado, aunque los autores reconocen que las acciones posteriores pueden depender de evidencia recuperada antes; esta aproximación puede distorsionar el crédito asignado por turno."
+      ],
+      "relationships": [
+        {
+          "summary": "Ambos trabajos estudian el postentrenamiento agéntico en tareas de horizonte largo: R2S modifica la señal de puntuación por token del docente antes de OPD, mientras Self-Credit calcula pesos de ventaja por turno a partir de las citas y los resultados de la propia política entre trayectorias.",
+          "target_id": "FCMO-83D876C273E3",
+          "type": "related"
+        },
+        {
+          "summary": "Ambos amplían la evidencia sobre postentrenamiento de agentes y sobre cómo la granularidad de la retroalimentación incide en el comportamiento aprendido.",
+          "target_id": "FCMO-3AB0123A135A",
+          "type": "related"
+        }
+      ],
+      "summary": "El preprint presenta Self-Credit, un método de aprendizaje por refuerzo agéntico de horizonte largo en el que la política cita turnos anteriores en sus propios resúmenes y luego ajusta el crédito de cada turno al comparar acciones citadas entre trayectorias exitosas y fallidas para una misma consigna. En evaluaciones con tres semillas, los autores reportan mayor exactitud que las mejores líneas base agénticas probadas en BrowseComp-Plus con Qwen3-8B y Qwen3-32B, así como en GAIA y xBench-DeepSearch con Gemma4-E4B. La evaluación usa jueces basados en modelos de lenguaje; no se han establecido una reproducción independiente ni una comparación integral de cómputo.",
+      "technical": {
+        "claimed_result": "Los autores reportan exactitud de prueba en BrowseComp-Plus, con tres semillas, de 47.0% para Qwen3-32B y 40.6% para Qwen3-8B, frente a 41.4% y 32.1% de las líneas base reportadas más fuertes. Con Gemma4-E4B reportan 39.2% en GAIA frente a 34.3%, y 16.7% en xBench-DeepSearch frente a 12.0%. La puntuación es reportada por los autores y utiliza jueces de modelos de lenguaje.",
+        "compute_or_cost": "Los autores indican que todos los métodos comparados comparten la configuración principal de entrenamiento y se ejecutan en un clúster de GPU NVIDIA B200, pero el artículo no ofrece un registro integral de recursos que incluya la generación adicional de resúmenes con citas y sus costos asociados. Por lo tanto, no se ha establecido una ventaja total de cómputo o costo.",
+        "demonstrated_result": "El artículo v1 de arXiv y la descripción de sus experimentos están disponibles públicamente. El equipo de investigación inspeccionó el texto, pero no ejecutó código ni reprodujo los resultados. En esta revisión no se confirmó la publicación de código o datos.",
+        "mechanism": "Cuando se activa la compactación del contexto, la política resume el historial de interacción y cita los turnos que considera importantes. Para cada consigna, el reajuste intragrupo compara los turnos citados entre trayectorias exitosas y fallidas: los turnos repetidos que también aparecen en fallos pierden crédito, los exclusivos de los éxitos lo ganan y los exclusivos de los fallos reciben una penalización negativa mayor. Los pesos resultantes reajustan las ventajas por turno en la optimización de políticas por grupos.",
+        "regime": "BrowseComp-Plus: Qwen3-8B y Qwen3-32B, con 747 ejemplos de entrenamiento y 83 de prueba, mediante un corpus e índice estáticos. Investigación profunda: Gemma4-E4B entrenado con 1,000 pares de preguntas y respuestas de OpenResearcher; evaluación en el subconjunto de solo texto de GAIA y en xBench-DeepSearch. El artículo reporta tres semillas.",
+        "reproducibility": "El artículo informa resultados con tres semillas. No se verificaron una reproducción independiente, la disponibilidad de código o datos, la robustez frente a distintos jueces ni el cómputo exacto del entrenamiento. El apéndice B también indica que una línea de citas inválida o vacía puede dar una recompensa de cero a toda la trayectoria y que la correspondencia entre turnos supone independencia entre ellos pese a la dependencia secuencial de la evidencia.",
+        "strongest_baseline": "Los autores comparan con GRPO, GiGPO, SUPO y ECHO. ECHO es la línea base reportada más fuerte para las comparaciones citadas. No se estableció paridad de benchmarks armonizada de manera independiente entre artículos."
+      },
+      "title": "Self-Credit asigna crédito por turno mediante citas entre trayectorias para el aprendizaje por refuerzo de agentes de horizonte largo",
+      "why_it_matters": "Si los resultados del artículo se generalizan, combinar citas de evidencia generadas por el propio modelo con el reajuste del crédito entre trayectorias podría mejorar el postentrenamiento de agentes de búsqueda e investigación de varios pasos sin añadir un crítico aprendido por separado. La evidencia proviene de un preprint en un conjunto acotado de modelos y benchmarks; se basa en evaluación con jueces de modelos y no cuenta con reproducción independiente."
     },
     "FCMO-1577CF1A704A": {
       "claims": [
@@ -35848,6 +35910,48 @@
       "why_it_matters": {
         "locale_sha256": "2098dc0af973ba3e9d18d0195eb8753e8187be209fc9fb9f3599f3a2154f9ced",
         "source_sha256": "3c46752d7a6a2f69dde5e6fbfe0f90fcca3c37b8da9e60da055dfa266f6250c1"
+      }
+    },
+    "FCMO-151795B29502": {
+      "claims": {
+        "locale_sha256": "c17392baf7fa2e6ab5080f2db40c661bf212363ff5f240ae010bb8093b3c0692",
+        "source_sha256": "307b51655c5c8cefafddf8e7a9e88c8dd25a0cbbe818186c4281b394c7624a01"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "de0574750ecbb5b2a06a58d14224c69f0a6f4d02a4de8f04e734a36a894d60e4",
+        "source_sha256": "dde135dc3a5f072adee52357c977069ed3eb4933d7fc3f2edcf86059586fea0c"
+      },
+      "importance_rationale": {
+        "locale_sha256": "aff637f07a8cd2d22a7cc49895b7de98f3bd482ded1c0c446cc57f8fd0d293d3",
+        "source_sha256": "2a35e159b1c44191c73f50946c2620fb8683da3ffb1f64205d0882becd095717"
+      },
+      "limitations": {
+        "locale_sha256": "5546300bf50c7ad9e0df1a2329f2f0db4fb44313c259b097e1f569dd7e46eca4",
+        "source_sha256": "8f9c088fc118240d860c45d5e1efc2f271d42060b3c886bfecd21e4baacc4b3d"
+      },
+      "relationships": {
+        "locale_sha256": "8935eb0f1dc6efd09558c171332ee16847326012e471d0d168f2da3ee8a4e6be",
+        "source_sha256": "70255e05ce554003eb33a411f8cca8e2c391d5921d239186029e5e8c21ef4873"
+      },
+      "summary": {
+        "locale_sha256": "c6d6e920f852c49970f866a0c8e235d80b988ffa1ac114cc81705f0b2c6b3d29",
+        "source_sha256": "0388b4fc679f925a8f9a393a4abe81c1c4d35ebb651b37c25a1c631d5b1e7ca2"
+      },
+      "technical": {
+        "locale_sha256": "27b9d45e55b87f239ea867c0602a556bdfa6e4e2366f87b825cefe3911a64570",
+        "source_sha256": "77f04c2eb8304a1cce3185957d1ffbd858e8c3f24a959cf2b9c45a3ed93010b5"
+      },
+      "title": {
+        "locale_sha256": "2579aa5e62c93a6fd98b827a87ac7311b560992e9eeac3def54c6b8b1a0dedef",
+        "source_sha256": "e179355e2a1b600db35d3425155584adafbe2a3f35b67b3d2c51c00bb786f166"
+      },
+      "why_it_matters": {
+        "locale_sha256": "bfc3336496cc7757b38b4a5be5da62f4af5fb764c637a8bdb20e1563ee1916d9",
+        "source_sha256": "3b19f11889f51f1d4639c08aacb328f34834bc101331872e5c817cf65235088e"
       }
     },
     "FCMO-1577CF1A704A": {
