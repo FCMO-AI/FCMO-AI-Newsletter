@@ -27,16 +27,16 @@ STATUS = ROOT / "site/data/newsroom-status.json"
 BASE = "/FCMO-AI-Newsletter/"
 LOCALES = (("en", ""), ("es-419", "es/"), ("zh-Hans", "zh/"))
 BEATS = ("technology", "business", "policy", "society", "research")
-LEAD = re.compile(r'<article class="lead">.*?<h[13][^>]*><a href="([^"]+)"', re.S)
-TOP = re.compile(r'<aside class="top-stories">(.*?)</aside>', re.S)
-DEVELOPING = re.compile(r'<section class="developing-well">(.*?)</section>', re.S)
-ESSENTIALS = re.compile(r'<section class="essentials">.*?<ol>(.*?)</ol>', re.S)
-BEAT_SECTION = re.compile(r'<section class="beat-section">(.*?)</section>', re.S)
-CARD_ID = re.compile(r'<article class="story-card" data-story-id="([^"]+)"')
-ESSENTIAL_ITEM = re.compile(r'<li( [^>]*)>(.*?)</li>', re.S)
-EDITION_CARD = re.compile(
-    r'<article class="story-card edition-card"><h3><a href="([^"]+)">([^<]+)</a></h3>'
-    r'<p class="edition-count">([^<]+)</p><p class="edition-lead">(?:<a href="([^"]+)">([^<]+)</a>|([^<]+))</p></article>')
+# c6 / DIRECCION s6: the root front is cover (lead) + board (next 4) + the "Earlier" wire.
+LEAD = re.compile(r'<h1 class="cover-title[^"]*"><a href="([^"]+)"', re.S)
+BOARD_SECTION = re.compile(r'<section class="block surface-bone" id="board".*?</section>', re.S)
+WIRE_SECTION = re.compile(r'<section class="block surface-bone" id="earlier".*?</section>', re.S)
+BOARD_ID = re.compile(r'<article class="plate-card[^"]*"[^>]*data-story-id="([^"]+)"')
+WIRE_ITEM = re.compile(r'<li( class="wire-row"[^>]*)>(.*?)</li>', re.S)
+WIRE_LINK = re.compile(r'<h3 class="wire-title"><a href="([^"]+)">([^<]+)</a></h3>')
+ARCHIVE_ITEM = re.compile(r'<article class="archive-item" data-story-id="([^"]+)"')
+ARCHIVE_TOTAL = re.compile(r'<ul class="archive-totals"><li><strong>([0-9]+)</strong>')
+BOARD_COUNT, WIRE_COUNT = 4, 30
 
 
 def S(rid: str, beat: str = "technology", confidence: str = "confirmed") -> dict:
@@ -161,8 +161,8 @@ class FrontPlanBuildTests(unittest.TestCase):
     def tearDownClass(cls):
         cls.temp.cleanup()
 
-    def page(self, prefix: str) -> str:
-        return (self.out / prefix / "diario" / "index.html").read_text(encoding="utf-8")
+    def page(self, prefix: str, suffix: str = "") -> str:
+        return (self.out / prefix / suffix / "index.html").read_text(encoding="utf-8")
 
     def target(self, link: str) -> str:
         self.assertTrue(link.startswith(BASE), link)
@@ -178,55 +178,49 @@ class FrontPlanBuildTests(unittest.TestCase):
             with self.subTest(locale=locale):
                 page = self.page(prefix)
                 shown = [self.resolve(LEAD.search(page).group(1))]
-                shown += CARD_ID.findall(TOP.search(page).group(1))
-                shown += CARD_ID.findall(DEVELOPING.search(page).group(1))
-                shown += [re.search(r'data-story-id="([^"]+)"', item).group(1)
-                          for item, _ in ESSENTIAL_ITEM.findall(ESSENTIALS.search(page).group(1))]
-                beats = [section for section in BEAT_SECTION.findall(page) if re.search(r'beat/[a-z]+/"', section)]
-                self.assertTrue(beats)
-                for section in beats:
-                    shown += CARD_ID.findall(section)
+                shown += BOARD_ID.findall(BOARD_SECTION.search(page).group())
+                shown += [re.search(r'data-story-id="([^"]+)"', attrs).group(1)
+                          for attrs, _ in WIRE_ITEM.findall(WIRE_SECTION.search(page).group())]
                 self.assertEqual(len(shown), len(set(shown)), shown)
                 self.assertGreaterEqual(len(shown), 12)
                 self.assertTrue(set(shown) <= set(self.by_id))
+                self.assertEqual(shown, ids(self.order[:len(shown)]))
 
     def test_essential_items_carry_only_their_story_id_and_link_to_it(self):
+        # The wire rows replace the essentials list: each row carries its story id (and its
+        # format) and a headline link that resolves to that very story.
         for locale, prefix in LOCALES:
             with self.subTest(locale=locale):
-                listing = ESSENTIALS.search(self.page(prefix)).group(1)
-                items = ESSENTIAL_ITEM.findall(listing)
-                self.assertEqual(len(items), 5)
-                self.assertEqual(listing.count("<li"), 5)
+                listing = WIRE_SECTION.search(self.page(prefix)).group()
+                items = WIRE_ITEM.findall(listing)
+                self.assertEqual(len(items), min(WIRE_COUNT, len(self.order) - 1 - BOARD_COUNT))
+                self.assertEqual(listing.count('<li class="wire-row"'), len(items))
                 for attributes, inner in items:
-                    story_id = re.fullmatch(r' data-story-id="([^"]+)"', attributes).group(1)
-                    link = re.fullmatch(r'<a href="([^"]+)">([^<]+)</a>', inner)
+                    story_id = re.fullmatch(r' class="wire-row" data-format="[a-z]+" data-story-id="([^"]+)"', attributes).group(1)
+                    link = WIRE_LINK.search(inner)
                     self.assertEqual(self.resolve(link.group(1)), story_id)
                     self.assertEqual(html.unescape(link.group(2)),
                                      headline(self.by_id[story_id], locale, self.catalogs[locale]))
 
     def test_edition_cards_show_count_and_lead_headline(self):
+        # The front no longer carries edition cards (DIRECCION s6). The edition pages they
+        # pointed to still exist for the six latest editions, each stating its story count
+        # and listing exactly the stories of that edition.
         payload = json.loads(STORIES.read_text())
         dates = sorted(set(payload.get("published_edition_dates", [])) | {story["url_date"] for story in self.live}, reverse=True)[:6]
         self.assertEqual(len(dates), 6)
         for locale, prefix in LOCALES:
             with self.subTest(locale=locale):
                 catalog = self.catalogs[locale]
-                page = self.page(prefix)
-                cards = EDITION_CARD.findall(page)
-                self.assertEqual(len(cards), 6)
-                self.assertEqual(page.count('class="story-card edition-card"'), 6)
-                for date, (edition_link, _, count, lead_link, lead_text, empty_text) in zip(dates, cards):
+                self.assertNotIn("edition-card", self.page(prefix))
+                for date in dates:
                     edition = [story for story in self.live if story["url_date"] == date]
-                    self.assertTrue(edition_link.endswith(f"edition/{date}/"), edition_link)
-                    self.target(edition_link)
-                    self.assertEqual(html.unescape(count), plural(catalog, "edition_story", len(edition)))
+                    page = self.page(prefix, f"edition/{date}/")
+                    self.assertEqual(sorted(ARCHIVE_ITEM.findall(page)), sorted(ids(edition)), date)
                     if not edition:
-                        self.assertEqual(html.unescape(empty_text), catalog["strings"]["archive"]["empty"])
-                        self.assertEqual(lead_link, "")
+                        self.assertIn(html.escape(catalog["strings"]["archive"]["empty"], quote=False), page)
                         continue
-                    lead = front_order(edition)[0]
-                    self.assertEqual(self.resolve(lead_link), lead["id"])
-                    self.assertEqual(html.unescape(lead_text), headline(lead, locale, catalog))
+                    self.assertEqual(int(ARCHIVE_TOTAL.search(page).group(1)), len(edition), date)
 
     def test_publication_gates_pass_on_the_fresh_build(self):
         results = run_all.run(self.out)

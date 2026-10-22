@@ -71,7 +71,13 @@ class EssayBuildTests(unittest.TestCase):
             self.assertIn("<section class=\"essay-notes\"", es)
             self.assertIn("<section class=\"essay-sources\"", es)
             self.assertTrue((out / "es/cartas/ediciones/2026-10-01-primeras-decisiones/index.html").is_file())
-            self.assertIn("fixture-essay", (out / "es/cartas/index.html").read_text())
+            # c6 / DIRECCION s4: cartas/ is a redirect stub to the one front page;
+            # the letters shelf page is gone. The issue page (kept) lists the piece.
+            shelf = (out / "es/cartas/index.html").read_text()
+            self.assertIn('http-equiv="refresh" content="0; url=/FCMO-AI-Newsletter/es/"', shelf)
+            self.assertNotIn("fixture-essay", shelf)
+            issue = (out / "es/cartas/ediciones/2026-10-01-primeras-decisiones/index.html").read_text()
+            self.assertIn("fixture-essay", issue)
             self.assertIn("fixture-essay", (out / "es/feed.xml").read_text())
             self.assertIn("fixture-essay", (out / "es/feed.atom").read_text())
             self.assertIn("fixture-essay", (out / "es/feed.json").read_text())
@@ -86,7 +92,7 @@ class EssayBuildTests(unittest.TestCase):
                              [builder.base + "es/cartas/fixture-essay/"])
             self.assertIn("fixture-essay", (out / "es/llms.txt").read_text())
             self.assertIn("A durable public record", (out / "llms-full.txt").read_text())
-            self.assertIn("Primeras decisiones", (out / "es/cartas/index.html").read_text())
+            self.assertIn("Primeras decisiones", issue)
 
     def test_pending_locale_is_explicit_and_withdrawn_piece_is_tombstone(self):
         with tempfile.TemporaryDirectory() as temp:

@@ -24,6 +24,26 @@ STATUS = ROOT / "site/data/newsroom-status.json"
 CARD = re.compile(r'<article class="(?:story-card|archive-item)[^"]*"[^>]*data-story-id="([^"]+)"(.*?)</article>', re.S)
 STRIP = re.compile(r'<p class="evidence-strip"([^>]*)>(.*?)</p>', re.S)
 BOARD = re.compile(r'<section[^>]*id="evidence-board".*?</section>', re.S)
+# c6 / DIRECCION s2, s5, s6: the root front (route kind "landing") carries the evidence per
+# item as a class chip row (evrow) on board cards and wire rows, and the corpus aggregate as
+# the method band. The listings (topic/org/beat/archive) keep the evidence strip.
+BAND = re.compile(r'<section class="method-band" id="method-band".*?</section>', re.S)
+FRONT_ITEM = re.compile(r'<(?:article|li) class="(?:plate-card|wire-row)[^"]*"[^>]*data-story-id="([^"]+)"(.*?)</(?:article|li)>', re.S)
+EVROW = re.compile(r'<(p|div) class="[^"]*\bevrow\b[^"]*" data-evidence-class="([^"]*)">(.*?)</\1>', re.S)
+BAND_TRIO = re.compile(r'<div class="band-trio">(.*?)</div><p class="band-note">', re.S)
+BAND_NUMS = re.compile(r'<li>([0-9]+)<span>', re.S)
+CLASSES = ("shown", "claimed", "not_established")
+SHOWN_CONFIDENCE = {"confirmed", "strongly_supported", "supported"}
+
+
+def derived_class(story: dict) -> str:
+    """Independent restatement of the item-level class rule (DIRECCION s3: never rounds up)."""
+    if story.get("confidence") in SHOWN_CONFIDENCE:
+        return "shown"
+    claims = (story.get("evidence") or {}).get("claims") or []
+    if story.get("confidence") or any(isinstance(c, dict) and c.get("label") for c in claims):
+        return "claimed"
+    return "not_established"
 
 
 def build(stories: Path, out: Path) -> list[dict]:
@@ -91,10 +111,30 @@ class EvidenceSignatureTests(unittest.TestCase):
         return found
 
     def fronts(self) -> dict[str, str]:
-        return self.pages(self.out, self.routes, "front")
+        found = self.pages(self.out, self.routes, "landing")
+        self.assertEqual(sorted(found), sorted(LOCALES))
+        return found
 
     def boards(self) -> dict[str, str]:
-        return {code: BOARD.search(page).group(0) for code, page in self.fronts().items()}
+        return {code: BAND.search(page).group(0) for code, page in self.fronts().items()}
+
+    def assert_front_rows_match_corpus(self, page: str, code: str, stories: dict, *, minimum: int) -> None:
+        rows = FRONT_ITEM.findall(page)
+        self.assertGreaterEqual(len(rows), minimum)
+        proof = self.catalogs[code]["strings"]["proof"]
+        for story_id, body in rows:
+            with self.subTest(story=story_id):
+                found = EVROW.findall(body)
+                self.assertEqual(len(found), 1)
+                klass = found[0][1]
+                story = stories[story_id]
+                self.assertEqual(klass, derived_class(story))
+                visible = text(found[0][2])
+                self.assertIn(proof[klass], visible)
+                self.assertIn(plural(self.catalogs[code], "primary_source", primary(story)), visible)
+                self.assertIn(plural(self.catalogs[code], "open_gap", gaps(story)), visible)
+        for _, klass, _ in EVROW.findall(page):
+            self.assertIn(klass, CLASSES)
 
     def assert_strips_match_corpus(self, page: str, *, minimum: int) -> None:
         cards = CARD.findall(page)
@@ -116,35 +156,29 @@ class EvidenceSignatureTests(unittest.TestCase):
         self.assertEqual(sorted(fronts), sorted(LOCALES))
         for code in LOCALES:
             with self.subTest(locale=code, page="front"):
-                self.assert_strips_match_corpus(fronts[code], minimum=5)
+                self.assert_front_rows_match_corpus(fronts[code], code, self.stories, minimum=5)
             for kind in ("topic", "org", "beat"):
                 with self.subTest(locale=code, page=kind):
                     listing = self.pages(self.out, self.routes, kind)[code]
                     self.assert_strips_match_corpus(listing, minimum=1)
 
     def test_board_aggregates_every_live_story_in_every_locale(self):
-        known = self.catalogs["en"]["labels"]["confidence"]
-        levels = Counter(s.get("confidence") if s.get("confidence") in known else "unrated" for s in self.live)
-        claims = Counter((c.get("label") or "UNLABELED") for s in self.live for c in (s.get("evidence") or {}).get("claims", []))
-        order = [*known, "unrated"]
-        for code, board in self.boards().items():
+        # c6: the aggregate is the front's method band (class trio + corpus figures).
+        counts = Counter(derived_class(s) for s in self.live)
+        topics = len({t for s in self.live for t in s.get("topics", [])})
+        orgs = len({o for s in self.live for o in s.get("organizations", [])})
+        for code, band in self.boards().items():
+            catalog = self.catalogs[code]
+            proof = catalog["strings"]["proof"]
             with self.subTest(locale=code):
-                self.assertNotRegex(board[1:], r"<section\b")
-                head = attrs(board[:board.index(">")])
-                self.assertEqual(int(head["stories"]), len(self.live))
-                self.assertEqual(int(head["primary-sources"]), sum(primary(s) for s in self.live))
-                self.assertEqual(int(head["open-gaps"]), sum(gaps(s) for s in self.live))
-                segments = [(key, int(count)) for key, count in re.findall(r'data-segment="([^"]+)" data-count="([0-9]+)"', board)]
-                self.assertEqual(dict(segments), dict(levels))
-                self.assertEqual([key for key, _ in segments], [key for key in order if levels[key]])
-                self.assertTrue(all(count >= 1 for _, count in segments))
-                for key, count in segments:
-                    self.assertIn(f'data-count="{count}" style="flex-grow:{count}"', board)
-                labels = {key: int(count) for key, count in re.findall(r'data-claim-label="([^"]+)" data-count="([0-9]+)"', board)}
-                self.assertEqual(labels, dict(claims))
-                figures = re.findall(r"<strong>([0-9]+)</strong>", board.split('class="evidence-figures"', 1)[1].split("</ul>", 1)[0])
-                self.assertEqual(figures, [str(len(self.live)), head["primary-sources"], head["open-gaps"]])
-                self.assertIn('/method/"', board)
+                self.assertNotRegex(band[1:], r"<section\b")
+                trio = BAND_TRIO.search(band).group(1)
+                cells = re.findall(r"<div><b>(.*?)</b>", trio, re.S)
+                self.assertEqual([text(cell) for cell in cells],
+                                 [f"{proof[key]} · {plural(catalog, 'story', counts[key])}" for key in CLASSES])
+                self.assertEqual(sum(counts.values()), len(self.live))
+                self.assertEqual([int(n) for n in BAND_NUMS.findall(band)], [len(self.live), topics, orgs])
+                self.assertIn('/method/"', band)
 
     def test_visible_labels_are_localized_and_the_catalog_covers_the_live_corpus(self):
         english = {value for group in ("confidence", "claim_label", "evidence_class")
@@ -162,11 +196,11 @@ class EvidenceSignatureTests(unittest.TestCase):
         for code in LOCALES:
             labels = self.catalogs[code]["labels"]
             board = text(boards[code])
-            for key in re.findall(r'data-segment="([^"]+)"', boards[code]):
-                self.assertIn(labels["confidence"][key], board)
-            for key in re.findall(r'data-claim-label="([^"]+)"', boards[code]):
-                self.assertIn(labels["claim_label"][key], board)
-            strips = " ".join(text(body) for _, body in STRIP.findall(fronts[code]))
+            proof = self.catalogs[code]["strings"]["proof"]
+            for key in CLASSES:
+                self.assertIn(proof[key], board)
+            strips = " ".join(text(body) for _, _, body in EVROW.findall(fronts[code]))
+            self.assertTrue(strips)
             if code == "en":
                 continue
             for value in english:
@@ -178,20 +212,28 @@ class EvidenceSignatureTests(unittest.TestCase):
                 self.assertNotIn(word, board + strips)
 
     def test_unknown_or_missing_confidence_is_unrated_escaped_and_never_invented(self):
-        fronts = self.pages(self.fixture_out, self.fixture_routes, "front")
+        fronts = self.pages(self.fixture_out, self.fixture_routes, "landing")
         self.assertEqual(sorted(fronts), sorted(LOCALES))
         unknown, missing, bare = self.fixture_ids
+        fixture_stories = {s["id"]: s for s in json.loads((Path(self.temp.name) / "fixture.json").read_text(encoding="utf-8"))["stories"]}
         for code, page in fronts.items():
-            unrated = self.catalogs[code]["strings"]["evidence_board"]["unrated"]
-            board = BOARD.search(page).group(0)
+            band = BAND.search(page).group(0)
             with self.subTest(locale=code):
-                segments = dict(re.findall(r'data-segment="([^"]+)" data-count="([0-9]+)"', board))
-                self.assertGreaterEqual(int(segments.get("unrated", 0)), 2)
-                self.assertIn(unrated, text(board))
+                # Whatever an item claims about itself, the class is derived: raw text
+                # never reaches the page and nothing is rounded up to «Shown».
                 self.assertNotIn("not_a_real_level", text(page))
                 self.assertNotIn("<x>", page)
-                self.assertIn('data-evidence-class="&lt;x&gt;"', page)
+                self.assertNotIn("<x>", text(page))
                 self.assertNotIn(">&lt;x&gt;<", page)
+                self.assertNotIn('data-evidence-class="&lt;x&gt;"', page)
+                self.assert_front_rows_match_corpus(page, code, fixture_stories, minimum=5)
+                trio = BAND_TRIO.search(band).group(1)
+                shown = Counter(derived_class(s) for s in fixture_stories.values() if s.get("status") == "live")
+                proof = self.catalogs[code]["strings"]["proof"]
+                self.assertEqual([text(c) for c in re.findall(r"<div><b>(.*?)</b>", trio, re.S)],
+                                 [f"{proof[k]} · {plural(self.catalogs[code], 'story', shown[k])}" for k in CLASSES])
+        self.assertEqual(derived_class(fixture_stories[unknown]), "claimed")  # an unknown level is never «Shown»
+        self.assertEqual(derived_class(fixture_stories[bare]), "claimed" if fixture_stories[bare].get("confidence") else "not_established")
         rendered = {**self.pages(self.fixture_out, self.fixture_routes, "archive")}
         for code, page in rendered.items():
             unrated = self.catalogs[code]["strings"]["evidence_board"]["unrated"]
@@ -252,7 +294,7 @@ class EvidenceSignatureTests(unittest.TestCase):
 
     def test_no_fcmo_group_in_board_or_strips(self):
         for code, page in self.fronts().items():
-            surfaces = BOARD.search(page).group(0) + "".join(match.group(0) for match in STRIP.finditer(page))
+            surfaces = BAND.search(page).group(0) + "".join(match.group(0) for match in EVROW.finditer(page)) + "".join(match.group(0) for match in STRIP.finditer(page))
             self.assertNotRegex(surfaces, re.compile(r"FCMO\s+Group", re.I), code)
 
 
