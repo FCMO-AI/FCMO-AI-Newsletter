@@ -59,7 +59,9 @@ class SubscriptionJourneyTests(unittest.TestCase):
                     page = out / prefix / route / 'index.html'
                     self.assertTrue(page.is_file(), page)
                     html = page.read_text()
-                    self.assertIn('site-header', html); self.assertIn('lang="' + lang + '"', html)
+                    # CONTRACT-CHANGES.md #7: the single site header is the top bar (class "topbar"), not "site-header".
+                    self.assertIn('<header class="topbar', html); self.assertNotIn('class="site-header', html)
+                    self.assertIn('lang="' + lang + '"', html)
                     if route != 'subscribe/': self.assertIn('name="robots" content="noindex"', html)
 
     def test_status_distinguishes_pending_active_suppressed_and_unread_without_addresses(self):

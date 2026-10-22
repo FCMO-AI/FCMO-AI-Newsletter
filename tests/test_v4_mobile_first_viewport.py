@@ -127,17 +127,13 @@ class CompactChromeCssTests(unittest.TestCase):
         self.assertEqual(self.block.count("@media"), 1)
         at = self.paper.index(self.block)
         self.assertGreater(at, self.paper.rindex("@media(max-width:520px){", 0, at))
-        # Later targeted fixes may override the subtitle and nav, while the remaining
-        # first-screen truth signals stay governed by this compact-chrome block.
+        # CONTRACT-CHANGES.md #9: the phone block governs the first-screen truth signals of the single
+        # header (top bar, bottom tabs) and must not style the retired two-product chrome.
         styled = set(re.findall(r"\.([a-z][a-z-]*)", self.block.split("{", 1)[1]))
-        self.assertGreaterEqual(styled, {"edition-line", "brand-sub", "breadcrumbs", "masthead", "brand", "main-nav",
-                                         "status-banner", "corpus-freshness"})
+        self.assertGreaterEqual(styled, {"status-banner", "corpus-freshness"})
         for later in re.findall(r"@media\(max-width:520px\)\{(?:[^{}]*\{[^{}]*\})*[^{}]*\}", self.paper[at + len(self.block):]):
-            self.assertLessEqual(styled & set(re.findall(r"\.([a-z][a-z-]*)", later)), {"main-nav", "brand-sub"}, later[:120])
-        for rule in (".edition-line,.brand-sub,.page-front .breadcrumbs{display:none}",
-                     ".site-header .masthead{padding:.5rem 0}", ".site-header .masthead .brand{font-size:2.4rem}",
-                     ".main-nav{flex-wrap:nowrap;"):
-            self.assertIn(rule, self.block)
+            self.assertFalse(styled & set(re.findall(r"\.([a-z][a-z-]*)", later)) & {"status-banner", "corpus-freshness"}, later[:120])
+        self.assertNotRegex(self.block, r"\.(site-header|brand-sub|main-nav|edition-line|zone-switch|footer-links|language-nav)\b")
 
     def test_block_uses_only_existing_tokens_and_never_hides_the_truth_signals(self):
         self.assertNotIn("!important", self.block)
@@ -150,12 +146,13 @@ class CompactChromeCssTests(unittest.TestCase):
             if "status-banner" in selector.split(",")[-1].split("+")[-1] or "corpus-freshness" in selector:
                 self.assertNotRegex(body, r"display:none|visibility:hidden|overflow:hidden|max-height|clip|line-clamp")
 
-    def test_final_mobile_chrome_keeps_nav_on_one_row_and_restores_desktop_subtitle(self):
-        self.assertRegex(self.paper, r"body\s+\.brand-sub\s*\{\s*display:block\s*\}")
-        compact_nav = re.findall(r"@media\(max-width:520px\)\s*\{\s*body\s+\.brand-sub\s*\{\s*display:none\s*\}\s*body\s+\.main-nav\s*\{([^}]*)\}", self.paper)
-        self.assertTrue(compact_nav, "final mobile rules must override the earlier tablet wrapping rule")
-        self.assertIn("flex-wrap:nowrap", compact_nav[-1])
-        self.assertIn("overflow:visible", compact_nav[-1])
+    def test_final_mobile_chrome_is_top_bar_below_760_and_bottom_tabs_take_the_rest(self):
+        # CONTRACT-CHANGES.md #9: single header. At <=760px the top nav gives way to the bottom tabs.
+        self.assertIn(".topnav,.topbar .btn-cta{display:none}", self.paper)
+        self.assertIn(".tabbar{display:grid;grid-template-columns:repeat(5,1fr)", self.paper)
+        self.assertIn("@media(max-width:760px){", self.paper)
+        self.assertIn("body:has(.tabbar){padding-bottom:var(--l-tabbar)}", self.paper)
+        self.assertNotRegex(self.paper, r"body\s+\.brand-sub\s*\{\s*display:block\s*\}")
 
     def test_story_prose_wraps_long_unbroken_text_without_story_specific_rules(self):
         rendered = self.module.render(json.loads(TOKENS.read_text(encoding="utf-8")))
@@ -178,16 +175,25 @@ class BuiltDiarioChromeTests(unittest.TestCase):
     def tearDownClass(cls):
         cls.temp.cleanup()
 
-    def test_diario_html_keeps_every_header_element_and_the_same_nav_destinations(self):
+    def test_front_has_one_header_a_top_nav_and_the_bottom_tabs_on_every_locale(self):
+        # CONTRACT-CHANGES.md #10: the front is the locale root; one header (top bar), no product brand line.
+        # The top bar carries Today, Topics, Archive, Search, Corrections, Method; the bottom tabs carry the
+        # five reader actions (Today, Archive, Search, Corrections, Subscribe) at <=760px.
         for code, prefix in LOCALES:
+            top_nav = {f"{BASE}{prefix}", f"{BASE}{prefix}#topics", f"{BASE}{prefix}archive/",
+                       f"{BASE}{prefix}search/?focus=1", f"{BASE}{prefix}corrections/", f"{BASE}{prefix}method/"}
+            tabs = {f"{BASE}{prefix}", f"{BASE}{prefix}archive/", f"{BASE}{prefix}search/?focus=1",
+                    f"{BASE}{prefix}corrections/", f"{BASE}{prefix}subscribe/"}
             with self.subTest(locale=code):
-                page = (self.out / prefix / "diario/index.html").read_text(encoding="utf-8")
-                header = page[page.index('<header class="site-header">'):page.index("</header>")]
-                self.assertEqual(header.count('<span class="edition-line">'), 1)
-                self.assertEqual(header.count('<span class="brand-sub">'), 1)
-                self.assertEqual(page.count('<nav class="breadcrumbs"'), 1)
-                nav = re.search(r'<nav class="main-nav"[^>]*>(.*?)</nav>', header, re.S).group(1)
-                self.assertEqual(set(re.findall(r'href="([^"]*)"', nav)), {f"{BASE}{prefix}{path}" for path in NAV_PATHS})
+                page = (self.out / prefix / "index.html").read_text(encoding="utf-8")
+                self.assertEqual(page.count("<header "), 1)
+                header = page[page.index('<header class="topbar'):page.index("</header>")]
+                self.assertNotIn('class="brand-sub"', page)
+                self.assertNotIn('class="site-header"', page)
+                nav = re.search(r'<nav class="topnav"[^>]*>(.*?)</nav>', header, re.S).group(1)
+                self.assertEqual(set(re.findall(r'href="([^"]*)"', nav)), top_nav)
+                tab = re.search(r'<nav class="tabbar"[^>]*>(.*?)</nav>', page, re.S).group(1)
+                self.assertEqual(set(re.findall(r'href="([^"]*)"', tab)), tabs)
 
 
 class EvaluateRulesTests(unittest.TestCase):

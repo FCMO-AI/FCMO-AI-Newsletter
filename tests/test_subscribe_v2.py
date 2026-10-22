@@ -25,17 +25,19 @@ class SubscribeBlockTests(unittest.TestCase):
                 self.assertNotIn('<form', html)
                 self.assertNotIn('data-ghost-portal', html)
 
-    def test_active_spanish_has_two_choices_and_real_fallback(self):
+    def test_active_spanish_has_one_subscription_text_and_real_fallback(self):
+        # CONTRACT-CHANGES.md #3: one publication, one subscription text, no product list or product names.
         html = subscribe_block('letter', 'es-419', ghost_url='https://comunidad.example')
         self.assertIn('data-subscribe-state="active"', html)
-        self.assertEqual(html.count('class="subscribe-choice '), 2)
+        self.assertEqual(html.count('Una sola publicación. Síguela a tu manera.'), 1)
+        self.assertNotIn('subscribe-choice', html)
         self.assertIn('https://comunidad.example/#/portal/signup', html)
         self.assertIn('data-ghost-portal="signup"', html)
         self.assertNotIn('<form', html)
         self.assertIn('Cambia tus preferencias', html)
         config = subscription_config()
         for product in config['products'].values():
-            self.assertIn(product['name'], html)
+            self.assertNotIn(product['name'], html)
 
     def test_unapproved_locales_keep_feeds_when_ghost_is_ready(self):
         for locale in ('en', 'zh-Hans'):
@@ -55,6 +57,8 @@ class SubscribeBlockTests(unittest.TestCase):
     def test_configured_names_feed_email_renderer(self):
         self.assertEqual(PAPER_NAME, subscription_config()['products']['paper']['name'])
         self.assertEqual(subscription_config()['ghost']['membership'], 'one_site')
+        # CONTRACT-CHANGES.md #4: Ghost offers one publication, not two optional newsletters.
+        self.assertEqual(subscription_config()['ghost']['newsletter_choice'], 'one_publication')
 
     def test_letter_preview_uses_brand_and_ghost_account(self):
         letter = render_letter_email('Una idea', 'Hola <amiga>\n\nProbemos algo.',
