@@ -306,9 +306,9 @@ def brief20(story: dict, catalog: dict, *, summary: object, why: object, evidenc
     for item in [*(evidence.get("gaps") or []), *(evidence.get("limitations") or [])]:
         text = item.get("description", "") if isinstance(item, dict) else item
         if text:
-            unknown = first_sentence(text, 190)
+            unknown = first_sentence(text, 120)
             break
-    cells = [(d["happened"], first_sentence(summary), ""), (d["matters"], first_sentence(why), ""),
+    cells = [(d["happened"], first_sentence(summary, 120), ""), (d["matters"], first_sentence(why, 120), ""),
              (d["not_established"], unknown or d["none_recorded"], " read20-na")]
     rows = "".join(f'<li class="read20-cell{extra}"><b>{e(key)}</b><span class="brief-val">{e(text)}</span></li>' for key, text, extra in cells if text)
     return f'<div class="brief" role="group" aria-labelledby="brief-title"><h2 id="brief-title" class="visually-hidden">{e(d["brief_title"])}</h2><ol class="read20">{rows}</ol></div>'
@@ -367,7 +367,7 @@ def sources_bar(story: dict, catalog: dict, *, automation_html: str, byline: str
 def jump_bar(catalog: dict, labels: dict) -> str:
     jb = catalog["strings"]["jump"]
     links = "".join(f'<a href="#{k}">{e(labels[k])}</a>' for k in JUMP_ORDER if k in labels)
-    return f'<nav class="jumpbar" aria-label="{e(catalog["strings"]["a11y"]["jump_bar"])}"><div class="frame jumpbar-in">{links}</div></nav>'
+    return f'<nav class="jumpbar frame" aria-label="{e(catalog["strings"]["a11y"]["jump_bar"])}">{links}</nav>'
 
 
 def topic_pair(catalog: dict, topic: str, prev: tuple | None, nxt: tuple | None) -> str:
