@@ -80,7 +80,7 @@ def document(*, locale: dict, catalog: dict, config: dict, base: str, path: str,
     crumb_label = nav["home"]
     current_crumb = ({"en": "Organization", "es-419": "Organización", "zh-Hans": "机构"}[code]
                      if path.startswith("org/") else title.split(" — ")[0])
-    breadcrumb = "" if (not path or story_id) else (
+    breadcrumb = "" if not path else (
         f'<nav class="breadcrumbs" aria-label="{_e(strings["a11y"]["breadcrumbs"])}"><ol>'
         f'<li><a href="{_e(home)}">{_e(crumb_label)}</a></li><li aria-current="page">{_e(current_crumb)}</li></ol></nav>')
 
