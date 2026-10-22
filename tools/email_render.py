@@ -22,7 +22,8 @@ MONTHS = (
 )
 SUBSCRIPTIONS = json.loads((Path(__file__).resolve().parents[1] / "community/config/subscriptions.json").read_text(encoding="utf-8"))
 PAPER_NAME = SUBSCRIPTIONS["products"]["paper"]["name"]
-LETTER_NAME = SUBSCRIPTIONS["products"]["letter"]["name"]
+# One publication (DIRECCION section 4): a letter mail is branded as the paper, not as a separate product.
+LETTER_NAME = PAPER_NAME
 EMAIL_COPY = {
     "en": ("en", "Today's essentials", "Why it matters", "Read the analysis", "Preferences", "Unsubscribe", "Essential AI news", "5-minute read", "This edition preserves the distinctions between evidence, importance, and what we do not yet know."),
     "es-419": ("es-MX", "Lo esencial hoy", "Por qué importa", "Leer el análisis", "Preferencias", "Cancelar suscripción", "Lo esencial de inteligencia artificial", "lectura en 5 minutos", "Esta edición conserva las distinciones entre evidencia, importancia y lo que aún no sabemos."),
