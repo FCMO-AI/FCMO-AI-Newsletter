@@ -1,147 +1,295 @@
-"""FCMO entry with Javier's fCMO publication and an FCMO AI depth well."""
+"""FCMO AI front page (c6): cover, board, method band, wire, topics, trio and subscription.
+
+One publication, one flow. Every string comes from ``i18n/ui`` by key; the
+cover and every item carry their evidence class as a word plus a sample, never
+colour alone. ``render`` keeps its old keyword contract; the sections after the
+cover need ``front`` (see ``front_context`` in this module).
+"""
 
 from html import escape
-import re
 
-from tools.paper.routes import PRODUCT_NAMES
+from tools.paper import front_plan as plan_mod
+from tools.paper.i18n import _catalog, dek, field, headline, label, plural, truncate
+from tools.paper.routes import href as route_href, slugify, story_path, topic_path
 from .subscribe import subscribe_block
 
+try:  # L8 ships tools/paper/plates.py; until then a neutral, text-free stub with the same contract.
+    from tools.paper.plates import plate as _plate
+except ImportError:  # pragma: no cover - exercised until the plates module is merged
+    def _plate(story_id: str, topic_ids, ratio: str) -> dict:
+        seed = sum(ord(c) for c in str(story_id))
+        width, height = (800, 500) if ratio == "16:10" else (800, 450)
+        bars = "".join(
+            f'<rect x="{-20 + ((seed * (i + 3) + j * 97) % 600)}" y="{40 + i * 52}" width="{50 + ((seed + i * 31 + j * 17) % 120)}" '
+            f'height="16" rx="2" fill="#F2EFE8" opacity="{(0.08, 0.14, 0.22)[(seed + i + j) % 3]}"/>'
+            for i in range(8) for j in range(4))
+        mark = f'<rect x="{80 + seed % 500}" y="{40 + (seed % 8) * 52}" width="110" height="16" rx="2" fill="#F05A28"/>'
+        svg = (f'<svg viewBox="0 0 {width} {height}" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">'
+               f'<rect width="{width}" height="{height}" fill="#14110F"/>{bars}{mark}</svg>')
+        return {"svg": svg, "alt": "Decorative plate", "motif": "neutral"}
 
-COPY = {
-    "en": {
-        "eyebrow": "FCMO · People, systems, software",
-        "title": "Understand what moves. Build what lasts.",
-        "intro": "A human letter for clearer decisions and a technical paper for the evidence behind them.",
-        "letter": "fCMO · Javier's letters",
-        "letter_dek": "Javier writes from the work of turning strategy into operating capacity. Start with a plain-language route through the ideas, then read the latest letter.",
-        "start": "Start here",
-        "latest": "Latest letter",
-        "empty": "Javier's letters will appear here when published. Begin with the reading guide and the public research record today.",
-        "record": "In the public record",
-        "stories": "stories",
-        "topics": "topics",
-        "organizations": "organizations",
-        "letter_path": "Explore Javier's letters",
-        "community_path": "Community and conversation",
-        "technical": "The technical paper",
-        "technical_dek": "Matías and the FCMO AI Research Desk follow the public record: what changed, what the evidence supports, and what remains uncertain.",
-        "today": "Open the latest technical edition",
-        "subscribe": "Follow both sides of the publication",
-        "subscribe_link": "Subscription options",
-        "guide_title": "Find your way in",
-        "guide_intro": "Choose the level of detail you need. Every technical story separates claims from evidence and open questions.",
-        "step_one": "Start with the question",
-        "step_one_body": "Javier's letters connect strategy to the decisions people make at work.",
-        "step_two": "Check the record",
-        "step_two_body": "The technical paper shows sources, limits and what remains unproven.",
-        "step_three": "Follow the thread",
-        "step_three_body": "Read the publication method and choose how to keep up.",
-        "method": "How we work",
-    },
-    "es-419": {
-        "eyebrow": "FCMO · Personas, sistemas, software",
-        "title": "Entiende lo que cambia. Construye lo que permanece.",
-        "intro": "Una carta humana para decidir con claridad y un diario técnico para examinar la evidencia.",
-        "letter": "fCMO · Cartas de Javier",
-        "letter_dek": "Javier escribe desde la práctica de convertir la estrategia en capacidad operativa. Empieza por una ruta clara y luego lee la carta más reciente.",
-        "start": "Empieza aquí",
-        "latest": "Carta más reciente",
-        "empty": "Las cartas de Javier aparecerán aquí cuando se publiquen. Hoy puedes comenzar con la guía de lectura y el registro público de investigación.",
-        "record": "En el registro público",
-        "stories": "historias",
-        "topics": "temas",
-        "organizations": "organizaciones",
-        "letter_path": "Explora las cartas de Javier",
-        "community_path": "Comunidad y conversación",
-        "technical": "El diario técnico",
-        "technical_dek": "Matías y la Mesa de Investigación FCMO AI siguen el registro público: qué cambió, qué sostiene la evidencia y qué sigue incierto.",
-        "today": "Abrir la edición técnica más reciente",
-        "subscribe": "Sigue las dos partes de la publicación",
-        "subscribe_link": "Opciones de suscripción",
-        "guide_title": "Encuentra tu camino",
-        "guide_intro": "Elige el nivel de detalle que necesitas. Cada historia técnica distingue afirmaciones, evidencia y preguntas abiertas.",
-        "step_one": "Empieza por la pregunta",
-        "step_one_body": "Las cartas de Javier conectan la estrategia con las decisiones del trabajo real.",
-        "step_two": "Examina el registro",
-        "step_two_body": "El diario técnico muestra fuentes, límites y lo que falta demostrar.",
-        "step_three": "Sigue el hilo",
-        "step_three_body": "Conoce el método editorial y elige cómo mantenerte al día.",
-        "method": "Cómo trabajamos",
-    },
-    "zh-Hans": {
-        "eyebrow": "FCMO · 人员、系统、软件",
-        "title": "看清变化，构建长久能力。",
-        "intro": "一封帮助清晰决策的来信，一份追溯证据的技术日报。",
-        "letter": "fCMO · Javier 来信",
-        "letter_dek": "Javier 从实践出发，讲述如何将战略转化为持续运作的能力。先从清晰的入门路径开始，再读最新来信。",
-        "start": "从这里开始",
-        "latest": "最新来信",
-        "empty": "Javier 的来信发布后会出现在这里。现在可以先从阅读指南和公开研究记录开始。",
-        "record": "公开记录",
-        "stories": "篇报道",
-        "topics": "个主题",
-        "organizations": "个机构",
-        "letter_path": "浏览 Javier 的来信",
-        "community_path": "社群与交流",
-        "technical": "技术日报",
-        "technical_dek": "Matías 与 FCMO AI 研究编辑台追踪公开记录：发生了什么、证据支持什么、还有哪些未知。",
-        "today": "阅读最新技术版",
-        "subscribe": "关注刊物的两个部分",
-        "subscribe_link": "订阅方式",
-        "guide_title": "从这里读起",
-        "guide_intro": "按你需要的深度阅读。每篇技术报道都会区分主张、证据和未解问题。",
-        "step_one": "先提出问题",
-        "step_one_body": "Javier 的来信把战略与工作中的真实决策联系起来。",
-        "step_two": "核查记录",
-        "step_two_body": "技术日报列出来源、限制和仍待证明的部分。",
-        "step_three": "沿线索继续",
-        "step_three_body": "了解编辑方法，并选择关注方式。",
-        "method": "工作方法",
-    },
-}
+
+def _e(value: object) -> str:
+    return escape(str(value), quote=True)
+
+
+def _plate_html(story: dict, ratio: str, strings: dict) -> str:
+    plate = _plate(story["id"], list(story.get("topics") or []), ratio)
+    motif = plate.get("motif") or "neutral"
+    motif_text = strings["plate"].get("motif_" + motif, "")
+    alt = (strings["plate"]["alt_decorative"] if motif == "neutral" or not motif_text
+           else strings["plate"]["alt_motif"].format(motif=motif_text))
+    return f'<div class="plate" data-ratio="{_e(ratio)}" role="img" aria-label="{_e(alt)}">{plate["svg"]}</div>'
+
+
+class _Ctx:
+    """Per-render lookups: catalog, locale and the routes that need them."""
+
+    def __init__(self, locale: dict, base: str) -> None:
+        self.locale = locale
+        self.code = locale["code"]
+        self.catalog = _catalog(self.code)
+        self.s = self.catalog["strings"]
+        self.base = base
+        self.topic_labels = self.catalog.get("labels", {}).get("topic", {})
+
+    def story_href(self, story: dict) -> str:
+        return route_href(self.base, story_path(self.locale, story))
+
+    def topic_href(self, topic: str) -> str:
+        return route_href(self.base, topic_path(self.locale, slugify(topic)))
+
+    def topic_label(self, story: dict) -> str:
+        for topic in story.get("topics") or []:
+            if topic in self.topic_labels:
+                return self.topic_labels[topic]
+        return ""
+
+    def head(self, story: dict) -> str:
+        return headline(story, self.code, self.catalog)
+
+    def format_label(self, story: dict) -> str:
+        return label(self.catalog, "format", plan_mod.story_format(story))
+
+    def evidence(self, story: dict) -> dict:
+        value = story.get("evidence") if self.code == "en" else field(story, self.code, "evidence", {})
+        return value if isinstance(value, dict) else {}
+
+
+def _counts(story: dict) -> tuple[int, int]:
+    sources = story.get("sources") if isinstance(story.get("sources"), list) else []
+    evidence = story.get("evidence") if isinstance(story.get("evidence"), dict) else {}
+    gaps = evidence.get("gaps") if isinstance(evidence.get("gaps"), list) else []
+    return sum(1 for s in sources if isinstance(s, dict) and s.get("primary")), len(gaps)
+
+
+_SAMPLE = {"shown": "shown", "claimed": "claimed", "not_established": "gap"}
+
+
+def _chip(klass: str, ctx: _Ctx) -> str:
+    kind = _SAMPLE[klass]
+    return (f'<span class="chip chip-{kind}"><span class="sample sample-{kind}" aria-hidden="true"></span>'
+            f'<span class="chip-word"><strong>{_e(ctx.s["proof"][klass])}</strong></span></span>')
+
+
+def _evrow(story: dict, ctx: _Ctx, *, cls: str = "evrow", tag: str = "p") -> str:
+    klass = plan_mod.evidence_class(story)
+    primary, gaps = _counts(story)
+    return (f'<{tag} class="{cls}" data-evidence-class="{_e(klass)}">{_chip(klass, ctx)}'
+            f'<span>{_e(plural(ctx.catalog, "primary_source", primary))}</span>'
+            f'<span>{_e(plural(ctx.catalog, "open_gap", gaps))}</span></{tag}>')
+
+
+def _receipt(story: dict, feature: dict, ctx: _Ctx) -> str:
+    d = ctx.s["design"]
+    evidence = ctx.evidence(story)
+    gaps = [g.get("description") for g in (evidence.get("gaps") or []) if isinstance(g, dict) and g.get("description")]
+    limits = [x for x in (evidence.get("limitations") or []) if isinstance(x, str) and x]
+    unknown = truncate(gaps[0] if gaps else (limits[0] if limits else d["none_recorded"]), 150)
+    why = truncate(str(field(story, ctx.code, "why_it_matters") or ""), 150)
+    rows = f'<div><dt>{_e(d["happened"])}</dt><dd>{_e(feature["dek"])}</dd></div>'
+    if why:
+        rows += f'<div><dt>{_e(d["matters"])}</dt><dd>{_e(why)}</dd></div>'
+    rows += f'<div class="receipt-na"><dt>{_e(d["not_established"])}</dt><dd>{_e(unknown)}</dd></div>'
+    return f'<div class="receipt"><p class="receipt-title">{_e(d["brief_title"])}</p><dl>{rows}</dl></div>'
+
+
+def _cover(feature: dict, story: dict | None, ctx: _Ctx | None, record: str) -> str:
+    kicker = f'FCMO AI · {feature["label"]} · {feature["beat"]}'
+    foot = (f'<div class="cover-foot cover-actions">{feature["status"]}'
+            f'<a class="btn btn-ghost" href="{_e(feature["status_href"])}">{_e(feature["status_label"])}</a>{feature["badge"]}</div>')
+    if ctx and story:
+        kicker = "FCMO AI · " + ctx.s["cover"]["lead_kicker"].format(beat=feature["beat"])
+        signals = _evrow(story, ctx, cls="evrow cover-evrow", tag="div")
+        glance = ctx.s["cover"]["evidence_glance"]
+        side = f'<div class="cover-side">{_receipt(story, feature, ctx)}{_plate_html(story, "16:10", ctx.s)}{foot}</div>'
+        glance_html = f'<div class="cover-glance" aria-label="{_e(glance)}">{feature["hero"]}</div>'
+    else:
+        confidence = f' · {_e(feature["confidence"])}' if feature["confidence"] else ""
+        signals = (f'<div class="cover-dek">{_e(feature["dek"])}</div>'
+                   f'<div class="evrow"><span class="chip-word"><strong>{_e(feature["grade"])}</strong></span>{confidence}</div>')
+        side = f'<div class="cover-side">{foot}</div>'
+        glance_html = feature["hero"]
+    # Divs, not <p>, inside the card: the legacy ``.story-card p`` rule would grey them out on the dark cover.
+    card = (
+        '<article class="landing-feature story-card" data-lead><div class="cover-grid">'
+        '<div class="cover-main">'
+        f'<div class="rubric rubric-accent">{_e(kicker)}</div>'
+        f'<h1 class="cover-title {_e(feature["title_class"])}"><a href="{_e(feature["href"])}">{_e(feature["title"])}</a></h1>'
+        f'{signals}'
+        f'<div class="rubric cover-date"><time datetime="{_e(feature["datetime"])}">{_e(feature["date"])}</time></div>'
+        f'<div class="cover-actions"><a class="btn" href="{_e(feature["href"])}">{_e(feature["cta"])} <span aria-hidden="true">↗</span></a></div>'
+        '</div>'
+        f'{side}'
+        f'</div>{glance_html}</article>'
+    )
+    return (f'<section class="landing-intro" aria-label="{_e(feature["label"])}"><div class="cover surface-ink">'
+            f'<div class="frame">{card}</div></div>{record}</section>')
+
+
+def _board(stories: list[dict], ctx: _Ctx) -> str:
+    if not stories:
+        return ""
+    cards = []
+    for index, story in enumerate(stories):
+        wide = index == 0
+        ident = f'bt-{_e(story["id"])}'
+        meta = f'{_e(ctx.format_label(story))} · {_e(story["event_at"][:10])}'
+        link = ctx.story_href(story)
+        cards.append(
+            f'<article class="plate-card{" plate-card-wide" if wide else ""}" aria-labelledby="{ident}" data-story-id="{_e(story["id"])}">'
+            f'<a href="{_e(link)}" tabindex="-1" aria-hidden="true">{_plate_html(story, "16:9" if wide else "16:10", ctx.s)}</a>'
+            f'<div class="plate-card-body"><p class="rubric">{meta}</p>'
+            f'<h3 class="plate-card-title" id="{ident}"><a href="{_e(link)}">{_e(ctx.head(story))}</a></h3>'
+            f'<p class="plate-card-dek">{_e(truncate(dek(story, ctx.code, ctx.catalog), 150))}</p>'
+            f'{_evrow(story, ctx)}</div></article>')
+    return (f'<section class="block surface-bone" id="board" aria-labelledby="board-title"><div class="frame">'
+            f'<div class="block-head"><div><p class="rubric rubric-accent">FCMO AI</p>'
+            f'<h2 class="block-title" id="board-title">{_e(ctx.s["board"]["order_note"])}</h2></div></div>'
+            f'<div class="board">{"".join(cards)}</div></div></section>')
+
+
+def _band(stories: list[dict], ctx: _Ctx, method_href: str) -> str:
+    p = ctx.s["proof"]
+    counts = plan_mod.class_counts(stories)
+    topics = len({t for s in stories for t in s.get("topics", [])})
+    orgs = len({o for s in stories for o in s.get("organizations", [])})
+    trio = "".join(
+        f'<div><b>{_e(p[key])} · {_e(plural(ctx.catalog, "story", counts[key]))}</b>{_e(p[key + "_desc"])}</div>'
+        for key in ("shown", "claimed", "not_established"))
+    stat = ctx.s["stat"]
+    nums = (f'<li>{len(stories)}<span>{_e(stat["stories_label"])}</span></li>'
+            f'<li>{topics}<span>{_e(stat["topics_label"])}</span></li>'
+            f'<li>{orgs}<span>{_e(stat["organizations_label"])}</span></li>')
+    gap = "" if ctx.code == "zh-Hans" else " "
+    title = f'<em>{_e(p["band_shown"])}</em>{gap}{_e(p["band_claimed"])}{gap}{_e(p["band_not_established"])}'
+    return (f'<section class="method-band" id="method-band" aria-labelledby="band-title"><div class="frame">'
+            f'<p class="rubric">{_e(ctx.s["trio"]["method_title"])}</p>'
+            f'<h2 class="method-band-title" id="band-title">{title}</h2>'
+            f'<p class="cover-dek">{_e(p["band_lead"])}</p>'
+            f'<div class="band-trio">{trio}</div><ul class="band-counts">{nums}</ul>'
+            f'<p class="cover-actions"><a class="btn" href="{_e(method_href)}">{_e(ctx.s["board"]["how_ordered"])} →</a></p>'
+            f'</div></section>')
+
+
+_FILTER_SCRIPT = (
+    "<script>(function(){var nav=document.querySelector('[data-format-filter]');if(!nav)return;"
+    "var rows=document.querySelectorAll('.wire-row');nav.addEventListener('click',function(ev){"
+    "var a=ev.target.closest('a[data-format]');if(!a)return;ev.preventDefault();"
+    "nav.querySelectorAll('a').forEach(function(x){x.removeAttribute('aria-current')});"
+    "a.setAttribute('aria-current','true');var f=a.getAttribute('data-format');"
+    "rows.forEach(function(r){r.hidden=f!=='all'&&r.getAttribute('data-format')!==f})})})();</script>")
+
+
+def _wire(stories: list[dict], ctx: _Ctx) -> str:
+    if not stories:
+        return ""
+    present = [f for f in plan_mod.FORMATS if any(plan_mod.story_format(s) == f for s in stories)]
+    chips = ""
+    if len(present) > 1:
+        fm = ctx.s["formats"]
+        links = f'<a href="#earlier" data-format="all" aria-current="true">{_e(fm["all"])}</a>' + "".join(
+            f'<a href="#earlier" data-format="{f}">{_e(fm[f + "_plural"])}</a>' for f in present)
+        chips = f'<nav class="format-filter" data-format-filter aria-label="{_e(ctx.s["a11y"]["format_filter"])}">{links}</nav>'
+    rows = []
+    for story in stories:
+        rows.append(
+            f'<li class="wire-row" data-format="{plan_mod.story_format(story)}" data-story-id="{_e(story["id"])}">'
+            f'<time class="wire-date rubric" datetime="{_e(story["event_at"])}">{_e(story["event_at"][:10])}</time>'
+            f'<span class="wire-format rubric">{_e(ctx.format_label(story))}</span>'
+            f'<div><h3 class="wire-title"><a href="{_e(ctx.story_href(story))}">{_e(ctx.head(story))}</a></h3>'
+            f'{_evrow(story, ctx, cls="wire-meta evrow")}</div>'
+            f'<span class="wire-topic rubric">{_e(ctx.topic_label(story))}</span></li>')
+    return (f'<section class="block surface-bone" id="earlier" aria-labelledby="earlier-title"><div class="frame">'
+            f'<div class="block-head"><div><p class="rubric rubric-accent">{_e(ctx.s["wire"]["title"])}</p>'
+            f'<h2 class="block-title" id="earlier-title">{_e(ctx.s["earlier"]["title"])}</h2>'
+            f'<p>{_e(ctx.s["earlier"]["dek"])}</p></div></div>{chips}'
+            f'<ol class="wire" aria-label="{_e(ctx.s["a11y"]["wire_table"])}">{"".join(rows)}</ol></div></section>'
+            f'{_FILTER_SCRIPT if chips else ""}')
+
+
+def _topics(stories: list[dict], ctx: _Ctx) -> str:
+    tiles = "".join(
+        f'<li><a href="{_e(ctx.topic_href(topic))}"><b>{_e(ctx.topic_labels[topic])}</b>'
+        f'<span class="rubric">{_e(plural(ctx.catalog, "story", count))}</span></a></li>'
+        for topic, count in plan_mod.topic_counts(stories, ctx.topic_labels))
+    if not tiles:
+        return ""
+    return (f'<section class="block surface-bone" id="topics" aria-labelledby="topics-title"><div class="frame">'
+            f'<div class="block-head"><div><h2 class="block-title" id="topics-title">{_e(ctx.s["topics"]["title"])}</h2>'
+            f'<p>{_e(ctx.s["topics"]["dek"])}</p></div></div><ul class="topic-tiles">{tiles}</ul></div></section>')
+
+
+def _trio(home: str, ctx: _Ctx) -> str:
+    t = ctx.s["trio"]
+    cells = "".join(
+        f'<a href="{_e(home + path)}"><b>{_e(t[key + "_title"])}</b><p>{_e(t[key + "_body"])}</p>'
+        f'<p class="rubric rubric-accent">{_e(t[key + "_link"])} →</p></a>'
+        for key, path in (("corrections", "corrections/"), ("method", "method/"), ("status", "status/")))
+    return f'<section class="block surface-bone" id="trio"><div class="frame"><div class="trio">{cells}</div></div></section>'
+
+
+def _subscribe(home: str, base: str, ctx: _Ctx) -> str:
+    u = ctx.s["subscribe_ui"]
+    feeds = "".join(f'<li><a href="{_e(url)}">{_e(name)}</a></li>' for name, url in (
+        ("RSS", home + "feed.xml"), ("Atom", home + "feed.atom"), ("JSON", home + "feed.json"),
+        (u["llms"], base + "llms.txt")))
+    return (f'<section class="block surface-bone" id="follow" aria-labelledby="follow-title"><div class="frame subscribe-block">'
+            f'<div><p class="rubric rubric-accent">{_e(u["way_title"])}</p><h2 id="follow-title">{_e(u["headline"])}</h2>'
+            f'<p>{_e(u["body"])}</p><p class="rubric">{_e(u["by_feed"])} · {_e(u["for_agents"])}</p>'
+            f'<ul class="feeds">{feeds}</ul></div><div>{subscribe_block("all", ctx.code)}</div></div></section>')
+
+
+def front_context(*, order: list[dict], base: str) -> dict:
+    """What the build hands to ``render``: the full ``front_order`` list and the site base."""
+    return {"order": order, "base": base}
 
 
 def render(*, locale: dict, home: str, technical: str, about: str, subscribe: str,
            lead: str, top: str, cartas: str, stats: tuple[int, int, int] = (0, 0, 0),
-           feature: dict | None = None) -> str:
-    c = COPY[locale["code"]]
-    e = lambda value: escape(str(value), quote=True)
-    letter = cartas or f'<div class="landing-empty"><p class="section-kicker">fCMO / Javier</p><h3>{e(c["latest"])}</h3><p>{e(c["empty"])}</p><a href="{e(home)}cartas/">{e(c["letter_path"])} →</a></div>'
-    letter_slot = ' data-slot="cartas"' if cartas else ""
-    featured_report = ""
-    if feature:
-        confidence = f' · {e(feature["confidence"])}' if feature["confidence"] else ""
-        featured_report = (
-            '<article class="landing-feature story-card" data-lead>'
-            '<div class="lf-main">'
-            f'<p class="section-kicker">FCMO AI · {e(feature["label"])} · {e(feature["beat"])}</p>'
-            f'<h1 class="{e(feature["title_class"])}"><a href="{e(feature["href"])}">{e(feature["title"])}</a></h1>'
-            f'<p class="lf-verdict">{e(feature["dek"])}</p>'
-            f'<div class="lf-signals">{feature["glyph"]}<span class="sig-text"><b>{e(feature["grade"])}</b>{confidence}</span>'
-            f'<time datetime="{e(feature["datetime"])}">{e(feature["date"])}</time></div>'
-            f'<div class="lf-status">{feature["status"]}<a href="{e(feature["status_href"])}">{e(feature["status_label"])}</a>{feature["badge"]}</div>'
-            f'<a class="button lf-cta" href="{e(feature["href"])}">{e(feature["cta"])} <span aria-hidden="true">↗</span></a>'
-            '</div>'
-            f'{feature["hero"]}'
-            f'<div class="lf-brief">{feature["brief"]}</div>'
-            '</article>'
-        )
-    lead = re.sub(r'<figure class="data-hero".*?</figure>', "", lead, flags=re.S)
-    lead = lead.replace("<h1 ", "<h3 ", 1).replace("</h1>", "</h3>", 1)
-    record = (f'<div class="landing-record" aria-label="{e(c['record'])}"><span>{e(c['record'])}</span><strong>{stats[0]} <small>{e(c['stories'])}</small></strong>'
-              f'<strong>{stats[1]} <small>{e(c['topics'])}</small></strong><strong>{stats[2]} <small>{e(c['organizations'])}</small></strong></div>')
-    jump = (f'<div class="landing-jump"><a href="{e(home)}cartas/">{e(c['letter'])} <span aria-hidden="true">↗</span></a>'
-            f'<a href="{e(technical)}">FCMO AI <span aria-hidden="true">↗</span></a></div>')
-    if feature:
-        intro = (f'<section class="landing-intro" aria-label="{e(feature['label'])}">{featured_report}{record}</section>'
-                 f'<section class="landing-motto" aria-labelledby="landing-title"><p class="section-kicker">{e(c['eyebrow'])}</p>'
-                 f'<h2 id="landing-title">{e(c['title'])}</h2><p class="landing-dek">{e(c['intro'])}</p>{jump}</section>')
-    else:
-        intro = (f'<section class="landing-intro" aria-labelledby="landing-title"><p class="section-kicker">{e(c['eyebrow'])}</p>'
-                 f'<h1 id="landing-title">{e(c['title'])}</h1><p class="landing-dek">{e(c['intro'])}</p>{jump}{record}</section>')
-    return f'''<div class="landing">
-{intro}
-<section class="landing-letters" id="letters" aria-labelledby="letters-title"><div class="landing-section-head"><p class="section-kicker">01 / fCMO · Javier</p><h2 id="letters-title">{e(c['letter'])}</h2><p>{e(c['letter_dek'])}</p><div class="landing-actions"><a class="button" href="{e(home)}empieza/">{e(c['start'])} <span aria-hidden="true">↗</span></a><a href="{e(home)}comunidad/">{e(c['community_path'])} →</a></div></div><div class="landing-letter-feed"{letter_slot}>{letter}</div></section>
-<section class="landing-guide" id="start-here" aria-labelledby="guide-title"><div><p class="section-kicker">FCMO / 00</p><h2 id="guide-title">{e(c['guide_title'])}</h2><p>{e(c['guide_intro'])}</p></div><ol><li><span>01</span><h3>{e(c['step_one'])}</h3><p>{e(c['step_one_body'])}</p><a href="{e(home)}cartas/">{e(c['letter'])} →</a></li><li><span>02</span><h3>{e(c['step_two'])}</h3><p>{e(c['step_two_body'])}</p><a href="{e(technical)}">{e(c['technical'])} →</a></li><li><span>03</span><h3>{e(c['step_three'])}</h3><p>{e(c['step_three_body'])}</p><a href="{e(about)}">{e(c['method'])} →</a></li></ol></section>
-<section class="landing-technical" id="technical" aria-labelledby="technical-title"><div class="technical-intro"><p class="section-kicker">02 / FCMO AI · Matías</p><h2 id="technical-title">{e(c['technical'])}</h2><p>{e(c['technical_dek'])}</p><a class="button" href="{e(technical)}">{e(c['today'])} <span aria-hidden="true">↗</span></a></div><div class="front-grid technical-grid">{lead}<aside class="top-stories">{top}</aside></div></section>
-<section class="landing-subscribe" aria-labelledby="follow-title"><div><p class="section-kicker">fCMO + FCMO AI</p><h2 id="follow-title">{e(c['subscribe'])}</h2><a href="{e(subscribe)}">{e(c['subscribe_link'])} →</a></div>{subscribe_block('letter', locale['code'])}</section></div>'''
+           feature: dict | None = None, front: dict | None = None) -> str:
+    s = _catalog(locale["code"])["strings"]
+    stat = s["stat"]
+    record = (f'<div class="landing-record" aria-label="{_e(stat["stories_label"])}">'
+              f'<strong>{stats[0]} <small>{_e(stat["stories_label"])}</small></strong>'
+              f'<strong>{stats[1]} <small>{_e(stat["topics_label"])}</small></strong>'
+              f'<strong>{stats[2]} <small>{_e(stat["organizations_label"])}</small></strong></div>')
+    if not feature:
+        return (f'<div class="landing"><section class="landing-intro" aria-labelledby="landing-title">'
+                f'<p class="rubric rubric-accent">FCMO AI</p><h1 id="landing-title">{_e(s["brand"]["motto"])}</h1>'
+                f'{record}</section></div>')
+    if not front:
+        return f'<div class="landing">{_cover(feature, None, None, record)}</div>'
+    base = front["base"] if front["base"].endswith("/") else front["base"] + "/"
+    ctx = _Ctx(locale, base)
+    order = front["order"]
+    slots = plan_mod.landing_slots(order)
+    return '<div class="landing">' + "".join([
+        _cover(feature, slots["cover"], ctx, ""),
+        _board(slots["board"], ctx),
+        _band(order, ctx, home + "method/"),
+        _wire(slots["wire"], ctx),
+        _topics(order, ctx),
+        _trio(home, ctx),
+        _subscribe(home, base, ctx),
+    ]) + "</div>"
