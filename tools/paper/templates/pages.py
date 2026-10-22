@@ -132,3 +132,48 @@ def status_page(title: str, cards: str, detail: str, *, kicker: str) -> str:
 
 def simple_page(title: str, body: str, *, kicker: str = "FCMO AI") -> str:
     return f'<article class="story-body"><header><p class="section-kicker">{e(kicker)}</p><h1 class="page-title">{e(title)}</h1></header>{body}</article>'
+
+
+def _class_word(catalog: dict, value: object) -> str:
+    """Evidence-class word for a correction. Reads ``strings.proof``; unknown classes fall back to the catalog label."""
+    proof = catalog["strings"]["proof"]
+    key = {"DEMONSTRATED": "shown", "SHOWN": "shown", "CLAIMED": "claimed",
+           "NOT_ESTABLISHED": "not_established"}.get(str(value).upper())
+    return str(proof[key]) if key else label(catalog, "evidence_class", value)
+
+
+def correction_row(*, catalog: dict, title: str, note: str, date_iso: str, date_text: str,
+                   story_href: str, correction_href: str, class_before: object = None,
+                   class_after: object = None, reason: str = "") -> str:
+    """One entry of the corrections list: date, link to the story, the note and the class before/after.
+
+    The class line is printed only when both classes are recorded; when they are
+    equal (or only the current one is known) it says the class did not change.
+    Nothing is inferred: absent data prints no class claim at all.
+    """
+    ui = catalog["strings"]["corrections_ui"]
+    line = ""
+    if class_before and class_after:
+        before, after = _class_word(catalog, class_before), _class_word(catalog, class_after)
+        text = (ui["class_unchanged"] if str(class_before) == str(class_after)
+                else ui["class_change"].format(before=before, after=after))
+        line = (f'<p class="correction-class" data-class-before="{e(class_before)}" data-class-after="{e(class_after)}">'
+                f'{e(text)}</p>')
+    why = f'<p class="correction-reason"><strong>{e(ui["reason"])}</strong> {e(reason)}</p>' if reason else ""
+    return (f'<article class="correction"><time datetime="{e(date_iso)}">'
+            f'{e(ui["corrected_on"].format(date=date_text))}</time>'
+            f'<h2><a href="{e(correction_href)}">{e(title)}</a></h2><p>{e(note)}</p>{why}{line}'
+            f'<p class="correction-links"><a class="correction-story" href="{e(story_href)}">{e(ui["story_link"])}</a></p></article>')
+
+
+def corrections_intro(catalog: dict, *, method_href: str) -> str:
+    page = catalog["strings"]["corrections_page"]
+    return (f'<p>{e(page["intro"])}</p>'
+            f'<p><a class="correction-method" href="{e(method_href)}">{e(page["method_link"])}</a></p>')
+
+
+def method_order_section(catalog: dict) -> str:
+    """How the front page is ordered; the text is the single definition (``method.order_body``)."""
+    method = catalog["strings"]["method"]
+    return (f'<section class="method-order" id="order"><h2>{e(method["order_title"])}</h2>'
+            f'<p>{e(method["order_body"])}</p></section>')

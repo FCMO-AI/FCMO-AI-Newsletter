@@ -30,13 +30,13 @@ _SUBSCRIBE_JS = Path(__file__).resolve().parents[2] / "site-src" / "assets" / "j
 
 COPY = {
     "en": {
-        "cartas_kicker": "FCMO · Human voices",
+        "cartas_kicker": "FCMO AI · Letters",
         "cartas_title": "Letters",
-        "cartas_intro": "Weekly letters from Javier and Matías, written by people.",
-        "subscribe_kicker": "FCMO AI · Stay with the signal",
+        "cartas_intro": "Weekly letters, written and signed by people.",
+        "subscribe_kicker": "FCMO AI",
         "inactive_title": "Subscriptions are coming soon",
-        "active_title": "The Daily and Letters, in your inbox",
-        "promise": "Read the daily FCMO AI paper, plus weekly human Letters from Javier and Matías that take ideas from Javier’s courses into practice.",
+        "active_title": "One publication. Follow it your way.",
+        "promise": "One publication. Follow it your way: by email, by feed or both.",
         "inactive": "Email signup is not active yet. Nothing will be submitted from this page.",
         "language": "The email edition will launch in Spanish; this edition remains available through feeds.",
         "rss": "Follow by RSS",
@@ -46,16 +46,16 @@ COPY = {
         "portal_title": "FCMO AI email signup",
         "portal_close": "Close",
         "portal_fallback": "Open signup in this page",
-        "privacy": "No email address, membership record, or credential is stored in the newspaper.",
+        "privacy": "No email address, account record, or credential is stored in the newspaper.",
     },
     "es-419": {
-        "cartas_kicker": "FCMO · Voces humanas",
+        "cartas_kicker": "FCMO AI · Cartas",
         "cartas_title": "Cartas",
-        "cartas_intro": "Cartas semanales de Javier y Matías, escritas por personas.",
-        "subscribe_kicker": "FCMO AI · Sigue la señal",
+        "cartas_intro": "Cartas semanales, escritas y firmadas por personas.",
+        "subscribe_kicker": "FCMO AI",
         "inactive_title": "Las suscripciones llegarán pronto",
-        "active_title": "El Diario y las Cartas, en tu correo",
-        "promise": "Lee el diario FCMO AI y, cada semana, Cartas humanas de Javier y Matías que llevan a la práctica las ideas de los cursos de Javier.",
+        "active_title": "Una sola publicación. Síguela a tu manera.",
+        "promise": "Una sola publicación. Síguela a tu manera: por correo, por feed o ambos.",
         "inactive": "El alta por correo todavía no está activa. Esta página no envía ningún dato.",
         "language": "La edición por correo se publicará en español.",
         "rss": "Seguir por RSS",
@@ -65,16 +65,16 @@ COPY = {
         "portal_title": "Suscripción por correo a FCMO AI",
         "portal_close": "Cerrar",
         "portal_fallback": "Abrir la suscripción en esta página",
-        "privacy": "El periódico no guarda correos, membresías ni credenciales.",
+        "privacy": "El periódico no guarda correos, cuentas ni credenciales.",
     },
     "zh-Hans": {
-        "cartas_kicker": "FCMO · 人类声音",
+        "cartas_kicker": "FCMO AI · 来信",
         "cartas_title": "来信",
-        "cartas_intro": "Javier 与 Matías 每周亲自撰写的来信。",
-        "subscribe_kicker": "FCMO AI · 持续关注信号",
+        "cartas_intro": "每周来信，由作者亲自撰写并署名。",
+        "subscribe_kicker": "FCMO AI",
         "inactive_title": "订阅即将开放",
-        "active_title": "日报与来信，发送到你的邮箱",
-        "promise": "阅读 FCMO AI 日报，以及 Javier 与 Matías 每周亲自撰写的来信，将 Javier 课程中的理念用于实践。",
+        "active_title": "一份刊物，随你的方式关注。",
+        "promise": "一份刊物，随你的方式关注：邮件、订阅源，或两者兼用。",
         "inactive": "电子邮件订阅尚未开放；此页面不会提交任何数据。",
         "language": "电子邮件版将以西班牙语发布；你仍可通过订阅源阅读本语言版本。",
         "rss": "通过 RSS 关注",
@@ -84,7 +84,7 @@ COPY = {
         "portal_title": "FCMO AI 电子邮件订阅",
         "portal_close": "关闭",
         "portal_fallback": "在此页面打开订阅",
-        "privacy": "报纸不会存储电子邮箱、会员记录或凭据。",
+        "privacy": "报纸不会存储电子邮箱、账户记录或凭据。",
     },
 }
 
@@ -305,7 +305,7 @@ def subscribe_page_title(locale_code: str, portal_url: str | None) -> str:
     ghost_url = os.environ.get("GHOST_URL") or portal_url
     if ghost_url and ghost_url.endswith("#/portal/signup"):
         ghost_url = ghost_url.split("#", 1)[0]
-    copy = {"en": ("Choose the letters you want", "Subscriptions are coming soon"),
-            "es-419": ("Elige lo que quieres recibir", "Las suscripciones llegarán pronto"),
-            "zh-Hans": ("选择你想收到的内容", "订阅即将开放")}.get(locale_code, ("Choose the letters you want", "Subscriptions are coming soon"))
+    copy = {"en": ("Choose how to follow", "Subscriptions are coming soon"),
+            "es-419": ("Elige cómo seguirnos", "Las suscripciones llegarán pronto"),
+            "zh-Hans": ("选择关注方式", "订阅即将开放")}.get(locale_code, ("Choose how to follow", "Subscriptions are coming soon"))
     return copy[0] if ghost_signup_url(ghost_url) and locale_code in config["languages"]["signup_locales"] else copy[1]
