@@ -1,7 +1,7 @@
 {
   "schema": "fcmo-stories-v2",
-  "generated_at": "2026-10-22T08:13:27Z",
-  "release_id": "newswire-ddc1a0e0b0001fa7e12b787b",
+  "generated_at": "2026-10-22T09:13:09Z",
+  "release_id": "newswire-c55623a1d93a3afa375191e5",
   "canonical_locale": "en",
   "locales": [
     "en",
@@ -48,6 +48,463 @@
     "2026-10-22"
   ],
   "stories": [
+    {
+      "id": "FCMO-B693CA9AB3A0",
+      "slug": "longzero-uses-self-generated-tasks-to-train-long-context-reasoning",
+      "url_date": "2026-10-22",
+      "kind": "development",
+      "status": "live",
+      "beat": "research",
+      "desk": "architectures_scaling",
+      "title": "LongZero uses self-generated tasks to train long-context reasoning without an external corpus",
+      "dek": "LongZero is a preprint method for generating long-context reinforcement-learning tasks without an external document corpus or larger teacher for its reasoning-task synthesis.",
+      "summary": "LongZero is a preprint method for generating long-context reinforcement-learning tasks without an external document corpus or larger teacher for its reasoning-task synthesis. A target model first writes questions, evidence and answers for fictional worlds, then expands those facts into long multi-document contexts; it also creates retrieval conversations, filters for questions it answers inconsistently, and trains with GRPO. On five benchmarks, the authors report mean-of-two-run average-score gains for Qwen3-4B-Thinking-2507 (54.68 to 57.42) and Qwen3-8B (44.63 to 45.66). The Qwen3-8B LongBench v2 score does not improve (32.01 versus 32.11 baseline), and 120/200 of its AA-LCR responses contain no answer. The results remain author-reported, limited to two Qwen checkpoints, short training and two runs; independent reproduction is open.",
+      "why_it_matters": "If the reported gains reproduce, a model could generate and filter useful long-context RL tasks without depending on a large external document corpus or a stronger teacher. That could lower data and teacher-model bottlenecks in post-training. The current evidence is a small two-model study with mixed benchmark-level outcomes, so it does not establish general long-context improvement or a broad replacement for externally grounded training data.",
+      "importance_rationale": "If the reported method generalizes, self-synthesizing and filtering long-context RL tasks could reduce dependence on external long-document corpora and larger teacher models. The current evidence is a two-model, short-training preprint with mean-of-two benchmark runs, so the potential impact remains bounded.",
+      "technical": {
+        "claimed_result": "The paper reports higher unweighted average scores across five long-context benchmarks for Qwen3-4B-Thinking-2507 (57.42 versus 54.68 base) and Qwen3-8B (45.66 versus 44.63 base), each averaged over two runs. LongZero is strongest among compared methods on four of five benchmarks for the 4B model and on three of five for the 8B model. Qwen3-8B LongBench v2 does not improve (32.01 versus 32.11), and AA-LCR remains near zero.",
+        "demonstrated_result": "The primary preprint and author-linked public repository disclose the self-synthesis and filtering pipeline, training/evaluation protocol, benchmark table, code and synthesized datasets. These sources establish what the authors report and release, not independent confirmation of model performance.",
+        "mechanism": "The target model first writes a compact specification of fictional entities, facts, multi-hop questions, supporting evidence and answers, then expands the facts into long documents. A separate retrieval task assembles long conversations from model-written responses. The model samples answers to generated questions; tasks answered both correctly and incorrectly are kept as an unstable difficulty band and used for GRPO training.",
+        "novelty": "The paper applies self-generated task specification followed by long-context expansion and adaptive difficulty filtering to long-context RL, combining multi-hop fictional-document reasoning with retrieval conversations. It evaluates two Qwen checkpoints against base-model, external-corpus and larger-teacher synthetic-data baselines.",
+        "regime": "Qwen3-4B-Thinking-2507 and Qwen3-8B in thinking mode; five long-context benchmarks; 72 and 108 GRPO steps respectively; final checkpoints; benchmark scores averaged over two runs. Qwen3-8B uses YaRN factor 4 at evaluation. No independent reproduction.",
+        "strongest_baseline": "The unmodified base model and two data-source controls trained under the same RL configuration: difficulty-filtered Enhanced HotpotQA and QA synthesized by Qwen3.5-397B-A17B. The paper says only training data differ between LongZero and those baselines."
+      },
+      "importance_tier": "Notable",
+      "development_type": "paper",
+      "event_at": "2026-10-21T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-22T09:12:46Z",
+      "updated_at": "2026-10-22T09:12:46Z",
+      "importance": 5,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": false,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "DEMONSTRATED",
+            "text": "The authors publish LongZero as a method that has the target model specify questions, supporting facts and answers before expanding those facts into fictional long-document contexts; it also synthesizes retrieval conversations, filters for questions the model answers both correctly and incorrectly, and trains with GRPO. The paper and a public code/data repository are available."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "Across five long-context benchmarks, the paper reports that LongZero raises the unweighted average score for Qwen3-4B-Thinking-2507 from 54.68 to 57.42 and for Qwen3-8B from 44.63 to 45.66, compared with each base model; results are means of two runs. The Qwen3-8B score on LongBench v2 is 32.01 versus 32.11 for its base model, so this method does not improve that benchmark in that regime."
+          },
+          {
+            "label": "DEMONSTRATED",
+            "qualifier": "LIMITATION",
+            "text": "The paper reports that 120 of 200 Qwen3-8B responses on AA-LCR contain no answer under its 131K-token evaluation setup; all methods score near zero there. Independent reproduction and evidence of generalization beyond these two Qwen checkpoints are not provided."
+          }
+        ],
+        "limitations": [
+          "Paper-reported results are bounded to two Qwen checkpoints, five benchmarks, short training runs and two evaluation runs per benchmark.",
+          "The LongZero reasoning data use model-generated fictional worlds, while retrieval tasks use a specific synthetic conversation template; the result does not establish that self-synthesis replaces external data for factual or broader long-context tasks.",
+          "Qwen3-8B LongBench v2 is slightly below its base score (32.01 versus 32.11), and AA-LCR performance remains near zero for all methods in the reported setup.",
+          "No independent reproduction was performed in this review."
+        ],
+        "gaps": [
+          {
+            "kind": "missing_independent",
+            "description": "No independent reproduction of the training or benchmark results; the reported scores are means of two runs."
+          },
+          {
+            "kind": "missing_independent",
+            "description": "Only Qwen3-4B-Thinking-2507 and Qwen3-8B are evaluated; transfer to other model families and long-context RL settings is unknown."
+          },
+          {
+            "kind": "missing_independent",
+            "description": "Qwen3-8B does not improve on LongBench v2, and its AA-LCR result is near zero with 120/200 responses containing no answer; context-length and answer-completion constraints limit interpretation."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2610.30132",
+          "domain": "arxiv.org",
+          "primary": true
+        },
+        {
+          "url": "https://github.com/zhennan1/LongZero",
+          "domain": "github.com",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "Tsinghua University",
+        "Mohamed bin Zayed University of Artificial Intelligence",
+        "Sony Group Corporation",
+        "Massachusetts Institute of Technology"
+      ],
+      "topics": [
+        "long-context-reasoning",
+        "reinforcement-learning",
+        "synthetic-data",
+        "self-generated-tasks"
+      ],
+      "regions": [],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-B693CA9AB3A0.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: LongZero uses self-generated tasks to train long-context reasoning without an external corpus"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "LongZero usa tareas autogeneradas para entrenar razonamiento con contexto largo sin un corpus externo",
+            "summary": "LongZero es un método de prepublicación para generar tareas de aprendizaje por refuerzo con contexto largo sin recurrir a un corpus externo de documentos ni a un modelo docente más grande para sintetizar sus tareas de razonamiento. El modelo objetivo primero redacta preguntas, evidencias y respuestas para mundos ficticios y después amplía esos hechos en documentos extensos; también crea conversaciones de recuperación, filtra las preguntas que responde de forma inconsistente y entrena con GRPO. En cinco pruebas de referencia, los autores informan mejoras en el promedio de puntuaciones de dos ejecuciones para Qwen3-4B-Thinking-2507 (de 54.68 a 57.42) y Qwen3-8B (de 44.63 a 45.66). La puntuación de Qwen3-8B en LongBench v2 no mejora (32.01 frente a 32.11 como base), y 120 de sus 200 respuestas en AA-LCR no contienen respuesta. Los resultados siguen siendo afirmaciones de los autores: se limitan a dos versiones de Qwen, entrenamiento breve y dos ejecuciones; falta una reproducción independiente.",
+            "importance_rationale": "Si el método reportado se generaliza, sintetizar y filtrar por cuenta propia tareas de aprendizaje por refuerzo con contexto largo podría reducir la dependencia de corpus documentales externos y de modelos docentes más grandes. La evidencia actual procede de una prepublicación con dos modelos, entrenamiento breve y promedios de dos ejecuciones, por lo que el posible impacto sigue acotado.",
+            "why_it_matters": "Si las mejoras reportadas se reproducen, un modelo podría generar y filtrar tareas útiles de aprendizaje por refuerzo con contexto largo sin depender de un gran corpus documental externo ni de un modelo docente más potente. Eso podría reducir cuellos de botella de datos y de modelos docentes en el ajuste posterior. La evidencia actual es un estudio pequeño con dos modelos y resultados mixtos entre pruebas; no demuestra una mejora general en razonamiento con contexto largo ni que estos métodos sustituyan ampliamente los datos externos con contenido factual.",
+            "technical": {
+              "claimed_result": "El artículo informa promedios no ponderados más altos en cinco pruebas de contexto largo para Qwen3-4B-Thinking-2507 (57.42 frente a 54.68 como base) y Qwen3-8B (45.66 frente a 44.63), calculados sobre dos ejecuciones por modelo. LongZero obtiene el mejor resultado entre los métodos comparados en cuatro de cinco pruebas para el modelo 4B y en tres de cinco para el 8B. Qwen3-8B no mejora en LongBench v2 (32.01 frente a 32.11) y queda cerca de cero en AA-LCR.",
+              "demonstrated_result": "La prepublicación principal y el repositorio público enlazado por sus autores describen la autosíntesis y el filtrado, el protocolo de entrenamiento y evaluación, la tabla de resultados, el código y los conjuntos de datos sintetizados. Estas fuentes establecen lo que los autores informan y ponen a disposición, no una confirmación independiente del rendimiento.",
+              "mechanism": "El modelo objetivo redacta primero una especificación breve de entidades, hechos, preguntas de varios pasos, evidencias de apoyo y respuestas para un mundo ficticio, y luego amplía los hechos en documentos extensos. Una tarea separada de recuperación reúne conversaciones largas a partir de respuestas generadas por el propio modelo. El modelo responde varias veces las preguntas sintetizadas; las que contesta correcta e incorrectamente se conservan como una franja de dificultad inestable y se usan para entrenar con GRPO.",
+              "novelty": "El artículo aplica a tareas de contexto largo la especificación de tareas generada por el propio modelo, seguida de su expansión y de un filtrado de dificultad adaptativo. Combina razonamiento de varios pasos sobre documentos ficticios con conversaciones de recuperación y evalúa dos modelos Qwen frente a controles con modelo base, corpus externo y datos sintetizados por un docente más grande.",
+              "regime": "Qwen3-4B-Thinking-2507 y Qwen3-8B en modo de razonamiento; cinco pruebas de contexto largo; 72 y 108 pasos de GRPO respectivamente; puntos de control finales; puntuaciones promediadas sobre dos ejecuciones. Qwen3-8B usa YaRN con factor 4 durante la evaluación. No hubo reproducción independiente.",
+              "strongest_baseline": "El modelo base sin modificar y dos controles de fuente de datos entrenados con la misma configuración de aprendizaje por refuerzo: Enhanced HotpotQA filtrado por dificultad y preguntas y respuestas sintetizadas por Qwen3.5-397B-A17B. El artículo afirma que LongZero y esos controles solo difieren en los datos de entrenamiento."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "Los autores presentan LongZero como un método en el que el modelo objetivo especifica preguntas, hechos de apoyo y respuestas antes de ampliar esos hechos en contextos documentales ficticios y extensos. También sintetiza conversaciones de recuperación, filtra las preguntas que responde tanto correcta como incorrectamente y entrena con GRPO. La prepublicación y un repositorio público de código y datos están disponibles."
+                },
+                {
+                  "text": "En cinco pruebas de razonamiento con contexto largo, el artículo informa que LongZero eleva el promedio no ponderado de Qwen3-4B-Thinking-2507 de 54.68 a 57.42 y el de Qwen3-8B de 44.63 a 45.66 frente a cada modelo base; son promedios de dos ejecuciones. La puntuación de Qwen3-8B en LongBench v2 es 32.01 frente a 32.11 para su modelo base, por lo que no mejora en esa prueba y configuración."
+                },
+                {
+                  "text": "El artículo informa que 120 de 200 respuestas de Qwen3-8B en AA-LCR no contienen respuesta con la configuración de evaluación de 131K tokens; todos los métodos obtienen puntuaciones cercanas a cero allí. No se proporciona una reproducción independiente ni evidencia de generalización más allá de estos dos modelos Qwen."
+                }
+              ],
+              "limitations": [
+                "Los resultados del artículo se limitan a dos versiones de Qwen, cinco pruebas de referencia, entrenamientos breves y dos ejecuciones de evaluación por prueba.",
+                "Los datos de razonamiento de LongZero usan mundos ficticios generados por el modelo, mientras que las tareas de recuperación usan una plantilla específica de conversación sintética; el resultado no demuestra que la autosíntesis sustituya datos externos para tareas factuales o de contexto largo más amplias.",
+                "La puntuación de Qwen3-8B en LongBench v2 queda ligeramente por debajo de su modelo base (32.01 frente a 32.11), y el rendimiento en AA-LCR permanece cerca de cero para todos los métodos en la configuración informada.",
+                "En esta revisión no se realizó una reproducción independiente."
+              ],
+              "gaps": [
+                {
+                  "description": "No se realizó una reproducción independiente del entrenamiento ni de los resultados de referencia; las puntuaciones reportadas son promedios de dos ejecuciones."
+                },
+                {
+                  "description": "Solo se evaluaron Qwen3-4B-Thinking-2507 y Qwen3-8B; se desconoce si el método se transfiere a otras familias de modelos y a otros escenarios de aprendizaje por refuerzo con contexto largo."
+                },
+                {
+                  "description": "Qwen3-8B no mejora en LongBench v2 y su resultado en AA-LCR es casi nulo, con 120/200 respuestas sin respuesta; las restricciones de longitud de contexto y finalización limitan la interpretación."
+                }
+              ]
+            },
+            "dek": "LongZero es un método de prepublicación para generar tareas de aprendizaje por refuerzo con contexto largo sin recurrir a un corpus externo de documentos ni a un modelo docente más grande para sintetizar sus tareas de razonamiento."
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "LongZero以自生成任务训练长上下文推理，不依赖外部语料",
+            "summary": "LongZero是一种预印本方法：在推理任务合成阶段，它无需外部文档语料，也不依赖更大的教师模型。目标模型先为虚构世界撰写问题、证据和答案，再将这些事实扩展成长篇多文档上下文；它还会生成检索对话，筛选出自身回答不稳定的问题，并使用GRPO训练。在五项长上下文基准上，作者报告了两次运行的平均分提升：Qwen3-4B-Thinking-2507从54.68升至57.42，Qwen3-8B从44.63升至45.66。Qwen3-8B在LongBench v2上没有提升（32.01，对照基线为32.11），其AA-LCR的200个回答中有120个没有给出答案。结果仍是作者报告，范围仅限两个Qwen检查点、短程训练和每项两次运行；尚无独立复现。",
+            "importance_rationale": "如果该方法能够泛化，自行合成并筛选长上下文强化学习任务，可能减少对外部长文档语料和更大教师模型的依赖。目前证据来自一篇仅测试两个模型、训练时间较短且基于两次运行均值的预印本，因此潜在影响仍有限。",
+            "why_it_matters": "如果报告的提升能够复现，模型就可能自行生成和筛选有用的长上下文强化学习任务，而无需依赖大型外部文档语料或更强的教师模型。这或可降低后训练中的数据与教师模型瓶颈。目前证据来自仅含两个模型的小规模研究，且不同基准的结果并不一致；它并未证明长上下文推理能力普遍提升，也未证明自生成方法能广泛替代具有真实事实依据的外部训练数据。",
+            "technical": {
+              "claimed_result": "论文报告，在五项长上下文基准上的非加权平均分中，Qwen3-4B-Thinking-2507为57.42，高于基线54.68；Qwen3-8B为45.66，高于基线44.63。每个分数均基于两次运行。与其他方法相比，LongZero在4B模型的五项基准中有四项领先，在8B模型中有三项领先。Qwen3-8B在LongBench v2上没有提升（32.01，对照为32.11），在AA-LCR上的得分接近零。",
+              "demonstrated_result": "主要预印本及作者链接的公开仓库披露了自合成和筛选流程、训练与评测协议、基准结果表、代码和合成数据集。这些来源证明作者报告并公开了这些内容，但不能独立确认模型性能。",
+              "mechanism": "目标模型先为虚构世界撰写简明规格，其中包含实体、事实、多步问题、支持证据和答案，再将事实扩展成长篇文档。另一类检索任务由模型生成的回答组成成长对话。模型多次尝试回答自动生成的问题；曾经答对也答错的问题被保留为难度不稳定区间，并用于GRPO训练。",
+              "novelty": "该论文将模型自生成任务规格、长文本扩展和自适应难度筛选用于长上下文强化学习，并结合虚构文档上的多步推理与检索对话。研究在两个Qwen检查点上进行了评测，并与基线模型、外部语料数据和更大教师模型合成的数据进行比较。",
+              "regime": "Qwen3-4B-Thinking-2507和思考模式下的Qwen3-8B；五项长上下文基准；分别训练72步和108步GRPO；采用最终检查点；基准分数是两次运行的均值。Qwen3-8B评测时使用YaRN因子4。没有进行独立复现。",
+              "strongest_baseline": "未修改的基线模型，以及两个采用相同强化学习配置的数据来源对照：按难度筛选的Enhanced HotpotQA，以及由Qwen3.5-397B-A17B合成的问答数据。论文称LongZero与这些对照的唯一区别是训练数据。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "作者发布的LongZero方法让目标模型先指定问题、支持事实和答案，再将这些事实扩展为虚构的长文档上下文。该方法还会合成检索对话，筛选出模型既答对又答错过的问题，并使用GRPO训练。相关预印本以及公开代码和数据仓库均已提供。"
+                },
+                {
+                  "text": "在五项长上下文推理基准上，论文报告LongZero将Qwen3-4B-Thinking-2507的非加权平均分从54.68提高到57.42，将Qwen3-8B从44.63提高到45.66；这些分数均为两次运行的均值。Qwen3-8B在LongBench v2上的分数为32.01，低于其基线32.11，因此在这一基准和设置中没有提升。"
+                },
+                {
+                  "text": "论文报告，在其131K token评测设置下，Qwen3-8B有200个AA-LCR回答中的120个没有给出答案；所有方法在该基准上的得分都接近零。论文没有提供独立复现，也未证明结果能够推广到这两个Qwen检查点以外的模型。"
+                }
+              ],
+              "limitations": [
+                "论文结果仅涵盖两个Qwen检查点、五项基准、短程训练，以及每项基准的两次评测运行。",
+                "LongZero的推理数据来自模型生成的虚构世界，检索任务则采用特定的合成对话模板；这些结果不能证明自合成数据适用于事实性任务或更广泛的长上下文任务，也不能证明它可替代外部数据。",
+                "Qwen3-8B在LongBench v2上的得分略低于基线（32.01，对照为32.11）；在论文所述设置中，所有方法在AA-LCR上的表现都接近零。",
+                "本次审查没有进行独立复现。"
+              ],
+              "gaps": [
+                {
+                  "description": "训练和基准结果尚无独立复现；论文报告的分数为两次运行的均值。"
+                },
+                {
+                  "description": "评测只涵盖Qwen3-4B-Thinking-2507和Qwen3-8B；该方法能否迁移到其他模型家族和长上下文强化学习场景仍未知。"
+                },
+                {
+                  "description": "Qwen3-8B在LongBench v2上没有提升，AA-LCR结果也接近零，且有120/200个回答未作答；上下文长度和答案完成约束限制了结果解读。"
+                }
+              ]
+            },
+            "headline": "LongZero以自生成任务训练长上下文推理，不依赖外部语料"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
+    {
+      "id": "FCMO-7BB80E1D06B5",
+      "slug": "looped-diffusion-language-models-report-lower-training-flops-and",
+      "url_date": "2026-10-22",
+      "kind": "development",
+      "status": "live",
+      "beat": "research",
+      "desk": "architectures_scaling",
+      "title": "Looped diffusion language models report lower training FLOPs and adaptive inference savings",
+      "dek": "The preprint studies selective recurrence inside uniform diffusion language models (UDLMs), repeatedly applying a shared two-block slice of the denoiser without adding parameters.",
+      "summary": "The preprint studies selective recurrence inside uniform diffusion language models (UDLMs), repeatedly applying a shared two-block slice of the denoiser without adding parameters. The authors report that looped models reach the non-looped model's validation negative log-likelihood with up to 2.8× fewer training FLOPs on OpenWebText and 3.3× fewer on FineWeb-Edu. At matched denoiser-evaluation budgets, they report up to 9.8% lower generation perplexity; an adaptive stopping rule matches fixed-depth multiple-choice accuracy while using 26.0%–34.8% fewer loop traversals. These results come from a 12-block, hidden-size-768 model on two corpora and remain unreplicated independently; larger-scale quality, wall-clock and dollar savings are unknown.",
+      "why_it_matters": "If the results transfer beyond the paper's compact models, reusing a few transformer layers during denoising could improve the compute-quality trade-off for uniform diffusion language models without increasing parameter count. The paper also suggests that training on smaller loop counts more often can reduce inference work. Current evidence is limited to two text corpora, a small 12-block model and author-run evaluations; it does not establish larger-scale, wall-clock, energy or cost savings.",
+      "importance_rationale": "If the reported results generalize, selective weight-shared looping could improve training and inference compute efficiency for uniform diffusion language models without adding parameters. Evidence is limited to a small 12-block model, two text corpora and author-run benchmarks, so broader economic effects are not established.",
+      "technical": {
+        "claimed_result": "Looped UDLMs reach the validation NLL of a non-looped model with 2.79×/2.70× fewer training FLOPs on OpenWebText and 3.28×/3.19× fewer on FineWeb-Edu, depending on loop-count schedule. The paper also reports up to 9.8% lower generation perplexity at matched denoiser function evaluations; adaptive looping uses 26.0%–34.8% fewer loop traversals than fixed depth 12 at matched multiple-choice accuracy. These are paper-reported results.",
+        "demonstrated_result": "The preprint, public Apache-2.0 code repository, packed datasets, checkpoints and training logs describe the looped architecture and evaluation. They make the authors' method and reported artifacts inspectable but do not independently verify the performance results.",
+        "mechanism": "A two-block slice of the uniform diffusion transformer's early layers is applied recurrently within each denoising call, sharing weights so executed depth rises without increasing parameter count. Training samples loop counts under uniform, FLOP-proportional or noise-proportional schedules; inference can use a fixed count or stop per sample when successive hidden states converge under a threshold.",
+        "novelty": "The study extends selective weight-shared looping from masked diffusion language models to uniform diffusion denoisers, where any ordinary token may be corrupted and revised. It compares loop-count training distributions and fixed versus adaptive inference depth while keeping the diffusion objective and sampler unchanged.",
+        "regime": "A 12-block DiT with hidden size 768, 12 attention heads, sequence length 1,024 and GPT-2 vocabulary; trained on OpenWebText and FineWeb-Edu using the DUO++ objective on H100 GPUs with matched-FLOP budgets. Inference evaluations cover generation, seven zero-shot likelihood datasets and ten multiple-choice tasks. No independent reproduction.",
+        "strongest_baseline": "The non-looped UDLM using the same DUO++ training recipe and matched total training FLOPs, plus matched-denoiser-evaluation budgets at inference. The paper's results do not establish comparisons against larger models, alternative optimizers, matched GPU-hours or end-to-end serving cost."
+      },
+      "importance_tier": "Notable",
+      "development_type": "paper",
+      "event_at": "2026-10-21T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-22T09:12:46Z",
+      "updated_at": "2026-10-22T09:12:46Z",
+      "importance": 5,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": false,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "DEMONSTRATED",
+            "text": "The authors publish a method that repeatedly applies a shared two-block slice of a uniform diffusion transformer during each denoising call, with stochastic loop-count training and fixed or adaptive inference depth. A public Apache-2.0 code repository, training data, checkpoints and logs are linked."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "On OpenWebText and FineWeb-Edu, the paper reports that looped models reach the non-looped model's validation negative log-likelihood using up to 2.8× and 3.3× fewer training FLOPs, respectively. At matched denoiser-evaluation budgets, it reports up to 9.8% lower generation perplexity; adaptive looping matches fixed 12-loop multiple-choice accuracy while using 26.0%–34.8% fewer loop traversals. These are author-reported results from the paper's small-model regime."
+          },
+          {
+            "label": "DEMONSTRATED",
+            "qualifier": "LIMITATION",
+            "text": "The main experiments use a 12-block diffusion transformer with hidden size 768, sequence length 1,024 and GPT-2 vocabulary. Results cover two pretraining corpora and selected zero-shot tasks; independent reproduction and evidence of transfer to larger models or production workloads are not provided."
+          }
+        ],
+        "limitations": [
+          "The paper's core model is a 12-block, hidden-size-768 diffusion transformer trained on 1,024-token sequences; the reported gains have not been shown at frontier or production model scale.",
+          "Training results use OpenWebText and FineWeb-Edu, while inference findings cover selected generation, likelihood and multiple-choice tasks; broader downstream transfer is unknown.",
+          "FLOP-normalized results do not by themselves establish equal wall-clock, energy or monetary savings, particularly under different memory, batching and kernel regimes.",
+          "No independent reproduction was performed in this review."
+        ],
+        "gaps": [
+          {
+            "kind": "missing_independent",
+            "description": "No independent reproduction of the reported iso-FLOP validation-NLL, generation-perplexity or adaptive-looping results was performed."
+          },
+          {
+            "kind": "other",
+            "description": "The experiments use a small 12-block, hidden-size-768 transformer, sequence length 1,024 and two corpora; transfer to larger diffusion language models and downstream reasoning is unknown."
+          },
+          {
+            "kind": "other",
+            "description": "Reported FLOP counts and likelihood/perplexity do not establish realized wall-clock, energy or dollar savings on comparable hardware and serving conditions."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2610.30066",
+          "domain": "arxiv.org",
+          "primary": true
+        },
+        {
+          "url": "https://github.com/SaitejaUtpala/looped_udlm",
+          "domain": "github.com",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "Mohamed bin Zayed University of Artificial Intelligence",
+        "Sony Group Corporation",
+        "Massachusetts Institute of Technology"
+      ],
+      "topics": [
+        "diffusion-language-models",
+        "shared-weight-recurrence",
+        "training-compute",
+        "inference-efficiency"
+      ],
+      "regions": [],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-7BB80E1D06B5.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: Looped diffusion language models report lower training FLOPs and adaptive inference savings"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "Los modelos de difusión con capas recurrentes reportan menos operaciones de entrenamiento y ahorros adaptativos en inferencia",
+            "summary": "La prepublicación estudia la recurrencia selectiva en modelos de lenguaje de difusión uniforme (UDLM): aplica repetidamente dos bloques compartidos del denoiser sin añadir parámetros. Los autores informan que los modelos con recurrencia alcanzan la misma pérdida logarítmica negativa de verosimilitud que el modelo sin recurrencia con hasta 2.8× menos FLOPs de entrenamiento en OpenWebText y 3.3× menos en FineWeb-Edu. Con presupuestos de evaluaciones del denoiser igualados, informan hasta 9.8% menos perplejidad de generación; una regla adaptativa iguala la exactitud de opción múltiple con profundidad fija y usa 26.0%–34.8% menos recorridos recurrentes. Los resultados proceden de un modelo de 12 bloques y dimensión oculta 768, entrenado con dos corpus, y no se han reproducido independientemente; se desconocen la calidad a mayor escala y los ahorros de tiempo y costo.",
+            "importance_rationale": "Si los resultados reportados se generalizan, la recurrencia selectiva con pesos compartidos podría mejorar la eficiencia de entrenamiento e inferencia en modelos de difusión uniforme sin añadir parámetros. La evidencia se limita a un modelo pequeño de 12 bloques, dos corpus de texto y evaluaciones de los autores; por ello, no establece efectos económicos más amplios.",
+            "why_it_matters": "Si los resultados se extienden más allá de los modelos compactos del artículo, reutilizar unas pocas capas de Transformer durante el proceso de eliminación de ruido podría mejorar el equilibrio entre cómputo y calidad en modelos de difusión uniforme sin aumentar el número de parámetros. El estudio también sugiere que entrenar con recuentos menores de iteraciones puede reducir el trabajo de inferencia. La evidencia actual se limita a dos corpus, un modelo pequeño de 12 bloques y evaluaciones de los autores; no demuestra ahorros de tiempo real, energía o dinero a mayor escala.",
+            "technical": {
+              "claimed_result": "Los modelos UDLM con recurrencia alcanzan la pérdida NLL del modelo sin recurrencia con 2.79×/2.70× menos FLOPs en OpenWebText y 3.28×/3.19× menos en FineWeb-Edu, según la programación de iteraciones. El artículo también informa hasta 9.8% menos perplejidad de generación con el mismo presupuesto de evaluaciones del denoiser; la recurrencia adaptativa usa 26.0%–34.8% menos recorridos que la profundidad fija 12 con igual exactitud de opción múltiple. Son resultados reportados en el artículo.",
+              "demonstrated_result": "La prepublicación, el repositorio público Apache-2.0, los corpus empaquetados, los puntos de control y los registros describen la arquitectura recurrente y la evaluación. Permiten inspeccionar el método y los artefactos de los autores, pero no verifican independientemente los resultados de rendimiento.",
+              "mechanism": "Una sección de dos bloques de las capas iniciales del Transformer de difusión uniforme se aplica recurrentemente dentro de cada llamada de eliminación de ruido; los pesos compartidos aumentan la profundidad ejecutada sin elevar el número de parámetros. Durante el entrenamiento se muestrean recuentos de iteraciones bajo esquemas uniforme, proporcional a FLOPs o proporcional al nivel de ruido. En inferencia se puede fijar ese recuento o detener cada muestra cuando sus estados ocultos sucesivos convergen según un umbral.",
+              "novelty": "El estudio extiende la recurrencia selectiva con pesos compartidos desde los modelos de difusión con máscara a los denoisers de difusión uniforme, donde cualquier token ordinario puede corromperse y revisarse. Compara distribuciones de recuentos recurrentes durante el entrenamiento y profundidad fija frente a adaptativa en inferencia, sin cambiar el objetivo de difusión ni el sampler.",
+              "regime": "DiT de 12 bloques, dimensión oculta 768, 12 cabezas de atención, secuencia de longitud 1,024 y vocabulario GPT-2; entrenado con OpenWebText y FineWeb-Edu mediante el objetivo DUO++ y presupuestos de FLOPs igualados en GPU H100. La inferencia cubre generación, verosimilitud sin ajuste en siete conjuntos y diez tareas de opción múltiple. No hubo reproducción independiente.",
+              "strongest_baseline": "UDLM sin recurrencia con la misma receta de entrenamiento DUO++ y FLOPs totales de entrenamiento igualados, además de presupuestos igualados de evaluaciones del denoiser durante la inferencia. El artículo no demuestra comparaciones con modelos más grandes, optimizadores alternativos, horas-GPU igualadas ni costos integrales de servicio."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "Los autores publican un método que vuelve a aplicar una sección compartida de dos bloques del Transformer de difusión uniforme durante cada llamada de eliminación de ruido, con recuentos de iteraciones aleatorios durante el entrenamiento y profundidad fija o adaptativa durante la inferencia. Enlazan un repositorio público de código Apache-2.0, datos de entrenamiento, puntos de control y registros."
+                },
+                {
+                  "text": "En OpenWebText y FineWeb-Edu, el artículo informa que los modelos con recurrencia alcanzan la pérdida de verosimilitud negativa del modelo sin recurrencia con hasta 2.8× y 3.3× menos FLOPs de entrenamiento, respectivamente. Con presupuestos igualados de evaluaciones del denoiser, informa hasta 9.8% menos perplejidad de generación; la recurrencia adaptativa iguala la exactitud de opción múltiple de 12 iteraciones fijas usando 26.0%–34.8% menos recorridos recurrentes. Son resultados reportados por los autores en el régimen de modelos pequeños del artículo."
+                },
+                {
+                  "text": "Los experimentos principales usan un Transformer de difusión de 12 bloques, dimensión oculta 768, secuencias de longitud 1,024 y vocabulario GPT-2. Los resultados cubren dos corpus de preentrenamiento y tareas seleccionadas de evaluación sin ajuste; no se proporciona una reproducción independiente ni evidencia de transferencia a modelos más grandes o cargas de trabajo de producción."
+                }
+              ],
+              "limitations": [
+                "El modelo central del artículo es un Transformer de difusión de 12 bloques y dimensión oculta 768, entrenado con secuencias de 1,024 tokens; las mejoras reportadas no se han demostrado a escala de frontera ni de producción.",
+                "Los resultados de entrenamiento usan OpenWebText y FineWeb-Edu; los resultados de inferencia abarcan tareas seleccionadas de generación, verosimilitud y opción múltiple. Se desconoce una transferencia posterior más amplia.",
+                "Los resultados normalizados por FLOPs no demuestran por sí solos ahorros equivalentes de tiempo real, energía o costo monetario, sobre todo con distintas condiciones de memoria, lotes y kernels.",
+                "En esta revisión no se realizó una reproducción independiente."
+              ],
+              "gaps": [
+                {
+                  "description": "No se realizó una reproducción independiente de los resultados de verosimilitud con FLOPs igualados, perplejidad de generación ni recurrencia adaptativa."
+                },
+                {
+                  "description": "Los experimentos usan un Transformer pequeño de 12 bloques y dimensión oculta 768, secuencias de 1,024 tokens y dos corpus; se desconoce la transferencia a modelos de difusión más grandes y a razonamiento posterior al entrenamiento."
+                },
+                {
+                  "description": "Los recuentos de FLOPs y las métricas de verosimilitud/perplejidad no establecen ahorros reales de tiempo, energía o dinero en hardware y condiciones de servicio comparables."
+                }
+              ]
+            },
+            "dek": "La prepublicación estudia la recurrencia selectiva en modelos de lenguaje de difusión uniforme (UDLM): aplica repetidamente dos bloques compartidos del denoiser sin añadir parámetros."
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "循环扩散语言模型报告训练FLOPs下降与自适应推理节省",
+            "summary": "这篇预印本研究在均匀扩散语言模型（UDLM）中引入选择性循环：在不增加参数的情况下，重复使用denoiser中共享的两个Transformer块。作者报告，循环模型在OpenWebText上以最多少2.8×的训练FLOPs、在FineWeb-Edu上以最多少3.3×的训练FLOPs，达到非循环模型的验证负对数似然。若denoiser评估次数相同，作者报告生成困惑度最高降低9.8%；自适应停止规则在多项选择题准确率与固定深度相当时，可减少26.0%–34.8%的循环遍历。实验使用12层、隐藏维度768的模型和两个语料，结果尚无独立复现；更大规模的质量表现以及时间和成本节省仍未知。",
+            "importance_rationale": "如果结果能够泛化，选择性共享权重循环或可在不增加参数的情况下提升均匀扩散语言模型的训练与推理效率。证据仅限于一个12层小模型、两个文本语料和作者评测，因此尚不能说明更广泛的经济影响。",
+            "why_it_matters": "如果这些结果能推广到论文所用紧凑模型之外，在去噪过程中重复利用少量Transformer层，或可在不增加参数量的情况下改善均匀扩散语言模型的算力与质量权衡。研究还表明，训练时更多采用较小循环次数，可能减少推理工作量。目前证据仅来自两个语料、一个12层小模型和作者开展的评测，并未证明更大规模下的实际运行时间、能耗或成本节省。",
+            "technical": {
+              "claimed_result": "根据循环次数安排不同，循环UDLM在OpenWebText上以2.79×/2.70×更少的训练FLOPs，在FineWeb-Edu上以3.28×/3.19×更少的训练FLOPs达到非循环模型的验证NLL。论文还报告，在denoiser评估次数相同的情况下，生成困惑度最高降低9.8%；自适应循环在多项选择题准确率相当时，比固定深度12少运行26.0%–34.8%的循环遍历。这些均为论文报告结果。",
+              "demonstrated_result": "预印本、公开Apache-2.0代码仓库、打包语料、模型检查点和训练日志说明了循环架构及评测方法。这些材料便于检查作者方法和发布的工件，但不能独立验证性能结果。",
+              "mechanism": "均匀扩散Transformer中前部两个块组成的切片在每次去噪调用中循环运行；共享权重使执行深度增加而参数量不变。训练时按均匀、与FLOPs成比例或与噪声成比例的策略采样循环次数。推理时可固定循环次数，也可根据连续隐藏状态是否低于收敛阈值，逐样本提前停止。",
+              "novelty": "该研究将选择性共享权重循环从掩码扩散语言模型扩展到均匀扩散denoiser；在后者中，任意普通token都可能被破坏并重新修正。研究比较了不同训练循环分布，以及推理时固定或自适应深度，同时保持扩散目标和采样器不变。",
+              "regime": "DiT包含12个块、隐藏维度768、12个注意力头、1,024-token序列和GPT-2词表；在OpenWebText和FineWeb-Edu上采用DUO++目标以及匹配的训练FLOPs预算，并使用H100 GPU。推理评测包括生成、七个零样本似然数据集和十项多项选择任务。没有独立复现。",
+              "strongest_baseline": "使用相同DUO++训练方案和匹配总训练FLOPs的非循环UDLM；推理时还比较了相同denoiser评估预算下的结果。论文没有证明它优于更大模型、其他优化器、相同GPU运行时间或端到端服务成本。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "作者发布的方法在每次均匀扩散去噪调用中，重复应用共享的两个Transformer块；训练时随机采样循环次数，推理时可采用固定或自适应深度。作者同时提供了公开的Apache-2.0代码仓库、训练数据、检查点和运行日志。"
+                },
+                {
+                  "text": "在OpenWebText和FineWeb-Edu上，论文报告循环模型达到非循环模型的验证负对数似然时，训练FLOPs最多分别减少2.8×和3.3×。在denoiser评估预算相同的情况下，作者报告生成困惑度最高降低9.8%；与固定循环12次相比，自适应循环在多项选择题准确率不变时减少26.0%–34.8%的循环遍历。这些是论文小模型设置下的作者报告结果。"
+                },
+                {
+                  "text": "主要实验使用12层、隐藏维度768、序列长度1,024且词表为GPT-2的扩散Transformer。结果涵盖两个预训练语料和若干零样本任务；论文未提供独立复现，也没有证明可推广到更大模型或生产工作负载。"
+                }
+              ],
+              "limitations": [
+                "论文核心模型是12层、隐藏维度768的扩散Transformer，训练序列长度为1,024；尚未证明所报提升适用于前沿或生产规模模型。",
+                "训练结果使用OpenWebText和FineWeb-Edu；推理结果覆盖部分生成、似然和多项选择任务。更广泛的下游迁移情况未知。",
+                "按FLOPs归一化的结果本身不能证明实际运行时间、能耗或成本相同幅度下降，尤其是在内存、批处理和内核实现不同的情况下。",
+                "本次审查没有进行独立复现。"
+              ],
+              "gaps": [
+                {
+                  "description": "训练FLOPs匹配下的验证似然、生成困惑度和自适应循环结果尚无独立复现。"
+                },
+                {
+                  "description": "实验使用12层、隐藏维度768的小型Transformer、1,024-token序列和两个语料；能否迁移到更大扩散模型及后训练推理任务尚不清楚。"
+                },
+                {
+                  "description": "FLOPs和似然/困惑度指标本身不能证明在可比硬件和服务条件下能节省实际时间、能耗或资金。"
+                }
+              ]
+            },
+            "headline": "循环扩散语言模型报告训练FLOPs下降与自适应推理节省"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
     {
       "id": "FCMO-75960D2A1C54",
       "slug": "php-fixes-two-critical-vulnerabilities-after-coordinated-ai-assisted",
