@@ -65,6 +65,18 @@ class Application:
                  'plain_en': ('Javier' if u == 'javier' else 'Matías') + ' needs to sign in to GitHub.'}
                 for u in ('javier', 'matias')]
             return {'credentials': statuses, 'live_enabled': self.live_enabled, 'dry_run': self.dry_run}
+        if path == '/api/github/connect':
+            connector = getattr(self, 'github_connect', None)
+            if connector is None and hasattr(self.github, 'configs'):
+                from .github_connect import GitHubConnect
+                connector = self.github_connect = GitHubConnect(self.github)
+            if connector is None: raise Refused('La conexión de GitHub no está disponible.')
+            if method == 'GET': return self.github_connect.status(user)
+            if method == 'POST':
+                from .github_connect import ConnectionInProgress
+                try: return self.github_connect.start(user)
+                except ConnectionInProgress as exc: raise Refused(str(exc)) from None
+            if method == 'DELETE': return self.github_connect.cancel(user)
         if path == '/api/me' and method == 'GET': return {'user': user, 'name': session['name'], 'ui_lang': session['ui_lang'], 'csrf': session['csrf'], 'other': 'Matías' if user == 'javier' else 'Javier', 'allow_non_en_source': __import__('os').environ.get('STUDIO_ALLOW_NON_EN_SOURCE') == '1', 'allow_es_source': True}
         if path == '/api/pieces':
             if method == 'GET': return self.store.list(query.get('state', [None])[0])

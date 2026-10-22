@@ -409,3 +409,15 @@ La sustitución propuesta se comprobó cargando una copia de la prueba en memori
 sus aserciones originales pasan en 0,006 s y el archivo versionado permanece
 intacto. También se interceptó `Popen` antes de crear hijos: el fixture original
 intenta lanzar `python -m unittest discover -s tests` pese a su mock.
+
+# studio-github-connect
+
+Outside this lane's ownership, rebuild the tracked Studio bundle and offline seed
+from the updated `studio/web/src/**`: `studio/web/dist/**` and
+`studio/web/offline/{app.seed.js,screens-home.seed.js,seed-manifest.json}`.
+The local checkout has no `esbuild`; the offline fallback intentionally rejects
+these source changes, and `npm run build` removes `dist/` before that rejection.
+Run `npm run build` and `node refresh-offline-seed.mjs` in an environment with
+the repo's already-locked esbuild available, then commit those generated files
+with the source lane. Do not install dependencies or run the destructive fallback
+in this lane.
