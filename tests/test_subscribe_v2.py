@@ -64,7 +64,8 @@ class SubscribeBlockTests(unittest.TestCase):
         letter = render_letter_email('Una idea', 'Hola <amiga>\n\nProbemos algo.',
                                      ghost_url='https://comunidad.example', postal_address='Dirección de prueba')
         self.assertIn(LETTER_NAME, letter.subject)
-        self.assertIn('fCMO', letter.html)
+        self.assertIn('FCMO AI', letter.html)
+        self.assertNotIn('fCMO', letter.html)
         self.assertIn('&lt;amiga&gt;', letter.html)
         self.assertNotIn('Hola <amiga>', letter.html)
         self.assertIn('https://comunidad.example/#/portal/account', letter.html)
