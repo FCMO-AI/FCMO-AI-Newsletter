@@ -29,7 +29,7 @@ if __package__ in {None, ""}:
     from tools.paper.templates.pages import evidence_board, evidence_strip, story_card
     from tools.paper.templates.landing import render as render_landing
     from tools.paper.templates.reader import (LAYER_SCRIPT, automation_badge, brief, claim_kind, data_hero, evidence_glyph,
-                                              first_sentence, layer, primary_source, provenance_line, reader_select, status_chip)
+                                              first_sentence, layer, primary_source, provenance_line, reader_select, status_chip, story_view, topic_pair, machine_strip)
     from tools.paper.templates.newsletter import render as render_newsletter, subscription_tail
     from tools.paper.routes import TECHNICAL_FRONT
 else:
@@ -46,7 +46,7 @@ else:
     from .templates.pages import evidence_board, evidence_strip, story_card
     from .templates.landing import render as render_landing
     from .templates.reader import (LAYER_SCRIPT, automation_badge, brief, claim_kind, data_hero, evidence_glyph,
-                                   first_sentence, layer, primary_source, provenance_line, reader_select, status_chip)
+                                   first_sentence, layer, primary_source, provenance_line, reader_select, status_chip, story_view, topic_pair, machine_strip)
     from .templates.newsletter import render as render_newsletter, subscription_tail
     from .routes import TECHNICAL_FRONT
 
@@ -260,6 +260,26 @@ class PaperBuilder:
         if related_cards:
             parts.append(f'<section class="related-reading"><h2>{esc(strings["story"]["related"])}</h2><div class="card-row">{related_cards}</div></section>')
         return "".join(parts)
+
+    def _topic_pair(self, story: dict, locale: dict) -> str:
+        counts = Counter(t for item in self.live for t in set(item.get("topics") or []))
+        topic = next((t for t in story.get("topics") or [] if counts[t] >= 3), "")
+        if not topic:
+            return ""
+        catalog = self.catalogs[locale["code"]]
+        seq = sorted((i for i in self.live if topic in (i.get("topics") or [])), key=lambda i: (i.get("event_at", ""), i["id"]))
+        pos = next(n for n, i in enumerate(seq) if i["id"] == story["id"])
+        make = lambda i: (self._story_href(locale, i), headline(i, locale["code"], catalog))
+        name = label(catalog, "topic", slugify(topic), fallback="")
+        if not name:
+            return ""
+        return topic_pair(catalog, name, make(seq[pos - 1]) if pos > 0 else None, make(seq[pos + 1]) if pos + 1 < len(seq) else None)
+
+    def _machine_strip(self, story: dict, locale: dict, catalog: dict) -> str:
+        suffix = story_path({**locale, "path_prefix": ""}, story)
+        return machine_strip(catalog, json_href=absolute(self.base_url, f"api/v1/stories/{story['id']}.json"),
+                             cite_href=self._citation_permalink(story),
+                             md_href=absolute(self.base_url, locale["path_prefix"] + suffix.rstrip("/") + ".md"))
 
     def _citation_permalink(self, story: dict) -> str:
         english = next(locale for locale in self.config["locales"] if locale["code"] == "en")
@@ -487,16 +507,26 @@ class PaperBuilder:
             if sources:
                 links = "".join(f'<li>{provenance_line(src, catalog)}{"<span class=\"prov-primary\">" + esc(strings["story"]["primary_source"]) + "</span>" if src.get("primary") else ""}</li>' for src in sources)
                 dossier.append(f'<section><h2>{esc(strings["story"]["sources"])}</h2><ol class="source-list">{links}</ol></section>')
-            body = (brief(story, catalog, summary=field(story, code, "summary"), why=field(story, code, "why_it_matters"), evidence=evidence)
-                    + reader_select(catalog)
-                    + '<div class="layers" data-layers data-mode="summary">'
-                    + layer("argument", dz["argument_title"], dz["layer_r2"], "".join(argument))
-                    + layer("dossier", dz["dossier_title"], dz["layer_r4"], "".join(dossier))
-                    + layer("technical", dz["technical_title"], dz["layer_r3"], "".join(technical_layer))
-                    + '</div>' + LAYER_SCRIPT)
-            aside = self._facts(story, locale)
+            body = ""
+            aside = ""
+            technical_fields = field(story, code, "technical", {})
+            technical_fields = technical_fields if isinstance(technical_fields, dict) else {}
+            topic_nav = self._topic_pair(story, locale)
+            c6_page = story_view(
+                story=story, catalog=catalog, code=code, title=title, dek_text=description,
+                beat_label=label(catalog, "beat", story.get("beat")), home_href=href(self.base, locale["path_prefix"]),
+                evidence=evidence, summary=field(story, code, "summary"), why=field(story, code, "why_it_matters"),
+                technical=technical_fields, status_html=status_chip(self.status, catalog),
+                automation_html=automation_badge(self.status, catalog), byline=strings["story"]["byline"],
+                dates_line=f'{strings["story"]["event_date"].format(date=event)} · {strings["story"]["published"].format(date=published)}',
+                plate_html="", note_html=note, taxonomy_html=self._facts(story, locale),
+                navigation_html=self._story_navigation(story, locale), topic_nav_html=topic_nav,
+                machine_html=self._machine_strip(story, locale, catalog))
         hero = ""
-        page = story_page(header=header, body=body, aside=hero_figure + aside, hero=hero, navigation=self._story_navigation(story, locale))
+        if complete:
+            page = f'<article class="story-layout">{c6_page}</article>'
+        else:
+            page = story_page(header=header, body=body, aside=hero_figure + aside, hero=hero, navigation=self._story_navigation(story, locale))
         page = page.replace('<article class="story-layout">', f'<article class="story-layout {title_class}">', 1)
         story_url = absolute(self.base_url, locale["path_prefix"] + suffix)
         image = self._media_url(story, locale)

@@ -409,10 +409,10 @@ def story_view(*, story: dict, catalog: dict, code: str, title: str, dek_text: s
     src_items = "".join(f'<li>{provenance_line(s, catalog)}' + (f'<span class="prov-primary">{e(st["story"]["primary_source"])}</span>' if s.get("primary") else "") + '</li>' for s in sources)
     sources_html = f'<section id="sources"><h2>{e(st["story"]["sources"])}</h2><ol class="source-list">{src_items}</ol></section>' if src_items else f'<section id="sources"><h2>{e(st["story"]["sources"])}</h2></section>'
     crumbs = f'<nav class="crumbs" aria-label="{e(st["a11y"]["breadcrumbs"])}"><a href="{e(home_href)}">{e(st["nav"]["today"])}</a> / {e(beat_label)}</nav>'
-    cover = (f'<header class="story-header story-cover surface-ink"><div class="frame story-cover-grid"><div class="sh-main">{crumbs}'
+    cover = (f'<div class="story-cover surface-ink"><header class="story-header"><div class="frame story-cover-grid"><div class="sh-main">{crumbs}'
              f'<p class="story-kicker rubric rubric-accent">{e(beat_label)}</p><h1>{e(title)}</h1><p class="story-dek">{e(dek_text)}</p>'
              f'{story_signals(story, catalog, evidence, status_html=status_html)}'
-             f'<p class="story-meta rubric">{e(dates_line)}</p>{note_html}</div>{plate_html}</div></header>')
+             f'<p class="story-meta rubric">{e(dates_line)}</p>{note_html}</div>{plate_html}</div></header></div>')
     body = (brief20(story, catalog, summary=summary, why=why, evidence=evidence)
             + '<div class="layers" data-layers data-mode="summary">' + layer("argument", d["argument_title"], d["layer_r2"], argument)
             + '</div>' + claim_ledger(evidence, catalog) + unknowns_box(evidence, catalog) + sources_html
