@@ -1,6 +1,77 @@
 [
   {
     "confidence": "credible_unconfirmed",
+    "demonstrated_result": "The preprint, public Apache-2.0 code repository, packed datasets, checkpoints and training logs describe the looped architecture and evaluation. They make the authors' method and reported artifacts inspectable but do not independently verify the performance results.",
+    "desks": [
+      "training_data",
+      "inference_systems",
+      "evaluation_science"
+    ],
+    "development_type": "paper",
+    "event_at": "2026-10-21T00:00:00Z",
+    "evidence_class": "A",
+    "id": "FCMO-7BB80E1D06B5",
+    "importance_effective_score": 5,
+    "importance_tier": "Notable",
+    "last_verified_at": "2026-10-22T07:20:10Z",
+    "mechanism": "A two-block slice of the uniform diffusion transformer's early layers is applied recurrently within each denoising call, sharing weights so executed depth rises without increasing parameter count. Training samples loop counts under uniform, FLOP-proportional or noise-proportional schedules; inference can use a fixed count or stop per sample when successive hidden states converge under a threshold.",
+    "organizations": [
+      "Mohamed bin Zayed University of Artificial Intelligence",
+      "Sony Group Corporation",
+      "Massachusetts Institute of Technology"
+    ],
+    "primary_desk": "training_data",
+    "regions": [],
+    "status": "active",
+    "strongest_baseline": "The non-looped UDLM using the same DUO++ training recipe and matched total training FLOPs, plus matched-denoiser-evaluation budgets at inference. The paper's results do not establish comparisons against larger models, alternative optimizers, matched GPU-hours or end-to-end serving cost.",
+    "summary": "The preprint studies selective recurrence inside uniform diffusion language models (UDLMs), repeatedly applying a shared two-block slice of the denoiser without adding parameters. The authors report that looped models reach the non-looped model's validation negative log-likelihood with up to 2.8× fewer training FLOPs on OpenWebText and 3.3× fewer on FineWeb-Edu. At matched denoiser-evaluation budgets, they report up to 9.8% lower generation perplexity; an adaptive stopping rule matches fixed-depth multiple-choice accuracy while using 26.0%–34.8% fewer loop traversals. These results come from a 12-block, hidden-size-768 model on two corpora and remain unreplicated independently; larger-scale quality, wall-clock and dollar savings are unknown.",
+    "title": "Looped diffusion language models report lower training FLOPs and adaptive inference savings",
+    "topics": [
+      "diffusion language models",
+      "shared-weight recurrence",
+      "training compute",
+      "inference efficiency"
+    ],
+    "why_it_matters": "If the results transfer beyond the paper's compact models, reusing a few transformer layers during denoising could improve the compute-quality trade-off for uniform diffusion language models without increasing parameter count. The paper also suggests that training on smaller loop counts more often can reduce inference work. Current evidence is limited to two text corpora, a small 12-block model and author-run evaluations; it does not establish larger-scale, wall-clock, energy or cost savings."
+  },
+  {
+    "confidence": "credible_unconfirmed",
+    "demonstrated_result": "The primary preprint and author-linked public repository disclose the self-synthesis and filtering pipeline, training/evaluation protocol, benchmark table, code and synthesized datasets. These sources establish what the authors report and release, not independent confirmation of model performance.",
+    "desks": [
+      "training_data",
+      "agents_memory",
+      "evaluation_science"
+    ],
+    "development_type": "paper",
+    "event_at": "2026-10-21T00:00:00Z",
+    "evidence_class": "A",
+    "id": "FCMO-B693CA9AB3A0",
+    "importance_effective_score": 5,
+    "importance_tier": "Notable",
+    "last_verified_at": "2026-10-22T07:12:10Z",
+    "mechanism": "The target model first writes a compact specification of fictional entities, facts, multi-hop questions, supporting evidence and answers, then expands the facts into long documents. A separate retrieval task assembles long conversations from model-written responses. The model samples answers to generated questions; tasks answered both correctly and incorrectly are kept as an unstable difficulty band and used for GRPO training.",
+    "organizations": [
+      "Tsinghua University",
+      "Mohamed bin Zayed University of Artificial Intelligence",
+      "Sony Group Corporation",
+      "Massachusetts Institute of Technology"
+    ],
+    "primary_desk": "training_data",
+    "regions": [],
+    "status": "active",
+    "strongest_baseline": "The unmodified base model and two data-source controls trained under the same RL configuration: difficulty-filtered Enhanced HotpotQA and QA synthesized by Qwen3.5-397B-A17B. The paper says only training data differ between LongZero and those baselines.",
+    "summary": "LongZero is a preprint method for generating long-context reinforcement-learning tasks without an external document corpus or larger teacher for its reasoning-task synthesis. A target model first writes questions, evidence and answers for fictional worlds, then expands those facts into long multi-document contexts; it also creates retrieval conversations, filters for questions it answers inconsistently, and trains with GRPO. On five benchmarks, the authors report mean-of-two-run average-score gains for Qwen3-4B-Thinking-2507 (54.68 to 57.42) and Qwen3-8B (44.63 to 45.66). The Qwen3-8B LongBench v2 score does not improve (32.01 versus 32.11 baseline), and 120/200 of its AA-LCR responses contain no answer. The results remain author-reported, limited to two Qwen checkpoints, short training and two runs; independent reproduction is open.",
+    "title": "LongZero uses self-generated tasks to train long-context reasoning without an external corpus",
+    "topics": [
+      "long-context reasoning",
+      "reinforcement learning",
+      "synthetic data",
+      "self-generated tasks"
+    ],
+    "why_it_matters": "If the reported gains reproduce, a model could generate and filter useful long-context RL tasks without depending on a large external document corpus or a stronger teacher. That could lower data and teacher-model bottlenecks in post-training. The current evidence is a small two-model study with mixed benchmark-level outcomes, so it does not establish general long-context improvement or a broad replacement for externally grounded training data."
+  },
+  {
+    "confidence": "credible_unconfirmed",
     "demonstrated_result": "MathVet's independently published challenge-status table reports that the PiExponent family-017 Comparator challenge builds, its transitive statement closure matches with one constant and no shadowing/problems, its axioms are the three standard Lean axioms, and Comparator accepted it on a reviewer laptop and an isolated Linux VM using real landrun. The status table's machine check is pinned to OpenAI commit adc7f124; MathVet reports the challenge was byte-identical at later commit fd4aeeb2. the research desk did not rerun these checks. This demonstrates an externally reported machine-checked formal theorem under the encoded statement; it does not validate the mathematical manuscript or prove semantic correspondence.",
     "desks": [
       "evaluation_science",
