@@ -347,7 +347,7 @@ def piece_search_rows(pieces: list[dict], locale: str, *, base: str) -> list[dic
             continue
         doc = piece["docs"][locale]
         text = " ".join([doc["title"], doc["dek"], *(essay_doc.text_of(b.get("content", [])) for b in doc["blocks"])])
-        rows.append({"h": doc["title"], "d": doc["dek"], "u": href(base, piece_path({"path_prefix": PREFIXES[locale]}, piece)), "b": "fCMO", "o": [], "t": piece["tags"], "kind": "essay", "search_text": text})
+        rows.append({"h": doc["title"], "d": doc["dek"], "u": href(base, piece_path({"path_prefix": PREFIXES[locale]}, piece)), "b": "FCMO AI", "o": [], "t": piece["tags"], "kind": "essay", "search_text": text})
     return rows
 
 
@@ -405,7 +405,7 @@ def write_feeds(pieces: list[dict], *, locales: list[dict], base_url: str, out: 
         if marker in text:
             text = text.replace(marker, "".join(items) + marker, 1)
         else:
-            text = f'<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"><channel><title>fCMO · {code}</title><link>{escape(absolute(base_url, locale["path_prefix"]))}</link><description>Essays and letters</description><language>{escape(locale["html_lang"])}</language>{"".join(items)}</channel></rss>'
+            text = f'<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"><channel><title>FCMO AI · {code}</title><link>{escape(absolute(base_url, locale["path_prefix"]))}</link><description>Essays and letters</description><language>{escape(locale["html_lang"])}</language>{"".join(items)}</channel></rss>'
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(text, encoding="utf-8")
         atom_path = out / locale["path_prefix"] / "feed.atom"

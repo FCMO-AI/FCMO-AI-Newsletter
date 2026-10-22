@@ -9,6 +9,9 @@ import re
 from .routes import TECHNICAL_FRONT, href, story_path
 
 ID_RE = re.compile(r"FCMO-[A-F0-9]{12}")
+# Old product routes that now only redirect to the locale front page (DIRECCION §4).
+LEGACY_FRONT_ROUTES = ("cartas/", "empieza/")  # plus TECHNICAL_FRONT (diario/)
+LEGACY_SUBSCRIPTION_ROUTE = "suscribete/"
 
 
 def stub(target: str, base: str = "/") -> str:
@@ -29,12 +32,18 @@ def build(stories: list[dict], *, locales: list[dict], base: str, out: Path, leg
     live = [story for story in stories if story.get("status") == "live"]
     locale_by_legacy = {"en": locales[0], "es": next(x for x in locales if x["code"] == "es-419"), "zh-hans": next(x for x in locales if x["code"] == "zh-Hans")}
     written = []
-    # Preserve the previous technical front as an explicit legacy document.
-    # Locale roots now serve the FCMO landing.
+    # One publication (DIRECCION §4): the old product routes are stubs that
+    # point at the locale front page. The technical front (diario/) is gone.
     for locale in locales:
+        root = href(base, locale["path_prefix"])
+        for suffix in (TECHNICAL_FRONT, *LEGACY_FRONT_ROUTES):
+            rel = locale["path_prefix"] + suffix + "index.html"
+            _write(out, rel, root, base); written.append(rel)
         rel = locale["path_prefix"] + "front.html"
-        _write(out, rel, href(base, locale["path_prefix"] + TECHNICAL_FRONT), base)
-        written.append(rel)
+        _write(out, rel, root, base); written.append(rel)
+        # The old double-subscription route forwards to the single subscription page.
+        rel = locale["path_prefix"] + LEGACY_SUBSCRIPTION_ROUTE + "index.html"
+        _write(out, rel, href(base, locale["path_prefix"] + "subscribe/"), base); written.append(rel)
     for story in stories:
         survivor = by_id.get(story.get("merged_into"))
         english_target = (
