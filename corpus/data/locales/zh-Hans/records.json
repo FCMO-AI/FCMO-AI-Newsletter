@@ -7354,7 +7354,7 @@
         },
         {
           "label": "CLAIMED",
-          "text": "OpenAI 的 family-017 Lean 范围说明称所选形式陈述覆盖无理性指数结论；研究团队没有重建或语义审计该形式化。"
+          "text": "OpenAI 的 family-017 Lean 范围说明称所选形式陈述覆盖指数结论。研究团队没有重新运行构建，也没有独立审计论文与代码之间的语义对应。MathVet 另行报告称，该挑战通过了固定版本构建、闭包检查和 Comparator。"
         },
         {
           "label": "CLAIMED",
@@ -7363,6 +7363,10 @@
         {
           "label": "DEMONSTRATED",
           "text": "在固定提交 adc7f1241b42e322a6451854ab7e4b4c146bf78a 中，OAI/NumberTheory/PiExponent/Main.lean 声明了指数等于二的定理和一个 Flint–Hills 可和性引理。单独的 ComparatorChallenges/PiExponent.lean 含有 sorry，作为挑战脚手架；这两点都不能证明该证明能够构建或在数学上正确。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "MathVet 的独立挑战状态记录称，family 017 的 PiExponent 陈述与标题主张相符，构建成功，闭包检查成功（一个常量、零个闭包问题、无名称遮蔽），仅使用 Lean 的三个标准公理；Comparator 在审阅者笔记本和使用真实 landrun 的隔离 Linux 虚拟机上均接受了证明。这些检查说明编码定义下的形式结果成立，但不能验证手稿证明或语义对应。"
         }
       ],
       "contradictory_evidence": [],
@@ -7374,33 +7378,33 @@
           "updated_at": "2026-10-08T02:09:38.246795Z"
         },
         {
-          "description": "研究团队尚未独立重建和审计 Lean 陈述、依赖项及论文与形式代码的对应关系。",
+          "description": "MathVet 独立报告称，PiExponent family 017 在固定挑战上构建成功、形式闭包和 Comparator 检查通过；该检查对应 OpenAI 仓库提交 adc7f124，且 MathVet 称挑战在 fd4aeeb2 中未变。研究团队未重跑这些检查。剩余问题是手稿证明、Main.lean 入口/依赖闭包、范围说明与 Comparator 陈述之间的语义对应；Main.lean 还声明了 Flint–Hills 引理，而范围说明将该推论排除在外。",
           "kind": "reproduction_missing",
           "state": "open",
-          "updated_at": "2026-10-08T02:09:38.246795Z"
+          "updated_at": "2026-10-22T06:16:17.791107Z"
         }
       ],
       "importance_rationale": "若 μ(π)=2 成立，将解决一个长期数论问题，并显著加强 π 的丢番图逼近结果，对相关分析问题也有影响。其后果可能改变该领域；但真实性尚未验证，必须与重要性分开评估。",
       "limitations": [
-        "该主张来自 OpenAI 的第一方手稿；研究团队未证明或独立验证该主张。",
-        "阈值 Q(ν) 是非有效的；未提供显式阈值。结果未声称存在统一的 c/q² 界或有界部分商。",
-        "本次未完成数学专家的独立证明审查、固定版本的 Lean 构建、完整依赖审计或论文与形式化代码之间的语义对应审计。",
-        "OpenAI 的范围说明将论文中的 Flint–Hills 级数收敛推论排除在所选 Lean 陈述之外。",
-        "固定的 Lean 入口在静态内容中声明了指数定理和 Flint–Hills 引理，而 family-017 范围说明称 Flint–Hills 推论不属于所选陈述；确切的构建与范围关系尚未解决。",
-        "ComparatorChallenges/PiExponent.lean 文件含有 sorry，作为挑战脚手架；它不同于 OAI/NumberTheory/PiExponent/Main.lean 证明入口。两个文件都未构建，也未进行传递依赖审计。",
-        "已取回固定版本的 TeX 源文件并检查其定理文本；本次激活未能加载 PDF 正文。"
+        "该主张来自 OpenAI 第一方手稿；尚未确认数论专家审查或数学证明的独立复现。",
+        "阈值 Q(ν) 非有效；未提供显式阈值。结果未声称存在统一 c/q² 界或有界部分商。",
+        "MathVet 独立报告称 family 017 构建成功、通过闭包检查和固定挑战的 Comparator，并使用标准公理且无名称遮蔽。研究团队未重跑这些检查，MathVet 的家族判定仍待预注册裁判流程核验。",
+        "内核检查证明的是编码定义下的 Lean 定理；它本身不能证明自然语言手稿正确或与形式定义忠实对应。",
+        "OpenAI 的范围说明将 Flint–Hills 级数收敛推论排除在所选陈述之外。Main.lean 也包含 Flint–Hills 引理；两者的确切关系仍未解决。",
+        "ComparatorChallenges/PiExponent.lean 含有作为挑战脚手架的 sorry，与证明入口 Main.lean 不同；外部状态表分别记录挑战执行和主模块构建。",
+        "已取回固定版本的 TeX 并检查定理；此前一次激活未能加载 PDF 正文。"
       ],
       "relationships": [],
-      "summary": "OpenAI 的 23 页手稿声称：对每个 ν>2，都存在阈值 Q(ν)，使所有整数 p 以及 q≥Q(ν) 都满足 |π−p/q|≥q^-ν，并据此得出 π 的无理性指数为 2。若正确，这会显著改善论文讨论的既有上界。该阈值不可有效计算；手稿没有证明统一的 c/q² 下界，也没有证明连分数部分商有界。OpenAI 公开的 family-017 说明称 Lean 形式化覆盖了该指数结论，但本次没有独立构建、语义审计或数论专家评审。应将该定理视为一项声称，而非已确立的结果。",
+      "summary": "OpenAI 的 23 页手稿声称，对每个 ν>2 都存在阈值 Q(ν)，使所有整数 p 和 q≥Q(ν) 均满足 |π−p/q|≥q^-ν，并据此得出 π 的无理性指数为 2。若正确，这会显著改善论文讨论的既有上界。该阈值不可有效计算；手稿没有证明统一的 c/q² 下界，也没有证明连分数部分商有界。MathVet 报告称 family 017 选定的 Lean 形式化成功构建、通过闭包检查和 Comparator。这些检查支持编码陈述，而不验证数学手稿或论文与代码的语义对应。尚无独立数论专家审查；该定理仍是主张，而非已确立结果。",
       "technical": {
         "claimed_result": "手稿声称 μ(π)=2；等价地，对每个 ν>2 都存在 Q(ν)，使所有整数 p 和 q≥Q(ν) 均满足 |π−p/q|≥q^-ν。",
         "compute_or_cost": "本次没有核实专用于该定理的模型计算量、计算成本或人力投入。",
-        "demonstrated_result": "OpenAI 公开发布了手稿、Lean 范围说明和固定版本的 Lean 证明入口，均陈述 μ(π)=2 结果。静态取回确认入口声明了核心定理和 Flint–Hills 引理；研究团队未构建该代码、未枚举其传递依赖，也未确立数学有效性或论文与代码之间的对应关系。",
-        "implementation_status": "在固定提交 adc7f1241b42e322a6451854ab7e4b4c146bf78a 中，OAI/NumberTheory/PiExponent/Main.lean 声明了渐近下界、指数等于二的定理和 Flint–Hills 引理。比较挑战文件是独立的。本次未运行固定版本构建或依赖审计。",
+        "demonstrated_result": "MathVet 独立发布的挑战状态表报告称，PiExponent family 017 的 Comparator 挑战构建成功，传递闭包匹配（一个常量、无闭包问题、无名称遮蔽），仅使用 Lean 三个标准公理；审阅者笔记本和带真实 landrun 的隔离 Linux 虚拟机均接受了 Comparator 检查。该机器检查固定于 OpenAI 提交 adc7f124；MathVet 报告称该挑战在 fd4aeeb2 中保持字节级不变。研究团队未重新运行这些检查。这证明编码陈述下存在经外部报告的机器验证形式定理；但不验证数学手稿，也不证明语义对应。",
+        "implementation_status": "在 OpenAI 提交 adc7f1241b42e322a6451854ab7e4b4c146bf78a 中，OAI/NumberTheory/PiExponent/Main.lean 声明渐近下界、指数等于二的定理和 Flint–Hills 引理。MathVet 的独立状态记录称，family 017 Comparator 挑战构建成功，并通过闭包和公理检查；还称该挑战在 fd4aeeb2 中未变化。研究团队未重跑这些检查。所选定理与数学手稿之间的语义对应仍是开放问题。",
         "mechanism": "手稿采用插值/行列式论证，声称对每个固定 ν>2 推出最终下界 |π−p/q|≥q^-ν。形式化说明指出一个所选 Lean 定理覆盖无理性指数陈述。",
         "novelty": "论文声称将 π 无理性指数的上界从约 7.10 大幅降至 2。",
         "regime": "π 的经典无理性指数；阈值不可有效计算并随每个 ν>2 改变。该结论不意味着存在统一常数 c/q²，也不意味着连分数部分商有界。",
-        "reproducibility": "固定版本的手稿 TeX、范围说明、证明入口和比较挑战均为公开文件，且已取回源文件字节。独立构建、递归证明依赖与公理审计、语义对应核验及专家审查仍未完成。",
+        "reproducibility": "MathVet 报告称 PiExponent family 017 在固定 OpenAI 提交 adc7f124 上成功构建、通过依赖闭包检查并被 Comparator 接受；其后续表对应 fd4aeeb2，变更记录称原挑战陈述逐字节不变。这是独立报告的机器检查，并并非自行复现。手稿与 Lean 的语义对应及数学证明仍未经独立审查。",
         "strongest_baseline": "论文引用既有上界 7.103205334137…（Zeilberger–Zudilin, 2020）和 <7.101862832357（Bai, 2026）。若新结论成立，将是大幅改进；本次也没有独立审计这些既有上界。"
       },
       "title": "OpenAI 手稿声称 π 的无理性指数恰为 2",
