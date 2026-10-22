@@ -61,7 +61,7 @@ export function shell (content, { active = '', wide = false } = {}) {
 
 async function ensureMe () {
   if (session.me) return true
-  try { session.me = await get('/api/me'); setCsrf(session.me.csrf); setLang(session.me.ui_lang || 'es'); return true } catch { return false }
+  try { session.me = await get('/api/me'); session.expired = false; setCsrf(session.me.csrf); setLang(session.me.ui_lang || 'es'); return true } catch { return false }
 }
 
 const routes = [
@@ -82,7 +82,7 @@ export async function route () {
   if (dispose) { try { dispose() } catch { /* leaving */ } dispose = null }
   closeModals()
   const hash = location.hash || '#/'
-  if (!(await ensureMe())) { clear(app); dispose = login(app, () => { location.hash = '#/'; route() }); return }
+  if (!(await ensureMe())) { clear(app); dispose = login(app, () => { location.hash = '#/'; route() }, session.expired ? t('login.expired') : ''); return }
   if (hash === '#/login') { location.hash = '#/'; return }
   const root = h('div', { class: 'screen' })
   clear(app); app.append(root)
@@ -96,5 +96,5 @@ export async function route () {
   root.append(shell(h('div', { class: 'notice' }, t('err.notfound'))))
 }
 addEventListener('hashchange', route)
-addEventListener('studio:unauth', () => { session.me = null; route() })
+addEventListener('studio:unauth', () => { if (session.me) session.expired = true; session.me = null; route() })
 route()
