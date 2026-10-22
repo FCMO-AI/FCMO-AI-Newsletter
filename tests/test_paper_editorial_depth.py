@@ -71,11 +71,11 @@ class PaperEditorialDepthTests(unittest.TestCase):
         for locale in ("en", "es-419", "zh-Hans"):
             self.assertEqual({route["story_id"] for route in self.story_routes if route["locale"] == locale}, live_ids)
         for locale, prefix in (("en", ""), ("es-419", "es/"), ("zh-Hans", "zh/")):
-            front = (self.out / prefix / "diario/index.html").read_text(encoding="utf-8")
+            front = (self.out / prefix / "index.html").read_text(encoding="utf-8")
             method = (self.out / prefix / "method/index.html").read_text(encoding="utf-8")
             status = (self.out / prefix / "status/index.html").read_text(encoding="utf-8")
             with self.subTest(locale=locale):
-                self.assertIn('class="front-ledger"', front)
+                self.assertIn('class="band-counts"', front)  # c6: the method band carries the live counts
                 self.assertIn('class="method-steps"', method)
                 self.assertIn('class="method-example"', method)
                 self.assertIn('class="status-grid"', status)

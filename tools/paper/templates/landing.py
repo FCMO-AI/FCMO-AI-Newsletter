@@ -228,11 +228,14 @@ def _wire(stories: list[dict], ctx: _Ctx) -> str:
             f'{_FILTER_SCRIPT if chips else ""}')
 
 
+TOPIC_PAGE_MIN = 3  # build.py writes topic/<slug>/ only for topics with at least this many stories
+
+
 def _topics(stories: list[dict], ctx: _Ctx) -> str:
     tiles = "".join(
         f'<li><a href="{_e(ctx.topic_href(topic))}"><b>{_e(ctx.topic_labels[topic])}</b>'
         f'<span class="rubric">{_e(plural(ctx.catalog, "story", count))}</span></a></li>'
-        for topic, count in plan_mod.topic_counts(stories, ctx.topic_labels))
+        for topic, count in plan_mod.topic_counts(stories, ctx.topic_labels) if count >= TOPIC_PAGE_MIN)  # a tile only for a topic that has a page
     if not tiles:
         return ""
     return (f'<section class="block surface-bone" id="topics" aria-labelledby="topics-title"><div class="frame">'
