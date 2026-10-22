@@ -89,7 +89,7 @@ _SAMPLE = {"shown": "shown", "claimed": "claimed", "not_established": "gap"}
 def _chip(klass: str, ctx: _Ctx) -> str:
     kind = _SAMPLE[klass]
     return (f'<span class="chip chip-{kind}"><span class="sample sample-{kind}" aria-hidden="true"></span>'
-            f'<strong class="chip-word">{_e(ctx.s["proof"][klass])}</strong></span>')
+            f'<span class="chip-word"><strong>{_e(ctx.s["proof"][klass])}</strong></span></span>')
 
 
 def _evrow(story: dict, ctx: _Ctx, *, cls: str = "evrow", tag: str = "p") -> str:
@@ -127,7 +127,7 @@ def _cover(feature: dict, story: dict | None, ctx: _Ctx | None, record: str) -> 
     else:
         confidence = f' · {_e(feature["confidence"])}' if feature["confidence"] else ""
         signals = (f'<div class="cover-dek">{_e(feature["dek"])}</div>'
-                   f'<div class="evrow"><strong class="chip-word">{_e(feature["grade"])}</strong>{confidence}</div>')
+                   f'<div class="evrow"><span class="chip-word"><strong>{_e(feature["grade"])}</strong></span>{confidence}</div>')
         side = f'<div class="cover-side">{foot}</div>'
         glance_html = feature["hero"]
     # Divs, not <p>, inside the card: the legacy ``.story-card p`` rule would grey them out on the dark cover.
