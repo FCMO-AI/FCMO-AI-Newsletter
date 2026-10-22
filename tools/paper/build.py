@@ -242,6 +242,15 @@ class PaperBuilder:
         candidates.sort(key=lambda row: (row[0], row[1]), reverse=True)
         return [(candidate, reason) for _, _, candidate, reason in candidates[:limit]]
 
+    def _correction_story_href(self, locale: dict, story: dict) -> str:
+        """Where a correction's story link lands: the live story, its live survivor, else the correction notice."""
+        if story.get("status") == "live":
+            return self._story_href(locale, story)
+        survivor = next((s for s in self.stories if s["id"] == story.get("merged_into")), None)
+        if survivor and survivor.get("status") == "live":
+            return self._story_href(locale, survivor)
+        return self._correction_href(locale, story)
+
     @staticmethod
     def _related_reason(reason: str, item: dict, catalog: dict) -> str:
         """Visible reason on a related card: a catalogue topic label, an organisation name or the beat; never a raw slug."""
@@ -818,7 +827,7 @@ class PaperBuilder:
             date = correction.get("at") or story.get("updated_at")
             correction_rows.append(correction_row(
                 catalog=catalog, title=title, note=note, date_iso=date, date_text=format_date(date, catalog),
-                story_href=self._story_href(locale, story), correction_href=self._correction_href(locale, story),
+                story_href=self._correction_story_href(locale, story), correction_href=self._correction_href(locale, story),
                 class_before=correction.get("class_before"), class_after=correction.get("class_after"),
                 reason=(correction.get("reason") or "") if isinstance(correction.get("reason"), str) else ""))
         corr_body = corrections_intro(catalog, method_href=href(self.base, locale["path_prefix"] + "method/")) + (
