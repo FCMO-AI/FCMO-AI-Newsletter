@@ -126,7 +126,8 @@ def _cover(feature: dict, story: dict | None, ctx: _Ctx | None, record: str) -> 
         glance_html = f'<div class="cover-glance" aria-label="{_e(glance)}">{feature["hero"]}</div>'
     else:
         confidence = f' · {_e(feature["confidence"])}' if feature["confidence"] else ""
-        signals = f'<div class="evrow"><strong class="chip-word">{_e(feature["grade"])}</strong>{confidence}</div>'
+        signals = (f'<div class="cover-dek">{_e(feature["dek"])}</div>'
+                   f'<div class="evrow"><strong class="chip-word">{_e(feature["grade"])}</strong>{confidence}</div>')
         side = f'<div class="cover-side">{foot}</div>'
         glance_html = feature["hero"]
     # Divs, not <p>, inside the card: the legacy ``.story-card p`` rule would grey them out on the dark cover.
@@ -142,8 +143,8 @@ def _cover(feature: dict, story: dict | None, ctx: _Ctx | None, record: str) -> 
         f'{side}'
         f'</div>{glance_html}</article>'
     )
-    return (f'<section class="landing-intro cover surface-ink" aria-label="{_e(feature["label"])}">'
-            f'<div class="frame">{card}</div>{record}</section>')
+    return (f'<section class="landing-intro" aria-label="{_e(feature["label"])}"><div class="cover surface-ink">'
+            f'<div class="frame">{card}</div></div>{record}</section>')
 
 
 def _board(stories: list[dict], ctx: _Ctx) -> str:
@@ -154,14 +155,14 @@ def _board(stories: list[dict], ctx: _Ctx) -> str:
         wide = index == 0
         ident = f'bt-{_e(story["id"])}'
         meta = f'{_e(ctx.format_label(story))} · {_e(story["event_at"][:10])}'
+        link = ctx.story_href(story)
         cards.append(
-            f'<a class="plate-card{" plate-card-wide" if wide else ""}" href="{_e(ctx.story_href(story))}" '
-            f'aria-labelledby="{ident}" data-story-id="{_e(story["id"])}">'
-            f'{_plate_html(story, "16:9" if wide else "16:10", ctx.s)}'
+            f'<article class="plate-card{" plate-card-wide" if wide else ""}" aria-labelledby="{ident}" data-story-id="{_e(story["id"])}">'
+            f'<a href="{_e(link)}" tabindex="-1" aria-hidden="true">{_plate_html(story, "16:9" if wide else "16:10", ctx.s)}</a>'
             f'<div class="plate-card-body"><p class="rubric">{meta}</p>'
-            f'<h3 class="plate-card-title" id="{ident}">{_e(ctx.head(story))}</h3>'
+            f'<h3 class="plate-card-title" id="{ident}"><a href="{_e(link)}">{_e(ctx.head(story))}</a></h3>'
             f'<p class="plate-card-dek">{_e(truncate(dek(story, ctx.code, ctx.catalog), 150))}</p>'
-            f'{_evrow(story, ctx)}</div></a>')
+            f'{_evrow(story, ctx)}</div></article>')
     return (f'<section class="block surface-bone" id="board" aria-labelledby="board-title"><div class="frame">'
             f'<div class="block-head"><div><p class="rubric rubric-accent">FCMO AI</p>'
             f'<h2 class="block-title" id="board-title">{_e(ctx.s["board"]["order_note"])}</h2></div></div>'
