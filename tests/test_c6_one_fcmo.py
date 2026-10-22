@@ -70,6 +70,17 @@ def visible_text(html):
     return parser.text()
 
 
+def visible_text_nodes(html):
+    parser = VisibleText()
+    parser.feed(html)
+    return [part.strip() for part in parser.parts if part.strip()]
+
+
+# «membership» is ordinary prose inside story text (membership leakage, family membership); the retired
+# product copy lives in the site chrome and pages, so story pages (dated routes) are not checked for it.
+STORY_PAGE_RE = re.compile(r"^\d{4}/\d{2}/\d{2}/|/\d{4}/\d{2}/\d{2}/")
+
+
 class OneFcmoBuild(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -110,7 +121,10 @@ class TestC6OneFcmo(OneFcmoBuild):
         hits = []
         for page in sorted(self.out.rglob("*.html")):
             source = page.read_text(encoding="utf-8", errors="replace").lower()
+            is_story = bool(STORY_PAGE_RE.search(page.relative_to(self.out).as_posix()))
             for needle in FORBIDDEN_PRODUCT_STRINGS:
+                if is_story and needle == "membership":
+                    continue
                 if needle.lower() in source:
                     hits.append(f"{page.relative_to(self.out)}: {needle!r}")
         self.assertFalse(
@@ -124,13 +138,15 @@ class TestC6OneFcmo(OneFcmoBuild):
         # Hyphenated topic slugs only: single words such as «agents» are also prose.
         slugs = sorted(p.name for p in (self.out / "topic").iterdir() if p.is_dir() and "-" in p.name)
         self.assertTrue(slugs, "no hyphenated topic directories were built")
-        pattern = re.compile(r"(?<![\w-])(%s)(?![\w-])" % "|".join(re.escape(s) for s in slugs))
+        # A raw slug is a text node that is only the slug (a chip or label). A slug inside a
+        # headline or sentence, such as «post-training», is ordinary prose.
+        slug_set = {slug.lower() for slug in slugs}
         hits = []
         for page in self.sample_pages():
-            text = visible_text(page.read_text(encoding="utf-8", errors="replace"))
-            for match in pattern.finditer(text):
-                hits.append(f"{page.relative_to(self.out)}: {match.group(1)!r}")
-                break
+            for node in visible_text_nodes(page.read_text(encoding="utf-8", errors="replace")):
+                if node.lower() in slug_set:
+                    hits.append(f"{page.relative_to(self.out)}: {node!r}")
+                    break
         self.assertFalse(
             hits,
             "raw topic slugs shown as visible text on %d sampled pages:\n%s" % (len(hits), "\n".join(hits[:25])),

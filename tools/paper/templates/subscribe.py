@@ -18,14 +18,6 @@ _LOCALES = {
     "es-419": {"soon": "Las suscripciones llegarán pronto", "ready": "Elige cómo seguirnos", "intro": "Una sola publicación. Síguela a tu manera.", "closed": "El alta por correo abre en el lanzamiento. Esta página no envía ningún dato.", "language": "Los correos se envían en español.", "cta": "Elegir mis correos", "manage": "Cambia tus preferencias o date de baja en cualquier momento desde tu cuenta.", "rss": "RSS", "json": "Feed JSON"},
     "zh-Hans": {"soon": "订阅即将开放", "ready": "选择关注方式", "intro": "一份刊物，随你的方式关注。", "closed": "电子邮件订阅将在发布时开放。此页面不会提交任何数据。", "language": "电子邮件以西班牙语发送。你仍可通过订阅源阅读本语言版本。", "cta": "选择邮件", "manage": "你可以随时在账户中更改偏好或退订。", "rss": "RSS", "json": "JSON 订阅源"},
 }
-# Two ways to follow the same publication: the daily edition, or its signed letters.
-_DESCRIPTIONS = {
-    "en": ("Signed letters, by their author.", "The daily edition: every story with its evidence."),
-    "es-419": ("Cartas firmadas por su autor.", "La edición diaria: cada historia con su evidencia."),
-    "zh-Hans": ("由作者署名的来信。", "每日一期：每篇报道都附证据。"),
-}
-
-
 def subscription_config() -> dict:
     return json.loads(CONFIG.read_text(encoding="utf-8"))
 
@@ -63,17 +55,12 @@ def subscribe_block(zone: str, locale: str, *, base: str = "/FCMO-AI-Newsletter/
         return diario_form(locale, base, form, page)
     config = subscription_config()
     copy = _LOCALES.get(locale, _LOCALES["en"])
-    descriptions = _DESCRIPTIONS.get(locale, _DESCRIPTIONS["en"])
     configured_url = ghost_url if ghost_url is not None else os.environ.get("GHOST_URL") or os.environ.get("GHOST_PORTAL_URL")
     if configured_url and configured_url.endswith("#/portal/signup"):
         configured_url = configured_url.split("#", 1)[0]
     ghost = ghost_signup_url(configured_url)
     active = ghost is not None and locale in config["languages"]["signup_locales"]
     root = base.rstrip("/") + "/" + (path_prefix if path_prefix is not None else {"es-419": "es/", "zh-Hans": "zh/"}.get(locale, ""))
-    items = []
-    for key, description in zip(("letter", "paper"), descriptions):
-        product = config["products"][key]
-        items.append(f'<li class="subscribe-choice subscribe-choice--{key}"><strong>{escape(product["name"])}</strong><span>{escape(description)}</span></li>')
     action = (f'<p><a class="button" href="{escape(ghost, quote=True)}" rel="external noopener" data-ghost-portal="signup">{escape(copy["cta"])}</a></p>' if active else
               f'<p class="subscription-state"><strong>{escape(copy["closed"])}</strong></p>')
     title = copy["ready"] if active else copy["soon"]
@@ -83,7 +70,7 @@ def subscribe_block(zone: str, locale: str, *, base: str = "/FCMO-AI-Newsletter/
     heading = f'<{tag} class="page-title">{escape(title)}</{tag}>'
     return (f'<section class="{wrapper} subscribe-v2" data-subscribe-zone="{zone}" data-subscribe-state="{"active" if active else "launch"}">'
             f'<p class="section-kicker">FCMO AI</p>{heading}<p>{escape(copy["intro"])}</p>'
-            f'<ul class="subscribe-choices">{"".join(items)}</ul>{action}<p>{escape(manage)}</p>'
+            f'{action}<p>{escape(manage)}</p>'
             f'<p>{escape(copy["language"])}</p><ul class="community-options">'
             f'<li><a href="{escape(root + "feed.xml", quote=True)}">{escape(copy["rss"])}</a></li>'
             f'<li><a href="{escape(root + "feed.atom", quote=True)}">Atom</a></li>'

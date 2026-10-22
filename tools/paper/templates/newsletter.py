@@ -13,7 +13,7 @@ COPY = {
         "third": "Decide what follows", "third_body": "Keep the question open when the record is incomplete. Follow the topic, then return as evidence changes.",
         "record": "From the public record", "next": "Continue reading", "latest": "Recent technical reporting", "empty": "No letter is published yet. This guide and the technical record are available now.", "topics": "Follow a subject", "topic_count": "stories",
         "subscribe": "Choose how to follow", "subscribe_body": "Email registration opens when the publication is ready. The public feeds already provide an open way to follow the daily.",
-        "letter_link": "Letters", "guide_link": "Beginner guide", "community_link": "Community", "technical_link": "Technical daily", "feed_link": "Open feeds", "subscribe_link": "Subscription options",
+        "letter_link": "Letters", "guide_link": "Beginner guide", "community_link": "Community", "technical_link": "Front page", "feed_link": "Open feeds", "subscribe_link": "Subscription options",
     },
     "es-419": {
         "letters": "Cartas de Javier", "letters_dek": "Una mirada humana a las decisiones que sostienen el trabajo. Lee aquí las cartas publicadas y sigue un tema hasta el registro de investigación.", "letters_shelf": "Archivo de cartas",
@@ -24,7 +24,7 @@ COPY = {
         "third": "Decide qué sigue", "third_body": "Mantén abierta la pregunta si el registro está incompleto. Sigue el tema y vuelve cuando cambie la evidencia.",
         "record": "Del registro público", "next": "Sigue leyendo", "latest": "Cobertura técnica reciente", "empty": "Aún no se ha publicado una carta. La guía y el registro técnico ya están disponibles.", "topics": "Sigue un tema", "topic_count": "historias",
         "subscribe": "Elige cómo seguir", "subscribe_body": "El alta por correo abrirá cuando la publicación esté lista. Los feeds públicos ya permiten seguir el diario.",
-        "letter_link": "Cartas", "guide_link": "Guía inicial", "community_link": "Comunidad", "technical_link": "Diario técnico", "feed_link": "Abrir feeds", "subscribe_link": "Opciones de suscripción",
+        "letter_link": "Cartas", "guide_link": "Guía inicial", "community_link": "Comunidad", "technical_link": "Portada", "feed_link": "Abrir feeds", "subscribe_link": "Opciones de suscripción",
     },
     "zh-Hans": {
         "letters": "Javier 来信", "letters_dek": "从人的角度理解支持长期工作的决策。在这里阅读已发表的来信，再沿着主题进入公开研究记录。", "letters_shelf": "来信目录",
@@ -35,7 +35,7 @@ COPY = {
         "third": "决定下一步", "third_body": "记录不完整时保留疑问。关注主题，在证据变化后回来查看。",
         "record": "公开记录精选", "next": "继续阅读", "latest": "近期技术报道", "empty": "目前尚无已发表的来信。阅读指南和技术记录现已开放。", "topics": "关注主题", "topic_count": "篇报道",
         "subscribe": "选择关注方式", "subscribe_body": "出版准备就绪后将开放电子邮件注册。公开订阅源现已可用于关注日报。",
-        "letter_link": "来信", "guide_link": "入门指南", "community_link": "社群", "technical_link": "技术日报", "feed_link": "打开订阅源", "subscribe_link": "订阅方式",
+        "letter_link": "来信", "guide_link": "入门指南", "community_link": "社群", "technical_link": "首页", "feed_link": "打开订阅源", "subscribe_link": "订阅方式",
     },
 }
 
@@ -51,7 +51,7 @@ def render(kind: str, *, locale: str, root: str, technical: str, cards: str, car
     c = COPY[locale]
     e = lambda value: escape(str(value), quote=True)
     title, dek = c[kind], c[kind + "_dek"]
-    links = f'<nav class="newsletter-path" aria-label="{e(c["next"])}"><a href="{e(root)}cartas/">{e(c["letter_link"])} ↗</a><a href="{e(root)}empieza/">{e(c["guide_link"])} ↗</a><a href="{e(root)}comunidad/">{e(c["community_link"])} ↗</a><a href="{e(technical)}">{e(c["technical_link"])} ↗</a></nav>'
+    links = f'<nav class="newsletter-path" aria-label="{e(c["next"])}"><a href="{e(technical)}">{e(c["technical_link"])} ↗</a><a href="{e(root)}subscribe/">{e(c["subscribe_link"])} ↗</a></nav>'
     head = f'<header class="newsletter-hero"><p class="section-kicker">FCMO AI</p><h1>{e(title)}</h1><p>{e(dek)}</p>{links}</header>'
     steps = (f'<section class="newsletter-steps" aria-labelledby="reading-title"><div class="newsletter-section-head"><p class="section-kicker">FCMO AI</p><h2 id="reading-title">{e(c["reading"])}</h2></div><ol>'
              + "".join(f'<li><span>0{n}</span><h3>{e(c[key])}</h3><p>{e(c[key + "_body"])}</p></li>' for n, key in enumerate(("first", "second", "third"), 1)) + '</ol></section>')
@@ -66,7 +66,7 @@ def render(kind: str, *, locale: str, root: str, technical: str, cards: str, car
     elif kind == "guide":
         body = head + steps + record + topic_list
     elif kind == "community":
-        body = head + steps + f'<section class="newsletter-follow"><p class="section-kicker">FCMO AI</p><h2>{e(c["subscribe"])}</h2><p>{e(c["subscribe_body"])}</p><a href="{e(root)}suscribete/">{e(c["subscribe_link"])} ↗</a><a href="{e(root)}feeds/">{e(c["feed_link"])} ↗</a></section>' + record + topic_list
+        body = head + steps + f'<section class="newsletter-follow"><p class="section-kicker">FCMO AI</p><h2>{e(c["subscribe"])}</h2><p>{e(c["subscribe_body"])}</p><a href="{e(root)}subscribe/">{e(c["subscribe_link"])} ↗</a><a href="{e(root)}feeds/">{e(c["feed_link"])} ↗</a></section>' + record + topic_list
     else:
         raise ValueError(f"unknown newsletter page: {kind}")
     return title, dek, f'<div class="newsletter-page">{body}</div>'
@@ -79,6 +79,4 @@ def subscription_tail(*, locale: str, root: str, technical: str, cards: str) -> 
     return (f'<section class="newsletter-record subscribe-reading"><div class="newsletter-section-head">'
             f'<p class="section-kicker">FCMO AI</p><h2>{e(c["record"])}</h2>'
             f'<a href="{e(technical)}">{e(c["technical_link"])} ↗</a></div>'
-            f'<div class="card-row">{cards}</div><nav class="newsletter-path" aria-label="{e(c["next"])}">'
-            f'<a href="{e(root)}cartas/">{e(c["letter_link"])} ↗</a>'
-            f'<a href="{e(root)}empieza/">{e(c["guide_link"])} ↗</a></nav></section>')
+            f'<div class="card-row">{cards}</div></section>')

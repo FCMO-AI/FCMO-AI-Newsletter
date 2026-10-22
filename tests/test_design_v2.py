@@ -80,9 +80,9 @@ class DesignV2Build(unittest.TestCase):
             landing = (self.out / prefix / "index.html").read_text(encoding="utf-8")
             self.assertNotIn(f'/FCMO-AI-Newsletter/{prefix}cartas/', landing)
             self.assertNotIn(f'/FCMO-AI-Newsletter/{prefix}empieza/', landing)
-            # The front keeps its live counts strip (one evidence record for the whole publication).
-            self.assertIn('class="landing-record"', landing)
-            self.assertEqual(landing.count("<small>"), 3)
+            # The method band carries the live counts (DIRECCION section 2: it replaces the old counts row).
+            self.assertIn('class="band-counts"', landing)
+            self.assertEqual(landing.split('class="band-counts"', 1)[1].split("</ul>", 1)[0].count("<span>"), 3)
 
     def test_404_has_all_three_locale_destinations(self):
         page = (self.out / "404.html").read_text(encoding="utf-8")

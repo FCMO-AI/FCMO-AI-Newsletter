@@ -454,7 +454,7 @@ class PaperBuilder:
         topic_counts = Counter(topic for story in self.live for topic in story.get("topics", []))
         topics = [(name, count, slugify(name)) for name, count in topic_counts.most_common() if count >= 3][:8]
         root = href(self.base, locale["path_prefix"])
-        technical = href(self.base, locale["path_prefix"] + TECHNICAL_FRONT)
+        technical = href(self.base, locale["path_prefix"])  # the one front page
         cartas = getattr(self, "_editorial_shelf", {}).get(locale["code"], community.render_cartas(self.cartas, locale["code"]))
         # cartas/ and empieza/ are redirect stubs now (redirects.py); only comunidad/ remains a page.
         for kind, suffix in (("community", "comunidad/"),):
@@ -861,7 +861,7 @@ class PaperBuilder:
         recent = sorted(self.live, key=lambda story: (story.get("event_at", ""), story["id"]), reverse=True)[:3]
         cards = "".join(self._card(story, locale, 3) for story in recent)
         tail = subscription_tail(locale=locale["code"], root=href(self.base, locale["path_prefix"]),
-                                 technical=href(self.base, locale["path_prefix"] + TECHNICAL_FRONT), cards=cards)
+                                 technical=href(self.base, locale["path_prefix"]), cards=cards)
         # Kit redirect surfaces are deterministic templates, never subscriber receipts.
         from tools.paper.templates.subscription_states import COPY, state_page
         copy = COPY[locale['code']]

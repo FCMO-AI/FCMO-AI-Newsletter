@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from urllib.parse import urlsplit
+
 from html import escape
 import json
 
@@ -49,7 +51,7 @@ def document(*, locale: dict, catalog: dict, config: dict, base: str, path: str,
     status = _url(base, locale_prefix + "status/")
     method = _url(base, locale_prefix + "method/")
     corrections = _url(base, locale_prefix + "corrections/")
-    subscribe = _url(base, locale_prefix + "suscribete/")
+    subscribe = _url(base, locale_prefix + "subscribe/")
     topics = home + "#topics"
     brand_sym = _url(base, "assets/pwa/favicon.svg")
     alternates_html = "\n".join(
@@ -65,6 +67,8 @@ def document(*, locale: dict, catalog: dict, config: dict, base: str, path: str,
     def lang_link(item: dict) -> str:
         hl = item["hreflang"]
         url = alt_map.get(hl) or _url(base, item["path_prefix"] + path)
+        if url.startswith(("http://", "https://")):
+            url = urlsplit(url).path or "/"  # header links stay on the same origin and keep working on any host
         note = switch["keeps_story"]
         if alt_map and hl not in alt_map:
             url = _url(base, item["path_prefix"])
@@ -103,7 +107,7 @@ def document(*, locale: dict, catalog: dict, config: dict, base: str, path: str,
         (archive, tabs["archive"], here("archive/")),
         (search_focus, tabs["search"], here("search/")),
         (corrections, tabs["corrections"], here("corrections/")),
-        (subscribe, tabs["subscribe"], here("suscribete/", "subscribe/")),
+        (subscribe, tabs["subscribe"], here("subscribe/")),
     )
     tabbar = "".join(f'<a href="{_e(u)}"{c}>{_e(t)}</a>' for u, t, c in tab_items)
     footer = strings["footer"]
