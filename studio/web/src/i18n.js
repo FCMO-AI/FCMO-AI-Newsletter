@@ -186,3 +186,18 @@ Object.assign(S.en, {
   'rev.private.approve': 'Approve private review',
   'rev.private.confirm': 'The approval is saved in Studio. Public publication is disabled.'
 })
+
+Object.assign(S.es, {
+  'gh.connect': 'Conectar GitHub', 'gh.waiting': 'Esperando que autorices…', 'gh.ready': 'Listo: GitHub conectado.',
+  'gh.starting': 'Preparando la conexión…', 'gh.timeout': 'La conexión tardó demasiado. Inténtalo de nuevo.',
+  'gh.cancelled': 'Conexión cancelada.', 'gh.error': 'No se pudo conectar. Inténtalo de nuevo.', 'gh.missing': 'Tu cuenta de GitHub todavía no está conectada.',
+  'gh.code': 'Código de un solo uso', 'gh.copy': 'Copiar código', 'gh.copied': 'Código copiado.',
+  'gh.copyError': 'No se pudo copiar. Selecciona el código para copiarlo.', 'gh.open': 'Abrir GitHub', 'gh.cancel': 'Cancelar'
+})
+Object.assign(S.en, {
+  'gh.connect': 'Connect GitHub', 'gh.waiting': 'Waiting for you to authorize…', 'gh.ready': 'Done: GitHub is connected.',
+  'gh.starting': 'Getting things ready…', 'gh.timeout': 'This took too long. Try again.',
+  'gh.cancelled': 'Connection cancelled.', 'gh.error': 'Could not connect. Try again.', 'gh.missing': 'Your GitHub account is not connected yet.',
+  'gh.code': 'One-time code', 'gh.copy': 'Copy code', 'gh.copied': 'Code copied.',
+  'gh.copyError': 'Could not copy. Select the code to copy it.', 'gh.open': 'Open GitHub', 'gh.cancel': 'Cancel'
+})
