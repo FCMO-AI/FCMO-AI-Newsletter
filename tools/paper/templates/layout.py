@@ -4,14 +4,9 @@ from __future__ import annotations
 
 from html import escape
 import json
-from tools.paper.routes import PRODUCT_NAMES, TECHNICAL_FRONT
 
 
-MASTHEAD_SUBTITLE = {
-    "en": "Newsletter · evidence first",
-    "es-419": "Newsletter · evidencia primero",
-    "zh-Hans": "简报 · 证据优先",
-}
+LANG_BUTTONS = {"en": "EN", "es-419": "ES", "zh-Hans": "中文"}
 
 
 def _e(value: object, *, quote: bool = True) -> str:
@@ -48,38 +43,69 @@ def document(*, locale: dict, catalog: dict, config: dict, base: str, path: str,
     apple_touch_icon = _url(base, "assets/pwa/icons/icon-192.svg")
     font_root = _url(base, "assets/fonts/")
     search = _url(base, locale_prefix + "search/")
+    search_focus = search + "?focus=1"
     archive = _url(base, locale_prefix + "archive/")
     feeds = _url(base, locale_prefix + "feeds/")
     status = _url(base, locale_prefix + "status/")
     method = _url(base, locale_prefix + "method/")
-    technical = _url(base, locale_prefix + TECHNICAL_FRONT)
-    is_human = body_class in {"page-landing", "page-subscribe", "page-letters", "page-guide", "page-community"}
-    is_technical = not is_human
-    letters = _url(base, locale_prefix + "cartas/")
-    guide = _url(base, locale_prefix + "empieza/")
-    community = _url(base, locale_prefix + "comunidad/")
+    corrections = _url(base, locale_prefix + "corrections/")
     subscribe = _url(base, locale_prefix + "suscribete/")
+    topics = home + "#topics"
+    brand_sym = _url(base, "assets/pwa/favicon.svg")
     alternates_html = "\n".join(
         f'<link rel="alternate" hreflang="{_e(code)}" href="{_e(url)}">'
         for code, url in alternates
     )
-    languages = "".join(
-        f'<a href="{_e(url)}" hreflang="{_e(code)}" lang="{_e(code)}"'
-        + (' aria-current="page"' if code == locale["hreflang"] else "")
-        + f'>{_e(label)}</a>'
-        for code, url, label in (
-            (item["hreflang"], _url(base, item["path_prefix"] + path), item["label"])
-            for item in config["locales"]
-        )
-    )
-    crumb_label = {"en": "Home", "es-419": "Inicio", "zh-Hans": "首页"}[locale["code"]]
-    current_crumb = ({"en": "Organization", "es-419": "Organización", "zh-Hans": "机构"}[locale["code"]]
-                     if path.startswith("org/") else title.split(" — ")[0])
-    breadcrumb = "" if not path else (f'<nav class="breadcrumbs" aria-label="{_e(strings["a11y"]["breadcrumbs"])}"><ol><li><a href="{_e(home)}">{_e(crumb_label)}</a></li>'
-        + (f'<li><a href="{_e(technical)}">{_e(PRODUCT_NAMES["technical"])}</a></li>' if is_technical and path != TECHNICAL_FRONT else "")
-        + f'<li aria-current="page">{_e(current_crumb)}</li></ol></nav>')
     nav = strings["nav"]
+    tabs = strings["tabs"]
+    switch = strings["lang_switch"]
+    code = locale["code"]
+    alt_map = {hl: u for hl, u in alternates}
+
+    def lang_link(item: dict) -> str:
+        hl = item["hreflang"]
+        url = alt_map.get(hl) or _url(base, item["path_prefix"] + path)
+        note = switch["keeps_story"]
+        if alt_map and hl not in alt_map:
+            url = _url(base, item["path_prefix"])
+            note = switch["story_unavailable"].format(language=item["label"])
+        current = hl == locale["hreflang"]
+        if current:
+            note = switch["current"].format(language=item["label"])
+        return (f'<a href="{_e(url)}" hreflang="{_e(hl)}" lang="{_e(hl)}" aria-label="{_e(item["label"])}" title="{_e(note)}"'
+                + (' aria-current="true"' if current else "")
+                + f'>{_e(LANG_BUTTONS.get(item["code"], item["code"]))}</a>')
+
+    languages = "".join(lang_link(item) for item in config["locales"])
+    crumb_label = nav["home"]
+    current_crumb = ({"en": "Organization", "es-419": "Organización", "zh-Hans": "机构"}[code]
+                     if path.startswith("org/") else title.split(" — ")[0])
+    breadcrumb = "" if (not path or story_id) else (
+        f'<nav class="breadcrumbs" aria-label="{_e(strings["a11y"]["breadcrumbs"])}"><ol>'
+        f'<li><a href="{_e(home)}">{_e(crumb_label)}</a></li><li aria-current="page">{_e(current_crumb)}</li></ol></nav>')
+
+    def here(*prefixes: str) -> str:
+        return ' aria-current="page"' if any(path.startswith(p) if p else not path for p in prefixes) else ""
+
+    top_items = (
+        (home, nav["today"], here("")),
+        (topics, nav["topics"], ""),
+        (archive, nav["archive"], here("archive/")),
+        (search_focus, nav["search"], here("search/")),
+        (corrections, nav["corrections"], here("corrections/")),
+        (method, nav["method_short"], here("method/")),
+    )
+    topnav = "".join(f'<a href="{_e(u)}"{c}>{_e(t)}</a>' for u, t, c in top_items)
+    tab_items = (
+        (home, tabs["today"], here("")),
+        (archive, tabs["archive"], here("archive/")),
+        (search_focus, tabs["search"], here("search/")),
+        (corrections, tabs["corrections"], here("corrections/")),
+        (subscribe, tabs["subscribe"], here("suscribete/", "subscribe/")),
+    )
+    tabbar = "".join(f'<a href="{_e(u)}"{c}>{_e(t)}</a>' for u, t, c in tab_items)
     footer = strings["footer"]
+    footer_ui = strings["footer_ui"]
     year = canonical[0:4] if canonical[:4].isdigit() else "2026"
     og = f'<meta property="og:image" content="{_e(og_image)}"><meta name="twitter:card" content="summary_large_image">' if og_image else ""
     structured = ""
@@ -102,9 +128,11 @@ def document(*, locale: dict, catalog: dict, config: dict, base: str, path: str,
 {structured}{agent_alternates(machine_alternates)}{extra_head}
 </head>
 <body class="{_e(body_class)}"><a class="skip-link" href="#main">{_e(strings['a11y']['skip_to_content'])}</a>
-<header class="site-header"><div class="utility-bar"><a class="utility-brand" href="{_e(home)}">FCMO</a><span class="edition-line">{_e(strings['site']['tagline'])}</span><nav class="language-nav" aria-label="{_e(strings['a11y']['language_switcher'])}">{languages}</nav></div>
-<div class="head-row"><div class="masthead"><a class="brand" href="{_e(home)}">FCMO</a><span class="brand-sub">fCMO / Javier &nbsp;·&nbsp; FCMO AI / Matías</span></div>
-<nav class="zone-switch" aria-label="{_e(strings['a11y']['publication_sections'])}"><a href="{_e(letters)}"{' aria-current="page"' if is_human and path else ''}>fCMO<small>{_e(PRODUCT_NAMES['newsletter'])} · Javier</small></a><a href="{_e(technical)}"{' aria-current="page"' if is_technical else ''}>FCMO AI<small>{_e(PRODUCT_NAMES['technical'])} · Matías</small></a></nav></div>
-<nav class="main-nav" aria-label="{_e(nav['menu'])}"><a href="{_e(home)}">FCMO</a><a href="{_e(letters)}">{_e(PRODUCT_NAMES['newsletter'])}</a><a href="{_e(guide)}">{_e({'en':'Start here','es-419':'Empieza aquí','zh-Hans':'从这里开始'}[locale['code']])}</a><a href="{_e(community)}">{_e({'en':'Community','es-419':'Comunidad','zh-Hans':'社群'}[locale['code']])}</a><a href="{_e(technical)}">FCMO AI</a><a href="{_e(archive)}">{_e(nav['archive'])}</a><a href="{_e(search)}">{_e(nav['search'])}</a><a href="{_e(subscribe)}">{_e({'en':'Subscribe','es-419':'Suscríbete','zh-Hans':'订阅'}[locale['code']])}</a></nav></header>
+<header class="topbar surface-ink"><div class="frame topbar-in"><a class="brandmark" href="{_e(home)}" aria-label="{_e(strings['brand']['home_label'])}"><img class="brandmark-sym" src="{_e(brand_sym)}" alt="" width="28" height="28">FCMO AI</a>
+<nav class="topnav" aria-label="{_e(strings['a11y']['primary_nav'])}">{topnav}</nav>
+<nav class="langsel" aria-label="{_e(strings['a11y']['language_switcher'])}">{languages}</nav><a class="btn-cta" href="{_e(subscribe)}">{_e(tabs['subscribe'])}</a></div></header>
 {status_banner}<main id="main" class="page-shell"{f' data-story-id="{_e(story_id)}"' if story_id else ''}>{breadcrumb}{body}</main>
-<footer class="site-footer"><div class="footer-lockup"><img src="{_e(_url(base, 'assets/brand/fcmo-lockup-footer-v3.png'))}" alt="FCMO · AI Operating System" width="2400" height="480" loading="lazy"></div><div class="footer-inner"><div class="footer-brand"><a href="{_e(home)}">FCMO</a><a href="{_e(letters)}">fCMO · Javier</a><a href="{_e(technical)}">FCMO AI · Matías</a></div><nav class="footer-links" aria-label="{_e(strings['a11y']['footer_navigation'])}"><a href="{_e(guide)}">{_e({'en':'Start here','es-419':'Empieza aquí','zh-Hans':'从这里开始'}[locale['code']])}</a><a href="{_e(community)}">{_e({'en':'Community','es-419':'Comunidad','zh-Hans':'社群'}[locale['code']])}</a><a href="{_e(subscribe)}">{_e({'en':'Subscribe','es-419':'Suscríbete','zh-Hans':'订阅'}[locale['code']])}</a><a href="{_e(_url(base, locale_prefix+'about/'))}">{_e(footer['about'])}</a><a href="{_e(method)}">{_e(footer['method'])}</a><a href="{_e(_url(base, locale_prefix+'corrections/'))}">{_e(footer['corrections'])}</a><a href="{_e(_url(base, locale_prefix+'privacy/'))}">{_e(footer['privacy'])}</a><a href="{_e(_url(base, locale_prefix+'license/'))}">{_e(footer['license'])}</a><a href="{_e(_url(base, locale_prefix+'disclaimer/'))}">{_e(footer['disclaimer'])}</a><a href="{_e(status)}">{_e(footer['status'])}</a><a href="{_e(feeds)}">{_e(footer['feeds'])}</a></nav><p class="footer-note">{_e(footer['automated_notice'])}<br>{_e(footer['copyright'].format(year=year))} · Faber Consilii, Machinator Operis</p></div></footer>{safeguard}</body></html>'''
+<footer class="footbar surface-bone"><div class="frame"><p class="footbar-brand"><a href="{_e(home)}"><strong>FCMO AI</strong></a> · {_e(footer_ui['tagline'])}</p>
+<nav class="footbar-links" aria-label="{_e(strings['a11y']['footer_navigation'])}"><a href="{_e(_url(base, locale_prefix+'about/'))}">{_e(footer['about'])}</a><a href="{_e(method)}">{_e(footer['method'])}</a><a href="{_e(corrections)}">{_e(footer['corrections'])}</a><a href="{_e(subscribe)}">{_e(tabs['subscribe'])}</a><a href="{_e(feeds)}">{_e(footer['feeds'])}</a><a href="{_e(status)}">{_e(footer['status'])}</a><a href="{_e(_url(base, locale_prefix+'privacy/'))}">{_e(footer['privacy'])}</a><a href="{_e(_url(base, locale_prefix+'license/'))}">{_e(footer['license'])}</a><a href="{_e(_url(base, locale_prefix+'disclaimer/'))}">{_e(footer['disclaimer'])}</a></nav>
+<p class="footbar-fine">{_e(footer_ui['one_publication'])} {_e(footer['automated_notice'])}<br>{_e(footer['copyright'].format(year=year))}</p></div></footer>
+<nav class="tabbar" aria-label="{_e(strings['a11y']['bottom_tabs'])}">{tabbar}</nav>{safeguard}</body></html>'''
