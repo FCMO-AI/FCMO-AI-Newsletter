@@ -119,7 +119,7 @@ def _cover(feature: dict, story: dict | None, ctx: _Ctx | None, record: str) -> 
     foot = (f'<div class="cover-foot cover-actions">{feature["status"]}'
             f'<a class="btn btn-ghost" href="{_e(feature["status_href"])}">{_e(feature["status_label"])}</a>{feature["badge"]}</div>')
     if ctx and story:
-        kicker = ctx.s["cover"]["lead_kicker"].format(beat=feature["beat"])
+        kicker = "FCMO AI · " + ctx.s["cover"]["lead_kicker"].format(beat=feature["beat"])
         signals = _evrow(story, ctx, cls="evrow cover-evrow", tag="div")
         glance = ctx.s["cover"]["evidence_glance"]
         side = f'<div class="cover-side">{_receipt(story, feature, ctx)}{_plate_html(story, "16:10", ctx.s)}{foot}</div>'
