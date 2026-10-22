@@ -122,9 +122,11 @@ def data_hero(story: dict, catalog: dict, *, evidence: dict | None = None) -> st
                f'<li><b>{gaps}</b><span>{e(d["hero_gaps"])}</span></li>'
                f'<li><b>{limits}</b><span>{e(d["hero_limits"])}</span></li>')
     grade_text = label(catalog, "evidence_class", story.get("evidence_class"))
+    conf_text = label(catalog, "confidence", story.get("confidence"))
     return (f'<figure class="data-hero" data-claims="{len(claims)}" data-primary="{primary}" data-gaps="{gaps}" aria-label="{e(d["hero_title"])}">'
             f'<figcaption class="dh-head"><span class="dh-kicker">{e(d["hero_title"])}</span></figcaption>'
-            f'<div class="dh-grade">{evidence_glyph(story, catalog, size="lg")}<span>{e(grade_text)}</span></div>'
+            f'<div class="dh-grade"><span class="er-grade-plate" aria-hidden="true">{e(story.get("evidence_class") or "?")}</span>'
+            f'<span class="dh-grade-text"><b>{e(grade_text)}</b>{("<small>" + e(conf_text) + "</small>") if conf_text else ""}</span></div>'
             f'<div class="dh-claims"><p class="dh-label">{e(d["hero_claims"])}</p><ol class="dh-strip">{strip}</ol>'
             f'<ul class="dh-legend">{legend}</ul></div><ul class="dh-figures">{figures}</ul></figure>')
 
@@ -289,7 +291,7 @@ def evidence_record(story: dict, catalog: dict, evidence: dict, *, jump_labels: 
     primary = sum(1 for s in sources if s.get("primary"))
     gaps, limits = len(evidence.get("gaps") or []), len(evidence.get("limitations") or [])
     grade_text = label(catalog, "evidence_short", story.get("evidence_class")) or label(catalog, "evidence_class", story.get("evidence_class"))
-    legend = "".join(f'<div><dt>{sample(cls)} {e(proof_word(catalog, cls))}</dt><dd>{counts[cls]}</dd></div>' for cls in PROOF_ORDER)
+    legend = "".join(f'<div{"" if counts[cls] else " class=\"er-zero\""}><dt>{sample(cls)} {e(proof_word(catalog, cls))}</dt><dd>{counts[cls]}</dd></div>' for cls in PROOF_ORDER)
     nums = "".join(f'<div><b>{n}</b><span>{e(text)}</span></div>' for n, text in (
         (len(claims), rec["counter_claims"]), (primary, rec["counter_sources"]), (gaps, rec["counter_gaps"]), (limits, rec["counter_limits"])))
     toc = "".join(f'<li><a href="#{k}">{e(jump_labels[k])}</a></li>' for k in JUMP_ORDER if k in jump_labels)
@@ -353,14 +355,15 @@ def unknowns_box(evidence: dict, catalog: dict) -> str:
 def sources_bar(story: dict, catalog: dict, *, automation_html: str, byline: str) -> str:
     """SOURCES strip under the headline: original source, byline, automation disclosure."""
     sb = catalog["strings"]["sources_bar"]
-    src = primary_source(story)
-    if src:
+    pool = [x for x in (story.get("sources") or []) if isinstance(x, dict) and x.get("url")]
+    primaries = [x for x in pool if x.get("primary")] or pool[:1]
+    links = []
+    for src in primaries[:2]:
         who = src.get("author") or src.get("organization") or src.get("domain") or src.get("url", "")
-        link = (f'<a href="{e(src.get("url", ""))}" rel="noopener noreferrer"><span translate="no">{e(who)}</span> ↗</a>')
-        first = f'<span>{e(sb["original"])}: {link}</span>'
-    else:
-        first = ""
-    return (f'<div class="srcbar"><div class="frame"><span class="rubric rubric-accent">{e(sb["title"])}</span> {first} '
+        links.append(f'<a href="{e(src.get("url", ""))}" rel="noopener noreferrer"><span translate="no">{e(who)}</span> ↗</a>')
+    lead = f'{e(sb["original"])}: ' if len(links) == 1 else ""
+    first = f'<span class="srcbar-links">{lead}{" · ".join(links)}</span>' if links else ""
+    return (f'<div class="srcbar"><div class="frame"><strong class="rubric rubric-accent srcbar-label">{e(sb["title"])}</strong> {first} '
             f'<span class="srcbar-by">{e(byline)}</span> {automation_html}</div></div>')
 
 

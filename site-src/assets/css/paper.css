@@ -215,3 +215,91 @@ body.page-story .breadcrumbs{width:100%;max-width:var(--l-grid-max);margin:1rem 
 .data-hero .dh-figures span{font-size:.75rem}
 
 html[lang="zh-Hans"] body.page-landing .landing-feature h1.cover-title{line-height:1.3}
+
+/* c6 round 3 (X1): one status line, tab-bar clearance, cover order on phones, hierarchy, zh line breaking. */
+.status-stack{display:block}
+.status-stack:has(.status-banner:not([hidden])){padding:.55rem max(1rem,calc((100% - var(--page))/2));border-bottom:1px solid currentColor;background:var(--warning-bg);color:var(--warning-text);font:600 .86rem/1.45 var(--display)}
+.status-stack:has(.status-banner[data-edition-state="DELAYED"]:not([hidden])),.status-stack:has(.status-banner[data-edition-state="TRANSPORT_DOWN"]:not([hidden])){background:var(--danger-bg);color:var(--danger-text)}
+.status-stack .status-banner:not([hidden]){display:inline;width:auto;margin:0;padding:0;border:0;background:none;color:inherit;font:inherit}
+.status-stack .status-banner:not([hidden])::before{display:inline-block;margin-right:.5rem;vertical-align:-.08em}
+.status-stack .status-banner a{white-space:nowrap;font-weight:700}
+.status-stack .status-banner:not([hidden])+.corpus-freshness{display:inline;width:auto;margin:0;padding:0;border:0;background:none;color:inherit;font:400 .8125rem/1.45 var(--display)}
+.status-stack .status-banner:not([hidden])+.corpus-freshness::before{content:"\00b7";margin:0 .45rem}
+.status-stack .status-banner[data-edition-state="DELAYED"]+.corpus-freshness strong,.status-stack .status-banner[data-edition-state="TRANSPORT_DOWN"]+.corpus-freshness strong{display:none}
+html[lang="zh-Hans"] .status-stack{text-wrap:pretty;word-break:keep-all;overflow-wrap:normal;line-break:strict}
+/* display tracking: the tightest sizes keep their word gaps */
+:root{--c6-track:-.012em}
+html[lang="zh-Hans"]{--c6-track:0}
+.method-band-title{word-spacing:.1em;letter-spacing:-.01em}
+.method-band-title em{margin-right:0}
+.block-title,.cover-title,.plate-card-title{word-spacing:.06em}
+/* In 20 seconds kicker */
+.receipt .receipt-title{display:block;margin:0 0 1rem;padding:0;font:700 .75rem/1.2 var(--c6-mono);letter-spacing:.1em;overflow:visible}
+.receipt dl>div>dt{margin:0 0 .2rem;line-height:1.25}
+/* cover plate */
+@media(min-width:1101px){body.page-landing .cover-side>.plate{align-self:start;margin-top:2.1rem}body.page-landing .cover-side>.receipt{margin-top:0}}
+/* grade on the cover is a lettered plate, like the Evidence Record */
+.data-hero .dh-grade{display:flex;align-items:center;gap:.9rem}
+.data-hero .dh-grade-text{display:grid;gap:.15rem;font:500 .875rem/1.25 var(--c6-ui)}
+.data-hero .dh-grade-text b{font-weight:700}
+.data-hero .dh-grade-text small{font:400 .75rem/1.25 var(--c6-mono);color:var(--chrome-mute)}
+.er-legend .er-zero{opacity:.55}
+.er-legend .er-zero .sample{background:transparent}
+/* method band: counts spread over the row, vanity counts demoted */
+.method-band .band-counts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem 2rem;max-width:none}
+.method-band .band-counts li:nth-child(n+2){font-size:clamp(1.25rem,2.2vw,1.9rem);opacity:.78}
+.method-band .band-note{max-width:none}
+@media(min-width:1101px){.method-band .band-trio{max-width:none}}
+/* wire / topics / trio */
+.topic-tiles{grid-auto-rows:1fr}
+.topic-tiles li{display:flex}.topic-tiles li>a{flex:1 1 auto}
+.trio a .rubric,.trio .rubric-accent{font:700 .875rem/1.3 var(--c6-ui);letter-spacing:0;text-transform:none}
+/* story: one jump nav, a hierarchy that reads on phones, source bar is the first thing under the headline */
+.srcbar-label{font-weight:700}
+.srcbar-links a{font-weight:700}
+.jumpbar{-webkit-mask-image:none;mask-image:none}
+@media(min-width:1101px){.jumpbar{display:none}}
+@media(max-width:1100px){.jumpbar{position:static;overflow:visible;flex-wrap:wrap;gap:0 .25rem;padding-inline:var(--l-pad,1rem)}}
+@media(max-width:760px){
+html body .story-layout[class] .story-cover header.story-header h1{font-size:clamp(1.5rem,6.4vw,1.8rem);line-height:1.08}
+html body .story-body h2,html body .story-body .layer-body h2{font-size:clamp(1.15rem,5.4vw,1.4rem);line-height:1.15}
+}
+html[lang="zh-Hans"] body .story-layout[class] .story-cover .story-header h1{font-family:var(--zh-sans);font-weight:800;letter-spacing:0}
+.layer>summary::after{margin-left:.6rem}
+.layer>summary{justify-content:flex-start}
+/* phone: cover reads title, class, 20 seconds, then the plate */
+@media(max-width:1100px){
+body.page-landing .cover-main>.cover-evrow{order:3}
+body.page-landing .cover-main>.cover-date{order:4;margin-top:.5rem}
+body.page-landing .cover-side>.receipt{order:5;margin-top:1rem}
+body.page-landing .cover-main>.cover-actions{order:6;margin-top:1rem}
+body.page-landing .cover-main>.cover-foot{order:7}
+body.page-landing .cover-side>.plate{order:8;margin:1.1rem 0 0;aspect-ratio:16/5}
+body.page-landing .cover-side>.plate svg{height:100%}
+}
+@media(max-width:760px){
+html body.page-landing .landing-feature h1.cover-title{font-size:clamp(1.8rem,8vw,2.2rem);line-height:1.06;margin-bottom:.8rem}
+html body .block-title,html body .method-band-title{font-size:clamp(1.6rem,6.6vw,2.1rem)}
+body.page-landing .cover-side>.receipt{padding:.9rem 1rem}
+body.page-landing .receipt dl{gap:.55rem}
+body.page-landing .receipt dd{font-size:.9375rem;line-height:1.38;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+body.page-landing .receipt .receipt-na dd{-webkit-line-clamp:3}
+body.page-landing .receipt .receipt-title{margin-bottom:.7rem}
+}
+/* tab bar never covers content */
+@media(max-width:760px){
+body:has(.tabbar){padding-bottom:calc(var(--l-tabbar) + env(safe-area-inset-bottom,0px) + 1.25rem)}
+.tabbar{height:calc(var(--l-tabbar) + env(safe-area-inset-bottom,0px));padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-bottom:calc(var(--l-tabbar) + 1rem)}
+}
+/* zh: labels never break inside a word */
+html[lang="zh-Hans"] :is(.evrow span,.er-counts span,.dh-figures span,.dh-legend span,.sig-text,.chip,.rubric,.srcbar a,.tabbar a,.jumpbar a,.er-legend dt,.claim-class span){word-break:keep-all;overflow-wrap:normal;line-break:strict}
+html[lang="zh-Hans"] :is(.evrow span,.er-counts span,.er-legend dt){white-space:nowrap}
+/* language switch: 44px targets, readable on ink */
+.langsel a{min-width:44px;min-height:44px;color:var(--bone)}
+.langsel a[aria-current]{color:var(--ink)}
+.layer[data-layer="argument"]>summary::after{display:none}
+@media(max-width:760px){.jumpbar{padding-inline:.5rem;justify-content:space-between}.jumpbar a{padding-inline:.4rem;font-size:.8125rem}}
+@media(max-width:760px){.status-stack:has(.status-banner:not([hidden])){padding-block:.45rem;font-size:.8125rem;line-height:1.4}.status-stack .status-banner:not([hidden])+.corpus-freshness{font-size:.75rem}html body .story-cover .story-signals{padding-block:.3rem}}
+@media(max-width:760px){html body .srcbar{padding:.4rem 0}html body .story-cover .story-cover-grid{padding-block:.4rem}html body .story-cover header.story-header h1{margin:.3rem 0 .5rem}}
+@media(max-width:760px){html body .story-cover .story-signals .evrow>span:not(.chip){display:none}.srcbar-links{display:inline}}
