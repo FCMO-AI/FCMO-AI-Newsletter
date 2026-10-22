@@ -14,9 +14,9 @@ from urllib.parse import urlsplit, urlunsplit
 
 CONFIG = Path(__file__).resolve().parents[3] / "community/config/subscriptions.json"
 _LOCALES = {
-    "en": {"soon": "Subscriptions are coming soon", "ready": "Choose how to follow", "intro": "One publication. Follow it your way.", "closed": "Email signup opens at launch. No information is sent from this page.", "language": "Email editions are in Spanish. Follow this edition through the feeds.", "cta": "Choose my emails", "manage": "Change preferences or leave at any time in your account.", "rss": "RSS", "json": "JSON feed"},
-    "es-419": {"soon": "Las suscripciones llegarán pronto", "ready": "Elige cómo seguirnos", "intro": "Una sola publicación. Síguela a tu manera.", "closed": "El alta por correo abre en el lanzamiento. Esta página no envía ningún dato.", "language": "Los correos se envían en español.", "cta": "Elegir mis correos", "manage": "Cambia tus preferencias o date de baja en cualquier momento desde tu cuenta.", "rss": "RSS", "json": "Feed JSON"},
-    "zh-Hans": {"soon": "订阅即将开放", "ready": "选择关注方式", "intro": "一份刊物，随你的方式关注。", "closed": "电子邮件订阅将在发布时开放。此页面不会提交任何数据。", "language": "电子邮件以西班牙语发送。你仍可通过订阅源阅读本语言版本。", "cta": "选择邮件", "manage": "你可以随时在账户中更改偏好或退订。", "rss": "RSS", "json": "JSON 订阅源"},
+    "en": {"soon": "Subscriptions are coming soon", "ready": "Choose how to follow", "intro": "One publication. Follow it your way.", "closed": "Email signup opens at launch. No information is sent from this page.", "language": "Email editions are in Spanish.", "cta": "Choose my emails", "manage": "Change preferences or leave at any time in your account.", "rss": "RSS", "json": "JSON feed"},
+    "es-419": {"soon": "Las suscripciones llegarán pronto", "ready": "Elige cómo seguirnos", "intro": "Una sola publicación. Síguela a tu manera.", "closed": "El alta por correo abre en el lanzamiento. Esta página no envía ningún dato.", "language": "", "cta": "Elegir mis correos", "manage": "Cambia tus preferencias o date de baja en cualquier momento desde tu cuenta.", "rss": "RSS", "json": "Feed JSON"},
+    "zh-Hans": {"soon": "订阅即将开放", "ready": "选择关注方式", "intro": "一份刊物，随你的方式关注。", "closed": "电子邮件订阅将在发布时开放。此页面不会提交任何数据。", "language": "电子邮件以西班牙语发送。", "cta": "选择邮件", "manage": "你可以随时在账户中更改偏好或退订。", "rss": "RSS", "json": "JSON 订阅源"},
 }
 def subscription_config() -> dict:
     return json.loads(CONFIG.read_text(encoding="utf-8"))
@@ -68,10 +68,16 @@ def subscribe_block(zone: str, locale: str, *, base: str = "/FCMO-AI-Newsletter/
     tag = "h1" if page else "h2"
     wrapper = "subscribe-page" if page else "subscribe-card"
     heading = f'<{tag} class="page-title">{escape(title)}</{tag}>'
+    # The headline "One publication. Follow it your way." belongs to the page; the home card sits under its own
+    # headline and keeps only state, language and feeds, so no sentence is printed twice.
+    embedded = zone == "all" and not page
+    intro = "" if embedded else f'<p>{escape(copy["intro"])}</p>'
+    manage_line = "" if embedded else f'<p>{escape(manage)}</p>'
+    language = f'<p>{escape(copy["language"])}</p>' if copy["language"] and not active else ""
     return (f'<section class="{wrapper} subscribe-v2" data-subscribe-zone="{zone}" data-subscribe-state="{"active" if active else "launch"}">'
-            f'<p class="section-kicker">FCMO AI</p>{heading}<p>{escape(copy["intro"])}</p>'
-            f'{action}<p>{escape(manage)}</p>'
-            f'<p>{escape(copy["language"])}</p><ul class="community-options">'
+            f'<p class="section-kicker">FCMO AI</p>{heading}{intro}'
+            f'{action}{manage_line}'
+            f'{language}<ul class="community-options">'
             f'<li><a href="{escape(root + "feed.xml", quote=True)}">{escape(copy["rss"])}</a></li>'
             f'<li><a href="{escape(root + "feed.atom", quote=True)}">Atom</a></li>'
             f'<li><a href="{escape(root + "feed.json", quote=True)}">{escape(copy["json"])}</a></li></ul></section>')

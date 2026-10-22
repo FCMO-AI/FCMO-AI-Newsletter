@@ -62,7 +62,7 @@ class DesignV2Build(unittest.TestCase):
     def test_retired_product_routes_redirect_and_one_subscribe_page_is_real(self):
         # CONTRACT-CHANGES.md #2: cartas/, empieza/, diario/ go to the front page; suscribete/ goes to the one subscribe page.
         for prefix in ("", "es/", "zh/"):
-            for path, target in (("cartas/", ""), ("empieza/", ""), ("diario/", ""), ("suscribete/", "subscribe/")):
+            for path, target in (("cartas/", ""), ("empieza/", ""), ("diario/", ""), ("comunidad/", ""), ("suscribete/", "subscribe/")):
                 with self.subTest(prefix=prefix, path=path):
                     html = self.redirect_target(f"{prefix}{path}")
                     self.assertIn(f'content="0; url=/FCMO-AI-Newsletter/{prefix}{target}"', html)
@@ -73,10 +73,6 @@ class DesignV2Build(unittest.TestCase):
                 self.assertIn('class="newsletter-record subscribe-reading"', html)
                 self.assertNotIn(f'/FCMO-AI-Newsletter/{prefix}diario/', html)
                 self.assertNotIn("FCMO" + " Group", html)
-            with self.subTest(prefix=prefix, path="comunidad/"):
-                html = (self.out / prefix / "comunidad/index.html").read_text(encoding="utf-8")
-                self.assertIn('class="page-community"', html)
-                self.assertNotIn(f'/FCMO-AI-Newsletter/{prefix}diario/', html)
             landing = (self.out / prefix / "index.html").read_text(encoding="utf-8")
             self.assertNotIn(f'/FCMO-AI-Newsletter/{prefix}cartas/', landing)
             self.assertNotIn(f'/FCMO-AI-Newsletter/{prefix}empieza/', landing)
