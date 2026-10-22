@@ -29,50 +29,65 @@ class DesignV2Build(unittest.TestCase):
     def tearDownClass(cls):
         cls.tmp.cleanup()
 
-    def test_locale_roots_and_technical_fronts_are_distinct_and_linked(self):
+    def redirect_target(self, relative: str) -> str:
+        page = (self.out / relative / "index.html").read_text(encoding="utf-8")
+        return page
+
+    def test_locale_roots_is_the_one_front_and_retired_fronts_redirect_to_it(self):
+        # CONTRACT-CHANGES.md #1: the technical daily front is retired; the locale root is the only front.
         for prefix in ("", "es/", "zh/"):
             with self.subTest(prefix=prefix):
                 landing = (self.out / prefix / "index.html").read_text(encoding="utf-8")
-                technical = (self.out / prefix / "diario/index.html").read_text(encoding="utf-8")
                 self.assertIn('class="page-landing"', landing)
-                self.assertIn('class="page-front"', technical)
-                self.assertIn('id="letters"', landing)
-                self.assertIn('id="start-here"', landing)
-                self.assertIn('id="technical"', landing)
-                self.assertIn(f'/FCMO-AI-Newsletter/{prefix}diario/', landing)
+                for anchor in ("letters", "start-here", "technical"):
+                    self.assertNotIn(f'id="{anchor}"', landing)
+                self.assertNotIn(f'/FCMO-AI-Newsletter/{prefix}diario/', landing)
                 self.assertIn(f'/FCMO-AI-Newsletter/{prefix}search/', landing)
                 self.assertIn('<link rel="alternate" type="text/plain" href="/FCMO-AI-Newsletter/llms.txt">', landing)
                 self.assertIn('<link rel="alternate" type="application/json" href="/FCMO-AI-Newsletter/agent.json">', landing)
-                self.assertIn(f'/FCMO-AI-Newsletter/{prefix}diario/', (self.out / prefix / "front.html").read_text(encoding="utf-8"))
+                retired = self.redirect_target(f"{prefix}diario")
+                self.assertIn(f'content="0; url=/FCMO-AI-Newsletter/{prefix}"', retired)
+                self.assertIn('name="robots" content="noindex"', retired)
+                self.assertIn(f'content="0; url=/FCMO-AI-Newsletter/{prefix}"',
+                              (self.out / prefix / "front.html").read_text(encoding="utf-8"))
 
-    def test_language_switch_preserves_story_and_technical_front(self):
+    def test_language_switch_preserves_story_and_front(self):
         routes = json.loads((self.out / "data/routes.json").read_text(encoding="utf-8"))
         story = next(row for row in routes if row["kind"] == "story" and row["locale"] == "en")
-        for path in (story["path"], "diario/"):
+        for path in (story["path"], ""):
             page = (self.out / path / "index.html").read_text(encoding="utf-8")
             for prefix in ("es/", "zh/"):
                 self.assertIn(f'href="/FCMO-AI-Newsletter/{prefix}{path}"', page)
 
-    def test_fcmo_human_paths_are_real_pages_in_each_locale(self):
+    def test_retired_product_routes_redirect_and_one_subscribe_page_is_real(self):
+        # CONTRACT-CHANGES.md #2: cartas/, empieza/, diario/ go to the front page; suscribete/ goes to the one subscribe page.
         for prefix in ("", "es/", "zh/"):
-            for path, page_class in (("cartas/", "letters"), ("empieza/", "guide"),
-                                     ("comunidad/", "community"), ("suscribete/", "subscribe")):
+            for path, target in (("cartas/", ""), ("empieza/", ""), ("diario/", ""), ("suscribete/", "subscribe/")):
                 with self.subTest(prefix=prefix, path=path):
-                    html = (self.out / prefix / path / "index.html").read_text(encoding="utf-8")
-                    self.assertIn(f'class="page-{page_class}"', html)
-                    self.assertIn(f'/FCMO-AI-Newsletter/{prefix}diario/', html)
-                    self.assertNotIn("FCMO" + " Group", html)
-                    if path == "suscribete/":
-                        self.assertIn('class="newsletter-record subscribe-reading"', html)
+                    html = self.redirect_target(f"{prefix}{path}")
+                    self.assertIn(f'content="0; url=/FCMO-AI-Newsletter/{prefix}{target}"', html)
+                    self.assertIn('name="robots" content="noindex"', html)
+            with self.subTest(prefix=prefix, path="subscribe/"):
+                html = (self.out / prefix / "subscribe/index.html").read_text(encoding="utf-8")
+                self.assertIn('class="page-subscribe"', html)
+                self.assertIn('class="newsletter-record subscribe-reading"', html)
+                self.assertNotIn(f'/FCMO-AI-Newsletter/{prefix}diario/', html)
+                self.assertNotIn("FCMO" + " Group", html)
+            with self.subTest(prefix=prefix, path="comunidad/"):
+                html = (self.out / prefix / "comunidad/index.html").read_text(encoding="utf-8")
+                self.assertIn('class="page-community"', html)
+                self.assertNotIn(f'/FCMO-AI-Newsletter/{prefix}diario/', html)
             landing = (self.out / prefix / "index.html").read_text(encoding="utf-8")
-            self.assertIn(f'/FCMO-AI-Newsletter/{prefix}cartas/', landing)
-            self.assertIn(f'/FCMO-AI-Newsletter/{prefix}empieza/', landing)
-            self.assertIn("landing-record", landing)
+            self.assertNotIn(f'/FCMO-AI-Newsletter/{prefix}cartas/', landing)
+            self.assertNotIn(f'/FCMO-AI-Newsletter/{prefix}empieza/', landing)
+            # The front keeps its live counts strip (one evidence record for the whole publication).
+            self.assertIn('class="landing-record"', landing)
+            self.assertEqual(landing.count("<small>"), 3)
 
     def test_404_has_all_three_locale_destinations(self):
         page = (self.out / "404.html").read_text(encoding="utf-8")
         for prefix in ("", "es/", "zh/"):
-            self.assertIn(f'href="/FCMO-AI-Newsletter/{prefix}diario/"', page)
+            self.assertIn(f'href="/FCMO-AI-Newsletter/{prefix}"', page)
             self.assertIn(f'href="/FCMO-AI-Newsletter/{prefix}search/"', page)
 
 
