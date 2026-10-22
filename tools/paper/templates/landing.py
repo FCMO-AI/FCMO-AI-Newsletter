@@ -105,8 +105,8 @@ def _receipt(story: dict, feature: dict, ctx: _Ctx) -> str:
     evidence = ctx.evidence(story)
     gaps = [g.get("description") for g in (evidence.get("gaps") or []) if isinstance(g, dict) and g.get("description")]
     limits = [x for x in (evidence.get("limitations") or []) if isinstance(x, str) and x]
-    unknown = truncate(gaps[0] if gaps else (limits[0] if limits else d["none_recorded"]), 150)
-    why = truncate(str(field(story, ctx.code, "why_it_matters") or ""), 150)
+    unknown = truncate(gaps[0] if gaps else (limits[0] if limits else d["none_recorded"]), 220)
+    why = truncate(str(field(story, ctx.code, "why_it_matters") or ""), 220)
     rows = f'<div><dt>{_e(d["happened"])}</dt><dd>{_e(feature["dek"])}</dd></div>'
     if why:
         rows += f'<div><dt>{_e(d["matters"])}</dt><dd>{_e(why)}</dd></div>'
@@ -116,13 +116,13 @@ def _receipt(story: dict, feature: dict, ctx: _Ctx) -> str:
 
 def _cover(feature: dict, story: dict | None, ctx: _Ctx | None, record: str) -> str:
     kicker = f'FCMO AI · {feature["label"]} · {feature["beat"]}'
-    foot = (f'<div class="cover-foot cover-actions">{feature["status"]}'
-            f'<a class="btn btn-ghost" href="{_e(feature["status_href"])}">{_e(feature["status_label"])}</a>{feature["badge"]}</div>')
+    # The edition state is stated once, in the banner at the top of the page; the cover keeps only the automation disclosure.
+    foot = f'<div class="cover-foot">{feature["badge"]}</div>'
     if ctx and story:
         kicker = "FCMO AI · " + ctx.s["cover"]["lead_kicker"].format(beat=feature["beat"])
         signals = _evrow(story, ctx, cls="evrow cover-evrow", tag="div")
         glance = ctx.s["cover"]["evidence_glance"]
-        side = f'<div class="cover-side">{_receipt(story, feature, ctx)}{_plate_html(story, "16:10", ctx.s)}{foot}</div>'
+        side = f'<div class="cover-side">{_plate_html(story, "16:10", ctx.s)}{_receipt(story, feature, ctx)}</div>'
         glance_html = f'<div class="cover-glance" aria-label="{_e(glance)}">{feature["hero"]}</div>'
     else:
         confidence = f' · {_e(feature["confidence"])}' if feature["confidence"] else ""
@@ -139,6 +139,7 @@ def _cover(feature: dict, story: dict | None, ctx: _Ctx | None, record: str) -> 
         f'{signals}'
         f'<div class="rubric cover-date"><time datetime="{_e(feature["datetime"])}">{_e(feature["date"])}</time></div>'
         f'<div class="cover-actions"><a class="btn" href="{_e(feature["href"])}">{_e(feature["cta"])} <span aria-hidden="true">↗</span></a></div>'
+        f'{foot if ctx and story else ""}'
         '</div>'
         f'{side}'
         f'</div>{glance_html}</article>'
@@ -187,7 +188,7 @@ def _band(stories: list[dict], ctx: _Ctx, method_href: str) -> str:
             f'<p class="rubric">{_e(ctx.s["trio"]["method_title"])}</p>'
             f'<h2 class="method-band-title" id="band-title">{title}</h2>'
             f'<p class="cover-dek">{_e(p["band_lead"])}</p>'
-            f'<div class="band-trio">{trio}</div><ul class="band-counts">{nums}</ul>'
+            f'<div class="band-trio">{trio}</div><p class="band-note">{_e(p["count_note"])}</p><ul class="band-counts">{nums}</ul>'
             f'<p class="cover-actions"><a class="btn" href="{_e(method_href)}">{_e(ctx.s["board"]["how_ordered"])} →</a></p>'
             f'</div></section>')
 

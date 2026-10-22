@@ -74,3 +74,144 @@ body .story-layout.title-large .story-header h1{font-size:clamp(1.9rem,2.6vw,2.3
 body .story-layout.title-compact .story-header h1{font-size:clamp(1.85rem,2.45vw,2.2rem)}
 body .story-layout.title-extra-compact .story-header h1{font-size:1.6rem}
 }
+
+/* ===== c6 fixes r1: cover, method band, receipt, status ribbon, links, source bar, rail, phone chrome ===== */
+/* Display tracking: -.035em only where the type is large; below ~48px it is -.02em so words never touch. */
+:root{--c6-track:-.02em}
+html[lang="zh-Hans"]{--c6-track:0}
+html[lang="es-419"] body{hyphens:manual}
+/* Edition status: the banner and the corpus line read as one ribbon, not two stacked bars. */
+.status-banner:not([hidden])+.corpus-freshness{margin-top:0;padding-block:0 .5rem;border-bottom:1px solid currentColor;background:var(--danger-bg);color:var(--danger-text);font-size:.75rem;line-height:1.35}
+.status-banner[data-edition-state="QUIET"]:not([hidden])+.corpus-freshness{background:var(--warning-bg);color:var(--warning-text)}
+.status-banner:not([hidden]){border-bottom:0}
+.status-banner:not([hidden])+.corpus-freshness strong{font-weight:700}
+html[lang="zh-Hans"] .status-banner,html[lang="zh-Hans"] .corpus-freshness{overflow-wrap:break-word;word-break:auto-phrase;line-break:strict}
+/* Links that are headlines carry no default underline; hover and focus show it. */
+.plate-card-title a,.wire-title a,.story-card h2 a,.story-card h3 a,.correction h2 a,.archive-copy h2 a,.pn a,.related-reading h3 a,.topic-tiles a,.trio a,.cover-title a{text-decoration:none}
+.plate-card-title a:hover,.story-card h3 a:hover,.correction h2 a:hover,.archive-copy h2 a:hover,.related-reading h3 a:hover,.cover-title a:hover{text-decoration:underline;text-decoration-thickness:.06em;text-decoration-color:var(--accent)}
+/* Front cover: dark, full-bleed; headline in the display face; plate beside it (never behind it). */
+.page-landing .page-shell{width:100%;max-width:none;padding:0}
+.page-landing .page-shell>*{max-width:none}
+body .landing-intro{display:block;max-width:none;padding:0}
+.cover{border-bottom:0}
+body.page-landing .landing-feature{display:block;padding:0;border:0;gap:0}
+body.page-landing .cover-grid{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:clamp(1.5rem,4vw,4rem);align-items:start;padding-block:clamp(2rem,4vw,3.5rem) clamp(1.25rem,2.5vw,2rem)}
+html body.page-landing .landing-feature h1.cover-title{margin:.8rem 0 1.1rem;max-width:none;font-family:var(--c6-ui);font-weight:var(--c6-w-display);font-size:clamp(2.15rem,3.9vw,3.7rem);line-height:1.04;letter-spacing:var(--c6-track);word-spacing:.02em;text-wrap:balance;color:var(--bone)}
+html body.page-landing .landing-feature h1.cover-title.title-short,html body.page-landing .landing-feature h1.cover-title.title-medium{font-size:clamp(2.3rem,4.6vw,4.3rem)}
+html body.page-landing .landing-feature h1.cover-title.title-compact,html body.page-landing .landing-feature h1.cover-title.title-extra-compact{font-size:clamp(2rem,3.3vw,3.1rem)}
+html[lang="zh-Hans"] body.page-landing .landing-feature h1.cover-title{line-height:1.22}
+@media(min-width:1101px){html body.page-landing .landing-feature h1.cover-title{letter-spacing:calc(var(--c6-track) - .008em)}html[lang="zh-Hans"] body.page-landing .landing-feature h1.cover-title{letter-spacing:0}}
+.cover-main .cover-date{margin-top:.2rem;color:var(--dim)}
+.cover-main .cover-foot{margin-top:1.1rem}
+.cover-main .cover-foot .automation-badge{font-size:.75rem;color:var(--dim)}
+.cover-side{align-content:start}
+@media(min-width:1101px){
+body.page-landing .cover-side{display:contents}
+body.page-landing .cover-main{grid-column:1;grid-row:1}
+body.page-landing .cover-side>.plate{grid-column:2;grid-row:1;align-self:center}
+body.page-landing .cover-side>.receipt{grid-column:1/-1;grid-row:2;padding:1.25rem 1.5rem 1.4rem}
+body.page-landing .receipt dl{grid-template-columns:repeat(3,minmax(0,1fr));gap:1.5rem 2.5rem}
+body.page-landing .receipt dd{font-size:1rem}
+}
+.cover-glance{padding-bottom:clamp(1.75rem,3.5vw,3rem)}
+.cover-glance .data-hero{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:.9rem clamp(1.25rem,3vw,3rem);padding:1.1rem 1.4rem;border:1px solid var(--chrome-line);border-radius:14px;background:var(--chrome-2)}
+.cover-glance .dh-head{grid-column:1/-1}
+.cover-glance .dh-claims{display:grid;gap:.55rem;min-width:0}
+.cover-glance .dh-claims .dh-label{margin:0}
+.cover-glance .dh-figures{margin:0;padding:0;border:0;gap:1.25rem}
+.dh-strip{display:flex;gap:3px;margin:0;padding:0;list-style:none}
+.data-hero .dh-tile{flex:1 1 0;height:1.1rem;min-width:4px;border-radius:2px;border:1.5px solid var(--bone);background:transparent}
+.data-hero .dh-tile.dh-tile-shown{background:var(--bone)}
+.data-hero .dh-tile.dh-tile-claimed{background:repeating-linear-gradient(135deg,transparent 0 3px,var(--bone) 3px 4.5px)}
+.data-hero .dh-tile.dh-tile-gap{border:2px dashed var(--metis-soft)}
+.data-hero .dh-legend{display:flex;flex-wrap:wrap;gap:.35rem 1.25rem;margin:0;padding:0;list-style:none}
+.data-hero .dh-legend li{display:flex;align-items:center;gap:.5rem;font:500 .8125rem/1.2 var(--c6-ui);--fg:var(--bone);--gap-c:var(--metis-soft)}
+.data-hero .dh-legend .sample{width:1.1rem;height:1.1rem;background-clip:padding-box}
+.data-hero .dh-legend b{font-weight:700;margin-left:.15rem}
+.data-hero .dh-figures b{display:block;font:800 1.6rem/1 var(--c6-ui)}
+.data-hero .dh-figures span{display:block;margin-top:.25rem;font:400 .6875rem/1.25 var(--c6-mono);color:var(--chrome-mute)}
+.data-hero .dh-grade{--fg:var(--bone)}
+@media(max-width:1100px){
+body.page-landing .cover-grid{display:flex;flex-direction:column;gap:0;padding-block:1.5rem 1rem}
+body.page-landing .cover-main,body.page-landing .cover-side{display:contents}
+body.page-landing .cover-main>.rubric-accent{order:1}
+body.page-landing .cover-main>.cover-title{order:2;margin-bottom:1rem}
+body.page-landing .cover-side>.plate{order:3;width:100%;margin-bottom:1.1rem}
+body.page-landing .cover-main>.cover-evrow{order:4}
+body.page-landing .cover-main>.cover-date{order:5;margin-top:.7rem}
+body.page-landing .cover-main>.cover-actions{order:6}
+body.page-landing .cover-main>.cover-foot{order:7}
+body.page-landing .cover-side>.receipt{order:8;margin-top:1.4rem}
+.cover-glance .data-hero{grid-template-columns:1fr}
+.cover-glance .dh-figures{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+/* Method band: rubric, headline and dek each have their own room; the black chip never touches the kicker. */
+.method-band .rubric{margin-bottom:1.1rem}
+.method-band-title{line-height:1.12;margin:0 0 1.4rem;padding-top:.15em}
+.method-band-title em{display:inline-block;padding:.02em .14em .06em;margin-right:.08em;line-height:1.05;border-radius:.1em}
+html[lang="zh-Hans"] .method-band-title{line-height:1.3}
+.method-band .cover-dek{margin-top:0;color:var(--ink)}
+.band-note{max-width:62ch;margin:1.25rem 0 0;font:500 .8125rem/1.5 var(--c6-mono);letter-spacing:.02em}
+/* In-20-seconds receipt: three stacked rows in one box; the dark row spans the whole width. */
+.story-body>.brief .read20{display:block;margin:0 0 2.5rem;padding:0;border:2px solid var(--ink);border-radius:12px;overflow:hidden}
+.story-body>.brief .read20>li{display:block;max-width:none;padding:1.1rem 1.25rem;border:0;border-bottom:2px solid var(--ink)}
+.story-body>.brief .read20>li:last-child{border-bottom:0}
+.story-body>.brief .read20 .read20-na{background:var(--ink);color:var(--bone)}
+.story-body>.brief .read20 .read20-na b{color:var(--metis-soft)}
+/* Reading layers: the label is a small rubric, the headings below it are the only headings. */
+.layer-title{font:600 .75rem/1.2 var(--c6-mono);letter-spacing:.1em;text-transform:var(--c6-caps);color:var(--metis-text);word-spacing:normal}
+html[lang="zh-Hans"] .layer-title{letter-spacing:.04em}
+.layer-body>section:first-child h2{margin-top:.2rem}
+/* Sources bar: label, original source, byline and disclosure each sit on their own beat. */
+.srcbar{display:block;padding:.75rem 0}
+.srcbar>.frame{display:flex;flex-wrap:wrap;align-items:baseline;gap:.3rem 1.5rem}
+.srcbar-by{color:var(--dim)}
+.srcbar .automation-badge{font:500 .6875rem/1.3 var(--c6-mono);letter-spacing:.04em;text-transform:var(--c6-caps);color:var(--dim)}
+.jumpbar{scrollbar-width:none}
+.jumpbar::-webkit-scrollbar{display:none}
+.read-layout>.read-toc-slot{display:none}
+/* Evidence Record in the rail: one frame, not two; the contents list gets air. */
+.read-rail .data-hero{padding:0;background:transparent;border:0}
+.er-counts+.er-title{margin-top:1.5rem}
+.er-in-story{margin-bottom:.25rem}
+/* Previous / next inside a topic: a lone card spans the row and reads left. */
+.pn:has(>a:only-child){grid-template-columns:1fr}
+.pn a:only-child{text-align:left}
+.edition-neighbors a .card-meta{display:block}
+/* Phone chrome: content clears the fixed tab bar; labels keep contrast; tap targets stay comfortable. */
+@media(max-width:760px){
+body .story-body>.brief .read20 .brief-val{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden;font-size:.8125rem;line-height:1.36}
+body .story-body>.brief .read20>li{padding:.35rem .9rem .4rem}
+body .story-body>.brief .read20 b{margin-bottom:.05rem;font-size:.6875rem}
+body .story-body>.brief .read20{margin-bottom:1.5rem}
+body:has(.story-layout) .breadcrumbs{display:none}
+.read-rail .data-hero{display:none}
+body .status-banner{padding-block:.4rem}
+.status-banner:not([hidden])+.corpus-freshness{padding-bottom:.35rem}
+body .story-cover .story-header h1,body .story-layout[class] .story-header h1{font-size:clamp(1.55rem,6.3vw,1.85rem);line-height:1.08;text-wrap:pretty}
+.story-cover-grid{padding-block:.6rem}
+.srcbar{padding:.5rem 0}
+.srcbar>.frame{gap:.1rem 1rem}
+body{padding-bottom:calc(var(--l-bar) + 1.25rem + env(safe-area-inset-bottom,0px))}
+.tabbar a{color:var(--chrome-text)}
+.tabbar a[aria-current]{color:var(--bone)}
+.langsel{font-size:.875rem}
+.langsel a{color:var(--chrome-text)}
+.langsel a[aria-current]{color:var(--ink)}
+.jumpbar a{padding-inline:.7rem}
+.jumpbar{-webkit-mask-image:linear-gradient(90deg,#000 88%,transparent);mask-image:linear-gradient(90deg,#000 88%,transparent)}
+.story-cover .story-header h1,body .story-layout[class] .story-header h1{letter-spacing:var(--c6-track);word-spacing:.04em}
+.block-title{letter-spacing:var(--c6-track);word-spacing:.04em}
+}
+@media(min-width:761px){.topnav a,.langsel a{font-size:.9375rem}.topnav a{color:var(--chrome-text)}}
+/* Subscription block: one headline, and the card inside it does not repeat it. */
+.subscribe-block .subscribe-v2>h2:first-of-type,.subscribe-block .subscribe-page>h2:first-of-type{font-size:clamp(1.25rem,2vw,1.6rem)}
+/* Story: the cover runs edge to edge like the front cover, and its frames share the page grid. */
+body.page-story .page-shell{width:100%;max-width:none;padding:0}
+body.page-story .story-cover .crumbs{display:none}
+body.page-story .story-after{padding-top:0}
+body.page-story .breadcrumbs{width:100%;max-width:var(--l-grid-max);margin:1rem auto .75rem;padding-inline:var(--l-pad)}
+
+.data-hero .dh-figures span{font-size:.75rem}
+
+html[lang="zh-Hans"] body.page-landing .landing-feature h1.cover-title{line-height:1.3}

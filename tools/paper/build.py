@@ -272,7 +272,7 @@ class PaperBuilder:
             if position + 1 < len(sequence):
                 neighbors.append((strings["archive"]["older"], sequence[position + 1], "previous"))
         edition_links = "".join(
-            f'<a rel="{rel}" href="{esc(self._story_href(locale, item))}"><span class="card-meta">{esc(label(self.catalogs[locale["code"]], "beat", item.get("beat")))}</span><strong>{esc(direction)}</strong><span>{esc(headline(item, locale["code"], self.catalogs[locale["code"]]))}</span></a>'
+            f'<a rel="{rel}" href="{esc(self._story_href(locale, item))}"><span class="card-meta">{esc(format_date(item["event_at"], self.catalogs[locale["code"]], precision=item.get("date_precision", "day")))}</span><strong>{esc(direction)}</strong><span>{esc(headline(item, locale["code"], self.catalogs[locale["code"]]))}</span></a>'
             for direction, item, rel in neighbors
         )
         related = self._related_stories(story)
@@ -698,12 +698,12 @@ class PaperBuilder:
             return suffix if number == 1 else suffix + f"page/{number}/"
         for number in range(1, pages + 1):
             start = (number - 1) * LISTING_PAGE_SIZE
-            items = "".join(f'<article class="archive-item" data-story-id="{esc(story["id"])}"><time datetime="{esc(story["event_at"])}">{esc(format_date(story["event_at"],catalog,precision=story.get("date_precision","day")))}</time><a class="archive-art" href="{esc(self._story_href(locale,story))}" aria-hidden="true" tabindex="-1"><img src="{esc(self._story_media_url(story, locale))}" alt="" width="320" height="180" loading="lazy"></a><div class="archive-copy"><h2><a href="{esc(self._story_href(locale,story))}">{esc(headline(story,locale["code"],catalog))}</a></h2><p>{esc(truncate(dek(story,locale["code"],catalog),220))}</p><p class="archive-meta">{esc(label(catalog, "beat", story.get("beat")))} · {esc(catalog["strings"]["story"]["importance"].format(score=story.get("importance", 0)))}</p>{evidence_strip(story, catalog)}</div></article>' for story in stories[start:start + LISTING_PAGE_SIZE])
+            items = "".join(f'<article class="archive-item" data-story-id="{esc(story["id"])}"><time datetime="{esc(story["event_at"])}">{esc(format_date(story["event_at"],catalog,precision=story.get("date_precision","day")))}</time><a class="archive-art" href="{esc(self._story_href(locale,story))}" aria-hidden="true" tabindex="-1"><img src="{esc(self._story_media_url(story, locale))}" alt="" width="320" height="180" loading="lazy"></a><div class="archive-copy"><h2><a href="{esc(self._story_href(locale,story))}">{esc(headline(story,locale["code"],catalog))}</a></h2><p>{esc(truncate(dek(story,locale["code"],catalog),220))}</p><p class="archive-meta">{esc(label(catalog, "beat", story.get("beat")))}</p>{evidence_strip(story, catalog)}</div></article>' for story in stories[start:start + LISTING_PAGE_SIZE])
             links = []
             for rel, destination, key in (("prev", number - 1, "newer"), ("next", number + 1, "older")):
                 if 1 <= destination <= pages:
                     url = href(self.base, locale["path_prefix"] + page_path(destination))
-                    links.append(f'<a rel="{rel}" href="{esc(url)}">{esc(catalog["strings"]["archive"][key])} · {destination}/{pages}</a>')
+                    links.append(f'<a rel="{rel}" href="{esc(url)}">{esc(catalog["strings"]["archive"][key])} · {esc(catalog["strings"]["archive"]["page_of"].format(n=destination, total=pages))}</a>')
             paging = (f'<nav class="edition-neighbors" data-pagination aria-label="{esc(catalog["strings"]["archive"]["title"])}">{"".join(links)}</nav>'
                       if pages > 1 else "")
             body = archive_page(title, catalog["strings"]["site"]["description"], items or f'<p>{esc(catalog["strings"]["archive"]["empty"])}</p>', kicker=catalog["strings"]["kicker"]["archive"], title_html=title_html, context=context, navigation=navigation + paging) + paging
@@ -824,9 +824,10 @@ class PaperBuilder:
             text = correction.get("text") or {}
             note = text.get(locale["code"]) or s["l10n"]["pending_notice"]
             title = headline(story, locale["code"], catalog)
+            title_lang = ""
             date = correction.get("at") or story.get("updated_at")
             correction_rows.append(correction_row(
-                catalog=catalog, title=title, note=note, date_iso=date, date_text=format_date(date, catalog),
+                catalog=catalog, title=title, title_lang=title_lang, note=note, date_iso=date, date_text=format_date(date, catalog),
                 story_href=self._correction_story_href(locale, story), correction_href=self._correction_href(locale, story),
                 class_before=correction.get("class_before"), class_after=correction.get("class_after"),
                 reason=(correction.get("reason") or "") if isinstance(correction.get("reason"), str) else ""))

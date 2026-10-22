@@ -144,7 +144,7 @@ def _class_word(catalog: dict, value: object) -> str:
 
 def correction_row(*, catalog: dict, title: str, note: str, date_iso: str, date_text: str,
                    story_href: str, correction_href: str, class_before: object = None,
-                   class_after: object = None, reason: str = "") -> str:
+                   class_after: object = None, reason: str = "", title_lang: str = "") -> str:
     """One entry of the corrections list: date, link to the story, the note and the class before/after.
 
     The class line is printed only when both classes are recorded; when they are
@@ -162,7 +162,7 @@ def correction_row(*, catalog: dict, title: str, note: str, date_iso: str, date_
     why = f'<p class="correction-reason"><strong>{e(ui["reason"])}</strong> {e(reason)}</p>' if reason else ""
     return (f'<article class="correction"><time datetime="{e(date_iso)}">'
             f'{e(ui["corrected_on"].format(date=date_text))}</time>'
-            f'<h2><a href="{e(correction_href)}">{e(title)}</a></h2><p>{e(note)}</p>{why}{line}'
+            f'<h2><a href="{e(correction_href)}"{f' lang="{e(title_lang)}"' if title_lang else ""}>{e(title)}</a></h2><p>{e(note)}</p>{why}{line}'
             f'<p class="correction-links"><a class="correction-story" href="{e(story_href)}">{e(ui["story_link"])}</a></p></article>')
 
 
