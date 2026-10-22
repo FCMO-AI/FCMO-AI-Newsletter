@@ -14,14 +14,15 @@ from urllib.parse import urlsplit, urlunsplit
 
 CONFIG = Path(__file__).resolve().parents[3] / "community/config/subscriptions.json"
 _LOCALES = {
-    "en": {"soon": "Subscriptions are coming soon", "ready": "Choose the letters you want", "intro": "Two publications, one membership. Choose either one or both.", "closed": "Email signup opens at launch. No information is sent from this page.", "language": "Email editions are in Spanish. Follow this edition through the feeds.", "cta": "Choose my emails", "manage": "Change preferences or leave at any time in your account.", "rss": "RSS", "json": "JSON feed"},
-    "es-419": {"soon": "Las suscripciones llegarán pronto", "ready": "Elige lo que quieres recibir", "intro": "Dos publicaciones, una sola cuenta. Elige una o las dos.", "closed": "El alta por correo abre en el lanzamiento. Esta página no envía ningún dato.", "language": "Los correos se envían en español.", "cta": "Elegir mis correos", "manage": "Cambia tus preferencias o date de baja en cualquier momento desde tu cuenta.", "rss": "RSS", "json": "Feed JSON"},
-    "zh-Hans": {"soon": "订阅即将开放", "ready": "选择你想收到的内容", "intro": "两份出版物，一个会员账户。可选择其中一份或两份。", "closed": "电子邮件订阅将在发布时开放。此页面不会提交任何数据。", "language": "电子邮件以西班牙语发送。你仍可通过订阅源阅读本语言版本。", "cta": "选择邮件", "manage": "你可以随时在账户中更改偏好或退订。", "rss": "RSS", "json": "JSON 订阅源"},
+    "en": {"soon": "Subscriptions are coming soon", "ready": "Choose how to follow", "intro": "One publication. Follow it your way.", "closed": "Email signup opens at launch. No information is sent from this page.", "language": "Email editions are in Spanish. Follow this edition through the feeds.", "cta": "Choose my emails", "manage": "Change preferences or leave at any time in your account.", "rss": "RSS", "json": "JSON feed"},
+    "es-419": {"soon": "Las suscripciones llegarán pronto", "ready": "Elige cómo seguirnos", "intro": "Una sola publicación. Síguela a tu manera.", "closed": "El alta por correo abre en el lanzamiento. Esta página no envía ningún dato.", "language": "Los correos se envían en español.", "cta": "Elegir mis correos", "manage": "Cambia tus preferencias o date de baja en cualquier momento desde tu cuenta.", "rss": "RSS", "json": "Feed JSON"},
+    "zh-Hans": {"soon": "订阅即将开放", "ready": "选择关注方式", "intro": "一份刊物，随你的方式关注。", "closed": "电子邮件订阅将在发布时开放。此页面不会提交任何数据。", "language": "电子邮件以西班牙语发送。你仍可通过订阅源阅读本语言版本。", "cta": "选择邮件", "manage": "你可以随时在账户中更改偏好或退订。", "rss": "RSS", "json": "JSON 订阅源"},
 }
+# Two ways to follow the same publication: the daily edition, or its signed letters.
 _DESCRIPTIONS = {
-    "en": ("Javier’s plain-language letters, from fCMO.", "Matías’s technical paper digest, from FCMO AI."),
-    "es-419": ("Cartas claras y cercanas de Javier, desde fCMO.", "El resumen técnico de Matías, desde FCMO AI."),
-    "zh-Hans": ("Javier 的 fCMO 来信，清晰亲切。", "Matías 的 FCMO AI 技术摘要。"),
+    "en": ("Signed letters, by their author.", "The daily edition: every story with its evidence."),
+    "es-419": ("Cartas firmadas por su autor.", "La edición diaria: cada historia con su evidencia."),
+    "zh-Hans": ("由作者署名的来信。", "每日一期：每篇报道都附证据。"),
 }
 
 
@@ -48,7 +49,7 @@ def ghost_signup_url(value: str | None) -> str | None:
 
 def subscribe_block(zone: str, locale: str, *, base: str = "/FCMO-AI-Newsletter/", path_prefix: str | None = None,
                     ghost_url: str | None = None, page: bool = False) -> str:
-    """Render the landing/page CTA. ``zone`` is ``letter``, ``paper``, or ``all``."""
+    """Render the landing/page CTA for the one publication. ``zone`` is ``letter``, ``paper``, or ``all``."""
     if zone not in {"letter", "paper", "all"}:
         raise ValueError("unknown subscription zone")
     from tools.email_providers import signup_form
@@ -81,7 +82,7 @@ def subscribe_block(zone: str, locale: str, *, base: str = "/FCMO-AI-Newsletter/
     wrapper = "subscribe-page" if page else "subscribe-card"
     heading = f'<{tag} class="page-title">{escape(title)}</{tag}>'
     return (f'<section class="{wrapper} subscribe-v2" data-subscribe-zone="{zone}" data-subscribe-state="{"active" if active else "launch"}">'
-            f'<p class="section-kicker">fCMO × FCMO AI</p>{heading}<p>{escape(copy["intro"])}</p>'
+            f'<p class="section-kicker">FCMO AI</p>{heading}<p>{escape(copy["intro"])}</p>'
             f'<ul class="subscribe-choices">{"".join(items)}</ul>{action}<p>{escape(manage)}</p>'
             f'<p>{escape(copy["language"])}</p><ul class="community-options">'
             f'<li><a href="{escape(root + "feed.xml", quote=True)}">{escape(copy["rss"])}</a></li>'
