@@ -72,9 +72,11 @@ def document(*, locale: dict, catalog: dict, config: dict, base: str, path: str,
         current = hl == locale["hreflang"]
         if current:
             note = switch["current"].format(language=item["label"])
-        return (f'<a href="{_e(url)}" hreflang="{_e(hl)}" lang="{_e(hl)}" aria-label="{_e(item["label"])}" title="{_e(note)}"'
+        short = LANG_BUTTONS.get(item["code"], item["code"])
+        # The accessible name must contain the visible text (WCAG 2.5.3 label in name).
+        return (f'<a href="{_e(url)}" hreflang="{_e(hl)}" lang="{_e(hl)}" aria-label="{_e(short)} {_e(item["label"])}" title="{_e(note)}"'
                 + (' aria-current="true"' if current else "")
-                + f'>{_e(LANG_BUTTONS.get(item["code"], item["code"]))}</a>')
+                +  f'>{_e(short)}</a>')
 
     languages = "".join(lang_link(item) for item in config["locales"])
     crumb_label = nav["home"]
