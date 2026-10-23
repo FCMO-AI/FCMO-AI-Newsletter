@@ -199,7 +199,7 @@ class PaperBuilder:
         return local
 
     @staticmethod
-    def _title_class(title: str, locale_code: str) -> str:
+    def _title_class(title: str, locale_code: str, hero: bool = False) -> str:
         """Estimate display width with wider weights for CJK glyphs."""
         import unicodedata
         width = 0.0
@@ -217,7 +217,9 @@ class PaperBuilder:
             return "title-extra-compact"
         if width > 58:
             return "title-compact"
-        if width > 46:
+        # The landing hero is a ~694px column at 66px (title-medium), not the 1040px story header the cutoffs above
+        # were calibrated on: an 84-character Spanish lead (43 units) wrapped to five lines there. Hence the earlier step.
+        if width > (38 if hero else 46):
             return "title-large"
         if width > 34:
             return "title-medium"
@@ -419,7 +421,7 @@ class PaperBuilder:
         plan = front_plan(order, BEATS)
         first = plan["lead"]
         lead_title = headline(first, locale["code"], catalog)
-        lead_class = self._title_class(lead_title, locale["code"])
+        lead_class = self._title_class(lead_title, locale["code"], hero=True)
         dz = strings["design"]
         lead_evidence = first.get("evidence") if isinstance(first.get("evidence"), dict) else {}
         local_evidence = self._localized_evidence(first, locale)
