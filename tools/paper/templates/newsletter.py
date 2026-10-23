@@ -1,13 +1,13 @@
-"""The human reading path: Javier's letters, a beginner guide and community."""
+"""The reading paths of the one publication: letters (a format, not a product), a beginner guide and community."""
 
 from html import escape
 
 
 COPY = {
     "en": {
-        "letters": "Letters from Javier", "letters_dek": "A human view of the decisions behind durable work. Read the published letters here, then follow a topic into the public research record.", "letters_shelf": "The letters shelf",
+        "letters": "Letters", "letters_dek": "A human view of the decisions behind durable work. Read the published letters here, then follow a topic into the public research record.", "letters_shelf": "The letters shelf",
         "guide": "Start with the question", "guide_dek": "A short route from a useful question to the evidence beneath a technical headline.",
-        "community": "A place for the conversation", "community_dek": "The letters invite a slower exchange about what to do with new ideas.",
+        "community": "A place for the conversation", "community_dek": "A slower exchange about what to do with new ideas.",
         "reading": "Three ways in", "first": "Read the situation", "first_body": "What changed, for whom, and when? Begin with the plain-language summary before judging the claim.",
         "second": "Separate evidence from possibility", "second_body": "A strong signal and a large potential impact answer different questions. Look for sources, limits and remaining unknowns.",
         "third": "Decide what follows", "third_body": "Keep the question open when the record is incomplete. Follow the topic, then return as evidence changes.",
@@ -16,9 +16,9 @@ COPY = {
         "letter_link": "Letters", "guide_link": "Beginner guide", "community_link": "Community", "technical_link": "Front page", "feed_link": "Open feeds", "subscribe_link": "Subscription options",
     },
     "es-419": {
-        "letters": "Cartas de Javier", "letters_dek": "Una mirada humana a las decisiones que sostienen el trabajo. Lee aquí las cartas publicadas y sigue un tema hasta el registro de investigación.", "letters_shelf": "Archivo de cartas",
+        "letters": "Cartas", "letters_dek": "Una mirada humana a las decisiones que sostienen el trabajo. Lee aquí las cartas publicadas y sigue un tema hasta el registro de investigación.", "letters_shelf": "Archivo de cartas",
         "guide": "Empieza por la pregunta", "guide_dek": "Una ruta breve desde una pregunta útil hasta la evidencia detrás de un titular técnico.",
-        "community": "Un lugar para conversar", "community_dek": "Las cartas invitan a pensar con calma qué hacer con las ideas nuevas.",
+        "community": "Un lugar para conversar", "community_dek": "Un intercambio más pausado sobre qué hacer con las ideas nuevas.",
         "reading": "Tres formas de entrar", "first": "Lee la situación", "first_body": "¿Qué cambió, para quién y cuándo? Empieza por el resumen claro antes de juzgar la afirmación.",
         "second": "Separa evidencia y posibilidad", "second_body": "Una señal sólida y un gran impacto potencial responden preguntas distintas. Busca fuentes, límites y dudas pendientes.",
         "third": "Decide qué sigue", "third_body": "Mantén abierta la pregunta si el registro está incompleto. Sigue el tema y vuelve cuando cambie la evidencia.",
@@ -27,9 +27,9 @@ COPY = {
         "letter_link": "Cartas", "guide_link": "Guía inicial", "community_link": "Comunidad", "technical_link": "Portada", "feed_link": "Abrir feeds", "subscribe_link": "Opciones de suscripción",
     },
     "zh-Hans": {
-        "letters": "Javier 来信", "letters_dek": "从人的角度理解支持长期工作的决策。在这里阅读已发表的来信，再沿着主题进入公开研究记录。", "letters_shelf": "来信目录",
+        "letters": "来信", "letters_dek": "从人的角度理解支持长期工作的决策。在这里阅读已发表的来信，再沿着主题进入公开研究记录。", "letters_shelf": "来信目录",
         "guide": "从问题开始", "guide_dek": "从一个有用的问题出发，逐步读到技术标题背后的证据。",
-        "community": "继续交流", "community_dek": "来信邀请读者慢下来，讨论如何使用新想法。",
+        "community": "继续交流", "community_dek": "读者慢下来，一起讨论如何使用新想法。",
         "reading": "三步开始", "first": "先看背景", "first_body": "发生了什么变化？影响谁？何时发生？先读清晰摘要，再判断主张。",
         "second": "区分证据与可能性", "second_body": "信号强弱与潜在影响是两个问题。查看来源、限制及未解之处。",
         "third": "决定下一步", "third_body": "记录不完整时保留疑问。关注主题，在证据变化后回来查看。",

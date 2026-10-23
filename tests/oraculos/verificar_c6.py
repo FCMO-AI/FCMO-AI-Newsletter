@@ -13,6 +13,8 @@ on the first story, it checks in a real Chromium:
 * at 390 x 844, on the story: the last line of «In 20 seconds» («Not established»)
   is fully inside the first screen and is not covered by a fixed or sticky
   element such as a bottom tab bar.
+* at 390 x 844, on the home: the «Not established» line of the 20-second receipt
+  ends within the first 780 px, above the bottom tab bar (DIRECCION §6; VERDICT-r2 A2′).
 
 Measurement runs in Node Playwright (module from PLAYWRIGHT_MODULE or the repo
 resolver). The axe-core script comes from AXE_CORE_PATH. A missing browser or
@@ -37,6 +39,8 @@ from tools.paper.playwright_module import missing_playwright_message, resolve_pl
 BASE = "/FCMO-AI-Newsletter/"
 LOCALE_PREFIX = {"en": "", "es-419": "es/", "zh-Hans": "zh/"}
 FIRST_SCREEN_390 = 844
+# DIRECCION §6: the bottom tab bar starts at 780 px on a 390 x 844 screen.
+HOME_LINE_LIMIT_390 = 780
 
 NODE_SCRIPT = r"""
 const fs = require('fs');
@@ -57,6 +61,8 @@ async function measure(browser, job) {
     const src = [...document.querySelectorAll('main a[href^="http"]')].find((a) => !a.href.includes('fcmo-ai.github.io'));
     out.signals = sig ? rect(sig) : null;
     out.firstExternalSource = src ? rect(src) : null;
+    const na = document.querySelector('.receipt-na');
+    out.receiptNa = na ? rect(na) : null;
     const items = document.querySelectorAll('.brief li');
     const last = items.length ? items[items.length - 1] : null;
     out.briefLast = last ? rect(last) : null;
@@ -108,6 +114,12 @@ def evaluate(job: dict) -> list[str]:
         problems.append(f"FAIL overflow {tag}: {job['overflowPx']}px horizontal overflow")
     for violation in job["axe"]:
         problems.append(f"FAIL axe {tag}: {violation['impact']} {violation['id']} ({violation['nodes']} nodes)")
+    if job["route"] == "home" and job["width"] == 390:
+        line = job.get("receiptNa")
+        if not line:
+            problems.append(f"FAIL home-20s {tag}: no 'Not established' line in the 20-second receipt")
+        elif line["bottom"] > HOME_LINE_LIMIT_390:
+            problems.append(f"FAIL home-20s {tag}: 'Not established' line ends at {round(line['bottom'])}px, limit {HOME_LINE_LIMIT_390}px (above the tab bar)")
     if job["route"] == "story" and job["width"] == 390:
         signals, source = job.get("signals"), job.get("firstExternalSource")
         if not signals or signals["bottom"] > FIRST_SCREEN_390:

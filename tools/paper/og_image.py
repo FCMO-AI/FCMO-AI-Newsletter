@@ -16,10 +16,12 @@ import tempfile
 
 if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+    from tools.paper.front_plan import evidence_class
     from tools.paper.i18n import format_date, label, load_catalogs
     from tools.paper.plates import plate
     from tools.paper.playwright_module import missing_playwright_message, resolve_playwright_module
 else:
+    from .front_plan import evidence_class
     from .i18n import format_date, label, load_catalogs
     from .plates import plate
     from .playwright_module import missing_playwright_message, resolve_playwright_module
@@ -36,12 +38,17 @@ await browser.close();
 """
 
 
+_OG_PROOF_KEY = {"shown": "shown", "claimed": "claimed", "not_established": "not_established"}
+
+
 def _card(template: str, *, story: dict, locale: dict, catalog: dict) -> str:
     code = locale["code"]
     values = {
         "LANG": locale["html_lang"],
         "DATE": format_date(story["event_at"], catalog, precision=story.get("date_precision", "day")),
-        "EVIDENCE": label(catalog, "evidence_class", story.get("evidence_class"), fallback="FCMO AI"),
+        # The class word (Shown / Claimed / Not established), never the grade alone: a shared card must say
+        # what kind of claim the story is, the same word the front and the story page use for this item.
+        "EVIDENCE": catalog["strings"]["proof"][_OG_PROOF_KEY[evidence_class(story)]],
         "BEAT": label(catalog, "beat", story.get("beat"), fallback="FCMO AI"),
     }
     # The card carries no headline or dek: the page's own title does that job. The image is a
