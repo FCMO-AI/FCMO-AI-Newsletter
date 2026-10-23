@@ -79,7 +79,7 @@ class BrevoTests(unittest.TestCase):
             result = self.provider(server).health()
             self.assertEqual(result['status'],'warning')
             self.assertEqual(result['warnings'],['brevo_daily_cap_exceeded'])
-            self.assertEqual(result['estimated_daily_emails'],301)
+            self.assertEqual(result['estimated_daily_emails'],301)  # corpus-count-ok: 101+100+100 emails, not a corpus count
             server.counts[21] = 100
             self.assertEqual(self.provider(server).health()['status'],'ok')
     def test_export_preserves_blacklist_attributes_and_locale_memberships(self):
