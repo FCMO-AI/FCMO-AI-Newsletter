@@ -107,10 +107,20 @@ def _chip(klass: str, ctx: _Ctx) -> str:
             f'<span class="chip-word"><strong>{_e(ctx.s["proof"][klass])}</strong></span></span>')
 
 
-def _evrow(story: dict, ctx: _Ctx, *, cls: str = "evrow", tag: str = "p") -> str:
+def _grade(story: dict, ctx: _Ctx) -> str:
+    """The lettered grade plate with its short name, so the grade is on the first screen of the cover."""
+    letter = story.get("evidence_class")
+    if letter not in ("A", "B", "C", "D"):
+        return ""
+    name = label(ctx.catalog, "evidence_short", letter)
+    return (f'<span class="cover-grade"><span class="evrow-grade" aria-hidden="true">{letter}</span>'
+            f'<span class="cover-grade-name">{_e(name)}</span></span>')
+
+
+def _evrow(story: dict, ctx: _Ctx, *, cls: str = "evrow", tag: str = "p", grade: bool = False) -> str:
     klass = plan_mod.evidence_class(story)
     primary, gaps = _counts(story)
-    return (f'<{tag} class="{cls}" data-evidence-class="{_e(klass)}">{_chip(klass, ctx)}'
+    return (f'<{tag} class="{cls}" data-evidence-class="{_e(klass)}">{_grade(story, ctx) if grade else ""}{_chip(klass, ctx)}'
             f'<span>{_e(plural(ctx.catalog, "primary_source", primary))}</span>'
             f'<span>{_e(plural(ctx.catalog, "open_gap", gaps))}</span></{tag}>')
 
@@ -135,7 +145,7 @@ def _cover(feature: dict, story: dict | None, ctx: _Ctx | None, record: str) -> 
     foot = f'<div class="cover-foot">{feature["badge"]}</div>'
     if ctx and story:
         kicker = "FCMO AI · " + ctx.s["cover"]["lead_kicker"].format(beat=feature["beat"])
-        signals = _evrow(story, ctx, cls="evrow cover-evrow", tag="div")
+        signals = _evrow(story, ctx, cls="evrow cover-evrow", tag="div", grade=True)
         glance = ctx.s["cover"]["evidence_glance"]
         side = f'<div class="cover-side">{_plate_html(story, "16:10", ctx.s, ctx.rings_seen)}{_receipt(story, feature, ctx)}</div>'
         glance_html = f'<div class="cover-glance" aria-label="{_e(glance)}">{feature["hero"]}</div>'

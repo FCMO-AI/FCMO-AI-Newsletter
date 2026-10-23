@@ -421,3 +421,8 @@ Run `npm run build` and `node refresh-offline-seed.mjs` in an environment with
 the repo's already-locked esbuild available, then commit those generated files
 with the source lane. Do not install dependencies or run the destructive fallback
 in this lane.
+
+## Lane V (visual)
+- Lane T: `verificar_paper.py` front block still filters `kind === 'front'` (home-pages=0). Retarget to `landing` (`.cover h1`, bottom of `.cover-evrow` < 900 at 1440; lines <= 4). With lane V's CSS this holds in en, es-419, zh-Hans at 1280/1440/1920.
+- `tests/test_no_frozen_corpus_counts.py` fails on c6/integration (not caused by lane V): front-page story count is now 300 and four tests contain a literal `300` (`test_clock_boundaries.py:48`, `test_localization_completeness.py:43`, `test_v4_visual_width.py:48`, `test_wire_liveness.py:72`).
+- Search placeholder text could not be shortened in CSS; the field now sits on its own row at <= 520 px so the full text shows.
