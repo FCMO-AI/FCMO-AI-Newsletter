@@ -4,7 +4,7 @@ import { h, append, ago, dots, modal, clear } from './ui.js'
 import { rollbackDialog } from './publication-actions.js'
 import { shell, session } from './main.js'
 
-export function login (root, done) {
+export function login (root, done, notice) {
   const err = h('p', { class: 'form-error', role: 'alert', hidden: true }, t('login.bad'))
   const user = h('input', { id: 'u', type: 'text', name: 'user', autocomplete: 'username', required: true, autofocus: true })
   const pass = h('input', { id: 'p', name: 'password', type: 'password', autocomplete: 'current-password', required: true })
@@ -12,7 +12,7 @@ export function login (root, done) {
     e.preventDefault(); err.hidden = true
     try { await post('/api/login', { user: user.value.trim().normalize('NFD').replace(/\p{M}/gu, '').toLowerCase(), password: pass.value }); done() } catch (x) { err.hidden = false; err.textContent = x instanceof ApiError && x.status === 0 ? t('err.net') : t('login.bad'); pass.select() }
   } },
-  h('div', { class: 'login-mark' }, 'fCMO', h('span', null, 'Studio')), h('h1', null, t('login.title')), h('p', { class: 'lede' }, t('login.lede')),
+  h('div', { class: 'login-mark' }, 'fCMO', h('span', null, 'Studio')), h('h1', null, t('login.title')), h('p', { class: 'lede' }, t('login.lede')), notice ? h('p', { class: 'notice', role: 'status' }, notice) : null,
   h('label', { for: 'u' }, t('login.user')), user, h('label', { for: 'p' }, t('login.pass')), pass, err, h('button', { class: 'btn primary big', type: 'submit' }, t('login.go')))
   root.append(h('main', { class: 'login' }, form))
   return null

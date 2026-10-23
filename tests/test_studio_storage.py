@@ -35,6 +35,11 @@ class Storage(unittest.TestCase):
         self.store.restore(self.slug, old['rev'], 'javier')
         self.assertEqual(self.store.doc(self.slug, 'en')['doc'], DOC)
         self.assertTrue(any(x['rev'] == 2 for x in self.store.versions(self.slug)))
+    def test_spanish_titles_keep_their_letters_in_the_public_slug(self):
+        # Dogfood 2026-10-14: «precisión» used to publish as «precisi-n».
+        slug = self.store.create('javier', 'essay', 'Por qué la lentitud es una forma de precisión', 'es-419')['slug']
+        self.assertTrue(slug.startswith('por-que-la-lentitud-es-una-forma-de-precision-'), slug)
+        self.assertTrue(self.store.create('javier', 'note', 'Año nuevo, ñoño', 'es-419')['slug'].startswith('ano-nuevo-nono-'))
     def test_idle_and_locale_locks(self):
         self.store.lock(self.slug, 'en', 'javier')
         with self.assertRaises(Locked): self.store.lock(self.slug, 'en', 'matias')

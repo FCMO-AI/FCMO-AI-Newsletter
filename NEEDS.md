@@ -410,11 +410,14 @@ sus aserciones originales pasan en 0,006 s y el archivo versionado permanece
 intacto. También se interceptó `Popen` antes de crear hijos: el fixture original
 intenta lanzar `python -m unittest discover -s tests` pese a su mock.
 
-## c6 lane P (polish): strings and markup outside its ownership
+# studio-github-connect
 
-1. `i18n/ui/en.json` and `i18n/ui/es-419.json` (the zh-Hans equivalents are already changed in lane P):
-   - `freshness.line` en: `Newest story: {newest}. Our last check was {checked}, {lag} later.` (drops the repeated brand and the «before our last check» inversion; one fact per sentence, wraps cleanly at 390). es-419: `Última historia: {newest}. Nuestra última revisión fue el {checked}, {lag} después.`
-   - `freshness.newest` en: `Newest story: {newest}.` es-419: `Última historia: {newest}.`
-   - `archive.grade_default` en: `Each row carries its own evidence class; the grade is a separate mark, and a story with none is {grade}.` es-419: `Cada fila lleva su propia clase de evidencia; el grado es otra marca, y una historia sin ella es {grade}.`
-2. `tools/email_piece_render.py`: the kicker reads «FCMO AI · FCMO AI Newsletter». Use the publication name once (for example `PAPER_NAME` alone).
-3. `tools/paper/build.py` (optional): wrap `topic_nav_html` and `navigation_html` neighbours in one container; lane P unified the two boxes in CSS only (`.story-after .pn` + `.edition-neighbors` read as one bordered control).
+Outside this lane's ownership, rebuild the tracked Studio bundle and offline seed
+from the updated `studio/web/src/**`: `studio/web/dist/**` and
+`studio/web/offline/{app.seed.js,screens-home.seed.js,seed-manifest.json}`.
+The local checkout has no `esbuild`; the offline fallback intentionally rejects
+these source changes, and `npm run build` removes `dist/` before that rejection.
+Run `npm run build` and `node refresh-offline-seed.mjs` in an environment with
+the repo's already-locked esbuild available, then commit those generated files
+with the source lane. Do not install dependencies or run the destructive fallback
+in this lane.

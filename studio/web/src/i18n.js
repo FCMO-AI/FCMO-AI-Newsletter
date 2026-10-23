@@ -7,7 +7,7 @@ export const S = {
     'pub.email': 'Enviar por correo a los suscriptores', 'pub.email.after': 'Se enviará después de comprobar el despliegue.', 'pub.threshold': 'Umbral FCMO', 'pub.approval': '{who} revisa el original y autoriza publicar las ediciones comprobadas.',
     'prog.email.queued': 'Correo programado ✓', 'prog.email.pending': 'Correo pendiente de programación.',
     'app.name': 'FCMO Studio', 'nav.home': 'Escritorio', 'nav.issues': 'Ediciones', 'nav.logout': 'Salir', 'nav.theme': 'Tema', 'nav.skip': 'Ir al contenido',
-    'login.title': 'Entrar al estudio', 'login.user': 'Persona', 'login.pass': 'Contraseña', 'login.go': 'Entrar', 'login.bad': 'Esa combinación no es correcta. Revisa e inténtalo de nuevo.', 'login.lede': 'Un solo lugar para escribir, traducir y publicar.',
+    'login.title': 'Entrar al estudio', 'login.user': 'Persona', 'login.pass': 'Contraseña', 'login.go': 'Entrar', 'login.bad': 'Esa combinación no es correcta. Revisa e inténtalo de nuevo.', 'login.lede': 'Un solo lugar para escribir, traducir y publicar.', 'login.expired': 'Tu sesión terminó. Entra de nuevo; lo que no se alcanzó a guardar sigue en este navegador.',
     'home.hello': 'Hola, {name}', 'home.new': 'Nuevo ensayo', 'home.letter': 'Carta', 'home.note': 'Nota', 'home.search': 'Buscar en tus textos',
     'home.attention': 'Necesita tu atención', 'home.continue': 'Seguir escribiendo', 'home.empty': 'Nada pendiente. Buen momento para escribir.',
     'home.drafts': 'Borradores', 'home.review': 'En revisión', 'home.published': 'Publicados', 'home.editions': 'Ediciones', 'home.none': 'Todavía no hay nada aquí.',
@@ -53,7 +53,7 @@ export const S = {
     'pub.email': 'Email subscribers', 'pub.email.after': 'Email follows the verified deployment.', 'pub.threshold': 'FCMO publication standard', 'pub.approval': '{who} reviews the original and authorizes publication of the checked editions.',
     'prog.email.queued': 'Email scheduled ✓', 'prog.email.pending': 'Email awaits scheduling.',
     'app.name': 'FCMO Studio', 'nav.home': 'Desk', 'nav.issues': 'Issues', 'nav.logout': 'Sign out', 'nav.theme': 'Theme', 'nav.skip': 'Skip to content',
-    'login.title': 'Enter the studio', 'login.user': 'Person', 'login.pass': 'Password', 'login.go': 'Enter', 'login.bad': 'That combination is not right. Check it and try again.', 'login.lede': 'One place to write, translate and publish.',
+    'login.title': 'Enter the studio', 'login.user': 'Person', 'login.pass': 'Password', 'login.go': 'Enter', 'login.bad': 'That combination is not right. Check it and try again.', 'login.lede': 'One place to write, translate and publish.', 'login.expired': 'Your session ended. Sign in again; anything not yet saved is still in this browser.',
     'home.hello': 'Hello, {name}', 'home.new': 'New essay', 'home.letter': 'Letter', 'home.note': 'Note', 'home.search': 'Search your pieces',
     'home.attention': 'Needs your attention', 'home.continue': 'Keep writing', 'home.empty': 'Nothing waiting. A good moment to write.',
     'home.drafts': 'Drafts', 'home.review': 'In review', 'home.published': 'Published', 'home.editions': 'Issues', 'home.none': 'Nothing here yet.',
@@ -185,4 +185,19 @@ Object.assign(S.en, {
   'pub.mode.unread': 'Publication availability could not be checked. Check again before approving.',
   'rev.private.approve': 'Approve private review',
   'rev.private.confirm': 'The approval is saved in Studio. Public publication is disabled.'
+})
+
+Object.assign(S.es, {
+  'gh.connect': 'Conectar GitHub', 'gh.waiting': 'Esperando que autorices…', 'gh.ready': 'Listo: GitHub conectado.',
+  'gh.starting': 'Preparando la conexión…', 'gh.timeout': 'La conexión tardó demasiado. Inténtalo de nuevo.',
+  'gh.cancelled': 'Conexión cancelada.', 'gh.error': 'No se pudo conectar. Inténtalo de nuevo.', 'gh.missing': 'Tu cuenta de GitHub todavía no está conectada.',
+  'gh.code': 'Código de un solo uso', 'gh.copy': 'Copiar código', 'gh.copied': 'Código copiado.',
+  'gh.copyError': 'No se pudo copiar. Selecciona el código para copiarlo.', 'gh.open': 'Abrir GitHub', 'gh.cancel': 'Cancelar'
+})
+Object.assign(S.en, {
+  'gh.connect': 'Connect GitHub', 'gh.waiting': 'Waiting for you to authorize…', 'gh.ready': 'Done: GitHub is connected.',
+  'gh.starting': 'Getting things ready…', 'gh.timeout': 'This took too long. Try again.',
+  'gh.cancelled': 'Connection cancelled.', 'gh.error': 'Could not connect. Try again.', 'gh.missing': 'Your GitHub account is not connected yet.',
+  'gh.code': 'One-time code', 'gh.copy': 'Copy code', 'gh.copied': 'Code copied.',
+  'gh.copyError': 'Could not copy. Select the code to copy it.', 'gh.open': 'Open GitHub', 'gh.cancel': 'Cancel'
 })

@@ -46,6 +46,13 @@ account, CODEOWNERS, ruleset, browser and live acceptance sequence.
    `STUDIO_GH_CONFIG_JAVIER` and `STUDIO_GH_CONFIG_MATIAS`, or supply the named
    fine-grained tokens. Two identical GitHub logins refuse publication. Missing
    credentials never trigger a fallback. No token is extracted from gh.
+   When a personal login is missing, that person can connect it from Studio:
+   sign in as the matching person, choose **Connect GitHub**, copy the one-time
+   code, and open `https://github.com/login/device` in a new tab. Finish with
+   that person's GitHub account. Studio keeps the login open for up to 15 minutes
+   and checks for completion; it can be cancelled or restarted. The code is
+   temporary and is not written to logs or files. `gh` stores the credential
+   directly in that person's private `STUDIO_GH_CONFIG_*` directory.
 8. Create, edit and preview in the private Studio, mark each language ready or
    explicitly pending, and obtain the other person's approval. Dry-run mode
    records approval but never advances the publication worker. Stop the server

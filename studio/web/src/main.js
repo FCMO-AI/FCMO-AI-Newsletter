@@ -1,4 +1,4 @@
-import { get, post, setCsrf } from './api.js'
+import { get, post, del, setCsrf } from './api.js'
 import { setLang, t } from './i18n.js'
 import { h, clear, toast, closeModals } from './ui.js'
 import { login, home } from './screens-home.js'
@@ -30,16 +30,48 @@ async function updateReadiness (banner) {
   try {
     const state = await get('/api/publication-readiness')
     if (!banner.isConnected) return
-    banner.replaceChildren(...state.credentials.filter(c => !c.ready).map(c =>
-      h('p', null, document.documentElement.lang === 'en' ? c.plain_en : c.plain_es)))
-    if (state.dry_run || !state.live_enabled) banner.prepend(h('p', null, t('pub.private.mode')))
+    const own = state.credentials.find(c => c.user === session.me.user)
+    const connection = own && !own.ready ? await get('/api/github/connect') : null
+    if (!banner.isConnected) return
+    const content = []
+    for (const credential of state.credentials.filter(c => !c.ready)) {
+      if (credential.user === session.me.user) content.push(githubConnectCard(connection))
+      else content.push(h('p', null, document.documentElement.lang === 'en' ? credential.plain_en : credential.plain_es))
+    }
+    if (state.dry_run || !state.live_enabled) content.unshift(h('p', null, t('pub.private.mode')))
+    banner.replaceChildren(...content)
     banner.hidden = !banner.childElementCount
   } catch { /* Authentication errors are handled by the shared API. */ }
+}
+function githubConnectCard (connection) {
+  const state = connection?.state || 'idle'
+  const status = state === 'ready' ? t('gh.ready') : state === 'waiting' ? t('gh.waiting') :
+    state === 'timeout' ? t('gh.timeout') : state === 'cancelled' ? t('gh.cancelled') :
+      state === 'error' ? t('gh.error') : state === 'starting' ? t('gh.starting') : ''
+  const controls = []
+  if (state === 'idle' || state === 'timeout' || state === 'cancelled' || state === 'error') {
+    controls.push(h('button', { class: 'btn gh-connect-start', type: 'button', onclick: async e => {
+      e.currentTarget.disabled = true
+      try { await post('/api/github/connect'); await updateReadiness(document.getElementById('publication-readiness')) }
+      catch { e.currentTarget.disabled = false }
+    } }, t('gh.connect')))
+  }
+  if (connection?.code && state === 'waiting') {
+    controls.push(h('strong', { class: 'gh-device-code', 'aria-label': t('gh.code') }, connection.code))
+    controls.push(h('button', { class: 'btn', type: 'button', onclick: async () => {
+      try { await navigator.clipboard.writeText(connection.code); toast(t('gh.copied')) } catch { toast(t('gh.copyError')) }
+    } }, t('gh.copy')))
+    if (connection.url === 'https://github.com/login/device') controls.push(h('a', { class: 'btn gh-device-link', href: connection.url, target: '_blank', rel: 'noopener noreferrer' }, t('gh.open')))
+    controls.push(h('button', { class: 'link-btn', type: 'button', onclick: async () => { try { await del('/api/github/connect'); await updateReadiness(document.getElementById('publication-readiness')) } catch {} } }, t('gh.cancel')))
+  }
+  return h('div', { class: 'gh-connect', 'data-state': state },
+    h('p', null, status || (document.documentElement.lang === 'en' ? connection?.plain_en : connection?.plain_es) || t('gh.missing')),
+    h('div', { class: 'gh-connect-controls' }, controls))
 }
 setInterval(() => {
   const banner = document.getElementById('publication-readiness')
   if (session.me && banner) updateReadiness(banner)
-}, 30000)
+}, 3000)
 
 export function shell (content, { active = '', wide = false } = {}) {
   const me = session.me
@@ -61,7 +93,7 @@ export function shell (content, { active = '', wide = false } = {}) {
 
 async function ensureMe () {
   if (session.me) return true
-  try { session.me = await get('/api/me'); setCsrf(session.me.csrf); setLang(session.me.ui_lang || 'es'); return true } catch { return false }
+  try { session.me = await get('/api/me'); session.expired = false; setCsrf(session.me.csrf); setLang(session.me.ui_lang || 'es'); return true } catch { return false }
 }
 
 const routes = [
@@ -82,7 +114,7 @@ export async function route () {
   if (dispose) { try { dispose() } catch { /* leaving */ } dispose = null }
   closeModals()
   const hash = location.hash || '#/'
-  if (!(await ensureMe())) { clear(app); dispose = login(app, () => { location.hash = '#/'; route() }); return }
+  if (!(await ensureMe())) { clear(app); dispose = login(app, () => { location.hash = '#/'; route() }, session.expired ? t('login.expired') : ''); return }
   if (hash === '#/login') { location.hash = '#/'; return }
   const root = h('div', { class: 'screen' })
   clear(app); app.append(root)
@@ -96,5 +128,5 @@ export async function route () {
   root.append(shell(h('div', { class: 'notice' }, t('err.notfound'))))
 }
 addEventListener('hashchange', route)
-addEventListener('studio:unauth', () => { session.me = null; route() })
+addEventListener('studio:unauth', () => { if (session.me) session.expired = true; session.me = null; route() })
 route()
