@@ -11,7 +11,7 @@ on the first story, it checks in a real Chromium:
 * at 820, 1100 and 1440 px (tablet and desktop top bar, M1): the top bar and its
   inner frame do not overflow their box, the «FCMO AI» wordmark renders on one
   line, and the Subscribe CTA (.btn-cta) is visible and is what a click reaches;
-* on the landing page at 1440 px, synthetic leads of 30..84 display units (Latin,
+* on the landing page at 820, 1100 and 1440 px, synthetic leads of 30..84 display units (Latin,
   and Han on zh-Hans) are put into the hero h1 with the class the build's own
   _title_class assigns; the h1 stays within 4 lines and the next line
   (.cover-dek or .cover-evrow) starts above 900 px (same budget as verificar_paper);
@@ -52,6 +52,9 @@ WIDTHS = (390, 820, 1100, 1440)
 TOPBAR_MIN_WIDTH = 768  # below this the CTA lives in the bottom tab bar
 HERO_MAX_LINES = 4
 HERO_NEXT_LINE_LIMIT = 900
+# The hero probes run at the tablet and desktop widths with the budget the oracle already used at
+# 1440: at most 4 lines and the next line above 900 px, the height of the measured first screen.
+HERO_WIDTHS = (820, 1100, 1440)
 # Target display widths (build units) probed on the landing hero; the class
 # boundaries of _title_class fall inside this range.
 HERO_UNITS = (30, 38, 46, 55, 58, 70, 84)
@@ -184,8 +187,9 @@ def build_plan(out_dir: Path) -> list[dict]:
         for width in WIDTHS:
             jobs.append({"locale": locale, "width": width, "route": "home", "url": BASE + prefix})
             jobs.append({"locale": locale, "width": width, "route": "story", "url": BASE + story["path"].lstrip("/")})
-        jobs.append({"locale": locale, "width": 1440, "route": "hero", "url": BASE + prefix,
-                     "probes": hero_probes(locale)})
+        for width in HERO_WIDTHS:
+            jobs.append({"locale": locale, "width": width, "route": "hero", "url": BASE + prefix,
+                         "probes": hero_probes(locale)})
     return jobs
 
 
@@ -260,7 +264,7 @@ def evaluate_hero(job: dict) -> list[str]:
     """Pure judgement of the synthetic landing-hero probes."""
     problems = []
     for res in job.get("results", []):
-        tag = f"{job['locale']} hero {res['units']}u {res['cls']}"
+        tag = f"{job['locale']} {job['width']}px hero {res['units']}u {res['cls']}"
         if res.get("missing"):
             problems.append(f"FAIL hero {tag}: .landing-feature h1 missing")
         elif res["lines"] > HERO_MAX_LINES or res["dekTop"] is None or res["dekTop"] >= HERO_NEXT_LINE_LIMIT:
