@@ -245,7 +245,7 @@ class CommunityBuildTests(unittest.TestCase):
         temp, out, result = self.build({"GHOST_PORTAL_URL": portal})
         self.addCleanup(temp.cleanup)
         self.assertEqual(result.returncode, 0, result.stderr)
-        for rel in ("es/index.html", "es/suscribete/index.html"):
+        for rel in ("es/index.html", "es/subscribe/index.html"):
             text = (out / rel).read_text(encoding="utf-8")
             parser = LinkParser()
             parser.feed(text)
@@ -256,7 +256,7 @@ class CommunityBuildTests(unittest.TestCase):
             self.assertEqual((split.scheme, split.netloc, split.fragment), ("https", "comunidad.example", "/portal/signup"))
             self.assertEqual(parser.forms, 0)
             self.assertEqual(parser.inputs, 0)
-        for rel in ("index.html", "zh/index.html", "suscribete/index.html", "zh/suscribete/index.html"):
+        for rel in ("index.html", "zh/index.html", "subscribe/index.html", "zh/subscribe/index.html", "suscribete/index.html", "zh/suscribete/index.html"):
             self.assertNotIn(portal, (out / rel).read_text(encoding="utf-8"), rel)
 
     def test_progressive_enhancement_is_first_party_and_hash_pinned(self):
@@ -282,11 +282,16 @@ class CommunityBuildTests(unittest.TestCase):
             })
             self.addCleanup(temp.cleanup)
             self.assertEqual(result.returncode, 0, result.stderr)
-            text = (out / "es" / "index.html").read_text(encoding="utf-8")
-            self.assertEqual(text.count("Resumen de la carta"), 3)
-            positions = [text.index(f"Carta de prueba {number}") for number in (4, 3, 2)]
-            self.assertEqual(positions, sorted(positions))
-            self.assertIn('data-slot="cartas"', text)
+            # c6 / DIRECCION s4: the front has no letters section or Ghost rail of
+            # its own any more (one publication, no letters CTA). The build still
+            # reads the Content API once, read-only, and nothing from it reaches
+            # any locale front or the subscription page.
+            for rel in ("index.html", "es/index.html", "zh/index.html", "subscribe/index.html", "es/subscribe/index.html", "zh/subscribe/index.html"):
+                text = (out / rel).read_text(encoding="utf-8")
+                self.assertNotIn("Resumen de la carta", text, rel)
+                self.assertNotIn("Carta de prueba", text, rel)
+                self.assertNotIn('data-slot="cartas"', text, rel)
+                self.assertNotIn("community-rail", text, rel)
             self.assertEqual(ghost.count("GET", CONTENT_PATH), 1)
             self.assertEqual(ghost.count(path="/ghost/api/admin/"), 0)
 

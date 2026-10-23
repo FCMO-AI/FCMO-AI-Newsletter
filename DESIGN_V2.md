@@ -1,57 +1,72 @@
-# FCMO publication design v2
+# FCMO publication design v2 (c6, single palette)
 
-This is the shared visual and navigation contract for the Group landing, Newsletter, and FCMO AI technical paper. The product names are provisional pending O-8; change `PRODUCT_NAMES` in `tools/paper/routes.py` to rename them. The technical section front is `diario/` in every locale. Locale roots remain the FCMO landing; story, archive, edition, topic, organization, feed and sitemap routes retain their paths. `front.html` is the explicit legacy technical-front redirect in each locale.
+This is the shared visual, navigation and palette contract for FCMO AI, the company's news and strategy service. FCMO and fCMO are one identity (see `identity/README.md` in the Agent Hub). The site presents one publication, FCMO AI: no product zones, no separate letters or technical sections, no second palette. Routes, feeds and the 404 follow `tools/paper/routes.py` and `tools/paper/redirects.py`.
 
-## Brand zones and technical exposure
+## One palette
 
-| Zone | Identity | Gradient | Purpose |
+Every colour comes from `design/tokens.json`. `design/build_css.py` writes the token region at the top of `site-src/assets/css/paper.css`; the hand-written stylesheet uses no other colour value.
+
+| Role | Token | Hex | Use |
 | --- | --- | --- | --- |
-| Site root | FCMO | T0 with one FCMO AI T2/T3 depth well | Orient first-time readers toward Javier's letter or Matías's technical paper. |
-| Newsletter, letters, beginner path and subscription | FCMO; Javier's fCMO identity where his voice is used | T0/T1 | Explain in human terms; give a clear entry and next step. |
-| Technical daily paper | FCMO AI | T1 base, T2/T3 evidence and benchmark wells | Show what changed, what evidence supports, and what remains uncertain. |
+| Reading ground | `bone` | `#F2EFE8` | Page background and all body text on light surfaces. |
+| Paper | `paper` | `#FBF9F4` | Raised panels on bone (search, pending states). |
+| Ink | `ink` | `#0A0A0A` | Text, rules, the solid evidence sample, dark surfaces. |
+| Ink soft | `ink_soft` | `#34322F` | Secondary body text. |
+| Muted | `muted` | `#5E5A53` | Metadata and captions (AA on bone). |
+| Line | `line` / `line_strong` | `#C9C2B6` / `#80786D` | Hairlines and dividers. |
+| Mêtis | `metis` | `#F05A28` | Signal only: the symbol, focus ring, method band, kickers on ink. Never body text on bone. |
+| Mêtis text | `metis_text` | `#A9340E` | Mêtis used as text on bone (AA). |
+| Oxblood | `oxblood` | `#8A1E22` | «Not established» only: the dashed outline sample and the «What we still don't know» box. AA on bone. |
+| Chrome | `chrome`, `chrome_2`, `chrome_3`, `chrome_line`, `chrome_mute`, `chrome_text`, `metis_soft` | `#0D0D0F` to `#F7B499` | Dark chrome for the cover, story cover, top bar, tab bar, Evidence Record and the data hero. Reading never sits on chrome. |
+| Status | `warning_bg/text`, `danger_bg/text`, `success_text` | see tokens | Edition and freshness states (`--ok`, `--warn`, `--bad` alias them). |
 
-Navigation toward mechanism may darken; navigation toward explanation may lighten. A dark well uses Ink as a structural field, Bone as reading light, restrained Mêtis signal, and actual evidence. A reverse Bone plate inside a dark technical surface is for explanations and limits. Never use darkness as generic technology theatre.
+The FCMO AI v0.2 product hues (`foundry`, `living`, `intelligence`) are not part of the palette. They survive only as the legacy segment markers in `paper.css` and retire with those markers. The `brands.group` and `brands.ai` colour sets are removed: there is one brand.
 
-## Canonical tokens
+Rules:
+- Colour never carries meaning alone. Evidence states always carry a shape and a word.
+- Contrast is AA (4.5:1 for text) on every declared pair. `design/check_contrast.py` checks them; a new pair is added there, never waived.
+- Dark chrome is structural, never a backdrop behind a headline. Plates sit beside a headline (desktop) or below it (phone), not behind it.
 
-`design/tokens.json` contains the values; `design/build_css.py` produces the stylesheet. FCMO v4.1: Ink `#0A0A0A`, Bone `#F2EFE8`, Stone `#8A857C`, Fog `#D9D5CC`, Rule DK `#2A2A28`, Body `#3A3A38`. FCMO AI v0.2: the shared Ink and Bone plus Mêtis `#F05A28`, Foundry `#BB5E4A`, Living `#73875A`, Intelligence `#5B7C93`. Accent colors identify intervention or real semantic states; they are not default body text. The existing darker text variant of Mêtis is used on Bone to meet contrast. Group display uses Inter Tight; AI display uses contemporary Inter Tight, serif for longer reading and inscription, and mono for data/state. Source files: Hub identity `readable/01_FCMO_Group_Identity_System_v4.1.txt`, `readable/03_FCMO_AI_Identity_System_v0.2.txt`, and `FCMO_TECHNICAL_EXPOSURE_GRADIENT_v0.1.md`. The [gradient visual reference](site-src/assets/brand/technical-exposure-reference.webp) is a review aid, not reader artwork.
+## Evidence grammar
 
-## Scale and layout
+| State | Sample | Word |
+| --- | --- | --- |
+| Established / Shown | Solid Ink block | «Shown» (zh: 已展示) |
+| Claimed | Diagonal hatch in Ink, no fill | «Claimed» (zh: 仅声称) |
+| Not established | Dashed Oxblood outline, Bone inside | «Not established» (zh: 尚未确立) |
 
-Base body 18px, small 14px, metadata 12px, deck 20px. Display titles use fluid steps from 40px to 88px; dense story headlines step down according to measured title length. Use an eight point rhythm: 4, 8, 12, 16, 24, 32, 48, 64px. Main page measure is 80rem; long-form reading measure is 43rem. A wide two-column editorial front becomes one column below 850px; cards become one column below 520px. Maintain 16px outer gutters on narrow viewports, visible focus, no horizontal overflow, and a stable media aspect ratio.
+The hatch appears only on the sample. Text always sits on a flat ground.
 
-## Component contract
+## Type
 
-| Component | Job and minimum behavior |
-| --- | --- |
-| Header and zone switch | FCMO and FCMO AI appear on every page; active zone is announced, search is always present. |
-| Breadcrumbs | Home, technical section where relevant, current page; omit at locale roots. |
-| Lead, standard, compact story cards | Lead holds artwork, title, deck, date and evidence context; standard adds the same orientation in a row; compact is for related or ranked lists. |
-| Edition strip | Date, edition state and adjacent edition navigation. |
-| Topic chip | Short linked taxonomy label, never a dead badge. |
-| Glossary tooltip | Native-language plain definition, keyboard focus, and link to full glossary entry where available. |
-| Evidence/benchmark well | Dark T2/T3 panel for source, metric, comparison, scope and limitation; reverse Bone plate for explanatory prose. |
-| Subscribe block slot | `subscribe_block(zone, locale)` from `tools/paper/templates/subscribe.py`; account and delivery truth stay with the subscription lane. |
-| Footer | Both brands, legal, methods, corrections, status and feeds. |
-| Empty state | Say what is absent, why the surface still matters, and where to go next. |
-| 404 | Localized return links to the Group root, technical front and search. |
+- Display: Inter Tight, weight 900 with -0.035em tracking for titles; 600 for UI.
+- Reading: Source Serif 4 for dek and body, 17 to 19 px, 66 ch measure.
+- Technical: JetBrains Mono, 12 px, caps, for kickers, labels and figures.
+- zh-Hans: system sans for headlines (PingFang SC, Noto Sans CJK SC, Microsoft YaHei); body 17 px / 1.85; no caps, no tracking, `overflow-wrap:anywhere`.
+- Scale: hero `clamp(2.1rem, 6vw, 4.9rem)`, section 3.2 rem, card 1.28 rem. Numerals in lists use `white-space:nowrap` with a fixed width.
 
-Images should be deterministic data-driven SVG generated from published story, topic, organization or benchmark data. Preserve the existing Qwen3.8 Flash lead treatment and elevate it through the technical well. GPT illustration is reserved for a small number of section fronts, with editorial review and provenance. No stock photo, fake screenshot or generic AI imagery. An image never substitutes for a source citation.
+## Grid and frame
 
-## Page blueprints for p1 and p2
+- Frame: `--l-grid-max` (1360 px) with `--l-pad` (`clamp(16px, 4vw, 56px)`) on both sides. The page shell takes this frame. The landing main spans the viewport and holds its content in the same frame.
+- Front: hero 7/5, cards 12 to 4+4+4. Story: 200 px / fluid / 320 px rail.
+- Breakpoints: 1100 px (single column) and 760 px (phone: tab bar; compact evidence record before the body).
+- Touch targets at least 44 px. Eight-point spacing.
 
-| Type | Opening | Body | Next step |
-| --- | --- | --- | --- |
-| Group landing | Human promise and two unambiguous routes | Javier letter/empty state, then FCMO AI depth well with lead and top stories | Start here, technical edition, subscription options |
-| Newsletter front/letter | Human claim and author/date | Letter with a useful example and plain-language glossary | Next letter, beginner guide, subscription |
-| Beginner guide | The reader's question | Short sections, definitions, one worked example | Related guide and technical source |
-| Technical front | Latest lead and edition state | Top stories, beat paths, evidence signals | Today's edition and archive |
-| Story | Localized headline, deck, byline, date and evidence state | What changed, why it matters, claims, limitations, source trail | Related stories, topic, previous/next in edition |
-| Edition | Date and coverage summary | Ordered stories with clear ranking and beat labels | Previous/next edition |
-| Archive, topic, organization | Scope, count and latest date | Useful filters and story cards | Neighboring topic or archive |
-| Method/about/status | Clear question and current answer | Process, limitations or real operational state | Specific route to inspect or act |
-| Search | Search field immediately available | Results with context and honest empty state | Refine or browse beats |
-| Subscribe | What arrives and what is currently active | Consent, language and privacy details | Confirmed signup or feeds |
-| 404 | Clear error in each locale | Three route options | Home, technical front, search |
+## Components
 
-Every page must answer what it is, why it matters and where to go next. All interactive elements need keyboard access and discernible names; reduced-motion preferences disable nonessential motion. Non-English prose comes from committed editorial sources, never a silent view-time translation.
+The current class inventory is the comment at the top of `paper.css`. Classes outside that inventory are legacy and must not be added.
+
+- Links: `a.story-card`, `a.plate-card` and `a.card-link` carry no underline; the title carries the link affordance.
+- Data hero: always dark (bone text on ink) on every surface, including the story rail and the landing lead. Print is the only exception.
+- Landing: the `page-landing` main is full width; its content is capped at the 1360 frame.
+- Images: deterministic procedural plates (`tools/paper/plates.py`) with no text inside; fixed slots 16:10, 16:9 and 1200 x 630; alt text is decorative unless it names real content.
+- Stylesheet budget: `paper.css` at most 112 KB (`PAPER_LIMIT` in `design/build_css.py`); the page budget is enforced by `tools/gates/size_budget.py`.
+
+## Accessibility and motion
+
+Visible focus (3 px Mêtis outline), keyboard access to every control, discernible names, no horizontal overflow at 390 px, stable media aspect ratios (CLS 0). Reduced motion disables nonessential motion. Non-English prose comes from committed editorial sources, never a silent view-time translation.
+
+## Open items
+
+- The `--group-*` and `--ai-*` aliases still sit in the generated token region of `paper.css`, because `design/build_css.py` (`legacy_alias_root`) emits them. Nothing in the hand-written stylesheet references them any more. Dropping them needs that file's owner.
+- zh-Hans headline copy and the evidence words need native review before public launch.

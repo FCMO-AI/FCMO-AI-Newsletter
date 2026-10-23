@@ -103,7 +103,7 @@ def automation_badge(status: dict, catalog: dict) -> str:
 
 
 def data_hero(story: dict, catalog: dict, *, evidence: dict | None = None) -> str:
-    """A figure built from this story's own claims, sources and gaps (replaces the shared illustration)."""
+    """The lead's evidence card, in the same vocabulary as the story page: Shown / Claimed / Not established, each a sample plus its word."""
     d = design(catalog)
     evidence = evidence if evidence is not None else (story.get("evidence") if isinstance(story.get("evidence"), dict) else {})
     claims = [c for c in (evidence.get("claims") or []) if isinstance(c, dict)]
@@ -111,22 +111,24 @@ def data_hero(story: dict, catalog: dict, *, evidence: dict | None = None) -> st
     primary = sum(1 for s in sources if isinstance(s, dict) and s.get("primary"))
     gaps = len(evidence.get("gaps") or [])
     limits = len(evidence.get("limitations") or [])
-    kinds = [claim_kind(c.get("label")) for c in claims]
-    strip = "".join(f'<li class="dh-tile" data-kind="{kind}"><span class="visually-hidden">{e(d["kind_" + kind])}</span></li>'
-                    for kind in kinds) or f'<li class="dh-tile dh-tile--empty" data-kind="OTHER"><span class="visually-hidden">{e(d["hero_none"])}</span></li>'
-    legend = "".join(f'<li data-kind="{kind}"><i aria-hidden="true"></i><span>{e(d["kind_" + kind])}</span><b>{kinds.count(kind)}</b></li>'
-                     for kind in KIND_ORDER if kinds.count(kind))
+    classes = [proof_class(c.get("label")) for c in claims]
+    counts = {k: classes.count(k) for k in PROOF_ORDER}
+    strip = "".join(f'<li class="dh-tile dh-tile-{cls}" data-kind="{cls.upper()}"><span class="visually-hidden">{e(proof_word(catalog, cls))}</span></li>'
+                    for cls in classes) or f'<li class="dh-tile dh-tile--empty" data-kind="OTHER"><span class="visually-hidden">{e(d["hero_none"])}</span></li>'
+    legend = "".join(f'<li data-kind="{cls.upper()}">{sample(cls)}<span>{e(proof_word(catalog, cls))}</span><b>{counts[cls]}</b></li>'
+                     for cls in PROOF_ORDER if counts[cls])
     figures = (f'<li><b>{len(claims)}</b><span>{e(d["hero_claims_n"])}</span></li>'
                f'<li><b>{primary}</b><span>{e(d["hero_sources"])}</span></li>'
                f'<li><b>{gaps}</b><span>{e(d["hero_gaps"])}</span></li>'
                f'<li><b>{limits}</b><span>{e(d["hero_limits"])}</span></li>')
     grade_text = label(catalog, "evidence_class", story.get("evidence_class"))
+    conf_text = label(catalog, "confidence", story.get("confidence"))
     return (f'<figure class="data-hero" data-claims="{len(claims)}" data-primary="{primary}" data-gaps="{gaps}" aria-label="{e(d["hero_title"])}">'
             f'<figcaption class="dh-head"><span class="dh-kicker">{e(d["hero_title"])}</span></figcaption>'
-            f'<div class="dh-grade">{evidence_glyph(story, catalog, size="lg")}<span>{e(grade_text)}</span></div>'
-            f'<p class="dh-label">{e(d["hero_claims"])}</p><ol class="dh-strip">{strip}</ol>'
-            f'<ul class="dh-legend">{legend}</ul><ul class="dh-figures">{figures}</ul>'
-            f'<p class="dh-note">{e(d["shape_note"])}</p></figure>')
+            f'<div class="dh-grade"><span class="er-grade-plate" aria-hidden="true">{e(_grade_letter(story))}</span>'
+            f'<span class="dh-grade-text"><b>{e(grade_text)}</b>{("<small>" + e(conf_text) + "</small>") if conf_text else ""}</span></div>'
+            f'<div class="dh-claims"><p class="dh-label">{e(d["hero_claims"])}</p><ol class="dh-strip">{strip}</ol>'
+            f'<ul class="dh-legend">{legend}</ul></div><ul class="dh-figures">{figures}</ul></figure>')
 
 
 def provenance_line(source: dict, catalog: dict) -> str:
@@ -180,16 +182,255 @@ def reader_select(catalog: dict) -> str:
 
 
 LAYER_SCRIPT = r"""<script>(()=>{const root=document.querySelector('[data-layers]');if(!root)return;const sel=document.querySelector('.reader-select');if(!sel)return;
-const open={summary:['argument'],practitioner:['argument','dossier'],researcher:['dossier','technical']};
-const apply=m=>{root.dataset.mode=m;root.querySelectorAll('details.layer').forEach(d=>{d.open=(open[m]||open.summary).includes(d.dataset.layer)});
+const open={summary:['argument','dossier'],practitioner:['argument','dossier'],researcher:['argument','dossier','technical']};
+const apply=m=>{root.dataset.mode=m;document.querySelectorAll('details.layer').forEach(d=>{d.open=(open[m]||open.summary).includes(d.dataset.layer)});
 sel.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mode===m)))};
 let m='summary';try{m=localStorage.getItem('fcmo-reader-mode')||'summary'}catch(_){}if(!open[m])m='summary';sel.hidden=false;apply(m);
 sel.addEventListener('click',ev=>{const b=ev.target.closest('button[data-mode]');if(!b)return;apply(b.dataset.mode);try{localStorage.setItem('fcmo-reader-mode',b.dataset.mode)}catch(_){}})})()</script>"""
 
 
-def layer(kind: str, title: str, tag: str, inner: str) -> str:
+def layer(kind: str, title: str, tag: str, inner: str, *, is_open: bool = True) -> str:
     """One collapsible reading layer. Open by default so the page reads fully without scripts."""
     if not inner:
         return ""
-    return (f'<details class="layer" data-layer="{kind}" open><summary><span class="layer-tag">{e(tag)}</span>'
+    return (f'<details class="layer" data-layer="{kind}"{" open" if is_open else ""}><summary>'
             f'<span class="layer-title">{e(title)}</span></summary><div class="layer-body">{inner}</div></details>')
+
+
+# ---------------------------------------------------------------------------
+# c6 story layout (DIRECCION section 6). Pure functions over a story's own data and the
+# UI catalog; every string comes from i18n/ui by key. Evidence classes are never colour
+# alone: Shown = solid sample, Claimed = hatched sample, Not established = dashed sample,
+# each always with its word.
+#   claim kind DEMONSTRATED*            -> shown
+#   claim kind CLAIMED*, VENDOR*, ...   -> claimed
+#   INFERRED, SPECULATIVE, DISPUTED, other -> gap (not established: no source shows it)
+# ---------------------------------------------------------------------------
+PROOF_ORDER = ("shown", "claimed", "gap")
+_PROOF_WORD_KEY = {"shown": "shown", "claimed": "claimed", "gap": "not_established"}
+JUMP_ORDER = ("claims", "sources", "gaps", "limits", "technical")
+
+
+def proof_class(claim_label: object) -> str:
+    kind = claim_kind(claim_label)
+    if kind == "DEMONSTRATED":
+        return "shown"
+    if kind == "CLAIMED" or str(claim_label or "").startswith("CLAIMED"):
+        return "claimed"
+    return "gap"
+
+
+def proof_word(catalog: dict, cls: str) -> str:
+    return catalog["strings"]["proof"][_PROOF_WORD_KEY[cls]]
+
+
+def _fmt(template: str, **values: object) -> str:
+    return template.format(**values)
+
+
+def proof_counts(claims: list) -> dict:
+    counts = {k: 0 for k in PROOF_ORDER}
+    for claim in claims:
+        if isinstance(claim, dict):
+            counts[proof_class(claim.get("label"))] += 1
+    return counts
+
+
+def sample(cls: str) -> str:
+    return f'<span class="sample sample-{cls}" aria-hidden="true"></span>'
+
+
+def chip(cls: str, catalog: dict, *, count: int | None = None) -> str:
+    word = proof_word(catalog, cls) + (f" {count}" if count is not None else "")
+    return f'<span class="chip chip-{cls}">{sample(cls)}<span class="chip-word">{e(word)}</span></span>'
+
+
+def _segments(claims: list, catalog: dict) -> str:
+    rec = catalog["strings"]["record"]
+    cells = []
+    for index, claim in enumerate(c for c in claims if isinstance(c, dict)):
+        cls = proof_class(claim.get("label"))
+        cells.append(f'<span class="er-seg er-seg-{cls}" data-class="{cls}"></span>')
+    if not cells:
+        return f'<p class="er-none">{e(rec["none"])}</p>'
+    counts = proof_counts(claims)
+    text = _fmt(rec["bar_label"], shown=counts["shown"], claimed=counts["claimed"], not_established=counts["gap"])
+    return f'<div class="er-bar" role="img" aria-label="{e(text)}">{"".join(cells)}</div>'
+
+
+def _grade_letter(story: dict) -> str:
+    """The grade letter for the plate; anything that is not a known grade is shown as «?», never echoed."""
+    value = story.get("evidence_class")
+    return value if value in ("A", "B", "C", "D") else "?"
+
+
+def _grade_plate(story: dict) -> str:
+    return f'<span class="er-grade-plate" aria-hidden="true">{e(_grade_letter(story))}</span>'
+
+
+def _present_chips(claims: list, catalog: dict) -> str:
+    counts = proof_counts(claims)
+    return "".join(chip(cls, catalog, count=counts[cls]) for cls in PROOF_ORDER if counts[cls])
+
+
+def story_signals(story: dict, catalog: dict, evidence: dict, *, status_html: str) -> str:
+    """The compact Evidence Record: grade, one cell per claim, classes present, counts. Sits in the story cover."""
+    claims = [c for c in (evidence.get("claims") or []) if isinstance(c, dict)]
+    grade_text = label(catalog, "evidence_short", story.get("evidence_class")) or label(catalog, "evidence_class", story.get("evidence_class"))
+    conf = label(catalog, "confidence", story.get("confidence"))
+    sources = [s for s in (story.get("sources") or []) if isinstance(s, dict)]
+    primary = sum(1 for s in sources if s.get("primary"))
+    gaps = len(evidence.get("gaps") or [])
+    return (f'<div class="story-signals"><span class="evrow-grade" aria-hidden="true">{e(story.get("evidence_class") or "?")}</span>'
+            f'<span class="sig-text"><b>{e(grade_text)}</b>{" · " + e(conf) if conf else ""}</span>'
+            f'{_segments(claims, catalog)}'
+            f'<span class="evrow">{_present_chips(claims, catalog)}'
+            f'<span>{e(plural(catalog, "primary_source", primary))}</span><span>{e(plural(catalog, "open_gap", gaps))}</span></span></div>')
+
+
+def evidence_record(story: dict, catalog: dict, evidence: dict, *, jump_labels: dict) -> str:
+    """The rail card (DIRECCION section 2): grade plate, segmented bar, legend, four counters, in-this-story list."""
+    rec = catalog["strings"]["record"]
+    claims = [c for c in (evidence.get("claims") or []) if isinstance(c, dict)]
+    counts = proof_counts(claims)
+    sources = [s for s in (story.get("sources") or []) if isinstance(s, dict)]
+    primary = sum(1 for s in sources if s.get("primary"))
+    gaps, limits = len(evidence.get("gaps") or []), len(evidence.get("limitations") or [])
+    grade_text = label(catalog, "evidence_short", story.get("evidence_class")) or label(catalog, "evidence_class", story.get("evidence_class"))
+    legend = "".join(f'<div{"" if counts[cls] else " class=\"er-zero\""}><dt>{sample(cls)} {e(proof_word(catalog, cls))}</dt><dd>{counts[cls]}</dd></div>' for cls in PROOF_ORDER)
+    nums = "".join(f'<div><b>{n}</b><span>{e(text)}</span></div>' for n, text in (
+        (len(claims), rec["counter_claims"]), (primary, rec["counter_sources"]), (gaps, rec["counter_gaps"]), (limits, rec["counter_limits"])))
+    toc = "".join(f'<li><a href="#{k}">{e(jump_labels[k])}</a></li>' for k in JUMP_ORDER if k in jump_labels)
+    return (f'<div class="data-hero"><section class="er" aria-labelledby="er-title"><h2 id="er-title" class="er-title">{e(rec["title"])}</h2>'
+            f'<div class="er-grade">{_grade_plate(story)}<div><b>{e(rec["grade"])} {e(story.get("evidence_class") or "")}</b><br>{e(grade_text)}</div></div>'
+            f'{_segments(claims, catalog)}<dl class="er-legend">{legend}</dl><div class="er-counts">{nums}</div>'
+            f'<h3 class="er-title">{e(rec["in_this_story"])}</h3><ul class="er-in-story">{toc}</ul></section></div>')
+
+
+def brief20(story: dict, catalog: dict, *, summary: object, why: object, evidence: dict) -> str:
+    """\"In 20 seconds\": what happened / why it matters / not established. The last cell is the dark one."""
+    d = design(catalog)
+    unknown = ""
+    for item in [*(evidence.get("gaps") or []), *(evidence.get("limitations") or [])]:
+        text = item.get("description", "") if isinstance(item, dict) else item
+        if text:
+            unknown = first_sentence(text, 360)
+            break
+    cells = [(d["happened"], first_sentence(summary, 360), ""), (d["matters"], first_sentence(why, 360), ""),
+             (d["not_established"], unknown or d["none_recorded"], " read20-na")]
+    rows = "".join(f'<li class="read20-cell{extra}"><b>{e(key)}</b><span class="brief-val">{e(text)}</span></li>' for key, text, extra in cells if text)
+    return f'<div class="brief" role="group" aria-labelledby="brief-title"><h2 id="brief-title" class="visually-hidden">{e(d["brief_title"])}</h2><ol class="read20">{rows}</ol></div>'
+
+
+def claim_ledger(evidence: dict, catalog: dict) -> str:
+    """Always-open ledger: every claim with its class sample and word."""
+    claims = [c for c in (evidence.get("claims") or []) if isinstance(c, dict)]
+    st = catalog["strings"]
+    items = []
+    for claim in claims:
+        cls = proof_class(claim.get("label"))
+        detail = label(catalog, "claim_label", claim.get("label"),
+                       fallback=label(catalog, "claim_label", f'{claim.get("label", "")}_{claim.get("qualifier", "")}'))
+        gap = " chip-gap" if cls == "gap" else ""
+        items.append(f'<li class="claim" data-kind="{e(claim_kind(claim.get("label")))}" data-class="{cls}"><div class="claim-class{gap}">{sample(cls)}'
+                     f'<span><span class="chip-word">{e(proof_word(catalog, cls))}</span>{("<br>" + e(detail)) if detail and detail.casefold() != proof_word(catalog, cls).casefold() else ""}</span></div><p>{e(claim.get("text", ""))}</p></li>')
+    body = f'<ul class="claims">{"".join(items)}</ul>' if items else f'<p>{e(st["record"]["none"])}</p>'
+    return (f'<section id="claims" class="ledger" data-layer="dossier"><h2>{e(st["ledger"]["title"])}</h2>'
+            f'<p class="ledger-intro">{e(st["ledger"]["intro"])}</p>{body}</section>')
+
+
+def _bullets(values: list) -> str:
+    return "".join(f'<li>{e(v.get("description", "") if isinstance(v, dict) else v)}</li>' for v in values)
+
+
+def unknowns_box(evidence: dict, catalog: dict) -> str:
+    """The oxblood «What we still don't know» box and the separate limits list."""
+    st = catalog["strings"]
+    gaps = evidence.get("gaps") or []
+    limits = evidence.get("limitations") or []
+    against = evidence.get("contradictory") or []
+    out = [f'<aside id="gaps" class="unknowns" aria-labelledby="unknowns-title"><h2 id="unknowns-title" class="unknowns-title">{e(st["ledger"]["unknowns_title"])}</h2>'
+           + (f'<ul>{_bullets(gaps)}</ul>' if gaps else f'<p>{e(st["design"]["none_recorded"])}</p>') + '</aside>']
+    out.append(f'<section id="limits" class="limits"><h2>{e(st["ledger"]["limits_title"])}</h2>'
+               + (f'<ul>{_bullets(limits)}</ul>' if limits else f'<p>{e(st["design"]["none_recorded"])}</p>') + '</section>')
+    if against:
+        out.append(f'<section class="against"><h2>{e(st["story"]["contradictory"])}</h2><ul>{_bullets(against)}</ul></section>')
+    return "".join(out)
+
+
+def sources_bar(story: dict, catalog: dict, *, automation_html: str, byline: str) -> str:
+    """SOURCES strip under the headline: original source, byline, automation disclosure."""
+    sb = catalog["strings"]["sources_bar"]
+    pool = [x for x in (story.get("sources") or []) if isinstance(x, dict) and x.get("url")]
+    ordered = [x for x in pool if x.get("primary")] + [x for x in pool if not x.get("primary")]
+    links = []
+    for src in ordered[:4]:
+        who = src.get("author") or src.get("organization") or src.get("domain") or src.get("url", "")
+        links.append(f'<a href="{e(src.get("url", ""))}" rel="noopener noreferrer"><span translate="no">{e(who)}</span> ↗</a>')
+    if links and ordered[0].get("primary"):
+        links[0] = f'{e(sb["original"])}: {links[0]}'
+    if len(ordered) > len(links):
+        links.append(f'<a href="#sources">{e(sb["all"].format(n=len(ordered)))}</a>')
+    first = f'<span class="srcbar-links">{" · ".join(links)}</span>' if links else ""
+    return (f'<div class="srcbar"><div class="frame"><strong class="rubric rubric-accent srcbar-label">{e(sb["title"])}</strong> {first} '
+            f'<span class="srcbar-by">{e(byline)}</span> {automation_html}</div></div>')
+
+
+def jump_bar(catalog: dict, labels: dict) -> str:
+    jb = catalog["strings"]["jump"]
+    links = "".join(f'<a href="#{k}">{e(labels[k])}</a>' for k in JUMP_ORDER if k in labels)
+    return f'<nav class="jumpbar frame" aria-label="{e(catalog["strings"]["a11y"]["jump_bar"])}">{links}</nav>'
+
+
+def topic_pair(catalog: dict, topic: str, prev: tuple | None, nxt: tuple | None) -> str:
+    """Previous/next inside a topic. Each tuple is (href, headline)."""
+    sn = catalog["strings"]["story_nav"]
+    cells = []
+    for item, key in ((prev, "prev_in_topic"), (nxt, "next_in_topic")):
+        if item:
+            cells.append(f'<a href="{e(item[0])}" rel="{"prev" if key.startswith("prev") else "next"}"><span class="rubric">{e(_fmt(sn[key], topic=topic))}</span><b>{e(item[1])}</b></a>')
+    if not cells:
+        return ""
+    return f'<nav class="pn" aria-label="{e(catalog["strings"]["a11y"]["topic_nav"])}">{"".join(cells)}</nav>'
+
+
+def machine_strip(catalog: dict, *, json_href: str, cite_href: str, md_href: str) -> str:
+    m = catalog["strings"]["machine"]
+    return (f'<section class="mr" id="machine"><p class="rubric">{e(m["title"])}</p><p>{e(m["intro"])}</p>'
+            f'<p><a href="{e(json_href)}">{e(m["record_json"])}</a> · <a href="{e(cite_href)}">{e(m["cite"])}</a> · '
+            f'<a href="{e(md_href)}">Markdown</a> · <a href="#claims">{e(m["evidence_table"])}</a></p></section>')
+
+
+def story_view(*, story: dict, catalog: dict, code: str, title: str, dek_text: str, beat_label: str, home_href: str,
+               evidence: dict, summary: object, why: object, technical: dict, status_html: str,
+               automation_html: str, byline: str, dates_line: str, plate_html: str, note_html: str,
+               taxonomy_html: str, navigation_html: str, topic_nav_html: str, machine_html: str,
+               title_class: str = "") -> str:
+    """The whole story page body: cover, SOURCES, jump bar, reading grid with the Evidence Record rail."""
+    st = catalog["strings"]
+    jb = st["jump"]
+    has_tech = bool(technical)
+    labels = {"claims": jb["claims"], "sources": jb["sources"], "gaps": jb["gaps"], "limits": jb["limits"]}
+    if has_tech:
+        labels["technical"] = jb["technical"]
+    d = design(catalog)
+    argument = "".join(f'<section><h2>{e(st["story"][k])}</h2><p>{e(v)}</p></section>'
+                       for k, v in (("what_changed", summary), ("why_it_matters", why)) if v)
+    tech_html = "".join(f'<section><h3>{e(st["technical_field"].get(k, k))}</h3><p>{e(v)}</p></section>' for k, v in technical.items() if v)
+    sources = [s for s in (story.get("sources") or []) if isinstance(s, dict)]
+    src_items = "".join(f'<li>{provenance_line(s, catalog)}' + (f'<span class="prov-primary">{e(st["story"]["primary_source"])}</span>' if s.get("primary") else "") + '</li>' for s in sources)
+    sources_html = f'<section id="sources"><h2>{e(st["story"]["sources"])}</h2><ol class="source-list">{src_items}</ol></section>' if src_items else f'<section id="sources"><h2>{e(st["story"]["sources"])}</h2></section>'
+    crumbs = ""  # the layout already renders the breadcrumb trail; a second one inside the cover only repeated it
+    cover = (f'<div class="story-cover surface-ink"><header class="story-header"><div class="frame story-cover-grid"><div class="sh-main">{crumbs}'
+             f'<p class="story-kicker rubric rubric-accent">{e(beat_label)}</p><h1>{e(title)}</h1><p class="story-dek">{e(dek_text)}</p>'
+             f'{story_signals(story, catalog, evidence, status_html=status_html)}'
+             f'<p class="story-meta rubric">{e(dates_line)}</p>{note_html}</div>{plate_html}</div></header></div>')
+    body = (brief20(story, catalog, summary=summary, why=why, evidence=evidence)
+            + '<div class="layers" data-layers data-mode="summary">' + layer("argument", d["argument_title"], d["layer_r2"], argument)
+            + '</div>' + claim_ledger(evidence, catalog) + unknowns_box(evidence, catalog) + sources_html
+            + ('<div class="layers">' + layer("technical", d["technical_title"], d["layer_r3"], f'<div id="technical">{tech_html}</div>', is_open=False) + '</div>' if has_tech else "")
+            + machine_html)
+    rail = f'<aside class="read-rail story-aside">{evidence_record(story, catalog, evidence, jump_labels=labels)}{taxonomy_html}</aside>'
+    return (cover + sources_bar(story, catalog, automation_html=automation_html, byline=byline) + jump_bar(catalog, labels)
+            + f'<div class="frame read-layout"><div class="read-toc-slot"></div><div class="story-body">{body}</div>{rail}</div>'
+            + f'<div class="frame story-after">{topic_nav_html}{navigation_html}</div>' + LAYER_SCRIPT)

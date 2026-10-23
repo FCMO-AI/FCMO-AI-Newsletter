@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Render deterministic 1200x630 locale-specific Open Graph cards in Chromium."""
+"""Render deterministic 1200x630 Open Graph cards in Chromium: a text-free plate plus brand, format and evidence labels."""
 
 from __future__ import annotations
 
@@ -16,10 +16,14 @@ import tempfile
 
 if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-    from tools.paper.i18n import dek, format_date, headline, label, load_catalogs, truncate
+    from tools.paper.front_plan import evidence_class
+    from tools.paper.i18n import format_date, label, load_catalogs
+    from tools.paper.plates import plate
     from tools.paper.playwright_module import missing_playwright_message, resolve_playwright_module
 else:
-    from .i18n import dek, format_date, headline, label, load_catalogs, truncate
+    from .front_plan import evidence_class
+    from .i18n import format_date, label, load_catalogs
+    from .plates import plate
     from .playwright_module import missing_playwright_message, resolve_playwright_module
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -34,15 +38,7 @@ await browser.close();
 """
 
 
-def _size(title: str) -> int:
-    length = len(title)
-    if length <= 58:
-        return 64
-    if length <= 82:
-        return 56
-    if length <= 108:
-        return 49
-    return 43
+_OG_PROOF_KEY = {"shown": "shown", "claimed": "claimed", "not_established": "not_established"}
 
 
 def _card(template: str, *, story: dict, locale: dict, catalog: dict) -> str:
@@ -50,14 +46,22 @@ def _card(template: str, *, story: dict, locale: dict, catalog: dict) -> str:
     values = {
         "LANG": locale["html_lang"],
         "DATE": format_date(story["event_at"], catalog, precision=story.get("date_precision", "day")),
-        "EVIDENCE": label(catalog, "evidence_class", story.get("evidence_class"), fallback="FCMO AI"),
+        # The class word (Shown / Claimed / Not established), never the grade alone: a shared card must say
+        # what kind of claim the story is, the same word the front and the story page use for this item.
+        "EVIDENCE": catalog["strings"]["proof"][_OG_PROOF_KEY[evidence_class(story)]],
         "BEAT": label(catalog, "beat", story.get("beat"), fallback="FCMO AI"),
-        "HEADLINE": headline(story, code, catalog),
-        "DEK": truncate(dek(story, code, catalog), 180),
-        "SIZE": str(_size(headline(story, code, catalog))),
     }
+    # The card carries no headline or dek: the page's own title does that job. The image is a
+    # procedural plate (no text), so nothing about the story is baked into pixels.
+    fonts = ROOT / "site-src" / "assets" / "fonts"
+    faces = "".join(
+        f'@font-face{{font-family:"{fam}";src:url("{(fonts / name).as_uri()}") format("woff2");font-weight:{wt}}}'
+        for fam, name, wt in (("Inter Tight", "InterTight-normal-400_900-latin.woff2", "400 900"),
+                              ("JetBrains Mono", "JetBrainsMono-normal-400-latin.woff2", "400 700"))
+        if (fonts / name).is_file())
+    template = template.replace("{{FONTS}}", faces).replace("{{PLATE}}", plate(story["id"], story.get("topics") or [], "og")["svg"])
     for key, value in values.items():
-        template = template.replace("{{" + key + "}}", value if key == "SIZE" else escape(str(value)))
+        template = template.replace("{{" + key + "}}", escape(str(value)))
     return template
 
 

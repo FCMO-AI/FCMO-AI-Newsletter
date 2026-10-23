@@ -63,7 +63,7 @@ def state_page(locale, state, base, *, tag='h1'):
         links = f'<p><a href="{escape(root + "subscribe/")}">{copy["help"]}</a></p>'
     elif state == 'confirmed':
         kicker, title, body = copy['done_kicker'], copy['done'], copy['done_body']
-        links = f'<p><a class="button" href="{escape(root + "diario/")}">{copy["today"]}</a></p><p><a href="{escape(root + "archive/")}">{copy["archive"]}</a></p>'
+        links = f'<p><a class="button" href="{escape(root)}">{copy["today"]}</a></p><p><a href="{escape(root + "archive/")}">{copy["archive"]}</a></p>'
     elif state == 'unsubscribed':
         kicker, title, body = copy['unsub_kicker'], copy['unsub'], copy['unsub_body']
         links = f'<p><a href="{escape(root + "subscribe/")}">{copy["again"]}</a></p>'

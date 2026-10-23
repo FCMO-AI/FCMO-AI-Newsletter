@@ -69,7 +69,7 @@ if a.mode == "apply":
 def run(*argv: str, env: dict[str, str] | None = None) -> subprocess.CompletedProcess:
     full_env = {k: v for k, v in os.environ.items() if k != "FCMO_NOW"}
     full_env.update(env or {})
-    return subprocess.run([sys.executable, *argv], cwd=ROOT, env=full_env, capture_output=True, text=True, timeout=300)
+    return subprocess.run([sys.executable, *argv], cwd=ROOT, env=full_env, capture_output=True, text=True, timeout=300)  # corpus-count-ok: subprocess timeout in seconds
 
 
 def outputs(path: Path) -> dict[str, str]:

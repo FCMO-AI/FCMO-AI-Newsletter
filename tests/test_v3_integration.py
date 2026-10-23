@@ -114,9 +114,15 @@ class V3IntegrationTests(unittest.TestCase):
         self.assertIn("no determina por sí misma", es["ui"]["The FCMO brand remains the public-facing umbrella and does not, by itself, determine legal authorship or ownership of FCMO AI material."])
 
     def test_generated_front_archive_story_and_status_match_the_scoped_layout(self):
-        front = self.page("front")
+        # CONTRACT-CHANGES.md #5: the front is the locale root (kind "landing"); the old "front" route is retired.
+        front = self.page("landing")
         archive = self.page("archive")
-        story = self.page("story")
+        # The newest story can arrive without topics, which legitimately renders no taxonomy section;
+        # the layout check needs a story that has one (same selection as test_paper_editorial_depth).
+        story = next(page for page in (
+            (self.out / row["path"].strip("/") / "index.html").read_text(encoding="utf-8")
+            for row in self.routes if row["kind"] == "story" and row["locale"] == "en")
+            if 'href="/FCMO-AI-Newsletter/topic/' in page)
         status = self.page("status")
         parsed_front = StructureParser()
         parsed_front.feed(front)
@@ -125,8 +131,9 @@ class V3IntegrationTests(unittest.TestCase):
         parsed_status = StructureParser()
         parsed_status.feed(status)
 
-        self.assertEqual(parsed_front.classes.get("front-ledger"), 1)
-        self.assertEqual(len(parsed_front.ledger_values), 3)
+        self.assertEqual(parsed_front.classes.get("band-counts"), 1)
+        for label in ("stories", "topics", "organizations"):
+            self.assertIn(f"<span>{label}</span>", front)
         self.assertGreaterEqual(parsed_archive.classes.get("archive-item", 0), 10)
         self.assertTrue(all(row[:3] == ["time", "a", "img"] or row[:2] == ["time", "a"] for row in parsed_archive.rows[:1]))
         self.assertEqual(parsed_status.classes.get("status-card"), 5)
@@ -137,18 +144,24 @@ class V3IntegrationTests(unittest.TestCase):
         self.assertIn('class="story-taxonomy"', story)
 
     def test_rendered_navigation_names_follow_the_page_language(self):
+        # CONTRACT-CHANGES.md #6: one header (top bar) with one primary nav; no zone switch of two products.
         # Reader-facing expectations are independent of the catalog/template.
         expected = {
-            "en": ("Publication sections", "You are here", "Footer navigation"),
-            "es-419": ("Secciones de la publicación", "Estás aquí", "Navegación del pie de página"),
-            "zh-Hans": ("刊物栏目", "当前位置", "页脚导航"),
+            "en": ("Primary", "You are here", "Footer navigation"),
+            "es-419": ("Principal", "Estás aquí", "Navegación del pie de página"),
+            "zh-Hans": ("主导航", "当前位置", "页脚导航"),
         }
-        for locale, labels in expected.items():
-            for kind in ("front", "archive", "story", "status"):
+        for locale, (primary, crumbs, footer) in expected.items():
+            for kind in ("landing", "archive", "story", "status"):
                 page = self.page(kind, locale)
-                for css_class, label in zip(("zone-switch", "breadcrumbs", "footer-links"), labels):
-                    with self.subTest(locale=locale, kind=kind, landmark=css_class):
-                        self.assertIn(f'<nav class="{css_class}" aria-label="{label}">', page)
+                with self.subTest(locale=locale, kind=kind, landmark="topbar"):
+                    self.assertNotIn('class="zone-switch"', page)
+                    self.assertEqual(page.count('<header class="topbar'), 1)
+                    self.assertIn(f'<nav class="topnav" aria-label="{primary}">', page)
+                    self.assertIn(f'<nav class="footbar-links" aria-label="{footer}">', page)
+                if kind != "landing":
+                    with self.subTest(locale=locale, kind=kind, landmark="breadcrumbs"):
+                        self.assertIn(f'<nav class="breadcrumbs" aria-label="{crumbs}">', page)
 
     def test_css_keeps_editorial_columns_and_balanced_responsive_cards(self):
         editorial_rules = self.css[self.css.rfind("/* n2 editorial structures"):]

@@ -110,9 +110,8 @@ def _authors(piece: dict) -> str:
 
 
 def _kicker(piece: dict, c: dict) -> str:
-    keys = {a.get("key") for a in piece.get("authors", [])}
-    brand = "fCMO / Javier" if keys == {"javier"} else "FCMO AI / Matías" if keys == {"matias"} else "FCMO"
-    return f'<p class="essay-kicker">{_e(brand)} · {_e(c["kind"].get(piece.get("kind", "essay"), c["kind"]["essay"]))}</p>'
+    # One publication (DIRECCION §4): the kicker names the format only; the author is the byline.
+    return f'<p class="essay-kicker">{_e(c["kind"].get(piece.get("kind", "essay"), c["kind"]["essay"]))}</p>'
 
 
 def _languages(hrefs: dict, c: dict) -> str:

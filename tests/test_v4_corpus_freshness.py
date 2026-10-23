@@ -358,7 +358,7 @@ class CorpusFreshnessBuildTests(unittest.TestCase):
         locale = {"path_prefix": prefix}
         story = self.oracle["lead"] if self.oracle["lead"].get("url_date") else self.live[0]
         return {name: self.read(self.out, route) for name, route in (
-            ("root", prefix), ("diario", prefix + "diario/"), ("story", story_path(locale, story)), ("status", prefix + "status/"))}
+            ("root", prefix), ("story", story_path(locale, story)), ("status", prefix + "status/"))}
 
     def test_stale_check_clock_reports_stale_despite_a_fresh_wire(self):
         self.assertGreater(self.oracle["lag_hours"], 48)
@@ -370,7 +370,7 @@ class CorpusFreshnessBuildTests(unittest.TestCase):
         expected = self.expected(self.live, self.current_status["status_updated_at"])
         for code, prefix in LOCALES:
             with self.subTest(locale=code):
-                line = LINE.search(self.read(self.current_out, prefix + "diario/"))
+                line = LINE.search(self.read(self.current_out, prefix))
                 self.assertIsNotNone(line)
                 self.assertEqual(attributes(line.group(1)), {
                     "data-freshness": expected["state"], "data-newest-at": expected["newest_at"],

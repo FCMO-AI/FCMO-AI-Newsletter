@@ -20,16 +20,18 @@ if __package__ in {None, ""}:
     from tools.paper.freshness import corpus_freshness
     from tools.paper.front_order import front_order
     from tools.paper.front_plan import front_plan
+    from tools.paper import front_plan as plan_mod
     from tools.agent import build as agent_layer
     from tools.paper.i18n import dek, field, format_date, headline, is_complete, label, load_catalogs, plural, story_locale, truncate
     from tools.paper.routes import slugify, absolute, beat_path, edition_path, href, issue_path, org_path, output_path, piece_path, story_path, topic_path
     from tools.paper.status_banner import freshness_attributes, freshness_sentence, render as render_banner
     from tools.visual_desk import write_localized_story_graphics
     from tools.paper.templates import archive_page, document, front_page, simple_page, status_page, story_page
-    from tools.paper.templates.pages import evidence_board, evidence_strip, story_card
-    from tools.paper.templates.landing import render as render_landing
+    from tools.paper.templates.pages import (archive_day, archive_jump, archive_pager, class_chip, class_line, correction_row, corrections_intro,
+                                             evidence_board, evidence_strip, method_order_section, story_card)
+    from tools.paper.templates.landing import front_context, render as render_landing
     from tools.paper.templates.reader import (LAYER_SCRIPT, automation_badge, brief, claim_kind, data_hero, evidence_glyph,
-                                              first_sentence, layer, primary_source, provenance_line, reader_select, status_chip)
+                                              first_sentence, layer, primary_source, provenance_line, reader_select, status_chip, story_view, topic_pair, machine_strip)
     from tools.paper.templates.newsletter import render as render_newsletter, subscription_tail
     from tools.paper.routes import TECHNICAL_FRONT
 else:
@@ -37,16 +39,18 @@ else:
     from .freshness import corpus_freshness
     from .front_order import front_order
     from .front_plan import front_plan
+    from . import front_plan as plan_mod
     from tools.agent import build as agent_layer
     from .i18n import dek, field, format_date, headline, is_complete, label, load_catalogs, plural, story_locale, truncate
     from .routes import slugify, absolute, beat_path, edition_path, href, issue_path, org_path, output_path, piece_path, story_path, topic_path
     from .status_banner import freshness_attributes, freshness_sentence, render as render_banner
     from tools.visual_desk import write_localized_story_graphics
     from .templates import archive_page, document, front_page, simple_page, status_page, story_page
-    from .templates.pages import evidence_board, evidence_strip, story_card
-    from .templates.landing import render as render_landing
+    from .templates.pages import (archive_day, archive_jump, archive_pager, class_chip, class_line, correction_row, corrections_intro,
+                                  evidence_board, evidence_strip, method_order_section, story_card)
+    from .templates.landing import front_context, render as render_landing
     from .templates.reader import (LAYER_SCRIPT, automation_badge, brief, claim_kind, data_hero, evidence_glyph,
-                                   first_sentence, layer, primary_source, provenance_line, reader_select, status_chip)
+                                   first_sentence, layer, primary_source, provenance_line, reader_select, status_chip, story_view, topic_pair, machine_strip)
     from .templates.newsletter import render as render_newsletter, subscription_tail
     from .routes import TECHNICAL_FRONT
 
@@ -55,7 +59,7 @@ from tools.publication_freshness import publication_status, reader_status
 BEATS = ("technology", "business", "policy", "society", "research")
 LISTING_PAGE_SIZE = 100
 
-SEARCH_JS = r'''(()=>{const f=document.querySelector('[data-search-form]'),q=document.querySelector('[data-search-input]'),o=document.querySelector('[data-search-results]');if(!f)return;let rows,pending,serial=0;const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));f.addEventListener('submit',async e=>{e.preventDefault();const run=++serial,term=q.value.trim().toLocaleLowerCase();if(!term)return;if(!rows){o.textContent=o.dataset.loading;try{pending??=Promise.all((f.dataset.shards?JSON.parse(f.dataset.shards):[f.dataset.index]).map(url=>fetch(url).then(r=>{if(!r.ok)throw Error(r.status);return r.json()}))).then(parts=>parts.flat());rows=await pending}catch{pending=undefined;if(run===serial)o.textContent=o.dataset.error;return}}if(run!==serial)return;let hits=rows.filter(x=>[x.h,x.d,x.b,...x.o,...x.t,x.search_text||''].join(' ').toLocaleLowerCase().includes(term)).slice(0,30);o.innerHTML=hits.length?hits.map(x=>`<article class="story-card"><span class="card-meta">${esc(x.b)}</span><h2><a href="${esc(x.u)}">${esc(x.h)}</a></h2><p>${esc(x.d)}</p></article>`).join(''):`<p>${esc(o.dataset.empty.replace('{query}',term))}</p>`})})()'''
+SEARCH_JS = r'''(()=>{const f=document.querySelector('[data-search-form]'),q=document.querySelector('[data-search-input]'),o=document.querySelector('[data-search-results]');if(!f)return;const sg=document.querySelector('[data-search-suggest]');let rows,pending,serial=0;const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));const lang=()=>(document.documentElement||{}).lang||'';const cut=(t,n=/^zh/i.test(lang())?100:220)=>{if(t.length<=n)return t;let e=0;try{for(const g of new Intl.Segmenter(lang()||undefined,{granularity:'word'}).segment(t)){if(g.index+g.segment.length>n)break;e=g.index+g.segment.length}}catch{e=Math.max(t.lastIndexOf(' ',n),0)}return t.slice(0,e||n).replace(/[\s,;:.\u3001\u3002\uff0c\uff1b\uff1a!?\uff01\uff1f-]+$/,'')+'\u2026'};const suggest=on=>{if(sg)sg.hidden=!on};const go=async value=>{const run=++serial,term=String(value).trim().toLocaleLowerCase();if(!term){o.innerHTML='';suggest(true);return}if(!rows){o.textContent=o.dataset.loading;try{pending??=Promise.all((f.dataset.shards?JSON.parse(f.dataset.shards):[f.dataset.index]).map(url=>fetch(url).then(r=>{if(!r.ok)throw Error(r.status);return r.json()}))).then(parts=>parts.flat());rows=await pending}catch{pending=undefined;if(run===serial)o.textContent=o.dataset.error;return}}if(run!==serial)return;try{const u=new URL(location.href);u.searchParams.set('q',String(value).trim());history.replaceState(null,'',u)}catch{}const all=rows.filter(x=>[x.h,x.d,x.b,...x.o,...x.t,x.search_text||''].join(' ').toLocaleLowerCase().includes(term)),hits=all.slice(0,30);suggest(!hits.length);const tpl=all.length===1?o.dataset.resultsOne:all.length>hits.length?o.dataset.resultsMore:o.dataset.resultsFor,head=hits.length&&tpl?`<p class="search-count">${esc(tpl.replace('{count}',()=>all.length).replace('{shown}',()=>hits.length).replace('{query}',()=>String(value).trim()))}</p>`:'';o.innerHTML=hits.length?head+hits.map(x=>`<article class="story-card"><span class="card-meta">${esc(x.b)}${x.f?' · '+esc(x.f):''}</span><h2><a href="${esc(x.u)}">${esc(x.h)}</a></h2><p>${esc(cut(x.d))}</p>${x.w?`<p class="evrow list-evrow"><span class="chip chip-${esc(x.k||'gap')}"><span class="sample sample-${esc(x.k||'gap')}" aria-hidden="true"></span><span class="chip-word"><strong>${esc(x.w)}</strong></span></span></p>`:''}</article>`).join(''):`<p>${esc(o.dataset.empty.replace('{query}',term))}</p>`};f.addEventListener('submit',e=>{e.preventDefault();return go(q.value)});f.addEventListener('input',()=>go(q.value));try{const init=new URLSearchParams(location.search).get('q');if(init){q.value=init;go(init)}}catch{}})()'''
 
 
 def esc(value: object) -> str:
@@ -71,6 +75,13 @@ def copy_public_tree(source: Path, target: Path) -> None:
             shutil.copyfile(Path(directory) / name, target / relative / name)
 
 
+
+
+# A jump link that targets something inside a closed <details> (the technical layer) must open it.
+JUMP_OPEN_SCRIPT = ('<script>(()=>{const o=()=>{const t=location.hash&&document.getElementById(decodeURIComponent(location.hash.slice(1)));'
+                    'const d=t&&t.closest("details");if(d){d.open=true;t.scrollIntoView()}};'
+                    'addEventListener("hashchange",o);document.addEventListener("click",e=>{const a=e.target.closest&&e.target.closest("a[href^=\'#\']");'
+                    'if(a)setTimeout(o,0)});o()})()</script>')
 
 
 class PaperBuilder:
@@ -112,14 +123,14 @@ class PaperBuilder:
                                                             locales=self.config["locales"], catalog=self.catalogs[code])
             slug = piece["slug"]
             suffix = piece_path({"path_prefix": ""}, piece)
-            self._write_page(locale=locale, suffix=suffix, title=f"{title} — fCMO", description=description,
+            self._write_page(locale=locale, suffix=suffix, title=f"{title} — FCMO AI", description=description,
                              body=body, kind="essay", status=True,
                              index=(piece["status"] == "published" and piece["locales"][code] == "ready"))
         for issue in self.editorial_issues:
             title, description, body = essays.render_issue(issue, code, by_id, stories_by_id,
                                                            base=self.base, catalog=self.catalogs[code])
             suffix = issue_path({"path_prefix": ""}, issue)
-            self._write_page(locale=locale, suffix=suffix, title=f"{title} — fCMO", description=description,
+            self._write_page(locale=locale, suffix=suffix, title=f"{title} — FCMO AI", description=description,
                              body=body, kind="issue", index=True)
         # Issue and piece links are represented in every locale's discovery index;
         # pending translations intentionally do not leak source prose.
@@ -129,6 +140,15 @@ class PaperBuilder:
         default = next(loc for loc in self.config["locales"] if loc["code"] == self.config["x_default_locale"])
         values.append(("x-default", absolute(self.base_url, default["path_prefix"] + suffix)))
         return values
+
+    def _header_search(self, locale: dict, suffix: str) -> str:
+        """Header search field (type, Enter): a progressive enhancement injected by a tiny script on every page but search itself."""
+        if suffix == "search/":
+            return ""
+        strings = self.catalogs[locale["code"]]["strings"]
+        action = href(self.base, locale["path_prefix"] + "search/")
+        return (f'<script defer src="{esc(href(self.base, "assets/js/header-search.js"))}" data-action="{esc(action)}" '
+                f'data-label="{esc(strings["a11y"]["search_label"])}" data-placeholder="{esc(strings["search"]["title"])}"></script>')
 
     def _write_page(self, *, locale: dict, suffix: str, title: str, description: str, body: str,
                     kind: str, story: dict | None = None, og_image: str | None = None,
@@ -143,7 +163,7 @@ class PaperBuilder:
             base=self.base, path=suffix, title=title, description=description, body=body,
             canonical=canonical, alternates=alts, og_image=og_image, page_type="article" if story else "website",
             status_banner=render_banner(self.status, self.catalogs[locale["code"]], base=self.base, locale=locale, freshness=self.freshness) if status else "",
-            json_ld=json_ld, extra_head=extra_head, body_class=f"page-{kind}",
+            json_ld=json_ld, extra_head=extra_head + self._header_search(locale, suffix), body_class=f"page-{kind}",
             story_id=story["id"] if story else None, machine_alternates=machine_alternates,
         )
         target = output_path(self.out, route)
@@ -179,7 +199,7 @@ class PaperBuilder:
         return local
 
     @staticmethod
-    def _title_class(title: str, locale_code: str) -> str:
+    def _title_class(title: str, locale_code: str, hero: bool = False) -> str:
         """Estimate display width with wider weights for CJK glyphs."""
         import unicodedata
         width = 0.0
@@ -197,7 +217,9 @@ class PaperBuilder:
             return "title-extra-compact"
         if width > 58:
             return "title-compact"
-        if width > 46:
+        # The landing hero is a ~694px column at 66px (title-medium), not the 1040px story header the cutoffs above
+        # were calibrated on: an 84-character Spanish lead (43 units) wrapped to five lines there. Hence the earlier step.
+        if width > (38 if hero else 46):
             return "title-large"
         if width > 34:
             return "title-medium"
@@ -205,13 +227,22 @@ class PaperBuilder:
 
     def _card(self, story: dict, locale: dict, level: int = 2) -> str:
         catalog = self.catalogs[locale["code"]]
-        context = f'{self.catalogs[locale["code"]]["strings"]["story"]["importance"].format(score=story.get("importance", 0))}'
+        context = label(catalog, "evidence_class", story.get("evidence_class"))
         return story_card(
             story, href=self._story_href(locale, story), headline=headline(story, locale["code"], catalog),
             dek=truncate(dek(story, locale["code"], catalog), 190), beat=label(catalog, "beat", story.get("beat")),
             date=format_date(story["event_at"], catalog, precision=story.get("date_precision", "day")), level=level,
             context=context, evidence=evidence_strip(story, catalog),
         )
+
+    def _record_card(self, story: dict, locale: dict) -> str:
+        """A compact card for reading lists on the subscribe pages: the evidence class once."""
+        catalog = self.catalogs[locale["code"]]
+        code = locale["code"]
+        date = format_date(story["event_at"], catalog, precision=story.get("date_precision", "day"))
+        return (f'<article class="story-card" data-story-id="{esc(story["id"])}"><span class="card-meta">{esc(label(catalog, "beat", story.get("beat")))} · {esc(date)}</span>'
+                f'<h3><a href="{esc(self._story_href(locale, story))}">{esc(headline(story, code, catalog))}</a></h3>'
+                f'<p>{esc(truncate(dek(story, code, catalog), 190))}</p>{class_line(story, catalog, grade=False)}</article>')
 
     @staticmethod
     def _story_rank(story: dict) -> tuple:
@@ -235,23 +266,51 @@ class PaperBuilder:
         candidates.sort(key=lambda row: (row[0], row[1]), reverse=True)
         return [(candidate, reason) for _, _, candidate, reason in candidates[:limit]]
 
+    def _correction_story_href(self, locale: dict, story: dict) -> str:
+        """Where a correction's story link lands: the live story, its live survivor, else the correction notice."""
+        if story.get("status") == "live":
+            return self._story_href(locale, story)
+        survivor = next((s for s in self.stories if s["id"] == story.get("merged_into")), None)
+        if survivor and survivor.get("status") == "live":
+            return self._story_href(locale, survivor)
+        return self._correction_href(locale, story)
+
+    @staticmethod
+    def _related_reason(reason: str, item: dict, catalog: dict) -> str:
+        """Visible reason on a related card: a catalogue topic label, an organisation name or the beat; never a raw slug."""
+        beat = label(catalog, "beat", item.get("beat"))
+        if reason == "same-beat":
+            return beat
+        if reason in (item.get("organizations") or []):
+            return reason
+        return label(catalog, "topic", slugify(reason), fallback="") or beat
+
     def _story_navigation(self, story: dict, locale: dict) -> str:
         strings = self.catalogs[locale["code"]]["strings"]
-        sequence = sorted(self.live, key=lambda item: (item.get("url_date", ""), *self._story_rank(item)), reverse=True)
+        # Newer/Older walk only the stories that share a topic with this one (an organization when it has no topic),
+        # so the neighbour is always about the same subject; each direction is one story, hence the singular labels.
+        # A story alone on its subject falls back to the whole live sequence, so no story page is a dead end.
+        topics = set(story.get("topics") or [])
+        field_name, mine = ("topics", topics) if topics else ("organizations", set(story.get("organizations") or []))
+        order = lambda item: (item.get("url_date", ""), *self._story_rank(item))  # noqa: E731
+        sequence = sorted((item for item in self.live if item["id"] == story["id"] or (mine and mine & set(item.get(field_name) or []))),
+                          key=order, reverse=True)
+        if len(sequence) < 2:
+            sequence = sorted(self.live, key=order, reverse=True)
         position = next((i for i, item in enumerate(sequence) if item["id"] == story["id"]), -1)
         neighbors = []
         if position >= 0:
             if position > 0:
-                neighbors.append((strings["archive"]["newer"], sequence[position - 1], "next"))
+                neighbors.append((strings["archive"]["newer_one"], sequence[position - 1], "next"))
             if position + 1 < len(sequence):
-                neighbors.append((strings["archive"]["older"], sequence[position + 1], "previous"))
+                neighbors.append((strings["archive"]["older_one"], sequence[position + 1], "previous"))
         edition_links = "".join(
-            f'<a rel="{rel}" href="{esc(self._story_href(locale, item))}"><span class="card-meta">{esc(label(self.catalogs[locale["code"]], "beat", item.get("beat")))}</span><strong>{esc(direction)}</strong><span>{esc(headline(item, locale["code"], self.catalogs[locale["code"]]))}</span></a>'
+            f'<a rel="{rel}" href="{esc(self._story_href(locale, item))}"><span class="card-meta">{esc(format_date(item["event_at"], self.catalogs[locale["code"]], precision=item.get("date_precision", "day")))}</span><strong>{esc(direction)}</strong><span>{esc(headline(item, locale["code"], self.catalogs[locale["code"]]))}</span></a>'
             for direction, item, rel in neighbors
         )
         related = self._related_stories(story)
         related_cards = "".join(
-            f'<article class="story-card"><span class="card-meta" translate="no">{esc(label(self.catalogs[locale["code"]], "beat", item.get("beat")) if reason == "same-beat" else reason)}</span><h3><a href="{esc(self._story_href(locale, item))}">{esc(headline(item, locale["code"], self.catalogs[locale["code"]]))}</a></h3><p>{esc(truncate(dek(item, locale["code"], self.catalogs[locale["code"]]), 160))}</p></article>'
+            f'<article class="story-card"><span class="card-meta" translate="no">{esc(self._related_reason(reason, item, self.catalogs[locale["code"]]))}</span><h3><a href="{esc(self._story_href(locale, item))}">{esc(headline(item, locale["code"], self.catalogs[locale["code"]]))}</a></h3><p>{esc(truncate(dek(item, locale["code"], self.catalogs[locale["code"]]), 160))}</p></article>'
             for item, reason in related
         )
         parts = []
@@ -260,6 +319,37 @@ class PaperBuilder:
         if related_cards:
             parts.append(f'<section class="related-reading"><h2>{esc(strings["story"]["related"])}</h2><div class="card-row">{related_cards}</div></section>')
         return "".join(parts)
+
+    @staticmethod
+    def _plate_html(story: dict, catalog: dict, ratio: str = "16:10") -> str:
+        """Procedural, text-free plate for the cover; the alt names the motif, never the content."""
+        from tools.paper.plates import plate as make_plate
+        pl = make_plate(story["id"], list(story.get("topics") or []), ratio)
+        motif = pl.get("motif") or "neutral"
+        strings = catalog["strings"]["plate"]
+        motif_text = strings.get("motif_" + motif, "")
+        alt = strings["alt_decorative"] if motif == "neutral" or not motif_text else strings["alt_motif"].format(motif=motif_text)
+        return f'<div class="plate" data-ratio="{esc(ratio)}" role="img" aria-label="{esc(alt)}">{pl["svg"]}</div>'
+
+    def _topic_pair(self, story: dict, locale: dict) -> str:
+        counts = Counter(t for item in self.live for t in set(item.get("topics") or []))
+        topic = next((t for t in story.get("topics") or [] if counts[t] >= 3), "")
+        if not topic:
+            return ""
+        catalog = self.catalogs[locale["code"]]
+        seq = sorted((i for i in self.live if topic in (i.get("topics") or [])), key=lambda i: (i.get("event_at", ""), i["id"]))
+        pos = next(n for n, i in enumerate(seq) if i["id"] == story["id"])
+        make = lambda i: (self._story_href(locale, i), headline(i, locale["code"], catalog))
+        name = label(catalog, "topic", slugify(topic), fallback="")
+        if not name:
+            return ""
+        return topic_pair(catalog, name, make(seq[pos - 1]) if pos > 0 else None, make(seq[pos + 1]) if pos + 1 < len(seq) else None)
+
+    def _machine_strip(self, story: dict, locale: dict, catalog: dict) -> str:
+        suffix = story_path({**locale, "path_prefix": ""}, story)
+        return machine_strip(catalog, json_href=absolute(self.base_url, f"api/v1/stories/{story['id']}.json"),
+                             cite_href=self._citation_permalink(story),
+                             md_href=absolute(self.base_url, locale["path_prefix"] + suffix.rstrip("/") + ".md"))
 
     def _citation_permalink(self, story: dict) -> str:
         english = next(locale for locale in self.config["locales"] if locale["code"] == "en")
@@ -328,16 +418,14 @@ class PaperBuilder:
         stats = (len(self.live), len({topic for story in self.live for topic in story.get("topics", [])}),
                  len({org for story in self.live for org in story.get("organizations", [])}))
         if not order:
-            body = simple_page(strings["archive"]["empty"], "")
-            self._write_page(locale=locale, suffix=TECHNICAL_FRONT, title=strings["site"]["name"], description=strings["site"]["description"], body=body, kind="front")
             landing = render_landing(locale=locale, home=href(self.base, locale["path_prefix"]), technical=href(self.base, locale["path_prefix"]+TECHNICAL_FRONT), about=href(self.base, locale["path_prefix"]+"about/"), subscribe=href(self.base, locale["path_prefix"]+"suscribete/"), lead="", top="", cartas=community.render_cartas(self.cartas, locale["code"]), stats=stats)
             _, subscribe_script = community.render_subscribe(locale_code=locale["code"], path_prefix=locale["path_prefix"], base=self.base, portal_url=self.portal_url)
-            self._write_page(locale=locale, suffix="", title="FCMO", description="FCMO: Javier's fCMO letters and the FCMO AI technical daily", body=landing, kind="landing", extra_head=subscribe_script, machine_alternates=[("text/plain", href(self.base, "llms.txt")), ("application/json", href(self.base, "agent.json"))])
+            self._write_page(locale=locale, suffix="", title="FCMO AI", description="FCMO AI: evidence-first news, research and applied AI strategy.", body=landing, kind="landing", extra_head=subscribe_script, machine_alternates=[("text/plain", href(self.base, "llms.txt")), ("application/json", href(self.base, "agent.json"))])
             return
         plan = front_plan(order, BEATS)
         first = plan["lead"]
         lead_title = headline(first, locale["code"], catalog)
-        lead_class = self._title_class(lead_title, locale["code"])
+        lead_class = self._title_class(lead_title, locale["code"], hero=True)
         dz = strings["design"]
         lead_evidence = first.get("evidence") if isinstance(first.get("evidence"), dict) else {}
         local_evidence = self._localized_evidence(first, locale)
@@ -390,23 +478,16 @@ class PaperBuilder:
         board = evidence_board(self.live, catalog, method_href=href(self.base, locale["path_prefix"] + "method/"))
         body = front_page(lead=lead, top=top, essentials=essentials, beats="".join(sections), developing=developing, subscribe=subscribe, cartas=cartas, editions=editions, signal=signal, board=board)
         body = community.without_empty_cartas_slot(body, cartas)
-        self._write_page(locale=locale, suffix=TECHNICAL_FRONT, title=f'{strings["site"]["name"]} — {strings["site"]["tagline"]}', description=strings["site"]["description"], body=body, kind="front", og_image=self._media_url(first, locale), extra_head=subscribe_script)
-        landing = render_landing(locale=locale, home=href(self.base, locale["path_prefix"]), technical=href(self.base, locale["path_prefix"]+TECHNICAL_FRONT), about=href(self.base, locale["path_prefix"]+"about/"), subscribe=href(self.base, locale["path_prefix"]+"suscribete/"), lead=lead, top=top, cartas=cartas, stats=stats, feature=feature)
-        self._write_page(locale=locale, suffix="", title="FCMO", description="FCMO: Javier's fCMO letters and the FCMO AI technical daily", body=landing, kind="landing", og_image=self._media_url(first, locale), extra_head=subscribe_script, machine_alternates=[("text/plain", href(self.base, "llms.txt")), ("application/json", href(self.base, "agent.json"))])
+        landing = render_landing(locale=locale, home=href(self.base, locale["path_prefix"]), technical=href(self.base, locale["path_prefix"]+TECHNICAL_FRONT), about=href(self.base, locale["path_prefix"]+"about/"), subscribe=href(self.base, locale["path_prefix"]+"suscribete/"), lead=lead, top=top, cartas=cartas, stats=stats, feature=feature, front=front_context(order=order, base=self.base))
+        self._write_page(locale=locale, suffix="", title="FCMO AI", description="FCMO AI: evidence-first news, research and applied AI strategy.", body=landing, kind="landing", og_image=self._media_url(first, locale), extra_head=subscribe_script, machine_alternates=[("text/plain", href(self.base, "llms.txt")), ("application/json", href(self.base, "agent.json"))])
 
     def _newsletter_pages(self, locale: dict) -> None:
-        ranked = sorted(self.live, key=lambda s: (s.get("event_at", ""), s["id"]), reverse=True)
-        cards = "".join(self._card(story, locale, 3) for story in ranked[:3])
-        topic_counts = Counter(topic for story in self.live for topic in story.get("topics", []))
-        topics = [(name, count, slugify(name)) for name, count in topic_counts.most_common() if count >= 3][:8]
-        root = href(self.base, locale["path_prefix"])
-        technical = href(self.base, locale["path_prefix"] + TECHNICAL_FRONT)
-        cartas = getattr(self, "_editorial_shelf", {}).get(locale["code"], community.render_cartas(self.cartas, locale["code"]))
-        for kind, suffix in (("letters", "cartas/"), ("guide", "empieza/"), ("community", "comunidad/")):
-            title, description, body = render_newsletter(kind, locale=locale["code"], root=root,
-                                                          technical=technical, cards=cards, cartas=cartas, topics=topics)
-            self._write_page(locale=locale, suffix=suffix, title=f"{title} — fCMO", description=description,
-                             body=body, kind=kind)
+        # One publication (DIRECCION section 4): comunidad/ had no live content, so like cartas/ it forwards to the
+        # front page. It is written as a stub, never as a route, so it stays out of the sitemap and the route index.
+        target = href(self.base, locale["path_prefix"])
+        path = self.out / locale["path_prefix"] / "comunidad" / "index.html"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(redirects.stub(target, self.base), encoding="utf-8")
 
     def _localized_evidence(self, story: dict, locale: dict) -> dict:
         if locale["code"] == "en":
@@ -487,16 +568,26 @@ class PaperBuilder:
             if sources:
                 links = "".join(f'<li>{provenance_line(src, catalog)}{"<span class=\"prov-primary\">" + esc(strings["story"]["primary_source"]) + "</span>" if src.get("primary") else ""}</li>' for src in sources)
                 dossier.append(f'<section><h2>{esc(strings["story"]["sources"])}</h2><ol class="source-list">{links}</ol></section>')
-            body = (brief(story, catalog, summary=field(story, code, "summary"), why=field(story, code, "why_it_matters"), evidence=evidence)
-                    + reader_select(catalog)
-                    + '<div class="layers" data-layers data-mode="summary">'
-                    + layer("argument", dz["argument_title"], dz["layer_r2"], "".join(argument))
-                    + layer("dossier", dz["dossier_title"], dz["layer_r4"], "".join(dossier))
-                    + layer("technical", dz["technical_title"], dz["layer_r3"], "".join(technical_layer))
-                    + '</div>' + LAYER_SCRIPT)
-            aside = self._facts(story, locale)
+            body = ""
+            aside = ""
+            technical_fields = field(story, code, "technical", {})
+            technical_fields = technical_fields if isinstance(technical_fields, dict) else {}
+            topic_nav = self._topic_pair(story, locale)
+            c6_page = story_view(
+                story=story, catalog=catalog, code=code, title=title, dek_text=description,
+                beat_label=label(catalog, "beat", story.get("beat")), home_href=href(self.base, locale["path_prefix"]),
+                evidence=evidence, summary=field(story, code, "summary"), why=field(story, code, "why_it_matters"),
+                technical=technical_fields, status_html=status_chip(self.status, catalog),
+                automation_html=automation_badge(self.status, catalog), byline=strings["story"]["byline"],
+                dates_line=f'{strings["story"]["event_date"].format(date=event)} · {strings["story"]["published"].format(date=published)}',
+                plate_html=self._plate_html(story, catalog), note_html=note, taxonomy_html=self._facts(story, locale),
+                navigation_html=self._story_navigation(story, locale), topic_nav_html=topic_nav,
+                machine_html=self._machine_strip(story, locale, catalog))
         hero = ""
-        page = story_page(header=header, body=body, aside=hero_figure + aside, hero=hero, navigation=self._story_navigation(story, locale))
+        if complete:
+            page = f'<article class="story-layout">{c6_page}</article>' + JUMP_OPEN_SCRIPT
+        else:
+            page = story_page(header=header, body=body, aside=hero_figure + aside, hero=hero, navigation=self._story_navigation(story, locale))
         page = page.replace('<article class="story-layout">', f'<article class="story-layout {title_class}">', 1)
         story_url = absolute(self.base_url, locale["path_prefix"] + suffix)
         image = self._media_url(story, locale)
@@ -509,6 +600,30 @@ class PaperBuilder:
         self._write_page(locale=locale, suffix=suffix, title=f"{title} — FCMO AI", description=description, body=page, kind="story", story=story, og_image=image, json_ld=structured,
                          machine_alternates=[("text/markdown", story_md), ("application/json", story_api)])
 
+    def _correction_title(self, story: dict, locale: dict) -> tuple[str, str]:
+        """(title, lead-in) for a correction in this locale, never English and never a translation placeholder.
+
+        Order: the story's own localized title; for a merge, the localized title of the story it was merged into
+        (the lead-in says so); otherwise a plain description of what it was (kind and publication date)."""
+        code = locale["code"]
+        catalog = self.catalogs[code]
+        ui = catalog["strings"]["corrections_ui"]
+        own = field(story, code, "headline") or field(story, code, "title")
+        if own:
+            return str(own), ""
+        survivor = next((item for item in self.stories if item["id"] == story.get("merged_into")), None)
+        if survivor is None:
+            survivor = next((item for item in self.stories if any(r.get("id") == item["id"] and r.get("type") == "duplicate_of"
+                                                                   for r in story.get("related") or [] if isinstance(r, dict))), None)
+        if survivor is not None:
+            name = field(survivor, code, "headline") or field(survivor, code, "title")
+            if name:
+                return str(name), ui["merged_into"]
+        kind = (story.get("corrections") or [{}])[-1].get("kind")
+        base = ui.get("untitled_" + str(kind)) or ui["untitled_default"]
+        published = story.get("first_published_at") or story.get("event_at")
+        return (f'{base} · {ui["published_on"].format(date=format_date(published, catalog))}' if published else base), ""
+
     def _correction_notice(self, story: dict, locale: dict) -> None:
         code = locale["code"]
         catalog = self.catalogs[code]
@@ -517,7 +632,7 @@ class PaperBuilder:
         text = fix.get("text") or {}
         notice = text.get(code) or strings["l10n"]["pending_notice"]
         kind = label(catalog, "correction_kind", fix.get("kind"), fallback=strings["story"]["corrections"])
-        title = headline(story, code, catalog)
+        title, lead_in = self._correction_title(story, locale)
         body = (f'<p class="story-kicker">{esc(kind)} · '
                 f'<time datetime="{esc(fix.get("at", ""))}">{esc(format_date(fix["at"], catalog))}</time></p>'
                 f'<p class="story-dek">{esc(notice)}</p>')
@@ -578,8 +693,6 @@ class PaperBuilder:
         strings = catalog["strings"]["story"]
         confidence_heading = strings["confidence"].split("{level}", 1)[0].rstrip(" :：")
         values = [
-            (strings["importance_rationale"], strings["importance"].format(score=story.get("importance", ""))),
-            (strings["importance_tier"], label(catalog, "importance_tier", story.get("importance_tier"))),
             (strings["development_type"], label(catalog, "development_type", story.get("development_type"))),
             (strings["evidence"], label(catalog, "evidence_class", story.get("evidence_class"))),
             (confidence_heading, label(catalog, "confidence", story.get("confidence"))),
@@ -587,14 +700,15 @@ class PaperBuilder:
         facts = "".join(f'<div class="fact"><dt>{esc(key)}</dt><dd>{esc(value)}</dd></div>' for key, value in values if value)
         topic_items = []
         for topic in story.get("topics") or []:
-            label_html = f'<span translate="no" data-field="topics">{esc(topic)}</span>'
+            name = label(catalog, "topic", slugify(topic), fallback="")
+            if not name:
+                continue  # never print a raw slug: no catalogue label, no chip
+            label_html = f'<span data-field="topics">{esc(name)}</span>'
             if sum(topic in (item.get("topics") or []) for item in self.live) >= 3:
-                label_html = f'<a href="{esc(href(self.base, locale["path_prefix"] + "topic/" + slugify(topic) + "/"))}" translate="no">{label_html}</a>'
+                label_html = f'<a href="{esc(href(self.base, locale["path_prefix"] + "topic/" + slugify(topic) + "/"))}">{label_html}</a>'
             topic_items.append(f'<li>{label_html}</li>')
         topics = "".join(topic_items)
-        orgs = "".join(f'<li><a href="{esc(href(self.base, locale["path_prefix"] + "org/" + slugify(org) + "/"))}" translate="no"><span translate="no" data-field="organizations">{esc(org)}</span></a></li>' for org in story.get("organizations") or [])
         return (f'<dl>{facts}</dl>'
-                + (f'<section class="story-taxonomy"><h2>{esc(strings["organizations"])}</h2><ul>{orgs}</ul></section>' if orgs else "")
                 + (f'<section class="story-taxonomy"><h2>{esc(strings["topics"])}</h2><ul>{topics}</ul></section>' if topics else ""))
 
     def _listing(self, *, locale: dict, suffix: str, title: str, stories: list[dict], kind: str,
@@ -631,17 +745,43 @@ class PaperBuilder:
         pages = max(1, (len(stories) + LISTING_PAGE_SIZE - 1) // LISTING_PAGE_SIZE)
         def page_path(number):
             return suffix if number == 1 else suffix + f"page/{number}/"
+        strings = catalog["strings"]
         for number in range(1, pages + 1):
             start = (number - 1) * LISTING_PAGE_SIZE
-            items = "".join(f'<article class="archive-item" data-story-id="{esc(story["id"])}"><time datetime="{esc(story["event_at"])}">{esc(format_date(story["event_at"],catalog,precision=story.get("date_precision","day")))}</time><a class="archive-art" href="{esc(self._story_href(locale,story))}" aria-hidden="true" tabindex="-1"><img src="{esc(self._story_media_url(story, locale))}" alt="" width="320" height="180" loading="lazy"></a><div class="archive-copy"><h2><a href="{esc(self._story_href(locale,story))}">{esc(headline(story,locale["code"],catalog))}</a></h2><p>{esc(truncate(dek(story,locale["code"],catalog),220))}</p><p class="archive-meta">{esc(label(catalog, "beat", story.get("beat")))} · {esc(catalog["strings"]["story"]["importance"].format(score=story.get("importance", 0)))}</p>{evidence_strip(story, catalog)}</div></article>' for story in stories[start:start + LISTING_PAGE_SIZE])
-            links = []
-            for rel, destination, key in (("prev", number - 1, "newer"), ("next", number + 1, "older")):
-                if 1 <= destination <= pages:
-                    url = href(self.base, locale["path_prefix"] + page_path(destination))
-                    links.append(f'<a rel="{rel}" href="{esc(url)}">{esc(catalog["strings"]["archive"][key])} · {destination}/{pages}</a>')
-            paging = (f'<nav class="edition-neighbors" data-pagination aria-label="{esc(catalog["strings"]["archive"]["title"])}">{"".join(links)}</nav>'
-                      if pages > 1 else "")
-            body = archive_page(title, catalog["strings"]["site"]["description"], items or f'<p>{esc(catalog["strings"]["archive"]["empty"])}</p>', kicker=catalog["strings"]["kicker"]["archive"], title_html=title_html, context=context, navigation=navigation + paging) + paging
+            chunk = stories[start:start + LISTING_PAGE_SIZE]
+            # The grade is only worth a word per row when the page mixes grades; otherwise the class carries the row.
+            grades = Counter(item.get("evidence_class") for item in chunk if item.get("evidence_class"))
+            usual = grades.most_common(1)[0][0] if grades else None
+            usual_note = (f'<p class="archive-grade-note">{esc(strings["archive"]["grade_default"].format(grade=label(catalog, "evidence_class", usual)))}</p>'
+                          if usual else "")
+            groups: list[tuple[str, str, list[str]]] = []
+            for story in chunk:
+                when = format_date(story["event_at"], catalog, precision=story.get("date_precision", "day"))
+                if not groups or groups[-1][1] != when:
+                    groups.append((f"d-{story['event_at'][:10]}", when, []))
+                story_url = esc(self._story_href(locale, story))
+                groups[-1][2].append(
+                    f'<article class="archive-item" data-story-id="{esc(story["id"])}"><time class="visually-hidden" datetime="{esc(story["event_at"])}">{esc(when)}</time>'
+                    f'<a class="archive-art" href="{story_url}" aria-hidden="true" tabindex="-1"><img src="{esc(self._story_media_url(story, locale))}" alt="" width="320" height="180" loading="lazy"></a>'
+                    f'<div class="archive-copy"><p class="archive-meta">{esc(label(catalog, "beat", story.get("beat")))} · {esc(label(catalog, "format", plan_mod.story_format(story)))}</p>'
+                    f'<h3><a href="{story_url}">{esc(headline(story, locale["code"], catalog))}</a></h3>'
+                    f'<p>{esc(truncate(dek(story, locale["code"], catalog), 220))}</p>{class_line(story, catalog, grade=bool(story.get("evidence_class")) and story.get("evidence_class") != usual)}</div></article>')
+            seen_ids: set[str] = set()
+            day_html = []
+            for day_id, when, rows in groups:
+                while day_id in seen_ids:
+                    day_id += "x"
+                seen_ids.add(day_id)
+                day_html.append((day_id, when, archive_day(day_id, when, "".join(rows))))
+            items = "".join(html for _, _, html in day_html)
+            jump = archive_jump(catalog, [(day_id, when) for day_id, when, _ in day_html])
+            newer = older = ""
+            if number > 1:
+                newer = f'<a rel="prev" href="{esc(href(self.base, locale["path_prefix"] + page_path(number - 1)))}">← {esc(strings["archive"]["newer"])}</a>'
+            if number < pages:
+                older = f'<a rel="next" href="{esc(href(self.base, locale["path_prefix"] + page_path(number + 1)))}">{esc(strings["archive"]["older"])} →</a>'
+            paging = archive_pager(catalog, number=number, pages=pages, newer=newer, older=older)
+            body = archive_page(title, strings["site"]["description"], items or f'<p>{esc(strings["archive"]["empty"])}</p>', kicker=strings["kicker"]["archive"], title_html=title_html, context=context + usual_note, navigation=navigation + jump) + paging
             page_title = title if number == 1 else f"{title} · {number}/{pages}"
             self._write_page(locale=locale, suffix=page_path(number), title=f"{page_title} — FCMO AI", description=title, body=body, kind=kind, machine_alternates=resources)
 
@@ -696,8 +836,24 @@ class PaperBuilder:
         strings = catalog["strings"]
         index_url = href(self.base, locale["path_prefix"] + "data/search.json")
         shard_urls = [href(self.base, path.relative_to(self.out).as_posix()) for path in shards]
-        body = simple_page(strings["search"]["title"], f'<form class="search-box" data-search-form data-index="{esc(index_url)}" data-shards="{esc(json.dumps(shard_urls))}"><label class="visually-hidden" for="q">{esc(strings["a11y"]["search_label"])}</label><input id="q" type="search" data-search-input placeholder="{esc(strings["search"]["placeholder"])}"><button class="button" type="submit">{esc(strings["nav"]["search"])}</button></form><div class="search-results" data-search-results data-loading="{esc(strings["search"]["loading"])}" data-error="{esc(strings["search"]["error"])}" data-empty="{esc(strings["search"]["no_results"])}" aria-live="polite"></div><noscript><p>{esc(strings["search"]["needs_js"])}</p></noscript>')
-        script = f'<script defer src="{esc(href(self.base,"assets/js/search.js"))}"></script>'
+        ranked = sorted(self.live, key=lambda story: (story.get("event_at", ""), story["id"]), reverse=True)
+        topic_counts = Counter(value for story in self.live for value in set(story.get("topics") or []))
+        topic_items = []
+        for value, count in sorted(topic_counts.items(), key=lambda row: (-row[1], row[0].casefold())):
+            name = label(catalog, "topic", slugify(value), fallback="")
+            if count < 3 or not name:
+                continue
+            topic_items.append(f'<li><a href="{esc(href(self.base, locale["path_prefix"] + "topic/" + slugify(value) + "/"))}">{esc(name)}</a><span>{count}</span></li>')
+        recent = "".join(f'<li><a href="{esc(self._story_href(locale, story))}">{esc(headline(story, locale["code"], catalog))}</a>'
+                         f'<span>{esc(format_date(story["event_at"], catalog, precision=story.get("date_precision", "day")))}</span></li>' for story in ranked[:5])
+        suggest = (f'<div class="search-suggest" data-search-suggest><p class="search-hint">{esc(strings["search"]["hint"])}</p>'
+                   + (f'<section><h2>{esc(strings["search"]["suggest_topics"])}</h2><ul class="search-topics">{"".join(topic_items[:12])}</ul></section>' if topic_items else "")
+                   + (f'<section><h2>{esc(strings["search"]["suggest_recent"])}</h2><ul class="search-recent">{recent}</ul></section>' if recent else "")
+                   + '</div>')
+        body = simple_page(strings["search"]["title"], f'<form class="search-box" role="search" data-search-form data-index="{esc(index_url)}" data-shards="{esc(json.dumps(shard_urls))}"><label class="visually-hidden" for="q">{esc(strings["a11y"]["search_label"])}</label><input id="q" type="search" name="q" autocomplete="off" data-search-input placeholder="{esc(strings["search"]["placeholder"])}"><button class="button" type="submit">{esc(strings["nav"]["search"])}</button></form><div class="search-results" data-search-results data-loading="{esc(strings["search"]["loading"])}" data-error="{esc(strings["search"]["error"])}" data-empty="{esc(strings["search"]["no_results"])}" data-results-for="{esc(strings["search"]["results_for"])}" data-results-one="{esc(strings["search"]["results_for_one"])}" data-results-more="{esc(strings["search"]["results_for_more"])}" aria-live="polite"></div>{suggest}<noscript><p>{esc(strings["search"]["needs_js"])}</p></noscript>')
+        # Tab link search/?focus=1 puts the caret in the field; ?q= runs the query on arrival.
+        script = (f'<script defer src="{esc(href(self.base,"assets/js/search.js"))}"></script>'
+                  "<script>addEventListener('DOMContentLoaded',()=>{if(/[?&]focus=1(&|$)/.test(location.search)){document.querySelector('[data-search-input]')?.focus()}})</script>")
         self._write_page(locale=locale, suffix="search/", title=f'{strings["search"]["title"]} — FCMO AI', description=strings["search"]["placeholder"], body=body, kind="search", extra_head=script)
 
     def _simple_pages(self, locale: dict) -> None:
@@ -729,7 +885,8 @@ class PaperBuilder:
         }[locale["code"]]
         ranked = sorted(self.live, key=self._story_rank, reverse=True)
         sample = ranked[0] if ranked else None
-        method_intro = (f'<p class="method-intro">{esc(localized_method["intro"])}</p>'
+        method_intro = (method_order_section(catalog)
+                        + f'<p class="method-intro">{esc(localized_method["intro"])}</p>'
                         f'<ul class="archive-totals"><li><strong>{live_count}</strong> {esc(localized_method["story_count"])}</li>'
                         f'<li><strong>{topic_count}</strong> {esc(s["story"]["topics"])}</li><li><strong>{org_count}</strong> {esc(s["story"]["organizations"])}</li></ul>'
                         f'<section class="method-steps"><h2>{esc(s["story"]["evidence"])}</h2><ol>'
@@ -755,14 +912,15 @@ class PaperBuilder:
         for story, correction in corrections:
             text = correction.get("text") or {}
             note = text.get(locale["code"]) or s["l10n"]["pending_notice"]
-            title = headline(story, locale["code"], catalog)
+            title, lead_in = self._correction_title(story, locale)
             date = correction.get("at") or story.get("updated_at")
-            correction_rows.append(
-                f'<article class="correction">'
-                f'<time datetime="{esc(date)}">{esc(format_date(date, catalog))}</time>'
-                f'<h2><a href="{esc(self._correction_href(locale, story))}">{esc(title)}</a></h2>'
-                f'<p>{esc(note)}</p></article>')
-        corr_body = f'<p>{esc(s["corrections_page"]["intro"])}</p>' + (
+            correction_rows.append(correction_row(
+                catalog=catalog, title=title, title_lang="", note=note, date_iso=date, date_text=format_date(date, catalog),
+                story_href=self._correction_story_href(locale, story), correction_href=self._correction_href(locale, story),
+                class_before=correction.get("class_before"), class_after=correction.get("class_after"),
+                reason=(correction.get("reason") or "") if isinstance(correction.get("reason"), str) else "",
+                kind_text=label(catalog, "correction_kind", correction.get("kind"), fallback=s["story"]["corrections"]), lead_in=lead_in))
+        corr_body = corrections_intro(catalog, method_href=href(self.base, locale["path_prefix"] + "method/")) + (
             "".join(correction_rows) if correction_rows else f'<p>{esc(s["corrections_page"]["none"])}</p>')
         pages.append(("corrections/", s["corrections_page"]["title"], corr_body, "corrections"))
         pending = {"en": "This document awaits the approved legal copy. Subscription remains inactive.", "es-419": "Este documento espera el texto legal aprobado. La suscripción permanece inactiva.", "zh-Hans": "本文件仍待核准的法律文本。订阅功能尚未启用。"}[locale["code"]]
@@ -790,12 +948,10 @@ class PaperBuilder:
         for suffix, title, content, kind in pages:
             self._write_page(locale=locale, suffix=suffix, title=f"{title} — FCMO AI", description=truncate(content.replace("<p>", " ").replace("</p>", " ")), body=simple_page(title, content), kind=kind)
         subscribe, subscribe_script = community.render_subscribe(locale_code=locale["code"], path_prefix=locale["path_prefix"], base=self.base, portal_url=self.portal_url, page=True)
-        subscribe_title = community.subscribe_page_title(locale["code"], self.portal_url)
         recent = sorted(self.live, key=lambda story: (story.get("event_at", ""), story["id"]), reverse=True)[:3]
-        cards = "".join(self._card(story, locale, 3) for story in recent)
+        cards = "".join(self._record_card(story, locale) for story in recent)
         tail = subscription_tail(locale=locale["code"], root=href(self.base, locale["path_prefix"]),
-                                 technical=href(self.base, locale["path_prefix"] + TECHNICAL_FRONT), cards=cards)
-        self._write_page(locale=locale, suffix="suscribete/", title=f"{subscribe_title} — fCMO + FCMO AI", description=community.COPY[locale["code"]]["promise"], body=f'<article class="story-body">{subscribe}</article>{tail}', kind="subscribe", extra_head=subscribe_script)
+                                 technical=href(self.base, locale["path_prefix"]), cards=cards)
         # Kit redirect surfaces are deterministic templates, never subscriber receipts.
         from tools.paper.templates.subscription_states import COPY, state_page
         copy = COPY[locale['code']]
@@ -807,15 +963,25 @@ class PaperBuilder:
                              kind='subscribe', index=False, extra_head='<meta name="robots" content="noindex">' + subscribe_script)
 
     def _404(self) -> None:
+        """One 404 page for every locale, rendered through the shared document chrome."""
+        en = self.config["locales"][0]
         blocks = []
         for locale in self.config["locales"]:
             strings = self.catalogs[locale["code"]]["strings"]["errors"]
             home = href(self.base, locale["path_prefix"])
-            technical = href(self.base, locale["path_prefix"]+TECHNICAL_FRONT)
-            search = href(self.base, locale["path_prefix"]+"search/")
+            search = href(self.base, locale["path_prefix"] + "search/")
             search_label = {"en": "Search", "es-419": "Buscar", "zh-Hans": "搜索"}[locale["code"]]
-            blocks.append(f'<section lang="{esc(locale["html_lang"])}"><p class="section-kicker">FCMO / FCMO AI</p><h2>{esc(strings["not_found_title"])}</h2><p>{esc(strings["not_found_body"])}</p><div class="landing-jump"><a href="{esc(home)}">{esc(strings["not_found_home"])}</a><a href="{esc(technical)}">FCMO AI Diario</a><a href="{esc(search)}">{esc(search_label)}</a></div></section>')
-        html = '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><script>(()=>{let p=location.pathname,l=p.includes("/es/")?"es-419":p.includes("/zh/")?"zh-Hans":"en";document.documentElement.lang=l;document.documentElement.dataset.errorLocale=l})()</script><link rel="icon" href="' + esc(href(self.base,"assets/pwa/favicon.svg")) + '" type="image/svg+xml"><link rel="apple-touch-icon" href="' + esc(href(self.base,"assets/pwa/icons/icon-192.svg")) + '"><link rel="stylesheet" href="' + esc(href(self.base,"assets/css/paper.css")) + '"><title>404 · FCMO</title></head><body><a class="skip-link" href="#main">Skip to content</a><header class="site-header"><div class="masthead"><a class="brand" href="' + esc(href(self.base,"")) + '">FCMO</a><span class="brand-sub">fCMO + FCMO AI</span></div></header><main id="main" class="page-shell not-found"><h1>404</h1>' + "".join(blocks) + '</main><footer class="site-footer"><div class="footer-inner"><div class="footer-brand">FCMO · fCMO · FCMO AI</div></div></footer></body></html>'
+            blocks.append(f'<section lang="{esc(locale["html_lang"])}"><h1>{esc(strings["not_found_title"])}</h1><p>{esc(strings["not_found_body"])}</p><div class="landing-jump"><a href="{esc(home)}">{esc(strings["not_found_home"])}</a><a href="{esc(search)}">{esc(search_label)}</a></div></section>')
+        # Same switch as before: the script picks the locale section from the URL prefix.
+        locale_script = ('<script>(()=>{let p=location.pathname,l=p.includes("/es/")?"es-419":p.includes("/zh/")?"zh-Hans":"en";'
+                         'document.documentElement.lang=l;document.documentElement.dataset.errorLocale=l})()</script>')
+        html = document(
+            locale=en, catalog=self.catalogs[en["code"]], config=self.config, base=self.base, path="",
+            title="404 · FCMO AI", description="The page you asked for does not exist or has moved.",
+            body='<div class="not-found">' + "".join(blocks) + '</div>',
+            canonical=absolute(self.base_url, "404.html"), alternates=[],
+            extra_head='<meta name="robots" content="noindex">' + locale_script,
+        )
         (self.out / "404.html").write_text(html, encoding="utf-8")
 
     def build(self) -> int:

@@ -50,6 +50,11 @@ class PaperEditorialDepthTests(unittest.TestCase):
         self.assertIn('class="story-taxonomy"', page)
         self.assertGreaterEqual(page.count('href="/FCMO-AI-Newsletter/topic/'), 1)
 
+    def test_no_story_page_is_a_navigation_dead_end(self):
+        # A story alone on its subject falls back to the whole live sequence for Newer/Older.
+        stranded = [route["path"] for route in self.story_routes if 'class="edition-neighbors"' not in self.page(route)]
+        self.assertEqual(stranded, [])
+
     def test_taxonomy_and_edition_pages_show_corpus_context_and_navigation(self):
         for kind in ("archive", "edition", "topic", "org"):
             route = next(route for route in self.routes if route["kind"] == kind and route["locale"] == "en"
@@ -71,11 +76,11 @@ class PaperEditorialDepthTests(unittest.TestCase):
         for locale in ("en", "es-419", "zh-Hans"):
             self.assertEqual({route["story_id"] for route in self.story_routes if route["locale"] == locale}, live_ids)
         for locale, prefix in (("en", ""), ("es-419", "es/"), ("zh-Hans", "zh/")):
-            front = (self.out / prefix / "diario/index.html").read_text(encoding="utf-8")
+            front = (self.out / prefix / "index.html").read_text(encoding="utf-8")
             method = (self.out / prefix / "method/index.html").read_text(encoding="utf-8")
             status = (self.out / prefix / "status/index.html").read_text(encoding="utf-8")
             with self.subTest(locale=locale):
-                self.assertIn('class="front-ledger"', front)
+                self.assertIn('class="band-counts"', front)  # c6: the method band carries the live counts
                 self.assertIn('class="method-steps"', method)
                 self.assertIn('class="method-example"', method)
                 self.assertIn('class="status-grid"', status)

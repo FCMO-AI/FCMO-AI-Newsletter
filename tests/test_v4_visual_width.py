@@ -45,7 +45,7 @@ class TruncateTests(unittest.TestCase):
         self.assertEqual(truncate("汉" * 95, 190), "汉" * 95)
 
     def test_han_text_is_cut_by_width_not_by_characters(self):
-        result = truncate("汉" * 300, 190)
+        result = truncate("汉" * 300, 190)  # corpus-count-ok: input length for a truncation test
         self.assertEqual(result, "汉" * 94 + "…")
         self.assertEqual(visual_width(result), 189)
 
