@@ -1,6 +1,6 @@
 {
   "canonical_locale": "en",
-  "canonical_source_sha256": "6492276f954a99fff21a6c1891d4f98b95c22d08600f2fe9cf64edbb89fa07be",
+  "canonical_source_sha256": "dbfef5c1f1939f84f69db9c93b32e9a71785e47c9a67eccd30db0b9facbc07d2",
   "generated_from": "ARB airlock; editorial wording authored upstream",
   "locale": "zh-Hans",
   "records": {
@@ -9907,6 +9907,64 @@
       },
       "title": "Flash-dLLM报告扩散模型解码提速方案",
       "why_it_matters": "如果报告的提升能在其他扩散语言模型和服务系统上成立，融合缓存并由同一模型验证的方法可能改变推理引擎设计，缩小扩散模型的效率差距。由于实验只涉及一个模型、一张GPU和结构化任务，且不同任务存在准确率权衡，该结论的适用范围有限。"
+    },
+    "FCMO-43B701C7F278": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "arXiv v1论文介绍了EpiSEM-Bench：覆盖六类合成工具使用场景的300组配对任务，每组分别包含禁止与允许的世界；基准会隐藏与安全有关的事实，并提供可选的证据恢复工具。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "在十种受测模型配置中，作者报告称，在配对的关键证据缺失条件下，开放证据恢复都降低了不安全提交；其中九种模型也提高了允许任务的完成率，而MiMo-V2.5-Pro下降了0.6个百分点。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "作者报告的配对有效恢复指标在模型之间差异很大：在论文的合成配对任务协议下，DeepSeek-V4.1-Flash为58.4%，GLM-4.7-Flash为0.0%。"
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION",
+          "text": "受测环境使用合成工具接口，解码温度为零，每种条件只运行一次。该来源没有证明结果可迁移到真实运行系统、独立构建的任务环境或现实安全结果；本次审阅也未找到独立复现。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "本次审阅没有独立复现该基准的汇总结果或模型结果。",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "六类场景均为作者构建的合成环境；结果能否迁移到真实工具或第三方独立设计的环境仍未知。",
+          "kind": "regime_unclear",
+          "state": "open"
+        },
+        {
+          "description": "每种条件在零温度下只运行一次，无法估计同一配置内的波动或随机策略行为。",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "如果这些区分在合成任务之外也成立，把主动恢复证据与不安全执行和一概拒绝分别衡量，可能实质性改变工具智能体安全评估的设计。该工作对评估方法具有显著意义，但单一作者团队的基准并不能证明现实安全性或普遍适用性。",
+      "limitations": [
+        "论文提出了基准设计并报告一次作者方评估，并未确立现实世界事故率或运行安全性。",
+        "本次审阅没有找到或进行对作者所报结果的独立复现。",
+        "每种条件在零温度下仅运行一次，无法量化随机变化。",
+        "有效查询后，确定性的恢复工具会返回所有被隐藏的事实；这与许多现实检索和授权系统不同。",
+        "论文没有确立货币成本、延迟或部署效果的因果影响。"
+      ],
+      "relationships": [],
+      "summary": "作者提出EpiSEM-Bench，包含300组允许与禁止的配对任务，覆盖六类工具使用场景，并设置安全事实隐藏和可选的证据恢复工具。在一项涉及十种模型的作者方评估中，在配对条件下，所有模型启用恢复后不安全执行都减少；九种模型的允许任务完成率也提高，另有一种略降。这些是合成基准上的作者报告结果，尚无独立复现或真实系统结果。",
+      "technical": {
+        "claimed_result": "作者报告称，十种模型在配对的证据缺失条件下，启用恢复后不安全提交均有所减少。九种模型的允许任务完成率也提高；MiMo-V2.5-Pro下降0.6个百分点。各模型报告的配对有效恢复率为0.0%至58.4%。",
+        "demonstrated_result": "论文及其所述基准协议可以公开查阅。本次激活没有独立重跑论文报告的模型比较。",
+        "mechanism": "评估器保留完整环境状态和可执行的合法性判定规则，同时在所有普通工具响应中隐藏选定的真实事实。安全世界与不安全世界使用相同的请求和工具，但使目标操作允许或禁止的状态条件不同。只有智能体主动查询时，可选恢复工具才会返回被隐藏的事实。",
+        "regime": "共300组任务，涵盖云运维、商业履约、通信与发布、文档和数据访问、金融及旅行预订；评估十种模型配置；包含1,363项关键或无关事实；操作上限为12步，解码温度为零，每种条件运行一次。任务环境由作者构建，属于合成场景，不是生产系统。",
+        "reproducibility": "附录E称任务定义、运行记录、实验元数据、校验和及离线汇总结果均有留存；本次审阅未下载或运行相关制品。每个条件只运行一次，限制了对波动和随机行为的估计。",
+        "strongest_baseline": "在相同任务、世界和事实隐藏掩码下，对比仅隐藏证据与可恢复证据条件；每个模型还包含允许和禁止任务的完整证据基线。"
+      },
+      "title": "EpiSEM-Bench检验工具智能体在证据缺失时的安全性与有效恢复能力",
+      "why_it_matters": "工具智能体收到的信息即使都真实，也可能因不完整而执行完整环境状态所禁止的操作。EpiSEM-Bench将其他条件相同、但分别允许与禁止的任务配对，衡量不安全执行，以及恢复证据后能否正确完成允许的任务。如果这些结果经独立验证并能扩展到合成环境之外，该方法可帮助评估智能体是否会在执行重要操作前核实授权，而不是一概拒绝。"
     },
     "FCMO-43F4CDA9C083": {
       "claims": [
@@ -42932,6 +42990,48 @@
       "why_it_matters": {
         "locale_sha256": "3d62fae3404fd1f30776fdaa0bd981a20e77d53d5a6a87f91a8aeb4c3fe0d3a2",
         "source_sha256": "b9b9769795442d40e6fb253d39d4915eff2d170577b3b1b6047d0c0b50f2bb75"
+      }
+    },
+    "FCMO-43B701C7F278": {
+      "claims": {
+        "locale_sha256": "49b7ca046575c67412d3b9dafe0bffc3230860aa131659936e7e2ba32462bc9f",
+        "source_sha256": "9715541bdcb8909683bc59a690cad3451d19fdf44f2e8352566ddc4c3d2521ee"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "7ae3b36f8c01120d79ad8fdae486ec55ebc5c033c9d12a7c21c829b7e288ca85",
+        "source_sha256": "835d90803f678da45e7821902642db08304791fe57b456a469620331fa997b87"
+      },
+      "importance_rationale": {
+        "locale_sha256": "b27b8bfba71a8bf2bf3a10ff05dbec4d3e8daf229d565f0936d1273c5036713c",
+        "source_sha256": "1af0786fbface06ff8f3f16596d60ff1505ae219ba5a969a9b271cd922b0ba82"
+      },
+      "limitations": {
+        "locale_sha256": "af7d99fd141525289556163891bb9ab6b67485d2b06bfc5cf0a4b97d957cea8a",
+        "source_sha256": "843c1ba35b8157395cbf3ee7a15ecc9dd14486a6d464b66e7d644528ae131c80"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "fba299fd7bdac1d49254284ae654add301b74f2807e0869053894215dc42ce13",
+        "source_sha256": "09d6a57461cea0a9f0dbfc19a5f05cf9db3911d4e4eb0e79c93b5ba712fc1a90"
+      },
+      "technical": {
+        "locale_sha256": "fc43fa66d9877cdc65f844d08b1ce2a2ade02c7e30c4e745f8d61dd4379a5212",
+        "source_sha256": "c3c814d70258645ab97289cce8c7acddcbdf6bdcf18b79e17c69490fa510120f"
+      },
+      "title": {
+        "locale_sha256": "f4128366185474d0cb4d856d2114294f7c5c41226017af03a8949d3316b9cf29",
+        "source_sha256": "dd9d0ab28591ac14902c1fcd5efd1eab10e963662f37ac6a049b973c59ada885"
+      },
+      "why_it_matters": {
+        "locale_sha256": "57e548c23c820cc111a09936a484457d5a4c93ee02693681dc0d69620590cb25",
+        "source_sha256": "d804b8f8b6c934a11b12050959c4d7fd16ebbc23aeba7cc33ddb3b2f0108248c"
       }
     },
     "FCMO-43F4CDA9C083": {
