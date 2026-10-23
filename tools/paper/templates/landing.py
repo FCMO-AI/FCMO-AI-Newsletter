@@ -213,7 +213,8 @@ def _wire(stories: list[dict], ctx: _Ctx) -> str:
             f'<a href="#earlier" data-format="{f}">{_e(fm[f + "_plural"])}</a>' for f in present)
         chips = f'<nav class="format-filter" data-format-filter aria-label="{_e(ctx.s["a11y"]["format_filter"])}">{links}</nav>'
     rows = []
-    for story in stories:
+    # The wire reads as a dated list, so it is ordered by date (newest first); the board above carries the importance order.
+    for story in sorted(stories, key=lambda x: str(x.get("event_at") or ""), reverse=True):
         rows.append(
             f'<li class="wire-row" data-format="{plan_mod.story_format(story)}" data-story-id="{_e(story["id"])}">'
             f'<time class="wire-date rubric" datetime="{_e(story["event_at"])}">{_e(story["event_at"][:10])}</time>'
