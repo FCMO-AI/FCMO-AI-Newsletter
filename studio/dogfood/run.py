@@ -258,6 +258,8 @@ def main():
             journey.scores.append({'name': 'complete journey', 'ok': False})
             log = root / 'server.log'
             if log.is_file(): print('--- server.log (tail) ---\n' + '\n'.join(log.read_text(errors='replace').splitlines()[-40:]), flush=True)
+            for extra in sorted([*root.glob('strict-*.log'), *root.glob('studio_*.log')]):
+                print('--- ' + extra.name + ' (tail) ---\n' + '\n'.join(extra.read_text(errors='replace').splitlines()[-40:]), flush=True)
             raise
         finally: journey.close()
     finally:
