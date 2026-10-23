@@ -1867,62 +1867,67 @@
       "claims": [
         {
           "label": "DEMONSTRATED",
-          "text": "La v1 de arXiv describe un método de expulsión de elementos del KV que combina la sensibilidad Fisher-trace del enrutador con puntuaciones de atención entre instrucciones y contexto, y mantiene fijo el presupuesto total de caché retenida."
+          "text": "El artículo v1 de arXiv describe un método de descarte de elementos de la caché KV que toma en cuenta el enrutamiento: combina la sensibilidad medida mediante la traza de Fisher del enrutador con la atención entre instrucciones y contexto, y conserva un presupuesto fijo de elementos retenidos."
         },
         {
           "label": "CLAIMED",
-          "text": "Los autores informan que MoEZip mejora las puntuaciones de LongBench, NIAH y RULER frente a KVZip, SnapKV y PyramidKV en las configuraciones probadas de Qwen3-30B-A3B y GLM-4.7-Flash; las mayores ganancias aparecen con una retención de KV muy baja."
+          "text": "Los autores reportan que MoEZip supera a KVZip, SnapKV y PyramidKV en LongBench, NIAH y RULER en las configuraciones evaluadas de Qwen3-30B-A3B y GLM-4.7-Flash, con mayores mejoras cuando se conserva una fracción menor de la caché KV."
         },
         {
           "label": "CLAIMED",
-          "text": "Para Qwen3-235B-A22B con una retención de KV del 10%, los autores informan una puntuación macro de LongBench de 10 tareas de 44.7 con MoEZip y 27.6 con KVZip; la evaluación informada usó ocho GPU A100 de 80 GB."
+          "text": "Para Qwen3-235B-A22B con 10% de retención de la caché KV, los autores reportan un promedio de 44.7 en 10 tareas de LongBench para MoEZip y 27.6 para KVZip; la evaluación reportada usó ocho GPU A100 de 80 GB."
         },
         {
           "label": "NOT_ESTABLISHED",
-          "text": "Los resultados informados en los benchmarks no se han reproducido de manera independiente y no demuestran rendimiento de servicio, reducción efectiva de costos, transferencia amplia entre familias de modelos ni aplicabilidad a sistemas de inferencia de caja negra."
+          "text": "Los resultados comparativos reportados no se han reproducido de manera independiente y no demuestran rendimiento de servicio en producción, menores costos reales de inferencia, transferencia amplia entre familias de modelos ni aplicabilidad a sistemas de inferencia de caja negra."
         },
         {
           "label": "CLAIMED",
-          "text": "Los autores estiman aproximadamente 15,000–16,000 horas de GPU A100 para todos los experimentos informados, incluidos MoEZip y los métodos de comparación, sin contar pruebas preliminares o fallidas. Es una estimación agregada del artículo; no separa el cómputo marginal de MoEZip ni expresa un costo monetario."
+          "text": "Los autores calculan aproximadamente 15,000–16,000 horas de GPU A100 para todos los experimentos y las líneas de base, incluidos MoEZip, y excluyen pruebas preliminares o fallidas; es un cálculo agregado del artículo, no el costo marginal de MoEZip ni un costo monetario."
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "El índice oficial de descargas de NeurIPS 2026 incluye el título exacto del artículo MoEZip."
         }
       ],
       "contradictory_evidence": [],
       "evidence_gaps": [
         {
-          "description": "El artículo informa resultados en benchmarks públicos, pero esta activación no los reprodujo de manera independiente y el repositorio GitHub enlazado actualmente solo muestra un README y una licencia, sin código experimental ni datos.",
+          "description": "El artículo reporta resultados en pruebas públicas, pero esta revisión no los reprodujo de manera independiente. El repositorio de GitHub enlazado actualmente solo muestra README y licencia, no código experimental ni datos.",
           "kind": "reproduction_missing",
           "state": "open",
           "updated_at": "2026-10-23T04:12:40Z"
         },
         {
-          "description": "El régimen de benchmarks del artículo no demuestra el rendimiento de servicio a nivel de sistema ni beneficios económicos realizados; además, el método puede no servir en inferencia de caja negra.",
+          "description": "El régimen de evaluación del artículo no establece el rendimiento de servicio ni un beneficio económico realizado; el requisito de acceso a estados internos puede impedir su uso en sistemas de caja negra.",
           "kind": "regime_unclear",
           "state": "open",
           "updated_at": "2026-10-23T04:12:40Z"
         }
       ],
-      "importance_rationale": "Si las ganancias informadas por los autores se generalizan a más modelos dispersos y cargas de trabajo desplegadas, la expulsión de KV que protege el enrutamiento podría reducir de forma importante la memoria de inferencia para contextos largos con una calidad de tarea similar. Los experimentos acotados usan dos familias MoE y benchmarks públicos; no miden costos, latencia ni rendimiento de servicio en producción.",
+      "importance_rationale": "Si las mejoras reportadas por los autores se generalizan a otros modelos dispersos y cargas de trabajo de producción, el descarte de caché KV guiado por enrutamiento podría reducir de forma significativa la memoria de inferencia para contextos largos sin perder calidad en las tareas. Los experimentos acotados cubren dos familias de modelos MoE y pruebas públicas; no miden costos, latencia ni rendimiento de servicio en producción.",
       "limitations": [
-        "Los resultados de los benchmarks provienen de los autores y no se reprodujeron de manera independiente en esta activación.",
-        "El repositorio público enlazado solo muestra README.md y LICENSE; no se encontró código experimental ni datos accesibles en la revisión.",
-        "El método requiere acceso a las salidas del enrutador y a estadísticas de atención entre instrucciones y contexto, que quizá no estén disponibles en sistemas de inferencia de caja negra.",
-        "Las puntuaciones de tareas informadas no demuestran rendimiento de servicio, costo de memoria, latencia ni beneficio económico en cargas de producción.",
-        "El apéndice de 235B evalúa transferencia de escala dentro de la familia Qwen3; no demuestra una generalización amplia entre familias.",
-        "Las 15,000–16,000 horas de GPU A100 informadas abarcan MoEZip y todos los métodos de comparación, y excluyen pruebas preliminares o fallidas; el artículo no atribuye a MoEZip un cómputo marginal ni informa un costo monetario."
+        "Los resultados de las pruebas comparativas son reportados por los autores y no se reprodujeron de manera independiente en esta revisión.",
+        "El repositorio público enlazado solo muestra README.md y LICENSE; en la versión inspeccionada no había código experimental ni conjunto de datos accesible.",
+        "El método requiere acceso a las salidas del enrutador y a estadísticas de atención entre instrucciones y contexto, que quizá no estén disponibles en sistemas de caja negra.",
+        "Las puntuaciones reportadas no establecen rendimiento de servicio, costo de memoria, latencia ni beneficio económico en cargas de producción.",
+        "El apéndice de 235B prueba transferencia dentro de la familia Qwen3, no una generalización amplia a otras familias.",
+        "Las 15,000–16,000 horas de GPU A100 reportadas cubren MoEZip y todas las líneas de base juntas, excluyen pruebas preliminares o fallidas y no separan el cómputo marginal del método ni dan un costo monetario.",
+        "El índice de descargas de NeurIPS 2026 incluye el título del artículo, pero esa inclusión en el programa no reproduce ni valida los resultados; esta revisión no pudo abrir la página enlazada del póster."
       ],
       "relationships": [],
-      "summary": "Un artículo de arXiv propone MoEZip, que usa la sensibilidad Fisher-trace del enrutador y la atención para conservar posiciones de contexto destinadas a estabilizar la selección de expertos durante la expulsión de elementos del KV. En comparaciones ejecutadas por los autores, informa puntuaciones superiores en benchmarks de contexto largo frente a KVZip, SnapKV y PyramidKV bajo compresión alta en modelos dispersos Qwen3 y GLM-4.7-Flash. En un apéndice con Qwen3-235B-A22B, los autores informan una puntuación macro de LongBench de 10 tareas de 44.7 frente a 27.6 con KVZip, al retener el 10% del KV. Los autores también estiman 15,000–16,000 horas de GPU A100 para MoEZip y todos los métodos de comparación en conjunto, sin contar pruebas preliminares o fallidas. Los resultados de benchmarks no se reprodujeron de manera independiente; el Apéndice C indica que el código está en el material suplementario, que esta activación no recuperó, mientras que el repositorio enlazado solo muestra un README y una licencia.",
+      "summary": "Un artículo de arXiv propone MoEZip, que combina la sensibilidad de la traza de Fisher del enrutador y la atención para conservar posiciones de contexto que podrían estabilizar la selección de expertos durante el descarte de elementos de la caché KV. En comparaciones realizadas por los autores, reporta puntuaciones superiores en tareas de contexto largo frente a KVZip, SnapKV y PyramidKV, con alta compresión, en modelos MoE Qwen3 y GLM-4.7-Flash. En un apéndice con Qwen3-235B-A22B, los autores reportan un promedio de 44.7 frente a 27.6 para KVZip en 10 tareas de LongBench con 10% de retención de caché KV. También estiman 15,000–16,000 horas de GPU A100 para MoEZip y todas las líneas de base juntas, sin incluir pruebas preliminares o fallidas. El índice oficial de descargas de NeurIPS 2026 incluye el título exacto del artículo; esto confirma su inclusión en el programa, pero no reproduce de manera independiente los resultados. Los resultados siguen sin reproducción independiente; el apéndice C menciona código en el material suplementario, que esta revisión no recuperó, y el repositorio enlazado solo muestra un README y una licencia.",
       "technical": {
-        "claimed_result": "Con una retención del 10% del KV, los autores informan que Qwen3-235B-A22B obtuvo una puntuación macro de LongBench de 10 tareas: 44.7 con MoEZip frente a 27.6 con KVZip. En otras configuraciones probadas, el artículo informa ventajas en LongBench, NIAH y RULER, especialmente con compresión alta.",
-        "compute_or_cost": "Los autores informan 15,000–16,000 horas de GPU A100 para el conjunto completo de experimentos, incluidos MoEZip y los métodos de comparación, sin contar pruebas preliminares o fallidas; la cifra no separa el cómputo marginal de MoEZip ni expresa un costo monetario. Para la etapa de puntuación, informan un sobrecosto adicional de 0.88 s en Qasper y de 0.27–1.79 s en NIAH según la longitud del contexto. Son mediciones de puntuación informadas por los autores, no rendimiento de servicio integral ni resultados económicos.",
-        "demonstrated_result": "El artículo accesible especifica el método y presenta comparaciones de benchmarks realizadas por sus autores. La página pública del repositorio enlazado solo muestra README.md y LICENSE; no se hizo una reproducción independiente.",
-        "mechanism": "MoEZip estima la sensibilidad del enrutamiento a partir de la traza de Fisher de las distribuciones del enrutador en los tokens de instrucción, propaga esa señal a posiciones del contexto atendidas, reserva una parte adaptativa del presupuesto de KV retenido existente para anclas con puntuación alta y completa las posiciones restantes con un método base de selección de caché.",
-        "regime": "arXiv:2610.30206v1, enviado el 2026-10-21; Qwen3-30B-A3B-Instruct-2507 y GLM-4.7-Flash, contextos de 4K–32K y LongBench/NIAH/RULER; evaluación adicional de Qwen3-235B-A22B-Instruct-2507 con 10% de retención de KV. Los experimentos con 235B usaron ocho GPU NVIDIA A100 de 80 GB.",
-        "reproducibility": "La fuente del artículo es accesible. El Apéndice C dice que el código está incluido en el material suplementario, que esta activación no recuperó. La página enlazada del repositorio GitHub actualmente solo muestra README.md y LICENSE; no se realizó una reproducción independiente.",
-        "strongest_baseline": "Las comparaciones del artículo usan presupuestos de KV retenido, checkpoints, plantillas de prompts y ajustes de decodificación equiparados frente a KVZip, SnapKV y PyramidKV; el Apéndice E.9 también compara con selección basada solo en atención en un subconjunto de cuatro tareas. El Apéndice C indica que las ventanas de observación comparativas incluyen toda la instrucción definida por la plantilla. Son comparaciones ejecutadas por los autores, sin reproducción independiente."
+        "claimed_result": "Con 10% de retención de caché KV, los autores reportan para Qwen3-235B-A22B un promedio de 44.7 en 10 tareas de LongBench para MoEZip, frente a 27.6 para KVZip. En otras configuraciones evaluadas, reportan ventajas en LongBench, NIAH y RULER, sobre todo con compresión agresiva.",
+        "compute_or_cost": "Los autores estiman 15,000–16,000 horas de GPU A100 para el conjunto completo de experimentos, incluidos MoEZip y las líneas de base, pero excluyen pruebas preliminares o fallidas; no aíslan el costo marginal de la investigación de MoEZip ni el costo monetario. Para calcular puntuaciones, reportan 0.88 s adicionales en Qasper y 0.27–1.79 s en NIAH según la longitud del contexto. Son mediciones de puntuación reportadas por los autores, no cifras de rendimiento de servicio de extremo a extremo ni resultados económicos.",
+        "demonstrated_result": "El artículo accesible especifica el método y reporta comparaciones pareadas realizadas dentro del mismo estudio. El repositorio público de los autores solo muestra README.md y LICENSE; no se hizo una reproducción independiente.",
+        "mechanism": "MoEZip estima la sensibilidad del enrutamiento a partir de la traza de la matriz de información de Fisher de las distribuciones del enrutador en los tokens de instrucción; propaga esa señal a las posiciones de contexto a las que se presta atención, reserva una parte adaptable de la cuota fija de caché para las posiciones de mayor puntuación y completa los espacios restantes con un método base de selección de caché.",
+        "regime": "arXiv:2610.30206v1, enviado el 2026-10-21; Qwen3-30B-A3B-Instruct-2507 y GLM-4.7-Flash, contextos de 4K–32K, pruebas LongBench/NIAH/RULER; una evaluación adicional de Qwen3-235B-A22B-Instruct-2507 con 10% de retención de caché KV. Los experimentos con el modelo 235B usaron ocho GPU NVIDIA A100 con 80 GB cada una.",
+        "reproducibility": "El artículo está disponible. El apéndice C dice que el código fuente está en el material suplementario, que esta revisión no recuperó. El repositorio GitHub enlazado solo muestra README.md y LICENSE; no se realizó una reproducción independiente.",
+        "strongest_baseline": "Las comparaciones dentro del artículo mantienen iguales el presupuesto de caché retenida, los puntos de control, las plantillas de instrucciones y los parámetros de decodificación frente a KVZip, SnapKV y PyramidKV. El apéndice E.9 también compara con selección basada solo en atención para un subconjunto de cuatro tareas. El apéndice C dice que las ventanas de observación de los métodos competidores abarcan toda la instrucción definida por la plantilla. Son comparaciones de los autores, sin reproducción independiente."
       },
-      "title": "MoEZip informa mejores puntuaciones en tareas con compresión intensa de caché KV en los modelos dispersos evaluados",
-      "why_it_matters": "Si las ganancias informadas se generalizan, proteger el contexto sensible al enrutamiento podría reducir la memoria necesaria para inferencia con contextos largos en modelos de mezcla de expertos dispersos y conservar el rendimiento en tareas. El artículo no mide rendimiento de servicio, reducción efectiva de costos ni reproducción externa, y el método requiere estadísticas internas del enrutador y de atención."
+      "title": "MoEZip reporta mejores puntuaciones de tarea con compresión agresiva de caché KV en modelos de lenguaje dispersos evaluados",
+      "why_it_matters": "Si las mejoras reportadas se generalizan, conservar el contexto sensible al enrutamiento podría reducir la memoria necesaria para inferencia de contexto largo en modelos de mezcla de expertos sin perder rendimiento en las tareas. El artículo no mide rendimiento de servicio, costos reales de despliegue ni reproducción externa, y el método necesita acceso a estadísticas internas del enrutador y de atención."
     },
     "FCMO-0A56AEB565FE": {
       "claims": [
@@ -29919,6 +29924,62 @@
       },
       "title": "R3Con informa grandes mejoras en dos pruebas de razonamiento sobre contextos extensos",
       "why_it_matters": "Si se replica en colecciones más amplias, una etapa que construya representaciones adaptadas a cada tarea podría mejorar la integración de evidencia de varios pasos y reducir el tamaño de modelo necesario en algunas tareas de contexto extenso. El artículo ofrece un diseño concreto y una comparación de pruebas para esa posibilidad. Los resultados se limitan a dos evaluaciones, líneas de base elegidas por los autores y puntuaciones de un modelo juez; la comparación de costos no es una ablación con el mismo sistema base."
+    },
+    "FCMO-D3D50BB885F2": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Los autores presentan la construcción Boyd generalizada de cinco parámetros e informan polinomios irreducibles con medida de Mahler inferior al punto límite α1 de Boyd para cada grado par que evaluaron entre 12 y 2000 (995 grados)."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En el conjunto evaluado, los autores informan que su construcción alcanza 991 de los 995 mejores registros conocidos y mejora seis valores publicados anteriormente; es un resultado de referencia finito y no demuestra la minimalidad global en cada grado."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El artículo describe un flujo interactivo de trabajo entre personas e IA que combina Gemini, búsqueda numérica, cómputo distribuido y verificación simbólica exacta para identificar patrones que dieron lugar a la construcción generalizada."
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION",
+          "text": "El artículo no demuestra ni refuta la conjetura de Lehmer; el conjunto evaluado es finito y en esta revisión no se reprodujeron de manera independiente la construcción ni los valores informados."
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "El archivo CSV complementario enlazado en arXiv se puede descargar y contiene 996 filas de grados, de 10 a 2000; esta revisión comprobó la disponibilidad y la estructura, pero no recalculó sus entradas."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "En esta revisión no se reprodujeron de manera independiente la construcción, el conjunto de datos ni las seis mejoras informadas.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "El benchmark informa valores conocidos mediante los métodos evaluados y en un intervalo finito; no demuestra que cada polinomio sea mínimo global para su grado ni resuelve la conjetura de Lehmer.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si la construcción y los valores de grados finitos son correctos, amplían una familia de registros de baja medida de Mahler a grados pares altos y muestran una ruta potencialmente reutilizable desde búsquedas computacionales amplias hasta una estructura analítica. Su importancia es notable en matemáticas y descubrimiento asistido por IA, pero el preprint no resuelve la conjetura de Lehmer y aquí no se reprodujo de manera independiente.",
+      "limitations": [
+        "Se trata de un preprint con resultados informados por sus autores; en esta revisión no hubo reproducción matemática independiente.",
+        "El benchmark reporta 995 grados en un intervalo finito y no demuestra la minimalidad global de cada grado ni resuelve la conjetura de Lehmer.",
+        "La atribución del flujo de trabajo con IA y del cómputo agregado proviene de la descripción de los autores; no se estableció de manera independiente el mecanismo ni la contribución relativa.",
+        "En esta activación no se inspeccionaron ni ejecutaron de manera independiente todos los datos publicados y el código complementario."
+      ],
+      "relationships": [],
+      "summary": "Un preprint de Google DeepMind presenta una extensión de cinco parámetros de la construcción de Boyd para polinomios con baja medida de Mahler. Los autores informan ejemplos irreducibles por debajo del punto límite de Boyd en los 995 grados pares que evaluaron entre 12 y 2000, incluidas seis mejoras respecto de valores publicados. El trabajo amplía registros para grados finitos, pero no resuelve la conjetura de Lehmer ni demuestra que todos los polinomios de la lista sean mínimos globales; en esta revisión no se reprodujeron independientemente los resultados.",
+      "technical": {
+        "claimed_result": "Los autores informan que la familia Boyd generalizada de cinco parámetros produce ejemplos irreducibles por debajo de α1 en todos los grados pares evaluados entre 12 y 2000, alcanza 991 de 995 mejores registros conocidos en ese conjunto finito y mejora seis valores publicados anteriormente.",
+        "demonstrated_result": "El artículo v1 de arXiv y los métodos de verificación exacta descritos pueden consultarse públicamente. El CSV complementario enlazado está disponible y contiene 996 filas de grados entre 10 y 2000; esta revisión no comprobó de manera independiente sus datos matemáticos.",
+        "mechanism": "El artículo describe búsquedas numéricas a gran escala con aprendizaje por refuerzo, búsqueda evolutiva y búsqueda prioritaria, seguidas de análisis de factores ciclotómicos sobre estructuras de coeficientes recurrentes. Los autores derivan una familia de cinco parámetros que busca evitar los saltos de grado de las especializaciones de un parámetro de Boyd; la irreducibilidad de cada polinomio se verifica simbólicamente sobre los racionales.",
+        "regime": "Evaluación informada por los autores en grados pares de polinomios entre 10 y 2000; la familia generalizada se evalúa en 995 grados, del 12 al 2000. Las comparaciones incluyen registros publicados para grados cubiertos hasta el 250 y resultados de los métodos de búsqueda del propio artículo.",
+        "reproducibility": "El CSV complementario enlazado en arXiv se descargó y se revisaron sus encabezados, 996 filas y cobertura de grados de 10 a 2000. Esto confirma que el archivo está disponible y su estructura; en esta activación no se recalcularon entradas, pruebas de irreducibilidad, medidas de Mahler ni las mejoras frente a la literatura.",
+        "strongest_baseline": "Registros publicados anteriormente de medida de Mahler para los grados cubiertos y la familia de Boyd de un parámetro; los autores informan seis mejoras estrictas sobre valores publicados."
+      },
+      "title": "Un preprint de Google DeepMind amplía los registros de Boyd a grados polinómicos altos",
+      "why_it_matters": "El problema de Lehmer conecta la teoría de números con la entropía y las tasas de crecimiento en varias áreas matemáticas. Extender construcciones explícitas a grados altos puede mejorar el mapa de registros para grados finitos y ofrece un caso concreto en que la búsqueda computacional y las comprobaciones simbólicas exactas conducen a una familia analítica compacta. Aún hace falta una revisión matemática independiente; este resultado no resuelve la conjetura."
     },
     "FCMO-D441ED8722DB": {
       "claims": [
