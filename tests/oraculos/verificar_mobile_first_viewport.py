@@ -41,8 +41,6 @@ BAR_HEIGHT_MAX = 56
 NAV_PATHS = ("", "#topics", "archive/", "search/?focus=1", "corrections/", "method/")
 TAB_PATHS = ("", "archive/", "search/?focus=1", "corrections/", "subscribe/")
 ROW_TOLERANCE = 2
-# The c6 phone freshness line is one line that may end in an ellipsis; the state word and the newest-story date lead it.
-# It must keep at least this share of its text visible (horizontal truncation only, never a vertical clip).
 PAGE_KINDS = ("landing", "story")
 
 MEASURE = r'''const { chromium } = require(process.argv[1]);
