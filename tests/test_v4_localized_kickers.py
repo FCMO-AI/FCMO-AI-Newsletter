@@ -23,7 +23,10 @@ LOCALES = (("en", ""), ("es-419", "es/"), ("zh-Hans", "zh/"))
 ENGLISH_KICKER = re.compile(r"(?i)\b(archive|signal|operations)\b")
 KICKER = re.compile(r'<(p|span|div|h[1-6])\b[^>]*class="[^"]*\bsection-kicker\b[^"]*"[^>]*>(.*?)</\1>', re.S)
 MAIN = re.compile(r'<main\b.*?</main>', re.S)
-DEVELOPING = re.compile(r'<section class="developing-well">.*?</section>', re.S)
+# c6 / DIRECCION s3, s6: the developing-well block is the root front's "Earlier" wire section.
+EARLIER = re.compile(r'<section class="block surface-bone" id="earlier".*?</section>', re.S)
+EARLIER_LABEL = re.compile(r'<p class="rubric rubric-accent">(.*?)</p>', re.S)
+EARLIER_TITLE = re.compile(r'<h2 class="block-title" id="earlier-title">(.*?)</h2>', re.S)
 HTML_LANG = re.compile(r'<html lang="([^"]+)"')
 KEYS = ("archive", "signal", "operations")
 
@@ -103,15 +106,20 @@ class LocalizedKickerTests(unittest.TestCase):
                 self.assertEqual(self.first_kicker(self.page(prefix, self.edition_suffix(locale))),
                                  self.expected(locale, "archive"))
                 self.assertEqual(self.first_kicker(self.page(prefix, "status/")), self.expected(locale, "operations"))
-                well = DEVELOPING.search(self.page(prefix, "diario/"))
-                self.assertIsNotNone(well)
-                self.assertEqual(kickers(well.group())[0], self.expected(locale, "signal"))
+                earlier = EARLIER.search(self.page(prefix, ""))
+                self.assertIsNotNone(earlier)
+                strings = self.catalogs[locale]["strings"]
+                self.assertEqual(text(EARLIER_LABEL.search(earlier.group()).group(1)), strings["wire"]["title"])
+                self.assertEqual(text(EARLIER_TITLE.search(earlier.group()).group(1)), strings["earlier"]["title"])
 
     def test_english_kickers_still_read_in_english(self):
         self.assertEqual(self.first_kicker(self.page("", "archive/")), "FCMO AI · archive")
         self.assertEqual(self.first_kicker(self.page("", self.edition_suffix("en"))), "FCMO AI · archive")
         self.assertEqual(self.first_kicker(self.page("", "status/")), "FCMO AI · operations")
-        self.assertEqual(kickers(DEVELOPING.search(self.page("", "diario/")).group())[0], "FCMO AI · signal")
+        earlier = EARLIER.search(self.page("", ""))
+        self.assertIsNotNone(earlier)
+        self.assertEqual(text(EARLIER_LABEL.search(earlier.group()).group(1)), "The wire")
+        self.assertEqual(text(EARLIER_TITLE.search(earlier.group()).group(1)), "Earlier")
 
     def test_generator_has_no_hard_coded_english_kicker(self):
         hits = [str(path.relative_to(ROOT)) for path in (ROOT / "tools/paper").rglob("*.py")
