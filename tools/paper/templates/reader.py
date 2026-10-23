@@ -314,9 +314,9 @@ def brief20(story: dict, catalog: dict, *, summary: object, why: object, evidenc
     for item in [*(evidence.get("gaps") or []), *(evidence.get("limitations") or [])]:
         text = item.get("description", "") if isinstance(item, dict) else item
         if text:
-            unknown = first_sentence(text, 240)
+            unknown = first_sentence(text, 360)
             break
-    cells = [(d["happened"], first_sentence(summary, 240), ""), (d["matters"], first_sentence(why, 240), ""),
+    cells = [(d["happened"], first_sentence(summary, 360), ""), (d["matters"], first_sentence(why, 360), ""),
              (d["not_established"], unknown or d["none_recorded"], " read20-na")]
     rows = "".join(f'<li class="read20-cell{extra}"><b>{e(key)}</b><span class="brief-val">{e(text)}</span></li>' for key, text, extra in cells if text)
     return f'<div class="brief" role="group" aria-labelledby="brief-title"><h2 id="brief-title" class="visually-hidden">{e(d["brief_title"])}</h2><ol class="read20">{rows}</ol></div>'

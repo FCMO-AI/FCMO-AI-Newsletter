@@ -11,12 +11,13 @@ from html import escape
 from tools.paper import front_plan as plan_mod
 from tools.paper.i18n import _catalog, dek, field, headline, label, plural, truncate
 from tools.paper.routes import href as route_href, slugify, story_path, topic_path
+from .reader import first_sentence
 from .subscribe import subscribe_block
 
 try:  # L8 ships tools/paper/plates.py; until then a neutral, text-free stub with the same contract.
     from tools.paper.plates import plate as _plate
 except ImportError:  # pragma: no cover - exercised until the plates module is merged
-    def _plate(story_id: str, topic_ids, ratio: str) -> dict:
+    def _plate(story_id: str, topic_ids, ratio: str, variant: int = 0) -> dict:
         seed = sum(ord(c) for c in str(story_id))
         width, height = (800, 500) if ratio == "16:10" else (800, 450)
         bars = "".join(
@@ -33,8 +34,21 @@ def _e(value: object) -> str:
     return escape(str(value), quote=True)
 
 
-def _plate_html(story: dict, ratio: str, strings: dict) -> str:
-    plate = _plate(story["id"], list(story.get("topics") or []), ratio)
+def _plate_family(story: dict) -> str:
+    try:
+        from tools.paper.plates import choose_motif
+    except ImportError:  # pragma: no cover
+        return "neutral"
+    return choose_motif(list(story.get("topics") or []))
+
+
+def _plate_html(story: dict, ratio: str, strings: dict, seen: list | None = None) -> str:
+    # The first circular plate on a page keeps its rings; later ones take the non-circular drawing, by slot order.
+    variant = 0
+    if seen is not None and _plate_family(story) in ("monitoring", "neutral"):
+        variant = 1 if seen else 0
+        seen.append(1)
+    plate = _plate(story["id"], list(story.get("topics") or []), ratio, variant=variant)
     motif = plate.get("motif") or "neutral"
     motif_text = strings["plate"].get("motif_" + motif, "")
     alt = (strings["plate"]["alt_decorative"] if motif == "neutral" or not motif_text
@@ -52,6 +66,7 @@ class _Ctx:
         self.s = self.catalog["strings"]
         self.base = base
         self.topic_labels = self.catalog.get("labels", {}).get("topic", {})
+        self.rings_seen: list = []
 
     def story_href(self, story: dict) -> str:
         return route_href(self.base, story_path(self.locale, story))
@@ -105,9 +120,9 @@ def _receipt(story: dict, feature: dict, ctx: _Ctx) -> str:
     evidence = ctx.evidence(story)
     gaps = [g.get("description") for g in (evidence.get("gaps") or []) if isinstance(g, dict) and g.get("description")]
     limits = [x for x in (evidence.get("limitations") or []) if isinstance(x, str) and x]
-    unknown = truncate(gaps[0] if gaps else (limits[0] if limits else d["none_recorded"]), 220)
-    why = truncate(str(field(story, ctx.code, "why_it_matters") or ""), 220)
-    rows = f'<div><dt>{_e(d["happened"])}</dt><dd>{_e(feature["dek"])}</dd></div>'
+    unknown = first_sentence(gaps[0] if gaps else (limits[0] if limits else d["none_recorded"]), 360)
+    why = first_sentence(field(story, ctx.code, "why_it_matters"), 360)
+    rows = f'<div><dt>{_e(d["happened"])}</dt><dd>{_e(first_sentence(feature["dek"], 360))}</dd></div>'
     if why:
         rows += f'<div><dt>{_e(d["matters"])}</dt><dd>{_e(why)}</dd></div>'
     rows += f'<div class="receipt-na"><dt>{_e(d["not_established"])}</dt><dd>{_e(unknown)}</dd></div>'
@@ -122,7 +137,7 @@ def _cover(feature: dict, story: dict | None, ctx: _Ctx | None, record: str) -> 
         kicker = "FCMO AI · " + ctx.s["cover"]["lead_kicker"].format(beat=feature["beat"])
         signals = _evrow(story, ctx, cls="evrow cover-evrow", tag="div")
         glance = ctx.s["cover"]["evidence_glance"]
-        side = f'<div class="cover-side">{_plate_html(story, "16:10", ctx.s)}{_receipt(story, feature, ctx)}</div>'
+        side = f'<div class="cover-side">{_plate_html(story, "16:10", ctx.s, ctx.rings_seen)}{_receipt(story, feature, ctx)}</div>'
         glance_html = f'<div class="cover-glance" aria-label="{_e(glance)}">{feature["hero"]}</div>'
     else:
         confidence = f' · {_e(feature["confidence"])}' if feature["confidence"] else ""
@@ -159,7 +174,7 @@ def _board(stories: list[dict], ctx: _Ctx) -> str:
         link = ctx.story_href(story)
         cards.append(
             f'<article class="plate-card{" plate-card-wide" if wide else ""}" aria-labelledby="{ident}" data-story-id="{_e(story["id"])}">'
-            f'<a href="{_e(link)}" tabindex="-1" aria-hidden="true">{_plate_html(story, "16:9" if wide else "16:10", ctx.s)}</a>'
+            f'<a href="{_e(link)}" tabindex="-1" aria-hidden="true">{_plate_html(story, "16:9" if wide else "16:10", ctx.s, ctx.rings_seen)}</a>'
             f'<div class="plate-card-body"><p class="rubric">{meta}</p>'
             f'<h3 class="plate-card-title" id="{ident}"><a href="{_e(link)}">{_e(ctx.head(story))}</a></h3>'
             f'<p class="plate-card-dek">{_e(truncate(dek(story, ctx.code, ctx.catalog), 150))}</p>'
