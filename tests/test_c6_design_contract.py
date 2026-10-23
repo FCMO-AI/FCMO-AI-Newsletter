@@ -6,6 +6,7 @@ failure message. Layout checks that need a browser (20-second line above the
 tabs, sources inside 844 px at 390 px, axe) live in tests/oraculos/verificar_c6.py.
 """
 
+import html
 import json
 from pathlib import Path
 import re
@@ -16,7 +17,10 @@ import unittest
 
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
 BASE = "/FCMO-AI-Newsletter/"
+
+from tools.paper.i18n import headline, load_catalogs  # noqa: E402
 
 # DIRECCION §5: evidence classes. Hatching is reserved for «Claimed» only.
 HATCHED_FORBIDDEN_KINDS = ("INFERRED", "DISPUTED", "unrated", "SPECULATIVE")
@@ -102,15 +106,54 @@ class DesignContractBuilt(unittest.TestCase):
         self.assertFalse(closed, "evidence ledger closed by default on %d pages:\n%s" % (len(closed), "\n".join(closed[:10])))
 
     def test_c6_no_verified_heading_for_unverified_items(self):
-        """Guard: no heading may say «verified» for an item that is only claimed (DIRECCION §3, «Recently verified»)."""
+        """Guard: no heading the design writes may say «verified» (DIRECCION §3, «Recently verified»).
+
+        Story headlines are the newsroom's words about the subject (e.g. «machine-checked proofs»), not a claim
+        by the design, so headings that are exactly a story headline are out of scope; every other heading is in.
+        """
+        catalogs = load_catalogs(ROOT)
+        stories = json.loads((ROOT / "site/data/stories.v2.json").read_text(encoding="utf-8"))["stories"]
+        headlines = {headline(story, code, catalog) for story in stories for code, catalog in catalogs.items()}
+        pages = [self.out / prefix / "index.html" for prefix in ("", "es", "zh")]
+        for locale in ("en", "es-419", "zh-Hans"):
+            pages += [self.out / row["path"] / "index.html"
+                      for row in [r for r in self.routes if r["kind"] == "story" and r["locale"] == locale][:20]]
         bad = []
-        for page in self.story_pages() + [self.out / "index.html"]:
-            source = page.read_text(encoding="utf-8", errors="replace")
-            for heading in HEADING_RE.findall(source):
-                text = strip_tags(heading)
-                if VERIFIED_WORD_RE.search(text) and not NEGATED_VERIFIED_RE.search(text):
-                    bad.append(f"{page.relative_to(self.out)}: {text[:80]!r}")
+        for page in pages:
+            for text in verified_chrome_headings(page.read_text(encoding="utf-8", errors="replace"), headlines):
+                bad.append(f"{page.relative_to(self.out)}: {text[:80]!r}")
         self.assertFalse(bad, "verified-as-heading on claimed material:\n" + "\n".join(bad[:10]))
+
+
+class VerifiedHeadingGuard(unittest.TestCase):
+    """The guard above must stay able to go red on chrome while ignoring the newsroom's own headlines."""
+
+    def test_chrome_headings_that_say_verified_are_flagged(self):
+        for heading in ("<h2>Recently verified</h2>", "<h2 class=\"x\">Verificado recientemente</h2>",
+                        "<h3>最近核实</h3>", "<h1><a href=\"#\">Verified facts</a></h1>"):
+            with self.subTest(heading=heading):
+                self.assertEqual(len(verified_chrome_headings(heading, set())), 1)
+
+    def test_negated_wording_and_story_headlines_are_not_flagged(self):
+        headline_text = "Anthropic y OSS-Fuzz: pruebas verificadas por máquina"
+        page = (f"<h1>{html.escape(headline_text)}</h1><h2>Claimed, not verified</h2><h2>Sin verificar</h2>"
+                f"<h3><a href=\"/s/\">{html.escape(headline_text)}</a></h3>")
+        self.assertEqual(verified_chrome_headings(page, {headline_text}), [])
+        # The same words outside a story headline are chrome, and are flagged.
+        self.assertEqual(verified_chrome_headings(page.replace("<h1>", "<h1>Earlier: "), {headline_text}),
+                         ["Earlier: " + headline_text])
+
+
+def verified_chrome_headings(source, story_headlines):
+    """Heading texts that say «verified» without negation and are not exactly a story headline."""
+    flagged = []
+    for heading in HEADING_RE.findall(source):
+        text = html.unescape(strip_tags(heading))
+        if text in story_headlines:
+            continue
+        if VERIFIED_WORD_RE.search(text) and not NEGATED_VERIFIED_RE.search(text):
+            flagged.append(text)
+    return flagged
 
 
 def strip_tags(fragment):
