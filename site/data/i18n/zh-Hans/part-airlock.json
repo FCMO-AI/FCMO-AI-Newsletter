@@ -1,6 +1,6 @@
 {
   "canonical_locale": "en",
-  "canonical_source_sha256": "e15c2c1f647296cd5f7f15f984e3a4b6e06714d933620046b71e38de59c14c2d",
+  "canonical_source_sha256": "2d49f7e106206058e19e6c2dc08c929ef113f34c1b3e4863af364ea199c302b9",
   "generated_from": "ARB airlock; editorial wording authored upstream",
   "locale": "zh-Hans",
   "records": {
@@ -30205,6 +30205,78 @@
       "title": "Cognizant报告：75M参数Transformer在ARC-AGI-1公开评测中达到约76%的pass@2",
       "why_it_matters": "这项报告提供了一个具体案例：针对任务结构设计的75M模型，使用单卡约四小时，声称在公开ARC-AGI-1上取得较高分数。如果能在干净的数据划分上独立复现，将有助于判断专用表示、数据增强、多令牌预测和候选筛选能在多大程度上替代该单项结构化推理基准上的通用预训练。它没有证明与前沿模型具备广泛推理能力上的同等水平：ARC-AGI-2分数较低，评测限于公开集，也没有确立直接匹配的基线或独立运行。"
     },
+    "FCMO-D2B0F918F4BB": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "OpenAI称，Habitat为每周有逾1十亿人使用的产品提供服务，并通过全球分布式存储平台管理超过500 PB的数据。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "OpenAI称其采用了改进版Azure Cosmos DB无服务器模式，该模式支持按请求单位拆分分区，因此能够重新使用共享多租户容器；公司表示，此后数月未发生容量配置或邻居干扰事故。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "OpenAI称，在部署就近区域复制、区域内缓存和Rust服务后，Habitat读取延迟p50从约120 ms降至约10 ms；文章没有分别量化每项改动的贡献。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "OpenAI称，其变更数据捕获平台每秒处理数百万次数据库变更，覆盖数千个容器和数百万个容器分区，并向一百多个Kafka主题提供数据。"
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "该文章没有独立证实可靠性、成本效率、向其他工作负载的泛化，也没有确定复制、缓存和Rust对延迟的各自因果作用。"
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "Microsoft Learn记载，Azure Cosmos DB标准无服务器账户仅限单一区域，每个物理分区最高为5,000 RU/s。OpenAI称另有Azure为Habitat构建的改进模式，每个分区最高可达10,000 RU/s，并支持按请求单位拆分；其公开可用性及其与标准账户的等同性尚未确定。"
+        }
+      ],
+      "contradictory_evidence": [
+        "Microsoft Learn的Azure Cosmos DB无服务器公开文档最后更新于2026年四月27日，称标准账户仅限单一区域，每个物理分区最高为5,000 RU/s，且不能使用共享吞吐量数据库。OpenAI 十月23日的文章则描述Azure为Habitat构建的改进模式，称每个分区可达10,000 RU/s并支持按请求单位拆分。这是范围和可用性上的差异，尚非已证实的相互矛盾：微软页面描述标准服务，未涉及所述定制模式。该定制模式是否可在Habitat之外使用仍未知。"
+      ],
+      "evidence_gaps": [
+        {
+          "description": "OpenAI公布的规模、延迟和可靠性数字属于第一方生产数据；本次未检查独立遥测或客户侧佐证。",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "报告中的读取延迟p50从约120 ms降至10 ms，综合了区域复制、区域内缓存和Rust服务；文章没有报告各自的因果效果或工作负载构成。",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "该记录描述OpenAI的应用存储工作负载，不能据此证明相同设计或量化结果适用于模型服务、训练或其他在线系统。",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "Microsoft Learn截至2026-04-27的标准公开文档称，无服务器账户仅限单一区域，每个物理分区最高5,000 RU/s，且不支持共享吞吐量数据库。OpenAI描述了另一个为Habitat构建的改进模式，但其部署范围、公开可用性以及与标准账户合同的关系尚未明确。",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "如果OpenAI报告的生产结果成立，Habitat就是前沿AI产品在线存储扩展方面的重要案例：共享容器设计、区域缓存和变更数据捕获共同支撑一个500 PB平台每秒处理超过70百万次请求。该项未评得更高，因为这是单一供应商的运营报告，没有独立遥测、标准化成本数据，也没有拆分所报告延迟改善的因果贡献。",
+      "limitations": [
+        "运行规模、事故历史和延迟数字由OpenAI报告；文章未提供可独立审计的遥测。",
+        "p50延迟约12x的改善被共同归因于区域复制、区域内缓存和Rust服务；文章未单独测量各项效果。",
+        "文章没有提供标准化成本比较，也没有给出所述改动的完整p50/p95/p99延迟分布。",
+        "Habitat是应用在线存储平台；这些结果不能证明其适用于模型训练或推理。",
+        "Microsoft Learn截至2026-04-27的标准公开文档称，无服务器账户仅限单一区域，每个物理分区最高5,000 RU/s，且不支持共享吞吐量数据库。OpenAI称Azure为Habitat开发了改进模式；其公开可用性及其与标准账户合同的等同性尚未明确。"
+      ],
+      "relationships": [],
+      "summary": "OpenAI于十月23日发布的工程文章介绍了Habitat存储层。Habitat是为每周超过1十亿人使用的产品提供服务的在线平台。OpenAI称其重新采用由双方共同管理的Azure Cosmos DB多租户设计，使用支持按请求单位拆分分区的改进版无服务器模式；公司表示，改动后数月没有出现容量配置或邻居干扰事故。OpenAI还称，就近区域复制、区域内缓存和Rust服务使读取延迟p50从约120 ms降至10 ms。文章介绍了一个每秒处理数百万次变更的变更数据捕获系统。这些均为供应商报告的生产结果；文章没有独立审计遥测，也没有拆分各项改动的贡献。Microsoft Learn的标准公开无服务器合同则规定单一区域和每分区5,000 RU/s；OpenAI称Habitat模式是专门为其构建的改进版本，其公开可用性尚不清楚。",
+      "technical": {
+        "claimed_result": "OpenAI报告称，Habitat存储超过500 PB、每秒处理超过70百万次请求；重新使用共享容器后数月未出现容量配置或邻居干扰事故；读取延迟p50从约120 ms降至10 ms；变更数据捕获每秒处理数百万次变更。",
+        "demonstrated_result": "这篇一手工程文章记载了OpenAI所述架构及其报告的生产测量；本次未独立核验遥测、复现延迟变化或审计事故记录。",
+        "mechanism": "Habitat在Azure Cosmos DB之上使用共同管理的多租户存储层、按请求单位拆分分区、选择性区域复制、区域内缓存和变更数据捕获。文章称，Azure推出改进版无服务器模式后，系统从专用容器返回到共享容器。",
+        "regime": "OpenAI生产环境中的应用存储平台，覆盖约40个地区，为ChatGPT、API、Codex和内部产品提供服务；相关指标和架构效果均由供应商报告。OpenAI称改进后的无服务器模式专为Habitat构建；Azure标准公开文档规定了不同限制。",
+        "strongest_baseline": "OpenAI将该设计与早期共享容器的分区吞吐限制及后续专用容器的容量管理负担作比较。延迟方面，文章报告在区域复制、缓存和Rust部署这一组合变更前后，读延迟约为120 ms和10 ms，但没有公开匹配的基线表。"
+      },
+      "title": "OpenAI详述Habitat在500 PB规模下的多租户存储与全球延迟设计",
+      "why_it_matters": "这篇文章具体说明了工作负载隔离、分区行为、区域布局、缓存与变更数据捕获如何在大型在线存储服务中相互作用。报告的p50提升约为12x，具有运维参考价值；但它合并了多项改动，未证明各自效果、成本比较或向其他工作负载的可迁移性。Azure截至2026年四月27日公开的标准合同与此处描述的Habitat模式不同，因此不能假定该模式普遍可用。"
+    },
     "FCMO-D32D8204EF09": {
       "claims": [
         {
@@ -58680,6 +58752,48 @@
       "why_it_matters": {
         "locale_sha256": "2c10a7793a6f9707f28f03d1d90dc4ca840b357987c122927209ec3921c5acb4",
         "source_sha256": "1506c401b388a6eec357f5455185826a90cd2ff680bb7981ae621a35b0e24993"
+      }
+    },
+    "FCMO-D2B0F918F4BB": {
+      "claims": {
+        "locale_sha256": "f41ca22abf7d1d9cff8256f81fc423af5e5a3587a3a111bb82d8764f8aed01c4",
+        "source_sha256": "9da55a889a11c70f2803d760b9e06915d324e60f250036b244861f1a901acdb8"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "5fb6eb1a0d1a94b8cf6d8e30a1563b9680986bc99bc580c43c2558ead40f3958",
+        "source_sha256": "bf59fa7ba35c1f6171e474e89db56064565ee51bcb833d2890b529dcea572f9a"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "aa4f11e3585aecb33c72390923b9ada2fb85d343000e852625e95e836a818908",
+        "source_sha256": "0b203ed68776b1d8b6e6c6cf4c2c92f6788d8385f1753c7c282e029beb29bddf"
+      },
+      "importance_rationale": {
+        "locale_sha256": "3fc2193bd0be389806427b1a05d3282ddb84d6543fbc94cd888369fd8aee9922",
+        "source_sha256": "6594e090dac74d73ea97d8455c379217d3a4f1ecf4d52dbc2ef3a9e0521330cd"
+      },
+      "limitations": {
+        "locale_sha256": "2c284cb5f6fee13a17cfb8ea6da46578974b2dc309d06f344cd28d71f73a86ff",
+        "source_sha256": "024cd232e4e601f6896242a6ba088b356d85559f55c4c92e2cbdb82450c19b40"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "22f9ffc690871974a7b31adc60a8d4d95b974c0e8f5047b86704cb4702e2d3f4",
+        "source_sha256": "a437c3d79572dd956d250d94e783057bdfe9e016502acd6dd5d74cc6bee03a0d"
+      },
+      "technical": {
+        "locale_sha256": "0a15024125a9404e3585129242ecc5ef5035859107f554af9a9b6b0fad218e85",
+        "source_sha256": "99245e86b884812bbc25f2ec669d8d6ccef41963409c893eb9ca8ebceaecb363"
+      },
+      "title": {
+        "locale_sha256": "bd4ca72ada45f38b1b84db88e2db8532c4f5924e4b54cf4f1fdeb7f91680b35d",
+        "source_sha256": "d5ee782d575b5f5cef8de6293034df9789ba741a1ed9370516a3e29ef00b2827"
+      },
+      "why_it_matters": {
+        "locale_sha256": "5857be0fe77a1fe1d0af21e39b29ba33280093ae83211f5bf994bef2b3733d52",
+        "source_sha256": "e73691e2738837b5689e5e94001ead9733bbe38da8122f8afabdc0a3efa443f9"
       }
     },
     "FCMO-D32D8204EF09": {
