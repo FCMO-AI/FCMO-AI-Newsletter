@@ -80,6 +80,28 @@ class QuarantineTests(unittest.TestCase):
         after = {p: p.read_bytes() for p in self.root.rglob("*") if p.is_file()}
         self.assertEqual(before, after)  # nothing mutated
 
+    def test_private_marker_record_is_withheld_alone(self) -> None:
+        rows = [
+            {"id": RID, "title": "Good story", "claims": [{"label": "CLAIMED", "text": "ok"}]},
+            {"id": RID2, "title": "Leak", "claims": [{"label": "CLAIMED", "text": "not an ARB-run reproduction"}]},
+        ]
+        self._write("data/developments.jsonl", "".join(json.dumps(r) + "\n" for r in rows))
+        self._write(f"developments/{RID2}.html", "<html>not an ARB-run reproduction</html>")
+        for locale in newswire_bridge.LOCALES:
+            self._write(
+                f"data/locales/{locale}/records.json",
+                json.dumps({"schema": newswire_bridge.LOCALE_SCHEMA, "locale": locale,
+                            "records": {RID: {"title": "x"}, RID2: {"title": "y"}}}),
+            )
+        receipt = json.loads((self.root / "airlock.json").read_text(encoding="utf-8"))
+        receipt["record_count"] = 2
+        (self.root / "airlock.json").write_text(json.dumps(receipt), encoding="utf-8")
+        self._restamp()
+        with self.assertRaises(ValueError):
+            partial.verify_release(self.root)
+        self.assertEqual(partial.quarantine_release(self.root), [RID2])
+        self.assertEqual(partial.verify_release(self.root)["record_count"], 1)
+
     def test_clean_release_quarantines_nothing(self) -> None:
         self.assertEqual(partial.quarantine_release(self.root), [])
         partial.verify_release(self.root)
