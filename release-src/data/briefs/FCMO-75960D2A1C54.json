@@ -8,7 +8,7 @@
     "confidence": "credible_unconfirmed",
     "importance": 6,
     "tier": "Major",
-    "summary": "PHP released security fixes on Oct 21, 2026 for two critical runtime vulnerabilities, CVE-2026-109618 and CVE-2026-109619, which its advisory says can enable unauthenticated remote code execution under affected conditions. The PHP Foundation describes a months-long path from earlier audit findings to Calif and OpenAI reports in August, followed by coordinated fixes across supported branches. Cloudflare says it deployed WAF protections before disclosure and saw attack traffic against its customers. The primary sources support the vulnerabilities, fixes and reported coordination; discovery attribution and provider observations remain source-attributed, and this case does not measure global exploitation or establish a general AI discovery rate.",
+    "summary": "PHP released security fixes on Oct 21, 2026 for two critical runtime vulnerabilities, CVE-2026-109618 and CVE-2026-109619, which its advisory says can enable unauthenticated remote code execution under affected conditions. The PHP Foundation describes a months-long path from earlier audit findings to Calif and OpenAI reports in August, followed by coordinated fixes across supported branches. Cloudflare says it deployed WAF protections before disclosure and saw attack traffic against its customers. Amazon Threat Intelligence separately reports MadPot honeypot attempts on Oct 17 before disclosure and additional attempts on Oct 21; AWS says whether those attempts succeeded on real-world systems is unclear. The primary sources support the vulnerabilities, fixes and reported coordination; discovery attribution and provider observations remain source-attributed, and this case does not measure global exploitation or establish a general AI discovery rate.",
     "topics": [
       "software security",
       "AI-assisted vulnerability discovery",
@@ -47,6 +47,10 @@
       {
         "label": "NOT_ESTABLISHED",
         "text": "This case does not establish how often AI systems find exploitable vulnerabilities, that AI alone discovered either issue, or the prevalence and consequences of exploitation across PHP deployments."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "Amazon Threat Intelligence reports that MadPot telemetry captured one PHP2Shell exploitation attempt against a honeypot on Oct 17, before public disclosure, and additional attempts on Oct 21. AWS says success on real-world systems is unclear; this is operator-reported sensor evidence, not confirmed compromise or a prevalence estimate."
       }
     ],
     "confidence": "credible_unconfirmed",
@@ -80,12 +84,13 @@
     "importance_scale_version": 2,
     "importance_score": 6,
     "importance_tier": "Major",
-    "last_verified_at": "2026-10-22T05:28:04Z",
+    "last_verified_at": "2026-10-22T17:22:42Z",
     "limitations": [
       "Discovery attribution and chronology are reported by participating organizations; no independent audit of the research process was performed.",
       "Cloudflare's attack-traffic and WAF claims are specific to its systems and do not establish global exploitation prevalence.",
       "No exploit was reproduced in this activation; public technical coverage is limited to safe, high-level advisory descriptions.",
-      "A single case cannot estimate the rate or comparative effectiveness of AI-assisted vulnerability discovery."
+      "A single case cannot estimate the rate or comparative effectiveness of AI-assisted vulnerability discovery.",
+      "AWS reports one pre-disclosure attempt and later MadPot sensor activity; whether any succeeded against real-world PHP deployments is unclear, and the telemetry is not a prevalence estimate."
     ],
     "organizations": [
       "PHP Foundation",
@@ -96,7 +101,7 @@
       "Cloudflare"
     ],
     "primary_desk": "labs_industry",
-    "recorded_at": "2026-10-22T05:28:04Z",
+    "recorded_at": "2026-10-22T17:22:42Z",
     "regions": [
       "global"
     ],
@@ -108,16 +113,17 @@
       "https://www.php.net/archive/2026.php",
       "https://thephp.foundation/blog/2026/10/21/todays-php-security-release-and-how-were-strengthening-php-security/",
       "https://openai.com/index/coordinated-disclosure-of-critical-vulnerabilities/",
-      "https://blog.cloudflare.com/php-vulnerabilities-waf-protection"
+      "https://blog.cloudflare.com/php-vulnerabilities-waf-protection",
+      "https://aws.amazon.com/blogs/security/amazon-threat-intelligence-identifies-php2shell-exploitation-prior-to-public-disclosure-in-madpot/"
     ],
     "status": "active",
-    "summary": "PHP released security fixes on Oct 21, 2026 for two critical runtime vulnerabilities, CVE-2026-109618 and CVE-2026-109619, which its advisory says can enable unauthenticated remote code execution under affected conditions. The PHP Foundation describes a months-long path from earlier audit findings to Calif and OpenAI reports in August, followed by coordinated fixes across supported branches. Cloudflare says it deployed WAF protections before disclosure and saw attack traffic against its customers. The primary sources support the vulnerabilities, fixes and reported coordination; discovery attribution and provider observations remain source-attributed, and this case does not measure global exploitation or establish a general AI discovery rate.",
+    "summary": "PHP released security fixes on Oct 21, 2026 for two critical runtime vulnerabilities, CVE-2026-109618 and CVE-2026-109619, which its advisory says can enable unauthenticated remote code execution under affected conditions. The PHP Foundation describes a months-long path from earlier audit findings to Calif and OpenAI reports in August, followed by coordinated fixes across supported branches. Cloudflare says it deployed WAF protections before disclosure and saw attack traffic against its customers. Amazon Threat Intelligence separately reports MadPot honeypot attempts on Oct 17 before disclosure and additional attempts on Oct 21; AWS says whether those attempts succeeded on real-world systems is unclear. The primary sources support the vulnerabilities, fixes and reported coordination; discovery attribution and provider observations remain source-attributed, and this case does not measure global exploitation or establish a general AI discovery rate.",
     "technical": {
-      "claimed_result": "PHP issued supported-branch fixes for two CVEs rated critical by the project; the PHP Foundation attributes same-day reports of the OOM root cause to Calif and OpenAI on Aug 11, with later attack vectors and a coordinated patch effort.",
-      "demonstrated_result": "The PHP project publicly lists the vulnerabilities and fixed releases. This activation inspected source advisories and maintainer/provider accounts; it did not independently reproduce exploitation or audit the fixes.",
+      "claimed_result": "PHP issued supported-branch fixes for two CVEs rated critical by the project; the PHP Foundation attributes same-day reports of the OOM root cause to Calif and OpenAI on Aug 11, with later attack vectors and a coordinated patch effort. Amazon Threat Intelligence reports one Oct 17 MadPot honeypot attempt before public disclosure and multiple additional Oct 21 attempts; it says real-world success is unclear.",
+      "demonstrated_result": "The PHP project publicly lists the vulnerabilities and fixed releases. This activation inspected source advisories and maintainer/provider accounts; it did not independently reproduce exploitation or audit the fixes. Amazon Threat Intelligence reports those honeypot sensor observations; this activation inspected the report but did not independently verify the events or establish successful compromise.",
       "mechanism": "CVE-2026-109618 involves OOM handling interrupting initialization before cleanup; CVE-2026-109619 involves request-owned state persisting after backing memory is freed. PHP and Cloudflare describe attacker-controlled HTTP requests as a trigger path; details and remediation are in the PHP advisory.",
       "regime": "PHP web-request-serving deployments, with PHP's advisory identifying mod_php as highest risk and directing operators of older branches to distribution/LTS vendors or source backports.",
-      "strongest_baseline": "Official PHP security advisory and releases establish the technical event and fixed versions; PHP Foundation supplies maintainer-side history; Cloudflare supplies one provider's protection and traffic account."
+      "strongest_baseline": "Official PHP security advisory and releases establish the technical event and fixed versions; PHP Foundation supplies maintainer-side history; Cloudflare supplies one provider's protection and traffic account. AWS MadPot telemetry provides one additional provider-reported sensor record of exploitation attempts, not an independent measure of real-world compromise."
     },
     "title": "PHP fixes two critical vulnerabilities after coordinated AI-assisted discovery",
     "topics": [
