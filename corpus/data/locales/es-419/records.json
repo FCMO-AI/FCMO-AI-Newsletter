@@ -30142,6 +30142,78 @@
       "title": "Cognizant informa que un transformer de 75M alcanzó cerca de 76% de pass@2 en la evaluación pública de ARC-AGI-1",
       "why_it_matters": "El informe presenta un caso concreto en el que un modelo de 75M adaptado a la estructura de la tarea y unas cuatro horas de trabajo en una sola GPU supuestamente alcanzan una puntuación alta en ARC-AGI-1 público. Si se reproduce con una partición limpia, ayudaría a medir cuánto pueden aportar la representación especializada, la aumentación, la predicción de varios tokens y la selección de candidatos en un benchmark estructurado. No demuestra paridad de razonamiento general con modelos de frontera: los resultados de ARC-AGI-2 son menores, la evaluación usa el conjunto público y no se estableció una comparación directa emparejada ni una ejecución independiente."
     },
+    "FCMO-D2B0F918F4BB": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "OpenAI informa que Habitat da servicio a productos utilizados por más de 1 mil millones de personas cada semana y gestiona más de 500 petabytes de datos mediante una plataforma de almacenamiento distribuida globalmente."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "OpenAI informa que adoptó un modo sin servidor mejorado de Azure Cosmos DB, compatible con divisiones de particiones según unidades de solicitud, lo que permitió volver a un contenedor compartido de varios clientes; la empresa afirma que durante meses no ha tenido incidentes de aprovisionamiento ni de interferencia entre clientes."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "OpenAI informa que la latencia p50 de lectura de Habitat bajó de aproximadamente 120 ms a 10 ms tras desplegar replicación regional cercana, caché dentro de la región y un servicio en Rust; el artículo no separa la contribución de cada cambio."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "OpenAI informa que su plataforma de captura de cambios procesa millones de cambios de base de datos por segundo en miles de contenedores y millones de particiones, y alimenta más de cien temas de Kafka."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "La publicación no demuestra de forma independiente la confiabilidad, la eficiencia de costos, la generalización a otras cargas de trabajo ni el efecto causal separado de la replicación, la caché y Rust sobre la latencia."
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "Microsoft Learn documenta que la cuenta estándar sin servidor de Azure Cosmos DB se limita a una sola región y permite un máximo de 5,000 RU/s por partición física. OpenAI describe un modo mejorado distinto, creado para Habitat, con hasta 10,000 RU/s por partición y divisiones según unidades de solicitud; no se ha establecido su disponibilidad pública ni su equivalencia con la cuenta estándar."
+        }
+      ],
+      "contradictory_evidence": [
+        "La documentación pública de Microsoft Learn para Azure Cosmos DB sin servidor, actualizada por última vez el 27 de abril de 2026, describe cuentas estándar limitadas a una región, con un máximo de 5,000 RU/s por partición física y sin bases de datos con capacidad compartida. La publicación de OpenAI del 23 de octubre describe un modo mejorado creado por Azure para Habitat que permite 10,000 RU/s por partición y divisiones según unidades de solicitud. Se trata de una diferencia de alcance y disponibilidad, no de una contradicción demostrada: las páginas de Microsoft describen el servicio estándar y no abordan el modo personalizado. Se desconoce si este modo personalizado está disponible fuera de Habitat."
+      ],
+      "evidence_gaps": [
+        {
+          "description": "Las cifras de escala, latencia y confiabilidad de OpenAI son afirmaciones basadas en producción de primera parte; no se han inspeccionado telemetría independiente ni corroboración de clientes.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "El cambio informado de aproximadamente 120 ms a 10 ms en latencia p50 combina replicación regional, caché regional y el servicio en Rust; no se detallan los efectos causales por separado ni la mezcla de cargas.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "El informe trata la carga de trabajo de almacenamiento de aplicaciones de OpenAI y no demuestra que el mismo diseño o los mismos resultados cuantitativos se transfieran al servicio de modelos, entrenamiento u otros sistemas en línea.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "La documentación pública estándar de Microsoft Learn, actualizada por última vez el 2026-04-27, describe cuentas sin servidor de una sola región con hasta 5,000 RU/s por partición física y sin bases de datos de capacidad compartida. OpenAI describe un modo mejorado distinto creado para Habitat, pero no se ha establecido su alcance de despliegue, disponibilidad pública ni relación con el contrato estándar.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si los resultados de producción informados por OpenAI se sostienen, Habitat es un caso de estudio notable sobre cómo escalar almacenamiento en línea para un producto de IA de frontera: el diseño de contenedor compartido, la caché regional y la captura de cambios respaldan más de 70 millones de solicitudes por segundo en una plataforma de 500 PB. No recibe una puntuación mayor porque es el informe operativo de un proveedor, sin telemetría independiente, costos normalizados ni separación causal de las mejoras de latencia.",
+      "limitations": [
+        "OpenAI informa las cifras operativas de escala, historial de incidentes y latencia; el artículo no proporciona telemetría auditable de forma independiente.",
+        "El cambio de aproximadamente 12x en latencia p50 se atribuye en conjunto a replicación regional, caché en la región y el servicio en Rust; el artículo no mide sus efectos por separado.",
+        "La publicación no ofrece una comparación de costos normalizada ni la distribución completa de latencia p50/p95/p99 para los cambios descritos.",
+        "Habitat es una plataforma de almacenamiento en línea para aplicaciones; los resultados no demuestran que se transfieran al entrenamiento o la inferencia de modelos.",
+        "La documentación pública estándar de Microsoft Learn, actualizada por última vez el 2026-04-27, describe cuentas sin servidor de una sola región con un límite de 5,000 RU/s por partición física y sin bases de datos de capacidad compartida. OpenAI afirma que Azure creó un modo mejorado para Habitat; no se ha establecido su disponibilidad pública ni su equivalencia con el contrato estándar."
+      ],
+      "relationships": [],
+      "summary": "La publicación de ingeniería de OpenAI del 23 de octubre describe la capa de almacenamiento de Habitat, su plataforma en línea que respalda productos utilizados por más de 1 mil millones de personas cada semana. OpenAI informa que volvió a un diseño administrado en conjunto y multiusuario de Azure Cosmos DB con un modo sin servidor mejorado y divisiones de partición según unidades de solicitud; la empresa afirma que desde entonces pasaron meses sin incidentes de aprovisionamiento ni de interferencia entre clientes. También informa que la replicación cercana, la caché regional y un servicio en Rust redujeron la latencia p50 de lectura de aproximadamente 120 ms a 10 ms. El artículo describe un sistema de captura de cambios que procesa millones de cambios por segundo. Son resultados de producción informados por el proveedor; la publicación no audita los datos ni separa la contribución de cada intervención. La documentación pública estándar de Microsoft Learn describe un contrato distinto, de una sola región y 5,000 RU/s por partición; OpenAI caracteriza el modo de Habitat como una versión mejorada creada para ese servicio y no se sabe si está disponible públicamente.",
+      "technical": {
+        "claimed_result": "OpenAI informa más de 500 PB, más de 70 millones de solicitudes por segundo, meses sin incidentes de aprovisionamiento ni interferencia entre clientes tras volver a contenedores compartidos, una latencia p50 de lectura de aproximadamente 120 ms a 10 ms y captura de cambios a millones de eventos por segundo.",
+        "demonstrated_result": "El informe de ingeniería de primera parte documenta la arquitectura descrita por OpenAI y las mediciones de producción que comunica; la telemetría no se verificó de forma independiente, el cambio de latencia no se reprodujo y los incidentes no se auditaron.",
+        "mechanism": "Habitat utiliza una capa de almacenamiento multiusuario administrada en conjunto sobre Azure Cosmos DB, divisiones de partición según unidades de solicitud, replicación regional selectiva, caché en la región y captura de cambios. El artículo describe el regreso de contenedores dedicados a contenedores compartidos después de que Azure incorporó un modo sin servidor mejorado.",
+        "regime": "Plataforma de almacenamiento de aplicaciones de OpenAI en producción, distribuida en unas 40 regiones y utilizada por ChatGPT, API, Codex y productos internos; las métricas y los resultados de arquitectura son informes del proveedor. OpenAI caracteriza el comportamiento mejorado sin servidor como creado para Habitat; la documentación pública estándar de Azure declara otros límites.",
+        "strongest_baseline": "OpenAI compara el diseño con los límites previos de rendimiento por partición en contenedores compartidos y con la carga de administrar capacidad en contenedores dedicados. Para la latencia, el artículo informa aproximadamente 120 ms antes y 10 ms después de una secuencia conjunta de replicación, caché y despliegue de Rust, sin una tabla pública de comparación emparejada."
+      },
+      "title": "OpenAI describe el almacenamiento multiusuario y el diseño de latencia global de Habitat a escala de 500 PB",
+      "why_it_matters": "La publicación ofrece un caso concreto de cómo interactúan el aislamiento de cargas, el comportamiento de las particiones, la ubicación regional, la caché y la captura de cambios en un gran servicio de almacenamiento en línea. La mejora p50 informada, de 12x, es relevante para la operación, pero combina varias intervenciones y no establece sus efectos por separado, el costo comparativo ni la transferencia a otras cargas. El contrato público de Azure documentado al 27 de abril de 2026 difiere del modo de Habitat descrito aquí, que no debe suponerse disponible de forma general."
+    },
     "FCMO-D32D8204EF09": {
       "claims": [
         {
