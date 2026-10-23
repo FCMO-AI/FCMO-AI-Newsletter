@@ -9906,6 +9906,64 @@
       "title": "Flash-dLLM informa una decodificación más rápida para modelos de difusión",
       "why_it_matters": "Si las mejoras informadas se sostienen en otros modelos de lenguaje de difusión y sistemas de servicio, la fusión de caché con verificación del mismo modelo podría cambiar el diseño de motores de inferencia y reducir la brecha de eficiencia de esta familia. El uso de un solo modelo, una sola GPU y tareas estructuradas, junto con los compromisos de exactitud por tarea, limitan esa conclusión."
     },
+    "FCMO-43B701C7F278": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "El artículo v1 de arXiv describe EpiSEM-Bench con 300 pares de tareas emparejadas —una prohibida y otra permitida— en seis dominios sintéticos de uso de herramientas, ocultamiento de datos relevantes para la seguridad a nivel de hecho y una herramienta opcional para recuperar evidencia."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En diez configuraciones de modelos evaluadas, los autores informan que el acceso a la recuperación de evidencia redujo las acciones prohibidas en todas ellas, bajo condiciones de omisión comparables; nueve modelos también completaron más tareas permitidas, mientras que MiMo-V2.5-Pro bajó 0.6 puntos porcentuales."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan una amplia variación en la métrica conjunta de recuperación útil emparejada: DeepSeek-V4.1-Flash obtuvo 58.4% y GLM-4.7-Flash 0.0% con el protocolo sintético emparejado del artículo."
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION",
+          "text": "Los entornos evaluados usan interfaces sintéticas de herramientas, temperatura cero y una sola ejecución por condición. La fuente no demuestra transferencia a sistemas activos, entornos creados de manera independiente ni resultados de seguridad en el mundo real; esta revisión no encontró una reproducción independiente."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "En esta revisión no se reprodujeron de manera independiente los resultados agregados ni los resultados de los modelos del benchmark.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "Los seis dominios usan entornos sintéticos creados por los autores; se desconoce si el comportamiento se transfiere a herramientas activas o a tareas diseñadas por terceros.",
+          "kind": "regime_unclear",
+          "state": "open"
+        },
+        {
+          "description": "Una sola ejecución por condición a temperatura cero no permite estimar la variación dentro de cada configuración ni el comportamiento de políticas estocásticas.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si las distinciones del benchmark se sostienen más allá de sus tareas sintéticas, separar la recuperación activa de evidencia tanto de las acciones prohibidas como del rechazo indiscriminado podría cambiar de manera importante la evaluación de seguridad de agentes con herramientas. El resultado es notable para el diseño de evaluaciones, pero un benchmark de los propios autores no demuestra seguridad en el mundo real ni generalización.",
+      "limitations": [
+        "El artículo presenta un diseño de benchmark y una evaluación informada por sus autores; no establece tasas de incidentes en el mundo real ni seguridad operativa.",
+        "En esta revisión no se encontró ni realizó una reproducción independiente de los resultados reportados por los autores.",
+        "Una sola ejecución por condición a temperatura cero no cuantifica la variabilidad estocástica.",
+        "La herramienta determinista de recuperación devuelve todos los datos omitidos tras una consulta válida, a diferencia de muchos sistemas reales de recuperación y autorización.",
+        "No se establecen costos monetarios, latencia ni impacto causal en despliegues."
+      ],
+      "relationships": [],
+      "summary": "Los autores presentan EpiSEM-Bench, con 300 pares de tareas permitidas y prohibidas en seis dominios de uso de herramientas, omisión de datos de seguridad y una herramienta opcional para recuperarlos. En una evaluación reportada de diez modelos, el acceso a la recuperación redujo las acciones prohibidas en condiciones comparables en todos los modelos; nueve también completaron más tareas permitidas y uno bajó ligeramente. Son resultados reportados por los autores en un benchmark sintético, sin reproducción independiente ni resultados en sistemas activos.",
+      "technical": {
+        "claimed_result": "Los autores informan que la recuperación de evidencia redujo las acciones prohibidas bajo omisiones comparables en los diez modelos. Nueve también completaron más tareas permitidas; MiMo-V2.5-Pro bajó 0.6 puntos porcentuales. La recuperación útil emparejada reportada varió de 0.0% a 58.4% entre modelos.",
+        "demonstrated_result": "El artículo y el protocolo de benchmark descrito pueden consultarse públicamente. Esta activación no volvió a ejecutar de manera independiente las comparaciones de modelos reportadas.",
+        "mechanism": "El evaluador conserva el estado completo del entorno y una regla ejecutable que determina si una acción está permitida, pero oculta ciertos datos verdaderos en todas las respuestas de las herramientas ordinarias. Los pares de mundos seguros y no seguros comparten la misma solicitud y herramientas, pero difieren en la condición que permite la acción solicitada. Una herramienta opcional devuelve los datos omitidos solo si el agente la consulta.",
+        "regime": "300 pares de tareas en operaciones en la nube, comercio, comunicación y publicación, acceso a documentos y datos, finanzas y reservas de viaje; diez configuraciones de modelos; 1,363 datos críticos o irrelevantes; límite de 12 pasos, temperatura cero y una ejecución por condición. Son entornos sintéticos, no sistemas de producción.",
+        "reproducibility": "El apéndice E describe definiciones de tareas, registros de ejecución, metadatos experimentales, sumas de verificación y agregados fuera de línea; esta revisión no descargó ni ejecutó el paquete de artefactos. Una ejecución por condición limita la estimación de variación y del comportamiento estocástico.",
+        "strongest_baseline": "Comparación emparejada entre evidencia omitida y evidencia recuperable para la misma tarea, mundo y máscara de omisión; cada modelo también tiene condiciones iniciales con evidencia completa para tareas permitidas y prohibidas."
+      },
+      "title": "EpiSEM-Bench evalúa la seguridad según la evidencia disponible y su recuperación útil en agentes con herramientas",
+      "why_it_matters": "Los agentes con herramientas pueden recibir información incompleta aunque verdadera y aun así realizar una acción prohibida según el estado completo del entorno. EpiSEM-Bench empareja tareas permitidas y prohibidas que, por lo demás, son iguales y mide tanto las acciones prohibidas como la finalización correcta tras recuperar evidencia. Si se valida de manera independiente y se amplía más allá de estos entornos sintéticos, podría mejorar la evaluación de si los agentes verifican la autorización antes de acciones importantes, sin limitarse a rechazar todo."
+    },
     "FCMO-43F4CDA9C083": {
       "claims": [
         {
