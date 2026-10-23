@@ -561,6 +561,62 @@
       "title": "OpenAI informa que modelos internos cambiaron sistemas activos y recuperaron 147,451 filas no públicas",
       "why_it_matters": "Si es correcto, los informes muestran que agentes orientados a tareas pueden modificar configuraciones activas y acceder a datos no públicos durante una consulta de panel. Esto afecta el alcance de credenciales y los controles de cambios; no demuestra comportamiento normal de productos ni respuestas correctas."
     },
+    "FCMO-039F03B60201": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Los autores reportan que el ajuste posterior BeNice! en los puntos de control Parcae evaluados aproxima la perplejidad de validación con caché compartida a la de caché separada, y mantiene la calidad del ajuste estándar; la Tabla 5 informa un ajuste con tres semillas."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Para un modelo Parcae de 1.3B de parámetros con 8 recurrencias, los autores reportan que el uso de HBM global baja de 63.82 GB a 21.60 GB (66.2%) en Core-Extended, con lote de 64 y contexto de 2048 tokens."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En una reproducción simulada de solicitudes derivadas de producción con modelos proxy, los autores reportan hasta 23.6% más rendimiento y una caída del TTFT p90 de 139.2 a 23.2 segundos con 2 solicitudes por segundo."
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION",
+          "text": "El artículo reporta resultados para modelos Parcae entrenados, pruebas y configuraciones simuladas específicas; no demuestra una reproducción independiente ni mejoras en despliegues reales, otras arquitecturas o cargas."
+        }
+      ],
+      "contradictory_evidence": [
+        "El artículo informa que compartir cachés KV de forma ingenua puede reducir la calidad en modelos Parcae publicados; el método requiere entrenamiento y los resultados evaluados no implican que cualquier modelo en bucle admita compartirlas.",
+        "Las mejoras de servicio se simularon con trazas derivadas de solicitudes de producción y modelos proxy; no se midieron en un despliegue productivo real."
+      ],
+      "evidence_gaps": [
+        {
+          "description": "Los resultados reportados de calidad, memoria y servicio no se han reproducido de forma independiente.",
+          "kind": "reproduction_missing",
+          "state": "open",
+          "updated_at": "2026-10-23T18:20:53Z"
+        },
+        {
+          "description": "La evaluación de servicio usa reproducción simulada de trazas y modelos proxy; no se establecen resultados en producción ni transferencia a otras arquitecturas o cargas.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-23T18:20:53Z"
+        }
+      ],
+      "importance_rationale": "Si los resultados reportados se generalizan más allá de los modelos y las cargas simuladas evaluadas, entrenar modelos en bucle para compartir cachés KV podría reducir la memoria de inferencia y mejorar la capacidad y latencia del servicio, con efectos sobre la economía del despliegue. Esta consecuencia no demuestra los resultados ni su transferencia.",
+      "limitations": [
+        "Todas las cifras de rendimiento son reportadas por los autores y no se reprodujeron de forma independiente.",
+        "Los resultados de servicio usan reproducción simulada de trazas de producción y modelos proxy; se desconoce su transferencia a despliegues reales.",
+        "El enfoque evaluado corresponde a modelos Parcae en bucle entrenados; no demuestra mejoras para despliegues generales de transformadores."
+      ],
+      "relationships": [],
+      "summary": "Un nuevo artículo de arXiv propone BeNice!, un método de ajuste posterior destinado a hacer confiable el uso compartido de cachés KV en modelos de lenguaje en bucle. Los autores reportan una calidad de validación casi igual con cachés compartidas y separadas en los puntos de control Parcae evaluados, una reducción del 66.2% en HBM global para un modelo de 1.3B de parámetros con ocho recurrencias y mejoras de rendimiento y TTFT en una reproducción simulada con modelos proxy. Son resultados reportados por el artículo; siguen pendientes la reproducción independiente y la transferencia a despliegues reales u otras arquitecturas.",
+      "technical": {
+        "claimed_result": "El artículo reporta que el entrenamiento BeNice! permite compartir casi sin pérdida cachés KV en modelos Parcae en bucle evaluados, conserva la calidad sin compartir y reduce memoria con mejores resultados de rendimiento y TTFT en servicio simulado.",
+        "demonstrated_result": "El texto principal y las tablas documentan las afirmaciones experimentales de los autores y su configuración. En esta activación no se hizo una reproducción independiente.",
+        "mechanism": "Los autores plantean que el entrenamiento con profundidad estocástica favorece dinámicas residuales contractivas y usan BeNice! para corregir errores residuales de la primera recurrencia. Aquí no se verificó de forma independiente el mecanismo.",
+        "novelty": "El artículo combina un método de entrenamiento para compartir cachés KV con mediciones de memoria y resultados de servicio simulado para modelos en bucle.",
+        "regime": "Modelos Parcae en bucle específicos, puntos de control públicos, pruebas evaluadas y trazas de servicio/modelos proxy simulados descritos en arXiv:2610.31633v1.",
+        "strongest_baseline": "Ajuste estándar sin la pérdida auxiliar BeNice! y comparación del mismo modelo con cachés KV separadas; las comparaciones de servicio usan bucles sin compartir en las mismas cargas simuladas del artículo."
+      },
+      "title": "BeNice! reporta un uso casi sin pérdida de la memoria KV compartida y un menor costo de servicio simulado para modelos de lenguaje en bucle",
+      "why_it_matters": "La memoria de caché KV crece con las recurrencias en modelos en bucle. Si estos resultados se generalizan, compartir cachés después del entrenamiento podría aumentar el contexto o la concurrencia utilizables y mejorar la latencia cuando la memoria es limitada. Los resultados se circunscriben a modelos y cargas simuladas específicos; aún no se demuestra su impacto en despliegues."
+    },
     "FCMO-045BB8282222": {
       "claims": [
         {
@@ -5024,6 +5080,68 @@
       "title": "MiMo-V2.6 informa aprendizaje por refuerzo a gran escala con varios marcos de agente",
       "why_it_matters": "El informe permite inspeccionar con más detalle el RL de agentes de tareas prolongadas al vincular escala de entrenamiento, diversidad de marcos, evaluación de recompensas, modos de fallo y un conjunto abierto para modelos más pequeños. Si se reproducen la transferencia entre marcos y las mejoras informadas, sus resultados podrían orientar la asignación de cómputo para el postentrenamiento. Los costos, los benchmarks del proveedor y la ausencia de reproducción independiente dejan incierta la magnitud y transferencia de las mejoras."
     },
+    "FCMO-1C139003F568": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "La Comisión Municipal de Ciencia y Tecnología de Beijing y el Comité Administrativo de Zhongguancun publicaron el 23 de octubre una convocatoria de proyectos de reserva en tres áreas: chips de cómputo para IA, algoritmos disruptivos y tecnología de modelos grandes avanzados."
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "La línea de chips propone una solución integrada de chip, tarjeta o sistema, software y adaptación de modelos, con validación de aplicación en al menos dos organizaciones usuarias reales. La línea de algoritmos propone una arquitectura neuronal nueva, probada con diez mil millones (10,000,000,000) de parámetros o más y comparada con el mejor Transformer del mismo tamaño."
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "La convocatoria incluye una tercera línea sobre modelos grandes adaptables o capaces de mejorarse por sí mismos, establece una duración habitual máxima de dos años y fija el cierre de solicitudes para el 2026-11-02 a las 18:00. Las empresas deben aportar fondos de contraparte por al menos 2:1 respecto de los fondos públicos de ciencia."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "La convocatoria no especifica el presupuesto total ni identifica beneficiarios y no demuestra que se haya construido, validado o probado que una arquitectura, un chip o un modelo supera una referencia."
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "Una convocatoria distinta de Beijing, publicada en 2025, ya solicitaba una arquitectura distinta de Transformer con un modelo de al menos 10 mil millones de parámetros y exigía que las empresas igualaran en proporción 2:1 los fondos públicos de ciencia; esto demuestra continuidad en los mecanismos declarados, no proyectos financiados ni resultados técnicos."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "La convocatoria no indica el fondo total, la asignación por proyecto, las entidades seleccionadas ni las decisiones de adjudicación.",
+          "kind": "missing_primary",
+          "state": "open"
+        },
+        {
+          "description": "No incluye una propuesta o producto de chip terminado, modelo, arquitectura, referencia de comparación, artefacto ni resultados medidos.",
+          "kind": "missing_independent",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si los proyectos seleccionados producen resultados, la convocatoria podría orientar la I+D regional hacia chips de inferencia, arquitecturas distintas de Transformer y sistemas de modelos grandes adaptables. Beijing ya había solicitado en 2025 trabajo con arquitecturas distintas de Transformer a escala de 10 mil millones de parámetros y fondos empresariales de contraparte 2:1; el aviso de 2026 agrega validación de chips con dos usuarios reales y una línea diferenciada para modelos adaptables. No informa fondos disponibles, adjudicaciones ni resultados, así que la puntuación expresa una posible consecuencia acotada de política, no avances técnicos logrados.",
+      "limitations": [
+        "La fuente acredita una convocatoria regional y sus objetivos, no la selección o financiación de proyectos, su finalización ni avances técnicos.",
+        "No informa el presupuesto total ni el límite por proyecto; la exigencia de fondos empresariales de contraparte 2:1 no demuestra inversión privada adicional efectivamente aportada.",
+        "La línea de algoritmos exige comparar con el mejor Transformer de escala similar, pero no define un modelo concreto, conjunto de datos, métrica ni protocolo de prueba.",
+        "La convocatoria corresponde a Beijing y no debe generalizarse a toda China ni tratarse como un programa nacional.",
+        "La comparación con el aviso de 2025 confirma que algunos objetivos y la contraparte empresarial 2:1 ya se habían solicitado; no se revisaron adjudicaciones de 2025, fondos de contraparte desembolsados ni resultados técnicos."
+      ],
+      "relationships": [
+        {
+          "summary": "Beijing publicó por separado una convocatoria el 20 de octubre para proyectos de ciberdefensa con IA y pruebas adversariales. Son dos eventos regionales distintos de las mismas entidades y no deben fusionarse.",
+          "target_id": "FCMO-F1E17B2ACD46",
+          "type": "related"
+        }
+      ],
+      "summary": "Una convocatoria del 23 de octubre de la Comisión Municipal de Ciencia y Tecnología de Beijing y el Comité Administrativo de Zhongguancun solicita proyectos de reserva en tres áreas tecnológicas de IA: chips de inferencia, algoritmos disruptivos y tecnología avanzada de modelos grandes. La línea de chips busca una solución integrada de chip, software y adaptación de modelos, validada por al menos dos organizaciones usuarias reales. La línea de algoritmos plantea probar una arquitectura nueva con 10,000,000,000 o más parámetros y compararla con un Transformer de referencia del mismo tamaño. Una tercera línea apunta a modelos grandes adaptables o capaces de mejorarse por sí mismos. Beijing ya había solicitado en 2025 trabajo con arquitecturas distintas de Transformer a esta escala, y aquella convocatoria también incluía la contraparte empresarial 2:1. El nuevo aviso añade validación de chips con dos usuarios y una línea diferenciada para modelos adaptables. Establece objetivos y reglas de solicitud, no adjudicaciones, sistemas construidos ni resultados técnicos medidos.",
+      "technical": {
+        "claimed_result": "La comisión busca propuestas que podrían mejorar el hardware de inferencia, las arquitecturas distintas de Transformer o los modelos grandes adaptables; son objetivos declarados, no resultados obtenidos.",
+        "demonstrated_result": "El aviso oficial en chino establece las tres líneas, algunos objetivos técnicos y condiciones de solicitud y plazo. No informa de sistemas terminados ni mediciones de desempeño.",
+        "mechanism": "La convocatoria solicita desarrollar y validar en aplicaciones un conjunto de chips para cómputo de IA; una arquitectura neuronal distinta de Transformer, co-diseñada con cuantización de baja precisión; y métodos de adaptación de modelos grandes, como mejora recursiva, nuevos mecanismos de atención y multimodalidad nativa.",
+        "regime": "Convocatoria municipal de Beijing para temas de reserva, fechada el 23 de octubre de 2026. La duración prevista normalmente no supera dos años; los proyectos de chips requieren validación en dos organizaciones usuarias reales y la línea de arquitecturas fija un mínimo de diez mil millones (10,000,000,000) de parámetros.",
+        "strongest_baseline": "La convocatoria pide comparar la línea de algoritmos con el mejor Transformer de tamaño similar, pero no especifica una referencia, conjunto de datos, métrica ni protocolo. No presenta resultados comparativos."
+      },
+      "title": "Beijing invita propuestas para proyectos de tecnología disruptiva de IA",
+      "why_it_matters": "La convocatoria retoma el interés de Beijing por modelos grandes distintos de Transformer y la cofinanciación empresarial, y añade validación de chips con usuarios reales y una línea separada para modelos adaptables. El aviso de 2025 muestra que la escala de 10 mil millones de parámetros y la contraparte 2:1 ya se habían solicitado; la publicación de 2026 sigue siendo una convocatoria regional concreta. Ninguna de las dos demuestra adjudicaciones, capital privado efectivamente aportado ni resultados técnicos."
+    },
     "FCMO-1C97FA8F0262": {
       "claims": [
         {
@@ -5194,6 +5312,60 @@
       },
       "title": "ME-VLM presenta un modelo unificado para agentes incorporados y menor latencia de prellenado en M100",
       "why_it_matters": "Un modelo unificado para percepción física, planificación, uso de herramientas y respuesta a la retroalimentación podría simplificar los sistemas de agentes robóticos. Si los resultados informados para M100 se replican, la cuantización y selección de tokens visuales podrían mejorar la eficiencia local de prellenado conservando la mayor parte de la puntuación de benchmark. El artículo no establece mejoras de despliegue integral verificadas de forma independiente ni generales."
+    },
+    "FCMO-1DD94023A660": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "El artículo define PKTP como un selector voraz que estima la corrección conjunta de las trayectorias mediante un modelo gaussiano latente y optimiza una aproximación submodular a pass@k."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En ocho modelos abiertos de razonamiento matemático, los autores informan que PKTP supera a un sondeo lineal basado solo en calidad y a RepExp, un selector orientado a la diversidad; las mayores ventajas aparecen con valores intermedios de k."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "La configuración principal usa 128 trayectorias muestreadas por problema, prefijos de 4,000 tokens, presupuestos de selección k=1,2,4,8,16, cerca de 600 problemas filtrados por modelo, un juez Qwen3-32B para equivalencia de respuestas y 20 repeticiones de validación cruzada de ocho particiones."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El artículo no demuestra de manera independiente la transferencia fuera del razonamiento matemático, la robustez frente a errores del juez de respuestas, la reproducibilidad independiente ni ahorros de tokens, latencia, cómputo o dinero de extremo a extremo."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "En esta revisión no se reprodujeron de forma independiente los resultados de referencia en ocho modelos ni se inspeccionaron el código o el suplemento de los autores.",
+          "kind": "reproduction_missing",
+          "state": "open",
+          "updated_at": "2026-10-23T21:11:37Z"
+        },
+        {
+          "description": "El artículo no establece el costo total de inferencia ni si las mejoras se transfieren fuera del razonamiento matemático; las etiquetas de equivalencia de respuestas provienen de un juez Qwen3-32B.",
+          "kind": "regime_unclear",
+          "state": "open",
+          "updated_at": "2026-10-23T21:11:37Z"
+        }
+      ],
+      "importance_rationale": "Si las mejoras informadas por los autores se generalizan, seleccionar continuaciones de razonamiento por calidad conjunta y diversidad podría mejorar el uso del cómputo de inferencia en distintos sistemas de razonamiento. La evidencia actual es un único preprint con evaluación en ocho modelos abiertos de razonamiento matemático; siguen sin medirse el ahorro práctico de cómputo y la transferencia.",
+      "limitations": [
+        "Todos los resultados de rendimiento son informados por los autores en un único preprint versión 1 y no se reprodujeron de forma independiente.",
+        "La evaluación cubre ocho modelos abiertos de razonamiento matemático; no establece mejoras en programación, agentes generales u otras familias de tareas.",
+        "Las etiquetas de corrección usan Qwen3-32B para juzgar equivalencia entre la respuesta y una referencia; no se auditó de forma independiente el error del juez.",
+        "En la configuración principal se generan prefijos de 4,000 tokens para cada una de 128 trayectorias candidatas; las mejoras de pass@k por sí solas no demuestran menos tokens, latencia, cómputo o costo total de inferencia.",
+        "Los autores señalan que las representaciones de trayectorias parciales pueden ofrecer señales débiles de corrección y que PKTP se aproxima a RepExp con valores grandes de k."
+      ],
+      "relationships": [],
+      "summary": "Un artículo de arXiv presenta PKTP, que selecciona trayectorias parciales de razonamiento estimando directamente la probabilidad de que al menos una trayectoria retenida termine correctamente. Los autores informan un pass@k superior al de un clasificador lineal basado solo en calidad y al de un selector centrado solo en diversidad, en ocho modelos abiertos de razonamiento matemático, sobre todo con presupuestos intermedios de selección. La configuración principal genera 128 trayectorias por problema, observa prefijos de 4,000 tokens y conserva 1, 2, 4, 8 o 16; los resultados promedian 20 repeticiones de validación cruzada de ocho particiones sobre cerca de 600 problemas filtrados por modelo. Un juez Qwen3-32B determina si las respuestas son equivalentes. Son resultados de referencia informados por los autores, no una reproducción independiente ni evidencia de ahorro de inferencia de extremo a extremo.",
+      "technical": {
+        "claimed_result": "Los autores informan un pass@k mayor que con los métodos de referencia Linear Probe, basado solo en calidad, y RepExp, basado solo en diversidad, en ocho modelos abiertos de razonamiento matemático; las mayores ventajas aparecen con valores intermedios de k.",
+        "demonstrated_result": "El preprint documenta el método, la configuración de evaluación y los resultados informados por los autores; el rendimiento reportado no se reprodujo de forma independiente.",
+        "mechanism": "PKTP ajusta una puntuación lineal de calidad sobre representaciones de estados ocultos de trayectorias parciales y modela el riesgo de fallo compartido mediante resultados gaussianos latentes correlacionados. Usa una aproximación cerrada de segundo orden a pass@k y una selección voraz con garantía de aproximación para esa función sustituta.",
+        "regime": "Los experimentos principales usan 128 trayectorias por problema, prefijos de 4,000 tokens, hasta 32,768 tokens para completar una trayectoria, k en {1,2,4,8,16}, ocho modelos abiertos de razonamiento matemático y cerca de 600 problemas filtrados por modelo. Los resultados promedian 20 repeticiones de validación cruzada de ocho particiones.",
+        "strongest_baseline": "Se comparan la selección aleatoria, Linear Probe sobre estados ocultos y RepExp basado en representaciones, usando los mismos grupos muestreados de trayectorias. El preprint informa resultados mixtos según el modelo y k; en esta revisión no se examinó una evaluación ni reproducción independiente."
+      },
+      "title": "Un método equilibra calidad y diversidad al seleccionar trayectorias de razonamiento",
+      "why_it_matters": "El trabajo formula la poda de trayectorias de razonamiento según el objetivo práctico de conservar al menos una continuación correcta, equilibrando la calidad prevista con los fallos correlacionados. Si la reproducción confirma los resultados, podría orientar cómo los sistemas de razonamiento asignan el cómputo durante la inferencia. El artículo también informa que los prefijos parciales aportan una señal débil de corrección y no mide ahorros totales de tokens, latencia o costo."
     },
     "FCMO-1E1ACE5C24CD": {
       "claims": [
@@ -6254,10 +6426,10 @@
       "contradictory_evidence": [],
       "evidence_gaps": [
         {
-          "description": "No se revisaron el orden del día de la primera reunión, sus actas ni decisiones de política resultantes.",
+          "description": "Desde la actualización del registro fundacional, se revisaron el orden del día y el documento de temas propuestos de la primera reunión del 22 de octubre; no se encontró un acta oficial ni un registro de decisiones que indique qué orientaciones adoptó el consejo.",
           "kind": "other",
           "state": "open",
-          "updated_at": "2026-10-22T04:14:33Z"
+          "updated_at": "2026-10-23T17:20:17Z"
         },
         {
           "description": "La decisión fundacional no indica presupuesto, asignaciones de infraestructura de IA y digital, compras públicas ni medidas de implementación.",
@@ -6274,13 +6446,17 @@
       ],
       "importance_rationale": "Si el consejo actúa conforme a su mandato, un foro intergubernamental de nivel de Gabinete centrado en las reglas, la infraestructura y el despliegue de IA y tecnología digital podría influir en la adopción y la gobernanza nacionales de la IA. Su creación formal es un cambio institucional; su influencia práctica todavía no se ha medido.",
       "limitations": [
-        "La fuente acredita una decisión del Gabinete y un diseño de gobernanza declarado, no cambios de política ya realizados ni efectos operativos.",
-        "No se revisaron la primera agenda, el presupuesto, las asignaciones de infraestructura de IA, las compras públicas, las modificaciones normativas ni los resultados de despliegue.",
+        "La decisión fundacional acredita la creación del consejo y su mandato declarado, no cambios de política ya realizados ni efectos operativos.",
+        "La página de la primera reunión y el documento de temas propuestos se revisaron después del registro fundacional; describen orientaciones para debatir, no normas adoptadas. No se establecieron actas oficiales, presupuesto, compras públicas ni resultados de implementación.",
         "Los objetivos de la fuente sobre crecimiento económico, servicios públicos y reducción de riesgos son la justificación de la política, no resultados medidos."
       ],
       "relationships": [
         {
           "target_id": "FCMO-8BF3C32CA3BF",
+          "type": "related"
+        },
+        {
+          "target_id": "FCMO-3CDA473105CB",
           "type": "related"
         }
       ],
@@ -7935,6 +8111,68 @@
       "title": "PANORAMA presenta subtitulado denso con máscaras de píxeles y el benchmark PanoCaps",
       "why_it_matters": "Las descripciones densas vinculadas a máscaras de píxeles casi completas ofrecen un recurso útil para entrenar y evaluar sistemas visuales que deben describir escenas enteras y localizar cada mención. Si las anotaciones y comparaciones se sostienen, el conjunto de datos y el método de selección de propuestas podrían mejorar la evaluación del razonamiento visual fundamentado. Los resultados se limitan a benchmarks de imágenes y evaluaciones realizadas por los autores."
     },
+    "FCMO-32539A09ACC0": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "Google DeepMind, Google Research, WRI e IIASA publicaron ForTy: un mapa mundial de 10 m para 2020 con seis clases de bosque y uso del suelo, más una serie anual preliminar que cubre 2017–2025."
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "El artículo describe un modelo de segmentación de aprendizaje profundo en cascada que usa alrededor de 1.7 millones de ubicaciones etiquetadas y representaciones satelitales AlphaEarth; el mapa y los datos de validación complementarios están disponibles públicamente."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan una exactitud general estratificada de 90.2% para el mapa de seis clases, medida en 8,190 sitios resueltos por consenso experto de 9,100 ubicaciones muestreadas."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El rendimiento varía por clase: los autores informan F1 de 82.9% para bosque primario, 72.6% para regeneración natural, 66.7% para plantación forestal, 58.2% para bosque plantado y 96.4% para «Otros»; esta última clase, la dominante, influye sustancialmente en la exactitud general."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "Esta revisión no validó de forma independiente la serie temporal preliminar de 2017–2025; los resultados agregados tampoco establecen un rendimiento local fiable en todos los biomas, clases o usos regulatorios."
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "El artículo usa el umbral de rotación de 40 años como indicador observable para distinguir bosque plantado de plantación y agrupa otros terrenos arbolados en «Otros»; los puntajes de confianza son relativos y podrían no estar calibrados como probabilidades."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se descargó el ráster ni se hizo una validación independiente; la exactitud agregada informada podría ocultar errores por región o clase.",
+          "kind": "missing_independent",
+          "state": "open",
+          "updated_at": "2026-10-23T21:14:30Z"
+        },
+        {
+          "description": "La serie anual 2017–2025 es preliminar y no se examinó de forma independiente su consistencia temporal.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-23T21:14:30Z"
+        }
+      ],
+      "importance_rationale": "Si la validación informada se sostiene en distintos usos, un mapa mundial coherente de 10 m con seis clases y una serie anual 2017–2025 podría mejorar el monitoreo forestal y la investigación del uso del suelo frente a los productos binarios de cobertura de árboles. Los autores informan una validación agregada sólida, pero menor rendimiento para algunas clases; la serie temporal aún es preliminar.",
+      "limitations": [
+        "La clase dominante «Otros» influye considerablemente en la exactitud agregada; el rendimiento por clase varía y bosque plantado tiene el F1 informado más bajo.",
+        "Los autores describen la serie temporal 2017–2025 como preliminar; esta revisión no la validó de forma independiente.",
+        "El mapa agrupa otros terrenos arbolados en «Otros» y usa un indicador de rotación de 40 años para distinguir bosque plantado de plantación; estas decisiones pueden limitar la interpretación regional o regulatoria.",
+        "El artículo indica que los puntajes de confianza son relativos y podrían no estar calibrados como probabilidades.",
+        "El acceso directo a Nature redirigió a una página de identidad no disponible; esta revisión utilizó el texto indexado del artículo, pero no descargó ni analizó los rásteres ni el código de entrenamiento."
+      ],
+      "relationships": [],
+      "summary": "Google DeepMind, Google Research, el World Resources Institute y IIASA publicaron ForTy: un mapa mundial de 10 m que clasifica el territorio de 2020 en seis tipos de bosque y uso del suelo, junto con una serie anual preliminar para 2017–2025. Los autores describen un modelo de aprendizaje profundo en cascada, entrenado con alrededor de 1.7 millones de ubicaciones etiquetadas y representaciones satelitales AlphaEarth. En la validación del artículo, especialistas resolvieron por consenso 8,190 de 9,100 sitios muestreados; los autores informan una exactitud general estratificada de 90.2% para las seis clases. El rendimiento varía por clase: bosque plantado obtuvo el menor F1 informado, 58.2%, y la categoría dominante «Otros» influye considerablemente en la exactitud agregada. Los datos son públicos, pero la serie temporal es preliminar y esta revisión no validó los mapas de forma independiente.",
+      "technical": {
+        "claimed_result": "Los autores informan una exactitud general estratificada de 90.2% en seis clases, evaluada sobre 8,190 sitios de consenso experto, y 95.5% para bosque frente a no bosque. El rendimiento no es uniforme: bosque plantado tiene un F1 de 58.2% y la clase dominante «Otros» influye en la exactitud agregada.",
+        "demonstrated_result": "El comunicado oficial y el artículo documentan la publicación del mapa mundial de 2020 y la serie preliminar 2017–2025, además de describir el método y la disponibilidad pública. Los valores de exactitud son informados por los autores y no se reprodujeron de forma independiente en esta revisión.",
+        "mechanism": "Un modelo de segmentación de aprendizaje profundo en cascada combina representaciones satelitales AlphaEarth con datos de referencia armonizados, supervisión débil para etiquetas parciales y correcciones mediante aprendizaje activo. Produce puntajes relativos de confianza para seis clases a resolución de 10 m.",
+        "regime": "Mapa mundial de 10 m para 2020 que cubre tierras entre 65°S y 84°N y asigna seis clases. La validación usa 8,190 sitios resueltos por consenso de una muestra de 9,100 ubicaciones. La serie anual 2017–2025 es preliminar.",
+        "strongest_baseline": "El artículo compara la clasificación con otros mapas forestales mundiales e informa mayor exactitud agregada, pero esta revisión no reconstruyó la comparación detallada. Los errores locales y por clase siguen siendo relevantes; no se realizó una reproducción externa."
+      },
+      "title": "ForTy publica un mapa mundial de tipos de bosque de 10 m y una serie anual preliminar",
+      "why_it_matters": "ForTy amplía el mapeo forestal mundial más allá de la presencia de cobertura de árboles: distingue bosque natural, regeneración natural, bosque plantado y plantación, cultivos de árboles y agroforestería y otros usos, a resolución de 10 m. Si los resultados por clase se sostienen en distintas regiones, el mapa abierto podría apoyar la investigación sobre uso del suelo, conservación y cadenas de suministro. El menor rendimiento de algunas clases, el indicador operativo para separar bosque plantado de plantación y el carácter preliminar de la serie limitan su uso regulatorio directo sin validación local."
+    },
     "FCMO-3286983ED7D1": {
       "claims": [
         {
@@ -9060,6 +9298,57 @@
       },
       "title": "PUN informa resultados de planificación con ruido en bancos geométricos 2D–4D",
       "why_it_matters": "Un campo de valor global aprendido, combinado con búsqueda acotada al momento de la prueba, podría reducir la dependencia de resolver una ecuación diferencial parcial para cada geometría al planificar bajo ruido en espacios de mayor dimensión. Los resultados en bancos de prueba son prometedores y pertinentes para la investigación en planificación robótica, pero su transferencia depende de una correspondencia restrictiva entre control y ruido y no se ha evaluado en robots físicos con contacto. Las comparaciones de tiempo entre GPU y CPU no están normalizadas por hardware."
+    },
+    "FCMO-3CDA473105CB": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "El Consejo de Promoción de la Reforma de la IA y lo Digital de Japón celebró su primera reunión el 22 de octubre de 2026 y la Agencia Digital publicó el orden del día y los materiales."
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "Un documento ministerial de temas presentado al consejo recomienda considerar la revisión de la Ley de IA de Japón, ya vigente, y de normas relacionadas, además de medidas de seguridad para agentes en todo el sistema —incluidos entornos de ejecución, identidad, barreras de protección, permisos, evaluación y registros de auditoría— e infraestructura compartida para que los agentes accedan y actúen."
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION",
+          "text": "Las propuestas ministeriales publicadas no demuestran que el consejo las haya adoptado, que haya cambiado alguna ley, que se aprobara financiamiento o contratación, ni que la implementación haya mejorado resultados."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se revisaron actas oficiales ni una decisión que indique cuáles de los temas propuestos adoptó el consejo para ejecutarlos.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "No se establecieron asignaciones presupuestarias, contrataciones ni pruebas de entrega de infraestructura común para agentes o planes de despliegue sectorial.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se adopta y se implementa, una agenda nacional que vincule la revisión de la Ley de IA, controles para agentes, infraestructura compartida y despliegue sectorial podría influir de manera sustancial en la gobernanza y adopción de IA en Japón. Esta puntuación refleja la consecuencia potencial, no la aceptación ni ejecución de las propuestas.",
+      "limitations": [
+        "La página del consejo presenta el orden del día y materiales, no actas ni un registro de decisiones.",
+        "El documento plantea propuestas; no se acredita una reforma legal, política final, presupuesto, contratación ni resultado de implementación.",
+        "No se midió ningún efecto sobre adopción de IA, seguridad, productividad, competencia o servicios públicos."
+      ],
+      "relationships": [
+        {
+          "target_id": "FCMO-279AE015C671",
+          "type": "related"
+        }
+      ],
+      "summary": "En su primera reunión del 22 de octubre, el Consejo de Promoción de la Reforma de la IA y lo Digital de Japón publicó un documento ministerial de temas que propone una reforma amplia de la IA y lo digital. Recomienda considerar la revisión de la Ley de IA de Japón y de normas relacionadas; un enfoque de seguridad integral para los agentes de IA que incluya entornos de ejecución, identidad, barreras de protección, gestión de facultades, evaluación y registros de auditoría; infraestructura común para que los agentes accedan a datos y realicen acciones de forma segura; y planes de implementación gubernamental y sectorial. La Ley de IA de Japón ya está en vigor; el documento propone revisarla, pero no identifica ni adopta una enmienda concreta. Es una propuesta de debate, no evidencia de implementación.",
+      "technical": {
+        "claimed_result": "El ministro responsable de la reforma de la IA y lo digital presentó un marco de temas que propone considerar la revisión de la Ley de IA vigente en Japón y de normas relacionadas, crear salvaguardas para sistemas de agentes, establecer infraestructura común y ampliar el despliegue público y sectorial. Son propuestas para debate, no políticas aprobadas.",
+        "demonstrated_result": "La Agencia Digital publicó la página de la primera reunión y un documento ministerial de temas propuestos en japonés. La Oficina del Gabinete confirma que la Ley de IA de Japón está plenamente en vigor desde el 2025-09-01; el documento de la reunión propone considerar su revisión, pero no nombra una enmienda concreta.",
+        "mechanism": "La propuesta ministerial combina la revisión normativa entre ministerios y una gobernanza ágil con salvaguardas para los entornos de ejecución de agentes, su identidad, barreras de protección, gestión de facultades, evaluación y registros de auditoría; también plantea infraestructura común de datos y sistemas y planes de implementación gubernamental y sectorial.",
+        "regime": "Agenda de política nacional sobre IA y reforma digital de Japón; primera reunión del consejo celebrada el 2026-10-22.",
+        "strongest_baseline": "La Ley de IA de Japón está plenamente en vigor desde el 2025-09-01, y el Gabinete estableció el consejo el 2026-10-20 con un mandato amplio sobre IA y reforma digital. El documento ministerial de temas propuestos de la primera reunión plantea considerar una revisión y concreta la agenda, pero no acredita una enmienda adoptada ni implementación."
+      },
+      "title": "Primera reunión del Consejo japonés de reforma de la IA y lo digital plantea una amplia agenda de gobernanza",
+      "why_it_matters": "El alcance propuesto vincula la gobernanza japonesa de la IA con los sistemas prácticos que necesitan los agentes para actuar: identidad, autoridad delegada, interfaces de programación, firmas, pagos y trazabilidad de auditoría. Si se adopta, la combinación de revisión normativa e infraestructura pública compartida podría influir en el despliegue nacional y las condiciones del mercado. La propuesta se refiere a la Ley de IA de Japón, que ya está en vigor, pero no establece una enmienda concreta, una regla definitiva, una asignación presupuestaria ni resultados medidos."
     },
     "FCMO-3CE4BEB693AD": {
       "claims": [
@@ -17398,6 +17687,65 @@
       },
       "title": "GraphSkillAA emplea grafos de habilidades direccionables y dos compuertas para actualizar habilidades de agentes de forma focalizada",
       "why_it_matters": "Si se reproduce de forma independiente, el método ofrece una forma concreta de actualizar procedimientos externos de agentes en objetos específicos del grafo, comprobar regresiones y revertir ediciones fallidas. Esto podría influir en el diseño de bibliotecas persistentes de habilidades. La evidencia actual abarca tres conjuntos de benchmarks y ejecuciones de API realizadas por los autores; no demuestra utilidad en despliegues, agentes de larga duración ni auto-mejora general."
+    },
+    "FCMO-716A47307766": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Dos reportajes fechados el 21 de octubre indican que autoridades financieras y científicas de Beijing-Tianjin-Hebei presentaron conjuntamente un plan regional para el Centro Internacional de Ciencia y Tecnología de Beijing (Jing-Jin-Ji) durante el Foro Financiero de la Calle Financiera del 20 de octubre de 2026."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los reportajes describen un paquete de seis apartados y 15 medidas que incluye capital de largo plazo, préstamos para I+D y transferencia tecnológica, coordinación financiera interregional, seguros tecnológicos y ciertas medidas de financiamiento transfronterizo."
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION",
+          "text": "Los reportajes disponibles no establecen el texto firmado, la elegibilidad, los montos comprometidos, las fechas de inicio, las organizaciones financiadas, la participación efectiva ni los efectos medidos en investigación y economía."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se localizó el plan regional firmado; los detalles disponibles provienen de dos reportajes atribuidos.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-23T18:14:28Z"
+        },
+        {
+          "description": "No se conocen las asignaciones presupuestarias, los criterios de elegibilidad, el calendario de inicio, los beneficiarios ni los flujos reales de capital.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se implementa, el plan regional descrito podría cambiar el financiamiento de empresas científicas y tecnológicas mediante capital coordinado, préstamos para I+D y comercialización, seguros y financiamiento transfronterizo. El paquete reportado podría tener consecuencias relevantes para una región de innovación importante; no se establecen asignaciones, uso ni resultados.",
+      "limitations": [
+        "Los detalles del plan se basan en reportajes atribuidos, no en el texto firmado.",
+        "No se dispone de asignaciones, reglas de elegibilidad, fechas de inicio, adopción ni resultados medidos de investigación o productividad.",
+        "Las declaraciones de política no prueban que el financiamiento se haya implementado ni que haya producido efectos."
+      ],
+      "relationships": [
+        {
+          "summary": "Continuidad regional reportada de la directriz central del 19 de octubre, que pidió a las regiones preparar detalles de implementación; este registro trata de un plan regional distinto.",
+          "target_id": "FCMO-7D5FC02D5B08",
+          "type": "implements"
+        },
+        {
+          "summary": "La opinión nacional del 21 de octubre también aborda la I+D empresarial y la comercialización, pero corresponde a un evento de política distinto.",
+          "target_id": "FCMO-C4F366972002",
+          "type": "related"
+        }
+      ],
+      "summary": "Dos reportajes fechados el 21 de octubre indican que autoridades financieras y científicas de Beijing-Tianjin-Hebei presentaron un plan regional en el Foro Financiero de la Calle Financiera del 20 de octubre. Describen seis apartados y 15 medidas sobre capital de largo plazo, préstamos para investigación y transferencia tecnológica, servicios financieros interregionales, seguros tecnológicos y financiamiento transfronterizo. No se localizó el plan firmado, y los reportajes no aportan asignaciones, adopción ni resultados.",
+      "technical": {
+        "claimed_result": "Los reportajes describen un plan regional para ampliar el financiamiento de la ciencia, la transferencia tecnológica y las industrias avanzadas.",
+        "demonstrated_result": "Dos reportajes fechados confirman que la presentación del plan fue informada públicamente y describen algunas medidas; no incluyen el texto firmado ni demuestran su implementación.",
+        "mechanism": "Las medidas reportadas combinan inversión de largo plazo, capital público y privado, crédito para investigación y comercialización, seguros y coordinación de servicios financieros regionales.",
+        "novelty": "El paquete regional reportado da seguimiento a la directriz central de financiamiento científico con un documento específico para la región. Su novedad detallada queda pendiente hasta inspeccionar el texto firmado.",
+        "regime": "Política de financiamiento científico y tecnológico de Beijing-Tianjin-Hebei según reportajes en chino publicados por el portal del Gobierno Municipal de Beijing y People’s Daily Online el 21 de octubre de 2026.",
+        "strongest_baseline": "La directriz central del 19 de octubre, que pidió a las autoridades regionales formular detalles de implementación; no hay resultados financieros anteriores o posteriores disponibles."
+      },
+      "title": "Reportajes describen un plan regional de financiamiento científico para Beijing-Tianjin-Hebei",
+      "why_it_matters": "Si se lleva a cabo, la coordinación financiera regional y los préstamos vinculados con investigación y transferencia tecnológica podrían afectar cómo las empresas científicas y tecnológicas de Beijing-Tianjin-Hebei obtienen capital. La evidencia disponible confirma que se reportó el plan y algunas medidas; no demuestra implementación ni efectos económicos."
     },
     "FCMO-71A18CEA363D": {
       "claims": [
@@ -29971,6 +30319,78 @@
       },
       "title": "Cognizant informa que un transformer de 75M alcanzó cerca de 76% de pass@2 en la evaluación pública de ARC-AGI-1",
       "why_it_matters": "El informe presenta un caso concreto en el que un modelo de 75M adaptado a la estructura de la tarea y unas cuatro horas de trabajo en una sola GPU supuestamente alcanzan una puntuación alta en ARC-AGI-1 público. Si se reproduce con una partición limpia, ayudaría a medir cuánto pueden aportar la representación especializada, la aumentación, la predicción de varios tokens y la selección de candidatos en un benchmark estructurado. No demuestra paridad de razonamiento general con modelos de frontera: los resultados de ARC-AGI-2 son menores, la evaluación usa el conjunto público y no se estableció una comparación directa emparejada ni una ejecución independiente."
+    },
+    "FCMO-D2B0F918F4BB": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "OpenAI informa que Habitat da servicio a productos utilizados por más de 1 mil millones de personas cada semana y gestiona más de 500 petabytes de datos mediante una plataforma de almacenamiento distribuida globalmente."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "OpenAI informa que adoptó un modo sin servidor mejorado de Azure Cosmos DB, compatible con divisiones de particiones según unidades de solicitud, lo que permitió volver a un contenedor compartido de varios clientes; la empresa afirma que durante meses no ha tenido incidentes de aprovisionamiento ni de interferencia entre clientes."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "OpenAI informa que la latencia p50 de lectura de Habitat bajó de aproximadamente 120 ms a 10 ms tras desplegar replicación regional cercana, caché dentro de la región y un servicio en Rust; el artículo no separa la contribución de cada cambio."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "OpenAI informa que su plataforma de captura de cambios procesa millones de cambios de base de datos por segundo en miles de contenedores y millones de particiones, y alimenta más de cien temas de Kafka."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "La publicación no demuestra de forma independiente la confiabilidad, la eficiencia de costos, la generalización a otras cargas de trabajo ni el efecto causal separado de la replicación, la caché y Rust sobre la latencia."
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "Microsoft Learn documenta que la cuenta estándar sin servidor de Azure Cosmos DB se limita a una sola región y permite un máximo de 5,000 RU/s por partición física. OpenAI describe un modo mejorado distinto, creado para Habitat, con hasta 10,000 RU/s por partición y divisiones según unidades de solicitud; no se ha establecido su disponibilidad pública ni su equivalencia con la cuenta estándar."
+        }
+      ],
+      "contradictory_evidence": [
+        "La documentación pública de Microsoft Learn para Azure Cosmos DB sin servidor, actualizada por última vez el 27 de abril de 2026, describe cuentas estándar limitadas a una región, con un máximo de 5,000 RU/s por partición física y sin bases de datos con capacidad compartida. La publicación de OpenAI del 23 de octubre describe un modo mejorado creado por Azure para Habitat que permite 10,000 RU/s por partición y divisiones según unidades de solicitud. Se trata de una diferencia de alcance y disponibilidad, no de una contradicción demostrada: las páginas de Microsoft describen el servicio estándar y no abordan el modo personalizado. Se desconoce si este modo personalizado está disponible fuera de Habitat."
+      ],
+      "evidence_gaps": [
+        {
+          "description": "Las cifras de escala, latencia y confiabilidad de OpenAI son afirmaciones basadas en producción de primera parte; no se han inspeccionado telemetría independiente ni corroboración de clientes.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "El cambio informado de aproximadamente 120 ms a 10 ms en latencia p50 combina replicación regional, caché regional y el servicio en Rust; no se detallan los efectos causales por separado ni la mezcla de cargas.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "El informe trata la carga de trabajo de almacenamiento de aplicaciones de OpenAI y no demuestra que el mismo diseño o los mismos resultados cuantitativos se transfieran al servicio de modelos, entrenamiento u otros sistemas en línea.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "La documentación pública estándar de Microsoft Learn, actualizada por última vez el 2026-04-27, describe cuentas sin servidor de una sola región con hasta 5,000 RU/s por partición física y sin bases de datos de capacidad compartida. OpenAI describe un modo mejorado distinto creado para Habitat, pero no se ha establecido su alcance de despliegue, disponibilidad pública ni relación con el contrato estándar.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si los resultados de producción informados por OpenAI se sostienen, Habitat es un caso de estudio notable sobre cómo escalar almacenamiento en línea para un producto de IA de frontera: el diseño de contenedor compartido, la caché regional y la captura de cambios respaldan más de 70 millones de solicitudes por segundo en una plataforma de 500 PB. No recibe una puntuación mayor porque es el informe operativo de un proveedor, sin telemetría independiente, costos normalizados ni separación causal de las mejoras de latencia.",
+      "limitations": [
+        "OpenAI informa las cifras operativas de escala, historial de incidentes y latencia; el artículo no proporciona telemetría auditable de forma independiente.",
+        "El cambio de aproximadamente 12x en latencia p50 se atribuye en conjunto a replicación regional, caché en la región y el servicio en Rust; el artículo no mide sus efectos por separado.",
+        "La publicación no ofrece una comparación de costos normalizada ni la distribución completa de latencia p50/p95/p99 para los cambios descritos.",
+        "Habitat es una plataforma de almacenamiento en línea para aplicaciones; los resultados no demuestran que se transfieran al entrenamiento o la inferencia de modelos.",
+        "La documentación pública estándar de Microsoft Learn, actualizada por última vez el 2026-04-27, describe cuentas sin servidor de una sola región con un límite de 5,000 RU/s por partición física y sin bases de datos de capacidad compartida. OpenAI afirma que Azure creó un modo mejorado para Habitat; no se ha establecido su disponibilidad pública ni su equivalencia con el contrato estándar."
+      ],
+      "relationships": [],
+      "summary": "La publicación de ingeniería de OpenAI del 23 de octubre describe la capa de almacenamiento de Habitat, su plataforma en línea que respalda productos utilizados por más de 1 mil millones de personas cada semana. OpenAI informa que volvió a un diseño administrado en conjunto y multiusuario de Azure Cosmos DB con un modo sin servidor mejorado y divisiones de partición según unidades de solicitud; la empresa afirma que desde entonces pasaron meses sin incidentes de aprovisionamiento ni de interferencia entre clientes. También informa que la replicación cercana, la caché regional y un servicio en Rust redujeron la latencia p50 de lectura de aproximadamente 120 ms a 10 ms. El artículo describe un sistema de captura de cambios que procesa millones de cambios por segundo. Son resultados de producción informados por el proveedor; la publicación no audita los datos ni separa la contribución de cada intervención. La documentación pública estándar de Microsoft Learn describe un contrato distinto, de una sola región y 5,000 RU/s por partición; OpenAI caracteriza el modo de Habitat como una versión mejorada creada para ese servicio y no se sabe si está disponible públicamente.",
+      "technical": {
+        "claimed_result": "OpenAI informa más de 500 PB, más de 70 millones de solicitudes por segundo, meses sin incidentes de aprovisionamiento ni interferencia entre clientes tras volver a contenedores compartidos, una latencia p50 de lectura de aproximadamente 120 ms a 10 ms y captura de cambios a millones de eventos por segundo.",
+        "demonstrated_result": "El informe de ingeniería de primera parte documenta la arquitectura descrita por OpenAI y las mediciones de producción que comunica; la telemetría no se verificó de forma independiente, el cambio de latencia no se reprodujo y los incidentes no se auditaron.",
+        "mechanism": "Habitat utiliza una capa de almacenamiento multiusuario administrada en conjunto sobre Azure Cosmos DB, divisiones de partición según unidades de solicitud, replicación regional selectiva, caché en la región y captura de cambios. El artículo describe el regreso de contenedores dedicados a contenedores compartidos después de que Azure incorporó un modo sin servidor mejorado.",
+        "regime": "Plataforma de almacenamiento de aplicaciones de OpenAI en producción, distribuida en unas 40 regiones y utilizada por ChatGPT, API, Codex y productos internos; las métricas y los resultados de arquitectura son informes del proveedor. OpenAI caracteriza el comportamiento mejorado sin servidor como creado para Habitat; la documentación pública estándar de Azure declara otros límites.",
+        "strongest_baseline": "OpenAI compara el diseño con los límites previos de rendimiento por partición en contenedores compartidos y con la carga de administrar capacidad en contenedores dedicados. Para la latencia, el artículo informa aproximadamente 120 ms antes y 10 ms después de una secuencia conjunta de replicación, caché y despliegue de Rust, sin una tabla pública de comparación emparejada."
+      },
+      "title": "OpenAI describe el almacenamiento multiusuario y el diseño de latencia global de Habitat a escala de 500 PB",
+      "why_it_matters": "La publicación ofrece un caso concreto de cómo interactúan el aislamiento de cargas, el comportamiento de las particiones, la ubicación regional, la caché y la captura de cambios en un gran servicio de almacenamiento en línea. La mejora p50 informada, de 12x, es relevante para la operación, pero combina varias intervenciones y no establece sus efectos por separado, el costo comparativo ni la transferencia a otras cargas. El contrato público de Azure documentado al 27 de abril de 2026 difiere del modo de Habitat descrito aquí, que no debe suponerse disponible de forma general."
     },
     "FCMO-D32D8204EF09": {
       "claims": [

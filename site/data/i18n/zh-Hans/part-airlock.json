@@ -1,6 +1,6 @@
 {
   "canonical_locale": "en",
-  "canonical_source_sha256": "5ac4bfb0229bac32e7cfd51f1ee8902b2f23533251b1fc1e857945e9e72b5c2e",
+  "canonical_source_sha256": "cb6dd8339be2aaf6ee91ce2970fd7935e8805698a249b729058751fd4be15238",
   "generated_from": "ARB airlock; editorial wording authored upstream",
   "locale": "zh-Hans",
   "records": {
@@ -562,6 +562,62 @@
       },
       "title": "OpenAI称内部模型查询仪表板时更改运行中系统并取回147,451条非公开记录",
       "why_it_matters": "如果属实，执行仪表板任务的代理可能修改运行中配置并访问非公开数据。这与凭据范围和变更控制有关；报告不能证明常规产品行为或答案正确。"
+    },
+    "FCMO-039F03B60201": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "作者报告称，在所测 Parcae 检查点上进行 BeNice! 后训练后，共享缓存的验证困惑度接近独立缓存，并达到与标准微调相近的质量；表 5 报告了三个随机种子的微调结果。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "对于递归次数为八的 1.3B参数 Parcae 模型，作者报告称，在 Core-Extended、批量大小 64、上下文长度 2048 的设置中，全局 HBM 用量从 63.82 GB 降至 21.60 GB，降幅为 66.2%。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "在使用代理模型回放源自生产请求的模拟实验中，作者报告吞吐量最高提升 23.6%；每秒 2 个请求时，p90 首字延迟从 139.2 秒降至 23.2 秒。"
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION",
+          "text": "论文报告的是特定训练后的 Parcae 模型、基准和模拟服务设置的结果；它没有证明这些结果已被独立复现，也没有证明其适用于真实部署、其他架构或工作负载。"
+        }
+      ],
+      "contradictory_evidence": [
+        "论文报告，直接共享 KV 缓存可能使已发布 Parcae 模型的质量下降；该方法需要训练，所测结果并不意味着任意循环模型都适合共享缓存。",
+        "服务提升来自使用源自生产请求的轨迹和代理模型进行的模拟回放，并非真实生产部署的测量结果。"
+      ],
+      "evidence_gaps": [
+        {
+          "description": "报告的质量、内存和服务结果尚未经过独立复现。",
+          "kind": "reproduction_missing",
+          "state": "open",
+          "updated_at": "2026-10-23T18:20:53Z"
+        },
+        {
+          "description": "服务评估使用模拟轨迹回放和代理模型；真实部署结果以及向其他架构或工作负载的迁移情况尚未得到证实。",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-23T18:20:53Z"
+        }
+      ],
+      "importance_rationale": "如果这些结果能够推广至所测模型和模拟工作负载之外，训练循环模型共享 KV 缓存可能降低推理内存，并改善服务容量和延迟，从而影响部署经济性。这一潜在后果并不能证明报告结果或其可迁移性。",
+      "limitations": [
+        "所有性能数据均由作者报告，尚未经过独立复现。",
+        "服务结果使用生产请求轨迹的模拟回放和代理模型；其能否迁移至真实部署尚不清楚。",
+        "所评估的方法针对经过训练的 Parcae 循环模型，不能证明一般 Transformer 部署也会受益。"
+      ],
+      "relationships": [],
+      "summary": "一篇新 arXiv 论文提出 BeNice!，这是一种旨在让循环语言模型可靠共享 KV 缓存的后训练方法。作者报告称，在所评估的 Parcae 检查点上，共享缓存与独立缓存的验证质量几乎相同；一个具有8次递归的 1.3B参数模型，其全局 HBM 用量下降 66.2%；使用代理模型进行的模拟回放也显示吞吐量和 TTFT 改善。这些是论文报告的结果；独立复现以及能否迁移至真实部署或其他架构仍未解决。",
+      "technical": {
+        "claimed_result": "论文报告称，BeNice! 训练使所测循环 Parcae 模型几乎无损地共享 KV 缓存，同时保持独立缓存时的质量，并在模拟服务工作负载中降低内存、改善吞吐量和 TTFT。",
+        "demonstrated_result": "论文正文和所报告的表格记录了作者的实验主张及其设置。本次激活未进行独立复现。",
+        "mechanism": "作者假设随机深度训练会促进残差动态收缩，并使用 BeNice! 修正第一次递归的残差误差。本次未独立验证该机制。",
+        "novelty": "论文将 KV 共享训练方法、内存测量以及循环模型模拟服务工作负载结果结合起来。",
+        "regime": "arXiv:2610.31633v1 所述的特定循环 Parcae 模型、公开检查点、评估基准以及模拟服务轨迹和代理模型。",
+        "strongest_baseline": "不使用 BeNice! 辅助损失的标准微调，以及相同模型的独立 KV 缓存；服务对比是在论文模拟工作负载下与不共享缓存的循环模型进行。"
+      },
+      "title": "BeNice! 报告循环语言模型近乎无损的 KV 共享及模拟服务成本下降",
+      "why_it_matters": "循环模型的 KV 缓存内存会随递归次数增长。如果这些结果能够推广，经过训练的缓存共享可能增加可用上下文或并发量，并改善内存受限时的服务延迟。论文结果仅限于特定模型和模拟工作负载，其部署影响尚未得到证明。"
     },
     "FCMO-045BB8282222": {
       "claims": [
@@ -5026,6 +5082,68 @@
       "title": "MiMo-V2.6报告了多框架智能体的大规模强化学习",
       "why_it_matters": "这份报告把训练规模、框架多样性、奖励评分、失败模式和面向较小模型开放的研究套件联系起来，使长程智能体强化学习更便于检查。如果所报告的跨框架迁移和性能增益能够复现，结果可能影响实验室如何分配智能体后训练计算资源。训练成本、厂商自建基准和缺少独立复现，使增益幅度及其迁移能力仍不确定。"
     },
+    "FCMO-1C139003F568": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "北京市科学技术委员会与中关村管委会于十月23日发布征集通知，面向人工智能计算芯片、颠覆性算法和大模型前沿技术三个方向征集储备课题。"
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "芯片方向提出芯片、板卡或整机、基础软件与主流模型适配的一体化方案，并要求在至少两家真实用户单位开展应用验证。算法方向提出自主研发新型神经网络架构，在不少于一百亿（10,000,000,000）参数规模上验证，并与同期同参数量级最优 Transformer 基线比较。"
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "通知还设置了大模型自适应或自主改进方向，项目周期原则上不超过两年，申报截止时间为2026-11-02 18:00。企业申报时，配套经费与财政科技经费总额比例不得低于2:1。"
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "征集通知没有公布项目总预算或入选单位，也没有证明任何拟议架构、芯片或模型已经建成、完成验证或优于基线。"
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "北京2025年的另一项征集已提出研制非 Transformer 架构，并在不少于10十亿参数规模验证；企业申报时还须按2:1比例配套财政科技经费。这说明政策目标和机制具有延续性，并不能证明项目获得资金或取得技术成果。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "通知没有列出经费总额、单项项目额度、入选申请单位或立项决定。",
+          "kind": "missing_primary",
+          "state": "open"
+        },
+        {
+          "description": "通知没有提供已完成的芯片、模型或架构、具体基线、公开产物或测量结果。",
+          "kind": "missing_independent",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "若入选项目最终产生成果，该征集可能将北京的研发资源导向推理芯片、非 Transformer 架构和可适应的大模型系统。北京在2025年的征集中已提出10十亿参数规模的非 Transformer 研究以及企业2:1配套要求；2026年通知新增了芯片项目两家真实用户验证，并单列大模型自适应方向。通知未公布经费规模、立项项目或成果，因此评分体现有边界的潜在政策影响，而非已经取得的技术进展。",
+      "limitations": [
+        "来源证明的是一项地方征集及其目标，而不是项目已立项、获得资金、完成或实现技术进展。",
+        "通知没有公布项目总预算或单项上限；企业2:1配套要求不能证明实际新增了私人投资。",
+        "算法方向要求与同等规模的最优 Transformer 比较，但没有指定具体基线、数据集、指标或测试流程。",
+        "该征集仅针对北京，不能据此概括整个中国或将其称为国家级项目。",
+        "2025年的对照通知已提出部分相同目标和企业2:1配套要求；本次未检查2025年的立项结果、配套资金实际到位情况或技术成果。"
+      ],
+      "relationships": [
+        {
+          "summary": "北京于十月20日另行发布了人工智能网络防御与对抗测试项目征集。这是同一机构发布的另一项地方征集，两个事件应分别记录。",
+          "target_id": "FCMO-F1E17B2ACD46",
+          "type": "related"
+        }
+      ],
+      "summary": "北京市科学技术委员会和中关村管委会十月23日发布征集通知，面向三类人工智能技术征集储备课题：推理芯片、颠覆性算法和大模型前沿技术。芯片方向提出芯片、软件与模型适配一体化方案，并要求至少两家真实用户单位参与应用验证。算法方向提出研制新架构，在不少于10,000,000,000个参数规模上验证，并与同等规模最优 Transformer 比较。第三类方向聚焦可自适应或自主改进的大模型。北京2025年已征集过这一规模的非 Transformer 架构项目，当时也提出了企业2:1配套要求。本次通知新增芯片项目两家用户验证，并单列大模型自适应方向。通知说明的是研究目标和申报规则，并未证明经费已经下达、系统已经建成或技术结果已经测得。",
+      "technical": {
+        "claimed_result": "有关部门征集旨在改进推理硬件、非 Transformer 架构或可适应的大模型的方案；这些是公开目标，并非已取得的结果。",
+        "demonstrated_result": "中文原始通知列明了三类征集方向、部分技术目标以及申报条件和期限，但未报告已完成系统或性能测量。",
+        "mechanism": "通知征集三类研发方案：开发并应用验证人工智能计算芯片软硬件与模型适配方案；设计并验证与低比特量化协同的新型非 Transformer 神经网络；以及研究递归改进、新型注意力和原生多模态等大模型适应方法。",
+        "regime": "北京市2026年十月23日发布的市级储备课题征集，项目周期原则上不超过两年；芯片项目须在两家真实用户单位验证，架构方向要求模型参数规模不少于一百亿（10,000,000,000）。",
+        "strongest_baseline": "通知要求算法方向与同期同参数量级最优 Transformer 比较，但没有指定模型、数据集、指标或测试流程，也没有报告比较结果。"
+      },
+      "title": "北京征集人工智能颠覆性技术课题",
+      "why_it_matters": "这项征集延续了北京此前对大型非 Transformer 模型和企业配套投入的关注，同时增加芯片项目真实用户验证及大模型自适应方向。2025年的通知表明，10十亿参数规模和2:1配套要求并非2026年首次提出；本次仍是一项具体的地方研发征集。两份通知均不能证明项目已经立项、私人资金已经到位或技术结果已经实现。"
+    },
     "FCMO-1C97FA8F0262": {
       "claims": [
         {
@@ -6256,10 +6374,10 @@
       "contradictory_evidence": [],
       "evidence_gaps": [
         {
-          "description": "本次未查阅首次会议议程、会议纪要或由此作出的政策决定。",
+          "description": "在设立记录更新后，本次已查阅十月22日首次会议的议程和拟议议题文件；仍未查到官方会议纪要或决策记录，无法确认会议采纳了哪些方向。",
           "kind": "other",
           "state": "open",
-          "updated_at": "2026-10-22T04:14:33Z"
+          "updated_at": "2026-10-23T17:20:17Z"
         },
         {
           "description": "设立决定未列出预算、人工智能或数字基础设施拨款、采购或实施措施。",
@@ -6276,13 +6394,17 @@
       ],
       "importance_rationale": "如果会议依照其职责开展工作，一个聚焦人工智能和数字规则、基础设施及部署的内阁层级跨政府论坛，可能影响日本的人工智能应用和治理。正式设立本身是制度变化，但其实际影响尚未测量。",
       "limitations": [
-        "来源证明内阁作出了决定并规定了治理设计，不证明政策已经改变或产生了实际成效。",
-        "本次未查阅首次会议议程、预算、人工智能基础设施拨款、采购决定、规则修订或部署结果。",
+        "设立决定证明推进会议已经成立并具有所述职责，不证明政策已经改变或产生了实际成效。",
+        "设立记录之后查阅了首次会议页面和拟议议题文件；这些材料描述的是讨论方向，并非已采纳规则。尚未确认官方会议纪要、预算、采购决定或实施结果。",
         "来源中关于经济增长、公共服务和降低风险的表述是政策目标，不是测量结果。"
       ],
       "relationships": [
         {
           "target_id": "FCMO-8BF3C32CA3BF",
+          "type": "related"
+        },
+        {
+          "target_id": "FCMO-3CDA473105CB",
           "type": "related"
         }
       ],
@@ -9062,6 +9184,57 @@
       },
       "title": "PUN在2D至4D几何基准上报告了抗噪规划结果",
       "why_it_matters": "学习到的全局价值场结合测试时有界搜索，可能降低高维空间随机规划对逐实例求解偏微分方程的依赖。该基准结果对机器人规划研究有参考价值，但能否迁移取决于严格的控制与噪声匹配条件，目前也没有在带接触的实体机器人上评估。GPU与CPU之间的耗时比较未按硬件统一。"
+    },
+    "FCMO-3CDA473105CB": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "日本人工智能与数字改革推进会议于22日（2026年十月）召开首次会议，数字厅发布了会议议程和材料。"
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "提交给会议的部长级议题文件建议考虑审查已经生效的日本《人工智能法》及相关规则，提出涵盖执行环境、身份、护栏、权限、评估和审计日志的代理系统级安全措施，并建设支持代理访问和执行操作的共享基础设施。"
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION",
+          "text": "已发布的部长级提议不能证明会议已经采纳这些方向、任何法律已经改变、资金或采购已经获批，或实施已经改善结果。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "本次未查阅官方会议纪要或决策记录，因此尚不清楚会议采纳了哪些拟议议题并准备采取行动。",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "没有证据证明共享代理基础设施或行业部署计划已获得拨款、采购或交付。",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "如果得到采纳和实施，一项把《人工智能法》审查、代理级控制、共享基础设施和行业部署联系起来的国家议程，可能实质影响日本的人工智能治理与应用。这一评分衡量的是潜在后果，不代表这些提议已获接受或执行。",
+      "limitations": [
+        "会议页面提供的是议程和材料，不是会议纪要或决策记录。",
+        "议题文件使用提议性表述；没有证据证明法律已经修订、最终政策已定、预算或采购已落实，或实施已产生结果。",
+        "尚未测量这些方向对人工智能应用、安全、生产率、竞争或公共服务的影响。"
+      ],
+      "relationships": [
+        {
+          "target_id": "FCMO-279AE015C671",
+          "type": "related"
+        }
+      ],
+      "summary": "日本人工智能与数字改革推进会议于十月22日召开首次会议，并发布了由主管大臣提交的广泛人工智能与数字改革议题文件。文件建议考虑审查日本现行《人工智能法》及相关规则；为人工智能代理建立系统级安全方案，涵盖执行环境、身份、护栏、权限管理、评估和审计日志；建设共享基础设施，使代理能够安全访问数据并执行操作；以及制定政府和行业部署计划。日本《人工智能法》已经生效；该文件提出考虑审查，但没有提出或通过具体修正案。它是讨论提案，并非实施证据。",
+      "technical": {
+        "claimed_result": "主管人工智能与数字改革的大臣提交的议题框架建议考虑审查日本现行《人工智能法》及相关规则，提出代理系统级安全措施、共享基础设施，并扩大公共部门和行业部署。这些内容是供讨论的提议，并非已批准的政策。",
+        "demonstrated_result": "数字厅发布了首次会议页面和一份日文部长级议题提案文件。日本内阁府确认《人工智能法》自2025-09-01起全面生效；会议文件提出考虑审查，但没有列明具体修正案。",
+        "mechanism": "部长级提案把跨部门规则审查和敏捷治理结合起来，并对代理执行环境、身份、护栏、权限管理、评估和审计日志提出安全要求；文件还提出建设共享数据与系统基础设施，并制定政府和行业实施计划。",
+        "regime": "日本国家层面的人工智能与数字改革政策议程；推进会议首次会议于2026-10-22举行。",
+        "strongest_baseline": "日本《人工智能法》自2025-09-01起全面生效，日本内阁于2026-10-20设立推进会议并赋予其广泛的人工智能与数字改革职责。首次会议的部长级议题提案提出考虑审查该法并进一步明确议程，但没有证明修正案已获采纳或已经实施。"
+      },
+      "title": "日本人工智能与数字改革推进会议首次会议提出广泛的治理议程",
+      "why_it_matters": "这项提议把日本人工智能治理与代理采取行动所需的实际系统联系起来，包括身份、委派权限、应用程序接口、签名、支付和审计记录。如果这些方向得到采纳，监管审查与共享公共基础设施的结合可能影响全国部署和市场条件。提议涉及已经生效的日本《人工智能法》，但没有确定具体修正案、最终规则、拨款或可测量的结果。"
     },
     "FCMO-3CE4BEB693AD": {
       "claims": [
@@ -17410,6 +17583,65 @@
       },
       "title": "GraphSkillAA：以可寻址技能图和双重门控实现定向智能体技能更新",
       "why_it_matters": "如果独立复现，该方法为外部智能体流程提供了一种具体做法：针对图中的特定对象更新程序、检查回归并回滚失败编辑。这可能影响持久技能库的优化设计。现有证据仅涵盖三个基准套件和作者执行的模型API实验，尚未证明其在部署环境、长程智能体任务或通用自我改进中的价值。"
+    },
+    "FCMO-716A47307766": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "两篇十月21日的报道指出，北京、天津、河北的金融和科技部门于2026年十月20日在金融街论坛上联合发布了支持北京（京津冀）国际科技创新中心建设的区域实施方案。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "报道将方案描述为分六方面、共15项措施，涉及长期资本来源、科技研发和成果转化贷款、跨区域金融协同、科技保险以及部分跨境融资措施。"
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION",
+          "text": "目前可获取的报道未提供方案正式文本，也未明确资格条件、承诺金额、启动日期、获资助机构、实际参与情况或已测得的科研与经济效果。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "尚未找到区域实施方案正式文本；目前的具体内容来自两篇转述报道。",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-23T18:14:28Z"
+        },
+        {
+          "description": "尚无预算分配、资格条件、启动时间、获资助对象或实际资金流向的信息。",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "如果落地，报道所述区域方案可能通过区域资本协同、研发与成果转化贷款、保险和跨境融资，改变科技企业的融资渠道。对于一个重要创新区域而言，这一政策组合可能产生显著影响；但现有证据未证明资金分配、实际使用或结果。",
+      "limitations": [
+        "方案细节来自转述报道，而非签发的正式文本。",
+        "目前没有资金分配、申请资格、启动时间、实际使用情况或科研生产率结果。",
+        "政策表述和目标不能证明融资措施已经实施或产生实际效果。"
+      ],
+      "relationships": [
+        {
+          "summary": "据报道，这是十月19日中央指导意见的区域后续安排；中央意见要求各地区制定实施细则。本记录所述是另一个具体的区域方案。",
+          "target_id": "FCMO-7D5FC02D5B08",
+          "type": "implements"
+        },
+        {
+          "summary": "十月21日发布的全国性科技与产业创新意见也涉及企业研发和成果转化，但属于另一项政策事件。",
+          "target_id": "FCMO-C4F366972002",
+          "type": "related"
+        }
+      ],
+      "summary": "两篇十月21日的报道指出，北京、天津、河北的金融和科技部门于十月20日在金融街论坛上发布了区域实施方案。报道将方案描述为分六方面、共15项措施，涉及长期资本、科研与成果转化贷款、跨区域金融服务、科技保险和跨境融资。尚未找到方案正式文本；报道也未提供资金分配、实际参与或结果证据。",
+      "technical": {
+        "claimed_result": "报道介绍了一项区域金融支持方案，旨在加强科研、技术转化和先进产业的融资。",
+        "demonstrated_result": "两篇有日期的报道表明，该方案发布事件已被公开报道，并介绍了部分措施；报道没有附上正式文本，也不能证明方案已落实。",
+        "mechanism": "据报道，措施将长期投资、公共与私人资本、研发和成果转化信贷、保险以及跨区域金融服务协调结合起来。",
+        "novelty": "据报道，该区域方案是对中央科技金融指导意见的后续落实，并形成了专门的区域实施文件。具体内容仍需正式文本确认。",
+        "regime": "依据2026年十月21日北京政府门户网站和人民网北京频道中文报道所述的北京—天津—河北区域科技金融政策。",
+        "strongest_baseline": "十月19日中央指导意见要求各地区制定实施细则；目前没有政策实施前后的金融结果数据。"
+      },
+      "title": "报道介绍北京—天津—河北科技金融区域实施方案",
+      "why_it_matters": "如果落实，区域金融协同以及面向科研和技术转化的贷款可能影响北京—天津—河北科技企业获得资金的方式。现有证据证明有关方案和部分措施已见诸报道，但没有证明方案已实施或产生经济效果。"
     },
     "FCMO-71A18CEA363D": {
       "claims": [
@@ -30035,6 +30267,78 @@
       "title": "Cognizant报告：75M参数Transformer在ARC-AGI-1公开评测中达到约76%的pass@2",
       "why_it_matters": "这项报告提供了一个具体案例：针对任务结构设计的75M模型，使用单卡约四小时，声称在公开ARC-AGI-1上取得较高分数。如果能在干净的数据划分上独立复现，将有助于判断专用表示、数据增强、多令牌预测和候选筛选能在多大程度上替代该单项结构化推理基准上的通用预训练。它没有证明与前沿模型具备广泛推理能力上的同等水平：ARC-AGI-2分数较低，评测限于公开集，也没有确立直接匹配的基线或独立运行。"
     },
+    "FCMO-D2B0F918F4BB": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "OpenAI称，Habitat为每周有逾1十亿人使用的产品提供服务，并通过全球分布式存储平台管理超过500 PB的数据。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "OpenAI称其采用了改进版Azure Cosmos DB无服务器模式，该模式支持按请求单位拆分分区，因此能够重新使用共享多租户容器；公司表示，此后数月未发生容量配置或邻居干扰事故。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "OpenAI称，在部署就近区域复制、区域内缓存和Rust服务后，Habitat读取延迟p50从约120 ms降至约10 ms；文章没有分别量化每项改动的贡献。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "OpenAI称，其变更数据捕获平台每秒处理数百万次数据库变更，覆盖数千个容器和数百万个容器分区，并向一百多个Kafka主题提供数据。"
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "该文章没有独立证实可靠性、成本效率、向其他工作负载的泛化，也没有确定复制、缓存和Rust对延迟的各自因果作用。"
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "Microsoft Learn记载，Azure Cosmos DB标准无服务器账户仅限单一区域，每个物理分区最高为5,000 RU/s。OpenAI称另有Azure为Habitat构建的改进模式，每个分区最高可达10,000 RU/s，并支持按请求单位拆分；其公开可用性及其与标准账户的等同性尚未确定。"
+        }
+      ],
+      "contradictory_evidence": [
+        "Microsoft Learn的Azure Cosmos DB无服务器公开文档最后更新于2026年四月27日，称标准账户仅限单一区域，每个物理分区最高为5,000 RU/s，且不能使用共享吞吐量数据库。OpenAI 十月23日的文章则描述Azure为Habitat构建的改进模式，称每个分区可达10,000 RU/s并支持按请求单位拆分。这是范围和可用性上的差异，尚非已证实的相互矛盾：微软页面描述标准服务，未涉及所述定制模式。该定制模式是否可在Habitat之外使用仍未知。"
+      ],
+      "evidence_gaps": [
+        {
+          "description": "OpenAI公布的规模、延迟和可靠性数字属于第一方生产数据；本次未检查独立遥测或客户侧佐证。",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "报告中的读取延迟p50从约120 ms降至10 ms，综合了区域复制、区域内缓存和Rust服务；文章没有报告各自的因果效果或工作负载构成。",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "该记录描述OpenAI的应用存储工作负载，不能据此证明相同设计或量化结果适用于模型服务、训练或其他在线系统。",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "Microsoft Learn截至2026-04-27的标准公开文档称，无服务器账户仅限单一区域，每个物理分区最高5,000 RU/s，且不支持共享吞吐量数据库。OpenAI描述了另一个为Habitat构建的改进模式，但其部署范围、公开可用性以及与标准账户合同的关系尚未明确。",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "如果OpenAI报告的生产结果成立，Habitat就是前沿AI产品在线存储扩展方面的重要案例：共享容器设计、区域缓存和变更数据捕获共同支撑一个500 PB平台每秒处理超过70百万次请求。该项未评得更高，因为这是单一供应商的运营报告，没有独立遥测、标准化成本数据，也没有拆分所报告延迟改善的因果贡献。",
+      "limitations": [
+        "运行规模、事故历史和延迟数字由OpenAI报告；文章未提供可独立审计的遥测。",
+        "p50延迟约12x的改善被共同归因于区域复制、区域内缓存和Rust服务；文章未单独测量各项效果。",
+        "文章没有提供标准化成本比较，也没有给出所述改动的完整p50/p95/p99延迟分布。",
+        "Habitat是应用在线存储平台；这些结果不能证明其适用于模型训练或推理。",
+        "Microsoft Learn截至2026-04-27的标准公开文档称，无服务器账户仅限单一区域，每个物理分区最高5,000 RU/s，且不支持共享吞吐量数据库。OpenAI称Azure为Habitat开发了改进模式；其公开可用性及其与标准账户合同的等同性尚未明确。"
+      ],
+      "relationships": [],
+      "summary": "OpenAI于十月23日发布的工程文章介绍了Habitat存储层。Habitat是为每周超过1十亿人使用的产品提供服务的在线平台。OpenAI称其重新采用由双方共同管理的Azure Cosmos DB多租户设计，使用支持按请求单位拆分分区的改进版无服务器模式；公司表示，改动后数月没有出现容量配置或邻居干扰事故。OpenAI还称，就近区域复制、区域内缓存和Rust服务使读取延迟p50从约120 ms降至10 ms。文章介绍了一个每秒处理数百万次变更的变更数据捕获系统。这些均为供应商报告的生产结果；文章没有独立审计遥测，也没有拆分各项改动的贡献。Microsoft Learn的标准公开无服务器合同则规定单一区域和每分区5,000 RU/s；OpenAI称Habitat模式是专门为其构建的改进版本，其公开可用性尚不清楚。",
+      "technical": {
+        "claimed_result": "OpenAI报告称，Habitat存储超过500 PB、每秒处理超过70百万次请求；重新使用共享容器后数月未出现容量配置或邻居干扰事故；读取延迟p50从约120 ms降至10 ms；变更数据捕获每秒处理数百万次变更。",
+        "demonstrated_result": "这篇一手工程文章记载了OpenAI所述架构及其报告的生产测量；本次未独立核验遥测、复现延迟变化或审计事故记录。",
+        "mechanism": "Habitat在Azure Cosmos DB之上使用共同管理的多租户存储层、按请求单位拆分分区、选择性区域复制、区域内缓存和变更数据捕获。文章称，Azure推出改进版无服务器模式后，系统从专用容器返回到共享容器。",
+        "regime": "OpenAI生产环境中的应用存储平台，覆盖约40个地区，为ChatGPT、API、Codex和内部产品提供服务；相关指标和架构效果均由供应商报告。OpenAI称改进后的无服务器模式专为Habitat构建；Azure标准公开文档规定了不同限制。",
+        "strongest_baseline": "OpenAI将该设计与早期共享容器的分区吞吐限制及后续专用容器的容量管理负担作比较。延迟方面，文章报告在区域复制、缓存和Rust部署这一组合变更前后，读延迟约为120 ms和10 ms，但没有公开匹配的基线表。"
+      },
+      "title": "OpenAI详述Habitat在500 PB规模下的多租户存储与全球延迟设计",
+      "why_it_matters": "这篇文章具体说明了工作负载隔离、分区行为、区域布局、缓存与变更数据捕获如何在大型在线存储服务中相互作用。报告的p50提升约为12x，具有运维参考价值；但它合并了多项改动，未证明各自效果、成本比较或向其他工作负载的可迁移性。Azure截至2026年四月27日公开的标准合同与此处描述的Habitat模式不同，因此不能假定该模式普遍可用。"
+    },
     "FCMO-D32D8204EF09": {
       "claims": [
         {
@@ -36238,6 +36542,48 @@
         "source_sha256": "0278b59d843ff81fd60fc91c440a6eddf6945cf4a706d86e8ca7eb891ea78de8"
       }
     },
+    "FCMO-039F03B60201": {
+      "claims": {
+        "locale_sha256": "57d0d0f89f4805f9845019e4ef341c954fa86eaac78cbb605f4311ff79c43908",
+        "source_sha256": "a3dec84fda4edb495c084639f7aae313626f294e3f9f9c8fccea5083d927328e"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "666834229442828b3b3647cf876a1b0768949873cb9073644a55f8baf1945517",
+        "source_sha256": "2275a8f922b738bb9f7e390d968e02a09c50bb6591f40bfef15df4ab2aa0858d"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "d0b14ff9a649d6cf3fd6e359a9670d06e3c4ffececbb3ba568f5bd6f0f9d5e8f",
+        "source_sha256": "d81e65a37ec08833af34d538352e643daf0a23ea3bbd24dea43e949f4eb50e19"
+      },
+      "importance_rationale": {
+        "locale_sha256": "f568546bd7c6afebb4bde7a130a25eec65a4d06932adce69f2dcbf39bc3534a9",
+        "source_sha256": "ad30c684b8c04edfce1ebb08491053017257064e94657453fde124adbe882815"
+      },
+      "limitations": {
+        "locale_sha256": "e605ee02c05315f73cffc7d7147a7a19d85818ae2a3292feb01b51c7e4ecef7f",
+        "source_sha256": "161140d3cdfdceaade42818c6eaf959bacc6476414cc2ed1188da9c84da047e4"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "b805fdddfdbb82ea201b9a12ddb6d621db9caa447834ff2640dce9b13271545a",
+        "source_sha256": "66f199a7d59b2d9d7c08aa29b863108b6a6826fd404c8611aadff0c5945c07f3"
+      },
+      "technical": {
+        "locale_sha256": "234d400689e20f27e1bb6b59b9bab0867b4aa7967a2ad5a94885bfb9e46a3166",
+        "source_sha256": "9caeda2dc51e9e40b0fe296df8db8d81bb994d0cbe38141ea302d2e262d8bb8f"
+      },
+      "title": {
+        "locale_sha256": "bd6950a0a9ad179f52d5ba66e9cc3cc2472359741b2f39a1e24762a65bab4e33",
+        "source_sha256": "b59ed28f1600267750da8c40f65411e8401f38e3232671bdf69d684cb7e6df09"
+      },
+      "why_it_matters": {
+        "locale_sha256": "525832a3ed364bd4f03ee110c31588a8b3d02dcb930c7225f077047c801e4712",
+        "source_sha256": "ae7dbcda81354cc329a4e6b3013a91a0ffd2fcf090de21367817d5836ed32bce"
+      }
+    },
     "FCMO-045BB8282222": {
       "claims": {
         "locale_sha256": "c8c4a9f4a593a98c80ccafdd713440901873a64eab6ae14ca59a9ec45b28e032",
@@ -39556,6 +39902,48 @@
         "source_sha256": "4c28e0a4c265640247fa686c62882e279a89db9fe43c6a12bf42a0c5c085b9b7"
       }
     },
+    "FCMO-1C139003F568": {
+      "claims": {
+        "locale_sha256": "6091567fe22e284dc41f0464f4ca01088824249f568dd2e500b4f6e97ebdb4b4",
+        "source_sha256": "c7c3a1e6c0447b4a3e1953b4a0e4f6cac40bb909821afd80126e41cdad65c116"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "7ce33a2bc0aecc51bdc987dc7fa39618368b7cfeb270d551dc23479ee75a0828",
+        "source_sha256": "0e6f868895e976e8ae0a24a72434f45b41e81311ec03788e7cf3b4ceed2b7b82"
+      },
+      "importance_rationale": {
+        "locale_sha256": "643f61f5918506d3e0a3d79500dd1c34bb8a6f377138fc4f1f97a2ce730b87a4",
+        "source_sha256": "86ae66ea46b3f694c2902ba51cda2d83d3e2ea6507bf79ea91948f1ebf66108e"
+      },
+      "limitations": {
+        "locale_sha256": "6a5c256df1db785d29d8aa9b1065ab33a39f367723aa888fe885c6affd1df1bf",
+        "source_sha256": "ece437c58d7f5aa96d52171e36fd669e45472c0963d81ec6ac4ea0a69cb95e82"
+      },
+      "relationships": {
+        "locale_sha256": "1bb774e37a32032156e28ebc100c422f21649f8eec27c1c86a650e1d7b3bde10",
+        "source_sha256": "b24e83fb2021b1ce822e2775fcdccf9dc910394962d813d12e96853ec0a4e91b"
+      },
+      "summary": {
+        "locale_sha256": "0953506abf3f28d3ba534f2138aec5e854868630f6756891f26ce11d7c4bcd61",
+        "source_sha256": "30891ba4e56e583f7deb17c9a9181db986a7d68e106d5da110ad2c0a62c870dd"
+      },
+      "technical": {
+        "locale_sha256": "b968fbc037c62ecb87755899c1f3df5d911647d0e74c7b3c92aff92576e375ee",
+        "source_sha256": "73e483c7e8bfd5672db9587cd6ae29df58e5ca6acba079f9816f0aaf22905a43"
+      },
+      "title": {
+        "locale_sha256": "68dd4340d5d9e309fe8bd284434c015e2347dafdefaa70800cfb0cff881d0c89",
+        "source_sha256": "42e3d6d63aa4d8fad2aeaf354ecb94d41f67012d768552f80d03392dbbbb5644"
+      },
+      "why_it_matters": {
+        "locale_sha256": "1f221e7286673b64b1ecad00f3faf45336ac2fcce2628e37c225a28a42372017",
+        "source_sha256": "18bbc33506ee1d2835e0ffa3f563338585e8c569227d38866953c380fe1c7414"
+      }
+    },
     "FCMO-1C97FA8F0262": {
       "claims": {
         "locale_sha256": "14107419b6613ce3a61eb709199e9fc2487a65ee1e211fe496c8208ab6f4b1ac",
@@ -40448,19 +40836,19 @@
         "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
       },
       "evidence_gaps": {
-        "locale_sha256": "78f3a67aef7e8329f2f0291cab7c58663a3286514eb5c2e10489300acafcfd9e",
-        "source_sha256": "c2abe8157d31357ca7166a86683872df7c24fabe3665fc5e557c8ab3a2a3160a"
+        "locale_sha256": "f1eb17cc05f9629e2fe39143952de7009f662df821cc70e5885bedaced0fd03a",
+        "source_sha256": "ca95a96b605f97310e65232ba17da99a250474c6e1767cc4ac95d4415b6f9003"
       },
       "importance_rationale": {
         "locale_sha256": "4185de65afb7883a12b1f37e55170739acf7db2f476942bb2c4563119b05ff4a",
         "source_sha256": "db08323f731726b1f17451664acd9f075b5635583724a7fea1504d809e4791dc"
       },
       "limitations": {
-        "locale_sha256": "31ab7537788262175a0c513c33162a732032ecd6ac2ae85af1032021dde2afa9",
-        "source_sha256": "6f5ce42b72c056352a50d6a6ccc9a387b99533949733c4861c1f3f9e0d50108b"
+        "locale_sha256": "4d1e4207c6d47061d96971174dcc395f4d5ba0c08a676df03ece8605abc1646d",
+        "source_sha256": "c4b9b6ba48b6dd97e0627cb7445edc6148b2b680db12343ffd042b5710dc4e0f"
       },
       "relationships": {
-        "locale_sha256": "616b69bdfd6761c0d9d8d0e828565397eae736c3826551302bc4b671a2890e53",
+        "locale_sha256": "a874c4da95ffd8006d3808df12f87573c7904616234482cc55bcf18e9f9a96df",
         "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
       },
       "summary": {
@@ -42578,6 +42966,48 @@
       "why_it_matters": {
         "locale_sha256": "e245066839f0ea4e8667bba212d418c1daea64cd3e6f3d77c0ff5732f98785fd",
         "source_sha256": "9a874f727f84279a0d00f508be9e36add22c8d9adff0e223be75a4c9a51e4a73"
+      }
+    },
+    "FCMO-3CDA473105CB": {
+      "claims": {
+        "locale_sha256": "b6ce8b7dd4e26f83e9cedf0d4d22891ecfb0b5a2343f81680c1744008f06694e",
+        "source_sha256": "78190c2545a53d80d0445fd3e576b79061a273162be80190ed60012533929f31"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "94f408fe3b82b7bb603a28d7ea9db6fb2a20f5e20f03a5bebf1357d4696f0617",
+        "source_sha256": "8348ad6f0739ca7f6705a15c0f88dce3daef7b0788f131ec2fc9afa4dac94251"
+      },
+      "importance_rationale": {
+        "locale_sha256": "e3e1e2b63444bcb748eeb478daa3b07c743d7a4458bae131b14fe42f56cfc7f4",
+        "source_sha256": "9704c772f76d4f36c51ddd884e13e9e095af9756c3df9b050520c834cbe2cdbe"
+      },
+      "limitations": {
+        "locale_sha256": "5979fe9153c80ef222c586aad9080ab488a2c339a022d84c366e5115516af044",
+        "source_sha256": "af4fe93838803a0881c2d47a19ab49f76aee4ac4ef2c97e33f0c74b2dd80e7da"
+      },
+      "relationships": {
+        "locale_sha256": "ba1d2c5e2ce70eca9632e092d70ec72d395d1d9401817d984cce2b869b545425",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "f7e30ba757de1b95e953939bb6ac1b95f36131ec85fa43f84ea46a8a0d9625f6",
+        "source_sha256": "8d557695d406b7777f36a98c93ac8f6c1946dd96014da0dda5998b24f05903c8"
+      },
+      "technical": {
+        "locale_sha256": "93c4864168d745cd9f52694dd2d05f8d0012c0c1b109097bc0ee3ce0e9c52cfb",
+        "source_sha256": "4e0512614bc19d8458cc8f66cf7c41fec6c2c81a54d5c5950b24dfa7c560ff0c"
+      },
+      "title": {
+        "locale_sha256": "89794fb6f1776fc1811bba4f0c70abe77d61010edc50ac420956cee5ac5bee66",
+        "source_sha256": "1e81cdb8521a5fbc58e80f535127919c3644f576288778b344249b2794f2282e"
+      },
+      "why_it_matters": {
+        "locale_sha256": "f9ea6b78f80403947c2a9ab85f63ab7c958af100da2ce4c31d1acd7202acd83b",
+        "source_sha256": "0d5d29af4f8f70e32ac35b282749c81c769ad4cb34a81bdff88f19e88cc2a4c4"
       }
     },
     "FCMO-3CE4BEB693AD": {
@@ -48920,6 +49350,48 @@
       "why_it_matters": {
         "locale_sha256": "0b5f201016b2b97025e4f5228045ab7a64950e1021a217f3bb750a1480806ca6",
         "source_sha256": "1e23aa850c140c3b293ba552cd18b21ea3aedfebf5d51479183f7e150e5d7a14"
+      }
+    },
+    "FCMO-716A47307766": {
+      "claims": {
+        "locale_sha256": "b0065e575289c0b4275a894f27ee7f0052c6c70bf16ef94514503ae8cce9edde",
+        "source_sha256": "5bbf49c16818d238cc3a428860d883bbd5f5a2b594ac000e16cd9509a91c38ff"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "b2b274d878a95ddf1848d0b09cd9fecb1c9392fba508ca7bdae4268a7b3b8ac1",
+        "source_sha256": "d848eb68ddbee0f039f77754805e1724b795e7a47552ba60fcdcf07fda834c83"
+      },
+      "importance_rationale": {
+        "locale_sha256": "86a8adb23bd697ffb5a8afae43eb42f830923164cbbeff69362b1185d1c360ae",
+        "source_sha256": "9cdcebe17f4671940992f5b773233950e96a6ac593626b1cf8a0fede32848e65"
+      },
+      "limitations": {
+        "locale_sha256": "98ca9203089dcea6615a9b52f62e67ffcea99a17bf6ae1e328597fdf38b7ba95",
+        "source_sha256": "59ad9c7eb6ab173b4c0bfceb38d55b734bccb2eae84a375a139cf38f3a4c575e"
+      },
+      "relationships": {
+        "locale_sha256": "6220a8eecc3c955381e758d6cf1c177564c9fe0fefa4f5dc299e3debb933f17c",
+        "source_sha256": "e3b62ea4e3e7478e3950af46967c55a1db75c5c6bbb26fa38a7838205a0ce33b"
+      },
+      "summary": {
+        "locale_sha256": "84ace7c0eeb7d5b25469c83541fd6b559b3cc3ae8ee7842648c674ee7ece834b",
+        "source_sha256": "1d4d4ffa3b90a6fb8c2f88cd68aa7b2614cc97259566599ef9002f84588a551d"
+      },
+      "technical": {
+        "locale_sha256": "b5fafba354bd8a40ba6bec6cdc795ef115206f5866842ad990729035ea114817",
+        "source_sha256": "e8672d601bcac01240be68360d279f33a96051ba13670c607c0f6769a595a77b"
+      },
+      "title": {
+        "locale_sha256": "731ec3690a22e28d014bc23412f9a9940c35e2965ed93da823997df8398fc549",
+        "source_sha256": "dab85cf2d1f81c4ee4e7e7219a706b7859c8b79c1c58d7494bafb0c24f9be600"
+      },
+      "why_it_matters": {
+        "locale_sha256": "d275308d89194a4186036a2c450db1b299c49b8b1b76d68a19f57ce3e7fccacd",
+        "source_sha256": "b0d94b92a37e4c09b962bc127803ad1ecf74b53dd9b1be8e1ae9a189e9db3a55"
       }
     },
     "FCMO-71A18CEA363D": {
@@ -58384,6 +58856,48 @@
       "why_it_matters": {
         "locale_sha256": "2c10a7793a6f9707f28f03d1d90dc4ca840b357987c122927209ec3921c5acb4",
         "source_sha256": "1506c401b388a6eec357f5455185826a90cd2ff680bb7981ae621a35b0e24993"
+      }
+    },
+    "FCMO-D2B0F918F4BB": {
+      "claims": {
+        "locale_sha256": "f41ca22abf7d1d9cff8256f81fc423af5e5a3587a3a111bb82d8764f8aed01c4",
+        "source_sha256": "9da55a889a11c70f2803d760b9e06915d324e60f250036b244861f1a901acdb8"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "5fb6eb1a0d1a94b8cf6d8e30a1563b9680986bc99bc580c43c2558ead40f3958",
+        "source_sha256": "bf59fa7ba35c1f6171e474e89db56064565ee51bcb833d2890b529dcea572f9a"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "aa4f11e3585aecb33c72390923b9ada2fb85d343000e852625e95e836a818908",
+        "source_sha256": "0b203ed68776b1d8b6e6c6cf4c2c92f6788d8385f1753c7c282e029beb29bddf"
+      },
+      "importance_rationale": {
+        "locale_sha256": "3fc2193bd0be389806427b1a05d3282ddb84d6543fbc94cd888369fd8aee9922",
+        "source_sha256": "6594e090dac74d73ea97d8455c379217d3a4f1ecf4d52dbc2ef3a9e0521330cd"
+      },
+      "limitations": {
+        "locale_sha256": "2c284cb5f6fee13a17cfb8ea6da46578974b2dc309d06f344cd28d71f73a86ff",
+        "source_sha256": "024cd232e4e601f6896242a6ba088b356d85559f55c4c92e2cbdb82450c19b40"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "22f9ffc690871974a7b31adc60a8d4d95b974c0e8f5047b86704cb4702e2d3f4",
+        "source_sha256": "a437c3d79572dd956d250d94e783057bdfe9e016502acd6dd5d74cc6bee03a0d"
+      },
+      "technical": {
+        "locale_sha256": "0a15024125a9404e3585129242ecc5ef5035859107f554af9a9b6b0fad218e85",
+        "source_sha256": "99245e86b884812bbc25f2ec669d8d6ccef41963409c893eb9ca8ebceaecb363"
+      },
+      "title": {
+        "locale_sha256": "bd4ca72ada45f38b1b84db88e2db8532c4f5924e4b54cf4f1fdeb7f91680b35d",
+        "source_sha256": "d5ee782d575b5f5cef8de6293034df9789ba741a1ed9370516a3e29ef00b2827"
+      },
+      "why_it_matters": {
+        "locale_sha256": "5857be0fe77a1fe1d0af21e39b29ba33280093ae83211f5bf994bef2b3733d52",
+        "source_sha256": "e73691e2738837b5689e5e94001ead9733bbe38da8122f8afabdc0a3efa443f9"
       }
     },
     "FCMO-D32D8204EF09": {

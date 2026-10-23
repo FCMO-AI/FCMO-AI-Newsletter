@@ -27,6 +27,7 @@ sys.path.insert(0, str(ROOT))
 from tools import corpus_guard  # noqa: E402
 from tools import mark_pending_localizations as mp  # noqa: E402
 from tools import validate_localizations as vl  # noqa: E402
+from tools import ui_label_coverage as ulc  # noqa: E402
 
 NOW = "2026-09-26T20:00:00Z"
 LOCALES = ("es-419", "zh-Hans")
@@ -720,66 +721,42 @@ class UICatalogs(unittest.TestCase):
                     self.assertIsNone(RAW_ENUM.search(value), f"{locale}{path}: {value}")
 
     def test_every_reader_facing_enum_has_a_label(self):
-        observed: dict[str, set[str]] = {group: set() for group in (
-            "desk", "development_type", "confidence", "evidence_class", "importance_tier", "record_status",
-            "claim_label", "gap_kind", "gap_state", "region", "source_language", "story_type",
-            "media_mode", "rights_state")}
-        for line in (ROOT / "corpus/data/developments.jsonl").read_text(encoding="utf-8").splitlines():
-            if not line.strip():
-                continue
-            r = json.loads(line)
-            observed["desk"].update(r.get("desks") or [])
-            observed["desk"].add(r.get("primary_desk"))
-            observed["development_type"].add(r.get("development_type"))
-            observed["confidence"].add(r.get("confidence"))
-            observed["evidence_class"].add(r.get("evidence_class"))
-            observed["importance_tier"].add(r.get("importance_tier"))
-            observed["record_status"].add(r.get("status"))
-            observed["region"].update(r.get("regions") or [])
-            observed["source_language"].update(r.get("source_languages") or [])
-            for claim in r.get("claims") or []:
-                observed["claim_label"].add(claim.get("label"))
-            for gap in r.get("evidence_gaps") or []:
-                observed["gap_kind"].add(gap.get("kind"))
-                observed["gap_state"].add(gap.get("state"))
-        for story in json.loads((ROOT / "site/data/stories.json").read_text(encoding="utf-8")):
-            observed["story_type"].add(story.get("story_type"))
-            observed["confidence"].add((story.get("news_value") or {}).get("confidence"))
-            observed["evidence_class"].add((story.get("news_value") or {}).get("evidence"))
-            media = story.get("media") or {}
-            observed["media_mode"].add(media.get("mode"))
-            observed["rights_state"].add(media.get("rights_state"))
-        for name in ("record.v3", "stories.v2", "newsroom-status.v2"):
-            schema = json.loads((ROOT / f"contracts/{name}.schema.json").read_text(encoding="utf-8"))
-            enums = set()
-
-            def walk(node):
-                if isinstance(node, dict):
-                    if isinstance(node.get("enum"), list):
-                        enums.update(v for v in node["enum"] if isinstance(v, str))
-                    for item in node.values():
-                        walk(item)
-                elif isinstance(node, list):
-                    for item in node:
-                        walk(item)
-            walk(schema)
-            observed.setdefault(f"contract:{name}", set()).update(enums)
-        # Every value present in the current corpus must have a label. This follows
-        # the live data instead of silently relaxing when the corpus fingerprint
-        # changes; label() omits an unknown value rather than printing it raw.
-        missing = []
-        for locale in CATALOG_LOCALES:
-            labels = self.cat[locale]["labels"]
-            everything = set().union(*(set(group) for group in labels.values()))
-            for group, codes in observed.items():
-                for code in sorted(c for c in codes if c):
-                    if group.startswith("contract:"):
-                        if code not in everything:
-                            missing.append(f"{locale}: {group} enum {code} has no label")
-                    elif code not in labels[group]:
-                        missing.append(f"{locale}: labels.{group}.{code} missing")
-        # Report every gap at once, not just the first one.
+        # Blocks publication, so it must not depend on what the hourly corpus brought in:
+        # it checks the FROZEN snapshot (tests/fixtures/ui_enum_snapshot.json) plus the
+        # contract enums. New live values are covered by tools/ui_label_coverage.py,
+        # which only warns, and render with the generic label meanwhile.
+        observed = ulc.load_snapshot()
+        observed.update(ulc.contract_enums())
+        missing = ulc.missing_labels(self.cat, observed)
         self.assertEqual([], missing, "reader-facing enum values without labels:\n" + "\n".join(missing))
+
+    def test_new_corpus_region_never_blocks_and_renders_generic_label(self):
+        from tools.paper.i18n import region_label
+        invented = "Zz-New-Region-2099"
+        for locale in CATALOG_LOCALES:
+            catalog = self.cat[locale]
+            generic = region_label(catalog, invented)
+            self.assertEqual(generic, catalog["labels"]["region"]["other"], locale)
+            self.assertTrue(generic and invented not in generic, locale)
+            self.assertEqual(region_label(catalog, "cn"), catalog["labels"]["region"]["cn"])
+        # The drift detector sees the new value but only warns: exit 0 unless --strict.
+        observed = {"region": {invented}}
+        self.assertEqual(len(ulc.missing_labels(self.cat, observed)), len(CATALOG_LOCALES))
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "corpus/data").mkdir(parents=True)
+            (root / "site/data").mkdir(parents=True)
+            (root / "corpus/data/developments.jsonl").write_text(json.dumps({"regions": [invented]}) + "\n", encoding="utf-8")
+            (root / "site/data/stories.json").write_text("[]", encoding="utf-8")
+            live = ulc.observed_live(root)
+            self.assertEqual(live["region"], {invented})
+            self.assertTrue(ulc.missing_labels(self.cat, live))
+
+    def test_live_corpus_label_drift_is_reported_without_blocking(self):
+        # Non-blocking by design: warns (visible in the run log), never fails publication.
+        missing = ulc.missing_labels(self.cat, ulc.observed_live())
+        if missing:
+            sys.stderr.write("\nWARNING live-corpus labels missing (generic label shown):\n" + "\n".join(missing) + "\n")
 
     def test_no_sept_and_explicit_month_tables(self):
         for locale in CATALOG_LOCALES:

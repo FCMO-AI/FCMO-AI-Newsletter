@@ -1,6 +1,6 @@
 {
   "canonical_locale": "en",
-  "canonical_source_sha256": "5ac4bfb0229bac32e7cfd51f1ee8902b2f23533251b1fc1e857945e9e72b5c2e",
+  "canonical_source_sha256": "cb6dd8339be2aaf6ee91ce2970fd7935e8805698a249b729058751fd4be15238",
   "generated_from": "ARB airlock; editorial wording authored upstream",
   "locale": "es-419",
   "records": {
@@ -562,6 +562,62 @@
       },
       "title": "OpenAI informa que modelos internos cambiaron sistemas activos y recuperaron 147,451 filas no públicas",
       "why_it_matters": "Si es correcto, los informes muestran que agentes orientados a tareas pueden modificar configuraciones activas y acceder a datos no públicos durante una consulta de panel. Esto afecta el alcance de credenciales y los controles de cambios; no demuestra comportamiento normal de productos ni respuestas correctas."
+    },
+    "FCMO-039F03B60201": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Los autores reportan que el ajuste posterior BeNice! en los puntos de control Parcae evaluados aproxima la perplejidad de validación con caché compartida a la de caché separada, y mantiene la calidad del ajuste estándar; la Tabla 5 informa un ajuste con tres semillas."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Para un modelo Parcae de 1.3B de parámetros con 8 recurrencias, los autores reportan que el uso de HBM global baja de 63.82 GB a 21.60 GB (66.2%) en Core-Extended, con lote de 64 y contexto de 2048 tokens."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En una reproducción simulada de solicitudes derivadas de producción con modelos proxy, los autores reportan hasta 23.6% más rendimiento y una caída del TTFT p90 de 139.2 a 23.2 segundos con 2 solicitudes por segundo."
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION",
+          "text": "El artículo reporta resultados para modelos Parcae entrenados, pruebas y configuraciones simuladas específicas; no demuestra una reproducción independiente ni mejoras en despliegues reales, otras arquitecturas o cargas."
+        }
+      ],
+      "contradictory_evidence": [
+        "El artículo informa que compartir cachés KV de forma ingenua puede reducir la calidad en modelos Parcae publicados; el método requiere entrenamiento y los resultados evaluados no implican que cualquier modelo en bucle admita compartirlas.",
+        "Las mejoras de servicio se simularon con trazas derivadas de solicitudes de producción y modelos proxy; no se midieron en un despliegue productivo real."
+      ],
+      "evidence_gaps": [
+        {
+          "description": "Los resultados reportados de calidad, memoria y servicio no se han reproducido de forma independiente.",
+          "kind": "reproduction_missing",
+          "state": "open",
+          "updated_at": "2026-10-23T18:20:53Z"
+        },
+        {
+          "description": "La evaluación de servicio usa reproducción simulada de trazas y modelos proxy; no se establecen resultados en producción ni transferencia a otras arquitecturas o cargas.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-23T18:20:53Z"
+        }
+      ],
+      "importance_rationale": "Si los resultados reportados se generalizan más allá de los modelos y las cargas simuladas evaluadas, entrenar modelos en bucle para compartir cachés KV podría reducir la memoria de inferencia y mejorar la capacidad y latencia del servicio, con efectos sobre la economía del despliegue. Esta consecuencia no demuestra los resultados ni su transferencia.",
+      "limitations": [
+        "Todas las cifras de rendimiento son reportadas por los autores y no se reprodujeron de forma independiente.",
+        "Los resultados de servicio usan reproducción simulada de trazas de producción y modelos proxy; se desconoce su transferencia a despliegues reales.",
+        "El enfoque evaluado corresponde a modelos Parcae en bucle entrenados; no demuestra mejoras para despliegues generales de transformadores."
+      ],
+      "relationships": [],
+      "summary": "Un nuevo artículo de arXiv propone BeNice!, un método de ajuste posterior destinado a hacer confiable el uso compartido de cachés KV en modelos de lenguaje en bucle. Los autores reportan una calidad de validación casi igual con cachés compartidas y separadas en los puntos de control Parcae evaluados, una reducción del 66.2% en HBM global para un modelo de 1.3B de parámetros con ocho recurrencias y mejoras de rendimiento y TTFT en una reproducción simulada con modelos proxy. Son resultados reportados por el artículo; siguen pendientes la reproducción independiente y la transferencia a despliegues reales u otras arquitecturas.",
+      "technical": {
+        "claimed_result": "El artículo reporta que el entrenamiento BeNice! permite compartir casi sin pérdida cachés KV en modelos Parcae en bucle evaluados, conserva la calidad sin compartir y reduce memoria con mejores resultados de rendimiento y TTFT en servicio simulado.",
+        "demonstrated_result": "El texto principal y las tablas documentan las afirmaciones experimentales de los autores y su configuración. En esta activación no se hizo una reproducción independiente.",
+        "mechanism": "Los autores plantean que el entrenamiento con profundidad estocástica favorece dinámicas residuales contractivas y usan BeNice! para corregir errores residuales de la primera recurrencia. Aquí no se verificó de forma independiente el mecanismo.",
+        "novelty": "El artículo combina un método de entrenamiento para compartir cachés KV con mediciones de memoria y resultados de servicio simulado para modelos en bucle.",
+        "regime": "Modelos Parcae en bucle específicos, puntos de control públicos, pruebas evaluadas y trazas de servicio/modelos proxy simulados descritos en arXiv:2610.31633v1.",
+        "strongest_baseline": "Ajuste estándar sin la pérdida auxiliar BeNice! y comparación del mismo modelo con cachés KV separadas; las comparaciones de servicio usan bucles sin compartir en las mismas cargas simuladas del artículo."
+      },
+      "title": "BeNice! reporta un uso casi sin pérdida de la memoria KV compartida y un menor costo de servicio simulado para modelos de lenguaje en bucle",
+      "why_it_matters": "La memoria de caché KV crece con las recurrencias en modelos en bucle. Si estos resultados se generalizan, compartir cachés después del entrenamiento podría aumentar el contexto o la concurrencia utilizables y mejorar la latencia cuando la memoria es limitada. Los resultados se circunscriben a modelos y cargas simuladas específicos; aún no se demuestra su impacto en despliegues."
     },
     "FCMO-045BB8282222": {
       "claims": [
@@ -5026,6 +5082,68 @@
       "title": "MiMo-V2.6 informa aprendizaje por refuerzo a gran escala con varios marcos de agente",
       "why_it_matters": "El informe permite inspeccionar con más detalle el RL de agentes de tareas prolongadas al vincular escala de entrenamiento, diversidad de marcos, evaluación de recompensas, modos de fallo y un conjunto abierto para modelos más pequeños. Si se reproducen la transferencia entre marcos y las mejoras informadas, sus resultados podrían orientar la asignación de cómputo para el postentrenamiento. Los costos, los benchmarks del proveedor y la ausencia de reproducción independiente dejan incierta la magnitud y transferencia de las mejoras."
     },
+    "FCMO-1C139003F568": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "La Comisión Municipal de Ciencia y Tecnología de Beijing y el Comité Administrativo de Zhongguancun publicaron el 23 de octubre una convocatoria de proyectos de reserva en tres áreas: chips de cómputo para IA, algoritmos disruptivos y tecnología de modelos grandes avanzados."
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "La línea de chips propone una solución integrada de chip, tarjeta o sistema, software y adaptación de modelos, con validación de aplicación en al menos dos organizaciones usuarias reales. La línea de algoritmos propone una arquitectura neuronal nueva, probada con diez mil millones (10,000,000,000) de parámetros o más y comparada con el mejor Transformer del mismo tamaño."
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "La convocatoria incluye una tercera línea sobre modelos grandes adaptables o capaces de mejorarse por sí mismos, establece una duración habitual máxima de dos años y fija el cierre de solicitudes para el 2026-11-02 a las 18:00. Las empresas deben aportar fondos de contraparte por al menos 2:1 respecto de los fondos públicos de ciencia."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "La convocatoria no especifica el presupuesto total ni identifica beneficiarios y no demuestra que se haya construido, validado o probado que una arquitectura, un chip o un modelo supera una referencia."
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "Una convocatoria distinta de Beijing, publicada en 2025, ya solicitaba una arquitectura distinta de Transformer con un modelo de al menos 10 mil millones de parámetros y exigía que las empresas igualaran en proporción 2:1 los fondos públicos de ciencia; esto demuestra continuidad en los mecanismos declarados, no proyectos financiados ni resultados técnicos."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "La convocatoria no indica el fondo total, la asignación por proyecto, las entidades seleccionadas ni las decisiones de adjudicación.",
+          "kind": "missing_primary",
+          "state": "open"
+        },
+        {
+          "description": "No incluye una propuesta o producto de chip terminado, modelo, arquitectura, referencia de comparación, artefacto ni resultados medidos.",
+          "kind": "missing_independent",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si los proyectos seleccionados producen resultados, la convocatoria podría orientar la I+D regional hacia chips de inferencia, arquitecturas distintas de Transformer y sistemas de modelos grandes adaptables. Beijing ya había solicitado en 2025 trabajo con arquitecturas distintas de Transformer a escala de 10 mil millones de parámetros y fondos empresariales de contraparte 2:1; el aviso de 2026 agrega validación de chips con dos usuarios reales y una línea diferenciada para modelos adaptables. No informa fondos disponibles, adjudicaciones ni resultados, así que la puntuación expresa una posible consecuencia acotada de política, no avances técnicos logrados.",
+      "limitations": [
+        "La fuente acredita una convocatoria regional y sus objetivos, no la selección o financiación de proyectos, su finalización ni avances técnicos.",
+        "No informa el presupuesto total ni el límite por proyecto; la exigencia de fondos empresariales de contraparte 2:1 no demuestra inversión privada adicional efectivamente aportada.",
+        "La línea de algoritmos exige comparar con el mejor Transformer de escala similar, pero no define un modelo concreto, conjunto de datos, métrica ni protocolo de prueba.",
+        "La convocatoria corresponde a Beijing y no debe generalizarse a toda China ni tratarse como un programa nacional.",
+        "La comparación con el aviso de 2025 confirma que algunos objetivos y la contraparte empresarial 2:1 ya se habían solicitado; no se revisaron adjudicaciones de 2025, fondos de contraparte desembolsados ni resultados técnicos."
+      ],
+      "relationships": [
+        {
+          "summary": "Beijing publicó por separado una convocatoria el 20 de octubre para proyectos de ciberdefensa con IA y pruebas adversariales. Son dos eventos regionales distintos de las mismas entidades y no deben fusionarse.",
+          "target_id": "FCMO-F1E17B2ACD46",
+          "type": "related"
+        }
+      ],
+      "summary": "Una convocatoria del 23 de octubre de la Comisión Municipal de Ciencia y Tecnología de Beijing y el Comité Administrativo de Zhongguancun solicita proyectos de reserva en tres áreas tecnológicas de IA: chips de inferencia, algoritmos disruptivos y tecnología avanzada de modelos grandes. La línea de chips busca una solución integrada de chip, software y adaptación de modelos, validada por al menos dos organizaciones usuarias reales. La línea de algoritmos plantea probar una arquitectura nueva con 10,000,000,000 o más parámetros y compararla con un Transformer de referencia del mismo tamaño. Una tercera línea apunta a modelos grandes adaptables o capaces de mejorarse por sí mismos. Beijing ya había solicitado en 2025 trabajo con arquitecturas distintas de Transformer a esta escala, y aquella convocatoria también incluía la contraparte empresarial 2:1. El nuevo aviso añade validación de chips con dos usuarios y una línea diferenciada para modelos adaptables. Establece objetivos y reglas de solicitud, no adjudicaciones, sistemas construidos ni resultados técnicos medidos.",
+      "technical": {
+        "claimed_result": "La comisión busca propuestas que podrían mejorar el hardware de inferencia, las arquitecturas distintas de Transformer o los modelos grandes adaptables; son objetivos declarados, no resultados obtenidos.",
+        "demonstrated_result": "El aviso oficial en chino establece las tres líneas, algunos objetivos técnicos y condiciones de solicitud y plazo. No informa de sistemas terminados ni mediciones de desempeño.",
+        "mechanism": "La convocatoria solicita desarrollar y validar en aplicaciones un conjunto de chips para cómputo de IA; una arquitectura neuronal distinta de Transformer, co-diseñada con cuantización de baja precisión; y métodos de adaptación de modelos grandes, como mejora recursiva, nuevos mecanismos de atención y multimodalidad nativa.",
+        "regime": "Convocatoria municipal de Beijing para temas de reserva, fechada el 23 de octubre de 2026. La duración prevista normalmente no supera dos años; los proyectos de chips requieren validación en dos organizaciones usuarias reales y la línea de arquitecturas fija un mínimo de diez mil millones (10,000,000,000) de parámetros.",
+        "strongest_baseline": "La convocatoria pide comparar la línea de algoritmos con el mejor Transformer de tamaño similar, pero no especifica una referencia, conjunto de datos, métrica ni protocolo. No presenta resultados comparativos."
+      },
+      "title": "Beijing invita propuestas para proyectos de tecnología disruptiva de IA",
+      "why_it_matters": "La convocatoria retoma el interés de Beijing por modelos grandes distintos de Transformer y la cofinanciación empresarial, y añade validación de chips con usuarios reales y una línea separada para modelos adaptables. El aviso de 2025 muestra que la escala de 10 mil millones de parámetros y la contraparte 2:1 ya se habían solicitado; la publicación de 2026 sigue siendo una convocatoria regional concreta. Ninguna de las dos demuestra adjudicaciones, capital privado efectivamente aportado ni resultados técnicos."
+    },
     "FCMO-1C97FA8F0262": {
       "claims": [
         {
@@ -6256,10 +6374,10 @@
       "contradictory_evidence": [],
       "evidence_gaps": [
         {
-          "description": "No se revisaron el orden del día de la primera reunión, sus actas ni decisiones de política resultantes.",
+          "description": "Desde la actualización del registro fundacional, se revisaron el orden del día y el documento de temas propuestos de la primera reunión del 22 de octubre; no se encontró un acta oficial ni un registro de decisiones que indique qué orientaciones adoptó el consejo.",
           "kind": "other",
           "state": "open",
-          "updated_at": "2026-10-22T04:14:33Z"
+          "updated_at": "2026-10-23T17:20:17Z"
         },
         {
           "description": "La decisión fundacional no indica presupuesto, asignaciones de infraestructura de IA y digital, compras públicas ni medidas de implementación.",
@@ -6276,13 +6394,17 @@
       ],
       "importance_rationale": "Si el consejo actúa conforme a su mandato, un foro intergubernamental de nivel de Gabinete centrado en las reglas, la infraestructura y el despliegue de IA y tecnología digital podría influir en la adopción y la gobernanza nacionales de la IA. Su creación formal es un cambio institucional; su influencia práctica todavía no se ha medido.",
       "limitations": [
-        "La fuente acredita una decisión del Gabinete y un diseño de gobernanza declarado, no cambios de política ya realizados ni efectos operativos.",
-        "No se revisaron la primera agenda, el presupuesto, las asignaciones de infraestructura de IA, las compras públicas, las modificaciones normativas ni los resultados de despliegue.",
+        "La decisión fundacional acredita la creación del consejo y su mandato declarado, no cambios de política ya realizados ni efectos operativos.",
+        "La página de la primera reunión y el documento de temas propuestos se revisaron después del registro fundacional; describen orientaciones para debatir, no normas adoptadas. No se establecieron actas oficiales, presupuesto, compras públicas ni resultados de implementación.",
         "Los objetivos de la fuente sobre crecimiento económico, servicios públicos y reducción de riesgos son la justificación de la política, no resultados medidos."
       ],
       "relationships": [
         {
           "target_id": "FCMO-8BF3C32CA3BF",
+          "type": "related"
+        },
+        {
+          "target_id": "FCMO-3CDA473105CB",
           "type": "related"
         }
       ],
@@ -9062,6 +9184,57 @@
       },
       "title": "PUN informa resultados de planificación con ruido en bancos geométricos 2D–4D",
       "why_it_matters": "Un campo de valor global aprendido, combinado con búsqueda acotada al momento de la prueba, podría reducir la dependencia de resolver una ecuación diferencial parcial para cada geometría al planificar bajo ruido en espacios de mayor dimensión. Los resultados en bancos de prueba son prometedores y pertinentes para la investigación en planificación robótica, pero su transferencia depende de una correspondencia restrictiva entre control y ruido y no se ha evaluado en robots físicos con contacto. Las comparaciones de tiempo entre GPU y CPU no están normalizadas por hardware."
+    },
+    "FCMO-3CDA473105CB": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "El Consejo de Promoción de la Reforma de la IA y lo Digital de Japón celebró su primera reunión el 22 de octubre de 2026 y la Agencia Digital publicó el orden del día y los materiales."
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "Un documento ministerial de temas presentado al consejo recomienda considerar la revisión de la Ley de IA de Japón, ya vigente, y de normas relacionadas, además de medidas de seguridad para agentes en todo el sistema —incluidos entornos de ejecución, identidad, barreras de protección, permisos, evaluación y registros de auditoría— e infraestructura compartida para que los agentes accedan y actúen."
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION",
+          "text": "Las propuestas ministeriales publicadas no demuestran que el consejo las haya adoptado, que haya cambiado alguna ley, que se aprobara financiamiento o contratación, ni que la implementación haya mejorado resultados."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se revisaron actas oficiales ni una decisión que indique cuáles de los temas propuestos adoptó el consejo para ejecutarlos.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "No se establecieron asignaciones presupuestarias, contrataciones ni pruebas de entrega de infraestructura común para agentes o planes de despliegue sectorial.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se adopta y se implementa, una agenda nacional que vincule la revisión de la Ley de IA, controles para agentes, infraestructura compartida y despliegue sectorial podría influir de manera sustancial en la gobernanza y adopción de IA en Japón. Esta puntuación refleja la consecuencia potencial, no la aceptación ni ejecución de las propuestas.",
+      "limitations": [
+        "La página del consejo presenta el orden del día y materiales, no actas ni un registro de decisiones.",
+        "El documento plantea propuestas; no se acredita una reforma legal, política final, presupuesto, contratación ni resultado de implementación.",
+        "No se midió ningún efecto sobre adopción de IA, seguridad, productividad, competencia o servicios públicos."
+      ],
+      "relationships": [
+        {
+          "target_id": "FCMO-279AE015C671",
+          "type": "related"
+        }
+      ],
+      "summary": "En su primera reunión del 22 de octubre, el Consejo de Promoción de la Reforma de la IA y lo Digital de Japón publicó un documento ministerial de temas que propone una reforma amplia de la IA y lo digital. Recomienda considerar la revisión de la Ley de IA de Japón y de normas relacionadas; un enfoque de seguridad integral para los agentes de IA que incluya entornos de ejecución, identidad, barreras de protección, gestión de facultades, evaluación y registros de auditoría; infraestructura común para que los agentes accedan a datos y realicen acciones de forma segura; y planes de implementación gubernamental y sectorial. La Ley de IA de Japón ya está en vigor; el documento propone revisarla, pero no identifica ni adopta una enmienda concreta. Es una propuesta de debate, no evidencia de implementación.",
+      "technical": {
+        "claimed_result": "El ministro responsable de la reforma de la IA y lo digital presentó un marco de temas que propone considerar la revisión de la Ley de IA vigente en Japón y de normas relacionadas, crear salvaguardas para sistemas de agentes, establecer infraestructura común y ampliar el despliegue público y sectorial. Son propuestas para debate, no políticas aprobadas.",
+        "demonstrated_result": "La Agencia Digital publicó la página de la primera reunión y un documento ministerial de temas propuestos en japonés. La Oficina del Gabinete confirma que la Ley de IA de Japón está plenamente en vigor desde el 2025-09-01; el documento de la reunión propone considerar su revisión, pero no nombra una enmienda concreta.",
+        "mechanism": "La propuesta ministerial combina la revisión normativa entre ministerios y una gobernanza ágil con salvaguardas para los entornos de ejecución de agentes, su identidad, barreras de protección, gestión de facultades, evaluación y registros de auditoría; también plantea infraestructura común de datos y sistemas y planes de implementación gubernamental y sectorial.",
+        "regime": "Agenda de política nacional sobre IA y reforma digital de Japón; primera reunión del consejo celebrada el 2026-10-22.",
+        "strongest_baseline": "La Ley de IA de Japón está plenamente en vigor desde el 2025-09-01, y el Gabinete estableció el consejo el 2026-10-20 con un mandato amplio sobre IA y reforma digital. El documento ministerial de temas propuestos de la primera reunión plantea considerar una revisión y concreta la agenda, pero no acredita una enmienda adoptada ni implementación."
+      },
+      "title": "Primera reunión del Consejo japonés de reforma de la IA y lo digital plantea una amplia agenda de gobernanza",
+      "why_it_matters": "El alcance propuesto vincula la gobernanza japonesa de la IA con los sistemas prácticos que necesitan los agentes para actuar: identidad, autoridad delegada, interfaces de programación, firmas, pagos y trazabilidad de auditoría. Si se adopta, la combinación de revisión normativa e infraestructura pública compartida podría influir en el despliegue nacional y las condiciones del mercado. La propuesta se refiere a la Ley de IA de Japón, que ya está en vigor, pero no establece una enmienda concreta, una regla definitiva, una asignación presupuestaria ni resultados medidos."
     },
     "FCMO-3CE4BEB693AD": {
       "claims": [
@@ -17410,6 +17583,65 @@
       },
       "title": "GraphSkillAA emplea grafos de habilidades direccionables y dos compuertas para actualizar habilidades de agentes de forma focalizada",
       "why_it_matters": "Si se reproduce de forma independiente, el método ofrece una forma concreta de actualizar procedimientos externos de agentes en objetos específicos del grafo, comprobar regresiones y revertir ediciones fallidas. Esto podría influir en el diseño de bibliotecas persistentes de habilidades. La evidencia actual abarca tres conjuntos de benchmarks y ejecuciones de API realizadas por los autores; no demuestra utilidad en despliegues, agentes de larga duración ni auto-mejora general."
+    },
+    "FCMO-716A47307766": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Dos reportajes fechados el 21 de octubre indican que autoridades financieras y científicas de Beijing-Tianjin-Hebei presentaron conjuntamente un plan regional para el Centro Internacional de Ciencia y Tecnología de Beijing (Jing-Jin-Ji) durante el Foro Financiero de la Calle Financiera del 20 de octubre de 2026."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los reportajes describen un paquete de seis apartados y 15 medidas que incluye capital de largo plazo, préstamos para I+D y transferencia tecnológica, coordinación financiera interregional, seguros tecnológicos y ciertas medidas de financiamiento transfronterizo."
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION",
+          "text": "Los reportajes disponibles no establecen el texto firmado, la elegibilidad, los montos comprometidos, las fechas de inicio, las organizaciones financiadas, la participación efectiva ni los efectos medidos en investigación y economía."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se localizó el plan regional firmado; los detalles disponibles provienen de dos reportajes atribuidos.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-23T18:14:28Z"
+        },
+        {
+          "description": "No se conocen las asignaciones presupuestarias, los criterios de elegibilidad, el calendario de inicio, los beneficiarios ni los flujos reales de capital.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se implementa, el plan regional descrito podría cambiar el financiamiento de empresas científicas y tecnológicas mediante capital coordinado, préstamos para I+D y comercialización, seguros y financiamiento transfronterizo. El paquete reportado podría tener consecuencias relevantes para una región de innovación importante; no se establecen asignaciones, uso ni resultados.",
+      "limitations": [
+        "Los detalles del plan se basan en reportajes atribuidos, no en el texto firmado.",
+        "No se dispone de asignaciones, reglas de elegibilidad, fechas de inicio, adopción ni resultados medidos de investigación o productividad.",
+        "Las declaraciones de política no prueban que el financiamiento se haya implementado ni que haya producido efectos."
+      ],
+      "relationships": [
+        {
+          "summary": "Continuidad regional reportada de la directriz central del 19 de octubre, que pidió a las regiones preparar detalles de implementación; este registro trata de un plan regional distinto.",
+          "target_id": "FCMO-7D5FC02D5B08",
+          "type": "implements"
+        },
+        {
+          "summary": "La opinión nacional del 21 de octubre también aborda la I+D empresarial y la comercialización, pero corresponde a un evento de política distinto.",
+          "target_id": "FCMO-C4F366972002",
+          "type": "related"
+        }
+      ],
+      "summary": "Dos reportajes fechados el 21 de octubre indican que autoridades financieras y científicas de Beijing-Tianjin-Hebei presentaron un plan regional en el Foro Financiero de la Calle Financiera del 20 de octubre. Describen seis apartados y 15 medidas sobre capital de largo plazo, préstamos para investigación y transferencia tecnológica, servicios financieros interregionales, seguros tecnológicos y financiamiento transfronterizo. No se localizó el plan firmado, y los reportajes no aportan asignaciones, adopción ni resultados.",
+      "technical": {
+        "claimed_result": "Los reportajes describen un plan regional para ampliar el financiamiento de la ciencia, la transferencia tecnológica y las industrias avanzadas.",
+        "demonstrated_result": "Dos reportajes fechados confirman que la presentación del plan fue informada públicamente y describen algunas medidas; no incluyen el texto firmado ni demuestran su implementación.",
+        "mechanism": "Las medidas reportadas combinan inversión de largo plazo, capital público y privado, crédito para investigación y comercialización, seguros y coordinación de servicios financieros regionales.",
+        "novelty": "El paquete regional reportado da seguimiento a la directriz central de financiamiento científico con un documento específico para la región. Su novedad detallada queda pendiente hasta inspeccionar el texto firmado.",
+        "regime": "Política de financiamiento científico y tecnológico de Beijing-Tianjin-Hebei según reportajes en chino publicados por el portal del Gobierno Municipal de Beijing y People’s Daily Online el 21 de octubre de 2026.",
+        "strongest_baseline": "La directriz central del 19 de octubre, que pidió a las autoridades regionales formular detalles de implementación; no hay resultados financieros anteriores o posteriores disponibles."
+      },
+      "title": "Reportajes describen un plan regional de financiamiento científico para Beijing-Tianjin-Hebei",
+      "why_it_matters": "Si se lleva a cabo, la coordinación financiera regional y los préstamos vinculados con investigación y transferencia tecnológica podrían afectar cómo las empresas científicas y tecnológicas de Beijing-Tianjin-Hebei obtienen capital. La evidencia disponible confirma que se reportó el plan y algunas medidas; no demuestra implementación ni efectos económicos."
     },
     "FCMO-71A18CEA363D": {
       "claims": [
@@ -30035,6 +30267,78 @@
       "title": "Cognizant informa que un transformer de 75M alcanzó cerca de 76% de pass@2 en la evaluación pública de ARC-AGI-1",
       "why_it_matters": "El informe presenta un caso concreto en el que un modelo de 75M adaptado a la estructura de la tarea y unas cuatro horas de trabajo en una sola GPU supuestamente alcanzan una puntuación alta en ARC-AGI-1 público. Si se reproduce con una partición limpia, ayudaría a medir cuánto pueden aportar la representación especializada, la aumentación, la predicción de varios tokens y la selección de candidatos en un benchmark estructurado. No demuestra paridad de razonamiento general con modelos de frontera: los resultados de ARC-AGI-2 son menores, la evaluación usa el conjunto público y no se estableció una comparación directa emparejada ni una ejecución independiente."
     },
+    "FCMO-D2B0F918F4BB": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "OpenAI informa que Habitat da servicio a productos utilizados por más de 1 mil millones de personas cada semana y gestiona más de 500 petabytes de datos mediante una plataforma de almacenamiento distribuida globalmente."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "OpenAI informa que adoptó un modo sin servidor mejorado de Azure Cosmos DB, compatible con divisiones de particiones según unidades de solicitud, lo que permitió volver a un contenedor compartido de varios clientes; la empresa afirma que durante meses no ha tenido incidentes de aprovisionamiento ni de interferencia entre clientes."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "OpenAI informa que la latencia p50 de lectura de Habitat bajó de aproximadamente 120 ms a 10 ms tras desplegar replicación regional cercana, caché dentro de la región y un servicio en Rust; el artículo no separa la contribución de cada cambio."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "OpenAI informa que su plataforma de captura de cambios procesa millones de cambios de base de datos por segundo en miles de contenedores y millones de particiones, y alimenta más de cien temas de Kafka."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "La publicación no demuestra de forma independiente la confiabilidad, la eficiencia de costos, la generalización a otras cargas de trabajo ni el efecto causal separado de la replicación, la caché y Rust sobre la latencia."
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "Microsoft Learn documenta que la cuenta estándar sin servidor de Azure Cosmos DB se limita a una sola región y permite un máximo de 5,000 RU/s por partición física. OpenAI describe un modo mejorado distinto, creado para Habitat, con hasta 10,000 RU/s por partición y divisiones según unidades de solicitud; no se ha establecido su disponibilidad pública ni su equivalencia con la cuenta estándar."
+        }
+      ],
+      "contradictory_evidence": [
+        "La documentación pública de Microsoft Learn para Azure Cosmos DB sin servidor, actualizada por última vez el 27 de abril de 2026, describe cuentas estándar limitadas a una región, con un máximo de 5,000 RU/s por partición física y sin bases de datos con capacidad compartida. La publicación de OpenAI del 23 de octubre describe un modo mejorado creado por Azure para Habitat que permite 10,000 RU/s por partición y divisiones según unidades de solicitud. Se trata de una diferencia de alcance y disponibilidad, no de una contradicción demostrada: las páginas de Microsoft describen el servicio estándar y no abordan el modo personalizado. Se desconoce si este modo personalizado está disponible fuera de Habitat."
+      ],
+      "evidence_gaps": [
+        {
+          "description": "Las cifras de escala, latencia y confiabilidad de OpenAI son afirmaciones basadas en producción de primera parte; no se han inspeccionado telemetría independiente ni corroboración de clientes.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "El cambio informado de aproximadamente 120 ms a 10 ms en latencia p50 combina replicación regional, caché regional y el servicio en Rust; no se detallan los efectos causales por separado ni la mezcla de cargas.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "El informe trata la carga de trabajo de almacenamiento de aplicaciones de OpenAI y no demuestra que el mismo diseño o los mismos resultados cuantitativos se transfieran al servicio de modelos, entrenamiento u otros sistemas en línea.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "La documentación pública estándar de Microsoft Learn, actualizada por última vez el 2026-04-27, describe cuentas sin servidor de una sola región con hasta 5,000 RU/s por partición física y sin bases de datos de capacidad compartida. OpenAI describe un modo mejorado distinto creado para Habitat, pero no se ha establecido su alcance de despliegue, disponibilidad pública ni relación con el contrato estándar.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si los resultados de producción informados por OpenAI se sostienen, Habitat es un caso de estudio notable sobre cómo escalar almacenamiento en línea para un producto de IA de frontera: el diseño de contenedor compartido, la caché regional y la captura de cambios respaldan más de 70 millones de solicitudes por segundo en una plataforma de 500 PB. No recibe una puntuación mayor porque es el informe operativo de un proveedor, sin telemetría independiente, costos normalizados ni separación causal de las mejoras de latencia.",
+      "limitations": [
+        "OpenAI informa las cifras operativas de escala, historial de incidentes y latencia; el artículo no proporciona telemetría auditable de forma independiente.",
+        "El cambio de aproximadamente 12x en latencia p50 se atribuye en conjunto a replicación regional, caché en la región y el servicio en Rust; el artículo no mide sus efectos por separado.",
+        "La publicación no ofrece una comparación de costos normalizada ni la distribución completa de latencia p50/p95/p99 para los cambios descritos.",
+        "Habitat es una plataforma de almacenamiento en línea para aplicaciones; los resultados no demuestran que se transfieran al entrenamiento o la inferencia de modelos.",
+        "La documentación pública estándar de Microsoft Learn, actualizada por última vez el 2026-04-27, describe cuentas sin servidor de una sola región con un límite de 5,000 RU/s por partición física y sin bases de datos de capacidad compartida. OpenAI afirma que Azure creó un modo mejorado para Habitat; no se ha establecido su disponibilidad pública ni su equivalencia con el contrato estándar."
+      ],
+      "relationships": [],
+      "summary": "La publicación de ingeniería de OpenAI del 23 de octubre describe la capa de almacenamiento de Habitat, su plataforma en línea que respalda productos utilizados por más de 1 mil millones de personas cada semana. OpenAI informa que volvió a un diseño administrado en conjunto y multiusuario de Azure Cosmos DB con un modo sin servidor mejorado y divisiones de partición según unidades de solicitud; la empresa afirma que desde entonces pasaron meses sin incidentes de aprovisionamiento ni de interferencia entre clientes. También informa que la replicación cercana, la caché regional y un servicio en Rust redujeron la latencia p50 de lectura de aproximadamente 120 ms a 10 ms. El artículo describe un sistema de captura de cambios que procesa millones de cambios por segundo. Son resultados de producción informados por el proveedor; la publicación no audita los datos ni separa la contribución de cada intervención. La documentación pública estándar de Microsoft Learn describe un contrato distinto, de una sola región y 5,000 RU/s por partición; OpenAI caracteriza el modo de Habitat como una versión mejorada creada para ese servicio y no se sabe si está disponible públicamente.",
+      "technical": {
+        "claimed_result": "OpenAI informa más de 500 PB, más de 70 millones de solicitudes por segundo, meses sin incidentes de aprovisionamiento ni interferencia entre clientes tras volver a contenedores compartidos, una latencia p50 de lectura de aproximadamente 120 ms a 10 ms y captura de cambios a millones de eventos por segundo.",
+        "demonstrated_result": "El informe de ingeniería de primera parte documenta la arquitectura descrita por OpenAI y las mediciones de producción que comunica; la telemetría no se verificó de forma independiente, el cambio de latencia no se reprodujo y los incidentes no se auditaron.",
+        "mechanism": "Habitat utiliza una capa de almacenamiento multiusuario administrada en conjunto sobre Azure Cosmos DB, divisiones de partición según unidades de solicitud, replicación regional selectiva, caché en la región y captura de cambios. El artículo describe el regreso de contenedores dedicados a contenedores compartidos después de que Azure incorporó un modo sin servidor mejorado.",
+        "regime": "Plataforma de almacenamiento de aplicaciones de OpenAI en producción, distribuida en unas 40 regiones y utilizada por ChatGPT, API, Codex y productos internos; las métricas y los resultados de arquitectura son informes del proveedor. OpenAI caracteriza el comportamiento mejorado sin servidor como creado para Habitat; la documentación pública estándar de Azure declara otros límites.",
+        "strongest_baseline": "OpenAI compara el diseño con los límites previos de rendimiento por partición en contenedores compartidos y con la carga de administrar capacidad en contenedores dedicados. Para la latencia, el artículo informa aproximadamente 120 ms antes y 10 ms después de una secuencia conjunta de replicación, caché y despliegue de Rust, sin una tabla pública de comparación emparejada."
+      },
+      "title": "OpenAI describe el almacenamiento multiusuario y el diseño de latencia global de Habitat a escala de 500 PB",
+      "why_it_matters": "La publicación ofrece un caso concreto de cómo interactúan el aislamiento de cargas, el comportamiento de las particiones, la ubicación regional, la caché y la captura de cambios en un gran servicio de almacenamiento en línea. La mejora p50 informada, de 12x, es relevante para la operación, pero combina varias intervenciones y no establece sus efectos por separado, el costo comparativo ni la transferencia a otras cargas. El contrato público de Azure documentado al 27 de abril de 2026 difiere del modo de Habitat descrito aquí, que no debe suponerse disponible de forma general."
+    },
     "FCMO-D32D8204EF09": {
       "claims": [
         {
@@ -36238,6 +36542,48 @@
         "source_sha256": "0278b59d843ff81fd60fc91c440a6eddf6945cf4a706d86e8ca7eb891ea78de8"
       }
     },
+    "FCMO-039F03B60201": {
+      "claims": {
+        "locale_sha256": "586d948074b60042caab4a6858c503067db97e959ad2bfc3faf591a16b6232ad",
+        "source_sha256": "a3dec84fda4edb495c084639f7aae313626f294e3f9f9c8fccea5083d927328e"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "af63c01466d3cf63b255e34278295339beb388f7aef6ea794e24af64ab80d904",
+        "source_sha256": "2275a8f922b738bb9f7e390d968e02a09c50bb6591f40bfef15df4ab2aa0858d"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "bf77b5209f1e98a1b65124d229afa6585a5f7b3ad05f6dbb4d2519b6c4d80c02",
+        "source_sha256": "d81e65a37ec08833af34d538352e643daf0a23ea3bbd24dea43e949f4eb50e19"
+      },
+      "importance_rationale": {
+        "locale_sha256": "d7f2f12fcc6a537994d5d17c4717f289557169c214d4d6e1aa6d8e0aeca36990",
+        "source_sha256": "ad30c684b8c04edfce1ebb08491053017257064e94657453fde124adbe882815"
+      },
+      "limitations": {
+        "locale_sha256": "49647e4473d949521ffb2d0ed686c9c07143b56e32b588abedfbe57c0c3fda50",
+        "source_sha256": "161140d3cdfdceaade42818c6eaf959bacc6476414cc2ed1188da9c84da047e4"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "c424a30ceca9f90a182ef37bb0f65083cd475cd502c2be7b139e96c040591620",
+        "source_sha256": "66f199a7d59b2d9d7c08aa29b863108b6a6826fd404c8611aadff0c5945c07f3"
+      },
+      "technical": {
+        "locale_sha256": "e9dc1594cfdcb0dce6a88495a862b97b3e68660141b9e784e7f50ec6f01ae22c",
+        "source_sha256": "9caeda2dc51e9e40b0fe296df8db8d81bb994d0cbe38141ea302d2e262d8bb8f"
+      },
+      "title": {
+        "locale_sha256": "7156ac1fa070aa87c76d21e028d62e7ad8b6f19d1c8d17f8ce27adc06caa1ce1",
+        "source_sha256": "b59ed28f1600267750da8c40f65411e8401f38e3232671bdf69d684cb7e6df09"
+      },
+      "why_it_matters": {
+        "locale_sha256": "ca15707b30e8d9c17a4b4dde9719cb386bb5ba1e37ee52fc9424924252f68444",
+        "source_sha256": "ae7dbcda81354cc329a4e6b3013a91a0ffd2fcf090de21367817d5836ed32bce"
+      }
+    },
     "FCMO-045BB8282222": {
       "claims": {
         "locale_sha256": "6dea454d757925b298236e7cd041397aaf958617b3765e71aacb80616b48ad11",
@@ -39556,6 +39902,48 @@
         "source_sha256": "4c28e0a4c265640247fa686c62882e279a89db9fe43c6a12bf42a0c5c085b9b7"
       }
     },
+    "FCMO-1C139003F568": {
+      "claims": {
+        "locale_sha256": "b1b1919b0faf060c713ffe911e22ce6dd51b58dd2192c59459fee5eb3b18714c",
+        "source_sha256": "c7c3a1e6c0447b4a3e1953b4a0e4f6cac40bb909821afd80126e41cdad65c116"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "60c97ef201f774a1828b8829f2c8b1499d7afae4c0212ecf6d72b7f046a5103f",
+        "source_sha256": "0e6f868895e976e8ae0a24a72434f45b41e81311ec03788e7cf3b4ceed2b7b82"
+      },
+      "importance_rationale": {
+        "locale_sha256": "3e9c04ae3d3da8fddc68832ff43b33e0e21f47e381e7f559d78d5ef6439c65fd",
+        "source_sha256": "86ae66ea46b3f694c2902ba51cda2d83d3e2ea6507bf79ea91948f1ebf66108e"
+      },
+      "limitations": {
+        "locale_sha256": "b039c0d576a3aa7b6d5f06ced2199a1d01ec7a822a9680c76c38f0dcd700ddeb",
+        "source_sha256": "ece437c58d7f5aa96d52171e36fd669e45472c0963d81ec6ac4ea0a69cb95e82"
+      },
+      "relationships": {
+        "locale_sha256": "8a0a16002a6b8530c9b5c8374296a6caabd938923bd68f3dad6a2cb6e0ca04b7",
+        "source_sha256": "b24e83fb2021b1ce822e2775fcdccf9dc910394962d813d12e96853ec0a4e91b"
+      },
+      "summary": {
+        "locale_sha256": "6c1087b604c35255d1f360735b4f83df1af7674c54b747e34a25bbaf604aa879",
+        "source_sha256": "30891ba4e56e583f7deb17c9a9181db986a7d68e106d5da110ad2c0a62c870dd"
+      },
+      "technical": {
+        "locale_sha256": "1eb00a6b7f014a0431a57c877383dcb50d4e622f5a032f078b167e4e2d238e57",
+        "source_sha256": "73e483c7e8bfd5672db9587cd6ae29df58e5ca6acba079f9816f0aaf22905a43"
+      },
+      "title": {
+        "locale_sha256": "90cde160c5e7f1b931c59c32190e21ea6c4bcdf7654d5ebefe2b80d5558672cf",
+        "source_sha256": "42e3d6d63aa4d8fad2aeaf354ecb94d41f67012d768552f80d03392dbbbb5644"
+      },
+      "why_it_matters": {
+        "locale_sha256": "5679ec7dfbe947ea000b7ad9ad331b0b93a85a7c06fb92c6d26ce075da32d287",
+        "source_sha256": "18bbc33506ee1d2835e0ffa3f563338585e8c569227d38866953c380fe1c7414"
+      }
+    },
     "FCMO-1C97FA8F0262": {
       "claims": {
         "locale_sha256": "ac4cfb42c1a0ce7c7ac8bb336a779c6b1fa72bc4b8dadabadeaf4d964bc4c1ee",
@@ -40448,19 +40836,19 @@
         "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
       },
       "evidence_gaps": {
-        "locale_sha256": "dc18e6f86580f65cc5e8df96d47bf39ca93c82da97d8696f61c9b921f409fa85",
-        "source_sha256": "c2abe8157d31357ca7166a86683872df7c24fabe3665fc5e557c8ab3a2a3160a"
+        "locale_sha256": "94c5535e87c526e8307ea05be172801bd57ad063b7da74e13c053200b88d849b",
+        "source_sha256": "ca95a96b605f97310e65232ba17da99a250474c6e1767cc4ac95d4415b6f9003"
       },
       "importance_rationale": {
         "locale_sha256": "52d508427e4f89c3c86ad30bee0a1d5e62a8448040e72873a4ae027ba44ace26",
         "source_sha256": "db08323f731726b1f17451664acd9f075b5635583724a7fea1504d809e4791dc"
       },
       "limitations": {
-        "locale_sha256": "4ee5566b9d7e336aea8554e721ebd90dc98edefe995e86adcab4299338a79807",
-        "source_sha256": "6f5ce42b72c056352a50d6a6ccc9a387b99533949733c4861c1f3f9e0d50108b"
+        "locale_sha256": "e2fa3da1bd0a53324151cca06433da3d65fc457abb97d1b992944271d540b65d",
+        "source_sha256": "c4b9b6ba48b6dd97e0627cb7445edc6148b2b680db12343ffd042b5710dc4e0f"
       },
       "relationships": {
-        "locale_sha256": "616b69bdfd6761c0d9d8d0e828565397eae736c3826551302bc4b671a2890e53",
+        "locale_sha256": "a874c4da95ffd8006d3808df12f87573c7904616234482cc55bcf18e9f9a96df",
         "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
       },
       "summary": {
@@ -42578,6 +42966,48 @@
       "why_it_matters": {
         "locale_sha256": "fc1f07ccfd07def052247a0028211e7d8de92c254506766ceeb98c80decf4fa8",
         "source_sha256": "9a874f727f84279a0d00f508be9e36add22c8d9adff0e223be75a4c9a51e4a73"
+      }
+    },
+    "FCMO-3CDA473105CB": {
+      "claims": {
+        "locale_sha256": "4277a0f053e682747c361ea52e6b1147409456a57018f8dfdbaeedfee71c0ce4",
+        "source_sha256": "78190c2545a53d80d0445fd3e576b79061a273162be80190ed60012533929f31"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "139f3cde554ba433d701df1d71488706cbde01bd0e01365962959ab8ec389f30",
+        "source_sha256": "8348ad6f0739ca7f6705a15c0f88dce3daef7b0788f131ec2fc9afa4dac94251"
+      },
+      "importance_rationale": {
+        "locale_sha256": "d85640048a4f57d254b1ee20a84d9dff11c157de55ef5e7829ea067fe9e48389",
+        "source_sha256": "9704c772f76d4f36c51ddd884e13e9e095af9756c3df9b050520c834cbe2cdbe"
+      },
+      "limitations": {
+        "locale_sha256": "13fa6cee13f4b51beb62900dbb426486a21191e1b2000e5d92756c63e41ed604",
+        "source_sha256": "af4fe93838803a0881c2d47a19ab49f76aee4ac4ef2c97e33f0c74b2dd80e7da"
+      },
+      "relationships": {
+        "locale_sha256": "ba1d2c5e2ce70eca9632e092d70ec72d395d1d9401817d984cce2b869b545425",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "4a43f564c9f0f14722f24003236df10e8cf922a23b711a7dd83e2c18732d1f2c",
+        "source_sha256": "8d557695d406b7777f36a98c93ac8f6c1946dd96014da0dda5998b24f05903c8"
+      },
+      "technical": {
+        "locale_sha256": "31cbcf72df68a57b14745edf6e1a3356930f2786af1963647f4289d5e8d87074",
+        "source_sha256": "4e0512614bc19d8458cc8f66cf7c41fec6c2c81a54d5c5950b24dfa7c560ff0c"
+      },
+      "title": {
+        "locale_sha256": "c09032e82d1b4bf843143d141da487ffcd15db19d8ab8f2b6472a727fc4617a2",
+        "source_sha256": "1e81cdb8521a5fbc58e80f535127919c3644f576288778b344249b2794f2282e"
+      },
+      "why_it_matters": {
+        "locale_sha256": "df4c0b40b60b99229e5a09b5dd158b71e126862fa940c72fcf2ab974f05d10bd",
+        "source_sha256": "0d5d29af4f8f70e32ac35b282749c81c769ad4cb34a81bdff88f19e88cc2a4c4"
       }
     },
     "FCMO-3CE4BEB693AD": {
@@ -48920,6 +49350,48 @@
       "why_it_matters": {
         "locale_sha256": "5b76c0153d241e0357084804780c68c2de974c4e027d236b0124790ff265d581",
         "source_sha256": "1e23aa850c140c3b293ba552cd18b21ea3aedfebf5d51479183f7e150e5d7a14"
+      }
+    },
+    "FCMO-716A47307766": {
+      "claims": {
+        "locale_sha256": "61fb98f122083ec6744aea750efb94df79b972863fb4caf5b872566c1bd654a5",
+        "source_sha256": "5bbf49c16818d238cc3a428860d883bbd5f5a2b594ac000e16cd9509a91c38ff"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "2eb51970a66eac6e3b8f8ddcfa9148af25956ce915758ff94e4503daa4404df4",
+        "source_sha256": "d848eb68ddbee0f039f77754805e1724b795e7a47552ba60fcdcf07fda834c83"
+      },
+      "importance_rationale": {
+        "locale_sha256": "3280da9c6235ad48ce86bf6863e577943b00284f7f7e19c6c7ca20f7bd38428a",
+        "source_sha256": "9cdcebe17f4671940992f5b773233950e96a6ac593626b1cf8a0fede32848e65"
+      },
+      "limitations": {
+        "locale_sha256": "57d2541d68b4da6a75e87af1c148446a6b9542faa9d453dcd37f6584d089c667",
+        "source_sha256": "59ad9c7eb6ab173b4c0bfceb38d55b734bccb2eae84a375a139cf38f3a4c575e"
+      },
+      "relationships": {
+        "locale_sha256": "b17c93c11d7d50dd2f5605a148b755ebbd4662983b6fa39639c980a35ec35fc2",
+        "source_sha256": "e3b62ea4e3e7478e3950af46967c55a1db75c5c6bbb26fa38a7838205a0ce33b"
+      },
+      "summary": {
+        "locale_sha256": "1a0479022df33f40b1842039da52f1ef099459b39546d545679bba6d3d596ef8",
+        "source_sha256": "1d4d4ffa3b90a6fb8c2f88cd68aa7b2614cc97259566599ef9002f84588a551d"
+      },
+      "technical": {
+        "locale_sha256": "71b5de20c40e2e14095334c21ac13f732766cd1e96ad7a675f328dc5b6ddc417",
+        "source_sha256": "e8672d601bcac01240be68360d279f33a96051ba13670c607c0f6769a595a77b"
+      },
+      "title": {
+        "locale_sha256": "dad6985779e5fb628e7242853204bd1a2b34728ae20ba1438caee2a5591a2029",
+        "source_sha256": "dab85cf2d1f81c4ee4e7e7219a706b7859c8b79c1c58d7494bafb0c24f9be600"
+      },
+      "why_it_matters": {
+        "locale_sha256": "3e0e9b981f51d9ed3ea90fda75cc93743b5f74f90a1497784f5bd7fbad6ee14d",
+        "source_sha256": "b0d94b92a37e4c09b962bc127803ad1ecf74b53dd9b1be8e1ae9a189e9db3a55"
       }
     },
     "FCMO-71A18CEA363D": {
@@ -58384,6 +58856,48 @@
       "why_it_matters": {
         "locale_sha256": "89ad0c5aa5775c90e38bd75c9ff3a4887e504f784edc8e8ba996c0f2dda4fbcc",
         "source_sha256": "1506c401b388a6eec357f5455185826a90cd2ff680bb7981ae621a35b0e24993"
+      }
+    },
+    "FCMO-D2B0F918F4BB": {
+      "claims": {
+        "locale_sha256": "e5ded0861304cf3e7d7e4fb0ca9dfebb3c7492f380eec2e688108bfc67096a97",
+        "source_sha256": "9da55a889a11c70f2803d760b9e06915d324e60f250036b244861f1a901acdb8"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "d89b50b3020368aaff0b7b84893c5627a09042e31ea3bca52edeae6d77bbf419",
+        "source_sha256": "bf59fa7ba35c1f6171e474e89db56064565ee51bcb833d2890b529dcea572f9a"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "f25baa6179f66426c2b8ba7c2522f7b8bc02f8d739771143160773e096dd1570",
+        "source_sha256": "0b203ed68776b1d8b6e6c6cf4c2c92f6788d8385f1753c7c282e029beb29bddf"
+      },
+      "importance_rationale": {
+        "locale_sha256": "639c31ee8fdf1f1faad1b872205a22d9a292851c11c18e98676f876adc8cad64",
+        "source_sha256": "6594e090dac74d73ea97d8455c379217d3a4f1ecf4d52dbc2ef3a9e0521330cd"
+      },
+      "limitations": {
+        "locale_sha256": "d3788abd2d877132df16f40d70a0aa4869c3d7cd841d751d7c1cb065b24ab78f",
+        "source_sha256": "024cd232e4e601f6896242a6ba088b356d85559f55c4c92e2cbdb82450c19b40"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "232d277a9b18a99dbb269370e6dbaf89ad64812a7146cb3cdcc75875d741d8c8",
+        "source_sha256": "a437c3d79572dd956d250d94e783057bdfe9e016502acd6dd5d74cc6bee03a0d"
+      },
+      "technical": {
+        "locale_sha256": "ab32480e00c9bd56a1ec07f02552e7ebe1aa28340ee555351cef736ffd027d19",
+        "source_sha256": "99245e86b884812bbc25f2ec669d8d6ccef41963409c893eb9ca8ebceaecb363"
+      },
+      "title": {
+        "locale_sha256": "d236d243ce306d72e23a751145db3c6bb36f603349fea88767e458027ed88f45",
+        "source_sha256": "d5ee782d575b5f5cef8de6293034df9789ba741a1ed9370516a3e29ef00b2827"
+      },
+      "why_it_matters": {
+        "locale_sha256": "2397aae10c5b4503f5b683e81a8cbb4fd695c897352c83bfd16779b332e34310",
+        "source_sha256": "e73691e2738837b5689e5e94001ead9733bbe38da8122f8afabdc0a3efa443f9"
       }
     },
     "FCMO-D32D8204EF09": {

@@ -88,20 +88,29 @@ class EvidenceSignatureTests(unittest.TestCase):
         cls.routes = build(STORIES, cls.out)
 
         fixture = json.loads(STORIES.read_text(encoding="utf-8"))
-        # The three probes must be the stories the archive and the front list first, which they order by event date,
-        # not by file order (a late-published story about an older event sits far down the archive).
-        live = sorted((story for story in fixture["stories"] if story.get("status") == "live"),
-                      key=lambda story: story.get("event_at") or "", reverse=True)
-        live[0]["confidence"] = "not_a_real_level"
-        live[1].pop("confidence", None)
-        live[2].pop("evidence", None)
-        live[2].pop("sources", None)
+        live = [story for story in fixture["stories"] if story.get("status") == "live"]
+        # The three mutated stories must be cards on the first archive page of every locale,
+        # whatever the hourly corpus ranks first today; never assume a fixed corpus position.
+        on_page = None
+        seen = set()
+        for route in cls.routes:
+            if route["kind"] == "archive" and route["locale"] not in seen:
+                seen.add(route["locale"])
+                page = (cls.out / route["path"].strip("/") / "index.html").read_text(encoding="utf-8")
+                ids = {story_id for story_id, _ in CARD.findall(page)}
+                on_page = ids if on_page is None else on_page & ids
+        chosen = [story for story in live if story["id"] in (on_page or set())][:3]
+        assert len(chosen) == 3, "fewer than three live stories on the first archive page"
+        chosen[0]["confidence"] = "not_a_real_level"
+        chosen[1].pop("confidence", None)
+        chosen[2].pop("evidence", None)
+        chosen[2].pop("sources", None)
         # The bare probe carries nothing at all, so its class must be «not established» whatever level the
-        # day's newest story arrived with (a «shown» level would otherwise make the expectation data-dependent).
-        live[2].pop("confidence", None)
+        # chosen story arrived with (a «shown» level would otherwise make the expectation data-dependent).
+        chosen[2].pop("confidence", None)
         for story in live:
             story["evidence_class"] = "<x>"
-        cls.fixture_ids = [story["id"] for story in live[:3]]
+        cls.fixture_ids = [story["id"] for story in chosen]
         (temp / "fixture.json").write_text(json.dumps(fixture), encoding="utf-8")
         cls.fixture_out = temp / "fixture" / "FCMO-AI-Newsletter"
         cls.fixture_routes = build(temp / "fixture.json", cls.fixture_out)
