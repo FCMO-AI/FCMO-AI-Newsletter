@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections import Counter
 from html import escape
 
+from ..front_plan import evidence_class as item_class
 from ..i18n import label, plural
 
 # The five base claim families keep full weight on the board; finer labels stay
@@ -142,10 +143,52 @@ def _class_word(catalog: dict, value: object) -> str:
     return str(proof[key]) if key else label(catalog, "evidence_class", value)
 
 
+def class_chip(catalog: dict, klass: str) -> str:
+    """Evidence class as sample + word (never colour alone); ``klass`` is shown / claimed / not_established."""
+    sample = {"shown": "shown", "claimed": "claimed", "not_established": "gap"}.get(klass, "gap")
+    word = catalog["strings"]["proof"].get(klass, klass)
+    return (f'<span class="chip chip-{sample}"><span class="sample sample-{sample}" aria-hidden="true"></span>'
+            f'<span class="chip-word"><strong>{e(word)}</strong></span></span>')
+
+
+def class_line(story: dict, catalog: dict, *, grade: bool = True, counts: bool = True) -> str:
+    """One evidence line for a list row: the class chip, the grade only when asked, then primary sources and gaps."""
+    parts = [class_chip(catalog, item_class(story))]
+    if grade and story.get("evidence_class"):
+        parts.append(f'<span class="grade-note">{e(label(catalog, "evidence_class", story.get("evidence_class")))}</span>')
+    if counts:
+        facts = evidence_counts(story)
+        parts.append(f'<span>{e(plural(catalog, "primary_source", facts["primary"]))}</span>')
+        parts.append(f'<span>{e(plural(catalog, "open_gap", facts["gaps"]))}</span>')
+    return f'<p class="evrow list-evrow" data-evidence-class="{e(item_class(story))}">{"".join(parts)}</p>'
+
+
+def archive_day(day_id: str, heading: str, rows: str) -> str:
+    return f'<section class="archive-day" id="{e(day_id)}"><h2 class="archive-day-head">{e(heading)}</h2>{rows}</section>'
+
+
+def archive_jump(catalog: dict, days: list[tuple[str, str]]) -> str:
+    """Jump links to the days present on this page (day id, short label); only worth showing for several days."""
+    if len(days) < 3:
+        return ""
+    links = "".join(f'<a href="#{e(day_id)}">{e(text)}</a>' for day_id, text in days[:16])
+    return f'<nav class="archive-jump" aria-label="{e(catalog["strings"]["archive"]["jump"])}"><span>{e(catalog["strings"]["archive"]["jump"])}</span>{links}</nav>'
+
+
+def archive_pager(catalog: dict, *, number: int, pages: int, newer: str = "", older: str = "") -> str:
+    """Pager under the list: newer link, where you are, older link (links are ready-made anchors)."""
+    if pages <= 1:
+        return ""
+    status = f'<span class="archive-pager-status">{e(catalog["strings"]["archive"]["page_of"].format(n=number, total=pages))}</span>'
+    return (f'<nav class="archive-pager" data-pagination aria-label="{e(catalog["strings"]["archive"]["pager"])}">'
+            f'{newer}{status}{older}</nav>')
+
+
 def correction_row(*, catalog: dict, title: str, note: str, date_iso: str, date_text: str,
                    story_href: str, correction_href: str, class_before: object = None,
-                   class_after: object = None, reason: str = "", title_lang: str = "") -> str:
-    """One entry of the corrections list: date, link to the story, the note and the class before/after.
+                   class_after: object = None, reason: str = "", title_lang: str = "",
+                   kind_text: str = "", lead_in: str = "") -> str:
+    """One entry of the corrections list: the story title first, then kind and date, the note and the class before/after.
 
     The class line is printed only when both classes are recorded; when they are
     equal (or only the current one is known) it says the class did not change.
@@ -160,9 +203,12 @@ def correction_row(*, catalog: dict, title: str, note: str, date_iso: str, date_
         line = (f'<p class="correction-class" data-class-before="{e(class_before)}" data-class-after="{e(class_after)}">'
                 f'{e(text)}</p>')
     why = f'<p class="correction-reason"><strong>{e(ui["reason"])}</strong> {e(reason)}</p>' if reason else ""
-    return (f'<article class="correction"><time datetime="{e(date_iso)}">'
-            f'{e(ui["corrected_on"].format(date=date_text))}</time>'
-            f'<h2><a href="{e(correction_href)}"{f' lang="{e(title_lang)}"' if title_lang else ""}>{e(title)}</a></h2><p>{e(note)}</p>{why}{line}'
+    kind = f'<span class="correction-kind">{e(kind_text)}</span> · ' if kind_text else ""
+    lead = f'<p class="correction-lead">{e(lead_in)}</p>' if lead_in else ""
+    return (f'<article class="correction">{lead}'
+            f'<h2><a href="{e(correction_href)}"{f' lang="{e(title_lang)}"' if title_lang else ""}>{e(title)}</a></h2>'
+            f'<p class="correction-meta">{kind}<time datetime="{e(date_iso)}">'
+            f'{e(ui["corrected_on"].format(date=date_text))}</time></p><p>{e(note)}</p>{why}{line}'
             f'<p class="correction-links"><a class="correction-story" href="{e(story_href)}">{e(ui["story_link"])}</a></p></article>')
 
 
