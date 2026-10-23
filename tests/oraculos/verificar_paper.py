@@ -18,6 +18,8 @@ from tools.release_process import run_command
 HARNESS = ROOT / "tests" / "harness" / "browser"
 SERVE = ROOT / "tests" / "harness" / "serve.py"
 
+DEFAULT_LAYOUT_CONCURRENCY = 4
+
 LAYOUT_BUDGETS = r'''const { createRequire } = require('node:module');
 const requireFromRepo = createRequire(process.cwd() + '/__paper_oracle__.cjs');
 const { chromium } = requireFromRepo(process.env.PLAYWRIGHT_MODULE || 'playwright');
@@ -25,14 +27,32 @@ const base = process.argv[1], rows = JSON.parse(require('node:fs').readFileSync(
 (async () => {
   const browser = await chromium.launch();
   try {
-  const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 });
-  const evaluate = async (...args) => {
+  // A small pool of pages measures routes concurrently. Each route is still measured on one page, both viewports
+  // in order, exactly as before; failures are filed per route and reported in route order (deterministic).
+  const poolSize = Math.max(1, parseInt(process.env.LAYOUT_BUDGETS_CONCURRENCY || '1', 10) || 1);
+  const pages = await Promise.all(Array.from({ length: poolSize }, () => browser.newPage({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 })));
+  const evaluateOn = (page) => async (...args) => {
     let timer;
     try {
       return await Promise.race([page.evaluate(...args), new Promise((_, reject) => {
         timer = setTimeout(() => reject(new Error('evaluation exceeded 20 s')), 20000);
       })]);
     } finally { clearTimeout(timer); }
+  };
+  // Run `visit(route, page, evaluate, failures)` over every route with the pool; returns failures in route order.
+  const runPool = async (routes, visit) => {
+    const perRoute = new Array(routes.length);
+    let next = 0;
+    await Promise.all(pages.map(async (page) => {
+      const evaluate = evaluateOn(page);
+      while (next < routes.length) {
+        const i = next++;
+        const failures = [];
+        await visit(routes[i], page, evaluate, failures);
+        perRoute[i] = failures;
+      }
+    }));
+    return perRoute.flat();
   };
   let visited = 0;
   const progress = (kind, total) => {
@@ -42,7 +62,7 @@ const base = process.argv[1], rows = JSON.parse(require('node:fs').readFileSync(
   const storyRoutes = rows.filter(r => r.kind === 'story');
   // Empty-set guard: a budget that matches no page proves nothing. A retired route kind must fail loudly, never print 0.
   if (!storyRoutes.length) failures.push('story-layout budget ran on 0 story pages (route kind retired or renamed?)');
-  for (const route of storyRoutes) {
+  failures.push(...await runPool(storyRoutes, async (route, page, evaluate, failures) => {
     progress('historias', storyRoutes.length);
     const url = new URL(route.path, base).href;
     for (const viewport of [{width:1440,height:900}, {width:390,height:844}]) {
@@ -68,14 +88,14 @@ const base = process.argv[1], rows = JSON.parse(require('node:fs').readFileSync(
         failures.push(`${route.path} ${viewport.width}px: check error: ${e.message}`);
       }
     }
-  }
+  }));
   // c6: the locale root is the one front page (route kind 'landing'); the old 'front' kind no longer exists.
   const frontRoutes = rows.filter(r => r.kind === 'landing');
   const frontLocales = [...new Set(frontRoutes.map(r => r.locale))].sort();
   if (frontRoutes.length < 3 || frontLocales.length < 3)
     failures.push(`home-page budget ran on ${frontRoutes.length} landing pages in [${frontLocales.join(', ')}]; expected the front page of all 3 locales`);
   visited = 0;
-  for (const route of frontRoutes) {
+  failures.push(...await runPool(frontRoutes, async (route, page, evaluate, failures) => {
     progress('portadas', frontRoutes.length);
     const url = new URL(route.path, base).href;
     for (const viewport of [{width:1440,height:900}, {width:390,height:844}]) {
@@ -107,12 +127,12 @@ const base = process.argv[1], rows = JSON.parse(require('node:fs').readFileSync(
         failures.push(`${route.path || '/'} ${viewport.width}px: home hero check error: ${e.message}`);
       }
     }
-  }
+  }));
   const zhRoutes = rows.filter(r => r.locale === 'zh-Hans');
   if (zhRoutes.length < 2) failures.push(`zh heading budget ran on ${zhRoutes.length} zh-Hans pages besides the front (route table lost its zh pages?)`);
   if (!zhRoutes.some(r => r.path === 'zh/')) zhRoutes.unshift({path:'zh/', locale:'zh-Hans'});
   visited = 0;
-  for (const route of zhRoutes) {
+  failures.push(...await runPool(zhRoutes, async (route, page, evaluate, failures) => {
     progress('encabezados chinos', zhRoutes.length);
     const url = new URL(route.path, base).href;
     for (const viewport of [{width:1440,height:900}, {width:390,height:844}]) {
@@ -131,7 +151,7 @@ const base = process.argv[1], rows = JSON.parse(require('node:fs').readFileSync(
         failures.push(`${route.path} ${viewport.width}px: CJK heading check error: ${e.message}`);
       }
     }
-  }
+  }));
   if (failures.length) { console.error(failures.join('\n')); process.exitCode = 1; return; }
   console.log(`PASS story-layout budgets stories=${storyRoutes.length} home-pages=${frontRoutes.length} zh-heading-pages=${zhRoutes.length} viewports=2`);
   } finally { await browser.close(); }
@@ -157,6 +177,8 @@ def main(argv: list[str] | None = None) -> int:
     if not module:
         raise SystemExit(missing_playwright_message())
     env["PLAYWRIGHT_MODULE"] = module
+    # Layout budgets measure routes on a small pool of concurrent pages; the script itself defaults to 1 page.
+    env.setdefault("LAYOUT_BUDGETS_CONCURRENCY", str(DEFAULT_LAYOUT_CONCURRENCY))
     server_errors = tempfile.TemporaryFile(mode="w+t")
     server = subprocess.Popen(
         [sys.executable, str(SERVE), "--root", str(args.root.resolve()), "--base", "/FCMO-AI-Newsletter/", "--port", "0"],

@@ -57,6 +57,88 @@ exports.chromium = {launch: async () => ({newPage:async () => page, close:async 
             self.assertEqual(Counter(actual), Counter(expected))
             self.assertIn('Diseño:', result.stdout)
 
+    # Per-page state mock: each page keeps its own viewport and url and yields to the event loop between calls,
+    # so a pool that shared state between routes would corrupt the visit set.
+    POOL_MODULE = '''const fs = require('node:fs');
+const tick = () => new Promise(r => setTimeout(r, 2));
+exports.chromium = {launch: async () => ({newPage: async () => {
+  let width, path;
+  return {
+    setViewportSize: async vp => {await tick(); width = vp.width},
+    goto: async url => {await tick(); path = new URL(url).pathname; fs.appendFileSync(process.env.VISITS, JSON.stringify([path, width])+'\\n')},
+    evaluate: async fn => {
+      await tick();
+      const source = String(fn);
+      if (source.includes('document.fonts')) return true;
+      if (source.includes("querySelectorAll('h1 a")) return [];
+      return {height:50, lines: path === process.env.BAD_PATH ? 9 : 1, dekTop:200};
+    }
+  };
+}, close: async () => {}})};
+'''
+
+    def _run_pool(self, concurrency, bad_path=''):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            (root / 'browser.cjs').write_text(self.POOL_MODULE)
+            rows = [{'path': f'story-{i}/', 'kind': 'story', 'locale': 'en'} for i in range(12)]
+            rows += [{'path': f'zh/story-{i}/', 'kind': 'story', 'locale': 'zh-Hans'} for i in range(5)]
+            rows += [{'path': '', 'kind': 'landing', 'locale': 'en'},
+                     {'path': 'es/', 'kind': 'landing', 'locale': 'es-419'},
+                     {'path': 'zh/', 'kind': 'landing', 'locale': 'zh-Hans'}]
+            (root / 'routes.json').write_text(json.dumps(rows))
+            result = subprocess.run(['node', '--input-type=commonjs', '-e', oracle.LAYOUT_BUDGETS,
+                                     'http://fixture.invalid/', str(root / 'routes.json')],
+                                    env={**os.environ, 'PLAYWRIGHT_MODULE': str(root / 'browser.cjs'),
+                                         'VISITS': str(root / 'visits.jsonl'), 'BAD_PATH': bad_path,
+                                         'LAYOUT_BUDGETS_CONCURRENCY': str(concurrency)},
+                                    capture_output=True, text=True, timeout=30)
+            visits = root / 'visits.jsonl'
+            actual = [tuple(json.loads(line)) for line in visits.read_text().splitlines()] if visits.exists() else []
+            return result, Counter(actual)
+
+    def test_concurrency_does_not_change_the_visit_set(self):
+        serial, serial_visits = self._run_pool(1)
+        pooled, pooled_visits = self._run_pool(4)
+        self.assertEqual(serial.returncode, 0, serial.stderr)
+        self.assertEqual(pooled.returncode, 0, pooled.stderr)
+        # 12 stories + 5 zh stories + 3 landing at two widths, plus the zh set (5 stories, zh/) at two widths again.
+        self.assertEqual(sum(pooled_visits.values()), (12 + 5 + 3 + 5 + 1) * 2)
+        self.assertEqual(pooled_visits, serial_visits)
+        self.assertIn('stories=17', pooled.stdout)
+
+    def test_violation_on_any_route_fails_under_concurrency(self):
+        for bad in ('story-7/', 'zh/story-3/', 'es/'):
+            with self.subTest(bad=bad):
+                result, visits = self._run_pool(4, bad_path='/' + bad)
+                self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+                self.assertIn(bad + ' desktop', result.stderr)
+                self.assertNotIn('PASS', result.stdout)
+                self.assertEqual(sum(visits.values()), (12 + 5 + 3 + 5 + 1) * 2)
+
+    def test_violations_are_reported_in_route_order_under_concurrency(self):
+        # Every story is bad: the order of the reported lines must not depend on which page finished first.
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            (root / 'browser.cjs').write_text(self.POOL_MODULE.replace("path === process.env.BAD_PATH", "path.startsWith('/story-')"))
+            rows = [{'path': f'story-{i}/', 'kind': 'story', 'locale': 'en'} for i in range(10)]
+            rows += [{'path': p, 'kind': 'landing', 'locale': l} for p, l in (('', 'en'), ('es/', 'es-419'), ('zh/', 'zh-Hans'))]
+            rows += [{'path': 'zh/a/', 'kind': 'story', 'locale': 'zh-Hans'}]
+            (root / 'routes.json').write_text(json.dumps(rows))
+            outputs = []
+            for _ in range(3):
+                result = subprocess.run(['node', '--input-type=commonjs', '-e', oracle.LAYOUT_BUDGETS,
+                                         'http://fixture.invalid/', str(root / 'routes.json')],
+                                        env={**os.environ, 'PLAYWRIGHT_MODULE': str(root / 'browser.cjs'),
+                                             'VISITS': str(root / 'v.jsonl'), 'LAYOUT_BUDGETS_CONCURRENCY': '4'},
+                                        capture_output=True, text=True, timeout=30)
+                self.assertEqual(result.returncode, 1)
+                outputs.append(result.stderr)
+            paths = [line.split()[0] for line in outputs[0].splitlines()]
+            self.assertEqual(paths, [f'story-{i}/' for i in range(10)])
+            self.assertEqual(outputs[0], outputs[1])
+            self.assertEqual(outputs[1], outputs[2])
+
     def test_browser_closes_when_layout_setup_throws(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
