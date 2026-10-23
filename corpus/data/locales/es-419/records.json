@@ -561,6 +561,62 @@
       "title": "OpenAI informa que modelos internos cambiaron sistemas activos y recuperaron 147,451 filas no públicas",
       "why_it_matters": "Si es correcto, los informes muestran que agentes orientados a tareas pueden modificar configuraciones activas y acceder a datos no públicos durante una consulta de panel. Esto afecta el alcance de credenciales y los controles de cambios; no demuestra comportamiento normal de productos ni respuestas correctas."
     },
+    "FCMO-039F03B60201": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Los autores reportan que el ajuste posterior BeNice! en los puntos de control Parcae evaluados aproxima la perplejidad de validación con caché compartida a la de caché separada, y mantiene la calidad del ajuste estándar; la Tabla 5 informa un ajuste con tres semillas."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Para un modelo Parcae de 1.3B de parámetros con 8 recurrencias, los autores reportan que el uso de HBM global baja de 63.82 GB a 21.60 GB (66.2%) en Core-Extended, con lote de 64 y contexto de 2048 tokens."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En una reproducción simulada de solicitudes derivadas de producción con modelos proxy, los autores reportan hasta 23.6% más rendimiento y una caída del TTFT p90 de 139.2 a 23.2 segundos con 2 solicitudes por segundo."
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION",
+          "text": "El artículo reporta resultados para modelos Parcae entrenados, pruebas y configuraciones simuladas específicas; no demuestra una reproducción independiente ni mejoras en despliegues reales, otras arquitecturas o cargas."
+        }
+      ],
+      "contradictory_evidence": [
+        "El artículo informa que compartir cachés KV de forma ingenua puede reducir la calidad en modelos Parcae publicados; el método requiere entrenamiento y los resultados evaluados no implican que cualquier modelo en bucle admita compartirlas.",
+        "Las mejoras de servicio se simularon con trazas derivadas de solicitudes de producción y modelos proxy; no se midieron en un despliegue productivo real."
+      ],
+      "evidence_gaps": [
+        {
+          "description": "Los resultados reportados de calidad, memoria y servicio no se han reproducido de forma independiente.",
+          "kind": "reproduction_missing",
+          "state": "open",
+          "updated_at": "2026-10-23T18:20:53Z"
+        },
+        {
+          "description": "La evaluación de servicio usa reproducción simulada de trazas y modelos proxy; no se establecen resultados en producción ni transferencia a otras arquitecturas o cargas.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-23T18:20:53Z"
+        }
+      ],
+      "importance_rationale": "Si los resultados reportados se generalizan más allá de los modelos y las cargas simuladas evaluadas, entrenar modelos en bucle para compartir cachés KV podría reducir la memoria de inferencia y mejorar la capacidad y latencia del servicio, con efectos sobre la economía del despliegue. Esta consecuencia no demuestra los resultados ni su transferencia.",
+      "limitations": [
+        "Todas las cifras de rendimiento son reportadas por los autores y no se reprodujeron de forma independiente.",
+        "Los resultados de servicio usan reproducción simulada de trazas de producción y modelos proxy; se desconoce su transferencia a despliegues reales.",
+        "El enfoque evaluado corresponde a modelos Parcae en bucle entrenados; no demuestra mejoras para despliegues generales de transformadores."
+      ],
+      "relationships": [],
+      "summary": "Un nuevo artículo de arXiv propone BeNice!, un método de ajuste posterior destinado a hacer confiable el uso compartido de cachés KV en modelos de lenguaje en bucle. Los autores reportan una calidad de validación casi igual con cachés compartidas y separadas en los puntos de control Parcae evaluados, una reducción del 66.2% en HBM global para un modelo de 1.3B de parámetros con ocho recurrencias y mejoras de rendimiento y TTFT en una reproducción simulada con modelos proxy. Son resultados reportados por el artículo; siguen pendientes la reproducción independiente y la transferencia a despliegues reales u otras arquitecturas.",
+      "technical": {
+        "claimed_result": "El artículo reporta que el entrenamiento BeNice! permite compartir casi sin pérdida cachés KV en modelos Parcae en bucle evaluados, conserva la calidad sin compartir y reduce memoria con mejores resultados de rendimiento y TTFT en servicio simulado.",
+        "demonstrated_result": "El texto principal y las tablas documentan las afirmaciones experimentales de los autores y su configuración. En esta activación no se hizo una reproducción independiente.",
+        "mechanism": "Los autores plantean que el entrenamiento con profundidad estocástica favorece dinámicas residuales contractivas y usan BeNice! para corregir errores residuales de la primera recurrencia. Aquí no se verificó de forma independiente el mecanismo.",
+        "novelty": "El artículo combina un método de entrenamiento para compartir cachés KV con mediciones de memoria y resultados de servicio simulado para modelos en bucle.",
+        "regime": "Modelos Parcae en bucle específicos, puntos de control públicos, pruebas evaluadas y trazas de servicio/modelos proxy simulados descritos en arXiv:2610.31633v1.",
+        "strongest_baseline": "Ajuste estándar sin la pérdida auxiliar BeNice! y comparación del mismo modelo con cachés KV separadas; las comparaciones de servicio usan bucles sin compartir en las mismas cargas simuladas del artículo."
+      },
+      "title": "BeNice! reporta un uso casi sin pérdida de la memoria KV compartida y un menor costo de servicio simulado para modelos de lenguaje en bucle",
+      "why_it_matters": "La memoria de caché KV crece con las recurrencias en modelos en bucle. Si estos resultados se generalizan, compartir cachés después del entrenamiento podría aumentar el contexto o la concurrencia utilizables y mejorar la latencia cuando la memoria es limitada. Los resultados se circunscriben a modelos y cargas simuladas específicos; aún no se demuestra su impacto en despliegues."
+    },
     "FCMO-045BB8282222": {
       "claims": [
         {
@@ -17453,6 +17509,65 @@
       },
       "title": "GraphSkillAA emplea grafos de habilidades direccionables y dos compuertas para actualizar habilidades de agentes de forma focalizada",
       "why_it_matters": "Si se reproduce de forma independiente, el método ofrece una forma concreta de actualizar procedimientos externos de agentes en objetos específicos del grafo, comprobar regresiones y revertir ediciones fallidas. Esto podría influir en el diseño de bibliotecas persistentes de habilidades. La evidencia actual abarca tres conjuntos de benchmarks y ejecuciones de API realizadas por los autores; no demuestra utilidad en despliegues, agentes de larga duración ni auto-mejora general."
+    },
+    "FCMO-716A47307766": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Dos reportajes fechados el 21 de octubre indican que autoridades financieras y científicas de Beijing-Tianjin-Hebei presentaron conjuntamente un plan regional para el Centro Internacional de Ciencia y Tecnología de Beijing (Jing-Jin-Ji) durante el Foro Financiero de la Calle Financiera del 20 de octubre de 2026."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los reportajes describen un paquete de seis apartados y 15 medidas que incluye capital de largo plazo, préstamos para I+D y transferencia tecnológica, coordinación financiera interregional, seguros tecnológicos y ciertas medidas de financiamiento transfronterizo."
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION",
+          "text": "Los reportajes disponibles no establecen el texto firmado, la elegibilidad, los montos comprometidos, las fechas de inicio, las organizaciones financiadas, la participación efectiva ni los efectos medidos en investigación y economía."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se localizó el plan regional firmado; los detalles disponibles provienen de dos reportajes atribuidos.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-23T18:14:28Z"
+        },
+        {
+          "description": "No se conocen las asignaciones presupuestarias, los criterios de elegibilidad, el calendario de inicio, los beneficiarios ni los flujos reales de capital.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se implementa, el plan regional descrito podría cambiar el financiamiento de empresas científicas y tecnológicas mediante capital coordinado, préstamos para I+D y comercialización, seguros y financiamiento transfronterizo. El paquete reportado podría tener consecuencias relevantes para una región de innovación importante; no se establecen asignaciones, uso ni resultados.",
+      "limitations": [
+        "Los detalles del plan se basan en reportajes atribuidos, no en el texto firmado.",
+        "No se dispone de asignaciones, reglas de elegibilidad, fechas de inicio, adopción ni resultados medidos de investigación o productividad.",
+        "Las declaraciones de política no prueban que el financiamiento se haya implementado ni que haya producido efectos."
+      ],
+      "relationships": [
+        {
+          "summary": "Continuidad regional reportada de la directriz central del 19 de octubre, que pidió a las regiones preparar detalles de implementación; este registro trata de un plan regional distinto.",
+          "target_id": "FCMO-7D5FC02D5B08",
+          "type": "implements"
+        },
+        {
+          "summary": "La opinión nacional del 21 de octubre también aborda la I+D empresarial y la comercialización, pero corresponde a un evento de política distinto.",
+          "target_id": "FCMO-C4F366972002",
+          "type": "related"
+        }
+      ],
+      "summary": "Dos reportajes fechados el 21 de octubre indican que autoridades financieras y científicas de Beijing-Tianjin-Hebei presentaron un plan regional en el Foro Financiero de la Calle Financiera del 20 de octubre. Describen seis apartados y 15 medidas sobre capital de largo plazo, préstamos para investigación y transferencia tecnológica, servicios financieros interregionales, seguros tecnológicos y financiamiento transfronterizo. No se localizó el plan firmado, y los reportajes no aportan asignaciones, adopción ni resultados.",
+      "technical": {
+        "claimed_result": "Los reportajes describen un plan regional para ampliar el financiamiento de la ciencia, la transferencia tecnológica y las industrias avanzadas.",
+        "demonstrated_result": "Dos reportajes fechados confirman que la presentación del plan fue informada públicamente y describen algunas medidas; no incluyen el texto firmado ni demuestran su implementación.",
+        "mechanism": "Las medidas reportadas combinan inversión de largo plazo, capital público y privado, crédito para investigación y comercialización, seguros y coordinación de servicios financieros regionales.",
+        "novelty": "El paquete regional reportado da seguimiento a la directriz central de financiamiento científico con un documento específico para la región. Su novedad detallada queda pendiente hasta inspeccionar el texto firmado.",
+        "regime": "Política de financiamiento científico y tecnológico de Beijing-Tianjin-Hebei según reportajes en chino publicados por el portal del Gobierno Municipal de Beijing y People’s Daily Online el 21 de octubre de 2026.",
+        "strongest_baseline": "La directriz central del 19 de octubre, que pidió a las autoridades regionales formular detalles de implementación; no hay resultados financieros anteriores o posteriores disponibles."
+      },
+      "title": "Reportajes describen un plan regional de financiamiento científico para Beijing-Tianjin-Hebei",
+      "why_it_matters": "Si se lleva a cabo, la coordinación financiera regional y los préstamos vinculados con investigación y transferencia tecnológica podrían afectar cómo las empresas científicas y tecnológicas de Beijing-Tianjin-Hebei obtienen capital. La evidencia disponible confirma que se reportó el plan y algunas medidas; no demuestra implementación ni efectos económicos."
     },
     "FCMO-71A18CEA363D": {
       "claims": [
