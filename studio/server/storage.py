@@ -46,6 +46,11 @@ class Conflict(Exception):
 class Locked(Exception):
     def __init__(self, owner): self.owner = owner
 
+def email_enabled():
+    """Subscriber email is off unless the host explicitly turns it on."""
+    return os.environ.get('FCMO_EMAIL_ENABLED') == 'true'
+
+
 class Store:
     def __init__(self, data, clock=time.time):
         self.data = Path(data).resolve(); self.clock = clock
@@ -131,7 +136,7 @@ class Store:
                      'authors': [{'key': user, 'name': NAMES[user]}], 'brand': 'fcmo' if user == 'javier' else 'fcmo-ai',
                      'source_locale': source_locale, 'status': 'published', 'first_published_at': stamp, 'updated_at': stamp,
                      'locales': {loc: 'pending' for loc in LOCALES}, 'hero': None, 'tags': [], 'corrections': [], 'withdrawal': None,
-                     'distribution': {'email': kind in ('essay', 'letter')}}
+                     'distribution': {'email': kind in ('essay', 'letter') and email_enabled()}}
             doc = {'schema': 'fcmo-essay-doc-v1', 'locale': source_locale, 'title': title, 'dek': '', 'blocks': [], 'footnotes': {}}
             payload = {'piece': piece, 'docs': {source_locale: doc}, 'sources': [], 'figures': {}, 'provenance': {}, 'block_provenance': {}, 'source_hashes': {}}
             states = {loc: {'state': 'drafting' if loc == source_locale else 'empty', 'human_reviewed': False} for loc in LOCALES}
@@ -275,6 +280,7 @@ class Store:
             return states[loc]
     def distribution(self, value, user, base_rev, email):
         if type(email) is not bool: raise ValueError('Elige si quieres enviar por correo.')
+        if email and not email_enabled(): raise ValueError('El envío por correo todavía no está activo.')
         with self.mutex:
             self._editable(value); piece = self.piece(value)
             if piece['author'] != user: raise ValueError('Solo el autor puede elegir el envío por correo.')

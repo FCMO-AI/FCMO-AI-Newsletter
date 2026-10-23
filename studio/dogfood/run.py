@@ -10,6 +10,7 @@ import shutil
 import signal
 import socket
 import subprocess
+import sys
 import tempfile
 import threading
 import time
@@ -80,7 +81,8 @@ class Journey:
         return slug
     def setup(self):
         source = self.root / 'source'
-        subprocess.run(['git', 'clone', '--quiet', '--no-hardlinks', str(ROOT), str(source)], check=True)
+        # Objects are shared with the checkout and every tracked file is overlaid below: no second copy of history.
+        subprocess.run(['git', 'clone', '--quiet', '--shared', '--no-checkout', str(ROOT), str(source)], check=True)
         git(source, 'checkout', '-B', 'main')
         for rel in git(ROOT, 'ls-files').splitlines():
             file = ROOT / rel
@@ -129,13 +131,7 @@ class Journey:
         self.env = env
         self.log = (self.root / 'server.log').open('w')
         self.process = subprocess.Popen(['sh', str(source / 'studio/host-ops/start.sh')], env=env, stdout=self.log, stderr=self.log, start_new_session=True)
-        for _ in range(100):
-            try:
-                if self.request('GET', '/healthz')[0] == 200: break
-            except OSError: pass
-            assert self.process.poll() is None, (self.root / 'server.log').read_text()
-            time.sleep(.1)
-        else: raise AssertionError('Server did not start')
+        self.wait_healthy()
         self.score('launcher on alternative loopback port; health and login chrome', self.request('GET', '/')[0] == 200)
         self.score('private API refuses unauthenticated user', self.request('GET', '/api/pieces')[0] == 401)
         for user in ('javier', 'matias'):
@@ -151,6 +147,18 @@ class Journey:
                    self.call('GET', '/api/pieces/' + piece['slug'])['slug'] == piece['slug'])
         for user in ('javier', 'matias'):
             (self.root / user / 'hosts.yml').write_text('github.com: {}\n')
+    START_TIMEOUT = float(os.environ.get('DOGFOOD_START_TIMEOUT', '180'))
+    def wait_healthy(self):
+        # A cold start (bytecode, renderer warm-up, loaded host) takes well over 10 s:
+        # wait on /healthz against a deadline, and fail at once if the launcher dies.
+        deadline = time.monotonic() + self.START_TIMEOUT
+        while time.monotonic() < deadline:
+            try:
+                if self.request('GET', '/healthz')[0] == 200: return
+            except OSError: pass
+            assert self.process.poll() is None, (self.root / 'server.log').read_text()
+            time.sleep(.25)
+        raise AssertionError('Server did not become healthy within %ss' % self.START_TIMEOUT)
     def run(self):
         self.setup()
         published = []
@@ -234,13 +242,21 @@ class Journey:
 def main():
     parser = argparse.ArgumentParser(); parser.add_argument('--keep', type=Path); parser.add_argument('--browser', action='store_true'); args = parser.parse_args()
     root = args.keep.resolve() if args.keep else Path(tempfile.mkdtemp(prefix='studio-dogfood-'))
-    root.mkdir(parents=True, exist_ok=True)
-    journey = Journey(root, args.browser)
-    try: journey.run()
-    except BaseException:
-        journey.scores.append({'name': 'complete journey', 'ok': False})
-        raise
-    finally: journey.close()
-    if not args.keep: shutil.rmtree(root)
+    # A signal must unwind through the finally blocks: the temporary tree is gigabytes.
+    for number in (signal.SIGTERM, signal.SIGHUP, signal.SIGINT):
+        signal.signal(number, lambda signum, frame: sys.exit(128 + signum))
+    journey = None
+    try:
+        root.mkdir(parents=True, exist_ok=True)
+        journey = Journey(root, args.browser)
+        try: journey.run()
+        except BaseException:
+            journey.scores.append({'name': 'complete journey', 'ok': False})
+            log = root / 'server.log'
+            if log.is_file(): print('--- server.log (tail) ---\n' + '\n'.join(log.read_text(errors='replace').splitlines()[-40:]), flush=True)
+            raise
+        finally: journey.close()
+    finally:
+        if not args.keep: shutil.rmtree(root, ignore_errors=True)
 
 if __name__ == '__main__': main()
