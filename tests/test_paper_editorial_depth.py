@@ -50,6 +50,11 @@ class PaperEditorialDepthTests(unittest.TestCase):
         self.assertIn('class="story-taxonomy"', page)
         self.assertGreaterEqual(page.count('href="/FCMO-AI-Newsletter/topic/'), 1)
 
+    def test_no_story_page_is_a_navigation_dead_end(self):
+        # A story alone on its subject falls back to the whole live sequence for Newer/Older.
+        stranded = [route["path"] for route in self.story_routes if 'class="edition-neighbors"' not in self.page(route)]
+        self.assertEqual(stranded, [])
+
     def test_taxonomy_and_edition_pages_show_corpus_context_and_navigation(self):
         for kind in ("archive", "edition", "topic", "org"):
             route = next(route for route in self.routes if route["kind"] == kind and route["locale"] == "en"

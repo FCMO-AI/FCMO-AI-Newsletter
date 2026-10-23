@@ -117,7 +117,12 @@ class V3IntegrationTests(unittest.TestCase):
         # CONTRACT-CHANGES.md #5: the front is the locale root (kind "landing"); the old "front" route is retired.
         front = self.page("landing")
         archive = self.page("archive")
-        story = self.page("story")
+        # The newest story can arrive without topics, which legitimately renders no taxonomy section;
+        # the layout check needs a story that has one (same selection as test_paper_editorial_depth).
+        story = next(page for page in (
+            (self.out / row["path"].strip("/") / "index.html").read_text(encoding="utf-8")
+            for row in self.routes if row["kind"] == "story" and row["locale"] == "en")
+            if 'href="/FCMO-AI-Newsletter/topic/' in page)
         status = self.page("status")
         parsed_front = StructureParser()
         parsed_front.feed(front)

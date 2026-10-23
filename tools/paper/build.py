@@ -289,10 +289,14 @@ class PaperBuilder:
         strings = self.catalogs[locale["code"]]["strings"]
         # Newer/Older walk only the stories that share a topic with this one (an organization when it has no topic),
         # so the neighbour is always about the same subject; each direction is one story, hence the singular labels.
+        # A story alone on its subject falls back to the whole live sequence, so no story page is a dead end.
         topics = set(story.get("topics") or [])
         field_name, mine = ("topics", topics) if topics else ("organizations", set(story.get("organizations") or []))
+        order = lambda item: (item.get("url_date", ""), *self._story_rank(item))  # noqa: E731
         sequence = sorted((item for item in self.live if item["id"] == story["id"] or (mine and mine & set(item.get(field_name) or []))),
-                          key=lambda item: (item.get("url_date", ""), *self._story_rank(item)), reverse=True)
+                          key=order, reverse=True)
+        if len(sequence) < 2:
+            sequence = sorted(self.live, key=order, reverse=True)
         position = next((i for i, item in enumerate(sequence) if item["id"] == story["id"]), -1)
         neighbors = []
         if position >= 0:

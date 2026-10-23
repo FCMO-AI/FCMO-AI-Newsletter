@@ -37,9 +37,9 @@ exports.chromium = {launch: async () => ({newPage:async () => page, close:async 
             rows = [
                 {'path': 'story/', 'kind': 'story', 'locale': 'en'},
                 {'path': 'zh/story/', 'kind': 'story', 'locale': 'zh-Hans'},
-                {'path': '', 'kind': 'front', 'locale': 'en'},
-                {'path': 'es/', 'kind': 'front', 'locale': 'es-419'},
-                {'path': 'zh/', 'kind': 'front', 'locale': 'zh-Hans'},
+                {'path': '', 'kind': 'landing', 'locale': 'en'},
+                {'path': 'es/', 'kind': 'landing', 'locale': 'es-419'},
+                {'path': 'zh/', 'kind': 'landing', 'locale': 'zh-Hans'},
                 {'path': 'zh/archive/', 'kind': 'archive', 'locale': 'zh-Hans'},
             ]
             routes = root / 'routes.json'
@@ -50,7 +50,7 @@ exports.chromium = {launch: async () => ({newPage:async () => page, close:async 
                                     capture_output=True, text=True, timeout=5)
             self.assertEqual(result.returncode, 0, result.stderr)
             expected = [('/' + row['path'], width) for row in rows for width in (1440, 390)
-                        if row['kind'] in {'story', 'front'}]
+                        if row['kind'] in {'story', 'landing'}]
             expected += [('/' + row['path'], width) for row in rows for width in (1440, 390)
                          if row['locale'] == 'zh-Hans']
             actual = [tuple(json.loads(line)) for line in visits.read_text().splitlines()]
