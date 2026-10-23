@@ -22,12 +22,12 @@ export async function session (base, { viewport = { width: 1440, height: 900 }, 
   page.on('pageerror', e => errors.push('pageerror: ' + String(e).slice(0, 300)))
   page.on('console', m => { if (m.type() === 'error' && !/status of 4\d\d|ERR_INTERNET_DISCONNECTED/.test(m.text())) errors.push(m.text().slice(0, 300)) })
   // Chrome logs every 4xx as an anonymous console error. Judge them here, with URL and body: the only
-  // expected one is the translation provider being absent while a test edits the source text.
+  // expected ones are the translation refusals (no provider, or source text still incomplete) while a test edits the source.
   page.on('response', async r => {
     if (r.status() < 400 || r.status() === 401) return
     const where = `${r.status()} ${r.request().method()} ${r.url().replace(/^https?:\/\/[^/]+/, '')}`
     const body = (await r.text().catch(() => '')).slice(0, 200)
-    if (/\/prepare-translations$/.test(r.url()) && body.includes('proveedor de traducción no está disponible')) return
+    if (/\/prepare-translations$/.test(r.url()) && /proveedor de traducción no está disponible|Completa el texto original antes de traducir/.test(body)) return
     errors.push(`http ${where} ${body}`)
   })
   await page.goto(base)
