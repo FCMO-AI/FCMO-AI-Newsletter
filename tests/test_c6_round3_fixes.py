@@ -43,7 +43,7 @@ class SearchFocusTests(unittest.TestCase):
     def test_focus_runs_after_the_field_exists(self):
         source = (ROOT / "tools/paper/build.py").read_text(encoding="utf-8")
         self.assertIn("addEventListener('DOMContentLoaded',()=>{if(/[?&]focus=1", source)
-        self.assertIn("q.addEventListener('input'", source)
+        self.assertIn("f.addEventListener('input'", source)
 
 
 class PublishedAssetsTests(unittest.TestCase):
