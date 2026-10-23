@@ -574,7 +574,7 @@ class PaperBuilder:
             technical_fields = technical_fields if isinstance(technical_fields, dict) else {}
             topic_nav = self._topic_pair(story, locale)
             c6_page = story_view(
-                story=story, catalog=catalog, code=code, title=title, dek_text=description,
+                story=story, catalog=catalog, code=code, title=title, dek_text=first_sentence(dek(story, code, catalog), 320),
                 beat_label=label(catalog, "beat", story.get("beat")), home_href=href(self.base, locale["path_prefix"]),
                 evidence=evidence, summary=field(story, code, "summary"), why=field(story, code, "why_it_matters"),
                 technical=technical_fields, status_html=status_chip(self.status, catalog),
