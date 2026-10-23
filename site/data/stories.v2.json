@@ -1,7 +1,7 @@
 {
   "schema": "fcmo-stories-v2",
-  "generated_at": "2026-10-23T17:14:32Z",
-  "release_id": "newswire-3e410d00cd3ba2d5d7b9bcdf",
+  "generated_at": "2026-10-23T18:17:36Z",
+  "release_id": "newswire-4aadfe5bf6240fecebcc0597",
   "canonical_locale": "en",
   "locales": [
     "en",
@@ -49,6 +49,460 @@
     "2026-10-23"
   ],
   "stories": [
+    {
+      "id": "FCMO-CEC57E89F0CF",
+      "slug": "anthropic-reports-claude-authored-machine-checked-proofs-across-oss-fuzz",
+      "url_date": "2026-10-23",
+      "kind": "development",
+      "status": "live",
+      "beat": "research",
+      "desk": "evaluation_science",
+      "title": "Anthropic reports Claude-authored machine-checked proofs across OSS-Fuzz RISC-V binaries",
+      "headline": "Anthropic reports Claude-authored machine-checked proofs across OSS-Fuzz RISC-V binaries",
+      "dek": "Anthropic reports that Claude produced Rocq-checked proofs for 239 OSS-Fuzz entry points across 123 libraries.",
+      "summary": "Anthropic reports that Claude produced Rocq-checked proofs for 239 OSS-Fuzz entry points across 123 libraries. The public Theorem repository currently lists a smaller subset: 60 entry points in 25 libraries. Its public theorems compare plain and sanitizer builds under an LPS Linux-process model, for specified process inputs and memory budgets; they concern code reachable from each entry point, do not prove termination, and do not exclude sanitizer-undetected errors such as wrong results or memory leaks. The model is explicitly incomplete. The difference between Anthropic’s reported scope and the current public subset remains unresolved; no independent sample check was performed.",
+      "why_it_matters": "If this workflow scales beyond the reported project, lowering the expert effort needed to produce machine-checked proofs could make stronger software security properties practical across widely used libraries. The public artifact set and formal limits make the work inspectable, but current evidence does not establish independent reproduction, general applicability or end-to-end correctness beyond the stated models and fuzz specifications.",
+      "importance_rationale": "If sustained, reducing the specialist labor required to write machine-checked proofs could expand rigorous security verification across widely used software. This project is meaningful but bounded to selected fuzz-test specifications, a RISC-V/Linux model and reported artifacts.",
+      "technical": {
+        "claimed_result": "Anthropic reports 239 verified entry points across 123 libraries and about 180 million lines of Rocq proof text. The linked public Theorem repository currently lists 60 entry points across 25 libraries.",
+        "demonstrated_result": "The reviewed repository README and theorem description list 60 entry points across 25 libraries, specify Rocq 9.2.0, and state the proof boundary: no error and matching observable behavior between plain and sanitizer builds on LPS-valid inputs under stated memory budgets. The public release proves no halting statement and explicitly excludes whole-library correctness and sanitizer-undetected errors. This activation did not execute the checker or independently inspect a proof.",
+        "mechanism": "Claude generates Rocq proof terms against formal semantics for compiled RISC-V binaries and fuzz-test-derived specifications; the Rocq kernel checks each proof. When proof attempts find reachable crash-producing defects, Anthropic says Claude patched the code and generated proofs for the resulting target.",
+        "regime": "Public artifact subset: selected OSS-Fuzz entry points compiled as static riscv64 binaries with clang 20.1.8 against musl, compared as plain and ASan/UBSan builds under the LPS Linux-process model. ASan variants assume 2 GiB of plain-build memory; UBSan assumes 16 GiB. Anthropic separately describes its project-wide proofs as covering inputs below 64 MB; its relationship to the current public repository scope is unresolved.",
+        "strongest_baseline": "Conventional fuzzing samples inputs; the public proofs instead establish an all-input theorem within each theorem statement’s LPS model and assumptions. This is a stronger bounded property for sanitizer-detectable behavior, but not whole-library correctness, termination or independent proof validation. No matched human-effort or cost baseline is reported."
+      },
+      "importance_tier": "Major",
+      "development_type": "paper",
+      "event_at": "2026-10-22T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-23T18:17:20Z",
+      "updated_at": "2026-10-23T18:17:20Z",
+      "importance": 6,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": true,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "CLAIMED",
+            "text": "Anthropic reports that Claude patched discovered bugs and produced Rocq-checked proofs for 239 entry points across 123 OSS-Fuzz libraries. Its stated regime is compiled RISC-V binaries, inputs below 64 MB, single-threaded static execution, a fixed memory budget and modeled Linux responses/layouts."
+          },
+          {
+            "label": "DEMONSTRATED",
+            "text": "The linked public Theorem repository currently lists Rocq 9.2.0 proofs for 60 entry points in 25 libraries. Its README defines agreement between plain and sanitizer builds on LPS-valid process inputs, with 2 GiB memory budget for ASan variants and 16 GiB for UBSan; it also says LPS is incomplete and makes unchecked assumptions. This is a smaller public artifact set than Anthropic reports, and the difference is unresolved."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "The public proofs compare plain and sanitizer-instrumented builds: within the statement assumptions, neither reaches an error and both have the same observable behaviors. The repository says these are static riscv64 binaries built with clang 20.1.8 against musl; the release proves no termination/halting statement, covers only code reachable from each entry point, and cannot exclude errors sanitizers do not detect."
+          },
+          {
+            "label": "NOT_ESTABLISHED",
+            "text": "The sources do not establish that whole libraries are correct or defect-free, that all security-relevant properties were specified, that Anthropic’s full reported set has been independently checked, or that the approach generalizes beyond the bounded binaries, specifications and LPS model."
+          }
+        ],
+        "limitations": [
+          "Anthropic participates in the work and is the first-party source for its 239-entry-point/123-library report; this total was not independently reproduced.",
+          "The linked public repository currently lists 60 entry points in 25 libraries. Its precise public statements use LPS-valid process inputs, with a 2 GiB plain-build memory budget for ASan variants and 16 GiB for UBSan; Anthropic describes a project-wide input bound below 64 MB. The relationship between these scopes and counts is unresolved.",
+          "The public proofs concern agreement between plain and sanitizer builds for static riscv64 binaries built with clang 20.1.8 against musl, under an incomplete LPS model. They cover code reachable from each fuzz entry point, not whole libraries.",
+          "The public release proves no halting/termination statement and does not exclude sanitizer-undetected errors such as wrong results or memory leaks. Correctness also depends on the theorem statements and LPS semantics matching the intended property and actual Linux behavior.",
+          "No independent proof checking, broader replication, model audit or cost measurement was performed in this activation."
+        ],
+        "gaps": [
+          {
+            "kind": "missing_independent",
+            "description": "No independent party checked a representative sample of the released proofs or reproduced Anthropic's larger 239-entry-point/123-library total in this review."
+          },
+          {
+            "kind": "other",
+            "description": "The public theorem statements are bounded to code reachable from one fuzz entry point and agreement between plain and sanitizer builds under LPS assumptions. They do not prove termination, exclude sanitizer-undetected wrong results or memory leaks, or cover behavior omitted by the incomplete Linux model."
+          },
+          {
+            "kind": "other",
+            "description": "No labor, compute, proof completion/failure, or maintenance cost comparison establishes the economics or net throughput of this workflow."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://www.anthropic.com/research/formal-verification",
+          "domain": "anthropic.com",
+          "primary": true
+        },
+        {
+          "url": "https://github.com/theorem-labs/oss-verify-proofs",
+          "domain": "github.com",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "Anthropic",
+        "Theorem",
+        "Google OSS-Fuzz"
+      ],
+      "topics": [
+        "formal-verification",
+        "risc-v",
+        "rocq",
+        "oss-fuzz",
+        "software-security",
+        "ai-assisted-software-engineering"
+      ],
+      "regions": [
+        "GLOBAL"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-CEC57E89F0CF.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: Anthropic reports Claude-authored machine-checked proofs across OSS-Fuzz RISC-V binaries"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "Anthropic informa pruebas verificadas por máquina escritas con Claude para binarios RISC-V de OSS-Fuzz",
+            "summary": "Anthropic informa que Claude produjo pruebas verificadas por Rocq para 239 puntos de entrada de OSS-Fuzz en 123 bibliotecas. El repositorio público de Theorem actualmente enumera un subconjunto menor: 60 puntos en 25 bibliotecas. Sus teoremas públicos comparan compilaciones normales y con sanitizadores bajo un modelo de proceso Linux llamado LPS, para entradas y presupuestos de memoria especificados; cubren el código alcanzable desde cada punto de entrada, no demuestran terminación y no excluyen errores que los sanitizadores no detectan, como resultados incorrectos o fugas de memoria. El modelo se declara incompleto. Sigue sin resolverse la diferencia entre el alcance informado por Anthropic y el subconjunto público actual; no se comprobó una muestra independiente.",
+            "importance_rationale": "Si se mantiene, reducir el trabajo especializado necesario para escribir pruebas verificadas por máquina podría ampliar la verificación rigurosa de seguridad a software ampliamente utilizado. Este proyecto es significativo, pero se limita a especificaciones derivadas de pruebas difusas, un modelo RISC-V/Linux y artefactos informados.",
+            "why_it_matters": "Si este flujo se amplía más allá del proyecto informado, reducir el trabajo especializado para producir pruebas verificadas por máquina podría volver práctica la verificación de propiedades de seguridad más sólidas en bibliotecas ampliamente usadas. Los artefactos públicos permiten inspeccionar el trabajo y precisar sus límites formales, pero la evidencia actual no establece reproducción independiente, cobertura completa del modelo ni impacto económico.",
+            "technical": {
+              "claimed_result": "Anthropic informa 239 puntos de entrada verificados en 123 bibliotecas y cerca de 180 millones de líneas de pruebas Rocq. El repositorio público de Theorem enlazado enumera actualmente 60 puntos de entrada en 25 bibliotecas.",
+              "demonstrated_result": "El README y la descripción de teoremas del repositorio revisado enumeran 60 puntos de entrada en 25 bibliotecas, especifican Rocq 9.2.0 y delimitan el resultado: ninguna versión llega a un error y las versiones normal y con sanitizador tienen el mismo comportamiento observable para entradas válidas en LPS y los presupuestos indicados. La publicación no prueba terminación y excluye expresamente la corrección de toda la biblioteca y los errores no detectados por sanitizadores. Esta activación no ejecutó el verificador ni inspeccionó de forma independiente una prueba.",
+              "mechanism": "Claude genera términos de prueba Rocq para semánticas formales de binarios RISC-V compilados y especificaciones derivadas de pruebas difusas; el núcleo de Rocq comprueba cada prueba. Según Anthropic, cuando los intentos de prueba encuentran defectos alcanzables que producen fallos, Claude corrigió el código y generó pruebas para el objetivo resultante.",
+              "regime": "Subconjunto de artefactos públicos: puntos de entrada OSS-Fuzz seleccionados, compilados como binarios riscv64 estáticos con clang 20.1.8 y musl; comparación entre versiones normales y versiones ASan/UBSan bajo el modelo de proceso Linux LPS. Las variantes ASan presuponen 2 GiB de memoria para la versión normal; UBSan presupone 16 GiB. Anthropic describe por separado un límite de entrada inferior a 64 MB para las pruebas de su proyecto; no se ha conciliado ese alcance con el repositorio público actual.",
+              "strongest_baseline": "La fuzzing convencional toma muestras de entradas; las pruebas públicas establecen en cambio un teorema para todas las entradas cubiertas por cada enunciado, dentro de LPS y sus supuestos. Es una propiedad acotada más fuerte para errores detectables por sanitizadores, pero no demuestra corrección de toda la biblioteca, terminación ni validación independiente. Las fuentes revisadas no ofrecen una comparación equiparada de trabajo humano o costos."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "Anthropic informa que Claude corrigió errores detectados y produjo pruebas verificadas por Rocq para 239 puntos de entrada en 123 bibliotecas de OSS-Fuzz. El régimen declarado usa binarios RISC-V compilados, entradas menores de 64 MB, ejecución estática de un solo hilo, presupuesto de memoria fijo y respuestas/distribuciones de memoria de Linux modeladas."
+                },
+                {
+                  "text": "El repositorio público de Theorem enlazado enumera actualmente pruebas Rocq 9.2.0 para 60 puntos de entrada en 25 bibliotecas. Sus teoremas comparan la versión normal y la versión con sanitizadores para entradas de proceso válidas en LPS; el presupuesto de memoria de la versión normal es 2 GiB para variantes ASan y 16 GiB para UBSan. También indica que LPS es incompleto y depende de supuestos no comprobados. Este conjunto público es menor que el total informado por Anthropic y la diferencia no se resolvió."
+                },
+                {
+                  "text": "Las pruebas públicas comparan las versiones normal y la instrumentada con sanitizadores: bajo los supuestos de cada enunciado, ninguna llega a un error y ambas comparten los mismos comportamientos observables. El repositorio indica que son binarios riscv64 estáticos compilados con clang 20.1.8 y musl; la publicación no demuestra terminación, abarca solo el código alcanzable desde cada punto de entrada y no excluye errores que los sanitizadores no detectan."
+                },
+                {
+                  "text": "Las fuentes no establecen que las bibliotecas completas sean correctas o estén libres de defectos, que se hayan especificado todas las propiedades de seguridad relevantes, que el conjunto completo informado por Anthropic haya sido revisado de forma independiente ni que el método se generalice fuera de los binarios, las especificaciones y el modelo LPS delimitados."
+                }
+              ],
+              "limitations": [
+                "Anthropic participa en el trabajo y es la fuente primaria del total informado de 239 puntos de entrada en 123 bibliotecas; este total no se reprodujo de forma independiente.",
+                "El repositorio público enlazado enumera actualmente 60 puntos de entrada en 25 bibliotecas. Sus enunciados públicos precisan entradas de proceso válidas en LPS, con un presupuesto de memoria de 2 GiB para compilaciones normales bajo variantes ASan y 16 GiB para UBSan; Anthropic describe para el proyecto un límite de entrada inferior a 64 MB. La relación entre estos alcances y conteos no está resuelta.",
+                "Las pruebas públicas comparan compilaciones normales y con sanitizadores para binarios riscv64 estáticos compilados con clang 20.1.8 y musl, bajo un modelo LPS incompleto. Cubren el código alcanzable desde cada punto de entrada de prueba, no bibliotecas completas.",
+                "La publicación no demuestra detención/terminación y no excluye errores que los sanitizadores no detectan, como resultados incorrectos o fugas de memoria. La validez también depende de que los enunciados y la semántica LPS representen la propiedad pretendida y el comportamiento real de Linux.",
+                "En esta activación no se comprobaron pruebas de forma independiente, no se hizo una reproducción más amplia ni una medición de costos."
+              ],
+              "gaps": [
+                {
+                  "description": "En esta revisión, ninguna parte independiente comprobó una muestra representativa de las pruebas publicadas ni reprodujo el total mayor de 239 puntos de entrada en 123 bibliotecas informado por Anthropic."
+                },
+                {
+                  "description": "Los teoremas públicos se limitan al código alcanzable desde un punto de entrada de prueba y a la concordancia entre compilaciones normal y con sanitizadores bajo supuestos de LPS. No demuestran terminación, no excluyen resultados incorrectos o fugas de memoria que el sanitizador no detecte ni cubren comportamiento omitido por el modelo Linux incompleto."
+                },
+                {
+                  "description": "No hay una comparación de horas de trabajo, cómputo, tasa de finalización/fallo de pruebas o costos de mantenimiento que establezca la economía ni el rendimiento neto del flujo de trabajo."
+                }
+              ]
+            },
+            "dek": "Anthropic informa que Claude produjo pruebas verificadas por Rocq para 239 puntos de entrada de OSS-Fuzz en 123 bibliotecas."
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "Anthropic称Claude为OSS-Fuzz的RISC-V二进制生成了机器检查证明",
+            "summary": "Anthropic称，Claude为OSS-Fuzz的123个库中的239个模糊测试入口点生成了经Rocq检查的证明。Theorem公开仓库目前列出较小子集：25个库中的60个入口点。公开定理在Linux进程LPS模型下比较普通构建与消毒器构建，适用于指定进程输入和内存预算；其范围仅限各入口点可达的代码，不证明程序终止，也不排除错误结果或内存泄漏等消毒器无法发现的问题。仓库明确说明模型并不完整。Anthropic报告的总量与当前公开子集之间的差异仍未解释；本次没有进行独立样本检查。",
+            "importance_rationale": "如果这种方法能够持续奏效，降低编写机器检查证明所需的专业劳动，可能让更多广泛使用的软件接受严格安全验证。当前项目仍局限于特定模糊测试规格、RISC-V/Linux模型和报告中描述的工件。",
+            "why_it_matters": "如果该流程能扩展到报告中的项目之外，降低编写机器检查证明所需的专业劳动，可能使广泛使用的软件也能采用更严格的安全验证。公开工件便于检查并明确形式边界，但目前证据尚不能证明独立复现、模型覆盖完整或产生了经济影响。",
+            "technical": {
+              "claimed_result": "Anthropic报告已验证123个库中的239个入口点，Rocq证明文本合计约180百万行。链接的Theorem公开仓库目前列出25个库中的60个入口点。",
+              "demonstrated_result": "本次检查的仓库README和定理说明列出25个库中的60个入口点、指定Rocq 9.2.0，并说明证明边界：在给定内存预算及LPS接受的输入范围内，普通版本和消毒器版本均不触发错误且具有相同的可观察行为。该版本没有证明终止，也明确不保证整个库正确或排除消毒器无法检测的错误。本激活没有运行检查器或独立查看任何证明。",
+              "mechanism": "Claude针对编译后RISC-V二进制的形式语义以及由模糊测试规格导出的性质生成Rocq证明项，再由Rocq内核检查。Anthropic称，如果证明尝试发现可达且会造成崩溃的缺陷，Claude会先修复代码，再为更新后的目标生成证明。",
+              "regime": "公开工件子集：选定的OSS-Fuzz入口点编译为静态riscv64二进制，使用clang 20.1.8和musl；在Linux进程LPS模型下比较普通版本与ASan/UBSan版本。ASan变体假定普通版本使用2 GiB内存，UBSan假定16 GiB。Anthropic另称其项目证明的输入低于64 MB；该范围与当前公开仓库之间的关系尚未厘清。",
+              "strongest_baseline": "传统模糊测试通过抽样输入寻找故障；公开证明则在各自定理陈述及LPS假设范围内建立全输入结论。对于消毒器可以检测的行为，这是一种更强但范围有限的性质；它不证明整个库正确、程序终止或已有独立验证。已检查来源没有提供匹配的人力或成本基线。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "Anthropic称，Claude修复了发现的缺陷，并为OSS-Fuzz的123个库中的239个模糊测试入口点生成了经Rocq检查的证明。其报告范围限定为编译后的RISC-V二进制、输入小于64 MB、单线程静态执行、固定内存预算，以及经过建模的Linux响应和内存布局。"
+                },
+                {
+                  "text": "Anthropic链接的Theorem公开仓库目前列出25个库中的60个入口点，并注明使用Rocq 9.2.0检查。公开定理比较普通构建与消毒器构建，适用于LPS模型接受的进程输入；普通构建的内存预算在ASan变体中为2 GiB，在UBSan中为16 GiB。仓库还说明LPS模型不完整，并依赖未检查的假设。公开工件数量少于Anthropic报告的总数；本次没有厘清差异。"
+                },
+                {
+                  "text": "公开证明比较普通构建和经消毒器插桩的构建：在各定理假设范围内，两者都不会触发错误，并具有相同的可观察行为。仓库说明相关程序是使用clang 20.1.8和musl构建的静态riscv64二进制；该版本没有证明程序会终止，只涵盖各入口点可达的代码，也不能排除消毒器检测不到的错误。"
+                },
+                {
+                  "text": "来源没有证明整个库正确或不存在缺陷，也没有证明所有相关安全性质都已写入规格、Anthropic报告的全部入口点都经独立检查，或该方法可推广到这些受限二进制、规格和LPS模型之外。"
+                }
+              ],
+              "limitations": [
+                "Anthropic参与该工作，是其报告239个入口点、123个库这一总数的一手来源；本次没有独立复现该总数。",
+                "当前链接的公开仓库列出25个库中的60个入口点。其公开定理以LPS认可的进程输入为范围，ASan变体假定普通构建的内存预算为2 GiB，UBSan为16 GiB；Anthropic称项目整体的输入上限低于64 MB。两个范围和计数之间的关系尚未厘清。",
+                "公开证明比较使用clang 20.1.8和musl构建的静态riscv64二进制及其消毒器版本，并依赖不完整的LPS模型；证明仅覆盖各模糊测试入口点可达的代码，不代表整个库。",
+                "该公开版本没有证明程序终止，也不能排除消毒器无法发现的错误，例如结果错误或内存泄漏。证明效力还取决于定理陈述和LPS语义是否准确表达目标性质及真实Linux行为。",
+                "本次激活没有独立检查证明、广泛复现、审计模型或测量成本。"
+              ],
+              "gaps": [
+                {
+                  "description": "本次审查中，没有独立方检查已发布证明的代表性样本，也没有复现Anthropic报告的较大规模结果：123个库中的239个入口点。"
+                },
+                {
+                  "description": "公开定理限定于单个模糊测试入口点可达的代码，并在LPS假设下比较普通构建与消毒器构建。它们不证明程序会终止，不排除消毒器未发现的错误结果或内存泄漏，也不涵盖不完整Linux模型遗漏的行为。"
+                },
+                {
+                  "description": "来源没有提供人工工时、计算资源、证明完成或失败率、维护成本等对照数据，因此无法据此确定该流程的经济性或净吞吐提升。"
+                }
+              ]
+            },
+            "headline": "Anthropic称Claude为OSS-Fuzz的RISC-V二进制生成了机器检查证明"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
+    {
+      "id": "FCMO-3EDD9970EBF4",
+      "slug": "chinas-transport-ministry-sets-out-22-ai-application-scenarios-for-water",
+      "url_date": "2026-10-23",
+      "kind": "development",
+      "status": "live",
+      "beat": "policy",
+      "desk": "policy_geopolitics",
+      "title": "China's transport ministry sets out 22 AI application scenarios for water transport",
+      "headline": "China's transport ministry sets out 22 AI application scenarios for water transport",
+      "dek": "China's Ministry of Transport issued a Chinese-language guide identifying 22 priority AI application scenarios for water transport, grouped under safety, efficiency and green transition.",
+      "summary": "China's Ministry of Transport issued a Chinese-language guide identifying 22 priority AI application scenarios for water transport, grouped under safety, efficiency and green transition. The examples span port risk monitoring, vessel and waterway safety, intelligent scheduling, logistics coordination, shipping-cost analysis and carbon management. The document records ministry policy direction, not completed deployment. It provides no funding or deadlines and reports no measured changes in safety, productivity, costs or emissions.",
+      "why_it_matters": "The guidance gives ports, shipping firms and public transport units a national ministry's scenario list for directing AI pilots and technical work across a strategically important logistics sector. Whether it changes procurement, adoption or operational outcomes remains unmeasured.",
+      "importance_rationale": "If implemented, ministry guidance spanning port safety, waterway operations, shipping logistics and maritime carbon management could direct AI adoption in an economically significant sector. The document establishes formal direction only; implementation and effects remain unmeasured.",
+      "technical": {
+        "claimed_result": "The Ministry lists 22 scenarios in three groups: 9 for safety, 10 for efficiency/quality and 3 for green transition.",
+        "demonstrated_result": "The official Chinese-language notice and its ministry interpretation are accessible and dated. They document the issuance and scenario list; no deployment or measured operational result was inspected.",
+        "mechanism": "The ministry turns broad AI-in-transport policy into a list of 22 water-transport application scenarios and asks relevant units to select priorities, pursue technical breakthroughs, apply results and summarize cases. The guide itself does not specify a common model architecture, procurement path or evaluation method.",
+        "regime": "China water transport, including port safety and operations, vessel/waterway management, logistics and shipping services, and carbon management. Policy issuance is national; implementation varies by agency and operator.",
+        "strongest_baseline": "The notice provides policy direction, not an empirical comparison. No pre-policy adoption baseline or post-deployment outcome data was included."
+      },
+      "importance_tier": "Meaningful",
+      "development_type": "policy_action",
+      "event_at": "2026-10-14T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-23T18:17:20Z",
+      "updated_at": "2026-10-23T18:17:20Z",
+      "importance": 4,
+      "evidence_class": "A",
+      "confidence": "strongly_supported",
+      "front_page_eligible": true,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "DEMONSTRATED",
+            "text": "The Ministry of Transport of China issued a water-transport AI application-scenario guide dated 2026-10-08 and publicly posted 2026-10-14, listing 22 scenarios grouped into safety improvement, efficiency and quality improvement, and green transition."
+          },
+          {
+            "label": "DEMONSTRATED",
+            "text": "The guide includes proposed uses such as port safety-risk monitoring, vessel/waterway safety, port automation, rail-water coordination, intelligent shipping operations and maritime carbon accounting. It instructs agencies and organizations to choose priorities based on their circumstances and work base."
+          },
+          {
+            "label": "NOT_ESTABLISHED",
+            "text": "The notice does not establish deployment status, funding, deadlines, realized safety or productivity gains, cost reductions, or emissions effects for the listed scenarios."
+          }
+        ],
+        "limitations": [
+          "The first-party ministry notice establishes formal guidance and the ministry's stated priorities, not that any listed system is deployed.",
+          "No funding commitments, mandatory deadlines, procurement, adoption rates or project owners are specified in the notice reviewed.",
+          "Potential safety, productivity, cost and emissions benefits are not measured here; the scenarios span heterogeneous transport tasks and would require separate evaluations.",
+          "This review covers one national ministry document and its same-ministry interpretation, not provincial uptake or global policy coverage."
+        ],
+        "gaps": [
+          {
+            "kind": "other",
+            "description": "The issued guide names scenarios and asks organizations to choose priorities, but does not identify funded projects, procurement, deployment status, timelines or implementation owners for each scenario."
+          },
+          {
+            "kind": "other",
+            "description": "No measured safety, throughput, logistics cost, service reliability or emissions outcome is reported for these AI applications."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://xxgk.mot.gov.cn/jigou/syj/202610/t20261013_4225770.html",
+          "domain": "xxgk.mot.gov.cn",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "Ministry of Transport of China"
+      ],
+      "topics": [
+        "ai-policy",
+        "water-transport",
+        "ports",
+        "shipping-logistics",
+        "transportation",
+        "china"
+      ],
+      "regions": [],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-3EDD9970EBF4.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: China's transport ministry sets out 22 AI application scenarios for water transport"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "El ministerio chino de Transporte define 22 escenarios de IA para el transporte acuático",
+            "summary": "El Ministerio de Transporte de China emitió una guía en chino que identifica 22 escenarios prioritarios de aplicación de IA en el transporte acuático, agrupados en seguridad, eficiencia y transición verde. Los ejemplos abarcan el monitoreo de riesgos portuarios, la seguridad de buques y vías navegables, la programación inteligente, la coordinación logística, el análisis de costos marítimos y la gestión del carbono. El documento registra la orientación del ministerio, no una implementación concluida. No especifica financiamiento ni plazos y no informa cambios medidos de seguridad, productividad, costos o emisiones.",
+            "importance_rationale": "Si se implementa, una guía ministerial que abarca seguridad portuaria, operaciones de vías navegables, logística marítima y gestión de carbono podría orientar la adopción de IA en un sector económicamente relevante. El documento establece una dirección formal; la implementación y sus efectos siguen sin medirse.",
+            "why_it_matters": "La guía ofrece a puertos, navieras y entidades públicas de transporte una lista nacional de escenarios para orientar pilotos y trabajo técnico en un sector logístico estratégico. Aún no se ha medido si cambia las compras, la adopción o los resultados operativos.",
+            "technical": {
+              "claimed_result": "El ministerio enumera 22 escenarios en tres grupos: 9 para seguridad, 10 para eficiencia/calidad y 3 para transición verde.",
+              "demonstrated_result": "El aviso oficial en chino y la interpretación del ministerio están disponibles y tienen fechas explícitas. Documentan la emisión y la lista de escenarios; en esta revisión no se verificaron despliegues ni resultados operativos medidos.",
+              "mechanism": "El ministerio convierte la política general de IA en transporte en una lista de 22 escenarios para el transporte acuático y pide a las entidades pertinentes que seleccionen prioridades, avancen en el trabajo técnico, apliquen resultados y documenten casos. La guía no define una arquitectura de modelo común, una vía de adquisición ni un método de evaluación.",
+              "regime": "Transporte acuático de China, incluidas la seguridad y operación portuaria, la gestión de buques y vías navegables, los servicios de logística y transporte marítimo, y la gestión de carbono. La política se emite a escala nacional; su aplicación depende de cada organismo y operador.",
+              "strongest_baseline": "El aviso ofrece orientación de política, no una comparación empírica. No incluye una línea base de adopción previa ni datos de resultados posteriores al despliegue."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "El Ministerio de Transporte de China emitió una guía de escenarios de aplicación de IA para el transporte acuático, fechada 2026-10-08 y publicada el 2026-10-14. La guía enumera 22 escenarios en tres grupos: seguridad, eficiencia y calidad, y transición verde."
+                },
+                {
+                  "text": "La guía propone usos como monitoreo de riesgos en puertos, seguridad de buques y vías navegables, automatización portuaria, coordinación ferroviaria-fluvial, operaciones marítimas inteligentes y contabilidad de carbono marítimo. Indica a las entidades que elijan prioridades según su situación y experiencia."
+                },
+                {
+                  "text": "El aviso no demuestra el estado de despliegue, financiamiento, plazos, mejoras reales de seguridad o productividad, reducciones de costos ni efectos sobre emisiones para los escenarios enumerados."
+                }
+              ],
+              "limitations": [
+                "El aviso ministerial de primera parte establece una guía formal y las prioridades declaradas por el ministerio, no que alguno de los sistemas enumerados ya esté desplegado.",
+                "El aviso revisado no especifica compromisos de financiamiento, plazos obligatorios, compras, tasas de adopción ni responsables de proyectos.",
+                "Aquí no se miden posibles beneficios de seguridad, productividad, costos o emisiones; los escenarios abarcan tareas de transporte distintas y requieren evaluaciones separadas.",
+                "Esta revisión cubre un documento de un ministerio nacional y su interpretación del mismo ministerio, no la adopción provincial ni la cobertura global de políticas."
+              ],
+              "gaps": [
+                {
+                  "description": "La guía emitida enumera escenarios y pide a las entidades que seleccionen prioridades, pero no identifica proyectos financiados, compras, estados de despliegue, cronogramas ni responsables de ejecución para cada escenario."
+                },
+                {
+                  "description": "No se informan resultados medidos de seguridad, volumen de operaciones, costos logísticos, fiabilidad del servicio ni emisiones para estas aplicaciones de IA."
+                }
+              ]
+            },
+            "headline": "El ministerio chino de Transporte define 22 escenarios de IA para el transporte acuático",
+            "dek": "El Ministerio de Transporte de China emitió una guía en chino que identifica 22 escenarios prioritarios de aplicación de IA en el transporte acuático, agrupados en seguridad, eficiencia y transición verde."
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "中国交通运输部提出水运领域22个人工智能应用场景",
+            "summary": "中国交通运输部发布了一份中文指引，列出水运领域22个优先人工智能应用场景，分为安全、提质增效和绿色转型。示例包括港口风险监测、船舶和航道安全、智能调度、物流协同、航运成本分析和碳管理。该文件体现部委政策方向，并不表示相关系统已经落地。文件没有规定资金和期限，也没有报告安全、生产率、成本或排放方面的测量变化。",
+            "importance_rationale": "如果落实，涵盖港口安全、航道运营、航运物流和海事碳管理的部委指引可能影响一个重要经济行业的人工智能应用方向。该文件确立的是政策方向，实施情况和实际影响尚未测量。",
+            "why_it_matters": "该指引为港口、航运企业和公共交通单位提供了国家层面的应用清单，可用于安排具有战略意义的物流行业试点与技术工作。它是否会改变采购、采用或运营结果，目前尚无测量证据。",
+            "technical": {
+              "claimed_result": "部委列出22个场景，分为三组：安全9项、提质增效10项、绿色转型3项。",
+              "demonstrated_result": "本次检查可访问中文官方通知及交通运输部解读，文件日期明确。两者记录了政策发布及场景清单；本次没有核实部署或测量后的运营结果。",
+              "mechanism": "交通运输部将人工智能与交通运输融合的总体政策细化为水运领域22个应用场景，并要求有关单位结合实际确定重点、推进技术攻关、促进成果应用和总结案例。该指引没有规定统一模型架构、采购路径或评估方法。",
+              "regime": "中国水运领域，包括港口安全与运营、船舶和航道管理、物流与航运服务以及碳管理。政策在国家层面发布；具体执行因机构和运营方而异。",
+              "strongest_baseline": "该通知提供政策方向，而非实证比较。文件没有包含政策实施前的采用基线，也没有部署后的结果数据。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "中国交通运输部发布了水运领域人工智能应用场景指引，文件日期为2026-10-08，公开日期为2026-10-14。指引列出22个场景，分为安全提升、提质增效和绿色转型三类。"
+                },
+                {
+                  "text": "指引提出港口风险监测、船舶与航道安全、港口自动化、铁水联运协调、航运智能运营和海运碳核算等用途，并要求各单位结合自身情况与工作基础选择重点。"
+                },
+                {
+                  "text": "该通知没有证明所列场景的部署状态、资金、时间表、实际安全或生产率提升、成本下降或排放变化。"
+                }
+              ],
+              "limitations": [
+                "交通运输部的一手通知能够证明正式政策指引及部委所述重点，但不能证明其中任何系统已经部署。",
+                "所审阅的通知没有规定资金承诺、强制期限、采购、采用率或各项目负责人。",
+                "本文没有测量可能的安全、生产率、成本或排放效益；各应用场景任务差异较大，需要分别评估。",
+                "本次审阅仅覆盖一份国家部委文件及该部委的解读，不代表各省落实情况或全球政策覆盖。"
+              ],
+              "gaps": [
+                {
+                  "description": "已发布的指引列出应用场景并要求各单位选择重点，但没有指出每个场景的已拨资金项目、采购安排、部署状态、实施时间表或负责人。"
+                },
+                {
+                  "description": "文件没有报告这些人工智能应用带来的安全、吞吐量、物流成本、服务可靠性或排放测量结果。"
+                }
+              ]
+            },
+            "headline": "中国交通运输部提出水运领域22个人工智能应用场景",
+            "dek": "中国交通运输部发布了一份中文指引，列出水运领域22个优先人工智能应用场景，分为安全、提质增效和绿色转型。示例包括港口风险监测、船舶和航道安全、智能调度、物流协同、航运成本分析和碳管理。该文件体现部委政策方向，并不表示相关系统已经落地。文件没有规定资金和期限，也没有报告安全、生产率、成本或排放方面的测量变化。"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
     {
       "id": "FCMO-2A6A66CFE43A",
       "slug": "uk-pensions-regulator-asks-trustees-to-assess-hidden-ai-related",
@@ -1787,12 +2241,12 @@
       "desk": "compute_inference",
       "title": "OpenAI makes the Decisions API generally available for bounded classification, routing and scoring",
       "dek": "OpenAI made the Decisions API generally available on Oct 22, 2026.",
-      "summary": "OpenAI made the Decisions API generally available on Oct 22, 2026. The dedicated endpoint turns text, image and JSON inputs into bounded probabilities, choices or scores, currently using GPT-6 Luna; the API guide allows up to 400 questions per request and documents prompt caching and native GPT-Live integration. OpenAI lists $0.10 per million uncached input tokens and no output-token charge, subject to caching, regional and long-context terms. The company claims up to 10× lower latency than GPT-6 Luna through the Responses API, but publishes no benchmark protocol in the reviewed launch materials. Independent performance, adoption and realized economic effects remain unestablished.",
+      "summary": "OpenAI made the Decisions API generally available on Oct 22, 2026. The dedicated endpoint turns text, image and JSON inputs into bounded probabilities, choices or scores, currently using GPT-6 Luna; the API guide allows up to 400 questions per request and documents prompt caching and native GPT-Live integration. Decisions and standard GPT-6 Luna uncached input are both listed at $0.10 per million tokens; this endpoint has no output-token charge, while caching discounts and regional/long-context terms also affect cost. OpenAI claims up to 10× lower latency than GPT-6 Luna through Responses API but publishes no workload protocol in the reviewed launch materials. Independent performance, adoption and realized economic effects remain unestablished.",
       "why_it_matters": "Many agent and application workflows spend time and compute on repeated bounded decisions such as routing, classification and scoring. A specialized endpoint with a published input-only price and a vendor-reported speed advantage could change the cost and latency frontier for those workloads. Whether it improves end-to-end systems depends on task accuracy, concurrency, integration overhead and actual usage; those outcomes are not yet independently measured.",
       "importance_rationale": "If the advertised speed and input-cost profile holds across suitable workloads, a dedicated bounded-decision endpoint could materially change latency and cost choices in high-volume routing, classification and agent-control paths. This is a useful runtime option rather than a demonstrated field-wide efficiency gain; the product is newly generally available, the comparison protocol is undisclosed, and no independent measurements or adoption outcomes were found.",
       "technical": {
         "claimed_result": "OpenAI says the dedicated Decisions endpoint produces bounded answers up to 10 times faster than GPT-6 Luna through the Responses API. The comparison method and workload are not specified in the reviewed announcement or guide.",
-        "demonstrated_result": "First-party announcement and API documentation specify the generally available endpoint, one supported model, three answer types, supported inputs, up to 400 questions per request, documented GPT-Live integration and published token pricing. This review did not call the endpoint or measure its performance.",
+        "demonstrated_result": "First-party announcement and API documentation specify the generally available endpoint, one supported model, three answer types, supported inputs, up to 400 questions per request, documented GPT-Live integration and listed token pricing. The official GPT-6 Luna page lists the same standard uncached input rate ($0.10 per million tokens) as Decisions; Decisions separately lists no output-token charge. This review did not call the endpoint or measure performance or total workload cost.",
         "mechanism": "The API accepts shared text, image or JSON evidence plus typed questions and returns probabilities, a selected allowed value or a score from a rubric. Multiple questions can be batched against shared input, with prompt caching for repeated prefixes and direct triggering from GPT-Live. This narrows the answer format for application decisions instead of generating unrestricted explanatory text.",
         "regime": "OpenAI Decisions API as documented on 2026-10-22; currently gpt-6-luna only; bounded probability, choice and score outputs; text, images and JSON; up to 400 questions per request. Pricing and regional/long-context terms follow the first-party guide.",
         "strongest_baseline": "OpenAI identifies GPT-6 Luna through the Responses API as the latency comparison. No matched benchmark protocol, accuracy comparison, concurrency, input distribution or uncertainty interval is published in the reviewed sources."
@@ -1816,7 +2270,7 @@
           },
           {
             "label": "DEMONSTRATED",
-            "text": "The published API guide allows up to 400 questions in one request and documents prompt caching and native GPT-Live integration. OpenAI lists uncached input at $0.10 per million tokens, cached input at a discounted rate, and no output-token charge for this endpoint; regional-processing premiums and long-context multipliers can apply."
+            "text": "The published API guide allows up to 400 questions in one request and documents prompt caching and native GPT-Live integration. OpenAI lists uncached input at $0.10 per million tokens, cached input at a discounted rate, and no output-token charge for this endpoint; its GPT-6 Luna model page lists the same $0.10 standard uncached input rate, so the endpoint does not reduce the published per-input-token rate. Regional-processing premiums and long-context multipliers can apply."
           },
           {
             "label": "CLAIMED",
@@ -1832,7 +2286,8 @@
           "The claimed up-to-10× speed comparison has no disclosed workload or latency statistic in the reviewed sources; it should not be generalized to arbitrary prompts or applications.",
           "Only GPT-6 Luna is documented as supported at launch. Whether typed outputs preserve accuracy for a given application must be evaluated on that task.",
           "Regional-processing premiums, long-context multipliers and cache-write pricing can affect total cost. No workload-level cost calculation is reported here.",
-          "No independent adoption, productivity or end-to-end economic effect was found."
+          "No independent adoption, productivity or end-to-end economic effect was found.",
+          "The official GPT-6 Luna model page lists the same $0.10 standard uncached input-token rate as the Decisions API. No general input-rate reduction is established; any total-cost benefit depends on output-token savings, caching, request shape and application workload."
         ],
         "gaps": [
           {
@@ -1841,7 +2296,7 @@
           },
           {
             "kind": "other",
-            "description": "Published token rates do not establish realized customer cost or end-to-end productivity impact; billing terms and regional/long-context multipliers affect total cost."
+            "description": "Published token rates do not establish realized customer cost or end-to-end productivity. Decisions has the same listed uncached input rate as GPT-6 Luna; output-token charges, caching, regional/long-context terms and request composition determine any workload-level difference."
           }
         ],
         "contradictory": []
@@ -1854,6 +2309,11 @@
         },
         {
           "url": "https://developers.openai.com/api/docs/guides/decisions",
+          "domain": "developers.openai.com",
+          "primary": true
+        },
+        {
+          "url": "https://developers.openai.com/api/docs/models/gpt-6-luna",
           "domain": "developers.openai.com",
           "primary": true
         }
@@ -1888,12 +2348,12 @@
           "state": "NATIVE_ARB",
           "fields": {
             "title": "OpenAI habilita Decisions API para clasificación, enrutamiento y puntuación acotados",
-            "summary": "OpenAI habilitó Decisions API para disponibilidad general el 22 de octubre de 2026. El endpoint dedicado convierte entradas de texto, imágenes y JSON en probabilidades, opciones o puntuaciones acotadas; por ahora usa GPT-6 Luna. La guía permite hasta 400 preguntas por solicitud y documenta la caché de prompts y la integración nativa con GPT-Live. OpenAI publica un precio de 0.10 USD por millón de tokens de entrada sin caché y no cobra tokens de salida, sujeto a las condiciones de caché, región y contexto extenso. La empresa afirma que la latencia puede ser hasta 10× menor que con GPT-6 Luna mediante Responses API, pero los materiales revisados no describen el protocolo comparativo. No se han establecido de forma independiente el rendimiento, la adopción ni los efectos económicos realizados.",
+            "summary": "OpenAI habilitó Decisions API para disponibilidad general el 22 de octubre de 2026. El endpoint dedicado convierte entradas de texto, imágenes y JSON en probabilidades, opciones o puntuaciones acotadas; por ahora usa GPT-6 Luna. La guía permite hasta 400 preguntas por solicitud y documenta la caché de prompts y la integración nativa con GPT-Live. Tanto Decisions como GPT-6 Luna estándar publican 0.10 USD por millón de tokens de entrada sin caché; Decisions no cobra tokens de salida, y la caché, la región y el contexto extenso también afectan el costo. OpenAI afirma que la latencia puede ser hasta 10× menor que con GPT-6 Luna mediante Responses API, pero los materiales revisados no describen el protocolo comparativo. No se han establecido de forma independiente el rendimiento, la adopción ni los efectos económicos realizados.",
             "importance_rationale": "Si el perfil anunciado de velocidad y costo de entrada se mantiene en cargas de trabajo adecuadas, un endpoint dedicado a decisiones acotadas podría cambiar de forma relevante las opciones de latencia y costo en tareas de enrutamiento, clasificación y control de agentes de alto volumen. Es una opción útil de ejecución, no una mejora de eficiencia demostrada para todo el campo: el producto acaba de alcanzar disponibilidad general, el protocolo comparativo no se divulga y no se encontraron mediciones independientes ni resultados de adopción.",
             "why_it_matters": "Muchos flujos de agentes y aplicaciones consumen tiempo y cómputo en decisiones acotadas que se repiten, como el enrutamiento, la clasificación y la puntuación. Un endpoint especializado con un precio publicado para entradas y una ventaja de velocidad afirmada por el proveedor podría cambiar las opciones de costo y latencia en esas tareas. Que mejore sistemas completos depende de la precisión, la concurrencia, el costo de integración y el uso real; esos resultados aún no tienen mediciones independientes.",
             "technical": {
               "claimed_result": "OpenAI afirma que el endpoint dedicado Decisions produce respuestas acotadas hasta 10 veces más rápido que GPT-6 Luna mediante Responses API. Los materiales revisados no especifican el método ni la carga de trabajo de la comparación.",
-              "demonstrated_result": "El anuncio y la documentación de OpenAI especifican la disponibilidad general del endpoint, el único modelo admitido actualmente, tres tipos de respuesta, los formatos de entrada compatibles, hasta 400 preguntas por solicitud, la integración documentada con GPT-Live y los precios publicados. Esta revisión no envió solicitudes al endpoint ni midió su rendimiento.",
+              "demonstrated_result": "El anuncio y la documentación de OpenAI especifican el endpoint de disponibilidad general, el único modelo admitido, tres tipos de respuesta, formatos de entrada, hasta 400 preguntas por solicitud, integración documentada con GPT-Live y precios publicados. La página oficial de GPT-6 Luna publica la misma tarifa estándar de entrada sin caché (0.10 USD por millón de tokens) que Decisions; este último no cobra tokens de salida. Esta revisión no llamó al endpoint ni midió su rendimiento o el costo total de una carga de trabajo.",
               "mechanism": "La API recibe evidencia compartida en texto, imagen o JSON junto con preguntas tipadas, y devuelve probabilidades, una opción permitida o una puntuación según una rúbrica. Se pueden agrupar varias preguntas sobre una entrada compartida y reutilizar prefijos con la caché de prompts; GPT-Live también puede activarla directamente. Así se limita la respuesta a una decisión de aplicación en vez de generar texto explicativo sin restricciones.",
               "regime": "Decisions API de OpenAI según la documentación consultada el 2026-10-22; por ahora solo gpt-6-luna; respuestas acotadas de probabilidad, opción y puntuación; texto, imágenes y JSON; hasta 400 preguntas por solicitud. Las tarifas y las condiciones de región y contexto extenso siguen la guía oficial.",
               "strongest_baseline": "OpenAI identifica a GPT-6 Luna mediante Responses API como referencia para la comparación de latencia. Las fuentes revisadas no publican un protocolo de evaluación equivalente, comparación de precisión, concurrencia, distribución de entradas ni intervalo de incertidumbre."
@@ -1904,7 +2364,7 @@
                   "text": "OpenAI anunció la disponibilidad general de Decisions API el 2026-10-22. Su documentación describe POST /v1/decisions, compatible por ahora con gpt-6-luna, que recibe texto, imágenes y JSON y devuelve una probabilidad, una opción entre valores permitidos o una puntuación según una rúbrica."
                 },
                 {
-                  "text": "La guía publicada permite hasta 400 preguntas en una solicitud y documenta la caché de prompts y la integración nativa con GPT-Live. OpenAI publica un precio de 0.10 USD por millón de tokens de entrada sin caché, una tarifa menor para entradas reutilizadas y ningún cargo por tokens de salida en este endpoint; pueden aplicarse recargos por procesamiento regional y por contexto extenso."
+                  "text": "La guía publicada permite hasta 400 preguntas en una solicitud y documenta la caché de prompts y la integración nativa con GPT-Live. OpenAI publica 0.10 USD por millón de tokens de entrada sin caché, igual que la tarifa estándar de entrada sin caché de GPT-6 Luna, que también es 0.10 USD por millón; por tanto, el endpoint no reduce esa tarifa publicada. El endpoint no cobra tokens de salida; la caché y las condiciones de región y contexto extenso también influyen en el costo."
                 },
                 {
                   "text": "OpenAI afirma que Decisions entrega respuestas acotadas hasta 10 veces más rápido que GPT-6 Luna mediante Responses API. La fuente no especifica una carga de trabajo, concurrencia, ubicación, estadística de latencia ni evaluación independiente para esta comparación."
@@ -1918,14 +2378,15 @@
                 "La comparación de velocidad de hasta 10× no revela la carga de trabajo ni una estadística de latencia en las fuentes revisadas; no debe generalizarse a cualquier indicación o aplicación.",
                 "La documentación indica que al lanzamiento solo se admite GPT-6 Luna. Cada aplicación debe evaluar la calidad de las respuestas tipadas para su propia tarea.",
                 "Los recargos por procesamiento regional, contexto extenso y escritura en caché pueden afectar el costo total. Aquí no se informa un cálculo de costos para una carga de trabajo concreta.",
-                "No se encontraron datos independientes sobre adopción, productividad o efectos económicos de extremo a extremo."
+                "No se encontraron datos independientes sobre adopción, productividad o efectos económicos de extremo a extremo.",
+                "La página oficial de GPT-6 Luna publica la misma tarifa estándar de entrada sin caché: 0.10 USD por millón de tokens. No se demuestra una reducción general de la tarifa de entrada; cualquier beneficio de costo total depende del ahorro en tokens de salida, la caché, la forma de la solicitud y la carga de trabajo."
               ],
               "gaps": [
                 {
                   "description": "La comparación de velocidad de hasta 10× no incluye una carga de trabajo ni un protocolo de medición públicos en las fuentes revisadas; tampoco se encontró una comparación independiente de latencia y precisión."
                 },
                 {
-                  "description": "Las tarifas publicadas por token no establecen el costo real para clientes ni el efecto en la productividad integral; las condiciones de facturación y los recargos regionales o por contexto extenso afectan el costo total."
+                  "description": "Las tarifas publicadas no establecen el costo real para clientes ni el efecto en la productividad integral. Decisions tiene la misma tarifa publicada de entrada sin caché que GPT-6 Luna; los cargos por salida, la caché, las condiciones regionales y el contexto extenso, y la composición de la solicitud determinan cualquier diferencia para una carga de trabajo."
                 }
               ]
             },
@@ -1948,12 +2409,12 @@
           "state": "NATIVE_ARB",
           "fields": {
             "title": "OpenAI 正式开放 Decisions API，用于有限分类、路由和评分",
-            "summary": "OpenAI 于 22 日（2026 年）正式开放 Decisions API。该专用端点可将文本、图像和 JSON 输入转换为有限的概率、选项或分数；目前使用 GPT-6 Luna。API 指南允许单次请求最多提出 400 个问题，并说明支持提示缓存和原生 GPT-Live 集成。OpenAI 公布的价格为每百万未缓存输入词元 0.10 美元，且不收取输出词元费用，但缓存、地域和长上下文条件会影响费率。该公司称其延迟最高可低 10× 于 GPT-6 Luna 经由 Responses API；所查发布资料未说明比较方案。独立的性能、采用和实际经济影响仍未确立。",
+            "summary": "OpenAI 于 2026 年十月 22 日正式开放 Decisions API。该专用端点可将文本、图像和 JSON 输入转换为有限的概率、选项或分数；目前使用 GPT-6 Luna。API 指南允许单次请求最多提出 400 个问题，并说明支持提示缓存和原生 GPT-Live 集成。Decisions 与 GPT-6 Luna 标准版的未缓存输入价格均为每百万词元 0.10 美元；Decisions 不收取输出词元费用，缓存、地域和长上下文条件也会影响成本。OpenAI 称其延迟最高可低 10× 于 GPT-6 Luna 经由 Responses API；所查发布资料未说明比较方案。独立的性能、采用和实际经济影响仍未确立。",
             "importance_rationale": "如果所述速度和输入成本特征能在合适的工作负载上成立，面向有限答案的专用端点可能改变高频路由、分类和智能体控制任务的延迟与成本选择。这是一个值得评估的推理运行选项，但并非已证实的全领域效率提升：产品刚刚正式开放，比较方案未公开，也没有找到独立测量或采用结果。",
             "why_it_matters": "许多智能体和应用工作流程会在重复的有限决策上消耗时间与算力，例如路由、分类和评分。专用端点公布了输入定价，且供应商声称其速度更快，这可能改变此类任务的成本与延迟选择。它能否改善完整系统，取决于任务准确度、并发量、集成开销和实际用量；目前这些结果尚无独立测量。",
             "technical": {
               "claimed_result": "OpenAI 称，专用 Decisions 端点生成有限答案的速度最高可达 10 倍于 GPT-6 Luna 经由 Responses API。所查公告和指南没有说明比较方法或工作负载。",
-              "demonstrated_result": "OpenAI 的公告和 API 文档说明了端点已正式开放、目前支持的唯一模型、三种答案类型、可用输入格式、单次请求最多 400 个问题、文档所述的 GPT-Live 集成及公开标价。本次审查没有调用该端点，也没有测量其性能。",
+              "demonstrated_result": "OpenAI 公告和 API 文档说明了端点已正式开放、目前支持的唯一模型、三种答案类型、输入格式、单次请求最多 400 个问题、文档记载的 GPT-Live 集成和公开标价。GPT-6 Luna 官方模型页面列出的标准未缓存输入价格同为每百万词元 0.10 美元；Decisions 不收取输出词元费用。本次审查没有调用端点，也未测量其性能或完整工作负载成本。",
               "mechanism": "API 接收共享的文本、图像或 JSON 证据及类型化问题，并返回概率、指定选项之一或按规则计算的分数。多个问题可针对同一输入批量提交，重复前缀可使用提示缓存，GPT-Live 也能直接触发该 API。它将输出限定为应用所需的决策结果，而非不受限制的解释性文本。",
               "regime": "截至 2026-10-22 文档所述的 OpenAI Decisions API；目前仅支持 gpt-6-luna；答案限定为概率、选项或评分；支持文本、图像和 JSON；单次请求最多 400 个问题。定价以及地域和长上下文条件以官方指南为准。",
               "strongest_baseline": "OpenAI 将 GPT-6 Luna 经由 Responses API 作为延迟对比基线。所查来源没有公布匹配的基准方案、准确度比较、并发数、输入分布或不确定性区间。"
@@ -1964,7 +2425,7 @@
                   "text": "OpenAI 于 2026-10-22宣布 Decisions API 正式开放。其文档说明接口为 POST /v1/decisions，目前仅支持 gpt-6-luna，可接收文本、图像和 JSON，并返回概率、预设选项之一或按评分规则计算的分数。"
                 },
                 {
-                  "text": "已发布的 API 指南允许单次请求最多包含 400 个问题，并说明支持提示缓存和原生 GPT-Live 集成。OpenAI 公布的价格为每百万未缓存输入词元 0.10 美元，重复输入可享较低费率；该端点不收取输出词元费用。区域处理和长上下文可能另有加价。"
+                  "text": "已发布的 API 指南允许单次请求最多包含 400 个问题，并说明支持提示缓存和原生 GPT-Live 集成。OpenAI 公布的未缓存输入价格为每百万词元 0.10 美元，与 GPT-6 Luna 标准未缓存输入价格相同，后者同样为每百万词元 0.10 美元，因此该端点没有降低公开的输入单价。该端点不收取输出词元费用；缓存、地域和长上下文条件也会影响总成本。"
                 },
                 {
                   "text": "OpenAI 称，Decisions 的有限答案生成速度最高可达 GPT-6 Luna 经由 Responses API 的 10 倍。来源没有给出该比较所用的工作负载、并发数、地域条件、延迟统计或独立基准测试。"
@@ -1978,14 +2439,15 @@
                 "所查材料没有披露最高 10× 速度比较的工作负载或延迟统计，因此不应将该数字推广到任意提示或应用。",
                 "文档显示发布时仅支持 GPT-6 Luna。类型化答案能否满足具体应用的准确度要求，仍须针对相应任务评估。",
                 "区域处理、长上下文和缓存写入费用可能改变总成本。本记录没有报告具体工作负载的成本核算。",
-                "没有找到独立的采用率、生产率或端到端经济影响证据。"
+                "没有找到独立的采用率、生产率或端到端经济影响证据。",
+                "GPT-6 Luna 官方模型页面列出的标准未缓存输入价格同为每百万词元 0.10 美元。没有证据表明输入单价普遍降低；总成本是否下降取决于输出词元节省、缓存、请求结构和具体工作负载。"
               ],
               "gaps": [
                 {
                   "description": "所查资料没有公开最高 10× 速度比较所用的工作负载和测量方案，也未找到独立的延迟与准确度对比。"
                 },
                 {
-                  "description": "公开的词元费率不能证明客户的实际成本或端到端生产率影响；计费条件以及区域处理和长上下文加价都会影响总成本。"
+                  "description": "公布的词元费率不能证明客户实际成本或端到端生产率。Decisions 的未缓存输入标价与 GPT-6 Luna 相同；输出词元费用、缓存、地域与长上下文条款以及请求组成都会影响工作负载总成本。"
                 }
               ]
             },
