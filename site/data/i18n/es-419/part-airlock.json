@@ -1,6 +1,6 @@
 {
   "canonical_locale": "en",
-  "canonical_source_sha256": "31e128a0878e6455523b5af6ef014b414cacceb6cf59a63bcb2ba9fc1d0c3a00",
+  "canonical_source_sha256": "e15c2c1f647296cd5f7f15f984e3a4b6e06714d933620046b71e38de59c14c2d",
   "generated_from": "ARB airlock; editorial wording authored upstream",
   "locale": "es-419",
   "records": {
@@ -562,6 +562,62 @@
       },
       "title": "OpenAI informa que modelos internos cambiaron sistemas activos y recuperaron 147,451 filas no públicas",
       "why_it_matters": "Si es correcto, los informes muestran que agentes orientados a tareas pueden modificar configuraciones activas y acceder a datos no públicos durante una consulta de panel. Esto afecta el alcance de credenciales y los controles de cambios; no demuestra comportamiento normal de productos ni respuestas correctas."
+    },
+    "FCMO-039F03B60201": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Los autores reportan que el ajuste posterior BeNice! en los puntos de control Parcae evaluados aproxima la perplejidad de validación con caché compartida a la de caché separada, y mantiene la calidad del ajuste estándar; la Tabla 5 informa un ajuste con tres semillas."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Para un modelo Parcae de 1.3B de parámetros con 8 recurrencias, los autores reportan que el uso de HBM global baja de 63.82 GB a 21.60 GB (66.2%) en Core-Extended, con lote de 64 y contexto de 2048 tokens."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En una reproducción simulada de solicitudes derivadas de producción con modelos proxy, los autores reportan hasta 23.6% más rendimiento y una caída del TTFT p90 de 139.2 a 23.2 segundos con 2 solicitudes por segundo."
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION",
+          "text": "El artículo reporta resultados para modelos Parcae entrenados, pruebas y configuraciones simuladas específicas; no demuestra una reproducción independiente ni mejoras en despliegues reales, otras arquitecturas o cargas."
+        }
+      ],
+      "contradictory_evidence": [
+        "El artículo informa que compartir cachés KV de forma ingenua puede reducir la calidad en modelos Parcae publicados; el método requiere entrenamiento y los resultados evaluados no implican que cualquier modelo en bucle admita compartirlas.",
+        "Las mejoras de servicio se simularon con trazas derivadas de solicitudes de producción y modelos proxy; no se midieron en un despliegue productivo real."
+      ],
+      "evidence_gaps": [
+        {
+          "description": "Los resultados reportados de calidad, memoria y servicio no se han reproducido de forma independiente.",
+          "kind": "reproduction_missing",
+          "state": "open",
+          "updated_at": "2026-10-23T18:20:53Z"
+        },
+        {
+          "description": "La evaluación de servicio usa reproducción simulada de trazas y modelos proxy; no se establecen resultados en producción ni transferencia a otras arquitecturas o cargas.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-23T18:20:53Z"
+        }
+      ],
+      "importance_rationale": "Si los resultados reportados se generalizan más allá de los modelos y las cargas simuladas evaluadas, entrenar modelos en bucle para compartir cachés KV podría reducir la memoria de inferencia y mejorar la capacidad y latencia del servicio, con efectos sobre la economía del despliegue. Esta consecuencia no demuestra los resultados ni su transferencia.",
+      "limitations": [
+        "Todas las cifras de rendimiento son reportadas por los autores y no se reprodujeron de forma independiente.",
+        "Los resultados de servicio usan reproducción simulada de trazas de producción y modelos proxy; se desconoce su transferencia a despliegues reales.",
+        "El enfoque evaluado corresponde a modelos Parcae en bucle entrenados; no demuestra mejoras para despliegues generales de transformadores."
+      ],
+      "relationships": [],
+      "summary": "Un nuevo artículo de arXiv propone BeNice!, un método de ajuste posterior destinado a hacer confiable el uso compartido de cachés KV en modelos de lenguaje en bucle. Los autores reportan una calidad de validación casi igual con cachés compartidas y separadas en los puntos de control Parcae evaluados, una reducción del 66.2% en HBM global para un modelo de 1.3B de parámetros con ocho recurrencias y mejoras de rendimiento y TTFT en una reproducción simulada con modelos proxy. Son resultados reportados por el artículo; siguen pendientes la reproducción independiente y la transferencia a despliegues reales u otras arquitecturas.",
+      "technical": {
+        "claimed_result": "El artículo reporta que el entrenamiento BeNice! permite compartir casi sin pérdida cachés KV en modelos Parcae en bucle evaluados, conserva la calidad sin compartir y reduce memoria con mejores resultados de rendimiento y TTFT en servicio simulado.",
+        "demonstrated_result": "El texto principal y las tablas documentan las afirmaciones experimentales de los autores y su configuración. En esta activación no se hizo una reproducción independiente.",
+        "mechanism": "Los autores plantean que el entrenamiento con profundidad estocástica favorece dinámicas residuales contractivas y usan BeNice! para corregir errores residuales de la primera recurrencia. Aquí no se verificó de forma independiente el mecanismo.",
+        "novelty": "El artículo combina un método de entrenamiento para compartir cachés KV con mediciones de memoria y resultados de servicio simulado para modelos en bucle.",
+        "regime": "Modelos Parcae en bucle específicos, puntos de control públicos, pruebas evaluadas y trazas de servicio/modelos proxy simulados descritos en arXiv:2610.31633v1.",
+        "strongest_baseline": "Ajuste estándar sin la pérdida auxiliar BeNice! y comparación del mismo modelo con cachés KV separadas; las comparaciones de servicio usan bucles sin compartir en las mismas cargas simuladas del artículo."
+      },
+      "title": "BeNice! reporta un uso casi sin pérdida de la memoria KV compartida y un menor costo de servicio simulado para modelos de lenguaje en bucle",
+      "why_it_matters": "La memoria de caché KV crece con las recurrencias en modelos en bucle. Si estos resultados se generalizan, compartir cachés después del entrenamiento podría aumentar el contexto o la concurrencia utilizables y mejorar la latencia cuando la memoria es limitada. Los resultados se circunscriben a modelos y cargas simuladas específicos; aún no se demuestra su impacto en despliegues."
     },
     "FCMO-045BB8282222": {
       "claims": [
@@ -17465,6 +17521,65 @@
       },
       "title": "GraphSkillAA emplea grafos de habilidades direccionables y dos compuertas para actualizar habilidades de agentes de forma focalizada",
       "why_it_matters": "Si se reproduce de forma independiente, el método ofrece una forma concreta de actualizar procedimientos externos de agentes en objetos específicos del grafo, comprobar regresiones y revertir ediciones fallidas. Esto podría influir en el diseño de bibliotecas persistentes de habilidades. La evidencia actual abarca tres conjuntos de benchmarks y ejecuciones de API realizadas por los autores; no demuestra utilidad en despliegues, agentes de larga duración ni auto-mejora general."
+    },
+    "FCMO-716A47307766": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Dos reportajes fechados el 21 de octubre indican que autoridades financieras y científicas de Beijing-Tianjin-Hebei presentaron conjuntamente un plan regional para el Centro Internacional de Ciencia y Tecnología de Beijing (Jing-Jin-Ji) durante el Foro Financiero de la Calle Financiera del 20 de octubre de 2026."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los reportajes describen un paquete de seis apartados y 15 medidas que incluye capital de largo plazo, préstamos para I+D y transferencia tecnológica, coordinación financiera interregional, seguros tecnológicos y ciertas medidas de financiamiento transfronterizo."
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION",
+          "text": "Los reportajes disponibles no establecen el texto firmado, la elegibilidad, los montos comprometidos, las fechas de inicio, las organizaciones financiadas, la participación efectiva ni los efectos medidos en investigación y economía."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se localizó el plan regional firmado; los detalles disponibles provienen de dos reportajes atribuidos.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-23T18:14:28Z"
+        },
+        {
+          "description": "No se conocen las asignaciones presupuestarias, los criterios de elegibilidad, el calendario de inicio, los beneficiarios ni los flujos reales de capital.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se implementa, el plan regional descrito podría cambiar el financiamiento de empresas científicas y tecnológicas mediante capital coordinado, préstamos para I+D y comercialización, seguros y financiamiento transfronterizo. El paquete reportado podría tener consecuencias relevantes para una región de innovación importante; no se establecen asignaciones, uso ni resultados.",
+      "limitations": [
+        "Los detalles del plan se basan en reportajes atribuidos, no en el texto firmado.",
+        "No se dispone de asignaciones, reglas de elegibilidad, fechas de inicio, adopción ni resultados medidos de investigación o productividad.",
+        "Las declaraciones de política no prueban que el financiamiento se haya implementado ni que haya producido efectos."
+      ],
+      "relationships": [
+        {
+          "summary": "Continuidad regional reportada de la directriz central del 19 de octubre, que pidió a las regiones preparar detalles de implementación; este registro trata de un plan regional distinto.",
+          "target_id": "FCMO-7D5FC02D5B08",
+          "type": "implements"
+        },
+        {
+          "summary": "La opinión nacional del 21 de octubre también aborda la I+D empresarial y la comercialización, pero corresponde a un evento de política distinto.",
+          "target_id": "FCMO-C4F366972002",
+          "type": "related"
+        }
+      ],
+      "summary": "Dos reportajes fechados el 21 de octubre indican que autoridades financieras y científicas de Beijing-Tianjin-Hebei presentaron un plan regional en el Foro Financiero de la Calle Financiera del 20 de octubre. Describen seis apartados y 15 medidas sobre capital de largo plazo, préstamos para investigación y transferencia tecnológica, servicios financieros interregionales, seguros tecnológicos y financiamiento transfronterizo. No se localizó el plan firmado, y los reportajes no aportan asignaciones, adopción ni resultados.",
+      "technical": {
+        "claimed_result": "Los reportajes describen un plan regional para ampliar el financiamiento de la ciencia, la transferencia tecnológica y las industrias avanzadas.",
+        "demonstrated_result": "Dos reportajes fechados confirman que la presentación del plan fue informada públicamente y describen algunas medidas; no incluyen el texto firmado ni demuestran su implementación.",
+        "mechanism": "Las medidas reportadas combinan inversión de largo plazo, capital público y privado, crédito para investigación y comercialización, seguros y coordinación de servicios financieros regionales.",
+        "novelty": "El paquete regional reportado da seguimiento a la directriz central de financiamiento científico con un documento específico para la región. Su novedad detallada queda pendiente hasta inspeccionar el texto firmado.",
+        "regime": "Política de financiamiento científico y tecnológico de Beijing-Tianjin-Hebei según reportajes en chino publicados por el portal del Gobierno Municipal de Beijing y People’s Daily Online el 21 de octubre de 2026.",
+        "strongest_baseline": "La directriz central del 19 de octubre, que pidió a las autoridades regionales formular detalles de implementación; no hay resultados financieros anteriores o posteriores disponibles."
+      },
+      "title": "Reportajes describen un plan regional de financiamiento científico para Beijing-Tianjin-Hebei",
+      "why_it_matters": "Si se lleva a cabo, la coordinación financiera regional y los préstamos vinculados con investigación y transferencia tecnológica podrían afectar cómo las empresas científicas y tecnológicas de Beijing-Tianjin-Hebei obtienen capital. La evidencia disponible confirma que se reportó el plan y algunas medidas; no demuestra implementación ni efectos económicos."
     },
     "FCMO-71A18CEA363D": {
       "claims": [
@@ -36293,6 +36408,48 @@
         "source_sha256": "0278b59d843ff81fd60fc91c440a6eddf6945cf4a706d86e8ca7eb891ea78de8"
       }
     },
+    "FCMO-039F03B60201": {
+      "claims": {
+        "locale_sha256": "586d948074b60042caab4a6858c503067db97e959ad2bfc3faf591a16b6232ad",
+        "source_sha256": "a3dec84fda4edb495c084639f7aae313626f294e3f9f9c8fccea5083d927328e"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "af63c01466d3cf63b255e34278295339beb388f7aef6ea794e24af64ab80d904",
+        "source_sha256": "2275a8f922b738bb9f7e390d968e02a09c50bb6591f40bfef15df4ab2aa0858d"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "bf77b5209f1e98a1b65124d229afa6585a5f7b3ad05f6dbb4d2519b6c4d80c02",
+        "source_sha256": "d81e65a37ec08833af34d538352e643daf0a23ea3bbd24dea43e949f4eb50e19"
+      },
+      "importance_rationale": {
+        "locale_sha256": "d7f2f12fcc6a537994d5d17c4717f289557169c214d4d6e1aa6d8e0aeca36990",
+        "source_sha256": "ad30c684b8c04edfce1ebb08491053017257064e94657453fde124adbe882815"
+      },
+      "limitations": {
+        "locale_sha256": "49647e4473d949521ffb2d0ed686c9c07143b56e32b588abedfbe57c0c3fda50",
+        "source_sha256": "161140d3cdfdceaade42818c6eaf959bacc6476414cc2ed1188da9c84da047e4"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "c424a30ceca9f90a182ef37bb0f65083cd475cd502c2be7b139e96c040591620",
+        "source_sha256": "66f199a7d59b2d9d7c08aa29b863108b6a6826fd404c8611aadff0c5945c07f3"
+      },
+      "technical": {
+        "locale_sha256": "e9dc1594cfdcb0dce6a88495a862b97b3e68660141b9e784e7f50ec6f01ae22c",
+        "source_sha256": "9caeda2dc51e9e40b0fe296df8db8d81bb994d0cbe38141ea302d2e262d8bb8f"
+      },
+      "title": {
+        "locale_sha256": "7156ac1fa070aa87c76d21e028d62e7ad8b6f19d1c8d17f8ce27adc06caa1ce1",
+        "source_sha256": "b59ed28f1600267750da8c40f65411e8401f38e3232671bdf69d684cb7e6df09"
+      },
+      "why_it_matters": {
+        "locale_sha256": "ca15707b30e8d9c17a4b4dde9719cb386bb5ba1e37ee52fc9424924252f68444",
+        "source_sha256": "ae7dbcda81354cc329a4e6b3013a91a0ffd2fcf090de21367817d5836ed32bce"
+      }
+    },
     "FCMO-045BB8282222": {
       "claims": {
         "locale_sha256": "6dea454d757925b298236e7cd041397aaf958617b3765e71aacb80616b48ad11",
@@ -49017,6 +49174,48 @@
       "why_it_matters": {
         "locale_sha256": "5b76c0153d241e0357084804780c68c2de974c4e027d236b0124790ff265d581",
         "source_sha256": "1e23aa850c140c3b293ba552cd18b21ea3aedfebf5d51479183f7e150e5d7a14"
+      }
+    },
+    "FCMO-716A47307766": {
+      "claims": {
+        "locale_sha256": "61fb98f122083ec6744aea750efb94df79b972863fb4caf5b872566c1bd654a5",
+        "source_sha256": "5bbf49c16818d238cc3a428860d883bbd5f5a2b594ac000e16cd9509a91c38ff"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "2eb51970a66eac6e3b8f8ddcfa9148af25956ce915758ff94e4503daa4404df4",
+        "source_sha256": "d848eb68ddbee0f039f77754805e1724b795e7a47552ba60fcdcf07fda834c83"
+      },
+      "importance_rationale": {
+        "locale_sha256": "3280da9c6235ad48ce86bf6863e577943b00284f7f7e19c6c7ca20f7bd38428a",
+        "source_sha256": "9cdcebe17f4671940992f5b773233950e96a6ac593626b1cf8a0fede32848e65"
+      },
+      "limitations": {
+        "locale_sha256": "57d2541d68b4da6a75e87af1c148446a6b9542faa9d453dcd37f6584d089c667",
+        "source_sha256": "59ad9c7eb6ab173b4c0bfceb38d55b734bccb2eae84a375a139cf38f3a4c575e"
+      },
+      "relationships": {
+        "locale_sha256": "b17c93c11d7d50dd2f5605a148b755ebbd4662983b6fa39639c980a35ec35fc2",
+        "source_sha256": "e3b62ea4e3e7478e3950af46967c55a1db75c5c6bbb26fa38a7838205a0ce33b"
+      },
+      "summary": {
+        "locale_sha256": "1a0479022df33f40b1842039da52f1ef099459b39546d545679bba6d3d596ef8",
+        "source_sha256": "1d4d4ffa3b90a6fb8c2f88cd68aa7b2614cc97259566599ef9002f84588a551d"
+      },
+      "technical": {
+        "locale_sha256": "71b5de20c40e2e14095334c21ac13f732766cd1e96ad7a675f328dc5b6ddc417",
+        "source_sha256": "e8672d601bcac01240be68360d279f33a96051ba13670c607c0f6769a595a77b"
+      },
+      "title": {
+        "locale_sha256": "dad6985779e5fb628e7242853204bd1a2b34728ae20ba1438caee2a5591a2029",
+        "source_sha256": "dab85cf2d1f81c4ee4e7e7219a706b7859c8b79c1c58d7494bafb0c24f9be600"
+      },
+      "why_it_matters": {
+        "locale_sha256": "3e0e9b981f51d9ed3ea90fda75cc93743b5f74f90a1497784f5bd7fbad6ee14d",
+        "source_sha256": "b0d94b92a37e4c09b962bc127803ad1ecf74b53dd9b1be8e1ae9a189e9db3a55"
       }
     },
     "FCMO-71A18CEA363D": {

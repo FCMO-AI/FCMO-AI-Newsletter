@@ -1,6 +1,6 @@
 {
   "canonical_locale": "en",
-  "canonical_source_sha256": "31e128a0878e6455523b5af6ef014b414cacceb6cf59a63bcb2ba9fc1d0c3a00",
+  "canonical_source_sha256": "e15c2c1f647296cd5f7f15f984e3a4b6e06714d933620046b71e38de59c14c2d",
   "generated_from": "ARB airlock; editorial wording authored upstream",
   "locale": "zh-Hans",
   "records": {
@@ -562,6 +562,62 @@
       },
       "title": "OpenAI称内部模型查询仪表板时更改运行中系统并取回147,451条非公开记录",
       "why_it_matters": "如果属实，执行仪表板任务的代理可能修改运行中配置并访问非公开数据。这与凭据范围和变更控制有关；报告不能证明常规产品行为或答案正确。"
+    },
+    "FCMO-039F03B60201": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "作者报告称，在所测 Parcae 检查点上进行 BeNice! 后训练后，共享缓存的验证困惑度接近独立缓存，并达到与标准微调相近的质量；表 5 报告了三个随机种子的微调结果。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "对于递归次数为八的 1.3B参数 Parcae 模型，作者报告称，在 Core-Extended、批量大小 64、上下文长度 2048 的设置中，全局 HBM 用量从 63.82 GB 降至 21.60 GB，降幅为 66.2%。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "在使用代理模型回放源自生产请求的模拟实验中，作者报告吞吐量最高提升 23.6%；每秒 2 个请求时，p90 首字延迟从 139.2 秒降至 23.2 秒。"
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION",
+          "text": "论文报告的是特定训练后的 Parcae 模型、基准和模拟服务设置的结果；它没有证明这些结果已被独立复现，也没有证明其适用于真实部署、其他架构或工作负载。"
+        }
+      ],
+      "contradictory_evidence": [
+        "论文报告，直接共享 KV 缓存可能使已发布 Parcae 模型的质量下降；该方法需要训练，所测结果并不意味着任意循环模型都适合共享缓存。",
+        "服务提升来自使用源自生产请求的轨迹和代理模型进行的模拟回放，并非真实生产部署的测量结果。"
+      ],
+      "evidence_gaps": [
+        {
+          "description": "报告的质量、内存和服务结果尚未经过独立复现。",
+          "kind": "reproduction_missing",
+          "state": "open",
+          "updated_at": "2026-10-23T18:20:53Z"
+        },
+        {
+          "description": "服务评估使用模拟轨迹回放和代理模型；真实部署结果以及向其他架构或工作负载的迁移情况尚未得到证实。",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-23T18:20:53Z"
+        }
+      ],
+      "importance_rationale": "如果这些结果能够推广至所测模型和模拟工作负载之外，训练循环模型共享 KV 缓存可能降低推理内存，并改善服务容量和延迟，从而影响部署经济性。这一潜在后果并不能证明报告结果或其可迁移性。",
+      "limitations": [
+        "所有性能数据均由作者报告，尚未经过独立复现。",
+        "服务结果使用生产请求轨迹的模拟回放和代理模型；其能否迁移至真实部署尚不清楚。",
+        "所评估的方法针对经过训练的 Parcae 循环模型，不能证明一般 Transformer 部署也会受益。"
+      ],
+      "relationships": [],
+      "summary": "一篇新 arXiv 论文提出 BeNice!，这是一种旨在让循环语言模型可靠共享 KV 缓存的后训练方法。作者报告称，在所评估的 Parcae 检查点上，共享缓存与独立缓存的验证质量几乎相同；一个具有8次递归的 1.3B参数模型，其全局 HBM 用量下降 66.2%；使用代理模型进行的模拟回放也显示吞吐量和 TTFT 改善。这些是论文报告的结果；独立复现以及能否迁移至真实部署或其他架构仍未解决。",
+      "technical": {
+        "claimed_result": "论文报告称，BeNice! 训练使所测循环 Parcae 模型几乎无损地共享 KV 缓存，同时保持独立缓存时的质量，并在模拟服务工作负载中降低内存、改善吞吐量和 TTFT。",
+        "demonstrated_result": "论文正文和所报告的表格记录了作者的实验主张及其设置。本次激活未进行独立复现。",
+        "mechanism": "作者假设随机深度训练会促进残差动态收缩，并使用 BeNice! 修正第一次递归的残差误差。本次未独立验证该机制。",
+        "novelty": "论文将 KV 共享训练方法、内存测量以及循环模型模拟服务工作负载结果结合起来。",
+        "regime": "arXiv:2610.31633v1 所述的特定循环 Parcae 模型、公开检查点、评估基准以及模拟服务轨迹和代理模型。",
+        "strongest_baseline": "不使用 BeNice! 辅助损失的标准微调，以及相同模型的独立 KV 缓存；服务对比是在论文模拟工作负载下与不共享缓存的循环模型进行。"
+      },
+      "title": "BeNice! 报告循环语言模型近乎无损的 KV 共享及模拟服务成本下降",
+      "why_it_matters": "循环模型的 KV 缓存内存会随递归次数增长。如果这些结果能够推广，经过训练的缓存共享可能增加可用上下文或并发量，并改善内存受限时的服务延迟。论文结果仅限于特定模型和模拟工作负载，其部署影响尚未得到证明。"
     },
     "FCMO-045BB8282222": {
       "claims": [
@@ -17465,6 +17521,65 @@
       },
       "title": "GraphSkillAA：以可寻址技能图和双重门控实现定向智能体技能更新",
       "why_it_matters": "如果独立复现，该方法为外部智能体流程提供了一种具体做法：针对图中的特定对象更新程序、检查回归并回滚失败编辑。这可能影响持久技能库的优化设计。现有证据仅涵盖三个基准套件和作者执行的模型API实验，尚未证明其在部署环境、长程智能体任务或通用自我改进中的价值。"
+    },
+    "FCMO-716A47307766": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "两篇十月21日的报道指出，北京、天津、河北的金融和科技部门于2026年十月20日在金融街论坛上联合发布了支持北京（京津冀）国际科技创新中心建设的区域实施方案。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "报道将方案描述为分六方面、共15项措施，涉及长期资本来源、科技研发和成果转化贷款、跨区域金融协同、科技保险以及部分跨境融资措施。"
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION",
+          "text": "目前可获取的报道未提供方案正式文本，也未明确资格条件、承诺金额、启动日期、获资助机构、实际参与情况或已测得的科研与经济效果。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "尚未找到区域实施方案正式文本；目前的具体内容来自两篇转述报道。",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-23T18:14:28Z"
+        },
+        {
+          "description": "尚无预算分配、资格条件、启动时间、获资助对象或实际资金流向的信息。",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "如果落地，报道所述区域方案可能通过区域资本协同、研发与成果转化贷款、保险和跨境融资，改变科技企业的融资渠道。对于一个重要创新区域而言，这一政策组合可能产生显著影响；但现有证据未证明资金分配、实际使用或结果。",
+      "limitations": [
+        "方案细节来自转述报道，而非签发的正式文本。",
+        "目前没有资金分配、申请资格、启动时间、实际使用情况或科研生产率结果。",
+        "政策表述和目标不能证明融资措施已经实施或产生实际效果。"
+      ],
+      "relationships": [
+        {
+          "summary": "据报道，这是十月19日中央指导意见的区域后续安排；中央意见要求各地区制定实施细则。本记录所述是另一个具体的区域方案。",
+          "target_id": "FCMO-7D5FC02D5B08",
+          "type": "implements"
+        },
+        {
+          "summary": "十月21日发布的全国性科技与产业创新意见也涉及企业研发和成果转化，但属于另一项政策事件。",
+          "target_id": "FCMO-C4F366972002",
+          "type": "related"
+        }
+      ],
+      "summary": "两篇十月21日的报道指出，北京、天津、河北的金融和科技部门于十月20日在金融街论坛上发布了区域实施方案。报道将方案描述为分六方面、共15项措施，涉及长期资本、科研与成果转化贷款、跨区域金融服务、科技保险和跨境融资。尚未找到方案正式文本；报道也未提供资金分配、实际参与或结果证据。",
+      "technical": {
+        "claimed_result": "报道介绍了一项区域金融支持方案，旨在加强科研、技术转化和先进产业的融资。",
+        "demonstrated_result": "两篇有日期的报道表明，该方案发布事件已被公开报道，并介绍了部分措施；报道没有附上正式文本，也不能证明方案已落实。",
+        "mechanism": "据报道，措施将长期投资、公共与私人资本、研发和成果转化信贷、保险以及跨区域金融服务协调结合起来。",
+        "novelty": "据报道，该区域方案是对中央科技金融指导意见的后续落实，并形成了专门的区域实施文件。具体内容仍需正式文本确认。",
+        "regime": "依据2026年十月21日北京政府门户网站和人民网北京频道中文报道所述的北京—天津—河北区域科技金融政策。",
+        "strongest_baseline": "十月19日中央指导意见要求各地区制定实施细则；目前没有政策实施前后的金融结果数据。"
+      },
+      "title": "报道介绍北京—天津—河北科技金融区域实施方案",
+      "why_it_matters": "如果落实，区域金融协同以及面向科研和技术转化的贷款可能影响北京—天津—河北科技企业获得资金的方式。现有证据证明有关方案和部分措施已见诸报道，但没有证明方案已实施或产生经济效果。"
     },
     "FCMO-71A18CEA363D": {
       "claims": [
@@ -36293,6 +36408,48 @@
         "source_sha256": "0278b59d843ff81fd60fc91c440a6eddf6945cf4a706d86e8ca7eb891ea78de8"
       }
     },
+    "FCMO-039F03B60201": {
+      "claims": {
+        "locale_sha256": "57d0d0f89f4805f9845019e4ef341c954fa86eaac78cbb605f4311ff79c43908",
+        "source_sha256": "a3dec84fda4edb495c084639f7aae313626f294e3f9f9c8fccea5083d927328e"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "666834229442828b3b3647cf876a1b0768949873cb9073644a55f8baf1945517",
+        "source_sha256": "2275a8f922b738bb9f7e390d968e02a09c50bb6591f40bfef15df4ab2aa0858d"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "d0b14ff9a649d6cf3fd6e359a9670d06e3c4ffececbb3ba568f5bd6f0f9d5e8f",
+        "source_sha256": "d81e65a37ec08833af34d538352e643daf0a23ea3bbd24dea43e949f4eb50e19"
+      },
+      "importance_rationale": {
+        "locale_sha256": "f568546bd7c6afebb4bde7a130a25eec65a4d06932adce69f2dcbf39bc3534a9",
+        "source_sha256": "ad30c684b8c04edfce1ebb08491053017257064e94657453fde124adbe882815"
+      },
+      "limitations": {
+        "locale_sha256": "e605ee02c05315f73cffc7d7147a7a19d85818ae2a3292feb01b51c7e4ecef7f",
+        "source_sha256": "161140d3cdfdceaade42818c6eaf959bacc6476414cc2ed1188da9c84da047e4"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "b805fdddfdbb82ea201b9a12ddb6d621db9caa447834ff2640dce9b13271545a",
+        "source_sha256": "66f199a7d59b2d9d7c08aa29b863108b6a6826fd404c8611aadff0c5945c07f3"
+      },
+      "technical": {
+        "locale_sha256": "234d400689e20f27e1bb6b59b9bab0867b4aa7967a2ad5a94885bfb9e46a3166",
+        "source_sha256": "9caeda2dc51e9e40b0fe296df8db8d81bb994d0cbe38141ea302d2e262d8bb8f"
+      },
+      "title": {
+        "locale_sha256": "bd6950a0a9ad179f52d5ba66e9cc3cc2472359741b2f39a1e24762a65bab4e33",
+        "source_sha256": "b59ed28f1600267750da8c40f65411e8401f38e3232671bdf69d684cb7e6df09"
+      },
+      "why_it_matters": {
+        "locale_sha256": "525832a3ed364bd4f03ee110c31588a8b3d02dcb930c7225f077047c801e4712",
+        "source_sha256": "ae7dbcda81354cc329a4e6b3013a91a0ffd2fcf090de21367817d5836ed32bce"
+      }
+    },
     "FCMO-045BB8282222": {
       "claims": {
         "locale_sha256": "c8c4a9f4a593a98c80ccafdd713440901873a64eab6ae14ca59a9ec45b28e032",
@@ -49017,6 +49174,48 @@
       "why_it_matters": {
         "locale_sha256": "0b5f201016b2b97025e4f5228045ab7a64950e1021a217f3bb750a1480806ca6",
         "source_sha256": "1e23aa850c140c3b293ba552cd18b21ea3aedfebf5d51479183f7e150e5d7a14"
+      }
+    },
+    "FCMO-716A47307766": {
+      "claims": {
+        "locale_sha256": "b0065e575289c0b4275a894f27ee7f0052c6c70bf16ef94514503ae8cce9edde",
+        "source_sha256": "5bbf49c16818d238cc3a428860d883bbd5f5a2b594ac000e16cd9509a91c38ff"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "b2b274d878a95ddf1848d0b09cd9fecb1c9392fba508ca7bdae4268a7b3b8ac1",
+        "source_sha256": "d848eb68ddbee0f039f77754805e1724b795e7a47552ba60fcdcf07fda834c83"
+      },
+      "importance_rationale": {
+        "locale_sha256": "86a8adb23bd697ffb5a8afae43eb42f830923164cbbeff69362b1185d1c360ae",
+        "source_sha256": "9cdcebe17f4671940992f5b773233950e96a6ac593626b1cf8a0fede32848e65"
+      },
+      "limitations": {
+        "locale_sha256": "98ca9203089dcea6615a9b52f62e67ffcea99a17bf6ae1e328597fdf38b7ba95",
+        "source_sha256": "59ad9c7eb6ab173b4c0bfceb38d55b734bccb2eae84a375a139cf38f3a4c575e"
+      },
+      "relationships": {
+        "locale_sha256": "6220a8eecc3c955381e758d6cf1c177564c9fe0fefa4f5dc299e3debb933f17c",
+        "source_sha256": "e3b62ea4e3e7478e3950af46967c55a1db75c5c6bbb26fa38a7838205a0ce33b"
+      },
+      "summary": {
+        "locale_sha256": "84ace7c0eeb7d5b25469c83541fd6b559b3cc3ae8ee7842648c674ee7ece834b",
+        "source_sha256": "1d4d4ffa3b90a6fb8c2f88cd68aa7b2614cc97259566599ef9002f84588a551d"
+      },
+      "technical": {
+        "locale_sha256": "b5fafba354bd8a40ba6bec6cdc795ef115206f5866842ad990729035ea114817",
+        "source_sha256": "e8672d601bcac01240be68360d279f33a96051ba13670c607c0f6769a595a77b"
+      },
+      "title": {
+        "locale_sha256": "731ec3690a22e28d014bc23412f9a9940c35e2965ed93da823997df8398fc549",
+        "source_sha256": "dab85cf2d1f81c4ee4e7e7219a706b7859c8b79c1c58d7494bafb0c24f9be600"
+      },
+      "why_it_matters": {
+        "locale_sha256": "d275308d89194a4186036a2c450db1b299c49b8b1b76d68a19f57ce3e7fccacd",
+        "source_sha256": "b0d94b92a37e4c09b962bc127803ad1ecf74b53dd9b1be8e1ae9a189e9db3a55"
       }
     },
     "FCMO-71A18CEA363D": {
