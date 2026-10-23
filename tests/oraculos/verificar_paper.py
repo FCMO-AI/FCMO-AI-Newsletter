@@ -40,6 +40,8 @@ const base = process.argv[1], rows = JSON.parse(require('node:fs').readFileSync(
   };
   const failures = [];
   const storyRoutes = rows.filter(r => r.kind === 'story');
+  // Empty-set guard: a budget that matches no page proves nothing. A retired route kind must fail loudly, never print 0.
+  if (!storyRoutes.length) failures.push('story-layout budget ran on 0 story pages (route kind retired or renamed?)');
   for (const route of storyRoutes) {
     progress('historias', storyRoutes.length);
     const url = new URL(route.path, base).href;
@@ -67,7 +69,11 @@ const base = process.argv[1], rows = JSON.parse(require('node:fs').readFileSync(
       }
     }
   }
-  const frontRoutes = rows.filter(r => r.kind === 'front');
+  // c6: the locale root is the one front page (route kind 'landing'); the old 'front' kind no longer exists.
+  const frontRoutes = rows.filter(r => r.kind === 'landing');
+  const frontLocales = [...new Set(frontRoutes.map(r => r.locale))].sort();
+  if (frontRoutes.length < 3 || frontLocales.length < 3)
+    failures.push(`home-page budget ran on ${frontRoutes.length} landing pages in [${frontLocales.join(', ')}]; expected the front page of all 3 locales`);
   visited = 0;
   for (const route of frontRoutes) {
     progress('portadas', frontRoutes.length);
@@ -78,8 +84,9 @@ const base = process.argv[1], rows = JSON.parse(require('node:fs').readFileSync(
         await page.goto(url, { waitUntil: 'load', timeout: 20000 });
         await evaluate(() => document.fonts?.ready.then(() => true));
         const result = await evaluate(() => {
-          const h = document.querySelector('.lead h1');
-          const dek = document.querySelector('.lead-dek');
+          const h = document.querySelector('.landing-feature h1');
+          // The cover has no separate dek: its next line is the evidence row (grade, sources, gaps); it must be above 900 px.
+          const dek = document.querySelector('.landing-feature .cover-dek') || document.querySelector('.landing-feature .cover-evrow');
           // An author-level display rule must never override the hidden attribute (stale banner on a FRESH edition).
           const shownHidden = [...document.querySelectorAll('[hidden]')].filter(e => getComputedStyle(e).display !== 'none')
             .map(e => e.className || e.tagName);
@@ -102,6 +109,7 @@ const base = process.argv[1], rows = JSON.parse(require('node:fs').readFileSync(
     }
   }
   const zhRoutes = rows.filter(r => r.locale === 'zh-Hans');
+  if (zhRoutes.length < 2) failures.push(`zh heading budget ran on ${zhRoutes.length} zh-Hans pages besides the front (route table lost its zh pages?)`);
   if (!zhRoutes.some(r => r.path === 'zh/')) zhRoutes.unshift({path:'zh/', locale:'zh-Hans'});
   visited = 0;
   for (const route of zhRoutes) {
