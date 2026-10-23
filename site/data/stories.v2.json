@@ -1,7 +1,7 @@
 {
   "schema": "fcmo-stories-v2",
-  "generated_at": "2026-10-23T04:32:27Z",
-  "release_id": "newswire-9c7b5bd304a5f6ee822d9497",
+  "generated_at": "2026-10-23T06:16:34Z",
+  "release_id": "newswire-82475fe75b9ba267876acba7",
   "canonical_locale": "en",
   "locales": [
     "en",
@@ -48,6 +48,254 @@
     "2026-10-22"
   ],
   "stories": [
+    {
+      "id": "FCMO-09C2A1F31683",
+      "slug": "moezip-reports-stronger-task-scores-under-aggressive-kv-cache",
+      "url_date": "2026-10-23",
+      "kind": "development",
+      "status": "live",
+      "beat": "research",
+      "desk": "compute_inference",
+      "title": "MoEZip reports stronger task scores under aggressive KV-cache compression in tested sparse language models",
+      "dek": "An arXiv paper proposes MoEZip, which uses router Fisher-trace sensitivity and attention to retain context positions intended to stabilize expert routing during KV-cache eviction.",
+      "summary": "An arXiv paper proposes MoEZip, which uses router Fisher-trace sensitivity and attention to retain context positions intended to stabilize expert routing during KV-cache eviction. In author-run comparisons, it reports higher long-context benchmark scores than KVZip, SnapKV and PyramidKV at high compression on Qwen3 and GLM-4.7-Flash sparse models. In a Qwen3-235B-A22B appendix, the authors report a 10-task LongBench macro of 44.7 versus 27.6 for KVZip at 10% KV retention. The authors also estimate 15,000–16,000 A100 GPU-hours for MoEZip and all baselines together, excluding preliminary or failed runs. The reported benchmark results have not been independently reproduced; Appendix C says code is in supplementary material, which this activation did not retrieve, while the linked repository page lists only a README and license.",
+      "why_it_matters": "If the reported gains generalize, protecting routing-sensitive context could reduce memory required for long-context inference in sparse mixture-of-experts models while retaining task performance. The paper does not measure serving throughput, realized deployment cost or external replication, and the method requires internal router and attention statistics.",
+      "importance_rationale": "If the author-reported gains generalize to additional sparse models and deployment workloads, routing-aware KV eviction could materially reduce long-context inference memory at similar task quality. The bounded experiments use two MoE model families and public benchmarks; no deployed cost, latency or throughput gain is measured.",
+      "technical": {
+        "claimed_result": "At 10% KV retention, the authors report a Qwen3-235B-A22B 10-task LongBench macro of 44.7 for MoEZip versus 27.6 for KVZip. Across other tested settings, the paper reports advantages on LongBench, NIAH and RULER, especially at aggressive compression.",
+        "compute_or_cost": "Authors report 15,000–16,000 A100 GPU-hours for the full experiment set, including MoEZip and baselines but excluding preliminary/failed runs; this does not isolate marginal MoEZip research compute or monetary cost. For scoring, they report 0.88 s extra overhead on Qasper and 0.27–1.79 s on NIAH across context lengths. These are author-reported scoring measurements, not end-to-end serving throughput or economic outcomes.",
+        "demonstrated_result": "The accessible paper specifies the method and reports paired within-paper benchmark comparisons. The public author repository page currently lists only README.md and LICENSE; independent reproduction was not performed.",
+        "mechanism": "MoEZip estimates routing sensitivity from the Fisher-information trace of router distributions at instruction tokens, propagates that signal to attended context positions, reserves a sample-adaptive share of the existing KV-retention budget for high-scoring anchors, then fills remaining slots with a base cache scorer.",
+        "regime": "arXiv:2610.30206v1 submitted 2026-10-21; Qwen3-30B-A3B-Instruct-2507 and GLM-4.7-Flash, context lengths 4K–32K, LongBench/NIAH/RULER; additional Qwen3-235B-A22B-Instruct-2507 evaluation at 10% KV retention. The 235B experiments used eight NVIDIA A100 GPUs with 80GB memory each.",
+        "reproducibility": "Paper source is accessible. Appendix C says source code is included in the supplementary material, which this activation did not retrieve. The linked GitHub repository page currently lists README.md and LICENSE only; no independent reproduction was performed.",
+        "strongest_baseline": "Within-paper comparisons use matched retained-cache budgets, checkpoints, prompt templates and decoding settings against KVZip, SnapKV and PyramidKV; Appendix E.9 also compares with attention-only selection on a four-task subset. Appendix C says competing observation windows include the full template-defined instruction span. These are author-run comparisons without independent reproduction."
+      },
+      "importance_tier": "Meaningful",
+      "development_type": "paper",
+      "event_at": "2026-10-21T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-23T06:16:20Z",
+      "updated_at": "2026-10-23T06:16:20Z",
+      "importance": 4,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": false,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "DEMONSTRATED",
+            "text": "The arXiv v1 paper describes a routing-aware KV-cache eviction method that combines router Fisher-trace sensitivity with instruction-to-context attention scores and preserves a fixed retained-cache budget."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "The authors report that MoEZip improves LongBench, NIAH and RULER scores over KVZip, SnapKV and PyramidKV in tested Qwen3-30B-A3B and GLM-4.7-Flash settings, with the largest gains under aggressive KV retention."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "For Qwen3-235B-A22B at 10% KV retention, the authors report a 10-task LongBench macro score of 44.7 for MoEZip and 27.6 for KVZip; the reported evaluation used eight A100 80GB GPUs."
+          },
+          {
+            "label": "NOT_ESTABLISHED",
+            "text": "The reported benchmark results are not independently reproduced and do not establish deployment throughput, realized serving-cost reductions, broad model-family transfer or applicability to black-box inference systems."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "The authors estimate approximately 15,000–16,000 A100 GPU-hours for all reported experiments, including MoEZip and baselines, excluding preliminary or failed runs; this is an aggregate paper estimate, not a MoEZip-only marginal budget or a monetary cost."
+          }
+        ],
+        "limitations": [
+          "The benchmark results are author-reported and were not independently reproduced in this activation.",
+          "The linked public repository lists README.md and LICENSE but no accessible experiment code or dataset at the inspected revision.",
+          "The method requires access to router outputs and instruction-to-context attention statistics, which may not be available in black-box inference settings.",
+          "Reported task scores do not establish serving throughput, memory cost, latency or economic benefit under production workloads.",
+          "The 235B appendix tests scale transfer within the Qwen3 family; it does not establish broad cross-family generalization.",
+          "The reported 15,000–16,000 A100 GPU-hours cover MoEZip and all baselines together and exclude preliminary or failed runs; the paper does not attribute a marginal compute budget to MoEZip or give monetary cost."
+        ],
+        "gaps": [
+          {
+            "kind": "reproduction_missing",
+            "description": "The paper reports results on public benchmarks, but this activation did not independently reproduce them and the linked GitHub repository currently exposes only a README and license rather than experiment code or data."
+          },
+          {
+            "kind": "regime_unclear",
+            "description": "The paper's benchmark regime does not establish system-level serving performance or realized economic benefit, and its internal-state requirements may preclude black-box deployment."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2610.30206v1",
+          "domain": "arxiv.org",
+          "primary": true
+        },
+        {
+          "url": "https://github.com/kmswin1/MoEZip",
+          "domain": "github.com",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "Korea University",
+        "SK Telecom"
+      ],
+      "topics": [
+        "mixture-of-experts",
+        "kv-cache-compression",
+        "inference-efficiency",
+        "long-context-language-models"
+      ],
+      "regions": [
+        "KR",
+        "GLOBAL"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-09C2A1F31683.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: MoEZip reports stronger task scores under aggressive KV-cache compression in tested sparse language models"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "MoEZip informa mejores puntuaciones en tareas con compresión intensa de caché KV en los modelos dispersos evaluados",
+            "summary": "Un artículo de arXiv propone MoEZip, que usa la sensibilidad Fisher-trace del enrutador y la atención para conservar posiciones de contexto destinadas a estabilizar la selección de expertos durante la expulsión de elementos del KV. En comparaciones ejecutadas por los autores, informa puntuaciones superiores en benchmarks de contexto largo frente a KVZip, SnapKV y PyramidKV bajo compresión alta en modelos dispersos Qwen3 y GLM-4.7-Flash. En un apéndice con Qwen3-235B-A22B, los autores informan una puntuación macro de LongBench de 10 tareas de 44.7 frente a 27.6 con KVZip, al retener el 10% del KV. Los autores también estiman 15,000–16,000 horas de GPU A100 para MoEZip y todos los métodos de comparación en conjunto, sin contar pruebas preliminares o fallidas. Los resultados de benchmarks no se reprodujeron de manera independiente; el Apéndice C indica que el código está en el material suplementario, que esta activación no recuperó, mientras que el repositorio enlazado solo muestra un README y una licencia.",
+            "importance_rationale": "Si las ganancias informadas por los autores se generalizan a más modelos dispersos y cargas de trabajo desplegadas, la expulsión de KV que protege el enrutamiento podría reducir de forma importante la memoria de inferencia para contextos largos con una calidad de tarea similar. Los experimentos acotados usan dos familias MoE y benchmarks públicos; no miden costos, latencia ni rendimiento de servicio en producción.",
+            "why_it_matters": "Si las ganancias informadas se generalizan, proteger el contexto sensible al enrutamiento podría reducir la memoria necesaria para inferencia con contextos largos en modelos de mezcla de expertos dispersos y conservar el rendimiento en tareas. El artículo no mide rendimiento de servicio, reducción efectiva de costos ni reproducción externa, y el método requiere estadísticas internas del enrutador y de atención.",
+            "technical": {
+              "claimed_result": "Con una retención del 10% del KV, los autores informan que Qwen3-235B-A22B obtuvo una puntuación macro de LongBench de 10 tareas: 44.7 con MoEZip frente a 27.6 con KVZip. En otras configuraciones probadas, el artículo informa ventajas en LongBench, NIAH y RULER, especialmente con compresión alta.",
+              "compute_or_cost": "Los autores informan 15,000–16,000 horas de GPU A100 para el conjunto completo de experimentos, incluidos MoEZip y los métodos de comparación, sin contar pruebas preliminares o fallidas; la cifra no separa el cómputo marginal de MoEZip ni expresa un costo monetario. Para la etapa de puntuación, informan un sobrecosto adicional de 0.88 s en Qasper y de 0.27–1.79 s en NIAH según la longitud del contexto. Son mediciones de puntuación informadas por los autores, no rendimiento de servicio integral ni resultados económicos.",
+              "demonstrated_result": "El artículo accesible especifica el método y presenta comparaciones de benchmarks realizadas por sus autores. La página pública del repositorio enlazado solo muestra README.md y LICENSE; no se hizo una reproducción independiente.",
+              "mechanism": "MoEZip estima la sensibilidad del enrutamiento a partir de la traza de Fisher de las distribuciones del enrutador en los tokens de instrucción, propaga esa señal a posiciones del contexto atendidas, reserva una parte adaptativa del presupuesto de KV retenido existente para anclas con puntuación alta y completa las posiciones restantes con un método base de selección de caché.",
+              "regime": "arXiv:2610.30206v1, enviado el 2026-10-21; Qwen3-30B-A3B-Instruct-2507 y GLM-4.7-Flash, contextos de 4K–32K y LongBench/NIAH/RULER; evaluación adicional de Qwen3-235B-A22B-Instruct-2507 con 10% de retención de KV. Los experimentos con 235B usaron ocho GPU NVIDIA A100 de 80 GB.",
+              "reproducibility": "La fuente del artículo es accesible. El Apéndice C dice que el código está incluido en el material suplementario, que esta activación no recuperó. La página enlazada del repositorio GitHub actualmente solo muestra README.md y LICENSE; no se realizó una reproducción independiente.",
+              "strongest_baseline": "Las comparaciones del artículo usan presupuestos de KV retenido, checkpoints, plantillas de prompts y ajustes de decodificación equiparados frente a KVZip, SnapKV y PyramidKV; el Apéndice E.9 también compara con selección basada solo en atención en un subconjunto de cuatro tareas. El Apéndice C indica que las ventanas de observación comparativas incluyen toda la instrucción definida por la plantilla. Son comparaciones ejecutadas por los autores, sin reproducción independiente."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "La v1 de arXiv describe un método de expulsión de elementos del KV que combina la sensibilidad Fisher-trace del enrutador con puntuaciones de atención entre instrucciones y contexto, y mantiene fijo el presupuesto total de caché retenida."
+                },
+                {
+                  "text": "Los autores informan que MoEZip mejora las puntuaciones de LongBench, NIAH y RULER frente a KVZip, SnapKV y PyramidKV en las configuraciones probadas de Qwen3-30B-A3B y GLM-4.7-Flash; las mayores ganancias aparecen con una retención de KV muy baja."
+                },
+                {
+                  "text": "Para Qwen3-235B-A22B con una retención de KV del 10%, los autores informan una puntuación macro de LongBench de 10 tareas de 44.7 con MoEZip y 27.6 con KVZip; la evaluación informada usó ocho GPU A100 de 80 GB."
+                },
+                {
+                  "text": "Los resultados informados en los benchmarks no se han reproducido de manera independiente y no demuestran rendimiento de servicio, reducción efectiva de costos, transferencia amplia entre familias de modelos ni aplicabilidad a sistemas de inferencia de caja negra."
+                },
+                {
+                  "text": "Los autores estiman aproximadamente 15,000–16,000 horas de GPU A100 para todos los experimentos informados, incluidos MoEZip y los métodos de comparación, sin contar pruebas preliminares o fallidas. Es una estimación agregada del artículo; no separa el cómputo marginal de MoEZip ni expresa un costo monetario."
+                }
+              ],
+              "limitations": [
+                "Los resultados de los benchmarks provienen de los autores y no se reprodujeron de manera independiente en esta activación.",
+                "El repositorio público enlazado solo muestra README.md y LICENSE; no se encontró código experimental ni datos accesibles en la revisión.",
+                "El método requiere acceso a las salidas del enrutador y a estadísticas de atención entre instrucciones y contexto, que quizá no estén disponibles en sistemas de inferencia de caja negra.",
+                "Las puntuaciones de tareas informadas no demuestran rendimiento de servicio, costo de memoria, latencia ni beneficio económico en cargas de producción.",
+                "El apéndice de 235B evalúa transferencia de escala dentro de la familia Qwen3; no demuestra una generalización amplia entre familias.",
+                "Las 15,000–16,000 horas de GPU A100 informadas abarcan MoEZip y todos los métodos de comparación, y excluyen pruebas preliminares o fallidas; el artículo no atribuye a MoEZip un cómputo marginal ni informa un costo monetario."
+              ],
+              "gaps": [
+                {
+                  "description": "El artículo informa resultados en benchmarks públicos, pero esta activación no los reprodujo de manera independiente y el repositorio GitHub enlazado actualmente solo muestra un README y una licencia, sin código experimental ni datos."
+                },
+                {
+                  "description": "El régimen de benchmarks del artículo no demuestra el rendimiento de servicio a nivel de sistema ni beneficios económicos realizados; además, el método puede no servir en inferencia de caja negra."
+                }
+              ]
+            },
+            "dek": "Un artículo de arXiv propone MoEZip, que usa la sensibilidad Fisher-trace del enrutador y la atención para conservar posiciones de contexto destinadas a estabilizar la selección de expertos durante la expulsión de elementos del KV."
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "MoEZip报告在受测稀疏语言模型的高强度KV缓存压缩下取得更高任务得分",
+            "summary": "一篇arXiv论文提出MoEZip：在淘汰KV缓存条目时，利用路由器的Fisher迹敏感度和注意力信息保留有助于稳定专家路由的上下文位置。作者在内部对比中报告，在高压缩条件下，MoEZip在稀疏Qwen3和GLM-4.7-Flash模型上的长上下文基准得分高于KVZip、SnapKV和PyramidKV。在Qwen3-235B-A22B附录中，作者报告LongBench 10项任务宏平均得分为44.7，而KVZip为27.6，KV保留比例为10%。作者还估计，MoEZip及所有对比方法的报告实验合计消耗15,000–16,000 A100 GPU小时，不包括初步或失败的运行。基准结果尚未独立复现；附录C称代码包含在补充材料中，但本次激活未获取该材料，而链接的仓库页面仅列出README和许可证。",
+            "importance_rationale": "如果作者报告的提升能够推广到更多稀疏模型和实际部署负载，保护路由稳定性的KV淘汰方法或可在任务质量相近时显著降低长上下文推理的内存需求。有限实验涵盖两个MoE模型系列和公开基准；没有测量生产环境中的实际成本、延迟或吞吐量。",
+            "why_it_matters": "如果报告的提升能够推广，保护路由敏感上下文或可在维持任务表现的同时，降低稀疏混合专家模型进行长上下文推理所需的内存。论文没有测量服务吞吐量、实际部署成本或外部复现，而且该方法需要访问路由器和注意力的内部统计信息。",
+            "technical": {
+              "claimed_result": "KV保留比例为10%时，作者报告MoEZip在Qwen3-235B-A22B上的LongBench 10项任务宏平均得分为44.7，KVZip为27.6。在其他测试配置中，论文报告MoEZip在LongBench、NIAH和RULER上占优，尤其是在高压缩率下。",
+              "compute_or_cost": "作者报告全部实验合计使用15,000–16,000 A100 GPU小时，其中包括MoEZip和对比方法，但不包括初步或失败的运行；该数字没有单独核算MoEZip的边际研究算力，也不是货币成本。评分阶段方面，作者报告Qasper额外耗时0.88秒，NIAH在不同上下文长度下额外耗时0.27–1.79秒。这些是作者报告的评分测量，并非端到端服务吞吐量或经济结果。",
+              "demonstrated_result": "可访问的论文说明了该方法并报告了作者执行的基准对比。所链接的公开仓库页面目前只列出README.md和LICENSE；本次激活没有进行独立复现。",
+              "mechanism": "MoEZip根据指令token处路由器分布的Fisher信息迹估算路由敏感度，再将该信号传播到受到关注的上下文位置；它从现有KV保留预算中自适应分配一部分作为高分锚点，其余位置由基础缓存评分方法选出。",
+              "regime": "arXiv:2610.30206v1，提交日期为2026-10-21；测试模型包括Qwen3-30B-A3B-Instruct-2507和GLM-4.7-Flash，使用4K–32K上下文以及LongBench/NIAH/RULER；另测试Qwen3-235B-A22B-Instruct-2507，KV保留比例为10%。235B实验使用NVIDIA A100 GPU，显存为80GB。",
+              "reproducibility": "论文来源可访问。附录C称代码包含在补充材料中，但本次激活未获取该材料。链接的GitHub仓库页面目前仅列出README.md和LICENSE；没有进行独立复现。",
+              "strongest_baseline": "论文内部对比匹配了保留KV预算、模型检查点、提示模板和解码设置，比较对象包括KVZip、SnapKV和PyramidKV；附录E.9还在四项任务子集上与仅使用注意力的选择方法比较。附录C称，对比方法的观察窗口覆盖了模板定义的完整指令。这些是作者执行的对比，尚无独立复现。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "arXiv v1论文介绍了一种KV缓存淘汰方法：将路由器的Fisher迹敏感度与指令到上下文的注意力评分结合，同时保持保留缓存的总预算不变。"
+                },
+                {
+                  "text": "作者报告，在Qwen3-30B-A3B和GLM-4.7-Flash的测试配置中，MoEZip的LongBench、NIAH和RULER得分高于KVZip、SnapKV和PyramidKV；KV保留比例很低时，提升最大。"
+                },
+                {
+                  "text": "对于Qwen3-235B-A22B，作者报告在KV保留比例为10%时，LongBench 10项任务宏平均得分为：MoEZip 44.7，KVZip 27.6；该项评测使用八张A100 80GB GPU。"
+                },
+                {
+                  "text": "这些基准结果尚未得到独立复现，也不能证明服务吞吐表现、实际推理成本下降、跨模型系列的广泛迁移，或该方法适用于黑盒推理系统。"
+                },
+                {
+                  "text": "作者估计，所有报告实验合计消耗约15,000–16,000 A100 GPU小时，其中包括MoEZip和对比方法，但不包括初步或失败的运行。这是论文给出的汇总估计，并未单独归因于MoEZip的边际算力，也不是货币成本。"
+                }
+              ],
+              "limitations": [
+                "基准结果由论文作者报告，本次激活未进行独立复现。",
+                "所链接的公开仓库仅列出README.md和LICENSE；检查时没有可访问的实验代码或数据。",
+                "该方法需要访问路由器输出以及指令到上下文的注意力统计；黑盒推理系统可能无法提供这些信息。",
+                "论文报告的任务得分不能证明生产负载下的服务吞吐量、内存成本、延迟或经济收益。",
+                "235B附录只测试了Qwen3系列内部的规模迁移，不能证明其可广泛迁移到其他模型系列。",
+                "报告的15,000–16,000 A100 GPU小时涵盖MoEZip及所有对比方法，并排除了初步或失败的运行；论文没有单独核算MoEZip的边际算力，也没有给出货币成本。"
+              ],
+              "gaps": [
+                {
+                  "description": "论文报告了公开基准结果，但本次激活未进行独立复现；目前链接的GitHub仓库仅列出README和许可证，没有可访问的实验代码或数据。"
+                },
+                {
+                  "description": "论文的基准测试范围未证明系统级服务性能或实际经济收益；该方法在黑盒推理中可能无法使用。"
+                }
+              ]
+            },
+            "headline": "MoEZip报告在受测稀疏语言模型的高强度KV缓存压缩下取得更高任务得分"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
     {
       "id": "FCMO-5ABCEA930CA1",
       "slug": "sensorimotor-alignment-correlates-with-embodied-model-success-in-limited",
