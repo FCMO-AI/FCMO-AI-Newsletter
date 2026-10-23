@@ -73,11 +73,24 @@ def _synthetic_coverage_baseline(release: Path) -> Path:
 def _bad_record_ids(release: Path) -> set[str]:
     """Ids whose own bytes are defective (blank/unknown claim label, Chinese es-419 title/summary)."""
     bad: set[str] = set(strict._unclassified_claims(release / "data" / "developments.jsonl"))
+    # A record whose own bytes carry a private/implementation marker (e.g. prose naming the
+    # internal pipeline "ARB-run") is withheld alone; it is never published, and the rest of
+    # the release must not stay blocked behind it (incident inc-4e68b9a0, 2026-10-22).
+    for line in (release / "data" / "developments.jsonl").read_text(encoding="utf-8").splitlines():
+        if line.strip() and strict.private_marker(line):
+            try:
+                rid = json.loads(line).get("id")
+            except (json.JSONDecodeError, AttributeError):
+                continue
+            if isinstance(rid, str):
+                bad.add(rid)
     path = release / "data" / "locales" / "es-419" / "records.json"
     if path.is_file():
         rows = json.loads(path.read_text(encoding="utf-8")).get("records")
         for rid, overlay in (rows.items() if isinstance(rows, dict) else []):
-            if isinstance(overlay, dict) and any(
+            if isinstance(overlay, dict) and strict.private_marker(json.dumps(overlay, ensure_ascii=False)):
+                bad.add(rid)
+            elif isinstance(overlay, dict) and any(
                 isinstance(overlay.get(k), str) and strict._han_dominated(overlay[k]) for k in ("title", "summary")
             ):
                 bad.add(rid)
@@ -90,7 +103,7 @@ def quarantine_release(release: Path) -> list[str]:
     A quarantined story is removed from the corpus and from every locale delta, and the
     airlock receipt is re-sealed over the remaining bytes. The corpus guard then carries
     the last published version of it forward (or never admits it if it was never published).
-    Structural defects (privacy, paths, schema) are NOT quarantined: verify still refuses them.
+    Structural defects (paths, schema, secrets; a privacy marker outside one record's own bytes) are NOT quarantined: verify still refuses them.
     """
     release = release.resolve()
     # Integrity first, before any mutation: the ORIGINAL bytes must match the ORIGINAL receipt,
