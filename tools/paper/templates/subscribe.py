@@ -14,9 +14,9 @@ from urllib.parse import urlsplit, urlunsplit
 
 CONFIG = Path(__file__).resolve().parents[3] / "community/config/subscriptions.json"
 _LOCALES = {
-    "en": {"soon": "Subscriptions are coming soon", "ready": "Choose how to follow", "intro": "One publication. Follow it your way.", "closed": "Email signup opens at launch. No information is sent from this page.", "language": "Email editions are in Spanish.", "cta": "Choose my emails", "manage": "Change preferences or leave at any time in your account.", "rss": "RSS", "json": "JSON feed"},
+    "en": {"soon": "Subscriptions are coming soon", "ready": "Choose how to follow", "intro": "One publication. Follow it your way.", "closed": "Email signup opens at launch. No information is sent from this page.", "language": "", "cta": "Choose my emails", "manage": "Change preferences or leave at any time in your account.", "rss": "RSS", "json": "JSON feed"},
     "es-419": {"soon": "Las suscripciones llegarán pronto", "ready": "Elige cómo seguirnos", "intro": "Una sola publicación. Síguela a tu manera.", "closed": "El alta por correo abre en el lanzamiento. Esta página no envía ningún dato.", "language": "", "cta": "Elegir mis correos", "manage": "Cambia tus preferencias o date de baja en cualquier momento desde tu cuenta.", "rss": "RSS", "json": "Feed JSON"},
-    "zh-Hans": {"soon": "订阅即将开放", "ready": "选择关注方式", "intro": "一份刊物，随你的方式关注。", "closed": "电子邮件订阅将在发布时开放。此页面不会提交任何数据。", "language": "电子邮件以西班牙语发送。", "cta": "选择邮件", "manage": "你可以随时在账户中更改偏好或退订。", "rss": "RSS", "json": "JSON 订阅源"},
+    "zh-Hans": {"soon": "订阅即将开放", "ready": "选择关注方式", "intro": "一份刊物，随你的方式关注。", "closed": "电子邮件订阅将在发布时开放。此页面不会提交任何数据。", "language": "", "cta": "选择邮件", "manage": "你可以随时在账户中更改偏好或退订。", "rss": "RSS", "json": "JSON 订阅源"},
 }
 def subscription_config() -> dict:
     return json.loads(CONFIG.read_text(encoding="utf-8"))

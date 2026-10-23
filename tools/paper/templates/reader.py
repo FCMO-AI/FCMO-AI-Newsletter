@@ -362,13 +362,16 @@ def sources_bar(story: dict, catalog: dict, *, automation_html: str, byline: str
     """SOURCES strip under the headline: original source, byline, automation disclosure."""
     sb = catalog["strings"]["sources_bar"]
     pool = [x for x in (story.get("sources") or []) if isinstance(x, dict) and x.get("url")]
-    primaries = [x for x in pool if x.get("primary")] or pool[:1]
+    ordered = [x for x in pool if x.get("primary")] + [x for x in pool if not x.get("primary")]
     links = []
-    for src in primaries[:2]:
+    for src in ordered[:4]:
         who = src.get("author") or src.get("organization") or src.get("domain") or src.get("url", "")
         links.append(f'<a href="{e(src.get("url", ""))}" rel="noopener noreferrer"><span translate="no">{e(who)}</span> ↗</a>')
-    lead = f'{e(sb["original"])}: ' if len(links) == 1 else ""
-    first = f'<span class="srcbar-links">{lead}{" · ".join(links)}</span>' if links else ""
+    if links and ordered[0].get("primary"):
+        links[0] = f'{e(sb["original"])}: {links[0]}'
+    if len(ordered) > len(links):
+        links.append(f'<a href="#sources">{e(sb["all"].format(n=len(ordered)))}</a>')
+    first = f'<span class="srcbar-links">{" · ".join(links)}</span>' if links else ""
     return (f'<div class="srcbar"><div class="frame"><strong class="rubric rubric-accent srcbar-label">{e(sb["title"])}</strong> {first} '
             f'<span class="srcbar-by">{e(byline)}</span> {automation_html}</div></div>')
 
