@@ -23,14 +23,6 @@ def freshness_sentence(freshness: dict, catalog: dict) -> str:
                                   checked=format_date(freshness["checked_at"], catalog, precision="day"))
 
 
-def keep_dates(html: str, dates: list[str]) -> str:
-    """Wrap each already-escaped date so a phone line break never splits it (CJK allows a break before 日)."""
-    for date in dates:
-        if date:
-            html = html.replace(escape(date), f'<span class="nw">{escape(date)}</span>')
-    return html
-
-
 def freshness_attributes(freshness: dict) -> str:
     """``data-*`` attributes for a freshness element; unknown values are omitted."""
     attributes = f' data-freshness="{escape(str(freshness["state"]), quote=True)}"'
@@ -42,9 +34,8 @@ def freshness_attributes(freshness: dict) -> str:
 
 def freshness_line(freshness: dict, catalog: dict) -> str:
     state = label(catalog, "freshness_state", freshness["state"])
-    dates = [format_date(freshness[key], catalog, precision="day") for key in ("newest_at", "checked_at") if freshness.get(key)]
     return (f'<p class="corpus-freshness"{freshness_attributes(freshness)}><strong>{escape(state)}</strong> '
-            f'{keep_dates(escape(freshness_sentence(freshness, catalog)), dates)}</p>')
+            f'{escape(freshness_sentence(freshness, catalog))}</p>')
 
 
 def render(status: dict, catalog: dict, *, base: str, locale: dict, freshness: dict | None = None) -> str:
@@ -61,14 +52,13 @@ def render(status: dict, catalog: dict, *, base: str, locale: dict, freshness: d
     corpus = freshness_line(freshness, catalog) if freshness is not None else ""
     if state == "FRESH":
         update = escape(strings["fresh"].format(date=date))
-        stale = keep_dates(escape(strings["stale_page"].format(date=date)), [date]) + link
+        stale = escape(strings["stale_page"].format(date=date)) + link
         return f'<p class="edition-update">{update}</p>{corpus}<div class="status-banner" hidden data-edition-state="FRESH" data-edition-at="{edition_at}"{clock_attr}><!-- slot:banner -->{stale}</div>'
     if state == "QUIET":
         quiet_value = status.get("quiet_since") or value
-        quiet_date = format_date(quiet_value, catalog, precision="minute")
-        text = keep_dates(escape(strings["quiet"].format(date=quiet_date)), [quiet_date])
+        text = strings["quiet"].format(date=format_date(quiet_value, catalog, precision="minute"))
     elif state == "TRANSPORT_DOWN":
-        text = keep_dates(escape(strings["transport_down"].format(date=date)), [date]) + link
+        text = strings["transport_down"].format(date=date) + link
     else:
-        text = keep_dates(escape(strings["delayed"].format(date=date)), [date]) + link
+        text = strings["delayed"].format(date=date) + link
     return f'<div class="status-banner" data-edition-state="{escape(state)}" data-edition-at="{edition_at}"{clock_attr}><!-- slot:banner -->{text}</div>{corpus}'
