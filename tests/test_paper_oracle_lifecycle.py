@@ -116,6 +116,60 @@ exports.chromium = {launch: async () => ({newPage: async () => {
                 self.assertNotIn('PASS', result.stdout)
                 self.assertEqual(sum(visits.values()), (12 + 5 + 3 + 5 + 1) * 2)
 
+    CRASH_MODULE = '''const fs = require('node:fs');
+const tick = () => new Promise(r => setTimeout(r, 2));
+let crashedOnce = false;
+exports.chromium = {launch: async () => ({newPage: async () => {
+  let width, path, dead = false;
+  const guard = () => {if (dead) throw new Error('Target crashed')};
+  return {
+    close: async () => {},
+    setViewportSize: async vp => {guard(); await tick(); width = vp.width},
+    goto: async url => {
+      guard(); await tick(); path = new URL(url).pathname;
+      if (path === '/story-4/' && (process.env.ALWAYS === '1' || !crashedOnce)) {crashedOnce = true; dead = true; throw new Error('Page crashed')}
+      fs.appendFileSync(process.env.VISITS, JSON.stringify([path, width])+'\\n');
+    },
+    evaluate: async fn => {
+      guard(); await tick();
+      const source = String(fn);
+      if (source.includes('document.fonts')) return true;
+      if (source.includes("querySelectorAll('h1 a")) return [];
+      return {height:50, lines:1, dekTop:200};
+    }
+  };
+}, close: async () => {}})};
+'''
+
+    def _run_crashing(self, always):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            (root / 'browser.cjs').write_text(self.CRASH_MODULE)
+            rows = [{'path': f'story-{i}/', 'kind': 'story', 'locale': 'en'} for i in range(10)]
+            rows += [{'path': 'zh/story/', 'kind': 'story', 'locale': 'zh-Hans'}]
+            rows += [{'path': p, 'kind': 'landing', 'locale': l} for p, l in (('', 'en'), ('es/', 'es-419'), ('zh/', 'zh-Hans'))]
+            (root / 'routes.json').write_text(json.dumps(rows))
+            result = subprocess.run(['node', '--input-type=commonjs', '-e', oracle.LAYOUT_BUDGETS,
+                                     'http://fixture.invalid/', str(root / 'routes.json')],
+                                    env={**os.environ, 'PLAYWRIGHT_MODULE': str(root / 'browser.cjs'),
+                                         'VISITS': str(root / 'v.jsonl'), 'ALWAYS': '1' if always else '0',
+                                         'LAYOUT_BUDGETS_CONCURRENCY': '3'},
+                                    capture_output=True, text=True, timeout=30)
+            visits = root / 'v.jsonl'
+            return result, Counter(tuple(json.loads(l)) for l in visits.read_text().splitlines())
+
+    def test_crashed_page_is_replaced_and_its_route_measured_again(self):
+        result, visits = self._run_crashing(always=False)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual(visits[('/story-4/', 1440)], 1)
+        self.assertEqual(visits[('/story-4/', 390)], 1)
+        self.assertEqual(sum(visits.values()), (11 + 3 + 2) * 2)  # 11 stories, 3 landing, 2 zh pages, two widths each
+
+    def test_route_that_keeps_crashing_still_fails_the_run(self):
+        result, _ = self._run_crashing(always=True)
+        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+        self.assertIn('story-4/', result.stderr)
+
     def test_violations_are_reported_in_route_order_under_concurrency(self):
         # Every story is bad: the order of the reported lines must not depend on which page finished first.
         with tempfile.TemporaryDirectory() as temporary:

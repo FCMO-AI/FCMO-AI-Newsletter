@@ -30,7 +30,8 @@ const base = process.argv[1], rows = JSON.parse(require('node:fs').readFileSync(
   // A small pool of pages measures routes concurrently. Each route is still measured on one page, both viewports
   // in order, exactly as before; failures are filed per route and reported in route order (deterministic).
   const poolSize = Math.max(1, parseInt(process.env.LAYOUT_BUDGETS_CONCURRENCY || '1', 10) || 1);
-  const pages = await Promise.all(Array.from({ length: poolSize }, () => browser.newPage({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 })));
+  const newPage = () => browser.newPage({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 });
+  const pages = await Promise.all(Array.from({ length: poolSize }, newPage));
   const evaluateOn = (page) => async (...args) => {
     let timer;
     try {
@@ -43,12 +44,21 @@ const base = process.argv[1], rows = JSON.parse(require('node:fs').readFileSync(
   const runPool = async (routes, visit) => {
     const perRoute = new Array(routes.length);
     let next = 0;
-    await Promise.all(pages.map(async (page) => {
-      const evaluate = evaluateOn(page);
+    await Promise.all(pages.map(async (page, slot) => {
       while (next < routes.length) {
         const i = next++;
-        const failures = [];
-        await visit(routes[i], page, evaluate, failures);
+        let failures = [];
+        await visit(routes[i], page, evaluateOn(page), failures);
+        // A renderer that crashed under host load is replaced and the same route is measured again, once.
+        // Nothing is skipped: a route that still fails keeps its failures.
+        if (failures.some(f => /crashed/i.test(f))) {
+          try { await page.close(); } catch (_) {}
+          try {
+            page = pages[slot] = await newPage();
+            failures = [];
+            await visit(routes[i], page, evaluateOn(page), failures);
+          } catch (e) { failures.push(`${routes[i].path}: could not replace crashed page: ${e.message}`); }
+        }
         perRoute[i] = failures;
       }
     }));
