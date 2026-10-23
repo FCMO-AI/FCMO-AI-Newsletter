@@ -207,8 +207,8 @@ class EvaluateRulesTests(unittest.TestCase):
             "h1": r(400, 570), "leadHref": f"{BASE}2026/09/13/lead/",
             "zones": [r(85, 169, 16, 195), r(85, 169, 195, 374)],
             "languages": [r(10, 31, 16, 70), r(10, 31, 160, 230), r(10, 31, 300, 374)],
-            "banner": {"state": "TRANSPORT_DOWN", "clipped": False, **r(223, 306)},
-            "freshness": {"clipped": False, **r(306, 346)},
+            "banner": {"state": "TRANSPORT_DOWN", "clipped": False, **r(223, 306)},  # corpus-count-ok: pixel coordinate
+            "freshness": {"clipped": False, **r(306, 346)},  # corpus-count-ok: pixel coordinate
             "nav": {**r(170, 214), "links": [{"href": href, **r(170, 214, visible=href[len(BASE):] in shown)}
                                              for href in nav_hrefs]},
             "headerHrefs": [f"{BASE}", f"{BASE}cartas/", f"{BASE}diario/", *[f"{BASE}{p}" for p in sorted(shown)]],
