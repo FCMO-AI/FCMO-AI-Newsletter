@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Verify that a phone reader sees the FCMO AI lead headline on the first screen of /diario/.
+"""Verify that a phone reader sees the FCMO AI lead headline on the first screen of the locale front.
 
 The oracle builds this checkout into a temporary directory, serves it under the
 publication base path, measures it in a real Chromium through Playwright and
 runs the deterministic publication gates over the same build. Measurement and
-judgement are separate: ``evaluate(measurements)`` is a pure function that
+judgement are separate (the front is the locale root; ``diario/`` is only a redirect stub since c6): ``evaluate(measurements)`` is a pure function that
 returns one violation per broken first-viewport rule, so the rules can be tested
 without a browser. A missing browser is a failure (``BROWSER_UNAVAILABLE``),
 never a pass or a skip.
@@ -36,7 +36,14 @@ DESKTOP = {"width": 1440, "height": 900}
 H1_TOP_MAX = 460
 H1_TOP_TARGET = 420
 NAV_HEIGHT_MAX = 48
+# The c6 top bar is one row at the design token --l-bar (56px); it is the single header, so it gets its own budget.
+BAR_HEIGHT_MAX = 56
+NAV_PATHS = ("", "#topics", "archive/", "search/?focus=1", "corrections/", "method/")
+TAB_PATHS = ("", "archive/", "search/?focus=1", "corrections/", "subscribe/")
 ROW_TOLERANCE = 2
+# The c6 phone freshness line is one line that may end in an ellipsis; the state word and the newest-story date lead it.
+# It must keep at least this share of its text visible (horizontal truncation only, never a vertical clip).
+FRESHNESS_SHOWN_MIN = 0.6
 PAGE_KINDS = ("landing", "story")
 
 MEASURE = r'''const { chromium } = require(process.argv[1]);
@@ -53,43 +60,64 @@ async function visit(browser, viewport, url, probe) {
   page.on('response', r => { if (r.status() >= 400) failedRequests.push(`${r.url()} HTTP ${r.status()}`); });
   await page.goto(url, { waitUntil: 'load', timeout: 30000 });
   await page.evaluate(() => document.fonts ? document.fonts.ready.then(() => true) : true);
-  const result = await page.evaluate(probe);
+  const result = await page.evaluate(`(${probe.toString()})((${HELPERS.toString()})())`);
   await context.close();
   return { url, ...result, consoleErrors, failedRequests };
 }
 
 const COMMON = () => ({ scrollWidth: document.documentElement.scrollWidth, clientWidth: document.documentElement.clientWidth });
 
-const MOBILE_PROBE = () => {
-  const visible = el => !!el && (el.checkVisibility ? el.checkVisibility({ visibilityProperty: true }) : el.getClientRects().length > 0);
-  const box = el => { const r = el.getBoundingClientRect(); return { top: r.top, bottom: r.bottom, left: r.left, right: r.right, height: r.height, visible: visible(el) }; };
-  const whole = el => ({ ...box(el), clipped: el.scrollHeight > el.clientHeight + 1 || el.scrollWidth > el.clientWidth + 1 });
-  const h1 = document.querySelector('.lead h1');
+// page.evaluate serializes a function alone, so the shared helpers travel as a factory handed to each probe.
+const HELPERS = () => {
+  const VISIBLE = el => !!el && (el.checkVisibility ? el.checkVisibility({ visibilityProperty: true }) : el.getClientRects().length > 0);
+  const BOX = el => { const r = el.getBoundingClientRect(); return { top: r.top, bottom: r.bottom, left: r.left, right: r.right, height: r.height, visible: VISIBLE(el) }; };
+  const WHOLE = el => ({ ...BOX(el), clipped: el.scrollHeight > el.clientHeight + 1 || el.scrollWidth > el.clientWidth + 1,
+    clippedY: el.scrollHeight > el.clientHeight + 1, shown: el.scrollWidth > 0 ? Math.min(1, el.clientWidth / el.scrollWidth) : 1 });
+  const LINKS = el => el ? [...el.querySelectorAll('a')].map(a => ({ href: a.getAttribute('href'), ...BOX(a) })) : [];
+  return { VISIBLE, BOX, WHOLE, LINKS };
+};
+
+const MOBILE_PROBE = H => {
+  const { VISIBLE, BOX, WHOLE, LINKS } = H;
+  const h1 = document.querySelector('.landing-feature h1, .cover h1');
+  const lead = h1 && h1.querySelector('a');
   const banner = document.querySelector('.status-banner');
   const freshness = document.querySelector('.corpus-freshness');
-  const header = document.querySelector('.site-header');
-  const nav = document.querySelector('.site-header .main-nav');
-  const lead = h1 && h1.querySelector('a');
+  const topbar = document.querySelector('.topbar');
+  const topnav = document.querySelector('.topbar .topnav');
+  const tabbar = document.querySelector('.tabbar');
+  const na = document.querySelector('.receipt-na');
+  const shown = [...document.querySelectorAll('.topbar a, .tabbar a, .footbar a')].filter(a => VISIBLE(a) && !a.closest('.langsel'));
   return {
-    h1: h1 && visible(h1) ? box(h1) : null,
+    h1: h1 && VISIBLE(h1) ? BOX(h1) : null,
     leadHref: lead ? lead.getAttribute('href') : null,
-    zones: [...document.querySelectorAll('.zone-switch a')].map(box),
-    languages: [...document.querySelectorAll('.language-nav a')].map(box),
-    banner: banner ? { state: banner.getAttribute('data-edition-state'), ...whole(banner) } : null,
-    freshness: freshness ? whole(freshness) : null,
-    nav: nav ? { ...box(nav), links: [...nav.querySelectorAll('a')].map(a => ({ href: a.getAttribute('href'), ...box(a) })) } : null,
+    zoneSwitch: document.querySelectorAll('.zone-switch').length,
+    languages: [...document.querySelectorAll('.langsel a')].map(BOX),
+    banner: banner ? { state: banner.getAttribute('data-edition-state'), ...WHOLE(banner) } : null,
+    freshness: freshness ? WHOLE(freshness) : null,
+    topbar: topbar ? { ...BOX(topbar), items: [...topbar.querySelectorAll('.brandmark, .langsel a')].filter(VISIBLE).map(BOX) } : null,
+    tabbar: tabbar ? { ...BOX(tabbar), links: LINKS(tabbar) } : null,
+    receiptNa: na && VISIBLE(na) ? BOX(na) : null,
+    navLinks: LINKS(topnav),
     // Language links point at the current page, so they never count as another way to reach a nav destination.
-    headerHrefs: header ? [...header.querySelectorAll('a')].filter(a => visible(a) && !a.closest('.language-nav')).map(a => a.getAttribute('href')) : [],
+    topicsTarget: !!document.getElementById('topics') && VISIBLE(document.getElementById('topics')),
+    visibleHrefs: shown.map(a => a.getAttribute('href')),
     scrollWidth: document.documentElement.scrollWidth, clientWidth: document.documentElement.clientWidth,
   };
 };
 
-const DESKTOP_PROBE = () => {
-  const visible = sel => { const el = document.querySelector(sel); return !!el && (el.checkVisibility ? el.checkVisibility({ visibilityProperty: true }) : el.getClientRects().length > 0); };
-  const h1 = document.querySelector('.lead h1');
-  return { editionLine: visible('.edition-line'), brandSub: visible('.brand-sub'), breadcrumbs: visible('.breadcrumbs'),
-    h1Top: h1 ? h1.getBoundingClientRect().top : null,
-    scrollWidth: document.documentElement.scrollWidth, clientWidth: document.documentElement.clientWidth };
+const DESKTOP_PROBE = H => {
+  const { VISIBLE, BOX, LINKS } = H;
+  const one = sel => document.querySelector(sel);
+  const topnav = one('.topbar .topnav'), tabbar = one('.tabbar');
+  return {
+    zoneSwitch: document.querySelectorAll('.zone-switch').length,
+    brandmark: VISIBLE(one('.topbar .brandmark')),
+    freshnessLine: VISIBLE(one('.corpus-freshness')),
+    topnav: topnav ? { ...BOX(topnav), links: LINKS(topnav) } : null,
+    tabbarVisible: VISIBLE(tabbar),
+    scrollWidth: document.documentElement.scrollWidth, clientWidth: document.documentElement.clientWidth,
+  };
 };
 
 (async () => {
@@ -99,10 +127,10 @@ const DESKTOP_PROBE = () => {
   const out = { mobile: {}, desktop: {}, pages: [] };
   try {
     for (const [code, prefix] of locales) {
-      const diario = new URL(prefix + 'diario/', base).href;
-      out.mobile[code] = await visit(browser, MOBILE, diario, MOBILE_PROBE);
-      out.desktop[code] = await visit(browser, DESKTOP, diario, DESKTOP_PROBE);
-      out.pages.push({ kind: 'landing', locale: code, ...await visit(browser, MOBILE, new URL(prefix, base).href, COMMON) });
+      const front = new URL(prefix, base).href;
+      out.mobile[code] = await visit(browser, MOBILE, front, MOBILE_PROBE);
+      out.desktop[code] = await visit(browser, DESKTOP, front, DESKTOP_PROBE);
+      out.pages.push({ kind: 'landing', locale: code, ...await visit(browser, MOBILE, front, COMMON) });
       const story = out.mobile[code].leadHref;
       if (story) out.pages.push({ kind: 'story', locale: code, ...await visit(browser, MOBILE, new URL(story, base).href, COMMON) });
     }
@@ -126,28 +154,37 @@ def _px(value: float) -> str:
     return f"{value:.0f}px"
 
 
+def _hrefs(prefix: str, paths: tuple[str, ...]) -> set[str]:
+    return {f"{BASE}{prefix}{path}" for path in paths}
+
+
+def _one_row(rects: list[dict]) -> bool:
+    """All boxes share one row: vertical centres within ROW_TOLERANCE."""
+    centres = [(r["top"] + r["bottom"]) / 2 for r in rects]
+    return bool(centres) and max(centres) - min(centres) <= ROW_TOLERANCE
+
+
 def evaluate(measurements: dict) -> list[str]:
     """Return one violation per broken first-viewport rule; an empty list means the rules hold."""
     violations: list[str] = []
     mobile, desktop = measurements.get("mobile") or {}, measurements.get("desktop") or {}
     pages = measurements.get("pages") or []
-    for code, _prefix in LOCALES:
-        where = f"{code} 390x844 /diario/"
+    for code, prefix in LOCALES:
+        where = f"{code} 390x844 front"
         m = mobile.get(code)
         if not m:
             violations.append(f"coverage {where}: not measured")
         else:
             h1 = m.get("h1")
             if h1 is None:
-                violations.append(f"h1-top {where}: lead h1 missing or hidden")
+                violations.append(f"h1-top {where}: cover headline missing or hidden")
             else:
                 if h1["top"] > H1_TOP_MAX:
                     violations.append(f"h1-top {where}: top {_px(h1['top'])} > {H1_TOP_MAX}px")
                 if h1["bottom"] > MOBILE["height"]:
                     violations.append(f"h1-bottom {where}: bottom {_px(h1['bottom'])} > {MOBILE['height']}px")
-            zones = m.get("zones") or []
-            if len(zones) != 2 or not all(_inside(z, MOBILE) for z in zones):
-                violations.append(f"zone-switch {where}: both doors must fit whole in the first viewport ({len(zones)} found)")
+            if m.get("zoneSwitch") != 0:
+                violations.append(f"one-fcmo {where}: .zone-switch product doors must be absent ({m.get('zoneSwitch')} found)")
             languages = m.get("languages") or []
             if not languages or not all(_inside(a, MOBILE) for a in languages):
                 violations.append(f"language-nav {where}: every language link must fit whole in the first viewport")
@@ -157,37 +194,65 @@ def evaluate(measurements: dict) -> list[str]:
                 violations.append(f"banner-above-h1 {where}: status banner missing")
             elif banner["state"] != "FRESH" and (not _inside(banner, MOBILE) or banner.get("clipped")
                                                  or top is None or banner["bottom"] > top):
-                violations.append(f"banner-above-h1 {where}: {banner['state']} banner must show whole above the lead h1")
+                violations.append(f"banner-above-h1 {where}: {banner['state']} banner must show whole above the cover headline")
             fresh = m.get("freshness")
-            if fresh is None or not _inside(fresh, MOBILE) or fresh.get("clipped") or top is None or fresh["bottom"] > top:
-                violations.append(f"freshness-above-h1 {where}: corpus freshness line must show whole above the lead h1")
-            nav = m.get("nav")
-            shown = [a for a in (nav or {}).get("links", []) if a.get("visible")]
-            if nav is None or not nav.get("visible") or nav["height"] > NAV_HEIGHT_MAX:
-                height = _px(nav["height"]) if nav else "missing"
-                violations.append(f"nav-height {where}: main nav {height} > {NAV_HEIGHT_MAX}px")
-            if (not shown or max(a["top"] for a in shown) - min(a["top"] for a in shown) > ROW_TOLERANCE
-                    or any(a["left"] < 0 or a["right"] > MOBILE["width"] for a in shown)):
-                violations.append(f"nav-row {where}: visible main-nav links must share one row (±{ROW_TOLERANCE}px) inside the viewport")
-            reachable = set(m.get("headerHrefs") or [])
-            lost = sorted({a["href"] for a in (nav or {}).get("links", [])} - reachable)
-            if nav is None or lost:
-                violations.append(f"nav-reachable {where}: nav destinations without a visible header link: {lost}")
+            if (fresh is None or not _inside(fresh, MOBILE) or fresh.get("clippedY") or top is None or fresh["bottom"] > top
+                    or fresh.get("shown", 0) < FRESHNESS_SHOWN_MIN):
+                violations.append(f"freshness-above-h1 {where}: corpus freshness line must show above the cover headline with at least {int(FRESHNESS_SHOWN_MIN * 100)}% of its text")
+            bar = m.get("topbar")
+            if bar is None or not bar.get("visible") or bar["height"] > BAR_HEIGHT_MAX:
+                height = _px(bar["height"]) if bar else "missing"
+                violations.append(f"topbar-height {where}: top bar {height} > {BAR_HEIGHT_MAX}px")
+            items = (bar or {}).get("items") or []
+            if (not items or not _one_row(items) or any(i["left"] < 0 or i["right"] > MOBILE["width"]
+                                                         or i["top"] < bar["top"] - ROW_TOLERANCE
+                                                         or i["bottom"] > bar["bottom"] + ROW_TOLERANCE for i in items)):
+                violations.append(f"topbar-row {where}: brand and language links must share one row inside the top bar")
+            tabs = m.get("tabbar")
+            links = (tabs or {}).get("links") or []
+            if (tabs is None or not tabs.get("visible") or not _inside(tabs, MOBILE) or len(links) != len(TAB_PATHS)
+                    or not all(a.get("visible") for a in links) or not _one_row(links)):
+                violations.append(f"tabbar-row {where}: the bottom tab bar must be visible, inside the viewport, one row of {len(TAB_PATHS)} links")
+            elif set(a["href"] for a in links) != _hrefs(prefix, TAB_PATHS):
+                violations.append(f"tabbar-row {where}: tab destinations differ from {sorted(_hrefs(prefix, TAB_PATHS))}")
+            na = m.get("receiptNa")
+            if tabs is not None and tabs.get("visible"):
+                if h1 is not None and h1["bottom"] > tabs["top"]:
+                    violations.append(f"tabbar-clear {where}: tab bar (top {_px(tabs['top'])}) covers the cover headline (bottom {_px(h1['bottom'])})")
+                if na is None or na["bottom"] > tabs["top"]:
+                    where_na = "missing" if na is None else f"bottom {_px(na['bottom'])}"
+                    violations.append(f"tabbar-clear {where}: the 20-second «Not established» line must end above the tab bar ({where_na})")
+            nav = m.get("navLinks") or []
+            reachable = set(m.get("visibleHrefs") or [])
+            # «Topics» is an in-page anchor to the front's own topics section: phones reach it by that section being present
+            # and visible (the tab bar holds five reader actions), every other destination needs a visible link.
+            anchors = {a["href"] for a in nav if "#" in a["href"]}
+            lost = sorted({a["href"] for a in nav} - reachable - (anchors if m.get("topicsTarget") else set()))
+            if set(a["href"] for a in nav) != _hrefs(prefix, NAV_PATHS) or lost:
+                violations.append(f"nav-reachable {where}: nav destinations without a visible link: {lost or 'nav incomplete'}")
             if _overflows(m):
                 violations.append(f"overflow {where}: scrollWidth {m.get('scrollWidth')} > clientWidth {m.get('clientWidth')}")
             if m.get("consoleErrors"):
                 violations.append(f"console {where}: {m['consoleErrors'][:3]}")
             if m.get("failedRequests"):
                 violations.append(f"requests {where}: {m['failedRequests'][:3]}")
-        where = f"{code} 1440x900 /diario/"
+        where = f"{code} 1440x900 front"
         d = desktop.get(code)
         if not d:
             violations.append(f"coverage {where}: not measured")
         else:
-            hidden = [name for key, name in (("editionLine", ".edition-line"), ("brandSub", ".brand-sub"),
-                                             ("breadcrumbs", ".breadcrumbs")) if not d.get(key)]
+            # c6 equivalents of the retired edition-line / brand-sub / breadcrumbs: the freshness line (what the edition
+            # says about itself), the FCMO AI brandmark (the single brand line) and the six-link top nav (the way around).
+            nav = d.get("topnav") or {}
+            shown = [a for a in nav.get("links", []) if a.get("visible")]
+            hidden = [name for ok, name in ((d.get("freshnessLine"), ".corpus-freshness"), (d.get("brandmark"), ".brandmark"),
+                                            (nav.get("visible") and len(shown) == len(NAV_PATHS)
+                                             and {a["href"] for a in shown} == _hrefs(prefix, NAV_PATHS)
+                                             and _one_row(shown), ".topnav")) if not ok]
             if hidden:
-                violations.append(f"desktop-chrome {where}: hidden at desktop: {hidden}")
+                violations.append(f"desktop-chrome {where}: hidden or incomplete at desktop: {hidden}")
+            if d.get("zoneSwitch") != 0:
+                violations.append(f"desktop-one-fcmo {where}: .zone-switch product doors must be absent ({d.get('zoneSwitch')} found)")
             if _overflows(d):
                 violations.append(f"desktop-overflow {where}: scrollWidth {d.get('scrollWidth')} > clientWidth {d.get('clientWidth')}")
             if d.get("consoleErrors") or d.get("failedRequests"):

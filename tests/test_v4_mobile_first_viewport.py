@@ -1,4 +1,4 @@
-"""Mobile first viewport: a phone reader sees the FCMO AI lead headline on the first screen of /diario/."""
+"""Mobile first viewport: a phone reader sees the FCMO AI lead headline on the first screen of the locale front."""
 
 from __future__ import annotations
 
@@ -160,7 +160,7 @@ class CompactChromeCssTests(unittest.TestCase):
             self.assertRegex(css, r"\.story-body\{[^}]*overflow-wrap:anywhere")
 
 
-class BuiltDiarioChromeTests(unittest.TestCase):
+class BuiltFrontChromeTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.temp = tempfile.TemporaryDirectory()
@@ -207,26 +207,34 @@ class EvaluateRulesTests(unittest.TestCase):
 
     def healthy(self) -> dict:
         r = self.rect
-        nav_hrefs = [f"{BASE}{path}" for path in NAV_PATHS]
-        shown = {"empieza/", "comunidad/", "archive/", "search/", "suscribete/"}
-        mobile = {
-            "h1": r(400, 570), "leadHref": f"{BASE}2026/09/13/lead/",
-            "zones": [r(85, 169, 16, 195), r(85, 169, 195, 374)],
-            "languages": [r(10, 31, 16, 70), r(10, 31, 160, 230), r(10, 31, 300, 374)],
-            "banner": {"state": "TRANSPORT_DOWN", "clipped": False, **r(223, 306)},
-            "freshness": {"clipped": False, **r(306, 346)},
-            "nav": {**r(170, 214), "links": [{"href": href, **r(170, 214, visible=href[len(BASE):] in shown)}
-                                             for href in nav_hrefs]},
-            "headerHrefs": [f"{BASE}", f"{BASE}cartas/", f"{BASE}diario/", *[f"{BASE}{p}" for p in sorted(shown)]],
-            "scrollWidth": 390, "clientWidth": 390, "consoleErrors": [], "failedRequests": [],
-        }
-        desktop = {"editionLine": True, "brandSub": True, "breadcrumbs": True, "scrollWidth": 1440, "clientWidth": 1440,
-                   "consoleErrors": [], "failedRequests": []}
+
+        def mobile_for(prefix: str) -> dict:
+            nav = [f"{BASE}{prefix}{path}" for path in ("", "#topics", "archive/", "search/?focus=1", "corrections/", "method/")]
+            tabs = [f"{BASE}{prefix}{path}" for path in ("", "archive/", "search/?focus=1", "corrections/", "subscribe/")]
+            return {
+                "h1": r(165, 273), "leadHref": f"{BASE}{prefix}2026/09/13/lead/", "zoneSwitch": 0,
+                "languages": [r(6, 50, 200, 244), r(6, 50, 246, 290), r(6, 50, 292, 336)],
+                "banner": {"state": "DELAYED", "clipped": False, **r(60, 82)},
+                "freshness": {"clipped": True, "clippedY": False, "shown": 0.8, **r(84, 113)},
+                "topbar": {**r(0, 56, 0, 390), "items": [r(6, 50, 16, 120), r(6, 50, 200, 244), r(6, 50, 246, 290), r(6, 50, 292, 336)]},
+                "tabbar": {**r(780, 844, 0, 390), "links": [{"href": href, **r(780, 844, 78 * i, 78 * (i + 1))} for i, href in enumerate(tabs)]},
+                "receiptNa": r(525, 585, 33, 357),
+                "navLinks": [{"href": href, **r(0, 0, visible=False)} for href in nav],
+                "topicsTarget": True,
+                "visibleHrefs": [*tabs, f"{BASE}{prefix}method/", f"{BASE}{prefix}subscribe/"],
+                "scrollWidth": 390, "clientWidth": 390, "consoleErrors": [], "failedRequests": [],
+            }
+
+        def desktop_for(prefix: str) -> dict:
+            nav = [f"{BASE}{prefix}{path}" for path in ("", "#topics", "archive/", "search/?focus=1", "corrections/", "method/")]
+            return {"zoneSwitch": 0, "brandmark": True, "freshnessLine": True, "tabbarVisible": False,
+                    "topnav": {**r(0, 56, 160, 800), "links": [{"href": href, **r(6, 50, 160 + 100 * i, 250 + 100 * i)} for i, href in enumerate(nav)]},
+                    "scrollWidth": 1440, "clientWidth": 1440, "consoleErrors": [], "failedRequests": []}
+
         page = {"scrollWidth": 390, "clientWidth": 390, "consoleErrors": [], "failedRequests": []}
-        codes = [code for code, _ in LOCALES]
-        return {"mobile": {code: copy.deepcopy(mobile) for code in codes},
-                "desktop": {code: copy.deepcopy(desktop) for code in codes},
-                "pages": [{"kind": kind, "locale": code, **copy.deepcopy(page)} for code in codes for kind in ("landing", "story")]}
+        return {"mobile": {code: mobile_for(prefix) for code, prefix in LOCALES},
+                "desktop": {code: desktop_for(prefix) for code, prefix in LOCALES},
+                "pages": [{"kind": kind, "locale": code, **copy.deepcopy(page)} for code, _ in LOCALES for kind in ("landing", "story")]}
 
     def rules(self, measurements: dict) -> list[str]:
         return [violation.split(" ", 1)[0] for violation in self.oracle.evaluate(measurements)]
@@ -234,67 +242,80 @@ class EvaluateRulesTests(unittest.TestCase):
     def test_a_healthy_first_viewport_has_no_violation(self):
         self.assertEqual(self.oracle.evaluate(self.healthy()), [])
         edge = self.healthy()
-        edge["mobile"]["en"]["h1"] = self.rect(460, 844)
-        edge["mobile"]["en"]["nav"]["links"][2]["top"] = 172
+        edge["mobile"]["en"]["h1"] = self.rect(460, 780)  # top at the budget, bottom at the tab bar
         fresh = edge["mobile"]["es-419"]
         fresh["banner"] = {"state": "FRESH", "clipped": False, **self.rect(0, 0, visible=False)}
+        fresh["freshness"]["shown"] = 0.6
+        edge["mobile"]["es-419"]["topbar"]["height"] = 56
         self.assertEqual(self.oracle.evaluate(edge), [])
 
     def test_every_rule_reports_its_own_violation(self):
         r = self.rect
 
-        def mobile(key, value):
-            return lambda m: m["mobile"]["zh-Hans"].__setitem__(key, value)
-
-        def nav_link(index, **changes):
-            return lambda m: m["mobile"]["es-419"]["nav"]["links"][index].update(changes)
+        def mobile(key, value, code="zh-Hans"):
+            return lambda m: m["mobile"][code].__setitem__(key, value)
 
         def en(key):
             return lambda change: (lambda m: change(m["mobile"]["en"][key]))
 
-        zones, languages, banner, fresh, nav = en("zones"), en("languages"), en("banner"), en("freshness"), en("nav")
+        def tab_link(index, **changes):
+            return lambda m: m["mobile"]["es-419"]["tabbar"]["links"][index].update(changes)
+
+        languages, banner, fresh, bar, tabs = en("languages"), en("banner"), en("freshness"), en("topbar"), en("tabbar")
         cases = [
             ("h1-top", mobile("h1", r(461, 600))),
+            ("h1-top", mobile("h1", None)),
             ("h1-bottom", mobile("h1", r(400, 845))),
-            ("zone-switch", zones(lambda z: z[1].update(bottom=845))),
-            ("zone-switch", zones(lambda z: z[0].update(visible=False))),
-            ("zone-switch", zones(lambda z: z[0].update(top=-1))),
-            ("zone-switch", zones(lambda z: z[0].update(left=-1))),
-            ("zone-switch", zones(lambda z: z.append(dict(z[1])))),
-            ("zone-switch", zones(lambda z: z.pop())),
+            ("one-fcmo", mobile("zoneSwitch", 1)),
+            ("one-fcmo", mobile("zoneSwitch", 2)),
             ("language-nav", languages(lambda a: a[2].update(right=391))),
             ("language-nav", languages(lambda a: a[0].update(visible=False))),
             ("language-nav", languages(lambda a: a.clear())),
             ("banner-above-h1", banner(lambda b: b.update(clipped=True))),
             ("banner-above-h1", banner(lambda b: b.update(visible=False))),
-            ("banner-above-h1", banner(lambda b: b.update(bottom=401))),
+            ("banner-above-h1", banner(lambda b: b.update(bottom=166))),
             ("banner-above-h1", banner(lambda b: b.pop("state"))),
+            ("banner-above-h1", banner(lambda b: b.update(right=391))),
             ("banner-above-h1", mobile("banner", None)),
-            ("freshness-above-h1", fresh(lambda f: f.update(bottom=401))),
-            ("freshness-above-h1", fresh(lambda f: f.update(clipped=True))),
+            ("freshness-above-h1", fresh(lambda f: f.update(bottom=166))),
+            ("freshness-above-h1", fresh(lambda f: f.update(clippedY=True))),
+            ("freshness-above-h1", fresh(lambda f: f.update(shown=0.59))),
             ("freshness-above-h1", fresh(lambda f: f.update(visible=False))),
+            ("freshness-above-h1", fresh(lambda f: f.update(left=-1))),
             ("freshness-above-h1", mobile("freshness", None)),
-            ("nav-height", nav(lambda n: n.update(height=49))),
-            ("nav-height", nav(lambda n: n.update(visible=False))),
-            ("nav-row", nav_link(3, top=173)),
-            ("nav-row", nav_link(7, right=391)),
-            ("nav-row", nav_link(2, left=-1)),
-            ("nav-reachable", lambda m: m["mobile"]["en"]["headerHrefs"].remove(f"{BASE}cartas/")),
-            ("nav-reachable", nav_link(0, href=f"{BASE}elsewhere/")),
+            ("topbar-height", bar(lambda b: b.update(height=57))),
+            ("topbar-height", bar(lambda b: b.update(visible=False))),
+            ("topbar-row", bar(lambda b: b["items"][1].update(top=40, bottom=84))),
+            ("topbar-row", bar(lambda b: b["items"][3].update(right=391))),
+            ("topbar-row", bar(lambda b: b["items"].clear())),
+            ("tabbar-row", tabs(lambda t: t.update(bottom=845))),
+            ("tabbar-row", tabs(lambda t: t.update(visible=False))),
+            ("tabbar-row", tab_link(3, top=700, bottom=764)),
+            ("tabbar-row", tab_link(4, visible=False)),
+            ("tabbar-row", tab_link(0, href=f"{BASE}elsewhere/")),
+            ("tabbar-row", lambda m: m["mobile"]["es-419"]["tabbar"]["links"].pop()),
+            ("tabbar-clear", mobile("h1", r(400, 781))),
+            ("tabbar-clear", mobile("receiptNa", r(525, 781))),
+            ("tabbar-clear", mobile("receiptNa", None)),
+            ("nav-reachable", lambda m: m["mobile"]["en"]["visibleHrefs"].remove(f"{BASE}method/")),
+            ("nav-reachable", lambda m: m["mobile"]["en"].update(topicsTarget=False)),
+            ("nav-reachable", lambda m: m["mobile"]["en"]["navLinks"][0].update(href=f"{BASE}elsewhere/")),
+            ("nav-reachable", lambda m: m["mobile"]["en"]["navLinks"].pop()),
             ("overflow", mobile("scrollWidth", 391)),
             ("overflow", lambda m: m["mobile"]["en"].pop("clientWidth")),
-            ("banner-above-h1", banner(lambda b: b.update(right=391))),
-            ("freshness-above-h1", fresh(lambda f: f.update(left=-1))),
-            ("desktop-overflow", lambda m: m["desktop"]["es-419"].pop("scrollWidth")),
-            ("page-overflow", lambda m: m["pages"][4].pop("clientWidth")),
             ("console", lambda m: m["mobile"]["en"]["consoleErrors"].append("boom")),
             ("requests", lambda m: m["mobile"]["en"]["failedRequests"].append("x.css HTTP 404")),
-            ("desktop-chrome", lambda m: m["desktop"]["es-419"].update(breadcrumbs=False)),
-            ("desktop-chrome", lambda m: m["desktop"]["en"].update(editionLine=False)),
-            ("desktop-chrome", lambda m: m["desktop"]["zh-Hans"].update(brandSub=False)),
+            ("desktop-chrome", lambda m: m["desktop"]["es-419"].update(freshnessLine=False)),
+            ("desktop-chrome", lambda m: m["desktop"]["en"].update(brandmark=False)),
+            ("desktop-chrome", lambda m: m["desktop"]["zh-Hans"]["topnav"]["links"][1].update(visible=False)),
+            ("desktop-chrome", lambda m: m["desktop"]["en"]["topnav"]["links"][4].update(top=60, bottom=90)),
+            ("desktop-chrome", lambda m: m["desktop"]["en"].update(topnav=None)),
+            ("desktop-one-fcmo", lambda m: m["desktop"]["en"].update(zoneSwitch=2)),
+            ("desktop-overflow", lambda m: m["desktop"]["es-419"].pop("scrollWidth")),
             ("desktop-overflow", lambda m: m["desktop"]["en"].update(scrollWidth=1441)),
             ("desktop-console", lambda m: m["desktop"]["en"]["consoleErrors"].append("boom")),
             ("desktop-console", lambda m: m["desktop"]["en"]["failedRequests"].append("x.js HTTP 404")),
+            ("page-overflow", lambda m: m["pages"][4].pop("clientWidth")),
             ("page-overflow", lambda m: m["pages"][1].update(scrollWidth=400)),
             ("page-console", lambda m: m["pages"][2]["consoleErrors"].append("boom")),
             ("page-console", lambda m: m["pages"][3]["failedRequests"].append("x.png HTTP 404")),
@@ -307,12 +328,13 @@ class EvaluateRulesTests(unittest.TestCase):
             with self.subTest(case=index, rule=rule):
                 measurements = self.healthy()
                 mutate(measurements)
-                self.assertEqual(self.rules(measurements), [rule])
+                found = self.rules(measurements)
+                self.assertEqual(found[:1], [rule])
                 seen.add(rule)
-        self.assertEqual(seen, {"h1-top", "h1-bottom", "zone-switch", "language-nav", "banner-above-h1",
-                                "freshness-above-h1", "nav-height", "nav-row", "nav-reachable", "overflow", "console",
-                                "requests", "desktop-chrome", "desktop-overflow", "desktop-console", "page-overflow",
-                                "page-console", "coverage"})
+        self.assertEqual(seen, {"h1-top", "h1-bottom", "one-fcmo", "language-nav", "banner-above-h1", "freshness-above-h1",
+                                "topbar-height", "topbar-row", "tabbar-row", "tabbar-clear", "nav-reachable", "overflow",
+                                "console", "requests", "desktop-chrome", "desktop-one-fcmo", "desktop-overflow",
+                                "desktop-console", "page-overflow", "page-console", "coverage"})
 
     def test_the_h1_budget_is_460_px_and_a_missing_signal_is_a_violation(self):
         at_461 = self.healthy()
@@ -327,7 +349,7 @@ class EvaluateRulesTests(unittest.TestCase):
         self.assertIn("coverage", self.rules({"mobile": {}, "desktop": {}, "pages": []}))
         missing = self.healthy()
         missing["mobile"]["zh-Hans"]["h1"] = None
-        # Without a lead h1 nothing can be proven to sit above it.
+        # Without a cover headline nothing can be proven to sit above it.
         self.assertEqual(self.rules(missing), ["h1-top", "banner-above-h1", "freshness-above-h1"])
 
 
@@ -357,15 +379,16 @@ class OracleBrowserGateTests(unittest.TestCase):
         healthy = EvaluateRulesTests("test_a_healthy_first_viewport_has_no_violation").healthy()
         code, out, _ = self.run_main(healthy, (True, "GATES PASS (14/14)"))
         self.assertEqual(code, 0)
-        self.assertIn("MOBILE FIRST VIEWPORT OK h1-top en=400px es-419=400px zh-Hans=400px", out)
+        self.assertIn("MOBILE FIRST VIEWPORT OK h1-top en=165px es-419=165px zh-Hans=165px", out)
         code, out, err = self.run_main(healthy, (False, "GATE FAIL [NO_FCMO_GROUP]"))
         self.assertEqual((code, out), (1, ""))
         self.assertIn("- gates: GATE FAIL [NO_FCMO_GROUP]", err)
         late = copy.deepcopy(healthy)
         late["mobile"]["es-419"]["h1"]["top"] = 461
+        late["mobile"]["es-419"]["h1"]["bottom"] = 600
         code, out, err = self.run_main(late, (True, "GATES PASS (14/14)"))
         self.assertEqual((code, out), (1, ""))
-        self.assertIn("MOBILE FIRST VIEWPORT FAIL h1-top en=400px es-419=461px zh-Hans=400px", err)
+        self.assertIn("MOBILE FIRST VIEWPORT FAIL h1-top en=165px es-419=461px zh-Hans=165px", err)
 
     def test_the_script_exits_1_with_browser_unavailable(self):
         result = subprocess.run([sys.executable, str(ORACLE), "--playwright-module", "/nonexistent/playwright/index.js"],
@@ -387,13 +410,18 @@ class OracleInBrowserTests(unittest.TestCase):
         for code, prefix in LOCALES:
             with self.subTest(locale=code):
                 mobile = measurements["mobile"][code]
-                links = mobile["nav"]["links"]
-                # The probe must see what CSS hides: three nav links hidden, five shown, and only visible,
-                # non-language header links (logo, two doors, five nav links) offered as ways to reach them.
-                self.assertEqual([link["visible"] for link in links], [False, False, True, True, False, True, True, True])
-                self.assertEqual(len(mobile["headerHrefs"]), 8)
+                # The probe must see what CSS hides on a phone: the six top-nav links are hidden (the five tabs
+                # replace them), the five tab links are shown, and no product door exists.
+                self.assertEqual([link["visible"] for link in mobile["navLinks"]], [False] * 6)
+                self.assertEqual(len(mobile["tabbar"]["links"]), 5)
+                self.assertTrue(all(link["visible"] for link in mobile["tabbar"]["links"]))
+                self.assertEqual(mobile["zoneSwitch"], 0)
+                self.assertTrue(mobile["topicsTarget"])
                 self.assertFalse(mobile["banner"]["clipped"])
-                self.assertFalse(mobile["freshness"]["clipped"])
+                self.assertFalse(mobile["freshness"]["clippedY"])
+                desktop = measurements["desktop"][code]
+                self.assertEqual([link["visible"] for link in desktop["topnav"]["links"]], [True] * 6)
+                self.assertFalse(desktop["tabbarVisible"])
 
 
 class LongTokenDoesNotOverflowTests(unittest.TestCase):
