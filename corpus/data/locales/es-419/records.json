@@ -5313,6 +5313,60 @@
       "title": "ME-VLM presenta un modelo unificado para agentes incorporados y menor latencia de prellenado en M100",
       "why_it_matters": "Un modelo unificado para percepción física, planificación, uso de herramientas y respuesta a la retroalimentación podría simplificar los sistemas de agentes robóticos. Si los resultados informados para M100 se replican, la cuantización y selección de tokens visuales podrían mejorar la eficiencia local de prellenado conservando la mayor parte de la puntuación de benchmark. El artículo no establece mejoras de despliegue integral verificadas de forma independiente ni generales."
     },
+    "FCMO-1DD94023A660": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "El artículo define PKTP como un selector voraz que estima la corrección conjunta de las trayectorias mediante un modelo gaussiano latente y optimiza una aproximación submodular a pass@k."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En ocho modelos abiertos de razonamiento matemático, los autores informan que PKTP supera a un sondeo lineal basado solo en calidad y a RepExp, un selector orientado a la diversidad; las mayores ventajas aparecen con valores intermedios de k."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "La configuración principal usa 128 trayectorias muestreadas por problema, prefijos de 4,000 tokens, presupuestos de selección k=1,2,4,8,16, cerca de 600 problemas filtrados por modelo, un juez Qwen3-32B para equivalencia de respuestas y 20 repeticiones de validación cruzada de ocho particiones."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El artículo no demuestra de manera independiente la transferencia fuera del razonamiento matemático, la robustez frente a errores del juez de respuestas, la reproducibilidad independiente ni ahorros de tokens, latencia, cómputo o dinero de extremo a extremo."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "En esta revisión no se reprodujeron de forma independiente los resultados de referencia en ocho modelos ni se inspeccionaron el código o el suplemento de los autores.",
+          "kind": "reproduction_missing",
+          "state": "open",
+          "updated_at": "2026-10-23T21:11:37Z"
+        },
+        {
+          "description": "El artículo no establece el costo total de inferencia ni si las mejoras se transfieren fuera del razonamiento matemático; las etiquetas de equivalencia de respuestas provienen de un juez Qwen3-32B.",
+          "kind": "regime_unclear",
+          "state": "open",
+          "updated_at": "2026-10-23T21:11:37Z"
+        }
+      ],
+      "importance_rationale": "Si las mejoras informadas por los autores se generalizan, seleccionar continuaciones de razonamiento por calidad conjunta y diversidad podría mejorar el uso del cómputo de inferencia en distintos sistemas de razonamiento. La evidencia actual es un único preprint con evaluación en ocho modelos abiertos de razonamiento matemático; siguen sin medirse el ahorro práctico de cómputo y la transferencia.",
+      "limitations": [
+        "Todos los resultados de rendimiento son informados por los autores en un único preprint versión 1 y no se reprodujeron de forma independiente.",
+        "La evaluación cubre ocho modelos abiertos de razonamiento matemático; no establece mejoras en programación, agentes generales u otras familias de tareas.",
+        "Las etiquetas de corrección usan Qwen3-32B para juzgar equivalencia entre la respuesta y una referencia; no se auditó de forma independiente el error del juez.",
+        "En la configuración principal se generan prefijos de 4,000 tokens para cada una de 128 trayectorias candidatas; las mejoras de pass@k por sí solas no demuestran menos tokens, latencia, cómputo o costo total de inferencia.",
+        "Los autores señalan que las representaciones de trayectorias parciales pueden ofrecer señales débiles de corrección y que PKTP se aproxima a RepExp con valores grandes de k."
+      ],
+      "relationships": [],
+      "summary": "Un artículo de arXiv presenta PKTP, que selecciona trayectorias parciales de razonamiento estimando directamente la probabilidad de que al menos una trayectoria retenida termine correctamente. Los autores informan un pass@k superior al de un clasificador lineal basado solo en calidad y al de un selector centrado solo en diversidad, en ocho modelos abiertos de razonamiento matemático, sobre todo con presupuestos intermedios de selección. La configuración principal genera 128 trayectorias por problema, observa prefijos de 4,000 tokens y conserva 1, 2, 4, 8 o 16; los resultados promedian 20 repeticiones de validación cruzada de ocho particiones sobre cerca de 600 problemas filtrados por modelo. Un juez Qwen3-32B determina si las respuestas son equivalentes. Son resultados de referencia informados por los autores, no una reproducción independiente ni evidencia de ahorro de inferencia de extremo a extremo.",
+      "technical": {
+        "claimed_result": "Los autores informan un pass@k mayor que con los métodos de referencia Linear Probe, basado solo en calidad, y RepExp, basado solo en diversidad, en ocho modelos abiertos de razonamiento matemático; las mayores ventajas aparecen con valores intermedios de k.",
+        "demonstrated_result": "El preprint documenta el método, la configuración de evaluación y los resultados informados por los autores; el rendimiento reportado no se reprodujo de forma independiente.",
+        "mechanism": "PKTP ajusta una puntuación lineal de calidad sobre representaciones de estados ocultos de trayectorias parciales y modela el riesgo de fallo compartido mediante resultados gaussianos latentes correlacionados. Usa una aproximación cerrada de segundo orden a pass@k y una selección voraz con garantía de aproximación para esa función sustituta.",
+        "regime": "Los experimentos principales usan 128 trayectorias por problema, prefijos de 4,000 tokens, hasta 32,768 tokens para completar una trayectoria, k en {1,2,4,8,16}, ocho modelos abiertos de razonamiento matemático y cerca de 600 problemas filtrados por modelo. Los resultados promedian 20 repeticiones de validación cruzada de ocho particiones.",
+        "strongest_baseline": "Se comparan la selección aleatoria, Linear Probe sobre estados ocultos y RepExp basado en representaciones, usando los mismos grupos muestreados de trayectorias. El preprint informa resultados mixtos según el modelo y k; en esta revisión no se examinó una evaluación ni reproducción independiente."
+      },
+      "title": "Un método equilibra calidad y diversidad al seleccionar trayectorias de razonamiento",
+      "why_it_matters": "El trabajo formula la poda de trayectorias de razonamiento según el objetivo práctico de conservar al menos una continuación correcta, equilibrando la calidad prevista con los fallos correlacionados. Si la reproducción confirma los resultados, podría orientar cómo los sistemas de razonamiento asignan el cómputo durante la inferencia. El artículo también informa que los prefijos parciales aportan una señal débil de corrección y no mide ahorros totales de tokens, latencia o costo."
+    },
     "FCMO-1E1ACE5C24CD": {
       "claims": [
         {
@@ -8056,6 +8110,68 @@
       },
       "title": "PANORAMA presenta subtitulado denso con máscaras de píxeles y el benchmark PanoCaps",
       "why_it_matters": "Las descripciones densas vinculadas a máscaras de píxeles casi completas ofrecen un recurso útil para entrenar y evaluar sistemas visuales que deben describir escenas enteras y localizar cada mención. Si las anotaciones y comparaciones se sostienen, el conjunto de datos y el método de selección de propuestas podrían mejorar la evaluación del razonamiento visual fundamentado. Los resultados se limitan a benchmarks de imágenes y evaluaciones realizadas por los autores."
+    },
+    "FCMO-32539A09ACC0": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "Google DeepMind, Google Research, WRI e IIASA publicaron ForTy: un mapa mundial de 10 m para 2020 con seis clases de bosque y uso del suelo, más una serie anual preliminar que cubre 2017–2025."
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "El artículo describe un modelo de segmentación de aprendizaje profundo en cascada que usa alrededor de 1.7 millones de ubicaciones etiquetadas y representaciones satelitales AlphaEarth; el mapa y los datos de validación complementarios están disponibles públicamente."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan una exactitud general estratificada de 90.2% para el mapa de seis clases, medida en 8,190 sitios resueltos por consenso experto de 9,100 ubicaciones muestreadas."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El rendimiento varía por clase: los autores informan F1 de 82.9% para bosque primario, 72.6% para regeneración natural, 66.7% para plantación forestal, 58.2% para bosque plantado y 96.4% para «Otros»; esta última clase, la dominante, influye sustancialmente en la exactitud general."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "Esta revisión no validó de forma independiente la serie temporal preliminar de 2017–2025; los resultados agregados tampoco establecen un rendimiento local fiable en todos los biomas, clases o usos regulatorios."
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "El artículo usa el umbral de rotación de 40 años como indicador observable para distinguir bosque plantado de plantación y agrupa otros terrenos arbolados en «Otros»; los puntajes de confianza son relativos y podrían no estar calibrados como probabilidades."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se descargó el ráster ni se hizo una validación independiente; la exactitud agregada informada podría ocultar errores por región o clase.",
+          "kind": "missing_independent",
+          "state": "open",
+          "updated_at": "2026-10-23T21:14:30Z"
+        },
+        {
+          "description": "La serie anual 2017–2025 es preliminar y no se examinó de forma independiente su consistencia temporal.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-23T21:14:30Z"
+        }
+      ],
+      "importance_rationale": "Si la validación informada se sostiene en distintos usos, un mapa mundial coherente de 10 m con seis clases y una serie anual 2017–2025 podría mejorar el monitoreo forestal y la investigación del uso del suelo frente a los productos binarios de cobertura de árboles. Los autores informan una validación agregada sólida, pero menor rendimiento para algunas clases; la serie temporal aún es preliminar.",
+      "limitations": [
+        "La clase dominante «Otros» influye considerablemente en la exactitud agregada; el rendimiento por clase varía y bosque plantado tiene el F1 informado más bajo.",
+        "Los autores describen la serie temporal 2017–2025 como preliminar; esta revisión no la validó de forma independiente.",
+        "El mapa agrupa otros terrenos arbolados en «Otros» y usa un indicador de rotación de 40 años para distinguir bosque plantado de plantación; estas decisiones pueden limitar la interpretación regional o regulatoria.",
+        "El artículo indica que los puntajes de confianza son relativos y podrían no estar calibrados como probabilidades.",
+        "El acceso directo a Nature redirigió a una página de identidad no disponible; esta revisión utilizó el texto indexado del artículo, pero no descargó ni analizó los rásteres ni el código de entrenamiento."
+      ],
+      "relationships": [],
+      "summary": "Google DeepMind, Google Research, el World Resources Institute y IIASA publicaron ForTy: un mapa mundial de 10 m que clasifica el territorio de 2020 en seis tipos de bosque y uso del suelo, junto con una serie anual preliminar para 2017–2025. Los autores describen un modelo de aprendizaje profundo en cascada, entrenado con alrededor de 1.7 millones de ubicaciones etiquetadas y representaciones satelitales AlphaEarth. En la validación del artículo, especialistas resolvieron por consenso 8,190 de 9,100 sitios muestreados; los autores informan una exactitud general estratificada de 90.2% para las seis clases. El rendimiento varía por clase: bosque plantado obtuvo el menor F1 informado, 58.2%, y la categoría dominante «Otros» influye considerablemente en la exactitud agregada. Los datos son públicos, pero la serie temporal es preliminar y esta revisión no validó los mapas de forma independiente.",
+      "technical": {
+        "claimed_result": "Los autores informan una exactitud general estratificada de 90.2% en seis clases, evaluada sobre 8,190 sitios de consenso experto, y 95.5% para bosque frente a no bosque. El rendimiento no es uniforme: bosque plantado tiene un F1 de 58.2% y la clase dominante «Otros» influye en la exactitud agregada.",
+        "demonstrated_result": "El comunicado oficial y el artículo documentan la publicación del mapa mundial de 2020 y la serie preliminar 2017–2025, además de describir el método y la disponibilidad pública. Los valores de exactitud son informados por los autores y no se reprodujeron de forma independiente en esta revisión.",
+        "mechanism": "Un modelo de segmentación de aprendizaje profundo en cascada combina representaciones satelitales AlphaEarth con datos de referencia armonizados, supervisión débil para etiquetas parciales y correcciones mediante aprendizaje activo. Produce puntajes relativos de confianza para seis clases a resolución de 10 m.",
+        "regime": "Mapa mundial de 10 m para 2020 que cubre tierras entre 65°S y 84°N y asigna seis clases. La validación usa 8,190 sitios resueltos por consenso de una muestra de 9,100 ubicaciones. La serie anual 2017–2025 es preliminar.",
+        "strongest_baseline": "El artículo compara la clasificación con otros mapas forestales mundiales e informa mayor exactitud agregada, pero esta revisión no reconstruyó la comparación detallada. Los errores locales y por clase siguen siendo relevantes; no se realizó una reproducción externa."
+      },
+      "title": "ForTy publica un mapa mundial de tipos de bosque de 10 m y una serie anual preliminar",
+      "why_it_matters": "ForTy amplía el mapeo forestal mundial más allá de la presencia de cobertura de árboles: distingue bosque natural, regeneración natural, bosque plantado y plantación, cultivos de árboles y agroforestería y otros usos, a resolución de 10 m. Si los resultados por clase se sostienen en distintas regiones, el mapa abierto podría apoyar la investigación sobre uso del suelo, conservación y cadenas de suministro. El menor rendimiento de algunas clases, el indicador operativo para separar bosque plantado de plantación y el carácter preliminar de la serie limitan su uso regulatorio directo sin validación local."
     },
     "FCMO-3286983ED7D1": {
       "claims": [
