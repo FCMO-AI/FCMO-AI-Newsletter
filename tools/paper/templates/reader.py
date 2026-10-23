@@ -125,7 +125,7 @@ def data_hero(story: dict, catalog: dict, *, evidence: dict | None = None) -> st
     conf_text = label(catalog, "confidence", story.get("confidence"))
     return (f'<figure class="data-hero" data-claims="{len(claims)}" data-primary="{primary}" data-gaps="{gaps}" aria-label="{e(d["hero_title"])}">'
             f'<figcaption class="dh-head"><span class="dh-kicker">{e(d["hero_title"])}</span></figcaption>'
-            f'<div class="dh-grade"><span class="er-grade-plate" aria-hidden="true">{e(story.get("evidence_class") or "?")}</span>'
+            f'<div class="dh-grade"><span class="er-grade-plate" aria-hidden="true">{e(_grade_letter(story))}</span>'
             f'<span class="dh-grade-text"><b>{e(grade_text)}</b>{("<small>" + e(conf_text) + "</small>") if conf_text else ""}</span></div>'
             f'<div class="dh-claims"><p class="dh-label">{e(d["hero_claims"])}</p><ol class="dh-strip">{strip}</ol>'
             f'<ul class="dh-legend">{legend}</ul></div><ul class="dh-figures">{figures}</ul></figure>')
@@ -258,8 +258,14 @@ def _segments(claims: list, catalog: dict) -> str:
     return f'<div class="er-bar" role="img" aria-label="{e(text)}">{"".join(cells)}</div>'
 
 
+def _grade_letter(story: dict) -> str:
+    """The grade letter for the plate; anything that is not a known grade is shown as «?», never echoed."""
+    value = story.get("evidence_class")
+    return value if value in ("A", "B", "C", "D") else "?"
+
+
 def _grade_plate(story: dict) -> str:
-    return f'<span class="er-grade-plate" aria-hidden="true">{e(story.get("evidence_class") or "?")}</span>'
+    return f'<span class="er-grade-plate" aria-hidden="true">{e(_grade_letter(story))}</span>'
 
 
 def _present_chips(claims: list, catalog: dict) -> str:
