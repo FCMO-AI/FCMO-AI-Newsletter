@@ -13,6 +13,8 @@ Contract (design direction, image system):
 * The motif comes from the story's real topics (``MOTIF_TOPICS``). When no topic
   matches, the neutral motif is used and the alt text says "Decorative plate".
   The alt never claims anything about the story's content.
+* ``variant=1`` swaps the two circular motifs (monitoring, neutral) for a non-circular drawing, so a page
+  can show rings once; the alt and ``data-motif`` stay the same. The caller picks it by slot, so it is deterministic.
 * ``alt`` holds one sentence per UI locale, read from ``i18n/ui``. When ``locale`` is
   given the SVG carries ``role="img"`` and that locale's ``aria-label``; otherwise
   it is ``aria-hidden`` and the caller puts the alt on its own ``<img>``/figure.
@@ -190,6 +192,32 @@ def _monitoring(w: int, h: int, rnd: random.Random) -> str:
     return "".join(out)
 
 
+def _monitoring_scan(w: int, h: int, rnd: random.Random) -> str:
+    """Instrument readout: rows of ticks with one stretch missing, marked by an ember bracket (no rings)."""
+    rows = 9
+    pitch = h / (rows + 1)
+    n = 80
+    step = w / n
+    gap_row = rnd.randint(3, rows - 3)
+    a = rnd.randint(int(n * .38), int(n * .55))
+    b = a + rnd.randint(int(n * .14), int(n * .24))
+    out, base = [], []
+    for r in range(rows):
+        y = pitch * (r + 1)
+        for i in range(n):
+            if r == gap_row and a <= i <= b:
+                continue
+            tall = pitch * (.34 if i % 8 == 0 else .16)
+            base.append(f"M{_n(step * i + step / 2)} {_n(y - tall / 2)}v{_n(tall)}")
+    out.append(f'<path d="{"".join(base)}" stroke="{BONE}" stroke-opacity=".3" stroke-width="2"/>')
+    y = pitch * (gap_row + 1)
+    x1, x2 = step * a, step * (b + 1)
+    out.append(f'<path d="M{_n(x1)} {_n(y - pitch * .5)}v{_n(pitch)}M{_n(x2)} {_n(y - pitch * .5)}v{_n(pitch)}" stroke="{EMBER}" stroke-width="5"/>'
+               f'<path d="M{_n(x1)} {_n(y)}H{_n(x2)}" stroke="{EMBER}" stroke-width="4" stroke-dasharray="3 9" stroke-linecap="round"/>'
+               f'<circle cx="{_n((x1 + x2) / 2)}" cy="{_n(y)}" r="{_n(pitch * .2)}" fill="{EMBER}"/>')
+    return "".join(out)
+
+
 def _security(w: int, h: int, rnd: random.Random) -> str:
     s = h / 10
     cols = int(w // s) + 1
@@ -294,17 +322,42 @@ def _neutral(w: int, h: int, rnd: random.Random) -> str:
     return "".join(out + late)
 
 
+def _neutral_bands(w: int, h: int, rnd: random.Random) -> str:
+    """Stacked wavy strata; the single ember dot sits on one of them (no circles)."""
+    n, out, late = 8, [], []
+    pick = rnd.randint(2, 5)
+    px = rnd.uniform(.3, .7)
+    for i in range(n):
+        y0 = h * (.14 + .1 * i)
+        amp = h * rnd.uniform(.02, .05)
+        f = rnd.uniform(1.2, 2.6)
+        ph = rnd.uniform(0, 6.28)
+        pts = [(w * k / 40, y0 + amp * math.sin(f * 6.28 * k / 40 + ph)) for k in range(41)]
+        op = round(.1 + .035 * (n - i), 2)
+        out.append(f'<path d="M{" L".join(f"{_n(a)} {_n(b)}" for a, b in pts)}" fill="none" stroke="{BONE}" stroke-opacity="{op}" stroke-width="{3 if i % 2 else 2}"/>')
+        if i == pick:
+            k = int(px * 40)
+            late.append(f'<circle cx="{_n(pts[k][0])}" cy="{_n(pts[k][1])}" r="{_n(h * .05)}" fill="{EMBER}"/>'
+                        f'<circle cx="{_n(pts[k][0])}" cy="{_n(pts[k][1])}" r="{_n(h * .09)}" fill="none" stroke="{EMBER}" stroke-opacity=".4" stroke-width="2"/>')
+    rule = "".join(f"M{_n(w * i / 12)} 0v{_n(h * .04)}" for i in range(13))
+    out.append(f'<path d="{rule}" stroke="{BONE}" stroke-opacity=".25" stroke-width="1.5"/>')
+    return "".join(out + late)
+
+
 _DRAW = {"agents": _agents, "monitoring": _monitoring, "security": _security,
          "reasoning": _reasoning, "voice": _voice, "neutral": _neutral}
+# Second drawing for the two circular motifs: a page that already shows rings asks for variant 1.
+_VARIANT = {"monitoring": _monitoring_scan, "neutral": _neutral_bands}
 
 
-def plate(story_id: str, topic_ids, ratio: str = "16:10", locale: str | None = None) -> dict:
+def plate(story_id: str, topic_ids, ratio: str = "16:10", locale: str | None = None, variant: int = 0) -> dict:
     if ratio not in SLOTS:
         raise ValueError(f"unknown plate ratio: {ratio!r}")
     w, h = SLOTS[ratio]
     motif = choose_motif(topic_ids)
-    rnd = _rng(str(story_id), motif)
-    body = _base(w, h, rnd) + _DRAW[motif](w, h, rnd) + _frame(w, h)
+    draw = _VARIANT.get(motif) if variant else None
+    rnd = _rng(str(story_id), motif + ("+v" if draw else ""))
+    body = _base(w, h, rnd) + (draw or _DRAW[motif])(w, h, rnd) + _frame(w, h)
     alt = alt_texts(motif)
     if locale is not None:
         if locale not in alt:
