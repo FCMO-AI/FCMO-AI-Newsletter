@@ -96,9 +96,9 @@ class EvidenceSignatureTests(unittest.TestCase):
         live[1].pop("confidence", None)
         live[2].pop("evidence", None)
         live[2].pop("sources", None)
-        # Pin the level: the newest story may arrive already at a «shown» level, which would make
-        # the expected class below depend on the day's data. A claimed level keeps the rule under test.
-        live[2]["confidence"] = "claimed_unverified"
+        # The bare probe carries nothing at all, so its class must be «not established» whatever level the
+        # day's newest story arrived with (a «shown» level would otherwise make the expectation data-dependent).
+        live[2].pop("confidence", None)
         for story in live:
             story["evidence_class"] = "<x>"
         cls.fixture_ids = [story["id"] for story in live[:3]]
@@ -244,7 +244,7 @@ class EvidenceSignatureTests(unittest.TestCase):
                 self.assertEqual([text(c) for c in re.findall(r"<div><b>(.*?)</b>", trio, re.S)],
                                  [f"{proof[k]} · {plural(self.catalogs[code], 'story', shown[k])}" for k in CLASSES])
         self.assertEqual(derived_class(fixture_stories[unknown]), "claimed")  # an unknown level is never «Shown»
-        self.assertEqual(derived_class(fixture_stories[bare]), "claimed" if fixture_stories[bare].get("confidence") else "not_established")
+        self.assertEqual(derived_class(fixture_stories[bare]), "not_established")  # nothing carried, nothing invented
         rendered = {**self.pages(self.fixture_out, self.fixture_routes, "archive")}
         self.assertEqual(sorted(rendered), sorted(LOCALES))
         for code, page in rendered.items():
