@@ -504,3 +504,23 @@ def main(argv: list[str] | None = None) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
+
+def release_lags_corpus(root: Path) -> bool:
+    """True while the generated release is older than the committed corpus.
+
+    The newswire bridge commits ``corpus/`` and the refresh workflow regenerates
+    ``release-src/`` and ``site/`` from it in a later commit (the refresh needs
+    the visual desk and takes minutes; the bridge cannot do it). Between the two
+    commits ``main`` legitimately holds a corpus newer than the release built
+    from it. Every refresh stamps ``site/data/newsroom-status.json`` with the
+    airlock ``corpus_digest`` it was built from, so the stamp tells us which
+    state we are in. A missing or unreadable stamp is *not* a lag: tests then
+    stay strict.
+    """
+    try:
+        built = json.loads((root / "site/data/newsroom-status.json").read_text(encoding="utf-8")).get("corpus_digest")
+        wired = json.loads((root / "corpus/airlock.json").read_text(encoding="utf-8")).get("corpus_digest")
+    except (OSError, ValueError, AttributeError):
+        return False
+    return bool(built and wired and built != wired)
