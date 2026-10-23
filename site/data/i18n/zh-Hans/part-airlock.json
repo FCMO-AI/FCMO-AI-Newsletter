@@ -1,6 +1,6 @@
 {
   "canonical_locale": "en",
-  "canonical_source_sha256": "cb6dd8339be2aaf6ee91ce2970fd7935e8805698a249b729058751fd4be15238",
+  "canonical_source_sha256": "4d2b8f74b654c12b0d46a7969d3c3c415179375f848e7f50efbe7751144b3e58",
   "generated_from": "ARB airlock; editorial wording authored upstream",
   "locale": "zh-Hans",
   "records": {
@@ -5315,6 +5315,60 @@
       "title": "ME-VLM提出统一具身智能体模型并报告M100预填充延迟降低",
       "why_it_matters": "统一处理物理感知、规划、工具使用和执行反馈的模型可能简化具身智能体系统。如果M100报告结果能够复现，量化和视觉词元选择或可在保留大部分基准分数的同时提高本地预填充效率。该论文尚未证明经过独立验证或普遍适用的端到端部署收益。"
     },
+    "FCMO-1DD94023A660": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "论文将 PKTP 定义为一种贪心筛选器：它通过潜在高斯模型估计轨迹结果的联合正确性，并优化 pass@k 的一个子模近似目标。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "在八种开放权重数学推理模型上，作者报告称 PKTP 优于仅按质量排序的线性探针，以及偏重多样性的 RepExp；优势在中等 k 值时最明显。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "主要实验设置为每道题采样 128 条轨迹、使用 4,000 token 前缀、筛选预算 k=1,2,4,8,16；每个模型约有 600 道筛选后题目，使用 Qwen3-32B 判断答案等价性，并进行 20 轮八折交叉验证。"
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "论文并未独立证明该方法可迁移到数学推理以外的任务、能抵御答案评判错误、可被独立复现，或能降低端到端 token、延迟、计算量或货币成本。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "本次审阅未独立复现这项涵盖八种模型的基准结果，也未检查作者实现或补充材料。",
+          "kind": "reproduction_missing",
+          "state": "open",
+          "updated_at": "2026-10-23T21:11:37Z"
+        },
+        {
+          "description": "论文未证明总推理成本或结果能否迁移到数学推理以外的任务；答案等价标签由 Qwen3-32B 评判。",
+          "kind": "regime_unclear",
+          "state": "open",
+          "updated_at": "2026-10-23T21:11:37Z"
+        }
+      ],
+      "importance_rationale": "如果作者报告的增益能够推广，依据联合质量与多样性选择推理续写，可能改善不同推理系统对推理阶段计算的利用。目前证据仅来自一篇预印本对八种开放权重数学推理模型的评估；实际计算节省与任务迁移能力仍未测量。",
+      "limitations": [
+        "所有性能结果均由作者在一篇版本 1 预印本中报告，尚未经过独立复现。",
+        "评估仅涵盖八种开放权重数学推理模型，不能证明其在编程、通用智能体或其他任务类型上也有提升。",
+        "正确性标签由 Qwen3-32B 判断答案与参考答案是否等价；本次未独立审查该评判器的错误率。",
+        "主要设置会为每条 128 条候选轨迹各生成 4,000 token 的前缀；pass@k 提升本身不能证明总推理 token、延迟、计算量或成本更低。",
+        "作者指出，部分轨迹表示中的正确性信号可能较弱，而且当 k 较大时 PKTP 的表现会接近 RepExp。"
+      ],
+      "relationships": [],
+      "summary": "一篇 arXiv 论文提出 PKTP：它直接估计保留的部分推理轨迹中至少有一条最终得到正确答案的概率，并据此进行筛选。作者报告称，在八种开放权重数学推理模型上，PKTP 的 pass@k 高于只看质量的线性探针和只看多样性的筛选器，优势在中等筛选预算下最明显。主要设置为每道题采样 128 条轨迹、观察 4,000 个 token 的前缀，并保留 1, 2, 4, 8, 16 条；结果平均 20 轮八折交叉验证，每个模型约有 600 道筛选后题目。答案等价性由 Qwen3-32B 判定。这些是作者报告的基准测试结果，尚非独立复现，也不证明端到端推理成本有所降低。",
+      "technical": {
+        "claimed_result": "作者报告称，在八种开放权重数学推理模型上，PKTP 的 pass@k 高于仅看质量的 Linear Probe 和偏重多样性的 RepExp；中等 k 值下的优势尤其明显。",
+        "demonstrated_result": "预印本说明了该方法、基准设置和作者报告的结果；相关性能尚未经过独立复现。",
+        "mechanism": "PKTP 在部分轨迹的隐藏状态表示上拟合线性质量分数，并通过相关的潜在高斯结果模型刻画共同失败风险。它采用 pass@k 的闭式二阶近似，并使用贪心筛选；作者为该近似目标给出了近似保证。",
+        "regime": "主要实验每题使用 128 条轨迹、4,000 token 前缀；完整轨迹最多生成 32,768 token；k 取 {1,2,4,8,16}。评估八种开放权重数学推理模型，每个模型约有 600 道筛选后题目，结果为 20 轮八折交叉验证的平均值。",
+        "strongest_baseline": "论文在相同的轨迹采样池上比较随机筛选、基于隐藏状态的 Linear Probe 和基于表示的 RepExp。预印本报告称不同模型和 k 值下的基线表现不一；本次未检查独立评估或复现。"
+      },
+      "title": "一种兼顾质量与多样性的推理轨迹筛选方法",
+      "why_it_matters": "这项工作把推理轨迹裁剪的目标设为保留至少一条能够成功完成的路径，同时平衡预测质量与相关失败风险。如果复现能够确认这些结果，它可能帮助推理系统更有效地分配推理阶段计算。论文也指出，部分轨迹表示中的正确性信号较弱，并未测量总 token、延迟或成本节省。"
+    },
     "FCMO-1E1ACE5C24CD": {
       "claims": [
         {
@@ -8058,6 +8112,68 @@
       },
       "title": "PANORAMA 论文提出密集短语到像素定位与 PanoCaps 基准",
       "why_it_matters": "与近乎完整的像素级掩码相连的密集描述，为训练和评估需要描述完整场景并定位每项描述的视觉系统提供了有用资源。如果标注和比较结果经得起检验，该数据集和候选掩码选择方法可能改进视觉定位推理的评估。当前结果仅涉及图像基准和作者执行的评估。"
+    },
+    "FCMO-32539A09ACC0": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "Google DeepMind、Google Research、WRI 和 IIASA 发布了 ForTy：一幅覆盖 2020 年的全球 10 m 地图，包含六类森林和土地利用类型，以及覆盖 2017–2025 年的早期年度序列。"
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "论文介绍了一种级联深度学习分割流程，使用约 1.7 million 个带标签地点和 AlphaEarth 卫星嵌入；地图及配套验证数据可公开获取。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "作者报告称，六分类地图在 9,100 个抽样地点中，经专家共识解决的 8,190 个地点上，分层总体准确率为 90.2%。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "各类别表现不一：作者报告原始森林 F1 为 82.9%、自然更新林为 72.6%、人工林为 66.7%、人工种植林为 58.2%、“其他”类为 96.4%；占主导地位的“其他”类显著影响总体准确率。"
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "本次审阅未独立验证 2017–2025 年早期时间序列；总体基准结果也不能证明所有生物群系、类别或监管场景下的本地准确性。"
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "论文将 40 年轮伐期阈值作为可观测指标，用于区分人工种植林与人工林，并将其他林地并入“其他”类；置信分数是相对分数，未必经过概率校准。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "本次未下载栅格数据，也未进行独立验证；报告的总体准确率可能掩盖地区或类别层面的错误。",
+          "kind": "missing_independent",
+          "state": "open",
+          "updated_at": "2026-10-23T21:14:30Z"
+        },
+        {
+          "description": "2017–2025 年度序列属于早期版本，本次未独立检查其时间一致性。",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-23T21:14:30Z"
+        }
+      ],
+      "importance_rationale": "如果作者报告的验证结果适用于不同使用场景，全球一致的 10 m 六分类地图和 2017–2025 年度序列，可能比二元树木覆盖产品更好地支持森林监测和土地利用研究。作者报告了较强的总体验证结果，但部分类别表现较弱，时间序列仍处于早期阶段。",
+      "limitations": [
+        "占主导地位的“其他”类显著影响总体准确率；各类别表现差异较大，人工种植林的报告 F1 最低。",
+        "作者将 2017–2025 年时间序列描述为早期版本，本次审阅未独立验证该序列。",
+        "地图将其他林地并入“其他”类，并以 40 年轮伐期指标区分人工种植林与人工林；这些选择可能限制其监管和区域解释用途。",
+        "论文指出置信分数是相对分数，未必经过概率校准。",
+        "直接访问 Nature 时被重定向至无法访问的身份验证页面；本次审阅依据索引中的论文全文，但没有下载或分析栅格数据与训练代码。"
+      ],
+      "relationships": [],
+      "summary": "Google DeepMind、Google Research、世界资源研究所（WRI）和 IIASA 发布了 ForTy：一幅全球 10 m 分辨率地图，将 2020 年土地划分为六类森林与土地利用类型，并附有 2017–2025 年的早期年度序列。作者介绍称，该级联深度学习模型使用约 1.7 million 个带标签地点和 AlphaEarth 卫星嵌入训练。论文验证中，9,100 个抽样地点里有 8,190 个由专家达成一致；作者报告六分类的分层总体准确率为 90.2%。各类表现并不均衡：人工种植林的 F1 最低，为 58.2%；占主导的“其他”类显著影响总体准确率。数据可公开获取，但时间序列仍属早期版本，本次审阅没有独立验证地图。",
+      "technical": {
+        "claimed_result": "作者报告称，六分类地图在 8,190 个专家共识地点上的分层总体准确率为 90.2%，森林与非森林的准确率为 95.5%。类别表现并不均衡：人工种植林的 F1 为 58.2%，占主导的“其他”类会影响总体准确率。",
+        "demonstrated_result": "官方发布和论文记录了全球 2020 年地图及 2017–2025 年早期序列的发布、方法与数据说明以及公开可用性。准确率数据由作者报告，本次未独立复现。",
+        "mechanism": "级联深度学习分割模型将 AlphaEarth 卫星嵌入与经过协调的参考数据相结合，并使用适用于部分标签的弱监督以及主动学习修正。模型以 10 m 分辨率输出六类相对置信分数。",
+        "regime": "全球 2020 年 10 m 地图，覆盖 65°S 至 84°N 之间的陆地并分为六类。验证使用 9,100 个抽样地点中的 8,190 个共识地点。2017–2025 年度序列仍属早期版本。",
+        "strongest_baseline": "论文将该分类与现有全球森林地图比较，并报告总体准确率更高；本次审阅未独立重建其详细匹配比较。地区与类别误差仍然重要；没有外部复现。"
+      },
+      "title": "ForTy 发布全球 10 m 森林类型地图及早期年度变化序列",
+      "why_it_matters": "ForTy 将全球森林制图从单纯识别树木覆盖扩展为区分天然林、自然更新林、人工种植林、人工林、树木作物与农林复合系统以及其他土地，空间分辨率达到 10 m。如果不同地区的分类结果经验证后仍然成立，这套开放地图可支持土地利用研究、保护工作和供应链监测。但部分类别的较低表现、区分人工种植林与人工林所用的操作性指标，以及尚处早期阶段的时间序列，都意味着在直接用于监管之前需要开展本地验证。"
     },
     "FCMO-3286983ED7D1": {
       "claims": [
@@ -40070,6 +40186,48 @@
         "source_sha256": "f094a36c525485e16370ad72cb1aa990b73fffa9c241d1be80c4b4d946c28b87"
       }
     },
+    "FCMO-1DD94023A660": {
+      "claims": {
+        "locale_sha256": "e4b84224fd43d40e2a7db94171c0174d8fa27ac80ea925c384a06d16f6336b77",
+        "source_sha256": "651d81515160b781ecbe83d6cf14d6df0c37124b283593715e80144e20577652"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "38ade43a79d30aa6a9183b8d53a659f9fcdb6d4dd9f11ce5cf485a1d9694a89c",
+        "source_sha256": "9d60bc841018b3ecf34d6c4c065b1b7db58371e22a93bb4890c1a7eb7061b5bf"
+      },
+      "importance_rationale": {
+        "locale_sha256": "10711eb42459d446361652792a14baeec1b39bec029ed5f101f12b3bde589bcc",
+        "source_sha256": "2ccb17f39147a7bdd4d3d007d8f0d8322f2ec8d3f28c2cf6b5b143c5c268eb55"
+      },
+      "limitations": {
+        "locale_sha256": "3f14912d496640724f0d03029e04ae9e019b1106f64e4ca6f2d63a466abbcf46",
+        "source_sha256": "1d9c6bb0ecd0d94f15b25980b20d9c881ebd6c1923095c1fc2938c53c372b564"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "f554e3d82db546ef3e09cf920f44d96d29fd4b0d75558a472a9a93549add72b6",
+        "source_sha256": "6d0b6b76abb548b0a3a60574ca63fa1230640ca75bd340d51cf8f56d10e2691a"
+      },
+      "technical": {
+        "locale_sha256": "0287ae26ecf9666c74ffffe5720db756f2bcf09100a487643d0375651a1a9d23",
+        "source_sha256": "9898accb1ebb26c1cf4a1f2ba19d67aac2a8a380390971b7ceeea2a07405a7af"
+      },
+      "title": {
+        "locale_sha256": "39be16b4a6a8329f6e6502415d495c2cf1bd4a9fb3014c474af7484e0cb84f1a",
+        "source_sha256": "b1a021989d37e844abafd76228f0767d71aa94623363d90b61ef947e37b85b7b"
+      },
+      "why_it_matters": {
+        "locale_sha256": "6e2a52b734c2bb41e81d232d0aff4048b5c5e15699d28a9c592c94b1d6099f15",
+        "source_sha256": "b7d1c67bc7f7af19a7bfcdf4de20058b018c9e2de9b4076dc4b104779b577b6a"
+      }
+    },
     "FCMO-1E1ACE5C24CD": {
       "claims": {
         "locale_sha256": "a14208dbbf191834799763586e7ea1809ba2f1a2f9e554376ceb41a67e7132ca",
@@ -42154,6 +42312,48 @@
       "why_it_matters": {
         "locale_sha256": "8c0ef1ac09e8f99e95bb8c4b6ac2e07df2b88f77a435c1dee23070ca4111a366",
         "source_sha256": "02894dbfe6d20f720a542f8dc6cbb2c7564c78f97e938d66ad57865437e4672d"
+      }
+    },
+    "FCMO-32539A09ACC0": {
+      "claims": {
+        "locale_sha256": "5bf9b97d28c2f02b5d74fbf8adaf105b9169943d4382f5526605eef07ea83725",
+        "source_sha256": "46abc02b67db912fac19e563adf1c3dd44f424a6ec5a986ba270a932fcbf2e5f"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "a7bb36bd1c8084d1aae0fca30884eda7c7eecfecbc481f28d774c71209380c67",
+        "source_sha256": "fb32503654a5363085b75b4ce5eb6bfd8046fd555ac16a3b011f330362b27487"
+      },
+      "importance_rationale": {
+        "locale_sha256": "1d2716b04fd213d9ab530c5d7ec0473b64609dd68766dd76bed405fea98f5928",
+        "source_sha256": "64d8715101f21ec0e8dd43bb962ab52c993237056979c41d3381ea31ec09a8a1"
+      },
+      "limitations": {
+        "locale_sha256": "2754c5198793764f9889a0672554ae6f76e93fbdbece89a2a19f0d6cbb852075",
+        "source_sha256": "f8e72d69ad38329189b5c4595d3861c49dd2958ed328c7bd614f80a4bd7a762d"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "297c74777b41e30f5430e49229ff48cfff352b53e2565622e0933e8f1a3f53a4",
+        "source_sha256": "e1ccfd6bd363ba1a9c243f04da70dac2be9636bf5585b1cacda171f634330bf4"
+      },
+      "technical": {
+        "locale_sha256": "7acbcae40388a6e4aa9d8784f2aaf3274c055e508a0a2ea74f7082194406eebe",
+        "source_sha256": "96d6e9b1716c1a9e8c77a27447280ef38f1e1cbf3291e6011ed0f81917ab54ea"
+      },
+      "title": {
+        "locale_sha256": "6251900e76413fd48e3d3383d00bcdd15b5c4a353e01d93a57fc4df0a2b3317b",
+        "source_sha256": "b48064da7493bcdafa084fa21d7f30fc73abd552e5388218b44ed9a9e549cc15"
+      },
+      "why_it_matters": {
+        "locale_sha256": "de95a48cb52965149e40c28a25ed23220f85f085e7b262674fb0a828ee57f2b3",
+        "source_sha256": "d71cfa9cd5ad5c298150aadfdc93c765f7a71978ccf4c776fc7782fd1aaf5c13"
       }
     },
     "FCMO-3286983ED7D1": {

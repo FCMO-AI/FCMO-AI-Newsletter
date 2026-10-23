@@ -1,6 +1,6 @@
 {
   "canonical_locale": "en",
-  "canonical_source_sha256": "cb6dd8339be2aaf6ee91ce2970fd7935e8805698a249b729058751fd4be15238",
+  "canonical_source_sha256": "4d2b8f74b654c12b0d46a7969d3c3c415179375f848e7f50efbe7751144b3e58",
   "generated_from": "ARB airlock; editorial wording authored upstream",
   "locale": "es-419",
   "records": {
@@ -5315,6 +5315,60 @@
       "title": "ME-VLM presenta un modelo unificado para agentes incorporados y menor latencia de prellenado en M100",
       "why_it_matters": "Un modelo unificado para percepción física, planificación, uso de herramientas y respuesta a la retroalimentación podría simplificar los sistemas de agentes robóticos. Si los resultados informados para M100 se replican, la cuantización y selección de tokens visuales podrían mejorar la eficiencia local de prellenado conservando la mayor parte de la puntuación de benchmark. El artículo no establece mejoras de despliegue integral verificadas de forma independiente ni generales."
     },
+    "FCMO-1DD94023A660": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "El artículo define PKTP como un selector voraz que estima la corrección conjunta de las trayectorias mediante un modelo gaussiano latente y optimiza una aproximación submodular a pass@k."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En ocho modelos abiertos de razonamiento matemático, los autores informan que PKTP supera a un sondeo lineal basado solo en calidad y a RepExp, un selector orientado a la diversidad; las mayores ventajas aparecen con valores intermedios de k."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "La configuración principal usa 128 trayectorias muestreadas por problema, prefijos de 4,000 tokens, presupuestos de selección k=1,2,4,8,16, cerca de 600 problemas filtrados por modelo, un juez Qwen3-32B para equivalencia de respuestas y 20 repeticiones de validación cruzada de ocho particiones."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El artículo no demuestra de manera independiente la transferencia fuera del razonamiento matemático, la robustez frente a errores del juez de respuestas, la reproducibilidad independiente ni ahorros de tokens, latencia, cómputo o dinero de extremo a extremo."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "En esta revisión no se reprodujeron de forma independiente los resultados de referencia en ocho modelos ni se inspeccionaron el código o el suplemento de los autores.",
+          "kind": "reproduction_missing",
+          "state": "open",
+          "updated_at": "2026-10-23T21:11:37Z"
+        },
+        {
+          "description": "El artículo no establece el costo total de inferencia ni si las mejoras se transfieren fuera del razonamiento matemático; las etiquetas de equivalencia de respuestas provienen de un juez Qwen3-32B.",
+          "kind": "regime_unclear",
+          "state": "open",
+          "updated_at": "2026-10-23T21:11:37Z"
+        }
+      ],
+      "importance_rationale": "Si las mejoras informadas por los autores se generalizan, seleccionar continuaciones de razonamiento por calidad conjunta y diversidad podría mejorar el uso del cómputo de inferencia en distintos sistemas de razonamiento. La evidencia actual es un único preprint con evaluación en ocho modelos abiertos de razonamiento matemático; siguen sin medirse el ahorro práctico de cómputo y la transferencia.",
+      "limitations": [
+        "Todos los resultados de rendimiento son informados por los autores en un único preprint versión 1 y no se reprodujeron de forma independiente.",
+        "La evaluación cubre ocho modelos abiertos de razonamiento matemático; no establece mejoras en programación, agentes generales u otras familias de tareas.",
+        "Las etiquetas de corrección usan Qwen3-32B para juzgar equivalencia entre la respuesta y una referencia; no se auditó de forma independiente el error del juez.",
+        "En la configuración principal se generan prefijos de 4,000 tokens para cada una de 128 trayectorias candidatas; las mejoras de pass@k por sí solas no demuestran menos tokens, latencia, cómputo o costo total de inferencia.",
+        "Los autores señalan que las representaciones de trayectorias parciales pueden ofrecer señales débiles de corrección y que PKTP se aproxima a RepExp con valores grandes de k."
+      ],
+      "relationships": [],
+      "summary": "Un artículo de arXiv presenta PKTP, que selecciona trayectorias parciales de razonamiento estimando directamente la probabilidad de que al menos una trayectoria retenida termine correctamente. Los autores informan un pass@k superior al de un clasificador lineal basado solo en calidad y al de un selector centrado solo en diversidad, en ocho modelos abiertos de razonamiento matemático, sobre todo con presupuestos intermedios de selección. La configuración principal genera 128 trayectorias por problema, observa prefijos de 4,000 tokens y conserva 1, 2, 4, 8 o 16; los resultados promedian 20 repeticiones de validación cruzada de ocho particiones sobre cerca de 600 problemas filtrados por modelo. Un juez Qwen3-32B determina si las respuestas son equivalentes. Son resultados de referencia informados por los autores, no una reproducción independiente ni evidencia de ahorro de inferencia de extremo a extremo.",
+      "technical": {
+        "claimed_result": "Los autores informan un pass@k mayor que con los métodos de referencia Linear Probe, basado solo en calidad, y RepExp, basado solo en diversidad, en ocho modelos abiertos de razonamiento matemático; las mayores ventajas aparecen con valores intermedios de k.",
+        "demonstrated_result": "El preprint documenta el método, la configuración de evaluación y los resultados informados por los autores; el rendimiento reportado no se reprodujo de forma independiente.",
+        "mechanism": "PKTP ajusta una puntuación lineal de calidad sobre representaciones de estados ocultos de trayectorias parciales y modela el riesgo de fallo compartido mediante resultados gaussianos latentes correlacionados. Usa una aproximación cerrada de segundo orden a pass@k y una selección voraz con garantía de aproximación para esa función sustituta.",
+        "regime": "Los experimentos principales usan 128 trayectorias por problema, prefijos de 4,000 tokens, hasta 32,768 tokens para completar una trayectoria, k en {1,2,4,8,16}, ocho modelos abiertos de razonamiento matemático y cerca de 600 problemas filtrados por modelo. Los resultados promedian 20 repeticiones de validación cruzada de ocho particiones.",
+        "strongest_baseline": "Se comparan la selección aleatoria, Linear Probe sobre estados ocultos y RepExp basado en representaciones, usando los mismos grupos muestreados de trayectorias. El preprint informa resultados mixtos según el modelo y k; en esta revisión no se examinó una evaluación ni reproducción independiente."
+      },
+      "title": "Un método equilibra calidad y diversidad al seleccionar trayectorias de razonamiento",
+      "why_it_matters": "El trabajo formula la poda de trayectorias de razonamiento según el objetivo práctico de conservar al menos una continuación correcta, equilibrando la calidad prevista con los fallos correlacionados. Si la reproducción confirma los resultados, podría orientar cómo los sistemas de razonamiento asignan el cómputo durante la inferencia. El artículo también informa que los prefijos parciales aportan una señal débil de corrección y no mide ahorros totales de tokens, latencia o costo."
+    },
     "FCMO-1E1ACE5C24CD": {
       "claims": [
         {
@@ -8058,6 +8112,68 @@
       },
       "title": "PANORAMA presenta subtitulado denso con máscaras de píxeles y el benchmark PanoCaps",
       "why_it_matters": "Las descripciones densas vinculadas a máscaras de píxeles casi completas ofrecen un recurso útil para entrenar y evaluar sistemas visuales que deben describir escenas enteras y localizar cada mención. Si las anotaciones y comparaciones se sostienen, el conjunto de datos y el método de selección de propuestas podrían mejorar la evaluación del razonamiento visual fundamentado. Los resultados se limitan a benchmarks de imágenes y evaluaciones realizadas por los autores."
+    },
+    "FCMO-32539A09ACC0": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "Google DeepMind, Google Research, WRI e IIASA publicaron ForTy: un mapa mundial de 10 m para 2020 con seis clases de bosque y uso del suelo, más una serie anual preliminar que cubre 2017–2025."
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "El artículo describe un modelo de segmentación de aprendizaje profundo en cascada que usa alrededor de 1.7 millones de ubicaciones etiquetadas y representaciones satelitales AlphaEarth; el mapa y los datos de validación complementarios están disponibles públicamente."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan una exactitud general estratificada de 90.2% para el mapa de seis clases, medida en 8,190 sitios resueltos por consenso experto de 9,100 ubicaciones muestreadas."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El rendimiento varía por clase: los autores informan F1 de 82.9% para bosque primario, 72.6% para regeneración natural, 66.7% para plantación forestal, 58.2% para bosque plantado y 96.4% para «Otros»; esta última clase, la dominante, influye sustancialmente en la exactitud general."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "Esta revisión no validó de forma independiente la serie temporal preliminar de 2017–2025; los resultados agregados tampoco establecen un rendimiento local fiable en todos los biomas, clases o usos regulatorios."
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "El artículo usa el umbral de rotación de 40 años como indicador observable para distinguir bosque plantado de plantación y agrupa otros terrenos arbolados en «Otros»; los puntajes de confianza son relativos y podrían no estar calibrados como probabilidades."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se descargó el ráster ni se hizo una validación independiente; la exactitud agregada informada podría ocultar errores por región o clase.",
+          "kind": "missing_independent",
+          "state": "open",
+          "updated_at": "2026-10-23T21:14:30Z"
+        },
+        {
+          "description": "La serie anual 2017–2025 es preliminar y no se examinó de forma independiente su consistencia temporal.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-23T21:14:30Z"
+        }
+      ],
+      "importance_rationale": "Si la validación informada se sostiene en distintos usos, un mapa mundial coherente de 10 m con seis clases y una serie anual 2017–2025 podría mejorar el monitoreo forestal y la investigación del uso del suelo frente a los productos binarios de cobertura de árboles. Los autores informan una validación agregada sólida, pero menor rendimiento para algunas clases; la serie temporal aún es preliminar.",
+      "limitations": [
+        "La clase dominante «Otros» influye considerablemente en la exactitud agregada; el rendimiento por clase varía y bosque plantado tiene el F1 informado más bajo.",
+        "Los autores describen la serie temporal 2017–2025 como preliminar; esta revisión no la validó de forma independiente.",
+        "El mapa agrupa otros terrenos arbolados en «Otros» y usa un indicador de rotación de 40 años para distinguir bosque plantado de plantación; estas decisiones pueden limitar la interpretación regional o regulatoria.",
+        "El artículo indica que los puntajes de confianza son relativos y podrían no estar calibrados como probabilidades.",
+        "El acceso directo a Nature redirigió a una página de identidad no disponible; esta revisión utilizó el texto indexado del artículo, pero no descargó ni analizó los rásteres ni el código de entrenamiento."
+      ],
+      "relationships": [],
+      "summary": "Google DeepMind, Google Research, el World Resources Institute y IIASA publicaron ForTy: un mapa mundial de 10 m que clasifica el territorio de 2020 en seis tipos de bosque y uso del suelo, junto con una serie anual preliminar para 2017–2025. Los autores describen un modelo de aprendizaje profundo en cascada, entrenado con alrededor de 1.7 millones de ubicaciones etiquetadas y representaciones satelitales AlphaEarth. En la validación del artículo, especialistas resolvieron por consenso 8,190 de 9,100 sitios muestreados; los autores informan una exactitud general estratificada de 90.2% para las seis clases. El rendimiento varía por clase: bosque plantado obtuvo el menor F1 informado, 58.2%, y la categoría dominante «Otros» influye considerablemente en la exactitud agregada. Los datos son públicos, pero la serie temporal es preliminar y esta revisión no validó los mapas de forma independiente.",
+      "technical": {
+        "claimed_result": "Los autores informan una exactitud general estratificada de 90.2% en seis clases, evaluada sobre 8,190 sitios de consenso experto, y 95.5% para bosque frente a no bosque. El rendimiento no es uniforme: bosque plantado tiene un F1 de 58.2% y la clase dominante «Otros» influye en la exactitud agregada.",
+        "demonstrated_result": "El comunicado oficial y el artículo documentan la publicación del mapa mundial de 2020 y la serie preliminar 2017–2025, además de describir el método y la disponibilidad pública. Los valores de exactitud son informados por los autores y no se reprodujeron de forma independiente en esta revisión.",
+        "mechanism": "Un modelo de segmentación de aprendizaje profundo en cascada combina representaciones satelitales AlphaEarth con datos de referencia armonizados, supervisión débil para etiquetas parciales y correcciones mediante aprendizaje activo. Produce puntajes relativos de confianza para seis clases a resolución de 10 m.",
+        "regime": "Mapa mundial de 10 m para 2020 que cubre tierras entre 65°S y 84°N y asigna seis clases. La validación usa 8,190 sitios resueltos por consenso de una muestra de 9,100 ubicaciones. La serie anual 2017–2025 es preliminar.",
+        "strongest_baseline": "El artículo compara la clasificación con otros mapas forestales mundiales e informa mayor exactitud agregada, pero esta revisión no reconstruyó la comparación detallada. Los errores locales y por clase siguen siendo relevantes; no se realizó una reproducción externa."
+      },
+      "title": "ForTy publica un mapa mundial de tipos de bosque de 10 m y una serie anual preliminar",
+      "why_it_matters": "ForTy amplía el mapeo forestal mundial más allá de la presencia de cobertura de árboles: distingue bosque natural, regeneración natural, bosque plantado y plantación, cultivos de árboles y agroforestería y otros usos, a resolución de 10 m. Si los resultados por clase se sostienen en distintas regiones, el mapa abierto podría apoyar la investigación sobre uso del suelo, conservación y cadenas de suministro. El menor rendimiento de algunas clases, el indicador operativo para separar bosque plantado de plantación y el carácter preliminar de la serie limitan su uso regulatorio directo sin validación local."
     },
     "FCMO-3286983ED7D1": {
       "claims": [
@@ -40070,6 +40186,48 @@
         "source_sha256": "f094a36c525485e16370ad72cb1aa990b73fffa9c241d1be80c4b4d946c28b87"
       }
     },
+    "FCMO-1DD94023A660": {
+      "claims": {
+        "locale_sha256": "293fc807882668618d9bd69fd82091714efe5c0096356cd0c1c8d9c82a5ee4e4",
+        "source_sha256": "651d81515160b781ecbe83d6cf14d6df0c37124b283593715e80144e20577652"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "4d91a4396e0d5964910e8b8cbcee4c78023704ef28e75fe98ed84a028a597494",
+        "source_sha256": "9d60bc841018b3ecf34d6c4c065b1b7db58371e22a93bb4890c1a7eb7061b5bf"
+      },
+      "importance_rationale": {
+        "locale_sha256": "dd5746c8e536137e00feb518bd5c2abf8c8c76d0ae204321ab0dafa66897b23d",
+        "source_sha256": "2ccb17f39147a7bdd4d3d007d8f0d8322f2ec8d3f28c2cf6b5b143c5c268eb55"
+      },
+      "limitations": {
+        "locale_sha256": "f68638290e0fa8a1d954948c31a8349a916d645e70346038e66647cfd171863c",
+        "source_sha256": "1d9c6bb0ecd0d94f15b25980b20d9c881ebd6c1923095c1fc2938c53c372b564"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "fc218f2bdacd699d2888aefd98c1a65dc2ea2e0094e43fd5bff3f23a7be3c8f5",
+        "source_sha256": "6d0b6b76abb548b0a3a60574ca63fa1230640ca75bd340d51cf8f56d10e2691a"
+      },
+      "technical": {
+        "locale_sha256": "f74e305eb518adc66f1b02c5f4f1a7ad86483ba610a9e578ff4d3082c8b31c80",
+        "source_sha256": "9898accb1ebb26c1cf4a1f2ba19d67aac2a8a380390971b7ceeea2a07405a7af"
+      },
+      "title": {
+        "locale_sha256": "14fd025a571227e30c1bff60b3c75af3026148f61c5600dff94eb62b98ebf822",
+        "source_sha256": "b1a021989d37e844abafd76228f0767d71aa94623363d90b61ef947e37b85b7b"
+      },
+      "why_it_matters": {
+        "locale_sha256": "6cb45be8e90e3974cb3242e1fc43ebc07d5b7a766e4614f8a3a33bd6b542e373",
+        "source_sha256": "b7d1c67bc7f7af19a7bfcdf4de20058b018c9e2de9b4076dc4b104779b577b6a"
+      }
+    },
     "FCMO-1E1ACE5C24CD": {
       "claims": {
         "locale_sha256": "5a8d5fcd81212305ae340a6b1019b9734761165e7bb3b990fa55d83608e1e141",
@@ -42154,6 +42312,48 @@
       "why_it_matters": {
         "locale_sha256": "1473f0d270e2ff3efcfd8cf5bd27304dcd6c08c7616d2b954fbe61df17689b83",
         "source_sha256": "02894dbfe6d20f720a542f8dc6cbb2c7564c78f97e938d66ad57865437e4672d"
+      }
+    },
+    "FCMO-32539A09ACC0": {
+      "claims": {
+        "locale_sha256": "6f64b414e820458ac541140185ce318215e32ae0849f594b8c534dc5665089f6",
+        "source_sha256": "46abc02b67db912fac19e563adf1c3dd44f424a6ec5a986ba270a932fcbf2e5f"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "fd5e27bcd1f9a2162014bd1b3ca63d8f6b8c99329baa932a8497bab8e97ca001",
+        "source_sha256": "fb32503654a5363085b75b4ce5eb6bfd8046fd555ac16a3b011f330362b27487"
+      },
+      "importance_rationale": {
+        "locale_sha256": "80b95d7abaeded44f924c7667be5f4aab79395898989e36be0ee1ca60b73eac7",
+        "source_sha256": "64d8715101f21ec0e8dd43bb962ab52c993237056979c41d3381ea31ec09a8a1"
+      },
+      "limitations": {
+        "locale_sha256": "6cd68f0b78df79db5f925f5d812a02907222aaf8f993018488007d9354a2ae32",
+        "source_sha256": "f8e72d69ad38329189b5c4595d3861c49dd2958ed328c7bd614f80a4bd7a762d"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "5274bfa22c86f80db46ae417bf3519f99d3a84796953bfffb0fa5a0e59b19a1c",
+        "source_sha256": "e1ccfd6bd363ba1a9c243f04da70dac2be9636bf5585b1cacda171f634330bf4"
+      },
+      "technical": {
+        "locale_sha256": "1cf7bcb70ed6e097587544c8c31f9eeca071a25c2b261eba7555b53d1dc4d7ef",
+        "source_sha256": "96d6e9b1716c1a9e8c77a27447280ef38f1e1cbf3291e6011ed0f81917ab54ea"
+      },
+      "title": {
+        "locale_sha256": "d43891e25a8743522862b199d60f0fe1186490c911ee5cbd172db4fa0fc639f5",
+        "source_sha256": "b48064da7493bcdafa084fa21d7f30fc73abd552e5388218b44ed9a9e549cc15"
+      },
+      "why_it_matters": {
+        "locale_sha256": "d968e0d4ef0072de05b12ce9e011cc8475de282981bc6ffe6537f4f2572f70b3",
+        "source_sha256": "d71cfa9cd5ad5c298150aadfdc93c765f7a71978ccf4c776fc7782fd1aaf5c13"
       }
     },
     "FCMO-3286983ED7D1": {

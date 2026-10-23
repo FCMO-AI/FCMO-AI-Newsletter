@@ -1,0 +1,125 @@
+{
+  "record": {
+    "id": "FCMO-1DD94023A660",
+    "title": "A joint quality-and-diversity method for selecting reasoning rollouts",
+    "desk": "Reasoning Posttraining",
+    "event_at": "2026-10-22T00:00:00Z",
+    "evidence": "A",
+    "confidence": "credible_unconfirmed",
+    "importance": 5,
+    "tier": "Notable",
+    "summary": "An arXiv paper introduces PKTP, which selects partial reasoning rollouts by directly estimating the chance that at least one retained rollout will finish correctly. The authors report higher pass@k than a quality-only linear probe and a diversity-only selector across eight open-weight math-reasoning models, especially at moderate selection budgets. Their main setup samples 128 rollouts per problem, observes 4,000-token prefixes and keeps 1, 2, 4, 8 or 16; results average 20 repetitions of eight-fold cross-validation over roughly 600 filtered problems per model. Correctness is judged by Qwen3-32B answer equivalence. These are author-reported benchmark results, not an independent reproduction or evidence of end-to-end inference savings.",
+    "topics": [
+      "test-time reasoning",
+      "rollout pruning",
+      "pass@k",
+      "inference efficiency",
+      "mathematical reasoning"
+    ],
+    "organizations": [
+      "University of Southern California"
+    ],
+    "human_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-1DD94023A660.html",
+    "machine_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/data/briefs/FCMO-1DD94023A660.json",
+    "citation": {
+      "id": "FCMO-1DD94023A660",
+      "source": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-1DD94023A660.html"
+    }
+  },
+  "brief": {
+    "claims": [
+      {
+        "label": "DEMONSTRATED",
+        "text": "The paper defines PKTP as a greedy selector that estimates joint rollout correctness with a latent Gaussian model and optimizes a submodular approximation to pass@k."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "Across eight open-weight math-reasoning models, the authors report that PKTP outperforms a quality-only linear probe and a diversity-oriented RepExp selector, with the clearest gains at moderate k."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "The main reported setup uses 128 sampled rollouts per problem, 4,000-token prefixes, selection budgets k=1,2,4,8,16, roughly 600 filtered problems per model, a Qwen3-32B answer-equivalence judge and 20 repeated eight-fold cross-validation runs."
+      },
+      {
+        "label": "NOT_ESTABLISHED",
+        "text": "The paper does not independently establish transfer beyond mathematical reasoning, robustness to answer-judge errors, independent reproducibility or end-to-end token, latency, compute or monetary savings."
+      }
+    ],
+    "confidence": "credible_unconfirmed",
+    "contradictory_evidence": [],
+    "desks": [
+      "reasoning_posttraining",
+      "evaluation_science",
+      "efficiency"
+    ],
+    "development_type": "paper",
+    "editions": [
+      "2026-10-23"
+    ],
+    "event_at": "2026-10-22T00:00:00Z",
+    "evidence_class": "A",
+    "evidence_gaps": [
+      {
+        "description": "The reported eight-model benchmark results were not independently reproduced and the author implementation/supplement was not inspected in this review.",
+        "kind": "reproduction_missing",
+        "state": "open",
+        "updated_at": "2026-10-23T21:11:37Z"
+      },
+      {
+        "description": "The paper does not establish total inference cost or whether gains transfer beyond math reasoning; a Qwen3-32B judge supplies answer-equivalence labels.",
+        "kind": "regime_unclear",
+        "state": "open",
+        "updated_at": "2026-10-23T21:11:37Z"
+      }
+    ],
+    "id": "FCMO-1DD94023A660",
+    "importance_effective_score": 5,
+    "importance_rationale": "If the bounded author-reported gains generalize, selecting reasoning continuations by joint quality and diversity could improve the use of test-time compute across reasoning systems. Current evidence is a single preprint evaluation on eight open-weight mathematical-reasoning models; practical compute savings and transfer remain unmeasured.",
+    "importance_scale_version": 2,
+    "importance_score": 5,
+    "importance_tier": "Notable",
+    "last_verified_at": "2026-10-23T21:11:37Z",
+    "limitations": [
+      "All performance outcomes are author-reported from one version-1 preprint and are not independently reproduced.",
+      "The evaluation covers eight open-weight mathematical-reasoning models; it does not establish gains for coding, general agents or other task families.",
+      "Correctness labels use Qwen3-32B to judge answer equivalence to references; judge error was not independently audited.",
+      "A 4,000-token prefix is generated for each of 128 candidate rollouts in the main setup; reported pass@k gains alone do not show lower total inference tokens, latency, compute or cost.",
+      "The authors note that partial-rollout embeddings can carry weak correctness signals and that PKTP approaches RepExp at larger k."
+    ],
+    "organizations": [
+      "University of Southern California"
+    ],
+    "primary_desk": "reasoning_posttraining",
+    "recorded_at": "2026-10-23T21:11:37Z",
+    "regions": [
+      "global"
+    ],
+    "relationships": [],
+    "source_languages": [
+      "en"
+    ],
+    "source_urls": [
+      "https://arxiv.org/html/2610.31667v1"
+    ],
+    "status": "active",
+    "summary": "An arXiv paper introduces PKTP, which selects partial reasoning rollouts by directly estimating the chance that at least one retained rollout will finish correctly. The authors report higher pass@k than a quality-only linear probe and a diversity-only selector across eight open-weight math-reasoning models, especially at moderate selection budgets. Their main setup samples 128 rollouts per problem, observes 4,000-token prefixes and keeps 1, 2, 4, 8 or 16; results average 20 repetitions of eight-fold cross-validation over roughly 600 filtered problems per model. Correctness is judged by Qwen3-32B answer equivalence. These are author-reported benchmark results, not an independent reproduction or evidence of end-to-end inference savings.",
+    "technical": {
+      "claimed_result": "The authors report higher pass@k than quality-only Linear Probe and diversity-only RepExp baselines on eight open-weight math-reasoning models, especially for moderate k.",
+      "demonstrated_result": "The preprint documents the method, benchmark setup and author-reported outcomes; the reported performance has not been independently reproduced.",
+      "mechanism": "PKTP fits a linear quality score to pooled partial-rollout hidden-state representations and models shared failure risk through correlated latent Gaussian outcomes. It uses a closed-form second-order surrogate for pass@k and a greedy selection procedure with a stated approximation guarantee for that surrogate.",
+      "regime": "Main experiments use 128 rollouts per problem, 4,000-token prefixes, up to 32,768 tokens for completed rollouts, k in {1,2,4,8,16}, eight open-weight math models and roughly 600 filtered benchmark problems per model. Results are averaged over 20 repetitions of eight-fold cross-validation.",
+      "strongest_baseline": "Random selection, a hidden-state Linear Probe and representation-based RepExp are compared on the same sampled rollout pools. The preprint reports mixed baseline performance by model and k; no independent evaluator or reproduction was inspected."
+    },
+    "title": "A joint quality-and-diversity method for selecting reasoning rollouts",
+    "topics": [
+      "test-time reasoning",
+      "rollout pruning",
+      "pass@k",
+      "inference efficiency",
+      "mathematical reasoning"
+    ],
+    "why_it_matters": "The work frames test-time rollout pruning around the practical objective of retaining at least one successful continuation while balancing predicted quality against correlated failures. If the reported gains hold in reproduction, this could inform how reasoning systems spend inference compute. The paper also reports weak correctness signal in partial-rollout embeddings and does not measure total token, latency or cost savings."
+  },
+  "related": [],
+  "schema": "fcmo-public-brief-v1"
+}
