@@ -215,7 +215,7 @@ class EvaluateRulesTests(unittest.TestCase):
                 "h1": r(165, 273), "leadHref": f"{BASE}{prefix}2026/09/13/lead/", "zoneSwitch": 0,
                 "languages": [r(6, 50, 200, 244), r(6, 50, 246, 290), r(6, 50, 292, 336)],
                 "banner": {"state": "DELAYED", "clipped": False, **r(60, 82)},
-                "freshness": {"clipped": True, "clippedY": False, "shown": 0.8, **r(84, 113)},
+                "freshness": {"clipped": False, **r(84, 113)},
                 "topbar": {**r(0, 56, 0, 390), "items": [r(6, 50, 16, 120), r(6, 50, 200, 244), r(6, 50, 246, 290), r(6, 50, 292, 336)]},
                 "tabbar": {**r(780, 844, 0, 390), "links": [{"href": href, **r(780, 844, 78 * i, 78 * (i + 1))} for i, href in enumerate(tabs)]},
                 "receiptNa": r(525, 585, 33, 357),
@@ -245,7 +245,6 @@ class EvaluateRulesTests(unittest.TestCase):
         edge["mobile"]["en"]["h1"] = self.rect(460, 780)  # top at the budget, bottom at the tab bar
         fresh = edge["mobile"]["es-419"]
         fresh["banner"] = {"state": "FRESH", "clipped": False, **self.rect(0, 0, visible=False)}
-        fresh["freshness"]["shown"] = 0.6
         edge["mobile"]["es-419"]["topbar"]["height"] = 56
         self.assertEqual(self.oracle.evaluate(edge), [])
 
@@ -278,8 +277,7 @@ class EvaluateRulesTests(unittest.TestCase):
             ("banner-above-h1", banner(lambda b: b.update(right=391))),
             ("banner-above-h1", mobile("banner", None)),
             ("freshness-above-h1", fresh(lambda f: f.update(bottom=166))),
-            ("freshness-above-h1", fresh(lambda f: f.update(clippedY=True))),
-            ("freshness-above-h1", fresh(lambda f: f.update(shown=0.59))),
+            ("freshness-above-h1", fresh(lambda f: f.update(clipped=True))),
             ("freshness-above-h1", fresh(lambda f: f.update(visible=False))),
             ("freshness-above-h1", fresh(lambda f: f.update(left=-1))),
             ("freshness-above-h1", mobile("freshness", None)),
@@ -310,6 +308,7 @@ class EvaluateRulesTests(unittest.TestCase):
             ("desktop-chrome", lambda m: m["desktop"]["zh-Hans"]["topnav"]["links"][1].update(visible=False)),
             ("desktop-chrome", lambda m: m["desktop"]["en"]["topnav"]["links"][4].update(top=60, bottom=90)),
             ("desktop-chrome", lambda m: m["desktop"]["en"].update(topnav=None)),
+            ("desktop-chrome", lambda m: m["desktop"]["en"].update(tabbarVisible=True)),
             ("desktop-one-fcmo", lambda m: m["desktop"]["en"].update(zoneSwitch=2)),
             ("desktop-overflow", lambda m: m["desktop"]["es-419"].pop("scrollWidth")),
             ("desktop-overflow", lambda m: m["desktop"]["en"].update(scrollWidth=1441)),
@@ -323,13 +322,16 @@ class EvaluateRulesTests(unittest.TestCase):
             ("coverage", lambda m: m["mobile"].pop("en")),
             ("coverage", lambda m: m["desktop"].pop("zh-Hans")),
         ]
+        # A missing headline also leaves nothing to measure the banner and freshness line against; a headline ending
+        # past the viewport also ends under the tab bar. Every other mutation reports exactly its own rule.
+        EXTRA = {1: ["h1-top", "banner-above-h1", "freshness-above-h1"], 2: ["h1-bottom", "tabbar-clear"]}
         seen = set()
         for index, (rule, mutate) in enumerate(cases):
             with self.subTest(case=index, rule=rule):
                 measurements = self.healthy()
                 mutate(measurements)
                 found = self.rules(measurements)
-                self.assertEqual(found[:1], [rule])
+                self.assertEqual(found, EXTRA.get(index, [rule]))
                 seen.add(rule)
         self.assertEqual(seen, {"h1-top", "h1-bottom", "one-fcmo", "language-nav", "banner-above-h1", "freshness-above-h1",
                                 "topbar-height", "topbar-row", "tabbar-row", "tabbar-clear", "nav-reachable", "overflow",
@@ -418,7 +420,7 @@ class OracleInBrowserTests(unittest.TestCase):
                 self.assertEqual(mobile["zoneSwitch"], 0)
                 self.assertTrue(mobile["topicsTarget"])
                 self.assertFalse(mobile["banner"]["clipped"])
-                self.assertFalse(mobile["freshness"]["clippedY"])
+                self.assertFalse(mobile["freshness"]["clipped"])
                 desktop = measurements["desktop"][code]
                 self.assertEqual([link["visible"] for link in desktop["topnav"]["links"]], [True] * 6)
                 self.assertFalse(desktop["tabbarVisible"])

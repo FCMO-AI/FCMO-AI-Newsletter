@@ -43,7 +43,6 @@ TAB_PATHS = ("", "archive/", "search/?focus=1", "corrections/", "subscribe/")
 ROW_TOLERANCE = 2
 # The c6 phone freshness line is one line that may end in an ellipsis; the state word and the newest-story date lead it.
 # It must keep at least this share of its text visible (horizontal truncation only, never a vertical clip).
-FRESHNESS_SHOWN_MIN = 0.6
 PAGE_KINDS = ("landing", "story")
 
 MEASURE = r'''const { chromium } = require(process.argv[1]);
@@ -71,8 +70,9 @@ const COMMON = () => ({ scrollWidth: document.documentElement.scrollWidth, clien
 const HELPERS = () => {
   const VISIBLE = el => !!el && (el.checkVisibility ? el.checkVisibility({ visibilityProperty: true }) : el.getClientRects().length > 0);
   const BOX = el => { const r = el.getBoundingClientRect(); return { top: r.top, bottom: r.bottom, left: r.left, right: r.right, height: r.height, visible: VISIBLE(el) }; };
-  const WHOLE = el => ({ ...BOX(el), clipped: el.scrollHeight > el.clientHeight + 1 || el.scrollWidth > el.clientWidth + 1,
-    clippedY: el.scrollHeight > el.clientHeight + 1, shown: el.scrollWidth > 0 ? Math.min(1, el.clientWidth / el.scrollWidth) : 1 });
+  // An inline element has no scroll or client size of its own: it is clipped when the block that holds it is.
+  const WHOLE = el => { const host = getComputedStyle(el).display === 'inline' && el.parentElement ? el.parentElement : el;
+    return { ...BOX(el), clipped: host.scrollHeight > host.clientHeight + 1 || host.scrollWidth > host.clientWidth + 1 }; };
   const LINKS = el => el ? [...el.querySelectorAll('a')].map(a => ({ href: a.getAttribute('href'), ...BOX(a) })) : [];
   return { VISIBLE, BOX, WHOLE, LINKS };
 };
@@ -196,9 +196,8 @@ def evaluate(measurements: dict) -> list[str]:
                                                  or top is None or banner["bottom"] > top):
                 violations.append(f"banner-above-h1 {where}: {banner['state']} banner must show whole above the cover headline")
             fresh = m.get("freshness")
-            if (fresh is None or not _inside(fresh, MOBILE) or fresh.get("clippedY") or top is None or fresh["bottom"] > top
-                    or fresh.get("shown", 0) < FRESHNESS_SHOWN_MIN):
-                violations.append(f"freshness-above-h1 {where}: corpus freshness line must show above the cover headline with at least {int(FRESHNESS_SHOWN_MIN * 100)}% of its text")
+            if (fresh is None or not _inside(fresh, MOBILE) or fresh.get("clipped") or top is None or fresh["bottom"] > top):
+                violations.append(f"freshness-above-h1 {where}: corpus freshness line must show whole above the cover headline")
             bar = m.get("topbar")
             if bar is None or not bar.get("visible") or bar["height"] > BAR_HEIGHT_MAX:
                 height = _px(bar["height"]) if bar else "missing"
@@ -246,6 +245,7 @@ def evaluate(measurements: dict) -> list[str]:
             nav = d.get("topnav") or {}
             shown = [a for a in nav.get("links", []) if a.get("visible")]
             hidden = [name for ok, name in ((d.get("freshnessLine"), ".corpus-freshness"), (d.get("brandmark"), ".brandmark"),
+                                            (not d.get("tabbarVisible", True), ".tabbar (must be hidden)"),
                                             (nav.get("visible") and len(shown) == len(NAV_PATHS)
                                              and {a["href"] for a in shown} == _hrefs(prefix, NAV_PATHS)
                                              and _one_row(shown), ".topnav")) if not ok]

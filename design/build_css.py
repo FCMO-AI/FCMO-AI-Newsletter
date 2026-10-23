@@ -19,7 +19,7 @@ PAPER_LIMIT = 112 * 1024
 # brand subtitle and front breadcrumbs hide on phones; duplicate nav links yield to the logo and
 # zone switch. The banner and freshness line stay whole.
 MOBILE_FIRST_VIEWPORT_CSS = r"""/* v4 p5 mobile first viewport */
-@media(max-width:520px){body .corpus-freshness{padding:.35rem 1rem;line-height:1.35;border-bottom:1px solid var(--line)}.status-banner{padding:.45rem 1rem;line-height:1.35}.edition-update{margin-top:.2rem}}
+@media(max-width:520px){body .corpus-freshness{padding:.35rem 1rem;line-height:1.35;border-bottom:1px solid var(--line);white-space:normal;overflow:visible}.status-banner{padding:.45rem 1rem;line-height:1.35}.edition-update{margin-top:.2rem}}
 """
 
 
