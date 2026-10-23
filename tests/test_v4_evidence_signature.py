@@ -88,11 +88,17 @@ class EvidenceSignatureTests(unittest.TestCase):
         cls.routes = build(STORIES, cls.out)
 
         fixture = json.loads(STORIES.read_text(encoding="utf-8"))
-        live = [story for story in fixture["stories"] if story.get("status") == "live"]
+        # The three probes must be the stories the archive and the front list first, which they order by event date,
+        # not by file order (a late-published story about an older event sits far down the archive).
+        live = sorted((story for story in fixture["stories"] if story.get("status") == "live"),
+                      key=lambda story: story.get("event_at") or "", reverse=True)
         live[0]["confidence"] = "not_a_real_level"
         live[1].pop("confidence", None)
         live[2].pop("evidence", None)
         live[2].pop("sources", None)
+        # Pin the level: the newest story may arrive already at a «shown» level, which would make
+        # the expected class below depend on the day's data. A claimed level keeps the rule under test.
+        live[2]["confidence"] = "claimed_unverified"
         for story in live:
             story["evidence_class"] = "<x>"
         cls.fixture_ids = [story["id"] for story in live[:3]]
