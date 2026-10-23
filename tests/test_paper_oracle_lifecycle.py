@@ -165,6 +165,34 @@ exports.chromium = {launch: async () => ({newPage: async () => {
         self.assertEqual(visits[('/story-4/', 390)], 1)
         self.assertEqual(sum(visits.values()), (11 + 3 + 2) * 2)  # 11 stories, 3 landing, 2 zh pages, two widths each
 
+    def test_dead_browser_is_relaunched_and_nothing_is_skipped(self):
+        module = self.CRASH_MODULE.replace(
+            "exports.chromium = {launch: async () => ({newPage: async () => {",
+            "let launches = 0;\nexports.chromium = {launch: async () => { const gen = ++launches; let connected = true; return ({isConnected: () => connected, newPage: async () => {")
+        module = module.replace("const guard = () => {if (dead) throw new Error('Target crashed')};",
+                                "const guard = () => {if (dead || !connected) throw new Error('page.evaluate: Target page, context or browser has been closed')};")
+        module = module.replace("{crashedOnce = true; dead = true; throw new Error('Page crashed')}",
+                                "{crashedOnce = true; connected = false; guard()}")
+        module = module.replace("}, close: async () => {}})};", "}, close: async () => {}}); }};")
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            (root / 'browser.cjs').write_text(module)
+            rows = [{'path': f'story-{i}/', 'kind': 'story', 'locale': 'en'} for i in range(10)]
+            rows += [{'path': 'zh/story/', 'kind': 'story', 'locale': 'zh-Hans'}]
+            rows += [{'path': p, 'kind': 'landing', 'locale': l} for p, l in (('', 'en'), ('es/', 'es-419'), ('zh/', 'zh-Hans'))]
+            (root / 'routes.json').write_text(json.dumps(rows))
+            result = subprocess.run(['node', '--input-type=commonjs', '-e', oracle.LAYOUT_BUDGETS,
+                                     'http://fixture.invalid/', str(root / 'routes.json')],
+                                    env={**os.environ, 'PLAYWRIGHT_MODULE': str(root / 'browser.cjs'),
+                                         'VISITS': str(root / 'v.jsonl'), 'ALWAYS': '0',
+                                         'LAYOUT_BUDGETS_CONCURRENCY': '3'},
+                                    capture_output=True, text=True, timeout=30)
+            visits = Counter(tuple(json.loads(l)) for l in (root / 'v.jsonl').read_text().splitlines())
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        # Routes in flight on the dead browser may be re-measured (their first viewport counted twice); none is missing.
+        expected = {('/' + p, w) for p in [f'story-{i}/' for i in range(10)] + ['zh/story/', '', 'es/', 'zh/'] for w in (1440, 390)}
+        self.assertEqual(set(visits), expected)
+
     def test_route_that_keeps_crashing_still_fails_the_run(self):
         result, _ = self._run_crashing(always=True)
         self.assertEqual(result.returncode, 1, result.stdout + result.stderr)

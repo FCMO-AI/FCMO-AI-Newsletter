@@ -25,12 +25,22 @@ const requireFromRepo = createRequire(process.cwd() + '/__paper_oracle__.cjs');
 const { chromium } = requireFromRepo(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const base = process.argv[1], rows = JSON.parse(require('node:fs').readFileSync(process.argv[2], 'utf8'));
 (async () => {
-  const browser = await chromium.launch();
+  let browser = await chromium.launch();
   try {
   // A small pool of pages measures routes concurrently. Each route is still measured on one page, both viewports
   // in order, exactly as before; failures are filed per route and reported in route order (deterministic).
   const poolSize = Math.max(1, parseInt(process.env.LAYOUT_BUDGETS_CONCURRENCY || '1', 10) || 1);
   const newPage = () => browser.newPage({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 });
+  // If the whole browser process died (host pressure), relaunch it, at most 10 times per run.
+  let relaunching = null, relaunches = 0;
+  const ensureBrowser = async () => {
+    if (typeof browser.isConnected !== 'function' || browser.isConnected()) return;
+    if (!relaunching && relaunches < 10) {
+      relaunches++;
+      relaunching = chromium.launch().then(b => { browser = b; }).finally(() => { relaunching = null; });
+    }
+    if (relaunching) await relaunching;
+  };
   const pages = await Promise.all(Array.from({ length: poolSize }, newPage));
   const evaluateOn = (page) => async (...args) => {
     let timer;
@@ -51,9 +61,10 @@ const base = process.argv[1], rows = JSON.parse(require('node:fs').readFileSync(
         await visit(routes[i], page, evaluateOn(page), failures);
         // A renderer that crashed under host load is replaced and the same route is measured again, once.
         // Nothing is skipped: a route that still fails keeps its failures.
-        if (failures.some(f => /crashed/i.test(f))) {
+        if (failures.some(f => /crashed|has been closed/i.test(f))) {
           try { await page.close(); } catch (_) {}
           try {
+            await ensureBrowser();
             page = pages[slot] = await newPage();
             failures = [];
             await visit(routes[i], page, evaluateOn(page), failures);
