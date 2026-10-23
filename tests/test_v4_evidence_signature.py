@@ -26,7 +26,9 @@ STRIP = re.compile(r'<p class="evidence-strip"([^>]*)>(.*?)</p>', re.S)
 BOARD = re.compile(r'<section[^>]*id="evidence-board".*?</section>', re.S)
 # c6 / DIRECCION s2, s5, s6: the root front (route kind "landing") carries the evidence per
 # item as a class chip row (evrow) on board cards and wire rows, and the corpus aggregate as
-# the method band. The listings (topic/org/beat/archive) keep the evidence strip.
+# the method band. c6 round 3 (DIRECCION s3, s6; CONTRACT-CHANGES «Round 3 — integrator»): the
+# listings (topic/org/beat/archive) carry the same class chip row (list-evrow) per card instead of
+# the old evidence strip, so they are held to the same per-item rule as the front.
 BAND = re.compile(r'<section class="method-band" id="method-band".*?</section>', re.S)
 FRONT_ITEM = re.compile(r'<(?:article|li) class="(?:plate-card|wire-row)[^"]*"[^>]*data-story-id="([^"]+)"(.*?)</(?:article|li)>', re.S)
 EVROW = re.compile(r'<(p|div) class="[^"]*\bevrow\b[^"]*" data-evidence-class="([^"]*)">(.*?)</\1>', re.S)
@@ -136,20 +138,23 @@ class EvidenceSignatureTests(unittest.TestCase):
         for _, klass, _ in EVROW.findall(page):
             self.assertIn(klass, CLASSES)
 
-    def assert_strips_match_corpus(self, page: str, *, minimum: int) -> None:
+    def assert_listing_rows_match_corpus(self, page: str, code: str, stories: dict, *, minimum: int) -> None:
         cards = CARD.findall(page)
         self.assertGreaterEqual(len(cards), minimum)
+        proof = self.catalogs[code]["strings"]["proof"]
         for story_id, body in cards:
             with self.subTest(story=story_id):
-                strips = STRIP.findall(body)
-                self.assertEqual(len(strips), 1)
-                values = attrs(strips[0][0])
-                story = self.stories[story_id]
-                self.assertEqual(values["evidence-class"], story.get("evidence_class", ""))
-                self.assertEqual(values["confidence"], story.get("confidence", ""))
-                self.assertEqual(int(values["primary-sources"]), primary(story))
-                self.assertEqual(int(values["open-gaps"]), gaps(story))
-                self.assertEqual(int(values["claims"]), len((story.get("evidence") or {}).get("claims") or []))
+                self.assertEqual(STRIP.findall(body), [])  # one evidence line per card, never two
+                found = EVROW.findall(body)
+                self.assertEqual(len(found), 1)
+                klass = found[0][1]
+                story = stories[story_id]
+                self.assertIn(klass, CLASSES)
+                self.assertEqual(klass, derived_class(story))
+                visible = text(found[0][2])
+                self.assertIn(proof[klass], visible)
+                self.assertIn(plural(self.catalogs[code], "primary_source", primary(story)), visible)
+                self.assertIn(plural(self.catalogs[code], "open_gap", gaps(story)), visible)
 
     def test_strips_on_front_and_listings_match_the_corpus_in_every_locale(self):
         fronts = self.fronts()
@@ -160,7 +165,7 @@ class EvidenceSignatureTests(unittest.TestCase):
             for kind in ("topic", "org", "beat"):
                 with self.subTest(locale=code, page=kind):
                     listing = self.pages(self.out, self.routes, kind)[code]
-                    self.assert_strips_match_corpus(listing, minimum=1)
+                    self.assert_listing_rows_match_corpus(listing, code, self.stories, minimum=1)
 
     def test_board_aggregates_every_live_story_in_every_locale(self):
         # c6: the aggregate is the front's method band (class trio + corpus figures).
@@ -235,18 +240,22 @@ class EvidenceSignatureTests(unittest.TestCase):
         self.assertEqual(derived_class(fixture_stories[unknown]), "claimed")  # an unknown level is never «Shown»
         self.assertEqual(derived_class(fixture_stories[bare]), "claimed" if fixture_stories[bare].get("confidence") else "not_established")
         rendered = {**self.pages(self.fixture_out, self.fixture_routes, "archive")}
+        self.assertEqual(sorted(rendered), sorted(LOCALES))
         for code, page in rendered.items():
-            unrated = self.catalogs[code]["strings"]["evidence_board"]["unrated"]
-            cards = dict(CARD.findall(page))
-            for story_id in (unknown, missing):
-                strip = STRIP.search(cards[story_id])
-                self.assertIn(unrated, text(strip.group(2)))
-                self.assertEqual(attrs(strip.group(1))["confidence"],
-                                 "not_a_real_level" if story_id == unknown else "")
-            strip = STRIP.search(cards[bare])
-            values = attrs(strip.group(1))
-            self.assertEqual((values["primary-sources"], values["open-gaps"], values["claims"]), ("0", "0", "0"))
-            self.assertIn(plural(self.catalogs[code], "primary_source", 0), text(strip.group(2)))
+            with self.subTest(locale=code, page="archive"):
+                self.assertNotIn("not_a_real_level", text(page))
+                self.assertNotIn("<x>", text(page))
+                self.assertNotIn('data-evidence-class="&lt;x&gt;"', page)
+                cards = dict(CARD.findall(page))
+                for story_id in (unknown, missing, bare):
+                    self.assertIn(story_id, cards)
+                    row = EVROW.search(cards[story_id])
+                    self.assertIsNotNone(row)
+                    self.assertEqual(row.group(2), derived_class(fixture_stories[story_id]))
+                self.assertNotEqual(EVROW.search(cards[unknown]).group(2), "shown")  # never rounded up
+                visible = text(EVROW.search(cards[bare]).group(3))
+                self.assertIn(plural(self.catalogs[code], "primary_source", 0), visible)
+                self.assertIn(plural(self.catalogs[code], "open_gap", 0), visible)
         catalog = self.catalogs["en"]
         empty = evidence_strip({"id": "x"}, catalog)
         self.assertIn('data-evidence-class="" data-confidence="" data-primary-sources="0" data-open-gaps="0" data-claims="0"', empty)
@@ -270,10 +279,12 @@ class EvidenceSignatureTests(unittest.TestCase):
             self.assertEqual(plural(catalog, "open_gap", 1), one_gap)
             self.assertEqual(plural(catalog, "open_gap", 3), many_gaps)
             archive = self.pages(self.out, self.routes, "archive")[code]
-            for story_id, body in CARD.findall(archive):
-                match = STRIP.search(body)
-                values, visible = attrs(match.group(1)), text(match.group(2))
-                sources, open_gaps = int(values["primary-sources"]), int(values["open-gaps"])
+            cards = CARD.findall(archive)
+            self.assertGreater(len(cards), 0)
+            for story_id, body in cards:
+                match = EVROW.search(body)
+                visible = text(match.group(3))
+                sources, open_gaps = primary(self.stories[story_id]), gaps(self.stories[story_id])
                 self.assertIn(plural(catalog, "primary_source", sources), visible)
                 self.assertIn(plural(catalog, "open_gap", open_gaps), visible)
                 if sources == 1:
