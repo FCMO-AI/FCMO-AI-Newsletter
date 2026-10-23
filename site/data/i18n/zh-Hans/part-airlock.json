@@ -1,6 +1,6 @@
 {
   "canonical_locale": "en",
-  "canonical_source_sha256": "9e9a084eae1966fc5571ba7e5bdccb9dbaa99eeb1d1a385d732d7bb230808759",
+  "canonical_source_sha256": "e302a8f82fa6e7d82ace97c84f4acc7f5fb7366aeeda5574b34c70cdf92db4b2",
   "generated_from": "ARB airlock; editorial wording authored upstream",
   "locale": "zh-Hans",
   "records": {
@@ -7273,44 +7273,48 @@
         },
         {
           "label": "CLAIMED",
-          "text": "作者报告称，公式 (10.19) 压力通量估计对应的 Lean 结果具有不同的表达式和证明路线，其中多出一个局部梯度范数 A_R。他们还指出，Lean 仓库中的一个类似辅助界限似乎并未直接用于所提出的 Navier–Stokes 定理；它与实际定理依赖链的关系仍需审计。"
+          "text": "作者报告称，与论文公式 (10.19) 相比，Lean 中的压力通量界限和证明路线不同，并额外包含局部梯度范数。对 OpenAI 固定在 f9e8bc5 的代码进行静态检查，也发现与公式相关的典型截断通量界限位于选项 C 的证明路径上。这说明代码路径存在关联，但不能证明 Lean 不等式与论文论证等价或足以支持它。"
         },
         {
           "label": "CLAIMED",
           "text": "作者认为，Lean 接受某项证明只验证其编码的形式命题，并不能证明自然语言证明在语义上得到保留。他们明确表示，不主张 OpenAI 的自然语言证明是错误的。"
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "在固定的源码版本中，选项 C 调用 theorem_1_1；其排除全局解的步骤依赖全空间唯一性，而该唯一性证明调用 exists_uniform_actual_pressure_flux_bound，随后调用 exists_uniform_canonicalCutoffFlux_bound。因此，证明路径使用了相关的典型截断通量界限；它是否证明了论文公式 (10.19) 或提供等价论证，仍未解决。"
         }
       ],
       "contradictory_evidence": [],
       "evidence_gaps": [
         {
-          "description": "本次尚未独立复现作者报告的 m+4/m+5 导数对比或压力通量估计对比，也未与 OpenAI 仓库后续版本进行核对。",
+          "description": "尚未独立复现所报告的 m+4/m+5 阶导数比较或压力通量界限；也未证明选项 C 证明路径使用的截断通量界限等价于论文公式 (10.19)，或核对 OpenAI 仓库的后续版本。",
           "kind": "missing_independent",
           "state": "open",
-          "updated_at": "2026-10-13T06:20:01.082565Z"
+          "updated_at": "2026-10-23T12:18:03Z"
         },
         {
-          "description": "该预印本没有推翻底层爆破解定理，而是报告了若干形式对应差异；其对实际证明依赖链的影响仍未解决，特别是作者指出一个类似辅助界限并未直接用于定理。",
+          "description": "该批评没有推翻底层爆破解定理。静态检查将相关的典型截断通量界限追溯到选项 C 的证明路径，但该界限是否足够或在语义上等价于论文公式 (10.19) 仍未解决；导数阶数差异及其对完整定理的影响也仍需专家评估。",
           "kind": "other",
           "state": "open",
-          "updated_at": "2026-10-13T06:20:01.082565Z"
+          "updated_at": "2026-10-23T12:18:03Z"
         }
       ],
       "importance_rationale": "如果所报告的差异成立，就不能在缺少语义桥接的情况下，把 Lean 机器核验视为对特定自然语言证明的验证。这会改变对这一非凡数学声明的评估方式，但该审计并未推翻底层定理。",
       "limitations": [
         "这是作者在 arXiv v1 预印本中的分析；尚未确立同行评审或独立专家共识。",
         "论文比较了部分证明步骤和引用的 Lean 声明，但没有证明 Navier–Stokes 爆破解定理为假。",
-        "对于引理 8.6，作者指出论文中的 m+4 阶导数要求与引用的 Lean 估计中的 m+5 阶要求不一致。对于公式 (10.19) 压力通量，作者报告了不同的界限，其中包含局部梯度范数 A_R。他们还指出，一个类似辅助估计并未直接用于所提出的定理；对完整定理依赖链的影响仍未解决。",
-        "本次没有独立复现这些估计对比，也没有审计上游仓库后续版本。"
+        "对于公式 (10.19) 的压力通量，作者报告了不同的界限，其中包含局部梯度范数 A_R。静态检查发现，相关的典型截断通量界限位于选项 C 的证明路径上，但这并未证明两种论证等价，也未表明 Lean 不等式不足。",
+        "本次没有独立复现、Lean 编译、估计等价性证明，也没有审查上游仓库的后续版本。"
       ],
       "relationships": [],
-      "summary": "Bastounis、Circelli 和 Hansen 将 OpenAI 的自然语言 Navier–Stokes 证明与引用的 Lean 声明进行了比较。对于引理 8.6、公式 (8.19)，他们报告称，论文中的估计要求 m+4 阶导数，而引用的 Lean 估计要求 m+5 阶。对于公式 (10.19) 压力通量，他们报告了不同的 Lean 界限与证明路线，其中额外包含局部梯度范数。他们还指出，仓库中的一个类似辅助界限似乎没有直接用于所提出的定理，因此对实际证明依赖链的影响仍未解决。作者明确表示，不主张自然语言爆破解证明是错误的。这仍是一项 arXiv 预印本中的来源方批评，尚无独立复现或已确立的专家共识。",
+      "summary": "Bastounis、Circelli 和 Hansen 将 OpenAI 的自然语言 Navier–Stokes 证明与引用的 Lean 声明进行了比较。对于引理 8.6、公式 (8.19)，他们报告称，论文中的估计要求 m+4 阶导数，而引用的 Lean 估计要求 m+5 阶。对于公式 (10.19) 的压力通量，他们报告了不同的 Lean 界限与证明路线，其中额外包含局部梯度范数。对固定源码的静态检查显示，相关的典型截断通量界限用于选项 C 的证明路径；其是否等价或足以支持论文论证仍未解决。作者并未声称自然语言爆破解证明错误。该批评仍是作者在预印本中报告的结果，尚无独立复现或已确立的专家共识。",
       "technical": {
         "claimed_result": "作者报告称，引理 8.6 存在 m+4 与 m+5 阶导数要求差异，公式 (10.19) 的压力通量估计/证明路线也不同；这对论文部分论证与引用的 Lean 声明是否对应提出质疑。",
-        "demonstrated_result": "原始预印本及其引用的代码位置可以访问；研究人员重新阅读了这些对比，但未独立复现相关估计。作者明确没有推翻底层爆破解定理。",
+        "demonstrated_result": "原始预印本及所引固定源码均可访问。静态源码检查将相关的典型截断通量界限追溯到选项 C 的证明路径。本次研究未独立复现这些估计、证明其与论文论证等价或运行 Lean；本次检查没有推翻底层定理。",
         "implementation_status": "数学分析预印本，arXiv v1；本次激活没有进行独立复现。",
         "mechanism": "将 OpenAI 自然语言 Navier–Stokes 论文中的部分估计与证明步骤，与引用的 Lean 声明及固定代码版本进行比较。该批评区分编码命题的有效性与其对书面论证的语义忠实度。",
-        "regime": "一份自然语言 Navier–Stokes 证明中的部分分析估计及其对应 Lean 声明；论文没有审计所有依赖，也没有推翻定理。",
-        "reproducibility": "论文标明了具体章节和 Lean 版本；本次研究没有重新运行证明或复现计算。当前上游代码核对仍未完成。",
+        "regime": "自然语言 Navier–Stokes 证明中的部分分析估计及 f9e8bc5 固定版本中的对应 Lean 声明；静态检查将相关的截断通量界限追溯到选项 C，但未能解决语义忠实度或定理正确性。",
+        "reproducibility": "论文标明了具体章节和 Lean 版本；本次研究重新阅读了这些来源，并静态追踪了 f9e8bc5 中的压力通量依赖，但未独立推导估计、证明等价性或编译 Lean。当前上游代码核对仍未完成。",
         "strongest_baseline": "直接比较 OpenAI 的自然语言论文和其引用的 Lean 声明。作者报告了明确的估计差异，但没有断言自然语言定理错误；在本次审查中，批评本身和原定理均未获得独立同行评审结论。"
       },
       "title": "数学分析预印本报告称 OpenAI 的 Navier–Stokes 证明与所引 Lean 估计存在差异",
@@ -41095,36 +41099,36 @@
     },
     "FCMO-2DD7299410CB": {
       "claims": {
-        "locale_sha256": "72403c7733c97957d29c82e045cdd34728c9fcc1c53c2949a16f5cc4811ff89c",
-        "source_sha256": "b17e2a5a561524783ba6eaf6aa1278805453f039102e40e70e9b7a7368fedcc9"
+        "locale_sha256": "1e7dcf4ee6d0a22b6c4be8d78fa67236d8fa404b510095af947595f2771affee",
+        "source_sha256": "5e5fa718e512ded79e882b85cf3c1c773549c45bcb09a545ebc8b2f6dfdb096d"
       },
       "contradictory_evidence": {
         "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
         "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
       },
       "evidence_gaps": {
-        "locale_sha256": "2140ab2b9116eaff7de8da2092db3165051b78a41e479613a920a40a39df866f",
-        "source_sha256": "b57133ebfe25d93be6e40160c7b4b7657c1bb128fac94aba0920080a48739927"
+        "locale_sha256": "2f712e5241625750757ffb9c176b6e17d6bcff64e2d9f824200a484129fe5a22",
+        "source_sha256": "2350e7cfd85b352abf69438f2631c5f20c198a464809ac2c43a1fd2e068747a5"
       },
       "importance_rationale": {
         "locale_sha256": "6ebeda86c4bf690f8ad7b4b383a9c44b78df7363ee3196b550dfb76bf90922a1",
         "source_sha256": "6e014cacf5f0fda17314b1589cf8ff66c44bb8779ea2609af80288e75d76b5fa"
       },
       "limitations": {
-        "locale_sha256": "e42fdb229dc41481cf9332ac003e9e58dcdcf2b4645bec9e932c256120a6f6b4",
-        "source_sha256": "dd2714f05527348b0960f1c62e33c0cfe0bae73a1469f410c5f7d1832efb5d61"
+        "locale_sha256": "5bbae2bf52841c53013ea1a81295ebbcf0043d6144ddaa24f83fbdfb61307fba",
+        "source_sha256": "e9c440fbe72056472d057a609b87665982b3ccfee6ed3f751e249c3809255d94"
       },
       "relationships": {
         "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
         "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
       },
       "summary": {
-        "locale_sha256": "4c58ca8e15c5806619fef627b81451c99abb8872226ebd8e8e2c2c2b8708b0a4",
-        "source_sha256": "c0f632e3cfcb60fee0802819e7a9fd32a9210283122d0b84f181b89173e5dc7c"
+        "locale_sha256": "9276146f0ce63f0441c165019160a5b69a81abddbaf44e439249026fbf004641",
+        "source_sha256": "22ac211b40663f1493204a7269bd64f69614a72516fd61dcf679a839f5e02d24"
       },
       "technical": {
-        "locale_sha256": "279d719e14c00eaffb4df14d9821a0b34953980f177aaf49e335483f292b0726",
-        "source_sha256": "5856a30711420f1d57942da0a82dc2cf4945f947977383b57defc157f01bc653"
+        "locale_sha256": "f666c9931490ff214fd6d5e6b26d8d531b368ce4c4829c6290afc64a1107de2e",
+        "source_sha256": "0b718c0f53632a3e8dc43c846f31452146420e08a44b97843683117034fed7e4"
       },
       "title": {
         "locale_sha256": "e954d7773a7dc3885fff6546e88d6b6e4d422757ddc5ca4dfa2a60a734a27733",

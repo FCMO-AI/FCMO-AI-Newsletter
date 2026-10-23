@@ -1,7 +1,7 @@
 {
   "schema": "fcmo-stories-v2",
-  "generated_at": "2026-10-23T13:18:32Z",
-  "release_id": "newswire-553f08706a1eb99ac421fb91",
+  "generated_at": "2026-10-23T14:13:10Z",
+  "release_id": "newswire-901a8c9f464cc92b70e0fd5b",
   "canonical_locale": "en",
   "locales": [
     "en",
@@ -45,7 +45,8 @@
     "2026-10-19",
     "2026-10-20",
     "2026-10-21",
-    "2026-10-22"
+    "2026-10-22",
+    "2026-10-23"
   ],
   "stories": [
     {
@@ -314,8 +315,8 @@
       },
       "importance_tier": "Notable",
       "development_type": "paper",
-      "event_at": "2026-10-22T00:00:00Z",
-      "date_precision": "day",
+      "event_at": "2026-10-22T17:57:04Z",
+      "date_precision": "minute",
       "first_published_at": "2026-10-23T09:17:06Z",
       "updated_at": "2026-10-23T09:17:06Z",
       "importance": 5,
@@ -143261,16 +143262,16 @@
       "desk": "evaluation_science",
       "title": "A mathematical-analysis preprint reports mismatches between OpenAI’s Navier-Stokes proof and cited Lean estimates",
       "dek": "Bastounis, Circelli and Hansen compare OpenAI’s natural-language Navier–Stokes proof with cited Lean declarations.",
-      "summary": "Bastounis, Circelli and Hansen compare OpenAI’s natural-language Navier–Stokes proof with cited Lean declarations. For Lemma 8.6, equation (8.19), they report that the manuscript states an m+4 derivative estimate while the cited Lean estimate requires m+5. For pressure-flux equation (10.19), they report a different Lean bound and proof route, including an additional localized gradient norm. They note one similar auxiliary bound in the repository does not appear to be directly used in the proposed theorem, leaving the effect on the actual proof dependency chain unresolved. The authors explicitly do not claim the natural-language blow-up proof is incorrect. This remains a source-reported critique in an arXiv preprint, without independent reproduction or established specialist consensus.",
+      "summary": "Bastounis, Circelli and Hansen compare OpenAI’s natural-language Navier–Stokes proof with cited Lean declarations. For Lemma 8.6, equation (8.19), they report that the manuscript states an m+4 derivative estimate while the cited Lean estimate requires m+5. For pressure-flux equation (10.19), they report a different Lean bound and proof route, including an additional localized gradient norm. Static inspection of the pinned source shows a related canonical cutoff-flux bound is used along the option-C proof path; whether it is equivalent or sufficient for the manuscript argument remains unresolved. The authors do not claim the natural-language blow-up proof is incorrect. The critique remains an author-reported result without independent reproduction or established specialist consensus.",
       "why_it_matters": "A formal proof establishes its encoded theorem, but it does not by itself establish that the theorem matches the natural-language argument it is meant to check. The reported estimate differences give concrete targets for independent Lean and PDE review of an extraordinary mathematical claim, while leaving the truth of the underlying blow-up result unresolved.",
       "importance_rationale": "If the reported mismatches hold, a machine-checked Lean result cannot be treated as verification of the specific natural-language proof without a semantic bridge. This changes how an extraordinary mathematical claim should be evaluated, although the audit does not refute the underlying theorem.",
       "technical": {
         "claimed_result": "The authors report an m+4 versus m+5 derivative requirement in Lemma 8.6 and a distinct pressure-flux estimate/proof route for equation (10.19), challenging correspondence between selected manuscript arguments and cited Lean declarations.",
-        "demonstrated_result": "The primary preprint and cited code locations are accessible; the research desk re-read the comparisons but did not independently reproduce the estimates. The authors explicitly do not refute the underlying blow-up theorem.",
+        "demonstrated_result": "The cited primary preprint and pinned code are accessible. Static source inspection traces a related canonical cutoff-flux bound into the option-C theorem path. the research desk did not independently reproduce the estimates, prove equivalence to the manuscript argument, or run Lean; the underlying theorem is not refuted by this inspection.",
         "implementation_status": "Mathematical-analysis preprint arXiv v1; no independent reproduction by this research run.",
         "mechanism": "Compares selected estimates and proof steps in OpenAI’s natural-language Navier–Stokes paper against cited Lean declarations and pinned source revisions. The critique separates encoded theorem validity from semantic fidelity to the written argument.",
-        "regime": "Selected analytic estimates in one natural-language Navier-Stokes proof and corresponding Lean declarations; the paper does not audit every proof dependency or disprove the theorem.",
-        "reproducibility": "The paper cites exact manuscript sections and Lean revisions; the research desk did not independently rerun the proof or reproduce the calculations. Current-upstream reconciliation remains open.",
+        "regime": "Selected analytic estimates in one natural-language Navier–Stokes proof and corresponding Lean declarations at pinned revision f9e8bc5; static inspection traces a related cutoff-flux bound to option C but does not settle semantic fidelity or theorem correctness.",
+        "reproducibility": "The paper cites exact manuscript sections and Lean revisions; the research desk re-read these and statically traced the pressure-flux dependency at f9e8bc5 but did not independently derive the estimates, establish equivalence, or build/check Lean. Current-upstream reconciliation remains open.",
         "strongest_baseline": "OpenAI’s natural-language paper and its cited Lean declarations are compared directly. The authors report explicit estimate differences but do not claim the natural-language theorem is false; neither the critique nor theorem has independent peer-reviewed resolution in this review."
       },
       "importance_tier": "Major",
@@ -143292,27 +143293,31 @@
           },
           {
             "label": "CLAIMED",
-            "text": "The authors report that the Lean estimate cited for pressure-flux equation (10.19) has a different expression and proof route, including an additional localized gradient norm A_R. They also note that a similar auxiliary bound in the Lean repository does not appear to be used directly in the proposed Navier–Stokes theorem; traceability through the actual theorem dependency remains a key audit question."
+            "text": "The authors report a different Lean pressure-flux bound and proof route from manuscript equation (10.19), including a localized gradient norm. Static inspection at the cited OpenAI commit f9e8bc5 also finds a related canonical cutoff-flux bound on the option-C proof path. This establishes a code-path connection, not equivalence or sufficiency of the Lean inequality for the manuscript argument."
           },
           {
             "label": "CLAIMED",
             "text": "The authors argue that Lean acceptance verifies the encoded formal statement, not semantic preservation of the natural-language proof. They explicitly disclaim making a claim about whether OpenAI’s natural-language proof is correct."
+          },
+          {
+            "label": "DEMONSTRATED",
+            "text": "At the pinned source revision, option C calls theorem_1_1; its no-global-solution step depends on whole-space uniqueness, which invokes exists_uniform_actual_pressure_flux_bound and then exists_uniform_canonicalCutoffFlux_bound. The code path therefore uses a related cutoff-flux bound, while whether it proves the manuscript’s equation (10.19) or supplies an equivalent argument remains unresolved."
           }
         ],
         "limitations": [
           "This is an author-reported analysis in an arXiv v1 preprint; peer review and independent specialist consensus were not established.",
           "The paper compares selected proof components and cited Lean declarations; it does not establish that the underlying Navier–Stokes blow-up theorem is false.",
-          "For Lemma 8.6, the authors identify a specific m+4 versus m+5 derivative requirement in the manuscript and cited Lean estimate. For pressure-flux equation (10.19), they report a different bound involving localized gradient norm A_R. They also note one similar auxiliary estimate is not directly used in the proposed theorem; impact on the complete theorem dependency path remains unresolved.",
-          "No independent reproduction of the reported estimate comparison or audit of later upstream revisions was performed."
+          "For pressure-flux equation (10.19), the authors report a different bound involving localized gradient norm A_R. Static inspection places a related canonical cutoff-flux bound on the option-C proof path, but does not show that the two arguments are equivalent or that the Lean inequality is insufficient.",
+          "No independent reproduction, Lean build, proof of estimate equivalence, or audit of later upstream revisions was performed."
         ],
         "gaps": [
           {
             "kind": "missing_independent",
-            "description": "No independent reproduction of the reported m+4/m+5 or pressure-flux estimate comparisons, and no reconciliation against later OpenAI repository revisions, were completed as of this review."
+            "description": "No independent reproduction of the reported m+4/m+5 or pressure-flux estimate comparisons, proof of equivalence between the code-path cutoff-flux bound and manuscript equation (10.19), or reconciliation against later OpenAI repository revisions has been completed."
           },
           {
             "kind": "other",
-            "description": "The preprint does not refute the underlying blow-up theorem. It reports selected formal correspondence gaps; the effect on the theorem’s actual proof dependencies remains unresolved, especially because the authors note one similar auxiliary bound is not directly used in the theorem."
+            "description": "The critique does not refute the underlying blow-up theorem. Static inspection traces a related canonical cutoff-flux bound into the option-C proof path, but whether that bound is sufficient or semantically equivalent to manuscript equation (10.19) remains unresolved; the derivative-order mismatch and complete theorem-level implications also need expert assessment."
           }
         ],
         "contradictory": []
@@ -143321,6 +143326,11 @@
         {
           "url": "https://arxiv.org/html/2610.08144v1",
           "domain": "arxiv.org",
+          "primary": true
+        },
+        {
+          "url": "https://github.com/openai/NavierStokesAndEuler/tree/f9e8bc5b38b6e212696e8a30e3e91517af887bbd",
+          "domain": "github.com",
           "primary": true
         }
       ],
@@ -143356,16 +143366,16 @@
           "state": "NATIVE_ARB",
           "fields": {
             "title": "Un preprint de análisis matemático informa diferencias entre la prueba de Navier–Stokes de OpenAI y estimaciones Lean citadas",
-            "summary": "Bastounis, Circelli y Hansen comparan la prueba de Navier–Stokes en lenguaje natural de OpenAI con las declaraciones Lean citadas. Para el Lema 8.6, ecuación (8.19), informan que el manuscrito presenta una estimación con m+4 derivadas, mientras que la estimación Lean citada requiere m+5. Para la ecuación (10.19) del flujo de presión, informan una cota y una ruta de demostración Lean diferentes, incluida una norma de gradiente localizada adicional. Señalan que una cota auxiliar similar del repositorio no parece utilizarse directamente en el teorema propuesto, por lo que el efecto sobre las dependencias reales de la prueba sigue sin resolverse. Los autores declaran expresamente que no afirman que la prueba de singularidad en lenguaje natural sea incorrecta. Esta crítica sigue siendo un informe de un preprint de arXiv, sin reproducción independiente ni consenso especializado establecido.",
+            "summary": "Bastounis, Circelli y Hansen comparan la prueba de Navier–Stokes en lenguaje natural de OpenAI con las declaraciones Lean citadas. Para el Lema 8.6, ecuación (8.19), informan que el manuscrito presenta una estimación con m+4 derivadas, mientras que la estimación Lean citada requiere m+5. Para la ecuación (10.19) del flujo de presión, informan una cota y una ruta de demostración Lean diferentes, incluida una norma de gradiente localizada adicional. Una inspección estática del código fijado muestra que una cota canónica relacionada para el flujo de corte se usa en la ruta de la opción C; sigue sin resolverse si es equivalente o suficiente para el argumento del manuscrito. Los autores no afirman que la prueba de singularidad en lenguaje natural sea incorrecta. La crítica sigue siendo un resultado informado por sus autores, sin reproducción independiente ni consenso especializado establecido.",
             "importance_rationale": "Si las discrepancias informadas se confirman, un resultado Lean verificado no puede tratarse como verificación de una prueba específica en lenguaje natural sin un puente semántico. Esto cambia cómo debe evaluarse una afirmación matemática extraordinaria, aunque la auditoría no refuta el teorema subyacente.",
             "why_it_matters": "Una prueba formal establece la afirmación codificada, pero por sí sola no demuestra que coincida con el argumento en lenguaje natural que pretende verificar. Las diferencias de estimación informadas ofrecen puntos concretos para la revisión independiente de Lean y EDP de una afirmación matemática extraordinaria, sin resolver la verdad del resultado de singularidad subyacente.",
             "technical": {
               "claimed_result": "Los autores informan que el Lema 8.6 requiere m+4 frente a m+5 derivadas y que la estimación/procedimiento para el flujo de presión de la ecuación (10.19) difiere, lo que cuestiona la correspondencia entre algunos argumentos del manuscrito y las declaraciones Lean citadas.",
-              "demonstrated_result": "El preprint primario y las ubicaciones de código citadas son accesibles; la revisión volvió a leer las comparaciones, pero no reprodujo las estimaciones de forma independiente. Los autores no refutan el teorema de singularidad subyacente.",
+              "demonstrated_result": "El preprint primario y el código fijado citado son accesibles. Una inspección estática del código traza una cota canónica relacionada para el flujo de corte hasta la ruta de la opción C. En esta revisión no se reprodujeron las estimaciones, no demostró equivalencia con el argumento del manuscrito ni compiló Lean; esta inspección no refuta el teorema subyacente.",
               "implementation_status": "Preprint de análisis matemático, arXiv v1; esta activación no hizo una reproducción independiente.",
               "mechanism": "Compara estimaciones y pasos de prueba seleccionados del artículo de Navier–Stokes de OpenAI en lenguaje natural con declaraciones Lean citadas y revisiones fijadas del código. La crítica separa la validez de la afirmación formal codificada de su fidelidad semántica al argumento escrito.",
-              "regime": "Estimaciones analíticas seleccionadas de una prueba de Navier–Stokes en lenguaje natural y declaraciones Lean correspondientes; el artículo no audita todas las dependencias ni refuta el teorema.",
-              "reproducibility": "El artículo cita secciones y revisiones Lean exactas; la revisión no volvió a ejecutar la prueba ni reprodujo los cálculos. Sigue pendiente comparar con el código upstream actual.",
+              "regime": "Estimaciones analíticas seleccionadas de una prueba de Navier–Stokes en lenguaje natural y de declaraciones Lean correspondientes en la revisión fijada f9e8bc5; una inspección estática conecta una cota relacionada para el flujo de corte con la opción C, pero no resuelve la fidelidad semántica ni la validez del teorema.",
+              "reproducibility": "El artículo cita secciones y revisiones Lean exactas; Esta revisión volvió a leer esas fuentes y trazó estáticamente la dependencia del flujo de presión en f9e8bc5, pero no derivó las estimaciones, demostró equivalencia ni compiló Lean. Sigue pendiente contrastar el código upstream actual.",
               "strongest_baseline": "El artículo de OpenAI en lenguaje natural y las declaraciones Lean que cita se comparan directamente. Los autores informan diferencias explícitas en las estimaciones, pero no afirman que el teorema en lenguaje natural sea incorrecto; ni la crítica ni el teorema cuentan con una resolución independiente revisada por pares en esta revisión."
             },
             "evidence": {
@@ -143374,24 +143384,27 @@
                   "text": "Los autores comparan la prueba en lenguaje natural de OpenAI para el Lema 8.6, ecuación (8.19), con la declaración Lean citada en el commit f9e8bc5. Informan que el manuscrito requiere derivadas de entrada m+4, mientras que la estimación Lean citada requiere m+5; es una discrepancia concreta en la cota enunciada, no una demostración de que el teorema de singularidad de Navier–Stokes sea falso."
                 },
                 {
-                  "text": "Los autores informan que la estimación Lean citada para el flujo de presión de la ecuación (10.19) tiene una expresión y una ruta de demostración diferentes, incluida una norma de gradiente localizada adicional A_R. También señalan que una cota auxiliar similar del repositorio Lean no parece utilizarse directamente en el teorema propuesto; determinar su relación con las dependencias efectivas del teorema sigue siendo una pregunta de auditoría."
+                  "text": "Los autores informan que la cota Lean y la ruta de demostración del flujo de presión difieren de la ecuación (10.19) del manuscrito e incluyen una norma de gradiente localizada. Una inspección estática del commit f9e8bc5 de OpenAI también encuentra una cota canónica relacionada para el flujo de corte en la ruta de la opción C. Esto confirma la conexión con esa ruta de código, pero no que la desigualdad Lean sea equivalente o suficiente para el argumento del manuscrito."
                 },
                 {
                   "text": "Los autores sostienen que la aceptación de Lean verifica la afirmación formal codificada, pero no demuestra la preservación semántica de la prueba en lenguaje natural. Declaran expresamente que no afirman que la prueba en lenguaje natural de OpenAI sea incorrecta."
+                },
+                {
+                  "text": "En la revisión fijada del código, la opción C llama a theorem_1_1; su paso que excluye una solución global depende de la unicidad en todo el espacio, que invoca exists_uniform_actual_pressure_flux_bound y luego exists_uniform_canonicalCutoffFlux_bound. Por tanto, esa ruta usa una cota relacionada para el flujo de corte; sigue sin resolverse si demuestra la ecuación (10.19) del manuscrito o si ofrece un argumento equivalente."
                 }
               ],
               "limitations": [
                 "Este es un análisis comunicado por sus autores en arXiv v1; no se establecieron revisión por pares ni consenso especializado independiente.",
                 "El artículo compara componentes seleccionados de la prueba con declaraciones Lean citadas; no demuestra que el teorema de singularidad de Navier–Stokes sea falso.",
-                "Para el Lema 8.6, los autores identifican una diferencia concreta entre m+4 y m+5 derivadas en el manuscrito y la estimación Lean citada. Para el flujo de presión de la ecuación (10.19), informan una cota diferente que incluye la norma de gradiente localizada A_R. También señalan que una estimación auxiliar similar no se usa directamente en el teorema propuesto; el efecto sobre la cadena completa de dependencias sigue sin resolverse.",
-                "No se reprodujeron de forma independiente las comparaciones ni se auditaron revisiones posteriores del repositorio."
+                "Para el flujo de presión de la ecuación (10.19), los autores informan una cota diferente que incluye la norma de gradiente localizada A_R. Una inspección estática sitúa una cota canónica relacionada para el flujo de corte en la ruta de la opción C, pero no demuestra que ambos argumentos sean equivalentes ni que la desigualdad Lean sea insuficiente.",
+                "No se hizo una reproducción independiente, una compilación de Lean, una demostración de equivalencia entre las estimaciones ni una auditoría de revisiones posteriores del código upstream."
               ],
               "gaps": [
                 {
-                  "description": "No se reprodujeron de forma independiente las comparaciones informadas de derivadas m+4/m+5 ni de la estimación de flujo de presión, y no se contrastaron con revisiones posteriores del repositorio de OpenAI a la fecha de esta revisión."
+                  "description": "No se reprodujeron de forma independiente las comparaciones informadas de derivadas m+4/m+5 ni las cotas del flujo de presión; tampoco se demostró que la cota de flujo de corte usada en la ruta de la opción C equivalga a la ecuación (10.19) del manuscrito, ni se conciliaron revisiones posteriores del repositorio de OpenAI."
                 },
                 {
-                  "description": "El preprint no refuta el teorema de singularidad subyacente. Informa discrepancias seleccionadas de correspondencia formal; su efecto en las dependencias reales de la prueba sigue sin resolverse, en particular porque los autores señalan que una cota auxiliar similar no se utiliza directamente en el teorema."
+                  "description": "La crítica no refuta el teorema de singularidad subyacente. La inspección estática conecta una cota canónica relacionada para el flujo de corte con la ruta de la opción C, pero sigue sin resolverse si esa cota basta o es semánticamente equivalente a la ecuación (10.19) del manuscrito; la diferencia en el orden de derivadas y sus efectos sobre el teorema también requieren evaluación experta."
                 }
               ]
             },
@@ -143413,16 +143426,16 @@
           "state": "NATIVE_ARB",
           "fields": {
             "title": "数学分析预印本报告称 OpenAI 的 Navier–Stokes 证明与所引 Lean 估计存在差异",
-            "summary": "Bastounis、Circelli 和 Hansen 将 OpenAI 的自然语言 Navier–Stokes 证明与引用的 Lean 声明进行了比较。对于引理 8.6、公式 (8.19)，他们报告称，论文中的估计要求 m+4 阶导数，而引用的 Lean 估计要求 m+5 阶。对于公式 (10.19) 压力通量，他们报告了不同的 Lean 界限与证明路线，其中额外包含局部梯度范数。他们还指出，仓库中的一个类似辅助界限似乎没有直接用于所提出的定理，因此对实际证明依赖链的影响仍未解决。作者明确表示，不主张自然语言爆破解证明是错误的。这仍是一项 arXiv 预印本中的来源方批评，尚无独立复现或已确立的专家共识。",
+            "summary": "Bastounis、Circelli 和 Hansen 将 OpenAI 的自然语言 Navier–Stokes 证明与引用的 Lean 声明进行了比较。对于引理 8.6、公式 (8.19)，他们报告称，论文中的估计要求 m+4 阶导数，而引用的 Lean 估计要求 m+5 阶。对于公式 (10.19) 的压力通量，他们报告了不同的 Lean 界限与证明路线，其中额外包含局部梯度范数。对固定源码的静态检查显示，相关的典型截断通量界限用于选项 C 的证明路径；其是否等价或足以支持论文论证仍未解决。作者并未声称自然语言爆破解证明错误。该批评仍是作者在预印本中报告的结果，尚无独立复现或已确立的专家共识。",
             "importance_rationale": "如果所报告的差异成立，就不能在缺少语义桥接的情况下，把 Lean 机器核验视为对特定自然语言证明的验证。这会改变对这一非凡数学声明的评估方式，但该审计并未推翻底层定理。",
             "why_it_matters": "形式证明能够确立其编码的命题，但本身不能证明该命题等同于它意在核验的自然语言论证。所报告的估计差异为独立 Lean 与 PDE 专家审查这一非凡数学声明提供了具体切入点，但底层爆破解定理的真伪仍未解决。",
             "technical": {
               "claimed_result": "作者报告称，引理 8.6 存在 m+4 与 m+5 阶导数要求差异，公式 (10.19) 的压力通量估计/证明路线也不同；这对论文部分论证与引用的 Lean 声明是否对应提出质疑。",
-              "demonstrated_result": "原始预印本及其引用的代码位置可以访问；研究人员重新阅读了这些对比，但未独立复现相关估计。作者明确没有推翻底层爆破解定理。",
+              "demonstrated_result": "原始预印本及所引固定源码均可访问。静态源码检查将相关的典型截断通量界限追溯到选项 C 的证明路径。本次研究未独立复现这些估计、证明其与论文论证等价或运行 Lean；本次检查没有推翻底层定理。",
               "implementation_status": "数学分析预印本，arXiv v1；本次激活没有进行独立复现。",
               "mechanism": "将 OpenAI 自然语言 Navier–Stokes 论文中的部分估计与证明步骤，与引用的 Lean 声明及固定代码版本进行比较。该批评区分编码命题的有效性与其对书面论证的语义忠实度。",
-              "regime": "一份自然语言 Navier–Stokes 证明中的部分分析估计及其对应 Lean 声明；论文没有审计所有依赖，也没有推翻定理。",
-              "reproducibility": "论文标明了具体章节和 Lean 版本；本次研究没有重新运行证明或复现计算。当前上游代码核对仍未完成。",
+              "regime": "自然语言 Navier–Stokes 证明中的部分分析估计及 f9e8bc5 固定版本中的对应 Lean 声明；静态检查将相关的截断通量界限追溯到选项 C，但未能解决语义忠实度或定理正确性。",
+              "reproducibility": "论文标明了具体章节和 Lean 版本；本次研究重新阅读了这些来源，并静态追踪了 f9e8bc5 中的压力通量依赖，但未独立推导估计、证明等价性或编译 Lean。当前上游代码核对仍未完成。",
               "strongest_baseline": "直接比较 OpenAI 的自然语言论文和其引用的 Lean 声明。作者报告了明确的估计差异，但没有断言自然语言定理错误；在本次审查中，批评本身和原定理均未获得独立同行评审结论。"
             },
             "evidence": {
@@ -143431,24 +143444,27 @@
                   "text": "作者将 OpenAI 自然语言证明中的引理 8.6、公式 (8.19) 与 commit f9e8bc5 中引用的 Lean 声明进行了比较。他们报告称，论文中的估计要求 m+4 阶输入导数，而相应 Lean 估计要求 m+5 阶。这是对所述界限的具体差异，但不能证明 Navier–Stokes 爆破解定理为假。"
                 },
                 {
-                  "text": "作者报告称，公式 (10.19) 压力通量估计对应的 Lean 结果具有不同的表达式和证明路线，其中多出一个局部梯度范数 A_R。他们还指出，Lean 仓库中的一个类似辅助界限似乎并未直接用于所提出的 Navier–Stokes 定理；它与实际定理依赖链的关系仍需审计。"
+                  "text": "作者报告称，与论文公式 (10.19) 相比，Lean 中的压力通量界限和证明路线不同，并额外包含局部梯度范数。对 OpenAI 固定在 f9e8bc5 的代码进行静态检查，也发现与公式相关的典型截断通量界限位于选项 C 的证明路径上。这说明代码路径存在关联，但不能证明 Lean 不等式与论文论证等价或足以支持它。"
                 },
                 {
                   "text": "作者认为，Lean 接受某项证明只验证其编码的形式命题，并不能证明自然语言证明在语义上得到保留。他们明确表示，不主张 OpenAI 的自然语言证明是错误的。"
+                },
+                {
+                  "text": "在固定的源码版本中，选项 C 调用 theorem_1_1；其排除全局解的步骤依赖全空间唯一性，而该唯一性证明调用 exists_uniform_actual_pressure_flux_bound，随后调用 exists_uniform_canonicalCutoffFlux_bound。因此，证明路径使用了相关的典型截断通量界限；它是否证明了论文公式 (10.19) 或提供等价论证，仍未解决。"
                 }
               ],
               "limitations": [
                 "这是作者在 arXiv v1 预印本中的分析；尚未确立同行评审或独立专家共识。",
                 "论文比较了部分证明步骤和引用的 Lean 声明，但没有证明 Navier–Stokes 爆破解定理为假。",
-                "对于引理 8.6，作者指出论文中的 m+4 阶导数要求与引用的 Lean 估计中的 m+5 阶要求不一致。对于公式 (10.19) 压力通量，作者报告了不同的界限，其中包含局部梯度范数 A_R。他们还指出，一个类似辅助估计并未直接用于所提出的定理；对完整定理依赖链的影响仍未解决。",
-                "本次没有独立复现这些估计对比，也没有审计上游仓库后续版本。"
+                "对于公式 (10.19) 的压力通量，作者报告了不同的界限，其中包含局部梯度范数 A_R。静态检查发现，相关的典型截断通量界限位于选项 C 的证明路径上，但这并未证明两种论证等价，也未表明 Lean 不等式不足。",
+                "本次没有独立复现、Lean 编译、估计等价性证明，也没有审查上游仓库的后续版本。"
               ],
               "gaps": [
                 {
-                  "description": "本次尚未独立复现作者报告的 m+4/m+5 导数对比或压力通量估计对比，也未与 OpenAI 仓库后续版本进行核对。"
+                  "description": "尚未独立复现所报告的 m+4/m+5 阶导数比较或压力通量界限；也未证明选项 C 证明路径使用的截断通量界限等价于论文公式 (10.19)，或核对 OpenAI 仓库的后续版本。"
                 },
                 {
-                  "description": "该预印本没有推翻底层爆破解定理，而是报告了若干形式对应差异；其对实际证明依赖链的影响仍未解决，特别是作者指出一个类似辅助界限并未直接用于定理。"
+                  "description": "该批评没有推翻底层爆破解定理。静态检查将相关的典型截断通量界限追溯到选项 C 的证明路径，但该界限是否足够或在语义上等价于论文公式 (10.19) 仍未解决；导数阶数差异及其对完整定理的影响也仍需专家评估。"
                 }
               ]
             },

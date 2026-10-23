@@ -8,7 +8,7 @@
     "confidence": "credible_unconfirmed",
     "importance": 6,
     "tier": "Major",
-    "summary": "Bastounis, Circelli and Hansen compare OpenAI’s natural-language Navier–Stokes proof with cited Lean declarations. For Lemma 8.6, equation (8.19), they report that the manuscript states an m+4 derivative estimate while the cited Lean estimate requires m+5. For pressure-flux equation (10.19), they report a different Lean bound and proof route, including an additional localized gradient norm. They note one similar auxiliary bound in the repository does not appear to be directly used in the proposed theorem, leaving the effect on the actual proof dependency chain unresolved. The authors explicitly do not claim the natural-language blow-up proof is incorrect. This remains a source-reported critique in an arXiv preprint, without independent reproduction or established specialist consensus.",
+    "summary": "Bastounis, Circelli and Hansen compare OpenAI’s natural-language Navier–Stokes proof with cited Lean declarations. For Lemma 8.6, equation (8.19), they report that the manuscript states an m+4 derivative estimate while the cited Lean estimate requires m+5. For pressure-flux equation (10.19), they report a different Lean bound and proof route, including an additional localized gradient norm. Static inspection of the pinned source shows a related canonical cutoff-flux bound is used along the option-C proof path; whether it is equivalent or sufficient for the manuscript argument remains unresolved. The authors do not claim the natural-language blow-up proof is incorrect. The critique remains an author-reported result without independent reproduction or established specialist consensus.",
     "topics": [
       "Navier-Stokes",
       "Lean",
@@ -35,11 +35,15 @@
       },
       {
         "label": "CLAIMED",
-        "text": "The authors report that the Lean estimate cited for pressure-flux equation (10.19) has a different expression and proof route, including an additional localized gradient norm A_R. They also note that a similar auxiliary bound in the Lean repository does not appear to be used directly in the proposed Navier–Stokes theorem; traceability through the actual theorem dependency remains a key audit question."
+        "text": "The authors report a different Lean pressure-flux bound and proof route from manuscript equation (10.19), including a localized gradient norm. Static inspection at the cited OpenAI commit f9e8bc5 also finds a related canonical cutoff-flux bound on the option-C proof path. This establishes a code-path connection, not equivalence or sufficiency of the Lean inequality for the manuscript argument."
       },
       {
         "label": "CLAIMED",
         "text": "The authors argue that Lean acceptance verifies the encoded formal statement, not semantic preservation of the natural-language proof. They explicitly disclaim making a claim about whether OpenAI’s natural-language proof is correct."
+      },
+      {
+        "label": "DEMONSTRATED",
+        "text": "At the pinned source revision, option C calls theorem_1_1; its no-global-solution step depends on whole-space uniqueness, which invokes exists_uniform_actual_pressure_flux_bound and then exists_uniform_canonicalCutoffFlux_bound. The code path therefore uses a related cutoff-flux bound, while whether it proves the manuscript’s equation (10.19) or supplies an equivalent argument remains unresolved."
       }
     ],
     "confidence": "credible_unconfirmed",
@@ -52,22 +56,23 @@
     "editions": [
       "2026-10-08",
       "2026-10-12",
-      "2026-10-13"
+      "2026-10-13",
+      "2026-10-23"
     ],
     "event_at": "2026-10-06T00:00:00Z",
     "evidence_class": "A",
     "evidence_gaps": [
       {
-        "description": "No independent reproduction of the reported m+4/m+5 or pressure-flux estimate comparisons, and no reconciliation against later OpenAI repository revisions, were completed as of this review.",
+        "description": "No independent reproduction of the reported m+4/m+5 or pressure-flux estimate comparisons, proof of equivalence between the code-path cutoff-flux bound and manuscript equation (10.19), or reconciliation against later OpenAI repository revisions has been completed.",
         "kind": "missing_independent",
         "state": "open",
-        "updated_at": "2026-10-13T06:20:01.082565Z"
+        "updated_at": "2026-10-23T12:18:03Z"
       },
       {
-        "description": "The preprint does not refute the underlying blow-up theorem. It reports selected formal correspondence gaps; the effect on the theorem’s actual proof dependencies remains unresolved, especially because the authors note one similar auxiliary bound is not directly used in the theorem.",
+        "description": "The critique does not refute the underlying blow-up theorem. Static inspection traces a related canonical cutoff-flux bound into the option-C proof path, but whether that bound is sufficient or semantically equivalent to manuscript equation (10.19) remains unresolved; the derivative-order mismatch and complete theorem-level implications also need expert assessment.",
         "kind": "other",
         "state": "open",
-        "updated_at": "2026-10-13T06:20:01.082565Z"
+        "updated_at": "2026-10-23T12:18:03Z"
       }
     ],
     "id": "FCMO-2DD7299410CB",
@@ -76,12 +81,12 @@
     "importance_scale_version": 2,
     "importance_score": 6,
     "importance_tier": "Major",
-    "last_verified_at": "2026-10-13T06:20:01.082565Z",
+    "last_verified_at": "2026-10-23T12:18:03Z",
     "limitations": [
       "This is an author-reported analysis in an arXiv v1 preprint; peer review and independent specialist consensus were not established.",
       "The paper compares selected proof components and cited Lean declarations; it does not establish that the underlying Navier–Stokes blow-up theorem is false.",
-      "For Lemma 8.6, the authors identify a specific m+4 versus m+5 derivative requirement in the manuscript and cited Lean estimate. For pressure-flux equation (10.19), they report a different bound involving localized gradient norm A_R. They also note one similar auxiliary estimate is not directly used in the proposed theorem; impact on the complete theorem dependency path remains unresolved.",
-      "No independent reproduction of the reported estimate comparison or audit of later upstream revisions was performed."
+      "For pressure-flux equation (10.19), the authors report a different bound involving localized gradient norm A_R. Static inspection places a related canonical cutoff-flux bound on the option-C proof path, but does not show that the two arguments are equivalent or that the Lean inequality is insufficient.",
+      "No independent reproduction, Lean build, proof of estimate equivalence, or audit of later upstream revisions was performed."
     ],
     "organizations": [
       "King’s College London",
@@ -97,17 +102,18 @@
       "en"
     ],
     "source_urls": [
-      "https://arxiv.org/html/2610.08144v1"
+      "https://arxiv.org/html/2610.08144v1",
+      "https://github.com/openai/NavierStokesAndEuler/tree/f9e8bc5b38b6e212696e8a30e3e91517af887bbd"
     ],
     "status": "active",
-    "summary": "Bastounis, Circelli and Hansen compare OpenAI’s natural-language Navier–Stokes proof with cited Lean declarations. For Lemma 8.6, equation (8.19), they report that the manuscript states an m+4 derivative estimate while the cited Lean estimate requires m+5. For pressure-flux equation (10.19), they report a different Lean bound and proof route, including an additional localized gradient norm. They note one similar auxiliary bound in the repository does not appear to be directly used in the proposed theorem, leaving the effect on the actual proof dependency chain unresolved. The authors explicitly do not claim the natural-language blow-up proof is incorrect. This remains a source-reported critique in an arXiv preprint, without independent reproduction or established specialist consensus.",
+    "summary": "Bastounis, Circelli and Hansen compare OpenAI’s natural-language Navier–Stokes proof with cited Lean declarations. For Lemma 8.6, equation (8.19), they report that the manuscript states an m+4 derivative estimate while the cited Lean estimate requires m+5. For pressure-flux equation (10.19), they report a different Lean bound and proof route, including an additional localized gradient norm. Static inspection of the pinned source shows a related canonical cutoff-flux bound is used along the option-C proof path; whether it is equivalent or sufficient for the manuscript argument remains unresolved. The authors do not claim the natural-language blow-up proof is incorrect. The critique remains an author-reported result without independent reproduction or established specialist consensus.",
     "technical": {
       "claimed_result": "The authors report an m+4 versus m+5 derivative requirement in Lemma 8.6 and a distinct pressure-flux estimate/proof route for equation (10.19), challenging correspondence between selected manuscript arguments and cited Lean declarations.",
-      "demonstrated_result": "The primary preprint and cited code locations are accessible; the research desk re-read the comparisons but did not independently reproduce the estimates. The authors explicitly do not refute the underlying blow-up theorem.",
+      "demonstrated_result": "The cited primary preprint and pinned code are accessible. Static source inspection traces a related canonical cutoff-flux bound into the option-C theorem path. the research desk did not independently reproduce the estimates, prove equivalence to the manuscript argument, or run Lean; the underlying theorem is not refuted by this inspection.",
       "implementation_status": "Mathematical-analysis preprint arXiv v1; no independent reproduction by this research run.",
       "mechanism": "Compares selected estimates and proof steps in OpenAI’s natural-language Navier–Stokes paper against cited Lean declarations and pinned source revisions. The critique separates encoded theorem validity from semantic fidelity to the written argument.",
-      "regime": "Selected analytic estimates in one natural-language Navier-Stokes proof and corresponding Lean declarations; the paper does not audit every proof dependency or disprove the theorem.",
-      "reproducibility": "The paper cites exact manuscript sections and Lean revisions; the research desk did not independently rerun the proof or reproduce the calculations. Current-upstream reconciliation remains open.",
+      "regime": "Selected analytic estimates in one natural-language Navier–Stokes proof and corresponding Lean declarations at pinned revision f9e8bc5; static inspection traces a related cutoff-flux bound to option C but does not settle semantic fidelity or theorem correctness.",
+      "reproducibility": "The paper cites exact manuscript sections and Lean revisions; the research desk re-read these and statically traced the pressure-flux dependency at f9e8bc5 but did not independently derive the estimates, establish equivalence, or build/check Lean. Current-upstream reconciliation remains open.",
       "strongest_baseline": "OpenAI’s natural-language paper and its cited Lean declarations are compared directly. The authors report explicit estimate differences but do not claim the natural-language theorem is false; neither the critique nor theorem has independent peer-reviewed resolution in this review."
     },
     "title": "A mathematical-analysis preprint reports mismatches between OpenAI’s Navier-Stokes proof and cited Lean estimates",
