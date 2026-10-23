@@ -5,6 +5,7 @@ from pathlib import Path
 import tempfile
 from types import SimpleNamespace
 import unittest
+import os
 from unittest.mock import patch
 
 from studio.server.storage import Store
@@ -229,6 +230,7 @@ class SingleSourceTests(unittest.TestCase):
             self.assertEqual(set(figure[field]), {'en', 'es-419', 'zh-Hans'})
             for text in figure[field].values(): self.assertIn('42', text)
 
+    @patch.dict(os.environ, {'FCMO_EMAIL_ENABLED': 'true'})
     def test_machine_checked_editions_reach_dry_run_email_in_all_locales_once(self):
         from datetime import datetime, timezone
         from tools.email_piece_dispatch import PieceEdition, dispatch_piece

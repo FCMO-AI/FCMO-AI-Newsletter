@@ -217,6 +217,10 @@ class Journey:
             with (self.root / (name + '.log')).open('w') as f:
                 result = subprocess.run(['node', str(ROOT / ('tests/harness/browser/' + name + '.mjs')), self.origin + '/', *args], env=env, stdout=f, stderr=f, timeout=300)
             self.score('browser ' + name, result.returncode == 0)
+        if os.environ.get('DOGFOOD_CAPTURES'):
+            with (self.root / 'studio_captures.log').open('w') as f:
+                result = subprocess.run(['node', str(ROOT / 'tests/harness/browser/studio_captures.mjs'), self.origin + '/', seeded, os.environ['DOGFOOD_CAPTURES']], env=env, stdout=f, stderr=f, timeout=300)
+            self.score('browser studio_captures', result.returncode == 0)
         with (self.root / 'studio_actions.log').open('w') as f:
             result = subprocess.run(['node', str(ROOT / 'tests/harness/browser/studio_actions.mjs'), self.origin + '/'], env=env, stdout=f, stderr=f, timeout=300)
         self.score('browser issue/correction/withdrawal', result.returncode == 0)
@@ -233,7 +237,7 @@ class Journey:
                 os.killpg(self.process.pid, signal.SIGKILL); self.process.wait()
             self.log.close()
         if hasattr(self, 'pages'): self.pages.shutdown(); self.pages.server_close()
-        expected = 25 if self.browser else 17
+        expected = (25 + bool(os.environ.get('DOGFOOD_CAPTURES'))) if self.browser else 17
         passed = sum(s['ok'] for s in self.scores)
         summary = {'passed': passed, 'total': expected, 'executed': len(self.scores), 'completed': passed == expected and len(self.scores) == expected, 'checks': self.scores}
         (self.root / 'summary.json').write_text(json.dumps(summary, indent=2))
