@@ -40,7 +40,7 @@ NON_PROSE = {"label", "qualifier", "kind", "state", "updated_at", "target_id", "
 
 
 def run(*args: str) -> subprocess.CompletedProcess[str]:
-    return subprocess.run([sys.executable, *args], cwd=ROOT, capture_output=True, text=True, timeout=300)
+    return subprocess.run([sys.executable, *args], cwd=ROOT, capture_output=True, text=True, timeout=300)  # corpus-count-ok: subprocess timeout in seconds
 
 
 def has_text(value) -> bool:
