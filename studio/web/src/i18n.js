@@ -288,6 +288,16 @@ Object.assign(S.es, {
   'prog.unsure.title': 'Seguimos comprobando',
   'prog.unsure.body': 'Todavía no podemos confirmar si ya está en el sitio. No lo publiques otra vez: se sigue comprobando y {who} recibe el aviso.',
   'prog.unsure.again': 'Comprobar de nuevo',
+  'prog.halt.tech.title': 'La publicación se detuvo',
+  'prog.halt.tech.body': 'La publicación se detuvo por un problema técnico. El texto aprobado sigue intacto.',
+  'prog.halt.resume': 'Reanudar',
+  'prog.halt.int.title': 'Hay que revisar lo publicado',
+  'prog.halt.int.body': 'Lo que quedó publicado no coincide con lo aprobado.',
+  'prog.halt.int.author': '{who} ya está avisado y puede revisarlo.',
+  'prog.halt.int.review': 'Revisé lo publicado; continuar',
+  'prog.halt.confirm.title': '¿Continuar con la publicación?',
+  'prog.halt.confirm.body': 'Confirmas que ya revisaste lo que quedó publicado y que está bien. Se guardará un registro de tu confirmación y la publicación seguirá.',
+  'prog.halt.resumed': 'Publicación reanudada.',
   'prog.net': 'Sin conexión con Studio. Reintentando…'
 })
 Object.assign(S.en, {
@@ -352,5 +362,15 @@ Object.assign(S.en, {
   'prog.unsure.title': 'We keep checking',
   'prog.unsure.body': 'We cannot yet confirm whether it is on the site. Do not publish it again: checks continue and {who} gets the notice.',
   'prog.unsure.again': 'Check again',
+  'prog.halt.tech.title': 'Publishing stopped',
+  'prog.halt.tech.body': 'Publishing stopped because of a technical problem. The approved text is intact.',
+  'prog.halt.resume': 'Resume',
+  'prog.halt.int.title': 'What went live needs a check',
+  'prog.halt.int.body': 'What went live does not match what was approved.',
+  'prog.halt.int.author': '{who} has been notified and can review it.',
+  'prog.halt.int.review': 'I checked what went live; continue',
+  'prog.halt.confirm.title': 'Continue publishing?',
+  'prog.halt.confirm.body': 'You confirm that you checked what went live and that it is right. Your confirmation is recorded and publishing continues.',
+  'prog.halt.resumed': 'Publishing resumed.',
   'prog.net': 'No connection to Studio. Retrying…'
 })

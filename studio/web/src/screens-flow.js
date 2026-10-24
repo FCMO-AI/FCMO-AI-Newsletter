@@ -4,7 +4,7 @@ import { h, clear, modal, toast, ago } from './ui.js'
 import { shell, session, route } from './main.js'
 import { plainText } from './docmodel.js'
 import { diffView } from './diffview.js'
-import { amendDialog } from './publication-actions.js'
+import { amendDialog, haltPlan, resumePublication } from './publication-actions.js'
 import { checksList, versionsPanel } from './drawers.js'
 import { approvedAtMs, currentStage, elapsedMs } from './progress-time.js'
 
@@ -411,7 +411,7 @@ export async function progressScreen (root, slug) {
       checks: t('prog.s.checks'), prepare: t('prog.s.prepare'), site: t('prog.s.site'), verify: t('prog.s.verify'), live: t('prog.s.live')
     })[id]
     const running = !failed && p.state !== 'published'
-    if (running) box.append(h('p', { class: 'prog-lead' }, t('prog.lead.running')))
+    if (running && !p.halted) box.append(h('p', { class: 'prog-lead' }, t('prog.lead.running')))
     if (running) box.append(ticker)
     box.append(h('ol', { class: 'steps prog-steps' }, STAGES.map((stage, i) => {
       const done = p.state === 'published' ? true : i < current
@@ -431,7 +431,16 @@ export async function progressScreen (root, slug) {
     })))
     if (p.email?.state === 'queued') box.append(h('p', { class: 'result ok' }, t('prog.email.queued')))
     else if (p.email?.state === 'pending') box.append(h('p', { class: 'muted' }, t('prog.email.pending')))
-    if (unsure && running) {
+    const halt = haltPlan(p, session.me.user)
+    if (halt && running) {
+      box.append(h('div', { class: 'result halted', role: 'alert' },
+        h('h2', null, t(halt.integrity ? 'prog.halt.int.title' : 'prog.halt.tech.title')),
+        h('p', null, t(halt.integrity ? 'prog.halt.int.body' : 'prog.halt.tech.body')),
+        halt.canResume
+          ? h('div', { class: 'btn-row' }, h('button', { class: 'btn primary', type: 'button', onclick: ev => { const b = ev.currentTarget; b.disabled = true; resumePublication(slug, halt, async () => { clearTimeout(tm); await poll() }).finally(() => { b.disabled = false }) } }, t(halt.integrity ? 'prog.halt.int.review' : 'prog.halt.resume')))
+          : h('p', { class: 'hint' }, t('prog.halt.int.author', { who: session.me.other }))))
+    }
+    if (unsure && running && !halt) {
       box.append(h('div', { class: 'result unsure', role: 'status' }, h('h2', null, t('prog.unsure.title')), h('p', null, t('prog.unsure.body', { who: 'Matías' })),
         h('button', { class: 'btn', type: 'button', onclick: () => { clearTimeout(tm); poll() } }, t('prog.unsure.again'))))
     }
