@@ -26,8 +26,11 @@ Checks (each takes a repository root, so the battery can aim it at a fixture):
 Containment choice: FAIL BEFORE PUSH, never hold back single stories. The refresh
 cannot hold a story by itself: holds come from the airlocked corpus (quarantine,
 tombstones), which this workflow is not allowed to write, and two of the three
-shapes are not about a story at all. Failing keeps main and Pages on the last
-good release; operator-alerts.yml opens an issue after two consecutive failures.
+shapes are not about a story at all. Failing keeps the refresh's candidate
+release off main, so Pages stays on the last good release built by the refresh;
+operator-alerts.yml opens an issue after two consecutive failures. Limit: the
+newswire bridge commits the airlocked corpus to main on its own, before this
+guard runs, so a deploy that builds straight from that corpus is not covered here.
 
 ``--tests`` also runs the data-dependent unittest modules listed in
 tests/refresh_guard_modules.txt (one module name per line).
@@ -156,7 +159,7 @@ def render(findings: list[Finding]) -> tuple[str, int, str]:
     if not errors:
         summary.append("The candidate release passed every data-dependent gate." + (f" {len(findings)} warning(s)." if findings else ""))
     else:
-        summary += ["**The candidate release was NOT pushed.** Main and the live site stay on the last good release.", ""]
+        summary += ["**The candidate release was NOT pushed.** The live site stays on the last good refresh release; corpus commits from the newswire bridge are not affected by this guard.", ""]
     summary += [f"- `{f['check']}` ({f['severity']}): {f['message']}" for f in findings[:50]]
     return "\n".join(lines) + "\n", len(errors), "\n".join(summary) + "\n"
 

@@ -189,6 +189,7 @@ jobs:
 
       - name: Guard the candidate against data that would break Deploy
         if: steps.preflight.outputs.path == 'rebuild' || steps.preflight.outputs.path == 'status'
+        timeout-minutes: 45
         env:
           REFRESH_PATH: ${{ steps.preflight.outputs.path }}
         shell: bash
@@ -198,8 +199,9 @@ jobs:
           # (a story count equal to a literal in a test, a region value with no
           # label, a headline that trips a heading guard) used to fail Deploy
           # only after main had moved. Run the data-dependent gates here, on
-          # the candidate, BEFORE it is committed. On failure nothing is pushed:
-          # main and the live site stay on the last good release, the job
+          # the candidate, BEFORE it is committed. On failure the candidate is
+          # not pushed: the live site stays on the last good refresh release
+          # (corpus commits from the newswire bridge are not covered), the job
           # summary names the gate, and operator-alerts.yml opens an issue
           # after two consecutive failed refreshes.
           python -m pip install --quiet PyYAML==6.0.2
