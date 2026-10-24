@@ -207,6 +207,50 @@ class ResumeHTTP(unittest.TestCase):
         self.assertFalse(body['halted'])
         self.assertIn('publication_resume_confirmed', [row[0] for row in self.store.db.execute('SELECT action FROM audit').fetchall()])
 
+    def test_foreign_merge_resume_github_error_is_plain_503_and_stays_halted(self):
+        row = self.store.db.execute('SELECT payload_json FROM publications WHERE slug=?', (self.halted,)).fetchone()
+        payload = json.loads(row[0]); payload.update(halt_reason='foreign_merge', pr_number=7)
+        self.store.db.execute('UPDATE publications SET payload_json=? WHERE slug=?', (json.dumps(payload, ensure_ascii=False), self.halted))
+        self.store.db.commit()
+        route = '/api/pieces/%s/publication/resume'
+        with patch.object(self.app.github, 'pr', side_effect=OSError('network down')):
+            status, body, _ = self.request('POST', route % self.halted, {'confirm': True}, 'matias')
+        self.assertEqual(status, 503, body)
+        self.assertNotEqual(status, 500)
+        self.assertIn('GitHub', body.get('error_plain', ''), 'the specific Infra message, not the generic 503')
+        row = self.store.db.execute('SELECT payload_json FROM publications WHERE slug=?', (self.halted,)).fetchone()
+        self.assertTrue(json.loads(row[0])['halted'])
+        self.assertNotIn('publication_resume_confirmed', [r[0] for r in self.store.db.execute('SELECT action FROM audit').fetchall()])
+
+
+class ReplayAndForeignMergeResume(RobustBase):
+    def test_replay_branch_moved_outside_studio_is_refused_not_halted(self):
+        self.approved(); self.tick_until('checks_green')
+        pub = self.pub(); data = pub['payload']
+        data['replay'] = {'old': 'd' * 40, 'new': 'e' * 40}
+        self.mock.refs[data['branch']] = 'c' * 40  # neither the old nor the new head: changed outside Studio
+        self.publisher._write(pub)
+        self.publisher.advance(self.slug)
+        pub = self.pub()
+        self.assertFalse(pub['payload'].get('halted'), 'a moved public branch is a refusal, not a halt')
+        self.assertEqual(pub['state'], 'failed')
+        self.assertEqual(pub['error_plain'], 'La versión pública cambió; pide una nueva revisión.')
+        self.assertEqual(self.store.piece(self.slug)['state'], 'changes_requested')
+
+    def test_foreign_merge_resume_github_error_is_infra_and_stays_halted(self):
+        self.approved(); self.tick_until('pr_open')
+        number = self.pub()['payload']['pr_number']
+        pr = self.mock.prs[number]
+        pr.update(merged=True, merge_commit_sha='a' * 40); pr['head'] = dict(pr['head'], sha='0' * 40)
+        self.publisher.advance(self.slug)
+        self.assertEqual(self.pub()['payload']['halt_reason'], 'foreign_merge')
+        with patch.object(self.github, 'pr', side_effect=OSError('network down')):
+            with self.assertRaises(P.Infra) as caught: self.publisher.resume(self.slug, 'matias', confirm=True)
+        self.assertEqual(caught.exception.status, 503)
+        data = self.pub()['payload']
+        self.assertTrue(data['halted']); self.assertEqual(data['halt_reason'], 'foreign_merge')
+        self.assertNotIn('publication_resume_confirmed', [r[0] for r in self.store.db.execute('SELECT action FROM audit').fetchall()])
+
 
 class DryRunFollowsTheFlow(RobustBase):
     """publish.py --dry-run mirrors advance(): confined diff instead of strict base equality, protection by mode."""
