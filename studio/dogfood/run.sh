@@ -10,4 +10,9 @@ if [ -z "${PLAYWRIGHT_MODULE:-}" ]; then
     if [ -d "$candidate" ]; then PLAYWRIGHT_MODULE=$candidate; export PLAYWRIGHT_MODULE; break; fi
   done
 fi
+if [ -z "${AXE_CORE_PATH:-}" ]; then
+  for candidate in /srv/fcmo/agents/work/newsletter/c5/wt/l29-main/_audit/l31/browser/node_modules/axe-core/axe.min.js /srv/fcmo/agents/kyrion/tools/unlighthouse/0.19.1/node_modules/axe-core/axe.min.js; do
+    if [ -f "$candidate" ]; then AXE_CORE_PATH=$candidate; export AXE_CORE_PATH; break; fi
+  done
+fi
 exec python3 -m studio.dogfood.run "$@"
