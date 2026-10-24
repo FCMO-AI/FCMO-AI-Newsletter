@@ -300,16 +300,19 @@ class Journey:
     def world_main_moves(self):
         # 1. main moves three times while the piece is in publication: it still publishes, replayed on the moved main.
         # The fake reports a PR whose head lacks main as 'behind' and refuses to merge it: without replay-on-behind this is red.
-        self.set_world(pages_run_s=0, gate_s=0.5, lazy_mergeable_s=1.5, behind=True)
+        # One move comes from a timed bot (while the piece is prepared); two come from the fake itself, each right after a
+        # green gate, so main really moves under an approved head whatever the host's speed: two replays are required.
+        self.set_world(pages_run_s=0, gate_s=0.5, lazy_mergeable_s=1.5, behind=True, bot_after_gate=2, bot_gate_tick=self.ticks + 10)
         slug = self.create('Mundo movido: tres movimientos', 'matias')
         moves_start = len(self.gh_state().get('main_moves', []))
-        bot = Bot(self.root, every=2.0, moves=3, first_tick=self.ticks + 1, first_delay=0.5); self.ticks += 3
+        bot = Bot(self.root, every=2.0, moves=1, first_tick=self.ticks + 1, first_delay=0.5); self.ticks += 20
         self.call('POST', '/api/pieces/' + slug + '/review/approve', {}, 'javier')
         bot.start()
         pub = self.wait(slug, {'published'}, timeout=1800)
         bot.join(timeout=60)
         moved_before_merge = self.gh_state().get('moves_before_merge', 0) - moves_start
-        self.score(WORLD_ITEMS[0], len(bot.commits) >= 3 and bot.error is None and moved_before_merge >= 1 and len(pub.get('urls', [])) == 3)
+        self.score(WORLD_ITEMS[0], len(bot.commits) == 1 and bot.error is None and self.gh_state().get('gate_bot_done') == 2
+                   and moved_before_merge >= 3 and len(pub.get('urls', [])) == 3)
     def world_pages_cancelled(self):
         # 2. the merge's Pages run is replaced by a later run for a commit that moved main; the later run deploys.
         # The later commit lands inside the fake's merge call (bot_after_merge), so there is no race with this harness.

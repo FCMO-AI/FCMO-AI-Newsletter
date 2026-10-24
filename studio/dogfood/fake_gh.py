@@ -13,6 +13,8 @@ Two worlds share this file:
     gate_s                    the publish-gate check stays in progress this long; a newer head cancels it
     bot_after_merge           a tick number: the bot commits to main INSIDE the merge call, right after the merge run
                               is queued, so the merge's Pages run is replaced by the later one (no race with a harness)
+    bot_after_gate            N moves of main, each injected INSIDE the call that completes a green publish-gate: main moves
+                              exactly when Studio is about to merge, whatever the host's speed (a timed bot does not)
     behind (strict)           a PR whose head does not contain main reports 'behind' and its merge is refused (HTTP 405)
 A bot (bot_commit, started by run.py) moves main from outside. A tree containing CONTENT_RED makes the
 publish gate fail without a build; only the piece's own files are searched, never the whole tree (the
@@ -167,6 +169,11 @@ def world_check(root, s, sha, now, world):
         rec = gate[sha] = {'id': len(gate) + 1, 'status': 'in_progress', 'started_at': now, 'conclusion': None}
     if rec['status'] == 'in_progress' and now >= rec['started_at'] + float(world.get('gate_s', 0)):
         rec.update(status='completed', conclusion=gate_conclusion(root, s, sha))
+        done = s.get('gate_bot_done', 0)
+        if rec['conclusion'] == 'success' and done < int(world.get('bot_after_gate', 0)):
+            # Main moves right after the gate went green: the PR is now behind and the base must be replayed.
+            s['gate_bot_done'] = done + 1
+            bot_push(root, s, int(world.get('bot_gate_tick', 900)) + done, now, queue_run=True)
     return {'check_runs': [{'name': 'publish-gate', 'id': rec['id'], 'status': rec['status'], 'conclusion': rec['conclusion']}]}
 
 
@@ -209,7 +216,7 @@ def bot_commit(root, number, now=None):
 def write_world(root, knobs):
     """Replace the measured world. Under the lock, so a gh call never sees the new knobs with the old refusal count."""
     with locked(root):
-        s = load_state(root); s.pop('refusals_left', None); save_state(root, s)
+        s = load_state(root); s.pop('refusals_left', None); s.pop('gate_bot_done', None); save_state(root, s)
         (root / 'world.json').write_text(json.dumps(knobs))
 
 

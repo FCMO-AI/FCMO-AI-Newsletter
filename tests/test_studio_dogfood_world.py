@@ -202,6 +202,33 @@ class BehindIsRefused(MeasuredWorld):
         self.assertTrue(s['prs']['2']['merged'])
 
 
+class BotAfterGate(MeasuredWorld):
+    def test_main_moves_inside_the_call_that_turns_the_gate_green_and_only_n_times(self):
+        first = self.branch('studio/one', 'one')
+        s = {'checked': [first]}
+        world = {'gate_s': 0, 'bot_after_gate': 1, 'bot_gate_tick': 900, 'behind': True}
+        before = self.main()
+        done = fake_gh.world_check(self.root, s, first, 10, world)
+        self.assertEqual(done['check_runs'][0]['conclusion'], 'success')
+        self.assertNotEqual(self.main(), before)
+        self.assertEqual(s['gate_bot_done'], 1)
+        s['prs'] = {'1': self.pr('studio/one')}
+        # The head the gate approved is now behind main: a merge needs the approved bytes replayed on the new main.
+        self.assertEqual(fake_gh.pr_view(self.root, s, s['prs']['1'], 20, world)['mergeable_state'], 'behind')
+        moved = self.main()
+        fake_gh.world_check(self.root, s, first, 11, world)  # a second read of the same gate moves nothing
+        self.assertEqual(self.main(), moved)
+        second = self.branch('studio/two', 'two'); s['checked'].append(second)
+        fake_gh.world_check(self.root, s, second, 12, world)
+        self.assertEqual((self.main(), s['gate_bot_done']), (moved, 1))  # N = 1 move in total
+        self.assertEqual(len(s['main_moves']), 1)
+
+    def test_a_new_world_restarts_the_count(self):
+        fake_gh.save_state(self.root, {'gate_bot_done': 2})
+        fake_gh.write_world(self.root, {'bot_after_gate': 2})
+        self.assertNotIn('gate_bot_done', fake_gh.load_state(self.root))
+
+
 class Mergeability(MeasuredWorld):
     def test_lazy_after_main_moves_then_behind_until_replayed(self):
         head = self.branch('studio/p')
