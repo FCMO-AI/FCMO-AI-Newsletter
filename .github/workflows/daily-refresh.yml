@@ -48,7 +48,13 @@ concurrency:
   # failed bridge (it only records the edition state) and a preview drill get a
   # unique lease, so neither can cancel a valid push/success rebuild.
   group: newsletter-refresh-v3-${{ (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion != 'success' || github.event_name == 'workflow_dispatch' && inputs.drill_now_offset_h != '') && github.run_id || 'active' }}
-  cancel-in-progress: true
+  # Automatic runs queue on the 'active' lease instead of cancelling the run in
+  # flight (the same lesson as pages.yml). Triggers often arrive on an unchanged
+  # head every 25-35 min while a rebuild with its pre-push guard takes ~37 min,
+  # so cancelling starved every refresh. GitHub keeps only the newest pending
+  # run, and the commit step already discards a build that newer product inputs
+  # superseded. Only a manual dispatch pre-empts.
+  cancel-in-progress: ${{ github.event_name == 'workflow_dispatch' }}
 
 jobs:
   refresh:

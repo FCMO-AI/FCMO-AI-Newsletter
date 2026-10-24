@@ -20,9 +20,14 @@ class WorkflowConcurrencyContractTests(unittest.TestCase):
         self.assertIn(cancel,text)
 
     def test_failed_bridge_event_cannot_cancel_active_refresh(self) -> None:
+        # Automatic refreshes queue on the 'active' lease (cancelling the run in
+        # flight starved every refresh once the pre-push guard made a rebuild
+        # longer than the trigger interval); only a manual dispatch pre-empts.
         self.assert_failed_workflow_run_isolated(
-            "daily-refresh.yml","newsletter-refresh-v3-"
+            "daily-refresh.yml","newsletter-refresh-v3-",
+            "cancel-in-progress: ${{ github.event_name == 'workflow_dispatch' }}",
         )
+        self.assertNotIn("cancel-in-progress: true",self.text("daily-refresh.yml"))
 
     def test_failed_refresh_event_cannot_cancel_active_pages(self) -> None:
         # Pages queues automatic runs on the 'active' lease (cancelling them
