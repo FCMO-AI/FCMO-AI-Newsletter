@@ -175,6 +175,9 @@ class Application:
                 return self.publisher.approve(value, user, body.get('note', '')) and self.publisher.public_status(value)
             if rest[1] == 'changes': return self.publisher.changes(value, user, body.get('note', ''))
         if rest == ['publication'] and method == 'GET': return self.publisher.public_status(value)
+        if rest == ['publication', 'resume'] and method == 'POST':
+            self.publisher.resume(value, user, body.get('confirm') is True)
+            return self.publisher.public_status(value)
         if rest == ['correct'] and method == 'POST': return self.store.amend(value, user, body.get('type'), body.get('note', {}))
         if rest == ['withdraw'] and method == 'POST': return self.store.amend(value, user, 'withdraw', body.get('note', {}), body.get('reason_code'))
         if rest == ['assist'] and method == 'POST':
@@ -275,7 +278,7 @@ class Handler(BaseHTTPRequestHandler):
             return self.reply(200, target.read_bytes(), mime)
         except Conflict as exc: self.reply(409, {**exc.current, 'error_plain': 'Hay una versión más reciente. Compara las versiones antes de guardar.'})
         except Locked as exc: self.reply(409, {'error_plain': ('Javier' if exc.owner == 'javier' else 'Matías') + ' está editando.', 'by': exc.owner})
-        except (Refused, UnknownEffect) as exc: self.reply(409, {'error_plain': str(exc)})
+        except (Refused, UnknownEffect) as exc: self.reply(getattr(exc, 'status', 409), {'error_plain': str(exc)})
         except RendererUnavailable as exc: self.reply(503, {'error_plain': str(exc)})
         except TranslationError as exc: self.reply(400, {'error_plain': str(exc)})
         except (ValueError, TypeError, AttributeError, OverflowError): self.reply(400, {'error_plain': 'Revisa los datos enviados.'})

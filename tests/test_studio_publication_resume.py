@@ -134,7 +134,7 @@ class ResumeRules(RobustBase):
         self.assertEqual(self.pub()['state'], 'merged')
         self.run_to('published')
         self.assertEqual(self.audit_actions().count('publication_resume_confirmed'), 1)
-        entry = self.store.db.execute("SELECT user, piece, details_json FROM audit WHERE action='publication_resume_confirmed'").fetchone()
+        entry = self.store.db.execute("SELECT user, slug, detail_json FROM audit WHERE action='publication_resume_confirmed'").fetchone()
         self.assertEqual(entry[0], 'matias')
         self.assertNotIn('Private essay', entry[2])
 
@@ -216,21 +216,26 @@ class DryRunFollowsTheFlow(RobustBase):
                'STUDIO_SESSION_KEY': 'fixture-session-key-' + 'c' * 32, 'STUDIO_PROTECTION_MODE': mode}
         app = type('App', (), {})()
         app.publisher = self.publisher; app.github = self.github
+        prepare = self.workspace.prepare
+        def prepare_then_main_moves(pub):
+            # Main moves after the candidate is built and before the check: the race a dry run must survive.
+            result = prepare(pub); self.move_main(); return result
         out = io.StringIO()
         with patch.dict(os.environ, env), patch.object(publish_cli, 'Application', lambda *a, **k: app), \
                 patch.object(publish_cli, 'Store', lambda *a, **k: self.store), \
+                patch.object(self.workspace, 'prepare', prepare_then_main_moves), \
                 patch.object(self.github, 'protected', return_value=protected), redirect_stdout(out), redirect_stderr(out):
             code = publish_cli.main(['--slug', self.slug, '--dry-run'])
         return code, out.getvalue()
 
     def test_dry_run_passes_on_a_moved_main_when_only_the_piece_differs(self):
-        self.approved(); self.move_main()
+        self.approved()
         code, out = self.run_dry('studio')
         self.assertEqual(code, 0, out)
         self.assertIn('Ensayo completo', out)
 
     def test_dry_run_in_github_mode_still_requires_protection(self):
-        self.approved(); self.move_main()
+        self.approved()
         code, out = self.run_dry('github', protected=False)
         self.assertEqual(code, 2)
         self.assertIn('protegida', out)
