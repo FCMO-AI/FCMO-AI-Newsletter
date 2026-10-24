@@ -1,6 +1,7 @@
 """Plain-language publication checks; failures stay tied to a useful destination."""
 import re
 from .validation import LOCALES, validate_doc, validate_figures, validate_sources
+from studio.translation import bad_quote_cite, quote_source_text
 
 def checks(store, preview, value):
     payload = store.payload(value); piece = store.piece(value); results = []
@@ -65,10 +66,8 @@ def checks(store, preview, value):
         for block in doc['blocks']:
             cite = block.get('attrs', {}).get('cite') if block['type'] == 'blockquote' else None
             if cite is None: continue
-            shown = cite if len(cite) <= 60 else cite[:57] + '...'
-            add('quote-source-' + loc + '-' + block['id'], cite in source_keys,
-                'La cita usa como fuente "' + shown + '", que no está en las fuentes del artículo. Escribe la atribución dentro de la cita o elige una de sus fuentes.',
-                'The quotation uses "' + shown + '" as its source, which is not among the article sources. Write the attribution inside the quotation or choose one of its sources.', loc, block['id'])
+            es, en = quote_source_text(cite)
+            add('quote-source-' + loc + '-' + block['id'], bad_quote_cite(block, source_keys) is None, es, en, loc, block['id'])
         add('notes-' + loc, all(body for body in doc['footnotes'].values()), 'Completa todas las notas al pie.', 'Complete every footnote.', loc)
     valid_resources = True
     try: validate_sources(payload['sources']); validate_figures(payload['figures'])

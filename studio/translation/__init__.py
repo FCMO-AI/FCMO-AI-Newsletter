@@ -35,6 +35,17 @@ class Translator(Protocol):
     model: str
     def generate(self, request: dict) -> dict: ...
 
+def bad_quote_cite(block, source_keys):
+    """The cite of a blockquote that is not one of the piece's source keys, else None."""
+    cite = block.get('attrs', {}).get('cite') if block.get('type') == 'blockquote' else None
+    return cite if cite is not None and cite not in source_keys else None
+
+def quote_source_text(cite):
+    """Plain (es, en) message for a quotation whose source is not among the article sources."""
+    shown = cite if len(cite) <= 60 else cite[:57] + '...'
+    return ('La cita usa como fuente "' + shown + '", que no está en las fuentes del artículo. Escribe la atribución dentro de la cita o elige una de sus fuentes.',
+            'The quotation uses "' + shown + '" as its source, which is not among the article sources. Write the attribution inside the quotation or choose one of its sources.')
+
 def targets(source_locale):
     if source_locale not in ('en', 'es-419'):
         raise TranslationError('El traductor admite originales en inglés o español.')
@@ -439,6 +450,11 @@ def translate(store, value, user, base_rev, provider=None, replace=False, preser
             store._lock_guard(value, loc, user)
             if loc in payload['docs'] and not replace: raise TranslationError('Ya hay traducciones. Confirma si quieres reemplazarlas.')
         source = copy.deepcopy(payload['docs'][source_locale]); _nonempty(source)
+        source_keys = {s['key'] for s in payload['sources']}
+        for block in source['blocks']:
+            cite = bad_quote_cite(block, source_keys)
+            # Refuse before any provider call: the result would be rejected by the quote-source check anyway.
+            if cite is not None: raise TranslationError(quote_source_text(cite)[0])
         figures = copy.deepcopy(payload['figures'])
     try:
         provider = provider or configured_provider()
