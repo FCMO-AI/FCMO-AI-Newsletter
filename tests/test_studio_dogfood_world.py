@@ -260,17 +260,23 @@ class RunScoresWorld(unittest.TestCase):
         self.assertEqual(run.Journey.expected_total(True, None), run.BASE_ITEMS + 7 + 8)
         self.assertEqual(run.Journey.expected_total(True, '1'), run.BASE_ITEMS + 7 + 9)
 
-    def test_content_red_text_renders_with_the_same_numbers_in_every_locale(self):
-        # Cause of the 503 that kept item 6 from running: the renderer refuses a piece whose en text lost the numbers
-        # of es-419 and zh-Hans (numeric token mismatch). The red text must keep them.
+    def test_content_red_piece_renders_and_passes_the_fidelity_check_in_every_locale(self):
+        # Causes that kept item 6 from running: a 503 preview (the en text lost the «42» of es-419 and zh-Hans: numeric token
+        # mismatch in the renderer) and then a red fidelity check (the marker is a brand-like name and must be in every locale).
+        from studio.translation import validate_translation
         from tools.paper import essays
-        doc = lambda text: {'blocks': [{'id': 'b-01234567', 'type': 'p', 'content': [{'t': 'text', 'v': text}], 'attrs': {}}], 'footnotes': {}}
-        red = run.Journey.red_text()
-        self.assertIn(fake_gh.CONTENT_RED, red)
-        self.assertEqual(essays._tokens(doc(red)), essays._tokens(doc(run.Journey.BODY['es-419'])))
-        self.assertEqual(essays._tokens(doc(red)), essays._tokens(doc(run.Journey.BODY['zh-Hans'])))
-        # And it is what create() writes into the en document.
-        self.assertEqual(run.Journey.BODY['en'][:-1], red.split(' and ')[0])
+        def doc(loc):
+            text = run.Journey.body_text(loc, fake_gh.CONTENT_RED)
+            return {'schema': 'fcmo-essay-doc-v1', 'locale': loc, 'title': 'T', 'dek': 'D',
+                    'blocks': [{'id': 'b-01234567', 'type': 'p', 'content': [{'t': 'text', 'v': text}], 'attrs': {}}], 'footnotes': {}}
+        docs = {loc: doc(loc) for loc in run.Journey.BODY}
+        for loc, text in ((loc, d['blocks'][0]['content'][0]['v']) for loc, d in docs.items()):
+            self.assertIn(fake_gh.CONTENT_RED, text, loc)
+        for loc in ('es-419', 'zh-Hans'):
+            self.assertEqual(essays._tokens(docs[loc]), essays._tokens(docs['en']), loc)
+            validate_translation(docs['en'], docs[loc], loc)  # raises TranslationError when a name or number changed
+        # The marker and the clean body differ only by the marker: nothing else moved.
+        self.assertEqual(run.Journey.body_text('en').rstrip('.'), run.Journey.body_text('en', fake_gh.CONTENT_RED).split(' and ')[0])
 
     def test_only_world_counts_setup_plus_world_items(self):
         self.assertEqual(run.Journey.expected_total(False, None, 'world'), run.SETUP_ITEMS + 7)

@@ -94,12 +94,19 @@ class Journey:
             time.sleep(.3)
     # The body of every locale. The renderer refuses a piece whose locales do not carry the same numbers.
     BODY = {'en': 'Human publication with 42 ideas.', 'es-419': 'Una publicación humana con 42 ideas.', 'zh-Hans': '一篇人类文章包含42个想法。'}
-    def create(self, title, author, en_text=None):
+    @classmethod
+    def body_text(cls, loc, marker=None):
+        """The body of a locale. A marker rides in EVERY locale, with the numbers kept: the renderer refuses a piece whose
+        locales lost the numbers of the source (numeric token mismatch, a 503 preview), and the translation check refuses
+        a brand-like name (the content-red marker is one) that is not carried over unchanged (a red fidelity check)."""
+        text = cls.BODY[loc]
+        if marker is None: return text
+        return text[:-1] + {'en': ' and ', 'es-419': ' y ', 'zh-Hans': '，与'}[loc] + marker + text[-1]
+    def create(self, title, author, marker=None):
         piece = self.call('POST', '/api/pieces', {'kind': 'essay', 'title': title, 'source_locale': 'en'}, author)
         slug = piece['slug']; base = '/api/pieces/' + slug
         titles = {'en': title, 'es-419': 'Una prueba de publicación', 'zh-Hans': '出版测试'}
-        text = dict(self.BODY)
-        if en_text: text['en'] = en_text
+        text = {loc: self.body_text(loc, marker) for loc in self.BODY}
         for loc in titles:
             current = self.call('GET', base + '/doc/' + loc, user=author)
             doc = {'schema': 'fcmo-essay-doc-v1', 'locale': loc, 'title': titles[loc],
@@ -348,7 +355,7 @@ class Journey:
     def world_content_red(self):
         # 6. a content-red gate: the approved text is refused by the public check, the piece goes back to changes requested.
         self.set_world(pages_run_s=0, gate_s=0.5)
-        slug = self.create('Mundo movido: contenido rojo', 'matias', en_text=self.red_text())
+        slug = self.create('Mundo movido: contenido rojo', 'matias', marker=fake_gh.CONTENT_RED)
         self.call('POST', '/api/pieces/' + slug + '/review/approve', {}, 'javier')
         pub = self.wait(slug, {'failed'}, timeout=1800)
         self.score(WORLD_ITEMS[5], self.piece_state(slug) == 'changes_requested' and 'comprobaciones' in pub.get('error_plain', ''))
@@ -359,11 +366,6 @@ class Journey:
         self.call('POST', '/api/pieces/' + slug + '/review/approve', {}, 'matias')
         pub = self.wait(slug, {'published'}, timeout=1800)
         self.score(WORLD_ITEMS[6], len(pub.get('urls', [])) == 3)
-    @staticmethod
-    def red_text():
-        # The marker rides in the source text. The text keeps the numbers of the other locales: a piece whose en text lost
-        # the «42» of es-419 and zh-Hans (numeric token mismatch) never renders, so its preview was a 503 and the item never ran.
-        return Journey.BODY['en'][:-1] + ' and ' + fake_gh.CONTENT_RED + '.'
     def make_es_piece(self, title, author):
         """Javier's piece: es-419 is the source; the translate endpoint (STUDIO_TRANSLATION_PROVIDER=fake) prepares the rest."""
         piece = self.call('POST', '/api/pieces', {'kind': 'essay', 'title': title, 'source_locale': 'es-419'}, author)
