@@ -10,6 +10,7 @@ import shutil
 import signal
 import socket
 import subprocess
+import sys
 import tempfile
 import threading
 import time
@@ -18,6 +19,7 @@ from studio.server.auth import Auth
 from studio.server.storage import Store, git
 
 ROOT = Path(__file__).resolve().parents[2]
+BROWSER_TIMEOUT = int(os.environ.get('DOGFOOD_BROWSER_TIMEOUT', '1200'))
 PASSWORD = 'dogfood-local-fixture-password'
 
 class Journey:
@@ -80,7 +82,8 @@ class Journey:
         return slug
     def setup(self):
         source = self.root / 'source'
-        subprocess.run(['git', 'clone', '--quiet', '--no-hardlinks', str(ROOT), str(source)], check=True)
+        # Objects are shared with the checkout and every tracked file is overlaid below: no second copy of history.
+        subprocess.run(['git', 'clone', '--quiet', '--shared', '--no-checkout', str(ROOT), str(source)], check=True)
         git(source, 'checkout', '-B', 'main')
         for rel in git(ROOT, 'ls-files').splitlines():
             file = ROOT / rel
@@ -129,13 +132,7 @@ class Journey:
         self.env = env
         self.log = (self.root / 'server.log').open('w')
         self.process = subprocess.Popen(['sh', str(source / 'studio/host-ops/start.sh')], env=env, stdout=self.log, stderr=self.log, start_new_session=True)
-        for _ in range(100):
-            try:
-                if self.request('GET', '/healthz')[0] == 200: break
-            except OSError: pass
-            assert self.process.poll() is None, (self.root / 'server.log').read_text()
-            time.sleep(.1)
-        else: raise AssertionError('Server did not start')
+        self.wait_healthy()
         self.score('launcher on alternative loopback port; health and login chrome', self.request('GET', '/')[0] == 200)
         self.score('private API refuses unauthenticated user', self.request('GET', '/api/pieces')[0] == 401)
         for user in ('javier', 'matias'):
@@ -151,6 +148,18 @@ class Journey:
                    self.call('GET', '/api/pieces/' + piece['slug'])['slug'] == piece['slug'])
         for user in ('javier', 'matias'):
             (self.root / user / 'hosts.yml').write_text('github.com: {}\n')
+    START_TIMEOUT = float(os.environ.get('DOGFOOD_START_TIMEOUT', '180'))
+    def wait_healthy(self):
+        # A cold start (bytecode, renderer warm-up, loaded host) takes well over 10 s:
+        # wait on /healthz against a deadline, and fail at once if the launcher dies.
+        deadline = time.monotonic() + self.START_TIMEOUT
+        while time.monotonic() < deadline:
+            try:
+                if self.request('GET', '/healthz')[0] == 200: return
+            except OSError: pass
+            assert self.process.poll() is None, (self.root / 'server.log').read_text()
+            time.sleep(.25)
+        raise AssertionError('Server did not become healthy within %ss' % self.START_TIMEOUT)
     def run(self):
         self.setup()
         published = []
@@ -207,10 +216,14 @@ class Journey:
                 seeded = subprocess.check_output(['python3', '-m', 'tests.harness.seed_studio'], cwd=self.root / 'source', env=env, text=True).strip()
                 env['STUDIO_SLUG'] = seeded; args = [seeded]
             with (self.root / (name + '.log')).open('w') as f:
-                result = subprocess.run(['node', str(ROOT / ('tests/harness/browser/' + name + '.mjs')), self.origin + '/', *args], env=env, stdout=f, stderr=f, timeout=300)
+                result = subprocess.run(['node', str(ROOT / ('tests/harness/browser/' + name + '.mjs')), self.origin + '/', *args], env=env, stdout=f, stderr=f, timeout=BROWSER_TIMEOUT)
             self.score('browser ' + name, result.returncode == 0)
+        if os.environ.get('DOGFOOD_CAPTURES'):
+            with (self.root / 'studio_captures.log').open('w') as f:
+                result = subprocess.run(['node', str(ROOT / 'tests/harness/browser/studio_captures.mjs'), self.origin + '/', seeded, os.environ['DOGFOOD_CAPTURES']], env=env, stdout=f, stderr=f, timeout=BROWSER_TIMEOUT)
+            self.score('browser studio_captures', result.returncode == 0)
         with (self.root / 'studio_actions.log').open('w') as f:
-            result = subprocess.run(['node', str(ROOT / 'tests/harness/browser/studio_actions.mjs'), self.origin + '/'], env=env, stdout=f, stderr=f, timeout=300)
+            result = subprocess.run(['node', str(ROOT / 'tests/harness/browser/studio_actions.mjs'), self.origin + '/'], env=env, stdout=f, stderr=f, timeout=BROWSER_TIMEOUT)
         self.score('browser issue/correction/withdrawal', result.returncode == 0)
         qa = self.call('POST', '/api/pieces/' + seeded + '/assist', {'kind': 'layout_qa', 'loc': 'en'})
         self.score('deterministic visual assist without worker', qa['status'] == 'done' and len(qa['frames']) == 12 and qa['ok'])
@@ -225,7 +238,7 @@ class Journey:
                 os.killpg(self.process.pid, signal.SIGKILL); self.process.wait()
             self.log.close()
         if hasattr(self, 'pages'): self.pages.shutdown(); self.pages.server_close()
-        expected = 25 if self.browser else 17
+        expected = (25 + bool(os.environ.get('DOGFOOD_CAPTURES'))) if self.browser else 17
         passed = sum(s['ok'] for s in self.scores)
         summary = {'passed': passed, 'total': expected, 'executed': len(self.scores), 'completed': passed == expected and len(self.scores) == expected, 'checks': self.scores}
         (self.root / 'summary.json').write_text(json.dumps(summary, indent=2))
@@ -234,13 +247,23 @@ class Journey:
 def main():
     parser = argparse.ArgumentParser(); parser.add_argument('--keep', type=Path); parser.add_argument('--browser', action='store_true'); args = parser.parse_args()
     root = args.keep.resolve() if args.keep else Path(tempfile.mkdtemp(prefix='studio-dogfood-'))
-    root.mkdir(parents=True, exist_ok=True)
-    journey = Journey(root, args.browser)
-    try: journey.run()
-    except BaseException:
-        journey.scores.append({'name': 'complete journey', 'ok': False})
-        raise
-    finally: journey.close()
-    if not args.keep: shutil.rmtree(root)
+    # A signal must unwind through the finally blocks: the temporary tree is gigabytes.
+    for number in (signal.SIGTERM, signal.SIGHUP, signal.SIGINT):
+        signal.signal(number, lambda signum, frame: sys.exit(128 + signum))
+    journey = None
+    try:
+        root.mkdir(parents=True, exist_ok=True)
+        journey = Journey(root, args.browser)
+        try: journey.run()
+        except BaseException:
+            journey.scores.append({'name': 'complete journey', 'ok': False})
+            log = root / 'server.log'
+            if log.is_file(): print('--- server.log (tail) ---\n' + '\n'.join(log.read_text(errors='replace').splitlines()[-40:]), flush=True)
+            for extra in sorted([*root.glob('strict-*.log'), *root.glob('studio_*.log'), *root.glob('lkg.log'), *root.glob('build-*.log'), *root.glob('check-*.log')]):
+                print('--- ' + extra.name + ' (tail) ---\n' + '\n'.join(extra.read_text(errors='replace').splitlines()[-40:]), flush=True)
+            raise
+        finally: journey.close()
+    finally:
+        if not args.keep: shutil.rmtree(root, ignore_errors=True)
 
 if __name__ == '__main__': main()

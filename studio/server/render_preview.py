@@ -25,6 +25,8 @@ class StudioPaperBuilder(PaperBuilder):
     encounter order is retained for the production sort's equal-key ties.
     The index belongs to this immutable build, never to another snapshot.
     """
+    allow_missing_story_media = True  # private preview only; production keeps failing closed
+
     def _topic_links(self, locale, *, exclude_topic='', exclude_org='', limit=5):
         if not hasattr(self, '_studio_neighbors'):
             counts = {field: Counter(value for story in self.live for value in set(story.get(field) or []))

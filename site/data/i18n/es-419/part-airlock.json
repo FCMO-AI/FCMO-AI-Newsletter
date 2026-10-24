@@ -1,6 +1,6 @@
 {
   "canonical_locale": "en",
-  "canonical_source_sha256": "ad2af17fe46ec50743e39850ec6bf156ea623fb15a9b7e86e75a0d9de6b38f7f",
+  "canonical_source_sha256": "7cae515a876f7ee6c10e497e6dd743b887b9e4231f2138cf444f8c8b4c057a49",
   "generated_from": "ARB airlock; editorial wording authored upstream",
   "locale": "es-419",
   "records": {
@@ -15775,6 +15775,72 @@
       "title": "OpenAI informa grandes avances en evaluaciones de programación con lenguajes de baja disponibilidad de recursos",
       "why_it_matters": "COBOL, Fortran y otros lenguajes con menos datos de entrenamiento y documentación siguen presentes en software importante. Una mejor programación y migración que conserve el comportamiento podría aliviar un cuello de botella práctico de mantenimiento si estos resultados se transfieren a repositorios reales. Por ahora, la evidencia mide tareas de evaluación controladas; siguen siendo necesarias la revisión experta y las pruebas específicas del sistema, y no se han establecido efectos en producción ni ahorros económicos."
     },
+    "FCMO-6553FE9DE199": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Los autores presentan LIP, que aprende conectores para mapear la representación de un modelo especialista a estados internos seleccionados en espacios de prompt de un LLM compartido. En el diseño informado, los modelos especialistas y el LLM permanecen congelados; solo se entrena el conector."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El artículo demuestra conectores entrenados de manera independiente para tres especialistas de proteínas y tres de moléculas con Gemma 3 4B, Gemma 3 12B y Kimi K2.6. Los autores informan desempeño con objetos excluidos del ajuste del conector y transferencia a algunos tipos de preguntas que no se usaron en su entrenamiento de tareas."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan que los conectores entrenados por separado se pueden combinar durante la inferencia para preguntas dentro de un dominio y entre proteínas y moléculas, sin entrenamiento conjunto para cada combinación de conectores."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "La transferencia no es uniforme: el entrenamiento de conectores suele reducir el desempeño en la mayoría de las tareas de moléculas no vistas, mientras lo mejora en las tareas de proteínas no vistas de los experimentos informados. El artículo también informa que pedir razonamiento extendido reduce el desempeño en predicción de propiedades de proteínas en sus tres LLM."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El artículo no establece que las entradas latentes de especialistas se interpreten de forma confiable en distintos dominios científicos o flujos de extremo a extremo; esta revisión tampoco reprodujo los resultados ni ejecutó el código publicado."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se hizo una reproducción independiente de los resultados de transferencia a tareas no vistas ni de composición de conectores.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "La demostración abarca seis especialistas de proteínas y moléculas y tres configuraciones de LLM; se desconoce la transferencia a más familias de modelos y dominios científicos.",
+          "kind": "regime_unclear",
+          "state": "open"
+        },
+        {
+          "description": "El artículo no establece que el acceso a representaciones latentes mejore un flujo de agente científico de extremo a extremo lo suficiente para compensar los costos de entrenamiento de conectores e inferencia.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se reproducen y amplían de manera independiente, los conectores entrenados por separado podrían permitir que un LLM compartido use información rica de varios especialistas y los combine sin entrenamiento conjunto para cada combinación. El alcance informado se limita a tareas de proteínas y moléculas con tres configuraciones de LLM, e incluye transferencia negativa y fallas de razonamiento; es una opción arquitectónica notable, no evidencia de una transformación amplia de los agentes científicos.",
+      "limitations": [
+        "Los resultados se informan en un único preprint v1 y no se reprodujeron de manera independiente en esta revisión.",
+        "Los especialistas demostrados cubren proteínas y moléculas pequeñas, con Gemma 3 4B/12B y Kimi K2.6; se desconoce la generalización a otros dominios, familias de modelos y flujos científicos.",
+        "El artículo informa pérdidas al entrenar conectores en la mayoría de las tareas de moléculas no vistas y menor desempeño en propiedades de proteínas cuando se solicita razonamiento extendido.",
+        "Los LLM actuales no fueron preentrenados para interpretar estas representaciones de especialistas como entradas nativas; los autores informan interpretaciones erróneas y usos poco confiables.",
+        "El análisis de transferencia estima la exposición en descripciones, pero señala que pueden quedar otros canales de supervisión y pistas implícitas; la transferencia entre tareas no demuestra una evaluación totalmente ciega.",
+        "La disponibilidad de código y datos se comprobó solo en el listado del repositorio público; no se ejecutó ningún entrenamiento o inferencia y no se estableció la economía total del despliegue."
+      ],
+      "relationships": [],
+      "summary": "Un preprint de arXiv del 21 de octubre presenta el Latent Interconnect Protocol (LIP), que mapea representaciones de modelos especialistas científicos a estados internos seleccionados de un modelo de lenguaje compartido y congelado. Los autores muestran conectores separados para tres especialistas de proteínas y tres de moléculas con Gemma 3 4B/12B y Kimi K2.6; informan que se reutilizan en distintos tipos de preguntas y que los conectores entrenados por separado se pueden combinar sin entrenamiento conjunto. Los resultados informados incluyen desempeño con objetos no vistos durante el ajuste, transferencia a algunas tareas nuevas y composición entre especialistas. El mismo artículo informa transferencia negativa en tareas de moléculas tras entrenar los conectores, menor desempeño en propiedades de proteínas cuando se solicita razonamiento extendido y casos en los que el LLM interpreta mal las entradas latentes. Es una demostración arquitectónica informada por un artículo, no evidencia independiente de razonamiento científico general confiable ni de una mejora en flujos científicos de extremo a extremo.",
+      "technical": {
+        "claimed_result": "Los autores informan desempeño en tareas con objetos no vistos, transferencia a algunas preguntas nuevas y composición de conectores especialistas entrenados por separado sin entrenamiento conjunto. También informan degradaciones en tareas con moléculas y al solicitar razonamiento.",
+        "compute_or_cost": "Los autores informan que entrenar cada conector toma horas en una sola H100/H200 para Gemma y horas en un nodo de 8×H200 para Kimi K2.6; son configuraciones de entrenamiento informadas por los autores y no establecen la economía total del despliegue.",
+        "demonstrated_result": "El manuscrito público v1 y el repositorio de los autores describen el método y los resultados experimentales. El desempeño técnico sigue siendo informado por los autores; esta revisión no realizó una ejecución independiente.",
+        "implementation_status": "Preprint arXiv v1 y repositorio público con datos y código, publicados el 21 de octubre de 2026.",
+        "mechanism": "Un conector aprendido normaliza una representación especialista y la inyecta en estados residuales seleccionados de espacios de prompt de un LLM congelado. Cada conector se entrena por separado; durante la inferencia se pueden ensamblar varios sin entrenamiento conjunto para cada combinación.",
+        "novelty": "Una interfaz latente extensible propuesta que combina un LLM compartido congelado, conectores especialistas ajustados por separado y composición dentro y entre dominios, demostrada con representaciones de proteínas y moléculas.",
+        "regime": "Experimentos informados por el artículo con tres especialistas de proteínas y tres de moléculas pequeñas conectados a Gemma 3 4B/12B y Kimi K2.6. La evaluación cubre objetos no vistos, ciertos tipos nuevos de preguntas y combinaciones de conectores; esta revisión no hizo reproducción independiente ni probó flujos de agente de extremo a extremo.",
+        "reproducibility": "El repositorio de los autores publica datos y código completos para entrenamiento, evaluación e inferencia. Esta revisión solo inspeccionó el listado; no ejecutó el código ni verificó los resultados.",
+        "strongest_baseline": "Las comparaciones internas del artículo evalúan alineación y entrenamiento de conectores y condiciones de acceso especialista; quedan pendientes comparaciones igualadas con salidas textuales de herramientas independientes y flujos científicos de extremo a extremo."
+      },
+      "title": "AI Mindmeld incorpora representaciones científicas a LLM congelados mediante conectores entrenados por separado",
+      "why_it_matters": "LIP prueba una interfaz entre modelos especialistas y un LLM compartido que transmite más información de una representación especialista que una respuesta textual seleccionada. Si la reutilización y composición de conectores se mantienen fuera de los entornos biológicos probados, agentes científicos podrían aprovechar resultados más ricos de otros modelos sin reentrenar conjuntamente cada combinación de especialistas. El artículo también muestra que tener acceso a la información no garantiza interpretarla de forma confiable, y sus resultados con moléculas y razonamiento exponen costos de transferencia que todavía deben medirse."
+    },
     "FCMO-6560CD72CDEE": {
       "claims": [
         {
@@ -16825,47 +16891,61 @@
       "claims": [
         {
           "label": "DEMONSTRATED",
-          "text": "NVIDIA anunció el lanzamiento de Nemotron 3.5 Super VL y dos variantes Bolt; según la empresa, Bolt E4B llegaría el 23 de octubre."
+          "text": "NVIDIA anunció Nemotron 3.5 Super VL y dos variantes Bolt el 15 de octubre, e indicó que Bolt E4B se publicaría el 23 de octubre."
         },
         {
           "label": "CLAIMED",
-          "text": "NVIDIA describe Super VL como modelo multimodal de 120B, Bolt 74B-A9B con cuantización nativa de 2-bit y diseñado para 24GB, y Bolt E4B para dispositivos de 4GB."
+          "text": "NVIDIA describe Super VL como un modelo multimodal de 120B, Bolt 74B-A9B como un modelo para despliegue con 24GB y Bolt E4B como un modelo pequeño dirigido a un despliegue aproximado de 4GB."
         },
         {
           "label": "CLAIMED",
-          "text": "NVIDIA informa hasta 5x más rapidez de finalización de tareas o caudal frente a modelos de su categoría; esta revisión no evaluó de forma independiente esa comparación."
+          "text": "NVIDIA informa hasta 5x más rapidez en finalización de tareas o caudal para Super VL frente a su categoría de comparación; esta revisión no evaluó la comparación de forma independiente."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "NVIDIA indica que Bolt E4B se lanzó el 23 de octubre de 2026 y publica resultados de pruebas separados para BF16 y Q4_K_M, además de mediciones de latencia, memoria y caudal en hardware específico. Los resultados son mixtos entre las tareas nombradas; esta revisión no los reprodujo de forma independiente."
         }
       ],
       "contradictory_evidence": [],
       "evidence_gaps": [
         {
-          "description": "Esta revisión acotada no incluye evaluaciones independientes con controles equivalentes de calidad, memoria, caudal y tiempo de finalización.",
+          "description": "Faltan evaluaciones independientes de calidad, memoria, caudal y tiempo de finalización de tareas bajo condiciones equivalentes, incluso para el nuevo checkpoint Bolt E4B.",
           "kind": "missing_independent",
           "state": "open",
-          "updated_at": "2026-10-21T03:24:00Z"
+          "updated_at": "2026-10-24T00:10:03Z"
+        },
+        {
+          "description": "No se recuperaron ni auditaron la receta de entrenamiento y los artefactos de evaluación enlazados para E4B; faltan por verificar las indicaciones de prueba y la configuración completa.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-24T00:10:03Z"
         }
       ],
-      "importance_rationale": "Si las capacidades y ventajas de despliegue declaradas se mantienen, un modelo multimodal de 120B para agentes y variantes dirigidas a dispositivos de 24GB y 4GB podrían ampliar dónde se ejecutan y adaptan sistemas con pesos abiertos. Esto puede afectar el acceso a la inferencia y la evaluación, pero las afirmaciones de rendimiento y adopción siguen siendo del proveedor, sin medición independiente en esta revisión.",
+      "importance_rationale": "Si se mantienen las capacidades y ventajas de despliegue declaradas, un modelo multimodal de 120B para agentes y variantes dirigidas a equipos de 24GB y 4GB podrían ampliar dónde se ejecutan y adaptan sistemas con pesos abiertos. Esto puede afectar el acceso a la inferencia y la evaluación; las afirmaciones de rendimiento y adopción siguen siendo del proveedor, sin medición independiente en esta revisión.",
       "limitations": [
-        "Las comparaciones de rendimiento son de NVIDIA; esta revisión no verificó controles comparables ni replicación independiente.",
-        "Los ejemplos de personalización e integración de socios se atribuyen a NVIDIA y no demuestran escala de adopción ni resultados.",
-        "La fuente describió Bolt E4B como próximo para el 23 de octubre 15; no afirmó que ya estuviera disponible."
+        "Todas las afirmaciones sobre modelos y pruebas provienen de NVIDIA; no se realizó reproducción independiente, evaluación externa equivalente ni prueba de despliegue en una aplicación.",
+        "La tabla detallada de la página de investigación indica que los resultados son BF16; la ficha de Hugging Face enlazada presenta por separado columnas BF16 y Q4_K_M para 20 filas de pruebas. Los resultados del proveedor son mixtos: Bolt E4B Q4_K_M queda por debajo de Qwen 3.5 4B en varias pruebas de herramientas y contexto largo, incluidas BFCL-v3, Tau2-Bench, RULER y LongBench v2.",
+        "NVIDIA indica que usa un sistema de evaluación común entre modelos, pero el modo de razonamiento cambia según la prueba. La empresa dice que Brevity Bench y When2Call-MT atienden brechas de evaluación y aún no estaban publicados; los resultados de pruebas no demuestran mejor comportamiento en aplicaciones concretas.",
+        "La reducción declarada de hasta 80% de tokens de salida es una comparación del proveedor y por sí sola no demuestra igual calidad de tareas, menor latencia total ni menor costo total de inferencia.",
+        "Las cifras de servicio dependen del hardware, llama.cpp/CUDA, AIPerf, tamaño de lote, cuantización y longitudes de entrada y salida especificados por NVIDIA; pueden variar con el software, el hardware y la configuración.",
+        "Los ejemplos de personalización e integración de socios son reportados por NVIDIA y no demuestran escala de adopción ni resultados.",
+        "Este desarrollo combina el anuncio de la familia de modelos del 15 de octubre con el lanzamiento E4B del 23 de octubre; las fuentes mantienen separadas las fechas de ambos eventos."
       ],
       "relationships": [],
-      "summary": "NVIDIA anunció Nemotron 3.5 Super VL, un modelo abierto de 120B para tareas multimodales de agentes, junto con Bolt 74B-A9B dirigido a equipos locales con 24GB y Bolt E4B para dispositivos de 4GB. El anuncio del 15 de octubre indicó que E4B estaba previsto para el 23 de octubre.",
+      "summary": "NVIDIA anunció Nemotron 3.5 Super VL y dos modelos abiertos Bolt el 15 de octubre; Bolt E4B se publicó el 23 de octubre con un objetivo de despliegue cercano a 4GB. Su checkpoint, con 8B parámetros totales y 4B efectivos, se basa en Gemma 4 E4B-it y cuenta con versiones Q4_K_M y BF16, contexto de 64K y razonamiento configurable. NVIDIA publica resultados de pruebas separados para BF16 y Q4_K_M, además de mediciones de servicio por hardware. Los resultados son del proveedor y mixtos: el modelo Q4_K_M queda por debajo de Qwen 3.5 4B en varias pruebas de uso de herramientas y contexto largo. No se realizó una reproducción independiente ni una evaluación de despliegue en tareas reales.",
       "technical": {
-        "claimed_result": "NVIDIA afirma alta precisión en tareas y hasta 5x más caudal para Super VL; aquí no se revisaron comparaciones independientes con controles equivalentes.",
-        "compute_or_cost": "Esta revisión no verificó costos de entrenamiento ni de servicio medidos independientemente.",
-        "demonstrated_result": "NVIDIA anunció públicamente la disponibilidad de Super VL y Bolt 74B-A9B, y dio posteriormente el 23 de octubre para Bolt E4B.",
-        "implementation_status": "Super VL y Bolt 74B-A9B se anunciaron como disponibles; NVIDIA programó Bolt E4B para el 23 de octubre de 2026.",
-        "mechanism": "La familia incluye un modelo multimodal de 120B para agentes y variantes Bolt dirigidas a presupuestos de memoria menores; NVIDIA describe cuantización nativa de 2-bit para Bolt 74B-A9B.",
-        "novelty": "Un único lanzamiento abarca un gran modelo multimodal para agentes y variantes locales diseñadas para presupuestos de memoria mucho menores.",
-        "regime": "Familia de modelos abiertos anunciada para centros de datos, estaciones de trabajo y dispositivos locales o de borde; Super VL tiene 120B y Bolt apunta a equipos con 24GB y 4GB.",
-        "reproducibility": "NVIDIA enlaza pesos, conjuntos de datos y recetas; esta revisión acotada no examinó su contenido ni realizó una reproducción independiente.",
-        "strongest_baseline": "La categoría de comparación de NVIDIA para modelos abiertos de agentes; es necesario inspeccionar las evaluaciones enlazadas para conocer sistemas y controles equivalentes."
+        "claimed_result": "NVIDIA informa una mejora promedio frente a su modelo Nano 4B anterior y algunos modelos seleccionados, además de hasta 80% menos tokens de salida en ciertas comparaciones con razonamiento. La ficha publica resultados BF16 y Q4_K_M en 20 filas de pruebas. En Q4_K_M, el modelo supera algunos resultados y queda por debajo de Qwen 3.5 4B en otros, incluidos BFCL-v3, Tau2-Bench, LongMemEval, LongBench v2 y RULER. Son evaluaciones de NVIDIA con NeMo Gym; no se reprodujeron de forma independiente.",
+        "compute_or_cost": "No se informa el costo de entrenamiento. Para Q4_K_M, NVIDIA publica mediciones de servicio con una sola sesión: en RTX 5070, con entrada de 3K y salida de 50 tokens, reporta 3.5 GB de VRAM, 548 ms hasta el primer token y 133.4 tokens/s; con contexto almacenado de 32K, entrada de 2K y salida de 256, reporta 4.3 GB, 1,238 ms y 106.2 tokens/s. Son mediciones del proveedor, específicas del hardware, software y carga; no son costos independientes ni garantías generales de despliegue.",
+        "demonstrated_result": "La página de investigación de NVIDIA del 23 de octubre y la ficha de Hugging Face publican el lanzamiento E4B, su fecha, arquitectura Gemma-4-E4B de 8B parámetros totales y 4B efectivos, variantes Q4_K_M y BF16, contexto de 64K, razonamiento configurable, enlaces a la receta y tablas de pruebas separadas para BF16 y Q4_K_M. Esto demuestra qué publicó NVIDIA, no la validez del rendimiento informado; no se realizó una ejecución independiente.",
+        "implementation_status": "NVIDIA anunció la disponibilidad de Super VL y Bolt 74B-A9B el 15 de octubre y programó E4B para el 23 de octubre; la ficha de E4B indica el 23 de octubre de 2026 como fecha de lanzamiento y menciona disponibilidad en Hugging Face y build.nvidia.com.",
+        "mechanism": "Bolt E4B se ajusta a partir de Gemma-4-E4B-it con la receta de aprendizaje por refuerzo NeMo-RL/NeMo-Gym de NVIDIA, en entornos de seguimiento de instrucciones, uso de herramientas en varios turnos, conversación y salidas estructuradas. Después se cuantiza a Q4_K_M con llama.cpp y calibración mediante una matriz de importancia. NVIDIA también publica un modelo auxiliar DFlash para decodificación especulativa.",
+        "novelty": "El lanzamiento del 23 de octubre añade un checkpoint abierto documentado para conversación y uso de herramientas en varios turnos, con un objetivo de almacenamiento cercano a 4GB, un checkpoint BF16 separado y un modelo auxiliar de decodificación especulativa. La novedad aquí es el lanzamiento, los artefactos y el objetivo de despliegue declarado; no se establece una superioridad independiente.",
+        "regime": "El modelo Q4_K_M tiene 8B parámetros totales y 4B efectivos, entrada y salida de texto y un contexto declarado de 64K. NVIDIA informa pruebas de lote uno con llama.cpp/CUDA y AIPerf en RTX 5070, RTX Spark, Jetson Orin Nano y Jetson AGX Orin; memoria, tiempo hasta el primer token y caudal cambian según el hardware y las longitudes de secuencia.",
+        "reproducibility": "La página del modelo enlaza checkpoints, materiales de entrenamiento y metodología de evaluación. Esta revisión inspeccionó la página de investigación y la ficha de Hugging Face, pero no descargó ni ejecutó los pesos, no recuperó todas las recetas enlazadas ni reprodujo de forma independiente las puntuaciones.",
+        "strongest_baseline": "La ficha de Hugging Face compara Bolt E4B Q4_K_M con Gemma 4 E4B-it, Qwen 3.5 4B y Nemotron 3 Nano 4B en Q4_K_M mediante un sistema NeMo Gym común. NVIDIA informa puntuaciones superiores de Qwen 3.5 4B en BFCL-v3 (70.56 frente a 67.31), Tau2-Bench (61.74 frente a 52.32), RULER (95.37 frente a 85.76) y LongBench v2 (58.28 frente a 48.67); Bolt E4B obtiene mejores puntuaciones en otras filas, incluidas MultiChallenge y RoleBench. La ficha dice que cada comparación usa el mismo modo de razonamiento dentro de cada prueba, pero el modo cambia entre pruebas. Son resultados del proveedor, sin reproducción independiente."
       },
-      "title": "NVIDIA lanza Nemotron 3.5 Super VL y Bolt para agentes multimodales y despliegue local",
-      "why_it_matters": "El lanzamiento combina un modelo multimodal grande para agentes con variantes de menor memoria y ofrece artefactos abiertos concretos para estudiar despliegues en la nube, estaciones de trabajo y dispositivos de borde. Las afirmaciones del proveedor sobre rapidez, precisión y adopción siguen sin verificarse."
+      "title": "NVIDIA publica Nemotron 3.5 Bolt E4B para agentes locales",
+      "why_it_matters": "Un modelo abierto pequeño, ajustado para usar herramientas y dirigido a un despliegue cercano a 4GB, podría ampliar la variedad de hardware que ejecuta agentes locales. El informe técnico del 23 de octubre ofrece una ficha, una receta y mediciones de NVIDIA que pueden inspeccionarse, pero no demuestra ventajas independientes de calidad, latencia ni despliegue."
     },
     "FCMO-6B6673FA74B4": {
       "claims": [
@@ -19911,6 +19991,66 @@
       },
       "title": "Un estudio de escalamiento multilingüe informa que más expertos reducen el costo en pérdida de ampliar la cobertura de idiomas",
       "why_it_matters": "Si se replican en escalas y mezclas de idiomas más amplias, la interacción entre capacidad de expertos y cobertura lingüística podría orientar la asignación de cómputo de entrenamiento y parámetros almacenados, reduciendo un costo de pérdida medido al agregar idiomas. La evidencia actual es un preprint con una cuadrícula controlada de menos de mil millones de parámetros activos; no establece resultados a escala de frontera ni la economía de producción."
+    },
+    "FCMO-82DCB5F37762": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "IQM informa que conectó modelos de visión y lenguaje NVIDIA Ising Calibration al software de calibración de IQM y los ejecutó en un procesador de 20 qubits."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "IQM afirma que el flujo ajustó los rangos de los gráficos para los qubits afectados, repitió sus mediciones y terminó con los 20 qubits calibrados."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "IQM señala que probar chips mayores y problemas fuera del rango reconocible por ingenieros sigue siendo trabajo futuro o pendiente."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "El estudio de caso no incluye datos de ejecución sobre calidad de calibración, tiempo transcurrido, intervenciones, fallos o comparación equivalente con especialistas.",
+          "kind": "missing_artifact",
+          "state": "open",
+          "updated_at": "2026-10-24T01:14:45Z"
+        },
+        {
+          "description": "En esta revisión no se reprodujo de forma independiente el flujo en el chip físico.",
+          "kind": "missing_independent",
+          "state": "open",
+          "updated_at": "2026-10-24T01:14:45Z"
+        },
+        {
+          "description": "La ficha de QCalEval describe datos híbridos de simulación y hardware aportado por socios, mientras que las tarjetas NVIDIA Ising Calibration 1.5 califican los datos de evaluación de QCalEval como sintéticos y con verdad de terreno derivada de simulaciones. La API pública devolvió las 243 filas de prueba, pero el esquema expuesto no contiene un campo de procedencia de hardware/simulación por fila; la composición sigue sin resolverse.",
+          "kind": "contradiction_unresolved",
+          "state": "open",
+          "updated_at": "2026-10-24T01:22:32Z"
+        }
+      ],
+      "importance_rationale": "Si el flujo informado fuera repetible, un agente de visión y lenguaje que lee gráficos de calibración, selecciona experimentos posteriores, ajusta rangos y opera hardware cuántico real podría aliviar un cuello de botella de especialistas y ampliar el acceso a las operaciones de computación cuántica. La evidencia es un solo caso de 20 qubits informado por un socio, sin métricas de calibración, tiempos, comparación equivalente con una persona experta ni reproducción independiente.",
+      "limitations": [
+        "Es un único estudio de caso de un socio publicado por IQM, que participó en el trabajo; en esta revisión no se encontró confirmación independiente de la ejecución física.",
+        "El informe no ofrece una métrica de fidelidad o calidad de calibración, tiempo transcurrido, número de intervenciones humanas, tasa de fallos ni comparación equivalente con expertos.",
+        "No se identifica la versión exacta del modelo Ising ni hay registros públicos de la ejecución o artefactos completos del flujo.",
+        "IQM indica que el trabajo con chips mayores y problemas más allá de los casos reconocibles por ingenieros sigue pendiente; el informe no demuestra generalización.",
+        "QCalEval es una evaluación separada de comprensión de gráficos y no una reproducción independiente de la ejecución en el chip. La ficha del conjunto describe una colección híbrida de simulaciones y mediciones reales aportadas por socios; las tarjetas NVIDIA Ising Calibration 1.5 describen los datos de evaluación de QCalEval como sintéticos y derivados de simulaciones. Consulté las 243 filas de prueba de la API pública; el esquema expuesto no incluye un campo por fila que distinga el origen sintético del hardware. La composición por muestra y cualquier vínculo con la ejecución de IQM siguen sin resolverse."
+      ],
+      "relationships": [],
+      "summary": "El estudio de caso de IQM del 21 de octubre informa que conectó modelos de visión y lenguaje Ising Calibration de NVIDIA al software de calibración de IQM y ejecutó el flujo en un procesador de 20 qubits. IQM dice que el sistema amplió los rangos de medición para los qubits cuyos ajustes quedaban fuera de los gráficos, repitió esas mediciones y terminó con los 20 qubits calibrados. El informe no aporta una métrica de calidad de calibración, tiempo transcurrido, comparación equivalente con expertos ni reproducción independiente; por ello sustenta un relato atribuido de una ejecución, no un resultado de rendimiento o generalización.",
+      "technical": {
+        "claimed_result": "IQM informa que el flujo calibró los 20 qubits de un procesador IQM y registró las decisiones en inglés sencillo. El informe no proporciona medidas de calidad de calibración, tiempo transcurrido, comparación con especialistas ni estadísticas de fallos.",
+        "compute_or_cost": "No se informa una comparación de tiempo, cómputo, mano de obra o costo.",
+        "demonstrated_result": "La página de primera parte de IQM revisada documenta que IQM publicó este estudio de caso y describe el flujo y sus límites. Esta revisión no establece por sí sola el resultado de la ejecución física.",
+        "implementation_status": "Un experimento informado por un socio conectó el modelo con software de calibración propietario; no se identificaron registros públicos de ejecución, artefactos completos del flujo ni la versión exacta del modelo.",
+        "mechanism": "IQM dice que conectó modelos de visión y lenguaje NVIDIA Ising Calibration a su software de calibración. Cuando los parámetros de algunos qubits quedaron fuera de los rangos de los gráficos, el flujo supuestamente amplió esos rangos y repitió las mediciones.",
+        "novelty": "El informe describe un modelo de visión y lenguaje que seleccionó ajustes de rango de medición dentro de un flujo físico de calibración cuántica. Es un caso de uso informado por la fuente, no un avance de rendimiento verificado de forma independiente.",
+        "regime": "Un chip IQM de 20 qubits y un flujo de estudio de caso con gráficos de calibración reconocibles por ingenieros. El informe no demuestra su operación en chips mayores, problemas desconocidos ni otro hardware.",
+        "reproducibility": "El estudio de caso público no ofrece registros de ejecución, criterios de calidad ni artefactos completos del flujo suficientes para reproducir el experimento en el chip. QCalEval es una evaluación separada de gráficos y no reproduce de manera independiente esta ejecución.",
+        "strongest_baseline": "No se informa una comparación equivalente con especialistas ni con un flujo convencional de calibración."
+      },
+      "title": "IQM informa que un flujo con modelos de visión y lenguaje calibró los 20 qubits de un procesador",
+      "why_it_matters": "Si se pudiera repetir, un modelo que interpreta gráficos de calibración y selecciona mediciones posteriores en hardware cuántico físico podría reducir un cuello de botella de ingeniería especializada. Este único caso informado por un socio no demuestra calidad, ahorro de tiempo ni robustez más allá del chip descrito."
     },
     "FCMO-83062915742D": {
       "claims": [
@@ -29977,6 +30117,61 @@
       "title": "Muchas pérdidas de agentes de bases de datos en producción ocurren después de usar herramientas, y los defectos del servidor cambian las puntuaciones de los modelos",
       "why_it_matters": "Si el resultado se replica, los fallos de agentes con herramientas podrían atribuirse erróneamente a la capacidad del modelo cuando el factor limitante es la interfaz o el servidor; corregir un defecto del entorno puede ayudar a varios modelos a la vez. El estudio cubre un producto y fue escrito por colaboradores del software evaluado; las lecturas seleccionadas antes y después no establecen tamaños de efecto generales."
     },
+    "FCMO-CEB94FE552F9": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "La Oficina General del Consejo de Estado de China publicó la Opinión Guobanfa [2026] n.º 29 el 23 de octubre de 2026; sus metadatos indican que el documento está fechado el 16 de octubre de 2026."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "La opinión establece 18 medidas en seis áreas: promover empleos relacionados con la IA y nuevas ocupaciones; gestionar los efectos laborales de la adopción de IA, incluidos la evaluación de riesgos de aplicaciones potencialmente muy influyentes en ámbitos de acceso al mercado y el apoyo a las transiciones; capacitación; servicios de empleo basados en IA; protecciones laborales y de seguridad social; y monitoreo y respuesta a riesgos de empleo."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "La opinión instruye a los organismos a apoyar el emprendimiento en IA y a las pequeñas y medianas empresas, fomentar la colaboración entre personas y máquinas, gestionar el ritmo de adopción en sectores intensivos en mano de obra, evaluar riesgos de empleo en revisiones pertinentes de proyectos e investigar efectos laborales y distributivos. El fondo nacional de inversión en IA que menciona figura como instrumento existente; no se indica una nueva asignación."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "La publicación establece una orientación de política anunciada, no la fuerza jurídica de cada medida, su implementación local, compromisos presupuestarios, creación o pérdida efectiva de empleos ni resultados medidos del mercado laboral."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "La opinión anuncia una orientación central, pero no establece cómo se implementará cada medida, su fuerza vinculante, los plazos de normas subordinadas, los presupuestos responsables ni el cumplimiento entre provincias.",
+          "kind": "missing_artifact",
+          "state": "open"
+        },
+        {
+          "description": "El texto no mide resultados de empleo, salarios, desplazamiento, recapacitación ni calidad del trabajo.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se implementa en ministerios chinos y gobiernos provinciales, una política de IA centrada en el empleo que abarque creación de puestos, evaluación de riesgos de adopción, apoyo a las transiciones, capacitación y protecciones laborales podría influir considerablemente en la difusión de la IA y el ajuste del mercado laboral de una economía importante. La puntuación expresa la consecuencia posible si se implementa, no evidencia de implementación o resultados.",
+      "limitations": [
+        "La evidencia es el propio texto de política de la Oficina del Consejo de Estado: acredita lo anunciado por el gobierno, pero no que todas las disposiciones sean vinculantes o estén implementadas.",
+        "La opinión describe 18 medidas en seis áreas, pero el texto revisado no fija una meta cuantificada de creación o pérdida de empleos, un presupuesto total ni un plazo uniforme de implementación.",
+        "Menciona el uso del Fondo Nacional de Inversión de la Industria de IA como instrumento existente, pero no anuncia una nueva asignación ni desembolsos para proyectos específicos.",
+        "No mide empleo, salarios, productividad, recapacitación ni distribución; la opinión no demuestra crecimiento neto del empleo ni una reducción de los desplazamientos laborales."
+      ],
+      "relationships": [],
+      "summary": "El 23 de octubre de 2026, la Oficina General del Consejo de Estado de China publicó una opinión (fechada el 16 de octubre) con 18 medidas en seis áreas para responder al desarrollo de la IA con un enfoque favorable al empleo. Propone crear puestos relacionados con IA y capacitar a las personas, además de abordar los riesgos laborales de la adopción, las transiciones de trabajadores, los servicios de empleo, las protecciones laborales y de seguridad social, la distribución del ingreso y el monitoreo. El texto pide evaluar riesgos de empleo en ciertas aplicaciones de IA de alto impacto en ámbitos de acceso al mercado y avanzar con cautela en sectores intensivos en mano de obra. Anuncia una orientación de política; no demuestra implementación, montos de financiamiento ni efectos laborales medidos.",
+      "technical": {
+        "claimed_result": "La opinión expresa objetivos y tareas de política para equilibrar el desarrollo impulsado por IA con empleo de alta calidad: ampliar nuevas ocupaciones relacionadas con IA, apoyar a las pymes, fomentar la colaboración entre personas y máquinas, reducir daños de transición y crear mecanismos para monitorear riesgos de empleo. Son objetivos declarados por el gobierno, no efectos laborales demostrados.",
+        "compute_or_cost": "El texto revisado no especifica un presupuesto total ni una nueva asignación. Menciona el uso del Fondo Nacional de Inversión de la Industria de IA y otros instrumentos de inversión pública existentes con orientación al mercado.",
+        "demonstrated_result": "El portal oficial del Consejo de Estado publica la Opinión Guobanfa [2026] n.º 29, cuyo texto identifica seis áreas de política y 18 tareas. Los metadatos distinguen una fecha del documento, 16 de octubre, de su publicación el 23 de octubre.",
+        "implementation_status": "Opinión central de política dirigida a gobiernos provinciales, ministerios e instituciones directamente afiliadas. Aquí no se establecen normas subordinadas, plazos, ejecución presupuestaria, implementación local ni resultados.",
+        "mechanism": "La opinión combina creación de empleos en el sector de IA y las pymes, colaboración entre personas y máquinas, despliegue gradual en sectores intensivos en mano de obra, evaluación de riesgos para algunas propuestas de IA en ámbitos de acceso al mercado, aviso y apoyo de transición para trabajadores, capacitación, servicios de empleo basados en IA, protecciones laborales y de seguridad social, y monitoreo e investigación del empleo.",
+        "novelty": "La opinión incorpora de forma explícita los efectos sobre el empleo, el apoyo a transiciones laborales y la revisión de riesgos de empleo a la orientación nacional de China sobre IA. No demuestra un método técnico nuevo ni un resultado laboral medido.",
+        "regime": "Orientación nacional de política de la Oficina General del Consejo de Estado de China dirigida a gobiernos provinciales y ministerios centrales; las evaluaciones y ayudas concretas dependen de la implementación futura.",
+        "reproducibility": "El texto de política está disponible en contenido chino indexado del portal oficial del gobierno. Esta revisión no encontró instrumentos subordinados de implementación ni resultados de ejecución.",
+        "strongest_baseline": "La opinión se apoya en el contexto de las políticas chinas existentes sobre IA+ y empleo de alta calidad, y añade un paquete explícito de 18 tareas sobre IA y empleo. Este registro no evalúa cuánto cambia los requisitos legales o planes locales preexistentes."
+      },
+      "title": "China fija una política nacional de empleo ante la IA, con medidas de transición laboral y evaluación de riesgos",
+      "why_it_matters": "La opinión incorpora los efectos sobre el empleo a la política nacional de adopción de IA y vincula su expansión con apoyo a las transiciones laborales, capacitación, protecciones y evaluación de riesgos. Si se implementan, estas directrices podrían influir en los incentivos de despliegue y los costos de ajuste; el documento no fija metas cuantificadas de empleo, una nueva asignación presupuestaria ni un plazo uniforme, y tampoco aporta resultados laborales."
+    },
     "FCMO-CEC57E89F0CF": {
       "claims": [
         {
@@ -32148,6 +32343,60 @@
       },
       "title": "Un artículo de taller presenta AgentMemoryBench para evaluar la memoria continua de agentes",
       "why_it_matters": "La memoria persistente de agentes suele evaluarse con la precisión de la tarea final o la recuperación de diálogo. Este artículo propone pruebas que incluyen actualizaciones en línea, retención, transferencia y reparación, y distinguen procedimientos de datos personales. Si otros equipos las adoptan, podrían revelar fallos que no aparecen en pruebas de recuperación fuera de línea; su adopción, validez y ventaja comparativa aún no están establecidas."
+    },
+    "FCMO-DF0F01B22B17": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "El artículo v1 de arXiv evalúa OLMo-3-7B-Think en SFT, DPO, 13 puntos de control intermedios de RLVR y el punto de control final de RLVR. Usa las mismas 76 tareas de InstrumentalEval, decodificación voraz fija y un juez principal basado en un modelo de lenguaje."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan una trayectoria no monotónica en su puntuación de respuestas similares a convergencia instrumental: 25.00% en SFT, un máximo de 46.05% cerca del paso 200 de RLVR y 11.84% en el punto final. Informan pruebas emparejadas entre extremos y análisis de encuadre, además de una disminución preliminar entre extremos de 35.53% a 22.37% en 32B. Son resultados del benchmark informados por los autores, no una reproducción independiente."
+        },
+        {
+          "label": "DEMONSTRATED_LIMITATION",
+          "text": "El artículo limita sus hallazgos a una familia de modelos OLMo, un benchmark de 76 tareas que mide respuestas y el protocolo de evaluación especificado. El acuerdo medio entre GPT-4o y Gemini 2.0 Flash es 68.75%, con 55.26% cerca del máximo temprano en 7B. Los autores señalan que el resultado no demuestra seguridad amplia, objetivos internos ni efectos generales de RLVR."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "Las puntuaciones de los puntos de control, las pruebas emparejadas y los análisis de encuadre son resultados de los autores y no se reprodujeron de manera independiente en esta activación.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "La trayectoria principal cubre una sola familia OLMo-3; el análisis adicional de 32B compara extremos y no es una segunda trayectoria de puntos de control.",
+          "kind": "regime_unclear",
+          "state": "open"
+        },
+        {
+          "description": "InstrumentalEval mide respuestas observables, no objetivos internos ni comportamiento persistente en despliegue; el acuerdo medio de los dos jueces es 68.75%.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se reproduce, una trayectoria que primero aumenta y después cae por debajo de la línea base cambiaría de manera importante cómo se evalúan los efectos de postentrenamiento basado en verificadores y mostraría que las comparaciones de seguridad entre extremos pueden ocultar cambios no monotónicos. La implicación es relevante para el diseño de evaluaciones, pero el resultado se limita a una familia de modelos, un benchmark y un esquema de jueces basados en modelos de lenguaje con acuerdo moderado.",
+      "limitations": [
+        "Los resultados los informan los autores del artículo; esta activación no ejecutó el análisis ni reprodujo sus resultados de manera independiente.",
+        "La trayectoria principal corresponde a OLMo-3-7B-Think en 76 tareas de InstrumentalEval; el resultado informado para 32B solo compara los extremos.",
+        "La medida captura respuestas similares a razonamiento de convergencia instrumental, no evidencia de objetivos internos, seguridad general o comportamiento en despliegue.",
+        "El acuerdo medio entre los dos jueces es 68.75% y es menor cerca del máximo temprano, por lo que las tasas absolutas requieren cautela.",
+        "El resultado no establece un efecto causal general de RLVR entre modelos, objetivos, recetas de entrenamiento o verificadores."
+      ],
+      "relationships": [],
+      "summary": "Un artículo de arXiv informa un cambio no monotónico en las respuestas similares a convergencia instrumental a través de los puntos de control de postentrenamiento de OLMo-3-7B-Think. En las mismas 76 tareas de InstrumentalEval, la tasa calculada por los autores sube de 25.00% en SFT a 46.05% cerca del paso 200 de RLVR y luego baja a 11.84% en el punto de control final de RLVR. Los resultados preliminares de extremo a extremo en 32B también descienden. El estudio informa controles de encuadre, pero el acuerdo medio entre sus dos jueces basados en modelos de lenguaje es 68.75%. Es un resultado informado por los autores para una familia de modelos y un benchmark; no demuestra objetivos internos, seguridad general ni un efecto general de RLVR.",
+      "technical": {
+        "claimed_result": "Para OLMo-3-7B-Think, los autores informan tasas de 25.00% en SFT, 46.05% cerca del paso 200 de RLVR y 11.84% en el punto final de RLVR, usando 76 tareas de InstrumentalEval. Informan pruebas emparejadas por tarea que favorecen una puntuación final menor que la de SFT, análisis de encuadre que no eliminan la diferencia entre extremos y tasas preliminares en 32B de 35.53% en SFT y 22.37% en RLVR final.",
+        "demonstrated_result": "El preprint primario y su descripción experimental se pueden consultar públicamente. Esta activación no ejecutó el análisis de los autores ni reprodujo por cuenta propia los resultados informados.",
+        "mechanism": "El estudio puntúa respuestas en seis subtareas de InstrumentalEval a través de una secuencia fija de puntos de control de postentrenamiento de OLMo-3, con las mismas 76 tareas y decodificación voraz. Analiza cambios emparejados por tarea, variables de encuadre de las instrucciones y una proyección que elimina una dirección lineal de encuadre detectable; un segundo juez basado en un modelo de lenguaje aporta una comprobación de acuerdo.",
+        "regime": "OLMo-3-7B-Think: SFT, DPO, 13 puntos intermedios de RLVR y el punto final de RLVR; 76 tareas de benchmark, seis categorías de respuestas observables, decodificación voraz, GPT-4o como juez principal y Gemini 2.0 Flash como juez secundario. El análisis de 32B aporta solo resultados preliminares entre SFT y el punto final. Es una sola familia de modelos en un benchmark, no una evaluación de despliegue.",
+        "reproducibility": "El artículo completo informa métodos, valores de los puntos de control, análisis emparejados, instrucciones para los jueces y apéndices. En esta activación no se ejecutó código, no se descargó un paquete de artefactos ni se recalcularon resultados de forma independiente. El acuerdo medio entre jueces es 68.75%; los autores identifican la validación humana como un paso útil.",
+        "strongest_baseline": "Comparación emparejada dentro del mismo modelo, usando las mismas 76 tareas entre SFT, puntos intermedios y RLVR final. Esto controla la composición de tareas, pero no demuestra validez externa ni un efecto causal entre distintas recetas de entrenamiento."
+      },
+      "title": "Estudio de OLMo-3 informa una trayectoria no monotónica de convergencia instrumental durante RLVR",
+      "why_it_matters": "Las comparaciones de seguridad que solo miden el inicio y el final pueden pasar por alto cambios intermedios en el comportamiento del modelo. Este artículo informa un aumento temprano y una disminución posterior de respuestas similares a convergencia instrumental en una secuencia de RLVR, junto con análisis de encuadre y una comprobación con otro juez. Si se reproduce de manera independiente y se extiende a otras familias de modelos, evaluar cada etapa del entrenamiento podría mejorar la medición de los efectos de seguridad del postentrenamiento. El artículo no demuestra que RLVR vuelva más seguros a los modelos en general ni que las respuestas medidas reflejen objetivos internos."
     },
     "FCMO-DF586A4CCA91": {
       "claims": [
@@ -48233,6 +48482,48 @@
         "source_sha256": "4e619d6a2908e0785c0f69eca571c24eaf13c21d8fefffa788b21cf2df67d563"
       }
     },
+    "FCMO-6553FE9DE199": {
+      "claims": {
+        "locale_sha256": "66fb32cf77d08982a894ec97f137d76836854e3f06174b661811e6ce862cc019",
+        "source_sha256": "1b3d7fbcbd86a512acbee80ec5869951a6bfc6b9838290b8fb9cfb41807488b7"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "3724ecad0cfec6180993c6c40972f5ed32938d334c0463a457a9d7867a9a5759",
+        "source_sha256": "231b0d3bc621c0566801d46b7bcfe27cd0c11ef9d008e66f4dfa568e57c416b0"
+      },
+      "importance_rationale": {
+        "locale_sha256": "1d98a06285199f8bb2b7b74f56876f5204ccc733008573e6894e1058fe110f06",
+        "source_sha256": "8c2af14ae2b0f098971aa4a21943a7d64cbab245d8c805a17add254ed70827ad"
+      },
+      "limitations": {
+        "locale_sha256": "93b01c660514a92375f1b70ac081044470a757a79354b9b9b697de3cc8272ed0",
+        "source_sha256": "94c04b653977bfe2fffdc8c33edb3c359d0bcccb439dd8c0193e8feeb3f6f654"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "8568d2a34beaed11fc3668e0e79a0d19d83ce4c50ee437b9dfc0cc86fde29060",
+        "source_sha256": "1540046de97832cd9749cadc0401df2829e4a6f0192759d49b7721833ed20fa6"
+      },
+      "technical": {
+        "locale_sha256": "80b21f9ff20909f04862e039efc801be662fbdff9ba121806826d0915d15b997",
+        "source_sha256": "7cdc39404690a8617d9dc25df950033eb266a474b8ce80f5ba4474370389a096"
+      },
+      "title": {
+        "locale_sha256": "e172210aa1d5efef88e240fff645fac77bc74516821f16ec7fc57c61c23c91a4",
+        "source_sha256": "97a66ad8a04829fdb6844d08316bb4a3f7a202656595f67278d783225c6998ed"
+      },
+      "why_it_matters": {
+        "locale_sha256": "8a2c6d8fd72aa9df418afc69ef42c28ee7ef63ad8e17204398c05b5c24172428",
+        "source_sha256": "7799dab4672918f3e5386b3ec6823bc0cacc9dc146bf0d56204adcc3627509a2"
+      }
+    },
     "FCMO-6560CD72CDEE": {
       "claims": {
         "locale_sha256": "da02b6470681123b9eac6694e6a8a6506c0483419601a8f472ef39647c43b9c7",
@@ -48991,44 +49282,44 @@
     },
     "FCMO-6B54FFB6A297": {
       "claims": {
-        "locale_sha256": "2b4e7a37171bac2a8736c059f3683cf680c09ae9bcd919727f69ccacdd28aa9f",
-        "source_sha256": "c8506c8842691b14987cb2e5aebc2c005ff68947e1bd24b4708a8b45b3a54b4d"
+        "locale_sha256": "7cdc1f509ba6a98ccc1bd4d0b6cc908279783de37162febf87476bf2f8fa4ff2",
+        "source_sha256": "0b23c3fba83ae1ede5a79b8628f380ebef16fb05eafb3c46bbbd031eea3e2aa9"
       },
       "contradictory_evidence": {
         "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
         "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
       },
       "evidence_gaps": {
-        "locale_sha256": "3840a8879f2a32c0d19cc0096eff59aa66fbcb1ab37aada5001cade4f570341b",
-        "source_sha256": "96449044b1a578fe08720895dc54917d8d0b4c33e56a8df094970cd8fd7a32cc"
+        "locale_sha256": "e86e490eca8ab050dbcdeca37eec29fa2650eb77681fe5e96ddd776247653cfc",
+        "source_sha256": "ff34eef07049abfb53de903220ea77215d4762581ae8ed95de432cd3bc9a3978"
       },
       "importance_rationale": {
-        "locale_sha256": "f47cee1d5a51cb3c24bc3e3b93ddbf7404b9cef54d8014ac9fbbbb273bb3fc6c",
+        "locale_sha256": "38042b842e0916db870ef6fa082c4ee5ed07d70d86fa92127a35b9e4bb812707",
         "source_sha256": "2f074e76b44e4f5e9ee736b5c786c83329ea0fbedb2ec91a6c64649647745d1c"
       },
       "limitations": {
-        "locale_sha256": "e138ea3fa41e2a0d3f5fbabbdcd00596476f1277f422811ea1eda4b8d0575f9a",
-        "source_sha256": "7b943c1177c071bed3420d4c7c8508563bcccb73d9313eb8b3af9fc2a6648ccd"
+        "locale_sha256": "71b7875fe48d95fc8cc98de2c29127533697c7e6befbda329d65c43a1335de3b",
+        "source_sha256": "368dc025370ad8a889d74036491c237478c110ebdd8c2dc0c813edb2e8989664"
       },
       "relationships": {
         "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
         "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
       },
       "summary": {
-        "locale_sha256": "4cdd2584386d971c1416d4f72c9a97db2dd9b586f970e0a29fd705eafc0f16c8",
-        "source_sha256": "f8e448dd76cbb77a526881fe460d32f12bed45752e84455388cebff46f2be22e"
+        "locale_sha256": "218abacd3319c10c9219365f41bcacdcd755912a58a322105ed54e051965f81c",
+        "source_sha256": "5cca0c705b41252525c1c79167474086d47e2b94e6c70d0672373bd240706d40"
       },
       "technical": {
-        "locale_sha256": "ef56ea811e2147e8dad59c57134228f354d7039b508b265a3a87d5f43786f8ac",
-        "source_sha256": "668b4bc3ab208e38c667eb81e6902833c592179e107259eb8dbc1d1b0a67f68e"
+        "locale_sha256": "4f6fe0954403e5831c7d1869aa41b77bad29130dac892b08059adbb74e329db0",
+        "source_sha256": "226bcf2516d5a43eae92e51eaf826c919882658a0132bc24f9d5cae8458be439"
       },
       "title": {
-        "locale_sha256": "745a8838e953d3d7b66610f4461576fb098b100d2aed7fedce1e45d089f5a931",
+        "locale_sha256": "3e4e9bd6eaca38b7cd95a78ab7da72a3983e2fa2297e9580be5318cee665b344",
         "source_sha256": "4bb0ffcf6cf9da084a4304d4dfa8cc12297416006efa834f174be6fbc6e818ee"
       },
       "why_it_matters": {
-        "locale_sha256": "c5faab0163fcd99c9e98eec8b489bb3d395462dee539fbd1af08543bdc2968ed",
-        "source_sha256": "1c20dca6f9f2354183ce66fedb84bf9c045ef8f0d3171f451d849b87c35029a5"
+        "locale_sha256": "8ee14c8a1dc6ff40ed20cc4a90b62a0bd564413f9abd34c0c999b99cd9ab823b",
+        "source_sha256": "c60f7a6fc5015f448c52150dc54d23e9fb67bb4dd935a8e0d77a332b4a80f4bb"
       }
     },
     "FCMO-6B6673FA74B4": {
@@ -51353,6 +51644,48 @@
       "why_it_matters": {
         "locale_sha256": "65d0b916073d60e1de4947d998fc51a3b29796b64e7c9b30c5e15f224c050c8a",
         "source_sha256": "ee369deda277fe80c8903f9950add960774f44ffc5c6e7ad69708464d1816391"
+      }
+    },
+    "FCMO-82DCB5F37762": {
+      "claims": {
+        "locale_sha256": "13c53be6f24ae2d55606826a1904647256139d46c3f4611bdeee7768a2adcefa",
+        "source_sha256": "5934c884ba6347470752e2a658298783a0542a324ae1b69b9667ad059a7700eb"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "42ec65897ff0ec98bf90f6abf90746b3b5a86d9d0b45368a798468d8d43eccc5",
+        "source_sha256": "66796c54b24f5de897b656afdf5870aef48459e82c17cc11a601b2ed66d88259"
+      },
+      "importance_rationale": {
+        "locale_sha256": "c9c758beb70c6b7b60d32f0b2bd0a030b5b8d9e0fdf5f4328d01572c3dd91060",
+        "source_sha256": "712d4de7b134b73db076d4af4c6fa47988a049fa0edc05a54d44dfec257c1825"
+      },
+      "limitations": {
+        "locale_sha256": "df3c4ed7a386db7e44ac10a52cb56fc166771daa7595c0e3a8021a60e341630a",
+        "source_sha256": "3528f1d4a53b0ea0ea2d15ecc86ca474bcde5abe0a7ba1b888804d33662b6760"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "f5b45b63639e40114e114082c6aa7df953028e03319982a14b603024453dab3d",
+        "source_sha256": "e2b90ef186607d42fc4ec100948a5be3ede76c00338b595a91e00887c18b6283"
+      },
+      "technical": {
+        "locale_sha256": "12617abefbc5d93fd5841093e18b216fe43f3e5dc495669f43e4ed9f906c0ee5",
+        "source_sha256": "567cd9e33b2ec80d851c39abadbb0579bfc708cd58cb734655df27451476f51c"
+      },
+      "title": {
+        "locale_sha256": "55dcc16c7f848b4053e049524eb72f09b50ae4880fda5e54910b7c73c38bf56d",
+        "source_sha256": "6bc3b18d3b17e0a9094edb6ea272ac4c02dc809cd427b0b8a75a18894d46402a"
+      },
+      "why_it_matters": {
+        "locale_sha256": "51058741b46acf68bb4440afafb483ef5af11dc8c84266c1a976ad38c66309f6",
+        "source_sha256": "31131024b7b97865efd64a3c030ae78b8e881379b3aec9e4134522d71db6855a"
       }
     },
     "FCMO-83062915742D": {
@@ -58873,6 +59206,48 @@
         "source_sha256": "c9f91f90f682f1f6e024f475159f29fe3ca7ef53a40275b0ed11c8e22cc3fa6a"
       }
     },
+    "FCMO-CEB94FE552F9": {
+      "claims": {
+        "locale_sha256": "ecb9e1505fb67094559037116e140f6472cfd84429a3db6143497404751b90d3",
+        "source_sha256": "fc69a2f701add700fab92e5d92634080e92792bd977c68a8c6f83cab0be4c906"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "f9a366891ecde290fb0f05b724e1338017e32eafebb4cb1acfb4fe9cae92a030",
+        "source_sha256": "48ab3cab405dfdf830673ba23892e3782721f2d534c068f73c96abcd919aeacc"
+      },
+      "importance_rationale": {
+        "locale_sha256": "91e09945b7b15819875f47d1607dd489e6ec10142f6fad6106b780b2b25a5fb0",
+        "source_sha256": "901566d6054c61151fed350f49ffc1880ed1704bb265d630a3f8cd94317767b3"
+      },
+      "limitations": {
+        "locale_sha256": "90a9f81a24e4bb439a60902260cdeb3e424b9b8142875c8d813e8069ce5ff68f",
+        "source_sha256": "96c69f053d75b059c9f38d359b5fea6c80c3886fbe2b1965cfda9e565f55068d"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "46d14e6c560bf528fb5e422673ba72c72f041ff8b7ede50c317c4cd395982d50",
+        "source_sha256": "9edcc2093c40f4043bffbcf3d6712de26fecf7b142f09dc745191c01fb38a59b"
+      },
+      "technical": {
+        "locale_sha256": "47fcc25353d70987365efcdccc73eac709c41b5ce66a8fb47333ed2ef37cf8a5",
+        "source_sha256": "ebc8a521db61f0727f3551691cfbe8ea502bba8f66aacbc3618966c9c4f4044a"
+      },
+      "title": {
+        "locale_sha256": "8d5aa5ca57b16e78d7d66c31ec247306d52446b6f13448c75e39a37918ca801f",
+        "source_sha256": "1266d757562544408ad0ecac4baed14ae495a365e9733f9d5d2ece15a0256785"
+      },
+      "why_it_matters": {
+        "locale_sha256": "eb12439a3e7bb47ab8e6fb0b06024297735ee77e34a95a62a10bbb2b07d232d3",
+        "source_sha256": "7e0655d6746072a5aa1c5e35f56087b2f66f399ac505c20499dccd96d0ec043d"
+      }
+    },
     "FCMO-CEC57E89F0CF": {
       "claims": {
         "locale_sha256": "703b5fcfe746a79174e129409b8f0989f6e905f8973623ee0089162953e1c6b6",
@@ -60523,6 +60898,48 @@
       "why_it_matters": {
         "locale_sha256": "3eb3cfce19fd8b3b74896853ba5f08d8aa19b6ce4ce0d18ff5dd39e9c1a4d70e",
         "source_sha256": "4f1ec293734501686fb6f995cb90a0a258f8dc91f540dc8ac200f7602b7acd81"
+      }
+    },
+    "FCMO-DF0F01B22B17": {
+      "claims": {
+        "locale_sha256": "4ec8f6afb2b9e94a5117046603aa5dd215c37ea1e4141b8d4be3be69c2e31753",
+        "source_sha256": "d01c499301aae736712b0d56e5f1a2315cd0d492cbcc721217cc26624062ec31"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "01e7f6f33ebca5fcfa4ed65e1881dfd731134c146b53c35a086219b7dd256f02",
+        "source_sha256": "ced55475fc8e53d270502939b9c7b286874bf0e9e9a803c4d46846268801cf34"
+      },
+      "importance_rationale": {
+        "locale_sha256": "5d80e90db36845bb4f1a2b1964eb8632763f5a4d6a8c7d1ed23dea71574e2ff8",
+        "source_sha256": "4a6449d9764420f681a0ca7b007d9bdaec7726d85f61ba13e4bcdadab7ef81da"
+      },
+      "limitations": {
+        "locale_sha256": "69c5df696eaf31bf4969dd5025ac3ab866602a1046a5f8544f8cb558d6d9deb9",
+        "source_sha256": "cc15c4a1e35d68899a091b7bd5b7dbfd9d29d4e9059447879794b712af79f183"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "bab67451eed2a260bbb6101f8bfdf06d8cd6ac2745d0854db5209e4dc93511e4",
+        "source_sha256": "5b8f34e6ef22ca0e6707e0f5709e948d44f37e0a320e0a9717c66578c2f8c7ed"
+      },
+      "technical": {
+        "locale_sha256": "d5a2e6d644bcddf92690a942256892a13d8e96a3d67e8038ee9569186b523dd4",
+        "source_sha256": "3f897469c6fb7a33e3a1f4eb301d5ca60319a2730e793b798f075d5e6fed9530"
+      },
+      "title": {
+        "locale_sha256": "edfd402499fdc2d933112692a6d5621aa501f2e132244120f5f6117b8730e900",
+        "source_sha256": "4b24a294a67b4631d0c3b15aa8d82fb1354310a22f7e53ca79f6bed1fb253df0"
+      },
+      "why_it_matters": {
+        "locale_sha256": "81d9bbd9b085bb87e583e81d4eb47cbacc3482fbd7290ef6b36ef66f60ac14d1",
+        "source_sha256": "8bd9066e8b922a5bf7ef3dc3a986b0fbb506af95b6ec14a2285f128d879461bd"
       }
     },
     "FCMO-DF586A4CCA91": {

@@ -29,6 +29,7 @@ LOCALES = ('en', 'es-419', 'zh-Hans')
 
 
 class StudioEmailSeamTests(unittest.TestCase):
+    @patch.dict(os.environ, {'FCMO_EMAIL_ENABLED': 'true'})
     def test_approved_piece_reaches_dispatch_and_readonly_studio_feedback_once(self):
         with tempfile.TemporaryDirectory(dir=ROOT/'_audit') as tmp:
             root = Path(tmp); store = Store(root/'studio')

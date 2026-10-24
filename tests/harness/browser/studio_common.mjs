@@ -20,7 +20,16 @@ export async function session (base, { viewport = { width: 1440, height: 900 }, 
   page.setDefaultTimeout(Math.max(30000, previewTimeout))
   const errors = []
   page.on('pageerror', e => errors.push('pageerror: ' + String(e).slice(0, 300)))
-  page.on('console', m => { if (m.type() === 'error' && !/status of 401|ERR_INTERNET_DISCONNECTED/.test(m.text())) errors.push(m.text().slice(0, 300)) })
+  page.on('console', m => { if (m.type() === 'error' && !/status of 4\d\d|ERR_INTERNET_DISCONNECTED/.test(m.text())) errors.push(m.text().slice(0, 300)) })
+  // Chrome logs every 4xx as an anonymous console error. Judge them here, with URL and body: the only
+  // expected ones are the handled plain-language refusals of prepare-translations (no provider, incomplete text).
+  page.on('response', async r => {
+    if (r.status() < 400 || r.status() === 401) return
+    const where = `${r.status()} ${r.request().method()} ${r.url().replace(/^https?:\/\/[^/]+/, '')}`
+    const body = (await r.text().catch(() => '')).slice(0, 200)
+    if (/\/prepare-translations$/.test(r.url()) && r.status() === 400 && body.includes('error_plain')) return
+    errors.push(`http ${where} ${body}`)
+  })
   await page.goto(base)
   await page.waitForSelector('#u')
   await page.fill('#u', user); await page.fill('#p', pass); await page.click('button[type=submit]')

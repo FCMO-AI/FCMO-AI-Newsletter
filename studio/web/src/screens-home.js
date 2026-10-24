@@ -70,12 +70,12 @@ export async function home (root) {
     h('div', { class: 'home-head' }, h('div', null, h('p', { class: 'eyebrow' }, 'fCMO / Studio'), h('h1', null, t('home.hello', { name: me.name }))),
       h('div', { class: 'home-actions' }, h('button', { class: 'btn primary big', type: 'button', onclick: () => newPieceDialog('essay') }, '+ ', t('home.new')),
         h('button', { class: 'btn', type: 'button', onclick: () => newPieceDialog('letter') }, t('home.letter')), h('button', { class: 'btn', type: 'button', onclick: () => newPieceDialog('note') }, t('home.note')))),
-    search, body, subscriptionPanel(), h('button', { class: 'btn small', onclick: rollbackDialog }, t('amend.rollback'))), { active: 'home' }))
+    search, body, subscriptionPanel(), h('details', { class: 'block advanced' }, h('summary', null, t('adv.title')), h('p', { class: 'muted' }, t('adv.rollback.hint')), h('button', { class: 'btn small', onclick: rollbackDialog }, t('amend.rollback')))), { active: 'home' }))
   return null
 }
 
 function subscriptionPanel () {
-  const summary = h('div', { role: 'status' }, t('sub.unread'))
+  const summary = h('div', { role: 'status' }, t('sub.idle'))
   const button = h('button', { class: 'btn small', type: 'button', onclick: async () => {
     button.disabled = true
     try {

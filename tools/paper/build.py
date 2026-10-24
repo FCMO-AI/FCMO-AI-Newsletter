@@ -58,6 +58,8 @@ ROOT = Path(__file__).resolve().parents[2]
 from tools.publication_freshness import publication_status, reader_status
 BEATS = ("technology", "business", "policy", "society", "research")
 LISTING_PAGE_SIZE = 100
+STORY_DEK_COLUMNS = 480  # eight 60ch lines of the tablet/desktop header dek; the dek is hidden under 761px
+LANDING_DEK_COLUMNS = 300  # the receipt column holds it; the hero title and its next line are in the other column
 
 SEARCH_JS = r'''(()=>{const f=document.querySelector('[data-search-form]'),q=document.querySelector('[data-search-input]'),o=document.querySelector('[data-search-results]');if(!f)return;const sg=document.querySelector('[data-search-suggest]');let rows,pending,serial=0;const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));const lang=()=>(document.documentElement||{}).lang||'';const cut=(t,n=/^zh/i.test(lang())?100:220)=>{if(t.length<=n)return t;let e=0;try{for(const g of new Intl.Segmenter(lang()||undefined,{granularity:'word'}).segment(t)){if(g.index+g.segment.length>n)break;e=g.index+g.segment.length}}catch{e=Math.max(t.lastIndexOf(' ',n),0)}return t.slice(0,e||n).replace(/[\s,;:.\u3001\u3002\uff0c\uff1b\uff1a!?\uff01\uff1f-]+$/,'')+'\u2026'};const suggest=on=>{if(sg)sg.hidden=!on};const go=async value=>{const run=++serial,term=String(value).trim().toLocaleLowerCase();if(!term){o.innerHTML='';suggest(true);return}if(!rows){o.textContent=o.dataset.loading;try{pending??=Promise.all((f.dataset.shards?JSON.parse(f.dataset.shards):[f.dataset.index]).map(url=>fetch(url).then(r=>{if(!r.ok)throw Error(r.status);return r.json()}))).then(parts=>parts.flat());rows=await pending}catch{pending=undefined;if(run===serial)o.textContent=o.dataset.error;return}}if(run!==serial)return;try{const u=new URL(location.href);u.searchParams.set('q',String(value).trim());history.replaceState(null,'',u)}catch{}const all=rows.filter(x=>[x.h,x.d,x.b,...x.o,...x.t,x.search_text||''].join(' ').toLocaleLowerCase().includes(term)),hits=all.slice(0,30);suggest(!hits.length);const tpl=all.length===1?o.dataset.resultsOne:all.length>hits.length?o.dataset.resultsMore:o.dataset.resultsFor,head=hits.length&&tpl?`<p class="search-count">${esc(tpl.replace('{count}',()=>all.length).replace('{shown}',()=>hits.length).replace('{query}',()=>String(value).trim()))}</p>`:'';o.innerHTML=hits.length?head+hits.map(x=>`<article class="story-card"><span class="card-meta">${esc(x.b)}${x.f?' · '+esc(x.f):''}</span><h2><a href="${esc(x.u)}">${esc(x.h)}</a></h2><p>${esc(cut(x.d))}</p>${x.w?`<p class="evrow list-evrow"><span class="chip chip-${esc(x.k||'gap')}"><span class="sample sample-${esc(x.k||'gap')}" aria-hidden="true"></span><span class="chip-word"><strong>${esc(x.w)}</strong></span></span></p>`:''}</article>`).join(''):`<p>${esc(o.dataset.empty.replace('{query}',term))}</p>`};f.addEventListener('submit',e=>{e.preventDefault();return go(q.value)});f.addEventListener('input',()=>go(q.value));try{const init=new URLSearchParams(location.search).get('q');if(init){q.value=init;go(init)}}catch{}})()'''
 
@@ -77,6 +79,14 @@ def copy_public_tree(source: Path, target: Path) -> None:
 
 
 
+MISSING_MEDIA_PLACEHOLDER = (
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900">'
+    '<rect width="1600" height="900" fill="#e8e8e8"/>'
+    '<text x="800" y="450" font-family="sans-serif" font-size="48" text-anchor="middle" fill="#666">'
+    'Imagen no disponible en esta vista previa</text></svg>'
+)
+
+
 # A jump link that targets something inside a closed <details> (the technical layer) must open it.
 JUMP_OPEN_SCRIPT = ('<script>(()=>{const o=()=>{const t=location.hash&&document.getElementById(decodeURIComponent(location.hash.slice(1)));'
                     'const d=t&&t.closest("details");if(d){d.open=true;t.scrollIntoView()}};'
@@ -85,6 +95,8 @@ JUMP_OPEN_SCRIPT = ('<script>(()=>{const o=()=>{const t=location.hash&&document.
 
 
 class PaperBuilder:
+    allow_missing_story_media = False
+
     def __init__(self, *, stories_path: Path, status_path: Path, out: Path, base: str,
                  editorial_path: Path | None = None, og_source: Path | None = None,
                  citation_history: Path | None = None) -> None:
@@ -435,7 +447,7 @@ class PaperBuilder:
             "title": lead_title,
             "title_class": lead_class,
             "href": self._story_href(locale, first),
-            "dek": truncate(dek(first, locale["code"], catalog), 170),
+            "dek": first_sentence(dek(first, locale["code"], catalog), LANDING_DEK_COLUMNS, clause=True),
             "glyph": evidence_glyph(first, catalog),
             "grade": label(catalog, "evidence_class", first.get("evidence_class")),
             "confidence": label(catalog, "confidence", first.get("confidence")),
@@ -574,7 +586,7 @@ class PaperBuilder:
             technical_fields = technical_fields if isinstance(technical_fields, dict) else {}
             topic_nav = self._topic_pair(story, locale)
             c6_page = story_view(
-                story=story, catalog=catalog, code=code, title=title, dek_text=first_sentence(dek(story, code, catalog), 320),
+                story=story, catalog=catalog, code=code, title=title, dek_text=first_sentence(dek(story, code, catalog), STORY_DEK_COLUMNS, clause=True), dek_full=first_sentence(dek(story, code, catalog), 10_000),
                 beat_label=label(catalog, "beat", story.get("beat")), home_href=href(self.base, locale["path_prefix"]),
                 evidence=evidence, summary=field(story, code, "summary"), why=field(story, code, "why_it_matters"),
                 technical=technical_fields, status_html=status_chip(self.status, catalog),
@@ -1108,7 +1120,13 @@ class PaperBuilder:
             if target.is_file():
                 continue
             if not source.is_file():
-                raise ValueError(f"referenced story media is missing: site/{local}")
+                if not self.allow_missing_story_media:
+                    raise ValueError(f"referenced story media is missing: site/{local}")
+                # Private previews read a corpus that moves hourly while the host
+                # checkout may lag: a visible placeholder, never a failed build.
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_text(MISSING_MEDIA_PLACEHOLDER, encoding="utf-8")
+                continue
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(source, target)
 
