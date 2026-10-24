@@ -576,7 +576,7 @@ class Publisher:
                             # GitHub computes mergeability lazily after main moves: an inconclusive read (or a stale-base one)
                             # is infrastructure, retried with backoff. GitHub always sends the key (null while computing); a read without it carries no staleness signal. Only a clean, mergeable read makes this a real refusal.
                             if ('mergeable' in fresh and fresh['mergeable'] is not True) or fresh.get('mergeable_state') in ('unknown', 'behind', 'dirty'):
-                                data.pop('intent', None); data.pop('intent_at', None)
+                                data.pop('intent', None); data.pop('intent_at', None); data.pop('effect_retries', None)
                                 raise Infra('La base pública avanzó; se republicará sobre la nueva.') from None
                             raise
                     def observed_merge():

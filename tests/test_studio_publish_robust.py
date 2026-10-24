@@ -505,3 +505,22 @@ class PublicationFixes(RobustBase):
         pub = self.pub()
         self.assertTrue(pub['payload'].get('halted')); self.assertTrue(pub['payload'].get('unknown'))
         self.assertNotIn(pub['state'], ('merged', 'published')); self.assertNotIn('merge_sha', pub['payload'])
+
+    def test_infra_exit_of_merge_clears_effect_retries_for_a_fresh_count(self):
+        self.approved(); self.tick_until('checks_green')
+        mock = self.mock; calls = []
+        def lost_then_unreadable(user, num, head):
+            calls.append(num)
+            if len(calls) <= 3: raise UnknownEffect('lost')
+            pr = mock.prs[num]; pr['mergeable'] = None; pr['mergeable_state'] = 'unknown'
+            raise Refused('GitHub no permitió publicar.')
+        with patch.object(self.github, 'merge', side_effect=lost_then_unreadable):
+            self.publisher.advance(self.slug)
+            for _ in range(2):
+                self.now += 301; self.publisher.advance(self.slug)
+            self.assertEqual(self.pub()['payload'].get('effect_retries'), 2)
+            self.now += 301; self.publisher.advance(self.slug)
+        pub = self.pub()
+        self.assertEqual(pub['payload'].get('infra_retries'), 1); self.assertNotIn('intent', pub['payload'])
+        self.assertNotIn('effect_retries', pub['payload'], 'the Infra exit starts a fresh count for the next merge attempt')
+        self.assertNotIn(pub['state'], ('failed', 'published'))
