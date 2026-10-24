@@ -11,7 +11,7 @@ import unittest
 from unittest.mock import patch
 from studio.translation import FakeProvider
 from studio.server.storage import Store, git
-from studio.server.publishing import GitHub, Workspace, Publisher, Refused
+from studio.server.publishing import GitHub, Workspace, Publisher, Refused, UnknownEffect, Infra
 from tests.harness.mock_github import MockGitHub
 from tests.test_studio_storage import DOC, ROOT
 
@@ -22,9 +22,21 @@ class World(MockGitHub):
     def __init__(self):
         super().__init__()
         self.runs = None; self.descends = {}; self.merge_files = None; self.codeowners = True
+        self.strict = False; self.repush_fault = None; self.enforce_strict = False; self.base_of = {}
         self.unprotected_merge = False; self.conflict_once = False; self.account_id = {'javier': 111, 'matias': 222}
     def dispatch(self, actor, method, path, query, body):
         route = path.removeprefix(PREFIX)
+        if route == '/rules/branches/main' and not self.strict:
+            status, rules = super().dispatch(actor, method, path, query, body)
+            for r in rules:
+                if r['type'] == 'required_status_checks': r['parameters'].pop('strict_required_status_checks_policy')
+            return status, rules
+        if route.startswith('/pulls/') and self.enforce_strict:
+            number = int(route.split('/')[2]) if route.count('/') >= 2 else 0; pr = self.prs.get(number)
+            behind = bool(pr) and self.base_of.get(pr['head']['ref']) not in (None, self.refs['main'])
+            if route.endswith('/merge') and behind: return 405, {'message': 'Head branch is not up to date with base branch'}
+            if route.count('/') == 2 and behind and pr:
+                value = dict(pr); value['mergeable_state'] = 'behind'; return 200, value
         if path == '/user' and actor: return 200, {'login': actor, 'id': self.account_id[actor]}
         if route.startswith('/compare/'):
             pair = tuple(route.removeprefix('/compare/').split('...'))
@@ -47,7 +59,7 @@ class World(MockGitHub):
             value['mergeable'] = False
         return status, value
 
-class Robust(unittest.TestCase):
+class RobustBase(unittest.TestCase):
     def setUp(self):
         provider = patch('studio.translation.configured_provider', return_value=FakeProvider())
         provider.start(); self.addCleanup(provider.stop)
@@ -68,9 +80,13 @@ class Robust(unittest.TestCase):
         class MockWorkspace(Workspace):
             def push(self, pub):
                 data = pub['payload']; paths = git(Path(data['candidate']), 'diff', '--name-only', 'refs/remotes/origin/main', 'HEAD').splitlines()
+                mock.base_of[data['branch']] = git(Path(data['candidate']), 'rev-parse', 'HEAD^')
                 self.github.request(data['author'], 'POST', '/git/refs', {'ref': 'refs/heads/' + data['branch'], 'sha': data['head_sha'], 'paths': paths})
             def repush(self, pub, old):
-                data = pub['payload']; mock.refs[data['branch']] = data['head_sha']; mock.prs[data['pr_number']]['head']['sha'] = data['head_sha']; mock.conflict_once = False
+                data = pub['payload']; mock.base_of[data['branch']] = git(Path(data['candidate']), 'rev-parse', 'HEAD^')
+                if mock.repush_fault == 'before': mock.repush_fault = None; raise UnknownEffect('lost before')
+                mock.refs[data['branch']] = data['head_sha']; mock.prs[data['pr_number']]['head']['sha'] = data['head_sha']; mock.conflict_once = False
+                if mock.repush_fault == 'after': mock.repush_fault = None; raise UnknownEffect('lost after')
         self.workspace = MockWorkspace(self.store, self.github, ['python3', '-c', 'raise SystemExit(0)'])
         self.publisher = Publisher(self.store, self.github, self.workspace, lambda value: [{'ok': True}])
         self.mock.live_id = self.store.payload(self.slug)['piece']['id']
@@ -103,6 +119,7 @@ class Robust(unittest.TestCase):
             self.publisher.advance(self.slug)
         self.fail('never reached ' + state)
 
+class Robust(RobustBase):
     def test_main_moves_every_step_still_publishes(self):
         self.approved(); first_base = None
         def churn():
@@ -280,6 +297,95 @@ class Robust(unittest.TestCase):
         self.assertEqual(self.store.piece(self.slug)['state'], 'publishing')
         before = self.mock.count('GET', '/runs'); self.publisher.advance(self.slug); self.assertEqual(self.mock.count('GET', '/runs'), before)
 
+
+class StrictAndInfra(RobustBase):
+    def check_clean(self, pub):
+        self.assertNotIn('failed', [t['state'] for t in pub['payload']['timeline']])
+        self.assertNotEqual(self.store.piece(self.slug)['state'], 'changes_requested')
+
+    def test_strict_not_required_and_behind_branch_publishes(self):
+        # The measured ruleset has no up-to-date requirement; the host enforces it anyway on the merge.
+        self.mock.enforce_strict = True
+        self.approved(); self.tick_until('checks_green'); self.move_main()
+        pub = self.run_to('published'); self.check_clean(pub)
+        self.assertEqual(self.mock.count('POST', '/reviews'), 2)
+
+    def test_strict_ruleset_still_declared_behind_branch_replays(self):
+        self.mock.strict = True; self.mock.enforce_strict = True
+        self.approved(); self.tick_until('checks_green'); self.move_main()
+        pub = self.run_to('published'); self.check_clean(pub)
+
+    def test_merge_405_behind_is_replayed_not_failed(self):
+        # Even when the PR read does not yet say "behind", a 405 on the merge is a stale base.
+        self.mock.enforce_strict = True
+        self.approved(); self.tick_until('checks_green'); self.move_main()
+        real = self.github.pr; calls = {'n': 0}
+        def pr(user, number):
+            value = real(user, number); calls['n'] += 1
+            if calls['n'] <= 2 and value: value = {k: v for k, v in value.items() if k != 'mergeable_state'}
+            return value
+        with patch.object(self.github, 'pr', side_effect=pr):
+            pub = self.run_to('published')
+        self.check_clean(pub)
+
+    def replay_fault(self, where):
+        self.approved(); self.tick_until('checks_green'); tree = self.pub()['payload']['content_tree']
+        self.move_main(); self.mock.conflict_once = True; self.mock.repush_fault = where
+        seen = []
+        for _ in range(3):
+            self.publisher.advance(self.slug); pub = self.pub(); seen.append(pub['state'])
+            self.assertNotIn(pub['state'], ('failed',)); self.assertNotEqual(self.store.piece(self.slug)['state'], 'changes_requested')
+        pub = self.run_to('published'); self.check_clean(pub)
+        self.assertEqual(git(Path(pub['payload']['candidate']), 'rev-parse', 'HEAD:' + pub['payload']['rel']), tree)
+        self.assertEqual(self.mock.refs[pub['payload']['branch']], pub['payload']['head_sha'])
+        self.assertNotIn('replay', pub['payload'])
+        return seen
+
+    def test_replay_push_lost_before_reaching_github_is_retried(self): self.replay_fault('before')
+    def test_replay_push_lost_after_reaching_github_is_reconciled(self): self.replay_fault('after')
+
+    def test_replay_branch_changed_by_a_stranger_halts_without_failing(self):
+        self.approved(); self.tick_until('checks_green')
+        self.move_main(); self.mock.conflict_once = True; self.mock.repush_fault = 'before'
+        self.publisher.advance(self.slug)
+        self.mock.refs[self.pub()['payload']['branch']] = 'a' * 40
+        self.publisher.advance(self.slug); pub = self.pub()
+        self.assertTrue(pub['payload'].get('halted')); self.assertNotEqual(pub['state'], 'failed')
+        self.assertNotEqual(self.store.piece(self.slug)['state'], 'changes_requested')
+
+    def test_transient_read_error_in_reviewed_is_infrastructure(self):
+        self.approved(); self.tick_until('reviewed')
+        real = self.github.checks; calls = {'n': 0}
+        def checks(user, head):
+            calls['n'] += 1
+            if calls['n'] == 1: raise Infra('GitHub no respondió bien. Se reintentará.')
+            return real(user, head)
+        with patch.object(self.github, 'checks', side_effect=checks):
+            self.publisher.advance(self.slug)
+            self.assertEqual(self.pub()['state'], 'reviewed'); self.assertNotEqual(self.store.piece(self.slug)['state'], 'changes_requested')
+            pub = self.run_to('published')
+        self.check_clean(pub)
+
+class CLITransientReads(unittest.TestCase):
+    def call(self, method, stderr=None, error=None):
+        import subprocess
+        from studio.server.credentials import GitHubCLI
+        run = subprocess.CompletedProcess([], 1, '', stderr or '')
+        with patch('studio.server.credentials.subprocess.run', side_effect=error, return_value=run):
+            return GitHubCLI().call('javier', method, 'repos/x/y')
+    def test_transient_get_errors_are_infra_not_refusals(self):
+        import subprocess
+        for stderr in ('gh: Bad Gateway (HTTP 502)', 'gh: rate limited (HTTP 429)', 'gh: Service Unavailable (HTTP 503)', 'dial tcp: i/o timeout'):
+            with self.assertRaises(Infra, msg=stderr): self.call('GET', stderr)
+        with self.assertRaises(Infra): self.call('GET', error=subprocess.TimeoutExpired('gh', 30))
+        with self.assertRaises(Infra): self.call('GET', error=FileNotFoundError('gh'))
+    def test_definite_get_answers_keep_their_meaning(self):
+        self.assertIsNone(self.call('GET', 'gh: Not Found (HTTP 404)'))
+        for stderr in ('gh: Forbidden (HTTP 403)', 'gh: Unauthorized (HTTP 401)'):
+            with self.assertRaises(Refused) as ctx: self.call('GET', stderr)
+            self.assertNotIsInstance(ctx.exception, Infra)
+    def test_writes_stay_unknown(self):
+        with self.assertRaises(UnknownEffect): self.call('POST', 'gh: Bad Gateway (HTTP 502)')
 
 class RehearsalGuard(unittest.TestCase):
     def build(self, **env):

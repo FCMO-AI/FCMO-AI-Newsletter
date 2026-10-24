@@ -3,7 +3,7 @@ import json
 import os
 from pathlib import Path
 import subprocess
-from .publishing import GitHub, Refused, UnknownEffect
+from .publishing import GitHub, Infra, Refused, UnknownEffect
 
 NAMES = {'javier': 'Javier', 'matias': 'Matías'}
 CREDENTIAL_ROOT = Path('/srv') / 'fcmo' / 'secrets' / 'studio'
@@ -38,10 +38,15 @@ class GitHubCLI(GitHub):
         try:
             run = subprocess.run(command, input=None if body is None else json.dumps(body), env=self.environment(user), capture_output=True, text=True, timeout=30)
         except (OSError, subprocess.SubprocessError):
-            if method == 'GET': raise Refused('Falta la credencial gh o no se pudo comprobar.') from None
+            # A read that could not run (timeout, gh missing) is infrastructure: retried, never a verdict on the text.
+            if method == 'GET': raise Infra('No se pudo consultar GitHub con gh. Se reintentará.') from None
             raise UnknownEffect('La respuesta de publicación no está confirmada.') from None
         if run.returncode:
             if method == 'GET' and 'HTTP 404' in run.stderr: return None
+            if method == 'GET' and (any('HTTP ' + str(code) in run.stderr for code in (500, 502, 503, 504, 408, 429))
+                                    or any(w in run.stderr.lower() for w in ('timeout', 'timed out', 'connection', 'dial tcp', 'no such host', 'eof', 'temporarily'))):
+                # Transient server, rate-limit or network trouble on a read: infrastructure, not content.
+                raise Infra('GitHub no respondió bien. Se reintentará.')
             if method != 'GET' and any(x in run.stderr for x in ('HTTP 500', 'HTTP 502', 'HTTP 503', 'HTTP 504', 'HTTP 408', 'HTTP 429')):
                 raise UnknownEffect('La respuesta de publicación no está confirmada.')
             if method != 'GET' and not any('HTTP ' + str(code) in run.stderr for code in (400, 401, 403, 404, 405, 409, 422)):

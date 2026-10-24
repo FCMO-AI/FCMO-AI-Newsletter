@@ -435,3 +435,11 @@ in this lane.
 - `studio/server/http.py`: no API to resume a publication that stopped with `halted` (3 infrastructure retries used, or an out-of-piece merge diff). L4/L5 can read `payload.halted` / `payload.unknown`; an operator resume (clear `halted`, `infra_retries`, `retry_after`) needs a small endpoint or CLI.
 - `STUDIO_PUBLISH_REPO` is honoured only with `STUDIO_REHEARSAL=1`; `live_base` for a rehearsal repo has no Pages, so a rehearsal must keep `STUDIO_LIVE_ENABLED` unset or accept that `live()` cannot confirm.
 - Env budgets (seconds): `STUDIO_GATE_BUDGET_S` (3600), `STUDIO_DEPLOY_BUDGET_S` (14400), `STUDIO_LIVE_BUDGET_S` (21600); `STUDIO_PROTECTION_MODE=github|studio` (default github).
+
+## L1 follow-up: studio/server/credentials.py
+
+`GitHubCLI.call` now raises `Infra` (a `Refused` subclass) for a failed GET that is transient (HTTP 5xx/408/429,
+gh timeout or missing, network wording). 404 still returns None; 401/403 stay `Refused`. The file is outside the
+original L1 ownership; the change is minimal and covered by `CLITransientReads` in `tests/test_studio_publish_robust.py`.
+Also: the public ruleset must not be required to carry `strict_required_status_checks_policy`; if it does, Studio
+replays the approved bytes on the new main when the PR reports `behind`.

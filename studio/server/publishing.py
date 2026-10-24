@@ -134,7 +134,9 @@ class GitHub:
         pulls = [r.get('parameters', {}) for r in rules if r.get('type') == 'pull_request']
         checks = [r.get('parameters', {}) for r in rules if r.get('type') == 'required_status_checks']
         good_pull = any(p.get('required_approving_review_count', 0) >= 1 and p.get('require_code_owner_review') and p.get('require_last_push_approval') and p.get('dismiss_stale_reviews_on_push') for p in pulls)
-        good_check = any(p.get('strict_required_status_checks_policy') and any(c.get('context') == 'publish-gate' for c in p.get('required_status_checks', [])) for p in checks)
+        # No "strict" (up-to-date) requirement: the confined-diff and merge-diff checks replace base equality,
+        # and a ruleset that still has it is served by replaying the approved bytes on the new main.
+        good_check = any(any(c.get('context') == 'publish-gate' for c in p.get('required_status_checks', [])) for p in checks)
         if not (good_pull and good_check): return False
         source_ids = {r.get('ruleset_id') for r in rules if r.get('type') in ('pull_request', 'required_status_checks')}
         if not source_ids or None in source_ids: return False
@@ -443,6 +445,24 @@ class Publisher:
         found = observe()
         if not found: raise UnknownEffect('La respuesta de publicación no está confirmada.')
         update(found); data.pop('intent', None); data.pop('unknown', None); self._write(pub, name, ''); return True
+    def _start_replay(self, pub):
+        """Record the replay (old and new head) durably BEFORE the push; the branch is the witness afterwards."""
+        data = pub['payload']; old = data['head_sha']
+        moved = self.workspace.recreate(pub)
+        data.update(moved); data['replay'] = {'old': old, 'new': moved['head_sha']}; data['intent'] = 'replay'
+        self._write(pub)
+    def _finish_replay(self, pub):
+        """Reconcile a replay by observing the branch: new head = done, old head = push again, anything else = halt for a person."""
+        data = pub['payload']; user = data['author']; replay = data['replay']; gh = self.github
+        seen = gh.branch(user, data['branch'])
+        if seen == replay['old']:
+            self.workspace.repush(pub, replay['old']); seen = gh.branch(user, data['branch'])
+            if seen != replay['new']: raise UnknownEffect('No se pudo confirmar el envío. Se comprobará antes de repetirlo.')
+        if seen != replay['new']:
+            data['halted'] = True; data['unknown'] = True
+            self._write(pub, error='La rama pública cambió por fuera de Studio. Matías debe revisarla; el texto aprobado sigue intacto.'); return
+        for key in ('replay', 'intent', 'unknown', 'checks_started'): data.pop(key, None)
+        self._write(pub, 'pushed', '')
     def _infra(self, pub, exc):
         """Infrastructure trouble: retry with backoff while the approved content is unchanged; never ask for a new approval."""
         data = pub['payload']; n = data.get('infra_retries', 0) + 1; data['infra_retries'] = n
@@ -511,6 +531,9 @@ class Publisher:
                         data.pop('checks_started', None); raise Infra('Las comprobaciones públicas tardan más de lo normal.')
                     else: self._write(pub)
                 elif state == 'checks_green':
+                    if data.get('replay'): self._finish_replay(pub); return self.get(value)
+                    # Local candidate must equal the recorded head even after a crash between replaying and recording it.
+                    git(Path(data['candidate']), 'reset', '-q', '--hard', data['head_sha'])
                     pr = gh.pr(user, data['pr_number'])
                     if not pr or pr['head']['sha'] != data['head_sha']: raise Refused('La versión pública cambió; pide una nueva revisión.')
                     if not pr.get('merged'):
@@ -518,11 +541,18 @@ class Publisher:
                         # The base may have moved: what must hold is that only the approved bytes differ.
                         self.workspace.verify_confined(pub)
                         self._protection(pub)
-                        if pr.get('mergeable') is False:
-                            # A real conflict: replay the same bytes on the new main and take the gate again.
-                            old = data['head_sha']; data.update(self.workspace.recreate(pub)); self.workspace.repush(pub, old)
-                            data.pop('checks_started', None); self._write(pub, 'pushed', ''); return self.get(value)
-                    self._effect(pub, 'merged', lambda: (p if (p := gh.pr(user, data['pr_number'])) and p.get('merged') else None), lambda: gh.merge(user, data['pr_number'], data['head_sha']), lambda r: data.update(merge_sha=r['merge_commit_sha']))
+                        if pr.get('mergeable') is False or pr.get('mergeable_state') == 'behind':
+                            # A conflict, or a branch behind main: replay the same bytes on the new main and take the gate again.
+                            self._start_replay(pub); self._finish_replay(pub); return self.get(value)
+                    def merge():
+                        try: gh.merge(user, data['pr_number'], data['head_sha'])
+                        except Refused as exc:
+                            # A refusal because main moved under a strict ruleset is a stale base, not a content error.
+                            fresh = gh.pr(user, data['pr_number']) or {}
+                            if fresh.get('mergeable_state') == 'behind' or fresh.get('mergeable') is False:
+                                data.pop('intent', None); raise Infra('La base pública avanzó; se republicará sobre la nueva.') from None
+                            raise
+                    self._effect(pub, 'merged', lambda: (p if (p := gh.pr(user, data['pr_number'])) and p.get('merged') else None), merge, lambda r: data.update(merge_sha=r['merge_commit_sha']))
                 elif state == 'merged':
                     if 'merge_diff' not in data and not self._merge_diff(pub):
                         data['halted'] = True; data['unknown'] = True
