@@ -169,6 +169,11 @@ def _decimal_number(raw, loc=None):
         raise InvalidOperation
     return Decimal(sign + value)
 
+def numeric_key(raw):
+    """Locale-independent, hashable value of one digit token (shared with the paper build)."""
+    try: return format(_decimal_number(raw).normalize(), 'f')
+    except InvalidOperation: return raw
+
 def canonical_number(key):
     """Stable, orderable text for a number_values key (value, percent, sign)."""
     value, percent, sign = key
