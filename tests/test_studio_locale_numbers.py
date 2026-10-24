@@ -31,6 +31,13 @@ class NumberValueTests(unittest.TestCase):
     def test_argentine_style(self):
         self.assertTrue(passes('es-419', 'Cuesta 4.200 pesos, el 3,5 % más.', 'en', 'It costs 4,200 pesos, 3.5% more.'))
 
+    def test_target_locale_forms(self):
+        self.assertFalse(passes('es-419', 'Cuesta 4,200 dólares.', 'en', 'It costs 4.200 dollars.'))
+        self.assertTrue(passes('es-419', 'Cuesta 4,200 dólares.', 'en', 'It costs 4,200 dollars.'))
+        self.assertFalse(passes('es-419', 'Subió 3,5 %.', 'en', 'It rose 3,5%.'))
+        self.assertTrue(passes('es-419', 'Subió 3,5 %.', 'en', 'It rose 3.5%.'))
+        self.assertFalse(passes('es-419', 'Cuesta 4,200 dólares.', 'zh-Hans', '花费4.200美元。'))
+
     def test_chinese_magnitude(self):
         self.assertTrue(passes('es-419', 'Son 42,000 personas.', 'zh-Hans', '共有4.2万人。'))
 

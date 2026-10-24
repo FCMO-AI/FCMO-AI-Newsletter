@@ -201,6 +201,26 @@ def number_values(text, loc=None):
 # es billón = 10^12, en billion = 10^9. When both sides name such a scale, they must agree.
 _BARE_SCALE_RE = re.compile(r'(?<![\d.,])\s*\b(?:un|una|one|a)?\s*(mil\s+millones|bill(?:ón|on|ones)|billions?|trillions?)\b|(?<![\d.,])(万亿|十亿)', re.I)
 
+_LITERAL_EN = re.compile(r'(\d{1,3}(?:,\d{3})+|\d+)(\.\d+)?')
+
+def misread_numbers(text, loc):
+    """Numbers that an en or zh-Hans reader would read differently from their value.
+
+    In these locales the comma only groups thousands and the period is the decimal
+    mark, so 4.200 reads as 4.2 and 3,5 is not a number. Values stay compared across
+    locales; this only constrains how the target writes them."""
+    if loc not in ('en', 'zh-Hans'): return []
+    bad = []
+    for match in _NUMBER_RE.finditer(text):
+        raw = match.group('number')
+        if 'e' in raw.lower(): continue
+        try: value = _decimal_number(raw, loc)
+        except InvalidOperation: continue
+        digits = raw.lstrip('+-\u2212')
+        literal = _LITERAL_EN.fullmatch(digits)
+        if not literal or Decimal(digits.replace(',', '')) != abs(value): bad.append(raw)
+    return bad
+
 def _bare_scales(node):
     found = Counter()
     for match in _BARE_SCALE_RE.finditer(_text(node)):
@@ -260,6 +280,8 @@ def validate_translation(source, target, loc):
                 or _dates(original) != _dates(translated) or _years(original) - _years(translated)
                 or (_bare_scales(original) and _bare_scales(translated) and set(_bare_scales(original)) != set(_bare_scales(translated)))):
             raise TranslationError('La traducción cambió una cifra o fecha del original.')
+        if misread_numbers(_text(translated), loc):
+            raise TranslationError('En este idioma los miles se separan con coma y los decimales con punto: una cifra se leería distinto del original.')
         if _urls(original) != _urls(translated):
             raise TranslationError('La traducción cambió un enlace del original.')
         a, b = _text(original), _text(translated)
