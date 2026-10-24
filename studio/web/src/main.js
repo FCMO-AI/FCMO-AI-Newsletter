@@ -26,47 +26,87 @@ export function cycleTheme () {
 }
 applyTheme()
 
+// GitHub connection: a three-step guide for a non-technical person. The banner re-renders only when
+// what it shows changes, so a click, a copied code or a focused button is never wiped by the 3 s poll.
+const ghUi = { checking: false, notYet: false, opened: false, wasMissing: false, doneAt: 0, code: '' }
+const refreshReadiness = () => { const b = document.getElementById('publication-readiness'); return b ? updateReadiness(b) : Promise.resolve() }
 async function updateReadiness (banner) {
   try {
     const state = await get('/api/publication-readiness')
     if (!banner.isConnected) return
     const own = state.credentials.find(c => c.user === session.me.user)
-    const connection = own && !own.ready ? await get('/api/github/connect') : null
+    const missing = !!(own && !own.ready)
+    const connection = missing ? await get('/api/github/connect') : null
     if (!banner.isConnected) return
+    if (missing) ghUi.wasMissing = true
+    else if (ghUi.wasMissing) { ghUi.wasMissing = false; ghUi.doneAt = Date.now(); ghUi.checking = false; ghUi.notYet = false; ghUi.opened = false }
+    if (connection?.code !== ghUi.code) { ghUi.code = connection?.code || ''; ghUi.notYet = false; ghUi.opened = false }
+    const justDone = !missing && Date.now() - ghUi.doneAt < 8000
+    const sig = JSON.stringify([document.documentElement.lang, state.credentials.map(c => [c.user, c.ready, c.plain_es]), connection, state.dry_run, state.live_enabled, ghUi.checking, ghUi.notYet, ghUi.opened, justDone])
+    if (banner.dataset.sig === sig) return
+    banner.dataset.sig = sig
     const content = []
+    if (justDone) content.push(h('p', { class: 'gh-done' }, h('span', { class: 'gh-tick', 'aria-hidden': 'true' }, '✓'), ' ', t('gh.done')))
     for (const credential of state.credentials.filter(c => !c.ready)) {
       if (credential.user === session.me.user) content.push(githubConnectCard(connection))
       else content.push(h('p', null, document.documentElement.lang === 'en' ? credential.plain_en : credential.plain_es))
     }
     if (state.dry_run || !state.live_enabled) content.unshift(h('p', null, t('pub.private.mode')))
     banner.replaceChildren(...content)
+    banner.classList.toggle('has-guide', !!banner.querySelector('.gh-connect, .gh-done'))
     banner.hidden = !banner.childElementCount
   } catch { /* Authentication errors are handled by the shared API. */ }
 }
+async function confirmTyped () {
+  ghUi.checking = true; ghUi.notYet = false
+  await refreshReadiness()
+  await new Promise(resolve => setTimeout(resolve, 1500)) // the login finishes a moment after GitHub accepts the code
+  await refreshReadiness()
+  ghUi.checking = false
+  if (document.querySelector('#publication-readiness .gh-connect[data-state="waiting"]')) ghUi.notYet = true
+  await refreshReadiness()
+}
+async function requestCode (button) {
+  if (button) button.disabled = true
+  ghUi.notYet = false; ghUi.opened = false
+  try { await post('/api/github/connect') } catch { /* the card shows the error state on the next read */ }
+  await refreshReadiness()
+}
 function githubConnectCard (connection) {
   const state = connection?.state || 'idle'
-  const status = state === 'ready' ? t('gh.ready') : state === 'waiting' ? t('gh.waiting') :
-    state === 'timeout' ? t('gh.timeout') : state === 'cancelled' ? t('gh.cancelled') :
-      state === 'error' ? t('gh.error') : state === 'starting' ? t('gh.starting') : ''
-  const controls = []
-  if (state === 'idle' || state === 'timeout' || state === 'cancelled' || state === 'error') {
-    controls.push(h('button', { class: 'btn gh-connect-start', type: 'button', onclick: async e => {
-      e.currentTarget.disabled = true
-      try { await post('/api/github/connect'); await updateReadiness(document.getElementById('publication-readiness')) }
-      catch { e.currentTarget.disabled = false }
-    } }, t('gh.connect')))
+  const who = session.me.other
+  const head = (title, lead) => [h('h2', { class: 'gh-title' }, title), lead ? h('p', { class: 'gh-lead' }, lead) : null]
+  const again = label => h('button', { class: 'btn primary gh-connect-start', type: 'button', onclick: e => requestCode(e.currentTarget) }, label)
+  let body
+  if (state === 'waiting' && connection.code) {
+    const open = connection.url === 'https://github.com/login/device'
+    const step = (n, title, hint, control, current) => h('li', { class: 'gh-step' + (current ? ' current' : ''), 'aria-current': current ? 'step' : null },
+      h('span', { class: 'gh-n', 'aria-hidden': 'true' }, String(n)),
+      h('div', { class: 'gh-step-body' }, h('strong', null, title), h('span', { class: 'gh-hint' }, hint), control))
+    body = [...head(t('gh.guide.title'), t('gh.waiting')),
+      h('ol', { class: 'gh-steps' },
+        step(1, t('gh.step1'), t('gh.step1.hint'), open ? h('a', { class: 'btn gh-device-link' + (ghUi.opened ? '' : ' primary'), href: connection.url, target: '_blank', rel: 'noopener noreferrer', onclick: () => { ghUi.opened = true } }, t('gh.open'), ' ↗') : null, !ghUi.opened),
+        step(2, t('gh.step2'), t('gh.step2.hint'), h('div', { class: 'gh-code-row' },
+          h('strong', { class: 'gh-device-code', 'aria-label': t('gh.code') }, connection.code),
+          h('button', { class: 'btn', type: 'button', onclick: async () => { try { await navigator.clipboard.writeText(connection.code); toast(t('gh.copied')) } catch { toast(t('gh.copyError')) } } }, t('gh.copy'))), ghUi.opened),
+        step(3, t('gh.step3'), t('gh.step3.hint'), h('div', { class: 'gh-confirm' },
+          h('button', { class: 'btn' + (ghUi.opened ? ' primary' : ''), type: 'button', disabled: ghUi.checking, onclick: () => confirmTyped() }, ghUi.checking ? t('gh.checking') : t('gh.step3')),
+          ghUi.notYet ? h('p', { class: 'gh-notyet', role: 'status' }, t('gh.notyet')) : null), false)),
+      h('button', { class: 'link-btn', type: 'button', onclick: async () => { try { await del('/api/github/connect') } catch {} await refreshReadiness() } }, t('gh.cancel'))]
+  } else if (state === 'starting' || (state === 'waiting' && !connection.code)) {
+    body = [...head(t('gh.guide.title'), t('gh.starting'))]
+  } else if (state === 'ready') {
+    body = [...head(t('gh.guide.title'), t('gh.checking'))]
+  } else if (state === 'timeout') {
+    body = [...head(t('gh.expired.title'), t('gh.expired.body')), again(t('gh.newcode'))]
+  } else if (state === 'cancelled') {
+    body = [...head(t('gh.cancelled.title'), t('gh.cancelled.body')), again(t('gh.newcode'))]
+  } else if (state === 'error') {
+    body = [...head(t('gh.error.title'), t('gh.error.body', { who })), again(t('gh.newcode'))]
+  } else {
+    body = [...head(t('gh.guide.title'), t('gh.guide.lead')), again(t('gh.guide.start'))]
   }
-  if (connection?.code && state === 'waiting') {
-    controls.push(h('strong', { class: 'gh-device-code', 'aria-label': t('gh.code') }, connection.code))
-    controls.push(h('button', { class: 'btn', type: 'button', onclick: async () => {
-      try { await navigator.clipboard.writeText(connection.code); toast(t('gh.copied')) } catch { toast(t('gh.copyError')) }
-    } }, t('gh.copy')))
-    if (connection.url === 'https://github.com/login/device') controls.push(h('a', { class: 'btn gh-device-link', href: connection.url, target: '_blank', rel: 'noopener noreferrer' }, t('gh.open')))
-    controls.push(h('button', { class: 'link-btn', type: 'button', onclick: async () => { try { await del('/api/github/connect'); await updateReadiness(document.getElementById('publication-readiness')) } catch {} } }, t('gh.cancel')))
-  }
-  return h('div', { class: 'gh-connect', 'data-state': state },
-    h('p', null, status || (document.documentElement.lang === 'en' ? connection?.plain_en : connection?.plain_es) || t('gh.missing')),
-    h('div', { class: 'gh-connect-controls' }, controls))
+  return h('div', { class: 'gh-connect', 'data-state': state }, body)
 }
 setInterval(() => {
   const banner = document.getElementById('publication-readiness')

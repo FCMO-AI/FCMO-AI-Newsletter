@@ -213,6 +213,16 @@ export async function publishScreen (root, slug) {
   const readiness = await get('/api/publication-readiness').catch(() => null)
   const privateReview = !readiness || readiness.dry_run || !readiness.live_enabled
   const emailOn = !!(readiness && readiness.email_enabled)
+  const emailWillGo = emailOn && meta.meta?.distribution?.email === true
+  if (meta.kind !== 'issue' && meta.author === session.me.user && ['approved', 'publishing'].includes(meta.state)) { location.hash = `#/p/${slug}/progress`; return null }
+  if (meta.kind !== 'issue' && meta.author === session.me.user && meta.state === 'in_review') {
+    root.append(shell(h('div', { class: 'flow pub' }, crumbs(slug, meta.title, t('ed.publish')), h('h1', null, t('pub.wait.title')), h('p', { class: 'lede', role: 'status' }, t('pub.wait.lead', { who: other() })),
+      h('div', { class: 'sheet wait' }, h('h2', null, t('pub.wait.next')),
+        h('ol', { class: 'wait-steps' }, ['pub.wait.s1', 'pub.wait.s2', 'pub.wait.s3'].map(k => h('li', null, t(k, { who: other() })))),
+        meta.kind !== 'issue' ? h('p', { class: 'email-state' }, t(emailWillGo ? 'pub.email.state.on' : 'pub.email.state.no')) : null,
+        h('div', { class: 'btn-row' }, h('a', { class: 'btn primary', href: '#/' }, t('pub.wait.home')), h('a', { class: 'btn', href: `#/p/${slug}/${meta.source_locale}` }, t('pub.wait.read'))))), { active: 'home' }))
+    return null
+  }
   const box = h('div', { class: 'pub-checks' })
   const act = h('div', { class: 'btn-row' })
   async function draw () {
@@ -232,19 +242,22 @@ export async function publishScreen (root, slug) {
     const bad = list.list.filter(c => !c.ok && !c.approval_satisfiable)
     const mt = LOCS.filter(l => (meta.locales[l] || {}).state === 'ready' && ((meta.locales[l] || {}).origin || '').startsWith('agent_') && !(meta.locales[l] || {}).reviewed)
     if (mt.length) box.append(h('p', { class: 'notice soft' }, t('pub.machine', { langs: mt.map(l => LOCALE_NAME[l]).join(', ') })))
-    const ask = h('button', { class: 'btn primary big', type: 'button', disabled: bad.length > 0 || meta.author !== session.me.user, onclick: async () => { try { await post(`/api/pieces/${slug}/review/request`); toast(t('pub.sent', { who: other() })); location.hash = '#/' } catch { toast(t('err.generic'), 'bad') } } }, t('pub.ask'))
+    const ask = h('button', { class: 'btn primary big', type: 'button', disabled: bad.length > 0 || meta.author !== session.me.user, onclick: async e => { e.currentTarget.disabled = true; try { await post(`/api/pieces/${slug}/review/request`); toast(t('pub.sent', { who: other() })); route() } catch (err) { e.currentTarget.disabled = bad.length > 0; toast(err.data?.error_plain || t('pub.askfail'), 'bad') } } }, t('pub.ask'))
     act.append(ask, h('button', { class: 'btn', type: 'button', onclick: draw }, t('pub.rerun'))); if (bad.length) act.append(h('span', { class: 'muted' }, t('pub.blocked', { n: bad.length })))
   }
   const mount = () => root.append(shell(h('div', { class: 'flow pub' }, crumbs(slug, meta.title, t('ed.publish')), h('h1', null, t('pub.title', { title: meta.title })), h('p', { class: 'lede' }, t('pub.lead', { who: other() })),
     h('div', { class: 'sheet' }, h('p', { class: 'notice soft' }, t(privateReview ? 'rev.private.confirm' : 'pub.public')),
-      meta.kind !== 'issue' ? h('section', { class: 'distribution' }, h('h2', null, t('pub.destinations')),
-        h('p', null, t('pub.site')), h('p', null, t('pub.feeds')),
-        h('label', { class: 'check' }, h('input', { type: 'checkbox', checked: emailOn && meta.meta?.distribution?.email === true, disabled: !emailOn || meta.author !== session.me.user || !['draft', 'changes_requested', 'amending'].includes(meta.state), onchange: async e => {
+      meta.kind !== 'issue' ? h('section', { class: 'email-banner', 'data-on': String(emailWillGo) }, h('h2', null, t('pub.email.q')),
+        h('p', { class: 'dest' }, t('pub.site'), ' ', t('pub.feeds')),
+        h('label', { class: 'check' }, h('input', { type: 'checkbox', checked: emailWillGo, disabled: !emailOn || meta.author !== session.me.user || !['draft', 'changes_requested', 'amending'].includes(meta.state), onchange: async e => {
           e.target.disabled = true
+          const banner = e.target.closest('.email-banner')
           try { const result = await put(`/api/pieces/${slug}/distribution`, { base_rev: meta.head_rev, email: e.target.checked }); meta.head_rev = result.rev; meta.meta.distribution = result.distribution; await draw() }
           catch (err) { e.target.checked = !e.target.checked; toast(err.data?.error_plain || t('err.generic'), 'bad') }
-          finally { e.target.disabled = false }
-        } }), ' ', t('pub.email')), h('p', { class: 'hint' }, t(emailOn ? 'pub.email.after' : 'pub.email.off'))) : null,
+          finally { e.target.disabled = false; const on = e.target.checked; banner.dataset.on = String(on); banner.querySelector('.email-state').textContent = t(on ? 'pub.email.state.on' : 'pub.email.state.no') }
+        } }), ' ', t('pub.email.yes')),
+        h('p', { class: 'email-state', role: 'status' }, t(emailWillGo ? 'pub.email.state.on' : 'pub.email.state.no')),
+        h('p', { class: 'hint' }, t(emailOn ? 'pub.email.after' : 'pub.email.off'))) : null,
       h('h2', null, t('pub.threshold')), h('p', null, t('pub.approval', { who: other() })), box, h('p', { class: 'reviewer' }, h('span', { class: 'avatar' }, other()[0]), t('pub.reviewer', { who: other() })), act)), { active: 'home' }))
   mount()
   await draw()
@@ -257,6 +270,8 @@ export async function reviewScreen (root, slug) {
   const readiness = await get('/api/publication-readiness').catch(() => null)
   const privateReview = !readiness || readiness.dry_run || !readiness.live_enabled
   const approveText = t(privateReview ? 'rev.private.approve' : 'rev.approve')
+  const emailLine = meta.kind === 'issue' ? '' : !readiness ? t('rev.email.unknown') : t(readiness.email_enabled && meta.meta?.distribution?.email === true ? 'rev.email.on' : 'rev.email.off')
+  const emailOnReview = !!readiness && readiness.email_enabled && meta.meta?.distribution?.email === true && meta.kind !== 'issue'
   const mine = meta.author === session.me.user
   const st = { loc: meta.source_locale, size: innerWidth < 700 ? '390' : '1440', theme: 'light' }
   const stage = h('div', { class: 'rv-read' }); const diffBox = h('div', { class: 'rv-diff' }); const cmtBox = h('div', { class: 'rv-cmt' })
@@ -297,39 +312,143 @@ export async function reviewScreen (root, slug) {
   const tabBar = h('div', { class: 'seg rv-tabs', role: 'tablist' })
   function showTab (k) { tab = k; clear(tabBar); [['read', t('rev.preview')], ['diff', t('rev.changes.tab')], ['cmt', t('rev.comments')]].forEach(([id, l]) => tabBar.append(h('button', { type: 'button', role: 'tab', class: id === tab ? 'on' : '', 'aria-selected': String(id === tab), onclick: () => showTab(id) }, l))); for (const id of tabs) panes[id].hidden = id !== tab }
   const note = h('textarea', { rows: 2, placeholder: t('rev.note', { who: meta.author === 'javier' ? 'Javier' : 'Matías' }), 'aria-label': t('rev.note', { who: meta.author }) })
-  const act = mine ? h('p', { class: 'notice soft' }, t('rev.own'), ' ', t('rev.waiting', { who: other() })) : h('div', { class: 'rv-act' }, note, h('div', { class: 'btn-row' },
-    h('button', { class: 'btn primary big', type: 'button', disabled: !readiness || !(readiness.dry_run || readiness.live_enabled), onclick: () => modal({ title: approveText, body: h('p', null, t(privateReview ? 'rev.private.confirm' : 'rev.confirm')), actions: [{ label: t('common.cancel') }, { label: approveText, kind: 'primary', onclick: async close => { await post(`/api/pieces/${slug}/review/approve`, { note: note.value }); close(); location.hash = `#/p/${slug}/progress` } }] }) }, approveText),
+  const act = mine ? h('p', { class: 'notice soft' }, t('rev.own'), ' ', t('rev.waiting', { who: other() })) : h('div', { class: 'rv-act' }, note,
+    emailLine ? h('p', { class: 'email-note' + (emailOnReview ? ' on' : ''), role: 'status' }, emailLine) : null,
+    privateReview ? null : h('p', { class: 'hint' }, t('rev.time')),
+    h('div', { class: 'btn-row' },
+    h('button', { class: 'btn primary big', type: 'button', disabled: !readiness || !(readiness.dry_run || readiness.live_enabled), onclick: () => modal({ title: approveText, body: [h('p', null, t(privateReview ? 'rev.private.confirm' : 'rev.confirm')), emailLine ? h('p', { class: 'email-note' + (emailOnReview ? ' on' : '') }, emailLine) : null], actions: [{ label: t('common.cancel') }, { label: approveText, kind: 'primary', onclick: async close => { await post(`/api/pieces/${slug}/review/approve`, { note: note.value }); close(); location.hash = `#/p/${slug}/progress` } }] }) }, approveText),
     h('button', { class: 'btn big', type: 'button', onclick: async () => { await post(`/api/pieces/${slug}/review/changes`, { note: note.value }); toast(t('rev.sent', { who: meta.author === 'javier' ? 'Javier' : 'Matías' })); location.hash = '#/' } }, t('rev.changes'))))
   drawRead(); drawDiff(); drawCmt(); showTab('read')
-  root.append(shell(h('div', { class: 'flow rv' }, crumbs(slug, meta.title, t('rev.preview')), h('h1', null, t('rev.title', { title: meta.title })), tabBar, h('div', { class: 'rv-panes' }, stage, diffBox, cmtBox), !readiness ? h('div', { class: 'notice soft', role: 'status' }, h('p', null, t('pub.mode.unread')), h('button', { class: 'btn', type: 'button', onclick: () => route() }, t('pub.rerun'))) : null, act), { active: 'home', wide: true }))
+  root.append(shell(h('div', { class: 'flow rv' }, crumbs(slug, meta.title, t('rev.preview')), h('h1', null, t('rev.title', { title: meta.title })), mine ? null : h('p', { class: 'hint narrow-only' }, t('rev.phone.hint')), tabBar, h('div', { class: 'rv-panes' }, stage, diffBox, cmtBox), !readiness ? h('div', { class: 'notice soft', role: 'status' }, h('p', null, t('pub.mode.unread')), h('button', { class: 'btn', type: 'button', onclick: () => route() }, t('pub.rerun'))) : null, act), { active: 'home', wide: true }))
   return () => frame && frame.destroy()
 }
 
 /* ---------------- progress (S7) ---------------- */
+// The server reports many technical states; Javier sees six plain stages. The wording never names a tool.
+const STAGES = [
+  { id: 'approved', states: ['approved'] },
+  { id: 'checks', states: ['candidate'] },
+  { id: 'prepare', states: ['pushed', 'pr_open', 'reviewed', 'checks_green'] },
+  { id: 'site', states: ['merged'] },
+  { id: 'verify', states: ['deployed', 'deployed_unverified'] },
+  { id: 'live', states: ['published'] }
+]
+const stageOf = state => STAGES.findIndex(s => s.states.includes(state))
+const clock = iso => { const d = new Date(iso); return isNaN(d) ? '' : d.toLocaleTimeString(document.documentElement.lang === 'en' ? 'en' : 'es', { hour: '2-digit', minute: '2-digit' }) }
+function span (ms) {
+  const s = Math.max(0, Math.floor(ms / 1000))
+  if (s < 60) return `${s} s`
+  const m = Math.floor(s / 60)
+  if (m < 60) return `${m} min`
+  return `${Math.floor(m / 60)} h ${String(m % 60).padStart(2, '0')} min`
+}
+function liveThumb (slug, loc) {
+  const box = h('div', { class: 'pub-thumb', 'data-loc': loc, lang: loc }, h('span', { class: 'pub-thumb-fallback', 'aria-hidden': 'true' }, LOCALE_SHORT[loc]))
+  const frame = h('iframe', { src: `/preview/${slug}/${loc}/?w=1440&theme=light`, title: t('prog.thumb', { lang: LOCALE_NAME[loc] }), loading: 'lazy', sandbox: 'allow-same-origin', tabindex: '-1', 'aria-hidden': 'true' })
+  frame.addEventListener('load', () => {
+    let doc = null; try { doc = frame.contentDocument } catch {}
+    if (doc && doc.contentType === 'text/html') box.classList.add('has-frame')
+  })
+  box.append(frame)
+  return box
+}
 export async function progressScreen (root, slug) {
   const meta = await get(`/api/pieces/${slug}`)
-  const box = h('div', { class: 'timeline' }); const head = h('h1', null, t('prog.title')); let alive = true; let tm
+  const authorName = meta.author === 'javier' ? 'Javier' : 'Matías'
+  const mine = meta.author === session.me.user
+  const box = h('div', { class: 'timeline' })
+  const head = h('h1', null, t('prog.title'))
+  let alive = true; let tm; let tick; let startedMs = 0; let lastOk = Date.now(); let netDown = false; let lastP = null
+  const ticker = h('p', { class: 'prog-pulse muted', role: 'status', 'aria-live': 'off' })
+  function paintTicker () {
+    if (!alive) return
+    const parts = []
+    if (netDown) parts.push(t('prog.net'))
+    else {
+      const ago = Date.now() - lastOk
+      parts.push(ago < 1500 ? t('prog.alive.now') : t('prog.alive', { span: span(ago) }))
+    }
+    if (startedMs && lastP && !['published', 'failed'].includes(lastP.state)) parts.unshift(t('prog.elapsed', { span: span(Date.now() - startedMs) }))
+    ticker.textContent = parts.join(' · ')
+    for (const el of box.querySelectorAll('[data-since]')) el.textContent = span(Date.now() - Number(el.dataset.since))
+  }
   async function poll () {
     if (!alive) return
-    let p; try { p = await get(`/api/pieces/${slug}/publication`) } catch { tm = setTimeout(poll, 3000); return }
+    let p
+    try { p = await get(`/api/pieces/${slug}/publication`); lastOk = Date.now(); netDown = false } catch { netDown = true; paintTicker(); tm = setTimeout(poll, 3000); return }
+    lastP = p
+    draw(p)
+    paintTicker()
+    if (p.state === 'published' && p.email?.state === 'pending') tm = setTimeout(poll, 30000)
+    else if (!['published', 'failed'].includes(p.state)) tm = setTimeout(poll, startedMs && Date.now() - startedMs > 60000 ? 4000 : 1500)
+  }
+  function draw (p) {
     clear(box)
-    if (p.state === 'draft' && !(p.timeline || []).length) {
-      box.append(h('div', { class: 'empty-state' }, h('h2', null, t('prog.empty.title')), h('p', null, t('prog.empty.lead', { who: meta.author === session.me.user ? other() : meta.author === 'javier' ? 'Javier' : 'Matías' })),
-        h('ol', null, ['prog.empty.s1', 'prog.empty.s2', 'prog.empty.s3', 'prog.empty.s4'].map(k => h('li', null, t(k, { who: other() })))),
-        meta.author === session.me.user ? h('a', { class: 'btn primary', href: `#/p/${slug}/publish` }, t('prog.empty.go')) : null))
+    const timeline = p.timeline || []
+    if (p.state === 'draft' && !timeline.length) {
+      box.append(h('div', { class: 'empty-state' }, h('h2', null, t('prog.empty.title')), h('p', null, t('prog.empty.lead', { who: mine ? session.me.other : authorName })),
+        h('ol', null, ['prog.empty.s1', 'prog.empty.s2', 'prog.empty.s3', 'prog.empty.s4'].map(k => h('li', null, t(k, { who: session.me.other })))),
+        mine ? h('a', { class: 'btn primary', href: `#/p/${slug}/publish` }, t('prog.empty.go')) : null))
       return
     }
-    box.append(h('ol', { class: 'steps' }, (p.timeline || []).map(s => h('li', { class: s.state === 'failed' ? 'failed' : 'done' }, h('span', { class: 'dot', 'aria-hidden': 'true' }, s.state === 'failed' ? '!' : '✓'), h('span', null, s.plain_es)))))
+    const first = timeline.map(s => Date.parse(s.at)).filter(Number.isFinite)
+    startedMs = first.length ? Math.min(...first) : startedMs || Date.now()
+    const failed = p.state === 'failed'
+    const unsure = !!p.uncertain || p.state === 'uncertain'
+    const seen = Math.max(-1, ...timeline.map(s => stageOf(s.state)), stageOf(p.state))
+    const current = p.state === 'published' ? STAGES.length - 1 : Math.max(0, seen)
+    const when = idx => { const hit = timeline.filter(s => STAGES[idx].states.includes(s.state)).map(s => Date.parse(s.at)).filter(Number.isFinite); return hit.length ? Math.min(...hit) : 0 }
+    const label = (id) => ({
+      approved: mine ? t('prog.s.approved.by', { who: session.me.other }) : t('prog.s.approved.me'),
+      checks: t('prog.s.checks'), prepare: t('prog.s.prepare'), site: t('prog.s.site'), verify: t('prog.s.verify'), live: t('prog.s.live')
+    })[id]
+    const running = !failed && p.state !== 'published'
+    if (running) box.append(h('p', { class: 'prog-lead' }, t('prog.lead.running')))
+    if (running) box.append(ticker)
+    box.append(h('ol', { class: 'steps prog-steps' }, STAGES.map((stage, i) => {
+      const done = p.state === 'published' ? true : i < current
+      const active = i === current && !done
+      const bad = active && failed
+      const at = when(i)
+      const note = []
+      if (active && !bad && stage.id === 'site') note.push(t('prog.s.site.hint'))
+      if (active && !bad && p.state === 'deployed_unverified') note.push(t('prog.s.verify.slow'))
+      return h('li', { class: bad ? 'failed' : done ? 'done' : active ? 'active' : '', 'aria-current': active && !bad ? 'step' : null },
+        h('span', { class: 'dot', 'aria-hidden': 'true' }, bad ? '!' : done ? '✓' : ''),
+        h('span', { class: 'step-text' }, h('span', { class: 'step-label' }, label(stage.id)),
+          note.map(n => h('span', { class: 'step-note' }, n)),
+          done && at ? h('time', { class: 'step-note', datetime: new Date(at).toISOString() }, t('prog.at', { time: clock(at) })) : null,
+          active && !bad && at ? h('span', { class: 'step-note' }, t('prog.since', { time: clock(at) }), ' · ', h('span', { 'data-since': String(at) }, span(Date.now() - at))) : null),
+        null)
+    })))
     if (p.email?.state === 'queued') box.append(h('p', { class: 'result ok' }, t('prog.email.queued')))
     else if (p.email?.state === 'pending') box.append(h('p', { class: 'muted' }, t('prog.email.pending')))
-    if (p.state === 'published') box.append(h('div', { class: 'result ok' }, h('h2', null, t('prog.done')), h('p', null, t('prog.live')), h('ul', null, (p.urls || []).map(u => h('li', null, h('a', { href: u.url, target: '_blank', rel: 'noopener' }, u.url)))), h('a', { class: 'btn', href: '#/' }, t('prog.home'))))
-    else if (p.state === 'failed') box.append(h('div', { class: 'result bad' }, h('h2', null, t('prog.failed')), h('p', null, p.error_plain), h('a', { class: 'btn', href: `#/p/${slug}/${meta.source_locale}` }, t('attn.open'))))
-    else tm = setTimeout(poll, 1500)
-    if (p.state === 'published' && p.email?.state === 'pending') tm = setTimeout(poll, 30000)
+    if (unsure && running) {
+      box.append(h('div', { class: 'result unsure', role: 'status' }, h('h2', null, t('prog.unsure.title')), h('p', null, t('prog.unsure.body', { who: 'Matías' })),
+        h('button', { class: 'btn', type: 'button', onclick: () => { clearTimeout(tm); poll() } }, t('prog.unsure.again'))))
+    }
+    if (p.state === 'published') {
+      const urls = p.urls || []
+      box.append(h('div', { class: 'result ok done-card' }, h('h2', null, t('prog.done')), h('p', null, t('prog.done.lead')),
+        h('ul', { class: 'live-links' }, urls.map(u => h('li', { class: 'live-link' },
+          liveThumb(slug, u.locale || 'es-419'),
+          h('div', { class: 'live-link-body' }, h('strong', null, LOCALE_NAME[u.locale] || u.locale), h('a', { class: 'btn', href: u.url, target: '_blank', rel: 'noopener noreferrer' }, t('prog.open'), ' ↗'))))),
+        h('a', { class: 'btn ghost', href: '#/' }, t('prog.home'))))
+    } else if (failed) {
+      const maybeLive = seen >= stageOf('merged')
+      box.append(h('div', { class: 'result bad', role: 'alert' }, h('h2', null, t('prog.fail.title')),
+        h('p', null, maybeLive ? t('prog.fail.maybe', { who: session.me.other }) : t('prog.fail.safe')),
+        p.error_plain ? h('details', { class: 'fail-detail' }, h('summary', null, t('prog.fail.detail')), h('p', null, p.error_plain)) : null,
+        h('div', { class: 'btn-row' },
+          mine && !maybeLive ? h('a', { class: 'btn primary', href: `#/p/${slug}/publish` }, t('prog.fail.retry')) : null,
+          h('a', { class: 'btn', href: `#/p/${slug}/${meta.source_locale}` }, t('pub.wait.read'))),
+        !maybeLive ? h('p', { class: 'hint' }, mine ? t('prog.fail.ask', { who: session.me.other }) : t('prog.fail.askauthor', { who: authorName })) : null))
+    }
   }
-  poll()
   root.append(shell(h('div', { class: 'flow prog' }, crumbs(slug, meta.title, t('prog.title')), head, h('p', { class: 'lede' }, meta.title), box), { active: 'home' }))
-  return () => { alive = false; clearTimeout(tm) }
+  poll()
+  tick = setInterval(paintTicker, 1000)
+  return () => { alive = false; clearTimeout(tm); clearInterval(tick) }
 }
 
 /* ---------------- versions (S9) ---------------- */
