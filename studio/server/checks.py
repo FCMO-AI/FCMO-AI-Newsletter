@@ -62,6 +62,13 @@ def checks(store, preview, value):
                 ok = all(fig.get(f) for f in ('credit', 'licence')) and all(fig.get(f, {}).get(loc, '').strip() for f in ('alt', 'caption')) and path.is_file()
                 add('figure-' + loc + '-' + block['id'], ok, 'Completa texto alternativo, pie, crédito y licencia de esta figura.', 'Complete the alt text, caption, credit and licence for this figure.', loc, block['id'])
         add('references-' + loc, not (set(tokens(doc)[2]) - source_keys), 'Cada cita debe tener una fuente.', 'Every citation needs a source.', loc)
+        for block in doc['blocks']:
+            cite = block.get('attrs', {}).get('cite') if block['type'] == 'blockquote' else None
+            if cite is None: continue
+            shown = cite if len(cite) <= 60 else cite[:57] + '...'
+            add('quote-source-' + loc + '-' + block['id'], cite in source_keys,
+                'La cita usa como fuente "' + shown + '", que no está en las fuentes del artículo. Escribe la atribución dentro de la cita o elige una de sus fuentes.',
+                'The quotation uses "' + shown + '" as its source, which is not among the article sources. Write the attribution inside the quotation or choose one of its sources.', loc, block['id'])
         add('notes-' + loc, all(body for body in doc['footnotes'].values()), 'Completa todas las notas al pie.', 'Complete every footnote.', loc)
     valid_resources = True
     try: validate_sources(payload['sources']); validate_figures(payload['figures'])

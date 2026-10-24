@@ -53,6 +53,23 @@ class PrivacyCheckTests(unittest.TestCase):
         row = next(r for r in checks(store, SimpleNamespace(privacy=privacy), 'x') if r['id'] == 'privacy')
         self.assertFalse(row['ok']); self.assertIn('PERSONAL_MAILBOX', row['plain_es']); self.assertIn('Quítalo', row['plain_es'])
 
+    def stub(self, privacy, cite=None):
+        locales = {l: {'state': 'ready'} for l in ('en', 'es-419', 'zh-Hans')}
+        d = {l: doc(l) for l in locales}
+        if cite is not None:
+            for x in d.values(): x['blocks'].append({'id': 'b-quote001', 'type': 'blockquote', 'attrs': {'cite': cite}, 'content': [{'t': 'text', 'v': 'x'}]})
+        payload = {'piece': {'source_locale': 'es-419'}, 'docs': d, 'sources': [{'key': 'src-one'}], 'figures': {}, 'provenance': {l: {'origin': 'human'} for l in d}}
+        store = SimpleNamespace(payload=lambda v: payload, piece=lambda v: {'author': 'x', 'locale_states': locales})
+        return checks(store, SimpleNamespace(privacy=privacy), 'x')
+
+    def test_quotation_source_must_be_a_source_key(self):
+        rows = self.stub(lambda _: True, cite='Pedro, 2020')
+        bad = [r for r in rows if r['id'].startswith('quote-source-') and not r['ok']]
+        self.assertEqual(len(bad), 3)
+        self.assertIn('La cita usa como fuente "Pedro, 2020", que no está en las fuentes del artículo. Escribe la atribución dentro de la cita o elige una de sus fuentes.', bad[0]['plain_es'])
+        self.assertEqual(bad[0]['goto']['block_id'], 'b-quote001')
+        self.assertTrue(all(r['ok'] for r in self.stub(lambda _: True, cite='src-one') if r['id'].startswith('quote-source-')))
+
 
 if __name__ == '__main__':
     unittest.main()
