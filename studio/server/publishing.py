@@ -18,13 +18,38 @@ from .preview import PREFIX
 
 class UnknownEffect(Exception): pass
 class Refused(Exception): pass
+class Infra(Refused):
+    """A transient/infrastructure failure: retried without a new human approval."""
+
+def budget(name, default):
+    # Seconds; tunable per host without code changes.
+    try: return max(1, int(os.environ.get('STUDIO_' + name + '_BUDGET_S', default)))
+    except ValueError: return default
+GATE_BUDGET, DEPLOY_BUDGET, LIVE_BUDGET = ('GATE', 3600), ('DEPLOY', 4*3600), ('LIVE', 6*3600)
+INFRA_RETRIES = 3
+POST_MERGE = ('merged', 'deployed', 'deployed_unverified')
+PROTECTION_MODES = ('github', 'studio')
+def protection_mode():
+    mode = os.environ.get('STUDIO_PROTECTION_MODE', 'github') or 'github'
+    if mode not in PROTECTION_MODES: raise Refused('El modo de protección de publicación no es válido.')
+    return mode
+
+PUBLIC_REPO = 'FCMO-AI/FCMO-AI-Newsletter'
+def publish_repo(explicit=None):
+    """Where publications go. An override exists only for a rehearsal, and a rehearsal never goes live on the public repo."""
+    override = os.environ.get('STUDIO_PUBLISH_REPO', '').strip(); rehearsal = os.environ.get('STUDIO_REHEARSAL') == '1'
+    if override and not rehearsal: raise Refused('El repositorio de publicación sólo puede cambiarse en un ensayo.')
+    repo = explicit or override or PUBLIC_REPO
+    if rehearsal and repo == PUBLIC_REPO and os.environ.get('STUDIO_LIVE_ENABLED') == '1':
+        raise Refused('Un ensayo no puede publicar de verdad en el repositorio público.')
+    return repo
 
 class NoRedirect(HTTPRedirectHandler):
     def redirect_request(self, req, fp, code, msg, headers, newurl): return None
 
 class GitHub:
-    def __init__(self, tokens, api='https://api.github.com', repo='FCMO-AI/FCMO-AI-Newsletter', live_base='https://fcmo-ai.github.io/FCMO-AI-Newsletter/'):
-        self.tokens = tokens; self.api = api.rstrip('/'); self.repo = repo; self.live_base = live_base.rstrip('/') + '/'
+    def __init__(self, tokens, api='https://api.github.com', repo=None, live_base='https://fcmo-ai.github.io/FCMO-AI-Newsletter/'):
+        self.tokens = tokens; self.api = api.rstrip('/'); self.repo = publish_repo(repo); self.live_base = live_base.rstrip('/') + '/'
         self.opener = build_opener(NoRedirect())
     def request(self, user, method, suffix, body=None):
         token = self.tokens.get(user)
@@ -60,6 +85,21 @@ class GitHub:
         try:
             with self.opener.open(req, timeout=15) as res: return json.load(res)['login']
         except (OSError, ValueError, KeyError): raise Refused('No se pudo confirmar la credencial de publicación.') from None
+    def account(self, user):
+        # GitHubCLI (credentials.py) provides call(); the token client does not.
+        if hasattr(self, 'call'): return self.call(user, 'GET', 'user') or {}
+        token = self.tokens.get(user)
+        if not token: raise Refused('Falta la credencial personal para publicar.')
+        req = Request(self.api + '/user', headers={'Authorization': 'Bearer ' + token, 'Accept': 'application/vnd.github+json'})
+        try:
+            with self.opener.open(req, timeout=15) as res: return json.load(res)
+        except (OSError, ValueError): raise Infra('No se pudo confirmar la cuenta de publicación.') from None
+    def noreply_email(self, user):
+        # The public history must carry the author's own GitHub noreply address.
+        account = self.account(user); login = account.get('login')
+        if not isinstance(login, str) or not login: raise Refused('No se pudo confirmar la cuenta de publicación.')
+        ident = account.get('id')
+        return (str(ident) + '+' if isinstance(ident, int) else '') + login + '@users.noreply.github.com'
     def preflight(self, user, reviewer):
         if not all(self.tokens.get(u) for u in (user, reviewer)):
             raise Refused('Falta la credencial personal para publicar.')
@@ -87,6 +127,7 @@ class GitHub:
         if not rows: return 'pending'
         newest = max(rows, key=lambda r: r.get('id', 0))
         if newest.get('status') != 'completed': return 'pending'
+        if newest.get('conclusion') in ('cancelled', 'timed_out', 'stale'): return 'cancelled'
         return 'green' if newest.get('conclusion') == 'success' else 'red'
     def protected(self, user):
         rules = self.request(user, 'GET', '/rules/branches/main') or []
@@ -109,12 +150,17 @@ class GitHub:
         if not result.get('merged'): raise Refused('GitHub no permitió publicar. Revisa la revisión y las comprobaciones.')
         return result
     def pages(self, user, merge):
-        result = self.request(user, 'GET', '/actions/workflows/pages.yml/runs?' + urlencode({'head_sha': merge, 'event': 'push', 'per_page': 100})) or {}
-        runs = [r for r in result.get('workflow_runs', []) if r.get('head_sha') == merge and r.get('event') == 'push']
-        if not runs: return None
-        run = max(runs, key=lambda r: r.get('id', 0))
-        if run.get('status') == 'completed' and run.get('conclusion') != 'success': raise Refused('El despliegue falló. La publicación aún no está confirmada.')
-        return run if run.get('conclusion') == 'success' else None
+        # Deployed = a successful pages.yml run whose commit is the merge or descends from it,
+        # whichever event started it. Cancelled or failed runs are simply "not yet": a later
+        # run (pages.yml keeps one pending run per group) deploys the merge.
+        result = self.request(user, 'GET', '/actions/workflows/pages.yml/runs?' + urlencode({'status': 'success', 'per_page': 30})) or {}
+        runs = sorted((r for r in result.get('workflow_runs', []) if r.get('conclusion') == 'success' and r.get('head_sha')), key=lambda r: r.get('id', 0), reverse=True)
+        for run in runs:
+            if run['head_sha'] == merge: return run
+        for run in runs[:10]:
+            cmp = self.request(user, 'GET', '/compare/' + merge + '...' + run['head_sha']) or {}
+            if cmp.get('status') in ('ahead', 'identical'): return run
+        return None
     def live(self, slug, ident, kind='essay'):
         urls = []
         for loc in LOCALES:
@@ -185,7 +231,8 @@ class Workspace:
             if destination.exists(): shutil.rmtree(destination)
             shutil.copytree(source, destination)
         git(target, 'add', '--', str(rel))
-        git(target, '-c', 'user.name=' + data['author_name'], '-c', 'user.email=noreply@openai.com', 'commit', '-qm', 'Publish ' + data['title'])
+        # Local-only placeholder: the author's own GitHub noreply address is set just before the push (needs the network).
+        git(target, '-c', 'user.name=' + data['author_name'], '-c', 'user.email=noreply@users.noreply.github.com', 'commit', '-qm', 'Publish ' + data['title'])
         changed = git(target, 'diff', '--name-only', 'refs/remotes/origin/main', 'HEAD').splitlines()
         if not changed or any(path != str(rel) if is_issue else not path.startswith(str(rel) + '/') for path in changed): raise Refused('La publicación contiene cambios fuera del artículo.')
         # Do not follow a draft symlink into private state.
@@ -206,19 +253,62 @@ class Workspace:
         if git(target, 'status', '--porcelain', '--untracked-files=no'):
             raise Refused('Las comprobaciones modificaron la versión aprobada. Pide una nueva revisión.')
         head = git(target, 'rev-parse', 'HEAD')
-        return {'head_sha': head, 'base_sha': base_sha, 'candidate': str(target)}
+        return {'head_sha': head, 'base_sha': base_sha, 'candidate': str(target), 'rel': rel.as_posix(), 'content_tree': git(target, 'rev-parse', 'HEAD:' + rel.as_posix())}
     def verify_base(self, pub):
         data = pub['payload']
         current = git(Path(data['candidate']), 'ls-remote', 'origin', 'refs/heads/main').split()
         if not current or current[0] != data.get('base_sha'):
             raise Refused('La base de publicación cambió. Pide una nueva revisión antes de publicar.')
+    @staticmethod
+    def piece_path(pub):
+        return ('editorial/issues/' + pub['slug'] + '.json') if pub['kind'] == 'issue' else ('editorial/pieces/' + pub['slug'])
+    def verify_confined(self, pub):
+        """The approved bytes, and only them, differ from main. The base may have moved."""
+        data = pub['payload']; target = Path(data['candidate']); rel = data.get('rel') or self.piece_path(pub)
+        if git(target, 'rev-parse', 'HEAD') != data['head_sha']: raise Refused('La versión aprobada cambió antes de publicar.')
+        try: git(target, 'fetch', 'origin', '+refs/heads/main:refs/remotes/origin/main')
+        except RuntimeError: raise Infra('No se pudo consultar la base pública. Se reintentará.') from None
+        changed = git(target, 'diff', '--name-only', git(target, 'merge-base', 'refs/remotes/origin/main', 'HEAD'), 'HEAD').splitlines()
+        if not changed or any(path != rel and not path.startswith(rel + '/') for path in changed): raise Refused('La publicación contiene cambios fuera del artículo.')
+        if data.get('content_tree') and git(target, 'rev-parse', 'HEAD:' + rel) != data['content_tree']: raise Refused('La versión aprobada cambió antes de publicar.')
+    def recreate(self, pub):
+        """Replay the approved bytes onto the current main (no new approval: the content is what was approved)."""
+        data = pub['payload']; target = Path(data['candidate']); rel = data.get('rel') or self.piece_path(pub)
+        old = data['head_sha']
+        git(target, 'reset', '-q', '--hard', old)  # a crash after the commit but before the write must not strand it
+        self.verify_confined(pub)
+        git(target, 'reset', '-q', '--hard', 'refs/remotes/origin/main')
+        git(target, 'rm', '-rq', '--ignore-unmatch', '--', rel)
+        git(target, 'checkout', old, '--', rel)
+        email = self.github.noreply_email(data['author'])
+        git(target, '-c', 'user.name=' + data['author_name'], '-c', 'user.email=' + email, 'commit', '-qm', 'Publish ' + data['title'])
+        new = git(target, 'rev-parse', 'HEAD')
+        if git(target, 'rev-parse', 'HEAD:' + rel) != git(target, 'rev-parse', old + ':' + rel): raise Refused('La versión aprobada cambió antes de publicar.')
+        return {'head_sha': new, 'base_sha': git(target, 'rev-parse', 'refs/remotes/origin/main'), 'previous_head': old, 'identity_set': True}
+    def refresh(self, pub):
+        """Before the first push: set the author's own noreply identity and, if main moved, replay the approved bytes onto it."""
+        data = pub['payload']; target = Path(data['candidate']); changes = {}
+        if not data.get('identity_set'): git(target, 'reset', '-q', '--hard', data['head_sha'])  # undo an amend whose write was lost
+        self.verify_confined(pub)
+        if not data.get('identity_set'):
+            email = self.github.noreply_email(data['author'])
+            git(target, '-c', 'user.name=' + data['author_name'], '-c', 'user.email=' + email, 'commit', '-q', '--amend', '--no-edit', '--reset-author')
+            changes = {'head_sha': git(target, 'rev-parse', 'HEAD'), 'identity_set': True}; data.update(changes)
+        if git(target, 'rev-parse', 'refs/remotes/origin/main') != data['base_sha']: changes.update(self.recreate(pub))
+        return changes or None
+    def repush(self, pub, old):
+        data = pub['payload']; ref = 'refs/heads/' + data['branch']
+        self.github.validate_remote(self.store.data / 'clone')
+        env, options = self.github.push_environment(data['author'], self.store.data / 'askpass.py')
+        run = subprocess.run(['git', '-C', data['candidate'], *options, 'push', '--force-with-lease=' + ref + ':' + old, 'origin', data['head_sha'] + ':' + ref], env=env, capture_output=True, timeout=120)
+        if run.returncode: raise UnknownEffect('No se pudo confirmar el envío. Se comprobará antes de repetirlo.')
     def push(self, pub):
         data = pub['payload']; branch = data['branch']
         self.github.validate_remote(self.store.data / 'clone')
         self.github.preflight(data['author'], data['reviewer'])
         if not branch.startswith('studio/') or data['head_sha'] != git(Path(data['candidate']), 'rev-parse', 'HEAD'):
             raise Refused('La versión aprobada cambió antes de publicar.')
-        self.verify_base(pub)
+        self.verify_confined(pub)
         env, options = self.github.push_environment(data['author'], self.store.data / 'askpass.py')
         # Refuse to overwrite a concurrently created branch, even in dry-run.
         ref = 'refs/heads/' + branch
@@ -237,7 +327,10 @@ class Publisher:
     def _write_locked(self, pub, state=None, error=None):
         if state:
             pub['state'] = state
-            pub['payload'].setdefault('timeline', []).append({'state': state, 'at': utc(), 'plain_es': PROGRESS[state][0], 'plain_en': PROGRESS[state][1]})
+            pub['payload'].pop('infra_retries', None); pub['payload'].pop('retry_after', None)
+            entry = {'state': state, 'at': utc(), 'plain_es': PROGRESS[state][0], 'plain_en': PROGRESS[state][1]}
+            if pub['payload'].get('protection_mode'): entry['protection_mode'] = pub['payload']['protection_mode']
+            pub['payload'].setdefault('timeline', []).append(entry)
         if error is not None: pub['error_plain'] = error
         data = pub['payload']
         self.store.db.execute('UPDATE publications SET state=?,pr_number=?,head_sha=?,merge_sha=?,pages_run=?,live_checked_at=?,error_plain=?,payload_json=? WHERE id=?',
@@ -350,23 +443,58 @@ class Publisher:
         found = observe()
         if not found: raise UnknownEffect('La respuesta de publicación no está confirmada.')
         update(found); data.pop('intent', None); data.pop('unknown', None); self._write(pub, name, ''); return True
+    def _infra(self, pub, exc):
+        """Infrastructure trouble: retry with backoff while the approved content is unchanged; never ask for a new approval."""
+        data = pub['payload']; n = data.get('infra_retries', 0) + 1; data['infra_retries'] = n
+        if n > INFRA_RETRIES:
+            data['halted'] = True; data['unknown'] = True
+            self._write(pub, error='La publicación se detuvo por un problema técnico, no por el texto. Matías ya puede revisarla; el texto aprobado sigue intacto.')
+        else:
+            data['retry_after'] = self.store.clock() + 60 * 2 ** (n - 1)
+            self._write(pub, error=(str(exc) or 'Problema técnico temporal.') + ' Se reintentará solo.')
+    def _protection(self, pub):
+        data = pub['payload']; gh = self.github; user = data['author']; reviewer = data['reviewer']
+        mode = data.get('protection_mode') or protection_mode()
+        if mode == 'github':
+            if not gh.protected(user): raise Refused('Publicación protegida aún no activa.')
+            return
+        # Studio keeps the two-person rule itself: a distinct reviewer account pinned to head, a green gate, a confined diff, CODEOWNERS.
+        if gh.identity(user) == gh.identity(reviewer): raise Refused('La revisión requiere dos cuentas de GitHub distintas.')
+        if not gh.reviewed(reviewer, data['pr_number'], data['head_sha']): raise Refused('Falta la revisión de la otra persona sobre esta versión.')
+        if gh.checks(user, data['head_sha']) != 'green': raise Refused('Las comprobaciones públicas cambiaron; revisa el artículo.')
+        self.workspace.verify_confined(pub)
+        if not any(gh.request(user, 'GET', '/contents/' + path + '?ref=' + data['head_sha']) for path in ('.github/CODEOWNERS', 'CODEOWNERS', 'docs/CODEOWNERS')):
+            raise Refused('Falta el archivo CODEOWNERS en el repositorio.')
+    def _merge_diff(self, pub):
+        """After the merge: the first-parent diff must stay inside the piece. None from the API = not observable, not a failure."""
+        data = pub['payload']; rel = data.get('rel') or self.workspace.piece_path(pub)
+        commit = self.github.request(data['author'], 'GET', '/commits/' + data['merge_sha'])
+        if not isinstance(commit, dict) or not isinstance(commit.get('files'), list): data['merge_diff'] = 'unverified'; return True
+        ok = all(f.get('filename') == rel or str(f.get('filename', '')).startswith(rel + '/') for f in commit['files'])
+        data['merge_diff'] = 'confined' if ok else 'outside'
+        return ok
     def advance(self, value):
         # One state transition per call; no HTTP handler holds a long polling loop.
         with self.mutex:
             pub = self.get(value)
             if 'payload' not in pub or pub['state'] in ('published', 'failed'): return pub
             data = pub['payload']; user = data['author']; reviewer = data['reviewer']; gh = self.github
+            if data.get('halted') or (data.get('retry_after') and self.store.clock() < data['retry_after']): return pub
             try:
                 if self.store.piece(value)['head_rev'] != data['approved_rev']: raise Refused('El artículo cambió después de aprobarlo.')
                 state = pub['state']
                 if state == 'approved':
                     data.update(self.workspace.prepare(pub)); self._write(pub, 'candidate', '')
                 elif state == 'candidate':
+                    if not data.get('intent') and (moved := self.workspace.refresh(pub)):
+                        data.update(moved); self._write(pub)
                     self._effect(pub, 'pushed', lambda: gh.branch(user, data['branch']) == data['head_sha'], lambda: self.workspace.push(pub), lambda _: None)
                 elif state == 'pushed':
+                    data.setdefault('protection_mode', protection_mode())
                     body = 'Autor: ' + data['author_name'] + '\nIdiomas: ' + ', '.join(k + ': ' + v for k, v in data['languages'].items())
                     machine = [k for k, p in data['provenance'].items() if p.get('origin', '').startswith('agent_') and not p.get('human_reviewed')]
                     body += '\nTraducciones preparadas por asistente: ' + (', '.join(machine) or 'ninguna')
+                    body += '\nModo de protección: ' + data['protection_mode']
                     self._effect(pub, 'pr_open', lambda: gh.find_pr(user, data['branch']), lambda: gh.open_pr(user, data['branch'], data['title'], body), lambda r: data.update(pr_number=r['number']))
                 elif state == 'pr_open':
                     pr = gh.pr(user, data['pr_number'])
@@ -374,37 +502,57 @@ class Publisher:
                     self._effect(pub, 'reviewed', lambda: gh.reviewed(reviewer, data['pr_number'], data['head_sha']), lambda: gh.review(reviewer, data['pr_number'], data['head_sha']), lambda _: None)
                 elif state == 'reviewed':
                     status = gh.checks(user, data['head_sha'])
+                    started = data.setdefault('checks_started', self.store.clock())
                     if status == 'green': self._write(pub, 'checks_green', '')
                     elif status == 'red': raise Refused('Las comprobaciones públicas fallaron. Corrige el artículo y pide revisión otra vez.')
-                    elif self.store.clock() - data.get('checks_started', data['created']) >= 1800: raise Refused('Las comprobaciones públicas no terminaron en 30 minutos.')
-                    else: data.setdefault('checks_started', self.store.clock()); self._write(pub)
+                    elif status == 'cancelled':
+                        data.pop('checks_started', None); raise Infra('Las comprobaciones públicas se cancelaron.')
+                    elif self.store.clock() - started >= budget(*GATE_BUDGET):
+                        data.pop('checks_started', None); raise Infra('Las comprobaciones públicas tardan más de lo normal.')
+                    else: self._write(pub)
                 elif state == 'checks_green':
                     pr = gh.pr(user, data['pr_number'])
                     if not pr or pr['head']['sha'] != data['head_sha']: raise Refused('La versión pública cambió; pide una nueva revisión.')
                     if not pr.get('merged'):
-                        if gh.branch(user, 'main') != data['base_sha']: raise Refused('La base de publicación cambió. Pide una nueva revisión antes de publicar.')
                         if gh.checks(user, data['head_sha']) != 'green': raise Refused('Las comprobaciones públicas cambiaron; revisa el artículo.')
-                        if not gh.protected(user): raise Refused('Publicación protegida aún no activa.')
+                        # The base may have moved: what must hold is that only the approved bytes differ.
+                        self.workspace.verify_confined(pub)
+                        self._protection(pub)
+                        if pr.get('mergeable') is False:
+                            # A real conflict: replay the same bytes on the new main and take the gate again.
+                            old = data['head_sha']; data.update(self.workspace.recreate(pub)); self.workspace.repush(pub, old)
+                            data.pop('checks_started', None); self._write(pub, 'pushed', ''); return self.get(value)
                     self._effect(pub, 'merged', lambda: (p if (p := gh.pr(user, data['pr_number'])) and p.get('merged') else None), lambda: gh.merge(user, data['pr_number'], data['head_sha']), lambda r: data.update(merge_sha=r['merge_commit_sha']))
                 elif state == 'merged':
+                    if 'merge_diff' not in data and not self._merge_diff(pub):
+                        data['halted'] = True; data['unknown'] = True
+                        self._write(pub, error='Lo publicado toca archivos fuera del artículo. Matías debe revisarlo antes de continuar.'); return self.get(value)
+                    started = data.setdefault('deploy_started', self.store.clock())
                     run = gh.pages(user, data['merge_sha'])
                     if run: data['pages_run'] = run['id']; self._write(pub, 'deployed', '')
-                    elif self.store.clock() - data.get('deploy_started', data['created']) >= 1800: raise Refused('El despliegue no terminó en 30 minutos; comprueba su estado.')
-                    else: data.setdefault('deploy_started', self.store.clock()); self._write(pub)
+                    elif self.store.clock() - started >= budget(*DEPLOY_BUDGET):
+                        self._write(pub, 'deployed_unverified', 'Ya está fusionado; el despliegue aún no se confirma. Se sigue comprobando.')
+                    else: self._write(pub)
                 elif state in ('deployed', 'deployed_unverified'):
                     now = self.store.clock(); start = data.setdefault('live_started', now)
-                    if data.get('last_live_attempt') and now - data['last_live_attempt'] < 120: return pub
-                    if now - start > 1800:
-                        self._write(pub, error='Desplegado pero aún no visible. Revisa el sitio antes de confirmar la publicación.'); return pub
+                    late = now - start > budget(*LIVE_BUDGET)
+                    if data.get('last_live_attempt') and now - data['last_live_attempt'] < (600 if late else 120): return pub
                     data['last_live_attempt'] = now; urls = gh.live(value, data['piece_id'], pub['kind'])
                     if urls:
-                        data['urls'] = urls; data['live_checked_at'] = utc(); self._write(pub, 'published', '')
+                        data.pop('unknown', None); data['urls'] = urls; data['live_checked_at'] = utc(); self._write(pub, 'published', '')
+                    elif late:
+                        data['unknown'] = True; self._write(pub, 'deployed_unverified', 'No logramos confirmar que ya esté visible. Ya está fusionado y desplegado; se sigue comprobando y Matías puede revisarlo.')
                     else: self._write(pub, 'deployed_unverified', 'Desplegado pero aún no visible.')
             except UnknownEffect as exc:
                 if data.get('intent'): data['unknown'] = True
                 self._write(pub, error=str(exc))
             except (Refused, RuntimeError, OSError, subprocess.SubprocessError, ValueError) as exc:
-                self._write(pub, 'failed', str(exc) if isinstance(exc, Refused) else 'Las comprobaciones locales no pudieron terminar. Nada se publicó.')
+                if pub['state'] in POST_MERGE:
+                    # Public already: never "failed", never back to changes_requested.
+                    self._write(pub, error='Ya está fusionado; se sigue comprobando.')
+                elif isinstance(exc, Infra) or not isinstance(exc, Refused):
+                    self._infra(pub, exc if isinstance(exc, Infra) else Infra('Las comprobaciones no pudieron terminar.'))
+                else: self._write(pub, 'failed', str(exc))
             return self.get(value)
     def public_status(self, value):
         pub = self.get(value); data = pub.get('payload', {})

@@ -426,3 +426,12 @@ in this lane.
 - Lane T: `verificar_paper.py` front block still filters `kind === 'front'` (home-pages=0). Retarget to `landing` (`.cover h1`, bottom of `.cover-evrow` < 900 at 1440; lines <= 4). With lane V's CSS this holds in en, es-419, zh-Hans at 1280/1440/1920.
 - `tests/test_no_frozen_corpus_counts.py` fails on c6/integration (not caused by lane V): front-page story count is now 300 and four tests contain a literal `300` (`test_clock_boundaries.py:48`, `test_localization_completeness.py:43`, `test_v4_visual_width.py:48`, `test_wire_liveness.py:72`).
 - Search placeholder text could not be shortened in CSS; the field now sits on its own row at <= 520 px so the full text shows.
+
+
+## Studio L1 (publish-robust) needs from other lanes
+
+- `studio/server/credentials.py` (GitHubCLI): `identity()` is overridden there; L1 adds `GitHub.account()` which reuses `call()` when present, so the author's numeric id is available for the noreply commit email. Nothing to change unless you want a native override.
+- `studio/server/publish.py` (CLI dry run) still calls `Workspace.verify_base` (strict equality, kept unchanged) and `protected()`. For the dry run to mirror the new flow it should call `verify_confined` and respect `STUDIO_PROTECTION_MODE`.
+- `studio/server/http.py`: no API to resume a publication that stopped with `halted` (3 infrastructure retries used, or an out-of-piece merge diff). L4/L5 can read `payload.halted` / `payload.unknown`; an operator resume (clear `halted`, `infra_retries`, `retry_after`) needs a small endpoint or CLI.
+- `STUDIO_PUBLISH_REPO` is honoured only with `STUDIO_REHEARSAL=1`; `live_base` for a rehearsal repo has no Pages, so a rehearsal must keep `STUDIO_LIVE_ENABLED` unset or accept that `live()` cannot confirm.
+- Env budgets (seconds): `STUDIO_GATE_BUDGET_S` (3600), `STUDIO_DEPLOY_BUDGET_S` (14400), `STUDIO_LIVE_BUDGET_S` (21600); `STUDIO_PROTECTION_MODE=github|studio` (default github).
