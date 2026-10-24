@@ -3,6 +3,7 @@ import json
 import sqlite3
 import tempfile
 import unittest
+import unittest.mock
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -259,6 +260,91 @@ class NotifyTests(unittest.TestCase):
         self.history()
         with self.assertRaises(SystemExit):
             notify.run(self.fx.data, self.fx.mensajeria, self.fx.ledger, True, now=NOW, sembrar=True)
+
+
+    def corrupt_ledger(self, text: str):
+        self.fx.ledger.parent.mkdir(parents=True, exist_ok=True)
+        self.fx.ledger.write_text(text)
+
+    def test_corrupt_ledger_refuses_enviar_and_asks_for_reseed(self):
+        self.history()
+        self.corrupt_ledger('{"sent": [')
+        with self.assertRaises(SystemExit) as raised:
+            notify.run(self.fx.data, self.fx.mensajeria, self.fx.ledger, True, now=NOW)
+        self.assertIn('--sembrar', str(raised.exception))
+        self.assertEqual(self.fx.queued(), [])
+        self.assertEqual(self.fx.ledger.read_text(), '{"sent": [')
+
+    def test_empty_ledger_file_is_corrupt_not_an_empty_set(self):
+        self.history()
+        self.corrupt_ledger('')
+        with self.assertRaises(SystemExit):
+            notify.run(self.fx.data, self.fx.mensajeria, self.fx.ledger, True, now=NOW)
+        with self.assertRaises(SystemExit):
+            notify.run(self.fx.data, self.fx.mensajeria, self.fx.ledger, False, now=NOW)
+        self.assertEqual(self.fx.queued(), [])
+
+    def test_wrong_shape_ledger_is_refused(self):
+        self.history()
+        self.corrupt_ledger('["no es un objeto"]')
+        with self.assertRaises(SystemExit):
+            notify.run(self.fx.data, self.fx.mensajeria, self.fx.ledger, True, now=NOW)
+        self.assertEqual(self.fx.queued(), [])
+
+    def test_sembrar_reseeds_a_corrupt_ledger_without_flooding(self):
+        self.history()
+        self.corrupt_ledger('{garbage')
+        seeded = notify.run(self.fx.data, self.fx.mensajeria, self.fx.ledger, False, now=NOW, sembrar=True)
+        self.assertEqual(seeded['sembrados'], 3)
+        self.assertEqual(self.fx.queued(), [])
+        self.assertEqual(self.run_once()['encolados'], 0)
+        self.assertEqual(self.fx.queued(), [])
+
+    def add_reviews(self, count: int):
+        """Reviews Pieza 0..count-1, the lower the index the older (oldest first is the send order)."""
+        for index in range(count):
+            self.fx.piece(f'pieza-{index}', f'Pieza {index}')
+            self.fx.db.execute('INSERT INTO reviews VALUES(?,?,?,?,?,?,?,?)',
+                               (f'rev-{index}', f'pieza-{index}', 1, 'javier', 'matias', 'requested',
+                                iso(timedelta(hours=count - index)), ''))
+        self.fx.commit()
+
+    def test_per_run_cap_is_five_oldest_first_and_rest_waits_for_next_run(self):
+        self.add_reviews(7)
+        self.assertEqual(notify.PER_RUN_CAP, 5)
+        first = self.run_once()
+        self.assertEqual(first['encolados'], 5)
+        self.assertEqual(first['diferidos'], 2)
+        texts = ' '.join(e['texto'] for e in self.fx.entries())
+        for index in range(5):
+            self.assertIn(f'«Pieza {index}»', texts)
+        for index in (5, 6):
+            self.assertNotIn(f'«Pieza {index}»', texts)
+        second = self.run_once()
+        self.assertEqual((second['encolados'], second['diferidos']), (2, 0))
+        self.assertEqual(len(self.fx.queued()), 7)
+        self.assertEqual(self.run_once()['encolados'], 0)
+
+    def test_hourly_limit_holds_across_runs_inside_one_hour(self):
+        self.add_reviews(4)
+        with unittest.mock.patch.object(notify, 'HOURLY_LIMIT', 3):
+            first = self.run_once()
+            again = self.run_once()
+            self.assertEqual(first['encolados'], 3)
+            self.assertEqual((again['encolados'], again['diferidos']), (0, 1))
+            self.assertEqual(len(self.fx.queued()), 3)
+            later = notify.run(self.fx.data, self.fx.mensajeria, self.fx.ledger, True,
+                               now=NOW + timedelta(hours=1, minutes=1))
+            self.assertEqual(later['encolados'], 1)
+        self.assertEqual(len(self.fx.queued()), 4)
+
+    def test_dry_run_shows_what_the_cap_defers(self):
+        self.add_reviews(7)
+        report = self.run_once(enviar=False)
+        actions = [line['accion'] for line in report['detalle']]
+        self.assertEqual(actions.count('encolaria'), 5)
+        self.assertEqual(actions.count('esperaria'), 2)
+        self.assertEqual(self.fx.queued(), [])
 
 
 if __name__ == '__main__':
