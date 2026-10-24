@@ -65,7 +65,8 @@ class Application:
                 cls = type(exc).__name__; now = time.monotonic()
                 if last.get('cls') != cls or now - last.get('at', 0.0) >= 60:
                     last.update(cls=cls, at=now)
-                    print(f'studio-worker error class={cls} queued={queued}', file=sys.stderr, flush=True)
+                    try: print(f'studio-worker error class={cls} queued={queued}', file=sys.stderr, flush=True)
+                    except Exception: pass
     def api(self, method, path, query, body, session):
         user = session['user']; parts = path.strip('/').split('/')
         if path == '/api/subscriptions/status' and method == 'GET':

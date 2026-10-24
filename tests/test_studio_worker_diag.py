@@ -78,6 +78,20 @@ class WorkerDiagnosis(unittest.TestCase):
             self.app.worker()
         self.assertEqual(err.getvalue().splitlines(), ['studio-worker error class=OSError queued=unreadable'])
 
+    def test_broken_stderr_does_not_kill_the_worker(self):
+        class BrokenErr:
+            def write(self, _): raise BrokenPipeError('closed')
+            def flush(self): raise BrokenPipeError('closed')
+        calls = []
+        def tick():
+            calls.append(1)
+            if len(calls) < 3: raise RuntimeError('x')
+        self.app.tick = tick
+        self.app.stop = OneTurnStop(3)
+        with contextlib.redirect_stderr(BrokenErr()):
+            self.app.worker()
+        self.assertEqual(len(calls), 3)
+
 
 if __name__ == '__main__':
     unittest.main()
