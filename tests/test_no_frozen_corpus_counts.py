@@ -26,10 +26,10 @@ def frozen_counts_in(line: str, volatile: dict[int, str]) -> list[int]:
     return [int(m.group(1)) for m in INTEGER.finditer(line) if int(m.group(1)) in volatile]
 
 
-def volatile_counts() -> dict[int, str]:
-    rows = [l for l in (ROOT / "corpus/data/developments.jsonl").read_text(encoding="utf-8").splitlines() if l.strip()]
+def volatile_counts(root: Path = ROOT) -> dict[int, str]:
+    rows = [l for l in (root / "corpus/data/developments.jsonl").read_text(encoding="utf-8").splitlines() if l.strip()]
     counts = {len(rows): "corpus records", len(rows) // 5 + 1: "20% quarantine limit"}
-    stories = ROOT / "site/data/stories.v2.json"
+    stories = root / "site/data/stories.v2.json"
     if stories.is_file():
         doc = json.loads(stories.read_text(encoding="utf-8"))["stories"]
         live = [s for s in doc if s.get("status") == "live"]
@@ -39,16 +39,22 @@ def volatile_counts() -> dict[int, str]:
     return {n: label for n, label in counts.items() if n >= 100}
 
 
+def find_frozen(root: Path = ROOT) -> list[str]:
+    """Every test line under ``root`` that freezes one of ``root``'s current corpus counts."""
+    volatile = volatile_counts(root)
+    found = []
+    for path in sorted((root / "tests").glob("test_*.py")):
+        if path.name == Path(__file__).name:
+            continue
+        for number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+            for value in frozen_counts_in(line, volatile):
+                found.append(f"{path.name}:{number}: {value} equals the current {volatile[value]}: {line.strip()[:100]}")
+    return found
+
+
 class NoFrozenCorpusCounts(unittest.TestCase):
     def test_no_test_freezes_a_live_corpus_count(self):
-        volatile = volatile_counts()
-        found = []
-        for path in sorted((ROOT / "tests").glob("test_*.py")):
-            if path.name == Path(__file__).name:
-                continue
-            for number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
-                for value in frozen_counts_in(line, volatile):
-                    found.append(f"{path.name}:{number}: {value} equals the current {volatile[value]}: {line.strip()[:100]}")
+        found = find_frozen(ROOT)
         self.assertEqual([], found, "derive these from the live data instead of freezing them:\n" + "\n".join(found))
 
     def test_the_guard_sees_a_frozen_count(self):

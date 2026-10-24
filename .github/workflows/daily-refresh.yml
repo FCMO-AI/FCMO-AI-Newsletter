@@ -187,6 +187,30 @@ jobs:
           python tests/oraculos/verificar_traduccion.py
           python tools/verify_release.py
 
+      - name: Guard the candidate against data that would break Deploy
+        if: steps.preflight.outputs.path == 'rebuild' || steps.preflight.outputs.path == 'status'
+        timeout-minutes: 45
+        env:
+          REFRESH_PATH: ${{ steps.preflight.outputs.path }}
+        shell: bash
+        run: |
+          # The refresh pushes straight to main and Deploy then runs the full
+          # regression suite on that exact tree. Data the refresh brings in
+          # (a story count equal to a literal in a test, a region value with no
+          # label, a headline that trips a heading guard) used to fail Deploy
+          # only after main had moved. Run the data-dependent gates here, on
+          # the candidate, BEFORE it is committed. On failure the candidate is
+          # not pushed: the live site stays on the last good refresh release
+          # (corpus commits from the newswire bridge are not covered), the job
+          # summary names the gate, and operator-alerts.yml opens an issue
+          # after two consecutive failed refreshes.
+          python -m pip install --quiet PyYAML==6.0.2
+          if test "$REFRESH_PATH" = rebuild; then
+            python tools/refresh_guard.py --tests
+          else
+            python tools/refresh_guard.py
+          fi
+
       - name: Commit only what the autonomous newsroom produced
         if: steps.preflight.outputs.path == 'rebuild' || steps.preflight.outputs.path == 'status'
         env:
