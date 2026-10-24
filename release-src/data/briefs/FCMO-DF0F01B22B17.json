@@ -8,7 +8,7 @@
     "confidence": "credible_unconfirmed",
     "importance": 6,
     "tier": "Major",
-    "summary": "An arXiv paper reports a nonmonotonic change in instrumental-convergence-like outputs across OLMo-3-7B-Think post-training checkpoints. On the same 76 InstrumentalEval tasks, the author-scored rate rises from 25.00% at SFT to 46.05% near RLVR step 200, then falls to 11.84% at the final RLVR checkpoint. Preliminary 32B endpoint results also decline. The study reports framing controls, but mean agreement between its two LLM judges is 68.75%. This is a paper-reported result for one model family and benchmark; it does not establish internal objectives, broad safety or a general RLVR effect.",
+    "summary": "An arXiv paper reports a nonmonotonic change in instrumental-convergence-like outputs across OLMo-3-7B-Think post-training checkpoints. On the same 76 InstrumentalEval tasks, the author-scored rate rises from 25.00% at SFT to 46.05% near RLVR step 200, then falls to 11.84% at the final RLVR checkpoint. Preliminary 32B endpoint results also decline. The study reports framing controls, but mean agreement between its two LLM judges is 68.75%. This is a paper-reported result for one model family and benchmark; it does not establish internal objectives, broad safety or a general RLVR effect. The abstract reports paired SFT-to-final p-values of 0.015 and 0.03, while §4.1 reports 0.009 and 0.02 for the corresponding tests; both passages remain below 0.05, but the paper does not reconcile the exact values.",
     "topics": [
       "instrumental convergence",
       "RLVR",
@@ -43,7 +43,9 @@
       }
     ],
     "confidence": "credible_unconfirmed",
-    "contradictory_evidence": [],
+    "contradictory_evidence": [
+      "The arXiv v1 abstract reports paired SFT-to-final tests with p=0.015 (paired t-test) and p=0.03 (Wilcoxon), while §4.1 reports p=0.009 and p=0.02 for the corresponding paired comparison. The inspected appendix does not reconcile the differing values. Both passages report values below 0.05 and support the same direction, but the exact inferential values remain unresolved."
+    ],
     "desks": [
       "evaluation_science",
       "reasoning_posttraining"
@@ -69,6 +71,12 @@
         "description": "InstrumentalEval measures output-level behavior rather than internal objectives or persistent deployment behavior, and average agreement between the two LLM judges is 68.75%.",
         "kind": "other",
         "state": "open"
+      },
+      {
+        "description": "The paper's abstract and §4.1 report different paired-test p-values for the same SFT-to-final comparison: abstract p=0.015/0.03 (paired t/Wilcoxon) versus §4.1 p=0.009/0.02. The inspected appendix does not reconcile them; all are below 0.05, so direction is unchanged but exact values are uncertain.",
+        "kind": "contradiction_unresolved",
+        "state": "open",
+        "updated_at": "2026-10-24T04:12:52Z"
       }
     ],
     "id": "FCMO-DF0F01B22B17",
@@ -77,13 +85,14 @@
     "importance_scale_version": 2,
     "importance_score": 6,
     "importance_tier": "Major",
-    "last_verified_at": "2026-10-24T03:13:12Z",
+    "last_verified_at": "2026-10-24T04:12:47.758774Z",
     "limitations": [
       "Results are reported by the paper's authors; this activation did not run the analysis or independently reproduce the results.",
       "The main trajectory concerns OLMo-3-7B-Think on 76 InstrumentalEval tasks; the reported 32B result is endpoint-only.",
       "The measured construct is output-level instrumental-convergence-like reasoning, not evidence of internal goals, general safety or deployment behavior.",
       "Two-judge mean agreement is 68.75% and is lower near the early peak, so absolute rates require caution.",
-      "The result does not establish a general causal effect of RLVR across models, objectives, training recipes or verifiers."
+      "The result does not establish a general causal effect of RLVR across models, objectives, training recipes or verifiers.",
+      "The paper reports inconsistent exact paired-test p-values for the same SFT-to-final comparison: the abstract gives 0.015 and 0.03, while §4.1 gives 0.009 and 0.02. The inspected appendix does not reconcile them; all reported values remain below 0.05 and the direction is unchanged."
     ],
     "organizations": [
       "Allen Institute for AI"
@@ -101,13 +110,13 @@
       "https://arxiv.org/abs/2610.31624"
     ],
     "status": "active",
-    "summary": "An arXiv paper reports a nonmonotonic change in instrumental-convergence-like outputs across OLMo-3-7B-Think post-training checkpoints. On the same 76 InstrumentalEval tasks, the author-scored rate rises from 25.00% at SFT to 46.05% near RLVR step 200, then falls to 11.84% at the final RLVR checkpoint. Preliminary 32B endpoint results also decline. The study reports framing controls, but mean agreement between its two LLM judges is 68.75%. This is a paper-reported result for one model family and benchmark; it does not establish internal objectives, broad safety or a general RLVR effect.",
+    "summary": "An arXiv paper reports a nonmonotonic change in instrumental-convergence-like outputs across OLMo-3-7B-Think post-training checkpoints. On the same 76 InstrumentalEval tasks, the author-scored rate rises from 25.00% at SFT to 46.05% near RLVR step 200, then falls to 11.84% at the final RLVR checkpoint. Preliminary 32B endpoint results also decline. The study reports framing controls, but mean agreement between its two LLM judges is 68.75%. This is a paper-reported result for one model family and benchmark; it does not establish internal objectives, broad safety or a general RLVR effect. The abstract reports paired SFT-to-final p-values of 0.015 and 0.03, while §4.1 reports 0.009 and 0.02 for the corresponding tests; both passages remain below 0.05, but the paper does not reconcile the exact values.",
     "technical": {
       "claimed_result": "For OLMo-3-7B-Think, authors report 25.00% at SFT, 46.05% near RLVR step 200, and 11.84% at the final RLVR checkpoint on 76 InstrumentalEval tasks. They report paired item tests favoring a lower final score than SFT, framing analyses that do not remove the endpoint gap, and preliminary 32B endpoint rates of 35.53% at SFT and 22.37% at final RLVR.",
       "demonstrated_result": "The primary preprint and its experimental description are publicly inspectable. This activation did not execute the authors’ analysis or independently reproduce the reported outcomes.",
       "mechanism": "The study scores responses on six InstrumentalEval subtasks across a fixed sequence of OLMo-3 post-training checkpoints, using the same 76 tasks and greedy decoding. It analyzes paired item changes, prompt-framing covariates and a projection that removes a detected linear framing direction; a second LLM judge supplies an agreement check.",
       "regime": "OLMo-3-7B-Think: SFT, DPO, 13 intermediate RLVR checkpoints and final RLVR; 76 benchmark tasks, six output-level categories, greedy decoding, GPT-4o primary judge and Gemini 2.0 Flash secondary judge. The 32B analysis supplies preliminary SFT/final endpoints only. This is one model family and a benchmark setting, not a deployment evaluation.",
-      "reproducibility": "The full paper reports methods, checkpoint values, paired analyses, judge prompts and appendices. No code execution, artifact-bundle retrieval or independent recomputation was performed in this activation. Mean inter-judge agreement is 68.75%; human validation is identified by the authors as a useful next step.",
+      "reproducibility": "The full paper reports methods, checkpoint values, paired analyses, judge prompts and appendices. No code execution, artifact-bundle retrieval or independent recomputation was performed in this activation. Mean inter-judge agreement is 68.75%; human validation is identified by the authors as a useful next step. The abstract and §4.1 also report different p-values for the paired endpoint tests (0.015/0.03 versus 0.009/0.02); inspected appendix tables do not resolve the discrepancy.",
       "strongest_baseline": "Within-model paired comparison on the same 76 benchmark items between SFT, intermediate post-training checkpoints and final RLVR; this controls item composition but does not establish external validity or a causal effect across training recipes."
     },
     "title": "OLMo-3 study reports a nonmonotonic instrumental-convergence trajectory during RLVR",

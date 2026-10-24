@@ -1,7 +1,7 @@
 {
   "schema": "fcmo-stories-v2",
-  "generated_at": "2026-10-24T05:13:31Z",
-  "release_id": "newswire-d2b93ca3bd02711491cc5d78",
+  "generated_at": "2026-10-24T06:18:15Z",
+  "release_id": "newswire-388d7a3de9b5ca66c8be4fea",
   "canonical_locale": "en",
   "locales": [
     "en",
@@ -60,7 +60,7 @@
       "title": "OLMo-3 study reports a nonmonotonic instrumental-convergence trajectory during RLVR",
       "headline": "OLMo-3 study reports a nonmonotonic instrumental-convergence trajectory during RLVR",
       "dek": "An arXiv paper reports a nonmonotonic change in instrumental-convergence-like outputs across OLMo-3-7B-Think post-training checkpoints.",
-      "summary": "An arXiv paper reports a nonmonotonic change in instrumental-convergence-like outputs across OLMo-3-7B-Think post-training checkpoints. On the same 76 InstrumentalEval tasks, the author-scored rate rises from 25.00% at SFT to 46.05% near RLVR step 200, then falls to 11.84% at the final RLVR checkpoint. Preliminary 32B endpoint results also decline. The study reports framing controls, but mean agreement between its two LLM judges is 68.75%. This is a paper-reported result for one model family and benchmark; it does not establish internal objectives, broad safety or a general RLVR effect.",
+      "summary": "An arXiv paper reports a nonmonotonic change in instrumental-convergence-like outputs across OLMo-3-7B-Think post-training checkpoints. On the same 76 InstrumentalEval tasks, the author-scored rate rises from 25.00% at SFT to 46.05% near RLVR step 200, then falls to 11.84% at the final RLVR checkpoint. Preliminary 32B endpoint results also decline. The study reports framing controls, but mean agreement between its two LLM judges is 68.75%. This is a paper-reported result for one model family and benchmark; it does not establish internal objectives, broad safety or a general RLVR effect. The abstract reports paired SFT-to-final p-values of 0.015 and 0.03, while §4.1 reports 0.009 and 0.02 for the corresponding tests; both passages remain below 0.05, but the paper does not reconcile the exact values.",
       "why_it_matters": "Endpoint-only safety comparisons can miss intermediate changes in model behavior. This paper reports an early increase and later decline in instrumental-convergence-like outputs across one RLVR checkpoint sequence, with framing analyses and an additional judge check. If independently reproduced and extended across model families, checkpoint-level evaluation could improve how researchers measure post-training safety effects. The paper does not show that RLVR generally makes models safer or that the measured outputs reflect internal goals.",
       "importance_rationale": "If reproduced, a checkpoint trajectory that rises early and later falls below baseline would materially change how researchers evaluate the behavioral effects of verifier-based post-training and demonstrates that endpoint-only safety comparisons can conceal nonmonotonic changes. The implication is important for evaluation practice but remains narrow to one model family, one benchmark and a moderately agreeing LLM-judge setup.",
       "technical": {
@@ -68,7 +68,7 @@
         "demonstrated_result": "The primary preprint and its experimental description are publicly inspectable. This activation did not execute the authors’ analysis or independently reproduce the reported outcomes.",
         "mechanism": "The study scores responses on six InstrumentalEval subtasks across a fixed sequence of OLMo-3 post-training checkpoints, using the same 76 tasks and greedy decoding. It analyzes paired item changes, prompt-framing covariates and a projection that removes a detected linear framing direction; a second LLM judge supplies an agreement check.",
         "regime": "OLMo-3-7B-Think: SFT, DPO, 13 intermediate RLVR checkpoints and final RLVR; 76 benchmark tasks, six output-level categories, greedy decoding, GPT-4o primary judge and Gemini 2.0 Flash secondary judge. The 32B analysis supplies preliminary SFT/final endpoints only. This is one model family and a benchmark setting, not a deployment evaluation.",
-        "reproducibility": "The full paper reports methods, checkpoint values, paired analyses, judge prompts and appendices. No code execution, artifact-bundle retrieval or independent recomputation was performed in this activation. Mean inter-judge agreement is 68.75%; human validation is identified by the authors as a useful next step.",
+        "reproducibility": "The full paper reports methods, checkpoint values, paired analyses, judge prompts and appendices. No code execution, artifact-bundle retrieval or independent recomputation was performed in this activation. Mean inter-judge agreement is 68.75%; human validation is identified by the authors as a useful next step. The abstract and §4.1 also report different p-values for the paired endpoint tests (0.015/0.03 versus 0.009/0.02); inspected appendix tables do not resolve the discrepancy.",
         "strongest_baseline": "Within-model paired comparison on the same 76 benchmark items between SFT, intermediate post-training checkpoints and final RLVR; this controls item composition but does not establish external validity or a causal effect across training recipes."
       },
       "importance_tier": "Major",
@@ -103,7 +103,8 @@
           "The main trajectory concerns OLMo-3-7B-Think on 76 InstrumentalEval tasks; the reported 32B result is endpoint-only.",
           "The measured construct is output-level instrumental-convergence-like reasoning, not evidence of internal goals, general safety or deployment behavior.",
           "Two-judge mean agreement is 68.75% and is lower near the early peak, so absolute rates require caution.",
-          "The result does not establish a general causal effect of RLVR across models, objectives, training recipes or verifiers."
+          "The result does not establish a general causal effect of RLVR across models, objectives, training recipes or verifiers.",
+          "The paper reports inconsistent exact paired-test p-values for the same SFT-to-final comparison: the abstract gives 0.015 and 0.03, while §4.1 gives 0.009 and 0.02. The inspected appendix does not reconcile them; all reported values remain below 0.05 and the direction is unchanged."
         ],
         "gaps": [
           {
@@ -117,9 +118,15 @@
           {
             "kind": "other",
             "description": "InstrumentalEval measures output-level behavior rather than internal objectives or persistent deployment behavior, and average agreement between the two LLM judges is 68.75%."
+          },
+          {
+            "kind": "contradiction_unresolved",
+            "description": "The paper's abstract and §4.1 report different paired-test p-values for the same SFT-to-final comparison: abstract p=0.015/0.03 (paired t/Wilcoxon) versus §4.1 p=0.009/0.02. The inspected appendix does not reconcile them; all are below 0.05, so direction is unchanged but exact values are uncertain."
           }
         ],
-        "contradictory": []
+        "contradictory": [
+          "The arXiv v1 abstract reports paired SFT-to-final tests with p=0.015 (paired t-test) and p=0.03 (Wilcoxon), while §4.1 reports p=0.009 and p=0.02 for the corresponding paired comparison. The inspected appendix does not reconcile the differing values. Both passages report values below 0.05 and support the same direction, but the exact inferential values remain unresolved."
+        ]
       },
       "sources": [
         {
@@ -160,7 +167,7 @@
           "state": "NATIVE_ARB",
           "fields": {
             "title": "Estudio de OLMo-3 informa una trayectoria no monotónica de convergencia instrumental durante RLVR",
-            "summary": "Un artículo de arXiv informa un cambio no monotónico en las respuestas similares a convergencia instrumental a través de los puntos de control de postentrenamiento de OLMo-3-7B-Think. En las mismas 76 tareas de InstrumentalEval, la tasa calculada por los autores sube de 25.00% en SFT a 46.05% cerca del paso 200 de RLVR y luego baja a 11.84% en el punto de control final de RLVR. Los resultados preliminares de extremo a extremo en 32B también descienden. El estudio informa controles de encuadre, pero el acuerdo medio entre sus dos jueces basados en modelos de lenguaje es 68.75%. Es un resultado informado por los autores para una familia de modelos y un benchmark; no demuestra objetivos internos, seguridad general ni un efecto general de RLVR.",
+            "summary": "Un artículo de arXiv informa un cambio no monotónico en las respuestas similares a convergencia instrumental a través de los puntos de control de postentrenamiento de OLMo-3-7B-Think. En las mismas 76 tareas de InstrumentalEval, la tasa calculada por los autores sube de 25.00% en SFT a 46.05% cerca del paso 200 de RLVR y luego baja a 11.84% en el punto de control final de RLVR. Los resultados preliminares de extremo a extremo en 32B también descienden. El estudio informa controles de encuadre, pero el acuerdo medio entre sus dos jueces basados en modelos de lenguaje es 68.75%. Es un resultado informado por los autores para una familia de modelos y un benchmark; no demuestra objetivos internos, seguridad general ni un efecto general de RLVR. El resumen informa valores p pareados de SFT al checkpoint final de 0.015 y 0.03, mientras que §4.1 informa 0.009 y 0.02 para las pruebas correspondientes; ambos pasajes siguen por debajo de 0.05, pero el artículo no concilia los valores exactos.",
             "importance_rationale": "Si se reproduce, una trayectoria que primero aumenta y después cae por debajo de la línea base cambiaría de manera importante cómo se evalúan los efectos de postentrenamiento basado en verificadores y mostraría que las comparaciones de seguridad entre extremos pueden ocultar cambios no monotónicos. La implicación es relevante para el diseño de evaluaciones, pero el resultado se limita a una familia de modelos, un benchmark y un esquema de jueces basados en modelos de lenguaje con acuerdo moderado.",
             "why_it_matters": "Las comparaciones de seguridad que solo miden el inicio y el final pueden pasar por alto cambios intermedios en el comportamiento del modelo. Este artículo informa un aumento temprano y una disminución posterior de respuestas similares a convergencia instrumental en una secuencia de RLVR, junto con análisis de encuadre y una comprobación con otro juez. Si se reproduce de manera independiente y se extiende a otras familias de modelos, evaluar cada etapa del entrenamiento podría mejorar la medición de los efectos de seguridad del postentrenamiento. El artículo no demuestra que RLVR vuelva más seguros a los modelos en general ni que las respuestas medidas reflejen objetivos internos.",
             "technical": {
@@ -168,7 +175,7 @@
               "demonstrated_result": "El preprint primario y su descripción experimental se pueden consultar públicamente. Esta activación no ejecutó el análisis de los autores ni reprodujo por cuenta propia los resultados informados.",
               "mechanism": "El estudio puntúa respuestas en seis subtareas de InstrumentalEval a través de una secuencia fija de puntos de control de postentrenamiento de OLMo-3, con las mismas 76 tareas y decodificación voraz. Analiza cambios emparejados por tarea, variables de encuadre de las instrucciones y una proyección que elimina una dirección lineal de encuadre detectable; un segundo juez basado en un modelo de lenguaje aporta una comprobación de acuerdo.",
               "regime": "OLMo-3-7B-Think: SFT, DPO, 13 puntos intermedios de RLVR y el punto final de RLVR; 76 tareas de benchmark, seis categorías de respuestas observables, decodificación voraz, GPT-4o como juez principal y Gemini 2.0 Flash como juez secundario. El análisis de 32B aporta solo resultados preliminares entre SFT y el punto final. Es una sola familia de modelos en un benchmark, no una evaluación de despliegue.",
-              "reproducibility": "El artículo completo informa métodos, valores de los puntos de control, análisis emparejados, instrucciones para los jueces y apéndices. En esta activación no se ejecutó código, no se descargó un paquete de artefactos ni se recalcularon resultados de forma independiente. El acuerdo medio entre jueces es 68.75%; los autores identifican la validación humana como un paso útil.",
+              "reproducibility": "El artículo completo informa métodos, valores de los puntos de control, análisis emparejados, instrucciones para los jueces y apéndices. En esta activación no se ejecutó código, no se descargó un paquete de artefactos ni se recalcularon resultados de forma independiente. El acuerdo medio entre jueces es 68.75%; los autores identifican la validación humana como un paso útil. Además, el resumen y §4.1 informan valores p diferentes para las pruebas emparejadas entre extremos (0.015/0.03 frente a 0.009/0.02); las tablas del apéndice revisadas no resuelven la diferencia.",
               "strongest_baseline": "Comparación emparejada dentro del mismo modelo, usando las mismas 76 tareas entre SFT, puntos intermedios y RLVR final. Esto controla la composición de tareas, pero no demuestra validez externa ni un efecto causal entre distintas recetas de entrenamiento."
             },
             "evidence": {
@@ -188,7 +195,8 @@
                 "La trayectoria principal corresponde a OLMo-3-7B-Think en 76 tareas de InstrumentalEval; el resultado informado para 32B solo compara los extremos.",
                 "La medida captura respuestas similares a razonamiento de convergencia instrumental, no evidencia de objetivos internos, seguridad general o comportamiento en despliegue.",
                 "El acuerdo medio entre los dos jueces es 68.75% y es menor cerca del máximo temprano, por lo que las tasas absolutas requieren cautela.",
-                "El resultado no establece un efecto causal general de RLVR entre modelos, objetivos, recetas de entrenamiento o verificadores."
+                "El resultado no establece un efecto causal general de RLVR entre modelos, objetivos, recetas de entrenamiento o verificadores.",
+                "El artículo informa valores p exactos inconsistentes para las mismas pruebas emparejadas entre SFT y RLVR final: el resumen da 0.015 y 0.03, mientras que §4.1 da 0.009 y 0.02. El apéndice revisado no resuelve la diferencia; todos los valores informados son menores que 0.05 y la dirección no cambia."
               ],
               "gaps": [
                 {
@@ -199,7 +207,13 @@
                 },
                 {
                   "description": "InstrumentalEval mide respuestas observables, no objetivos internos ni comportamiento persistente en despliegue; el acuerdo medio de los dos jueces es 68.75%."
+                },
+                {
+                  "description": "El resumen y §4.1 del artículo informan valores p distintos para las mismas pruebas emparejadas entre SFT y RLVR final: resumen p=0.015/0.03 (t de Student/Wilcoxon), frente a §4.1 p=0.009/0.02. El apéndice revisado no los concilia; todos son menores que 0.05, por lo que la dirección no cambia, pero los valores exactos son inciertos."
                 }
+              ],
+              "contradictory": [
+                "El resumen de arXiv v1 informa pruebas emparejadas entre SFT y RLVR final con p=0.015 (t de Student pareada) y p=0.03 (Wilcoxon), mientras que §4.1 informa p=0.009 y p=0.02 para la comparación emparejada correspondiente. El apéndice revisado no concilia esos valores. Ambos pasajes dan valores menores que 0.05 y mantienen la misma dirección, pero los valores inferenciales exactos siguen sin resolverse."
               ]
             },
             "dek": "Un artículo de arXiv informa un cambio no monotónico en las respuestas similares a convergencia instrumental a través de los puntos de control de postentrenamiento de OLMo-3-7B-Think."
@@ -213,14 +227,15 @@
             "technical": "arb",
             "evidence.claims": "arb",
             "evidence.limitations": "arb",
-            "evidence.gaps": "arb"
+            "evidence.gaps": "arb",
+            "evidence.contradictory": "arb"
           }
         },
         "zh-Hans": {
           "state": "NATIVE_ARB",
           "fields": {
             "title": "OLMo-3 研究报告 RLVR 期间类似工具性收敛行为呈非单调变化",
-            "summary": "一篇 arXiv 论文报告称，在 OLMo-3-7B-Think 的后训练检查点序列中，类似工具性收敛的输出发生了非单调变化。在相同的 76 项 InstrumentalEval 任务上，作者计算的比例从 SFT 阶段的 25.00% 升至 RLVR 第 200 步附近的 46.05%，随后降至 RLVR 最终检查点的 11.84%。初步的 32B 起止点结果也有所下降。研究报告了提示框架控制，但两名语言模型评审者的平均一致率为 68.75%。这是针对一个模型系列和一个基准的论文报告结果；它不能证明模型具有内部目标、整体安全性或 RLVR 的普遍效应。",
+            "summary": "一篇 arXiv 论文报告称，在 OLMo-3-7B-Think 的后训练检查点序列中，类似工具性收敛的输出发生了非单调变化。在相同的 76 项 InstrumentalEval 任务上，作者计算的比例从 SFT 阶段的 25.00% 升至 RLVR 第 200 步附近的 46.05%，随后降至 RLVR 最终检查点的 11.84%。初步的 32B 起止点结果也有所下降。研究报告了提示框架控制，但两名语言模型评审者的平均一致率为 68.75%。这是针对一个模型系列和一个基准的论文报告结果；它不能证明模型具有内部目标、整体安全性或 RLVR 的普遍效应。 摘要报告 SFT 至最终检查点的配对检验 p 值为 0.015 和 0.03，而 §4.1 对相应检验报告 0.009 和 0.02；两处都低于 0.05，但论文没有解释这些具体数值为何不同。",
             "importance_rationale": "如果得到复现，一条先上升、随后低于基线的检查点轨迹将实质改变研究者对基于验证器的后训练行为效应的评估，并表明只比较端点可能掩盖非单调变化。这对评测设计有重要意义，但结果仍局限于一个模型系列、一个基准和一致率中等的语言模型评审设置。",
             "why_it_matters": "只比较训练前后的安全评测可能遗漏模型行为的中间变化。本文报告称，在一个 RLVR 检查点序列中，类似工具性收敛的输出先上升后下降，并分析了提示框架，也使用另一位评审者进行核对。如果这一结果得到独立复现并扩展到其他模型系列，逐检查点评测可能改善对后训练安全影响的测量。本文并未证明 RLVR 普遍提升模型安全性，也未证明被测输出反映了内部目标。",
             "technical": {
@@ -228,7 +243,7 @@
               "demonstrated_result": "原始预印本及其实验说明可以公开查阅。本次激活没有运行作者的分析，也没有独立复现报告结果。",
               "mechanism": "研究在 OLMo-3 的固定后训练检查点序列中，使用相同的 76 项任务评估六类 InstrumentalEval 子任务的回答。分析包括逐任务配对变化、提示框架协变量，以及移除可检测线性框架方向的投影；第二个语言模型评审者用于检验评审一致性。",
               "regime": "OLMo-3-7B-Think：SFT、DPO、13 个 RLVR 中间检查点及 RLVR 最终点；76 项基准任务、六类输出行为、贪心解码、GPT-4o 主评审者和 Gemini 2.0 Flash 辅助评审者。32B 分析仅提供初步的 SFT 与最终 RLVR 端点结果。这是单一模型系列的基准评测，不是部署评估。",
-              "reproducibility": "全文报告了方法、各检查点数值、配对分析、评审提示和附录。本次激活未执行代码、下载实验材料包或独立重算结果。评审者平均一致率为 68.75%；作者提出人工验证可作为有用的后续步骤。",
+              "reproducibility": "全文报告了方法、各检查点数值、配对分析、评审提示和附录。本次激活未执行代码、下载实验材料包或独立重算结果。评审者平均一致率为 68.75%；作者提出人工验证可作为有用的后续步骤。 此外，摘要与 §4.1 对端点配对检验报告的 p 值不同（0.015/0.03 与 0.009/0.02）；所检查的附录表格没有解释这一差异。",
               "strongest_baseline": "在同一模型内，对相同的 76 项任务比较 SFT、中间后训练检查点和 RLVR 最终点。这控制了任务构成，但不能证明外部有效性或不同训练配方之间的因果效应。"
             },
             "evidence": {
@@ -248,7 +263,8 @@
                 "主要轨迹涉及 OLMo-3-7B-Think 在 76 项 InstrumentalEval 任务上的表现；32B 结果只比较起止端点。",
                 "测量对象是类似工具性收敛的输出推理，不是内部目标、整体安全性或部署行为的证据。",
                 "两名评审者的一致率均值为 68.75%，且在早期峰值附近更低，因此绝对比例需要谨慎解读。",
-                "该结果不能证明 RLVR 在不同模型、目标、训练配方或验证器上具有普遍因果效应。"
+                "该结果不能证明 RLVR 在不同模型、目标、训练配方或验证器上具有普遍因果效应。",
+                "论文对同一项 SFT 至 RLVR 最终点配对检验报告了不一致的确切 p 值：摘要给出 0.015 和 0.03，§4.1 给出 0.009 和 0.02。所检查的附录未解决这一差异；所有报告值均低于 0.05，方向保持一致。"
               ],
               "gaps": [
                 {
@@ -259,7 +275,13 @@
                 },
                 {
                   "description": "InstrumentalEval 测量输出行为，不测量内部目标或持续部署行为；两名语言模型评审者的平均一致率为 68.75%。"
+                },
+                {
+                  "description": "论文摘要和 §4.1 对同一项 SFT 至 RLVR 最终点配对比较报告了不同的 p 值：摘要为 p=0.015/0.03（配对 t 检验/Wilcoxon 检验），§4.1 为 p=0.009/0.02。所检查的附录未加以协调；所有报告值均低于 0.05，因此方向不变，但确切数值仍不确定。"
                 }
+              ],
+              "contradictory": [
+                "arXiv v1 摘要报告的 SFT 至 RLVR 最终点配对检验结果为 p=0.015（配对 t 检验）和 p=0.03（Wilcoxon 检验），而 §4.1 对相应配对比较报告 p=0.009 和 p=0.02。所检查的附录没有解释这些数值差异。两处报告的数值均低于 0.05，方向一致，但确切推断数值仍未解决。"
               ]
             },
             "headline": "OLMo-3 研究报告 RLVR 期间类似工具性收敛行为呈非单调变化"
@@ -273,7 +295,8 @@
             "technical": "arb",
             "evidence.claims": "arb",
             "evidence.limitations": "arb",
-            "evidence.gaps": "arb"
+            "evidence.gaps": "arb",
+            "evidence.contradictory": "arb"
           }
         }
       }
@@ -147201,7 +147224,7 @@
       "desk": "evaluation_science",
       "title": "A mathematical-analysis preprint reports mismatches between OpenAI’s Navier-Stokes proof and cited Lean estimates",
       "dek": "Bastounis, Circelli and Hansen compare OpenAI’s natural-language Navier–Stokes proof with cited Lean declarations.",
-      "summary": "Bastounis, Circelli and Hansen compare OpenAI’s natural-language Navier–Stokes proof with cited Lean declarations. For Lemma 8.6, equation (8.19), they report that the manuscript states an m+4 derivative estimate while the cited Lean estimate requires m+5. For pressure-flux equation (10.19), they report a different Lean bound and proof route, including an additional localized gradient norm. Static inspection of the pinned source shows a related canonical cutoff-flux bound is used along the option-C proof path; whether it is equivalent or sufficient for the manuscript argument remains unresolved. The authors do not claim the natural-language blow-up proof is incorrect. The critique remains an author-reported result without independent reproduction or established specialist consensus.",
+      "summary": "Bastounis, Circelli and Hansen compare OpenAI’s natural-language Navier–Stokes proof with cited Lean declarations. For Lemma 8.6, equation (8.19), they report that the manuscript states an m+4 derivative estimate while the cited Lean estimate requires m+5. For pressure-flux equation (10.19), they report a different Lean bound and proof route, including an additional localized gradient norm. Static inspection of the pinned source shows a related canonical cutoff-flux bound is used along the option-C proof path; whether it is equivalent or sufficient for the manuscript argument remains unresolved. The authors do not claim the natural-language blow-up proof is incorrect. The critique remains an author-reported result without independent reproduction or established specialist consensus. A later auditor-authored red-team report claims pinned build and semantic-bridge checks and reports no material discrepancy falsifying the formal chain; the research desk inspected the report but did not reproduce its checks, and its claims do not settle the natural-language proof or Clay review.",
       "why_it_matters": "A formal proof establishes its encoded theorem, but it does not by itself establish that the theorem matches the natural-language argument it is meant to check. The reported estimate differences give concrete targets for independent Lean and PDE review of an extraordinary mathematical claim, while leaving the truth of the underlying blow-up result unresolved.",
       "importance_rationale": "If the reported mismatches hold, a machine-checked Lean result cannot be treated as verification of the specific natural-language proof without a semantic bridge. This changes how an extraordinary mathematical claim should be evaluated, although the audit does not refute the underlying theorem.",
       "technical": {
@@ -147210,8 +147233,8 @@
         "implementation_status": "Mathematical-analysis preprint arXiv v1; no independent reproduction by this research run.",
         "mechanism": "Compares selected estimates and proof steps in OpenAI’s natural-language Navier–Stokes paper against cited Lean declarations and pinned source revisions. The critique separates encoded theorem validity from semantic fidelity to the written argument.",
         "regime": "Selected analytic estimates in one natural-language Navier–Stokes proof and corresponding Lean declarations at pinned revision f9e8bc5; static inspection traces a related cutoff-flux bound to option C but does not settle semantic fidelity or theorem correctness.",
-        "reproducibility": "The paper cites exact manuscript sections and Lean revisions; the research desk re-read these and statically traced the pressure-flux dependency at f9e8bc5 but did not independently derive the estimates, establish equivalence, or build/check Lean. Current-upstream reconciliation remains open.",
-        "strongest_baseline": "OpenAI’s natural-language paper and its cited Lean declarations are compared directly. The authors report explicit estimate differences but do not claim the natural-language theorem is false; neither the critique nor theorem has independent peer-reviewed resolution in this review."
+        "reproducibility": "The paper cites exact manuscript sections and Lean revisions; the research desk re-read these and statically traced the pressure-flux dependency at f9e8bc5 but did not independently derive the estimates, establish equivalence, or build/check Lean. Current-upstream reconciliation remains open. A separate current red-team report claims an 11,251-job build and Comparator/ClaySpec bridge checks at pinned revisions, but its live Comparator rerun reused/replayed Lake artifacts and the research desk did not reproduce these checks.",
+        "strongest_baseline": "OpenAI’s natural-language paper and its cited Lean declarations are compared directly. The authors report explicit estimate differences but do not claim the natural-language theorem is false; neither the critique nor theorem has independent peer-reviewed resolution in this review. A current auditor-authored report provides counterevidence to a broad claim that the formal chain contains a material falsifying discrepancy, while leaving independent reproduction and natural-language semantic fidelity unresolved."
       },
       "importance_tier": "Major",
       "development_type": "reproduction_or_audit",
@@ -147247,7 +147270,8 @@
           "This is an author-reported analysis in an arXiv v1 preprint; peer review and independent specialist consensus were not established.",
           "The paper compares selected proof components and cited Lean declarations; it does not establish that the underlying Navier–Stokes blow-up theorem is false.",
           "For pressure-flux equation (10.19), the authors report a different bound involving localized gradient norm A_R. Static inspection places a related canonical cutoff-flux bound on the option-C proof path, but does not show that the two arguments are equivalent or that the Lean inequality is insufficient.",
-          "No independent reproduction, Lean build, proof of estimate equivalence, or audit of later upstream revisions was performed."
+          "No independent reproduction, Lean build, proof of estimate equivalence, or audit of later upstream revisions was performed.",
+          "A current independent auditor-authored report claims a pinned build, Comparator rerun with reused/replayed Lake artifacts, and a ClaySpec correspondence check; the research desk inspected the report but did not reproduce its checks or independently verify the claimed outputs."
         ],
         "gaps": [
           {
@@ -147257,9 +147281,15 @@
           {
             "kind": "other",
             "description": "The critique does not refute the underlying blow-up theorem. Static inspection traces a related canonical cutoff-flux bound into the option-C proof path, but whether that bound is sufficient or semantically equivalent to manuscript equation (10.19) remains unresolved; the derivative-order mismatch and complete theorem-level implications also need expert assessment."
+          },
+          {
+            "kind": "missing_independent",
+            "description": "A current auditor-authored red-team report claims a pinned build, Comparator rerun and ClaySpec correspondence check, but the research desk has not reproduced those checks or independently assessed the audit methodology; it does not establish natural-language proof fidelity, specialist consensus or Clay adjudication."
           }
         ],
-        "contradictory": []
+        "contradictory": [
+          "An independent audit report says it pinned OpenAI source 8937a8f4cbc7abaab5e9e97d1cc7f5d2319d9538, Lean v4.34.0-rc2, Mathlib 85e3a25e and Comparator 19e111; it reports an 11,251-job build, a live Comparator rerun using reused/replayed Lake artifacts, and a separate ClaySpec-to-Comparator correspondence check, concluding it found no material discrepancy capable of falsifying the formal chain. The report also corrects two provenance claims in its earlier audit and retains human interpretation boundaries. This self-published report qualifies the earlier mismatch critique but does not independently settle the estimates, prove the natural-language argument, or establish Clay acceptance; the research desk did not reproduce its checks. SCAN-20261024T041639Z-15F5CE"
+        ]
       },
       "sources": [
         {
@@ -147269,6 +147299,11 @@
         },
         {
           "url": "https://github.com/openai/NavierStokesAndEuler/tree/f9e8bc5b38b6e212696e8a30e3e91517af887bbd",
+          "domain": "github.com",
+          "primary": true
+        },
+        {
+          "url": "https://github.com/francescoantoniodeluca/navier-stokes-formal-audit/blob/main/FINAL_RED_TEAM_AUDIT.md",
           "domain": "github.com",
           "primary": true
         }
@@ -147305,7 +147340,7 @@
           "state": "NATIVE_ARB",
           "fields": {
             "title": "Un preprint de análisis matemático informa diferencias entre la prueba de Navier–Stokes de OpenAI y estimaciones Lean citadas",
-            "summary": "Bastounis, Circelli y Hansen comparan la prueba de Navier–Stokes en lenguaje natural de OpenAI con las declaraciones Lean citadas. Para el Lema 8.6, ecuación (8.19), informan que el manuscrito presenta una estimación con m+4 derivadas, mientras que la estimación Lean citada requiere m+5. Para la ecuación (10.19) del flujo de presión, informan una cota y una ruta de demostración Lean diferentes, incluida una norma de gradiente localizada adicional. Una inspección estática del código fijado muestra que una cota canónica relacionada para el flujo de corte se usa en la ruta de la opción C; sigue sin resolverse si es equivalente o suficiente para el argumento del manuscrito. Los autores no afirman que la prueba de singularidad en lenguaje natural sea incorrecta. La crítica sigue siendo un resultado informado por sus autores, sin reproducción independiente ni consenso especializado establecido.",
+            "summary": "Bastounis, Circelli y Hansen comparan la prueba de Navier–Stokes en lenguaje natural de OpenAI con las declaraciones Lean citadas. Para el Lema 8.6, ecuación (8.19), informan que el manuscrito presenta una estimación con m+4 derivadas, mientras que la estimación Lean citada requiere m+5. Para la ecuación (10.19) del flujo de presión, informan una cota y una ruta de demostración Lean diferentes, incluida una norma de gradiente localizada adicional. Una inspección estática del código fijado muestra que una cota canónica relacionada para el flujo de corte se usa en la ruta de la opción C; sigue sin resolverse si es equivalente o suficiente para el argumento del manuscrito. Los autores no afirman que la prueba de singularidad en lenguaje natural sea incorrecta. La crítica sigue siendo un resultado informado por sus autores, sin reproducción independiente ni consenso especializado establecido. Un informe posterior de auditoría, redactado por sus autores, afirma haber comprobado una compilación fijada y un puente semántico, y dice no haber hallado discrepancias materiales que invaliden la cadena formal; esta revisión leyó el informe, pero no reprodujo sus comprobaciones y estas afirmaciones no resuelven la prueba en lenguaje natural ni la revisión de Clay.",
             "importance_rationale": "Si las discrepancias informadas se confirman, un resultado Lean verificado no puede tratarse como verificación de una prueba específica en lenguaje natural sin un puente semántico. Esto cambia cómo debe evaluarse una afirmación matemática extraordinaria, aunque la auditoría no refuta el teorema subyacente.",
             "why_it_matters": "Una prueba formal establece la afirmación codificada, pero por sí sola no demuestra que coincida con el argumento en lenguaje natural que pretende verificar. Las diferencias de estimación informadas ofrecen puntos concretos para la revisión independiente de Lean y EDP de una afirmación matemática extraordinaria, sin resolver la verdad del resultado de singularidad subyacente.",
             "technical": {
@@ -147314,8 +147349,8 @@
               "implementation_status": "Preprint de análisis matemático, arXiv v1; esta activación no hizo una reproducción independiente.",
               "mechanism": "Compara estimaciones y pasos de prueba seleccionados del artículo de Navier–Stokes de OpenAI en lenguaje natural con declaraciones Lean citadas y revisiones fijadas del código. La crítica separa la validez de la afirmación formal codificada de su fidelidad semántica al argumento escrito.",
               "regime": "Estimaciones analíticas seleccionadas de una prueba de Navier–Stokes en lenguaje natural y de declaraciones Lean correspondientes en la revisión fijada f9e8bc5; una inspección estática conecta una cota relacionada para el flujo de corte con la opción C, pero no resuelve la fidelidad semántica ni la validez del teorema.",
-              "reproducibility": "El artículo cita secciones y revisiones Lean exactas; Esta revisión volvió a leer esas fuentes y trazó estáticamente la dependencia del flujo de presión en f9e8bc5, pero no derivó las estimaciones, demostró equivalencia ni compiló Lean. Sigue pendiente contrastar el código upstream actual.",
-              "strongest_baseline": "El artículo de OpenAI en lenguaje natural y las declaraciones Lean que cita se comparan directamente. Los autores informan diferencias explícitas en las estimaciones, pero no afirman que el teorema en lenguaje natural sea incorrecto; ni la crítica ni el teorema cuentan con una resolución independiente revisada por pares en esta revisión."
+              "reproducibility": "El artículo identifica las secciones y revisiones Lean concretas; esta revisión volvió a leerlas y rastreó estáticamente la dependencia del flujo de presión en f9e8bc5, pero no derivó de forma independiente las estimaciones, demostró equivalencia ni compiló Lean. Un informe de auditoría independiente afirma una compilación de 11,251 trabajos y comprobaciones del puente Comparator/ClaySpec con revisiones fijadas, pero su nueva ejecución de Comparator reutilizó o reprodujo artefactos de Lake y esta revisión no repitió esas comprobaciones. Sigue pendiente conciliar el código upstream actual.",
+              "strongest_baseline": "Se comparan directamente el artículo de OpenAI en lenguaje natural y las declaraciones Lean que cita. Los autores informan diferencias concretas en las estimaciones, pero no afirman que el teorema en lenguaje natural sea falso; en esta revisión no hay una resolución independiente por pares ni de la crítica ni del teorema. Un informe reciente de auditoría, publicado por sus autores, aporta evidencia en sentido contrario a que la cadena formal contenga una discrepancia material que la invalide, aunque la reproducción independiente y la fidelidad semántica del argumento en lenguaje natural siguen sin resolverse."
             },
             "evidence": {
               "claims": [
@@ -147336,7 +147371,8 @@
                 "Este es un análisis comunicado por sus autores en arXiv v1; no se establecieron revisión por pares ni consenso especializado independiente.",
                 "El artículo compara componentes seleccionados de la prueba con declaraciones Lean citadas; no demuestra que el teorema de singularidad de Navier–Stokes sea falso.",
                 "Para el flujo de presión de la ecuación (10.19), los autores informan una cota diferente que incluye la norma de gradiente localizada A_R. Una inspección estática sitúa una cota canónica relacionada para el flujo de corte en la ruta de la opción C, pero no demuestra que ambos argumentos sean equivalentes ni que la desigualdad Lean sea insuficiente.",
-                "No se hizo una reproducción independiente, una compilación de Lean, una demostración de equivalencia entre las estimaciones ni una auditoría de revisiones posteriores del código upstream."
+                "No se hizo una reproducción independiente, una compilación de Lean, una demostración de equivalencia entre las estimaciones ni una auditoría de revisiones posteriores del código upstream.",
+                "Un informe reciente, redactado por auditores independientes, afirma haber realizado una compilación fijada, una nueva ejecución de Comparator con artefactos de Lake reutilizados o reproducidos y una comprobación de correspondencia con ClaySpec; esta revisión leyó el informe, pero no reprodujo sus comprobaciones ni verificó de forma independiente los resultados."
               ],
               "gaps": [
                 {
@@ -147344,7 +147380,13 @@
                 },
                 {
                   "description": "La crítica no refuta el teorema de singularidad subyacente. La inspección estática conecta una cota canónica relacionada para el flujo de corte con la ruta de la opción C, pero sigue sin resolverse si esa cota basta o es semánticamente equivalente a la ecuación (10.19) del manuscrito; la diferencia en el orden de derivadas y sus efectos sobre el teorema también requieren evaluación experta."
+                },
+                {
+                  "description": "Un informe de auditoría reciente afirma haber realizado una compilación fijada, una nueva ejecución de Comparator y una comprobación de correspondencia con ClaySpec, pero esta revisión no ha reproducido esas comprobaciones ni evaluado de forma independiente la metodología; tampoco demuestra fidelidad de la prueba en lenguaje natural, consenso especializado ni decisión de Clay."
                 }
+              ],
+              "contradictory": [
+                "Un informe de auditoría independiente afirma que fijó el código fuente de OpenAI 8937a8f4cbc7abaab5e9e97d1cc7f5d2319d9538, Lean v4.34.0-rc2, Mathlib 85e3a25e y Comparator 19e111; reporta una compilación de 11,251 trabajos, una nueva ejecución de Comparator con artefactos de Lake reutilizados o reproducidos, y una comprobación separada de correspondencia entre ClaySpec y Comparator. Concluye que no encontró discrepancias materiales capaces de invalidar la cadena formal. El informe también corrige dos afirmaciones de procedencia de su auditoría previa y mantiene límites de interpretación humana. Este informe, publicado por sus autores, matiza la crítica anterior, pero esta revisión no reprodujo las comprobaciones; no resuelve por sí solo las estimaciones, no demuestra la prueba en lenguaje natural ni acredita aceptación por Clay. SCAN-20261024T041639Z-15F5CE"
               ]
             },
             "dek": "Bastounis, Circelli y Hansen comparan la prueba de Navier–Stokes en lenguaje natural de OpenAI con las declaraciones Lean citadas."
@@ -147358,14 +147400,15 @@
             "technical": "arb",
             "evidence.claims": "arb",
             "evidence.limitations": "arb",
-            "evidence.gaps": "arb"
+            "evidence.gaps": "arb",
+            "evidence.contradictory": "arb"
           }
         },
         "zh-Hans": {
           "state": "NATIVE_ARB",
           "fields": {
             "title": "数学分析预印本报告称 OpenAI 的 Navier–Stokes 证明与所引 Lean 估计存在差异",
-            "summary": "Bastounis、Circelli 和 Hansen 将 OpenAI 的自然语言 Navier–Stokes 证明与引用的 Lean 声明进行了比较。对于引理 8.6、公式 (8.19)，他们报告称，论文中的估计要求 m+4 阶导数，而引用的 Lean 估计要求 m+5 阶。对于公式 (10.19) 的压力通量，他们报告了不同的 Lean 界限与证明路线，其中额外包含局部梯度范数。对固定源码的静态检查显示，相关的典型截断通量界限用于选项 C 的证明路径；其是否等价或足以支持论文论证仍未解决。作者并未声称自然语言爆破解证明错误。该批评仍是作者在预印本中报告的结果，尚无独立复现或已确立的专家共识。",
+            "summary": "Bastounis、Circelli 和 Hansen 将 OpenAI 的自然语言 Navier–Stokes 证明与引用的 Lean 声明进行了比较。对于引理 8.6、公式 (8.19)，他们报告称，论文中的估计要求 m+4 阶导数，而引用的 Lean 估计要求 m+5 阶。对于公式 (10.19) 的压力通量，他们报告了不同的 Lean 界限与证明路线，其中额外包含局部梯度范数。对固定源码的静态检查显示，相关的典型截断通量界限用于选项 C 的证明路径；其是否等价或足以支持论文论证仍未解决。作者并未声称自然语言爆破解证明错误。该批评仍是作者在预印本中报告的结果，尚无独立复现或已确立的专家共识。 后续一份由审计作者发布的报告声称完成了固定版本构建和语义桥接检查，并称未发现足以推翻形式化证明链的实质性差异；本次研究 查阅了该报告但未复现其检查，这些说法也没有解决自然语言证明或 Clay 的审查结果。",
             "importance_rationale": "如果所报告的差异成立，就不能在缺少语义桥接的情况下，把 Lean 机器核验视为对特定自然语言证明的验证。这会改变对这一非凡数学声明的评估方式，但该审计并未推翻底层定理。",
             "why_it_matters": "形式证明能够确立其编码的命题，但本身不能证明该命题等同于它意在核验的自然语言论证。所报告的估计差异为独立 Lean 与 PDE 专家审查这一非凡数学声明提供了具体切入点，但底层爆破解定理的真伪仍未解决。",
             "technical": {
@@ -147374,8 +147417,8 @@
               "implementation_status": "数学分析预印本，arXiv v1；本次激活没有进行独立复现。",
               "mechanism": "将 OpenAI 自然语言 Navier–Stokes 论文中的部分估计与证明步骤，与引用的 Lean 声明及固定代码版本进行比较。该批评区分编码命题的有效性与其对书面论证的语义忠实度。",
               "regime": "自然语言 Navier–Stokes 证明中的部分分析估计及 f9e8bc5 固定版本中的对应 Lean 声明；静态检查将相关的截断通量界限追溯到选项 C，但未能解决语义忠实度或定理正确性。",
-              "reproducibility": "论文标明了具体章节和 Lean 版本；本次研究重新阅读了这些来源，并静态追踪了 f9e8bc5 中的压力通量依赖，但未独立推导估计、证明等价性或编译 Lean。当前上游代码核对仍未完成。",
-              "strongest_baseline": "直接比较 OpenAI 的自然语言论文和其引用的 Lean 声明。作者报告了明确的估计差异，但没有断言自然语言定理错误；在本次审查中，批评本身和原定理均未获得独立同行评审结论。"
+              "reproducibility": "论文标明了具体章节和 Lean 版本；本次研究 重新阅读这些来源，并静态追踪了 f9e8bc5 中的压力通量依赖，但没有独立推导估计、证明等价性或编译 Lean。另一份近期审计报告声称完成了 11,251 项构建及固定版本下的 Comparator/ClaySpec 桥接检查，但其 Comparator 现场重跑复用了或重放了 Lake 工件，本次研究 未重复这些检查。当前上游代码核对仍未完成。",
+              "strongest_baseline": "直接比较 OpenAI 的自然语言论文及其引用的 Lean 声明。作者报告了具体的估计差异，但没有声称自然语言定理错误；在本次审查中，批评和定理都没有得到独立同行评审结论。近期一份由审计作者发布的报告提供了反向证据，说明形式化证明链可能没有足以推翻它的实质性差异；但独立复现和自然语言论证的语义忠实性仍未解决。"
             },
             "evidence": {
               "claims": [
@@ -147396,7 +147439,8 @@
                 "这是作者在 arXiv v1 预印本中的分析；尚未确立同行评审或独立专家共识。",
                 "论文比较了部分证明步骤和引用的 Lean 声明，但没有证明 Navier–Stokes 爆破解定理为假。",
                 "对于公式 (10.19) 的压力通量，作者报告了不同的界限，其中包含局部梯度范数 A_R。静态检查发现，相关的典型截断通量界限位于选项 C 的证明路径上，但这并未证明两种论证等价，也未表明 Lean 不等式不足。",
-                "本次没有独立复现、Lean 编译、估计等价性证明，也没有审查上游仓库的后续版本。"
+                "本次没有独立复现、Lean 编译、估计等价性证明，也没有审查上游仓库的后续版本。",
+                "一份近期由独立审计作者撰写的报告声称完成了固定版本构建、使用复用或重放 Lake 工件的 Comparator 重跑，以及 ClaySpec 对应性检查；本次研究 查阅了报告，但没有复现其检查或独立核实其结果。"
               ],
               "gaps": [
                 {
@@ -147404,7 +147448,13 @@
                 },
                 {
                   "description": "该批评没有推翻底层爆破解定理。静态检查将相关的典型截断通量界限追溯到选项 C 的证明路径，但该界限是否足够或在语义上等价于论文公式 (10.19) 仍未解决；导数阶数差异及其对完整定理的影响也仍需专家评估。"
+                },
+                {
+                  "description": "一份近期审计报告声称完成了固定版本构建、Comparator 重跑和 ClaySpec 对应性检查，但 本次研究 尚未复现这些检查或独立评估其方法；该报告并未证明自然语言证明的忠实性、专家共识或 Clay 的裁定。"
                 }
+              ],
+              "contradictory": [
+                "一份独立审计报告称，其固定了 OpenAI 源码 8937a8f4cbc7abaab5e9e97d1cc7f5d2319d9538、Lean v4.34.0-rc2、Mathlib 85e3a25e 和 Comparator 19e111；报告称完成了 11,251 项构建、一次使用复用或重放 Lake 工件的 Comparator 现场重跑，以及单独的 ClaySpec 到 Comparator 对应性检查，并认为没有发现足以推翻形式化证明链的实质性差异。报告还更正了先前审计中的两项来源归属说法，并保留了人工解释边界。这份由审计作者发布的报告对先前批评形成重要限定，但 本次研究 未复现其检查；它本身不能解决估计问题、证明自然语言论证正确，也不能证明 Clay 已接受结果。SCAN-20261024T041639Z-15F5CE"
               ]
             },
             "headline": "数学分析预印本报告称 OpenAI 的 Navier–Stokes 证明与所引 Lean 估计存在差异"
@@ -147418,7 +147468,8 @@
             "technical": "arb",
             "evidence.claims": "arb",
             "evidence.limitations": "arb",
-            "evidence.gaps": "arb"
+            "evidence.gaps": "arb",
+            "evidence.contradictory": "arb"
           }
         }
       }
