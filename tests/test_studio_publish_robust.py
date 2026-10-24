@@ -472,9 +472,19 @@ class RehearsalGuard(unittest.TestCase):
         with self.assertRaises(Refused): self.build(STUDIO_REHEARSAL='1', STUDIO_LIVE_ENABLED='1', STUDIO_PUBLISH_REPO='FCMO-AI/FCMO-AI-Newsletter')
         self.assertEqual(self.build(STUDIO_REHEARSAL='1').repo, 'FCMO-AI/FCMO-AI-Newsletter')
 
-if __name__ == '__main__': unittest.main()
 
 class PublicationFixes(RobustBase):
+    def test_merged_elsewhere_with_other_head_before_review_halts(self):
+        self.approved(); self.tick_until('pr_open')
+        pr = self.mock.prs[self.pub()['payload']['pr_number']]
+        pr['merged'] = True; pr['state'] = 'closed'; pr['merge_commit_sha'] = 'e' * 40; pr['head'] = dict(pr['head'], sha='d' * 40)
+        for _ in range(3):
+            self.now += 120; self.publisher.advance(self.slug)
+        pub = self.pub()
+        self.assertTrue(pub['payload'].get('halted')); self.assertTrue(pub['payload'].get('unknown'))
+        self.assertIn('Se fusionó fuera de Studio una versión distinta de la aprobada', pub['error_plain'])
+        self.assertEqual(pub['state'], 'pr_open')
+
     def test_merged_elsewhere_with_other_head_halts_never_published(self):
         self.approved(); self.tick_until('checks_green')
         mock = self.mock; number = self.pub()['payload']['pr_number']; calls = []
@@ -540,3 +550,6 @@ class PublicationFixes(RobustBase):
         self.assertEqual(pub['approved_at'], stamp)
         # The HTTP route GET /publication (and the approve response) returns public_status: the web client reads approved_at from it.
         self.assertEqual(self.publisher.public_status(self.slug).get('approved_at'), stamp)
+
+
+if __name__ == '__main__': unittest.main()

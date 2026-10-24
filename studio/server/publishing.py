@@ -541,6 +541,7 @@ class Publisher:
                     self._effect(pub, 'pr_open', lambda: gh.find_pr(user, data['branch']), lambda: gh.open_pr(user, data['branch'], data['title'], body), lambda r: data.update(pr_number=r['number']))
                 elif state == 'pr_open':
                     pr = gh.pr(user, data['pr_number'])
+                    check_merged_head(pr or {}, data['head_sha'])
                     if not pr or pr['head']['sha'] != data['head_sha']: raise Refused('La versión pública cambió; pide una nueva revisión.')
                     self._effect(pub, 'reviewed', lambda: gh.reviewed(reviewer, data['pr_number'], data['head_sha']), lambda: gh.review(reviewer, data['pr_number'], data['head_sha']), lambda _: None)
                 elif state == 'reviewed':
