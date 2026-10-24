@@ -20,6 +20,11 @@ class UnknownEffect(Exception): pass
 class Refused(Exception): pass
 class Infra(Refused):
     """A transient/infrastructure failure: retried without a new human approval."""
+class ForeignMerge(Exception):
+    """Merged outside Studio with other bytes than the approved head: never published, halted for a person."""
+
+def check_merged_head(pr, head):
+    if pr.get('merged') and (pr.get('head') or {}).get('sha') != head: raise ForeignMerge()
 
 def budget(name, default):
     # Seconds; tunable per host without code changes.
@@ -550,7 +555,8 @@ class Publisher:
                     if data.get('replay'): self._finish_replay(pub); return self.get(value)
                     # Local candidate must equal the recorded head even after a crash between replaying and recording it.
                     git(Path(data['candidate']), 'reset', '-q', '--hard', data['head_sha'])
-                    pr = gh.pr(user, data['pr_number'])
+                    pr = gh.pr(user, data['pr_number']) or {}
+                    check_merged_head(pr, data['head_sha'])
                     if not pr or pr['head']['sha'] != data['head_sha']: raise Refused('La versión pública cambió; pide una nueva revisión.')
                     if not pr.get('merged'):
                         if gh.checks(user, data['head_sha']) != 'green': raise Refused('Las comprobaciones públicas cambiaron; revisa el artículo.')
@@ -565,14 +571,19 @@ class Publisher:
                         except Refused as exc:
                             fresh = gh.pr(user, data['pr_number']) or {}
                             # Merged meanwhile (e.g. from the GitHub UI): not an error; the observe in _effect moves the piece on.
-                            if fresh.get('merged'): return
+                            if fresh.get('merged'):
+                                check_merged_head(fresh, data['head_sha']); return
                             # GitHub computes mergeability lazily after main moves: an inconclusive read (or a stale-base one)
                             # is infrastructure, retried with backoff. GitHub always sends the key (null while computing); a read without it carries no staleness signal. Only a clean, mergeable read makes this a real refusal.
                             if ('mergeable' in fresh and fresh['mergeable'] is not True) or fresh.get('mergeable_state') in ('unknown', 'behind', 'dirty'):
                                 data.pop('intent', None); data.pop('intent_at', None)
                                 raise Infra('La base pública avanzó; se republicará sobre la nueva.') from None
                             raise
-                    self._effect(pub, 'merged', lambda: (p if (p := gh.pr(user, data['pr_number'])) and p.get('merged') else None), merge, lambda r: data.update(merge_sha=r['merge_commit_sha']))
+                    def observed_merge():
+                        p = gh.pr(user, data['pr_number']) or {}
+                        check_merged_head(p, data['head_sha'])
+                        return p if p.get('merged') else None
+                    self._effect(pub, 'merged', observed_merge, merge, lambda r: data.update(merge_sha=r['merge_commit_sha']))
                 elif state == 'merged':
                     if 'merge_diff' not in data and not self._merge_diff(pub):
                         data['halted'] = True; data['unknown'] = True
@@ -593,6 +604,9 @@ class Publisher:
                     elif late:
                         data['unknown'] = True; self._write(pub, 'deployed_unverified', 'No logramos confirmar que ya esté visible. Ya está fusionado y desplegado; se sigue comprobando y Matías puede revisarlo.')
                     else: self._write(pub, 'deployed_unverified', 'Desplegado pero aún no visible.')
+            except ForeignMerge:
+                data['halted'] = True; data['unknown'] = True
+                self._write(pub, error='Se fusionó fuera de Studio una versión distinta de la aprobada. Matías debe revisarlo antes de continuar.')
             except UnknownEffect as exc:
                 if data.get('replay'): self._infra(pub, exc)  # same backoff and cap as any infrastructure trouble
                 else:

@@ -473,3 +473,35 @@ class RehearsalGuard(unittest.TestCase):
         self.assertEqual(self.build(STUDIO_REHEARSAL='1').repo, 'FCMO-AI/FCMO-AI-Newsletter')
 
 if __name__ == '__main__': unittest.main()
+
+class PublicationFixes(RobustBase):
+    def test_merged_elsewhere_with_other_head_halts_never_published(self):
+        self.approved(); self.tick_until('checks_green')
+        mock = self.mock; number = self.pub()['payload']['pr_number']; calls = []
+        def merged_other_head(user, num, head):
+            calls.append(num); pr = mock.prs[num]
+            pr['merged'] = True; pr['state'] = 'closed'; pr['merge_commit_sha'] = 'e' * 40; pr['head'] = dict(pr['head'], sha='d' * 40)
+            raise Refused('Pull request is not mergeable')
+        with patch.object(self.github, 'merge', side_effect=merged_other_head):
+            self.publisher.advance(self.slug)
+        for _ in range(3):
+            self.now += 120; self.publisher.advance(self.slug)
+        pub = self.pub()
+        self.assertTrue(pub['payload'].get('halted')); self.assertTrue(pub['payload'].get('unknown'))
+        self.assertIn('Se fusionó fuera de Studio una versión distinta de la aprobada', pub['error_plain'])
+        self.assertEqual(pub['state'], 'checks_green'); self.assertNotIn('merge_sha', pub['payload'])
+        self.assertEqual(self.store.piece(self.slug)['state'], 'publishing')
+        self.assertEqual(len(calls), 1, 'a foreign merge is never retried')
+
+    def test_merge_observed_merged_with_other_head_halts_never_published(self):
+        self.approved(); self.tick_until('checks_green')
+        mock = self.mock
+        def merge_then_seen_foreign(user, num, head):
+            pr = mock.prs[num]
+            pr['merged'] = True; pr['state'] = 'closed'; pr['merge_commit_sha'] = 'e' * 40; pr['head'] = dict(pr['head'], sha='d' * 40)
+            return {'merged': True, 'merge_commit_sha': 'e' * 40}
+        with patch.object(self.github, 'merge', side_effect=merge_then_seen_foreign):
+            self.publisher.advance(self.slug)
+        pub = self.pub()
+        self.assertTrue(pub['payload'].get('halted')); self.assertTrue(pub['payload'].get('unknown'))
+        self.assertNotIn(pub['state'], ('merged', 'published')); self.assertNotIn('merge_sha', pub['payload'])
