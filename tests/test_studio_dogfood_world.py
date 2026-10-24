@@ -26,6 +26,8 @@ class MeasuredWorld(unittest.TestCase):
         seed = self.root / 'seed'
         seed.mkdir()
         git('init', '-q', '-b', 'main', cwd=seed)
+        (seed / 'ops').mkdir()
+        (seed / 'ops' / 'publish.py').write_text('raise SystemExit(0)\n')  # the stub build the fake's merge runs
         self.commit(seed, 'base')
         git('clone', '-q', '--bare', str(seed), str(self.root / 'origin.git'))
         self.origin = self.root / 'origin.git'
@@ -48,7 +50,10 @@ class MeasuredWorld(unittest.TestCase):
         work = self.root / ('w-' + name.replace('/', '-'))
         git('clone', '-q', str(self.origin), str(work))
         git('checkout', '-q', '-b', name, cwd=work)
-        sha = self.commit(work, 'branch ' + name, name='piece.txt', text=text + (' ' + fake_gh.CONTENT_RED if red else ''))
+        # A content-red piece carries the marker in its own publication path: the gate searches nothing else.
+        if red: (work / 'editorial' / 'pieces' / 'red').mkdir(parents=True)
+        sha = self.commit(work, 'branch ' + name, name='editorial/pieces/red/en.json' if red else 'piece.txt',
+                          text=text + (' ' + fake_gh.CONTENT_RED if red else ''))
         git('push', '-q', 'origin', name, cwd=work)
         return sha
 
@@ -122,6 +127,81 @@ class Gate(MeasuredWorld):
         self.assertEqual(s.get('checked', []), [])
 
 
+class GateSearchesOnlyThePiece(MeasuredWorld):
+    def test_marker_outside_the_piece_files_is_not_content_red(self):
+        # The published repo is a copy of the whole repo, harness included: a marker there is not the piece's text.
+        work = self.root / 'w-harness'
+        git('clone', '-q', str(self.origin), str(work))
+        (work / 'studio').mkdir()
+        sha = self.commit(work, 'harness copy', name='studio/harness.py', text='# ' + fake_gh.CONTENT_RED + '\n')
+        git('push', '-q', 'origin', 'HEAD:main', cwd=work)
+        self.assertEqual(fake_gh.gate_conclusion(self.root, {'checked': [sha]}, sha), 'success')
+
+    def test_marker_in_the_piece_files_is_content_red(self):
+        work = self.root / 'w-piece'
+        git('clone', '-q', str(self.origin), str(work))
+        (work / 'editorial' / 'pieces' / 'p').mkdir(parents=True)
+        sha = self.commit(work, 'piece', name='editorial/pieces/p/en.json', text='{"t": "' + fake_gh.CONTENT_RED + '"}')
+        git('push', '-q', 'origin', 'HEAD:main', cwd=work)
+        self.assertEqual(fake_gh.gate_conclusion(self.root, {'checked': [sha]}, sha), 'failure')
+
+    def test_the_harness_never_contains_its_own_marker_literal(self):
+        for module in (fake_gh, run):
+            self.assertNotIn(fake_gh.CONTENT_RED, Path(module.__file__).read_text(), module.__name__)
+        self.assertNotIn(fake_gh.CONTENT_RED, Path(__file__).read_text())
+
+
+class BotAfterMerge(MeasuredWorld):
+    def merge(self, world):
+        git('clone', '-q', str(self.origin), str(self.root / 'merged'))
+        self.branch('studio/p')
+        s = {'prs': {'1': self.pr('studio/p', reviews=[{'state': 'APPROVED'}])}}
+        fake_gh.world_merge(self.root, s, s['prs']['1'], fake_gh.ref(self.root, 'studio/p'), 100.0, world)
+        return s
+
+    def test_later_commit_replaces_the_merge_run_atomically(self):
+        s = self.merge(PAGES | {'bot_after_merge': 7})
+        self.assertNotEqual(s['later_sha'], s['merge_sha'])
+        self.assertEqual(self.main(), s['later_sha'])
+        self.assertEqual([(r['head_sha'], r['conclusion']) for r in s['pages']][0], (s['merge_sha'], 'cancelled'))
+        fake_gh.tick_pages(self.root, s, 100.0, PAGES)
+        self.assertEqual([r['status'] for r in s['pages']], ['completed', 'in_progress'])
+        self.assertEqual(s['pages'][1]['head_sha'], s['later_sha'])
+        fake_gh.tick_pages(self.root, s, 104.0, PAGES)
+        self.assertEqual((s['pages'][1]['conclusion'], (self.root / 'served').exists()), ('success', True))
+
+    def test_without_the_knob_the_merge_run_deploys(self):
+        s = self.merge(PAGES)
+        self.assertNotIn('later_sha', s)
+        fake_gh.tick_pages(self.root, s, 100.0, PAGES)
+        self.assertEqual((s['pages'][0]['head_sha'], s['pages'][0]['status']), (s['merge_sha'], 'in_progress'))
+
+
+class BehindIsRefused(MeasuredWorld):
+    WORLD = {'behind': True}
+
+    def test_a_pr_behind_main_is_reported_behind_and_cannot_merge_until_replayed(self):
+        git('clone', '-q', str(self.origin), str(self.root / 'merged'))
+        self.branch('studio/old')
+        s = {'prs': {'1': self.pr('studio/old', reviews=[{'state': 'APPROVED'}])}}
+        fake_gh.save_state(self.root, s)
+        fake_gh.bot_commit(self.root, 1, now=50.0)
+        s = fake_gh.load_state(self.root)
+        view = fake_gh.pr_view(self.root, s, s['prs']['1'], 100.0, self.WORLD)
+        self.assertEqual((view['mergeable'], view['mergeable_state']), (True, 'behind'))
+        with self.assertRaises(fake_gh.GhError) as refused:
+            fake_gh.world_merge(self.root, s, s['prs']['1'], fake_gh.ref(self.root, 'studio/old'), 100.0, self.WORLD)
+        self.assertEqual(refused.exception.code, 405)
+        self.assertEqual(s['behind_refusals'], 1)
+        self.assertFalse(s['prs']['1']['merged'])
+        # Replayed: a head cut from the moved main merges, and the fake records how often main moved before the merge.
+        self.branch('studio/new', 'new')
+        s['prs']['2'] = self.pr('studio/new', number=2, reviews=[{'state': 'APPROVED'}])
+        fake_gh.world_merge(self.root, s, s['prs']['2'], fake_gh.ref(self.root, 'studio/new'), 101.0, self.WORLD)
+        self.assertEqual(s['moves_before_merge'], 1)
+        self.assertTrue(s['prs']['2']['merged'])
+
+
 class Mergeability(MeasuredWorld):
     def test_lazy_after_main_moves_then_behind_until_replayed(self):
         head = self.branch('studio/p')
@@ -180,11 +260,35 @@ class RunScoresWorld(unittest.TestCase):
         self.assertEqual(run.Journey.expected_total(True, None), run.BASE_ITEMS + 7 + 8)
         self.assertEqual(run.Journey.expected_total(True, '1'), run.BASE_ITEMS + 7 + 9)
 
+    def test_content_red_text_renders_with_the_same_numbers_in_every_locale(self):
+        # Cause of the 503 that kept item 6 from running: the renderer refuses a piece whose en text lost the numbers
+        # of es-419 and zh-Hans (numeric token mismatch). The red text must keep them.
+        from tools.paper import essays
+        doc = lambda text: {'blocks': [{'id': 'b-01234567', 'type': 'p', 'content': [{'t': 'text', 'v': text}], 'attrs': {}}], 'footnotes': {}}
+        red = run.Journey.red_text()
+        self.assertIn(fake_gh.CONTENT_RED, red)
+        self.assertEqual(essays._tokens(doc(red)), essays._tokens(doc(run.Journey.BODY['es-419'])))
+        self.assertEqual(essays._tokens(doc(red)), essays._tokens(doc(run.Journey.BODY['zh-Hans'])))
+        # And it is what create() writes into the en document.
+        self.assertEqual(run.Journey.BODY['en'][:-1], red.split(' and ')[0])
+
+    def test_only_world_counts_setup_plus_world_items(self):
+        self.assertEqual(run.Journey.expected_total(False, None, 'world'), run.SETUP_ITEMS + 7)
+
+    def test_a_red_item_is_scored_and_never_aborts(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            journey = run.Journey(Path(tmp))
+            with contextlib.redirect_stdout(io.StringIO()):
+                self.assertFalse(journey.score('first', False))
+                self.assertTrue(journey.score('second', True))
+            self.assertEqual([s['ok'] for s in journey.scores], [False, True])
+
     def test_close_reports_every_world_item_in_the_total(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             journey = run.Journey(root)
-            for name in run.WORLD_ITEMS: journey.score(name, True)
+            with contextlib.redirect_stdout(io.StringIO()):
+                for name in run.WORLD_ITEMS: journey.score(name, True)
             saved = os.environ.pop('DOGFOOD_CAPTURES', None)
             try:
                 with contextlib.redirect_stdout(io.StringIO()): journey.close()
