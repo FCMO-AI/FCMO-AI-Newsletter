@@ -39,17 +39,20 @@ def checks(store, preview, value):
             serial = json.dumps(document, ensure_ascii=False)
             # Exclude structural IDs; the final PIECE_VALID gate is authoritative.
             numbers, links, cites, figures = [], [], [], []
+            from studio.translation import number_values, canonical_number
             def walk(node):
                 if isinstance(node, list):
                     for x in node: walk(x)
                 elif isinstance(node, dict):
-                    if node.get('t') == 'text': numbers.extend(re.findall(r'\d+(?:[.,]\d+)*', node['v']))
+                    if node.get('t') == 'text': numbers.append(node['v'])
                     if node.get('t') == 'link': links.append(node['href'])
                     if node.get('t') == 'cite': cites.append(node['key'])
                     if node.get('type') == 'figure': figures.append(node['attrs']['fig'])
                     for v in node.values():
                         if isinstance(v, (dict, list)): walk(v)
-            walk(document); return sorted(numbers), sorted(links), sorted(cites), sorted(figures)
+            walk(document)
+            numbers = sorted((canonical_number(k), n) for k, n in number_values(' '.join(numbers)).items())
+            return numbers, sorted(links), sorted(cites), sorted(figures)
         add('tokens-' + loc, tokens(doc) == tokens(source_doc), 'Conserva cifras, enlaces, fuentes y figuras del original.', 'Keep the original numbers, links, sources and figures.', loc)
         source_keys = {s['key'] for s in payload['sources']}
         for block in doc['blocks']:
@@ -64,8 +67,23 @@ def checks(store, preview, value):
     try: validate_sources(payload['sources']); validate_figures(payload['figures'])
     except ValueError: valid_resources = False
     add('resources', valid_resources, 'Revisa fuentes, figuras y derechos de uso.', 'Check sources, figures and reuse rights.')
-    private_ok = True
+    private_ok = True; private_es = 'La vista previa debe superar las comprobaciones de privacidad.'; private_en = 'The preview must pass the privacy checks.'
     try: preview.privacy(value)
-    except Exception: private_ok = False
-    add('privacy', private_ok, 'La vista previa debe superar las comprobaciones de privacidad.', 'The preview must pass the privacy checks.')
+    except Exception as exc:
+        private_ok = False
+        code = getattr(exc, 'code', None); problems = getattr(exc, 'problems', None)
+        waiting = [loc for loc in LOCALES if piece['locale_states'][loc]['state'] != 'ready']
+        if code and problems:
+            # A real finding from a privacy gate: say what to remove.
+            found = '; '.join(str(x) for x in problems[:3])
+            private_es = 'La vista previa contiene algo que no debe publicarse (' + code + '): ' + found + '. Quítalo del texto, las notas o las figuras.'
+            private_en = 'The preview contains something that must not be published (' + code + '): ' + found + '. Remove it from the text, notes or figures.'
+        elif waiting:
+            # Not a privacy finding: the publication build used for the check refuses unfinished pieces.
+            private_es = 'Aún no se puede comprobar la privacidad: la comprobación usa la edición completa y falta marcar como lista(s) ' + ', '.join(waiting) + '. No es un problema de privacidad del texto.'
+            private_en = 'Privacy cannot be checked yet: the check uses the complete edition and ' + ', '.join(waiting) + ' is not marked ready. This is not a privacy problem in the text.'
+        else:
+            private_es = 'No se pudo construir la vista previa para comprobar la privacidad. Revisa que todas las lenguas se lean sin errores y vuelve a intentar.'
+            private_en = 'The preview could not be built to check privacy. Check that every language renders without errors and try again.'
+    add('privacy', private_ok, private_es, private_en)
     return results

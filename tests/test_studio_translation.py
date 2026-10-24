@@ -70,7 +70,7 @@ class TranslationTests(unittest.TestCase):
             lambda d: d['blocks'][0]['content'][2].update(href='https://example.org/other'),
             lambda d: d.update(dek='FCMO AI el 2026-10-06'),
             lambda d: d['blocks'][0]['content'][0].update(v='Javier propone 43 ideas.'),
-            lambda d: d['blocks'][1]['content'][0].update(v='Otra voz'),
+            lambda d: d['blocks'][1].update(type='p'),  # a quotation may be translated, never demoted to prose
             lambda d: d['blocks'][0].update(content=[]),
             lambda d: d['blocks'][0]['content'][3].update(key='new-source'),
             lambda d: d.update(title='Una idea de FCMO Group'),
