@@ -6,6 +6,7 @@ import { plainText } from './docmodel.js'
 import { diffView } from './diffview.js'
 import { amendDialog } from './publication-actions.js'
 import { checksList, versionsPanel } from './drawers.js'
+import { approvedAtMs, currentStage, elapsedMs } from './progress-time.js'
 
 const LOCS = ['en', 'es-419', 'zh-Hans']
 const crumbs = (slug, title, here) => h('div', { class: 'crumbs' }, h('a', { href: '#/' }, t('nav.home')), ' / ', h('a', { href: `#/p/${slug}` }, title), ' / ', h('span', null, here))
@@ -245,19 +246,26 @@ export async function publishScreen (root, slug) {
     const ask = h('button', { class: 'btn primary big', type: 'button', disabled: bad.length > 0 || meta.author !== session.me.user, onclick: async e => { e.currentTarget.disabled = true; try { await post(`/api/pieces/${slug}/review/request`); toast(t('pub.sent', { who: other() })); route() } catch (err) { e.currentTarget.disabled = bad.length > 0; toast(err.data?.error_plain || t('pub.askfail'), 'bad') } } }, t('pub.ask'))
     act.append(ask, h('button', { class: 'btn', type: 'button', onclick: draw }, t('pub.rerun'))); if (bad.length) act.append(h('span', { class: 'muted' }, t('pub.blocked', { n: bad.length })))
   }
+  const canChoose = () => emailOn && meta.author === session.me.user && ['draft', 'changes_requested', 'amending'].includes(meta.state)
+  // Plain yes/no when email can go out; when it is off the banner only says so, with nothing to tick.
+  function emailBanner () {
+    const state = h('p', { class: 'email-state', role: 'status' }, t(emailWillGo ? 'pub.email.state.on' : 'pub.email.state.no'))
+    const banner = h('section', { class: 'email-banner', 'data-on': String(emailWillGo) }, h('h2', null, t(emailOn ? 'pub.email.q' : 'pub.email.title.off')), h('p', { class: 'dest' }, t('pub.where')))
+    if (emailOn) {
+      const choice = (value, label) => h('label', { class: 'check' }, h('input', { type: 'radio', name: 'email-choice', value: String(value), checked: emailWillGo === value, disabled: !canChoose(), onchange: async e => {
+        const inputs = banner.querySelectorAll('input'); inputs.forEach(i => { i.disabled = true })
+        try { const result = await put(`/api/pieces/${slug}/distribution`, { base_rev: meta.head_rev, email: value }); meta.head_rev = result.rev; meta.meta.distribution = result.distribution; await draw() }
+        catch (err) { toast(err.data?.error_plain || t('err.generic'), 'bad'); inputs.forEach(i => { i.checked = (i.value === 'true') === (meta.meta?.distribution?.email === true) }) }
+        finally { const on = meta.meta?.distribution?.email === true; inputs.forEach(i => { i.disabled = !canChoose() }); banner.dataset.on = String(on); state.textContent = t(on ? 'pub.email.state.on' : 'pub.email.state.no') }
+      } }), ' ', label)
+      banner.append(h('div', { class: 'email-choices', role: 'radiogroup', 'aria-label': t('pub.email.q') }, choice(true, t('pub.email.yes')), choice(false, t('pub.email.no'))))
+    }
+    banner.append(state, h('p', { class: 'hint' }, t(emailOn ? 'pub.email.after' : 'pub.email.off')))
+    return banner
+  }
   const mount = () => root.append(shell(h('div', { class: 'flow pub' }, crumbs(slug, meta.title, t('ed.publish')), h('h1', null, t('pub.title', { title: meta.title })), h('p', { class: 'lede' }, t('pub.lead', { who: other() })),
     h('div', { class: 'sheet' }, h('p', { class: 'notice soft' }, t(privateReview ? 'rev.private.confirm' : 'pub.public')),
-      meta.kind !== 'issue' ? h('section', { class: 'email-banner', 'data-on': String(emailWillGo) }, h('h2', null, t('pub.email.q')),
-        h('p', { class: 'dest' }, t('pub.site'), ' ', t('pub.feeds')),
-        h('label', { class: 'check' }, h('input', { type: 'checkbox', checked: emailWillGo, disabled: !emailOn || meta.author !== session.me.user || !['draft', 'changes_requested', 'amending'].includes(meta.state), onchange: async e => {
-          e.target.disabled = true
-          const banner = e.target.closest('.email-banner')
-          try { const result = await put(`/api/pieces/${slug}/distribution`, { base_rev: meta.head_rev, email: e.target.checked }); meta.head_rev = result.rev; meta.meta.distribution = result.distribution; await draw() }
-          catch (err) { e.target.checked = !e.target.checked; toast(err.data?.error_plain || t('err.generic'), 'bad') }
-          finally { e.target.disabled = false; const on = e.target.checked; banner.dataset.on = String(on); banner.querySelector('.email-state').textContent = t(on ? 'pub.email.state.on' : 'pub.email.state.no') }
-        } }), ' ', t('pub.email.yes')),
-        h('p', { class: 'email-state', role: 'status' }, t(emailWillGo ? 'pub.email.state.on' : 'pub.email.state.no')),
-        h('p', { class: 'hint' }, t(emailOn ? 'pub.email.after' : 'pub.email.off'))) : null,
+      meta.kind !== 'issue' ? emailBanner() : null,
       h('h2', null, t('pub.threshold')), h('p', null, t('pub.approval', { who: other() })), box, h('p', { class: 'reviewer' }, h('span', { class: 'avatar' }, other()[0]), t('pub.reviewer', { who: other() })), act)), { active: 'home' }))
   mount()
   await draw()
@@ -316,7 +324,7 @@ export async function reviewScreen (root, slug) {
     emailLine ? h('p', { class: 'email-note' + (emailOnReview ? ' on' : ''), role: 'status' }, emailLine) : null,
     privateReview ? null : h('p', { class: 'hint' }, t('rev.time')),
     h('div', { class: 'btn-row' },
-    h('button', { class: 'btn primary big', type: 'button', disabled: !readiness || !(readiness.dry_run || readiness.live_enabled), onclick: () => modal({ title: approveText, body: [h('p', null, t(privateReview ? 'rev.private.confirm' : 'rev.confirm')), emailLine ? h('p', { class: 'email-note' + (emailOnReview ? ' on' : '') }, emailLine) : null], actions: [{ label: t('common.cancel') }, { label: approveText, kind: 'primary', onclick: async close => { await post(`/api/pieces/${slug}/review/approve`, { note: note.value }); close(); location.hash = `#/p/${slug}/progress` } }] }) }, approveText),
+    h('button', { class: 'btn primary big', type: 'button', disabled: !readiness || !(readiness.dry_run || readiness.live_enabled), onclick: () => modal({ title: approveText, body: [h('p', null, t(privateReview ? 'rev.private.confirm' : 'rev.confirm')), emailLine ? h('p', { class: 'email-note' + (emailOnReview ? ' on' : '') }, emailLine) : null], actions: [{ label: t('common.cancel') }, { label: approveText, kind: 'primary', onclick: async close => { await post(`/api/pieces/${slug}/review/approve`, { note: note.value }); try { sessionStorage.setItem('studio.approved.' + slug, String(Date.now())) } catch { /* the server time wins when it is shared */ } close(); location.hash = `#/p/${slug}/progress` } }] }) }, approveText),
     h('button', { class: 'btn big', type: 'button', onclick: async () => { await post(`/api/pieces/${slug}/review/changes`, { note: note.value }); toast(t('rev.sent', { who: meta.author === 'javier' ? 'Javier' : 'Matías' })); location.hash = '#/' } }, t('rev.changes'))))
   drawRead(); drawDiff(); drawCmt(); showTab('read')
   root.append(shell(h('div', { class: 'flow rv' }, crumbs(slug, meta.title, t('rev.preview')), h('h1', null, t('rev.title', { title: meta.title })), mine ? null : h('p', { class: 'hint narrow-only' }, t('rev.phone.hint')), tabBar, h('div', { class: 'rv-panes' }, stage, diffBox, cmtBox), !readiness ? h('div', { class: 'notice soft', role: 'status' }, h('p', null, t('pub.mode.unread')), h('button', { class: 'btn', type: 'button', onclick: () => route() }, t('pub.rerun'))) : null, act), { active: 'home', wide: true }))
@@ -355,6 +363,7 @@ function liveThumb (slug, loc) {
 export async function progressScreen (root, slug) {
   const meta = await get(`/api/pieces/${slug}`)
   const authorName = meta.author === 'javier' ? 'Javier' : 'Matías'
+  const localApproval = () => { try { return sessionStorage.getItem('studio.approved.' + slug) } catch { return null } }
   const mine = meta.author === session.me.user
   const box = h('div', { class: 'timeline' })
   const head = h('h1', null, t('prog.title'))
@@ -368,7 +377,7 @@ export async function progressScreen (root, slug) {
       const ago = Date.now() - lastOk
       parts.push(ago < 1500 ? t('prog.alive.now') : t('prog.alive', { span: span(ago) }))
     }
-    if (startedMs && lastP && !['published', 'failed'].includes(lastP.state)) parts.unshift(t('prog.elapsed', { span: span(Date.now() - startedMs) }))
+    if (startedMs && lastP && !['published', 'failed'].includes(lastP.state)) parts.unshift(t('prog.elapsed', { span: span(elapsedMs(startedMs, Date.now())) }))
     ticker.textContent = parts.join(' · ')
     for (const el of box.querySelectorAll('[data-since]')) el.textContent = span(Date.now() - Number(el.dataset.since))
   }
@@ -391,13 +400,12 @@ export async function progressScreen (root, slug) {
         mine ? h('a', { class: 'btn primary', href: `#/p/${slug}/publish` }, t('prog.empty.go')) : null))
       return
     }
-    const first = timeline.map(s => Date.parse(s.at)).filter(Number.isFinite)
-    startedMs = first.length ? Math.min(...first) : startedMs || Date.now()
+    startedMs = approvedAtMs(p, localApproval())
     const failed = p.state === 'failed'
     const unsure = !!p.uncertain || p.state === 'uncertain'
     const seen = Math.max(-1, ...timeline.map(s => stageOf(s.state)), stageOf(p.state))
-    const current = p.state === 'published' ? STAGES.length - 1 : Math.max(0, seen)
-    const when = idx => { const hit = timeline.filter(s => STAGES[idx].states.includes(s.state)).map(s => Date.parse(s.at)).filter(Number.isFinite); return hit.length ? Math.min(...hit) : 0 }
+    const current = currentStage(p.state, seen, STAGES.length)
+    const when = idx => { if (idx === 0) return startedMs; const hit = timeline.filter(s => STAGES[idx].states.includes(s.state)).map(s => Date.parse(s.at)).filter(Number.isFinite); return hit.length ? Math.min(...hit) : 0 }
     const label = (id) => ({
       approved: mine ? t('prog.s.approved.by', { who: session.me.other }) : t('prog.s.approved.me'),
       checks: t('prog.s.checks'), prepare: t('prog.s.prepare'), site: t('prog.s.site'), verify: t('prog.s.verify'), live: t('prog.s.live')

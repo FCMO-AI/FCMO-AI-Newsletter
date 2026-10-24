@@ -96,6 +96,24 @@ time.sleep(10)
         self.assertEqual(self.request('DELETE', '/api/github/connect')[0], 200)
         self.assertTrue(self.wait_for(lambda: self.request('GET', '/api/github/connect')[1]['state'] == 'cancelled'))
 
+    def test_ready_connection_whose_credential_vanished_can_start_again(self):
+        self.setUpFake("""import os, time
+print('! First copy your one-time code: AGAI-N123', flush=True)
+print('Open this URL to continue in your web browser: https://github.com/login/device', flush=True)
+time.sleep(.1)
+os.makedirs(os.environ['GH_CONFIG_DIR'], exist_ok=True)
+open(os.path.join(os.environ['GH_CONFIG_DIR'], 'hosts.yml'), 'w').write('github.com: {}\\n')
+""")
+        self.assertEqual(self.request('POST', '/api/github/connect')[0], 200)
+        self.assertTrue(self.wait_for(lambda: self.request('GET', '/api/github/connect')[1]['state'] == 'ready'))
+        (self.config / 'hosts.yml').unlink()  # session closed or token revoked, Studio not restarted
+        self.assertFalse(self.app.github.credential_status()[0]['ready'])
+        self.assertEqual(self.request('GET', '/api/github/connect')[1]['state'], 'ready')
+        status, body, _ = self.request('POST', '/api/github/connect')  # what the card's «Empezar» sends
+        self.assertEqual(status, 200)
+        self.assertEqual(body['code'], 'AGAI-N123')
+        self.assertTrue(self.wait_for(lambda: self.app.github.credential_status()[0]['ready']))
+
     def test_only_one_login_per_person_and_code_is_not_logged(self):
         self.setUpFake("""import time
 print('! First copy your one-time code: SECR-ET99', flush=True)
