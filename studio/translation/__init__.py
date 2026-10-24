@@ -116,6 +116,7 @@ def _immutable(node):
                 if kind == 'link': result.append(('link', value['href']))
                 elif kind == 'fn': result.append(('note', value['id']))
                 elif kind == 'cite': result.append(('cite', value['key'], tuple(re.findall(r'\d+(?:[.,]\d+)*', value.get('locator', '')))))
+                if value.get('type') == 'blockquote': result.append(('qcite', value.get('attrs', {}).get('cite')))
                 if value.get('type') == 'figure': result.append(('figure', value['attrs']['fig']))
                 if value.get('type') == 'evidence': result.append(('class', value['attrs']['class']))
                 for child in value.values():

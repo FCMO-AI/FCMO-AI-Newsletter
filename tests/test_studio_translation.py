@@ -84,6 +84,15 @@ class TranslationTests(unittest.TestCase):
         source['footnotes']['fn-12345678'].append({'t': 'link', 'href': 'https://example.org/note', 'c': [{'t': 'text', 'v': 'nota'}]})
         target = copy.deepcopy(source); target['locale'] = 'en'; target['footnotes']['fn-12345678'][-1]['href'] += '/changed'
         with self.assertRaises(TranslationError): validate_translation(source, target, 'en')
+    def test_blockquote_cite_attribute_is_immutable(self):
+        from studio.translation import validate_translation, TranslationError
+        source = copy.deepcopy(SOURCE); source['blocks'][1]['attrs'] = {'cite': 'src-one'}
+        target = copy.deepcopy(source); target['locale'] = 'en'
+        validate_translation(source, target, 'en')
+        target['blocks'][1]['attrs']['cite'] = 'other'
+        with self.assertRaises(TranslationError): validate_translation(source, target, 'en')
+        del target['blocks'][1]['attrs']
+        with self.assertRaises(TranslationError): validate_translation(source, target, 'en')
     def test_changed_revision_during_translation_is_not_overwritten(self):
         from studio.translation import FakeProvider
         self.source()
