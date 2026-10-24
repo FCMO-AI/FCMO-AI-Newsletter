@@ -50,9 +50,22 @@ class Application:
         for path in (self.store.data / 'uploads-tmp').iterdir():
             if path.is_file() and path.stat().st_mtime < cutoff: path.unlink()
     def worker(self):
+        import sys
+        last = {}
         while not self.stop.wait(5):
             try: self.tick()
-            except Exception: pass  # Durable state retained; never log document/token/trace.
+            except Exception as exc:
+                # Durable state retained. Diagnosis carries the exception class and the
+                # states of unfinished publications only: never the message, slug, body or tokens.
+                try:
+                    with self.store.mutex:
+                        rows = self.store.db.execute("SELECT state, COUNT(*) AS n FROM publications WHERE state NOT IN ('published','failed') GROUP BY state ORDER BY state").fetchall()
+                    queued = ','.join(f"{row['state']}:{row['n']}" for row in rows) or 'none'
+                except Exception: queued = 'unreadable'
+                cls = type(exc).__name__; now = time.monotonic()
+                if last.get('cls') != cls or now - last.get('at', 0.0) >= 60:
+                    last.update(cls=cls, at=now)
+                    print(f'studio-worker error class={cls} queued={queued}', file=sys.stderr, flush=True)
     def api(self, method, path, query, body, session):
         user = session['user']; parts = path.strip('/').split('/')
         if path == '/api/subscriptions/status' and method == 'GET':
