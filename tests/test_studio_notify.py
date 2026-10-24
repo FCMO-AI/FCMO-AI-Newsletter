@@ -69,6 +69,9 @@ class NotifyTests(unittest.TestCase):
         self.fx = Fixture(self)
 
     def run_once(self, enviar=True):
+        if enviar and not self.fx.ledger.exists():
+            # Simulates a ledger that was seeded before these events existed (see --sembrar tests below).
+            notify.save_ledger(self.fx.ledger, set())
         return notify.run(self.fx.data, self.fx.mensajeria, self.fx.ledger, enviar, now=NOW)
 
     def test_review_requested_goes_once_to_the_reviewer_and_is_idempotent(self):
@@ -219,6 +222,43 @@ class NotifyTests(unittest.TestCase):
         with self.assertRaises(SystemExit) as raised:
             notify.run(empty, self.fx.mensajeria, self.fx.ledger, False, now=NOW)
         self.assertIn('no existe la base de Studio', str(raised.exception))
+
+    def history(self):
+        self.fx.piece('viejo', 'Pieza vieja')
+        self.fx.review('rev-old', 'viejo', 'requested')
+        self.fx.publication('pub-old', 'viejo', 'published', {'title': 'Pieza vieja', 'author': 'javier'})
+        self.fx.publication('pub-unc', 'viejo', 'uncertain', {'title': 'Pieza vieja'})
+        self.fx.commit()
+
+    def test_enviar_refuses_without_a_ledger_instead_of_replaying_history(self):
+        self.history()
+        with self.assertRaises(SystemExit) as raised:
+            notify.run(self.fx.data, self.fx.mensajeria, self.fx.ledger, True, now=NOW)
+        self.assertIn('--sembrar', str(raised.exception))
+        self.assertEqual(self.fx.queued(), [])
+        self.assertFalse(self.fx.ledger.exists())
+
+    def test_sembrar_marks_history_without_sending_and_only_new_events_go_out(self):
+        self.history()
+        seeded = notify.run(self.fx.data, self.fx.mensajeria, self.fx.ledger, False, now=NOW, sembrar=True)
+        self.assertEqual(seeded['sembrados'], 3)
+        self.assertEqual(seeded['encolados'], 0)
+        self.assertEqual(self.fx.queued(), [])
+        self.assertEqual(self.run_once()['encolados'], 0)
+        db = sqlite3.connect(self.fx.data / 'studio.sqlite')
+        db.execute('INSERT INTO reviews VALUES(?,?,?,?,?,?,?,?)', ('rev-new', 'viejo', 2, 'javier', 'matias', 'requested', iso(timedelta(0)), ''))
+        db.commit()
+        db.close()
+        report = self.run_once()
+        self.assertEqual(report['encolados'], 1)
+        self.assertEqual(len(self.fx.queued()), 1)
+        again = notify.run(self.fx.data, self.fx.mensajeria, self.fx.ledger, False, now=NOW, sembrar=True)
+        self.assertEqual(again['sembrados'], 0)
+
+    def test_sembrar_and_enviar_are_exclusive(self):
+        self.history()
+        with self.assertRaises(SystemExit):
+            notify.run(self.fx.data, self.fx.mensajeria, self.fx.ledger, True, now=NOW, sembrar=True)
 
 
 if __name__ == '__main__':

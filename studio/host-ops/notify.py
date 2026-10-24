@@ -8,9 +8,12 @@ Content is minimal by design: the piece title, the status, and https links. Neve
 never tokens, never host paths.
 
 Usage:
-  python3 studio/host-ops/notify.py --data <STUDIO_DATA> --mensajeria <dir con outbox/ y receipts/> [--ledger FILE] [--enviar] [--json]
+  python3 studio/host-ops/notify.py --data <STUDIO_DATA> --mensajeria <dir con outbox/ y receipts/> [--ledger FILE] [--sembrar | --enviar] [--json]
 
 Dry run by default: prints what it would queue and writes nothing.
+First run: `--sembrar` records every event that exists today in the ledger WITHOUT sending
+anything, so the history never floods Telegram. `--enviar` refuses to run while the ledger
+file does not exist (a lost ledger must be re-seeded, not replayed).
 """
 from __future__ import annotations
 
@@ -167,10 +170,15 @@ def enqueue(root: Path, item: dict, now_s: int) -> str:
     return 'queued'
 
 
-def run(data_dir: Path, mensajeria: Path, ledger: Path, enviar: bool, now: datetime | None = None) -> dict:
+def run(data_dir: Path, mensajeria: Path, ledger: Path, enviar: bool, now: datetime | None = None,
+        sembrar: bool = False) -> dict:
     db_path = data_dir / 'studio.sqlite'
     if not db_path.exists():
         raise SystemExit(f'notify: no existe la base de Studio en {data_dir}')
+    if sembrar and enviar:
+        raise SystemExit('notify: --sembrar y --enviar son excluyentes')
+    if enviar and not ledger.exists():
+        raise SystemExit(f'notify: no existe el ledger {ledger}; corre primero --sembrar para no reenviar el historial')
     now = now or utc_now()
     connection = open_readonly(db_path)
     try:
@@ -178,8 +186,17 @@ def run(data_dir: Path, mensajeria: Path, ledger: Path, enviar: bool, now: datet
     finally:
         connection.close()
     sent = load_ledger(ledger)
-    report = {'eventos': len(events), 'encolados': 0, 'ya_enviados': 0, 'enviar': enviar, 'detalle': []}
+    report = {'eventos': len(events), 'encolados': 0, 'ya_enviados': 0, 'sembrados': 0, 'enviar': enviar, 'detalle': []}
     now_s = int(now.timestamp())
+    if sembrar:
+        for item in events:
+            if item['id'] not in sent:
+                sent.add(item['id'])
+                report['sembrados'] += 1
+            else:
+                report['ya_enviados'] += 1
+        save_ledger(ledger, sent)
+        return report
     for item in events:
         if item['id'] in sent:
             report['ya_enviados'] += 1
@@ -202,19 +219,22 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument('--data', required=True, type=Path, help='directorio de datos de Studio (contiene studio.sqlite)')
     parser.add_argument('--mensajeria', required=True, type=Path, help='directorio mensajeria de Kyrion (contiene outbox/ y receipts/)')
     parser.add_argument('--ledger', type=Path, help='archivo de estado de los avisos enviados (omisión: ~/.local/state/fcmo-studio-notify/ledger.json)')
+    parser.add_argument('--sembrar', action='store_true', help='marcar los eventos actuales como ya avisados, sin enviar nada (primera corrida)')
     parser.add_argument('--enviar', action='store_true', help='encolar de verdad; sin esto sólo muestra')
     parser.add_argument('--json', action='store_true')
     args = parser.parse_args(argv)
     ledger = args.ledger or Path.home() / '.local/state/fcmo-studio-notify/ledger.json'
     try:
-        report = run(args.data, args.mensajeria, ledger, args.enviar)
+        report = run(args.data, args.mensajeria, ledger, args.enviar, sembrar=args.sembrar)
     except sqlite3.Error as error:
         print(f'notify: base de Studio no legible ({type(error).__name__})', file=sys.stderr)
         return 1
     if args.json:
         print(json.dumps(report, ensure_ascii=False))
     else:
-        if args.enviar:
+        if args.sembrar:
+            print(f"avisos (sembrado): {report['sembrados']} evento(s) marcados sin enviar, {report['ya_enviados']} ya estaban")
+        elif args.enviar:
             print(f"avisos: {report['eventos']} evento(s), {report['encolados']} encolado(s), {report['ya_enviados']} ya enviado(s)")
         else:
             print(f"avisos (dry run): {report['eventos']} evento(s), {len(report['detalle'])} por encolar, {report['ya_enviados']} ya enviado(s)")
