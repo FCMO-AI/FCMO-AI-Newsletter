@@ -19,7 +19,7 @@ CONFIDENCE_TICKS = {"confirmed": 5, "strongly_supported": 4, "supported": 3,
 GRADE_SHAPES = {"A": "solid", "B": "half", "C": "outline", "D": "dashed"}
 KIND_ORDER = ("DEMONSTRATED", "INFERRED", "CLAIMED", "SPECULATIVE", "DISPUTED", "OTHER")
 _CLAIMED_PREFIXES = ("VENDOR", "GOVERNMENT", "FIRST_PARTY", "PRIMARY_EXTRAORDINARY")
-_SENTENCE = re.compile(r"(?<=[.!?。！？])(?:\s+(?=[A-Z0-9“\"'¿¡(\[])|(?<=[。！？]))")
+_SENTENCE = re.compile(r"(?<=[.!?。！？])(?:\s+(?=[A-Z0-9“\"'¿¡(\[])|(?<=[。！？])(?=\S))")
 
 
 def e(value: object) -> str:
@@ -82,7 +82,7 @@ def rest_after(text: object, sentence_text: str) -> str:
     """``text`` without its opening sentence when that sentence is ``sentence_text``; else ``text`` whole."""
     text = " ".join(str(text or "").split())
     parts = _SENTENCE.split(text, maxsplit=1)
-    if len(parts) == 2 and _same(parts[0], sentence_text):
+    if len(parts) == 2 and parts[1].strip() and _same(parts[0], sentence_text):
         return parts[1]
     return text
 
@@ -360,10 +360,18 @@ def brief20(story: dict, catalog: dict, *, summary: object, why: object, evidenc
         if text:
             unknown = first_sentence(text, 360)
             break
+    whole = " ".join(str(summary or "").split())
     happened = rest_after(summary, header_dek) if header_dek else summary
-    cells = [(d["happened"], first_sentence(happened, 360), ""), (d["matters"], first_sentence(why, 360), ""),
-             (d["not_established"], unknown or d["none_recorded"], " read20-na")]
-    rows = "".join(f'<li class="read20-cell{extra}"><b>{e(key)}</b><span class="brief-val">{e(text)}</span></li>' for key, text, extra in cells if text)
+    opener = ""
+    if header_dek and " ".join(str(happened or "").split()) != whole:
+        opener = first_sentence(summary, 360)  # the header dek is hidden on phones, so the cell carries the opening fact there
+    rest_text = first_sentence(happened, 360)
+    if not rest_text and opener:
+        rest_text, opener = opener, ""
+    happened_html = (f'<span class="brief-open">{e(opener)} </span>' if opener else "") + e(rest_text)
+    cells = [(d["happened"], happened_html, "", True), (d["matters"], first_sentence(why, 360), "", False),
+             (d["not_established"], unknown or d["none_recorded"], " read20-na", False)]
+    rows = "".join(f'<li class="read20-cell{extra}"><b>{e(key)}</b><span class="brief-val">{text if raw else e(text)}</span></li>' for key, text, extra, raw in cells if text)
     return f'<div class="brief" role="group" aria-labelledby="brief-title"><h2 id="brief-title" class="visually-hidden">{e(d["brief_title"])}</h2><ol class="read20">{rows}</ol></div>'
 
 
