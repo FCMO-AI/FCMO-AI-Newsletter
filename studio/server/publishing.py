@@ -27,6 +27,7 @@ class NeedsConfirm(Refused):
 HALT_REASONS = ('infra', 'effect', 'foreign_merge', 'merge_outside')
 class Infra(Refused):
     """A transient/infrastructure failure: retried without a new human approval."""
+    status = 503
 class ForeignMerge(Exception):
     """Merged outside Studio with other bytes than the approved head: never published, halted for a person."""
 
@@ -492,7 +493,8 @@ class Publisher:
             self.workspace.repush(pub, replay['old']); seen = gh.branch(user, data['branch'])
             if seen != replay['new']: raise UnknownEffect('No se pudo confirmar el envío. Se comprobará antes de repetirlo.')
         if seen != replay['new']:
-            self._halt(pub, 'effect', 'La rama pública cambió por fuera de Studio. Matías debe revisarla; el texto aprobado sigue intacto.'); return
+            # Same outcome as pr_open/checks_green when the public head moved: refused, the author asks for a new review.
+            raise Refused('La versión pública cambió; pide una nueva revisión.')
         for key in ('replay', 'intent', 'unknown', 'checks_started'): data.pop(key, None)
         self._write(pub, 'pushed', '')
     def _infra(self, pub, exc):
@@ -639,11 +641,16 @@ class Publisher:
             if reason in ('foreign_merge', 'merge_outside'):
                 if user == data['author'] or user != data['reviewer']: raise Denied('Solo la otra persona puede continuar esta publicación.')
                 if confirm is not True: raise NeedsConfirm('Confirma que revisaste lo publicado para continuar.')
+                pr = None
+                if reason == 'foreign_merge':
+                    # Read GitHub before touching the row: a failed read leaves the publication halted for a retry.
+                    try: pr = self.github.pr(data['author'], data['pr_number']) or {}
+                    except Refused: raise
+                    except Exception: raise Infra('No se pudo consultar GitHub para continuar. Inténtalo de nuevo en unos minutos.') from None
+                    if not pr.get('merged') or not pr.get('merge_commit_sha'): raise Refused('No hay una fusión que continuar; pide una nueva revisión.')
                 data.pop('halted', None); data.pop('halt_reason', None); data.pop('unknown', None)
                 data['merge_diff'] = 'accepted_by_reviewer'
-                if reason == 'foreign_merge':
-                    pr = self.github.pr(data['author'], data['pr_number']) or {}
-                    if not pr.get('merged') or not pr.get('merge_commit_sha'): raise Refused('No hay una fusión que continuar; pide una nueva revisión.')
+                if pr is not None:
                     for key in ('intent', 'intent_at', 'effect_retries', 'replay', 'checks_started'): data.pop(key, None)
                     data['merge_sha'] = pr['merge_commit_sha']
                     self.store.audit(user, 'publication_resume_confirmed', value, {'reason': reason})
