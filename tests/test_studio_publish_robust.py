@@ -524,3 +524,11 @@ class PublicationFixes(RobustBase):
         self.assertEqual(pub['payload'].get('infra_retries'), 1); self.assertNotIn('intent', pub['payload'])
         self.assertNotIn('effect_retries', pub['payload'], 'the Infra exit starts a fresh count for the next merge attempt')
         self.assertNotIn(pub['state'], ('failed', 'published'))
+
+    def test_empty_merge_file_list_is_unverified_not_confined(self):
+        # all() of an empty list is True: an empty answer must not pass for a confined diff.
+        self.mock.merge_files = []
+        self.approved(); self.tick_until('merged'); self.publisher.advance(self.slug)
+        pub = self.pub()
+        self.assertEqual(pub['payload'].get('merge_diff'), 'unverified'); self.assertFalse(pub['payload'].get('halted'))
+        pub = self.run_to('published'); self.assertNotIn('failed', [t['state'] for t in pub['payload']['timeline']])

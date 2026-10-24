@@ -510,7 +510,7 @@ class Publisher:
         """After the merge: the first-parent diff must stay inside the piece. None from the API = not observable, not a failure."""
         data = pub['payload']; rel = data.get('rel') or self.workspace.piece_path(pub)
         commit = self.github.request(data['author'], 'GET', '/commits/' + data['merge_sha'])
-        if not isinstance(commit, dict) or not isinstance(commit.get('files'), list): data['merge_diff'] = 'unverified'; return True
+        if not isinstance(commit, dict) or not isinstance(commit.get('files'), list) or not commit['files']: data['merge_diff'] = 'unverified'; return True
         ok = all(f.get('filename') == rel or str(f.get('filename', '')).startswith(rel + '/') for f in commit['files'])
         data['merge_diff'] = 'confined' if ok else 'outside'
         return ok
