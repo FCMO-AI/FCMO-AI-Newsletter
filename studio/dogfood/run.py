@@ -15,17 +15,47 @@ import tempfile
 import threading
 import time
 from urllib.parse import urlsplit
+from studio.dogfood import fake_gh
 from studio.server.auth import Auth
 from studio.server.storage import Store, git
 
 ROOT = Path(__file__).resolve().parents[2]
 BROWSER_TIMEOUT = int(os.environ.get('DOGFOOD_BROWSER_TIMEOUT', '1200'))
 PASSWORD = 'dogfood-local-fixture-password'
+# Items scored before the measured world is switched on (their count is unchanged).
+BASE_ITEMS = 17
+# The «mundo movido» items: GitHub moving under Studio, slow and cancelled Pages, infra trouble, content red.
+WORLD_ITEMS = (
+    'mundo movido: main moves 3 times during publication and it still publishes',
+    'mundo movido: the Pages run of the merge is cancelled while a later run deploys, published',
+    'mundo movido: a 70-minute (compressed) deploy publishes',
+    'mundo movido: after the merge the piece never reaches failed',
+    'mundo movido: infra trouble retries without a second approval',
+    'mundo movido: a content-red gate returns the piece to changes requested',
+    'Javier writes es-419 with fake translation: full cycle publishes',
+)
+# A 70-minute deploy, compressed by 1/600: the measured deploy is seconds here.
+COMPRESSED_DEPLOY_S = 7.0
+
+class Bot(threading.Thread):
+    """Moves main from outside Studio: a commit every `every` seconds, `moves` times at most."""
+    def __init__(self, root, every, moves, first_tick):
+        super().__init__(daemon=True)
+        self.root = root; self.every = every; self.moves = moves; self.first_tick = first_tick
+        self.stop_event = threading.Event(); self.commits = []; self.error = None
+    def run(self):
+        try:
+            for number in range(self.first_tick, self.first_tick + self.moves):
+                if self.stop_event.wait(self.every): return
+                self.commits.append(fake_gh.bot_commit(self.root, number))
+        except BaseException as exc:
+            self.error = exc
 
 class Journey:
     def __init__(self, root, browser=False):
         self.browser = browser
         self.root = root; self.scores = []; self.sessions = {}; self.process = None
+        self.ticks = 100
     def score(self, name, ok=True):
         self.scores.append({'name': name, 'ok': bool(ok)})
         print(('PASS ' if ok else 'FAIL ') + name, flush=True)
@@ -53,11 +83,12 @@ class Journey:
             assert self.process.poll() is None, 'Launcher stopped'
             time.sleep(.3)
         raise AssertionError('Publication timed out: ' + str(pub))
-    def create(self, title, author):
+    def create(self, title, author, en_text=None):
         piece = self.call('POST', '/api/pieces', {'kind': 'essay', 'title': title, 'source_locale': 'en'}, author)
         slug = piece['slug']; base = '/api/pieces/' + slug
         titles = {'en': title, 'es-419': 'Una prueba de publicación', 'zh-Hans': '出版测试'}
         text = {'en': 'Human publication with 42 ideas.', 'es-419': 'Una publicación humana con 42 ideas.', 'zh-Hans': '一篇人类文章包含42个想法。'}
+        if en_text: text['en'] = en_text
         for loc in titles:
             current = self.call('GET', base + '/doc/' + loc, user=author)
             doc = {'schema': 'fcmo-essay-doc-v1', 'locale': loc, 'title': titles[loc],
@@ -125,6 +156,7 @@ class Journey:
         env = {k: v for k, v in os.environ.items() if not k.startswith(('GH_', 'GITHUB_', 'STUDIO_', 'DOGFOOD_'))}
         env.update(STUDIO_DATA=str(self.data), STUDIO_ORIGIN=self.origin, STUDIO_SESSION_KEY='dogfood-session-key-' + 'x' * 40,
                    STUDIO_PORT=str(self.port), STUDIO_REPO=str(source), STUDIO_LIVE_ENABLED='1', STUDIO_DRY_RUN='0',
+                   STUDIO_TRANSLATION_PROVIDER='fake',
                    STUDIO_GH_CONFIG_JAVIER=str(self.root / 'javier'), STUDIO_GH_CONFIG_MATIAS=str(self.root / 'matias'),
                    DOGFOOD_ACTIVE='local-bare-only', DOGFOOD_ROOT=str(self.root), DOGFOOD_BARE=str(self.bare),
                    DOGFOOD_LIVE='http://127.0.0.1:' + str(self.pages.server_port) + '/FCMO-AI-Newsletter/',
@@ -148,7 +180,8 @@ class Journey:
                    self.call('GET', '/api/pieces/' + piece['slug'])['slug'] == piece['slug'])
         for user in ('javier', 'matias'):
             (self.root / user / 'hosts.yml').write_text('github.com: {}\n')
-    START_TIMEOUT = float(os.environ.get('DOGFOOD_START_TIMEOUT', '180'))
+    # A cold start on a loaded host gets at least 120 s before the launcher counts as dead.
+    START_TIMEOUT = max(120.0, float(os.environ.get('DOGFOOD_START_TIMEOUT', '180')))
     def wait_healthy(self):
         # A cold start (bytecode, renderer warm-up, loaded host) takes well over 10 s:
         # wait on /healthz against a deadline, and fail at once if the launcher dies.
@@ -204,6 +237,97 @@ class Journey:
         self.score('rollback serves LKG and preserves main', response.status == 404 and git(self.bare, 'rev-parse', 'main') == concurrent and json.loads((self.root / 'gh.json').read_text())['rollback'])
         refs = git(self.bare, 'for-each-ref', '--format=%(refname)')
         self.score('no draft refs or unapproved piece in public main', 'refs/heads/draft/' not in refs and 'missing-protections' not in git(self.bare, 'ls-tree', '-r', '--name-only', 'main'))
+        self.world_items()
+    def set_world(self, **knobs):
+        """The measured world, read by every gh call from now on. Each scenario states all its knobs."""
+        fake_gh.write_world(self.root, knobs)
+    def gh_state(self):
+        return json.loads((self.root / 'gh.json').read_text())
+    def count_reviews(self):
+        return sum(1 for c in self.gh_state()['calls'] if c['method'] == 'POST' and c['endpoint'].endswith('/reviews'))
+    @staticmethod
+    def expected_total(browser, captures):
+        """Every item the journey must score: the base items, the browser items, and the measured-world items."""
+        return BASE_ITEMS + len(WORLD_ITEMS) + ((8 + bool(captures)) if browser else 0)
+    def timeline_states(self, slug):
+        return [entry.get('state') for entry in self.call('GET', '/api/pieces/' + slug + '/publication').get('timeline', [])]
+    def piece_state(self, slug):
+        return self.call('GET', '/api/pieces/' + slug)['state']
+    def world_items(self):
+        """Publications through the measured world. Each item says what it proves in its name."""
+        # 1. main moves three times while the piece is in publication: it still publishes.
+        self.set_world(pages_run_s=0, gate_s=0.5, lazy_mergeable_s=1.5, behind=True)
+        slug = self.create('Mundo movido: tres movimientos', 'matias')
+        bot = Bot(self.root, every=2.0, moves=3, first_tick=self.ticks + 1); self.ticks += 3
+        self.call('POST', '/api/pieces/' + slug + '/review/approve', {}, 'javier')
+        bot.start()
+        pub = self.wait(slug, {'published'}, timeout=1800)
+        bot.join(timeout=60)
+        self.score(WORLD_ITEMS[0], len(bot.commits) >= 3 and bot.error is None and len(pub['urls']) == 3)
+        # 2. the merge's Pages run is cancelled by a later run for a commit that moved main; the later run deploys.
+        self.set_world(pages_run_s=4.0, pages_cancel_in_progress=True, gate_s=0.5)
+        slug = self.create('Mundo movido: Pages cancelado', 'javier')
+        self.call('POST', '/api/pieces/' + slug + '/review/approve', {}, 'matias')
+        self.wait(slug, {'merged'}, timeout=1800)
+        merge = self.gh_state()['merge_sha']
+        later = fake_gh.bot_commit(self.root, self.ticks + 1); self.ticks += 1
+        pub = self.wait(slug, {'published'}, timeout=1800)
+        runs = self.gh_state()['pages']
+        merge_run = [r for r in runs if r['head_sha'] == merge and r['conclusion'] == 'cancelled']
+        later_run = [r for r in runs if r['head_sha'] == later and r['conclusion'] == 'success']
+        states_2 = self.timeline_states(slug)
+        self.score(WORLD_ITEMS[1], bool(merge_run) and bool(later_run) and len(pub['urls']) == 3)
+        # 3. a 70-minute deploy, compressed: the piece waits in merged, then publishes.
+        self.set_world(pages_run_s=COMPRESSED_DEPLOY_S, gate_s=0.5)
+        slug = self.create('Mundo movido: despliegue lento', 'matias')
+        self.call('POST', '/api/pieces/' + slug + '/review/approve', {}, 'javier')
+        self.wait(slug, {'merged'}, timeout=1800)
+        started = time.monotonic()
+        pub = self.wait(slug, {'published'}, timeout=1800)
+        deploy_s = time.monotonic() - started
+        states_3 = self.timeline_states(slug)
+        self.score(WORLD_ITEMS[2], deploy_s >= COMPRESSED_DEPLOY_S * 0.8 and len(pub['urls']) == 3)
+        # 4. after the merge, neither slow nor cancelled deploys ever put the piece in failed.
+        after_merge = lambda states: states[states.index('merged'):] if 'merged' in states else []
+        self.score(WORLD_ITEMS[3], 'failed' not in after_merge(states_2) and 'failed' not in after_merge(states_3)
+                   and bool(after_merge(states_3)))
+        # 5. transient GitHub trouble (mergeability unknown, merge refused): retried by Studio, one approval only.
+        self.set_world(merge_refusals=1, lazy_mergeable_s=3.0, pages_run_s=0, gate_s=0.5)
+        slug = self.create('Mundo movido: reintento', 'javier')
+        reviews_before = self.count_reviews()
+        refusals_before = self.gh_state().get('refusals_done', 0)
+        self.call('POST', '/api/pieces/' + slug + '/review/approve', {}, 'matias')
+        pub = self.wait(slug, {'published'}, timeout=1800)
+        refused = self.gh_state().get('refusals_done', 0) - refusals_before
+        self.score(WORLD_ITEMS[4], len(pub['urls']) == 3 and refused == 1 and self.count_reviews() - reviews_before == 1)
+        # 6. a content-red gate: the approved text is refused by the public check, the piece goes back to changes requested.
+        self.set_world(pages_run_s=0, gate_s=0.5)
+        slug = self.create('Mundo movido: contenido rojo', 'matias', en_text='Texto con ' + fake_gh.CONTENT_RED + '.')
+        self.call('POST', '/api/pieces/' + slug + '/review/approve', {}, 'javier')
+        pub = self.wait(slug, {'failed'}, timeout=1800)
+        self.score(WORLD_ITEMS[5], self.piece_state(slug) == 'changes_requested' and 'comprobaciones' in pub['error_plain'])
+        # 7. Javier writes in es-419 (the source); the fake translator prepares en and zh-Hans; the full cycle publishes.
+        self.set_world(pages_run_s=0, gate_s=0.5)
+        slug = self.make_es_piece('Javier escribe en español', 'javier')
+        self.call('POST', '/api/pieces/' + slug + '/review/approve', {}, 'matias')
+        pub = self.wait(slug, {'published'}, timeout=1800)
+        self.score(WORLD_ITEMS[6], len(pub['urls']) == 3)
+    def make_es_piece(self, title, author):
+        """Javier's piece: es-419 is the source; the translate endpoint (STUDIO_TRANSLATION_PROVIDER=fake) prepares the rest."""
+        piece = self.call('POST', '/api/pieces', {'kind': 'essay', 'title': title, 'source_locale': 'es-419'}, author)
+        slug = piece['slug']; base = '/api/pieces/' + slug
+        current = self.call('GET', base + '/doc/es-419', user=author)
+        doc = {'schema': 'fcmo-essay-doc-v1', 'locale': 'es-419', 'title': title, 'dek': 'Una edición comprobada.',
+               'blocks': [{'id': 'b-01234567', 'type': 'p', 'content': [{'t': 'text', 'v': 'Una publicación escrita en español con 42 ideas.'}], 'attrs': {}}],
+               'footnotes': {}}
+        self.call('PUT', base + '/doc/es-419', {'base_rev': current['rev'], 'doc': doc, 'cursor': {'anchor': 2}}, author)
+        self.call('POST', base + '/locale/es-419/state', {'state': 'ready', 'reviewed': True}, author)
+        self.call('POST', base + '/translate', {'base_rev': self.call('GET', base, user=author)['head_rev']}, author)
+        for loc in ('en', 'zh-Hans'):
+            self.call('POST', base + '/locale/' + loc + '/state', {'state': 'ready', 'reviewed': True, 'confirmation': 'Leí y entiendo el texto chino'}, author)
+        self.call('POST', base + '/versions', {'name': 'Reviewed draft'}, author)
+        self.call('POST', base + '/review/request', {}, author)
+        return slug
     def browser_checks(self, published):
         env = dict(self.env, STUDIO_USER='javier', STUDIO_PASS=PASSWORD)
         seeded = subprocess.check_output(['python3', '-m', 'tests.harness.seed_studio'], cwd=self.root / 'source', env=env, text=True).strip()
@@ -238,7 +362,7 @@ class Journey:
                 os.killpg(self.process.pid, signal.SIGKILL); self.process.wait()
             self.log.close()
         if hasattr(self, 'pages'): self.pages.shutdown(); self.pages.server_close()
-        expected = (25 + bool(os.environ.get('DOGFOOD_CAPTURES'))) if self.browser else 17
+        expected = self.expected_total(self.browser, os.environ.get('DOGFOOD_CAPTURES'))
         passed = sum(s['ok'] for s in self.scores)
         summary = {'passed': passed, 'total': expected, 'executed': len(self.scores), 'completed': passed == expected and len(self.scores) == expected, 'checks': self.scores}
         (self.root / 'summary.json').write_text(json.dumps(summary, indent=2))
