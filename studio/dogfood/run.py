@@ -449,6 +449,6 @@ def main():
     finally:
         if not args.keep: shutil.rmtree(root, ignore_errors=True)
     # Red items were scored and named, and the run went on; the exit status still says the run is not green.
-    if journey is not None and not journey.completed: sys.exit(1)
+    if journey is not None and not all(s['ok'] for s in journey.scores): sys.exit(1)
 
 if __name__ == '__main__': main()
