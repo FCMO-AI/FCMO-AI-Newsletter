@@ -1,6 +1,6 @@
 {
   "canonical_locale": "en",
-  "canonical_source_sha256": "ad2af17fe46ec50743e39850ec6bf156ea623fb15a9b7e86e75a0d9de6b38f7f",
+  "canonical_source_sha256": "a39a6ea94a62f56c097bc0ad67b6bdadd4051601ba97a462bf9316577b8ff41a",
   "generated_from": "ARB airlock; editorial wording authored upstream",
   "locale": "es-419",
   "records": {
@@ -15774,6 +15774,72 @@
       },
       "title": "OpenAI informa grandes avances en evaluaciones de programación con lenguajes de baja disponibilidad de recursos",
       "why_it_matters": "COBOL, Fortran y otros lenguajes con menos datos de entrenamiento y documentación siguen presentes en software importante. Una mejor programación y migración que conserve el comportamiento podría aliviar un cuello de botella práctico de mantenimiento si estos resultados se transfieren a repositorios reales. Por ahora, la evidencia mide tareas de evaluación controladas; siguen siendo necesarias la revisión experta y las pruebas específicas del sistema, y no se han establecido efectos en producción ni ahorros económicos."
+    },
+    "FCMO-6553FE9DE199": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Los autores presentan LIP, que aprende conectores para mapear la representación de un modelo especialista a estados internos seleccionados en espacios de prompt de un LLM compartido. En el diseño informado, los modelos especialistas y el LLM permanecen congelados; solo se entrena el conector."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El artículo demuestra conectores entrenados de manera independiente para tres especialistas de proteínas y tres de moléculas con Gemma 3 4B, Gemma 3 12B y Kimi K2.6. Los autores informan desempeño con objetos excluidos del ajuste del conector y transferencia a algunos tipos de preguntas que no se usaron en su entrenamiento de tareas."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan que los conectores entrenados por separado se pueden combinar durante la inferencia para preguntas dentro de un dominio y entre proteínas y moléculas, sin entrenamiento conjunto para cada combinación de conectores."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "La transferencia no es uniforme: el entrenamiento de conectores suele reducir el desempeño en la mayoría de las tareas de moléculas no vistas, mientras lo mejora en las tareas de proteínas no vistas de los experimentos informados. El artículo también informa que pedir razonamiento extendido reduce el desempeño en predicción de propiedades de proteínas en sus tres LLM."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El artículo no establece que las entradas latentes de especialistas se interpreten de forma confiable en distintos dominios científicos o flujos de extremo a extremo; esta revisión tampoco reprodujo los resultados ni ejecutó el código publicado."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se hizo una reproducción independiente de los resultados de transferencia a tareas no vistas ni de composición de conectores.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "La demostración abarca seis especialistas de proteínas y moléculas y tres configuraciones de LLM; se desconoce la transferencia a más familias de modelos y dominios científicos.",
+          "kind": "regime_unclear",
+          "state": "open"
+        },
+        {
+          "description": "El artículo no establece que el acceso a representaciones latentes mejore un flujo de agente científico de extremo a extremo lo suficiente para compensar los costos de entrenamiento de conectores e inferencia.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se reproducen y amplían de manera independiente, los conectores entrenados por separado podrían permitir que un LLM compartido use información rica de varios especialistas y los combine sin entrenamiento conjunto para cada combinación. El alcance informado se limita a tareas de proteínas y moléculas con tres configuraciones de LLM, e incluye transferencia negativa y fallas de razonamiento; es una opción arquitectónica notable, no evidencia de una transformación amplia de los agentes científicos.",
+      "limitations": [
+        "Los resultados se informan en un único preprint v1 y no se reprodujeron de manera independiente en esta revisión.",
+        "Los especialistas demostrados cubren proteínas y moléculas pequeñas, con Gemma 3 4B/12B y Kimi K2.6; se desconoce la generalización a otros dominios, familias de modelos y flujos científicos.",
+        "El artículo informa pérdidas al entrenar conectores en la mayoría de las tareas de moléculas no vistas y menor desempeño en propiedades de proteínas cuando se solicita razonamiento extendido.",
+        "Los LLM actuales no fueron preentrenados para interpretar estas representaciones de especialistas como entradas nativas; los autores informan interpretaciones erróneas y usos poco confiables.",
+        "El análisis de transferencia estima la exposición en descripciones, pero señala que pueden quedar otros canales de supervisión y pistas implícitas; la transferencia entre tareas no demuestra una evaluación totalmente ciega.",
+        "La disponibilidad de código y datos se comprobó solo en el listado del repositorio público; no se ejecutó ningún entrenamiento o inferencia y no se estableció la economía total del despliegue."
+      ],
+      "relationships": [],
+      "summary": "Un preprint de arXiv del 21 de octubre presenta el Latent Interconnect Protocol (LIP), que mapea representaciones de modelos especialistas científicos a estados internos seleccionados de un modelo de lenguaje compartido y congelado. Los autores muestran conectores separados para tres especialistas de proteínas y tres de moléculas con Gemma 3 4B/12B y Kimi K2.6; informan que se reutilizan en distintos tipos de preguntas y que los conectores entrenados por separado se pueden combinar sin entrenamiento conjunto. Los resultados informados incluyen desempeño con objetos no vistos durante el ajuste, transferencia a algunas tareas nuevas y composición entre especialistas. El mismo artículo informa transferencia negativa en tareas de moléculas tras entrenar los conectores, menor desempeño en propiedades de proteínas cuando se solicita razonamiento extendido y casos en los que el LLM interpreta mal las entradas latentes. Es una demostración arquitectónica informada por un artículo, no evidencia independiente de razonamiento científico general confiable ni de una mejora en flujos científicos de extremo a extremo.",
+      "technical": {
+        "claimed_result": "Los autores informan desempeño en tareas con objetos no vistos, transferencia a algunas preguntas nuevas y composición de conectores especialistas entrenados por separado sin entrenamiento conjunto. También informan degradaciones en tareas con moléculas y al solicitar razonamiento.",
+        "compute_or_cost": "Los autores informan que entrenar cada conector toma horas en una sola H100/H200 para Gemma y horas en un nodo de 8×H200 para Kimi K2.6; son configuraciones de entrenamiento informadas por los autores y no establecen la economía total del despliegue.",
+        "demonstrated_result": "El manuscrito público v1 y el repositorio de los autores describen el método y los resultados experimentales. El desempeño técnico sigue siendo informado por los autores; esta revisión no realizó una ejecución independiente.",
+        "implementation_status": "Preprint arXiv v1 y repositorio público con datos y código, publicados el 21 de octubre de 2026.",
+        "mechanism": "Un conector aprendido normaliza una representación especialista y la inyecta en estados residuales seleccionados de espacios de prompt de un LLM congelado. Cada conector se entrena por separado; durante la inferencia se pueden ensamblar varios sin entrenamiento conjunto para cada combinación.",
+        "novelty": "Una interfaz latente extensible propuesta que combina un LLM compartido congelado, conectores especialistas ajustados por separado y composición dentro y entre dominios, demostrada con representaciones de proteínas y moléculas.",
+        "regime": "Experimentos informados por el artículo con tres especialistas de proteínas y tres de moléculas pequeñas conectados a Gemma 3 4B/12B y Kimi K2.6. La evaluación cubre objetos no vistos, ciertos tipos nuevos de preguntas y combinaciones de conectores; esta revisión no hizo reproducción independiente ni probó flujos de agente de extremo a extremo.",
+        "reproducibility": "El repositorio de los autores publica datos y código completos para entrenamiento, evaluación e inferencia. Esta revisión solo inspeccionó el listado; no ejecutó el código ni verificó los resultados.",
+        "strongest_baseline": "Las comparaciones internas del artículo evalúan alineación y entrenamiento de conectores y condiciones de acceso especialista; quedan pendientes comparaciones igualadas con salidas textuales de herramientas independientes y flujos científicos de extremo a extremo."
+      },
+      "title": "AI Mindmeld incorpora representaciones científicas a LLM congelados mediante conectores entrenados por separado",
+      "why_it_matters": "LIP prueba una interfaz entre modelos especialistas y un LLM compartido que transmite más información de una representación especialista que una respuesta textual seleccionada. Si la reutilización y composición de conectores se mantienen fuera de los entornos biológicos probados, agentes científicos podrían aprovechar resultados más ricos de otros modelos sin reentrenar conjuntamente cada combinación de especialistas. El artículo también muestra que tener acceso a la información no garantiza interpretarla de forma confiable, y sus resultados con moléculas y razonamiento exponen costos de transferencia que todavía deben medirse."
     },
     "FCMO-6560CD72CDEE": {
       "claims": [
@@ -48231,6 +48297,48 @@
       "why_it_matters": {
         "locale_sha256": "35d40b95718516b20277f8fab0f4d52128638a8a8cd794c873057b8f8c9e11e9",
         "source_sha256": "4e619d6a2908e0785c0f69eca571c24eaf13c21d8fefffa788b21cf2df67d563"
+      }
+    },
+    "FCMO-6553FE9DE199": {
+      "claims": {
+        "locale_sha256": "66fb32cf77d08982a894ec97f137d76836854e3f06174b661811e6ce862cc019",
+        "source_sha256": "1b3d7fbcbd86a512acbee80ec5869951a6bfc6b9838290b8fb9cfb41807488b7"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "3724ecad0cfec6180993c6c40972f5ed32938d334c0463a457a9d7867a9a5759",
+        "source_sha256": "231b0d3bc621c0566801d46b7bcfe27cd0c11ef9d008e66f4dfa568e57c416b0"
+      },
+      "importance_rationale": {
+        "locale_sha256": "1d98a06285199f8bb2b7b74f56876f5204ccc733008573e6894e1058fe110f06",
+        "source_sha256": "8c2af14ae2b0f098971aa4a21943a7d64cbab245d8c805a17add254ed70827ad"
+      },
+      "limitations": {
+        "locale_sha256": "93b01c660514a92375f1b70ac081044470a757a79354b9b9b697de3cc8272ed0",
+        "source_sha256": "94c04b653977bfe2fffdc8c33edb3c359d0bcccb439dd8c0193e8feeb3f6f654"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "8568d2a34beaed11fc3668e0e79a0d19d83ce4c50ee437b9dfc0cc86fde29060",
+        "source_sha256": "1540046de97832cd9749cadc0401df2829e4a6f0192759d49b7721833ed20fa6"
+      },
+      "technical": {
+        "locale_sha256": "80b21f9ff20909f04862e039efc801be662fbdff9ba121806826d0915d15b997",
+        "source_sha256": "7cdc39404690a8617d9dc25df950033eb266a474b8ce80f5ba4474370389a096"
+      },
+      "title": {
+        "locale_sha256": "e172210aa1d5efef88e240fff645fac77bc74516821f16ec7fc57c61c23c91a4",
+        "source_sha256": "97a66ad8a04829fdb6844d08316bb4a3f7a202656595f67278d783225c6998ed"
+      },
+      "why_it_matters": {
+        "locale_sha256": "8a2c6d8fd72aa9df418afc69ef42c28ee7ef63ad8e17204398c05b5c24172428",
+        "source_sha256": "7799dab4672918f3e5386b3ec6823bc0cacc9dc146bf0d56204adcc3627509a2"
       }
     },
     "FCMO-6560CD72CDEE": {

@@ -1,7 +1,7 @@
 {
   "schema": "fcmo-stories-v2",
-  "generated_at": "2026-10-24T00:21:05Z",
-  "release_id": "newswire-0f50a33fa834f454c06d3ecb",
+  "generated_at": "2026-10-24T01:27:46Z",
+  "release_id": "newswire-009e09fc12c6a9110fb00264",
   "canonical_locale": "en",
   "locales": [
     "en",
@@ -49,6 +49,276 @@
     "2026-10-23"
   ],
   "stories": [
+    {
+      "id": "FCMO-6553FE9DE199",
+      "slug": "ai-mindmeld-uses-independently-trained-connectors-to-pass-scientific",
+      "url_date": "2026-10-23",
+      "kind": "development",
+      "status": "live",
+      "beat": "research",
+      "desk": "compute_inference",
+      "title": "AI Mindmeld uses independently trained connectors to pass scientific representations into frozen LLMs",
+      "dek": "A 21 October arXiv preprint introduces the Latent Interconnect Protocol (LIP), which maps representations from scientific specialist models into selected internal states of a shared frozen language model.",
+      "summary": "A 21 October arXiv preprint introduces the Latent Interconnect Protocol (LIP), which maps representations from scientific specialist models into selected internal states of a shared frozen language model. The authors demonstrate separate connectors for three protein and three molecule specialists with Gemma 3 4B/12B and Kimi K2.6; they report reuse across question types and combining independently trained connectors without joint training. Reported results include held-out-object performance, transfer to some unseen tasks and cross-specialist composition. The same paper reports molecule-task negative transfer after connector training, reduced protein-property performance when extended reasoning is requested, and cases where the LLM misreads latent inputs. This is a paper-reported architecture demonstration, not independent evidence of reliable general scientific reasoning or an end-to-end scientific workflow benefit.",
+      "why_it_matters": "LIP tests an interface between specialist models and a shared LLM that carries more of a specialist representation than a selected text answer. If connector reuse and composition hold beyond the tested biology settings, this could give scientific agents access to richer model outputs without joint retraining for each specialist combination. The paper also shows that access alone does not ensure reliable interpretation, and its molecule and reasoning results expose transfer costs that must be measured.",
+      "importance_rationale": "If independently reproduced and extended, separately trained connectors could let one shared LLM use rich information from multiple specialists and combine them without per-combination joint training. The reported scope is limited to protein and molecule tasks on three LLM configurations, with negative transfer and reasoning failures; this is a notable architecture option, not evidence of broad scientific-agent transformation.",
+      "technical": {
+        "claimed_result": "Authors report held-out-object task performance, zero-shot transfer to some new questions and composition of independently trained specialist connectors without joint training. Molecule and reasoning degradations are also reported.",
+        "compute_or_cost": "Authors report connector training times ranging from hours per connector on a single H100/H200 for Gemma to hours on an 8×H200 node for Kimi K2.6; these are author-reported training configurations and do not establish total deployment economics.",
+        "demonstrated_result": "The public v1 manuscript and author repository exist and describe the method and experimental results. Technical performance remains author-reported; no independent execution was done.",
+        "implementation_status": "Public arXiv v1 preprint and public data/code repository dated Oct 21, 2026.",
+        "mechanism": "A learned connector standardizes a specialist representation and injects it into selected prompt-slot residual states of a frozen LLM. Connector training proceeds independently for each specialist/LLM pair; multiple connectors can be assembled at inference without joint training on each combination.",
+        "novelty": "A proposed extensible latent interface combining frozen shared LLMs, independently fitted specialist connectors and within-/cross-domain composition, demonstrated with protein and molecule representations.",
+        "regime": "Paper-reported experiments with three protein and three small-molecule specialists connected to Gemma 3 4B/12B and Kimi K2.6. Evaluation covers held-out objects, selected new question types and connector combinations; no independent reproduction or end-to-end agent workflow was performed here.",
+        "reproducibility": "Full data and training/evaluation/inference code are listed in the author repository. This review inspected the listing only and did not execute the code or verify results.",
+        "strongest_baseline": "The paper’s within-task and transfer controls compare connector alignment/training and specialist access conditions; matched independent text-output tool baselines and end-to-end scientific workflow comparisons remain open."
+      },
+      "importance_tier": "Notable",
+      "development_type": "paper",
+      "event_at": "2026-10-21T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-24T01:27:21Z",
+      "updated_at": "2026-10-24T01:27:21Z",
+      "importance": 5,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": false,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "CLAIMED",
+            "text": "The authors introduce LIP, which learns connectors that map a specialist model’s representation into selected internal states at prompt slots in a shared LLM. In the reported design the specialist models and LLM remain frozen, and only the connector is trained."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "The paper demonstrates independently trained connectors for three protein and three molecule specialists with Gemma 3 4B, Gemma 3 12B and Kimi K2.6. The authors report held-out-object performance and transfer to some question types not used in connector task training."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "The authors report that separately trained connectors can be combined at inference for within-domain and protein–molecule questions without joint training on each connector combination."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "Transfer is not uniform: connector training generally reduces performance on most unseen molecule tasks, while improving unseen protein tasks in the reported experiments. The paper also reports that asking for extended reasoning reduces protein-property prediction performance across its three LLMs."
+          },
+          {
+            "label": "NOT_ESTABLISHED",
+            "text": "The paper does not establish that latent specialist inputs are interpreted reliably across scientific domains or end-to-end workflows, and this review did not independently reproduce its results or run the released code."
+          }
+        ],
+        "limitations": [
+          "Results are reported in one v1 preprint and were not independently reproduced in this review.",
+          "The demonstrated specialists cover proteins and small molecules, with Gemma 3 4B/12B and Kimi K2.6; generalization to other domains, model families and scientific workflows is unknown.",
+          "The paper reports connector-training losses on most unseen molecule tasks and reduced protein-property performance when extended reasoning is requested.",
+          "Current LLMs were not pretrained to interpret these specialist representations as native inputs; the authors report misreading and unreliable use cases.",
+          "The paper’s transfer analysis estimates description exposure but notes that other supervision channels and implicit cues may remain; task transfer does not establish a fully blind evaluation.",
+          "Code and data availability were inspected from the public repository listing only; no training or inference run was performed, and total deployment economics were not established."
+        ],
+        "gaps": [
+          {
+            "kind": "missing_independent",
+            "description": "No independent reproduction of the held-out transfer or connector-composition results was performed."
+          },
+          {
+            "kind": "regime_unclear",
+            "description": "The demonstration covers six specialists from protein and molecule domains and three LLM configurations; transfer to further model families and scientific domains is unknown."
+          },
+          {
+            "kind": "other",
+            "description": "The paper does not establish that access to latent representations improves an end-to-end scientific agent workflow enough to offset connector training and inference costs."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://arxiv.org/abs/2610.30215",
+          "domain": "arxiv.org",
+          "primary": true
+        },
+        {
+          "url": "https://github.com/PolymathicAI/AI-Mindmeld",
+          "domain": "github.com",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "Polymathic AI",
+        "New York University",
+        "Yale University",
+        "Flatiron Institute",
+        "Princeton University"
+      ],
+      "topics": [
+        "scientific-agents",
+        "latent-representations",
+        "model-connectors",
+        "protein-models",
+        "molecule-models",
+        "inference-architecture",
+        "composition"
+      ],
+      "regions": [
+        "US",
+        "GLOBAL"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-6553FE9DE199.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: AI Mindmeld uses independently trained connectors to pass scientific representations into frozen LLMs"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "AI Mindmeld incorpora representaciones científicas a LLM congelados mediante conectores entrenados por separado",
+            "summary": "Un preprint de arXiv del 21 de octubre presenta el Latent Interconnect Protocol (LIP), que mapea representaciones de modelos especialistas científicos a estados internos seleccionados de un modelo de lenguaje compartido y congelado. Los autores muestran conectores separados para tres especialistas de proteínas y tres de moléculas con Gemma 3 4B/12B y Kimi K2.6; informan que se reutilizan en distintos tipos de preguntas y que los conectores entrenados por separado se pueden combinar sin entrenamiento conjunto. Los resultados informados incluyen desempeño con objetos no vistos durante el ajuste, transferencia a algunas tareas nuevas y composición entre especialistas. El mismo artículo informa transferencia negativa en tareas de moléculas tras entrenar los conectores, menor desempeño en propiedades de proteínas cuando se solicita razonamiento extendido y casos en los que el LLM interpreta mal las entradas latentes. Es una demostración arquitectónica informada por un artículo, no evidencia independiente de razonamiento científico general confiable ni de una mejora en flujos científicos de extremo a extremo.",
+            "importance_rationale": "Si se reproducen y amplían de manera independiente, los conectores entrenados por separado podrían permitir que un LLM compartido use información rica de varios especialistas y los combine sin entrenamiento conjunto para cada combinación. El alcance informado se limita a tareas de proteínas y moléculas con tres configuraciones de LLM, e incluye transferencia negativa y fallas de razonamiento; es una opción arquitectónica notable, no evidencia de una transformación amplia de los agentes científicos.",
+            "why_it_matters": "LIP prueba una interfaz entre modelos especialistas y un LLM compartido que transmite más información de una representación especialista que una respuesta textual seleccionada. Si la reutilización y composición de conectores se mantienen fuera de los entornos biológicos probados, agentes científicos podrían aprovechar resultados más ricos de otros modelos sin reentrenar conjuntamente cada combinación de especialistas. El artículo también muestra que tener acceso a la información no garantiza interpretarla de forma confiable, y sus resultados con moléculas y razonamiento exponen costos de transferencia que todavía deben medirse.",
+            "technical": {
+              "claimed_result": "Los autores informan desempeño en tareas con objetos no vistos, transferencia a algunas preguntas nuevas y composición de conectores especialistas entrenados por separado sin entrenamiento conjunto. También informan degradaciones en tareas con moléculas y al solicitar razonamiento.",
+              "compute_or_cost": "Los autores informan que entrenar cada conector toma horas en una sola H100/H200 para Gemma y horas en un nodo de 8×H200 para Kimi K2.6; son configuraciones de entrenamiento informadas por los autores y no establecen la economía total del despliegue.",
+              "demonstrated_result": "El manuscrito público v1 y el repositorio de los autores describen el método y los resultados experimentales. El desempeño técnico sigue siendo informado por los autores; esta revisión no realizó una ejecución independiente.",
+              "implementation_status": "Preprint arXiv v1 y repositorio público con datos y código, publicados el 21 de octubre de 2026.",
+              "mechanism": "Un conector aprendido normaliza una representación especialista y la inyecta en estados residuales seleccionados de espacios de prompt de un LLM congelado. Cada conector se entrena por separado; durante la inferencia se pueden ensamblar varios sin entrenamiento conjunto para cada combinación.",
+              "novelty": "Una interfaz latente extensible propuesta que combina un LLM compartido congelado, conectores especialistas ajustados por separado y composición dentro y entre dominios, demostrada con representaciones de proteínas y moléculas.",
+              "regime": "Experimentos informados por el artículo con tres especialistas de proteínas y tres de moléculas pequeñas conectados a Gemma 3 4B/12B y Kimi K2.6. La evaluación cubre objetos no vistos, ciertos tipos nuevos de preguntas y combinaciones de conectores; esta revisión no hizo reproducción independiente ni probó flujos de agente de extremo a extremo.",
+              "reproducibility": "El repositorio de los autores publica datos y código completos para entrenamiento, evaluación e inferencia. Esta revisión solo inspeccionó el listado; no ejecutó el código ni verificó los resultados.",
+              "strongest_baseline": "Las comparaciones internas del artículo evalúan alineación y entrenamiento de conectores y condiciones de acceso especialista; quedan pendientes comparaciones igualadas con salidas textuales de herramientas independientes y flujos científicos de extremo a extremo."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "Los autores presentan LIP, que aprende conectores para mapear la representación de un modelo especialista a estados internos seleccionados en espacios de prompt de un LLM compartido. En el diseño informado, los modelos especialistas y el LLM permanecen congelados; solo se entrena el conector."
+                },
+                {
+                  "text": "El artículo demuestra conectores entrenados de manera independiente para tres especialistas de proteínas y tres de moléculas con Gemma 3 4B, Gemma 3 12B y Kimi K2.6. Los autores informan desempeño con objetos excluidos del ajuste del conector y transferencia a algunos tipos de preguntas que no se usaron en su entrenamiento de tareas."
+                },
+                {
+                  "text": "Los autores informan que los conectores entrenados por separado se pueden combinar durante la inferencia para preguntas dentro de un dominio y entre proteínas y moléculas, sin entrenamiento conjunto para cada combinación de conectores."
+                },
+                {
+                  "text": "La transferencia no es uniforme: el entrenamiento de conectores suele reducir el desempeño en la mayoría de las tareas de moléculas no vistas, mientras lo mejora en las tareas de proteínas no vistas de los experimentos informados. El artículo también informa que pedir razonamiento extendido reduce el desempeño en predicción de propiedades de proteínas en sus tres LLM."
+                },
+                {
+                  "text": "El artículo no establece que las entradas latentes de especialistas se interpreten de forma confiable en distintos dominios científicos o flujos de extremo a extremo; esta revisión tampoco reprodujo los resultados ni ejecutó el código publicado."
+                }
+              ],
+              "limitations": [
+                "Los resultados se informan en un único preprint v1 y no se reprodujeron de manera independiente en esta revisión.",
+                "Los especialistas demostrados cubren proteínas y moléculas pequeñas, con Gemma 3 4B/12B y Kimi K2.6; se desconoce la generalización a otros dominios, familias de modelos y flujos científicos.",
+                "El artículo informa pérdidas al entrenar conectores en la mayoría de las tareas de moléculas no vistas y menor desempeño en propiedades de proteínas cuando se solicita razonamiento extendido.",
+                "Los LLM actuales no fueron preentrenados para interpretar estas representaciones de especialistas como entradas nativas; los autores informan interpretaciones erróneas y usos poco confiables.",
+                "El análisis de transferencia estima la exposición en descripciones, pero señala que pueden quedar otros canales de supervisión y pistas implícitas; la transferencia entre tareas no demuestra una evaluación totalmente ciega.",
+                "La disponibilidad de código y datos se comprobó solo en el listado del repositorio público; no se ejecutó ningún entrenamiento o inferencia y no se estableció la economía total del despliegue."
+              ],
+              "gaps": [
+                {
+                  "description": "No se hizo una reproducción independiente de los resultados de transferencia a tareas no vistas ni de composición de conectores."
+                },
+                {
+                  "description": "La demostración abarca seis especialistas de proteínas y moléculas y tres configuraciones de LLM; se desconoce la transferencia a más familias de modelos y dominios científicos."
+                },
+                {
+                  "description": "El artículo no establece que el acceso a representaciones latentes mejore un flujo de agente científico de extremo a extremo lo suficiente para compensar los costos de entrenamiento de conectores e inferencia."
+                }
+              ]
+            },
+            "dek": "Un preprint de arXiv del 21 de octubre presenta el Latent Interconnect Protocol (LIP), que mapea representaciones de modelos especialistas científicos a estados internos seleccionados de un modelo de lenguaje compartido y congelado."
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "AI Mindmeld 通过独立训练的连接器将科学表征接入冻结的LLM",
+            "summary": "一篇发表于十月21日的arXiv预印本介绍了潜在互联协议（Latent Interconnect Protocol，LIP），将科学专用模型的表征映射到共享冻结语言模型选定的内部状态中。作者展示了面向三种蛋白质专用模型和三种分子专用模型的独立连接器，并将其接入Gemma 3 4B/12B和Kimi K2.6；作者报告称，这些连接器可用于不同类型的问题，也可在不进行联合训练的情况下组合。报告结果包括对训练中未见对象的表现、对部分新任务的迁移以及跨专用模型组合。同一论文还报告称，连接器训练后分子任务出现负迁移；要求扩展推理时，蛋白质属性预测表现下降；并且LLM有时会误读潜在输入。这是论文报告的架构演示，并非对可靠通用科学推理或端到端科学工作流收益的独立证据。",
+            "importance_rationale": "如果独立复现并扩展，独立训练的连接器或可让共享LLM利用多个专用模型的丰富信息，并在无需为每种组合进行联合训练的情况下将其结合。当前报告范围仅限于三种LLM配置下的蛋白质和分子任务，并出现负迁移与推理表现下降；这是一项值得关注的架构选择，尚不足以证明科学智能体发生广泛转变。",
+            "why_it_matters": "LIP测试了一种专用模型与共享LLM之间的接口，可传递比经过筛选的文本答案更丰富的专用模型表征。如果连接器复用和组合能力能推广到已测生物学场景之外，科学智能体或可利用其他模型更丰富的输出，而无须针对每种专用模型组合进行联合再训练。论文也表明，获得信息并不保证能可靠理解；分子与推理结果揭示了仍需测量的迁移代价。",
+            "technical": {
+              "claimed_result": "作者报告称，该方法在未见对象上取得任务表现、迁移至部分新问题，并可在不进行联合训练的情况下组合独立训练的专用连接器。论文也报告了分子任务和推理表现下降。",
+              "compute_or_cost": "作者报告称，每个连接器在单张H100/H200上为Gemma训练需数小时；Kimi K2.6则需在一台8×H200节点上训练数小时。这些是作者报告的训练配置，并未确定整体部署成本效益。",
+              "demonstrated_result": "公开的v1论文和作者仓库介绍了该方法及实验结果。技术表现仍为作者报告，本次审查未独立运行实验。",
+              "implementation_status": "公开的arXiv v1预印本及作者数据与代码仓库于2026年十月21日发布。",
+              "mechanism": "学习得到的连接器先对专用模型表征进行标准化，再将其注入冻结LLM提示词槽位的选定残差状态。每个连接器独立训练；推理时可组合多个连接器，无须针对每种组合进行联合训练。",
+              "novelty": "一种可扩展的潜在接口方案，将共享冻结LLM、独立拟合的专用连接器，以及域内和跨域组合结合起来，并以蛋白质和分子表征进行演示。",
+              "regime": "论文报告的实验将三种蛋白质专用模型和三种小分子专用模型接入Gemma 3 4B/12B及Kimi K2.6。评估覆盖未见对象、部分新问题类型和连接器组合；本次审查未独立复现，也未测试端到端智能体工作流。",
+              "reproducibility": "作者公开了完整的数据及训练、评估和推理代码。本次审查仅检查仓库说明，未运行代码或核验结果。",
+              "strongest_baseline": "论文内部比较了连接器对齐与训练方式以及专用信息访问条件；与独立文本工具输出的匹配对照和端到端科学工作流对比仍有待完成。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "作者提出LIP，通过学习连接器将专用模型表征映射到共享LLM提示词槽位的选定内部状态中。在论文报告的设计里，专用模型和LLM均保持冻结，只训练连接器。"
+                },
+                {
+                  "text": "论文演示了分别为三种蛋白质专用模型和三种分子专用模型训练的连接器，并接入Gemma 3 4B、Gemma 3 12B和Kimi K2.6。作者报告称，模型对连接器拟合时未见过的对象仍有表现，并可迁移到部分未用于连接器任务训练的问题类型。"
+                },
+                {
+                  "text": "作者报告称，独立训练的连接器可在推理时组合，用于域内问题及蛋白质与分子之间的问题，无须针对每种连接器组合进行联合训练。"
+                },
+                {
+                  "text": "迁移效果并不一致：在报告的实验中，连接器训练通常会降低多数未见分子任务的表现，同时提升未见蛋白质任务的表现。论文还报告称，在三种LLM上要求扩展推理都会降低蛋白质属性预测表现。"
+                },
+                {
+                  "text": "该论文并未证明潜在专用模型输入能在不同科学领域或端到端工作流中得到可靠解读；本次审查也未独立复现实验或运行已发布代码。"
+                }
+              ],
+              "limitations": [
+                "结果来自一篇v1预印本，本次审查未独立复现。",
+                "演示中的专用模型覆盖蛋白质和小分子，并使用Gemma 3 4B/12B与Kimi K2.6；能否推广到其他领域、模型家族和科学工作流尚不清楚。",
+                "论文报告称，连接器训练会降低多数未见分子任务的表现；要求扩展推理时，蛋白质属性预测表现也会下降。",
+                "当前LLM并未在预训练期间学习将这些专用模型表征作为原生输入；作者报告了误读和不可靠使用的情况。",
+                "论文的迁移分析估算了描述文本中的信息暴露，但作者指出仍可能存在其他监督渠道和隐含线索；跨任务迁移并不意味着评估完全盲测。",
+                "本次仅检查了公开仓库的代码和数据说明；未运行训练或推理，也未确定整体部署成本效益。"
+              ],
+              "gaps": [
+                {
+                  "description": "本次未独立复现对未见任务的迁移结果或连接器组合结果。"
+                },
+                {
+                  "description": "演示仅覆盖蛋白质与分子领域的六种专用模型以及三种LLM配置；能否迁移至其他模型家族和科学领域尚不清楚。"
+                },
+                {
+                  "description": "论文尚未证明，潜在表征访问带来的端到端科学智能体工作流收益足以抵消连接器训练与推理成本。"
+                }
+              ]
+            },
+            "headline": "AI Mindmeld 通过独立训练的连接器将科学表征接入冻结的LLM"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
     {
       "id": "FCMO-B1F7F10C7C24",
       "slug": "china-publishes-state-council-guidance-on-ai-and-employment-adaptation",
