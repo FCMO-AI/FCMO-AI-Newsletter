@@ -73,7 +73,10 @@ async function requestCode (button) {
   await refreshReadiness()
 }
 function githubConnectCard (connection) {
-  const state = connection?.state || 'idle'
+  // The card only renders while his own credential is not ready, so a 'ready' connection with no
+  // usable credential is a dead end: offer to start again unless we are mid-confirmation.
+  let state = connection?.state || 'idle'
+  if (state === 'ready' && !ghUi.checking) state = 'idle'
   const who = session.me.other
   const head = (title, lead) => [h('h2', { class: 'gh-title' }, title), lead ? h('p', { class: 'gh-lead' }, lead) : null]
   const again = label => h('button', { class: 'btn primary gh-connect-start', type: 'button', onclick: e => requestCode(e.currentTarget) }, label)
