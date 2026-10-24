@@ -31,3 +31,16 @@ test('every halt string exists in both languages and names no tool', () => {
     assert.doesNotMatch(S.es[k] + S.en[k], /git|GitHub|branch|merge|commit|JSON/i)
   }
 })
+
+import { progressView } from '../src/publication-actions.js'
+
+test('a halted, unfinished publication puts the halt card first and freezes every live part', () => {
+  for (const reason of ['infra', 'effect', 'foreign_merge']) for (const me of ['javier', 'matias']) {
+    assert.deepEqual(progressView({ ...base, state: 'pr_open', halt_reason: reason }, me), { haltFirst: true, frozen: true, live: false })
+  }
+})
+
+test('a running publication keeps its live ticker and ring, and finished ones show no halt card', () => {
+  assert.deepEqual(progressView({ halted: false, state: 'pr_open', author: 'javier' }, 'matias'), { haltFirst: false, frozen: false, live: true })
+  for (const state of ['published', 'failed']) assert.deepEqual(progressView({ ...base, state, halt_reason: 'infra' }, 'matias'), { haltFirst: false, frozen: false, live: false })
+})

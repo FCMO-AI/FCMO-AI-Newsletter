@@ -44,6 +44,13 @@ export function haltPlan (p, me) {
   return { integrity, canResume: !integrity || reviewer, confirm: integrity }
 }
 
+// While halted the screen is a still picture of the recorded state: the halt card comes first and nothing runs.
+export function progressView (p, me) {
+  const running = !!p && p.state !== 'failed' && p.state !== 'published'
+  const halt = running ? haltPlan(p, me) : null
+  return { haltFirst: !!halt, frozen: !!halt, live: running && !halt }
+}
+
 export async function resumePublication (slug, plan, done) {
   const run = async close => {
     try {
