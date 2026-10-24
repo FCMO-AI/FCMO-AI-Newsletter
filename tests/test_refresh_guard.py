@@ -39,7 +39,8 @@ def build_candidate(tmp: Path) -> Path:
         if (ROOT / name).exists():
             os.symlink(ROOT / name, tmp / name)
     shutil.copytree(ROOT / "i18n", tmp / "i18n", ignore=shutil.ignore_patterns("__pycache__"))
-    (tmp / "tests").mkdir()
+    (tmp / "tests/fixtures").mkdir(parents=True)
+    shutil.copy(ROOT / "tests/fixtures/ui_enum_snapshot.json", tmp / "tests/fixtures/ui_enum_snapshot.json")
     for name in ("test_no_frozen_corpus_counts.py", "test_c6_design_contract.py"):
         shutil.copy(ROOT / "tests" / name, tmp / "tests" / name)
     (tmp / "corpus/data").mkdir(parents=True)
@@ -92,21 +93,41 @@ class RefreshGuardBattery(unittest.TestCase):
         red = unittest_in(self.root, "test_no_frozen_corpus_counts")
         self.assertNotEqual(0, red.returncode, red.stderr[-400:])
 
-    def test_case2_new_region_with_no_label_and_no_fallback(self):
-        self.edit_rows(lambda rows: rows[0].__setitem__("regions", ["cn", "Beijing-Tianjin-Hebei"]))
+    def test_case2_new_unlabelled_values_never_block_what_deploy_does_not_block(self):
+        # A new region, desk and source language with no label, in a group with no generic fallback.
+        def mutate(rows):
+            rows[0]["regions"] = ["new-region-a", "New-Region-B"]
+            rows[0]["source_languages"] = ["hi-new"]
+            rows[0]["primary_desk"] = "a-desk-nobody-labelled-yet"
+        self.edit_rows(mutate)
         for locale in ("en", "es-419", "zh-Hans"):
             path = self.root / f"i18n/ui/{locale}.json"
             catalog = json.loads(path.read_text(encoding="utf-8"))
             catalog["labels"]["region"].pop("other", None)
-            for code in ("cn", "Beijing-Tianjin-Hebei"):
-                catalog["labels"]["region"].pop(code, None)
+            catalog["labels"]["source_language"].pop("other", None)
+            catalog["labels"]["desk"].pop("other", None)
             path.write_text(json.dumps(catalog, ensure_ascii=False), encoding="utf-8")
-        bad = errors(guard.run_checks(self.root, ["ui_labels"]), "ui_labels")
-        self.assertTrue(any("labels.region.cn" in f["message"] for f in bad), bad)
-        self.assertTrue(any("Beijing-Tianjin-Hebei" in f["message"] for f in bad), bad)
-        # The strict coverage gate that failed Deploy is red on it too.
+        found = guard.run_checks(self.root, ["ui_labels"])
+        self.assertEqual([], errors(found, "ui_labels"), found)
+        for needle in ("labels.region.new-region-a", "labels.source_language.hi-new", "a-desk-nobody-labelled-yet"):
+            self.assertTrue(any(f["severity"] == "warning" and needle in f["message"] for f in found), needle)
+        # Deploy's label gate (frozen snapshot + contract enums) returns nothing for the same candidate.
         ulc = guard._import("tools.ui_label_coverage")
-        self.assertTrue(ulc.missing_labels(ulc.load_catalogs(self.root), ulc.observed_live(self.root)))
+        gate = ulc.load_snapshot(self.root / "tests/fixtures/ui_enum_snapshot.json")
+        gate.update(ulc.contract_enums(self.root))
+        self.assertEqual([], [m for m in ulc.missing_labels(ulc.load_catalogs(self.root), gate)
+                              if "a-desk-nobody" in m or "hi-new" in m or "new-region" in m])
+
+    def test_case2c_a_label_the_deploy_gate_requires_going_missing_is_an_error(self):
+        # The refresh cannot write i18n/ui, so this is a wiring proof: the guard runs Deploy's own gate.
+        path = self.root / "i18n/ui/en.json"
+        catalog = json.loads(path.read_text(encoding="utf-8"))
+        group = catalog["labels"]["desk"]
+        victim = next(k for k in group if k != "other")
+        del group[victim]
+        path.write_text(json.dumps(catalog, ensure_ascii=False), encoding="utf-8")
+        bad = errors(guard.run_checks(self.root, ["ui_labels"]), "ui_labels")
+        self.assertTrue(any(f"labels.desk.{victim}" in f["message"] for f in bad), bad)
 
     def test_case2b_new_region_with_the_generic_fallback_warns_but_does_not_block(self):
         self.edit_rows(lambda rows: rows[0].__setitem__("regions", ["a-region-nobody-labelled-yet"]))
@@ -160,6 +181,23 @@ class RefreshWorkflowOrder(unittest.TestCase):
         self.assertNotIn("continue-on-error", step)
         self.assertNotIn("|| true", step)
         self.assertIn("steps.preflight.outputs.path == 'rebuild' || steps.preflight.outputs.path == 'status'", step)
+
+    def test_every_module_that_builds_the_paper_from_live_data_is_listed(self):
+        # The in-process probe misses these (they build in a subprocess), so the static scan decides.
+        inventory = guard._import("tools.data_dependent_tests")
+        listed = {l.strip() for l in (ROOT / guard.MODULE_LIST).read_text(encoding="utf-8").splitlines()
+                  if l.strip() and not l.lstrip().startswith("#")}
+        browser_only = {"test_v4_mobile_first_viewport"}  # needs Chromium, installed only by Deploy
+        not_live = {  # name the data files or build only as TEXT or as fixtures; reviewed one by one
+            "test_agent_layer": "builds from tests/fixtures",
+            "test_pages_workflow": "reads workflow text", "test_protected_publishing": "reads workflow text",
+            "test_newswire_bridge_workflow": "reads workflow text", "test_refresh_guard": "this battery",
+        }
+        builders = {r["module"] for r in inventory.static_scan()
+                    if any(x in r["data_refs"] for x in ("site/data", "stories.v2"))
+                    and "tools/paper/build" in r["tool_refs"]}
+        self.assertTrue({"test_c6_one_fcmo", "test_design_v2", "test_v4_localized_kickers"} <= builders, builders)
+        self.assertEqual(set(), builders - listed - browser_only - set(not_live))
 
     def test_listed_modules_exist(self):
         listed = [l.strip() for l in (ROOT / guard.MODULE_LIST).read_text(encoding="utf-8").splitlines()

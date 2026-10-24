@@ -13,10 +13,12 @@ Checks (each takes a repository root, so the battery can aim it at a fixture):
 
 * ``frozen_counts``   no test freezes a current corpus quantity
                       (same function as tests/test_no_frozen_corpus_counts.py).
-* ``ui_labels``       every reader-facing enum value in the candidate renders
-                      through a catalog label or the generic ``other`` fallback.
-                      A value with no label AND no fallback is a failure; a value
-                      that merely uses the fallback is a warning (readers are safe).
+* ``ui_labels``       the SAME label gate Deploy runs: the catalogs must label the frozen
+                      enum snapshot plus the contract enums (an error). New live values
+                      (a region, a desk, a claim kind, a source language) never block:
+                      Deploy does not check them, so they are warnings and render with
+                      the generic ``other`` label or, where a group has none, a plain
+                      code until a person adds a label.
 * ``verified_headings`` build the paper from the candidate Story layer and check
                       every home and story page for a chrome heading that says
                       «verified» (same function as tests/test_c6_design_contract.py).
@@ -47,7 +49,6 @@ ROOT = Path(__file__).resolve().parents[1]
 BASE = "/FCMO-AI-Newsletter/"
 LOCALES = ("en", "es-419", "zh-Hans")
 MODULE_LIST = "tests/refresh_guard_modules.txt"
-FALLBACK_LABEL = "other"
 
 
 class Finding(dict):
@@ -69,22 +70,16 @@ def frozen_counts(root: Path) -> list[Finding]:
 
 def ui_labels(root: Path) -> list[Finding]:
     ulc = _import("tools.ui_label_coverage")
-    observed = ulc.observed_live(root)
     catalogs = ulc.load_catalogs(root)
     findings = []
-    for locale in ulc.LOCALES:
-        labels = catalogs[locale]["labels"]
-        for group, codes in observed.items():
-            for code in sorted(codes):
-                if code in labels.get(group, {}):
-                    continue
-                if labels.get(group, {}).get(FALLBACK_LABEL):
-                    findings.append(Finding(check="ui_labels", severity="warning",
-                                            message=f"{locale}: labels.{group}.{code} missing, renders the generic label"))
-                else:
-                    findings.append(Finding(check="ui_labels", severity="error",
-                                            message=f"{locale}: labels.{group}.{code} missing and labels.{group}.{FALLBACK_LABEL} "
-                                                    "has no generic fallback: readers would see the raw code or nothing"))
+    # Error: exactly what Deploy checks (tests/test_localization_completeness.py).
+    gate = ulc.load_snapshot(root / "tests/fixtures/ui_enum_snapshot.json")
+    gate.update(ulc.contract_enums(root))
+    for line in ulc.missing_labels(catalogs, gate):
+        findings.append(Finding(check="ui_labels", severity="error", message=f"{line} (the Deploy label gate fails on this)"))
+    # Warning only: values the live corpus brought in that the frozen snapshot has not seen.
+    for line in ulc.missing_labels(catalogs, ulc.observed_live(root)):
+        findings.append(Finding(check="ui_labels", severity="warning", message=f"{line}; Deploy does not block on it"))
     return findings
 
 
