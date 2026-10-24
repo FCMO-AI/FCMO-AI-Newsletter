@@ -11,6 +11,7 @@ import shutil
 from typing import Any
 from urllib.parse import urlsplit
 
+from studio.translation import numeric_key
 from tests.harness.validate import Validator
 from . import essay_doc
 from .routes import absolute, href, issue_path, piece_path
@@ -177,16 +178,16 @@ def _tokens(doc: dict) -> tuple:
     for block in doc.get("blocks", []):
         for node in _walk_inline(block):
             if node.get("t") == "text":
-                numeric.extend(num_re.findall(node.get("v", "")))
+                numeric.extend(map(numeric_key, num_re.findall(node.get("v", ""))))
                 urls.extend(url_re.findall(node.get("v", "")))
             elif node.get("t") == "link":
                 urls.append(node.get("href", ""))
             elif node.get("t") == "cite":
-                numeric.extend(num_re.findall(node.get("locator", "")))
+                numeric.extend(map(numeric_key, num_re.findall(node.get("locator", ""))))
     for value in doc.get("footnotes", {}).values():
         for node in _walk_inline({"content": value}):
             if node.get("t") == "text":
-                numeric.extend(num_re.findall(node.get("v", "")))
+                numeric.extend(map(numeric_key, num_re.findall(node.get("v", ""))))
                 urls.extend(url_re.findall(node.get("v", "")))
     return tuple(numeric), tuple(urls)
 

@@ -9,6 +9,7 @@ import unittest
 from unittest.mock import patch
 
 from studio.server.storage import Store, Conflict
+from studio.translation import FakeProvider
 from studio.server.publishing import Publisher, Refused
 from studio.server.checks import checks
 from tools.gates import piece_valid
@@ -25,6 +26,14 @@ SOURCE = {'schema': 'fcmo-essay-doc-v1', 'locale': 'es-419', 'title': 'Una idea 
                   {'t': 'cite', 'key': 'src-one', 'locator': 'p. 4'}]},
               {'id': 'b-abcdef12', 'type': 'blockquote', 'content': [{'t': 'text', 'v': '«Una voz propia»'}]}],
           'footnotes': {'fn-12345678': [{'t': 'text', 'v': 'Nota 7.'}]}}
+
+class RecordingProvider:
+    """FakeProvider that counts how many times a translation is requested."""
+    model = 'fake'
+    def __init__(self): self.calls = 0; self.inner = FakeProvider()
+    def generate(self, request):
+        self.calls += 1
+        return self.inner.generate(request)
 
 class TranslationTests(unittest.TestCase):
     def setUp(self):
@@ -70,7 +79,7 @@ class TranslationTests(unittest.TestCase):
             lambda d: d['blocks'][0]['content'][2].update(href='https://example.org/other'),
             lambda d: d.update(dek='FCMO AI el 2026-10-06'),
             lambda d: d['blocks'][0]['content'][0].update(v='Javier propone 43 ideas.'),
-            lambda d: d['blocks'][1]['content'][0].update(v='Otra voz'),
+            lambda d: d['blocks'][1].update(type='p'),  # a quotation may be translated, never demoted to prose
             lambda d: d['blocks'][0].update(content=[]),
             lambda d: d['blocks'][0]['content'][3].update(key='new-source'),
             lambda d: d.update(title='Una idea de FCMO Group'),
@@ -84,6 +93,33 @@ class TranslationTests(unittest.TestCase):
         source['footnotes']['fn-12345678'].append({'t': 'link', 'href': 'https://example.org/note', 'c': [{'t': 'text', 'v': 'nota'}]})
         target = copy.deepcopy(source); target['locale'] = 'en'; target['footnotes']['fn-12345678'][-1]['href'] += '/changed'
         with self.assertRaises(TranslationError): validate_translation(source, target, 'en')
+    def test_blockquote_cite_attribute_is_immutable(self):
+        from studio.translation import validate_translation, TranslationError
+        source = copy.deepcopy(SOURCE); source['blocks'][1]['attrs'] = {'cite': 'src-one'}
+        target = copy.deepcopy(source); target['locale'] = 'en'
+        validate_translation(source, target, 'en')
+        target['blocks'][1]['attrs']['cite'] = 'other'
+        with self.assertRaises(TranslationError): validate_translation(source, target, 'en')
+        del target['blocks'][1]['attrs']
+        with self.assertRaises(TranslationError): validate_translation(source, target, 'en')
+    def save_source_cite(self, cite):
+        doc = copy.deepcopy(self.store.payload(self.slug)['docs']['es-419'])
+        doc['blocks'][1]['attrs'] = {'cite': cite}
+        self.store.save(self.slug, 'es-419', 'javier', self.store.piece(self.slug)['head_rev'], doc, {})
+    def test_source_quote_with_free_text_cite_refuses_before_provider(self):
+        from studio.translation import TranslationError
+        self.source(); self.save_source_cite('Ensayo de Juan Pérez')
+        provider = RecordingProvider()
+        with self.assertRaises(TranslationError) as caught:
+            self.translate(provider)
+        self.assertEqual(str(caught.exception), 'La cita usa como fuente "Ensayo de Juan Pérez", que no está en las fuentes del artículo. Escribe la atribución dentro de la cita o elige una de sus fuentes.')
+        self.assertEqual(provider.calls, 0)
+    def test_source_quote_with_source_key_cite_proceeds(self):
+        self.source(); self.save_source_cite('src-one')
+        provider = RecordingProvider()
+        self.translate(provider)
+        self.assertEqual(provider.calls, 1)
+        self.assertEqual(self.store.payload(self.slug)['docs']['en']['blocks'][1]['attrs'], {'cite': 'src-one'})
     def test_changed_revision_during_translation_is_not_overwritten(self):
         from studio.translation import FakeProvider
         self.source()

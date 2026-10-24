@@ -22,6 +22,27 @@ class SearchShards(HTMLParser):
             self.paths = json.loads(values["data-shards"])
 
 
+class EssayNumberTokenTests(unittest.TestCase):
+    def piece_with(self, es, en, zh):
+        from tools.paper.essays import load_piece
+        temp = tempfile.TemporaryDirectory(); self.addCleanup(temp.cleanup)
+        target = Path(temp.name) / "fixture-essay"
+        shutil.copytree(FIXTURE / "pieces/fixture-essay", target)
+        for loc, text in (("es-419", es), ("en", en), ("zh-Hans", zh)):
+            path = target / f"doc.{loc}.json"
+            doc = json.loads(path.read_text())
+            doc["blocks"][1]["content"][0]["v"] += " " + text
+            path.write_text(json.dumps(doc, ensure_ascii=False))
+        return load_piece(target)
+
+    def test_numbers_compare_by_value_across_locales(self):
+        self.piece_with("Cuesta 4.200 pesos.", "It costs 4,200 pesos.", "花费4200比索。")
+
+    def test_a_real_number_change_still_fails(self):
+        with self.assertRaisesRegex(ValueError, "numeric or URL token mismatch"):
+            self.piece_with("Cuesta 4.200 pesos.", "It costs 4,300 pesos.", "花费4200比索。")
+
+
 class EssayBuildTests(unittest.TestCase):
     def test_semantic_renderer_covers_node_types_and_escapes_text(self):
         document = {
