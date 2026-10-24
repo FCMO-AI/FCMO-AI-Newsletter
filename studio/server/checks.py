@@ -89,6 +89,9 @@ def checks(store, preview, value):
             # Not a privacy finding: the publication build used for the check refuses unfinished pieces.
             private_es = 'Aún no se puede comprobar la privacidad: la comprobación usa la edición completa y falta marcar como lista(s) ' + ', '.join(waiting) + '. No es un problema de privacidad del texto.'
             private_en = 'Privacy cannot be checked yet: the check uses the complete edition and ' + ', '.join(waiting) + ' is not marked ready. This is not a privacy problem in the text.'
+        elif getattr(exc, 'reason', None):
+            private_es = 'La vista previa no se pudo construir para comprobar la privacidad: ' + exc.reason[0] + '. No es un problema de privacidad del texto.'
+            private_en = 'The preview could not be built to check privacy: ' + exc.reason[1] + '. This is not a privacy problem in the text.'
         else:
             private_es = 'No se pudo construir la vista previa para comprobar la privacidad. Revisa que todas las lenguas se lean sin errores y vuelve a intentar.'
             private_en = 'The preview could not be built to check privacy. Check that every language renders without errors and try again.'

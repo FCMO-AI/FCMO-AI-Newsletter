@@ -14,6 +14,34 @@ PREFIX = {'en': '', 'es-419': 'es/', 'zh-Hans': 'zh/'}
 
 class RendererUnavailable(RuntimeError): pass
 
+_L = r'(en|es-419|zh-Hans)'
+_F = r'([A-Za-z0-9_-]{1,80})'
+# Known builder refusals, said in plain words. Only these shapes cross the boundary:
+# never the path in front of them, a traceback or any piece text.
+_REASONS = [
+    (r'numeric or URL token mismatch in ' + _L, lambda m: ('una cifra o un enlace de ' + m[0] + ' no coincide con el original', 'a number or link in ' + m[0] + ' does not match the original')),
+    (r'citation references a missing source in ' + _L, lambda m: ('una cita de ' + m[0] + ' usa una fuente que no está en las fuentes del artículo', 'a citation in ' + m[0] + ' uses a source that is not in the article sources')),
+    (r'footnote, citation or figure structure mismatch in ' + _L, lambda m: ('las notas, citas o figuras de ' + m[0] + ' no coinciden con el original', 'the notes, citations or figures in ' + m[0] + ' do not match the original')),
+    (r'footnote id mismatch in ' + _L, lambda m: ('las notas al pie de ' + m[0] + ' no coinciden con el original', 'the footnotes in ' + m[0] + ' do not match the original')),
+    (r'footnote reference/body mismatch in ' + _L, lambda m: ('hay una nota al pie sin referencia, o una referencia sin nota, en ' + m[0], 'a footnote has no reference, or a reference has no footnote, in ' + m[0])),
+    (r'block id mismatch in ' + _L, lambda m: ('los párrafos de ' + m[0] + ' no coinciden con el original', 'the paragraphs in ' + m[0] + ' do not match the original')),
+    (r'duplicate block id in ' + _L, lambda m: ('hay párrafos duplicados en ' + m[0], 'there are duplicate paragraphs in ' + m[0])),
+    (r'ready ' + _L + r' has not been human-reviewed', lambda m: (m[0] + ' está lista pero nadie la ha revisado', m[0] + ' is marked ready but nobody has reviewed it')),
+    (r'figure ' + _F + r' is missing credit or licence', lambda m: ('la figura ' + m[0] + ' no tiene crédito o licencia', 'figure ' + m[0] + ' has no credit or licence')),
+    (r'figure ' + _F + r' is missing alt text or caption in ' + _L, lambda m: ('la figura ' + m[0] + ' no tiene texto alternativo o pie en ' + m[1], 'figure ' + m[0] + ' has no alt text or caption in ' + m[1])),
+    (r'source locale must be ready before publication', lambda m: ('el idioma original aún no está marcado como listo', 'the original language is not marked ready yet')),
+]
+
+def builder_reason(stderr):
+    """Short plain reason (es, en) for a known builder refusal, or None when unknown."""
+    for line in reversed(stderr.splitlines()):
+        found = re.fullmatch(r'ValueError: [^\r\n]*?: ([^\r\n:]{1,200})\r?', line)
+        if not found: continue
+        for pattern, say in _REASONS:
+            match = re.fullmatch(pattern, found.group(1))
+            if match: return say(match.groups())
+    return None
+
 class Preview:
     def __init__(self, store, repo, base='/FCMO-AI-Newsletter/'):
         self.store = store; self.repo = Path(repo).resolve(); self.base = '/' + base.strip('/') + '/'
@@ -68,6 +96,11 @@ class Preview:
                     raise RendererUnavailable('La vista previa está bloqueada: el índice de búsqueda de ' + loc +
                                               ' ocupa ' + actual + ' bytes y supera el límite de ' + limit +
                                               ' bytes. Repara el generador de publicación antes de continuar.')
+                reason = builder_reason(run.stderr.decode('utf-8', errors='replace')) if run.returncode else None
+                if reason:
+                    error = RendererUnavailable('No se pudo construir la vista previa: ' + reason[0] + '. Corrígelo y vuelve a intentar.')
+                    error.reason = reason
+                    raise error
                 raise RendererUnavailable('No se pudo construir la vista previa con el renderer de producción. Revisa el generador de publicación antes de continuar.')
             self.cache[key] = output
             older = [k for k in self.cache if k[0] == value and k != key]

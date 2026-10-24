@@ -38,6 +38,13 @@ class PreviewFailureReason(unittest.TestCase):
         self.assertNotIn('fixture', message)
         self.assertNotIn('integración del formato', message)
 
+    def test_known_builder_refusal_is_said_in_plain_words_without_the_path(self):
+        message = self.fail_build('Traceback\nValueError: /srv/private/pieces/x: numeric or URL token mismatch in zh-Hans\n')
+        self.assertIn('una cifra o un enlace de zh-Hans no coincide con el original', message)
+        self.assertNotIn('/srv', message)
+        message = self.fail_build('ValueError: /srv/private/pieces/x: citation references a missing source in en\n')
+        self.assertIn('fuente que no está en las fuentes', message)
+
     def test_other_build_failures_do_not_claim_an_absent_integration_or_leak_stderr(self):
         message = self.fail_build('A private path and password must not appear in the refusal')
         self.assertIn('renderer de producción', message)

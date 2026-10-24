@@ -70,6 +70,21 @@ class PrivacyCheckTests(unittest.TestCase):
         self.assertEqual(bad[0]['goto']['block_id'], 'b-quote001')
         self.assertTrue(all(r['ok'] for r in self.stub(lambda _: True, cite='src-one') if r['id'].startswith('quote-source-')))
 
+    def test_builder_reason_reaches_the_privacy_check(self):
+        from studio.server.preview import RendererUnavailable, builder_reason
+        def privacy(_):
+            error = RendererUnavailable('x')
+            error.reason = builder_reason('ValueError: /private/path/piece: numeric or URL token mismatch in en\n')
+            raise error
+        row = next(r for r in self.stub(privacy) if r['id'] == 'privacy')
+        self.assertFalse(row['ok'])
+        self.assertIn('una cifra o un enlace de en no coincide con el original', row['plain_es'])
+        self.assertNotIn('/private', row['plain_es'] + row['plain_en'])
+
+    def test_unknown_builder_text_is_not_leaked(self):
+        from studio.server.preview import builder_reason
+        self.assertIsNone(builder_reason('ValueError: /p/secret-title: something with piece text\n'))
+
 
 if __name__ == '__main__':
     unittest.main()
