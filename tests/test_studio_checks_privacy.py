@@ -1,0 +1,58 @@
+"""The privacy check says what is wrong: an unfinished piece is not a privacy finding."""
+import tempfile
+import unittest
+from pathlib import Path
+from types import SimpleNamespace
+
+from studio.server.checks import checks
+from studio.server.preview import Preview
+from studio.server.storage import Store
+from tests.test_studio_storage import ROOT
+
+
+def doc(loc):
+    t = lambda v: {'t': 'text', 'v': v}
+    return {'schema': 'fcmo-essay-doc-v1', 'locale': loc, 'title': 'Apagar lo que nadie usa', 'dek': 'Un caso inventado', 'footnotes': {},
+            'blocks': [{'id': 'b-00000001', 'type': 'p', 'content': [t('Una empresa ficticia usa Amazon Web Services; 37 % sobra y se apaga a las 22:00.')]},
+                       {'id': 'b-00000002', 'type': 'blockquote', 'content': [t('«Nadie se atreve a apagar nada»')]},
+                       {'id': 'b-00000003', 'type': 'ul', 'items': [[t('uno')], [t('dos')], [t('tres')]]}]}
+
+
+class PrivacyCheckTests(unittest.TestCase):
+    def privacy(self, source_ready):
+        (ROOT / '_audit').mkdir(exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=ROOT / '_audit') as tmp:
+            store = Store(Path(tmp) / 'data')
+            try:
+                slug = store.create('javier', 'essay', 'Apagar', 'es-419')['slug']
+                for loc in ('es-419', 'en', 'zh-Hans'):
+                    store.save(slug, loc, 'javier', store.piece(slug)['head_rev'], doc(loc), {})
+                    if source_ready or loc != 'es-419':
+                        store.locale_state(slug, loc, 'javier', 'ready', True, 'Leí y entiendo el texto chino')
+                rows = checks(store, Preview(store, ROOT), slug)
+            finally: store.close()
+        return next(r for r in rows if r['id'] == 'privacy')
+
+    def test_unfinished_source_is_explained_not_called_privacy(self):
+        row = self.privacy(False)
+        self.assertFalse(row['ok'])
+        self.assertIn('es-419', row['plain_es']); self.assertIn('No es un problema de privacidad', row['plain_es'])
+        self.assertIn('not a privacy problem', row['plain_en'])
+
+    def test_complete_invented_piece_with_company_and_quote_passes(self):
+        self.assertTrue(self.privacy(True)['ok'])
+
+    def test_real_gate_finding_names_what_to_remove(self):
+        from tools.gates.common import GateFailure
+        def privacy(_):
+            raise GateFailure('PERSONAL_MAILBOX', ['es/cartas/x/index.html: personal consumer mailbox detected'])
+        locales = {l: {'state': 'ready'} for l in ('en', 'es-419', 'zh-Hans')}
+        d = {l: doc(l) for l in locales}
+        payload = {'piece': {'source_locale': 'es-419'}, 'docs': d, 'sources': [], 'figures': {}, 'provenance': {l: {'origin': 'human'} for l in d}}
+        store = SimpleNamespace(payload=lambda v: payload, piece=lambda v: {'author': 'x', 'locale_states': locales})
+        row = next(r for r in checks(store, SimpleNamespace(privacy=privacy), 'x') if r['id'] == 'privacy')
+        self.assertFalse(row['ok']); self.assertIn('PERSONAL_MAILBOX', row['plain_es']); self.assertIn('Quítalo', row['plain_es'])
+
+
+if __name__ == '__main__':
+    unittest.main()
