@@ -385,7 +385,7 @@ export async function progressScreen (root, slug) {
   function draw (p) {
     clear(box)
     const timeline = p.timeline || []
-    if (p.state === 'draft' && !timeline.length) {
+    if (!timeline.length && stageOf(p.state) < 0 && p.state !== 'failed' && p.state !== 'uncertain' && !p.uncertain) {
       box.append(h('div', { class: 'empty-state' }, h('h2', null, t('prog.empty.title')), h('p', null, t('prog.empty.lead', { who: mine ? session.me.other : authorName })),
         h('ol', null, ['prog.empty.s1', 'prog.empty.s2', 'prog.empty.s3', 'prog.empty.s4'].map(k => h('li', null, t(k, { who: session.me.other })))),
         mine ? h('a', { class: 'btn primary', href: `#/p/${slug}/publish` }, t('prog.empty.go')) : null))
