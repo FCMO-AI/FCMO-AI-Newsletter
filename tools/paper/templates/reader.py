@@ -10,7 +10,7 @@ from __future__ import annotations
 from html import escape
 import re
 
-from ..i18n import label, plural, truncate
+from ..i18n import label, plural, truncate, visual_width
 from tools.publication_freshness import reader_status
 
 # Confidence levels ordered by how much the record supports the claim: tick count.
@@ -44,13 +44,53 @@ def claim_kind(claim_label: object) -> str:
     return "OTHER"
 
 
-def first_sentence(text: object, limit: int = 190) -> str:
-    """The opening sentence of ``text``; shortened, never extended."""
+_CLAUSE_END = ",;:—–，；：、"
+
+
+def first_sentence(text: object, limit: int = 190, *, clause: bool = False) -> str:
+    """The opening sentence of ``text``; shortened, never extended.
+
+    With ``clause`` a sentence that does not fit is cut at its last clause boundary
+    (a comma, semicolon, colon, dash or their CJK forms) and marked with an ellipsis,
+    so the cut falls between ideas; a boundary in the first half falls back to the plain cut.
+    """
     text = " ".join(str(text or "").split())
     if not text:
         return ""
     first = _SENTENCE.split(text, maxsplit=1)[0]
+    if clause and visual_width(first) > limit:
+        cut = _clause_cut(first, limit)
+        if cut:
+            return cut
     return truncate(first, limit)
+
+
+def _clause_cut(sentence: str, limit: int) -> str:
+    width = 0
+    best = 0
+    for index, char in enumerate(sentence):
+        width += 2 if visual_width(char) == 2 else 1
+        if width > limit - 1:
+            break
+        if char in _CLAUSE_END and (char not in ",;:" or sentence[index + 1:index + 2] in ("", " ")):
+            if width * 2 >= limit:
+                best = index
+    return sentence[:best].rstrip(" " + _CLAUSE_END) + "…" if best else ""
+
+
+def rest_after(text: object, sentence_text: str) -> str:
+    """``text`` without its opening sentence when that sentence is ``sentence_text``; else ``text`` whole."""
+    text = " ".join(str(text or "").split())
+    parts = _SENTENCE.split(text, maxsplit=1)
+    if len(parts) == 2 and _same(parts[0], sentence_text):
+        return parts[1]
+    return text
+
+
+def _same(a: str, b: str) -> bool:
+    def norm(x: str) -> str:
+        return re.sub(r"\s+", "", x).rstrip("….。.")
+    return bool(norm(a)) and norm(a) == norm(b)
 
 
 def evidence_glyph(story: dict, catalog: dict, *, size: str = "md") -> str:
@@ -307,8 +347,12 @@ def evidence_record(story: dict, catalog: dict, evidence: dict, *, jump_labels: 
             f'<h3 class="er-title">{e(rec["in_this_story"])}</h3><ul class="er-in-story">{toc}</ul></section></div>')
 
 
-def brief20(story: dict, catalog: dict, *, summary: object, why: object, evidence: dict) -> str:
-    """\"In 20 seconds\": what happened / why it matters / not established. The last cell is the dark one."""
+def brief20(story: dict, catalog: dict, *, summary: object, why: object, evidence: dict, header_dek: str = "") -> str:
+    """\"In 20 seconds\": what happened / why it matters / not established. The last cell is the dark one.
+
+    ``header_dek`` is the sentence the story header already shows; the «what happened» cell continues
+    after it instead of saying it twice (it keeps the whole summary when nothing follows).
+    """
     d = design(catalog)
     unknown = ""
     for item in [*(evidence.get("gaps") or []), *(evidence.get("limitations") or [])]:
@@ -316,7 +360,8 @@ def brief20(story: dict, catalog: dict, *, summary: object, why: object, evidenc
         if text:
             unknown = first_sentence(text, 360)
             break
-    cells = [(d["happened"], first_sentence(summary, 360), ""), (d["matters"], first_sentence(why, 360), ""),
+    happened = rest_after(summary, header_dek) if header_dek else summary
+    cells = [(d["happened"], first_sentence(happened, 360), ""), (d["matters"], first_sentence(why, 360), ""),
              (d["not_established"], unknown or d["none_recorded"], " read20-na")]
     rows = "".join(f'<li class="read20-cell{extra}"><b>{e(key)}</b><span class="brief-val">{e(text)}</span></li>' for key, text, extra in cells if text)
     return f'<div class="brief" role="group" aria-labelledby="brief-title"><h2 id="brief-title" class="visually-hidden">{e(d["brief_title"])}</h2><ol class="read20">{rows}</ol></div>'
@@ -405,7 +450,7 @@ def story_view(*, story: dict, catalog: dict, code: str, title: str, dek_text: s
                evidence: dict, summary: object, why: object, technical: dict, status_html: str,
                automation_html: str, byline: str, dates_line: str, plate_html: str, note_html: str,
                taxonomy_html: str, navigation_html: str, topic_nav_html: str, machine_html: str,
-               title_class: str = "") -> str:
+               title_class: str = "", dek_full: str = "") -> str:
     """The whole story page body: cover, SOURCES, jump bar, reading grid with the Evidence Record rail."""
     st = catalog["strings"]
     jb = st["jump"]
@@ -421,11 +466,16 @@ def story_view(*, story: dict, catalog: dict, code: str, title: str, dek_text: s
     src_items = "".join(f'<li>{provenance_line(s, catalog)}' + (f'<span class="prov-primary">{e(st["story"]["primary_source"])}</span>' if s.get("primary") else "") + '</li>' for s in sources)
     sources_html = f'<section id="sources"><h2>{e(st["story"]["sources"])}</h2><ol class="source-list">{src_items}</ol></section>' if src_items else f'<section id="sources"><h2>{e(st["story"]["sources"])}</h2></section>'
     crumbs = ""  # the layout already renders the breadcrumb trail; a second one inside the cover only repeated it
+    # When the summary is that one sentence, «What happened» is the only place it is read; the header does not say it twice.
+    header_dek = dek_full or dek_text
+    if _same(first_sentence(summary, 10_000), header_dek) and rest_after(summary, header_dek) == " ".join(str(summary).split()):
+        dek_text = ""
+    dek_html = f'<p class="story-dek">{e(dek_text)}</p>' if dek_text else ""
     cover = (f'<div class="story-cover surface-ink"><header class="story-header"><div class="frame story-cover-grid"><div class="sh-main">{crumbs}'
-             f'<p class="story-kicker rubric rubric-accent">{e(beat_label)}</p><h1>{e(title)}</h1><p class="story-dek">{e(dek_text)}</p>'
+             f'<p class="story-kicker rubric rubric-accent">{e(beat_label)}</p><h1>{e(title)}</h1>{dek_html}'
              f'{story_signals(story, catalog, evidence, status_html=status_html)}'
              f'<p class="story-meta rubric">{e(dates_line)}</p>{note_html}</div>{plate_html}</div></header></div>')
-    body = (brief20(story, catalog, summary=summary, why=why, evidence=evidence)
+    body = (brief20(story, catalog, summary=summary, why=why, evidence=evidence, header_dek=header_dek)
             + '<div class="layers" data-layers data-mode="summary">' + layer("argument", d["argument_title"], d["layer_r2"], argument)
             + '</div>' + claim_ledger(evidence, catalog) + unknowns_box(evidence, catalog) + sources_html
             + ('<div class="layers">' + layer("technical", d["technical_title"], d["layer_r3"], f'<div id="technical">{tech_html}</div>', is_open=False) + '</div>' if has_tech else "")
