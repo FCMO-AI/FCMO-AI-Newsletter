@@ -58,7 +58,9 @@ class NativeAdmission(unittest.TestCase):
             builder = object.__new__(PaperBuilder)
             builder.catalogs = {loc: catalog}
             rendered = builder._facts(story, {'code': loc})
-            self.assertIn(f'<dd>{label(catalog, "importance_tier", "Useful")}</dd>', rendered)
+            # c6 DIRECCION section 3: the unaudited importance tier is not shown in the story rail.
+            self.assertNotIn(f'<dd>{label(catalog, "importance_tier", "Useful")}</dd>', rendered)
+            self.assertNotIn(catalog['strings']['story']['importance_tier'], rendered)
             self.assertIn(f'<dd>{label(catalog, "development_type", "reproduction_or_audit")}</dd>', rendered)
             self.assertNotIn('reproduction_or_audit', rendered)
 

@@ -39,6 +39,22 @@ def main() -> int:
         "danger": ("danger_text", "danger_bg", 4.5),
         "bone/ink": ("bone", "ink", 4.5),
         "success/bone": ("success_text", "bone", 4.5),
+        "oxblood/bone": ("oxblood", "bone", 4.5),
+        "oxblood/paper": ("oxblood", "paper", 4.5),
+        "oxblood/bone-2": ("oxblood", "bone_2", 4.5),
+        "metis-text/bone-2": ("metis_text", "bone_2", 4.5),
+        "muted/bone-2": ("muted", "bone_2", 4.5),
+        "bone/oxblood": ("bone", "oxblood", 4.5),
+        "metis/ink": ("metis", "ink", 4.5),
+        "metis/chrome": ("metis", "chrome", 4.5),
+        "ink/metis (band)": ("ink", "metis", 4.5),
+        "chrome-text/chrome": ("chrome_text", "chrome", 4.5),
+        "chrome-mute/chrome": ("chrome_mute", "chrome", 4.5),
+        "chrome-mute/chrome-2": ("chrome_mute", "chrome_2", 4.5),
+        "chrome-mute/chrome-3": ("chrome_mute", "chrome_3", 4.5),
+        "metis-soft/chrome-2": ("metis_soft", "chrome_2", 4.5),
+        "bone/chrome": ("bone", "chrome", 4.5),
+        "ink/bone-2": ("ink", "bone_2", 4.5),
     }
     failed = []
     for name, (fg, bg, minimum) in pairs.items():
@@ -46,21 +62,10 @@ def main() -> int:
         print(f"{name} {value:.2f}:1 (min {minimum:.1f})")
         if value + 1e-9 < minimum:
             failed.append(name)
-    for brand, brand_colors in tokens["brands"].items():
-        for name, fg, bg in (("light", "ink", "bone"), ("dark", "bone", "ink")):
-            value = ratio(brand_colors[fg], brand_colors[bg])
-            print(f"{brand}/{name} {value:.2f}:1 (min 4.5)")
-            if value < 4.5:
-                failed.append(f"{brand}/{name}")
-    for name, foreground, background in (("group/body", tokens["brands"]["group"]["body"], tokens["brands"]["group"]["bone"]), ("dark-well/muted", "#D9D5CC", tokens["brands"]["ai"]["ink"])):
-        value = ratio(foreground, background)
-        print(f"{name} {value:.2f}:1 (min 4.5)")
-        if value < 4.5:
-            failed.append(name)
     if failed:
         print("CONTRAST FAIL " + ", ".join(failed))
         return 1
-    print(f"CONTRAST OK pairs={len(pairs) + 6}")
+    print(f"CONTRAST OK pairs={len(pairs)}")
     return 0
 
 

@@ -87,14 +87,14 @@ class SupplyIndependentFreshnessTests(unittest.TestCase):
         public = json.loads(public_path.read_text())
         self.assertEqual((public["state"], public["reason"]), ("DELAYED", "STORY_SUPPLY"))
         for prefix in ("", "es/", "zh/"):
-            for route in ("diario/", "status/"):
+            for route in ("", "status/"):
                 page = (output / prefix / route / "index.html").read_text()
                 self.assertIn('data-edition-state="DELAYED"', page)
                 self.assertNotIn('hidden data-edition-state="FRESH"', page)
         self.assertEqual((output / "data/newsroom-status.json").read_bytes(), self.status.read_bytes())
         # Execute the exact generated safeguard. An old edition with a recent
         # successful check must remain QUIET; an abandoned check must warn.
-        page = (output / "diario/index.html").read_text()
+        page = (output / "index.html").read_text()
         script = next(value for value in re.findall(r"<script>(.*?)</script>", page, re.S) if "1296e5" in value)
         program = """const vm = require('node:vm');
 const script = JSON.parse(require('node:fs').readFileSync(0, 'utf8'));

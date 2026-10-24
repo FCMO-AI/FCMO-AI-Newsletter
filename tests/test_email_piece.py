@@ -58,7 +58,8 @@ class PieceRenderTests(unittest.TestCase):
         mail = self.render(piece)
         self.assertIn('&lt;script&gt;&#123;&#123;danger', mail.html)
         self.assertNotIn('<script>', mail.html)
-        self.assertIn('fCMO', mail.html)
+        self.assertIn('FCMO AI', mail.html)
+        self.assertNotIn('fCMO', mail.html)
         self.assertNotIn('FCMO Group', mail.html + mail.subject + mail.text)
         piece['docs']['en']['title'] = 'FCMO Group'
         with self.assertRaises(ValueError): self.render(piece)

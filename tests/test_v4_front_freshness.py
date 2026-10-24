@@ -26,12 +26,15 @@ STATUS = ROOT / "site/data/newsroom-status.json"
 BASE = "/FCMO-AI-Newsletter/"
 LOCALES = (("en", ""), ("es-419", "es/"), ("zh-Hans", "zh/"))
 BEATS = ("technology", "business", "policy", "society", "research")
-LEAD = re.compile(r'<article class="lead">.*?<h[13][^>]*><a href="([^"]+)"', re.S)
-TOP = re.compile(r'<aside class="top-stories">(.*?)</aside>', re.S)
-DEVELOPING = re.compile(r'<section class="developing-well">(.*?)</section>', re.S)
-ESSENTIALS = re.compile(r'<section class="essentials">.*?<ol>(.*?)</ol>', re.S)
-BEAT_SECTION = re.compile(r'<section class="beat-section">(.*?)</section>', re.S)
-CARD_ID = re.compile(r'<article class="story-card" data-story-id="([^"]+)"')
+# c6 / DIRECCION s6: the root front is cover (the lead), board (next 4), then the "Earlier" wire.
+LEAD = re.compile(r'<h1 class="cover-title[^"]*"><a href="([^"]+)"', re.S)
+COVER_CTA = re.compile(r'<div class="cover-actions"><a class="btn" href="([^"]+)"', re.S)
+BOARD_SECTION = re.compile(r'<section class="block surface-bone" id="board".*?</section>', re.S)
+WIRE_SECTION = re.compile(r'<section class="block surface-bone" id="earlier".*?</section>', re.S)
+BOARD_ID = re.compile(r'<article class="plate-card[^"]*"[^>]*data-story-id="([^"]+)"')
+WIRE_ID = re.compile(r'<li class="wire-row"[^>]*data-story-id="([^"]+)"')
+WIRE_LINK = re.compile(r'<h3 class="wire-title"><a href="([^"]+)"')
+BOARD_COUNT, WIRE_COUNT = 4, 30
 
 
 def parse(value: str) -> datetime.datetime:
@@ -163,7 +166,7 @@ class FrontFreshnessBuildTests(unittest.TestCase):
     def tearDownClass(cls):
         cls.temp.cleanup()
 
-    def page(self, prefix: str, suffix: str = "diario/") -> str:
+    def page(self, prefix: str, suffix: str = "") -> str:
         return (self.out / prefix / suffix / "index.html").read_text(encoding="utf-8")
 
     def resolve(self, link: str) -> str:
@@ -192,59 +195,44 @@ class FrontFreshnessBuildTests(unittest.TestCase):
         self.assertGreaterEqual(t(lead), max(t(story) for story in eligible) - datetime.timedelta(hours=48))
 
     def test_landing_feature_inherits_the_same_lead(self):
+        # The cover headline and its "Read the story" button both name the lead, and the
+        # retired technical front (diario/) is only a redirect to this same root front.
         for locale, prefix in LOCALES:
             with self.subTest(locale=locale):
-                landing = (self.out / prefix / "index.html").read_text(encoding="utf-8")
-                technical = re.search(r'<section class="landing-technical".*?</section>', landing, re.S).group()
-                self.assertEqual(self.resolve(LEAD.search(technical).group(1)), self.order[0]["id"])
+                landing = self.page(prefix)
+                self.assertEqual(self.resolve(COVER_CTA.search(landing).group(1)), self.order[0]["id"])
+                self.assertEqual(self.resolve(LEAD.search(landing).group(1)), self.order[0]["id"])
+                stub = self.page(prefix, "diario/")
+                self.assertIn(f'url={BASE}{prefix}"', stub)
+                self.assertNotIn("cover-title", stub)
 
     def test_top_stories_follow_the_order_with_non_decreasing_windows(self):
-        expected = ids(self.order[1:5])
+        expected = ids(self.order[1:1 + BOARD_COUNT])
         for locale, prefix in LOCALES:
             with self.subTest(locale=locale):
-                self.assertEqual(CARD_ID.findall(TOP.search(self.page(prefix)).group(1)), expected)
-        buckets = [self.bucket(story) for story in self.order[1:5]]
+                self.assertEqual(BOARD_ID.findall(BOARD_SECTION.search(self.page(prefix)).group()), expected)
+        buckets = [self.bucket(story) for story in self.order[1:1 + BOARD_COUNT]]
         self.assertEqual(buckets, sorted(buckets))
 
     def test_essentials_and_beat_sections_use_the_same_order(self):
-        # Pass 3: every block takes the next stories of the same order that no earlier block showed.
-        used = set(ids(self.order[:5]))
-        used.update([s["id"] for s in self.order[5:]
-                     if s.get("confidence") not in {"confirmed", "strongly_supported"}][:2])
-        essentials = [s["id"] for s in self.order if s["id"] not in used][:5]
-        used.update(essentials)
-        by_beat = {}
-        for beat in BEATS:
-            values = [s["id"] for s in self.order if s.get("beat") == beat and s["id"] not in used][:3]
-            used.update(values)
-            if values:
-                by_beat[beat] = values
-        self.assertEqual(len(essentials), 5)
-        self.assertTrue(by_beat)
-        for locale, prefix in LOCALES:
-            with self.subTest(locale=locale):
-                page = self.page(prefix)
-                links = re.findall(r'<a href="([^"]+)"', ESSENTIALS.search(page).group(1))
-                self.assertEqual([self.resolve(link) for link in links], essentials)
-                seen = []
-                for section in BEAT_SECTION.findall(page):
-                    beat = re.search(r'beat/([a-z]+)/"', section)
-                    if not beat:
-                        continue
-                    seen.append(beat.group(1))
-                    self.assertEqual(CARD_ID.findall(section), by_beat.get(beat.group(1)), beat.group(1))
-                self.assertEqual(seen, list(by_beat))
-
-    def test_developing_well_skips_lead_and_top_stories(self):
-        shown = set(ids(self.order[:5]))
-        expected = [s["id"] for s in self.order
-                    if s["id"] not in shown and s.get("confidence") not in {"confirmed", "strongly_supported"}][:2]
+        # The wire (the old essentials and beat blocks) takes, in the same order, the stories
+        # right after the board; it never repeats the cover or the board.
+        start = 1 + BOARD_COUNT
+        expected = ids(self.order[start:start + WIRE_COUNT])
         self.assertTrue(expected)
         for locale, prefix in LOCALES:
             with self.subTest(locale=locale):
-                cards = CARD_ID.findall(DEVELOPING.search(self.page(prefix)).group(1))
-                self.assertEqual(cards, expected)
-                self.assertFalse(shown & set(cards))
+                wire = WIRE_SECTION.search(self.page(prefix)).group()
+                self.assertEqual(WIRE_ID.findall(wire), expected)
+                self.assertEqual([self.resolve(link) for link in WIRE_LINK.findall(wire)], expected)
+
+    def test_developing_well_skips_lead_and_top_stories(self):
+        shown = set(ids(self.order[:1 + BOARD_COUNT]))
+        for locale, prefix in LOCALES:
+            with self.subTest(locale=locale):
+                wire = set(WIRE_ID.findall(WIRE_SECTION.search(self.page(prefix)).group()))
+                self.assertTrue(wire)
+                self.assertFalse(shown & wire)
 
     def test_publication_gates_pass_on_the_fresh_build(self):
         results = run_all.run(self.out)
