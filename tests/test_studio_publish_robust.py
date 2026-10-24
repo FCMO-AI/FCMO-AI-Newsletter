@@ -532,3 +532,11 @@ class PublicationFixes(RobustBase):
         pub = self.pub()
         self.assertEqual(pub['payload'].get('merge_diff'), 'unverified'); self.assertFalse(pub['payload'].get('halted'))
         pub = self.run_to('published'); self.assertNotIn('failed', [t['state'] for t in pub['payload']['timeline']])
+
+    def test_approved_at_is_exposed_on_the_publication_after_approval(self):
+        self.approved()
+        pub = self.pub(); stamp = pub['payload'].get('approved_at')
+        self.assertTrue(stamp, 'the approval time is stored with the publication')
+        self.assertEqual(pub['approved_at'], stamp)
+        # The HTTP route GET /publication (and the approve response) returns public_status: the web client reads approved_at from it.
+        self.assertEqual(self.publisher.public_status(self.slug).get('approved_at'), stamp)

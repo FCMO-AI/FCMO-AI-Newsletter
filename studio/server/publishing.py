@@ -358,7 +358,9 @@ class Publisher:
             self.store._row(value)
             row = self.store.db.execute('SELECT * FROM publications WHERE slug=? ORDER BY rowid DESC LIMIT 1', (value,)).fetchone()
             if not row: return {'state': self.store.piece(value)['state'], 'timeline': []}
-            result = dict(row); result['payload'] = json.loads(result.pop('payload_json')); return result
+            result = dict(row); result['payload'] = json.loads(result.pop('payload_json'))
+            result['approved_at'] = result['payload'].get('approved_at')  # None for publications approved before this field
+            return result
     def request(self, value, user):
         piece = self.store.piece(value)
         if piece['kind'] != 'issue' and piece['source_locale'] in ('en', 'es-419') and self.store.payload(value)['piece']['status'] != 'withdrawn':
@@ -425,7 +427,7 @@ class Publisher:
             # Freeze timestamps before candidate check and public push.
             self.store._put(value, payload, piece['author'], bump=False)
             data = {'author': piece['author'], 'author_name': payload['piece']['authors'][0]['name'], 'reviewer': user,
-                    'approved_rev': piece['head_rev'], 'branch': 'studio/' + value + '-' + ident[:8], 'piece_id': payload['piece']['id'],
+                    'approved_rev': piece['head_rev'], 'approved_at': utc(), 'branch': 'studio/' + value + '-' + ident[:8], 'piece_id': payload['piece']['id'],
                     'title': piece['title'], 'created': self.store.clock(), 'timeline': [], 'urls': [],
                     'languages': payload['piece']['locales'], 'provenance': payload['provenance'], 'distribution': payload['piece'].get('distribution', {'email': False})}
             self.store.db.execute('INSERT INTO publications(id,slug,kind,state,error_plain,payload_json) VALUES(?,?,?,?,?,?)', (ident, value, piece['kind'], 'approved', '', encoded(data)))
@@ -629,4 +631,4 @@ class Publisher:
         if requested and pub['state'] == 'published' and self.github is not None:
             state = self.github.email_state(data['author'])
         email = email_status(state, data.get('piece_id'), requested)
-        return {'email': email, 'state': pub['state'], 'timeline': data.get('timeline', []), 'error_plain': pub.get('error_plain', ''), 'uncertain': bool(data.get('unknown')), 'urls': data.get('urls', [])}
+        return {'email': email, 'state': pub['state'], 'approved_at': pub.get('approved_at'), 'timeline': data.get('timeline', []), 'error_plain': pub.get('error_plain', ''), 'uncertain': bool(data.get('unknown')), 'urls': data.get('urls', [])}
