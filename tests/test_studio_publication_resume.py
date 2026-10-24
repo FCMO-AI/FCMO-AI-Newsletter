@@ -217,7 +217,7 @@ class ResumeHTTP(unittest.TestCase):
             status, body, _ = self.request('POST', route % self.halted, {'confirm': True}, 'matias')
         self.assertEqual(status, 503, body)
         self.assertNotEqual(status, 500)
-        self.assertIn('GitHub', body.get('error_plain', ''), 'the specific Infra message, not the generic 503')
+        self.assertIn('No se pudo comprobar lo publicado para continuar', body.get('error_plain', ''), 'the specific Infra message, not the generic 503'); self.assertNotIn('GitHub', body.get('error_plain', ''))
         row = self.store.db.execute('SELECT payload_json FROM publications WHERE slug=?', (self.halted,)).fetchone()
         self.assertTrue(json.loads(row[0])['halted'])
         self.assertNotIn('publication_resume_confirmed', [r[0] for r in self.store.db.execute('SELECT action FROM audit').fetchall()])

@@ -646,7 +646,7 @@ class Publisher:
                     # Read GitHub before touching the row: a failed read leaves the publication halted for a retry.
                     try: pr = self.github.pr(data['author'], data['pr_number']) or {}
                     except Refused: raise
-                    except Exception: raise Infra('No se pudo consultar GitHub para continuar. Inténtalo de nuevo en unos minutos.') from None
+                    except Exception: raise Infra('No se pudo comprobar lo publicado para continuar. Inténtalo de nuevo en unos minutos.') from None
                     if not pr.get('merged') or not pr.get('merge_commit_sha'): raise Refused('No hay una fusión que continuar; pide una nueva revisión.')
                 data.pop('halted', None); data.pop('halt_reason', None); data.pop('unknown', None)
                 data['merge_diff'] = 'accepted_by_reviewer'
