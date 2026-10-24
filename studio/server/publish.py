@@ -6,7 +6,7 @@ from pathlib import Path
 import sys
 from .http import Application
 from .storage import Store
-from .publishing import Refused, UnknownEffect
+from .publishing import Refused, UnknownEffect, protection_mode
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
@@ -27,10 +27,10 @@ def main(argv=None):
         data = pub['payload']
         if store.piece(args.slug)['head_rev'] != data['approved_rev']: raise Refused('El texto aprobado cambió; pide otra revisión.')
         app.github.preflight(data['author'], data['reviewer'])
-        if not app.github.protected(data['author']): raise Refused('Publicación protegida aún no activa.')
+        if (data.get('protection_mode') or protection_mode()) == 'github' and not app.github.protected(data['author']): raise Refused('Publicación protegida aún no activa.')
         candidate = app.publisher.workspace.prepare(pub)
         pub['payload'].update(candidate)
-        app.publisher.workspace.verify_base(pub)
+        app.publisher.workspace.verify_confined(pub)
         print('Ensayo completo: credenciales, revisión, base, LKG y comprobaciones locales válidas. Ningún envío, PR, merge o despliegue.')
         print('Candidato: ' + candidate['head_sha'])
         return 0

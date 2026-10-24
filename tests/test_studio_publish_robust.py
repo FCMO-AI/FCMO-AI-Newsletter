@@ -412,15 +412,17 @@ class StrictAndInfra(RobustBase):
     def test_replay_push_lost_before_reaching_github_is_retried(self): self.replay_fault('before')
     def test_replay_push_lost_after_reaching_github_is_reconciled(self): self.replay_fault('after')
 
-    def test_replay_branch_changed_by_a_stranger_halts_without_failing(self):
+    def test_replay_branch_changed_by_a_stranger_asks_for_a_new_review(self):
+        # Contract change (L7): like a moved public head before the merge, a stranger's push is refused for a new review;
+        # a halt here only re-halted on every resume.
         self.approved(); self.tick_until('checks_green')
         self.move_main(); self.mock.conflict_once = True; self.mock.repush_fault = 'before'
         self.publisher.advance(self.slug)
         self.mock.refs[self.pub()['payload']['branch']] = 'a' * 40
         self.now += 61  # the lost push now waits out its backoff like any infrastructure trouble
         self.publisher.advance(self.slug); pub = self.pub()
-        self.assertTrue(pub['payload'].get('halted')); self.assertNotEqual(pub['state'], 'failed')
-        self.assertNotEqual(self.store.piece(self.slug)['state'], 'changes_requested')
+        self.assertFalse(pub['payload'].get('halted')); self.assertEqual(pub['state'], 'failed')
+        self.assertEqual(self.store.piece(self.slug)['state'], 'changes_requested')
 
     def test_transient_read_error_in_reviewed_is_infrastructure(self):
         self.approved(); self.tick_until('reviewed')

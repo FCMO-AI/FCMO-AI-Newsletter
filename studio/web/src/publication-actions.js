@@ -34,3 +34,35 @@ export function rollbackDialog () {
     try { await post('/api/site/rollback', { confirmation: confirmation.value }); close(); toast(t('amend.requested')) } catch (e) { toast(e.data?.error_plain || t('err.generic'), 'bad') }
   } }] })
 }
+
+// A halted publication is either technical (anyone may resume) or an integrity halt (only the reviewer, after confirming).
+const INTEGRITY = ['foreign_merge', 'merge_outside']
+export function haltPlan (p, me) {
+  if (!p || !p.halted) return null
+  const integrity = INTEGRITY.includes(p.halt_reason)
+  const reviewer = !!me && !!p.author && p.author !== me
+  return { integrity, canResume: !integrity || reviewer, confirm: integrity }
+}
+
+// While halted the screen is a still picture of the recorded state: the halt card comes first and nothing runs.
+export function progressView (p, me) {
+  const running = !!p && p.state !== 'failed' && p.state !== 'published'
+  const halt = running ? haltPlan(p, me) : null
+  return { haltFirst: !!halt, frozen: !!halt, live: running && !halt }
+}
+
+export async function resumePublication (slug, plan, done) {
+  const run = async close => {
+    try {
+      await post(`/api/pieces/${slug}/publication/resume`, plan.confirm ? { confirm: true } : {})
+      close && close(); toast(t('prog.halt.resumed')); done && await done()
+    } catch (e) {
+      if (!close) { toast(e.data?.error_plain || (e.status === 0 ? t('err.net') : t('err.generic')), 'bad'); return }
+      throw e
+    }
+  }
+  if (!plan.confirm) return run(null)
+  modal({ title: t('prog.halt.confirm.title'), body: [h('p', null, t('prog.halt.confirm.body'))], actions: [{ label: t('common.cancel') }, { label: t('prog.halt.int.review'), kind: 'primary', onclick: async close => {
+    try { await run(close) } catch (e) { close(); toast(e.data?.error_plain || t('err.generic'), 'bad') }
+  } }] })
+}

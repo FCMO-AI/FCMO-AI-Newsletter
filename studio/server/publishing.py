@@ -18,8 +18,16 @@ from .preview import PREFIX
 
 class UnknownEffect(Exception): pass
 class Refused(Exception): pass
+class Denied(Refused):
+    """A resume only the reviewer may make."""
+    status = 403
+class NeedsConfirm(Refused):
+    """An integrity resume without confirm=true."""
+    status = 400
+HALT_REASONS = ('infra', 'effect', 'foreign_merge', 'merge_outside')
 class Infra(Refused):
     """A transient/infrastructure failure: retried without a new human approval."""
+    status = 503
 class ForeignMerge(Exception):
     """Merged outside Studio with other bytes than the approved head: never published, halted for a person."""
 
@@ -441,6 +449,10 @@ class Publisher:
             self.store.db.execute('UPDATE reviews SET state=?,note=? WHERE slug=? AND state=?', ('changes_requested', str(note)[:10000], value, 'requested'))
             self.store.db.execute('UPDATE pieces SET state=? WHERE slug=?', ('changes_requested', value)); self.store.db.commit()
             return {'state': 'changes_requested'}
+    def _halt(self, pub, reason, message):
+        """Stop visibly and record why: the reason decides who may resume."""
+        data = pub['payload']; data['halted'] = True; data['unknown'] = True; data['halt_reason'] = reason
+        self._write(pub, error=message)
     def _effect(self, pub, name, observe, mutate, update):
         data = pub['payload']; found = observe()
         if found:
@@ -456,8 +468,7 @@ class Publisher:
             # Still nothing observed after the wait: repeat the (pinned, idempotent) write a bounded number of times, then stop visibly.
             tries = data.get('effect_retries', 0) + 1; data['effect_retries'] = tries
             if tries > INFRA_RETRIES:
-                data['halted'] = True; data['unknown'] = True
-                self._write(pub, error='La publicación se detuvo porque no se pudo confirmar un paso. Matías ya puede revisarla; el texto aprobado sigue intacto.')
+                self._halt(pub, 'effect', 'La publicación se detuvo porque no se pudo confirmar un paso. Matías ya puede revisarla; el texto aprobado sigue intacto.')
                 return False
             data['intent_at'] = now
         else:
@@ -482,16 +493,15 @@ class Publisher:
             self.workspace.repush(pub, replay['old']); seen = gh.branch(user, data['branch'])
             if seen != replay['new']: raise UnknownEffect('No se pudo confirmar el envío. Se comprobará antes de repetirlo.')
         if seen != replay['new']:
-            data['halted'] = True; data['unknown'] = True
-            self._write(pub, error='La rama pública cambió por fuera de Studio. Matías debe revisarla; el texto aprobado sigue intacto.'); return
+            # Same outcome as pr_open/checks_green when the public head moved: refused, the author asks for a new review.
+            raise Refused('La versión pública cambió; pide una nueva revisión.')
         for key in ('replay', 'intent', 'unknown', 'checks_started'): data.pop(key, None)
         self._write(pub, 'pushed', '')
     def _infra(self, pub, exc):
         """Infrastructure trouble: retry with backoff while the approved content is unchanged; never ask for a new approval."""
         data = pub['payload']; n = data.get('infra_retries', 0) + 1; data['infra_retries'] = n
         if n > INFRA_RETRIES:
-            data['halted'] = True; data['unknown'] = True
-            self._write(pub, error='La publicación se detuvo por un problema técnico, no por el texto. Matías ya puede revisarla; el texto aprobado sigue intacto.')
+            self._halt(pub, 'infra', 'La publicación se detuvo por un problema técnico, no por el texto. Matías ya puede revisarla; el texto aprobado sigue intacto.')
         else:
             data['retry_after'] = self.store.clock() + 60 * 2 ** (n - 1)
             self._write(pub, error=(str(exc) or 'Problema técnico temporal.') + ' Se reintentará solo.')
@@ -589,8 +599,7 @@ class Publisher:
                     self._effect(pub, 'merged', observed_merge, merge, lambda r: data.update(merge_sha=r['merge_commit_sha']))
                 elif state == 'merged':
                     if 'merge_diff' not in data and not self._merge_diff(pub):
-                        data['halted'] = True; data['unknown'] = True
-                        self._write(pub, error='Lo publicado toca archivos fuera del artículo. Matías debe revisarlo antes de continuar.'); return self.get(value)
+                        self._halt(pub, 'merge_outside', 'Lo publicado toca archivos fuera del artículo. Matías debe revisarlo antes de continuar.'); return self.get(value)
                     started = data.setdefault('deploy_started', self.store.clock())
                     run = gh.pages(user, data['merge_sha'])
                     if run: data['pages_run'] = run['id']; self._write(pub, 'deployed', '')
@@ -608,8 +617,7 @@ class Publisher:
                         data['unknown'] = True; self._write(pub, 'deployed_unverified', 'No logramos confirmar que ya esté visible. Ya está fusionado y desplegado; se sigue comprobando y Matías puede revisarlo.')
                     else: self._write(pub, 'deployed_unverified', 'Desplegado pero aún no visible.')
             except ForeignMerge:
-                data['halted'] = True; data['unknown'] = True
-                self._write(pub, error='Se fusionó fuera de Studio una versión distinta de la aprobada. Matías debe revisarlo antes de continuar.')
+                self._halt(pub, 'foreign_merge', 'Se fusionó fuera de Studio una versión distinta de la aprobada. Matías debe revisarlo antes de continuar.')
             except UnknownEffect as exc:
                 if data.get('replay'): self._infra(pub, exc)  # same backoff and cap as any infrastructure trouble
                 else:
@@ -623,6 +631,41 @@ class Publisher:
                     self._infra(pub, exc if isinstance(exc, Infra) else Infra('Las comprobaciones no pudieron terminar.'))
                 else: self._write(pub, 'failed', str(exc))
             return self.get(value)
+    def resume(self, value, user, confirm=False):
+        """Continue a halted publication. infra/effect: any editor; the approved text is kept and the next tick observes before any write.
+        foreign_merge/merge_outside: only the reviewer, with confirm=true; the reviewer accepts what is public and it is audited."""
+        with self.mutex:
+            pub = self.get(value); data = pub.get('payload') or {}
+            if not data.get('halted'): raise Refused('La publicación no está detenida.')
+            reason = data.get('halt_reason')
+            if reason in ('foreign_merge', 'merge_outside'):
+                if user == data['author'] or user != data['reviewer']: raise Denied('Solo la otra persona puede continuar esta publicación.')
+                if confirm is not True: raise NeedsConfirm('Confirma que revisaste lo publicado para continuar.')
+                pr = None
+                if reason == 'foreign_merge':
+                    # Read GitHub before touching the row: a failed read leaves the publication halted for a retry.
+                    try: pr = self.github.pr(data['author'], data['pr_number']) or {}
+                    except Refused: raise
+                    except Exception: raise Infra('No se pudo comprobar lo publicado para continuar. Inténtalo de nuevo en unos minutos.') from None
+                    if not pr.get('merged') or not pr.get('merge_commit_sha'): raise Refused('No hay una fusión que continuar; pide una nueva revisión.')
+                data.pop('halted', None); data.pop('halt_reason', None); data.pop('unknown', None)
+                data['merge_diff'] = 'accepted_by_reviewer'
+                if pr is not None:
+                    for key in ('intent', 'intent_at', 'effect_retries', 'replay', 'checks_started'): data.pop(key, None)
+                    data['merge_sha'] = pr['merge_commit_sha']
+                    self.store.audit(user, 'publication_resume_confirmed', value, {'reason': reason})
+                    self._write(pub, 'merged', '')
+                else:
+                    self.store.audit(user, 'publication_resume_confirmed', value, {'reason': reason})
+                    self._write(pub, error='')
+                return None
+            # infra/effect: keep the pending intent so the next tick observes before repeating any write.
+            for key in ('infra_retries', 'retry_after', 'effect_retries'): data.pop(key, None)
+            if not data.get('intent'): data.pop('unknown', None)
+            data.pop('halted', None); data.pop('halt_reason', None)
+            self.store.audit(user, 'publication_resumed', value, {'reason': reason})
+            self._write(pub, error='')
+            return None
     def public_status(self, value):
         pub = self.get(value); data = pub.get('payload', {})
         from .distribution import email_status
@@ -632,4 +675,5 @@ class Publisher:
         if requested and pub['state'] == 'published' and self.github is not None:
             state = self.github.email_state(data['author'])
         email = email_status(state, data.get('piece_id'), requested)
-        return {'email': email, 'state': pub['state'], 'approved_at': pub.get('approved_at'), 'timeline': data.get('timeline', []), 'error_plain': pub.get('error_plain', ''), 'uncertain': bool(data.get('unknown')), 'urls': data.get('urls', [])}
+        return {'email': email, 'state': pub['state'], 'approved_at': pub.get('approved_at'), 'timeline': data.get('timeline', []), 'error_plain': pub.get('error_plain', ''), 'uncertain': bool(data.get('unknown')), 'urls': data.get('urls', []),
+                'halted': bool(data.get('halted')), 'halt_reason': data.get('halt_reason') if data.get('halted') else None, 'author': data.get('author')}
