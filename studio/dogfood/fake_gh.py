@@ -11,8 +11,12 @@ Two worlds share this file:
     behind                    a PR whose head does not contain main reports mergeable_state 'behind'
     merge_refusals            the first N merge calls are refused with HTTP 405 (transient GitHub trouble)
     gate_s                    the publish-gate check stays in progress this long; a newer head cancels it
+    bot_after_merge           a tick number: the bot commits to main INSIDE the merge call, right after the merge run
+                              is queued, so the merge's Pages run is replaced by the later one (no race with a harness)
+    behind (strict)           a PR whose head does not contain main reports 'behind' and its merge is refused (HTTP 405)
 A bot (bot_commit, started by run.py) moves main from outside. A tree containing CONTENT_RED makes the
-publish gate fail without a build. The gh process ticks the Pages queue lazily, on each call.
+publish gate fail without a build; only the piece's own files are searched, never the whole tree (the
+harness itself is part of the published tree). The gh process ticks the Pages queue lazily, on each call.
 """
 import contextlib
 import fcntl
@@ -24,7 +28,10 @@ import sys
 import time
 from urllib.parse import urlsplit
 
-CONTENT_RED = 'DOGFOOD-CONTENT-RED'
+# Split in source: the harness must never match itself in a tree that contains it.
+CONTENT_RED = 'DOGFOOD-' + 'CONTENT-RED'
+# The publication path of a piece (essay or issue), as Studio publishes it.
+PIECE_PATHS = ('editorial/pieces', 'editorial/issues')
 BOT_AUTHOR = ['-c', 'user.name=FCMO Dogfood Bot', '-c', 'user.email=dogfood-bot@example.invalid']
 
 
@@ -135,7 +142,8 @@ def pr_view(root, s, pr, now, world):
 
 
 def gate_conclusion(root, s, sha):
-    marked = subprocess.run(['git', '--git-dir', str(root / 'origin.git'), 'grep', '-q', CONTENT_RED, sha]).returncode == 0
+    marked = subprocess.run(['git', '--git-dir', str(root / 'origin.git'), 'grep', '-q', CONTENT_RED, sha, '--', *PIECE_PATHS],
+                            stderr=subprocess.DEVNULL).returncode == 0
     if marked: return 'failure'
     if sha not in s['checked']:
         target = root / ('check-' + sha)
@@ -169,23 +177,29 @@ def pages_runs(s):
 
 # ---- the bot ------------------------------------------------------------------------------------------
 
+def bot_push(root, s, number, now, queue_run=None):
+    """The bot's commit on main. The caller holds the lock and owns the state `s`."""
+    clone = root / 'bot'
+    if not clone.exists(): git('clone', '--quiet', str(root / 'origin.git'), str(clone))
+    git('-C', str(clone), 'fetch', '--quiet', 'origin', 'main')
+    git('-C', str(clone), 'reset', '--quiet', '--hard', 'origin/main')
+    (clone / 'bot').mkdir(exist_ok=True)
+    (clone / 'bot' / ('tick-%d.txt' % number)).write_text('tick %d\n' % number)
+    git('-C', str(clone), 'add', '-A')
+    subprocess.run(['git', *BOT_AUTHOR, '-C', str(clone), 'commit', '--quiet', '-m', 'Bot tick %d' % number], check=True)
+    subprocess.run(['git', '-C', str(clone), 'push', '--quiet', 'origin', 'HEAD:main'], check=True, capture_output=True)
+    sha = git('-C', str(clone), 'rev-parse', 'HEAD')
+    note_main_moved(s, sha, now)
+    if world_config(root) is not None if queue_run is None else queue_run: enqueue_run(s, sha, now)
+    return sha
+
+
 def bot_commit(root, number, now=None):
     """Another contributor commits to main under Studio's feet (a file outside every piece)."""
     now = time.time() if now is None else now
     with locked(root):
         s = load_state(root)
-        clone = root / 'bot'
-        if not clone.exists(): git('clone', '--quiet', str(root / 'origin.git'), str(clone))
-        git('-C', str(clone), 'fetch', '--quiet', 'origin', 'main')
-        git('-C', str(clone), 'reset', '--quiet', '--hard', 'origin/main')
-        (clone / 'bot').mkdir(exist_ok=True)
-        (clone / 'bot' / ('tick-%d.txt' % number)).write_text('tick %d\n' % number)
-        git('-C', str(clone), 'add', '-A')
-        subprocess.run(['git', *BOT_AUTHOR, '-C', str(clone), 'commit', '--quiet', '-m', 'Bot tick %d' % number], check=True)
-        subprocess.run(['git', '-C', str(clone), 'push', '--quiet', 'origin', 'HEAD:main'], check=True, capture_output=True)
-        sha = git('-C', str(clone), 'rev-parse', 'HEAD')
-        note_main_moved(s, sha, now)
-        if world_config(root) is not None: enqueue_run(s, sha, now)
+        sha = bot_push(root, s, number, now)
         save_state(root, s)
     return sha
 
@@ -202,6 +216,11 @@ def write_world(root, knobs):
 def world_merge(root, s, pr, sha_asked, now, world):
     head = ref(root, pr['head']['ref'])
     assert sha_asked == head and pr['reviews'] and not (root / 'unprotected').exists(), 'merge precondition'
+    main = ref(root, 'main')
+    if world.get('behind') and not is_ancestor(root, main, head):
+        # Strict policy: a head that does not contain main cannot be merged. Studio must replay the approved bytes.
+        s['behind_refusals'] = s.get('behind_refusals', 0) + 1
+        raise GhError(405, 'Head branch is out of date')
     left = s.get('refusals_left')
     if left is None: left = int(world.get('merge_refusals', 0))
     if left > 0:
@@ -221,8 +240,13 @@ def world_merge(root, s, pr, sha_asked, now, world):
     with (root / ('build-' + str(pr['number']) + '.log')).open('w') as f:
         subprocess.run([sys.executable, 'ops/publish.py', '--check', '--fixture-build'], cwd=checkout, stdout=f, stderr=f, check=True)
     s['merge_sha'] = merged
+    # How many times main moved before this merge: the harness asserts main really moved under the piece.
+    s['moves_before_merge'] = len(s.get('main_moves', []))
     note_main_moved(s, merged, now)
     enqueue_run(s, merged, now)
+    if world.get('bot_after_merge'):
+        # Atomic with the merge: the later commit queues a run that replaces the merge's still-queued run.
+        s['later_sha'] = bot_push(root, s, int(world['bot_after_merge']), now, queue_run=True)
     pr.update(merged=True, merge_commit_sha=merged)
     return {'merged': True, 'sha': merged}
 
