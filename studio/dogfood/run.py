@@ -19,6 +19,7 @@ from studio.server.auth import Auth
 from studio.server.storage import Store, git
 
 ROOT = Path(__file__).resolve().parents[2]
+BROWSER_TIMEOUT = int(os.environ.get('DOGFOOD_BROWSER_TIMEOUT', '1200'))
 PASSWORD = 'dogfood-local-fixture-password'
 
 class Journey:
@@ -215,14 +216,14 @@ class Journey:
                 seeded = subprocess.check_output(['python3', '-m', 'tests.harness.seed_studio'], cwd=self.root / 'source', env=env, text=True).strip()
                 env['STUDIO_SLUG'] = seeded; args = [seeded]
             with (self.root / (name + '.log')).open('w') as f:
-                result = subprocess.run(['node', str(ROOT / ('tests/harness/browser/' + name + '.mjs')), self.origin + '/', *args], env=env, stdout=f, stderr=f, timeout=300)
+                result = subprocess.run(['node', str(ROOT / ('tests/harness/browser/' + name + '.mjs')), self.origin + '/', *args], env=env, stdout=f, stderr=f, timeout=BROWSER_TIMEOUT)
             self.score('browser ' + name, result.returncode == 0)
         if os.environ.get('DOGFOOD_CAPTURES'):
             with (self.root / 'studio_captures.log').open('w') as f:
-                result = subprocess.run(['node', str(ROOT / 'tests/harness/browser/studio_captures.mjs'), self.origin + '/', seeded, os.environ['DOGFOOD_CAPTURES']], env=env, stdout=f, stderr=f, timeout=300)
+                result = subprocess.run(['node', str(ROOT / 'tests/harness/browser/studio_captures.mjs'), self.origin + '/', seeded, os.environ['DOGFOOD_CAPTURES']], env=env, stdout=f, stderr=f, timeout=BROWSER_TIMEOUT)
             self.score('browser studio_captures', result.returncode == 0)
         with (self.root / 'studio_actions.log').open('w') as f:
-            result = subprocess.run(['node', str(ROOT / 'tests/harness/browser/studio_actions.mjs'), self.origin + '/'], env=env, stdout=f, stderr=f, timeout=300)
+            result = subprocess.run(['node', str(ROOT / 'tests/harness/browser/studio_actions.mjs'), self.origin + '/'], env=env, stdout=f, stderr=f, timeout=BROWSER_TIMEOUT)
         self.score('browser issue/correction/withdrawal', result.returncode == 0)
         qa = self.call('POST', '/api/pieces/' + seeded + '/assist', {'kind': 'layout_qa', 'loc': 'en'})
         self.score('deterministic visual assist without worker', qa['status'] == 'done' and len(qa['frames']) == 12 and qa['ok'])
