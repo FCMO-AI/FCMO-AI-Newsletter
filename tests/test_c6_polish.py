@@ -195,7 +195,7 @@ class HeaderDekTests(unittest.TestCase):
 
 def _happened_cell(page_html):
     """(label, rest-of-cell html without the phone-only opener) of the first 20-second cell; group 2 is the text the desktop reader sees."""
-    m = re.search(r'<li class="read20-cell"><b>(.*?)</b><span class="brief-val">(?:<span class="brief-open">.*?</span>)?(.*?)</span></li>', page_html, re.S)
+    m = re.search(r'<li class="read20-cell(?: read20-phone)?"><b>(.*?)</b><span class="brief-val">(?:<span class="brief-open">.*?</span>)?(.*?)</span></li>', page_html, re.S)
     return m
 
 
@@ -235,10 +235,35 @@ class BuiltDekRepeatTests(unittest.TestCase):
             seen[row["locale"]] = seen.get(row["locale"], 0) + 1
             self.assertIsNotNone(cell, row["path"])
             self.assertTrue(norm(cell.group(2)), f"empty «What happened» on {row['path']}")
-            if dek and norm(dek.group(1)) == norm(cell.group(2)):
+            phone_only = 'class="read20-cell read20-phone"' in text
+            # A visible repeat: at tablet/desktop a phone-only cell is hidden, at 390 the dek is hidden, so only a
+            # repeat that is NOT marked phone-only can be read twice at some width.
+            if dek and norm(dek.group(1)) == norm(cell.group(2)) and not phone_only:
                 repeats.append(row["path"])
         self.assertEqual(set(seen), {"en", "es-419", "zh-Hans"})
         self.assertEqual(repeats, [])
+
+    def test_every_story_page_has_a_header_dek_and_a_phone_only_cell_is_a_true_repeat_of_it(self):
+        import html as htmllib
+        norm = lambda t: re.sub(r"\s+", "", htmllib.unescape(re.sub(r"<[^>]+>", "", t))).rstrip("….。.")
+        phone = 0
+        for row in [r for r in self.routes if r["kind"] == "story"]:
+            text = (self.out / row["path"] / "index.html").read_text(encoding="utf-8")
+            dek = re.search(r'<p class="story-dek">(.*?)</p>', text, re.S)
+            self.assertTrue(dek and norm(dek.group(1)), f"no header dek on {row['path']}")
+            cell = re.search(r'<li class="read20-cell read20-phone"><b>.*?</b><span class="brief-val">(.*?)</span></li>', text, re.S)
+            if cell:
+                phone += 1
+                self.assertEqual(norm(cell.group(1)), norm(dek.group(1)), row["path"])
+        self.assertGreater(phone, 0, "no page exercises the phone-only cell")
+
+    def test_story_view_always_renders_the_header_dek_even_for_a_one_sentence_summary(self):
+        source = (ROOT / "tools/paper/templates/reader.py").read_text(encoding="utf-8")
+        body = source[source.index("def story_view"):]
+        nxt = body.find("\ndef ", 10)
+        body = body if nxt < 0 else body[:nxt]
+        self.assertNotRegex(body, r'dek_text\s*=\s*""', "story_view must not blank the header dek")
+        self.assertIn("read20-phone", source)
 
     def test_the_story_dek_never_ends_mid_clause_unless_the_sentence_is_over_budget(self):
         for row in [r for r in self.routes if r["kind"] == "story"]:
@@ -279,7 +304,8 @@ const jobs = JSON.parse(process.argv[2]);
     out.push(await page.evaluate(() => {
       const cell = document.querySelector('.read20-cell .brief-val');
       const dek = document.querySelector('.story-cover .story-dek');
-      return { cell: cell ? cell.innerText.trim() : null, dek: dek ? getComputedStyle(dek).display : null };
+      const ph = document.querySelector('.read20-phone');
+      return { phone: ph ? getComputedStyle(ph).display : null, cell: cell ? cell.innerText.trim() : null, dek: dek ? getComputedStyle(dek).display : null };
     }));
     await page.close();
   }
@@ -321,7 +347,7 @@ const jobs = JSON.parse(process.argv[2]);
         # Wherever the cell continues after the header sentence, the phone-only opener carries that sentence.
         for row in self.stories:
             text = (self.out / row["path"] / "index.html").read_text(encoding="utf-8")
-            cell = re.search(r'<li class="read20-cell"><b>.*?</b><span class="brief-val">(.*?)</span></li>', text, re.S)
+            cell = re.search(r'<li class="read20-cell(?: read20-phone)?"><b>.*?</b><span class="brief-val">(.*?)</span></li>', text, re.S)
             dek = re.search(r'<p class="story-dek">(.*?)</p>', text, re.S)
             opener = re.search(r'<span class="brief-open">(.*?)</span>', cell.group(1), re.S)
             self.assertTrue(dek or opener or cell.group(1).strip(), row["path"])
@@ -359,6 +385,25 @@ const jobs = JSON.parse(process.argv[2]);
                         self.assertTrue(got["cell"].startswith(sentence), (row["path"], got["cell"][:80]))
                 if code == "en":
                     self.assertNotRegex(got["cell"], r"^(They|It|Its|Their|These|This|He|She)\b", row["path"])
+
+    def test_the_phone_only_cell_is_visible_at_390_and_hidden_at_820_and_1440(self):
+        # The committed corpus has no one-sentence summary, so build the page shape from brief20 itself.
+        if not self.module:
+            self.skipTest(missing_playwright_message())
+        css = (self.out / "assets/css/paper.css").read_text(encoding="utf-8")
+        sentence = "A one sentence summary that is also the header dek."
+        brief = brief20({}, _catalog(), summary=sentence, why="Why it matters.", evidence={}, header_dek=sentence)
+        self.assertIn('class="read20-cell read20-phone"', brief)
+        page = (f'<!doctype html><meta charset="utf-8"><style>{css}</style><div class="story-cover"><header class="story-header"><p class="story-dek">{sentence}</p></header></div>'
+                f'<main><div class="story-body">{brief}</div></main>')
+        target = Path(self.tmp.name) / "phone-only.html"
+        target.write_text(page, encoding="utf-8")
+        for width, hidden in ((390, False), (820, True), (1440, True)):
+            result = subprocess.run(["node", "-e", self.PHONE_PROBE, self.module, json.dumps([{"file": str(target), "width": width}])], text=True, capture_output=True, timeout=240)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            got = json.loads(result.stdout)[0]
+            self.assertEqual(got["phone"] == "none", hidden, (width, got))
+            self.assertEqual(got["dek"] == "none", width == 390, (width, got))
 
     def test_at_820_the_phone_opener_is_not_shown(self):
         files, results = self._phone("en", width=820, count=4)

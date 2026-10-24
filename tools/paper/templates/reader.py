@@ -369,7 +369,9 @@ def brief20(story: dict, catalog: dict, *, summary: object, why: object, evidenc
     if not rest_text and opener:
         rest_text, opener = opener, ""
     happened_html = (f'<span class="brief-open">{e(opener)} </span>' if opener else "") + e(rest_text)
-    cells = [(d["happened"], happened_html, "", True), (d["matters"], first_sentence(why, 360), "", False),
+    # Single-sentence summary equal to the header dek: tablet/desktop already read it in the header, so the cell is phone-only.
+    phone_only = bool(header_dek) and _same(first_sentence(summary, 10_000), header_dek) and happened == whole
+    cells = [(d["happened"], happened_html, " read20-phone" if phone_only else "", True), (d["matters"], first_sentence(why, 360), "", False),
              (d["not_established"], unknown or d["none_recorded"], " read20-na", False)]
     rows = "".join(f'<li class="read20-cell{extra}"><b>{e(key)}</b><span class="brief-val">{text if raw else e(text)}</span></li>' for key, text, extra, raw in cells if text)
     return f'<div class="brief" role="group" aria-labelledby="brief-title"><h2 id="brief-title" class="visually-hidden">{e(d["brief_title"])}</h2><ol class="read20">{rows}</ol></div>'
@@ -474,10 +476,9 @@ def story_view(*, story: dict, catalog: dict, code: str, title: str, dek_text: s
     src_items = "".join(f'<li>{provenance_line(s, catalog)}' + (f'<span class="prov-primary">{e(st["story"]["primary_source"])}</span>' if s.get("primary") else "") + '</li>' for s in sources)
     sources_html = f'<section id="sources"><h2>{e(st["story"]["sources"])}</h2><ol class="source-list">{src_items}</ol></section>' if src_items else f'<section id="sources"><h2>{e(st["story"]["sources"])}</h2></section>'
     crumbs = ""  # the layout already renders the breadcrumb trail; a second one inside the cover only repeated it
-    # When the summary is that one sentence, «What happened» is the only place it is read; the header does not say it twice.
+    # The header dek is always rendered (the layout oracle requires it). When the summary is that one sentence,
+    # «What happened» would repeat it on tablet/desktop, so brief20 marks that cell phone-only (the dek is hidden on phones).
     header_dek = dek_full or dek_text
-    if _same(first_sentence(summary, 10_000), header_dek) and rest_after(summary, header_dek) == " ".join(str(summary).split()):
-        dek_text = ""
     dek_html = f'<p class="story-dek">{e(dek_text)}</p>' if dek_text else ""
     cover = (f'<div class="story-cover surface-ink"><header class="story-header"><div class="frame story-cover-grid"><div class="sh-main">{crumbs}'
              f'<p class="story-kicker rubric rubric-accent">{e(beat_label)}</p><h1>{e(title)}</h1>{dek_html}'
