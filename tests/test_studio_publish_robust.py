@@ -23,7 +23,7 @@ class World(MockGitHub):
         super().__init__()
         self.runs = None; self.descends = {}; self.merge_files = None; self.codeowners = True
         self.strict = False; self.repush_fault = None; self.enforce_strict = False; self.base_of = {}
-        self.unprotected_merge = False; self.conflict_once = False; self.account_id = {'javier': 111, 'matias': 222}
+        self.unprotected_merge = False; self.conflict_once = False; self.lazy_reads = 0; self.account_id = {'javier': 111, 'matias': 222}
     def dispatch(self, actor, method, path, query, body):
         route = path.removeprefix(PREFIX)
         if route == '/rules/branches/main' and not self.strict:
@@ -35,6 +35,9 @@ class World(MockGitHub):
             number = int(route.split('/')[2]) if route.count('/') >= 2 else 0; pr = self.prs.get(number)
             behind = bool(pr) and self.base_of.get(pr['head']['ref']) not in (None, self.refs['main'])
             if route.endswith('/merge') and behind: return 405, {'message': 'Head branch is not up to date with base branch'}
+            if route.count('/') == 2 and behind and pr and self.lazy_reads > 0:
+                # GitHub computes mergeability in the background: right after main moves the answer is null/unknown.
+                self.lazy_reads -= 1; value = dict(pr); value['mergeable'] = None; value['mergeable_state'] = 'unknown'; return 200, value
             if route.count('/') == 2 and behind and pr:
                 value = dict(pr); value['mergeable_state'] = 'behind'; return 200, value
         if path == '/user' and actor: return 200, {'login': actor, 'id': self.account_id[actor]}
@@ -84,6 +87,7 @@ class RobustBase(unittest.TestCase):
                 self.github.request(data['author'], 'POST', '/git/refs', {'ref': 'refs/heads/' + data['branch'], 'sha': data['head_sha'], 'paths': paths})
             def repush(self, pub, old):
                 data = pub['payload']; mock.base_of[data['branch']] = git(Path(data['candidate']), 'rev-parse', 'HEAD^')
+                if mock.repush_fault == 'always': raise UnknownEffect('always lost')
                 if mock.repush_fault == 'before': mock.repush_fault = None; raise UnknownEffect('lost before')
                 mock.refs[data['branch']] = data['head_sha']; mock.prs[data['pr_number']]['head']['sha'] = data['head_sha']; mock.conflict_once = False
                 if mock.repush_fault == 'after': mock.repush_fault = None; raise UnknownEffect('lost after')
@@ -328,6 +332,70 @@ class StrictAndInfra(RobustBase):
             pub = self.run_to('published')
         self.check_clean(pub)
 
+    def test_lazy_unknown_mergeability_after_refused_merge_is_infra_then_publishes(self):
+        # Strict enforced; the first reads after main moves say mergeable=null/unknown. Never Refused -> failed.
+        self.mock.enforce_strict = True
+        self.approved(); self.tick_until('checks_green'); self.move_main(); self.mock.lazy_reads = 3  # pre-merge read, observe, post-refusal read
+        self.publisher.advance(self.slug); pub = self.pub()
+        self.assertEqual(pub['state'], 'checks_green'); self.assertEqual(pub['payload']['infra_retries'], 1)
+        self.assertNotEqual(self.store.piece(self.slug)['state'], 'changes_requested')
+        pub = self.run_to('published'); self.check_clean(pub)
+
+    def test_lazy_unknown_forever_halts_visibly_never_fails(self):
+        self.mock.enforce_strict = True
+        self.approved(); self.tick_until('checks_green'); self.move_main(); self.mock.lazy_reads = 10 ** 6
+        for _ in range(12):
+            self.publisher.advance(self.slug); self.now += 600
+        pub = self.pub()
+        self.assertEqual(pub['state'], 'checks_green'); self.assertTrue(pub['payload']['halted'])
+        self.assertEqual(self.store.piece(self.slug)['state'], 'publishing'); self.check_clean(pub)
+
+    def test_merge_refused_but_already_merged_moves_to_merged(self):
+        self.approved(); self.tick_until('checks_green')
+        mock = self.mock; number = self.pub()['payload']['pr_number']
+        def merged_elsewhere(user, num, head):
+            pr = mock.prs[num]; pr['merged'] = True; pr['state'] = 'closed'; pr['merge_commit_sha'] = 'e' * 40
+            raise Refused('Pull request is not mergeable')
+        with patch.object(self.github, 'merge', side_effect=merged_elsewhere):
+            self.publisher.advance(self.slug)
+        pub = self.pub(); self.assertEqual(pub['state'], 'merged'); self.assertEqual(pub['payload']['merge_sha'], 'e' * 40)
+        pub = self.run_to('published'); self.check_clean(pub)
+
+    def test_replay_that_keeps_raising_unknown_effect_backs_off_then_halts(self):
+        self.approved(); self.tick_until('checks_green')
+        self.move_main(); self.mock.conflict_once = True; self.mock.repush_fault = 'always'
+        self.publisher.advance(self.slug); first = self.pub()['payload']['infra_retries']
+        self.assertEqual(first, 1)
+        self.publisher.advance(self.slug); self.publisher.advance(self.slug)  # inside the backoff: nothing happens
+        self.assertEqual(self.pub()['payload']['infra_retries'], 1)
+        for _ in range(8):
+            self.now += 600; self.publisher.advance(self.slug)
+        pub = self.pub()
+        self.assertTrue(pub['payload']['halted']); self.assertNotEqual(pub['state'], 'failed')
+        self.assertEqual(self.store.piece(self.slug)['state'], 'publishing'); self.assertIn('no por el texto', pub['error_plain'])
+
+    def lost_pr(self, lost):
+        real = self.github.open_pr; calls = {'n': 0}
+        def open_pr(*a):
+            calls['n'] += 1
+            return None if calls['n'] <= lost else real(*a)
+        return patch.object(self.github, 'open_pr', side_effect=open_pr), calls
+
+    def test_unconfirmed_effect_is_retried_after_a_bounded_wait(self):
+        self.approved(); ctx, calls = self.lost_pr(1)
+        with ctx: pub = self.run_to('published')
+        self.assertEqual(calls['n'], 2); self.assertEqual(self.mock.count('POST', '/pulls'), 1)
+
+    def test_unconfirmed_effect_never_confirmed_halts_visibly(self):
+        self.approved(); ctx, calls = self.lost_pr(10 ** 6)
+        with ctx:
+            for _ in range(30):
+                self.publisher.advance(self.slug); self.now += 400
+        pub = self.pub()
+        self.assertTrue(pub['payload']['halted']); self.assertEqual(pub['state'], 'pushed')
+        self.assertNotIn('comprobando', pub['error_plain']); self.assertEqual(calls['n'], 1 + 3)
+        self.assertEqual(self.store.piece(self.slug)['state'], 'publishing')
+
     def replay_fault(self, where):
         self.approved(); self.tick_until('checks_green'); tree = self.pub()['payload']['content_tree']
         self.move_main(); self.mock.conflict_once = True; self.mock.repush_fault = where
@@ -349,6 +417,7 @@ class StrictAndInfra(RobustBase):
         self.move_main(); self.mock.conflict_once = True; self.mock.repush_fault = 'before'
         self.publisher.advance(self.slug)
         self.mock.refs[self.pub()['payload']['branch']] = 'a' * 40
+        self.now += 61  # the lost push now waits out its backoff like any infrastructure trouble
         self.publisher.advance(self.slug); pub = self.pub()
         self.assertTrue(pub['payload'].get('halted')); self.assertNotEqual(pub['state'], 'failed')
         self.assertNotEqual(self.store.piece(self.slug)['state'], 'changes_requested')

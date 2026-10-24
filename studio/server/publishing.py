@@ -26,6 +26,7 @@ def budget(name, default):
     try: return max(1, int(os.environ.get('STUDIO_' + name + '_BUDGET_S', default)))
     except ValueError: return default
 GATE_BUDGET, DEPLOY_BUDGET, LIVE_BUDGET = ('GATE', 3600), ('DEPLOY', 4*3600), ('LIVE', 6*3600)
+EFFECT_BUDGET = ('EFFECT', 300)  # how long an unconfirmed write is only observed before it is repeated
 INFRA_RETRIES = 3
 POST_MERGE = ('merged', 'deployed', 'deployed_unverified')
 PROTECTION_MODES = ('github', 'studio')
@@ -436,15 +437,30 @@ class Publisher:
     def _effect(self, pub, name, observe, mutate, update):
         data = pub['payload']; found = observe()
         if found:
-            update(found); data.pop('intent', None); data.pop('unknown', None); self._write(pub, name, ''); return True
+            update(found)
+            for key in ('intent', 'intent_at', 'effect_retries', 'unknown'): data.pop(key, None)
+            self._write(pub, name, ''); return True
+        now = self.store.clock()
         if data.get('intent'):
-            self._write(pub, error='No se confirmó la respuesta. Se está comprobando el estado antes de repetir la acción.')
-            return False
-        data['intent'] = name; self._write(pub)
+            since = data.setdefault('intent_at', now)
+            if now - since < budget(*EFFECT_BUDGET):
+                self._write(pub, error='No se confirmó la respuesta. Se está comprobando el estado antes de repetir la acción.')
+                return False
+            # Still nothing observed after the wait: repeat the (pinned, idempotent) write a bounded number of times, then stop visibly.
+            tries = data.get('effect_retries', 0) + 1; data['effect_retries'] = tries
+            if tries > INFRA_RETRIES:
+                data['halted'] = True; data['unknown'] = True
+                self._write(pub, error='La publicación se detuvo porque no se pudo confirmar un paso. Matías ya puede revisarla; el texto aprobado sigue intacto.')
+                return False
+            data['intent_at'] = now
+        else:
+            data['intent'] = name; data['intent_at'] = now; self._write(pub)
         mutate()
         found = observe()
         if not found: raise UnknownEffect('La respuesta de publicación no está confirmada.')
-        update(found); data.pop('intent', None); data.pop('unknown', None); self._write(pub, name, ''); return True
+        update(found)
+        for key in ('intent', 'intent_at', 'effect_retries', 'unknown'): data.pop(key, None)
+        self._write(pub, name, ''); return True
     def _start_replay(self, pub):
         """Record the replay (old and new head) durably BEFORE the push; the branch is the witness afterwards."""
         data = pub['payload']; old = data['head_sha']
@@ -547,10 +563,14 @@ class Publisher:
                     def merge():
                         try: gh.merge(user, data['pr_number'], data['head_sha'])
                         except Refused as exc:
-                            # A refusal because main moved under a strict ruleset is a stale base, not a content error.
                             fresh = gh.pr(user, data['pr_number']) or {}
-                            if fresh.get('mergeable_state') == 'behind' or fresh.get('mergeable') is False:
-                                data.pop('intent', None); raise Infra('La base pública avanzó; se republicará sobre la nueva.') from None
+                            # Merged meanwhile (e.g. from the GitHub UI): not an error; the observe in _effect moves the piece on.
+                            if fresh.get('merged'): return
+                            # GitHub computes mergeability lazily after main moves: an inconclusive read (or a stale-base one)
+                            # is infrastructure, retried with backoff. GitHub always sends the key (null while computing); a read without it carries no staleness signal. Only a clean, mergeable read makes this a real refusal.
+                            if ('mergeable' in fresh and fresh['mergeable'] is not True) or fresh.get('mergeable_state') in ('unknown', 'behind', 'dirty'):
+                                data.pop('intent', None); data.pop('intent_at', None)
+                                raise Infra('La base pública avanzó; se republicará sobre la nueva.') from None
                             raise
                     self._effect(pub, 'merged', lambda: (p if (p := gh.pr(user, data['pr_number'])) and p.get('merged') else None), merge, lambda r: data.update(merge_sha=r['merge_commit_sha']))
                 elif state == 'merged':
@@ -574,8 +594,10 @@ class Publisher:
                         data['unknown'] = True; self._write(pub, 'deployed_unverified', 'No logramos confirmar que ya esté visible. Ya está fusionado y desplegado; se sigue comprobando y Matías puede revisarlo.')
                     else: self._write(pub, 'deployed_unverified', 'Desplegado pero aún no visible.')
             except UnknownEffect as exc:
-                if data.get('intent'): data['unknown'] = True
-                self._write(pub, error=str(exc))
+                if data.get('replay'): self._infra(pub, exc)  # same backoff and cap as any infrastructure trouble
+                else:
+                    if data.get('intent'): data['unknown'] = True
+                    self._write(pub, error=str(exc))
             except (Refused, RuntimeError, OSError, subprocess.SubprocessError, ValueError) as exc:
                 if pub['state'] in POST_MERGE:
                     # Public already: never "failed", never back to changes_requested.
