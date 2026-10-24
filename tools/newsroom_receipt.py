@@ -73,6 +73,7 @@ BUILDER_INPUTS = (
     "tools/build_final_release.py",
     "tools/build_ready_receipt.py",
     "tools/verify_release.py",
+    "tools/refresh_guard.py",
 )
 
 
