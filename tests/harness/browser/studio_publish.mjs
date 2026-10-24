@@ -1,5 +1,5 @@
 // usage: node studio_publish.mjs <studio base url> [slug]
-// The publish sheet blocks on a missing alt text with a plain sentence; "Llévame ahí" lands on that figure.
+// The publish sheet blocks on a missing alt text with a plain sentence; "Ir a corregirlo" lands on that figure.
 import { session, go, check, finish } from './studio_common.mjs'
 
 const base = process.argv[2]; const slug = process.argv[3] || 'el-trabajo-silencioso'
@@ -19,10 +19,10 @@ check('missing alt text is listed as a plain sentence', await todo.count() === 1
 check('the request button is blocked', await page.locator('button:has-text("Pedir revisión")').isDisabled())
 check('the sheet says how many remain', (await page.textContent('.btn-row')).includes('por resolver'))
 check('no code vocabulary on the sheet', !/\b(git|branch|sha|gate|commit)\b/i.test(await page.textContent('.sheet')))
-await todo.locator('button:has-text("Llévame ahí")').click()
+await todo.locator('button:has-text("Ir a corregirlo")').click()
 await page.waitForSelector('.ed-figure', { timeout: 8000 })
 await page.waitForFunction(() => document.querySelector('.ed-figure.sel, .ed-figure.ProseMirror-selectednode'), null, { timeout: 8000 })
-check('"Llévame ahí" selects that figure', true)
+check('"Ir a corregirlo" selects that figure', true)
 const vis = await page.waitForFunction(() => { const r = document.querySelector('.ed-figure').getBoundingClientRect(); return r.top < innerHeight && r.bottom > 0 }, null, { timeout: 5000 }).then(() => true, () => false)
 check('and brings it into view', vis)
 

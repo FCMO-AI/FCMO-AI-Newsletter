@@ -111,7 +111,12 @@ class TranslationTests(unittest.TestCase):
         self.assertEqual(self.store.payload(self.slug)['provenance']['en']['origin'], 'agent_draft')
     def test_email_intent_written_and_closed_schema(self):
         self.source()
-        self.assertTrue(self.store.payload(self.slug)['piece']['distribution']['email'])
+        # Email is off on this host (FCMO_EMAIL_ENABLED unset): the box starts unchecked and cannot be turned on.
+        self.assertFalse(self.store.payload(self.slug)['piece']['distribution']['email'])
+        with self.assertRaises(ValueError): self.store.distribution(self.slug, 'javier', self.store.piece(self.slug)['head_rev'], True)
+        with patch.dict('os.environ', {'FCMO_EMAIL_ENABLED': 'true'}):
+            self.assertTrue(self.store.create('javier', 'essay', 'Con correo', 'en')['meta']['distribution']['email'])
+            self.store.distribution(self.slug, 'javier', self.store.piece(self.slug)['head_rev'], True)
         self.store.distribution(self.slug, 'javier', self.store.piece(self.slug)['head_rev'], False)
         saved = json.loads((self.store.directory(self.slug) / 'piece.json').read_text())
         self.assertEqual(saved['distribution'], {'email': False})

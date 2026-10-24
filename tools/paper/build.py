@@ -79,6 +79,14 @@ def copy_public_tree(source: Path, target: Path) -> None:
 
 
 
+MISSING_MEDIA_PLACEHOLDER = (
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900">'
+    '<rect width="1600" height="900" fill="#e8e8e8"/>'
+    '<text x="800" y="450" font-family="sans-serif" font-size="48" text-anchor="middle" fill="#666">'
+    'Imagen no disponible en esta vista previa</text></svg>'
+)
+
+
 # A jump link that targets something inside a closed <details> (the technical layer) must open it.
 JUMP_OPEN_SCRIPT = ('<script>(()=>{const o=()=>{const t=location.hash&&document.getElementById(decodeURIComponent(location.hash.slice(1)));'
                     'const d=t&&t.closest("details");if(d){d.open=true;t.scrollIntoView()}};'
@@ -87,6 +95,8 @@ JUMP_OPEN_SCRIPT = ('<script>(()=>{const o=()=>{const t=location.hash&&document.
 
 
 class PaperBuilder:
+    allow_missing_story_media = False
+
     def __init__(self, *, stories_path: Path, status_path: Path, out: Path, base: str,
                  editorial_path: Path | None = None, og_source: Path | None = None,
                  citation_history: Path | None = None) -> None:
@@ -1110,7 +1120,13 @@ class PaperBuilder:
             if target.is_file():
                 continue
             if not source.is_file():
-                raise ValueError(f"referenced story media is missing: site/{local}")
+                if not self.allow_missing_story_media:
+                    raise ValueError(f"referenced story media is missing: site/{local}")
+                # Private previews read a corpus that moves hourly while the host
+                # checkout may lag: a visible placeholder, never a failed build.
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_text(MISSING_MEDIA_PLACEHOLDER, encoding="utf-8")
+                continue
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(source, target)
 

@@ -200,7 +200,7 @@ export async function previewScreen (root, slug, loc0) {
   }
   root.append(shell(h('div', { class: 'flow pv' }, crumbs(slug, meta.title, t('pv.title')), h('div', { class: 'pv-grid' }, stage, side), h('div', { class: 'btn-row' }, h('a', { class: 'btn', href: `#/p/${slug}/${st.loc}` }, '← ', t('pv.back')), meta.author === session.me.user ? h('a', { class: 'btn primary', href: `#/p/${slug}/publish` }, t('ed.publish')) : null)), { active: 'home', wide: true }))
   await draw()
-  if (meta.author === session.me.user) { root.querySelector('.btn-row').append(h('button', { class: 'btn', onclick: async () => { const r = await post(`/api/pieces/${slug}/assist`, { kind: 'layout_qa', loc: st.loc }); toast(r.status === 'done' ? t('assist.qa.done') + (r.ok ? ' ✓' : ' !') : r.plain_es || t('err.generic')) } }, t('assist.qa'))) }
+  if (meta.author === session.me.user) { root.querySelector('.btn-row').append(h('button', { class: 'btn', onclick: async () => { const r = await post(`/api/pieces/${slug}/assist`, { kind: 'layout_qa', loc: st.loc }); toast(r.status === 'done' ? t('assist.qa.done') + (r.ok ? ' ✓' : ' !') : r.plain_es || t('err.generic')) }, title: t('assist.qa.hint') }, t('assist.qa')), h('span', { class: 'muted' }, t('assist.qa.hint'))) }
   if (meta.kind !== 'issue' && meta.author === session.me.user && ['published', 'withdrawn'].includes(meta.state)) {
     root.querySelector('.btn-row').append(h('button', { class: 'btn', onclick: () => amendDialog(meta) }, t('amend.correct')), h('button', { class: 'btn', onclick: () => amendDialog(meta, true) }, t('amend.withdraw')))
   }
@@ -212,6 +212,7 @@ export async function publishScreen (root, slug) {
   const meta = await get(`/api/pieces/${slug}`)
   const readiness = await get('/api/publication-readiness').catch(() => null)
   const privateReview = !readiness || readiness.dry_run || !readiness.live_enabled
+  const emailOn = !!(readiness && readiness.email_enabled)
   const box = h('div', { class: 'pub-checks' })
   const act = h('div', { class: 'btn-row' })
   async function draw () {
@@ -226,7 +227,7 @@ export async function publishScreen (root, slug) {
         box.append(h('p', { class: 'notice', role: 'alert' }, e.data?.error_plain || t('err.generic')))
       }
     }
-    const list = await checksList(slug, c => { location.hash = meta.kind === 'issue' ? `#/issues/${slug}` : `#/p/${slug}/${c.loc || meta.source_locale}`; if (c.block_id) setTimeout(() => window.__studioGoto && window.__studioGoto(c.block_id), 800) })
+    const list = await checksList(slug, c => { const target = c.loc || meta.source_locale; const emptyLang = target !== meta.source_locale && ((meta.locales[target] || {}).words || 0) === 0; location.hash = meta.kind === 'issue' ? `#/issues/${slug}` : emptyLang ? `#/p/${slug}/${meta.source_locale}/translate/${target}` : `#/p/${slug}/${target}`; if (c.block_id) setTimeout(() => window.__studioGoto && window.__studioGoto(c.block_id), 800) })
     clear(box); box.append(list)
     const bad = list.list.filter(c => !c.ok && !c.approval_satisfiable)
     const mt = LOCS.filter(l => (meta.locales[l] || {}).state === 'ready' && ((meta.locales[l] || {}).origin || '').startsWith('agent_') && !(meta.locales[l] || {}).reviewed)
@@ -238,12 +239,12 @@ export async function publishScreen (root, slug) {
     h('div', { class: 'sheet' }, h('p', { class: 'notice soft' }, t(privateReview ? 'rev.private.confirm' : 'pub.public')),
       meta.kind !== 'issue' ? h('section', { class: 'distribution' }, h('h2', null, t('pub.destinations')),
         h('p', null, t('pub.site')), h('p', null, t('pub.feeds')),
-        h('label', { class: 'check' }, h('input', { type: 'checkbox', checked: meta.meta?.distribution?.email === true, disabled: meta.author !== session.me.user || !['draft', 'changes_requested', 'amending'].includes(meta.state), onchange: async e => {
+        h('label', { class: 'check' }, h('input', { type: 'checkbox', checked: emailOn && meta.meta?.distribution?.email === true, disabled: !emailOn || meta.author !== session.me.user || !['draft', 'changes_requested', 'amending'].includes(meta.state), onchange: async e => {
           e.target.disabled = true
           try { const result = await put(`/api/pieces/${slug}/distribution`, { base_rev: meta.head_rev, email: e.target.checked }); meta.head_rev = result.rev; meta.meta.distribution = result.distribution; await draw() }
           catch (err) { e.target.checked = !e.target.checked; toast(err.data?.error_plain || t('err.generic'), 'bad') }
           finally { e.target.disabled = false }
-        } }), ' ', t('pub.email')), h('p', { class: 'hint' }, t('pub.email.after'))) : null,
+        } }), ' ', t('pub.email')), h('p', { class: 'hint' }, t(emailOn ? 'pub.email.after' : 'pub.email.off'))) : null,
       h('h2', null, t('pub.threshold')), h('p', null, t('pub.approval', { who: other() })), box, h('p', { class: 'reviewer' }, h('span', { class: 'avatar' }, other()[0]), t('pub.reviewer', { who: other() })), act)), { active: 'home' }))
   mount()
   await draw()

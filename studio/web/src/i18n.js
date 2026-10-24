@@ -201,3 +201,26 @@ Object.assign(S.en, {
   'gh.code': 'One-time code', 'gh.copy': 'Copy code', 'gh.copied': 'Code copied.',
   'gh.copyError': 'Could not copy. Select the code to copy it.', 'gh.open': 'Open GitHub', 'gh.cancel': 'Cancel'
 })
+
+// Plain-language texts for non-technical editors (Javier): what a thing does, and why it is off.
+Object.assign(S.es, {
+  'pub.threshold': 'Quién autoriza la publicación',
+  'pub.email.off': 'El envío por correo todavía no está activo, así que no se enviará nada a los suscriptores. La publicación en el sitio y los feeds no cambia.',
+  'sub.unread': 'No se pudo consultar cuántas personas están suscritas. Inténtalo de nuevo más tarde.',
+  'sub.idle': 'Pulsa «Consultar estado» para ver cuántas personas están suscritas.',
+  'sub.read': 'Consultar estado',
+  'chk.go': 'Ir a corregirlo',
+  'adv.title': 'Avanzado', 'adv.rollback.hint': 'Solo para quien revisa: devuelve el sitio a la última versión que pasó todas las comprobaciones. No deshace lo que alguien ya leyó.',
+  'assist.qa': 'Revisar cómo se ve', 'assist.qa.hint': 'Revisa cómo se ve el texto en celular y en computadora y avisa si algo se corta o se ve mal.',
+  'assist.dek': 'Sugerir título e introducción', 'assist.hint': 'La asistente propone un título y una introducción; tú decides si los aceptas.'
+})
+Object.assign(S.en, {
+  'pub.threshold': 'Who authorizes publication',
+  'pub.email.off': 'Email sending is not active yet, so nothing will be sent to subscribers. Publishing to the site and feeds is unchanged.',
+  'sub.unread': 'Could not check how many people are subscribed. Try again later.',
+  'sub.idle': 'Press “Read status” to see how many people are subscribed.',
+  'chk.go': 'Go fix it',
+  'adv.title': 'Advanced', 'adv.rollback.hint': 'Reviewer only: puts the site back to the last version that passed every check. It cannot undo what someone already read.',
+  'assist.qa': 'Check how it looks', 'assist.qa.hint': 'Checks how the text looks on a phone and on a computer and tells you if something is cut off or looks wrong.',
+  'assist.hint': 'The assistant proposes a title and an introduction; you decide whether to accept them.'
+})

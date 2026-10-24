@@ -9,7 +9,8 @@ export function amendDialog (meta, withdrawal = false) {
   const draw = () => {
     fields.replaceChildren()
     if (type === 'typo') return
-    for (const loc of [meta.source_locale]) {
+    // The server requires a note in every edition that is published, not only the original.
+    for (const loc of [meta.source_locale, ...['en', 'es-419', 'zh-Hans'].filter(l => l !== meta.source_locale && ((meta.locales || {})[l] || {}).state === 'ready')]) {
       const input = h('textarea', { rows: 3, 'aria-label': LOCALE_NAME[loc], lang: loc })
       input.value = notes[loc] || ''; input.addEventListener('input', () => { notes[loc] = input.value })
       fields.append(h('label', { class: 'f' }, LOCALE_NAME[loc], input))

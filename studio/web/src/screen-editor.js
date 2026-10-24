@@ -185,7 +185,7 @@ export async function editorScreen (root, slug, locArg) {
     langTabs,
     h('div', { class: 'ed-bar-right' }, h('button', { class: 'btn small wide-only', type: 'button', disabled: S.readOnly, onclick: markReviewed }, t('tr.review')), h('a', { class: 'btn small wide-only', href: hrefTr }, t('ed.translate')),
       h('a', { class: 'btn small wide-only', href: hrefPv }, t('ed.preview')), moreMenu, h('a', { class: 'btn primary small', href: `#/p/${slug}/publish` }, t('ed.publish'))))
-  const assistButtons = h('div', { class: 'btn-row ed-assist' }, ['dek', 'cite_check'].map(kind => h('button', { class: 'btn small', disabled: S.readOnly, onclick: async () => { await save(); await suggestions(slug, loc, kind) } }, t(kind === 'dek' ? 'assist.dek' : 'assist.cites'))))
+  const assistButtons = h('div', { class: 'btn-row ed-assist' }, ['dek', 'cite_check'].map(kind => h('button', { class: 'btn small', disabled: S.readOnly, onclick: async () => { await save(); await suggestions(slug, loc, kind) } }, t(kind === 'dek' ? 'assist.dek' : 'assist.cites'))).concat([h('span', { class: 'muted' }, t('assist.hint'))]))
   const top = h('div', { class: 'ed-top' }, h('a', { class: 'back', href: '#/' }, '← ', t('ed.back')), h('span', { class: 'ed-top-title' }, meta.title))
 
   // banners

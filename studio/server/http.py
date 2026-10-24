@@ -14,7 +14,7 @@ from .auth import Auth, COOKIE, TTL
 from .checks import checks
 from .preview import Preview, RendererUnavailable
 from .publishing import GitHub, Workspace, Publisher, Refused, UnknownEffect
-from .storage import Store, Conflict, Locked, atomic
+from .storage import Store, Conflict, Locked, atomic, email_enabled
 from studio.translation import translate, prepare, TranslationError
 from .validation import locale, slug, validate_webp
 
@@ -64,7 +64,7 @@ class Application:
                  'plain_es': ('Javier' if u == 'javier' else 'Matías') + ' debe iniciar sesión en GitHub.',
                  'plain_en': ('Javier' if u == 'javier' else 'Matías') + ' needs to sign in to GitHub.'}
                 for u in ('javier', 'matias')]
-            return {'credentials': statuses, 'live_enabled': self.live_enabled, 'dry_run': self.dry_run}
+            return {'credentials': statuses, 'live_enabled': self.live_enabled, 'dry_run': self.dry_run, 'email_enabled': email_enabled()}
         if path == '/api/github/connect':
             connector = getattr(self, 'github_connect', None)
             if connector is None and hasattr(self.github, 'configs'):
