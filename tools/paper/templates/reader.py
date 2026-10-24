@@ -364,7 +364,7 @@ def brief20(story: dict, catalog: dict, *, summary: object, why: object, evidenc
     happened = rest_after(summary, header_dek) if header_dek else summary
     opener = ""
     if header_dek and " ".join(str(happened or "").split()) != whole:
-        opener = first_sentence(summary, 360)  # the header dek is hidden on phones, so the cell carries the opening fact there
+        opener = first_sentence(summary, 480, clause=True)  # the header dek is hidden on phones, so the cell carries the opening fact there, cut like the header
     rest_text = first_sentence(happened, 360)
     if not rest_text and opener:
         rest_text, opener = opener, ""

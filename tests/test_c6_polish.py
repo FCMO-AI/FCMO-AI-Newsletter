@@ -248,6 +248,21 @@ class BuiltDekRepeatTests(unittest.TestCase):
                 import html as htmllib
                 self.assertLessEqual(visual_width(htmllib.unescape(dek.group(1))), 480, row["path"])
 
+    def test_the_phone_opener_is_cut_exactly_like_the_header_dek(self):
+        import html as htmllib
+        clean = lambda t: " ".join(htmllib.unescape(re.sub(r"<[^>]+>", "", t)).split())
+        differ, openers = [], 0
+        for row in [r for r in self.routes if r["kind"] == "story"]:
+            text = (self.out / row["path"] / "index.html").read_text(encoding="utf-8")
+            dek = re.search(r'<p class="story-dek">(.*?)</p>', text, re.S)
+            opener = re.search(r'<span class="brief-open">(.*?)</span>', text, re.S)
+            if dek and opener:
+                openers += 1
+                if clean(opener.group(1)) != clean(dek.group(1)):
+                    differ.append(row["path"])
+        self.assertGreater(openers, 0)
+        self.assertEqual(differ, [])
+
 
 class PhoneOpeningFactTests(unittest.TestCase):
     """At <=760 px the header dek is hidden, so «What happened» must open with the story's opening sentence, in every locale."""
