@@ -15,21 +15,59 @@ import tempfile
 import threading
 import time
 from urllib.parse import urlsplit
+from studio.dogfood import fake_gh
 from studio.server.auth import Auth
 from studio.server.storage import Store, git
 
 ROOT = Path(__file__).resolve().parents[2]
 BROWSER_TIMEOUT = int(os.environ.get('DOGFOOD_BROWSER_TIMEOUT', '1200'))
 PASSWORD = 'dogfood-local-fixture-password'
+# Items scored before the measured world is switched on (their count is unchanged).
+BASE_ITEMS = 17
+# The items of the setup (launcher, login, readiness): what DOGFOOD_ONLY=world still runs besides the world items.
+SETUP_ITEMS = 5
+# DOGFOOD_ONLY=world skips the base journey and runs the setup plus the «mundo movido» items (a cheap red check).
+ONLY_CHOICES = ('world',)
+# The «mundo movido» items: GitHub moving under Studio, slow and cancelled Pages, infra trouble, content red.
+WORLD_ITEMS = (
+    'mundo movido: main moves 3 times during publication and it still publishes',
+    'mundo movido: the Pages run of the merge is cancelled while a later run deploys, published',
+    'mundo movido: a 70-minute (compressed) deploy publishes',
+    'mundo movido: after the merge the piece never reaches failed',
+    'mundo movido: infra trouble retries without a second approval',
+    'mundo movido: a content-red gate returns the piece to changes requested',
+    'Javier writes es-419 with fake translation: full cycle publishes',
+)
+# A 70-minute deploy, compressed by 1/600: the measured deploy is seconds here.
+COMPRESSED_DEPLOY_S = 7.0
+
+class Bot(threading.Thread):
+    """Moves main from outside Studio: a commit every `every` seconds, `moves` times at most."""
+    def __init__(self, root, every, moves, first_tick, first_delay=None):
+        super().__init__(daemon=True)
+        self.root = root; self.every = every; self.moves = moves; self.first_tick = first_tick
+        self.first_delay = every if first_delay is None else first_delay
+        self.stop_event = threading.Event(); self.commits = []; self.error = None
+    def run(self):
+        try:
+            for number in range(self.first_tick, self.first_tick + self.moves):
+                if self.stop_event.wait(self.first_delay if number == self.first_tick else self.every): return
+                self.commits.append(fake_gh.bot_commit(self.root, number))
+        except BaseException as exc:
+            self.error = exc
 
 class Journey:
     def __init__(self, root, browser=False):
         self.browser = browser
         self.root = root; self.scores = []; self.sessions = {}; self.process = None
+        self.ticks = 100; self.states = {}; self.completed = False
+        self.only = os.environ.get('DOGFOOD_ONLY') or None
+        assert self.only in (None, *ONLY_CHOICES), 'DOGFOOD_ONLY must be one of ' + str(ONLY_CHOICES)
     def score(self, name, ok=True):
+        # A red item is recorded and named; it never aborts the run, so the items after it still run.
         self.scores.append({'name': name, 'ok': bool(ok)})
         print(('PASS ' if ok else 'FAIL ') + name, flush=True)
-        if not ok: raise AssertionError(name)
+        return bool(ok)
     def request(self, method, path, body=None, user=None):
         headers = {'Origin': self.origin}
         if user: headers['Cookie'], headers['X-CSRF-Token'] = self.sessions[user]
@@ -45,19 +83,30 @@ class Journey:
         assert actual == status, (path, actual, data)
         return data
     def wait(self, slug, states, timeout=1200):
-        end = time.monotonic() + timeout
-        while time.monotonic() < end:
+        """The publication once it is in `states`, or as it stands when it failed or time ran out: the caller's score
+        decides, so one red item does not hide the next. DOGFOOD_WAIT_S caps every wait (cheap red checks)."""
+        cap = os.environ.get('DOGFOOD_WAIT_S')
+        end = time.monotonic() + (min(timeout, float(cap)) if cap else timeout)
+        while True:
             pub = self.call('GET', '/api/pieces/' + slug + '/publication')
-            if pub['state'] in states: return pub
-            assert pub['state'] != 'failed', pub
+            if pub['state'] in states or pub['state'] == 'failed' or time.monotonic() >= end: return pub
             assert self.process.poll() is None, 'Launcher stopped'
             time.sleep(.3)
-        raise AssertionError('Publication timed out: ' + str(pub))
-    def create(self, title, author):
+    # The body of every locale. The renderer refuses a piece whose locales do not carry the same numbers.
+    BODY = {'en': 'Human publication with 42 ideas.', 'es-419': 'Una publicación humana con 42 ideas.', 'zh-Hans': '一篇人类文章包含42个想法。'}
+    @classmethod
+    def body_text(cls, loc, marker=None):
+        """The body of a locale. A marker rides in EVERY locale, with the numbers kept: the renderer refuses a piece whose
+        locales lost the numbers of the source (numeric token mismatch, a 503 preview), and the translation check refuses
+        a brand-like name (the content-red marker is one) that is not carried over unchanged (a red fidelity check)."""
+        text = cls.BODY[loc]
+        if marker is None: return text
+        return text[:-1] + {'en': ' and ', 'es-419': ' y ', 'zh-Hans': '，与'}[loc] + marker + text[-1]
+    def create(self, title, author, marker=None):
         piece = self.call('POST', '/api/pieces', {'kind': 'essay', 'title': title, 'source_locale': 'en'}, author)
         slug = piece['slug']; base = '/api/pieces/' + slug
         titles = {'en': title, 'es-419': 'Una prueba de publicación', 'zh-Hans': '出版测试'}
-        text = {'en': 'Human publication with 42 ideas.', 'es-419': 'Una publicación humana con 42 ideas.', 'zh-Hans': '一篇人类文章包含42个想法。'}
+        text = {loc: self.body_text(loc, marker) for loc in self.BODY}
         for loc in titles:
             current = self.call('GET', base + '/doc/' + loc, user=author)
             doc = {'schema': 'fcmo-essay-doc-v1', 'locale': loc, 'title': titles[loc],
@@ -125,6 +174,7 @@ class Journey:
         env = {k: v for k, v in os.environ.items() if not k.startswith(('GH_', 'GITHUB_', 'STUDIO_', 'DOGFOOD_'))}
         env.update(STUDIO_DATA=str(self.data), STUDIO_ORIGIN=self.origin, STUDIO_SESSION_KEY='dogfood-session-key-' + 'x' * 40,
                    STUDIO_PORT=str(self.port), STUDIO_REPO=str(source), STUDIO_LIVE_ENABLED='1', STUDIO_DRY_RUN='0',
+                   STUDIO_TRANSLATION_PROVIDER='fake',
                    STUDIO_GH_CONFIG_JAVIER=str(self.root / 'javier'), STUDIO_GH_CONFIG_MATIAS=str(self.root / 'matias'),
                    DOGFOOD_ACTIVE='local-bare-only', DOGFOOD_ROOT=str(self.root), DOGFOOD_BARE=str(self.bare),
                    DOGFOOD_LIVE='http://127.0.0.1:' + str(self.pages.server_port) + '/FCMO-AI-Newsletter/',
@@ -148,7 +198,8 @@ class Journey:
                    self.call('GET', '/api/pieces/' + piece['slug'])['slug'] == piece['slug'])
         for user in ('javier', 'matias'):
             (self.root / user / 'hosts.yml').write_text('github.com: {}\n')
-    START_TIMEOUT = float(os.environ.get('DOGFOOD_START_TIMEOUT', '180'))
+    # A cold start on a loaded host gets at least 120 s before the launcher counts as dead.
+    START_TIMEOUT = max(120.0, float(os.environ.get('DOGFOOD_START_TIMEOUT', '180')))
     def wait_healthy(self):
         # A cold start (bytecode, renderer warm-up, loaded host) takes well over 10 s:
         # wait on /healthz against a deadline, and fail at once if the launcher dies.
@@ -162,6 +213,14 @@ class Journey:
         raise AssertionError('Server did not become healthy within %ss' % self.START_TIMEOUT)
     def run(self):
         self.setup()
+        if self.only == 'world': return self.world_items()
+        try: self.base_journey()
+        except Exception as exc:
+            # An unexpected error in the base journey is a red item, not the end of the run.
+            print('BASE JOURNEY ERROR: %s: %s' % (type(exc).__name__, exc), flush=True)
+            self.score('base journey ran to its end', False)
+        self.world_items()
+    def base_journey(self):
         published = []
         for author, reviewer in (('javier', 'matias'), ('matias', 'javier')):
             slug = self.create('Dogfood ' + author, author)
@@ -171,7 +230,7 @@ class Journey:
             self.score(author + ': self-approval refused before public transport', not any(slug in x for x in git(self.bare, 'for-each-ref', '--format=%(refname)').splitlines()))
             self.call('POST', base + '/review/approve', {}, reviewer)
             pub = self.wait(slug, {'published'})
-            self.score(author + ': create/edit/preview/review/publish over HTTP', len(pub['urls']) == 3)
+            self.score(author + ': create/edit/preview/review/publish over HTTP', len(pub.get('urls', [])) == 3)
             self.score(author + ': real public build contains edited piece', b'Edited and checked.' in (self.root / 'merged/publish/cartas' / slug / 'index.html').read_bytes())
             calls = json.loads((self.root / 'gh.json').read_text())['calls']
             assert any(c['method'] == 'POST' and c['endpoint'].endswith('/pulls') and c['login'] == 'fake-' + author for c in calls)
@@ -192,8 +251,16 @@ class Journey:
         git(merged, '-c', 'user.name=Codex', '-c', 'user.email=codex@openai.com', 'commit', '--allow-empty', '-qm', 'Concurrent main change')
         git(merged, 'push', 'origin', 'HEAD:main')
         concurrent = git(self.bare, 'rev-parse', 'main')
-        pub = self.wait(slug, {'failed'})
-        self.score('changed main refuses transport/merge', 'base' in pub['error_plain'] and git(self.bare, 'rev-parse', 'main') == concurrent)
+        # CONTRACT CHANGE (L2, approved by the merger): this item used to expect `failed` («changed main refuses
+        # transport/merge»). Under the L1 contract a moved main is not a refusal: the piece replays on it and publishes.
+        # What the item still protects: the concurrent change survives, and only the piece differs from it.
+        pub = self.wait(slug, {'published'})
+        piece = 'editorial/pieces/' + slug
+        changed = git(self.bare, 'diff', '--name-only', concurrent, 'main').splitlines()
+        self.score('changed main: the piece replays on it and publishes, only the piece differs',
+                   pub['state'] == 'published' and subprocess.run(['git', '--git-dir', str(self.bare), 'merge-base', '--is-ancestor', concurrent, 'main']).returncode == 0
+                   and bool(changed) and all(c.startswith(piece + '/') for c in changed))
+        after_publish = git(self.bare, 'rev-parse', 'main')
         conn = HTTPConnection('127.0.0.1', self.pages.server_port)
         conn.request('GET', '/FCMO-AI-Newsletter/cartas/' + published[0] + '/')
         response = conn.getresponse(); assert response.status == 200; response.read(); conn.close()
@@ -201,9 +268,123 @@ class Journey:
         conn = HTTPConnection('127.0.0.1', self.pages.server_port)
         conn.request('GET', '/FCMO-AI-Newsletter/cartas/' + published[0] + '/')
         response = conn.getresponse(); response.read(); conn.close()
-        self.score('rollback serves LKG and preserves main', response.status == 404 and git(self.bare, 'rev-parse', 'main') == concurrent and json.loads((self.root / 'gh.json').read_text())['rollback'])
+        self.score('rollback serves LKG and preserves main', response.status == 404 and git(self.bare, 'rev-parse', 'main') == after_publish and json.loads((self.root / 'gh.json').read_text())['rollback'])
         refs = git(self.bare, 'for-each-ref', '--format=%(refname)')
         self.score('no draft refs or unapproved piece in public main', 'refs/heads/draft/' not in refs and 'missing-protections' not in git(self.bare, 'ls-tree', '-r', '--name-only', 'main'))
+    def set_world(self, **knobs):
+        """The measured world, read by every gh call from now on. Each scenario states all its knobs."""
+        fake_gh.write_world(self.root, knobs)
+    def gh_state(self):
+        return json.loads((self.root / 'gh.json').read_text())
+    def count_reviews(self):
+        return sum(1 for c in self.gh_state()['calls'] if c['method'] == 'POST' and c['endpoint'].endswith('/reviews'))
+    @staticmethod
+    def expected_total(browser, captures, only=None):
+        """Every item the journey must score: the base items, the browser items, and the measured-world items.
+        With only='world' (DOGFOOD_ONLY): the setup plus the measured-world items."""
+        if only == 'world': return SETUP_ITEMS + len(WORLD_ITEMS)
+        return BASE_ITEMS + len(WORLD_ITEMS) + ((8 + bool(captures)) if browser else 0)
+    def timeline_states(self, slug):
+        return [entry.get('state') for entry in self.call('GET', '/api/pieces/' + slug + '/publication').get('timeline', [])]
+    def piece_state(self, slug):
+        return self.call('GET', '/api/pieces/' + slug)['state']
+    def world_items(self):
+        """Publications through the measured world. Each item says what it proves in its name; one red item
+        (or one that raises) is scored FAIL and the next still runs."""
+        for index, item in enumerate((self.world_main_moves, self.world_pages_cancelled, self.world_slow_deploy, self.world_never_failed,
+                                      self.world_infra_retry, self.world_content_red, self.world_es_javier)):
+            try: item()
+            except Exception as exc:
+                print('ITEM ERROR: %s: %s' % (type(exc).__name__, exc), flush=True)
+                self.score(WORLD_ITEMS[index], False)
+    def world_main_moves(self):
+        # 1. main moves three times while the piece is in publication: it still publishes, replayed on the moved main.
+        # The fake reports a PR whose head lacks main as 'behind' and refuses to merge it: without replay-on-behind this is red.
+        # One move comes from a timed bot (while the piece is prepared); two come from the fake itself, each right after a
+        # green gate, so main really moves under an approved head whatever the host's speed: two replays are required.
+        self.set_world(pages_run_s=0, gate_s=0.5, lazy_mergeable_s=1.5, behind=True, bot_after_gate=2, bot_gate_tick=self.ticks + 10)
+        slug = self.create('Mundo movido: tres movimientos', 'matias')
+        moves_start = len(self.gh_state().get('main_moves', []))
+        bot = Bot(self.root, every=2.0, moves=1, first_tick=self.ticks + 1, first_delay=0.5); self.ticks += 20
+        self.call('POST', '/api/pieces/' + slug + '/review/approve', {}, 'javier')
+        bot.start()
+        pub = self.wait(slug, {'published'}, timeout=1800)
+        bot.join(timeout=60)
+        moved_before_merge = self.gh_state().get('moves_before_merge', 0) - moves_start
+        self.score(WORLD_ITEMS[0], len(bot.commits) == 1 and bot.error is None and self.gh_state().get('gate_bot_done') == 2
+                   and moved_before_merge >= 3 and len(pub.get('urls', [])) == 3)
+    def world_pages_cancelled(self):
+        # 2. the merge's Pages run is replaced by a later run for a commit that moved main; the later run deploys.
+        # The later commit lands inside the fake's merge call (bot_after_merge), so there is no race with this harness.
+        self.ticks += 1
+        self.set_world(pages_run_s=4.0, pages_cancel_in_progress=True, gate_s=0.5, bot_after_merge=self.ticks)
+        slug = self.create('Mundo movido: Pages cancelado', 'javier')
+        self.call('POST', '/api/pieces/' + slug + '/review/approve', {}, 'matias')
+        pub = self.wait(slug, {'published'}, timeout=1800)
+        state = self.gh_state()
+        merge, later = state.get('merge_sha'), state.get('later_sha')
+        runs = state.get('pages', [])
+        merge_run = [r for r in runs if r['head_sha'] == merge and r['conclusion'] == 'cancelled']
+        later_run = [r for r in runs if r['head_sha'] == later and r['conclusion'] == 'success']
+        self.states[2] = self.timeline_states(slug)
+        self.score(WORLD_ITEMS[1], bool(merge_run) and bool(later_run) and later != merge and len(pub.get('urls', [])) == 3)
+    def world_slow_deploy(self):
+        # 3. a 70-minute deploy, compressed: the piece waits in merged, then publishes.
+        self.set_world(pages_run_s=COMPRESSED_DEPLOY_S, gate_s=0.5)
+        slug = self.create('Mundo movido: despliegue lento', 'matias')
+        self.call('POST', '/api/pieces/' + slug + '/review/approve', {}, 'javier')
+        self.wait(slug, {'merged'}, timeout=1800)
+        started = time.monotonic()
+        pub = self.wait(slug, {'published'}, timeout=1800)
+        deploy_s = time.monotonic() - started
+        self.states[3] = self.timeline_states(slug)
+        self.score(WORLD_ITEMS[2], deploy_s >= COMPRESSED_DEPLOY_S * 0.8 and len(pub.get('urls', [])) == 3)
+    def world_never_failed(self):
+        # 4. after the merge, neither slow nor cancelled deploys ever put the piece in failed.
+        after_merge = lambda states: states[states.index('merged'):] if 'merged' in states else []
+        states_2, states_3 = self.states.get(2, []), self.states.get(3, [])
+        self.score(WORLD_ITEMS[3], bool(after_merge(states_2)) and 'failed' not in after_merge(states_2)
+                   and bool(after_merge(states_3)) and 'failed' not in after_merge(states_3))
+    def world_infra_retry(self):
+        # 5. transient GitHub trouble (mergeability unknown, merge refused): retried by Studio, one approval only.
+        self.set_world(merge_refusals=1, lazy_mergeable_s=3.0, pages_run_s=0, gate_s=0.5)
+        slug = self.create('Mundo movido: reintento', 'javier')
+        reviews_before = self.count_reviews()
+        refusals_before = self.gh_state().get('refusals_done', 0)
+        self.call('POST', '/api/pieces/' + slug + '/review/approve', {}, 'matias')
+        pub = self.wait(slug, {'published'}, timeout=1800)
+        refused = self.gh_state().get('refusals_done', 0) - refusals_before
+        self.score(WORLD_ITEMS[4], len(pub.get('urls', [])) == 3 and refused == 1 and self.count_reviews() - reviews_before == 1)
+    def world_content_red(self):
+        # 6. a content-red gate: the approved text is refused by the public check, the piece goes back to changes requested.
+        self.set_world(pages_run_s=0, gate_s=0.5)
+        slug = self.create('Mundo movido: contenido rojo', 'matias', marker=fake_gh.CONTENT_RED)
+        self.call('POST', '/api/pieces/' + slug + '/review/approve', {}, 'javier')
+        pub = self.wait(slug, {'failed'}, timeout=1800)
+        self.score(WORLD_ITEMS[5], self.piece_state(slug) == 'changes_requested' and 'comprobaciones' in pub.get('error_plain', ''))
+    def world_es_javier(self):
+        # 7. Javier writes in es-419 (the source); the fake translator prepares en and zh-Hans; the full cycle publishes.
+        self.set_world(pages_run_s=0, gate_s=0.5)
+        slug = self.make_es_piece('Javier escribe en español', 'javier')
+        self.call('POST', '/api/pieces/' + slug + '/review/approve', {}, 'matias')
+        pub = self.wait(slug, {'published'}, timeout=1800)
+        self.score(WORLD_ITEMS[6], len(pub.get('urls', [])) == 3)
+    def make_es_piece(self, title, author):
+        """Javier's piece: es-419 is the source; the translate endpoint (STUDIO_TRANSLATION_PROVIDER=fake) prepares the rest."""
+        piece = self.call('POST', '/api/pieces', {'kind': 'essay', 'title': title, 'source_locale': 'es-419'}, author)
+        slug = piece['slug']; base = '/api/pieces/' + slug
+        current = self.call('GET', base + '/doc/es-419', user=author)
+        doc = {'schema': 'fcmo-essay-doc-v1', 'locale': 'es-419', 'title': title, 'dek': 'Una edición comprobada.',
+               'blocks': [{'id': 'b-01234567', 'type': 'p', 'content': [{'t': 'text', 'v': 'Una publicación escrita en español con 42 ideas.'}], 'attrs': {}}],
+               'footnotes': {}}
+        self.call('PUT', base + '/doc/es-419', {'base_rev': current['rev'], 'doc': doc, 'cursor': {'anchor': 2}}, author)
+        self.call('POST', base + '/locale/es-419/state', {'state': 'ready', 'reviewed': True}, author)
+        self.call('POST', base + '/translate', {'base_rev': self.call('GET', base, user=author)['head_rev']}, author)
+        for loc in ('en', 'zh-Hans'):
+            self.call('POST', base + '/locale/' + loc + '/state', {'state': 'ready', 'reviewed': True, 'confirmation': 'Leí y entiendo el texto chino'}, author)
+        self.call('POST', base + '/versions', {'name': 'Reviewed draft'}, author)
+        self.call('POST', base + '/review/request', {}, author)
+        return slug
     def browser_checks(self, published):
         env = dict(self.env, STUDIO_USER='javier', STUDIO_PASS=PASSWORD)
         seeded = subprocess.check_output(['python3', '-m', 'tests.harness.seed_studio'], cwd=self.root / 'source', env=env, text=True).strip()
@@ -238,10 +419,12 @@ class Journey:
                 os.killpg(self.process.pid, signal.SIGKILL); self.process.wait()
             self.log.close()
         if hasattr(self, 'pages'): self.pages.shutdown(); self.pages.server_close()
-        expected = (25 + bool(os.environ.get('DOGFOOD_CAPTURES'))) if self.browser else 17
+        expected = self.expected_total(self.browser, os.environ.get('DOGFOOD_CAPTURES'), self.only)
         passed = sum(s['ok'] for s in self.scores)
-        summary = {'passed': passed, 'total': expected, 'executed': len(self.scores), 'completed': passed == expected and len(self.scores) == expected, 'checks': self.scores}
+        self.completed = passed == expected and len(self.scores) == expected
+        summary = {'passed': passed, 'total': expected, 'executed': len(self.scores), 'completed': self.completed, 'checks': self.scores}
         (self.root / 'summary.json').write_text(json.dumps(summary, indent=2))
+        for failed in (s['name'] for s in self.scores if not s['ok']): print('FAIL ' + failed, flush=True)
         print(f"DOGFOOD {summary['passed']}/{summary['total']}; evidence: {self.root}", flush=True)
 
 def main():
@@ -265,5 +448,7 @@ def main():
         finally: journey.close()
     finally:
         if not args.keep: shutil.rmtree(root, ignore_errors=True)
+    # Red items were scored and named, and the run went on; the exit status still says the run is not green.
+    if journey is not None and not all(s['ok'] for s in journey.scores): sys.exit(1)
 
 if __name__ == '__main__': main()
