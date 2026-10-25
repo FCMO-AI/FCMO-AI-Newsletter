@@ -10,17 +10,17 @@ Status: **the deterministic A3 publication candidate is assembled and measurable
 - Story schema: `fcmo-stories-v2`
 - Newsroom-status schema: `fcmo-newsroom-status-v2`
 - Story layer generated at: `2026-10-24T12:18:30Z`
-- Edition: `2026-10-24` (`DELAYED`)
+- Edition: `2026-10-25` (`DELAYED`)
 
 ## Final route/data manifest
 
-- `data/routes.json`: 5463 routes; SHA-256 `99aab6807595701d0ac55f2f2428e679c755781470f5c7181605997e5df189a2`
+- `data/routes.json`: 5463 routes; SHA-256 `2c8547c802d01e349203d7b484d68a47ca1c5a788f01b5a5eb2679c9c9dd46e4`
 - Route locales: en=1821, es-419=1821, zh-Hans=1821
 - Route kinds: about=3, agenda=3, archive=21, author=3, beat=27, correction=12, corrections=3, edition=129, feeds=3, landing=3, legal=9, method=3, org=2610, search=3, status=3, story=2061, subscribe=12, topic=555
 - Story routes: 2061 for 687 live canonical stories
 - Embedded `data/stories.v2.json`: byte-identical to the Story layer; SHA-256 `7b12e06feaa5a31068298984166de220045eb46a6a4318447811dbab638f5e14`
-- Embedded `data/newsroom-status.json`: byte-identical to newsroom status; SHA-256 `96256ee3989f2d1f17c8f71150ac093fde18e111af1f564a9a989f4b596afd37`
-- Candidate tree: 19711 files, including 2073 local story-media files; SHA-256 `e5c128e42ea792369d9ff448819a3cf3c8b9e0fa28464554d617d57d39173c00`
+- Embedded `data/newsroom-status.json`: byte-identical to newsroom status; SHA-256 `dcc044d5c4576610139de98a31284aa88f5c089dd3056e650db259d8be69765a`
+- Candidate tree: 19711 files, including 2073 local story-media files; SHA-256 `444f2b89c35f83712ae11e9892f13ae45ad27e23c2bf0414e7efe6614a4c861a`
 
 ## Verification boundary
 
