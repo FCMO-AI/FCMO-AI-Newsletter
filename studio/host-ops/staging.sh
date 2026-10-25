@@ -15,7 +15,9 @@ set -u
 umask 077
 
 HERE=$(CDPATH='' cd "$(dirname "$0")/../.." && pwd)
-STATE_DIR=${TMPDIR:-/tmp}
+WORK_BASE=${TMPDIR:-/tmp}
+# State lives in one fixed per-user place, so --stop finds an instance whatever TMPDIR it was started with.
+STATE_DIR=${XDG_RUNTIME_DIR:-/tmp}/studio-staging
 HEALTH_TIMEOUT=${STAGING_HEALTH_TIMEOUT:-180}
 MODE=run
 TRANSLATION=fake
@@ -99,7 +101,7 @@ stop_instance() {
         rm -f "$STATE_DIR/studio-staging-$PORT.state"
     fi
     case $WORK in
-        "$STATE_DIR"/studio-staging.*) rm -rf "$WORK" ;;
+        /*/studio-staging.??????) rm -rf "$WORK" ;;
     esac
     PID=
     WORK=
@@ -108,7 +110,8 @@ stop_instance() {
 # Create the fresh data directory, the users, and launch the server from this checkout.
 start_instance() {
     PORT=$(pick_port) || { err "no free port in 8497 or 8492-8599"; return 1; }
-    WORK=$(mktemp -d "$STATE_DIR/studio-staging.XXXXXX") || { err "cannot create a temporary directory"; return 1; }
+    mkdir -p "$STATE_DIR" || { err "cannot create the state directory"; return 1; }
+    WORK=$(mktemp -d "$WORK_BASE/studio-staging.XXXXXX") || { err "cannot create a temporary directory"; return 1; }
     mkdir -p "$WORK/data" "$WORK/bin" "$WORK/home" "$WORK/gh-javier" "$WORK/gh-matias" || return 1
     SESSION_KEY=$(random_hex 24)
     STAGING_PASSWORD=$(random_hex 16)
@@ -138,7 +141,11 @@ PY
     fi
 
     # Clean environment: no operator GH_*, GITHUB_* or live STUDIO_* variables reach the staging server.
-    env -i PATH="$WORK/bin:$PATH" HOME="$WORK/home" LANG=C.UTF-8 \
+    # Real translation needs the operator's Codex login: point CODEX_HOME at it (never copied or printed).
+    CODEX_ENV=
+    if [ "$PROVIDER" = codex-cli ]; then CODEX_ENV="CODEX_HOME=${CODEX_HOME:-$HOME/.codex}"; fi
+    # shellcheck disable=SC2086
+    env -i PATH="$WORK/bin:$PATH" HOME="$WORK/home" LANG=C.UTF-8 $CODEX_ENV \
         STUDIO_DATA="$WORK/data" STUDIO_ORIGIN="http://127.0.0.1:$PORT" STUDIO_SESSION_KEY="$SESSION_KEY" \
         STUDIO_PORT="$PORT" STUDIO_BIND=127.0.0.1 STUDIO_REPO="$HERE" \
         STUDIO_LIVE_ENABLED=0 STUDIO_DRY_RUN=1 STUDIO_ALLOW_NON_EN_SOURCE=0 \
