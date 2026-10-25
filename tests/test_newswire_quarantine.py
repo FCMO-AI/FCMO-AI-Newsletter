@@ -102,6 +102,27 @@ class QuarantineTests(unittest.TestCase):
         self.assertEqual(partial.quarantine_release(self.root), [RID2])
         self.assertEqual(partial.verify_release(self.root)["record_count"], 1)
 
+    def test_private_marker_in_an_edition_page_withholds_that_page_alone(self) -> None:
+        # 2026-10-24: a published daily brief rendered an internal queue name into
+        # editions/<date>.html; no record was defective, yet the whole release was refused hourly.
+        self._write("editions/2026-10-24.html", "<html>Rechecked the top ARB-run stale target</html>")
+        self._write("editions/2026-10-23.html", "<html>Clean prose about a stable target</html>")
+        self._restamp()
+        with self.assertRaises(ValueError):
+            partial.verify_release(self.root)
+        self.assertEqual(partial.quarantine_release(self.root), [])  # no record ids involved
+        self.assertFalse((self.root / "editions/2026-10-24.html").exists())
+        self.assertTrue((self.root / "editions/2026-10-23.html").is_file())
+        receipt = partial.verify_release(self.root)
+        self.assertEqual(receipt["quarantined_from"]["pages"], ["editions/2026-10-24.html"])
+
+    def test_private_marker_outside_records_and_editions_still_refuses(self) -> None:
+        self._write("about.html", "<html>an ARB-run leak</html>")
+        self._restamp()
+        partial.quarantine_release(self.root)
+        with self.assertRaises(ValueError):
+            partial.verify_release(self.root)
+
     def test_clean_release_quarantines_nothing(self) -> None:
         self.assertEqual(partial.quarantine_release(self.root), [])
         partial.verify_release(self.root)

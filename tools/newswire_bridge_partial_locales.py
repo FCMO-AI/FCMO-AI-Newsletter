@@ -97,6 +97,26 @@ def _bad_record_ids(release: Path) -> set[str]:
     return bad
 
 
+def _bad_edition_pages(release: Path) -> list[str]:
+    """Daily edition pages whose own bytes carry a private/implementation marker.
+
+    An edition page is rendered prose (the published daily brief). If one internal term leaks
+    into it, only that page is withheld; the records and every other page still cross
+    (incident 2026-10-24: one brief line blocked the release hourly from 14:40Z).
+    """
+    pages: list[str] = []
+    for path in sorted((release / "editions").glob("*.html")) if (release / "editions").is_dir() else []:
+        if path.is_symlink() or not path.is_file():
+            continue  # structural: verify refuses these
+        try:
+            text = path.read_text(encoding="utf-8")
+        except UnicodeDecodeError:
+            continue  # structural: verify refuses this
+        if strict.private_marker(text):
+            pages.append(path.relative_to(release).as_posix())
+    return pages
+
+
 def quarantine_release(release: Path) -> list[str]:
     """Drop per-record defects from the release instead of refusing the whole transfer.
 
@@ -118,7 +138,8 @@ def quarantine_release(release: Path) -> list[str]:
             or receipt.get("release_id") != f"newswire-{original_digest[:24]}":
         raise ValueError("airlock.json: original bytes do not match the original receipt; refusing to quarantine")
     bad = _bad_record_ids(release)
-    if not bad:
+    bad_pages = _bad_edition_pages(release)
+    if not bad and not bad_pages:
         return []
     original_release_id = receipt["release_id"]
     dev = release / "data" / "developments.jsonl"
@@ -146,6 +167,8 @@ def quarantine_release(release: Path) -> list[str]:
     for path in sorted(release.rglob("*")):
         if path.is_file() and path != receipt_path and any(rid in path.name for rid in bad):
             path.unlink()
+    for rel in bad_pages:
+        (release / rel).unlink()
     digest = strict.release_digest(release)
     receipt.update(
         corpus_digest=digest,
@@ -155,6 +178,7 @@ def quarantine_release(release: Path) -> list[str]:
             "release_id": original_release_id,
             "corpus_digest": original_digest,
             "ids": sorted(bad),
+            **({"pages": bad_pages} if bad_pages else {}),
         },
     )
     receipt_path.write_text(json.dumps(receipt, indent=2, sort_keys=True) + "\n", encoding="utf-8")
