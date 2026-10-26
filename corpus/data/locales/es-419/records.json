@@ -6125,6 +6125,60 @@
       "title": "EnSIMem enlaza índices estructurados de memoria con evidencia conversacional original",
       "why_it_matters": "El diseño trata el índice como una dirección a diálogos preservados, no como un sustituto con pérdida de la evidencia original. Combina coincidencia de entidades y propiedades con planificación de cobertura específica para cada consulta, y recupera los turnos originales antes de generar una respuesta. Si se reproduce, podría orientar sistemas de memoria que requieren recuperación temporal, composicional o de varios hechos; en la medición informada, el manejo explícito de evidencia tiene como costo una latencia en línea mayor."
     },
+    "FCMO-22E1B6702680": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan que TopKLoRA y su proceso de descubrimiento de circuitos latentes contrastivos (CLCD) identifican y eliminan mediante ablación circuitos necesarios y suficientes para una puerta trasera implantada sintéticamente, con un disparador sintáctico conocido, en organismos de modelo Gemma-2-2B, Qwen2.5-1.5B y Qwen2.5-7B. En su configuración, la ablación eliminó al menos el 99.9% de las respuestas de prueba activadas por el disparador en cada organismo, mientras que los adaptadores en varias capas conservaron una capacidad de seguir instrucciones cercana a la de los modelos gemelos limpios."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En el estudio de los autores, con posiciones de adaptación y rangos igualados, los circuitos TopKLoRA fueron menores que los circuitos LoRA densos en los 30 pares con semillas emparejadas que se informan; la fracción mínima informada para eliminar la puerta trasera fue de 1.2–6.8% del conjunto de latentes TopKLoRA, frente a 20.6–38.9% para LoRA denso."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "En esta activación no se encontró ni se realizó una reproducción independiente de los resultados de TopKLoRA/CLCD de los autores.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "La búsqueda de circuitos del artículo requiere conocer el disparador y disponer de pares de indicación y control; no se prueban disparadores desconocidos ni semánticos.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "Los modelos base informados llegan a 7B parámetros y son organismos controlados; no se midió la transferencia a modelos mayores o desplegados.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "Distintos órdenes de descubrimiento pueden producir varios circuitos verificados; el artículo informa circuitos mínimos dentro de una cuadrícula de búsqueda, no mecanismos únicos.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se reproducen los resultados acotados del artículo, los adaptadores dispersos con pruebas causales de circuitos podrían facilitar la localización y eliminación de ciertas puertas traseras de ajuste fino, conservando la conducta benigna; esto podría cambiar de forma material los métodos de evaluación de seguridad, aunque la evidencia sigue limitada a un estudio sintético con modelos pequeños.",
+      "limitations": [
+        "Todos los resultados de rendimiento y ablación causal provienen de un preprint de los autores; no se realizó una reproducción independiente.",
+        "Los experimentos usan puertas traseras sintéticas con disparadores sintácticos conocidos y pares de indicación/control contrastivos, a diferencia de muchos casos realistas con disparadores desconocidos.",
+        "El mayor modelo base informado es de 7B; no se establece la generalización a sistemas mayores o desplegados.",
+        "El artículo no interpreta latentes individuales y reconoce que pueden existir varios circuitos verificados."
+      ],
+      "relationships": [],
+      "summary": "Un nuevo preprint presenta TopKLoRA, un adaptador de ajuste fino disperso, junto con un proceso de descubrimiento de circuitos latentes contrastivos para localizar conductas introducidas durante el ajuste fino. En organismos sintéticos con puertas traseras, de hasta 7B parámetros, los autores informan que la ablación de un circuito seleccionado elimina casi todas las respuestas de prueba ante un disparador sintáctico conocido, mientras que los adaptadores distribuidos en varias capas conservan la capacidad de seguir instrucciones benignas. El estudio compara con LoRA denso e informa circuitos más pequeños y específicos. Son resultados informados por los autores en un entorno controlado; siguen pendientes los disparadores semánticos o desconocidos, los modelos más grandes y la reproducción independiente.",
+      "technical": {
+        "claimed_result": "Los autores informan circuitos de puertas traseras sintéticas con disparadores conocidos en tres familias de modelos de hasta 7B, con eliminación casi completa en indicaciones de prueba activadas por el disparador y conservación cercana de la capacidad de seguir instrucciones en adaptadores de varias capas. Informan circuitos más pequeños que los controles LoRA densos emparejados.",
+        "demonstrated_result": "En esta activación no se demostró ningún resultado independiente. La evidencia inspeccionada directamente es un preprint con resultados informados por sus autores y una página pública del repositorio; no se ejecutaron el código ni los experimentos de entrenamiento.",
+        "mechanism": "TopKLoRA aplica una proyección ReLU de cuello de botella y conserva solo las k latentes de adaptador con mayor activación por token. CLCD ordena esas latentes mediante indicaciones contrastivas y luego verifica los circuitos candidatos al probar tanto la necesidad (la ablación con ceros elimina la conducta) como la suficiencia (el circuito seleccionado la conserva por sí solo) en indicaciones reservadas.",
+        "regime": "Organismos de modelo abierto ajustados: Gemma-2-2B y Qwen2.5-1.5B/7B; puerta trasera insertada en 10,500 ejemplos de instrucción mediante un subconjunto envenenado de 4.76% y un disparador sintáctico explícito conocido; conjuntos de indicaciones reservadas para prueba; el descubrimiento usa pares de disparador conocido e indicación de control.",
+        "reproducibility": "El artículo afirma que ofrece código para generar datos, entrenar, evaluar y descubrir circuitos; una página pública de GitHub muestra directorios de experimentos, configuración, código fuente y pruebas. En esta activación no se fijó un commit, no se descargaron pesos o datos, no se ejecutó código ni se reprodujeron resultados.",
+        "strongest_baseline": "Adaptadores LoRA densos con rango, posición de adaptación y datos de entrenamiento correspondientes; el artículo también usa controles con orden latente aleatorio y ablación aleatoria."
+      },
+      "title": "TopKLoRA informa circuitos causales dispersos para eliminar puertas traseras activadas por un disparador conocido",
+      "why_it_matters": "Si se reproduce fuera de este entorno controlado, el método podría ofrecer una forma más focalizada de auditar y eliminar ciertas puertas traseras introducidas durante el ajuste fino sin degradar ampliamente la conducta benigna. El resultado corresponde a organismos sintéticos con un disparador conocido y no demuestra protección frente a puertas traseras reales o activadas por disparadores desconocidos."
+    },
     "FCMO-230AB517F277": {
       "claims": [
         {
