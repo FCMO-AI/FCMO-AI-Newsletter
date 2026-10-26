@@ -38,3 +38,5 @@ d-base/d-front/d-story/d-letters/d-pages (d-pages también es tuyo si lo usas).
 ## Prohibido
 Secretos, deploy, push, tocar archivos del otro carril, debilitar gates de privacidad/legal/i18n/publicación (AGENTS.md).
 Reporte final ≤10 líneas: COMMITS, FINDINGS, ACCEPTANCE (con conteos), UNVERIFIED, CANON (sólo lo que leíste).
+
+Nota (relanzamiento 10-26): un intento anterior se cortó y pudo dejar trabajo parcial sin commit (mira `git status`); revísalo y continúa, no lo descartes sin razón. La carpeta del brief ahora es escribible.
