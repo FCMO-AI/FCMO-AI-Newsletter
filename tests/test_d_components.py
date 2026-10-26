@@ -150,3 +150,14 @@ class StoryVariants(unittest.TestCase):
         html = opening('只有一个已记录的事实。', '只有一个已记录的事实。', '只有一个已记录的事实。', cat)
         self.assertIn('class="read20-cell read20-phone"',html)
         self.assertIn('只有一个已记录的事实。',html)
+
+    def test_untranslated_correction_is_pending_never_absent(self):
+        from tools.paper.templates.d_story import render
+        cat = load_catalogs(ROOT)['es-419']
+        html = render(story={'corrections':[{'text':{'en':'A recorded correction'}}]}, catalog=cat,
+            code='es-419',title='Título',dek_text='Resumen.',beat_label='',home_href='/paper/es/',
+            evidence={},summary='Resumen.',why='',technical={},status_html='',automation_html='',
+            byline='',dates_line='',plate_html='',note_html='',taxonomy_html='',navigation_html='',
+            topic_nav_html='',machine_html='')
+        self.assertIn(cat['strings']['l10n']['pending_title'],html)
+        self.assertNotIn(cat['strings']['corrections_page']['none'],html)

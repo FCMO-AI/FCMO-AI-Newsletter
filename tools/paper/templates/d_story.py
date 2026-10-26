@@ -39,6 +39,8 @@ def render(*, story, catalog, code, title, dek_text, beat_label, home_href,
         note = (c.get('text') or {}).get(code)
         if note:
             corrections.append(f'<p>{d.e(note)}</p>')
+        else:
+            corrections.append(f'<p class="translation-note">{d.e(st["l10n"]["pending_title"])}</p>')
     correction_html = ''.join(corrections) or f'<p>{d.e(st["corrections_page"]["none"])}</p>'
     foot = (f'<section class="d-bone d-story-notes"><div class="frame"><div><h2 class="d-section">{d.e(text["corrections"])}</h2>{correction_html}</div>'
             f'<div><h2 class="d-section">{d.e(st["method"]["grades_title"])}</h2><p>{d.e(d.copy(catalog)["source_note"])}</p>{d.legend(catalog)}</div></div></section>')
