@@ -1,5 +1,7 @@
 # Revisión Opus (10-26)
 
+> Corrección del operador posterior a esta revisión: `fcmogroup.com` NO es de FCMO y no hay respaldo; FCMO no tiene dominio hasta que Javier compre fcmo.group. Correo de privacidad acordado: `privacidad@fcmo.group` (reenvío).
+
 **Verdicts:** Kit **FIX** · Aviso **FIX** · Formulario **FIX**. None is GO yet.
 
 **Checks I ran**

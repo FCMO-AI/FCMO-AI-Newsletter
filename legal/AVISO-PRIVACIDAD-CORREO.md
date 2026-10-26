@@ -1,10 +1,10 @@
-<!-- BORRADOR. No publicar hasta que Matías complete {{RESPONSABLE}}, {{DOMICILIO}}, {{CORREO_PRIVACIDAD}} y se revisen los puntos de docs/suscripcion/AVISO.md. -->
+<!-- BORRADOR. No publicar hasta que Javier defina {{RESPONSABLE}} y {{DOMICILIO}} (operador, 10-26: son decisión de Javier) y exista fcmo.group para {{CORREO_PRIVACIDAD}} = privacidad@fcmo.group y se revisen los puntos de docs/suscripcion/AVISO.md. -->
 
 # Aviso de privacidad integral — Suscripción por correo de FCMO AI Newsletter
 
 ## 1. Responsable
 
-{{RESPONSABLE}} (nombre propuesto, pendiente de confirmación: Matías Peña Szőke; en adelante, «el responsable») es quien decide sobre el tratamiento de los datos personales de las personas suscritas al correo de FCMO AI Newsletter.
+{{RESPONSABLE}} (en adelante, «el responsable») es quien decide sobre el tratamiento de los datos personales de las personas suscritas al correo de FCMO AI Newsletter.
 
 **Domicilio para oír y recibir notificaciones:** {{DOMICILIO}}.
 **Contacto de privacidad:** {{CORREO_PRIVACIDAD}}.
@@ -93,7 +93,7 @@ Publicaremos cualquier cambio en esta misma página antes de que surta efecto. S
 
 ## 1. Controller
 
-{{RESPONSABLE}} (proposed name, pending confirmation: Matías Peña Szőke; the "controller") decides how the personal data of FCMO AI Newsletter email subscribers is processed.
+{{RESPONSABLE}} (the "controller") decides how the personal data of FCMO AI Newsletter email subscribers is processed.
 
 **Address for notices:** {{DOMICILIO}}.
 **Privacy contact:** {{CORREO_PRIVACIDAD}}.
@@ -182,7 +182,7 @@ Last updated: {{FECHA}} (set at publication).
 
 ## 1. 责任方
 
-{{RESPONSABLE}}（拟定姓名，待确认：Matías Peña Szőke；以下称"责任方"）决定如何处理 FCMO AI Newsletter 邮件订阅者的个人数据。
+{{RESPONSABLE}}（以下称"责任方"）决定如何处理 FCMO AI Newsletter 邮件订阅者的个人数据。
 
 **接收通知的地址：** {{DOMICILIO}}。
 **隐私联系方式：** {{CORREO_PRIVACIDAD}}。

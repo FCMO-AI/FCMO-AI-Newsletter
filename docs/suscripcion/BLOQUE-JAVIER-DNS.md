@@ -1,6 +1,6 @@
 # Para Javier: pégale esto a tu Claude
 
-Matías completa las dos variables con la elección del paso 0 de `LISTA-KIT-MATIAS.md` y adjunta los registros **como texto**. `fcmo.group` será el oficial (Javier lo compra): usa `news.fcmo.group` si está comprado y disponible en DNS; si aún no, el respaldo es `news.fcmogroup.com`. No se ha comprobado DNS desde este carril.
+Matías completa las dos variables con la elección del paso 0 de `LISTA-KIT-MATIAS.md` y adjunta los registros **como texto**. `fcmo.group` será el oficial (Javier lo compra): usa `news.fcmo.group` cuando esté comprado y disponible en DNS. FCMO no tiene otro dominio (Matías, 10-26: fcmogroup.com y fcmo.ai no son de FCMO); sin fcmo.group comprado, este paso está BLOQUEADO. No se ha comprobado DNS desde este carril.
 
 Copia todo lo que está entre las líneas y pégalo en tu Claude.
 
@@ -8,7 +8,7 @@ Copia todo lo que está entre las líneas y pégalo en tu Claude.
 Soy Javier y administro el DNS en GoDaddy. Necesito autenticar un subdominio para enviar correo de la Newsletter de FCMO AI con Kit (kit.com). Ayúdame paso a paso, una cosa a la vez y en español sencillo.
 
 Elección que Matías debe completar antes de empezar:
-- DOMINIO_RAIZ = [fcmo.group si está comprado y disponible en DNS; si no, fcmogroup.com]
+- DOMINIO_RAIZ = fcmo.group (sólo cuando esté comprado; no hay respaldo)
 - DOMINIO_ENVIO = [news. seguido del DOMINIO_RAIZ elegido]
 
 Reglas:
