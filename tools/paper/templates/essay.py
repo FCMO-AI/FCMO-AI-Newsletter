@@ -139,13 +139,14 @@ def render(piece: dict, locale: dict, body_html: str, notes_html: str, sources_h
     hrefs = ctx.get("hrefs") or {}
     base = ctx.get("base", "/")
     assets = ctx.get("assets") or (base.rstrip("/") + "/assets/")
-    title = ctx.get("title") or piece.get("slug", "")
+    title = ctx.get("title") if "title" in ctx else piece.get("slug", "")
+    title = title or ""
     dek = ctx.get("dek") or ""
     mode = ctx.get("mode", "essay")
     css = f'<link rel="stylesheet" href="{_e(assets)}css/essay.css">'
     attrs = f'class="essay" data-piece-id="{_e(piece.get("id", ""))}" data-kind="{_e(piece.get("kind", "essay"))}" lang="{_e(locale["html_lang"])}"'
     original = hrefs.get("original")
-    head_core = f'{_kicker(piece, c)}<h1 class="essay-title">{_e(title)}</h1>' + (f'<p class="essay-dek">{_e(dek)}</p>' if dek else "")
+    head_core = f'{_kicker(piece, c)}' + (f'<h1 class="essay-title">{_e(title)}</h1>' if title else "") + (f'<p class="essay-dek">{_e(dek)}</p>' if dek else "")
     shelf = f'<p class="essay-back"><a href="{_e(hrefs["shelf"])}">← {_e(c["back"])}</a></p>' if hrefs.get("shelf") else ""
 
     if mode == "pending":
@@ -165,14 +166,24 @@ def render(piece: dict, locale: dict, body_html: str, notes_html: str, sources_h
     published = _date(piece.get("first_published_at"))
     date_text = ctx.get("date_text") or published
     minutes = reading_minutes(body_html)
-    byline = (f'<p class="essay-byline"><span class="essay-by">{_e(c["by"])} {_authors(piece)}</span>'
+    author_names = _authors(piece)
+    author_html = f'<span class="essay-by">{_e(c["by"])} {author_names}</span>' if author_names else ""
+    byline = (f'<p class="essay-byline">{author_html}'
               f'<time datetime="{_e(published)}">{_e(date_text)}</time><span class="essay-read">{minutes} {_e(c["min"])}</span></p>')
     disclosure = ""
     if ctx.get("machine_prepared"):
         orig = f' <a href="{_e(original)}">{_e(c["original"])} →</a>' if original else ""
         disclosure = f'<aside class="mt-disclosure" role="note"><p><strong>{_e(c["mt_title"])}</strong></p><p>{_e(c["mt_body"])}{orig}</p></aside>'
     header = body_html.lstrip().startswith('<header class="essay-head"')
-    head_html = "" if header else f'<header class="essay-head">{head_core}{byline}</header>'
+    hero = piece.get("hero")
+    figures = piece.get("figures") or {}
+    hero_figure = figures.get(hero, {}) if hero else {}
+    hero_html = ""
+    if hero_figure.get("file"):
+        src = base.rstrip("/") + "/editorial/pieces/" + _e(piece.get("slug", "")) + "/" + _e(hero_figure["file"])
+        alt = _e((hero_figure.get("alt") or {}).get(loc, ""))
+        hero_html = f'<figure class="essay-hero"><img src="{src}" width="{int(hero_figure["width"])}" height="{int(hero_figure["height"])}" alt="{alt}"></figure>'
+    head_html = "" if header else f'{hero_html}<header class="essay-head">{head_core}{byline}</header>'
     description = dek or re.sub(r"\s+", " ", _text(body_html)).strip()[:160]
     body = (f'{css}<article {attrs}>{head_html}{disclosure}{_toc(body_html, c)}'
             f'<div class="essay-body">{body_html}</div>{notes_html}{sources_html}{_corrections(piece, loc, c)}'

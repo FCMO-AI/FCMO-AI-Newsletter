@@ -166,6 +166,7 @@ def fetch_cartas(content_url: str | None, api_key: str | None, *, timeout: float
         "limit": str(MAX_CARTAS),
         "order": "published_at desc",
         "fields": "title,url,custom_excerpt,published_at,feature_image",
+        "include": "authors",
     })
     request = Request(url + "?" + query, headers={"Accept": "application/json", "User-Agent": "FCMO-AI-paper/1"})
     try:
@@ -191,12 +192,18 @@ def fetch_cartas(content_url: str | None, api_key: str | None, *, timeout: float
                 return []
             if when is None or safe_url is None:
                 return []
+            ghost_authors = post.get("authors", [])
+            if not isinstance(ghost_authors, list):
+                return []
+            authors = [{"name": author["name"].strip()} for author in ghost_authors
+                       if isinstance(author, dict) and isinstance(author.get("name"), str) and author["name"].strip()]
             item = {
                 "title": title.strip(),
                 "url": safe_url,
                 "custom_excerpt": excerpt.strip() if isinstance(excerpt, str) else None,
                 "published_at": post["published_at"],
                 "feature_image": _safe_public_url(post.get("feature_image"), origin, image=True),
+                "authors": authors,
             }
             projected.append((when, item))
         projected.sort(key=lambda row: row[0], reverse=True)
@@ -241,6 +248,96 @@ def render_cartas(posts: list[dict[str, str | None]], locale_code: str) -> str:
         f'<h2>{_e(copy["cartas_title"])}</h2><p>{_e(copy["cartas_intro"])}</p>'
         f'<div class="card-row">{"".join(cards)}</div></section>'
     )
+
+
+def render_letters_shelf(letters: list[dict[str, Any]], locale_code: str) -> str:
+    """Render the data-backed Letters cards used by the front-page shelf.
+
+    Accepts the public Ghost projection and published editorial piece records.
+    Missing metadata stays absent; this renderer never supplies an author or role.
+    """
+    rows = []
+    for letter in letters:
+        if not isinstance(letter, dict):
+            continue
+        if letter.get("status", "published") != "published":
+            continue
+        title = letter.get("title")
+        if not isinstance(title, str) or not title.strip():
+            docs = letter.get("docs") or {}
+            doc = docs.get(locale_code) if isinstance(docs, dict) else None
+            title = doc.get("title") if isinstance(doc, dict) else None
+        if not isinstance(title, str) or not title.strip():
+            continue
+        url = letter.get("url")
+        slug = letter.get("slug")
+        if not url and isinstance(slug, str) and slug:
+            prefix = {"en": "", "es-419": "es/", "zh-Hans": "zh/"}.get(locale_code, "")
+            url = f"{prefix}cartas/{slug}/"
+        if not isinstance(url, str) or not url:
+            continue
+        date = letter.get("published_at") or letter.get("first_published_at")
+        authors = letter.get("authors")
+        if not authors and isinstance(letter.get("author"), str):
+            authors = [letter["author"]]
+        names = [a.get("name") if isinstance(a, dict) else a for a in (authors or [])]
+        names = [name.strip() for name in names if isinstance(name, str) and name.strip()]
+        image_url = letter.get("feature_image")
+        hero = letter.get("hero")
+        if not image_url and isinstance(hero, str):
+            fig = (letter.get("figures") or {}).get(hero, {})
+            image_url = f"editorial/pieces/{letter['slug']}/{fig['file']}" if fig.get("file") and letter.get("slug") else None
+        image = f'<img class="d-letter-image" src="{_e(image_url)}" alt="" loading="lazy">' if isinstance(image_url, str) and image_url else ""
+        date_html = f'<time class="d-letter-date">{_e(_date(str(date), locale_code))}</time>' if isinstance(date, str) and _published(date) else ""
+        author_html = f'<span class="d-letter-author">{_e(" · ".join(names))}</span>' if names else ""
+        image_class = "" if image else " no-image"
+        rows.append(f'<article class="d-letter-card{image_class}">{image}<div class="d-letter-card-copy">{date_html}{author_html}<h3><a href="{_e(url)}">{_e(title.strip())}</a></h3></div></article>')
+    if not rows:
+        return ""
+    return '<div class="d-letters-shelf">' + "".join(rows) + "</div>"
+
+
+def render_letters_index(letters: list[dict[str, Any]], locale_code: str) -> str:
+    """Render the index rows; the page shell and route belong to paper.build."""
+    labels = {
+        "en": ("Letters", "Written by the people behind FCMO.", "Date", "Author", "Title", "Type"),
+        "es-419": ("Cartas", "Escritas por las personas detrás de FCMO.", "Fecha", "Autor", "Título", "Tipo"),
+        "zh-Hans": ("来信", "由 FCMO 背后的人亲自撰写。", "日期", "作者", "标题", "类型"),
+    }.get(locale_code, ("Letters", "Written by the people behind FCMO.", "Date", "Author", "Title", "Type"))
+    rows = []
+    for letter in sorted((x for x in letters if isinstance(x, dict)),
+                         key=lambda x: x.get("published_at") or x.get("first_published_at") or "", reverse=True):
+        if letter.get("status", "published") != "published":
+            continue
+        card = render_letters_shelf([letter], locale_code)
+        if not card:
+            continue
+        docs = letter.get("docs") or {}
+        doc = docs.get(locale_code, {}) if isinstance(docs, dict) else {}
+        title = letter.get("title") or (doc.get("title") if isinstance(doc, dict) else "")
+        prefix = {"en": "", "es-419": "es/", "zh-Hans": "zh/"}.get(locale_code, "")
+        url = letter.get("url") or f'{prefix}cartas/{_e(letter.get("slug", ""))}/'
+        authors = letter.get("authors") or ([letter.get("author")] if letter.get("author") else [])
+        names = [a.get("name") if isinstance(a, dict) else a for a in authors]
+        names = [n.strip() for n in names if isinstance(n, str) and n.strip()]
+        date = letter.get("published_at") or letter.get("first_published_at")
+        date_text = _date(str(date), locale_code) if isinstance(date, str) and _published(date) else ""
+        kind = letter.get("kind")
+        kind_labels = {
+            "en": {"letter": "Letter", "essay": "Essay", "note": "Note"},
+            "es-419": {"letter": "Carta", "essay": "Ensayo", "note": "Nota"},
+            "zh-Hans": {"letter": "来信", "essay": "随笔", "note": "短札"},
+        }
+        kind_text = kind_labels.get(locale_code, kind_labels["en"]).get(kind, "") if isinstance(kind, str) else ""
+        excerpt = letter.get("custom_excerpt") or (doc.get("dek") if isinstance(doc, dict) else "")
+        rows.append(f'<li class="d-letter-row"><time aria-label="{_e(date)}">{_e(date_text)}</time><span>{_e(" · ".join(names))}</span><span><a href="{_e(url)}">{_e(title)}</a>{f"<small>{_e(excerpt)}</small>" if excerpt else ""}</span><span>{_e(kind_text)}</span></li>')
+    if not rows:
+        return ""
+    title, intro, date, author, entry_title, kind = labels
+    return (f'<section class="d-letter-index"><header><p class="d-kicker">FCMO AI · {_e(title)}</p>'
+            f'<h1>{_e(title)}</h1><p>{_e(intro)}</p></header><div class="d-letter-columns" aria-hidden="true">'
+            f'<span>{_e(date)}</span><span>{_e(author)}</span><span>{_e(entry_title)}</span><span>{_e(kind)}</span></div>'
+            f'<ol>{"".join(rows)}</ol></section>')
 
 
 def without_empty_cartas_slot(page: str, cartas: str) -> str:

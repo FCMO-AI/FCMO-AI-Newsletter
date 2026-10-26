@@ -905,3 +905,7 @@ Clasificación final de las incidencias (son resultados de pruebas/subpruebas, n
 - `43f2baf36` Keep untranslated corrections visible as pending
 - `9a3fc6597` Preserve publication facts across the D core
 - `1ee9f7c5c` Check both dimensions of mobile control targets
+# nl-d-cartas
+
+- `tools/paper/build.py`, page-route generation in `PaperBuilder.build` (the loop that currently writes the `cartas/` redirect): replace the redirect with a data-backed letters index in EN, ES and ZH from published Ghost cartas plus published editorial pieces. Use `community.render_letters_shelf` for the home-page section; generate the reference-matched index markup from the same letter records. The current redirect prevents `/cartas/` from meeting this lane's first-class index requirement, and this file is outside the lane's ownership.
+- `tools/paper/build.py`, stylesheet assembly for front-page output: include `assets/css/d/d-letters.css` on the home page so the exported `community.render_letters_shelf` markup receives its owned styles.
