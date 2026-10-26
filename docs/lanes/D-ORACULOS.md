@@ -53,12 +53,14 @@ HTML/JS/búsqueda permanece intacto. El límite CSS de 114688 bytes no se aument
 
 Se elige `/letters/` para el índice D en EN/ES/ZH; `/cartas/` conserva su
 redirección heredada y las piezas conservan sus rutas. Portada e índice consumen
-la misma proyección de registros publicados y ediciones listas, con URLs e
+la misma proyección de piezas publicadas y ediciones listas, con URLs e
 imágenes bajo el prefijo real del build. La portada presenta hasta doce; el índice
 conserva todos y las ediciones publicadas siguen enlazadas. Sin noticias, las
 cartas publicadas todavía aparecen. Sin cartas, no se inventan tarjetas.
 El CSS `d-letters.css` ya estaba incluido en el shell y no requería otra carga.
-Ghost sólo aporta prosa canónica: no se presenta como traducción ES/ZH. Esas
+El índice EN incorpora además la proyección pública de Ghost. La portada mantiene
+la exclusión de Ghost exigida por la prueba vigente; Ghost no aporta ediciones
+nativas ni se presenta como traducción ES/ZH. Esas
 ediciones usan documentos editoriales listos y muestran vacío cuando faltan.
 No hay llamadas de traducción ni red; Ghost se sustituye por datos sintéticos.
 
@@ -95,3 +97,16 @@ Rutas relativas al checkout canónico externo `FCMO-Agent-Hub/`, HEAD leído
 - `disciplines/COMMUNICATION.md`: el reporte separa resultado local, omisiones y bloqueo CSS sin declarar 1:1.
 - `governance/KNOWLEDGE_FRESHNESS.md`: el HEAD del Hub se verificó localmente; los resultados anteriores no se reciclan como aceptación del candidato actual.
 - `commons/USO_CANON.md`: no se añade ceremonia comercial a una integración local reversible, sin enviar ni publicar contenido.
+
+## Contrato Ghost conservado
+
+La primera suite serial se interrumpió con salida 130 después de registrar rojos;
+no se cuenta como aceptación completa. La reproducción aislada
+`python3 -m unittest tests.test_community_rail` terminó `Ran 16 tests`,
+`FAILED (failures=3)` (`ghost-before.log`). Dos casos rechazaban el nuevo campo
+`authors` fuera de la proyección permitida; otro prohibía contenido Ghost en
+cualquier portada. Se restituye la proyección exacta de cinco campos, sin
+solicitar autores al proveedor. Portada usa las piezas locales; el índice EN
+puede añadir Ghost, sin atribuir autor cuando no consta. No se modificó ninguna
+aserción de `test_community_rail`; las nuevas regresiones de integración
+comprueban también esa separación.

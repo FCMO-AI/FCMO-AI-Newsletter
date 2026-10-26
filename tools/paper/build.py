@@ -440,7 +440,7 @@ class PaperBuilder:
         stats = (len(self.live), len({topic for story in self.live for topic in story.get("topics", [])}),
                  len({org for story in self.live for org in story.get("organizations", [])}))
         if not order:
-            landing = render_landing(locale=locale, home=href(self.base, locale["path_prefix"]), technical=href(self.base, locale["path_prefix"]+TECHNICAL_FRONT), about=href(self.base, locale["path_prefix"]+"about/"), subscribe=href(self.base, locale["path_prefix"]+"suscribete/"), lead="", top="", cartas=community.render_letters_shelf(self._letters(locale)[:12], locale["code"]), stats=stats)
+            landing = render_landing(locale=locale, home=href(self.base, locale["path_prefix"]), technical=href(self.base, locale["path_prefix"]+TECHNICAL_FRONT), about=href(self.base, locale["path_prefix"]+"about/"), subscribe=href(self.base, locale["path_prefix"]+"suscribete/"), lead="", top="", cartas=community.render_letters_shelf(self._letters(locale, include_ghost=False)[:12], locale["code"]), stats=stats)
             _, subscribe_script = community.render_subscribe(locale_code=locale["code"], path_prefix=locale["path_prefix"], base=self.base, portal_url=self.portal_url)
             self._write_page(locale=locale, suffix="", title="FCMO AI", description="FCMO AI: evidence-first news, research and applied AI strategy.", body=landing, kind="landing", extra_head=subscribe_script, machine_alternates=[("text/plain", href(self.base, "llms.txt")), ("application/json", href(self.base, "agent.json"))])
             return
@@ -471,19 +471,19 @@ class PaperBuilder:
             "status_href": href(self.base, locale["path_prefix"] + "status/"),
             "status_label": dz["see_status"],
         }
-        cartas = community.render_letters_shelf(self._letters(locale)[:12], locale["code"])
+        cartas = community.render_letters_shelf(self._letters(locale, include_ghost=False)[:12], locale["code"])
         _, subscribe_script = community.render_subscribe(locale_code=locale["code"], path_prefix=locale["path_prefix"], base=self.base, portal_url=self.portal_url)
         landing = render_landing(locale=locale, home=href(self.base, locale["path_prefix"]), technical=href(self.base, locale["path_prefix"]+TECHNICAL_FRONT), about=href(self.base, locale["path_prefix"]+"about/"), subscribe=href(self.base, locale["path_prefix"]+"suscribete/"), lead="", top="", cartas=cartas, stats=stats, feature=feature, front=front_context(order=order, base=self.base))
         self._write_page(locale=locale, suffix="", title="FCMO AI", description="FCMO AI: evidence-first news, research and applied AI strategy.", body=landing, kind="landing", og_image=self._media_url(first, locale), extra_head=subscribe_script, machine_alternates=[("text/plain", href(self.base, "llms.txt")), ("application/json", href(self.base, "agent.json"))])
 
-    def _letters(self, locale: dict) -> list[dict]:
+    def _letters(self, locale: dict, *, include_ghost: bool = True) -> list[dict]:
         """Project published records into the requested native edition.
 
         Ghost supplies canonical prose only; without native editions it cannot
         populate ES/ZH shelves. Editorial records use their ready locale docs.
         """
         code = locale["code"]
-        letters = [dict(post) for post in self.cartas] if code == "en" else []
+        letters = [dict(post) for post in self.cartas] if include_ghost and code == "en" else []
         for piece in self.editorial_pieces:
             if (piece["status"] != "published" or piece["kind"] not in {"letter", "essay", "note"}
                     or piece["locales"].get(code) != "ready"):

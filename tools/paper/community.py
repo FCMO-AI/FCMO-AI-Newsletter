@@ -166,7 +166,6 @@ def fetch_cartas(content_url: str | None, api_key: str | None, *, timeout: float
         "limit": str(MAX_CARTAS),
         "order": "published_at desc",
         "fields": "title,url,custom_excerpt,published_at,feature_image",
-        "include": "authors",
     })
     request = Request(url + "?" + query, headers={"Accept": "application/json", "User-Agent": "FCMO-AI-paper/1"})
     try:
@@ -192,18 +191,12 @@ def fetch_cartas(content_url: str | None, api_key: str | None, *, timeout: float
                 return []
             if when is None or safe_url is None:
                 return []
-            ghost_authors = post.get("authors", [])
-            if not isinstance(ghost_authors, list):
-                return []
-            authors = [{"name": author["name"].strip()} for author in ghost_authors
-                       if isinstance(author, dict) and isinstance(author.get("name"), str) and author["name"].strip()]
             item = {
                 "title": title.strip(),
                 "url": safe_url,
                 "custom_excerpt": excerpt.strip() if isinstance(excerpt, str) else None,
                 "published_at": post["published_at"],
                 "feature_image": _safe_public_url(post.get("feature_image"), origin, image=True),
-                "authors": authors,
             }
             projected.append((when, item))
         projected.sort(key=lambda row: row[0], reverse=True)
