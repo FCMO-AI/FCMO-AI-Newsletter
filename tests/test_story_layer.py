@@ -22,6 +22,7 @@ CORPUS = REPO / "corpus"
 TOOL = REPO / "tools" / "story_layer.py"
 NOW = "2026-09-26T20:00:00Z"
 FDBE = "FCMO-FDBE3D996243"
+UPSTREAM_WITHDRAWAL = "FCMO-CEB94FE552F9"
 # The two merges frozen by the contract fixture. Daily supply adds more, so the
 # full set is derived from the recorded tombstones below, never counted by hand.
 FROZEN_MERGES = {"FCMO-EEF757F0D806": "FCMO-1A874373897A", "FCMO-1E497EDC718A": "FCMO-C74403EE205F"}
@@ -30,7 +31,7 @@ FULL_HISTORY = story_layer.is_full_history(REPO)
 
 
 def recorded_merges(corpus: Path = CORPUS) -> dict[str, str]:
-    """{duplicate: survivor} for every merge the corpus has recorded (active tombstones)."""
+    """{duplicate: survivor} for every merge recorded in active tombstones."""
     doc = json.loads((corpus / "tombstones.json").read_text())
     return {e["id"]: e["superseded_by"] for e in doc["tombstones"]
             if e.get("action") == "superseded" and e.get("reinstated_at") is None}
@@ -109,8 +110,9 @@ class RepositoryStoryLayerTests(unittest.TestCase):
             proc = subprocess.run([sys.executable, str(TOOL), "build", "--corpus", str(CORPUS), "--history-git", str(REPO),
                                    "--out", str(out), "--now", NOW], capture_output=True, text=True, cwd=REPO)
             self.assertEqual(proc.returncode, 0, proc.stderr)
+            # Withdrawn: the FDBE retraction and the upstream superseded row with no survivor.
             self.assertEqual(proc.stdout.strip(),
-                             f"stories OK live={len(expected_live_ids())} withdrawn=1 merged={len(MERGES)} "
+                             f"stories OK live={len(expected_live_ids())} withdrawn={len({FDBE, UPSTREAM_WITHDRAWAL})} merged={len(MERGES)} "
                              f"front_page={sum(s['front_page_eligible'] for s in self.document['stories'])}")
             validate = subprocess.run([sys.executable, str(REPO / "tests" / "harness" / "validate.py"),
                                        str(CONTRACTS / "stories.v2.schema.json"), str(out)], capture_output=True, text=True)
@@ -467,11 +469,12 @@ class NewsroomOutputTests(unittest.TestCase):
 
     def test_notices_corrections_and_data(self) -> None:
         notices = surfaces.write_story_layer_outputs(self.site, self.document, CORPUS)
-        self.assertEqual(notices, 3 * (1 + len(MERGES)))
         self.assertEqual(json.loads(self.read("data/stories.v2.json")), self.document)
         rows = json.loads(self.read("data/corrections.json"))
         self.assertEqual({(r["story_id"], r["kind"]) for r in rows},
-                         {(FDBE, "withdrawal"), *((dup, "merge") for dup in MERGES)})
+                         {(FDBE, "withdrawal"), (UPSTREAM_WITHDRAWAL, "withdrawal"),
+                          *((dup, "merge") for dup in MERGES)})
+        self.assertEqual(notices, 3 * len({r["story_id"] for r in rows}))
         for dup, survivor in MERGES.items():
             self.assertFalse((self.site / "developments" / f"{dup}.html").exists())
             page = self.read(f"news/es/{dup}.html")
@@ -480,11 +483,16 @@ class NewsroomOutputTests(unittest.TestCase):
         page = self.read(f"news/zh-hans/{FDBE}.html")
         self.assertIn('data-fcmo-story-status="withdrawn"', page)
         self.assertIn("noindex", page)
+        upstream = self.read(f"news/zh-hans/{UPSTREAM_WITHDRAWAL}.html")
+        self.assertIn('data-fcmo-story-status="withdrawn"', upstream)
+        self.assertIn("noindex", upstream)
 
     def test_tombstone_alone_still_retires_the_page(self) -> None:
         document = dict(self.document, stories=[s for s in self.document["stories"] if s["id"] != FDBE])
         for _ in range(2):  # the second run reads the title back from corrections.json
-            self.assertEqual(surfaces.write_story_layer_outputs(self.site, document, CORPUS), 3 * (1 + len(MERGES)))
+            notices = surfaces.write_story_layer_outputs(self.site, document, CORPUS)
+            rows = json.loads(self.read("data/corrections.json"))
+            self.assertEqual(notices, 3 * len({r["story_id"] for r in rows}))
             page = self.read(f"news/en/{FDBE}.html")
             self.assertIn('data-fcmo-story-status="withdrawn"', page)
             self.assertIn("Old &amp; true headline", page)
@@ -559,6 +567,7 @@ class IngestSelectionTests(unittest.TestCase):
         self.assertEqual({r["id"] for r in selected}, expected_live_ids(native=False))
         self.assertEqual(merged, MERGES)
         self.assertEqual(sorted(held), sorted([(FDBE, "TOMBSTONED:UNVERIFIED_RELEASE"),
+                                               (UPSTREAM_WITHDRAWAL, "WITHDRAWN_UPSTREAM"),
                                                *((dup, "TOMBSTONED:DUPLICATE") for dup in MERGES)]))
 
     def test_one_bad_record_is_held_back_alone(self) -> None:
@@ -592,6 +601,18 @@ class IngestSelectionTests(unittest.TestCase):
 
 
 class TaxonomyTests(unittest.TestCase):
+    def test_superseded_record_without_a_duplicate_target_normalizes_as_withdrawn(self) -> None:
+        source = taxonomy.read_jsonl(FIXTURES / "corpus-44" / "data" / "developments.jsonl")[0]
+        replacement = "FCMO-AAAAAAAAAAAA"
+        row = dict(source, id="FCMO-00000000BAD1", status="superseded",
+                   relationships=[{"target_id": replacement, "type": "related"}])
+
+        record = taxonomy.normalize_record(row)
+
+        self.assertEqual(record["status"], "withdrawn")
+        self.assertNotIn("superseded_by", record["withdrawal"])
+        self.assertEqual(validator_for(CONTRACTS / "record.v3.schema.json").errors(record), [])
+
     def test_retracted_claim_label_normalizes_as_a_demonstrated_correction(self) -> None:
         normalized = taxonomy.normalize_claim_label("RETRACTED_OR_INVALIDATED")
         self.assertEqual(normalized, ("DEMONSTRATED", "RETRACTED_OR_INVALIDATED"))

@@ -35,7 +35,21 @@ def check_repo(repo_root: Path) -> GateResult:
 
     violations: list[str] = []
     tracked = [item for item in listed.decode("utf-8", errors="replace").split("\0") if item]
+    try:
+        deleted_output = subprocess.run(
+            ["git", "-C", str(repo_root), "ls-files", "--deleted", "-z"],
+            check=True,
+            capture_output=True,
+        ).stdout
+    except (OSError, subprocess.CalledProcessError) as exc:
+        raise GateFailure("NO_MACHINE_PATHS", [f"cannot list deleted tracked files: {exc}"]) from exc
+    deleted = {item for item in deleted_output.decode("utf-8", errors="replace").split("\0") if item}
     for relative in tracked:
+        # A candidate may intentionally remove generated files before its index
+        # is updated. They are still in `ls-files`, but no longer part of the
+        # candidate tree and therefore cannot contain a publication leak.
+        if relative in deleted:
+            continue
         normalized = relative.replace("\\", "/")
         if normalized.startswith("tests/fixtures/"):
             continue
@@ -51,4 +65,4 @@ def check_repo(repo_root: Path) -> GateResult:
 
     if violations:
         raise GateFailure("NO_MACHINE_PATHS", violations)
-    return GateResult("NO_MACHINE_PATHS", len(tracked))
+    return GateResult("NO_MACHINE_PATHS", len(tracked) - len(deleted))
