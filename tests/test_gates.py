@@ -97,6 +97,21 @@ class PublicationGateTests(unittest.TestCase):
         self.assertEqual(caught.exception.code, "NO_MACHINE_PATHS")
         self.assertIn("operator-note.txt", caught.exception.problems[0])
 
+    def test_machine_path_gate_ignores_tracked_files_deleted_from_candidate(self):
+        repo = Path(self.tmp.name) / "deleted-repo"
+        repo.mkdir()
+        subprocess.run(["git", "init", "-q", str(repo)], check=True)
+        generated = repo / "release-overlay/final/parts/part-255.b64"
+        generated.parent.mkdir(parents=True)
+        generated.write_text("candidate generated part", encoding="utf-8")
+        subprocess.run(["git", "-C", str(repo), "add", "."], check=True)
+        generated.unlink()
+
+        result = no_machine_paths.check_repo(repo)
+
+        self.assertEqual(result.code, "NO_MACHINE_PATHS")
+        self.assertEqual(result.checked, 0)
+
     def test_clean_tree_passes_all_gates(self):
         results = run_all.run(self.root)
         self.assertEqual([result.code for result in results], [gate.__module__.rsplit(".", 1)[-1].upper() for gate in run_all.GATES])
