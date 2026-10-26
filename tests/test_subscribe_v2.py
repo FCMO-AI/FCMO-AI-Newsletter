@@ -170,7 +170,8 @@ class SubscriptionNoticeTests(unittest.TestCase):
                 self.assertIn(clicks, edition)
                 self.assertIn(images, edition)
                 self.assertIn(region, edition)
-                self.assertIn('Matías Peña Szőke', edition)
+                # Operador 10-26: responsable y domicilio los decide Javier; el aviso no propone nombre.
+                self.assertNotIn('Peña Szőke', edition)
                 # HEAD has eight body markers, despite the review's count of seven.
                 body = edition[edition.index('## 1.'):]
                 self.assertEqual(Counter(re.findall(r'\{\{\w+\}\}', body)), {
@@ -185,7 +186,9 @@ class SubscriptionNoticeTests(unittest.TestCase):
         self.assertIn('0. **Dominio', guide)
         self.assertIn('DOMINIO_ENVIO', guide)
         self.assertIn('news.fcmo.group', guide)
-        self.assertIn('news.fcmogroup.com', guide)
+        # Operador 10-26: FCMO no tiene otro dominio; no hay respaldo de envío.
+        self.assertNotRegex(guide, r'DOMINIO_\w+=\S*fcmogroup')
+        self.assertIn('no son de FCMO', guide)
         self.assertNotIn('hola@news.', guide)
         self.assertIn('alias', guide)
         self.assertIn('como texto', guide)
