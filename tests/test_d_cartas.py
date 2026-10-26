@@ -25,6 +25,15 @@ class LettersShelfTests(unittest.TestCase):
             self.assertNotIn("<img", html)
             self.assertNotIn("By ", html)
 
+    def test_shelf_renders_one_or_many_records(self):
+        letters = [
+            {"title": f"Letter {index}", "url": f"/cartas/{index}/", "published_at": "2026-10-01T12:00:00Z"}
+            for index in range(3)
+        ]
+        self.assertEqual(1, community.render_letters_shelf(letters[:1], "en").count('<article class="d-letter-card'))
+        html = community.render_letters_shelf(letters, "en")
+        self.assertEqual(3, html.count('<article class="d-letter-card'))
+
     def test_index_localizes_and_keeps_only_present_fields(self):
         letters = [
             {"title": "Letter " + "long " * 12, "url": "/cartas/one/", "published_at": "2026-10-01T12:00:00Z", "authors": [{"name": "Javier"}], "kind": "letter"},
