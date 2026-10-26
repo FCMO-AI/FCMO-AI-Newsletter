@@ -1,0 +1,18 @@
+# Formulario de suscripción (Kit, EN/ES/ZH)
+
+**En juego:** correos de personas reales (datos personales y su consentimiento) y el nombre público de FCMO AI como remitente. Nada sale hasta que se encienda la bandera.
+**Evidencia exigida:** el formulario real, con consentimiento explícito, estados honestos y un alta que el proveedor confirme por doble opt-in, probado de punta a punta por un humano con una dirección propia.
+**Evidencia que hay:** HTML renderizado y capturas locales, pruebas unitarias. No se envió ningún POST a Kit ni se suscribió a nadie. El alta real contra Kit y la llegada del correo de confirmación NO están probadas.
+**Ética: material (privacidad y consentimiento de personas reales) →** casilla obligatoria y desmarcada que enlaza el aviso, el texto dice que habrá un correo de confirmación y que no se envía nada antes de confirmar, y el estado «revisa tu bandeja» no afirma suscripción (la respuesta de Kit es opaca: sólo prueba que se envió). Pendiente del operador: revisar el aviso de privacidad (`legal/email-privacy-kit.json`) antes de encender.
+
+## Qué se construyó
+- `diario_form` (`tools/paper/templates/subscribe.py`): dos columnas. A la izquierda título, lede y la leyenda de las tres clases de evidencia (Demostrado, Afirmado, No establecido, con las cadenas ya publicadas del sitio). A la derecha un «registro» en Ink con: selector de idioma (tres enlaces; Kit tiene un formulario por idioma, así que cambiar de idioma lleva a la página de ese idioma), 01 correo, 02 consentimiento, botón. El único naranja es el cuadro de 10 px del kicker. Se aleja de la plantilla genérica de Kit rechazada el 10-26 y toma de R4 el Ink, la rejilla mono, la numeración y las marcas de evidencia.
+- Estados: enviando (botón deshabilitado, «Enviando…»), pendiente («Falta un paso / Revisa tu bandeja», marca discontinua = aún no establecido, con «¿otra dirección?»), error (mensaje + enlace a la página alojada de Kit, que siempre muestra el resultado real). Sin JS el formulario hace POST normal y hay enlace `noscript`.
+- JS (`subscribe.js`): solo añade el enlace alojado en el error y el botón «otra dirección». Misma semántica `no-cors`.
+- Bandera: sin cambios. `FCMO_EMAIL_ENABLED=false` (lo que pasa Pages) mantiene «próximamente», sin `<form>`. Para ver el formulario en local: `FCMO_EMAIL_ENABLED=true FCMO_EMAIL_COMPLIANCE_READY=true FCMO_EMAIL_PROVIDER=kit FCMO_EMAIL_PRIVACY_URL=https://example.org/privacy python3 -m tools.paper.build --stories contracts/fixtures/stories.v2.json --status contracts/fixtures/newsroom-status.fresh.json --out /tmp/site --base /`.
+
+## Capturas (`capturas/`)
+Chromium headless 1248, 1440/390/320 en EN, ES y ZH, más pendiente, error, apagado y «antes». Juicio: la primera ronda dejaba un hueco de ~100 px arriba, el bloque desalineado (relleno heredado de `.subscribe-page`), un filete pegado bajo el lede y, en móvil, la leyenda de tres filas antes del formulario. Se corrigió: la leyenda va después del formulario en móvil; relleno heredado anulado; en pendiente el botón «otra dirección» quedaba en un bloque suelto y ahora está dentro del mismo panel. Queda: a 320 px la barra inferior del sitio (fuera de mi propiedad) junta «Correcciones» y «Suscribirme».
+
+## Pruebas
+`tests/test_subscribe_v2.py` (+4 pruebas nuevas, ninguna aserción debilitada), `tests/test_subscription_journey.py`, `tests/test_subscription_client.mjs`. Suite completa (`PYTHONPATH=.:tests python3 -m unittest discover -s tests`): 1274 pruebas, OK (9 omitidas). Sin `tests` en `PYTHONPATH`, `test_kit_state_observation...` no encuentra `harness.mock_kit`; es del entorno, no del cambio.

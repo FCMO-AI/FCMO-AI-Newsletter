@@ -71,6 +71,43 @@ class SubscribeBlockTests(unittest.TestCase):
         self.assertIn('https://comunidad.example/#/portal/account', letter.html)
         self.assertIn('Dirección de prueba', letter.text)
 
+class SubscribeFormTests(unittest.TestCase):
+    """The native form behind the email flag: one explicit consent, one language per page, honest states."""
+    def _form(self, locale):
+        from tools.email_providers import SubscribeForm
+        from tools.paper.templates.subscribe import diario_form
+        return diario_form(locale, '/', SubscribeForm('https://app.kit.com/forms/123/subscriptions', 'email_address', True,
+                                                      'https://example.org/privacy', 'https://example.org/signup'), True)
+
+    def test_every_locale_has_required_unchecked_consent_linking_the_notice(self):
+        import re
+        for locale, prefix in (('en', ''), ('es-419', 'es/'), ('zh-Hans', 'zh/')):
+            with self.subTest(locale=locale):
+                html = self._form(locale)
+                box = re.search(r'<input type="checkbox" name="consent"[^>]*>', html).group(0)
+                self.assertIn('required', box); self.assertNotIn('checked', box)
+                self.assertIn('href="/' + prefix + 'privacy/"', html)
+                self.assertIn('type="email"', html); self.assertIn('required', html)
+
+    def test_language_switch_marks_current_and_links_the_other_two(self):
+        for locale in ('en', 'es-419', 'zh-Hans'):
+            with self.subTest(locale=locale):
+                html = self._form(locale)
+                self.assertEqual(html.count('aria-current="true"'), 1)
+                self.assertEqual(html.count('class="sub-lang" href='), 2)
+
+    def test_states_and_hosted_fallback_exist_without_claiming_confirmation(self):
+        html = self._form('en')
+        for marker in ('role="alert"', 'data-sub-pending', 'data-sub-retry', 'sub-error-link', 'data-busy="Sending'):
+            self.assertIn(marker, html)
+        self.assertNotIn('You’re subscribed', html)
+
+    def test_form_stays_off_while_email_flag_is_false(self):
+        with patch.dict(os.environ, {'FCMO_EMAIL_ENABLED': 'false', 'FCMO_EMAIL_PROVIDER': 'kit',
+                                     'FCMO_EMAIL_COMPLIANCE_READY': 'true', 'FCMO_EMAIL_PRIVACY_URL': 'https://example.org/privacy'}, clear=True):
+            html = subscribe_block('all', 'en', page=True)
+        self.assertIn('data-subscribe-state="launch"', html); self.assertNotIn('<form', html)
+
 
 if __name__ == '__main__':
     unittest.main()

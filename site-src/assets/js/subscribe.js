@@ -17,7 +17,8 @@
       const button = form.querySelector('button[type="submit"]');
       const label = button.textContent; const body = new FormData(form);
       const controller = new AbortController(); const timeout = setTimeout(() => controller.abort(), 20000);
-      error.hidden = true; form.dataset.busyNow = 'true'; section.dataset.state = 'busy';
+      const hosted = form.querySelector('.sub-error-link');
+      error.hidden = true; if (hosted) hosted.hidden = true; form.dataset.busyNow = 'true'; section.dataset.state = 'busy';
       section.style.minHeight = section.getBoundingClientRect().height + 'px';
       button.disabled = true; button.textContent = form.dataset.busy; form.setAttribute('aria-busy', 'true');
       try {
@@ -26,11 +27,23 @@
         const pending = section.querySelector('[data-sub-pending]'); pending.hidden = false;
         pending.querySelector('[tabindex="-1"]').focus();
       } catch {
-        section.dataset.state = 'error'; error.hidden = false; error.textContent = form.dataset.error;
+        section.dataset.state = 'error'; error.hidden = false; error.textContent = form.dataset.error; if (hosted) hosted.hidden = false;
       } finally {
         clearTimeout(timeout); delete form.dataset.busyNow; button.disabled = false;
         button.textContent = label; form.removeAttribute('aria-busy');
       }
+    });
+  });
+  // "Wrong address?" returns to the form with the typed address kept; nothing was confirmed, so nothing is undone.
+  document.querySelectorAll('[data-sub-retry]').forEach((retry) => {
+    retry.addEventListener('click', () => {
+      const section = retry.closest('.sub-experience');
+      section.dataset.state = 'idle';
+      section.querySelector('[data-sub-pending]').hidden = true;
+      section.querySelector('[data-sub-idle]').hidden = false;
+      section.style.minHeight = '';
+      const input = section.querySelector('input[type="email"]');
+      if (input) { input.focus(); input.select(); }
     });
   });
 })();
