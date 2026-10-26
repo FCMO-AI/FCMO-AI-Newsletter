@@ -46,6 +46,24 @@ class DSite(unittest.TestCase):
             for component in ('d-ledger', 'd-claims-sources', 'd-timeline'):
                 self.assertIn(component, source)
 
+    def test_structured_article_keeps_the_full_native_summary(self):
+        from html.parser import HTMLParser
+        from tools.paper.i18n import field
+        class Article(HTMLParser):
+            def __init__(self): super().__init__(); self.inside=False; self.parts=[]
+            def handle_starttag(self,tag,attrs):
+                self.inside = tag=='script' and dict(attrs).get('type')=='application/ld+json'
+            def handle_endtag(self,tag):
+                if tag=='script': self.inside=False
+            def handle_data(self,data):
+                if self.inside: self.parts.append(data)
+        stories = {s['id']:s for s in json.loads((ROOT/'site/data/stories.v2.json').read_text())['stories']}
+        for code in ('en','es-419','zh-Hans'):
+            row = next(r for r in self.routes if r['kind']=='story' and r['locale']==code)
+            parser=Article(); parser.feed(self.page(row))
+            article=json.loads(''.join(parser.parts))
+            self.assertEqual(article['articleBody'],field(stories[row['story_id']],code,'summary'))
+
     def test_archive_calendar_uses_real_editions_only(self):
         for row in [r for r in self.routes if r['kind'] == 'archive']:
             source = self.page(row)

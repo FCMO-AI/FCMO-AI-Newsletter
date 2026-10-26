@@ -128,7 +128,7 @@ def document(*, locale: dict, catalog: dict, config: dict, base: str, path: str,
     legacy_css = f'<link rel="stylesheet" href="{_e(css)}">' if any(token in body_class.split() for token in ("page-essay", "page-letters", "page-issue")) else ""
     status_stack = f'<div class="status-stack">{status_banner}</div>' if status_banner else ""
     return f'''<!doctype html>
-<html lang="{_e(lang)}" data-story-base="{_e(_url(base, locale_prefix + 'legacy-story/'))}">
+<html lang="{_e(lang)}" class="d-site" data-story-base="{_e(_url(base, locale_prefix + 'legacy-story/'))}">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>{_e(title)}</title><meta name="description" content="{_e(description[:160])}">
@@ -140,8 +140,8 @@ def document(*, locale: dict, catalog: dict, config: dict, base: str, path: str,
 <meta property="og:type" content="{_e(page_type)}"><meta property="og:title" content="{_e(title)}"><meta property="og:description" content="{_e(description[:160])}"><meta property="og:url" content="{_e(canonical)}">{og}
 {structured}{agent_alternates(machine_alternates)}{extra_head}
 </head>
-<body class="d-site {_e(body_class)}"><a class="skip-link" href="#main">{_e(strings['a11y']['skip_to_content'])}</a>
-<header class="d-nav topbar surface-ink"><div class="frame topbar-in"><a class="brandmark" href="{_e(home)}" aria-label="{_e(strings['brand']['home_label'])}"><img class="brandmark-sym" src="{_e(brand_sym)}" alt="" width="28" height="28">FCMO AI</a>
+<body class="{_e(body_class)}"><a class="skip-link" href="#main">{_e(strings['a11y']['skip_to_content'])}</a>
+<header class="topbar d-nav surface-ink"><div class="frame topbar-in"><a class="brandmark" href="{_e(home)}" aria-label="{_e(strings['brand']['home_label'])}"><img class="brandmark-sym" src="{_e(brand_sym)}" alt="" width="28" height="28">FCMO AI</a>
 <details class="d-menu"><summary aria-label="{_e(nav['menu'])}"><span aria-hidden="true">☰</span></summary><nav class="d-menu-links" aria-label="{_e(nav['menu'])}">{topnav}{languages}</nav></details>
 <nav class="topnav" aria-label="{_e(strings['a11y']['primary_nav'])}">{topnav}</nav>
 <nav class="langsel" aria-label="{_e(strings['a11y']['language_switcher'])}">{languages}</nav><a class="btn-cta" href="{_e(subscribe)}">{_e(tabs['subscribe'])}</a></div></header>

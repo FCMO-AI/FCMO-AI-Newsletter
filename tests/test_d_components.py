@@ -47,6 +47,19 @@ class EvidenceComponents(unittest.TestCase):
             if not n:
                 self.assertIn(self.catalogs['en']['strings']['record']['none'], html)
 
+    def test_front_legend_counts_the_whole_record_without_upgrading_missing_proof(self):
+        from tools.paper.i18n import plural
+        d = self.components()
+        for cat in self.catalogs.values():
+            for n in (0,1,17):
+                stories = [{'topics':['one'],'organizations':['org'],'confidence':'confirmed'} for _ in range(n)]
+                stories += [{'topics':[],'organizations':[]}]
+                html = d.legend(cat, stories=stories, method_href='/method/')
+                self.assertIn(plural(cat,'story',n), html)
+                self.assertIn(cat['strings']['proof']['not_established']+' · '+plural(cat,'story',1),html)
+                self.assertIn(f'<li>{n+1}<span>',html)
+                self.assertIn('href="/method/"',html)
+
     def test_no_claim_source_relationships_are_invented(self):
         d = self.components()
         html = d.claims_sources({'sources': [{'url': 'https://a.test', 'domain': 'a.test'}]},

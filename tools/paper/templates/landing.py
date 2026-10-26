@@ -329,5 +329,5 @@ def render(*, locale: dict, home: str, technical: str, about: str, subscribe: st
         letters,
         _wire(slots["wire"], ctx),
         _topics(order, ctx),
-        d_front.follow(home, base, ctx),
+        d_front.follow(home, base, ctx, order),
     ]) + "</div>"

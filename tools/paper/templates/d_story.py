@@ -45,9 +45,9 @@ def render(*, story, catalog, code, title, dek_text, beat_label, home_href,
     foot = (f'<section class="d-bone d-story-notes"><div class="frame"><div><h2 class="d-section">{d.e(text["corrections"])}</h2>{correction_html}</div>'
             f'<div><h2 class="d-section">{d.e(st["method"]["grades_title"])}</h2><p>{d.e(d.copy(catalog)["source_note"])}</p>{d.legend(catalog)}</div></div></section>')
     return (header + f'<div class="frame"><div class="d-story-disclosure">{d.e(byline)} · {automation_html}{status_html}</div>'
-            f'<div class="d-story-reading"><div class="story-body d-story-argument">{argument}</div>'
+            f'<div class="d-story-reading"><div class="d-story-argument"><div class="story-body"><div class="brief">{argument}</div></div></div>'
             f'<aside class="d-story-ledger">{d.ledger(evidence,catalog)}</aside></div>'
-            f'{d.claims_sources(story,evidence,catalog)}{unknowns_box(evidence,catalog)}'
+            f'<div class="data-hero">{d.claims_sources(story,evidence,catalog)}</div>{unknowns_box(evidence,catalog)}'
             f'{d.section(d.copy(catalog)["timeline"])}{d.timeline(story,catalog)}'
             + ('<div class="layers">' + layer('technical',st['design']['technical_title'],st['design']['layer_r3'],f'<div id="technical">{tech}</div>',is_open=False) + '</div>' if technical else '')
             + f'{machine_html}<details class="d-story-taxonomy"><summary>{d.e(text["topics"])}</summary>{taxonomy_html}</details>'

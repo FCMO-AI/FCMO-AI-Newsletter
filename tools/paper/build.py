@@ -471,7 +471,7 @@ class PaperBuilder:
             "status_href": href(self.base, locale["path_prefix"] + "status/"),
             "status_label": dz["see_status"],
         }
-        cartas = getattr(self, "_editorial_shelf", {}).get(locale["code"], community.render_cartas(self.cartas, locale["code"]))
+        cartas = getattr(self, "_editorial_shelf", {}).get(locale["code"], "")
         _, subscribe_script = community.render_subscribe(locale_code=locale["code"], path_prefix=locale["path_prefix"], base=self.base, portal_url=self.portal_url)
         landing = render_landing(locale=locale, home=href(self.base, locale["path_prefix"]), technical=href(self.base, locale["path_prefix"]+TECHNICAL_FRONT), about=href(self.base, locale["path_prefix"]+"about/"), subscribe=href(self.base, locale["path_prefix"]+"suscribete/"), lead="", top="", cartas=cartas, stats=stats, feature=feature, front=front_context(order=order, base=self.base))
         self._write_page(locale=locale, suffix="", title="FCMO AI", description="FCMO AI: evidence-first news, research and applied AI strategy.", body=landing, kind="landing", og_image=self._media_url(first, locale), extra_head=subscribe_script, machine_alternates=[("text/plain", href(self.base, "llms.txt")), ("application/json", href(self.base, "agent.json"))])
@@ -594,6 +594,8 @@ class PaperBuilder:
         image = self._media_url(story, locale)
         sources = self._source_urls(story)
         structured = {"@context": "https://schema.org", "@type": "NewsArticle", "identifier": story["id"], "headline": title, "description": description, "datePublished": story["first_published_at"], "dateModified": story["updated_at"], "inLanguage": locale["code"], "mainEntityOfPage": story_url, "citation": self._citation_permalink(story), "isBasedOn": sources, "image": [image], "author": {"@type": "Organization", "name": "FCMO AI Research Desk"}, "publisher": {"@type": "Organization", "name": "FCMO AI"}}
+        if complete:
+            structured["articleBody"] = str(field(story, code, "summary") or "")
         if story.get("corrections"):
             structured["correction"] = [c.get("note") or c.get("reason") or c.get("kind", "Correction") for c in story["corrections"]]
         story_api = absolute(self.base_url, f"api/v1/stories/{story['id']}.json")
@@ -1029,8 +1031,7 @@ class PaperBuilder:
             if not hasattr(self, "_editorial_shelf"): self._editorial_shelf = {}
             self._editorial_shelf[locale["code"]] = "".join(part for part in (
                 essays.render_shelf(self.editorial_pieces, locale["code"], base=self.base),
-                essays.render_issue_shelf(self.editorial_issues, locale["code"], base=self.base),
-                community.render_cartas(self.cartas, locale["code"])) if part)
+                essays.render_issue_shelf(self.editorial_issues, locale["code"], base=self.base)) if part)
             self._front(locale)
             self._newsletter_pages(locale)
             for story in self.live:

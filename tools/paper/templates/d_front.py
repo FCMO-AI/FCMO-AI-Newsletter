@@ -45,21 +45,23 @@ def cover(feature, story, ctx):
         cells.append(f'<div><h2>{d.e(heading)}</h2><p>{d.e(value)}</p></div>')
     plate = _plate_html(story,"16:9",ctx.s) if story.get("media") else ""
     plate_block = f'<div class="d-cover-plate">{plate}</div>' if plate else ""
-    return (f'<section class="d-cover cover" data-lead data-story-id="{d.e(story["id"])}">'
+    date = (f'<time datetime="{d.e(feature["datetime"])}">{d.e(feature["date"])}</time>'
+            if feature.get('datetime') and feature.get('date') else '')
+    return (f'<section class="landing-intro"><article class="landing-feature story-card" data-lead data-story-id="{d.e(story["id"])}">'
             f'{plate_block}'
             f'<div class="frame"><div class="d-cover-grid"><div class="d-cover-main">'
             f'<p class="d-kicker d-kicker--lead">FCMO AI · {d.e(ctx.s["cover"]["lead_kicker"].format(beat=feature["beat"]))}</p>'
             f'<h1 class="cover-title {d.e(feature["title_class"])}"><a href="{d.e(feature["href"])}">{title}</a></h1>'
             f'<p class="d-cover-dek">{d.e(feature["dek"])}</p>{d.signals(story,ctx.catalog,evidence=evidence)}'
-            f'<a class="d-button" href="{d.e(feature["href"])}">{d.e(feature["cta"])} <span aria-hidden="true">→</span></a>'
+            f'<div class="d-cover-date">{date}</div><div class="cover-actions"><a class="btn" href="{d.e(feature["href"])}">{d.e(feature["cta"])} <span aria-hidden="true">→</span></a></div>'
             f'<div class="d-cover-disclosure">{feature["badge"]}</div></div>'
             f'<aside class="d-cover-map"><p class="d-kicker">{d.e(ctx.s["cover"]["evidence_glance"])}</p>'
             f'<div class="data-hero">{d.evidence_map(story,ctx.catalog,evidence=evidence,title=feature["title"])}</div></aside></div>'
-            f'<div class="d-brief">{"".join(cells)}</div></div></section>')
+            f'<div class="d-brief">{"".join(cells)}</div></div></article></section>')
 
 
-def follow(home, base, ctx):
+def follow(home, base, ctx, stories):
     from .subscribe import subscribe_block
     feeds = ''.join(f'<li><a href="{d.e(home+path)}">{name}</a></li>' for path,name in [('feed.xml','RSS'),('feed.atom','Atom'),('feed.json','JSON')])
-    return (f'<section class="d-bone"><div class="frame d-follow"><div>{d.legend(ctx.catalog)}</div>'
+    return (f'<section class="d-bone"><div class="frame d-follow"><div>{d.legend(ctx.catalog,stories=stories,method_href=home+"method/")}</div>'
             f'<div>{subscribe_block("all",ctx.code,base=base,path_prefix=ctx.locale["path_prefix"])}<ul class="feeds">{feeds}</ul></div></div></section>')

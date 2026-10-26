@@ -11,7 +11,7 @@ from pathlib import Path
 from urllib.parse import urlsplit
 
 from ..i18n import format_date, label, plural
-from ..front_plan import evidence_class
+from ..front_plan import evidence_class, class_counts
 
 
 def e(value):
@@ -42,7 +42,7 @@ def sample(kind):
 def claim(raw, catalog):
     kind = proof_kind(raw)
     word = catalog['strings']['proof'][kind.replace('-', '_')]
-    return f'<span class="d-claim">{sample(kind)}<span>{e(word)}</span></span>'
+    return f'<span class="d-claim">{sample(kind)}<strong>{e(word)}</strong></span>'
 
 
 def grade(story, catalog):
@@ -72,12 +72,25 @@ def section(title, ident=''):
     return f'<h2 class="d-section"{f' id="{e(ident)}"' if ident else ""}>{e(title)}</h2>'
 
 
-def legend(catalog):
+def legend(catalog, *, stories=None, method_href=''):
     p = catalog['strings']['proof']
     items = ''.join(f'<div>{sample(k)}<div><b>{e(p[k.replace("-", "_")])}</b><p>{e(p[k.replace("-", "_") + "_desc"])}</p></div></div>'
                     for k in ('shown', 'claimed', 'not-established'))
     gap = '' if catalog.get('locale') == 'zh-Hans' else ' '
     title = gap.join(p[k] for k in ('band_shown', 'band_claimed', 'band_not_established'))
+    if stories is not None:
+        counts = class_counts(stories)
+        cells = ''.join(f'<div><b>{e(p[k])} · {e(plural(catalog,"story",counts[k]))}</b>'
+                        f'{sample(k.replace("_","-"))}<p>{e(p[k+"_desc"])}</p></div>'
+                        for k in ('shown','claimed','not_established'))
+        totals = (len(stories), len({t for s in stories for t in s.get('topics',[])}),
+                  len({o for s in stories for o in s.get('organizations',[])}))
+        nums = ''.join(f'<li>{n}<span>{e(catalog["strings"]["stat"][k+"_label"])}</span></li>'
+                       for n,k in zip(totals,('stories','topics','organizations')))
+        return (f'<section class="method-band" id="method-band"><div class="d-legend"><h2>{e(title)}</h2>'
+                f'<div class="band-trio">{cells}</div><p class="band-note">{e(p["count_note"])}</p>'
+                f'<ul class="band-counts">{nums}</ul>'
+                f'<a href="{e(method_href)}">{e(catalog["strings"]["board"]["how_ordered"])}</a></div></section>')
     return f'<section class="d-legend"><h2>{e(title)}</h2><div class="d-legend-items">{items}</div></section>'
 
 
