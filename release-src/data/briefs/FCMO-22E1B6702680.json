@@ -1,0 +1,128 @@
+{
+  "record": {
+    "id": "FCMO-22E1B6702680",
+    "title": "TopKLoRA paper reports sparse causal circuits for removing known-trigger backdoors",
+    "desk": "Evaluation Science",
+    "event_at": "2026-10-23T00:00:00Z",
+    "evidence": "A",
+    "confidence": "credible_unconfirmed",
+    "importance": 6,
+    "tier": "Major",
+    "summary": "A new preprint presents TopKLoRA, a sparse fine-tuning adapter, with a Contrastive Latent Circuit Discovery pipeline for locating behaviors introduced during fine-tuning. In synthetic sleeper-backdoor model organisms up to 7B parameters, the authors report that ablating a selected circuit removes nearly all held-out responses to a known syntactic trigger, while multi-layer adapters retain benign instruction-following. The study compares against dense LoRA and reports smaller, more specific circuits. These are author-reported results in a controlled setup; unknown or semantic triggers, larger models, and independent reproduction remain open.",
+    "topics": [
+      "mechanistic-interpretability",
+      "fine-tuning",
+      "backdoor-removal",
+      "causal-circuit-discovery",
+      "model-safety"
+    ],
+    "organizations": [
+      "University of Oxford",
+      "University of Cambridge",
+      "Neuralk-AI"
+    ],
+    "human_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-22E1B6702680.html",
+    "machine_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/data/briefs/FCMO-22E1B6702680.json",
+    "citation": {
+      "id": "FCMO-22E1B6702680",
+      "source": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-22E1B6702680.html"
+    }
+  },
+  "brief": {
+    "claims": [
+      {
+        "label": "CLAIMED",
+        "text": "The authors report TopKLoRA and their Contrastive Latent Circuit Discovery (CLCD) pipeline identify and ablate necessary-and-sufficient circuits for a synthetically implanted backdoor with a known syntactic trigger in Gemma-2-2B, Qwen2.5-1.5B and Qwen2.5-7B model organisms. In their setup, ablation removed at least 99.9% of held-out triggered responses in each organism, while multi-layer adapters retained instruction-following close to clean twins."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "In the authors' matched-placement, rank-matched study, TopKLoRA circuits were smaller than dense-LoRA circuits across the reported 30 seed-matched pairs; their reported minimum circuit fraction was 1.2–6.8% of the TopKLoRA latent pool for eliminating the backdoor, compared with 20.6–38.9% for dense LoRA."
+      }
+    ],
+    "confidence": "credible_unconfirmed",
+    "contradictory_evidence": [],
+    "desks": [
+      "evaluation_science",
+      "training_data",
+      "open_ecosystem"
+    ],
+    "development_type": "paper",
+    "editions": [
+      "2026-10-26"
+    ],
+    "event_at": "2026-10-23T00:00:00Z",
+    "evidence_class": "A",
+    "evidence_gaps": [
+      {
+        "description": "No independent reproduction of the authors' TopKLoRA/CLCD results was found or performed in this activation.",
+        "kind": "other",
+        "state": "open"
+      },
+      {
+        "description": "The paper's circuit search requires knowledge of the trigger and contrastive eliciting/control prompts; it does not test unknown or semantic triggers.",
+        "kind": "other",
+        "state": "open"
+      },
+      {
+        "description": "The reported base models reach 7B parameters and are controlled model organisms; transfer to larger or deployed models is not measured.",
+        "kind": "other",
+        "state": "open"
+      },
+      {
+        "description": "Different discovery orders can yield multiple verified circuits; the paper reports that circuits are minimal under a search grid rather than unique mechanisms.",
+        "kind": "other",
+        "state": "open"
+      }
+    ],
+    "id": "FCMO-22E1B6702680",
+    "importance_effective_score": 6,
+    "importance_rationale": "If the paper's bounded results reproduce, sparse adapters with causal circuit tests could make certain fine-tuning backdoors easier to localize and remove while retaining benign task behavior; this could materially affect safety evaluation methods, but the evidence remains a small-model synthetic study.",
+    "importance_scale_version": 2,
+    "importance_score": 6,
+    "importance_tier": "Major",
+    "last_verified_at": "2026-10-26T10:14:20Z",
+    "limitations": [
+      "All performance and causal-ablation results are author-reported in an arXiv preprint; independent reproduction was not performed.",
+      "Experiments use synthetic backdoors with explicit known syntactic triggers and contrastive trigger/control prompt pairs, unlike many realistic unknown-trigger cases.",
+      "The largest reported base model is 7B; generalization to larger or deployed systems is not established.",
+      "The paper does not interpret individual latents and acknowledges that multiple verified circuits may exist."
+    ],
+    "organizations": [
+      "University of Oxford",
+      "University of Cambridge",
+      "Neuralk-AI"
+    ],
+    "primary_desk": "evaluation_science",
+    "recorded_at": "2026-10-26T10:14:20Z",
+    "regions": [],
+    "relationships": [],
+    "source_languages": [
+      "en"
+    ],
+    "source_urls": [
+      "https://arxiv.org/abs/2610.32866",
+      "https://github.com/interpretable-finetuning/TopKLoRA"
+    ],
+    "status": "active",
+    "summary": "A new preprint presents TopKLoRA, a sparse fine-tuning adapter, with a Contrastive Latent Circuit Discovery pipeline for locating behaviors introduced during fine-tuning. In synthetic sleeper-backdoor model organisms up to 7B parameters, the authors report that ablating a selected circuit removes nearly all held-out responses to a known syntactic trigger, while multi-layer adapters retain benign instruction-following. The study compares against dense LoRA and reports smaller, more specific circuits. These are author-reported results in a controlled setup; unknown or semantic triggers, larger models, and independent reproduction remain open.",
+    "technical": {
+      "claimed_result": "The authors report synthetic known-trigger backdoor circuits in three model families up to 7B, with near-complete removal on held-out triggered prompts and close instruction-following retention for multi-layer adapters. They report smaller circuits than matched dense-LoRA controls.",
+      "demonstrated_result": "No independent result is demonstrated in this activation. The directly inspected evidence is an author-reported preprint and a public repository page; neither code nor training results were independently executed.",
+      "mechanism": "TopKLoRA applies a ReLU bottleneck and retains only the k largest adapter latents per token. CLCD ranks those latents using contrastive prompts, then verifies candidate circuits by testing both necessity (zero-ablation removes the behavior) and sufficiency (the selected circuit alone preserves it) on held-out prompts.",
+      "regime": "Fine-tuned open model organisms: Gemma-2-2B and Qwen2.5-1.5B/7B; backdoor inserted into 10,500 instruction examples using a 4.76% poisoned subset and an explicit known syntactic trigger; held-out prompt splits; circuit discovery uses known-trigger and control-prompt pairs.",
+      "reproducibility": "The paper states code is supplied for data generation, training, evaluation and circuit discovery, and a public GitHub repository page exposes experiment/config/source/test directories. This activation did not pin a commit, download weights/data, run code, or reproduce results.",
+      "strongest_baseline": "Rank-matched dense LoRA adapters at corresponding placement and training data; the paper also uses random latent-order and random-ablation controls."
+    },
+    "title": "TopKLoRA paper reports sparse causal circuits for removing known-trigger backdoors",
+    "topics": [
+      "mechanistic-interpretability",
+      "fine-tuning",
+      "backdoor-removal",
+      "causal-circuit-discovery",
+      "model-safety"
+    ],
+    "why_it_matters": "If reproduced beyond this controlled setting, the method could provide a more targeted way to audit and remove certain fine-tuning backdoors without broadly degrading benign task behavior. The result concerns synthetic known-trigger model organisms and does not establish protection against real-world or unknown-trigger backdoors."
+  },
+  "related": [],
+  "schema": "fcmo-public-brief-v1"
+}
