@@ -726,10 +726,29 @@ def normalize_record(row: Any) -> dict[str, Any]:
             if checked:
                 entry["http_checked_at"] = checked
             sources.append(entry)
+
+    withdrawal_source = row.get("withdrawal")
+    if status == "superseded":
+        block = withdrawal_source if isinstance(withdrawal_source, dict) else {}
+        explicit = block.get("superseded_by")
+        duplicate_targets = {
+            rel["target_id"] for rel in relationships
+            if rel["type"] == "duplicate_of"
+        }
+        target = explicit if isinstance(explicit, str) and PUBLIC_ID.fullmatch(explicit) else None
+        if target is None and len(duplicate_targets) == 1:
+            target = duplicate_targets.pop()
+        if target is None:
+            # A superseded status without an identified replacement is an
+            # upstream withdrawal, not a merge we can safely attribute.
+            status = "withdrawn"
+        else:
+            withdrawal_source = {**block, "superseded_by": target}
+    record["status"] = status
     if sources:
         record["sources"] = sources
     if status in {"withdrawn", "superseded"}:
-        record["withdrawal"] = normalize_withdrawal(row.get("withdrawal"), status, verified_at)
+        record["withdrawal"] = normalize_withdrawal(withdrawal_source, status, verified_at)
     return record
 
 
@@ -748,6 +767,8 @@ def normalize_withdrawal(block: Any, status: str, fallback_at: str) -> dict[str,
     target = block.get("superseded_by")
     if isinstance(target, str) and PUBLIC_ID.fullmatch(target):
         out["superseded_by"] = target
+    elif status == "superseded":
+        raise Quarantine(["SUPERSEDED_TARGET_MISSING"])
     return out
 
 
