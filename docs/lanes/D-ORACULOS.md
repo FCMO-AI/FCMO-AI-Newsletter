@@ -110,3 +110,25 @@ solicitar autores al proveedor. Portada usa las piezas locales; el índice EN
 puede añadir Ghost, sin atribuir autor cuando no consta. No se modificó ninguna
 aserción de `test_community_rail`; las nuevas regresiones de integración
 comprueban también esa separación.
+
+## Dependencia de Studio causada por Cartas
+
+La suite serial completa sobre `dfb379754` terminó `Ran 1306 tests in
+1861.442s`, `FAILED (errors=2, skipped=9)`, sin fallos de aserción. Ambos
+errores eran de `test_studio_host`: preflight y probe rechazaban el bundle
+versionado. La única fuente cuya huella difería del manifiesto era
+`site-src/assets/css/essay.css`, modificada por Cartas en `4f01c7191`.
+
+Se reconstruyó Studio en una copia temporal con el compilador offline existente,
+sin red ni dependencias nuevas. Sólo se traslada su CSS expandido y se actualizan
+la huella de esa fuente y la del artefacto CSS. El JavaScript original se conserva:
+ninguna fuente JS cambió y el fallback completo sustituiría el editor por el
+acceso offline. La diferencia de líneas CSS corresponde a la salida sin minificar.
+`studio.server.bundle.ready()` confirma las huellas de todas las fuentes y
+artefactos; las reglas D de Cartas están presentes en el CSS servido.
+
+Las cuatro pruebas existentes de `tests.test_studio_host` pasan después de la
+corrección (`studio-host-after.log`); se habían observado los dos errores antes
+en la suite completa. Sus pruebas y las compuertas no se modificaron.
+La aceptación serial completa se repite sobre el candidato corregido; el resultado
+anterior no se presenta como verde.
