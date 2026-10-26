@@ -103,7 +103,10 @@ def quarantine_release(release: Path) -> list[str]:
     A quarantined story is removed from the corpus and from every locale delta, and the
     airlock receipt is re-sealed over the remaining bytes. The corpus guard then carries
     the last published version of it forward (or never admits it if it was never published).
-    Structural defects (paths, schema, secrets; a privacy marker outside one record's own bytes) are NOT quarantined: verify still refuses them.
+    A historical editions/YYYY-MM-DD.html is also an independent optional document:
+    withhold the entire document if its own bytes carry a private marker. Never edit
+    out a phrase to make a document pass. Required surfaces and other paths, schema
+    defects and secrets still fail verification.
     """
     release = release.resolve()
     # Integrity first, before any mutation: the ORIGINAL bytes must match the ORIGINAL receipt,
@@ -118,7 +121,13 @@ def quarantine_release(release: Path) -> list[str]:
             or receipt.get("release_id") != f"newswire-{original_digest[:24]}":
         raise ValueError("airlock.json: original bytes do not match the original receipt; refusing to quarantine")
     bad = _bad_record_ids(release)
-    if not bad:
+    bad_editions = [
+        path for path in sorted((release / "editions").glob("*.html"))
+        if not (release / "editions").is_symlink() and not path.is_symlink() and path.is_file()
+        and strict._allowed(path.relative_to(release).as_posix())
+        and strict.private_marker(path.read_text(encoding="utf-8"))
+    ]
+    if not bad and not bad_editions:
         return []
     original_release_id = receipt["release_id"]
     dev = release / "data" / "developments.jsonl"
@@ -131,10 +140,11 @@ def quarantine_release(release: Path) -> list[str]:
             except (json.JSONDecodeError, AttributeError):
                 pass
         kept.append(line)
-    dev.write_text("\n".join(kept) + "\n", encoding="utf-8")
+    if bad:
+        dev.write_text("\n".join(kept) + "\n", encoding="utf-8")
     for locale in strict.LOCALES:
         lp = release / "data" / "locales" / locale / "records.json"
-        if lp.is_file():
+        if bad and lp.is_file():
             doc = json.loads(lp.read_text(encoding="utf-8"))
             if isinstance(doc.get("records"), dict):
                 for rid in bad:
@@ -146,6 +156,8 @@ def quarantine_release(release: Path) -> list[str]:
     for path in sorted(release.rglob("*")):
         if path.is_file() and path != receipt_path and any(rid in path.name for rid in bad):
             path.unlink()
+    for path in bad_editions:
+        path.unlink()
     digest = strict.release_digest(release)
     receipt.update(
         corpus_digest=digest,
@@ -157,6 +169,8 @@ def quarantine_release(release: Path) -> list[str]:
             "ids": sorted(bad),
         },
     )
+    if bad_editions:
+        receipt["quarantined_from"]["paths"] = [path.relative_to(release).as_posix() for path in bad_editions]
     receipt_path.write_text(json.dumps(receipt, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     return sorted(bad)
 
@@ -218,6 +232,76 @@ def stage_release(release: Path, corpus: Path, now: str | None = None) -> dict[s
     return receipt
 
 
+def _failure_code(command: str, exc: Exception) -> str:
+    """Map diagnostics to a closed vocabulary; never publish exception text/paths.
+
+    The strict verifier intentionally keeps detailed local errors. Only these fixed
+    categories may cross the public Actions/wire-status boundary. Unknown messages
+    remain UNCLASSIFIED rather than being copied or truncated into public output.
+    """
+    reason = "UNCLASSIFIED"
+    if isinstance(exc, OSError):
+        reason = "IO"
+    elif isinstance(exc, UnicodeError):
+        reason = "ENCODING"
+    else:
+        text = str(exc)
+        for marker, category in (
+            ("private/implementation/strategic marker", "PRIVATE_MARKER"),
+            ("secret-like material", "SECRET"),
+            ("personal email", "PERSONAL_EMAIL"),
+            ("private runner path", "RUNNER_PATH"),
+            ("original bytes do not match the original receipt", "INTEGRITY"),
+            ("corpus digest does not match", "INTEGRITY"),
+            ("release_id does not match", "INTEGRITY"),
+            ("public corpus identity validation failed", "CORPUS_IDENTITY"),
+            ("claims without a valid label", "CLAIM_LABEL"),
+            ("symlink forbidden", "PATH"),
+            ("path not allowlisted", "PATH"),
+            ("publication receipt", "PUBLICATION_RECEIPT"),
+            ("locale", "LOCALE"),
+            ("airlock.json:", "RECEIPT"),
+            ("invalid JSON", "JSON"),
+            ("required transfer file missing", "MISSING_FILE"),
+        ):
+            if marker in text:
+                reason = category
+                break
+    return f"{command.upper()}:{reason}"
+
+
+def _report_failure(args: argparse.Namespace, exc: Exception) -> None:
+    code = _failure_code(args.command, exc)
+    # These are explicit caller-owned destinations, never paths read from a release.
+    if args.error_code_out:
+        args.error_code_out.write_text(code + "\n", encoding="utf-8")
+    print(code if args.error_code_out else str(exc), file=sys.stderr)
+
+
+def _public_failure_summary(code_file: Path, summary: Path) -> int:
+    """Report a closed code only; this command never opens the release or a log."""
+    reasons = {
+        "UNCLASSIFIED", "IO", "ENCODING", "PRIVATE_MARKER", "SECRET", "PERSONAL_EMAIL",
+        "RUNNER_PATH", "INTEGRITY", "CORPUS_IDENTITY", "CLAIM_LABEL", "PATH",
+        "PUBLICATION_RECEIPT", "LOCALE", "RECEIPT", "JSON", "MISSING_FILE",
+    }
+    allowed = {f"{command}:{reason}" for command in ("VERIFY", "QUARANTINE") for reason in reasons}
+    try:
+        # Reject oversized/untrusted diagnostics instead of reading an arbitrary log.
+        with code_file.open("rb") as stream:
+            code = stream.read(65).decode("ascii").strip()
+    except (OSError, UnicodeError):
+        code = "VERIFY:UNCLASSIFIED"
+    if code not in allowed:
+        code = "VERIFY:UNCLASSIFIED"
+    try:
+        with summary.open("a", encoding="utf-8") as stream:
+            stream.write(f"Verificación del airlock rechazada: `{code}`.\n")
+    except OSError:
+        return 1
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest="command", required=True)
@@ -229,12 +313,19 @@ def main(argv: list[str] | None = None) -> int:
     s = sub.add_parser("stage")
     s.add_argument("release", type=Path)
     s.add_argument("corpus", type=Path)
+    report = sub.add_parser("report", help="publica un código de fallo sin abrir el release")
+    report.add_argument("--code-file", type=Path, required=True)
+    report.add_argument("--summary", type=Path, required=True)
+    for command in (v, q, s):
+        command.add_argument("--error-code-out", type=Path, help="escribe solo un código público de fallo")
     args = parser.parse_args(argv)
+    if args.command == "report":
+        return _public_failure_summary(args.code_file, args.summary)
     if args.command == "quarantine":
         try:
             ids = quarantine_release(args.release)
-        except (OSError, ValueError, json.JSONDecodeError) as exc:
-            print(str(exc), file=sys.stderr)
+        except Exception as exc:
+            _report_failure(args, exc)
             return 1
         if args.out:
             args.out.write_text("".join(f"{i}\n" for i in ids), encoding="utf-8")
@@ -245,8 +336,8 @@ def main(argv: list[str] | None = None) -> int:
     except strict.GuardRefused as exc:
         print(f"corpus guard refused the release; corpus/ untouched: {exc}", file=sys.stderr)
         return strict.corpus_guard.EXIT_REFUSED
-    except (OSError, ValueError, json.JSONDecodeError) as exc:
-        print(str(exc), file=sys.stderr)
+    except Exception as exc:
+        _report_failure(args, exc)
         return 1
     print(f"airlock transfer OK: {receipt.get('release_id')} records={receipt.get('record_count')}")
     return 0
