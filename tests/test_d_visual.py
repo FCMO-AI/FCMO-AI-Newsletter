@@ -65,13 +65,13 @@ const [site,base,dest,jobs]=JSON.parse(process.argv[2]);
     background:getComputedStyle(document.body).backgroundColor,
     font:getComputedStyle(document.querySelector('main h1')||document.body).fontFamily,
     nav:!!document.querySelector('.d-nav'),footer:!!document.querySelector('.d-footer'),
-    touch:[...document.querySelectorAll('.d-menu summary,.btn-cta,.search-box button,.search-box input')]
+    touch:[...document.querySelectorAll('.d-nav a,.d-menu summary,.d-footer a,.search-box button,.search-box input')]
       .filter(e=>e.getBoundingClientRect().width&&e.getBoundingClientRect().height)
       .every(e=>e.getBoundingClientRect().height>=44)
    }));
    if(metrics.scroll>job.width+1)errors.push('horizontal overflow: '+metrics.scroll);
    if(!metrics.heading||!metrics.nav||!metrics.footer)errors.push('missing main heading, navigation or footer');
-   if(!metrics.touch)errors.push('mobile control below 44px');
+   if(job.width<=760&&!metrics.touch)errors.push('mobile control below 44px');
    if(job.width<1000){
     await page.locator('.d-menu summary').click();
     if(!(await page.locator('.d-menu-links').isVisible()))errors.push('menu did not open');

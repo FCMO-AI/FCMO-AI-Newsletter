@@ -133,3 +133,19 @@ class FrontVariants(unittest.TestCase):
             self.assertEqual(html.count('<article class="d-rank-entry">'), n)
             if n:
                 self.assertIn(f'{n:02d}</b>',html)
+
+
+class StoryVariants(unittest.TestCase):
+    def test_opening_fact_is_kept_on_mobile_without_desktop_repetition(self):
+        from tools.paper.templates.d_story import opening
+        cat = load_catalogs(ROOT)['en']
+        html = opening('First fact. A second fact remains.', 'First fact.', 'First fact.', cat)
+        self.assertIn('<span class="brief-open">First fact. </span>A second fact remains.',html)
+        self.assertNotIn('read20-phone',html)
+
+    def test_single_sentence_uses_phone_only_repeat(self):
+        from tools.paper.templates.d_story import opening
+        cat = load_catalogs(ROOT)['zh-Hans']
+        html = opening('只有一个已记录的事实。', '只有一个已记录的事实。', '只有一个已记录的事实。', cat)
+        self.assertIn('class="read20-cell read20-phone"',html)
+        self.assertIn('只有一个已记录的事实。',html)

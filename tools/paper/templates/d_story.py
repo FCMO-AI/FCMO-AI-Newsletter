@@ -1,6 +1,20 @@
 """D story: a reading column beside its visible evidence ledger."""
 from . import d_components as d
-from .reader import layer, unknowns_box, LAYER_SCRIPT
+from .reader import layer, unknowns_box, LAYER_SCRIPT, rest_after, first_sentence, _same
+
+
+def opening(summary, header_dek, full_dek, catalog):
+    """Keep the opening fact on phones and continue after the visible dek on desktop."""
+    whole = ' '.join(str(summary or '').split())
+    happened = rest_after(summary, full_dek or header_dek) if header_dek else whole
+    if header_dek.endswith('…') and whole.startswith(header_dek[:-1]):
+        # Preserve the rest of an over-budget sentence as well as later sentences.
+        happened = whole[len(header_dek)-1:].lstrip()
+    opener = header_dek if happened != whole else ''
+    phone_only = bool(header_dek) and _same(first_sentence(summary,10_000),header_dek) and happened == whole
+    content = (f'<span class="brief-open">{d.e(opener)} </span>' if opener else '') + d.e(happened)
+    return (f'<ol class="d-story-opening"><li class="read20-cell{" read20-phone" if phone_only else ""}">'
+            f'<b>{d.e(catalog["strings"]["design"]["happened"])}</b><span class="brief-val">{content}</span></li></ol>')
 
 
 def render(*, story, catalog, code, title, dek_text, beat_label, home_href,
@@ -10,8 +24,9 @@ def render(*, story, catalog, code, title, dek_text, beat_label, home_href,
     st = catalog['strings']
     text = st['story']
     p = st['proof']
-    argument = ''.join(f'<section><h2>{d.e(text[k])}</h2><p>{d.e(value)}</p></section>'
-                       for k, value in [('what_changed',summary),('why_it_matters',why)] if value)
+    argument = opening(summary,dek_text,dek_full,catalog)
+    if why:
+        argument += f'<section><h2>{d.e(text["why_it_matters"])}</h2><p>{d.e(why)}</p></section>'
     tech = ''.join(f'<section><h3>{d.e(st["technical_field"].get(k,k))}</h3><p>{d.e(v)}</p></section>' for k,v in technical.items() if v)
     plate_block = f'<div class="d-story-plate">{plate_html}</div>' if plate_html else ''
     header = (f'<div class="story-cover d-story-cover"><header class="story-header"><div class="frame"><p class="d-kicker">'
