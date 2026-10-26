@@ -26,3 +26,5 @@ Si necesitas algo de build.py o layout.py, escríbelo en NEEDS.md (archivo, func
 
 ## Prohibido
 Secretos, deploy, push, red, tocar archivos del otro carril, debilitar gates de privacidad/legal/i18n/publicación.
+
+Nota (relanzamiento 10-26): un intento anterior se cortó y pudo dejar trabajo parcial sin commit (mira `git status`); revísalo y continúa, no lo descartes sin razón. La carpeta del brief ahora es escribible.
