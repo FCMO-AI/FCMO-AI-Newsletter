@@ -15,7 +15,7 @@ from ..front_plan import evidence_class
 
 
 def e(value):
-    return escape(str(value or ''), quote=True)
+    return escape(str(value if value is not None else ''), quote=True)
 
 
 def rows(value):

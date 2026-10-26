@@ -95,8 +95,9 @@ class EvidenceComponents(unittest.TestCase):
             def __init__(self):
                 super().__init__(); self.parts = []
             def handle_data(self, value): self.parts.append(value)
-        p = Text(); p.feed(self.components().stat(12, '12 primary sources'))
-        self.assertEqual(' '.join(p.parts), '12 primary sources')
+        for n in (0,12):
+            p = Text(); p.feed(self.components().stat(n, f'{n} primary sources'))
+            self.assertEqual(' '.join(p.parts), f'{n} primary sources')
 
     def test_map_wraps_in_a_wide_branching_grid(self):
         svg = self.components().evidence_map({'sources': [{'title': 's'}]*5}, self.catalogs['en'],
