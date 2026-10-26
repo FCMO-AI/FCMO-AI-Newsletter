@@ -20,6 +20,11 @@ SILENCE = (
     "exec 3>&1 >/dev/null 2>&1\n"
     "trap 'rc=$?; printf \"step_exit=%s\\n\" \"$rc\" >&3' EXIT\n"
 )
+# The only summary channel is a separate public reporter with no candidate/log
+# input. It revalidates an enumerated code; candidate-reading processes never
+# receive this path or inherit the summary environment variable.
+SAFE_CODE_REPORT = ('env -i "PATH=$PATH" "HOME=$HOME" python tools/newswire_bridge_partial_locales.py '
+                    'report --code-file "$CODES/transport_error" --summary "$GITHUB_STEP_SUMMARY" 3>&-')
 
 
 def run_blocks(text: str) -> list[str]:
@@ -54,9 +59,12 @@ def privacy_errors(text: str) -> list[str]:
     errors = []
     if not re.search(r"AI-Research-Breakthroughs|fcmo-(?:newswire-private|arb-)", text):
         return errors
+    # A narrowly pinned reporter is the requested sanitized job-summary contract.
+    # Every other summary reference (including a comment) remains forbidden.
+    summary_surface = text.replace(SAFE_CODE_REPORT, "")
     for forbidden in (r"GITHUB_STEP_SUMMARY", r"ACTIONS_STEP_DEBUG", r"\bcache:",
                       r"uses:\s*[^\s]*?(?:artifact|cache)[^\s]*", r"repository:\s*.*AI-Research-Breakthroughs"):
-        if re.search(forbidden, text, re.I):
+        if re.search(forbidden, summary_surface, re.I):
             errors.append("public persistence or private checkout action")
     refs = re.findall(r"uses:\s*(\S+)([^\n]*)", text)
     for ref, comment in refs:
@@ -172,6 +180,20 @@ path.write_text('stage=' + pathlib.Path(os.environ['HOME'], 'stage').read_text()
             good.replace("      true", '      cat "$PRIVATE_LOG" >> "$GITHUB_OUTPUT"'),
             good.replace("      true", '      echo "$PRIVATE_SHA" >> "$GITHUB_ENV"'),
             good.replace("      true", "      python tools/arb.py orient --json"),
+        ):
+            with self.subTest(mutation=mutation):
+                self.assertTrue(privacy_errors(mutation))
+
+    def test_only_the_closed_code_reporter_can_receive_the_summary_path(self):
+        good = "name: synthetic\n# AI-Research-Breakthroughs\nsteps:\n  - run: |\n" + "".join(
+            "      " + line + "\n" for line in (SILENCE + SAFE_CODE_REPORT + "\n").splitlines())
+        self.assertEqual(privacy_errors(good), [])
+        for mutation in (
+            good.replace('report --code-file', 'verify --code-file'),
+            good.replace('$CODES/transport_error', '$PRIVATE_LOG'),
+            good.replace('env -i ', ''),
+            good.replace(' 3>&-', ''),
+            good.replace('report --code-file', 'report "$RELEASE_DIR" --code-file'),
         ):
             with self.subTest(mutation=mutation):
                 self.assertTrue(privacy_errors(mutation))

@@ -106,6 +106,78 @@ class QuarantineTests(unittest.TestCase):
         self.assertEqual(partial.quarantine_release(self.root), [])
         partial.verify_release(self.root)
 
+    def test_private_historical_edition_is_quarantined_as_a_whole_document(self) -> None:
+        edition = "editions/2026-10-24.html"
+        self._write(edition, "<html><article>not an ARB-run reproduction</article></html>")
+        self._restamp()
+        original = json.loads((self.root / "airlock.json").read_text())
+        before = {p.relative_to(self.root): p.read_bytes() for p in self.root.rglob("*") if p.is_file()}
+        with self.assertRaisesRegex(ValueError, "private/implementation/strategic marker"):
+            partial.verify_release(self.root)
+        self.assertEqual(partial.quarantine_release(self.root), [])
+        receipt = partial.verify_release(self.root)
+        self.assertEqual(receipt["record_count"], 1)
+        self.assertFalse((self.root / edition).exists())
+        self.assertEqual(receipt["quarantined_from"], {
+            "release_id": original["release_id"], "corpus_digest": original["corpus_digest"],
+            "ids": [], "paths": [edition],
+        })
+        for path, content in before.items():
+            if str(path) not in (edition, "airlock.json"):
+                self.assertEqual((self.root / path).read_bytes(), content)
+        # A second quarantine is a no-op, preserving the original provenance.
+        self.assertEqual(partial.quarantine_release(self.root), [])
+        self.assertEqual(json.loads((self.root / "airlock.json").read_text()), receipt)
+
+    def test_record_and_historical_document_quarantine_are_combined(self) -> None:
+        self._poison()
+        self._write("editions/2026-10-24.html", "<html>not an ARB-run reproduction</html>")
+        self._restamp()
+        self.assertEqual(partial.quarantine_release(self.root), sorted([RID2, RID3]))
+        receipt = partial.verify_release(self.root)
+        self.assertEqual(receipt["record_count"], 1)
+        self.assertEqual(receipt["quarantined_from"]["paths"], ["editions/2026-10-24.html"])
+
+    def test_document_quarantine_never_hides_other_privacy_or_path_failures(self) -> None:
+        for path in ("index.html", "about.html", "editions/untrusted.html", "archive/2026/10/24/secret.html"):
+            with self.subTest(path=path):
+                self._write_safe_release()
+                self._write(path, "<html>not an ARB-run reproduction</html>")
+                self._write("editions/2026-10-24.html", "<html>not an ARB-run reproduction</html>")
+                self._restamp()
+                partial.quarantine_release(self.root)
+                self.assertTrue((self.root / path).exists())
+                with self.assertRaises(ValueError):
+                    partial.verify_release(self.root)
+                if path not in newswire_bridge.EXACT_PATHS:
+                    (self.root / path).unlink()
+
+    def test_tampered_historical_edition_is_not_laundered(self) -> None:
+        self._write("editions/2026-10-24.html", "<html>not an ARB-run reproduction</html>")
+        before = {p: p.read_bytes() for p in self.root.rglob("*") if p.is_file()}
+        with self.assertRaisesRegex(ValueError, "do not match the original receipt"):
+            partial.quarantine_release(self.root)
+        self.assertEqual(before, {p: p.read_bytes() for p in self.root.rglob("*") if p.is_file()})
+
+    def test_historical_edition_symlink_is_not_quarantined_or_followed_for_writes(self) -> None:
+        target = self.root.parent / "external.html"
+        target.write_text("<html>not an ARB-run reproduction</html>")
+        edition = self.root / "editions/2026-10-24.html"
+        edition.symlink_to(target)
+        self._restamp()
+        self.assertEqual(partial.quarantine_release(self.root), [])
+        self.assertTrue(edition.is_symlink())
+        self.assertEqual(target.read_text(), "<html>not an ARB-run reproduction</html>")
+        with self.assertRaisesRegex(ValueError, "symlink forbidden"):
+            partial.verify_release(self.root)
+
+    def test_secret_only_edition_still_refuses_the_release(self) -> None:
+        self._write("editions/2026-10-24.html", "github_pat_" + "A" * 24)
+        self._restamp()
+        self.assertEqual(partial.quarantine_release(self.root), [])
+        with self.assertRaisesRegex(ValueError, "secret-like material"):
+            partial.verify_release(self.root)
+
     def test_structural_defects_still_refuse_the_release(self) -> None:
         self._poison()
         partial.quarantine_release(self.root)

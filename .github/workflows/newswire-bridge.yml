@@ -315,11 +315,17 @@ jobs:
           trap 'rc=$?; printf "step_exit=%s\n" "$rc" >&3' EXIT
           set -euo pipefail
           echo 'VERIFY_FAILED' >"$CODES/transport_error"
-          # A defective single record (blank claim label, Chinese es-419 prose) is quarantined
-          # and listed in wire-status; it must never block the rest of the release.
-          env -i "PATH=$PATH" "HOME=$HOME" python tools/newswire_bridge_partial_locales.py quarantine "$RELEASE_DIR" --out "$CODES/quarantined" 3>&-
-          env -i "PATH=$PATH" "HOME=$HOME" python tools/newswire_bridge_partial_locales.py verify "$RELEASE_DIR" 3>&-
-          rm -f "$CODES/transport_error"
+          # Quarantine defective records and optional historical HTML documents as
+          # whole units. Detailed exceptions stay off-log; only fixed reason codes
+          # reach wire-status and the job summary, never payload text or paths.
+          if env -i "PATH=$PATH" "HOME=$HOME" python tools/newswire_bridge_partial_locales.py quarantine "$RELEASE_DIR" --out "$CODES/quarantined" --error-code-out "$CODES/transport_error" 3>&- &&
+             env -i "PATH=$PATH" "HOME=$HOME" python tools/newswire_bridge_partial_locales.py verify "$RELEASE_DIR" --error-code-out "$CODES/transport_error" 3>&-; then
+            rm -f "$CODES/transport_error"
+          else
+            # The reporter has no release/log input and revalidates the closed code.
+            env -i "PATH=$PATH" "HOME=$HOME" python tools/newswire_bridge_partial_locales.py report --code-file "$CODES/transport_error" --summary "$GITHUB_STEP_SUMMARY" 3>&-
+            exit 1
+          fi
 
       - name: Rebase transport onto current public main before staging
         id: rebase
@@ -333,7 +339,10 @@ jobs:
           git fetch origin main
           git reset --hard origin/main
           git clean -fdx
-          env -i "PATH=$PATH" "HOME=$HOME" python tools/newswire_bridge_partial_locales.py verify "$RELEASE_DIR" 3>&-
+          if ! env -i "PATH=$PATH" "HOME=$HOME" python tools/newswire_bridge_partial_locales.py verify "$RELEASE_DIR" --error-code-out "$CODES/transport_error" 3>&-; then
+            env -i "PATH=$PATH" "HOME=$HOME" python tools/newswire_bridge_partial_locales.py report --code-file "$CODES/transport_error" --summary "$GITHUB_STEP_SUMMARY" 3>&-
+            exit 1
+          fi
           rm -f "$CODES/transport_error"
 
       # tools/corpus_guard.py (CLI contract in contracts/README.md) compares the
