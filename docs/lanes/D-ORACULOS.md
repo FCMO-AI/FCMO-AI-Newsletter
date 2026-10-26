@@ -132,3 +132,22 @@ corrección (`studio-host-after.log`); se habían observado los dos errores ante
 en la suite completa. Sus pruebas y las compuertas no se modificaron.
 La aceptación serial completa se repite sobre el candidato corregido; el resultado
 anterior no se presenta como verde.
+
+## Aceptación final
+
+Código congelado en `4adf19ae5`, con una sola suite a la vez y todos los comandos
+con el TMPDIR solicitado. El último commit añade únicamente este recibo.
+
+| Comando | Resultado observado |
+| --- | --- |
+| `python3 -m unittest discover -s tests` | `Ran 1306 tests in 1917.549s`; `OK (skipped=9)`, salida 0. Log `full-suite-final.log`. Ningún fallo o error; mismas nueve omisiones que la base declarada de 1270. |
+| `python3 -m unittest tests.test_d_cartas tests.test_essay_template tests.test_essay_build` | `Ran 24 tests in 2.848s`; `OK`, sin omisiones. Log `acceptance-cartas-final.log`. |
+| `python3 -m unittest tests.test_studio_host` | `Ran 4 tests in 1.566s`; `OK`. Preflight y probe reales en loopback pasan sin cambiar sus pruebas. |
+| `git diff --check` y `git diff f90e376cb --check` | Limpios. |
+| `python3 design/build_css.py --check` | Salida 1: `CSS FAIL: paper.css exceeds 114688 bytes`. `paper.css` tiene 115466 bytes, idéntico al de `origin/main` local `591aff151052f200d4dde063ae308edeaa32c530`. No se cambió el archivo ni su límite. |
+| `python3 tests/oraculos/verificar_mobile_first_viewport.py` | Salida 1: `BROWSER_UNAVAILABLE`, módulo Playwright no disponible. No se instalaron dependencias. El programa de medición pasa `node --check`; las mutaciones del juez pasan, sin acreditar DOM físico. |
+
+No verificado: navegador, capturas/comparación visual 1:1 y producción. No hubo
+despliegue, red, llamadas de modelo ni cambios de configuración o servicios.
+`NEEDS.md` histórico permanece intacto; la integración y los rojos de unittest D/Cartas
+descritos allí se cierran mediante los cambios y pruebas de este documento.
