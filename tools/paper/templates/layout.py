@@ -69,6 +69,9 @@ def document(*, locale: dict, catalog: dict, config: dict, base: str, path: str,
         url = alt_map.get(hl) or _url(base, item["path_prefix"] + path)
         if url.startswith(("http://", "https://")):
             url = urlsplit(url).path or "/"  # header links stay on the same origin and keep working on any host
+            canonical_root = urlsplit(config["base_url"]).path.rstrip("/") + "/"
+            if url.startswith(canonical_root):
+                url = _url(base, url[len(canonical_root):])
         note = switch["keeps_story"]
         if alt_map and hl not in alt_map:
             url = _url(base, item["path_prefix"])
@@ -94,12 +97,13 @@ def document(*, locale: dict, catalog: dict, config: dict, base: str, path: str,
         return ' aria-current="page"' if any(path.startswith(p) if p else not path for p in prefixes) else ""
 
     top_items = (
+        # The one publication keeps a first-class route to its human letters.
         (home, nav["today"], here("")),
+        (_url(base, locale_prefix + "letters/"), nav["letters"], here("letters/", "essays/")),
         (topics, nav["topics"], ""),
         (archive, nav["archive"], here("archive/")),
-        (search_focus, nav["search"], here("search/")),
-        (corrections, nav["corrections"], here("corrections/")),
         (method, nav["method_short"], here("method/")),
+        (search_focus, nav["search"], here("search/")),
     )
     topnav = "".join(f'<a href="{_e(u)}"{c}>{_e(t)}</a>' for u, t, c in top_items)
     tab_items = (
@@ -119,6 +123,9 @@ def document(*, locale: dict, catalog: dict, config: dict, base: str, path: str,
         structured = '<script type="application/ld+json">' + json.dumps(json_ld, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/") + "</script>"
     # A tiny progressive enhancement: stale fallback and legacy fragment mapping.
     safeguard = r"""<script>(()=>{let b=document.querySelector('[data-edition-at]');if(b&&Date.now()-Date.parse(b.dataset.statusUpdatedAt||b.dataset.editionAt)>1296e5){b.hidden=false;b.dataset.editionState='DELAYED'}let m=location.hash.match(/^#\/brief\/(FCMO-[A-F0-9]{12})/);if(m)location.replace(document.documentElement.dataset.storyBase+m[1]+'.html')})()</script>"""
+    d_styles = "".join(f'<link rel="stylesheet" href="{_e(_url(base, "assets/css/d/d-" + name + ".css"))}">' for name in ("base", "front", "story", "letters", "pages"))
+    # Essay rules are owned by the letters lane; migrated core pages use D alone.
+    legacy_css = f'<link rel="stylesheet" href="{_e(css)}">' if any(token in body_class.split() for token in ("page-essay", "page-letters", "page-issue")) else ""
     status_stack = f'<div class="status-stack">{status_banner}</div>' if status_banner else ""
     return f'''<!doctype html>
 <html lang="{_e(lang)}" data-story-base="{_e(_url(base, locale_prefix + 'legacy-story/'))}">
@@ -128,18 +135,18 @@ def document(*, locale: dict, catalog: dict, config: dict, base: str, path: str,
 <link rel="icon" href="{_e(favicon)}" type="image/svg+xml"><link rel="apple-touch-icon" href="{_e(apple_touch_icon)}">
 <link rel="canonical" href="{_e(canonical)}">{alternates_html}
 <link rel="preload" href="{_e(font_root + 'InterTight-normal-400_900-latin.woff2')}" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="{_e(font_root + 'SourceSerif4-normal-400_700-latin.woff2')}" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="{_e(font_root + 'JetBrainsMono-normal-400-latin.woff2')}" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="{_e(css)}"><meta name="theme-color" content="#F2EFE8">
+{legacy_css}{d_styles}<meta name="theme-color" content="#0A0A0A">
 <meta property="og:type" content="{_e(page_type)}"><meta property="og:title" content="{_e(title)}"><meta property="og:description" content="{_e(description[:160])}"><meta property="og:url" content="{_e(canonical)}">{og}
 {structured}{agent_alternates(machine_alternates)}{extra_head}
 </head>
-<body class="{_e(body_class)}"><a class="skip-link" href="#main">{_e(strings['a11y']['skip_to_content'])}</a>
-<header class="topbar surface-ink"><div class="frame topbar-in"><a class="brandmark" href="{_e(home)}" aria-label="{_e(strings['brand']['home_label'])}"><img class="brandmark-sym" src="{_e(brand_sym)}" alt="" width="28" height="28">FCMO AI</a>
+<body class="d-site {_e(body_class)}"><a class="skip-link" href="#main">{_e(strings['a11y']['skip_to_content'])}</a>
+<header class="d-nav topbar surface-ink"><div class="frame topbar-in"><a class="brandmark" href="{_e(home)}" aria-label="{_e(strings['brand']['home_label'])}"><img class="brandmark-sym" src="{_e(brand_sym)}" alt="" width="28" height="28">FCMO AI</a>
+<details class="d-menu"><summary aria-label="{_e(nav['menu'])}"><span aria-hidden="true">☰</span></summary><nav class="d-menu-links" aria-label="{_e(nav['menu'])}">{topnav}{languages}</nav></details>
 <nav class="topnav" aria-label="{_e(strings['a11y']['primary_nav'])}">{topnav}</nav>
 <nav class="langsel" aria-label="{_e(strings['a11y']['language_switcher'])}">{languages}</nav><a class="btn-cta" href="{_e(subscribe)}">{_e(tabs['subscribe'])}</a></div></header>
 {status_stack}<main id="main" class="page-shell"{f' data-story-id="{_e(story_id)}"' if story_id else ''}>{breadcrumb}{body}</main>
-<footer class="footbar surface-bone"><div class="frame"><p class="footbar-brand"><a href="{_e(home)}"><strong>FCMO AI</strong></a> · {_e(footer_ui['tagline'])}</p>
+<footer class="d-footer footbar"><div class="frame"><p class="footbar-brand"><a href="{_e(home)}"><img src="{_e(brand_sym)}" alt="" width="28" height="28"><strong>FCMO AI</strong></a></p>
 <nav class="footbar-links" aria-label="{_e(strings['a11y']['footer_navigation'])}"><a href="{_e(_url(base, locale_prefix+'about/'))}">{_e(footer['about'])}</a><a href="{_e(method)}">{_e(footer['method'])}</a><a href="{_e(corrections)}">{_e(footer['corrections'])}</a><a href="{_e(subscribe)}">{_e(tabs['subscribe'])}</a><a href="{_e(feeds)}">{_e(footer['feeds'])}</a><a href="{_e(status)}">{_e(footer['status'])}</a><a href="{_e(_url(base, locale_prefix+'privacy/'))}">{_e(footer['privacy'])}</a><a href="{_e(_url(base, locale_prefix+'license/'))}">{_e(footer['license'])}</a><a href="{_e(_url(base, locale_prefix+'disclaimer/'))}">{_e(footer['disclaimer'])}</a></nav>
 <p class="footbar-fine">{_e(footer_ui['one_publication'])} {_e(footer['automated_notice'])}<br>{_e(footer['copyright'].format(year=year))}</p></div></footer>
-<nav class="tabbar" aria-label="{_e(strings['a11y']['bottom_tabs'])}">{tabbar}</nav>{safeguard}</body></html>'''
+{safeguard}</body></html>'''

@@ -461,35 +461,7 @@ def story_view(*, story: dict, catalog: dict, code: str, title: str, dek_text: s
                automation_html: str, byline: str, dates_line: str, plate_html: str, note_html: str,
                taxonomy_html: str, navigation_html: str, topic_nav_html: str, machine_html: str,
                title_class: str = "", dek_full: str = "") -> str:
-    """The whole story page body: cover, SOURCES, jump bar, reading grid with the Evidence Record rail."""
-    st = catalog["strings"]
-    jb = st["jump"]
-    has_tech = bool(technical)
-    labels = {"claims": jb["claims"], "sources": jb["sources"], "gaps": jb["gaps"], "limits": jb["limits"]}
-    if has_tech:
-        labels["technical"] = jb["technical"]
-    d = design(catalog)
-    argument = "".join(f'<section><h2>{e(st["story"][k])}</h2><p>{e(v)}</p></section>'
-                       for k, v in (("what_changed", summary), ("why_it_matters", why)) if v)
-    tech_html = "".join(f'<section><h3>{e(st["technical_field"].get(k, k))}</h3><p>{e(v)}</p></section>' for k, v in technical.items() if v)
-    sources = [s for s in (story.get("sources") or []) if isinstance(s, dict)]
-    src_items = "".join(f'<li>{provenance_line(s, catalog)}' + (f'<span class="prov-primary">{e(st["story"]["primary_source"])}</span>' if s.get("primary") else "") + '</li>' for s in sources)
-    sources_html = f'<section id="sources"><h2>{e(st["story"]["sources"])}</h2><ol class="source-list">{src_items}</ol></section>' if src_items else f'<section id="sources"><h2>{e(st["story"]["sources"])}</h2></section>'
-    crumbs = ""  # the layout already renders the breadcrumb trail; a second one inside the cover only repeated it
-    # The header dek is always rendered (the layout oracle requires it). When the summary is that one sentence,
-    # «What happened» would repeat it on tablet/desktop, so brief20 marks that cell phone-only (the dek is hidden on phones).
-    header_dek = dek_full or dek_text
-    dek_html = f'<p class="story-dek">{e(dek_text)}</p>' if dek_text else ""
-    cover = (f'<div class="story-cover surface-ink"><header class="story-header"><div class="frame story-cover-grid"><div class="sh-main">{crumbs}'
-             f'<p class="story-kicker rubric rubric-accent">{e(beat_label)}</p><h1>{e(title)}</h1>{dek_html}'
-             f'{story_signals(story, catalog, evidence, status_html=status_html)}'
-             f'<p class="story-meta rubric">{e(dates_line)}</p>{note_html}</div>{plate_html}</div></header></div>')
-    body = (brief20(story, catalog, summary=summary, why=why, evidence=evidence, header_dek=header_dek)
-            + '<div class="layers" data-layers data-mode="summary">' + layer("argument", d["argument_title"], d["layer_r2"], argument)
-            + '</div>' + claim_ledger(evidence, catalog) + unknowns_box(evidence, catalog) + sources_html
-            + ('<div class="layers">' + layer("technical", d["technical_title"], d["layer_r3"], f'<div id="technical">{tech_html}</div>', is_open=False) + '</div>' if has_tech else "")
-            + machine_html)
-    rail = f'<aside class="read-rail story-aside">{evidence_record(story, catalog, evidence, jump_labels=labels)}{taxonomy_html}</aside>'
-    return (cover + sources_bar(story, catalog, automation_html=automation_html, byline=byline) + jump_bar(catalog, labels)
-            + f'<div class="frame read-layout"><div class="read-toc-slot"></div><div class="story-body">{body}</div>{rail}</div>'
-            + f'<div class="frame story-after">{topic_nav_html}{navigation_html}</div>' + LAYER_SCRIPT)
+    """Render the approved D story while retaining the builder's stable interface."""
+    context = locals()
+    from .d_story import render
+    return render(**context)

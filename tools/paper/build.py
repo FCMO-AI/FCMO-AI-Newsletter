@@ -471,41 +471,20 @@ class PaperBuilder:
             "status_href": href(self.base, locale["path_prefix"] + "status/"),
             "status_label": dz["see_status"],
         }
-        lead = f'''<article class="lead"><p class="story-kicker">{esc(strings["front"]["lead"])} · {esc(label(catalog,"beat",first.get("beat")))}</p><h1 class="{lead_class}"><a href="{esc(self._story_href(locale,first))}">{esc(lead_title)}</a></h1><p class="lead-dek">{esc(dek(first,locale["code"],catalog))}</p><p class="story-meta">{esc(format_date(first["event_at"],catalog,precision=first.get("date_precision","day")))}</p>{evidence_strip(first, catalog)}{feature["hero"]}</article>'''
-        top = f'<h2>{esc(strings["front"]["top_stories"])}</h2>' + "".join(self._card(story, locale, 3) for story in plan["top"])
-        essentials = f'<div><p class="section-kicker">FCMO AI · {esc(strings["front"]["essentials"])}</p><h2>{esc(strings["front"]["essentials"])}</h2></div><ol>' + "".join(f'<li data-story-id="{esc(s["id"])}"><a href="{esc(self._story_href(locale,s))}">{esc(headline(s,locale["code"],catalog))}</a></li>' for s in plan["essentials"]) + "</ol>"
-        sections = []
-        for beat, values in plan["beats"].items():
-            beat_label = label(catalog, "beat", beat)
-            sections.append(f'<section class="beat-section"><div class="section-head"><div><p class="section-kicker">{esc(beat_label)}</p><h2>{esc(beat_label)}</h2></div><a href="{esc(href(self.base,beat_path(locale,beat)))}">{esc(strings["front"]["see_all"])}</a></div><div class="card-row">{"".join(self._card(s,locale,3) for s in values)}</div></section>')
-        developing = ""
-        if plan["developing"]:
-            developing = f'<section class="developing-well"><div class="section-head"><div><p class="section-kicker">FCMO AI · {esc(strings["kicker"]["signal"])}</p><h2>{esc(strings["front"]["developing"])}</h2></div></div><div class="card-row">{"".join(self._card(s,locale,3) for s in plan["developing"])}</div></section>'
         cartas = getattr(self, "_editorial_shelf", {}).get(locale["code"], community.render_cartas(self.cartas, locale["code"]))
-        subscribe, subscribe_script = community.render_subscribe(locale_code=locale["code"], path_prefix=locale["path_prefix"], base=self.base, portal_url=self.portal_url)
-        dates = self.edition_dates[:6]
-        editions = f'<section class="beat-section"><div class="section-head"><h2>{esc(strings["front"]["editions"])}</h2><a href="{esc(href(self.base,locale["path_prefix"]+"archive/"))}">{esc(strings["nav"]["archive"])}</a></div><div class="card-row">' + "".join(self._edition_card(date, locale) for date in dates) + "</div></section>"
-        nouns = {
-            "en": ("live stories", "topics", "organizations"),
-            "es-419": ("historias activas", "temas", "organizaciones"),
-            "zh-Hans": ("篇在刊报道", "个主题", "家机构"),
-        }[locale["code"]]
-        topic_count = len({topic for item in self.live for topic in item.get("topics", [])})
-        org_count = len({org for item in self.live for org in item.get("organizations", [])})
-        signal = (f'<section class="front-ledger" aria-label="{esc(strings["site"]["name"])}">'
-                  f'<p class="section-kicker">{esc(strings["site"]["tagline"])}</p>'
-                  f'<ul><li><strong>{len(self.live)}</strong> {esc(nouns[0])}</li>'
-                  f'<li><strong>{topic_count}</strong> {esc(nouns[1])}</li>'
-                  f'<li><strong>{org_count}</strong> {esc(nouns[2])}</li></ul></section>')
-        board = evidence_board(self.live, catalog, method_href=href(self.base, locale["path_prefix"] + "method/"))
-        body = front_page(lead=lead, top=top, essentials=essentials, beats="".join(sections), developing=developing, subscribe=subscribe, cartas=cartas, editions=editions, signal=signal, board=board)
-        body = community.without_empty_cartas_slot(body, cartas)
-        landing = render_landing(locale=locale, home=href(self.base, locale["path_prefix"]), technical=href(self.base, locale["path_prefix"]+TECHNICAL_FRONT), about=href(self.base, locale["path_prefix"]+"about/"), subscribe=href(self.base, locale["path_prefix"]+"suscribete/"), lead=lead, top=top, cartas=cartas, stats=stats, feature=feature, front=front_context(order=order, base=self.base))
+        _, subscribe_script = community.render_subscribe(locale_code=locale["code"], path_prefix=locale["path_prefix"], base=self.base, portal_url=self.portal_url)
+        landing = render_landing(locale=locale, home=href(self.base, locale["path_prefix"]), technical=href(self.base, locale["path_prefix"]+TECHNICAL_FRONT), about=href(self.base, locale["path_prefix"]+"about/"), subscribe=href(self.base, locale["path_prefix"]+"suscribete/"), lead="", top="", cartas=cartas, stats=stats, feature=feature, front=front_context(order=order, base=self.base))
         self._write_page(locale=locale, suffix="", title="FCMO AI", description="FCMO AI: evidence-first news, research and applied AI strategy.", body=landing, kind="landing", og_image=self._media_url(first, locale), extra_head=subscribe_script, machine_alternates=[("text/plain", href(self.base, "llms.txt")), ("application/json", href(self.base, "agent.json"))])
 
     def _newsletter_pages(self, locale: dict) -> None:
-        # One publication (DIRECCION section 4): comunidad/ had no live content, so like cartas/ it forwards to the
-        # front page. It is written as a stub, never as a route, so it stays out of the sitemap and the route index.
+        # Keep navigation usable even when the editorial feed has no published letters.
+        from tools.paper.templates.newsletter import COPY
+        copy = COPY[locale["code"]]
+        shelf = self._editorial_shelf.get(locale["code"], "")
+        body = simple_page(copy["letters"], shelf or f'<p>{esc(copy["empty"])}</p>')
+        self._write_page(locale=locale, suffix="letters/", title=copy["letters"],
+                         description=copy["letters_dek"], body=body, kind="letters")
+        # comunidad/ remains a legacy front-page redirect, outside the route index.
         target = href(self.base, locale["path_prefix"])
         path = self.out / locale["path_prefix"] / "comunidad" / "index.html"
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -602,7 +581,7 @@ class PaperBuilder:
                 technical=technical_fields, status_html=status_chip(self.status, catalog),
                 automation_html=automation_badge(self.status, catalog), byline=strings["story"]["byline"],
                 dates_line=f'{strings["story"]["event_date"].format(date=event)} · {strings["story"]["published"].format(date=published)}',
-                plate_html=self._plate_html(story, catalog), note_html=note, taxonomy_html=self._facts(story, locale),
+                plate_html=self._plate_html(story, catalog) if story.get("media") else "", note_html=note, taxonomy_html=self._facts(story, locale),
                 navigation_html=self._story_navigation(story, locale), topic_nav_html=topic_nav,
                 machine_html=self._machine_strip(story, locale, catalog))
         hero = ""
@@ -735,6 +714,7 @@ class PaperBuilder:
 
     def _listing(self, *, locale: dict, suffix: str, title: str, stories: list[dict], kind: str,
                  title_html: str | None = None) -> None:
+        from tools.paper.templates import d_pages
         catalog = self.catalogs[locale["code"]]
         topics = {value for item in stories for value in item.get("topics", [])}
         orgs = {value for item in stories for value in item.get("organizations", [])}
@@ -783,7 +763,7 @@ class PaperBuilder:
                     groups.append((f"d-{story['event_at'][:10]}", when, []))
                 story_url = esc(self._story_href(locale, story))
                 groups[-1][2].append(
-                    f'<article class="archive-item" data-story-id="{esc(story["id"])}"><time class="visually-hidden" datetime="{esc(story["event_at"])}">{esc(when)}</time>'
+                    f'<article class="archive-item" data-story-id="{esc(story["id"])}" data-d-topics="{esc(json.dumps(story.get("topics") or []))}" data-d-orgs="{esc(json.dumps(story.get("organizations") or []))}" data-d-proof="{esc(json.dumps([plan_mod.evidence_class(story)]))}"><time class="visually-hidden" datetime="{esc(story["event_at"])}">{esc(when)}</time>'
                     f'<a class="archive-art" href="{story_url}" aria-hidden="true" tabindex="-1"><img src="{esc(self._story_media_url(story, locale))}" alt="" width="320" height="180" loading="lazy"></a>'
                     f'<div class="archive-copy"><p class="archive-meta">{esc(label(catalog, "beat", story.get("beat")))} · {esc(label(catalog, "format", plan_mod.story_format(story)))}</p>'
                     f'<h3><a href="{story_url}">{esc(headline(story, locale["code"], catalog))}</a></h3>'
@@ -804,6 +784,11 @@ class PaperBuilder:
                 older = f'<a rel="next" href="{esc(href(self.base, locale["path_prefix"] + page_path(number + 1)))}">{esc(strings["archive"]["older"])} →</a>'
             paging = archive_pager(catalog, number=number, pages=pages, newer=newer, older=older)
             body = archive_page(title, strings["site"]["description"], items or f'<p>{esc(strings["archive"]["empty"])}</p>', kicker=strings["kicker"]["archive"], title_html=title_html, context=context + usual_note, navigation=navigation + jump) + paging
+            if kind == "archive":
+                calendar = d_pages.archive(dates=self.edition_dates, stories=stories, locale=locale, catalog=catalog, base=self.base,
+                                           plate_html=self._plate_html(stories[0],catalog,"16:9") if stories else "")
+                # Preserve the paginated story index and its stable links below the edition overview.
+                body = body.replace('</header>', '</header>' + calendar, 1) + d_pages.FILTER_SCRIPT
             page_title = title if number == 1 else f"{title} · {number}/{pages}"
             self._write_page(locale=locale, suffix=page_path(number), title=f"{page_title} — FCMO AI", description=title, body=body, kind=kind, machine_alternates=resources)
 
@@ -968,7 +953,12 @@ class PaperBuilder:
                 content = f'<p>{esc(pending)}</p>'
             pages.append((suffix, title, content, "legal"))
         for suffix, title, content, kind in pages:
-            self._write_page(locale=locale, suffix=suffix, title=f"{title} — FCMO AI", description=truncate(content.replace("<p>", " ").replace("</p>", " ")), body=simple_page(title, content), kind=kind)
+            page_body = simple_page(title, content)
+            if kind == "method":
+                from tools.paper.templates import d_pages
+                page_body = d_pages.method(catalog, content, stories=ranked, locale=locale, base=self.base,
+                                           plate_html=self._plate_html(sample,catalog,"16:9") if sample else "")
+            self._write_page(locale=locale, suffix=suffix, title=f"{title} — FCMO AI", description=truncate(content.replace("<p>", " ").replace("</p>", " ")), body=page_body, kind=kind)
         subscribe, subscribe_script = community.render_subscribe(locale_code=locale["code"], path_prefix=locale["path_prefix"], base=self.base, portal_url=self.portal_url, page=True)
         recent = sorted(self.live, key=lambda story: (story.get("event_at", ""), story["id"]), reverse=True)[:3]
         cards = "".join(self._record_card(story, locale) for story in recent)
