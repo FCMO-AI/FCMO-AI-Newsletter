@@ -314,7 +314,7 @@ def render(*, locale: dict, home: str, technical: str, about: str, subscribe: st
     if not feature:
         return (f'<div class="landing"><section class="landing-intro" aria-labelledby="landing-title">'
                 f'<p class="rubric rubric-accent">FCMO AI</p><h1 id="landing-title">{_e(s["brand"]["motto"])}</h1>'
-                f'{record}</section></div>')
+                f'{record}</section>' + (f'<section class="frame d-front-letters">{cartas}</section>' if cartas else '') + '</div>')
     if not front:
         return f'<div class="landing">{_cover(feature, None, None, record)}</div>'
     base = front["base"] if front["base"].endswith("/") else front["base"] + "/"
