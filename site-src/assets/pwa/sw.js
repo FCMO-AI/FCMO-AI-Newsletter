@@ -1,5 +1,5 @@
 /* FCMO AI shell worker. Freshness and health data are network-only by design. */
-const CACHE_NAME = "fcmo-shell-v1";
+const CACHE_NAME = "fcmo-shell-v2";
 const SHELL = [
   "./",
   "./index.html",
