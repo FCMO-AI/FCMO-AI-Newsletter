@@ -110,10 +110,9 @@ class RepositoryStoryLayerTests(unittest.TestCase):
             proc = subprocess.run([sys.executable, str(TOOL), "build", "--corpus", str(CORPUS), "--history-git", str(REPO),
                                    "--out", str(out), "--now", NOW], capture_output=True, text=True, cwd=REPO)
             self.assertEqual(proc.returncode, 0, proc.stderr)
-            expected_withdrawn = sum(story["status"] == "withdrawn" for story in self.document["stories"])
-            expected_merged = sum(story["status"] == "merged" for story in self.document["stories"])
+            # Withdrawn: the FDBE retraction and the upstream superseded row with no survivor.
             self.assertEqual(proc.stdout.strip(),
-                             f"stories OK live={len(expected_live_ids())} withdrawn={expected_withdrawn} merged={expected_merged} "
+                             f"stories OK live={len(expected_live_ids())} withdrawn={len({FDBE, UPSTREAM_WITHDRAWAL})} merged={len(MERGES)} "
                              f"front_page={sum(s['front_page_eligible'] for s in self.document['stories'])}")
             validate = subprocess.run([sys.executable, str(REPO / "tests" / "harness" / "validate.py"),
                                        str(CONTRACTS / "stories.v2.schema.json"), str(out)], capture_output=True, text=True)
