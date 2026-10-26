@@ -1,25 +1,26 @@
 # Aviso de privacidad del correo: borrador y pendientes
 
-Borrador: `legal/AVISO-PRIVACIDAD-CORREO.md` (ES + EN + ZH). No está conectado al build ni publicado.
+Borrador: `legal/AVISO-PRIVACIDAD-CORREO.md` (ES + EN + ZH). No está conectado al build ni publicado. Corrección de la revisión Opus, 2026-10-26: ahora describe aperturas, clics y registros de alojamiento; no presupone que el píxel pueda apagarse.
 
 ## En juego
-Correos de personas reales (datos personales bajo LFPDPPP), consentimiento y el nombre público de FCMO AI Newsletter. Un aviso incompleto o inexacto expone al responsable a sanciones y a perder la confianza de quien se suscribe.
-Evidencia exigida: aviso completo con hechos verificados del proveedor real y datos reales del responsable. Evidencia que hay: borrador redactado desde los documentos del repo; sin los tres datos de Matías y sin revisión jurídica no es publicable.
-Ética: material (datos de personas a un proveedor; confianza del lector) -> el borrador no promete nada que no se pueda cumplir, no inventa responsable ni domicilio, y declara que no hay finalidades secundarias ni medición de aperturas.
+Correos de personas reales (datos personales), consentimiento y nombre público de FCMO AI Newsletter → evidencia exigida: aviso veraz sobre el proveedor real, responsable confirmado, revisión jurídica y recorrido de suscripción/baja verificado → evidencia que hay: borrador y hechos del operador, sin revisión jurídica ni prueba viva → **NO-GO de activación**.
+ÉTICA: material (§1 privacidad y consentimiento, §2.1 veracidad) → los suscriptores deben poder confiar en qué datos se recogen; se describe el rastreo y sus límites, sin habilitar altas ni envíos.
 
-## Línea de consentimiento junto al formulario
-- ES: Quiero recibir la Newsletter de FCMO AI por correo. Usaremos tu correo solo para eso; puedes darte de baja cuando quieras. Lee el aviso de privacidad.
-- EN: I want to receive the FCMO AI Newsletter by email. We use your email only for that; you can unsubscribe anytime. Read the privacy notice.
-- ZH: 我希望通过邮件收到 FCMO AI Newsletter。我们仅将你的邮箱用于此目的，你可随时退订。请阅读隐私声明。
+## Línea de consentimiento junto al formulario (propuesta pendiente de revisión)
+- ES: Quiero recibir la Newsletter de FCMO AI por correo. Kit registra aperturas y clics para estadísticas de entrega e interacción. Puedes darte de baja cuando quieras. Lee el aviso de privacidad para conocer el tratamiento de tus datos y cómo limitar el rastreo.
+- EN: I want to receive the FCMO AI Newsletter by email. Kit records opens and clicks for delivery and interaction statistics. You can unsubscribe anytime. Read the privacy notice for details of data processing and how to limit tracking.
+- ZH: 我希望通过邮件收到 FCMO AI Newsletter。Kit 记录打开和点击事件，用于投递和互动统计。你可随时退订。请阅读隐私声明，了解数据处理方式及如何限制跟踪。
 
-(La casilla actual de `subscription_states.py` dice «he leído el aviso de privacidad»: compatible; esta línea es la propuesta más explícita. No se cambió código.)
+La casilla actual en `subscription_states.py` enlaza el aviso. No se cambió ese archivo fuera de propiedad. La clasificación jurídica de la medición y, si corresponde, un consentimiento separado o mecanismo de oposición siguen pendientes de revisión; esta redacción no los resuelve por sí sola.
 
-## Pendientes de Matías (marcadores literales)
-- `{{RESPONSABLE}}`, `{{DOMICILIO}}`, `{{CORREO_PRIVACIDAD}}`. Además `{{FECHA}}`, que se fija al publicar.
+## Responsable y marcadores literales
+- El aviso corto nombra a Matías Peña Szőke. El integral lo identifica como nombre propuesto pendiente de confirmación, conservando `{{RESPONSABLE}}`, `{{DOMICILIO}}`, `{{CORREO_PRIVACIDAD}}` y `{{FECHA}}`. Se preservaron los ocho marcadores del cuerpo por idioma (la revisión contaba siete; se comprobó el original: responsable ×1, domicilio ×2, contacto ×4, fecha ×1); nadie inventó un domicilio o contacto.
+- Ambos describen tratamiento fuera de México y del Espacio Económico Europeo (EEE).
+- **Alineación todavía BLOQUEADA:** el aviso corto generado desde `legal/email-privacy-kit.json` exige apagar aperturas y clics. El archivo está fuera de propiedad; NEEDS.md contiene sustituciones exactas en los tres idiomas para describir el mismo tratamiento que el integral. No hay `COMPLIANCE_READY` hasta integrar y revisar ese cambio y publicar ambos avisos concordantes.
 
-## Hechos a verificar antes de publicar (no los afirmé como comprobados)
-1. Kit: que open/click tracking esté apagado en la cuenta (el aviso dice que no medimos aperturas). Que la doble confirmación esté activa en los 3 formularios.
-2. Kit: plazo real de retención de no confirmados y de supresión (el aviso remite a la configuración; conviene fijar un número).
-3. Plazos ARCO (20 + 15 días hábiles) y nombre de la autoridad vigente tras la reforma LFPDPPP de 2025: revisar con abogado. Dejé la autoridad sin nombre a propósito.
-4. Si se quiere citar el acuerdo de encargado/transferencias con Kit (DPA).
-5. Cómo se publicará: el build espera JSON por proveedor (`legal/email-privacy-kit.json`) más `FCMO_EMAIL_PRIVACY_URL`; el aviso integral debe servirse en esa URL. No se cableó nada.
+## Hechos y pendientes antes de publicar
+1. **Hecho del operador, 2026-10-26:** las tres opciones de Settings > Advanced > Advanced Tracking nunca se activaron. No apagan el píxel de aperturas ni el conteo de clics. No hay interruptor documentado para el píxel. Consultar soporte y conservar la respuesta; si no se apaga, el aviso debe describirlo antes de cualquier activación.
+2. Verificar doble confirmación en EN/ES/ZH. Diseño del correo/página alojada y destinos de confirmación bloqueados según `LISTA-KIT-MATIAS.md`; ninguna prueba viva hecha aquí.
+3. Fijar plazo real de retención de no confirmados, supresión y eventos de apertura/clics con Kit; el borrador no inventa números. Confirmar acuerdos de encargado/transferencias (DPA) y salvaguardas fuera de México/EEE.
+4. Revisión jurídica pendiente de los plazos ARCO (20 + 15 días hábiles), autoridad vigente tras la reforma de 2025 y tratamiento de medición. No se verificó legislación en este carril sin red; no es un aviso aprobado.
+5. El build espera JSON por proveedor (`legal/email-privacy-kit.json`) más `FCMO_EMAIL_PRIVACY_URL`; el integral debe servirse en esa URL. No se cableó ni publicó nada. Los respaldos cifrados del repo caducan a los 30 días; confirmar operación real antes de prometerla.

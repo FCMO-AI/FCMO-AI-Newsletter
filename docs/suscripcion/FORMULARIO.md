@@ -1,18 +1,25 @@
 # Formulario de suscripción (Kit, EN/ES/ZH)
 
-**En juego:** correos de personas reales (datos personales y su consentimiento) y el nombre público de FCMO AI como remitente. Nada sale hasta que se encienda la bandera.
-**Evidencia exigida:** el formulario real, con consentimiento explícito, estados honestos y un alta que el proveedor confirme por doble opt-in, probado de punta a punta por un humano con una dirección propia.
-**Evidencia que hay:** HTML renderizado y capturas locales, pruebas unitarias. No se envió ningún POST a Kit ni se suscribió a nadie. El alta real contra Kit y la llegada del correo de confirmación NO están probadas.
-**Ética: material (privacidad y consentimiento de personas reales) →** casilla obligatoria y desmarcada que enlaza el aviso, el texto dice que habrá un correo de confirmación y que no se envía nada antes de confirmar, y el estado «revisa tu bandeja» no afirma suscripción (la respuesta de Kit es opaca: sólo prueba que se envió). Pendiente del operador: revisar el aviso de privacidad (`legal/email-privacy-kit.json`) antes de encender.
+**En juego:** datos personales, consentimiento y nombre público de FCMO AI → **evidencia exigida:** formulario accesible y estados honestos, diseño juzgado en navegador y doble opt-in/baja probados con cuenta semilla → **evidencia que hay:** pruebas de HTML y JS local con transporte simulado; capturas de la versión anterior → **NO-GO de activación**.
+**ÉTICA: material (§1 y §2.1)** → consentimiento obligatorio desmarcado y estado pendiente condicional; una respuesta opaca no prueba recepción ni suscripción.
 
-## Qué se construyó
-- `diario_form` (`tools/paper/templates/subscribe.py`): dos columnas. A la izquierda título, lede y la leyenda de las tres clases de evidencia (Demostrado, Afirmado, No establecido, con las cadenas ya publicadas del sitio). A la derecha un «registro» en Ink con: selector de idioma (tres enlaces; Kit tiene un formulario por idioma, así que cambiar de idioma lleva a la página de ese idioma), 01 correo, 02 consentimiento, botón. El único naranja es el cuadro de 10 px del kicker. Se aleja de la plantilla genérica de Kit rechazada el 10-26 y toma de R4 el Ink, la rejilla mono, la numeración y las marcas de evidencia.
-- Estados: enviando (botón deshabilitado, «Enviando…»), pendiente («Falta un paso / Revisa tu bandeja», marca discontinua = aún no establecido, con «¿otra dirección?»), error (mensaje + enlace a la página alojada de Kit, que siempre muestra el resultado real). Sin JS el formulario hace POST normal y hay enlace `noscript`.
-- JS (`subscribe.js`): solo añade el enlace alojado en el error y el botón «otra dirección». Misma semántica `no-cors`.
-- Bandera: sin cambios. `FCMO_EMAIL_ENABLED=false` (lo que pasa Pages) mantiene «próximamente», sin `<form>`. Para ver el formulario en local: `FCMO_EMAIL_ENABLED=true FCMO_EMAIL_COMPLIANCE_READY=true FCMO_EMAIL_PROVIDER=kit FCMO_EMAIL_PRIVACY_URL=https://example.org/privacy python3 -m tools.paper.build --stories contracts/fixtures/stories.v2.json --status contracts/fixtures/newsroom-status.fresh.json --out /tmp/site --base /`.
+## Correcciones del carril nl-suscripcion-fix
+- Kicker en color neutro. El cuadro de 10 px sigue siendo el acento existente; no se añade naranja al texto.
+- Un solo control en pendiente: la ayuda de spam/promociones y cambio de dirección ahora es el botón de reintento. Se conservan las cadenas de ES/EN/ZH de la presentación existente. No hay un enlace duplicado de navegación.
+- En escritorio, título/lede y lista comparten una columna independiente del panel de formulario, con separación de 1 rem; la altura del panel ya no reparte espacio entre esos bloques. El canal horizontal conserva su valor. Se elimina también el margen inferior del lede que se sumaba al hueco. La regla móvil conserva una columna, formulario antes de la lista y separación de 2 rem.
+- Pruebas JS del reintento: regresa a idle, oculta pendiente, libera la altura reservada, enfoca y selecciona el correo sin borrarlo, y permite volver a enviar. Pruebas del enlace de error: oculto inicialmente, visible tras fallo, mismo destino alojado y oculto al reintentar. El JS de producción ya hacía esto; no requirió modificación.
+- La aserción de `required` ahora coincide con la etiqueta del propio input de correo, sin poder satisfacerse con el checkbox.
+- La bandera de correo no se habilitó. El test de bandera apagada sigue comprobando «próximamente» sin formulario. No hubo POST a Kit.
 
-## Capturas (`capturas/`)
-Chromium headless 1248, 1440/390/320 en EN, ES y ZH, más pendiente, error, apagado y «antes». Juicio: la primera ronda dejaba un hueco de ~100 px arriba, el bloque desalineado (relleno heredado de `.subscribe-page`), un filete pegado bajo el lede y, en móvil, la leyenda de tres filas antes del formulario. Se corrigió: la leyenda va después del formulario en móvil; relleno heredado anulado; en pendiente el botón «otra dirección» quedaba en un bloque suelto y ahora está dentro del mismo panel. Queda: a 320 px la barra inferior del sitio (fuera de mi propiedad) junta «Correcciones» y «Suscribirme».
+## Capturas y revisión pendientes (Claude fuera del sandbox)
+Las imágenes de `capturas/` pertenecen a la versión anterior; no prueban estas correcciones. Este carril no generó ni alteró capturas. La corrección CSS tiene prueba de estructura, **no una medida visual de píxeles**.
 
-## Pruebas
-`tests/test_subscribe_v2.py` (+4 pruebas nuevas, ninguna aserción debilitada), `tests/test_subscription_journey.py`, `tests/test_subscription_client.mjs`. Suite completa (`PYTHONPATH=.:tests python3 -m unittest discover -s tests`): 1274 pruebas, OK (9 omitidas). Sin `tests` en `PYTHONPATH`, `test_kit_state_observation...` no encuentra `harness.mock_kit`; es del entorno, no del cambio.
+Batería pendiente: abrir EN/ES/ZH a 1440, 390 y 320 px; revisar idle, enviando, pendiente, reintento, error con enlace alojado completo (hacer scroll y comprobar que la barra inferior no lo tape), noscript y bandera apagada. En 1440 comprobar distancia lede/lista y espacio inferior; en móvil comprobar orden y foco. Anotar resultado de cada caso y capturas del candidato. Matías debe juzgar el híbrido claro/oscuro frente a R4 antes de llamarlo visualmente terminado.
+
+La página alojada y el correo de confirmación stock de Kit siguen rechazados; su diseño es una unidad pendiente en `LISTA-KIT-MATIAS.md`. El enlace de error y noscript conservan su función, pero no se pueden dar por visualmente aprobados hasta cerrar esa unidad. Sigue pendiente el choque de los enlaces «Correcciones»/«Suscribirme» de la barra inferior a 320 px, fuera de propiedad.
+
+## Pruebas reproducibles
+- `TMPDIR=/var/tmp PYTHONPATH=.:tests python3 -m unittest tests.test_subscribe_v2`
+- `TMPDIR=/var/tmp node --test tests/test_subscription_client.mjs`
+
+La revisión Opus informó una suite completa anterior de 1274 pruebas (9 omitidas); no se atribuye esa corrida al candidato de este carril.

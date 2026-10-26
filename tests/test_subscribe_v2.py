@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import os
+import re
+from collections import Counter
 from pathlib import Path
 import unittest
 from unittest.mock import patch
@@ -87,7 +89,7 @@ class SubscribeFormTests(unittest.TestCase):
                 box = re.search(r'<input type="checkbox" name="consent"[^>]*>', html).group(0)
                 self.assertIn('required', box); self.assertNotIn('checked', box)
                 self.assertIn('href="/' + prefix + 'privacy/"', html)
-                self.assertIn('type="email"', html); self.assertIn('required', html)
+                self.assertRegex(html, r'<input\b(?=[^>]*\btype="email")(?=[^>]*\srequired(?:\s|>))[^>]*>')
 
     def test_language_switch_marks_current_and_links_the_other_two(self):
         for locale in ('en', 'es-419', 'zh-Hans'):
@@ -100,6 +102,7 @@ class SubscribeFormTests(unittest.TestCase):
         html = self._form('en')
         for marker in ('role="alert"', 'data-sub-pending', 'data-sub-retry', 'sub-error-link', 'data-busy="Sending'):
             self.assertIn(marker, html)
+        self.assertRegex(html, r'<a\b(?=[^>]*class="sub-error-link")(?=[^>]*href="https://example.org/signup")(?=[^>]*\shidden(?:\s|>))[^>]*>')
         self.assertNotIn('You’re subscribed', html)
 
     def test_form_stays_off_while_email_flag_is_false(self):
@@ -107,6 +110,89 @@ class SubscribeFormTests(unittest.TestCase):
                                      'FCMO_EMAIL_COMPLIANCE_READY': 'true', 'FCMO_EMAIL_PRIVACY_URL': 'https://example.org/privacy'}, clear=True):
             html = subscribe_block('all', 'en', page=True)
         self.assertIn('data-subscribe-state="launch"', html); self.assertNotIn('<form', html)
+
+    def test_pending_has_one_way_to_use_another_address(self):
+        for locale in ('en', 'es-419', 'zh-Hans'):
+            with self.subTest(locale=locale):
+                html = self._form(locale).split('<div data-sub-pending', 1)[1]
+                self.assertEqual(html.count('data-sub-retry'), 1)
+                self.assertNotIn('<a ', html)
+
+    def test_kicker_is_neutral_and_desktop_rows_do_not_use_the_column_gutter(self):
+        css = (ROOT / 'site-src/assets/subscribe/subscribe.css').read_text()
+        kicker = re.search(r'\.subscribe-v2 \.section-kicker\{([^}]+)', css).group(1)
+        self.assertNotRegex(kicker.lower(), r'a9340e|f05a28')
+        grid = re.search(r'\.sub-grid\{([^}]+)', css).group(1)
+        self.assertIn('row-gap:1rem', grid)
+        self.assertIn('column-gap:clamp(', grid)
+
+    def test_intro_and_proof_share_a_column_independent_of_the_form(self):
+        from html.parser import HTMLParser
+
+        class Columns(HTMLParser):
+            def __init__(self):
+                super().__init__()
+                self.divs = []
+                self.parents = {}
+
+            def handle_starttag(self, tag, attrs):
+                if tag == 'div':
+                    classes = dict(attrs).get('class', '').split()
+                    for name in ('sub-copy', 'sub-proof', 'sub-ledger'):
+                        if name in classes:
+                            self.parents[name] = self.divs[-1]
+                    self.divs.append(classes)
+
+            def handle_endtag(self, tag):
+                if tag == 'div':
+                    self.divs.pop()
+
+        for locale in ('en', 'es-419', 'zh-Hans'):
+            with self.subTest(locale=locale):
+                parser = Columns()
+                parser.feed(self._form(locale))
+                self.assertIn('sub-story', parser.parents['sub-copy'])
+                self.assertIn('sub-story', parser.parents['sub-proof'])
+                self.assertNotIn('sub-story', parser.parents['sub-ledger'])
+                self.assertEqual(parser.divs, [])
+
+
+class SubscriptionNoticeTests(unittest.TestCase):
+    def test_full_notice_discloses_tracking_and_keeps_every_placeholder(self):
+        notice = (ROOT / 'legal/AVISO-PRIVACIDAD-CORREO.md').read_text()
+        editions = notice.split('\n---\n')
+        self.assertEqual(len(editions), 3)
+        for edition, pixel, clicks, images, region in zip(
+                editions, ('píxel', 'pixel', '像素'), ('clics', 'clicks', '点击'),
+                ('imágenes remotas', 'remote images', '远程图片'), ('EEE', 'EEA', '欧洲经济区')):
+            with self.subTest(pixel=pixel):
+                self.assertIn(pixel, edition)
+                self.assertIn(clicks, edition)
+                self.assertIn(images, edition)
+                self.assertIn(region, edition)
+                self.assertIn('Matías Peña Szőke', edition)
+                # HEAD has eight body markers, despite the review's count of seven.
+                body = edition[edition.index('## 1.'):]
+                self.assertEqual(Counter(re.findall(r'\{\{\w+\}\}', body)), {
+                    '{{RESPONSABLE}}': 1, '{{DOMICILIO}}': 2,
+                    '{{CORREO_PRIVACIDAD}}': 4, '{{FECHA}}': 1,
+                })
+                self.assertEqual(len(re.findall(r'^## \d+\.', body, re.M)), 11)
+        self.assertNotRegex(notice, r'no medimos|do not currently measure|目前不统计')
+
+    def test_kit_runbook_records_domain_sender_and_activation_boundaries(self):
+        guide = (ROOT / 'docs/suscripcion/LISTA-KIT-MATIAS.md').read_text()
+        self.assertIn('0. **Dominio', guide)
+        self.assertIn('DOMINIO_ENVIO', guide)
+        self.assertIn('news.fcmo.group', guide)
+        self.assertIn('news.fcmogroup.com', guide)
+        self.assertNotIn('hola@news.', guide)
+        self.assertIn('alias', guide)
+        self.assertIn('como texto', guide)
+        self.assertIn('BLOQUEADO por dominio', guide)
+        self.assertIn('DISEÑO PENDIENTE', guide)
+        self.assertIn('nunca se activaron', guide)
+        self.assertIn('COMPLIANCE_READY', guide)
 
 
 if __name__ == '__main__':

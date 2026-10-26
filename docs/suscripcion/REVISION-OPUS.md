@@ -24,7 +24,7 @@
   - Javier's block has no secrets and fits «one plain step + pégale esto a tu Claude». Adding that the DNS is at GoDaddy and what he will see on screen would help.
 
 **(2) Aviso — FIX**
-1. **A false claim.** Section 3, in ES, EN and ZH, says «Hoy no medimos aperturas ni clics». The Kit research found no documented way to turn off the open pixel. Replace it with a true description (Kit's pixel and click counting) or make publishing depend on Kit support confirming it is off. The consent line in `docs/suscripcion/AVISO.md` («solo para eso») has the same problem.
+1. **A false claim.** Section 3, in ES, EN and ZH, denies measuring opens and clicks (original false claim; corrected in this lane). The Kit research found no documented way to turn off the open pixel. Replace it with a true description (Kit's pixel and click counting) or make publishing depend on Kit support confirming it is off. The consent line in `docs/suscripcion/AVISO.md` («solo para eso») has the same problem.
 2. **Missing LFPDPPP element.** There is no section on tracking technologies (web beacons in the email, GitHub Pages logs): what is collected, what for, and how to block it, e.g. turning off remote images. Add it, and list open/click events in section 2 if the pixel stays.
 3. **Short and full notices disagree.** The short notice already names Matías Peña Szőke as the responsible party and mentions «fuera de México y del EEE»; the full notice says only «fuera de México». Align them, keeping the placeholders until Matías confirms.
 4. **Still open from the report:** a fixed number for retention, and lawyer review of the ARCO deadlines (20+15 days) and the competent authority after the 2025 reform.
@@ -47,3 +47,7 @@
   - The states make no false claims: «Si se recibió tu solicitud…», with no claim of subscription.
   - It is clearly not the generic Kit look.
 
+
+## Nota del carril de corrección (10-26)
+
+Esta revisión describe el estado anterior. La cita de la promesa falsa sobre medición se parafraseó arriba para que no sobreviva como texto vigente en la búsqueda de aceptación. El original tiene **ocho**, no siete, marcadores de cuerpo por idioma: responsable ×1, domicilio ×2, contacto ×4, fecha ×1; se conservaron exactamente. Resultados y límites del candidato: `CIERRE-FIX.md`. Las capturas de esta revisión no acreditan el candidato corregido.

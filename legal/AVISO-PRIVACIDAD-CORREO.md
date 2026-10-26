@@ -4,7 +4,7 @@
 
 ## 1. Responsable
 
-{{RESPONSABLE}} (en adelante, «el responsable») es quien decide sobre el tratamiento de los datos personales de las personas suscritas al correo de FCMO AI Newsletter.
+{{RESPONSABLE}} (nombre propuesto, pendiente de confirmación: Matías Peña Szőke; en adelante, «el responsable») es quien decide sobre el tratamiento de los datos personales de las personas suscritas al correo de FCMO AI Newsletter.
 
 **Domicilio para oír y recibir notificaciones:** {{DOMICILIO}}.
 **Contacto de privacidad:** {{CORREO_PRIVACIDAD}}.
@@ -15,6 +15,7 @@
 - Idioma elegido (inglés, español o chino simplificado; cada idioma tiene su propio formulario).
 - Fecha y hora de la solicitud, y registros de confirmación del correo (doble confirmación).
 - Estado de la suscripción (pendiente, activa, dada de baja, rebotada o con queja).
+- Eventos de apertura y clics registrados por Kit, asociados a la suscripción (por ejemplo, momento de la apertura o del clic y enlace visitado).
 - Datos técnicos de entrega y del formulario que el proveedor registra de forma habitual (por ejemplo, dirección IP y navegador al enviar el formulario).
 
 No pedimos datos personales sensibles, nombre, teléfono ni datos de pago. Quien se suscribe debe hacerlo solo con su propio correo.
@@ -28,7 +29,7 @@ No pedimos datos personales sensibles, nombre, teléfono ni datos de pago. Quien
 4. Mantener la seguridad del servicio y prevenir abuso del formulario.
 5. Conservar copias de respaldo cifradas para poder recuperar o migrar la lista.
 
-**Secundarias:** no tratamos tus datos para finalidades secundarias. No los usamos para publicidad de terceros, no los vendemos y no se desactivan finalidades por casilla porque no existen. Hoy no medimos aperturas ni clics. Si en el futuro se añadiera una finalidad secundaria, se te pediría tu consentimiento por separado y se actualizaría este aviso antes de aplicarla.
+**Medición del correo:** Kit registra aperturas mediante un píxel y cuenta clics en los enlaces para generar estadísticas de entrega e interacción con la Newsletter. Estas mediciones pueden asociarse a tu suscripción; no garantizan que hayas leído el correo. El apartado 9 explica cómo limitarlas. No usamos tus datos para publicidad de terceros ni los vendemos. Antes de añadir otros usos se actualizará este aviso y, cuando corresponda, se pedirá consentimiento por separado.
 
 La suscripción a FCMO AI Newsletter no te suscribe a otras publicaciones ni a las Cartas de Javier.
 
@@ -38,11 +39,11 @@ No vendemos ni cedemos tus datos. Para prestar el servicio recurrimos a proveedo
 
 | Proveedor | Para qué | Datos |
 | --- | --- | --- |
-| Kit (kit.com) | Formulario, confirmación, lista, envío del correo, bajas | Correo, idioma, estado, registros de confirmación y entrega |
+| Kit (kit.com) | Formulario, confirmación, lista, envío del correo, bajas y estadísticas de entrega e interacción | Correo, idioma, estado, registros de confirmación, entrega, aperturas y clics |
 | GitHub (GitHub Actions) | Exportación diaria de la lista a una copia de respaldo cifrada (se guarda sólo el archivo cifrado; la llave de descifrado no está en GitHub) | Los mismos datos de suscripción |
 | GitHub Pages | Aloja el sitio público y el formulario; puede registrar datos técnicos (IP, navegador) de quien visita | Datos técnicos de la visita |
 
-Estos proveedores pueden tratar datos fuera de México, incluidos Estados Unidos y otros países. Dicho tratamiento es una remisión a encargados, y se rige por los términos y avisos de cada proveedor. No realizamos otras transferencias salvo que la ley las exija o una autoridad competente las requiera.
+Estos proveedores pueden tratar datos fuera de México y del Espacio Económico Europeo (EEE), incluidos Estados Unidos y otros países. Dicho tratamiento es una remisión a encargados, y se rige por los términos y avisos de cada proveedor. No realizamos otras transferencias salvo que la ley las exija o una autoridad competente las requiera.
 
 ## 5. Derechos ARCO y otros derechos
 
@@ -68,11 +69,19 @@ Puedes revocar tu consentimiento en cualquier momento, sin costo y sin iniciar s
 
 Además de la baja, puedes pedir en {{CORREO_PRIVACIDAD}} que limitemos el uso de tus datos.
 
-## 9. Cambios a este aviso
+## 9. Tecnologías de rastreo
+
+Los correos de Kit incluyen una imagen invisible de un píxel (web beacon). Al cargarla, Kit puede registrar una apertura y datos técnicos de la solicitud, asociados a tu suscripción. Sus enlaces pueden pasar por una redirección que registra el clic y el destino. Se usan para estadísticas de entrega e interacción. No hay un interruptor documentado para apagar el píxel; las opciones Advanced Tracking (subscriber_id, UTM automáticos y correo hasheado) nunca se activaron, según el operador el 2026-10-26. Esto no desactiva la medición de aperturas ni el conteo de clics.
+
+Para limitar las aperturas registradas, bloquea la carga automática de imágenes remotas en tu aplicación de correo y no pulses «mostrar imágenes». Esta medida no bloquea el conteo de clics: para evitarlo, no abras los enlaces del correo y visita el periódico escribiendo su dirección en el navegador. Algunos servicios de correo cargan imágenes automáticamente o a través de intermediarios; las cifras pueden ser imprecisas. Puedes darte de baja para dejar de recibir futuros correos.
+
+GitHub Pages puede registrar IP, navegador y datos técnicos de las visitas para operar y proteger el alojamiento, según sus políticas. Bloquear imágenes en el correo no impide estos registros cuando visitas el sitio. No afirmamos poder desactivar los registros de los proveedores desde este formulario.
+
+## 10. Cambios a este aviso
 
 Publicaremos cualquier cambio en esta misma página antes de que surta efecto. Si el cambio modifica las finalidades, los encargados o las transferencias de manera relevante, te lo avisaremos por correo y, cuando la ley lo exija, pediremos de nuevo tu consentimiento.
 
-## 10. Fecha
+## 11. Fecha
 
 Última actualización: {{FECHA}} (se fija al publicar).
 
@@ -84,7 +93,7 @@ Publicaremos cualquier cambio en esta misma página antes de que surta efecto. S
 
 ## 1. Controller
 
-{{RESPONSABLE}} (the "controller") decides how the personal data of FCMO AI Newsletter email subscribers is processed.
+{{RESPONSABLE}} (proposed name, pending confirmation: Matías Peña Szőke; the "controller") decides how the personal data of FCMO AI Newsletter email subscribers is processed.
 
 **Address for notices:** {{DOMICILIO}}.
 **Privacy contact:** {{CORREO_PRIVACIDAD}}.
@@ -95,6 +104,7 @@ Publicaremos cualquier cambio en esta misma página antes de que surta efecto. S
 - Chosen language (English, Spanish or Simplified Chinese; each language has its own form).
 - Date and time of the request, and email confirmation records (double opt-in).
 - Subscription status (pending, active, unsubscribed, bounced or complained).
+- Open and click events recorded by Kit, associated with the subscription (for example, when an open or click occurred and which link was visited).
 - Technical delivery and form data the provider routinely logs (for example, IP address and browser when the form is submitted).
 
 We do not ask for sensitive personal data, name, phone number or payment data. Please subscribe only with your own email address.
@@ -108,7 +118,7 @@ We do not ask for sensitive personal data, name, phone number or payment data. P
 4. Keep the service secure and prevent form abuse.
 5. Keep encrypted backups so the list can be recovered or migrated.
 
-**Secondary:** we do not process your data for secondary purposes. We do not use it for third-party advertising and we do not sell it. We do not currently measure opens or clicks. If a secondary purpose were ever added, we would ask for your separate consent and update this notice before applying it.
+**Email measurement:** Kit records opens using a pixel and counts link clicks to produce Newsletter delivery and interaction statistics. These measurements can be associated with your subscription; they do not prove that you read the email. Section 9 explains how to limit them. We do not use your data for third-party advertising or sell it. Before adding other uses we will update this notice and, where required, ask for separate consent.
 
 Subscribing to FCMO AI Newsletter does not subscribe you to other publications or to Javier's Letters.
 
@@ -118,11 +128,11 @@ We do not sell or give away your data. To provide the service we use providers a
 
 | Provider | Purpose | Data |
 | --- | --- | --- |
-| Kit (kit.com) | Form, confirmation, list, email delivery, unsubscribes | Email, language, status, confirmation and delivery records |
+| Kit (kit.com) | Form, confirmation, list, email delivery, unsubscribes, delivery and interaction statistics | Email, language, status, confirmation, delivery, open and click records |
 | GitHub (GitHub Actions) | Daily export of the list to an encrypted backup (only the encrypted file is stored; the decryption key is not on GitHub) | The same subscription data |
 | GitHub Pages | Hosts the public site and form; may log technical data (IP, browser) of visitors | Technical visit data |
 
-These providers may process data outside Mexico, including the United States and other countries. This is processing by processors and is governed by each provider's terms and notices. We make no other transfers unless the law requires it or a competent authority demands it.
+These providers may process data outside Mexico and the European Economic Area (EEA), including the United States and other countries. This is processing by processors and is governed by each provider's terms and notices. We make no other transfers unless the law requires it or a competent authority demands it.
 
 ## 5. Your rights (ARCO) and others
 
@@ -148,11 +158,19 @@ You can withdraw consent at any time, at no cost and without logging in, using t
 
 Besides unsubscribing, you can ask at {{CORREO_PRIVACIDAD}} that we limit the use of your data.
 
-## 9. Changes to this notice
+## 9. Tracking technologies
+
+Kit emails include an invisible one-pixel image (web beacon). When it loads, Kit may record an open and technical request data associated with your subscription. Email links may pass through a redirect that records the click and destination. These are used for delivery and interaction statistics. There is no documented switch to disable the pixel; the Advanced Tracking options (subscriber_id, automatic UTM parameters and hashed email) were never enabled, according to the operator on 2026-10-26. This does not disable open measurement or click counting.
+
+To limit recorded opens, block automatic loading of remote images in your email application and do not select “show images”. This does not block click counting: to avoid it, do not open email links and visit the newspaper by typing its address into your browser. Some email services load images automatically or through proxies; measurements can be inaccurate. You can unsubscribe to stop receiving future emails.
+
+GitHub Pages may record IP addresses, browsers and technical visit data to operate and secure hosting, under its policies. Blocking email images does not prevent these logs when you visit the site. We do not claim we can disable provider logs through this form.
+
+## 10. Changes to this notice
 
 We will publish any change on this page before it takes effect. If a change materially affects purposes, processors or transfers, we will tell you by email and, where the law requires, ask for your consent again.
 
-## 10. Date
+## 11. Date
 
 Last updated: {{FECHA}} (set at publication).
 
@@ -164,7 +182,7 @@ Last updated: {{FECHA}} (set at publication).
 
 ## 1. 责任方
 
-{{RESPONSABLE}}（以下称"责任方"）决定如何处理 FCMO AI Newsletter 邮件订阅者的个人数据。
+{{RESPONSABLE}}（拟定姓名，待确认：Matías Peña Szőke；以下称"责任方"）决定如何处理 FCMO AI Newsletter 邮件订阅者的个人数据。
 
 **接收通知的地址：** {{DOMICILIO}}。
 **隐私联系方式：** {{CORREO_PRIVACIDAD}}。
@@ -175,6 +193,7 @@ Last updated: {{FECHA}} (set at publication).
 - 所选语言（英语、西班牙语或简体中文；每种语言使用独立表单）。
 - 申请的日期和时间，以及邮箱确认记录（双重确认）。
 - 订阅状态（待确认、有效、已退订、退信或被投诉）。
+- Kit 记录的、与订阅关联的打开和点击事件（例如打开或点击时间、访问的链接）。
 - 服务商通常记录的技术性投递和表单数据（例如提交表单时的 IP 地址和浏览器）。
 
 我们不收集敏感个人数据、姓名、电话或支付信息。请仅使用本人邮箱订阅。
@@ -188,7 +207,7 @@ Last updated: {{FECHA}} (set at publication).
 4. 保障服务安全，防止表单被滥用。
 5. 保留加密备份，以便恢复或迁移订阅名单。
 
-**次要目的：** 我们不将你的数据用于次要目的。不用于第三方广告，也不出售。目前不统计邮件打开或点击。若将来新增次要目的，我们会单独征求你的同意，并在实施前更新本声明。
+**邮件统计：** Kit 使用像素记录打开事件，并统计链接点击，用于生成 Newsletter 的投递和互动统计。这些统计可与你的订阅关联，但不能证明你已阅读邮件。第 9 节说明如何限制此类统计。我们不将你的数据用于第三方广告，也不出售。在增加其他用途之前，我们将更新本声明，并在需要时另行征求同意。
 
 订阅 FCMO AI Newsletter 不会使你订阅其他刊物或 Javier 的来信。
 
@@ -198,11 +217,11 @@ Last updated: {{FECHA}} (set at publication).
 
 | 服务商 | 用途 | 数据 |
 | --- | --- | --- |
-| Kit (kit.com) | 表单、确认、名单、邮件发送、退订 | 邮箱、语言、状态、确认及投递记录 |
+| Kit (kit.com) | 表单、确认、名单、邮件发送、退订、投递和互动统计 | 邮箱、语言、状态、确认、投递、打开及点击记录 |
 | GitHub（GitHub Actions） | 每日将名单导出为加密备份（仅保存加密文件；解密密钥不在 GitHub） | 同样的订阅数据 |
 | GitHub Pages | 托管公开网站和表单；可能记录访问者的技术数据（IP、浏览器） | 访问技术数据 |
 
-这些服务商可能在墨西哥境外处理数据，包括美国及其他国家。这属于处理方的处理行为，适用各服务商自己的条款和声明。除非法律要求或主管机关要求，我们不进行其他传输。
+这些服务商可能在墨西哥和欧洲经济区境外处理数据，包括美国及其他国家。这属于处理方的处理行为，适用各服务商自己的条款和声明。除非法律要求或主管机关要求，我们不进行其他传输。
 
 ## 5. 你的权利（ARCO）及其他权利
 
@@ -228,10 +247,18 @@ Last updated: {{FECHA}} (set at publication).
 
 除退订外，你还可通过 {{CORREO_PRIVACIDAD}} 要求我们限制对你数据的使用。
 
-## 9. 本声明的变更
+## 9. 跟踪技术
+
+Kit 邮件包含一张不可见的单像素图片（网络信标）。加载该图片时，Kit 可能记录打开事件及相关请求的技术数据，并与你的订阅关联。邮件链接可能经过重定向，以记录点击及其目标。此类记录用于投递和互动统计。目前没有关于关闭该像素的开关的文档；据运营方于 2026-10-26 确认，Advanced Tracking 中的 subscriber_id、自动 UTM 参数和邮箱哈希选项从未启用。这并不关闭打开统计或点击计数。
+
+若要限制打开事件的记录，请在邮件应用中禁止自动加载远程图片，并且不要选择“显示图片”。这不会阻止点击计数：若要避免点击被记录，请不要打开邮件链接，而是在浏览器中手动输入报纸网址。部分邮件服务会自动或通过代理加载图片，因此统计可能不准确。你可退订，以停止接收后续邮件。
+
+GitHub Pages 可能依其政策记录 IP 地址、浏览器及访问技术数据，以运行和保护托管服务。禁止加载邮件图片并不能阻止访问网站时产生的这些日志。我们不声称可以通过此表单关闭服务商日志。
+
+## 10. 本声明的变更
 
 任何变更将在生效前发布于本页面。如变更对处理目的、处理方或数据传输有实质影响，我们将通过邮件告知你，并在法律要求时再次征求你的同意。
 
-## 10. 日期
+## 11. 日期
 
 最近更新：{{FECHA}}（发布时确定）。

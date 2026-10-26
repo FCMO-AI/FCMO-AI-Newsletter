@@ -92,24 +92,24 @@ _PROOF = {
            'claimed': ('Claimed', 'What a source says without proof we could verify.'),
            'gap': ('Not established', 'What nobody has shown yet, and what the source cannot say.'),
            'langs': 'Edition language', 'step_email': 'Where should it arrive?', 'step_consent': 'Your consent',
-           'retry': 'Wrong address? Use another', 'fallback_error': 'Open the signup page instead'},
+           'fallback_error': 'Open the signup page instead'},
     'es-419': {'lead': 'Cada historia separa tres cosas, en este orden, antes de la lectura larga.',
                'shown': ('Demostrado', 'Lo que una fuente primaria demuestra y cómo podemos comprobarlo.'),
                'claimed': ('Afirmado', 'Lo que una fuente afirma sin una prueba que podamos verificar.'),
                'gap': ('No establecido', 'Lo que nadie ha demostrado todavía y lo que la fuente no puede decir.'),
                'langs': 'Idioma de la edición', 'step_email': '¿Adónde debe llegar?', 'step_consent': 'Tu consentimiento',
-               'retry': '¿Otra dirección? Usa una distinta', 'fallback_error': 'Abrir la página de suscripción'},
+               'fallback_error': 'Abrir la página de suscripción'},
     'zh-Hans': {'lead': '每篇报道在长文之前，按这个顺序区分三件事。',
                 'shown': ('已展示', '一手来源所展示的内容，以及我们如何核查。'),
                 'claimed': ('仅声称', '来源所称、但我们无法核实的内容。'),
                 'gap': ('尚未确立', '尚无人展示的内容，以及来源无法说明的部分。'),
                 'langs': '版本语言', 'step_email': '发送到哪里？', 'step_consent': '你的同意',
-                'retry': '地址有误？换一个', 'fallback_error': '改用订阅页面'},
+                'fallback_error': '改用订阅页面'},
 }
 
 
 def diario_form(locale, base, form, page=False):
-    from .subscription_states import COPY, PREFIX, LANGUAGE, state_page
+    from .subscription_states import COPY, PREFIX, LANGUAGE
     copy = COPY[locale]; prefix = PREFIX[locale]; extra = _PROOF[locale]
     root = base.rstrip('/')+'/'+prefix
     options = ''.join('<option value="'+v+'"'+(' selected' if v==locale else '')+'>'+label+'</option>' for v,label in (('en','English'),('es-419','Español'),('zh-Hans','简体中文')))
@@ -133,9 +133,9 @@ def diario_form(locale, base, form, page=False):
     proof = ''.join(f'<li class="sub-proof-{k}"><span class="sub-mark sub-mark-{k}" aria-hidden="true"></span>'
                     f'<strong>{escape(extra[k][0])}</strong><span>{escape(extra[k][1])}</span></li>' for k in ('shown', 'claimed', 'gap'))
     return (f'<section class="subscribe-v2 {wrapper} sub-experience" data-subscribe-state="active" data-state="idle">'
-            f'<div data-sub-idle class="sub-grid"><div class="sub-copy">'
+            f'<div data-sub-idle class="sub-grid"><div class="sub-story"><div class="sub-copy">'
             f'<p class="section-kicker sub-kicker">{copy["kicker"]}</p><{tag} class="page-title">{copy["title"]}</{tag}><p class="sub-lede">{copy["lede"]}</p>'
-            '</div>'
+            f'</div><div class="sub-proof"><p class="sub-label">{escape(extra["lead"])}</p><ol>{proof}</ol></div></div>'
             f'<div class="sub-ledger">{switcher}'
             f'<form method="post" data-email-form{confirmation} data-email-locale="{locale}" action="{escape(form.action,quote=True)}" data-busy="{copy["busy"]}" data-error="{escape(copy["error"], quote=True)}">'
             f'{language}'
@@ -147,7 +147,8 @@ def diario_form(locale, base, form, page=False):
             f'<button class="button sub-submit" type="submit">{copy["button"]}</button>'
             f'<p class="sub-error" role="alert" hidden></p>{error_link}</form>'
             f'<p class="sub-fine">{copy["fine"]}</p>{fallback}'
-            f'<p class="sub-fine"><a href="{escape(form.privacy_url,quote=True)}">{copy["complete"]}</a></p></div>'
-            f'<div class="sub-proof"><p class="sub-label">{escape(extra["lead"])}</p><ol>{proof}</ol></div></div>'
-            f'<div data-sub-pending hidden aria-live="polite">{state_page(locale, "pending", base, tag=tag)}'
-            f'<p class="sub-retry"><button type="button" data-sub-retry>{escape(extra["retry"])}</button></p></div></section>')
+            f'<p class="sub-fine"><a href="{escape(form.privacy_url,quote=True)}">{copy["complete"]}</a></p></div></div>'
+            f'<div data-sub-pending hidden aria-live="polite"><section class="sub-state sub-state--pending" data-state="pending">'
+            f'<p class="section-kicker">{escape(copy["pending_kicker"])}</p><{tag} tabindex="-1">{escape(copy["pending"])}</{tag}>'
+            f'<p>{escape(copy["pending_body"])}</p></section>'
+            f'<p class="sub-retry"><button type="button" data-sub-retry>{escape(copy["help"])}</button></p></div></section>')
