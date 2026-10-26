@@ -1,6 +1,8 @@
 # Brief carril nl-d-core (Sol) — D «Libro de evidencias» 1:1: núcleo del sitio
 
-Lee primero: `design/d-libro/CONTRATO.md` (manda), el Hub (`/srv/fcmo/agents/repos/FCMO-Agent-Hub/runtime/FCMO_RUNTIME_V1.txt`,
+El alias `FCMO-Agent-Hub/` designa el checkout canónico externo del Agent Hub.
+
+Lee primero: `design/d-libro/CONTRATO.md` (manda), el Hub (`FCMO-Agent-Hub/runtime/FCMO_RUNTIME_V1.txt`,
 `identity/readable/original/FCMO_Design_Current_V4.0.1_UNCHANGED.txt`, `disciplines/VISUAL_ENGINEERING.md`), y en este repo
 `AGENTS.md`, `README.md`, `design/CSS-CLASS-INVENTORY.md`. Abre y mira las referencias R4-portada, R4-historia, R4-archivo,
 R4-metodo y R4-movil-portada en `/var/tmp/kyrion-test/c7/r4/`.

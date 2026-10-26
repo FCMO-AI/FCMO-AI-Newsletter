@@ -36,10 +36,11 @@ DESKTOP = {"width": 1440, "height": 900}
 H1_TOP_MAX = 460
 H1_TOP_TARGET = 420
 NAV_HEIGHT_MAX = 48
-# The c6 top bar is one row at the design token --l-bar (56px); it is the single header, so it gets its own budget.
-BAR_HEIGHT_MAX = 56
-NAV_PATHS = ("", "#topics", "archive/", "search/?focus=1", "corrections/", "method/")
-TAB_PATHS = ("", "archive/", "search/?focus=1", "corrections/", "subscribe/")
+# D R4 reserves 68px plus its 1px rule for the mobile header and native menu control.
+BAR_HEIGHT_MAX = 69
+NAV_PATHS = ("", "letters/", "#topics", "archive/", "method/", "search/?focus=1")
+MENU_PATHS = NAV_PATHS
+FOOTER_PATHS = ("corrections/", "subscribe/")
 ROW_TOLERANCE = 2
 PAGE_KINDS = ("landing", "story")
 
@@ -57,7 +58,19 @@ async function visit(browser, viewport, url, probe) {
   page.on('response', r => { if (r.status() >= 400) failedRequests.push(`${r.url()} HTTP ${r.status()}`); });
   await page.goto(url, { waitUntil: 'load', timeout: 30000 });
   await page.evaluate(() => document.fonts ? document.fonts.ready.then(() => true) : true);
-  const result = await page.evaluate(`(${probe.toString()})((${HELPERS.toString()})())`);
+  let result = await page.evaluate(`(${probe.toString()})((${HELPERS.toString()})())`);
+  if (probe === MOBILE_PROBE) {
+    const summary = page.locator('.d-menu summary');
+    await summary.focus();
+    await summary.press('Enter');
+    const opened = await page.evaluate(`(${MENU_PROBE.toString()})((${HELPERS.toString()})())`);
+    await summary.press('Enter');
+    const restored = await page.evaluate(() => ({ closed: !document.querySelector('.d-menu').open,
+      headlineTop: document.querySelector('.landing-feature h1').getBoundingClientRect().top }));
+    result.menu = { ...result.menu, ...opened, ...restored };
+    result.languages = opened.languages;
+    result.visibleHrefs.push(...opened.links.map(a => a.href));
+  }
   await context.close();
   return { url, ...result, consoleErrors, failedRequests };
 }
@@ -83,8 +96,7 @@ const MOBILE_PROBE = H => {
   const freshness = document.querySelector('.corpus-freshness');
   const topbar = document.querySelector('.topbar');
   const topnav = document.querySelector('.topbar .topnav');
-  const tabbar = document.querySelector('.tabbar');
-  const na = document.querySelector('.receipt-na');
+  const menu = document.querySelector('.d-menu'), summary = menu && menu.querySelector('summary');
   const shown = [...document.querySelectorAll('.topbar a, .tabbar a, .footbar a')].filter(a => VISIBLE(a) && !a.closest('.langsel'));
   return {
     h1: h1 && VISIBLE(h1) ? BOX(h1) : null,
@@ -93,15 +105,23 @@ const MOBILE_PROBE = H => {
     languages: [...document.querySelectorAll('.langsel a')].map(BOX),
     banner: banner ? { state: banner.getAttribute('data-edition-state'), ...WHOLE(banner) } : null,
     freshness: freshness ? WHOLE(freshness) : null,
-    topbar: topbar ? { ...BOX(topbar), items: [...topbar.querySelectorAll('.brandmark, .langsel a')].filter(VISIBLE).map(BOX) } : null,
-    tabbar: tabbar ? { ...BOX(tabbar), links: LINKS(tabbar) } : null,
-    receiptNa: na && VISIBLE(na) ? BOX(na) : null,
+    topbar: topbar ? { ...BOX(topbar), items: [...topbar.querySelectorAll('.brandmark, .d-menu summary, .btn-cta')].filter(VISIBLE).map(BOX) } : null,
+    menu: menu && summary ? { initiallyClosed: !menu.open, summary: BOX(summary) } : null,
+    headers: document.querySelectorAll('body > header').length,
+    footerLinks: LINKS(document.querySelector('.d-footer')),
+    tabbarPresent: !!document.querySelector('.tabbar'),
     navLinks: LINKS(topnav),
     // Language links point at the current page, so they never count as another way to reach a nav destination.
     topicsTarget: !!document.getElementById('topics') && VISIBLE(document.getElementById('topics')),
     visibleHrefs: shown.map(a => a.getAttribute('href')),
     scrollWidth: document.documentElement.scrollWidth, clientWidth: document.documentElement.clientWidth,
   };
+};
+
+const MENU_PROBE = H => {
+  const menu = document.querySelector('.d-menu');
+  return { opened: !!menu && menu.open, links: H.LINKS(menu.querySelector('nav')),
+    languages: [...menu.querySelectorAll('a[hreflang]')].map(a => ({lang: a.hreflang, href: a.getAttribute('href'), ...H.BOX(a)})) };
 };
 
 const DESKTOP_PROBE = H => {
@@ -184,7 +204,9 @@ def evaluate(measurements: dict) -> list[str]:
             if m.get("zoneSwitch") != 0:
                 violations.append(f"one-fcmo {where}: .zone-switch product doors must be absent ({m.get('zoneSwitch')} found)")
             languages = m.get("languages") or []
-            if not languages or not all(_inside(a, MOBILE) for a in languages):
+            if (len(languages) != 3 or {a.get("lang") for a in languages} != {code for code, _ in LOCALES}
+                    or {(a.get("lang"), a.get("href")) for a in languages} != {(c, f"{BASE}{p}") for c, p in LOCALES}
+                    or not all(_inside(a, MOBILE) for a in languages)):
                 violations.append(f"language-nav {where}: every language link must fit whole in the first viewport")
             top = h1["top"] if h1 else None
             banner = m.get("banner")
@@ -204,28 +226,32 @@ def evaluate(measurements: dict) -> list[str]:
             if (not items or not _one_row(items) or any(i["left"] < 0 or i["right"] > MOBILE["width"]
                                                          or i["top"] < bar["top"] - ROW_TOLERANCE
                                                          or i["bottom"] > bar["bottom"] + ROW_TOLERANCE for i in items)):
-                violations.append(f"topbar-row {where}: brand and language links must share one row inside the top bar")
-            tabs = m.get("tabbar")
-            links = (tabs or {}).get("links") or []
-            if (tabs is None or not tabs.get("visible") or not _inside(tabs, MOBILE) or len(links) != len(TAB_PATHS)
-                    or not all(a.get("visible") for a in links) or not _one_row(links)):
-                violations.append(f"tabbar-row {where}: the bottom tab bar must be visible, inside the viewport, one row of {len(TAB_PATHS)} links")
-            elif set(a["href"] for a in links) != _hrefs(prefix, TAB_PATHS):
-                violations.append(f"tabbar-row {where}: tab destinations differ from {sorted(_hrefs(prefix, TAB_PATHS))}")
-            na = m.get("receiptNa")
-            if tabs is not None and tabs.get("visible"):
-                if h1 is not None and h1["bottom"] > tabs["top"]:
-                    violations.append(f"tabbar-clear {where}: tab bar (top {_px(tabs['top'])}) covers the cover headline (bottom {_px(h1['bottom'])})")
-                if na is None or na["bottom"] > tabs["top"]:
-                    where_na = "missing" if na is None else f"bottom {_px(na['bottom'])}"
-                    violations.append(f"tabbar-clear {where}: the 20-second «Not established» line must end above the tab bar ({where_na})")
+                violations.append(f"topbar-row {where}: brand, menu control and subscription must share one row inside the top bar")
+            menu = m.get("menu") or {}
+            summary = menu.get("summary") or {}
+            links = menu.get("links") or []
+            destinations = {a.get("href") for a in links if not a.get("lang")}
+            targets = _hrefs(prefix, MENU_PATHS)
+            if (not summary or not _inside(summary, MOBILE) or summary.get("height", 0) < 44
+                    or summary.get("right", 0) - summary.get("left", 0) < 44
+                    or not menu.get("initiallyClosed") or not menu.get("opened")
+                    or len(links) != len(MENU_PATHS) + len(LOCALES)
+                    or not targets <= destinations
+                    or not all(_inside(a, MOBILE) and a.get("height", 0) >= 44
+                               and a["right"] - a["left"] >= 44 for a in links)):
+                violations.append(f"menu-usable {where}: native menu must open by keyboard and expose all destinations with 44px targets")
+            if (not menu.get("closed") or (h1 is not None and menu.get("headlineTop") != h1["top"])
+                    or m.get("tabbarPresent") is not False or m.get("headers") != 1):
+                violations.append(f"menu-restored {where}: closing the menu must restore the headline and the single header without bottom tabs")
             nav = m.get("navLinks") or []
             reachable = set(m.get("visibleHrefs") or [])
             # «Topics» is an in-page anchor to the front's own topics section: phones reach it by that section being present
-            # and visible (the tab bar holds five reader actions), every other destination needs a visible link.
+            # and visible; the native menu exposes every destination, including this anchor.
             anchors = {a["href"] for a in nav if "#" in a["href"]}
             lost = sorted({a["href"] for a in nav} - reachable - (anchors if m.get("topicsTarget") else set()))
-            if set(a["href"] for a in nav) != _hrefs(prefix, NAV_PATHS) or lost:
+            footer = {a.get("href") for a in m.get("footerLinks", []) if a.get("visible")}
+            if (set(a["href"] for a in nav) != _hrefs(prefix, NAV_PATHS) or lost
+                    or not _hrefs(prefix, FOOTER_PATHS) <= footer or not m.get("topicsTarget")):
                 violations.append(f"nav-reachable {where}: nav destinations without a visible link: {lost or 'nav incomplete'}")
             if _overflows(m):
                 violations.append(f"overflow {where}: scrollWidth {m.get('scrollWidth')} > clientWidth {m.get('clientWidth')}")

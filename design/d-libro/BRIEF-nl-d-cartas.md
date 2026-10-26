@@ -1,6 +1,8 @@
 # Brief carril nl-d-cartas (Luna) — D «Libro de evidencias» 1:1: cartas
 
-Lee primero: `design/d-libro/CONTRATO.md` (manda), el Hub (`/srv/fcmo/agents/repos/FCMO-Agent-Hub/runtime/FCMO_RUNTIME_V1.txt`,
+El alias `FCMO-Agent-Hub/` designa el checkout canónico externo del Agent Hub.
+
+Lee primero: `design/d-libro/CONTRATO.md` (manda), el Hub (`FCMO-Agent-Hub/runtime/FCMO_RUNTIME_V1.txt`,
 `identity/readable/original/FCMO_Design_Current_V4.0.1_UNCHANGED.txt`), `AGENTS.md` y `README.md` de este repo. Mira
 R4-cartas, R4-carta y R4-movil-carta (y la sección LETTERS de R4-portada) en `/var/tmp/kyrion-test/c7/r4/`.
 
