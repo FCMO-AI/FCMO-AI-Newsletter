@@ -31,18 +31,18 @@ EN JUEGO: integridad de artículos y control de Javier → EVIDENCIA EXIGIDA: au
 
 | Ruta leída | Aplicación concreta |
 |---|---|
-| `/srv/fcmo/agents/repos/FCMO-Agent-Hub/standard/CORE.md` | L1: retirar la compuerta humana inventada y conservar la protección automática. L5: separar publicación simulada de GitHub/deploy real y de inspección visual. |
-| `/srv/fcmo/agents/repos/FCMO-Agent-Hub/runtime/FCMO_RUNTIME_V1.txt` | No inferir autoridad para publicar en producción, modificar reglas, enviar correo o instalar dependencias del encargo de código. |
-| `/srv/fcmo/agents/repos/FCMO-Agent-Hub/AGENTS.md` | Cargar sólo las disciplinas y fuentes solicitadas; no convertir ausencia del audit montado en hallazgos inventados. |
-| `/srv/fcmo/agents/repos/FCMO-Agent-Hub/disciplines/SOFTWARE_ENGINEERING.md` | Tres regresiones observadas rojas antes de implementar; conservar SHA, diff confinado, privacidad, traducción y reconciliación; ejecutar aceptación completa. |
-| `/srv/fcmo/agents/repos/FCMO-Agent-Hub/disciplines/VISUAL_ENGINEERING.md` | Seguir el flujo y textos definidos por el operador; probar el controlador y servir bundle coherente. Sin navegador real no afirmar validación visual. |
-| `/srv/fcmo/agents/repos/FCMO-Agent-Hub/identity/README.md` | No rediseñar identidad; conservar activos y sistema existentes en el cambio de interacción solicitado. |
-| `/srv/fcmo/agents/repos/FCMO-Agent-Hub/identity/readable/original/FCMO_Design_Current_V4.0.1_UNCHANGED.txt` | No cambió el diseño porque el encargo retira una aprobación; se conservan estilos, tipografía y composición existentes. |
-| `/srv/fcmo/agents/repos/FCMO-Agent-Hub/identity/readable/original/Desglose_de_la_simbologia_de_FCMO_UNCHANGED.txt` | No cambió nada de símbolos: no se crean marcas, iconos ni reinterpretaciones. |
-| `/srv/fcmo/agents/repos/FCMO-Agent-Hub/identity/FCMO_TECHNICAL_EXPOSURE_GRADIENT_v0.1.md` | Textos visibles Publicando y Publicado y verificado; los nombres internos de estados no se convierten en instrucciones para Javier. |
-| `/srv/fcmo/agents/repos/FCMO-Agent-Hub/disciplines/WORTHY_WORK.md` | No trasladar trabajo rutinario al revisor humano como compuerta. La batería local no acredita la operación pública. |
-| `/srv/fcmo/agents/repos/FCMO-Agent-Hub/disciplines/HIGH_CONSEQUENCE.md` | Mantener intent-before-effect, comprobación del candidato exacto y relectura de checks antes del merge; no anunciar producción probada. |
-| `/srv/fcmo/agents/repos/FCMO-Agent-Hub/disciplines/COMMUNICATION.md` | El botón inicia la publicación y los mensajes describen su estado; no esperar aprobación inexistente. |
-| `/srv/fcmo/agents/repos/FCMO-Agent-Hub/policy/FCMO_ETHICAL_MORAL_CONSTITUTION_V1.md` | Javier conserva control de su texto; los lectores no reciben una atribución falsa de revisión humana de inglés/chino. Correo apagado y ningún envío externo. |
+| `standard/CORE.md` | L1: retirar la compuerta humana inventada y conservar la protección automática. L5: separar publicación simulada de GitHub/deploy real y de inspección visual. |
+| `runtime/FCMO_RUNTIME_V1.txt` | No inferir autoridad para publicar en producción, modificar reglas, enviar correo o instalar dependencias del encargo de código. |
+| `AGENTS.md` | Cargar sólo las disciplinas y fuentes solicitadas; no convertir ausencia del audit montado en hallazgos inventados. |
+| `disciplines/SOFTWARE_ENGINEERING.md` | Tres regresiones observadas rojas antes de implementar; conservar SHA, diff confinado, privacidad, traducción y reconciliación; ejecutar aceptación completa. |
+| `disciplines/VISUAL_ENGINEERING.md` | Seguir el flujo y textos definidos por el operador; probar el controlador y servir bundle coherente. Sin navegador real no afirmar validación visual. |
+| `identity/README.md` | No rediseñar identidad; conservar activos y sistema existentes en el cambio de interacción solicitado. |
+| `identity/readable/original/FCMO_Design_Current_V4.0.1_UNCHANGED.txt` | No cambió el diseño porque el encargo retira una aprobación; se conservan estilos, tipografía y composición existentes. |
+| `identity/readable/original/Desglose_de_la_simbologia_de_FCMO_UNCHANGED.txt` | No cambió nada de símbolos: no se crean marcas, iconos ni reinterpretaciones. |
+| `identity/FCMO_TECHNICAL_EXPOSURE_GRADIENT_v0.1.md` | Textos visibles Publicando y Publicado y verificado; los nombres internos de estados no se convierten en instrucciones para Javier. |
+| `disciplines/WORTHY_WORK.md` | No trasladar trabajo rutinario al revisor humano como compuerta. La batería local no acredita la operación pública. |
+| `disciplines/HIGH_CONSEQUENCE.md` | Mantener intent-before-effect, comprobación del candidato exacto y relectura de checks antes del merge; no anunciar producción probada. |
+| `disciplines/COMMUNICATION.md` | El botón inicia la publicación y los mensajes describen su estado; no esperar aprobación inexistente. |
+| `policy/FCMO_ETHICAL_MORAL_CONSTITUTION_V1.md` | Javier conserva control de su texto; los lectores no reciben una atribución falsa de revisión humana de inglés/chino. Correo apagado y ningún envío externo. |
 
 Pendientes fuera de propiedad y continuación: sección `studio-un-autor` al final de [NEEDS.md](../NEEDS.md). No se declara cerrada la misión general de Claudex ni una campaña BONK.

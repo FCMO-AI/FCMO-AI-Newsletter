@@ -19,6 +19,12 @@ def doc(loc):
 
 
 class PrivacyCheckTests(unittest.TestCase):
+    def test_tracked_source_tree_passes_machine_path_gate(self):
+        # Studio's privacy checks also run during host publication, where the
+        # gate sees committed files that were untracked during a box run.
+        from tools.gates.no_machine_paths import check_repo
+        check_repo(ROOT)
+
     def privacy(self, source_ready):
         (ROOT / '_audit').mkdir(exist_ok=True)
         with tempfile.TemporaryDirectory(dir=ROOT / '_audit') as tmp:
