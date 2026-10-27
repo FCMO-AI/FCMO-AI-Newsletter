@@ -196,7 +196,15 @@ class RepositoryStoryLayerTests(unittest.TestCase):
         for rid, expected in fixture.items():
             for key in keys:
                 self.assertEqual(self.stories[rid].get(key), expected.get(key), f"{rid} {key}")
-            self.assertEqual(self.stories[rid]["evidence"]["claims"], expected["evidence"]["claims"], rid)
+
+    def test_claims_follow_the_current_admitted_source_including_downgrades(self) -> None:
+        # Derived identities above are frozen; living evidence is not. Comparing
+        # claims with the 2026 snapshot would require restoring superseded labels
+        # and qualifiers. Admission can also carry an older, complete version.
+        inputs = story_layer.StoryInputs(CORPUS, REPO, REPO / "site", REPO / "site/data/i18n", NOW)
+        for rid, record in inputs.records.items():
+            with self.subTest(rid=rid):
+                self.assertEqual(self.stories[rid]["evidence"]["claims"], record["claims"], rid)
 
     def test_localization_states_are_honest(self) -> None:
         for story in self.document["stories"]:
@@ -601,6 +609,52 @@ class IngestSelectionTests(unittest.TestCase):
 
 
 class TaxonomyTests(unittest.TestCase):
+    def test_evidence_downgrade_reaches_native_editions_and_story_without_old_qualifiers(self):
+        from tools import sync_airlocked_locales, validate_localizations as vl
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            corpus, site = root / "corpus", root / "site"
+            i18n = site / "data/i18n"
+            source = dict(taxonomy.read_jsonl(FIXTURES / "corpus-44/data/developments.jsonl")[0])
+            text = "The laboratory reports a benchmark result awaiting independent review."
+            source.update({key: text for key in ("title", "summary", "why_it_matters", "importance_rationale")})
+            source.update(limitations=[], contradictory_evidence=[], evidence_gaps=[], relationships=[], technical={})
+            rid = source["id"]
+            native_texts = {"es-419": "El laboratorio informa un resultado pendiente de revisión independiente.",
+                            "zh-Hans": "实验室报告了一项尚待独立审查的研究结果。"}
+            corpus.joinpath("data").mkdir(parents=True)
+            frozen_clock = None
+            for day, label in enumerate(("DEMONSTRATED_THIRD_PARTY_EVALUATION_REPORT", "CLAIMED", "NOT_ESTABLISHED"), 26):
+                source["claims"] = [{"label": label, "text": text}]
+                corpus.joinpath("data/developments.jsonl").write_text(json.dumps(source) + "\n")
+                expected_native = {}
+                for locale, native_text in native_texts.items():
+                    overlay = {key: native_text for key in ("title", "summary", "why_it_matters", "importance_rationale")}
+                    overlay["claims"] = [{"label": label, "text": native_text}]
+                    expected_native[locale] = overlay
+                    path = corpus / f"data/locales/{locale}/records.json"
+                    path.parent.mkdir(parents=True, exist_ok=True)
+                    path.write_text(json.dumps({"schema": vl.DELTA_SCHEMA, "locale": locale, "records": {rid: overlay}}))
+                with contextlib.redirect_stdout(io.StringIO()):
+                    self.assertEqual(sync_airlocked_locales.main([
+                        "--corpus", str(corpus), "--i18n-dir", str(i18n)]), 0)
+                doc, _ = build(corpus, site=site, now=f"2026-09-{day}T20:00:00Z", history_repo=None)
+                story, = doc["stories"]
+                expected = {"label": "DEMONSTRATED", "qualifier": "THIRD_PARTY_EVALUATION_REPORT", "text": text} \
+                    if label.startswith("DEMONSTRATED_") else {"label": label, "text": text}
+                self.assertEqual(story["evidence"]["claims"], [expected])
+                for locale, overlay in expected_native.items():
+                    imported = json.loads((i18n / locale / "part-airlock.json").read_text())["records"][rid]
+                    self.assertEqual(imported, overlay)
+                    self.assertEqual(story["l10n"][locale]["state"], "NATIVE_ARB")
+                    self.assertEqual(story["l10n"][locale]["fields"]["evidence"]["claims"],
+                                     [{"text": native_texts[locale]}])
+                clock = (story["first_published_at"], story["url_date"], story["slug"])
+                if frozen_clock is not None:
+                    self.assertEqual(clock, frozen_clock)
+                frozen_clock = clock
+                (site / "data/stories.v2.json").write_text(json.dumps(doc))
+
     def test_superseded_record_without_a_duplicate_target_normalizes_as_withdrawn(self) -> None:
         source = taxonomy.read_jsonl(FIXTURES / "corpus-44" / "data" / "developments.jsonl")[0]
         replacement = "FCMO-AAAAAAAAAAAA"

@@ -394,12 +394,19 @@ class RealCorpusBacklog(unittest.TestCase):
             original = (fixture_root / "c4ad8f2" / f"{locale}-part-airlock.json").read_bytes()
             baseline = json.loads(original)
             airlock_doc = json.loads(airlock.read_text(encoding="utf-8"))
-            # Canonical identity metadata advances with the corpus; ARB-authored
-            # airlock prose and values remain byte-for-byte equivalent as JSON.
             before = baseline["records"]
             after = airlock_doc["records"]
-            self.assertTrue(all(after.get(rid) == row for rid, row in before.items()))
             delta = json.loads((ROOT / f"corpus/data/locales/{locale}/records.json").read_text())["records"]
+            # Historical wording is preserved until ARB republishes that id.
+            # The current admitted delta then owns the WHOLE overlay, including
+            # evidence-label corrections. Requiring the old label would undo a
+            # legitimate downgrade while English already carries the correction.
+            current = not corpus_guard.release_lags_corpus(ROOT)
+            admission = ROOT / 'release-src/data/publication-admission.json'
+            carried = set(json.loads(admission.read_text())['carried_ids']) if admission.is_file() else set()
+            for rid, row in before.items():
+                expected = delta[rid] if current and rid in delta and rid not in carried else row
+                self.assertEqual(after.get(rid), expected, f"{locale} {rid}: airlocked fields")
             canonical = vl.load_corpus_canonical(ROOT / "corpus")
             published = {path.stem for path in (ROOT / "release-src/data/briefs").glob("FCMO-*.json")}
             published_canonical = set(canonical) & published
