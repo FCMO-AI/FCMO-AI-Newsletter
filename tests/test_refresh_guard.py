@@ -211,6 +211,20 @@ class RefreshWorkflowOrder(unittest.TestCase):
 
 
 class RefreshFailureDiagnostics(unittest.TestCase):
+    def test_first_assertion_keeps_the_nested_cause_after_successful_steps(self):
+        output = "FAIL: test_refresh (fixture.Refresh.test_refresh)\n" + "-" * 70 + "\n"
+        output += "AssertionError: verificar_refresco.py salio 1\n"
+        output += "\n".join(f"ok step {index}" for index in range(40))
+        output += "\nrefresh broke at publication gates: receipt mismatch\n"
+        output += "\n" + "=" * 70 + "\nFAIL: test_later (fixture.Refresh.test_later)\n"
+        output += "-" * 70 + "\nAssertionError: unrelated later failure\n"
+        detail = guard.first_failure(output, 1)
+        self.assertIn("test_refresh", detail)
+        self.assertIn("verificar_refresco.py salio 1", detail)
+        self.assertIn("receipt mismatch", detail)
+        self.assertNotIn("unrelated later failure", detail)
+        self.assertLessEqual(len(detail.splitlines()), 13)
+
     def test_first_assertion_survives_a_later_long_diff_in_the_job_summary(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

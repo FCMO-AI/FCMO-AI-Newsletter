@@ -150,7 +150,12 @@ def first_failure(output: str, returncode: int) -> str:
         detail = "Detalle omitido por privacidad."
     test = re.sub(r"/(?:srv|home|tmp|var|etc|mnt|github|Users)/[^\s'\"<>]+", "[ruta omitida]", test)
     detail = re.sub(r"/(?:srv|home|tmp|var|etc|mnt|github|Users)/[^\s'\"<>]+", "[ruta omitida]", detail)
-    detail = "\n".join(detail.splitlines()[:12])[:1800]
+    lines = detail.splitlines()
+    if len(lines) > 12:
+        lines = lines[:5] + ["… detalle intermedio omitido …"] + lines[-6:]
+    detail = "\n".join(lines)
+    if len(detail) > 1800:
+        detail = detail[:850] + "\n… detalle intermedio omitido …\n" + detail[-850:]
     return f"{test}\n{detail}"
 
 
