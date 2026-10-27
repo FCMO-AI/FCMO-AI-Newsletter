@@ -654,3 +654,112 @@ un aislamiento válido para atribuir el fallo a la base.
 - `tests/check_paper_hero_titles.py publish` y `tests/oraculos/verificar_paper.py publish`:
   salida 1, `BROWSER_UNAVAILABLE`. Los skips existentes de navegador también
   quedan UNVERIFIED. Reejecutar suite y navegador fuera del sandbox.
+
+# nl-deploy3 — regresiones de Deploy 40545640286
+
+En juego → conservar la degradación de evidencia ya admitida y la legibilidad
+móvil del diseño existente → evidencia exigida: igualdad de overlays contra
+su fuente publicada, regresión de localización y Chromium sobre el candidato
+real → evidencia que hay: fallo de localización reproducido antes del cambio,
+JSON del oráculo fallido y comprobaciones locales descritas abajo → GO para
+revisión del código; NO-GO para afirmar Deploy o layout reparados sin Chromium.
+Ética: NO_MATERIAL; este carril no publica, envía mensajes ni cambia prosa editorial.
+
+## Causa y arreglo de localización
+
+- Fallo reproducido en `cb8f8dad7` con
+  `python3 -m unittest tests.test_localization_completeness`: 41 tests,
+  1 fallo y 1 skip; `FCMO-841949AEA161`, último claim del overlay español.
+- El lote recibido en `d263c4f4c` degradó el claim a `CLAIMED`. La release
+  `626b73213` ya había importado esa corrección en ES/ZH; su inglés admitido
+  y el inglés recibido actual son idénticos para ese registro. El overlay
+  publicado coincide íntegramente con el delta actual en ambos idiomas.
+- `15425e7ad` había autorizado contrastar el overlay completo con esa fuente,
+  pero lo condicionó al digest global. Los lotes posteriores avanzaron el
+  corpus, `release_lags_corpus` volvió a verdadero y la prueba exigió otra vez
+  `DEMONSTRATED_THIRD_PARTY_EVALUATION_REPORT` del snapshot `c4ad8f2`.
+- La prueba decide ahora por igualdad exacta del inglés publicado y recibido
+  de cada registro, manteniendo la exclusión de `carried_ids` y la igualdad
+  completa del overlay. No cambia el corpus ni restaura evidencia antigua.
+  El snapshot histórico permanece intacto. Una prueba adicional altera label
+  y prosa en ES/ZH y confirma que las cuatro alteraciones siguen siendo rechazadas.
+
+## Causa y arreglo móvil
+
+- Se extrajo el JSON del fallo y se ejecutó `evaluate` del oráculo existente:
+  la única infracción es `tabbar-clear es-419 390x844 front`. `receiptNa`
+  termina en `792.4375`; la barra empieza en `780`. El titular empieza en
+  `164.6875`, termina en `368.125` y mide `203.4375` de alto. No fallan
+  `h1-top`, banner, freshness, overflow ni el resto de idiomas.
+- El nuevo titular español de 107 caracteres usa `title-extra-compact`.
+  La regla móvil a <=520 daba `1.6rem`/1.05 a `medium`/`large`, pero no a
+  `compact`/`extra-compact`: estas heredaban `2rem`/1.06 (32 px).
+  Cambiar a una clase compacta agrandaba el titular y empujaba el aviso inferior.
+- Se extiende a las cuatro clases latinas la misma regla móvil existente de
+  `1.6rem`/1.05, con `:is` de igual especificidad. Se conserva el texto íntegro,
+  la tipografía, los márgenes, CJK y las reglas desktop. Reducir el bloque del
+  titular deja más altura al aviso; su posición final aún requiere Chromium.
+- La batería `tests/check_paper_hero_titles.py` añade una invariante de estilo
+  computado: compact/extra-compact no pueden ser mayores que medium a 390 px.
+  El fake rechaza también la inversión 32 > 25.6; prueba el evaluador, no los
+  píxeles. Se mantienen los presupuestos de cuatro líneas y 45% de altura.
+  El rojo anterior del layout está probado por el log de CI; no hay medición
+  verde local del layout porque no existe Playwright en este checkout.
+
+## Aceptación local
+
+- `python3 -m unittest tests.test_localization_completeness`: salida 0,
+  42 tests, 41 pasan y 1 skip existente por desfase corpus/release.
+- `python3 -m unittest tests.test_paper_hero_titles tests.test_v4_mobile_first_viewport tests.test_c6_tablet_oracle tests.test_design_v2 tests.test_c6_design_contract tests.test_story_layer.TaxonomyTests`:
+  salida 0, 69 tests, 67 pasan y 2 skips existentes de navegador.
+  No se ejecutó de nuevo la suite completa.
+- `python3 tools/paper/build.py --stories site/data/stories.v2.json --status site/data/newsroom-status.json --editorial editorial --out publish --base /FCMO-AI-Newsletter/`:
+  salida 0, 5805 rutas, 57 feeds, 3862 redirects, 7202 bytes de JS.
+- `python3 design/build_css.py --check`: salida 1 por presupuesto preexistente.
+  Reproducción con los bytes de `cb8f8dad7` en un temporal: misma salida 1.
+  Base: 115466 bytes; candidato: 115431; límite intacto: 114688.
+  El arreglo reduce 35 bytes; el exceso restante es 743 bytes y se deja como
+  deuda separada, sin elevar el límite ni minificar reglas ajenas al defecto.
+- `python3 tools/gates/run_all.py publish`: salida 0, `GATES PASS (14/14)`;
+  conserva los avisos no bloqueantes existentes de glosario y localización.
+- Tras el ajuste final de selector y la documentación:
+  `python3 -m unittest tests.test_paper_hero_titles tests.test_studio_checks_privacy`:
+  salida 0, 16/16 sin skips. `no_machine_paths.check(Path("publish"))`:
+  8171 archivos, sin advertencias.
+- `git diff --check`: salida 0.
+
+## UNVERIFIED y continuación fuera
+
+Los tres comandos siguientes se intentaron aquí y devolvieron salida 1 con
+`BROWSER_UNAVAILABLE`; ejecutarlos con el Playwright/Chromium instalado en el host:
+
+```sh
+python3 tests/oraculos/verificar_mobile_first_viewport.py --print-measurements
+python3 tests/check_paper_hero_titles.py publish
+python3 tests/oraculos/verificar_paper.py publish
+```
+
+El primero reconstruye el candidato y comprueba la regla original `tabbar-clear`
+en los tres idiomas. Los otros dos usan el candidato generado por el build
+anterior. Hace falta confirmar el aviso entero sobre la barra y revisar el
+resultado móvil y desktop; este carril no acredita publicación ni salud en vivo.
+
+## CANON: rutas y decisiones
+
+`Hub:` designa el checkout canónico FCMO Agent Hub. Se usan referencias relativas
+para respetar la compuerta pública `NO_MACHINE_PATHS`.
+
+- `Hub:runtime/FCMO_RUNTIME_V1.txt`: el build local no se presenta como Deploy ni como layout verificado.
+- `Hub:AGENTS.md`: se cargaron software, visual e identidad por el resultado afectado; no se inició trabajo ajeno al carril.
+- `Hub:standard/CORE.md`: L2/L5 cambiaron la decisión: usar la versión inglesa admitida por registro y el JSON de medidas; no culpar a h1-top ni modificar el umbral del oráculo.
+- `Hub:disciplines/SOFTWARE_ENGINEERING.md`: se reprodujo el rojo de localización antes de editar; se preservó el fallo de CI como evidencia del defecto móvil.
+- `Hub:disciplines/VISUAL_ENGINEERING.md`: no ocultar ni truncar el aviso para lograr la primera pantalla; reservar el visto bueno visual para Chromium.
+- `Hub:identity/README.md`: mantener el diseño propio de FCMO AI; no importar el diseño de Javier/fCMO ni rediseñar la portada.
+- `Hub:identity/readable/original/FCMO_Design_Current_V4.0.1_UNCHANGED.txt`: reutilizar la familia y la jerarquía tipográfica existentes, sin inventar otra escala.
+- `Hub:identity/readable/original/Desglose_de_la_simbologia_de_FCMO_UNCHANGED.txt`: no cambió nada porque no se modifican marcas, caret, naranja ni geometría simbólica.
+- `Hub:identity/FCMO_TECHNICAL_EXPOSURE_GRADIENT_v0.1.md`: no cambió nada porque no se modifica la atmósfera ni la profundidad técnica de ninguna superficie.
+- `Hub:disciplines/WORTHY_WORK.md`: PROOF separa el evaluador fake, las pruebas locales y la legibilidad del lector; no dar esta última por probada sin navegador.
+- `Hub:identity/FCMO_EDITORIAL_SOCIAL_OS_v0.1.md`: no cambió nada porque excluye la identidad FCMO AI y product UI; tampoco se crea copy social.
+- `Hub:disciplines/COMMUNICATION.md`: comunicar en español la causa, el resultado y la frontera no verificada sin presentar trabajo local como publicación.
+- `Hub:governance/KNOWLEDGE_FRESHNESS.md`: un digest posterior no invalida una corrección ya admitida; conservar la versión histórica y distinguir el corpus recibido del publicado.
+- `Hub:ecosystem/repositories.json`: confirmó la autoridad local de Newsletter pese al preámbulo genérico de Claudex; las pruebas y contratos aplicados son los de este repo.

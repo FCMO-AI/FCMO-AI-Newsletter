@@ -53,13 +53,22 @@ const types = {'.html':'text/html', '.css':'text/css', '.js':'text/javascript',
           h.classList.add(probe.cls);
           await document.fonts.ready;
           const r = h.getBoundingClientRect(), s = getComputedStyle(h);
+          const lineHeight = parseFloat(s.lineHeight);
+          const fontSize = parseFloat(s.fontSize);
+          const classes = h.className;
+          h.className = 'cover-title title-medium';
+          const mediumFontSize = parseFloat(getComputedStyle(h).fontSize);
+          h.className = classes;
           const next = document.querySelector('.landing-feature .cover-dek, .landing-feature .cover-evrow');
-          return {lines: Math.ceil(r.height / parseFloat(s.lineHeight) - .01), height: r.height,
-            fontSize: s.fontSize, column: r.width, text: h.textContent,
+          return {lines: Math.ceil(r.height / lineHeight - .01), height: r.height,
+            fontSize, mediumFontSize, column: r.width, text: h.textContent,
             nextTop: next?.getBoundingClientRect().top ?? null,
             overflow: document.documentElement.scrollWidth - innerWidth};
         }, probe);
         const ok = result.text === probe.text && result.overflow <= 0 &&
+          // A compact class must not enlarge a phone headline relative to medium.
+          (width !== 390 || !['title-compact', 'title-extra-compact'].includes(probe.cls) ||
+            result.fontSize <= result.mediumFontSize) &&
           (width === 1440 ? result.lines <= 4 && result.nextTop !== null && result.nextTop < 900 :
             result.height <= 844 * .45);
         if (!ok) failures++;

@@ -51,6 +51,7 @@ exports.chromium = {launch: async () => ({
       lines: Number(process.env.PROBE_LINES || 3),
       height: Number(process.env.PROBE_HEIGHT || 100),
       overflow: Number(process.env.PROBE_OVERFLOW || 0),
+      fontSize: Number(process.env.PROBE_FONT_SIZE || 25.6), mediumFontSize: 25.6,
       nextTop: process.env.PROBE_MISSING_NEXT ? null : 500
     })
   })
@@ -61,7 +62,7 @@ exports.chromium = {launch: async () => ({
             module.write_text(fake, encoding="utf-8")
             for mutation in ({}, {"PROBE_LINES": "5"}, {"PROBE_HEIGHT": "380"},
                              {"PROBE_OVERFLOW": "1"}, {"PROBE_MISSING_NEXT": "1"},
-                             {"PROBE_LOST_TEXT": "1"}):
+                             {"PROBE_LOST_TEXT": "1"}, {"PROBE_FONT_SIZE": "32"}):
                 with self.subTest(mutation=mutation):
                     result = subprocess.run(
                         [sys.executable, str(ROOT / "tests/check_paper_hero_titles.py"), temporary],
