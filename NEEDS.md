@@ -487,3 +487,15 @@ carril. Reejecutar `python3 -m unittest discover -s tests -p 'test_studio_*.py'`
   No se ha desplegado, hecho push, accedido a cuentas ni verificado recuperación
   en producción. Ejecutar las aceptaciones con pytest fuera: este entorno sólo
   dispone de python3/unittest y no permite añadir dependencias.
+
+- Revalidación final: suite completa en ocho shards aislados sobre `origin/main`
+  (`d7a1316d0`) y el candidato `1d6cff88d`: 1,283 / 1,292 pruebas descubiertas,
+  1,277 / 1,286 reportadas por unittest, cero fallos, las mismas nueve omisiones
+  (incluidas dos clases de navegador). Cero fallos u omisiones nuevos.
+  Evidencia local en `.scratch/full-suite-results/comparison.json`.
+- La primera comparación detectó dos regresiones introducidas por el diagnóstico
+  directo de selección. Se corrigieron sin cambiar las guardas originales:
+  salida numérica exacta y reportero aislado de códigos cerrados. Las 127 pruebas
+  focalizadas del bridge/privacidad/selección y las 19 del parche ARB pasan.
+  El export real pasa sólo tras aplicar el parche ARB en una copia y poner en
+  cuarentena dos registros: 730 admitidos, 176 correcciones conservadas.
