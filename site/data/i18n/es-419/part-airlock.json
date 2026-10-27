@@ -1,6 +1,6 @@
 {
   "canonical_locale": "en",
-  "canonical_source_sha256": "c0059b78fd433417d67734abd2aa2e788342472c9d3190abd6820c93c420c83b",
+  "canonical_source_sha256": "433ea3a7c7abba85d96d55913bb9412dc0c69964c8b900b5013598f15c505d96",
   "generated_from": "ARB airlock; editorial wording authored upstream",
   "locale": "es-419",
   "records": {
@@ -30914,6 +30914,64 @@
       },
       "title": "Hebei Daily informa que una empresa de Langfang canjeó RMB 500,000 en vales de cómputo por 42 PFLOPS de servicio anual",
       "why_it_matters": "Un canje reportado a nivel de empresa ofrece una señal concreta de implementación de un subsidio municipal de cómputo y permite dar seguimiento al acceso realizado frente a los presupuestos anunciados. El reporte no muestra canjes del programa completo, adicionalidad, productividad ni impacto económico."
+    },
+    "FCMO-BED60AE57496": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "Los autores publicaron arXiv:2610.35697v1 el 2026-10-26 y describen Misbehavior-driven RL (MiRL): perfila errores recurrentes de agentes de terminal, inicia los episodios de entrenamiento desde prefijos reproducibles justo antes de esos errores y solo recompensa los episodios que superan las pruebas de la tarea y en los que un evaluador confirma que se evitó la conducta objetivo."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Con Qwen3.5-4B, los autores informan que ocho tipos recurrentes abarcan 52.1% de los pasos erróneos perfilados. Con 189 entornos de entrenamiento retenidos, MiRL obtiene 51.8% en Terminal-Bench Lite y 21.3% en Terminal-Bench 2.1, frente a 47.4% y 20.6% de TMax-4B en sus pruebas, usando 35% de las trayectorias de TMax-4B. Una comparación aparte de 16 semillas en Terminal-Bench 2.1 informa promedios de 21.14% para MiRL y 20.22% para TMax-4B."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El preprint no demuestra que las mejoras se transfieran a otros modelos base o dominios de agentes, que sean estables entre entrenamientos independientes ni que persistan al controlar el sesgo por retención de prefijos y la selección de puntos de control. Los resultados de referencia son informes de los autores, no una confirmación independiente."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "En esta revisión no se encontró una reproducción independiente de MiRL ni de los resultados informados en las pruebas de referencia.",
+          "kind": "missing_independent",
+          "state": "open",
+          "updated_at": "2026-10-27T20:12:19Z"
+        },
+        {
+          "description": "Cada receta se entrenó una sola vez; las barras de error de las 3 corridas principales cubren variación de evaluación, no variación entre políticas entrenadas por separado. Las 16 semillas adicionales solo abarcan TB-2.1.",
+          "kind": "reproduction_missing",
+          "state": "open",
+          "updated_at": "2026-10-27T20:12:19Z"
+        },
+        {
+          "description": "Solo se probó Qwen3.5-4B y el filtro de reproducción exacta retuvo 219 de 640 prefijos candidatos, lo que podría favorecer entornos deterministas.",
+          "kind": "regime_unclear",
+          "state": "open",
+          "updated_at": "2026-10-27T20:12:19Z"
+        }
+      ],
+      "importance_rationale": "Si las mejoras informadas se transfieren más allá de un solo agente de terminal de 4B, dirigir los episodios de entrenamiento a errores recurrentes podría cambiar cómo se asignan los datos y el cómputo para el posentrenamiento de agentes. La mejora informada en Terminal-Bench Lite es relevante, aunque aún no se establece la transferencia entre modelos ni la variación entre entrenamientos.",
+      "limitations": [
+        "Resultados de un preprint informados por sus autores; en esta activación no se hizo una reproducción independiente.",
+        "Solo se evaluó un modelo base: Qwen3.5-4B.",
+        "Cada receta de entrenamiento se ejecutó una vez; las tres corridas estándar de evaluación no miden la variación entre semillas de entrenamiento.",
+        "Solo 219 de 640 prefijos candidatos superaron la reproducción exacta de salidas, lo que podría sesgar los ejemplos retenidos hacia entornos deterministas.",
+        "La selección del punto de control principal usa la puntuación de Terminal-Bench Lite entre los cinco mejores según la recompensa suavizada; por tanto, TB-Lite también interviene en la selección del modelo.",
+        "La evaluación de 16 semillas cubre Terminal-Bench 2.1 únicamente; la pequeña diferencia promedio no demuestra una ventaja amplia."
+      ],
+      "relationships": [],
+      "summary": "Un nuevo preprint propone Misbehavior-driven RL (MiRL): perfila errores recurrentes de un agente de terminal, reanuda el entrenamiento desde prefijos reproducibles anteriores a esos errores y exige tanto superar las pruebas de la tarea como evitar la conducta objetivo para obtener recompensa. Con Qwen3.5-4B, los autores informan 51.8% en Terminal-Bench Lite y 21.3% en Terminal-Bench 2.1 usando 35% de los episodios de TMax-4B; un resultado aparte con 16 semillas refuerza solo la comparación en Terminal-Bench 2.1. Los resultados corresponden a un único modelo base y no se reprodujeron de manera independiente.",
+      "technical": {
+        "claimed_result": "Para el entrenamiento de agentes de terminal con Qwen3.5-4B, los autores informan que MiRL reduce en promedio 43–57% las conductas erróneas medidas en prefijos no vistos, supera a TMax-4B por 4.4 puntos porcentuales en Terminal-Bench Lite y queda cerca en Terminal-Bench 2.1 (21.3% frente a 20.6%). La evaluación adicional de 16 semillas en TB-2.1 informa 21.14% frente a 20.22%.",
+        "compute_or_cost": "El artículo informa que MiRL usó 35% de los episodios y 39% de las horas de GPU de TMax-4B. El costo total estimado de MiRL fue de $1,960, equivalente a 56% del costo estimado de TMax-4B. Los autores reconstruyen parte de los recursos de TMax-4B a partir de los ajustes y curvas de un trabajo anterior y de su propio rendimiento medido; valoran los tokens de política como servicio y presentan las horas de GPU por separado. MiRL costó más que PivotRL ($999) y RaR+ ($770). No se recalcularon los costos de forma independiente.",
+        "demonstrated_result": "El preprint de arXiv, el repositorio de código público con licencia Apache-2.0 y el checkpoint del modelo están disponibles. El README de los autores y la ficha del checkpoint documentan la configuración y el uso; el checkpoint publicado contiene solo el modelo de lenguaje. En esta activación no ejecutamos el código ni los pesos.",
+        "mechanism": "MiRL agrupa primero errores perfilados de la política en tipos de conducta recurrente. Después inicia episodios de entrenamiento en prefijos anteriores a una conducta objetivo, conserva únicamente los prefijos cuyos comandos reproducen exactamente las salidas registradas y otorga recompensa solo si se superan las pruebas de la tarea y un evaluador confirma que se evitó esa conducta.",
+        "regime": "Qwen3.5-4B se evalúa en tareas terminales de largo horizonte dentro de contenedores de shell. El análisis de errores abarca 2,017 entornos; se probaron 640 prefijos candidatos mediante repetición y se conservaron 219 de 189 entornos. Los benchmarks son Terminal-Bench Lite (100 tareas) y Terminal-Bench 2.1 (89 tareas). Las comparaciones principales promedian tres evaluaciones; una comparación adicional de 16 semillas solo se reporta para TB-2.1. El README de los autores informa un entorno de 8× A100 de 80 GB, 96 hilos de CPU, alrededor de 1 TB de RAM y 5 TB de disco local; identifica Qwen3.5-4B como política y Qwen3.8-27B como localizador de errores y docente, y fija la revisión del código TMax en 7387d2f9142397a458dc39f0827a2ab0b4c03cda. El README enumera requisitos de claves de API; el juez de comportamiento es Gemini 3.8 Flash. Son datos de configuración documentados por los autores, no requisitos de ejecución verificados de forma independiente.",
+        "strongest_baseline": "TMax-4B es el principal comparador basado en más datos (TMax-4B). En el hardware de evaluación de los autores obtiene 47.4% en TB-Lite y 20.6% en TB-2.1; MiRL obtiene 51.8% y 21.3%, respectivamente, usando 35% de sus episodios. Los promedios de TB-2.1 con 16 semillas son 21.14% y 20.22%; esto indica una diferencia pequeña en esa prueba, no una victoria amplia y concluyente."
+      },
+      "title": "MiRL dirige el refuerzo de agentes de terminal a errores recurrentes",
+      "why_it_matters": "El artículo utiliza el análisis de fallas para asignar episodios y señales de recompensa al entrenamiento, en lugar de limitarlo al diagnóstico. Si el resultado se generaliza, podría ser más provechoso elegir dónde comienzan los episodios y qué conductas penalizar que aumentar por sí solo la cantidad de entornos. La evidencia actual se limita a un modelo base de agente de terminal; no demuestra una receta general para otros modelos o herramientas."
     },
     "FCMO-BEE6D61DE0B1": {
       "claims": [
@@ -62920,6 +62978,48 @@
       "why_it_matters": {
         "locale_sha256": "406cda18b671db202047043b69b595a07a191b6125ec7822940de4df87b0f459",
         "source_sha256": "bffe722edd43c10f0b0025205be5aebc2db55a9d73e0b9bca6edd9fc53873517"
+      }
+    },
+    "FCMO-BED60AE57496": {
+      "claims": {
+        "locale_sha256": "3ba7b7c695674454dd1c8948e3d161f52a957b9adea6d617b0d8e2495308cd21",
+        "source_sha256": "300a276892cbcbffb95393300b8e25321cc3eda395ae29fae0aa71c3efbb6b96"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "ed0636f362388ce40d97b095a3c85a4e3bc5c5ecdb8400ea4b51b2ccf6896a72",
+        "source_sha256": "06fc27bbd61cd108432aad02a51e60b64083403665dd95f6eb14926a6e557876"
+      },
+      "importance_rationale": {
+        "locale_sha256": "129e604ba24e53968f510586b2824bdfae2668ade0d0bc703c99e7c01fadf53a",
+        "source_sha256": "d3dbb61e306569e0f69ecd165ec126ceb67d8f450dc2731a4ba763476da811bc"
+      },
+      "limitations": {
+        "locale_sha256": "cd54cd1b3b5e9d3a979a391529b00661d686af5b1be230e8b8259a16df1260fb",
+        "source_sha256": "a2f8dfd5cbfbdbf55309ba400da473502dc3149255d738822bc7e6de568952d2"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "24cbb6e2489f383edd7c061f93ea97f3034773a696d9bf660732a0930a6674bf",
+        "source_sha256": "a6157b529a75794dda75be47beaccf7e3fcbcf483cc5d4c748e456340c9bdff7"
+      },
+      "technical": {
+        "locale_sha256": "f7e1b498bf048d2081dadbf8b7e417f401a8eed4f029b5a149bf42d6e439bd18",
+        "source_sha256": "60e19109e159f4fb42d72d62440174a6643c2dd5e9bdf4492021f2f23a54959a"
+      },
+      "title": {
+        "locale_sha256": "4e1bd6d70ae67fc82b8aea39bfca23f01732bac4cdcb8e063a04f6581930dc3f",
+        "source_sha256": "7ca11d29215addb7fd35b85bb30f8ce169cccb5408b764a877cc831dfb9ac9ec"
+      },
+      "why_it_matters": {
+        "locale_sha256": "3cf44dc33ad3a1e37dd00856c89f9563b1fbc4cd5877f8f87eb13f16249a4a30",
+        "source_sha256": "5aba7289d2bfb60b696d9e48d14a64dd4a5d6c2e90d4971e403647dd64a622de"
       }
     },
     "FCMO-BEE6D61DE0B1": {

@@ -1,7 +1,7 @@
 {
   "schema": "fcmo-stories-v2",
-  "generated_at": "2026-10-27T20:30:48Z",
-  "release_id": "newswire-7e5390b97f5025b9aca3aeb5",
+  "generated_at": "2026-10-27T21:58:13Z",
+  "release_id": "newswire-27cc0432669b05b7bc6e3208",
   "canonical_locale": "en",
   "locales": [
     "en",
@@ -52,6 +52,241 @@
     "2026-10-27"
   ],
   "stories": [
+    {
+      "id": "FCMO-BED60AE57496",
+      "slug": "mirl-targets-recurring-terminal-agent-errors-during-reinforcement",
+      "url_date": "2026-10-27",
+      "kind": "development",
+      "status": "live",
+      "beat": "research",
+      "desk": "reasoning_posttraining",
+      "title": "MiRL targets recurring terminal-agent errors during reinforcement learning",
+      "headline": "MiRL targets recurring terminal-agent errors during reinforcement learning",
+      "summary": "A new preprint proposes Misbehavior-driven RL (MiRL), which profiles recurring errors in a terminal agent, resumes training rollouts from replayable prefixes before those errors, and requires both task-test success and avoidance of the target behavior for reward. On Qwen3.5-4B, the authors report 51.8% on Terminal-Bench Lite and 21.3% on Terminal-Bench 2.1 using 35% of TMax-4B's rollouts; a separate 16-seed result strengthens only the Terminal-Bench 2.1 comparison. Results are from one model backbone and no independent reproduction was performed.",
+      "why_it_matters": "The paper treats failure analysis as a way to allocate training rollouts and reward signals, rather than only as a diagnostic tool. If its result transfers, teams may gain more from selecting where rollouts begin and what they penalize than from scaling environment count alone. The evidence currently supports a bounded result for one terminal-agent backbone, not a general recipe across models or tool domains.",
+      "importance_rationale": "If the reported gains transfer beyond one 4B terminal-agent backbone, using recurring policy errors to target rollout states and behavioral rewards could change how post-training data and compute are allocated. The reported advantage is material on Terminal-Bench Lite, while cross-backbone transfer and training-run variance remain unestablished.",
+      "technical": {
+        "claimed_result": "For Qwen3.5-4B terminal-agent training, the authors report that MiRL reduces measured recurring misbehaviors by 43–57% on average on unseen prefixes, exceeds TMax-4B by 4.4 percentage points on Terminal-Bench Lite, and is close on Terminal-Bench 2.1 (21.3% versus 20.6%). Their additional 16-seed TB-2.1 evaluation reports 21.14% versus 20.22%.",
+        "compute_or_cost": "The paper reports 35% as many rollouts and 39% of TMax-4B's GPU hours. MiRL's author-calculated total cost is $1,960; this is 56% of TMax-4B's reported relative cost. The paper states that TMax-4B totals are estimated from the prior paper's settings and curves and its own measured throughput, while policy tokens are priced as a service and GPU hours are reported separately. MiRL cost more than PivotRL ($999) and RaR+ ($770). No independent cost recomputation was performed.",
+        "demonstrated_result": "The arXiv preprint and a public Apache-2.0 code repository and model checkpoint are available. The performance and error-reduction measurements are reported by the authors and were not reproduced here. The authors’ README and checkpoint card document setup and serving; the released checkpoint is language-model-only. Neither code nor weights were run in this activation.",
+        "mechanism": "MiRL first groups profiled policy errors into recurring misbehavior types. It then starts on-policy rollouts from prefixes before a target misbehavior, retaining prefixes only when commands replay with exact recorded outputs, and gives reward only when task tests pass and a behavior judge confirms the target behavior was avoided.",
+        "regime": "Qwen3.5-4B on long-horizon terminal tasks in shell-container environments. Error profiling uses 2,017 environments; 640 candidate prefixes were tested for replay and 219 from 189 environments were retained. Benchmarks are Terminal-Bench Lite (100 tasks) and Terminal-Bench 2.1 (89 tasks). Standard headline comparisons average three evaluation runs; an additional 16-seed comparison is reported only for TB-2.1. The authors’ README reports an 8× A100 80 GB setup, 96 CPU threads, about 1 TB RAM and 5 TB local disk; it identifies Qwen3.5-4B as policy and Qwen3.8-27B as error localizer/teacher, and fixes the TMax code revision at 7387d2f9142397a458dc39f0827a2ab0b4c03cda. The README identifies API-key requirements; the behavior judge is Gemini 3.8 Flash. These are author-documented setup facts, not independently checked runtime requirements.",
+        "strongest_baseline": "TMax-4B is the principal scaled-data baseline. On the authors' evaluation hardware it scores 47.4% on TB-Lite and 20.6% on TB-2.1. MiRL is 51.8% and 21.3%, respectively, with 35% of TMax-4B's rollouts. The 16-seed TB-2.1 means are 21.14% and 20.22%; this indicates a small margin on that benchmark, not a decisive broad win."
+      },
+      "importance_tier": "Major",
+      "development_type": "paper",
+      "event_at": "2026-10-26T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-10-27T21:57:45Z",
+      "updated_at": "2026-10-27T21:57:45Z",
+      "importance": 6,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": false,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "DEMONSTRATED",
+            "text": "The authors posted arXiv:2610.35697v1 on 2026-10-26 and describe Misbehavior-driven RL (MiRL), which profiles recurring terminal-agent errors, starts training rollouts from replayable prefixes immediately before those errors, and rewards a rollout only when it passes task tests and a behavior judge says it avoided the target misbehavior."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "On Qwen3.5-4B, the authors report that eight recurring error types cover 52.1% of profiled wrong steps. With 189 retained training environments, MiRL scores 51.8% on Terminal-Bench Lite and 21.3% on Terminal-Bench 2.1, versus their TMax-4B results of 47.4% and 20.6%, using 35% of TMax-4B's rollouts. A separate 16-seed Terminal-Bench 2.1 comparison reports means of 21.14% for MiRL and 20.22% for TMax-4B."
+          },
+          {
+            "label": "NOT_ESTABLISHED",
+            "text": "The preprint does not establish that the gains transfer to other model backbones or agent domains, remain stable across independent training runs, or persist when prefix-retention bias and checkpoint selection are controlled. Its reported benchmark results are not independent confirmation."
+          }
+        ],
+        "limitations": [
+          "Author-reported preprint results; no independent reproduction was performed in this activation.",
+          "Only one policy backbone, Qwen3.5-4B, was tested.",
+          "Training recipes were each run once; the standard three evaluation runs do not measure training-seed variance.",
+          "Only 219 of 640 candidate prefixes passed exact-output replay, potentially biasing retained examples toward deterministic environments.",
+          "Headline checkpoint selection uses Terminal-Bench Lite score among the top five smoothed-reward checkpoints, so TB-Lite is involved in model selection.",
+          "The 16-seed evaluation addresses Terminal-Bench 2.1 only; its small mean gap does not establish a broad advantage."
+        ],
+        "gaps": [
+          {
+            "kind": "missing_independent",
+            "description": "No independent reproduction of MiRL or its reported benchmark results was inspected."
+          },
+          {
+            "kind": "reproduction_missing",
+            "description": "Each training recipe was trained once; the 3-run headline error bars cover evaluation runs, not variation across separately trained policies. The 16-seed evaluation covers TB-2.1 only."
+          },
+          {
+            "kind": "regime_unclear",
+            "description": "Only Qwen3.5-4B was tested, and exact-output prefix replay retains 219 of 640 candidate prefixes, which may bias training toward deterministic environments."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://arxiv.org/abs/2610.35697",
+          "domain": "arxiv.org",
+          "primary": true
+        },
+        {
+          "url": "https://github.com/runchu-tian/MiRL",
+          "domain": "github.com",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "University of North Carolina at Chapel Hill"
+      ],
+      "topics": [
+        "terminal-agents",
+        "reinforcement-learning",
+        "agent-training",
+        "reward-hacking",
+        "data-efficiency"
+      ],
+      "regions": [
+        "GLOBAL"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-BED60AE57496.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: MiRL targets recurring terminal-agent errors during reinforcement learning"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "MiRL dirige el refuerzo de agentes de terminal a errores recurrentes",
+            "summary": "Un nuevo preprint propone Misbehavior-driven RL (MiRL): perfila errores recurrentes de un agente de terminal, reanuda el entrenamiento desde prefijos reproducibles anteriores a esos errores y exige tanto superar las pruebas de la tarea como evitar la conducta objetivo para obtener recompensa. Con Qwen3.5-4B, los autores informan 51.8% en Terminal-Bench Lite y 21.3% en Terminal-Bench 2.1 usando 35% de los episodios de TMax-4B; un resultado aparte con 16 semillas refuerza solo la comparación en Terminal-Bench 2.1. Los resultados corresponden a un único modelo base y no se reprodujeron de manera independiente.",
+            "importance_rationale": "Si las mejoras informadas se transfieren más allá de un solo agente de terminal de 4B, dirigir los episodios de entrenamiento a errores recurrentes podría cambiar cómo se asignan los datos y el cómputo para el posentrenamiento de agentes. La mejora informada en Terminal-Bench Lite es relevante, aunque aún no se establece la transferencia entre modelos ni la variación entre entrenamientos.",
+            "why_it_matters": "El artículo utiliza el análisis de fallas para asignar episodios y señales de recompensa al entrenamiento, en lugar de limitarlo al diagnóstico. Si el resultado se generaliza, podría ser más provechoso elegir dónde comienzan los episodios y qué conductas penalizar que aumentar por sí solo la cantidad de entornos. La evidencia actual se limita a un modelo base de agente de terminal; no demuestra una receta general para otros modelos o herramientas.",
+            "technical": {
+              "claimed_result": "Para el entrenamiento de agentes de terminal con Qwen3.5-4B, los autores informan que MiRL reduce en promedio 43–57% las conductas erróneas medidas en prefijos no vistos, supera a TMax-4B por 4.4 puntos porcentuales en Terminal-Bench Lite y queda cerca en Terminal-Bench 2.1 (21.3% frente a 20.6%). La evaluación adicional de 16 semillas en TB-2.1 informa 21.14% frente a 20.22%.",
+              "compute_or_cost": "El artículo informa que MiRL usó 35% de los episodios y 39% de las horas de GPU de TMax-4B. El costo total estimado de MiRL fue de $1,960, equivalente a 56% del costo estimado de TMax-4B. Los autores reconstruyen parte de los recursos de TMax-4B a partir de los ajustes y curvas de un trabajo anterior y de su propio rendimiento medido; valoran los tokens de política como servicio y presentan las horas de GPU por separado. MiRL costó más que PivotRL ($999) y RaR+ ($770). No se recalcularon los costos de forma independiente.",
+              "demonstrated_result": "El preprint de arXiv, el repositorio de código público con licencia Apache-2.0 y el checkpoint del modelo están disponibles. El README de los autores y la ficha del checkpoint documentan la configuración y el uso; el checkpoint publicado contiene solo el modelo de lenguaje. En esta activación no ejecutamos el código ni los pesos.",
+              "mechanism": "MiRL agrupa primero errores perfilados de la política en tipos de conducta recurrente. Después inicia episodios de entrenamiento en prefijos anteriores a una conducta objetivo, conserva únicamente los prefijos cuyos comandos reproducen exactamente las salidas registradas y otorga recompensa solo si se superan las pruebas de la tarea y un evaluador confirma que se evitó esa conducta.",
+              "regime": "Qwen3.5-4B se evalúa en tareas terminales de largo horizonte dentro de contenedores de shell. El análisis de errores abarca 2,017 entornos; se probaron 640 prefijos candidatos mediante repetición y se conservaron 219 de 189 entornos. Los benchmarks son Terminal-Bench Lite (100 tareas) y Terminal-Bench 2.1 (89 tareas). Las comparaciones principales promedian tres evaluaciones; una comparación adicional de 16 semillas solo se reporta para TB-2.1. El README de los autores informa un entorno de 8× A100 de 80 GB, 96 hilos de CPU, alrededor de 1 TB de RAM y 5 TB de disco local; identifica Qwen3.5-4B como política y Qwen3.8-27B como localizador de errores y docente, y fija la revisión del código TMax en 7387d2f9142397a458dc39f0827a2ab0b4c03cda. El README enumera requisitos de claves de API; el juez de comportamiento es Gemini 3.8 Flash. Son datos de configuración documentados por los autores, no requisitos de ejecución verificados de forma independiente.",
+              "strongest_baseline": "TMax-4B es el principal comparador basado en más datos (TMax-4B). En el hardware de evaluación de los autores obtiene 47.4% en TB-Lite y 20.6% en TB-2.1; MiRL obtiene 51.8% y 21.3%, respectivamente, usando 35% de sus episodios. Los promedios de TB-2.1 con 16 semillas son 21.14% y 20.22%; esto indica una diferencia pequeña en esa prueba, no una victoria amplia y concluyente."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "Los autores publicaron arXiv:2610.35697v1 el 2026-10-26 y describen Misbehavior-driven RL (MiRL): perfila errores recurrentes de agentes de terminal, inicia los episodios de entrenamiento desde prefijos reproducibles justo antes de esos errores y solo recompensa los episodios que superan las pruebas de la tarea y en los que un evaluador confirma que se evitó la conducta objetivo."
+                },
+                {
+                  "text": "Con Qwen3.5-4B, los autores informan que ocho tipos recurrentes abarcan 52.1% de los pasos erróneos perfilados. Con 189 entornos de entrenamiento retenidos, MiRL obtiene 51.8% en Terminal-Bench Lite y 21.3% en Terminal-Bench 2.1, frente a 47.4% y 20.6% de TMax-4B en sus pruebas, usando 35% de las trayectorias de TMax-4B. Una comparación aparte de 16 semillas en Terminal-Bench 2.1 informa promedios de 21.14% para MiRL y 20.22% para TMax-4B."
+                },
+                {
+                  "text": "El preprint no demuestra que las mejoras se transfieran a otros modelos base o dominios de agentes, que sean estables entre entrenamientos independientes ni que persistan al controlar el sesgo por retención de prefijos y la selección de puntos de control. Los resultados de referencia son informes de los autores, no una confirmación independiente."
+                }
+              ],
+              "limitations": [
+                "Resultados de un preprint informados por sus autores; en esta activación no se hizo una reproducción independiente.",
+                "Solo se evaluó un modelo base: Qwen3.5-4B.",
+                "Cada receta de entrenamiento se ejecutó una vez; las tres corridas estándar de evaluación no miden la variación entre semillas de entrenamiento.",
+                "Solo 219 de 640 prefijos candidatos superaron la reproducción exacta de salidas, lo que podría sesgar los ejemplos retenidos hacia entornos deterministas.",
+                "La selección del punto de control principal usa la puntuación de Terminal-Bench Lite entre los cinco mejores según la recompensa suavizada; por tanto, TB-Lite también interviene en la selección del modelo.",
+                "La evaluación de 16 semillas cubre Terminal-Bench 2.1 únicamente; la pequeña diferencia promedio no demuestra una ventaja amplia."
+              ],
+              "gaps": [
+                {
+                  "description": "En esta revisión no se encontró una reproducción independiente de MiRL ni de los resultados informados en las pruebas de referencia."
+                },
+                {
+                  "description": "Cada receta se entrenó una sola vez; las barras de error de las 3 corridas principales cubren variación de evaluación, no variación entre políticas entrenadas por separado. Las 16 semillas adicionales solo abarcan TB-2.1."
+                },
+                {
+                  "description": "Solo se probó Qwen3.5-4B y el filtro de reproducción exacta retuvo 219 de 640 prefijos candidatos, lo que podría favorecer entornos deterministas."
+                }
+              ]
+            },
+            "headline": "MiRL dirige el refuerzo de agentes de terminal a errores recurrentes"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "MiRL在强化学习中针对终端代理的重复错误进行训练",
+            "summary": "一篇新预印本提出Misbehavior-driven RL（MiRL）：分析终端代理的重复错误，从错误之前可重放的轨迹前缀恢复训练，并要求任务测试通过且目标行为得到避免才给予奖励。在Qwen3.5-4B上，作者报告Terminal-Bench Lite得分51.8%、Terminal-Bench 2.1得分21.3%，使用的训练轨迹为TMax-4B的35%；另一项16种子结果只加强了Terminal-Bench 2.1的比较。结果仅适用于一个基座模型，本次未进行独立复现。",
+            "importance_rationale": "如果所报提升能够推广到单一4B终端代理以外，利用重复策略错误来选择训练轨迹起点，可能改变代理后训练中数据与算力的分配方式。Terminal-Bench Lite上的所报提升具有实际意义，但跨模型迁移和训练运行差异尚未得到证实。",
+            "why_it_matters": "该论文将故障分析用于选择训练轨迹和奖励信号，而不只是诊断代理问题。如果结果能够推广，选择训练从哪里开始、惩罚何种行为，可能比单纯增加环境数量更有效。目前证据仅支持一个终端代理基座模型上的有限结论，并未证明该方法适用于其他模型或工具领域。",
+            "technical": {
+              "claimed_result": "对于Qwen3.5-4B终端代理训练，作者报告MiRL在未见过的前缀上将测得的重复不当行为平均降低43–57%，在Terminal-Bench Lite上比TMax-4B高4.4个百分点，在Terminal-Bench 2.1上分数接近（21.3%对20.6%）。其额外的TB-2.1 16种子评估报告分数为21.14%对20.22%。",
+              "compute_or_cost": "论文报告MiRL使用的训练轨迹为TMax-4B的35%，GPU小时数为其39%。MiRL作者估算总成本为$1,960，相当于TMax-4B基线估算总成本的56%。作者根据先前论文的设置和曲线以及本次测得的吞吐量重建了部分TMax-4B资源数据；策略模型按服务计费，GPU小时数另行报告。MiRL成本高于PivotRL（$999）和RaR+（$770）。本次未独立重算成本。",
+              "demonstrated_result": "arXiv预印本、采用Apache-2.0许可的公开代码仓库及模型检查点均已提供。作者的README和检查点说明介绍了配置与使用方式；已发布的检查点仅包含语言模型。本次激活未运行代码或模型权重。",
+              "mechanism": "MiRL首先将策略分析所得错误归类为重复不当行为。随后从目标行为发生前的轨迹前缀启动在线策略训练，只保留命令能够精确重放已记录输出的前缀；只有任务测试通过且行为评审器确认目标行为已避免时，才给予奖励。",
+              "regime": "Qwen3.5-4B用于shell容器环境中的长程终端任务。错误分析覆盖2,017个环境；对640个候选前缀进行了重放测试，并保留了来自189个环境的219个。基准为Terminal-Bench Lite（100项任务）和Terminal-Bench 2.1（89项任务）。主要结果为三次评估的均值；另有一项16种子比较仅针对TB-2.1。作者的README报告使用8× A100 80 GB、96个CPU线程、约1 TB内存和5 TB本地磁盘；其中将Qwen3.5-4B列为策略模型、Qwen3.8-27B列为错误定位器和教师模型，并将TMax代码版本固定为7387d2f9142397a458dc39f0827a2ab0b4c03cda。README列出了API密钥要求；行为评审器为Gemini 3.8 Flash。这些是作者记录的配置，并非经独立核实的运行要求。",
+              "strongest_baseline": "主要的大规模数据基线是TMax-4B。在作者的评估硬件上，该基线在TB-Lite得分47.4%，在TB-2.1得分20.6%；MiRL分别为51.8%和21.3%，且只使用TMax-4B的35%训练轨迹。TB-2.1的16种子均值为21.14%和20.22%；这说明该基准上的差距较小，不足以支持广泛且明确的胜出结论。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "作者于2026-10-26发布了arXiv:2610.35697v1，并介绍了Misbehavior-driven RL（MiRL）：先分析终端代理的重复错误，再从这些错误之前可重放的轨迹前缀启动训练；只有任务测试通过且行为评审器确认目标不当行为已避免时，才给予奖励。"
+                },
+                {
+                  "text": "在Qwen3.5-4B上，作者报告八类重复错误占已分析错误步骤的52.1%。在保留的189个训练环境中，MiRL在Terminal-Bench Lite上得分51.8%，在Terminal-Bench 2.1上得分21.3%；作者运行的TMax-4B分别为47.4%和20.6%，而MiRL仅使用TMax-4B的35%训练轨迹。另一项针对Terminal-Bench 2.1的16种子比较报告MiRL平均得分21.14%，TMax-4B为20.22%。"
+                },
+                {
+                  "text": "该预印本尚未证明这些提升可迁移到其他基座模型或代理领域，也未证明其在独立训练运行中稳定，或在控制前缀保留偏差和检查点选择后仍然成立。基准结果是作者报告的数据，并非独立验证。"
+                }
+              ],
+              "limitations": [
+                "这是作者在预印本中报告的结果；本次激活未进行独立复现。",
+                "实验只测试了一个基座模型Qwen3.5-4B。",
+                "每种训练方案只运行了一次；标准的三次评估不衡量训练种子之间的差异。",
+                "640个候选前缀中只有219个通过了输出精确重放，保留样本可能偏向确定性环境。",
+                "主要检查点根据平滑奖励排名前五者中的Terminal-Bench Lite分数选出，因此TB-Lite参与了模型选择。",
+                "16种子评估仅针对Terminal-Bench 2.1；较小的均值差距不足以证明广泛优势。"
+              ],
+              "gaps": [
+                {
+                  "description": "本次审查未找到对MiRL或其所报基准结果的独立复现。"
+                },
+                {
+                  "description": "每种训练方案只训练了一次；主要结果的3次评估误差条衡量的是评估波动，而非独立训练策略之间的差异。额外的16种子评估仅覆盖TB-2.1。"
+                },
+                {
+                  "description": "实验仅测试了Qwen3.5-4B，且精确输出重放筛选仅保留了640个候选前缀中的219个，这可能使训练偏向确定性更高的环境。"
+                }
+              ]
+            },
+            "headline": "MiRL在强化学习中针对终端代理的重复错误进行训练",
+            "dek": "一篇新预印本提出Misbehavior-driven RL（MiRL）：分析终端代理的重复错误，从错误之前可重放的轨迹前缀恢复训练，并要求任务测试通过且目标行为得到避免才给予奖励。在Qwen3.5-4B上，作者报告Terminal-Bench Lite得分51.8%、Terminal-Bench 2.1得分21.3%，使用的训练轨迹为TMax-4B的35%；另一项16种子结果只加强了Terminal-Bench 2.1的比较。结果仅适用于一个基座模型，本次未进行独立复现。"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
     {
       "id": "FCMO-D08020E2C8C9",
       "slug": "a-preprint-reports-gains-from-adapting-agent-skills-to-executor",
