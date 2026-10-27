@@ -499,3 +499,28 @@ carril. Reejecutar `python3 -m unittest discover -s tests -p 'test_studio_*.py'`
   focalizadas del bridge/privacidad/selección y las 19 del parche ARB pasan.
   El export real pasa sólo tras aplicar el parche ARB en una copia y poner en
   cuarentena dos registros: 730 admitidos, 176 correcciones conservadas.
+
+# newsroom-refresh-20261027
+
+- Hallazgo incidental, fuera del arreglo del refresh: durante la suite en
+  paralelo, `tests/test_publish_processes.py::running` recibió
+  `ProcessLookupError` al leer el estado de un proceso que acababa de terminar.
+  El helper sólo captura `FileNotFoundError`. El módulo repitió sus cuatro
+  pruebas sin fallos. Para cerrar esa carrera, capturar también
+  `ProcessLookupError` en ese helper y devolver `False`, manteniendo todas las
+  aserciones de limpieza y terminación; añadir una reproducción determinista
+  del ESRCH. No se modificó ese módulo en este carril.
+- `test_studio_journey_timing.JourneyTiming.test_probe_measures_real_authenticated_preview_without_credential_receipt`
+  falla de la misma manera en base y carril bajo la ejecución concurrente:
+  `measure_preview` no recibe el ensayo del renderer. Es un hallazgo compartido,
+  no un fallo nuevo. Repetir el recorrido aislado y examinar el diagnóstico del
+  renderer antes de modificar presupuestos o atribuir la causa; conservar las
+  aserciones de entrega y de ausencia de credenciales.
+- `test_studio_translation.TranslationHTTPTests.test_real_authenticated_http_translate_preview_and_distribution`
+  también falla en ambas copias concurrentes: timeout HTTP y luego directorio
+  no vacío durante la limpieza de la vista previa. Repetir sin carga concurrente
+  y verificar que el renderer termina antes de limpiar su directorio temporal;
+  no aumentar el timeout ni omitir la distribución como arreglo del refresh.
+- Ejecutar el refresh y verificar edición/frescura en producción después de la
+  integración. Este carril sólo reconstruye y verifica un candidato local,
+  sin red, push, despliegue ni inspección del sitio vivo.
