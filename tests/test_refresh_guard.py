@@ -13,6 +13,8 @@ the commit/push step, which is what keeps main green.
 """
 from __future__ import annotations
 
+import contextlib
+import io
 import json
 import os
 import re
@@ -22,6 +24,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
@@ -205,6 +208,76 @@ class RefreshWorkflowOrder(unittest.TestCase):
         self.assertTrue(listed)
         for name in listed:
             self.assertTrue((ROOT / "tests" / f"{name}.py").is_file(), name)
+
+
+class RefreshFailureDiagnostics(unittest.TestCase):
+    def test_first_assertion_survives_a_later_long_diff_in_the_job_summary(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "tests").mkdir()
+            (root / "tests/__init__.py").write_text("")
+            (root / guard.MODULE_LIST).write_text("test_failure\n")
+            (root / "tests/test_failure.py").write_text(
+                "import unittest\nclass T(unittest.TestCase):\n"
+                " def test_a_first(self):\n"
+                "  self.assertEqual('CLAIMED', 'DEMONSTRATED', "
+                "'FCMO-000000000001 es-419 claims[7].label')\n"
+                " def test_z_long_diff(self):\n"
+                "  self.maxDiff = None\n"
+                "  self.assertEqual(list(range(80)), list(range(80, 160)))\n")
+            findings = guard.run_modules(root, workers=1)
+            self.assertEqual(len(findings), 1)
+            annotations, count, summary = guard.render(findings)
+            self.assertEqual(count, 1)
+            for output in (annotations, summary):
+                self.assertIn("test_a_first", output)
+                self.assertIn("AssertionError", output)
+                self.assertIn("FCMO-000000000001 es-419 claims[7].label", output)
+            self.assertNotIn("test_z_long_diff", summary)
+            target = root / "summary.md"
+            with mock.patch.dict(os.environ, {"GITHUB_STEP_SUMMARY": str(target)}), \
+                    mock.patch.object(guard, "run_checks", return_value=[]), \
+                    contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+                self.assertEqual(guard.main(["--root", str(root), "--tests"]), 1)
+            self.assertEqual(target.read_text(), summary)
+
+    def test_diagnostics_do_not_publish_private_failure_text(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "tests").mkdir()
+            (root / "tests/__init__.py").write_text("")
+            (root / guard.MODULE_LIST).write_text("test_failure\n")
+            sensitive = "github_pat_" + "x" * 30
+            (root / "tests/test_failure.py").write_text(
+                "import unittest\nclass T(unittest.TestCase):\n"
+                f" def test_private(self): self.fail({sensitive!r})\n")
+            annotations, count, summary = guard.render(guard.run_modules(root, workers=1))
+            self.assertEqual(count, 1)
+            for output in (annotations, summary):
+                self.assertNotIn(sensitive, output)
+                self.assertNotIn(str(root), output)
+                self.assertIn("test_private", output)
+
+    def test_import_errors_and_process_exit_without_unittest_are_explicit(self):
+        imported = guard.first_failure(
+            "ERROR: test_example (unittest.loader._FailedTest.test_example)\n" + "-" * 70 +
+            '\nTraceback (most recent call last):\n  File "/home/runner/work/private.py", line 1\n' +
+            "ImportError: cannot import example\n\n" + "-" * 70 + "\nRan 1 test\n", 1)
+        self.assertIn("test_example", imported)
+        self.assertIn("ImportError: cannot import example", imported)
+        self.assertNotIn("/home/runner", imported)
+        self.assertIn("código 2", guard.first_failure("unstructured private process output", 2))
+
+    def test_subtest_parameters_and_markdown_cannot_leak_or_escape_the_summary(self):
+        token = "github_pat_" + "x" * 30
+        diagnostic = guard.first_failure(
+            f"FAIL: test_private (fixture.T.test_private) (token='{token}')\n" + "-" * 70 +
+            "\nAssertionError: False is not true\n", 1)
+        self.assertNotIn(token, diagnostic)
+        finding = guard.Finding(check="module:test_private", severity="error", message=diagnostic + "\n</pre><script>x</script>")
+        annotation, _, summary = guard.render([finding])
+        self.assertNotIn("<script>", summary)
+        self.assertIn("%0A", annotation)
 
 
 if __name__ == "__main__":

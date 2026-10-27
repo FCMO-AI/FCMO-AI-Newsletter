@@ -128,6 +128,32 @@ def run_checks(root: Path, names=None) -> list[Finding]:
     return findings
 
 
+def first_failure(output: str, returncode: int) -> str:
+    """Keep the first unittest diagnostic, not the tail of the last diff.
+
+    Only test identity and exception detail cross into Actions. Traceback
+    frames, arbitrary process logging and private input never become a summary.
+    """
+    block = re.search(r"^(?:FAIL|ERROR): ([^\n]+)\n-{20,}\n(.*?)(?=\n={20,}\n|\n-{20,}\nRan |\Z)",
+                      output, re.M | re.S)
+    if not block:
+        return f"El proceso terminó con código {returncode}; no produjo una aserción de unittest."
+    test, traceback = block.groups()
+    exceptions = list(re.finditer(r"^[\w.]+(?:Error|Exception|Exit|Interrupt|Failure)(?::[^\n]*)?$",
+                                  traceback, re.M))
+    detail = traceback[exceptions[-1].start():].strip() if exceptions else "Excepción sin detalle."
+    bridge = _import("tools.newswire_bridge")
+    public_text = test + "\n" + detail
+    if bridge.private_marker(public_text) or bridge.EMAIL.search(public_text) or any(p.search(public_text) for p in bridge.SECRET_PATTERNS):
+        # Subtest parameters can themselves contain the private input.
+        test = test.split(" ", 1)[0]
+        detail = "Detalle omitido por privacidad."
+    test = re.sub(r"/(?:srv|home|tmp|var|etc|mnt|github|Users)/[^\s'\"<>]+", "[ruta omitida]", test)
+    detail = re.sub(r"/(?:srv|home|tmp|var|etc|mnt|github|Users)/[^\s'\"<>]+", "[ruta omitida]", detail)
+    detail = "\n".join(detail.splitlines()[:12])[:1800]
+    return f"{test}\n{detail}"
+
+
 def run_modules(root: Path, workers: int = 4) -> list[Finding]:
     """Run each listed module in its own process, ``workers`` at a time (the slowest sets the wall time)."""
     from concurrent.futures import ThreadPoolExecutor
@@ -141,9 +167,8 @@ def run_modules(root: Path, workers: int = 4) -> list[Finding]:
                               capture_output=True, env=env)
         if done.returncode == 0:
             return None
-        tail = "\n".join(done.stderr.strip().splitlines()[-25:])
         return Finding(check=f"module:{module}", severity="error",
-                       message=f"{module} failed on the candidate:\n{tail}")
+                       message=f"{module} falló en el candidato:\n{first_failure(done.stderr, done.returncode)}")
 
     with ThreadPoolExecutor(max_workers=workers) as pool:
         return [f for f in pool.map(one, listed) if f]
@@ -154,13 +179,18 @@ def render(findings: list[Finding]) -> tuple[str, int, str]:
     lines = []
     for f in findings:
         level = "error" if f["severity"] == "error" else "warning"
-        lines.append(f"::{level} title=Refresh guard {f['check']}::{f['message'].splitlines()[0]}")
+        message = f['message'].replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+        lines.append(f"::{level} title=Refresh guard {f['check']}::{message}")
     summary = ["## Refresh guard", ""]
     if not errors:
         summary.append("The candidate release passed every data-dependent gate." + (f" {len(findings)} warning(s)." if findings else ""))
     else:
         summary += ["**The candidate release was NOT pushed.** The live site stays on the last good refresh release; corpus commits from the newswire bridge are not affected by this guard.", ""]
-    summary += [f"- `{f['check']}` ({f['severity']}): {f['message']}" for f in findings[:50]]
+    for f in findings[:50]:
+        heading, _, detail = f['message'].partition("\n")
+        summary.append(f"- `{f['check']}` ({f['severity']}): {html.escape(heading)}")
+        if detail:
+            summary.append(f"\n<pre>{html.escape(detail)}</pre>\n")
     return "\n".join(lines) + "\n", len(errors), "\n".join(summary) + "\n"
 
 
