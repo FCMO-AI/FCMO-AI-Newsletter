@@ -329,7 +329,7 @@ class Workspace:
         run = subprocess.run(['git', '-C', data['candidate'], *options, 'push', '--force-with-lease=' + ref + ':', 'origin', data['head_sha'] + ':' + ref], env=env, capture_output=True, timeout=120)
         if run.returncode: raise UnknownEffect('No se pudo confirmar el envío. Se comprobará antes de repetirlo.')
 
-STATES = ('approved', 'candidate', 'pushed', 'pr_open', 'checks_green', 'merged', 'deployed', 'deployed_unverified', 'published')
+STATES = ('approved', 'candidate', 'pushed', 'pr_open', 'checks_green', 'merged', 'deployed', 'deployed_unverified', 'escalado', 'published')
 
 class Publisher:
     def __init__(self, store, github, workspace, checker):
@@ -341,8 +341,12 @@ class Publisher:
     def _write_locked(self, pub, state=None, error=None):
         if state:
             pub['state'] = state
-            pub['payload'].pop('infra_retries', None); pub['payload'].pop('retry_after', None)
-            entry = {'state': state, 'at': utc(), 'plain_es': PROGRESS[state][0], 'plain_en': PROGRESS[state][1]}
+            data = pub['payload']
+            if state != 'escalado':
+                data.pop('infra_retries', None); data.pop('retry_after', None)
+                data.pop('resume_state', None); data.pop('escalation_cause', None)
+            progress = PROGRESS.get(state, ('Problema técnico persistente; Studio seguirá reintentando cada hora.', 'Persistent technical issue; Studio will retry hourly.'))
+            entry = {'state': state, 'at': utc(), 'plain_es': progress[0], 'plain_en': progress[1]}
             if pub['payload'].get('protection_mode'): entry['protection_mode'] = pub['payload']['protection_mode']
             pub['payload'].setdefault('timeline', []).append(entry)
         if error is not None: pub['error_plain'] = error
@@ -506,8 +510,12 @@ class Publisher:
     def _infra(self, pub, exc):
         """Infrastructure trouble: retry with backoff while the approved content is unchanged; never ask for a new approval."""
         data = pub['payload']; n = data.get('infra_retries', 0) + 1; data['infra_retries'] = n
+        resume_state = data.get('resume_state') if pub['state'] == 'escalado' else pub['state']
         if n > INFRA_RETRIES:
-            self._halt(pub, 'infra', 'La publicación se detuvo por un problema técnico, no por el texto. Puedes reanudarla; el texto seleccionado sigue intacto.')
+            data['resume_state'] = resume_state
+            data['escalation_cause'] = str(exc) or 'Problema técnico temporal.'
+            data['retry_after'] = self.store.clock() + 3600
+            self._write(pub, 'escalado', f"El problema técnico persiste: {data['escalation_cause']} Se reintentará automáticamente en una hora.")
         else:
             data['retry_after'] = self.store.clock() + 60 * 2 ** (n - 1)
             self._write(pub, error=(str(exc) or 'Problema técnico temporal.') + ' Se reintentará solo.')
@@ -548,6 +556,12 @@ class Publisher:
             if 'payload' not in pub or pub['state'] in ('published', 'failed'): return pub
             data = pub['payload']; user = data['author']; gh = self.github
             if data.get('halted') or (data.get('retry_after') and self.store.clock() < data['retry_after']): return pub
+            if pub['state'] == 'escalado':
+                resume_state = data.get('resume_state')
+                if not resume_state: return pub
+                pub['state'] = resume_state
+                self._write(pub, error='')
+                data = pub['payload']
             try:
                 if self.store.piece(value)['head_rev'] != data['approved_rev']: raise Refused('El artículo cambió después de pulsar Publicar.')
                 state = pub['state']
@@ -619,9 +633,9 @@ class Publisher:
                     if data.get('last_live_attempt') and now - data['last_live_attempt'] < (600 if late else 120): return pub
                     data['last_live_attempt'] = now; urls = gh.live(value, data['piece_id'], pub['kind'])
                     if urls:
-                        data.pop('unknown', None); data['urls'] = urls; data['live_checked_at'] = utc(); self._write(pub, 'published', '')
+                        data.pop('unknown', None); data.pop('unknown_since', None); data['urls'] = urls; data['live_checked_at'] = utc(); self._write(pub, 'published', '')
                     elif late:
-                        data['unknown'] = True; self._write(pub, 'deployed_unverified', 'No logramos confirmar que ya esté visible. Ya está fusionado y desplegado; se sigue comprobando y Matías puede revisarlo.')
+                        data['unknown'] = True; data.setdefault('unknown_since', utc()); self._write(pub, 'deployed_unverified', 'No logramos confirmar que ya esté visible. Ya está fusionado y desplegado; se sigue comprobando y Matías puede revisarlo.')
                     else: self._write(pub, 'deployed_unverified', 'Desplegado pero aún no visible.')
             except ForeignMerge:
                 self._halt(pub, 'foreign_merge', 'Se fusionó fuera de Studio una versión distinta de la aprobada. Revisa lo publicado antes de continuar.')
@@ -683,4 +697,5 @@ class Publisher:
             state = self.github.email_state(data['author'])
         email = email_status(state, data.get('piece_id'), requested)
         return {'email': email, 'state': pub['state'], 'approved_at': pub.get('approved_at'), 'timeline': data.get('timeline', []), 'error_plain': pub.get('error_plain', ''), 'uncertain': bool(data.get('unknown')), 'urls': data.get('urls', []),
-                'halted': bool(data.get('halted')), 'halt_reason': data.get('halt_reason') if data.get('halted') else None, 'author': data.get('author')}
+                'halted': bool(data.get('halted')), 'halt_reason': data.get('halt_reason') if data.get('halted') else None,
+                'retry_after': data.get('retry_after'), 'escalation_cause': data.get('escalation_cause'), 'author': data.get('author')}

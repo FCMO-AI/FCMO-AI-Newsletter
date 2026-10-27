@@ -24,15 +24,17 @@ from tests.test_studio_storage import ROOT
 
 
 class HaltSites(RobustBase):
-    """Each place that sets halted records why."""
+    """Each manual halt or automatic escalation preserves its cause."""
 
-    def test_infra_halt_records_reason(self):
+    def test_infra_exhaustion_escalates_without_human_halt(self):
         self.approved(); self.publisher.advance(self.slug)
         pub = self.pub(); pub['payload']['infra_retries'] = P.INFRA_RETRIES
         self.publisher._infra(pub, P.Infra('gh lost'))
         data = self.pub()['payload']
-        self.assertTrue(data['halted'])
-        self.assertEqual(data['halt_reason'], 'infra')
+        self.assertFalse(data.get('halted'))
+        self.assertEqual(self.pub()['state'], 'escalado')
+        self.assertEqual(data['escalation_cause'], 'gh lost')
+        self.assertEqual(data['retry_after'] - self.now, 3600)
 
     def test_effect_halt_records_reason(self):
         self.approved(); self.publisher.advance(self.slug)
@@ -82,18 +84,19 @@ class ResumeRules(RobustBase):
         self.approved()
         with self.assertRaises(P.Refused): self.publisher.resume(self.slug, 'matias')
 
-    def test_infra_resume_continues_to_published_without_new_approval(self):
+    def test_escalated_infra_retries_automatically_without_new_approval(self):
         self.approved(); self.tick_until('pr_open')
         pub = self.pub(); pub['payload']['infra_retries'] = P.INFRA_RETRIES
         self.publisher._infra(pub, P.Infra('gh down'))
-        self.assertEqual(self.pub()['payload']['halt_reason'], 'infra')
-        self.publisher.resume(self.slug, 'javier')  # the author may resume an infrastructure halt
+        self.assertEqual(self.pub()['state'], 'escalado')
+        self.mock.check = 'success'
+        self.now = self.pub()['payload']['retry_after']
+        self.publisher.advance(self.slug)
         data = self.pub()['payload']
-        self.assertFalse(data.get('halted')); self.assertNotIn('halt_reason', data); self.assertNotIn('infra_retries', data)
+        self.assertFalse(data.get('halted')); self.assertNotIn('resume_state', data); self.assertNotIn('infra_retries', data)
         self.run_to('published')
         self.assertEqual(self.mock.count('POST', '/reviews'), 0, 'resume must not ask for a second review')
         self.assertEqual(self.audit_actions().count('approve'), 1, 'resume must not ask for a new approval')
-        self.assertIn('publication_resumed', self.audit_actions())
 
     def test_effect_resume_keeps_intent_and_never_repeats_an_observed_write(self):
         self.approved(); self.publisher.advance(self.slug)  # candidate: next step pushes the branch
