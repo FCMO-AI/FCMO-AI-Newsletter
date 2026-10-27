@@ -25180,6 +25180,62 @@
       "title": "CC-OPD usa puntuaciones contrafactuales del docente para mejorar el seguimiento de instrucciones con múltiples restricciones",
       "why_it_matters": "Extraer de un docente congelado señales específicas para cada restricción podría ayudar a modelos más pequeños a cumplir instrucciones con varios requisitos sin añadir un evaluador externo. Los resultados son prometedores en los dos entornos Qwen estudiados, pero no demuestran una transferencia más amplia ni una ventaja general de los estudiantes sobre sus docentes."
     },
+    "FCMO-9829BF975701": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "El 26 de octubre de 2026 se envió a arXiv la versión 1 de un preprint que presenta DecisionRAG."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores reportan que DecisionRAG, sin entrenamiento específico para la tarea ni un recuperador convencional en la primera etapa de consulta, mejora la recuperación en primer lugar frente a ciertos sistemas densos con un reranker de 8B: 13.8 puntos porcentuales en MultiDoc2Dial y 17.4 en Natural Questions. Los resultados abarcan cuatro benchmarks, incluido un corpus de Wikipedia con 2.68 millones de párrafos."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En las configuraciones medidas, la latencia de recuperación fue de 0.68 a 1.76 segundos por consulta y el costo de API, de 0.22 a 2.33 centavos de dólar estadounidense. La configuración combinada reporta 47.3% de respuestas juzgadas correctas en MTRAG, frente a 34.0% con reranking de GPT-5, usando Qwen3.5-27B para generar las respuestas."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El preprint no establece reproducción independiente, confiabilidad a escala de producción, transferencia a otros corpus o condiciones de servicio ni superioridad uniforme. La poda irreversible puede descartar ramas relevantes y la calidad de la jerarquía es una limitación señalada."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se localizó ni se realizó una reproducción independiente de las mediciones de recuperación, calidad de respuestas o servicio.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "Esta revisión no inspeccionó la implementación, los archivos de instrucciones y configuración ni los artefactos de construcción jerárquica sin conexión.",
+          "kind": "missing_artifact",
+          "state": "open"
+        },
+        {
+          "description": "No se midió la transferencia fuera de cuatro benchmarks, la calidad de la jerarquía, la concurrencia en producción ni la sensibilidad a la poda irreversible.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se reproduce de forma independiente y se transfiere a otros entornos, la recuperación jerárquica mediante modelos de decisión podría cambiar de manera importante las decisiones de arquitectura RAG y los compromisos entre calidad y latencia. La evidencia actual es un preprint con cuatro configuraciones de benchmark; la puntuación refleja la consecuencia potencial, no la confianza.",
+      "limitations": [
+        "Los experimentos provienen de un solo preprint; esta activación no reprodujo los resultados ni inspeccionó código o artefactos de servicio.",
+        "Los baselines y configuraciones varían por conjunto de datos; algunos resultados de referencia publicados no se volvieron a ejecutar, por lo que no forman una única comparación controlada.",
+        "El método depende de una jerarquía útil y la poda irreversible puede perder pasajes pertinentes; una estructura o descripción deficiente puede reducir la calidad.",
+        "La latencia y el costo de API dependen de los modelos, endpoints, instrucciones, estructuras del corpus y mezcla de consultas de los autores; no se establecieron concurrencia operativa, confiabilidad ni el costo total del preprocesamiento."
+      ],
+      "relationships": [],
+      "summary": "Un preprint de Cornell y ASAPP presenta DecisionRAG, que recorre una jerarquía documental puntuando ramas candidatas con juicios de modelos de decisión en contexto compartido, en vez de depender de un recuperador convencional en la primera etapa de consulta. En cuatro benchmarks ejecutados por los autores, el artículo reporta mejoras de recuperación en primer lugar frente a ciertos sistemas densos con un reranker de 8B, incluidos 13.8 puntos porcentuales en MultiDoc2Dial y 17.4 en Natural Questions. La latencia reportada es de 0.68–1.76 segundos y el costo de API, de 0.22–2.33 centavos por consulta. Son mediciones reportadas en un preprint; siguen pendientes la reproducción independiente y la transferencia. La navegación poda ramas de forma irreversible, por lo que jerarquías deficientes o presupuestos de exploración bajos pueden perder evidencia pertinente.",
+      "technical": {
+        "claimed_result": "DecisionRAG reporta mejor recuperación en primer lugar que ciertos baselines densos con reranker en MultiDoc2Dial y Natural Questions, además de mediciones de latencia y costo en cuatro benchmarks.",
+        "demonstrated_result": "El preprint primario y sus métodos, tablas de resultados y limitaciones son accesibles. Esta activación los inspeccionó, pero no reprodujo los experimentos.",
+        "mechanism": "En cada nivel de una jerarquía documental, un modelo de decisión evalúa ramas candidatas en conjunto y en contexto compartido, sin generar tokens. El sistema conserva las ramas mejor puntuadas y expande sus contenidos en pasajes. Puede añadir candidatos de recuperación densa.",
+        "regime": "Cuatro benchmarks: MultiDoc2Dial, ConditionalQA, el subconjunto IBM Cloud de MTRAG y Natural Questions sobre 2.68M millones de párrafos de Wikipedia. Los resultados principales usan Jev 1.13 sin entrenamiento específico; experimentos aparte ajustan modelos de decisión basados en Qwen3. Las mediciones de latencia y costo corresponden a configuraciones de API reportadas por los autores.",
+        "strongest_baseline": "Los baselines más fuertes varían según la tarea: recuperación densa con Qwen3-Reranker-8B, reranking de candidatos densos con GPT-5 y referencias publicadas de modelos entrenados para la tarea. Las referencias publicadas no se volvieron a ejecutar y ningún baseline es el mejor en todas las métricas."
+      },
+      "title": "DecisionRAG aplica decisiones jerárquicas a la recuperación sin un recuperador inicial",
+      "why_it_matters": "El trabajo explora una forma de aplicar el juicio de modelos directamente a la navegación de corpus, lo que podría reducir el cuello de botella de precisión impuesto por un recuperador inicial. Sus resultados exponen compromisos entre calidad, latencia y costo en varios benchmarks, pero no establecen rendimiento en producción ni superioridad general."
+    },
     "FCMO-9856D94AE6F3": {
       "claims": [
         {
