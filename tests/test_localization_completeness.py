@@ -17,6 +17,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from unittest import mock
 from html.parser import HTMLParser
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -401,13 +402,21 @@ class RealCorpusBacklog(unittest.TestCase):
             # The current admitted delta then owns the WHOLE overlay, including
             # evidence-label corrections. Requiring the old label would undo a
             # legitimate downgrade while English already carries the correction.
-            current = not corpus_guard.release_lags_corpus(ROOT)
+            # A later bridge batch can advance the corpus digest without
+            # changing this already-published record. Decide per source version,
+            # not by the global lag flag (15425e7ad's evidence downgrade remains
+            # legitimate after the next unrelated delivery).
+            canonical = vl.load_corpus_canonical(ROOT / "corpus")
+            published_sources = {
+                path.stem: json.loads(path.read_text())["brief"]
+                for path in (ROOT / "release-src/data/briefs").glob("FCMO-*.json")
+            }
             admission = ROOT / 'release-src/data/publication-admission.json'
             carried = set(json.loads(admission.read_text())['carried_ids']) if admission.is_file() else set()
             for rid, row in before.items():
-                expected = delta[rid] if current and rid in delta and rid not in carried else row
+                admitted = rid in published_sources and published_sources[rid] == canonical.get(rid)
+                expected = delta[rid] if admitted and rid in delta and rid not in carried else row
                 self.assertEqual(after.get(rid), expected, f"{locale} {rid}: airlocked fields")
-            canonical = vl.load_corpus_canonical(ROOT / "corpus")
             published = {path.stem for path in (ROOT / "release-src/data/briefs").glob("FCMO-*.json")}
             published_canonical = set(canonical) & published
             # main may receive a new corpus delta before the scheduled newsroom
@@ -440,6 +449,26 @@ class RealCorpusBacklog(unittest.TestCase):
                 })
                 self.assertEqual(changes, {key: value for key, value in pd1[rid].items()
                                            if before[rid].get(key) != value})
+
+    def test_pd1_baseline_still_rejects_label_and_prose_drift(self):
+        """The per-record baseline correction must retain whole-overlay equality."""
+        rid = "FCMO-841949AEA161"
+        original_read = Path.read_text
+        for locale in LOCALES:
+            path = ROOT / "site/data/i18n" / locale / "part-airlock.json"
+            for field in ("label", "text"):
+                with self.subTest(locale=locale, field=field):
+                    doc = json.loads(original_read(path))
+                    claim = doc["records"][rid]["claims"][-1]
+                    claim[field] = "NOT_ESTABLISHED" if field == "label" else claim[field] + " altered"
+                    mutated = json.dumps(doc, ensure_ascii=False)
+
+                    def read_text(candidate, *args, **kwargs):
+                        return mutated if candidate == path else original_read(candidate, *args, **kwargs)
+
+                    with mock.patch.object(Path, "read_text", read_text):
+                        with self.assertRaisesRegex(AssertionError, rid):
+                            self.test_pd1_desk_values_and_airlock_baseline_are_preserved()
 
     def test_arb_import_leaves_desk_pack_byte_identical(self):
         with tempfile.TemporaryDirectory() as tmp:
