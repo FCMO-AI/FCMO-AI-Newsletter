@@ -226,26 +226,26 @@ class Journey:
             slug = self.create('Dogfood ' + author, author)
             published.append(slug)
             base = '/api/pieces/' + slug
-            self.call('POST', base + '/review/approve', {}, author, status=409)
-            self.score(author + ': self-approval refused before public transport', not any(slug in x for x in git(self.bare, 'for-each-ref', '--format=%(refname)').splitlines()))
-            self.call('POST', base + '/review/approve', {}, reviewer)
+            self.call('POST', base + '/review/approve', {}, reviewer, status=409)
+            self.score(author + ": another account cannot publish the author's text", not any(slug in x for x in git(self.bare, 'for-each-ref', '--format=%(refname)').splitlines()))
+            self.call('POST', base + '/review/approve', {}, author)
             pub = self.wait(slug, {'published'})
             self.score(author + ': create/edit/preview/review/publish over HTTP', len(pub.get('urls', [])) == 3)
             self.score(author + ': real public build contains edited piece', b'Edited and checked.' in (self.root / 'merged/publish/cartas' / slug / 'index.html').read_bytes())
             calls = json.loads((self.root / 'gh.json').read_text())['calls']
             assert any(c['method'] == 'POST' and c['endpoint'].endswith('/pulls') and c['login'] == 'fake-' + author for c in calls)
-            assert any(c['method'] == 'POST' and c['endpoint'].endswith('/reviews') and c['login'] == 'fake-' + reviewer for c in calls)
-            self.score(author + ': author opens PR, other identity approves')
+            assert not any(c['method'] == 'POST' and c['endpoint'].endswith('/reviews') for c in calls)
+            self.score(author + ': author opens PR without another account approving')
         if self.browser: self.browser_checks(published)
         before = git(self.bare, 'rev-parse', 'main')
         (self.root / 'unprotected').touch()
         slug = self.create('Missing protections', 'javier')
-        self.call('POST', '/api/pieces/' + slug + '/review/approve', {}, 'matias')
+        self.call('POST', '/api/pieces/' + slug + '/review/approve', {}, 'javier')
         pub = self.wait(slug, {'failed'})
         self.score('missing protections refuses merge', 'protegida' in pub['error_plain'] and git(self.bare, 'rev-parse', 'main') == before)
         (self.root / 'unprotected').unlink()
         slug = self.create('Changed main', 'matias')
-        self.call('POST', '/api/pieces/' + slug + '/review/approve', {}, 'javier')
+        self.call('POST', '/api/pieces/' + slug + '/review/approve', {}, 'matias')
         self.wait(slug, {'candidate'})
         merged = self.root / 'merged'
         git(merged, '-c', 'user.name=Codex', '-c', 'user.email=codex@openai.com', 'commit', '--allow-empty', '-qm', 'Concurrent main change')
@@ -306,7 +306,7 @@ class Journey:
         slug = self.create('Mundo movido: tres movimientos', 'matias')
         moves_start = len(self.gh_state().get('main_moves', []))
         bot = Bot(self.root, every=2.0, moves=1, first_tick=self.ticks + 1, first_delay=0.5); self.ticks += 20
-        self.call('POST', '/api/pieces/' + slug + '/review/approve', {}, 'javier')
+        self.call('POST', '/api/pieces/' + slug + '/review/approve', {}, 'matias')
         bot.start()
         pub = self.wait(slug, {'published'}, timeout=1800)
         bot.join(timeout=60)
@@ -319,7 +319,7 @@ class Journey:
         self.ticks += 1
         self.set_world(pages_run_s=4.0, pages_cancel_in_progress=True, gate_s=0.5, bot_after_merge=self.ticks)
         slug = self.create('Mundo movido: Pages cancelado', 'javier')
-        self.call('POST', '/api/pieces/' + slug + '/review/approve', {}, 'matias')
+        self.call('POST', '/api/pieces/' + slug + '/review/approve', {}, 'javier')
         pub = self.wait(slug, {'published'}, timeout=1800)
         state = self.gh_state()
         merge, later = state.get('merge_sha'), state.get('later_sha')
@@ -332,7 +332,7 @@ class Journey:
         # 3. a 70-minute deploy, compressed: the piece waits in merged, then publishes.
         self.set_world(pages_run_s=COMPRESSED_DEPLOY_S, gate_s=0.5)
         slug = self.create('Mundo movido: despliegue lento', 'matias')
-        self.call('POST', '/api/pieces/' + slug + '/review/approve', {}, 'javier')
+        self.call('POST', '/api/pieces/' + slug + '/review/approve', {}, 'matias')
         self.wait(slug, {'merged'}, timeout=1800)
         started = time.monotonic()
         pub = self.wait(slug, {'published'}, timeout=1800)
@@ -351,22 +351,22 @@ class Journey:
         slug = self.create('Mundo movido: reintento', 'javier')
         reviews_before = self.count_reviews()
         refusals_before = self.gh_state().get('refusals_done', 0)
-        self.call('POST', '/api/pieces/' + slug + '/review/approve', {}, 'matias')
+        self.call('POST', '/api/pieces/' + slug + '/review/approve', {}, 'javier')
         pub = self.wait(slug, {'published'}, timeout=1800)
         refused = self.gh_state().get('refusals_done', 0) - refusals_before
-        self.score(WORLD_ITEMS[4], len(pub.get('urls', [])) == 3 and refused == 1 and self.count_reviews() - reviews_before == 1)
+        self.score(WORLD_ITEMS[4], len(pub.get('urls', [])) == 3 and refused == 1 and self.count_reviews() - reviews_before == 0)
     def world_content_red(self):
         # 6. a content-red gate: the approved text is refused by the public check, the piece goes back to changes requested.
         self.set_world(pages_run_s=0, gate_s=0.5)
         slug = self.create('Mundo movido: contenido rojo', 'matias', marker=fake_gh.CONTENT_RED)
-        self.call('POST', '/api/pieces/' + slug + '/review/approve', {}, 'javier')
+        self.call('POST', '/api/pieces/' + slug + '/review/approve', {}, 'matias')
         pub = self.wait(slug, {'failed'}, timeout=1800)
         self.score(WORLD_ITEMS[5], self.piece_state(slug) == 'changes_requested' and 'comprobaciones' in pub.get('error_plain', ''))
     def world_es_javier(self):
         # 7. Javier writes in es-419 (the source); the fake translator prepares en and zh-Hans; the full cycle publishes.
         self.set_world(pages_run_s=0, gate_s=0.5)
         slug = self.make_es_piece('Javier escribe en español', 'javier')
-        self.call('POST', '/api/pieces/' + slug + '/review/approve', {}, 'matias')
+        self.call('POST', '/api/pieces/' + slug + '/review/approve', {}, 'javier')
         pub = self.wait(slug, {'published'}, timeout=1800)
         self.score(WORLD_ITEMS[6], len(pub.get('urls', [])) == 3)
     def make_es_piece(self, title, author):

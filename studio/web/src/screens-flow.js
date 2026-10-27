@@ -215,15 +215,7 @@ export async function publishScreen (root, slug) {
   const privateReview = !readiness || readiness.dry_run || !readiness.live_enabled
   const emailOn = !!(readiness && readiness.email_enabled)
   const emailWillGo = emailOn && meta.meta?.distribution?.email === true
-  if (meta.kind !== 'issue' && meta.author === session.me.user && ['approved', 'publishing'].includes(meta.state)) { location.hash = `#/p/${slug}/progress`; return null }
-  if (meta.kind !== 'issue' && meta.author === session.me.user && meta.state === 'in_review') {
-    root.append(shell(h('div', { class: 'flow pub' }, crumbs(slug, meta.title, t('ed.publish')), h('h1', null, t('pub.wait.title')), h('p', { class: 'lede', role: 'status' }, t('pub.wait.lead', { who: other() })),
-      h('div', { class: 'sheet wait' }, h('h2', null, t('pub.wait.next')),
-        h('ol', { class: 'wait-steps' }, ['pub.wait.s1', 'pub.wait.s2', 'pub.wait.s3'].map(k => h('li', null, t(k, { who: other() })))),
-        meta.kind !== 'issue' ? h('p', { class: 'email-state' }, t(emailWillGo ? 'pub.email.state.on' : 'pub.email.state.no')) : null,
-        h('div', { class: 'btn-row' }, h('a', { class: 'btn primary', href: '#/' }, t('pub.wait.home')), h('a', { class: 'btn', href: `#/p/${slug}/${meta.source_locale}` }, t('pub.wait.read'))))), { active: 'home' }))
-    return null
-  }
+  if (meta.author === session.me.user && ['approved', 'publishing'].includes(meta.state)) { location.hash = `#/p/${slug}/progress`; return null }
   const box = h('div', { class: 'pub-checks' })
   const act = h('div', { class: 'btn-row' })
   async function draw () {
@@ -243,7 +235,7 @@ export async function publishScreen (root, slug) {
     const bad = list.list.filter(c => !c.ok && !c.approval_satisfiable)
     const mt = LOCS.filter(l => (meta.locales[l] || {}).state === 'ready' && ((meta.locales[l] || {}).origin || '').startsWith('agent_') && !(meta.locales[l] || {}).reviewed)
     if (mt.length) box.append(h('p', { class: 'notice soft' }, t('pub.machine', { langs: mt.map(l => LOCALE_NAME[l]).join(', ') })))
-    const ask = h('button', { class: 'btn primary big', type: 'button', disabled: bad.length > 0 || meta.author !== session.me.user, onclick: async e => { e.currentTarget.disabled = true; try { await post(`/api/pieces/${slug}/review/request`); toast(t('pub.sent', { who: other() })); route() } catch (err) { e.currentTarget.disabled = bad.length > 0; toast(err.data?.error_plain || t('pub.askfail'), 'bad') } } }, t('pub.ask'))
+    const ask = h('button', { class: 'btn primary big', type: 'button', disabled: bad.length > 0 || meta.author !== session.me.user || privateReview, onclick: async e => { e.currentTarget.disabled = true; try { await post(`/api/pieces/${slug}/review/request`); toast(t('pub.sent')); location.hash = `#/p/${slug}/progress` } catch (err) { e.currentTarget.disabled = bad.length > 0 || privateReview; toast(err.data?.error_plain || t('pub.askfail'), 'bad') } } }, t('pub.ask'))
     act.append(ask, h('button', { class: 'btn', type: 'button', onclick: draw }, t('pub.rerun'))); if (bad.length) act.append(h('span', { class: 'muted' }, t('pub.blocked', { n: bad.length })))
   }
   const canChoose = () => emailOn && meta.author === session.me.user && ['draft', 'changes_requested', 'amending'].includes(meta.state)
@@ -266,7 +258,7 @@ export async function publishScreen (root, slug) {
   const mount = () => root.append(shell(h('div', { class: 'flow pub' }, crumbs(slug, meta.title, t('ed.publish')), h('h1', null, t('pub.title', { title: meta.title })), h('p', { class: 'lede' }, t('pub.lead', { who: other() })),
     h('div', { class: 'sheet' }, h('p', { class: 'notice soft' }, t(privateReview ? 'rev.private.confirm' : 'pub.public')),
       meta.kind !== 'issue' ? emailBanner() : null,
-      h('h2', null, t('pub.threshold')), h('p', null, t('pub.approval', { who: other() })), box, h('p', { class: 'reviewer' }, h('span', { class: 'avatar' }, other()[0]), t('pub.reviewer', { who: other() })), act)), { active: 'home' }))
+      h('h2', null, t('pub.threshold')), h('p', null, t('pub.approval', { who: other() })), box, act)), { active: 'home' }))
   mount()
   await draw()
   return null
@@ -274,61 +266,9 @@ export async function publishScreen (root, slug) {
 
 /* ---------------- review (S6) ---------------- */
 export async function reviewScreen (root, slug) {
-  const meta = await get(`/api/pieces/${slug}`)
-  const readiness = await get('/api/publication-readiness').catch(() => null)
-  const privateReview = !readiness || readiness.dry_run || !readiness.live_enabled
-  const approveText = t(privateReview ? 'rev.private.approve' : 'rev.approve')
-  const emailLine = meta.kind === 'issue' ? '' : !readiness ? t('rev.email.unknown') : t(readiness.email_enabled && meta.meta?.distribution?.email === true ? 'rev.email.on' : 'rev.email.off')
-  const emailOnReview = !!readiness && readiness.email_enabled && meta.meta?.distribution?.email === true && meta.kind !== 'issue'
-  const mine = meta.author === session.me.user
-  const st = { loc: meta.source_locale, size: innerWidth < 700 ? '390' : '1440', theme: 'light' }
-  const stage = h('div', { class: 'rv-read' }); const diffBox = h('div', { class: 'rv-diff' }); const cmtBox = h('div', { class: 'rv-cmt' })
-  let frame; let selectedBlock = null; let selectedText = ''
-  const selectionHint = h('p', { class: 'hint', role: 'status' }, t('rev.pick'))
-  const have = Object.fromEntries(LOCS.map(l => [l, meta.kind === 'issue' || (meta.locales[l] || {}).words > 0 || (meta.locales[l] || {}).state === 'later']))
-  function drawRead () {
-    frame && frame.destroy(); clear(stage)
-    stage.append(h('div', { class: 'pv-banner' }, '✓ ', t('pv.banner')), controls(st, p => {
-      if (p.loc && p.loc !== st.loc) { selectedBlock = null; selectedText = ''; selectionHint.textContent = t('rev.pick') }
-      Object.assign(st, p); drawRead(); drawDiff(); drawCmt()
-    }, have), selectionHint)
-    frame = previewFrame({ slug, ...st }); stage.append(frame.el)
-    frame.el.querySelector('iframe').addEventListener('load', e => {
-      try { e.target.contentDocument.addEventListener('click', event => {
-        const block = event.target.closest('.essay-body [id^="b-"]')
-        if (!block) return
-        selectedBlock = block.id; selectedText = block.textContent.trim().slice(0, 160)
-        selectionHint.textContent = t('rev.selected', { text: selectedText }); drawCmt()
-      }) } catch {}
-    })
-  }
-  async function drawDiff () {
-    clear(diffBox)
-    if (!meta.published_rev) { diffBox.append(h('p', { class: 'muted' }, t('rev.none'))); return }
-    try { const d = await get(`/api/pieces/${slug}/diff?from=published&to=current&loc=${st.loc}`); diffBox.append(diffView(d)) } catch { diffBox.append(h('p', { class: 'muted' }, t('rev.none'))) }
-  }
-  async function drawCmt () {
-    const loc = st.loc; const { commentsPanel } = await import('./drawers.js')
-    const panel = await commentsPanel(slug, loc, { block: () => selectedBlock, goto: id => {
-      showTab('read'); try { stage.querySelector('iframe')?.contentDocument.getElementById(id)?.scrollIntoView() } catch {}
-    } })
-    if (st.loc !== loc) return
-    clear(cmtBox); cmtBox.append(h('p', { class: 'hint' }, selectedBlock ? t('rev.selected', { text: selectedText }) : t('rev.pick')), panel)
-  }
-  const tabs = ['read', 'diff', 'cmt']; let tab = 'read'
-  const panes = { read: stage, diff: diffBox, cmt: cmtBox }
-  const tabBar = h('div', { class: 'seg rv-tabs', role: 'tablist' })
-  function showTab (k) { tab = k; clear(tabBar); [['read', t('rev.preview')], ['diff', t('rev.changes.tab')], ['cmt', t('rev.comments')]].forEach(([id, l]) => tabBar.append(h('button', { type: 'button', role: 'tab', class: id === tab ? 'on' : '', 'aria-selected': String(id === tab), onclick: () => showTab(id) }, l))); for (const id of tabs) panes[id].hidden = id !== tab }
-  const note = h('textarea', { rows: 2, placeholder: t('rev.note', { who: meta.author === 'javier' ? 'Javier' : 'Matías' }), 'aria-label': t('rev.note', { who: meta.author }) })
-  const act = mine ? h('p', { class: 'notice soft' }, t('rev.own'), ' ', t('rev.waiting', { who: other() })) : h('div', { class: 'rv-act' }, note,
-    emailLine ? h('p', { class: 'email-note' + (emailOnReview ? ' on' : ''), role: 'status' }, emailLine) : null,
-    privateReview ? null : h('p', { class: 'hint' }, t('rev.time')),
-    h('div', { class: 'btn-row' },
-    h('button', { class: 'btn primary big', type: 'button', disabled: !readiness || !(readiness.dry_run || readiness.live_enabled), onclick: () => modal({ title: approveText, body: [h('p', null, t(privateReview ? 'rev.private.confirm' : 'rev.confirm')), emailLine ? h('p', { class: 'email-note' + (emailOnReview ? ' on' : '') }, emailLine) : null], actions: [{ label: t('common.cancel') }, { label: approveText, kind: 'primary', onclick: async close => { await post(`/api/pieces/${slug}/review/approve`, { note: note.value }); try { sessionStorage.setItem('studio.approved.' + slug, String(Date.now())) } catch { /* the server time wins when it is shared */ } close(); location.hash = `#/p/${slug}/progress` } }] }) }, approveText),
-    h('button', { class: 'btn big', type: 'button', onclick: async () => { await post(`/api/pieces/${slug}/review/changes`, { note: note.value }); toast(t('rev.sent', { who: meta.author === 'javier' ? 'Javier' : 'Matías' })); location.hash = '#/' } }, t('rev.changes'))))
-  drawRead(); drawDiff(); drawCmt(); showTab('read')
-  root.append(shell(h('div', { class: 'flow rv' }, crumbs(slug, meta.title, t('rev.preview')), h('h1', null, t('rev.title', { title: meta.title })), mine ? null : h('p', { class: 'hint narrow-only' }, t('rev.phone.hint')), tabBar, h('div', { class: 'rv-panes' }, stage, diffBox, cmtBox), !readiness ? h('div', { class: 'notice soft', role: 'status' }, h('p', null, t('pub.mode.unread')), h('button', { class: 'btn', type: 'button', onclick: () => route() }, t('pub.rerun'))) : null, act), { active: 'home', wide: true }))
-  return () => frame && frame.destroy()
+  // Keep saved links usable after retiring the second-person review screen.
+  location.hash = `#/p/${slug}/publish`
+  return null
 }
 
 /* ---------------- progress (S7) ---------------- */

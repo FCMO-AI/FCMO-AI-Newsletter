@@ -222,7 +222,7 @@ def write_world(root, knobs):
 
 def world_merge(root, s, pr, sha_asked, now, world):
     head = ref(root, pr['head']['ref'])
-    assert sha_asked == head and pr['reviews'] and not (root / 'unprotected').exists(), 'merge precondition'
+    assert sha_asked == head and not (root / 'unprotected').exists(), 'merge precondition'
     main = ref(root, 'main')
     if world.get('behind') and not is_ancestor(root, main, head):
         # Strict policy: a head that does not contain main cannot be merged. Studio must replay the approved bytes.
@@ -241,7 +241,7 @@ def world_merge(root, s, pr, sha_asked, now, world):
     git('-C', str(checkout), 'fetch', '-q', 'origin', 'main')
     git('-C', str(checkout), 'fetch', '-q', 'origin', pr['head']['ref'])
     git('-C', str(checkout), 'reset', '-q', '--hard', 'origin/main')
-    git('-C', str(checkout), '-c', 'user.name=Codex', '-c', 'user.email=codex@openai.com', 'merge', '--no-ff', '-q', '-m', 'Dogfood reviewed publication', head)
+    git('-C', str(checkout), '-c', 'user.name=Codex', '-c', 'user.email=codex@openai.com', 'merge', '--no-ff', '-q', '-m', 'Dogfood author publication', head)
     git('-C', str(checkout), 'push', '-q', 'origin', 'HEAD:main')
     merged = git('-C', str(checkout), 'rev-parse', 'HEAD')
     with (root / ('build-' + str(pr['number']) + '.log')).open('w') as f:
@@ -259,10 +259,10 @@ def world_merge(root, s, pr, sha_asked, now, world):
 
 
 def legacy_merge(root, s, pr, body):
-    assert body['sha'] == pr['head']['sha'] and pr['reviews'] and not (root / 'unprotected').exists()
+    assert body['sha'] == pr['head']['sha'] and not (root / 'unprotected').exists()
     checkout = root / 'merged'
     git('-C', str(checkout), 'fetch', 'origin', pr['head']['ref'])
-    git('-C', str(checkout), '-c', 'user.name=Codex', '-c', 'user.email=codex@openai.com', 'merge', '--no-ff', '-m', 'Dogfood reviewed publication', 'FETCH_HEAD')
+    git('-C', str(checkout), '-c', 'user.name=Codex', '-c', 'user.email=codex@openai.com', 'merge', '--no-ff', '-m', 'Dogfood author publication', 'FETCH_HEAD')
     git('-C', str(checkout), 'push', 'origin', 'HEAD:main')
     sha = git('-C', str(checkout), 'rev-parse', 'HEAD')
     with (root / ('build-' + str(pr['number']) + '.log')).open('w') as f:

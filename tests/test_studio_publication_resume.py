@@ -1,7 +1,7 @@
 """A halted publication says why, and its editors can resume it under the contract.
 
 Halt reasons: infra, effect (any editor may resume: the observed state decides, the approved text is kept),
-foreign_merge and merge_outside (integrity: only the reviewer resumes, with confirm=true, audited).
+foreign_merge and merge_outside (integrity: only the author resumes, with confirm=true, audited).
 Every case drives the real Publisher and Workspace against the offline GitHub double; the HTTP route
 is exercised over a loopback server.
 """
@@ -91,7 +91,7 @@ class ResumeRules(RobustBase):
         data = self.pub()['payload']
         self.assertFalse(data.get('halted')); self.assertNotIn('halt_reason', data); self.assertNotIn('infra_retries', data)
         self.run_to('published')
-        self.assertEqual(self.mock.count('POST', '/reviews'), 1, 'resume must not ask for a second review')
+        self.assertEqual(self.mock.count('POST', '/reviews'), 0, 'resume must not ask for a second review')
         self.assertEqual(self.audit_actions().count('approve'), 1, 'resume must not ask for a new approval')
         self.assertIn('publication_resumed', self.audit_actions())
 
@@ -111,31 +111,31 @@ class ResumeRules(RobustBase):
         self.assertEqual(self.pub()['state'], 'pushed')
         self.assertEqual(self.mock.count('POST', '/git/refs'), 1, 'the observed push must not be repeated')
 
-    def test_integrity_author_is_forbidden_with_403(self):
+    def test_integrity_other_editor_is_forbidden_with_403(self):
         self.halt_directly('merge_outside')
-        with self.assertRaises(P.Denied) as caught: self.publisher.resume(self.slug, 'javier', confirm=True)
+        with self.assertRaises(P.Denied) as caught: self.publisher.resume(self.slug, 'matias', confirm=True)
         self.assertEqual(caught.exception.status, 403)
         self.assertTrue(self.pub()['payload']['halted'])
 
-    def test_integrity_reviewer_without_confirm_is_400_and_stays_halted(self):
+    def test_integrity_author_without_confirm_is_400_and_stays_halted(self):
         self.halt_directly('merge_outside')
-        with self.assertRaises(P.NeedsConfirm) as caught: self.publisher.resume(self.slug, 'matias')
+        with self.assertRaises(P.NeedsConfirm) as caught: self.publisher.resume(self.slug, 'javier')
         self.assertEqual(caught.exception.status, 400)
         self.assertTrue(self.pub()['payload']['halted'])
 
-    def test_integrity_reviewer_with_confirm_continues_and_audits(self):
+    def test_integrity_author_with_confirm_continues_and_audits(self):
         self.mock.merge_files = [{'filename': self.mock.piece_rel + '/piece.json'}, {'filename': 'base.txt'}]
         self.approved(); self.tick_until('merged'); self.publisher.advance(self.slug)
         self.assertEqual(self.pub()['payload']['halt_reason'], 'merge_outside')
-        self.publisher.resume(self.slug, 'matias', confirm=True)
+        self.publisher.resume(self.slug, 'javier', confirm=True)
         data = self.pub()['payload']
-        self.assertEqual(data['merge_diff'], 'accepted_by_reviewer')
+        self.assertEqual(data['merge_diff'], 'accepted_by_author')
         self.assertFalse(data.get('halted')); self.assertNotIn('halt_reason', data)
         self.assertEqual(self.pub()['state'], 'merged')
         self.run_to('published')
         self.assertEqual(self.audit_actions().count('publication_resume_confirmed'), 1)
         entry = self.store.db.execute("SELECT user, slug, detail_json FROM audit WHERE action='publication_resume_confirmed'").fetchone()
-        self.assertEqual(entry[0], 'matias')
+        self.assertEqual(entry[0], 'javier')
         self.assertNotIn('Private essay', entry[2])
 
     def test_foreign_merge_resume_adopts_the_pr_merge_sha(self):
@@ -145,12 +145,12 @@ class ResumeRules(RobustBase):
         pr.update(merged=True, merge_commit_sha='a' * 40); pr['head'] = dict(pr['head'], sha='0' * 40)
         self.publisher.advance(self.slug)
         self.assertEqual(self.pub()['payload']['halt_reason'], 'foreign_merge')
-        with self.assertRaises(P.Denied): self.publisher.resume(self.slug, 'javier', confirm=True)
-        with self.assertRaises(P.NeedsConfirm): self.publisher.resume(self.slug, 'matias')
-        self.publisher.resume(self.slug, 'matias', confirm=True)
+        with self.assertRaises(P.Denied): self.publisher.resume(self.slug, 'matias', confirm=True)
+        with self.assertRaises(P.NeedsConfirm): self.publisher.resume(self.slug, 'javier')
+        self.publisher.resume(self.slug, 'javier', confirm=True)
         data = self.pub()['payload']
         self.assertEqual(data['merge_sha'], 'a' * 40)
-        self.assertEqual(data['merge_diff'], 'accepted_by_reviewer')
+        self.assertEqual(data['merge_diff'], 'accepted_by_author')
         self.assertEqual(self.pub()['state'], 'merged')
         self.assertFalse(data.get('halted'))
         self.assertIn('publication_resume_confirmed', self.audit_actions())
@@ -192,18 +192,18 @@ class ResumeHTTP(unittest.TestCase):
 
     def test_route_status_codes_and_success(self):
         route = '/api/pieces/%s/publication/resume'
-        status, body, _ = self.request('POST', route % self.halted, {'confirm': True}, 'javier')
+        status, body, _ = self.request('POST', route % self.halted, {'confirm': True}, 'matias')
         self.assertEqual(status, 403, body)
-        status, body, _ = self.request('POST', route % self.halted, {}, 'matias')
+        status, body, _ = self.request('POST', route % self.halted, {}, 'javier')
         self.assertEqual(status, 400, body)
         self.assertTrue(body.get('error_plain'))
-        status, body, _ = self.request('POST', route % self.quiet, {'confirm': True}, 'matias')
+        status, body, _ = self.request('POST', route % self.quiet, {'confirm': True}, 'javier')
         self.assertEqual(status, 409, body)
         self.assertIn('error_plain', body)
-        status, body, _ = self.request('POST', route % self.halted, {'confirm': True}, 'matias')
+        status, body, _ = self.request('POST', route % self.halted, {'confirm': True}, 'javier')
         self.assertEqual(status, 200, body)
         self.assertFalse(body['halted']); self.assertIsNone(body['halt_reason']); self.assertEqual(body['author'], 'javier')
-        status, body, _ = self.request('GET', '/api/pieces/%s/publication' % self.halted, None, 'javier')
+        status, body, _ = self.request('GET', '/api/pieces/%s/publication' % self.halted, None, 'matias')
         self.assertFalse(body['halted'])
         self.assertIn('publication_resume_confirmed', [row[0] for row in self.store.db.execute('SELECT action FROM audit').fetchall()])
 
@@ -214,7 +214,7 @@ class ResumeHTTP(unittest.TestCase):
         self.store.db.commit()
         route = '/api/pieces/%s/publication/resume'
         with patch.object(self.app.github, 'pr', side_effect=OSError('network down')):
-            status, body, _ = self.request('POST', route % self.halted, {'confirm': True}, 'matias')
+            status, body, _ = self.request('POST', route % self.halted, {'confirm': True}, 'javier')
         self.assertEqual(status, 503, body)
         self.assertNotEqual(status, 500)
         self.assertIn('No se pudo comprobar lo publicado para continuar', body.get('error_plain', ''), 'the specific Infra message, not the generic 503'); self.assertNotIn('GitHub', body.get('error_plain', ''))
@@ -234,7 +234,7 @@ class ReplayAndForeignMergeResume(RobustBase):
         pub = self.pub()
         self.assertFalse(pub['payload'].get('halted'), 'a moved public branch is a refusal, not a halt')
         self.assertEqual(pub['state'], 'failed')
-        self.assertEqual(pub['error_plain'], 'La versión pública cambió; pide una nueva revisión.')
+        self.assertEqual(pub['error_plain'], 'La versión pública cambió; vuelve a pulsar Publicar.')
         self.assertEqual(self.store.piece(self.slug)['state'], 'changes_requested')
 
     def test_foreign_merge_resume_github_error_is_infra_and_stays_halted(self):
@@ -245,7 +245,7 @@ class ReplayAndForeignMergeResume(RobustBase):
         self.publisher.advance(self.slug)
         self.assertEqual(self.pub()['payload']['halt_reason'], 'foreign_merge')
         with patch.object(self.github, 'pr', side_effect=OSError('network down')):
-            with self.assertRaises(P.Infra) as caught: self.publisher.resume(self.slug, 'matias', confirm=True)
+            with self.assertRaises(P.Infra) as caught: self.publisher.resume(self.slug, 'javier', confirm=True)
         self.assertEqual(caught.exception.status, 503)
         data = self.pub()['payload']
         self.assertTrue(data['halted']); self.assertEqual(data['halt_reason'], 'foreign_merge')

@@ -12,7 +12,7 @@ from unittest.mock import patch
 from studio.translation import FakeProvider
 from studio.server.storage import Store, git
 from studio.server.publishing import GitHub, Workspace, Publisher, Refused, UnknownEffect, Infra
-from tests.harness.mock_github import MockGitHub
+from tests.test_studio_publish import MockGitHub
 from tests.test_studio_storage import DOC, ROOT
 
 PREFIX = '/repos/FCMO-AI/FCMO-AI-Newsletter'
@@ -103,7 +103,7 @@ class RobustBase(unittest.TestCase):
         git(self.remote, 'add', '.'); git(self.remote, '-c', 'user.name=Bot', '-c', 'user.email=bot@example.invalid', 'commit', '-qm', 'bot %d' % self.commits)
         self.mock.refs['main'] = git(self.remote, 'rev-parse', 'HEAD')
     def approved(self):
-        self.publisher.request(self.slug, 'javier'); return self.publisher.approve(self.slug, 'matias')
+        return self.publisher.request(self.slug, 'javier')
     def pub(self): return self.publisher.get(self.slug)
     def states(self, ticks, step=120, before=None):
         seen = []
@@ -130,7 +130,7 @@ class Robust(RobustBase):
             nonlocal first_base
             self.move_main()
         pub = self.run_to('published', before=churn)
-        self.assertEqual(self.mock.count('POST', '/reviews'), 1, 'no second human approval')
+        self.assertEqual(self.mock.count('POST', '/reviews'), 0, 'no second human approval')
         data = pub['payload']
         # The candidate was replayed on the newest main before the push and carries only the approved bytes.
         self.assertNotEqual(data['base_sha'], '')
@@ -151,7 +151,7 @@ class Robust(RobustBase):
         self.approved(); self.tick_until('checks_green'); tree = self.pub()['payload']['content_tree']
         self.move_main(); self.mock.conflict_once = True
         pub = self.run_to('published')
-        self.assertEqual(self.mock.count('POST', '/reviews'), 2, 'reviewer APPROVE republished on the new sha, automatically')
+        self.assertEqual(self.mock.count('POST', '/reviews'), 0, 'reviewer APPROVE republished on the new sha, automatically')
         self.assertEqual(git(Path(pub['payload']['candidate']), 'rev-parse', 'HEAD:' + pub['payload']['rel']), tree)
         self.assertEqual(self.store.piece(self.slug)['published_rev'], pub['payload']['approved_rev'])
 
@@ -209,31 +209,31 @@ class Robust(RobustBase):
         self.assertFalse(self.pub()['payload'].get('unknown'))
 
     def test_infra_retry_no_reapproval(self):
-        self.mock.check = 'cancelled'; self.approved(); self.tick_until('reviewed')
+        self.mock.check = 'cancelled'; self.approved(); self.tick_until('pr_open')
         self.publisher.advance(self.slug); first = self.pub()
-        self.assertEqual(first['state'], 'reviewed'); self.assertEqual(first['payload']['infra_retries'], 1)
+        self.assertEqual(first['state'], 'pr_open'); self.assertEqual(first['payload']['infra_retries'], 1)
         self.assertIn('reintentará', first['error_plain'])
         self.publisher.advance(self.slug)  # backoff: not yet due, nothing happens
         self.assertEqual(self.pub()['payload']['infra_retries'], 1)
         self.mock.check = 'success'; self.now += 61
         pub = self.run_to('published')
-        self.assertEqual(self.mock.count('POST', '/reviews'), 1)
+        self.assertEqual(self.mock.count('POST', '/reviews'), 0)
         self.assertEqual(self.mock.count('POST', '/pulls'), 1)
         self.assertNotIn('failed', [t['state'] for t in pub['payload']['timeline']])
 
     def test_infra_exhausted_halts_but_keeps_approval(self):
-        self.mock.check = 'cancelled'; self.approved(); self.tick_until('reviewed')
+        self.mock.check = 'cancelled'; self.approved(); self.tick_until('pr_open')
         for _ in range(8):
             self.publisher.advance(self.slug); self.now += 600
         pub = self.pub()
-        self.assertEqual(pub['state'], 'reviewed'); self.assertTrue(pub['payload']['halted'])
+        self.assertEqual(pub['state'], 'pr_open'); self.assertTrue(pub['payload']['halted'])
         self.assertEqual(self.store.piece(self.slug)['state'], 'publishing')
         self.assertIn('no por el texto', pub['error_plain'])
 
     def test_gate_slow_beyond_budget_is_infrastructure(self):
-        self.mock.check = 'pending'; self.approved(); self.tick_until('reviewed')
+        self.mock.check = 'pending'; self.approved(); self.tick_until('pr_open')
         self.publisher.advance(self.slug); self.now += 61 * 60; self.publisher.advance(self.slug)
-        pub = self.pub(); self.assertEqual(pub['state'], 'reviewed'); self.assertEqual(pub['payload']['infra_retries'], 1)
+        pub = self.pub(); self.assertEqual(pub['state'], 'pr_open'); self.assertEqual(pub['payload']['infra_retries'], 1)
 
     def test_content_red_returns_changes(self):
         self.mock.check = 'failure'; self.approved(); self.run_to('failed')
@@ -259,20 +259,20 @@ class Robust(RobustBase):
         self.assertEqual(pub['payload']['protection_mode'], 'studio')
         self.assertIn('Modo de protección: studio', [r for r in self.mock.requests if r['method'] == 'POST' and r['path'].endswith('/pulls')][0]['body']['body'])
         self.assertTrue(all(t.get('protection_mode') == 'studio' for t in pub['payload']['timeline'] if t['state'] not in ('approved', 'candidate', 'pushed')))
-    def test_studio_mode_requires_distinct_approve_and_green_gate(self):
-        # (a) the APPROVE disappears (dismissed): no merge.
+    def test_studio_mode_needs_no_second_approve(self):
         self.studio_mode(); self.approved(); self.tick_until('checks_green'); self.mock.reviews.clear()
         self.publisher.advance(self.slug); pub = self.pub()
-        self.assertEqual(pub['state'], 'failed'); self.assertIn('revisión de la otra persona', pub['error_plain']); self.assertEqual(self.mock.count('PUT', '/merge'), 0)
+        self.assertEqual(pub['state'], 'merged'); self.assertEqual(self.mock.count('POST', '/reviews'), 0)
+        self.assertEqual(self.mock.count('PUT', '/merge'), 1)
     def test_studio_mode_gate_must_still_be_green(self):
         self.studio_mode(); self.approved(); self.tick_until('checks_green'); self.mock.check = 'pending'
         self.publisher.advance(self.slug); self.assertEqual(self.pub()['state'], 'failed'); self.assertEqual(self.mock.count('PUT', '/merge'), 0)
-    def test_studio_mode_same_account_is_refused(self):
+    def test_studio_mode_single_account_can_publish(self):
         self.studio_mode(); self.approved(); self.tick_until('checks_green')
         with patch.object(self.github, 'identity', return_value='one-person'):
             self.publisher.advance(self.slug)
-        self.assertEqual(self.pub()['state'], 'failed'); self.assertIn('dos cuentas', self.pub()['error_plain'])
-        self.assertEqual(self.mock.count('PUT', '/merge'), 0)
+        self.assertEqual(self.pub()['state'], 'merged'); self.assertEqual(self.pub()['error_plain'], '')
+        self.assertEqual(self.mock.count('PUT', '/merge'), 1)
     def test_studio_mode_requires_codeowners(self):
         self.studio_mode(); self.mock.codeowners = False; self.approved(); pub = self.run_to('failed')
         self.assertIn('CODEOWNERS', pub['error_plain']); self.assertEqual(self.mock.count('PUT', '/merge'), 0)
@@ -312,7 +312,7 @@ class StrictAndInfra(RobustBase):
         self.mock.enforce_strict = True
         self.approved(); self.tick_until('checks_green'); self.move_main()
         pub = self.run_to('published'); self.check_clean(pub)
-        self.assertEqual(self.mock.count('POST', '/reviews'), 2)
+        self.assertEqual(self.mock.count('POST', '/reviews'), 0)
 
     def test_strict_ruleset_still_declared_behind_branch_replays(self):
         self.mock.strict = True; self.mock.enforce_strict = True
@@ -425,7 +425,7 @@ class StrictAndInfra(RobustBase):
         self.assertEqual(self.store.piece(self.slug)['state'], 'changes_requested')
 
     def test_transient_read_error_in_reviewed_is_infrastructure(self):
-        self.approved(); self.tick_until('reviewed')
+        self.approved(); self.tick_until('pr_open')
         real = self.github.checks; calls = {'n': 0}
         def checks(user, head):
             calls['n'] += 1
@@ -433,7 +433,7 @@ class StrictAndInfra(RobustBase):
             return real(user, head)
         with patch.object(self.github, 'checks', side_effect=checks):
             self.publisher.advance(self.slug)
-            self.assertEqual(self.pub()['state'], 'reviewed'); self.assertNotEqual(self.store.piece(self.slug)['state'], 'changes_requested')
+            self.assertEqual(self.pub()['state'], 'pr_open'); self.assertNotEqual(self.store.piece(self.slug)['state'], 'changes_requested')
             pub = self.run_to('published')
         self.check_clean(pub)
 

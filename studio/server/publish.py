@@ -23,15 +23,15 @@ def main(argv=None):
         tokens = {u: os.environ.get('GH_TOKEN_' + u.upper(), '') for u in ('javier', 'matias')}
         app = Application(store, os.environ['STUDIO_ORIGIN'], os.environ['STUDIO_SESSION_KEY'], repo, tokens=tokens if any(tokens.values()) else None)
         pub = app.publisher.get(args.slug)
-        if pub['state'] != 'approved': raise Refused('El ensayo o la edición debe estar aprobado por la otra persona antes del ensayo de publicación.')
+        if pub['state'] != 'approved': raise Refused('El ensayo o la edición debe estar seleccionado por su autor antes del ensayo de publicación.')
         data = pub['payload']
-        if store.piece(args.slug)['head_rev'] != data['approved_rev']: raise Refused('El texto aprobado cambió; pide otra revisión.')
-        app.github.preflight(data['author'], data['reviewer'])
+        if store.piece(args.slug)['head_rev'] != data['approved_rev']: raise Refused('El texto cambió después de pulsar Publicar.')
+        app.github.preflight(data['author'])
         if (data.get('protection_mode') or protection_mode()) == 'github' and not app.github.protected(data['author']): raise Refused('Publicación protegida aún no activa.')
         candidate = app.publisher.workspace.prepare(pub)
         pub['payload'].update(candidate)
         app.publisher.workspace.verify_confined(pub)
-        print('Ensayo completo: credenciales, revisión, base, LKG y comprobaciones locales válidas. Ningún envío, PR, merge o despliegue.')
+        print('Ensayo completo: credencial del autor, base, LKG y comprobaciones locales válidas. Ningún envío, PR, merge o despliegue.')
         print('Candidato: ' + candidate['head_sha'])
         return 0
     except (KeyError, OSError, RuntimeError, ValueError, Refused, UnknownEffect) as exc:

@@ -75,7 +75,7 @@ class NotifyTests(unittest.TestCase):
             notify.save_ledger(self.fx.ledger, set())
         return notify.run(self.fx.data, self.fx.mensajeria, self.fx.ledger, enviar, now=NOW)
 
-    def test_review_requested_goes_once_to_the_reviewer_and_is_idempotent(self):
+    def test_legacy_request_goes_once_to_author_without_waiting_for_reviewer(self):
         self.fx.piece('ensayo-uno', 'Ensayo uno')
         self.fx.review('rev-1', 'ensayo-uno', 'requested')
         self.fx.commit()
@@ -87,8 +87,9 @@ class NotifyTests(unittest.TestCase):
         self.assertEqual((third['encolados'], third['ya_enviados']), (0, 1))
         entries = self.fx.entries()
         self.assertEqual(len(entries), 1)
-        self.assertEqual(entries[0]['para'], 'matias')
-        self.assertIn('Javier pidió tu revisión de «Ensayo uno»', entries[0]['texto'])
+        self.assertEqual(entries[0]['para'], 'javier')
+        self.assertIn('«Ensayo uno» está pendiente de publicación', entries[0]['texto'])
+        self.assertNotIn('pidió tu revisión', entries[0]['texto'])
 
     def test_published_notice_goes_to_author_with_https_links_only(self):
         self.fx.piece('ensayo-dos', 'Ensayo dos')

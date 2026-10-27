@@ -89,6 +89,7 @@ class ReadinessHTTP(unittest.TestCase):
             status, body, _ = self.request('GET', '/api/publication-readiness')
             self.assertEqual(status, 200)
             self.assertFalse(any(c['ready'] for c in body['credentials']))
+            self.assertEqual([c['user'] for c in body['credentials']], ['javier'])
             self.assertEqual(self.request('POST', '/api/pieces', {'kind': 'essay', 'title': 'Private writing', 'source_locale': 'en'})[0], 200)
 
 

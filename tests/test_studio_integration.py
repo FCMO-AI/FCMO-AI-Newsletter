@@ -13,7 +13,7 @@ from unittest.mock import patch
 from studio.server.http import Application, Server
 from studio.server.storage import Store, git
 from studio.server.publishing import GitHub, Publisher
-from tests.harness.mock_github import MockGitHub
+from tests.test_studio_publish import MockGitHub
 from tests.test_studio_publish import MockWorkspace
 from tests.test_studio_storage import ROOT, DOC
 
@@ -146,8 +146,8 @@ for command in (["python3", "tools/paper/build.py", "--stories", "site/data/stor
         self.assertTrue(all(c['ok'] for c in checks), checks)
         self.assertEqual(self.request('POST', base + '/review/request', {}, 'javier')[0], 200)
         self.assertEqual(self.mock.requests, [])
-        self.assertEqual(self.request('POST', base + '/review/approve', {}, 'javier')[0], 409)
-        self.assertEqual(self.request('POST', base + '/review/approve', {}, 'matias')[0], 200)
+        self.assertEqual(self.request('POST', base + '/review/approve', {}, 'matias')[0], 409)
+        self.assertEqual(self.request('POST', base + '/review/approve', {}, 'javier')[0], 200)
         self.mock.live_id = self.store.payload(slug)['piece']['id']
         for _ in range(12):
             self.app.tick()

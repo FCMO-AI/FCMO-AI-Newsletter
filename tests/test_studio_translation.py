@@ -137,12 +137,12 @@ class TranslationTests(unittest.TestCase):
         results = publisher.checker(self.slug)
         self.assertTrue(all(r['ok'] for r in results if r['id'].startswith('review-')))
         publisher.request(self.slug, 'javier')
-        with self.assertRaises(Refused): publisher.approve(self.slug, 'javier')
-        publisher.approve(self.slug, 'matias')
+        with self.assertRaises(Refused): publisher.approve(self.slug, 'matias')
+        publisher.approve(self.slug, 'javier')
         for loc in ('en', 'es-419', 'zh-Hans'):
             row = self.store.payload(self.slug)['provenance'][loc]
             self.assertEqual(row['human_reviewed'], loc == 'es-419')
-            self.assertEqual(row['reviewer'], 'Matías' if loc == 'es-419' else '')
+            self.assertEqual(row['reviewer'], 'Javier' if loc == 'es-419' else '')
             if loc != 'es-419': self.assertEqual(row['review_state'], 'MACHINE_REVIEWED')
         self.assertEqual(self.store.payload(self.slug)['provenance']['en']['origin'], 'agent_draft')
     def test_email_intent_written_and_closed_schema(self):
@@ -151,7 +151,7 @@ class TranslationTests(unittest.TestCase):
         self.assertFalse(self.store.payload(self.slug)['piece']['distribution']['email'])
         with self.assertRaises(ValueError): self.store.distribution(self.slug, 'javier', self.store.piece(self.slug)['head_rev'], True)
         with patch.dict('os.environ', {'FCMO_EMAIL_ENABLED': 'true'}):
-            self.assertTrue(self.store.create('javier', 'essay', 'Con correo', 'en')['meta']['distribution']['email'])
+            self.assertFalse(self.store.create('javier', 'essay', 'Con correo', 'en')['meta']['distribution']['email'])
             self.store.distribution(self.slug, 'javier', self.store.piece(self.slug)['head_rev'], True)
         self.store.distribution(self.slug, 'javier', self.store.piece(self.slug)['head_rev'], False)
         saved = json.loads((self.store.directory(self.slug) / 'piece.json').read_text())

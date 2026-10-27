@@ -78,7 +78,7 @@ class Application:
                  'plain_es': ('Javier' if u == 'javier' else 'Matías') + ' debe iniciar sesión en GitHub.',
                  'plain_en': ('Javier' if u == 'javier' else 'Matías') + ' needs to sign in to GitHub.'}
                 for u in ('javier', 'matias')]
-            return {'credentials': statuses, 'live_enabled': self.live_enabled, 'dry_run': self.dry_run, 'email_enabled': email_enabled()}
+            return {'credentials': [s for s in statuses if s['user'] == user], 'live_enabled': self.live_enabled, 'dry_run': self.dry_run, 'email_enabled': email_enabled()}
         if path == '/api/github/connect':
             connector = getattr(self, 'github_connect', None)
             if connector is None and hasattr(self.github, 'configs'):
@@ -169,7 +169,10 @@ class Application:
             if method == 'POST': return self.store.comment(value, body.get('locale'), body.get('block_id'), user, body.get('body'))
         if rest == ['checks'] and method == 'GET': return issues.checks(self.store, self.preview, value) if self.store.piece(value)['kind'] == 'issue' else checks(self.store, self.preview, value)
         if len(rest) == 2 and rest[0] == 'review' and method == 'POST':
-            if rest[1] == 'request': return self.publisher.request(value, user)
+            if rest[1] == 'request':
+                if not (self.live_enabled or self.dry_run): raise Refused('La publicación en vivo aún no está habilitada.')
+                self.publisher.request(value, user)
+                return self.publisher.public_status(value)
             if rest[1] == 'approve':
                 if not (self.live_enabled or self.dry_run): raise Refused('La publicación en vivo aún no está habilitada.')
                 return self.publisher.approve(value, user, body.get('note', '')) and self.publisher.public_status(value)

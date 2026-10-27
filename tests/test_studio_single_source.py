@@ -50,7 +50,7 @@ class SingleSourceTests(unittest.TestCase):
         publisher = Publisher(self.store, None, None, lambda value: checks(self.store, preview, value))
         with patch('studio.translation.configured_provider', return_value=FakeProvider()):
             publisher.request(slug, 'javier')
-        publisher.approve(slug, 'matias')
+        publisher.approve(slug, 'javier')
         payload = self.store.payload(slug)
         for loc in ('en', 'zh-Hans'):
             self.assertFalse(payload['provenance'][loc]['human_reviewed'])
@@ -236,6 +236,7 @@ class SingleSourceTests(unittest.TestCase):
         from tools.email_piece_dispatch import PieceEdition, dispatch_piece
         from tools.email_providers.fake import FakeProvider as MailFixture
         slug = self.source(); translate(self.store, slug, 'javier', 1, FakeProvider())
+        self.store.distribution(slug, 'javier', self.store.piece(slug)['head_rev'], True)  # Explicit test-only opt-in.
         self.store.locale_state(slug, 'es-419', 'javier', 'ready', True)
         payload = self.store.payload(slug)
         piece = {**payload['piece'], **{key: payload[key] for key in ('docs', 'sources', 'figures', 'provenance')}}
@@ -284,7 +285,7 @@ class SingleSourceTests(unittest.TestCase):
         image = self.store.directory(slug) / 'figures/fig-one.webp'; image.parent.mkdir(exist_ok=True)
         shutil.copyfile(Path(__file__).parent / 'fixtures/editorial/pieces/fixture-essay/figures/fig-cover.webp', image)
         publisher = Publisher(self.store, None, None, lambda _: [{'ok': True}])
-        publisher.request(slug, 'javier'); publisher.approve(slug, 'matias')
+        publisher.request(slug, 'javier'); publisher.approve(slug, 'javier')
         root = Path(self.tmp.name) / 'bound-public'
         directory = root / 'editorial/pieces' / slug
         shutil.copytree(self.store.directory(slug), directory)

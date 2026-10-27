@@ -16,10 +16,10 @@ test('a technical halt can be resumed by either editor without a confirmation', 
   }
 })
 
-test('an integrity halt can only be resumed by the reviewer, behind a confirmation', () => {
+test('an integrity halt can only be resumed by the author, behind a confirmation', () => {
   for (const reason of ['foreign_merge', 'merge_outside']) {
-    assert.deepEqual(haltPlan({ ...base, halt_reason: reason }, 'matias'), { integrity: true, canResume: true, confirm: true })
-    assert.equal(haltPlan({ ...base, halt_reason: reason }, 'javier').canResume, false)
+    assert.deepEqual(haltPlan({ ...base, halt_reason: reason }, 'javier'), { integrity: true, canResume: true, confirm: true })
+    assert.equal(haltPlan({ ...base, halt_reason: reason }, 'matias').canResume, false)
   }
 })
 
