@@ -479,8 +479,9 @@ carril. Reejecutar `python3 -m unittest discover -s tests -p 'test_studio_*.py'`
   ocurre antes de cualquier resultado real del sello de main. Clonación y fetch
   son candidatos; no hay evidencia que permita atribuirlo a facturación, un SHA
   ausente o checkout. El bridge ahora reintenta ambas operaciones tres veces y
-  publica únicamente `selection_failure=<código fijo>` al agotar/fallar una fase.
-  Ejecutar el workflow fuera y conservar ese código si persiste; no abrir logs
+  informa la fase mediante el reportero aislado de códigos cerrados en el resumen
+  del job; la salida directa conserva sólo `step_exit` numérico. Ejecutar el
+  workflow fuera y conservar ese código si persiste; no abrir logs
   privados ni desactivar linaje, sello o guardas para obtenerlo.
 - Humanos: resolver la facturación de Actions de ARB; queda fuera de este carril.
   No se ha desplegado, hecho push, accedido a cuentas ni verificado recuperación

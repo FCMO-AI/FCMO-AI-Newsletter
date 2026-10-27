@@ -113,7 +113,8 @@ sys.exit(rc)
         self.assertNotEqual(proc.returncode, 0)
         self.assertEqual((runner / "clone-attempts").read_text(), "3")
         self.assertEqual((codes / "transport_error").read_text().strip(), "CLONE_FAILED")
-        self.assertIn("selection_failure=CLONE_FAILED", proc.stdout)
+        self.assertEqual(proc.stdout, "step_exit=128\n")
+        self.assertEqual(proc.stderr, "")
         self.assertFalse((runner / "fcmo-newswire-private-source.sha").exists())
 
     def test_permanent_fetch_failure_is_bounded_and_distinguished_from_clone(self):
@@ -121,7 +122,8 @@ sys.exit(rc)
         self.assertNotEqual(proc.returncode, 0)
         self.assertEqual((runner / "fetch-attempts").read_text(), "3")
         self.assertEqual((codes / "transport_error").read_text().strip(), "HISTORY_FETCH_FAILED")
-        self.assertIn("selection_failure=HISTORY_FETCH_FAILED", proc.stdout)
+        self.assertEqual(proc.stdout, "step_exit=128\n")
+        self.assertEqual(proc.stderr, "")
         self.assertFalse((runner / "fcmo-newswire-private-source.sha").exists())
 
     def test_retry_after_history_was_unshallowed_does_not_unshallow_twice(self):
@@ -141,9 +143,35 @@ sys.exit(rc)
         proc, runner, codes = self.select(drill="force_checkpoint")
         self.assertNotEqual(proc.returncode, 0)
         self.assertEqual((codes / "transport_error").read_text().strip(), "CHECKPOINT_MISSING")
-        self.assertIn("selection_failure=CHECKPOINT_MISSING", proc.stdout)
+        self.assertEqual(proc.stdout, "step_exit=128\n")
+        self.assertEqual(proc.stderr, "")
         self.assertNotIn("a" * 40, proc.stdout + proc.stderr)
         self.assertFalse((runner / "fcmo-newswire-private-source.sha").exists())
+
+    def test_selection_report_uses_the_existing_closed_summary_boundary(self):
+        proc, runner, codes = self.select(clone_failures=99)
+        self.assertNotEqual(proc.returncode, 0)
+        repo = Path(__file__).resolve().parents[1]
+        workflow = (repo / ".github/workflows/newswire-bridge.yml").read_text()
+        step = workflow.split("- name: Report a failed snapshot selection safely", 1)[1].split("- name:", 1)[0]
+        self.assertIn("failure() && steps.select.outcome == 'failure'", step)
+        script = textwrap.dedent(step.split("run: |\n", 1)[1])
+        summary = runner / "summary.md"
+        env = {"PATH": str(self.work / "bin") + os.pathsep + os.defpath,
+               "HOME": str(self.work), "CODES": str(codes), "GITHUB_STEP_SUMMARY": str(summary)}
+        for code, expected in (("CLONE_FAILED", "CLONE_FAILED"),
+                               ("HISTORY_FETCH_FAILED", "HISTORY_FETCH_FAILED"),
+                               ("PRIVATE-DIAGNOSTIC-CANARY", "VERIFY:UNCLASSIFIED")):
+            with self.subTest(code=code):
+                (codes / "transport_error").write_text(code + "\n")
+                summary.write_text("")
+                report = subprocess.run(["bash", "-e", "-o", "pipefail", "-c", script],
+                                        cwd=repo, env=env, capture_output=True, text=True, timeout=30)
+                self.assertEqual(report.returncode, 0, report.stdout + report.stderr)
+                self.assertEqual(report.stdout, "step_exit=0\n")
+                self.assertEqual(report.stderr, "")
+                self.assertIn(f"`{expected}`", summary.read_text())
+                self.assertNotIn("PRIVATE-DIAGNOSTIC-CANARY", report.stdout + report.stderr + summary.read_text())
 
 
 if __name__ == "__main__":

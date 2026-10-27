@@ -292,6 +292,14 @@ def _public_failure_summary(code_file: Path, summary: Path) -> int:
         "PUBLICATION_RECEIPT", "LOCALE", "RECEIPT", "JSON", "MISSING_FILE",
     }
     allowed = {f"{command}:{reason}" for command in ("VERIFY", "QUARANTINE") for reason in reasons}
+    # Snapshot selection emits only these fixed codes into the same private
+    # codes directory. Report them through this isolated, allowlisted boundary;
+    # selection itself must retain its numeric-only public EXIT receipt.
+    allowed.update({
+        "CLONE_FAILED", "CHECKPOINT_INVALID", "HISTORY_FETCH_FAILED", "MAIN_REF_FAILED",
+        "MAIN_CHECKOUT_FAILED", "CHECKPOINT_MISSING", "CHECKPOINT_OUTSIDE_LINEAGE",
+        "CHECKPOINT_CHECKOUT_FAILED", "SNAPSHOT_IDENTITY_FAILED",
+    })
     try:
         # Reject oversized/untrusted diagnostics instead of reading an arbitrary log.
         with code_file.open("rb") as stream:
