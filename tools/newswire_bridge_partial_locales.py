@@ -70,9 +70,10 @@ def _synthetic_coverage_baseline(release: Path) -> Path:
     return root
 
 
-def _bad_record_ids(release: Path) -> set[str]:
-    """Ids whose own bytes are defective (blank/unknown claim label, Chinese es-419 title/summary)."""
-    bad: set[str] = set(strict._unclassified_claims(release / "data" / "developments.jsonl"))
+def _bad_record_reasons(release: Path) -> dict[str, list[str]]:
+    """Closed reason codes for record defects; never retain the offending prose."""
+    bad = {rid: {"CLAIM_LABEL"} for rid in
+           strict._unclassified_claims(release / "data" / "developments.jsonl")}
     # A record whose own bytes carry a private/implementation marker (e.g. prose naming the
     # internal pipeline "ARB-run") is withheld alone; it is never published, and the rest of
     # the release must not stay blocked behind it (incident inc-4e68b9a0, 2026-10-22).
@@ -83,18 +84,18 @@ def _bad_record_ids(release: Path) -> set[str]:
             except (json.JSONDecodeError, AttributeError):
                 continue
             if isinstance(rid, str):
-                bad.add(rid)
+                bad.setdefault(rid, set()).add("PRIVATE_MARKER")
     path = release / "data" / "locales" / "es-419" / "records.json"
     if path.is_file():
         rows = json.loads(path.read_text(encoding="utf-8")).get("records")
         for rid, overlay in (rows.items() if isinstance(rows, dict) else []):
             if isinstance(overlay, dict) and strict.private_marker(json.dumps(overlay, ensure_ascii=False)):
-                bad.add(rid)
+                bad.setdefault(rid, set()).add("PRIVATE_MARKER")
             elif isinstance(overlay, dict) and any(
                 isinstance(overlay.get(k), str) and strict._han_dominated(overlay[k]) for k in ("title", "summary")
             ):
-                bad.add(rid)
-    return bad
+                bad.setdefault(rid, set()).add("WRONG_LOCALE")
+    return {rid: sorted(reasons) for rid, reasons in sorted(bad.items())}
 
 
 def quarantine_release(release: Path) -> list[str]:
@@ -120,7 +121,8 @@ def quarantine_release(release: Path) -> list[str]:
     if receipt.get("corpus_digest") != original_digest \
             or receipt.get("release_id") != f"newswire-{original_digest[:24]}":
         raise ValueError("airlock.json: original bytes do not match the original receipt; refusing to quarantine")
-    bad = _bad_record_ids(release)
+    record_reasons = _bad_record_reasons(release)
+    bad = set(record_reasons)
     bad_editions = [
         path for path in sorted((release / "editions").glob("*.html"))
         if not (release / "editions").is_symlink() and not path.is_symlink() and path.is_file()
@@ -171,6 +173,10 @@ def quarantine_release(release: Path) -> list[str]:
     )
     if bad_editions:
         receipt["quarantined_from"]["paths"] = [path.relative_to(release).as_posix() for path in bad_editions]
+    receipt["quarantine_reasons"] = {
+        "records": record_reasons,
+        "documents": {path.relative_to(release).as_posix(): ["PRIVATE_MARKER"] for path in bad_editions},
+    }
     receipt_path.write_text(json.dumps(receipt, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     return sorted(bad)
 

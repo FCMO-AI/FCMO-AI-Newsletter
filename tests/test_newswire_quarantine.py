@@ -71,6 +71,34 @@ class QuarantineTests(unittest.TestCase):
             "release_id": original["release_id"], "corpus_digest": original["corpus_digest"],
             "ids": sorted([RID2, RID3])})
 
+    def test_quarantine_receipt_records_reasons_without_payload_text(self) -> None:
+        self._poison()
+        edition = "editions/2026-10-24.html"
+        self._write(edition, "<html>not an ARB-run reproduction</html>")
+        self._restamp()
+        partial.quarantine_release(self.root)
+        receipt = partial.verify_release(self.root)
+        self.assertEqual(receipt["quarantine_reasons"], {
+            "records": {RID2: ["CLAIM_LABEL"], RID3: ["WRONG_LOCALE"]},
+            "documents": {edition: ["PRIVATE_MARKER"]},
+        })
+        self.assertNotIn("ARB-run", json.dumps(receipt))
+        self.assertEqual(partial.quarantine_release(self.root), [])
+        self.assertEqual(json.loads((self.root / "airlock.json").read_text()), receipt)
+
+    def test_required_corrections_with_private_metadata_are_never_erased(self) -> None:
+        # Sanitization belongs to ARB's compiler. Removing correction history to
+        # refresh an edition would conceal the public audit trail.
+        corrections = [{"development_id": RID, "run_id": "ARB-run synthetic",
+                        "summary": "Public correction"}]
+        self._write("data/corrections.json", json.dumps(corrections))
+        self._restamp()
+        before = (self.root / "data/corrections.json").read_bytes()
+        self.assertEqual(partial.quarantine_release(self.root), [])
+        with self.assertRaisesRegex(ValueError, "private/implementation/strategic marker"):
+            partial.verify_release(self.root)
+        self.assertEqual((self.root / "data/corrections.json").read_bytes(), before)
+
     def test_tampered_bytes_are_never_resealed(self) -> None:
         self._poison()
         (self.root / "editions/2026-09-05.html").write_text("<html>TAMPERED</html>", encoding="utf-8")  # no restamp
