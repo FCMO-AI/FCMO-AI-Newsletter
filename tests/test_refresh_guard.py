@@ -259,13 +259,14 @@ class RefreshFailureDiagnostics(unittest.TestCase):
                 self.assertIn("test_private", output)
 
     def test_import_errors_and_process_exit_without_unittest_are_explicit(self):
+        private_path = str(Path(tempfile.gettempdir()) / "refresh-guard-private.py")
         imported = guard.first_failure(
             "ERROR: test_example (unittest.loader._FailedTest.test_example)\n" + "-" * 70 +
-            '\nTraceback (most recent call last):\n  File "/home/runner/work/private.py", line 1\n' +
+            f'\nTraceback (most recent call last):\n  File "{private_path}", line 1\n' +
             "ImportError: cannot import example\n\n" + "-" * 70 + "\nRan 1 test\n", 1)
         self.assertIn("test_example", imported)
         self.assertIn("ImportError: cannot import example", imported)
-        self.assertNotIn("/home/runner", imported)
+        self.assertNotIn(private_path, imported)
         self.assertIn("código 2", guard.first_failure("unstructured private process output", 2))
 
     def test_subtest_parameters_and_markdown_cannot_leak_or_escape_the_summary(self):
