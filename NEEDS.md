@@ -451,3 +451,14 @@ replays the approved bytes on the new main when the PR reports `behind`.
 - ops/studio/host.py todavía exige ambas cuentas locales para instalar Studio (tests/test_studio_host.py conserva esa prueba). Revisar ese requisito de instalación fuera de este carril; la publicación ya no requiere otra credencial GitHub. No cambiar protección de sesiones.
 - Verificar fuera de este entorno la publicación real con la credencial del autor: PR, checks verdes, merge existente, deploy e identidad del artículo público. Si GitHub rechaza el merge por reglas existentes, resolver ese permiso con el operador; este carril no cambia rulesets ni usa otra identidad.
 - No hubo inspección final en navegador real: faltan Chromium/Playwright y las dependencias declaradas prosemirror-model/esbuild. No instalar dependencias ni usar red aquí. La batería JS disponible prueba el controlador con DOM simulado y el bundle servido, no su aspecto visual.
+
+# studio-inventos
+
+`docs/lanes/BRIEF-STUDIO-INVENTOS.md` incluye una ruta absoluta del host. El
+gate `NO_MACHINE_PATHS` la detecta en el árbol versionado y bloquea
+`test_tracked_source_tree_passes_machine_path_gate`, `test_complete_invented_piece_with_company_and_quote_passes`
+y dos recorridos integrales de publicación.
+
+Cambio exacto fuera del ownership: reemplazar la ruta absoluta del brief por
+una referencia relativa al repositorio, sin cambiar las instrucciones del
+carril. Reejecutar `python3 -m unittest discover -s tests -p 'test_studio_*.py'`.
