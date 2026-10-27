@@ -1,6 +1,6 @@
 # Carril: newswire bridge en rojo desde 2026-10-26 18:40Z (Newsletter, 2026-10-27)
 
-Lee `AGENTS.md` de este repo y el Hub `runtime/FCMO_RUNTIME_V1.txt` + `disciplines/SOFTWARE_ENGINEERING.md` + `disciplines/HIGH_CONSEQUENCE.md` (/srv/fcmo/agents/repos/FCMO-Agent-Hub).
+Lee `AGENTS.md` de este repo y el Hub `runtime/FCMO_RUNTIME_V1.txt` + `disciplines/SOFTWARE_ENGINEERING.md` + `disciplines/HIGH_CONSEQUENCE.md` (resuelve el Hub según `AGENT_HUB.md`).
 
 ## Hechos (en `.scratch/`, no versionado)
 - El workflow `Pull airlocked newswire with GitHub App` (`.github/workflows/newswire-bridge.yml`, copia en `.scratch/newswire-bridge.yml`) falla en cada corrida desde 10-26 18:40Z; último éxito 17:40Z. El Newsletter vivo muestra «edición retrasada» (`edition_state DELAYED`, `TRANSPORT_FAIL`).
