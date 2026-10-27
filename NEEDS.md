@@ -462,3 +462,27 @@ y dos recorridos integrales de publicación.
 Cambio exacto fuera del ownership: reemplazar la ruta absoluta del brief por
 una referencia relativa al repositorio, sin cambiar las instrucciones del
 carril. Reejecutar `python3 -m unittest discover -s tests -p 'test_studio_*.py'`.
+
+# newswire-bridge-20261027
+
+- ARB: aplicar `.scratch/arb-fix.patch` en su repositorio privado. El compilador
+  `tools/build_public_release.py` debe reconstruir `data/corrections.json` con
+  `PUBLIC_CORRECTION_FIELDS`, excluyendo `run_id` y futuros campos internos, sin
+  borrar eventos ni cambiar su prosa pública. El parche incluye tres pruebas
+  sintéticas y las conecta al sello en `tools/validate_publication_plane.py`;
+  antes falla la exclusión de metadatos y el rechazo estructural,
+  después pasan. El sellado real parcheado y la cuarentena permiten verificar
+  730 registros y conservar los 176 eventos de corrección. No modificar el export
+  de sólo lectura ni omitir el verificador estricto.
+- La causa histórica exacta del `step_exit=128` no se puede recuperar del log:
+  stderr privado fue descartado y no existe el checkout Git de ARB. El fallo
+  ocurre antes de cualquier resultado real del sello de main. Clonación y fetch
+  son candidatos; no hay evidencia que permita atribuirlo a facturación, un SHA
+  ausente o checkout. El bridge ahora reintenta ambas operaciones tres veces y
+  publica únicamente `selection_failure=<código fijo>` al agotar/fallar una fase.
+  Ejecutar el workflow fuera y conservar ese código si persiste; no abrir logs
+  privados ni desactivar linaje, sello o guardas para obtenerlo.
+- Humanos: resolver la facturación de Actions de ARB; queda fuera de este carril.
+  No se ha desplegado, hecho push, accedido a cuentas ni verificado recuperación
+  en producción. Ejecutar las aceptaciones con pytest fuera: este entorno sólo
+  dispone de python3/unittest y no permite añadir dependencias.
