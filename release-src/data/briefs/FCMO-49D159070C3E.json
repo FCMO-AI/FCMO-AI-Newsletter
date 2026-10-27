@@ -1,0 +1,151 @@
+{
+  "record": {
+    "id": "FCMO-49D159070C3E",
+    "title": "Self-Direction reports persistent LoRA adapters that improve agent task recovery across benchmark suites",
+    "desk": "Agents Memory",
+    "event_at": "2026-10-26T00:00:00Z",
+    "evidence": "A",
+    "confidence": "credible_unconfirmed",
+    "importance": 5,
+    "tier": "Notable",
+    "summary": "The Self-Direction preprint describes a loop that converts a verified agent failure into procedural examples and a task-specific LoRA adapter, then routes and reuses that adapter on related tasks while keeping base weights fixed. The authors report accuracy rising from 38.8% to 55.8% on 165 GAIA tasks, from 64.4% to 73.3% mean across three runs on 161 Claw-Eval tasks, and from 51.7% to 65.5% mean across three runs on 89 Terminal-Bench 2.1 tasks. These are paper-reported benchmark results; the method needs a verified failure signal and additional reflection/training resources, and the research desk has not reproduced them. The authors’ linked implementation page and the preprint differ on whether GAIA reflections received reference answers; the exact evaluated prompt inputs remain unresolved.",
+    "topics": [
+      "agent learning",
+      "persistent memory",
+      "low-rank adaptation",
+      "tool use",
+      "inference efficiency"
+    ],
+    "organizations": [
+      "Meta FAIR",
+      "Princeton University"
+    ],
+    "human_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-49D159070C3E.html",
+    "machine_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/data/briefs/FCMO-49D159070C3E.json",
+    "citation": {
+      "id": "FCMO-49D159070C3E",
+      "source": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-49D159070C3E.html"
+    }
+  },
+  "brief": {
+    "claims": [
+      {
+        "label": "CLAIMED",
+        "text": "Self-Direction converts a verified task failure into procedural training examples and a task-specific LoRA adapter, leaving the base model fixed and routing later tasks to stored adapters by task similarity."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "The authors report accuracy increasing from 38.8% to 55.8% on 165 GAIA validation tasks with Qwen3.6-27B; the paper reports a paired task-level t-test and 95% interval."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "Across three runs, the authors report mean task success increasing from 64.4% to 73.3% on 161 Claw-Eval tasks and from 51.7% to 65.5% on 89 Terminal-Bench 2.1 tasks."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "The paper reports adapter construction averaging 8.16 minutes and 30.4 Wh GPU energy per adapter over 130 failures on one H200; the measure excludes initial and task-environment rollouts and non-GPU energy."
+      },
+      {
+        "label": "NOT_ESTABLISHED",
+        "text": "The reported results do not establish gains for other model families, production deployments, or net economic benefit after all reflection, adaptation, routing, storage and rollout costs."
+      },
+      {
+        "label": "DISPUTED",
+        "text": "The arXiv paper and the authors’ linked implementation page differ on whether GAIA reflection receives a reference answer; the exact prompt used for the reported GAIA experiments is unresolved."
+      }
+    ],
+    "confidence": "credible_unconfirmed",
+    "contradictory_evidence": [
+      "The arXiv preprint Appendix G.2 says GAIA uses the generic reflection template, which contains no answer placeholder; its §3.3 describes an information boundary excluding reference answers from the normalized failure signal. The authors’ linked implementation page says verifier feedback (a reference answer when available, only GAIA in this setup) is passed to reflection and shows a GOLD ANSWER placeholder. The evaluated prompt path is unresolved; this conflict alone does not establish answer leakage in the reported runs."
+    ],
+    "desks": [
+      "agents_memory",
+      "evaluation_science",
+      "inference_systems"
+    ],
+    "development_type": "paper",
+    "editions": [
+      "2026-10-26"
+    ],
+    "event_at": "2026-10-26T00:00:00Z",
+    "evidence_class": "A",
+    "evidence_gaps": [
+      {
+        "description": "The accuracy and pass-rate gains across the reported benchmark suites have not been independently reproduced.",
+        "kind": "missing_independent",
+        "state": "open"
+      },
+      {
+        "description": "The paper’s core results use Qwen-family models and selected benchmark suites; transfer to other model families, open-ended deployments and continually growing libraries is not established.",
+        "kind": "other",
+        "state": "open"
+      },
+      {
+        "description": "Reported GPU construction cost excludes host/storage energy and initial/task rollouts; full lifecycle cost-effectiveness versus retries or textual memory is not established.",
+        "kind": "other",
+        "state": "open"
+      },
+      {
+        "description": "The preprint and linked author implementation page conflict on whether GAIA reference answers enter the reflection prompt; the evaluated prompt input and potential effect on the reported score are unresolved.",
+        "kind": "contradiction_unresolved",
+        "state": "open"
+      }
+    ],
+    "id": "FCMO-49D159070C3E",
+    "importance_effective_score": 5,
+    "importance_rationale": "If failure-derived adapters reliably improve later task completion across agent settings, the method could materially influence agent-harness design and the economics of repeated tool workflows; current evidence is a single author-reported preprint evaluation.",
+    "importance_scale_version": 2,
+    "importance_score": 5,
+    "importance_tier": "Notable",
+    "last_verified_at": "2026-10-26T21:17:49Z",
+    "limitations": [
+      "All performance and cost figures are author-reported; the research desk performed no independent code run or external evaluation.",
+      "Most experiments use open-weight Qwen-family agents, and broader cross-family transfer is explicitly left for future work.",
+      "The method requires a reliable failure signal and GPU resources/storage beyond standard inference; adapters can harm performance when the router loads a mismatched adapter.",
+      "Several headline comparisons against closed-weight frontier models use previously published scores rather than matched executions.",
+      "Adapter-construction cost excludes initial and task-environment rollouts, host/storage/datacenter overhead and does not alone establish net economic savings.",
+      "The paper appendix and linked author implementation page give conflicting descriptions of whether GAIA reflection receives a reference answer; the exact evaluated prompt inputs and any effect on results are unresolved."
+    ],
+    "organizations": [
+      "Meta FAIR",
+      "Princeton University"
+    ],
+    "primary_desk": "agents_memory",
+    "recorded_at": "2026-10-26T21:11:48Z",
+    "regions": [
+      "United States"
+    ],
+    "relationships": [],
+    "source_languages": [
+      "en"
+    ],
+    "source_urls": [
+      "https://arxiv.org/abs/2610.31846",
+      "https://arxiv.org/list/cs.AI/new",
+      "https://self-direction.github.io/implementation.html"
+    ],
+    "status": "active",
+    "summary": "The Self-Direction preprint describes a loop that converts a verified agent failure into procedural examples and a task-specific LoRA adapter, then routes and reuses that adapter on related tasks while keeping base weights fixed. The authors report accuracy rising from 38.8% to 55.8% on 165 GAIA tasks, from 64.4% to 73.3% mean across three runs on 161 Claw-Eval tasks, and from 51.7% to 65.5% mean across three runs on 89 Terminal-Bench 2.1 tasks. These are paper-reported benchmark results; the method needs a verified failure signal and additional reflection/training resources, and the research desk has not reproduced them. The authors’ linked implementation page and the preprint differ on whether GAIA reflections received reference answers; the exact evaluated prompt inputs remain unresolved.",
+    "technical": {
+      "claimed_result": "The authors report GAIA (165 tasks) accuracy 38.8% initially versus 55.8% with Self-Direction (+17.0 percentage points; paired task-level t-test reported as p=3.50e-8). Across three independent runs, Claw-Eval (161 tasks) mean success is 64.4% versus 73.3% (+8.9 points), and Terminal-Bench 2.1 (89 tasks) is 51.7% versus 65.5% (+13.8 points). On four selected MiniWoB++ categories (100 tasks), the full loop scores 54% versus 42% on one base attempt and 55% for base pass@3. The paper reports a mean adapter-construction cost over 130 failures of 8.16 minutes and 30.4 Wh GPU energy on one H200, excluding the initial and task-environment rollouts.",
+      "compute_or_cost": "Adapter construction averages 8.16 minutes and 30.4 Wh of measured GPU energy per adapter across 130 failure instances on one NVIDIA H200. This includes reflection/data synthesis and adapter optimization but excludes host/storage/datacenter energy and initial/task rollouts. The method requires GPU time and storage beyond ordinary inference.",
+      "demonstrated_result": "The accessible arXiv preprint reports the method, benchmark protocols and numerical results. the research desk inspected the paper and its appendices but did not execute the code, independently reproduce the results or validate any production impact; result claims therefore remain CLAIMED.",
+      "mechanism": "After a benchmark verifier identifies failure, the same base model reflects on its trajectory and generates up to 24 procedural instruction-response examples. The authors use these examples to train a task-specific rank-16 LoRA adapter with SVD initialization; the base weights and earlier adapters remain frozen. A sentence-embedding router chooses a stored adapter for a later task, and a failed adapter retry falls back to a clean base-model retry.",
+      "novelty": "The paper combines verified-failure-triggered reflection, modular persistent LoRA lessons and task-embedding retrieval, and measures both immediate repair and later reuse across several agent benchmark types.",
+      "regime": "Author-reported evaluations with open-weight Qwen-family agents (primarily Qwen3.6-27B; additional Qwen3.8-27B and Qwen3.5-9B experiments), on GAIA validation, Claw-Eval, Terminal-Bench 2.1 and selected MiniWoB++ tasks. The paper says GAIA uses the generic reflection template and describes an information boundary; the authors’ linked implementation page says the verifier answer is available for GAIA and includes a gold-answer placeholder in its sample reflection prompt. These first-party descriptions conflict; the exact evaluated prompt inputs remain unresolved.",
+      "reproducibility": "The arXiv paper supplies methods, prompts, hyperparameters, tables and appendices; the linked project implementation page provides illustrative snippets explicitly described as not runnable source code. No independent reproduction or external evaluation was performed. The discrepancy between the paper and project page on GAIA reference-answer inputs must be reconciled before a faithful reproduction. A bounded search of the author-linked project page, arXiv metadata and indexed GitHub matches located no author-linked runnable repository; the implementation snippets are expressly illustrative. This is an availability result from that bounded search, not proof no artifact exists.",
+      "strongest_baseline": "The main matched comparator is the initial Qwen3.6-27B agent on the same benchmark tasks; GAIA also compares base resampling and reflection-in-context/Skills.md variants. Comparisons to closed-weight frontier systems use their published benchmark scores, not matched runs under the paper’s harness."
+    },
+    "title": "Self-Direction reports persistent LoRA adapters that improve agent task recovery across benchmark suites",
+    "topics": [
+      "agent learning",
+      "persistent memory",
+      "low-rank adaptation",
+      "tool use",
+      "inference efficiency"
+    ],
+    "why_it_matters": "Agent failures often recur across sessions even after an agent has corrected itself once. This paper tests whether small failure-derived adapters can retain procedural corrections and improve later task completion. If reproduced under matched cost and task-selection controls, the method could change how agent harnesses trade context memory, retries and persistent adaptation. The published evidence remains bounded to the reported benchmark setups and Qwen-family open-weight agents. The method’s evaluation boundary also needs clarification: the paper and its linked implementation page describe different GAIA reflection inputs, which could affect interpretation of the reported result."
+  },
+  "related": [],
+  "schema": "fcmo-public-brief-v1"
+}

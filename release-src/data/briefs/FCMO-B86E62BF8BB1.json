@@ -1,0 +1,130 @@
+{
+  "record": {
+    "id": "FCMO-B86E62BF8BB1",
+    "title": "NgramRL uses prior rollouts to accelerate structured RL post-training generation",
+    "desk": "Reasoning Posttraining",
+    "event_at": "2026-10-26T00:00:00Z",
+    "evidence": "A",
+    "confidence": "credible_unconfirmed",
+    "importance": 5,
+    "tier": "Notable",
+    "summary": "NgramRL proposes per-prompt CPU-side n-gram caches built from recent policy rollouts, with target-model verification and an adaptive fan-out prefetcher that prepares likely next drafts during GPU work. In author-reported experiments across Qwen3-8B and DeepSeek-LLM-7B on GSM8K, Spider and CodeContests, it commits 3.60–7.77 tokens per target forward in the final 30% of training, depending on model/task, versus 2.32–4.15 for SuffixDecoding. On Spider, prefetch improves rollout throughput over synchronous NgramRL by 1.38x for Qwen3-8B and 1.21x for DeepSeek-7B at budget N=16. These are paper-reported results, not independent replication or end-to-end training-cost measurements.",
+    "topics": [
+      "reinforcement-learning",
+      "post-training",
+      "speculative-decoding",
+      "rollout-generation",
+      "n-gram-caching",
+      "training-efficiency"
+    ],
+    "organizations": [
+      "University of California San Diego",
+      "West Virginia University"
+    ],
+    "human_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-B86E62BF8BB1.html",
+    "machine_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/data/briefs/FCMO-B86E62BF8BB1.json",
+    "citation": {
+      "id": "FCMO-B86E62BF8BB1",
+      "source": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-B86E62BF8BB1.html"
+    }
+  },
+  "brief": {
+    "claims": [
+      {
+        "label": "CLAIMED",
+        "text": "Across Qwen3-8B and DeepSeek-LLM-7B on GSM8K, Spider and CodeContests, the paper reports 3.60–7.77 committed tokens per target forward in the final 30% of training; corresponding SuffixDecoding figures are 2.32–4.15."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "On Spider at prefetch candidate budget N=16, the authors report throughput of 1.38x synchronous NgramRL for Qwen3-8B and 1.21x for DeepSeek-7B; higher-entropy workloads gain 1.05–1.06x."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "The paper's proposed acceptance verification preserves the target policy's output distribution; the research desk did not independently inspect an implementation or validate this property."
+      }
+    ],
+    "confidence": "credible_unconfirmed",
+    "contradictory_evidence": [],
+    "desks": [
+      "reasoning_posttraining",
+      "inference_systems",
+      "efficiency"
+    ],
+    "development_type": "paper",
+    "editions": [
+      "2026-10-26"
+    ],
+    "event_at": "2026-10-26T00:00:00Z",
+    "evidence_class": "A",
+    "evidence_gaps": [
+      {
+        "description": "No independent reproduction, public implementation check, or run-level timing audit was completed. All empirical values remain paper-reported.",
+        "kind": "missing_independent",
+        "state": "open",
+        "updated_at": "2026-10-26T17:19:00Z"
+      },
+      {
+        "description": "The paper does not establish realized end-to-end training time/cost savings, training quality effects, broad hardware transfer or production behavior under different prompt-reuse and concurrency regimes.",
+        "kind": "other",
+        "state": "open",
+        "updated_at": "2026-10-26T17:19:00Z"
+      }
+    ],
+    "id": "FCMO-B86E62BF8BB1",
+    "importance_effective_score": 5,
+    "importance_rationale": "If reproduced beyond the reported setup, a method that raises tokens accepted per target forward and overlaps host work could reduce an important RL post-training bottleneck across systems teams. The measured full wall-clock benefit is bounded and task-dependent, so the consequence is notable rather than major.",
+    "importance_scale_version": 2,
+    "importance_score": 5,
+    "importance_tier": "Notable",
+    "last_verified_at": "2026-10-26T17:19:00Z",
+    "limitations": [
+      "This is a single author-reported preprint; the research desk did not independently reproduce results or inspect source code.",
+      "Accepted tokens per target forward are a decoding proxy, not an end-to-end training throughput, wall-clock or economic result.",
+      "The 1.38x/1.21x wall-clock results are Spider-specific comparisons against synchronous NgramRL; reported higher-entropy task gains are 1.05–1.06x.",
+      "Acceptance results emphasize the final 30% warm-cache regime; the paper reports cold-start and policy-drift effects, including declining Spider acceptance later in training.",
+      "Timing is reported on one RTX PRO 6000 96GB and Ryzen Threadripper 9970X host profile; broader hardware, batch and concurrency behavior is unestablished."
+    ],
+    "organizations": [
+      "University of California San Diego",
+      "West Virginia University"
+    ],
+    "primary_desk": "reasoning_posttraining",
+    "recorded_at": "2026-10-26T17:19:00Z",
+    "regions": [
+      "global"
+    ],
+    "relationships": [],
+    "source_languages": [
+      "en"
+    ],
+    "source_urls": [
+      "https://arxiv.org/html/2610.32881v1",
+      "https://arxiv.org/list/cs.AI/new"
+    ],
+    "status": "active",
+    "summary": "NgramRL proposes per-prompt CPU-side n-gram caches built from recent policy rollouts, with target-model verification and an adaptive fan-out prefetcher that prepares likely next drafts during GPU work. In author-reported experiments across Qwen3-8B and DeepSeek-LLM-7B on GSM8K, Spider and CodeContests, it commits 3.60–7.77 tokens per target forward in the final 30% of training, depending on model/task, versus 2.32–4.15 for SuffixDecoding. On Spider, prefetch improves rollout throughput over synchronous NgramRL by 1.38x for Qwen3-8B and 1.21x for DeepSeek-7B at budget N=16. These are paper-reported results, not independent replication or end-to-end training-cost measurements.",
+    "technical": {
+      "claimed_result": "The authors report final-30%-of-training acceptance of 3.60–7.77 tokens per target-model forward across two models and three workloads, compared with 2.32–4.15 for SuffixDecoding in the corresponding settings. At N=16 on Spider, asynchronous prefetch reaches 1.38x synchronous NgramRL throughput for Qwen3-8B and 1.21x for DeepSeek-7B. Higher-entropy task speedups are 1.05–1.06x.",
+      "compute_or_cost": "The authors report GPUs and host hardware but no cloud prices, energy use, full-training wall-clock comparison or realized cost reduction.",
+      "demonstrated_result": "No result was independently reproduced by the research desk. The source paper reports the measurements below.",
+      "implementation_status": "Paper describes integration into verl's vLLM rollout worker. No public code artifact or running implementation was located or inspected in this activation.",
+      "mechanism": "Maintain bounded per-prompt n-gram tables from recent rollouts, propose draft continuations, verify them against the target policy, and prefetch likely next drafts by candidate (accepted-length, bonus-token) outcomes while the target model runs.",
+      "novelty": "Uses a bounded history of the target policy's own same-prompt rollouts as a self-updating drafter during RL, and a causal outcome fan-out prefetcher to overlap host lookup/scheduling with target-model verification.",
+      "regime": "Paper experiments use GRPO with five completions for each of 64 prompts per step over 15 epochs, two NVIDIA A100 80GB GPUs for training, and Qwen3-8B and DeepSeek-LLM-7B on GSM8K, Spider 1.0 and CodeContests. Timing profile for throughput is Qwen3-8B bf16, batch 64, k=16 on one RTX PRO 6000 96GB with a 32-core Ryzen Threadripper 9970X host. Acceptance figures emphasize the final 30% warm-cache regime; prefetch throughput is reported at N=16.",
+      "reproducibility": "The preprint provides model, dataset, baseline, batch, hardware and profiling descriptions. the research desk inspected the full HTML sections but did not locate or run code, reproduce timings, inspect run logs or independently validate target-distribution equivalence. The headline 1.38x result is measured only for Spider and compares prefetch with synchronous NgramRL; higher-entropy gains are smaller.",
+      "strongest_baseline": "Matched-budget SuffixDecoding for accepted tokens per target forward; synchronous NgramRL on the same model/task setup for prefetch throughput."
+    },
+    "title": "NgramRL uses prior rollouts to accelerate structured RL post-training generation",
+    "topics": [
+      "reinforcement-learning",
+      "post-training",
+      "speculative-decoding",
+      "rollout-generation",
+      "n-gram-caching",
+      "training-efficiency"
+    ],
+    "why_it_matters": "RL post-training rollout generation can consume much of training time. If the reported mechanism generalizes, reusing prompt-conditioned history and hiding host scheduling could improve an important training-efficiency bottleneck without a separate draft model. The observed gains vary by task and are strongest on Spider; their value depends on repeated prompts, cache warm-up and hardware/host timing."
+  },
+  "related": [],
+  "schema": "fcmo-public-brief-v1"
+}
