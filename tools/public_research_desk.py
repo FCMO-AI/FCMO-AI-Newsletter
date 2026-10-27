@@ -11,6 +11,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import html
+import http.client
 import json
 import re
 import urllib.error
@@ -63,7 +64,9 @@ def fetch_source(url: str) -> dict[str, Any]:
             }
     except urllib.error.HTTPError as exc:
         return {"url": url, "status": exc.code, "reachable": False, "error": "HTTPError"}
-    except (urllib.error.URLError, TimeoutError, OSError, ValueError) as exc:
+    except (urllib.error.URLError, http.client.HTTPException, TimeoutError, OSError, ValueError) as exc:
+        # http.client.IncompleteRead (a truncated chunked body) is an HTTPException,
+        # not an OSError: one flaky public source must not abort the whole refresh.
         return {"url": url, "reachable": False, "error": type(exc).__name__}
 
 
