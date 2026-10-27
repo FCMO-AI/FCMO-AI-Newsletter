@@ -103,10 +103,9 @@ def collect(connection, now: datetime) -> list[dict]:
     events: list[dict] = []
     for row in connection.execute("SELECT id, slug, author, reviewer, at FROM reviews WHERE state='requested' ORDER BY at, id"):
         title = piece_title(connection, row['slug'])
-        requester = NAMES.get(row['author'], 'La otra persona')
-        if row['reviewer'] in PERSONAS:
-            events.append(event(f"review:{row['id']}", row['reviewer'],
-                                f"Studio: {requester} pidió tu revisión de «{title}». Revísala en Studio.",
+        if row['author'] in PERSONAS:
+            events.append(event(f"review:{row['id']}", row['author'],
+                                f"Studio: «{title}» está pendiente de publicación. Abre Studio y pulsa Publicar para continuar.",
                                 parse_at(row['at'])))
     for row in connection.execute('SELECT id, slug, state, payload_json FROM publications ORDER BY id'):
         try:

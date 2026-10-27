@@ -136,7 +136,7 @@ class Store:
                      'authors': [{'key': user, 'name': NAMES[user]}], 'brand': 'fcmo' if user == 'javier' else 'fcmo-ai',
                      'source_locale': source_locale, 'status': 'published', 'first_published_at': stamp, 'updated_at': stamp,
                      'locales': {loc: 'pending' for loc in LOCALES}, 'hero': None, 'tags': [], 'corrections': [], 'withdrawal': None,
-                     'distribution': {'email': kind in ('essay', 'letter') and email_enabled()}}
+                     'distribution': {'email': False}}
             doc = {'schema': 'fcmo-essay-doc-v1', 'locale': source_locale, 'title': title, 'dek': '', 'blocks': [], 'footnotes': {}}
             payload = {'piece': piece, 'docs': {source_locale: doc}, 'sources': [], 'figures': {}, 'provenance': {}, 'block_provenance': {}, 'source_hashes': {}}
             states = {loc: {'state': 'drafting' if loc == source_locale else 'empty', 'human_reviewed': False} for loc in LOCALES}
@@ -178,7 +178,7 @@ class Store:
                     'source_changed': [key for key, digest in saved.items() if hashes.get(key) != digest]}
     def _editable(self, value):
         if self._row(value)['state'] not in ('draft', 'changes_requested', 'amending'):
-            raise ValueError('Pide cambios antes de modificar una publicación en revisión.')
+            raise ValueError('El texto está seleccionado para publicar; espera a que termine antes de modificarlo.')
     def _lock_guard(self, value, loc, user):
         row = self.db.execute('SELECT * FROM locks WHERE slug=? AND locale=?', (value, loc)).fetchone()
         if row and row['user'] != user and self.clock() - row['at'] < 600: raise Locked(row['user'])

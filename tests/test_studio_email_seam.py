@@ -37,11 +37,12 @@ class StudioEmailSeamTests(unittest.TestCase):
             slug = store.create('javier', 'essay', SOURCE['title'], 'es-419')['slug']
             store.save(slug, 'es-419', 'javier', 0, SOURCE, {})
             store.resource(slug, 'sources', 'javier', [{'key':'src-one', 'title':'Fuente', 'author':'Javier', 'publisher':'FCMO', 'date':'2026-10-05', 'url':'https://example.org/ref', 'accessed':'2026-10-05'}])
+            store.distribution(slug, 'javier', store.piece(slug)['head_rev'], True)  # Explicit test-only email opt-in.
             translate(store, slug, 'javier', store.piece(slug)['head_rev'], FakeProvider())
             store.locale_state(slug, 'es-419', 'javier', 'ready', True)
             gh = GitHub({'javier':'synthetic-key', 'matias':'synthetic-other'})
             publisher = Publisher(store, gh, None, lambda value: checks(store, SimpleNamespace(privacy=lambda _:True), value))
-            publisher.request(slug, 'javier'); approved = publisher.approve(slug, 'matias')
+            publisher.request(slug, 'javier'); approved = publisher.approve(slug, 'javier')
             self.assertEqual(approved['payload']['distribution'], {'email':True})
             # Publication approval must not invent a human Chinese-language review.
             self.assertTrue(store.payload(slug)['provenance']['es-419']['human_reviewed'])
@@ -85,7 +86,7 @@ class StudioEmailSeamTests(unittest.TestCase):
                 persisted,_ = state_store.read()
                 self.assertIn(key,persisted['keys'])
                 row = edition.piece['provenance'][locale]
-                self.assertEqual(row['reviewer'], 'Matías' if locale == 'es-419' else '')
+                self.assertEqual(row['reviewer'], 'Javier' if locale == 'es-419' else '')
                 if locale != 'es-419': self.assertEqual(row['review_state'], 'MACHINE_REVIEWED')
                 return original_send(edition,locale,key)
             provider.send_edition = send

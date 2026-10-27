@@ -118,7 +118,7 @@ class BareRemote(integration.StudioIntegration):
         status, html, _ = self.request('GET', '/preview/' + slug + '/en/', user='javier')
         self.assertEqual(status, 200); self.assertIn(b'42', html)
         self.assertEqual(self.request('POST', base + '/review/request', {}, 'javier')[0], 200)
-        self.assertEqual(self.request('POST', base + '/review/approve', {}, 'matias')[0], 200)
+        self.assertEqual(self.request('POST', base + '/review/approve', {}, 'javier')[0], 200)
         self.mock.live_id = self.store.payload(slug)['piece']['id']
         for _ in range(14):
             self.app.tick(); publication = self.app.publisher.get(slug)
@@ -152,7 +152,7 @@ class BareRemote(integration.StudioIntegration):
         self.assertTrue(all(c['ok'] for c in issue_checks), issue_checks)
         status, result, _ = self.request('POST', '/api/issues/' + issue['id'] + '/review/request', {}, 'matias')
         self.assertEqual(status, 200, result)
-        self.assertEqual(self.request('POST', '/api/issues/' + issue['id'] + '/review/approve', {}, 'javier')[0], 200)
+        self.assertEqual(self.request('POST', '/api/issues/' + issue['id'] + '/review/approve', {}, 'matias')[0], 200)
         self.mock.live_id = issue['id']
         for _ in range(14):
             self.app.tick(); publication = self.app.publisher.get(issue['id'])
@@ -199,7 +199,7 @@ class CredentialsAndBase(unittest.TestCase):
                 store.save(slug, 'en', 'javier', 0, DOC, {})
                 app.publisher.checker = lambda value: [{'ok': True}]
                 app.publisher.request(slug, 'javier')
-                session = {'user': 'matias'}
+                session = {'user': 'javier'}
                 result = app.api('POST', '/api/pieces/' + slug + '/review/approve', {}, {}, session)
                 self.assertEqual(result['state'], 'approved')
                 app.publisher.advance = Mock()
