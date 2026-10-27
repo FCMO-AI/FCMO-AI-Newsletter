@@ -69,11 +69,11 @@ class NotifyTests(unittest.TestCase):
     def setUp(self):
         self.fx = Fixture(self)
 
-    def run_once(self, enviar=True):
+    def run_once(self, enviar=True, now=NOW):
         if enviar and not self.fx.ledger.exists():
             # Simulates a ledger that was seeded before these events existed (see --sembrar tests below).
             notify.save_ledger(self.fx.ledger, set())
-        return notify.run(self.fx.data, self.fx.mensajeria, self.fx.ledger, enviar, now=NOW)
+        return notify.run(self.fx.data, self.fx.mensajeria, self.fx.ledger, enviar, now=now)
 
     def test_legacy_request_goes_once_to_author_without_waiting_for_reviewer(self):
         self.fx.piece('ensayo-uno', 'Ensayo uno')
@@ -107,16 +107,18 @@ class NotifyTests(unittest.TestCase):
         self.assertNotIn('insecure', entries[0]['texto'])
         self.assertNotIn('javascript', entries[0]['texto'])
 
-    def test_stuck_publication_over_two_hours_alerts_matias_once(self):
+    def test_stuck_publication_over_two_hours_appears_once_in_summary_not_telegram(self):
         self.fx.piece('ensayo-tres', 'Ensayo tres')
         stale = {'title': 'Ensayo tres', 'author': 'javier', 'timeline': [{'state': 'approved', 'at': iso(timedelta(hours=3))}]}
         self.fx.publication('pub-stuck', 'ensayo-tres', 'pushed', stale)
         self.fx.commit()
-        self.run_once()
-        self.run_once()
+        first = self.run_once()
+        second = self.run_once()
         entries = self.fx.entries()
-        self.assertEqual([e['para'] for e in entries], ['matias'])
-        self.assertIn('más de 2 h', entries[0]['texto'])
+        self.assertEqual(entries, [])
+        self.assertEqual(len(first['resumen_incidentes']), 1)
+        self.assertIn('más de 2 h', first['resumen_incidentes'][0]['texto'])
+        self.assertEqual(second['resumen_incidentes'], [])
 
     def test_recent_publication_is_not_stuck(self):
         self.fx.piece('ensayo-cuatro', 'Ensayo cuatro')
@@ -135,14 +137,31 @@ class NotifyTests(unittest.TestCase):
         self.fx.commit()
         self.assertEqual(self.run_once()['eventos'], 0)
 
-    def test_uncertain_publication_alerts_matias(self):
+    def test_unknown_publication_waits_thirty_minutes_then_summarizes_once_and_resolves(self):
         self.fx.piece('ensayo-seis', 'Ensayo seis')
-        self.fx.publication('pub-unc', 'ensayo-seis', 'deployed_unverified', {'title': 'Ensayo seis', 'author': 'javier', 'unknown': True})
+        started = NOW - timedelta(minutes=29)
+        self.fx.publication('pub-unc', 'ensayo-seis', 'deployed_unverified', {
+            'title': 'Ensayo seis', 'author': 'javier', 'unknown': True,
+            'timeline': [{'state': 'deployed_unverified', 'at': started.isoformat()}]})
         self.fx.commit()
-        self.run_once()
-        entries = self.fx.entries()
-        self.assertEqual([e['para'] for e in entries], ['matias'])
-        self.assertIn('quedó incierta', entries[0]['texto'])
+        self.assertEqual(self.run_once()['resumen_incidentes'], [])
+        after = self.run_once(now=NOW + timedelta(minutes=2))
+        self.assertEqual(len(after['resumen_incidentes']), 1)
+        self.assertIn('sigue incierta', after['resumen_incidentes'][0]['texto'])
+        self.assertEqual(self.fx.entries(), [])
+        self.assertEqual(self.run_once(now=NOW + timedelta(minutes=3))['resumen_incidentes'], [])
+        db = sqlite3.connect(self.fx.data / 'studio.sqlite')
+        db.execute("UPDATE publications SET error_plain='Cambió la causa' WHERE id='pub-unc'")
+        db.commit(); db.close()
+        changed = self.run_once(now=NOW + timedelta(minutes=3, seconds=1))['resumen_incidentes']
+        self.assertEqual([item['estado'] for item in changed], ['resuelto', 'activo'])
+        db = sqlite3.connect(self.fx.data / 'studio.sqlite')
+        db.execute("UPDATE publications SET state='published', payload_json=? WHERE id='pub-unc'",
+                   (json.dumps({'title': 'Ensayo seis', 'author': 'javier', 'timeline': []}),))
+        db.commit(); db.close()
+        resolved = self.run_once(now=NOW + timedelta(minutes=4))['resumen_incidentes']
+        self.assertEqual(len(resolved), 1)
+        self.assertEqual(resolved[0]['estado'], 'resuelto')
 
     def test_dry_run_writes_nothing_and_names_what_it_would_queue(self):
         self.fx.piece('ensayo-siete', 'Ensayo siete')
@@ -243,7 +262,7 @@ class NotifyTests(unittest.TestCase):
     def test_sembrar_marks_history_without_sending_and_only_new_events_go_out(self):
         self.history()
         seeded = notify.run(self.fx.data, self.fx.mensajeria, self.fx.ledger, False, now=NOW, sembrar=True)
-        self.assertEqual(seeded['sembrados'], 3)
+        self.assertEqual(seeded['sembrados'], 2)
         self.assertEqual(seeded['encolados'], 0)
         self.assertEqual(self.fx.queued(), [])
         self.assertEqual(self.run_once()['encolados'], 0)
@@ -296,7 +315,7 @@ class NotifyTests(unittest.TestCase):
         self.history()
         self.corrupt_ledger('{garbage')
         seeded = notify.run(self.fx.data, self.fx.mensajeria, self.fx.ledger, False, now=NOW, sembrar=True)
-        self.assertEqual(seeded['sembrados'], 3)
+        self.assertEqual(seeded['sembrados'], 2)
         self.assertEqual(self.fx.queued(), [])
         self.assertEqual(self.run_once()['encolados'], 0)
         self.assertEqual(self.fx.queued(), [])

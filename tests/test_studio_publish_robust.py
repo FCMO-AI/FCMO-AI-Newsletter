@@ -221,14 +221,22 @@ class Robust(RobustBase):
         self.assertEqual(self.mock.count('POST', '/pulls'), 1)
         self.assertNotIn('failed', [t['state'] for t in pub['payload']['timeline']])
 
-    def test_infra_exhausted_halts_but_keeps_approval(self):
+    def test_infra_exhausted_escalates_and_keeps_hourly_retry(self):
         self.mock.check = 'cancelled'; self.approved(); self.tick_until('pr_open')
-        for _ in range(8):
-            self.publisher.advance(self.slug); self.now += 600
+        for _ in range(4):
+            self.publisher.advance(self.slug)
+            if self.pub()['state'] != 'escalado':
+                self.now = self.pub()['payload']['retry_after'] + 1
         pub = self.pub()
-        self.assertEqual(pub['state'], 'pr_open'); self.assertTrue(pub['payload']['halted'])
+        self.assertEqual(pub['state'], 'escalado'); self.assertFalse(pub['payload'].get('halted'))
+        self.assertEqual(pub['payload']['resume_state'], 'pr_open')
+        self.assertEqual(pub['payload']['retry_after'] - self.now, 3600)
         self.assertEqual(self.store.piece(self.slug)['state'], 'publishing')
-        self.assertIn('no por el texto', pub['error_plain'])
+        self.assertIn('cancelaron', pub['error_plain'])
+        self.mock.check = 'success'; self.now = pub['payload']['retry_after']
+        self.publisher.advance(self.slug)
+        self.assertEqual(self.pub()['payload'].get('infra_retries', 0), 0)
+        self.run_to('published')
 
     def test_gate_slow_beyond_budget_is_infrastructure(self):
         self.mock.check = 'pending'; self.approved(); self.tick_until('pr_open')
@@ -341,13 +349,15 @@ class StrictAndInfra(RobustBase):
         self.assertNotEqual(self.store.piece(self.slug)['state'], 'changes_requested')
         pub = self.run_to('published'); self.check_clean(pub)
 
-    def test_lazy_unknown_forever_halts_visibly_never_fails(self):
+    def test_lazy_unknown_forever_escalates_visibly_and_keeps_retrying(self):
         self.mock.enforce_strict = True
         self.approved(); self.tick_until('checks_green'); self.move_main(); self.mock.lazy_reads = 10 ** 6
         for _ in range(12):
             self.publisher.advance(self.slug); self.now += 600
         pub = self.pub()
-        self.assertEqual(pub['state'], 'checks_green'); self.assertTrue(pub['payload']['halted'])
+        self.assertEqual(pub['state'], 'escalado'); self.assertFalse(pub['payload'].get('halted'))
+        self.assertEqual(pub['payload']['resume_state'], 'checks_green')
+        self.assertGreater(pub['payload']['retry_after'], self.now)
         self.assertEqual(self.store.piece(self.slug)['state'], 'publishing'); self.check_clean(pub)
 
     def test_merge_refused_but_already_merged_moves_to_merged(self):
@@ -361,7 +371,7 @@ class StrictAndInfra(RobustBase):
         pub = self.pub(); self.assertEqual(pub['state'], 'merged'); self.assertEqual(pub['payload']['merge_sha'], 'e' * 40)
         pub = self.run_to('published'); self.check_clean(pub)
 
-    def test_replay_that_keeps_raising_unknown_effect_backs_off_then_halts(self):
+    def test_replay_that_keeps_raising_unknown_effect_escalates_then_retries_hourly(self):
         self.approved(); self.tick_until('checks_green')
         self.move_main(); self.mock.conflict_once = True; self.mock.repush_fault = 'always'
         self.publisher.advance(self.slug); first = self.pub()['payload']['infra_retries']
@@ -371,8 +381,10 @@ class StrictAndInfra(RobustBase):
         for _ in range(8):
             self.now += 600; self.publisher.advance(self.slug)
         pub = self.pub()
-        self.assertTrue(pub['payload']['halted']); self.assertNotEqual(pub['state'], 'failed')
-        self.assertEqual(self.store.piece(self.slug)['state'], 'publishing'); self.assertIn('no por el texto', pub['error_plain'])
+        self.assertEqual(pub['state'], 'escalado'); self.assertFalse(pub['payload'].get('halted'))
+        self.assertEqual(pub['payload']['resume_state'], 'checks_green')
+        self.assertGreater(pub['payload']['retry_after'], self.now)
+        self.assertEqual(self.store.piece(self.slug)['state'], 'publishing')
 
     def lost_pr(self, lost):
         real = self.github.open_pr; calls = {'n': 0}

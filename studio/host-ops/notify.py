@@ -31,6 +31,7 @@ from pathlib import Path
 from urllib.parse import urlsplit
 
 STUCK_AFTER = timedelta(hours=2)
+UNKNOWN_AFTER = timedelta(minutes=30)
 TERMINAL = frozenset({'published', 'failed', 'withdrawn'})
 PERSONAS = ('javier', 'matias')
 NAMES = {'javier': 'Javier', 'matias': 'Matías'}
@@ -121,19 +122,34 @@ def collect(connection, now: datetime) -> list[dict]:
             events.append(event(f"published:{row['id']}", author, f'Studio: «{title}» ya está publicado.{suffix}',
                                 last_at(data)))
             continue
-        if state == 'uncertain' or data.get('unknown'):
-            events.append(event(f"uncertain:{row['id']}", 'matias',
-                                f'Studio: la publicación de «{title}» quedó incierta; no se confirma si llegó al sitio. Revisa Studio.',
-                                last_at(data)))
-            continue
         if state in TERMINAL:
             continue
-        last = last_at(data)
-        if last is not None and now - last > STUCK_AFTER:
-            events.append(event(f"stuck:{row['id']}", 'matias',
-                                f'Studio: la publicación de «{title}» lleva más de 2 h en «{plain(state, 40)}». Revisa Studio.',
-                                last))
     return events
+
+
+def collect_incidents(connection, now: datetime) -> list[dict]:
+    """Return persistent technical issues for the local incident summary, never the Telegram outbox."""
+    incidents = []
+    for row in connection.execute('SELECT id, slug, state, error_plain, payload_json FROM publications ORDER BY id'):
+        try:
+            data = json.loads(row['payload_json'] or '{}')
+        except ValueError:
+            data = {}
+        state = row['state']; last = last_at(data)
+        unknown = state == 'uncertain' or bool(data.get('unknown'))
+        unknown_started = parse_at(data.get('unknown_since')) or last
+        if unknown and unknown_started is not None and now - unknown_started > UNKNOWN_AFTER:
+            reason = plain(row['error_plain'] or data.get('halt_reason') or state, 200)
+            message = f"Studio: la publicación de «{plain(data.get('title') or row['slug'], TITLE_MAX)}» sigue incierta; no se confirma si llegó al sitio. {reason}"
+        elif state not in TERMINAL and last is not None and now - last > STUCK_AFTER:
+            reason = plain(row['error_plain'] or '', 200)
+            message = f"Studio: la publicación de «{plain(data.get('title') or row['slug'], TITLE_MAX)}» lleva más de 2 h en «{plain(state, 40)}». {reason}".strip()
+        else:
+            continue
+        key = f"publication:{row['id']}"
+        fingerprint = hashlib.sha256(f"{state}\0{data.get('halt_reason', '')}\0{reason}".encode()).hexdigest()[:32]
+        incidents.append({'key': key, 'fingerprint': fingerprint, 'texto': plain(message, 500), 'at': last})
+    return incidents
 
 
 def last_at(data: dict) -> datetime | None:
@@ -152,33 +168,35 @@ class LedgerCorrupt(Exception):
     pass
 
 
-def load_ledger(path: Path) -> tuple[set[str], list[int]]:
-    """Returns (ids already notified, unix times of notices queued). A missing file is an empty ledger.
+def load_ledger(path: Path) -> tuple[set[str], list[int], dict[str, str]]:
+    """Returns sent ids, recent queue times and active incident fingerprints. A missing file is empty.
     A file that is not the expected JSON is LedgerCorrupt: never read it as an empty set, that floods."""
     try:
         raw = path.read_text()
     except FileNotFoundError:
-        return set(), []
+        return set(), [], {}
     try:
         data = json.loads(raw)
     except ValueError as error:
         raise LedgerCorrupt(f'JSON inválido ({type(error).__name__})') from error
     if not isinstance(data, dict):
         raise LedgerCorrupt('forma inesperada')
-    sent, recent = data.get('sent'), data.get('recent', [])
+    sent, recent, incidents = data.get('sent'), data.get('recent', []), data.get('incidents', {})
     if not isinstance(sent, list) or not all(isinstance(item, str) for item in sent):
         raise LedgerCorrupt('forma inesperada')
     if not isinstance(recent, list) or not all(type(item) is int for item in recent):
         raise LedgerCorrupt('forma inesperada')
-    return set(sent), list(recent)
+    if not isinstance(incidents, dict) or not all(isinstance(k, str) and isinstance(v, str) for k, v in incidents.items()):
+        raise LedgerCorrupt('forma inesperada')
+    return set(sent), list(recent), dict(incidents)
 
 
-def save_ledger(path: Path, sent: set[str], recent: list[int] | tuple = ()) -> None:
+def save_ledger(path: Path, sent: set[str], recent: list[int] | tuple = (), incidents: dict[str, str] | None = None) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp = path.parent / (path.name + '.tmp')
     fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
     with os.fdopen(fd, 'w') as handle:
-        json.dump({'sent': sorted(sent), 'recent': sorted(recent)}, handle)
+        json.dump({'sent': sorted(sent), 'recent': sorted(recent), 'incidents': incidents or {}}, handle)
     os.replace(tmp, path)
 
 
@@ -221,20 +239,30 @@ def run(data_dir: Path, mensajeria: Path, ledger: Path, enviar: bool, now: datet
     connection = open_readonly(db_path)
     try:
         events = order_oldest_first(collect(connection, now))
+        active_incidents = {item['key']: item for item in collect_incidents(connection, now)}
     finally:
         connection.close()
     now_s = int(now.timestamp())
     try:
-        sent, recent = load_ledger(ledger)
+        sent, recent, prior_incidents = load_ledger(ledger)
     except LedgerCorrupt as error:
         if not sembrar:
             raise SystemExit(f'notify: el ledger {ledger} está corrupto ({error}); no se envía ni se muestra nada. '
                              'Re-siémbralo con --sembrar (marca el historial como avisado, sin enviar).')
-        sent, recent = set(), []
+        sent, recent, prior_incidents = set(), [], {}
     recent = [t for t in recent if now_s - t < HOUR_S]
+    incident_summary = []
+    current_incidents = {key: item['fingerprint'] for key, item in active_incidents.items()}
+    for key, old_fingerprint in prior_incidents.items():
+        if current_incidents.get(key) != old_fingerprint:
+            incident_summary.append({'estado': 'resuelto', 'huella': old_fingerprint, 'texto': f'Studio: se resolvió el problema de publicación {key.removeprefix("publication:")}.'})
+    for key, item in active_incidents.items():
+        if prior_incidents.get(key) != item['fingerprint']:
+            incident_summary.append({'estado': 'activo', 'huella': item['fingerprint'], 'texto': item['texto']})
     report = {'eventos': len(events), 'encolados': 0, 'ya_enviados': 0, 'sembrados': 0, 'diferidos': 0,
               'enviar': enviar, 'limite': {'por_corrida': PER_RUN_CAP, 'por_hora': HOURLY_LIMIT,
-                                           'usadas_ultima_hora': len(recent)}, 'detalle': []}
+                                           'usadas_ultima_hora': len(recent)}, 'detalle': [],
+              'resumen_incidentes': incident_summary}
     if sembrar:
         for item in events:
             if item['id'] not in sent:
@@ -242,7 +270,7 @@ def run(data_dir: Path, mensajeria: Path, ledger: Path, enviar: bool, now: datet
                 report['sembrados'] += 1
             else:
                 report['ya_enviados'] += 1
-        save_ledger(ledger, sent, recent)
+        save_ledger(ledger, sent, recent, current_incidents)
         return report
     budget = min(PER_RUN_CAP, max(0, HOURLY_LIMIT - len(recent)))
     for item in events:
@@ -266,7 +294,7 @@ def run(data_dir: Path, mensajeria: Path, ledger: Path, enviar: bool, now: datet
             budget -= 1
         report['detalle'].append({**text, 'accion': state})
     if enviar:
-        save_ledger(ledger, sent, recent)
+        save_ledger(ledger, sent, recent, current_incidents)
         report['limite']['usadas_ultima_hora'] = len(recent)
     return report
 
@@ -297,6 +325,8 @@ def main(argv: list[str] | None = None) -> int:
             print(f"avisos (dry run): {report['eventos']} evento(s), {len(report['detalle'])} por encolar, {report['ya_enviados']} ya enviado(s)")
         for line in report['detalle']:
             print(f"  → {line['para']}: {line['texto']}")
+        for line in report['resumen_incidentes']:
+            print(f"  resumen de incidentes ({line['estado']}): {line['texto']}")
     return 0
 
 
