@@ -524,3 +524,27 @@ carril. Reejecutar `python3 -m unittest discover -s tests -p 'test_studio_*.py'`
 - Ejecutar el refresh y verificar edición/frescura en producción después de la
   integración. Este carril sólo reconstruye y verifica un candidato local,
   sin red, push, despliegue ni inspección del sitio vivo.
+
+# hero-titular-largo-20261027
+
+UNVERIFIED: falta Playwright en este sandbox. Tanto el intento previo como el
+posterior de `tests/oraculos/verificar_paper.py` terminaron con
+`BROWSER_UNAVAILABLE`, antes de medir el layout. No se afirma que el titular ya
+ocupe cuatro líneas, que móvil esté verificado ni que el Deploy esté reparado.
+
+Continuación fuera del sandbox, con el navegador del workflow disponible:
+
+```sh
+python3 tools/paper/build.py --stories site/data/stories.v2.json --status site/data/newsroom-status.json --editorial editorial --out publish --base /FCMO-AI-Newsletter/
+python3 tests/oraculos/verificar_paper.py publish
+```
+
+Conservar los presupuestos originales: máximo cuatro líneas a 1440 px y altura
+del titular no mayor al 45 % de 844 px a 390 px. Revisar visualmente ambas medidas
+antes de promover el cambio. La clasificación usa el tamaño `title-large` ya
+existente; la prueba sin navegador no demuestra los píxeles finales.
+
+El árbol actual tiene 736 historias (731 live) y abre con la ficha de OpenAI,
+distinta de las tres historias capturadas en el brief. Las regresiones conservan
+los textos exactos del incidente y el titular mixto CJK/latino actual. No se
+modificaron datos, oráculos ni sus presupuestos.

@@ -229,9 +229,11 @@ class PaperBuilder:
             return "title-extra-compact"
         if width > 58:
             return "title-compact"
-        # The landing hero is a ~694px column at 66px (title-medium), not the 1040px story header the cutoffs above
-        # were calibrated on: an 84-character Spanish lead (43 units) wrapped to five lines there. Hence the earlier step.
-        if width > (38 if hero else 46):
+        # The landing hero has a ~694px column, narrower than the story header.
+        # The reported 62-65-character leads (~32-34 units) still used 66px
+        # display type. Step down earlier to the existing title-large scale;
+        # keep the full title and leave the wider story-header cutoffs intact.
+        if width > (30 if hero else 46):
             return "title-large"
         if width > 34:
             return "title-medium"
