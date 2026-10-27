@@ -4,6 +4,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import crypto from 'node:crypto'
+import { publicationBundle } from './offline/publication-compiler.mjs'
 
 const hash = bytes => crypto.createHash('sha256').update(bytes).digest('hex')
 export function loginSource (source) {
@@ -73,7 +74,7 @@ export function offlineBundle (root) {
   const previous = loginSource(read('offline/screens-home.seed.js').toString())
   if (current.rest !== previous.rest) throw Error('Cambió código fuera del acceso; reconstruye con esbuild.')
   for (const [name, digest] of Object.entries(manifest.sources)) {
-    if (name === 'src/screens-home.js' || name === 'src/app.css') continue
+    if (['src/screens-home.js', 'src/app.css', 'src/screens-flow.js', 'src/publication-actions.js', 'src/i18n.js'].includes(name)) continue
     if (hash(read(name)) !== digest) throw Error(`La compilación offline no admite cambios en ${name}; usa esbuild.`)
   }
   const actual = fs.readdirSync(path.join(root, 'src')).filter(n => n.endsWith('.js')).sort()
@@ -86,10 +87,12 @@ export function offlineBundle (root) {
   const bindings = discoverLoginBindings(code)
   // The discovered names are validated against this seed's content hash above.
   // No eval, runtime imports, network, new dependencies or minification here.
+  const publicationChanged = ['src/screens-flow.js', 'src/publication-actions.js', 'src/i18n.js'].some(name => hash(read(name)) !== manifest.sources[name])
+  const publication = publicationChanged ? publicationBundle(root, seed) : ''
   const replacement = `\n{\nconst h = ${bindings.h}, t = ${bindings.t}, post = ${bindings.post}, ApiError = ${bindings.ApiError};\n${current.body}\n${bindings.login} = login;\n}\n`
   const css = read('src/app.css').toString()
   const directive = '@import "../../../site-src/assets/css/essay.css";'
   if (!css.startsWith(directive) || /@import/.test(css.slice(directive.length))) throw Error('El CSS offline necesita imports conocidos; usa esbuild.')
-  return { js: code.slice(0, offset) + replacement + code.slice(offset),
+  return { js: code.slice(0, offset) + replacement + publication + code.slice(offset),
     css: read('../../site-src/assets/css/essay.css').toString() + '\n' + css.slice(directive.length) }
 }

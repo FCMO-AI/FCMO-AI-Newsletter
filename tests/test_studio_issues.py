@@ -5,7 +5,7 @@ import unittest
 from studio.server import issues
 from studio.server.storage import Store, Conflict, git
 from studio.server.publishing import GitHub, Publisher
-from tests.harness.mock_github import MockGitHub
+from tests.test_studio_publish import MockGitHub
 from tests.test_studio_storage import ROOT
 from tests.test_studio_publish import MockWorkspace
 
@@ -33,7 +33,7 @@ class Issues(unittest.TestCase):
                 mock.refs['main'] = git(remote, 'rev-parse', 'HEAD')
                 workspace = MockWorkspace(store, github, ['python3', '-c', 'raise SystemExit(0)'])
                 publisher = Publisher(store, github, workspace, lambda value: [{'ok': True}])
-                publisher.request(value, 'matias'); publisher.approve(value, 'javier'); mock.live_id = value
+                publisher.request(value, 'matias'); mock.live_id = value
                 for _ in range(10): publisher.advance(value)
                 self.assertEqual(publisher.get(value)['state'], 'published')
                 self.assertEqual(mock.pushes[0]['paths'], ['editorial/issues/' + value + '.json'])

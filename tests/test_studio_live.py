@@ -177,12 +177,13 @@ class CredentialsAndBase(unittest.TestCase):
             self.assertNotIn('GH_TOKEN', env); self.assertNotIn('GITHUB_TOKEN', env)
             self.assertEqual(env['GH_CONFIG_DIR'], 'fixture-config')
             self.assertIn('credential.helper=!gh auth git-credential', options)
-    def test_cli_same_github_identity_cannot_review_itself(self):
+    def test_cli_author_preflight_needs_only_its_own_identity(self):
         from unittest.mock import patch
         from studio.server.credentials import GitHubCLI
         gh = GitHubCLI()
-        with patch.object(gh, 'identity', return_value='same-login'):
-            with self.assertRaisesRegex(Refused, 'distintas'): gh.preflight('javier', 'matias')
+        with patch.object(gh, 'identity', return_value='same-login') as identity:
+            gh.preflight('javier')
+            identity.assert_called_once_with('javier')
     def test_dry_run_records_review_but_worker_has_no_external_effect(self):
         import tempfile, os
         from unittest.mock import patch, Mock

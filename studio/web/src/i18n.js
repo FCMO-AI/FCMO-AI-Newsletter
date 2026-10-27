@@ -374,3 +374,70 @@ Object.assign(S.en, {
   'prog.halt.resumed': 'Publishing resumed.',
   'prog.net': 'No connection to Studio. Retrying…'
 })
+
+
+// Author publication contract (operator decision 2026-10-26).
+export const AUTHOR_PUBLICATION_STRINGS = {
+  es: {
+    'gh.done': 'GitHub conectado. Ya puedes publicar tu texto.',
+    'rev.confirm': 'Al pulsar Publicar, el texto se enviará al sitio público.', 'rev.waiting': 'Publicación pendiente del autor.',
+    'rev.private.approve': 'La publicación pública está desactivada.',
+    'rev.email.on': 'El correo sólo se envía cuando el canal está habilitado y lo has seleccionado.',
+    'rev.email.unknown': 'No se pudo comprobar el estado del correo.', 'rev.time': 'Puedes volver al escritorio mientras se publica y verifica.',
+    'pub.wait.title': 'Publicando…', 'pub.wait.lead': 'Se está comprobando y publicando el texto que seleccionaste.',
+    'pub.wait.s1': 'Se prepara el texto seleccionado.', 'pub.wait.s2': 'Deben pasar las comprobaciones automáticas.',
+    'pub.wait.s3': 'Se publica y se comprueba que esté visible.',
+    'home.review': 'En publicación', 'attn.review': '«{title}» está pendiente de publicación por su autor.',
+    'attn.changes': '«{title}» necesita correcciones antes de publicar.',
+    'rev.private.confirm': 'La publicación pública está desactivada. Puedes seguir escribiendo y comprobando tu texto.',
+    'pub.lead': 'Comprueba tu texto y pulsa Publicar cuando esté en orden.',
+    'pub.ask': 'Publicar', 'pub.sent': 'Publicando…', 'pub.askfail': 'No se pudo iniciar la publicación. Tu texto sigue a salvo; vuelve a intentarlo.',
+    'pub.approval': 'Tú decides publicar. Las comprobaciones automáticas deben aprobarse antes de que el texto salga en el sitio.',
+    'pub.reviewer': 'Publica el autor', 'pub.threshold': 'Antes de publicar',
+    'pub.public': 'Al pulsar Publicar, el texto se enviará para publicación. Comprueba que esté listo: lo que un lector ve no se deshace con un clic.',
+    'pub.machine': '{langs}: traducciones automáticas con comprobación de fidelidad; publicar no afirma revisión humana de esos idiomas.',
+    'pub.mt': 'Comprueba las traducciones antes de publicar.',
+    'prog.done': 'Publicado y verificado', 'prog.s.live': 'Publicado y verificado',
+    'prog.s.approved.by': 'Publicación solicitada por el autor', 'prog.s.approved.me': 'Publicación solicitada por el autor',
+    'prog.empty.lead': 'Al pulsar Publicar, aquí verás cada paso hasta comprobar el texto en el sitio.',
+    'prog.empty.s1': 'Pulsas Publicar.', 'prog.empty.s2': 'Se prepara tu texto para publicación.',
+    'prog.fail.askauthor': 'El autor puede corregir el texto y volver a pulsar Publicar.',
+    'prog.halt.tech.body': 'Fue un problema técnico. El texto seleccionado sigue intacto.',
+    'prog.halt.int.body': 'Lo que quedó publicado no coincide con lo que seleccionaste para publicar.',
+    'prog.halt.int.author': 'El autor puede revisar lo publicado y continuar.',
+    'amend.review': 'La modificación pasa por las comprobaciones automáticas antes de publicarse.', 'amend.begin': 'Preparar publicación',
+    'pub.mode.unread': 'No se pudo comprobar si la publicación está habilitada. Vuelve a comprobar antes de publicar.'
+  },
+  en: {
+    'gh.done': 'GitHub connected. You can publish your text.',
+    'rev.confirm': 'Pressing Publish submits your text to the public site.', 'rev.waiting': 'Publication pending its author.',
+    'rev.private.approve': 'Public publishing is disabled.',
+    'rev.email.on': 'Email is sent only when the channel is enabled and you selected it.',
+    'rev.email.unknown': 'The email status could not be checked.', 'rev.time': 'You can return home while publishing and verification continue.',
+    'pub.wait.title': 'Publishing…', 'pub.wait.lead': 'Your selected text is being checked and published.',
+    'pub.wait.s1': 'Your selected text is prepared.', 'pub.wait.s2': 'Automatic checks must pass.',
+    'pub.wait.s3': 'The text is published and its visibility is verified.',
+    'home.review': 'Publishing', 'attn.review': '“{title}” awaits publication by its author.',
+    'attn.changes': '“{title}” needs corrections before publication.',
+    'rev.private.confirm': 'Public publishing is disabled. You can keep writing and checking your text.',
+    'pub.lead': 'Check your text and press Publish when it is ready.', 'pub.ask': 'Publish', 'pub.sent': 'Publishing…',
+    'pub.askfail': 'Publishing could not start. Your text is safe; try again.',
+    'pub.approval': 'You decide to publish. Automatic checks must pass before the text goes live.',
+    'pub.reviewer': 'The author publishes', 'pub.threshold': 'Before publishing',
+    'pub.public': 'Pressing Publish submits the text for publication. Check that it is ready: what a reader sees cannot be undone with one click.',
+    'pub.machine': '{langs}: machine translations with fidelity checks; publishing does not claim human review of those languages.',
+    'pub.mt': 'Check the translations before publishing.',
+    'prog.done': 'Published and verified', 'prog.s.live': 'Published and verified',
+    'prog.s.approved.by': 'Publication requested by the author', 'prog.s.approved.me': 'Publication requested by the author',
+    'prog.empty.lead': 'After you press Publish, every step appears here until the text is verified on the site.',
+    'prog.empty.s1': 'You press Publish.', 'prog.empty.s2': 'Your text is prepared for publication.',
+    'prog.fail.askauthor': 'The author can correct the text and press Publish again.',
+    'prog.halt.tech.body': 'It was a technical problem. The selected text is intact.',
+    'prog.halt.int.body': 'What went live does not match what you selected for publication.',
+    'prog.halt.int.author': 'The author can check what went live and continue.',
+    'amend.review': 'The change passes automatic checks before publication.', 'amend.begin': 'Prepare publication',
+    'pub.mode.unread': 'Publication availability could not be checked. Check again before publishing.'
+  }
+}
+Object.assign(S.es, AUTHOR_PUBLICATION_STRINGS.es)
+Object.assign(S.en, AUTHOR_PUBLICATION_STRINGS.en)

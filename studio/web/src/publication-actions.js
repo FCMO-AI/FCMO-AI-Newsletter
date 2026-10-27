@@ -35,13 +35,13 @@ export function rollbackDialog () {
   } }] })
 }
 
-// A halted publication is either technical (anyone may resume) or an integrity halt (only the reviewer, after confirming).
+// A halted publication is either technical (anyone may resume) or an integrity halt (only the author, after confirming).
 const INTEGRITY = ['foreign_merge', 'merge_outside']
 export function haltPlan (p, me) {
   if (!p || !p.halted) return null
   const integrity = INTEGRITY.includes(p.halt_reason)
-  const reviewer = !!me && !!p.author && p.author !== me
-  return { integrity, canResume: !integrity || reviewer, confirm: integrity }
+  const author = !!me && !!p.author && p.author === me
+  return { integrity, canResume: !integrity || author, confirm: integrity }
 }
 
 // While halted the screen is a still picture of the recorded state: the halt card comes first and nothing runs.
