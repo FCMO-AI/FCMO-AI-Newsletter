@@ -222,12 +222,20 @@ class PaperBuilder:
                 width += 0.55
             else:
                 width += 0.35
-        # The 65-unit cutoff is calibrated from the measured five-line Spanish
+        # At 1440px the hero column is (1360 - 2*56 - 57.6)*7/12 = 694.4px.
+        # Its existing large/compact/extra steps are 48.96/47.52/30.24px.
+        # Offline shaping/word-wrap estimates with shipped Inter Tight 900
+        # first exceed four lines in the corpus at 42.4 units (ANVIL) /
+        # 46 units (OSS-Fuzz), respectively; Chromium remains the final gate.
+        # Start compact at 38 (below the 42.4-unit failure) so the unchanged
+        # c6 probes still exercise all three long-title steps. Long leads use
+        # existing extra-compact step, with no truncation or new type scale.
+        # The story's 65-unit cutoff is calibrated from five-line Spanish
         # titles (82.8–92.4 units) and the 1040px story header at 51.84px compact
         # type. It leaves room for four lines before titles take the smaller step.
-        if width > 65:
+        if width > (45 if hero else 65):
             return "title-extra-compact"
-        if width > 58:
+        if width > (38 if hero else 58):
             return "title-compact"
         # The landing hero has a ~694px column, narrower than the story header.
         # The reported 62-65-character leads (~32-34 units) still used 66px

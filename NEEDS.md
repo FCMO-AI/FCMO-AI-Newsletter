@@ -548,3 +548,109 @@ El árbol actual tiene 736 historias (731 live) y abre con la ficha de OpenAI,
 distinta de las tres historias capturadas en el brief. Las regresiones conservan
 los textos exactos del incidente y el titular mixto CJK/latino actual. No se
 modificaron datos, oráculos ni sus presupuestos.
+
+# hero-titular-largo-20261027 — ronda 2
+
+En juego → legibilidad del titular completo dentro del diseño aprobado → evidencia
+exigida: Chromium a 1440 y 390 px con los presupuestos originales → evidencia que
+hay: regresión de clasificación roja antes/verde después, HTML completo, build y
+estimación con las métricas de la fuente real. NO-GO para afirmar layout o Deploy
+reparados mientras falte la medición de navegador. No hay publicación en este carril.
+
+## Derivación y límite
+
+- Columna a 1440: `(1360 - 2*56 - 57.6) * 7/12 = 694.4 px`.
+  `paper.css` da large = `3.4vw` = 48.96 px, compact = `3.3vw` =
+  47.52 px y extra-compact = `min(2.1vw, 1.9rem)` = 30.24 px.
+- Estimación offline con FreeType/HarfBuzz, la WOFF2 Inter Tight local a peso 900,
+  tracking final -0.020em y word-spacing +0.020em. Entre 1122 títulos EN/ES del
+  árbol actual, los primeros casos de cinco líneas por ajuste de palabras son
+  ANVIL (42.4 unidades) en large y OSS-Fuzz (46 unidades) en compact.
+  Esto calibra, pero no sustituye `text-wrap:balance` ni Chromium.
+- Cortes exclusivos del hero: compact >38, extra-compact >45. El primer corte
+  deja margen frente a 42.4 y conserva las tres clases largas en los probes c6
+  existentes (38.5/39.1 unidades ya prueban compact). No se cambia ningún probe,
+  oráculo, presupuesto, texto publicado, CSS ni corte de story header.
+- El español exacto de 107 caracteres pasa de large a extra-compact. Los probes
+  ES de 107/129/130 caracteres calculan 3 líneas a 1440; a 390, columna 358 px,
+  tamaño existente 32 px y tracking -0.012em: 6/7/8 líneas, alturas estimadas
+  203.52/237.44/271.36 px, todas bajo 379.8 px. Son cálculos, no mediciones DOM.
+- Para Han de avance 1em, extra-compact admite 22 caracteres por línea en
+  694.4 px: hasta 88 en cuatro líneas. Los probes de 70 y 80 Han entran en ese
+  alcance. **107/130 Han puros no caben**: requieren 5/6 líneas a 1440 y,
+  con 32 px y leading 1.3, 10/12 líneas (416/499.2 px) a 390. Para 130 Han
+  harían falta <=21.04 px en desktop, fuera de las clases existentes. Se deja
+  este límite explícito; no se inventa una escala ni se trunca el texto.
+
+## Continuación ejecutable fuera del sandbox
+
+```sh
+python3 tools/paper/build.py --stories site/data/stories.v2.json --status site/data/newsroom-status.json --editorial editorial --out publish --base /FCMO-AI-Newsletter/
+python3 tests/check_paper_hero_titles.py publish
+python3 tests/oraculos/verificar_paper.py publish
+git diff --check
+```
+
+UNVERIFIED: los dos comandos de navegador terminan con `BROWSER_UNAVAILABLE`
+porque no existe Playwright instalado aquí. La batería nueva mide los ocho
+textos completos en sus portadas nativas a 1440/390, sin sockets ni peticiones
+externas. Sus controles con fake aceptan mediciones sanas y rechazan cinco
+líneas, 380 px móviles, overflow, siguiente línea ausente y pérdida de texto;
+no cuentan como evidencia de layout real. Falta revisión visual de Claude.
+
+## CANON aplicado
+
+- `Hub:runtime/FCMO_RUNTIME_V1.txt`: no transformar build/estimación en una afirmación de layout verificado.
+- `Hub:AGENTS.md`: cargar software, visual e identidad por la superficie afectada; no abrir una campaña ajena al arreglo.
+- `Hub:standard/CORE.md`: L5 cambió la prueba: conservar el oráculo real y añadir una batería de textos exactos; no cerrar la verificación con la clase CSS.
+- `Hub:disciplines/SOFTWARE_ENGINEERING.md`: observar tres fallos de regresión antes de modificar producción y conservar los cortes del story header.
+- `Hub:disciplines/VISUAL_ENGINEERING.md`: renderizar será condición para afirmar las cuatro líneas; las métricas offline sólo calibran.
+- `Hub:identity/README.md`: preservar la jurisdicción propia de FCMO AI y la escala existente del producto.
+- `Hub:identity/readable/original/FCMO_Design_Current_V4.0.1_UNCHANGED.txt`: reutilizar Inter Tight y escalones existentes; no inventar un tamaño para hacer caber 130 Han.
+- `Hub:identity/readable/original/Desglose_de_la_simbologia_de_FCMO_UNCHANGED.txt`: no cambió nada porque no se tocan marca, símbolos ni geometría del isotipo.
+- `Hub:identity/FCMO_TECHNICAL_EXPOSURE_GRADIENT_v0.1.md`: no cambió nada porque el arreglo no altera atmósfera ni niveles de exposición técnica.
+- `Hub:disciplines/WORTHY_WORK.md`: PROOF separa la batería fake del resultado para el lector; no declarar listo sin navegador.
+- `Hub:identity/FCMO_EDITORIAL_SOCIAL_OS_v0.1.md`: no cambió nada porque excluye FCMO AI/product UI y no se produce copy social.
+- `Hub:disciplines/COMMUNICATION.md`: informar en español el resultado y su límite, con cifras estimadas identificadas como tales.
+
+El contrato nuevo de cortes de hero cambia NgramRL (42 unidades) de large a
+compact. Sus dos aserciones de clase se actualizan por ese cambio de contrato
+explícito del brief; siguen exigiendo la clase exacta y el titular íntegro.
+Las aserciones de los otros leads y del story header se conservan. Los 2193
+HTML con story header son idénticos byte a byte al candidato anterior.
+
+Las referencias `Hub:` son relativas al checkout canónico; su ubicación completa
+se informa sólo en el reporte al operador. Las rutas absolutas que añadí aquí
+activaban correctamente `NO_MACHINE_PATHS` y hacían fallar privacidad/Studio.
+Se retiraron del documento público, sin modificar esa compuerta: sus 7 pruebas
+y las 2 integraciones HTTP afectadas pasan tras la corrección. La primera
+comparación con el builder base conservaba este documento cambiado y no era
+un aislamiento válido para atribuir el fallo a la base.
+
+## Aceptación de la ronda 2
+
+- Build con el comando anterior: salida 0, 5805 rutas, 57 feeds y 3862 redirects.
+- `python3 -m unittest discover -s tests -p 'test_paper_hero_titles.py' -v`:
+  9/9 verdes. Los dos métodos nuevos de clasificación ejecutados con la función
+  original de 690d98efe vuelven a fallar (3 aserciones), incluido el español exacto.
+- `python3 -m unittest discover -s tests -p 'test_c6_tablet_oracle.py' -v`:
+  22/22 verdes, sin modificar el oráculo ni sus tests.
+- `python3 tools/unittest_shards.py --index <0..3> --count 4`: las cuatro
+  particiones terminaron, con 1309 pruebas descubiertas, digest común
+  `f3682a573232e30682111c98789f725d5ebc5b4483df858b1e52bc244802d074`.
+  Unittest reportó 1303 pruebas y 9 skips (las clases saltadas no cuentan sus
+  métodos en `testsRun`). Las corridas intermedias NO fueron verdes: detectaron
+  las dos expectativas NgramRL y las rutas internas del handoff ya corregidas.
+- Repeticiones tras corregir cada causa: hero 9/9, c6 tablet 22/22,
+  `tests.test_studio_checks_privacy` 7/7, las dos integraciones HTTP afectadas
+  2/2, `tests.test_gates` 25/25 y
+  `tests.test_v4_corpus_freshness.CorpusFreshnessBuildTests.test_publication_gates_pass_on_the_fresh_build`
+  1/1 con sus dos builds y 14 compuertas por build. Total: 66 comprobaciones
+  repetidas verdes; no quedan fallos observados sin corregir. No se afirma una
+  nueva corrida completa única en verde después de las correcciones. La corrida
+  serial inicial, redundante y con código cargado anterior, fue interrumpida
+  después de terminar las cuatro particiones.
+- `git diff --check` y `git diff --cached --check`: verdes.
+- `tests/check_paper_hero_titles.py publish` y `tests/oraculos/verificar_paper.py publish`:
+  salida 1, `BROWSER_UNAVAILABLE`. Los skips existentes de navegador también
+  quedan UNVERIFIED. Reejecutar suite y navegador fuera del sandbox.
