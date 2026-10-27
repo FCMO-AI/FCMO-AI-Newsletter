@@ -443,3 +443,11 @@ gh timeout or missing, network wording). 404 still returns None; 401/403 stay `R
 original L1 ownership; the change is minimal and covered by `CLITransientReads` in `tests/test_studio_publish_robust.py`.
 Also: the public ruleset must not be required to carry `strict_required_status_checks_policy`; if it does, Studio
 replays the approved bytes on the new main when the PR reports `behind`.
+
+# studio-un-autor
+
+- Actualizar README.md, PUBLICATION_POLICY.md, LOCALIZATION.md y contratos operativos que todavía describen una segunda cuenta obligatoria: el autor selecciona su revisión al pulsar Publicar y pasan todas las compuertas automáticas. No convertir la publicación en una afirmación de revisión humana de idiomas. Fuera del ownership.
+- Actualizar tests/harness/mock_github.py y las baterías tests/harness/browser/studio_review.mjs y studio_publish.mjs al contrato de un autor. El adaptador de tests/test_studio_publish.py conserva SHA, protección y checks; sólo retira el requisito de reviews. Reejecutar la batería real en escritorio y pantalla estrecha; conservar sus aserciones de integridad.
+- ops/studio/host.py todavía exige ambas cuentas locales para instalar Studio (tests/test_studio_host.py conserva esa prueba). Revisar ese requisito de instalación fuera de este carril; la publicación ya no requiere otra credencial GitHub. No cambiar protección de sesiones.
+- Verificar fuera de este entorno la publicación real con la credencial del autor: PR, checks verdes, merge existente, deploy e identidad del artículo público. Si GitHub rechaza el merge por reglas existentes, resolver ese permiso con el operador; este carril no cambia rulesets ni usa otra identidad.
+- No hubo inspección final en navegador real: faltan Chromium/Playwright y las dependencias declaradas prosemirror-model/esbuild. No instalar dependencias ni usar red aquí. La batería JS disponible prueba el controlador con DOM simulado y el bundle servido, no su aspecto visual.

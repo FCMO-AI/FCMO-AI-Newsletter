@@ -15,6 +15,8 @@ from tests.test_studio_storage import DOC, ROOT
 class MockGitHub(TwoPersonMockGitHub):
     """The author-only GitHub contract; all automatic merge guards remain."""
     def dispatch(self, actor, method, path, query, body):
+        if self.fail_before == (method, path):
+            return super().dispatch(actor, method, path, query, body)
         if method == 'PUT' and path.endswith('/merge') and actor:
             pr = self.prs[int(path.split('/')[-2])]
             if self.merge_refused or not self.protection or body['sha'] != pr['head']['sha']:
