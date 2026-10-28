@@ -35187,6 +35187,59 @@
       "title": "OpenAI describe el almacenamiento multiusuario y el diseño de latencia global de Habitat a escala de 500 PB",
       "why_it_matters": "La publicación ofrece un caso concreto de cómo interactúan el aislamiento de cargas, el comportamiento de las particiones, la ubicación regional, la caché y la captura de cambios en un gran servicio de almacenamiento en línea. La mejora p50 informada, de 12x, es relevante para la operación, pero combina varias intervenciones y no establece sus efectos por separado, el costo comparativo ni la transferencia a otras cargas. El contrato público de Azure documentado al 27 de abril de 2026 difiere del modo de Habitat descrito aquí, que no debe suponerse disponible de forma general."
     },
+    "FCMO-D2EDF29696A3": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "La versión 1 del preprint «Rethinking Indirect Prompt Injection as a Test-Time Search Problem» se publicó en arXiv el 3 de septiembre de 2026."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan que un atacante GLM-5.2 con reconocimiento del entorno, herramientas estructuradas de estrategia e historial, y retroalimentación adaptativa de la víctima encuentra más ataques indirectos de inyección de instrucciones exitosos a medida que aumenta su presupuesto de tokens, en los entornos sintéticos Workspace y Retail. Informan un ASR de 52.1% para GPT-5.5 con 100,000 tokens del atacante en Workspace y de 20.6% para Claude Opus 4.8 con 500,000 tokens en Retail. En una ablación de Retail, el atacante de solo evaluación, sin el arnés completo de búsqueda, se estanca tras unos 100,000 tokens; al quitar la herramienta Strategy se repiten el reconocimiento y los patrones de ataque. Son resultados reportados por los autores bajo un modelo de amenaza de caja blanca, no una reproducción independiente ni una medición de prevalencia en producción."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El preprint no establece que las curvas de presupuesto de ataque se transfieran a atacantes de caja negra, sistemas de producción, otros modelos de atacante o víctima, ni a capas deterministas de autorización y contención; tampoco se establecen una reproducción independiente o la prevalencia en el mundo real."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se realizó una reproducción independiente del atacante adaptativo ni de las curvas de respuesta al presupuesto. El artículo informa resultados de los autores y estadísticas limitadas entre ejecuciones.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "El atacante ve el entorno en la evaluación de caja blanca; no se probaron de manera sistemática la transferencia a caja negra, el comportamiento en sistemas desplegados ni controles deterministas de permisos o autorización.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "El artículo informa presupuestos de tokens, pero no establece una curva de robustez con costos normalizados que se transfiera entre modelos de atacante, proveedores o protocolos de defensa.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se mantiene en entornos realistas de agentes, el presupuesto y la retroalimentación controlados por el atacante pueden cambiar de forma material el riesgo medido de inyección de instrucciones y el diseño de las evaluaciones de seguridad. La puntuación refleja esa consecuencia; la evidencia actual es un estudio único, reportado por sus autores, de caja blanca, sobre entornos sintéticos, un atacante y dos víctimas.",
+      "limitations": [
+        "Los hallazgos se reportan en un solo preprint de arXiv y no se reprodujeron independientemente en esta activación.",
+        "Los experimentos principales usan un atacante de caja blanca con visibilidad del entorno, un atacante GLM-5.2 y las víctimas GPT-5.5 y Claude Opus 4.8 en los entornos sintéticos Workspace y Retail.",
+        "Los resultados no establecen transferencia a caja negra, prevalencia en producción ni el efecto de defensas deterministas de autorización y contención.",
+        "Las consultas a la víctima, los tokens y FLOP del atacante, el cómputo, el costo y el tiempo de pared no son intercambiables; no se deben combinar las curvas de tokens reportadas con estudios que usan otros presupuestos o benchmarks.",
+        "El éxito del ataque puede aumentar mientras baja el éxito conjunto de la tarea benigna y el ataque al ampliar la cantidad de herramientas; ASR por sí solo no representa esta compensación."
+      ],
+      "relationships": [],
+      "summary": "Un preprint del 3 de septiembre plantea la inyección indirecta de instrucciones como un problema de búsqueda del atacante y evalúa un atacante GLM-5.2 con reconocimiento del entorno, estado explícito de estrategia e historial, y pruebas con retroalimentación del agente víctima. En los entornos sintéticos Workspace y Retail, los autores informan que el éxito del ataque aumenta con el presupuesto de tokens de inferencia: GPT-5.5 alcanza 52.1% de ASR con 100,000 tokens en Workspace, mientras que Claude Opus 4.8 alcanza 20.6% con 500,000 tokens en Retail. Al quitar el arnés de búsqueda, las mejoras se estancan después de unos 100,000 tokens; al quitar la herramienta de estrategia, se repiten el reconocimiento y los patrones de ataque. El estudio es de caja blanca, usa tareas sintéticas y un atacante frente a dos víctimas; no establece transferencia a caja negra ni reproducción independiente.",
+      "technical": {
+        "claimed_result": "Los autores informan que un atacante GLM-5.2 con reconocimiento del entorno, herramientas estructuradas de estrategia e historial, y retroalimentación adaptativa de la víctima encuentra más ataques indirectos de inyección de instrucciones exitosos a medida que aumenta su presupuesto de tokens, en los entornos sintéticos Workspace y Retail. Informan un ASR de 52.1% para GPT-5.5 con 100,000 tokens del atacante en Workspace y de 20.6% para Claude Opus 4.8 con 500,000 tokens en Retail. En una ablación de Retail, el atacante de solo evaluación, sin el arnés completo de búsqueda, se estanca tras unos 100,000 tokens; al quitar la herramienta Strategy se repiten el reconocimiento y los patrones de ataque. Son resultados reportados por los autores bajo un modelo de amenaza de caja blanca, no una reproducción independiente ni una medición de prevalencia en producción.",
+        "demonstrated_result": "El preprint v1 de arXiv y el protocolo de búsqueda del atacante y los resultados que describe están disponibles públicamente; el rendimiento reportado no se estableció de forma independiente en esta activación.",
+        "mechanism": "Un atacante agéntico explora el entorno y los posibles vectores de inyección, conserva un estado estructurado de estrategia e historial de búsqueda y adapta sus sondeos posteriores a partir de las respuestas de la víctima, sus trazas de herramientas y los resultados de utilidad y seguridad.",
+        "regime": "Un atacante GLM-5.2 con visibilidad de caja blanca del entorno; víctimas GPT-5.5 y Claude Opus 4.8; suite sintética Workspace con 240 pares de tareas del usuario y objetivos de inyección, y suite Retail con 136 pares.",
+        "strongest_baseline": "El artículo incluye ablaciones de arnés completo, sin arnés y sin Strategy; son comparaciones realizadas por los autores dentro de las mismas suites sintéticas."
+      },
+      "title": "La búsqueda adaptativa de ataques eleva el éxito de la inyección de instrucciones a medida que aumenta el cómputo en dos entornos sintéticos de agentes",
+      "why_it_matters": "Una puntuación de ataque estática puede ocultar vulnerabilidades que un atacante adaptativo descubre al inspeccionar el entorno, conservar el historial de búsqueda y aprender de la retroalimentación de la víctima. Si el patrón informado se generaliza, las evaluaciones de seguridad de agentes deben especificar el acceso y el presupuesto de cómputo del atacante, y medir la utilidad de la tarea junto con el compromiso. El estudio no establece transferencia a caja negra, riesgo en producción ni una ley general de escalamiento."
+    },
     "FCMO-D32D8204EF09": {
       "claims": [
         {
