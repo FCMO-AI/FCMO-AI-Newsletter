@@ -29764,6 +29764,59 @@
       "title": "Emergence World informa fallas persistentes en pruebas de estrés multiagente de larga duración",
       "why_it_matters": "El estudio muestra por qué conviene evaluar sistemas de agentes persistentes a través de la memoria, las herramientas, los pares y el estado compartido: en estas pruebas, reconocer una entrada hostil no evitó de manera fiable la acción, persistencia ni propagación. El resultado respalda evaluar el comportamiento de sistemas de larga duración además de respuestas aisladas de modelos, aunque una sola trayectoria por configuración no permite estimar la frecuencia de fallas."
     },
+    "FCMO-B1606933E4DC": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "Un equipo de autores afiliados a Apple presentó el preprint arXiv 2610.37648v1 el 27 de octubre de 2026, donde describe SynthAPI, un proceso para generar entornos sintéticos ejecutables de uso de herramientas."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan que variaron la composición de tareas y entornos en 458,752 tareas generadas y 849 modelos entrenados de cuatro tamaños Qwen3.5. Su ley de escalamiento, que incorpora la composición, predice las puntuaciones posteriores reservadas con un error absoluto medio de 0.0285 en el 25% superior de corridas por FLOP de entrenamiento, frente a 0.1706 para un ajuste basado solo en el número de tareas."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El artículo informa que SynthAPI-Big supera a SimSAT en AppWorld Test-Challenge por 7.6 puntos porcentuales con el modelo 4B y 11.6 puntos con el 9B, y supera al mejor resultado de referencia indicado en BFCL por 2.0 puntos con 4B y 3.7 puntos con 8B. El artículo señala que los métodos BFCL usan regímenes de entrenamiento sustancialmente distintos, por lo que la comparación no aísla el efecto del método de síntesis ni la eficiencia de datos."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El artículo no demuestra que esta relación de escalamiento se transfiera a otros procesos de datos sintéticos, configuraciones de entrenamiento, agentes desplegados o flujos de producción; los autores indican que solo se valida con un proceso y que los experimentos se limitan a simulaciones de investigación."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se localizó ni realizó una reproducción independiente de la generación SynthAPI, el ajuste de la ley de escalamiento o los resultados de referencia informados.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "No se ha establecido la transferencia a otros procesos de generación de entornos sintéticos, métodos de entrenamiento ni flujos realistas con participación de usuarios.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se reproducen los efectos informados de la composición y la relación predictiva de escalamiento, podrían cambiar la distribución de presupuestos de entrenamiento de agentes de uso de herramientas entre diversidad de tareas, herramientas y estados. El trabajo destaca por sus implicaciones para el diseño de datos y la evaluación, aunque la evidencia proviene de un solo artículo, un proceso sintético y simulaciones de investigación.",
+      "limitations": [
+        "Todos los resultados informados provienen de un único preprint de los autores y no se reprodujeron de manera independiente en esta activación.",
+        "La relación de escalamiento propuesta se valida con un único proceso de síntesis de datos; los autores dicen que no está garantizada su transferencia a otros procesos o configuraciones de entrenamiento.",
+        "Las tareas no incluyen a una persona interactuando con el agente, y el contenido generado carece de la profundidad semántica de documentos extensos y realistas, como cadenas de correo o notas.",
+        "Todos los experimentos de uso de herramientas se realizaron en simulaciones de investigación; no demuestran resultados en productos desplegados o flujos de producción.",
+        "Las comparaciones de referencia usan distintas familias de modelos, conjuntos de datos y regímenes de entrenamiento; los autores señalan que no aíslan el método de síntesis ni la eficiencia relativa de datos.",
+        "Durante esta revisión, la página de arXiv no mostró enlaces a código o conjuntos de datos; no se inspeccionaron ni ejecutaron de manera independiente las tareas generadas, los puntos de control, los resultados de referencia o el análisis."
+      ],
+      "relationships": [],
+      "summary": "Un preprint de autores afiliados a Apple presenta SynthAPI, un proceso que genera entornos ejecutables para agentes de uso de herramientas con diversidad configurable de herramientas, tareas y estados de bases de datos. Los autores informan experimentos con 458,752 tareas y 849 modelos Qwen3.5, además de una ley de escalamiento que incorpora la composición y presenta menor error reservado que un ajuste basado solo en el número de tareas. También informan mejoras en referencias seleccionadas y aclaran que algunas comparaciones usan regímenes de entrenamiento distintos. El estudio se limita a simulaciones sintéticas de investigación; los autores indican que no se ha establecido la transferencia más allá de este proceso de síntesis.",
+      "technical": {
+        "claimed_result": "Los autores informan que la composición de datos mejora la predicción de puntuaciones posteriores y que, con presupuestos mayores, se benefician de más diversidad de aplicaciones y herramientas, más estados de base de datos por tarea y mayor complejidad de esos estados. La receta seleccionada también supera varias referencias en las comparaciones informadas.",
+        "demonstrated_result": "El arXiv v1 público contiene el método, la descripción de los experimentos, las mediciones informadas y las limitaciones declaradas. Esta revisión no reprodujo los resultados de forma independiente.",
+        "mechanism": "SynthAPI usa un modelo de lenguaje para generar aplicaciones Python ejecutables respaldadas por bases de datos estructuradas; después crea tareas con verificadores, estados iniciales y programas de solución. Los experimentos varían la cantidad de aplicaciones y herramientas, las tareas por aplicación, los estados iniciales de las bases de datos y la complejidad de los datos distractores. GLM-5.2 generó trayectorias de experto para el ajuste fino supervisado de modelos Qwen3.5.",
+        "regime": "458,752 tareas generadas en 64 aplicaciones; 849 modelos entrenados en cuatro tamaños Qwen3.5; extrapolación reservando para evaluación el 25% superior de corridas por FLOP; evaluación en AppWorld, BFCLv3 multi-turn, ASTRA-Bench y un conjunto reservado de SynthAPI. Los entornos son sintéticos y solo de investigación.",
+        "strongest_baseline": "Para el ajuste de la ley de escalamiento, la referencia directa es una curva basada solo en el número de tareas. En algunas comparaciones de referencia, el artículo contrasta con SimSAT en AppWorld y con EnvFactory o EnvScaler en BFCL; los métodos usan conjuntos de datos distintos y, en BFCL, diferentes regímenes de ajuste supervisado y aprendizaje por refuerzo."
+      },
+      "title": "Preprint informa leyes de escalamiento para datos sintéticos de entrenamiento de agentes que usan herramientas",
+      "why_it_matters": "Los presupuestos de entrenamiento de agentes suelen describirse por la cantidad de trayectorias o tareas. Si los resultados se reproducen, la composición de los datos entre herramientas y estados de bases de datos podría ser una variable importante de diseño, y el ajuste propuesto ayudaría a distribuir los presupuestos. El artículo no demuestra que las mejoras se transfieran más allá del proceso evaluado ni de las tareas simuladas."
+    },
     "FCMO-B16DAF2BB6B8": {
       "claims": [
         {
